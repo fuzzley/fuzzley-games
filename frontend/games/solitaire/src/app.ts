@@ -1,10 +1,8 @@
-import {Game} from 'phaser';
+import {Game} from 'Phaser';
 
-class App {
-    public static run() {
+export class App {
+    public run() {
         new Game();
         console.log('We created a new game!');
     }
 }
-
-App.run();

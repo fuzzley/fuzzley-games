@@ -4,15 +4,5 @@
     <body>
         Hello world!
     </body>
-    <script src="./node_modules/systemjs/dist/system.js"></script>
-    <script>
-        SystemJS.config({
-            map: {
-                phaser: '/node_modules/phaser/dist/phaser.min.js'
-            }
-        });
-
-        SystemJS.import('/node_modules/phaser/dist/phaser.min.js');
-        SystemJS.import('/src/app.js');
-    </script>
+    <script src="node_modules/requirejs/require.js" data-main="main"></script>
 </html>
