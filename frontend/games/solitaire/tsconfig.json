@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
+        "module": "System",
         "noImplicitAny": true,
         "removeComments": true,
         "sourceMap": true,
@@ -11,7 +11,8 @@
         "**/*.spec.ts"
     ],
     "include": [
-        "src/**/*"
+        "src/**/*",
+        "custom_typings/**/*",
     ],
     "typeRoots": [
         "./node_modules/@types",

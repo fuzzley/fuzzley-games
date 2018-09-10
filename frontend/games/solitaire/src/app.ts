@@ -1,6 +1,9 @@
+import {Game} from 'phaser';
+
 class App {
     public static run() {
-        console.log('Hello World!');
+        new Game();
+        console.log('We created a new game!');
     }
 }
 

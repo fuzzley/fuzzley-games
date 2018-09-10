@@ -1,6 +1,3 @@
-// For Phaser v3.12.0
-// https://github.com/photonstorm/phaser3-docs/tree/master/typescript
-
 declare type CallCallback = (item: Phaser.GameObjects.GameObject)=>void;
 
 declare type GridAlignConfig = {
@@ -542,7 +539,7 @@ declare type PluginObject = {
     /**
      * [description]
      */
-    default?: Array;
+    default?: Array<any>;
     /**
      * [description]
      */
