@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "we are live!",
+    "test": "karma start",
     "tsc": "tsc",
     "tsc:w": "tsc -w",
     "lite": "lite-server",
@@ -21,14 +21,20 @@
   },
   "homepage": "https://github.com/fuzzley/fSolitaire#readme",
   "devDependencies": {
+    "@types/jasmine": "^2.8.8",
     "concurrently": "^4.0.1",
+    "jasmine-core": "^3.2.1",
+    "karma": "^3.0.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-coverage": "^1.1.2",
+    "karma-jasmine": "^1.1.2",
     "karma-typescript": "^3.0.13",
+    "karma-typescript-es6-transform": "^1.0.4",
     "lite-server": "^2.4.0",
     "typescript": "^3.0.3"
   },
   "dependencies": {
     "phaser": "^3.12.0",
-    "requirejs": "^2.3.6",
-    "systemjs": "^0.21.4"
+    "requirejs": "^2.3.6"
   }
 }
