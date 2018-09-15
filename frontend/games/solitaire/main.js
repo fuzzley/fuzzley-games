@@ -5,10 +5,6 @@ requirejs.config({
     }
 });
 
-requirejs(['app', 'Phaser'], function(app, phaser) {
-    console.log('starting application...');
-    console.log(phaser);
-
-    var myApp = new app.App();
-    myApp.run();
+requirejs(['app'], function(app) {
+    new app.App().run();
 });
