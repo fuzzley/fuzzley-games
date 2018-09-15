@@ -14,7 +14,7 @@ export enum Suit {
     SPADE,
     HEART,
     DIAMOND,
-    CLUB
+    CLUB,
 }
 
 /** Describes the standard types that a playing card can have. */
@@ -32,5 +32,5 @@ export enum Type {
     TEN,
     JACK,
     QUEEN,
-    KING
+    KING,
 }

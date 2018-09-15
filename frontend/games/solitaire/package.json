@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "karma start",
+    "tslint": "tslint -c tslint.json 'src/**/*.ts'",
     "tsc": "tsc",
     "tsc:w": "tsc -w",
     "lite": "lite-server",
@@ -31,6 +32,7 @@
     "karma-typescript": "^3.0.13",
     "karma-typescript-es6-transform": "^1.0.4",
     "lite-server": "^2.4.0",
+    "tslint": "^5.11.0",
     "typescript": "^3.0.3"
   },
   "dependencies": {
