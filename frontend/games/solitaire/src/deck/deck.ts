@@ -1,23 +1,24 @@
 import {Card} from '../card/card';
 
+/** A deck tracks a collection of cards. */
 export class Deck {
 
     private readonly cards: Card[] = [];
 
+    /** Adds a card to the deck. */
     public addCard(card: Card): void {
         this.cards.push(card);
     }
 
+    /** Returns the cards in the deck. */
     public getCards(): Card[] {
         return this.cards.slice();
     }
 
+    /** Shuffles the deck. */
     public shuffle(): void {
         for (let i = 0; i < this.cards.length; i++) {
-            const switchWith = Math.floor(Math.random() * this.cards.length);
-            const otherCard = this.cards[switchWith];
-            this.cards[switchWith] = this.cards[i];
-            this.cards[i] = otherCard;
+            this.swapCards(i, Math.floor(Math.random() * this.cards.length));
         }
     }
 
