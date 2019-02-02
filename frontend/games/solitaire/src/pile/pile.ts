@@ -3,7 +3,7 @@ import {Card} from '../card/card';
 /** Represents a pile of cards on the board. */
 export class Pile {
 
-    private readonly cards: Card[];
+    private readonly cards: Card[] = [];
 
     /** Returns a readonly list of cards. */
     public getCards(): ReadonlyArray<Card> {
