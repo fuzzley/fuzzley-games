@@ -1,21 +1,26 @@
 {
   "name": "fsolitaire",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Solitaire game.",
+  "private": true,
   "scripts": {
     "test": "karma start",
+    "build": "webpack",
     "tslint": "tslint -c tslint.json 'src/**/*.ts'",
     "tsc": "tsc",
     "tsc:w": "tsc -w",
     "lite": "lite-server",
-    "start": "concurrently \"npm run tsc:w\" \"npm run lite\" "
+    "webpack-dev-server": "webpack-dev-server --env.mode development --open",
+    "dev": "npm run webpack-dev-server",
+    "start": "npm run dev",
+    "build:dev": "npm run build -- --env.mode development",
+    "build:prod": "npm run build -- --env.mode production"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fuzzley/fSolitaire.git"
   },
-  "author": "",
+  "author": "Andrey Gavel",
   "license": "GPL-3.0-only",
   "bugs": {
     "url": "https://github.com/fuzzley/fSolitaire/issues"
@@ -24,19 +29,26 @@
   "devDependencies": {
     "@types/jasmine": "^2.8.8",
     "concurrently": "^4.0.1",
-    "jasmine-core": "^3.2.1",
+    "html-loader": "^0.5.5",
+    "html-webpack-plugin": "^3.2.0",
+    "jasmine": "^3.3.1",
+    "jasmine-core": "^3.3.0",
     "karma": "^3.0.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-coverage": "^1.1.2",
     "karma-jasmine": "^1.1.2",
     "karma-typescript": "^3.0.13",
     "karma-typescript-es6-transform": "^1.0.4",
+    "karma-webpack": "^3.0.5",
     "lite-server": "^2.4.0",
+    "ts-loader": "^5.3.3",
     "tslint": "^5.11.0",
-    "typescript": "^3.0.3"
+    "typescript": "^3.2.4",
+    "webpack": "^4.29.0",
+    "webpack-cli": "^3.2.1",
+    "webpack-dev-server": "^3.1.14"
   },
   "dependencies": {
-    "phaser": "^3.12.0",
-    "requirejs": "^2.3.6"
+    "phaser": "^3.15.1"
   }
 }
