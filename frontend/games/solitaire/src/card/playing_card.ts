@@ -1,4 +1,4 @@
-import { Card } from "./card";
+import { Card } from './card';
 
 /** A playing card that tracks it's suite, type, and other state properties. */
 export class PlayingCard implements Card {

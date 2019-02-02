@@ -1,4 +1,4 @@
-import { Card } from "../card/card";
+import { Card } from '../card/card';
 
 /** A deck tracks a collection of cards. */
 export class Deck {
@@ -24,9 +24,6 @@ export class Deck {
   }
 
   private swapCards(index1: number, index2: number): void {
-    [this.cards[index1], this.cards[index2]] = [
-      this.cards[index2],
-      this.cards[index1]
-    ];
+    [this.cards[index1], this.cards[index2]] = [this.cards[index2], this.cards[index1]];
   }
 }
