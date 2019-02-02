@@ -1,7 +1,7 @@
 import 'jasmine';
 
 import { Card } from '../../src/card/card';
-import { Deck } from '../../src/deck/deck';
+import { Deck } from '../../src/card/deck';
 
 describe('Deck', () => {
   let deck: Deck;

@@ -1,4 +1,4 @@
-import { Card } from '../card/card';
+import { Card } from './card';
 
 /** A deck tracks a collection of cards. */
 export class Deck {

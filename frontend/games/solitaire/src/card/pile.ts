@@ -1,4 +1,4 @@
-import {Card} from '../card/card';
+import {Card} from './card';
 
 /** Represents a pile of cards on the board. */
 export class Pile {

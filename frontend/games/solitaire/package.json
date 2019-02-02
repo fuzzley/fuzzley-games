@@ -6,7 +6,7 @@
   "scripts": {
     "test": "karma start",
     "build": "webpack",
-    "tslint": "tslint -c tslint.json 'src/**/*.ts'",
+    "tslint": "tslint -p . -c tslint.json '**/*.ts' --exclude '**/*.d.ts'",
     "tsc": "tsc",
     "tsc:w": "tsc -w",
     "lite": "lite-server",

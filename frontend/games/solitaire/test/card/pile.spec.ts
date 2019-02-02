@@ -1,7 +1,7 @@
 import 'jasmine';
 
 import {Card} from '../../src/card/card';
-import {Pile} from '../../src/pile/pile';
+import {Pile} from '../../src/card/pile';
 
 describe('Pile', () => {
 
