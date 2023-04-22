@@ -6,13 +6,13 @@ delete webpackConfig.entry;
 module.exports = function(config) {
   config.set({
     frameworks: ["jasmine", "karma-typescript"],
+    files: [{ pattern: "src/**/*.ts" }, { pattern: "test/**/*.ts" }],
     plugins: [
       "karma-jasmine",
       "karma-chrome-launcher",
       "karma-typescript",
       "karma-coverage"
     ],
-    files: [{ pattern: "src/**/*.ts" }, { pattern: "test/**/*.ts" }],
     preprocessors: {
       "src/**/*.ts": ["karma-typescript", "coverage"],
       "test/**/*.ts": ["karma-typescript"],
@@ -23,6 +23,6 @@ module.exports = function(config) {
       noInfo: true
     },
     reporters: ["progress", "coverage", "karma-typescript"],
-    browsers: ["Chrome"]
+    browsers: ["Chrome"],
   });
 };

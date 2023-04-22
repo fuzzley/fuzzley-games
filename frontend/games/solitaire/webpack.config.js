@@ -4,28 +4,28 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
   entry: './src/index.ts',
   devtool: 'inline-source-map',
+  output: {
+    filename: '[name].js',
+    sourceMapFilename: '[name].js.map',
+    chunkFilename: '[id].[chunkhash].js',
+    path: path.resolve(__dirname, 'dist'),
+  },
   module: {
     rules: [
-        {
-            test: /\.(html)$/,
-            use: {
-                loader: 'html-loader',
-            }
-        },
         {
             test: /\.tsx?$/,
             use: 'ts-loader',
             exclude: /node_modules/
-        }
+        },
+        {
+          test: require.resolve('phaser'),
+          loader: 'expose-loader',
+          options: { exposes: { globalName: 'Phaser', override: true } }
+        },
     ]
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js']
-  },
-  output: {
-    filename: 'bundle.js',
-    sourceMapFilename: 'bundle.js.map',
-    path: path.resolve(__dirname, 'dist')
   },
   optimization: {
     splitChunks: {
@@ -36,5 +36,13 @@ module.exports = {
       new HtmlWebpackPlugin({
           template: './src/index.html',
       })
-  ]
+  ],
+  devServer: {
+    static: {
+      directory: path.join(__dirname, 'dist'),
+    },
+    allowedHosts: 'auto',
+    compress: true,
+    port: 9000,
+  },
 };

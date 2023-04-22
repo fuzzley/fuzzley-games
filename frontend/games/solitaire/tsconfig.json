@@ -1,23 +1,27 @@
 {
     "compilerOptions": {
-        "module": "es6",
+        "module": "CommonJS",
+        "moduleResolution": "node",
         "noImplicitAny": true,
         "removeComments": true,
         "sourceMap": true,
-        "target": "es2015",
+        "target": "ES6",
         "outDir": "./dist/",
         "lib": ["es5", "es6", "dom"],
+        "types" : [
+            "jasmine",
+        ],
     },
     "exclude": [
+        "custom_typings/**/*",
         "node_modules",
-        "**/*.spec.ts"
+        "**/*.spec.ts",
     ],
     "include": [
         "src/**/*",
-        "custom_typings/**/*",
     ],
     "typeRoots": [
         "./node_modules/@types",
-        "./custom_typings"
-    ]
+        "./custom_typings",
+    ],
 }

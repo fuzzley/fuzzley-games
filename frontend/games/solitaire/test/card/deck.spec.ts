@@ -1,5 +1,3 @@
-import 'jasmine';
-
 import { Card } from '../../src/card/card';
 import { Deck } from '../../src/card/deck';
 

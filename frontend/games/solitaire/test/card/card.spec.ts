@@ -1,5 +1,3 @@
-import 'jasmine';
-
 import {Card} from '../../src/card/card';
 
 describe('Card', () => {
