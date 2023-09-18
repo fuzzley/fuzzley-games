@@ -1,0 +1,719 @@
+{
+    "frames": [
+        {
+            "filename": "card-clubs-ace",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 0,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-diamonds-2",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 220,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-diamonds-3",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 0,
+                "y": 307
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-diamonds-4",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 220,
+                "y": 307
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-diamonds-5",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 440,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-diamonds-6",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 440,
+                "y": 307
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-diamonds-7",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 0,
+                "y": 614
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-diamonds-8",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 220,
+                "y": 614
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-clubs-jack",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 440,
+                "y": 614
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-diamonds-9",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 660,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-diamonds-10",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 660,
+                "y": 307
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-clubs-king",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 660,
+                "y": 614
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-diamonds-ace",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 880,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-hearts-2",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 880,
+                "y": 307
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-hearts-3",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 880,
+                "y": 614
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-hearts-4",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 0,
+                "y": 921
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-hearts-5",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 220,
+                "y": 921
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-clubs-queen",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 440,
+                "y": 921
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-hearts-6",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 660,
+                "y": 921
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-hearts-7",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 880,
+                "y": 921
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-hearts-8",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1100,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-hearts-9",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1100,
+                "y": 307
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-hearts-10",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1100,
+                "y": 614
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-hearts-ace",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1100,
+                "y": 921
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-placeholder",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 0,
+                "y": 1228
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-spades-2",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 220,
+                "y": 1228
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-spades-3",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 440,
+                "y": 1228
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-spades-4",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 660,
+                "y": 1228
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-spades-5",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 880,
+                "y": 1228
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-spades-6",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1100,
+                "y": 1228
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-spades-7",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1320,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-spades-8",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1320,
+                "y": 307
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-spades-9",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1320,
+                "y": 614
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-spades-10",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1320,
+                "y": 921
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-spades-ace",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1320,
+                "y": 1228
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-spades-king",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1540,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-clubs-2",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1540,
+                "y": 307
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-clubs-3",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1540,
+                "y": 614
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-clubs-4",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1540,
+                "y": 921
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-clubs-5",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1540,
+                "y": 1228
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-clubs-6",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1760,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-clubs-7",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1760,
+                "y": 307
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-clubs-8",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1760,
+                "y": 614
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-clubs-9",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1760,
+                "y": 921
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-clubs-10",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1760,
+                "y": 1228
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-diamonds-jack",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1980,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-diamonds-king",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1980,
+                "y": 307
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-diamonds-queen",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1980,
+                "y": 614
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-hearts-jack",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1980,
+                "y": 921
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-hearts-king",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 1980,
+                "y": 1228
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-hearts-queen",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 2200,
+                "y": 0
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-spades-jack",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 2200,
+                "y": 307
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-spades-queen",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 2200,
+                "y": 614
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-back-red",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 2200,
+                "y": 921
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        },
+        {
+            "filename": "card-back-blue",
+            "frame": {
+                "w": 220,
+                "h": 307,
+                "x": 2200,
+                "y": 1228
+            },
+            "anchor": {
+                "x": 0.5,
+                "y": 0.5
+            }
+        }
+    ]
+}

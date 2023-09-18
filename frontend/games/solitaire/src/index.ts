@@ -1,10 +1,3 @@
-import 'phaser';
+import {Solitaire} from './solitaire'
 
-class App {
-    public run() {
-        new Phaser.Game();
-    }
-}
-
-const app = new App();
-app.run();
+new Solitaire(window).start();

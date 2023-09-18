@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: './src/index.ts',
@@ -12,16 +13,16 @@ module.exports = {
   },
   module: {
     rules: [
-        {
-            test: /\.tsx?$/,
-            use: 'ts-loader',
-            exclude: /node_modules/
-        },
-        {
-          test: require.resolve('phaser'),
-          loader: 'expose-loader',
-          options: { exposes: { globalName: 'Phaser', override: true } }
-        },
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/
+      },
+      {
+        test: require.resolve('phaser'),
+        loader: 'expose-loader',
+        options: { exposes: { globalName: 'Phaser', override: true } }
+      },
     ]
   },
   resolve: {
@@ -33,9 +34,16 @@ module.exports = {
     }
   },
   plugins: [
-      new HtmlWebpackPlugin({
-          template: './src/index.html',
-      })
+    new HtmlWebpackPlugin({
+      template: './src/index.html',
+    }),
+    new CopyWebpackPlugin({
+      patterns: [{
+        from: 'src/assets',
+        to: 'assets',
+      },
+      ],
+    }),
   ],
   devServer: {
     static: {

@@ -2,7 +2,6 @@ import {Card} from './card';
 
 /** Represents a pile of cards on the board. */
 export class Pile {
-
     private readonly cards: Card[] = [];
 
     /** Returns a readonly list of cards. */
