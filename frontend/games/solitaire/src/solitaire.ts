@@ -13,21 +13,20 @@ export class Solitaire {
     public start() {
         const gameConfig: Types.Core.GameConfig = {
             title: 'fSolitaire',
-            type: Phaser.WEBGL,
+            type: Phaser.AUTO,
             parent: 'game',
             backgroundColor: '#0EB755',
             scale: {
-              mode: Phaser.Scale.ScaleModes.RESIZE,
+                mode: Phaser.Scale.ScaleModes.RESIZE,
+                autoCenter: Phaser.Scale.Center.CENTER_BOTH,
             },
-            physics: {
-              default: 'arcade',
-              arcade: {
-                debug: false,
-              },
+            render: {
+                antialias: true,
+                roundPixels: true,
             },
             canvasStyle: `display: block; width: 100%; height: 100%;`,
             autoFocus: true,
-            scene: [LoadingScene, BoardScene,],
+            scene: [LoadingScene, BoardScene],
         };
         this.game = new Phaser.Game(gameConfig);
     }
