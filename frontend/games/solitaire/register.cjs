@@ -1,4 +1,4 @@
-const util = require('util');
+const util = require("util");
 if (!util.styleText) {
   const codes = {
     bold: [1, 22],
@@ -14,7 +14,7 @@ if (!util.styleText) {
     gray: [90, 39],
     grey: [90, 39],
   };
-  util.styleText = function(format, text) {
+  util.styleText = function (format, text) {
     const formats = Array.isArray(format) ? format : [format];
     let result = text;
     for (const f of formats) {

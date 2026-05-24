@@ -1,5 +1,5 @@
-import { Card } from '../card/card';
-import { Point } from '../common/point';
+import { Card } from "../card/card";
+import { Point } from "../common/point";
 
 /** Determines the layout of a collection of cards. */
 export interface CardLayoutManager {

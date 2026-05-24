@@ -1,38 +1,37 @@
-import {Card} from '../../src/card/card';
-import {Pile} from '../../src/card/pile';
+import { Card } from "../../src/card/card";
+import { Pile } from "../../src/card/pile";
 
-describe('Pile', () => {
+describe("Pile", () => {
+  let pile: Pile;
 
-    let pile: Pile;
+  beforeEach(() => {
+    pile = new Pile();
+  });
 
-    beforeEach(() => {
-        pile = new Pile();
-    });
+  it("adds a card", () => {
+    const card: Card = { faceUp: true };
 
-    it('adds a card', () => {
-        const card: Card = {faceUp: true};
+    pile.addCard(card);
 
-        pile.addCard(card);
+    expect(pile.getCards()).toEqual([card]);
+  });
 
-        expect(pile.getCards()).toEqual([card]);
-    });
+  it("removes a card", () => {
+    const card: Card = { faceUp: true };
+    pile.addCard(card);
 
-    it('removes a card', () => {
-        const card: Card = {faceUp: true};
-        pile.addCard(card);
+    pile.removeCard(card);
 
-        pile.removeCard(card);
+    expect(pile.getCards()).toEqual([]);
+  });
 
-        expect(pile.getCards()).toEqual([]);
-    });
+  it("does not remove a card if it is not in the pile", () => {
+    const cardInPile: Card = { faceUp: true };
+    pile.addCard(cardInPile);
+    const someOtherCard: Card = { faceUp: true };
 
-    it ('does not remove a card if it is not in the pile', () => {
-        const cardInPile: Card = {faceUp: true};
-        pile.addCard(cardInPile);
-        const someOtherCard: Card = {faceUp: true};
+    pile.removeCard(someOtherCard);
 
-        pile.removeCard(someOtherCard);
-
-        expect(pile.getCards()).toEqual([cardInPile]);
-    });
+    expect(pile.getCards()).toEqual([cardInPile]);
+  });
 });

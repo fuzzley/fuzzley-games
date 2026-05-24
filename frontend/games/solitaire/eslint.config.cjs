@@ -15,6 +15,6 @@ module.exports = tseslint.config(
     },
     rules: {
       // Add any specific rule overrides here if needed
-    }
-  }
+    },
+  },
 );

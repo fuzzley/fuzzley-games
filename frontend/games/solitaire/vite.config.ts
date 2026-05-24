@@ -1,19 +1,19 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: './',
+  base: "./",
   server: {
     port: 9000,
     open: true,
   },
   build: {
-    outDir: 'dist',
-    assetsDir: 'assets',
+    outDir: "dist",
+    assetsDir: "assets",
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules/phaser')) {
-            return 'phaser';
+          if (id.includes("node_modules/phaser")) {
+            return "phaser";
           }
         },
       },
