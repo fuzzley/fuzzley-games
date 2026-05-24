@@ -8,32 +8,37 @@ import {
   Type,
 } from "../../card/playing_card";
 import { CardPile } from "../../card/card_pile";
-import { VisualCardPile } from "../../layout/pile/visual_card_pile";
+import { Visual } from "../../visual/visual";
+import { Deck } from "../../card/deck";
+import { BoardLayoutManager } from "./board_layout_manager";
+import { StockPileVisual } from "../../visual/stock_pile_visual";
 
 export class BoardScene extends Scene {
-  private static readonly CARD_WIDTH_PX = 221;
-  private static readonly CARD_HEIGHT_PX = 313;
+  public static readonly CARD_WIDTH_PX = 221;
+  public static readonly CARD_HEIGHT_PX = 313;
 
   private tableauPh: GameObjects.Sprite;
   private cardHeartsAce: GameObjects.Sprite;
 
-  private readonly stockPile = new VisualCardPile(new CardPile());
-  private readonly wastePile = new VisualCardPile(new CardPile());
-  private readonly foundationPiles = [
-    new VisualCardPile(new CardPile()),
-    new VisualCardPile(new CardPile()),
-    new VisualCardPile(new CardPile()),
-    new VisualCardPile(new CardPile()),
+  private readonly deck = new Deck();
+  public readonly stockPile = new StockPileVisual([]);
+  public readonly wastePile = new Visual(new CardPile());
+  public readonly foundationPiles = [
+    new Visual(new CardPile()),
+    new Visual(new CardPile()),
+    new Visual(new CardPile()),
+    new Visual(new CardPile()),
   ];
-  private readonly tableauPiles = [
-    new VisualCardPile(new CardPile()),
-    new VisualCardPile(new CardPile()),
-    new VisualCardPile(new CardPile()),
-    new VisualCardPile(new CardPile()),
-    new VisualCardPile(new CardPile()),
-    new VisualCardPile(new CardPile()),
-    new VisualCardPile(new CardPile()),
+  public readonly tableauPiles = [
+    new Visual(new CardPile()),
+    new Visual(new CardPile()),
+    new Visual(new CardPile()),
+    new Visual(new CardPile()),
+    new Visual(new CardPile()),
+    new Visual(new CardPile()),
+    new Visual(new CardPile()),
   ];
+  private readonly layoutManager = new BoardLayoutManager(this);
 
   constructor() {
     super("board-scene");
@@ -47,13 +52,25 @@ export class BoardScene extends Scene {
 
     this.addCardSprites(ALL_PLAYING_CARD_IDS);
 
+    this.setUpAndShuffleDeck();
+
+    for (const card of this.deck.getCards()) {
+      this.stockPile.value.addCard(card);
+    }
+
+    this.layoutManager.createInitialLayout();
+  }
+
+  private setUpAndShuffleDeck(): void {
     for (const cardId of ALL_PLAYING_CARD_IDS) {
       const playingCard = new PlayingCard();
       playingCard.suite = cardId.suit;
       playingCard.type = cardId.type;
       playingCard.faceUp = false;
-      this.stockPile.cardPile.addCard(playingCard);
+      this.deck.addCard(playingCard);
     }
+
+    this.deck.shuffle();
   }
 
   private addCardSprites(
