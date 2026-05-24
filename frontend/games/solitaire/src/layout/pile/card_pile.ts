@@ -1,13 +1,24 @@
 import { Card } from "../../card/card";
 
 /** Represents a pile of cards on the board. */
-export interface CardPile {
+export class CardPile {
+  protected readonly cards: Card[] = [];
+
   /** Returns a readonly list of cards. */
-  getCards(): ReadonlyArray<Card>;
+  getCards(): ReadonlyArray<Card> {
+    return this.cards;
+  }
 
   /** Adds a card to the pile. */
-  addCard(card: Card): void;
+  addCard(card: Card): void {
+    this.cards.push(card);
+  }
 
   /** Removes a card from the pile. */
-  removeCard(card: Card): void;
+  removeCard(card: Card): void {
+    const index = this.cards.indexOf(card);
+    if (index > -1) {
+      this.cards.splice(index, 1);
+    }
+  }
 }
