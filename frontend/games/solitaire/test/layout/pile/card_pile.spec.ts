@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Card } from "../../../src/card/card";
-import { CardPile } from "../../../src/layout/pile/card_pile";
+import { CardPile } from "../../../src/card/card_pile";
 
 describe("CardPile", () => {
   const card1: Card = { faceUp: false };

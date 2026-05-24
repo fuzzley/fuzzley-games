@@ -2,10 +2,13 @@ import { GameObjects, Scene } from "phaser";
 
 import {
   ALL_PLAYING_CARD_IDS,
+  PlayingCard,
   PlayingCardId,
   Suit,
   Type,
 } from "../../card/playing_card";
+import { CardPile } from "../../card/card_pile";
+import { VisualCardPile } from "../../layout/pile/visual_card_pile";
 
 export class BoardScene extends Scene {
   private static readonly CARD_WIDTH_PX = 221;
@@ -13,6 +16,24 @@ export class BoardScene extends Scene {
 
   private tableauPh: GameObjects.Sprite;
   private cardHeartsAce: GameObjects.Sprite;
+
+  private readonly stockPile = new VisualCardPile(new CardPile());
+  private readonly wastePile = new VisualCardPile(new CardPile());
+  private readonly foundationPiles = [
+    new VisualCardPile(new CardPile()),
+    new VisualCardPile(new CardPile()),
+    new VisualCardPile(new CardPile()),
+    new VisualCardPile(new CardPile()),
+  ];
+  private readonly tableauPiles = [
+    new VisualCardPile(new CardPile()),
+    new VisualCardPile(new CardPile()),
+    new VisualCardPile(new CardPile()),
+    new VisualCardPile(new CardPile()),
+    new VisualCardPile(new CardPile()),
+    new VisualCardPile(new CardPile()),
+    new VisualCardPile(new CardPile()),
+  ];
 
   constructor() {
     super("board-scene");
@@ -25,6 +46,14 @@ export class BoardScene extends Scene {
     this.tableauPh.setOrigin(0, 0);
 
     this.addCardSprites(ALL_PLAYING_CARD_IDS);
+
+    for (const cardId of ALL_PLAYING_CARD_IDS) {
+      const playingCard = new PlayingCard();
+      playingCard.suite = cardId.suit;
+      playingCard.type = cardId.type;
+      playingCard.faceUp = false;
+      this.stockPile.cardPile.addCard(playingCard);
+    }
   }
 
   private addCardSprites(
