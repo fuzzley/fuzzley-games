@@ -1,3 +1,3 @@
-import {Solitaire} from './solitaire'
+import { Solitaire } from "./solitaire";
 
 new Solitaire(window).start();
