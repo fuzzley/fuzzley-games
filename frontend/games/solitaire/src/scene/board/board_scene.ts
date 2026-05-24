@@ -39,7 +39,7 @@ function playingCardIdToFileName(playingCardId: PlayingCardId): string {
             case Suit.SPADE:
                 return 'spades';
             case Suit.HEART:
-                return 'clubs';
+                return 'hearts';
             case Suit.DIAMOND:
                 return 'diamonds';
             case Suit.CLUB:
