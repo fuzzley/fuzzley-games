@@ -23,7 +23,10 @@ describe('Deck', () => {
     deck.addCard(card1);
     deck.addCard(card2);
     deck.addCard(card3);
-    spyOn(Math, 'random').and.returnValues(0.6, 0.2, 0.8);
+    vi.spyOn(Math, 'random')
+      .mockReturnValueOnce(0.6)
+      .mockReturnValueOnce(0.2)
+      .mockReturnValueOnce(0.8);
 
     deck.shuffle();
 

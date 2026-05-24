@@ -2,6 +2,9 @@
     "compilerOptions": {
         "module": "CommonJS",
         "moduleResolution": "node",
+        "ignoreDeprecations": "6.0",
+        "rootDir": "./src",
+        "strictPropertyInitialization": false,
         "noImplicitAny": true,
         "removeComments": true,
         "sourceMap": true,
@@ -9,8 +12,8 @@
         "outDir": "./dist/",
         "lib": ["es5", "es6", "dom"],
         "types" : [
-            "jasmine",
-        ],
+            "vitest/globals"
+        ]
     },
     "exclude": [
         "custom_typings/**/*",
