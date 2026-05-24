@@ -12,7 +12,8 @@
         "outDir": "./dist/",
         "lib": ["es5", "es6", "dom"],
         "types" : [
-            "vitest/globals"
+            "vitest/globals",
+            "vite/client"
         ]
     },
     "exclude": [
