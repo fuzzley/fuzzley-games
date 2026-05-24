@@ -42,10 +42,22 @@ describe("BoardLayoutManager", () => {
     // Col 4: 40 + 4 * 251 = 1044
     // Col 5: 40 + 5 * 251 = 1295
     // Col 6: 40 + 6 * 251 = 1546
-    expect(mockBoardScene.foundationPiles[0].position).toEqual({ x: 793, y: 40 });
-    expect(mockBoardScene.foundationPiles[1].position).toEqual({ x: 1044, y: 40 });
-    expect(mockBoardScene.foundationPiles[2].position).toEqual({ x: 1295, y: 40 });
-    expect(mockBoardScene.foundationPiles[3].position).toEqual({ x: 1546, y: 40 });
+    expect(mockBoardScene.foundationPiles[0].position).toEqual({
+      x: 793,
+      y: 40,
+    });
+    expect(mockBoardScene.foundationPiles[1].position).toEqual({
+      x: 1044,
+      y: 40,
+    });
+    expect(mockBoardScene.foundationPiles[2].position).toEqual({
+      x: 1295,
+      y: 40,
+    });
+    expect(mockBoardScene.foundationPiles[3].position).toEqual({
+      x: 1546,
+      y: 40,
+    });
 
     // Verify Tableau Piles positions (Columns 0 to 6, Bottom Row)
     // bottomRowY = paddingY (40) + cardHeight (313) + gapY (40) = 393
@@ -53,8 +65,17 @@ describe("BoardLayoutManager", () => {
     expect(mockBoardScene.tableauPiles[1].position).toEqual({ x: 291, y: 393 });
     expect(mockBoardScene.tableauPiles[2].position).toEqual({ x: 542, y: 393 });
     expect(mockBoardScene.tableauPiles[3].position).toEqual({ x: 793, y: 393 });
-    expect(mockBoardScene.tableauPiles[4].position).toEqual({ x: 1044, y: 393 });
-    expect(mockBoardScene.tableauPiles[5].position).toEqual({ x: 1295, y: 393 });
-    expect(mockBoardScene.tableauPiles[6].position).toEqual({ x: 1546, y: 393 });
+    expect(mockBoardScene.tableauPiles[4].position).toEqual({
+      x: 1044,
+      y: 393,
+    });
+    expect(mockBoardScene.tableauPiles[5].position).toEqual({
+      x: 1295,
+      y: 393,
+    });
+    expect(mockBoardScene.tableauPiles[6].position).toEqual({
+      x: 1546,
+      y: 393,
+    });
   });
 });

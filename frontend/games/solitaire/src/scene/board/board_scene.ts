@@ -7,36 +7,34 @@ import {
   Suit,
   Type,
 } from "../../card/playing_card";
-import { CardPile } from "../../card/card_pile";
-import { Visual } from "../../visual/visual";
 import { Deck } from "../../card/deck";
 import { BoardLayoutManager } from "./board_layout_manager";
-import { StockPileVisual } from "../../visual/stock_pile_visual";
+import { StockPileVisual } from "../../visual/pile/stock_pile_visual";
+import { WastePileVisual } from "../../visual/pile/waste_pile_visual";
+import { FoundationPileVisual } from "../../visual/pile/foundation_pile_visual";
+import { TableauPileVisual } from "../../visual/pile/tableau_pile_visual";
 
 export class BoardScene extends Scene {
-  public static readonly CARD_WIDTH_PX = 221;
-  public static readonly CARD_HEIGHT_PX = 313;
-
   private tableauPh: GameObjects.Sprite;
   private cardHeartsAce: GameObjects.Sprite;
 
   private readonly deck = new Deck();
-  public readonly stockPile = new StockPileVisual([]);
-  public readonly wastePile = new Visual(new CardPile());
+  public readonly stockPile = new StockPileVisual();
+  public readonly wastePile = new WastePileVisual();
   public readonly foundationPiles = [
-    new Visual(new CardPile()),
-    new Visual(new CardPile()),
-    new Visual(new CardPile()),
-    new Visual(new CardPile()),
+    new FoundationPileVisual(),
+    new FoundationPileVisual(),
+    new FoundationPileVisual(),
+    new FoundationPileVisual(),
   ];
   public readonly tableauPiles = [
-    new Visual(new CardPile()),
-    new Visual(new CardPile()),
-    new Visual(new CardPile()),
-    new Visual(new CardPile()),
-    new Visual(new CardPile()),
-    new Visual(new CardPile()),
-    new Visual(new CardPile()),
+    new TableauPileVisual(),
+    new TableauPileVisual(),
+    new TableauPileVisual(),
+    new TableauPileVisual(),
+    new TableauPileVisual(),
+    new TableauPileVisual(),
+    new TableauPileVisual(),
   ];
   private readonly layoutManager = new BoardLayoutManager(this);
 
