@@ -1,4 +1,4 @@
-import { CardPile } from "../pile/card_pile";
+import { CardPile } from "../../card/card_pile";
 import { Point } from "../../common/point";
 
 /** Determines the layout of a collection of piles. */
