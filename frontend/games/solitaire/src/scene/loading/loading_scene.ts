@@ -1,4 +1,6 @@
 import {Scene} from "phaser";
+import cardAssetsTexture from "../../assets/sprites/atlas/card_assets.png";
+import cardAssetsAtlas from "../../assets/sprites/atlas/card_assets_atlas.json";
 
 export class LoadingScene extends Scene {
     constructor() {
@@ -6,12 +8,7 @@ export class LoadingScene extends Scene {
     }
 
     preload() {
-        this.load.baseURL = 'assets/';
-        this.load.atlas({
-            key: 'card_assets',
-            textureURL: 'sprites/atlas/card_assets.png',
-            atlasURL: 'sprites/atlas/card_assets_atlas.json'
-        });
+        this.load.atlas('card_assets', cardAssetsTexture, cardAssetsAtlas);
     }
 
     create() {
