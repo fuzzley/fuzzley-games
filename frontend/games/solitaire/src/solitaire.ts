@@ -1,4 +1,4 @@
-import 'phaser';
+import * as Phaser from 'phaser';
 import { Types } from 'phaser';
 import { LoadingScene } from './scene/loading/loading_scene';
 import { BoardScene } from './scene/board/board_scene';

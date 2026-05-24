@@ -1,0 +1,17 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "./",
+        "types": [
+            "vitest/globals"
+        ]
+    },
+    "exclude": [
+        "custom_typings/**/*",
+        "node_modules"
+    ],
+    "include": [
+        "src/**/*",
+        "test/**/*"
+    ]
+}
