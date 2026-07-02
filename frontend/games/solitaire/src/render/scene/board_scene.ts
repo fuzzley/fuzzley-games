@@ -14,7 +14,6 @@ import { FoundationPileVisual } from "../visual/pile/foundation_pile_visual";
 import { TableauPileVisual } from "../visual/pile/tableau_pile_visual";
 import { SolitaireGame } from "../../model/game/solitaire_game";
 import { PlayingCardVisual } from "../visual/card/playing_card_visual";
-import { CARD_WIDTH_PX, CARD_HEIGHT_PX } from "../layout/board_layout_constants";
 
 /** Union type representing any visual pile wrapper. */
 export type PileVisual =
@@ -264,7 +263,12 @@ export class BoardScene extends Scene {
       return cards.length > 0 && cards[cards.length - 1] === card;
     }
 
-    // Stock cards are not interactable (only click the stock pile itself to draw)
+    if (pile.id === "stock") {
+      // Only the top card of the stock pile is interactable
+      const cards = pile.getCards();
+      return cards.length > 0 && cards[cards.length - 1] === card;
+    }
+
     return false;
   }
 
@@ -285,15 +289,21 @@ export class BoardScene extends Scene {
     if (this.isCardInteractable(card)) {
       const sprite = this.hoveredCardVisual.sprite;
       if (sprite && sprite.active) {
-        const scale = sprite.scale;
-        const width = CARD_WIDTH_PX * scale;
-        const height = CARD_HEIGHT_PX * scale;
+        const scale = this.layoutManager.getScaleFactor();
+        const width = sprite.displayWidth;
+        const height = sprite.displayHeight;
 
         // Draw a thick, rounded, semi-transparent yellow border around the card
         const thickness = 10 * scale;
         const radius = 16 * scale;
-        this.highlightGraphics.lineStyle(thickness, 0xEBEF9B, 0.8);
-        this.highlightGraphics.strokeRoundedRect(sprite.x, sprite.y, width, height, radius);
+        this.highlightGraphics.lineStyle(thickness, 0xebef9b, 0.8);
+        this.highlightGraphics.strokeRoundedRect(
+          sprite.x,
+          sprite.y,
+          width,
+          height,
+          radius,
+        );
       }
     }
   }

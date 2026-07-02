@@ -86,7 +86,12 @@ describe("BoardLayoutManager", () => {
       playingCardVisuals: [
         {
           position: { x: 5, y: 5 },
-          sprite: { setPosition: vi.fn(), setScale: vi.fn(), setOrigin: vi.fn(), setDepth: vi.fn() },
+          sprite: {
+            setPosition: vi.fn(),
+            setScale: vi.fn(),
+            setOrigin: vi.fn(),
+            setDepth: vi.fn(),
+          },
         },
         {
           position: { x: 6, y: 6 },
@@ -104,7 +109,12 @@ describe("BoardLayoutManager", () => {
       playingCardVisuals: [
         {
           position: { x: 2, y: 2 },
-          sprite: { setPosition: vi.fn(), setScale: vi.fn(), setOrigin: vi.fn(), setDepth: vi.fn() },
+          sprite: {
+            setPosition: vi.fn(),
+            setScale: vi.fn(),
+            setOrigin: vi.fn(),
+            setDepth: vi.fn(),
+          },
         },
       ],
     };
@@ -114,7 +124,12 @@ describe("BoardLayoutManager", () => {
       playingCardVisuals: [
         {
           position: { x: 3, y: 3 },
-          sprite: { setPosition: vi.fn(), setScale: vi.fn(), setOrigin: vi.fn(), setDepth: vi.fn() },
+          sprite: {
+            setPosition: vi.fn(),
+            setScale: vi.fn(),
+            setOrigin: vi.fn(),
+            setDepth: vi.fn(),
+          },
         },
       ],
     };
@@ -166,7 +181,12 @@ describe("BoardLayoutManager", () => {
         playingCardVisuals: [
           {
             position: { x: 10, y: 20 },
-            sprite: { setPosition: vi.fn(), setScale: vi.fn(), setOrigin: vi.fn(), setDepth: vi.fn() },
+            sprite: {
+              setPosition: vi.fn(),
+              setScale: vi.fn(),
+              setOrigin: vi.fn(),
+              setDepth: vi.fn(),
+            },
           },
         ],
       },
