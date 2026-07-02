@@ -73,10 +73,9 @@ export class BoardScene extends Scene {
    */
   create() {
     this.registerPileVisuals();
+    this.gameModel.startNewGame();
     this.createCardVisuals();
     this.setupEventListeners();
-
-    this.gameModel.startNewGame();
 
     this.syncVisualPilesWithModel();
     this.layoutManager.createInitialLayout();

@@ -142,19 +142,19 @@ describe("SolitaireGame", () => {
       game.startNewGame();
 
       const redEight = new PlayingCard();
-      redEight.id = "card-diamonds-eight";
+      redEight.id = "card-diamonds-8";
       redEight.suite = Suit.DIAMOND;
       redEight.type = Type.EIGHT;
       redEight.faceUp = true;
 
       const blackSeven = new PlayingCard();
-      blackSeven.id = "card-spades-seven";
+      blackSeven.id = "card-spades-7";
       blackSeven.suite = Suit.SPADE;
       blackSeven.type = Type.SEVEN;
       blackSeven.faceUp = true;
 
       const redSeven = new PlayingCard();
-      redSeven.id = "card-hearts-seven";
+      redSeven.id = "card-hearts-7";
       redSeven.suite = Suit.HEART;
       redSeven.type = Type.SEVEN;
       redSeven.faceUp = true;
@@ -184,7 +184,7 @@ describe("SolitaireGame", () => {
       game.startNewGame();
 
       const clubTwo = new PlayingCard();
-      clubTwo.id = "card-clubs-two";
+      clubTwo.id = "card-clubs-2";
       clubTwo.suite = Suit.CLUB;
       clubTwo.type = Type.TWO;
       clubTwo.faceUp = true;
@@ -371,7 +371,7 @@ describe("SolitaireGame", () => {
 
     it("emits game-won when all 52 cards are in the foundation piles", () => {
       game.startNewGame();
-      
+
       // Let's clear all piles first
       game.stock.clear();
       game.waste.clear();
