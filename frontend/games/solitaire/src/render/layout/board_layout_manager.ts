@@ -148,6 +148,12 @@ export class BoardLayoutManager {
     const pileX = pileVisual.position.x;
     const pileY = pileVisual.position.y;
     let depth = 0;
+    if (pileVisual.sprite) {
+      pileVisual.sprite.setOrigin(0, 0);
+      pileVisual.sprite.setPosition(pileX, pileY);
+      pileVisual.sprite.setScale(scale);
+      pileVisual.sprite.setDepth(depth++);
+    }
     for (const cardVisual of pileVisual.playingCardVisuals) {
       const absX = pileX + cardVisual.position.x * scale;
       const absY = pileY + cardVisual.position.y * scale;

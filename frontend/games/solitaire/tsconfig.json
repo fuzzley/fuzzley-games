@@ -12,7 +12,8 @@
     "outDir": "./dist/",
     "lib": ["es5", "es6", "dom"],
     "types": ["vitest/globals", "vite/client"],
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "skipLibCheck": true
   },
   "exclude": ["custom_typings/**/*", "node_modules", "**/*.spec.ts"],
   "include": ["src/**/*"],

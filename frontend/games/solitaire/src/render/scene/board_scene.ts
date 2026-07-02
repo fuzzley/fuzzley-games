@@ -84,6 +84,7 @@ export class BoardScene extends Scene {
 
     this.registerPileVisuals();
     this.gameModel.startNewGame();
+    this.createPileBackgroundSprites();
     this.createCardVisuals();
     this.setupEventListeners();
 
@@ -246,6 +247,35 @@ export class BoardScene extends Scene {
           }
         });
       }
+    }
+  }
+
+  /**
+   * Instantiates and registers the background sprites for the stock and tableau piles.
+   */
+  private createPileBackgroundSprites(): void {
+    // Stock pile background
+    const stockSprite = this.add.sprite(0, 0, "card_assets", "card-placeholder");
+    stockSprite.setOrigin(0, 0);
+    // Make stock pile placeholder interactive to allow recycling when stock is empty
+    stockSprite.setInteractive({ useHandCursor: true });
+    stockSprite.on("pointerdown", () => {
+      if (this.gameModel.stock.getCards().length === 0) {
+        this.gameModel.drawCardsFromStock();
+      }
+    });
+    this.stockPile.sprite = stockSprite;
+
+    // Tableau piles background
+    for (const tableauPile of this.tableauPiles) {
+      const tableauSprite = this.add.sprite(
+        0,
+        0,
+        "card_assets",
+        "card-placeholder",
+      );
+      tableauSprite.setOrigin(0, 0);
+      tableauPile.sprite = tableauSprite;
     }
   }
 

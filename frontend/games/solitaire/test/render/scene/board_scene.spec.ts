@@ -141,4 +141,13 @@ describe("BoardScene - isCardInteractable", () => {
     const topCard = boardScene.stockPile.playingCardVisuals[23].playingCard;
     expect(boardScene.isCardInteractable(topCard)).toBe(true);
   });
+
+  it("assigns card-placeholder background sprite to stock and tableau piles", () => {
+    expect(boardScene.stockPile.sprite).toBeDefined();
+    expect(boardScene.stockPile.sprite).not.toBeNull();
+    for (const tableauPile of boardScene.tableauPiles) {
+      expect(tableauPile.sprite).toBeDefined();
+      expect(tableauPile.sprite).not.toBeNull();
+    }
+  });
 });
