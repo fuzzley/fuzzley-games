@@ -213,4 +213,190 @@ describe("SolitaireGame", () => {
       expect(game.moveCards(clubTwo.id, "foundation-0")).toBe(true);
     });
   });
+
+  describe("Additional Game Logic Coverage", () => {
+    it("does nothing when drawCard is called and both stock and waste are empty", () => {
+      const emptyGame = new SolitaireGame();
+      const recycleCallback = vi.fn();
+      const moveCallback = vi.fn();
+      emptyGame.on("stock-recycled", recycleCallback);
+      emptyGame.on("card-moved", moveCallback);
+
+      emptyGame.drawCard();
+
+      expect(recycleCallback).not.toHaveBeenCalled();
+      expect(moveCallback).not.toHaveBeenCalled();
+    });
+
+    it("returns undefined in findPileContainingCard if card is not in any pile", () => {
+      const card = new PlayingCard();
+      card.id = "ghost-card";
+      game["allCardsMap"].set(card.id, card); // Register in map but do not add to any pile
+      expect(game.getPileContainingCard(card.id)).toBeUndefined();
+    });
+
+    it("returns false in moveCards for invalid card/pile inputs or same source and target", () => {
+      game.startNewGame();
+      const cardId = game.stock.getCards()[0].id;
+
+      // Invalid card
+      expect(game.moveCards("invalid-card-id", "tableau-0")).toBe(false);
+      // Invalid target pile
+      expect(game.moveCards(cardId, "invalid-pile-id")).toBe(false);
+      // Same source and target pile
+      const sourcePile = game.getPileContainingCard(cardId);
+      expect(sourcePile).toBeDefined();
+      expect(game.moveCards(cardId, sourcePile!.id)).toBe(false);
+    });
+
+    it("returns false in moveCards if card is face down", () => {
+      game.startNewGame();
+      // Tableau 1 has 2 cards, the bottom one is face down
+      const faceDownCard = game.tableaus[1].getCards()[0];
+      expect(faceDownCard.faceUp).toBe(false);
+      expect(game.moveCards(faceDownCard.id, "tableau-0")).toBe(false);
+    });
+
+    it("auto-flips the new top card of the tableau pile if it is face-down after a move", () => {
+      game.startNewGame();
+
+      // Clear tableau 0 and place a King of Spades there
+      game.tableaus[0].clear();
+      const king = new PlayingCard();
+      king.id = "card-spades-king";
+      king.suite = Suit.SPADE;
+      king.type = Type.KING;
+      king.faceUp = true;
+      game.tableaus[0].addCard(king);
+      game["allCardsMap"].set(king.id, king);
+
+      // Tableau 1 has 2 cards. We force tableau 1 cards to be:
+      // bottom: black Jack (face-down)
+      // top: red Queen (face-up)
+      const bottomCard = new PlayingCard();
+      bottomCard.id = "card-clubs-jack";
+      bottomCard.suite = Suit.CLUB;
+      bottomCard.type = Type.JACK;
+      bottomCard.faceUp = false;
+
+      const topCard = new PlayingCard();
+      topCard.id = "card-hearts-queen";
+      topCard.suite = Suit.HEART;
+      topCard.type = Type.QUEEN;
+      topCard.faceUp = true;
+
+      game.tableaus[1].clear();
+      game.tableaus[1].addCard(bottomCard);
+      game.tableaus[1].addCard(topCard);
+      game["allCardsMap"].set(bottomCard.id, bottomCard);
+      game["allCardsMap"].set(topCard.id, topCard);
+
+      const flippedCallback = vi.fn();
+      game.on("card-flipped", flippedCallback);
+
+      const moved = game.moveCards(topCard.id, "tableau-0");
+      expect(moved).toBe(true);
+
+      // Tableau 1's remaining bottomCard (Jack of Clubs) should now be face-up
+      expect(bottomCard.faceUp).toBe(true);
+      expect(flippedCallback).toHaveBeenCalledWith({
+        cardId: bottomCard.id,
+        faceUp: true,
+      });
+    });
+
+    it("handles flipCard correctly for various scenarios", () => {
+      game.startNewGame();
+
+      // 1. Invalid card ID
+      expect(() => game.flipCard("non-existent-card", true)).not.toThrow();
+
+      // 2. Card not in a tableau pile (e.g. in stock)
+      const stockCard = game.stock.getCards()[0];
+      const initialFaceUp = stockCard.faceUp;
+      game.flipCard(stockCard.id, !initialFaceUp);
+      expect(stockCard.faceUp).toBe(initialFaceUp); // should not change
+
+      // 3. Card in tableau but NOT the top card
+      // Tableau 1 has 2 cards, index 0 is bottom, index 1 is top
+      const bottomCard = game.tableaus[1].getCards()[0];
+      const topCard = game.tableaus[1].getCards()[1];
+      expect(bottomCard.faceUp).toBe(false);
+      game.flipCard(bottomCard.id, true);
+      expect(bottomCard.faceUp).toBe(false); // should not change
+
+      // 4. Card in tableau and IS the top card
+      const flippedCallback = vi.fn();
+      game.on("card-flipped", flippedCallback);
+      expect(topCard.faceUp).toBe(true);
+      game.flipCard(topCard.id, false);
+      expect(topCard.faceUp).toBe(false);
+      expect(flippedCallback).toHaveBeenCalledWith({
+        cardId: topCard.id,
+        faceUp: false,
+      });
+    });
+
+    it("validates foundation rules: cannot move multiple cards at once to foundation", () => {
+      game.startNewGame();
+      const card1 = new PlayingCard();
+      card1.id = "card-1";
+      card1.suite = Suit.CLUB;
+      card1.type = Type.ACE;
+      card1.faceUp = true;
+
+      const card2 = new PlayingCard();
+      card2.id = "card-2";
+      card2.suite = Suit.CLUB;
+      card2.type = Type.TWO;
+      card2.faceUp = true;
+
+      game.tableaus[0].clear();
+      game.tableaus[0].addCard(card1);
+      game.tableaus[0].addCard(card2);
+      game["allCardsMap"].set(card1.id, card1);
+      game["allCardsMap"].set(card2.id, card2);
+
+      // Attempt to move movingStack size 2 to empty foundation (valid target, but multiple cards)
+      expect(game.moveCards(card1.id, "foundation-0")).toBe(false);
+    });
+
+    it("returns false when trying to move cards to stock or waste as target", () => {
+      game.startNewGame();
+      const cardId = game.tableaus[0].getCards()[0].id;
+
+      expect(game.moveCards(cardId, "stock")).toBe(false);
+      expect(game.moveCards(cardId, "waste")).toBe(false);
+    });
+
+    it("emits game-won when all 52 cards are in the foundation piles", () => {
+      game.startNewGame();
+      
+      // Let's clear all piles first
+      game.stock.clear();
+      game.waste.clear();
+      for (const t of game.tableaus) {
+        t.clear();
+      }
+      for (const f of game.foundations) {
+        f.clear();
+      }
+
+      // Add dummy cards to foundations to total 52
+      for (let i = 0; i < 52; i++) {
+        const dummyCard = new PlayingCard();
+        dummyCard.id = `dummy-${i}`;
+        dummyCard.faceUp = true;
+        const fIndex = Math.floor(i / 13);
+        game.foundations[fIndex].addCard(dummyCard);
+      }
+
+      const wonCallback = vi.fn();
+      game.on("game-won", wonCallback);
+
+      game["checkWinCondition"]();
+
+      expect(wonCallback).toHaveBeenCalledTimes(1);
+    });
+  });
 });
