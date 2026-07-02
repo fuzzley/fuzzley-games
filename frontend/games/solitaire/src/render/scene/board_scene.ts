@@ -36,27 +36,27 @@ export class BoardScene extends Scene {
   private readonly pileVisualsMap = new Map<string, PileVisual>();
 
   /** Visual representation of the stock pile. */
-  public readonly stockPile = new StockPileVisual();
+  public readonly stockPile = new StockPileVisual(this.gameModel.stock);
   /** Visual representation of the waste pile. */
-  public readonly wastePile = new WastePileVisual();
+  public readonly wastePile = new WastePileVisual(this.gameModel.waste);
 
   /** Visual representations of the four foundation piles. */
   public readonly foundationPiles = [
-    new FoundationPileVisual(),
-    new FoundationPileVisual(),
-    new FoundationPileVisual(),
-    new FoundationPileVisual(),
+    new FoundationPileVisual(this.gameModel.foundations[0]),
+    new FoundationPileVisual(this.gameModel.foundations[1]),
+    new FoundationPileVisual(this.gameModel.foundations[2]),
+    new FoundationPileVisual(this.gameModel.foundations[3]),
   ];
 
   /** Visual representations of the seven tableau piles. */
   public readonly tableauPiles = [
-    new TableauPileVisual(),
-    new TableauPileVisual(),
-    new TableauPileVisual(),
-    new TableauPileVisual(),
-    new TableauPileVisual(),
-    new TableauPileVisual(),
-    new TableauPileVisual(),
+    new TableauPileVisual(this.gameModel.tableaus[0]),
+    new TableauPileVisual(this.gameModel.tableaus[1]),
+    new TableauPileVisual(this.gameModel.tableaus[2]),
+    new TableauPileVisual(this.gameModel.tableaus[3]),
+    new TableauPileVisual(this.gameModel.tableaus[4]),
+    new TableauPileVisual(this.gameModel.tableaus[5]),
+    new TableauPileVisual(this.gameModel.tableaus[6]),
   ];
 
   /** Layout coordinator for positioning piles and card sprites. */
@@ -80,6 +80,11 @@ export class BoardScene extends Scene {
     this.syncVisualPilesWithModel();
     this.layoutManager.createInitialLayout();
     this.layoutManager.updateVisualLayout();
+
+    this.scale.on("resize", () => {
+      this.layoutManager.createInitialLayout();
+      this.layoutManager.updateVisualLayout();
+    });
   }
 
   /** Registers all visual piles in the map registry for quick lookup. */
@@ -106,21 +111,9 @@ export class BoardScene extends Scene {
 
   /** Registers listeners on the game model to update graphics dynamically. */
   private setupEventListeners() {
-    this.gameModel.on("card-moved", ({ cardId, fromPileId, toPileId }) => {
-      const visualCard = this.cardVisualsMap.get(cardId);
-      const fromPileVisual = this.getPileVisualById(fromPileId);
-      const toPileVisual = this.getPileVisualById(toPileId);
-
-      if (visualCard && fromPileVisual && toPileVisual) {
-        const index = fromPileVisual.playingCardVisuals.indexOf(visualCard);
-        if (index > -1) {
-          fromPileVisual.playingCardVisuals.splice(index, 1);
-        }
-
-        toPileVisual.playingCardVisuals.push(visualCard);
-
-        this.layoutManager.updateVisualLayout();
-      }
+    this.gameModel.on("card-moved", () => {
+      this.syncVisualPilesWithModel();
+      this.layoutManager.updateVisualLayout();
     });
 
     this.gameModel.on("card-flipped", ({ cardId, faceUp }) => {
@@ -128,12 +121,13 @@ export class BoardScene extends Scene {
       if (visualCard && visualCard.sprite) {
         const frame = faceUp ? cardId : "card-back-blue";
         visualCard.sprite.setFrame(frame);
+        visualCard.sprite.setOrigin(0, 0);
       }
     });
 
     this.gameModel.on("stock-recycled", () => {
-      this.stockPile.playingCardVisuals.length = 0;
-      this.wastePile.playingCardVisuals.length = 0;
+      this.syncVisualPilesWithModel();
+      this.layoutManager.updateVisualLayout();
     });
 
     this.gameModel.on("game-won", () => {
@@ -153,6 +147,7 @@ export class BoardScene extends Scene {
       if (visual) {
         this.stockPile.playingCardVisuals.push(visual);
         visual.sprite.setFrame("card-back-blue");
+        visual.sprite.setOrigin(0, 0);
       }
     }
 
@@ -161,6 +156,7 @@ export class BoardScene extends Scene {
       if (visual) {
         this.wastePile.playingCardVisuals.push(visual);
         visual.sprite.setFrame(card.id);
+        visual.sprite.setOrigin(0, 0);
       }
     }
 
@@ -172,6 +168,7 @@ export class BoardScene extends Scene {
         if (visual) {
           visualPile.playingCardVisuals.push(visual);
           visual.sprite.setFrame(card.id);
+          visual.sprite.setOrigin(0, 0);
         }
       }
     }
@@ -184,6 +181,7 @@ export class BoardScene extends Scene {
         if (visual) {
           visualPile.playingCardVisuals.push(visual);
           visual.sprite.setFrame(card.faceUp ? card.id : "card-back-blue");
+          visual.sprite.setOrigin(0, 0);
         }
       }
     }
