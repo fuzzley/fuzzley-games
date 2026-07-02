@@ -57,8 +57,13 @@ export class BoardLayoutManager {
 
     // Center the board layout horizontally
     const totalLayoutWidth = 7 * cardWidth + 6 * gapX;
-    const screenWidth = this.boardScene.scale ? this.boardScene.scale.width : 1807;
-    const paddingX = Math.max(LAYOUT_PADDING_X * scale, (screenWidth - totalLayoutWidth) / 2);
+    const screenWidth = this.boardScene.scale
+      ? this.boardScene.scale.width
+      : 1807;
+    const paddingX = Math.max(
+      LAYOUT_PADDING_X * scale,
+      (screenWidth - totalLayoutWidth) / 2,
+    );
     const paddingY = LAYOUT_PADDING_Y * scale;
 
     // Helper to calculate X coordinate for any given column index (0-indexed)

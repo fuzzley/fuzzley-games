@@ -12,6 +12,8 @@ vi.mock("phaser", () => {
     setPosition: vi.fn().mockReturnThis(),
     setScale: vi.fn().mockReturnThis(),
     setDepth: vi.fn().mockReturnThis(),
+    displayWidth: 220,
+    displayHeight: 307,
   });
 
   return {
@@ -46,7 +48,7 @@ describe("BoardScene - isCardInteractable", () => {
     // The game deals 1 card to tableau-0 (face up)
     const tableau0 = boardScene.tableauPiles[0];
     expect(tableau0.playingCardVisuals.length).toBe(1);
-    
+
     const card = tableau0.playingCardVisuals[0].playingCard;
     expect(card.faceUp).toBe(true);
     expect(boardScene.isCardInteractable(card)).toBe(true);
@@ -84,7 +86,7 @@ describe("BoardScene - isCardInteractable", () => {
     const game = (boardScene as any).gameModel;
     game.waste.addCard(card1);
     game.waste.addCard(card2);
-    
+
     // Registers cards in gameModel map so getPileContainingCard works
     game.allCardsMap.set(card1.id, card1);
     game.allCardsMap.set(card2.id, card2);
@@ -129,16 +131,14 @@ describe("BoardScene - isCardInteractable", () => {
     expect(boardScene.isCardInteractable(card1)).toBe(false);
   });
 
-  it("handles stock pile correctly: cards are never interactable", () => {
+  it("handles stock pile correctly: only the top card is interactable", () => {
     // Stock has 24 cards
     expect(boardScene.stockPile.playingCardVisuals.length).toBe(24);
 
-    const card = boardScene.stockPile.playingCardVisuals[0].playingCard;
-    // Even if face-up (for some reason), stock cards should not be interactable
-    card.faceUp = true;
-    expect(boardScene.isCardInteractable(card)).toBe(false);
+    const nonTopCard = boardScene.stockPile.playingCardVisuals[0].playingCard;
+    expect(boardScene.isCardInteractable(nonTopCard)).toBe(false);
 
-    card.faceUp = false;
-    expect(boardScene.isCardInteractable(card)).toBe(false);
+    const topCard = boardScene.stockPile.playingCardVisuals[23].playingCard;
+    expect(boardScene.isCardInteractable(topCard)).toBe(true);
   });
 });
