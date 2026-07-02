@@ -86,17 +86,17 @@ describe("BoardLayoutManager", () => {
       playingCardVisuals: [
         {
           position: { x: 5, y: 5 },
-          sprite: { setPosition: vi.fn() }
+          sprite: { setPosition: vi.fn() },
         },
         {
-          position: { x: 6, y: 6 }
-        }
-      ]
+          position: { x: 6, y: 6 },
+        },
+      ],
     };
     const mockWastePile = {
       layoutPile: vi.fn(),
       position: { x: 30, y: 40 },
-      playingCardVisuals: []
+      playingCardVisuals: [],
     };
     const mockFoundationPile = {
       layoutPile: vi.fn(),
@@ -104,9 +104,9 @@ describe("BoardLayoutManager", () => {
       playingCardVisuals: [
         {
           position: { x: 2, y: 2 },
-          sprite: { setPosition: vi.fn() }
-        }
-      ]
+          sprite: { setPosition: vi.fn() },
+        },
+      ],
     };
     const mockTableauPile = {
       layoutPile: vi.fn(),
@@ -114,9 +114,9 @@ describe("BoardLayoutManager", () => {
       playingCardVisuals: [
         {
           position: { x: 3, y: 3 },
-          sprite: { setPosition: vi.fn() }
-        }
-      ]
+          sprite: { setPosition: vi.fn() },
+        },
+      ],
     };
 
     const mockBoardScene = {
@@ -134,8 +134,14 @@ describe("BoardLayoutManager", () => {
     expect(mockFoundationPile.layoutPile).toHaveBeenCalled();
     expect(mockTableauPile.layoutPile).toHaveBeenCalled();
 
-    expect(mockStockPile.playingCardVisuals[0].sprite.setPosition).toHaveBeenCalledWith(15, 25);
-    expect(mockFoundationPile.playingCardVisuals[0].sprite.setPosition).toHaveBeenCalledWith(52, 62);
-    expect(mockTableauPile.playingCardVisuals[0].sprite.setPosition).toHaveBeenCalledWith(73, 83);
+    expect(
+      mockStockPile.playingCardVisuals[0].sprite.setPosition,
+    ).toHaveBeenCalledWith(15, 25);
+    expect(
+      mockFoundationPile.playingCardVisuals[0].sprite.setPosition,
+    ).toHaveBeenCalledWith(52, 62);
+    expect(
+      mockTableauPile.playingCardVisuals[0].sprite.setPosition,
+    ).toHaveBeenCalledWith(73, 83);
   });
 });
