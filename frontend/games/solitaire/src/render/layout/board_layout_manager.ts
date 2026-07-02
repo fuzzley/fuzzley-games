@@ -21,20 +21,45 @@ export class BoardLayoutManager {
   constructor(private readonly boardScene: BoardScene) {}
 
   /**
+   * Calculates the scale factor to fit the layout on the screen.
+   */
+  getScaleFactor(): number {
+    if (!this.boardScene.scale) {
+      return 1.0;
+    }
+    const originalWidth = 1807;
+    const originalHeight = 950;
+    const screenWidth = this.boardScene.scale.width || originalWidth;
+    const screenHeight = this.boardScene.scale.height || originalHeight;
+
+    const scaleX = screenWidth / originalWidth;
+    const scaleY = screenHeight / originalHeight;
+    let scale = Math.min(scaleX, scaleY);
+    if (scale > 1.0) scale = 1.0;
+    if (scale <= 0) scale = 1.0;
+    return scale;
+  }
+
+  /**
    * Calculates and sets the screen layout positions for each pile container
    * (Stock, Waste, Foundations, Tableaus) based on config margins and spacing.
    */
   createInitialLayout() {
     // A standard Klondike layout uses a 7-column layout.
     // Columns 0 to 6 are horizontally aligned.
-    const cardWidth = CARD_WIDTH_PX;
-    const cardHeight = CARD_HEIGHT_PX;
+    const scale = this.getScaleFactor();
+    const cardWidth = CARD_WIDTH_PX * scale;
+    const cardHeight = CARD_HEIGHT_PX * scale;
 
     // Visual design: defining layout offsets and margins
-    const paddingX = LAYOUT_PADDING_X;
-    const paddingY = LAYOUT_PADDING_Y;
-    const gapX = LAYOUT_GAP_X; // space between adjacent columns
-    const gapY = LAYOUT_GAP_Y; // space between the top row and the bottom (tableau) row
+    const gapX = LAYOUT_GAP_X * scale;
+    const gapY = LAYOUT_GAP_Y * scale;
+
+    // Center the board layout horizontally
+    const totalLayoutWidth = 7 * cardWidth + 6 * gapX;
+    const screenWidth = this.boardScene.scale ? this.boardScene.scale.width : 1807;
+    const paddingX = Math.max(LAYOUT_PADDING_X * scale, (screenWidth - totalLayoutWidth) / 2);
+    const paddingY = LAYOUT_PADDING_Y * scale;
 
     // Helper to calculate X coordinate for any given column index (0-indexed)
     const getColumnX = (colIndex: number): number => {
@@ -111,13 +136,18 @@ export class BoardLayoutManager {
    * @param pileVisual The visual wrapper of the pile whose card sprites are to be updated.
    */
   private syncPileSprites(pileVisual: PileVisual): void {
+    const scale = this.getScaleFactor();
     const pileX = pileVisual.position.x;
     const pileY = pileVisual.position.y;
+    let depth = 0;
     for (const cardVisual of pileVisual.playingCardVisuals) {
-      const absX = pileX + cardVisual.position.x;
-      const absY = pileY + cardVisual.position.y;
+      const absX = pileX + cardVisual.position.x * scale;
+      const absY = pileY + cardVisual.position.y * scale;
       if (cardVisual.sprite) {
+        cardVisual.sprite.setOrigin(0, 0);
         cardVisual.sprite.setPosition(absX, absY);
+        cardVisual.sprite.setScale(scale);
+        cardVisual.sprite.setDepth(depth++);
       }
     }
   }
