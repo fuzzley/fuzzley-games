@@ -1,5 +1,11 @@
 import { Solitaire } from "./solitaire";
 
+declare global {
+  interface Window {
+    solitaire: Solitaire;
+  }
+}
+
 const solitaire = new Solitaire(window);
-(window as any).solitaire = solitaire;
+window.solitaire = solitaire;
 solitaire.start();

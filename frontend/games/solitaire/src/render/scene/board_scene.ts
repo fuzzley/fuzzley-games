@@ -230,6 +230,21 @@ export class BoardScene extends Scene {
             this.updateHighlightBorder();
           }
         });
+
+        sprite.on("pointerdown", () => {
+          const pile = this.gameModel.getPileContainingCard(
+            visual.playingCard.id,
+          );
+          if (pile && pile.id === "stock") {
+            const cards = pile.getCards();
+            if (
+              cards.length > 0 &&
+              cards[cards.length - 1] === visual.playingCard
+            ) {
+              this.gameModel.drawCardsFromStock();
+            }
+          }
+        });
       }
     }
   }
