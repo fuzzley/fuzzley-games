@@ -21,6 +21,7 @@ vi.mock("phaser", () => {
           clear: vi.fn().mockReturnThis(),
           lineStyle: vi.fn().mockReturnThis(),
           strokeRect: vi.fn().mockReturnThis(),
+          strokeRoundedRect: vi.fn().mockReturnThis(),
           setDepth: vi.fn().mockReturnThis(),
         })),
         sprite: vi.fn(() => createMockSprite()),
