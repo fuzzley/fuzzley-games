@@ -69,6 +69,9 @@ export class BoardScene extends Scene {
   /** The currently hovered card visual wrapper. */
   private hoveredCardVisual: PlayingCardVisual | null = null;
 
+  /** Whether the stock pile background sprite is currently hovered. */
+  private isStockBackgroundHovered = false;
+
   /** Constructs the board scene. */
   constructor() {
     super("board-scene");
@@ -206,6 +209,11 @@ export class BoardScene extends Scene {
         visual.sprite.input.cursor = interactable ? "pointer" : "default";
       }
     }
+
+    if (this.stockPile.sprite && this.stockPile.sprite.input) {
+      const isEmpty = this.gameModel.stock.getCards().length === 0;
+      this.stockPile.sprite.input.cursor = isEmpty ? "pointer" : "default";
+    }
   }
 
   /**
@@ -282,6 +290,14 @@ export class BoardScene extends Scene {
         this.gameModel.drawCardsFromStock();
       }
     });
+    stockSprite.on("pointerover", () => {
+      this.isStockBackgroundHovered = true;
+      this.updateHighlightBorder();
+    });
+    stockSprite.on("pointerout", () => {
+      this.isStockBackgroundHovered = false;
+      this.updateHighlightBorder();
+    });
     this.stockPile.sprite = stockSprite;
 
     // Tableau piles background
@@ -344,6 +360,15 @@ export class BoardScene extends Scene {
     }
     this.highlightGraphics.clear();
 
+    const stockEmpty = this.gameModel.stock.getCards().length === 0;
+    if (this.isStockBackgroundHovered && stockEmpty) {
+      const sprite = this.stockPile.sprite;
+      if (sprite.active) {
+        this.drawHighlight(sprite);
+      }
+      return;
+    }
+
     if (!this.hoveredCardVisual) {
       return;
     }
@@ -354,15 +379,22 @@ export class BoardScene extends Scene {
     }
 
     const sprite = this.hoveredCardVisual.sprite;
-    if (!sprite.active) {
-      return;
+    if (sprite.active) {
+      this.drawHighlight(sprite);
     }
+  }
 
+  /**
+   * Draws a thick, rounded, semi-transparent yellow highlight border around a sprite.
+   *
+   * @param sprite The sprite to highlight.
+   */
+  private drawHighlight(sprite: Phaser.GameObjects.Sprite): void {
     const scale = this.layoutManager.getScaleFactor();
     const width = sprite.displayWidth;
     const height = sprite.displayHeight;
 
-    // Draw a thick, rounded, semi-transparent yellow border around the card
+    // Draw a thick, rounded, semi-transparent yellow border around the sprite
     const thickness = 10 * scale;
     const radius = 16 * scale;
     this.highlightGraphics.lineStyle(thickness, 0xebef9b, 0.8);

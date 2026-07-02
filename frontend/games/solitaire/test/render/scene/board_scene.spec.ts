@@ -401,6 +401,49 @@ describe("BoardScene - isCardInteractable", () => {
     expect(originalGraphics.strokeRoundedRect).toHaveBeenCalled();
   });
 
+  it("handles stock pile background hover, highlight, and cursor state", () => {
+    const bgSprite = boardScene.stockPile.sprite;
+    const originalGraphics = (boardScene as any).highlightGraphics;
+    originalGraphics.strokeRoundedRect.mockClear();
+
+    // 1. Hover on stock background when stock is NOT empty (should not draw highlight, cursor should be default)
+    expect(
+      (boardScene as any).gameModel.stock.getCards().length,
+    ).toBeGreaterThan(0);
+
+    // Trigger cursor update
+    (boardScene as any).updateCardCursors();
+    expect(bgSprite.input.cursor).toBe("default");
+
+    bgSprite.emit("pointerover");
+    expect((boardScene as any).isStockBackgroundHovered).toBe(true);
+    boardScene.updateHighlightBorder();
+    expect(originalGraphics.strokeRoundedRect).not.toHaveBeenCalled();
+
+    bgSprite.emit("pointerout");
+    expect((boardScene as any).isStockBackgroundHovered).toBe(false);
+
+    // 2. Hover on stock background when stock IS empty (should draw highlight, cursor should be pointer)
+    const getCardsSpy = vi
+      .spyOn((boardScene as any).gameModel.stock, "getCards")
+      .mockReturnValue([]);
+
+    (boardScene as any).updateCardCursors();
+    expect(bgSprite.input.cursor).toBe("pointer");
+
+    bgSprite.emit("pointerover");
+    expect((boardScene as any).isStockBackgroundHovered).toBe(true);
+    originalGraphics.strokeRoundedRect.mockClear();
+    boardScene.updateHighlightBorder();
+    expect(originalGraphics.strokeRoundedRect).toHaveBeenCalled();
+
+    // 3. Pointerout on stock background when stock is empty (should clear highlight)
+    bgSprite.emit("pointerout");
+    expect((boardScene as any).isStockBackgroundHovered).toBe(false);
+
+    getCardsSpy.mockRestore();
+  });
+
   it("throws errors in suitToFileName and typeToFileName for invalid values", () => {
     // We import ALL_PLAYING_CARD_IDS and can mutate it temporarily
     // Create card with invalid suit
