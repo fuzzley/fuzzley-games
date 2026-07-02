@@ -188,24 +188,28 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    *
    * If stock is empty, recycles waste back into stock.
    */
-  public drawCard(): void {
+  public drawCardsFromStock(): void {
     const stockCards = this.stock.getCards();
     if (stockCards.length > 0) {
-      // Draw top card from stock (last item in array)
-      const topCard = stockCards[stockCards.length - 1];
-      this.stock.removeCard(topCard);
-      topCard.faceUp = true;
-      this.waste.addCard(topCard);
+      // Draw up to 3 cards from stock (standard Klondike "Draw 3" rule)
+      const drawCount = Math.min(3, stockCards.length);
+      for (let i = 0; i < drawCount; i++) {
+        const currentCards = this.stock.getCards();
+        const topCard = currentCards[currentCards.length - 1];
+        this.stock.removeCard(topCard);
+        topCard.faceUp = true;
+        this.waste.addCard(topCard);
 
-      this.emit("card-moved", {
-        cardId: topCard.id,
-        fromPileId: this.stock.id,
-        toPileId: this.waste.id,
-      });
-      this.emit("card-flipped", {
-        cardId: topCard.id,
-        faceUp: true,
-      });
+        this.emit("card-moved", {
+          cardId: topCard.id,
+          fromPileId: this.stock.id,
+          toPileId: this.waste.id,
+        });
+        this.emit("card-flipped", {
+          cardId: topCard.id,
+          faceUp: true,
+        });
+      }
     } else {
       // Recycle Waste into Stock
       const wasteCards = [...this.waste.getCards()];

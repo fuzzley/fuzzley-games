@@ -40,13 +40,14 @@ describe("SolitaireGame", () => {
     }
   });
 
-  it("draws a card from stock to waste and emits events", () => {
+  it("draws 3 cards from stock to waste and emits events", () => {
     game.startNewGame();
 
     const initialStockCount = game.stock.getCards().length; // 24
-    const topStockCard = game.stock.getCards()[
-      initialStockCount - 1
-    ] as PlayingCard;
+    // Capture the top 3 cards (they will be drawn in order: top first)
+    const top1 = game.stock.getCards()[initialStockCount - 1] as PlayingCard;
+    const top2 = game.stock.getCards()[initialStockCount - 2] as PlayingCard;
+    const top3 = game.stock.getCards()[initialStockCount - 3] as PlayingCard;
 
     const moveCallback = vi.fn();
     const flipCallback = vi.fn();
@@ -54,31 +55,29 @@ describe("SolitaireGame", () => {
     game.on("card-moved", moveCallback);
     game.on("card-flipped", flipCallback);
 
-    game.drawCard();
+    game.drawCardsFromStock();
 
-    expect(game.stock.getCards().length).toBe(23);
-    expect(game.waste.getCards().length).toBe(1);
-    expect(game.waste.getCards()[0]).toBe(topStockCard);
-    expect(topStockCard.faceUp).toBe(true);
+    expect(game.stock.getCards().length).toBe(21);
+    expect(game.waste.getCards().length).toBe(3);
+    // Cards are added to waste in draw order: top1 first, top3 last (on top)
+    expect(game.waste.getCards()[0]).toBe(top1);
+    expect(game.waste.getCards()[1]).toBe(top2);
+    expect(game.waste.getCards()[2]).toBe(top3);
+    expect(top1.faceUp).toBe(true);
+    expect(top2.faceUp).toBe(true);
+    expect(top3.faceUp).toBe(true);
 
-    expect(moveCallback).toHaveBeenCalledWith({
-      cardId: topStockCard.id,
-      fromPileId: "stock",
-      toPileId: "waste",
-    });
-    expect(flipCallback).toHaveBeenCalledWith({
-      cardId: topStockCard.id,
-      faceUp: true,
-    });
+    expect(moveCallback).toHaveBeenCalledTimes(3);
+    expect(flipCallback).toHaveBeenCalledTimes(3);
   });
 
   it("recycles waste back to stock if stock is empty", () => {
     game.startNewGame();
 
-    // Empty stock manually
-    const stockCount = game.stock.getCards().length;
-    for (let i = 0; i < stockCount; i++) {
-      game.drawCard();
+    // Empty stock manually (24 cards / 3 per draw = 8 draws)
+    const drawsToEmpty = Math.ceil(game.stock.getCards().length / 3);
+    for (let i = 0; i < drawsToEmpty; i++) {
+      game.drawCardsFromStock();
     }
 
     expect(game.stock.getCards().length).toBe(0);
@@ -88,7 +87,7 @@ describe("SolitaireGame", () => {
     game.on("stock-recycled", recycleCallback);
 
     // Call drawCard when stock is empty to recycle
-    game.drawCard();
+    game.drawCardsFromStock();
 
     expect(recycleCallback).toHaveBeenCalledTimes(1);
     expect(game.stock.getCards().length).toBe(24);
@@ -222,7 +221,7 @@ describe("SolitaireGame", () => {
       emptyGame.on("stock-recycled", recycleCallback);
       emptyGame.on("card-moved", moveCallback);
 
-      emptyGame.drawCard();
+      emptyGame.drawCardsFromStock();
 
       expect(recycleCallback).not.toHaveBeenCalled();
       expect(moveCallback).not.toHaveBeenCalled();

@@ -22,12 +22,34 @@ export class WastePileVisual extends Visual<CardPile<PlayingCard>> {
     super(cardPile);
   }
 
+  /** Horizontal pixel offset between fanned waste cards. */
+  private static readonly FAN_OFFSET_X = 25;
+
+  /** Maximum number of cards to fan (show edges for). */
+  private static readonly MAX_FAN_CARDS = 3;
+
   /**
-   * Positions all card visuals directly on top of the pile base (0, 0).
+   * Fans the topmost cards horizontally so up to three card edges are visible,
+   * while all remaining cards are stacked at the pile origin.
    */
   layoutPile() {
-    for (const cardVisual of this.playingCardVisuals) {
-      cardVisual.position = { x: 0, y: 0 };
+    const count = this.playingCardVisuals.length;
+    // Number of cards to fan (the top N, up to MAX_FAN_CARDS)
+    const fanCount = Math.min(count, WastePileVisual.MAX_FAN_CARDS);
+    const fanStartIndex = count - fanCount;
+
+    for (let i = 0; i < count; i++) {
+      if (i < fanStartIndex) {
+        // Cards below the fan are stacked at the origin
+        this.playingCardVisuals[i].position = { x: 0, y: 0 };
+      } else {
+        // Fan the top cards to the right
+        const fanPosition = i - fanStartIndex;
+        this.playingCardVisuals[i].position = {
+          x: fanPosition * WastePileVisual.FAN_OFFSET_X,
+          y: 0,
+        };
+      }
     }
   }
 }
