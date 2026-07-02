@@ -130,11 +130,12 @@ export class BoardScene extends Scene {
 
     this.gameModel.on("card-flipped", ({ cardId, faceUp }) => {
       const visualCard = this.cardVisualsMap.get(cardId);
-      if (visualCard && visualCard.sprite) {
+      if (visualCard.sprite) {
         const frame = faceUp ? cardId : "card-back-blue";
         visualCard.sprite.setFrame(frame);
         visualCard.sprite.setOrigin(0, 0);
       }
+      this.updateCardCursors();
       this.updateHighlightBorder();
     });
 
@@ -158,20 +159,16 @@ export class BoardScene extends Scene {
 
     for (const card of this.gameModel.stock.getCards()) {
       const visual = this.cardVisualsMap.get(card.id);
-      if (visual) {
-        this.stockPile.playingCardVisuals.push(visual);
-        visual.sprite.setFrame("card-back-blue");
-        visual.sprite.setOrigin(0, 0);
-      }
+      this.stockPile.playingCardVisuals.push(visual);
+      visual.sprite.setFrame("card-back-blue");
+      visual.sprite.setOrigin(0, 0);
     }
 
     for (const card of this.gameModel.waste.getCards()) {
       const visual = this.cardVisualsMap.get(card.id);
-      if (visual) {
-        this.wastePile.playingCardVisuals.push(visual);
-        visual.sprite.setFrame(card.id);
-        visual.sprite.setOrigin(0, 0);
-      }
+      this.wastePile.playingCardVisuals.push(visual);
+      visual.sprite.setFrame(card.id);
+      visual.sprite.setOrigin(0, 0);
     }
 
     for (let i = 0; i < this.gameModel.foundations.length; i++) {
@@ -179,11 +176,9 @@ export class BoardScene extends Scene {
       const visualPile = this.foundationPiles[i];
       for (const card of modelPile.getCards()) {
         const visual = this.cardVisualsMap.get(card.id);
-        if (visual) {
-          visualPile.playingCardVisuals.push(visual);
-          visual.sprite.setFrame(card.id);
-          visual.sprite.setOrigin(0, 0);
-        }
+        visualPile.playingCardVisuals.push(visual);
+        visual.sprite.setFrame(card.id);
+        visual.sprite.setOrigin(0, 0);
       }
     }
 
@@ -192,11 +187,23 @@ export class BoardScene extends Scene {
       const visualPile = this.tableauPiles[i];
       for (const card of modelPile.getCards()) {
         const visual = this.cardVisualsMap.get(card.id);
-        if (visual) {
-          visualPile.playingCardVisuals.push(visual);
-          visual.sprite.setFrame(card.faceUp ? card.id : "card-back-blue");
-          visual.sprite.setOrigin(0, 0);
-        }
+        visualPile.playingCardVisuals.push(visual);
+        visual.sprite.setFrame(card.faceUp ? card.id : "card-back-blue");
+        visual.sprite.setOrigin(0, 0);
+      }
+    }
+
+    this.updateCardCursors();
+  }
+
+  /**
+   * Updates the hand cursor for each card sprite based on whether the card is currently interactable.
+   */
+  private updateCardCursors(): void {
+    for (const visual of this.cardVisualsMap.values()) {
+      if (visual.sprite && visual.sprite.input) {
+        const interactable = this.isCardInteractable(visual.playingCard);
+        visual.sprite.input.cursor = interactable ? "pointer" : "default";
       }
     }
   }
@@ -208,45 +215,51 @@ export class BoardScene extends Scene {
     for (const cardId of ALL_PLAYING_CARD_IDS) {
       const fileName = playingCardIdToFileName(cardId);
       const cardModel = this.gameModel.getCardById(fileName);
-      if (cardModel) {
-        // Initially draw all cards face down using the card-back frame
-        const sprite = this.add.sprite(0, 0, "card_assets", "card-back-blue");
-        sprite.setOrigin(0, 0);
-
-        const visual = new PlayingCardVisual(cardModel);
-        visual.sprite = sprite;
-        this.cardVisualsMap.set(cardModel.id, visual);
-
-        // Make card sprite interactive for pointer events
-        sprite.setInteractive({ useHandCursor: true });
-
-        sprite.on("pointerover", () => {
-          this.hoveredCardVisual = visual;
-          this.updateHighlightBorder();
-        });
-
-        sprite.on("pointerout", () => {
-          if (this.hoveredCardVisual === visual) {
-            this.hoveredCardVisual = null;
-            this.updateHighlightBorder();
-          }
-        });
-
-        sprite.on("pointerdown", () => {
-          const pile = this.gameModel.getPileContainingCard(
-            visual.playingCard.id,
-          );
-          if (pile && pile.id === "stock") {
-            const cards = pile.getCards();
-            if (
-              cards.length > 0 &&
-              cards[cards.length - 1] === visual.playingCard
-            ) {
-              this.gameModel.drawCardsFromStock();
-            }
-          }
-        });
+      if (!cardModel) {
+        throw new Error(`Card model not found for: ${fileName}`);
       }
+
+      // Initially draw all cards face down using the card-back frame
+      const sprite = this.add.sprite(0, 0, "card_assets", "card-back-blue");
+      sprite.setOrigin(0, 0);
+
+      const visual = new PlayingCardVisual(cardModel);
+      visual.sprite = sprite;
+      this.cardVisualsMap.set(cardModel.id, visual);
+
+      // Make card sprite interactive for pointer events
+      sprite.setInteractive({ useHandCursor: true });
+
+      sprite.on("pointerover", () => {
+        this.hoveredCardVisual = visual;
+        this.updateHighlightBorder();
+      });
+
+      sprite.on("pointerout", () => {
+        if (this.hoveredCardVisual === visual) {
+          this.hoveredCardVisual = null;
+          this.updateHighlightBorder();
+        }
+      });
+
+      sprite.on("pointerdown", () => {
+        const pile = this.gameModel.getPileContainingCard(
+          visual.playingCard.id,
+        );
+        if (!pile) {
+          throw new Error(`Card ${visual.playingCard.id} is not in a pile`);
+        }
+
+        if (pile.id === "stock") {
+          const cards = pile.getCards();
+          if (
+            cards.length > 0 &&
+            cards[cards.length - 1] === visual.playingCard
+          ) {
+            this.gameModel.drawCardsFromStock();
+          }
+        }
+      });
     }
   }
 
@@ -255,7 +268,12 @@ export class BoardScene extends Scene {
    */
   private createPileBackgroundSprites(): void {
     // Stock pile background
-    const stockSprite = this.add.sprite(0, 0, "card_assets", "card-placeholder");
+    const stockSprite = this.add.sprite(
+      0,
+      0,
+      "card_assets",
+      "card-placeholder",
+    );
     stockSprite.setOrigin(0, 0);
     // Make stock pile placeholder interactive to allow recycling when stock is empty
     stockSprite.setInteractive({ useHandCursor: true });
@@ -331,26 +349,30 @@ export class BoardScene extends Scene {
     }
 
     const card = this.hoveredCardVisual.playingCard;
-    if (this.isCardInteractable(card)) {
-      const sprite = this.hoveredCardVisual.sprite;
-      if (sprite && sprite.active) {
-        const scale = this.layoutManager.getScaleFactor();
-        const width = sprite.displayWidth;
-        const height = sprite.displayHeight;
-
-        // Draw a thick, rounded, semi-transparent yellow border around the card
-        const thickness = 10 * scale;
-        const radius = 16 * scale;
-        this.highlightGraphics.lineStyle(thickness, 0xebef9b, 0.8);
-        this.highlightGraphics.strokeRoundedRect(
-          sprite.x,
-          sprite.y,
-          width,
-          height,
-          radius,
-        );
-      }
+    if (!this.isCardInteractable(card)) {
+      return;
     }
+
+    const sprite = this.hoveredCardVisual.sprite;
+    if (!sprite.active) {
+      return;
+    }
+
+    const scale = this.layoutManager.getScaleFactor();
+    const width = sprite.displayWidth;
+    const height = sprite.displayHeight;
+
+    // Draw a thick, rounded, semi-transparent yellow border around the card
+    const thickness = 10 * scale;
+    const radius = 16 * scale;
+    this.highlightGraphics.lineStyle(thickness, 0xebef9b, 0.8);
+    this.highlightGraphics.strokeRoundedRect(
+      sprite.x,
+      sprite.y,
+      width,
+      height,
+      radius,
+    );
   }
 }
 

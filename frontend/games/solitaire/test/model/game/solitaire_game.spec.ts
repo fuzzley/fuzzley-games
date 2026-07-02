@@ -397,5 +397,14 @@ describe("SolitaireGame", () => {
 
       expect(wonCallback).toHaveBeenCalledTimes(1);
     });
+
+    it("returns false in moveCards if card is not in the source pile returned by getPileContainingCard (cardIndex === -1)", () => {
+      game.startNewGame();
+      const card = game.stock.getCards()[0];
+      card.faceUp = true;
+      // Stub getPileContainingCard to return tableau-0, which does not contain the stock card
+      vi.spyOn(game, "getPileContainingCard").mockReturnValue(game.tableaus[0]);
+      expect(game.moveCards(card.id, "tableau-1")).toBe(false);
+    });
   });
 });

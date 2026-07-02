@@ -214,4 +214,37 @@ describe("BoardLayoutManager", () => {
       mockBoardScene.stockPile.playingCardVisuals[0].sprite.setDepth,
     ).toHaveBeenCalledWith(0);
   });
+
+  it("defaults scale factor to 1.0 when viewport scale object is missing", () => {
+    const mockBoardScene = {
+      stockPile: { position: { x: 0, y: 0 } },
+      wastePile: { position: { x: 0, y: 0 } },
+      foundationPiles: [],
+      tableauPiles: [],
+    };
+    const layoutManager = new BoardLayoutManager(mockBoardScene as any);
+    expect(layoutManager.getScaleFactor()).toBe(1.0);
+  });
+
+  it("caps scale factor to 1.0 when viewport is larger than default", () => {
+    const mockBoardScene = {
+      scale: {
+        width: 3000,
+        height: 2000,
+      },
+    };
+    const layoutManager = new BoardLayoutManager(mockBoardScene as any);
+    expect(layoutManager.getScaleFactor()).toBe(1.0);
+  });
+
+  it("defaults scale factor to 1.0 when scale factor is <= 0", () => {
+    const mockBoardScene = {
+      scale: {
+        width: -10,
+        height: -20,
+      },
+    };
+    const layoutManager = new BoardLayoutManager(mockBoardScene as any);
+    expect(layoutManager.getScaleFactor()).toBe(1.0);
+  });
 });
