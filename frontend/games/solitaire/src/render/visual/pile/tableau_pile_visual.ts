@@ -22,15 +22,20 @@ export class TableauPileVisual extends Visual<CardPile<PlayingCard>> {
     super(cardPile);
   }
 
+  private static readonly FACE_UP_OFFSET = 35;
+  private static readonly FACE_DOWN_OFFSET = 15;
+
   /**
-   * Fans cards vertically downwards, using 15px increments for face-down cards and 35px for face-up cards.
+   * Fans cards vertically downwards, using the configured offsets for face-down and face-up cards.
    */
   layoutPile() {
     let currentY = 0;
     for (const cardVisual of this.playingCardVisuals) {
       cardVisual.position = { x: 0, y: currentY };
-      // Fan face-down cards by 15px, and face-up cards by 35px
-      const offset = cardVisual.playingCard.faceUp ? 35 : 15;
+      // Fan face-down cards and face-up cards according to configured offsets
+      const offset = cardVisual.playingCard.faceUp
+        ? TableauPileVisual.FACE_UP_OFFSET
+        : TableauPileVisual.FACE_DOWN_OFFSET;
       currentY += offset;
     }
   }

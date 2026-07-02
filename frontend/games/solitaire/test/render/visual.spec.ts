@@ -70,7 +70,7 @@ describe("Visual classes", () => {
       expect(visual.position).toEqual({ x: 0, y: 0 });
     });
 
-    it("lays out cards stacked on top of each other", () => {
+    it("fans out topmost cards horizontally", () => {
       const card1 = new PlayingCard();
       card1.id = "c1";
       const card2 = new PlayingCard();
@@ -81,7 +81,7 @@ describe("Visual classes", () => {
 
       visual.layoutPile();
       expect(v1.position).toEqual({ x: 0, y: 0 });
-      expect(v2.position).toEqual({ x: 0, y: 0 });
+      expect(v2.position).toEqual({ x: 25, y: 0 });
     });
   });
 

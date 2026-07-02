@@ -1,7 +1,7 @@
 /**
  * Event map defining payloads for solitaire game events.
  */
-export interface GameEvents {
+export type GameEvents = {
   /** Emitted when a card or stack of cards has successfully moved between piles. */
   "card-moved": {
     /** The ID of the primary card that was moved. */
