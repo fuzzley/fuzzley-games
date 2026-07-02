@@ -4,7 +4,7 @@ import { Visual } from "../visual";
 
 /**
  * Visual representation of a Stock card pile.
- * 
+ *
  * Manages the positioning of stacked cards in the face-down stock draw pile (which are stacked directly on top of each other).
  */
 export class StockPileVisual extends Visual<CardPile> {

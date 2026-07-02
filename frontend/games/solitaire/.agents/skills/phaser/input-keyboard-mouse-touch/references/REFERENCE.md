@@ -6,94 +6,95 @@
 
 ### Keyboard Events (on `this.input.keyboard`)
 
-| Event String | Callback Signature | Description |
-|---|---|---|
-| `'keydown'` | `(event: KeyboardEvent)` | Any key pressed |
-| `'keyup'` | `(event: KeyboardEvent)` | Any key released |
-| `'keydown-KEY'` | `(event: KeyboardEvent)` | Specific key pressed (e.g. `'keydown-SPACE'`, `'keydown-A'`) |
-| `'keyup-KEY'` | `(event: KeyboardEvent)` | Specific key released |
-| `'keycombomatch'` | `(keyCombo: KeyCombo, event: KeyboardEvent)` | A key combo was matched |
+| Event String      | Callback Signature                           | Description                                                  |
+| ----------------- | -------------------------------------------- | ------------------------------------------------------------ |
+| `'keydown'`       | `(event: KeyboardEvent)`                     | Any key pressed                                              |
+| `'keyup'`         | `(event: KeyboardEvent)`                     | Any key released                                             |
+| `'keydown-KEY'`   | `(event: KeyboardEvent)`                     | Specific key pressed (e.g. `'keydown-SPACE'`, `'keydown-A'`) |
+| `'keyup-KEY'`     | `(event: KeyboardEvent)`                     | Specific key released                                        |
+| `'keycombomatch'` | `(keyCombo: KeyCombo, event: KeyboardEvent)` | A key combo was matched                                      |
 
 ### Key Object Events (on a Key instance)
 
-| Event String | Callback Signature | Description |
-|---|---|---|
-| `'down'` | `(key: Key, event: KeyboardEvent)` | This key was pressed |
-| `'up'` | `(key: Key, event: KeyboardEvent)` | This key was released |
+| Event String | Callback Signature                 | Description           |
+| ------------ | ---------------------------------- | --------------------- |
+| `'down'`     | `(key: Key, event: KeyboardEvent)` | This key was pressed  |
+| `'up'`       | `(key: Key, event: KeyboardEvent)` | This key was released |
 
 ### Pointer Events (on `this.input`)
 
-| Event String | Callback Signature | Description |
-|---|---|---|
-| `'pointerdown'` | `(pointer, currentlyOver: GameObject[])` | Pointer pressed anywhere |
-| `'pointerup'` | `(pointer, currentlyOver: GameObject[])` | Pointer released anywhere |
-| `'pointermove'` | `(pointer, currentlyOver: GameObject[])` | Pointer moved anywhere |
-| `'pointerdownoutside'` | `(pointer)` | Pointer pressed outside the game canvas |
-| `'pointerupoutside'` | `(pointer)` | Pointer released outside the game canvas |
-| `'wheel'` | `(pointer, currentlyOver: GameObject[], deltaX, deltaY, deltaZ)` | Mouse wheel scrolled |
-| `'gameout'` | `(event)` | Pointer left the game canvas |
-| `'gameover'` | `(event)` | Pointer entered the game canvas |
-| `'pointerlockchange'` | `(event, locked: boolean)` | Pointer lock state changed |
+| Event String           | Callback Signature                                               | Description                              |
+| ---------------------- | ---------------------------------------------------------------- | ---------------------------------------- |
+| `'pointerdown'`        | `(pointer, currentlyOver: GameObject[])`                         | Pointer pressed anywhere                 |
+| `'pointerup'`          | `(pointer, currentlyOver: GameObject[])`                         | Pointer released anywhere                |
+| `'pointermove'`        | `(pointer, currentlyOver: GameObject[])`                         | Pointer moved anywhere                   |
+| `'pointerdownoutside'` | `(pointer)`                                                      | Pointer pressed outside the game canvas  |
+| `'pointerupoutside'`   | `(pointer)`                                                      | Pointer released outside the game canvas |
+| `'wheel'`              | `(pointer, currentlyOver: GameObject[], deltaX, deltaY, deltaZ)` | Mouse wheel scrolled                     |
+| `'gameout'`            | `(event)`                                                        | Pointer left the game canvas             |
+| `'gameover'`           | `(event)`                                                        | Pointer entered the game canvas          |
+| `'pointerlockchange'`  | `(event, locked: boolean)`                                       | Pointer lock state changed               |
 
 ### Game Object Pointer Events (on an interactive Game Object)
 
-| Event String | Callback Signature | Description |
-|---|---|---|
-| `'pointerdown'` | `(pointer, localX, localY, event)` | Pointer pressed on this object |
-| `'pointerup'` | `(pointer, localX, localY, event)` | Pointer released on this object |
-| `'pointermove'` | `(pointer, localX, localY, event)` | Pointer moved over this object |
-| `'pointerover'` | `(pointer, localX, localY, event)` | Pointer entered this object |
-| `'pointerout'` | `(pointer, event)` | Pointer left this object |
-| `'wheel'` | `(pointer, deltaX, deltaY, deltaZ, event)` | Mouse wheel over this object |
+| Event String    | Callback Signature                         | Description                     |
+| --------------- | ------------------------------------------ | ------------------------------- |
+| `'pointerdown'` | `(pointer, localX, localY, event)`         | Pointer pressed on this object  |
+| `'pointerup'`   | `(pointer, localX, localY, event)`         | Pointer released on this object |
+| `'pointermove'` | `(pointer, localX, localY, event)`         | Pointer moved over this object  |
+| `'pointerover'` | `(pointer, localX, localY, event)`         | Pointer entered this object     |
+| `'pointerout'`  | `(pointer, event)`                         | Pointer left this object        |
+| `'wheel'`       | `(pointer, deltaX, deltaY, deltaZ, event)` | Mouse wheel over this object    |
 
 All Game Object events provide `event.stopPropagation()` to halt further event flow.
 
 ### Scene Per-Object Pointer Events (on `this.input`, Level 2)
 
-| Event String | Callback Signature | Description |
-|---|---|---|
-| `'gameobjectdown'` | `(pointer, gameObject, event)` | Pointer pressed on any interactive object |
-| `'gameobjectup'` | `(pointer, gameObject, event)` | Pointer released on any interactive object |
-| `'gameobjectmove'` | `(pointer, gameObject, event)` | Pointer moved over any interactive object |
-| `'gameobjectover'` | `(pointer, gameObject, event)` | Pointer entered any interactive object |
-| `'gameobjectout'` | `(pointer, gameObject, event)` | Pointer left any interactive object |
-| `'gameobjectwheel'` | `(pointer, gameObject, dx, dy, dz, event)` | Mouse wheel over any interactive object |
+| Event String        | Callback Signature                         | Description                                |
+| ------------------- | ------------------------------------------ | ------------------------------------------ |
+| `'gameobjectdown'`  | `(pointer, gameObject, event)`             | Pointer pressed on any interactive object  |
+| `'gameobjectup'`    | `(pointer, gameObject, event)`             | Pointer released on any interactive object |
+| `'gameobjectmove'`  | `(pointer, gameObject, event)`             | Pointer moved over any interactive object  |
+| `'gameobjectover'`  | `(pointer, gameObject, event)`             | Pointer entered any interactive object     |
+| `'gameobjectout'`   | `(pointer, gameObject, event)`             | Pointer left any interactive object        |
+| `'gameobjectwheel'` | `(pointer, gameObject, dx, dy, dz, event)` | Mouse wheel over any interactive object    |
 
 ### Game Object Drag Events (on an interactive, draggable Game Object)
 
-| Event String | Callback Signature | Description |
-|---|---|---|
-| `'dragstart'` | `(pointer, dragX, dragY)` | Drag started on this object |
-| `'drag'` | `(pointer, dragX, dragY)` | Object is being dragged |
-| `'dragend'` | `(pointer, dragX, dragY, dropped)` | Drag ended (`dropped` is boolean) |
-| `'drop'` | `(pointer, target)` | Dropped on a drop zone |
-| `'dragenter'` | `(pointer, target)` | Dragged into a drop zone |
-| `'dragleave'` | `(pointer, target)` | Dragged out of a drop zone |
+| Event String  | Callback Signature                 | Description                       |
+| ------------- | ---------------------------------- | --------------------------------- |
+| `'dragstart'` | `(pointer, dragX, dragY)`          | Drag started on this object       |
+| `'drag'`      | `(pointer, dragX, dragY)`          | Object is being dragged           |
+| `'dragend'`   | `(pointer, dragX, dragY, dropped)` | Drag ended (`dropped` is boolean) |
+| `'drop'`      | `(pointer, target)`                | Dropped on a drop zone            |
+| `'dragenter'` | `(pointer, target)`                | Dragged into a drop zone          |
+| `'dragleave'` | `(pointer, target)`                | Dragged out of a drop zone        |
 
 ### Drag Events (on `this.input`)
 
-| Event String | Callback Signature |
-|---|---|
-| `'dragstart'` | `(pointer, gameObject)` |
-| `'drag'` | `(pointer, gameObject, dragX, dragY)` |
-| `'dragend'` | `(pointer, gameObject)` |
-| `'dragenter'` | `(pointer, gameObject, dropZone)` |
-| `'dragleave'` | `(pointer, gameObject, dropZone)` |
-| `'dragover'` | `(pointer, gameObject, dropZone)` |
-| `'drop'` | `(pointer, gameObject, target)` |
+| Event String  | Callback Signature                    |
+| ------------- | ------------------------------------- |
+| `'dragstart'` | `(pointer, gameObject)`               |
+| `'drag'`      | `(pointer, gameObject, dragX, dragY)` |
+| `'dragend'`   | `(pointer, gameObject)`               |
+| `'dragenter'` | `(pointer, gameObject, dropZone)`     |
+| `'dragleave'` | `(pointer, gameObject, dropZone)`     |
+| `'dragover'`  | `(pointer, gameObject, dropZone)`     |
+| `'drop'`      | `(pointer, gameObject, target)`       |
 
 ### Gamepad Events (on `this.input.gamepad`)
 
-| Event String | Callback Signature |
-|---|---|
-| `'connected'` | `(pad: Gamepad, event: Event)` |
-| `'disconnected'` | `(pad: Gamepad, event: Event)` |
-| `'down'` | `(pad: Gamepad, button: Button, value: number)` |
-| `'up'` | `(pad: Gamepad, button: Button, value: number)` |
+| Event String     | Callback Signature                              |
+| ---------------- | ----------------------------------------------- |
+| `'connected'`    | `(pad: Gamepad, event: Event)`                  |
+| `'disconnected'` | `(pad: Gamepad, event: Event)`                  |
+| `'down'`         | `(pad: Gamepad, button: Button, value: number)` |
+| `'up'`           | `(pad: Gamepad, button: Button, value: number)` |
 
 ### Event Dispatch Order (pointer events)
 
 For down/up/move events, the dispatch order is:
+
 1. `GAMEOBJECT_POINTER_DOWN` (on the Game Object itself)
 2. `GAMEOBJECT_DOWN` (on `this.input` with Game Object as param)
 3. `POINTER_DOWN` (on `this.input`, scene-wide)
@@ -104,74 +105,74 @@ Higher-priority handlers can call `event.stopPropagation()` to prevent lower one
 
 ### InputPlugin (this.input)
 
-| Method / Property | Signature | Returns |
-|---|---|---|
-| `on(event, fn, context)` | Event listener | this |
-| `addPointer(quantity)` | `(number)` | Pointer[] |
-| `setDraggable(gameObjects, value)` | `(GameObject[], boolean)` | this |
-| `makePixelPerfect(alphaTolerance)` | `(number)` | Function |
-| `setHitArea(gameObjects, hitArea, callback)` | `(GameObject[], any, Function)` | this |
-| `setHitAreaCircle(go, x, y, r, cb)` | | this |
-| `setHitAreaRectangle(go, x, y, w, h, cb)` | | this |
-| `setHitAreaFromTexture(go, cb)` | | this |
-| `activePointer` | | Pointer |
-| `mousePointer` | | Pointer |
-| `keyboard` | | KeyboardPlugin |
-| `gamepad` | | GamepadPlugin |
+| Method / Property                            | Signature                       | Returns        |
+| -------------------------------------------- | ------------------------------- | -------------- |
+| `on(event, fn, context)`                     | Event listener                  | this           |
+| `addPointer(quantity)`                       | `(number)`                      | Pointer[]      |
+| `setDraggable(gameObjects, value)`           | `(GameObject[], boolean)`       | this           |
+| `makePixelPerfect(alphaTolerance)`           | `(number)`                      | Function       |
+| `setHitArea(gameObjects, hitArea, callback)` | `(GameObject[], any, Function)` | this           |
+| `setHitAreaCircle(go, x, y, r, cb)`          |                                 | this           |
+| `setHitAreaRectangle(go, x, y, w, h, cb)`    |                                 | this           |
+| `setHitAreaFromTexture(go, cb)`              |                                 | this           |
+| `activePointer`                              |                                 | Pointer        |
+| `mousePointer`                               |                                 | Pointer        |
+| `keyboard`                                   |                                 | KeyboardPlugin |
+| `gamepad`                                    |                                 | GamepadPlugin  |
 
 ### KeyboardPlugin (this.input.keyboard)
 
-| Method / Property | Signature | Returns |
-|---|---|---|
-| `createCursorKeys()` | | CursorKeys (`{up, down, left, right, space, shift}`) |
-| `addKey(key, capture, emitOnRepeat)` | `(Key\|string\|number, boolean?, boolean?)` | Key |
-| `addKeys(keys, capture, emitOnRepeat)` | `(object\|string, boolean?, boolean?)` | object |
-| `removeKey(key, destroy)` | `(Key\|string\|number, boolean?)` | this |
-| `createCombo(keys, config)` | `(string\|number[]\|object[], object?)` | KeyCombo |
-| `checkDown(key, duration)` | `(Key, number?)` | boolean |
-| `addCapture(keycode)` | `(string\|number\|number[])` | this |
-| `removeCapture(keycode)` | `(string\|number\|number[])` | this |
-| `enabled` | boolean | |
+| Method / Property                      | Signature                                   | Returns                                              |
+| -------------------------------------- | ------------------------------------------- | ---------------------------------------------------- |
+| `createCursorKeys()`                   |                                             | CursorKeys (`{up, down, left, right, space, shift}`) |
+| `addKey(key, capture, emitOnRepeat)`   | `(Key\|string\|number, boolean?, boolean?)` | Key                                                  |
+| `addKeys(keys, capture, emitOnRepeat)` | `(object\|string, boolean?, boolean?)`      | object                                               |
+| `removeKey(key, destroy)`              | `(Key\|string\|number, boolean?)`           | this                                                 |
+| `createCombo(keys, config)`            | `(string\|number[]\|object[], object?)`     | KeyCombo                                             |
+| `checkDown(key, duration)`             | `(Key, number?)`                            | boolean                                              |
+| `addCapture(keycode)`                  | `(string\|number\|number[])`                | this                                                 |
+| `removeCapture(keycode)`               | `(string\|number\|number[])`                | this                                                 |
+| `enabled`                              | boolean                                     |                                                      |
 
 ### Keyboard Utility Functions
 
-| Function | Signature | Returns |
-|---|---|---|
-| `Phaser.Input.Keyboard.JustDown(key)` | `(Key)` | boolean (true once per press) |
-| `Phaser.Input.Keyboard.JustUp(key)` | `(Key)` | boolean (true once per release) |
+| Function                              | Signature | Returns                         |
+| ------------------------------------- | --------- | ------------------------------- |
+| `Phaser.Input.Keyboard.JustDown(key)` | `(Key)`   | boolean (true once per press)   |
+| `Phaser.Input.Keyboard.JustUp(key)`   | `(Key)`   | boolean (true once per release) |
 
 ### Pointer
 
-| Property | Type | Description |
-|---|---|---|
-| `x`, `y` | number | Screen-space position |
-| `worldX`, `worldY` | number | Camera-translated position |
-| `isDown` | boolean | Any button held |
-| `primaryDown` | boolean | Primary button held |
-| `button` | number | Button that triggered last event |
-| `wasTouch` | boolean | Last event was touch |
-| `velocity` | Vector2 | Smoothed movement velocity |
-| `deltaX/Y/Z` | number | Wheel scroll amounts |
+| Property           | Type    | Description                      |
+| ------------------ | ------- | -------------------------------- |
+| `x`, `y`           | number  | Screen-space position            |
+| `worldX`, `worldY` | number  | Camera-translated position       |
+| `isDown`           | boolean | Any button held                  |
+| `primaryDown`      | boolean | Primary button held              |
+| `button`           | number  | Button that triggered last event |
+| `wasTouch`         | boolean | Last event was touch             |
+| `velocity`         | Vector2 | Smoothed movement velocity       |
+| `deltaX/Y/Z`       | number  | Wheel scroll amounts             |
 
-| Method | Returns | Description |
-|---|---|---|
-| `leftButtonDown()` | boolean | Left button held |
-| `rightButtonDown()` | boolean | Right button held |
-| `getDistance()` | number | Distance from down to current/up |
-| `getDuration()` | number | Ms from down to current/up |
-| `updateWorldPoint(camera)` | this | Recalculate world coords |
+| Method                     | Returns | Description                      |
+| -------------------------- | ------- | -------------------------------- |
+| `leftButtonDown()`         | boolean | Left button held                 |
+| `rightButtonDown()`        | boolean | Right button held                |
+| `getDistance()`            | number  | Distance from down to current/up |
+| `getDuration()`            | number  | Ms from down to current/up       |
+| `updateWorldPoint(camera)` | this    | Recalculate world coords         |
 
 ### Gamepad
 
-| Property | Type | Description |
-|---|---|---|
-| `leftStick` | Vector2 | Left analog stick (x,y from -1 to 1) |
-| `rightStick` | Vector2 | Right analog stick |
-| `A`, `B`, `X`, `Y` | boolean | Face buttons |
-| `up`, `down`, `left`, `right` | boolean | D-pad |
-| `L1`, `L2`, `R1`, `R2` | number | Shoulder buttons (0-1) |
-| `id` | string | Controller identifier string |
-| `connected` | boolean | Connection state |
+| Property                      | Type    | Description                          |
+| ----------------------------- | ------- | ------------------------------------ |
+| `leftStick`                   | Vector2 | Left analog stick (x,y from -1 to 1) |
+| `rightStick`                  | Vector2 | Right analog stick                   |
+| `A`, `B`, `X`, `Y`            | boolean | Face buttons                         |
+| `up`, `down`, `left`, `right` | boolean | D-pad                                |
+| `L1`, `L2`, `R1`, `R2`        | number  | Shoulder buttons (0-1)               |
+| `id`                          | string  | Controller identifier string         |
+| `connected`                   | boolean | Connection state                     |
 
 ## Three Levels of Pointer Events
 
@@ -180,32 +181,35 @@ Phaser dispatches pointer events at three levels, in this order:
 **Level 1 — Game Object events** (most specific, require `setInteractive()`):
 
 ```js
-gameObject.on('pointerdown', (pointer, localX, localY, event) => {});
-gameObject.on('pointerup', (pointer, localX, localY, event) => {});
-gameObject.on('pointermove', (pointer, localX, localY, event) => {});
-gameObject.on('pointerover', (pointer, localX, localY, event) => {});
-gameObject.on('pointerout', (pointer, event) => {});
-gameObject.on('wheel', (pointer, dx, dy, dz, event) => {});
+gameObject.on("pointerdown", (pointer, localX, localY, event) => {});
+gameObject.on("pointerup", (pointer, localX, localY, event) => {});
+gameObject.on("pointermove", (pointer, localX, localY, event) => {});
+gameObject.on("pointerover", (pointer, localX, localY, event) => {});
+gameObject.on("pointerout", (pointer, event) => {});
+gameObject.on("wheel", (pointer, dx, dy, dz, event) => {});
 ```
 
 **Level 2 — Scene input per-object events** (fires with the Game Object as a parameter):
 
 ```js
-this.input.on('gameobjectdown', (pointer, gameObject, event) => {});
-this.input.on('gameobjectup', (pointer, gameObject, event) => {});
-this.input.on('gameobjectmove', (pointer, gameObject, event) => {});
-this.input.on('gameobjectover', (pointer, gameObject, event) => {});
-this.input.on('gameobjectout', (pointer, gameObject, event) => {});
-this.input.on('gameobjectwheel', (pointer, gameObject, dx, dy, dz, event) => {});
+this.input.on("gameobjectdown", (pointer, gameObject, event) => {});
+this.input.on("gameobjectup", (pointer, gameObject, event) => {});
+this.input.on("gameobjectmove", (pointer, gameObject, event) => {});
+this.input.on("gameobjectover", (pointer, gameObject, event) => {});
+this.input.on("gameobjectout", (pointer, gameObject, event) => {});
+this.input.on(
+  "gameobjectwheel",
+  (pointer, gameObject, dx, dy, dz, event) => {},
+);
 ```
 
 **Level 3 — Scene input global events** (fires regardless of what is under the pointer):
 
 ```js
-this.input.on('pointerdown', (pointer, currentlyOver) => {});
-this.input.on('pointerup', (pointer, currentlyOver) => {});
-this.input.on('pointermove', (pointer, currentlyOver) => {});
-this.input.on('wheel', (pointer, currentlyOver, dx, dy, dz, event) => {});
+this.input.on("pointerdown", (pointer, currentlyOver) => {});
+this.input.on("pointerup", (pointer, currentlyOver) => {});
+this.input.on("pointermove", (pointer, currentlyOver) => {});
+this.input.on("wheel", (pointer, currentlyOver, dx, dy, dz, event) => {});
 ```
 
 At any level, call `event.stopPropagation()` to prevent the event from reaching the next level.
@@ -217,19 +221,34 @@ At any level, call `event.stopPropagation()` to prevent the event from reaching 
 gameObject.setInteractive();
 
 // Circle
-gameObject.setInteractive(new Phaser.Geom.Circle(x, y, radius), Phaser.Geom.Circle.Contains);
+gameObject.setInteractive(
+  new Phaser.Geom.Circle(x, y, radius),
+  Phaser.Geom.Circle.Contains,
+);
 
 // Ellipse
-gameObject.setInteractive(new Phaser.Geom.Ellipse(x, y, w, h), Phaser.Geom.Ellipse.Contains);
+gameObject.setInteractive(
+  new Phaser.Geom.Ellipse(x, y, w, h),
+  Phaser.Geom.Ellipse.Contains,
+);
 
 // Rectangle
-gameObject.setInteractive(new Phaser.Geom.Rectangle(x, y, w, h), Phaser.Geom.Rectangle.Contains);
+gameObject.setInteractive(
+  new Phaser.Geom.Rectangle(x, y, w, h),
+  Phaser.Geom.Rectangle.Contains,
+);
 
 // Triangle
-gameObject.setInteractive(new Phaser.Geom.Triangle(x1, y1, x2, y2, x3, y3), Phaser.Geom.Triangle.Contains);
+gameObject.setInteractive(
+  new Phaser.Geom.Triangle(x1, y1, x2, y2, x3, y3),
+  Phaser.Geom.Triangle.Contains,
+);
 
 // Polygon (array of {x,y} points or flat [x1,y1,x2,y2,...] array)
-gameObject.setInteractive(new Phaser.Geom.Polygon(points), Phaser.Geom.Polygon.Contains);
+gameObject.setInteractive(
+  new Phaser.Geom.Polygon(points),
+  Phaser.Geom.Polygon.Contains,
+);
 
 // Pixel-perfect (expensive — only use where needed)
 gameObject.setInteractive({ pixelPerfect: true, alphaTolerance: 1 });
@@ -239,14 +258,14 @@ gameObject.setInteractive({ pixelPerfect: true, alphaTolerance: 1 });
 
 ```js
 gameObject.setInteractive({
-    hitArea: shape,              // Geom shape (Circle, Rectangle, etc.)
-    hitAreaCallback: callback,   // Contains function for the shape
-    draggable: false,            // Enable drag-and-drop
-    dropZone: false,             // Mark as a drop zone
-    useHandCursor: false,        // Show hand cursor on hover
-    cursor: 'pointer',           // CSS cursor string
-    pixelPerfect: false,         // Use pixel-perfect hit testing
-    alphaTolerance: 1            // Alpha threshold for pixel-perfect (0-255)
+  hitArea: shape, // Geom shape (Circle, Rectangle, etc.)
+  hitAreaCallback: callback, // Contains function for the shape
+  draggable: false, // Enable drag-and-drop
+  dropZone: false, // Mark as a drop zone
+  useHandCursor: false, // Show hand cursor on hover
+  cursor: "pointer", // CSS cursor string
+  pixelPerfect: false, // Use pixel-perfect hit testing
+  alphaTolerance: 1, // Alpha threshold for pixel-perfect (0-255)
 });
 ```
 
@@ -272,9 +291,9 @@ By default, Phaser creates 2 pointers (mouse + 1 touch). Configure more at start
 ```js
 // At startup via game config
 const config = {
-    input: {
-        activePointers: 4  // reserve 4 pointer slots
-    }
+  input: {
+    activePointers: 4, // reserve 4 pointer slots
+  },
 };
 
 // At runtime
@@ -291,14 +310,14 @@ this.input.mousePointer; // the mouse (always pointer index 0)
 
 ```js
 // Using key name strings
-const combo = this.input.keyboard.createCombo(['UP', 'UP', 'DOWN', 'DOWN'], {
-    resetOnWrongKey: true,
-    maxKeyDelay: 0,
-    resetOnMatch: false
+const combo = this.input.keyboard.createCombo(["UP", "UP", "DOWN", "DOWN"], {
+  resetOnWrongKey: true,
+  maxKeyDelay: 0,
+  resetOnMatch: false,
 });
 
-this.input.keyboard.on('keycombomatch', (keyCombo, event) => {
-    console.log('Combo matched:', keyCombo);
+this.input.keyboard.on("keycombomatch", (keyCombo, event) => {
+  console.log("Combo matched:", keyCombo);
 });
 ```
 
@@ -313,8 +332,8 @@ const pad = this.input.gamepad.getPad(0);
 
 // Gamepad instance events (different callback signature from plugin-level)
 // Plugin-level: (gamepad, button, value)
-pad.on('down', (buttonIndex, value, button) => {});
-pad.on('up', (buttonIndex, value, button) => {});
+pad.on("down", (buttonIndex, value, button) => {});
+pad.on("up", (buttonIndex, value, button) => {});
 ```
 
 ## Gotchas and Common Mistakes
@@ -353,20 +372,20 @@ pad.on('up', (buttonIndex, value, button) => {});
 
 ## Source File Map
 
-| File | Purpose |
-|---|---|
-| `src/input/InputPlugin.js` | Scene input plugin (`this.input`), setInteractive, hit areas, drag |
-| `src/input/Pointer.js` | Pointer class (mouse + touch), coordinates, button state |
-| `src/input/keyboard/KeyboardPlugin.js` | Keyboard plugin (`this.input.keyboard`), addKey, createCursorKeys, combos |
-| `src/input/keyboard/keys/Key.js` | Key object (isDown, isUp, events) |
-| `src/input/keyboard/keys/KeyCodes.js` | Enum of all key codes (SPACE, ENTER, A-Z, etc.) |
-| `src/input/keyboard/keys/JustDown.js` | `Phaser.Input.Keyboard.JustDown(key)` utility |
-| `src/input/keyboard/keys/JustUp.js` | `Phaser.Input.Keyboard.JustUp(key)` utility |
-| `src/input/keyboard/combo/KeyCombo.js` | Key combo sequence detection |
-| `src/input/keyboard/events/` | Keyboard events: `ANY_KEY_DOWN`, `ANY_KEY_UP`, `KEY_DOWN`, `KEY_UP`, `DOWN`, `UP`, `COMBO_MATCH` |
-| `src/input/events/` | Input events: `POINTER_DOWN`, `POINTER_UP`, `POINTER_MOVE`, `POINTER_WHEEL`, `DRAG_*`, `DROP`, `GAMEOBJECT_*` |
-| `src/input/gamepad/GamepadPlugin.js` | Gamepad plugin (`this.input.gamepad`), pad1-pad4 |
-| `src/input/gamepad/Gamepad.js` | Gamepad class, sticks, buttons, d-pad properties |
-| `src/input/gamepad/Axis.js` | Gamepad axis with threshold |
-| `src/input/gamepad/Button.js` | Gamepad button (pressed, value) |
-| `src/input/gamepad/events/` | Gamepad events: `CONNECTED`, `DISCONNECTED`, `BUTTON_DOWN`, `BUTTON_UP` |
+| File                                   | Purpose                                                                                                       |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `src/input/InputPlugin.js`             | Scene input plugin (`this.input`), setInteractive, hit areas, drag                                            |
+| `src/input/Pointer.js`                 | Pointer class (mouse + touch), coordinates, button state                                                      |
+| `src/input/keyboard/KeyboardPlugin.js` | Keyboard plugin (`this.input.keyboard`), addKey, createCursorKeys, combos                                     |
+| `src/input/keyboard/keys/Key.js`       | Key object (isDown, isUp, events)                                                                             |
+| `src/input/keyboard/keys/KeyCodes.js`  | Enum of all key codes (SPACE, ENTER, A-Z, etc.)                                                               |
+| `src/input/keyboard/keys/JustDown.js`  | `Phaser.Input.Keyboard.JustDown(key)` utility                                                                 |
+| `src/input/keyboard/keys/JustUp.js`    | `Phaser.Input.Keyboard.JustUp(key)` utility                                                                   |
+| `src/input/keyboard/combo/KeyCombo.js` | Key combo sequence detection                                                                                  |
+| `src/input/keyboard/events/`           | Keyboard events: `ANY_KEY_DOWN`, `ANY_KEY_UP`, `KEY_DOWN`, `KEY_UP`, `DOWN`, `UP`, `COMBO_MATCH`              |
+| `src/input/events/`                    | Input events: `POINTER_DOWN`, `POINTER_UP`, `POINTER_MOVE`, `POINTER_WHEEL`, `DRAG_*`, `DROP`, `GAMEOBJECT_*` |
+| `src/input/gamepad/GamepadPlugin.js`   | Gamepad plugin (`this.input.gamepad`), pad1-pad4                                                              |
+| `src/input/gamepad/Gamepad.js`         | Gamepad class, sticks, buttons, d-pad properties                                                              |
+| `src/input/gamepad/Axis.js`            | Gamepad axis with threshold                                                                                   |
+| `src/input/gamepad/Button.js`          | Gamepad button (pressed, value)                                                                               |
+| `src/input/gamepad/events/`            | Gamepad events: `CONNECTED`, `DISCONNECTED`, `BUTTON_DOWN`, `BUTTON_UP`                                       |

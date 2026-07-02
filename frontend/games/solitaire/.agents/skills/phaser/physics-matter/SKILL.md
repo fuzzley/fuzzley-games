@@ -4,6 +4,7 @@ description: "Use this skill when using Matter.js physics in Phaser 4. Covers ri
 ---
 
 # Matter.js Physics
+
 > Setting up and using Matter.js physics in Phaser 4 -- full-body physics with rigid bodies, compound bodies, constraints, composites, sensors, collision filtering, pointer dragging, tilemap integration, and debug rendering.
 
 **Key source paths:** `src/physics/matter-js/MatterPhysics.js`, `src/physics/matter-js/World.js`, `src/physics/matter-js/Factory.js`, `src/physics/matter-js/MatterSprite.js`, `src/physics/matter-js/MatterImage.js`, `src/physics/matter-js/MatterGameObject.js`, `src/physics/matter-js/PointerConstraint.js`, `src/physics/matter-js/MatterTileBody.js`, `src/physics/matter-js/components/`, `src/physics/matter-js/events/`, `src/physics/matter-js/typedefs/`
@@ -13,51 +14,51 @@ description: "Use this skill when using Matter.js physics in Phaser 4. Covers ri
 
 ```js
 class GameScene extends Phaser.Scene {
-    create() {
-        // Matter sprite (dynamic, has animation support)
-        this.player = this.matter.add.sprite(400, 200, 'player');
-        this.player.setBounce(0.5);
-        this.player.setFriction(0.05);
+  create() {
+    // Matter sprite (dynamic, has animation support)
+    this.player = this.matter.add.sprite(400, 200, "player");
+    this.player.setBounce(0.5);
+    this.player.setFriction(0.05);
 
-        // Matter image (dynamic, no animation)
-        const box = this.matter.add.image(300, 100, 'crate');
+    // Matter image (dynamic, no animation)
+    const box = this.matter.add.image(300, 100, "crate");
 
-        // Static body from raw shape
-        this.matter.add.rectangle(400, 580, 800, 40, { isStatic: true });
+    // Static body from raw shape
+    this.matter.add.rectangle(400, 580, 800, 40, { isStatic: true });
 
-        // Enable pointer dragging on all bodies
-        this.matter.add.mouseSpring();
+    // Enable pointer dragging on all bodies
+    this.matter.add.mouseSpring();
 
-        this.cursors = this.input.keyboard.createCursorKeys();
+    this.cursors = this.input.keyboard.createCursorKeys();
+  }
+
+  update() {
+    if (this.cursors.left.isDown) {
+      this.player.setVelocityX(-5);
+    } else if (this.cursors.right.isDown) {
+      this.player.setVelocityX(5);
     }
-
-    update() {
-        if (this.cursors.left.isDown) {
-            this.player.setVelocityX(-5);
-        } else if (this.cursors.right.isDown) {
-            this.player.setVelocityX(5);
-        }
-        if (this.cursors.up.isDown && this.player.body.velocity.y > -0.1) {
-            this.player.setVelocityY(-10);
-        }
+    if (this.cursors.up.isDown && this.player.body.velocity.y > -0.1) {
+      this.player.setVelocityY(-10);
     }
+  }
 }
 
 // Enable Matter physics in game config
 const config = {
-    type: Phaser.AUTO,
-    width: 800,
-    height: 600,
-    physics: {
-        default: 'matter',
-        matter: {
-            gravity: { y: 1 },
-            enableSleeping: true,
-            debug: true,
-            setBounds: true    // walls around canvas edges
-        }
+  type: Phaser.AUTO,
+  width: 800,
+  height: 600,
+  physics: {
+    default: "matter",
+    matter: {
+      gravity: { y: 1 },
+      enableSleeping: true,
+      debug: true,
+      setBounds: true, // walls around canvas edges
     },
-    scene: GameScene
+  },
+  scene: GameScene,
 };
 
 const game = new Phaser.Game(config);
@@ -78,25 +79,25 @@ The `MatterPhysics` class is the scene-level plugin. Key properties:
 
 - **`engine`** -- The `MatterJS.Engine` instance.
 - **`localWorld`** -- The `MatterJS.World` composite containing all bodies and constraints.
-- **`enabled`** -- Boolean; `false` pauses simulation.  **`autoUpdate`** -- `true` = engine updates each game step.
+- **`enabled`** -- Boolean; `false` pauses simulation. **`autoUpdate`** -- `true` = engine updates each game step.
 - **`walls`** -- `{ left, right, top, bottom }` boundary wall bodies (or null).
 
 ### World Config (`MatterWorldConfig`)
 
 Passed under `physics.matter` in game or scene config:
 
-| Property | Default | Purpose |
-|---|---|---|
-| `gravity` | `{ x: 0, y: 1 }` | Gravity vector. Set `false` to disable |
-| `setBounds` | `false` | `true` or `{ x, y, width, height, thickness, left, right, top, bottom }` |
-| `enableSleeping` | `false` | Allow bodies to sleep when at rest |
-| `positionIterations` | `6` | Position solving accuracy |
-| `velocityIterations` | `4` | Velocity solving accuracy |
-| `constraintIterations` | `2` | Constraint stability |
-| `timing.timeScale` | `1` | `0` freezes, `0.5` slow-motion |
-| `autoUpdate` | `true` | Auto-step each game frame |
-| `debug` | `false` | `true` or `MatterDebugConfig` object |
-| `runner` | `{}` | Use `runner.fps` for fixed timestep |
+| Property               | Default          | Purpose                                                                  |
+| ---------------------- | ---------------- | ------------------------------------------------------------------------ |
+| `gravity`              | `{ x: 0, y: 1 }` | Gravity vector. Set `false` to disable                                   |
+| `setBounds`            | `false`          | `true` or `{ x, y, width, height, thickness, left, right, top, bottom }` |
+| `enableSleeping`       | `false`          | Allow bodies to sleep when at rest                                       |
+| `positionIterations`   | `6`              | Position solving accuracy                                                |
+| `velocityIterations`   | `4`              | Velocity solving accuracy                                                |
+| `constraintIterations` | `2`              | Constraint stability                                                     |
+| `timing.timeScale`     | `1`              | `0` freezes, `0.5` slow-motion                                           |
+| `autoUpdate`           | `true`           | Auto-step each game frame                                                |
+| `debug`                | `false`          | `true` or `MatterDebugConfig` object                                     |
+| `runner`               | `{}`             | Use `runner.fps` for fixed timestep                                      |
 
 ### Matter Game Objects
 
@@ -112,20 +113,20 @@ Both `MatterSprite` and `MatterImage` default to a rectangle body matching the t
 
 All Matter Game Objects have these component methods mixed in:
 
-| Component | Key Methods |
-|---|---|
-| **Velocity** | `setVelocity(x, y)`, `setVelocityX(x)`, `setVelocityY(y)`, `getVelocity()`, `setAngularVelocity(v)`, `getAngularVelocity()`, `setAngularSpeed(s)`, `getAngularSpeed()` |
-| **Force** | `applyForce(vec2)`, `applyForceFrom(position, force)`, `thrust(speed)`, `thrustLeft(speed)`, `thrustRight(speed)`, `thrustBack(speed)` |
-| **Bounce** | `setBounce(value)` -- restitution, 0 to 1 |
-| **Friction** | `setFriction(value, air?, fstatic?)`, `setFrictionAir(value)`, `setFrictionStatic(value)` |
-| **Mass** | `setMass(value)`, `setDensity(value)`, `centerOfMass` (getter) |
-| **Gravity** | `setIgnoreGravity(bool)` |
-| **Sensor** | `setSensor(bool)`, `isSensor()` |
-| **Static** | `setStatic(bool)`, `isStatic()` |
-| **Sleep** | `setToSleep()`, `setAwake()`, `setSleepThreshold(n)`, `setSleepEvents(start, end)` |
+| Component     | Key Methods                                                                                                                                                                         |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Velocity**  | `setVelocity(x, y)`, `setVelocityX(x)`, `setVelocityY(y)`, `getVelocity()`, `setAngularVelocity(v)`, `getAngularVelocity()`, `setAngularSpeed(s)`, `getAngularSpeed()`              |
+| **Force**     | `applyForce(vec2)`, `applyForceFrom(position, force)`, `thrust(speed)`, `thrustLeft(speed)`, `thrustRight(speed)`, `thrustBack(speed)`                                              |
+| **Bounce**    | `setBounce(value)` -- restitution, 0 to 1                                                                                                                                           |
+| **Friction**  | `setFriction(value, air?, fstatic?)`, `setFrictionAir(value)`, `setFrictionStatic(value)`                                                                                           |
+| **Mass**      | `setMass(value)`, `setDensity(value)`, `centerOfMass` (getter)                                                                                                                      |
+| **Gravity**   | `setIgnoreGravity(bool)`                                                                                                                                                            |
+| **Sensor**    | `setSensor(bool)`, `isSensor()`                                                                                                                                                     |
+| **Static**    | `setStatic(bool)`, `isStatic()`                                                                                                                                                     |
+| **Sleep**     | `setToSleep()`, `setAwake()`, `setSleepThreshold(n)`, `setSleepEvents(start, end)`                                                                                                  |
 | **Collision** | `setCollisionCategory(cat)`, `setCollisionGroup(group)`, `setCollidesWith(cats)`, `setOnCollide(cb)`, `setOnCollideEnd(cb)`, `setOnCollideActive(cb)`, `setOnCollideWith(body, cb)` |
-| **SetBody** | `setRectangle(w, h, opts)`, `setCircle(r, opts)`, `setPolygon(r, sides, opts)`, `setTrapezoid(w, h, slope, opts)`, `setBody(config, opts)`, `setExistingBody(body)` |
-| **Transform** | Position sync between Matter body and Game Object |
+| **SetBody**   | `setRectangle(w, h, opts)`, `setCircle(r, opts)`, `setPolygon(r, sides, opts)`, `setTrapezoid(w, h, slope, opts)`, `setBody(config, opts)`, `setExistingBody(body)`                 |
+| **Transform** | Position sync between Matter body and Game Object                                                                                                                                   |
 
 ## Common Patterns
 
@@ -133,34 +134,40 @@ All Matter Game Objects have these component methods mixed in:
 
 ```js
 // Runtime gravity and bounds
-this.matter.world.setGravity(0, 2);          // x, y, scale (default 0.001)
+this.matter.world.setGravity(0, 2); // x, y, scale (default 0.001)
 this.matter.world.disableGravity();
 this.matter.world.setBounds(0, 0, 1600, 1200, 64, true, true, true, true);
 
-this.matter.set60Hz();                        // fixed timestep
-this.matter.world.autoUpdate = false;         // then manual: this.matter.step(16.666);
-this.matter.pause();                          // pause/resume
+this.matter.set60Hz(); // fixed timestep
+this.matter.world.autoUpdate = false; // then manual: this.matter.step(16.666);
+this.matter.pause(); // pause/resume
 this.matter.resume();
 ```
 
 ### Creating Matter Sprites and Images
 
 ```js
-const player = this.matter.add.sprite(200, 300, 'hero');  // default rect body matching texture
+const player = this.matter.add.sprite(200, 300, "hero"); // default rect body matching texture
 
 // Custom body shapes via options.shape
-const ball = this.matter.add.image(400, 100, 'ball', null, { shape: { type: 'circle', radius: 24 } });
-const hex = this.matter.add.sprite(300, 100, 'hex', null, { shape: { type: 'polygon', sides: 6, radius: 32 } });
-const ship = this.matter.add.sprite(400, 200, 'ship', null, {
-    shape: { type: 'fromVerts', verts: '0 0 40 0 40 40 20 60 0 40' }
+const ball = this.matter.add.image(400, 100, "ball", null, {
+  shape: { type: "circle", radius: 24 },
+});
+const hex = this.matter.add.sprite(300, 100, "hex", null, {
+  shape: { type: "polygon", sides: 6, radius: 32 },
+});
+const ship = this.matter.add.sprite(400, 200, "ship", null, {
+  shape: { type: "fromVerts", verts: "0 0 40 0 40 40 20 60 0 40" },
 });
 
 // PhysicsEditor shape data
-const shapes = this.cache.json.get('shapes');
-const enemy = this.matter.add.sprite(500, 200, 'enemy', null, { shape: shapes.enemy });
+const shapes = this.cache.json.get("shapes");
+const enemy = this.matter.add.sprite(500, 200, "enemy", null, {
+  shape: shapes.enemy,
+});
 
 // Add Matter physics to an existing Game Object
-const existingSprite = this.add.sprite(100, 100, 'box');
+const existingSprite = this.add.sprite(100, 100, "box");
 this.matter.add.gameObject(existingSprite, { restitution: 0.8 });
 // existingSprite now has setVelocity, setBounce, etc.
 ```
@@ -180,20 +187,20 @@ Pass as the `options` parameter to any factory method or as the options for a Ma
 ### Velocity, Forces, and Thrust
 
 ```js
-sprite.setVelocity(3, -5);          // units per step, not pixels/sec
+sprite.setVelocity(3, -5); // units per step, not pixels/sec
 sprite.setVelocityX(-3);
 sprite.setAngularVelocity(0.05);
-const vel = sprite.getVelocity();   // { x, y }
+const vel = sprite.getVelocity(); // { x, y }
 
 // Forces use very small values (0.01 - 0.1)
 sprite.applyForce({ x: 0.05, y: 0 });
 sprite.applyForceFrom(position, { x: 0.02, y: -0.02 });
 
 // Directional thrust relative to body angle
-sprite.thrust(0.05);       // forward
-sprite.thrustBack(0.05);   // backward
-sprite.thrustLeft(0.03);   // strafe left
-sprite.thrustRight(0.03);  // strafe right
+sprite.thrust(0.05); // forward
+sprite.thrustBack(0.05); // backward
+sprite.thrustLeft(0.03); // strafe left
+sprite.thrustRight(0.03); // strafe right
 
 // Batch operations via this.matter
 this.matter.setVelocity(arrayOfBodies, 2, -3);
@@ -204,21 +211,23 @@ this.matter.applyForce(arrayOfBodies, { x: 0.01, y: 0 });
 
 ```js
 // constraint(bodyA, bodyB, length?, stiffness?, options?) -- aliases: joint, spring
-const rigid = this.matter.add.constraint(bodyA, bodyB, 100, 1);        // rigid joint
-const spring = this.matter.add.constraint(bodyA, bodyB, 200, 0.02, { damping: 0.05 });
-const pin = this.matter.add.constraint(bodyA, bodyB, 0, 0.9);          // pin joint
+const rigid = this.matter.add.constraint(bodyA, bodyB, 100, 1); // rigid joint
+const spring = this.matter.add.constraint(bodyA, bodyB, 200, 0.02, {
+  damping: 0.05,
+});
+const pin = this.matter.add.constraint(bodyA, bodyB, 0, 0.9); // pin joint
 
 // World constraint (one body pinned to world point)
 this.matter.add.worldConstraint(body, 50, 0.5, { pointA: { x: 400, y: 100 } });
 
 // Offset attachment points
 this.matter.add.constraint(bodyA, bodyB, 80, 1, {
-    pointA: { x: 20, y: 0 },   // offset from bodyA center
-    pointB: { x: -20, y: 0 }   // offset from bodyB center
+  pointA: { x: 20, y: 0 }, // offset from bodyA center
+  pointB: { x: -20, y: 0 }, // offset from bodyB center
 });
 
-this.matter.getConstraintLength(constraint);      // distance between anchor points
-this.matter.world.removeConstraint(constraint);   // remove from world
+this.matter.getConstraintLength(constraint); // distance between anchor points
+this.matter.world.removeConstraint(constraint); // remove from world
 ```
 
 ### Composites (Stacks, Chains, Soft Bodies)
@@ -226,11 +235,20 @@ this.matter.world.removeConstraint(constraint);   // remove from world
 ```js
 // Stack of bodies in a grid
 const stack = this.matter.add.stack(100, 100, 5, 4, 10, 10, (x, y) => {
-    return this.matter.bodies.rectangle(x, y, 40, 40);
+  return this.matter.bodies.rectangle(x, y, 40, 40);
 });
 
 // Image stack (grid of Matter Images)
-const imageStack = this.matter.add.imageStack('crate', null, 100, 100, 5, 4, 5, 5);
+const imageStack = this.matter.add.imageStack(
+  "crate",
+  null,
+  100,
+  100,
+  5,
+  4,
+  5,
+  5,
+);
 
 // Chain bodies in a composite together
 this.matter.add.chain(stack, 0.5, 0, -0.5, 0, { stiffness: 0.7 });
@@ -239,7 +257,18 @@ this.matter.add.chain(stack, 0.5, 0, -0.5, 0, { stiffness: 0.7 });
 this.matter.add.mesh(stack, 5, 4, true, { stiffness: 0.5 });
 
 // Soft body (cols, rows, gaps, crossBrace, particleRadius, bodyOpts, constraintOpts)
-this.matter.add.softBody(200, 100, 5, 5, 0, 0, true, 10, { friction: 0.1 }, { stiffness: 0.5 });
+this.matter.add.softBody(
+  200,
+  100,
+  5,
+  5,
+  0,
+  0,
+  true,
+  10,
+  { friction: 0.1 },
+  { stiffness: 0.5 },
+);
 
 // Pre-built composites: newtonsCradle, car, pyramid
 this.matter.add.newtonsCradle(300, 50, 5, 20, 200);
@@ -256,7 +285,7 @@ const partB = this.matter.bodies.circle(0, -30, 15);
 const compoundBody = this.matter.body.create({ parts: [partA, partB] });
 
 // Attach to a Game Object
-const player = this.matter.add.sprite(400, 200, 'hero');
+const player = this.matter.add.sprite(400, 200, "hero");
 player.setExistingBody(compoundBody);
 ```
 
@@ -267,14 +296,20 @@ Parts share position, angle, and velocity. Constraints must target the parent bo
 Bodies at rest can sleep to skip simulation. Requires `enableSleeping: true` in config.
 
 ```js
-if (body.isSleeping) { /* body is at rest */ }
-sprite.setSleepThreshold(30);      // lower = falls asleep faster (default 60)
-sprite.setToSleep();               // force sleep
-sprite.setAwake();                 // force wake
+if (body.isSleeping) {
+  /* body is at rest */
+}
+sprite.setSleepThreshold(30); // lower = falls asleep faster (default 60)
+sprite.setToSleep(); // force sleep
+sprite.setAwake(); // force wake
 sprite.setSleepEvents(true, true); // enable sleepstart/sleepend events
 
-this.matter.world.on('sleepstart', (event, body) => { /* body slept */ });
-this.matter.world.on('sleepend', (event, body) => { /* body woke */ });
+this.matter.world.on("sleepstart", (event, body) => {
+  /* body slept */
+});
+this.matter.world.on("sleepend", (event, body) => {
+  /* body woke */
+});
 ```
 
 ### Sensors
@@ -282,9 +317,12 @@ this.matter.world.on('sleepend', (event, body) => { /* body woke */ });
 Sensors detect collisions but do not physically react. Useful for trigger zones, pickups, detection areas.
 
 ```js
-const trigger = this.matter.add.rectangle(400, 300, 100, 100, { isSensor: true, isStatic: true });
-sprite.setSensor(true);    // toggle on Game Object
-sprite.isSensor();         // check state
+const trigger = this.matter.add.rectangle(400, 300, 100, 100, {
+  isSensor: true,
+  isStatic: true,
+});
+sprite.setSensor(true); // toggle on Game Object
+sprite.isSensor(); // check state
 
 // Sensors fire normal collision events -- use collisionstart/end to detect entry/exit
 ```
@@ -294,15 +332,15 @@ sprite.isSensor();         // check state
 Matter uses bitmasks: `category` (which group this body belongs to, power of 2), `mask` (which categories it collides with), and `group` (shortcut: same positive = always collide, same negative = never collide, 0 = use category/mask).
 
 ```js
-const PLAYER = this.matter.world.nextCategory();  // 0x0002 (32 max)
-const ENEMY = this.matter.world.nextCategory();    // 0x0004
-const GROUND = this.matter.world.nextCategory();   // 0x0008
+const PLAYER = this.matter.world.nextCategory(); // 0x0002 (32 max)
+const ENEMY = this.matter.world.nextCategory(); // 0x0004
+const GROUND = this.matter.world.nextCategory(); // 0x0008
 
 player.setCollisionCategory(PLAYER);
 player.setCollidesWith([ENEMY, GROUND]);
 
 bullet.setCollisionCategory(0x0010);
-bullet.setCollidesWith([ENEMY, GROUND]);  // bullets skip player
+bullet.setCollidesWith([ENEMY, GROUND]); // bullets skip player
 
 // Collision groups: same negative = never collide with each other
 const noCollide = this.matter.world.nextGroup(true);
@@ -317,25 +355,33 @@ spriteB.setCollisionGroup(noCollide);
 
 ```js
 // Per-body callbacks (on Matter Game Objects)
-player.setOnCollide((pair) => { /* pair.bodyA, pair.bodyB */ });
-player.setOnCollideEnd((pair) => { /* collision ended */ });
-player.setOnCollideActive((pair) => { /* still colliding */ });
-player.setOnCollideWith(enemy, (body, pair) => { /* hit specific body */ });
+player.setOnCollide((pair) => {
+  /* pair.bodyA, pair.bodyB */
+});
+player.setOnCollideEnd((pair) => {
+  /* collision ended */
+});
+player.setOnCollideActive((pair) => {
+  /* still colliding */
+});
+player.setOnCollideWith(enemy, (body, pair) => {
+  /* hit specific body */
+});
 
 // Game Object-level events (emitted on the Game Object itself)
-player.on('collide', (bodyA, bodyB, pair) => {});
-player.on('collideEnd', (bodyA, bodyB, pair) => {});
+player.on("collide", (bodyA, bodyB, pair) => {});
+player.on("collideEnd", (bodyA, bodyB, pair) => {});
 ```
 
 ### Tilemap Integration
 
 ```js
-const map = this.make.tilemap({ key: 'level' });
-const tileset = map.addTilesetImage('tiles', 'tiles-img');
-const layer = map.createLayer('Ground', tileset, 0, 0);
+const map = this.make.tilemap({ key: "level" });
+const tileset = map.addTilesetImage("tiles", "tiles-img");
+const layer = map.createLayer("Ground", tileset, 0, 0);
 
-layer.setCollisionByProperty({ collides: true });  // MUST set collision first
-this.matter.world.convertTilemapLayer(layer);       // creates MatterTileBody per colliding tile
+layer.setCollisionByProperty({ collides: true }); // MUST set collision first
+this.matter.world.convertTilemapLayer(layer); // creates MatterTileBody per colliding tile
 
 // Uses Tiled collision shapes (rect, circle, polygon) if defined, otherwise tile bounds.
 // Access: tile.physics.matterBody
@@ -348,22 +394,34 @@ this.matter.world.convertTilemapLayer(layer);       // creates MatterTileBody pe
 Matter.js has three independent friction values:
 
 ```js
-sprite.setFriction(0.1);          // dynamic: resistance during motion (0-1)
-sprite.setFrictionStatic(0.5);    // static: resistance before motion starts
-sprite.setFrictionAir(0.05);      // air: environmental drag (default 0.01)
-sprite.setFriction(0.1, 0.02, 0.3);  // set all three: dynamic, air, static
+sprite.setFriction(0.1); // dynamic: resistance during motion (0-1)
+sprite.setFrictionStatic(0.5); // static: resistance before motion starts
+sprite.setFrictionAir(0.05); // air: environmental drag (default 0.01)
+sprite.setFriction(0.1, 0.02, 0.3); // set all three: dynamic, air, static
 ```
 
 ### Complex Shapes from Vertices
 
 ```js
 // Create body from vertex string (concave shapes auto-decomposed)
-const body = this.matter.add.fromVertices(400, 300, '0 0 40 0 40 40 20 60 0 40');
+const body = this.matter.add.fromVertices(
+  400,
+  300,
+  "0 0 40 0 40 40 20 60 0 40",
+);
 
 // Multiple vertex sets for complex shapes
 const vertexSets = [
-    [{ x: 0, y: 0 }, { x: 40, y: 0 }, { x: 40, y: 40 }],
-    [{ x: 40, y: 40 }, { x: 20, y: 60 }, { x: 0, y: 40 }]
+  [
+    { x: 0, y: 0 },
+    { x: 40, y: 0 },
+    { x: 40, y: 40 },
+  ],
+  [
+    { x: 40, y: 40 },
+    { x: 20, y: 60 },
+    { x: 0, y: 40 },
+  ],
 ];
 this.matter.add.fromVertices(300, 200, vertexSets);
 ```
@@ -374,29 +432,29 @@ this.matter.add.fromVertices(300, 200, vertexSets);
 // Enable click-and-drag on all Matter bodies
 const pc = this.matter.add.mouseSpring({ stiffness: 0.2, damping: 0.1 });
 
-pc.active = false;           // disable temporarily
-body.ignorePointer = true;   // prevent specific body from being dragged
-pc.stopDrag();               // release current drag programmatically
-pc.destroy();                // remove entirely
+pc.active = false; // disable temporarily
+body.ignorePointer = true; // prevent specific body from being dragged
+pc.stopDrag(); // release current drag programmatically
+pc.destroy(); // remove entirely
 
 // Drag events on the world
-this.matter.world.on('dragstart', (body, part, constraint) => {});
-this.matter.world.on('drag', (body, constraint) => {});
-this.matter.world.on('dragend', (body, constraint) => {});
+this.matter.world.on("dragstart", (body, part, constraint) => {});
+this.matter.world.on("drag", (body, constraint) => {});
+this.matter.world.on("dragend", (body, constraint) => {});
 ```
 
 ### Queries (Raycasting and Hit Testing)
 
 ```js
-const hits = this.matter.intersectPoint(pointer.x, pointer.y);   // bodies at point
-const contains = this.matter.containsPoint(body, x, y);           // point-in-body test
-const inRegion = this.matter.intersectRect(100, 100, 200, 200);   // bodies in rect
-const rayHits = this.matter.intersectRay(0, 300, 800, 300, 1);    // raycast
-const colliding = this.matter.intersectBody(playerBody);           // body overlap
+const hits = this.matter.intersectPoint(pointer.x, pointer.y); // bodies at point
+const contains = this.matter.containsPoint(body, x, y); // point-in-body test
+const inRegion = this.matter.intersectRect(100, 100, 200, 200); // bodies in rect
+const rayHits = this.matter.intersectRay(0, 300, 800, 300, 1); // raycast
+const colliding = this.matter.intersectBody(playerBody); // body overlap
 
 // Overlap with callbacks
 this.matter.overlap(playerBody, enemyBodies, (bodyA, bodyB, info) => {
-    console.log('Overlapping', bodyA, bodyB);
+  console.log("Overlapping", bodyA, bodyB);
 });
 ```
 
@@ -423,24 +481,24 @@ this.matter.world.setConstraintRenderStyle(constraint, 0xffff00, 1, 2);
 
 All events are emitted on `this.matter.world` (which extends `EventEmitter`):
 
-| Event | Callback Signature | When |
-|---|---|---|
-| `'collisionstart'` | `(event, bodyA, bodyB)` | Two bodies first start colliding |
-| `'collisionactive'` | `(event, bodyA, bodyB)` | Two bodies are still colliding |
-| `'collisionend'` | `(event, bodyA, bodyB)` | Two bodies stop colliding |
-| `'beforeupdate'` | `(event)` | Before engine update step |
-| `'afterupdate'` | `(event)` | After engine update step |
-| `'beforeadd'` | `(event)` | Before a body/constraint is added |
-| `'afteradd'` | `(event)` | After a body/constraint is added |
-| `'beforeremove'` | `(event)` | Before a body/constraint is removed |
-| `'afterremove'` | `(event)` | After a body/constraint is removed |
-| `'dragstart'` | `(body, part, constraint)` | Pointer starts dragging body |
-| `'drag'` | `(body, constraint)` | Pointer is dragging body |
-| `'dragend'` | `(body, constraint)` | Pointer stops dragging body |
-| `'sleepstart'` | `(event, body)` | Body goes to sleep (requires `setSleepEvents`) |
-| `'sleepend'` | `(event, body)` | Body wakes up (requires `setSleepEvents`) |
-| `'pause'` | none | World paused |
-| `'resume'` | none | World resumed |
+| Event               | Callback Signature         | When                                           |
+| ------------------- | -------------------------- | ---------------------------------------------- |
+| `'collisionstart'`  | `(event, bodyA, bodyB)`    | Two bodies first start colliding               |
+| `'collisionactive'` | `(event, bodyA, bodyB)`    | Two bodies are still colliding                 |
+| `'collisionend'`    | `(event, bodyA, bodyB)`    | Two bodies stop colliding                      |
+| `'beforeupdate'`    | `(event)`                  | Before engine update step                      |
+| `'afterupdate'`     | `(event)`                  | After engine update step                       |
+| `'beforeadd'`       | `(event)`                  | Before a body/constraint is added              |
+| `'afteradd'`        | `(event)`                  | After a body/constraint is added               |
+| `'beforeremove'`    | `(event)`                  | Before a body/constraint is removed            |
+| `'afterremove'`     | `(event)`                  | After a body/constraint is removed             |
+| `'dragstart'`       | `(body, part, constraint)` | Pointer starts dragging body                   |
+| `'drag'`            | `(body, constraint)`       | Pointer is dragging body                       |
+| `'dragend'`         | `(body, constraint)`       | Pointer stops dragging body                    |
+| `'sleepstart'`      | `(event, body)`            | Body goes to sleep (requires `setSleepEvents`) |
+| `'sleepend'`        | `(event, body)`            | Body wakes up (requires `setSleepEvents`)      |
+| `'pause'`           | none                       | World paused                                   |
+| `'resume'`          | none                       | World resumed                                  |
 
 Collision events include `event.pairs` -- an array of collision pair objects with `bodyA`, `bodyB`, collision depth, and normal.
 
@@ -481,19 +539,19 @@ Collision events include `event.pairs` -- an array of collision pair objects wit
 
 ## Source File Map
 
-| Path | Purpose |
-|---|---|
-| `src/physics/matter-js/MatterPhysics.js` | Scene plugin (`this.matter`), exposes all Matter modules |
-| `src/physics/matter-js/World.js` | World management, engine, bounds, debug, events proxy |
-| `src/physics/matter-js/Factory.js` | `this.matter.add` -- all creation methods |
-| `src/physics/matter-js/MatterSprite.js` | Physics sprite (Sprite + Matter components) |
-| `src/physics/matter-js/MatterImage.js` | Physics image (Image + Matter components) |
-| `src/physics/matter-js/MatterGameObject.js` | Injects Matter components into any Game Object |
-| `src/physics/matter-js/MatterTileBody.js` | Wraps a Tile with a Matter body |
-| `src/physics/matter-js/PointerConstraint.js` | Click-and-drag body constraint |
-| `src/physics/matter-js/BodyBounds.js` | Body alignment by visual bounds |
-| `src/physics/matter-js/PhysicsEditorParser.js` | Parses PhysicsEditor JSON into bodies |
-| `src/physics/matter-js/components/` | Mixins: Velocity, Force, Collision, SetBody, Sensor, Bounce, Friction, Mass, Gravity, Static, Sleep, Transform |
-| `src/physics/matter-js/events/` | Event constants (COLLISION_START, DRAG_START, SLEEP_START, etc.) |
-| `src/physics/matter-js/typedefs/` | TypeDefs: MatterWorldConfig, MatterBodyConfig, MatterCollisionFilter, MatterConstraintConfig, etc. |
-| `src/physics/matter-js/lib/` | Bundled Matter.js library modules |
+| Path                                           | Purpose                                                                                                        |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `src/physics/matter-js/MatterPhysics.js`       | Scene plugin (`this.matter`), exposes all Matter modules                                                       |
+| `src/physics/matter-js/World.js`               | World management, engine, bounds, debug, events proxy                                                          |
+| `src/physics/matter-js/Factory.js`             | `this.matter.add` -- all creation methods                                                                      |
+| `src/physics/matter-js/MatterSprite.js`        | Physics sprite (Sprite + Matter components)                                                                    |
+| `src/physics/matter-js/MatterImage.js`         | Physics image (Image + Matter components)                                                                      |
+| `src/physics/matter-js/MatterGameObject.js`    | Injects Matter components into any Game Object                                                                 |
+| `src/physics/matter-js/MatterTileBody.js`      | Wraps a Tile with a Matter body                                                                                |
+| `src/physics/matter-js/PointerConstraint.js`   | Click-and-drag body constraint                                                                                 |
+| `src/physics/matter-js/BodyBounds.js`          | Body alignment by visual bounds                                                                                |
+| `src/physics/matter-js/PhysicsEditorParser.js` | Parses PhysicsEditor JSON into bodies                                                                          |
+| `src/physics/matter-js/components/`            | Mixins: Velocity, Force, Collision, SetBody, Sensor, Bounce, Friction, Mass, Gravity, Static, Sleep, Transform |
+| `src/physics/matter-js/events/`                | Event constants (COLLISION_START, DRAG_START, SLEEP_START, etc.)                                               |
+| `src/physics/matter-js/typedefs/`              | TypeDefs: MatterWorldConfig, MatterBodyConfig, MatterCollisionFilter, MatterConstraintConfig, etc.             |
+| `src/physics/matter-js/lib/`                   | Bundled Matter.js library modules                                                                              |

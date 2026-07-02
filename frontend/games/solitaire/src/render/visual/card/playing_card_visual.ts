@@ -3,7 +3,7 @@ import { Visual } from "../visual";
 
 /**
  * Visual wrapper for a single logical playing card.
- * 
+ *
  * Manages the connection between the card's state and its Phaser sprite representation.
  */
 export class PlayingCardVisual extends Visual<PlayingCard> {

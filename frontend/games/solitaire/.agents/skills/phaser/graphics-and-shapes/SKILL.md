@@ -61,6 +61,7 @@ Individual game objects (Arc, Rectangle, Star, etc.) extending the base `Shape` 
 - Include Origin and GetBounds (unlike Graphics).
 
 **When to use which:**
+
 - Use **Graphics** for dynamic drawing, complex paths, multiple shapes on one object, gradients, or generating textures.
 - Use **Shape objects** for individual UI elements, simple indicators, physics-enabled shapes, or anything that benefits from game object features (origin, bounds, input).
 
@@ -74,15 +75,21 @@ Individual game objects (Arc, Rectangle, Star, etc.) extending the base `Shape` 
 const gfx = this.add.graphics();
 
 // Solid fill — call before any fill* method
-gfx.fillStyle(0xff0000, 1);          // (color, alpha)
+gfx.fillStyle(0xff0000, 1); // (color, alpha)
 
 // Line style — call before any stroke* method
-gfx.lineStyle(4, 0x00ff00, 1);       // (width, color, alpha)
+gfx.lineStyle(4, 0x00ff00, 1); // (width, color, alpha)
 
 // Gradient fill (WebGL only) — 4 corner colors
 gfx.fillGradientStyle(
-    0xff0000, 0x00ff00, 0x0000ff, 0xffff00,  // tl, tr, bl, br colors
-    1, 1, 1, 1                                 // tl, tr, bl, br alphas
+  0xff0000,
+  0x00ff00,
+  0x0000ff,
+  0xffff00, // tl, tr, bl, br colors
+  1,
+  1,
+  1,
+  1, // tl, tr, bl, br alphas
 );
 gfx.fillRect(0, 0, 300, 200);
 
@@ -107,14 +114,14 @@ gfx.strokeCircle(x, y, radius);
 
 // Ellipses
 gfx.fillEllipse(x, y, width, height, smoothness);
-gfx.strokeEllipse(x, y, width, height, smoothness);   // smoothness defaults to 32
+gfx.strokeEllipse(x, y, width, height, smoothness); // smoothness defaults to 32
 
 // Triangles
 gfx.fillTriangle(x0, y0, x1, y1, x2, y2);
 gfx.strokeTriangle(x0, y0, x1, y1, x2, y2);
 
 // Points (draws a small square)
-gfx.fillPoint(x, y, size);                             // size defaults to 1
+gfx.fillPoint(x, y, size); // size defaults to 1
 
 // Lines
 gfx.lineBetween(x1, y1, x2, y2);
@@ -133,7 +140,10 @@ gfx.strokeRoundedRect(50, 50, 300, 200, 16);
 
 // Per-corner radius
 gfx.fillRoundedRect(50, 50, 300, 200, {
-    tl: 20, tr: 20, bl: 0, br: 0
+  tl: 20,
+  tr: 20,
+  bl: 0,
+  br: 0,
 });
 
 // Concave corners (negative values)
@@ -153,7 +163,7 @@ gfx.lineTo(200, 50);
 gfx.lineTo(300, 100);
 gfx.lineTo(250, 200);
 gfx.closePath();
-gfx.strokePath();       // or gfx.stroke() — alias for strokePath
+gfx.strokePath(); // or gfx.stroke() — alias for strokePath
 
 // Fill a path
 gfx.fillStyle(0x00aaff);
@@ -162,15 +172,15 @@ gfx.moveTo(100, 100);
 gfx.lineTo(200, 50);
 gfx.lineTo(300, 100);
 gfx.closePath();
-gfx.fillPath();         // or gfx.fill() — alias for fillPath
+gfx.fillPath(); // or gfx.fill() — alias for fillPath
 
 // Arc within a path (angles in radians)
 gfx.beginPath();
-gfx.arc(200, 200, 80, 0, Math.PI / 2, false, 0);   // (x, y, radius, startAngle, endAngle, anticlockwise, overshoot)
+gfx.arc(200, 200, 80, 0, Math.PI / 2, false, 0); // (x, y, radius, startAngle, endAngle, anticlockwise, overshoot)
 gfx.strokePath();
 
 // Pie slice
-gfx.slice(200, 200, 80, 0, Math.PI / 3, false);     // auto begins/closes path
+gfx.slice(200, 200, 80, 0, Math.PI / 3, false); // auto begins/closes path
 gfx.fillPath();
 
 // Stroke/fill from point arrays
@@ -204,10 +214,10 @@ const gfx = this.add.graphics();
 
 gfx.save();
 gfx.translateCanvas(100, 100);
-gfx.rotateCanvas(0.5);           // radians
+gfx.rotateCanvas(0.5); // radians
 gfx.scaleCanvas(2, 2);
 gfx.fillStyle(0xff0000);
-gfx.fillRect(0, 0, 50, 50);     // draws at translated/rotated/scaled position
+gfx.fillRect(0, 0, 50, 50); // draws at translated/rotated/scaled position
 gfx.restore();
 ```
 
@@ -217,11 +227,11 @@ gfx.restore();
 const gfx = this.add.graphics();
 gfx.fillStyle(0xff0000);
 gfx.fillCircle(32, 32, 32);
-gfx.generateTexture('redCircle', 64, 64);
+gfx.generateTexture("redCircle", 64, 64);
 gfx.destroy();
 
 // Now use as a regular texture
-this.add.image(400, 300, 'redCircle');
+this.add.image(400, 300, "redCircle");
 ```
 
 Note: `fillGradientStyle` will NOT appear in generated textures (Canvas API limitation).
@@ -236,11 +246,11 @@ const rect = this.add.rectangle(200, 150, 100, 80, 0xff0000, 1);
 rect.setFillStyle(0x00ff00, 0.8);
 
 // Add stroke (not set by default)
-rect.setStrokeStyle(3, 0xffffff, 1);  // (lineWidth, color, alpha)
+rect.setStrokeStyle(3, 0xffffff, 1); // (lineWidth, color, alpha)
 
 // Remove fill or stroke
-rect.setFillStyle();    // no args = isFilled becomes false
-rect.setStrokeStyle();  // no args = isStroked becomes false
+rect.setFillStyle(); // no args = isFilled becomes false
+rect.setStrokeStyle(); // no args = isStroked becomes false
 
 // Direct property access
 rect.fillColor = 0x0000ff;
@@ -250,27 +260,27 @@ rect.strokeAlpha = 1;
 rect.lineWidth = 2;
 rect.isFilled = true;
 rect.isStroked = true;
-rect.closePath = true;   // close stroke path (default true)
+rect.closePath = true; // close stroke path (default true)
 ```
 
 ---
 
 ## All Shape Types
 
-| Factory Method | Class | Parameters (after x, y) | Fill | Stroke | Notes |
-|---|---|---|---|---|---|
-| `this.add.arc(x, y, radius, startAngle, endAngle, anticlockwise, fillColor, fillAlpha)` | Arc | radius=128, startAngle=0, endAngle=360 (degrees), anticlockwise=false | Yes | Yes | Angles in degrees. Full circle by default. |
-| `this.add.circle(x, y, radius, fillColor, fillAlpha)` | Arc | radius=128 | Yes | Yes | Alias for Arc with 0-360 angles. |
-| `this.add.curve(x, y, curve, fillColor, fillAlpha)` | Curve | Phaser.Curves.Curve object | Yes | Yes | Has `smoothness` property / `setSmoothness()`. |
-| `this.add.ellipse(x, y, width, height, fillColor, fillAlpha)` | Ellipse | width=128, height=128 | Yes | Yes | Equal w/h renders as circle. Has `smoothness`. |
-| `this.add.grid(x, y, width, height, cellWidth, cellHeight, fillColor, fillAlpha, outlineFillColor, outlineFillAlpha)` | Grid | width=128, height=128, cellWidth=32, cellHeight=32 | Yes | No | Has `altFillColor`/`altFillAlpha` for checkerboard. Outline via outlineFillColor. |
-| `this.add.isobox(x, y, size, height, fillTop, fillLeft, fillRight)` | IsoBox | size=48, height=32, fillTop=0xeeeeee, fillLeft=0x999999, fillRight=0xcccccc | Yes | No | Isometric box. `showTop`, `showLeft`, `showRight`, `projection`. |
-| `this.add.isotriangle(x, y, size, height, reversed, fillTop, fillLeft, fillRight)` | IsoTriangle | size=48, height=32, reversed=false | Yes | No | Isometric pyramid. `showTop`, `showLeft`, `showRight`, `projection`, `reversed`. |
-| `this.add.line(x, y, x1, y1, x2, y2, strokeColor, strokeAlpha)` | Line | x1=0, y1=0, x2=128, y2=0 | No | Yes | Stroke only. Constructor takes stroke color (not fill). |
-| `this.add.polygon(x, y, points, fillColor, fillAlpha)` | Polygon | points (various formats) | Yes | Yes | Points: array of Vec2, `[x,y,...]` pairs, or `[[x,y],...]`. |
-| `this.add.rectangle(x, y, width, height, fillColor, fillAlpha)` | Rectangle | width=128, height=128 | Yes | Yes | Change size via `width`/`height` properties. |
-| `this.add.star(x, y, points, innerRadius, outerRadius, fillColor, fillAlpha)` | Star | points=5, innerRadius=32, outerRadius=64 | Yes | Yes | 4 points = diamond. More points = spikier. |
-| `this.add.triangle(x, y, x1, y1, x2, y2, x3, y3, fillColor, fillAlpha)` | Triangle | x1=0,y1=128, x2=64,y2=0, x3=128,y3=128 | Yes | Yes | Always closed. Use Polygon for open shapes. |
+| Factory Method                                                                                                        | Class       | Parameters (after x, y)                                                     | Fill | Stroke | Notes                                                                             |
+| --------------------------------------------------------------------------------------------------------------------- | ----------- | --------------------------------------------------------------------------- | ---- | ------ | --------------------------------------------------------------------------------- |
+| `this.add.arc(x, y, radius, startAngle, endAngle, anticlockwise, fillColor, fillAlpha)`                               | Arc         | radius=128, startAngle=0, endAngle=360 (degrees), anticlockwise=false       | Yes  | Yes    | Angles in degrees. Full circle by default.                                        |
+| `this.add.circle(x, y, radius, fillColor, fillAlpha)`                                                                 | Arc         | radius=128                                                                  | Yes  | Yes    | Alias for Arc with 0-360 angles.                                                  |
+| `this.add.curve(x, y, curve, fillColor, fillAlpha)`                                                                   | Curve       | Phaser.Curves.Curve object                                                  | Yes  | Yes    | Has `smoothness` property / `setSmoothness()`.                                    |
+| `this.add.ellipse(x, y, width, height, fillColor, fillAlpha)`                                                         | Ellipse     | width=128, height=128                                                       | Yes  | Yes    | Equal w/h renders as circle. Has `smoothness`.                                    |
+| `this.add.grid(x, y, width, height, cellWidth, cellHeight, fillColor, fillAlpha, outlineFillColor, outlineFillAlpha)` | Grid        | width=128, height=128, cellWidth=32, cellHeight=32                          | Yes  | No     | Has `altFillColor`/`altFillAlpha` for checkerboard. Outline via outlineFillColor. |
+| `this.add.isobox(x, y, size, height, fillTop, fillLeft, fillRight)`                                                   | IsoBox      | size=48, height=32, fillTop=0xeeeeee, fillLeft=0x999999, fillRight=0xcccccc | Yes  | No     | Isometric box. `showTop`, `showLeft`, `showRight`, `projection`.                  |
+| `this.add.isotriangle(x, y, size, height, reversed, fillTop, fillLeft, fillRight)`                                    | IsoTriangle | size=48, height=32, reversed=false                                          | Yes  | No     | Isometric pyramid. `showTop`, `showLeft`, `showRight`, `projection`, `reversed`.  |
+| `this.add.line(x, y, x1, y1, x2, y2, strokeColor, strokeAlpha)`                                                       | Line        | x1=0, y1=0, x2=128, y2=0                                                    | No   | Yes    | Stroke only. Constructor takes stroke color (not fill).                           |
+| `this.add.polygon(x, y, points, fillColor, fillAlpha)`                                                                | Polygon     | points (various formats)                                                    | Yes  | Yes    | Points: array of Vec2, `[x,y,...]` pairs, or `[[x,y],...]`.                       |
+| `this.add.rectangle(x, y, width, height, fillColor, fillAlpha)`                                                       | Rectangle   | width=128, height=128                                                       | Yes  | Yes    | Change size via `width`/`height` properties.                                      |
+| `this.add.star(x, y, points, innerRadius, outerRadius, fillColor, fillAlpha)`                                         | Star        | points=5, innerRadius=32, outerRadius=64                                    | Yes  | Yes    | 4 points = diamond. More points = spikier.                                        |
+| `this.add.triangle(x, y, x1, y1, x2, y2, x3, y3, fillColor, fillAlpha)`                                               | Triangle    | x1=0,y1=128, x2=64,y2=0, x3=128,y3=128                                      | Yes  | Yes    | Always closed. Use Polygon for open shapes.                                       |
 
 ---
 
@@ -278,77 +288,77 @@ rect.closePath = true;   // close stroke path (default true)
 
 ### Style Methods
 
-| Method | Signature | Notes |
-|---|---|---|
-| `fillStyle` | `(color, alpha=1)` | Set fill for subsequent fill calls |
-| `lineStyle` | `(lineWidth, color, alpha=1)` | Set stroke for subsequent stroke calls |
-| `fillGradientStyle` | `(tl, tr, bl, br, aTL=1, aTR, aBL, aBR)` | WebGL only. 4 corner colors. |
-| `lineGradientStyle` | `(lineWidth, tl, tr, bl, br, alpha=1)` | WebGL only. |
-| `setDefaultStyles` | `(options)` | Set via `{ lineStyle: {width,color,alpha}, fillStyle: {color,alpha} }` |
+| Method              | Signature                                | Notes                                                                  |
+| ------------------- | ---------------------------------------- | ---------------------------------------------------------------------- |
+| `fillStyle`         | `(color, alpha=1)`                       | Set fill for subsequent fill calls                                     |
+| `lineStyle`         | `(lineWidth, color, alpha=1)`            | Set stroke for subsequent stroke calls                                 |
+| `fillGradientStyle` | `(tl, tr, bl, br, aTL=1, aTR, aBL, aBR)` | WebGL only. 4 corner colors.                                           |
+| `lineGradientStyle` | `(lineWidth, tl, tr, bl, br, alpha=1)`   | WebGL only.                                                            |
+| `setDefaultStyles`  | `(options)`                              | Set via `{ lineStyle: {width,color,alpha}, fillStyle: {color,alpha} }` |
 
 ### Path Methods
 
-| Method | Signature | Notes |
-|---|---|---|
-| `beginPath` | `()` | Start a new path |
-| `moveTo` | `(x, y)` | Move draw position |
-| `lineTo` | `(x, y)` | Line to position |
-| `arc` | `(x, y, radius, startAngle, endAngle, anticlockwise=false, overshoot=0)` | Angles in radians |
-| `closePath` | `()` | Close current path |
-| `fillPath` / `fill` | `()` | Fill the current path |
-| `strokePath` / `stroke` | `()` | Stroke the current path |
-| `slice` | `(x, y, radius, startAngle, endAngle, anticlockwise=false, overshoot=0)` | Pie slice. Auto begins/closes path. Angles in radians. |
+| Method                  | Signature                                                                | Notes                                                  |
+| ----------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------ |
+| `beginPath`             | `()`                                                                     | Start a new path                                       |
+| `moveTo`                | `(x, y)`                                                                 | Move draw position                                     |
+| `lineTo`                | `(x, y)`                                                                 | Line to position                                       |
+| `arc`                   | `(x, y, radius, startAngle, endAngle, anticlockwise=false, overshoot=0)` | Angles in radians                                      |
+| `closePath`             | `()`                                                                     | Close current path                                     |
+| `fillPath` / `fill`     | `()`                                                                     | Fill the current path                                  |
+| `strokePath` / `stroke` | `()`                                                                     | Stroke the current path                                |
+| `slice`                 | `(x, y, radius, startAngle, endAngle, anticlockwise=false, overshoot=0)` | Pie slice. Auto begins/closes path. Angles in radians. |
 
 ### Shape Drawing Methods
 
-| Method | Signature |
-|---|---|
-| `fillRect` | `(x, y, width, height)` |
-| `strokeRect` | `(x, y, width, height)` |
-| `fillRoundedRect` | `(x, y, width, height, radius=20)` |
-| `strokeRoundedRect` | `(x, y, width, height, radius=20)` |
-| `fillCircle` | `(x, y, radius)` |
-| `strokeCircle` | `(x, y, radius)` |
-| `fillEllipse` | `(x, y, width, height, smoothness=32)` |
-| `strokeEllipse` | `(x, y, width, height, smoothness=32)` |
-| `fillTriangle` | `(x0, y0, x1, y1, x2, y2)` |
-| `strokeTriangle` | `(x0, y0, x1, y1, x2, y2)` |
-| `fillPoint` | `(x, y, size=1)` |
-| `lineBetween` | `(x1, y1, x2, y2)` |
-| `strokePoints` | `(points, closeShape=false, closePath=false, endIndex)` |
-| `fillPoints` | `(points, closeShape=false, closePath=false, endIndex)` |
+| Method              | Signature                                               |
+| ------------------- | ------------------------------------------------------- |
+| `fillRect`          | `(x, y, width, height)`                                 |
+| `strokeRect`        | `(x, y, width, height)`                                 |
+| `fillRoundedRect`   | `(x, y, width, height, radius=20)`                      |
+| `strokeRoundedRect` | `(x, y, width, height, radius=20)`                      |
+| `fillCircle`        | `(x, y, radius)`                                        |
+| `strokeCircle`      | `(x, y, radius)`                                        |
+| `fillEllipse`       | `(x, y, width, height, smoothness=32)`                  |
+| `strokeEllipse`     | `(x, y, width, height, smoothness=32)`                  |
+| `fillTriangle`      | `(x0, y0, x1, y1, x2, y2)`                              |
+| `strokeTriangle`    | `(x0, y0, x1, y1, x2, y2)`                              |
+| `fillPoint`         | `(x, y, size=1)`                                        |
+| `lineBetween`       | `(x1, y1, x2, y2)`                                      |
+| `strokePoints`      | `(points, closeShape=false, closePath=false, endIndex)` |
+| `fillPoints`        | `(points, closeShape=false, closePath=false, endIndex)` |
 
 ### Geom Shape Methods
 
-| Method | Signature |
-|---|---|
-| `fillRectShape` | `(rect)` |
-| `strokeRectShape` | `(rect)` |
-| `fillCircleShape` | `(circle)` |
-| `strokeCircleShape` | `(circle)` |
-| `fillTriangleShape` | `(triangle)` |
-| `strokeTriangleShape` | `(triangle)` |
-| `strokeLineShape` | `(line)` |
-| `fillEllipseShape` | `(ellipse, smoothness=32)` |
-| `strokeEllipseShape` | `(ellipse, smoothness=32)` |
+| Method                | Signature                  |
+| --------------------- | -------------------------- |
+| `fillRectShape`       | `(rect)`                   |
+| `strokeRectShape`     | `(rect)`                   |
+| `fillCircleShape`     | `(circle)`                 |
+| `strokeCircleShape`   | `(circle)`                 |
+| `fillTriangleShape`   | `(triangle)`               |
+| `strokeTriangleShape` | `(triangle)`               |
+| `strokeLineShape`     | `(line)`                   |
+| `fillEllipseShape`    | `(ellipse, smoothness=32)` |
+| `strokeEllipseShape`  | `(ellipse, smoothness=32)` |
 
 ### Transform and State Methods
 
-| Method | Signature | Notes |
-|---|---|---|
-| `translateCanvas` | `(x, y)` | Translate subsequent draws |
-| `scaleCanvas` | `(x, y)` | Scale subsequent draws |
-| `rotateCanvas` | `(radians)` | Rotate subsequent draws |
-| `save` | `()` | Push state to stack |
-| `restore` | `()` | Pop state from stack |
-| `clear` | `()` | Clear command buffer, reset to default styles |
-| `generateTexture` | `(key, width, height)` | Bake to a Texture (Canvas API) |
+| Method            | Signature              | Notes                                         |
+| ----------------- | ---------------------- | --------------------------------------------- |
+| `translateCanvas` | `(x, y)`               | Translate subsequent draws                    |
+| `scaleCanvas`     | `(x, y)`               | Scale subsequent draws                        |
+| `rotateCanvas`    | `(radians)`            | Rotate subsequent draws                       |
+| `save`            | `()`                   | Push state to stack                           |
+| `restore`         | `()`                   | Pop state from stack                          |
+| `clear`           | `()`                   | Clear command buffer, reset to default styles |
+| `generateTexture` | `(key, width, height)` | Bake to a Texture (Canvas API)                |
 
 ### Shape Base Class Methods
 
-| Method | Signature | Notes |
-|---|---|---|
-| `setFillStyle` | `(color?, alpha=1)` | No args = disable fill |
+| Method           | Signature                       | Notes                    |
+| ---------------- | ------------------------------- | ------------------------ |
+| `setFillStyle`   | `(color?, alpha=1)`             | No args = disable fill   |
 | `setStrokeStyle` | `(lineWidth?, color?, alpha=1)` | No args = disable stroke |
 
 ---
@@ -390,9 +400,9 @@ rect.closePath = true;   // close stroke path (default true)
 ```js
 const star = this.add.star(400, 300, 5, 32, 64, 0xffff00);
 
-star.setPoints(8);          // change number of points
-star.setInnerRadius(20);    // change inner radius
-star.setOuterRadius(80);    // change outer radius
+star.setPoints(8); // change number of points
+star.setInnerRadius(20); // change inner radius
+star.setOuterRadius(80); // change outer radius
 ```
 
 ### Line (Tapering)
@@ -401,7 +411,7 @@ star.setOuterRadius(80);    // change outer radius
 const line = this.add.line(400, 300, 0, 0, 200, 100, 0xffffff);
 
 // setLineWidth(startWidth, endWidth) — endWidth is WebGL only (tapering effect)
-line.setLineWidth(4, 1);   // tapers from 4px to 1px (Canvas uses startWidth only)
+line.setLineWidth(4, 1); // tapers from 4px to 1px (Canvas uses startWidth only)
 ```
 
 ### Grid (Alternating Colors, Stroke, Padding)
@@ -410,14 +420,14 @@ line.setLineWidth(4, 1);   // tapers from 4px to 1px (Canvas uses startWidth onl
 const grid = this.add.grid(400, 300, 320, 240, 32, 32, 0x222222);
 
 // Alternating cell color (checkerboard)
-grid.setAltFillStyle(0x444444, 1);  // no args = disable alternating cells
+grid.setAltFillStyle(0x444444, 1); // no args = disable alternating cells
 
 // Grid uses setStrokeStyle for cell outlines (inherited from Shape)
 grid.setStrokeStyle(1, 0x666666, 1);
 
 // v4: control outside edge stroke
-grid.strokeOutside = true;             // stroke the outer border
-grid.strokeOutsideIncomplete = false;  // skip partial cells on right/bottom edges
+grid.strokeOutside = true; // stroke the outer border
+grid.strokeOutsideIncomplete = false; // skip partial cells on right/bottom edges
 
 // Cell padding (default 0.5) — gutter between cells is 2x this value
 grid.cellPadding = 1;
@@ -428,12 +438,21 @@ grid.cellPadding = 1;
 ```js
 const box = this.add.isobox(200, 200, 48, 32, 0xeeeeee, 0x999999, 0xcccccc);
 
-box.setFaces(true, true, false);  // showTop, showLeft, showRight
-box.setProjection(4);             // isometric projection value
+box.setFaces(true, true, false); // showTop, showLeft, showRight
+box.setProjection(4); // isometric projection value
 
-const tri = this.add.isotriangle(400, 200, 48, 32, false, 0xeeeeee, 0x999999, 0xcccccc);
+const tri = this.add.isotriangle(
+  400,
+  200,
+  48,
+  32,
+  false,
+  0xeeeeee,
+  0x999999,
+  0xcccccc,
+);
 
-tri.setReversed(true);            // flip upside down
+tri.setReversed(true); // flip upside down
 tri.setFaces(true, true, true);
 tri.setProjection(4);
 ```
@@ -442,32 +461,32 @@ tri.setProjection(4);
 
 ## Source File Map
 
-| File | Purpose |
-|---|---|
-| `src/gameobjects/graphics/Graphics.js` | Graphics class — all drawing methods |
-| `src/gameobjects/graphics/GraphicsFactory.js` | `this.add.graphics()` factory |
-| `src/gameobjects/graphics/Commands.js` | Internal command constants for the command buffer |
-| `src/gameobjects/graphics/GraphicsRender.js` | Render dispatch |
-| `src/gameobjects/shape/Shape.js` | Base Shape class (fill/stroke/path data, setFillStyle, setStrokeStyle) |
-| `src/gameobjects/shape/arc/Arc.js` | Arc shape (also used for circle) |
-| `src/gameobjects/shape/arc/ArcFactory.js` | `this.add.arc()` and `this.add.circle()` factories |
-| `src/gameobjects/shape/curve/Curve.js` | Curve shape |
-| `src/gameobjects/shape/curve/CurveFactory.js` | `this.add.curve()` factory |
-| `src/gameobjects/shape/ellipse/Ellipse.js` | Ellipse shape |
-| `src/gameobjects/shape/ellipse/EllipseFactory.js` | `this.add.ellipse()` factory |
-| `src/gameobjects/shape/grid/Grid.js` | Grid shape |
-| `src/gameobjects/shape/grid/GridFactory.js` | `this.add.grid()` factory |
-| `src/gameobjects/shape/isobox/IsoBox.js` | IsoBox shape |
-| `src/gameobjects/shape/isobox/IsoBoxFactory.js` | `this.add.isobox()` factory |
-| `src/gameobjects/shape/isotriangle/IsoTriangle.js` | IsoTriangle shape |
-| `src/gameobjects/shape/isotriangle/IsoTriangleFactory.js` | `this.add.isotriangle()` factory |
-| `src/gameobjects/shape/line/Line.js` | Line shape |
-| `src/gameobjects/shape/line/LineFactory.js` | `this.add.line()` factory |
-| `src/gameobjects/shape/polygon/Polygon.js` | Polygon shape |
-| `src/gameobjects/shape/polygon/PolygonFactory.js` | `this.add.polygon()` factory |
-| `src/gameobjects/shape/rectangle/Rectangle.js` | Rectangle shape |
-| `src/gameobjects/shape/rectangle/RectangleFactory.js` | `this.add.rectangle()` factory |
-| `src/gameobjects/shape/star/Star.js` | Star shape |
-| `src/gameobjects/shape/star/StarFactory.js` | `this.add.star()` factory |
-| `src/gameobjects/shape/triangle/Triangle.js` | Triangle shape |
-| `src/gameobjects/shape/triangle/TriangleFactory.js` | `this.add.triangle()` factory |
+| File                                                      | Purpose                                                                |
+| --------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `src/gameobjects/graphics/Graphics.js`                    | Graphics class — all drawing methods                                   |
+| `src/gameobjects/graphics/GraphicsFactory.js`             | `this.add.graphics()` factory                                          |
+| `src/gameobjects/graphics/Commands.js`                    | Internal command constants for the command buffer                      |
+| `src/gameobjects/graphics/GraphicsRender.js`              | Render dispatch                                                        |
+| `src/gameobjects/shape/Shape.js`                          | Base Shape class (fill/stroke/path data, setFillStyle, setStrokeStyle) |
+| `src/gameobjects/shape/arc/Arc.js`                        | Arc shape (also used for circle)                                       |
+| `src/gameobjects/shape/arc/ArcFactory.js`                 | `this.add.arc()` and `this.add.circle()` factories                     |
+| `src/gameobjects/shape/curve/Curve.js`                    | Curve shape                                                            |
+| `src/gameobjects/shape/curve/CurveFactory.js`             | `this.add.curve()` factory                                             |
+| `src/gameobjects/shape/ellipse/Ellipse.js`                | Ellipse shape                                                          |
+| `src/gameobjects/shape/ellipse/EllipseFactory.js`         | `this.add.ellipse()` factory                                           |
+| `src/gameobjects/shape/grid/Grid.js`                      | Grid shape                                                             |
+| `src/gameobjects/shape/grid/GridFactory.js`               | `this.add.grid()` factory                                              |
+| `src/gameobjects/shape/isobox/IsoBox.js`                  | IsoBox shape                                                           |
+| `src/gameobjects/shape/isobox/IsoBoxFactory.js`           | `this.add.isobox()` factory                                            |
+| `src/gameobjects/shape/isotriangle/IsoTriangle.js`        | IsoTriangle shape                                                      |
+| `src/gameobjects/shape/isotriangle/IsoTriangleFactory.js` | `this.add.isotriangle()` factory                                       |
+| `src/gameobjects/shape/line/Line.js`                      | Line shape                                                             |
+| `src/gameobjects/shape/line/LineFactory.js`               | `this.add.line()` factory                                              |
+| `src/gameobjects/shape/polygon/Polygon.js`                | Polygon shape                                                          |
+| `src/gameobjects/shape/polygon/PolygonFactory.js`         | `this.add.polygon()` factory                                           |
+| `src/gameobjects/shape/rectangle/Rectangle.js`            | Rectangle shape                                                        |
+| `src/gameobjects/shape/rectangle/RectangleFactory.js`     | `this.add.rectangle()` factory                                         |
+| `src/gameobjects/shape/star/Star.js`                      | Star shape                                                             |
+| `src/gameobjects/shape/star/StarFactory.js`               | `this.add.star()` factory                                              |
+| `src/gameobjects/shape/triangle/Triangle.js`              | Triangle shape                                                         |
+| `src/gameobjects/shape/triangle/TriangleFactory.js`       | `this.add.triangle()` factory                                          |

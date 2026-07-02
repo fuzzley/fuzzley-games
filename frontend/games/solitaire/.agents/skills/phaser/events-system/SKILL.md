@@ -14,25 +14,27 @@ description: "Use this skill when working with the Phaser 4 event system. Covers
 
 ```js
 // on — listen for an event (persists until removed)
-this.input.on('pointerdown', (pointer) => {
-    console.log('clicked at', pointer.x, pointer.y);
+this.input.on("pointerdown", (pointer) => {
+  console.log("clicked at", pointer.x, pointer.y);
 });
 
 // once — listen for an event, auto-removes after first fire
-this.events.once('shutdown', () => {
-    console.log('scene shutting down');
+this.events.once("shutdown", () => {
+  console.log("scene shutting down");
 });
 
 // off — remove a specific listener (must pass same function reference)
-const handler = (pointer) => { /* ... */ };
-this.input.on('pointerdown', handler);
-this.input.off('pointerdown', handler);
+const handler = (pointer) => {
+  /* ... */
+};
+this.input.on("pointerdown", handler);
+this.input.off("pointerdown", handler);
 
 // emit — fire a custom event with arguments
-this.events.emit('player-died', this.player, this.score);
+this.events.emit("player-died", this.player, this.score);
 
 // removeAllListeners — remove all listeners for an event (or all events)
-this.events.removeAllListeners('player-died');
+this.events.removeAllListeners("player-died");
 this.events.removeAllListeners(); // all events
 ```
 
@@ -41,15 +43,15 @@ this.events.removeAllListeners(); // all events
 ```js
 // Always prefer constants over raw strings to prevent typos
 this.events.on(Phaser.Scenes.Events.UPDATE, (time, delta) => {
-    // runs every frame
+  // runs every frame
 });
 
 this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer) => {
-    // pointer pressed
+  // pointer pressed
 });
 
 this.game.events.on(Phaser.Core.Events.BLUR, () => {
-    // browser tab lost focus
+  // browser tab lost focus
 });
 ```
 
@@ -61,46 +63,49 @@ this.game.events.on(Phaser.Core.Events.BLUR, () => {
 
 **Full API (inherited from eventemitter3):**
 
-| Method | Description |
-|---|---|
-| `on(event, fn, context?)` | Add persistent listener. Returns `this` for chaining |
-| `addListener(event, fn, context?)` | Alias for `on` |
-| `once(event, fn, context?)` | Add one-time listener; auto-removed after first fire |
-| `off(event, fn?, context?, once?)` | Remove listener(s). Must pass same `fn` reference to remove specific listener |
-| `removeListener(event, fn?, context?, once?)` | Alias for `off` |
-| `removeAllListeners(event?)` | Remove all listeners for event, or all events if no arg |
-| `emit(event, ...args)` | Fire event. Returns `true` if it had listeners |
-| `listeners(event)` | Return array of listener functions for an event |
-| `listenerCount(event)` | Return number of listeners for an event |
-| `eventNames()` | Return array of event names that have listeners |
-| `shutdown()` | Calls `removeAllListeners()` |
-| `destroy()` | Calls `removeAllListeners()` |
+| Method                                        | Description                                                                   |
+| --------------------------------------------- | ----------------------------------------------------------------------------- |
+| `on(event, fn, context?)`                     | Add persistent listener. Returns `this` for chaining                          |
+| `addListener(event, fn, context?)`            | Alias for `on`                                                                |
+| `once(event, fn, context?)`                   | Add one-time listener; auto-removed after first fire                          |
+| `off(event, fn?, context?, once?)`            | Remove listener(s). Must pass same `fn` reference to remove specific listener |
+| `removeListener(event, fn?, context?, once?)` | Alias for `off`                                                               |
+| `removeAllListeners(event?)`                  | Remove all listeners for event, or all events if no arg                       |
+| `emit(event, ...args)`                        | Fire event. Returns `true` if it had listeners                                |
+| `listeners(event)`                            | Return array of listener functions for an event                               |
+| `listenerCount(event)`                        | Return number of listeners for an event                                       |
+| `eventNames()`                                | Return array of event names that have listeners                               |
+| `shutdown()`                                  | Calls `removeAllListeners()`                                                  |
+| `destroy()`                                   | Calls `removeAllListeners()`                                                  |
 
 ### Event Strings vs Constants
 
 Every built-in event is a lowercase string exported as a constant. The constant name maps predictably to the string:
 
 ```js
-Phaser.Scenes.Events.UPDATE        // 'update'
-Phaser.Scenes.Events.PRE_UPDATE    // 'preupdate'
-Phaser.Scenes.Events.SHUTDOWN      // 'shutdown'
-Phaser.Core.Events.BOOT            // 'boot'
-Phaser.Input.Events.POINTER_DOWN   // 'pointerdown'
+Phaser.Scenes.Events.UPDATE; // 'update'
+Phaser.Scenes.Events.PRE_UPDATE; // 'preupdate'
+Phaser.Scenes.Events.SHUTDOWN; // 'shutdown'
+Phaser.Core.Events.BOOT; // 'boot'
+Phaser.Input.Events.POINTER_DOWN; // 'pointerdown'
 ```
 
 Some events use a key-suffix pattern for per-key listening:
 
 ```js
 // Loader: listen for a specific file completing
-this.load.on(Phaser.Loader.Events.FILE_KEY_COMPLETE + 'image-logo', (key, type, data) => {});
+this.load.on(
+  Phaser.Loader.Events.FILE_KEY_COMPLETE + "image-logo",
+  (key, type, data) => {},
+);
 // String value: 'filecomplete-image-logo'
 
 // Animations: listen for a specific animation completing on a sprite
-sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + 'walk', () => {});
+sprite.on(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + "walk", () => {});
 // String value: 'animationcomplete-walk'
 
 // Textures: listen for a specific texture being added
-this.textures.on(Phaser.Textures.Events.ADD_KEY + 'myTexture', () => {});
+this.textures.on(Phaser.Textures.Events.ADD_KEY + "myTexture", () => {});
 // String value: 'addtexture-myTexture'
 ```
 
@@ -110,13 +115,17 @@ The third argument to `on`/`once` sets `this` inside the callback. Defaults to t
 
 ```js
 // 'this' inside handler refers to the scene
-this.input.on('pointerdown', function (pointer) {
+this.input.on(
+  "pointerdown",
+  function (pointer) {
     this.cameras.main.shake(100); // 'this' = scene
-}, this);
+  },
+  this,
+);
 
 // Arrow functions ignore the context argument (they capture lexical 'this')
-this.input.on('pointerdown', (pointer) => {
-    this.cameras.main.shake(100); // 'this' = enclosing scope (scene in create)
+this.input.on("pointerdown", (pointer) => {
+  this.cameras.main.shake(100); // 'this' = enclosing scope (scene in create)
 });
 ```
 
@@ -151,30 +160,32 @@ this.game.events.on(Phaser.Core.Events.VISIBLE, this.handleVisible, this);
 ```js
 // METHOD 1: game.events — a global event bus accessible from all scenes
 // Scene A emits:
-this.game.events.emit('score-changed', this.score);
+this.game.events.emit("score-changed", this.score);
 // Scene B listens:
-this.game.events.on('score-changed', (score) => { this.scoreText.setText(score); });
+this.game.events.on("score-changed", (score) => {
+  this.scoreText.setText(score);
+});
 
 // METHOD 2: this.registry — a shared DataManager across all scenes
 // The registry is a Phaser.Data.DataManager on the Game instance.
 // Scene A sets data:
-this.registry.set('score', 100);
+this.registry.set("score", 100);
 // Scene B listens for changes:
-this.registry.events.on('changedata-score', (parent, value, previousValue) => {
-    this.scoreText.setText(value);
+this.registry.events.on("changedata-score", (parent, value, previousValue) => {
+  this.scoreText.setText(value);
 });
 
 // METHOD 3: Direct scene access via ScenePlugin
-this.scene.get('UIScene').events.emit('update-health', hp);
+this.scene.get("UIScene").events.emit("update-health", hp);
 ```
 
 ### Custom Events
 
 ```js
 // Emit custom events with arbitrary data arguments
-this.events.emit('player-died', this.player, { lives: this.lives });
-this.events.on('player-died', (player, data) => {
-    console.log('Lives remaining:', data.lives);
+this.events.emit("player-died", this.player, { lives: this.lives });
+this.events.on("player-died", (player, data) => {
+  console.log("Lives remaining:", data.lives);
 });
 ```
 
@@ -184,53 +195,53 @@ this.events.on('player-died', (player, data) => {
 
 Emitter: `this.events` (the Scene's Systems EventEmitter)
 
-| Constant | String | When |
-|---|---|---|
-| `BOOT` | `'boot'` | Scene Systems boot (for plugins) |
-| `READY` | `'ready'` | Scene Systems fully ready |
-| `START` | `'start'` | Scene starts running |
-| `CREATE` | `'create'` | After Scene.create() completes |
-| `PRE_UPDATE` | `'preupdate'` | Before update each frame |
-| `UPDATE` | `'update'` | Main update each frame |
-| `POST_UPDATE` | `'postupdate'` | After update each frame |
-| `PRE_RENDER` | `'prerender'` | Before render each frame |
-| `RENDER` | `'render'` | During render each frame |
-| `PAUSE` | `'pause'` | Scene paused |
-| `RESUME` | `'resume'` | Scene resumed from pause |
-| `SLEEP` | `'sleep'` | Scene put to sleep |
-| `WAKE` | `'wake'` | Scene woken from sleep |
-| `SHUTDOWN` | `'shutdown'` | Scene shutting down (may restart) |
-| `DESTROY` | `'destroy'` | Scene permanently destroyed |
-| `ADDED_TO_SCENE` | `'addedtoscene'` | GameObject added to scene |
-| `REMOVED_FROM_SCENE` | `'removedfromscene'` | GameObject removed from scene |
-| `TRANSITION_INIT` | `'transitioninit'` | Transition initialized (target scene) |
-| `TRANSITION_START` | `'transitionstart'` | Transition started (target scene) |
-| `TRANSITION_OUT` | `'transitionout'` | Transition out (source scene) |
-| `TRANSITION_COMPLETE` | `'transitioncomplete'` | Transition finished |
-| `TRANSITION_WAKE` | `'transitionwake'` | Transition wakes target scene |
+| Constant              | String                 | When                                  |
+| --------------------- | ---------------------- | ------------------------------------- |
+| `BOOT`                | `'boot'`               | Scene Systems boot (for plugins)      |
+| `READY`               | `'ready'`              | Scene Systems fully ready             |
+| `START`               | `'start'`              | Scene starts running                  |
+| `CREATE`              | `'create'`             | After Scene.create() completes        |
+| `PRE_UPDATE`          | `'preupdate'`          | Before update each frame              |
+| `UPDATE`              | `'update'`             | Main update each frame                |
+| `POST_UPDATE`         | `'postupdate'`         | After update each frame               |
+| `PRE_RENDER`          | `'prerender'`          | Before render each frame              |
+| `RENDER`              | `'render'`             | During render each frame              |
+| `PAUSE`               | `'pause'`              | Scene paused                          |
+| `RESUME`              | `'resume'`             | Scene resumed from pause              |
+| `SLEEP`               | `'sleep'`              | Scene put to sleep                    |
+| `WAKE`                | `'wake'`               | Scene woken from sleep                |
+| `SHUTDOWN`            | `'shutdown'`           | Scene shutting down (may restart)     |
+| `DESTROY`             | `'destroy'`            | Scene permanently destroyed           |
+| `ADDED_TO_SCENE`      | `'addedtoscene'`       | GameObject added to scene             |
+| `REMOVED_FROM_SCENE`  | `'removedfromscene'`   | GameObject removed from scene         |
+| `TRANSITION_INIT`     | `'transitioninit'`     | Transition initialized (target scene) |
+| `TRANSITION_START`    | `'transitionstart'`    | Transition started (target scene)     |
+| `TRANSITION_OUT`      | `'transitionout'`      | Transition out (source scene)         |
+| `TRANSITION_COMPLETE` | `'transitioncomplete'` | Transition finished                   |
+| `TRANSITION_WAKE`     | `'transitionwake'`     | Transition wakes target scene         |
 
 ### Game Events (`Phaser.Core.Events`)
 
 Emitter: `this.game.events` or `game.events`
 
-| Constant | String | When |
-|---|---|---|
-| `BOOT` | `'boot'` | Game instance finished booting |
-| `READY` | `'ready'` | Game ready to start running |
-| `SYSTEM_READY` | `'systemready'` | All global systems ready |
-| `PRE_STEP` | `'prestep'` | Before game loop step |
-| `STEP` | `'step'` | Main game loop step |
-| `POST_STEP` | `'poststep'` | After game loop step |
-| `PRE_RENDER` | `'prerender'` | Before rendering all scenes |
-| `POST_RENDER` | `'postrender'` | After rendering all scenes |
-| `PAUSE` | `'pause'` | Game paused |
-| `RESUME` | `'resume'` | Game resumed |
-| `BLUR` | `'blur'` | Browser tab lost focus |
-| `FOCUS` | `'focus'` | Browser tab gained focus |
-| `HIDDEN` | `'hidden'` | Page Visibility API: hidden |
-| `VISIBLE` | `'visible'` | Page Visibility API: visible |
-| `CONTEXT_LOST` | `'contextlost'` | WebGL context lost |
-| `DESTROY` | `'destroy'` | Game being destroyed |
+| Constant       | String          | When                           |
+| -------------- | --------------- | ------------------------------ |
+| `BOOT`         | `'boot'`        | Game instance finished booting |
+| `READY`        | `'ready'`       | Game ready to start running    |
+| `SYSTEM_READY` | `'systemready'` | All global systems ready       |
+| `PRE_STEP`     | `'prestep'`     | Before game loop step          |
+| `STEP`         | `'step'`        | Main game loop step            |
+| `POST_STEP`    | `'poststep'`    | After game loop step           |
+| `PRE_RENDER`   | `'prerender'`   | Before rendering all scenes    |
+| `POST_RENDER`  | `'postrender'`  | After rendering all scenes     |
+| `PAUSE`        | `'pause'`       | Game paused                    |
+| `RESUME`       | `'resume'`      | Game resumed                   |
+| `BLUR`         | `'blur'`        | Browser tab lost focus         |
+| `FOCUS`        | `'focus'`       | Browser tab gained focus       |
+| `HIDDEN`       | `'hidden'`      | Page Visibility API: hidden    |
+| `VISIBLE`      | `'visible'`     | Page Visibility API: visible   |
+| `CONTEXT_LOST` | `'contextlost'` | WebGL context lost             |
+| `DESTROY`      | `'destroy'`     | Game being destroyed           |
 
 ### Input Events (`Phaser.Input.Events`)
 
@@ -254,36 +265,36 @@ Emitter: `this.input` (scene-level) or individual GameObjects. Events exist at t
 
 Emitter: `this.load`
 
-| Constant | String | When |
-|---|---|---|
-| `ADD` | `'addfile'` | File added to load queue |
-| `START` | `'start'` | Loader starts |
-| `PROGRESS` | `'progress'` | Overall progress updated (0-1) |
-| `FILE_LOAD` | `'load'` | Individual file loaded |
-| `FILE_PROGRESS` | `'fileprogress'` | Individual file progress |
-| `FILE_COMPLETE` | `'filecomplete'` | Individual file completed processing |
+| Constant            | String            | When                                        |
+| ------------------- | ----------------- | ------------------------------------------- |
+| `ADD`               | `'addfile'`       | File added to load queue                    |
+| `START`             | `'start'`         | Loader starts                               |
+| `PROGRESS`          | `'progress'`      | Overall progress updated (0-1)              |
+| `FILE_LOAD`         | `'load'`          | Individual file loaded                      |
+| `FILE_PROGRESS`     | `'fileprogress'`  | Individual file progress                    |
+| `FILE_COMPLETE`     | `'filecomplete'`  | Individual file completed processing        |
 | `FILE_KEY_COMPLETE` | `'filecomplete-'` | Specific file completed (append `type-key`) |
-| `FILE_LOAD_ERROR` | `'loaderror'` | File failed to load |
-| `POST_PROCESS` | `'postprocess'` | All files loaded, post-processing |
-| `COMPLETE` | `'complete'` | All loading complete |
+| `FILE_LOAD_ERROR`   | `'loaderror'`     | File failed to load                         |
+| `POST_PROCESS`      | `'postprocess'`   | All files loaded, post-processing           |
+| `COMPLETE`          | `'complete'`      | All loading complete                        |
 
 ### Animation Events (`Phaser.Animations.Events`)
 
 Emitter: individual sprites (per-sprite) or `this.anims` (global AnimationManager)
 
-| Constant | String | When |
-|---|---|---|
-| `ADD_ANIMATION` | `'add'` | Animation added to manager |
-| `REMOVE_ANIMATION` | `'remove'` | Animation removed from manager |
-| `PAUSE_ALL` | `'pauseall'` | All animations paused |
-| `RESUME_ALL` | `'resumeall'` | All animations resumed |
-| `ANIMATION_START` | `'animationstart'` | Animation starts playing on a sprite |
-| `ANIMATION_RESTART` | `'animationrestart'` | Animation restarts on a sprite |
-| `ANIMATION_REPEAT` | `'animationrepeat'` | Animation repeats on a sprite |
-| `ANIMATION_UPDATE` | `'animationupdate'` | Animation frame changes on a sprite |
-| `ANIMATION_COMPLETE` | `'animationcomplete'` | Animation finishes on a sprite |
+| Constant                 | String                 | When                                     |
+| ------------------------ | ---------------------- | ---------------------------------------- |
+| `ADD_ANIMATION`          | `'add'`                | Animation added to manager               |
+| `REMOVE_ANIMATION`       | `'remove'`             | Animation removed from manager           |
+| `PAUSE_ALL`              | `'pauseall'`           | All animations paused                    |
+| `RESUME_ALL`             | `'resumeall'`          | All animations resumed                   |
+| `ANIMATION_START`        | `'animationstart'`     | Animation starts playing on a sprite     |
+| `ANIMATION_RESTART`      | `'animationrestart'`   | Animation restarts on a sprite           |
+| `ANIMATION_REPEAT`       | `'animationrepeat'`    | Animation repeats on a sprite            |
+| `ANIMATION_UPDATE`       | `'animationupdate'`    | Animation frame changes on a sprite      |
+| `ANIMATION_COMPLETE`     | `'animationcomplete'`  | Animation finishes on a sprite           |
 | `ANIMATION_COMPLETE_KEY` | `'animationcomplete-'` | Specific animation finishes (append key) |
-| `ANIMATION_STOP` | `'animationstop'` | Animation stopped on a sprite |
+| `ANIMATION_STOP`         | `'animationstop'`      | Animation stopped on a sprite            |
 
 ### Camera Events (`Phaser.Cameras.Scene2D.Events`)
 
@@ -305,57 +316,57 @@ Emitter: individual sound instances or `this.sound` (SoundManager)
 
 Emitter: individual tween instances
 
-| Constant | String | When |
-|---|---|---|
-| `TWEEN_ACTIVE` | `'active'` | Tween becomes active |
-| `TWEEN_START` | `'start'` | Tween starts first play |
-| `TWEEN_UPDATE` | `'update'` | Tween updates a value |
-| `TWEEN_YOYO` | `'yoyo'` | Tween yoyos (reverses direction) |
-| `TWEEN_REPEAT` | `'repeat'` | Tween repeats |
-| `TWEEN_LOOP` | `'loop'` | Tween loops |
-| `TWEEN_PAUSE` | `'pause'` | Tween paused |
-| `TWEEN_RESUME` | `'resume'` | Tween resumed |
-| `TWEEN_COMPLETE` | `'complete'` | Tween finishes |
-| `TWEEN_STOP` | `'stop'` | Tween stopped manually |
+| Constant         | String       | When                             |
+| ---------------- | ------------ | -------------------------------- |
+| `TWEEN_ACTIVE`   | `'active'`   | Tween becomes active             |
+| `TWEEN_START`    | `'start'`    | Tween starts first play          |
+| `TWEEN_UPDATE`   | `'update'`   | Tween updates a value            |
+| `TWEEN_YOYO`     | `'yoyo'`     | Tween yoyos (reverses direction) |
+| `TWEEN_REPEAT`   | `'repeat'`   | Tween repeats                    |
+| `TWEEN_LOOP`     | `'loop'`     | Tween loops                      |
+| `TWEEN_PAUSE`    | `'pause'`    | Tween paused                     |
+| `TWEEN_RESUME`   | `'resume'`   | Tween resumed                    |
+| `TWEEN_COMPLETE` | `'complete'` | Tween finishes                   |
+| `TWEEN_STOP`     | `'stop'`     | Tween stopped manually           |
 
 ### Arcade Physics Events (`Phaser.Physics.Arcade.Events`)
 
 Emitter: `this.physics.world`
 
-| Constant | String | When |
-|---|---|---|
-| `COLLIDE` | `'collide'` | Two bodies collide |
-| `OVERLAP` | `'overlap'` | Two bodies overlap |
-| `TILE_COLLIDE` | `'tilecollide'` | Body collides with a tile |
-| `TILE_OVERLAP` | `'tileoverlap'` | Body overlaps with a tile |
-| `WORLD_BOUNDS` | `'worldbounds'` | Body hits world boundary |
-| `WORLD_STEP` | `'worldstep'` | Physics world completes a step |
-| `PAUSE` | `'pause'` | Physics world paused |
-| `RESUME` | `'resume'` | Physics world resumed |
+| Constant       | String          | When                           |
+| -------------- | --------------- | ------------------------------ |
+| `COLLIDE`      | `'collide'`     | Two bodies collide             |
+| `OVERLAP`      | `'overlap'`     | Two bodies overlap             |
+| `TILE_COLLIDE` | `'tilecollide'` | Body collides with a tile      |
+| `TILE_OVERLAP` | `'tileoverlap'` | Body overlaps with a tile      |
+| `WORLD_BOUNDS` | `'worldbounds'` | Body hits world boundary       |
+| `WORLD_STEP`   | `'worldstep'`   | Physics world completes a step |
+| `PAUSE`        | `'pause'`       | Physics world paused           |
+| `RESUME`       | `'resume'`      | Physics world resumed          |
 
 ### Texture Events (`Phaser.Textures.Events`)
 
 Emitter: `this.textures` (TextureManager)
 
-| Constant | String | When |
-|---|---|---|
-| `ADD` | `'addtexture'` | Any texture added |
-| `ADD_KEY` | `'addtexture-'` | Specific texture added (append key) |
-| `REMOVE` | `'removetexture'` | Any texture removed |
+| Constant     | String             | When                                  |
+| ------------ | ------------------ | ------------------------------------- |
+| `ADD`        | `'addtexture'`     | Any texture added                     |
+| `ADD_KEY`    | `'addtexture-'`    | Specific texture added (append key)   |
+| `REMOVE`     | `'removetexture'`  | Any texture removed                   |
 | `REMOVE_KEY` | `'removetexture-'` | Specific texture removed (append key) |
-| `LOAD` | `'onload'` | Texture source loaded |
-| `ERROR` | `'onerror'` | Texture source load error |
-| `READY` | `'ready'` | Texture manager ready |
+| `LOAD`       | `'onload'`         | Texture source loaded                 |
+| `ERROR`      | `'onerror'`        | Texture source load error             |
+| `READY`      | `'ready'`          | Texture manager ready                 |
 
 ### GameObject Events (`Phaser.GameObjects.Events`)
 
 Emitter: individual GameObjects
 
-| Constant | String | When |
-|---|---|---|
-| `ADDED_TO_SCENE` | `'addedtoscene'` | GameObject added to a scene |
+| Constant             | String               | When                          |
+| -------------------- | -------------------- | ----------------------------- |
+| `ADDED_TO_SCENE`     | `'addedtoscene'`     | GameObject added to a scene   |
 | `REMOVED_FROM_SCENE` | `'removedfromscene'` | GameObject removed from scene |
-| `DESTROY` | `'destroy'` | GameObject destroyed |
+| `DESTROY`            | `'destroy'`          | GameObject destroyed          |
 
 **Video GameObject events (on Video GameObjects):**
 `VIDEO_PLAY` `'play'` | `VIDEO_PLAYING` `'playing'` | `VIDEO_COMPLETE` `'complete'` | `VIDEO_LOOP` `'loop'` | `VIDEO_STOP` `'stop'` | `VIDEO_CREATED` `'created'` | `VIDEO_ERROR` `'error'` | `VIDEO_LOCKED` `'locked'` | `VIDEO_UNLOCKED` `'unlocked'` | `VIDEO_METADATA` `'metadata'` | `VIDEO_SEEKED` `'seeked'` | `VIDEO_SEEKING` `'seeking'` | `VIDEO_STALLED` `'stalled'` | `VIDEO_TEXTURE` `'textureready'` | `VIDEO_UNSUPPORTED` `'unsupported'`
@@ -364,8 +375,8 @@ Emitter: individual GameObjects
 
 Emitter: `Phaser.Time.TimerEvent` instances
 
-| Constant | String | When |
-|---|---|---|
+| Constant   | String       | When                            |
+| ---------- | ------------ | ------------------------------- |
 | `COMPLETE` | `'complete'` | TimerEvent finishes all repeats |
 
 ### Event Removal Safety
@@ -374,11 +385,13 @@ You must pass the SAME function reference AND the same context/scope to `off()` 
 
 ```js
 // BAD: arrow function cannot be removed later
-this.events.on('update', () => { this.doStuff(); });
+this.events.on("update", () => {
+  this.doStuff();
+});
 
 // GOOD: named method can be removed
-this.events.on('update', this.onUpdate, this);
-this.events.off('update', this.onUpdate, this);
+this.events.on("update", this.onUpdate, this);
+this.events.off("update", this.onUpdate, this);
 ```
 
 ### once() Auto-Removes
@@ -392,18 +405,20 @@ this.events.once(Phaser.Scenes.Events.CREATE, this.onFirstCreate, this);
 ### Utility Methods
 
 ```js
-emitter.listenerCount('update');          // number of listeners for an event
-emitter.eventNames();                      // ['update', 'player-died'] -- all registered event names
-emitter.removeAllListeners('player-died'); // remove all listeners for one event
-emitter.removeAllListeners();              // remove ALL listeners for ALL events
+emitter.listenerCount("update"); // number of listeners for an event
+emitter.eventNames(); // ['update', 'player-died'] -- all registered event names
+emitter.removeAllListeners("player-died"); // remove all listeners for one event
+emitter.removeAllListeners(); // remove ALL listeners for ALL events
 ```
 
 ### Creating a Standalone EventEmitter
 
 ```js
 const bus = new Phaser.Events.EventEmitter();
-bus.on('inventory-changed', (items) => { console.log(items.length); });
-bus.emit('inventory-changed', this.inventory);
+bus.on("inventory-changed", (items) => {
+  console.log(items.length);
+});
+bus.emit("inventory-changed", this.inventory);
 ```
 
 ### Scene Events vs Game Events
@@ -480,18 +495,18 @@ create() {
 
 ## Source File Map
 
-| Path | Description |
-|---|---|
-| `src/events/EventEmitter.js` | Base EventEmitter class (wraps eventemitter3) |
-| `src/scene/events/` | Scene lifecycle events (22 events) |
-| `src/core/events/` | Game-level events (16 events) |
-| `src/input/events/` | Input/pointer/drag events (48 events) |
-| `src/loader/events/` | Asset loading events (10 events) |
-| `src/animations/events/` | Animation playback events (11 events) |
-| `src/cameras/2d/events/` | Camera effect events (18 events) |
-| `src/sound/events/` | Sound playback events (24 events) |
-| `src/tweens/events/` | Tween lifecycle events (10 events) |
-| `src/physics/arcade/events/` | Arcade physics events (8 events) |
-| `src/textures/events/` | Texture manager events (7 events) |
-| `src/gameobjects/events/` | GameObject lifecycle + Video events (18 events) |
-| `src/time/events/` | TimerEvent events (1 event) |
+| Path                         | Description                                     |
+| ---------------------------- | ----------------------------------------------- |
+| `src/events/EventEmitter.js` | Base EventEmitter class (wraps eventemitter3)   |
+| `src/scene/events/`          | Scene lifecycle events (22 events)              |
+| `src/core/events/`           | Game-level events (16 events)                   |
+| `src/input/events/`          | Input/pointer/drag events (48 events)           |
+| `src/loader/events/`         | Asset loading events (10 events)                |
+| `src/animations/events/`     | Animation playback events (11 events)           |
+| `src/cameras/2d/events/`     | Camera effect events (18 events)                |
+| `src/sound/events/`          | Sound playback events (24 events)               |
+| `src/tweens/events/`         | Tween lifecycle events (10 events)              |
+| `src/physics/arcade/events/` | Arcade physics events (8 events)                |
+| `src/textures/events/`       | Texture manager events (7 events)               |
+| `src/gameobjects/events/`    | GameObject lifecycle + Video events (18 events) |
+| `src/time/events/`           | TimerEvent events (1 event)                     |

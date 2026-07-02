@@ -4,6 +4,7 @@ description: "Use this skill when animating properties over time in Phaser 4. Co
 ---
 
 # Tweens
+
 > Animating properties over time in Phaser 4 -- TweenManager, creating tweens, tween config, easing functions, tween chains, stagger, yoyo, repeat, callbacks, and tween targets.
 
 **Key source paths:** `src/tweens/TweenManager.js`, `src/tweens/tween/Tween.js`, `src/tweens/tween/TweenChain.js`, `src/tweens/tween/BaseTween.js`, `src/tweens/builders/`, `src/tweens/typedefs/`, `src/tweens/events/`, `src/math/easing/`
@@ -14,14 +15,14 @@ description: "Use this skill when animating properties over time in Phaser 4. Co
 ```js
 // In a Scene's create() method:
 
-const logo = this.add.image(100, 300, 'logo');
+const logo = this.add.image(100, 300, "logo");
 
 // Basic tween -- move the logo to x:600 over 2 seconds
 this.tweens.add({
-    targets: logo,
-    x: 600,
-    duration: 2000,
-    ease: 'Power2'
+  targets: logo,
+  x: 600,
+  duration: 2000,
+  ease: "Power2",
 });
 ```
 
@@ -46,23 +47,27 @@ The `targets` property accepts a single object, an array of objects, or a functi
 this.tweens.add({ targets: sprite, alpha: 0, duration: 500 });
 
 // Multiple targets
-this.tweens.add({ targets: [sprite1, sprite2, sprite3], y: 100, duration: 1000 });
+this.tweens.add({
+  targets: [sprite1, sprite2, sprite3],
+  y: 100,
+  duration: 1000,
+});
 ```
 
 ### Property Values
 
 ```js
 this.tweens.add({
-    targets: sprite,
-    x: 400,                  // absolute value
-    y: '-=100',              // relative (subtract 100 from current)
-    rotation: '+=3.14',      // relative (add to current)
-    alpha: { value: 0, duration: 300, ease: 'Cubic.easeIn' },  // per-property config
-    scale: [0.5, 1.5, 1],   // array: interpolates through values over duration
-    angle: function (target, key, value, targetIndex, totalTargets, tween) {
-        return targetIndex * 90;   // function: called once per target
-    },
-    duration: 1000
+  targets: sprite,
+  x: 400, // absolute value
+  y: "-=100", // relative (subtract 100 from current)
+  rotation: "+=3.14", // relative (add to current)
+  alpha: { value: 0, duration: 300, ease: "Cubic.easeIn" }, // per-property config
+  scale: [0.5, 1.5, 1], // array: interpolates through values over duration
+  angle: function (target, key, value, targetIndex, totalTargets, tween) {
+    return targetIndex * 90; // function: called once per target
+  },
+  duration: 1000,
 });
 ```
 
@@ -74,11 +79,11 @@ Array values use linear interpolation by default; override with the `interpolati
 
 ```js
 this.tweens.add({
-    targets: this.player,
-    x: 500,
-    y: 300,
-    duration: 1000,
-    ease: 'Sine.easeInOut'
+  targets: this.player,
+  x: 500,
+  y: 300,
+  duration: 1000,
+  ease: "Sine.easeInOut",
 });
 ```
 
@@ -86,10 +91,10 @@ this.tweens.add({
 
 ```js
 this.tweens.add({
-    targets: this.enemy,
-    x: { value: 600, duration: 1500, ease: 'Bounce.easeOut' },
-    y: { value: 200, duration: 1000, ease: 'Power2' },
-    alpha: { value: 0.5, duration: 500, delay: 1000 }
+  targets: this.enemy,
+  x: { value: 600, duration: 1500, ease: "Bounce.easeOut" },
+  y: { value: 200, duration: 1000, ease: "Power2" },
+  alpha: { value: 0.5, duration: 500, delay: 1000 },
 });
 ```
 
@@ -97,14 +102,14 @@ this.tweens.add({
 
 ```js
 this.tweens.add({
-    targets: this.coin,
-    y: '-=50',
-    duration: 600,
-    ease: 'Sine.easeInOut',
-    yoyo: true,         // returns to start value after reaching end
-    hold: 200,          // pause 200ms at the end value before yoyo-ing back
-    repeat: -1,         // -1 = infinite, 0 = play once, 1 = play twice, etc.
-    repeatDelay: 300     // pause 300ms before each repeat
+  targets: this.coin,
+  y: "-=50",
+  duration: 600,
+  ease: "Sine.easeInOut",
+  yoyo: true, // returns to start value after reaching end
+  hold: 200, // pause 200ms at the end value before yoyo-ing back
+  repeat: -1, // -1 = infinite, 0 = play once, 1 = play twice, etc.
+  repeatDelay: 300, // pause 300ms before each repeat
 });
 ```
 
@@ -116,16 +121,20 @@ Stagger offsets a value across multiple targets via `this.tweens.stagger()`:
 
 ```js
 // 100ms delay between each target
-delay: this.tweens.stagger(100)
+delay: this.tweens.stagger(100);
 
 // From center outward
-delay: this.tweens.stagger(200, { from: 'center' })
+delay: this.tweens.stagger(200, { from: "center" });
 
 // Range: distribute 0-1000ms across targets
-delay: this.tweens.stagger([0, 1000])
+delay: this.tweens.stagger([0, 1000]);
 
 // Grid stagger with easing
-delay: this.tweens.stagger(500, { grid: [10, 6], from: 'center', ease: 'Cubic.easeOut' })
+delay: this.tweens.stagger(500, {
+  grid: [10, 6],
+  from: "center",
+  ease: "Cubic.easeOut",
+});
 ```
 
 **StaggerConfig:** `start` (offset), `ease` (string/function), `from` (`'first'`/`'center'`/`'last'`/index), `grid` ([w, h]).
@@ -136,18 +145,18 @@ A `TweenChain` plays tweens in sequence. Each tween in the chain starts after th
 
 ```js
 this.tweens.chain({
-    targets: this.player,
-    tweens: [
-        { x: 300, duration: 1000, ease: 'Power2' },
-        { y: 500, duration: 800, ease: 'Bounce.easeOut' },
-        { scale: 2, duration: 500 },
-        { alpha: 0, duration: 400 }
-    ],
-    loop: 1,          // loop the entire chain once (plays twice total)
-    loopDelay: 500,
-    onComplete: function () {
-        console.log('Chain finished');
-    }
+  targets: this.player,
+  tweens: [
+    { x: 300, duration: 1000, ease: "Power2" },
+    { y: 500, duration: 800, ease: "Bounce.easeOut" },
+    { scale: 2, duration: 500 },
+    { alpha: 0, duration: 400 },
+  ],
+  loop: 1, // loop the entire chain once (plays twice total)
+  loopDelay: 500,
+  onComplete: function () {
+    console.log("Chain finished");
+  },
 });
 ```
 
@@ -157,11 +166,11 @@ Each entry in `tweens` is a standard `TweenBuilderConfig`. Chain-level config su
 
 ```js
 this.tweens.add({
-    targets: sprite,
-    x: '+=200',    // add 200 to current x
-    y: '-=50',     // subtract 50 from current y
-    angle: '+=180',
-    duration: 1000
+  targets: sprite,
+  x: "+=200", // add 200 to current x
+  y: "-=50", // subtract 50 from current y
+  angle: "+=180",
+  duration: 1000,
 });
 ```
 
@@ -169,27 +178,27 @@ this.tweens.add({
 
 ```js
 this.tweens.add({
-    targets: sprite,
-    x: 600,
-    duration: 2000,
+  targets: sprite,
+  x: 600,
+  duration: 2000,
 
-    // All callbacks receive (tween, targets, ...params)
-    onStart: function (tween, targets) { },
-    onUpdate: function (tween, targets) { },     // per-property, per-target, per-frame
-    onYoyo: function (tween, targets) { },
-    onRepeat: function (tween, targets) { },
-    onLoop: function (tween, targets) { },
-    onComplete: function (tween, targets) { },
+  // All callbacks receive (tween, targets, ...params)
+  onStart: function (tween, targets) {},
+  onUpdate: function (tween, targets) {}, // per-property, per-target, per-frame
+  onYoyo: function (tween, targets) {},
+  onRepeat: function (tween, targets) {},
+  onLoop: function (tween, targets) {},
+  onComplete: function (tween, targets) {},
 
-    onCompleteParams: ['extra', 'args'],
-    callbackScope: this
+  onCompleteParams: ["extra", "args"],
+  callbackScope: this,
 });
 
 // Set callback after creation
-tween.setCallback('onComplete', function (tween, targets) { }, []);
+tween.setCallback("onComplete", function (tween, targets) {}, []);
 
 // Event emitter style (tweens extend EventEmitter)
-tween.on('complete', function (tween, targets) { });
+tween.on("complete", function (tween, targets) {});
 ```
 
 ### Number Tweens
@@ -198,90 +207,98 @@ A Number Tween has no target object. It tweens between two numeric values:
 
 ```js
 const counter = this.tweens.addCounter({
-    from: 0,
-    to: 100,
-    duration: 2000,
-    ease: 'Linear',
-    onUpdate: function (tween) {
-        const value = tween.getValue();
-        console.log(value);   // 0 ... 100
-    }
+  from: 0,
+  to: 100,
+  duration: 2000,
+  ease: "Linear",
+  onUpdate: function (tween) {
+    const value = tween.getValue();
+    console.log(value); // 0 ... 100
+  },
 });
 ```
 
 ### Controlling and Killing Tweens
 
 ```js
-const tween = this.tweens.add({ targets: sprite, x: 600, duration: 2000, persist: true });
+const tween = this.tweens.add({
+  targets: sprite,
+  x: 600,
+  duration: 2000,
+  persist: true,
+});
 
 // Playback control
-tween.pause();                  tween.resume();
-tween.stop();                   // flags for removal; fires onStop
-tween.restart();                // reset and replay from beginning
-tween.seek(1000);               // seek to 1000ms (suppresses events by default)
-tween.complete();               // immediately complete; fires onComplete
-tween.completeAfterLoop(0);     // finish after current loop
-tween.forward(500);             tween.rewind(500);
-tween.setTimeScale(0.5);       // per-tween speed
-tween.updateTo('x', 800);      // change end value mid-tween
+tween.pause();
+tween.resume();
+tween.stop(); // flags for removal; fires onStop
+tween.restart(); // reset and replay from beginning
+tween.seek(1000); // seek to 1000ms (suppresses events by default)
+tween.complete(); // immediately complete; fires onComplete
+tween.completeAfterLoop(0); // finish after current loop
+tween.forward(500);
+tween.rewind(500);
+tween.setTimeScale(0.5); // per-tween speed
+tween.updateTo("x", 800); // change end value mid-tween
 
 // Manager-level control
-this.tweens.killAll();                     // destroy all tweens
-this.tweens.killTweensOf(sprite);          // destroy tweens on target
-this.tweens.isTweening(sprite);            // boolean check
-this.tweens.pauseAll();                    this.tweens.resumeAll();
-this.tweens.setGlobalTimeScale(0.5);       // global speed
+this.tweens.killAll(); // destroy all tweens
+this.tweens.killTweensOf(sprite); // destroy tweens on target
+this.tweens.isTweening(sprite); // boolean check
+this.tweens.pauseAll();
+this.tweens.resumeAll();
+this.tweens.setGlobalTimeScale(0.5); // global speed
 ```
 
 ## Configuration Reference
 
 ### TweenBuilderConfig
 
-| Property | Type | Default | Description |
-|---|---|---|---|
-| `targets` | any / any[] | (required) | Object(s) to tween. |
-| `duration` | number | `1000` | Duration in ms. |
-| `delay` | number / function | `0` | Delay before start (ms). Accepts `stagger()`. |
-| `ease` | string / function | `'Power0'` | Easing function name or custom function. |
-| `easeParams` | array | `null` | Parameters for parameterized easing (e.g. Elastic). |
-| `hold` | number | `0` | Hold at end value before yoyo (ms). |
-| `repeat` | number | `0` | Per-property repeat count. `-1` = infinite. |
-| `repeatDelay` | number | `0` | Delay before each repeat (ms). |
-| `yoyo` | boolean | `false` | Reverse back to start after reaching end. |
-| `flipX` / `flipY` | boolean | `false` | Toggle flip on yoyo/repeat. |
-| `loop` | number | `0` | Tween-level loop count. `-1` = infinite. |
-| `loopDelay` | number | `0` | Delay before each loop (ms). |
-| `completeDelay` | number | `0` | Delay before `onComplete` fires (ms). |
-| `paused` | boolean | `false` | Start paused. Call `play()` to begin. |
-| `persist` | boolean | `false` | Keep alive after completion. |
-| `props` | object | -- | Explicit property config map (alt to top-level props). |
-| `interpolation` | string / function | -- | For array values: `'linear'`, `'bezier'`, `'catmull'`. |
-| `callbackScope` | any | tween | `this` context for callbacks. |
-| Callbacks | function | -- | `onActive`, `onStart`, `onUpdate`, `onYoyo`, `onRepeat`, `onLoop`, `onComplete`, `onStop`, `onPause`, `onResume`. Each has matching `on<Name>Params` array. |
+| Property          | Type              | Default    | Description                                                                                                                                                 |
+| ----------------- | ----------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `targets`         | any / any[]       | (required) | Object(s) to tween.                                                                                                                                         |
+| `duration`        | number            | `1000`     | Duration in ms.                                                                                                                                             |
+| `delay`           | number / function | `0`        | Delay before start (ms). Accepts `stagger()`.                                                                                                               |
+| `ease`            | string / function | `'Power0'` | Easing function name or custom function.                                                                                                                    |
+| `easeParams`      | array             | `null`     | Parameters for parameterized easing (e.g. Elastic).                                                                                                         |
+| `hold`            | number            | `0`        | Hold at end value before yoyo (ms).                                                                                                                         |
+| `repeat`          | number            | `0`        | Per-property repeat count. `-1` = infinite.                                                                                                                 |
+| `repeatDelay`     | number            | `0`        | Delay before each repeat (ms).                                                                                                                              |
+| `yoyo`            | boolean           | `false`    | Reverse back to start after reaching end.                                                                                                                   |
+| `flipX` / `flipY` | boolean           | `false`    | Toggle flip on yoyo/repeat.                                                                                                                                 |
+| `loop`            | number            | `0`        | Tween-level loop count. `-1` = infinite.                                                                                                                    |
+| `loopDelay`       | number            | `0`        | Delay before each loop (ms).                                                                                                                                |
+| `completeDelay`   | number            | `0`        | Delay before `onComplete` fires (ms).                                                                                                                       |
+| `paused`          | boolean           | `false`    | Start paused. Call `play()` to begin.                                                                                                                       |
+| `persist`         | boolean           | `false`    | Keep alive after completion.                                                                                                                                |
+| `props`           | object            | --         | Explicit property config map (alt to top-level props).                                                                                                      |
+| `interpolation`   | string / function | --         | For array values: `'linear'`, `'bezier'`, `'catmull'`.                                                                                                      |
+| `callbackScope`   | any               | tween      | `this` context for callbacks.                                                                                                                               |
+| Callbacks         | function          | --         | `onActive`, `onStart`, `onUpdate`, `onYoyo`, `onRepeat`, `onLoop`, `onComplete`, `onStop`, `onPause`, `onResume`. Each has matching `on<Name>Params` array. |
 
 ### TweenChainBuilderConfig
 
-| Property | Type | Default | Description |
-|---|---|---|---|
-| `targets` | any / any[] | -- | Default targets inherited by child tweens. |
-| `tweens` | TweenBuilderConfig[] | (required) | Array of tween configs to play in sequence. |
-| `loop` | number | `0` | Times to loop the entire chain. `-1` = infinite. |
-| `loopDelay` | number | `0` | Delay before each loop (ms). |
-| `completeDelay` | number | `0` | Delay before `onComplete` fires (ms). |
-| `paused` | boolean | `false` | Start paused. |
-| `persist` | boolean | `false` | Keep alive after completion. |
-| Callbacks | function | -- | `onActive`, `onStart`, `onLoop`, `onComplete`, `onStop`, `onPause`, `onResume`. |
+| Property        | Type                 | Default    | Description                                                                     |
+| --------------- | -------------------- | ---------- | ------------------------------------------------------------------------------- |
+| `targets`       | any / any[]          | --         | Default targets inherited by child tweens.                                      |
+| `tweens`        | TweenBuilderConfig[] | (required) | Array of tween configs to play in sequence.                                     |
+| `loop`          | number               | `0`        | Times to loop the entire chain. `-1` = infinite.                                |
+| `loopDelay`     | number               | `0`        | Delay before each loop (ms).                                                    |
+| `completeDelay` | number               | `0`        | Delay before `onComplete` fires (ms).                                           |
+| `paused`        | boolean              | `false`    | Start paused.                                                                   |
+| `persist`       | boolean              | `false`    | Keep alive after completion.                                                    |
+| Callbacks       | function             | --         | `onActive`, `onStart`, `onLoop`, `onComplete`, `onStop`, `onPause`, `onResume`. |
 
 ### NumberTweenBuilderConfig
 
-| Property | Type | Default | Description |
-|---|---|---|---|
-| `from` | number | `0` | Start value. |
-| `to` | number | `1` | End value. |
-| `duration` | number | `1000` | Duration in ms. |
-| `ease` | string / function | `'Power0'` | Easing function. |
-| All standard timing | -- | -- | `delay`, `hold`, `repeat`, `repeatDelay`, `yoyo`, `loop`, `loopDelay`, `completeDelay`, `paused`, `persist`. |
-| All standard callbacks | -- | -- | Same callback set as TweenBuilderConfig. |
+| Property               | Type              | Default    | Description                                                                                                  |
+| ---------------------- | ----------------- | ---------- | ------------------------------------------------------------------------------------------------------------ |
+| `from`                 | number            | `0`        | Start value.                                                                                                 |
+| `to`                   | number            | `1`        | End value.                                                                                                   |
+| `duration`             | number            | `1000`     | Duration in ms.                                                                                              |
+| `ease`                 | string / function | `'Power0'` | Easing function.                                                                                             |
+| All standard timing    | --                | --         | `delay`, `hold`, `repeat`, `repeatDelay`, `yoyo`, `loop`, `loopDelay`, `completeDelay`, `paused`, `persist`. |
+| All standard callbacks | --                | --         | Same callback set as TweenBuilderConfig.                                                                     |
 
 ### TweenPropConfig (Per-Property Object)
 
@@ -293,13 +310,13 @@ All easing names are case-insensitive. Use the string name in the `ease` config 
 
 ### Power Aliases
 
-| Name | Equivalent |
-|---|---|
-| `Power0` | `Linear` |
+| Name     | Equivalent                     |
+| -------- | ------------------------------ |
+| `Power0` | `Linear`                       |
 | `Power1` | `Quad.easeOut` (Quadratic Out) |
-| `Power2` | `Cubic.easeOut` |
-| `Power3` | `Quart.easeOut` (Quartic Out) |
-| `Power4` | `Quint.easeOut` (Quintic Out) |
+| `Power2` | `Cubic.easeOut`                |
+| `Power3` | `Quart.easeOut` (Quartic Out)  |
+| `Power4` | `Quint.easeOut` (Quintic Out)  |
 
 ### Full Easing List
 
@@ -317,18 +334,18 @@ Each type supports `.easeIn`, `.easeOut`, `.easeInOut` variants. The bare name d
 
 Tweens (and TweenChains) extend `EventEmitter`. You can listen via `.on()`:
 
-| Event String | Constant | Fires When |
-|---|---|---|
-| `'active'` | `Phaser.Tweens.Events.TWEEN_ACTIVE` | Tween added to manager |
-| `'start'` | `Phaser.Tweens.Events.TWEEN_START` | Playback begins (after delay) |
-| `'update'` | `Phaser.Tweens.Events.TWEEN_UPDATE` | Property updates each frame |
-| `'yoyo'` | `Phaser.Tweens.Events.TWEEN_YOYO` | Property begins yoyo-ing back |
-| `'repeat'` | `Phaser.Tweens.Events.TWEEN_REPEAT` | Property repeats |
-| `'loop'` | `Phaser.Tweens.Events.TWEEN_LOOP` | Entire tween loops |
-| `'complete'` | `Phaser.Tweens.Events.TWEEN_COMPLETE` | Tween finishes |
-| `'stop'` | `Phaser.Tweens.Events.TWEEN_STOP` | `tween.stop()` called |
-| `'pause'` | `Phaser.Tweens.Events.TWEEN_PAUSE` | `tween.pause()` called |
-| `'resume'` | `Phaser.Tweens.Events.TWEEN_RESUME` | `tween.resume()` called |
+| Event String | Constant                              | Fires When                    |
+| ------------ | ------------------------------------- | ----------------------------- |
+| `'active'`   | `Phaser.Tweens.Events.TWEEN_ACTIVE`   | Tween added to manager        |
+| `'start'`    | `Phaser.Tweens.Events.TWEEN_START`    | Playback begins (after delay) |
+| `'update'`   | `Phaser.Tweens.Events.TWEEN_UPDATE`   | Property updates each frame   |
+| `'yoyo'`     | `Phaser.Tweens.Events.TWEEN_YOYO`     | Property begins yoyo-ing back |
+| `'repeat'`   | `Phaser.Tweens.Events.TWEEN_REPEAT`   | Property repeats              |
+| `'loop'`     | `Phaser.Tweens.Events.TWEEN_LOOP`     | Entire tween loops            |
+| `'complete'` | `Phaser.Tweens.Events.TWEEN_COMPLETE` | Tween finishes                |
+| `'stop'`     | `Phaser.Tweens.Events.TWEEN_STOP`     | `tween.stop()` called         |
+| `'pause'`    | `Phaser.Tweens.Events.TWEEN_PAUSE`    | `tween.pause()` called        |
+| `'resume'`   | `Phaser.Tweens.Events.TWEEN_RESUME`   | `tween.resume()` called       |
 
 Event listener signature for Tween events: `function(tween, targets)`. During seeking (`tween.isSeeking === true`), events and callbacks are suppressed by default.
 
@@ -336,44 +353,44 @@ Event listener signature for Tween events: `function(tween, targets)`. During se
 
 ### TweenManager (`this.tweens`)
 
-| Method | Returns | Purpose |
-|---|---|---|
-| `add(config)` | `Tween` | Create, add, and start a tween. |
-| `addMultiple(configs[])` | `Tween[]` | Create multiple tweens at once. |
-| `create(config)` | `Tween` | Create without adding. Use `existing()` to add later. |
-| `chain(config)` | `TweenChain` | Create and start a sequential chain. |
-| `addCounter(config)` | `Tween` | Number tween (no target). |
-| `stagger(value, config?)` | `function` | Stagger function for delay/property values. |
-| `existing(tween)` | `this` | Add a pre-created tween to the manager. |
-| `remove(tween)` | `this` | Remove without destroying. |
-| `has(tween)` | `boolean` | Check if tween is in manager. |
-| `getTweens()` | `Tween[]` | All active tweens (copy). |
-| `getTweensOf(target)` | `Tween[]` | Tweens affecting a target. |
-| `isTweening(target)` | `boolean` | Is target being tweened? |
-| `killAll()` / `killTweensOf(target)` | `this` | Destroy tweens. |
-| `pauseAll()` / `resumeAll()` | `this` | Pause/resume all tweens. |
-| `setGlobalTimeScale(v)` / `getGlobalTimeScale()` | `this` / `number` | Global speed. |
-| `setFps(fps)` | `this` | Limit tick rate (default 240). |
-| `setLagSmooth(limit, skip)` | `this` | Configure lag smoothing. |
-| `each(cb, scope)` | `this` | Iterate all tweens. |
+| Method                                           | Returns           | Purpose                                               |
+| ------------------------------------------------ | ----------------- | ----------------------------------------------------- |
+| `add(config)`                                    | `Tween`           | Create, add, and start a tween.                       |
+| `addMultiple(configs[])`                         | `Tween[]`         | Create multiple tweens at once.                       |
+| `create(config)`                                 | `Tween`           | Create without adding. Use `existing()` to add later. |
+| `chain(config)`                                  | `TweenChain`      | Create and start a sequential chain.                  |
+| `addCounter(config)`                             | `Tween`           | Number tween (no target).                             |
+| `stagger(value, config?)`                        | `function`        | Stagger function for delay/property values.           |
+| `existing(tween)`                                | `this`            | Add a pre-created tween to the manager.               |
+| `remove(tween)`                                  | `this`            | Remove without destroying.                            |
+| `has(tween)`                                     | `boolean`         | Check if tween is in manager.                         |
+| `getTweens()`                                    | `Tween[]`         | All active tweens (copy).                             |
+| `getTweensOf(target)`                            | `Tween[]`         | Tweens affecting a target.                            |
+| `isTweening(target)`                             | `boolean`         | Is target being tweened?                              |
+| `killAll()` / `killTweensOf(target)`             | `this`            | Destroy tweens.                                       |
+| `pauseAll()` / `resumeAll()`                     | `this`            | Pause/resume all tweens.                              |
+| `setGlobalTimeScale(v)` / `getGlobalTimeScale()` | `this` / `number` | Global speed.                                         |
+| `setFps(fps)`                                    | `this`            | Limit tick rate (default 240).                        |
+| `setLagSmooth(limit, skip)`                      | `this`            | Configure lag smoothing.                              |
+| `each(cb, scope)`                                | `this`            | Iterate all tweens.                                   |
 
 ### Tween Instance
 
-| Method | Purpose |
-|---|---|
-| `play()` / `pause()` / `resume()` | Playback control. |
-| `stop()` | Stop and flag for removal. Fires `onStop`. |
-| `restart()` | Reset and replay. |
-| `complete(delay?)` | Immediately complete. |
-| `completeAfterLoop(loops?)` | Complete after N more loops. |
-| `seek(ms, delta?, emit?)` | Seek to ms offset. |
-| `forward(ms)` / `rewind(ms)` | Step forward/back. |
-| `setTimeScale(v)` / `getTimeScale()` | Per-tween speed. |
-| `setCallback(type, fn, params?)` | Set callback after creation. |
-| `getValue(index?)` | Current TweenData value. |
-| `updateTo(key, value, startToCurrent?)` | Change end value mid-tween. |
-| `hasTarget(target)` / `isPlaying()` / `isPaused()` | State checks. |
-| `remove()` / `destroy()` | Cleanup. |
+| Method                                             | Purpose                                    |
+| -------------------------------------------------- | ------------------------------------------ |
+| `play()` / `pause()` / `resume()`                  | Playback control.                          |
+| `stop()`                                           | Stop and flag for removal. Fires `onStop`. |
+| `restart()`                                        | Reset and replay.                          |
+| `complete(delay?)`                                 | Immediately complete.                      |
+| `completeAfterLoop(loops?)`                        | Complete after N more loops.               |
+| `seek(ms, delta?, emit?)`                          | Seek to ms offset.                         |
+| `forward(ms)` / `rewind(ms)`                       | Step forward/back.                         |
+| `setTimeScale(v)` / `getTimeScale()`               | Per-tween speed.                           |
+| `setCallback(type, fn, params?)`                   | Set callback after creation.               |
+| `getValue(index?)`                                 | Current TweenData value.                   |
+| `updateTo(key, value, startToCurrent?)`            | Change end value mid-tween.                |
+| `hasTarget(target)` / `isPlaying()` / `isPaused()` | State checks.                              |
+| `remove()` / `destroy()`                           | Cleanup.                                   |
 
 Key properties: `targets`, `duration`, `elapsed`, `progress` (0-1), `totalProgress` (0-1 including loops), `totalDuration`, `timeScale`, `paused`, `persist`, `data` (TweenData[]), `isInfinite`, `isNumberTween`.
 
@@ -396,19 +413,19 @@ Extends `BaseTween`. Has all tween playback methods (`play`, `pause`, `resume`, 
 
 ## Source File Map
 
-| File | Purpose |
-|---|---|
-| `src/tweens/TweenManager.js` | Scene plugin. `add`, `chain`, `stagger`, `killAll`, etc. |
-| `src/tweens/tween/Tween.js` | Individual tween. Targets, TweenData array, seeking, update. |
-| `src/tweens/tween/TweenChain.js` | Sequential tween playback via ordered child Tweens. |
-| `src/tweens/tween/BaseTween.js` | Shared base. EventEmitter, callbacks, state machine. |
-| `src/tweens/tween/BaseTweenData.js` | Per-property state: duration, delay, yoyo, repeat, progress. |
-| `src/tweens/tween/TweenData.js` | Numeric property tweening (extends BaseTweenData). |
-| `src/tweens/tween/TweenFrameData.js` | Texture frame tweening (extends BaseTweenData). |
-| `src/tweens/builders/TweenBuilder.js` | Parses config into Tween instance. |
-| `src/tweens/builders/TweenChainBuilder.js` | Parses config into TweenChain instance. |
-| `src/tweens/builders/NumberTweenBuilder.js` | Builds target-less number tweens. |
-| `src/tweens/builders/StaggerBuilder.js` | Creates stagger functions. |
-| `src/tweens/events/` | Event constants (`TWEEN_ACTIVE`, `TWEEN_START`, etc.). |
-| `src/tweens/typedefs/` | JSDoc typedefs for all config objects. |
-| `src/math/easing/EaseMap.js` | Maps ease string names to functions. |
+| File                                        | Purpose                                                      |
+| ------------------------------------------- | ------------------------------------------------------------ |
+| `src/tweens/TweenManager.js`                | Scene plugin. `add`, `chain`, `stagger`, `killAll`, etc.     |
+| `src/tweens/tween/Tween.js`                 | Individual tween. Targets, TweenData array, seeking, update. |
+| `src/tweens/tween/TweenChain.js`            | Sequential tween playback via ordered child Tweens.          |
+| `src/tweens/tween/BaseTween.js`             | Shared base. EventEmitter, callbacks, state machine.         |
+| `src/tweens/tween/BaseTweenData.js`         | Per-property state: duration, delay, yoyo, repeat, progress. |
+| `src/tweens/tween/TweenData.js`             | Numeric property tweening (extends BaseTweenData).           |
+| `src/tweens/tween/TweenFrameData.js`        | Texture frame tweening (extends BaseTweenData).              |
+| `src/tweens/builders/TweenBuilder.js`       | Parses config into Tween instance.                           |
+| `src/tweens/builders/TweenChainBuilder.js`  | Parses config into TweenChain instance.                      |
+| `src/tweens/builders/NumberTweenBuilder.js` | Builds target-less number tweens.                            |
+| `src/tweens/builders/StaggerBuilder.js`     | Creates stagger functions.                                   |
+| `src/tweens/events/`                        | Event constants (`TWEEN_ACTIVE`, `TWEEN_START`, etc.).       |
+| `src/tweens/typedefs/`                      | JSDoc typedefs for all config objects.                       |
+| `src/math/easing/EaseMap.js`                | Maps ease string names to functions.                         |

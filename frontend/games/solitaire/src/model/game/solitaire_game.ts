@@ -2,11 +2,16 @@ import { EventEmitter } from "../common/event_emitter";
 import { GameEvents } from "./game_events";
 import { CardPile } from "../card/card_pile";
 import { Deck } from "../card/deck";
-import { PlayingCard, Suit, Type, ALL_PLAYING_CARD_IDS } from "../card/playing_card";
+import {
+  PlayingCard,
+  Suit,
+  Type,
+  ALL_PLAYING_CARD_IDS,
+} from "../card/playing_card";
 
 /**
  * Coordinates and validates the state of a standard Klondike Solitaire game.
- * 
+ *
  * Emits events on state changes so rendering layers can stay synchronized.
  */
 export class SolitaireGame extends EventEmitter<GameEvents> {
@@ -89,7 +94,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
 
   /**
    * Shuffles the main deck and deals the initial game board.
-   * 
+   *
    * Tableau column i receives i+1 cards, with the top card face-up.
    */
   public startNewGame(): void {
@@ -200,7 +205,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
 
   /**
    * Attempts to move a card and its stacked cards to a destination pile.
-   * 
+   *
    * Performs rule checks before executing the move.
    *
    * @param cardId The ID of the card to move.
@@ -247,9 +252,14 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     }
 
     // Auto-flip the new top card of the source pile if it's a tableau pile and face-down
-    if (sourcePile.id.startsWith("tableau-") && sourcePile.getCards().length > 0) {
+    if (
+      sourcePile.id.startsWith("tableau-") &&
+      sourcePile.getCards().length > 0
+    ) {
       const remainingCards = sourcePile.getCards();
-      const topRemaining = remainingCards[remainingCards.length - 1] as PlayingCard;
+      const topRemaining = remainingCards[
+        remainingCards.length - 1
+      ] as PlayingCard;
       if (!topRemaining.faceUp) {
         topRemaining.faceUp = true;
         this.emit("card-flipped", {
@@ -290,11 +300,16 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     }
   }
 
-  private validateMove(card: PlayingCard, targetPile: CardPile, movingStackSize: number): boolean {
+  private validateMove(
+    card: PlayingCard,
+    targetPile: CardPile,
+    movingStackSize: number,
+  ): boolean {
     const targetCards = targetPile.getCards();
-    const topTargetCard = targetCards.length > 0
-      ? (targetCards[targetCards.length - 1] as PlayingCard)
-      : null;
+    const topTargetCard =
+      targetCards.length > 0
+        ? (targetCards[targetCards.length - 1] as PlayingCard)
+        : null;
 
     // Moving to Tableau Pile
     if (targetPile.id.startsWith("tableau-")) {
@@ -304,7 +319,8 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       }
       // Must build down in descending rank and alternating color
       const isAlternatingColor = this.isRed(card) !== this.isRed(topTargetCard);
-      const isDescendingRank = Number(card.type) === Number(topTargetCard.type) - 1;
+      const isDescendingRank =
+        Number(card.type) === Number(topTargetCard.type) - 1;
       return isAlternatingColor && isDescendingRank;
     }
 
@@ -320,7 +336,8 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       }
       // Must build up in ascending rank of the same suit
       const isSameSuit = card.suite === topTargetCard.suite;
-      const isAscendingRank = Number(card.type) === Number(topTargetCard.type) + 1;
+      const isAscendingRank =
+        Number(card.type) === Number(topTargetCard.type) + 1;
       return isSameSuit && isAscendingRank;
     }
 

@@ -4,6 +4,7 @@ description: "Use this skill when using RenderTexture or DynamicTexture in Phase
 ---
 
 # Render Textures and Dynamic Textures
+
 > Drawing game objects to off-screen textures in Phaser 4 -- RenderTexture game object, DynamicTexture for shared textures, the Stamp helper, command-buffer rendering, snapshots, procedural generation, and minimap patterns.
 
 **Key source paths:** `src/gameobjects/rendertexture/`, `src/textures/DynamicTexture.js`, `src/gameobjects/stamp/`, `src/textures/typedefs/StampConfig.js`, `src/textures/typedefs/CaptureConfig.js`
@@ -16,18 +17,18 @@ description: "Use this skill when using RenderTexture or DynamicTexture in Phase
 
 // 1. RenderTexture -- a visible game object with its own DynamicTexture
 const rt = this.add.renderTexture(400, 300, 256, 256);
-rt.draw('player', 128, 128);          // draw a texture by key at center
-rt.fill(0x222244, 0.5);               // semi-transparent fill
-rt.render();                           // flush the command buffer
+rt.draw("player", 128, 128); // draw a texture by key at center
+rt.fill(0x222244, 0.5); // semi-transparent fill
+rt.render(); // flush the command buffer
 
 // 2. DynamicTexture -- a shared texture in the Texture Manager
-const dt = this.textures.addDynamicTexture('composite', 512, 512);
-dt.stamp('coin', null, 64, 64, { scale: 2, angle: 45 });
+const dt = this.textures.addDynamicTexture("composite", 512, 512);
+dt.stamp("coin", null, 64, 64, { scale: 2, angle: 45 });
 dt.render();
-this.add.image(400, 300, 'composite'); // any game object can use it
+this.add.image(400, 300, "composite"); // any game object can use it
 
 // 3. Stamp game object -- lightweight Image that ignores camera scroll
-const hud = this.add.stamp(10, 10, 'heart');
+const hud = this.add.stamp(10, 10, "heart");
 ```
 
 ## Core Concepts
@@ -36,16 +37,17 @@ const hud = this.add.stamp(10, 10, 'heart');
 
 Phaser 4 splits texture-drawing into two layers:
 
-| | RenderTexture | DynamicTexture |
-|---|---|---|
-| What it is | Image game object + auto-created DynamicTexture | Texture in the Texture Manager |
-| Created via | `this.add.renderTexture(x, y, w, h)` | `this.textures.addDynamicTexture(key, w, h)` |
-| Visible on its own | Yes (it extends Image) | No (must be assigned to a game object) |
-| Shared across objects | Possible via `saveTexture(key)` | Yes, by key |
-| Cross-scene use | No (belongs to one Scene) | Yes (textures are global) |
-| Has position/scale/alpha | Yes (all Image components) | No (it is a Texture, not a GameObject) |
+|                          | RenderTexture                                   | DynamicTexture                               |
+| ------------------------ | ----------------------------------------------- | -------------------------------------------- |
+| What it is               | Image game object + auto-created DynamicTexture | Texture in the Texture Manager               |
+| Created via              | `this.add.renderTexture(x, y, w, h)`            | `this.textures.addDynamicTexture(key, w, h)` |
+| Visible on its own       | Yes (it extends Image)                          | No (must be assigned to a game object)       |
+| Shared across objects    | Possible via `saveTexture(key)`                 | Yes, by key                                  |
+| Cross-scene use          | No (belongs to one Scene)                       | Yes (textures are global)                    |
+| Has position/scale/alpha | Yes (all Image components)                      | No (it is a Texture, not a GameObject)       |
 
 **When to use which:**
+
 - Use **RenderTexture** when you need a single visible surface you draw onto (paint canvas, trail effect, composite sprite).
 - Use **DynamicTexture** when many game objects share the same generated texture, or you need a texture for masks/shaders, or you need cross-scene access.
 
@@ -61,20 +63,20 @@ In Phaser 4, drawing calls (`draw`, `stamp`, `fill`, `clear`, `erase`, `repeat`,
 rt.clear();
 rt.fill(0x000000);
 rt.draw(sprite, 128, 128);
-rt.render();  // REQUIRED -- nothing appears without this
+rt.render(); // REQUIRED -- nothing appears without this
 ```
 
 For RenderTexture game objects, the `renderMode` property controls automatic rendering:
 
-| Mode | Behavior |
-|---|---|
-| `'render'` (default) | Draws the texture contents to the frame each tick. You call `render()` manually when content changes. |
-| `'redraw'` | Calls `render()` automatically every frame but does NOT display itself. Useful for textures reused by other objects. |
-| `'all'` | Calls `render()` every frame AND draws itself to the frame. |
+| Mode                 | Behavior                                                                                                             |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `'render'` (default) | Draws the texture contents to the frame each tick. You call `render()` manually when content changes.                |
+| `'redraw'`           | Calls `render()` automatically every frame but does NOT display itself. Useful for textures reused by other objects. |
+| `'all'`              | Calls `render()` every frame AND draws itself to the frame.                                                          |
 
 ```js
-rt.setRenderMode('all');       // auto-render + display every frame
-rt.setRenderMode('all', true); // same, plus preserve the command buffer
+rt.setRenderMode("all"); // auto-render + display every frame
+rt.setRenderMode("all", true); // same, plus preserve the command buffer
 ```
 
 ### Preserve Mode
@@ -95,6 +97,7 @@ rt.draw(sprite);
 ### The `stamp()` Method vs the Stamp Game Object
 
 These are different things:
+
 - **`rt.stamp(key, frame, x, y, config)`** -- a method on RenderTexture/DynamicTexture that draws a texture frame to the surface with transform options (alpha, tint, angle, scale, origin, blendMode).
 - **`this.add.stamp(x, y, texture, frame)`** -- a factory that creates a Stamp game object added to the Scene display list.
 
@@ -113,13 +116,13 @@ rt.draw([sprite1, sprite2, sprite3]);
 
 // Group or Container (only visible children are drawn)
 rt.draw(enemyGroup);
-rt.draw(myContainer, 50, 50);  // offset added to children positions
+rt.draw(myContainer, 50, 50); // offset added to children positions
 
 // Entire Scene display list
 rt.draw(this.children);
 
 // Texture by string key
-rt.draw('explosion', 200, 200);
+rt.draw("explosion", 200, 200);
 
 // Don't forget to flush
 rt.render();
@@ -134,16 +137,16 @@ Note: `alpha` and `tint` parameters on `draw()` only apply to Texture Frames/str
 The `stamp()` method draws a texture frame with full transform control. The frame is centered on the x/y position by default (origin 0.5).
 
 ```js
-rt.stamp('bullet', null, 100, 100, {
-    alpha: 0.8,
-    tint: 0xff0000,
-    angle: 45,          // degrees (takes precedence over rotation)
-    scale: 2,           // uniform scale
-    scaleX: 1.5,        // overrides scale for X
-    scaleY: 0.5,        // overrides scale for Y
-    originX: 0,         // top-left origin
-    originY: 0,
-    blendMode: 0
+rt.stamp("bullet", null, 100, 100, {
+  alpha: 0.8,
+  tint: 0xff0000,
+  angle: 45, // degrees (takes precedence over rotation)
+  scale: 2, // uniform scale
+  scaleX: 1.5, // overrides scale for X
+  scaleY: 0.5, // overrides scale for Y
+  originX: 0, // top-left origin
+  originY: 0,
+  blendMode: 0,
 });
 rt.render();
 ```
@@ -154,13 +157,13 @@ The `capture()` method draws a game object with temporary property overrides, re
 
 ```js
 rt.capture(player, {
-    x: 64,
-    y: 64,
-    scale: 0.5,
-    alpha: 0.8,
-    rotation: Math.PI / 4,
-    transform: 'world',    // 'local', 'world', or a TransformMatrix
-    camera: someCamera      // optional camera override
+  x: 64,
+  y: 64,
+  scale: 0.5,
+  alpha: 0.8,
+  rotation: Math.PI / 4,
+  transform: "world", // 'local', 'world', or a TransformMatrix
+  camera: someCamera, // optional camera override
 });
 rt.render();
 ```
@@ -171,11 +174,11 @@ This is useful for drawing an object at a different position/scale without modif
 
 ```js
 // Fill entire texture with color
-rt.fill(0xff0000);          // solid red
-rt.fill(0x000000, 0.5);     // semi-transparent black
+rt.fill(0xff0000); // solid red
+rt.fill(0x000000, 0.5); // semi-transparent black
 
 // Fill a region
-rt.fill(0x00ff00, 1, 10, 10, 100, 50);  // green rect at (10,10) size 100x50
+rt.fill(0x00ff00, 1, 10, 10, 100, 50); // green rect at (10,10) size 100x50
 
 // Clear everything (transparent)
 rt.clear();
@@ -191,8 +194,8 @@ rt.render();
 Erase uses ERASE blend mode to cut holes in the texture:
 
 ```js
-rt.fill(0xffffff);           // white background
-rt.erase(circleSprite, 100, 100);  // punch a hole shaped like the sprite
+rt.fill(0xffffff); // white background
+rt.erase(circleSprite, 100, 100); // punch a hole shaped like the sprite
 rt.render();
 ```
 
@@ -200,13 +203,13 @@ rt.render();
 
 ```js
 // Fill the entire RenderTexture with a tiled pattern
-rt.repeat('grass', null);                        // tile the whole surface
-rt.repeat('brick', null, 0, 0, 256, 128);       // tile a specific region
-rt.repeat('tile', 'frame2', 0, 0, 512, 512, {
-    tileScaleX: 2,
-    tileScaleY: 2,
-    tilePositionX: 16,
-    alpha: 0.8
+rt.repeat("grass", null); // tile the whole surface
+rt.repeat("brick", null, 0, 0, 256, 128); // tile a specific region
+rt.repeat("tile", "frame2", 0, 0, 512, 512, {
+  tileScaleX: 2,
+  tileScaleY: 2,
+  tilePositionX: 16,
+  alpha: 0.8,
 });
 rt.render();
 ```
@@ -218,17 +221,25 @@ Snapshots read pixel data from the framebuffer. They are **expensive and blockin
 ```js
 // Full texture snapshot -- callback receives an HTMLImageElement
 rt.snapshot(function (image) {
-    document.body.appendChild(image);  // or use as texture source
+  document.body.appendChild(image); // or use as texture source
 });
 
 // Area snapshot
-rt.snapshotArea(0, 0, 128, 128, function (image) {
+rt.snapshotArea(
+  0,
+  0,
+  128,
+  128,
+  function (image) {
     // image is 128x128 region from top-left
-}, 'image/jpeg', 0.8);
+  },
+  "image/jpeg",
+  0.8,
+);
 
 // Single pixel -- callback receives a Phaser.Display.Color
 rt.snapshotPixel(64, 64, function (color) {
-    console.log(color.r, color.g, color.b, color.a);
+  console.log(color.r, color.g, color.b, color.a);
 });
 ```
 
@@ -240,11 +251,11 @@ rt.draw(complexScene);
 rt.render();
 
 // Register in the Texture Manager under a key
-rt.saveTexture('composited');
+rt.saveTexture("composited");
 
 // Now any game object can use it
-this.add.image(400, 300, 'composited');
-this.add.sprite(100, 100, 'composited');
+this.add.image(400, 300, "composited");
+this.add.sprite(100, 100, "composited");
 
 // Updates to the RenderTexture automatically reflect on all users
 ```
@@ -252,25 +263,28 @@ this.add.sprite(100, 100, 'composited');
 For DynamicTexture, the key is set at creation time:
 
 ```js
-const dt = this.textures.addDynamicTexture('terrain', 1024, 1024);
-dt.repeat('grass', null);
+const dt = this.textures.addDynamicTexture("terrain", 1024, 1024);
+dt.repeat("grass", null);
 dt.render();
-this.add.image(512, 512, 'terrain');  // already keyed
+this.add.image(512, 512, "terrain"); // already keyed
 ```
 
 ### Procedural Generation
 
 ```js
-const dt = this.textures.addDynamicTexture('starfield', 800, 600);
+const dt = this.textures.addDynamicTexture("starfield", 800, 600);
 dt.fill(0x000011);
 for (let i = 0; i < 200; i++) {
-    const x = Phaser.Math.Between(0, 800);
-    const y = Phaser.Math.Between(0, 600);
-    const brightness = Phaser.Math.FloatBetween(0.3, 1);
-    dt.stamp('star', null, x, y, { alpha: brightness, scale: Phaser.Math.FloatBetween(0.5, 1.5) });
+  const x = Phaser.Math.Between(0, 800);
+  const y = Phaser.Math.Between(0, 600);
+  const brightness = Phaser.Math.FloatBetween(0.3, 1);
+  dt.stamp("star", null, x, y, {
+    alpha: brightness,
+    scale: Phaser.Math.FloatBetween(0.5, 1.5),
+  });
 }
 dt.render();
-this.add.image(400, 300, 'starfield');
+this.add.image(400, 300, "starfield");
 ```
 
 ### Minimap Pattern
@@ -300,12 +314,12 @@ Insert logic between draw commands that executes during `render()`:
 rt.clear();
 rt.draw(background);
 rt.callback(() => {
-    // Runs during render, after background is drawn
-    sprite.setTint(0xff0000);
+  // Runs during render, after background is drawn
+  sprite.setTint(0xff0000);
 });
 rt.draw(sprite);
 rt.callback(() => {
-    sprite.setTint(0xffffff);  // restore after drawing
+  sprite.setTint(0xffffff); // restore after drawing
 });
 rt.render();
 ```
@@ -327,7 +341,7 @@ Both RenderTexture and DynamicTexture have a `.camera` property that controls ho
 ```js
 rt.camera.setScroll(100, 50);
 rt.camera.setZoom(2);
-rt.draw(sprite);  // sprite drawn with camera transform applied
+rt.draw(sprite); // sprite drawn with camera transform applied
 rt.render();
 ```
 
@@ -335,59 +349,59 @@ rt.render();
 
 ### RenderTexture (extends Image)
 
-| Method | Signature | Description |
-|---|---|---|
-| `draw` | `(entries, x?, y?, alpha?, tint?)` | Draw game objects, textures, groups, etc. |
-| `capture` | `(entry, config)` | Draw with temporary property overrides |
-| `stamp` | `(key, frame?, x?, y?, config?)` | Stamp a texture frame with transform |
-| `erase` | `(entries, x?, y?)` | Draw using ERASE blend mode |
-| `fill` | `(rgb, alpha?, x?, y?, w?, h?)` | Fill with color |
-| `clear` | `(x?, y?, w?, h?)` | Clear to transparent |
-| `repeat` | `(key, frame?, x?, y?, w?, h?, config?)` | Tile a texture as fill pattern |
-| `render` | `()` | Flush the command buffer |
-| `preserve` | `(bool)` | Keep command buffer between renders |
-| `callback` | `(fn)` | Insert callback into command buffer |
-| `resize` | `(w, h?, forceEven?)` | Resize (erases content) |
-| `saveTexture` | `(key)` | Register in Texture Manager |
-| `setRenderMode` | `(mode, preserve?)` | Set 'render', 'redraw', or 'all' |
-| `snapshot` | `(callback, type?, quality?)` | Full snapshot to Image |
-| `snapshotArea` | `(x, y, w, h, callback, type?, quality?)` | Area snapshot |
-| `snapshotPixel` | `(x, y, callback)` | Single pixel to Color |
+| Method          | Signature                                 | Description                               |
+| --------------- | ----------------------------------------- | ----------------------------------------- |
+| `draw`          | `(entries, x?, y?, alpha?, tint?)`        | Draw game objects, textures, groups, etc. |
+| `capture`       | `(entry, config)`                         | Draw with temporary property overrides    |
+| `stamp`         | `(key, frame?, x?, y?, config?)`          | Stamp a texture frame with transform      |
+| `erase`         | `(entries, x?, y?)`                       | Draw using ERASE blend mode               |
+| `fill`          | `(rgb, alpha?, x?, y?, w?, h?)`           | Fill with color                           |
+| `clear`         | `(x?, y?, w?, h?)`                        | Clear to transparent                      |
+| `repeat`        | `(key, frame?, x?, y?, w?, h?, config?)`  | Tile a texture as fill pattern            |
+| `render`        | `()`                                      | Flush the command buffer                  |
+| `preserve`      | `(bool)`                                  | Keep command buffer between renders       |
+| `callback`      | `(fn)`                                    | Insert callback into command buffer       |
+| `resize`        | `(w, h?, forceEven?)`                     | Resize (erases content)                   |
+| `saveTexture`   | `(key)`                                   | Register in Texture Manager               |
+| `setRenderMode` | `(mode, preserve?)`                       | Set 'render', 'redraw', or 'all'          |
+| `snapshot`      | `(callback, type?, quality?)`             | Full snapshot to Image                    |
+| `snapshotArea`  | `(x, y, w, h, callback, type?, quality?)` | Area snapshot                             |
+| `snapshotPixel` | `(x, y, callback)`                        | Single pixel to Color                     |
 
 ### DynamicTexture (extends Texture)
 
 Same drawing methods as RenderTexture (`draw`, `stamp`, `erase`, `fill`, `clear`, `repeat`, `capture`, `render`, `preserve`, `callback`, `snapshot`, `snapshotArea`, `snapshotPixel`), plus:
 
-| Method/Property | Description |
-|---|---|
-| `setSize(w, h?, forceEven?)` | Resize the texture |
-| `camera` | Internal Camera for draw positioning |
-| `commandBuffer` | Array of pending draw commands |
-| `drawingContext` | WebGL DrawingContext with framebuffer |
-| `getWebGLTexture()` | Returns the underlying WebGLTextureWrapper |
+| Method/Property              | Description                                |
+| ---------------------------- | ------------------------------------------ |
+| `setSize(w, h?, forceEven?)` | Resize the texture                         |
+| `camera`                     | Internal Camera for draw positioning       |
+| `commandBuffer`              | Array of pending draw commands             |
+| `drawingContext`             | WebGL DrawingContext with framebuffer      |
+| `getWebGLTexture()`          | Returns the underlying WebGLTextureWrapper |
 
 ### StampConfig (for `stamp()` config parameter)
 
-| Property | Default | Description |
-|---|---|---|
-| `alpha` | 1 | Alpha value |
-| `tint` | 0xffffff | Tint color (WebGL only) |
-| `angle` | 0 | Degrees (overrides rotation if non-zero) |
-| `rotation` | 0 | Radians |
-| `scale` | 1 | Uniform scale |
-| `scaleX` / `scaleY` | 1 | Per-axis scale (overrides `scale`) |
-| `originX` / `originY` | 0.5 | Origin point |
-| `blendMode` | 0 | Blend mode |
+| Property              | Default  | Description                              |
+| --------------------- | -------- | ---------------------------------------- |
+| `alpha`               | 1        | Alpha value                              |
+| `tint`                | 0xffffff | Tint color (WebGL only)                  |
+| `angle`               | 0        | Degrees (overrides rotation if non-zero) |
+| `rotation`            | 0        | Radians                                  |
+| `scale`               | 1        | Uniform scale                            |
+| `scaleX` / `scaleY`   | 1        | Per-axis scale (overrides `scale`)       |
+| `originX` / `originY` | 0.5      | Origin point                             |
+| `blendMode`           | 0        | Blend mode                               |
 
 ### CaptureConfig (for `capture()` config parameter)
 
-| Property | Description |
-|---|---|
-| `transform` | `'local'`, `'world'`, or a `TransformMatrix` |
-| `camera` | Camera override for rendering |
-| `x`, `y`, `alpha`, `tint`, `angle`, `rotation` | Override game object properties temporarily |
-| `scale`, `scaleX`, `scaleY` | Scale overrides |
-| `originX`, `originY`, `blendMode` | Additional overrides |
+| Property                                       | Description                                  |
+| ---------------------------------------------- | -------------------------------------------- |
+| `transform`                                    | `'local'`, `'world'`, or a `TransformMatrix` |
+| `camera`                                       | Camera override for rendering                |
+| `x`, `y`, `alpha`, `tint`, `angle`, `rotation` | Override game object properties temporarily  |
+| `scale`, `scaleX`, `scaleY`                    | Scale overrides                              |
+| `originX`, `originY`, `blendMode`              | Additional overrides                         |
 
 ### Factory Methods
 
@@ -427,15 +441,15 @@ this.textures.addDynamicTexture(key, width?, height?, forceEven?)  // default 25
 
 ## Source File Map
 
-| File | Description |
-|---|---|
-| `src/gameobjects/rendertexture/RenderTexture.js` | RenderTexture game object (extends Image, proxies to DynamicTexture) |
-| `src/gameobjects/rendertexture/RenderTextureFactory.js` | `this.add.renderTexture()` factory registration |
-| `src/gameobjects/rendertexture/RenderTextureRender.js` | WebGL/Canvas render functions for RenderTexture |
-| `src/gameobjects/rendertexture/RenderTextureRenderModes.js` | Enum: `RENDER`, `REDRAW`, `ALL` |
-| `src/textures/DynamicTexture.js` | Core DynamicTexture class (command buffer, drawing, snapshots) |
-| `src/textures/DynamicTextureCommands.js` | Command constants (CLEAR, FILL, STAMP, DRAW, ERASE, etc.) |
-| `src/textures/typedefs/StampConfig.js` | StampConfig typedef for `stamp()` |
-| `src/textures/typedefs/CaptureConfig.js` | CaptureConfig typedef for `capture()` |
-| `src/gameobjects/stamp/Stamp.js` | Stamp game object (light Image, ignores camera scroll) |
-| `src/gameobjects/stamp/StampFactory.js` | `this.add.stamp()` factory registration |
+| File                                                        | Description                                                          |
+| ----------------------------------------------------------- | -------------------------------------------------------------------- |
+| `src/gameobjects/rendertexture/RenderTexture.js`            | RenderTexture game object (extends Image, proxies to DynamicTexture) |
+| `src/gameobjects/rendertexture/RenderTextureFactory.js`     | `this.add.renderTexture()` factory registration                      |
+| `src/gameobjects/rendertexture/RenderTextureRender.js`      | WebGL/Canvas render functions for RenderTexture                      |
+| `src/gameobjects/rendertexture/RenderTextureRenderModes.js` | Enum: `RENDER`, `REDRAW`, `ALL`                                      |
+| `src/textures/DynamicTexture.js`                            | Core DynamicTexture class (command buffer, drawing, snapshots)       |
+| `src/textures/DynamicTextureCommands.js`                    | Command constants (CLEAR, FILL, STAMP, DRAW, ERASE, etc.)            |
+| `src/textures/typedefs/StampConfig.js`                      | StampConfig typedef for `stamp()`                                    |
+| `src/textures/typedefs/CaptureConfig.js`                    | CaptureConfig typedef for `capture()`                                |
+| `src/gameobjects/stamp/Stamp.js`                            | Stamp game object (light Image, ignores camera scroll)               |
+| `src/gameobjects/stamp/StampFactory.js`                     | `this.add.stamp()` factory registration                              |

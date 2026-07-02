@@ -4,6 +4,7 @@ description: "Use this skill when adding audio or sound to a Phaser 4 game. Cove
 ---
 
 # Audio and Sound
+
 > Phaser provides a unified Sound system via `this.sound` (a SoundManager) that abstracts over Web Audio API and HTML5 Audio. It handles loading, playback, volume, panning, looping, markers, audio sprites, spatial audio, and browser autoplay-policy unlocking.
 
 **Key source paths:** `src/sound/BaseSoundManager.js`, `src/sound/BaseSound.js`, `src/sound/webaudio/`, `src/sound/html5/`, `src/sound/SoundManagerCreator.js`, `src/sound/events/`, `src/sound/typedefs/`
@@ -13,19 +14,19 @@ description: "Use this skill when adding audio or sound to a Phaser 4 game. Cove
 
 ```js
 class GameScene extends Phaser.Scene {
-    preload() {
-        this.load.audio('bgm', 'assets/music.mp3');
-        this.load.audio('coin', ['assets/coin.ogg', 'assets/coin.mp3']);
-    }
+  preload() {
+    this.load.audio("bgm", "assets/music.mp3");
+    this.load.audio("coin", ["assets/coin.ogg", "assets/coin.mp3"]);
+  }
 
-    create() {
-        // Fire-and-forget (auto-destroys when complete)
-        this.sound.play('coin');
+  create() {
+    // Fire-and-forget (auto-destroys when complete)
+    this.sound.play("coin");
 
-        // Retained reference for ongoing control
-        this.music = this.sound.add('bgm', { loop: true, volume: 0.5 });
-        this.music.play();
-    }
+    // Retained reference for ongoing control
+    this.music = this.sound.add("bgm", { loop: true, volume: 0.5 });
+    this.music.play();
+  }
 }
 ```
 
@@ -64,12 +65,12 @@ Created via `this.sound.add(key, config)`. Each instance has its own playback st
 State flags: `isPlaying` (boolean), `isPaused` (boolean).
 
 ```js
-const sfx = this.sound.add('explosion', { volume: 0.8 });
-sfx.play();        // returns boolean
-sfx.pause();       // only works if isPlaying
-sfx.resume();      // only works if isPaused
-sfx.stop();        // resets to stopped state
-sfx.destroy();     // marks for removal from manager
+const sfx = this.sound.add("explosion", { volume: 0.8 });
+sfx.play(); // returns boolean
+sfx.pause(); // only works if isPlaying
+sfx.resume(); // only works if isPaused
+sfx.stop(); // resets to stopped state
+sfx.destroy(); // marks for removal from manager
 ```
 
 ## Common Patterns
@@ -79,14 +80,14 @@ sfx.destroy();     // marks for removal from manager
 **Fire-and-forget** -- `this.sound.play(key, config?)` adds, plays, and auto-destroys the sound on completion:
 
 ```js
-this.sound.play('explosion');
-this.sound.play('powerup', { volume: 0.5, rate: 1.2 });
+this.sound.play("explosion");
+this.sound.play("powerup", { volume: 0.5, rate: 1.2 });
 ```
 
 **Retained reference** -- `this.sound.add(key, config?)` then call `play()` on the instance:
 
 ```js
-const laser = this.sound.add('laser');
+const laser = this.sound.add("laser");
 laser.play();
 // Later: laser.stop(), laser.volume = 0.3, etc.
 ```
@@ -97,11 +98,11 @@ Each property can be set per-sound or globally on the manager. Global and per-so
 
 ```js
 // Per-sound
-sound.volume = 0.5;          // 0 to 1
-sound.setVolume(0.5);        // chainable alternative
-sound.rate = 1.5;            // 0.5 = half speed, 2.0 = double speed
+sound.volume = 0.5; // 0 to 1
+sound.setVolume(0.5); // chainable alternative
+sound.rate = 1.5; // 0.5 = half speed, 2.0 = double speed
 sound.setRate(1.5);
-sound.detune = 200;          // cents, -1200 to 1200
+sound.detune = 200; // cents, -1200 to 1200
 sound.setDetune(200);
 
 // Global (affects all sounds)
@@ -119,12 +120,12 @@ The effective playback rate is: `sound.rate * manager.rate * detuneRate` where `
 
 ```js
 // Via config at creation
-const bgm = this.sound.add('music', { loop: true });
+const bgm = this.sound.add("music", { loop: true });
 bgm.play();
 
 // Toggle during playback
 bgm.loop = false;
-bgm.setLoop(false);  // chainable
+bgm.setLoop(false); // chainable
 ```
 
 The `LOOPED` event fires each time the sound loops back to the start. The `LOOP` event fires when the loop property changes.
@@ -132,9 +133,9 @@ The `LOOPED` event fires each time the sound loops back to the start. The `LOOP`
 ### Seeking
 
 ```js
-sound.seek = 5.0;        // jump to 5 seconds in
-sound.setSeek(5.0);      // chainable
-console.log(sound.seek);  // current playback position in seconds
+sound.seek = 5.0; // jump to 5 seconds in
+sound.setSeek(5.0); // chainable
+console.log(sound.seek); // current playback position in seconds
 ```
 
 Setting seek on a stopped sound has no effect.
@@ -142,9 +143,9 @@ Setting seek on a stopped sound has no effect.
 ### Stereo Panning
 
 ```js
-sound.pan = -1;   // full left
-sound.pan = 0;    // center
-sound.pan = 1;    // full right
+sound.pan = -1; // full left
+sound.pan = 0; // center
+sound.pan = 1; // full right
 sound.setPan(0.5); // chainable
 ```
 
@@ -156,15 +157,18 @@ Audio sprites combine multiple sounds into a single audio file with a JSON confi
 
 ```js
 // In preload
-this.load.audioSprite('sfx', 'assets/sfx.json', ['assets/sfx.ogg', 'assets/sfx.mp3']);
+this.load.audioSprite("sfx", "assets/sfx.json", [
+  "assets/sfx.ogg",
+  "assets/sfx.mp3",
+]);
 
 // In create
-this.sound.playAudioSprite('sfx', 'explosion');
-this.sound.playAudioSprite('sfx', 'coin', { volume: 0.5 });
+this.sound.playAudioSprite("sfx", "explosion");
+this.sound.playAudioSprite("sfx", "coin", { volume: 0.5 });
 
 // Or add for retained control
-const sprite = this.sound.addAudioSprite('sfx');
-sprite.play('explosion');
+const sprite = this.sound.addAudioSprite("sfx");
+sprite.play("explosion");
 ```
 
 The JSON `spritemap` entries are automatically converted to markers with `name`, `start`, `duration`, and optional `loop`.
@@ -172,15 +176,20 @@ The JSON `spritemap` entries are automatically converted to markers with `name`,
 **Manual markers** -- you can also add markers to any sound:
 
 ```js
-const sound = this.sound.add('longtrack');
+const sound = this.sound.add("longtrack");
 
-sound.addMarker({ name: 'intro', start: 0, duration: 5 });
-sound.addMarker({ name: 'loop', start: 5, duration: 20, config: { loop: true } });
-sound.addMarker({ name: 'outro', start: 25, duration: 3 });
+sound.addMarker({ name: "intro", start: 0, duration: 5 });
+sound.addMarker({
+  name: "loop",
+  start: 5,
+  duration: 20,
+  config: { loop: true },
+});
+sound.addMarker({ name: "outro", start: 25, duration: 3 });
 
-sound.play('intro');
+sound.play("intro");
 // Later
-sound.play('loop');
+sound.play("loop");
 ```
 
 Marker API on BaseSound: `addMarker(marker)`, `updateMarker(marker)`, `removeMarker(markerName)`.
@@ -188,7 +197,7 @@ Marker API on BaseSound: `addMarker(marker)`, `updateMarker(marker)`, `removeMar
 ### Background Music Pattern
 
 ```js
-this.bgm = this.sound.add('theme', { loop: true, volume: 0.4 });
+this.bgm = this.sound.add("theme", { loop: true, volume: 0.4 });
 this.bgm.play();
 // Stop on scene shutdown: this.bgm.stop();
 ```
@@ -205,17 +214,17 @@ this.sound.setListenerPosition(400, 300);
 // Or update directly: this.sound.listenerPosition.set(x, y);
 
 // Create a spatialized sound with a source config
-const enemy = this.sound.add('roar', {
-    source: {
-        x: 800,
-        y: 300,
-        refDistance: 50,
-        maxDistance: 2000,
-        rolloffFactor: 1,
-        distanceModel: 'inverse',
-        panningModel: 'equalpower',
-        follow: enemySprite  // auto-track a Game Object's x/y
-    }
+const enemy = this.sound.add("roar", {
+  source: {
+    x: 800,
+    y: 300,
+    refDistance: 50,
+    maxDistance: 2000,
+    rolloffFactor: 1,
+    distanceModel: "inverse",
+    panningModel: "equalpower",
+    follow: enemySprite, // auto-track a Game Object's x/y
+  },
 });
 enemy.play();
 ```
@@ -239,51 +248,55 @@ this.sound.setMute(true);
 ### Querying Sounds
 
 ```js
-this.sound.get('coin');          // first sound with key, or null
-this.sound.getAll('coin');       // all sounds with key
-this.sound.getAll();             // every sound in the manager
-this.sound.getAllPlaying();      // all currently playing sounds
-this.sound.isPlaying('coin');    // true if any 'coin' sound is playing
-this.sound.isPlaying();          // true if any sound is playing
+this.sound.get("coin"); // first sound with key, or null
+this.sound.getAll("coin"); // all sounds with key
+this.sound.getAll(); // every sound in the manager
+this.sound.getAllPlaying(); // all currently playing sounds
+this.sound.isPlaying("coin"); // true if any 'coin' sound is playing
+this.sound.isPlaying(); // true if any sound is playing
 ```
 
 ### Removing and Stopping
 
 ```js
-this.sound.stopAll();            // stop all sounds, fires STOP_ALL
-this.sound.stopByKey('coin');    // stop all sounds with key, returns count
-this.sound.pauseAll();           // pause all, fires PAUSE_ALL
-this.sound.resumeAll();          // resume all, fires RESUME_ALL
+this.sound.stopAll(); // stop all sounds, fires STOP_ALL
+this.sound.stopByKey("coin"); // stop all sounds with key, returns count
+this.sound.pauseAll(); // pause all, fires PAUSE_ALL
+this.sound.resumeAll(); // resume all, fires RESUME_ALL
 
-this.sound.remove(soundInstance);  // destroy + remove specific sound
-this.sound.removeByKey('coin');    // destroy + remove all with key, returns count
-this.sound.removeAll();            // destroy + remove everything
+this.sound.remove(soundInstance); // destroy + remove specific sound
+this.sound.removeByKey("coin"); // destroy + remove all with key, returns count
+this.sound.removeAll(); // destroy + remove everything
 ```
 
 ### Decoding Audio at Runtime (WebAudio Only)
 
 ```js
-this.sound.decodeAudio('key', base64StringOrArrayBuffer);
+this.sound.decodeAudio("key", base64StringOrArrayBuffer);
 // Or batch: this.sound.decodeAudio([{ key: 'sfx1', data: buf1 }, { key: 'sfx2', data: buf2 }]);
-this.sound.on('decoded', (key) => { /* one done */ });
-this.sound.on('decodedall', () => { /* all done */ });
+this.sound.on("decoded", (key) => {
+  /* one done */
+});
+this.sound.on("decodedall", () => {
+  /* all done */
+});
 ```
 
 ## Configuration Reference
 
 ### SoundConfig
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `mute` | boolean | `false` | Whether the sound is muted |
-| `volume` | number | `1` | Volume, 0 (silence) to 1 (full) |
-| `rate` | number | `1` | Playback speed (0.5 = half, 2.0 = double) |
-| `detune` | number | `0` | Detuning in cents (-1200 to 1200) |
-| `seek` | number | `0` | Start playback position in seconds |
-| `loop` | boolean | `false` | Whether the sound should loop |
-| `delay` | number | `0` | Delay before playback starts, in seconds |
-| `pan` | number | `0` | Stereo pan, -1 (left) to 1 (right) |
-| `source` | SpatialSoundConfig | `null` | Spatial audio configuration (WebAudio only) |
+| Property | Type               | Default | Description                                 |
+| -------- | ------------------ | ------- | ------------------------------------------- |
+| `mute`   | boolean            | `false` | Whether the sound is muted                  |
+| `volume` | number             | `1`     | Volume, 0 (silence) to 1 (full)             |
+| `rate`   | number             | `1`     | Playback speed (0.5 = half, 2.0 = double)   |
+| `detune` | number             | `0`     | Detuning in cents (-1200 to 1200)           |
+| `seek`   | number             | `0`     | Start playback position in seconds          |
+| `loop`   | boolean            | `false` | Whether the sound should loop               |
+| `delay`  | number             | `0`     | Delay before playback starts, in seconds    |
+| `pan`    | number             | `0`     | Stereo pan, -1 (left) to 1 (right)          |
+| `source` | SpatialSoundConfig | `null`  | Spatial audio configuration (WebAudio only) |
 
 ### SpatialSoundConfig
 
@@ -296,54 +309,54 @@ Tracking: `follow` (null) -- a Vector2Like object whose x/y is auto-tracked each
 
 ### SoundMarker
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `name` | string | (required) | Unique identifier for the marker |
-| `start` | number | `0` | Start position in seconds |
-| `duration` | number | (remaining) | Playback duration in seconds |
-| `config` | SoundConfig | `{}` | Default settings for this marker |
+| Property   | Type        | Default     | Description                      |
+| ---------- | ----------- | ----------- | -------------------------------- |
+| `name`     | string      | (required)  | Unique identifier for the marker |
+| `start`    | number      | `0`         | Start position in seconds        |
+| `duration` | number      | (remaining) | Playback duration in seconds     |
+| `config`   | SoundConfig | `{}`        | Default settings for this marker |
 
 ## Events
 
 ### Sound Instance Events (emitted on a Sound object)
 
-| Event Constant | String Value | Callback Args | When |
-|---------------|-------------|---------------|------|
-| `Events.PLAY` | `'play'` | `(sound)` | Sound starts playing |
-| `Events.PAUSE` | `'pause'` | `(sound)` | Sound is paused |
-| `Events.RESUME` | `'resume'` | `(sound)` | Sound resumes from pause |
-| `Events.STOP` | `'stop'` | `(sound)` | Sound is stopped |
-| `Events.COMPLETE` | `'complete'` | `(sound)` | Sound finishes (non-looping) |
-| `Events.LOOPED` | `'looped'` | `(sound)` | Sound loops back to start |
-| `Events.LOOP` | `'loop'` | `(sound, value)` | Loop property changes |
-| `Events.MUTE` | `'mute'` | `(sound, value)` | Mute state changes |
-| `Events.VOLUME` | `'volume'` | `(sound, value)` | Volume changes |
-| `Events.RATE` | `'rate'` | `(sound, value)` | Rate changes |
-| `Events.DETUNE` | `'detune'` | `(sound, value)` | Detune changes |
-| `Events.SEEK` | `'seek'` | `(sound, value)` | Seek position changes |
-| `Events.PAN` | `'pan'` | `(sound, value)` | Pan value changes |
-| `Events.DESTROY` | `'destroy'` | `(sound)` | Sound is destroyed |
+| Event Constant    | String Value | Callback Args    | When                         |
+| ----------------- | ------------ | ---------------- | ---------------------------- |
+| `Events.PLAY`     | `'play'`     | `(sound)`        | Sound starts playing         |
+| `Events.PAUSE`    | `'pause'`    | `(sound)`        | Sound is paused              |
+| `Events.RESUME`   | `'resume'`   | `(sound)`        | Sound resumes from pause     |
+| `Events.STOP`     | `'stop'`     | `(sound)`        | Sound is stopped             |
+| `Events.COMPLETE` | `'complete'` | `(sound)`        | Sound finishes (non-looping) |
+| `Events.LOOPED`   | `'looped'`   | `(sound)`        | Sound loops back to start    |
+| `Events.LOOP`     | `'loop'`     | `(sound, value)` | Loop property changes        |
+| `Events.MUTE`     | `'mute'`     | `(sound, value)` | Mute state changes           |
+| `Events.VOLUME`   | `'volume'`   | `(sound, value)` | Volume changes               |
+| `Events.RATE`     | `'rate'`     | `(sound, value)` | Rate changes                 |
+| `Events.DETUNE`   | `'detune'`   | `(sound, value)` | Detune changes               |
+| `Events.SEEK`     | `'seek'`     | `(sound, value)` | Seek position changes        |
+| `Events.PAN`      | `'pan'`      | `(sound, value)` | Pan value changes            |
+| `Events.DESTROY`  | `'destroy'`  | `(sound)`        | Sound is destroyed           |
 
 ### SoundManager Events (emitted on `this.sound`)
 
-| Event Constant | String Value | Callback Args | When |
-|---------------|-------------|---------------|------|
-| `Events.PAUSE_ALL` | `'pauseall'` | `(manager)` | `pauseAll()` called |
-| `Events.RESUME_ALL` | `'resumeall'` | `(manager)` | `resumeAll()` called |
-| `Events.STOP_ALL` | `'stopall'` | `(manager)` | `stopAll()` called |
-| `Events.GLOBAL_MUTE` | `'globalmute'` | `(manager, value)` | Global mute changes |
-| `Events.GLOBAL_VOLUME` | `'globalvolume'` | `(manager, value)` | Global volume changes |
-| `Events.GLOBAL_RATE` | `'globalrate'` | `(manager, value)` | Global rate changes |
-| `Events.GLOBAL_DETUNE` | `'globaldetune'` | `(manager, value)` | Global detune changes |
-| `Events.UNLOCKED` | `'unlocked'` | `(manager)` | Audio system unlocked after user interaction |
-| `Events.DECODED` | `'decoded'` | `(key)` | Single audio key decoded (WebAudio) |
-| `Events.DECODED_ALL` | `'decodedall'` | `()` | All queued audio decoded (WebAudio) |
+| Event Constant         | String Value     | Callback Args      | When                                         |
+| ---------------------- | ---------------- | ------------------ | -------------------------------------------- |
+| `Events.PAUSE_ALL`     | `'pauseall'`     | `(manager)`        | `pauseAll()` called                          |
+| `Events.RESUME_ALL`    | `'resumeall'`    | `(manager)`        | `resumeAll()` called                         |
+| `Events.STOP_ALL`      | `'stopall'`      | `(manager)`        | `stopAll()` called                           |
+| `Events.GLOBAL_MUTE`   | `'globalmute'`   | `(manager, value)` | Global mute changes                          |
+| `Events.GLOBAL_VOLUME` | `'globalvolume'` | `(manager, value)` | Global volume changes                        |
+| `Events.GLOBAL_RATE`   | `'globalrate'`   | `(manager, value)` | Global rate changes                          |
+| `Events.GLOBAL_DETUNE` | `'globaldetune'` | `(manager, value)` | Global detune changes                        |
+| `Events.UNLOCKED`      | `'unlocked'`     | `(manager)`        | Audio system unlocked after user interaction |
+| `Events.DECODED`       | `'decoded'`      | `(key)`            | Single audio key decoded (WebAudio)          |
+| `Events.DECODED_ALL`   | `'decodedall'`   | `()`               | All queued audio decoded (WebAudio)          |
 
 ```js
 // Example: listen for completion
-const sfx = this.sound.add('bang');
-sfx.on('complete', (sound) => {
-    console.log(sound.key, 'finished');
+const sfx = this.sound.add("bang");
+sfx.on("complete", (sound) => {
+  console.log(sound.key, "finished");
 });
 sfx.play();
 ```
@@ -377,11 +390,11 @@ You do **not** need to handle unlocking manually. To know when ready, listen for
 
 ```js
 if (this.sound.locked) {
-    this.sound.once('unlocked', () => {
-        this.sound.play('bgm');
-    });
+  this.sound.once("unlocked", () => {
+    this.sound.play("bgm");
+  });
 } else {
-    this.sound.play('bgm');
+  this.sound.play("bgm");
 }
 ```
 
@@ -436,18 +449,18 @@ This only works with the WebAudioSoundManager. Check `this.sound.context` exists
 
 ## Source File Map
 
-| File | Purpose |
-|------|---------|
-| `src/sound/SoundManagerCreator.js` | Factory: picks WebAudio, HTML5, or NoAudio manager |
-| `src/sound/BaseSoundManager.js` | Base manager: add, play, get, stop/pause/resume all, global volume/rate/detune |
-| `src/sound/BaseSound.js` | Base sound: play/pause/resume/stop, markers, config, calculateRate |
+| File                                         | Purpose                                                                           |
+| -------------------------------------------- | --------------------------------------------------------------------------------- |
+| `src/sound/SoundManagerCreator.js`           | Factory: picks WebAudio, HTML5, or NoAudio manager                                |
+| `src/sound/BaseSoundManager.js`              | Base manager: add, play, get, stop/pause/resume all, global volume/rate/detune    |
+| `src/sound/BaseSound.js`                     | Base sound: play/pause/resume/stop, markers, config, calculateRate                |
 | `src/sound/webaudio/WebAudioSoundManager.js` | WebAudio manager: AudioContext, gain nodes, unlock, spatial listener, decodeAudio |
-| `src/sound/webaudio/WebAudioSound.js` | WebAudio sound: buffer sources, spatial/panner nodes, seek, all properties |
-| `src/sound/html5/HTML5AudioSoundManager.js` | HTML5 manager: audio tag pooling, locked queue, override |
-| `src/sound/html5/HTML5AudioSound.js` | HTML5 sound: tag-based playback, limited feature set |
-| `src/sound/noaudio/NoAudioSoundManager.js` | No-op manager for environments without audio |
-| `src/sound/events/` | All sound event constants (PLAY, STOP, COMPLETE, etc.) |
-| `src/sound/typedefs/SoundConfig.js` | SoundConfig type definition |
-| `src/sound/typedefs/SoundMarker.js` | SoundMarker type definition |
-| `src/sound/typedefs/SpatialSoundConfig.js` | SpatialSoundConfig type definition |
-| `src/sound/typedefs/AudioSpriteSound.js` | AudioSpriteSound type definition |
+| `src/sound/webaudio/WebAudioSound.js`        | WebAudio sound: buffer sources, spatial/panner nodes, seek, all properties        |
+| `src/sound/html5/HTML5AudioSoundManager.js`  | HTML5 manager: audio tag pooling, locked queue, override                          |
+| `src/sound/html5/HTML5AudioSound.js`         | HTML5 sound: tag-based playback, limited feature set                              |
+| `src/sound/noaudio/NoAudioSoundManager.js`   | No-op manager for environments without audio                                      |
+| `src/sound/events/`                          | All sound event constants (PLAY, STOP, COMPLETE, etc.)                            |
+| `src/sound/typedefs/SoundConfig.js`          | SoundConfig type definition                                                       |
+| `src/sound/typedefs/SoundMarker.js`          | SoundMarker type definition                                                       |
+| `src/sound/typedefs/SpatialSoundConfig.js`   | SpatialSoundConfig type definition                                                |
+| `src/sound/typedefs/AudioSpriteSound.js`     | AudioSpriteSound type definition                                                  |

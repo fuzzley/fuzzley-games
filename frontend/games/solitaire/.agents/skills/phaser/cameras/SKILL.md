@@ -4,6 +4,7 @@ description: "Use this skill when working with cameras in Phaser 4. Covers camer
 ---
 
 # Cameras
+
 > Camera system in Phaser 4 -- CameraManager, main camera, viewport vs scroll, zoom, bounds, following sprites, camera effects (fade, flash, shake, pan, zoomTo, rotateTo), ignore lists, filters, and keyboard controls.
 
 **Key source paths:** `src/cameras/2d/CameraManager.js`, `src/cameras/2d/BaseCamera.js`, `src/cameras/2d/Camera.js`, `src/cameras/2d/effects/`, `src/cameras/controls/`
@@ -47,30 +48,31 @@ Every Scene has a `CameraManager` accessible via `this.cameras`. It manages all 
 
 ```js
 // The manager is at this.cameras (not this.camera)
-this.cameras              // CameraManager instance
-this.cameras.cameras      // Array of Camera objects (render order)
-this.cameras.main         // Reference to the "main" camera (first one by default)
-this.cameras.default      // Un-transformed utility camera (not in the cameras array)
+this.cameras; // CameraManager instance
+this.cameras.cameras; // Array of Camera objects (render order)
+this.cameras.main; // Reference to the "main" camera (first one by default)
+this.cameras.default; // Un-transformed utility camera (not in the cameras array)
 ```
 
 **Key methods on CameraManager:**
 
-| Method | Signature | Description |
-|---|---|---|
-| `add` | `(x?, y?, width?, height?, makeMain?, name?)` | Create a new Camera. Defaults to full game size at 0,0. Returns `Camera`. |
-| `addExisting` | `(camera, makeMain?)` | Add a pre-built Camera instance. Returns the Camera or `null` if it already exists. |
-| `remove` | `(camera, runDestroy?)` | Remove and optionally destroy a Camera or array of Cameras. If main is removed, resets to cameras[0]. |
-| `getCamera` | `(name)` | Find a Camera by its `name` string. Returns Camera or `null`. |
-| `getTotal` | `(isVisible?)` | Count cameras. Pass `true` to count only visible ones. |
-| `fromJSON` | `(config)` | Create cameras from a config object or array. Used for scene-level camera config. |
-| `resetAll` | `()` | Destroy all cameras and create one fresh default camera. |
-| `resize` | `(width, height)` | Resize all cameras to given dimensions. |
+| Method        | Signature                                     | Description                                                                                           |
+| ------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `add`         | `(x?, y?, width?, height?, makeMain?, name?)` | Create a new Camera. Defaults to full game size at 0,0. Returns `Camera`.                             |
+| `addExisting` | `(camera, makeMain?)`                         | Add a pre-built Camera instance. Returns the Camera or `null` if it already exists.                   |
+| `remove`      | `(camera, runDestroy?)`                       | Remove and optionally destroy a Camera or array of Cameras. If main is removed, resets to cameras[0]. |
+| `getCamera`   | `(name)`                                      | Find a Camera by its `name` string. Returns Camera or `null`.                                         |
+| `getTotal`    | `(isVisible?)`                                | Count cameras. Pass `true` to count only visible ones.                                                |
+| `fromJSON`    | `(config)`                                    | Create cameras from a config object or array. Used for scene-level camera config.                     |
+| `resetAll`    | `()`                                          | Destroy all cameras and create one fresh default camera.                                              |
+| `resize`      | `(width, height)`                             | Resize all cameras to given dimensions.                                                               |
 
 **Camera limit:** The manager supports up to 32 cameras that can use `ignore()` for Game Object exclusion (IDs are bitmasks). Cameras beyond 32 get ID 0 and cannot exclude objects.
 
 ### Main Camera
 
 The `main` property is a convenience reference to a Camera, typically `cameras[0]`. It is set automatically when:
+
 - The scene boots (first camera created becomes main)
 - You pass `makeMain: true` to `add()` or `addExisting()`
 - The current main camera is removed (falls back to `cameras[0]`)
@@ -151,14 +153,14 @@ When a deadzone is set, the camera does not scroll while the target remains insi
 
 ```js
 // Uniform zoom
-cam.setZoom(2);       // 2x zoom in
-cam.setZoom(0.5);     // zoom out (see twice as much)
+cam.setZoom(2); // 2x zoom in
+cam.setZoom(0.5); // zoom out (see twice as much)
 
 // Independent horizontal/vertical zoom
-cam.setZoom(2, 1);    // stretch horizontally
+cam.setZoom(2, 1); // stretch horizontally
 
 // Read current zoom
-cam.zoom;    // shortcut -- reads zoomX (assumes uniform)
+cam.zoom; // shortcut -- reads zoomX (assumes uniform)
 cam.zoomX;
 cam.zoomY;
 ```
@@ -193,12 +195,15 @@ Bounds only restrict scrolling. They do not prevent Game Objects from being plac
 const main = this.cameras.main;
 
 // Mini-map in top-right corner
-const minimap = this.cameras.add(600, 0, 200, 150).setZoom(0.2).setName('minimap');
+const minimap = this.cameras
+  .add(600, 0, 200, 150)
+  .setZoom(0.2)
+  .setName("minimap");
 minimap.setScroll(0, 0);
-minimap.setBackgroundColor('rgba(0,0,0,0.5)');
+minimap.setBackgroundColor("rgba(0,0,0,0.5)");
 
 // HUD camera that doesn't scroll (ignores world objects, shows HUD layer only)
-const hudCam = this.cameras.add(0, 0, 800, 600).setName('hud');
+const hudCam = this.cameras.add(0, 0, 800, 600).setName("hud");
 hudCam.setScroll(0, 0);
 
 // Make the main camera ignore HUD objects
@@ -207,7 +212,7 @@ main.ignore(hudGroup);
 hudCam.ignore(worldGroup);
 
 // Find a camera by name
-const found = this.cameras.getCamera('minimap');
+const found = this.cameras.getCamera("minimap");
 
 // Remove a camera
 this.cameras.remove(minimap);
@@ -231,12 +236,12 @@ cam.fadeIn(500);
 
 // Lower-level: fade (out direction) and fadeFrom (in direction)
 // with a force parameter
-cam.fade(1000, 0, 0, 0, true);       // force start even if running
+cam.fade(1000, 0, 0, 0, true); // force start even if running
 cam.fadeFrom(1000, 0, 0, 0, true);
 
 // With per-frame callback
 cam.fadeOut(1000, 0, 0, 0, (cam, progress) => {
-    // progress goes from 0 to 1
+  // progress goes from 0 to 1
 });
 ```
 
@@ -279,10 +284,10 @@ The `intensity` value is a small float. The default 0.05 means the camera shifts
 cam.pan(400, 300, 2000);
 
 // With easing
-cam.pan(400, 300, 2000, 'Power2');
+cam.pan(400, 300, 2000, "Power2");
 
 // Full signature: pan(x, y, duration?, ease?, force?, callback?, context?)
-cam.pan(800, 600, 1500, 'Sine.easeInOut', false, (cam, progress, x, y) => {});
+cam.pan(800, 600, 1500, "Sine.easeInOut", false, (cam, progress, x, y) => {});
 ```
 
 Pan scrolls the camera so its viewport center finishes at the given world coordinate.
@@ -294,7 +299,7 @@ Pan scrolls the camera so its viewport center finishes at the given world coordi
 cam.zoomTo(2, 1000);
 
 // With easing
-cam.zoomTo(0.5, 2000, 'Cubic.easeOut');
+cam.zoomTo(0.5, 2000, "Cubic.easeOut");
 
 // Full signature: zoomTo(zoom, duration?, ease?, force?, callback?, context?)
 ```
@@ -306,7 +311,7 @@ cam.zoomTo(0.5, 2000, 'Cubic.easeOut');
 cam.rotateTo(Phaser.Math.DegToRad(45), false, 1000);
 
 // Shortest path rotation
-cam.rotateTo(Math.PI, true, 1500, 'Quad.easeInOut');
+cam.rotateTo(Math.PI, true, 1500, "Quad.easeInOut");
 
 // Full signature: rotateTo(angle, shortestPath?, duration?, ease?, force?, callback?, context?)
 ```
@@ -331,12 +336,12 @@ Moves at a fixed speed per frame. No smoothing.
 // In create():
 const cursors = this.input.keyboard.createCursorKeys();
 this.camControl = new Phaser.Cameras.Controls.FixedKeyControl({
-    camera: this.cameras.main,
-    left: cursors.left,
-    right: cursors.right,
-    up: cursors.up,
-    down: cursors.down,
-    speed: 0.5          // can also be { x: 0.5, y: 0.3 }
+  camera: this.cameras.main,
+  left: cursors.left,
+  right: cursors.right,
+  up: cursors.up,
+  down: cursors.down,
+  speed: 0.5, // can also be { x: 0.5, y: 0.3 }
 });
 
 // In update(time, delta):
@@ -349,17 +354,17 @@ Applies acceleration, drag, and max speed for smooth camera movement.
 
 ```js
 this.camControl = new Phaser.Cameras.Controls.SmoothedKeyControl({
-    camera: this.cameras.main,
-    left: cursors.left,
-    right: cursors.right,
-    up: cursors.up,
-    down: cursors.down,
-    zoomIn: this.input.keyboard.addKey('Q'),
-    zoomOut: this.input.keyboard.addKey('E'),
-    zoomSpeed: 0.02,
-    acceleration: 0.06,
-    drag: 0.0005,
-    maxSpeed: 1.0
+  camera: this.cameras.main,
+  left: cursors.left,
+  right: cursors.right,
+  up: cursors.up,
+  down: cursors.down,
+  zoomIn: this.input.keyboard.addKey("Q"),
+  zoomOut: this.input.keyboard.addKey("E"),
+  zoomSpeed: 0.02,
+  acceleration: 0.06,
+  drag: 0.0005,
+  maxSpeed: 1.0,
 });
 
 // In update(time, delta):
@@ -429,7 +434,7 @@ const visible = cam.renderList; // array of GameObjects rendered this frame
 Force the camera to render to an offscreen framebuffer. Required for `CaptureFrame` and similar features.
 
 ```js
-cam.setForceComposite(true);  // enable offscreen framebuffer
+cam.setForceComposite(true); // enable offscreen framebuffer
 cam.setForceComposite(false); // disable
 ```
 
@@ -440,8 +445,8 @@ Filters enable framebuffer rendering automatically. Use `setForceComposite(true)
 In Phaser 4, `Camera` has a `filters` property with two `FilterList` instances:
 
 ```js
-cam.filters.internal   // FilterList -- applied by the system
-cam.filters.external   // FilterList -- for user-added filters
+cam.filters.internal; // FilterList -- applied by the system
+cam.filters.external; // FilterList -- for user-added filters
 ```
 
 Add post-processing effects to a camera the same way you add them to Game Objects:
@@ -467,30 +472,30 @@ Filters require WebGL. The camera must render via a framebuffer when filters are
 
 Camera events are emitted on the Camera instance itself (it extends `EventEmitter`). Listen with `cam.on(event, handler)`.
 
-| Event constant | Dispatched when |
-|---|---|
-| `Phaser.Cameras.Scene2D.Events.FADE_IN_START` | `fadeIn` / `fadeFrom` begins |
-| `Phaser.Cameras.Scene2D.Events.FADE_IN_COMPLETE` | Fade-in finishes |
-| `Phaser.Cameras.Scene2D.Events.FADE_OUT_START` | `fadeOut` / `fade` begins |
-| `Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE` | Fade-out finishes |
-| `Phaser.Cameras.Scene2D.Events.FLASH_START` | Flash begins |
-| `Phaser.Cameras.Scene2D.Events.FLASH_COMPLETE` | Flash finishes |
-| `Phaser.Cameras.Scene2D.Events.SHAKE_START` | Shake begins |
-| `Phaser.Cameras.Scene2D.Events.SHAKE_COMPLETE` | Shake finishes |
-| `Phaser.Cameras.Scene2D.Events.PAN_START` | Pan begins |
-| `Phaser.Cameras.Scene2D.Events.PAN_COMPLETE` | Pan finishes |
-| `Phaser.Cameras.Scene2D.Events.ZOOM_START` | Zoom effect begins |
-| `Phaser.Cameras.Scene2D.Events.ZOOM_COMPLETE` | Zoom effect finishes |
-| `Phaser.Cameras.Scene2D.Events.ROTATE_START` | RotateTo begins |
-| `Phaser.Cameras.Scene2D.Events.ROTATE_COMPLETE` | RotateTo finishes |
-| `Phaser.Cameras.Scene2D.Events.FOLLOW_UPDATE` | Camera updates its follow position (each frame while following). Args: `(camera, target)` |
-| `Phaser.Cameras.Scene2D.Events.PRE_RENDER` | Before the camera renders |
-| `Phaser.Cameras.Scene2D.Events.POST_RENDER` | After the camera renders |
-| `Phaser.Cameras.Scene2D.Events.DESTROY` | Camera is destroyed |
+| Event constant                                    | Dispatched when                                                                           |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `Phaser.Cameras.Scene2D.Events.FADE_IN_START`     | `fadeIn` / `fadeFrom` begins                                                              |
+| `Phaser.Cameras.Scene2D.Events.FADE_IN_COMPLETE`  | Fade-in finishes                                                                          |
+| `Phaser.Cameras.Scene2D.Events.FADE_OUT_START`    | `fadeOut` / `fade` begins                                                                 |
+| `Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE` | Fade-out finishes                                                                         |
+| `Phaser.Cameras.Scene2D.Events.FLASH_START`       | Flash begins                                                                              |
+| `Phaser.Cameras.Scene2D.Events.FLASH_COMPLETE`    | Flash finishes                                                                            |
+| `Phaser.Cameras.Scene2D.Events.SHAKE_START`       | Shake begins                                                                              |
+| `Phaser.Cameras.Scene2D.Events.SHAKE_COMPLETE`    | Shake finishes                                                                            |
+| `Phaser.Cameras.Scene2D.Events.PAN_START`         | Pan begins                                                                                |
+| `Phaser.Cameras.Scene2D.Events.PAN_COMPLETE`      | Pan finishes                                                                              |
+| `Phaser.Cameras.Scene2D.Events.ZOOM_START`        | Zoom effect begins                                                                        |
+| `Phaser.Cameras.Scene2D.Events.ZOOM_COMPLETE`     | Zoom effect finishes                                                                      |
+| `Phaser.Cameras.Scene2D.Events.ROTATE_START`      | RotateTo begins                                                                           |
+| `Phaser.Cameras.Scene2D.Events.ROTATE_COMPLETE`   | RotateTo finishes                                                                         |
+| `Phaser.Cameras.Scene2D.Events.FOLLOW_UPDATE`     | Camera updates its follow position (each frame while following). Args: `(camera, target)` |
+| `Phaser.Cameras.Scene2D.Events.PRE_RENDER`        | Before the camera renders                                                                 |
+| `Phaser.Cameras.Scene2D.Events.POST_RENDER`       | After the camera renders                                                                  |
+| `Phaser.Cameras.Scene2D.Events.DESTROY`           | Camera is destroyed                                                                       |
 
 ```js
 cam.on(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-    this.scene.start('GameOver');
+  this.scene.start("GameOver");
 });
 ```
 
