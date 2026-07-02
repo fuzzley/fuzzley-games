@@ -158,12 +158,10 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     for (let col = 0; col < 7; col++) {
       for (let row = 0; row <= col; row++) {
         const card = deckCards.pop();
-        if (card) {
-          if (row === col) {
-            card.faceUp = true;
-          }
-          this.tableaus[col].addCard(card);
+        if (row === col) {
+          card.faceUp = true;
         }
+        this.tableaus[col].addCard(card);
       }
     }
   }
@@ -176,10 +174,8 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
   private populateStock(deckCards: PlayingCard[]): void {
     while (deckCards.length > 0) {
       const card = deckCards.pop();
-      if (card) {
-        card.faceUp = false;
-        this.stock.addCard(card);
-      }
+      card.faceUp = false;
+      this.stock.addCard(card);
     }
   }
 
@@ -217,17 +213,12 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
 
       this.waste.clear();
 
-      // Put cards back to stock in reverse order, face-down
+      // Put cards back to stock in reverse order, face-down, and emit events
       for (let i = wasteCards.length - 1; i >= 0; i--) {
         const card = wasteCards[i];
         card.faceUp = false;
         this.stock.addCard(card);
-      }
 
-      this.emit("stock-recycled", undefined);
-
-      // Fire card-moved events for each recycled card
-      for (const card of this.stock.getCards()) {
         this.emit("card-moved", {
           cardId: card.id,
           fromPileId: this.waste.id,
@@ -238,6 +229,8 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
           faceUp: false,
         });
       }
+
+      this.emit("stock-recycled", undefined);
     }
   }
 

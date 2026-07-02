@@ -25,4 +25,4 @@ export type GameEvents = {
 
   /** Emitted when all cards have been successfully moved to the foundation piles. */
   "game-won": undefined;
-}
+};

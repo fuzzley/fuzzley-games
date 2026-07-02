@@ -83,6 +83,32 @@ describe("Visual classes", () => {
       expect(v1.position).toEqual({ x: 0, y: 0 });
       expect(v2.position).toEqual({ x: 25, y: 0 });
     });
+
+    it("stacks cards below the fan at the origin when cards count exceeds MAX_FAN_CARDS", () => {
+      const card1 = new PlayingCard();
+      card1.id = "c1";
+      const card2 = new PlayingCard();
+      card2.id = "c2";
+      const card3 = new PlayingCard();
+      card3.id = "c3";
+      const card4 = new PlayingCard();
+      card4.id = "c4";
+
+      const v1 = new PlayingCardVisual(card1);
+      const v2 = new PlayingCardVisual(card2);
+      const v3 = new PlayingCardVisual(card3);
+      const v4 = new PlayingCardVisual(card4);
+
+      const visual = new WastePileVisual(new CardPile(), [v1, v2, v3, v4]);
+      visual.layoutPile();
+
+      // Card 1 is below the fan (count = 4, MAX_FAN_CARDS = 3, fanStartIndex = 1)
+      expect(v1.position).toEqual({ x: 0, y: 0 });
+      // Card 2, 3, 4 are fanned
+      expect(v2.position).toEqual({ x: 0, y: 0 });
+      expect(v3.position).toEqual({ x: 25, y: 0 });
+      expect(v4.position).toEqual({ x: 50, y: 0 });
+    });
   });
 
   describe("FoundationPileVisual", () => {
