@@ -5,7 +5,7 @@ import { BoardScene } from "./render/scene/board_scene";
 
 /** Entry point to the game that loads assets and initializes the game. */
 export class Solitaire {
-  private game: Phaser.Game;
+  public game: Phaser.Game;
 
   /**
    * Constructs the Solitaire game entry point.

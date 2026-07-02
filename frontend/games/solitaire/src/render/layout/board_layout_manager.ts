@@ -100,6 +100,9 @@ export class BoardLayoutManager {
   updateVisualLayout() {
     this.computePileLayouts();
     this.alignAllCardSprites();
+    if (typeof this.boardScene.updateHighlightBorder === "function") {
+      this.boardScene.updateHighlightBorder();
+    }
   }
 
   /**

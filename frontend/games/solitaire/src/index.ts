@@ -1,3 +1,5 @@
 import { Solitaire } from "./solitaire";
 
-new Solitaire(window).start();
+const solitaire = new Solitaire(window);
+(window as any).solitaire = solitaire;
+solitaire.start();
