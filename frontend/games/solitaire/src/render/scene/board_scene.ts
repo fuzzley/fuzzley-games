@@ -2,6 +2,7 @@ import { Scene } from "phaser";
 
 import {
   ALL_PLAYING_CARD_IDS,
+  PlayingCard,
   PlayingCardId,
   Suit,
   Type,
@@ -13,6 +14,7 @@ import { FoundationPileVisual } from "../visual/pile/foundation_pile_visual";
 import { TableauPileVisual } from "../visual/pile/tableau_pile_visual";
 import { SolitaireGame } from "../../model/game/solitaire_game";
 import { PlayingCardVisual } from "../visual/card/playing_card_visual";
+import { CARD_WIDTH_PX, CARD_HEIGHT_PX } from "../layout/board_layout_constants";
 
 /** Union type representing any visual pile wrapper. */
 export type PileVisual =
@@ -62,6 +64,12 @@ export class BoardScene extends Scene {
   /** Layout coordinator for positioning piles and card sprites. */
   private readonly layoutManager = new BoardLayoutManager(this);
 
+  /** Graphics object for drawing the highlight border. */
+  private highlightGraphics: Phaser.GameObjects.Graphics;
+
+  /** The currently hovered card visual wrapper. */
+  private hoveredCardVisual: PlayingCardVisual | null = null;
+
   /** Constructs the board scene. */
   constructor() {
     super("board-scene");
@@ -72,6 +80,9 @@ export class BoardScene extends Scene {
    * registers model event listeners, and draws the initial layout.
    */
   create() {
+    this.highlightGraphics = this.add.graphics();
+    this.highlightGraphics.setDepth(2000);
+
     this.registerPileVisuals();
     this.gameModel.startNewGame();
     this.createCardVisuals();
@@ -114,6 +125,7 @@ export class BoardScene extends Scene {
     this.gameModel.on("card-moved", () => {
       this.syncVisualPilesWithModel();
       this.layoutManager.updateVisualLayout();
+      this.updateHighlightBorder();
     });
 
     this.gameModel.on("card-flipped", ({ cardId, faceUp }) => {
@@ -123,11 +135,13 @@ export class BoardScene extends Scene {
         visualCard.sprite.setFrame(frame);
         visualCard.sprite.setOrigin(0, 0);
       }
+      this.updateHighlightBorder();
     });
 
     this.gameModel.on("stock-recycled", () => {
       this.syncVisualPilesWithModel();
       this.layoutManager.updateVisualLayout();
+      this.updateHighlightBorder();
     });
 
     this.gameModel.on("game-won", () => {
@@ -202,6 +216,82 @@ export class BoardScene extends Scene {
         const visual = new PlayingCardVisual(cardModel);
         visual.sprite = sprite;
         this.cardVisualsMap.set(cardModel.id, visual);
+
+        // Make card sprite interactive for pointer events
+        sprite.setInteractive({ useHandCursor: true });
+
+        sprite.on("pointerover", () => {
+          this.hoveredCardVisual = visual;
+          this.updateHighlightBorder();
+        });
+
+        sprite.on("pointerout", () => {
+          if (this.hoveredCardVisual === visual) {
+            this.hoveredCardVisual = null;
+            this.updateHighlightBorder();
+          }
+        });
+      }
+    }
+  }
+
+  /**
+   * Determines if a card is currently interactable based on standard Klondike rules.
+   *
+   * @param card The logical playing card model.
+   * @returns True if the card can be played/moved.
+   */
+  public isCardInteractable(card: PlayingCard): boolean {
+    const pile = this.gameModel.getPileContainingCard(card.id);
+    if (!pile) {
+      return false;
+    }
+
+    if (pile.id.startsWith("tableau-")) {
+      // Any face-up card in a tableau is interactable
+      return card.faceUp;
+    }
+
+    if (pile.id === "waste") {
+      // Only the top card of the waste pile is interactable
+      const cards = pile.getCards();
+      return cards.length > 0 && cards[cards.length - 1] === card;
+    }
+
+    if (pile.id.startsWith("foundation-")) {
+      // Only the top card of a foundation pile is interactable
+      const cards = pile.getCards();
+      return cards.length > 0 && cards[cards.length - 1] === card;
+    }
+
+    // Stock cards are not interactable (only click the stock pile itself to draw)
+    return false;
+  }
+
+  /**
+   * Redraws the solid white highlight border around the hovered card if it is interactable.
+   */
+  public updateHighlightBorder(): void {
+    if (!this.highlightGraphics) {
+      return;
+    }
+    this.highlightGraphics.clear();
+
+    if (!this.hoveredCardVisual) {
+      return;
+    }
+
+    const card = this.hoveredCardVisual.playingCard;
+    if (this.isCardInteractable(card)) {
+      const sprite = this.hoveredCardVisual.sprite;
+      if (sprite && sprite.active) {
+        const scale = sprite.scale;
+        const width = CARD_WIDTH_PX * scale;
+        const height = CARD_HEIGHT_PX * scale;
+
+        // Draw solid white border with line thickness 4px
+        this.highlightGraphics.lineStyle(4, 0xffffff, 1);
+        this.highlightGraphics.strokeRect(sprite.x, sprite.y, width, height);
       }
     }
   }
