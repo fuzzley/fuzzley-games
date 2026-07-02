@@ -11,7 +11,7 @@ Add a glow effect to a sprite:
 
 ```js
 // In your Scene's create() method:
-const sprite = this.add.sprite(400, 300, 'player');
+const sprite = this.add.sprite(400, 300, "player");
 
 // Step 1: Enable the filter system on the game object (WebGL only)
 sprite.enableFilters();
@@ -68,13 +68,13 @@ Use internal filters wherever possible for better performance.
 
 Every filter is a `Phaser.Filters.Controller` subclass. Common Controller properties:
 
-| Property | Type | Description |
-|---|---|---|
-| `active` | boolean | Toggle the filter on/off without removing it |
-| `camera` | Camera | The camera that owns this filter |
-| `renderNode` | string | The render node ID for the shader |
-| `paddingOverride` | Rectangle | Override automatic padding calculation |
-| `ignoreDestroy` | boolean | If true, the filter survives when its FilterList is destroyed (for reuse) |
+| Property          | Type      | Description                                                               |
+| ----------------- | --------- | ------------------------------------------------------------------------- |
+| `active`          | boolean   | Toggle the filter on/off without removing it                              |
+| `camera`          | Camera    | The camera that owns this filter                                          |
+| `renderNode`      | string    | The render node ID for the shader                                         |
+| `paddingOverride` | Rectangle | Override automatic padding calculation                                    |
+| `ignoreDestroy`   | boolean   | If true, the filter survives when its FilterList is destroyed (for reuse) |
 
 Key methods: `setActive(bool)`, `setPaddingOverride(left, top, right, bottom)`, `getPadding()`, `destroy()`.
 
@@ -83,7 +83,7 @@ Key methods: `setActive(bool)`, `setPaddingOverride(left, top, right, bottom)`, 
 Cameras have filters available by default. Game objects do not -- you must call `enableFilters()` first:
 
 ```js
-const sprite = this.add.sprite(400, 300, 'hero');
+const sprite = this.add.sprite(400, 300, "hero");
 sprite.enableFilters();
 
 // Now sprite.filters is available
@@ -95,15 +95,15 @@ sprite.filters.external.addVignette();
 
 Related properties on game objects after enabling:
 
-| Property | Default | Description |
-|---|---|---|
-| `filterCamera` | null -> Camera | The internal camera used for filter rendering |
-| `filters` | null -> {internal, external} | Access to the FilterList pair |
-| `renderFilters` | true | Master toggle for all filter rendering |
-| `filtersAutoFocus` | true | Auto-adjust camera to follow the object |
-| `filtersFocusContext` | false | Focus on the rendering context instead of the object bounds |
-| `filtersForceComposite` | false | Always draw to a framebuffer even with no active filters |
-| `maxFilterSize` | null -> Vector2 | Maximum texture size for filter framebuffers |
+| Property                | Default                      | Description                                                 |
+| ----------------------- | ---------------------------- | ----------------------------------------------------------- |
+| `filterCamera`          | null -> Camera               | The internal camera used for filter rendering               |
+| `filters`               | null -> {internal, external} | Access to the FilterList pair                               |
+| `renderFilters`         | true                         | Master toggle for all filter rendering                      |
+| `filtersAutoFocus`      | true                         | Auto-adjust camera to follow the object                     |
+| `filtersFocusContext`   | false                        | Focus on the rendering context instead of the object bounds |
+| `filtersForceComposite` | false                        | Always draw to a framebuffer even with no active filters    |
+| `maxFilterSize`         | null -> Vector2              | Maximum texture size for filter framebuffers                |
 
 Use `willRenderFilters()` to check if any active filters will actually render.
 
@@ -114,7 +114,7 @@ Use `willRenderFilters()` to check if any active filters will actually render.
 ### Adding Filters to Game Objects
 
 ```js
-const sprite = this.add.sprite(400, 300, 'enemy');
+const sprite = this.add.sprite(400, 300, "enemy");
 sprite.enableFilters();
 
 // Add a glow
@@ -172,7 +172,7 @@ Masks in v4 are implemented as filters. They use the alpha channel of a texture 
 ```js
 // Mask with a static texture
 sprite.enableFilters();
-sprite.filters.internal.addMask('maskTexture');
+sprite.filters.internal.addMask("maskTexture");
 
 // Mask with a game object (renders to DynamicTexture automatically)
 const maskShape = this.add.circle(0, 0, 100, 0xffffff);
@@ -183,7 +183,7 @@ const mask = sprite.filters.internal.addMask(maskShape);
 mask.invert = true;
 
 // Control auto-updating for game object masks
-mask.autoUpdate = true;  // default: re-renders each frame
+mask.autoUpdate = true; // default: re-renders each frame
 mask.needsUpdate = true; // force a one-time update
 
 // Use a specific camera for viewing the mask object
@@ -200,20 +200,20 @@ const wipe = camera.filters.external.addWipe(0.1, 0, 0);
 
 // Animate via tween
 this.tweens.add({
-    targets: wipe,
-    progress: 1,
-    duration: 2000,
-    ease: 'Linear'
+  targets: wipe,
+  progress: 1,
+  duration: 2000,
+  ease: "Linear",
 });
 
 // Direction helpers
 wipe.setLeftToRight();
 wipe.setTopToBottom();
-wipe.setRevealEffect();   // reveal mode
-wipe.setWipeEffect();     // wipe mode
+wipe.setRevealEffect(); // reveal mode
+wipe.setWipeEffect(); // wipe mode
 
 // Wipe to another texture (for scene transitions)
-wipe.setTexture('nextSceneCapture');
+wipe.setTexture("nextSceneCapture");
 ```
 
 ### ParallelFilters (Custom Bloom and Compositing)
@@ -244,13 +244,13 @@ pf.blend.amount = 0.5;
 this.cameras.main.setForceComposite(true);
 
 // Objects rendered before CaptureFrame are captured
-const bg = this.add.image(400, 300, 'background');
+const bg = this.add.image(400, 300, "background");
 
 // Create the capture point
-const capture = this.add.captureFrame('myCapture');
+const capture = this.add.captureFrame("myCapture");
 
 // Display the captured texture with filters applied
-const display = this.add.image(400, 300, 'myCapture');
+const display = this.add.image(400, 300, "myCapture");
 display.enableFilters();
 display.filters.internal.addBlur(0, 4, 4, 2);
 ```
@@ -259,32 +259,32 @@ display.filters.internal.addBlur(0, 4, 4, 2);
 
 ## All Built-in Filters
 
-| Filter | Add Method | Description |
-|---|---|---|
-| Barrel | `addBarrel(amount)` | Pinch/expand distortion. `amount=1` is neutral. |
-| Blend | `addBlend(texture, blendMode, amount, color)` | Blend another texture using a blend mode. Supports modes not available in standard WebGL. |
-| Blocky | `addBlocky(config)` | Pixelation that preserves original colors (no blending). Best without anti-aliasing. |
-| Blur | `addBlur(quality, x, y, strength, color, steps)` | Gaussian blur. Quality: 0=low, 1=medium, 2=high. |
-| Bokeh | `addBokeh(radius, amount, contrast)` | Depth-of-field bokeh blur effect. |
-| ColorMatrix | `addColorMatrix()` | Color manipulation via matrix. Access `.colorMatrix` for sepia, grayscale, brightness, hue, etc. |
-| CombineColorMatrix | `addCombineColorMatrix(texture)` | Combine channels from two textures via color matrices. Useful for alpha transfer. |
-| Displacement | `addDisplacement(texture, x, y)` | Pixel displacement using a displacement map texture. Values are very small floats (e.g. 0.005). |
-| Glow | `addGlow(color, outerStrength, innerStrength, scale, knockout, quality, distance)` | Luminous halo around edges. Supports inner/outer glow and knockout mode. |
-| GradientMap | `addGradientMap(config)` | Recolor image using a ColorRamp based on brightness. |
-| ImageLight | `addImageLight(config)` | Image-based lighting using a panorama environment map and normal map. |
-| Key | `addKey(config)` | Chroma key: remove or isolate a specific color. Config: `{ color, threshold, feather, isolate }`. |
-| Mask | `addMask(mask, invert, viewCamera, viewTransform, scaleFactor)` | Alpha masking via texture or game object. |
-| NormalTools | `addNormalTools(config)` | Manipulate normal maps: rotate, adjust facing power, output grayscale facing data. |
-| PanoramaBlur | `addPanoramaBlur(config)` | Spherically-correct blur for panorama images. For use with ImageLight. Very slow. |
-| ParallelFilters | `addParallelFilters()` | Split input into two filter paths, blend results. Use for custom bloom. |
-| Pixelate | `addPixelate(amount)` | Mosaic/pixelation effect. Pixel size = 2 + amount. Blends colors (unlike Blocky). |
-| Quantize | `addQuantize(config)` | Reduce color palette. Supports RGBA/HSVA modes, gamma, offset, dithering. |
-| Sampler | `addSampler(callback, region)` | Extract pixel data from the render. Does not alter the image. Expensive. |
-| Shadow | `addShadow(x, y, decay, power, color, samples, intensity)` | Drop shadow with offset, decay, and color. |
-| Threshold | `addThreshold(edge1, edge2, invert)` | Binary threshold per channel. Edges can be arrays for per-channel control. |
-| TiltShift | `addTiltShift(radius, amount, contrast, blurX, blurY, strength)` | Miniature/tilt-shift effect (uses Bokeh internally). |
-| Vignette | `addVignette(x, y, radius, strength, color, blendMode)` | Edge darkening/coloring. Supports NORMAL, ADD, MULTIPLY, SCREEN blend modes. |
-| Wipe | `addWipe(wipeWidth, direction, axis, reveal, wipeTexture)` | Wipe/reveal transition. Animate `progress` via tween. |
+| Filter             | Add Method                                                                         | Description                                                                                       |
+| ------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Barrel             | `addBarrel(amount)`                                                                | Pinch/expand distortion. `amount=1` is neutral.                                                   |
+| Blend              | `addBlend(texture, blendMode, amount, color)`                                      | Blend another texture using a blend mode. Supports modes not available in standard WebGL.         |
+| Blocky             | `addBlocky(config)`                                                                | Pixelation that preserves original colors (no blending). Best without anti-aliasing.              |
+| Blur               | `addBlur(quality, x, y, strength, color, steps)`                                   | Gaussian blur. Quality: 0=low, 1=medium, 2=high.                                                  |
+| Bokeh              | `addBokeh(radius, amount, contrast)`                                               | Depth-of-field bokeh blur effect.                                                                 |
+| ColorMatrix        | `addColorMatrix()`                                                                 | Color manipulation via matrix. Access `.colorMatrix` for sepia, grayscale, brightness, hue, etc.  |
+| CombineColorMatrix | `addCombineColorMatrix(texture)`                                                   | Combine channels from two textures via color matrices. Useful for alpha transfer.                 |
+| Displacement       | `addDisplacement(texture, x, y)`                                                   | Pixel displacement using a displacement map texture. Values are very small floats (e.g. 0.005).   |
+| Glow               | `addGlow(color, outerStrength, innerStrength, scale, knockout, quality, distance)` | Luminous halo around edges. Supports inner/outer glow and knockout mode.                          |
+| GradientMap        | `addGradientMap(config)`                                                           | Recolor image using a ColorRamp based on brightness.                                              |
+| ImageLight         | `addImageLight(config)`                                                            | Image-based lighting using a panorama environment map and normal map.                             |
+| Key                | `addKey(config)`                                                                   | Chroma key: remove or isolate a specific color. Config: `{ color, threshold, feather, isolate }`. |
+| Mask               | `addMask(mask, invert, viewCamera, viewTransform, scaleFactor)`                    | Alpha masking via texture or game object.                                                         |
+| NormalTools        | `addNormalTools(config)`                                                           | Manipulate normal maps: rotate, adjust facing power, output grayscale facing data.                |
+| PanoramaBlur       | `addPanoramaBlur(config)`                                                          | Spherically-correct blur for panorama images. For use with ImageLight. Very slow.                 |
+| ParallelFilters    | `addParallelFilters()`                                                             | Split input into two filter paths, blend results. Use for custom bloom.                           |
+| Pixelate           | `addPixelate(amount)`                                                              | Mosaic/pixelation effect. Pixel size = 2 + amount. Blends colors (unlike Blocky).                 |
+| Quantize           | `addQuantize(config)`                                                              | Reduce color palette. Supports RGBA/HSVA modes, gamma, offset, dithering.                         |
+| Sampler            | `addSampler(callback, region)`                                                     | Extract pixel data from the render. Does not alter the image. Expensive.                          |
+| Shadow             | `addShadow(x, y, decay, power, color, samples, intensity)`                         | Drop shadow with offset, decay, and color.                                                        |
+| Threshold          | `addThreshold(edge1, edge2, invert)`                                               | Binary threshold per channel. Edges can be arrays for per-channel control.                        |
+| TiltShift          | `addTiltShift(radius, amount, contrast, blurX, blurY, strength)`                   | Miniature/tilt-shift effect (uses Bokeh internally).                                              |
+| Vignette           | `addVignette(x, y, radius, strength, color, blendMode)`                            | Edge darkening/coloring. Supports NORMAL, ADD, MULTIPLY, SCREEN blend modes.                      |
+| Wipe               | `addWipe(wipeWidth, direction, axis, reveal, wipeTexture)`                         | Wipe/reveal transition. Animate `progress` via tween.                                             |
 
 ---
 
@@ -308,39 +308,39 @@ camera.filters.external.addGlow();
 ```js
 const list = camera.filters.internal;
 
-list.addBlur();                    // Factory method (one per filter type)
-list.add(controllerInstance);      // Add a pre-built controller
-list.add(controller, 2);           // Insert at index 2
-list.remove(controller);           // Remove and destroy
-list.clear();                      // Remove and destroy all
-list.getActive();                  // Get all active controllers
-list.list;                         // Raw array (reorder safely)
+list.addBlur(); // Factory method (one per filter type)
+list.add(controllerInstance); // Add a pre-built controller
+list.add(controller, 2); // Insert at index 2
+list.remove(controller); // Remove and destroy
+list.clear(); // Remove and destroy all
+list.getActive(); // Get all active controllers
+list.list; // Raw array (reorder safely)
 ```
 
 ### Controller Common API
 
 ```js
-controller.active = false;                  // Disable without removing
-controller.setActive(true);                 // Enable (returns this)
+controller.active = false; // Disable without removing
+controller.setActive(true); // Enable (returns this)
 controller.setPaddingOverride(10, 10, 10, 10); // Override padding
-controller.setPaddingOverride(null);        // Clear override
-controller.ignoreDestroy = true;            // Survive FilterList.destroy()
-controller.destroy();                       // Manual cleanup
+controller.setPaddingOverride(null); // Clear override
+controller.ignoreDestroy = true; // Survive FilterList.destroy()
+controller.destroy(); // Manual cleanup
 ```
 
 ### Mask Filter API
 
 ```js
-const mask = list.addMask('texKey');       // From texture key
-const mask = list.addMask(gameObject);     // From game object
-mask.invert = true;                         // Invert mask
-mask.autoUpdate = false;                    // Stop auto-updating GO masks
-mask.needsUpdate = true;                    // Force one update
-mask.setTexture('newKey');                  // Change texture source
-mask.setGameObject(newGO);                 // Change GO source
-mask.viewCamera = otherCamera;             // Camera for GO rendering
-mask.viewTransform = 'local';              // 'local' or 'world'
-mask.scaleFactor = 0.5;                    // Scale mask texture size
+const mask = list.addMask("texKey"); // From texture key
+const mask = list.addMask(gameObject); // From game object
+mask.invert = true; // Invert mask
+mask.autoUpdate = false; // Stop auto-updating GO masks
+mask.needsUpdate = true; // Force one update
+mask.setTexture("newKey"); // Change texture source
+mask.setGameObject(newGO); // Change GO source
+mask.viewCamera = otherCamera; // Camera for GO rendering
+mask.viewTransform = "local"; // 'local' or 'world'
+mask.scaleFactor = 0.5; // Scale mask texture size
 ```
 
 ### ColorMatrix Presets
@@ -396,53 +396,53 @@ cm.colorMatrix.shiftToBGR();
 
 ## v4 Changes from v3
 
-| v3 (FX) | v4 (Filters) | Notes |
-|---|---|---|
-| `gameObject.preFX` / `gameObject.postFX` | `gameObject.filters.internal` / `gameObject.filters.external` | `preFX`/`postFX` replaced by internal/external filter lists |
-| `camera.postFX` | `camera.filters.internal` / `camera.filters.external` | Cameras now have both internal and external lists |
-| `FX.addBloom()` | Use `ParallelFilters` + Threshold + Blur | No dedicated Bloom filter; build it with ParallelFilters or `Phaser.Actions.AddEffectBloom` |
-| `FX.addCircle()` | Use Vignette or Mask | Circle effect removed; use Vignette with radius or a circular Mask, or automate with `Phaser.Actions.AddMaskShape` |
-| `FX.addGradient()` | Use Gradient GameObject + Quantize | New Gradient GameObject renders gradients; Quantize adds steps if wanted |
-| Glow `quality` was 0-1 fraction | Glow `quality` is an integer (default 10) | Stochastic sampling replaces line sampling; higher quality at lower values |
-| `camera.setMask()` | `camera.filters.internal.addMask()` | Masks are now filters, not a separate system |
-| `gameObject.setMask()` | `gameObject.filters.internal.addMask()` | Same unified filter system |
-| FX controllers | `Phaser.Filters.Controller` subclasses | Same pattern: returned controller objects with mutable properties |
-| -- | `enableFilters()` required for game objects | New explicit opt-in step for game objects |
-| -- | Blocky, Quantize, Key, Blend, CombineColorMatrix, ImageLight, NormalTools, PanoramaBlur, ParallelFilters, Sampler | New filters added in v4 |
+| v3 (FX)                                  | v4 (Filters)                                                                                                      | Notes                                                                                                              |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `gameObject.preFX` / `gameObject.postFX` | `gameObject.filters.internal` / `gameObject.filters.external`                                                     | `preFX`/`postFX` replaced by internal/external filter lists                                                        |
+| `camera.postFX`                          | `camera.filters.internal` / `camera.filters.external`                                                             | Cameras now have both internal and external lists                                                                  |
+| `FX.addBloom()`                          | Use `ParallelFilters` + Threshold + Blur                                                                          | No dedicated Bloom filter; build it with ParallelFilters or `Phaser.Actions.AddEffectBloom`                        |
+| `FX.addCircle()`                         | Use Vignette or Mask                                                                                              | Circle effect removed; use Vignette with radius or a circular Mask, or automate with `Phaser.Actions.AddMaskShape` |
+| `FX.addGradient()`                       | Use Gradient GameObject + Quantize                                                                                | New Gradient GameObject renders gradients; Quantize adds steps if wanted                                           |
+| Glow `quality` was 0-1 fraction          | Glow `quality` is an integer (default 10)                                                                         | Stochastic sampling replaces line sampling; higher quality at lower values                                         |
+| `camera.setMask()`                       | `camera.filters.internal.addMask()`                                                                               | Masks are now filters, not a separate system                                                                       |
+| `gameObject.setMask()`                   | `gameObject.filters.internal.addMask()`                                                                           | Same unified filter system                                                                                         |
+| FX controllers                           | `Phaser.Filters.Controller` subclasses                                                                            | Same pattern: returned controller objects with mutable properties                                                  |
+| --                                       | `enableFilters()` required for game objects                                                                       | New explicit opt-in step for game objects                                                                          |
+| --                                       | Blocky, Quantize, Key, Blend, CombineColorMatrix, ImageLight, NormalTools, PanoramaBlur, ParallelFilters, Sampler | New filters added in v4                                                                                            |
 
 ---
 
 ## Source File Map
 
-| File | Description |
-|---|---|
-| `src/gameobjects/components/Filters.js` | Mixin that adds `enableFilters()`, `filterCamera`, `filters` to game objects |
-| `src/gameobjects/components/FilterList.js` | FilterList class with all `add*()` factory methods |
-| `src/filters/Controller.js` | Base Controller class for all filters |
-| `src/filters/Barrel.js` | Barrel distortion filter |
-| `src/filters/Blend.js` | Texture blend filter |
-| `src/filters/Blocky.js` | Color-preserving pixelation filter |
-| `src/filters/Blur.js` | Gaussian blur filter |
-| `src/filters/Bokeh.js` | Bokeh / tilt shift filter |
-| `src/filters/ColorMatrix.js` | Color matrix filter (sepia, grayscale, etc.) |
-| `src/filters/CombineColorMatrix.js` | Dual-texture channel combining filter |
-| `src/filters/Displacement.js` | Displacement map filter |
-| `src/filters/Glow.js` | Glow/outline filter |
-| `src/filters/GradientMap.js` | Gradient map recoloring filter |
-| `src/filters/ImageLight.js` | Image-based lighting filter |
-| `src/filters/Key.js` | Chroma key filter |
-| `src/filters/Mask.js` | Alpha mask filter (texture or game object) |
-| `src/filters/NormalTools.js` | Normal map manipulation filter |
-| `src/filters/PanoramaBlur.js` | Spherical panorama blur filter |
-| `src/filters/ParallelFilters.js` | Parallel filter paths with blend |
-| `src/filters/Pixelate.js` | Pixelation filter |
-| `src/filters/Quantize.js` | Color quantization filter |
-| `src/filters/Sampler.js` | Pixel sampling/readback filter |
-| `src/filters/Shadow.js` | Drop shadow filter |
-| `src/filters/Threshold.js` | Threshold filter |
-| `src/filters/Vignette.js` | Vignette filter |
-| `src/filters/Wipe.js` | Wipe/reveal transition filter |
-| `src/gameobjects/captureframe/CaptureFrame.js` | CaptureFrame game object for scene-level capture |
+| File                                           | Description                                                                  |
+| ---------------------------------------------- | ---------------------------------------------------------------------------- |
+| `src/gameobjects/components/Filters.js`        | Mixin that adds `enableFilters()`, `filterCamera`, `filters` to game objects |
+| `src/gameobjects/components/FilterList.js`     | FilterList class with all `add*()` factory methods                           |
+| `src/filters/Controller.js`                    | Base Controller class for all filters                                        |
+| `src/filters/Barrel.js`                        | Barrel distortion filter                                                     |
+| `src/filters/Blend.js`                         | Texture blend filter                                                         |
+| `src/filters/Blocky.js`                        | Color-preserving pixelation filter                                           |
+| `src/filters/Blur.js`                          | Gaussian blur filter                                                         |
+| `src/filters/Bokeh.js`                         | Bokeh / tilt shift filter                                                    |
+| `src/filters/ColorMatrix.js`                   | Color matrix filter (sepia, grayscale, etc.)                                 |
+| `src/filters/CombineColorMatrix.js`            | Dual-texture channel combining filter                                        |
+| `src/filters/Displacement.js`                  | Displacement map filter                                                      |
+| `src/filters/Glow.js`                          | Glow/outline filter                                                          |
+| `src/filters/GradientMap.js`                   | Gradient map recoloring filter                                               |
+| `src/filters/ImageLight.js`                    | Image-based lighting filter                                                  |
+| `src/filters/Key.js`                           | Chroma key filter                                                            |
+| `src/filters/Mask.js`                          | Alpha mask filter (texture or game object)                                   |
+| `src/filters/NormalTools.js`                   | Normal map manipulation filter                                               |
+| `src/filters/PanoramaBlur.js`                  | Spherical panorama blur filter                                               |
+| `src/filters/ParallelFilters.js`               | Parallel filter paths with blend                                             |
+| `src/filters/Pixelate.js`                      | Pixelation filter                                                            |
+| `src/filters/Quantize.js`                      | Color quantization filter                                                    |
+| `src/filters/Sampler.js`                       | Pixel sampling/readback filter                                               |
+| `src/filters/Shadow.js`                        | Drop shadow filter                                                           |
+| `src/filters/Threshold.js`                     | Threshold filter                                                             |
+| `src/filters/Vignette.js`                      | Vignette filter                                                              |
+| `src/filters/Wipe.js`                          | Wipe/reveal transition filter                                                |
+| `src/gameobjects/captureframe/CaptureFrame.js` | CaptureFrame game object for scene-level capture                             |
 
 ---
 

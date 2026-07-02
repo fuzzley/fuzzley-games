@@ -44,7 +44,9 @@ describe("SolitaireGame", () => {
     game.startNewGame();
 
     const initialStockCount = game.stock.getCards().length; // 24
-    const topStockCard = game.stock.getCards()[initialStockCount - 1] as PlayingCard;
+    const topStockCard = game.stock.getCards()[
+      initialStockCount - 1
+    ] as PlayingCard;
 
     const moveCallback = vi.fn();
     const flipCallback = vi.fn();

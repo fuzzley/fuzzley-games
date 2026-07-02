@@ -4,7 +4,7 @@ import { Visual } from "../visual";
 
 /**
  * Visual representation of a Tableau card pile.
- * 
+ *
  * Manages the layout spacing of cards fanned downwards in a tableau column.
  */
 export class TableauPileVisual extends Visual<CardPile> {

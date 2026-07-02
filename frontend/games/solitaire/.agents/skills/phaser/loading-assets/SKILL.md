@@ -4,6 +4,7 @@ description: "Use this skill when loading assets in Phaser 4. Covers the Loader 
 ---
 
 # Loading Assets
+
 > The Phaser Loader (`this.load`) handles fetching all external content: images, audio, JSON, tilemaps, atlases, fonts, scripts, and more. Assets are queued in `preload()`, loaded in parallel, and placed into global caches accessible by every Scene.
 
 **Key source paths:** `src/loader/LoaderPlugin.js`, `src/loader/File.js`, `src/loader/filetypes/`, `src/loader/events/`
@@ -13,13 +14,13 @@ description: "Use this skill when loading assets in Phaser 4. Covers the Loader 
 
 ```js
 class GameScene extends Phaser.Scene {
-    preload() {
-        this.load.image('logo', 'assets/logo.png');
-    }
+  preload() {
+    this.load.image("logo", "assets/logo.png");
+  }
 
-    create() {
-        this.add.image(400, 300, 'logo');
-    }
+  create() {
+    this.add.image(400, 300, "logo");
+  }
 }
 ```
 
@@ -89,18 +90,18 @@ These can also be set in the game config:
 
 ```js
 const config = {
-    loader: {
-        baseURL: 'https://cdn.example.com/',
-        path: 'assets/',
-        prefix: '',
-        maxParallelDownloads: 32,
-        crossOrigin: 'anonymous',
-        responseType: '',
-        async: true,
-        timeout: 0,
-        maxRetries: 2,
-        imageLoadType: 'XHR' // or 'HTMLImageElement'
-    }
+  loader: {
+    baseURL: "https://cdn.example.com/",
+    path: "assets/",
+    prefix: "",
+    maxParallelDownloads: 32,
+    crossOrigin: "anonymous",
+    responseType: "",
+    async: true,
+    timeout: 0,
+    maxRetries: 2,
+    imageLoadType: "XHR", // or 'HTMLImageElement'
+  },
 };
 ```
 
@@ -281,13 +282,18 @@ Pack file format:
 
 ```json
 {
-    "section1": {
-        "baseURL": "assets/",
-        "files": [
-            { "type": "image", "key": "bg", "url": "bg.png" },
-            { "type": "atlas", "key": "chars", "textureURL": "chars.png", "atlasURL": "chars.json" }
-        ]
-    }
+  "section1": {
+    "baseURL": "assets/",
+    "files": [
+      { "type": "image", "key": "bg", "url": "bg.png" },
+      {
+        "type": "atlas",
+        "key": "chars",
+        "textureURL": "chars.png",
+        "atlasURL": "chars.json"
+      }
+    ]
+  }
 }
 ```
 
@@ -332,18 +338,18 @@ All `this.load` methods accept positional arguments or a single config object. T
 
 All events are emitted on the Loader instance (`this.load`).
 
-| Event String | Callback Signature | Description |
-|---|---|---|
-| `'addfile'` | `(key, type, loader, file)` | A file was added to the load queue |
-| `'start'` | `(loader)` | Loader has started. Progress is zero |
-| `'load'` | `(file)` | A single file finished loading (before processing/caching) |
-| `'fileprogress'` | `(file, percentComplete)` | Per-file download progress (0-1). Only fires if browser provides `lengthComputable` |
-| `'progress'` | `(value)` | Overall load progress updated (0-1) |
-| `'postprocess'` | `(loader)` | All files loaded and processed, before internal cleanup |
-| `'filecomplete'` | `(key, type, data)` | Any file finished loading and processing |
-| `'filecomplete-{type}-{key}'` | `(key, type, data)` | Specific file finished (e.g., `'filecomplete-image-hero'`) |
-| `'loaderror'` | `(file)` | A file failed to load |
-| `'complete'` | `(loader, totalComplete, totalFailed)` | All files in the queue are done |
+| Event String                  | Callback Signature                     | Description                                                                         |
+| ----------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------- |
+| `'addfile'`                   | `(key, type, loader, file)`            | A file was added to the load queue                                                  |
+| `'start'`                     | `(loader)`                             | Loader has started. Progress is zero                                                |
+| `'load'`                      | `(file)`                               | A single file finished loading (before processing/caching)                          |
+| `'fileprogress'`              | `(file, percentComplete)`              | Per-file download progress (0-1). Only fires if browser provides `lengthComputable` |
+| `'progress'`                  | `(value)`                              | Overall load progress updated (0-1)                                                 |
+| `'postprocess'`               | `(loader)`                             | All files loaded and processed, before internal cleanup                             |
+| `'filecomplete'`              | `(key, type, data)`                    | Any file finished loading and processing                                            |
+| `'filecomplete-{type}-{key}'` | `(key, type, data)`                    | Specific file finished (e.g., `'filecomplete-image-hero'`)                          |
+| `'loaderror'`                 | `(file)`                               | A file failed to load                                                               |
+| `'complete'`                  | `(loader, totalComplete, totalFailed)` | All files in the queue are done                                                     |
 
 ### Event Lifecycle Order
 
@@ -394,17 +400,15 @@ Load files before `preload()` runs by defining a `pack` in the Scene constructor
 
 ```js
 class BootScene extends Phaser.Scene {
-    constructor() {
-        super({
-            key: 'BootScene',
-            pack: {
-                files: [
-                    { type: 'image', key: 'bar', url: 'loaderBar.png' }
-                ]
-            }
-        });
-    }
-    // 'bar' is already available in preload()
+  constructor() {
+    super({
+      key: "BootScene",
+      pack: {
+        files: [{ type: "image", key: "bar", url: "loaderBar.png" }],
+      },
+    });
+  }
+  // 'bar' is already available in preload()
 }
 ```
 
@@ -448,20 +452,20 @@ Loaded assets go into global caches shared across all Scenes. Textures are store
 
 ```js
 // Access cached data
-const json = this.cache.json.get('levelData');
-const text = this.cache.text.get('dialogue');
+const json = this.cache.json.get("levelData");
+const text = this.cache.text.get("dialogue");
 
 // Check existence
-this.cache.json.exists('levelData'); // or .has('levelData')
-this.textures.exists('hero');
+this.cache.json.exists("levelData"); // or .has('levelData')
+this.textures.exists("hero");
 
 // Remove assets to free memory
-this.textures.remove('hero');
-this.cache.audio.remove('bgm');
+this.textures.remove("hero");
+this.cache.audio.remove("bgm");
 
 // Listen for cross-scene texture additions
-this.textures.on('addtexture-mapKey', (texture) => {
-    // Another scene loaded 'mapKey' — now available here
+this.textures.on("addtexture-mapKey", (texture) => {
+  // Another scene loaded 'mapKey' — now available here
 });
 ```
 

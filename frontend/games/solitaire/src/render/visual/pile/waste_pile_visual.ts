@@ -4,7 +4,7 @@ import { Visual } from "../visual";
 
 /**
  * Visual representation of a Waste card pile.
- * 
+ *
  * Manages the positioning of drawn cards in the face-up waste pile (which are stacked directly on top of each other).
  */
 export class WastePileVisual extends Visual<CardPile> {

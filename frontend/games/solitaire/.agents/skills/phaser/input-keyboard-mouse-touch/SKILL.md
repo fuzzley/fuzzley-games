@@ -4,6 +4,7 @@ description: "Use this skill when handling user input in Phaser 4. Covers keyboa
 ---
 
 # Input: Keyboard, Mouse, Touch, and Gamepad
+
 > Phaser provides a unified input system accessed via `this.input` in any Scene. It supports keyboard polling and events, mouse/pointer interaction with Game Objects (click, hover, drag), multi-touch, mouse wheel, and gamepad input. Input can be handled through event listeners or by polling state each frame.
 
 **Key source paths:** `src/input/InputPlugin.js`, `src/input/Pointer.js`, `src/input/keyboard/KeyboardPlugin.js`, `src/input/keyboard/keys/Key.js`, `src/input/keyboard/keys/KeyCodes.js`, `src/input/keyboard/combo/KeyCombo.js`, `src/input/gamepad/GamepadPlugin.js`, `src/input/gamepad/Gamepad.js`, `src/input/events/`, `src/input/keyboard/events/`
@@ -13,40 +14,40 @@ description: "Use this skill when handling user input in Phaser 4. Covers keyboa
 
 ```js
 class MyScene extends Phaser.Scene {
-    create() {
-        // Keyboard: create cursor keys (up, down, left, right, space, shift)
-        this.cursors = this.input.keyboard.createCursorKeys();
+  create() {
+    // Keyboard: create cursor keys (up, down, left, right, space, shift)
+    this.cursors = this.input.keyboard.createCursorKeys();
 
-        // Keyboard: listen for a specific key event
-        this.input.keyboard.on('keydown-SPACE', (event) => {
-            console.log('Space pressed');
-        });
+    // Keyboard: listen for a specific key event
+    this.input.keyboard.on("keydown-SPACE", (event) => {
+      console.log("Space pressed");
+    });
 
-        // Pointer: listen for click/tap anywhere on the game canvas
-        this.input.on('pointerdown', (pointer) => {
-            console.log('Clicked at', pointer.x, pointer.y);
-        });
+    // Pointer: listen for click/tap anywhere on the game canvas
+    this.input.on("pointerdown", (pointer) => {
+      console.log("Clicked at", pointer.x, pointer.y);
+    });
 
-        // Pointer: make a Game Object interactive and clickable
-        const sprite = this.add.sprite(400, 300, 'player');
-        sprite.setInteractive();
-        sprite.on('pointerdown', (pointer, localX, localY, event) => {
-            console.log('Sprite clicked at local', localX, localY);
-        });
+    // Pointer: make a Game Object interactive and clickable
+    const sprite = this.add.sprite(400, 300, "player");
+    sprite.setInteractive();
+    sprite.on("pointerdown", (pointer, localX, localY, event) => {
+      console.log("Sprite clicked at local", localX, localY);
+    });
+  }
+
+  update() {
+    // Poll cursor keys each frame
+    if (this.cursors.left.isDown) {
+      // move left
     }
-
-    update() {
-        // Poll cursor keys each frame
-        if (this.cursors.left.isDown) {
-            // move left
-        }
-        if (this.cursors.right.isDown) {
-            // move right
-        }
-        if (Phaser.Input.Keyboard.JustDown(this.cursors.space)) {
-            // fire once per press
-        }
+    if (this.cursors.right.isDown) {
+      // move right
     }
+    if (Phaser.Input.Keyboard.JustDown(this.cursors.space)) {
+      // fire once per press
+    }
+  }
 }
 ```
 
@@ -57,6 +58,7 @@ class MyScene extends Phaser.Scene {
 Accessed via `this.input` in any Scene. It is an `EventEmitter` that handles all input for that Scene.
 
 Key properties:
+
 - `this.input.enabled` (boolean) - toggle input processing for the Scene
 - `this.input.topOnly` (boolean, default `true`) - only emit events from the top-most Game Object under the pointer
 - `this.input.keyboard` - the KeyboardPlugin instance
@@ -70,6 +72,7 @@ Key properties:
 - `this.input.pollRate` (number, default -1) - how often pointers are polled; 0 = every frame, -1 = only on movement
 
 Key methods:
+
 - `addPointer(quantity)` - add extra pointers for multi-touch (default is 2; max 10)
 - `setHitArea(gameObjects, hitArea, hitAreaCallback)` - set custom hit area on Game Objects
 - `setHitAreaCircle(gameObjects, x, y, radius, callback)`
@@ -85,6 +88,7 @@ Key methods:
 A `Pointer` object encapsulates both mouse and touch input. By default Phaser creates 2 pointers. Use `this.input.addPointer(quantity)` for more (up to 10 total).
 
 Key properties:
+
 - `x`, `y` - position in screen space (read from `position.x`, `position.y`)
 - `worldX`, `worldY` - position translated through the most recent Camera
 - `downX`, `downY` - position when button was pressed
@@ -103,6 +107,7 @@ Key properties:
 - `camera` - the Camera this Pointer last interacted with
 
 Key methods:
+
 - `leftButtonDown()`, `rightButtonDown()`, `middleButtonDown()`, `backButtonDown()`, `forwardButtonDown()` - check specific buttons
 - `leftButtonReleased()`, `rightButtonReleased()`, `middleButtonReleased()` - check recent release
 - `getDistance()` - distance between down position and current/up position
@@ -121,10 +126,22 @@ Call `gameObject.setInteractive()` to enable input on a Game Object. This uses t
 sprite.setInteractive();
 
 // Custom shape hit areas (Rectangle, Circle, Ellipse, Triangle, Polygon)
-sprite.setInteractive(new Phaser.Geom.Circle(32, 32, 32), Phaser.Geom.Circle.Contains);
-sprite.setInteractive(new Phaser.Geom.Ellipse(50, 50, 100, 60), Phaser.Geom.Ellipse.Contains);
-sprite.setInteractive(new Phaser.Geom.Triangle(0,64,32,0,64,64), Phaser.Geom.Triangle.Contains);
-sprite.setInteractive(new Phaser.Geom.Polygon(points), Phaser.Geom.Polygon.Contains);
+sprite.setInteractive(
+  new Phaser.Geom.Circle(32, 32, 32),
+  Phaser.Geom.Circle.Contains,
+);
+sprite.setInteractive(
+  new Phaser.Geom.Ellipse(50, 50, 100, 60),
+  Phaser.Geom.Ellipse.Contains,
+);
+sprite.setInteractive(
+  new Phaser.Geom.Triangle(0, 64, 32, 0, 64, 64),
+  Phaser.Geom.Triangle.Contains,
+);
+sprite.setInteractive(
+  new Phaser.Geom.Polygon(points),
+  Phaser.Geom.Polygon.Contains,
+);
 
 // Pixel-perfect hit testing (expensive — use sparingly)
 sprite.setInteractive({ pixelPerfect: true, alphaTolerance: 1 });
@@ -134,12 +151,12 @@ sprite.setInteractive(this.input.makePixelPerfect(150));
 
 // Config object with multiple options
 sprite.setInteractive({
-    draggable: true,
-    dropZone: false,
-    useHandCursor: true,
-    cursor: 'pointer',
-    pixelPerfect: true,
-    alphaTolerance: 1
+  draggable: true,
+  dropZone: false,
+  useHandCursor: true,
+  cursor: "pointer",
+  pixelPerfect: true,
+  alphaTolerance: 1,
 });
 
 // Containers must specify a shape or call setSize first
@@ -157,34 +174,42 @@ container.setInteractive();
 this.cursors = this.input.keyboard.createCursorKeys();
 
 // In update():
-if (this.cursors.up.isDown) { /* held */ }
-if (this.cursors.space.isDown) { /* held */ }
+if (this.cursors.up.isDown) {
+  /* held */
+}
+if (this.cursors.space.isDown) {
+  /* held */
+}
 ```
 
 **addKey** creates a Key object for any key:
 
 ```js
 // By string name
-const keyW = this.input.keyboard.addKey('W');
+const keyW = this.input.keyboard.addKey("W");
 // By key code
-const keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+const keySpace = this.input.keyboard.addKey(
+  Phaser.Input.Keyboard.KeyCodes.SPACE,
+);
 // With options: addKey(key, enableCapture, emitOnRepeat)
-const keyA = this.input.keyboard.addKey('A', true, false);
+const keyA = this.input.keyboard.addKey("A", true, false);
 ```
 
 **addKeys** creates multiple keys at once:
 
 ```js
 // Comma-separated string returns { W, S, A, D } Key objects
-const keys = this.input.keyboard.addKeys('W,S,A,D');
-if (keys.W.isDown) { /* ... */ }
+const keys = this.input.keyboard.addKeys("W,S,A,D");
+if (keys.W.isDown) {
+  /* ... */
+}
 
 // Object form with custom names
 const keys = this.input.keyboard.addKeys({
-    up: Phaser.Input.Keyboard.KeyCodes.W,
-    down: Phaser.Input.Keyboard.KeyCodes.S,
-    left: Phaser.Input.Keyboard.KeyCodes.A,
-    right: Phaser.Input.Keyboard.KeyCodes.D
+  up: Phaser.Input.Keyboard.KeyCodes.W,
+  down: Phaser.Input.Keyboard.KeyCodes.S,
+  left: Phaser.Input.Keyboard.KeyCodes.A,
+  right: Phaser.Input.Keyboard.KeyCodes.D,
 });
 ```
 
@@ -192,34 +217,51 @@ const keys = this.input.keyboard.addKeys({
 
 ```js
 // Polling in update() - check every frame
-if (keyW.isDown) { /* key is currently held */ }
-if (keyW.isUp) { /* key is currently released */ }
+if (keyW.isDown) {
+  /* key is currently held */
+}
+if (keyW.isUp) {
+  /* key is currently released */
+}
 
 // JustDown - returns true only once per press, resets after check
-if (Phaser.Input.Keyboard.JustDown(keyW)) { /* fire once */ }
-if (Phaser.Input.Keyboard.JustUp(keyW)) { /* released once */ }
+if (Phaser.Input.Keyboard.JustDown(keyW)) {
+  /* fire once */
+}
+if (Phaser.Input.Keyboard.JustUp(keyW)) {
+  /* released once */
+}
 
 // checkDown with duration - throttled polling
 if (this.input.keyboard.checkDown(keySpace, 250)) {
-    // true at most once every 250ms while held
+  // true at most once every 250ms while held
 }
 
 // Event-driven: listen for specific key
-this.input.keyboard.on('keydown-SPACE', (event) => { /* ... */ });
-this.input.keyboard.on('keyup-SPACE', (event) => { /* ... */ });
+this.input.keyboard.on("keydown-SPACE", (event) => {
+  /* ... */
+});
+this.input.keyboard.on("keyup-SPACE", (event) => {
+  /* ... */
+});
 
 // Event-driven: listen for any key
-this.input.keyboard.on('keydown', (event) => {
-    console.log(event.key); // native DOM KeyboardEvent
+this.input.keyboard.on("keydown", (event) => {
+  console.log(event.key); // native DOM KeyboardEvent
 });
 
 // Event on a Key object itself
-const spaceBar = this.input.keyboard.addKey('SPACE');
-spaceBar.on('down', (key, event) => { /* Key object + native event */ });
-spaceBar.on('up', (key, event) => { /* ... */ });
+const spaceBar = this.input.keyboard.addKey("SPACE");
+spaceBar.on("down", (key, event) => {
+  /* Key object + native event */
+});
+spaceBar.on("up", (key, event) => {
+  /* ... */
+});
 ```
 
 **Key object properties:**
+
 - `isDown` / `isUp` (boolean)
 - `keyCode` (number)
 - `altKey`, `ctrlKey`, `shiftKey`, `metaKey` (boolean) - modifier state when pressed
@@ -233,9 +275,9 @@ spaceBar.on('up', (key, event) => { /* ... */ });
 
 ```js
 // Capture specific keys to prevent browser scrolling etc.
-this.input.keyboard.addCapture('SPACE,UP,DOWN,LEFT,RIGHT');
-this.input.keyboard.addCapture([ 32, 37, 38, 39, 40 ]);
-this.input.keyboard.removeCapture('SPACE');
+this.input.keyboard.addCapture("SPACE,UP,DOWN,LEFT,RIGHT");
+this.input.keyboard.addCapture([32, 37, 38, 39, 40]);
+this.input.keyboard.removeCapture("SPACE");
 // Note: captures are global across all Scenes
 ```
 
@@ -246,12 +288,18 @@ this.input.keyboard.removeCapture('SPACE');
 **Scene-level pointer events** (fire anywhere on the canvas):
 
 ```js
-this.input.on('pointerdown', (pointer, currentlyOver) => {
-    // pointer: Pointer object, currentlyOver: array of interactive Game Objects under pointer
+this.input.on("pointerdown", (pointer, currentlyOver) => {
+  // pointer: Pointer object, currentlyOver: array of interactive Game Objects under pointer
 });
-this.input.on('pointerup', (pointer, currentlyOver) => { /* ... */ });
-this.input.on('pointermove', (pointer, currentlyOver) => { /* ... */ });
-this.input.on('wheel', (pointer, currentlyOver, deltaX, deltaY, deltaZ) => { /* ... */ });
+this.input.on("pointerup", (pointer, currentlyOver) => {
+  /* ... */
+});
+this.input.on("pointermove", (pointer, currentlyOver) => {
+  /* ... */
+});
+this.input.on("wheel", (pointer, currentlyOver, deltaX, deltaY, deltaZ) => {
+  /* ... */
+});
 ```
 
 **Game Object pointer events** (require setInteractive):
@@ -260,25 +308,35 @@ this.input.on('wheel', (pointer, currentlyOver, deltaX, deltaY, deltaZ) => { /* 
 sprite.setInteractive();
 
 // pointerdown on this specific object
-sprite.on('pointerdown', (pointer, localX, localY, event) => {
-    // localX/localY are relative to the Game Object's top-left
-    // event.stopPropagation() prevents the event from going further
+sprite.on("pointerdown", (pointer, localX, localY, event) => {
+  // localX/localY are relative to the Game Object's top-left
+  // event.stopPropagation() prevents the event from going further
 });
 
-sprite.on('pointerup', (pointer, localX, localY, event) => { /* ... */ });
-sprite.on('pointermove', (pointer, localX, localY, event) => { /* ... */ });
-sprite.on('pointerover', (pointer, localX, localY, event) => { /* ... */ });
-sprite.on('pointerout', (pointer, event) => { /* ... */ });
-sprite.on('wheel', (pointer, deltaX, deltaY, deltaZ, event) => { /* ... */ });
+sprite.on("pointerup", (pointer, localX, localY, event) => {
+  /* ... */
+});
+sprite.on("pointermove", (pointer, localX, localY, event) => {
+  /* ... */
+});
+sprite.on("pointerover", (pointer, localX, localY, event) => {
+  /* ... */
+});
+sprite.on("pointerout", (pointer, event) => {
+  /* ... */
+});
+sprite.on("wheel", (pointer, deltaX, deltaY, deltaZ, event) => {
+  /* ... */
+});
 ```
 
 **Right-click handling:**
 
 ```js
-this.input.on('pointerdown', (pointer) => {
-    if (pointer.rightButtonDown()) {
-        // right-click
-    }
+this.input.on("pointerdown", (pointer) => {
+  if (pointer.rightButtonDown()) {
+    // right-click
+  }
 });
 
 // Disable context menu
@@ -289,12 +347,12 @@ this.input.mouse.disableContextMenu();
 
 ```js
 // Request lock on click
-this.input.on('pointerdown', () => {
-    this.input.mouse.requestPointerLock();
+this.input.on("pointerdown", () => {
+  this.input.mouse.requestPointerLock();
 });
 
-this.input.on('pointerlockchange', (event, locked) => {
-    // locked: boolean
+this.input.on("pointerlockchange", (event, locked) => {
+  // locked: boolean
 });
 
 // Read relative movement while locked
@@ -304,7 +362,7 @@ this.input.on('pointerlockchange', (event, locked) => {
 ### Drag and Drop
 
 ```js
-const sprite = this.add.sprite(400, 300, 'item');
+const sprite = this.add.sprite(400, 300, "item");
 sprite.setInteractive();
 this.input.setDraggable(sprite);
 
@@ -312,54 +370,67 @@ this.input.setDraggable(sprite);
 // sprite.setInteractive({ draggable: true });
 
 // Drag events on the Scene input
-this.input.on('dragstart', (pointer, gameObject) => {
-    gameObject.setTint(0xff0000);
+this.input.on("dragstart", (pointer, gameObject) => {
+  gameObject.setTint(0xff0000);
 });
 
-this.input.on('drag', (pointer, gameObject, dragX, dragY) => {
-    gameObject.x = dragX;
-    gameObject.y = dragY;
+this.input.on("drag", (pointer, gameObject, dragX, dragY) => {
+  gameObject.x = dragX;
+  gameObject.y = dragY;
 });
 
-this.input.on('dragend', (pointer, gameObject) => {
-    gameObject.clearTint();
+this.input.on("dragend", (pointer, gameObject) => {
+  gameObject.clearTint();
 });
 
 // Drop zones
 const zone = this.add.zone(600, 300, 200, 200).setRectangleDropZone(200, 200);
 
-this.input.on('drop', (pointer, gameObject, dropZone) => {
-    gameObject.x = dropZone.x;
-    gameObject.y = dropZone.y;
+this.input.on("drop", (pointer, gameObject, dropZone) => {
+  gameObject.x = dropZone.x;
+  gameObject.y = dropZone.y;
 });
 
-this.input.on('dragenter', (pointer, gameObject, dropZone) => { /* ... */ });
-this.input.on('dragleave', (pointer, gameObject, dropZone) => { /* ... */ });
-this.input.on('dragover', (pointer, gameObject, dropZone) => { /* ... */ });
+this.input.on("dragenter", (pointer, gameObject, dropZone) => {
+  /* ... */
+});
+this.input.on("dragleave", (pointer, gameObject, dropZone) => {
+  /* ... */
+});
+this.input.on("dragover", (pointer, gameObject, dropZone) => {
+  /* ... */
+});
 ```
 
 Game Object-level drag events are also available:
 
 ```js
-sprite.on('drag', (pointer, dragX, dragY) => {
-    sprite.x = dragX;
-    sprite.y = dragY;
+sprite.on("drag", (pointer, dragX, dragY) => {
+  sprite.x = dragX;
+  sprite.y = dragY;
 });
-sprite.on('dragstart', (pointer, dragX, dragY) => { /* ... */ });
-sprite.on('dragend', (pointer, dragX, dragY) => { /* ... */ });
-sprite.on('drop', (pointer, dropZone) => { /* ... */ });
+sprite.on("dragstart", (pointer, dragX, dragY) => {
+  /* ... */
+});
+sprite.on("dragend", (pointer, dragX, dragY) => {
+  /* ... */
+});
+sprite.on("drop", (pointer, dropZone) => {
+  /* ... */
+});
 ```
 
 Drag thresholds:
 
 ```js
 this.input.dragDistanceThreshold = 16; // must move 16px before drag starts
-this.input.dragTimeThreshold = 200;    // must hold 200ms before drag starts
+this.input.dragTimeThreshold = 200; // must hold 200ms before drag starts
 ```
 
 ### Three Levels of Pointer Events
 
 Pointer events fire at three levels (see [reference](references/REFERENCE.md#three-levels-of-pointer-events) for details):
+
 1. **Game Object**: `gameObject.on('pointerdown', (pointer, localX, localY, event) => {})`
 2. **Scene per-object**: `this.input.on('gameobjectdown', (pointer, gameObject, event) => {})`
 3. **Scene global**: `this.input.on('pointerdown', (pointer, currentlyOver) => {})`
@@ -385,9 +456,9 @@ Enable gamepads in the game config:
 
 ```js
 const config = {
-    input: {
-        gamepad: true
-    }
+  input: {
+    gamepad: true,
+  },
 };
 ```
 
@@ -395,13 +466,13 @@ Access via `this.input.gamepad`. Gamepads are available as `pad1` through `pad4`
 
 ```js
 // Wait for connection
-this.input.gamepad.once('connected', (pad) => {
-    console.log('Gamepad connected:', pad.id);
+this.input.gamepad.once("connected", (pad) => {
+  console.log("Gamepad connected:", pad.id);
 });
 
 // If already connected, check total
 if (this.input.gamepad.total > 0) {
-    const pad = this.input.gamepad.pad1;
+  const pad = this.input.gamepad.pad1;
 }
 ```
 
@@ -448,25 +519,37 @@ update() {
 
 ```js
 // Plugin-level events (any gamepad)
-this.input.gamepad.on('connected', (pad, event) => { /* ... */ });
-this.input.gamepad.on('disconnected', (pad, event) => { /* ... */ });
-this.input.gamepad.on('down', (pad, button, value) => { /* any button on any pad */ });
-this.input.gamepad.on('up', (pad, button, value) => { /* ... */ });
+this.input.gamepad.on("connected", (pad, event) => {
+  /* ... */
+});
+this.input.gamepad.on("disconnected", (pad, event) => {
+  /* ... */
+});
+this.input.gamepad.on("down", (pad, button, value) => {
+  /* any button on any pad */
+});
+this.input.gamepad.on("up", (pad, button, value) => {
+  /* ... */
+});
 
 // Gamepad-instance events
-pad.on('down', (index, value, button) => { /* button on this specific pad */ });
-pad.on('up', (index, value, button) => { /* ... */ });
+pad.on("down", (index, value, button) => {
+  /* button on this specific pad */
+});
+pad.on("up", (index, value, button) => {
+  /* ... */
+});
 ```
 
 **Vibration (experimental, hardware/browser dependent):**
 
 ```js
 if (pad.vibration) {
-    pad.vibration.playEffect('dual-rumble', {
-        duration: 200,
-        strongMagnitude: 1.0,
-        weakMagnitude: 0.5
-    });
+  pad.vibration.playEffect("dual-rumble", {
+    duration: 200,
+    strongMagnitude: 1.0,
+    weakMagnitude: 0.5,
+  });
 }
 ```
 
@@ -476,21 +559,21 @@ Listen for a sequence of keys:
 
 ```js
 // String-based combo
-this.input.keyboard.createCombo('PHASER');
+this.input.keyboard.createCombo("PHASER");
 
 // Array of key codes (Konami code)
-this.input.keyboard.createCombo(
-    [ 38, 38, 40, 40, 37, 39, 37, 39, 66, 65, 13 ],
-    { resetOnMatch: true }
-);
+this.input.keyboard.createCombo([38, 38, 40, 40, 37, 39, 37, 39, 66, 65, 13], {
+  resetOnMatch: true,
+});
 
 // Listen for match
-this.input.keyboard.on('keycombomatch', (keyCombo, event) => {
-    console.log('Combo matched!');
+this.input.keyboard.on("keycombomatch", (keyCombo, event) => {
+  console.log("Combo matched!");
 });
 ```
 
 **createCombo(keys, config):**
+
 - `keys`: a string (each character is a key) or an array of key codes / Key objects
 - `config.resetOnWrongKey` (boolean, default true) - reset progress if wrong key is pressed
 - `config.maxKeyDelay` (number, default 0) - max ms between key presses; 0 = no limit

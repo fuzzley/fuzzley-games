@@ -4,7 +4,7 @@ import { Visual } from "../visual";
 
 /**
  * Visual representation of a Foundation card pile.
- * 
+ *
  * Manages the positioning of stacked cards in a foundation pile (which are stacked directly on top of each other).
  */
 export class FoundationPileVisual extends Visual<CardPile> {

@@ -86,12 +86,12 @@ FX (pre and post) and Masks have been unified into a single **Filter** system. A
 
 **Removed derived FX and their replacements:**
 
-| v3 FX | v4 Replacement |
-|---|---|
-| `Bloom` | `Phaser.Actions.AddEffectBloom()` |
-| `Shine` | `Phaser.Actions.AddEffectShine()` |
-| `Circle` | `Phaser.Actions.AddMaskShape()` |
-| `Gradient` | `Gradient` game object |
+| v3 FX      | v4 Replacement                    |
+| ---------- | --------------------------------- |
+| `Bloom`    | `Phaser.Actions.AddEffectBloom()` |
+| `Shine`    | `Phaser.Actions.AddEffectShine()` |
+| `Circle`   | `Phaser.Actions.AddMaskShape()`   |
+| `Gradient` | `Gradient` game object            |
 
 **ColorMatrix change:**
 
@@ -123,10 +123,12 @@ sprite.filters.internal.addMask(maskObject);
 The tint system has been overhauled with a new API and additional blend modes.
 
 **Removed:**
+
 - `tintFill` property
 - `setTintFill()` method
 
 **Replacement:**
+
 - Use the new `tintMode` property or `setTintMode()` method to control tint blending.
 - `Phaser.TintModes` enumerates the available modes: `MULTIPLY`, `FILL`, `ADD`, `SCREEN`, `OVERLAY`, `HARD_LIGHT`.
 
@@ -141,6 +143,7 @@ sprite.setTint(0xff0000).setTintMode(Phaser.TintModes.FILL);
 ```
 
 **Other tint changes:**
+
 - `tint` and `setTint()` now purely affect color settings. In v3, calling these would silently deactivate fill mode.
 - FILL mode now treats partial alpha correctly.
 - BitmapText tinting now works correctly.
@@ -153,12 +156,12 @@ The camera matrix system has been rewritten. If you only use standard camera pro
 
 **What changed:**
 
-| v3 | v4 |
-|---|---|
+| v3                                           | v4                                                       |
+| -------------------------------------------- | -------------------------------------------------------- |
 | `Camera#matrix` = position + rotation + zoom | `Camera#matrix` = rotation + zoom + scroll (no position) |
-| Scroll appended separately | Scroll is part of `Camera#matrix` |
-| No equivalent | `Camera#matrixExternal` = position only |
-| No equivalent | `Camera#matrixCombined` = `matrix` * `matrixExternal` |
+| Scroll appended separately                   | Scroll is part of `Camera#matrix`                        |
+| No equivalent                                | `Camera#matrixExternal` = position only                  |
+| No equivalent                                | `Camera#matrixCombined` = `matrix` \* `matrixExternal`   |
 
 **If you manipulated scroll factors manually:**
 
@@ -167,10 +170,17 @@ The camera matrix system has been rewritten. If you only use standard camera pro
 spriteMatrix.e -= camera.scrollX * src.scrollFactorX;
 
 // v4
-TransformMatrix.copyWithScrollFactorFrom(matrix, scrollX, scrollY, scrollFactorX, scrollFactorY);
+TransformMatrix.copyWithScrollFactorFrom(
+  matrix,
+  scrollX,
+  scrollY,
+  scrollFactorX,
+  scrollFactorY,
+);
 ```
 
 **Other camera changes:**
+
 - `GetCalcMatrix()` now takes an additional `ignoreCameraPosition` parameter.
 - `GetCalcMatrixResults` now includes a `matrixExternal` property.
 
@@ -181,6 +191,7 @@ TransformMatrix.copyWithScrollFactorFrom(matrix, scrollX, scrollY, scrollFactorX
 Phaser v3 used top-left orientation for textures, which caused mismatches internally (framebuffers drawn upside-down, then flipped). Phaser v4 uses GL orientation throughout, where Y=0 is at the bottom.
 
 **Action required:**
+
 - If you use **compressed textures**, they must be re-compressed with the Y axis starting at the bottom and increasing upwards. This is usually available as a "flip Y" option in your texture compression software.
 - Standard image textures (PNG, JPG, etc.) are handled automatically -- no action needed.
 - If you write **custom shaders**, note that texture coordinates now use GL conventions where Y=0 is at the bottom of the image.
@@ -194,6 +205,7 @@ In v3, `DynamicTexture` allowed you to define batches and perform intricate draw
 **Breaking change:** `DynamicTexture` and `RenderTexture` must now call `render()` to execute all buffered drawing commands. Previously, draw commands were executed immediately.
 
 **New capabilities:**
+
 - `DynamicTexture#preserve()` keeps the command buffer for reuse after rendering, allowing you to re-render commands that draw changing game objects.
 - `DynamicTexture#callback()` inserts a callback to run during command buffer execution.
 - `DynamicTexture#capture` renders game objects more accurately than `draw`, capturing the current camera view.
@@ -207,6 +219,7 @@ In v3, `DynamicTexture` allowed you to define batches and perform intricate draw
 The `Shader` game object has been significantly rewritten. Existing v3 shaders will need to be updated.
 
 **What changed:**
+
 - The construction signature now takes a config object (`ShaderQuadConfig`) instead of individual parameters.
 - Shadertoy-style uniforms (resolution, time, etc.) are no longer set automatically. Encode them into your configuration if needed.
 - Texture coordinates now use GL conventions (Y=0 at bottom).
@@ -232,13 +245,14 @@ Lighting has been simplified and enhanced.
 
 ```js
 // v3 - Pipeline-based lighting
-sprite.setPipeline('Light2D');
+sprite.setPipeline("Light2D");
 
 // v4 - Simple method call
 sprite.setLighting(true);
 ```
 
 **Other lighting changes:**
+
 - Lighting is available on many game objects: BitmapText, Blitter, Graphics, Shape, Image, Sprite, Particles, SpriteGPULayer, Stamp, Text, TileSprite, Video, TilemapLayer, and TilemapGPULayer.
 - Objects can now cast **self-shadows** using a shader that simulates shadows from surface features based on texture brightness. Configurable game-wide or per-object.
 - Lights now have a `z` value to set height explicitly, replacing the implicit height based on game resolution from v3.
@@ -252,10 +266,12 @@ sprite.setLighting(true);
 TileSprite has been internally rewritten to use a new shader that manually controls texture coordinate wrapping instead of relying on WebGL texture wrapping parameters.
 
 **What changed:**
+
 - `TileSprite` no longer supports texture cropping.
 - TileSprite now assigns default dimensions to each dimension separately.
 
 **New capabilities:**
+
 - TileSprite now supports **texture frames** within atlases and spritesheets (v3 could only repeat the entire texture file).
 - New `tileRotation` property allows rotating the repeating texture.
 - Works correctly with compressed textures, non-power-of-two textures, and DynamicTextures (all had issues in v3).
@@ -276,23 +292,23 @@ The `Geom.Point` class and all related functions have been removed. Use `Vector2
 
 **Quick reference for method replacements:**
 
-| v3 (`Point`) | v4 (`Vector2` / `Math`) |
-|---|---|
-| `Point.Ceil` | `Vector2.ceil` |
-| `Point.Floor` | `Vector2.floor` |
-| `Point.Clone` | `Vector2.clone` |
-| `Point.CopyFrom(src, dest)` | `dest.copy(src)` |
-| `Point.Equals` | `Vector2.equals` |
-| `Point.GetCentroid` | `Math.GetCentroid` |
-| `Point.GetMagnitude` | `Vector2.length` |
-| `Point.GetMagnitudeSq` | `Vector2.lengthSq` |
-| `Point.Invert` | `Vector2.invert` |
-| `Point.Negative` | `Vector2.negate` |
-| `Point.SetMagnitude` | `Vector2.setLength` |
-| `Point.Project` | `Vector2.project` |
-| `Point.ProjectUnit` | `Vector2.projectUnit` |
-| `Point.Interpolate` | `Math.LinearXY` |
-| `Point.GetRectangleFromPoints` | `Math.GetVec2Bounds` |
+| v3 (`Point`)                   | v4 (`Vector2` / `Math`) |
+| ------------------------------ | ----------------------- |
+| `Point.Ceil`                   | `Vector2.ceil`          |
+| `Point.Floor`                  | `Vector2.floor`         |
+| `Point.Clone`                  | `Vector2.clone`         |
+| `Point.CopyFrom(src, dest)`    | `dest.copy(src)`        |
+| `Point.Equals`                 | `Vector2.equals`        |
+| `Point.GetCentroid`            | `Math.GetCentroid`      |
+| `Point.GetMagnitude`           | `Vector2.length`        |
+| `Point.GetMagnitudeSq`         | `Vector2.lengthSq`      |
+| `Point.Invert`                 | `Vector2.invert`        |
+| `Point.Negative`               | `Vector2.negate`        |
+| `Point.SetMagnitude`           | `Vector2.setLength`     |
+| `Point.Project`                | `Vector2.project`       |
+| `Point.ProjectUnit`            | `Vector2.projectUnit`   |
+| `Point.Interpolate`            | `Math.LinearXY`         |
+| `Point.GetRectangleFromPoints` | `Math.GetVec2Bounds`    |
 
 **All geometry classes now return Vector2 instead of Point:**
 
@@ -311,11 +327,11 @@ If you have code that checks `instanceof Phaser.Geom.Point`, update it to check 
 
 ## 14. Math Constants
 
-| v3 | v4 | Notes |
-|---|---|---|
-| `Math.TAU` (was PI / 2) | `Math.TAU` (now PI * 2) | **Value changed!** This is now the correct mathematical tau. |
-| `Math.PI2` | Removed | Use `Math.TAU` instead. |
-| No equivalent | `Math.PI_OVER_2` | New constant for PI / 2 (what v3's `TAU` incorrectly was). |
+| v3                      | v4                       | Notes                                                        |
+| ----------------------- | ------------------------ | ------------------------------------------------------------ |
+| `Math.TAU` (was PI / 2) | `Math.TAU` (now PI \* 2) | **Value changed!** This is now the correct mathematical tau. |
+| `Math.PI2`              | Removed                  | Use `Math.TAU` instead.                                      |
+| No equivalent           | `Math.PI_OVER_2`         | New constant for PI / 2 (what v3's `TAU` incorrectly was).   |
 
 **Action required:** If you used `Math.TAU` in v3 expecting PI / 2, replace it with `Math.PI_OVER_2`. If you used `Math.PI2`, replace it with `Math.TAU`.
 
@@ -368,6 +384,7 @@ The following have been completely removed:
 **`Math.SinCosTableGenerator`** has been removed.
 
 **All legacy polyfills removed:**
+
 - `Array.forEach`
 - `Array.isArray`
 - `AudioContextMonkeyPatch`
@@ -409,7 +426,7 @@ Use this checklist to track your migration progress:
 - [ ] Update `ColorMatrix` calls (methods moved to `.colorMatrix` property)
 - [ ] Replace any `setTintFill()` calls with `setTint().setTintMode(Phaser.TintModes.FILL)`
 - [ ] Replace `Geom.Point` usage with `Vector2`
-- [ ] Update `Math.TAU` usage (now equals PI * 2, not PI / 2)
+- [ ] Update `Math.TAU` usage (now equals PI \* 2, not PI / 2)
 - [ ] Replace `Math.PI2` with `Math.TAU`
 - [ ] Replace `Phaser.Struct.Set` with native `Set`
 - [ ] Replace `Phaser.Struct.Map` with native `Map`

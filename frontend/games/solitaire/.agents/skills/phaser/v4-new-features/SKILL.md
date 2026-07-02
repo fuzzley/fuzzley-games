@@ -17,15 +17,15 @@ Phaser 4 is a complete overhaul of the WebGL rendering engine. The v3 renderer l
 
 ### Key Removals
 
-| v3 Feature | v4 Replacement |
-|---|---|
-| `Pipeline` | `RenderNode` (per-task rendering nodes) |
-| FX (`preFX` / `postFX`) | Filters (`filters.internal` / `filters.external`) |
-| `BitmapMask` | `FilterMask` (via filters system) |
-| `GeometryMask` (WebGL) | `FilterMask` (Canvas still uses GeometryMask) |
+| v3 Feature                                 | v4 Replacement                                                              |
+| ------------------------------------------ | --------------------------------------------------------------------------- |
+| `Pipeline`                                 | `RenderNode` (per-task rendering nodes)                                     |
+| FX (`preFX` / `postFX`)                    | Filters (`filters.internal` / `filters.external`)                           |
+| `BitmapMask`                               | `FilterMask` (via filters system)                                           |
+| `GeometryMask` (WebGL)                     | `FilterMask` (Canvas still uses GeometryMask)                               |
 | Derived FX: Bloom, Circle, Gradient, Shine | Actions (`AddEffectBloom`, `AddEffectShine`, `AddMaskShape`) or GameObjects |
-| `Mesh` and `Plane` | Removed (proper 3D planned for future) |
-| `Point` | Use `Vector2` instead |
+| `Mesh` and `Plane`                         | Removed (proper 3D planned for future)                                      |
+| `Point`                                    | Use `Vector2` instead                                                       |
 
 ### Key Additions
 
@@ -81,29 +81,30 @@ The `RenderNodeManager` (on the WebGL renderer) owns all render nodes. Game obje
 // - 'Texturer': handles textures
 
 // GameObjects have default and custom render node maps:
-gameObject.defaultRenderNodes  // built-in nodes per role
-gameObject.customRenderNodes   // overrides per role
-gameObject.renderNodeData      // data keyed by node name
+gameObject.defaultRenderNodes; // built-in nodes per role
+gameObject.customRenderNodes; // overrides per role
+gameObject.renderNodeData; // data keyed by node name
 ```
 
 ### Setting Custom RenderNodes
 
 ```js
 // Override a specific render role:
-gameObject.setRenderNodeRole('Submitter', 'MyCustomSubmitter');
+gameObject.setRenderNodeRole("Submitter", "MyCustomSubmitter");
 
 // Pass data to a render node:
-gameObject.setRenderNodeRole('Transformer', 'MyTransformer', {
-    customProperty: 42
+gameObject.setRenderNodeRole("Transformer", "MyTransformer", {
+  customProperty: 42,
 });
 
 // Remove a custom node (falls back to default):
-gameObject.setRenderNodeRole('Submitter', null);
+gameObject.setRenderNodeRole("Submitter", null);
 ```
 
 ### Built-in RenderNode Types
 
 **Batch Handlers** (accumulate and draw multiple objects per draw call):
+
 - `BatchHandlerQuad` -- standard quad batching (Image, Sprite, BitmapText, etc.)
 - `BatchHandlerQuadSingle` -- single-quad variant
 - `BatchHandlerTileSprite` -- TileSprite batching
@@ -112,16 +113,20 @@ gameObject.setRenderNodeRole('Submitter', null);
 - `BatchHandlerStrip` -- triangle strip batching
 
 **Submitters** (coordinate rendering per object type):
+
 - `SubmitterQuad`, `SubmitterTile`, `SubmitterTileSprite`
 - `SubmitterSpriteGPULayer`, `SubmitterTilemapGPULayer`
 
 **Transformers** (compute vertex positions):
+
 - `TransformerImage`, `TransformerStamp`, `TransformerTile`, `TransformerTileSprite`
 
 **Texturers** (manage texture binding):
+
 - `TexturerImage`, `TexturerTileSprite`
 
 **Filters** (post-processing -- see `filters-and-postfx.md`):
+
 - `BaseFilter`, `BaseFilterShader`
 - `FilterBarrel`, `FilterBlend`, `FilterBlocky`, `FilterBlur` (Low/Med/High variants)
 - `FilterBokeh`, `FilterColorMatrix`, `FilterCombineColorMatrix`
@@ -131,6 +136,7 @@ gameObject.setRenderNodeRole('Submitter', null);
 - `FilterSampler`, `FilterShadow`, `FilterThreshold`, `FilterVignette`, `FilterWipe`
 
 **Other**:
+
 - `Camera`, `FillCamera`, `FillRect`, `FillPath`, `FillTri`
 - `DrawLine`, `StrokePath`, `ShaderQuad`
 - `ListCompositor`, `RebindContext`, `YieldContext`
@@ -140,10 +146,10 @@ gameObject.setRenderNodeRole('Submitter', null);
 
 ```js
 // Register a custom node constructor:
-renderer.renderNodes.addNodeConstructor('MyNode', MyNodeClass);
+renderer.renderNodes.addNodeConstructor("MyNode", MyNodeClass);
 
 // Or add a pre-built node instance:
-renderer.renderNodes.addNode('MyNode', myNodeInstance);
+renderer.renderNodes.addNode("MyNode", myNodeInstance);
 ```
 
 ---
@@ -156,20 +162,21 @@ Captures the current framebuffer contents to a texture at the point in the displ
 
 ```js
 // Everything above this in the display list gets captured:
-const image1 = this.add.image(400, 300, 'background');
+const image1 = this.add.image(400, 300, "background");
 
 // Enable framebuffer usage on the camera:
 this.cameras.main.setForceComposite(true);
 
 // Create the capture point:
-const capture = this.add.captureFrame('myCapturedTexture');
+const capture = this.add.captureFrame("myCapturedTexture");
 
 // Use the captured texture on another object:
-const overlay = this.add.image(400, 300, 'myCapturedTexture');
+const overlay = this.add.image(400, 300, "myCapturedTexture");
 // Add filters to the overlay to distort the captured scene
 ```
 
 **Key details:**
+
 - Requires `camera.setForceComposite(true)` or a framebuffer context (Filters, DynamicTexture, camera with partial alpha)
 - Inside a Container with filters, captures only that Container's contents
 - Setting `visible = false` stops capturing
@@ -186,23 +193,44 @@ Displays GPU-rendered color gradients. Extends `Shader`. Supports linear, radial
 const grad = this.add.gradient(undefined, 100, 100, 200, 200);
 
 // Complex radial gradient with multiple color bands:
-const halo = this.add.gradient({
+const halo = this.add.gradient(
+  {
     bands: [
-        { start: 0.5, end: 0.6, colorStart: [0.5, 0.5, 1, 0], colorEnd: 0xffffff, colorSpace: 1, interpolation: 4 },
-        { start: 0.6, end: 1, colorStart: 0xffffff, colorEnd: [1, 0.5, 0.5, 0], colorSpace: 1, interpolation: 3 }
+      {
+        start: 0.5,
+        end: 0.6,
+        colorStart: [0.5, 0.5, 1, 0],
+        colorEnd: 0xffffff,
+        colorSpace: 1,
+        interpolation: 4,
+      },
+      {
+        start: 0.6,
+        end: 1,
+        colorStart: 0xffffff,
+        colorEnd: [1, 0.5, 0.5, 0],
+        colorSpace: 1,
+        interpolation: 3,
+      },
     ],
     dither: true,
     repeatMode: 1,
-    shapeMode: 2,       // radial
+    shapeMode: 2, // radial
     start: { x: 0.5, y: 0.5 },
-    shape: { x: 0.5, y: 0.0 }
-}, 400, 300, 800, 800);
+    shape: { x: 0.5, y: 0.0 },
+  },
+  400,
+  300,
+  800,
+  800,
+);
 
 // Animate:
 halo.offset = 0.1 * (1 + Math.sin(time / 1000));
 ```
 
 **Key details:**
+
 - Config: `GradientQuadConfig` with `bands`, `shapeMode`, `repeatMode`, `start`, `shape`, `dither`
 - Colors defined via `ColorRamp` with `ColorBand` objects (supports HSV, various interpolation modes)
 - Call `gradient.ramp.encode()` after modifying ramp data at runtime
@@ -213,40 +241,59 @@ halo.offset = 0.1 * (1 + Math.sin(time / 1000));
 
 All noise types extend `Shader` and are WebGL only. Six variants available:
 
-| Type | Factory | Description |
-|---|---|---|
-| `Noise` | `this.add.noise()` | White noise (random hash-based) |
-| `NoiseCell2D` | `this.add.noiseCell2D()` | 2D cellular/Worley/Voronoi noise |
-| `NoiseCell3D` | `this.add.noiseCell3D()` | 3D cellular noise (Z-axis slicing for animation) |
-| `NoiseCell4D` | `this.add.noiseCell4D()` | 4D cellular noise (Z+W axis slicing) |
-| `NoiseSimplex2D` | `this.add.noiseSimplex2D()` | 2D simplex/gradient noise (clouds, fire, water) |
-| `NoiseSimplex3D` | `this.add.noiseSimplex3D()` | 3D simplex noise |
+| Type             | Factory                     | Description                                      |
+| ---------------- | --------------------------- | ------------------------------------------------ |
+| `Noise`          | `this.add.noise()`          | White noise (random hash-based)                  |
+| `NoiseCell2D`    | `this.add.noiseCell2D()`    | 2D cellular/Worley/Voronoi noise                 |
+| `NoiseCell3D`    | `this.add.noiseCell3D()`    | 3D cellular noise (Z-axis slicing for animation) |
+| `NoiseCell4D`    | `this.add.noiseCell4D()`    | 4D cellular noise (Z+W axis slicing)             |
+| `NoiseSimplex2D` | `this.add.noiseSimplex2D()` | 2D simplex/gradient noise (clouds, fire, water)  |
+| `NoiseSimplex3D` | `this.add.noiseSimplex3D()` | 3D simplex noise                                 |
 
 ```js
 // Basic white noise:
-const noise = this.add.noise({
+const noise = this.add.noise(
+  {
     noiseOffset: [0, 0],
-    noisePower: 1
-}, 100, 100, 256, 256);
+    noisePower: 1,
+  },
+  100,
+  100,
+  256,
+  256,
+);
 
 // Cellular noise with customization:
-const cells = this.add.noiseCell2D({
+const cells = this.add.noiseCell2D(
+  {
     noiseOffset: [0, 0],
     noiseIterations: 3,
-    noiseNormalMap: true    // output as normal map for lighting
-}, 200, 200, 256, 256);
+    noiseNormalMap: true, // output as normal map for lighting
+  },
+  200,
+  200,
+  256,
+  256,
+);
 
 // Simplex noise for natural effects:
-const simplex = this.add.noiseSimplex2D({
-    noiseFlow: 0,           // animate this for evolution
+const simplex = this.add.noiseSimplex2D(
+  {
+    noiseFlow: 0, // animate this for evolution
     noiseIterations: 4,
-    noiseWarpAmount: 0.5,   // turbulence
+    noiseWarpAmount: 0.5, // turbulence
     noiseSeed: 42,
-    noiseNormalMap: false
-}, 300, 300, 256, 256);
+    noiseNormalMap: false,
+  },
+  300,
+  300,
+  256,
+  256,
+);
 ```
 
 **Common properties across noise types:**
+
 - `noiseOffset` -- `[x, y]` array to scroll the pattern
 - `noisePower` -- sculpt output levels (higher suppresses high values)
 - `noiseNormalMap` -- output normal map (for lighting integration)
@@ -264,13 +311,20 @@ Renders very large numbers of quads (up to millions) in a single draw call by st
 const layer = this.add.spriteGPULayer(texture, size); // size = max number of members
 
 // Add members (do this all at once, not incrementally):
-const member = { x: 100, y: 200, frame: 'tree', scaleX: 1, scaleY: 1, alpha: 1 };
+const member = {
+  x: 100,
+  y: 200,
+  frame: "tree",
+  scaleX: 1,
+  scaleY: 1,
+  alpha: 1,
+};
 layer.addMember(member);
 
 // Reuse the member object for efficiency with millions of entries:
 member.x = 300;
 member.y = 400;
-member.frame = 'bush';
+member.frame = "bush";
 layer.addMember(member);
 
 // Enable lighting on the layer:
@@ -278,6 +332,7 @@ layer.setLighting(true);
 ```
 
 **Key details:**
+
 - Single texture only (no multi-atlas), single image per layer
 - Members support tween-like animations (fade, bounce, wave, color shift) defined at creation
 - Updating buffer contents is expensive -- populate once, leave unchanged
@@ -299,17 +354,17 @@ Replaces the v3 approach of assigning a lighting pipeline. WebGL only.
 
 ```js
 // v3 approach:
-sprite.setPipeline('Light2D');
+sprite.setPipeline("Light2D");
 
 // v4 approach:
 sprite.setLighting(true);
 
 // Self-shadowing (simulates surface shadows from texture brightness):
-sprite.setSelfShadow(true, 0.5, 1/3);
+sprite.setSelfShadow(true, 0.5, 1 / 3);
 // Args: enabled, penumbra (lower = sharper), diffuseFlatThreshold (0-1)
 
 // Use game-wide default for self-shadow:
-sprite.setSelfShadow(null);  // reads from config.render.selfShadow
+sprite.setSelfShadow(null); // reads from config.render.selfShadow
 ```
 
 **Supported on**: BitmapText, Blitter, Graphics, Shape, Image, Sprite, Particles, SpriteGPULayer, Stamp, Text, TileSprite, Video, TilemapLayer, TilemapGPULayer.
@@ -324,17 +379,36 @@ Allows injecting custom logic into the render process of a game object. WebGL on
 
 ```js
 // Add a custom render step:
-gameObject.addRenderStep(function (renderer, gameObject, drawingContext, parentMatrix, renderStep, displayList, displayListIndex) {
+gameObject.addRenderStep(
+  function (
+    renderer,
+    gameObject,
+    drawingContext,
+    parentMatrix,
+    renderStep,
+    displayList,
+    displayListIndex,
+  ) {
     // Custom rendering logic here
     // Call next step when ready:
     var nextFn = gameObject._renderSteps[renderStep + 1];
     if (nextFn) {
-        nextFn(renderer, gameObject, drawingContext, parentMatrix, renderStep + 1, displayList, displayListIndex);
+      nextFn(
+        renderer,
+        gameObject,
+        drawingContext,
+        parentMatrix,
+        renderStep + 1,
+        displayList,
+        displayListIndex,
+      );
     }
-});
+  },
+);
 ```
 
 **Key details:**
+
 - Steps are stored in `_renderSteps` array, executed via `renderWebGLStep()`
 - First step runs first and is responsible for calling subsequent steps
 - This is how Filters defer and control the `renderWebGL` flow
@@ -357,12 +431,13 @@ High-performance GPU-based tilemap rendering. Renders the entire layer as a sing
 
 ```js
 // Create via Tilemap with the gpu flag:
-const map = this.make.tilemap({ key: 'level1' });
-const tileset = map.addTilesetImage('tiles', 'tilesImage');
-const gpuLayer = map.createLayer('Ground', tileset, 0, 0, true);  // last arg: gpu = true
+const map = this.make.tilemap({ key: "level1" });
+const tileset = map.addTilesetImage("tiles", "tilesImage");
+const gpuLayer = map.createLayer("Ground", tileset, 0, 0, true); // last arg: gpu = true
 ```
 
 **Capabilities:**
+
 - Single tileset with single texture image
 - Maximum 4096x4096 tiles, up to 2^23 unique tile IDs
 - Tile flipping and animation supported
@@ -371,6 +446,7 @@ const gpuLayer = map.createLayer('Ground', tileset, 0, 0, true);  // last arg: g
 - Cost is per-pixel, not per-tile -- no performance loss with many visible tiles
 
 **Restrictions:**
+
 - Cannot use multiple tilesets
 - Editing requires manual `generateLayerDataTexture()` call to update
 - Orthographic only

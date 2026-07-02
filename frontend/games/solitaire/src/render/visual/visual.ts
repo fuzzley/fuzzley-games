@@ -3,7 +3,7 @@ import { Point } from "../../common/point";
 
 /**
  * Generic base class representing a visual wrapper.
- * 
+ *
  * Binds a logical model state to a Phaser Sprite and tracks its rendering coordinates.
  *
  * @template T The type of the logical model item wrapped by this visual.
@@ -17,7 +17,7 @@ export class Visual<T = unknown> {
    *
    * @param value The underlying logical model instance.
    */
-  constructor(public readonly value: T = undefined as unknown as T) { }
+  constructor(public readonly value: T = undefined as unknown as T) {}
 
   /**
    * Gets the relative screen position coordinates.
