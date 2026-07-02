@@ -269,7 +269,7 @@ export class BoardScene extends Scene {
   }
 
   /**
-   * Redraws the solid white highlight border around the hovered card if it is interactable.
+   * Redraws the thick, rounded, semi-transparent yellow highlight border around the hovered card if it is interactable.
    */
   public updateHighlightBorder(): void {
     if (!this.highlightGraphics) {
@@ -289,9 +289,11 @@ export class BoardScene extends Scene {
         const width = CARD_WIDTH_PX * scale;
         const height = CARD_HEIGHT_PX * scale;
 
-        // Draw solid white border with line thickness 4px
-        this.highlightGraphics.lineStyle(4, 0xffffff, 1);
-        this.highlightGraphics.strokeRect(sprite.x, sprite.y, width, height);
+        // Draw a thick, rounded, semi-transparent yellow border around the card
+        const thickness = 10 * scale;
+        const radius = 16 * scale;
+        this.highlightGraphics.lineStyle(thickness, 0xEBEF9B, 0.8);
+        this.highlightGraphics.strokeRoundedRect(sprite.x, sprite.y, width, height, radius);
       }
     }
   }
