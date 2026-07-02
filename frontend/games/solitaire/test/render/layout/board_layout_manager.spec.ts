@@ -78,4 +78,64 @@ describe("BoardLayoutManager", () => {
       y: 393,
     });
   });
+
+  it("updates visual layout and aligns sprites correctly", () => {
+    const mockStockPile = {
+      layoutPile: vi.fn(),
+      position: { x: 10, y: 20 },
+      playingCardVisuals: [
+        {
+          position: { x: 5, y: 5 },
+          sprite: { setPosition: vi.fn() }
+        },
+        {
+          position: { x: 6, y: 6 }
+        }
+      ]
+    };
+    const mockWastePile = {
+      layoutPile: vi.fn(),
+      position: { x: 30, y: 40 },
+      playingCardVisuals: []
+    };
+    const mockFoundationPile = {
+      layoutPile: vi.fn(),
+      position: { x: 50, y: 60 },
+      playingCardVisuals: [
+        {
+          position: { x: 2, y: 2 },
+          sprite: { setPosition: vi.fn() }
+        }
+      ]
+    };
+    const mockTableauPile = {
+      layoutPile: vi.fn(),
+      position: { x: 70, y: 80 },
+      playingCardVisuals: [
+        {
+          position: { x: 3, y: 3 },
+          sprite: { setPosition: vi.fn() }
+        }
+      ]
+    };
+
+    const mockBoardScene = {
+      stockPile: mockStockPile,
+      wastePile: mockWastePile,
+      foundationPiles: [mockFoundationPile],
+      tableauPiles: [mockTableauPile],
+    };
+
+    const layoutManager = new BoardLayoutManager(mockBoardScene as any);
+    layoutManager.updateVisualLayout();
+
+    expect(mockStockPile.layoutPile).toHaveBeenCalled();
+    expect(mockWastePile.layoutPile).toHaveBeenCalled();
+    expect(mockFoundationPile.layoutPile).toHaveBeenCalled();
+    expect(mockTableauPile.layoutPile).toHaveBeenCalled();
+
+    expect(mockStockPile.playingCardVisuals[0].sprite.setPosition).toHaveBeenCalledWith(15, 25);
+    expect(mockFoundationPile.playingCardVisuals[0].sprite.setPosition).toHaveBeenCalledWith(52, 62);
+    expect(mockTableauPile.playingCardVisuals[0].sprite.setPosition).toHaveBeenCalledWith(73, 83);
+  });
 });

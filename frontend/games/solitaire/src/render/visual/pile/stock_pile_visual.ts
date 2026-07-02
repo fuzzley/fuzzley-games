@@ -1,4 +1,5 @@
 import { CardPile } from "../../../model/card/card_pile";
+import { PlayingCard } from "../../../model/card/playing_card";
 import { PlayingCardVisual } from "../card/playing_card_visual";
 import { Visual } from "../visual";
 
@@ -7,7 +8,7 @@ import { Visual } from "../visual";
  *
  * Manages the positioning of stacked cards in the face-down stock draw pile (which are stacked directly on top of each other).
  */
-export class StockPileVisual extends Visual<CardPile> {
+export class StockPileVisual extends Visual<CardPile<PlayingCard>> {
   /**
    * Constructs a stock pile visual.
    *
@@ -15,7 +16,7 @@ export class StockPileVisual extends Visual<CardPile> {
    * @param playingCardVisuals The array of card visuals in this pile.
    */
   constructor(
-    cardPile: CardPile = new CardPile(),
+    cardPile: CardPile<PlayingCard> = new CardPile<PlayingCard>(),
     public readonly playingCardVisuals: PlayingCardVisual[] = [],
   ) {
     super(cardPile);

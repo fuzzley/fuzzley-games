@@ -8,6 +8,15 @@ import { TableauPileVisual } from "../../src/render/visual/pile/tableau_pile_vis
 import { Visual } from "../../src/render/visual/visual";
 
 describe("Visual classes", () => {
+  describe("Visual Base Class", () => {
+    it("can set and get sprite", () => {
+      const visual = new Visual();
+      const mockSprite = { setPosition: vi.fn() } as any;
+      visual.sprite = mockSprite;
+      expect(visual.sprite).toBe(mockSprite);
+    });
+  });
+
   describe("PlayingCardVisual", () => {
     it("can be created and extends Visual", () => {
       const playingCard = new PlayingCard();

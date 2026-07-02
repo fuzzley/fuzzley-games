@@ -73,7 +73,14 @@ export class BoardLayoutManager {
    * card sprites on screen to their absolute layout coordinates.
    */
   updateVisualLayout() {
-    // 1. Compute relative positions for cards inside each pile
+    this.computePileLayouts();
+    this.alignAllCardSprites();
+  }
+
+  /**
+   * Triggers the relative card layout calculations for all stock, waste, foundation, and tableau piles.
+   */
+  private computePileLayouts(): void {
     this.boardScene.stockPile.layoutPile();
     this.boardScene.wastePile.layoutPile();
     for (const pile of this.boardScene.foundationPiles) {
@@ -82,24 +89,36 @@ export class BoardLayoutManager {
     for (const pile of this.boardScene.tableauPiles) {
       pile.layoutPile();
     }
+  }
 
-    // Helper to place card sprites at their absolute screen coordinates
-    const syncPileSprites = (pileVisual: PileVisual) => {
-      const pileX = pileVisual.position.x;
-      const pileY = pileVisual.position.y;
-      for (const cardVisual of pileVisual.playingCardVisuals) {
-        const absX = pileX + cardVisual.position.x;
-        const absY = pileY + cardVisual.position.y;
-        if (cardVisual.sprite) {
-          cardVisual.sprite.setPosition(absX, absY);
-        }
+  /**
+   * Aligns all card sprites to their absolute layout coordinates.
+   */
+  private alignAllCardSprites(): void {
+    this.syncPileSprites(this.boardScene.stockPile);
+    this.syncPileSprites(this.boardScene.wastePile);
+    for (const pile of this.boardScene.foundationPiles) {
+      this.syncPileSprites(pile);
+    }
+    for (const pile of this.boardScene.tableauPiles) {
+      this.syncPileSprites(pile);
+    }
+  }
+
+  /**
+   * Synchronizes the absolute screen positions of card sprites inside a given pile visual representation.
+   *
+   * @param pileVisual The visual wrapper of the pile whose card sprites are to be updated.
+   */
+  private syncPileSprites(pileVisual: PileVisual): void {
+    const pileX = pileVisual.position.x;
+    const pileY = pileVisual.position.y;
+    for (const cardVisual of pileVisual.playingCardVisuals) {
+      const absX = pileX + cardVisual.position.x;
+      const absY = pileY + cardVisual.position.y;
+      if (cardVisual.sprite) {
+        cardVisual.sprite.setPosition(absX, absY);
       }
-    };
-
-    // 2. Align card sprites
-    syncPileSprites(this.boardScene.stockPile);
-    syncPileSprites(this.boardScene.wastePile);
-    this.boardScene.foundationPiles.forEach(syncPileSprites);
-    this.boardScene.tableauPiles.forEach(syncPileSprites);
+    }
   }
 }

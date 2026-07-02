@@ -19,13 +19,12 @@ export class EventEmitter<EventMap extends Record<string, unknown>> {
     event: K,
     listener: Listener<EventMap[K]>,
   ): void {
-    if (!this.listeners[event]) {
-      this.listeners[event] = [];
+    let list = this.listeners[event];
+    if (!list) {
+      list = [];
+      this.listeners[event] = list;
     }
-    const list = this.listeners[event];
-    if (list) {
-      list.push(listener);
-    }
+    list.push(listener);
   }
 
   /**

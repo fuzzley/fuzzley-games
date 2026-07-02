@@ -1,11 +1,12 @@
 import { Card } from "./card";
 
 /** Represents a pile of cards on the board. */
-export class CardPile {
+export class CardPile<T extends Card = Card> {
   /** A unique identifier for the card pile (e.g., "stock", "tableau-0"). */
   public readonly id: string;
 
-  protected readonly cards: Card[] = [];
+  /** List of cards contained in this pile. */
+  protected readonly cards: T[] = [];
 
   /**
    * Constructs a card pile with a unique identifier.
@@ -17,17 +18,17 @@ export class CardPile {
   }
 
   /** Returns a readonly list of cards. */
-  getCards(): ReadonlyArray<Card> {
+  getCards(): ReadonlyArray<T> {
     return this.cards;
   }
 
   /** Adds a card to the pile. */
-  addCard(card: Card): void {
+  addCard(card: T): void {
     this.cards.push(card);
   }
 
   /** Removes a card from the pile. */
-  removeCard(card: Card): void {
+  removeCard(card: T): void {
     const index = this.cards.indexOf(card);
     if (index > -1) {
       this.cards.splice(index, 1);

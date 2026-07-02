@@ -16,25 +16,39 @@ import {
  */
 export class SolitaireGame extends EventEmitter<GameEvents> {
   /** The face-down stock pile from which cards are drawn. */
-  public readonly stock = new CardPile("stock");
+  public readonly stock = new CardPile<PlayingCard>("stock");
   /** The face-up waste pile containing drawn cards. */
-  public readonly waste = new CardPile("waste");
+  public readonly waste = new CardPile<PlayingCard>("waste");
   /** The four suit foundation piles (Hearts, Diamonds, Clubs, Spades). */
-  public readonly foundations: CardPile[] = [];
+  public readonly foundations: CardPile<PlayingCard>[] = [];
   /** The seven tableau piles arranged on the board. */
-  public readonly tableaus: CardPile[] = [];
+  public readonly tableaus: CardPile<PlayingCard>[] = [];
 
   private readonly allCardsMap = new Map<string, PlayingCard>();
+  private readonly pilesMap = new Map<string, CardPile<PlayingCard>>();
 
   /** Initializes the piles. */
   constructor() {
     super();
 
+    this.initializePiles();
+  }
+
+  /** Initializes all card piles and registers them in the lookup map. */
+  private initializePiles(): void {
+    this.pilesMap.set(this.stock.id, this.stock);
+    this.pilesMap.set(this.waste.id, this.waste);
+
     for (let i = 0; i < 4; i++) {
-      this.foundations.push(new CardPile(`foundation-${i}`));
+      const pile = new CardPile<PlayingCard>(`foundation-${i}`);
+      this.foundations.push(pile);
+      this.pilesMap.set(pile.id, pile);
     }
+
     for (let i = 0; i < 7; i++) {
-      this.tableaus.push(new CardPile(`tableau-${i}`));
+      const pile = new CardPile<PlayingCard>(`tableau-${i}`);
+      this.tableaus.push(pile);
+      this.pilesMap.set(pile.id, pile);
     }
   }
 
@@ -44,18 +58,8 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    * @param pileId The ID of the pile to find.
    * @returns The matching CardPile or undefined.
    */
-  public getPileById(pileId: string): CardPile | undefined {
-    if (pileId === "stock") return this.stock;
-    if (pileId === "waste") return this.waste;
-    if (pileId.startsWith("foundation-")) {
-      const idx = parseInt(pileId.split("-")[1], 10);
-      return this.foundations[idx];
-    }
-    if (pileId.startsWith("tableau-")) {
-      const idx = parseInt(pileId.split("-")[1], 10);
-      return this.tableaus[idx];
-    }
-    return undefined;
+  public getPileById(pileId: string): CardPile<PlayingCard> | undefined {
+    return this.pilesMap.get(pileId);
   }
 
   /**
@@ -74,7 +78,9 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    * @param cardId The ID of the card to search for.
    * @returns The parent CardPile or undefined.
    */
-  public getPileContainingCard(cardId: string): CardPile | undefined {
+  public getPileContainingCard(
+    cardId: string,
+  ): CardPile<PlayingCard> | undefined {
     const card = this.getCardById(cardId);
     if (!card) return undefined;
 
@@ -98,7 +104,16 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    * Tableau column i receives i+1 cards, with the top card face-up.
    */
   public startNewGame(): void {
-    // 1. Reset all card piles
+    this.resetPiles();
+    const deckCards = this.createAndShuffleDeck();
+    this.dealTableaus(deckCards);
+    this.populateStock(deckCards);
+  }
+
+  /**
+   * Resets all card piles to their initial empty state.
+   */
+  private resetPiles(): void {
     this.stock.clear();
     this.waste.clear();
     this.allCardsMap.clear();
@@ -108,8 +123,14 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     for (const tableau of this.tableaus) {
       tableau.clear();
     }
+  }
 
-    // 2. Generate and shuffle deck
+  /**
+   * Generates a full standard deck of 52 cards, shuffles them, and registers them.
+   *
+   * @returns A shuffled array of PlayingCards.
+   */
+  private createAndShuffleDeck(): PlayingCard[] {
     const tempDeck = new Deck();
     for (const cardId of ALL_PLAYING_CARD_IDS) {
       const playingCard = new PlayingCard();
@@ -124,9 +145,16 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     }
     tempDeck.shuffle();
 
-    const deckCards = [...tempDeck.getCards()] as PlayingCard[];
+    return [...tempDeck.getCards()] as PlayingCard[];
+  }
 
-    // 3. Deal to Tableaus: column i (0 to 6) gets i+1 cards
+  /**
+   * Deals cards to the 7 tableaus. Column i receives i + 1 cards,
+   * where the top-most card is face-up.
+   *
+   * @param deckCards The array of playing cards from which to deal.
+   */
+  private dealTableaus(deckCards: PlayingCard[]): void {
     for (let col = 0; col < 7; col++) {
       for (let row = 0; row <= col; row++) {
         const card = deckCards.pop();
@@ -138,8 +166,14 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
         }
       }
     }
+  }
 
-    // 4. Place remaining cards face-down into Stock
+  /**
+   * Places all remaining deck cards face-down into the stock pile.
+   *
+   * @param deckCards The array of remaining playing cards.
+   */
+  private populateStock(deckCards: PlayingCard[]): void {
     while (deckCards.length > 0) {
       const card = deckCards.pop();
       if (card) {
@@ -151,13 +185,14 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
 
   /**
    * Draws a card from the stock pile to the waste pile.
+   *
    * If stock is empty, recycles waste back into stock.
    */
   public drawCard(): void {
     const stockCards = this.stock.getCards();
     if (stockCards.length > 0) {
       // Draw top card from stock (last item in array)
-      const topCard = stockCards[stockCards.length - 1] as PlayingCard;
+      const topCard = stockCards[stockCards.length - 1];
       this.stock.removeCard(topCard);
       topCard.faceUp = true;
       this.waste.addCard(topCard);
@@ -173,10 +208,9 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       });
     } else {
       // Recycle Waste into Stock
-      const wasteCards = [...this.waste.getCards()] as PlayingCard[];
+      const wasteCards = [...this.waste.getCards()];
       if (wasteCards.length === 0) return;
 
-      // Clear waste pile
       this.waste.clear();
 
       // Put cards back to stock in reverse order, face-down
@@ -231,7 +265,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     if (cardIndex === -1) return false;
 
     // Get the moving stack (this card + everything on top of it)
-    const movingStack = sourceCards.slice(cardIndex) as PlayingCard[];
+    const movingStack = sourceCards.slice(cardIndex);
 
     // Validate the move
     const isValid = this.validateMove(card, targetPile, movingStack.length);
@@ -257,9 +291,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       sourcePile.getCards().length > 0
     ) {
       const remainingCards = sourcePile.getCards();
-      const topRemaining = remainingCards[
-        remainingCards.length - 1
-      ] as PlayingCard;
+      const topRemaining = remainingCards[remainingCards.length - 1];
       if (!topRemaining.faceUp) {
         topRemaining.faceUp = true;
         this.emit("card-flipped", {
@@ -302,14 +334,12 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
 
   private validateMove(
     card: PlayingCard,
-    targetPile: CardPile,
+    targetPile: CardPile<PlayingCard>,
     movingStackSize: number,
   ): boolean {
     const targetCards = targetPile.getCards();
     const topTargetCard =
-      targetCards.length > 0
-        ? (targetCards[targetCards.length - 1] as PlayingCard)
-        : null;
+      targetCards.length > 0 ? targetCards[targetCards.length - 1] : null;
 
     // Moving to Tableau Pile
     if (targetPile.id.startsWith("tableau-")) {
