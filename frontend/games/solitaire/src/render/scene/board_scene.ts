@@ -268,23 +268,22 @@ export class BoardScene extends Scene {
       // Initially draw all cards face down using the card-back frame
       const sprite = this.add.sprite(0, 0, "card_assets", "card-back-blue");
       sprite.setOrigin(0, 0);
-
-      // Enable filters and add a drop shadow
       sprite.enableFilters();
-      const shadow = sprite.filters?.internal.addShadow(
-        0,
-        0,
-        0.1,
-        1.0,
+
+      // Add two filters so that we get some shadow on both top left and bottom right.
+      sprite.filters?.external.addShadow(
+        0.5,
+        0.5,
+        0.05,
+        0.8,
         0x000000,
         6,
-        0.2,
+        0.05,
       );
-      shadow?.setPaddingOverride(-1, -1, 7, 7);
+      sprite.filters?.external.addShadow(0, 0, 0.1, 0.8, 0x000000, 6, 0.05);
 
       const visual = new PlayingCardVisual(cardModel);
       visual.sprite = sprite;
-      visual.shadow = shadow;
       this.cardVisualsMap.set(cardModel.id, visual);
 
       // Make card sprite interactive for pointer events
@@ -459,12 +458,6 @@ export class BoardScene extends Scene {
     // Bring the dragged cards to the top depth layer and adjust shadows for lift effect
     this.draggedStack.forEach((cardVis, idx) => {
       cardVis.sprite.setDepth(1000 + idx);
-      if (cardVis.shadow) {
-        cardVis.shadow.x = 6;
-        cardVis.shadow.y = 10;
-        cardVis.shadow.decay = 0.1;
-        cardVis.shadow.intensity = 0.3;
-      }
     });
 
     // Remove any active highlights immediately when starting to drag
@@ -506,22 +499,9 @@ export class BoardScene extends Scene {
 
     const visual = gameObject.getData("cardVisual") as PlayingCardVisual;
 
-    // Keep track of the dragged stack so we can reset their shadows
-    const stackToReset = [...this.draggedStack];
-
     // Clear drag tracking state first so that layout/highlight updates can accurately reflect that we are no longer dragging.
     this.draggedStack = [];
     this.draggedStackOffsets = [];
-
-    // Reset shadow values for the cards in the stack that were just dragged
-    stackToReset.forEach((cardVis) => {
-      if (cardVis.shadow) {
-        cardVis.shadow.x = 2;
-        cardVis.shadow.y = 3;
-        cardVis.shadow.decay = 0.2;
-        cardVis.shadow.intensity = 0.4;
-      }
-    });
 
     if (!visual) {
       this.layoutManager.updateVisualLayout();
