@@ -22,8 +22,8 @@ export class TableauPileVisual extends Visual<CardPile<PlayingCard>> {
     super(cardPile);
   }
 
-  private static readonly FACE_UP_OFFSET = 35;
-  private static readonly FACE_DOWN_OFFSET = 15;
+  private static readonly FACE_UP_OFFSET = 45;
+  private static readonly FACE_DOWN_OFFSET = 18;
 
   /**
    * Fans cards vertically downwards, using the configured offsets for face-down and face-up cards.

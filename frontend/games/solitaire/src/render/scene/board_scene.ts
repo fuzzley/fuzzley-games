@@ -332,7 +332,7 @@ export class BoardScene extends Scene {
       0,
       0,
       "card_assets",
-      "card-placeholder",
+      "card-placeholder-full-border-reset",
     );
     stockSprite.setOrigin(0, 0);
     // Make stock pile placeholder interactive to allow recycling when stock is empty
@@ -362,6 +362,18 @@ export class BoardScene extends Scene {
       );
       tableauSprite.setOrigin(0, 0);
       tableauPile.sprite = tableauSprite;
+    }
+
+    // Foundation piles background
+    for (const foundationPile of this.foundationPiles) {
+      const foundationSprite = this.add.sprite(
+        0,
+        0,
+        "card_assets",
+        "card-placeholder-full-border-circle",
+      );
+      foundationSprite.setOrigin(0, 0);
+      foundationPile.sprite = foundationSprite;
     }
   }
 

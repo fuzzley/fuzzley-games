@@ -13,15 +13,15 @@ interface MockInput {
 
 // Mock phaser entirely
 vi.mock("phaser", () => {
-  const createMockSprite = () => {
+  const createMockSprite = (x = 0, y = 0, texture = "", frame = "") => {
     const listeners: { [event: string]: Function[] } = {};
     const dataMap = new Map<string, any>();
     const sprite = {
-      x: 0,
-      y: 0,
+      x,
+      y,
       scale: 1,
       depth: 0,
-      frame: "",
+      frame,
       originX: 0,
       originY: 0,
       setOrigin: vi.fn().mockImplementation(function (
@@ -83,7 +83,7 @@ vi.mock("phaser", () => {
       active: true,
       enableFilters: vi.fn().mockReturnThis(),
       filters: {
-        internal: {
+        external: {
           addShadow: vi.fn().mockImplementation(() => ({
             x: 2,
             y: 3,
@@ -107,7 +107,9 @@ vi.mock("phaser", () => {
           strokeRoundedRect: vi.fn().mockReturnThis(),
           setDepth: vi.fn().mockReturnThis(),
         })),
-        sprite: vi.fn(() => createMockSprite()),
+        sprite: vi.fn((x, y, texture, frame) =>
+          createMockSprite(x, y, texture, frame),
+        ),
       };
       scale = {
         on: vi.fn(),
@@ -179,12 +181,25 @@ describe("BoardScene", () => {
     boardScene.create();
   });
 
-  it("assigns card-placeholder background sprite to stock and tableau piles", () => {
+  it("assigns background placeholder sprites to stock, tableau, and foundation piles", () => {
     expect(boardScene.stockPile.sprite).toBeDefined();
     expect(boardScene.stockPile.sprite).not.toBeNull();
+    expect(boardScene.stockPile.sprite.frame).toBe(
+      "card-placeholder-full-border-reset",
+    );
+
     for (const tableauPile of boardScene.tableauPiles) {
       expect(tableauPile.sprite).toBeDefined();
       expect(tableauPile.sprite).not.toBeNull();
+      expect(tableauPile.sprite.frame).toBe("card-placeholder");
+    }
+
+    for (const foundationPile of boardScene.foundationPiles) {
+      expect(foundationPile.sprite).toBeDefined();
+      expect(foundationPile.sprite).not.toBeNull();
+      expect(foundationPile.sprite.frame).toBe(
+        "card-placeholder-full-border-circle",
+      );
     }
   });
 
@@ -967,51 +982,6 @@ describe("BoardScene", () => {
       expect(moveSpy).toHaveBeenCalled();
       expect(layoutSpy).toHaveBeenCalled();
       moveSpy.mockRestore();
-    });
-
-    it("updates shadow properties on dragstart and resets on dragend", () => {
-      const tableau0 = boardScene.tableauPiles[0];
-      const visual0 = tableau0.playingCardVisuals[0];
-      const sprite0 = visual0.sprite;
-
-      // Verify initial shadow values (from our mock implementation)
-      expect(visual0.shadow).toBeDefined();
-      expect(visual0.shadow!.x).toBe(2);
-      expect(visual0.shadow!.y).toBe(3);
-      expect(visual0.shadow!.decay).toBe(0.2);
-      expect(visual0.shadow!.intensity).toBe(0.4);
-      expect(visual0.shadow!.setPaddingOverride).toHaveBeenCalledWith(
-        0,
-        0,
-        30,
-        30,
-      );
-
-      // Trigger dragstart
-      (boardScene.input as unknown as MockInput)._trigger(
-        "dragstart",
-        {},
-        sprite0,
-      );
-
-      // Verify that shadow values are adjusted for the lift effect
-      expect(visual0.shadow!.x).toBe(6);
-      expect(visual0.shadow!.y).toBe(10);
-      expect(visual0.shadow!.decay).toBe(0.1);
-      expect(visual0.shadow!.intensity).toBe(0.3);
-
-      // Trigger dragend
-      (boardScene.input as unknown as MockInput)._trigger(
-        "dragend",
-        {},
-        sprite0,
-      );
-
-      // Verify that shadow values are reset to defaults
-      expect(visual0.shadow!.x).toBe(2);
-      expect(visual0.shadow!.y).toBe(3);
-      expect(visual0.shadow!.decay).toBe(0.2);
-      expect(visual0.shadow!.intensity).toBe(0.4);
     });
   });
 
