@@ -119,48 +119,70 @@ describe("BoardScene", () => {
     expect(updateLayoutSpy).toHaveBeenCalled();
   });
 
-  it("handles card-moved, card-flipped, stock-recycled, and game-won event callbacks", () => {
+  it("syncs visual piles and updates highlight on card-moved event", () => {
     const game = (boardScene as any).gameModel;
     const syncSpy = vi.spyOn(boardScene as any, "syncVisualPilesWithModel");
     const updateHighlightSpy = vi.spyOn(boardScene, "updateHighlightBorder");
+
+    game.emit("card-moved");
+
+    expect(syncSpy).toHaveBeenCalled();
+    expect(updateHighlightSpy).toHaveBeenCalled();
+  });
+
+  it("syncs visual piles and updates highlight on stock-recycled event", () => {
+    const game = (boardScene as any).gameModel;
+    const syncSpy = vi.spyOn(boardScene as any, "syncVisualPilesWithModel");
+    const updateHighlightSpy = vi.spyOn(boardScene, "updateHighlightBorder");
+
+    game.emit("stock-recycled");
+
+    expect(syncSpy).toHaveBeenCalled();
+    expect(updateHighlightSpy).toHaveBeenCalled();
+  });
+
+  it("logs a message on game-won event", () => {
+    const game = (boardScene as any).gameModel;
     const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
-    // Trigger card-moved
-    game.emit("card-moved");
-    expect(syncSpy).toHaveBeenCalled();
-    expect(updateHighlightSpy).toHaveBeenCalled();
-
-    // Trigger stock-recycled
-    syncSpy.mockClear();
-    updateHighlightSpy.mockClear();
-    game.emit("stock-recycled");
-    expect(syncSpy).toHaveBeenCalled();
-    expect(updateHighlightSpy).toHaveBeenCalled();
-
-    // Trigger game-won
     game.emit("game-won");
+
     expect(consoleLogSpy).toHaveBeenCalledWith("Congratulations! You won!");
     consoleLogSpy.mockRestore();
+  });
 
-    // Trigger card-flipped
-    // 1. With visual card that has a sprite, faceUp true
+  it("updates card sprite frame to card ID on card-flipped event (faceUp true)", () => {
+    const game = (boardScene as any).gameModel;
     const tableau0 = boardScene.tableauPiles[0];
     const visual0 = tableau0.playingCardVisuals[0];
     const setFrameSpy = vi.spyOn(visual0.sprite, "setFrame");
-    game.emit("card-flipped", { cardId: visual0.playingCard.id, faceUp: true });
-    expect(setFrameSpy).toHaveBeenCalledWith(visual0.playingCard.id);
 
-    // 2. With visual card that has a sprite, faceUp false
-    setFrameSpy.mockClear();
+    game.emit("card-flipped", { cardId: visual0.playingCard.id, faceUp: true });
+
+    expect(setFrameSpy).toHaveBeenCalledWith(visual0.playingCard.id);
+  });
+
+  it("updates card sprite frame to card-back-blue on card-flipped event (faceUp false)", () => {
+    const game = (boardScene as any).gameModel;
+    const tableau0 = boardScene.tableauPiles[0];
+    const visual0 = tableau0.playingCardVisuals[0];
+    const setFrameSpy = vi.spyOn(visual0.sprite, "setFrame");
+
     game.emit("card-flipped", {
       cardId: visual0.playingCard.id,
       faceUp: false,
     });
-    expect(setFrameSpy).toHaveBeenCalledWith("card-back-blue");
 
-    // 3. With visual card that doesn't have sprite (should not crash)
+    expect(setFrameSpy).toHaveBeenCalledWith("card-back-blue");
+  });
+
+  it("does not crash on card-flipped event if card visual lacks a sprite", () => {
+    const game = (boardScene as any).gameModel;
+    const tableau0 = boardScene.tableauPiles[0];
+    const visual0 = tableau0.playingCardVisuals[0];
     const oldSprite = visual0.sprite;
     (visual0 as any).sprite = null;
+
     expect(() => {
       game.emit("card-flipped", {
         cardId: visual0.playingCard.id,
@@ -180,30 +202,40 @@ describe("BoardScene", () => {
     );
   });
 
-  it("updates hoveredCardVisual and highlights on pointerover / pointerout", () => {
+  it("sets hoveredCardVisual on card pointerover", () => {
     const tableau0 = boardScene.tableauPiles[0];
     const visual0 = tableau0.playingCardVisuals[0];
     const sprite = visual0.sprite;
 
-    expect((boardScene as any).hoveredCardVisual).toBeNull();
-
-    // Emit pointerover
     sprite.emit("pointerover");
+
     expect((boardScene as any).hoveredCardVisual).toBe(visual0);
-
-    // Emit pointerout on same visual
-    sprite.emit("pointerout");
-    expect((boardScene as any).hoveredCardVisual).toBeNull();
-
-    // Emit pointerout on different visual when not hovered
-    sprite.emit("pointerover");
-    (boardScene as any).hoveredCardVisual = { playingCard: {} } as any; // mock another visual
-    sprite.emit("pointerout");
-    expect((boardScene as any).hoveredCardVisual).not.toBeNull(); // should not be cleared
   });
 
-  it("handles pointerdown on card sprite and stock/recycle background sprite", () => {
-    // 1. Pointerdown on the top card in stock pile (should draw card)
+  it("clears hoveredCardVisual on card pointerout", () => {
+    const tableau0 = boardScene.tableauPiles[0];
+    const visual0 = tableau0.playingCardVisuals[0];
+    const sprite = visual0.sprite;
+    sprite.emit("pointerover");
+
+    sprite.emit("pointerout");
+
+    expect((boardScene as any).hoveredCardVisual).toBeNull();
+  });
+
+  it("does not clear hoveredCardVisual on pointerout if a different card is hovered", () => {
+    const tableau0 = boardScene.tableauPiles[0];
+    const visual0 = tableau0.playingCardVisuals[0];
+    const sprite = visual0.sprite;
+    sprite.emit("pointerover");
+    (boardScene as any).hoveredCardVisual = { playingCard: {} } as any;
+
+    sprite.emit("pointerout");
+
+    expect((boardScene as any).hoveredCardVisual).not.toBeNull();
+  });
+
+  it("draws card on pointerdown of top stock card", () => {
     const stockVisual = boardScene.stockPile.playingCardVisuals[23];
     const stockSprite = stockVisual.sprite;
     const drawSpy = vi.spyOn(
@@ -212,126 +244,180 @@ describe("BoardScene", () => {
     );
 
     stockSprite.emit("pointerdown");
-    expect(drawSpy).toHaveBeenCalled();
 
-    // 2. Pointerdown on a non-top card in stock pile (should NOT draw card)
-    drawSpy.mockClear();
+    expect(drawSpy).toHaveBeenCalled();
+  });
+
+  it("does not draw card on pointerdown of non-top stock card", () => {
     const nonTopStockVisual = boardScene.stockPile.playingCardVisuals[0];
     const nonTopStockSprite = nonTopStockVisual.sprite;
-    nonTopStockSprite.emit("pointerdown");
-    expect(drawSpy).not.toHaveBeenCalled();
+    const drawSpy = vi.spyOn(
+      (boardScene as any).gameModel,
+      "drawCardsFromStock",
+    );
 
-    // 3. Pointerdown on stock pile background placeholder when stock is empty (should recycle/draw)
-    drawSpy.mockClear();
+    nonTopStockSprite.emit("pointerdown");
+
+    expect(drawSpy).not.toHaveBeenCalled();
+  });
+
+  it("recycles stock on pointerdown of stock background when stock is empty", () => {
     const getCardsSpy = vi
       .spyOn((boardScene as any).gameModel.stock, "getCards")
       .mockReturnValue([]);
     const bgSprite = boardScene.stockPile.sprite;
+    const drawSpy = vi.spyOn(
+      (boardScene as any).gameModel,
+      "drawCardsFromStock",
+    );
+
     bgSprite.emit("pointerdown");
+
     expect(drawSpy).toHaveBeenCalled();
     getCardsSpy.mockRestore();
+  });
 
-    // 4. Pointerdown on stock pile background placeholder when stock is NOT empty (should NOT draw/recycle)
-    drawSpy.mockClear();
+  it("does not recycle stock on pointerdown of stock background when stock is not empty", () => {
+    const bgSprite = boardScene.stockPile.sprite;
+    const drawSpy = vi.spyOn(
+      (boardScene as any).gameModel,
+      "drawCardsFromStock",
+    );
+
     bgSprite.emit("pointerdown");
-    expect(drawSpy).not.toHaveBeenCalled();
 
-    // 5. Pointerdown on card not in any pile (should throw error)
+    expect(drawSpy).not.toHaveBeenCalled();
+  });
+
+  it("throws error on pointerdown of a card not in any pile", () => {
     const ghostCardVisual = boardScene.tableauPiles[0].playingCardVisuals[0];
     const getPileSpy = vi
       .spyOn((boardScene as any).gameModel, "getPileContainingCard")
       .mockReturnValue(undefined);
+
     expect(() => {
       ghostCardVisual.sprite.emit("pointerdown");
     }).toThrow(/is not in a pile/);
     getPileSpy.mockRestore();
+  });
 
-    // 6. Pointerdown on a card in a tableau pile (pile.id !== "stock" to cover else branch)
-    drawSpy.mockClear();
+  it("does not draw card on pointerdown of a tableau card", () => {
     const tableauVisual = boardScene.tableauPiles[0].playingCardVisuals[0];
+    const drawSpy = vi.spyOn(
+      (boardScene as any).gameModel,
+      "drawCardsFromStock",
+    );
+
     tableauVisual.sprite.emit("pointerdown");
+
     expect(drawSpy).not.toHaveBeenCalled();
   });
 
-  it("handles updateHighlightBorder boundary cases", () => {
-    // 1. highlightGraphics is null
+  it("does not crash when highlightGraphics is null", () => {
     const originalGraphics = (boardScene as any).highlightGraphics;
     (boardScene as any).highlightGraphics = null;
+
     expect(() => boardScene.updateHighlightBorder()).not.toThrow();
     (boardScene as any).highlightGraphics = originalGraphics;
+  });
 
-    // 2. hoveredCardVisual is null
+  it("clears highlight when hoveredCardVisual is null", () => {
+    const originalGraphics = (boardScene as any).highlightGraphics;
     (boardScene as any).hoveredCardVisual = null;
     originalGraphics.clear.mockClear();
-    boardScene.updateHighlightBorder();
-    expect(originalGraphics.clear).toHaveBeenCalled(); // should clear and return early
 
-    // 3. hoveredCardVisual is not interactable
+    boardScene.updateHighlightBorder();
+
+    expect(originalGraphics.clear).toHaveBeenCalled();
+  });
+
+  it("does not draw border if hoveredCardVisual is not interactable", () => {
+    const originalGraphics = (boardScene as any).highlightGraphics;
     const tableau0 = boardScene.tableauPiles[0];
     const visual = tableau0.playingCardVisuals[0];
-    visual.playingCard.faceUp = false; // not interactable
+    visual.playingCard.faceUp = false;
     (boardScene as any).hoveredCardVisual = visual;
-    boardScene.updateHighlightBorder();
-    expect(originalGraphics.strokeRoundedRect).not.toHaveBeenCalled();
+    originalGraphics.strokeRoundedRect.mockClear();
 
-    // 4. hoveredCardVisual sprite is inactive
-    visual.playingCard.faceUp = true; // interactable
-    visual.sprite.active = false; // inactive sprite
     boardScene.updateHighlightBorder();
-    expect(originalGraphics.strokeRoundedRect).not.toHaveBeenCalled();
 
-    // 5. Normal border drawing
+    expect(originalGraphics.strokeRoundedRect).not.toHaveBeenCalled();
+  });
+
+  it("does not draw border if hoveredCardVisual sprite is inactive", () => {
+    const originalGraphics = (boardScene as any).highlightGraphics;
+    const tableau0 = boardScene.tableauPiles[0];
+    const visual = tableau0.playingCardVisuals[0];
+    visual.playingCard.faceUp = true;
+    visual.sprite.active = false;
+    (boardScene as any).hoveredCardVisual = visual;
+    originalGraphics.strokeRoundedRect.mockClear();
+
+    boardScene.updateHighlightBorder();
+
+    expect(originalGraphics.strokeRoundedRect).not.toHaveBeenCalled();
+  });
+
+  it("draws rounded rectangle border for an interactable active hovered card", () => {
+    const originalGraphics = (boardScene as any).highlightGraphics;
+    const tableau0 = boardScene.tableauPiles[0];
+    const visual = tableau0.playingCardVisuals[0];
+    visual.playingCard.faceUp = true;
     visual.sprite.active = true;
+    (boardScene as any).hoveredCardVisual = visual;
+    originalGraphics.strokeRoundedRect.mockClear();
+
     boardScene.updateHighlightBorder();
+
     expect(originalGraphics.strokeRoundedRect).toHaveBeenCalled();
   });
 
-  it("handles stock pile background hover, highlight, and cursor state", () => {
+  it("updates cursor and hover state on non-empty stock background hover", () => {
     const bgSprite = boardScene.stockPile.sprite;
     const originalGraphics = (boardScene as any).highlightGraphics;
     originalGraphics.strokeRoundedRect.mockClear();
 
-    // 1. Hover on stock background when stock is NOT empty (should not draw highlight, cursor should be default)
-    expect(
-      (boardScene as any).gameModel.stock.getCards().length,
-    ).toBeGreaterThan(0);
-
-    // Trigger cursor update
     (boardScene as any).updateCardCursors();
-    expect(bgSprite.input.cursor).toBe("default");
-
     bgSprite.emit("pointerover");
+
+    expect(bgSprite.input.cursor).toBe("default");
     expect((boardScene as any).isStockBackgroundHovered).toBe(true);
     boardScene.updateHighlightBorder();
     expect(originalGraphics.strokeRoundedRect).not.toHaveBeenCalled();
+  });
 
-    bgSprite.emit("pointerout");
-    expect((boardScene as any).isStockBackgroundHovered).toBe(false);
-
-    // 2. Hover on stock background when stock IS empty (should draw highlight, cursor should be pointer)
+  it("updates cursor, hover state, and highlights empty stock background hover", () => {
+    const bgSprite = boardScene.stockPile.sprite;
+    const originalGraphics = (boardScene as any).highlightGraphics;
     const getCardsSpy = vi
       .spyOn((boardScene as any).gameModel.stock, "getCards")
       .mockReturnValue([]);
+    originalGraphics.strokeRoundedRect.mockClear();
 
     (boardScene as any).updateCardCursors();
-    expect(bgSprite.input.cursor).toBe("pointer");
-
     bgSprite.emit("pointerover");
+
+    expect(bgSprite.input.cursor).toBe("pointer");
     expect((boardScene as any).isStockBackgroundHovered).toBe(true);
-    originalGraphics.strokeRoundedRect.mockClear();
     boardScene.updateHighlightBorder();
     expect(originalGraphics.strokeRoundedRect).toHaveBeenCalled();
-
-    // 3. Pointerout on stock background when stock is empty (should clear highlight)
-    bgSprite.emit("pointerout");
-    expect((boardScene as any).isStockBackgroundHovered).toBe(false);
-
     getCardsSpy.mockRestore();
   });
 
-  it("throws errors in suitToFileName and typeToFileName for invalid values", () => {
-    // We import ALL_PLAYING_CARD_IDS and can mutate it temporarily
-    // Create card with invalid suit
+  it("clears hover state and highlight on pointerout of empty stock background", () => {
+    const bgSprite = boardScene.stockPile.sprite;
+    const getCardsSpy = vi
+      .spyOn((boardScene as any).gameModel.stock, "getCards")
+      .mockReturnValue([]);
+    bgSprite.emit("pointerover");
+
+    bgSprite.emit("pointerout");
+
+    expect((boardScene as any).isStockBackgroundHovered).toBe(false);
+    getCardsSpy.mockRestore();
+  });
+
+  it("throws error during creation if a card has an invalid suit", () => {
     const invalidCard = { suit: 999 as any, type: Type.ACE };
     ALL_PLAYING_CARD_IDS.push(invalidCard);
 
@@ -339,10 +425,10 @@ describe("BoardScene", () => {
       boardScene.create();
     }).toThrow("Unknown Suit: 999");
 
-    // Clean up invalid card from array
     ALL_PLAYING_CARD_IDS.pop();
+  });
 
-    // Create card with invalid type
+  it("throws error during creation if a card has an invalid type", () => {
     const invalidTypeCard = { suit: Suit.SPADE, type: 999 as any };
     ALL_PLAYING_CARD_IDS.push(invalidTypeCard);
 

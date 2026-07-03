@@ -21,13 +21,21 @@ describe("Visual classes", () => {
     it("can be created and extends Visual", () => {
       const playingCard = new PlayingCard();
       playingCard.id = "c1";
+
       const visual = new PlayingCardVisual(playingCard);
 
       expect(visual).toBeInstanceOf(Visual);
       expect(visual.value).toBe(playingCard);
       expect(visual.position).toEqual({ x: 0, y: 0 });
+    });
+
+    it("can set and get position", () => {
+      const playingCard = new PlayingCard();
+      playingCard.id = "c1";
+      const visual = new PlayingCardVisual(playingCard);
 
       visual.position = { x: 100, y: 200 };
+
       expect(visual.position).toEqual({ x: 100, y: 200 });
     });
   });
@@ -35,13 +43,20 @@ describe("Visual classes", () => {
   describe("StockPileVisual", () => {
     it("can be created and extends Visual", () => {
       const cardPile = new CardPile();
+
       const visual = new StockPileVisual(cardPile);
 
       expect(visual).toBeInstanceOf(Visual);
       expect(visual.value).toBe(cardPile);
       expect(visual.position).toEqual({ x: 0, y: 0 });
+    });
+
+    it("can set and get position", () => {
+      const cardPile = new CardPile();
+      const visual = new StockPileVisual(cardPile);
 
       visual.position = { x: 50, y: 75 };
+
       expect(visual.position).toEqual({ x: 50, y: 75 });
     });
 

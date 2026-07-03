@@ -223,7 +223,10 @@ describe("BoardLayoutManager", () => {
       tableauPiles: [],
     };
     const layoutManager = new BoardLayoutManager(mockBoardScene as any);
-    expect(layoutManager.getScaleFactor()).toBe(1.0);
+
+    const scaleFactor = layoutManager.getScaleFactor();
+
+    expect(scaleFactor).toBe(1.0);
   });
 
   it("caps scale factor to 1.0 when viewport is larger than default", () => {
@@ -234,7 +237,10 @@ describe("BoardLayoutManager", () => {
       },
     };
     const layoutManager = new BoardLayoutManager(mockBoardScene as any);
-    expect(layoutManager.getScaleFactor()).toBe(1.0);
+
+    const scaleFactor = layoutManager.getScaleFactor();
+
+    expect(scaleFactor).toBe(1.0);
   });
 
   it("defaults scale factor to 1.0 when scale factor is <= 0", () => {
@@ -245,6 +251,9 @@ describe("BoardLayoutManager", () => {
       },
     };
     const layoutManager = new BoardLayoutManager(mockBoardScene as any);
-    expect(layoutManager.getScaleFactor()).toBe(1.0);
+
+    const scaleFactor = layoutManager.getScaleFactor();
+
+    expect(scaleFactor).toBe(1.0);
   });
 });
