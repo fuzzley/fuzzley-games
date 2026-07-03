@@ -131,7 +131,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    * @returns A shuffled array of PlayingCards.
    */
   private createAndShuffleDeck(): PlayingCard[] {
-    const tempDeck = new Deck();
+    const tempDeck = new Deck<PlayingCard>();
     for (const cardId of ALL_PLAYING_CARD_IDS) {
       const playingCard = new PlayingCard();
       playingCard.suite = cardId.suit;
@@ -145,7 +145,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     }
     tempDeck.shuffle();
 
-    return [...tempDeck.getCards()] as PlayingCard[];
+    return [...tempDeck.getCards()];
   }
 
   /**
@@ -155,13 +155,15 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    * @param deckCards The array of playing cards from which to deal.
    */
   private dealTableaus(deckCards: PlayingCard[]): void {
-    for (let col = 0; col < 7; col++) {
-      for (let row = 0; row <= col; row++) {
+    for (
+      let tableauIndex = 0;
+      tableauIndex < this.tableaus.length;
+      tableauIndex++
+    ) {
+      for (let cardIndex = 0; cardIndex <= tableauIndex; cardIndex++) {
         const card = deckCards.pop();
-        if (row === col) {
-          card.faceUp = true;
-        }
-        this.tableaus[col].addCard(card);
+        card.faceUp = cardIndex === tableauIndex;
+        this.tableaus[tableauIndex].addCard(card);
       }
     }
   }
@@ -180,58 +182,67 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
   }
 
   /**
-   * Draws a card from the stock pile to the waste pile.
+   * Draws cards from the stock pile to the waste pile.
    *
    * If stock is empty, recycles waste back into stock.
    */
   public drawCardsFromStock(): void {
-    const stockCards = this.stock.getCards();
-    if (stockCards.length > 0) {
-      // Draw up to 3 cards from stock (standard Klondike "Draw 3" rule)
-      const drawCount = Math.min(3, stockCards.length);
-      for (let i = 0; i < drawCount; i++) {
-        const currentCards = this.stock.getCards();
-        const topCard = currentCards[currentCards.length - 1];
-        this.stock.removeCard(topCard);
-        topCard.faceUp = true;
-        this.waste.addCard(topCard);
-
-        this.emit("card-moved", {
-          cardId: topCard.id,
-          fromPileId: this.stock.id,
-          toPileId: this.waste.id,
-        });
-        this.emit("card-flipped", {
-          cardId: topCard.id,
-          faceUp: true,
-        });
-      }
+    if (this.stock.getCards().length > 0) {
+      this.drawFromStock();
     } else {
-      // Recycle Waste into Stock
-      const wasteCards = [...this.waste.getCards()];
-      if (wasteCards.length === 0) return;
-
-      this.waste.clear();
-
-      // Put cards back to stock in reverse order, face-down, and emit events
-      for (let i = wasteCards.length - 1; i >= 0; i--) {
-        const card = wasteCards[i];
-        card.faceUp = false;
-        this.stock.addCard(card);
-
-        this.emit("card-moved", {
-          cardId: card.id,
-          fromPileId: this.waste.id,
-          toPileId: this.stock.id,
-        });
-        this.emit("card-flipped", {
-          cardId: card.id,
-          faceUp: false,
-        });
-      }
-
-      this.emit("stock-recycled", undefined);
+      this.recycleWaste();
     }
+  }
+
+  /**
+   * Draws up to 3 cards from the stock pile and moves them to the waste pile.
+   */
+  private drawFromStock(): void {
+    const drawCount = Math.min(3, this.stock.getCards().length);
+    for (let i = 0; i < drawCount; i++) {
+      const currentCards = this.stock.getCards();
+      const topCard = currentCards[currentCards.length - 1];
+      this.stock.removeCard(topCard);
+      topCard.faceUp = true;
+      this.waste.addCard(topCard);
+
+      this.emit("card-moved", {
+        cardId: topCard.id,
+        fromPileId: this.stock.id,
+        toPileId: this.waste.id,
+      });
+      this.emit("card-flipped", {
+        cardId: topCard.id,
+        faceUp: true,
+      });
+    }
+  }
+
+  /**
+   * Recycles the waste pile back into the stock pile, face-down.
+   */
+  private recycleWaste(): void {
+    if (this.waste.getCards().length === 0) return;
+
+    while (this.waste.getCards().length > 0) {
+      const wasteCards = this.waste.getCards();
+      const card = wasteCards[wasteCards.length - 1];
+      this.waste.removeCard(card);
+      card.faceUp = false;
+      this.stock.addCard(card);
+
+      this.emit("card-moved", {
+        cardId: card.id,
+        fromPileId: this.waste.id,
+        toPileId: this.stock.id,
+      });
+      this.emit("card-flipped", {
+        cardId: card.id,
+        faceUp: false,
+      });
+    }
+
+    this.emit("stock-recycled", undefined);
   }
 
   /**
@@ -243,7 +254,8 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    * @param targetPileId The ID of the destination pile.
    * @returns True if the move was valid and executed; false otherwise.
    */
-  public moveCards(cardId: string, targetPileId: string): boolean {
+  public moveCardToPile(cardId: string, targetPileId: string): boolean {
+    // TODO: Use this or remove it.
     const card = this.getCardById(cardId);
     const targetPile = this.getPileById(targetPileId);
     const sourcePile = this.getPileContainingCard(cardId);
@@ -311,6 +323,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    * @param faceUp Whether to flip face up or face down.
    */
   public flipCard(cardId: string, faceUp: boolean): void {
+    // TODO: Use this or remove it.
     const card = this.getCardById(cardId);
     if (!card) return;
 
@@ -327,6 +340,44 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
         faceUp,
       });
     }
+  }
+
+  /**
+   * Determines if a card is currently interactable based on standard Klondike rules.
+   *
+   * @param card The logical playing card model.
+   * @returns True if the card can be played/moved.
+   */
+  public isCardInteractable(card: PlayingCard): boolean {
+    const pile = this.getPileContainingCard(card.id);
+    if (!pile) {
+      return false;
+    }
+
+    if (pile.id.startsWith("tableau-")) {
+      // Any face-up card in a tableau is interactable
+      return card.faceUp;
+    }
+
+    if (pile.id === "waste") {
+      // Only the top card of the waste pile is interactable
+      const cards = pile.getCards();
+      return cards.length > 0 && cards[cards.length - 1] === card;
+    }
+
+    if (pile.id.startsWith("foundation-")) {
+      // Only the top card of a foundation pile is interactable
+      const cards = pile.getCards();
+      return cards.length > 0 && cards[cards.length - 1] === card;
+    }
+
+    if (pile.id === "stock") {
+      // Only the top card of the stock pile is interactable
+      const cards = pile.getCards();
+      return cards.length > 0 && cards[cards.length - 1] === card;
+    }
+
+    return false;
   }
 
   private validateMove(

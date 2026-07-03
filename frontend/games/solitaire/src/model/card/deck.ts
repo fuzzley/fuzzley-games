@@ -1,16 +1,16 @@
 import { Card } from "./card";
 
 /** A deck tracks a collection of cards. */
-export class Deck {
-  private readonly cards: Card[] = [];
+export class Deck<T extends Card = Card> {
+  private readonly cards: T[] = [];
 
   /** Adds a card to the deck. */
-  public addCard(card: Card): void {
+  public addCard(card: T): void {
     this.cards.push(card);
   }
 
   /** Returns a readonly list of cards in the deck. */
-  public getCards(): ReadonlyArray<Card> {
+  public getCards(): ReadonlyArray<T> {
     return this.cards;
   }
 

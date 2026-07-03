@@ -331,7 +331,7 @@ export const CLUB_KING_ID: PlayingCardId = {
 };
 
 /** A complete list of all 52 standard playing card identities. */
-export const ALL_PLAYING_CARD_IDS: PlayingCardId[] = [
+export const ALL_PLAYING_CARD_IDS: ReadonlyArray<PlayingCardId> = [
   // Spade
   SPADE_ACE_ID,
   SPADE_TWO_ID,
