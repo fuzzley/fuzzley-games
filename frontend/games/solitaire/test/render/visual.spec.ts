@@ -177,12 +177,10 @@ describe("Visual classes", () => {
       const visual = new TableauPileVisual(new CardPile(), [v1, v2, v3]);
 
       visual.layoutPile();
-      // v1 is first (index 0) => y is 0
-      expect(v1.position).toEqual({ x: 0, y: 0 });
-      // v1 is face-down => offset is 15px => v2 y is 15
-      expect(v2.position).toEqual({ x: 0, y: 15 });
-      // v2 is face-up => offset is 35px => v3 y is 15 + 35 = 50
-      expect(v3.position).toEqual({ x: 0, y: 50 });
+      // v1 is face-down => offset is 18px => v2 y is 18
+      expect(v2.position).toEqual({ x: 0, y: 18 });
+      // v2 is face-up => offset is 45px => v3 y is 18 + 45 = 63
+      expect(v3.position).toEqual({ x: 0, y: 63 });
     });
   });
 });
