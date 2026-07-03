@@ -1,3 +1,4 @@
+import * as Phaser from "phaser";
 import { Scene } from "phaser";
 
 import {
@@ -7,6 +8,10 @@ import {
   Type,
 } from "../../model/card/playing_card";
 import { BoardLayoutManager } from "../layout/board_layout_manager";
+import {
+  CARD_WIDTH_PX,
+  CARD_HEIGHT_PX,
+} from "../layout/board_layout_constants";
 import { StockPileVisual } from "../visual/pile/stock_pile_visual";
 import { WastePileVisual } from "../visual/pile/waste_pile_visual";
 import { FoundationPileVisual } from "../visual/pile/foundation_pile_visual";
@@ -24,7 +29,7 @@ export type PileVisual =
  */
 export class BoardScene extends Scene {
   /** The logical solitaire game rules and state engine. */
-  private gameModel: SolitaireGame = new SolitaireGame();
+  public readonly gameModel: SolitaireGame = new SolitaireGame();
 
   /** Registry of visual cards mapped by their unique string ID. */
   private readonly cardVisualsMap = new Map<string, PlayingCardVisual>();
@@ -68,6 +73,12 @@ export class BoardScene extends Scene {
   /** Whether the stock pile background sprite is currently hovered. */
   private isStockBackgroundHovered = false;
 
+  /** The stack of card visuals currently being dragged. */
+  private draggedStack: PlayingCardVisual[] = [];
+
+  /** The offsets of the dragged cards relative to the main dragged card sprite. */
+  private draggedStackOffsets: { x: number; y: number }[] = [];
+
   /** Constructs the board scene. */
   constructor() {
     super("board-scene");
@@ -95,6 +106,26 @@ export class BoardScene extends Scene {
       this.layoutManager.createInitialLayout();
       this.layoutManager.updateVisualLayout();
     });
+
+    this.input.on(
+      "dragstart",
+      (pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Sprite) =>
+        this.onDragStart(pointer, gameObject),
+    );
+    this.input.on(
+      "drag",
+      (
+        pointer: Phaser.Input.Pointer,
+        gameObject: Phaser.GameObjects.Sprite,
+        dragX: number,
+        dragY: number,
+      ) => this.onDrag(pointer, gameObject, dragX, dragY),
+    );
+    this.input.on(
+      "dragend",
+      (pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Sprite) =>
+        this.onDragEnd(pointer, gameObject),
+    );
   }
 
   /** Registers all visual piles in the map registry for quick lookup. */
@@ -129,7 +160,7 @@ export class BoardScene extends Scene {
 
     this.gameModel.on("card-flipped", ({ cardId, faceUp }) => {
       const visualCard = this.cardVisualsMap.get(cardId);
-      if (visualCard.sprite) {
+      if (visualCard && visualCard.sprite) {
         const frame = faceUp ? cardId : "card-back-blue";
         visualCard.sprite.setFrame(frame);
         visualCard.sprite.setOrigin(0, 0);
@@ -158,16 +189,20 @@ export class BoardScene extends Scene {
 
     for (const card of this.gameModel.stock.getCards()) {
       const visual = this.cardVisualsMap.get(card.id);
-      this.stockPile.playingCardVisuals.push(visual);
-      visual.sprite.setFrame("card-back-blue");
-      visual.sprite.setOrigin(0, 0);
+      if (visual) {
+        this.stockPile.playingCardVisuals.push(visual);
+        visual.sprite.setFrame("card-back-blue");
+        visual.sprite.setOrigin(0, 0);
+      }
     }
 
     for (const card of this.gameModel.waste.getCards()) {
       const visual = this.cardVisualsMap.get(card.id);
-      this.wastePile.playingCardVisuals.push(visual);
-      visual.sprite.setFrame(card.id);
-      visual.sprite.setOrigin(0, 0);
+      if (visual) {
+        this.wastePile.playingCardVisuals.push(visual);
+        visual.sprite.setFrame(card.id);
+        visual.sprite.setOrigin(0, 0);
+      }
     }
 
     for (let i = 0; i < this.gameModel.foundations.length; i++) {
@@ -175,9 +210,11 @@ export class BoardScene extends Scene {
       const visualPile = this.foundationPiles[i];
       for (const card of modelPile.getCards()) {
         const visual = this.cardVisualsMap.get(card.id);
-        visualPile.playingCardVisuals.push(visual);
-        visual.sprite.setFrame(card.id);
-        visual.sprite.setOrigin(0, 0);
+        if (visual) {
+          visualPile.playingCardVisuals.push(visual);
+          visual.sprite.setFrame(card.id);
+          visual.sprite.setOrigin(0, 0);
+        }
       }
     }
 
@@ -186,9 +223,11 @@ export class BoardScene extends Scene {
       const visualPile = this.tableauPiles[i];
       for (const card of modelPile.getCards()) {
         const visual = this.cardVisualsMap.get(card.id);
-        visualPile.playingCardVisuals.push(visual);
-        visual.sprite.setFrame(card.faceUp ? card.id : "card-back-blue");
-        visual.sprite.setOrigin(0, 0);
+        if (visual) {
+          visualPile.playingCardVisuals.push(visual);
+          visual.sprite.setFrame(card.faceUp ? card.id : "card-back-blue");
+          visual.sprite.setOrigin(0, 0);
+        }
       }
     }
 
@@ -205,6 +244,7 @@ export class BoardScene extends Scene {
           visual.playingCard,
         );
         visual.sprite.input.cursor = interactable ? "pointer" : "default";
+        this.input.setDraggable(visual.sprite, interactable);
       }
     }
 
@@ -235,6 +275,7 @@ export class BoardScene extends Scene {
 
       // Make card sprite interactive for pointer events
       sprite.setInteractive({ useHandCursor: true });
+      sprite.setData("cardVisual", visual);
 
       sprite.on("pointerover", () => {
         this.hoveredCardVisual = visual;
@@ -320,6 +361,10 @@ export class BoardScene extends Scene {
     }
     this.highlightGraphics.clear();
 
+    if (this.draggedStack.length > 0) {
+      return;
+    }
+
     const stockEmpty = this.gameModel.stock.getCards().length === 0;
     if (this.isStockBackgroundHovered && stockEmpty) {
       const sprite = this.stockPile.sprite;
@@ -365,6 +410,151 @@ export class BoardScene extends Scene {
       height,
       radius,
     );
+  }
+
+  /**
+   * Handles Phaser dragstart event.
+   */
+  private onDragStart(
+    pointer: Phaser.Input.Pointer,
+    gameObject: Phaser.GameObjects.Sprite,
+  ): void {
+    const visual = gameObject.getData("cardVisual") as PlayingCardVisual;
+    if (!visual) return;
+
+    const sourcePile = this.gameModel.getPileContainingCard(
+      visual.playingCard.id,
+    );
+    if (!sourcePile) return;
+
+    const pileVisual = this.getPileVisualById(sourcePile.id);
+    if (!pileVisual) return;
+
+    const index = pileVisual.playingCardVisuals.indexOf(visual);
+    if (index === -1) return;
+
+    // Get the stack of cards from the dragged card up to the top card
+    this.draggedStack = pileVisual.playingCardVisuals.slice(index);
+
+    // Calculate offsets relative to the main dragged card's current position
+    this.draggedStackOffsets = this.draggedStack.map((cardVis) => ({
+      x: cardVis.sprite.x - gameObject.x,
+      y: cardVis.sprite.y - gameObject.y,
+    }));
+
+    // Bring the dragged cards to the top depth layer
+    this.draggedStack.forEach((cardVis, idx) => {
+      cardVis.sprite.setDepth(1000 + idx);
+    });
+
+    // Remove any active highlights immediately when starting to drag
+    this.updateHighlightBorder();
+  }
+
+  /**
+   * Handles Phaser drag event.
+   */
+  private onDrag(
+    pointer: Phaser.Input.Pointer,
+    gameObject: Phaser.GameObjects.Sprite,
+    dragX: number,
+    dragY: number,
+  ): void {
+    if (this.draggedStack.length === 0) return;
+
+    // Move the primary dragged card
+    gameObject.setPosition(dragX, dragY);
+
+    // Move other cards in the stack relative to the primary card
+    for (let i = 1; i < this.draggedStack.length; i++) {
+      const offset = this.draggedStackOffsets[i];
+      this.draggedStack[i].sprite.setPosition(
+        dragX + offset.x,
+        dragY + offset.y,
+      );
+    }
+  }
+
+  /**
+   * Handles Phaser dragend event.
+   */
+  private onDragEnd(
+    pointer: Phaser.Input.Pointer,
+    gameObject: Phaser.GameObjects.Sprite,
+  ): void {
+    if (this.draggedStack.length === 0) return;
+
+    const visual = gameObject.getData("cardVisual") as PlayingCardVisual;
+
+    // Clear drag tracking state first so that layout/highlight updates can accurately reflect that we are no longer dragging.
+    this.draggedStack = [];
+    this.draggedStackOffsets = [];
+
+    if (!visual) {
+      this.layoutManager.updateVisualLayout();
+      return;
+    }
+
+    // Determine overlap with piles to find potential target pile
+    const cardRect = new Phaser.Geom.Rectangle(
+      gameObject.x,
+      gameObject.y,
+      gameObject.displayWidth,
+      gameObject.displayHeight,
+    );
+
+    const scale = this.layoutManager.getScaleFactor();
+    const width = CARD_WIDTH_PX * scale;
+
+    let targetPileVisual: PileVisual | null = null;
+    let maxOverlapArea = 0;
+
+    const potentialPiles = [...this.foundationPiles, ...this.tableauPiles];
+
+    for (const pileVisual of potentialPiles) {
+      const x = pileVisual.position.x;
+      const y = pileVisual.position.y;
+      let height = CARD_HEIGHT_PX * scale;
+
+      // For tableau piles, calculate dynamic height based on stacked cards
+      if (
+        pileVisual instanceof TableauPileVisual &&
+        pileVisual.playingCardVisuals.length > 0
+      ) {
+        const lastCard =
+          pileVisual.playingCardVisuals[
+            pileVisual.playingCardVisuals.length - 1
+          ];
+        height = lastCard.position.y * scale + CARD_HEIGHT_PX * scale;
+      }
+
+      const pileRect = new Phaser.Geom.Rectangle(x, y, width, height);
+      const intersection = new Phaser.Geom.Rectangle();
+      Phaser.Geom.Rectangle.Intersection(pileRect, cardRect, intersection);
+
+      const overlapArea =
+        intersection.width > 0 && intersection.height > 0
+          ? intersection.width * intersection.height
+          : 0;
+
+      if (overlapArea > maxOverlapArea) {
+        maxOverlapArea = overlapArea;
+        targetPileVisual = pileVisual;
+      }
+    }
+
+    let moved = false;
+    if (targetPileVisual) {
+      moved = this.gameModel.moveCardToPile(
+        visual.playingCard.id,
+        targetPileVisual.value.id,
+      );
+    }
+
+    if (!moved) {
+      // Snap cards back to their layout positions if move was invalid or not dropped on a pile
+      this.layoutManager.updateVisualLayout();
+    }
   }
 }
 

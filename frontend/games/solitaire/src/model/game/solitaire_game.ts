@@ -162,8 +162,10 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     ) {
       for (let cardIndex = 0; cardIndex <= tableauIndex; cardIndex++) {
         const card = deckCards.pop();
-        card.faceUp = cardIndex === tableauIndex;
-        this.tableaus[tableauIndex].addCard(card);
+        if (card) {
+          card.faceUp = cardIndex === tableauIndex;
+          this.tableaus[tableauIndex].addCard(card);
+        }
       }
     }
   }
@@ -176,8 +178,10 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
   private populateStock(deckCards: PlayingCard[]): void {
     while (deckCards.length > 0) {
       const card = deckCards.pop();
-      card.faceUp = false;
-      this.stock.addCard(card);
+      if (card) {
+        card.faceUp = false;
+        this.stock.addCard(card);
+      }
     }
   }
 
