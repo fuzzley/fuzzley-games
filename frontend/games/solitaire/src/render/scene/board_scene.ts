@@ -16,10 +16,7 @@ import { PlayingCardVisual } from "../visual/card/playing_card_visual";
 
 /** Union type representing any visual pile wrapper. */
 export type PileVisual =
-  | StockPileVisual
-  | WastePileVisual
-  | FoundationPileVisual
-  | TableauPileVisual;
+  StockPileVisual | WastePileVisual | FoundationPileVisual | TableauPileVisual;
 
 /**
  * Handles rendering the fSolitaire game board using Phaser, reacting to
