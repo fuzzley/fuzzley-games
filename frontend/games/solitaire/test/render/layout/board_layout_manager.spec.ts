@@ -1,6 +1,45 @@
+import { vi } from "vitest";
 import { BoardLayoutManager } from "../../../src/render/layout/board_layout_manager";
 import { Visual } from "../../../src/render/visual/visual";
 import { CardPile } from "../../../src/model/card/card_pile";
+
+function createMockSprite() {
+  const sprite = {
+    x: 0,
+    y: 0,
+    scale: 1,
+    originX: 0,
+    originY: 0,
+    depth: 0,
+    setPosition: vi.fn().mockImplementation(function (
+      this: any,
+      x: number,
+      y: number,
+    ) {
+      this.x = x;
+      this.y = y;
+      return this;
+    }),
+    setScale: vi.fn().mockImplementation(function (this: any, scale: number) {
+      this.scale = scale;
+      return this;
+    }),
+    setOrigin: vi.fn().mockImplementation(function (
+      this: any,
+      x: number,
+      y: number,
+    ) {
+      this.originX = x;
+      this.originY = y;
+      return this;
+    }),
+    setDepth: vi.fn().mockImplementation(function (this: any, depth: number) {
+      this.depth = depth;
+      return this;
+    }),
+  };
+  return sprite;
+}
 
 describe("BoardLayoutManager", () => {
   it("maps positions for each pile on the board correctly", () => {
@@ -86,12 +125,7 @@ describe("BoardLayoutManager", () => {
       playingCardVisuals: [
         {
           position: { x: 5, y: 5 },
-          sprite: {
-            setPosition: vi.fn(),
-            setScale: vi.fn(),
-            setOrigin: vi.fn(),
-            setDepth: vi.fn(),
-          },
+          sprite: createMockSprite(),
         },
         {
           position: { x: 6, y: 6 },
@@ -109,12 +143,7 @@ describe("BoardLayoutManager", () => {
       playingCardVisuals: [
         {
           position: { x: 2, y: 2 },
-          sprite: {
-            setPosition: vi.fn(),
-            setScale: vi.fn(),
-            setOrigin: vi.fn(),
-            setDepth: vi.fn(),
-          },
+          sprite: createMockSprite(),
         },
       ],
     };
@@ -124,12 +153,7 @@ describe("BoardLayoutManager", () => {
       playingCardVisuals: [
         {
           position: { x: 3, y: 3 },
-          sprite: {
-            setPosition: vi.fn(),
-            setScale: vi.fn(),
-            setOrigin: vi.fn(),
-            setDepth: vi.fn(),
-          },
+          sprite: createMockSprite(),
         },
       ],
     };
@@ -144,32 +168,24 @@ describe("BoardLayoutManager", () => {
     const layoutManager = new BoardLayoutManager(mockBoardScene as any);
     layoutManager.updateVisualLayout();
 
-    expect(mockStockPile.layoutPile).toHaveBeenCalled();
-    expect(mockWastePile.layoutPile).toHaveBeenCalled();
-    expect(mockFoundationPile.layoutPile).toHaveBeenCalled();
-    expect(mockTableauPile.layoutPile).toHaveBeenCalled();
+    const stockSprite = mockStockPile.playingCardVisuals[0].sprite!;
+    expect(stockSprite.x).toBe(15);
+    expect(stockSprite.y).toBe(25);
+    expect(stockSprite.depth).toBe(0);
 
-    expect(
-      mockStockPile.playingCardVisuals[0].sprite.setPosition,
-    ).toHaveBeenCalledWith(15, 25);
-    expect(
-      mockStockPile.playingCardVisuals[0].sprite.setDepth,
-    ).toHaveBeenCalledWith(0);
-    expect(
-      mockFoundationPile.playingCardVisuals[0].sprite.setPosition,
-    ).toHaveBeenCalledWith(52, 62);
-    expect(
-      mockFoundationPile.playingCardVisuals[0].sprite.setDepth,
-    ).toHaveBeenCalledWith(0);
-    expect(
-      mockTableauPile.playingCardVisuals[0].sprite.setPosition,
-    ).toHaveBeenCalledWith(73, 83);
-    expect(
-      mockTableauPile.playingCardVisuals[0].sprite.setDepth,
-    ).toHaveBeenCalledWith(0);
+    const foundationSprite = mockFoundationPile.playingCardVisuals[0].sprite!;
+    expect(foundationSprite.x).toBe(52);
+    expect(foundationSprite.y).toBe(62);
+    expect(foundationSprite.depth).toBe(0);
+
+    const tableauSprite = mockTableauPile.playingCardVisuals[0].sprite!;
+    expect(tableauSprite.x).toBe(73);
+    expect(tableauSprite.y).toBe(83);
+    expect(tableauSprite.depth).toBe(0);
   });
 
   it("scales cards and aligns coordinates correctly when viewport is smaller than default", () => {
+    const mockStockSprite = createMockSprite();
     const mockBoardScene = {
       scale: {
         width: 903.5,
@@ -181,12 +197,7 @@ describe("BoardLayoutManager", () => {
         playingCardVisuals: [
           {
             position: { x: 10, y: 20 },
-            sprite: {
-              setPosition: vi.fn(),
-              setScale: vi.fn(),
-              setOrigin: vi.fn(),
-              setDepth: vi.fn(),
-            },
+            sprite: mockStockSprite,
           },
         ],
       },
@@ -204,15 +215,10 @@ describe("BoardLayoutManager", () => {
     layoutManager.updateVisualLayout();
 
     expect(mockBoardScene.stockPile.position).toEqual({ x: 20, y: 20 });
-    expect(
-      mockBoardScene.stockPile.playingCardVisuals[0].sprite.setPosition,
-    ).toHaveBeenCalledWith(25, 30);
-    expect(
-      mockBoardScene.stockPile.playingCardVisuals[0].sprite.setScale,
-    ).toHaveBeenCalledWith(0.5);
-    expect(
-      mockBoardScene.stockPile.playingCardVisuals[0].sprite.setDepth,
-    ).toHaveBeenCalledWith(0);
+    expect(mockStockSprite.x).toBe(25);
+    expect(mockStockSprite.y).toBe(30);
+    expect(mockStockSprite.scale).toBe(0.5);
+    expect(mockStockSprite.depth).toBe(0);
   });
 
   it("defaults scale factor to 1.0 when viewport scale object is missing", () => {

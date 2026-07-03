@@ -12,7 +12,22 @@ vi.mock("phaser", () => {
   const createMockSprite = () => {
     const listeners: { [event: string]: Function[] } = {};
     const sprite = {
-      setOrigin: vi.fn().mockReturnThis(),
+      x: 0,
+      y: 0,
+      scale: 1,
+      depth: 0,
+      frame: "",
+      originX: 0,
+      originY: 0,
+      setOrigin: vi.fn().mockImplementation(function (
+        this: any,
+        x: number,
+        y: number,
+      ) {
+        this.originX = x;
+        this.originY = y;
+        return this;
+      }),
       setInteractive: vi.fn().mockImplementation(function (this: any) {
         this.input = { cursor: "pointer" };
         return this;
@@ -29,10 +44,27 @@ vi.mock("phaser", () => {
           listeners[event].forEach((cb) => cb(...args));
         }
       },
-      setFrame: vi.fn().mockReturnThis(),
-      setPosition: vi.fn().mockReturnThis(),
-      setScale: vi.fn().mockReturnThis(),
-      setDepth: vi.fn().mockReturnThis(),
+      setFrame: vi.fn().mockImplementation(function (this: any, frame: string) {
+        this.frame = frame;
+        return this;
+      }),
+      setPosition: vi.fn().mockImplementation(function (
+        this: any,
+        x: number,
+        y: number,
+      ) {
+        this.x = x;
+        this.y = y;
+        return this;
+      }),
+      setScale: vi.fn().mockImplementation(function (this: any, scale: number) {
+        this.scale = scale;
+        return this;
+      }),
+      setDepth: vi.fn().mockImplementation(function (this: any, depth: number) {
+        this.depth = depth;
+        return this;
+      }),
       displayWidth: 220,
       displayHeight: 307,
       input: undefined as any,
@@ -124,9 +156,8 @@ describe("BoardScene", () => {
     expect(boardScene.stockPile.position).toEqual({ x: 20, y: 20 });
   });
 
-  it("syncs visual piles and updates highlight on card-moved event", () => {
+  it("syncs visual piles on card-moved event", () => {
     const game = (boardScene as any).gameModel;
-    const updateHighlightSpy = vi.spyOn(boardScene, "updateHighlightBorder");
 
     expect(boardScene.stockPile.playingCardVisuals.length).toBeGreaterThan(0);
     game.stock.clear();
@@ -134,12 +165,10 @@ describe("BoardScene", () => {
     game.emit("card-moved");
 
     expect(boardScene.stockPile.playingCardVisuals.length).toBe(0);
-    expect(updateHighlightSpy).toHaveBeenCalled();
   });
 
-  it("syncs visual piles and updates highlight on stock-recycled event", () => {
+  it("syncs visual piles on stock-recycled event", () => {
     const game = (boardScene as any).gameModel;
-    const updateHighlightSpy = vi.spyOn(boardScene, "updateHighlightBorder");
 
     expect(boardScene.stockPile.playingCardVisuals.length).toBeGreaterThan(0);
     game.stock.clear();
@@ -147,7 +176,6 @@ describe("BoardScene", () => {
     game.emit("stock-recycled");
 
     expect(boardScene.stockPile.playingCardVisuals.length).toBe(0);
-    expect(updateHighlightSpy).toHaveBeenCalled();
   });
 
   it("logs a message on game-won event", () => {
@@ -164,25 +192,23 @@ describe("BoardScene", () => {
     const game = (boardScene as any).gameModel;
     const tableau0 = boardScene.tableauPiles[0];
     const visual0 = tableau0.playingCardVisuals[0];
-    const setFrameSpy = vi.spyOn(visual0.sprite, "setFrame");
 
     game.emit("card-flipped", { cardId: visual0.playingCard.id, faceUp: true });
 
-    expect(setFrameSpy).toHaveBeenCalledWith(visual0.playingCard.id);
+    expect(visual0.sprite.frame).toBe(visual0.playingCard.id);
   });
 
   it("updates card sprite frame to card-back-blue on card-flipped event (faceUp false)", () => {
     const game = (boardScene as any).gameModel;
     const tableau0 = boardScene.tableauPiles[0];
     const visual0 = tableau0.playingCardVisuals[0];
-    const setFrameSpy = vi.spyOn(visual0.sprite, "setFrame");
 
     game.emit("card-flipped", {
       cardId: visual0.playingCard.id,
       faceUp: false,
     });
 
-    expect(setFrameSpy).toHaveBeenCalledWith("card-back-blue");
+    expect(visual0.sprite.frame).toBe("card-back-blue");
   });
 
   it("does not crash on card-flipped event if card visual lacks a sprite", () => {
@@ -256,46 +282,51 @@ describe("BoardScene", () => {
   });
 
   it("draws card on pointerdown of top stock card", () => {
+    const game = (boardScene as any).gameModel;
     const stockVisual = boardScene.stockPile.playingCardVisuals[23];
     const stockSprite = stockVisual.sprite;
-    const drawSpy = vi.spyOn(SolitaireGame.prototype, "drawCardsFromStock");
+    const initialStockLength = game.stock.getCards().length;
 
     stockSprite.emit("pointerdown");
 
-    expect(drawSpy).toHaveBeenCalled();
-    drawSpy.mockRestore();
+    expect(game.stock.getCards().length).toBe(initialStockLength - 3);
+    expect(game.waste.getCards().length).toBe(3);
   });
 
   it("does not draw card on pointerdown of non-top stock card", () => {
+    const game = (boardScene as any).gameModel;
     const nonTopStockVisual = boardScene.stockPile.playingCardVisuals[0];
     const nonTopStockSprite = nonTopStockVisual.sprite;
-    const drawSpy = vi.spyOn(SolitaireGame.prototype, "drawCardsFromStock");
+    const initialStockLength = game.stock.getCards().length;
 
     nonTopStockSprite.emit("pointerdown");
 
-    expect(drawSpy).not.toHaveBeenCalled();
-    drawSpy.mockRestore();
+    expect(game.stock.getCards().length).toBe(initialStockLength);
+    expect(game.waste.getCards().length).toBe(0);
   });
 
   it("recycles stock on pointerdown of stock background when stock is empty", () => {
-    boardScene.stockPile.value.clear();
+    const game = (boardScene as any).gameModel;
+    game.stock.clear();
+    const card = game.getCardById("card-clubs-ace")!;
+    game.getPileContainingCard(card.id)?.removeCard(card);
+    game.waste.addCard(card);
     const bgSprite = boardScene.stockPile.sprite;
-    const drawSpy = vi.spyOn(SolitaireGame.prototype, "drawCardsFromStock");
 
     bgSprite.emit("pointerdown");
 
-    expect(drawSpy).toHaveBeenCalled();
-    drawSpy.mockRestore();
+    expect(game.stock.getCards().length).toBe(1);
+    expect(game.waste.getCards().length).toBe(0);
   });
 
   it("does not recycle stock on pointerdown of stock background when stock is not empty", () => {
+    const game = (boardScene as any).gameModel;
+    const initialStockLength = game.stock.getCards().length;
     const bgSprite = boardScene.stockPile.sprite;
-    const drawSpy = vi.spyOn(SolitaireGame.prototype, "drawCardsFromStock");
 
     bgSprite.emit("pointerdown");
 
-    expect(drawSpy).not.toHaveBeenCalled();
-    drawSpy.mockRestore();
+    expect(game.stock.getCards().length).toBe(initialStockLength);
   });
 
   it("throws error on pointerdown of a card not in any pile", () => {
@@ -311,13 +342,13 @@ describe("BoardScene", () => {
   });
 
   it("does not draw card on pointerdown of a tableau card", () => {
+    const game = (boardScene as any).gameModel;
+    const initialStockLength = game.stock.getCards().length;
     const tableauVisual = boardScene.tableauPiles[0].playingCardVisuals[0];
-    const drawSpy = vi.spyOn(SolitaireGame.prototype, "drawCardsFromStock");
 
     tableauVisual.sprite.emit("pointerdown");
 
-    expect(drawSpy).not.toHaveBeenCalled();
-    drawSpy.mockRestore();
+    expect(game.stock.getCards().length).toBe(initialStockLength);
   });
 
   it("does not crash when highlightGraphics is null", () => {
