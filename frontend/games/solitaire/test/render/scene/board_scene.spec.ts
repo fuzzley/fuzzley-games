@@ -81,6 +81,18 @@ vi.mock("phaser", () => {
       displayHeight: 307,
       input: undefined,
       active: true,
+      enableFilters: vi.fn().mockReturnThis(),
+      filters: {
+        internal: {
+          addShadow: vi.fn().mockImplementation(() => ({
+            x: 2,
+            y: 3,
+            decay: 0.2,
+            intensity: 0.4,
+            setPaddingOverride: vi.fn(),
+          })),
+        },
+      },
     };
     return sprite;
   };
@@ -955,6 +967,51 @@ describe("BoardScene", () => {
       expect(moveSpy).toHaveBeenCalled();
       expect(layoutSpy).toHaveBeenCalled();
       moveSpy.mockRestore();
+    });
+
+    it("updates shadow properties on dragstart and resets on dragend", () => {
+      const tableau0 = boardScene.tableauPiles[0];
+      const visual0 = tableau0.playingCardVisuals[0];
+      const sprite0 = visual0.sprite;
+
+      // Verify initial shadow values (from our mock implementation)
+      expect(visual0.shadow).toBeDefined();
+      expect(visual0.shadow!.x).toBe(2);
+      expect(visual0.shadow!.y).toBe(3);
+      expect(visual0.shadow!.decay).toBe(0.2);
+      expect(visual0.shadow!.intensity).toBe(0.4);
+      expect(visual0.shadow!.setPaddingOverride).toHaveBeenCalledWith(
+        0,
+        0,
+        30,
+        30,
+      );
+
+      // Trigger dragstart
+      (boardScene.input as unknown as MockInput)._trigger(
+        "dragstart",
+        {},
+        sprite0,
+      );
+
+      // Verify that shadow values are adjusted for the lift effect
+      expect(visual0.shadow!.x).toBe(6);
+      expect(visual0.shadow!.y).toBe(10);
+      expect(visual0.shadow!.decay).toBe(0.1);
+      expect(visual0.shadow!.intensity).toBe(0.3);
+
+      // Trigger dragend
+      (boardScene.input as unknown as MockInput)._trigger(
+        "dragend",
+        {},
+        sprite0,
+      );
+
+      // Verify that shadow values are reset to defaults
+      expect(visual0.shadow!.x).toBe(2);
+      expect(visual0.shadow!.y).toBe(3);
+      expect(visual0.shadow!.decay).toBe(0.2);
+      expect(visual0.shadow!.intensity).toBe(0.4);
     });
   });
 
