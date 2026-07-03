@@ -96,24 +96,19 @@ describe("SolitaireGame", () => {
   });
 
   it("recycles waste back to stock if stock is empty", () => {
-    const card1: PlayingCard = {
-      id: "c1",
-      faceUp: true,
-      suite: Suit.CLUB,
-      type: Type.ACE,
-    };
-    const card2: PlayingCard = {
-      id: "c2",
-      faceUp: true,
-      suite: Suit.CLUB,
-      type: Type.TWO,
-    };
+    game.startNewGame();
+    const card1 = game.getCardById("card-clubs-ace")!;
+    const card2 = game.getCardById("card-clubs-2")!;
     game.stock.clear();
     game.waste.clear();
+    game.tableaus.forEach((t) => t.clear());
+    game.foundations.forEach((f) => f.clear());
+
+    card1.faceUp = true;
+    card2.faceUp = true;
     game.waste.addCard(card1);
     game.waste.addCard(card2);
-    game["allCardsMap"].set(card1.id, card1);
-    game["allCardsMap"].set(card2.id, card2);
+
     const recycleCallback = vi.fn();
     game.on("stock-recycled", recycleCallback);
 
@@ -130,13 +125,11 @@ describe("SolitaireGame", () => {
     it("does not move a non-King card to an empty tableau pile", () => {
       game.startNewGame();
       game.tableaus[0].clear();
-      const queen = new PlayingCard();
-      queen.id = "card-hearts-queen";
-      queen.suite = Suit.HEART;
-      queen.type = Type.QUEEN;
+      const queen = game.getCardById("card-hearts-queen")!;
+      game.getPileContainingCard(queen.id)?.removeCard(queen);
       queen.faceUp = true;
+      game.tableaus[1].clear();
       game.tableaus[1].addCard(queen);
-      game["allCardsMap"].set(queen.id, queen);
 
       const moved = game.moveCardToPile(queen.id, "tableau-0");
 
@@ -146,13 +139,11 @@ describe("SolitaireGame", () => {
     it("moves a King card to an empty tableau pile", () => {
       game.startNewGame();
       game.tableaus[0].clear();
-      const king = new PlayingCard();
-      king.id = "card-spades-king";
-      king.suite = Suit.SPADE;
-      king.type = Type.KING;
+      const king = game.getCardById("card-spades-king")!;
+      game.getPileContainingCard(king.id)?.removeCard(king);
       king.faceUp = true;
+      game.tableaus[1].clear();
       game.tableaus[1].addCard(king);
-      game["allCardsMap"].set(king.id, king);
 
       const moved = game.moveCardToPile(king.id, "tableau-0");
 
@@ -162,22 +153,16 @@ describe("SolitaireGame", () => {
 
     it("does not move a card onto tableau if color is the same", () => {
       game.startNewGame();
-      const redEight = new PlayingCard();
-      redEight.id = "card-diamonds-8";
-      redEight.suite = Suit.DIAMOND;
-      redEight.type = Type.EIGHT;
+      const redEight = game.getCardById("card-diamonds-8")!;
+      const redSeven = game.getCardById("card-hearts-7")!;
+      game.getPileContainingCard(redEight.id)?.removeCard(redEight);
+      game.getPileContainingCard(redSeven.id)?.removeCard(redSeven);
       redEight.faceUp = true;
-      const redSeven = new PlayingCard();
-      redSeven.id = "card-hearts-7";
-      redSeven.suite = Suit.HEART;
-      redSeven.type = Type.SEVEN;
       redSeven.faceUp = true;
       game.tableaus[0].clear();
       game.tableaus[0].addCard(redEight);
-      game["allCardsMap"].set(redEight.id, redEight);
       game.tableaus[1].clear();
       game.tableaus[1].addCard(redSeven);
-      game["allCardsMap"].set(redSeven.id, redSeven);
 
       const moved = game.moveCardToPile(redSeven.id, "tableau-0");
 
@@ -186,29 +171,20 @@ describe("SolitaireGame", () => {
 
     it("moves a card onto tableau if rank is descending and color alternates", () => {
       game.startNewGame();
-      const redEight = new PlayingCard();
-      redEight.id = "card-diamonds-8";
-      redEight.suite = Suit.DIAMOND;
-      redEight.type = Type.EIGHT;
+      const redEight = game.getCardById("card-diamonds-8")!;
+      const blackSeven = game.getCardById("card-spades-7")!;
+      const redSeven = game.getCardById("card-hearts-7")!;
+      game.getPileContainingCard(redEight.id)?.removeCard(redEight);
+      game.getPileContainingCard(blackSeven.id)?.removeCard(blackSeven);
+      game.getPileContainingCard(redSeven.id)?.removeCard(redSeven);
       redEight.faceUp = true;
-      const blackSeven = new PlayingCard();
-      blackSeven.id = "card-spades-7";
-      blackSeven.suite = Suit.SPADE;
-      blackSeven.type = Type.SEVEN;
       blackSeven.faceUp = true;
-      const redSeven = new PlayingCard();
-      redSeven.id = "card-hearts-7";
-      redSeven.suite = Suit.HEART;
-      redSeven.type = Type.SEVEN;
       redSeven.faceUp = true;
       game.tableaus[0].clear();
       game.tableaus[0].addCard(redEight);
-      game["allCardsMap"].set(redEight.id, redEight);
       game.tableaus[1].clear();
       game.tableaus[1].addCard(blackSeven);
       game.tableaus[1].addCard(redSeven);
-      game["allCardsMap"].set(blackSeven.id, blackSeven);
-      game["allCardsMap"].set(redSeven.id, redSeven);
 
       const moved = game.moveCardToPile(blackSeven.id, "tableau-0");
 
@@ -219,14 +195,11 @@ describe("SolitaireGame", () => {
 
     it("does not move a non-Ace card to an empty foundation", () => {
       game.startNewGame();
-      const clubTwo = new PlayingCard();
-      clubTwo.id = "card-clubs-2";
-      clubTwo.suite = Suit.CLUB;
-      clubTwo.type = Type.TWO;
+      const clubTwo = game.getCardById("card-clubs-2")!;
+      game.getPileContainingCard(clubTwo.id)?.removeCard(clubTwo);
       clubTwo.faceUp = true;
       game.tableaus[0].clear();
       game.tableaus[0].addCard(clubTwo);
-      game["allCardsMap"].set(clubTwo.id, clubTwo);
 
       const moved = game.moveCardToPile(clubTwo.id, "foundation-0");
 
@@ -235,14 +208,11 @@ describe("SolitaireGame", () => {
 
     it("moves an Ace card to an empty foundation", () => {
       game.startNewGame();
-      const clubAce = new PlayingCard();
-      clubAce.id = "card-clubs-ace";
-      clubAce.suite = Suit.CLUB;
-      clubAce.type = Type.ACE;
+      const clubAce = game.getCardById("card-clubs-ace")!;
+      game.getPileContainingCard(clubAce.id)?.removeCard(clubAce);
       clubAce.faceUp = true;
       game.tableaus[1].clear();
       game.tableaus[1].addCard(clubAce);
-      game["allCardsMap"].set(clubAce.id, clubAce);
 
       const moved = game.moveCardToPile(clubAce.id, "foundation-0");
 
@@ -251,21 +221,16 @@ describe("SolitaireGame", () => {
 
     it("moves a card to foundation if rank increases sequentially and suit matches", () => {
       game.startNewGame();
-      const clubAce = new PlayingCard();
-      clubAce.id = "card-clubs-ace";
-      clubAce.suite = Suit.CLUB;
-      clubAce.type = Type.ACE;
+      const clubAce = game.getCardById("card-clubs-ace")!;
+      const clubTwo = game.getCardById("card-clubs-2")!;
+      game.getPileContainingCard(clubAce.id)?.removeCard(clubAce);
+      game.getPileContainingCard(clubTwo.id)?.removeCard(clubTwo);
       clubAce.faceUp = true;
-      const clubTwo = new PlayingCard();
-      clubTwo.id = "card-clubs-2";
-      clubTwo.suite = Suit.CLUB;
-      clubTwo.type = Type.TWO;
       clubTwo.faceUp = true;
+      game.foundations[0].clear();
       game.foundations[0].addCard(clubAce);
-      game["allCardsMap"].set(clubAce.id, clubAce);
       game.tableaus[0].clear();
       game.tableaus[0].addCard(clubTwo);
-      game["allCardsMap"].set(clubTwo.id, clubTwo);
 
       const moved = game.moveCardToPile(clubTwo.id, "foundation-0");
 
@@ -288,9 +253,9 @@ describe("SolitaireGame", () => {
     });
 
     it("returns undefined in findPileContainingCard if card is not in any pile", () => {
-      const card = new PlayingCard();
-      card.id = "ghost-card";
-      game["allCardsMap"].set(card.id, card); // Register in map but do not add to any pile
+      game.startNewGame();
+      const card = game.getCardById("card-clubs-ace")!;
+      game.getPileContainingCard(card.id)?.removeCard(card);
       expect(game.getPileContainingCard(card.id)).toBeUndefined();
     });
 
@@ -332,36 +297,24 @@ describe("SolitaireGame", () => {
     it("auto-flips the new top card of the tableau pile if it is face-down after a move", () => {
       game.startNewGame();
 
-      // Clear tableau 0 and place a King of Spades there
-      game.tableaus[0].clear();
-      const king = new PlayingCard();
-      king.id = "card-spades-king";
-      king.suite = Suit.SPADE;
-      king.type = Type.KING;
+      const king = game.getCardById("card-spades-king")!;
+      const bottomCard = game.getCardById("card-clubs-jack")!;
+      const topCard = game.getCardById("card-hearts-queen")!;
+
+      game.getPileContainingCard(king.id)?.removeCard(king);
+      game.getPileContainingCard(bottomCard.id)?.removeCard(bottomCard);
+      game.getPileContainingCard(topCard.id)?.removeCard(topCard);
+
       king.faceUp = true;
-      game.tableaus[0].addCard(king);
-      game["allCardsMap"].set(king.id, king);
-
-      // Tableau 1 has 2 cards. We force tableau 1 cards to be:
-      // bottom: black Jack (face-down)
-      // top: red Queen (face-up)
-      const bottomCard = new PlayingCard();
-      bottomCard.id = "card-clubs-jack";
-      bottomCard.suite = Suit.CLUB;
-      bottomCard.type = Type.JACK;
       bottomCard.faceUp = false;
-
-      const topCard = new PlayingCard();
-      topCard.id = "card-hearts-queen";
-      topCard.suite = Suit.HEART;
-      topCard.type = Type.QUEEN;
       topCard.faceUp = true;
+
+      game.tableaus[0].clear();
+      game.tableaus[0].addCard(king);
 
       game.tableaus[1].clear();
       game.tableaus[1].addCard(bottomCard);
       game.tableaus[1].addCard(topCard);
-      game["allCardsMap"].set(bottomCard.id, bottomCard);
-      game["allCardsMap"].set(topCard.id, topCard);
 
       const flippedCallback = vi.fn();
       game.on("card-flipped", flippedCallback);
@@ -369,7 +322,6 @@ describe("SolitaireGame", () => {
       const moved = game.moveCardToPile(topCard.id, "tableau-0");
       expect(moved).toBe(true);
 
-      // Tableau 1's remaining bottomCard (Jack of Clubs) should now be face-up
       expect(bottomCard.faceUp).toBe(true);
       expect(flippedCallback).toHaveBeenCalledWith({
         cardId: bottomCard.id,
@@ -417,25 +369,17 @@ describe("SolitaireGame", () => {
 
     it("validates foundation rules: cannot move multiple cards at once to foundation", () => {
       game.startNewGame();
-      const card1 = new PlayingCard();
-      card1.id = "card-1";
-      card1.suite = Suit.CLUB;
-      card1.type = Type.ACE;
+      const card1 = game.getCardById("card-clubs-ace")!;
+      const card2 = game.getCardById("card-clubs-2")!;
+      game.getPileContainingCard(card1.id)?.removeCard(card1);
+      game.getPileContainingCard(card2.id)?.removeCard(card2);
       card1.faceUp = true;
-
-      const card2 = new PlayingCard();
-      card2.id = "card-2";
-      card2.suite = Suit.CLUB;
-      card2.type = Type.TWO;
       card2.faceUp = true;
 
       game.tableaus[0].clear();
       game.tableaus[0].addCard(card1);
       game.tableaus[0].addCard(card2);
-      game["allCardsMap"].set(card1.id, card1);
-      game["allCardsMap"].set(card2.id, card2);
 
-      // Attempt to move movingStack size 2 to empty foundation (valid target, but multiple cards)
       expect(game.moveCardToPile(card1.id, "foundation-0")).toBe(false);
     });
 
@@ -449,22 +393,50 @@ describe("SolitaireGame", () => {
 
     it("emits game-won when all 52 cards are in the foundation piles", () => {
       game.startNewGame();
+      const suitNames = ["spades", "hearts", "diamonds", "clubs"];
+      const typeNames = [
+        "ace",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "jack",
+        "queen",
+        "king",
+      ];
+
       game.stock.clear();
       game.waste.clear();
       game.tableaus.forEach((t) => t.clear());
       game.foundations.forEach((f) => f.clear());
-      Array.from({ length: 52 }).forEach((_, i) => {
-        const dummyCard = new PlayingCard();
-        dummyCard.id = `dummy-${i}`;
-        dummyCard.faceUp = true;
-        const fIndex = Math.floor(i / 13);
-        game.foundations[fIndex].addCard(dummyCard);
-      });
+
+      for (let sIndex = 0; sIndex < 4; sIndex++) {
+        const suitName = suitNames[sIndex];
+        const targetFoundation = game.foundations[sIndex];
+        const maxTypeIndex = sIndex === 3 ? 12 : 13;
+        for (let tIndex = 0; tIndex < maxTypeIndex; tIndex++) {
+          const cardId = `card-${suitName}-${typeNames[tIndex]}`;
+          const card = game.getCardById(cardId)!;
+          card.faceUp = true;
+          targetFoundation.addCard(card);
+        }
+      }
+
+      const kingOfClubs = game.getCardById("card-clubs-king")!;
+      kingOfClubs.faceUp = true;
+      game.tableaus[0].addCard(kingOfClubs);
+
       const wonCallback = vi.fn();
       game.on("game-won", wonCallback);
 
-      game["checkWinCondition"]();
+      const moved = game.moveCardToPile(kingOfClubs.id, "foundation-3");
 
+      expect(moved).toBe(true);
       expect(wonCallback).toHaveBeenCalledTimes(1);
     });
 
@@ -500,16 +472,16 @@ describe("SolitaireGame", () => {
     });
 
     it("handles waste pile: top card is interactable", () => {
-      const card1 = new PlayingCard();
-      card1.id = "card-spades-2";
+      game.startNewGame();
+      const card1 = game.getCardById("card-spades-2")!;
+      const card2 = game.getCardById("card-hearts-king")!;
+      game.getPileContainingCard(card1.id)?.removeCard(card1);
+      game.getPileContainingCard(card2.id)?.removeCard(card2);
+      game.waste.clear();
       card1.faceUp = true;
-      const card2 = new PlayingCard();
-      card2.id = "card-hearts-king";
       card2.faceUp = true;
       game.waste.addCard(card1);
       game.waste.addCard(card2);
-      game["allCardsMap"].set(card1.id, card1);
-      game["allCardsMap"].set(card2.id, card2);
 
       const interactable = game.isCardInteractable(card2);
 
@@ -517,16 +489,16 @@ describe("SolitaireGame", () => {
     });
 
     it("handles waste pile: non-top card is not interactable", () => {
-      const card1 = new PlayingCard();
-      card1.id = "card-spades-2";
+      game.startNewGame();
+      const card1 = game.getCardById("card-spades-2")!;
+      const card2 = game.getCardById("card-hearts-king")!;
+      game.getPileContainingCard(card1.id)?.removeCard(card1);
+      game.getPileContainingCard(card2.id)?.removeCard(card2);
+      game.waste.clear();
       card1.faceUp = true;
-      const card2 = new PlayingCard();
-      card2.id = "card-hearts-king";
       card2.faceUp = true;
       game.waste.addCard(card1);
       game.waste.addCard(card2);
-      game["allCardsMap"].set(card1.id, card1);
-      game["allCardsMap"].set(card2.id, card2);
 
       const interactable = game.isCardInteractable(card1);
 
@@ -534,16 +506,16 @@ describe("SolitaireGame", () => {
     });
 
     it("handles foundation piles: top card is interactable", () => {
-      const card1 = new PlayingCard();
-      card1.id = "card-diamonds-ace";
+      game.startNewGame();
+      const card1 = game.getCardById("card-diamonds-ace")!;
+      const card2 = game.getCardById("card-diamonds-2")!;
+      game.getPileContainingCard(card1.id)?.removeCard(card1);
+      game.getPileContainingCard(card2.id)?.removeCard(card2);
+      game.foundations[0].clear();
       card1.faceUp = true;
-      const card2 = new PlayingCard();
-      card2.id = "card-diamonds-2";
       card2.faceUp = true;
       game.foundations[0].addCard(card1);
       game.foundations[0].addCard(card2);
-      game["allCardsMap"].set(card1.id, card1);
-      game["allCardsMap"].set(card2.id, card2);
 
       const interactable = game.isCardInteractable(card2);
 
@@ -551,16 +523,16 @@ describe("SolitaireGame", () => {
     });
 
     it("handles foundation piles: non-top card is not interactable", () => {
-      const card1 = new PlayingCard();
-      card1.id = "card-diamonds-ace";
+      game.startNewGame();
+      const card1 = game.getCardById("card-diamonds-ace")!;
+      const card2 = game.getCardById("card-diamonds-2")!;
+      game.getPileContainingCard(card1.id)?.removeCard(card1);
+      game.getPileContainingCard(card2.id)?.removeCard(card2);
+      game.foundations[0].clear();
       card1.faceUp = true;
-      const card2 = new PlayingCard();
-      card2.id = "card-diamonds-2";
       card2.faceUp = true;
       game.foundations[0].addCard(card1);
       game.foundations[0].addCard(card2);
-      game["allCardsMap"].set(card1.id, card1);
-      game["allCardsMap"].set(card2.id, card2);
 
       const interactable = game.isCardInteractable(card1);
 
@@ -597,9 +569,8 @@ describe("SolitaireGame", () => {
     });
 
     it("returns false if card is in an unknown pile type", () => {
-      const card = new PlayingCard();
-      card.id = "ghost-card";
-      game["allCardsMap"].set(card.id, card);
+      game.startNewGame();
+      const card = game.getCardById("card-clubs-ace")!;
       const mockPile = { id: "unknown-pile-id", getCards: () => [card] };
       vi.spyOn(game, "getPileContainingCard").mockReturnValue(mockPile as any);
 
