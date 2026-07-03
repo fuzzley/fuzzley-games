@@ -569,4 +569,79 @@ describe("SolitaireGame", () => {
       expect(interactable).toBe(false);
     });
   });
+
+  describe("isCardDraggable", () => {
+    it("handles stock pile: top card is not draggable", () => {
+      game.startNewGame();
+      const cards = game.stock.getCards();
+      const topCard = cards[cards.length - 1];
+
+      const draggable = game.isCardDraggable(topCard);
+
+      expect(draggable).toBe(false);
+    });
+
+    it("handles tableau piles: face-up card is draggable", () => {
+      game.startNewGame();
+      const card = game.tableaus[0].getCards()[0];
+      card.faceUp = true;
+
+      const draggable = game.isCardDraggable(card);
+
+      expect(draggable).toBe(true);
+    });
+
+    it("handles tableau piles: face-down card is not draggable", () => {
+      game.startNewGame();
+      const card = game.tableaus[0].getCards()[0];
+      card.faceUp = false;
+
+      const draggable = game.isCardDraggable(card);
+
+      expect(draggable).toBe(false);
+    });
+
+    it("handles waste pile: top card is draggable", () => {
+      game.startNewGame();
+      const card1 = game.getCardById("card-spades-2")!;
+      const card2 = game.getCardById("card-hearts-king")!;
+      game.getPileContainingCard(card1.id)?.removeCard(card1);
+      game.getPileContainingCard(card2.id)?.removeCard(card2);
+      game.waste.clear();
+      card1.faceUp = true;
+      card2.faceUp = true;
+      game.waste.addCard(card1);
+      game.waste.addCard(card2);
+
+      const draggable = game.isCardDraggable(card2);
+
+      expect(draggable).toBe(true);
+    });
+
+    it("handles foundation piles: top card is draggable", () => {
+      game.startNewGame();
+      const card1 = game.getCardById("card-diamonds-ace")!;
+      const card2 = game.getCardById("card-diamonds-2")!;
+      game.getPileContainingCard(card1.id)?.removeCard(card1);
+      game.getPileContainingCard(card2.id)?.removeCard(card2);
+      game.foundations[0].clear();
+      card1.faceUp = true;
+      card2.faceUp = true;
+      game.foundations[0].addCard(card1);
+      game.foundations[0].addCard(card2);
+
+      const draggable = game.isCardDraggable(card2);
+
+      expect(draggable).toBe(true);
+    });
+
+    it("returns false if card is not in any pile", () => {
+      const card = new PlayingCard();
+      card.id = "ghost-card";
+
+      const draggable = game.isCardDraggable(card);
+
+      expect(draggable).toBe(false);
+    });
+  });
 });

@@ -226,6 +226,38 @@ describe("BoardScene", () => {
     expect(cardVisual0.sprite.input.cursor).toBe("default");
   });
 
+  it("sets draggability based on whether the card is draggable, not just interactable", () => {
+    // Arrange: Clear mock calls from creation
+    vi.mocked(boardScene.input.setDraggable).mockClear();
+
+    // Act
+    boardScene["updateCardCursors"]();
+
+    // Assert: Check top card of stock pile
+    const stockPile = boardScene.stockPile;
+    const topStockCardVisual =
+      stockPile.playingCardVisuals[stockPile.playingCardVisuals.length - 1];
+    expect(topStockCardVisual.sprite.input.cursor).toBe("pointer"); // Top of stock is interactable/clickable
+
+    // The top stock card sprite should not be draggable
+    expect(boardScene.input.setDraggable).toHaveBeenCalledWith(
+      topStockCardVisual.sprite,
+      false,
+    );
+
+    // Check top card of tableau 0
+    const tableau0 = boardScene.tableauPiles[0];
+    const tableauCardVisual =
+      tableau0.playingCardVisuals[tableau0.playingCardVisuals.length - 1];
+    expect(tableauCardVisual.sprite.input.cursor).toBe("pointer"); // Tableau card is interactable/draggable
+
+    // The tableau card sprite should be draggable
+    expect(boardScene.input.setDraggable).toHaveBeenCalledWith(
+      tableauCardVisual.sprite,
+      true,
+    );
+  });
+
   it("getPileVisualById returns the pile or null if not found", () => {
     expect(boardScene.getPileVisualById("stock")).toBe(boardScene.stockPile);
     expect(boardScene.getPileVisualById("non-existent-pile")).toBeNull();

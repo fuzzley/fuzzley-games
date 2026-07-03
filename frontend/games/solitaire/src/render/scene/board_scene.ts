@@ -244,7 +244,8 @@ export class BoardScene extends Scene {
           visual.playingCard,
         );
         visual.sprite.input.cursor = interactable ? "pointer" : "default";
-        this.input.setDraggable(visual.sprite, interactable);
+        const draggable = this.gameModel.isCardDraggable(visual.playingCard);
+        this.input.setDraggable(visual.sprite, draggable);
       }
     }
 
