@@ -396,6 +396,48 @@ describe("SolitaireGame", () => {
       vi.spyOn(game, "getPileContainingCard").mockReturnValue(game.tableaus[0]);
       expect(game.moveCardToPile(card.id, "tableau-1")).toBe(false);
     });
+
+    it("does not emit card-flipped if the remaining top card is already face-up after a move", () => {
+      game.startNewGame();
+
+      const targetKing = game.getCardById("card-clubs-king")!;
+      const remainingKing = game.getCardById("card-spades-king")!;
+      const movingQueen = game.getCardById("card-hearts-queen")!;
+
+      game.getPileContainingCard(targetKing.id)?.removeCard(targetKing);
+      game.getPileContainingCard(remainingKing.id)?.removeCard(remainingKing);
+      game.getPileContainingCard(movingQueen.id)?.removeCard(movingQueen);
+
+      targetKing.faceUp = true;
+      remainingKing.faceUp = true;
+      movingQueen.faceUp = true;
+
+      game.tableaus[0].clear();
+      game.tableaus[0].addCard(targetKing);
+
+      game.tableaus[1].clear();
+      game.tableaus[1].addCard(remainingKing);
+      game.tableaus[1].addCard(movingQueen);
+
+      const flippedSpy = vi.fn();
+      game.on("card-flipped", flippedSpy);
+
+      const moved = game.moveCardToPile(movingQueen.id, "tableau-0");
+      expect(moved).toBe(true);
+      expect(flippedSpy).not.toHaveBeenCalled();
+    });
+
+    it("handles empty or insufficient deck gracefully during dealTableaus and populateStock", () => {
+      // Return an array containing undefined values to test both dealTableaus and populateStock 'if (card)' false conditions
+      const mockDeck = Array(35).fill(undefined);
+      vi.spyOn(game as any, "createAndShuffleDeck").mockReturnValue(mockDeck);
+
+      expect(() => game.startNewGame()).not.toThrow();
+      expect(game.stock.getCards().length).toBe(0);
+      game.tableaus.forEach((t) => {
+        expect(t.getCards().length).toBe(0);
+      });
+    });
   });
 
   describe("isCardInteractable", () => {
