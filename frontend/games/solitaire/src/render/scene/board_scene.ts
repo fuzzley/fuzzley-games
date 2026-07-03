@@ -2,7 +2,6 @@ import { Scene } from "phaser";
 
 import {
   ALL_PLAYING_CARD_IDS,
-  PlayingCard,
   PlayingCardId,
   Suit,
   Type,
@@ -205,12 +204,14 @@ export class BoardScene extends Scene {
   private updateCardCursors(): void {
     for (const visual of this.cardVisualsMap.values()) {
       if (visual.sprite && visual.sprite.input) {
-        const interactable = this.isCardInteractable(visual.playingCard);
+        const interactable = this.gameModel.isCardInteractable(
+          visual.playingCard,
+        );
         visual.sprite.input.cursor = interactable ? "pointer" : "default";
       }
     }
 
-    if (this.stockPile.sprite && this.stockPile.sprite.input) {
+    if (this.stockPile.sprite?.input) {
       const isEmpty = this.gameModel.stock.getCards().length === 0;
       this.stockPile.sprite.input.cursor = isEmpty ? "pointer" : "default";
     }
@@ -314,44 +315,6 @@ export class BoardScene extends Scene {
   }
 
   /**
-   * Determines if a card is currently interactable based on standard Klondike rules.
-   *
-   * @param card The logical playing card model.
-   * @returns True if the card can be played/moved.
-   */
-  public isCardInteractable(card: PlayingCard): boolean {
-    const pile = this.gameModel.getPileContainingCard(card.id);
-    if (!pile) {
-      return false;
-    }
-
-    if (pile.id.startsWith("tableau-")) {
-      // Any face-up card in a tableau is interactable
-      return card.faceUp;
-    }
-
-    if (pile.id === "waste") {
-      // Only the top card of the waste pile is interactable
-      const cards = pile.getCards();
-      return cards.length > 0 && cards[cards.length - 1] === card;
-    }
-
-    if (pile.id.startsWith("foundation-")) {
-      // Only the top card of a foundation pile is interactable
-      const cards = pile.getCards();
-      return cards.length > 0 && cards[cards.length - 1] === card;
-    }
-
-    if (pile.id === "stock") {
-      // Only the top card of the stock pile is interactable
-      const cards = pile.getCards();
-      return cards.length > 0 && cards[cards.length - 1] === card;
-    }
-
-    return false;
-  }
-
-  /**
    * Redraws the thick, rounded, semi-transparent yellow highlight border around the hovered card if it is interactable.
    */
   public updateHighlightBorder(): void {
@@ -374,7 +337,7 @@ export class BoardScene extends Scene {
     }
 
     const card = this.hoveredCardVisual.playingCard;
-    if (!this.isCardInteractable(card)) {
+    if (!this.gameModel.isCardInteractable(card)) {
       return;
     }
 
