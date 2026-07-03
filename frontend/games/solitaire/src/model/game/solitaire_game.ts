@@ -384,6 +384,21 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     return false;
   }
 
+  /**
+   * Determines if a card is currently draggable based on standard Klondike rules.
+   * Stock pile cards are clickable but not draggable.
+   *
+   * @param card The logical playing card model.
+   * @returns True if the card can be dragged.
+   */
+  public isCardDraggable(card: PlayingCard): boolean {
+    const pile = this.getPileContainingCard(card.id);
+    if (!pile || pile.id === "stock") {
+      return false;
+    }
+    return this.isCardInteractable(card);
+  }
+
   private validateMove(
     card: PlayingCard,
     targetPile: CardPile<PlayingCard>,
