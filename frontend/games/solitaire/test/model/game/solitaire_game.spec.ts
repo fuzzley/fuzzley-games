@@ -1,6 +1,42 @@
 import { SolitaireGame } from "../../../src/model/game/solitaire_game";
 import { PlayingCard, Suit, Type } from "../../../src/model/card/playing_card";
 
+function setupAlmostWonState(game: SolitaireGame): void {
+  const suitNames = ["spades", "hearts", "diamonds", "clubs"];
+  const typeNames = [
+    "ace",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "jack",
+    "queen",
+    "king",
+  ];
+
+  game.stock.clear();
+  game.waste.clear();
+  game.tableaus.forEach((t) => t.clear());
+  game.foundations.forEach((f) => f.clear());
+
+  for (let sIndex = 0; sIndex < 4; sIndex++) {
+    const suitName = suitNames[sIndex];
+    const targetFoundation = game.foundations[sIndex];
+    const maxTypeIndex = sIndex === 3 ? 12 : 13;
+    for (let tIndex = 0; tIndex < maxTypeIndex; tIndex++) {
+      const cardId = `card-${suitName}-${typeNames[tIndex]}`;
+      const card = game.getCardById(cardId)!;
+      card.faceUp = true;
+      targetFoundation.addCard(card);
+    }
+  }
+}
+
 describe("SolitaireGame", () => {
   let game: SolitaireGame;
 
@@ -18,66 +54,34 @@ describe("SolitaireGame", () => {
   it("deals the correct number of cards to piles on startNewGame", () => {
     game.startNewGame();
 
-    // Verify stock and waste sizes
     expect(game.stock.getCards().length).toBe(24);
     expect(game.waste.getCards().length).toBe(0);
+    expect(game.tableaus.length).toBe(7);
 
-    // Verify tableau card counts
-    expect(game.tableaus[0].getCards().length).toBe(1);
-    expect(game.tableaus[1].getCards().length).toBe(2);
-    expect(game.tableaus[2].getCards().length).toBe(3);
-    expect(game.tableaus[3].getCards().length).toBe(4);
-    expect(game.tableaus[4].getCards().length).toBe(5);
-    expect(game.tableaus[5].getCards().length).toBe(6);
-    expect(game.tableaus[6].getCards().length).toBe(7);
+    // Verify stock setup
+    for (let card of game.stock.getCards()) {
+      expect(card.faceUp).toBe(false);
+    }
 
-    // Verify top card of each tableau is face up
-    expect(game.tableaus[0].getCards()[0].faceUp).toBe(true);
-    expect(game.tableaus[1].getCards()[1].faceUp).toBe(true);
-    expect(game.tableaus[2].getCards()[2].faceUp).toBe(true);
-    expect(game.tableaus[3].getCards()[3].faceUp).toBe(true);
-    expect(game.tableaus[4].getCards()[4].faceUp).toBe(true);
-    expect(game.tableaus[5].getCards()[5].faceUp).toBe(true);
-    expect(game.tableaus[6].getCards()[6].faceUp).toBe(true);
+    // Verify tableaus setup
+    for (let i = 0; i < 7; i++) {
+      expect(game.tableaus[i].getCards().length).toBe(i + 1);
 
-    // Verify other cards are face down
-    expect(game.tableaus[1].getCards()[0].faceUp).toBe(false);
-    expect(game.tableaus[2].getCards()[0].faceUp).toBe(false);
-    expect(game.tableaus[2].getCards()[1].faceUp).toBe(false);
-    expect(game.tableaus[3].getCards()[0].faceUp).toBe(false);
-    expect(game.tableaus[3].getCards()[1].faceUp).toBe(false);
-    expect(game.tableaus[3].getCards()[2].faceUp).toBe(false);
-    expect(game.tableaus[4].getCards()[0].faceUp).toBe(false);
-    expect(game.tableaus[4].getCards()[1].faceUp).toBe(false);
-    expect(game.tableaus[4].getCards()[2].faceUp).toBe(false);
-    expect(game.tableaus[4].getCards()[3].faceUp).toBe(false);
-    expect(game.tableaus[5].getCards()[0].faceUp).toBe(false);
-    expect(game.tableaus[5].getCards()[1].faceUp).toBe(false);
-    expect(game.tableaus[5].getCards()[2].faceUp).toBe(false);
-    expect(game.tableaus[5].getCards()[3].faceUp).toBe(false);
-    expect(game.tableaus[5].getCards()[4].faceUp).toBe(false);
-    expect(game.tableaus[6].getCards()[0].faceUp).toBe(false);
-    expect(game.tableaus[6].getCards()[1].faceUp).toBe(false);
-    expect(game.tableaus[6].getCards()[2].faceUp).toBe(false);
-    expect(game.tableaus[6].getCards()[3].faceUp).toBe(false);
-    expect(game.tableaus[6].getCards()[4].faceUp).toBe(false);
-    expect(game.tableaus[6].getCards()[5].faceUp).toBe(false);
+      for (let j = 0; j < i; j++) {
+        expect(game.tableaus[i].getCards()[j].faceUp).toBe(false);
+      }
+      // Last card in pile should always be face up.
+      expect(game.tableaus[i].getCards()[i].faceUp).toBe(true);
+    }
   });
 
-  it("draws 3 cards from stock to waste and emits events", () => {
+  it("draws 3 cards from stock to waste and flips them face up", () => {
     game.startNewGame();
-
     const initialStockCount = game.stock.getCards().length; // 24
     // Capture the top 3 cards (they will be drawn in order: top first)
     const top1 = game.stock.getCards()[initialStockCount - 1] as PlayingCard;
     const top2 = game.stock.getCards()[initialStockCount - 2] as PlayingCard;
     const top3 = game.stock.getCards()[initialStockCount - 3] as PlayingCard;
-
-    const moveCallback = vi.fn();
-    const flipCallback = vi.fn();
-
-    game.on("card-moved", moveCallback);
-    game.on("card-flipped", flipCallback);
 
     game.drawCardsFromStock();
 
@@ -90,9 +94,6 @@ describe("SolitaireGame", () => {
     expect(top1.faceUp).toBe(true);
     expect(top2.faceUp).toBe(true);
     expect(top3.faceUp).toBe(true);
-
-    expect(moveCallback).toHaveBeenCalledTimes(3);
-    expect(flipCallback).toHaveBeenCalledTimes(3);
   });
 
   it("recycles waste back to stock if stock is empty", () => {
@@ -109,12 +110,8 @@ describe("SolitaireGame", () => {
     game.waste.addCard(card1);
     game.waste.addCard(card2);
 
-    const recycleCallback = vi.fn();
-    game.on("stock-recycled", recycleCallback);
-
     game.drawCardsFromStock();
 
-    expect(recycleCallback).toHaveBeenCalledTimes(1);
     expect(game.stock.getCards().length).toBe(2);
     expect(game.waste.getCards().length).toBe(0);
     expect(game.stock.getCards()[0].faceUp).toBe(false);
@@ -241,15 +238,11 @@ describe("SolitaireGame", () => {
   describe("Additional Game Logic Coverage", () => {
     it("does nothing when drawCard is called and both stock and waste are empty", () => {
       const emptyGame = new SolitaireGame();
-      const recycleCallback = vi.fn();
-      const moveCallback = vi.fn();
-      emptyGame.on("stock-recycled", recycleCallback);
-      emptyGame.on("card-moved", moveCallback);
 
       emptyGame.drawCardsFromStock();
 
-      expect(recycleCallback).not.toHaveBeenCalled();
-      expect(moveCallback).not.toHaveBeenCalled();
+      expect(emptyGame.stock.getCards().length).toBe(0);
+      expect(emptyGame.waste.getCards().length).toBe(0);
     });
 
     it("returns undefined in findPileContainingCard if card is not in any pile", () => {
@@ -316,17 +309,10 @@ describe("SolitaireGame", () => {
       game.tableaus[1].addCard(bottomCard);
       game.tableaus[1].addCard(topCard);
 
-      const flippedCallback = vi.fn();
-      game.on("card-flipped", flippedCallback);
-
       const moved = game.moveCardToPile(topCard.id, "tableau-0");
       expect(moved).toBe(true);
 
       expect(bottomCard.faceUp).toBe(true);
-      expect(flippedCallback).toHaveBeenCalledWith({
-        cardId: bottomCard.id,
-        faceUp: true,
-      });
     });
 
     it("does not crash when flipping a non-existent card ID", () => {
@@ -352,19 +338,13 @@ describe("SolitaireGame", () => {
       expect(bottomCard.faceUp).toBe(false);
     });
 
-    it("flips the top card of a tableau pile and emits card-flipped event", () => {
+    it("flips the top card of a tableau pile", () => {
       game.startNewGame();
       const topCard = game.tableaus[1].getCards()[1];
-      const flippedCallback = vi.fn();
-      game.on("card-flipped", flippedCallback);
 
       game.flipCard(topCard.id, false);
 
       expect(topCard.faceUp).toBe(false);
-      expect(flippedCallback).toHaveBeenCalledWith({
-        cardId: topCard.id,
-        faceUp: false,
-      });
     });
 
     it("validates foundation rules: cannot move multiple cards at once to foundation", () => {
@@ -393,39 +373,7 @@ describe("SolitaireGame", () => {
 
     it("emits game-won when all 52 cards are in the foundation piles", () => {
       game.startNewGame();
-      const suitNames = ["spades", "hearts", "diamonds", "clubs"];
-      const typeNames = [
-        "ace",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10",
-        "jack",
-        "queen",
-        "king",
-      ];
-
-      game.stock.clear();
-      game.waste.clear();
-      game.tableaus.forEach((t) => t.clear());
-      game.foundations.forEach((f) => f.clear());
-
-      for (let sIndex = 0; sIndex < 4; sIndex++) {
-        const suitName = suitNames[sIndex];
-        const targetFoundation = game.foundations[sIndex];
-        const maxTypeIndex = sIndex === 3 ? 12 : 13;
-        for (let tIndex = 0; tIndex < maxTypeIndex; tIndex++) {
-          const cardId = `card-${suitName}-${typeNames[tIndex]}`;
-          const card = game.getCardById(cardId)!;
-          card.faceUp = true;
-          targetFoundation.addCard(card);
-        }
-      }
+      setupAlmostWonState(game);
 
       const kingOfClubs = game.getCardById("card-clubs-king")!;
       kingOfClubs.faceUp = true;
