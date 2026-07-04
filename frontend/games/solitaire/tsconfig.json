@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "ES2022",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
