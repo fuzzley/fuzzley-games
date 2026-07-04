@@ -1,7 +1,7 @@
 import { vi } from "vitest";
-import { BoardLayoutManager } from "../../../src/render/layout/board_layout_manager";
-import { Visual } from "../../../src/render/visual/visual";
-import { CardPile } from "../../../src/model/card/card_pile";
+import { BoardLayoutManager } from "../../../../../src/render/scene/board/layout/board_layout_manager";
+import { Visual } from "../../../../../src/render/visual/visual";
+import { CardPile } from "../../../../../src/model/card/card_pile";
 
 function createMockSprite() {
   const sprite = {

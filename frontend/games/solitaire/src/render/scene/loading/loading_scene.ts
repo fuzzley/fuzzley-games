@@ -1,6 +1,6 @@
 import { Scene } from "phaser";
-import cardAssetsTexture from "../../assets/sprites/atlas/card_assets.png";
-import cardAssetsAtlas from "../../assets/sprites/atlas/card_assets_atlas.json";
+import cardAssetsTexture from "../../../assets/sprites/atlas/card_assets.png";
+import cardAssetsAtlas from "../../../assets/sprites/atlas/card_assets_atlas.json";
 
 /**
  * Scene responsible for preloading all necessary game assets and transitioning to the board scene.

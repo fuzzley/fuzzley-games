@@ -1,11 +1,11 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import { BoardScene } from "../../../src/render/scene/board_scene";
-import { SolitaireGame } from "../../../src/model/game/solitaire_game";
+import { BoardScene } from "../../../../src/render/scene/board/board_scene";
+import { SolitaireGame } from "../../../../src/model/game/solitaire_game";
 import {
   Suit,
   Type,
   ALL_PLAYING_CARD_IDS,
-} from "../../../src/model/card/playing_card";
+} from "../../../../src/model/card/playing_card";
 
 interface MockInput {
   _trigger(event: string, ...args: unknown[]): void;
@@ -1082,5 +1082,27 @@ describe("BoardScene", () => {
 
     expect(originalGraphics.strokeRoundedRect).not.toHaveBeenCalled();
     bgSprite.active = true;
+  });
+
+  it("provides backward compatibility getters and setters for sub-manager states", () => {
+    // hoveredCardVisual
+    const originalHovered = boardScene.hoveredCardVisual;
+    boardScene.hoveredCardVisual = originalHovered;
+    expect(boardScene.hoveredCardVisual).toBe(originalHovered);
+
+    // isStockBackgroundHovered
+    const originalStockHovered = boardScene.isStockBackgroundHovered;
+    boardScene.isStockBackgroundHovered = originalStockHovered;
+    expect(boardScene.isStockBackgroundHovered).toBe(originalStockHovered);
+
+    // draggedStack
+    const originalDragged = boardScene.draggedStack;
+    boardScene.draggedStack = originalDragged;
+    expect(boardScene.draggedStack).toBe(originalDragged);
+
+    // draggedStackOffsets
+    const originalOffsets = boardScene.draggedStackOffsets;
+    boardScene.draggedStackOffsets = originalOffsets;
+    expect(boardScene.draggedStackOffsets).toBe(originalOffsets);
   });
 });
