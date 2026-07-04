@@ -25,4 +25,17 @@ export type GameEvents = {
 
   /** Emitted when all cards have been successfully moved to the foundation piles. */
   "game-won": undefined;
+
+  /** Emitted when the game's reactive metrics (score, moves, etc.) change. */
+  "state-changed": {
+    score: number;
+    moves: number;
+    drawCount: 1 | 3;
+    cardBackStyle: "card-back-blue" | "card-back-red";
+  };
+
+  /** Emitted when the user selects a new card back style. */
+  "card-back-changed": {
+    cardBackStyle: "card-back-blue" | "card-back-red";
+  };
 };

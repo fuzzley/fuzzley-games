@@ -652,4 +652,164 @@ describe("SolitaireGame", () => {
       expect(draggable).toBe(false);
     });
   });
+
+  describe("Scoring, Moves, and Game Options", () => {
+    it("starts a new game with zeroed score, moves, and default options", () => {
+      game.startNewGame();
+      expect(game.score).toBe(0);
+      expect(game.moves).toBe(0);
+      expect(game.drawCount).toBe(3);
+      expect(game.cardBackStyle).toBe("card-back-blue");
+    });
+
+    it("allows updating options via setters and emits state-changed", () => {
+      const stateListener = vi.fn();
+      const cardBackListener = vi.fn();
+      game.on("state-changed", stateListener);
+      game.on("card-back-changed", cardBackListener);
+
+      game.setDrawCount(1);
+      expect(game.drawCount).toBe(1);
+      expect(stateListener).toHaveBeenCalledTimes(1);
+
+      game.setCardBackStyle("card-back-red");
+      expect(game.cardBackStyle).toBe("card-back-red");
+      expect(cardBackListener).toHaveBeenCalledWith({
+        cardBackStyle: "card-back-red",
+      });
+      expect(stateListener).toHaveBeenCalledTimes(2);
+    });
+
+    it("increments moves and scores +5 when moving waste to tableau", () => {
+      game.startNewGame();
+      const card = game.getCardById("card-spades-jack")!;
+      const tableauCard = game.tableaus[0].getCards()[0];
+
+      game.waste.clear();
+      card.faceUp = true;
+      card.type = Type.QUEEN;
+      card.suite = Suit.HEART;
+      game.waste.addCard(card);
+
+      tableauCard.faceUp = true;
+      tableauCard.type = Type.KING;
+      tableauCard.suite = Suit.SPADE;
+
+      const moved = game.moveCardToPile(card.id, game.tableaus[0].id);
+      expect(moved).toBe(true);
+      expect(game.score).toBe(5);
+      expect(game.moves).toBe(1);
+    });
+
+    it("scores +10 when moving waste to foundation", () => {
+      game.startNewGame();
+      const card = game.getCardById("card-spades-ace")!;
+      game.waste.clear();
+      card.faceUp = true;
+      card.type = Type.ACE;
+      game.waste.addCard(card);
+
+      const moved = game.moveCardToPile(card.id, game.foundations[0].id);
+      expect(moved).toBe(true);
+      expect(game.score).toBe(10);
+      expect(game.moves).toBe(1);
+    });
+
+    it("scores +10 when moving tableau to foundation", () => {
+      game.startNewGame();
+      const card = game.getCardById("card-hearts-ace")!;
+      game.tableaus[0].clear();
+      card.faceUp = true;
+      card.type = Type.ACE;
+      game.tableaus[0].addCard(card);
+
+      const moved = game.moveCardToPile(card.id, game.foundations[1].id);
+      expect(moved).toBe(true);
+      expect(game.score).toBe(10);
+    });
+
+    it("scores -15 when moving foundation to tableau", () => {
+      game.startNewGame();
+
+      const ace = game.getCardById("card-clubs-ace")!;
+      const two = game.getCardById("card-diamonds-2")!;
+
+      game.foundations[0].clear();
+      ace.faceUp = true;
+      ace.type = Type.ACE;
+      ace.suite = Suit.CLUB;
+      game.foundations[0].addCard(ace);
+
+      game.tableaus[0].clear();
+      two.faceUp = true;
+      two.type = Type.TWO;
+      two.suite = Suit.DIAMOND;
+      game.tableaus[0].addCard(two);
+
+      game.score = 20;
+
+      const moved = game.moveCardToPile(ace.id, game.tableaus[0].id);
+      expect(moved).toBe(true);
+      expect(game.score).toBe(5);
+    });
+
+    it("scores +5 when flipping a tableau card face up via moveCardToPile auto-flip", () => {
+      game.startNewGame();
+
+      game.tableaus[0].clear();
+      const cardDown = game.getCardById("card-spades-10")!;
+      cardDown.faceUp = false;
+      game.tableaus[0].addCard(cardDown);
+
+      const cardUp = game.getCardById("card-hearts-ace")!;
+      cardUp.faceUp = true;
+      cardUp.type = Type.ACE;
+      game.tableaus[0].addCard(cardUp);
+
+      game.foundations[0].clear();
+      const moved = game.moveCardToPile(cardUp.id, game.foundations[0].id);
+      expect(moved).toBe(true);
+      expect(cardDown.faceUp).toBe(true);
+      expect(game.score).toBe(15);
+    });
+
+    it("recycles waste and applies proper score penalty for Draw 1 vs Draw 3", () => {
+      game.startNewGame();
+      game.setDrawCount(1);
+
+      game.stock.clear();
+      const card = game.getCardById("card-clubs-king")!;
+      game.waste.clear();
+      game.waste.addCard(card);
+
+      game.score = 200;
+
+      game.drawCardsFromStock();
+      expect(game.score).toBe(200);
+
+      game.stock.clear();
+      game.waste.addCard(card);
+
+      game.drawCardsFromStock();
+      expect(game.score).toBe(100);
+
+      game.setDrawCount(3);
+      game.score = 200;
+      game.startNewGame();
+      game.setDrawCount(3);
+      game.score = 200;
+
+      for (let i = 0; i < 3; i++) {
+        game.stock.clear();
+        game.waste.addCard(card);
+        game.drawCardsFromStock();
+      }
+      expect(game.score).toBe(200);
+
+      game.stock.clear();
+      game.waste.addCard(card);
+      game.drawCardsFromStock();
+      expect(game.score).toBe(180);
+    });
+  });
 });
