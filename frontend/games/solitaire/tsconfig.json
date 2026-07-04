@@ -4,6 +4,10 @@
     "moduleResolution": "node",
     "ignoreDeprecations": "6.0",
     "rootDir": "./src",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "strictPropertyInitialization": false,
     "noImplicitAny": true,
     "removeComments": true,
