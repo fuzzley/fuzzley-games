@@ -2,7 +2,9 @@ import * as Phaser from "phaser";
 
 interface SceneWithModel extends Phaser.Scene {
   gameModel?: {
-    cardBackStyle: "card-back-blue" | "card-back-red";
+    settings: {
+      cardBackStyle: "card-back-blue" | "card-back-red";
+    };
   };
 }
 
@@ -25,7 +27,8 @@ export class BoardVisualFactory {
    */
   createCardSprite(): Phaser.GameObjects.Sprite {
     const boardScene = this.scene as SceneWithModel;
-    const cardBack = boardScene.gameModel?.cardBackStyle || "card-back-blue";
+    const cardBack =
+      boardScene.gameModel?.settings.cardBackStyle || "card-back-blue";
     const sprite = this.scene.add.sprite(0, 0, "card_assets", cardBack);
     sprite.setOrigin(0, 0);
     sprite.enableFilters();

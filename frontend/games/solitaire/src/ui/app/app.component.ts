@@ -5,6 +5,7 @@ import {
   ChangeDetectorRef,
   NgZone,
 } from "@angular/core";
+import { Subscription } from "rxjs";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
 import { BoardScene } from "@/game/render/scene/board/board_scene";
 
@@ -42,6 +43,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private secondsElapsed = 0;
   private timerInterval: ReturnType<typeof setInterval> | null = null;
   private gameModel: SolitaireGame | null = null;
+  private readonly subscriptions = new Subscription();
 
   constructor(
     private readonly cdr: ChangeDetectorRef,
@@ -54,6 +56,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopTimer();
+    this.subscriptions.unsubscribe();
   }
 
   private startTimer(): void {
@@ -93,31 +96,49 @@ export class AppComponent implements OnInit, OnDestroy {
 
     const model = this.gameModel;
 
-    // Pop initial values in NgZone/CDR digest
-    this.ngZone.run(() => {
-      this.score = model.score;
-      this.moves = model.moves;
-      this.drawCount = model.drawCount;
-      this.cardBack = model.cardBackStyle;
-      this.cdr.detectChanges();
-    });
+    // Subscribe to observable state fields
+    this.subscriptions.add(
+      model.state.score$.subscribe((score) => {
+        this.ngZone.run(() => {
+          this.score = score;
+          this.cdr.detectChanges();
+        });
+      }),
+    );
 
-    // Listen to changes
-    model.on("state-changed", (state) => {
-      this.ngZone.run(() => {
-        this.score = state.score;
-        this.moves = state.moves;
-        this.drawCount = state.drawCount;
-        this.cardBack = state.cardBackStyle;
+    this.subscriptions.add(
+      model.state.moves$.subscribe((moves) => {
+        this.ngZone.run(() => {
+          this.moves = moves;
 
-        // Auto-start timer on first card movement
-        if (this.moves > 0 && !this.timerInterval && !this.isGameWon) {
-          this.startTimer();
-        }
-        this.cdr.detectChanges();
-      });
-    });
+          // Auto-start timer on first card movement
+          if (this.moves > 0 && !this.timerInterval && !this.isGameWon) {
+            this.startTimer();
+          }
+          this.cdr.detectChanges();
+        });
+      }),
+    );
 
+    this.subscriptions.add(
+      model.settings.drawCount$.subscribe((drawCount) => {
+        this.ngZone.run(() => {
+          this.drawCount = drawCount;
+          this.cdr.detectChanges();
+        });
+      }),
+    );
+
+    this.subscriptions.add(
+      model.settings.cardBackStyle$.subscribe((style) => {
+        this.ngZone.run(() => {
+          this.cardBack = style;
+          this.cdr.detectChanges();
+        });
+      }),
+    );
+
+    // Listen to discrete game events
     model.on("game-won", () => {
       this.ngZone.run(() => {
         this.isGameWon = true;
