@@ -1,5 +1,11 @@
 import * as Phaser from "phaser";
 
+interface SceneWithModel extends Phaser.Scene {
+  gameModel?: {
+    cardBackStyle: "card-back-blue" | "card-back-red";
+  };
+}
+
 /**
  * Factory class responsible for creating and configuring Phaser sprite GameObjects
  * for playing cards and pile backgrounds.
@@ -18,7 +24,9 @@ export class BoardVisualFactory {
    * @returns The configured Sprite.
    */
   createCardSprite(): Phaser.GameObjects.Sprite {
-    const sprite = this.scene.add.sprite(0, 0, "card_assets", "card-back-blue");
+    const boardScene = this.scene as SceneWithModel;
+    const cardBack = boardScene.gameModel?.cardBackStyle || "card-back-blue";
+    const sprite = this.scene.add.sprite(0, 0, "card_assets", cardBack);
     sprite.setOrigin(0, 0);
     sprite.enableFilters();
 
