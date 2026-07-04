@@ -15,8 +15,7 @@ export const GAME_MODEL = new InjectionToken<SolitaireGame>("GAME_MODEL", {
   factory: () => {
     const game = window.solitaire?.game;
     const boardScene = game?.scene?.getScene("board-scene") as
-      | BoardScene
-      | undefined;
+      BoardScene | undefined;
     if (!boardScene?.gameModel) {
       throw new Error("SolitaireGame model not available at injection time");
     }

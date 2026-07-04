@@ -5,14 +5,10 @@ import {
   computed,
   effect,
   DestroyRef,
-  Signal,
 } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { Observable } from "rxjs";
 import { GAME_MODEL } from "./game-model.provider";
-import { SolitaireGame } from "@/game/model/game/solitaire_game";
 import { BoardScene } from "@/game/render/scene/board/board_scene";
-import { GameEvents } from "@/game/model/game/game_events";
 
 @Component({
   selector: "app-root",
@@ -143,8 +139,7 @@ export class AppComponent {
     const gameInstance = window.solitaire?.game;
     if (gameInstance && gameInstance.scene) {
       const boardScene = gameInstance.scene.getScene("board-scene") as
-        | BoardScene
-        | undefined;
+        BoardScene | undefined;
       if (boardScene && boardScene.cameras?.main) {
         boardScene.cameras.main.setBackgroundColor(themeColor);
       }
