@@ -28,6 +28,7 @@
   "homepage": "https://github.com/fuzzley/fSolitaire#readme",
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "^2.6.2",
+    "@analogjs/vitest-angular": "^2.6.2",
     "@angular/build": "^22.0.5",
     "@angular/compiler-cli": "^22.0.5",
     "@eslint/js": "^10.0.1",
@@ -36,6 +37,7 @@
     "@typescript-eslint/parser": "^8.62.1",
     "@vitest/coverage-v8": "^4.1.9",
     "concurrently": "^10.0.3",
+    "jsdom": "^29.1.1",
     "prettier": "^3.9.4",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.62.1",
