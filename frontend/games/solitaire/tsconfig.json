@@ -19,7 +19,7 @@
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "exclude": ["custom_typings/**/*", "node_modules", "**/*.spec.ts"],
-  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts"],
+  "include": ["src/**/*", "custom_typings/**/*.d.ts"],
   "typeRoots": ["./node_modules/@types", "./custom_typings"]
 }
