@@ -1,4 +1,4 @@
-import type { BoardScene, PileVisual } from "../scene/board_scene";
+import type { BoardScene, PileVisual } from "../board_scene";
 import {
   CARD_WIDTH_PX,
   CARD_HEIGHT_PX,
