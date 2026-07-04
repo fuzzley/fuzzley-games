@@ -1,5 +1,6 @@
-import { createApp } from "vue";
-import App from "./App.vue";
+import "zone.js";
+import { bootstrapApplication } from "@angular/platform-browser";
+import { AppComponent } from "./app.component";
 import "@/game/index";
 
-createApp(App).mount("#app");
+bootstrapApplication(AppComponent).catch((err) => console.error(err));
