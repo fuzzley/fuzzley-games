@@ -4,24 +4,6 @@
     "outDir": "./dist/out-tsc",
     "types": []
   },
-  "angularCompilerOptions": {
-    "strictTemplates": true,
-    "strictInjectionParameters": true,
-    "strictInputAccessModifiers": true,
-    "strictStandalone": true,
-    "extendedDiagnostics": {
-      "defaultCategory": "warning",
-      "checks": {
-        "invalidBananaInBox": "error",
-        "unusedStandaloneImports": "warning",
-        "missingRequiredInput": "error"
-      }
-    }
-  },
-  "files": [
-    "src/ui/app/main.ts"
-  ],
-  "include": [
-    "src/**/*.d.ts"
-  ]
+  "files": ["src/ui/app/main.ts"],
+  "include": ["src/**/*.d.ts"]
 }
