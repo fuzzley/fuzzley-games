@@ -2,11 +2,6 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { AppComponent } from "@/ui/app/app.component";
-import { setupTestBed } from "@analogjs/vitest-angular/setup-testbed";
-
-setupTestBed({
-  zoneless: false,
-});
 
 describe("AppComponent (TestBed)", () => {
   let component: AppComponent;
@@ -77,14 +72,8 @@ describe("AppComponent (TestBed)", () => {
     fixture.detectChanges();
 
     expect(mockGame.scene.getScene).toHaveBeenCalledWith("board-scene");
-    expect(mockGameModel.on).toHaveBeenCalledWith(
-      "state-changed",
-      expect.any(Function),
-    );
-    expect(mockGameModel.on).toHaveBeenCalledWith(
-      "game-won",
-      expect.any(Function),
-    );
+    expect(mockGameModel.on).toHaveBeenCalledWith("state-changed", expect.any(Function));
+    expect(mockGameModel.on).toHaveBeenCalledWith("game-won", expect.any(Function));
     expect(component.score).toBe(42);
     expect(component.moves).toBe(3);
     expect(mockCamera.setBackgroundColor).toHaveBeenCalledWith("#0f4d0e");
@@ -180,9 +169,7 @@ describe("AppComponent (TestBed)", () => {
 
     component.setCardBack("card-back-red");
 
-    expect(mockGameModel.setCardBackStyle).toHaveBeenCalledWith(
-      "card-back-red",
-    );
+    expect(mockGameModel.setCardBackStyle).toHaveBeenCalledWith("card-back-red");
   });
 
   it("should update theme and cameras main color on setTheme", () => {
@@ -212,7 +199,7 @@ describe("AppComponent (TestBed)", () => {
   });
 
   it("should update metrics when state-changed event is emitted", () => {
-    let stateChangedCallback: Function = () => {};
+    let stateChangedCallback: Function = () => { };
     const mockGameModel = {
       score: 0,
       moves: 0,
@@ -242,7 +229,7 @@ describe("AppComponent (TestBed)", () => {
   });
 
   it("should start the timer when moves > 0 and timer is not running, and advance it correctly", () => {
-    let stateChangedCallback: Function = () => {};
+    let stateChangedCallback: Function = () => { };
     const mockGameModel = {
       score: 0,
       moves: 0,
@@ -275,8 +262,8 @@ describe("AppComponent (TestBed)", () => {
   });
 
   it("should stop timer and set isGameWon to true when game-won is emitted", () => {
-    let gameWonCallback: Function = () => {};
-    let stateChangedCallback: Function = () => {};
+    let gameWonCallback: Function = () => { };
+    let stateChangedCallback: Function = () => { };
     const mockGameModel = {
       score: 0,
       moves: 0,
