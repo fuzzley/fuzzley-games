@@ -1,13 +1,18 @@
 import {
   Component,
-  OnInit,
-  OnDestroy,
-  ChangeDetectorRef,
-  NgZone,
+  inject,
+  signal,
+  computed,
+  effect,
+  DestroyRef,
+  Signal,
 } from "@angular/core";
-import { Subscription } from "rxjs";
+import { toSignal } from "@angular/core/rxjs-interop";
+import { Observable } from "rxjs";
+import { GAME_MODEL } from "./game-model.provider";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
 import { BoardScene } from "@/game/render/scene/board/board_scene";
+import { GameEvents } from "@/game/model/game/game_events";
 
 @Component({
   selector: "app-root",
@@ -15,16 +20,35 @@ import { BoardScene } from "@/game/render/scene/board/board_scene";
   templateUrl: "./app.component.html",
   styleUrl: "./app.component.css",
 })
-export class AppComponent implements OnInit, OnDestroy {
-  // Live Metrics
-  score = 0;
-  moves = 0;
-  timerText = "00:00";
-  isGameWon = false;
+export class AppComponent {
+  // Injected game model — available synchronously via InjectionToken factory
+  private readonly gameModel = inject(GAME_MODEL);
+  private readonly destroyRef = inject(DestroyRef);
 
-  // Options
-  drawCount = 3;
-  cardBack = "card-back-blue";
+  // --- Signals from observable game state ---
+  readonly score = toSignal(this.gameModel.state.score$, { initialValue: 0 });
+  readonly moves = toSignal(this.gameModel.state.moves$, { initialValue: 0 });
+  readonly drawCount = toSignal(this.gameModel.settings.drawCount$, {
+    initialValue: 3,
+  });
+  readonly cardBack = toSignal(this.gameModel.settings.cardBackStyle$, {
+    initialValue: "card-back-blue" as const,
+  });
+
+  // --- Game-won state ---
+  readonly isGameWon = signal(false);
+
+  // --- Timer state ---
+  private readonly secondsElapsed = signal(0);
+  private timerInterval: ReturnType<typeof setInterval> | null = null;
+  readonly timerText = computed(() => {
+    const total = this.secondsElapsed();
+    const mins = Math.floor(total / 60);
+    const secs = total % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  });
+
+  // Options (non-observable, local UI state)
   selectedTheme = "green";
   showSettings = false;
 
@@ -40,31 +64,37 @@ export class AppComponent implements OnInit, OnDestroy {
     purple: { name: "Royal Velvet", color: "#3c096c", bgClass: "theme-purple" },
   };
 
-  private secondsElapsed = 0;
-  private timerInterval: ReturnType<typeof setInterval> | null = null;
-  private gameModel: SolitaireGame | null = null;
-  private readonly subscriptions = new Subscription();
+  constructor() {
+    // Auto-start timer when moves > 0 and game is not won
+    effect(() => {
+      const moves = this.moves();
+      const isWon = this.isGameWon();
+      if (moves > 0 && !this.timerInterval && !isWon) {
+        this.startTimer();
+      }
+    });
 
-  constructor(
-    private readonly cdr: ChangeDetectorRef,
-    private readonly ngZone: NgZone,
-  ) {}
+    // React to game-won event
+    const gameWonHandler = () => {
+      this.isGameWon.set(true);
+      this.stopTimer();
+    };
+    this.gameModel.on("game-won", gameWonHandler);
+    this.destroyRef.onDestroy(() => {
+      this.gameModel.off("game-won", gameWonHandler);
+    });
 
-  ngOnInit(): void {
-    this.initGameModel();
-  }
+    // Apply initial theme
+    this.setTheme(this.selectedTheme);
 
-  ngOnDestroy(): void {
-    this.stopTimer();
-    this.subscriptions.unsubscribe();
+    // Clean up timer on destroy
+    this.destroyRef.onDestroy(() => this.stopTimer());
   }
 
   private startTimer(): void {
     if (this.timerInterval) return;
     this.timerInterval = setInterval(() => {
-      this.secondsElapsed++;
-      this.updateTimerText();
-      this.cdr.detectChanges();
+      this.secondsElapsed.update((s) => s + 1);
     }, 1000);
   }
 
@@ -77,128 +107,33 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private resetTimer(): void {
     this.stopTimer();
-    this.secondsElapsed = 0;
-    this.updateTimerText();
-  }
-
-  private updateTimerText(): void {
-    const mins = Math.floor(this.secondsElapsed / 60);
-    const secs = this.secondsElapsed % 60;
-    this.timerText = `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    this.secondsElapsed.set(0);
   }
 
   toggleSettings(): void {
     this.showSettings = !this.showSettings;
   }
 
-  private setupListeners(): void {
-    if (!this.gameModel) return;
-
-    const model = this.gameModel;
-
-    // Subscribe to observable state fields
-    this.subscriptions.add(
-      model.state.score$.subscribe((score) => {
-        this.ngZone.run(() => {
-          this.score = score;
-          this.cdr.detectChanges();
-        });
-      }),
-    );
-
-    this.subscriptions.add(
-      model.state.moves$.subscribe((moves) => {
-        this.ngZone.run(() => {
-          this.moves = moves;
-
-          // Auto-start timer on first card movement
-          if (this.moves > 0 && !this.timerInterval && !this.isGameWon) {
-            this.startTimer();
-          }
-          this.cdr.detectChanges();
-        });
-      }),
-    );
-
-    this.subscriptions.add(
-      model.settings.drawCount$.subscribe((drawCount) => {
-        this.ngZone.run(() => {
-          this.drawCount = drawCount;
-          this.cdr.detectChanges();
-        });
-      }),
-    );
-
-    this.subscriptions.add(
-      model.settings.cardBackStyle$.subscribe((style) => {
-        this.ngZone.run(() => {
-          this.cardBack = style;
-          this.cdr.detectChanges();
-        });
-      }),
-    );
-
-    // Listen to discrete game events
-    model.on("game-won", () => {
-      this.ngZone.run(() => {
-        this.isGameWon = true;
-        this.stopTimer();
-        this.cdr.detectChanges();
-      });
-    });
-  }
-
-  private initGameModel(): void {
-    const gameInstance = window.solitaire?.game;
-    if (!gameInstance || !gameInstance.scene) {
-      setTimeout(() => this.initGameModel(), 100);
-      return;
-    }
-
-    const boardScene = gameInstance.scene.getScene("board-scene") as
-      BoardScene | undefined;
-    if (!boardScene) {
-      setTimeout(() => this.initGameModel(), 100);
-      return;
-    }
-
-    if (boardScene.gameModel) {
-      this.gameModel = boardScene.gameModel;
-      this.setupListeners();
-      this.setTheme(this.selectedTheme);
-    } else {
-      setTimeout(() => this.initGameModel(), 100);
-    }
-  }
-
   restartGame(): void {
-    if (this.gameModel) {
-      this.gameModel.startNewGame();
-      this.isGameWon = false;
-      this.resetTimer();
-    }
+    this.gameModel.startNewGame();
+    this.isGameWon.set(false);
+    this.resetTimer();
   }
 
   startNewGame(): void {
-    if (this.gameModel) {
-      this.gameModel.startNewGame();
-      this.isGameWon = false;
-      this.resetTimer();
-    }
+    this.gameModel.startNewGame();
+    this.isGameWon.set(false);
+    this.resetTimer();
   }
 
   setDrawMode(mode: 1 | 3): void {
-    if (this.gameModel) {
-      this.gameModel.setDrawCount(mode);
-      this.gameModel.startNewGame();
-      this.resetTimer();
-    }
+    this.gameModel.setDrawCount(mode);
+    this.gameModel.startNewGame();
+    this.resetTimer();
   }
 
   setCardBack(style: "card-back-blue" | "card-back-red"): void {
-    if (this.gameModel) {
-      this.gameModel.setCardBackStyle(style);
-    }
+    this.gameModel.setCardBackStyle(style);
   }
 
   setTheme(themeKey: string): void {
@@ -208,7 +143,8 @@ export class AppComponent implements OnInit, OnDestroy {
     const gameInstance = window.solitaire?.game;
     if (gameInstance && gameInstance.scene) {
       const boardScene = gameInstance.scene.getScene("board-scene") as
-        BoardScene | undefined;
+        | BoardScene
+        | undefined;
       if (boardScene && boardScene.cameras?.main) {
         boardScene.cameras.main.setBackgroundColor(themeColor);
       }
