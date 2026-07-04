@@ -2,6 +2,7 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 import * as Phaser from "phaser";
 import { BoardScene } from "@/game/render/scene/board/board_scene";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
+import { resetGameModel } from "@/game/model/game/game_model_factory";
 import {
   Suit,
   Type,
@@ -179,6 +180,7 @@ describe("BoardScene", () => {
   let boardScene: BoardScene;
 
   beforeEach(() => {
+    resetGameModel();
     boardScene = new BoardScene();
     boardScene.create();
   });
@@ -356,6 +358,7 @@ describe("BoardScene", () => {
   });
 
   it("throws error in createCardVisuals if a card model is not found", () => {
+    resetGameModel();
     const customBoardScene = new BoardScene();
     const getCardSpy = vi
       .spyOn(SolitaireGame.prototype, "getCardById")
@@ -382,6 +385,7 @@ describe("BoardScene", () => {
   });
 
   it("syncVisualPilesWithModel ignores cards not in cardVisualsMap", () => {
+    resetGameModel();
     const customBoardScene = new BoardScene();
     customBoardScene.create();
 

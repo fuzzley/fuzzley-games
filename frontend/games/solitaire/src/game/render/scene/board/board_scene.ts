@@ -8,6 +8,7 @@ import { WastePileVisual } from "../../visual/pile/waste_pile_visual";
 import { FoundationPileVisual } from "../../visual/pile/foundation_pile_visual";
 import { TableauPileVisual } from "../../visual/pile/tableau_pile_visual";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
+import { getGameModel } from "@/game/model/game/game_model_factory";
 import { PlayingCardVisual } from "../../visual/card/playing_card_visual";
 import { playingCardIdToFileName } from "../../asset/card_assets";
 import { BoardVisualFactory } from "./board_visual_factory";
@@ -27,7 +28,7 @@ export class BoardScene extends Scene {
   public static readonly PILE_BACKGROUND_ALPHA = 0.5;
 
   /** The logical solitaire game rules and state engine. */
-  public readonly gameModel: SolitaireGame = new SolitaireGame();
+  public readonly gameModel: SolitaireGame = getGameModel();
 
   /** Registry of visual cards mapped by their unique string ID. */
   public readonly cardVisualsMap = new Map<string, PlayingCardVisual>();
