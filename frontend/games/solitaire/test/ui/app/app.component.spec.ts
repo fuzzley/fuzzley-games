@@ -5,6 +5,13 @@ import { BehaviorSubject } from "rxjs";
 import { AppComponent } from "@/ui/app/app.component";
 import { GAME_MODEL } from "@/ui/app/game-model.provider";
 
+/** Window augmented with the global the component reads for theming. */
+interface SolitaireWindow extends Window {
+  solitaire?: {
+    game: { scene: { getScene(key: string): unknown } };
+  };
+}
+
 /** Creates a mock gameModel with observable state/settings matching the real API. */
 function createMockGameModel(
   overrides: {
@@ -51,197 +58,174 @@ function createMockGameModel(
   };
 }
 
-describe("AppComponent (TestBed)", () => {
-  let component: AppComponent;
-  let fixture: ComponentFixture<AppComponent>;
-  let mockGameModel: ReturnType<typeof createMockGameModel>;
+type MockGameModel = ReturnType<typeof createMockGameModel>;
 
-  beforeEach(async () => {
+/** Configures the TestBed with the given model and creates the component. */
+async function buildComponent(model: MockGameModel): Promise<{
+  fixture: ComponentFixture<AppComponent>;
+  component: AppComponent;
+}> {
+  await TestBed.configureTestingModule({
+    imports: [AppComponent],
+    providers: [{ provide: GAME_MODEL, useValue: model }],
+  }).compileComponents();
+
+  const fixture = TestBed.createComponent(AppComponent);
+  return { fixture, component: fixture.componentInstance };
+}
+
+describe("AppComponent", () => {
+  beforeEach(() => {
     vi.useFakeTimers();
-
-    mockGameModel = createMockGameModel();
-
-    await TestBed.configureTestingModule({
-      imports: [AppComponent],
-      providers: [{ provide: GAME_MODEL, useValue: mockGameModel }],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(AppComponent);
-    component = fixture.componentInstance;
   });
 
   afterEach(() => {
     vi.useRealTimers();
-    delete (window as any).solitaire;
+    delete (window as SolitaireWindow).solitaire;
   });
 
-  it("should have correct initial values", () => {
-    expect(component.score()).toBe(0);
-    expect(component.moves()).toBe(0);
-    expect(component.timerText()).toBe("00:00");
-    expect(component.isGameWon()).toBe(false);
-    expect(component.drawCount()).toBe(3);
-    expect(component.cardBack()).toBe("card-back-blue");
-    expect(component.selectedTheme).toBe("green");
-    expect(component.showSettings).toBe(false);
-  });
+  describe("with the default game model", () => {
+    let component: AppComponent;
+    let fixture: ComponentFixture<AppComponent>;
+    let mockGameModel: MockGameModel;
 
-  it("should toggle showSettings when toggleSettings is called", () => {
-    expect(component.showSettings).toBe(false);
-    component.toggleSettings();
-    expect(component.showSettings).toBe(true);
-    component.toggleSettings();
-    expect(component.showSettings).toBe(false);
-  });
-
-  it("should read initial values from the injected game model", () => {
-    const model = createMockGameModel({
-      score: 42,
-      moves: 3,
-      drawCount: 3,
-      cardBackStyle: "card-back-blue",
+    beforeEach(async () => {
+      mockGameModel = createMockGameModel();
+      ({ fixture, component } = await buildComponent(mockGameModel));
     });
 
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({
-      imports: [AppComponent],
-      providers: [{ provide: GAME_MODEL, useValue: model }],
+    it("starts with zeroed metrics and default settings", () => {
+      expect(component.score()).toBe(0);
+      expect(component.moves()).toBe(0);
+      expect(component.timerText()).toBe("00:00");
+      expect(component.isGameWon()).toBe(false);
+      expect(component.drawCount()).toBe(3);
+      expect(component.cardBack()).toBe("card-back-blue");
     });
 
-    const f = TestBed.createComponent(AppComponent);
-    const c = f.componentInstance;
+    it("starts with the green theme and settings hidden", () => {
+      expect(component.selectedTheme).toBe("green");
+      expect(component.showSettings).toBe(false);
+    });
 
-    expect(c.score()).toBe(42);
-    expect(c.moves()).toBe(3);
+    it("toggles the settings panel", () => {
+      component.toggleSettings();
+
+      expect(component.showSettings).toBe(true);
+    });
+
+    it("restarts the game and resets the won state and timer", () => {
+      component.isGameWon.set(true);
+
+      component.restartGame();
+
+      expect(mockGameModel.startNewGame).toHaveBeenCalled();
+      expect(component.isGameWon()).toBe(false);
+      expect(component.timerText()).toBe("00:00");
+    });
+
+    it("starts a new game and resets the won state and timer", () => {
+      component.isGameWon.set(true);
+
+      component.startNewGame();
+
+      expect(mockGameModel.startNewGame).toHaveBeenCalled();
+      expect(component.isGameWon()).toBe(false);
+      expect(component.timerText()).toBe("00:00");
+    });
+
+    it("sets the draw mode and restarts the game", () => {
+      component.setDrawMode(1);
+
+      expect(mockGameModel.setDrawCount).toHaveBeenCalledWith(1);
+      expect(mockGameModel.startNewGame).toHaveBeenCalled();
+    });
+
+    it("sets the card back style on the game model", () => {
+      component.setCardBack("card-back-red");
+
+      expect(mockGameModel.setCardBackStyle).toHaveBeenCalledWith(
+        "card-back-red",
+      );
+    });
+
+    it("reflects observable state changes from the game model", () => {
+      mockGameModel.state.score$.next(100);
+      mockGameModel.state.moves$.next(12);
+      mockGameModel.settings.drawCount$.next(1);
+      mockGameModel.settings.cardBackStyle$.next("card-back-red");
+
+      expect(component.score()).toBe(100);
+      expect(component.moves()).toBe(12);
+      expect(component.drawCount()).toBe(1);
+      expect(component.cardBack()).toBe("card-back-red");
+    });
+
+    it("runs the timer once the first move is made", () => {
+      mockGameModel.state.moves$.next(1);
+      TestBed.flushEffects();
+
+      vi.advanceTimersByTime(5000);
+
+      expect(component.timerText()).toBe("00:05");
+      fixture.destroy();
+    });
   });
 
-  it("should restart game and reset state correctly", () => {
-    component.isGameWon.set(true);
+  describe("reading initial values from the model", () => {
+    it("seeds the score and moves from the injected model", async () => {
+      const model = createMockGameModel({ score: 42, moves: 3 });
 
-    component.restartGame();
+      const { component } = await buildComponent(model);
 
-    expect(mockGameModel.startNewGame).toHaveBeenCalled();
-    expect(component.isGameWon()).toBe(false);
-    expect(component.timerText()).toBe("00:00");
+      expect(component.score()).toBe(42);
+      expect(component.moves()).toBe(3);
+    });
   });
 
-  it("should start a new game and reset state correctly", () => {
-    component.isGameWon.set(true);
+  describe("theming", () => {
+    it("updates the theme and the board camera background", async () => {
+      const { component } = await buildComponent(createMockGameModel());
+      const camera = { setBackgroundColor: vi.fn() };
+      const getScene = vi.fn().mockReturnValue({ cameras: { main: camera } });
+      (window as SolitaireWindow).solitaire = { game: { scene: { getScene } } };
 
-    component.startNewGame();
+      component.setTheme("purple");
 
-    expect(mockGameModel.startNewGame).toHaveBeenCalled();
-    expect(component.isGameWon()).toBe(false);
-    expect(component.timerText()).toBe("00:00");
+      expect(component.selectedTheme).toBe("purple");
+      expect(getScene).toHaveBeenCalledWith("board-scene");
+      expect(camera.setBackgroundColor).toHaveBeenCalledWith("#3c096c");
+    });
   });
 
-  it("should set draw mode and restart the game", () => {
-    component.setDrawMode(1);
+  describe("when the game is won", () => {
+    let component: AppComponent;
+    let mockGameModel: MockGameModel;
+    let emitGameWon: () => void;
 
-    expect(mockGameModel.setDrawCount).toHaveBeenCalledWith(1);
-    expect(mockGameModel.startNewGame).toHaveBeenCalled();
-  });
-
-  it("should set card back style on gameModel", () => {
-    component.setCardBack("card-back-red");
-
-    expect(mockGameModel.setCardBackStyle).toHaveBeenCalledWith(
-      "card-back-red",
-    );
-  });
-
-  it("should update theme and cameras main color on setTheme", () => {
-    const mockCamera = {
-      setBackgroundColor: vi.fn(),
-    };
-    const mockBoardScene = {
-      cameras: {
-        main: mockCamera,
-      },
-    };
-    const mockGame = {
-      scene: {
-        getScene: vi.fn().mockReturnValue(mockBoardScene),
-      },
-    };
-
-    (window as any).solitaire = {
-      game: mockGame,
-    };
-
-    component.setTheme("purple");
-
-    expect(component.selectedTheme).toBe("purple");
-    expect(mockGame.scene.getScene).toHaveBeenCalledWith("board-scene");
-    expect(mockCamera.setBackgroundColor).toHaveBeenCalledWith("#3c096c");
-  });
-
-  it("should update metrics when observable state changes", () => {
-    // Push new values through BehaviorSubjects
-    mockGameModel.state.score$.next(100);
-    mockGameModel.state.moves$.next(12);
-    mockGameModel.settings.drawCount$.next(1);
-    mockGameModel.settings.cardBackStyle$.next("card-back-red");
-
-    expect(component.score()).toBe(100);
-    expect(component.moves()).toBe(12);
-    expect(component.drawCount()).toBe(1);
-    expect(component.cardBack()).toBe("card-back-red");
-  });
-
-  it("should start the timer when moves > 0 and timer is not running, and advance it correctly", () => {
-    expect(component.timerText()).toBe("00:00");
-
-    // Push moves > 0 to trigger timer start via effect
-    mockGameModel.state.moves$.next(1);
-
-    // Flush the effect
-    TestBed.flushEffects();
-
-    vi.advanceTimersByTime(5000);
-
-    expect(component.timerText()).toBe("00:05");
-
-    fixture.destroy();
-  });
-
-  it("should stop timer and set isGameWon to true when game-won is emitted", () => {
-    // The component listens to game-won via fromGameEvent → toSignal.
-    // The mock uses .on() to register the callback, so we capture it.
-    let gameWonCallback: Function = () => {};
-    mockGameModel.on = vi
-      .fn()
-      .mockImplementation((event: string, cb: Function) => {
+    beforeEach(async () => {
+      emitGameWon = () => {};
+      mockGameModel = createMockGameModel();
+      mockGameModel.on = vi.fn((event: string, callback: () => void) => {
         if (event === "game-won") {
-          gameWonCallback = cb;
+          emitGameWon = callback;
         }
       });
-
-    // Recreate the component so it registers with the new mock
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({
-      imports: [AppComponent],
-      providers: [{ provide: GAME_MODEL, useValue: mockGameModel }],
+      ({ component } = await buildComponent(mockGameModel));
     });
-    const f = TestBed.createComponent(AppComponent);
-    const c = f.componentInstance;
 
-    // Push moves > 0 to start the timer
-    mockGameModel.state.moves$.next(1);
-    TestBed.flushEffects();
+    it("stops the timer and marks the game won", () => {
+      mockGameModel.state.moves$.next(1);
+      TestBed.flushEffects();
+      vi.advanceTimersByTime(1000);
+      expect(component.timerText()).toBe("00:01");
 
-    vi.advanceTimersByTime(1000);
-    expect(c.timerText()).toBe("00:01");
-    expect(c.isGameWon()).toBe(false);
+      emitGameWon();
+      TestBed.flushEffects();
 
-    // Emit game-won
-    gameWonCallback(undefined);
-    TestBed.flushEffects();
-
-    expect(c.isGameWon()).toBe(true);
-
-    // Timer should be stopped
-    vi.advanceTimersByTime(5000);
-    expect(c.timerText()).toBe("00:01");
+      expect(component.isGameWon()).toBe(true);
+      vi.advanceTimersByTime(5000);
+      expect(component.timerText()).toBe("00:01");
+    });
   });
 });

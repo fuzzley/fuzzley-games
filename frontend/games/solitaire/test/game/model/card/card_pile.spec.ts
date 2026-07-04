@@ -1,17 +1,23 @@
-import { Card } from "@/game/model/card/card";
 import { CardPile } from "@/game/model/card/card_pile";
+import { makeCard } from "@test/support/card_builder";
 
 describe("CardPile", () => {
-  it("should initialize with an empty array of cards and correct id", () => {
+  it("uses the id it was constructed with", () => {
     const pile = new CardPile("test-pile");
+
     expect(pile.id).toBe("test-pile");
+  });
+
+  it("starts empty", () => {
+    const pile = new CardPile("test-pile");
+
     expect(pile.getCards()).toEqual([]);
   });
 
-  it("should add cards and retrieve them", () => {
+  it("keeps added cards in insertion order", () => {
     const pile = new CardPile("test-pile");
-    const card1: Card = { id: "card-1", faceUp: true };
-    const card2: Card = { id: "card-2", faceUp: false };
+    const card1 = makeCard({ id: "card-1", faceUp: true });
+    const card2 = makeCard({ id: "card-2" });
 
     pile.addCard(card1);
     pile.addCard(card2);
@@ -19,10 +25,10 @@ describe("CardPile", () => {
     expect(pile.getCards()).toEqual([card1, card2]);
   });
 
-  it("should remove cards if they exist in the pile", () => {
+  it("removes a card that exists in the pile", () => {
     const pile = new CardPile("test-pile");
-    const card1: Card = { id: "card-1", faceUp: true };
-    const card2: Card = { id: "card-2", faceUp: false };
+    const card1 = makeCard({ id: "card-1" });
+    const card2 = makeCard({ id: "card-2" });
     pile.addCard(card1);
     pile.addCard(card2);
 
@@ -31,24 +37,23 @@ describe("CardPile", () => {
     expect(pile.getCards()).toEqual([card2]);
   });
 
-  it("should do nothing when trying to remove a card not in the pile", () => {
+  it("leaves the pile unchanged when removing a card not in it", () => {
     const pile = new CardPile("test-pile");
-    const card1: Card = { id: "card-1", faceUp: true };
-    const card2: Card = { id: "card-2", faceUp: false };
-    pile.addCard(card2);
+    const present = makeCard({ id: "present" });
+    const absent = makeCard({ id: "absent" });
+    pile.addCard(present);
 
-    pile.removeCard(card1);
+    pile.removeCard(absent);
 
-    expect(pile.getCards()).toEqual([card2]);
+    expect(pile.getCards()).toEqual([present]);
   });
 
-  it("should clear all cards", () => {
+  it("removes all cards when cleared", () => {
     const pile = new CardPile("test-pile");
-    const card1: Card = { id: "card-1", faceUp: true };
-    pile.addCard(card1);
+    pile.addCard(makeCard({ id: "card-1" }));
 
     pile.clear();
 
-    expect(pile.getCards().length).toBe(0);
+    expect(pile.getCards()).toEqual([]);
   });
 });

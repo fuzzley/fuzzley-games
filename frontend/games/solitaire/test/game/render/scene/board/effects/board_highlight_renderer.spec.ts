@@ -1,191 +1,151 @@
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import * as Phaser from "phaser";
 import { BoardHighlightRenderer } from "@/game/render/scene/board/effects/board_highlight_renderer";
+import { BoardScene } from "@/game/render/scene/board/board_scene";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
 import { PlayingCardVisual } from "@/game/render/visual/card/playing_card_visual";
+import { PlayingCard } from "@/game/model/card/playing_card";
+import {
+  asSprite,
+  createMockGraphics,
+  createMockSprite,
+  MockGraphics,
+  MockSprite,
+} from "@test/support/phaser_mocks";
+
+const SCALE_FACTOR = 1.5;
 
 describe("BoardHighlightRenderer", () => {
-  let mockGraphics: any;
-  let mockBoardScene: any;
+  let graphics: MockGraphics;
   let gameModel: SolitaireGame;
+  let stockSprite: MockSprite;
   let renderer: BoardHighlightRenderer;
 
   beforeEach(() => {
-    mockGraphics = {
-      clear: vi.fn().mockReturnThis(),
-      lineStyle: vi.fn().mockReturnThis(),
-      strokeRoundedRect: vi.fn().mockReturnThis(),
-      setDepth: vi.fn().mockReturnThis(),
-    };
-
+    graphics = createMockGraphics();
     gameModel = new SolitaireGame();
-    // Start game so that stock isn't empty, tableaus are populated, etc.
     gameModel.startNewGame();
+    stockSprite = createMockSprite({
+      x: 20,
+      y: 20,
+      displayWidth: 100,
+      displayHeight: 150,
+    });
 
-    mockBoardScene = {
-      add: {
-        graphics: vi.fn().mockReturnValue(mockGraphics),
-      },
+    const boardScene = {
+      add: { graphics: () => graphics },
       gameModel,
-      stockPile: {
-        sprite: {
-          active: true,
-          displayWidth: 100,
-          displayHeight: 150,
-          x: 20,
-          y: 20,
-        },
-      },
-      getLayoutManager: () => ({
-        getScaleFactor: () => 1.5,
-      }),
-    };
+      stockPile: { sprite: asSprite(stockSprite) },
+      getLayoutManager: () => ({ getScaleFactor: () => SCALE_FACTOR }),
+    } as unknown as BoardScene;
 
-    renderer = new BoardHighlightRenderer(mockBoardScene);
+    renderer = new BoardHighlightRenderer(boardScene);
   });
 
-  it("does not crash when graphics is null", () => {
-    // Arrange
+  /** Builds a card visual backed by a mock sprite at the given position. */
+  function hoveredVisual(card: PlayingCard): PlayingCardVisual {
+    const visual = new PlayingCardVisual(card);
+    visual.sprite = asSprite(
+      createMockSprite({ x: 50, y: 50, displayWidth: 100, displayHeight: 150 }),
+    );
+    return visual;
+  }
+
+  it("does not throw when the graphics object is missing", () => {
     renderer.graphics = null as unknown as Phaser.GameObjects.Graphics;
 
-    // Act & Assert
     expect(() => renderer.update(null, false, false)).not.toThrow();
   });
 
-  it("clears graphics and returns early when dragging", () => {
-    // Act
+  it("clears the highlight and draws nothing while dragging", () => {
     renderer.update(null, false, true);
 
-    // Assert
-    expect(mockGraphics.clear).toHaveBeenCalled();
-    expect(mockGraphics.strokeRoundedRect).not.toHaveBeenCalled();
+    expect(graphics.clear).toHaveBeenCalled();
+    expect(graphics.strokeRoundedRect).not.toHaveBeenCalled();
   });
 
-  it("highlights stock background if stock is empty and stock background is hovered", () => {
-    // Arrange
-    gameModel.stock.clear(); // Empty the stock
+  it("highlights the stock background when the empty stock is hovered", () => {
+    gameModel.stock.clear();
 
-    // Act
     renderer.update(null, true, false);
 
-    // Assert
-    expect(mockGraphics.clear).toHaveBeenCalled();
-    expect(mockGraphics.lineStyle).toHaveBeenCalledWith(9 * 1.5, 0xebef9b, 0.9);
-    expect(mockGraphics.strokeRoundedRect).toHaveBeenCalledWith(
+    expect(graphics.lineStyle).toHaveBeenCalledWith(
+      9 * SCALE_FACTOR,
+      0xebef9b,
+      0.9,
+    );
+    expect(graphics.strokeRoundedRect).toHaveBeenCalledWith(
       20,
       20,
       100,
       150,
-      12 * 1.5,
+      12 * SCALE_FACTOR,
     );
   });
 
-  it("does not highlight stock background if stock background is hovered but stock is not empty", () => {
-    // Act
+  it("does not highlight the stock background when the stock is not empty", () => {
     renderer.update(null, true, false);
 
-    // Assert
-    expect(mockGraphics.clear).toHaveBeenCalled();
-    expect(mockGraphics.strokeRoundedRect).not.toHaveBeenCalled();
+    expect(graphics.strokeRoundedRect).not.toHaveBeenCalled();
   });
 
-  it("does not highlight empty stock background if sprite is inactive", () => {
-    // Arrange
+  it("does not highlight the empty stock background when its sprite is inactive", () => {
     gameModel.stock.clear();
-    mockBoardScene.stockPile.sprite.active = false;
+    stockSprite.active = false;
 
-    // Act
     renderer.update(null, true, false);
 
-    // Assert
-    expect(mockGraphics.clear).toHaveBeenCalled();
-    expect(mockGraphics.strokeRoundedRect).not.toHaveBeenCalled();
+    expect(graphics.strokeRoundedRect).not.toHaveBeenCalled();
   });
 
-  it("does nothing if no card is hovered", () => {
-    // Act
+  it("draws nothing when no card is hovered", () => {
     renderer.update(null, false, false);
 
-    // Assert
-    expect(mockGraphics.clear).toHaveBeenCalled();
-    expect(mockGraphics.strokeRoundedRect).not.toHaveBeenCalled();
+    expect(graphics.strokeRoundedRect).not.toHaveBeenCalled();
   });
 
-  it("does nothing if hovered card is not interactable", () => {
-    // Arrange
-    // Grab a face-down card from tableau 1 (index 0 is face down in standard game setup)
+  it("does not highlight a hovered card that is not interactable", () => {
     const faceDownCard = gameModel.tableaus[1].getCards()[0];
-    expect(gameModel.isCardInteractable(faceDownCard)).toBe(false);
 
-    const mockSprite = {
-      active: true,
-      displayWidth: 100,
-      displayHeight: 150,
-      x: 50,
-      y: 50,
-    };
-    const visual = new PlayingCardVisual(faceDownCard);
-    visual.sprite = mockSprite as unknown as Phaser.GameObjects.Sprite;
+    renderer.update(hoveredVisual(faceDownCard), false, false);
 
-    // Act
-    renderer.update(visual, false, false);
-
-    // Assert
-    expect(mockGraphics.clear).toHaveBeenCalled();
-    expect(mockGraphics.strokeRoundedRect).not.toHaveBeenCalled();
+    expect(graphics.strokeRoundedRect).not.toHaveBeenCalled();
   });
 
-  it("does nothing if hovered card sprite is inactive", () => {
-    // Arrange
-    // Grab an interactable card (e.g. face up top card in tableau 0)
+  it("does not highlight a hovered card whose sprite is inactive", () => {
     const interactableCard = gameModel.tableaus[0].getCards()[0];
-    expect(gameModel.isCardInteractable(interactableCard)).toBe(true);
-
-    const mockSprite = {
-      active: false,
-      displayWidth: 100,
-      displayHeight: 150,
-      x: 50,
-      y: 50,
-    };
     const visual = new PlayingCardVisual(interactableCard);
-    visual.sprite = mockSprite as unknown as Phaser.GameObjects.Sprite;
+    visual.sprite = asSprite(
+      createMockSprite({
+        x: 50,
+        y: 50,
+        active: false,
+        displayWidth: 100,
+        displayHeight: 150,
+      }),
+    );
 
-    // Act
     renderer.update(visual, false, false);
 
-    // Assert
-    expect(mockGraphics.clear).toHaveBeenCalled();
-    expect(mockGraphics.strokeRoundedRect).not.toHaveBeenCalled();
+    expect(graphics.strokeRoundedRect).not.toHaveBeenCalled();
   });
 
-  it("draws highlight border for an interactable active hovered card", () => {
-    // Arrange
+  it("draws a highlight border around an interactable, active hovered card", () => {
     const interactableCard = gameModel.tableaus[0].getCards()[0];
-    expect(gameModel.isCardInteractable(interactableCard)).toBe(true);
 
-    const mockSprite = {
-      active: true,
-      displayWidth: 100,
-      displayHeight: 150,
-      x: 50,
-      y: 50,
-    };
-    const visual = new PlayingCardVisual(interactableCard);
-    visual.sprite = mockSprite as unknown as Phaser.GameObjects.Sprite;
+    renderer.update(hoveredVisual(interactableCard), false, false);
 
-    // Act
-    renderer.update(visual, false, false);
-
-    // Assert
-    expect(mockGraphics.clear).toHaveBeenCalled();
-    expect(mockGraphics.lineStyle).toHaveBeenCalledWith(9 * 1.5, 0xebef9b, 0.9);
-    expect(mockGraphics.strokeRoundedRect).toHaveBeenCalledWith(
+    expect(graphics.lineStyle).toHaveBeenCalledWith(
+      9 * SCALE_FACTOR,
+      0xebef9b,
+      0.9,
+    );
+    expect(graphics.strokeRoundedRect).toHaveBeenCalledWith(
       50,
       50,
       100,
       150,
-      12 * 1.5,
+      12 * SCALE_FACTOR,
     );
   });
 });

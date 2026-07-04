@@ -1,8 +1,10 @@
-import { Card } from "@/game/model/card/card";
+import { makeCard } from "@test/support/card_builder";
 
 describe("Card", () => {
-  it("can be created", () => {
-    const card: Card = { id: "test-card", faceUp: true };
-    expect(card).toBeDefined();
+  it("exposes the id and faceUp state it was created with", () => {
+    const card = makeCard({ id: "test-card", faceUp: true });
+
+    expect(card.id).toBe("test-card");
+    expect(card.faceUp).toBe(true);
   });
 });

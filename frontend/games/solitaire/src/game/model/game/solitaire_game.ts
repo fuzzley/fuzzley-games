@@ -6,6 +6,7 @@ import { CardPile } from "../card/card_pile";
 import { Deck } from "../card/deck";
 import {
   PlayingCard,
+  PlayingCardId,
   Suit,
   Type,
   ALL_PLAYING_CARD_IDS,
@@ -36,10 +37,20 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
   private readonly allCardsMap = new Map<string, PlayingCard>();
   private readonly pilesMap = new Map<string, CardPile<PlayingCard>>();
 
-  /** Initializes the piles. */
-  constructor() {
+  /** The card identities used to build the deck for a new game. */
+  private readonly cardIds: ReadonlyArray<PlayingCardId>;
+
+  /**
+   * Initializes the piles.
+   *
+   * @param cardIds The card identities to deal from. Defaults to a full
+   *   standard 52-card deck. Injectable so tests can supply a partial or empty
+   *   set to exercise short-deck handling through the public API.
+   */
+  constructor(cardIds: ReadonlyArray<PlayingCardId> = ALL_PLAYING_CARD_IDS) {
     super();
 
+    this.cardIds = cardIds;
     this.initializePiles();
   }
 
@@ -157,7 +168,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    */
   private createAndShuffleDeck(): PlayingCard[] {
     const tempDeck = new Deck<PlayingCard>();
-    for (const cardId of ALL_PLAYING_CARD_IDS) {
+    for (const cardId of this.cardIds) {
       const playingCard = new PlayingCard();
       playingCard.suite = cardId.suit;
       playingCard.type = cardId.type;
@@ -313,9 +324,10 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       return false;
     }
 
+    // getPileContainingCard only returns a pile that contains the card, so the
+    // index is always valid here.
     const sourceCards = sourcePile.getCards();
     const cardIndex = sourceCards.indexOf(card);
-    if (cardIndex === -1) return false;
 
     // Get the moving stack (this card + everything on top of it)
     const movingStack = sourceCards.slice(cardIndex);
@@ -428,29 +440,13 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     }
 
     if (pile.id.startsWith("tableau-")) {
-      // Any face-up card in a tableau is interactable
+      // Any face-up card in a tableau is interactable.
       return card.faceUp;
     }
 
-    if (pile.id === "waste") {
-      // Only the top card of the waste pile is interactable
-      const cards = pile.getCards();
-      return cards.length > 0 && cards[cards.length - 1] === card;
-    }
-
-    if (pile.id.startsWith("foundation-")) {
-      // Only the top card of a foundation pile is interactable
-      const cards = pile.getCards();
-      return cards.length > 0 && cards[cards.length - 1] === card;
-    }
-
-    if (pile.id === "stock") {
-      // Only the top card of the stock pile is interactable
-      const cards = pile.getCards();
-      return cards.length > 0 && cards[cards.length - 1] === card;
-    }
-
-    return false;
+    // The stock, waste, and foundation piles only expose their top card.
+    const cards = pile.getCards();
+    return cards.length > 0 && cards[cards.length - 1] === card;
   }
 
   /**

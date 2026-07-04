@@ -14,11 +14,17 @@ export class Deck<T extends Card = Card> {
     return this.cards;
   }
 
-  /** Shuffles the cards in the deck. */
-  public shuffle(): void {
+  /**
+   * Shuffles the cards in the deck.
+   *
+   * @param random Source of randomness returning a value in [0, 1). Defaults
+   *   to Math.random. Injectable so callers (and tests) can supply a
+   *   deterministic sequence.
+   */
+  public shuffle(random: () => number = Math.random): void {
     // Fisher-Yates shuffle
     for (let i = this.cards.length - 1; i > 0; i--) {
-      const randomIndex = Math.floor(Math.random() * (i + 1));
+      const randomIndex = Math.floor(random() * (i + 1));
       this.swapCards(i, randomIndex);
     }
   }
