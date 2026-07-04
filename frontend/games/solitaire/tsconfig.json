@@ -2,11 +2,12 @@
   "compilerOptions": {
     "module": "CommonJS",
     "moduleResolution": "node",
-    "ignoreDeprecations": "6.0",
     "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ]
     },
     "strictPropertyInitialization": false,
     "noImplicitAny": true,
@@ -14,14 +15,30 @@
     "sourceMap": true,
     "target": "ES2022",
     "outDir": "./dist/",
-    "lib": ["es2022", "dom", "dom.iterable"],
-    "types": ["vitest/globals", "vite/client"],
+    "lib": [
+      "es2022",
+      "dom",
+      "dom.iterable"
+    ],
+    "types": [
+      "vitest/globals",
+      "vite/client"
+    ],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "exclude": ["node_modules", "**/*.spec.ts"],
-  "include": ["src/**/*", "custom_typings/**/*.d.ts"],
-  "typeRoots": ["./node_modules/@types", "./custom_typings"]
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
+  ],
+  "include": [
+    "src",
+    "custom_typings"
+  ],
+  "typeRoots": [
+    "./node_modules/@types",
+    "./custom_typings"
+  ]
 }
