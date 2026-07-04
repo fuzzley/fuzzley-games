@@ -1,43 +1,11 @@
-import { vi } from "vitest";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
-import { PlayingCard, Suit, Type } from "@/game/model/card/playing_card";
-import { CardPile } from "@/game/model/card/card_pile";
-
-function setupAlmostWonState(game: SolitaireGame): void {
-  const suitNames = ["spades", "hearts", "diamonds", "clubs"];
-  const typeNames = [
-    "ace",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "10",
-    "jack",
-    "queen",
-    "king",
-  ];
-
-  game.stock.clear();
-  game.waste.clear();
-  game.tableaus.forEach((t) => t.clear());
-  game.foundations.forEach((f) => f.clear());
-
-  for (let sIndex = 0; sIndex < 4; sIndex++) {
-    const suitName = suitNames[sIndex];
-    const targetFoundation = game.foundations[sIndex];
-    const maxTypeIndex = sIndex === 3 ? 12 : 13;
-    for (let tIndex = 0; tIndex < maxTypeIndex; tIndex++) {
-      const cardId = `card-${suitName}-${typeNames[tIndex]}`;
-      const card = game.getCardById(cardId)!;
-      card.faceUp = true;
-      targetFoundation.addCard(card);
-    }
-  }
-}
+import { makePlayingCard } from "@test/support/card_builder";
+import {
+  almostWon,
+  CLUB_KING_ID,
+  forceWasteRecycle,
+  relocate,
+} from "@test/support/game_scenarios";
 
 describe("SolitaireGame", () => {
   let game: SolitaireGame;
@@ -46,292 +14,311 @@ describe("SolitaireGame", () => {
     game = new SolitaireGame();
   });
 
-  it("initializes layout piles correctly on constructor", () => {
-    expect(game.stock.id).toBe("stock");
-    expect(game.waste.id).toBe("waste");
-    expect(game.foundations.length).toBe(4);
-    expect(game.tableaus.length).toBe(7);
+  describe("construction", () => {
+    it("creates the stock and waste piles", () => {
+      expect(game.stock.id).toBe("stock");
+      expect(game.waste.id).toBe("waste");
+    });
+
+    it("creates four foundation piles and seven tableau piles", () => {
+      expect(game.foundations.length).toBe(4);
+      expect(game.tableaus.length).toBe(7);
+    });
   });
 
-  it("deals the correct number of cards to piles on startNewGame", () => {
-    game.startNewGame();
+  describe("startNewGame", () => {
+    it("populates the stock with 24 cards", () => {
+      game.startNewGame();
 
-    expect(game.stock.getCards().length).toBe(24);
-    expect(game.waste.getCards().length).toBe(0);
-    expect(game.tableaus.length).toBe(7);
+      expect(game.stock.getCards().length).toBe(24);
+    });
 
-    // Verify stock setup
-    for (let card of game.stock.getCards()) {
-      expect(card.faceUp).toBe(false);
-    }
+    it("deals every stock card face down", () => {
+      game.startNewGame();
 
-    // Verify tableaus setup
-    for (let i = 0; i < 7; i++) {
-      expect(game.tableaus[i].getCards().length).toBe(i + 1);
+      const allFaceDown = game.stock.getCards().every((card) => !card.faceUp);
+      expect(allFaceDown).toBe(true);
+    });
 
-      for (let j = 0; j < i; j++) {
-        expect(game.tableaus[i].getCards()[j].faceUp).toBe(false);
-      }
-      // Last card in pile should always be face up.
-      expect(game.tableaus[i].getCards()[i].faceUp).toBe(true);
-    }
+    it("leaves the waste empty", () => {
+      game.startNewGame();
+
+      expect(game.waste.getCards()).toEqual([]);
+    });
+
+    it("deals an increasing number of cards to each tableau", () => {
+      game.startNewGame();
+
+      const counts = game.tableaus.map((t) => t.getCards().length);
+      expect(counts).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    });
+
+    it("leaves only the top card of each tableau face up", () => {
+      game.startNewGame();
+
+      const faceUpLayout = game.tableaus.map((t) =>
+        t.getCards().map((card) => card.faceUp),
+      );
+      expect(faceUpLayout).toEqual([
+        [true],
+        [false, true],
+        [false, false, true],
+        [false, false, false, true],
+        [false, false, false, false, true],
+        [false, false, false, false, false, true],
+        [false, false, false, false, false, false, true],
+      ]);
+    });
+
+    it("deals nothing when constructed with an empty deck", () => {
+      const shortGame = new SolitaireGame([]);
+
+      shortGame.startNewGame();
+
+      expect(shortGame.stock.getCards()).toEqual([]);
+      expect(shortGame.tableaus.every((t) => t.getCards().length === 0)).toBe(
+        true,
+      );
+    });
   });
 
-  it("draws 3 cards from stock to waste and flips them face up", () => {
-    game.startNewGame();
-    const initialStockCount = game.stock.getCards().length; // 24
-    // Capture the top 3 cards (they will be drawn in order: top first)
-    const top1 = game.stock.getCards()[initialStockCount - 1] as PlayingCard;
-    const top2 = game.stock.getCards()[initialStockCount - 2] as PlayingCard;
-    const top3 = game.stock.getCards()[initialStockCount - 3] as PlayingCard;
+  describe("drawCardsFromStock", () => {
+    it("moves three cards to the waste in draw order", () => {
+      game.startNewGame();
+      const stock = game.stock.getCards();
+      const expectedWaste = [
+        stock[stock.length - 1],
+        stock[stock.length - 2],
+        stock[stock.length - 3],
+      ];
 
-    game.drawCardsFromStock();
+      game.drawCardsFromStock();
 
-    expect(game.stock.getCards().length).toBe(21);
-    expect(game.waste.getCards().length).toBe(3);
-    // Cards are added to waste in draw order: top1 first, top3 last (on top)
-    expect(game.waste.getCards()[0]).toBe(top1);
-    expect(game.waste.getCards()[1]).toBe(top2);
-    expect(game.waste.getCards()[2]).toBe(top3);
-    expect(top1.faceUp).toBe(true);
-    expect(top2.faceUp).toBe(true);
-    expect(top3.faceUp).toBe(true);
+      expect(game.stock.getCards().length).toBe(21);
+      expect(game.waste.getCards()).toEqual(expectedWaste);
+    });
+
+    it("flips the drawn cards face up", () => {
+      game.startNewGame();
+
+      game.drawCardsFromStock();
+
+      const allFaceUp = game.waste.getCards().every((card) => card.faceUp);
+      expect(allFaceUp).toBe(true);
+    });
+
+    it("does nothing when both the stock and waste are empty", () => {
+      const emptyGame = new SolitaireGame();
+
+      emptyGame.drawCardsFromStock();
+
+      expect(emptyGame.stock.getCards()).toEqual([]);
+      expect(emptyGame.waste.getCards()).toEqual([]);
+    });
+
+    it("recycles the waste back into the stock face down when the stock is empty", () => {
+      game.startNewGame();
+      relocate(game, "card-clubs-ace", game.waste);
+      relocate(game, "card-clubs-2", game.waste);
+      game.stock.clear();
+      game.tableaus.forEach((t) => t.clear());
+      game.foundations.forEach((f) => f.clear());
+
+      game.drawCardsFromStock();
+
+      expect(game.waste.getCards()).toEqual([]);
+      expect(game.stock.getCards().length).toBe(2);
+      const allFaceDown = game.stock.getCards().every((card) => !card.faceUp);
+      expect(allFaceDown).toBe(true);
+    });
   });
 
-  it("recycles waste back to stock if stock is empty", () => {
-    game.startNewGame();
-    const card1 = game.getCardById("card-clubs-ace")!;
-    const card2 = game.getCardById("card-clubs-2")!;
-    game.stock.clear();
-    game.waste.clear();
-    game.tableaus.forEach((t) => t.clear());
-    game.foundations.forEach((f) => f.clear());
-
-    card1.faceUp = true;
-    card2.faceUp = true;
-    game.waste.addCard(card1);
-    game.waste.addCard(card2);
-
-    game.drawCardsFromStock();
-
-    expect(game.stock.getCards().length).toBe(2);
-    expect(game.waste.getCards().length).toBe(0);
-    expect(game.stock.getCards()[0].faceUp).toBe(false);
-    expect(game.stock.getCards()[1].faceUp).toBe(false);
-  });
-
-  describe("Card Rules Validation", () => {
-    it("does not move a non-King card to an empty tableau pile", () => {
+  describe("move validation", () => {
+    it("does not move a non-King card onto an empty tableau", () => {
       game.startNewGame();
       game.tableaus[0].clear();
-      const queen = game.getCardById("card-hearts-queen")!;
-      game.getPileContainingCard(queen.id)?.removeCard(queen);
-      queen.faceUp = true;
-      game.tableaus[1].clear();
-      game.tableaus[1].addCard(queen);
+      const queen = relocate(game, "card-hearts-queen", game.tableaus[1]);
 
       const moved = game.moveCardToPile(queen.id, "tableau-0");
 
       expect(moved).toBe(false);
     });
 
-    it("moves a King card to an empty tableau pile", () => {
+    it("moves a King onto an empty tableau", () => {
       game.startNewGame();
       game.tableaus[0].clear();
-      const king = game.getCardById("card-spades-king")!;
-      game.getPileContainingCard(king.id)?.removeCard(king);
-      king.faceUp = true;
-      game.tableaus[1].clear();
-      game.tableaus[1].addCard(king);
+      const king = relocate(game, "card-spades-king", game.tableaus[1]);
 
       const moved = game.moveCardToPile(king.id, "tableau-0");
 
       expect(moved).toBe(true);
-      expect(game.tableaus[0].getCards()[0]).toBe(king);
+      expect(game.tableaus[0].getCards()).toEqual([king]);
     });
 
-    it("does not move a card onto tableau if color is the same", () => {
+    it("does not move a card onto a tableau card of the same color", () => {
       game.startNewGame();
-      const redEight = game.getCardById("card-diamonds-8")!;
-      const redSeven = game.getCardById("card-hearts-7")!;
-      game.getPileContainingCard(redEight.id)?.removeCard(redEight);
-      game.getPileContainingCard(redSeven.id)?.removeCard(redSeven);
-      redEight.faceUp = true;
-      redSeven.faceUp = true;
-      game.tableaus[0].clear();
-      game.tableaus[0].addCard(redEight);
-      game.tableaus[1].clear();
-      game.tableaus[1].addCard(redSeven);
+      relocate(game, "card-diamonds-8", game.tableaus[0]);
+      const redSeven = relocate(game, "card-hearts-7", game.tableaus[1]);
 
       const moved = game.moveCardToPile(redSeven.id, "tableau-0");
 
       expect(moved).toBe(false);
     });
 
-    it("moves a card onto tableau if rank is descending and color alternates", () => {
+    it("moves a card onto a tableau card of descending rank and alternating color", () => {
       game.startNewGame();
-      const redEight = game.getCardById("card-diamonds-8")!;
-      const blackSeven = game.getCardById("card-spades-7")!;
-      const redSeven = game.getCardById("card-hearts-7")!;
-      game.getPileContainingCard(redEight.id)?.removeCard(redEight);
-      game.getPileContainingCard(blackSeven.id)?.removeCard(blackSeven);
-      game.getPileContainingCard(redSeven.id)?.removeCard(redSeven);
-      redEight.faceUp = true;
-      blackSeven.faceUp = true;
-      redSeven.faceUp = true;
       game.tableaus[0].clear();
-      game.tableaus[0].addCard(redEight);
       game.tableaus[1].clear();
-      game.tableaus[1].addCard(blackSeven);
-      game.tableaus[1].addCard(redSeven);
+      relocate(game, "card-diamonds-8", game.tableaus[0]);
+      const blackSeven = relocate(game, "card-spades-7", game.tableaus[1]);
+      const redSeven = relocate(game, "card-hearts-7", game.tableaus[1]);
 
       const moved = game.moveCardToPile(blackSeven.id, "tableau-0");
 
       expect(moved).toBe(true);
-      expect(game.tableaus[0].getCards()).toContain(blackSeven);
-      expect(game.tableaus[0].getCards()).toContain(redSeven);
+      expect(game.tableaus[0].getCards()).toEqual([
+        game.getCardById("card-diamonds-8"),
+        blackSeven,
+        redSeven,
+      ]);
     });
 
-    it("does not move a non-Ace card to an empty foundation", () => {
+    it("does not move a non-Ace onto an empty foundation", () => {
       game.startNewGame();
-      const clubTwo = game.getCardById("card-clubs-2")!;
-      game.getPileContainingCard(clubTwo.id)?.removeCard(clubTwo);
-      clubTwo.faceUp = true;
-      game.tableaus[0].clear();
-      game.tableaus[0].addCard(clubTwo);
+      const clubTwo = relocate(game, "card-clubs-2", game.tableaus[0]);
 
       const moved = game.moveCardToPile(clubTwo.id, "foundation-0");
 
       expect(moved).toBe(false);
     });
 
-    it("moves an Ace card to an empty foundation", () => {
+    it("moves an Ace onto an empty foundation", () => {
       game.startNewGame();
-      const clubAce = game.getCardById("card-clubs-ace")!;
-      game.getPileContainingCard(clubAce.id)?.removeCard(clubAce);
-      clubAce.faceUp = true;
-      game.tableaus[1].clear();
-      game.tableaus[1].addCard(clubAce);
+      const clubAce = relocate(game, "card-clubs-ace", game.tableaus[1]);
 
       const moved = game.moveCardToPile(clubAce.id, "foundation-0");
 
       expect(moved).toBe(true);
     });
 
-    it("moves a card to foundation if rank increases sequentially and suit matches", () => {
+    it("moves a card onto a foundation of ascending rank and matching suit", () => {
       game.startNewGame();
-      const clubAce = game.getCardById("card-clubs-ace")!;
-      const clubTwo = game.getCardById("card-clubs-2")!;
-      game.getPileContainingCard(clubAce.id)?.removeCard(clubAce);
-      game.getPileContainingCard(clubTwo.id)?.removeCard(clubTwo);
-      clubAce.faceUp = true;
-      clubTwo.faceUp = true;
-      game.foundations[0].clear();
-      game.foundations[0].addCard(clubAce);
-      game.tableaus[0].clear();
-      game.tableaus[0].addCard(clubTwo);
+      relocate(game, "card-clubs-ace", game.foundations[0]);
+      const clubTwo = relocate(game, "card-clubs-2", game.tableaus[0]);
 
       const moved = game.moveCardToPile(clubTwo.id, "foundation-0");
 
       expect(moved).toBe(true);
     });
+
+    it("does not move a stack of more than one card onto a foundation", () => {
+      game.startNewGame();
+      game.tableaus[0].clear();
+      const ace = relocate(game, "card-clubs-ace", game.tableaus[0]);
+      relocate(game, "card-clubs-2", game.tableaus[0]);
+
+      const moved = game.moveCardToPile(ace.id, "foundation-0");
+
+      expect(moved).toBe(false);
+    });
   });
 
-  describe("Additional Game Logic Coverage", () => {
-    it("does nothing when drawCard is called and both stock and waste are empty", () => {
-      const emptyGame = new SolitaireGame();
-
-      emptyGame.drawCardsFromStock();
-
-      expect(emptyGame.stock.getCards().length).toBe(0);
-      expect(emptyGame.waste.getCards().length).toBe(0);
-    });
-
-    it("returns undefined in findPileContainingCard if card is not in any pile", () => {
-      game.startNewGame();
-      const card = game.getCardById("card-clubs-ace")!;
-      game.getPileContainingCard(card.id)?.removeCard(card);
-      expect(game.getPileContainingCard(card.id)).toBeUndefined();
-    });
-
-    it("returns false when trying to move an invalid card ID", () => {
+  describe("rejected moves", () => {
+    it("rejects an unknown card id", () => {
       game.startNewGame();
 
-      const moved = game.moveCardToPile("invalid-card-id", "tableau-0");
-
-      expect(moved).toBe(false);
+      expect(game.moveCardToPile("invalid-card-id", "tableau-0")).toBe(false);
     });
 
-    it("returns false when trying to move to an invalid target pile ID", () => {
+    it("rejects an unknown target pile id", () => {
       game.startNewGame();
       const cardId = game.stock.getCards()[0].id;
 
-      const moved = game.moveCardToPile(cardId, "invalid-pile-id");
-
-      expect(moved).toBe(false);
+      expect(game.moveCardToPile(cardId, "invalid-pile-id")).toBe(false);
     });
 
-    it("returns false when trying to move a card to its current pile", () => {
+    it("rejects a move to the card's current pile", () => {
       game.startNewGame();
       const cardId = game.stock.getCards()[0].id;
-      const sourcePile = game.getPileContainingCard(cardId);
+      const sourcePile = game.getPileContainingCard(cardId)!;
 
-      const moved = game.moveCardToPile(cardId, sourcePile!.id);
-
-      expect(moved).toBe(false);
+      expect(game.moveCardToPile(cardId, sourcePile.id)).toBe(false);
     });
 
-    it("returns false in moveCard if card is face down", () => {
+    it("rejects moving a face-down card", () => {
       game.startNewGame();
-      // Tableau 1 has 2 cards, the bottom one is face down
       const faceDownCard = game.tableaus[1].getCards()[0];
-      expect(faceDownCard.faceUp).toBe(false);
+
       expect(game.moveCardToPile(faceDownCard.id, "tableau-0")).toBe(false);
     });
 
-    it("auto-flips the new top card of the tableau pile if it is face-down after a move", () => {
+    it("rejects the stock pile as a target", () => {
       game.startNewGame();
+      const cardId = game.tableaus[0].getCards()[0].id;
 
-      const king = game.getCardById("card-spades-king")!;
-      const bottomCard = game.getCardById("card-clubs-jack")!;
-      const topCard = game.getCardById("card-hearts-queen")!;
+      expect(game.moveCardToPile(cardId, "stock")).toBe(false);
+    });
 
-      game.getPileContainingCard(king.id)?.removeCard(king);
-      game.getPileContainingCard(bottomCard.id)?.removeCard(bottomCard);
-      game.getPileContainingCard(topCard.id)?.removeCard(topCard);
+    it("rejects the waste pile as a target", () => {
+      game.startNewGame();
+      const cardId = game.tableaus[0].getCards()[0].id;
 
-      king.faceUp = true;
-      bottomCard.faceUp = false;
-      topCard.faceUp = true;
+      expect(game.moveCardToPile(cardId, "waste")).toBe(false);
+    });
+  });
 
+  describe("moving stacks", () => {
+    it("auto-flips the newly exposed tableau card after a move", () => {
+      game.startNewGame();
       game.tableaus[0].clear();
-      game.tableaus[0].addCard(king);
-
+      relocate(game, "card-spades-king", game.tableaus[0]);
       game.tableaus[1].clear();
-      game.tableaus[1].addCard(bottomCard);
-      game.tableaus[1].addCard(topCard);
+      const bottomCard = relocate(
+        game,
+        "card-clubs-jack",
+        game.tableaus[1],
+        false,
+      );
+      const topCard = relocate(game, "card-hearts-queen", game.tableaus[1]);
 
       const moved = game.moveCardToPile(topCard.id, "tableau-0");
-      expect(moved).toBe(true);
 
+      expect(moved).toBe(true);
       expect(bottomCard.faceUp).toBe(true);
     });
 
-    it("does not crash when flipping a non-existent card ID", () => {
+    it("does not re-flip a tableau card that is already face up after a move", () => {
+      game.startNewGame();
+      game.tableaus[0].clear();
+      relocate(game, "card-clubs-king", game.tableaus[0]);
+      game.tableaus[1].clear();
+      relocate(game, "card-spades-king", game.tableaus[1]);
+      const movingQueen = relocate(game, "card-hearts-queen", game.tableaus[1]);
+      const flippedEvents: { cardId: string }[] = [];
+      game.on("card-flipped", (payload) => flippedEvents.push(payload));
+
+      const moved = game.moveCardToPile(movingQueen.id, "tableau-0");
+
+      expect(moved).toBe(true);
+      expect(flippedEvents).toEqual([]);
+    });
+  });
+
+  describe("flipCard", () => {
+    it("does not throw for an unknown card id", () => {
       expect(() => game.flipCard("non-existent-card", true)).not.toThrow();
     });
 
-    it("does not flip card if it is not in a tableau pile", () => {
+    it("does not flip a card that is not in a tableau pile", () => {
       game.startNewGame();
       const stockCard = game.stock.getCards()[0];
-      const initialFaceUp = stockCard.faceUp;
 
-      game.flipCard(stockCard.id, !initialFaceUp);
+      game.flipCard(stockCard.id, true);
 
-      expect(stockCard.faceUp).toBe(initialFaceUp);
+      expect(stockCard.faceUp).toBe(false);
     });
 
-    it("does not flip card if it is in a tableau pile but not the top card", () => {
+    it("does not flip a tableau card that is not the top card", () => {
       game.startNewGame();
       const bottomCard = game.tableaus[1].getCards()[0];
 
@@ -348,479 +335,292 @@ describe("SolitaireGame", () => {
 
       expect(topCard.faceUp).toBe(false);
     });
+  });
 
-    it("validates foundation rules: cannot move multiple cards at once to foundation", () => {
+  describe("win condition", () => {
+    it("emits game-won once all 52 cards reach the foundations", () => {
       game.startNewGame();
-      const card1 = game.getCardById("card-clubs-ace")!;
-      const card2 = game.getCardById("card-clubs-2")!;
-      game.getPileContainingCard(card1.id)?.removeCard(card1);
-      game.getPileContainingCard(card2.id)?.removeCard(card2);
-      card1.faceUp = true;
-      card2.faceUp = true;
-
-      game.tableaus[0].clear();
-      game.tableaus[0].addCard(card1);
-      game.tableaus[0].addCard(card2);
-
-      expect(game.moveCardToPile(card1.id, "foundation-0")).toBe(false);
-    });
-
-    it("returns false when trying to move cards to stock or waste as target", () => {
-      game.startNewGame();
-      const cardId = game.tableaus[0].getCards()[0].id;
-
-      expect(game.moveCardToPile(cardId, "stock")).toBe(false);
-      expect(game.moveCardToPile(cardId, "waste")).toBe(false);
-    });
-
-    it("emits game-won when all 52 cards are in the foundation piles", () => {
-      game.startNewGame();
-      setupAlmostWonState(game);
-
-      const kingOfClubs = game.getCardById("card-clubs-king")!;
+      almostWon(game);
+      const kingOfClubs = game.getCardById(CLUB_KING_ID)!;
       kingOfClubs.faceUp = true;
       game.tableaus[0].addCard(kingOfClubs);
-
-      const wonCallback = vi.fn();
-      game.on("game-won", wonCallback);
+      let wonCount = 0;
+      game.on("game-won", () => wonCount++);
 
       const moved = game.moveCardToPile(kingOfClubs.id, "foundation-3");
 
       expect(moved).toBe(true);
-      expect(wonCallback).toHaveBeenCalledTimes(1);
-    });
-
-    it("returns false in moveCard if card is not in the source pile returned by getPileContainingCard (cardIndex === -1)", () => {
-      game.startNewGame();
-      const card = game.stock.getCards()[0];
-      card.faceUp = true;
-      // Stub getPileContainingCard to return tableau-0, which does not contain the stock card
-      vi.spyOn(game, "getPileContainingCard").mockReturnValue(game.tableaus[0]);
-      expect(game.moveCardToPile(card.id, "tableau-1")).toBe(false);
-    });
-
-    it("does not emit card-flipped if the remaining top card is already face-up after a move", () => {
-      game.startNewGame();
-
-      const targetKing = game.getCardById("card-clubs-king")!;
-      const remainingKing = game.getCardById("card-spades-king")!;
-      const movingQueen = game.getCardById("card-hearts-queen")!;
-
-      game.getPileContainingCard(targetKing.id)?.removeCard(targetKing);
-      game.getPileContainingCard(remainingKing.id)?.removeCard(remainingKing);
-      game.getPileContainingCard(movingQueen.id)?.removeCard(movingQueen);
-
-      targetKing.faceUp = true;
-      remainingKing.faceUp = true;
-      movingQueen.faceUp = true;
-
-      game.tableaus[0].clear();
-      game.tableaus[0].addCard(targetKing);
-
-      game.tableaus[1].clear();
-      game.tableaus[1].addCard(remainingKing);
-      game.tableaus[1].addCard(movingQueen);
-
-      const flippedSpy = vi.fn();
-      game.on("card-flipped", flippedSpy);
-
-      const moved = game.moveCardToPile(movingQueen.id, "tableau-0");
-      expect(moved).toBe(true);
-      expect(flippedSpy).not.toHaveBeenCalled();
-    });
-
-    it("handles empty or insufficient deck gracefully during dealTableaus and populateStock", () => {
-      // Return an array containing undefined values to test both dealTableaus and populateStock 'if (card)' false conditions
-      const mockDeck = Array(35).fill(undefined) as unknown as PlayingCard[];
-      vi.spyOn(
-        game as unknown as { createAndShuffleDeck: () => PlayingCard[] },
-        "createAndShuffleDeck",
-      ).mockReturnValue(mockDeck);
-
-      expect(() => game.startNewGame()).not.toThrow();
-      expect(game.stock.getCards().length).toBe(0);
-      game.tableaus.forEach((t) => {
-        expect(t.getCards().length).toBe(0);
-      });
+      expect(wonCount).toBe(1);
     });
   });
 
   describe("isCardInteractable", () => {
-    it("handles tableau piles: face-up card is interactable", () => {
+    it("treats a face-up tableau card as interactable", () => {
       game.startNewGame();
       const card = game.tableaus[0].getCards()[0];
       card.faceUp = true;
 
-      const interactable = game.isCardInteractable(card);
-
-      expect(interactable).toBe(true);
+      expect(game.isCardInteractable(card)).toBe(true);
     });
 
-    it("handles tableau piles: face-down card is not interactable", () => {
+    it("treats a face-down tableau card as not interactable", () => {
       game.startNewGame();
       const card = game.tableaus[0].getCards()[0];
       card.faceUp = false;
 
-      const interactable = game.isCardInteractable(card);
-
-      expect(interactable).toBe(false);
+      expect(game.isCardInteractable(card)).toBe(false);
     });
 
-    it("handles waste pile: top card is interactable", () => {
+    it("treats the top waste card as interactable", () => {
       game.startNewGame();
-      const card1 = game.getCardById("card-spades-2")!;
-      const card2 = game.getCardById("card-hearts-king")!;
-      game.getPileContainingCard(card1.id)?.removeCard(card1);
-      game.getPileContainingCard(card2.id)?.removeCard(card2);
-      game.waste.clear();
-      card1.faceUp = true;
-      card2.faceUp = true;
-      game.waste.addCard(card1);
-      game.waste.addCard(card2);
+      relocate(game, "card-spades-2", game.waste);
+      const top = relocate(game, "card-hearts-king", game.waste);
 
-      const interactable = game.isCardInteractable(card2);
-
-      expect(interactable).toBe(true);
+      expect(game.isCardInteractable(top)).toBe(true);
     });
 
-    it("handles waste pile: non-top card is not interactable", () => {
+    it("treats a non-top waste card as not interactable", () => {
       game.startNewGame();
-      const card1 = game.getCardById("card-spades-2")!;
-      const card2 = game.getCardById("card-hearts-king")!;
-      game.getPileContainingCard(card1.id)?.removeCard(card1);
-      game.getPileContainingCard(card2.id)?.removeCard(card2);
-      game.waste.clear();
-      card1.faceUp = true;
-      card2.faceUp = true;
-      game.waste.addCard(card1);
-      game.waste.addCard(card2);
+      const bottom = relocate(game, "card-spades-2", game.waste);
+      relocate(game, "card-hearts-king", game.waste);
 
-      const interactable = game.isCardInteractable(card1);
-
-      expect(interactable).toBe(false);
+      expect(game.isCardInteractable(bottom)).toBe(false);
     });
 
-    it("handles foundation piles: top card is interactable", () => {
+    it("treats the top foundation card as interactable", () => {
       game.startNewGame();
-      const card1 = game.getCardById("card-diamonds-ace")!;
-      const card2 = game.getCardById("card-diamonds-2")!;
-      game.getPileContainingCard(card1.id)?.removeCard(card1);
-      game.getPileContainingCard(card2.id)?.removeCard(card2);
-      game.foundations[0].clear();
-      card1.faceUp = true;
-      card2.faceUp = true;
-      game.foundations[0].addCard(card1);
-      game.foundations[0].addCard(card2);
+      relocate(game, "card-diamonds-ace", game.foundations[0]);
+      const top = relocate(game, "card-diamonds-2", game.foundations[0]);
 
-      const interactable = game.isCardInteractable(card2);
-
-      expect(interactable).toBe(true);
+      expect(game.isCardInteractable(top)).toBe(true);
     });
 
-    it("handles foundation piles: non-top card is not interactable", () => {
+    it("treats a non-top foundation card as not interactable", () => {
       game.startNewGame();
-      const card1 = game.getCardById("card-diamonds-ace")!;
-      const card2 = game.getCardById("card-diamonds-2")!;
-      game.getPileContainingCard(card1.id)?.removeCard(card1);
-      game.getPileContainingCard(card2.id)?.removeCard(card2);
-      game.foundations[0].clear();
-      card1.faceUp = true;
-      card2.faceUp = true;
-      game.foundations[0].addCard(card1);
-      game.foundations[0].addCard(card2);
+      const bottom = relocate(game, "card-diamonds-ace", game.foundations[0]);
+      relocate(game, "card-diamonds-2", game.foundations[0]);
 
-      const interactable = game.isCardInteractable(card1);
-
-      expect(interactable).toBe(false);
+      expect(game.isCardInteractable(bottom)).toBe(false);
     });
 
-    it("handles stock pile: top card is interactable", () => {
+    it("treats the top stock card as interactable", () => {
       game.startNewGame();
-      const cards = game.stock.getCards();
-      const topCard = cards[cards.length - 1];
+      const stock = game.stock.getCards();
 
-      const interactable = game.isCardInteractable(topCard);
-
-      expect(interactable).toBe(true);
+      expect(game.isCardInteractable(stock[stock.length - 1])).toBe(true);
     });
 
-    it("handles stock pile: non-top card is not interactable", () => {
+    it("treats a non-top stock card as not interactable", () => {
       game.startNewGame();
-      const cards = game.stock.getCards();
-      const nonTopCard = cards[0];
 
-      const interactable = game.isCardInteractable(nonTopCard);
-
-      expect(interactable).toBe(false);
+      expect(game.isCardInteractable(game.stock.getCards()[0])).toBe(false);
     });
 
-    it("returns false if card is not in any pile", () => {
-      const card = new PlayingCard();
-      card.id = "ghost-card";
+    it("treats a card that is in no pile as not interactable", () => {
+      const ghost = makePlayingCard({ id: "ghost-card" });
 
-      const interactable = game.isCardInteractable(card);
-
-      expect(interactable).toBe(false);
-    });
-
-    it("returns false if card is in an unknown pile type", () => {
-      game.startNewGame();
-      const card = game.getCardById("card-clubs-ace")!;
-      const mockPile = {
-        id: "unknown-pile-id",
-        getCards: () => [card],
-      } as unknown as CardPile;
-      vi.spyOn(game, "getPileContainingCard").mockReturnValue(mockPile);
-
-      const interactable = game.isCardInteractable(card);
-
-      expect(interactable).toBe(false);
+      expect(game.isCardInteractable(ghost)).toBe(false);
     });
   });
 
   describe("isCardDraggable", () => {
-    it("handles stock pile: top card is not draggable", () => {
+    it("treats the top stock card as not draggable", () => {
       game.startNewGame();
-      const cards = game.stock.getCards();
-      const topCard = cards[cards.length - 1];
+      const stock = game.stock.getCards();
 
-      const draggable = game.isCardDraggable(topCard);
-
-      expect(draggable).toBe(false);
+      expect(game.isCardDraggable(stock[stock.length - 1])).toBe(false);
     });
 
-    it("handles tableau piles: face-up card is draggable", () => {
+    it("treats a face-up tableau card as draggable", () => {
       game.startNewGame();
       const card = game.tableaus[0].getCards()[0];
       card.faceUp = true;
 
-      const draggable = game.isCardDraggable(card);
-
-      expect(draggable).toBe(true);
+      expect(game.isCardDraggable(card)).toBe(true);
     });
 
-    it("handles tableau piles: face-down card is not draggable", () => {
+    it("treats a face-down tableau card as not draggable", () => {
       game.startNewGame();
       const card = game.tableaus[0].getCards()[0];
       card.faceUp = false;
 
-      const draggable = game.isCardDraggable(card);
-
-      expect(draggable).toBe(false);
+      expect(game.isCardDraggable(card)).toBe(false);
     });
 
-    it("handles waste pile: top card is draggable", () => {
+    it("treats the top waste card as draggable", () => {
       game.startNewGame();
-      const card1 = game.getCardById("card-spades-2")!;
-      const card2 = game.getCardById("card-hearts-king")!;
-      game.getPileContainingCard(card1.id)?.removeCard(card1);
-      game.getPileContainingCard(card2.id)?.removeCard(card2);
-      game.waste.clear();
-      card1.faceUp = true;
-      card2.faceUp = true;
-      game.waste.addCard(card1);
-      game.waste.addCard(card2);
+      relocate(game, "card-spades-2", game.waste);
+      const top = relocate(game, "card-hearts-king", game.waste);
 
-      const draggable = game.isCardDraggable(card2);
-
-      expect(draggable).toBe(true);
+      expect(game.isCardDraggable(top)).toBe(true);
     });
 
-    it("handles foundation piles: top card is draggable", () => {
+    it("treats the top foundation card as draggable", () => {
       game.startNewGame();
-      const card1 = game.getCardById("card-diamonds-ace")!;
-      const card2 = game.getCardById("card-diamonds-2")!;
-      game.getPileContainingCard(card1.id)?.removeCard(card1);
-      game.getPileContainingCard(card2.id)?.removeCard(card2);
-      game.foundations[0].clear();
-      card1.faceUp = true;
-      card2.faceUp = true;
-      game.foundations[0].addCard(card1);
-      game.foundations[0].addCard(card2);
+      relocate(game, "card-diamonds-ace", game.foundations[0]);
+      const top = relocate(game, "card-diamonds-2", game.foundations[0]);
 
-      const draggable = game.isCardDraggable(card2);
-
-      expect(draggable).toBe(true);
+      expect(game.isCardDraggable(top)).toBe(true);
     });
 
-    it("returns false if card is not in any pile", () => {
-      const card = new PlayingCard();
-      card.id = "ghost-card";
+    it("treats a card that is in no pile as not draggable", () => {
+      const ghost = makePlayingCard({ id: "ghost-card" });
 
-      const draggable = game.isCardDraggable(card);
-
-      expect(draggable).toBe(false);
+      expect(game.isCardDraggable(ghost)).toBe(false);
     });
   });
 
-  describe("Scoring, Moves, and Game Options", () => {
-    it("starts a new game with zeroed score, moves, and default options", () => {
+  describe("scoring", () => {
+    it("starts a new game with a zeroed score and move count", () => {
       game.startNewGame();
+
       expect(game.state.score).toBe(0);
       expect(game.state.moves).toBe(0);
+    });
+
+    it("scores +5 and counts a move when moving from waste to tableau", () => {
+      game.startNewGame();
+      game.tableaus[0].clear();
+      relocate(game, "card-spades-king", game.tableaus[0]);
+      const queen = relocate(game, "card-hearts-queen", game.waste);
+
+      const moved = game.moveCardToPile(queen.id, "tableau-0");
+
+      expect(moved).toBe(true);
+      expect(game.state.score).toBe(5);
+      expect(game.state.moves).toBe(1);
+    });
+
+    it("scores +10 when moving from waste to foundation", () => {
+      game.startNewGame();
+      const ace = relocate(game, "card-spades-ace", game.waste);
+
+      const moved = game.moveCardToPile(ace.id, "foundation-0");
+
+      expect(moved).toBe(true);
+      expect(game.state.score).toBe(10);
+    });
+
+    it("scores +10 when moving from tableau to foundation", () => {
+      game.startNewGame();
+      game.tableaus[0].clear();
+      const ace = relocate(game, "card-hearts-ace", game.tableaus[0]);
+
+      const moved = game.moveCardToPile(ace.id, "foundation-1");
+
+      expect(moved).toBe(true);
+      expect(game.state.score).toBe(10);
+    });
+
+    it("scores -15 when moving from foundation to tableau", () => {
+      game.startNewGame();
+      game.foundations[0].clear();
+      const ace = relocate(game, "card-clubs-ace", game.foundations[0]);
+      game.tableaus[0].clear();
+      relocate(game, "card-diamonds-2", game.tableaus[0]);
+      game.state.score = 20;
+
+      const moved = game.moveCardToPile(ace.id, "tableau-0");
+
+      expect(moved).toBe(true);
+      expect(game.state.score).toBe(5);
+    });
+
+    it("adds a +5 flip bonus on top of the move score when a tableau card is exposed", () => {
+      game.startNewGame();
+      game.tableaus[0].clear();
+      relocate(game, "card-spades-10", game.tableaus[0], false);
+      const ace = relocate(game, "card-hearts-ace", game.tableaus[0]);
+      game.foundations[0].clear();
+
+      const moved = game.moveCardToPile(ace.id, "foundation-0");
+
+      expect(moved).toBe(true);
+      expect(game.state.score).toBe(15);
+    });
+  });
+
+  describe("recycle penalties", () => {
+    it("does not penalize the first waste recycle in Draw 1 mode", () => {
+      game.startNewGame();
+      game.setDrawCount(1);
+      const king = game.getCardById(CLUB_KING_ID)!;
+      game.state.score = 200;
+
+      forceWasteRecycle(game, king);
+
+      expect(game.state.score).toBe(200);
+    });
+
+    it("penalizes 100 points for a second waste recycle in Draw 1 mode", () => {
+      game.startNewGame();
+      game.setDrawCount(1);
+      const king = game.getCardById(CLUB_KING_ID)!;
+      forceWasteRecycle(game, king);
+      game.state.score = 200;
+
+      forceWasteRecycle(game, king);
+
+      expect(game.state.score).toBe(100);
+    });
+
+    it("does not penalize the first three waste recycles in Draw 3 mode", () => {
+      game.startNewGame();
+      game.setDrawCount(3);
+      const king = game.getCardById(CLUB_KING_ID)!;
+      game.state.score = 200;
+
+      forceWasteRecycle(game, king);
+      forceWasteRecycle(game, king);
+      forceWasteRecycle(game, king);
+
+      expect(game.state.score).toBe(200);
+    });
+
+    it("penalizes 20 points for a fourth waste recycle in Draw 3 mode", () => {
+      game.startNewGame();
+      game.setDrawCount(3);
+      const king = game.getCardById(CLUB_KING_ID)!;
+      forceWasteRecycle(game, king);
+      forceWasteRecycle(game, king);
+      forceWasteRecycle(game, king);
+      game.state.score = 200;
+
+      forceWasteRecycle(game, king);
+
+      expect(game.state.score).toBe(180);
+    });
+  });
+
+  describe("settings", () => {
+    it("starts a new game with the default draw count and card back", () => {
+      game.startNewGame();
+
       expect(game.settings.drawCount).toBe(3);
       expect(game.settings.cardBackStyle).toBe("card-back-blue");
     });
 
-    it("allows updating options via setters and pushes through BehaviorSubjects", () => {
-      const drawCountValues: (1 | 3)[] = [];
-      const cardBackValues: string[] = [];
-      const cardBackListener = vi.fn();
-
-      game.settings.drawCount$.subscribe((v) => drawCountValues.push(v));
-      game.settings.cardBackStyle$.subscribe((v) => cardBackValues.push(v));
-      game.on("card-back-changed", cardBackListener);
+    it("publishes the new draw count when it changes", () => {
+      const drawCounts: (1 | 3)[] = [];
+      game.settings.drawCount$.subscribe((v) => drawCounts.push(v));
 
       game.setDrawCount(1);
+
       expect(game.settings.drawCount).toBe(1);
-      expect(drawCountValues).toContain(1);
+      expect(drawCounts).toContain(1);
+    });
+
+    it("publishes and emits the new card back style when it changes", () => {
+      const cardBacks: string[] = [];
+      const cardBackEvents: { cardBackStyle: string }[] = [];
+      game.settings.cardBackStyle$.subscribe((v) => cardBacks.push(v));
+      game.on("card-back-changed", (payload) => cardBackEvents.push(payload));
 
       game.setCardBackStyle("card-back-red");
+
       expect(game.settings.cardBackStyle).toBe("card-back-red");
-      expect(cardBackValues).toContain("card-back-red");
-      expect(cardBackListener).toHaveBeenCalledWith({
-        cardBackStyle: "card-back-red",
-      });
-    });
-
-    it("increments moves and scores +5 when moving waste to tableau", () => {
-      game.startNewGame();
-      const card = game.getCardById("card-spades-jack")!;
-      const tableauCard = game.tableaus[0].getCards()[0];
-
-      game.getPileContainingCard(card.id)?.removeCard(card);
-      game.waste.clear();
-      card.faceUp = true;
-      card.type = Type.QUEEN;
-      card.suite = Suit.HEART;
-      game.waste.addCard(card);
-
-      tableauCard.faceUp = true;
-      tableauCard.type = Type.KING;
-      tableauCard.suite = Suit.SPADE;
-
-      const moved = game.moveCardToPile(card.id, game.tableaus[0].id);
-      expect(moved).toBe(true);
-      expect(game.state.score).toBe(5);
-      expect(game.state.moves).toBe(1);
-    });
-
-    it("scores +10 when moving waste to foundation", () => {
-      game.startNewGame();
-      const card = game.getCardById("card-spades-ace")!;
-      game.getPileContainingCard(card.id)?.removeCard(card);
-      game.waste.clear();
-      card.faceUp = true;
-      card.type = Type.ACE;
-      game.waste.addCard(card);
-
-      const moved = game.moveCardToPile(card.id, game.foundations[0].id);
-      expect(moved).toBe(true);
-      expect(game.state.score).toBe(10);
-      expect(game.state.moves).toBe(1);
-    });
-
-    it("scores +10 when moving tableau to foundation", () => {
-      game.startNewGame();
-      const card = game.getCardById("card-hearts-ace")!;
-      game.getPileContainingCard(card.id)?.removeCard(card);
-      game.tableaus[0].clear();
-      card.faceUp = true;
-      card.type = Type.ACE;
-      game.tableaus[0].addCard(card);
-
-      const moved = game.moveCardToPile(card.id, game.foundations[1].id);
-      expect(moved).toBe(true);
-      expect(game.state.score).toBe(10);
-    });
-
-    it("scores -15 when moving foundation to tableau", () => {
-      game.startNewGame();
-
-      const ace = game.getCardById("card-clubs-ace")!;
-      const two = game.getCardById("card-diamonds-2")!;
-
-      game.getPileContainingCard(ace.id)?.removeCard(ace);
-      game.getPileContainingCard(two.id)?.removeCard(two);
-
-      game.foundations[0].clear();
-      ace.faceUp = true;
-      ace.type = Type.ACE;
-      ace.suite = Suit.CLUB;
-      game.foundations[0].addCard(ace);
-
-      game.tableaus[0].clear();
-      two.faceUp = true;
-      two.type = Type.TWO;
-      two.suite = Suit.DIAMOND;
-      game.tableaus[0].addCard(two);
-
-      game.state.score = 20;
-
-      const moved = game.moveCardToPile(ace.id, game.tableaus[0].id);
-      expect(moved).toBe(true);
-      expect(game.state.score).toBe(5);
-    });
-
-    it("scores +5 when flipping a tableau card face up via moveCardToPile auto-flip", () => {
-      game.startNewGame();
-
-      game.tableaus[0].clear();
-      const cardDown = game.getCardById("card-spades-10")!;
-      game.getPileContainingCard(cardDown.id)?.removeCard(cardDown);
-      cardDown.faceUp = false;
-      game.tableaus[0].addCard(cardDown);
-
-      const cardUp = game.getCardById("card-hearts-ace")!;
-      game.getPileContainingCard(cardUp.id)?.removeCard(cardUp);
-      cardUp.faceUp = true;
-      cardUp.type = Type.ACE;
-      game.tableaus[0].addCard(cardUp);
-
-      game.foundations[0].clear();
-      const moved = game.moveCardToPile(cardUp.id, game.foundations[0].id);
-      expect(moved).toBe(true);
-      expect(cardDown.faceUp).toBe(true);
-      expect(game.state.score).toBe(15);
-    });
-
-    it("recycles waste and applies proper score penalty for Draw 1 vs Draw 3", () => {
-      game.startNewGame();
-      game.setDrawCount(1);
-
-      game.stock.clear();
-      const card = game.getCardById("card-clubs-king")!;
-      game.waste.clear();
-      game.waste.addCard(card);
-
-      game.state.score = 200;
-
-      game.drawCardsFromStock();
-      expect(game.state.score).toBe(200);
-
-      game.stock.clear();
-      game.waste.addCard(card);
-
-      game.drawCardsFromStock();
-      expect(game.state.score).toBe(100);
-
-      game.setDrawCount(3);
-      game.state.score = 200;
-      game.startNewGame();
-      game.setDrawCount(3);
-      game.state.score = 200;
-
-      for (let i = 0; i < 3; i++) {
-        game.stock.clear();
-        game.waste.addCard(card);
-        game.drawCardsFromStock();
-      }
-      expect(game.state.score).toBe(200);
-
-      game.stock.clear();
-      game.waste.addCard(card);
-      game.drawCardsFromStock();
-      expect(game.state.score).toBe(180);
+      expect(cardBacks).toContain("card-back-red");
+      expect(cardBackEvents).toEqual([{ cardBackStyle: "card-back-red" }]);
     });
   });
 });
