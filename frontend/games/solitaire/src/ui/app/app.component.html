@@ -8,15 +8,15 @@
     <div class="metrics">
       <div class="metric-card score-card">
         <span class="label">SCORE</span>
-        <span class="value">{{ score }}</span>
+        <span class="value">{{ score() }}</span>
       </div>
       <div class="metric-card timer-card">
         <span class="label">TIME</span>
-        <span class="value">{{ timerText }}</span>
+        <span class="value">{{ timerText() }}</span>
       </div>
       <div class="metric-card moves-card">
         <span class="label">MOVES</span>
-        <span class="value">{{ moves }}</span>
+        <span class="value">{{ moves() }}</span>
       </div>
     </div>
 
@@ -97,14 +97,14 @@
           <label class="setting-label">Draw Mode</label>
           <div class="segmented-control">
             <button
-              [class.active]="drawCount === 1"
+              [class.active]="drawCount() === 1"
               (click)="setDrawMode(1)"
               class="segment-btn"
             >
               Draw 1
             </button>
             <button
-              [class.active]="drawCount === 3"
+              [class.active]="drawCount() === 3"
               (click)="setDrawMode(3)"
               class="segment-btn"
             >
@@ -122,7 +122,7 @@
           <div class="card-back-selector">
             <button
               class="card-back-option blue-back"
-              [class.active]="cardBack === 'card-back-blue'"
+              [class.active]="cardBack() === 'card-back-blue'"
               (click)="setCardBack('card-back-blue')"
             >
               <div class="card-back-preview blue-pattern"></div>
@@ -130,7 +130,7 @@
             </button>
             <button
               class="card-back-option red-back"
-              [class.active]="cardBack === 'card-back-red'"
+              [class.active]="cardBack() === 'card-back-red'"
               (click)="setCardBack('card-back-red')"
             >
               <div class="card-back-preview red-pattern"></div>
@@ -170,7 +170,7 @@
   }
 
   <!-- Victory Overlay -->
-  @if (isGameWon) {
+  @if (isGameWon()) {
     <div class="victory-overlay">
       <div class="victory-card">
         <div class="trophy-container">
@@ -191,15 +191,15 @@
 
         <div class="victory-stats">
           <div class="v-stat">
-            <span class="v-val">{{ score }}</span>
+            <span class="v-val">{{ score() }}</span>
             <span class="v-lbl">Score</span>
           </div>
           <div class="v-stat">
-            <span class="v-val">{{ timerText }}</span>
+            <span class="v-val">{{ timerText() }}</span>
             <span class="v-lbl">Time</span>
           </div>
           <div class="v-stat">
-            <span class="v-val">{{ moves }}</span>
+            <span class="v-val">{{ moves() }}</span>
             <span class="v-lbl">Moves</span>
           </div>
         </div>
