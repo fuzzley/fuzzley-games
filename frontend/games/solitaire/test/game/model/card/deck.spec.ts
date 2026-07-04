@@ -1,5 +1,6 @@
-import { Card } from "@/game/model/card/card";
 import { Deck } from "@/game/model/card/deck";
+import { makeCard } from "@test/support/card_builder";
+import { sequenceRandom } from "@test/support/sequence_random";
 
 describe("Deck", () => {
   let deck: Deck;
@@ -9,26 +10,22 @@ describe("Deck", () => {
   });
 
   it("adds a card", () => {
-    const card: Card = { id: "c1", faceUp: true };
+    const card = makeCard({ id: "c1", faceUp: true });
 
     deck.addCard(card);
 
     expect(deck.getCards()).toEqual([card]);
   });
 
-  it("shuffles the cards", () => {
-    const card1: Card = { id: "c1", faceUp: true };
-    const card2: Card = { id: "c2", faceUp: true };
-    const card3: Card = { id: "c3", faceUp: true };
+  it("shuffles the cards using the provided randomness source", () => {
+    const card1 = makeCard({ id: "c1", faceUp: true });
+    const card2 = makeCard({ id: "c2", faceUp: true });
+    const card3 = makeCard({ id: "c3", faceUp: true });
     deck.addCard(card1);
     deck.addCard(card2);
     deck.addCard(card3);
-    vi.spyOn(Math, "random")
-      .mockReturnValueOnce(0.6)
-      .mockReturnValueOnce(0.2)
-      .mockReturnValueOnce(0.8);
 
-    deck.shuffle();
+    deck.shuffle(sequenceRandom([0.6, 0.2, 0.8]));
 
     expect(deck.getCards()).toEqual([card3, card1, card2]);
   });

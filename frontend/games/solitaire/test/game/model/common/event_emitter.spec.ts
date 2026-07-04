@@ -16,59 +16,62 @@ class TestEmitter extends EventEmitter<MockEvents> {
 }
 
 describe("EventEmitter", () => {
-  it("subscribes and fires events with payload data", () => {
+  it("delivers the emitted payload to a subscriber", () => {
     const emitter = new TestEmitter();
-    const mockCallback = vi.fn();
+    const received: { payload: string }[] = [];
+    emitter.on("test-event", (data) => received.push(data));
 
-    emitter.on("test-event", mockCallback);
     emitter.triggerTest("hello");
 
-    expect(mockCallback).toHaveBeenCalledTimes(1);
-    expect(mockCallback).toHaveBeenCalledWith({ payload: "hello" });
+    expect(received).toEqual([{ payload: "hello" }]);
   });
 
-  it("unsubscribes listeners correctly", () => {
+  it("stops delivering events after a listener is removed", () => {
     const emitter = new TestEmitter();
-    const mockCallback = vi.fn();
+    const received: { payload: string }[] = [];
+    const listener = (data: { payload: string }) => received.push(data);
+    emitter.on("test-event", listener);
+    emitter.off("test-event", listener);
 
-    emitter.on("test-event", mockCallback);
-    emitter.off("test-event", mockCallback);
     emitter.triggerTest("hello");
 
-    expect(mockCallback).not.toHaveBeenCalled();
+    expect(received).toEqual([]);
   });
 
-  it("handles void events correctly", () => {
+  it("delivers void events to subscribers", () => {
     const emitter = new TestEmitter();
-    const mockCallback = vi.fn();
+    let callCount = 0;
+    emitter.on("void-event", () => callCount++);
 
-    emitter.on("void-event", mockCallback);
     emitter.triggerVoid();
 
-    expect(mockCallback).toHaveBeenCalledTimes(1);
+    expect(callCount).toBe(1);
   });
 
-  it("supports multiple subscribers for the same event", () => {
+  it("delivers the payload to every subscriber of an event", () => {
     const emitter = new TestEmitter();
-    const mockCallback1 = vi.fn();
-    const mockCallback2 = vi.fn();
+    const receivedByFirst: { payload: string }[] = [];
+    const receivedBySecond: { payload: string }[] = [];
+    emitter.on("test-event", (data) => receivedByFirst.push(data));
+    emitter.on("test-event", (data) => receivedBySecond.push(data));
 
-    emitter.on("test-event", mockCallback1);
-    emitter.on("test-event", mockCallback2);
     emitter.triggerTest("multiple");
 
-    expect(mockCallback1).toHaveBeenCalledWith({ payload: "multiple" });
-    expect(mockCallback2).toHaveBeenCalledWith({ payload: "multiple" });
+    expect(receivedByFirst).toEqual([{ payload: "multiple" }]);
+    expect(receivedBySecond).toEqual([{ payload: "multiple" }]);
   });
 
-  it("does not crash when unsubscribing from an event with no listeners", () => {
+  it("does not throw when unsubscribing from an event with no listeners", () => {
     const emitter = new TestEmitter();
-    const mockCallback = vi.fn();
 
-    expect(() => emitter.off("test-event", mockCallback)).not.toThrow();
+    expect(() =>
+      emitter.off("test-event", () => {
+        /* no-op */
+      }),
+    ).not.toThrow();
   });
 
-  it("does not crash when emitting an event with no listeners", () => {
+  it("does not throw when emitting an event with no listeners", () => {
     const emitter = new TestEmitter();
 
     expect(() => emitter.triggerTest("silent")).not.toThrow();
