@@ -28,6 +28,9 @@ export type PileVisual =
  * events emitted by the logical rules engine.
  */
 export class BoardScene extends Scene {
+  /** Transparency (alpha) level for pile background placeholders. */
+  public static readonly PILE_BACKGROUND_ALPHA = 0.5;
+
   /** The logical solitaire game rules and state engine. */
   public readonly gameModel: SolitaireGame = new SolitaireGame();
 
@@ -336,6 +339,7 @@ export class BoardScene extends Scene {
       "card-placeholder-full-border-reset",
     );
     stockSprite.setOrigin(0, 0);
+    stockSprite.setAlpha(BoardScene.PILE_BACKGROUND_ALPHA);
     // Make stock pile placeholder interactive to allow recycling when stock is empty
     stockSprite.setInteractive({ useHandCursor: true });
     stockSprite.on("pointerdown", () => {
@@ -362,6 +366,7 @@ export class BoardScene extends Scene {
         "card-placeholder",
       );
       tableauSprite.setOrigin(0, 0);
+      tableauSprite.setAlpha(BoardScene.PILE_BACKGROUND_ALPHA);
       tableauPile.sprite = tableauSprite;
     }
 
@@ -374,6 +379,7 @@ export class BoardScene extends Scene {
         "card-placeholder-full-border-circle",
       );
       foundationSprite.setOrigin(0, 0);
+      foundationSprite.setAlpha(BoardScene.PILE_BACKGROUND_ALPHA);
       foundationPile.sprite = foundationSprite;
     }
   }

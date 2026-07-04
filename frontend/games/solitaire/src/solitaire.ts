@@ -20,7 +20,7 @@ export class Solitaire {
       title: "fSolitaire",
       type: Phaser.AUTO,
       parent: "game",
-      backgroundColor: "#0EB755",
+      backgroundColor: "#0f4d0e",
       scale: {
         mode: Phaser.Scale.ScaleModes.RESIZE,
         autoCenter: Phaser.Scale.Center.CENTER_BOTH,
