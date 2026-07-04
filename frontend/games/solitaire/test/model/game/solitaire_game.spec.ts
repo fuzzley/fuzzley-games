@@ -1,5 +1,7 @@
+import { vi } from "vitest";
 import { SolitaireGame } from "../../../src/model/game/solitaire_game";
 import { PlayingCard, Suit, Type } from "../../../src/model/card/playing_card";
+import { CardPile } from "../../../src/model/card/card_pile";
 
 function setupAlmostWonState(game: SolitaireGame): void {
   const suitNames = ["spades", "hearts", "diamonds", "clubs"];
@@ -429,8 +431,11 @@ describe("SolitaireGame", () => {
 
     it("handles empty or insufficient deck gracefully during dealTableaus and populateStock", () => {
       // Return an array containing undefined values to test both dealTableaus and populateStock 'if (card)' false conditions
-      const mockDeck = Array(35).fill(undefined);
-      vi.spyOn(game as any, "createAndShuffleDeck").mockReturnValue(mockDeck);
+      const mockDeck = Array(35).fill(undefined) as unknown as PlayingCard[];
+      vi.spyOn(
+        game as unknown as { createAndShuffleDeck: () => PlayingCard[] },
+        "createAndShuffleDeck",
+      ).mockReturnValue(mockDeck);
 
       expect(() => game.startNewGame()).not.toThrow();
       expect(game.stock.getCards().length).toBe(0);
@@ -561,8 +566,11 @@ describe("SolitaireGame", () => {
     it("returns false if card is in an unknown pile type", () => {
       game.startNewGame();
       const card = game.getCardById("card-clubs-ace")!;
-      const mockPile = { id: "unknown-pile-id", getCards: () => [card] };
-      vi.spyOn(game, "getPileContainingCard").mockReturnValue(mockPile as any);
+      const mockPile = {
+        id: "unknown-pile-id",
+        getCards: () => [card],
+      } as unknown as CardPile;
+      vi.spyOn(game, "getPileContainingCard").mockReturnValue(mockPile);
 
       const interactable = game.isCardInteractable(card);
 

@@ -1,3 +1,5 @@
+import { vi } from "vitest";
+import * as Phaser from "phaser";
 import { CardPile } from "../../src/model/card/card_pile";
 import { PlayingCard } from "../../src/model/card/playing_card";
 import { PlayingCardVisual } from "../../src/render/visual/card/playing_card_visual";
@@ -11,7 +13,9 @@ describe("Visual classes", () => {
   describe("Visual Base Class", () => {
     it("can set and get sprite", () => {
       const visual = new Visual();
-      const mockSprite = { setPosition: vi.fn() } as any;
+      const mockSprite = {
+        setPosition: vi.fn(),
+      } as unknown as Phaser.GameObjects.Sprite;
       visual.sprite = mockSprite;
       expect(visual.sprite).toBe(mockSprite);
     });

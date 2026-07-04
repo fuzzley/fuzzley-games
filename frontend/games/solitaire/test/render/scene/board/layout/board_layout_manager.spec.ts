@@ -2,6 +2,7 @@ import { vi } from "vitest";
 import { BoardLayoutManager } from "../../../../../src/render/scene/board/layout/board_layout_manager";
 import { Visual } from "../../../../../src/render/visual/visual";
 import { CardPile } from "../../../../../src/model/card/card_pile";
+import { BoardScene } from "../../../../../src/render/scene/board/board_scene";
 
 function createMockSprite() {
   const sprite = {
@@ -64,7 +65,9 @@ describe("BoardLayoutManager", () => {
       ],
     };
 
-    const layoutManager = new BoardLayoutManager(mockBoardScene as any);
+    const layoutManager = new BoardLayoutManager(
+      mockBoardScene as unknown as BoardScene,
+    );
     layoutManager.createInitialLayout();
 
     // Verify Stock Pile position (Column 0, Top Row)
@@ -165,7 +168,9 @@ describe("BoardLayoutManager", () => {
       tableauPiles: [mockTableauPile],
     };
 
-    const layoutManager = new BoardLayoutManager(mockBoardScene as any);
+    const layoutManager = new BoardLayoutManager(
+      mockBoardScene as unknown as BoardScene,
+    );
     layoutManager.updateVisualLayout();
 
     const stockSprite = mockStockPile.playingCardVisuals[0].sprite!;
@@ -210,7 +215,9 @@ describe("BoardLayoutManager", () => {
       tableauPiles: [],
     };
 
-    const layoutManager = new BoardLayoutManager(mockBoardScene as any);
+    const layoutManager = new BoardLayoutManager(
+      mockBoardScene as unknown as BoardScene,
+    );
     layoutManager.createInitialLayout();
     layoutManager.updateVisualLayout();
 
@@ -228,7 +235,9 @@ describe("BoardLayoutManager", () => {
       foundationPiles: [],
       tableauPiles: [],
     };
-    const layoutManager = new BoardLayoutManager(mockBoardScene as any);
+    const layoutManager = new BoardLayoutManager(
+      mockBoardScene as unknown as BoardScene,
+    );
 
     const scaleFactor = layoutManager.getScaleFactor();
 
@@ -242,7 +251,9 @@ describe("BoardLayoutManager", () => {
         height: 2000,
       },
     };
-    const layoutManager = new BoardLayoutManager(mockBoardScene as any);
+    const layoutManager = new BoardLayoutManager(
+      mockBoardScene as unknown as BoardScene,
+    );
 
     const scaleFactor = layoutManager.getScaleFactor();
 
@@ -256,7 +267,9 @@ describe("BoardLayoutManager", () => {
         height: -20,
       },
     };
-    const layoutManager = new BoardLayoutManager(mockBoardScene as any);
+    const layoutManager = new BoardLayoutManager(
+      mockBoardScene as unknown as BoardScene,
+    );
 
     const scaleFactor = layoutManager.getScaleFactor();
 
