@@ -21,6 +21,7 @@ vi.mock("phaser", () => {
       y,
       scale: 1,
       depth: 0,
+      alpha: 1,
       frame,
       originX: 0,
       originY: 0,
@@ -68,6 +69,10 @@ vi.mock("phaser", () => {
       }),
       setDepth: vi.fn().mockImplementation(function (this: any, depth: number) {
         this.depth = depth;
+        return this;
+      }),
+      setAlpha: vi.fn().mockImplementation(function (this: any, alpha: number) {
+        this.alpha = alpha;
         return this;
       }),
       setData: vi.fn().mockImplementation((key: string, val: any) => {
@@ -187,11 +192,15 @@ describe("BoardScene", () => {
     expect(boardScene.stockPile.sprite.frame).toBe(
       "card-placeholder-full-border-reset",
     );
+    expect(boardScene.stockPile.sprite.alpha).toBe(
+      BoardScene.PILE_BACKGROUND_ALPHA,
+    );
 
     for (const tableauPile of boardScene.tableauPiles) {
       expect(tableauPile.sprite).toBeDefined();
       expect(tableauPile.sprite).not.toBeNull();
       expect(tableauPile.sprite.frame).toBe("card-placeholder");
+      expect(tableauPile.sprite.alpha).toBe(BoardScene.PILE_BACKGROUND_ALPHA);
     }
 
     for (const foundationPile of boardScene.foundationPiles) {
@@ -199,6 +208,9 @@ describe("BoardScene", () => {
       expect(foundationPile.sprite).not.toBeNull();
       expect(foundationPile.sprite.frame).toBe(
         "card-placeholder-full-border-circle",
+      );
+      expect(foundationPile.sprite.alpha).toBe(
+        BoardScene.PILE_BACKGROUND_ALPHA,
       );
     }
   });
