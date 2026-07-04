@@ -1,6 +1,8 @@
 # Agents
 .agents
 .gemini
+.claude
+CLAUDE.md
 
 # Logs
 logs
