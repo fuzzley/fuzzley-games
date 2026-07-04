@@ -1,4 +1,3 @@
-import * as Phaser from "phaser";
 import { Scene } from "phaser";
 
 import { ALL_PLAYING_CARD_IDS } from "@/game/model/card/playing_card";
@@ -80,46 +79,6 @@ export class BoardScene extends Scene {
   /** Gets the layout manager helper instance. */
   public getLayoutManager(): BoardLayoutManager {
     return this.layoutManager;
-  }
-
-  /** Getter for highlightGraphics to preserve backward compatibility (e.g. for unit tests). */
-  public get highlightGraphics(): Phaser.GameObjects.Graphics {
-    return this.highlightRenderer.graphics;
-  }
-  public set highlightGraphics(val: Phaser.GameObjects.Graphics) {
-    this.highlightRenderer.graphics = val;
-  }
-
-  /** Getter for hoveredCardVisual to preserve backward compatibility (e.g. for unit tests). */
-  public get hoveredCardVisual(): PlayingCardVisual | null {
-    return this.inputManager.hoveredCardVisual;
-  }
-  public set hoveredCardVisual(val: PlayingCardVisual | null) {
-    this.inputManager.hoveredCardVisual = val;
-  }
-
-  /** Getter for isStockBackgroundHovered to preserve backward compatibility (e.g. for unit tests). */
-  public get isStockBackgroundHovered(): boolean {
-    return this.inputManager.isStockBackgroundHovered;
-  }
-  public set isStockBackgroundHovered(val: boolean) {
-    this.inputManager.isStockBackgroundHovered = val;
-  }
-
-  /** Getter for draggedStack to preserve backward compatibility (e.g. for unit tests). */
-  public get draggedStack(): PlayingCardVisual[] {
-    return this.inputManager.draggedStack;
-  }
-  public set draggedStack(val: PlayingCardVisual[]) {
-    this.inputManager.draggedStack = val;
-  }
-
-  /** Getter for draggedStackOffsets to preserve backward compatibility (e.g. for unit tests). */
-  public get draggedStackOffsets(): { x: number; y: number }[] {
-    return this.inputManager.draggedStackOffsets;
-  }
-  public set draggedStackOffsets(val: { x: number; y: number }[]) {
-    this.inputManager.draggedStackOffsets = val;
   }
 
   /**
