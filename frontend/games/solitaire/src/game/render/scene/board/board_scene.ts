@@ -181,7 +181,7 @@ export class BoardScene extends Scene {
     this.gameModel.on("card-flipped", ({ cardId, faceUp }) => {
       const visualCard = this.cardVisualsMap.get(cardId);
       if (visualCard && visualCard.sprite) {
-        const frame = faceUp ? cardId : this.gameModel.cardBackStyle;
+        const frame = faceUp ? cardId : this.gameModel.settings.cardBackStyle;
         visualCard.sprite.setFrame(frame);
         visualCard.sprite.setOrigin(0, 0);
       }
@@ -216,7 +216,7 @@ export class BoardScene extends Scene {
       const visual = this.cardVisualsMap.get(card.id);
       if (visual) {
         this.stockPile.playingCardVisuals.push(visual);
-        visual.sprite.setFrame(this.gameModel.cardBackStyle);
+        visual.sprite.setFrame(this.gameModel.settings.cardBackStyle);
         visual.sprite.setOrigin(0, 0);
       }
     }
@@ -251,7 +251,7 @@ export class BoardScene extends Scene {
         if (visual) {
           visualPile.playingCardVisuals.push(visual);
           visual.sprite.setFrame(
-            card.faceUp ? card.id : this.gameModel.cardBackStyle,
+            card.faceUp ? card.id : this.gameModel.settings.cardBackStyle,
           );
           visual.sprite.setOrigin(0, 0);
         }

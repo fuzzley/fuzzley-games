@@ -656,28 +656,31 @@ describe("SolitaireGame", () => {
   describe("Scoring, Moves, and Game Options", () => {
     it("starts a new game with zeroed score, moves, and default options", () => {
       game.startNewGame();
-      expect(game.score).toBe(0);
-      expect(game.moves).toBe(0);
-      expect(game.drawCount).toBe(3);
-      expect(game.cardBackStyle).toBe("card-back-blue");
+      expect(game.state.score).toBe(0);
+      expect(game.state.moves).toBe(0);
+      expect(game.settings.drawCount).toBe(3);
+      expect(game.settings.cardBackStyle).toBe("card-back-blue");
     });
 
-    it("allows updating options via setters and emits state-changed", () => {
-      const stateListener = vi.fn();
+    it("allows updating options via setters and pushes through BehaviorSubjects", () => {
+      const drawCountValues: (1 | 3)[] = [];
+      const cardBackValues: string[] = [];
       const cardBackListener = vi.fn();
-      game.on("state-changed", stateListener);
+
+      game.settings.drawCount$.subscribe((v) => drawCountValues.push(v));
+      game.settings.cardBackStyle$.subscribe((v) => cardBackValues.push(v));
       game.on("card-back-changed", cardBackListener);
 
       game.setDrawCount(1);
-      expect(game.drawCount).toBe(1);
-      expect(stateListener).toHaveBeenCalledTimes(1);
+      expect(game.settings.drawCount).toBe(1);
+      expect(drawCountValues).toContain(1);
 
       game.setCardBackStyle("card-back-red");
-      expect(game.cardBackStyle).toBe("card-back-red");
+      expect(game.settings.cardBackStyle).toBe("card-back-red");
+      expect(cardBackValues).toContain("card-back-red");
       expect(cardBackListener).toHaveBeenCalledWith({
         cardBackStyle: "card-back-red",
       });
-      expect(stateListener).toHaveBeenCalledTimes(2);
     });
 
     it("increments moves and scores +5 when moving waste to tableau", () => {
@@ -698,8 +701,8 @@ describe("SolitaireGame", () => {
 
       const moved = game.moveCardToPile(card.id, game.tableaus[0].id);
       expect(moved).toBe(true);
-      expect(game.score).toBe(5);
-      expect(game.moves).toBe(1);
+      expect(game.state.score).toBe(5);
+      expect(game.state.moves).toBe(1);
     });
 
     it("scores +10 when moving waste to foundation", () => {
@@ -713,8 +716,8 @@ describe("SolitaireGame", () => {
 
       const moved = game.moveCardToPile(card.id, game.foundations[0].id);
       expect(moved).toBe(true);
-      expect(game.score).toBe(10);
-      expect(game.moves).toBe(1);
+      expect(game.state.score).toBe(10);
+      expect(game.state.moves).toBe(1);
     });
 
     it("scores +10 when moving tableau to foundation", () => {
@@ -728,7 +731,7 @@ describe("SolitaireGame", () => {
 
       const moved = game.moveCardToPile(card.id, game.foundations[1].id);
       expect(moved).toBe(true);
-      expect(game.score).toBe(10);
+      expect(game.state.score).toBe(10);
     });
 
     it("scores -15 when moving foundation to tableau", () => {
@@ -752,11 +755,11 @@ describe("SolitaireGame", () => {
       two.suite = Suit.DIAMOND;
       game.tableaus[0].addCard(two);
 
-      game.score = 20;
+      game.state.score = 20;
 
       const moved = game.moveCardToPile(ace.id, game.tableaus[0].id);
       expect(moved).toBe(true);
-      expect(game.score).toBe(5);
+      expect(game.state.score).toBe(5);
     });
 
     it("scores +5 when flipping a tableau card face up via moveCardToPile auto-flip", () => {
@@ -778,7 +781,7 @@ describe("SolitaireGame", () => {
       const moved = game.moveCardToPile(cardUp.id, game.foundations[0].id);
       expect(moved).toBe(true);
       expect(cardDown.faceUp).toBe(true);
-      expect(game.score).toBe(15);
+      expect(game.state.score).toBe(15);
     });
 
     it("recycles waste and applies proper score penalty for Draw 1 vs Draw 3", () => {
@@ -790,34 +793,34 @@ describe("SolitaireGame", () => {
       game.waste.clear();
       game.waste.addCard(card);
 
-      game.score = 200;
+      game.state.score = 200;
 
       game.drawCardsFromStock();
-      expect(game.score).toBe(200);
+      expect(game.state.score).toBe(200);
 
       game.stock.clear();
       game.waste.addCard(card);
 
       game.drawCardsFromStock();
-      expect(game.score).toBe(100);
+      expect(game.state.score).toBe(100);
 
       game.setDrawCount(3);
-      game.score = 200;
+      game.state.score = 200;
       game.startNewGame();
       game.setDrawCount(3);
-      game.score = 200;
+      game.state.score = 200;
 
       for (let i = 0; i < 3; i++) {
         game.stock.clear();
         game.waste.addCard(card);
         game.drawCardsFromStock();
       }
-      expect(game.score).toBe(200);
+      expect(game.state.score).toBe(200);
 
       game.stock.clear();
       game.waste.addCard(card);
       game.drawCardsFromStock();
-      expect(game.score).toBe(180);
+      expect(game.state.score).toBe(180);
     });
   });
 });

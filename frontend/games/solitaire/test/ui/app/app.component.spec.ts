@@ -1,7 +1,53 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
+import { BehaviorSubject } from "rxjs";
 import { AppComponent } from "@/ui/app/app.component";
+
+/** Creates a mock gameModel with observable state/settings matching the real API. */
+function createMockGameModel(
+  overrides: {
+    score?: number;
+    moves?: number;
+    drawCount?: 1 | 3;
+    cardBackStyle?: "card-back-blue" | "card-back-red";
+  } = {},
+) {
+  return {
+    state: {
+      score$: new BehaviorSubject<number>(overrides.score ?? 0),
+      moves$: new BehaviorSubject<number>(overrides.moves ?? 0),
+      get score() {
+        return this.score$.value;
+      },
+      set score(v: number) {
+        this.score$.next(v);
+      },
+      get moves() {
+        return this.moves$.value;
+      },
+      set moves(v: number) {
+        this.moves$.next(v);
+      },
+    },
+    settings: {
+      drawCount$: new BehaviorSubject<1 | 3>(overrides.drawCount ?? 3),
+      cardBackStyle$: new BehaviorSubject<"card-back-blue" | "card-back-red">(
+        overrides.cardBackStyle ?? "card-back-blue",
+      ),
+      get drawCount() {
+        return this.drawCount$.value;
+      },
+      get cardBackStyle() {
+        return this.cardBackStyle$.value;
+      },
+    },
+    on: vi.fn(),
+    startNewGame: vi.fn(),
+    setDrawCount: vi.fn(),
+    setCardBackStyle: vi.fn(),
+  };
+}
 
 describe("AppComponent (TestBed)", () => {
   let component: AppComponent;
@@ -46,13 +92,12 @@ describe("AppComponent (TestBed)", () => {
     const mockCamera = {
       setBackgroundColor: vi.fn(),
     };
-    const mockGameModel = {
+    const mockGameModel = createMockGameModel({
       score: 42,
       moves: 3,
       drawCount: 3,
-      cardBackStyle: "card-back-blue" as const,
-      on: vi.fn(),
-    };
+      cardBackStyle: "card-back-blue",
+    });
     const mockBoardScene = {
       gameModel: mockGameModel,
       cameras: {
@@ -72,8 +117,10 @@ describe("AppComponent (TestBed)", () => {
     fixture.detectChanges();
 
     expect(mockGame.scene.getScene).toHaveBeenCalledWith("board-scene");
-    expect(mockGameModel.on).toHaveBeenCalledWith("state-changed", expect.any(Function));
-    expect(mockGameModel.on).toHaveBeenCalledWith("game-won", expect.any(Function));
+    expect(mockGameModel.on).toHaveBeenCalledWith(
+      "game-won",
+      expect.any(Function),
+    );
     expect(component.score).toBe(42);
     expect(component.moves).toBe(3);
     expect(mockCamera.setBackgroundColor).toHaveBeenCalledWith("#0f4d0e");
@@ -83,13 +130,12 @@ describe("AppComponent (TestBed)", () => {
     const mockCamera = {
       setBackgroundColor: vi.fn(),
     };
-    const mockGameModel = {
+    const mockGameModel = createMockGameModel({
       score: 15,
       moves: 0,
       drawCount: 1,
-      cardBackStyle: "card-back-red" as const,
-      on: vi.fn(),
-    };
+      cardBackStyle: "card-back-red",
+    });
     const mockBoardScene = {
       gameModel: mockGameModel,
       cameras: {
@@ -117,9 +163,7 @@ describe("AppComponent (TestBed)", () => {
   });
 
   it("should restart game and reset state correctly", () => {
-    const mockGameModel = {
-      startNewGame: vi.fn(),
-    };
+    const mockGameModel = createMockGameModel();
     component["gameModel"] = mockGameModel as any;
     component.isGameWon = true;
     component["secondsElapsed"] = 120;
@@ -133,9 +177,7 @@ describe("AppComponent (TestBed)", () => {
   });
 
   it("should start a new game and reset state correctly", () => {
-    const mockGameModel = {
-      startNewGame: vi.fn(),
-    };
+    const mockGameModel = createMockGameModel();
     component["gameModel"] = mockGameModel as any;
     component.isGameWon = true;
     component["secondsElapsed"] = 120;
@@ -149,10 +191,7 @@ describe("AppComponent (TestBed)", () => {
   });
 
   it("should set draw mode and restart the game", () => {
-    const mockGameModel = {
-      setDrawCount: vi.fn(),
-      startNewGame: vi.fn(),
-    };
+    const mockGameModel = createMockGameModel();
     component["gameModel"] = mockGameModel as any;
 
     component.setDrawMode(1);
@@ -162,14 +201,14 @@ describe("AppComponent (TestBed)", () => {
   });
 
   it("should set card back style on gameModel", () => {
-    const mockGameModel = {
-      setCardBackStyle: vi.fn(),
-    };
+    const mockGameModel = createMockGameModel();
     component["gameModel"] = mockGameModel as any;
 
     component.setCardBack("card-back-red");
 
-    expect(mockGameModel.setCardBackStyle).toHaveBeenCalledWith("card-back-red");
+    expect(mockGameModel.setCardBackStyle).toHaveBeenCalledWith(
+      "card-back-red",
+    );
   });
 
   it("should update theme and cameras main color on setTheme", () => {
@@ -198,29 +237,17 @@ describe("AppComponent (TestBed)", () => {
     expect(mockCamera.setBackgroundColor).toHaveBeenCalledWith("#3c096c");
   });
 
-  it("should update metrics when state-changed event is emitted", () => {
-    let stateChangedCallback: Function = () => { };
-    const mockGameModel = {
-      score: 0,
-      moves: 0,
-      drawCount: 3,
-      cardBackStyle: "card-back-blue" as const,
-      on: vi.fn().mockImplementation((event: string, cb: Function) => {
-        if (event === "state-changed") {
-          stateChangedCallback = cb;
-        }
-      }),
-    };
+  it("should update metrics when observable state changes", () => {
+    const mockGameModel = createMockGameModel();
 
     component["gameModel"] = mockGameModel as any;
     component["setupListeners"]();
 
-    stateChangedCallback({
-      score: 100,
-      moves: 12,
-      drawCount: 1,
-      cardBackStyle: "card-back-red",
-    });
+    // Push new values through BehaviorSubjects
+    mockGameModel.state.score$.next(100);
+    mockGameModel.state.moves$.next(12);
+    mockGameModel.settings.drawCount$.next(1);
+    mockGameModel.settings.cardBackStyle$.next("card-back-red");
 
     expect(component.score).toBe(100);
     expect(component.moves).toBe(12);
@@ -229,30 +256,15 @@ describe("AppComponent (TestBed)", () => {
   });
 
   it("should start the timer when moves > 0 and timer is not running, and advance it correctly", () => {
-    let stateChangedCallback: Function = () => { };
-    const mockGameModel = {
-      score: 0,
-      moves: 0,
-      drawCount: 3,
-      cardBackStyle: "card-back-blue" as const,
-      on: vi.fn().mockImplementation((event: string, cb: Function) => {
-        if (event === "state-changed") {
-          stateChangedCallback = cb;
-        }
-      }),
-    };
+    const mockGameModel = createMockGameModel();
 
     component["gameModel"] = mockGameModel as any;
     component["setupListeners"]();
 
     expect(component.timerText).toBe("00:00");
 
-    stateChangedCallback({
-      score: 10,
-      moves: 1,
-      drawCount: 3,
-      cardBackStyle: "card-back-blue",
-    });
+    // Push moves > 0 to trigger timer start
+    mockGameModel.state.moves$.next(1);
 
     vi.advanceTimersByTime(5000);
 
@@ -262,31 +274,21 @@ describe("AppComponent (TestBed)", () => {
   });
 
   it("should stop timer and set isGameWon to true when game-won is emitted", () => {
-    let gameWonCallback: Function = () => { };
-    let stateChangedCallback: Function = () => { };
-    const mockGameModel = {
-      score: 0,
-      moves: 0,
-      drawCount: 3,
-      cardBackStyle: "card-back-blue" as const,
-      on: vi.fn().mockImplementation((event: string, cb: Function) => {
+    let gameWonCallback: Function = () => {};
+    const mockGameModel = createMockGameModel();
+    mockGameModel.on = vi
+      .fn()
+      .mockImplementation((event: string, cb: Function) => {
         if (event === "game-won") {
           gameWonCallback = cb;
-        } else if (event === "state-changed") {
-          stateChangedCallback = cb;
         }
-      }),
-    };
+      });
 
     component["gameModel"] = mockGameModel as any;
     component["setupListeners"]();
 
-    stateChangedCallback({
-      score: 10,
-      moves: 1,
-      drawCount: 3,
-      cardBackStyle: "card-back-blue",
-    });
+    // Push moves > 0 to start the timer
+    mockGameModel.state.moves$.next(1);
 
     vi.advanceTimersByTime(1000);
     expect(component.timerText).toBe("00:01");

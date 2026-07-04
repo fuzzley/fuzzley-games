@@ -1,5 +1,7 @@
 import { EventEmitter } from "../common/event_emitter";
 import { GameEvents } from "./game_events";
+import { GameSettings, CardBackStyle, DrawCount } from "./game_settings";
+import { GameState } from "./game_state";
 import { CardPile } from "../card/card_pile";
 import { Deck } from "../card/deck";
 import {
@@ -24,10 +26,11 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
   /** The seven tableau piles arranged on the board. */
   public readonly tableaus: CardPile<PlayingCard>[] = [];
 
-  public score = 0;
-  public moves = 0;
-  public drawCount: 1 | 3 = 3;
-  public cardBackStyle: "card-back-blue" | "card-back-red" = "card-back-blue";
+  /** Observable user-configurable game settings. */
+  public readonly settings = new GameSettings();
+  /** Observable live game metrics (score, moves). */
+  public readonly state = new GameState();
+
   private recycleCount = 0;
 
   private readonly allCardsMap = new Map<string, PlayingCard>();
@@ -40,27 +43,16 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     this.initializePiles();
   }
 
-  private emitStateChanged(): void {
-    this.emit("state-changed", {
-      score: this.score,
-      moves: this.moves,
-      drawCount: this.drawCount,
-      cardBackStyle: this.cardBackStyle,
-    });
-  }
-
-  public setCardBackStyle(style: "card-back-blue" | "card-back-red"): void {
-    if (this.cardBackStyle !== style) {
-      this.cardBackStyle = style;
+  public setCardBackStyle(style: CardBackStyle): void {
+    if (this.settings.cardBackStyle !== style) {
+      this.settings.cardBackStyle$.next(style);
       this.emit("card-back-changed", { cardBackStyle: style });
-      this.emitStateChanged();
     }
   }
 
-  public setDrawCount(count: 1 | 3): void {
-    if (this.drawCount !== count) {
-      this.drawCount = count;
-      this.emitStateChanged();
+  public setDrawCount(count: DrawCount): void {
+    if (this.settings.drawCount !== count) {
+      this.settings.drawCount$.next(count);
     }
   }
 
@@ -134,14 +126,13 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    * Tableau column i receives i+1 cards, with the top card face-up.
    */
   public startNewGame(): void {
-    this.score = 0;
-    this.moves = 0;
+    this.state.score = 0;
+    this.state.moves = 0;
     this.recycleCount = 0;
     this.resetPiles();
     const deckCards = this.createAndShuffleDeck();
     this.dealTableaus(deckCards);
     this.populateStock(deckCards);
-    this.emitStateChanged();
   }
 
   /**
@@ -225,20 +216,22 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    * If stock is empty, recycles waste back into stock.
    */
   public drawCardsFromStock(): void {
-    this.moves++;
+    this.state.moves++;
     if (this.stock.getCards().length > 0) {
       this.drawFromStock();
     } else {
       this.recycleWaste();
     }
-    this.emitStateChanged();
   }
 
   /**
    * Draws up to drawCount cards from the stock pile and moves them to the waste pile.
    */
   private drawFromStock(): void {
-    const drawCount = Math.min(this.drawCount, this.stock.getCards().length);
+    const drawCount = Math.min(
+      this.settings.drawCount,
+      this.stock.getCards().length,
+    );
     for (let i = 0; i < drawCount; i++) {
       const currentCards = this.stock.getCards();
       const topCard = currentCards[currentCards.length - 1];
@@ -265,13 +258,13 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     if (this.waste.getCards().length === 0) return;
 
     this.recycleCount++;
-    if (this.drawCount === 1) {
+    if (this.settings.drawCount === 1) {
       if (this.recycleCount > 1) {
-        this.score = Math.max(0, this.score - 100);
+        this.state.score = Math.max(0, this.state.score - 100);
       }
-    } else if (this.drawCount === 3) {
+    } else if (this.settings.drawCount === 3) {
       if (this.recycleCount > 3) {
-        this.score = Math.max(0, this.score - 20);
+        this.state.score = Math.max(0, this.state.score - 20);
       }
     }
 
@@ -333,7 +326,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       return false;
     }
 
-    this.moves++;
+    this.state.moves++;
 
     // Scoring changes before executing the move
     let scoreChange = 0;
@@ -355,7 +348,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     ) {
       scoreChange = -15;
     }
-    this.score = Math.max(0, this.score + scoreChange);
+    this.state.score = Math.max(0, this.state.score + scoreChange);
 
     // Execute the move
     for (const movingCard of movingStack) {
@@ -382,14 +375,12 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
           cardId: topRemaining.id,
           faceUp: true,
         });
-        this.score += 5; // Flipping tableau card face-up
+        this.state.score += 5; // Flipping tableau card face-up
       }
     }
 
     // Check win condition
     this.checkWinCondition();
-
-    this.emitStateChanged();
 
     return true;
   }
@@ -415,13 +406,12 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       const wasFaceUp = card.faceUp;
       card.faceUp = faceUp;
       if (!wasFaceUp && faceUp) {
-        this.score += 5; // Tableau card flipped face-up
+        this.state.score += 5; // Tableau card flipped face-up
       }
       this.emit("card-flipped", {
         cardId: card.id,
         faceUp,
       });
-      this.emitStateChanged();
     }
   }
 
