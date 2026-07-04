@@ -255,3 +255,60 @@ export function createMockInput(): MockInput {
     },
   };
 }
+
+/** A mock Phaser scale manager that records and dispatches its listeners. */
+export interface MockScaleManager {
+  on: Mock;
+  emit(event: string, ...args: unknown[]): void;
+  width: number;
+  height: number;
+}
+
+/** Builds a {@link MockScaleManager} so tests can drive resize via emit. */
+export function createMockScaleManager(): MockScaleManager {
+  const listeners = new Map<string, (...args: unknown[]) => void>();
+  return {
+    on: vi.fn((event: string, callback: (...args: unknown[]) => void) => {
+      listeners.set(event, callback);
+    }),
+    emit(event: string, ...args: unknown[]): void {
+      listeners.get(event)?.(...args);
+    },
+    width: 0,
+    height: 0,
+  };
+}
+
+/**
+ * Returns a mock of the phaser module suitable for exercising BoardScene: a
+ * Scene base class exposing recording add/scale/input members plus a
+ * Geom.Rectangle stand-in. Load it from an async `vi.mock("phaser", ...)`
+ * factory so the real phaser module is not required in the node environment.
+ */
+export function boardScenePhaserMock(): {
+  Scene: new (...args: unknown[]) => {
+    add: { graphics: () => MockGraphics; sprite: Mock };
+    scale: MockScaleManager;
+    input: MockInput;
+  };
+  Geom: { Rectangle: typeof MockRectangle };
+} {
+  return {
+    Scene: class MockScene {
+      add = {
+        graphics: () => createMockGraphics(),
+        sprite: vi.fn(
+          (x?: number, y?: number, _texture?: string, frame?: string) =>
+            createMockSprite({ x, y, frame }),
+        ),
+      };
+      scale = createMockScaleManager();
+      input = createMockInput();
+    },
+    Geom: {
+      Rectangle: Object.assign(MockRectangle, {
+        Intersection: rectangleIntersection,
+      }),
+    },
+  };
+}
