@@ -685,6 +685,7 @@ describe("SolitaireGame", () => {
       const card = game.getCardById("card-spades-jack")!;
       const tableauCard = game.tableaus[0].getCards()[0];
 
+      game.getPileContainingCard(card.id)?.removeCard(card);
       game.waste.clear();
       card.faceUp = true;
       card.type = Type.QUEEN;
@@ -704,6 +705,7 @@ describe("SolitaireGame", () => {
     it("scores +10 when moving waste to foundation", () => {
       game.startNewGame();
       const card = game.getCardById("card-spades-ace")!;
+      game.getPileContainingCard(card.id)?.removeCard(card);
       game.waste.clear();
       card.faceUp = true;
       card.type = Type.ACE;
@@ -718,6 +720,7 @@ describe("SolitaireGame", () => {
     it("scores +10 when moving tableau to foundation", () => {
       game.startNewGame();
       const card = game.getCardById("card-hearts-ace")!;
+      game.getPileContainingCard(card.id)?.removeCard(card);
       game.tableaus[0].clear();
       card.faceUp = true;
       card.type = Type.ACE;
@@ -733,6 +736,9 @@ describe("SolitaireGame", () => {
 
       const ace = game.getCardById("card-clubs-ace")!;
       const two = game.getCardById("card-diamonds-2")!;
+
+      game.getPileContainingCard(ace.id)?.removeCard(ace);
+      game.getPileContainingCard(two.id)?.removeCard(two);
 
       game.foundations[0].clear();
       ace.faceUp = true;
@@ -758,10 +764,12 @@ describe("SolitaireGame", () => {
 
       game.tableaus[0].clear();
       const cardDown = game.getCardById("card-spades-10")!;
+      game.getPileContainingCard(cardDown.id)?.removeCard(cardDown);
       cardDown.faceUp = false;
       game.tableaus[0].addCard(cardDown);
 
       const cardUp = game.getCardById("card-hearts-ace")!;
+      game.getPileContainingCard(cardUp.id)?.removeCard(cardUp);
       cardUp.faceUp = true;
       cardUp.type = Type.ACE;
       game.tableaus[0].addCard(cardUp);
