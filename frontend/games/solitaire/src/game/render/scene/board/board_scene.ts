@@ -181,12 +181,17 @@ export class BoardScene extends Scene {
     this.gameModel.on("card-flipped", ({ cardId, faceUp }) => {
       const visualCard = this.cardVisualsMap.get(cardId);
       if (visualCard && visualCard.sprite) {
-        const frame = faceUp ? cardId : "card-back-blue";
+        const frame = faceUp ? cardId : this.gameModel.cardBackStyle;
         visualCard.sprite.setFrame(frame);
         visualCard.sprite.setOrigin(0, 0);
       }
       this.updateCardCursors();
       this.updateHighlightBorder();
+    });
+
+    this.gameModel.on("card-back-changed", () => {
+      this.syncVisualPilesWithModel();
+      this.layoutManager.updateVisualLayout();
     });
 
     this.gameModel.on("stock-recycled", () => {
@@ -211,7 +216,7 @@ export class BoardScene extends Scene {
       const visual = this.cardVisualsMap.get(card.id);
       if (visual) {
         this.stockPile.playingCardVisuals.push(visual);
-        visual.sprite.setFrame("card-back-blue");
+        visual.sprite.setFrame(this.gameModel.cardBackStyle);
         visual.sprite.setOrigin(0, 0);
       }
     }
@@ -245,7 +250,9 @@ export class BoardScene extends Scene {
         const visual = this.cardVisualsMap.get(card.id);
         if (visual) {
           visualPile.playingCardVisuals.push(visual);
-          visual.sprite.setFrame(card.faceUp ? card.id : "card-back-blue");
+          visual.sprite.setFrame(
+            card.faceUp ? card.id : this.gameModel.cardBackStyle,
+          );
           visual.sprite.setOrigin(0, 0);
         }
       }
