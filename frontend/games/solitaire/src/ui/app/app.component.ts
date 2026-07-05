@@ -84,7 +84,16 @@ export class AppComponent {
       this.gameModel.off("game-won", gameWonHandler);
     });
 
-    // Apply initial theme
+    // Apply initial theme based on persisted settings
+    const loadedColor = this.gameModel.settings.backgroundColor;
+    if (loadedColor) {
+      const matchedKey = Object.keys(this.themes).find(
+        (key) => this.themes[key].color === loadedColor,
+      );
+      if (matchedKey) {
+        this.selectedTheme = matchedKey;
+      }
+    }
     this.setTheme(this.selectedTheme);
 
     // Clean up timer on destroy

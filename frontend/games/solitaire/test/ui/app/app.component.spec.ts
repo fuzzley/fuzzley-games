@@ -12,6 +12,7 @@ function createMockGameModel(
     moves?: number;
     drawCount?: 1 | 3;
     cardBackStyle?: "card-back-blue" | "card-back-red";
+    backgroundColor?: string;
   } = {},
 ) {
   return {
@@ -36,11 +37,17 @@ function createMockGameModel(
       cardBackStyle$: new BehaviorSubject<"card-back-blue" | "card-back-red">(
         overrides.cardBackStyle ?? "card-back-blue",
       ),
+      backgroundColor$: new BehaviorSubject<string | undefined>(
+        overrides.backgroundColor,
+      ),
       get drawCount() {
         return this.drawCount$.value;
       },
       get cardBackStyle() {
         return this.cardBackStyle$.value;
+      },
+      get backgroundColor() {
+        return this.backgroundColor$.value;
       },
     },
     on: vi.fn(),
@@ -286,6 +293,16 @@ describe("AppComponent", () => {
       expect(component.isGameWon()).toBe(true);
       vi.advanceTimersByTime(5000);
       expect(component.timerText()).toBe("00:01");
+    });
+  });
+
+  describe("with custom initial settings", () => {
+    it("initializes selectedTheme to match the persisted background color", async () => {
+      // Purple velvet color is "#3c096c"
+      const mockGameModel = createMockGameModel({ backgroundColor: "#3c096c" });
+      const { component } = await buildComponent(mockGameModel);
+
+      expect(component.selectedTheme).toBe("purple");
     });
   });
 });
