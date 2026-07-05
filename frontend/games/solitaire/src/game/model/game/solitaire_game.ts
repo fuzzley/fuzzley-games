@@ -311,7 +311,6 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    * @returns True if the move was valid and executed; false otherwise.
    */
   public moveCardToPile(cardId: string, targetPileId: string): boolean {
-    // TODO: Use this or remove it.
     const card = this.getCardById(cardId);
     const targetPile = this.getPileById(targetPileId);
     const sourcePile = this.getPileContainingCard(cardId);
@@ -396,36 +395,6 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     this.checkWinCondition();
 
     return true;
-  }
-
-  /**
-   * Flips a card in place if it is the top card of a Tableau pile.
-   *
-   * @param cardId The ID of the card to flip.
-   * @param faceUp Whether to flip face up or face down.
-   */
-  public flipCard(cardId: string, faceUp: boolean): void {
-    // TODO: Use this or remove it.
-    const card = this.getCardById(cardId);
-    if (!card) return;
-
-    const sourcePile = this.getPileContainingCard(cardId);
-    if (!sourcePile || !sourcePile.id.startsWith("tableau-")) return;
-
-    const cards = sourcePile.getCards();
-    const isTop = cards[cards.length - 1] === card;
-
-    if (isTop) {
-      const wasFaceUp = card.faceUp;
-      card.faceUp = faceUp;
-      if (!wasFaceUp && faceUp) {
-        this.state.score += 5; // Tableau card flipped face-up
-      }
-      this.emit("card-flipped", {
-        cardId: card.id,
-        faceUp,
-      });
-    }
   }
 
   /**
