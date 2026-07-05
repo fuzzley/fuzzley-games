@@ -333,30 +333,35 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       return false;
     }
 
-    // getPileContainingCard only returns a pile that contains the card, so the
-    // index is always valid here.
+    // The moving stack is this card plus everything on top of it. The index is
+    // valid because getPileContainingCard only returns a pile holding the card.
     const sourceCards = sourcePile.getCards();
-    const cardIndex = sourceCards.indexOf(card);
+    const movingStack = sourceCards.slice(sourceCards.indexOf(card));
 
-    // Get the moving stack (this card + everything on top of it)
-    const movingStack = sourceCards.slice(cardIndex);
-
-    // Validate the move
-    const isValid = this.validateMove(card, targetPile, movingStack.length);
-    if (!isValid) {
+    if (!this.validateMove(card, targetPile, movingStack.length)) {
       return false;
     }
 
     this.state.moves++;
-
-    // Scoring changes before executing the move
     const scoreChange = this.scoring.moveScore(
       sourcePile.type,
       targetPile.type,
     );
     this.state.score = Math.max(0, this.state.score + scoreChange);
 
-    // Execute the move
+    this.executeMove(movingStack, sourcePile, targetPile);
+    this.autoFlipExposedCard(sourcePile);
+    this.checkWinCondition();
+
+    return true;
+  }
+
+  /** Moves the stack from the source pile to the target pile, emitting events. */
+  private executeMove(
+    movingStack: readonly PlayingCard[],
+    sourcePile: CardPile<PlayingCard>,
+    targetPile: CardPile<PlayingCard>,
+  ): void {
     for (const movingCard of movingStack) {
       sourcePile.removeCard(movingCard);
       targetPile.addCard(movingCard);
@@ -367,28 +372,31 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
         toPileId: targetPile.id,
       });
     }
+  }
 
-    // Auto-flip the new top card of the source pile if it's a tableau pile and face-down
-    if (
-      sourcePile.type === PileType.TABLEAU &&
-      sourcePile.getCards().length > 0
-    ) {
-      const remainingCards = sourcePile.getCards();
-      const topRemaining = remainingCards[remainingCards.length - 1];
-      if (!topRemaining.faceUp) {
-        topRemaining.faceUp = true;
-        this.emit("card-flipped", {
-          cardId: topRemaining.id,
-          faceUp: true,
-        });
-        this.state.score += this.scoring.tableauFlipBonus();
-      }
+  /**
+   * Turns the newly exposed top card of a tableau face up after a move,
+   * awarding the flip bonus. Does nothing for non-tableau source piles or when
+   * the exposed card is already face up.
+   *
+   * @param sourcePile The pile the moved stack was taken from.
+   */
+  private autoFlipExposedCard(sourcePile: CardPile<PlayingCard>): void {
+    if (sourcePile.type !== PileType.TABLEAU) {
+      return;
+    }
+    const remainingCards = sourcePile.getCards();
+    if (remainingCards.length === 0) {
+      return;
+    }
+    const topRemaining = remainingCards[remainingCards.length - 1];
+    if (topRemaining.faceUp) {
+      return;
     }
 
-    // Check win condition
-    this.checkWinCondition();
-
-    return true;
+    topRemaining.faceUp = true;
+    this.emit("card-flipped", { cardId: topRemaining.id, faceUp: true });
+    this.state.score += this.scoring.tableauFlipBonus();
   }
 
   /**
