@@ -1,0 +1,98 @@
+@if (open()) {
+  <div class="drawer-backdrop" (click)="close.emit()"></div>
+  <div class="drawer">
+    <div class="drawer-header">
+      <h2>Game Options</h2>
+      <button class="btn-close" (click)="close.emit()">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          class="close-icon"
+        >
+          <path
+            fill="currentColor"
+            d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <div class="drawer-content">
+      <!-- Draw Mode -->
+      <div class="setting-group">
+        <label class="setting-label">Draw Mode</label>
+        <div class="segmented-control">
+          <button
+            [class.active]="session.drawCount() === 1"
+            (click)="setDrawMode(1)"
+            class="segment-btn"
+          >
+            Draw 1
+          </button>
+          <button
+            [class.active]="session.drawCount() === 3"
+            (click)="setDrawMode(3)"
+            class="segment-btn"
+          >
+            Draw 3
+          </button>
+        </div>
+        <p class="setting-desc">
+          Draw 1 is easier; Draw 3 is the standard Solitaire challenge.
+        </p>
+      </div>
+
+      <!-- Card Back Style -->
+      <div class="setting-group">
+        <label class="setting-label">Card Back Design</label>
+        <div class="card-back-selector">
+          <button
+            class="card-back-option blue-back"
+            [class.active]="session.cardBack() === 'card-back-blue'"
+            (click)="setCardBack('card-back-blue')"
+          >
+            <div class="card-back-preview blue-pattern"></div>
+            <span>Classic Blue</span>
+          </button>
+          <button
+            class="card-back-option red-back"
+            [class.active]="session.cardBack() === 'card-back-red'"
+            (click)="setCardBack('card-back-red')"
+          >
+            <div class="card-back-preview red-pattern"></div>
+            <span>Royal Red</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Table Themes -->
+      <div class="setting-group">
+        <label class="setting-label">Table Theme</label>
+        <div class="theme-selector">
+          @for (key of themeService.themeKeys; track key) {
+            <button
+              class="theme-option"
+              [class.active]="themeService.selectedTheme() === key"
+              (click)="setTheme(key)"
+              [style.backgroundColor]="themeService.themes[key].color"
+              [title]="themeService.themes[key].name"
+            >
+              @if (themeService.selectedTheme() === key) {
+                <div class="theme-indicator"></div>
+              }
+            </button>
+          }
+        </div>
+        <p class="setting-desc">
+          Theme: {{ themeService.themes[themeService.selectedTheme()].name }}
+        </p>
+      </div>
+    </div>
+
+    <div class="drawer-footer">
+      <button class="btn btn-primary btn-block" (click)="close.emit()">
+        Apply Settings
+      </button>
+    </div>
+  </div>
+}

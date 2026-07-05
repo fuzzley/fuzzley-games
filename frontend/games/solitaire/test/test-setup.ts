@@ -6,9 +6,9 @@ setupTestBed({
   zoneless: false,
 });
 
-if (typeof globalThis.localStorage === "undefined") {
+if (typeof globalThis.localStorage === "undefined" || !globalThis.localStorage) {
   const store: Record<string, string> = {};
-  globalThis.localStorage = {
+  const mockStorage = {
     getItem: (key: string) => store[key] || null,
     setItem: (key: string, value: string) => {
       store[key] = value;
@@ -26,4 +26,15 @@ if (typeof globalThis.localStorage === "undefined") {
       return Object.keys(store).length;
     },
   } as Storage;
+
+  try {
+    Object.defineProperty(globalThis, "localStorage", {
+      value: mockStorage,
+      writable: true,
+      configurable: true,
+    });
+  } catch (e) {
+    // Fallback if defineProperty fails
+    (globalThis as any).localStorage = mockStorage;
+  }
 }
