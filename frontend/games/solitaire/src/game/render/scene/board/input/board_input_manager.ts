@@ -17,6 +17,9 @@ export class BoardInputManager {
   /** Base depth applied to a dragged stack so it renders above resting cards. */
   private static readonly DRAG_BASE_DEPTH = 1000;
 
+  /** Maximum milliseconds between two clicks for them to count as a double-click. */
+  private static readonly DOUBLE_CLICK_MS = 350;
+
   /** The stack of card visuals currently being dragged. */
   public draggedStack: PlayingCardVisual[] = [];
 
@@ -94,8 +97,9 @@ export class BoardInputManager {
    * dispatches to the double-click auto-move or stock-draw behavior.
    */
   private handleCardPointerDown(visual: PlayingCardVisual): void {
+    const game = this.boardScene.gameModel;
     const cardId = visual.playingCard.id;
-    const pile = this.boardScene.gameModel.getPileContainingCard(cardId);
+    const pile = game.getPileContainingCard(cardId);
     if (!pile) {
       throw new Error(`Card ${cardId} is not in a pile`);
     }
@@ -124,7 +128,7 @@ export class BoardInputManager {
     const currentTime = Date.now();
     const doubleClick =
       this.lastClickedCardId === cardId &&
-      currentTime - this.lastClickTime < 350;
+      currentTime - this.lastClickTime < BoardInputManager.DOUBLE_CLICK_MS;
 
     this.lastClickTime = currentTime;
     this.lastClickedCardId = cardId;
@@ -142,16 +146,17 @@ export class BoardInputManager {
     cardId: string,
     sourcePile: CardPile<PlayingCard>,
   ): boolean {
+    const game = this.boardScene.gameModel;
     // Try foundations first (higher priority)
-    for (const foundation of this.boardScene.gameModel.foundations) {
-      if (this.boardScene.gameModel.moveCardToPile(cardId, foundation.id)) {
+    for (const foundation of game.foundations) {
+      if (game.moveCardToPile(cardId, foundation.id)) {
         return true;
       }
     }
     // Fall back to tableau piles, skipping the card's current pile
-    for (const tableau of this.boardScene.gameModel.tableaus) {
+    for (const tableau of game.tableaus) {
       if (tableau.id === sourcePile.id) continue;
-      if (this.boardScene.gameModel.moveCardToPile(cardId, tableau.id)) {
+      if (game.moveCardToPile(cardId, tableau.id)) {
         return true;
       }
     }
