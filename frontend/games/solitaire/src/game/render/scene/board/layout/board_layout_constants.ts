@@ -16,3 +16,6 @@ export const LAYOUT_PADDING_Y = 40;
 export const LAYOUT_GAP_X = 30; // space between adjacent columns
 /** The vertical space between the top row (Stock, Waste, Foundations) and the bottom row (Tableaus). */
 export const LAYOUT_GAP_Y = 40; // space between the top row and the bottom (tableau) row
+
+/** The height of the top UI header bar overlay. */
+export const HEADER_HEIGHT_PX = 73;

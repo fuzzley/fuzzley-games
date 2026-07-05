@@ -33,30 +33,30 @@ describe("BoardLayoutManager", () => {
     });
 
     it("places the stock and waste piles on the top row", () => {
-      expect(scene.stockPile.position).toEqual({ x: 40, y: 40 });
-      expect(scene.wastePile.position).toEqual({ x: 291, y: 40 });
+      expect(scene.stockPile.position).toEqual({ x: 40, y: 113 });
+      expect(scene.wastePile.position).toEqual({ x: 291, y: 113 });
     });
 
     it("places the four foundations across the top row", () => {
       const positions = scene.foundationPiles.map((p) => p.position);
       expect(positions).toEqual([
-        { x: 793, y: 40 },
-        { x: 1044, y: 40 },
-        { x: 1295, y: 40 },
-        { x: 1546, y: 40 },
+        { x: 793, y: 113 },
+        { x: 1044, y: 113 },
+        { x: 1295, y: 113 },
+        { x: 1546, y: 113 },
       ]);
     });
 
     it("places the seven tableaus across the bottom row", () => {
       const positions = scene.tableauPiles.map((p) => p.position);
       expect(positions).toEqual([
-        { x: 40, y: 393 },
-        { x: 291, y: 393 },
-        { x: 542, y: 393 },
-        { x: 793, y: 393 },
-        { x: 1044, y: 393 },
-        { x: 1295, y: 393 },
-        { x: 1546, y: 393 },
+        { x: 40, y: 466 },
+        { x: 291, y: 466 },
+        { x: 542, y: 466 },
+        { x: 793, y: 466 },
+        { x: 1044, y: 466 },
+        { x: 1295, y: 466 },
+        { x: 1546, y: 466 },
       ]);
     });
   });
@@ -119,7 +119,7 @@ describe("BoardLayoutManager", () => {
     it("scales positions and sprites down when the viewport is smaller than the default", () => {
       const stockSprite = createMockSprite();
       const scene = {
-        scale: { width: 903.5, height: 475 },
+        scale: { width: 903.5, height: 512 },
         stockPile: pile({ x: 0, y: 0 }, [
           { position: { x: 10, y: 20 }, sprite: asSprite(stockSprite) },
         ]),
@@ -134,12 +134,12 @@ describe("BoardLayoutManager", () => {
       layoutManager.createInitialLayout();
       layoutManager.updateVisualLayout();
 
-      expect(scene.stockPile.position).toEqual({ x: 20, y: 20 });
+      expect(scene.stockPile.position).toEqual({ x: 20, y: 93 });
       expect({
         x: stockSprite.x,
         y: stockSprite.y,
         scale: stockSprite.scale,
-      }).toEqual({ x: 25, y: 30, scale: 0.5 });
+      }).toEqual({ x: 25, y: 103, scale: 0.5 });
     });
   });
 
