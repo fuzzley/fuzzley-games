@@ -2,7 +2,8 @@ import * as Phaser from "phaser";
 import type { BoardScene, PileVisual } from "../board_scene";
 import type { PlayingCardVisual } from "@/game/render/visual/card/playing_card_visual";
 import { TableauPileVisual } from "@/game/render/visual/pile/tableau_pile_visual";
-import { PileType } from "@/game/model/card/card_pile";
+import { type CardPile, PileType } from "@/game/model/card/card_pile";
+import type { PlayingCard } from "@/game/model/card/playing_card";
 import {
   CARD_WIDTH_PX,
   CARD_HEIGHT_PX,
@@ -85,59 +86,89 @@ export class BoardInputManager {
       }
     });
 
-    sprite.on("pointerdown", () => {
-      const cardId = visual.playingCard.id;
-      const pile = this.boardScene.gameModel.getPileContainingCard(cardId);
-      if (!pile) {
-        throw new Error(`Card ${cardId} is not in a pile`);
+    sprite.on("pointerdown", () => this.handleCardPointerDown(visual));
+  }
+
+  /**
+   * Handles a pointerdown on a card sprite: resolves the containing pile, then
+   * dispatches to the double-click auto-move or stock-draw behavior.
+   */
+  private handleCardPointerDown(visual: PlayingCardVisual): void {
+    const cardId = visual.playingCard.id;
+    const pile = this.boardScene.gameModel.getPileContainingCard(cardId);
+    if (!pile) {
+      throw new Error(`Card ${cardId} is not in a pile`);
+    }
+
+    // Only tableau/waste cards participate in double-click auto-moves.
+    if (pile.type === PileType.TABLEAU || pile.type === PileType.WASTE) {
+      if (this.isDoubleClick(cardId)) {
+        this.tryAutoMoveCard(cardId, pile);
       }
+      return;
+    }
 
-      if (pile.type === PileType.TABLEAU || pile.type === PileType.WASTE) {
-        const currentTime = Date.now();
-        const isDoubleClick =
-          this.lastClickedCardId === cardId &&
-          currentTime - this.lastClickTime < 350;
+    this.lastClickTime = 0;
+    this.lastClickedCardId = null;
 
-        this.lastClickTime = currentTime;
-        this.lastClickedCardId = cardId;
+    if (pile.type === PileType.STOCK) {
+      this.tryDrawFromStock(pile, visual);
+    }
+  }
 
-        if (isDoubleClick) {
-          // Try foundations first (higher priority)
-          for (const foundation of this.boardScene.gameModel.foundations) {
-            if (
-              this.boardScene.gameModel.moveCardToPile(cardId, foundation.id)
-            ) {
-              this.draggedStack = [];
-              this.draggedStackOffsets = [];
-              return;
-            }
-          }
-          // Fall back to tableau piles, skipping the card's current pile
-          for (const tableau of this.boardScene.gameModel.tableaus) {
-            if (tableau.id === pile.id) continue;
-            if (this.boardScene.gameModel.moveCardToPile(cardId, tableau.id)) {
-              this.draggedStack = [];
-              this.draggedStackOffsets = [];
-              return;
-            }
-          }
-          return;
-        }
-      } else {
-        this.lastClickTime = 0;
-        this.lastClickedCardId = null;
+  /**
+   * Records this click and reports whether it completes a double-click on the
+   * same card within {@link BoardInputManager.DOUBLE_CLICK_MS}.
+   */
+  private isDoubleClick(cardId: string): boolean {
+    const currentTime = Date.now();
+    const doubleClick =
+      this.lastClickedCardId === cardId &&
+      currentTime - this.lastClickTime < 350;
+
+    this.lastClickTime = currentTime;
+    this.lastClickedCardId = cardId;
+
+    return doubleClick;
+  }
+
+  /**
+   * Attempts to auto-move a card to a valid destination, trying foundations
+   * first (higher priority) and then tableau piles other than the source pile.
+   *
+   * @returns True if the card was moved, false otherwise.
+   */
+  private tryAutoMoveCard(
+    cardId: string,
+    sourcePile: CardPile<PlayingCard>,
+  ): boolean {
+    // Try foundations first (higher priority)
+    for (const foundation of this.boardScene.gameModel.foundations) {
+      if (this.boardScene.gameModel.moveCardToPile(cardId, foundation.id)) {
+        return true;
       }
-
-      if (pile.type === PileType.STOCK) {
-        const cards = pile.getCards();
-        if (
-          cards.length > 0 &&
-          cards[cards.length - 1] === visual.playingCard
-        ) {
-          this.boardScene.gameModel.drawCardsFromStock();
-        }
+    }
+    // Fall back to tableau piles, skipping the card's current pile
+    for (const tableau of this.boardScene.gameModel.tableaus) {
+      if (tableau.id === sourcePile.id) continue;
+      if (this.boardScene.gameModel.moveCardToPile(cardId, tableau.id)) {
+        return true;
       }
-    });
+    }
+    return false;
+  }
+
+  /**
+   * Draws from the stock when the clicked card is the top stock card.
+   */
+  private tryDrawFromStock(
+    pile: CardPile<PlayingCard>,
+    visual: PlayingCardVisual,
+  ): void {
+    const cards = pile.getCards();
+    if (cards.length > 0 && cards[cards.length - 1] === visual.playingCard) {
+      this.boardScene.gameModel.drawCardsFromStock();
+    }
   }
 
   /**
