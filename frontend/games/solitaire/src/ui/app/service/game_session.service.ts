@@ -67,6 +67,9 @@ export class GameSessionService {
     this.confirmIfInProgress(
       "Are you sure you want to start a new game? Your current progress will be lost.",
       () => {
+        if (this.isGameWon() && this.almostWin()) {
+          this.gameModel.setAlmostWin(false);
+        }
         this.gameModel.startNewGame();
         this.startFreshSession();
       },
