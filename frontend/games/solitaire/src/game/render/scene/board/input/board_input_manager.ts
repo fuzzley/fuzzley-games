@@ -104,10 +104,11 @@ export class BoardInputManager {
       throw new Error(`Card ${cardId} is not in a pile`);
     }
 
-    // Only tableau/waste cards participate in double-click auto-moves.
+    // Only tableau/waste cards participate in double-click auto-moves. Where the
+    // card should land is a game rule, so delegate the decision to the model.
     if (pile.type === PileType.TABLEAU || pile.type === PileType.WASTE) {
       if (this.isDoubleClick(cardId)) {
-        this.tryAutoMoveCard(cardId, pile);
+        game.autoMoveCard(cardId);
       }
       return;
     }
@@ -134,33 +135,6 @@ export class BoardInputManager {
     this.lastClickedCardId = cardId;
 
     return doubleClick;
-  }
-
-  /**
-   * Attempts to auto-move a card to a valid destination, trying foundations
-   * first (higher priority) and then tableau piles other than the source pile.
-   *
-   * @returns True if the card was moved, false otherwise.
-   */
-  private tryAutoMoveCard(
-    cardId: string,
-    sourcePile: CardPile<PlayingCard>,
-  ): boolean {
-    const game = this.boardScene.gameModel;
-    // Try foundations first (higher priority)
-    for (const foundation of game.foundations) {
-      if (game.moveCardToPile(cardId, foundation.id)) {
-        return true;
-      }
-    }
-    // Fall back to tableau piles, skipping the card's current pile
-    for (const tableau of game.tableaus) {
-      if (tableau.id === sourcePile.id) continue;
-      if (game.moveCardToPile(cardId, tableau.id)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
