@@ -144,7 +144,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       ...this.tableaus,
     ];
     for (const pile of allPiles) {
-      if (pile.getCards().indexOf(card) !== -1) {
+      if (pile.contains(card)) {
         return pile;
       }
     }

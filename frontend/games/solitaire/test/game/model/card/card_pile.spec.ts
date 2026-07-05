@@ -31,6 +31,22 @@ describe("CardPile", () => {
     expect(pile.getCards()).toEqual([card1, card2]);
   });
 
+  it("contains a card that was added to it", () => {
+    const pile = new CardPile("test-pile");
+    const card = makeCard({ id: "present" });
+    pile.addCard(card);
+
+    expect(pile.contains(card)).toBe(true);
+  });
+
+  it("does not contain a card that was never added", () => {
+    const pile = new CardPile("test-pile");
+    pile.addCard(makeCard({ id: "present" }));
+    const absent = makeCard({ id: "absent" });
+
+    expect(pile.contains(absent)).toBe(false);
+  });
+
   it("removes a card that exists in the pile", () => {
     const pile = new CardPile("test-pile");
     const card1 = makeCard({ id: "card-1" });

@@ -41,6 +41,11 @@ export class CardPile<T extends Card = Card> {
     return this.cards;
   }
 
+  /** Returns whether the given card is contained in this pile. */
+  contains(card: T): boolean {
+    return this.cards.includes(card);
+  }
+
   /** Adds a card to the pile. */
   addCard(card: T): void {
     this.cards.push(card);
