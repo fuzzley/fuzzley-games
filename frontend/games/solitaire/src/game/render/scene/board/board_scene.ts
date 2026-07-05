@@ -171,6 +171,18 @@ export class BoardScene extends Scene {
       this.layoutManager.updateVisualLayout();
     });
 
+    this.gameModel.on("game-reset", () => {
+      if (this.inputManager) {
+        this.inputManager.hoveredCardVisual = null;
+        this.inputManager.isStockBackgroundHovered = false;
+        this.inputManager.draggedStack = [];
+      }
+      this.syncVisualPilesWithModel();
+      this.layoutManager.createInitialLayout();
+      this.layoutManager.updateVisualLayout();
+      this.updateHighlightBorder();
+    });
+
     this.gameModel.on("stock-recycled", () => {
       this.syncVisualPilesWithModel();
       this.layoutManager.updateVisualLayout();

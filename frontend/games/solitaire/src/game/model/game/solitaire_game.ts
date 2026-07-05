@@ -164,6 +164,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     const deckCards = this.createAndShuffleDeck();
     this.dealTableaus(deckCards);
     this.populateStock(deckCards);
+    this.emit("game-reset", undefined);
   }
 
   /**
@@ -172,7 +173,9 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
   private resetPiles(): void {
     this.stock.clear();
     this.waste.clear();
-    this.allCardsMap.clear();
+    // Do NOT clear allCardsMap because the render layer's PlayingCardVisual
+    // wrappers retain references to these PlayingCard objects. Reusing the objects
+    // keeps them in sync.
     for (const foundation of this.foundations) {
       foundation.clear();
     }
@@ -189,15 +192,17 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
   private createAndShuffleDeck(): PlayingCard[] {
     const tempDeck = new Deck<PlayingCard>();
     for (const cardId of this.cardIds) {
-      const playingCard = new PlayingCard();
-      playingCard.suit = cardId.suit;
-      playingCard.type = cardId.type;
+      const cardIdStr = playingCardIdToString(cardId);
+      let playingCard = this.allCardsMap.get(cardIdStr);
+      if (!playingCard) {
+        playingCard = new PlayingCard();
+        playingCard.suit = cardId.suit;
+        playingCard.type = cardId.type;
+        playingCard.id = cardIdStr;
+        this.allCardsMap.set(playingCard.id, playingCard);
+      }
       playingCard.faceUp = false;
-
-      // The card id doubles as the atlas frame name (see playingCardIdToString).
-      playingCard.id = playingCardIdToString(cardId);
       tempDeck.addCard(playingCard);
-      this.allCardsMap.set(playingCard.id, playingCard);
     }
     tempDeck.shuffle();
 
