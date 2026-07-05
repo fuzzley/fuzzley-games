@@ -68,3 +68,7 @@ typings/
 
 # Project-specific
 dist
+
+# VSCode
+
+.vscode
