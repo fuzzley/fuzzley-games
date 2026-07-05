@@ -213,4 +213,34 @@
       </div>
     </div>
   }
+
+  <!-- Confirmation Overlay -->
+  @if (showConfirmation()) {
+    <div class="confirmation-overlay" (click)="cancelAction()">
+      <div class="confirmation-card" (click)="$event.stopPropagation()">
+        <div class="warning-icon-container">
+          <svg
+            class="warning-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+          >
+            <path
+              fill="currentColor"
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+            />
+          </svg>
+        </div>
+        <h3>Confirm Action</h3>
+        <p class="confirmation-message">{{ confirmationMessage() }}</p>
+        <div class="confirmation-actions">
+          <button class="btn btn-secondary" (click)="cancelAction()">
+            Cancel
+          </button>
+          <button class="btn btn-danger" (click)="acceptAction()">
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>
