@@ -273,8 +273,14 @@ describe("BoardScene", () => {
       boardScene["inputManager"].draggedStack = [mockCardVisual];
 
       const syncSpy = vi.spyOn(boardScene as any, "syncVisualPilesWithModel");
-      const layoutInitialSpy = vi.spyOn(boardScene.getLayoutManager(), "createInitialLayout");
-      const layoutUpdateSpy = vi.spyOn(boardScene.getLayoutManager(), "updateVisualLayout");
+      const layoutInitialSpy = vi.spyOn(
+        boardScene.getLayoutManager(),
+        "createInitialLayout",
+      );
+      const layoutUpdateSpy = vi.spyOn(
+        boardScene.getLayoutManager(),
+        "updateVisualLayout",
+      );
 
       boardScene.gameModel.emit("game-reset", undefined);
 

@@ -561,7 +561,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -602,4 +603,3 @@
   background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
   transform: translateY(-1px);
 }
-

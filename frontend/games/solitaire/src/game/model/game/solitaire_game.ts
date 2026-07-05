@@ -35,6 +35,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
   public readonly state = new GameState();
 
   private recycleCount = 0;
+  private initialDeck: PlayingCard[] = [];
 
   private readonly allCardsMap = new Map<string, PlayingCard>();
   private readonly pilesMap = new Map<string, CardPile<PlayingCard>>();
@@ -162,6 +163,28 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     this.recycleCount = 0;
     this.resetPiles();
     const deckCards = this.createAndShuffleDeck();
+    this.initialDeck = [...deckCards];
+    this.dealTableaus(deckCards);
+    this.populateStock(deckCards);
+    this.emit("game-reset", undefined);
+  }
+
+  /**
+   * Restarts the game using the exact same initial deck ordering.
+   */
+  public restartGame(): void {
+    this.state.score = 0;
+    this.state.moves = 0;
+    this.recycleCount = 0;
+    this.resetPiles();
+    if (this.initialDeck.length === 0) {
+      const deckCards = this.createAndShuffleDeck();
+      this.initialDeck = [...deckCards];
+    }
+    const deckCards = [...this.initialDeck];
+    for (const card of deckCards) {
+      card.faceUp = false;
+    }
     this.dealTableaus(deckCards);
     this.populateStock(deckCards);
     this.emit("game-reset", undefined);

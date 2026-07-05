@@ -117,7 +117,11 @@ export class AppComponent {
   restartGame(): void {
     this.confirmAction(
       "Are you sure you want to restart this game? Your current progress will be lost.",
-      () => this.beginGame(),
+      () => {
+        this.gameModel.restartGame();
+        this.isGameWon.set(false);
+        this.resetTimer();
+      },
     );
   }
 

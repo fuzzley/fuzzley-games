@@ -46,6 +46,7 @@ function createMockGameModel(
     on: vi.fn(),
     off: vi.fn(),
     startNewGame: vi.fn(),
+    restartGame: vi.fn(),
     setDrawCount: vi.fn(),
     setCardBackStyle: vi.fn(),
     setBackgroundColor: vi.fn(),
@@ -112,7 +113,7 @@ describe("AppComponent", () => {
 
       component.restartGame();
 
-      expect(mockGameModel.startNewGame).toHaveBeenCalled();
+      expect(mockGameModel.restartGame).toHaveBeenCalled();
       expect(component.isGameWon()).toBe(false);
       expect(component.timerText()).toBe("00:00");
     });
@@ -145,10 +146,10 @@ describe("AppComponent", () => {
 
         expect(component.showConfirmation()).toBe(true);
         expect(component.confirmationMessage()).toContain("restart this game");
-        expect(mockGameModel.startNewGame).not.toHaveBeenCalled();
+        expect(mockGameModel.restartGame).not.toHaveBeenCalled();
 
         component.acceptAction();
-        expect(mockGameModel.startNewGame).toHaveBeenCalled();
+        expect(mockGameModel.restartGame).toHaveBeenCalled();
         expect(component.showConfirmation()).toBe(false);
       });
 
@@ -190,7 +191,7 @@ describe("AppComponent", () => {
         expect(component.showConfirmation()).toBe(true);
         component.cancelAction();
 
-        expect(mockGameModel.startNewGame).not.toHaveBeenCalled();
+        expect(mockGameModel.restartGame).not.toHaveBeenCalled();
         expect(component.showConfirmation()).toBe(false);
       });
 
@@ -199,7 +200,7 @@ describe("AppComponent", () => {
         component.restartGame();
 
         expect(component.showConfirmation()).toBe(false);
-        expect(mockGameModel.startNewGame).toHaveBeenCalled();
+        expect(mockGameModel.restartGame).toHaveBeenCalled();
       });
     });
 
