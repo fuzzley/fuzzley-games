@@ -7,7 +7,7 @@ export class PlayingCard implements Card {
   /** @override */
   public faceUp: boolean;
   /** The suit of this card. */
-  public suite: Suit;
+  public suit: Suit;
   /** The face value rank of this card. */
   public type: Type;
 }

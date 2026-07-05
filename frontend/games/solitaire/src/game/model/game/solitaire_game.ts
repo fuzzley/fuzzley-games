@@ -171,7 +171,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     const tempDeck = new Deck<PlayingCard>();
     for (const cardId of this.cardIds) {
       const playingCard = new PlayingCard();
-      playingCard.suite = cardId.suit;
+      playingCard.suit = cardId.suit;
       playingCard.type = cardId.type;
       playingCard.faceUp = false;
 
@@ -498,7 +498,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
         return card.type === Type.ACE;
       }
       // Must build up in ascending rank of the same suit
-      const isSameSuit = card.suite === topTargetCard.suite;
+      const isSameSuit = card.suit === topTargetCard.suit;
       const isAscendingRank =
         Number(card.type) === Number(topTargetCard.type) + 1;
       return isSameSuit && isAscendingRank;
@@ -520,6 +520,6 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
   }
 
   private isRed(card: PlayingCard): boolean {
-    return card.suite === Suit.HEART || card.suite === Suit.DIAMOND;
+    return card.suit === Suit.HEART || card.suit === Suit.DIAMOND;
   }
 }
