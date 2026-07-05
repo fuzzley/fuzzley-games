@@ -48,8 +48,11 @@ export class EventEmitter<EventMap extends Record<string, unknown>> {
    * @param data The payload data associated with the event.
    */
   protected emit<K extends keyof EventMap>(event: K, data: EventMap[K]): void {
-    if (!this.listeners[event]) return;
-    for (const listener of this.listeners[event]) {
+    const listeners = this.listeners[event];
+    if (!listeners) return;
+    // Iterate a snapshot so a listener that subscribes or unsubscribes during
+    // dispatch does not change who is notified for this emit.
+    for (const listener of [...listeners]) {
       listener(data);
     }
   }

@@ -14,14 +14,12 @@ export function makeCard(overrides: Partial<Card> = {}): Card {
  * depends on need to be supplied via overrides.
  */
 export function makePlayingCard(
-  overrides: Partial<
-    Pick<PlayingCard, "id" | "faceUp" | "suite" | "type">
-  > = {},
+  overrides: Partial<Pick<PlayingCard, "id" | "faceUp" | "suit" | "type">> = {},
 ): PlayingCard {
   const card = new PlayingCard();
   card.id = overrides.id ?? "card";
   card.faceUp = overrides.faceUp ?? false;
-  card.suite = overrides.suite ?? Suit.SPADE;
+  card.suit = overrides.suit ?? Suit.SPADE;
   card.type = overrides.type ?? Type.ACE;
   return card;
 }

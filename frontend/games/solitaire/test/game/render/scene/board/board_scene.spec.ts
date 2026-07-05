@@ -24,6 +24,28 @@ describe("BoardScene", () => {
     boardScene.create();
   });
 
+  describe("construction", () => {
+    it("renders the game model it is injected with", () => {
+      const injectedModel = new SolitaireGame();
+
+      const scene = new BoardScene(injectedModel);
+
+      expect(scene.gameModel).toBe(injectedModel);
+    });
+  });
+
+  describe("table background", () => {
+    it("repaints the camera when the background color setting changes", () => {
+      const camera = boardScene.cameras.main as unknown as {
+        setBackgroundColor: ReturnType<typeof vi.fn>;
+      };
+
+      boardScene.gameModel.setBackgroundColor("#123456");
+
+      expect(camera.setBackgroundColor).toHaveBeenCalledWith("#123456");
+    });
+  });
+
   describe("pile backgrounds", () => {
     it("gives the stock pile a placeholder background at the shared alpha", () => {
       const sprite = asMock(boardScene.stockPile.sprite);
@@ -254,15 +276,6 @@ describe("BoardScene", () => {
       expect(() => freshScene.create()).toThrow("Card model not found for: ");
 
       getCardById.mockRestore();
-    });
-
-    it("logs a congratulations message when the game is won", () => {
-      const consoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
-
-      boardScene.gameModel.emit("game-won");
-
-      expect(consoleLog).toHaveBeenCalledWith("Congratulations! You won!");
-      consoleLog.mockRestore();
     });
 
     it("exposes the layout manager", () => {

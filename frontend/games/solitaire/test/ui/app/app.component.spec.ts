@@ -5,13 +5,6 @@ import { BehaviorSubject } from "rxjs";
 import { AppComponent } from "@/ui/app/app.component";
 import { GAME_MODEL } from "@/ui/app/game-model.provider";
 
-/** Window augmented with the global the component reads for theming. */
-interface SolitaireWindow extends Window {
-  solitaire?: {
-    game: { scene: { getScene(key: string): unknown } };
-  };
-}
-
 /** Creates a mock gameModel with observable state/settings matching the real API. */
 function createMockGameModel(
   overrides: {
@@ -55,6 +48,7 @@ function createMockGameModel(
     startNewGame: vi.fn(),
     setDrawCount: vi.fn(),
     setCardBackStyle: vi.fn(),
+    setBackgroundColor: vi.fn(),
   };
 }
 
@@ -81,7 +75,6 @@ describe("AppComponent", () => {
 
   afterEach(() => {
     vi.useRealTimers();
-    delete (window as SolitaireWindow).solitaire;
   });
 
   describe("with the default game model", () => {
@@ -184,17 +177,14 @@ describe("AppComponent", () => {
   });
 
   describe("theming", () => {
-    it("updates the theme and the board camera background", async () => {
-      const { component } = await buildComponent(createMockGameModel());
-      const camera = { setBackgroundColor: vi.fn() };
-      const getScene = vi.fn().mockReturnValue({ cameras: { main: camera } });
-      (window as SolitaireWindow).solitaire = { game: { scene: { getScene } } };
+    it("updates the theme and pushes the background color to the model", async () => {
+      const model = createMockGameModel();
+      const { component } = await buildComponent(model);
 
       component.setTheme("purple");
 
       expect(component.selectedTheme).toBe("purple");
-      expect(getScene).toHaveBeenCalledWith("board-scene");
-      expect(camera.setBackgroundColor).toHaveBeenCalledWith("#3c096c");
+      expect(model.setBackgroundColor).toHaveBeenCalledWith("#3c096c");
     });
   });
 

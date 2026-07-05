@@ -2,6 +2,7 @@ import * as Phaser from "phaser";
 import type { BoardScene, PileVisual } from "../board_scene";
 import type { PlayingCardVisual } from "@/game/render/visual/card/playing_card_visual";
 import { TableauPileVisual } from "@/game/render/visual/pile/tableau_pile_visual";
+import { PileType } from "@/game/model/card/card_pile";
 import {
   CARD_WIDTH_PX,
   CARD_HEIGHT_PX,
@@ -12,6 +13,9 @@ import {
  * for card sprites and empty pile placeholder sprites.
  */
 export class BoardInputManager {
+  /** Base depth applied to a dragged stack so it renders above resting cards. */
+  private static readonly DRAG_BASE_DEPTH = 1000;
+
   /** The stack of card visuals currently being dragged. */
   public draggedStack: PlayingCardVisual[] = [];
 
@@ -83,7 +87,7 @@ export class BoardInputManager {
         throw new Error(`Card ${visual.playingCard.id} is not in a pile`);
       }
 
-      if (pile.id === "stock") {
+      if (pile.type === PileType.STOCK) {
         const cards = pile.getCards();
         if (
           cards.length > 0 &&
@@ -142,15 +146,16 @@ export class BoardInputManager {
     // Get the stack of cards from the dragged card up to the top card
     this.draggedStack = pileVisual.playingCardVisuals.slice(index);
 
-    // Calculate offsets relative to the main dragged card's current position
+    // Calculate offsets relative to the main dragged card's current position.
+    // A card visual without a sprite stacks on the primary card (offset 0).
     this.draggedStackOffsets = this.draggedStack.map((cardVis) => ({
-      x: cardVis.sprite.x - gameObject.x,
-      y: cardVis.sprite.y - gameObject.y,
+      x: (cardVis.sprite?.x ?? gameObject.x) - gameObject.x,
+      y: (cardVis.sprite?.y ?? gameObject.y) - gameObject.y,
     }));
 
     // Bring the dragged cards to the top depth layer and adjust shadows for lift effect
     this.draggedStack.forEach((cardVis, idx) => {
-      cardVis.sprite.setDepth(1000 + idx);
+      cardVis.sprite?.setDepth(BoardInputManager.DRAG_BASE_DEPTH + idx);
     });
 
     // Remove any active highlights immediately when starting to drag
@@ -174,7 +179,7 @@ export class BoardInputManager {
     // Move other cards in the stack relative to the primary card
     for (let i = 1; i < this.draggedStack.length; i++) {
       const offset = this.draggedStackOffsets[i];
-      this.draggedStack[i].sprite.setPosition(
+      this.draggedStack[i].sprite?.setPosition(
         dragX + offset.x,
         dragY + offset.y,
       );
