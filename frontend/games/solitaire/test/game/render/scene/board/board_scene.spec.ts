@@ -34,6 +34,18 @@ describe("BoardScene", () => {
     });
   });
 
+  describe("table background", () => {
+    it("repaints the camera when the background color setting changes", () => {
+      const camera = boardScene.cameras.main as unknown as {
+        setBackgroundColor: ReturnType<typeof vi.fn>;
+      };
+
+      boardScene.gameModel.setBackgroundColor("#123456");
+
+      expect(camera.setBackgroundColor).toHaveBeenCalledWith("#123456");
+    });
+  });
+
   describe("pile backgrounds", () => {
     it("gives the stock pile a placeholder background at the shared alpha", () => {
       const sprite = asMock(boardScene.stockPile.sprite);

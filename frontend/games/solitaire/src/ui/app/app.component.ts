@@ -8,7 +8,6 @@ import {
 } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { GAME_MODEL } from "./game-model.provider";
-import { BoardScene } from "@/game/render/scene/board/board_scene";
 
 @Component({
   selector: "app-root",
@@ -111,12 +110,14 @@ export class AppComponent {
   }
 
   restartGame(): void {
-    this.gameModel.startNewGame();
-    this.isGameWon.set(false);
-    this.resetTimer();
+    this.beginGame();
   }
 
   startNewGame(): void {
+    this.beginGame();
+  }
+
+  private beginGame(): void {
     this.gameModel.startNewGame();
     this.isGameWon.set(false);
     this.resetTimer();
@@ -134,15 +135,8 @@ export class AppComponent {
 
   setTheme(themeKey: string): void {
     this.selectedTheme = themeKey;
-    const themeColor = this.themes[themeKey].color;
-
-    const gameInstance = window.solitaire?.game;
-    if (gameInstance && gameInstance.scene) {
-      const boardScene = gameInstance.scene.getScene("board-scene") as
-        BoardScene | undefined;
-      if (boardScene && boardScene.cameras?.main) {
-        boardScene.cameras.main.setBackgroundColor(themeColor);
-      }
-    }
+    // Route the board background through the shared model instead of reaching
+    // into the Phaser game; the board scene subscribes and repaints its camera.
+    this.gameModel.setBackgroundColor(this.themes[themeKey].color);
   }
 }

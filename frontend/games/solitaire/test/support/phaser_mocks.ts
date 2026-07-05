@@ -290,6 +290,7 @@ export function boardScenePhaserMock(): {
     add: { graphics: () => MockGraphics; sprite: Mock };
     scale: MockScaleManager;
     input: MockInput;
+    cameras: { main: { setBackgroundColor: Mock } };
   };
   Geom: { Rectangle: typeof MockRectangle };
 } {
@@ -304,6 +305,7 @@ export function boardScenePhaserMock(): {
       };
       scale = createMockScaleManager();
       input = createMockInput();
+      cameras = { main: { setBackgroundColor: vi.fn() } };
     },
     Geom: {
       Rectangle: Object.assign(MockRectangle, {
