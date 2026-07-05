@@ -163,5 +163,16 @@ describe("GameSessionService", () => {
       vi.advanceTimersByTime(5000);
       expect(harness.session.timerText()).toBe("00:01");
     });
+
+    it("disables almostWin when starting a new game after winning", () => {
+      const harness = buildSession(createMockGameModel({ almostWin: true }));
+      harness.emitGameWon();
+      TestBed.flushEffects();
+
+      harness.session.startNewGame();
+
+      expect(harness.model.setAlmostWin).toHaveBeenCalledWith(false);
+      expect(harness.model.startNewGame).toHaveBeenCalled();
+    });
   });
 });
