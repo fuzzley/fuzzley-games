@@ -4,6 +4,7 @@ import { makePlayingCard } from "@test/support/card_builder";
 import {
   almostWon,
   CLUB_KING_ID,
+  emptyBoard,
   forceWasteRecycle,
   relocate,
 } from "@test/support/game_scenarios";
@@ -374,6 +375,73 @@ describe("SolitaireGame", () => {
 
       expect(moved).toBe(true);
       expect(flippedEvents).toEqual([]);
+    });
+  });
+
+  describe("autoMoveCard", () => {
+    it("moves an ace from a tableau onto an empty foundation", () => {
+      game.startNewGame();
+      emptyBoard(game);
+      const ace = relocate(game, "card-clubs-ace", game.tableaus[0]);
+
+      const moved = game.autoMoveCard(ace.id);
+
+      expect(moved).toBe(true);
+      expect(game.foundations[0].getCards()).toEqual([ace]);
+      expect(game.tableaus[0].getCards()).toEqual([]);
+    });
+
+    it("prefers a foundation over a tableau when both are legal", () => {
+      game.startNewGame();
+      emptyBoard(game);
+      relocate(game, "card-clubs-ace", game.foundations[0]);
+      relocate(game, "card-hearts-3", game.tableaus[1]);
+      const clubTwo = relocate(game, "card-clubs-2", game.tableaus[0]);
+
+      const moved = game.autoMoveCard(clubTwo.id);
+
+      expect(moved).toBe(true);
+      expect(game.foundations[0].getCards()).toEqual([
+        game.getCardById("card-clubs-ace"),
+        clubTwo,
+      ]);
+    });
+
+    it("falls back to a tableau when no foundation accepts the card", () => {
+      game.startNewGame();
+      emptyBoard(game);
+      relocate(game, "card-spades-6", game.tableaus[1]);
+      const redFive = relocate(game, "card-hearts-5", game.tableaus[0]);
+
+      const moved = game.autoMoveCard(redFive.id);
+
+      expect(moved).toBe(true);
+      expect(game.tableaus[1].getCards()).toEqual([
+        game.getCardById("card-spades-6"),
+        redFive,
+      ]);
+    });
+
+    it("moves a King onto an empty tableau", () => {
+      game.startNewGame();
+      emptyBoard(game);
+      const king = relocate(game, "card-spades-king", game.waste);
+
+      const moved = game.autoMoveCard(king.id);
+
+      expect(moved).toBe(true);
+      expect(game.tableaus[0].getCards()).toEqual([king]);
+    });
+
+    it("returns false and leaves the card in place when no destination is legal", () => {
+      game.startNewGame();
+      emptyBoard(game);
+      const redFive = relocate(game, "card-hearts-5", game.tableaus[0]);
+
+      const moved = game.autoMoveCard(redFive.id);
+
+      expect(moved).toBe(false);
+      expect(game.tableaus[0].getCards()).toEqual([redFive]);
     });
   });
 

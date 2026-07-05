@@ -476,6 +476,40 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     return true;
   }
 
+  /**
+   * Automatically moves a card to its best available destination.
+   *
+   * This centralizes the "double-click to auto-move" rule: a foundation is
+   * always preferred over a tableau, and the card is never moved onto the pile
+   * that already contains it. Each candidate move is delegated to
+   * {@link moveCardToPile}, so all standard validation, scoring, and events
+   * still apply and no move rules are duplicated here.
+   *
+   * @param cardId The ID of the card to auto-move.
+   * @returns True if the card was moved to a foundation or tableau; false if no
+   *   legal destination accepted it.
+   */
+  public autoMoveCard(cardId: string): boolean {
+    const sourcePile = this.getPileContainingCard(cardId);
+
+    for (const foundation of this.foundations) {
+      if (this.moveCardToPile(cardId, foundation.id)) {
+        return true;
+      }
+    }
+
+    for (const tableau of this.tableaus) {
+      if (sourcePile?.id === tableau.id) {
+        continue;
+      }
+      if (this.moveCardToPile(cardId, tableau.id)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   /** Moves the stack from the source pile to the target pile, emitting events. */
   private executeMove(
     movingStack: readonly PlayingCard[],
