@@ -2,6 +2,7 @@ import { EventEmitter } from "../common/event_emitter";
 import { GameEvents } from "./game_events";
 import { GameSettings, CardBackStyle, DrawCount } from "./game_settings";
 import { GameState } from "./game_state";
+import { ScoringPolicy } from "./scoring_policy";
 import { CardPile, PileType } from "../card/card_pile";
 import { Deck } from "../card/deck";
 import {
@@ -41,17 +42,26 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
   /** The card identities used to build the deck for a new game. */
   private readonly cardIds: ReadonlyArray<PlayingCardId>;
 
+  /** The rules used to score moves, flips, and recycles. */
+  private readonly scoring: ScoringPolicy;
+
   /**
    * Initializes the piles.
    *
    * @param cardIds The card identities to deal from. Defaults to a full
    *   standard 52-card deck. Injectable so tests can supply a partial or empty
    *   set to exercise short-deck handling through the public API.
+   * @param scoring The scoring rules to apply. Injectable so an alternate
+   *   ruleset can be supplied without touching the game logic.
    */
-  constructor(cardIds: ReadonlyArray<PlayingCardId> = ALL_PLAYING_CARD_IDS) {
+  constructor(
+    cardIds: ReadonlyArray<PlayingCardId> = ALL_PLAYING_CARD_IDS,
+    scoring: ScoringPolicy = new ScoringPolicy(),
+  ) {
     super();
 
     this.cardIds = cardIds;
+    this.scoring = scoring;
     this.initializePiles();
   }
 
@@ -273,15 +283,11 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     if (this.waste.getCards().length === 0) return;
 
     this.recycleCount++;
-    if (this.settings.drawCount === 1) {
-      if (this.recycleCount > 1) {
-        this.state.score = Math.max(0, this.state.score - 100);
-      }
-    } else if (this.settings.drawCount === 3) {
-      if (this.recycleCount > 3) {
-        this.state.score = Math.max(0, this.state.score - 20);
-      }
-    }
+    const penalty = this.scoring.recyclePenalty(
+      this.settings.drawCount,
+      this.recycleCount,
+    );
+    this.state.score = Math.max(0, this.state.score - penalty);
 
     while (this.waste.getCards().length > 0) {
       const wasteCards = this.waste.getCards();
@@ -344,28 +350,10 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     this.state.moves++;
 
     // Scoring changes before executing the move
-    let scoreChange = 0;
-    if (
-      sourcePile.type === PileType.WASTE &&
-      targetPile.type === PileType.TABLEAU
-    ) {
-      scoreChange = 5;
-    } else if (
-      sourcePile.type === PileType.WASTE &&
-      targetPile.type === PileType.FOUNDATION
-    ) {
-      scoreChange = 10;
-    } else if (
-      sourcePile.type === PileType.TABLEAU &&
-      targetPile.type === PileType.FOUNDATION
-    ) {
-      scoreChange = 10;
-    } else if (
-      sourcePile.type === PileType.FOUNDATION &&
-      targetPile.type === PileType.TABLEAU
-    ) {
-      scoreChange = -15;
-    }
+    const scoreChange = this.scoring.moveScore(
+      sourcePile.type,
+      targetPile.type,
+    );
     this.state.score = Math.max(0, this.state.score + scoreChange);
 
     // Execute the move
@@ -393,7 +381,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
           cardId: topRemaining.id,
           faceUp: true,
         });
-        this.state.score += 5; // Flipping tableau card face-up
+        this.state.score += this.scoring.tableauFlipBonus();
       }
     }
 
