@@ -1,6 +1,10 @@
 import { Scene } from "phaser";
 
-import { ALL_PLAYING_CARD_IDS } from "@/game/model/card/playing_card";
+import {
+  ALL_PLAYING_CARD_IDS,
+  PlayingCard,
+} from "@/game/model/card/playing_card";
+import { CardPile } from "@/game/model/card/card_pile";
 import { BoardLayoutManager } from "./layout/board_layout_manager";
 import { StockPileVisual } from "../../visual/pile/stock_pile_visual";
 import { WastePileVisual } from "../../visual/pile/waste_pile_visual";
@@ -163,58 +167,46 @@ export class BoardScene extends Scene {
 
   /** Copies current card assignments from the logical model into Phaser piles. */
   private syncVisualPilesWithModel() {
-    this.stockPile.playingCardVisuals.length = 0;
-    this.wastePile.playingCardVisuals.length = 0;
-    this.foundationPiles.forEach((p) => (p.playingCardVisuals.length = 0));
-    this.tableauPiles.forEach((p) => (p.playingCardVisuals.length = 0));
+    const cardBack = this.gameModel.settings.cardBackStyle;
+    const faceFrame = (card: PlayingCard) => card.id;
 
-    for (const card of this.gameModel.stock.getCards()) {
-      const visual = this.cardVisualsMap.get(card.id);
-      if (visual) {
-        this.stockPile.playingCardVisuals.push(visual);
-        visual.sprite.setFrame(this.gameModel.settings.cardBackStyle);
-        visual.sprite.setOrigin(0, 0);
-      }
-    }
-
-    for (const card of this.gameModel.waste.getCards()) {
-      const visual = this.cardVisualsMap.get(card.id);
-      if (visual) {
-        this.wastePile.playingCardVisuals.push(visual);
-        visual.sprite.setFrame(card.id);
-        visual.sprite.setOrigin(0, 0);
-      }
-    }
-
-    for (let i = 0; i < this.gameModel.foundations.length; i++) {
-      const modelPile = this.gameModel.foundations[i];
-      const visualPile = this.foundationPiles[i];
-      for (const card of modelPile.getCards()) {
-        const visual = this.cardVisualsMap.get(card.id);
-        if (visual) {
-          visualPile.playingCardVisuals.push(visual);
-          visual.sprite.setFrame(card.id);
-          visual.sprite.setOrigin(0, 0);
-        }
-      }
-    }
-
-    for (let i = 0; i < this.gameModel.tableaus.length; i++) {
-      const modelPile = this.gameModel.tableaus[i];
-      const visualPile = this.tableauPiles[i];
-      for (const card of modelPile.getCards()) {
-        const visual = this.cardVisualsMap.get(card.id);
-        if (visual) {
-          visualPile.playingCardVisuals.push(visual);
-          visual.sprite.setFrame(
-            card.faceUp ? card.id : this.gameModel.settings.cardBackStyle,
-          );
-          visual.sprite.setOrigin(0, 0);
-        }
-      }
-    }
+    this.syncPile(this.gameModel.stock, this.stockPile, () => cardBack);
+    this.syncPile(this.gameModel.waste, this.wastePile, faceFrame);
+    this.gameModel.foundations.forEach((modelPile, i) => {
+      this.syncPile(modelPile, this.foundationPiles[i], faceFrame);
+    });
+    this.gameModel.tableaus.forEach((modelPile, i) => {
+      this.syncPile(modelPile, this.tableauPiles[i], (card) =>
+        card.faceUp ? card.id : cardBack,
+      );
+    });
 
     this.updateCardCursors();
+  }
+
+  /**
+   * Rebuilds one visual pile from its model pile: registers the card visuals in
+   * order and points each sprite at the frame chosen by {@link frameFor}.
+   *
+   * @param modelPile The logical pile to mirror.
+   * @param visualPile The visual pile to populate.
+   * @param frameFor Picks the atlas frame for a card (face vs. back).
+   */
+  private syncPile(
+    modelPile: CardPile<PlayingCard>,
+    visualPile: PileVisual,
+    frameFor: (card: PlayingCard) => string,
+  ): void {
+    visualPile.playingCardVisuals.length = 0;
+    for (const card of modelPile.getCards()) {
+      const visual = this.cardVisualsMap.get(card.id);
+      if (!visual) {
+        continue;
+      }
+      visualPile.playingCardVisuals.push(visual);
+      visual.sprite.setFrame(frameFor(card));
+      visual.sprite.setOrigin(0, 0);
+    }
   }
 
   /**
