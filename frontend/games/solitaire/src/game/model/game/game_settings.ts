@@ -6,6 +6,9 @@ export type CardBackStyle = "card-back-blue" | "card-back-red";
 /** How many cards are drawn from the stock pile per draw action. */
 export type DrawCount = 1 | 3;
 
+/** The default board background color (the emerald felt table). */
+export const DEFAULT_BACKGROUND_COLOR = "#0f4d0e";
+
 /**
  * Observable, user-configurable game settings.
  *
@@ -22,6 +25,11 @@ export class GameSettings {
     "card-back-blue",
   );
 
+  /** The board background color, as a CSS/Phaser color string. */
+  readonly backgroundColor$ = new BehaviorSubject<string>(
+    DEFAULT_BACKGROUND_COLOR,
+  );
+
   /** Current draw count value. */
   get drawCount(): DrawCount {
     return this.drawCount$.value;
@@ -30,5 +38,10 @@ export class GameSettings {
   /** Current card back style value. */
   get cardBackStyle(): CardBackStyle {
     return this.cardBackStyle$.value;
+  }
+
+  /** Current board background color. */
+  get backgroundColor(): string {
+    return this.backgroundColor$.value;
   }
 }

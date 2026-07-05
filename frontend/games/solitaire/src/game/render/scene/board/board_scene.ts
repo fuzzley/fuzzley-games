@@ -107,6 +107,12 @@ export class BoardScene extends Scene {
     this.createCardVisuals();
     this.setupEventListeners();
 
+    // Apply the table background color and follow future changes (e.g. theme
+    // switches from the Angular UI) through the shared model.
+    this.gameModel.settings.backgroundColor$.subscribe((color) => {
+      this.cameras?.main?.setBackgroundColor(color);
+    });
+
     this.syncVisualPilesWithModel();
     this.layoutManager.createInitialLayout();
     this.layoutManager.updateVisualLayout();

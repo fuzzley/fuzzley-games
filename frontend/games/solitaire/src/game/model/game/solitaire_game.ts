@@ -78,6 +78,12 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     }
   }
 
+  public setBackgroundColor(color: string): void {
+    if (this.settings.backgroundColor !== color) {
+      this.settings.backgroundColor$.next(color);
+    }
+  }
+
   /** Initializes all card piles and registers them in the lookup map. */
   private initializePiles(): void {
     this.pilesMap.set(this.stock.id, this.stock);
