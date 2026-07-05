@@ -47,6 +47,11 @@ export class AppComponent {
   selectedTheme = "green";
   showSettings = false;
 
+  // --- Confirmation state ---
+  readonly showConfirmation = signal(false);
+  readonly confirmationMessage = signal("");
+  private pendingAction: (() => void) | null = null;
+
   themeKeys = ["green", "blue", "charcoal", "purple"];
   themes: Record<string, { name: string; color: string; bgClass: string }> = {
     green: { name: "Emerald Felt", color: "#0f4d0e", bgClass: "theme-green" },
@@ -110,11 +115,17 @@ export class AppComponent {
   }
 
   restartGame(): void {
-    this.beginGame();
+    this.confirmAction(
+      "Are you sure you want to restart this game? Your current progress will be lost.",
+      () => this.beginGame(),
+    );
   }
 
   startNewGame(): void {
-    this.beginGame();
+    this.confirmAction(
+      "Are you sure you want to start a new game? Your current progress will be lost.",
+      () => this.beginGame(),
+    );
   }
 
   private beginGame(): void {
@@ -124,9 +135,38 @@ export class AppComponent {
   }
 
   setDrawMode(mode: 1 | 3): void {
-    this.gameModel.setDrawCount(mode);
-    this.gameModel.startNewGame();
-    this.resetTimer();
+    if (this.drawCount() === mode) return;
+    this.confirmAction(
+      `Changing the draw mode to Draw ${mode} will restart the game. Are you sure you want to proceed?`,
+      () => {
+        this.gameModel.setDrawCount(mode);
+        this.gameModel.startNewGame();
+        this.resetTimer();
+      },
+    );
+  }
+
+  confirmAction(message: string, action: () => void): void {
+    if (this.moves() > 0 && !this.isGameWon()) {
+      this.pendingAction = action;
+      this.confirmationMessage.set(message);
+      this.showConfirmation.set(true);
+    } else {
+      action();
+    }
+  }
+
+  cancelAction(): void {
+    this.pendingAction = null;
+    this.showConfirmation.set(false);
+  }
+
+  acceptAction(): void {
+    if (this.pendingAction) {
+      this.pendingAction();
+      this.pendingAction = null;
+    }
+    this.showConfirmation.set(false);
   }
 
   setCardBack(style: "card-back-blue" | "card-back-red"): void {

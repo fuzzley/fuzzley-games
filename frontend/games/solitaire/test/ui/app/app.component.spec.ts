@@ -134,6 +134,75 @@ describe("AppComponent", () => {
       expect(mockGameModel.startNewGame).toHaveBeenCalled();
     });
 
+    describe("when a game is in progress (moves > 0)", () => {
+      beforeEach(() => {
+        mockGameModel.state.moves$.next(5);
+        TestBed.flushEffects();
+      });
+
+      it("restarts the game only after user confirmation", () => {
+        component.restartGame();
+
+        expect(component.showConfirmation()).toBe(true);
+        expect(component.confirmationMessage()).toContain("restart this game");
+        expect(mockGameModel.startNewGame).not.toHaveBeenCalled();
+
+        component.acceptAction();
+        expect(mockGameModel.startNewGame).toHaveBeenCalled();
+        expect(component.showConfirmation()).toBe(false);
+      });
+
+      it("starts a new game only after user confirmation", () => {
+        component.startNewGame();
+
+        expect(component.showConfirmation()).toBe(true);
+        expect(component.confirmationMessage()).toContain("start a new game");
+        expect(mockGameModel.startNewGame).not.toHaveBeenCalled();
+
+        component.acceptAction();
+        expect(mockGameModel.startNewGame).toHaveBeenCalled();
+        expect(component.showConfirmation()).toBe(false);
+      });
+
+      it("sets draw mode only after user confirmation", () => {
+        component.setDrawMode(1);
+
+        expect(component.showConfirmation()).toBe(true);
+        expect(component.confirmationMessage()).toContain("draw mode");
+        expect(mockGameModel.setDrawCount).not.toHaveBeenCalled();
+
+        component.acceptAction();
+        expect(mockGameModel.setDrawCount).toHaveBeenCalledWith(1);
+        expect(mockGameModel.startNewGame).toHaveBeenCalled();
+        expect(component.showConfirmation()).toBe(false);
+      });
+
+      it("does not trigger confirmation if the same draw mode is selected", () => {
+        component.setDrawMode(3); // default is 3
+
+        expect(component.showConfirmation()).toBe(false);
+        expect(mockGameModel.setDrawCount).not.toHaveBeenCalled();
+      });
+
+      it("cancels the action and does not reset the game/timer", () => {
+        component.restartGame();
+
+        expect(component.showConfirmation()).toBe(true);
+        component.cancelAction();
+
+        expect(mockGameModel.startNewGame).not.toHaveBeenCalled();
+        expect(component.showConfirmation()).toBe(false);
+      });
+
+      it("does not prompt for confirmation if the game is won", () => {
+        component.isGameWon.set(true);
+        component.restartGame();
+
+        expect(component.showConfirmation()).toBe(false);
+        expect(mockGameModel.startNewGame).toHaveBeenCalled();
+      });
+    });
+
     it("sets the card back style on the game model", () => {
       component.setCardBack("card-back-red");
 
