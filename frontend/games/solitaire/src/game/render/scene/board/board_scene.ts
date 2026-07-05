@@ -31,7 +31,7 @@ export class BoardScene extends Scene {
   public static readonly PILE_BACKGROUND_ALPHA = 0.5;
 
   /** The logical solitaire game rules and state engine. */
-  public readonly gameModel: SolitaireGame = getGameModel();
+  public readonly gameModel: SolitaireGame;
 
   /** Registry of visual cards mapped by their unique string ID. */
   public readonly cardVisualsMap = new Map<string, PlayingCardVisual>();
@@ -40,31 +40,18 @@ export class BoardScene extends Scene {
   private readonly pileVisualsMap = new Map<string, PileVisual>();
 
   /** Visual representation of the stock pile. */
-  public readonly stockPile = new StockPileVisual(this.gameModel.stock);
+  public readonly stockPile: StockPileVisual;
   /** Visual representation of the waste pile. */
-  public readonly wastePile = new WastePileVisual(this.gameModel.waste);
+  public readonly wastePile: WastePileVisual;
 
   /** Visual representations of the four foundation piles. */
-  public readonly foundationPiles = [
-    new FoundationPileVisual(this.gameModel.foundations[0]),
-    new FoundationPileVisual(this.gameModel.foundations[1]),
-    new FoundationPileVisual(this.gameModel.foundations[2]),
-    new FoundationPileVisual(this.gameModel.foundations[3]),
-  ];
+  public readonly foundationPiles: FoundationPileVisual[];
 
   /** Visual representations of the seven tableau piles. */
-  public readonly tableauPiles = [
-    new TableauPileVisual(this.gameModel.tableaus[0]),
-    new TableauPileVisual(this.gameModel.tableaus[1]),
-    new TableauPileVisual(this.gameModel.tableaus[2]),
-    new TableauPileVisual(this.gameModel.tableaus[3]),
-    new TableauPileVisual(this.gameModel.tableaus[4]),
-    new TableauPileVisual(this.gameModel.tableaus[5]),
-    new TableauPileVisual(this.gameModel.tableaus[6]),
-  ];
+  public readonly tableauPiles: TableauPileVisual[];
 
   /** Layout coordinator for positioning piles and card sprites. */
-  private readonly layoutManager = new BoardLayoutManager(this);
+  private readonly layoutManager: BoardLayoutManager;
 
   /** Graphic rendering manager for card/pile hover highlighting. */
   private highlightRenderer!: BoardHighlightRenderer;
@@ -75,9 +62,26 @@ export class BoardScene extends Scene {
   /** Factory for creating Phaser sprites. */
   private visualFactory!: BoardVisualFactory;
 
-  /** Constructs the board scene. */
-  constructor() {
+  /**
+   * Constructs the board scene.
+   *
+   * @param gameModel The shared game model to render. Defaults to the shared
+   *   singleton so Phaser can construct the scene with no arguments, and is
+   *   injectable so tests can supply their own model.
+   */
+  constructor(gameModel: SolitaireGame = getGameModel()) {
     super("board-scene");
+
+    this.gameModel = gameModel;
+    this.stockPile = new StockPileVisual(gameModel.stock);
+    this.wastePile = new WastePileVisual(gameModel.waste);
+    this.foundationPiles = gameModel.foundations.map(
+      (pile) => new FoundationPileVisual(pile),
+    );
+    this.tableauPiles = gameModel.tableaus.map(
+      (pile) => new TableauPileVisual(pile),
+    );
+    this.layoutManager = new BoardLayoutManager(this);
   }
 
   /** Gets the layout manager helper instance. */
