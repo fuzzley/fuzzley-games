@@ -146,15 +146,16 @@ export class BoardInputManager {
     // Get the stack of cards from the dragged card up to the top card
     this.draggedStack = pileVisual.playingCardVisuals.slice(index);
 
-    // Calculate offsets relative to the main dragged card's current position
+    // Calculate offsets relative to the main dragged card's current position.
+    // A card visual without a sprite stacks on the primary card (offset 0).
     this.draggedStackOffsets = this.draggedStack.map((cardVis) => ({
-      x: cardVis.sprite.x - gameObject.x,
-      y: cardVis.sprite.y - gameObject.y,
+      x: (cardVis.sprite?.x ?? gameObject.x) - gameObject.x,
+      y: (cardVis.sprite?.y ?? gameObject.y) - gameObject.y,
     }));
 
     // Bring the dragged cards to the top depth layer and adjust shadows for lift effect
     this.draggedStack.forEach((cardVis, idx) => {
-      cardVis.sprite.setDepth(BoardInputManager.DRAG_BASE_DEPTH + idx);
+      cardVis.sprite?.setDepth(BoardInputManager.DRAG_BASE_DEPTH + idx);
     });
 
     // Remove any active highlights immediately when starting to drag
@@ -178,7 +179,7 @@ export class BoardInputManager {
     // Move other cards in the stack relative to the primary card
     for (let i = 1; i < this.draggedStack.length; i++) {
       const offset = this.draggedStackOffsets[i];
-      this.draggedStack[i].sprite.setPosition(
+      this.draggedStack[i].sprite?.setPosition(
         dragX + offset.x,
         dragY + offset.y,
       );

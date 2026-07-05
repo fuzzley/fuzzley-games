@@ -207,8 +207,8 @@ export class BoardScene extends Scene {
         continue;
       }
       visualPile.playingCardVisuals.push(visual);
-      visual.sprite.setFrame(frameFor(card));
-      visual.sprite.setOrigin(0, 0);
+      visual.sprite?.setFrame(frameFor(card));
+      visual.sprite?.setOrigin(0, 0);
     }
   }
 
