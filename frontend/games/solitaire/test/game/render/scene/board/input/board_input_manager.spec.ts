@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { BoardInputManager } from "@/game/render/scene/board/input/board_input_manager";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
 import { PlayingCardVisual } from "@/game/render/visual/card/playing_card_visual";
@@ -162,6 +162,174 @@ describe("BoardInputManager", () => {
       gameModel.tableaus[0].removeCard(card);
 
       expect(() => sprite.emit("pointerdown")).toThrow(/is not in a pile/);
+    });
+  });
+
+  describe("double click", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("moves the card to the foundation pile when a tableau card is double clicked", () => {
+      const ace = gameModel.getCardById("card-clubs-ace")!;
+      const currentPile = gameModel.getPileContainingCard(ace.id);
+      currentPile?.removeCard(ace);
+      ace.faceUp = true;
+      gameModel.tableaus[0].addCard(ace);
+
+      const { sprite } = listenTo(ace);
+
+      const moveSpy = vi
+        .spyOn(gameModel, "moveCardToPile")
+        .mockReturnValue(true);
+
+      sprite.emit("pointerdown");
+      vi.advanceTimersByTime(100);
+      sprite.emit("pointerdown");
+
+      expect(moveSpy).toHaveBeenCalledWith(ace.id, gameModel.foundations[0].id);
+    });
+
+    it("does not move the card if the clicks are separated by more than 350ms", () => {
+      const card = gameModel.tableaus[0].getCards()[0];
+      const { sprite } = listenTo(card);
+      const moveSpy = vi.spyOn(gameModel, "moveCardToPile");
+
+      sprite.emit("pointerdown");
+      vi.advanceTimersByTime(400);
+      sprite.emit("pointerdown");
+
+      expect(moveSpy).not.toHaveBeenCalled();
+    });
+
+    it("does not move the card if clicking different cards", () => {
+      const card1 = gameModel.tableaus[0].getCards()[0];
+      const card2 = gameModel.tableaus[1].getCards()[0];
+      const { sprite: sprite1 } = listenTo(card1);
+      const { sprite: sprite2 } = listenTo(card2);
+      const moveSpy = vi.spyOn(gameModel, "moveCardToPile");
+
+      sprite1.emit("pointerdown");
+      vi.advanceTimersByTime(100);
+      sprite2.emit("pointerdown");
+
+      expect(moveSpy).not.toHaveBeenCalled();
+    });
+
+    it("does not move stock cards to foundation on double click", () => {
+      const stockCards = gameModel.stock.getCards();
+      const topStockCard = stockCards[stockCards.length - 1];
+      const { sprite } = listenTo(topStockCard);
+      const moveSpy = vi.spyOn(gameModel, "moveCardToPile");
+
+      sprite.emit("pointerdown");
+      vi.advanceTimersByTime(100);
+      sprite.emit("pointerdown");
+
+      expect(moveSpy).not.toHaveBeenCalled();
+    });
+
+    it("falls back to a tableau pile when no foundation accepts the card", () => {
+      const card = gameModel.getCardById("card-hearts-5")!;
+      const currentPile = gameModel.getPileContainingCard(card.id);
+      currentPile?.removeCard(card);
+      card.faceUp = true;
+      gameModel.tableaus[0].addCard(card);
+
+      const { sprite } = listenTo(card);
+
+      // Reject all foundations, accept the first tableau
+      const moveSpy = vi
+        .spyOn(gameModel, "moveCardToPile")
+        .mockImplementation((_cardId: string, targetPileId: string) => {
+          return targetPileId.startsWith("tableau-");
+        });
+
+      sprite.emit("pointerdown");
+      vi.advanceTimersByTime(100);
+      sprite.emit("pointerdown");
+
+      // Should have tried all 4 foundations first, then the first non-source tableau
+      expect(moveSpy).toHaveBeenCalledTimes(5);
+      expect(moveSpy).toHaveBeenNthCalledWith(1, card.id, "foundation-0");
+      expect(moveSpy).toHaveBeenNthCalledWith(2, card.id, "foundation-1");
+      expect(moveSpy).toHaveBeenNthCalledWith(3, card.id, "foundation-2");
+      expect(moveSpy).toHaveBeenNthCalledWith(4, card.id, "foundation-3");
+      expect(moveSpy).toHaveBeenNthCalledWith(5, card.id, "tableau-1");
+    });
+
+    it("prioritizes foundation over tableau when both would accept", () => {
+      const ace = gameModel.getCardById("card-clubs-ace")!;
+      const currentPile = gameModel.getPileContainingCard(ace.id);
+      currentPile?.removeCard(ace);
+      ace.faceUp = true;
+      gameModel.tableaus[0].addCard(ace);
+
+      const { sprite } = listenTo(ace);
+
+      // Accept everything
+      const moveSpy = vi
+        .spyOn(gameModel, "moveCardToPile")
+        .mockReturnValue(true);
+
+      sprite.emit("pointerdown");
+      vi.advanceTimersByTime(100);
+      sprite.emit("pointerdown");
+
+      // Should stop at the first foundation and never try tableaus
+      expect(moveSpy).toHaveBeenCalledTimes(1);
+      expect(moveSpy).toHaveBeenCalledWith(ace.id, "foundation-0");
+    });
+
+    it("moves a King to an empty tableau on double click", () => {
+      const king = gameModel.getCardById("card-spades-king")!;
+      const currentPile = gameModel.getPileContainingCard(king.id);
+      currentPile?.removeCard(king);
+      king.faceUp = true;
+      gameModel.tableaus[0].addCard(king);
+
+      const { sprite } = listenTo(king);
+
+      // Reject foundations, accept the first tableau that takes it
+      const moveSpy = vi
+        .spyOn(gameModel, "moveCardToPile")
+        .mockImplementation((_cardId: string, targetPileId: string) => {
+          return targetPileId.startsWith("tableau-");
+        });
+
+      sprite.emit("pointerdown");
+      vi.advanceTimersByTime(100);
+      sprite.emit("pointerdown");
+
+      // Should have tried all 4 foundations, then the first non-source tableau
+      expect(moveSpy).toHaveBeenCalledTimes(5);
+      expect(moveSpy).toHaveBeenLastCalledWith(king.id, "tableau-1");
+    });
+
+    it("does not attempt to move a card to the same tableau pile it started in", () => {
+      const card = gameModel.getCardById("card-hearts-5")!;
+      const currentPile = gameModel.getPileContainingCard(card.id);
+      currentPile?.removeCard(card);
+      card.faceUp = true;
+      gameModel.tableaus[3].addCard(card);
+
+      const { sprite } = listenTo(card);
+
+      // Reject everything so all piles are tried
+      const moveSpy = vi
+        .spyOn(gameModel, "moveCardToPile")
+        .mockReturnValue(false);
+
+      sprite.emit("pointerdown");
+      vi.advanceTimersByTime(100);
+      sprite.emit("pointerdown");
+
+      const targetPileIds = moveSpy.mock.calls.map((call) => call[1]);
+      expect(targetPileIds).not.toContain("tableau-3");
     });
   });
 

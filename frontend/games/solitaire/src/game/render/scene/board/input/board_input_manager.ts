@@ -28,6 +28,12 @@ export class BoardInputManager {
   /** Whether the stock pile background sprite is currently hovered. */
   public isStockBackgroundHovered = false;
 
+  /** The timestamp of the last click on a card. */
+  private lastClickTime = 0;
+
+  /** The ID of the last clicked card. */
+  private lastClickedCardId: string | null = null;
+
   /**
    * Constructs the board input manager.
    *
@@ -80,11 +86,46 @@ export class BoardInputManager {
     });
 
     sprite.on("pointerdown", () => {
-      const pile = this.boardScene.gameModel.getPileContainingCard(
-        visual.playingCard.id,
-      );
+      const cardId = visual.playingCard.id;
+      const pile = this.boardScene.gameModel.getPileContainingCard(cardId);
       if (!pile) {
-        throw new Error(`Card ${visual.playingCard.id} is not in a pile`);
+        throw new Error(`Card ${cardId} is not in a pile`);
+      }
+
+      if (pile.type === PileType.TABLEAU || pile.type === PileType.WASTE) {
+        const currentTime = Date.now();
+        const isDoubleClick =
+          this.lastClickedCardId === cardId &&
+          currentTime - this.lastClickTime < 350;
+
+        this.lastClickTime = currentTime;
+        this.lastClickedCardId = cardId;
+
+        if (isDoubleClick) {
+          // Try foundations first (higher priority)
+          for (const foundation of this.boardScene.gameModel.foundations) {
+            if (
+              this.boardScene.gameModel.moveCardToPile(cardId, foundation.id)
+            ) {
+              this.draggedStack = [];
+              this.draggedStackOffsets = [];
+              return;
+            }
+          }
+          // Fall back to tableau piles, skipping the card's current pile
+          for (const tableau of this.boardScene.gameModel.tableaus) {
+            if (tableau.id === pile.id) continue;
+            if (this.boardScene.gameModel.moveCardToPile(cardId, tableau.id)) {
+              this.draggedStack = [];
+              this.draggedStackOffsets = [];
+              return;
+            }
+          }
+          return;
+        }
+      } else {
+        this.lastClickTime = 0;
+        this.lastClickedCardId = null;
       }
 
       if (pile.type === PileType.STOCK) {
