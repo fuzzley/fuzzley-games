@@ -6,6 +6,28 @@ import { CardBackStyle } from "@/game/model/game/game_settings";
  * for playing cards and pile backgrounds.
  */
 export class BoardVisualFactory {
+  /** Drop shadows applied to every card sprite (top-left and bottom-right). */
+  private static readonly CARD_SHADOWS = [
+    {
+      x: 0.5,
+      y: 0.5,
+      decay: 0.05,
+      intensity: 0.8,
+      color: 0x000000,
+      blur: 6,
+      opacity: 0.05,
+    },
+    {
+      x: 0,
+      y: 0,
+      decay: 0.1,
+      intensity: 0.8,
+      color: 0x000000,
+      blur: 6,
+      opacity: 0.05,
+    },
+  ];
+
   /**
    * Constructs the visual factory with the active Phaser Scene context.
    *
@@ -35,8 +57,17 @@ export class BoardVisualFactory {
     sprite.enableFilters();
 
     // Add two filters so that we get some shadow on both top left and bottom right.
-    sprite.filters?.external.addShadow(0.5, 0.5, 0.05, 0.8, 0x000000, 6, 0.05);
-    sprite.filters?.external.addShadow(0, 0, 0.1, 0.8, 0x000000, 6, 0.05);
+    for (const shadow of BoardVisualFactory.CARD_SHADOWS) {
+      sprite.filters?.external.addShadow(
+        shadow.x,
+        shadow.y,
+        shadow.decay,
+        shadow.intensity,
+        shadow.color,
+        shadow.blur,
+        shadow.opacity,
+      );
+    }
 
     // Make card sprite interactive for pointer events
     sprite.setInteractive({ useHandCursor: true });

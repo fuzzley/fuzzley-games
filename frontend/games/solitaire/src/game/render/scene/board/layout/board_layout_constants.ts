@@ -3,6 +3,11 @@ export const CARD_WIDTH_PX = 221;
 /** The height of a playing card in pixels. */
 export const CARD_HEIGHT_PX = 313;
 
+/** The design reference width the board layout was authored at. */
+export const DESIGN_WIDTH_PX = 1807;
+/** The design reference height the board layout was authored at. */
+export const DESIGN_HEIGHT_PX = 950;
+
 /** The horizontal padding/margin at the edges of the board layout. */
 export const LAYOUT_PADDING_X = 40;
 /** The vertical padding/margin at the edges of the board layout. */

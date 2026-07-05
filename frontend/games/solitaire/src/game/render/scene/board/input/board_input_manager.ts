@@ -13,6 +13,9 @@ import {
  * for card sprites and empty pile placeholder sprites.
  */
 export class BoardInputManager {
+  /** Base depth applied to a dragged stack so it renders above resting cards. */
+  private static readonly DRAG_BASE_DEPTH = 1000;
+
   /** The stack of card visuals currently being dragged. */
   public draggedStack: PlayingCardVisual[] = [];
 
@@ -151,7 +154,7 @@ export class BoardInputManager {
 
     // Bring the dragged cards to the top depth layer and adjust shadows for lift effect
     this.draggedStack.forEach((cardVis, idx) => {
-      cardVis.sprite.setDepth(1000 + idx);
+      cardVis.sprite.setDepth(BoardInputManager.DRAG_BASE_DEPTH + idx);
     });
 
     // Remove any active highlights immediately when starting to drag

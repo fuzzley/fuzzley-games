@@ -7,6 +7,17 @@ import type { PlayingCardVisual } from "@/game/render/visual/card/playing_card_v
  * around interactive cards or empty stock background on hover.
  */
 export class BoardHighlightRenderer {
+  /** Depth placing the highlight above the cards (drag depth is 1000+). */
+  private static readonly HIGHLIGHT_DEPTH = 2000;
+  /** Highlight border color. */
+  private static readonly BORDER_COLOR = 0xebef9b;
+  /** Highlight border opacity. */
+  private static readonly BORDER_OPACITY = 0.9;
+  /** Unscaled highlight border thickness in pixels. */
+  private static readonly BORDER_THICKNESS_PX = 9;
+  /** Unscaled highlight corner radius in pixels. */
+  private static readonly BORDER_RADIUS_PX = 12;
+
   /** Graphics object for drawing the highlight border. */
   public graphics: Phaser.GameObjects.Graphics;
 
@@ -17,7 +28,7 @@ export class BoardHighlightRenderer {
    */
   constructor(private readonly boardScene: BoardScene) {
     this.graphics = boardScene.add.graphics();
-    this.graphics.setDepth(2000);
+    this.graphics.setDepth(BoardHighlightRenderer.HIGHLIGHT_DEPTH);
   }
 
   /**
@@ -75,9 +86,13 @@ export class BoardHighlightRenderer {
     const width = sprite.displayWidth;
     const height = sprite.displayHeight;
 
-    const thickness = 9 * scale;
-    const radius = 12 * scale;
-    this.graphics.lineStyle(thickness, 0xebef9b, 0.9);
+    const thickness = BoardHighlightRenderer.BORDER_THICKNESS_PX * scale;
+    const radius = BoardHighlightRenderer.BORDER_RADIUS_PX * scale;
+    this.graphics.lineStyle(
+      thickness,
+      BoardHighlightRenderer.BORDER_COLOR,
+      BoardHighlightRenderer.BORDER_OPACITY,
+    );
     this.graphics.strokeRoundedRect(sprite.x, sprite.y, width, height, radius);
   }
 }
