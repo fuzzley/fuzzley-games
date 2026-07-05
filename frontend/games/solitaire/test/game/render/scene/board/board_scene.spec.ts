@@ -24,6 +24,16 @@ describe("BoardScene", () => {
     boardScene.create();
   });
 
+  describe("construction", () => {
+    it("renders the game model it is injected with", () => {
+      const injectedModel = new SolitaireGame();
+
+      const scene = new BoardScene(injectedModel);
+
+      expect(scene.gameModel).toBe(injectedModel);
+    });
+  });
+
   describe("pile backgrounds", () => {
     it("gives the stock pile a placeholder background at the shared alpha", () => {
       const sprite = asMock(boardScene.stockPile.sprite);
