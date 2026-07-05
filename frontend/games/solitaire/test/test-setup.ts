@@ -6,7 +6,10 @@ setupTestBed({
   zoneless: false,
 });
 
-if (typeof globalThis.localStorage === "undefined" || !globalThis.localStorage) {
+if (
+  typeof globalThis.localStorage === "undefined" ||
+  !globalThis.localStorage
+) {
   const store: Record<string, string> = {};
   const mockStorage = {
     getItem: (key: string) => store[key] || null,
