@@ -1,4 +1,4 @@
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, merge } from "rxjs";
 
 /** The visual style applied to the back of cards. */
 export type CardBackStyle = "card-back-blue" | "card-back-red";
@@ -11,11 +11,76 @@ export const DEFAULT_BACKGROUND_COLOR = "#0f4d0e";
 
 const LOCAL_STORAGE_KEY = "fsolitaire-settings";
 
+/** The persisted settings shape, mirroring the runtime settings tree. */
 interface PersistedSettings {
-  drawCount?: DrawCount;
-  cardBackStyle?: CardBackStyle;
-  backgroundColor?: string;
-  almostWin?: boolean;
+  drawCount: DrawCount;
+  cardBackStyle: CardBackStyle;
+  backgroundColor: string;
+  debug: {
+    almostWin: boolean;
+  };
+}
+
+/** The values used when nothing valid is found in storage. */
+const DEFAULT_SETTINGS: PersistedSettings = {
+  drawCount: 3,
+  cardBackStyle: "card-back-blue",
+  backgroundColor: DEFAULT_BACKGROUND_COLOR,
+  debug: {
+    almostWin: false,
+  },
+};
+
+/** Returns a deep copy of the default settings so callers can't mutate them. */
+function defaultSettings(): PersistedSettings {
+  return {
+    ...DEFAULT_SETTINGS,
+    debug: { ...DEFAULT_SETTINGS.debug },
+  };
+}
+
+/**
+ * Reads and validates persisted settings from localStorage, filling any
+ * missing or invalid fields with defaults. Pure aside from the storage read,
+ * so the validation logic is easy to test in isolation.
+ */
+function loadPersistedSettings(): PersistedSettings {
+  if (typeof localStorage === "undefined") {
+    return defaultSettings();
+  }
+
+  try {
+    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (!stored) {
+      return defaultSettings();
+    }
+
+    const parsed = JSON.parse(stored) as Partial<PersistedSettings>;
+    return {
+      drawCount:
+        parsed.drawCount === 1 || parsed.drawCount === 3
+          ? parsed.drawCount
+          : DEFAULT_SETTINGS.drawCount,
+      cardBackStyle:
+        parsed.cardBackStyle === "card-back-blue" ||
+        parsed.cardBackStyle === "card-back-red"
+          ? parsed.cardBackStyle
+          : DEFAULT_SETTINGS.cardBackStyle,
+      backgroundColor:
+        typeof parsed.backgroundColor === "string" && parsed.backgroundColor
+          ? parsed.backgroundColor
+          : DEFAULT_SETTINGS.backgroundColor,
+      debug: {
+        almostWin:
+          typeof parsed.debug?.almostWin === "boolean"
+            ? parsed.debug.almostWin
+            : DEFAULT_SETTINGS.debug.almostWin,
+      },
+    };
+  } catch (e) {
+    console.warn("Failed to load settings from localStorage:", e);
+    return defaultSettings();
+  }
 }
 
 /**
@@ -56,71 +121,44 @@ export class GameSettings {
   readonly debug: DebugSettings;
 
   constructor() {
-    let drawCount: DrawCount = 3;
-    let cardBackStyle: CardBackStyle = "card-back-blue";
-    let backgroundColor = DEFAULT_BACKGROUND_COLOR;
-    let almostWin = false;
+    const loaded = loadPersistedSettings();
 
-    if (typeof localStorage !== "undefined") {
-      try {
-        const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored) as PersistedSettings;
-          if (parsed.drawCount === 1 || parsed.drawCount === 3) {
-            drawCount = parsed.drawCount;
-          }
-          if (
-            parsed.cardBackStyle === "card-back-blue" ||
-            parsed.cardBackStyle === "card-back-red"
-          ) {
-            cardBackStyle = parsed.cardBackStyle;
-          }
-          if (parsed.backgroundColor) {
-            backgroundColor = parsed.backgroundColor;
-          }
-          if (typeof parsed.almostWin === "boolean") {
-            almostWin = parsed.almostWin;
-          }
-        }
-      } catch (e) {
-        console.warn("Failed to load settings from localStorage:", e);
-      }
-    }
-
-    this.drawCount$ = new BehaviorSubject<DrawCount>(drawCount);
-    this.cardBackStyle$ = new BehaviorSubject<CardBackStyle>(cardBackStyle);
-    this.backgroundColor$ = new BehaviorSubject<string>(backgroundColor);
-    this.debug = new DebugSettings(almostWin);
+    this.drawCount$ = new BehaviorSubject<DrawCount>(loaded.drawCount);
+    this.cardBackStyle$ = new BehaviorSubject<CardBackStyle>(
+      loaded.cardBackStyle,
+    );
+    this.backgroundColor$ = new BehaviorSubject<string>(loaded.backgroundColor);
+    this.debug = new DebugSettings(loaded.debug.almostWin);
 
     let initialized = false;
-    this.drawCount$.subscribe(() => {
-      if (initialized) this.saveToLocalStorage();
-    });
-    this.cardBackStyle$.subscribe(() => {
-      if (initialized) this.saveToLocalStorage();
-    });
-    this.backgroundColor$.subscribe(() => {
-      if (initialized) this.saveToLocalStorage();
-    });
-    this.debug.almostWin$.subscribe(() => {
+    merge(
+      this.drawCount$,
+      this.cardBackStyle$,
+      this.backgroundColor$,
+      this.debug.almostWin$,
+    ).subscribe(() => {
       if (initialized) this.saveToLocalStorage();
     });
     initialized = true;
   }
 
   private saveToLocalStorage(): void {
-    if (typeof localStorage !== "undefined") {
-      try {
-        const data: PersistedSettings = {
-          drawCount: this.drawCount,
-          cardBackStyle: this.cardBackStyle,
-          backgroundColor: this.backgroundColor,
+    if (typeof localStorage === "undefined") {
+      return;
+    }
+
+    try {
+      const data: PersistedSettings = {
+        drawCount: this.drawCount,
+        cardBackStyle: this.cardBackStyle,
+        backgroundColor: this.backgroundColor,
+        debug: {
           almostWin: this.debug.almostWin,
-        };
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-      } catch (e) {
-        console.warn("Failed to save settings to localStorage:", e);
-      }
+        },
+      };
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      console.warn("Failed to save settings to localStorage:", e);
     }
   }
 
