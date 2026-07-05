@@ -2,6 +2,8 @@ import type { BoardScene, PileVisual } from "../board_scene";
 import {
   CARD_WIDTH_PX,
   CARD_HEIGHT_PX,
+  DESIGN_WIDTH_PX,
+  DESIGN_HEIGHT_PX,
   LAYOUT_PADDING_X,
   LAYOUT_PADDING_Y,
   LAYOUT_GAP_X,
@@ -27,13 +29,11 @@ export class BoardLayoutManager {
     if (!this.boardScene.scale) {
       return 1.0;
     }
-    const originalWidth = 1807;
-    const originalHeight = 950;
-    const screenWidth = this.boardScene.scale.width || originalWidth;
-    const screenHeight = this.boardScene.scale.height || originalHeight;
+    const screenWidth = this.boardScene.scale.width || DESIGN_WIDTH_PX;
+    const screenHeight = this.boardScene.scale.height || DESIGN_HEIGHT_PX;
 
-    const scaleX = screenWidth / originalWidth;
-    const scaleY = screenHeight / originalHeight;
+    const scaleX = screenWidth / DESIGN_WIDTH_PX;
+    const scaleY = screenHeight / DESIGN_HEIGHT_PX;
     let scale = Math.min(scaleX, scaleY);
     if (scale > 1.0) scale = 1.0;
     if (scale <= 0) scale = 1.0;
@@ -59,7 +59,7 @@ export class BoardLayoutManager {
     const totalLayoutWidth = 7 * cardWidth + 6 * gapX;
     const screenWidth = this.boardScene.scale
       ? this.boardScene.scale.width
-      : 1807;
+      : DESIGN_WIDTH_PX;
     const paddingX = Math.max(
       LAYOUT_PADDING_X * scale,
       (screenWidth - totalLayoutWidth) / 2,
