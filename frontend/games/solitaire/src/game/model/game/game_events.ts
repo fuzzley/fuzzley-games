@@ -32,4 +32,7 @@ export type GameEvents = {
   "card-back-changed": {
     cardBackStyle: CardBackStyle;
   };
+
+  /** Emitted when the game is restarted or new game is dealt. */
+  "game-reset": undefined;
 };

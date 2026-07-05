@@ -92,6 +92,26 @@ describe("SolitaireGame", () => {
         true,
       );
     });
+
+    it("emits a game-reset event", () => {
+      const callback = vi.fn();
+      game.on("game-reset", callback);
+      game.startNewGame();
+      expect(callback).toHaveBeenCalled();
+    });
+
+    it("reuses the same PlayingCard instances across restarts", () => {
+      game.startNewGame();
+      const firstGameCards = Array.from(game.tableaus[0].getCards());
+      expect(firstGameCards.length).toBe(1);
+      const cardRef = firstGameCards[0];
+      const cardId = cardRef.id;
+
+      // Start new game again
+      game.startNewGame();
+      const newCardRef = game.getCardById(cardId);
+      expect(newCardRef).toBe(cardRef);
+    });
   });
 
   describe("drawCardsFromStock", () => {

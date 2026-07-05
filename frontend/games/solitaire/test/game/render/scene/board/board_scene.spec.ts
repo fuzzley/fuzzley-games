@@ -265,6 +265,29 @@ describe("BoardScene", () => {
     });
   });
 
+  describe("game reset", () => {
+    it("resets hovered states and updates layout on game-reset", () => {
+      const mockCardVisual = boardScene.tableauPiles[0].playingCardVisuals[0];
+      boardScene["inputManager"].hoveredCardVisual = mockCardVisual;
+      boardScene["inputManager"].isStockBackgroundHovered = true;
+      boardScene["inputManager"].draggedStack = [mockCardVisual];
+
+      const syncSpy = vi.spyOn(boardScene as any, "syncVisualPilesWithModel");
+      const layoutInitialSpy = vi.spyOn(boardScene.getLayoutManager(), "createInitialLayout");
+      const layoutUpdateSpy = vi.spyOn(boardScene.getLayoutManager(), "updateVisualLayout");
+
+      boardScene.gameModel.emit("game-reset", undefined);
+
+      expect(boardScene["inputManager"].hoveredCardVisual).toBeNull();
+      expect(boardScene["inputManager"].isStockBackgroundHovered).toBe(false);
+      expect(boardScene["inputManager"].draggedStack).toEqual([]);
+
+      expect(syncSpy).toHaveBeenCalled();
+      expect(layoutInitialSpy).toHaveBeenCalled();
+      expect(layoutUpdateSpy).toHaveBeenCalled();
+    });
+  });
+
   describe("creation errors and helpers", () => {
     it("throws when a card model is missing while creating visuals", () => {
       resetGameModel();
