@@ -62,6 +62,59 @@ export interface PlayingCardId {
   type: Type;
 }
 
+/**
+ * Produces the canonical string identity for a card, e.g. `card-hearts-queen`.
+ *
+ * This is the single source of truth for card id strings: the logical model
+ * uses it to name cards, and the render layer reuses it to resolve texture
+ * atlas frames, so the two can never drift apart.
+ *
+ * @param cardId The suit and type of the card.
+ * @returns The canonical `card-<suit>-<type>` identity string.
+ */
+export function playingCardIdToString(cardId: PlayingCardId): string {
+  return `card-${suitToString(cardId.suit)}-${typeToString(cardId.type)}`;
+}
+
+const SUIT_STRINGS: Record<Suit, string> = {
+  [Suit.SPADE]: "spades",
+  [Suit.HEART]: "hearts",
+  [Suit.DIAMOND]: "diamonds",
+  [Suit.CLUB]: "clubs",
+};
+
+const TYPE_STRINGS: Record<Type, string> = {
+  [Type.ACE]: "ace",
+  [Type.TWO]: "2",
+  [Type.THREE]: "3",
+  [Type.FOUR]: "4",
+  [Type.FIVE]: "5",
+  [Type.SIX]: "6",
+  [Type.SEVEN]: "7",
+  [Type.EIGHT]: "8",
+  [Type.NINE]: "9",
+  [Type.TEN]: "10",
+  [Type.JACK]: "jack",
+  [Type.QUEEN]: "queen",
+  [Type.KING]: "king",
+};
+
+function suitToString(suit: Suit): string {
+  const value = SUIT_STRINGS[suit];
+  if (value === undefined) {
+    throw new Error(`Unknown Suit: ${String(suit)}`);
+  }
+  return value;
+}
+
+function typeToString(type: Type): string {
+  const value = TYPE_STRINGS[type];
+  if (value === undefined) {
+    throw new Error(`Unknown Type: ${String(type)}`);
+  }
+  return value;
+}
+
 // Spades
 /** Card identity constant for the Spade Ace. */
 export const SPADE_ACE_ID: PlayingCardId = {

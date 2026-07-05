@@ -10,6 +10,7 @@ import {
   Suit,
   Type,
   ALL_PLAYING_CARD_IDS,
+  playingCardIdToString,
 } from "../card/playing_card";
 
 /**
@@ -174,8 +175,8 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       playingCard.type = cardId.type;
       playingCard.faceUp = false;
 
-      // Unique ID format: card-suitName-typeName matching Phaser sheet frames
-      playingCard.id = this.generateCardId(playingCard);
+      // The card id doubles as the atlas frame name (see playingCardIdToString).
+      playingCard.id = playingCardIdToString(cardId);
       tempDeck.addCard(playingCard);
       this.allCardsMap.set(playingCard.id, playingCard);
     }
@@ -516,32 +517,6 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     if (totalFoundationCards === 52) {
       this.emit("game-won", undefined);
     }
-  }
-
-  private generateCardId(card: PlayingCard): string {
-    const suitNames = {
-      [Suit.SPADE]: "spades",
-      [Suit.HEART]: "hearts",
-      [Suit.DIAMOND]: "diamonds",
-      [Suit.CLUB]: "clubs",
-    };
-    const typeNames = {
-      [Type.ACE]: "ace",
-      [Type.TWO]: "2",
-      [Type.THREE]: "3",
-      [Type.FOUR]: "4",
-      [Type.FIVE]: "5",
-      [Type.SIX]: "6",
-      [Type.SEVEN]: "7",
-      [Type.EIGHT]: "8",
-      [Type.NINE]: "9",
-      [Type.TEN]: "10",
-      [Type.JACK]: "jack",
-      [Type.QUEEN]: "queen",
-      [Type.KING]: "king",
-    };
-
-    return `card-${suitNames[card.suite]}-${typeNames[card.type]}`;
   }
 
   private isRed(card: PlayingCard): boolean {
