@@ -114,6 +114,47 @@ describe("SolitaireGame", () => {
     });
   });
 
+  describe("restartGame", () => {
+    it("resets score, moves, and piles to the exact same initial state", () => {
+      game.startNewGame();
+      const initialStockIds = game.stock.getCards().map((c) => c.id);
+      const initialTableauIds = game.tableaus.map((t) =>
+        t.getCards().map((c) => c.id),
+      );
+      const initialTableauFaceUp = game.tableaus.map((t) =>
+        t.getCards().map((c) => c.faceUp),
+      );
+
+      // Make a move/draw
+      game.drawCardsFromStock();
+      expect(game.state.moves).toBe(1);
+      expect(game.stock.getCards().length).not.toBe(24);
+
+      // Restart game
+      game.restartGame();
+
+      expect(game.state.moves).toBe(0);
+      expect(game.state.score).toBe(0);
+      expect(game.stock.getCards().map((c) => c.id)).toEqual(initialStockIds);
+      expect(game.stock.getCards().every((c) => !c.faceUp)).toBe(true);
+      expect(game.tableaus.map((t) => t.getCards().map((c) => c.id))).toEqual(
+        initialTableauIds,
+      );
+      expect(
+        game.tableaus.map((t) => t.getCards().map((c) => c.faceUp)),
+      ).toEqual(initialTableauFaceUp);
+      expect(game.waste.getCards()).toEqual([]);
+    });
+
+    it("emits a game-reset event", () => {
+      game.startNewGame();
+      const callback = vi.fn();
+      game.on("game-reset", callback);
+      game.restartGame();
+      expect(callback).toHaveBeenCalled();
+    });
+  });
+
   describe("drawCardsFromStock", () => {
     it("moves three cards to the waste in draw order", () => {
       game.startNewGame();
