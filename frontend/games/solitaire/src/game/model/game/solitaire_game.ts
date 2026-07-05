@@ -2,7 +2,7 @@ import { EventEmitter } from "../common/event_emitter";
 import { GameEvents } from "./game_events";
 import { GameSettings, CardBackStyle, DrawCount } from "./game_settings";
 import { GameState } from "./game_state";
-import { CardPile } from "../card/card_pile";
+import { CardPile, PileType } from "../card/card_pile";
 import { Deck } from "../card/deck";
 import {
   PlayingCard,
@@ -20,9 +20,9 @@ import {
  */
 export class SolitaireGame extends EventEmitter<GameEvents> {
   /** The face-down stock pile from which cards are drawn. */
-  public readonly stock = new CardPile<PlayingCard>("stock");
+  public readonly stock = new CardPile<PlayingCard>("stock", PileType.STOCK);
   /** The face-up waste pile containing drawn cards. */
-  public readonly waste = new CardPile<PlayingCard>("waste");
+  public readonly waste = new CardPile<PlayingCard>("waste", PileType.WASTE);
   /** The four suit foundation piles (Hearts, Diamonds, Clubs, Spades). */
   public readonly foundations: CardPile<PlayingCard>[] = [];
   /** The seven tableau piles arranged on the board. */
@@ -74,13 +74,16 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     this.pilesMap.set(this.waste.id, this.waste);
 
     for (let i = 0; i < 4; i++) {
-      const pile = new CardPile<PlayingCard>(`foundation-${i}`);
+      const pile = new CardPile<PlayingCard>(
+        `foundation-${i}`,
+        PileType.FOUNDATION,
+      );
       this.foundations.push(pile);
       this.pilesMap.set(pile.id, pile);
     }
 
     for (let i = 0; i < 7; i++) {
-      const pile = new CardPile<PlayingCard>(`tableau-${i}`);
+      const pile = new CardPile<PlayingCard>(`tableau-${i}`, PileType.TABLEAU);
       this.tableaus.push(pile);
       this.pilesMap.set(pile.id, pile);
     }
@@ -342,21 +345,24 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
 
     // Scoring changes before executing the move
     let scoreChange = 0;
-    if (sourcePile.id === "waste" && targetPile.id.startsWith("tableau-")) {
+    if (
+      sourcePile.type === PileType.WASTE &&
+      targetPile.type === PileType.TABLEAU
+    ) {
       scoreChange = 5;
     } else if (
-      sourcePile.id === "waste" &&
-      targetPile.id.startsWith("foundation-")
+      sourcePile.type === PileType.WASTE &&
+      targetPile.type === PileType.FOUNDATION
     ) {
       scoreChange = 10;
     } else if (
-      sourcePile.id.startsWith("tableau-") &&
-      targetPile.id.startsWith("foundation-")
+      sourcePile.type === PileType.TABLEAU &&
+      targetPile.type === PileType.FOUNDATION
     ) {
       scoreChange = 10;
     } else if (
-      sourcePile.id.startsWith("foundation-") &&
-      targetPile.id.startsWith("tableau-")
+      sourcePile.type === PileType.FOUNDATION &&
+      targetPile.type === PileType.TABLEAU
     ) {
       scoreChange = -15;
     }
@@ -376,7 +382,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
 
     // Auto-flip the new top card of the source pile if it's a tableau pile and face-down
     if (
-      sourcePile.id.startsWith("tableau-") &&
+      sourcePile.type === PileType.TABLEAU &&
       sourcePile.getCards().length > 0
     ) {
       const remainingCards = sourcePile.getCards();
@@ -409,7 +415,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       return false;
     }
 
-    if (pile.id.startsWith("tableau-")) {
+    if (pile.type === PileType.TABLEAU) {
       // Any face-up card in a tableau is interactable.
       return card.faceUp;
     }
@@ -428,7 +434,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    */
   public isCardDraggable(card: PlayingCard): boolean {
     const pile = this.getPileContainingCard(card.id);
-    if (!pile || pile.id === "stock") {
+    if (!pile || pile.type === PileType.STOCK) {
       return false;
     }
     return this.isCardInteractable(card);
@@ -444,7 +450,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       targetCards.length > 0 ? targetCards[targetCards.length - 1] : null;
 
     // Moving to Tableau Pile
-    if (targetPile.id.startsWith("tableau-")) {
+    if (targetPile.type === PileType.TABLEAU) {
       if (!topTargetCard) {
         // Only Kings can be placed on empty tableaus
         return card.type === Type.KING;
@@ -457,7 +463,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     }
 
     // Moving to Foundation Pile
-    if (targetPile.id.startsWith("foundation-")) {
+    if (targetPile.type === PileType.FOUNDATION) {
       // You can only move one card at a time to foundations
       if (movingStackSize > 1) {
         return false;

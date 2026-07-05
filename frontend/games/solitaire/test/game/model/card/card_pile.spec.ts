@@ -1,4 +1,4 @@
-import { CardPile } from "@/game/model/card/card_pile";
+import { CardPile, PileType } from "@/game/model/card/card_pile";
 import { makeCard } from "@test/support/card_builder";
 
 describe("CardPile", () => {
@@ -6,6 +6,12 @@ describe("CardPile", () => {
     const pile = new CardPile("test-pile");
 
     expect(pile.id).toBe("test-pile");
+  });
+
+  it("exposes the pile type it was constructed with", () => {
+    const pile = new CardPile("foundation-0", PileType.FOUNDATION);
+
+    expect(pile.type).toBe(PileType.FOUNDATION);
   });
 
   it("starts empty", () => {
