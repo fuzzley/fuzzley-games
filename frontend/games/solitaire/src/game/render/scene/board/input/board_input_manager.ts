@@ -2,6 +2,7 @@ import * as Phaser from "phaser";
 import type { BoardScene, PileVisual } from "../board_scene";
 import type { PlayingCardVisual } from "@/game/render/visual/card/playing_card_visual";
 import { TableauPileVisual } from "@/game/render/visual/pile/tableau_pile_visual";
+import { PileType } from "@/game/model/card/card_pile";
 import {
   CARD_WIDTH_PX,
   CARD_HEIGHT_PX,
@@ -83,7 +84,7 @@ export class BoardInputManager {
         throw new Error(`Card ${visual.playingCard.id} is not in a pile`);
       }
 
-      if (pile.id === "stock") {
+      if (pile.type === PileType.STOCK) {
         const cards = pile.getCards();
         if (
           cards.length > 0 &&
