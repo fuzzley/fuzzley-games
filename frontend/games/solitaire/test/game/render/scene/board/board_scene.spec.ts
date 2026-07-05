@@ -141,11 +141,11 @@ describe("BoardScene", () => {
     it("re-lays out the board when the viewport is resized", () => {
       const scale = boardScene.scale as unknown as MockScaleManager;
       scale.width = 903.5;
-      scale.height = 475;
+      scale.height = 512;
 
       scale.emit("resize");
 
-      expect(boardScene.stockPile.position).toEqual({ x: 20, y: 20 });
+      expect(boardScene.stockPile.position).toEqual({ x: 20, y: 93 });
     });
   });
 

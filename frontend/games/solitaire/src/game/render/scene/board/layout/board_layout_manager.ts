@@ -8,6 +8,7 @@ import {
   LAYOUT_PADDING_Y,
   LAYOUT_GAP_X,
   LAYOUT_GAP_Y,
+  HEADER_HEIGHT_PX,
 } from "./board_layout_constants";
 
 /**
@@ -30,10 +31,12 @@ export class BoardLayoutManager {
       return 1.0;
     }
     const screenWidth = this.boardScene.scale.width || DESIGN_WIDTH_PX;
-    const screenHeight = this.boardScene.scale.height || DESIGN_HEIGHT_PX;
+    // Account for header height reducing the available vertical height
+    const screenHeight =
+      (this.boardScene.scale.height || DESIGN_HEIGHT_PX) - HEADER_HEIGHT_PX;
 
     const scaleX = screenWidth / DESIGN_WIDTH_PX;
-    const scaleY = screenHeight / DESIGN_HEIGHT_PX;
+    const scaleY = screenHeight / (DESIGN_HEIGHT_PX - HEADER_HEIGHT_PX);
     let scale = Math.min(scaleX, scaleY);
     if (scale > 1.0) scale = 1.0;
     if (scale <= 0) scale = 1.0;
@@ -71,8 +74,9 @@ export class BoardLayoutManager {
       return paddingX + colIndex * (cardWidth + gapX);
     };
 
-    const topRowY = paddingY;
-    const bottomRowY = paddingY + cardHeight + gapY;
+    // Offset all Y positions by the header overlay height
+    const topRowY = HEADER_HEIGHT_PX + paddingY;
+    const bottomRowY = HEADER_HEIGHT_PX + paddingY + cardHeight + gapY;
 
     // 1. Stock Pile (Column 0, Top Row)
     this.boardScene.stockPile.position = { x: getColumnX(0), y: topRowY };
