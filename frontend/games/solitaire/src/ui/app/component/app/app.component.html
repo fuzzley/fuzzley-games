@@ -1,0 +1,6 @@
+<div class="ui-overlay" [class]="theme.currentBgClass()">
+  <app-header-bar (openSettings)="showSettings = true" />
+  <app-settings-drawer [open]="showSettings" (close)="showSettings = false" />
+  <app-victory-overlay />
+  <app-confirmation-dialog />
+</div>

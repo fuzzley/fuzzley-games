@@ -1,0 +1,68 @@
+import { vi } from "vitest";
+import { BehaviorSubject } from "rxjs";
+import type { SolitaireGame } from "@/game/model/game/solitaire_game";
+
+export interface MockGameModelOverrides {
+  score?: number;
+  moves?: number;
+  drawCount?: 1 | 3;
+  cardBackStyle?: "card-back-blue" | "card-back-red";
+  backgroundColor?: string;
+}
+
+/**
+ * Builds a mock SolitaireGame with observable state/settings matching the real
+ * API, for overriding the GAME_MODEL token in UI-layer specs.
+ */
+export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
+  return {
+    state: {
+      score$: new BehaviorSubject<number>(overrides.score ?? 0),
+      moves$: new BehaviorSubject<number>(overrides.moves ?? 0),
+      get score() {
+        return this.score$.value;
+      },
+      set score(v: number) {
+        this.score$.next(v);
+      },
+      get moves() {
+        return this.moves$.value;
+      },
+      set moves(v: number) {
+        this.moves$.next(v);
+      },
+    },
+    settings: {
+      drawCount$: new BehaviorSubject<1 | 3>(overrides.drawCount ?? 3),
+      cardBackStyle$: new BehaviorSubject<"card-back-blue" | "card-back-red">(
+        overrides.cardBackStyle ?? "card-back-blue",
+      ),
+      backgroundColor$: new BehaviorSubject<string | undefined>(
+        overrides.backgroundColor,
+      ),
+      get drawCount() {
+        return this.drawCount$.value;
+      },
+      get cardBackStyle() {
+        return this.cardBackStyle$.value;
+      },
+      get backgroundColor() {
+        return this.backgroundColor$.value;
+      },
+    },
+    on: vi.fn(),
+    off: vi.fn(),
+    startNewGame: vi.fn(),
+    restartGame: vi.fn(),
+    setDrawCount: vi.fn(),
+    setCardBackStyle: vi.fn(),
+    setBackgroundColor: vi.fn(),
+  };
+}
+
+export type MockGameModel = ReturnType<typeof createMockGameModel>;
+
+/** Casts the mock to the SolitaireGame type expected by the GAME_MODEL token. */
+export function asGameModel(mock: MockGameModel): SolitaireGame {
+  return mock as unknown as SolitaireGame;
+}
