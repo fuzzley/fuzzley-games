@@ -1,6 +1,7 @@
 import { Component, inject, input, output } from "@angular/core";
 import { GameSessionService } from "../../service/game_session.service";
 import { ThemeService } from "../../service/theme.service";
+import { DebugPanelComponent } from "../debug_panel/debug_panel.component";
 
 /**
  * Controls the settings side drawer overlay.
@@ -10,12 +11,16 @@ import { ThemeService } from "../../service/theme.service";
 @Component({
   selector: "app-settings-drawer",
   standalone: true,
+  imports: [DebugPanelComponent],
   templateUrl: "./settings_drawer.component.html",
   styleUrl: "./settings_drawer.component.css",
 })
 export class SettingsDrawerComponent {
   protected readonly session = inject(GameSessionService);
   protected readonly themeService = inject(ThemeService);
+
+  /** Exposes build mode configuration to conditional UI rendering. */
+  protected readonly isDevMode = import.meta.env.DEV;
 
   /** Whether the side settings drawer is visible. */
   readonly open = input<boolean>(false);

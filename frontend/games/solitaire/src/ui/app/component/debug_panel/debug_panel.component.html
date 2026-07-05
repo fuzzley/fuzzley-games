@@ -1,0 +1,26 @@
+<div class="debug-panel">
+  <label class="setting-label debug-label">Debug Options</label>
+  <div class="setting-group">
+    <label class="setting-sublabel">Almost Win Mode</label>
+    <div class="segmented-control">
+      <button
+        [class.active]="!session.almostWin()"
+        (click)="toggleAlmostWin(false)"
+        class="segment-btn"
+      >
+        Normal
+      </button>
+      <button
+        [class.active]="session.almostWin()"
+        (click)="toggleAlmostWin(true)"
+        class="segment-btn"
+      >
+        Almost Win
+      </button>
+    </div>
+    <p class="setting-desc">
+      Pre-populates foundations so that dragging the remaining Kings will win
+      the game.
+    </p>
+  </div>
+</div>

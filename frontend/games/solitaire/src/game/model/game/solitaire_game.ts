@@ -85,6 +85,12 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     }
   }
 
+  public setAlmostWin(enabled: boolean): void {
+    if (this.settings.debug.almostWin !== enabled) {
+      this.settings.debug.almostWin$.next(enabled);
+    }
+  }
+
   /** Initializes all card piles and registers them in the lookup map. */
   private initializePiles(): void {
     this.pilesMap.set(this.stock.id, this.stock);
@@ -162,10 +168,14 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     this.state.moves = 0;
     this.recycleCount = 0;
     this.resetPiles();
-    const deckCards = this.createAndShuffleDeck();
-    this.initialDeck = [...deckCards];
-    this.dealTableaus(deckCards);
-    this.populateStock(deckCards);
+    if (this.settings.debug.almostWin) {
+      this.dealAlmostWinGame();
+    } else {
+      const deckCards = this.createAndShuffleDeck();
+      this.initialDeck = [...deckCards];
+      this.dealTableaus(deckCards);
+      this.populateStock(deckCards);
+    }
     this.emit("game-reset", undefined);
   }
 
@@ -177,16 +187,20 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     this.state.moves = 0;
     this.recycleCount = 0;
     this.resetPiles();
-    if (this.initialDeck.length === 0) {
-      const deckCards = this.createAndShuffleDeck();
-      this.initialDeck = [...deckCards];
+    if (this.settings.debug.almostWin) {
+      this.dealAlmostWinGame();
+    } else {
+      if (this.initialDeck.length === 0) {
+        const deckCards = this.createAndShuffleDeck();
+        this.initialDeck = [...deckCards];
+      }
+      const deckCards = [...this.initialDeck];
+      for (const card of deckCards) {
+        card.faceUp = false;
+      }
+      this.dealTableaus(deckCards);
+      this.populateStock(deckCards);
     }
-    const deckCards = [...this.initialDeck];
-    for (const card of deckCards) {
-      card.faceUp = false;
-    }
-    this.dealTableaus(deckCards);
-    this.populateStock(deckCards);
     this.emit("game-reset", undefined);
   }
 
@@ -265,6 +279,78 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       if (card) {
         card.faceUp = false;
         this.stock.addCard(card);
+      }
+    }
+  }
+
+  /**
+   * Pre-populates the board into an almost won state for verification.
+   *
+   * Aces through Queens of each suit are loaded directly onto foundations,
+   * while the 4 Kings are placed face-up on tableaus 0-3.
+   */
+  private dealAlmostWinGame(): void {
+    // Ensure all cards are registered in allCardsMap and start face-down
+    for (const cardId of this.cardIds) {
+      const cardIdStr = playingCardIdToString(cardId);
+      let playingCard = this.allCardsMap.get(cardIdStr);
+      if (!playingCard) {
+        playingCard = new PlayingCard();
+        playingCard.suit = cardId.suit;
+        playingCard.type = cardId.type;
+        playingCard.id = cardIdStr;
+        this.allCardsMap.set(playingCard.id, playingCard);
+      }
+      playingCard.faceUp = false;
+    }
+
+    // Put Ace through Queen of each suit on foundations
+    const suits = [Suit.SPADE, Suit.HEART, Suit.DIAMOND, Suit.CLUB];
+    const types = [
+      Type.ACE,
+      Type.TWO,
+      Type.THREE,
+      Type.FOUR,
+      Type.FIVE,
+      Type.SIX,
+      Type.SEVEN,
+      Type.EIGHT,
+      Type.NINE,
+      Type.TEN,
+      Type.JACK,
+      Type.QUEEN,
+    ];
+
+    for (let s = 0; s < suits.length; s++) {
+      const suit = suits[s];
+      const foundation = this.foundations[s];
+      for (const type of types) {
+        const cardIdStr = playingCardIdToString({ suit, type });
+        const card = this.getCardById(cardIdStr);
+        if (card) {
+          card.faceUp = true;
+          foundation.addCard(card);
+        }
+      }
+    }
+
+    // Put Kings of each suit on tableaus 0 to 3
+    const kings = [
+      { suit: Suit.SPADE, tableauIndex: 0 },
+      { suit: Suit.HEART, tableauIndex: 1 },
+      { suit: Suit.DIAMOND, tableauIndex: 2 },
+      { suit: Suit.CLUB, tableauIndex: 3 },
+    ];
+
+    for (const item of kings) {
+      const cardIdStr = playingCardIdToString({
+        suit: item.suit,
+        type: Type.KING,
+      });
+      const card = this.getCardById(cardIdStr);
+      if (card) {
+        card.faceUp = true;
+        this.tableaus[item.tableauIndex].addCard(card);
       }
     }
   }

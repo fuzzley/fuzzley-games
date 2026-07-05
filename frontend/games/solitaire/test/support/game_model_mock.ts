@@ -8,6 +8,7 @@ export interface MockGameModelOverrides {
   drawCount?: 1 | 3;
   cardBackStyle?: "card-back-blue" | "card-back-red";
   backgroundColor?: string;
+  almostWin?: boolean;
 }
 
 /**
@@ -40,6 +41,12 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
       backgroundColor$: new BehaviorSubject<string | undefined>(
         overrides.backgroundColor,
       ),
+      debug: {
+        almostWin$: new BehaviorSubject<boolean>(overrides.almostWin ?? false),
+        get almostWin() {
+          return this.almostWin$.value;
+        },
+      },
       get drawCount() {
         return this.drawCount$.value;
       },
@@ -57,6 +64,7 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
     setDrawCount: vi.fn(),
     setCardBackStyle: vi.fn(),
     setBackgroundColor: vi.fn(),
+    setAlmostWin: vi.fn(),
   };
 }
 
