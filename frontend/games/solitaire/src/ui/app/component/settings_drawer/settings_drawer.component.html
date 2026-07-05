@@ -87,6 +87,11 @@
           Theme: {{ themeService.themes[themeService.selectedTheme()].name }}
         </p>
       </div>
+
+      <!-- Debug Settings (Dev Mode Only) -->
+      @if (isDevMode) {
+        <app-debug-panel />
+      }
     </div>
 
     <div class="drawer-footer">

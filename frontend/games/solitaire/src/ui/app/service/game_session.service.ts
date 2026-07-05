@@ -26,6 +26,9 @@ export class GameSessionService {
   readonly cardBack = toSignal(this.gameModel.settings.cardBackStyle$, {
     initialValue: "card-back-blue" as const,
   });
+  readonly almostWin = toSignal(this.gameModel.settings.debug.almostWin$, {
+    initialValue: false,
+  });
 
   readonly isGameWon = signal(false);
   readonly timerText = this.timer.timerText;
@@ -84,6 +87,12 @@ export class GameSessionService {
 
   setCardBack(style: "card-back-blue" | "card-back-red"): void {
     this.gameModel.setCardBackStyle(style);
+  }
+
+  setAlmostWin(enabled: boolean): void {
+    this.gameModel.setAlmostWin(enabled);
+    this.gameModel.startNewGame();
+    this.startFreshSession();
   }
 
   /** Resets the won flag and stopwatch for a freshly (re)started game. */

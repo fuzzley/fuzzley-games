@@ -15,6 +15,24 @@ interface PersistedSettings {
   drawCount?: DrawCount;
   cardBackStyle?: CardBackStyle;
   backgroundColor?: string;
+  almostWin?: boolean;
+}
+
+/**
+ * Developer/Debug only settings grouped separately.
+ */
+export class DebugSettings {
+  /** Hidden setting to place the board state into an almost win state. */
+  readonly almostWin$: BehaviorSubject<boolean>;
+
+  constructor(almostWin = false) {
+    this.almostWin$ = new BehaviorSubject<boolean>(almostWin);
+  }
+
+  /** Current almost-win setting value. */
+  get almostWin(): boolean {
+    return this.almostWin$.value;
+  }
 }
 
 /**
@@ -34,10 +52,14 @@ export class GameSettings {
   /** The board background color, as a CSS/Phaser color string. */
   readonly backgroundColor$: BehaviorSubject<string>;
 
+  /** Nested developer/debug settings. */
+  readonly debug: DebugSettings;
+
   constructor() {
     let drawCount: DrawCount = 3;
     let cardBackStyle: CardBackStyle = "card-back-blue";
     let backgroundColor = DEFAULT_BACKGROUND_COLOR;
+    let almostWin = false;
 
     if (typeof localStorage !== "undefined") {
       try {
@@ -56,6 +78,9 @@ export class GameSettings {
           if (parsed.backgroundColor) {
             backgroundColor = parsed.backgroundColor;
           }
+          if (typeof parsed.almostWin === "boolean") {
+            almostWin = parsed.almostWin;
+          }
         }
       } catch (e) {
         console.warn("Failed to load settings from localStorage:", e);
@@ -65,6 +90,7 @@ export class GameSettings {
     this.drawCount$ = new BehaviorSubject<DrawCount>(drawCount);
     this.cardBackStyle$ = new BehaviorSubject<CardBackStyle>(cardBackStyle);
     this.backgroundColor$ = new BehaviorSubject<string>(backgroundColor);
+    this.debug = new DebugSettings(almostWin);
 
     let initialized = false;
     this.drawCount$.subscribe(() => {
@@ -74,6 +100,9 @@ export class GameSettings {
       if (initialized) this.saveToLocalStorage();
     });
     this.backgroundColor$.subscribe(() => {
+      if (initialized) this.saveToLocalStorage();
+    });
+    this.debug.almostWin$.subscribe(() => {
       if (initialized) this.saveToLocalStorage();
     });
     initialized = true;
@@ -86,6 +115,7 @@ export class GameSettings {
           drawCount: this.drawCount,
           cardBackStyle: this.cardBackStyle,
           backgroundColor: this.backgroundColor,
+          almostWin: this.debug.almostWin,
         };
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
       } catch (e) {

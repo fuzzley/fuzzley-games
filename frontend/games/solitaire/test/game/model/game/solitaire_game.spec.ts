@@ -662,5 +662,70 @@ describe("SolitaireGame", () => {
       expect(cardBacks).toContain("card-back-red");
       expect(cardBackEvents).toEqual([{ cardBackStyle: "card-back-red" }]);
     });
+
+    it("publishes the new almostWin value when setAlmostWin is called", () => {
+      const almostWins: boolean[] = [];
+      game.settings.debug.almostWin$.subscribe((v) => almostWins.push(v));
+
+      game.setAlmostWin(true);
+
+      expect(game.settings.debug.almostWin).toBe(true);
+      expect(almostWins).toContain(true);
+    });
+
+    it("deals an almost-win board layout when almostWin is true", () => {
+      game.setAlmostWin(true);
+      game.startNewGame();
+
+      // Check foundations are filled with 12 cards each (A to Q)
+      expect(game.foundations[0].getCards().length).toBe(12);
+      expect(game.foundations[1].getCards().length).toBe(12);
+      expect(game.foundations[2].getCards().length).toBe(12);
+      expect(game.foundations[3].getCards().length).toBe(12);
+
+      // Check foundations are face-up
+      expect(
+        game.foundations.every((f) => f.getCards().every((c) => c.faceUp)),
+      ).toBe(true);
+
+      // Check tableaus 0-3 contain exactly 1 card (the King)
+      expect(game.tableaus[0].getCards().length).toBe(1);
+      expect(game.tableaus[1].getCards().length).toBe(1);
+      expect(game.tableaus[2].getCards().length).toBe(1);
+      expect(game.tableaus[3].getCards().length).toBe(1);
+
+      // Check tableaus 4-6 are empty
+      expect(game.tableaus[4].getCards().length).toBe(0);
+      expect(game.tableaus[5].getCards().length).toBe(0);
+      expect(game.tableaus[6].getCards().length).toBe(0);
+
+      // Check stock and waste are empty
+      expect(game.stock.getCards().length).toBe(0);
+      expect(game.waste.getCards().length).toBe(0);
+
+      // Check that moving one King to foundation works
+      const kingSpade = game.tableaus[0].getCards()[0];
+      const moved = game.moveCardToPile(kingSpade.id, game.foundations[0].id);
+      expect(moved).toBe(true);
+
+      // Move other Kings
+      game.moveCardToPile(
+        game.tableaus[1].getCards()[0].id,
+        game.foundations[1].id,
+      );
+      game.moveCardToPile(
+        game.tableaus[2].getCards()[0].id,
+        game.foundations[2].id,
+      );
+
+      const winEvents: any[] = [];
+      game.on("game-won", () => winEvents.push(true));
+
+      game.moveCardToPile(
+        game.tableaus[3].getCards()[0].id,
+        game.foundations[3].id,
+      );
+      expect(winEvents.length).toBe(1);
+    });
   });
 });
