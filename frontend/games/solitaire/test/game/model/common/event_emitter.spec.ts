@@ -76,4 +76,16 @@ describe("EventEmitter", () => {
 
     expect(() => emitter.triggerTest("silent")).not.toThrow();
   });
+
+  it("does not notify a listener that subscribes during an in-progress emit", () => {
+    const emitter = new TestEmitter();
+    let lateCalls = 0;
+    emitter.on("test-event", () => {
+      emitter.on("test-event", () => lateCalls++);
+    });
+
+    emitter.triggerTest("first");
+
+    expect(lateCalls).toBe(0);
+  });
 });
