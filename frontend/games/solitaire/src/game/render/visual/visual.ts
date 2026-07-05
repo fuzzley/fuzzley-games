@@ -10,7 +10,7 @@ import { Point } from "../../common/point";
  */
 export class Visual<T = unknown> {
   private _position: Point = { x: 0, y: 0 };
-  private _sprite: GameObjects.Sprite;
+  private _sprite: GameObjects.Sprite | undefined;
 
   /**
    * Constructs a visual wrapper for a logical model.
@@ -38,11 +38,14 @@ export class Visual<T = unknown> {
   }
 
   /**
-   * Gets the associated Phaser Sprite game object.
+   * Gets the associated Phaser Sprite game object, if one has been assigned.
    *
-   * @returns The Phaser Sprite instance.
+   * Not every visual has a sprite (e.g. the waste pile has no background),
+   * so callers must handle the undefined case.
+   *
+   * @returns The Phaser Sprite instance, or undefined if none is set.
    */
-  get sprite(): GameObjects.Sprite {
+  get sprite(): GameObjects.Sprite | undefined {
     return this._sprite;
   }
 
@@ -51,7 +54,7 @@ export class Visual<T = unknown> {
    *
    * @param value The new Phaser Sprite instance.
    */
-  set sprite(value: GameObjects.Sprite) {
+  set sprite(value: GameObjects.Sprite | undefined) {
     this._sprite = value;
   }
 }

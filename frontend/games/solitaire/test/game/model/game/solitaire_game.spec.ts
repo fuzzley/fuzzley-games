@@ -1,4 +1,5 @@
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
+import { PileType } from "@/game/model/card/card_pile";
 import { makePlayingCard } from "@test/support/card_builder";
 import {
   almostWon,
@@ -23,6 +24,17 @@ describe("SolitaireGame", () => {
     it("creates four foundation piles and seven tableau piles", () => {
       expect(game.foundations.length).toBe(4);
       expect(game.tableaus.length).toBe(7);
+    });
+
+    it("assigns each pile its Klondike role type", () => {
+      expect(game.stock.type).toBe(PileType.STOCK);
+      expect(game.waste.type).toBe(PileType.WASTE);
+      expect(
+        game.foundations.every((p) => p.type === PileType.FOUNDATION),
+      ).toBe(true);
+      expect(game.tableaus.every((p) => p.type === PileType.TABLEAU)).toBe(
+        true,
+      );
     });
   });
 
@@ -301,39 +313,6 @@ describe("SolitaireGame", () => {
 
       expect(moved).toBe(true);
       expect(flippedEvents).toEqual([]);
-    });
-  });
-
-  describe("flipCard", () => {
-    it("does not throw for an unknown card id", () => {
-      expect(() => game.flipCard("non-existent-card", true)).not.toThrow();
-    });
-
-    it("does not flip a card that is not in a tableau pile", () => {
-      game.startNewGame();
-      const stockCard = game.stock.getCards()[0];
-
-      game.flipCard(stockCard.id, true);
-
-      expect(stockCard.faceUp).toBe(false);
-    });
-
-    it("does not flip a tableau card that is not the top card", () => {
-      game.startNewGame();
-      const bottomCard = game.tableaus[1].getCards()[0];
-
-      game.flipCard(bottomCard.id, true);
-
-      expect(bottomCard.faceUp).toBe(false);
-    });
-
-    it("flips the top card of a tableau pile", () => {
-      game.startNewGame();
-      const topCard = game.tableaus[1].getCards()[1];
-
-      game.flipCard(topCard.id, false);
-
-      expect(topCard.faceUp).toBe(false);
     });
   });
 

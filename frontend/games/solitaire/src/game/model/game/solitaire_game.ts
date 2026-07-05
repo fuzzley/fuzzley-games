@@ -2,7 +2,8 @@ import { EventEmitter } from "../common/event_emitter";
 import { GameEvents } from "./game_events";
 import { GameSettings, CardBackStyle, DrawCount } from "./game_settings";
 import { GameState } from "./game_state";
-import { CardPile } from "../card/card_pile";
+import { ScoringPolicy } from "./scoring_policy";
+import { CardPile, PileType } from "../card/card_pile";
 import { Deck } from "../card/deck";
 import {
   PlayingCard,
@@ -10,6 +11,7 @@ import {
   Suit,
   Type,
   ALL_PLAYING_CARD_IDS,
+  playingCardIdToString,
 } from "../card/playing_card";
 
 /**
@@ -19,9 +21,9 @@ import {
  */
 export class SolitaireGame extends EventEmitter<GameEvents> {
   /** The face-down stock pile from which cards are drawn. */
-  public readonly stock = new CardPile<PlayingCard>("stock");
+  public readonly stock = new CardPile<PlayingCard>("stock", PileType.STOCK);
   /** The face-up waste pile containing drawn cards. */
-  public readonly waste = new CardPile<PlayingCard>("waste");
+  public readonly waste = new CardPile<PlayingCard>("waste", PileType.WASTE);
   /** The four suit foundation piles (Hearts, Diamonds, Clubs, Spades). */
   public readonly foundations: CardPile<PlayingCard>[] = [];
   /** The seven tableau piles arranged on the board. */
@@ -40,17 +42,26 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
   /** The card identities used to build the deck for a new game. */
   private readonly cardIds: ReadonlyArray<PlayingCardId>;
 
+  /** The rules used to score moves, flips, and recycles. */
+  private readonly scoring: ScoringPolicy;
+
   /**
    * Initializes the piles.
    *
    * @param cardIds The card identities to deal from. Defaults to a full
    *   standard 52-card deck. Injectable so tests can supply a partial or empty
    *   set to exercise short-deck handling through the public API.
+   * @param scoring The scoring rules to apply. Injectable so an alternate
+   *   ruleset can be supplied without touching the game logic.
    */
-  constructor(cardIds: ReadonlyArray<PlayingCardId> = ALL_PLAYING_CARD_IDS) {
+  constructor(
+    cardIds: ReadonlyArray<PlayingCardId> = ALL_PLAYING_CARD_IDS,
+    scoring: ScoringPolicy = new ScoringPolicy(),
+  ) {
     super();
 
     this.cardIds = cardIds;
+    this.scoring = scoring;
     this.initializePiles();
   }
 
@@ -67,19 +78,28 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     }
   }
 
+  public setBackgroundColor(color: string): void {
+    if (this.settings.backgroundColor !== color) {
+      this.settings.backgroundColor$.next(color);
+    }
+  }
+
   /** Initializes all card piles and registers them in the lookup map. */
   private initializePiles(): void {
     this.pilesMap.set(this.stock.id, this.stock);
     this.pilesMap.set(this.waste.id, this.waste);
 
     for (let i = 0; i < 4; i++) {
-      const pile = new CardPile<PlayingCard>(`foundation-${i}`);
+      const pile = new CardPile<PlayingCard>(
+        `foundation-${i}`,
+        PileType.FOUNDATION,
+      );
       this.foundations.push(pile);
       this.pilesMap.set(pile.id, pile);
     }
 
     for (let i = 0; i < 7; i++) {
-      const pile = new CardPile<PlayingCard>(`tableau-${i}`);
+      const pile = new CardPile<PlayingCard>(`tableau-${i}`, PileType.TABLEAU);
       this.tableaus.push(pile);
       this.pilesMap.set(pile.id, pile);
     }
@@ -124,7 +144,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       ...this.tableaus,
     ];
     for (const pile of allPiles) {
-      if (pile.getCards().indexOf(card) !== -1) {
+      if (pile.contains(card)) {
         return pile;
       }
     }
@@ -170,12 +190,12 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     const tempDeck = new Deck<PlayingCard>();
     for (const cardId of this.cardIds) {
       const playingCard = new PlayingCard();
-      playingCard.suite = cardId.suit;
+      playingCard.suit = cardId.suit;
       playingCard.type = cardId.type;
       playingCard.faceUp = false;
 
-      // Unique ID format: card-suitName-typeName matching Phaser sheet frames
-      playingCard.id = this.generateCardId(playingCard);
+      // The card id doubles as the atlas frame name (see playingCardIdToString).
+      playingCard.id = playingCardIdToString(cardId);
       tempDeck.addCard(playingCard);
       this.allCardsMap.set(playingCard.id, playingCard);
     }
@@ -269,15 +289,11 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     if (this.waste.getCards().length === 0) return;
 
     this.recycleCount++;
-    if (this.settings.drawCount === 1) {
-      if (this.recycleCount > 1) {
-        this.state.score = Math.max(0, this.state.score - 100);
-      }
-    } else if (this.settings.drawCount === 3) {
-      if (this.recycleCount > 3) {
-        this.state.score = Math.max(0, this.state.score - 20);
-      }
-    }
+    const penalty = this.scoring.recyclePenalty(
+      this.settings.drawCount,
+      this.recycleCount,
+    );
+    this.state.score = Math.max(0, this.state.score - penalty);
 
     while (this.waste.getCards().length > 0) {
       const wasteCards = this.waste.getCards();
@@ -310,7 +326,6 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    * @returns True if the move was valid and executed; false otherwise.
    */
   public moveCardToPile(cardId: string, targetPileId: string): boolean {
-    // TODO: Use this or remove it.
     const card = this.getCardById(cardId);
     const targetPile = this.getPileById(targetPileId);
     const sourcePile = this.getPileContainingCard(cardId);
@@ -324,45 +339,35 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       return false;
     }
 
-    // getPileContainingCard only returns a pile that contains the card, so the
-    // index is always valid here.
+    // The moving stack is this card plus everything on top of it. The index is
+    // valid because getPileContainingCard only returns a pile holding the card.
     const sourceCards = sourcePile.getCards();
-    const cardIndex = sourceCards.indexOf(card);
+    const movingStack = sourceCards.slice(sourceCards.indexOf(card));
 
-    // Get the moving stack (this card + everything on top of it)
-    const movingStack = sourceCards.slice(cardIndex);
-
-    // Validate the move
-    const isValid = this.validateMove(card, targetPile, movingStack.length);
-    if (!isValid) {
+    if (!this.validateMove(card, targetPile, movingStack.length)) {
       return false;
     }
 
     this.state.moves++;
-
-    // Scoring changes before executing the move
-    let scoreChange = 0;
-    if (sourcePile.id === "waste" && targetPile.id.startsWith("tableau-")) {
-      scoreChange = 5;
-    } else if (
-      sourcePile.id === "waste" &&
-      targetPile.id.startsWith("foundation-")
-    ) {
-      scoreChange = 10;
-    } else if (
-      sourcePile.id.startsWith("tableau-") &&
-      targetPile.id.startsWith("foundation-")
-    ) {
-      scoreChange = 10;
-    } else if (
-      sourcePile.id.startsWith("foundation-") &&
-      targetPile.id.startsWith("tableau-")
-    ) {
-      scoreChange = -15;
-    }
+    const scoreChange = this.scoring.moveScore(
+      sourcePile.type,
+      targetPile.type,
+    );
     this.state.score = Math.max(0, this.state.score + scoreChange);
 
-    // Execute the move
+    this.executeMove(movingStack, sourcePile, targetPile);
+    this.autoFlipExposedCard(sourcePile);
+    this.checkWinCondition();
+
+    return true;
+  }
+
+  /** Moves the stack from the source pile to the target pile, emitting events. */
+  private executeMove(
+    movingStack: readonly PlayingCard[],
+    sourcePile: CardPile<PlayingCard>,
+    targetPile: CardPile<PlayingCard>,
+  ): void {
     for (const movingCard of movingStack) {
       sourcePile.removeCard(movingCard);
       targetPile.addCard(movingCard);
@@ -373,58 +378,31 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
         toPileId: targetPile.id,
       });
     }
-
-    // Auto-flip the new top card of the source pile if it's a tableau pile and face-down
-    if (
-      sourcePile.id.startsWith("tableau-") &&
-      sourcePile.getCards().length > 0
-    ) {
-      const remainingCards = sourcePile.getCards();
-      const topRemaining = remainingCards[remainingCards.length - 1];
-      if (!topRemaining.faceUp) {
-        topRemaining.faceUp = true;
-        this.emit("card-flipped", {
-          cardId: topRemaining.id,
-          faceUp: true,
-        });
-        this.state.score += 5; // Flipping tableau card face-up
-      }
-    }
-
-    // Check win condition
-    this.checkWinCondition();
-
-    return true;
   }
 
   /**
-   * Flips a card in place if it is the top card of a Tableau pile.
+   * Turns the newly exposed top card of a tableau face up after a move,
+   * awarding the flip bonus. Does nothing for non-tableau source piles or when
+   * the exposed card is already face up.
    *
-   * @param cardId The ID of the card to flip.
-   * @param faceUp Whether to flip face up or face down.
+   * @param sourcePile The pile the moved stack was taken from.
    */
-  public flipCard(cardId: string, faceUp: boolean): void {
-    // TODO: Use this or remove it.
-    const card = this.getCardById(cardId);
-    if (!card) return;
-
-    const sourcePile = this.getPileContainingCard(cardId);
-    if (!sourcePile || !sourcePile.id.startsWith("tableau-")) return;
-
-    const cards = sourcePile.getCards();
-    const isTop = cards[cards.length - 1] === card;
-
-    if (isTop) {
-      const wasFaceUp = card.faceUp;
-      card.faceUp = faceUp;
-      if (!wasFaceUp && faceUp) {
-        this.state.score += 5; // Tableau card flipped face-up
-      }
-      this.emit("card-flipped", {
-        cardId: card.id,
-        faceUp,
-      });
+  private autoFlipExposedCard(sourcePile: CardPile<PlayingCard>): void {
+    if (sourcePile.type !== PileType.TABLEAU) {
+      return;
     }
+    const remainingCards = sourcePile.getCards();
+    if (remainingCards.length === 0) {
+      return;
+    }
+    const topRemaining = remainingCards[remainingCards.length - 1];
+    if (topRemaining.faceUp) {
+      return;
+    }
+
+    topRemaining.faceUp = true;
+    this.emit("card-flipped", { cardId: topRemaining.id, faceUp: true });
+    this.state.score += this.scoring.tableauFlipBonus();
   }
 
   /**
@@ -439,7 +417,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       return false;
     }
 
-    if (pile.id.startsWith("tableau-")) {
+    if (pile.type === PileType.TABLEAU) {
       // Any face-up card in a tableau is interactable.
       return card.faceUp;
     }
@@ -458,7 +436,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    */
   public isCardDraggable(card: PlayingCard): boolean {
     const pile = this.getPileContainingCard(card.id);
-    if (!pile || pile.id === "stock") {
+    if (!pile || pile.type === PileType.STOCK) {
       return false;
     }
     return this.isCardInteractable(card);
@@ -474,7 +452,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       targetCards.length > 0 ? targetCards[targetCards.length - 1] : null;
 
     // Moving to Tableau Pile
-    if (targetPile.id.startsWith("tableau-")) {
+    if (targetPile.type === PileType.TABLEAU) {
       if (!topTargetCard) {
         // Only Kings can be placed on empty tableaus
         return card.type === Type.KING;
@@ -487,7 +465,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     }
 
     // Moving to Foundation Pile
-    if (targetPile.id.startsWith("foundation-")) {
+    if (targetPile.type === PileType.FOUNDATION) {
       // You can only move one card at a time to foundations
       if (movingStackSize > 1) {
         return false;
@@ -497,7 +475,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
         return card.type === Type.ACE;
       }
       // Must build up in ascending rank of the same suit
-      const isSameSuit = card.suite === topTargetCard.suite;
+      const isSameSuit = card.suit === topTargetCard.suit;
       const isAscendingRank =
         Number(card.type) === Number(topTargetCard.type) + 1;
       return isSameSuit && isAscendingRank;
@@ -518,33 +496,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     }
   }
 
-  private generateCardId(card: PlayingCard): string {
-    const suitNames = {
-      [Suit.SPADE]: "spades",
-      [Suit.HEART]: "hearts",
-      [Suit.DIAMOND]: "diamonds",
-      [Suit.CLUB]: "clubs",
-    };
-    const typeNames = {
-      [Type.ACE]: "ace",
-      [Type.TWO]: "2",
-      [Type.THREE]: "3",
-      [Type.FOUR]: "4",
-      [Type.FIVE]: "5",
-      [Type.SIX]: "6",
-      [Type.SEVEN]: "7",
-      [Type.EIGHT]: "8",
-      [Type.NINE]: "9",
-      [Type.TEN]: "10",
-      [Type.JACK]: "jack",
-      [Type.QUEEN]: "queen",
-      [Type.KING]: "king",
-    };
-
-    return `card-${suitNames[card.suite]}-${typeNames[card.type]}`;
-  }
-
   private isRed(card: PlayingCard): boolean {
-    return card.suite === Suit.HEART || card.suite === Suit.DIAMOND;
+    return card.suit === Suit.HEART || card.suit === Suit.DIAMOND;
   }
 }

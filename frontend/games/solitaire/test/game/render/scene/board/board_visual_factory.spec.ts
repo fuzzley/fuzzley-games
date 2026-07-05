@@ -10,7 +10,7 @@ describe("BoardVisualFactory", () => {
   beforeEach(() => {
     addSprite = vi.fn(() => createMockSprite());
     const scene = { add: { sprite: addSprite } } as unknown as Phaser.Scene;
-    factory = new BoardVisualFactory(scene);
+    factory = new BoardVisualFactory(scene, () => "card-back-blue");
   });
 
   it("creates a card sprite from the card-back frame with a standard origin", () => {
@@ -24,6 +24,22 @@ describe("BoardVisualFactory", () => {
     );
     expect(sprite.originX).toBe(0);
     expect(sprite.originY).toBe(0);
+  });
+
+  it("uses the injected card-back style for the card frame", () => {
+    const redFactory = new BoardVisualFactory(
+      { add: { sprite: addSprite } } as unknown as Phaser.Scene,
+      () => "card-back-red",
+    );
+
+    redFactory.createCardSprite();
+
+    expect(addSprite).toHaveBeenCalledWith(
+      0,
+      0,
+      "card_assets",
+      "card-back-red",
+    );
   });
 
   it("makes the card sprite interactive with a hand cursor", () => {

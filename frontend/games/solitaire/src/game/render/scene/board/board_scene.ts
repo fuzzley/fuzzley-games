@@ -1,6 +1,10 @@
 import { Scene } from "phaser";
 
-import { ALL_PLAYING_CARD_IDS } from "@/game/model/card/playing_card";
+import {
+  ALL_PLAYING_CARD_IDS,
+  PlayingCard,
+} from "@/game/model/card/playing_card";
+import { CardPile } from "@/game/model/card/card_pile";
 import { BoardLayoutManager } from "./layout/board_layout_manager";
 import { StockPileVisual } from "../../visual/pile/stock_pile_visual";
 import { WastePileVisual } from "../../visual/pile/waste_pile_visual";
@@ -27,7 +31,7 @@ export class BoardScene extends Scene {
   public static readonly PILE_BACKGROUND_ALPHA = 0.5;
 
   /** The logical solitaire game rules and state engine. */
-  public readonly gameModel: SolitaireGame = getGameModel();
+  public readonly gameModel: SolitaireGame;
 
   /** Registry of visual cards mapped by their unique string ID. */
   public readonly cardVisualsMap = new Map<string, PlayingCardVisual>();
@@ -36,31 +40,18 @@ export class BoardScene extends Scene {
   private readonly pileVisualsMap = new Map<string, PileVisual>();
 
   /** Visual representation of the stock pile. */
-  public readonly stockPile = new StockPileVisual(this.gameModel.stock);
+  public readonly stockPile: StockPileVisual;
   /** Visual representation of the waste pile. */
-  public readonly wastePile = new WastePileVisual(this.gameModel.waste);
+  public readonly wastePile: WastePileVisual;
 
   /** Visual representations of the four foundation piles. */
-  public readonly foundationPiles = [
-    new FoundationPileVisual(this.gameModel.foundations[0]),
-    new FoundationPileVisual(this.gameModel.foundations[1]),
-    new FoundationPileVisual(this.gameModel.foundations[2]),
-    new FoundationPileVisual(this.gameModel.foundations[3]),
-  ];
+  public readonly foundationPiles: FoundationPileVisual[];
 
   /** Visual representations of the seven tableau piles. */
-  public readonly tableauPiles = [
-    new TableauPileVisual(this.gameModel.tableaus[0]),
-    new TableauPileVisual(this.gameModel.tableaus[1]),
-    new TableauPileVisual(this.gameModel.tableaus[2]),
-    new TableauPileVisual(this.gameModel.tableaus[3]),
-    new TableauPileVisual(this.gameModel.tableaus[4]),
-    new TableauPileVisual(this.gameModel.tableaus[5]),
-    new TableauPileVisual(this.gameModel.tableaus[6]),
-  ];
+  public readonly tableauPiles: TableauPileVisual[];
 
   /** Layout coordinator for positioning piles and card sprites. */
-  private readonly layoutManager = new BoardLayoutManager(this);
+  private readonly layoutManager: BoardLayoutManager;
 
   /** Graphic rendering manager for card/pile hover highlighting. */
   private highlightRenderer!: BoardHighlightRenderer;
@@ -71,9 +62,26 @@ export class BoardScene extends Scene {
   /** Factory for creating Phaser sprites. */
   private visualFactory!: BoardVisualFactory;
 
-  /** Constructs the board scene. */
-  constructor() {
+  /**
+   * Constructs the board scene.
+   *
+   * @param gameModel The shared game model to render. Defaults to the shared
+   *   singleton so Phaser can construct the scene with no arguments, and is
+   *   injectable so tests can supply their own model.
+   */
+  constructor(gameModel: SolitaireGame = getGameModel()) {
     super("board-scene");
+
+    this.gameModel = gameModel;
+    this.stockPile = new StockPileVisual(gameModel.stock);
+    this.wastePile = new WastePileVisual(gameModel.waste);
+    this.foundationPiles = gameModel.foundations.map(
+      (pile) => new FoundationPileVisual(pile),
+    );
+    this.tableauPiles = gameModel.tableaus.map(
+      (pile) => new TableauPileVisual(pile),
+    );
+    this.layoutManager = new BoardLayoutManager(this);
   }
 
   /** Gets the layout manager helper instance. */
@@ -88,13 +96,22 @@ export class BoardScene extends Scene {
   create() {
     this.highlightRenderer = new BoardHighlightRenderer(this);
     this.inputManager = new BoardInputManager(this);
-    this.visualFactory = new BoardVisualFactory(this);
+    this.visualFactory = new BoardVisualFactory(
+      this,
+      () => this.gameModel.settings.cardBackStyle,
+    );
 
     this.registerPileVisuals();
     this.gameModel.startNewGame();
     this.createPileBackgroundSprites();
     this.createCardVisuals();
     this.setupEventListeners();
+
+    // Apply the table background color and follow future changes (e.g. theme
+    // switches from the Angular UI) through the shared model.
+    this.gameModel.settings.backgroundColor$.subscribe((color) => {
+      this.cameras?.main?.setBackgroundColor(color);
+    });
 
     this.syncVisualPilesWithModel();
     this.layoutManager.createInitialLayout();
@@ -159,66 +176,50 @@ export class BoardScene extends Scene {
       this.layoutManager.updateVisualLayout();
       this.updateHighlightBorder();
     });
-
-    this.gameModel.on("game-won", () => {
-      console.log("Congratulations! You won!");
-    });
   }
 
   /** Copies current card assignments from the logical model into Phaser piles. */
   private syncVisualPilesWithModel() {
-    this.stockPile.playingCardVisuals.length = 0;
-    this.wastePile.playingCardVisuals.length = 0;
-    this.foundationPiles.forEach((p) => (p.playingCardVisuals.length = 0));
-    this.tableauPiles.forEach((p) => (p.playingCardVisuals.length = 0));
+    const cardBack = this.gameModel.settings.cardBackStyle;
+    const faceFrame = (card: PlayingCard) => card.id;
 
-    for (const card of this.gameModel.stock.getCards()) {
-      const visual = this.cardVisualsMap.get(card.id);
-      if (visual) {
-        this.stockPile.playingCardVisuals.push(visual);
-        visual.sprite.setFrame(this.gameModel.settings.cardBackStyle);
-        visual.sprite.setOrigin(0, 0);
-      }
-    }
-
-    for (const card of this.gameModel.waste.getCards()) {
-      const visual = this.cardVisualsMap.get(card.id);
-      if (visual) {
-        this.wastePile.playingCardVisuals.push(visual);
-        visual.sprite.setFrame(card.id);
-        visual.sprite.setOrigin(0, 0);
-      }
-    }
-
-    for (let i = 0; i < this.gameModel.foundations.length; i++) {
-      const modelPile = this.gameModel.foundations[i];
-      const visualPile = this.foundationPiles[i];
-      for (const card of modelPile.getCards()) {
-        const visual = this.cardVisualsMap.get(card.id);
-        if (visual) {
-          visualPile.playingCardVisuals.push(visual);
-          visual.sprite.setFrame(card.id);
-          visual.sprite.setOrigin(0, 0);
-        }
-      }
-    }
-
-    for (let i = 0; i < this.gameModel.tableaus.length; i++) {
-      const modelPile = this.gameModel.tableaus[i];
-      const visualPile = this.tableauPiles[i];
-      for (const card of modelPile.getCards()) {
-        const visual = this.cardVisualsMap.get(card.id);
-        if (visual) {
-          visualPile.playingCardVisuals.push(visual);
-          visual.sprite.setFrame(
-            card.faceUp ? card.id : this.gameModel.settings.cardBackStyle,
-          );
-          visual.sprite.setOrigin(0, 0);
-        }
-      }
-    }
+    this.syncPile(this.gameModel.stock, this.stockPile, () => cardBack);
+    this.syncPile(this.gameModel.waste, this.wastePile, faceFrame);
+    this.gameModel.foundations.forEach((modelPile, i) => {
+      this.syncPile(modelPile, this.foundationPiles[i], faceFrame);
+    });
+    this.gameModel.tableaus.forEach((modelPile, i) => {
+      this.syncPile(modelPile, this.tableauPiles[i], (card) =>
+        card.faceUp ? card.id : cardBack,
+      );
+    });
 
     this.updateCardCursors();
+  }
+
+  /**
+   * Rebuilds one visual pile from its model pile: registers the card visuals in
+   * order and points each sprite at the frame chosen by {@link frameFor}.
+   *
+   * @param modelPile The logical pile to mirror.
+   * @param visualPile The visual pile to populate.
+   * @param frameFor Picks the atlas frame for a card (face vs. back).
+   */
+  private syncPile(
+    modelPile: CardPile<PlayingCard>,
+    visualPile: PileVisual,
+    frameFor: (card: PlayingCard) => string,
+  ): void {
+    visualPile.playingCardVisuals.length = 0;
+    for (const card of modelPile.getCards()) {
+      const visual = this.cardVisualsMap.get(card.id);
+      if (!visual) {
+        continue;
+      }
+      visualPile.playingCardVisuals.push(visual);
+      visual.sprite?.setFrame(frameFor(card));
+      visual.sprite?.setOrigin(0, 0);
+    }
   }
 
   /**
