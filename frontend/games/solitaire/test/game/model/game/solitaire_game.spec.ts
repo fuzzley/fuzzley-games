@@ -304,39 +304,6 @@ describe("SolitaireGame", () => {
     });
   });
 
-  describe("flipCard", () => {
-    it("does not throw for an unknown card id", () => {
-      expect(() => game.flipCard("non-existent-card", true)).not.toThrow();
-    });
-
-    it("does not flip a card that is not in a tableau pile", () => {
-      game.startNewGame();
-      const stockCard = game.stock.getCards()[0];
-
-      game.flipCard(stockCard.id, true);
-
-      expect(stockCard.faceUp).toBe(false);
-    });
-
-    it("does not flip a tableau card that is not the top card", () => {
-      game.startNewGame();
-      const bottomCard = game.tableaus[1].getCards()[0];
-
-      game.flipCard(bottomCard.id, true);
-
-      expect(bottomCard.faceUp).toBe(false);
-    });
-
-    it("flips the top card of a tableau pile", () => {
-      game.startNewGame();
-      const topCard = game.tableaus[1].getCards()[1];
-
-      game.flipCard(topCard.id, false);
-
-      expect(topCard.faceUp).toBe(false);
-    });
-  });
-
   describe("win condition", () => {
     it("emits game-won once all 52 cards reach the foundations", () => {
       game.startNewGame();

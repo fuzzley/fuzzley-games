@@ -159,10 +159,6 @@ export class BoardScene extends Scene {
       this.layoutManager.updateVisualLayout();
       this.updateHighlightBorder();
     });
-
-    this.gameModel.on("game-won", () => {
-      console.log("Congratulations! You won!");
-    });
   }
 
   /** Copies current card assignments from the logical model into Phaser piles. */

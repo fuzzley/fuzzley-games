@@ -256,15 +256,6 @@ describe("BoardScene", () => {
       getCardById.mockRestore();
     });
 
-    it("logs a congratulations message when the game is won", () => {
-      const consoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
-
-      boardScene.gameModel.emit("game-won");
-
-      expect(consoleLog).toHaveBeenCalledWith("Congratulations! You won!");
-      consoleLog.mockRestore();
-    });
-
     it("exposes the layout manager", () => {
       expect(boardScene.getLayoutManager()).toBeDefined();
     });
