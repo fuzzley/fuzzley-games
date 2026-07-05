@@ -92,7 +92,10 @@ export class BoardScene extends Scene {
   create() {
     this.highlightRenderer = new BoardHighlightRenderer(this);
     this.inputManager = new BoardInputManager(this);
-    this.visualFactory = new BoardVisualFactory(this);
+    this.visualFactory = new BoardVisualFactory(
+      this,
+      () => this.gameModel.settings.cardBackStyle,
+    );
 
     this.registerPileVisuals();
     this.gameModel.startNewGame();

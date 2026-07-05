@@ -1,12 +1,5 @@
 import * as Phaser from "phaser";
-
-interface SceneWithModel extends Phaser.Scene {
-  gameModel?: {
-    settings: {
-      cardBackStyle: "card-back-blue" | "card-back-red";
-    };
-  };
-}
+import { CardBackStyle } from "@/game/model/game/game_settings";
 
 /**
  * Factory class responsible for creating and configuring Phaser sprite GameObjects
@@ -17,8 +10,14 @@ export class BoardVisualFactory {
    * Constructs the visual factory with the active Phaser Scene context.
    *
    * @param scene The active Phaser Scene.
+   * @param cardBackStyle Supplies the current card-back frame to use for new
+   *   card sprites. Injected so the factory needs no knowledge of the game
+   *   model or scene internals.
    */
-  constructor(private readonly scene: Phaser.Scene) {}
+  constructor(
+    private readonly scene: Phaser.Scene,
+    private readonly cardBackStyle: () => CardBackStyle,
+  ) {}
 
   /**
    * Instantiates and configures a card sprite with standard origin and shadow filters.
@@ -26,10 +25,12 @@ export class BoardVisualFactory {
    * @returns The configured Sprite.
    */
   createCardSprite(): Phaser.GameObjects.Sprite {
-    const boardScene = this.scene as SceneWithModel;
-    const cardBack =
-      boardScene.gameModel?.settings.cardBackStyle || "card-back-blue";
-    const sprite = this.scene.add.sprite(0, 0, "card_assets", cardBack);
+    const sprite = this.scene.add.sprite(
+      0,
+      0,
+      "card_assets",
+      this.cardBackStyle(),
+    );
     sprite.setOrigin(0, 0);
     sprite.enableFilters();
 
