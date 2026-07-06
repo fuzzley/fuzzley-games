@@ -19,64 +19,64 @@ export class BoardViewApplier {
    * Applies the desired view state onto Phaser sprites, syncing positions,
    * scales, depths, frames, cursors, and drawing highlights.
    *
-   * @param vs The target board view state to render.
-   * @param delta Elapsed time since the last frame in milliseconds.
+   * @param viewState The target board view state to render.
+   * @param deltaMs Elapsed time since the last frame in milliseconds.
    */
-  public apply(vs: BoardViewState, delta: number): void {
+  public apply(viewState: BoardViewState, deltaMs: number): void {
     const POSITION_TAU_MS = 90;
     // Frame-rate independent interpolation constant
-    const k = delta > 0 ? 1 - Math.exp(-delta / POSITION_TAU_MS) : 1;
+    const interpolationFactor = deltaMs > 0 ? 1 - Math.exp(-deltaMs / POSITION_TAU_MS) : 1;
 
-    for (const bg of vs.backgrounds) {
-      let s: Phaser.GameObjects.Sprite | undefined;
-      if (bg.pileId === "stock") {
-        s = this.scene.stockPile.sprite;
-      } else if (bg.pileId.startsWith("foundation-")) {
-        const idx = parseInt(bg.pileId.substring(11), 10);
-        s = this.scene.foundationPiles[idx]?.sprite;
-      } else if (bg.pileId.startsWith("tableau-")) {
-        const idx = parseInt(bg.pileId.substring(8), 10);
-        s = this.scene.tableauPiles[idx]?.sprite;
+    for (const backgroundView of viewState.backgrounds) {
+      let sprite: Phaser.GameObjects.Sprite | undefined;
+      if (backgroundView.pileId === "stock") {
+        sprite = this.scene.stockPile.sprite;
+      } else if (backgroundView.pileId.startsWith("foundation-")) {
+        const pileIndex = parseInt(backgroundView.pileId.substring(11), 10);
+        sprite = this.scene.foundationPiles[pileIndex]?.sprite;
+      } else if (backgroundView.pileId.startsWith("tableau-")) {
+        const pileIndex = parseInt(backgroundView.pileId.substring(8), 10);
+        sprite = this.scene.tableauPiles[pileIndex]?.sprite;
       }
 
-      if (s && s.active) {
-        s.setPosition(bg.x, bg.y);
-        s.setScale(bg.scale);
-        s.setDepth(bg.depth);
-        s.setOrigin(0, 0);
-        if (bg.cursor && s.input && s.input.cursor !== bg.cursor) {
-          s.input.cursor = bg.cursor;
+      if (sprite && sprite.active) {
+        sprite.setPosition(backgroundView.x, backgroundView.y);
+        sprite.setScale(backgroundView.scale);
+        sprite.setDepth(backgroundView.depth);
+        sprite.setOrigin(0, 0);
+        if (backgroundView.cursor && sprite.input && sprite.input.cursor !== backgroundView.cursor) {
+          sprite.input.cursor = backgroundView.cursor;
         }
       }
     }
 
-    for (const cv of vs.cards) {
-      const visual = this.scene.cardVisualsMap.get(cv.cardId);
-      const s = visual?.sprite;
-      if (s && s.active) {
-        if (cv.snap || delta <= 0) {
-          s.setPosition(cv.x, cv.y);
+    for (const cardView of viewState.cards) {
+      const visual = this.scene.cardVisualsMap.get(cardView.cardId);
+      const sprite = visual?.sprite;
+      if (sprite && sprite.active) {
+        if (cardView.snap || deltaMs <= 0) {
+          sprite.setPosition(cardView.x, cardView.y);
         } else {
-          s.x += (cv.x - s.x) * k;
-          s.y += (cv.y - s.y) * k;
-          if (Math.abs(s.x - cv.x) < 0.5 && Math.abs(s.y - cv.y) < 0.5) {
-            s.setPosition(cv.x, cv.y);
+          sprite.x += (cardView.x - sprite.x) * interpolationFactor;
+          sprite.y += (cardView.y - sprite.y) * interpolationFactor;
+          if (Math.abs(sprite.x - cardView.x) < 0.5 && Math.abs(sprite.y - cardView.y) < 0.5) {
+            sprite.setPosition(cardView.x, cardView.y);
           }
         }
-        s.setScale(cv.scale);
-        s.setDepth(cv.depth);
-        if (s.frame.name !== cv.frame) {
-          s.setFrame(cv.frame);
-          s.setOrigin(0, 0);
+        sprite.setScale(cardView.scale);
+        sprite.setDepth(cardView.depth);
+        if (sprite.frame.name !== cardView.frame) {
+          sprite.setFrame(cardView.frame);
+          sprite.setOrigin(0, 0);
         }
-        if (s.input && s.input.cursor !== cv.cursor) {
-          s.input.cursor = cv.cursor;
+        if (sprite.input && sprite.input.cursor !== cardView.cursor) {
+          sprite.input.cursor = cardView.cursor;
         }
-        this.scene.input.setDraggable(s, cv.draggable);
+        this.scene.input.setDraggable(sprite, cardView.draggable);
       }
     }
 
-    this.drawHighlight(vs.highlight);
+    this.drawHighlight(viewState.highlight);
   }
 
   private drawHighlight(highlight: HighlightView | null): void {

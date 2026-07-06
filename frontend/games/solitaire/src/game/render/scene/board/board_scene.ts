@@ -67,11 +67,7 @@ export class BoardScene extends Scene {
 
     this.gameModel = gameModel;
     this.stockPile = new StockPileVisual(gameModel.stock);
-    this.wastePile = new WastePileVisual(
-      gameModel.waste,
-      [],
-      () => gameModel.settings.drawCount,
-    );
+    this.wastePile = new WastePileVisual(gameModel.waste);
     this.foundationPiles = gameModel.foundations.map(
       (pile) => new FoundationPileVisual(pile),
     );
@@ -181,7 +177,7 @@ export class BoardScene extends Scene {
    * Phaser scene update lifecycle hook. Automatically invoked every frame to compute and
    * apply the desired board view state.
    */
-  override update(time: number, delta: number): void {
+  override update(timeMs: number, deltaMs: number): void {
     if (!this.inputManager || !this.viewApplier) return;
 
     const viewport = {
@@ -198,7 +194,7 @@ export class BoardScene extends Scene {
     };
 
     const state = buildBoardViewState(this.gameModel, interaction, viewport);
-    this.viewApplier.apply(state, delta);
+    this.viewApplier.apply(state, deltaMs);
 
     if (this.inputManager.snapAll) {
       this.inputManager.snapAll = false;

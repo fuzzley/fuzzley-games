@@ -3,14 +3,14 @@ import { PileGeometry, Rect } from "../view/board_view_state";
 /**
  * Calculates the overlap area between two rectangles.
  */
-function getOverlapArea(r1: Rect, r2: Rect): number {
+function getOverlapArea(rect1: Rect, rect2: Rect): number {
   const xOverlap = Math.max(
     0,
-    Math.min(r1.x + r1.width, r2.x + r2.width) - Math.max(r1.x, r2.x),
+    Math.min(rect1.x + rect1.width, rect2.x + rect2.width) - Math.max(rect1.x, rect2.x),
   );
   const yOverlap = Math.max(
     0,
-    Math.min(r1.y + r1.height, r2.y + r2.height) - Math.max(r1.y, r2.y),
+    Math.min(rect1.y + rect1.height, rect2.y + rect2.height) - Math.max(rect1.y, rect2.y),
   );
   return xOverlap * yOverlap;
 }
@@ -30,11 +30,11 @@ export function resolveDropTarget(
   let targetPileId: string | null = null;
   let maxOverlapArea = 0;
 
-  for (const geom of geometries) {
-    const area = getOverlapArea(dragRect, geom);
+  for (const geometry of geometries) {
+    const area = getOverlapArea(dragRect, geometry);
     if (area > maxOverlapArea) {
       maxOverlapArea = area;
-      targetPileId = geom.pileId;
+      targetPileId = geometry.pileId;
     }
   }
 

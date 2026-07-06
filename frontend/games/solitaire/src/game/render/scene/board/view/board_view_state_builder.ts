@@ -1,6 +1,7 @@
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
 import { PileType } from "@/game/model/card/card_pile";
 import { PlayingCard } from "@/game/model/card/playing_card";
+import { Point } from "@/game/common/point";
 import {
   BoardInteractionState,
   BoardViewState,
@@ -20,18 +21,237 @@ import {
   CARD_HEIGHT_PX,
 } from "../layout/board_layout_constants";
 
-function getCardFrame(
-  card: PlayingCard,
-  pileType: PileType,
-  cardBack: string,
-): string {
-  if (pileType === PileType.STOCK) {
-    return cardBack;
+/**
+ * Transient builder class that constructs the visual representation of the Solitaire board
+ * for a single frame. It encapsulates shared layout metrics and calculations.
+ */
+class BoardViewStateBuilder {
+  private readonly scale: number;
+  private readonly origins: Map<string, Point>;
+  private readonly cardWidth: number;
+  private readonly cardHeight: number;
+
+  constructor(
+    private readonly game: SolitaireGame,
+    private readonly interaction: BoardInteractionState,
+    viewport: Viewport,
+  ) {
+    this.scale = computeScale(viewport);
+    this.origins = computePileOrigins(viewport, this.scale);
+    this.cardWidth = CARD_WIDTH_PX * this.scale;
+    this.cardHeight = CARD_HEIGHT_PX * this.scale;
   }
-  if (pileType === PileType.TABLEAU) {
-    return card.faceUp ? card.id : cardBack;
+
+  /**
+   * Orchestrates the construction of all view state elements.
+   */
+  public build(): BoardViewState {
+    const backgrounds = this.buildBackgrounds();
+    const cards = this.buildCards();
+    const highlight = this.buildHighlight(cards);
+
+    return {
+      backgrounds,
+      cards,
+      highlight,
+    };
   }
-  return card.id; // waste, foundation
+
+  /**
+   * Computes the background representations for each pile.
+   */
+  private buildBackgrounds(): PileBackgroundView[] {
+    const backgrounds: PileBackgroundView[] = [];
+    const stockEmpty = this.game.stock.getCards().length === 0;
+    const stockOrigin = this.origins.get("stock");
+
+    if (stockOrigin) {
+      backgrounds.push({
+        pileId: "stock",
+        x: stockOrigin.x,
+        y: stockOrigin.y,
+        scale: this.scale,
+        depth: 0,
+        cursor: stockEmpty ? "pointer" : "default",
+      });
+    }
+
+    for (let foundationIndex = 0; foundationIndex < 4; foundationIndex++) {
+      const origin = this.origins.get(`foundation-${foundationIndex}`);
+      if (origin) {
+        backgrounds.push({
+          pileId: `foundation-${foundationIndex}`,
+          x: origin.x,
+          y: origin.y,
+          scale: this.scale,
+          depth: 0,
+        });
+      }
+    }
+
+    for (let tableauIndex = 0; tableauIndex < 7; tableauIndex++) {
+      const origin = this.origins.get(`tableau-${tableauIndex}`);
+      if (origin) {
+        backgrounds.push({
+          pileId: `tableau-${tableauIndex}`,
+          x: origin.x,
+          y: origin.y,
+          scale: this.scale,
+          depth: 0,
+        });
+      }
+    }
+
+    return backgrounds;
+  }
+
+  /**
+   * Computes the visual positions and states of all cards currently in play.
+   */
+  private buildCards(): CardView[] {
+    const cards: CardView[] = [];
+    const draggedIds = this.interaction.drag?.cardIds ?? [];
+    const dragSet = new Set(draggedIds);
+    const dragPrimary = this.interaction.drag?.primary ?? null;
+
+    const dragSourcePile = draggedIds.length > 0
+      ? this.game.getPileContainingCard(draggedIds[0])
+      : null;
+    const isTableauDrag = dragSourcePile?.type === PileType.TABLEAU;
+
+    const allPiles = [
+      this.game.stock,
+      this.game.waste,
+      ...this.game.foundations,
+      ...this.game.tableaus,
+    ];
+
+    for (const pile of allPiles) {
+      const origin = this.origins.get(pile.id);
+      if (!origin) continue;
+
+      const pileCards = pile.getCards();
+      const isWaste = pile.type === PileType.WASTE;
+
+      const hasHoveredCardInPile = this.interaction.hoveredCardId &&
+        pileCards.some((card) => card.id === this.interaction.hoveredCardId);
+      const expansionCardId =
+        hasHoveredCardInPile && !this.interaction.drag ? this.interaction.hoveredCardId : null;
+
+      const offsets = offsetsForPile(
+        pile,
+        pileCards,
+        this.game.settings.drawCount,
+        expansionCardId,
+      );
+
+      for (let cardIndex = 0; cardIndex < pileCards.length; cardIndex++) {
+        const card = pileCards[cardIndex];
+        const isDragged = dragSet.has(card.id);
+
+        let x = 0;
+        let y = 0;
+        let depth = isWaste ? cardIndex : cardIndex + 1;
+        let snap = this.interaction.snapAll;
+
+        if (isDragged && dragPrimary) {
+          const dragIndex = draggedIds.indexOf(card.id);
+          x = dragPrimary.x;
+          y = dragPrimary.y + (isTableauDrag ? dragIndex * TABLEAU_FACE_UP_OFFSET * this.scale : 0);
+          depth = 1000 + dragIndex;
+          snap = true;
+        } else {
+          x = origin.x + offsets[cardIndex].x * this.scale;
+          y = origin.y + offsets[cardIndex].y * this.scale;
+        }
+
+        cards.push({
+          cardId: card.id,
+          x,
+          y,
+          scale: this.scale,
+          depth,
+          frame: this.getCardFrame(card, pile.type, this.game.settings.cardBackStyle),
+          cursor: this.game.isCardInteractable(card) ? "pointer" : "default",
+          draggable: this.game.isCardDraggable(card),
+          snap,
+        });
+      }
+    }
+
+    return cards;
+  }
+
+  /**
+   * Computes the highlight view geometry, indicating hovered cards or empty piles.
+   */
+  private buildHighlight(cards: CardView[]): HighlightView | null {
+    const draggedIds = this.interaction.drag?.cardIds ?? [];
+    const isDragging = draggedIds.length > 0;
+    if (isDragging) {
+      return null;
+    }
+
+    const stockEmpty = this.game.stock.getCards().length === 0;
+    const stockOrigin = this.origins.get("stock");
+
+    if (this.interaction.isStockBackgroundHovered && stockEmpty && stockOrigin) {
+      return {
+        x: stockOrigin.x,
+        y: stockOrigin.y,
+        width: this.cardWidth,
+        height: this.cardHeight,
+        scale: this.scale,
+        openBottom: false,
+      };
+    }
+
+    if (this.interaction.hoveredCardId) {
+      const hoveredCard = this.game.getCardById(this.interaction.hoveredCardId);
+      if (hoveredCard && this.game.isCardInteractable(hoveredCard)) {
+        const cardView = cards.find((cv) => cv.cardId === this.interaction.hoveredCardId);
+        if (cardView) {
+          const hoveredPile = this.game.getPileContainingCard(this.interaction.hoveredCardId);
+          let openBottom = false;
+          if (hoveredPile) {
+            const pileCards = hoveredPile.getCards();
+            const cardIndex = pileCards.findIndex((card) => card.id === this.interaction.hoveredCardId);
+            if (cardIndex !== -1 && cardIndex < pileCards.length - 1) {
+              openBottom = true;
+            }
+          }
+
+          return {
+            x: cardView.x,
+            y: cardView.y,
+            width: this.cardWidth,
+            height: this.cardHeight,
+            scale: this.scale,
+            openBottom,
+          };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Determines the frame or sprite key to use for rendering a playing card.
+   */
+  private getCardFrame(
+    card: PlayingCard,
+    pileType: PileType,
+    cardBack: string,
+  ): string {
+    if (pileType === PileType.STOCK) {
+      return cardBack;
+    }
+    if (pileType === PileType.TABLEAU) {
+      return card.faceUp ? card.id : cardBack;
+    }
+    return card.id; // waste, foundation
+  }
 }
 
 /**
@@ -48,172 +268,5 @@ export function buildBoardViewState(
   interaction: BoardInteractionState,
   viewport: Viewport,
 ): BoardViewState {
-  const scale = computeScale(viewport);
-  const origins = computePileOrigins(viewport, scale);
-  const cardWidth = CARD_WIDTH_PX * scale;
-  const cardHeight = CARD_HEIGHT_PX * scale;
-
-  const backgrounds: PileBackgroundView[] = [];
-  const cards: CardView[] = [];
-  let highlight: HighlightView | null = null;
-
-  // 1. Compute backgrounds
-  const stockEmpty = game.stock.getCards().length === 0;
-  const stockOrigin = origins.get("stock");
-  if (stockOrigin) {
-    backgrounds.push({
-      pileId: "stock",
-      x: stockOrigin.x,
-      y: stockOrigin.y,
-      scale,
-      depth: 0,
-      cursor: stockEmpty ? "pointer" : "default",
-    });
-  }
-
-  for (let i = 0; i < 4; i++) {
-    const origin = origins.get(`foundation-${i}`);
-    if (origin) {
-      backgrounds.push({
-        pileId: `foundation-${i}`,
-        x: origin.x,
-        y: origin.y,
-        scale,
-        depth: 0,
-      });
-    }
-  }
-
-  for (let i = 0; i < 7; i++) {
-    const origin = origins.get(`tableau-${i}`);
-    if (origin) {
-      backgrounds.push({
-        pileId: `tableau-${i}`,
-        x: origin.x,
-        y: origin.y,
-        scale,
-        depth: 0,
-      });
-    }
-  }
-
-  // Helper to determine if a card is currently being dragged
-  const draggedIds = interaction.drag?.cardIds ?? [];
-  const dragSet = new Set(draggedIds);
-  const dragPrimary = interaction.drag?.primary ?? null;
-
-  // Find the pile containing the primary dragged card to compute relative offsets
-  const dragSourcePile = draggedIds.length > 0
-    ? game.getPileContainingCard(draggedIds[0])
-    : null;
-  const isTableauDrag = dragSourcePile?.type === PileType.TABLEAU;
-
-  const allPiles = [
-    game.stock,
-    game.waste,
-    ...game.foundations,
-    ...game.tableaus,
-  ];
-
-  // 2. Compute card views
-  for (const pile of allPiles) {
-    const origin = origins.get(pile.id);
-    if (!origin) continue;
-
-    const pileCards = pile.getCards();
-    const isWaste = pile.type === PileType.WASTE;
-    const isTableau = pile.type === PileType.TABLEAU;
-
-    // Determine the expansion card ID if hover expansion applies to this pile
-    const hasHoveredCardInPile = interaction.hoveredCardId &&
-      pileCards.some((c) => c.id === interaction.hoveredCardId);
-    const expansionCardId =
-      hasHoveredCardInPile && !interaction.drag ? interaction.hoveredCardId : null;
-
-    const offsets = offsetsForPile(
-      pile,
-      pileCards,
-      game.settings.drawCount,
-      expansionCardId,
-    );
-
-    for (let j = 0; j < pileCards.length; j++) {
-      const card = pileCards[j];
-      const isDragged = dragSet.has(card.id);
-
-      let x = 0;
-      let y = 0;
-      let depth = isWaste ? j : j + 1;
-      let snap = interaction.snapAll;
-
-      if (isDragged && dragPrimary) {
-        const dragIdx = draggedIds.indexOf(card.id);
-        x = dragPrimary.x;
-        y = dragPrimary.y + (isTableauDrag ? dragIdx * TABLEAU_FACE_UP_OFFSET * scale : 0);
-        depth = 1000 + dragIdx;
-        snap = true;
-      } else {
-        x = origin.x + offsets[j].x * scale;
-        y = origin.y + offsets[j].y * scale;
-      }
-
-      cards.push({
-        cardId: card.id,
-        x,
-        y,
-        scale,
-        depth,
-        frame: getCardFrame(card, pile.type, game.settings.cardBackStyle),
-        cursor: game.isCardInteractable(card) ? "pointer" : "default",
-        draggable: game.isCardDraggable(card),
-        snap,
-      });
-    }
-  }
-
-  // 3. Compute highlight view
-  const isDragging = draggedIds.length > 0;
-  if (!isDragging) {
-    if (interaction.isStockBackgroundHovered && stockEmpty && stockOrigin) {
-      highlight = {
-        x: stockOrigin.x,
-        y: stockOrigin.y,
-        width: cardWidth,
-        height: cardHeight,
-        scale,
-        openBottom: false,
-      };
-    } else if (interaction.hoveredCardId) {
-      const hoveredCard = game.getCardById(interaction.hoveredCardId);
-      if (hoveredCard && game.isCardInteractable(hoveredCard)) {
-        const cardView = cards.find((cv) => cv.cardId === interaction.hoveredCardId);
-        if (cardView) {
-          const hoveredPile = game.getPileContainingCard(interaction.hoveredCardId);
-          let openBottom = false;
-          if (hoveredPile) {
-            const pileCards = hoveredPile.getCards();
-            const idx = pileCards.findIndex((c) => c.id === interaction.hoveredCardId);
-            if (idx !== -1 && idx < pileCards.length - 1) {
-              openBottom = true;
-            }
-          }
-
-          highlight = {
-            x: cardView.x,
-            y: cardView.y,
-            width: cardWidth,
-            height: cardHeight,
-            scale,
-            openBottom,
-          };
-        }
-      }
-    }
-  }
-
-  return {
-    backgrounds,
-    cards,
-    highlight,
-  };
+  return new BoardViewStateBuilder(game, interaction, viewport).build();
 }
