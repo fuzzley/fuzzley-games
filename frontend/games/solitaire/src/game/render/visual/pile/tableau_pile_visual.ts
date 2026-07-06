@@ -24,6 +24,18 @@ export class TableauPileVisual extends Visual<CardPile<PlayingCard>> {
 
   private static readonly FACE_UP_OFFSET = 45;
   private static readonly FACE_DOWN_OFFSET = 18;
+  /**
+   * Extra vertical gap opened below the hovered card so the cards stacked on top
+   * slide down and reveal more of it.
+   */
+  private static readonly HOVER_EXPANSION_OFFSET = 15;
+
+  /**
+   * The card currently hovered in this pile, if any. While set, the cards fanned
+   * on top of it are shifted down to expose more of it. Cleared once the hover
+   * ends so the reveal never persists.
+   */
+  public hoveredCard: PlayingCardVisual | null = null;
 
   /**
    * Fans cards vertically downwards, using the configured offsets for face-down and face-up cards.
@@ -37,6 +49,11 @@ export class TableauPileVisual extends Visual<CardPile<PlayingCard>> {
         ? TableauPileVisual.FACE_UP_OFFSET
         : TableauPileVisual.FACE_DOWN_OFFSET;
       currentY += offset;
+      // Open an extra gap after the hovered card so any cards stacked on top of
+      // it slide down, revealing more of the hovered card.
+      if (cardVisual === this.hoveredCard) {
+        currentY += TableauPileVisual.HOVER_EXPANSION_OFFSET;
+      }
     }
   }
 }
