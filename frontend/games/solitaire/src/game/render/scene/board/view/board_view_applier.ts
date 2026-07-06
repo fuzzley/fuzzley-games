@@ -2,6 +2,11 @@ import * as Phaser from "phaser";
 import { BoardScene } from "../board_scene";
 import { BoardViewState, HighlightView } from "./board_view_state";
 
+/**
+ * Responsible for applying the board view state to the Phaser scene.
+ * Coordinates rendering updates for all visual elements including card sprites,
+ * pile backgrounds, highlights, and interactive states.
+ */
 export class BoardViewApplier {
   private readonly highlightGraphics: Phaser.GameObjects.Graphics;
 
