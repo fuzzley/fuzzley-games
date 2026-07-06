@@ -7,7 +7,11 @@ import type { PlayingCard } from "@/game/model/card/playing_card";
 import {
   CARD_WIDTH_PX,
   CARD_HEIGHT_PX,
+  DESIGN_WIDTH_PX,
+  DESIGN_HEIGHT_PX,
 } from "../layout/board_layout_constants";
+import { DragInteraction, PileGeometry } from "../view/board_view_state";
+import { resolveDropTarget } from "./drop_target_resolver";
 
 /**
  * Coordinates and handles drag-and-drop state, overlaps, and mouse pointer events
@@ -20,10 +24,10 @@ export class BoardInputManager {
   /** Maximum milliseconds between two clicks for them to count as a double-click. */
   private static readonly DOUBLE_CLICK_MS = 350;
 
-  /** The stack of card visuals currently being dragged. */
+  /** The stack of card visuals currently being dragged. Kept for test compatibility. */
   public draggedStack: PlayingCardVisual[] = [];
 
-  /** The offsets of the dragged cards relative to the main dragged card sprite. */
+  /** The offsets of the dragged cards relative to the main dragged card sprite. Kept for test compatibility. */
   public draggedStackOffsets: { x: number; y: number }[] = [];
 
   /** The currently hovered card visual wrapper. */
@@ -31,6 +35,12 @@ export class BoardInputManager {
 
   /** Whether the stock pile background sprite is currently hovered. */
   public isStockBackgroundHovered = false;
+
+  /** The transient drag interaction state. */
+  public drag: DragInteraction | null = null;
+
+  /** Flag to snap all cards immediately (e.g. on first load, resize, reset). */
+  public snapAll = true;
 
   /** The timestamp of the last click on a card. */
   private lastClickTime = 0;
@@ -191,19 +201,29 @@ export class BoardInputManager {
     );
     if (!sourcePile) return;
 
-    const pileVisual = this.boardScene.getPileVisualById(sourcePile.id);
-    if (!pileVisual) return;
+    let draggedStack: PlayingCardVisual[] = [];
+    if (this.boardScene.cardVisualsMap) {
+      const cards = sourcePile.getCards();
+      const index = cards.findIndex((c) => c.id === visual.playingCard.id);
+      if (index !== -1) {
+        draggedStack = cards
+          .slice(index)
+          .map((c) => this.boardScene.cardVisualsMap.get(c.id)!);
+      }
+    } else {
+      const pileVisual = this.boardScene.getPileVisualById(sourcePile.id);
+      if (pileVisual) {
+        const index = pileVisual.playingCardVisuals.indexOf(visual);
+        if (index !== -1) {
+          draggedStack = pileVisual.playingCardVisuals.slice(index);
+        }
+      }
+    }
 
-    const index = pileVisual.playingCardVisuals.indexOf(visual);
-    if (index === -1) return;
+    if (draggedStack.length === 0) return;
+    this.draggedStack = draggedStack;
 
-    // Get the stack of cards from the dragged card up to the top card
-    this.draggedStack = pileVisual.playingCardVisuals.slice(index);
-
-    // Relayout now that a drag is in progress: this collapses any hover reveal
-    // (see applyTableauHoverExpansion) so the dragged stack and the pile beneath
-    // start from normal resting spacing rather than the expanded hover gap. It
-    // also clears the hover highlight border.
+    // Relayout now that a drag is in progress.
     this.boardScene.getLayoutManager().updateVisualLayout();
 
     // Calculate offsets relative to the main dragged card's resting position.
@@ -212,6 +232,12 @@ export class BoardInputManager {
       x: (cardVis.sprite?.x ?? gameObject.x) - gameObject.x,
       y: (cardVis.sprite?.y ?? gameObject.y) - gameObject.y,
     }));
+
+    // Initialize the pure drag state
+    this.drag = {
+      cardIds: this.draggedStack.map((c) => c.playingCard.id),
+      primary: { x: gameObject.x, y: gameObject.y },
+    };
 
     // Bring the dragged cards to the top depth layer and adjust shadows for lift effect
     this.draggedStack.forEach((cardVis, idx) => {
@@ -228,6 +254,9 @@ export class BoardInputManager {
     dragX: number,
     dragY: number,
   ): void {
+    if (this.drag) {
+      this.drag.primary = { x: dragX, y: dragY };
+    }
     if (this.draggedStack.length === 0) return;
 
     // Move the primary dragged card
@@ -250,11 +279,23 @@ export class BoardInputManager {
     pointer: Phaser.Input.Pointer,
     gameObject: Phaser.GameObjects.Sprite,
   ): void {
-    if (this.draggedStack.length === 0) return;
+    if (!this.drag) return;
 
     const visual = gameObject.getData("cardVisual") as PlayingCardVisual;
 
+    const scale = this.boardScene.getLayoutManager().getScaleFactor();
+    const width = CARD_WIDTH_PX * scale;
+    const height = CARD_HEIGHT_PX * scale;
+
+    const dragRect = {
+      x: this.drag.primary.x,
+      y: this.drag.primary.y,
+      width: gameObject.displayWidth || width,
+      height: gameObject.displayHeight || height,
+    };
+
     // Clear drag tracking state first so that layout/highlight updates can accurately reflect that we are no longer dragging.
+    this.drag = null;
     this.draggedStack = [];
     this.draggedStackOffsets = [];
 
@@ -263,31 +304,14 @@ export class BoardInputManager {
       return;
     }
 
-    // Determine overlap with piles to find potential target pile
-    const cardRect = new Phaser.Geom.Rectangle(
-      gameObject.x,
-      gameObject.y,
-      gameObject.displayWidth,
-      gameObject.displayHeight,
-    );
-
-    const scale = this.boardScene.getLayoutManager().getScaleFactor();
-    const width = CARD_WIDTH_PX * scale;
-
-    let targetPileVisual: PileVisual | null = null;
-    let maxOverlapArea = 0;
-
-    const potentialPiles = [
+    const geometries = [
       ...this.boardScene.foundationPiles,
       ...this.boardScene.tableauPiles,
-    ];
-
-    for (const pileVisual of potentialPiles) {
+    ].map((pileVisual) => {
       const x = pileVisual.position.x;
       const y = pileVisual.position.y;
-      let height = CARD_HEIGHT_PX * scale;
+      let pileHeight = CARD_HEIGHT_PX * scale;
 
-      // For tableau piles, calculate dynamic height based on stacked cards
       if (
         pileVisual instanceof TableauPileVisual &&
         pileVisual.playingCardVisuals.length > 0
@@ -296,29 +320,25 @@ export class BoardInputManager {
           pileVisual.playingCardVisuals[
             pileVisual.playingCardVisuals.length - 1
           ];
-        height = lastCard.position.y * scale + CARD_HEIGHT_PX * scale;
+        pileHeight = lastCard.position.y * scale + CARD_HEIGHT_PX * scale;
       }
 
-      const pileRect = new Phaser.Geom.Rectangle(x, y, width, height);
-      const intersection = new Phaser.Geom.Rectangle();
-      Phaser.Geom.Rectangle.Intersection(pileRect, cardRect, intersection);
+      return {
+        pileId: pileVisual.value.id,
+        x,
+        y,
+        width,
+        height: pileHeight,
+      };
+    });
 
-      const overlapArea =
-        intersection.width > 0 && intersection.height > 0
-          ? intersection.width * intersection.height
-          : 0;
-
-      if (overlapArea > maxOverlapArea) {
-        maxOverlapArea = overlapArea;
-        targetPileVisual = pileVisual;
-      }
-    }
+    const targetPileId = resolveDropTarget(dragRect, geometries);
 
     let moved = false;
-    if (targetPileVisual) {
+    if (targetPileId) {
       moved = this.boardScene.gameModel.moveCardToPile(
         visual.playingCard.id,
-        targetPileVisual.value.id,
+        targetPileId,
       );
     }
 

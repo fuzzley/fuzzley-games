@@ -17,6 +17,8 @@ import { playingCardIdToFileName } from "../../asset/card_assets";
 import { BoardVisualFactory } from "./board_visual_factory";
 import { BoardInputManager } from "./input/board_input_manager";
 import { BoardHighlightRenderer } from "./effects/board_highlight_renderer";
+import { BoardViewApplier } from "./view/board_view_applier";
+import { buildBoardViewState } from "./view/board_view_state_builder";
 
 /** Union type representing any visual pile wrapper. */
 export type PileVisual =
@@ -62,6 +64,9 @@ export class BoardScene extends Scene {
   /** Factory for creating Phaser sprites. */
   private visualFactory!: BoardVisualFactory;
 
+  /** Applier to commit calculated view states onto sprites and graphics. */
+  private viewApplier!: BoardViewApplier;
+
   /**
    * Constructs the board scene.
    *
@@ -100,6 +105,7 @@ export class BoardScene extends Scene {
   create() {
     this.highlightRenderer = new BoardHighlightRenderer(this);
     this.inputManager = new BoardInputManager(this);
+    this.viewApplier = new BoardViewApplier(this);
     this.visualFactory = new BoardVisualFactory(
       this,
       () => this.gameModel.settings.cardBackStyle,
@@ -121,9 +127,16 @@ export class BoardScene extends Scene {
     this.layoutManager.createInitialLayout();
     this.layoutManager.updateVisualLayout();
 
+    if (this.inputManager) {
+      this.inputManager.snapAll = true;
+    }
+
     this.scale.on("resize", () => {
       this.layoutManager.createInitialLayout();
       this.layoutManager.updateVisualLayout();
+      if (this.inputManager) {
+        this.inputManager.snapAll = true;
+      }
     });
 
     this.inputManager.registerDragListeners();
@@ -179,7 +192,10 @@ export class BoardScene extends Scene {
       if (this.inputManager) {
         this.inputManager.hoveredCardVisual = null;
         this.inputManager.isStockBackgroundHovered = false;
+        this.inputManager.drag = null;
         this.inputManager.draggedStack = [];
+        this.inputManager.draggedStackOffsets = [];
+        this.inputManager.snapAll = true;
       }
       this.syncVisualPilesWithModel();
       this.layoutManager.createInitialLayout();
@@ -335,5 +351,32 @@ export class BoardScene extends Scene {
       this.inputManager.isStockBackgroundHovered,
       this.inputManager.draggedStack.length > 0,
     );
+  }
+
+  /**
+   * Phaser scene update lifecycle hook. Automatically invoked every frame to compute and
+   * apply the desired board view state.
+   */
+  override update(time: number, delta: number): void {
+    if (!this.inputManager || !this.viewApplier) return;
+
+    const viewport = {
+      width: this.scale?.width || DESIGN_WIDTH_PX,
+      height: this.scale?.height || DESIGN_HEIGHT_PX,
+    };
+
+    const interaction = {
+      hoveredCardId: this.inputManager.hoveredCardVisual?.playingCard.id ?? null,
+      isStockBackgroundHovered: this.inputManager.isStockBackgroundHovered,
+      drag: this.inputManager.drag,
+      snapAll: this.inputManager.snapAll,
+    };
+
+    const state = buildBoardViewState(this.gameModel, interaction, viewport);
+    this.viewApplier.apply(state, delta);
+
+    if (this.inputManager.snapAll) {
+      this.inputManager.snapAll = false;
+    }
   }
 }
