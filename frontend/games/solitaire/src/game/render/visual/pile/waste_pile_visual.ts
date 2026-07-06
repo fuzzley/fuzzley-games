@@ -1,5 +1,6 @@
 import { CardPile } from "@/game/model/card/card_pile";
 import { PlayingCard } from "@/game/model/card/playing_card";
+import { DrawCount } from "@/game/model/game/game_settings";
 import { PlayingCardVisual } from "../card/playing_card_visual";
 import { Visual } from "../visual";
 
@@ -14,10 +15,13 @@ export class WastePileVisual extends Visual<CardPile<PlayingCard>> {
    *
    * @param cardPile The logical CardPile model instance.
    * @param playingCardVisuals The array of card visuals in this pile.
+   * @param drawCount Supplies the active draw-count mode. In Draw 1 mode only
+   *   the top card is fanned; otherwise up to {@link MAX_FAN_CARDS} are shown.
    */
   constructor(
     cardPile: CardPile<PlayingCard> = new CardPile<PlayingCard>(),
     public readonly playingCardVisuals: PlayingCardVisual[] = [],
+    private readonly drawCount: () => DrawCount = () => 3,
   ) {
     super(cardPile);
   }
@@ -29,13 +33,17 @@ export class WastePileVisual extends Visual<CardPile<PlayingCard>> {
   private static readonly MAX_FAN_CARDS = 3;
 
   /**
-   * Fans the topmost cards horizontally so up to three card edges are visible,
-   * while all remaining cards are stacked at the pile origin.
+   * Fans the topmost cards horizontally so a few card edges are visible, while
+   * all remaining cards are stacked at the pile origin. In Draw 1 mode only the
+   * single top card is shown, since cards are drawn one at a time.
    */
   layoutPile() {
     const count = this.playingCardVisuals.length;
-    // Number of cards to fan (the top N, up to MAX_FAN_CARDS)
-    const fanCount = Math.min(count, WastePileVisual.MAX_FAN_CARDS);
+    // In Draw 1 mode only the top card is visible; otherwise fan up to MAX_FAN_CARDS.
+    const maxFanCards =
+      this.drawCount() === 1 ? 1 : WastePileVisual.MAX_FAN_CARDS;
+    // Number of cards to fan (the top N, up to maxFanCards)
+    const fanCount = Math.min(count, maxFanCards);
     const fanStartIndex = count - fanCount;
 
     for (let i = 0; i < count; i++) {

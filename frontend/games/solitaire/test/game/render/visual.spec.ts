@@ -107,6 +107,20 @@ describe("WastePileVisual", () => {
     expect(v3.position).toEqual({ x: 25, y: 0 });
     expect(v4.position).toEqual({ x: 50, y: 0 });
   });
+
+  it("shows only the top card in Draw 1 mode by stacking all cards at the origin", () => {
+    const v1 = cardVisual("c1");
+    const v2 = cardVisual("c2");
+    const v3 = cardVisual("c3");
+    const visual = new WastePileVisual(new CardPile(), [v1, v2, v3], () => 1);
+
+    visual.layoutPile();
+
+    // Every card stacks at the origin, so only the topmost card is visible.
+    expect(v1.position).toEqual({ x: 0, y: 0 });
+    expect(v2.position).toEqual({ x: 0, y: 0 });
+    expect(v3.position).toEqual({ x: 0, y: 0 });
+  });
 });
 
 describe("FoundationPileVisual", () => {
