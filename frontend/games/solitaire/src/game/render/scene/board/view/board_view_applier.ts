@@ -18,8 +18,9 @@ export class BoardViewApplier {
    * @param delta Elapsed time since the last frame in milliseconds.
    */
   public apply(vs: BoardViewState, delta: number): void {
-    // Stage 1: Snap mode (byte-for-byte visual behavior of today's implementation)
-    // Stage 2 will introduce easing animation.
+    const POSITION_TAU_MS = 90;
+    // Frame-rate independent interpolation constant
+    const k = delta > 0 ? 1 - Math.exp(-delta / POSITION_TAU_MS) : 1;
 
     for (const bg of vs.backgrounds) {
       let s: Phaser.GameObjects.Sprite | undefined;
@@ -48,7 +49,15 @@ export class BoardViewApplier {
       const visual = this.scene.cardVisualsMap.get(cv.cardId);
       const s = visual?.sprite;
       if (s && s.active) {
-        s.setPosition(cv.x, cv.y);
+        if (cv.snap || delta <= 0) {
+          s.setPosition(cv.x, cv.y);
+        } else {
+          s.x += (cv.x - s.x) * k;
+          s.y += (cv.y - s.y) * k;
+          if (Math.abs(s.x - cv.x) < 0.5 && Math.abs(s.y - cv.y) < 0.5) {
+            s.setPosition(cv.x, cv.y);
+          }
+        }
         s.setScale(cv.scale);
         s.setDepth(cv.depth);
         if (s.frame.name !== cv.frame) {
