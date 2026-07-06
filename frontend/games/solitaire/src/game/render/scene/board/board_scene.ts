@@ -307,6 +307,26 @@ export class BoardScene extends Scene {
   }
 
   /**
+   * Syncs each tableau pile's hovered-card state from the current input hover so
+   * the next layout reveals more of a hovered face-up tableau card. The state is
+   * derived fresh every layout (and cleared while dragging or when nothing
+   * eligible is hovered) so the reveal can never persist beyond the hover.
+   */
+  public applyTableauHoverExpansion(): void {
+    const hovered = this.inputManager?.hoveredCardVisual ?? null;
+    const isDragging = (this.inputManager?.draggedStack.length ?? 0) > 0;
+    const expandable =
+      hovered && !isDragging && hovered.playingCard.faceUp ? hovered : null;
+
+    for (const pile of this.tableauPiles) {
+      pile.hoveredCard =
+        expandable && pile.playingCardVisuals.includes(expandable)
+          ? expandable
+          : null;
+    }
+  }
+
+  /**
    * Redraws the highlight border around the hovered card or stock pile background if it is interactable.
    */
   public updateHighlightBorder(): void {

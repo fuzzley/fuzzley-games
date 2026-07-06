@@ -265,6 +265,73 @@ describe("BoardScene", () => {
     });
   });
 
+  describe("tableau hover expansion", () => {
+    /** The face-up top card visual of the given tableau pile. */
+    function topCardOf(tableauIndex: number) {
+      const cards = boardScene.tableauPiles[tableauIndex].playingCardVisuals;
+      return cards[cards.length - 1];
+    }
+
+    it("marks a hovered face-up tableau card for reveal", () => {
+      const tableau = boardScene.tableauPiles[2];
+      const hovered = topCardOf(2);
+
+      asMock(hovered.sprite).emit("pointerover");
+
+      expect(tableau.hoveredCard).toBe(hovered);
+    });
+
+    it("reveals the card only in the pile that contains it", () => {
+      const hovered = topCardOf(2);
+
+      asMock(hovered.sprite).emit("pointerover");
+
+      const otherPiles = boardScene.tableauPiles.filter((_, i) => i !== 2);
+      expect(otherPiles.every((p) => p.hoveredCard === null)).toBe(true);
+    });
+
+    it("does not reveal for a face-down tableau card", () => {
+      const tableau = boardScene.tableauPiles[3];
+      const faceDown = tableau.playingCardVisuals[0];
+
+      asMock(faceDown.sprite).emit("pointerover");
+
+      expect(tableau.hoveredCard).toBeNull();
+    });
+
+    it("clears the reveal when the pointer leaves the card", () => {
+      const tableau = boardScene.tableauPiles[2];
+      const hovered = topCardOf(2);
+      asMock(hovered.sprite).emit("pointerover");
+
+      asMock(hovered.sprite).emit("pointerout");
+
+      expect(tableau.hoveredCard).toBeNull();
+    });
+
+    /** Flips every card in a tableau face up and re-syncs the visuals. */
+    function faceUpRun(tableauIndex: number) {
+      const tableau = boardScene.tableauPiles[tableauIndex];
+      for (const v of tableau.playingCardVisuals) v.playingCard.faceUp = true;
+      boardScene.gameModel.emit("card-moved");
+      return tableau;
+    }
+
+    it("collapses the reveal to resting spacing when a drag begins", () => {
+      const tableau = faceUpRun(6);
+      const cards = tableau.playingCardVisuals;
+      const hovered = cards[cards.length - 3];
+      const covering = cards[cards.length - 2];
+      const restingY = asMock(covering.sprite).y;
+      asMock(hovered.sprite).emit("pointerover");
+
+      boardScene.input.emit("dragstart", {}, hovered.sprite);
+
+      expect(tableau.hoveredCard).toBeNull();
+      expect(asMock(covering.sprite).y).toBe(restingY);
+    });
+  });
+
   describe("game reset", () => {
     it("resets hovered states and updates layout on game-reset", () => {
       const mockCardVisual = boardScene.tableauPiles[0].playingCardVisuals[0];

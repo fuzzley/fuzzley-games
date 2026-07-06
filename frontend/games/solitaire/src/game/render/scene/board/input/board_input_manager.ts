@@ -79,13 +79,16 @@ export class BoardInputManager {
   ): void {
     sprite.on("pointerover", () => {
       this.hoveredCardVisual = visual;
-      this.boardScene.updateHighlightBorder();
+      // Relayout so a hovered face-up tableau card reveals more of itself; this
+      // also refreshes the highlight border for the new hover.
+      this.boardScene.getLayoutManager().updateVisualLayout();
     });
 
     sprite.on("pointerout", () => {
       if (this.hoveredCardVisual === visual) {
         this.hoveredCardVisual = null;
-        this.boardScene.updateHighlightBorder();
+        // Relayout so the revealed card and any cards on top of it settle back.
+        this.boardScene.getLayoutManager().updateVisualLayout();
       }
     });
 
@@ -197,7 +200,13 @@ export class BoardInputManager {
     // Get the stack of cards from the dragged card up to the top card
     this.draggedStack = pileVisual.playingCardVisuals.slice(index);
 
-    // Calculate offsets relative to the main dragged card's current position.
+    // Relayout now that a drag is in progress: this collapses any hover reveal
+    // (see applyTableauHoverExpansion) so the dragged stack and the pile beneath
+    // start from normal resting spacing rather than the expanded hover gap. It
+    // also clears the hover highlight border.
+    this.boardScene.getLayoutManager().updateVisualLayout();
+
+    // Calculate offsets relative to the main dragged card's resting position.
     // A card visual without a sprite stacks on the primary card (offset 0).
     this.draggedStackOffsets = this.draggedStack.map((cardVis) => ({
       x: (cardVis.sprite?.x ?? gameObject.x) - gameObject.x,
@@ -208,9 +217,6 @@ export class BoardInputManager {
     this.draggedStack.forEach((cardVis, idx) => {
       cardVis.sprite?.setDepth(BoardInputManager.DRAG_BASE_DEPTH + idx);
     });
-
-    // Remove any active highlights immediately when starting to drag
-    this.boardScene.updateHighlightBorder();
   }
 
   /**

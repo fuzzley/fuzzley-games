@@ -168,4 +168,46 @@ describe("TableauPileVisual", () => {
     // v2 is face-up => 45px offset => v3 sits at y = 18 + 45 = 63.
     expect(v3.position).toEqual({ x: 0, y: 63 });
   });
+
+  it("shifts the cards stacked on the hovered card down to reveal more of it", () => {
+    const v1 = cardVisual("c1", true);
+    const v2 = cardVisual("c2", true);
+    const v3 = cardVisual("c3", true);
+    const visual = new TableauPileVisual(new CardPile(), [v1, v2, v3]);
+    visual.hoveredCard = v1;
+
+    visual.layoutPile();
+
+    // v1 is face-up (45px) plus the 15px hover gap => v2 sits at y = 60.
+    expect(v2.position).toEqual({ x: 0, y: 60 });
+    // The gap carries through to every card stacked above => v3 at 60 + 45 = 105.
+    expect(v3.position).toEqual({ x: 0, y: 105 });
+  });
+
+  it("does not shift anything when the hovered card is the top of the pile", () => {
+    const v1 = cardVisual("c1", true);
+    const v2 = cardVisual("c2", true);
+    const visual = new TableauPileVisual(new CardPile(), [v1, v2]);
+    visual.hoveredCard = v2;
+
+    visual.layoutPile();
+
+    // The top card has nothing stacked on it, so the layout is unchanged.
+    expect(v1.position).toEqual({ x: 0, y: 0 });
+    expect(v2.position).toEqual({ x: 0, y: 45 });
+  });
+
+  it("lays cards out with no gap once the hover is cleared", () => {
+    const v1 = cardVisual("c1", true);
+    const v2 = cardVisual("c2", true);
+    const visual = new TableauPileVisual(new CardPile(), [v1, v2]);
+    visual.hoveredCard = v1;
+    visual.layoutPile();
+
+    visual.hoveredCard = null;
+    visual.layoutPile();
+
+    // Back to the plain face-up offset, so the reveal does not persist.
+    expect(v2.position).toEqual({ x: 0, y: 45 });
+  });
 });

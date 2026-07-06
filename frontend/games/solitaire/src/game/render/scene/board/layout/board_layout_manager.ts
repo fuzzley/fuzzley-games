@@ -107,6 +107,9 @@ export class BoardLayoutManager {
    * card sprites on screen to their absolute layout coordinates.
    */
   updateVisualLayout() {
+    if (typeof this.boardScene.applyTableauHoverExpansion === "function") {
+      this.boardScene.applyTableauHoverExpansion();
+    }
     this.computePileLayouts();
     this.alignAllCardSprites();
     if (typeof this.boardScene.updateHighlightBorder === "function") {
