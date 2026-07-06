@@ -165,6 +165,11 @@ export interface MockGraphics {
   strokeRect: Mock;
   strokeRoundedRect: Mock;
   setDepth: Mock;
+  beginPath: Mock;
+  moveTo: Mock;
+  lineTo: Mock;
+  arc: Mock;
+  strokePath: Mock;
 }
 
 /** Builds a {@link MockGraphics} whose chainable methods return itself. */
@@ -175,6 +180,11 @@ export function createMockGraphics(): MockGraphics {
     strokeRect: vi.fn(() => graphics),
     strokeRoundedRect: vi.fn(() => graphics),
     setDepth: vi.fn(() => graphics),
+    beginPath: vi.fn(() => graphics),
+    moveTo: vi.fn(() => graphics),
+    lineTo: vi.fn(() => graphics),
+    arc: vi.fn(() => graphics),
+    strokePath: vi.fn(() => graphics),
   };
   return graphics;
 }
