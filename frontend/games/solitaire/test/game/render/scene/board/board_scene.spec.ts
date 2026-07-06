@@ -1,5 +1,4 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import * as Phaser from "phaser";
 import { BoardScene } from "@/game/render/scene/board/board_scene";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
 import { resetGameModel } from "@/game/model/game/game_model_factory";

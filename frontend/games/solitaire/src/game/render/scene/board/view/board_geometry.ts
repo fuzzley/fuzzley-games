@@ -74,8 +74,8 @@ export function computePileOrigins(
   );
   const paddingY = LAYOUT_PADDING_Y * scale;
 
-  const columnX = (colIndex: number): number =>
-    paddingX + colIndex * (cardWidth + gapX);
+  const columnX = (columnIndex: number): number =>
+    paddingX + columnIndex * (cardWidth + gapX);
 
   const topRowY = HEADER_HEIGHT_PX + paddingY;
   const bottomRowY = HEADER_HEIGHT_PX + paddingY + cardHeight + gapY;
@@ -83,11 +83,11 @@ export function computePileOrigins(
   const origins = new Map<string, Point>();
   origins.set("stock", { x: columnX(0), y: topRowY });
   origins.set("waste", { x: columnX(1), y: topRowY });
-  for (let i = 0; i < 4; i++) {
-    origins.set(`foundation-${i}`, { x: columnX(3 + i), y: topRowY });
+  for (let foundationIndex = 0; foundationIndex < 4; foundationIndex++) {
+    origins.set(`foundation-${foundationIndex}`, { x: columnX(3 + foundationIndex), y: topRowY });
   }
-  for (let i = 0; i < 7; i++) {
-    origins.set(`tableau-${i}`, { x: columnX(i), y: bottomRowY });
+  for (let tableauIndex = 0; tableauIndex < 7; tableauIndex++) {
+    origins.set(`tableau-${tableauIndex}`, { x: columnX(tableauIndex), y: bottomRowY });
   }
   return origins;
 }
@@ -135,11 +135,11 @@ export function wasteCardOffsets(count: number, drawCount: DrawCount): Point[] {
   const fanStartIndex = count - fanCount;
 
   const offsets: Point[] = [];
-  for (let i = 0; i < count; i++) {
-    if (i < fanStartIndex) {
+  for (let cardIndex = 0; cardIndex < count; cardIndex++) {
+    if (cardIndex < fanStartIndex) {
       offsets.push({ x: 0, y: 0 });
     } else {
-      offsets.push({ x: (i - fanStartIndex) * WASTE_FAN_OFFSET_X, y: 0 });
+      offsets.push({ x: (cardIndex - fanStartIndex) * WASTE_FAN_OFFSET_X, y: 0 });
     }
   }
   return offsets;

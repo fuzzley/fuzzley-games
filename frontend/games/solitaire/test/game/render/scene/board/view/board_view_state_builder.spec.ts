@@ -25,12 +25,12 @@ describe("board_view_state_builder", () => {
     // Relocate one card to tableau-0
     const card = relocate(game, "card-hearts-ace", game.tableaus[0], true);
 
-    const vs = buildBoardViewState(game, interaction, viewport);
+    const viewState = buildBoardViewState(game, interaction, viewport);
 
-    expect(vs.backgrounds.length).toBe(12); // stock, 4 foundations, 7 tableaus
-    expect(vs.cards.length).toBe(1);
+    expect(viewState.backgrounds.length).toBe(12); // stock, 4 foundations, 7 tableaus
+    expect(viewState.cards.length).toBe(1);
 
-    const cardView = vs.cards[0];
+    const cardView = viewState.cards[0];
     expect(cardView.cardId).toBe(card.id);
     expect(cardView.scale).toBe(1.0); // full design viewport size allows scale 1.0
     expect(cardView.depth).toBe(1); // first card in tableau gets depth 1
@@ -42,8 +42,8 @@ describe("board_view_state_builder", () => {
 
   it("handles snapAll flag correctly", () => {
     interaction.snapAll = true;
-    const vs = buildBoardViewState(game, interaction, viewport);
-    expect(vs.cards.every((cv) => cv.snap)).toBe(true);
+    const viewState = buildBoardViewState(game, interaction, viewport);
+    expect(viewState.cards.every((cardView) => cardView.snap)).toBe(true);
   });
 
   it("hides highlights and overrides position/depth/snap for dragged cards", () => {
@@ -57,33 +57,33 @@ describe("board_view_state_builder", () => {
     };
     interaction.hoveredCardId = card1.id;
 
-    const vs = buildBoardViewState(game, interaction, viewport);
+    const viewState = buildBoardViewState(game, interaction, viewport);
 
-    expect(vs.highlight).toBeNull(); // highlight hidden during drag
+    expect(viewState.highlight).toBeNull(); // highlight hidden during drag
 
-    const cv1 = vs.cards.find((c) => c.cardId === card1.id)!;
-    const cv2 = vs.cards.find((c) => c.cardId === card2.id)!;
+    const cardView1 = viewState.cards.find((card) => card.cardId === card1.id)!;
+    const cardView2 = viewState.cards.find((card) => card.cardId === card2.id)!;
 
-    expect(cv1.x).toBe(500);
-    expect(cv1.y).toBe(600);
-    expect(cv1.depth).toBe(1000);
-    expect(cv1.snap).toBe(true);
+    expect(cardView1.x).toBe(500);
+    expect(cardView1.y).toBe(600);
+    expect(cardView1.depth).toBe(1000);
+    expect(cardView1.snap).toBe(true);
 
-    expect(cv2.x).toBe(500);
-    expect(cv2.y).toBe(600 + 45); // offset for tableau drag
-    expect(cv2.depth).toBe(1001);
-    expect(cv2.snap).toBe(true);
+    expect(cardView2.x).toBe(500);
+    expect(cardView2.y).toBe(600 + 45); // offset for tableau drag
+    expect(cardView2.depth).toBe(1001);
+    expect(cardView2.snap).toBe(true);
   });
 
   it("draws highlight over empty stock if hovered", () => {
     emptyBoard(game); // stock is empty
     interaction.isStockBackgroundHovered = true;
 
-    const vs = buildBoardViewState(game, interaction, viewport);
+    const viewState = buildBoardViewState(game, interaction, viewport);
 
-    expect(vs.highlight).not.toBeNull();
-    expect(vs.highlight?.openBottom).toBe(false);
-    expect(vs.highlight?.x).toBe(vs.backgrounds.find((b) => b.pileId === "stock")!.x);
+    expect(viewState.highlight).not.toBeNull();
+    expect(viewState.highlight?.openBottom).toBe(false);
+    expect(viewState.highlight?.x).toBe(viewState.backgrounds.find((backgroundView) => backgroundView.pileId === "stock")!.x);
   });
 
   it("draws openBottom highlight for covered cards in a tableau", () => {
@@ -94,16 +94,16 @@ describe("board_view_state_builder", () => {
     // Hover the bottom card (card1) which is covered by card2
     interaction.hoveredCardId = card1.id;
 
-    const vs = buildBoardViewState(game, interaction, viewport);
+    const viewState = buildBoardViewState(game, interaction, viewport);
 
-    expect(vs.highlight).not.toBeNull();
-    expect(vs.highlight?.openBottom).toBe(true);
-    expect(vs.highlight?.x).toBe(vs.cards.find((c) => c.cardId === card1.id)!.x);
-    expect(vs.highlight?.y).toBe(vs.cards.find((c) => c.cardId === card1.id)!.y);
+    expect(viewState.highlight).not.toBeNull();
+    expect(viewState.highlight?.openBottom).toBe(true);
+    expect(viewState.highlight?.x).toBe(viewState.cards.find((card) => card.cardId === card1.id)!.x);
+    expect(viewState.highlight?.y).toBe(viewState.cards.find((card) => card.cardId === card1.id)!.y);
 
     // Hover the top card (card2) which is NOT covered
     interaction.hoveredCardId = card2.id;
-    const vs2 = buildBoardViewState(game, interaction, viewport);
-    expect(vs2.highlight?.openBottom).toBe(false);
+    const viewState2 = buildBoardViewState(game, interaction, viewport);
+    expect(viewState2.highlight?.openBottom).toBe(false);
   });
 });

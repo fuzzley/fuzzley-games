@@ -1,7 +1,7 @@
 import * as Phaser from "phaser";
 import type { BoardScene } from "../board_scene";
 import type { PlayingCardVisual } from "@/game/render/visual/card/playing_card_visual";
-import { PileType } from "@/game/model/card/card_pile";
+import { CardPile, PileType } from "@/game/model/card/card_pile";
 import type { PlayingCard } from "@/game/model/card/playing_card";
 import {
   CARD_WIDTH_PX,
@@ -40,7 +40,7 @@ export class BoardInputManager {
   public snapAll = true;
 
   /** The timestamp of the last click on a card. */
-  private lastClickTime = 0;
+  private lastClickTimeMs = 0;
 
   /** The ID of the last clicked card. */
   private lastClickedCardId: string | null = null;
@@ -118,7 +118,7 @@ export class BoardInputManager {
       return;
     }
 
-    this.lastClickTime = 0;
+    this.lastClickTimeMs = 0;
     this.lastClickedCardId = null;
 
     if (pile.type === PileType.STOCK) {
@@ -131,12 +131,12 @@ export class BoardInputManager {
    * same card within {@link BoardInputManager.DOUBLE_CLICK_MS}.
    */
   private isDoubleClick(cardId: string): boolean {
-    const currentTime = Date.now();
+    const currentTimeMs = Date.now();
     const doubleClick =
       this.lastClickedCardId === cardId &&
-      currentTime - this.lastClickTime < BoardInputManager.DOUBLE_CLICK_MS;
+      currentTimeMs - this.lastClickTimeMs < BoardInputManager.DOUBLE_CLICK_MS;
 
-    this.lastClickTime = currentTime;
+    this.lastClickTimeMs = currentTimeMs;
     this.lastClickedCardId = cardId;
 
     return doubleClick;
@@ -192,24 +192,24 @@ export class BoardInputManager {
     if (!sourcePile) return;
 
     const cards = sourcePile.getCards();
-    const index = cards.findIndex((c) => c.id === visual.playingCard.id);
-    if (index === -1) return;
+    const cardIndex = cards.findIndex((card) => card.id === visual.playingCard.id);
+    if (cardIndex === -1) return;
 
     // Get the stack of cards from the dragged card up to the top card
     this.draggedStack = cards
-      .slice(index)
-      .map((c) => this.boardScene.cardVisualsMap.get(c.id)!);
+      .slice(cardIndex)
+      .map((card) => this.boardScene.cardVisualsMap.get(card.id)!);
 
     // Calculate offsets relative to the main dragged card's resting position.
     // A card visual without a sprite stacks on the primary card (offset 0).
-    this.draggedStackOffsets = this.draggedStack.map((cardVis) => ({
-      x: (cardVis.sprite?.x ?? gameObject.x) - gameObject.x,
-      y: (cardVis.sprite?.y ?? gameObject.y) - gameObject.y,
+    this.draggedStackOffsets = this.draggedStack.map((cardVisual) => ({
+      x: (cardVisual.sprite?.x ?? gameObject.x) - gameObject.x,
+      y: (cardVisual.sprite?.y ?? gameObject.y) - gameObject.y,
     }));
 
     // Initialize the pure drag state
     this.drag = {
-      cardIds: this.draggedStack.map((c) => c.playingCard.id),
+      cardIds: this.draggedStack.map((card) => card.playingCard.id),
       primary: { x: gameObject.x, y: gameObject.y },
     };
   }

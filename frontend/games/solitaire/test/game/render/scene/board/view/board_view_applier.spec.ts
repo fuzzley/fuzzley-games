@@ -1,5 +1,4 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import * as Phaser from "phaser";
 import { BoardViewApplier } from "@/game/render/scene/board/view/board_view_applier";
 import { BoardScene } from "@/game/render/scene/board/board_scene";
 import { BoardViewState } from "@/game/render/scene/board/view/board_view_state";
@@ -59,7 +58,7 @@ describe("BoardViewApplier", () => {
   });
 
   it("snaps backgrounds immediately", () => {
-    const vs: BoardViewState = {
+    const viewState: BoardViewState = {
       backgrounds: [
         { pileId: "stock", x: 100, y: 200, scale: 0.8, depth: 5, cursor: "pointer" },
       ],
@@ -70,7 +69,7 @@ describe("BoardViewApplier", () => {
     const sprite = boardScene.stockPile.sprite!;
     sprite.input = { cursor: "default" };
 
-    applier.apply(vs, 16);
+    applier.apply(viewState, 16);
 
     expect(sprite.x).toBe(100);
     expect(sprite.y).toBe(200);
@@ -83,7 +82,7 @@ describe("BoardViewApplier", () => {
     const cardSprite = createMockSprite({ x: 50, y: 50 });
     boardScene.cardVisualsMap.set("card-1", { sprite: asSprite(cardSprite) } as any);
 
-    const vs: BoardViewState = {
+    const viewState: BoardViewState = {
       backgrounds: [],
       cards: [
         {
@@ -101,7 +100,7 @@ describe("BoardViewApplier", () => {
       highlight: null,
     };
 
-    applier.apply(vs, 16);
+    applier.apply(viewState, 16);
 
     expect(cardSprite.x).toBe(100);
     expect(cardSprite.y).toBe(200);
@@ -114,7 +113,7 @@ describe("BoardViewApplier", () => {
     const cardSprite = createMockSprite({ x: 0, y: 0 });
     boardScene.cardVisualsMap.set("card-1", { sprite: asSprite(cardSprite) } as any);
 
-    const vs: BoardViewState = {
+    const viewState: BoardViewState = {
       backgrounds: [],
       cards: [
         {
@@ -136,7 +135,7 @@ describe("BoardViewApplier", () => {
     // k = 1 - exp(-16/90) = ~0.1628
     // target x = 100, starting x = 0
     // new x = 0 + 100 * 0.1628 = ~16.28
-    applier.apply(vs, 16);
+    applier.apply(viewState, 16);
 
     expect(cardSprite.x).toBeGreaterThan(15);
     expect(cardSprite.x).toBeLessThan(18);
@@ -145,16 +144,16 @@ describe("BoardViewApplier", () => {
 
     // Call it again to see it settle further
     const currentX = cardSprite.x;
-    applier.apply(vs, 16);
+    applier.apply(viewState, 16);
     expect(cardSprite.x).toBeGreaterThan(currentX);
 
     // snap immediately on delta <= 0
-    applier.apply(vs, 0);
+    applier.apply(viewState, 0);
     expect(cardSprite.x).toBe(100);
   });
 
   it("draws highlighting for full vs openBottom highlights", () => {
-    const vs: BoardViewState = {
+    const viewState: BoardViewState = {
       backgrounds: [],
       cards: [],
       highlight: {
@@ -167,10 +166,10 @@ describe("BoardViewApplier", () => {
       },
     };
 
-    applier.apply(vs, 16);
+    applier.apply(viewState, 16);
     expect(mockGraphics.strokeRoundedRect).toHaveBeenCalledWith(10, 20, 100, 150, 12);
 
-    const vsOpen: BoardViewState = {
+    const viewStateOpen: BoardViewState = {
       backgrounds: [],
       cards: [],
       highlight: {
@@ -183,7 +182,7 @@ describe("BoardViewApplier", () => {
       },
     };
 
-    applier.apply(vsOpen, 16);
+    applier.apply(viewStateOpen, 16);
     expect(mockGraphics.beginPath).toHaveBeenCalled();
     expect(mockGraphics.strokePath).toHaveBeenCalled();
   });
