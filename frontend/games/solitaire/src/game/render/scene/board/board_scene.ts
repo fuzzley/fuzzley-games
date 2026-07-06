@@ -74,7 +74,11 @@ export class BoardScene extends Scene {
 
     this.gameModel = gameModel;
     this.stockPile = new StockPileVisual(gameModel.stock);
-    this.wastePile = new WastePileVisual(gameModel.waste);
+    this.wastePile = new WastePileVisual(
+      gameModel.waste,
+      [],
+      () => gameModel.settings.drawCount,
+    );
     this.foundationPiles = gameModel.foundations.map(
       (pile) => new FoundationPileVisual(pile),
     );
