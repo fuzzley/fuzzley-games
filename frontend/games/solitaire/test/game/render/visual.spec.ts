@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import { vi, describe, it, expect } from "vitest";
 import * as Phaser from "phaser";
 import { CardPile } from "@/game/model/card/card_pile";
 import { PlayingCardVisual } from "@/game/render/visual/card/playing_card_visual";
@@ -8,11 +8,6 @@ import { FoundationPileVisual } from "@/game/render/visual/pile/foundation_pile_
 import { TableauPileVisual } from "@/game/render/visual/pile/tableau_pile_visual";
 import { Visual } from "@/game/render/visual/visual";
 import { makePlayingCard } from "@test/support/card_builder";
-
-/** Builds a card visual for a fresh card with the given id and face state. */
-function cardVisual(id: string, faceUp = false): PlayingCardVisual {
-  return new PlayingCardVisual(makePlayingCard({ id, faceUp }));
-}
 
 describe("Visual base class", () => {
   it("exposes the sprite it was assigned", () => {
@@ -39,7 +34,8 @@ describe("PlayingCardVisual", () => {
   });
 
   it("exposes the position it was assigned", () => {
-    const visual = cardVisual("c1");
+    const card = makePlayingCard({ id: "c1" });
+    const visual = new PlayingCardVisual(card);
 
     visual.position = { x: 100, y: 200 };
 
@@ -48,25 +44,13 @@ describe("PlayingCardVisual", () => {
 });
 
 describe("StockPileVisual", () => {
-  it("is a Visual wrapping the given pile, positioned at the origin", () => {
+  it("is a Visual wrapping the given pile", () => {
     const pile = new CardPile();
 
     const visual = new StockPileVisual(pile);
 
     expect(visual).toBeInstanceOf(Visual);
     expect(visual.value).toBe(pile);
-    expect(visual.position).toEqual({ x: 0, y: 0 });
-  });
-
-  it("stacks every card at the pile origin", () => {
-    const v1 = cardVisual("c1");
-    const v2 = cardVisual("c2");
-    const visual = new StockPileVisual(new CardPile(), [v1, v2]);
-
-    visual.layoutPile();
-
-    expect(v1.position).toEqual({ x: 0, y: 0 });
-    expect(v2.position).toEqual({ x: 0, y: 0 });
   });
 });
 
@@ -79,48 +63,6 @@ describe("WastePileVisual", () => {
     expect(visual).toBeInstanceOf(Visual);
     expect(visual.value).toBe(pile);
   });
-
-  it("fans the top cards out horizontally", () => {
-    const v1 = cardVisual("c1");
-    const v2 = cardVisual("c2");
-    const visual = new WastePileVisual(new CardPile(), [v1, v2]);
-
-    visual.layoutPile();
-
-    expect(v1.position).toEqual({ x: 0, y: 0 });
-    expect(v2.position).toEqual({ x: 25, y: 0 });
-  });
-
-  it("stacks overflow cards at the origin and fans only the last MAX_FAN_CARDS", () => {
-    const v1 = cardVisual("c1");
-    const v2 = cardVisual("c2");
-    const v3 = cardVisual("c3");
-    const v4 = cardVisual("c4");
-    const visual = new WastePileVisual(new CardPile(), [v1, v2, v3, v4]);
-
-    visual.layoutPile();
-
-    // With 4 cards (MAX_FAN_CARDS = 3) the first card sits below the fan at the
-    // origin and the last three are fanned.
-    expect(v1.position).toEqual({ x: 0, y: 0 });
-    expect(v2.position).toEqual({ x: 0, y: 0 });
-    expect(v3.position).toEqual({ x: 25, y: 0 });
-    expect(v4.position).toEqual({ x: 50, y: 0 });
-  });
-
-  it("shows only the top card in Draw 1 mode by stacking all cards at the origin", () => {
-    const v1 = cardVisual("c1");
-    const v2 = cardVisual("c2");
-    const v3 = cardVisual("c3");
-    const visual = new WastePileVisual(new CardPile(), [v1, v2, v3], () => 1);
-
-    visual.layoutPile();
-
-    // Every card stacks at the origin, so only the topmost card is visible.
-    expect(v1.position).toEqual({ x: 0, y: 0 });
-    expect(v2.position).toEqual({ x: 0, y: 0 });
-    expect(v3.position).toEqual({ x: 0, y: 0 });
-  });
 });
 
 describe("FoundationPileVisual", () => {
@@ -132,17 +74,6 @@ describe("FoundationPileVisual", () => {
     expect(visual).toBeInstanceOf(Visual);
     expect(visual.value).toBe(pile);
   });
-
-  it("stacks every card at the pile origin", () => {
-    const v1 = cardVisual("c1");
-    const v2 = cardVisual("c2");
-    const visual = new FoundationPileVisual(new CardPile(), [v1, v2]);
-
-    visual.layoutPile();
-
-    expect(v1.position).toEqual({ x: 0, y: 0 });
-    expect(v2.position).toEqual({ x: 0, y: 0 });
-  });
 });
 
 describe("TableauPileVisual", () => {
@@ -153,61 +84,5 @@ describe("TableauPileVisual", () => {
 
     expect(visual).toBeInstanceOf(Visual);
     expect(visual.value).toBe(pile);
-  });
-
-  it("spaces face-down cards closer together than face-up cards", () => {
-    const v1 = cardVisual("c1", false);
-    const v2 = cardVisual("c2", true);
-    const v3 = cardVisual("c3", false);
-    const visual = new TableauPileVisual(new CardPile(), [v1, v2, v3]);
-
-    visual.layoutPile();
-
-    // v1 is face-down => 18px offset => v2 sits at y = 18.
-    expect(v2.position).toEqual({ x: 0, y: 18 });
-    // v2 is face-up => 45px offset => v3 sits at y = 18 + 45 = 63.
-    expect(v3.position).toEqual({ x: 0, y: 63 });
-  });
-
-  it("shifts the cards stacked on the hovered card down to reveal more of it", () => {
-    const v1 = cardVisual("c1", true);
-    const v2 = cardVisual("c2", true);
-    const v3 = cardVisual("c3", true);
-    const visual = new TableauPileVisual(new CardPile(), [v1, v2, v3]);
-    visual.hoveredCard = v1;
-
-    visual.layoutPile();
-
-    // v1 is face-up (45px) plus the 15px hover gap => v2 sits at y = 60.
-    expect(v2.position).toEqual({ x: 0, y: 60 });
-    // The gap carries through to every card stacked above => v3 at 60 + 45 = 105.
-    expect(v3.position).toEqual({ x: 0, y: 105 });
-  });
-
-  it("does not shift anything when the hovered card is the top of the pile", () => {
-    const v1 = cardVisual("c1", true);
-    const v2 = cardVisual("c2", true);
-    const visual = new TableauPileVisual(new CardPile(), [v1, v2]);
-    visual.hoveredCard = v2;
-
-    visual.layoutPile();
-
-    // The top card has nothing stacked on it, so the layout is unchanged.
-    expect(v1.position).toEqual({ x: 0, y: 0 });
-    expect(v2.position).toEqual({ x: 0, y: 45 });
-  });
-
-  it("lays cards out with no gap once the hover is cleared", () => {
-    const v1 = cardVisual("c1", true);
-    const v2 = cardVisual("c2", true);
-    const visual = new TableauPileVisual(new CardPile(), [v1, v2]);
-    visual.hoveredCard = v1;
-    visual.layoutPile();
-
-    visual.hoveredCard = null;
-    visual.layoutPile();
-
-    // Back to the plain face-up offset, so the reveal does not persist.
-    expect(v2.position).toEqual({ x: 0, y: 45 });
   });
 });

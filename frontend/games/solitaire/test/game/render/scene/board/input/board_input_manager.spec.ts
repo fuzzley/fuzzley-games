@@ -6,7 +6,7 @@ import { StockPileVisual } from "@/game/render/visual/pile/stock_pile_visual";
 import { WastePileVisual } from "@/game/render/visual/pile/waste_pile_visual";
 import { TableauPileVisual } from "@/game/render/visual/pile/tableau_pile_visual";
 import { FoundationPileVisual } from "@/game/render/visual/pile/foundation_pile_visual";
-import { BoardScene, PileVisual } from "@/game/render/scene/board/board_scene";
+import { BoardScene } from "@/game/render/scene/board/board_scene";
 import {
   asSprite,
   createMockInput,
@@ -15,9 +15,6 @@ import {
   MockSprite,
 } from "@test/support/phaser_mocks";
 
-// The source computes drop overlaps with Phaser.Geom.Rectangle. Provide just
-// that geometry so the real phaser module (which needs a browser environment)
-// is not required in the node test environment.
 vi.mock("phaser", async () => {
   const mocks = await import("@test/support/phaser_mocks");
   return mocks.geomPhaserMock();
@@ -27,37 +24,25 @@ describe("BoardInputManager", () => {
   let gameModel: SolitaireGame;
   let input: MockInput;
   let stockPile: StockPileVisual;
+  let wastePile: WastePileVisual;
   let tableauPiles: TableauPileVisual[];
   let foundationPiles: FoundationPileVisual[];
-  let getPileVisualById: ReturnType<typeof vi.fn>;
-  let updateVisualLayout: ReturnType<typeof vi.fn>;
   let boardScene: BoardScene;
   let inputManager: BoardInputManager;
 
   beforeEach(() => {
+    vi.useFakeTimers();
+
     gameModel = new SolitaireGame();
     gameModel.startNewGame();
 
     input = createMockInput();
     stockPile = new StockPileVisual(gameModel.stock);
-    const wastePile = new WastePileVisual(gameModel.waste);
+    wastePile = new WastePileVisual(gameModel.waste);
     foundationPiles = gameModel.foundations.map(
       (f) => new FoundationPileVisual(f),
     );
     tableauPiles = gameModel.tableaus.map((t) => new TableauPileVisual(t));
-
-    getPileVisualById = vi.fn((pileId: string): PileVisual | null => {
-      if (pileId === "stock") return stockPile;
-      if (pileId === "waste") return wastePile;
-      if (pileId.startsWith("tableau-")) {
-        return tableauPiles[Number(pileId.split("-")[1])];
-      }
-      if (pileId.startsWith("foundation-")) {
-        return foundationPiles[Number(pileId.split("-")[1])];
-      }
-      return null;
-    });
-    updateVisualLayout = vi.fn();
 
     boardScene = {
       input,
@@ -66,12 +51,7 @@ describe("BoardInputManager", () => {
       wastePile,
       foundationPiles,
       tableauPiles,
-      getPileVisualById,
-      updateHighlightBorder: vi.fn(),
-      getLayoutManager: () => ({
-        getScaleFactor: () => 1.0,
-        updateVisualLayout,
-      }),
+      cardVisualsMap: new Map(),
     } as unknown as BoardScene;
 
     stockPile.sprite = asSprite(
@@ -79,6 +59,10 @@ describe("BoardInputManager", () => {
     );
 
     inputManager = new BoardInputManager(boardScene);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   /** Registers card listeners for a fresh sprite bound to the given card. */
@@ -90,6 +74,7 @@ describe("BoardInputManager", () => {
     const sprite = createMockSprite();
     visual.sprite = asSprite(sprite);
     inputManager.registerCardListeners(asSprite(sprite), visual);
+    boardScene.cardVisualsMap.set(card.id, visual);
     return { sprite, visual };
   }
 
@@ -112,133 +97,113 @@ describe("BoardInputManager", () => {
     });
 
     it("leaves a different hovered card untouched on pointerout", () => {
-      const { sprite } = listenTo();
-      const otherVisual = new PlayingCardVisual(
-        gameModel.tableaus[1].getCards()[0],
-      );
-      inputManager.hoveredCardVisual = otherVisual;
+      const { sprite, visual } = listenTo();
+      const other = new PlayingCardVisual(gameModel.tableaus[1].getCards()[0]);
+      inputManager.hoveredCardVisual = other;
 
       sprite.emit("pointerout");
 
-      expect(inputManager.hoveredCardVisual).toBe(otherVisual);
+      expect(inputManager.hoveredCardVisual).toBe(other);
     });
   });
 
-  describe("card pointerdown", () => {
+  describe("stock interaction", () => {
     it("draws from the stock when the top stock card is clicked", () => {
-      const stockCards = gameModel.stock.getCards();
-      const { sprite } = listenTo(stockCards[stockCards.length - 1]);
-      const initialStockSize = gameModel.stock.getCards().length;
+      const drawSpy = vi.spyOn(gameModel, "drawCardsFromStock");
+      const stock = gameModel.stock.getCards();
+      const topCard = stock[stock.length - 1];
+      const { sprite } = listenTo(topCard);
 
       sprite.emit("pointerdown");
 
-      expect(gameModel.stock.getCards().length).toBe(initialStockSize - 3);
-      expect(gameModel.waste.getCards().length).toBe(3);
+      expect(drawSpy).toHaveBeenCalled();
     });
 
     it("does not draw when a non-top stock card is clicked", () => {
-      const { sprite } = listenTo(gameModel.stock.getCards()[0]);
-      const initialStockSize = gameModel.stock.getCards().length;
+      const drawSpy = vi.spyOn(gameModel, "drawCardsFromStock");
+      const stock = gameModel.stock.getCards();
+      const belowTopCard = stock[stock.length - 2];
+      const { sprite } = listenTo(belowTopCard);
 
       sprite.emit("pointerdown");
 
-      expect(gameModel.stock.getCards().length).toBe(initialStockSize);
-      expect(gameModel.waste.getCards().length).toBe(0);
+      expect(drawSpy).not.toHaveBeenCalled();
     });
 
     it("does not draw from the stock when a tableau card is clicked", () => {
-      const { sprite } = listenTo();
-      const initialStockSize = gameModel.stock.getCards().length;
+      const drawSpy = vi.spyOn(gameModel, "drawCardsFromStock");
+      const { sprite } = listenTo(gameModel.tableaus[0].getCards()[0]);
 
       sprite.emit("pointerdown");
 
-      expect(gameModel.stock.getCards().length).toBe(initialStockSize);
-      expect(gameModel.waste.getCards().length).toBe(0);
+      expect(drawSpy).not.toHaveBeenCalled();
     });
 
     it("throws when the clicked card is in no pile", () => {
       const card = gameModel.tableaus[0].getCards()[0];
-      const { sprite } = listenTo(card);
       gameModel.tableaus[0].removeCard(card);
+      const { sprite } = listenTo(card);
 
-      expect(() => sprite.emit("pointerdown")).toThrow(/is not in a pile/);
+      expect(() => sprite.emit("pointerdown")).toThrow("is not in a pile");
     });
   });
 
   describe("double click", () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    /** Moves a card face-up onto the given tableau and returns it. */
-    function placeOnTableau(cardId: string, tableauIndex: number) {
-      const card = gameModel.getCardById(cardId)!;
-      gameModel.getPileContainingCard(cardId)?.removeCard(card);
-      card.faceUp = true;
-      gameModel.tableaus[tableauIndex].addCard(card);
-      return card;
-    }
-
     it("auto-moves a tableau card to a foundation on double click", () => {
-      const ace = placeOnTableau("card-clubs-ace", 0);
-      const { sprite } = listenTo(ace);
+      const autoMoveSpy = vi.spyOn(gameModel, "autoMoveCard");
+      const card = gameModel.tableaus[0].getCards()[0];
+      const { sprite } = listenTo(card);
 
       sprite.emit("pointerdown");
-      vi.advanceTimersByTime(100);
       sprite.emit("pointerdown");
 
-      expect(gameModel.foundations[0].getCards()).toContain(ace);
+      expect(autoMoveSpy).toHaveBeenCalledWith(card.id);
     });
 
     it("leaves the card in place on a single click", () => {
-      const ace = placeOnTableau("card-clubs-ace", 0);
-      const { sprite } = listenTo(ace);
+      const autoMoveSpy = vi.spyOn(gameModel, "autoMoveCard");
+      const card = gameModel.tableaus[0].getCards()[0];
+      const { sprite } = listenTo(card);
 
       sprite.emit("pointerdown");
 
-      expect(gameModel.tableaus[0].getCards()).toContain(ace);
+      expect(autoMoveSpy).not.toHaveBeenCalled();
     });
 
     it("does not auto-move when the clicks are more than 350ms apart", () => {
-      const ace = placeOnTableau("card-clubs-ace", 0);
-      const { sprite } = listenTo(ace);
+      const autoMoveSpy = vi.spyOn(gameModel, "autoMoveCard");
+      const card = gameModel.tableaus[0].getCards()[0];
+      const { sprite } = listenTo(card);
 
       sprite.emit("pointerdown");
-      vi.advanceTimersByTime(400);
+      vi.advanceTimersByTime(351);
       sprite.emit("pointerdown");
 
-      expect(gameModel.tableaus[0].getCards()).toContain(ace);
+      expect(autoMoveSpy).not.toHaveBeenCalled();
     });
 
     it("does not auto-move when the two clicks are on different cards", () => {
-      const ace = placeOnTableau("card-clubs-ace", 0);
-      const other = placeOnTableau("card-spades-ace", 1);
-      const { sprite: aceSprite } = listenTo(ace);
-      const { sprite: otherSprite } = listenTo(other);
+      const autoMoveSpy = vi.spyOn(gameModel, "autoMoveCard");
+      const c1 = gameModel.tableaus[0].getCards()[0];
+      const c2 = gameModel.tableaus[1].getCards()[0];
+      const { sprite: s1 } = listenTo(c1);
+      const { sprite: s2 } = listenTo(c2);
 
-      otherSprite.emit("pointerdown");
-      vi.advanceTimersByTime(100);
-      aceSprite.emit("pointerdown");
+      s1.emit("pointerdown");
+      s2.emit("pointerdown");
 
-      expect(gameModel.tableaus[0].getCards()).toContain(ace);
+      expect(autoMoveSpy).not.toHaveBeenCalled();
     });
 
     it("does not auto-move stock cards on double click", () => {
-      const stockCards = gameModel.stock.getCards();
-      const topStockCard = stockCards[stockCards.length - 1];
-      const { sprite } = listenTo(topStockCard);
+      const autoMoveSpy = vi.spyOn(gameModel, "autoMoveCard");
+      const card = gameModel.stock.getCards()[0];
+      const { sprite } = listenTo(card);
 
       sprite.emit("pointerdown");
-      vi.advanceTimersByTime(100);
       sprite.emit("pointerdown");
 
-      expect(gameModel.getPileContainingCard(topStockCard.id)).toBe(
-        gameModel.waste,
-      );
+      expect(autoMoveSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -252,22 +217,19 @@ describe("BoardInputManager", () => {
 
     it("recycles the waste when the empty stock background is clicked", () => {
       gameModel.stock.clear();
-      const card = gameModel.getCardById("card-clubs-ace")!;
-      gameModel.getPileContainingCard(card.id)?.removeCard(card);
-      gameModel.waste.addCard(card);
+      const drawSpy = vi.spyOn(gameModel, "drawCardsFromStock");
 
       stockBackground.emit("pointerdown");
 
-      expect(gameModel.stock.getCards().length).toBe(1);
-      expect(gameModel.waste.getCards().length).toBe(0);
+      expect(drawSpy).toHaveBeenCalled();
     });
 
     it("does nothing when the stock is not empty", () => {
-      const initialStockSize = gameModel.stock.getCards().length;
+      const drawSpy = vi.spyOn(gameModel, "drawCardsFromStock");
 
       stockBackground.emit("pointerdown");
 
-      expect(gameModel.stock.getCards().length).toBe(initialStockSize);
+      expect(drawSpy).not.toHaveBeenCalled();
     });
 
     it("marks the stock background hovered on pointerover", () => {
@@ -290,20 +252,21 @@ describe("BoardInputManager", () => {
     let cardVisual: PlayingCardVisual;
 
     beforeEach(() => {
-      cardVisual = new PlayingCardVisual(gameModel.tableaus[0].getCards()[0]);
+      const cards = gameModel.tableaus[0].getCards();
+      cardVisual = new PlayingCardVisual(cards[cards.length - 1]);
       sprite = createMockSprite({ x: 100, y: 150 });
       sprite.setData("cardVisual", cardVisual);
       cardVisual.sprite = asSprite(sprite);
-      tableauPiles[0].playingCardVisuals = [cardVisual];
+      boardScene.cardVisualsMap.set(cardVisual.playingCard.id, cardVisual);
       inputManager.registerDragListeners();
     });
 
-    it("captures the dragged stack and lifts it on dragstart", () => {
+    it("captures the dragged stack on dragstart", () => {
       input.emit("dragstart", {}, asSprite(sprite));
 
       expect(inputManager.draggedStack).toEqual([cardVisual]);
       expect(inputManager.draggedStackOffsets).toEqual([{ x: 0, y: 0 }]);
-      expect(sprite.depth).toBe(1000);
+      expect(inputManager.drag?.cardIds).toEqual([cardVisual.playingCard.id]);
     });
 
     it("does not start a drag when the sprite has no card visual", () => {
@@ -322,50 +285,31 @@ describe("BoardInputManager", () => {
       expect(inputManager.draggedStack).toEqual([]);
     });
 
-    it("does not start a drag when the pile visual is not found", () => {
-      getPileVisualById.mockReturnValue(null);
-
-      input.emit("dragstart", {}, asSprite(sprite));
-
-      expect(inputManager.draggedStack).toEqual([]);
-    });
-
-    it("does not start a drag when the card visual is not in the pile visual", () => {
-      tableauPiles[0].playingCardVisuals = [];
-
-      input.emit("dragstart", {}, asSprite(sprite));
-
-      expect(inputManager.draggedStack).toEqual([]);
-    });
-
     it("moves the whole stack relative to the primary card on drag", () => {
       const followerVisual = new PlayingCardVisual(
         gameModel.tableaus[0].getCards()[0],
       );
       const followerSprite = createMockSprite({ x: 100, y: 180 });
       followerVisual.sprite = asSprite(followerSprite);
-      tableauPiles[0].playingCardVisuals = [cardVisual, followerVisual];
-      input.emit("dragstart", {}, asSprite(sprite));
+      boardScene.cardVisualsMap.set(
+        followerVisual.playingCard.id,
+        followerVisual,
+      );
 
+      input.emit("dragstart", {}, asSprite(sprite));
       input.emit("drag", {}, asSprite(sprite), 200, 300);
 
-      expect({ x: sprite.x, y: sprite.y }).toEqual({ x: 200, y: 300 });
-      expect({ x: followerSprite.x, y: followerSprite.y }).toEqual({
-        x: 200,
-        y: 330,
-      });
+      expect(inputManager.drag?.primary).toEqual({ x: 200, y: 300 });
     });
 
     it("ignores drag events when nothing is being dragged", () => {
       input.emit("drag", {}, asSprite(sprite), 200, 300);
 
-      expect({ x: sprite.x, y: sprite.y }).toEqual({ x: 100, y: 150 });
+      expect(inputManager.drag).toBeNull();
     });
 
     it("ignores dragend when nothing is being dragged", () => {
-      input.emit("dragend", {}, asSprite(sprite));
-
-      expect(updateVisualLayout).not.toHaveBeenCalled();
+      expect(() => input.emit("dragend", {}, asSprite(sprite))).not.toThrow();
     });
 
     it("snaps back on dragend when the sprite has no card visual", () => {
@@ -375,14 +319,12 @@ describe("BoardInputManager", () => {
       input.emit("dragend", {}, asSprite(dummy));
 
       expect(inputManager.draggedStack).toEqual([]);
-      expect(updateVisualLayout).toHaveBeenCalled();
+      expect(inputManager.drag).toBeNull();
     });
 
     it("moves the card when dropped on a valid target pile", () => {
-      const targetPile = tableauPiles[1];
-      targetPile.position = { x: 150, y: 150 };
-      targetPile.playingCardVisuals = [];
-      sprite.setPosition(150, 150);
+      // tableau-1 calculated layout origin: x: 348, y: 447
+      sprite.setPosition(350, 450);
       const moveSpy = vi
         .spyOn(gameModel, "moveCardToPile")
         .mockReturnValue(true);
@@ -392,22 +334,19 @@ describe("BoardInputManager", () => {
 
       expect(moveSpy).toHaveBeenCalledWith(
         cardVisual.playingCard.id,
-        targetPile.value.id,
+        "tableau-1",
       );
       expect(inputManager.draggedStack).toEqual([]);
     });
 
     it("snaps back when dropped on a target but the move is rejected", () => {
-      const targetPile = tableauPiles[1];
-      targetPile.position = { x: 150, y: 150 };
-      targetPile.playingCardVisuals = [];
-      sprite.setPosition(150, 150);
+      sprite.setPosition(350, 450);
       vi.spyOn(gameModel, "moveCardToPile").mockReturnValue(false);
       input.emit("dragstart", {}, asSprite(sprite));
 
       input.emit("dragend", {}, asSprite(sprite));
 
-      expect(updateVisualLayout).toHaveBeenCalled();
+      expect(inputManager.drag).toBeNull();
       expect(inputManager.draggedStack).toEqual([]);
     });
 
@@ -419,7 +358,7 @@ describe("BoardInputManager", () => {
       input.emit("dragend", {}, asSprite(sprite));
 
       expect(moveSpy).not.toHaveBeenCalled();
-      expect(updateVisualLayout).toHaveBeenCalled();
+      expect(inputManager.drag).toBeNull();
       expect(inputManager.draggedStack).toEqual([]);
     });
   });

@@ -4,8 +4,6 @@ import {
   ALL_PLAYING_CARD_IDS,
   PlayingCard,
 } from "@/game/model/card/playing_card";
-import { CardPile } from "@/game/model/card/card_pile";
-import { BoardLayoutManager } from "./layout/board_layout_manager";
 import { StockPileVisual } from "../../visual/pile/stock_pile_visual";
 import { WastePileVisual } from "../../visual/pile/waste_pile_visual";
 import { FoundationPileVisual } from "../../visual/pile/foundation_pile_visual";
@@ -16,13 +14,12 @@ import { PlayingCardVisual } from "../../visual/card/playing_card_visual";
 import { playingCardIdToFileName } from "../../asset/card_assets";
 import { BoardVisualFactory } from "./board_visual_factory";
 import { BoardInputManager } from "./input/board_input_manager";
-import { BoardHighlightRenderer } from "./effects/board_highlight_renderer";
 import { BoardViewApplier } from "./view/board_view_applier";
 import { buildBoardViewState } from "./view/board_view_state_builder";
-
-/** Union type representing any visual pile wrapper. */
-export type PileVisual =
-  StockPileVisual | WastePileVisual | FoundationPileVisual | TableauPileVisual;
+import {
+  DESIGN_WIDTH_PX,
+  DESIGN_HEIGHT_PX,
+} from "./layout/board_layout_constants";
 
 /**
  * Handles rendering the fSolitaire game board using Phaser, reacting to
@@ -38,9 +35,6 @@ export class BoardScene extends Scene {
   /** Registry of visual cards mapped by their unique string ID. */
   public readonly cardVisualsMap = new Map<string, PlayingCardVisual>();
 
-  /** Registry of visual piles mapped by their unique string ID. */
-  private readonly pileVisualsMap = new Map<string, PileVisual>();
-
   /** Visual representation of the stock pile. */
   public readonly stockPile: StockPileVisual;
   /** Visual representation of the waste pile. */
@@ -51,12 +45,6 @@ export class BoardScene extends Scene {
 
   /** Visual representations of the seven tableau piles. */
   public readonly tableauPiles: TableauPileVisual[];
-
-  /** Layout coordinator for positioning piles and card sprites. */
-  private readonly layoutManager: BoardLayoutManager;
-
-  /** Graphic rendering manager for card/pile hover highlighting. */
-  private highlightRenderer!: BoardHighlightRenderer;
 
   /** Input handling manager for drag-and-drop and interaction. */
   private inputManager!: BoardInputManager;
@@ -90,12 +78,6 @@ export class BoardScene extends Scene {
     this.tableauPiles = gameModel.tableaus.map(
       (pile) => new TableauPileVisual(pile),
     );
-    this.layoutManager = new BoardLayoutManager(this);
-  }
-
-  /** Gets the layout manager helper instance. */
-  public getLayoutManager(): BoardLayoutManager {
-    return this.layoutManager;
   }
 
   /**
@@ -103,7 +85,6 @@ export class BoardScene extends Scene {
    * registers model event listeners, and draws the initial layout.
    */
   create() {
-    this.highlightRenderer = new BoardHighlightRenderer(this);
     this.inputManager = new BoardInputManager(this);
     this.viewApplier = new BoardViewApplier(this);
     this.visualFactory = new BoardVisualFactory(
@@ -111,7 +92,6 @@ export class BoardScene extends Scene {
       () => this.gameModel.settings.cardBackStyle,
     );
 
-    this.registerPileVisuals();
     this.gameModel.startNewGame();
     this.createPileBackgroundSprites();
     this.createCardVisuals();
@@ -123,17 +103,11 @@ export class BoardScene extends Scene {
       this.cameras?.main?.setBackgroundColor(color);
     });
 
-    this.syncVisualPilesWithModel();
-    this.layoutManager.createInitialLayout();
-    this.layoutManager.updateVisualLayout();
-
     if (this.inputManager) {
       this.inputManager.snapAll = true;
     }
 
     this.scale.on("resize", () => {
-      this.layoutManager.createInitialLayout();
-      this.layoutManager.updateVisualLayout();
       if (this.inputManager) {
         this.inputManager.snapAll = true;
       }
@@ -142,52 +116,8 @@ export class BoardScene extends Scene {
     this.inputManager.registerDragListeners();
   }
 
-  /** Registers all visual piles in the map registry for quick lookup. */
-  private registerPileVisuals(): void {
-    this.pileVisualsMap.set("stock", this.stockPile);
-    this.pileVisualsMap.set("waste", this.wastePile);
-    this.foundationPiles.forEach((pile, index) => {
-      this.pileVisualsMap.set(`foundation-${index}`, pile);
-    });
-    this.tableauPiles.forEach((pile, index) => {
-      this.pileVisualsMap.set(`tableau-${index}`, pile);
-    });
-  }
-
-  /**
-   * Translates a pile ID string to its corresponding pile visual wrapper instance.
-   *
-   * @param pileId The unique ID of the pile.
-   * @returns The visual pile wrapper or null if not found.
-   */
-  public getPileVisualById(pileId: string): PileVisual | null {
-    return this.pileVisualsMap.get(pileId) || null;
-  }
-
   /** Registers listeners on the game model to update graphics dynamically. */
   private setupEventListeners() {
-    this.gameModel.on("card-moved", () => {
-      this.syncVisualPilesWithModel();
-      this.layoutManager.updateVisualLayout();
-      this.updateHighlightBorder();
-    });
-
-    this.gameModel.on("card-flipped", ({ cardId, faceUp }) => {
-      const visualCard = this.cardVisualsMap.get(cardId);
-      if (visualCard && visualCard.sprite) {
-        const frame = faceUp ? cardId : this.gameModel.settings.cardBackStyle;
-        visualCard.sprite.setFrame(frame);
-        visualCard.sprite.setOrigin(0, 0);
-      }
-      this.updateCardCursors();
-      this.updateHighlightBorder();
-    });
-
-    this.gameModel.on("card-back-changed", () => {
-      this.syncVisualPilesWithModel();
-      this.layoutManager.updateVisualLayout();
-    });
-
     this.gameModel.on("game-reset", () => {
       if (this.inputManager) {
         this.inputManager.hoveredCardVisual = null;
@@ -197,82 +127,7 @@ export class BoardScene extends Scene {
         this.inputManager.draggedStackOffsets = [];
         this.inputManager.snapAll = true;
       }
-      this.syncVisualPilesWithModel();
-      this.layoutManager.createInitialLayout();
-      this.layoutManager.updateVisualLayout();
-      this.updateHighlightBorder();
     });
-
-    this.gameModel.on("stock-recycled", () => {
-      this.syncVisualPilesWithModel();
-      this.layoutManager.updateVisualLayout();
-      this.updateHighlightBorder();
-    });
-  }
-
-  /** Copies current card assignments from the logical model into Phaser piles. */
-  private syncVisualPilesWithModel() {
-    const cardBack = this.gameModel.settings.cardBackStyle;
-    const faceFrame = (card: PlayingCard) => card.id;
-
-    this.syncPile(this.gameModel.stock, this.stockPile, () => cardBack);
-    this.syncPile(this.gameModel.waste, this.wastePile, faceFrame);
-    this.gameModel.foundations.forEach((modelPile, i) => {
-      this.syncPile(modelPile, this.foundationPiles[i], faceFrame);
-    });
-    this.gameModel.tableaus.forEach((modelPile, i) => {
-      this.syncPile(modelPile, this.tableauPiles[i], (card) =>
-        card.faceUp ? card.id : cardBack,
-      );
-    });
-
-    this.updateCardCursors();
-  }
-
-  /**
-   * Rebuilds one visual pile from its model pile: registers the card visuals in
-   * order and points each sprite at the frame chosen by {@link frameFor}.
-   *
-   * @param modelPile The logical pile to mirror.
-   * @param visualPile The visual pile to populate.
-   * @param frameFor Picks the atlas frame for a card (face vs. back).
-   */
-  private syncPile(
-    modelPile: CardPile<PlayingCard>,
-    visualPile: PileVisual,
-    frameFor: (card: PlayingCard) => string,
-  ): void {
-    visualPile.playingCardVisuals.length = 0;
-    for (const card of modelPile.getCards()) {
-      const visual = this.cardVisualsMap.get(card.id);
-      if (!visual) {
-        continue;
-      }
-      visualPile.playingCardVisuals.push(visual);
-      visual.sprite?.setFrame(frameFor(card));
-      visual.sprite?.setOrigin(0, 0);
-    }
-  }
-
-  /**
-   * Updates the hand cursor for each card sprite based on whether the card is currently interactable.
-   */
-  private updateCardCursors(): void {
-    for (const visual of this.cardVisualsMap.values()) {
-      if (visual.sprite && visual.sprite.input) {
-        const interactable = this.gameModel.isCardInteractable(
-          visual.playingCard,
-        );
-        visual.sprite.input.cursor = interactable ? "pointer" : "default";
-        const draggable = this.gameModel.isCardDraggable(visual.playingCard);
-        this.input.setDraggable(visual.sprite, draggable);
-      }
-    }
-
-    if (this.stockPile.sprite?.input) {
-      const isEmpty = this.gameModel.stock.getCards().length === 0;
-      this.stockPile.sprite.input.cursor = isEmpty ? "pointer" : "default";
-    }
   }
 
   /**
@@ -323,37 +178,6 @@ export class BoardScene extends Scene {
   }
 
   /**
-   * Syncs each tableau pile's hovered-card state from the current input hover so
-   * the next layout reveals more of a hovered face-up tableau card. The state is
-   * derived fresh every layout (and cleared while dragging or when nothing
-   * eligible is hovered) so the reveal can never persist beyond the hover.
-   */
-  public applyTableauHoverExpansion(): void {
-    const hovered = this.inputManager?.hoveredCardVisual ?? null;
-    const isDragging = (this.inputManager?.draggedStack.length ?? 0) > 0;
-    const expandable =
-      hovered && !isDragging && hovered.playingCard.faceUp ? hovered : null;
-
-    for (const pile of this.tableauPiles) {
-      pile.hoveredCard =
-        expandable && pile.playingCardVisuals.includes(expandable)
-          ? expandable
-          : null;
-    }
-  }
-
-  /**
-   * Redraws the highlight border around the hovered card or stock pile background if it is interactable.
-   */
-  public updateHighlightBorder(): void {
-    this.highlightRenderer.update(
-      this.inputManager.hoveredCardVisual,
-      this.inputManager.isStockBackgroundHovered,
-      this.inputManager.draggedStack.length > 0,
-    );
-  }
-
-  /**
    * Phaser scene update lifecycle hook. Automatically invoked every frame to compute and
    * apply the desired board view state.
    */
@@ -366,7 +190,8 @@ export class BoardScene extends Scene {
     };
 
     const interaction = {
-      hoveredCardId: this.inputManager.hoveredCardVisual?.playingCard.id ?? null,
+      hoveredCardId:
+        this.inputManager.hoveredCardVisual?.playingCard.id ?? null,
       isStockBackgroundHovered: this.inputManager.isStockBackgroundHovered,
       drag: this.inputManager.drag,
       snapAll: this.inputManager.snapAll,
