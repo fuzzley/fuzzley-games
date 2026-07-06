@@ -74,14 +74,57 @@ export class BoardHighlightRenderer {
 
     const sprite = hoveredCardVisual.sprite;
     if (sprite && sprite.active) {
-      this.drawHighlight(sprite);
+      this.drawHighlight(sprite, this.findCoveringSprite(hoveredCardVisual));
     }
   }
 
   /**
-   * Draws the border shape around the target sprite.
+   * Finds the sprite of the card stacked directly on top of the hovered card in
+   * the same pile, if any. Used to keep the highlight from overlapping cards
+   * that fan over the lower portion of the hovered card (e.g. in a tableau).
+   *
+   * @param cardVisual The hovered card visual.
+   * @returns The covering card's active sprite, or null if the card is the top
+   *   of its pile (or the covering sprite is unavailable).
    */
-  private drawHighlight(sprite: Phaser.GameObjects.Sprite): void {
+  private findCoveringSprite(
+    cardVisual: PlayingCardVisual,
+  ): Phaser.GameObjects.Sprite | null {
+    const pile = this.boardScene.gameModel.getPileContainingCard(
+      cardVisual.playingCard.id,
+    );
+    if (!pile) {
+      return null;
+    }
+
+    const pileVisual = this.boardScene.getPileVisualById(pile.id);
+    if (!pileVisual) {
+      return null;
+    }
+
+    const cards = pileVisual.playingCardVisuals;
+    const index = cards.indexOf(cardVisual);
+    if (index === -1 || index >= cards.length - 1) {
+      return null;
+    }
+
+    const coveringSprite = cards[index + 1].sprite;
+    return coveringSprite && coveringSprite.active ? coveringSprite : null;
+  }
+
+  /**
+   * Draws the border shape around the target sprite. When a card is stacked on
+   * top, the sides still run the full height of the card (overlapping the
+   * covering card's edges), but the bottom edge is left open so the border never
+   * draws a line across the card stacked on top.
+   *
+   * @param sprite The hovered card sprite to outline.
+   * @param coveringSprite The sprite fanned on top of it, or null if none.
+   */
+  private drawHighlight(
+    sprite: Phaser.GameObjects.Sprite,
+    coveringSprite: Phaser.GameObjects.Sprite | null = null,
+  ): void {
     const scale = this.boardScene.getLayoutManager().getScaleFactor();
     const width = sprite.displayWidth;
     const height = sprite.displayHeight;
@@ -93,6 +136,62 @@ export class BoardHighlightRenderer {
       BoardHighlightRenderer.BORDER_COLOR,
       BoardHighlightRenderer.BORDER_OPACITY,
     );
-    this.graphics.strokeRoundedRect(sprite.x, sprite.y, width, height, radius);
+
+    // The top card of a pile has a visible bottom edge, so outline the full card.
+    // A covered card's bottom edge is hidden under the card stacked on it, so
+    // leave it open while keeping the full-height sides.
+    if (!coveringSprite) {
+      this.graphics.strokeRoundedRect(
+        sprite.x,
+        sprite.y,
+        width,
+        height,
+        radius,
+      );
+      return;
+    }
+
+    this.strokeOpenBottomRoundedRect(sprite.x, sprite.y, width, height, radius);
+  }
+
+  /**
+   * Strokes a rectangle with rounded top corners and an open (unstroked) bottom
+   * edge. The top and both full-height sides are highlighted while the bottom,
+   * which tucks under the covering card, is left open so the border never draws
+   * a horizontal line across the card stacked on top.
+   *
+   * @param x The left edge of the card.
+   * @param y The top edge of the card.
+   * @param width The card width.
+   * @param height The full card height.
+   * @param cornerRadius The desired top corner radius.
+   */
+  private strokeOpenBottomRoundedRect(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    cornerRadius: number,
+  ): void {
+    const radius = Math.max(0, Math.min(cornerRadius, height, width / 2));
+    const right = x + width;
+    const bottom = y + height;
+
+    this.graphics.beginPath();
+    this.graphics.moveTo(x, bottom);
+    this.graphics.lineTo(x, y + radius);
+    // Top-left rounded corner.
+    this.graphics.arc(x + radius, y + radius, radius, Math.PI, Math.PI * 1.5);
+    this.graphics.lineTo(right - radius, y);
+    // Top-right rounded corner.
+    this.graphics.arc(
+      right - radius,
+      y + radius,
+      radius,
+      Math.PI * 1.5,
+      Math.PI * 2,
+    );
+    this.graphics.lineTo(right, bottom);
+    this.graphics.strokePath();
   }
 }

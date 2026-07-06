@@ -5,6 +5,8 @@ import { BoardScene } from "@/game/render/scene/board/board_scene";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
 import { PlayingCardVisual } from "@/game/render/visual/card/playing_card_visual";
 import { PlayingCard } from "@/game/model/card/playing_card";
+import { TableauPileVisual } from "@/game/render/visual/pile/tableau_pile_visual";
+import type { PileVisual } from "@/game/render/scene/board/board_scene";
 import {
   asSprite,
   createMockGraphics,
@@ -20,6 +22,7 @@ describe("BoardHighlightRenderer", () => {
   let gameModel: SolitaireGame;
   let stockSprite: MockSprite;
   let renderer: BoardHighlightRenderer;
+  let pileVisualsById: Map<string, PileVisual>;
 
   beforeEach(() => {
     graphics = createMockGraphics();
@@ -31,12 +34,14 @@ describe("BoardHighlightRenderer", () => {
       displayWidth: 100,
       displayHeight: 150,
     });
+    pileVisualsById = new Map<string, PileVisual>();
 
     const boardScene = {
       add: { graphics: () => graphics },
       gameModel,
       stockPile: { sprite: asSprite(stockSprite) },
       getLayoutManager: () => ({ getScaleFactor: () => SCALE_FACTOR }),
+      getPileVisualById: (id: string) => pileVisualsById.get(id) ?? null,
     } as unknown as BoardScene;
 
     renderer = new BoardHighlightRenderer(boardScene);
@@ -147,5 +152,51 @@ describe("BoardHighlightRenderer", () => {
       150,
       12 * SCALE_FACTOR,
     );
+  });
+
+  it("outlines the full card when it is the top of its pile", () => {
+    const tableau = gameModel.tableaus[0];
+    const topCard = tableau.getCards()[0];
+    const pileId = gameModel.getPileContainingCard(topCard.id)!.id;
+    const topVisual = hoveredVisual(topCard);
+    pileVisualsById.set(pileId, new TableauPileVisual(tableau, [topVisual]));
+
+    renderer.update(topVisual, false, false);
+
+    expect(graphics.strokeRoundedRect).toHaveBeenCalledWith(
+      50,
+      50,
+      100,
+      150,
+      12 * SCALE_FACTOR,
+    );
+    expect(graphics.strokePath).not.toHaveBeenCalled();
+  });
+
+  it("outlines a covered card with full-height sides and an open bottom", () => {
+    const tableau = gameModel.tableaus[0];
+    const coveredCard = tableau.getCards()[0];
+    const pileId = gameModel.getPileContainingCard(coveredCard.id)!.id;
+    const coveredVisual = hoveredVisual(coveredCard);
+    const coveringVisual = new PlayingCardVisual(
+      gameModel.tableaus[1].getCards()[0],
+    );
+    coveringVisual.sprite = asSprite(
+      createMockSprite({ x: 50, y: 90, displayWidth: 100, displayHeight: 150 }),
+    );
+    pileVisualsById.set(
+      pileId,
+      new TableauPileVisual(tableau, [coveredVisual, coveringVisual]),
+    );
+
+    renderer.update(coveredVisual, false, false);
+
+    // The sides run the full card height (bottom edge at y + height = 200) via an
+    // open-bottomed path instead of a full rounded rect, so no line is drawn
+    // across the covering card.
+    expect(graphics.strokeRoundedRect).not.toHaveBeenCalled();
+    expect(graphics.moveTo).toHaveBeenCalledWith(50, 200);
+    expect(graphics.lineTo).toHaveBeenCalledWith(150, 200);
+    expect(graphics.strokePath).toHaveBeenCalled();
   });
 });
