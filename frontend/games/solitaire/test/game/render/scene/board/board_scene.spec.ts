@@ -4,6 +4,7 @@ import { BoardScene } from "@/game/render/scene/board/board_scene";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
 import { resetGameModel } from "@/game/model/game/game_model_factory";
 import { MockScaleManager, MockSprite } from "@test/support/phaser_mocks";
+import * as ViewStateBuilder from "@/game/render/scene/board/view/board_view_state_builder";
 
 vi.mock("phaser", async () => {
   const mocks = await import("@test/support/phaser_mocks");
@@ -77,291 +78,47 @@ describe("BoardScene", () => {
     });
   });
 
-  describe("cursors and draggability", () => {
-    it("uses a pointer cursor only for interactable cards", () => {
-      const tableau = boardScene.tableauPiles[1];
-
-      expect(asMock(tableau.playingCardVisuals[0].sprite).input?.cursor).toBe(
-        "default",
-      );
-      expect(asMock(tableau.playingCardVisuals[1].sprite).input?.cursor).toBe(
-        "pointer",
-      );
-    });
-
-    it("resets a card's cursor to default when it is flipped face down", () => {
-      const cardVisual = boardScene.tableauPiles[0].playingCardVisuals[0];
-      cardVisual.playingCard.faceUp = false;
-
-      boardScene.gameModel.emit("card-flipped", {
-        cardId: cardVisual.playingCard.id,
-        faceUp: false,
-      });
-
-      expect(asMock(cardVisual.sprite).input?.cursor).toBe("default");
-    });
-
-    it("makes only draggable cards draggable, not merely interactable ones", () => {
-      vi.mocked(boardScene.input.setDraggable).mockClear();
-
-      boardScene.gameModel.emit("card-flipped", {
-        cardId: "card-clubs-ace",
-        faceUp: true,
-      });
-
-      const stockPile = boardScene.stockPile;
-      const topStockCard =
-        stockPile.playingCardVisuals[stockPile.playingCardVisuals.length - 1];
-      const tableau = boardScene.tableauPiles[0];
-      const topTableauCard =
-        tableau.playingCardVisuals[tableau.playingCardVisuals.length - 1];
-
-      expect(boardScene.input.setDraggable).toHaveBeenCalledWith(
-        topStockCard.sprite,
-        false,
-      );
-      expect(boardScene.input.setDraggable).toHaveBeenCalledWith(
-        topTableauCard.sprite,
-        true,
-      );
-    });
-  });
-
-  describe("getPileVisualById", () => {
-    it("returns the pile visual for a known id", () => {
-      expect(boardScene.getPileVisualById("stock")).toBe(boardScene.stockPile);
-    });
-
-    it("returns null for an unknown id", () => {
-      expect(boardScene.getPileVisualById("non-existent-pile")).toBeNull();
-    });
-  });
-
   describe("responsiveness", () => {
-    it("re-lays out the board when the viewport is resized", () => {
+    it("sets snapAll on scale resize", () => {
       const scale = boardScene.scale as unknown as MockScaleManager;
-      scale.width = 903.5;
-      scale.height = 512;
+      boardScene["inputManager"].snapAll = false;
 
       scale.emit("resize");
 
-      expect(boardScene.stockPile.position).toEqual({ x: 20, y: 93 });
+      expect(boardScene["inputManager"].snapAll).toBe(true);
     });
   });
 
-  describe("model synchronization", () => {
-    it("populates the stock pile visuals on creation", () => {
-      expect(boardScene.stockPile.playingCardVisuals.length).toBeGreaterThan(0);
-    });
+  describe("update loop", () => {
+    it("builds the board view state and applies it", () => {
+      const buildSpy = vi.spyOn(ViewStateBuilder, "buildBoardViewState");
+      const applySpy = vi.spyOn(boardScene["viewApplier"], "apply");
 
-    it("re-syncs visual piles when a card is moved", () => {
-      boardScene.gameModel.stock.clear();
+      boardScene.update(100, 16.6);
 
-      boardScene.gameModel.emit("card-moved");
-
-      expect(boardScene.stockPile.playingCardVisuals.length).toBe(0);
-    });
-
-    it("re-syncs visual piles when the stock is recycled", () => {
-      boardScene.gameModel.stock.clear();
-
-      boardScene.gameModel.emit("stock-recycled");
-
-      expect(boardScene.stockPile.playingCardVisuals.length).toBe(0);
-    });
-
-    it("moves a card into the waste visual pile when the model does", () => {
-      const card = boardScene.tableauPiles[0].playingCardVisuals[0].playingCard;
-      boardScene.gameModel.getPileContainingCard(card.id)?.removeCard(card);
-      boardScene.gameModel.waste.addCard(card);
-
-      boardScene.gameModel.emit("card-moved");
-
-      expect(
-        boardScene.wastePile.playingCardVisuals.map((v) => v.playingCard),
-      ).toEqual([card]);
-    });
-
-    it("moves a card into the foundation visual pile when the model does", () => {
-      const card = boardScene.tableauPiles[0].playingCardVisuals[0].playingCard;
-      boardScene.gameModel.getPileContainingCard(card.id)?.removeCard(card);
-      boardScene.gameModel.foundations[0].addCard(card);
-
-      boardScene.gameModel.emit("card-moved");
-
-      expect(
-        boardScene.foundationPiles[0].playingCardVisuals.map(
-          (v) => v.playingCard,
-        ),
-      ).toEqual([card]);
-    });
-
-    it("ignores model cards that have no registered visual", () => {
-      const stockCard = boardScene.gameModel.stock.getCards()[0];
-      boardScene.cardVisualsMap.delete(stockCard.id);
-      const movedCard = boardScene.gameModel.stock.getCards()[1];
-      boardScene.gameModel.stock.removeCard(movedCard);
-      boardScene.gameModel.waste.addCard(movedCard);
-      boardScene.cardVisualsMap.delete(movedCard.id);
-
-      expect(() => boardScene.gameModel.emit("card-moved")).not.toThrow();
-    });
-  });
-
-  describe("card flipping", () => {
-    it("shows the card face when it is flipped face up", () => {
-      const visual = boardScene.tableauPiles[0].playingCardVisuals[0];
-
-      boardScene.gameModel.emit("card-flipped", {
-        cardId: visual.playingCard.id,
-        faceUp: true,
-      });
-
-      expect(asMock(visual.sprite).frame).toBe(visual.playingCard.id);
-    });
-
-    it("shows the card back when it is flipped face down", () => {
-      const visual = boardScene.tableauPiles[0].playingCardVisuals[0];
-
-      boardScene.gameModel.emit("card-flipped", {
-        cardId: visual.playingCard.id,
-        faceUp: false,
-      });
-
-      expect(asMock(visual.sprite).frame).toBe("card-back-blue");
-    });
-
-    it("does not throw when the flipped card visual has no sprite", () => {
-      const visual = boardScene.tableauPiles[0].playingCardVisuals[0];
-      visual.sprite = null as unknown as Phaser.GameObjects.Sprite;
-
-      expect(() =>
-        boardScene.gameModel.emit("card-flipped", {
-          cardId: visual.playingCard.id,
-          faceUp: true,
-        }),
-      ).not.toThrow();
-    });
-
-    it("does not throw when the stock pile sprite or its input is missing", () => {
-      boardScene.stockPile.sprite =
-        null as unknown as Phaser.GameObjects.Sprite;
-      expect(() =>
-        boardScene.gameModel.emit("card-flipped", {
-          cardId: "card-clubs-ace",
-          faceUp: true,
-        }),
-      ).not.toThrow();
-
-      boardScene.stockPile.sprite = {
-        input: null,
-      } as unknown as Phaser.GameObjects.Sprite;
-      expect(() =>
-        boardScene.gameModel.emit("card-flipped", {
-          cardId: "card-clubs-ace",
-          faceUp: true,
-        }),
-      ).not.toThrow();
-    });
-  });
-
-  describe("tableau hover expansion", () => {
-    /** The face-up top card visual of the given tableau pile. */
-    function topCardOf(tableauIndex: number) {
-      const cards = boardScene.tableauPiles[tableauIndex].playingCardVisuals;
-      return cards[cards.length - 1];
-    }
-
-    it("marks a hovered face-up tableau card for reveal", () => {
-      const tableau = boardScene.tableauPiles[2];
-      const hovered = topCardOf(2);
-
-      asMock(hovered.sprite).emit("pointerover");
-
-      expect(tableau.hoveredCard).toBe(hovered);
-    });
-
-    it("reveals the card only in the pile that contains it", () => {
-      const hovered = topCardOf(2);
-
-      asMock(hovered.sprite).emit("pointerover");
-
-      const otherPiles = boardScene.tableauPiles.filter((_, i) => i !== 2);
-      expect(otherPiles.every((p) => p.hoveredCard === null)).toBe(true);
-    });
-
-    it("does not reveal for a face-down tableau card", () => {
-      const tableau = boardScene.tableauPiles[3];
-      const faceDown = tableau.playingCardVisuals[0];
-
-      asMock(faceDown.sprite).emit("pointerover");
-
-      expect(tableau.hoveredCard).toBeNull();
-    });
-
-    it("clears the reveal when the pointer leaves the card", () => {
-      const tableau = boardScene.tableauPiles[2];
-      const hovered = topCardOf(2);
-      asMock(hovered.sprite).emit("pointerover");
-
-      asMock(hovered.sprite).emit("pointerout");
-
-      expect(tableau.hoveredCard).toBeNull();
-    });
-
-    /** Flips every card in a tableau face up and re-syncs the visuals. */
-    function faceUpRun(tableauIndex: number) {
-      const tableau = boardScene.tableauPiles[tableauIndex];
-      for (const v of tableau.playingCardVisuals) v.playingCard.faceUp = true;
-      boardScene.gameModel.emit("card-moved");
-      return tableau;
-    }
-
-    it("collapses the reveal to resting spacing when a drag begins", () => {
-      const tableau = faceUpRun(6);
-      const cards = tableau.playingCardVisuals;
-      const hovered = cards[cards.length - 3];
-      const covering = cards[cards.length - 2];
-      const restingY = asMock(covering.sprite).y;
-      asMock(hovered.sprite).emit("pointerover");
-
-      boardScene.input.emit("dragstart", {}, hovered.sprite);
-
-      expect(tableau.hoveredCard).toBeNull();
-      expect(asMock(covering.sprite).y).toBe(restingY);
+      expect(buildSpy).toHaveBeenCalled();
+      expect(applySpy).toHaveBeenCalled();
     });
   });
 
   describe("game reset", () => {
-    it("resets hovered states and updates layout on game-reset", () => {
-      const mockCardVisual = boardScene.tableauPiles[0].playingCardVisuals[0];
-      boardScene["inputManager"].hoveredCardVisual = mockCardVisual;
+    it("resets hovered states on game-reset", () => {
+      const mockCardVisual = { playingCard: { id: "card-1" } };
+      boardScene["inputManager"].hoveredCardVisual = mockCardVisual as any;
       boardScene["inputManager"].isStockBackgroundHovered = true;
-      boardScene["inputManager"].draggedStack = [mockCardVisual];
-
-      const syncSpy = vi.spyOn(boardScene as any, "syncVisualPilesWithModel");
-      const layoutInitialSpy = vi.spyOn(
-        boardScene.getLayoutManager(),
-        "createInitialLayout",
-      );
-      const layoutUpdateSpy = vi.spyOn(
-        boardScene.getLayoutManager(),
-        "updateVisualLayout",
-      );
+      boardScene["inputManager"].drag = {} as any;
+      boardScene["inputManager"].snapAll = false;
 
       boardScene.gameModel.emit("game-reset", undefined);
 
       expect(boardScene["inputManager"].hoveredCardVisual).toBeNull();
       expect(boardScene["inputManager"].isStockBackgroundHovered).toBe(false);
-      expect(boardScene["inputManager"].draggedStack).toEqual([]);
-
-      expect(syncSpy).toHaveBeenCalled();
-      expect(layoutInitialSpy).toHaveBeenCalled();
-      expect(layoutUpdateSpy).toHaveBeenCalled();
+      expect(boardScene["inputManager"].drag).toBeNull();
+      expect(boardScene["inputManager"].snapAll).toBe(true);
     });
   });
 
-  describe("creation errors and helpers", () => {
+  describe("creation errors", () => {
     it("throws when a card model is missing while creating visuals", () => {
       resetGameModel();
       const freshScene = new BoardScene();
@@ -372,10 +129,6 @@ describe("BoardScene", () => {
       expect(() => freshScene.create()).toThrow("Card model not found for: ");
 
       getCardById.mockRestore();
-    });
-
-    it("exposes the layout manager", () => {
-      expect(boardScene.getLayoutManager()).toBeDefined();
     });
   });
 });

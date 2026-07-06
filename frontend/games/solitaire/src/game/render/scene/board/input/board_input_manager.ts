@@ -1,8 +1,7 @@
 import * as Phaser from "phaser";
-import type { BoardScene, PileVisual } from "../board_scene";
+import type { BoardScene } from "../board_scene";
 import type { PlayingCardVisual } from "@/game/render/visual/card/playing_card_visual";
-import { TableauPileVisual } from "@/game/render/visual/pile/tableau_pile_visual";
-import { type CardPile, PileType } from "@/game/model/card/card_pile";
+import { PileType } from "@/game/model/card/card_pile";
 import type { PlayingCard } from "@/game/model/card/playing_card";
 import {
   CARD_WIDTH_PX,
@@ -10,17 +9,15 @@ import {
   DESIGN_WIDTH_PX,
   DESIGN_HEIGHT_PX,
 } from "../layout/board_layout_constants";
-import { DragInteraction, PileGeometry } from "../view/board_view_state";
+import { DragInteraction } from "../view/board_view_state";
 import { resolveDropTarget } from "./drop_target_resolver";
+import { computeDropGeometries, computeScale } from "../view/board_geometry";
 
 /**
  * Coordinates and handles drag-and-drop state, overlaps, and mouse pointer events
  * for card sprites and empty pile placeholder sprites.
  */
 export class BoardInputManager {
-  /** Base depth applied to a dragged stack so it renders above resting cards. */
-  private static readonly DRAG_BASE_DEPTH = 1000;
-
   /** Maximum milliseconds between two clicks for them to count as a double-click. */
   private static readonly DOUBLE_CLICK_MS = 350;
 
@@ -89,16 +86,11 @@ export class BoardInputManager {
   ): void {
     sprite.on("pointerover", () => {
       this.hoveredCardVisual = visual;
-      // Relayout so a hovered face-up tableau card reveals more of itself; this
-      // also refreshes the highlight border for the new hover.
-      this.boardScene.getLayoutManager().updateVisualLayout();
     });
 
     sprite.on("pointerout", () => {
       if (this.hoveredCardVisual === visual) {
         this.hoveredCardVisual = null;
-        // Relayout so the revealed card and any cards on top of it settle back.
-        this.boardScene.getLayoutManager().updateVisualLayout();
       }
     });
 
@@ -177,12 +169,10 @@ export class BoardInputManager {
 
     stockSprite.on("pointerover", () => {
       this.isStockBackgroundHovered = true;
-      this.boardScene.updateHighlightBorder();
     });
 
     stockSprite.on("pointerout", () => {
       this.isStockBackgroundHovered = false;
-      this.boardScene.updateHighlightBorder();
     });
   }
 
@@ -201,30 +191,14 @@ export class BoardInputManager {
     );
     if (!sourcePile) return;
 
-    let draggedStack: PlayingCardVisual[] = [];
-    if (this.boardScene.cardVisualsMap) {
-      const cards = sourcePile.getCards();
-      const index = cards.findIndex((c) => c.id === visual.playingCard.id);
-      if (index !== -1) {
-        draggedStack = cards
-          .slice(index)
-          .map((c) => this.boardScene.cardVisualsMap.get(c.id)!);
-      }
-    } else {
-      const pileVisual = this.boardScene.getPileVisualById(sourcePile.id);
-      if (pileVisual) {
-        const index = pileVisual.playingCardVisuals.indexOf(visual);
-        if (index !== -1) {
-          draggedStack = pileVisual.playingCardVisuals.slice(index);
-        }
-      }
-    }
+    const cards = sourcePile.getCards();
+    const index = cards.findIndex((c) => c.id === visual.playingCard.id);
+    if (index === -1) return;
 
-    if (draggedStack.length === 0) return;
-    this.draggedStack = draggedStack;
-
-    // Relayout now that a drag is in progress.
-    this.boardScene.getLayoutManager().updateVisualLayout();
+    // Get the stack of cards from the dragged card up to the top card
+    this.draggedStack = cards
+      .slice(index)
+      .map((c) => this.boardScene.cardVisualsMap.get(c.id)!);
 
     // Calculate offsets relative to the main dragged card's resting position.
     // A card visual without a sprite stacks on the primary card (offset 0).
@@ -238,11 +212,6 @@ export class BoardInputManager {
       cardIds: this.draggedStack.map((c) => c.playingCard.id),
       primary: { x: gameObject.x, y: gameObject.y },
     };
-
-    // Bring the dragged cards to the top depth layer and adjust shadows for lift effect
-    this.draggedStack.forEach((cardVis, idx) => {
-      cardVis.sprite?.setDepth(BoardInputManager.DRAG_BASE_DEPTH + idx);
-    });
   }
 
   /**
@@ -257,19 +226,6 @@ export class BoardInputManager {
     if (this.drag) {
       this.drag.primary = { x: dragX, y: dragY };
     }
-    if (this.draggedStack.length === 0) return;
-
-    // Move the primary dragged card
-    gameObject.setPosition(dragX, dragY);
-
-    // Move other cards in the stack relative to the primary card
-    for (let i = 1; i < this.draggedStack.length; i++) {
-      const offset = this.draggedStackOffsets[i];
-      this.draggedStack[i].sprite?.setPosition(
-        dragX + offset.x,
-        dragY + offset.y,
-      );
-    }
   }
 
   /**
@@ -283,7 +239,11 @@ export class BoardInputManager {
 
     const visual = gameObject.getData("cardVisual") as PlayingCardVisual;
 
-    const scale = this.boardScene.getLayoutManager().getScaleFactor();
+    const viewport = {
+      width: this.boardScene.scale?.width || DESIGN_WIDTH_PX,
+      height: this.boardScene.scale?.height || DESIGN_HEIGHT_PX,
+    };
+    const scale = computeScale(viewport);
     const width = CARD_WIDTH_PX * scale;
     const height = CARD_HEIGHT_PX * scale;
 
@@ -300,51 +260,20 @@ export class BoardInputManager {
     this.draggedStackOffsets = [];
 
     if (!visual) {
-      this.boardScene.getLayoutManager().updateVisualLayout();
       return;
     }
 
-    const geometries = [
-      ...this.boardScene.foundationPiles,
-      ...this.boardScene.tableauPiles,
-    ].map((pileVisual) => {
-      const x = pileVisual.position.x;
-      const y = pileVisual.position.y;
-      let pileHeight = CARD_HEIGHT_PX * scale;
-
-      if (
-        pileVisual instanceof TableauPileVisual &&
-        pileVisual.playingCardVisuals.length > 0
-      ) {
-        const lastCard =
-          pileVisual.playingCardVisuals[
-            pileVisual.playingCardVisuals.length - 1
-          ];
-        pileHeight = lastCard.position.y * scale + CARD_HEIGHT_PX * scale;
-      }
-
-      return {
-        pileId: pileVisual.value.id,
-        x,
-        y,
-        width,
-        height: pileHeight,
-      };
-    });
-
+    const geometries = computeDropGeometries(
+      this.boardScene.gameModel,
+      viewport,
+    );
     const targetPileId = resolveDropTarget(dragRect, geometries);
 
-    let moved = false;
     if (targetPileId) {
-      moved = this.boardScene.gameModel.moveCardToPile(
+      this.boardScene.gameModel.moveCardToPile(
         visual.playingCard.id,
         targetPileId,
       );
-    }
-
-    if (!moved) {
-      // Snap cards back to their layout positions if move was invalid or not dropped on a pile
-      this.boardScene.getLayoutManager().updateVisualLayout();
     }
   }
 }
