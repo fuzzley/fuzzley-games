@@ -207,6 +207,53 @@ describe("BoardInputManager", () => {
     });
   });
 
+  describe("double click cancels the pending drag", () => {
+    /**
+     * Wires a draggable card sprite up to both the pointer and drag listeners,
+     * positioned over the tableau-1 drop target, and returns it.
+     */
+    function registerDraggableTableauCard(): {
+      sprite: MockSprite;
+      card: ReturnType<SolitaireGame["getCardById"]>;
+    } {
+      const cards = gameModel.tableaus[0].getCards();
+      const card = cards[cards.length - 1];
+      const visual = new PlayingCardVisual(card);
+      // tableau-1 calculated layout origin: x: 348, y: 447
+      const sprite = createMockSprite({ x: 350, y: 450 });
+      visual.sprite = asSprite(sprite);
+      sprite.setData("cardVisual", visual);
+      boardScene.cardVisualsMap.set(card.id, visual);
+      inputManager.registerCardListeners(asSprite(sprite), visual);
+      inputManager.registerDragListeners();
+      return { sprite, card };
+    }
+
+    it("clears the drag when a double click auto-moves the card", () => {
+      vi.spyOn(gameModel, "autoMoveCard").mockReturnValue(true);
+      const { sprite } = registerDraggableTableauCard();
+
+      sprite.emit("pointerdown"); // first click
+      input.emit("dragstart", {}, asSprite(sprite)); // second press begins a drag
+      sprite.emit("pointerdown"); // completes the double click
+
+      expect(inputManager.drag).toBeNull();
+    });
+
+    it("does not re-drop the card on the dragend following the double click", () => {
+      vi.spyOn(gameModel, "autoMoveCard").mockReturnValue(true);
+      const moveSpy = vi.spyOn(gameModel, "moveCardToPile");
+      const { sprite } = registerDraggableTableauCard();
+
+      sprite.emit("pointerdown");
+      input.emit("dragstart", {}, asSprite(sprite));
+      sprite.emit("pointerdown"); // double click auto-moves and cancels the drag
+      input.emit("dragend", {}, asSprite(sprite)); // trailing dragend must be a no-op
+
+      expect(moveSpy).not.toHaveBeenCalled();
+    });
+  });
+
   describe("stock background", () => {
     let stockBackground: MockSprite;
 

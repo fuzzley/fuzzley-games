@@ -110,6 +110,13 @@ export class BoardInputManager {
     // card should land is a game rule, so delegate the decision to the model.
     if (pile.type === PileType.TABLEAU || pile.type === PileType.WASTE) {
       if (this.isDoubleClick(cardId)) {
+        // Pressing a draggable card also begins a Phaser drag. A double-click
+        // is a click gesture, not a drag, so cancel the pending drag before
+        // auto-moving. Otherwise the trailing `dragend` re-runs the drop
+        // resolver on the card's original position and can move the card
+        // straight back — e.g. a King auto-moved to its foundation gets dropped
+        // onto the now-empty tableau it just left, so it never appears to move.
+        this.drag = null;
         game.autoMoveCard(cardId);
       }
       return;
