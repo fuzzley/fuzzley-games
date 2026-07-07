@@ -68,6 +68,7 @@ class BoardViewStateBuilder {
     if (stockOrigin) {
       backgrounds.push({
         pileId: "stock",
+        pileType: PileType.STOCK,
         x: stockOrigin.x,
         y: stockOrigin.y,
         scale: this.scale,
@@ -81,6 +82,8 @@ class BoardViewStateBuilder {
       if (origin) {
         backgrounds.push({
           pileId: `foundation-${foundationIndex}`,
+          pileType: PileType.FOUNDATION,
+          pileIndex: foundationIndex,
           x: origin.x,
           y: origin.y,
           scale: this.scale,
@@ -94,6 +97,8 @@ class BoardViewStateBuilder {
       if (origin) {
         backgrounds.push({
           pileId: `tableau-${tableauIndex}`,
+          pileType: PileType.TABLEAU,
+          pileIndex: tableauIndex,
           x: origin.x,
           y: origin.y,
           scale: this.scale,

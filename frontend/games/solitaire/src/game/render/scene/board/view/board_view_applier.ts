@@ -1,6 +1,7 @@
 import * as Phaser from "phaser";
 import { BoardScene } from "../board_scene";
 import { BoardViewState, HighlightView } from "./board_view_state";
+import { PileType } from "@/game/model/card/card_pile";
 
 /**
  * Responsible for applying the board view state to the Phaser scene.
@@ -29,13 +30,13 @@ export class BoardViewApplier {
 
     for (const backgroundView of viewState.backgrounds) {
       let sprite: Phaser.GameObjects.Sprite | undefined;
-      if (backgroundView.pileId === "stock") {
+      if (backgroundView.pileType === PileType.STOCK) {
         sprite = this.scene.stockPile.sprite;
-      } else if (backgroundView.pileId.startsWith("foundation-")) {
-        const pileIndex = parseInt(backgroundView.pileId.substring(11), 10);
+      } else if (backgroundView.pileType === PileType.FOUNDATION) {
+        const pileIndex = backgroundView.pileIndex ?? 0;
         sprite = this.scene.foundationPiles[pileIndex]?.sprite;
-      } else if (backgroundView.pileId.startsWith("tableau-")) {
-        const pileIndex = parseInt(backgroundView.pileId.substring(8), 10);
+      } else if (backgroundView.pileType === PileType.TABLEAU) {
+        const pileIndex = backgroundView.pileIndex ?? 0;
         sprite = this.scene.tableauPiles[pileIndex]?.sprite;
       }
 
