@@ -18,8 +18,8 @@ import {
   DRAG_BASE_DEPTH,
 } from "./board_geometry";
 import {
-  CARD_WIDTH_PX,
-  CARD_HEIGHT_PX,
+  CARD_TEXTURE_WIDTH_PX,
+  CARD_TEXTURE_HEIGHT_PX,
 } from "../layout/board_layout_constants";
 
 /**
@@ -39,8 +39,10 @@ class BoardViewStateBuilder {
   ) {
     this.scale = computeScale(viewport);
     this.origins = computePileOrigins(viewport, this.scale);
-    this.cardWidth = CARD_WIDTH_PX * this.scale;
-    this.cardHeight = CARD_HEIGHT_PX * this.scale;
+    // Size the highlight from the real texture frame so its border hugs the
+    // rendered card exactly, rather than the slightly larger layout grid cell.
+    this.cardWidth = CARD_TEXTURE_WIDTH_PX * this.scale;
+    this.cardHeight = CARD_TEXTURE_HEIGHT_PX * this.scale;
   }
 
   /**
