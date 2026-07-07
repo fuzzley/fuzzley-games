@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
 import { buildBoardViewState } from "@/game/render/scene/board/view/board_view_state_builder";
-import { BoardInteractionState, Viewport } from "@/game/render/scene/board/view/board_view_state";
+import {
+  BoardInteractionState,
+  Viewport,
+} from "@/game/render/scene/board/view/board_view_state";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
 describe("board_view_state_builder", () => {
@@ -83,7 +86,11 @@ describe("board_view_state_builder", () => {
 
     expect(viewState.highlight).not.toBeNull();
     expect(viewState.highlight?.openBottom).toBe(false);
-    expect(viewState.highlight?.x).toBe(viewState.backgrounds.find((backgroundView) => backgroundView.pileId === "stock")!.x);
+    expect(viewState.highlight?.x).toBe(
+      viewState.backgrounds.find(
+        (backgroundView) => backgroundView.pileId === "stock",
+      )!.x,
+    );
   });
 
   it("draws openBottom highlight for covered cards in a tableau", () => {
@@ -98,8 +105,12 @@ describe("board_view_state_builder", () => {
 
     expect(viewState.highlight).not.toBeNull();
     expect(viewState.highlight?.openBottom).toBe(true);
-    expect(viewState.highlight?.x).toBe(viewState.cards.find((card) => card.cardId === card1.id)!.x);
-    expect(viewState.highlight?.y).toBe(viewState.cards.find((card) => card.cardId === card1.id)!.y);
+    expect(viewState.highlight?.x).toBe(
+      viewState.cards.find((card) => card.cardId === card1.id)!.x,
+    );
+    expect(viewState.highlight?.y).toBe(
+      viewState.cards.find((card) => card.cardId === card1.id)!.y,
+    );
 
     // Hover the top card (card2) which is NOT covered
     interaction.hoveredCardId = card2.id;
