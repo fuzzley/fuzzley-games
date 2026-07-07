@@ -3,6 +3,27 @@ import { BoardScene } from "../board_scene";
 import { BoardViewState, HighlightView } from "./board_view_state";
 import { PileType } from "@/game/model/card/card_pile";
 
+/** Time constant (ms) for frame-rate-independent card position easing. */
+const POSITION_TAU_MS = 90;
+
+/** Render depth of the hover-highlight graphics (above all cards/drags). */
+const HIGHLIGHT_DEPTH = 2000;
+
+/** Distance (px) within which an easing card snaps exactly to target. */
+const POSITION_SETTLE_THRESHOLD_PX = 0.5;
+
+/** Pre-scale stroke width of the highlight border. */
+const HIGHLIGHT_LINE_THICKNESS = 9;
+
+/** Pre-scale corner radius of the highlight border. */
+const HIGHLIGHT_CORNER_RADIUS = 12;
+
+/** Highlight border color. */
+const HIGHLIGHT_COLOR = 0xebef9b;
+
+/** Highlight border opacity. */
+const HIGHLIGHT_ALPHA = 0.9;
+
 /**
  * Responsible for applying the board view state to the Phaser scene.
  * Coordinates rendering updates for all visual elements including card sprites,
@@ -13,7 +34,7 @@ export class BoardViewApplier {
 
   constructor(private readonly scene: BoardScene) {
     this.highlightGraphics = scene.add.graphics();
-    this.highlightGraphics.setDepth(2000); // HIGHLIGHT_DEPTH
+    this.highlightGraphics.setDepth(HIGHLIGHT_DEPTH);
   }
 
   /**
@@ -24,9 +45,9 @@ export class BoardViewApplier {
    * @param deltaMs Elapsed time since the last frame in milliseconds.
    */
   public apply(viewState: BoardViewState, deltaMs: number): void {
-    const POSITION_TAU_MS = 90;
     // Frame-rate independent interpolation constant
-    const interpolationFactor = deltaMs > 0 ? 1 - Math.exp(-deltaMs / POSITION_TAU_MS) : 1;
+    const interpolationFactor =
+      deltaMs > 0 ? 1 - Math.exp(-deltaMs / POSITION_TAU_MS) : 1;
 
     for (const backgroundView of viewState.backgrounds) {
       let sprite: Phaser.GameObjects.Sprite | undefined;
@@ -44,8 +65,11 @@ export class BoardViewApplier {
         sprite.setPosition(backgroundView.x, backgroundView.y);
         sprite.setScale(backgroundView.scale);
         sprite.setDepth(backgroundView.depth);
-        sprite.setOrigin(0, 0);
-        if (backgroundView.cursor && sprite.input && sprite.input.cursor !== backgroundView.cursor) {
+        if (
+          backgroundView.cursor &&
+          sprite.input &&
+          sprite.input.cursor !== backgroundView.cursor
+        ) {
           sprite.input.cursor = backgroundView.cursor;
         }
       }
@@ -60,7 +84,10 @@ export class BoardViewApplier {
         } else {
           sprite.x += (cardView.x - sprite.x) * interpolationFactor;
           sprite.y += (cardView.y - sprite.y) * interpolationFactor;
-          if (Math.abs(sprite.x - cardView.x) < 0.5 && Math.abs(sprite.y - cardView.y) < 0.5) {
+          if (
+            Math.abs(sprite.x - cardView.x) < POSITION_SETTLE_THRESHOLD_PX &&
+            Math.abs(sprite.y - cardView.y) < POSITION_SETTLE_THRESHOLD_PX
+          ) {
             sprite.setPosition(cardView.x, cardView.y);
           }
         }
@@ -73,7 +100,10 @@ export class BoardViewApplier {
         if (sprite.input && sprite.input.cursor !== cardView.cursor) {
           sprite.input.cursor = cardView.cursor;
         }
-        this.scene.input.setDraggable(sprite, cardView.draggable);
+        if (sprite.getData("draggable") !== cardView.draggable) {
+          this.scene.input.setDraggable(sprite, cardView.draggable);
+          sprite.setData("draggable", cardView.draggable);
+        }
       }
     }
 
@@ -86,9 +116,13 @@ export class BoardViewApplier {
       return;
     }
 
-    const thickness = 9 * highlight.scale;
-    const radius = 12 * highlight.scale;
-    this.highlightGraphics.lineStyle(thickness, 0xebef9b, 0.9);
+    const thickness = HIGHLIGHT_LINE_THICKNESS * highlight.scale;
+    const radius = HIGHLIGHT_CORNER_RADIUS * highlight.scale;
+    this.highlightGraphics.lineStyle(
+      thickness,
+      HIGHLIGHT_COLOR,
+      HIGHLIGHT_ALPHA,
+    );
 
     if (!highlight.openBottom) {
       this.highlightGraphics.strokeRoundedRect(
