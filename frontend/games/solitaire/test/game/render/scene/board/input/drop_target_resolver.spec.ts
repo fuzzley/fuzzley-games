@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { resolveDropTarget } from "@/game/render/scene/board/input/drop_target_resolver";
-import { PileGeometry, Rect } from "@/game/render/scene/board/view/board_view_state";
+import {
+  PileGeometry,
+  Rect,
+} from "@/game/render/scene/board/view/board_view_state";
 
 describe("drop_target_resolver", () => {
   const geometries: PileGeometry[] = [
