@@ -9,6 +9,11 @@ import {
   CARD_TEXTURE_WIDTH_PX,
   CARD_TEXTURE_HEIGHT_PX,
 } from "@/game/render/scene/board/layout/board_layout_constants";
+import {
+  TABLEAU_FACE_UP_OFFSET,
+  TABLEAU_FACE_DOWN_OFFSET,
+  TABLEAU_HOVER_EXPANSION_OFFSET,
+} from "@/game/render/scene/board/view/board_geometry";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
 describe("board_view_state_builder", () => {
@@ -120,6 +125,38 @@ describe("board_view_state_builder", () => {
     interaction.hoveredCardId = card2.id;
     const viewState2 = buildBoardViewState(game, interaction, viewport);
     expect(viewState2.highlight?.openBottom).toBe(false);
+  });
+
+  it("expands the pile below an interactable hovered tableau card", () => {
+    emptyBoard(game);
+    const card1 = relocate(game, "card-hearts-ace", game.tableaus[0], true);
+    const card2 = relocate(game, "card-hearts-2", game.tableaus[0], true);
+
+    interaction.hoveredCardId = card1.id;
+
+    const viewState = buildBoardViewState(game, interaction, viewport);
+
+    const cardView1 = viewState.cards.find((c) => c.cardId === card1.id)!;
+    const cardView2 = viewState.cards.find((c) => c.cardId === card2.id)!;
+    // The covering card slides down by the face-up gap plus the hover expansion.
+    expect(cardView2.y - cardView1.y).toBe(
+      TABLEAU_FACE_UP_OFFSET + TABLEAU_HOVER_EXPANSION_OFFSET,
+    );
+  });
+
+  it("does not expand the pile below a face-down hovered tableau card", () => {
+    emptyBoard(game);
+    const card1 = relocate(game, "card-hearts-ace", game.tableaus[0], false);
+    const card2 = relocate(game, "card-hearts-2", game.tableaus[0], true);
+
+    interaction.hoveredCardId = card1.id;
+
+    const viewState = buildBoardViewState(game, interaction, viewport);
+
+    const cardView1 = viewState.cards.find((c) => c.cardId === card1.id)!;
+    const cardView2 = viewState.cards.find((c) => c.cardId === card2.id)!;
+    // A face-down card is not interactable, so no extra gap opens beneath it.
+    expect(cardView2.y - cardView1.y).toBe(TABLEAU_FACE_DOWN_OFFSET);
   });
 
   it("sizes the hover highlight to the rendered card so it leaves no edge gap", () => {

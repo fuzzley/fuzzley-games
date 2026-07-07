@@ -131,12 +131,16 @@ class BoardViewStateBuilder {
 
       const pileCards = pile.getCards();
 
-      const hasHoveredCardInPile =
-        this.interaction.hoveredCardId &&
-        pileCards.some((card) => card.id === this.interaction.hoveredCardId);
+      const hoveredCardInPile = this.interaction.hoveredCardId
+        ? pileCards.find((card) => card.id === this.interaction.hoveredCardId)
+        : undefined;
+      // Only interactable cards expand on hover; a face-down tableau card, for
+      // example, cannot be picked up, so it should not open a gap beneath it.
       const expansionCardId =
-        hasHoveredCardInPile && !this.interaction.drag
-          ? this.interaction.hoveredCardId
+        hoveredCardInPile &&
+        !this.interaction.drag &&
+        this.game.isCardInteractable(hoveredCardInPile)
+          ? hoveredCardInPile.id
           : null;
 
       const offsets = offsetsForPile(
