@@ -1,9 +1,6 @@
 import { Scene } from "phaser";
 
-import {
-  ALL_PLAYING_CARD_IDS,
-  PlayingCard,
-} from "@/game/model/card/playing_card";
+import { ALL_PLAYING_CARD_IDS } from "@/game/model/card/playing_card";
 import { StockPileVisual } from "../../visual/pile/stock_pile_visual";
 import { WastePileVisual } from "../../visual/pile/waste_pile_visual";
 import { FoundationPileVisual } from "../../visual/pile/foundation_pile_visual";
@@ -16,6 +13,7 @@ import { BoardVisualFactory } from "./board_visual_factory";
 import { BoardInputManager } from "./input/board_input_manager";
 import { BoardViewApplier } from "./view/board_view_applier";
 import { buildBoardViewState } from "./view/board_view_state_builder";
+import { Viewport } from "./view/board_view_state";
 import {
   DESIGN_WIDTH_PX,
   DESIGN_HEIGHT_PX,
@@ -99,14 +97,10 @@ export class BoardScene extends Scene {
       this.cameras?.main?.setBackgroundColor(color);
     });
 
-    if (this.inputManager) {
-      this.inputManager.snapAll = true;
-    }
+    this.inputManager.snapAll = true;
 
     this.scale.on("resize", () => {
-      if (this.inputManager) {
-        this.inputManager.snapAll = true;
-      }
+      this.inputManager.snapAll = true;
     });
 
     this.inputManager.registerDragListeners();
@@ -115,14 +109,7 @@ export class BoardScene extends Scene {
   /** Registers listeners on the game model to update graphics dynamically. */
   private setupEventListeners() {
     this.gameModel.on("game-reset", () => {
-      if (this.inputManager) {
-        this.inputManager.hoveredCardVisual = null;
-        this.inputManager.isStockBackgroundHovered = false;
-        this.inputManager.drag = null;
-        this.inputManager.draggedStack = [];
-        this.inputManager.draggedStackOffsets = [];
-        this.inputManager.snapAll = true;
-      }
+      this.inputManager.resetInteraction();
     });
   }
 
@@ -180,20 +167,16 @@ export class BoardScene extends Scene {
   override update(timeMs: number, deltaMs: number): void {
     if (!this.inputManager || !this.viewApplier) return;
 
-    const viewport = {
+    const viewport: Viewport = {
       width: this.scale?.width || DESIGN_WIDTH_PX,
       height: this.scale?.height || DESIGN_HEIGHT_PX,
     };
 
-    const interaction = {
-      hoveredCardId:
-        this.inputManager.hoveredCardVisual?.playingCard.id ?? null,
-      isStockBackgroundHovered: this.inputManager.isStockBackgroundHovered,
-      drag: this.inputManager.drag,
-      snapAll: this.inputManager.snapAll,
-    };
-
-    const state = buildBoardViewState(this.gameModel, interaction, viewport);
+    const state = buildBoardViewState(
+      this.gameModel,
+      this.inputManager.interaction,
+      viewport,
+    );
     this.viewApplier.apply(state, deltaMs);
 
     if (this.inputManager.snapAll) {

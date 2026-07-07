@@ -1,5 +1,5 @@
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
-import { PileType } from "@/game/model/card/card_pile";
+import { CardPile, PileType } from "@/game/model/card/card_pile";
 import { PlayingCard } from "@/game/model/card/playing_card";
 import { Point } from "@/game/common/point";
 import {
@@ -15,6 +15,7 @@ import {
   computePileOrigins,
   offsetsForPile,
   TABLEAU_FACE_UP_OFFSET,
+  DRAG_BASE_DEPTH,
 } from "./board_geometry";
 import {
   CARD_WIDTH_PX,
@@ -62,12 +63,12 @@ class BoardViewStateBuilder {
    */
   private buildBackgrounds(): PileBackgroundView[] {
     const backgrounds: PileBackgroundView[] = [];
-    const stockEmpty = this.game.stock.getCards().length === 0;
-    const stockOrigin = this.origins.get("stock");
 
+    const stockOrigin = this.origins.get(this.game.stock.id);
     if (stockOrigin) {
+      const stockEmpty = this.game.stock.getCards().length === 0;
       backgrounds.push({
-        pileId: "stock",
+        pileId: this.game.stock.id,
         pileType: PileType.STOCK,
         x: stockOrigin.x,
         y: stockOrigin.y,
@@ -77,35 +78,25 @@ class BoardViewStateBuilder {
       });
     }
 
-    for (let foundationIndex = 0; foundationIndex < 4; foundationIndex++) {
-      const origin = this.origins.get(`foundation-${foundationIndex}`);
-      if (origin) {
-        backgrounds.push({
-          pileId: `foundation-${foundationIndex}`,
-          pileType: PileType.FOUNDATION,
-          pileIndex: foundationIndex,
-          x: origin.x,
-          y: origin.y,
-          scale: this.scale,
-          depth: 0,
-        });
-      }
-    }
+    const pushPileBackground = (
+      pile: CardPile<PlayingCard>,
+      index: number,
+    ): void => {
+      const origin = this.origins.get(pile.id);
+      if (!origin) return;
+      backgrounds.push({
+        pileId: pile.id,
+        pileType: pile.type,
+        pileIndex: index,
+        x: origin.x,
+        y: origin.y,
+        scale: this.scale,
+        depth: 0,
+      });
+    };
 
-    for (let tableauIndex = 0; tableauIndex < 7; tableauIndex++) {
-      const origin = this.origins.get(`tableau-${tableauIndex}`);
-      if (origin) {
-        backgrounds.push({
-          pileId: `tableau-${tableauIndex}`,
-          pileType: PileType.TABLEAU,
-          pileIndex: tableauIndex,
-          x: origin.x,
-          y: origin.y,
-          scale: this.scale,
-          depth: 0,
-        });
-      }
-    }
+    this.game.foundations.forEach(pushPileBackground);
+    this.game.tableaus.forEach(pushPileBackground);
 
     return backgrounds;
   }
@@ -119,9 +110,10 @@ class BoardViewStateBuilder {
     const dragSet = new Set(draggedIds);
     const dragPrimary = this.interaction.drag?.primary ?? null;
 
-    const dragSourcePile = draggedIds.length > 0
-      ? this.game.getPileContainingCard(draggedIds[0])
-      : null;
+    const dragSourcePile =
+      draggedIds.length > 0
+        ? this.game.getPileContainingCard(draggedIds[0])
+        : null;
     const isTableauDrag = dragSourcePile?.type === PileType.TABLEAU;
 
     const allPiles = [
@@ -136,12 +128,14 @@ class BoardViewStateBuilder {
       if (!origin) continue;
 
       const pileCards = pile.getCards();
-      const isWaste = pile.type === PileType.WASTE;
 
-      const hasHoveredCardInPile = this.interaction.hoveredCardId &&
+      const hasHoveredCardInPile =
+        this.interaction.hoveredCardId &&
         pileCards.some((card) => card.id === this.interaction.hoveredCardId);
       const expansionCardId =
-        hasHoveredCardInPile && !this.interaction.drag ? this.interaction.hoveredCardId : null;
+        hasHoveredCardInPile && !this.interaction.drag
+          ? this.interaction.hoveredCardId
+          : null;
 
       const offsets = offsetsForPile(
         pile,
@@ -154,16 +148,20 @@ class BoardViewStateBuilder {
         const card = pileCards[cardIndex];
         const isDragged = dragSet.has(card.id);
 
-        let x = 0;
-        let y = 0;
-        let depth = isWaste ? cardIndex : cardIndex + 1;
+        let x: number;
+        let y: number;
+        let depth = cardIndex + 1; // card depths sit above the pile background at depth 0
         let snap = this.interaction.snapAll;
 
         if (isDragged && dragPrimary) {
           const dragIndex = draggedIds.indexOf(card.id);
           x = dragPrimary.x;
-          y = dragPrimary.y + (isTableauDrag ? dragIndex * TABLEAU_FACE_UP_OFFSET * this.scale : 0);
-          depth = 1000 + dragIndex;
+          y =
+            dragPrimary.y +
+            (isTableauDrag
+              ? dragIndex * TABLEAU_FACE_UP_OFFSET * this.scale
+              : 0);
+          depth = DRAG_BASE_DEPTH + dragIndex;
           snap = true;
         } else {
           x = origin.x + offsets[cardIndex].x * this.scale;
@@ -176,7 +174,11 @@ class BoardViewStateBuilder {
           y,
           scale: this.scale,
           depth,
-          frame: this.getCardFrame(card, pile.type, this.game.settings.cardBackStyle),
+          frame: this.getCardFrame(
+            card,
+            pile.type,
+            this.game.settings.cardBackStyle,
+          ),
           cursor: this.game.isCardInteractable(card) ? "pointer" : "default",
           draggable: this.game.isCardDraggable(card),
           snap,
@@ -200,7 +202,11 @@ class BoardViewStateBuilder {
     const stockEmpty = this.game.stock.getCards().length === 0;
     const stockOrigin = this.origins.get("stock");
 
-    if (this.interaction.isStockBackgroundHovered && stockEmpty && stockOrigin) {
+    if (
+      this.interaction.isStockBackgroundHovered &&
+      stockEmpty &&
+      stockOrigin
+    ) {
       return {
         x: stockOrigin.x,
         y: stockOrigin.y,
@@ -214,13 +220,19 @@ class BoardViewStateBuilder {
     if (this.interaction.hoveredCardId) {
       const hoveredCard = this.game.getCardById(this.interaction.hoveredCardId);
       if (hoveredCard && this.game.isCardInteractable(hoveredCard)) {
-        const cardView = cards.find((cv) => cv.cardId === this.interaction.hoveredCardId);
+        const cardView = cards.find(
+          (cv) => cv.cardId === this.interaction.hoveredCardId,
+        );
         if (cardView) {
-          const hoveredPile = this.game.getPileContainingCard(this.interaction.hoveredCardId);
+          const hoveredPile = this.game.getPileContainingCard(
+            this.interaction.hoveredCardId,
+          );
           let openBottom = false;
           if (hoveredPile) {
             const pileCards = hoveredPile.getCards();
-            const cardIndex = pileCards.findIndex((card) => card.id === this.interaction.hoveredCardId);
+            const cardIndex = pileCards.findIndex(
+              (card) => card.id === this.interaction.hoveredCardId,
+            );
             if (cardIndex !== -1 && cardIndex < pileCards.length - 1) {
               openBottom = true;
             }

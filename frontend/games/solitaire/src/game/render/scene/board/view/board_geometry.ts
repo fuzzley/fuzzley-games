@@ -29,6 +29,8 @@ export const TABLEAU_HOVER_EXPANSION_OFFSET = 15;
 export const WASTE_FAN_OFFSET_X = 25;
 /** Maximum number of waste cards to fan (show the edges of) in multi-draw mode. */
 export const WASTE_MAX_FAN_CARDS = 3;
+/** Base render depth applied to a dragged card stack, lifting it above all resting cards. */
+export const DRAG_BASE_DEPTH = 1000;
 
 /**
  * Computes the uniform scale factor that fits the reference design onto the
@@ -84,10 +86,16 @@ export function computePileOrigins(
   origins.set("stock", { x: columnX(0), y: topRowY });
   origins.set("waste", { x: columnX(1), y: topRowY });
   for (let foundationIndex = 0; foundationIndex < 4; foundationIndex++) {
-    origins.set(`foundation-${foundationIndex}`, { x: columnX(3 + foundationIndex), y: topRowY });
+    origins.set(`foundation-${foundationIndex}`, {
+      x: columnX(3 + foundationIndex),
+      y: topRowY,
+    });
   }
   for (let tableauIndex = 0; tableauIndex < 7; tableauIndex++) {
-    origins.set(`tableau-${tableauIndex}`, { x: columnX(tableauIndex), y: bottomRowY });
+    origins.set(`tableau-${tableauIndex}`, {
+      x: columnX(tableauIndex),
+      y: bottomRowY,
+    });
   }
   return origins;
 }
@@ -112,9 +120,7 @@ export function tableauCardOffsets(
   let currentY = 0;
   for (const card of cards) {
     offsets.push({ x: 0, y: currentY });
-    currentY += card.faceUp
-      ? TABLEAU_FACE_UP_OFFSET
-      : TABLEAU_FACE_DOWN_OFFSET;
+    currentY += card.faceUp ? TABLEAU_FACE_UP_OFFSET : TABLEAU_FACE_DOWN_OFFSET;
     if (card.id === expansionCardId) {
       currentY += TABLEAU_HOVER_EXPANSION_OFFSET;
     }
@@ -139,7 +145,10 @@ export function wasteCardOffsets(count: number, drawCount: DrawCount): Point[] {
     if (cardIndex < fanStartIndex) {
       offsets.push({ x: 0, y: 0 });
     } else {
-      offsets.push({ x: (cardIndex - fanStartIndex) * WASTE_FAN_OFFSET_X, y: 0 });
+      offsets.push({
+        x: (cardIndex - fanStartIndex) * WASTE_FAN_OFFSET_X,
+        y: 0,
+      });
     }
   }
   return offsets;
@@ -200,7 +209,13 @@ export function computeDropGeometries(
       height = lastOffsetY * scale + CARD_HEIGHT_PX * scale;
     }
 
-    geometries.push({ pileId: pile.id, x: origin.x, y: origin.y, width, height });
+    geometries.push({
+      pileId: pile.id,
+      x: origin.x,
+      y: origin.y,
+      width,
+      height,
+    });
   }
   return geometries;
 }

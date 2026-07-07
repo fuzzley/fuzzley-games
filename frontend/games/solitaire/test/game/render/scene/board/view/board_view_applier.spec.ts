@@ -3,6 +3,7 @@ import { BoardViewApplier } from "@/game/render/scene/board/view/board_view_appl
 import { BoardScene } from "@/game/render/scene/board/board_scene";
 import { BoardViewState } from "@/game/render/scene/board/view/board_view_state";
 import { PileType } from "@/game/model/card/card_pile";
+import { PlayingCardVisual } from "@/game/render/visual/card/playing_card_visual";
 import { asSprite, createMockSprite } from "@test/support/phaser_mocks";
 
 vi.mock("phaser", async () => {
@@ -51,8 +52,12 @@ describe("BoardViewApplier", () => {
       input,
       cardVisualsMap: new Map(),
       stockPile: { sprite: createMockSprite() },
-      tableauPiles: Array.from({ length: 7 }, () => ({ sprite: createMockSprite() })),
-      foundationPiles: Array.from({ length: 4 }, () => ({ sprite: createMockSprite() })),
+      tableauPiles: Array.from({ length: 7 }, () => ({
+        sprite: createMockSprite(),
+      })),
+      foundationPiles: Array.from({ length: 4 }, () => ({
+        sprite: createMockSprite(),
+      })),
     } as unknown as BoardScene;
 
     applier = new BoardViewApplier(boardScene);
@@ -61,7 +66,15 @@ describe("BoardViewApplier", () => {
   it("snaps backgrounds immediately", () => {
     const viewState: BoardViewState = {
       backgrounds: [
-        { pileId: "stock", pileType: PileType.STOCK, x: 100, y: 200, scale: 0.8, depth: 5, cursor: "pointer" },
+        {
+          pileId: "stock",
+          pileType: PileType.STOCK,
+          x: 100,
+          y: 200,
+          scale: 0.8,
+          depth: 5,
+          cursor: "pointer",
+        },
       ],
       cards: [],
       highlight: null,
@@ -81,7 +94,9 @@ describe("BoardViewApplier", () => {
 
   it("snaps cards when snap flag is true", () => {
     const cardSprite = createMockSprite({ x: 50, y: 50 });
-    boardScene.cardVisualsMap.set("card-1", { sprite: asSprite(cardSprite) } as any);
+    boardScene.cardVisualsMap.set("card-1", {
+      sprite: asSprite(cardSprite),
+    } as unknown as PlayingCardVisual);
 
     const viewState: BoardViewState = {
       backgrounds: [],
@@ -107,12 +122,17 @@ describe("BoardViewApplier", () => {
     expect(cardSprite.y).toBe(200);
     expect(cardSprite.scale).toBe(1.0);
     expect(cardSprite.depth).toBe(10);
-    expect(boardScene.input.setDraggable).toHaveBeenCalledWith(asSprite(cardSprite), true);
+    expect(boardScene.input.setDraggable).toHaveBeenCalledWith(
+      asSprite(cardSprite),
+      true,
+    );
   });
 
   it("eases cards when snap flag is false", () => {
     const cardSprite = createMockSprite({ x: 0, y: 0 });
-    boardScene.cardVisualsMap.set("card-1", { sprite: asSprite(cardSprite) } as any);
+    boardScene.cardVisualsMap.set("card-1", {
+      sprite: asSprite(cardSprite),
+    } as unknown as PlayingCardVisual);
 
     const viewState: BoardViewState = {
       backgrounds: [],
@@ -168,7 +188,13 @@ describe("BoardViewApplier", () => {
     };
 
     applier.apply(viewState, 16);
-    expect(mockGraphics.strokeRoundedRect).toHaveBeenCalledWith(10, 20, 100, 150, 12);
+    expect(mockGraphics.strokeRoundedRect).toHaveBeenCalledWith(
+      10,
+      20,
+      100,
+      150,
+      12,
+    );
 
     const viewStateOpen: BoardViewState = {
       backgrounds: [],

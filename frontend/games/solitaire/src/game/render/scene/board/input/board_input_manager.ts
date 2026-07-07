@@ -9,7 +9,10 @@ import {
   DESIGN_WIDTH_PX,
   DESIGN_HEIGHT_PX,
 } from "../layout/board_layout_constants";
-import { DragInteraction } from "../view/board_view_state";
+import {
+  BoardInteractionState,
+  DragInteraction,
+} from "../view/board_view_state";
 import { resolveDropTarget } from "./drop_target_resolver";
 import { computeDropGeometries, computeScale } from "../view/board_geometry";
 
@@ -20,12 +23,6 @@ import { computeDropGeometries, computeScale } from "../view/board_geometry";
 export class BoardInputManager {
   /** Maximum milliseconds between two clicks for them to count as a double-click. */
   private static readonly DOUBLE_CLICK_MS = 350;
-
-  /** The stack of card visuals currently being dragged. Kept for test compatibility. */
-  public draggedStack: PlayingCardVisual[] = [];
-
-  /** The offsets of the dragged cards relative to the main dragged card sprite. Kept for test compatibility. */
-  public draggedStackOffsets: { x: number; y: number }[] = [];
 
   /** The currently hovered card visual wrapper. */
   public hoveredCardVisual: PlayingCardVisual | null = null;
@@ -192,24 +189,13 @@ export class BoardInputManager {
     if (!sourcePile) return;
 
     const cards = sourcePile.getCards();
-    const cardIndex = cards.findIndex((card) => card.id === visual.playingCard.id);
+    const cardIndex = cards.findIndex(
+      (card) => card.id === visual.playingCard.id,
+    );
     if (cardIndex === -1) return;
 
-    // Get the stack of cards from the dragged card up to the top card
-    this.draggedStack = cards
-      .slice(cardIndex)
-      .map((card) => this.boardScene.cardVisualsMap.get(card.id)!);
-
-    // Calculate offsets relative to the main dragged card's resting position.
-    // A card visual without a sprite stacks on the primary card (offset 0).
-    this.draggedStackOffsets = this.draggedStack.map((cardVisual) => ({
-      x: (cardVisual.sprite?.x ?? gameObject.x) - gameObject.x,
-      y: (cardVisual.sprite?.y ?? gameObject.y) - gameObject.y,
-    }));
-
-    // Initialize the pure drag state
     this.drag = {
-      cardIds: this.draggedStack.map((card) => card.playingCard.id),
+      cardIds: cards.slice(cardIndex).map((card) => card.id),
       primary: { x: gameObject.x, y: gameObject.y },
     };
   }
@@ -256,8 +242,6 @@ export class BoardInputManager {
 
     // Clear drag tracking state first so that layout/highlight updates can accurately reflect that we are no longer dragging.
     this.drag = null;
-    this.draggedStack = [];
-    this.draggedStackOffsets = [];
 
     if (!visual) {
       return;
@@ -275,5 +259,26 @@ export class BoardInputManager {
         targetPileId,
       );
     }
+  }
+
+  /** Snapshot of the pointer-driven interaction state consumed by the view builder each frame. */
+  public get interaction(): BoardInteractionState {
+    return {
+      hoveredCardId: this.hoveredCardVisual?.playingCard.id ?? null,
+      isStockBackgroundHovered: this.isStockBackgroundHovered,
+      drag: this.drag,
+      snapAll: this.snapAll,
+    };
+  }
+
+  /**
+   * Clears all pointer interaction state and requests a one-frame snap. Called on
+   * game reset so no stale hover or drag survives into the new deal.
+   */
+  public resetInteraction(): void {
+    this.hoveredCardVisual = null;
+    this.isStockBackgroundHovered = false;
+    this.drag = null;
+    this.snapAll = true;
   }
 }

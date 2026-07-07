@@ -264,8 +264,6 @@ describe("BoardInputManager", () => {
     it("captures the dragged stack on dragstart", () => {
       input.emit("dragstart", {}, asSprite(sprite));
 
-      expect(inputManager.draggedStack).toEqual([cardVisual]);
-      expect(inputManager.draggedStackOffsets).toEqual([{ x: 0, y: 0 }]);
       expect(inputManager.drag?.cardIds).toEqual([cardVisual.playingCard.id]);
     });
 
@@ -274,7 +272,7 @@ describe("BoardInputManager", () => {
 
       input.emit("dragstart", {}, asSprite(dummy));
 
-      expect(inputManager.draggedStack).toEqual([]);
+      expect(inputManager.drag).toBeNull();
     });
 
     it("does not start a drag when the card is in no model pile", () => {
@@ -282,20 +280,10 @@ describe("BoardInputManager", () => {
 
       input.emit("dragstart", {}, asSprite(sprite));
 
-      expect(inputManager.draggedStack).toEqual([]);
+      expect(inputManager.drag).toBeNull();
     });
 
-    it("moves the whole stack relative to the primary card on drag", () => {
-      const followerVisual = new PlayingCardVisual(
-        gameModel.tableaus[0].getCards()[0],
-      );
-      const followerSprite = createMockSprite({ x: 100, y: 180 });
-      followerVisual.sprite = asSprite(followerSprite);
-      boardScene.cardVisualsMap.set(
-        followerVisual.playingCard.id,
-        followerVisual,
-      );
-
+    it("updates the primary drag position on drag", () => {
       input.emit("dragstart", {}, asSprite(sprite));
       input.emit("drag", {}, asSprite(sprite), 200, 300);
 
@@ -318,7 +306,6 @@ describe("BoardInputManager", () => {
 
       input.emit("dragend", {}, asSprite(dummy));
 
-      expect(inputManager.draggedStack).toEqual([]);
       expect(inputManager.drag).toBeNull();
     });
 
@@ -336,7 +323,6 @@ describe("BoardInputManager", () => {
         cardVisual.playingCard.id,
         "tableau-1",
       );
-      expect(inputManager.draggedStack).toEqual([]);
     });
 
     it("snaps back when dropped on a target but the move is rejected", () => {
@@ -347,7 +333,6 @@ describe("BoardInputManager", () => {
       input.emit("dragend", {}, asSprite(sprite));
 
       expect(inputManager.drag).toBeNull();
-      expect(inputManager.draggedStack).toEqual([]);
     });
 
     it("snaps back without moving when dropped away from every pile", () => {
@@ -359,7 +344,25 @@ describe("BoardInputManager", () => {
 
       expect(moveSpy).not.toHaveBeenCalled();
       expect(inputManager.drag).toBeNull();
-      expect(inputManager.draggedStack).toEqual([]);
+    });
+  });
+
+  describe("reset", () => {
+    it("clears interaction state and requests a snap on reset", () => {
+      const card = gameModel.tableaus[0].getCards()[0];
+      inputManager.hoveredCardVisual = new PlayingCardVisual(card);
+      inputManager.isStockBackgroundHovered = true;
+      inputManager.drag = { cardIds: [card.id], primary: { x: 1, y: 2 } };
+      inputManager.snapAll = false;
+
+      inputManager.resetInteraction();
+
+      expect(inputManager.interaction).toEqual({
+        hoveredCardId: null,
+        isStockBackgroundHovered: false,
+        drag: null,
+        snapAll: true,
+      });
     });
   });
 });
