@@ -2,6 +2,7 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 import { BoardViewApplier } from "@/game/render/scene/board/view/board_view_applier";
 import { BoardScene } from "@/game/render/scene/board/board_scene";
 import { BoardViewState } from "@/game/render/scene/board/view/board_view_state";
+import { PileType } from "@/game/model/card/card_pile";
 import { asSprite, createMockSprite } from "@test/support/phaser_mocks";
 
 vi.mock("phaser", async () => {
@@ -60,7 +61,7 @@ describe("BoardViewApplier", () => {
   it("snaps backgrounds immediately", () => {
     const viewState: BoardViewState = {
       backgrounds: [
-        { pileId: "stock", x: 100, y: 200, scale: 0.8, depth: 5, cursor: "pointer" },
+        { pileId: "stock", pileType: PileType.STOCK, x: 100, y: 200, scale: 0.8, depth: 5, cursor: "pointer" },
       ],
       cards: [],
       highlight: null,

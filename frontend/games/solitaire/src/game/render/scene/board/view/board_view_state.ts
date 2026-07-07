@@ -1,4 +1,5 @@
 import { Point } from "@/game/common/point";
+import { PileType } from "@/game/model/card/card_pile";
 
 /**
  * The available drawable area, in screen pixels, the board is laid out within.
@@ -56,6 +57,10 @@ export interface CardView {
 export interface PileBackgroundView {
   /** The unique id of the pile the background belongs to. */
   pileId: string;
+  /** The role/type of the pile. */
+  pileType: PileType;
+  /** The index of the pile (for foundation or tableau), if applicable. */
+  pileIndex?: number;
   /** Absolute target x in screen pixels. */
   x: number;
   /** Absolute target y in screen pixels. */
