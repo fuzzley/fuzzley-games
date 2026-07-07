@@ -5,6 +5,10 @@ import {
   BoardInteractionState,
   Viewport,
 } from "@/game/render/scene/board/view/board_view_state";
+import {
+  CARD_TEXTURE_WIDTH_PX,
+  CARD_TEXTURE_HEIGHT_PX,
+} from "@/game/render/scene/board/layout/board_layout_constants";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
 describe("board_view_state_builder", () => {
@@ -116,5 +120,21 @@ describe("board_view_state_builder", () => {
     interaction.hoveredCardId = card2.id;
     const viewState2 = buildBoardViewState(game, interaction, viewport);
     expect(viewState2.highlight?.openBottom).toBe(false);
+  });
+
+  it("sizes the hover highlight to the rendered card so it leaves no edge gap", () => {
+    emptyBoard(game);
+    const card = relocate(game, "card-hearts-ace", game.tableaus[0], true);
+    interaction.hoveredCardId = card.id;
+
+    const viewState = buildBoardViewState(game, interaction, viewport);
+
+    const cardView = viewState.cards.find((c) => c.cardId === card.id)!;
+    expect(viewState.highlight?.width).toBe(
+      CARD_TEXTURE_WIDTH_PX * cardView.scale,
+    );
+    expect(viewState.highlight?.height).toBe(
+      CARD_TEXTURE_HEIGHT_PX * cardView.scale,
+    );
   });
 });

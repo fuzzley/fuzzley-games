@@ -1,7 +1,20 @@
-/** The width of a playing card in pixels. */
+/** The width of a card cell in the layout grid, used for pile spacing. */
 export const CARD_WIDTH_PX = 221;
-/** The height of a playing card in pixels. */
+/** The height of a card cell in the layout grid, used for pile spacing. */
 export const CARD_HEIGHT_PX = 313;
+
+/**
+ * The actual pixel width of a card (and placeholder) frame in the texture
+ * atlas. The rendered card is this size times the layout scale, marginally
+ * smaller than the {@link CARD_WIDTH_PX} grid cell.
+ */
+export const CARD_TEXTURE_WIDTH_PX = 220;
+/**
+ * The actual pixel height of a card (and placeholder) frame in the texture
+ * atlas. The hover highlight sizes itself from this (not {@link CARD_HEIGHT_PX})
+ * so its border hugs the rendered card instead of leaving a gap below it.
+ */
+export const CARD_TEXTURE_HEIGHT_PX = 307;
 
 /** The design reference width the board layout was authored at. */
 export const DESIGN_WIDTH_PX = 1807;
