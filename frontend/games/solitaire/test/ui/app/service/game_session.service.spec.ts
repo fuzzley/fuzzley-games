@@ -89,6 +89,21 @@ describe("GameSessionService", () => {
       expect(harness.model.setDrawCount).not.toHaveBeenCalled();
       expect(harness.confirmation.isOpen()).toBe(false);
     });
+
+    it("updates the draw count without starting a fresh game", () => {
+      harness.session.setDrawMode(1);
+
+      expect(harness.model.setDrawCount).toHaveBeenCalledWith(1);
+      expect(harness.model.startNewGame).not.toHaveBeenCalled();
+      expect(harness.confirmation.isOpen()).toBe(false);
+    });
+
+    it("updates almost win setting without starting a fresh game", () => {
+      harness.session.setAlmostWin(true);
+
+      expect(harness.model.setAlmostWin).toHaveBeenCalledWith(true);
+      expect(harness.model.startNewGame).not.toHaveBeenCalled();
+    });
   });
 
   describe("with a game in progress (moves > 0)", () => {
