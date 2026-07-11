@@ -2,14 +2,23 @@ import { Card } from "./card";
 
 /** A playing card that tracks its suit, type, and other state properties. */
 export class PlayingCard implements Card {
-  /** @override */
-  public id: string;
-  /** @override */
-  public faceUp: boolean;
-  /** The suit of this card. */
-  public suit: Suit;
-  /** The face value rank of this card. */
-  public type: Type;
+  /**
+   * Constructs a fully-initialized playing card.
+   *
+   * Identity (id, suit, type) is fixed at construction so a card can never
+   * exist in a half-built state; only {@link faceUp} changes over its lifetime.
+   *
+   * @param id The canonical card id string (see {@link playingCardIdToString}).
+   * @param suit The suit of this card.
+   * @param type The face value rank of this card.
+   * @param faceUp Whether the card starts face up. Defaults to face down.
+   */
+  constructor(
+    public readonly id: string,
+    public readonly suit: Suit,
+    public readonly type: Type,
+    public faceUp = false,
+  ) {}
 }
 
 /** Describes the standard suits that a playing card can have. */

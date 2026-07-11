@@ -16,10 +16,10 @@ export function makeCard(overrides: Partial<Card> = {}): Card {
 export function makePlayingCard(
   overrides: Partial<Pick<PlayingCard, "id" | "faceUp" | "suit" | "type">> = {},
 ): PlayingCard {
-  const card = new PlayingCard();
-  card.id = overrides.id ?? "card";
-  card.faceUp = overrides.faceUp ?? false;
-  card.suit = overrides.suit ?? Suit.SPADE;
-  card.type = overrides.type ?? Type.ACE;
-  return card;
+  return new PlayingCard(
+    overrides.id ?? "card",
+    overrides.suit ?? Suit.SPADE,
+    overrides.type ?? Type.ACE,
+    overrides.faceUp ?? false,
+  );
 }

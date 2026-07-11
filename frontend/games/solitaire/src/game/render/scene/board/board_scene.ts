@@ -2,7 +2,6 @@ import { Scene } from "phaser";
 
 import { ALL_PLAYING_CARD_IDS } from "@/game/model/card/playing_card";
 import { StockPileVisual } from "../../visual/pile/stock_pile_visual";
-import { WastePileVisual } from "../../visual/pile/waste_pile_visual";
 import { FoundationPileVisual } from "../../visual/pile/foundation_pile_visual";
 import { TableauPileVisual } from "../../visual/pile/tableau_pile_visual";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
@@ -35,8 +34,6 @@ export class BoardScene extends Scene {
 
   /** Visual representation of the stock pile. */
   public readonly stockPile: StockPileVisual;
-  /** Visual representation of the waste pile. */
-  public readonly wastePile: WastePileVisual;
 
   /** Visual representations of the four foundation piles. */
   public readonly foundationPiles: FoundationPileVisual[];
@@ -65,7 +62,6 @@ export class BoardScene extends Scene {
 
     this.gameModel = gameModel;
     this.stockPile = new StockPileVisual(gameModel.stock);
-    this.wastePile = new WastePileVisual(gameModel.waste);
     this.foundationPiles = gameModel.foundations.map(
       (pile) => new FoundationPileVisual(pile),
     );

@@ -361,20 +361,20 @@ describe("SolitaireGame", () => {
       expect(bottomCard.faceUp).toBe(true);
     });
 
-    it("does not re-flip a tableau card that is already face up after a move", () => {
+    it("does not award a flip bonus when the exposed tableau card is already face up", () => {
       game.startNewGame();
       game.tableaus[0].clear();
       relocate(game, "card-clubs-king", game.tableaus[0]);
       game.tableaus[1].clear();
       relocate(game, "card-spades-king", game.tableaus[1]);
       const movingQueen = relocate(game, "card-hearts-queen", game.tableaus[1]);
-      const flippedEvents: { cardId: string }[] = [];
-      game.on("card-flipped", (payload) => flippedEvents.push(payload));
 
       const moved = game.moveCardToPile(movingQueen.id, "tableau-0");
 
       expect(moved).toBe(true);
-      expect(flippedEvents).toEqual([]);
+      // A tableau-to-tableau move scores 0, and the already-face-up king left
+      // behind earns no flip bonus, so the score stays at zero.
+      expect(game.state.score).toBe(0);
     });
   });
 
@@ -718,17 +718,14 @@ describe("SolitaireGame", () => {
       expect(drawCounts).toContain(1);
     });
 
-    it("publishes and emits the new card back style when it changes", () => {
+    it("publishes the new card back style when it changes", () => {
       const cardBacks: string[] = [];
-      const cardBackEvents: { cardBackStyle: string }[] = [];
       game.settings.cardBackStyle$.subscribe((v) => cardBacks.push(v));
-      game.on("card-back-changed", (payload) => cardBackEvents.push(payload));
 
       game.setCardBackStyle("card-back-red");
 
       expect(game.settings.cardBackStyle).toBe("card-back-red");
       expect(cardBacks).toContain("card-back-red");
-      expect(cardBackEvents).toEqual([{ cardBackStyle: "card-back-red" }]);
     });
 
     it("publishes the new almostWin value when setAlmostWin is called", () => {
