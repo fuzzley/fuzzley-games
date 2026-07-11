@@ -61,7 +61,7 @@ export class BoardViewApplier {
         sprite = this.scene.tableauPiles[pileIndex]?.sprite;
       }
 
-      if (sprite && sprite.active) {
+      if (sprite?.active) {
         sprite.setPosition(backgroundView.x, backgroundView.y);
         sprite.setScale(backgroundView.scale);
         sprite.setDepth(backgroundView.depth);
@@ -78,7 +78,7 @@ export class BoardViewApplier {
     for (const cardView of viewState.cards) {
       const visual = this.scene.cardVisualsMap.get(cardView.cardId);
       const sprite = visual?.sprite;
-      if (sprite && sprite.active) {
+      if (sprite?.active) {
         if (cardView.snap || deltaMs <= 0) {
           sprite.setPosition(cardView.x, cardView.y);
         } else {
