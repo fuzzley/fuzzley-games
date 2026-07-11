@@ -19,7 +19,9 @@ export class GameState {
     return this.score$.value;
   }
   set score(value: number) {
-    this.score$.next(value);
+    if (value !== this.score$.value) {
+      this.score$.next(value);
+    }
   }
 
   /** Current moves value. */
@@ -27,6 +29,8 @@ export class GameState {
     return this.moves$.value;
   }
   set moves(value: number) {
-    this.moves$.next(value);
+    if (value !== this.moves$.value) {
+      this.moves$.next(value);
+    }
   }
 }

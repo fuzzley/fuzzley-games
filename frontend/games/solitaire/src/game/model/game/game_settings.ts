@@ -98,6 +98,13 @@ export class DebugSettings {
   get almostWin(): boolean {
     return this.almostWin$.value;
   }
+
+  /** Updates the almost-win setting, publishing only on a real change. */
+  setAlmostWin(enabled: boolean): void {
+    if (this.almostWin !== enabled) {
+      this.almostWin$.next(enabled);
+    }
+  }
 }
 
 /**
@@ -167,13 +174,34 @@ export class GameSettings {
     return this.drawCount$.value;
   }
 
+  /** Updates the draw count, publishing only on a real change. */
+  setDrawCount(count: DrawCount): void {
+    if (this.drawCount !== count) {
+      this.drawCount$.next(count);
+    }
+  }
+
   /** Current card back style value. */
   get cardBackStyle(): CardBackStyle {
     return this.cardBackStyle$.value;
   }
 
+  /** Updates the card back style, publishing only on a real change. */
+  setCardBackStyle(style: CardBackStyle): void {
+    if (this.cardBackStyle !== style) {
+      this.cardBackStyle$.next(style);
+    }
+  }
+
   /** Current board background color. */
   get backgroundColor(): string {
     return this.backgroundColor$.value;
+  }
+
+  /** Updates the board background color, publishing only on a real change. */
+  setBackgroundColor(color: string): void {
+    if (this.backgroundColor !== color) {
+      this.backgroundColor$.next(color);
+    }
   }
 }

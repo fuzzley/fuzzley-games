@@ -139,7 +139,7 @@ class BoardViewStateBuilder {
       const expansionCardId =
         hoveredCardInPile &&
         !this.interaction.drag &&
-        this.game.isCardInteractable(hoveredCardInPile)
+        this.game.isCardInteractableInPile(hoveredCardInPile, pile)
           ? hoveredCardInPile.id
           : null;
 
@@ -185,8 +185,10 @@ class BoardViewStateBuilder {
             pile.type,
             this.game.settings.cardBackStyle,
           ),
-          cursor: this.game.isCardInteractable(card) ? "pointer" : "default",
-          draggable: this.game.isCardDraggable(card),
+          cursor: this.game.isCardInteractableInPile(card, pile)
+            ? "pointer"
+            : "default",
+          draggable: this.game.isCardDraggableInPile(card, pile),
           snap,
         });
       }
@@ -206,7 +208,7 @@ class BoardViewStateBuilder {
     }
 
     const stockEmpty = this.game.stock.getCards().length === 0;
-    const stockOrigin = this.origins.get("stock");
+    const stockOrigin = this.origins.get(this.game.stock.id);
 
     if (
       this.interaction.isStockBackgroundHovered &&
@@ -225,24 +227,22 @@ class BoardViewStateBuilder {
 
     if (this.interaction.hoveredCardId) {
       const hoveredCard = this.game.getCardById(this.interaction.hoveredCardId);
-      if (hoveredCard && this.game.isCardInteractable(hoveredCard)) {
-        const cardView = cards.find(
-          (cv) => cv.cardId === this.interaction.hoveredCardId,
-        );
+      const hoveredPile = hoveredCard
+        ? this.game.getPileContainingCard(hoveredCard.id)
+        : undefined;
+      if (
+        hoveredCard &&
+        hoveredPile &&
+        this.game.isCardInteractableInPile(hoveredCard, hoveredPile)
+      ) {
+        const cardView = cards.find((cv) => cv.cardId === hoveredCard.id);
         if (cardView) {
-          const hoveredPile = this.game.getPileContainingCard(
-            this.interaction.hoveredCardId,
-          );
-          let openBottom = false;
-          if (hoveredPile) {
-            const pileCards = hoveredPile.getCards();
-            const cardIndex = pileCards.findIndex(
-              (card) => card.id === this.interaction.hoveredCardId,
-            );
-            if (cardIndex !== -1 && cardIndex < pileCards.length - 1) {
-              openBottom = true;
-            }
-          }
+          const pileCards = hoveredPile.getCards();
+          const cardIndex = pileCards.indexOf(hoveredCard);
+          // Leave the bottom edge open when another card is stacked on top, so
+          // the border never draws a line across the covering card.
+          const openBottom =
+            cardIndex !== -1 && cardIndex < pileCards.length - 1;
 
           return {
             x: cardView.x,

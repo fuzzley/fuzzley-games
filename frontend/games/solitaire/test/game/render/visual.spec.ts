@@ -23,23 +23,25 @@ describe("Visual base class", () => {
 });
 
 describe("PlayingCardVisual", () => {
-  it("is a Visual wrapping the given card, positioned at the origin", () => {
+  it("is a Visual wrapping the given card", () => {
     const card = makePlayingCard({ id: "c1" });
 
     const visual = new PlayingCardVisual(card);
 
     expect(visual).toBeInstanceOf(Visual);
     expect(visual.value).toBe(card);
-    expect(visual.position).toEqual({ x: 0, y: 0 });
   });
 
-  it("exposes the position it was assigned", () => {
+  it("exposes the sprite it was assigned", () => {
     const card = makePlayingCard({ id: "c1" });
     const visual = new PlayingCardVisual(card);
+    const sprite = {
+      setPosition: vi.fn(),
+    } as unknown as Phaser.GameObjects.Sprite;
 
-    visual.position = { x: 100, y: 200 };
+    visual.sprite = sprite;
 
-    expect(visual.position).toEqual({ x: 100, y: 200 });
+    expect(visual.sprite).toBe(sprite);
   });
 });
 

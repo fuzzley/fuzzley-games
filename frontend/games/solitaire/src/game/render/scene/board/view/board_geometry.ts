@@ -1,5 +1,14 @@
 import { Point } from "@/game/common/point";
-import { CardPile, PileType } from "@/game/model/card/card_pile";
+import {
+  CardPile,
+  PileType,
+  FOUNDATION_COUNT,
+  TABLEAU_COUNT,
+  STOCK_PILE_ID,
+  WASTE_PILE_ID,
+  foundationPileId,
+  tableauPileId,
+} from "@/game/model/card/card_pile";
 import { PlayingCard } from "@/game/model/card/playing_card";
 import { DrawCount } from "@/game/model/game/game_settings";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
@@ -68,7 +77,8 @@ export function computePileOrigins(
   const gapX = LAYOUT_GAP_X * scale;
   const gapY = LAYOUT_GAP_Y * scale;
 
-  const totalLayoutWidth = 7 * cardWidth + 6 * gapX;
+  const totalLayoutWidth =
+    TABLEAU_COUNT * cardWidth + (TABLEAU_COUNT - 1) * gapX;
   const screenWidth = viewport.width || DESIGN_WIDTH_PX;
   const paddingX = Math.max(
     LAYOUT_PADDING_X * scale,
@@ -83,16 +93,20 @@ export function computePileOrigins(
   const bottomRowY = HEADER_HEIGHT_PX + paddingY + cardHeight + gapY;
 
   const origins = new Map<string, Point>();
-  origins.set("stock", { x: columnX(0), y: topRowY });
-  origins.set("waste", { x: columnX(1), y: topRowY });
-  for (let foundationIndex = 0; foundationIndex < 4; foundationIndex++) {
-    origins.set(`foundation-${foundationIndex}`, {
+  origins.set(STOCK_PILE_ID, { x: columnX(0), y: topRowY });
+  origins.set(WASTE_PILE_ID, { x: columnX(1), y: topRowY });
+  for (
+    let foundationIndex = 0;
+    foundationIndex < FOUNDATION_COUNT;
+    foundationIndex++
+  ) {
+    origins.set(foundationPileId(foundationIndex), {
       x: columnX(3 + foundationIndex),
       y: topRowY,
     });
   }
-  for (let tableauIndex = 0; tableauIndex < 7; tableauIndex++) {
-    origins.set(`tableau-${tableauIndex}`, {
+  for (let tableauIndex = 0; tableauIndex < TABLEAU_COUNT; tableauIndex++) {
+    origins.set(tableauPileId(tableauIndex), {
       x: columnX(tableauIndex),
       y: bottomRowY,
     });
