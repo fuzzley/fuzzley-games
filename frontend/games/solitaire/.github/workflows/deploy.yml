@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       force:
-        description: 'Force deployment even if there are no changes'
+        description: "Force deployment even if there are no changes"
         required: false
         type: boolean
         default: false
@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'yarn'
+          cache: "yarn"
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -58,7 +58,7 @@ jobs:
           # 5. Commit and push the updates if there are changes
           cd main-website
           git add .
-          
+
           if git diff-index --quiet HEAD && [ "$FORCE_DEPLOY" != "true" ]; then
             echo "No changes in fSolitaire production build. Skipping commit."
           else
@@ -87,7 +87,7 @@ jobs:
           # 5. Commit and push the updates if there are changes
           cd github-io-website
           git add .
-          
+
           if git diff-index --quiet HEAD && [ "$FORCE_DEPLOY" != "true" ]; then
             echo "No changes in fSolitaire production build. Skipping commit."
           else
