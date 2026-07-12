@@ -27,9 +27,9 @@
     ts-morph "^21.0.0"
 
 "@analogjs/vitest-angular@^2.6.2":
-  version "2.6.2"
-  resolved "https://registry.yarnpkg.com/@analogjs/vitest-angular/-/vitest-angular-2.6.2.tgz#c8a7c96c5c9aefa766bc7214ad84d3f16c32ef97"
-  integrity sha512-aLyvyqv2bpgNXDhWwR5M974RVuF2TFfFfFIn2OuwRO7hf+w60v/GaJxvbFob8f7VJgztvoVGgDhWpu2Qon/dmg==
+  version "2.6.3"
+  resolved "https://registry.npmjs.org/@analogjs/vitest-angular/-/vitest-angular-2.6.3.tgz"
+  integrity sha512-GyOH9K6lU49bfAXum642o1+Xq1pjgVgZLXYrpqe3t/XDcpQw24xlhWx/M37x9YsOJWcvExYOD7KYPmD0CTdu2A==
 
 "@angular-devkit/architect@0.2200.5":
   version "0.2200.5"
