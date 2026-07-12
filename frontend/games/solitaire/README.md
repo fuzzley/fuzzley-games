@@ -1,7 +1,7 @@
 Just a simple Klondike Solitaire clone, written in TypeScript and Angular.
 The project utilizes [Phaser](https://phaser.io/) for the game rendering/canvas and [Angular](https://angular.dev/) for the user interface.
 
-The [latest version of the game](http://fuzzley.info/solitaire/) is hosted on http://fuzzley.info/solitaire/.
+The [latest version of the game](http://fuzzley.info/project/solitaire/) is hosted on http://fuzzley.info/project/solitaire/.
 
 Have fun!
 
