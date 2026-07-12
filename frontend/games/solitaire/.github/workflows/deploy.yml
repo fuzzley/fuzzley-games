@@ -5,6 +5,12 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force deployment even if there are no changes'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-and-sync:
@@ -34,6 +40,7 @@ jobs:
       - name: Sync built assets to fuzzley/fuzzley
         env:
           PAT_TOKEN: ${{ secrets.MAIN_REPO_DEPLOY_PAT }}
+          FORCE_DEPLOY: ${{ github.event.inputs.force }}
         run: |
           # 1. Clone the main website repository (fuzzley/fuzzley)
           git clone --depth 1 https://x-access-token:${{ env.PAT_TOKEN }}@github.com/fuzzley/fuzzley.git main-website
@@ -52,16 +59,17 @@ jobs:
           cd main-website
           git add .
           
-          if git diff-index --quiet HEAD; then
+          if git diff-index --quiet HEAD && [ "$FORCE_DEPLOY" != "true" ]; then
             echo "No changes in fSolitaire production build. Skipping commit."
           else
-            git commit -m "chore(deploy): sync fSolitaire production build from fuzzley/fSolitaire@${{ github.sha }}"
+            git commit --allow-empty -m "chore(deploy): sync fSolitaire production build from fuzzley/fSolitaire@${{ github.sha }}"
             git push origin HEAD
           fi
 
       - name: Sync built assets to fuzzley/fuzzley.github.io
         env:
           PAT_TOKEN: ${{ secrets.MAIN_REPO_DEPLOY_PAT }}
+          FORCE_DEPLOY: ${{ github.event.inputs.force }}
         run: |
           # 1. Clone the github.io repository
           git clone --depth 1 https://x-access-token:${{ env.PAT_TOKEN }}@github.com/fuzzley/fuzzley.github.io.git github-io-website
@@ -80,9 +88,9 @@ jobs:
           cd github-io-website
           git add .
           
-          if git diff-index --quiet HEAD; then
+          if git diff-index --quiet HEAD && [ "$FORCE_DEPLOY" != "true" ]; then
             echo "No changes in fSolitaire production build. Skipping commit."
           else
-            git commit -m "chore(deploy): sync fSolitaire production build from fuzzley/fSolitaire@${{ github.sha }}"
+            git commit --allow-empty -m "chore(deploy): sync fSolitaire production build from fuzzley/fSolitaire@${{ github.sha }}"
             git push origin HEAD
           fi
