@@ -68,6 +68,27 @@ export class CardPile<T extends Card = Card> {
     return this.cards;
   }
 
+  /**
+   * The card on top of the pile — the last one added — or undefined when the
+   * pile is empty.
+   *
+   * Every rule that asks about a pile asks about its top card, so owning the
+   * answer here keeps callers from re-deriving `cards[cards.length - 1]`.
+   */
+  get topCard(): T | undefined {
+    return this.cards[this.cards.length - 1];
+  }
+
+  /** Whether the pile holds no cards. */
+  get isEmpty(): boolean {
+    return this.cards.length === 0;
+  }
+
+  /** The number of cards in the pile. */
+  get size(): number {
+    return this.cards.length;
+  }
+
   /** Returns whether the given card is contained in this pile. */
   contains(card: T): boolean {
     return this.cards.includes(card);

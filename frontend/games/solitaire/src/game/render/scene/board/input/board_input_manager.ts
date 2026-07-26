@@ -167,8 +167,7 @@ export class BoardInputManager {
     pile: CardPile<PlayingCard>,
     visual: PlayingCardVisual,
   ): void {
-    const cards = pile.getCards();
-    if (cards.length > 0 && cards[cards.length - 1] === visual.playingCard) {
+    if (pile.topCard === visual.playingCard) {
       this.boardScene.gameModel.drawCardsFromStock();
     }
   }
@@ -180,7 +179,7 @@ export class BoardInputManager {
     stockSprite: Phaser.GameObjects.Sprite,
   ): void {
     stockSprite.on("pointerdown", () => {
-      if (this.boardScene.gameModel.stock.getCards().length === 0) {
+      if (this.boardScene.gameModel.stock.isEmpty) {
         this.boardScene.gameModel.drawCardsFromStock();
       }
     });

@@ -41,7 +41,7 @@ export class MoveRules {
     card: PlayingCard,
     pile: CardPile<PlayingCard>,
   ): boolean {
-    const topCard = this.topCard(pile);
+    const topCard = pile.topCard;
     if (!topCard) {
       // Only Kings can be placed on an empty tableau.
       return card.type === Type.KING;
@@ -62,7 +62,7 @@ export class MoveRules {
     if (movingStackSize > 1) {
       return false;
     }
-    const topCard = this.topCard(pile);
+    const topCard = pile.topCard;
     if (!topCard) {
       // A foundation must start with an Ace.
       return card.type === Type.ACE;
@@ -71,12 +71,6 @@ export class MoveRules {
     const isSameSuit = card.suit === topCard.suit;
     const isAscendingRank = Number(card.type) === Number(topCard.type) + 1;
     return isSameSuit && isAscendingRank;
-  }
-
-  /** The top (last) card of a pile, or null when the pile is empty. */
-  private topCard(pile: CardPile<PlayingCard>): PlayingCard | null {
-    const cards = pile.getCards();
-    return cards.length > 0 ? cards[cards.length - 1] : null;
   }
 
   /** Whether the card is a red suit (hearts or diamonds). */

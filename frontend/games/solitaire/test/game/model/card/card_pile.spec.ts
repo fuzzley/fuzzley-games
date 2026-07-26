@@ -79,3 +79,68 @@ describe("CardPile", () => {
     expect(pile.getCards()).toEqual([]);
   });
 });
+
+describe("CardPile.topCard", () => {
+  it("is the last card added", () => {
+    const pile = new CardPile();
+    const bottom = makeCard({ id: "bottom" });
+    const top = makeCard({ id: "top" });
+    pile.addCard(bottom);
+    pile.addCard(top);
+
+    expect(pile.topCard).toBe(top);
+  });
+
+  it("is undefined for an empty pile", () => {
+    const pile = new CardPile();
+
+    expect(pile.topCard).toBeUndefined();
+  });
+
+  it("falls back to the card beneath once the top one is removed", () => {
+    const pile = new CardPile();
+    const bottom = makeCard({ id: "bottom" });
+    const top = makeCard({ id: "top" });
+    pile.addCard(bottom);
+    pile.addCard(top);
+
+    pile.removeCard(top);
+
+    expect(pile.topCard).toBe(bottom);
+  });
+});
+
+describe("CardPile.isEmpty", () => {
+  it("is true for a new pile", () => {
+    const pile = new CardPile();
+
+    expect(pile.isEmpty).toBe(true);
+  });
+
+  it("is false once a card is added", () => {
+    const pile = new CardPile();
+
+    pile.addCard(makeCard());
+
+    expect(pile.isEmpty).toBe(false);
+  });
+
+  it("is true again after the pile is cleared", () => {
+    const pile = new CardPile();
+    pile.addCard(makeCard());
+
+    pile.clear();
+
+    expect(pile.isEmpty).toBe(true);
+  });
+});
+
+describe("CardPile.size", () => {
+  it("counts the cards in the pile", () => {
+    const pile = new CardPile();
+    pile.addCard(makeCard({ id: "a" }));
+    pile.addCard(makeCard({ id: "b" }));
+
+    expect(pile.size).toBe(2);
+  });
+});
