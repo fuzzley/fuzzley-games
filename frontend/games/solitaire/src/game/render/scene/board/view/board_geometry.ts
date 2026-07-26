@@ -34,8 +34,16 @@ export const TABLEAU_FACE_DOWN_OFFSET = 18;
  * on top slide down and reveal more of it.
  */
 export const TABLEAU_HOVER_EXPANSION_OFFSET = 15;
-/** Horizontal gap between fanned waste cards. */
-export const WASTE_FAN_OFFSET_X = 25;
+/**
+ * Horizontal gap between fanned waste cards.
+ *
+ * Wide enough to clear a card's index corner, so each fanned card shows its own
+ * rank and suit rather than a bare sliver of paper. The waste sits in column 1
+ * and the foundations start at column 3, so the fan has the whole of column 2
+ * to grow into: a three card fan stays clear of the first foundation up to an
+ * offset of about 125.
+ */
+export const WASTE_FAN_OFFSET_X = 55;
 /** Maximum number of waste cards to fan (show the edges of) in multi-draw mode. */
 export const WASTE_MAX_FAN_CARDS = 3;
 /** Base render depth applied to a dragged card stack, lifting it above all resting cards. */

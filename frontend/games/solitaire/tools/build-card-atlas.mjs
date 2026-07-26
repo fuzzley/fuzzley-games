@@ -11,6 +11,9 @@
  * the card block with preserveAspectRatio="none". That maps every grid cell onto
  * a whole number of pixels, so each frame is cut out at exactly its final size
  * and never goes through a resampling step.
+ *
+ * Cut frames carry no edge of their own, so each is stamped with one before it
+ * is packed. See {@link CARD_EDGE}.
  */
 import { Resvg } from "@resvg/resvg-js";
 import sharp from "sharp";
@@ -370,6 +373,58 @@ const EDGE_CORNER_PX = 48;
 /** Fraction of an edge that must be inked before it counts as a bled rule. */
 const EDGE_BLEED_COVERAGE = 0.5;
 
+/** The sides of a frame, in the order they are reported. */
+const EDGE_NAMES = ["left", "right", "top", "bottom"];
+
+/**
+ * Decodes a frame and returns a scorer for how much of one of its edges is
+ * inked at a given depth, as a fraction of that edge's length.
+ *
+ * The corners are left out of every measurement: what the callers are looking
+ * for is a line that runs the length of a side, and a card's own outline is
+ * inside the frame only where it curves around a corner.
+ *
+ * @param {Buffer} png The frame to measure.
+ * @returns {Promise<(edge: string, depth: number) => number>} The scorer.
+ */
+async function edgeScorer(png) {
+  const { data, info } = await sharp(png)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  /** Whether the pixel is opaque ink, rather than paper or an antialiased edge. */
+  const isInk = (x, y) => {
+    const i = (y * info.width + x) * 4;
+    if (data[i + 3] <= 250) return 0;
+    return (data[i] + data[i + 1] + data[i + 2]) / 3 < 190 ? 1 : 0;
+  };
+
+  const from = EDGE_CORNER_PX;
+  const toX = info.width - EDGE_CORNER_PX;
+  const toY = info.height - EDGE_CORNER_PX;
+
+  const edges = {
+    left: { span: toY - from, at: (i, depth) => isInk(depth, from + i) },
+    right: {
+      span: toY - from,
+      at: (i, depth) => isInk(info.width - 1 - depth, from + i),
+    },
+    top: { span: toX - from, at: (i, depth) => isInk(from + i, depth) },
+    bottom: {
+      span: toX - from,
+      at: (i, depth) => isInk(from + i, info.height - 1 - depth),
+    },
+  };
+
+  return (edge, depth) => {
+    const { span, at } = edges[edge];
+    let inked = 0;
+    for (let i = 0; i < span; i++) inked += at(i, depth);
+    return inked / span;
+  };
+}
+
 /**
  * Fails the build if any frame has a neighbouring card's rule inside it.
  *
@@ -381,49 +436,24 @@ const EDGE_BLEED_COVERAGE = 0.5;
  * because getting this wrong shows up in game as a stray line down one side of
  * a card and nowhere else.
  *
+ * Runs on the raw cut, before {@link stampCardEdge} draws an edge of the card's
+ * own along every side, which this would otherwise read as four bled rules.
+ *
  * @param {{name: string, png: Buffer}[]} frames The cut frames.
  */
 async function assertEdgesAreClear(frames) {
   const dirty = [];
   for (const frame of frames) {
-    const { data, info } = await sharp(frame.png)
-      .ensureAlpha()
-      .raw()
-      .toBuffer({ resolveWithObject: true });
-
-    /** Whether the pixel is opaque ink, rather than paper or an antialiased edge. */
-    const isInk = (x, y) => {
-      const i = (y * info.width + x) * 4;
-      if (data[i + 3] <= 250) return 0;
-      return (data[i] + data[i + 1] + data[i + 2]) / 3 < 190 ? 1 : 0;
-    };
-
-    const from = EDGE_CORNER_PX;
-    const toX = info.width - EDGE_CORNER_PX;
-    const toY = info.height - EDGE_CORNER_PX;
+    const score = await edgeScorer(frame.png);
 
     let worst = 0;
     let worstEdge = "";
     for (let depth = 0; depth < EDGE_RING_PX; depth++) {
-      const edges = {
-        left: { span: toY - from, at: (i) => isInk(depth, from + i) },
-        right: {
-          span: toY - from,
-          at: (i) => isInk(info.width - 1 - depth, from + i),
-        },
-        top: { span: toX - from, at: (i) => isInk(from + i, depth) },
-        bottom: {
-          span: toX - from,
-          at: (i) => isInk(from + i, info.height - 1 - depth),
-        },
-      };
-      for (const [name, edge] of Object.entries(edges)) {
-        let inked = 0;
-        for (let i = 0; i < edge.span; i++) inked += edge.at(i);
-        const coverage = inked / edge.span;
+      for (const edge of EDGE_NAMES) {
+        const coverage = score(edge, depth);
         if (coverage > worst) {
           worst = coverage;
-          worstEdge = name;
+          worstEdge = edge;
         }
       }
     }
@@ -439,6 +469,138 @@ async function assertEdgesAreClear(frames) {
     throw new Error(
       `Frames have a rule running along an edge, so the crop is picking up a ` +
         `neighbouring card:\n  ${dirty.join("\n  ")}`,
+    );
+  }
+}
+
+/**
+ * The hairline edge stamped onto every card frame.
+ *
+ * The sheet draws one rule between each pair of abutting cards, shared by both,
+ * so a card's own outline lies outside its frame everywhere except where it
+ * curves around a corner. Cutting inside the rule — which is what keeps a
+ * neighbour's edge out of the frame — therefore leaves a card with nothing to
+ * bound it, and two overlapping face-up cards read as a single white shape.
+ * That is worst in the waste, where three cards fan across each other, but it
+ * costs just as much down a tableau column of face-up cards.
+ *
+ * The card's real outline cannot be recovered from the sheet: taking in half a
+ * rule on each side means widening the frame, and the frame size is what the
+ * board layout measures a card by. So the edge is drawn on here instead.
+ *
+ * The drop shadow cannot stand in for it. Its light sits off the top-left, so
+ * it throws down and to the right, while every fan in the game overlaps in the
+ * direction the shadow travels away from: the waste fans right, putting the
+ * seam on the upper card's left edge, and a tableau fans down, putting it on
+ * the upper card's top edge. The shadow always lands on felt, never in a seam.
+ *
+ * Measured in texels, so the edge scales with the card: at ART_SCALE 2 these
+ * four are two design units, which come out between about 0.9px and 4px over
+ * the range of layout scales the board runs at.
+ */
+const CARD_EDGE = {
+  width: 4,
+  color: "#000000",
+  opacity: 0.55,
+  /**
+   * Corner radius of the stroke's centreline. A frame's own corner is a short
+   * 45 degree chamfer rather than an arc, and it runs anywhere from three to
+   * six texels depending on the card, so no single radius hugs them all. A
+   * radius this tight keeps the stroke against the frame edge all the way in,
+   * and the composite clips back whatever overhangs a given card's chamfer.
+   */
+  radius: 2,
+};
+
+/**
+ * Renders the card edge once, for compositing onto every frame.
+ *
+ * @returns {Buffer} The edge as a frame-sized PNG.
+ */
+function renderCardEdge() {
+  const inset = CARD_EDGE.width / 2;
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" ` +
+    `width="${FRAME_W}" height="${FRAME_H}">` +
+    `<rect x="${inset}" y="${inset}"` +
+    ` width="${FRAME_W - CARD_EDGE.width}"` +
+    ` height="${FRAME_H - CARD_EDGE.width}"` +
+    ` rx="${CARD_EDGE.radius}" fill="none"` +
+    ` stroke="${CARD_EDGE.color}" stroke-opacity="${CARD_EDGE.opacity}"` +
+    ` stroke-width="${CARD_EDGE.width}"/>` +
+    `</svg>`;
+  return new Resvg(svg, { fitTo: { mode: "original" } }).render().asPng();
+}
+
+/**
+ * Stamps the card edge onto each frame.
+ *
+ * Composited `atop` so the stroke is clipped to the card's own silhouette and
+ * cannot land in the transparent corners. A stroke left sitting out there would
+ * be pulled back over the card by bilinear sampling at a fractional scale,
+ * which is the same fringing GUTTER exists to keep out.
+ *
+ * @param {{name: string, png: Buffer}[]} frames The cut frames.
+ * @returns {Promise<{name: string, png: Buffer}[]>} The stamped frames.
+ */
+async function stampCardEdge(frames) {
+  const edge = renderCardEdge();
+  return Promise.all(
+    frames.map(async (frame) => ({
+      name: frame.name,
+      png: await sharp(frame.png)
+        .composite([{ input: edge, blend: "atop" }])
+        .png()
+        .toBuffer(),
+    })),
+  );
+}
+
+/**
+ * Depth the stamped edge is measured at. One texel in, so the measurement does
+ * not turn on how the outermost row of the stroke happened to antialias.
+ */
+const EDGE_STAMP_DEPTH = 1;
+
+/** Fraction of an edge the stamp has to ink to count as present. */
+const EDGE_STAMP_COVERAGE = 0.9;
+
+/**
+ * Fails the build if a frame came out of {@link stampCardEdge} without an edge.
+ *
+ * The mirror of {@link assertEdgesAreClear}: that one runs on the raw cut and
+ * rejects a frame whose edge is inked by its neighbour, this one runs on the
+ * stamped frame and rejects one whose edge is not inked at all. Between them
+ * the only thing allowed to reach a frame's edge is the card's own.
+ *
+ * @param {{name: string, png: Buffer}[]} frames The stamped frames.
+ */
+async function assertEdgesAreStamped(frames) {
+  const missing = [];
+  for (const frame of frames) {
+    const score = await edgeScorer(frame.png);
+
+    let worst = 1;
+    let worstEdge = "";
+    for (const edge of EDGE_NAMES) {
+      const coverage = score(edge, EDGE_STAMP_DEPTH);
+      if (coverage < worst) {
+        worst = coverage;
+        worstEdge = edge;
+      }
+    }
+
+    if (worst < EDGE_STAMP_COVERAGE) {
+      missing.push(
+        `${frame.name} (${worstEdge} edge only ${Math.round(worst * 100)}% inked)`,
+      );
+    }
+  }
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Frames did not come out of the edge stamp with an edge on every ` +
+        `side:\n  ${missing.join("\n  ")}`,
     );
   }
 }
@@ -561,7 +723,12 @@ async function main() {
 
   await assertEdgesAreClear(cardFrames);
 
-  const frames = [...cardFrames, ...placeholderFrames];
+  // Placeholders are outline art already, and are drawn under the cards rather
+  // than overlapping them, so only the cards are stamped.
+  const stampedCards = await stampCardEdge(cardFrames);
+  await assertEdgesAreStamped(stampedCards);
+
+  const frames = [...stampedCards, ...placeholderFrames];
   const pages = packPages(frames);
 
   await mkdir(OUT_DIR, { recursive: true });
