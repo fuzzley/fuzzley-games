@@ -76,12 +76,12 @@ export class GameSessionService {
   setDrawMode(mode: 1 | 3): void {
     if (this.drawCount() === mode) return;
     if (this.moves() === 0) {
-      this.gameModel.setDrawCount(mode);
+      this.gameModel.settings.setDrawCount(mode);
     } else {
       this.confirmIfInProgress(
         `Changing the draw mode to Draw ${mode} will restart the game. Are you sure you want to proceed?`,
         () => {
-          this.gameModel.setDrawCount(mode);
+          this.gameModel.settings.setDrawCount(mode);
           this.gameModel.startNewGame();
           this.startFreshSession();
         },
@@ -90,11 +90,11 @@ export class GameSessionService {
   }
 
   setCardBack(style: "card-back-blue" | "card-back-red"): void {
-    this.gameModel.setCardBackStyle(style);
+    this.gameModel.settings.setCardBackStyle(style);
   }
 
   setAlmostWin(enabled: boolean): void {
-    this.gameModel.setAlmostWin(enabled);
+    this.gameModel.settings.debug.setAlmostWin(enabled);
     if (this.moves() > 0 || this.isGameWon()) {
       this.gameModel.startNewGame();
       this.startFreshSession();

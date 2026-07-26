@@ -78,7 +78,7 @@ describe("GameSessionService", () => {
     it("forwards the card back style to the model", () => {
       harness.session.setCardBack("card-back-red");
 
-      expect(harness.model.setCardBackStyle).toHaveBeenCalledWith(
+      expect(harness.model.settings.setCardBackStyle).toHaveBeenCalledWith(
         "card-back-red",
       );
     });
@@ -86,14 +86,14 @@ describe("GameSessionService", () => {
     it("does nothing when the draw mode is unchanged", () => {
       harness.session.setDrawMode(3); // default is 3
 
-      expect(harness.model.setDrawCount).not.toHaveBeenCalled();
+      expect(harness.model.settings.setDrawCount).not.toHaveBeenCalled();
       expect(harness.confirmation.isOpen()).toBe(false);
     });
 
     it("updates the draw count without starting a fresh game", () => {
       harness.session.setDrawMode(1);
 
-      expect(harness.model.setDrawCount).toHaveBeenCalledWith(1);
+      expect(harness.model.settings.setDrawCount).toHaveBeenCalledWith(1);
       expect(harness.model.startNewGame).not.toHaveBeenCalled();
       expect(harness.confirmation.isOpen()).toBe(false);
     });
@@ -101,7 +101,9 @@ describe("GameSessionService", () => {
     it("updates almost win setting without starting a fresh game", () => {
       harness.session.setAlmostWin(true);
 
-      expect(harness.model.setAlmostWin).toHaveBeenCalledWith(true);
+      expect(harness.model.settings.debug.setAlmostWin).toHaveBeenCalledWith(
+        true,
+      );
       expect(harness.model.startNewGame).not.toHaveBeenCalled();
     });
   });
@@ -136,10 +138,10 @@ describe("GameSessionService", () => {
 
       expect(harness.confirmation.isOpen()).toBe(true);
       expect(harness.confirmation.message()).toContain("draw mode");
-      expect(harness.model.setDrawCount).not.toHaveBeenCalled();
+      expect(harness.model.settings.setDrawCount).not.toHaveBeenCalled();
 
       harness.confirmation.accept();
-      expect(harness.model.setDrawCount).toHaveBeenCalledWith(1);
+      expect(harness.model.settings.setDrawCount).toHaveBeenCalledWith(1);
       expect(harness.model.startNewGame).toHaveBeenCalled();
     });
 

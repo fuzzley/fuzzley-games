@@ -1,6 +1,6 @@
 import { CardRegistry } from "../card/card_registry";
 import { CardPile } from "../card/card_pile";
-import { Deck } from "../card/deck";
+import { shuffle } from "../../common/shuffle";
 import {
   ALL_PLAYING_CARD_IDS,
   ALL_RANKS,
@@ -43,12 +43,11 @@ export class Dealer {
 
   /** Registers every card face-down and returns them as a freshly shuffled deck. */
   public createShuffledDeck(): PlayingCard[] {
-    const deck = new Deck<PlayingCard>();
-    for (const card of this.registerAllFaceDown()) {
-      deck.addCard(card);
-    }
-    deck.shuffle(this.random);
-    return [...deck.getCards()];
+    // registerAllFaceDown returns a fresh array, so shuffling it in place does
+    // not disturb the registry it drew the cards from.
+    const deck = this.registerAllFaceDown();
+    shuffle(deck, this.random);
+    return deck;
   }
 
   /**

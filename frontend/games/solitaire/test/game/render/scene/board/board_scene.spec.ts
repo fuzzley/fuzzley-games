@@ -57,7 +57,7 @@ describe("BoardScene", () => {
         setBackgroundColor: ReturnType<typeof vi.fn>;
       };
 
-      boardScene.gameModel.setBackgroundColor("#123456");
+      boardScene.gameModel.settings.setBackgroundColor("#123456");
 
       expect(camera.setBackgroundColor).toHaveBeenCalledWith("#123456");
     });

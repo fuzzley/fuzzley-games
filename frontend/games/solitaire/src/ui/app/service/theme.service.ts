@@ -48,6 +48,6 @@ export class ThemeService {
 
   setTheme(themeKey: string): void {
     this.selectedTheme.set(themeKey);
-    this.gameModel.setBackgroundColor(this.themes[themeKey].color);
+    this.gameModel.settings.setBackgroundColor(this.themes[themeKey].color);
   }
 }

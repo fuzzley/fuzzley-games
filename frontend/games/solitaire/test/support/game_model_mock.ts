@@ -46,6 +46,7 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
         get almostWin() {
           return this.almostWin$.value;
         },
+        setAlmostWin: vi.fn(),
       },
       get drawCount() {
         return this.drawCount$.value;
@@ -56,15 +57,14 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
       get backgroundColor() {
         return this.backgroundColor$.value;
       },
+      setDrawCount: vi.fn(),
+      setCardBackStyle: vi.fn(),
+      setBackgroundColor: vi.fn(),
     },
     on: vi.fn(),
     off: vi.fn(),
     startNewGame: vi.fn(),
     restartGame: vi.fn(),
-    setDrawCount: vi.fn(),
-    setCardBackStyle: vi.fn(),
-    setBackgroundColor: vi.fn(),
-    setAlmostWin: vi.fn(),
   };
 }
 
