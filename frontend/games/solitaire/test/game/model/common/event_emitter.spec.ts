@@ -1,9 +1,11 @@
 import { EventEmitter } from "@/game/model/common/event_emitter";
 
-interface MockEvents {
+// A type alias, not an interface: only object literal types satisfy the
+// `Record<string, unknown>` constraint EventEmitter places on its event map.
+type MockEvents = {
   "test-event": { payload: string };
-  "void-event": void;
-}
+  "void-event": undefined;
+};
 
 class TestEmitter extends EventEmitter<MockEvents> {
   public triggerTest(payload: string) {

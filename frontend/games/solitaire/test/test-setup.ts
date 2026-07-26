@@ -6,38 +6,35 @@ setupTestBed({
   zoneless: false,
 });
 
-if (
-  typeof globalThis.localStorage === "undefined" ||
-  !globalThis.localStorage
-) {
-  const store: Record<string, string> = {};
-  const mockStorage = {
-    getItem: (key: string) => store[key] || null,
+/**
+ * An in-memory Storage for the node test environment, which has no
+ * localStorage. GameSettings reads and writes it, so specs that construct
+ * settings need a working implementation rather than a stub that throws.
+ */
+function createMemoryStorage(): Storage {
+  const entries = new Map<string, string>();
+  return {
+    getItem: (key: string) => entries.get(key) ?? null,
     setItem: (key: string, value: string) => {
-      store[key] = value;
+      entries.set(key, value);
     },
     removeItem: (key: string) => {
-      delete store[key];
+      entries.delete(key);
     },
     clear: () => {
-      for (const key in store) {
-        delete store[key];
-      }
+      entries.clear();
     },
-    key: (index: number) => Object.keys(store)[index] || null,
+    key: (index: number) => [...entries.keys()][index] ?? null,
     get length() {
-      return Object.keys(store).length;
+      return entries.size;
     },
-  } as Storage;
+  };
+}
 
-  try {
-    Object.defineProperty(globalThis, "localStorage", {
-      value: mockStorage,
-      writable: true,
-      configurable: true,
-    });
-  } catch (e) {
-    // Fallback if defineProperty fails
-    (globalThis as any).localStorage = mockStorage;
-  }
+if (!globalThis.localStorage) {
+  Object.defineProperty(globalThis, "localStorage", {
+    value: createMemoryStorage(),
+    writable: true,
+    configurable: true,
+  });
 }

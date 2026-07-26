@@ -10,6 +10,7 @@ import {
 } from "@test/support/game_model_mock";
 import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.component";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
+import { query } from "@test/support/dom";
 
 describe("AppComponent Composition", () => {
   let fixture: ComponentFixture<AppComponent>;
@@ -32,17 +33,10 @@ describe("AppComponent Composition", () => {
   });
 
   it("renders the child components in the shell", () => {
-    const header = fixture.nativeElement.querySelector("app-header-bar");
-    const drawer = fixture.nativeElement.querySelector("app-settings-drawer");
-    const victory = fixture.nativeElement.querySelector("app-victory-overlay");
-    const confirmation = fixture.nativeElement.querySelector(
-      "app-confirmation-dialog",
-    );
-
-    expect(header).not.toBeNull();
-    expect(drawer).not.toBeNull();
-    expect(victory).not.toBeNull();
-    expect(confirmation).not.toBeNull();
+    expect(query(fixture, "app-header-bar")).not.toBeNull();
+    expect(query(fixture, "app-settings-drawer")).not.toBeNull();
+    expect(query(fixture, "app-victory-overlay")).not.toBeNull();
+    expect(query(fixture, "app-confirmation-dialog")).not.toBeNull();
   });
 
   it("toggles showSettings based on child output emissions", () => {

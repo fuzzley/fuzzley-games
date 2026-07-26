@@ -16,9 +16,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "lint": "node -r ./register.cjs node_modules/eslint/bin/eslint.js src",
-    "tsc": "tsc",
+    "lint": "node -r ./register.cjs node_modules/eslint/bin/eslint.js src test",
+    "tsc": "tsc && yarn tsc:test",
+    "tsc:test": "tsc --noEmit -p tsconfig.spec.json",
     "tsc:w": "tsc -w",
+    "verify": "yarn lint && yarn tsc && yarn test",
     "prettier": "prettier . --write"
   },
   "repository": {

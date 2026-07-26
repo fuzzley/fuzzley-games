@@ -9,6 +9,7 @@ import {
   createMockGameModel,
   asGameModel,
 } from "@test/support/game_model_mock";
+import { clickElement, query, queryAll } from "@test/support/dom";
 
 describe("SettingsDrawerComponent", () => {
   let component: SettingsDrawerComponent;
@@ -40,16 +41,14 @@ describe("SettingsDrawerComponent", () => {
     fixture.componentRef.setInput("open", false);
     fixture.detectChanges();
 
-    const drawer = fixture.nativeElement.querySelector(".drawer");
-    expect(drawer).toBeNull();
+    expect(query(fixture, ".drawer")).toBeNull();
   });
 
   it("renders the settings drawer when open input is true", () => {
     fixture.componentRef.setInput("open", true);
     fixture.detectChanges();
 
-    const drawer = fixture.nativeElement.querySelector(".drawer");
-    expect(drawer).not.toBeNull();
+    expect(query(fixture, ".drawer")).not.toBeNull();
   });
 
   it("emits close when the backdrop is clicked", () => {
@@ -61,8 +60,7 @@ describe("SettingsDrawerComponent", () => {
       closeCount++;
     });
 
-    const backdrop = fixture.nativeElement.querySelector(".drawer-backdrop");
-    backdrop.click();
+    clickElement(fixture, ".drawer-backdrop");
 
     expect(closeCount).toBe(1);
   });
@@ -76,8 +74,7 @@ describe("SettingsDrawerComponent", () => {
       closeCount++;
     });
 
-    const closeBtn = fixture.nativeElement.querySelector(".btn-close");
-    closeBtn.click();
+    clickElement(fixture, ".btn-close");
 
     expect(closeCount).toBe(1);
   });
@@ -85,12 +82,9 @@ describe("SettingsDrawerComponent", () => {
   it("triggers draw mode selection change in session", () => {
     fixture.componentRef.setInput("open", true);
     fixture.detectChanges();
-
     const setDrawModeSpy = vi.spyOn(session, "setDrawMode");
-    const draw1Btn = fixture.nativeElement.querySelectorAll(
-      ".segmented-control button",
-    )[0]; // Draw 1
-    draw1Btn.click();
+
+    queryAll(fixture, ".segmented-control button")[0].click(); // Draw 1
 
     expect(setDrawModeSpy).toHaveBeenCalledWith(1);
   });
@@ -98,12 +92,9 @@ describe("SettingsDrawerComponent", () => {
   it("triggers card back design selection change in session", () => {
     fixture.componentRef.setInput("open", true);
     fixture.detectChanges();
-
     const setCardBackSpy = vi.spyOn(session, "setCardBack");
-    const redBackBtn = fixture.nativeElement.querySelector(
-      ".card-back-option.red-back",
-    );
-    redBackBtn.click();
+
+    clickElement(fixture, ".card-back-option.red-back");
 
     expect(setCardBackSpy).toHaveBeenCalledWith("card-back-red");
   });
@@ -111,12 +102,9 @@ describe("SettingsDrawerComponent", () => {
   it("triggers table theme selection change in ThemeService", () => {
     fixture.componentRef.setInput("open", true);
     fixture.detectChanges();
-
     const setThemeSpy = vi.spyOn(themeService, "setTheme");
-    const purpleThemeBtn = fixture.nativeElement.querySelector(
-      ".theme-option[title='Royal Velvet']",
-    );
-    purpleThemeBtn.click();
+
+    clickElement(fixture, ".theme-option[title='Royal Velvet']");
 
     expect(setThemeSpy).toHaveBeenCalledWith("purple");
   });
