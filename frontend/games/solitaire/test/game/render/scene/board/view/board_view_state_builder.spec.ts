@@ -6,8 +6,9 @@ import {
   Viewport,
 } from "@/game/render/scene/board/view/board_view_state";
 import {
-  CARD_TEXTURE_WIDTH_PX,
-  CARD_TEXTURE_HEIGHT_PX,
+  CARD_ART_SCALE,
+  CARD_RENDER_WIDTH_PX,
+  CARD_RENDER_HEIGHT_PX,
 } from "@/game/render/scene/board/layout/board_layout_constants";
 import {
   TABLEAU_FACE_UP_OFFSET,
@@ -44,7 +45,9 @@ describe("board_view_state_builder", () => {
 
     const cardView = viewState.cards[0];
     expect(cardView.cardId).toBe(card.id);
-    expect(cardView.scale).toBe(1.0); // full design viewport size allows scale 1.0
+    // A full design viewport at 1x allows a layout scale of 1.0, which the
+    // sprite renders at by scaling its larger artwork down.
+    expect(cardView.scale).toBe(1.0 / CARD_ART_SCALE);
     expect(cardView.depth).toBe(1); // first card in tableau gets depth 1
     expect(cardView.frame).toBe(card.id); // face-up card uses its id
     expect(cardView.cursor).toBe("pointer");
@@ -171,7 +174,23 @@ describe("board_view_state_builder", () => {
 
     const viewState = buildBoardViewState(game, interaction, retinaViewport);
 
-    expect(viewState.cards[0].scale).toBe(2.0);
+    expect(viewState.cards[0].scale).toBe(2.0 / CARD_ART_SCALE);
+  });
+
+  it("draws 2x artwork texel for texel on a 2x display at full design size", () => {
+    emptyBoard(game);
+    relocate(game, "card-hearts-ace", game.tableaus[0], true);
+    const retinaViewport: Viewport = {
+      width: 1920 * 2,
+      height: 1080 * 2,
+      pixelRatio: 2,
+    };
+
+    const viewState = buildBoardViewState(game, interaction, retinaViewport);
+
+    // The point of the exercise: at the pixel ratio the artwork was authored
+    // for, one atlas texel lands on exactly one device pixel.
+    expect(viewState.cards[0].scale).toBe(1.0);
   });
 
   it("keeps a card in the same place on screen at a higher pixel ratio", () => {
@@ -208,12 +227,15 @@ describe("board_view_state_builder", () => {
 
     const viewState = buildBoardViewState(game, interaction, viewport);
 
+    // Compared against the card's on-screen size, derived from its sprite
+    // scale, so the highlight cannot drift from the card it outlines.
     const cardView = viewState.cards.find((c) => c.cardId === card.id)!;
+    const renderedScale = cardView.scale * CARD_ART_SCALE;
     expect(viewState.highlight?.width).toBe(
-      CARD_TEXTURE_WIDTH_PX * cardView.scale,
+      CARD_RENDER_WIDTH_PX * renderedScale,
     );
     expect(viewState.highlight?.height).toBe(
-      CARD_TEXTURE_HEIGHT_PX * cardView.scale,
+      CARD_RENDER_HEIGHT_PX * renderedScale,
     );
   });
 });

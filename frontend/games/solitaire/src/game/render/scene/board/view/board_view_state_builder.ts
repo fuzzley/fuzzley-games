@@ -18,8 +18,9 @@ import {
   DRAG_BASE_DEPTH,
 } from "./board_geometry";
 import {
-  CARD_TEXTURE_WIDTH_PX,
-  CARD_TEXTURE_HEIGHT_PX,
+  CARD_ART_SCALE,
+  CARD_RENDER_WIDTH_PX,
+  CARD_RENDER_HEIGHT_PX,
 } from "../layout/board_layout_constants";
 
 /**
@@ -27,7 +28,10 @@ import {
  * for a single frame. It encapsulates shared layout metrics and calculations.
  */
 class BoardViewStateBuilder {
+  /** Layout scale: design units to device pixels. */
   private readonly scale: number;
+  /** Sprite scale: atlas texels to device pixels. */
+  private readonly spriteScale: number;
   private readonly origins: Map<string, Point>;
   private readonly cardWidth: number;
   private readonly cardHeight: number;
@@ -38,11 +42,15 @@ class BoardViewStateBuilder {
     viewport: Viewport,
   ) {
     this.scale = computeScale(viewport);
+    // The artwork is authored larger than a card is drawn, so a sprite is
+    // scaled down from its texels while the layout keeps working in design
+    // units.
+    this.spriteScale = this.scale / CARD_ART_SCALE;
     this.origins = computePileOrigins(viewport, this.scale);
-    // Size the highlight from the real texture frame so its border hugs the
+    // Size the highlight from the drawn card size so its border hugs the
     // rendered card exactly, rather than the slightly larger layout grid cell.
-    this.cardWidth = CARD_TEXTURE_WIDTH_PX * this.scale;
-    this.cardHeight = CARD_TEXTURE_HEIGHT_PX * this.scale;
+    this.cardWidth = CARD_RENDER_WIDTH_PX * this.scale;
+    this.cardHeight = CARD_RENDER_HEIGHT_PX * this.scale;
   }
 
   /**
@@ -74,7 +82,7 @@ class BoardViewStateBuilder {
         pileType: PileType.STOCK,
         x: stockOrigin.x,
         y: stockOrigin.y,
-        scale: this.scale,
+        scale: this.spriteScale,
         depth: 0,
         cursor: stockEmpty ? "pointer" : "default",
       });
@@ -92,7 +100,7 @@ class BoardViewStateBuilder {
         pileIndex: index,
         x: origin.x,
         y: origin.y,
-        scale: this.scale,
+        scale: this.spriteScale,
         depth: 0,
       });
     };
@@ -178,7 +186,7 @@ class BoardViewStateBuilder {
           cardId: card.id,
           x,
           y,
-          scale: this.scale,
+          scale: this.spriteScale,
           depth,
           frame: this.getCardFrame(
             card,

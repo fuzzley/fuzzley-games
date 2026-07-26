@@ -47,7 +47,11 @@ export interface CardView {
   x: number;
   /** Absolute target y in screen pixels. */
   y: number;
-  /** Uniform sprite scale factor. */
+  /**
+   * Uniform sprite scale factor, mapping atlas texels to device pixels. The
+   * artwork is authored larger than a card is drawn, so this is the layout
+   * scale divided by the art scale, not the layout scale itself.
+   */
   scale: number;
   /** Render depth (higher draws on top). */
   depth: number;
@@ -73,7 +77,7 @@ export interface PileBackgroundView {
   x: number;
   /** Absolute target y in screen pixels. */
   y: number;
-  /** Uniform sprite scale factor. */
+  /** Uniform sprite scale factor, mapping atlas texels to device pixels. */
   scale: number;
   /** Render depth (backgrounds sit below their cards). */
   depth: number;

@@ -4,17 +4,30 @@ export const CARD_WIDTH_PX = 221;
 export const CARD_HEIGHT_PX = 313;
 
 /**
- * The actual pixel width of a card (and placeholder) frame in the texture
- * atlas. The rendered card is this size times the layout scale, marginally
- * smaller than the {@link CARD_WIDTH_PX} grid cell.
+ * The width a card (and placeholder) is drawn at, in design units. The rendered
+ * card is this size times the layout scale, marginally smaller than the
+ * {@link CARD_WIDTH_PX} grid cell.
  */
-export const CARD_TEXTURE_WIDTH_PX = 220;
+export const CARD_RENDER_WIDTH_PX = 220;
 /**
- * The actual pixel height of a card (and placeholder) frame in the texture
- * atlas. The hover highlight sizes itself from this (not {@link CARD_HEIGHT_PX})
- * so its border hugs the rendered card instead of leaving a gap below it.
+ * The height a card (and placeholder) is drawn at, in design units. The hover
+ * highlight sizes itself from this (not {@link CARD_HEIGHT_PX}) so its border
+ * hugs the rendered card instead of leaving a gap below it.
  */
-export const CARD_TEXTURE_HEIGHT_PX = 307;
+export const CARD_RENDER_HEIGHT_PX = 307;
+
+/**
+ * Atlas texels per design unit in the card artwork.
+ *
+ * The frames are authored larger than the size a card is drawn at so there are
+ * enough texels to stay sharp on a high density display, where the layout scale
+ * runs up to the device pixel ratio. A sprite is therefore scaled by the layout
+ * scale divided by this.
+ *
+ * Changing it requires rebuilding the atlas: `yarn build:atlas` reads the same
+ * value from tools/build-card-atlas.mjs.
+ */
+export const CARD_ART_SCALE = 2;
 
 /** The design reference width the board layout was authored at. */
 export const DESIGN_WIDTH_PX = 1807;

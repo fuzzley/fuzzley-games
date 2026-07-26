@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  Pile background placeholders, laid out as three 220x307 cells matching the
+  card frame size. Vector so tools/build-card-atlas.mjs can rasterize them at
+  the same multiplier as the card faces; the geometry is measured from the
+  original hand-drawn bitmaps these replaced, in stroke-centreline coordinates.
+
+  Cell 0: card-placeholder                     (tableau piles, open at the bottom)
+  Cell 1: card-placeholder-full-border-circle  (foundation piles)
+  Cell 2: card-placeholder-full-border-reset   (stock pile, redeal affordance)
+-->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="660"
+  height="307"
+  viewBox="0 0 660 307"
+  version="1.1"
+>
+  <g fill="none" stroke="#ffffff" stroke-linecap="butt" stroke-linejoin="round">
+    <!-- card-placeholder: sides and top only, so the fanned tableau reads as open. -->
+    <g id="card-placeholder">
+      <path
+        d="M 11,263 L 11,27 A 7,7 0 0 1 18,20 L 202,20 A 7,7 0 0 1 209,27 L 209,263"
+        stroke-width="6"
+      />
+    </g>
+
+    <!-- card-placeholder-full-border-circle -->
+    <g id="card-placeholder-full-border-circle" transform="translate(220,0)">
+      <rect x="10.5" y="12.5" width="193" height="283" rx="10.5" stroke-width="5" />
+      <circle cx="106.5" cy="152.5" r="77" stroke-width="5" />
+    </g>
+
+    <!-- card-placeholder-full-border-reset -->
+    <g id="card-placeholder-full-border-reset" transform="translate(440,0)">
+      <rect x="13.5" y="12.5" width="193" height="283" rx="10.5" stroke-width="5" />
+      <!--
+        Open-bottom ring centred on 109.5,152.4 with radius 78, running
+        clockwise from 141.5 to 53 degrees so the gap sits under the arrowhead.
+      -->
+      <path d="M 48.4,201.0 A 78,78 0 1 1 156.4,214.7" stroke-width="5" />
+      <!-- Arrowhead closing the ring's tail. -->
+      <path
+        d="M 71.7,187.5 L 110.5,228.5 L 56.0,241.5 Z"
+        fill="#ffffff"
+        stroke="none"
+      />
+    </g>
+  </g>
+</svg>
