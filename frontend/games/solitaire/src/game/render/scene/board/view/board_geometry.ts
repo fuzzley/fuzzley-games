@@ -59,6 +59,17 @@ export const HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE = TABLEAU_HOVER_EXPANSION_OFFSET;
 export const WASTE_FAN_OFFSET_X = 55;
 /** Maximum number of waste cards to fan (show the edges of) in multi-draw mode. */
 export const WASTE_MAX_FAN_CARDS = 3;
+/**
+ * Base render depth applied to a stack flying to the pile it was just moved to,
+ * lifting it above every resting card.
+ *
+ * A card's resting depth only orders it within its own pile, so a card
+ * auto-moved to a foundation takes its new pile's low depth the instant the
+ * model moves it and would spend the whole flight drawn underneath the deeper
+ * columns it crosses. Below {@link DRAG_BASE_DEPTH}, so a stack in hand still
+ * covers a card flying past it.
+ */
+export const FLIGHT_BASE_DEPTH = 500;
 /** Base render depth applied to a dragged card stack, lifting it above all resting cards. */
 export const DRAG_BASE_DEPTH = 1000;
 /** Render depth of the hover highlight border, above every card on the board. */

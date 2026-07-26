@@ -33,6 +33,7 @@ describe("board_view_state_builder", () => {
       hoveredCardId: null,
       isStockBackgroundHovered: false,
       drag: null,
+      flight: null,
       snapAll: false,
     };
   });
@@ -90,6 +91,76 @@ describe("board_view_state_builder", () => {
     expect(cardView2.y).toBe(600 + 45); // offset for tableau drag
     expect(cardView2.depth).toBe(1001);
     expect(cardView2.snap).toBe(true);
+  });
+
+  describe("a stack flying to the pile it was moved to", () => {
+    /** The depth of the topmost card on the board as it currently stands. */
+    function deepestRestingDepth(): number {
+      const viewState = buildBoardViewState(game, interaction, viewport);
+      return Math.max(...viewState.cards.map((card) => card.depth));
+    }
+
+    it("lifts the flying card above every card resting on the board", () => {
+      // An ace auto-moved to a foundation is the first card there, so its
+      // resting depth is the lowest on the board while it is still crossing it.
+      const card = relocate(game, "card-hearts-ace", game.foundations[0]);
+      const restingDepth = deepestRestingDepth();
+      interaction.flight = { cardIds: [card.id] };
+
+      const viewState = buildBoardViewState(game, interaction, viewport);
+
+      const flying = viewState.cards.find((view) => view.cardId === card.id)!;
+      expect(flying.depth).toBeGreaterThan(restingDepth);
+    });
+
+    it("keeps the flying stack in its own order", () => {
+      const lower = relocate(game, "card-spades-6", game.tableaus[1]);
+      const upper = relocate(game, "card-hearts-5", game.tableaus[1]);
+      interaction.flight = { cardIds: [lower.id, upper.id] };
+
+      const viewState = buildBoardViewState(game, interaction, viewport);
+
+      const lowerView = viewState.cards.find((v) => v.cardId === lower.id)!;
+      const upperView = viewState.cards.find((v) => v.cardId === upper.id)!;
+      expect(upperView.depth).toBeGreaterThan(lowerView.depth);
+    });
+
+    it("keeps the flying stack below a stack in hand", () => {
+      const card = relocate(game, "card-hearts-ace", game.foundations[0]);
+      interaction.flight = { cardIds: [card.id] };
+
+      const viewState = buildBoardViewState(game, interaction, viewport);
+
+      const flying = viewState.cards.find((view) => view.cardId === card.id)!;
+      expect(flying.depth).toBeLessThan(DRAG_BASE_DEPTH);
+    });
+
+    it("lands the card back at its pile's own depth once the flight ends", () => {
+      const card = relocate(game, "card-hearts-ace", game.foundations[0]);
+      interaction.flight = null;
+
+      const viewState = buildBoardViewState(game, interaction, viewport);
+
+      const landed = viewState.cards.find((view) => view.cardId === card.id)!;
+      expect(landed.depth).toBe(1); // first card in the foundation
+    });
+
+    it("leaves the card's position to its pile while it flies", () => {
+      const card = relocate(game, "card-hearts-ace", game.foundations[0]);
+      const resting = buildBoardViewState(
+        game,
+        interaction,
+        viewport,
+      ).cards.find((view) => view.cardId === card.id)!;
+      interaction.flight = { cardIds: [card.id] };
+
+      const viewState = buildBoardViewState(game, interaction, viewport);
+
+      // Only the depth is lifted: the applier eases the sprite to the pile, so
+      // the target it eases towards must stay the card's place in that pile.
+      const flying = viewState.cards.find((view) => view.cardId === card.id)!;
+      expect([flying.x, flying.y]).toEqual([resting.x, resting.y]);
+    });
   });
 
   it("draws highlight over empty stock if hovered", () => {

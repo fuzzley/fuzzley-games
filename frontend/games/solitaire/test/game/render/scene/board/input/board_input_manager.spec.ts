@@ -266,6 +266,83 @@ describe("BoardInputManager", () => {
     });
   });
 
+  describe("flight tracking", () => {
+    /** Double clicks the given card's sprite. */
+    function doubleClick(card = gameModel.tableaus[2].getCards()[1]): void {
+      const { sprite } = listenTo(card);
+      sprite.emit("pointerdown");
+      sprite.emit("pointerdown");
+    }
+
+    it("tracks the whole auto-moved stack while it crosses the board", () => {
+      vi.spyOn(gameModel, "autoMoveCard").mockReturnValue(true);
+      const cards = gameModel.tableaus[2].getCards();
+
+      doubleClick(cards[1]);
+
+      // A move takes the cards stacked on top of the clicked one with it, and
+      // every one of them has the board to cross.
+      expect(inputManager.flight?.cardIds).toEqual([cards[1].id, cards[2].id]);
+    });
+
+    it("tracks nothing when no pile accepts the auto-moved card", () => {
+      vi.spyOn(gameModel, "autoMoveCard").mockReturnValue(false);
+
+      doubleClick();
+
+      expect(inputManager.flight).toBeNull();
+    });
+
+    it("tracks the dropped stack while it settles onto its new pile", () => {
+      const cards = gameModel.tableaus[0].getCards();
+      const cardVisual = new PlayingCardVisual(cards[cards.length - 1]);
+      // tableau-1 calculated layout origin: x: 348, y: 447
+      const sprite = createMockSprite({ x: 350, y: 450 });
+      sprite.setData("cardVisual", cardVisual);
+      cardVisual.sprite = asSprite(sprite);
+      vi.spyOn(gameModel, "moveCardToPile").mockReturnValue(true);
+      inputManager.registerDragListeners();
+      input.emit("dragstart", {}, asSprite(sprite));
+
+      input.emit("dragend", {}, asSprite(sprite));
+
+      expect(inputManager.flight?.cardIds).toEqual([cardVisual.playingCard.id]);
+    });
+
+    it("tracks nothing when the pile refuses the dropped stack", () => {
+      const cards = gameModel.tableaus[0].getCards();
+      const cardVisual = new PlayingCardVisual(cards[cards.length - 1]);
+      const sprite = createMockSprite({ x: 350, y: 450 });
+      sprite.setData("cardVisual", cardVisual);
+      cardVisual.sprite = asSprite(sprite);
+      vi.spyOn(gameModel, "moveCardToPile").mockReturnValue(false);
+      inputManager.registerDragListeners();
+      input.emit("dragstart", {}, asSprite(sprite));
+
+      input.emit("dragend", {}, asSprite(sprite));
+
+      expect(inputManager.flight).toBeNull();
+    });
+
+    it("stops tracking the stack once it has landed", () => {
+      vi.spyOn(gameModel, "autoMoveCard").mockReturnValue(true);
+      doubleClick();
+
+      inputManager.endFlight();
+
+      expect(inputManager.flight).toBeNull();
+    });
+
+    it("stops tracking the stack on a game reset", () => {
+      vi.spyOn(gameModel, "autoMoveCard").mockReturnValue(true);
+      doubleClick();
+
+      inputManager.resetInteraction();
+
+      expect(inputManager.flight).toBeNull();
+    });
+  });
+
   describe("stock background", () => {
     let stockBackground: MockSprite;
 
@@ -420,6 +497,7 @@ describe("BoardInputManager", () => {
         hoveredCardId: null,
         isStockBackgroundHovered: false,
         drag: null,
+        flight: null,
         snapAll: true,
       });
     });
