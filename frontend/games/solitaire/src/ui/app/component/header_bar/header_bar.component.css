@@ -2,6 +2,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: 73px;
+  box-sizing: border-box;
   padding: 12px 24px;
   background: rgba(15, 23, 42, 0.5);
   backdrop-filter: blur(12px);
@@ -64,3 +66,77 @@
   align-items: center;
   gap: 12px;
 }
+
+@media (max-width: 768px) {
+  .header-bar {
+    padding: 10px 16px;
+  }
+
+  .brand-text {
+    font-size: 1.25rem;
+  }
+
+  .metrics {
+    gap: 10px;
+  }
+
+  .metric-card {
+    min-width: 70px;
+    padding: 4px 10px;
+  }
+
+  .actions {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 520px) {
+  .header-bar {
+    padding: 8px 10px;
+  }
+
+  .brand-text {
+    font-size: 1.1rem;
+  }
+
+  .metrics {
+    gap: 6px;
+  }
+
+  .metric-card {
+    min-width: 48px;
+    padding: 4px 6px;
+  }
+
+  .metric-card .label {
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+
+  .metric-card .value {
+    font-size: 0.95rem;
+  }
+
+  .actions {
+    gap: 6px;
+  }
+
+  .actions .btn .btn-text {
+    display: none;
+  }
+
+  .actions .btn {
+    padding: 8px;
+    justify-content: center;
+    min-width: 38px;
+    min-height: 38px;
+    border-radius: 50%;
+  }
+
+  .actions .btn .btn-icon {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+  }
+}
+

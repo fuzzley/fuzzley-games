@@ -21,6 +21,8 @@
   border-radius: 20px;
   padding: 40px;
   width: 420px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
   text-align: center;
   box-shadow:
     0 10px 40px rgba(0, 0, 0, 0.5),
@@ -115,3 +117,27 @@
   text-transform: uppercase;
   margin-top: 4px;
 }
+
+@media (max-width: 480px) {
+  .victory-card {
+    padding: 24px 16px;
+  }
+
+  .victory-card h1 {
+    font-size: 1.75rem;
+  }
+
+  .victory-subtitle {
+    margin-bottom: 20px;
+  }
+
+  .victory-stats {
+    padding: 12px 8px;
+    margin-bottom: 24px;
+  }
+
+  .v-stat .v-val {
+    font-size: 1.2rem;
+  }
+}
+

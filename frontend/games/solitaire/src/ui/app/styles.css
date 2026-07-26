@@ -20,6 +20,7 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   color: #fff;
   outline: none;
+  touch-action: manipulation;
 }
 
 .btn-icon {
@@ -60,6 +61,7 @@
   color: #f8fafc;
   transition: all 0.2s;
   outline: none;
+  touch-action: manipulation;
 }
 
 .btn-circle:hover {
