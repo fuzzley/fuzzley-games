@@ -77,3 +77,23 @@ describe("rankBelow", () => {
     expect(rankBelow(Rank.ACE)).toBeUndefined();
   });
 });
+
+describe("playingCardIdToString", () => {
+  it("maps a suit and rank to its canonical id", () => {
+    const id = playingCardIdToString({ suit: Suit.HEART, rank: Rank.QUEEN });
+
+    expect(id).toBe("card-hearts-queen");
+  });
+
+  it("throws for an unknown suit", () => {
+    expect(() =>
+      playingCardIdToString({ suit: 999 as Suit, rank: Rank.ACE }),
+    ).toThrow("Unknown Suit: 999");
+  });
+
+  it("throws for an unknown rank", () => {
+    expect(() =>
+      playingCardIdToString({ suit: Suit.SPADE, rank: 999 as Rank }),
+    ).toThrow("Unknown Rank: 999");
+  });
+});

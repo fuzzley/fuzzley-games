@@ -31,7 +31,7 @@ describe("ThemeService", () => {
 
     buildService(model);
 
-    expect(model.setBackgroundColor).toHaveBeenCalledWith("#0f4d0e");
+    expect(model.settings.setBackgroundColor).toHaveBeenCalledWith("#0f4d0e");
   });
 
   it("restores the theme matching the persisted background color", () => {
@@ -50,6 +50,8 @@ describe("ThemeService", () => {
     service.setTheme("blue");
 
     expect(service.selectedTheme()).toBe("blue");
-    expect(model.setBackgroundColor).toHaveBeenLastCalledWith("#1b4353");
+    expect(model.settings.setBackgroundColor).toHaveBeenLastCalledWith(
+      "#1b4353",
+    );
   });
 });

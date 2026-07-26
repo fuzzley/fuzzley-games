@@ -688,7 +688,7 @@ describe("SolitaireGame", () => {
   describe("recycle penalties", () => {
     it("does not penalize the first waste recycle in Draw 1 mode", () => {
       game.startNewGame();
-      game.setDrawCount(1);
+      game.settings.setDrawCount(1);
       const king = game.getCardById(CLUB_KING_ID)!;
       game.state.score = 200;
 
@@ -699,7 +699,7 @@ describe("SolitaireGame", () => {
 
     it("penalizes 100 points for a second waste recycle in Draw 1 mode", () => {
       game.startNewGame();
-      game.setDrawCount(1);
+      game.settings.setDrawCount(1);
       const king = game.getCardById(CLUB_KING_ID)!;
       forceWasteRecycle(game, king);
       game.state.score = 200;
@@ -711,7 +711,7 @@ describe("SolitaireGame", () => {
 
     it("does not penalize the first three waste recycles in Draw 3 mode", () => {
       game.startNewGame();
-      game.setDrawCount(3);
+      game.settings.setDrawCount(3);
       const king = game.getCardById(CLUB_KING_ID)!;
       game.state.score = 200;
 
@@ -724,7 +724,7 @@ describe("SolitaireGame", () => {
 
     it("penalizes 20 points for a fourth waste recycle in Draw 3 mode", () => {
       game.startNewGame();
-      game.setDrawCount(3);
+      game.settings.setDrawCount(3);
       const king = game.getCardById(CLUB_KING_ID)!;
       forceWasteRecycle(game, king);
       forceWasteRecycle(game, king);
@@ -749,7 +749,7 @@ describe("SolitaireGame", () => {
       const drawCounts: (1 | 3)[] = [];
       game.settings.drawCount$.subscribe((v) => drawCounts.push(v));
 
-      game.setDrawCount(1);
+      game.settings.setDrawCount(1);
 
       expect(game.settings.drawCount).toBe(1);
       expect(drawCounts).toContain(1);
@@ -759,7 +759,7 @@ describe("SolitaireGame", () => {
       const cardBacks: string[] = [];
       game.settings.cardBackStyle$.subscribe((v) => cardBacks.push(v));
 
-      game.setCardBackStyle("card-back-red");
+      game.settings.setCardBackStyle("card-back-red");
 
       expect(game.settings.cardBackStyle).toBe("card-back-red");
       expect(cardBacks).toContain("card-back-red");
@@ -769,14 +769,14 @@ describe("SolitaireGame", () => {
       const almostWins: boolean[] = [];
       game.settings.debug.almostWin$.subscribe((v) => almostWins.push(v));
 
-      game.setAlmostWin(true);
+      game.settings.debug.setAlmostWin(true);
 
       expect(game.settings.debug.almostWin).toBe(true);
       expect(almostWins).toContain(true);
     });
 
     it("deals an almost-win board layout when almostWin is true", () => {
-      game.setAlmostWin(true);
+      game.settings.debug.setAlmostWin(true);
       game.startNewGame();
 
       // Check foundations are filled with 12 cards each (A to Q)

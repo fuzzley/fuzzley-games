@@ -2,9 +2,9 @@ import { CardPile } from "@/game/model/card/card_pile";
 import {
   ALL_PLAYING_CARD_IDS,
   PlayingCard,
+  playingCardIdToString,
 } from "@/game/model/card/playing_card";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
-import { playingCardIdToFileName } from "@/game/render/asset/card_assets";
 
 /** Id of the only card left out of the foundations by {@link almostWon}. */
 export const CLUB_KING_ID = "card-clubs-king";
@@ -57,7 +57,7 @@ export function forceWasteRecycle(
 export function almostWon(game: SolitaireGame): void {
   emptyBoard(game);
   for (const cardId of ALL_PLAYING_CARD_IDS) {
-    const id = playingCardIdToFileName(cardId);
+    const id = playingCardIdToString(cardId);
     if (id === CLUB_KING_ID) {
       continue;
     }

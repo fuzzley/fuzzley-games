@@ -1,6 +1,6 @@
 import { EventEmitter } from "../common/event_emitter";
 import { GameEvents } from "./game_events";
-import { GameSettings, CardBackStyle, DrawCount } from "./game_settings";
+import { GameSettings } from "./game_settings";
 import { GameState } from "./game_state";
 import { ScoringPolicy } from "./scoring_policy";
 import { MoveRules } from "./move_rules";
@@ -100,22 +100,6 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     this.moveRules = moveRules;
     this.dealer = new Dealer(this.registry, cardIds);
     this.initializePiles();
-  }
-
-  public setCardBackStyle(style: CardBackStyle): void {
-    this.settings.setCardBackStyle(style);
-  }
-
-  public setDrawCount(count: DrawCount): void {
-    this.settings.setDrawCount(count);
-  }
-
-  public setBackgroundColor(color: string): void {
-    this.settings.setBackgroundColor(color);
-  }
-
-  public setAlmostWin(enabled: boolean): void {
-    this.settings.debug.setAlmostWin(enabled);
   }
 
   /** Initializes all card piles and registers them in the lookup map. */

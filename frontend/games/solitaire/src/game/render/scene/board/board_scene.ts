@@ -7,7 +7,7 @@ import { TableauPileVisual } from "../../visual/pile/tableau_pile_visual";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
 import { getGameModel } from "@/game/model/game/game_model_factory";
 import { PlayingCardVisual } from "../../visual/card/playing_card_visual";
-import { playingCardIdToFileName } from "../../asset/card_assets";
+import { playingCardIdToString } from "@/game/model/card/playing_card";
 import { BoardVisualFactory } from "./board_visual_factory";
 import { BoardInputManager } from "./input/board_input_manager";
 import { BoardViewApplier } from "./view/board_view_applier";
@@ -120,7 +120,7 @@ export class BoardScene extends Scene {
    */
   private createCardVisuals(): void {
     for (const cardId of ALL_PLAYING_CARD_IDS) {
-      const fileName = playingCardIdToFileName(cardId);
+      const fileName = playingCardIdToString(cardId);
       const cardModel = this.gameModel.getCardById(fileName);
       if (!cardModel) {
         throw new Error(`Card model not found for: ${fileName}`);

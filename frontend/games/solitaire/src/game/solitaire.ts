@@ -3,6 +3,7 @@ import { Types } from "phaser";
 import { LoadingScene } from "./render/scene/loading/loading_scene";
 import { BoardScene } from "./render/scene/board/board_scene";
 import { ViewportScaler } from "./render/scale/viewport_scaler";
+import { DEFAULT_BACKGROUND_COLOR } from "./model/game/game_settings";
 
 /** The id of the element the game canvas is mounted into. */
 const GAME_PARENT_ID = "game";
@@ -27,7 +28,9 @@ export class Solitaire {
       title: "fSolitaire",
       type: Phaser.AUTO,
       parent: GAME_PARENT_ID,
-      backgroundColor: "#0f4d0e",
+      // Only shown for the frame or two before the board scene applies the
+      // persisted setting, but it should still be the same green.
+      backgroundColor: DEFAULT_BACKGROUND_COLOR,
       scale: {
         // NONE, because every built-in mode sizes the canvas backing store in
         // CSS pixels. ViewportScaler drives the size instead so the canvas
