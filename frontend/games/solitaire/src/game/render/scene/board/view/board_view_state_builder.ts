@@ -77,7 +77,7 @@ class BoardViewStateBuilder {
 
     const stockOrigin = this.origins.get(this.game.stock.id);
     if (stockOrigin) {
-      const stockEmpty = this.game.stock.getCards().length === 0;
+      const stockEmpty = this.game.stock.isEmpty;
       backgrounds.push({
         pileId: this.game.stock.id,
         pileType: PileType.STOCK,
@@ -267,9 +267,7 @@ class BoardViewStateBuilder {
     // Outline the card the stack would land on, which is the pile itself when
     // there is nothing in it yet. Sized to a card either way, so the border
     // marks the landing place rather than the whole column it belongs to.
-    const pileCards = targetPile.getCards();
-    const topCard =
-      pileCards.length > 0 ? pileCards[pileCards.length - 1] : null;
+    const topCard = targetPile.topCard;
 
     return {
       anchor: topCard
@@ -288,7 +286,7 @@ class BoardViewStateBuilder {
    * null when nothing hovered can be interacted with.
    */
   private buildHoverHighlight(): HighlightView | null {
-    const stockEmpty = this.game.stock.getCards().length === 0;
+    const stockEmpty = this.game.stock.isEmpty;
     const stockOrigin = this.origins.get(this.game.stock.id);
 
     if (

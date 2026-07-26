@@ -272,14 +272,12 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    * no move) when both the stock and waste are empty.
    */
   public drawCardsFromStock(): void {
-    const hasStock = this.stock.getCards().length > 0;
-    const hasWaste = this.waste.getCards().length > 0;
-    if (!hasStock && !hasWaste) {
+    if (this.stock.isEmpty && this.waste.isEmpty) {
       return;
     }
 
     this.state.moves++;
-    if (hasStock) {
+    if (!this.stock.isEmpty) {
       this.drawFromStock();
     } else {
       this.recycleWaste();
@@ -290,13 +288,10 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    * Draws up to drawCount cards from the stock pile and moves them to the waste pile.
    */
   private drawFromStock(): void {
-    const drawCount = Math.min(
-      this.settings.drawCount,
-      this.stock.getCards().length,
-    );
+    const drawCount = Math.min(this.settings.drawCount, this.stock.size);
     for (let i = 0; i < drawCount; i++) {
-      const currentCards = this.stock.getCards();
-      const topCard = currentCards[currentCards.length - 1];
+      const topCard = this.stock.topCard;
+      if (!topCard) return;
       this.stock.removeCard(topCard);
       topCard.faceUp = true;
       this.waste.addCard(topCard);
@@ -315,12 +310,12 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     );
     this.state.score = Math.max(0, this.state.score - penalty);
 
-    while (this.waste.getCards().length > 0) {
-      const wasteCards = this.waste.getCards();
-      const card = wasteCards[wasteCards.length - 1];
+    let card = this.waste.topCard;
+    while (card) {
       this.waste.removeCard(card);
       card.faceUp = false;
       this.stock.addCard(card);
+      card = this.waste.topCard;
     }
   }
 
@@ -462,12 +457,8 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     if (sourcePile.type !== PileType.TABLEAU) {
       return;
     }
-    const remainingCards = sourcePile.getCards();
-    if (remainingCards.length === 0) {
-      return;
-    }
-    const topRemaining = remainingCards[remainingCards.length - 1];
-    if (topRemaining.faceUp) {
+    const topRemaining = sourcePile.topCard;
+    if (!topRemaining || topRemaining.faceUp) {
       return;
     }
 
@@ -504,8 +495,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     }
 
     // The stock, waste, and foundation piles only expose their top card.
-    const cards = pile.getCards();
-    return cards.length > 0 && cards[cards.length - 1] === card;
+    return pile.topCard === card;
   }
 
   /**
@@ -540,7 +530,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
   private checkWinCondition(): void {
     let totalFoundationCards = 0;
     for (const foundation of this.foundations) {
-      totalFoundationCards += foundation.getCards().length;
+      totalFoundationCards += foundation.size;
     }
 
     // Every card in play lives in the registry, so the game is won once they
