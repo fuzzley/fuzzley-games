@@ -7,7 +7,13 @@ import {
   MockScaleManager,
   MockSprite,
 } from "@test/support/phaser_mocks";
-import * as ViewStateBuilder from "@/game/render/scene/board/view/board_view_state_builder";
+import {
+  computePileOrigins,
+  computeScale,
+} from "@/game/render/scene/board/view/board_geometry";
+import { DESIGN_WIDTH_PX } from "@/game/render/scene/board/layout/board_layout_constants";
+import { STOCK_PILE_ID } from "@/game/model/card/card_pile";
+import { PlayingCardVisual } from "@/game/render/visual/card/playing_card_visual";
 import { relocate } from "@test/support/game_scenarios";
 
 vi.mock("phaser", async () => {
@@ -28,6 +34,12 @@ describe("BoardScene", () => {
     boardScene = new BoardScene();
     boardScene.create();
   });
+
+  /** The visual for a card sitting in the stock, for tracking its sprite. */
+  function stockCardVisual(): PlayingCardVisual {
+    const card = boardScene.gameModel.stock.getCards()[0];
+    return boardScene.cardVisualsMap.get(card.id)!;
+  }
 
   describe("construction", () => {
     it("renders the game model it is injected with", () => {
@@ -93,25 +105,39 @@ describe("BoardScene", () => {
   });
 
   describe("responsiveness", () => {
-    it("sets snapAll on scale resize", () => {
+    it("snaps cards to their new places after a resize rather than easing", () => {
       const scale = boardScene.scale as unknown as MockScaleManager;
-      boardScene["inputManager"].snapAll = false;
+      const sprite = asMock(stockCardVisual().sprite);
+      boardScene.update(0, 16);
+      const beforeResize = sprite.x;
 
+      // A wider viewport centers the layout further right, moving every pile.
+      scale.width = DESIGN_WIDTH_PX * 2;
       scale.emit("resize");
+      boardScene.update(16, 16);
 
-      expect(boardScene["inputManager"].snapAll).toBe(true);
+      // A snap lands on the target in the first frame, so the next frame leaves
+      // the card alone; an ease would still be closing the gap.
+      const afterResize = sprite.x;
+      boardScene.update(32, 16);
+      expect(afterResize).not.toBe(beforeResize);
+      expect(sprite.x).toBe(afterResize);
     });
   });
 
   describe("update loop", () => {
-    it("builds the board view state and applies it", () => {
-      const buildSpy = vi.spyOn(ViewStateBuilder, "buildBoardViewState");
-      const applySpy = vi.spyOn(boardScene["viewApplier"], "apply");
+    it("lays each card out where its pile's geometry puts it", () => {
+      const viewport = boardScene.viewport;
+      const stockOrigin = computePileOrigins(
+        viewport,
+        computeScale(viewport),
+      ).get(STOCK_PILE_ID)!;
+      const sprite = asMock(stockCardVisual().sprite);
 
-      boardScene.update(100, 16.6);
+      boardScene.update(0, 16);
 
-      expect(buildSpy).toHaveBeenCalled();
-      expect(applySpy).toHaveBeenCalled();
+      // Stock cards stack with no offset, so they land exactly on the origin.
+      expect({ x: sprite.x, y: sprite.y }).toEqual(stockOrigin);
     });
   });
 
