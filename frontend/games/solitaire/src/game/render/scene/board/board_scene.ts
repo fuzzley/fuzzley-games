@@ -197,6 +197,14 @@ export class BoardScene extends Scene {
     );
     this.viewApplier.apply(state, deltaMs);
 
+    // A flying stack is lifted above the board for as long as it is crossing
+    // it. Only the applier eases the sprites, so it is the one that knows when
+    // they have arrived and the stack can settle into its pile's own order.
+    const flight = this.inputManager.flight;
+    if (flight && !this.viewApplier.areCardsTravelling(flight.cardIds)) {
+      this.inputManager.endFlight();
+    }
+
     if (this.inputManager.snapAll) {
       this.inputManager.snapAll = false;
     }

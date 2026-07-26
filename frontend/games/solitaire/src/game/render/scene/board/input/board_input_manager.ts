@@ -6,6 +6,7 @@ import type { PlayingCard } from "@/game/model/card/playing_card";
 import {
   BoardInteractionState,
   DragInteraction,
+  FlightInteraction,
 } from "../view/board_view_state";
 import { resolveDragTarget } from "./drop_target_resolver";
 
@@ -25,6 +26,9 @@ export class BoardInputManager {
 
   /** The transient drag interaction state. */
   public drag: DragInteraction | null = null;
+
+  /** The stack still flying to the pile it was moved to, or null when none is. */
+  private flightState: FlightInteraction | null = null;
 
   /** Flag to snap all cards immediately (e.g. on first load, resize, reset). */
   public snapAll = true;
@@ -110,7 +114,12 @@ export class BoardInputManager {
         // straight back — e.g. a King auto-moved to its foundation gets dropped
         // onto the now-empty tableau it just left, so it never appears to move.
         this.drag = null;
-        game.autoMoveCard(cardId);
+        // The stack the model is about to move, read before it moves so the
+        // cards can be tracked across the board while their sprites catch up.
+        const movingCardIds = this.stackFromCard(pile, cardId);
+        if (game.autoMoveCard(cardId)) {
+          this.beginFlight(movingCardIds);
+        }
       }
       return;
     }
@@ -121,6 +130,18 @@ export class BoardInputManager {
     if (pile.type === PileType.STOCK) {
       this.tryDrawFromStock(pile, visual);
     }
+  }
+
+  /**
+   * The ids of the given card and every card stacked on top of it, which is
+   * the stack a move of that card takes with it.
+   */
+  private stackFromCard(pile: CardPile<PlayingCard>, cardId: string): string[] {
+    const cards = pile.getCards();
+    const cardIndex = cards.findIndex((card) => card.id === cardId);
+    return cardIndex === -1
+      ? []
+      : cards.slice(cardIndex).map((card) => card.id);
   }
 
   /**
@@ -188,14 +209,11 @@ export class BoardInputManager {
     );
     if (!sourcePile) return;
 
-    const cards = sourcePile.getCards();
-    const cardIndex = cards.findIndex(
-      (card) => card.id === visual.playingCard.id,
-    );
-    if (cardIndex === -1) return;
+    const cardIds = this.stackFromCard(sourcePile, visual.playingCard.id);
+    if (cardIds.length === 0) return;
 
     this.drag = {
-      cardIds: cards.slice(cardIndex).map((card) => card.id),
+      cardIds,
       primary: { x: gameObject.x, y: gameObject.y },
     };
   }
@@ -241,12 +259,40 @@ export class BoardInputManager {
       this.boardScene.viewport,
     );
 
-    if (target) {
-      this.boardScene.gameModel.moveCardToPile(
-        visual.playingCard.id,
-        target.pileId,
-      );
+    if (!target) {
+      return;
     }
+
+    const moved = this.boardScene.gameModel.moveCardToPile(
+      visual.playingCard.id,
+      target.pileId,
+    );
+    if (moved) {
+      // The stack is released wherever the pointer left it, so it still has the
+      // board to cross to reach the pile that accepted it.
+      this.beginFlight(drag.cardIds);
+    }
+  }
+
+  /**
+   * Lifts the given stack above the board until its sprites have caught up with
+   * the pile the model has already moved them to.
+   */
+  private beginFlight(cardIds: string[]): void {
+    this.flightState = cardIds.length > 0 ? { cardIds } : null;
+  }
+
+  /** The stack still crossing the board, or null when nothing is in flight. */
+  public get flight(): FlightInteraction | null {
+    return this.flightState;
+  }
+
+  /**
+   * Lets the flying stack settle back onto the board. Called by the scene once
+   * the sprites have reached the pile they were moved to.
+   */
+  public endFlight(): void {
+    this.flightState = null;
   }
 
   /** Snapshot of the pointer-driven interaction state consumed by the view builder each frame. */
@@ -255,18 +301,20 @@ export class BoardInputManager {
       hoveredCardId: this.hoveredCardVisual?.playingCard.id ?? null,
       isStockBackgroundHovered: this.isStockBackgroundHovered,
       drag: this.drag,
+      flight: this.flightState,
       snapAll: this.snapAll,
     };
   }
 
   /**
    * Clears all pointer interaction state and requests a one-frame snap. Called on
-   * game reset so no stale hover or drag survives into the new deal.
+   * game reset so no stale hover, drag, or flight survives into the new deal.
    */
   public resetInteraction(): void {
     this.hoveredCardVisual = null;
     this.isStockBackgroundHovered = false;
     this.drag = null;
+    this.flightState = null;
     this.snapAll = true;
   }
 }

@@ -47,7 +47,27 @@ export class BoardViewApplier {
   /** Highlight borders, created on demand and reused across frames. */
   private readonly highlightBorders: HighlightBorder[] = [];
 
+  /**
+   * How far each card still had to travel at the end of the last applied frame,
+   * keyed by card id. Cards that reached their target are absent.
+   */
+  private travelDistances = new Map<string, number>();
+
   constructor(private readonly scene: BoardScene) {}
+
+  /**
+   * Whether any of the given cards had still not reached its target when the
+   * last frame was applied.
+   *
+   * The applier owns the easing, so it is the only thing that can tell a card
+   * that has arrived from one still on its way. The scene asks so it can retire
+   * a flight once the moved stack has landed.
+   *
+   * @param cardIds The card ids to test.
+   */
+  public areCardsTravelling(cardIds: readonly string[]): boolean {
+    return cardIds.some((cardId) => this.travelDistances.has(cardId));
+  }
 
   /**
    * Applies the desired view state onto Phaser sprites, syncing positions,
@@ -130,6 +150,7 @@ export class BoardViewApplier {
       }
     }
 
+    this.travelDistances = travelDistances;
     this.drawHighlights(viewState.highlights, travelDistances);
   }
 

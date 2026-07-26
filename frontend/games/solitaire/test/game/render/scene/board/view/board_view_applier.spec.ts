@@ -214,6 +214,52 @@ describe("BoardViewApplier", () => {
     expect(cardSprite.x).toBe(100);
   });
 
+  describe("travelling cards", () => {
+    it("reports a card that has not reached its target", () => {
+      registerCard("card-1", 0, 0);
+      const viewState: BoardViewState = {
+        backgrounds: [],
+        cards: [cardView({ cardId: "card-1", x: 400, y: 400 })],
+        highlights: [],
+      };
+
+      applier.apply(viewState, 16);
+
+      expect(applier.areCardsTravelling(["card-1"])).toBe(true);
+    });
+
+    it("reports a card that has arrived as landed", () => {
+      registerCard("card-1", 0, 0);
+      const viewState: BoardViewState = {
+        backgrounds: [],
+        cards: [cardView({ cardId: "card-1", x: 400, y: 400 })],
+        highlights: [],
+      };
+      applier.apply(viewState, 16); // in flight
+
+      applier.apply(viewState, 0); // delta 0 lands the card
+
+      expect(applier.areCardsTravelling(["card-1"])).toBe(false);
+    });
+
+    it("reports a stack as travelling while any of it is still moving", () => {
+      registerCard("landed", 400, 400);
+      registerCard("moving", 0, 0);
+      const viewState: BoardViewState = {
+        backgrounds: [],
+        cards: [
+          cardView({ cardId: "landed", x: 400, y: 400 }),
+          cardView({ cardId: "moving", x: 400, y: 445 }),
+        ],
+        highlights: [],
+      };
+
+      applier.apply(viewState, 16);
+
+      expect(applier.areCardsTravelling(["landed", "moving"])).toBe(true);
+    });
+  });
+
   describe("highlight borders", () => {
     it("strokes a closed border in its own space and moves it to the anchor", () => {
       const viewState: BoardViewState = {

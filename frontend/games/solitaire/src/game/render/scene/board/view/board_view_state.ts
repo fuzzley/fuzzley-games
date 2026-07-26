@@ -145,6 +145,20 @@ export interface DragInteraction {
 }
 
 /**
+ * A card stack easing across the board to the pile it was just moved to.
+ *
+ * The model moves a card the moment the move is made, so the sprites are left
+ * behind at the old pile and ease to the new one over the following frames. The
+ * cards are named here for as long as that takes, because a card in the air
+ * belongs above the whole board rather than at the depth of the pile it is
+ * still on its way to.
+ */
+export interface FlightInteraction {
+  /** The flying card ids, bottom card of the moved stack first. */
+  cardIds: string[];
+}
+
+/**
  * The transient, pointer-driven interaction state the view depends on. Combined
  * with the model, this is the complete input to {@link BoardViewState}.
  */
@@ -155,6 +169,8 @@ export interface BoardInteractionState {
   isStockBackgroundHovered: boolean;
   /** The active drag, or null when nothing is being dragged. */
   drag: DragInteraction | null;
+  /** The stack still flying to the pile it was moved to, or null when none is. */
+  flight: FlightInteraction | null;
   /**
    * When true every card snaps to its target this frame instead of easing. Set
    * for the first render and after a reset or resize so cards do not slide in

@@ -8,6 +8,7 @@ import {
   MockSprite,
 } from "@test/support/phaser_mocks";
 import * as ViewStateBuilder from "@/game/render/scene/board/view/board_view_state_builder";
+import { relocate } from "@test/support/game_scenarios";
 
 vi.mock("phaser", async () => {
   const mocks = await import("@test/support/phaser_mocks");
@@ -111,6 +112,56 @@ describe("BoardScene", () => {
 
       expect(buildSpy).toHaveBeenCalled();
       expect(applySpy).toHaveBeenCalled();
+    });
+  });
+
+  describe("auto-moved card", () => {
+    /**
+     * Puts the ace of hearts face up on top of tableau 0, lays the board out,
+     * then double clicks it so the model moves it to a foundation. Returns its
+     * sprite, which is still back at the tableau with the board to cross.
+     */
+    function autoMoveTheAce(): MockSprite {
+      const ace = relocate(
+        boardScene.gameModel,
+        "card-hearts-ace",
+        boardScene.gameModel.tableaus[0],
+      );
+      const sprite = asMock(boardScene.cardVisualsMap.get(ace.id)!.sprite);
+      boardScene.update(0, 16); // the first frame snaps the board into place
+
+      sprite.emit("pointerdown");
+      sprite.emit("pointerdown");
+
+      return sprite;
+    }
+
+    /** The highest depth of any card other than the given sprite. */
+    function deepestCardExcept(sprite: MockSprite): number {
+      const others = [...boardScene.cardVisualsMap.values()]
+        .map((visual) => asMock(visual.sprite))
+        .filter((other) => other !== sprite);
+      return Math.max(...others.map((other) => other.depth));
+    }
+
+    it("draws it over every other card while it crosses the board", () => {
+      const sprite = autoMoveTheAce();
+
+      boardScene.update(16, 16);
+
+      // Its foundation is empty, so the depth it is headed for is the lowest on
+      // the board: without the lift it would slide under the columns it crosses.
+      expect(sprite.depth).toBeGreaterThan(deepestCardExcept(sprite));
+    });
+
+    it("returns it to its foundation's own depth once it lands", () => {
+      const sprite = autoMoveTheAce();
+      boardScene.update(16, 16); // in flight
+
+      boardScene.update(32, 0); // a zero delta lands every card
+      boardScene.update(48, 16); // the frame after it has landed
+
+      expect(sprite.depth).toBe(1); // the only card in its foundation
     });
   });
 

@@ -18,6 +18,7 @@ import {
   TABLEAU_FACE_UP_OFFSET,
   DRAG_BASE_DEPTH,
   DROP_TARGET_HIGHLIGHT_DEPTH,
+  FLIGHT_BASE_DEPTH,
   HOVER_HIGHLIGHT_DEPTH,
 } from "./board_geometry";
 import { resolveDragTarget } from "../input/drop_target_resolver";
@@ -126,6 +127,14 @@ class BoardViewStateBuilder {
         : null;
     const isTableauDrag = dragSourcePile?.type === PileType.TABLEAU;
 
+    // Position in the flying stack, so the cards keep their order in the air.
+    const flightOrder = new Map(
+      (this.interaction.flight?.cardIds ?? []).map((cardId, index) => [
+        cardId,
+        index,
+      ]),
+    );
+
     const allPiles = [
       this.game.stock,
       this.game.waste,
@@ -180,6 +189,14 @@ class BoardViewStateBuilder {
         } else {
           x = origin.x + offsets[cardIndex].x * this.scale;
           y = origin.y + offsets[cardIndex].y * this.scale;
+
+          // A card in the air is lifted clear of the board, so it crosses over
+          // the columns between it and its destination instead of sliding
+          // under them on its way to a depth it has not arrived at yet.
+          const flightIndex = flightOrder.get(card.id);
+          if (flightIndex !== undefined) {
+            depth = FLIGHT_BASE_DEPTH + flightIndex;
+          }
         }
 
         cards.push({
