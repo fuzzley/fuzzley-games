@@ -52,6 +52,7 @@ describe("BoardInputManager", () => {
       foundationPiles,
       tableauPiles,
       cardVisualsMap: new Map(),
+      pixelRatio: 1,
     } as unknown as BoardScene;
 
     stockPile.sprite = asSprite(

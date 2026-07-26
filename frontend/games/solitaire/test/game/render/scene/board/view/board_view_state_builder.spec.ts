@@ -18,7 +18,7 @@ import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
 describe("board_view_state_builder", () => {
   let game: SolitaireGame;
-  const viewport: Viewport = { width: 1920, height: 1080 };
+  const viewport: Viewport = { width: 1920, height: 1080, pixelRatio: 1 };
   let interaction: BoardInteractionState;
 
   beforeEach(() => {
@@ -157,6 +157,48 @@ describe("board_view_state_builder", () => {
     const cardView2 = viewState.cards.find((c) => c.cardId === card2.id)!;
     // A face-down card is not interactable, so no extra gap opens beneath it.
     expect(cardView2.y - cardView1.y).toBe(TABLEAU_FACE_DOWN_OFFSET);
+  });
+
+  it("scales the layout up to the pixel ratio on a high density display", () => {
+    emptyBoard(game);
+    relocate(game, "card-hearts-ace", game.tableaus[0], true);
+    // Twice the design viewport in device pixels: the same layout, at 2x.
+    const retinaViewport: Viewport = {
+      width: 1920 * 2,
+      height: 1080 * 2,
+      pixelRatio: 2,
+    };
+
+    const viewState = buildBoardViewState(game, interaction, retinaViewport);
+
+    expect(viewState.cards[0].scale).toBe(2.0);
+  });
+
+  it("keeps a card in the same place on screen at a higher pixel ratio", () => {
+    emptyBoard(game);
+    const card = relocate(game, "card-hearts-ace", game.tableaus[0], true);
+    const retinaViewport: Viewport = {
+      width: 1920 * 2,
+      height: 1080 * 2,
+      pixelRatio: 2,
+    };
+
+    const retinaState = buildBoardViewState(game, interaction, retinaViewport);
+
+    // Device pixels are twice as dense, so the same CSS position is twice the
+    // coordinate. Anchored to the header, which is a CSS-pixel DOM overlay.
+    const baseView = buildBoardViewState(
+      game,
+      interaction,
+      viewport,
+    ).cards.find((cardView) => cardView.cardId === card.id)!;
+    const retinaView = retinaState.cards.find(
+      (cardView) => cardView.cardId === card.id,
+    )!;
+    expect([retinaView.x, retinaView.y]).toEqual([
+      baseView.x * 2,
+      baseView.y * 2,
+    ]);
   });
 
   it("sizes the hover highlight to the rendered card so it leaves no edge gap", () => {

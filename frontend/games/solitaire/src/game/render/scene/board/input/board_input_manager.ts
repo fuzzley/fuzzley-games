@@ -235,6 +235,7 @@ export class BoardInputManager {
     const viewport = {
       width: this.boardScene.scale?.width || DESIGN_WIDTH_PX,
       height: this.boardScene.scale?.height || DESIGN_HEIGHT_PX,
+      pixelRatio: this.boardScene.pixelRatio,
     };
     const scale = computeScale(viewport);
     const width = CARD_WIDTH_PX * scale;

@@ -2,15 +2,23 @@ import { Point } from "@/game/common/point";
 import { PileType } from "@/game/model/card/card_pile";
 
 /**
- * The available drawable area, in screen pixels, the board is laid out within.
+ * The available drawable area, in device pixels, the board is laid out within.
  * Supplied by the scene each frame so layout is a pure function of the model
  * plus the viewport and never reads live sprite state.
  */
 export interface Viewport {
-  /** Available width in pixels. */
+  /** Available width in device pixels. */
   width: number;
-  /** Available height in pixels. */
+  /** Available height in device pixels. */
   height: number;
+  /**
+   * Device pixels per CSS pixel. The canvas is sized in device pixels so cards
+   * rasterize at the display's true resolution, which makes {@link width} and
+   * {@link height} a {@link pixelRatio} multiple of the CSS layout size. Layout
+   * measurements that come from the DOM rather than the canvas (the header bar
+   * overlay) are in CSS pixels and must be scaled by this to match.
+   */
+  pixelRatio: number;
 }
 
 /** A rectangle in absolute screen coordinates. */
