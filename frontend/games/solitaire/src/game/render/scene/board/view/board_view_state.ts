@@ -85,18 +85,32 @@ export interface PileBackgroundView {
   cursor?: "pointer" | "default";
 }
 
-/** The hover highlight border to draw for one frame, or null for none. */
+/**
+ * What a highlight border is drawn around.
+ *
+ * A card anchor names the card rather than fixing a position, so the applier
+ * can put the border wherever that card's sprite has actually eased to. A card
+ * on its way to a new pile is not yet where the layout says it belongs, and a
+ * border placed at the destination would arrive without it.
+ */
+export type HighlightAnchor =
+  /** Follows a card's sprite, wherever it currently is. */
+  | { kind: "card"; cardId: string }
+  /** A fixed top-left corner, for borders drawn around a pile slot. */
+  | { kind: "point"; x: number; y: number };
+
+/** A highlight border to draw for one frame. */
 export interface HighlightView {
-  /** Absolute left edge in screen pixels. */
-  x: number;
-  /** Absolute top edge in screen pixels. */
-  y: number;
-  /** Card width in screen pixels. */
+  /** What the border is drawn around. */
+  anchor: HighlightAnchor;
+  /** Border width in screen pixels. */
   width: number;
-  /** Card height in screen pixels. */
+  /** Border height in screen pixels. */
   height: number;
   /** The layout scale, used to size the border thickness and radius. */
   scale: number;
+  /** Render depth (higher draws on top). */
+  depth: number;
   /**
    * When true the bottom edge is left open (the card is covered by another), so
    * the border never draws a line across the card stacked on top.
@@ -114,8 +128,12 @@ export interface BoardViewState {
   backgrounds: PileBackgroundView[];
   /** Target presentation for every card. */
   cards: CardView[];
-  /** The hover highlight to draw, or null when nothing is highlighted. */
-  highlight: HighlightView | null;
+  /**
+   * The highlight borders to draw, back to front, or empty when nothing is
+   * highlighted. A drag draws two: the pile the stack would land on, and the
+   * dragged card itself.
+   */
+  highlights: HighlightView[];
 }
 
 /** A card stack currently being dragged, with its primary sprite's position. */

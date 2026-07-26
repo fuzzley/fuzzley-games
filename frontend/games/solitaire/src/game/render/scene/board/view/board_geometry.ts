@@ -35,6 +35,19 @@ export const TABLEAU_FACE_DOWN_OFFSET = 18;
  */
 export const TABLEAU_HOVER_EXPANSION_OFFSET = 15;
 /**
+ * How far a card may still be from its slot while a highlight border stays on
+ * it, in design units.
+ *
+ * Sized to the hover expansion: moving the pointer down a column of face-up
+ * cards retracts one card's expansion as it opens the next, so the card that
+ * just gained the border starts up to a nudge away from where it comes to rest.
+ * Holding the border back until it is pixel-perfect blanks it for the whole
+ * ease, most of which is spent inside the last couple of pixels. A card
+ * crossing the board between piles travels far further than a nudge, so it is
+ * still held back until it lands.
+ */
+export const HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE = TABLEAU_HOVER_EXPANSION_OFFSET;
+/**
  * Horizontal gap between fanned waste cards.
  *
  * Wide enough to clear a card's index corner, so each fanned card shows its own
@@ -48,6 +61,14 @@ export const WASTE_FAN_OFFSET_X = 55;
 export const WASTE_MAX_FAN_CARDS = 3;
 /** Base render depth applied to a dragged card stack, lifting it above all resting cards. */
 export const DRAG_BASE_DEPTH = 1000;
+/** Render depth of the hover highlight border, above every card on the board. */
+export const HOVER_HIGHLIGHT_DEPTH = 2000;
+/**
+ * Render depth of the drop-target border: above every resting card, but below
+ * the dragged stack, so the card in hand stays on top of the place it is going
+ * rather than being drawn over by it.
+ */
+export const DROP_TARGET_HIGHLIGHT_DEPTH = DRAG_BASE_DEPTH - 1;
 
 /**
  * Computes the uniform scale factor that fits the reference design onto the

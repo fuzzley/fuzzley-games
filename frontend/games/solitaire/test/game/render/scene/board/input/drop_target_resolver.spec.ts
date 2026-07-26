@@ -1,9 +1,77 @@
-import { describe, it, expect } from "vitest";
-import { resolveDropTarget } from "@/game/render/scene/board/input/drop_target_resolver";
+import { describe, it, expect, beforeEach } from "vitest";
+import {
+  resolveDragTarget,
+  resolveDropTarget,
+} from "@/game/render/scene/board/input/drop_target_resolver";
 import {
   PileGeometry,
   Rect,
+  Viewport,
 } from "@/game/render/scene/board/view/board_view_state";
+import { computeDropGeometries } from "@/game/render/scene/board/view/board_geometry";
+import { SolitaireGame } from "@/game/model/game/solitaire_game";
+import { emptyBoard, relocate } from "@test/support/game_scenarios";
+
+describe("resolveDragTarget", () => {
+  let game: SolitaireGame;
+  const viewport: Viewport = { width: 1920, height: 1080, pixelRatio: 1 };
+
+  beforeEach(() => {
+    game = new SolitaireGame();
+    game.startNewGame();
+    emptyBoard(game);
+  });
+
+  /** The drop rectangle the given pile occupies at this viewport. */
+  function geometryOf(pileId: string): PileGeometry {
+    return computeDropGeometries(game, viewport).find(
+      (geometry) => geometry.pileId === pileId,
+    )!;
+  }
+
+  it("returns the geometry of the pile the drag overlaps most", () => {
+    const tableau1 = geometryOf("tableau-1");
+
+    const target = resolveDragTarget(
+      game,
+      {
+        cardIds: ["card-hearts-ace"],
+        primary: { x: tableau1.x, y: tableau1.y },
+      },
+      viewport,
+    );
+
+    expect(target).toEqual(tableau1);
+  });
+
+  it("returns null when the drag overlaps no pile", () => {
+    const target = resolveDragTarget(
+      game,
+      { cardIds: ["card-hearts-ace"], primary: { x: 9000, y: 9000 } },
+      viewport,
+    );
+
+    expect(target).toBeNull();
+  });
+
+  it("follows a tableau's rectangle as it grows with its fanned cards", () => {
+    relocate(game, "card-spades-king", game.tableaus[1], true);
+    relocate(game, "card-hearts-queen", game.tableaus[1], true);
+    const tableau1 = geometryOf("tableau-1");
+
+    // Low enough to miss the top card entirely, still on the fanned column.
+    const target = resolveDragTarget(
+      game,
+      {
+        cardIds: ["card-clubs-jack"],
+        primary: { x: tableau1.x, y: tableau1.y + tableau1.height - 20 },
+      },
+      viewport,
+    );
+
+    expect(target?.pileId).toBe("tableau-1");
+  });
+});
 
 describe("drop_target_resolver", () => {
   const geometries: PileGeometry[] = [

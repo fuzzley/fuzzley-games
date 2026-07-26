@@ -8,6 +8,10 @@ import { TableauPileVisual } from "@/game/render/visual/pile/tableau_pile_visual
 import { FoundationPileVisual } from "@/game/render/visual/pile/foundation_pile_visual";
 import { BoardScene } from "@/game/render/scene/board/board_scene";
 import {
+  DESIGN_WIDTH_PX,
+  DESIGN_HEIGHT_PX,
+} from "@/game/render/scene/board/layout/board_layout_constants";
+import {
   asSprite,
   createMockInput,
   createMockSprite,
@@ -53,6 +57,13 @@ describe("BoardInputManager", () => {
       tableauPiles,
       cardVisualsMap: new Map(),
       pixelRatio: 1,
+      // The design size, which lays the board out at a scale of exactly 1 so
+      // the pile origins the drop tests aim at are the design coordinates.
+      viewport: {
+        width: DESIGN_WIDTH_PX,
+        height: DESIGN_HEIGHT_PX,
+        pixelRatio: 1,
+      },
     } as unknown as BoardScene;
 
     stockPile.sprite = asSprite(

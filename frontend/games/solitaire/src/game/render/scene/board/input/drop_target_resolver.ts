@@ -1,4 +1,15 @@
-import { PileGeometry, Rect } from "../view/board_view_state";
+import { SolitaireGame } from "@/game/model/game/solitaire_game";
+import {
+  CARD_WIDTH_PX,
+  CARD_HEIGHT_PX,
+} from "../layout/board_layout_constants";
+import { computeDropGeometries, computeScale } from "../view/board_geometry";
+import {
+  DragInteraction,
+  PileGeometry,
+  Rect,
+  Viewport,
+} from "../view/board_view_state";
 
 /**
  * Calculates the overlap area between two rectangles.
@@ -41,4 +52,39 @@ export function resolveDropTarget(
   }
 
   return targetPileId;
+}
+
+/**
+ * Resolves the pile an in-flight drag would land on, as the pile's full drop
+ * rectangle.
+ *
+ * Pure, and the single answer to "where does this drag go": the view builder
+ * calls it every frame to preview the target and the input manager calls it on
+ * release to commit the move, so the border can never promise a pile the drop
+ * then disagrees with.
+ *
+ * @param game The game model.
+ * @param drag The active drag.
+ * @param viewport The available drawable area.
+ * @returns The target pile's geometry, or null when the drag overlaps no pile.
+ */
+export function resolveDragTarget(
+  game: SolitaireGame,
+  drag: DragInteraction,
+  viewport: Viewport,
+): PileGeometry | null {
+  const scale = computeScale(viewport);
+  const dragRect: Rect = {
+    x: drag.primary.x,
+    y: drag.primary.y,
+    width: CARD_WIDTH_PX * scale,
+    height: CARD_HEIGHT_PX * scale,
+  };
+
+  const geometries = computeDropGeometries(game, viewport);
+  const targetPileId = resolveDropTarget(dragRect, geometries);
+
+  return (
+    geometries.find((geometry) => geometry.pileId === targetPileId) ?? null
+  );
 }

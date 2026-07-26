@@ -11,6 +11,10 @@ import {
   CARD_RENDER_HEIGHT_PX,
 } from "@/game/render/scene/board/layout/board_layout_constants";
 import {
+  computeDropGeometries,
+  DRAG_BASE_DEPTH,
+  DROP_TARGET_HIGHLIGHT_DEPTH,
+  HOVER_HIGHLIGHT_DEPTH,
   TABLEAU_FACE_UP_OFFSET,
   TABLEAU_FACE_DOWN_OFFSET,
   TABLEAU_HOVER_EXPANSION_OFFSET,
@@ -61,7 +65,7 @@ describe("board_view_state_builder", () => {
     expect(viewState.cards.every((cardView) => cardView.snap)).toBe(true);
   });
 
-  it("hides highlights and overrides position/depth/snap for dragged cards", () => {
+  it("overrides position/depth/snap for dragged cards", () => {
     emptyBoard(game);
     const card1 = relocate(game, "card-hearts-ace", game.tableaus[0], true);
     const card2 = relocate(game, "card-hearts-2", game.tableaus[0], true);
@@ -73,8 +77,6 @@ describe("board_view_state_builder", () => {
     interaction.hoveredCardId = card1.id;
 
     const viewState = buildBoardViewState(game, interaction, viewport);
-
-    expect(viewState.highlight).toBeNull(); // highlight hidden during drag
 
     const cardView1 = viewState.cards.find((card) => card.cardId === card1.id)!;
     const cardView2 = viewState.cards.find((card) => card.cardId === card2.id)!;
@@ -96,38 +98,71 @@ describe("board_view_state_builder", () => {
 
     const viewState = buildBoardViewState(game, interaction, viewport);
 
-    expect(viewState.highlight).not.toBeNull();
-    expect(viewState.highlight?.openBottom).toBe(false);
-    expect(viewState.highlight?.x).toBe(
-      viewState.backgrounds.find(
-        (backgroundView) => backgroundView.pileId === "stock",
-      )!.x,
-    );
+    const stockBackground = viewState.backgrounds.find(
+      (backgroundView) => backgroundView.pileId === "stock",
+    )!;
+    expect(viewState.highlights).toEqual([
+      {
+        anchor: { kind: "point", x: stockBackground.x, y: stockBackground.y },
+        width: CARD_RENDER_WIDTH_PX,
+        height: CARD_RENDER_HEIGHT_PX,
+        scale: 1,
+        depth: HOVER_HIGHLIGHT_DEPTH,
+        openBottom: false,
+      },
+    ]);
+  });
+
+  it("anchors a hover highlight to the card rather than to its slot", () => {
+    emptyBoard(game);
+    const card = relocate(game, "card-hearts-ace", game.tableaus[0], true);
+    interaction.hoveredCardId = card.id;
+
+    const viewState = buildBoardViewState(game, interaction, viewport);
+
+    // Naming the card leaves the applier free to draw the border where the
+    // sprite actually is, which is not the slot while the card is travelling.
+    expect(viewState.highlights[0].anchor).toEqual({
+      kind: "card",
+      cardId: card.id,
+    });
   });
 
   it("draws openBottom highlight for covered cards in a tableau", () => {
     emptyBoard(game);
     const card1 = relocate(game, "card-hearts-ace", game.tableaus[0], true);
-    const card2 = relocate(game, "card-hearts-2", game.tableaus[0], true);
+    relocate(game, "card-hearts-2", game.tableaus[0], true);
 
     // Hover the bottom card (card1) which is covered by card2
     interaction.hoveredCardId = card1.id;
 
     const viewState = buildBoardViewState(game, interaction, viewport);
 
-    expect(viewState.highlight).not.toBeNull();
-    expect(viewState.highlight?.openBottom).toBe(true);
-    expect(viewState.highlight?.x).toBe(
-      viewState.cards.find((card) => card.cardId === card1.id)!.x,
-    );
-    expect(viewState.highlight?.y).toBe(
-      viewState.cards.find((card) => card.cardId === card1.id)!.y,
-    );
+    expect(viewState.highlights[0].openBottom).toBe(true);
+  });
 
-    // Hover the top card (card2) which is NOT covered
+  it("draws a closed highlight for the top card of a tableau", () => {
+    emptyBoard(game);
+    relocate(game, "card-hearts-ace", game.tableaus[0], true);
+    const card2 = relocate(game, "card-hearts-2", game.tableaus[0], true);
+
     interaction.hoveredCardId = card2.id;
-    const viewState2 = buildBoardViewState(game, interaction, viewport);
-    expect(viewState2.highlight?.openBottom).toBe(false);
+
+    const viewState = buildBoardViewState(game, interaction, viewport);
+
+    expect(viewState.highlights[0].openBottom).toBe(false);
+  });
+
+  it("draws no highlight for a card that cannot be interacted with", () => {
+    emptyBoard(game);
+    const facedown = relocate(game, "card-hearts-ace", game.tableaus[0], false);
+    relocate(game, "card-hearts-2", game.tableaus[0], true);
+
+    interaction.hoveredCardId = facedown.id;
+
+    const viewState = buildBoardViewState(game, interaction, viewport);
+
+    expect(viewState.highlights).toEqual([]);
   });
 
   it("expands the pile below an interactable hovered tableau card", () => {
@@ -220,6 +255,130 @@ describe("board_view_state_builder", () => {
     ]);
   });
 
+  describe("drag highlights", () => {
+    /** The layout origin of a pile at this viewport. */
+    function originOf(pileId: string): { x: number; y: number } {
+      return computeDropGeometries(game, viewport).find(
+        (geometry) => geometry.pileId === pileId,
+      )!;
+    }
+
+    /** Picks up a card from tableau-0 and holds it over the given point. */
+    function drag(cardId: string, over: { x: number; y: number }): void {
+      interaction.drag = {
+        cardIds: [relocate(game, cardId, game.tableaus[0], true).id],
+        primary: { x: over.x, y: over.y },
+      };
+    }
+
+    beforeEach(() => {
+      emptyBoard(game);
+    });
+
+    it("outlines the top card of the pile the stack would land on", () => {
+      const sevenHearts = relocate(game, "card-hearts-7", game.tableaus[1]);
+      drag("card-spades-6", originOf("tableau-1")); // black 6 onto red 7
+
+      const viewState = buildBoardViewState(game, interaction, viewport);
+
+      expect(viewState.highlights[0].anchor).toEqual({
+        kind: "card",
+        cardId: sevenHearts.id,
+      });
+    });
+
+    it("outlines the pile itself when it has no top card to land on", () => {
+      const tableau1 = originOf("tableau-1");
+      drag("card-spades-king", tableau1); // only a King may take an empty column
+
+      const viewState = buildBoardViewState(game, interaction, viewport);
+
+      expect(viewState.highlights[0].anchor).toEqual({
+        kind: "point",
+        x: tableau1.x,
+        y: tableau1.y,
+      });
+    });
+
+    it("sizes the border to a card rather than to the whole column", () => {
+      relocate(game, "card-hearts-7", game.tableaus[1]);
+      relocate(game, "card-clubs-6", game.tableaus[1]);
+      drag("card-diamonds-5", originOf("tableau-1"));
+
+      const viewState = buildBoardViewState(game, interaction, viewport);
+
+      // The column is two cards deep, so its drop rectangle is taller than the
+      // border that marks the landing place.
+      expect([
+        viewState.highlights[0].width,
+        viewState.highlights[0].height,
+      ]).toEqual([CARD_RENDER_WIDTH_PX, CARD_RENDER_HEIGHT_PX]);
+    });
+
+    it("draws no border on the card in hand", () => {
+      relocate(game, "card-hearts-7", game.tableaus[1]);
+      drag("card-spades-6", originOf("tableau-1"));
+
+      const viewState = buildBoardViewState(game, interaction, viewport);
+
+      // The card is already lifted and following the pointer; the only thing
+      // left to say is where it is going.
+      expect(viewState.highlights.length).toBe(1);
+    });
+
+    it("keeps the border under the dragged stack", () => {
+      relocate(game, "card-hearts-7", game.tableaus[1]);
+      drag("card-spades-6", originOf("tableau-1"));
+
+      const viewState = buildBoardViewState(game, interaction, viewport);
+
+      // The card in hand is held over the place it is going, so the border must
+      // not be drawn across it.
+      expect(viewState.highlights[0].depth).toBeLessThan(DRAG_BASE_DEPTH);
+    });
+
+    it("keeps the border above the cards resting in the target pile", () => {
+      relocate(game, "card-hearts-7", game.tableaus[1]);
+      drag("card-spades-6", originOf("tableau-1"));
+
+      const viewState = buildBoardViewState(game, interaction, viewport);
+
+      const deepestCard = Math.max(
+        ...viewState.cards
+          .filter((card) => card.depth < DRAG_BASE_DEPTH)
+          .map((card) => card.depth),
+      );
+      expect(viewState.highlights[0].depth).toBeGreaterThan(deepestCard);
+    });
+
+    it("draws no border over a pile that would refuse the card", () => {
+      relocate(game, "card-hearts-7", game.tableaus[1]);
+      drag("card-diamonds-6", originOf("tableau-1")); // red 6 onto red 7
+
+      const viewState = buildBoardViewState(game, interaction, viewport);
+
+      expect(viewState.highlights).toEqual([]);
+    });
+
+    it("draws no border over the pile the card was picked up from", () => {
+      relocate(game, "card-hearts-7", game.tableaus[0]);
+      drag("card-spades-6", originOf("tableau-0")); // legal rank and color
+
+      const viewState = buildBoardViewState(game, interaction, viewport);
+
+      // Legal on its face, but a card cannot land back where it came from.
+      expect(viewState.highlights).toEqual([]);
+    });
+
+    it("draws no border when the drag is over no pile at all", () => {
+      drag("card-spades-king", { x: 9000, y: 9000 });
+
+      const viewState = buildBoardViewState(game, interaction, viewport);
+
+      expect(viewState.highlights).toEqual([]);
+    });
+  });
+
   it("sizes the hover highlight to the rendered card so it leaves no edge gap", () => {
     emptyBoard(game);
     const card = relocate(game, "card-hearts-ace", game.tableaus[0], true);
@@ -231,11 +390,12 @@ describe("board_view_state_builder", () => {
     // scale, so the highlight cannot drift from the card it outlines.
     const cardView = viewState.cards.find((c) => c.cardId === card.id)!;
     const renderedScale = cardView.scale * CARD_ART_SCALE;
-    expect(viewState.highlight?.width).toBe(
+    expect([
+      viewState.highlights[0].width,
+      viewState.highlights[0].height,
+    ]).toEqual([
       CARD_RENDER_WIDTH_PX * renderedScale,
-    );
-    expect(viewState.highlight?.height).toBe(
       CARD_RENDER_HEIGHT_PX * renderedScale,
-    );
+    ]);
   });
 });
