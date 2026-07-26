@@ -21,6 +21,8 @@
   border-radius: 16px;
   padding: 32px;
   width: 380px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
   text-align: center;
   box-shadow:
     0 10px 40px rgba(0, 0, 0, 0.5),
@@ -76,3 +78,14 @@
   justify-content: center;
   gap: 16px;
 }
+
+@media (max-width: 480px) {
+  .confirmation-card {
+    padding: 24px 16px;
+  }
+
+  .confirmation-actions {
+    gap: 10px;
+  }
+}
+
