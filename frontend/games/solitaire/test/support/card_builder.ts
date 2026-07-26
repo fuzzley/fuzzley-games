@@ -1,5 +1,5 @@
 import { Card } from "@/game/model/card/card";
-import { PlayingCard, Suit, Type } from "@/game/model/card/playing_card";
+import { PlayingCard, Suit, Rank } from "@/game/model/card/playing_card";
 
 /**
  * Builds a plain {@link Card} with sensible defaults. Pass overrides for the
@@ -14,12 +14,12 @@ export function makeCard(overrides: Partial<Card> = {}): Card {
  * depends on need to be supplied via overrides.
  */
 export function makePlayingCard(
-  overrides: Partial<Pick<PlayingCard, "id" | "faceUp" | "suit" | "type">> = {},
+  overrides: Partial<Pick<PlayingCard, "id" | "faceUp" | "suit" | "rank">> = {},
 ): PlayingCard {
   return new PlayingCard(
     overrides.id ?? "card",
     overrides.suit ?? Suit.SPADE,
-    overrides.type ?? Type.ACE,
+    overrides.rank ?? Rank.ACE,
     overrides.faceUp ?? false,
   );
 }

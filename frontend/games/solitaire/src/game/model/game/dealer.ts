@@ -3,50 +3,21 @@ import { CardPile } from "../card/card_pile";
 import { Deck } from "../card/deck";
 import {
   ALL_PLAYING_CARD_IDS,
+  ALL_RANKS,
+  ALL_SUITS,
   PlayingCard,
   PlayingCardId,
   playingCardIdToString,
-  Suit,
-  Type,
+  Rank,
 } from "../card/playing_card";
 
-/** A suit paired with the tableau it seeds in an almost-win deal. */
-interface AlmostWinKing {
-  suit: Suit;
-  tableauIndex: number;
-}
-
-/** The card ranks, Ace through Queen, loaded onto foundations by an almost-win deal. */
-const ACE_THROUGH_QUEEN: readonly Type[] = [
-  Type.ACE,
-  Type.TWO,
-  Type.THREE,
-  Type.FOUR,
-  Type.FIVE,
-  Type.SIX,
-  Type.SEVEN,
-  Type.EIGHT,
-  Type.NINE,
-  Type.TEN,
-  Type.JACK,
-  Type.QUEEN,
-];
-
-/** The suit dealt onto each foundation, in foundation order, by an almost-win deal. */
-const FOUNDATION_SUITS: readonly Suit[] = [
-  Suit.SPADE,
-  Suit.HEART,
-  Suit.DIAMOND,
-  Suit.CLUB,
-];
-
-/** Which tableau each King is placed on by an almost-win deal. */
-const ALMOST_WIN_KINGS: readonly AlmostWinKing[] = [
-  { suit: Suit.SPADE, tableauIndex: 0 },
-  { suit: Suit.HEART, tableauIndex: 1 },
-  { suit: Suit.DIAMOND, tableauIndex: 2 },
-  { suit: Suit.CLUB, tableauIndex: 3 },
-];
+/**
+ * The card ranks loaded onto the foundations by an almost-win deal: everything
+ * below the King, so a single move per suit finishes the game.
+ */
+const BELOW_KING: readonly Rank[] = ALL_RANKS.filter(
+  (rank) => rank !== Rank.KING,
+);
 
 /**
  * Deals cards into piles for a Klondike game.
@@ -126,19 +97,14 @@ export class Dealer {
   ): void {
     this.registerAllFaceDown();
 
-    FOUNDATION_SUITS.forEach((suit, foundationIndex) => {
-      const foundation = foundations[foundationIndex];
-      for (const type of ACE_THROUGH_QUEEN) {
-        this.placeFaceUp({ suit, type }, foundation);
+    // Foundations and tableaus are both seeded in suit order, so each suit's
+    // King waits on the tableau in the same position as its own foundation.
+    ALL_SUITS.forEach((suit, suitIndex) => {
+      for (const rank of BELOW_KING) {
+        this.placeFaceUp({ suit, rank }, foundations[suitIndex]);
       }
+      this.placeFaceUp({ suit, rank: Rank.KING }, tableaus[suitIndex]);
     });
-
-    for (const king of ALMOST_WIN_KINGS) {
-      this.placeFaceUp(
-        { suit: king.suit, type: Type.KING },
-        tableaus[king.tableauIndex],
-      );
-    }
   }
 
   /** Registers every configured card, resets it face-down, and returns them. */

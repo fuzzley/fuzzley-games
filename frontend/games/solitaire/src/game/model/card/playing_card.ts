@@ -1,22 +1,22 @@
 import { Card } from "./card";
 
-/** A playing card that tracks its suit, type, and other state properties. */
+/** A playing card that tracks its suit, rank, and other state properties. */
 export class PlayingCard implements Card {
   /**
    * Constructs a fully-initialized playing card.
    *
-   * Identity (id, suit, type) is fixed at construction so a card can never
+   * Identity (id, suit, rank) is fixed at construction so a card can never
    * exist in a half-built state; only {@link faceUp} changes over its lifetime.
    *
    * @param id The canonical card id string (see {@link playingCardIdToString}).
    * @param suit The suit of this card.
-   * @param type The face value rank of this card.
+   * @param rank The face value rank of this card.
    * @param faceUp Whether the card starts face up. Defaults to face down.
    */
   constructor(
     public readonly id: string,
     public readonly suit: Suit,
-    public readonly type: Type,
+    public readonly rank: Rank,
     public faceUp = false,
   ) {}
 }
@@ -33,8 +33,13 @@ export enum Suit {
   CLUB,
 }
 
-/** Describes the standard types (ranks) that a playing card can have. */
-export enum Type {
+/**
+ * Describes the standard ranks that a playing card can have.
+ *
+ * The members are ordered and consecutive, so the Klondike build rules compare
+ * them arithmetically: `ACE + 1` is `TWO`.
+ */
+export enum Rank {
   /** Ace. */
   ACE,
   /** Two. */
@@ -68,7 +73,57 @@ export interface PlayingCardId {
   /** The suit of the card. */
   suit: Suit;
   /** The face value/rank of the card. */
-  type: Type;
+  rank: Rank;
+}
+
+/** Every suit, in the order foundations are laid out. */
+export const ALL_SUITS: readonly Suit[] = [
+  Suit.SPADE,
+  Suit.HEART,
+  Suit.DIAMOND,
+  Suit.CLUB,
+];
+
+/** Every rank, in ascending order from Ace to King. */
+export const ALL_RANKS: readonly Rank[] = [
+  Rank.ACE,
+  Rank.TWO,
+  Rank.THREE,
+  Rank.FOUR,
+  Rank.FIVE,
+  Rank.SIX,
+  Rank.SEVEN,
+  Rank.EIGHT,
+  Rank.NINE,
+  Rank.TEN,
+  Rank.JACK,
+  Rank.QUEEN,
+  Rank.KING,
+];
+
+/**
+ * A complete list of all 52 standard playing card identities, suit-major.
+ *
+ * Derived from {@link ALL_SUITS} and {@link ALL_RANKS} rather than listed, so a
+ * deck can never drift out of sync with the enums that define it.
+ */
+export const ALL_PLAYING_CARD_IDS: ReadonlyArray<PlayingCardId> =
+  ALL_SUITS.flatMap((suit) => ALL_RANKS.map((rank) => ({ suit, rank })));
+
+/**
+ * The rank one step above `rank`, or undefined for the King.
+ *
+ * Klondike builds by consecutive rank in both directions. Stepping through
+ * these helpers rather than doing arithmetic at the call site keeps rank
+ * comparisons enum-to-enum, and says what the step means.
+ */
+export function rankAbove(rank: Rank): Rank | undefined {
+  return rank === Rank.KING ? undefined : rank + 1;
+}
+
+/** The rank one step below `rank`, or undefined for the Ace. */
+export function rankBelow(rank: Rank): Rank | undefined {
+  return rank === Rank.ACE ? undefined : rank - 1;
 }
 
 /**
@@ -78,11 +133,11 @@ export interface PlayingCardId {
  * uses it to name cards, and the render layer reuses it to resolve texture
  * atlas frames, so the two can never drift apart.
  *
- * @param cardId The suit and type of the card.
- * @returns The canonical `card-<suit>-<type>` identity string.
+ * @param cardId The suit and rank of the card.
+ * @returns The canonical `card-<suit>-<rank>` identity string.
  */
 export function playingCardIdToString(cardId: PlayingCardId): string {
-  return `card-${suitToString(cardId.suit)}-${typeToString(cardId.type)}`;
+  return `card-${suitToString(cardId.suit)}-${rankToString(cardId.rank)}`;
 }
 
 const SUIT_STRINGS: Record<Suit, string> = {
@@ -92,20 +147,20 @@ const SUIT_STRINGS: Record<Suit, string> = {
   [Suit.CLUB]: "clubs",
 };
 
-const TYPE_STRINGS: Record<Type, string> = {
-  [Type.ACE]: "ace",
-  [Type.TWO]: "2",
-  [Type.THREE]: "3",
-  [Type.FOUR]: "4",
-  [Type.FIVE]: "5",
-  [Type.SIX]: "6",
-  [Type.SEVEN]: "7",
-  [Type.EIGHT]: "8",
-  [Type.NINE]: "9",
-  [Type.TEN]: "10",
-  [Type.JACK]: "jack",
-  [Type.QUEEN]: "queen",
-  [Type.KING]: "king",
+const RANK_STRINGS: Record<Rank, string> = {
+  [Rank.ACE]: "ace",
+  [Rank.TWO]: "2",
+  [Rank.THREE]: "3",
+  [Rank.FOUR]: "4",
+  [Rank.FIVE]: "5",
+  [Rank.SIX]: "6",
+  [Rank.SEVEN]: "7",
+  [Rank.EIGHT]: "8",
+  [Rank.NINE]: "9",
+  [Rank.TEN]: "10",
+  [Rank.JACK]: "jack",
+  [Rank.QUEEN]: "queen",
+  [Rank.KING]: "king",
 };
 
 function suitToString(suit: Suit): string {
@@ -116,338 +171,10 @@ function suitToString(suit: Suit): string {
   return value;
 }
 
-function typeToString(type: Type): string {
-  const value = TYPE_STRINGS[type];
+function rankToString(rank: Rank): string {
+  const value = RANK_STRINGS[rank];
   if (value === undefined) {
-    throw new Error(`Unknown Type: ${String(type)}`);
+    throw new Error(`Unknown Rank: ${String(rank)}`);
   }
   return value;
 }
-
-// Spades
-/** Card identity constant for the Spade Ace. */
-export const SPADE_ACE_ID: PlayingCardId = {
-  suit: Suit.SPADE,
-  type: Type.ACE,
-};
-/** Card identity constant for the Spade Two. */
-export const SPADE_TWO_ID: PlayingCardId = {
-  suit: Suit.SPADE,
-  type: Type.TWO,
-};
-/** Card identity constant for the Spade Three. */
-export const SPADE_THREE_ID: PlayingCardId = {
-  suit: Suit.SPADE,
-  type: Type.THREE,
-};
-/** Card identity constant for the Spade Four. */
-export const SPADE_FOUR_ID: PlayingCardId = {
-  suit: Suit.SPADE,
-  type: Type.FOUR,
-};
-/** Card identity constant for the Spade Five. */
-export const SPADE_FIVE_ID: PlayingCardId = {
-  suit: Suit.SPADE,
-  type: Type.FIVE,
-};
-/** Card identity constant for the Spade Six. */
-export const SPADE_SIX_ID: PlayingCardId = {
-  suit: Suit.SPADE,
-  type: Type.SIX,
-};
-/** Card identity constant for the Spade Seven. */
-export const SPADE_SEVEN_ID: PlayingCardId = {
-  suit: Suit.SPADE,
-  type: Type.SEVEN,
-};
-/** Card identity constant for the Spade Eight. */
-export const SPADE_EIGHT_ID: PlayingCardId = {
-  suit: Suit.SPADE,
-  type: Type.EIGHT,
-};
-/** Card identity constant for the Spade Nine. */
-export const SPADE_NINE_ID: PlayingCardId = {
-  suit: Suit.SPADE,
-  type: Type.NINE,
-};
-/** Card identity constant for the Spade Ten. */
-export const SPADE_TEN_ID: PlayingCardId = {
-  suit: Suit.SPADE,
-  type: Type.TEN,
-};
-/** Card identity constant for the Spade Jack. */
-export const SPADE_JACK_ID: PlayingCardId = {
-  suit: Suit.SPADE,
-  type: Type.JACK,
-};
-/** Card identity constant for the Spade Queen. */
-export const SPADE_QUEEN_ID: PlayingCardId = {
-  suit: Suit.SPADE,
-  type: Type.QUEEN,
-};
-/** Card identity constant for the Spade King. */
-export const SPADE_KING_ID: PlayingCardId = {
-  suit: Suit.SPADE,
-  type: Type.KING,
-};
-
-// Hearts
-/** Card identity constant for the Heart Ace. */
-export const HEART_ACE_ID: PlayingCardId = {
-  suit: Suit.HEART,
-  type: Type.ACE,
-};
-/** Card identity constant for the Heart Two. */
-export const HEART_TWO_ID: PlayingCardId = {
-  suit: Suit.HEART,
-  type: Type.TWO,
-};
-/** Card identity constant for the Heart Three. */
-export const HEART_THREE_ID: PlayingCardId = {
-  suit: Suit.HEART,
-  type: Type.THREE,
-};
-/** Card identity constant for the Heart Four. */
-export const HEART_FOUR_ID: PlayingCardId = {
-  suit: Suit.HEART,
-  type: Type.FOUR,
-};
-/** Card identity constant for the Heart Five. */
-export const HEART_FIVE_ID: PlayingCardId = {
-  suit: Suit.HEART,
-  type: Type.FIVE,
-};
-/** Card identity constant for the Heart Six. */
-export const HEART_SIX_ID: PlayingCardId = {
-  suit: Suit.HEART,
-  type: Type.SIX,
-};
-/** Card identity constant for the Heart Seven. */
-export const HEART_SEVEN_ID: PlayingCardId = {
-  suit: Suit.HEART,
-  type: Type.SEVEN,
-};
-/** Card identity constant for the Heart Eight. */
-export const HEART_EIGHT_ID: PlayingCardId = {
-  suit: Suit.HEART,
-  type: Type.EIGHT,
-};
-/** Card identity constant for the Heart Nine. */
-export const HEART_NINE_ID: PlayingCardId = {
-  suit: Suit.HEART,
-  type: Type.NINE,
-};
-/** Card identity constant for the Heart Ten. */
-export const HEART_TEN_ID: PlayingCardId = {
-  suit: Suit.HEART,
-  type: Type.TEN,
-};
-/** Card identity constant for the Heart Jack. */
-export const HEART_JACK_ID: PlayingCardId = {
-  suit: Suit.HEART,
-  type: Type.JACK,
-};
-/** Card identity constant for the Heart Queen. */
-export const HEART_QUEEN_ID: PlayingCardId = {
-  suit: Suit.HEART,
-  type: Type.QUEEN,
-};
-/** Card identity constant for the Heart King. */
-export const HEART_KING_ID: PlayingCardId = {
-  suit: Suit.HEART,
-  type: Type.KING,
-};
-
-// Diamonds
-/** Card identity constant for the Diamond Ace. */
-export const DIAMOND_ACE_ID: PlayingCardId = {
-  suit: Suit.DIAMOND,
-  type: Type.ACE,
-};
-/** Card identity constant for the Diamond Two. */
-export const DIAMOND_TWO_ID: PlayingCardId = {
-  suit: Suit.DIAMOND,
-  type: Type.TWO,
-};
-/** Card identity constant for the Diamond Three. */
-export const DIAMOND_THREE_ID: PlayingCardId = {
-  suit: Suit.DIAMOND,
-  type: Type.THREE,
-};
-/** Card identity constant for the Diamond Four. */
-export const DIAMOND_FOUR_ID: PlayingCardId = {
-  suit: Suit.DIAMOND,
-  type: Type.FOUR,
-};
-/** Card identity constant for the Diamond Five. */
-export const DIAMOND_FIVE_ID: PlayingCardId = {
-  suit: Suit.DIAMOND,
-  type: Type.FIVE,
-};
-/** Card identity constant for the Diamond Six. */
-export const DIAMOND_SIX_ID: PlayingCardId = {
-  suit: Suit.DIAMOND,
-  type: Type.SIX,
-};
-/** Card identity constant for the Diamond Seven. */
-export const DIAMOND_SEVEN_ID: PlayingCardId = {
-  suit: Suit.DIAMOND,
-  type: Type.SEVEN,
-};
-/** Card identity constant for the Diamond Eight. */
-export const DIAMOND_EIGHT_ID: PlayingCardId = {
-  suit: Suit.DIAMOND,
-  type: Type.EIGHT,
-};
-/** Card identity constant for the Diamond Nine. */
-export const DIAMOND_NINE_ID: PlayingCardId = {
-  suit: Suit.DIAMOND,
-  type: Type.NINE,
-};
-/** Card identity constant for the Diamond Ten. */
-export const DIAMOND_TEN_ID: PlayingCardId = {
-  suit: Suit.DIAMOND,
-  type: Type.TEN,
-};
-/** Card identity constant for the Diamond Jack. */
-export const DIAMOND_JACK_ID: PlayingCardId = {
-  suit: Suit.DIAMOND,
-  type: Type.JACK,
-};
-/** Card identity constant for the Diamond Queen. */
-export const DIAMOND_QUEEN_ID: PlayingCardId = {
-  suit: Suit.DIAMOND,
-  type: Type.QUEEN,
-};
-/** Card identity constant for the Diamond King. */
-export const DIAMOND_KING_ID: PlayingCardId = {
-  suit: Suit.DIAMOND,
-  type: Type.KING,
-};
-
-// Clubs
-/** Card identity constant for the Club Ace. */
-export const CLUB_ACE_ID: PlayingCardId = {
-  suit: Suit.CLUB,
-  type: Type.ACE,
-};
-/** Card identity constant for the Club Two. */
-export const CLUB_TWO_ID: PlayingCardId = {
-  suit: Suit.CLUB,
-  type: Type.TWO,
-};
-/** Card identity constant for the Club Three. */
-export const CLUB_THREE_ID: PlayingCardId = {
-  suit: Suit.CLUB,
-  type: Type.THREE,
-};
-/** Card identity constant for the Club Four. */
-export const CLUB_FOUR_ID: PlayingCardId = {
-  suit: Suit.CLUB,
-  type: Type.FOUR,
-};
-/** Card identity constant for the Club Five. */
-export const CLUB_FIVE_ID: PlayingCardId = {
-  suit: Suit.CLUB,
-  type: Type.FIVE,
-};
-/** Card identity constant for the Club Six. */
-export const CLUB_SIX_ID: PlayingCardId = {
-  suit: Suit.CLUB,
-  type: Type.SIX,
-};
-/** Card identity constant for the Club Seven. */
-export const CLUB_SEVEN_ID: PlayingCardId = {
-  suit: Suit.CLUB,
-  type: Type.SEVEN,
-};
-/** Card identity constant for the Club Eight. */
-export const CLUB_EIGHT_ID: PlayingCardId = {
-  suit: Suit.CLUB,
-  type: Type.EIGHT,
-};
-/** Card identity constant for the Club Nine. */
-export const CLUB_NINE_ID: PlayingCardId = {
-  suit: Suit.CLUB,
-  type: Type.NINE,
-};
-/** Card identity constant for the Club Ten. */
-export const CLUB_TEN_ID: PlayingCardId = {
-  suit: Suit.CLUB,
-  type: Type.TEN,
-};
-/** Card identity constant for the Club Jack. */
-export const CLUB_JACK_ID: PlayingCardId = {
-  suit: Suit.CLUB,
-  type: Type.JACK,
-};
-/** Card identity constant for the Club Queen. */
-export const CLUB_QUEEN_ID: PlayingCardId = {
-  suit: Suit.CLUB,
-  type: Type.QUEEN,
-};
-/** Card identity constant for the Club King. */
-export const CLUB_KING_ID: PlayingCardId = {
-  suit: Suit.CLUB,
-  type: Type.KING,
-};
-
-/** A complete list of all 52 standard playing card identities. */
-export const ALL_PLAYING_CARD_IDS: ReadonlyArray<PlayingCardId> = [
-  // Spade
-  SPADE_ACE_ID,
-  SPADE_TWO_ID,
-  SPADE_THREE_ID,
-  SPADE_FOUR_ID,
-  SPADE_FIVE_ID,
-  SPADE_SIX_ID,
-  SPADE_SEVEN_ID,
-  SPADE_EIGHT_ID,
-  SPADE_NINE_ID,
-  SPADE_TEN_ID,
-  SPADE_JACK_ID,
-  SPADE_QUEEN_ID,
-  SPADE_KING_ID,
-  // Heart
-  HEART_ACE_ID,
-  HEART_TWO_ID,
-  HEART_THREE_ID,
-  HEART_FOUR_ID,
-  HEART_FIVE_ID,
-  HEART_SIX_ID,
-  HEART_SEVEN_ID,
-  HEART_EIGHT_ID,
-  HEART_NINE_ID,
-  HEART_TEN_ID,
-  HEART_JACK_ID,
-  HEART_QUEEN_ID,
-  HEART_KING_ID,
-  // Diamond
-  DIAMOND_ACE_ID,
-  DIAMOND_TWO_ID,
-  DIAMOND_THREE_ID,
-  DIAMOND_FOUR_ID,
-  DIAMOND_FIVE_ID,
-  DIAMOND_SIX_ID,
-  DIAMOND_SEVEN_ID,
-  DIAMOND_EIGHT_ID,
-  DIAMOND_NINE_ID,
-  DIAMOND_TEN_ID,
-  DIAMOND_JACK_ID,
-  DIAMOND_QUEEN_ID,
-  DIAMOND_KING_ID,
-  // Club
-  CLUB_ACE_ID,
-  CLUB_TWO_ID,
-  CLUB_THREE_ID,
-  CLUB_FOUR_ID,
-  CLUB_FIVE_ID,
-  CLUB_SIX_ID,
-  CLUB_SEVEN_ID,
-  CLUB_EIGHT_ID,
-  CLUB_NINE_ID,
-  CLUB_TEN_ID,
-  CLUB_JACK_ID,
-  CLUB_QUEEN_ID,
-  CLUB_KING_ID,
-];
