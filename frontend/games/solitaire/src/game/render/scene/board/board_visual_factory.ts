@@ -6,27 +6,22 @@ import { CardBackStyle } from "@/game/model/game/game_settings";
  * for playing cards and pile backgrounds.
  */
 export class BoardVisualFactory {
-  /** Drop shadows applied to every card sprite (top-left and bottom-right). */
-  private static readonly CARD_SHADOWS = [
-    {
-      x: 0.5,
-      y: 0.5,
-      decay: 0.05,
-      intensity: 0.8,
-      color: 0x000000,
-      blur: 6,
-      opacity: 0.05,
-    },
-    {
-      x: 0,
-      y: 0,
-      decay: 0.1,
-      intensity: 0.8,
-      color: 0x000000,
-      blur: 6,
-      opacity: 0.05,
-    },
-  ];
+  /**
+   * The drop shadow applied to every card sprite. Field names match the
+   * parameters of `FilterList.addShadow(x, y, decay, power, color, samples,
+   * intensity)`, whose offset is scaled by the filter camera's size: run as an
+   * internal filter that camera is the card, so the shadow stays proportional
+   * to the card at every layout scale.
+   */
+  private static readonly CARD_SHADOW = {
+    x: 0.5,
+    y: 0.5,
+    decay: 0.05,
+    power: 0.8,
+    color: 0x000000,
+    samples: 6,
+    intensity: 0.05,
+  };
 
   /**
    * Constructs the visual factory with the active Phaser Scene context.
@@ -56,18 +51,26 @@ export class BoardVisualFactory {
     sprite.setOrigin(0, 0);
     sprite.enableFilters();
 
-    // Add two filters so that we get some shadow on both top left and bottom right.
-    for (const shadow of BoardVisualFactory.CARD_SHADOWS) {
-      sprite.filters?.external.addShadow(
-        shadow.x,
-        shadow.y,
-        shadow.decay,
-        shadow.intensity,
-        shadow.color,
-        shadow.blur,
-        shadow.opacity,
-      );
-    }
+    // Internal, not external: an external filter is composited in screen space,
+    // which makes Phaser allocate a canvas-sized framebuffer per filtered
+    // object - 52 of them every frame, at whatever resolution the display runs
+    // at. An internal filter works in the card's own space instead.
+    const shadow = BoardVisualFactory.CARD_SHADOW;
+    const filter = sprite.filters?.internal.addShadow(
+      shadow.x,
+      shadow.y,
+      shadow.decay,
+      shadow.power,
+      shadow.color,
+      shadow.samples,
+      shadow.intensity,
+    );
+
+    // Filters override their padding with zero by default. That is harmless
+    // externally, where the coverage is the whole canvas, but internally it
+    // would crop the shadow to the card's own opaque bounds and hide it
+    // entirely. Clearing the override lets the filter ask for the room it needs.
+    filter?.setPaddingOverride(null);
 
     // Make card sprite interactive for pointer events
     sprite.setInteractive({ useHandCursor: true });
