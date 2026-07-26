@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { CardRegistry } from "@/game/model/card/card_registry";
-import { Suit, Type } from "@/game/model/card/playing_card";
+import { Suit, Rank } from "@/game/model/card/playing_card";
 
 describe("CardRegistry", () => {
   let registry: CardRegistry;
-  const spadeAce = { suit: Suit.SPADE, type: Type.ACE };
+  const spadeAce = { suit: Suit.SPADE, rank: Rank.ACE };
 
   beforeEach(() => {
     registry = new CardRegistry();
@@ -15,7 +15,7 @@ describe("CardRegistry", () => {
 
     expect(card.id).toBe("card-spades-ace");
     expect(card.suit).toBe(Suit.SPADE);
-    expect(card.type).toBe(Type.ACE);
+    expect(card.rank).toBe(Rank.ACE);
   });
 
   it("returns the same instance for a repeated identity", () => {
@@ -39,7 +39,7 @@ describe("CardRegistry", () => {
   it("counts each distinct card once", () => {
     registry.getOrCreate(spadeAce);
     registry.getOrCreate(spadeAce);
-    registry.getOrCreate({ suit: Suit.HEART, type: Type.KING });
+    registry.getOrCreate({ suit: Suit.HEART, rank: Rank.KING });
 
     expect(registry.size).toBe(2);
   });

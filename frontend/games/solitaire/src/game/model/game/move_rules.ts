@@ -1,5 +1,11 @@
 import { CardPile, PileType } from "../card/card_pile";
-import { PlayingCard, Suit, Type } from "../card/playing_card";
+import {
+  PlayingCard,
+  rankAbove,
+  rankBelow,
+  Suit,
+  Rank,
+} from "../card/playing_card";
 
 /**
  * Encapsulates the standard Klondike rules for whether a card may be placed on
@@ -44,11 +50,11 @@ export class MoveRules {
     const topCard = pile.topCard;
     if (!topCard) {
       // Only Kings can be placed on an empty tableau.
-      return card.type === Type.KING;
+      return card.rank === Rank.KING;
     }
     // Must build down in descending rank and alternating color.
     const isAlternatingColor = this.isRed(card) !== this.isRed(topCard);
-    const isDescendingRank = Number(card.type) === Number(topCard.type) - 1;
+    const isDescendingRank = card.rank === rankBelow(topCard.rank);
     return isAlternatingColor && isDescendingRank;
   }
 
@@ -65,11 +71,11 @@ export class MoveRules {
     const topCard = pile.topCard;
     if (!topCard) {
       // A foundation must start with an Ace.
-      return card.type === Type.ACE;
+      return card.rank === Rank.ACE;
     }
     // Must build up in ascending rank of the same suit.
     const isSameSuit = card.suit === topCard.suit;
-    const isAscendingRank = Number(card.type) === Number(topCard.type) + 1;
+    const isAscendingRank = card.rank === rankAbove(topCard.rank);
     return isSameSuit && isAscendingRank;
   }
 

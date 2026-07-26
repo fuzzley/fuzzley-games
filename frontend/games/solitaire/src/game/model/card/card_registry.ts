@@ -39,7 +39,7 @@ export class CardRegistry {
     const id = playingCardIdToString(cardId);
     let card = this.cardsById.get(id);
     if (!card) {
-      card = new PlayingCard(id, cardId.suit, cardId.type);
+      card = new PlayingCard(id, cardId.suit, cardId.rank);
       this.cardsById.set(id, card);
     }
     return card;
