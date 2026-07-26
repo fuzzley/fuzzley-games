@@ -22,6 +22,16 @@ import {
   ALL_PLAYING_CARD_IDS,
 } from "../card/playing_card";
 
+/** A move that has passed the rules: the cards to move and where they go. */
+interface ResolvedMove {
+  /** The card being moved plus everything stacked on it, bottom-first. */
+  movingStack: readonly PlayingCard[];
+  /** The pile the stack is leaving. */
+  sourcePile: CardPile<PlayingCard>;
+  /** The pile the stack is joining. */
+  targetPile: CardPile<PlayingCard>;
+}
+
 /**
  * Coordinates and validates the state of a standard Klondike Solitaire game.
  *
@@ -324,17 +334,63 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    * @returns True if the move was valid and executed; false otherwise.
    */
   public moveCardToPile(cardId: string, targetPileId: string): boolean {
+    const move = this.resolveMove(cardId, targetPileId);
+    if (!move) {
+      return false;
+    }
+
+    this.state.moves++;
+    const scoreChange = this.scoring.moveScore(
+      move.sourcePile.type,
+      move.targetPile.type,
+    );
+    this.state.score = Math.max(0, this.state.score + scoreChange);
+
+    this.executeMove(move.movingStack, move.sourcePile, move.targetPile);
+    this.autoFlipExposedCard(move.sourcePile);
+    this.checkWinCondition();
+
+    return true;
+  }
+
+  /**
+   * Whether moving a card, along with the cards stacked on it, to the given pile
+   * would be legal.
+   *
+   * The same question {@link moveCardToPile} answers before it commits, asked on
+   * its own so a caller can tell a player where a card may land without moving
+   * it there.
+   *
+   * @param cardId The ID of the card to move.
+   * @param targetPileId The ID of the destination pile.
+   * @returns True if the move would be accepted.
+   */
+  public canMoveCardToPile(cardId: string, targetPileId: string): boolean {
+    return this.resolveMove(cardId, targetPileId) !== null;
+  }
+
+  /**
+   * Resolves a requested move into the stack and piles it would act on, or null
+   * when the rules reject it.
+   *
+   * @param cardId The ID of the card to move.
+   * @param targetPileId The ID of the destination pile.
+   */
+  private resolveMove(
+    cardId: string,
+    targetPileId: string,
+  ): ResolvedMove | null {
     const card = this.getCardById(cardId);
     const targetPile = this.getPileById(targetPileId);
     const sourcePile = this.getPileContainingCard(cardId);
 
     if (!card || !targetPile || !sourcePile || sourcePile.id === targetPileId) {
-      return false;
+      return null;
     }
 
     // A card can only be moved if it is face up
     if (!card.faceUp) {
-      return false;
+      return null;
     }
 
     // The moving stack is this card plus everything on top of it. The index is
@@ -343,21 +399,10 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     const movingStack = sourceCards.slice(sourceCards.indexOf(card));
 
     if (!this.moveRules.canPlace(card, targetPile, movingStack.length)) {
-      return false;
+      return null;
     }
 
-    this.state.moves++;
-    const scoreChange = this.scoring.moveScore(
-      sourcePile.type,
-      targetPile.type,
-    );
-    this.state.score = Math.max(0, this.state.score + scoreChange);
-
-    this.executeMove(movingStack, sourcePile, targetPile);
-    this.autoFlipExposedCard(sourcePile);
-    this.checkWinCondition();
-
-    return true;
+    return { movingStack, sourcePile, targetPile };
   }
 
   /**

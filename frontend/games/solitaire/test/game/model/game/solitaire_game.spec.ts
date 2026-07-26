@@ -207,6 +207,43 @@ describe("SolitaireGame", () => {
     });
   });
 
+  describe("canMoveCardToPile", () => {
+    it("accepts a move the rules allow", () => {
+      game.startNewGame();
+      relocate(game, "card-diamonds-8", game.tableaus[0]);
+      const blackSeven = relocate(game, "card-spades-7", game.tableaus[1]);
+
+      expect(game.canMoveCardToPile(blackSeven.id, "tableau-0")).toBe(true);
+    });
+
+    it("rejects a move the rules forbid", () => {
+      game.startNewGame();
+      relocate(game, "card-diamonds-8", game.tableaus[0]);
+      const redSeven = relocate(game, "card-hearts-7", game.tableaus[1]);
+
+      expect(game.canMoveCardToPile(redSeven.id, "tableau-0")).toBe(false);
+    });
+
+    it("rejects a move onto the pile the card already sits in", () => {
+      game.startNewGame();
+      relocate(game, "card-diamonds-8", game.tableaus[0]);
+      const blackSeven = relocate(game, "card-spades-7", game.tableaus[0]);
+
+      // Legal by rank and color, but a card cannot land where it came from.
+      expect(game.canMoveCardToPile(blackSeven.id, "tableau-0")).toBe(false);
+    });
+
+    it("leaves the board untouched when asked", () => {
+      game.startNewGame();
+      relocate(game, "card-diamonds-8", game.tableaus[0]);
+      const blackSeven = relocate(game, "card-spades-7", game.tableaus[1]);
+
+      game.canMoveCardToPile(blackSeven.id, "tableau-0");
+
+      expect(game.getPileContainingCard(blackSeven.id)?.id).toBe("tableau-1");
+    });
+  });
+
   describe("move validation", () => {
     it("does not move a non-King card onto an empty tableau", () => {
       game.startNewGame();

@@ -197,13 +197,23 @@ export function asSprite(sprite: MockSprite): Phaser.GameObjects.Sprite {
   return sprite as unknown as Phaser.GameObjects.Sprite;
 }
 
-/** A mock Phaser Graphics object whose draw methods are spies. */
+/**
+ * A mock Phaser Graphics object whose draw methods are spies. Transform and
+ * visibility setters record onto plain fields so tests can assert where a
+ * border ended up rather than that a setter was called.
+ */
 export interface MockGraphics {
+  x: number;
+  y: number;
+  depth: number;
+  visible: boolean;
   clear: Mock;
   lineStyle: Mock;
   strokeRect: Mock;
   strokeRoundedRect: Mock;
   setDepth: Mock;
+  setPosition: Mock;
+  setVisible: Mock;
   beginPath: Mock;
   moveTo: Mock;
   lineTo: Mock;
@@ -214,11 +224,27 @@ export interface MockGraphics {
 /** Builds a {@link MockGraphics} whose chainable methods return itself. */
 export function createMockGraphics(): MockGraphics {
   const graphics: MockGraphics = {
+    x: 0,
+    y: 0,
+    depth: 0,
+    visible: true,
     clear: vi.fn(() => graphics),
     lineStyle: vi.fn(() => graphics),
     strokeRect: vi.fn(() => graphics),
     strokeRoundedRect: vi.fn(() => graphics),
-    setDepth: vi.fn(() => graphics),
+    setDepth: vi.fn((depth: number) => {
+      graphics.depth = depth;
+      return graphics;
+    }),
+    setPosition: vi.fn((x: number, y: number) => {
+      graphics.x = x;
+      graphics.y = y;
+      return graphics;
+    }),
+    setVisible: vi.fn((visible: boolean) => {
+      graphics.visible = visible;
+      return graphics;
+    }),
     beginPath: vi.fn(() => graphics),
     moveTo: vi.fn(() => graphics),
     lineTo: vi.fn(() => graphics),
@@ -288,21 +314,29 @@ export function geomPhaserMock(): {
 export interface MockInput {
   on: Mock;
   setDraggable: Mock;
+  setPollAlways: Mock;
+  /** Phaser's own default: hit test only when the pointer itself moves. */
+  pollRate: number;
   emit(event: string, ...args: unknown[]): void;
 }
 
 /** Builds a {@link MockInput} so tests can drive drag events via emit. */
 export function createMockInput(): MockInput {
   const listeners = new Map<string, (...args: unknown[]) => void>();
-  return {
+  const input: MockInput = {
     on: vi.fn((event: string, callback: (...args: unknown[]) => void) => {
       listeners.set(event, callback);
     }),
     setDraggable: vi.fn(),
+    setPollAlways: vi.fn(() => {
+      input.pollRate = 0;
+    }),
+    pollRate: -1,
     emit(event: string, ...args: unknown[]): void {
       listeners.get(event)?.(...args);
     },
   };
+  return input;
 }
 
 /** A mock Phaser scale manager that records and dispatches its listeners. */

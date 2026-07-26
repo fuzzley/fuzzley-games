@@ -1,13 +1,12 @@
 import * as Phaser from "phaser";
 import { BoardScene } from "../board_scene";
+import { Point } from "@/game/common/point";
 import { BoardViewState, HighlightView } from "./board_view_state";
+import { HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE } from "./board_geometry";
 import { PileType } from "@/game/model/card/card_pile";
 
 /** Time constant (ms) for frame-rate-independent card position easing. */
 const POSITION_TAU_MS = 90;
-
-/** Render depth of the hover-highlight graphics (above all cards/drags). */
-const HIGHLIGHT_DEPTH = 2000;
 
 /** Distance (px) within which an easing card snaps exactly to target. */
 const POSITION_SETTLE_THRESHOLD_PX = 0.5;
@@ -25,17 +24,30 @@ const HIGHLIGHT_COLOR = 0xebef9b;
 const HIGHLIGHT_ALPHA = 0.9;
 
 /**
+ * A pooled highlight border, paired with the shape currently stroked into it.
+ *
+ * The path is drawn in the object's own space and the object is moved, so
+ * following a card costs a `setPosition` rather than a path rebuild every
+ * frame. The key records what was drawn so it is only redrawn when the size or
+ * the open edge actually changes.
+ */
+interface HighlightBorder {
+  graphics: Phaser.GameObjects.Graphics;
+  shapeKey: string | null;
+  /** The depth currently set, so the display list is only re-sorted on change. */
+  depth: number | null;
+}
+
+/**
  * Responsible for applying the board view state to the Phaser scene.
  * Coordinates rendering updates for all visual elements including card sprites,
  * pile backgrounds, highlights, and interactive states.
  */
 export class BoardViewApplier {
-  private readonly highlightGraphics: Phaser.GameObjects.Graphics;
+  /** Highlight borders, created on demand and reused across frames. */
+  private readonly highlightBorders: HighlightBorder[] = [];
 
-  constructor(private readonly scene: BoardScene) {
-    this.highlightGraphics = scene.add.graphics();
-    this.highlightGraphics.setDepth(HIGHLIGHT_DEPTH);
-  }
+  constructor(private readonly scene: BoardScene) {}
 
   /**
    * Applies the desired view state onto Phaser sprites, syncing positions,
@@ -75,6 +87,10 @@ export class BoardViewApplier {
       }
     }
 
+    // How far each still-easing card has left to travel, so a border can tell a
+    // card settling into place from one crossing the board.
+    const travelDistances = new Map<string, number>();
+
     for (const cardView of viewState.cards) {
       const visual = this.scene.cardVisualsMap.get(cardView.cardId);
       const sprite = visual?.sprite;
@@ -84,11 +100,18 @@ export class BoardViewApplier {
         } else {
           sprite.x += (cardView.x - sprite.x) * interpolationFactor;
           sprite.y += (cardView.y - sprite.y) * interpolationFactor;
+          const remainingX = Math.abs(sprite.x - cardView.x);
+          const remainingY = Math.abs(sprite.y - cardView.y);
           if (
-            Math.abs(sprite.x - cardView.x) < POSITION_SETTLE_THRESHOLD_PX &&
-            Math.abs(sprite.y - cardView.y) < POSITION_SETTLE_THRESHOLD_PX
+            remainingX < POSITION_SETTLE_THRESHOLD_PX &&
+            remainingY < POSITION_SETTLE_THRESHOLD_PX
           ) {
             sprite.setPosition(cardView.x, cardView.y);
+          } else {
+            travelDistances.set(
+              cardView.cardId,
+              Math.max(remainingX, remainingY),
+            );
           }
         }
         sprite.setScale(cardView.scale);
@@ -107,72 +130,153 @@ export class BoardViewApplier {
       }
     }
 
-    this.drawHighlight(viewState.highlight);
+    this.drawHighlights(viewState.highlights, travelDistances);
   }
 
-  private drawHighlight(highlight: HighlightView | null): void {
-    this.highlightGraphics.clear();
-    if (!highlight) {
-      return;
+  /**
+   * Positions one border per highlight, reusing the pooled objects and hiding
+   * whichever are left over from a busier frame.
+   */
+  private drawHighlights(
+    highlights: HighlightView[],
+    travelDistances: ReadonlyMap<string, number>,
+  ): void {
+    let borderIndex = 0;
+
+    for (const highlight of highlights) {
+      const position = this.resolveHighlightPosition(
+        highlight,
+        travelDistances,
+      );
+      if (!position) continue;
+
+      const border = this.highlightBorder(borderIndex++);
+      this.shapeHighlightBorder(border, highlight);
+      if (border.depth !== highlight.depth) {
+        border.graphics.setDepth(highlight.depth);
+        border.depth = highlight.depth;
+      }
+      border.graphics.setPosition(position.x, position.y);
+      border.graphics.setVisible(true);
     }
 
-    const thickness = HIGHLIGHT_LINE_THICKNESS * highlight.scale;
+    for (
+      let index = borderIndex;
+      index < this.highlightBorders.length;
+      index++
+    ) {
+      this.highlightBorders[index].graphics.setVisible(false);
+    }
+  }
+
+  /**
+   * Resolves where a highlight's border belongs this frame, or null when it
+   * should not be drawn at all.
+   *
+   * A card anchor reads the sprite's live position rather than the layout's
+   * target, so the border rides the same easing as the card and can never lead
+   * or lag it. A card still crossing the board is skipped: it is on its way out
+   * from under the pointer that highlighted it. One merely settling the last few
+   * pixels into its slot keeps its border, so stepping the pointer down a column
+   * does not blank it while the fan reshuffles.
+   */
+  private resolveHighlightPosition(
+    highlight: HighlightView,
+    travelDistances: ReadonlyMap<string, number>,
+  ): Point | null {
+    if (highlight.anchor.kind === "point") {
+      return { x: highlight.anchor.x, y: highlight.anchor.y };
+    }
+
+    const cardId = highlight.anchor.cardId;
+    const settleTolerance = HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE * highlight.scale;
+    if ((travelDistances.get(cardId) ?? 0) > settleTolerance) {
+      return null;
+    }
+
+    const sprite = this.scene.cardVisualsMap.get(cardId)?.sprite;
+    if (!sprite?.active) {
+      return null;
+    }
+
+    return { x: sprite.x, y: sprite.y };
+  }
+
+  /** Returns the pooled border at the given index, creating it on first use. */
+  private highlightBorder(index: number): HighlightBorder {
+    let border = this.highlightBorders[index];
+    if (!border) {
+      border = {
+        graphics: this.scene.add.graphics(),
+        shapeKey: null,
+        depth: null,
+      };
+      this.highlightBorders[index] = border;
+    }
+    return border;
+  }
+
+  /**
+   * Strokes the border's path, in its own space so the object can be moved
+   * rather than redrawn, and only when the shape has actually changed.
+   */
+  private shapeHighlightBorder(
+    border: HighlightBorder,
+    highlight: HighlightView,
+  ): void {
+    const shapeKey = `${highlight.width}:${highlight.height}:${highlight.scale}:${highlight.openBottom}`;
+    if (border.shapeKey === shapeKey) {
+      return;
+    }
+    border.shapeKey = shapeKey;
+
+    const graphics = border.graphics;
     const radius = HIGHLIGHT_CORNER_RADIUS * highlight.scale;
-    this.highlightGraphics.lineStyle(
-      thickness,
+
+    graphics.clear();
+    graphics.lineStyle(
+      HIGHLIGHT_LINE_THICKNESS * highlight.scale,
       HIGHLIGHT_COLOR,
       HIGHLIGHT_ALPHA,
     );
 
     if (!highlight.openBottom) {
-      this.highlightGraphics.strokeRoundedRect(
-        highlight.x,
-        highlight.y,
+      graphics.strokeRoundedRect(
+        0,
+        0,
         highlight.width,
         highlight.height,
         radius,
       );
     } else {
-      this.strokeOpenBottomRoundedRect(
-        highlight.x,
-        highlight.y,
+      strokeOpenBottomRoundedRect(
+        graphics,
         highlight.width,
         highlight.height,
         radius,
       );
     }
   }
+}
 
-  private strokeOpenBottomRoundedRect(
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    cornerRadius: number,
-  ): void {
-    const radius = Math.max(0, Math.min(cornerRadius, height, width / 2));
-    const right = x + width;
-    const bottom = y + height;
+/**
+ * Strokes a rounded rectangle at the origin with its bottom edge left open, so
+ * the border never draws a line across a card stacked on top.
+ */
+function strokeOpenBottomRoundedRect(
+  graphics: Phaser.GameObjects.Graphics,
+  width: number,
+  height: number,
+  cornerRadius: number,
+): void {
+  const radius = Math.max(0, Math.min(cornerRadius, height, width / 2));
 
-    this.highlightGraphics.beginPath();
-    this.highlightGraphics.moveTo(x, bottom);
-    this.highlightGraphics.lineTo(x, y + radius);
-    this.highlightGraphics.arc(
-      x + radius,
-      y + radius,
-      radius,
-      Math.PI,
-      Math.PI * 1.5,
-    );
-    this.highlightGraphics.lineTo(right - radius, y);
-    this.highlightGraphics.arc(
-      right - radius,
-      y + radius,
-      radius,
-      Math.PI * 1.5,
-      Math.PI * 2,
-    );
-    this.highlightGraphics.lineTo(right, bottom);
-    this.highlightGraphics.strokePath();
-  }
+  graphics.beginPath();
+  graphics.moveTo(0, height);
+  graphics.lineTo(0, radius);
+  graphics.arc(radius, radius, radius, Math.PI, Math.PI * 1.5);
+  graphics.lineTo(width - radius, 0);
+  graphics.arc(width - radius, radius, radius, Math.PI * 1.5, Math.PI * 2);
+  graphics.lineTo(width, height);
+  graphics.strokePath();
 }

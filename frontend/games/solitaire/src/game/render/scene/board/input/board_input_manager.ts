@@ -4,17 +4,10 @@ import type { PlayingCardVisual } from "@/game/render/visual/card/playing_card_v
 import { CardPile, PileType } from "@/game/model/card/card_pile";
 import type { PlayingCard } from "@/game/model/card/playing_card";
 import {
-  CARD_WIDTH_PX,
-  CARD_HEIGHT_PX,
-  DESIGN_WIDTH_PX,
-  DESIGN_HEIGHT_PX,
-} from "../layout/board_layout_constants";
-import {
   BoardInteractionState,
   DragInteraction,
 } from "../view/board_view_state";
-import { resolveDropTarget } from "./drop_target_resolver";
-import { computeDropGeometries, computeScale } from "../view/board_geometry";
+import { resolveDragTarget } from "./drop_target_resolver";
 
 /**
  * Coordinates and handles drag-and-drop state, overlaps, and mouse pointer events
@@ -231,22 +224,7 @@ export class BoardInputManager {
     if (!this.drag) return;
 
     const visual = gameObject.getData("cardVisual") as PlayingCardVisual;
-
-    const viewport = {
-      width: this.boardScene.scale?.width || DESIGN_WIDTH_PX,
-      height: this.boardScene.scale?.height || DESIGN_HEIGHT_PX,
-      pixelRatio: this.boardScene.pixelRatio,
-    };
-    const scale = computeScale(viewport);
-    const width = CARD_WIDTH_PX * scale;
-    const height = CARD_HEIGHT_PX * scale;
-
-    const dragRect = {
-      x: this.drag.primary.x,
-      y: this.drag.primary.y,
-      width: gameObject.displayWidth || width,
-      height: gameObject.displayHeight || height,
-    };
+    const drag = this.drag;
 
     // Clear drag tracking state first so that layout/highlight updates can accurately reflect that we are no longer dragging.
     this.drag = null;
@@ -255,16 +233,18 @@ export class BoardInputManager {
       return;
     }
 
-    const geometries = computeDropGeometries(
+    // The same resolver the view builder previews with, so the card lands on
+    // the pile the border promised it would.
+    const target = resolveDragTarget(
       this.boardScene.gameModel,
-      viewport,
+      drag,
+      this.boardScene.viewport,
     );
-    const targetPileId = resolveDropTarget(dragRect, geometries);
 
-    if (targetPileId) {
+    if (target) {
       this.boardScene.gameModel.moveCardToPile(
         visual.playingCard.id,
-        targetPileId,
+        target.pileId,
       );
     }
   }

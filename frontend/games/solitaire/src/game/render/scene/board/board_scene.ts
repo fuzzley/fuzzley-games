@@ -100,6 +100,12 @@ export class BoardScene extends Scene {
     });
 
     this.inputManager.registerDragListeners();
+
+    // Hit test every frame rather than only when the pointer itself moves.
+    // Cards move under a stationary pointer all the time — a stock draw slides
+    // the card out from under it — and without polling Phaser never re-runs the
+    // test, so the hover would stay attached to a card that has left.
+    this.input.setPollAlways();
   }
 
   /** Registers listeners on the game model to update graphics dynamically. */
@@ -166,22 +172,28 @@ export class BoardScene extends Scene {
   }
 
   /**
+   * The drawable area the board lays itself out within, falling back to the
+   * design size before the scale manager has sized the canvas.
+   */
+  public get viewport(): Viewport {
+    return {
+      width: this.scale?.width || DESIGN_WIDTH_PX,
+      height: this.scale?.height || DESIGN_HEIGHT_PX,
+      pixelRatio: this.pixelRatio,
+    };
+  }
+
+  /**
    * Phaser scene update lifecycle hook. Automatically invoked every frame to compute and
    * apply the desired board view state.
    */
   override update(timeMs: number, deltaMs: number): void {
     if (!this.inputManager || !this.viewApplier) return;
 
-    const viewport: Viewport = {
-      width: this.scale?.width || DESIGN_WIDTH_PX,
-      height: this.scale?.height || DESIGN_HEIGHT_PX,
-      pixelRatio: this.pixelRatio,
-    };
-
     const state = buildBoardViewState(
       this.gameModel,
       this.inputManager.interaction,
-      viewport,
+      this.viewport,
     );
     this.viewApplier.apply(state, deltaMs);
 

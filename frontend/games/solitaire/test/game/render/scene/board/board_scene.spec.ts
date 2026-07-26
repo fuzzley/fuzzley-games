@@ -2,7 +2,11 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 import { BoardScene } from "@/game/render/scene/board/board_scene";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
 import { resetGameModel } from "@/game/model/game/game_model_factory";
-import { MockScaleManager, MockSprite } from "@test/support/phaser_mocks";
+import {
+  MockInput,
+  MockScaleManager,
+  MockSprite,
+} from "@test/support/phaser_mocks";
 import * as ViewStateBuilder from "@/game/render/scene/board/view/board_view_state_builder";
 
 vi.mock("phaser", async () => {
@@ -74,6 +78,16 @@ describe("BoardScene", () => {
         Array(4).fill("card-placeholder-full-border-circle"),
       );
       expect(alphas).toEqual(Array(4).fill(BoardScene.PILE_BACKGROUND_ALPHA));
+    });
+  });
+
+  describe("pointer polling", () => {
+    it("hit tests every frame so hover follows cards that move under the pointer", () => {
+      const input = boardScene.input as unknown as MockInput;
+
+      // Phaser's default only re-tests when the pointer itself moves, which
+      // leaves the hover attached to a card that has since slid away.
+      expect(input.pollRate).toBe(0);
     });
   });
 

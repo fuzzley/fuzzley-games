@@ -6,6 +6,7 @@ import {
   BoardInteractionState,
   BoardViewState,
   CardView,
+  DragInteraction,
   PileBackgroundView,
   HighlightView,
   Viewport,
@@ -16,7 +17,10 @@ import {
   offsetsForPile,
   TABLEAU_FACE_UP_OFFSET,
   DRAG_BASE_DEPTH,
+  DROP_TARGET_HIGHLIGHT_DEPTH,
+  HOVER_HIGHLIGHT_DEPTH,
 } from "./board_geometry";
+import { resolveDragTarget } from "../input/drop_target_resolver";
 import {
   CARD_ART_SCALE,
   CARD_RENDER_WIDTH_PX,
@@ -39,7 +43,7 @@ class BoardViewStateBuilder {
   constructor(
     private readonly game: SolitaireGame,
     private readonly interaction: BoardInteractionState,
-    viewport: Viewport,
+    private readonly viewport: Viewport,
   ) {
     this.scale = computeScale(viewport);
     // The artwork is authored larger than a card is drawn, so a sprite is
@@ -57,14 +61,10 @@ class BoardViewStateBuilder {
    * Orchestrates the construction of all view state elements.
    */
   public build(): BoardViewState {
-    const backgrounds = this.buildBackgrounds();
-    const cards = this.buildCards();
-    const highlight = this.buildHighlight(cards);
-
     return {
-      backgrounds,
-      cards,
-      highlight,
+      backgrounds: this.buildBackgrounds(),
+      cards: this.buildCards(),
+      highlights: this.buildHighlights(),
     };
   }
 
@@ -206,15 +206,71 @@ class BoardViewStateBuilder {
   }
 
   /**
-   * Computes the highlight view geometry, indicating hovered cards or empty piles.
+   * Computes the highlight borders to draw: the drag feedback while a stack is
+   * in hand, and the hover border otherwise.
    */
-  private buildHighlight(cards: CardView[]): HighlightView | null {
-    const draggedIds = this.interaction.drag?.cardIds ?? [];
-    const isDragging = draggedIds.length > 0;
-    if (isDragging) {
+  private buildHighlights(): HighlightView[] {
+    const drag = this.interaction.drag;
+    if (drag && drag.cardIds.length > 0) {
+      const dropTarget = this.buildDropTargetHighlight(drag);
+      return dropTarget ? [dropTarget] : [];
+    }
+
+    const hoverHighlight = this.buildHoverHighlight();
+    return hoverHighlight ? [hoverHighlight] : [];
+  }
+
+  /**
+   * Computes the border marking where the dragged stack would land if it were
+   * released now, or null when it would not be accepted anywhere.
+   *
+   * The card in hand wears no border of its own: it is already lifted above the
+   * board and following the pointer, so the only thing left to say is where it
+   * is going — and only when it can actually go there, so the border never
+   * invites a drop the rules will refuse.
+   */
+  private buildDropTargetHighlight(
+    drag: DragInteraction,
+  ): HighlightView | null {
+    // Asking the same resolver the drop itself will ask means the previewed
+    // pile is the pile the card lands on, not a second guess at it.
+    const target = resolveDragTarget(this.game, drag, this.viewport);
+    if (!target) {
       return null;
     }
 
+    const targetPile = this.game.getPileById(target.pileId);
+    if (
+      !targetPile ||
+      !this.game.canMoveCardToPile(drag.cardIds[0], target.pileId)
+    ) {
+      return null;
+    }
+
+    // Outline the card the stack would land on, which is the pile itself when
+    // there is nothing in it yet. Sized to a card either way, so the border
+    // marks the landing place rather than the whole column it belongs to.
+    const pileCards = targetPile.getCards();
+    const topCard =
+      pileCards.length > 0 ? pileCards[pileCards.length - 1] : null;
+
+    return {
+      anchor: topCard
+        ? { kind: "card", cardId: topCard.id }
+        : { kind: "point", x: target.x, y: target.y },
+      width: this.cardWidth,
+      height: this.cardHeight,
+      scale: this.scale,
+      depth: DROP_TARGET_HIGHLIGHT_DEPTH,
+      openBottom: false,
+    };
+  }
+
+  /**
+   * Computes the hover border for the card or empty pile under the pointer, or
+   * null when nothing hovered can be interacted with.
+   */
+  private buildHoverHighlight(): HighlightView | null {
     const stockEmpty = this.game.stock.getCards().length === 0;
     const stockOrigin = this.origins.get(this.game.stock.id);
 
@@ -224,47 +280,44 @@ class BoardViewStateBuilder {
       stockOrigin
     ) {
       return {
-        x: stockOrigin.x,
-        y: stockOrigin.y,
+        anchor: { kind: "point", x: stockOrigin.x, y: stockOrigin.y },
         width: this.cardWidth,
         height: this.cardHeight,
         scale: this.scale,
+        depth: HOVER_HIGHLIGHT_DEPTH,
         openBottom: false,
       };
     }
 
-    if (this.interaction.hoveredCardId) {
-      const hoveredCard = this.game.getCardById(this.interaction.hoveredCardId);
-      const hoveredPile = hoveredCard
-        ? this.game.getPileContainingCard(hoveredCard.id)
-        : undefined;
-      if (
-        hoveredCard &&
-        hoveredPile &&
-        this.game.isCardInteractableInPile(hoveredCard, hoveredPile)
-      ) {
-        const cardView = cards.find((cv) => cv.cardId === hoveredCard.id);
-        if (cardView) {
-          const pileCards = hoveredPile.getCards();
-          const cardIndex = pileCards.indexOf(hoveredCard);
-          // Leave the bottom edge open when another card is stacked on top, so
-          // the border never draws a line across the covering card.
-          const openBottom =
-            cardIndex !== -1 && cardIndex < pileCards.length - 1;
-
-          return {
-            x: cardView.x,
-            y: cardView.y,
-            width: this.cardWidth,
-            height: this.cardHeight,
-            scale: this.scale,
-            openBottom,
-          };
-        }
-      }
+    if (!this.interaction.hoveredCardId) {
+      return null;
     }
 
-    return null;
+    const hoveredCard = this.game.getCardById(this.interaction.hoveredCardId);
+    const hoveredPile = hoveredCard
+      ? this.game.getPileContainingCard(hoveredCard.id)
+      : undefined;
+    if (
+      !hoveredCard ||
+      !hoveredPile ||
+      !this.game.isCardInteractableInPile(hoveredCard, hoveredPile)
+    ) {
+      return null;
+    }
+
+    const pileCards = hoveredPile.getCards();
+    const cardIndex = pileCards.indexOf(hoveredCard);
+
+    return {
+      anchor: { kind: "card", cardId: hoveredCard.id },
+      width: this.cardWidth,
+      height: this.cardHeight,
+      scale: this.scale,
+      depth: HOVER_HIGHLIGHT_DEPTH,
+      // Leave the bottom edge open when another card is stacked on top, so the
+      // border never draws a line across the covering card.
+      openBottom: cardIndex !== -1 && cardIndex < pileCards.length - 1,
+    };
   }
 
   /**
