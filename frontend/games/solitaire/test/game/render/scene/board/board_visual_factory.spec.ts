@@ -54,17 +54,26 @@ describe("BoardVisualFactory", () => {
     expect(sprite.filtersEnabled).toBe(true);
     expect(sprite.shadowsAdded).toEqual([
       {
-        x: 0.5,
-        y: 0.5,
-        decay: 0.05,
-        power: 0.8,
+        x: -1.5,
+        y: -2,
+        decay: 0.22,
+        power: 0.04,
         color: 0x000000,
-        samples: 6,
-        intensity: 0.05,
+        samples: 12,
+        intensity: 0.1,
         list: "internal",
-        paddingOverride: null,
+        paddingOverride: [-32, -48, 32, 48],
       },
     ]);
+  });
+
+  it("places the shadow's light outside the card so it falls clear of it", () => {
+    // x and y position a light in texture space rather than offsetting the
+    // shadow, so a light inside the card casts a halo instead of a drop shadow.
+    const sprite = factory.createCardSprite() as unknown as MockSprite;
+
+    const shadow = sprite.shadowsAdded[0];
+    expect([shadow.x < 0, shadow.y < 0]).toEqual([true, true]);
   });
 
   it("adds the shadow internally, not as a screen-space filter", () => {
@@ -77,12 +86,13 @@ describe("BoardVisualFactory", () => {
     ]);
   });
 
-  it("clears the shadow's padding override so it is not cropped away", () => {
-    // Internally, Phaser's default zero override would crop the shadow to the
-    // card's own opaque bounds and hide it completely.
+  it("gives the shadow room to draw outside the card", () => {
+    // Without a padding override the shadow is cropped to the card's own opaque
+    // bounds, which hides it completely.
     const sprite = factory.createCardSprite() as unknown as MockSprite;
 
-    expect(sprite.shadowsAdded[0].paddingOverride).toBeNull();
+    const padding = sprite.shadowsAdded[0].paddingOverride;
+    expect(padding && padding.every((value) => value !== 0)).toBe(true);
   });
 
   it("creates an interactive stock background with the given alpha", () => {
