@@ -157,6 +157,15 @@ export class BoardScene extends Scene {
   }
 
   /**
+   * Device pixels per CSS pixel for the canvas, taken from the scale manager so
+   * layout uses exactly the ratio Phaser converts pointer coordinates by.
+   */
+  public get pixelRatio(): number {
+    const displayScale = this.scale?.displayScale?.x;
+    return displayScale && Number.isFinite(displayScale) ? displayScale : 1;
+  }
+
+  /**
    * Phaser scene update lifecycle hook. Automatically invoked every frame to compute and
    * apply the desired board view state.
    */
@@ -166,6 +175,7 @@ export class BoardScene extends Scene {
     const viewport: Viewport = {
       width: this.scale?.width || DESIGN_WIDTH_PX,
       height: this.scale?.height || DESIGN_HEIGHT_PX,
+      pixelRatio: this.pixelRatio,
     };
 
     const state = buildBoardViewState(

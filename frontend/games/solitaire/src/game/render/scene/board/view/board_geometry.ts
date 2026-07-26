@@ -43,20 +43,28 @@ export const DRAG_BASE_DEPTH = 1000;
 
 /**
  * Computes the uniform scale factor that fits the reference design onto the
- * viewport, accounting for the header overlay and never enlarging past 1.0.
+ * viewport, accounting for the header overlay.
+ *
+ * The result maps design units to device pixels, so it is capped at the
+ * viewport's pixel ratio rather than at 1.0: on a 2x display a design unit is
+ * worth two device pixels, and rendering it as one would waste half the
+ * display's resolution.
  *
  * @param viewport The available drawable area.
- * @returns The scale factor in the range (0, 1].
+ * @returns The scale factor in the range (0, viewport.pixelRatio].
  */
 export function computeScale(viewport: Viewport): number {
-  const screenWidth = viewport.width || DESIGN_WIDTH_PX;
-  const screenHeight = (viewport.height || DESIGN_HEIGHT_PX) - HEADER_HEIGHT_PX;
+  const pixelRatio = viewport.pixelRatio;
+  const screenWidth = viewport.width || DESIGN_WIDTH_PX * pixelRatio;
+  const screenHeight =
+    (viewport.height || DESIGN_HEIGHT_PX * pixelRatio) -
+    HEADER_HEIGHT_PX * pixelRatio;
 
   const scaleX = screenWidth / DESIGN_WIDTH_PX;
   const scaleY = screenHeight / (DESIGN_HEIGHT_PX - HEADER_HEIGHT_PX);
   let scale = Math.min(scaleX, scaleY);
-  if (scale > 1.0) scale = 1.0;
-  if (scale <= 0) scale = 1.0;
+  if (scale > pixelRatio) scale = pixelRatio;
+  if (scale <= 0) scale = pixelRatio;
   return scale;
 }
 
@@ -89,8 +97,11 @@ export function computePileOrigins(
   const columnX = (columnIndex: number): number =>
     paddingX + columnIndex * (cardWidth + gapX);
 
-  const topRowY = HEADER_HEIGHT_PX + paddingY;
-  const bottomRowY = HEADER_HEIGHT_PX + paddingY + cardHeight + gapY;
+  // The header is a DOM overlay measured in CSS pixels, so it converts to
+  // device pixels by the pixel ratio rather than by the layout scale.
+  const headerHeight = HEADER_HEIGHT_PX * viewport.pixelRatio;
+  const topRowY = headerHeight + paddingY;
+  const bottomRowY = headerHeight + paddingY + cardHeight + gapY;
 
   const origins = new Map<string, Point>();
   origins.set(STOCK_PILE_ID, { x: columnX(0), y: topRowY });
