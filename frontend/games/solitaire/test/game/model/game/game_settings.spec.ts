@@ -26,11 +26,12 @@ describe("GameSettings Persistence", () => {
 
     const stored = localStorage.getItem("fsolitaire-settings");
     expect(stored).not.toBeNull();
-    const parsed = JSON.parse(stored!);
-    expect(parsed.drawCount).toBe(1);
-    expect(parsed.cardBackStyle).toBe("card-back-red");
-    expect(parsed.backgroundColor).toBe("#3c096c");
-    expect(parsed.debug.almostWin).toBe(true);
+    expect(JSON.parse(stored!)).toEqual({
+      drawCount: 1,
+      cardBackStyle: "card-back-red",
+      backgroundColor: "#3c096c",
+      debug: { almostWin: true },
+    });
   });
 
   it("should load settings from localStorage on creation", () => {

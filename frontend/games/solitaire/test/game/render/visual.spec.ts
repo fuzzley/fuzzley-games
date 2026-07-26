@@ -1,6 +1,7 @@
 import { vi, describe, it, expect } from "vitest";
 import * as Phaser from "phaser";
 import { CardPile } from "@/game/model/card/card_pile";
+import { PlayingCard } from "@/game/model/card/playing_card";
 import { PlayingCardVisual } from "@/game/render/visual/card/playing_card_visual";
 import { StockPileVisual } from "@/game/render/visual/pile/stock_pile_visual";
 import { WastePileVisual } from "@/game/render/visual/pile/waste_pile_visual";
@@ -47,7 +48,7 @@ describe("PlayingCardVisual", () => {
 
 describe("StockPileVisual", () => {
   it("is a Visual wrapping the given pile", () => {
-    const pile = new CardPile();
+    const pile = new CardPile<PlayingCard>();
 
     const visual = new StockPileVisual(pile);
 
@@ -58,7 +59,7 @@ describe("StockPileVisual", () => {
 
 describe("WastePileVisual", () => {
   it("is a Visual wrapping the given pile", () => {
-    const pile = new CardPile();
+    const pile = new CardPile<PlayingCard>();
 
     const visual = new WastePileVisual(pile);
 
@@ -69,7 +70,7 @@ describe("WastePileVisual", () => {
 
 describe("FoundationPileVisual", () => {
   it("is a Visual wrapping the given pile", () => {
-    const pile = new CardPile();
+    const pile = new CardPile<PlayingCard>();
 
     const visual = new FoundationPileVisual(pile);
 
@@ -80,7 +81,7 @@ describe("FoundationPileVisual", () => {
 
 describe("TableauPileVisual", () => {
   it("is a Visual wrapping the given pile", () => {
-    const pile = new CardPile();
+    const pile = new CardPile<PlayingCard>();
 
     const visual = new TableauPileVisual(pile);
 

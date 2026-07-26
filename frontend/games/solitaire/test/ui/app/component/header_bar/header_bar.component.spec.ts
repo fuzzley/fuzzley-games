@@ -8,6 +8,7 @@ import {
   createMockGameModel,
   asGameModel,
 } from "@test/support/game_model_mock";
+import { clickElement, queryText } from "@test/support/dom";
 
 describe("HeaderBarComponent", () => {
   let component: HeaderBarComponent;
@@ -33,19 +34,9 @@ describe("HeaderBarComponent", () => {
   });
 
   it("renders metrics from the session", () => {
-    const scoreVal = fixture.nativeElement
-      .querySelector(".score-card .value")
-      .textContent.trim();
-    const movesVal = fixture.nativeElement
-      .querySelector(".moves-card .value")
-      .textContent.trim();
-    const timerVal = fixture.nativeElement
-      .querySelector(".timer-card .value")
-      .textContent.trim();
-
-    expect(scoreVal).toBe("120");
-    expect(movesVal).toBe("10");
-    expect(timerVal).toBe("00:00");
+    expect(queryText(fixture, ".score-card .value")).toBe("120");
+    expect(queryText(fixture, ".moves-card .value")).toBe("10");
+    expect(queryText(fixture, ".timer-card .value")).toBe("00:00");
   });
 
   it("updates metrics dynamically when session state changes", () => {
@@ -53,33 +44,22 @@ describe("HeaderBarComponent", () => {
     mockGameModel.state.moves$.next(25);
     fixture.detectChanges();
 
-    const scoreVal = fixture.nativeElement
-      .querySelector(".score-card .value")
-      .textContent.trim();
-    const movesVal = fixture.nativeElement
-      .querySelector(".moves-card .value")
-      .textContent.trim();
-
-    expect(scoreVal).toBe("350");
-    expect(movesVal).toBe("25");
+    expect(queryText(fixture, ".score-card .value")).toBe("350");
+    expect(queryText(fixture, ".moves-card .value")).toBe("25");
   });
 
   it("triggers session.restartGame() when restart button is clicked", () => {
     const restartSpy = vi.spyOn(session, "restartGame");
-    const restartBtn = fixture.nativeElement.querySelector(
-      "button[title*='Restart']",
-    );
-    restartBtn.click();
+
+    clickElement(fixture, "button[title*='Restart']");
 
     expect(restartSpy).toHaveBeenCalled();
   });
 
   it("triggers session.startNewGame() when new game button is clicked", () => {
     const newGameSpy = vi.spyOn(session, "startNewGame");
-    const newGameBtn = fixture.nativeElement.querySelector(
-      "button[title*='New Game']",
-    );
-    newGameBtn.click();
+
+    clickElement(fixture, "button[title*='New Game']");
 
     expect(newGameSpy).toHaveBeenCalled();
   });
@@ -90,8 +70,7 @@ describe("HeaderBarComponent", () => {
       emittedCount++;
     });
 
-    const settingsBtn = fixture.nativeElement.querySelector(".btn-settings");
-    settingsBtn.click();
+    clickElement(fixture, ".btn-settings");
 
     expect(emittedCount).toBe(1);
   });

@@ -17,7 +17,7 @@ vi.mock("phaser", async () => {
 
 /** Views a Phaser sprite handle as the underlying recording mock sprite. */
 function asMock(sprite: unknown): MockSprite {
-  return sprite as unknown as MockSprite;
+  return sprite as MockSprite;
 }
 
 describe("BoardScene", () => {
@@ -166,19 +166,53 @@ describe("BoardScene", () => {
   });
 
   describe("game reset", () => {
-    it("resets hovered states on game-reset", () => {
-      const mockCardVisual = { playingCard: { id: "card-1" } };
-      boardScene["inputManager"].hoveredCardVisual = mockCardVisual as any;
-      boardScene["inputManager"].isStockBackgroundHovered = true;
-      boardScene["inputManager"].drag = {} as any;
-      boardScene["inputManager"].snapAll = false;
+    /** The card sprite currently wearing a highlight border, if any. */
+    function highlightedCardSprite(): MockSprite | undefined {
+      return [...boardScene.cardVisualsMap.values()]
+        .map((visual) => asMock(visual.sprite))
+        .find((sprite) => sprite.depth >= 1000);
+    }
 
-      boardScene.gameModel.emit("game-reset", undefined);
+    it("drops a hover so no border survives into the new deal", () => {
+      const ace = relocate(
+        boardScene.gameModel,
+        "card-hearts-ace",
+        boardScene.gameModel.tableaus[0],
+      );
+      asMock(boardScene.cardVisualsMap.get(ace.id)!.sprite).emit("pointerover");
+      boardScene.update(0, 16);
 
-      expect(boardScene["inputManager"].hoveredCardVisual).toBeNull();
-      expect(boardScene["inputManager"].isStockBackgroundHovered).toBe(false);
-      expect(boardScene["inputManager"].drag).toBeNull();
-      expect(boardScene["inputManager"].snapAll).toBe(true);
+      // Dealing a fresh board is what raises game-reset, so the interaction
+      // state is cleared through the same path the game itself uses.
+      boardScene.gameModel.startNewGame();
+      boardScene.update(16, 16);
+
+      expect(highlightedCardSprite()).toBeUndefined();
+    });
+
+    it("snaps every card into place rather than easing from the old deal", () => {
+      boardScene.update(0, 16);
+      const before = [...boardScene.cardVisualsMap.values()].map((visual) => ({
+        x: asMock(visual.sprite).x,
+        y: asMock(visual.sprite).y,
+      }));
+
+      boardScene.gameModel.startNewGame();
+      boardScene.update(16, 16);
+
+      const after = [...boardScene.cardVisualsMap.values()].map((visual) => ({
+        x: asMock(visual.sprite).x,
+        y: asMock(visual.sprite).y,
+      }));
+      // A snap lands on the target in one frame; an ease would leave the cards
+      // part way between the two deals.
+      expect(after).not.toEqual(before);
+      boardScene.update(32, 16);
+      const settled = [...boardScene.cardVisualsMap.values()].map((visual) => ({
+        x: asMock(visual.sprite).x,
+        y: asMock(visual.sprite).y,
+      }));
+      expect(settled).toEqual(after);
     });
   });
 

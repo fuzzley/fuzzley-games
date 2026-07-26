@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, type Mock } from "vitest";
 import { BoardViewApplier } from "@/game/render/scene/board/view/board_view_applier";
 import { BoardScene } from "@/game/render/scene/board/board_scene";
 import {
@@ -30,9 +30,12 @@ describe("BoardViewApplier", () => {
   let applier: BoardViewApplier;
   /** Every graphics object the applier has asked the scene for, in order. */
   let borders: MockGraphics[];
+  /** The scene's draggability setter, so tests can assert what it was told. */
+  let setDraggable: Mock;
 
   beforeEach(() => {
     borders = [];
+    setDraggable = vi.fn();
 
     const add = {
       graphics: vi.fn(() => {
@@ -42,9 +45,7 @@ describe("BoardViewApplier", () => {
       }),
     };
 
-    const input = {
-      setDraggable: vi.fn(),
-    };
+    const input = { setDraggable };
 
     boardScene = {
       add,
@@ -122,7 +123,9 @@ describe("BoardViewApplier", () => {
     };
 
     const sprite = boardScene.stockPile.sprite!;
-    sprite.input = { cursor: "default" };
+    // Pile backgrounds are interactive in the real scene, which is what gives
+    // them the `input.cursor` the applier writes to.
+    sprite.setInteractive();
 
     applier.apply(viewState, 16);
 
@@ -163,10 +166,7 @@ describe("BoardViewApplier", () => {
     expect(cardSprite.y).toBe(200);
     expect(cardSprite.scale).toBe(1.0);
     expect(cardSprite.depth).toBe(10);
-    expect(boardScene.input.setDraggable).toHaveBeenCalledWith(
-      asSprite(cardSprite),
-      true,
-    );
+    expect(setDraggable).toHaveBeenCalledWith(asSprite(cardSprite), true);
   });
 
   it("eases cards when snap flag is false", () => {

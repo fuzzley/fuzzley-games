@@ -8,9 +8,9 @@ import {
   createMockGameModel,
   asGameModel,
 } from "@test/support/game_model_mock";
+import { clickElement, query, queryText } from "@test/support/dom";
 
 describe("VictoryOverlayComponent", () => {
-  let component: VictoryOverlayComponent;
   let fixture: ComponentFixture<VictoryOverlayComponent>;
   let mockGameModel: ReturnType<typeof createMockGameModel>;
   let session: GameSessionService;
@@ -27,7 +27,6 @@ describe("VictoryOverlayComponent", () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(VictoryOverlayComponent);
-    component = fixture.componentInstance;
     session = TestBed.inject(GameSessionService);
     fixture.detectChanges();
   });
@@ -36,44 +35,36 @@ describe("VictoryOverlayComponent", () => {
     session.isGameWon.set(false);
     fixture.detectChanges();
 
-    const overlay = fixture.nativeElement.querySelector(".victory-overlay");
-    expect(overlay).toBeNull();
+    expect(query(fixture, ".victory-overlay")).toBeNull();
   });
 
   it("renders the victory overlay when game is won", () => {
     session.isGameWon.set(true);
     fixture.detectChanges();
 
-    const overlay = fixture.nativeElement.querySelector(".victory-overlay");
-    expect(overlay).not.toBeNull();
+    expect(query(fixture, ".victory-overlay")).not.toBeNull();
   });
 
   it("renders the stats inside the victory card", () => {
     session.isGameWon.set(true);
     fixture.detectChanges();
 
-    const scoreVal = fixture.nativeElement
-      .querySelector(".victory-stats .v-stat:nth-child(1) .v-val")
-      .textContent.trim();
-    const timerVal = fixture.nativeElement
-      .querySelector(".victory-stats .v-stat:nth-child(2) .v-val")
-      .textContent.trim();
-    const movesVal = fixture.nativeElement
-      .querySelector(".victory-stats .v-stat:nth-child(3) .v-val")
-      .textContent.trim();
-
-    expect(scoreVal).toBe("500");
-    expect(timerVal).toBe("00:00");
-    expect(movesVal).toBe("45");
+    const stat = (position: number) =>
+      queryText(
+        fixture,
+        `.victory-stats .v-stat:nth-child(${position}) .v-val`,
+      );
+    expect(stat(1)).toBe("500");
+    expect(stat(2)).toBe("00:00");
+    expect(stat(3)).toBe("45");
   });
 
   it("triggers startNewGame() when Play Again button is clicked", () => {
     session.isGameWon.set(true);
     fixture.detectChanges();
-
     const newGameSpy = vi.spyOn(session, "startNewGame");
-    const playAgainBtn = fixture.nativeElement.querySelector("button");
-    playAgainBtn.click();
+
+    clickElement(fixture, "button");
 
     expect(newGameSpy).toHaveBeenCalled();
   });

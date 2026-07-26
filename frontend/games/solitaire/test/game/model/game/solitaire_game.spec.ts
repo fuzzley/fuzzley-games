@@ -820,14 +820,14 @@ describe("SolitaireGame", () => {
         game.foundations[2].id,
       );
 
-      const winEvents: any[] = [];
-      game.on("game-won", () => winEvents.push(true));
+      let winCount = 0;
+      game.on("game-won", () => winCount++);
 
       game.moveCardToPile(
         game.tableaus[3].getCards()[0].id,
         game.foundations[3].id,
       );
-      expect(winEvents.length).toBe(1);
+      expect(winCount).toBe(1);
     });
   });
 });

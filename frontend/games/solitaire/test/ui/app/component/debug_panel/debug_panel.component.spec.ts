@@ -8,9 +8,9 @@ import {
   createMockGameModel,
   asGameModel,
 } from "@test/support/game_model_mock";
+import { query, queryAll, queryText } from "@test/support/dom";
 
 describe("DebugPanelComponent", () => {
-  let component: DebugPanelComponent;
   let fixture: ComponentFixture<DebugPanelComponent>;
   let mockGameModel: ReturnType<typeof createMockGameModel>;
   let session: GameSessionService;
@@ -27,41 +27,30 @@ describe("DebugPanelComponent", () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(DebugPanelComponent);
-    component = fixture.componentInstance;
     session = TestBed.inject(GameSessionService);
     fixture.detectChanges();
   });
 
-  it("renders the debug panel options", () => {
-    const debugPanel = fixture.nativeElement.querySelector(".debug-panel");
-    expect(debugPanel).not.toBeNull();
+  it("renders the debug panel", () => {
+    expect(query(fixture, ".debug-panel")).not.toBeNull();
+  });
 
-    const title = fixture.nativeElement
-      .querySelector(".debug-label")
-      .textContent.trim();
-    expect(title).toContain("Debug Options");
+  it("labels the debug panel", () => {
+    expect(queryText(fixture, ".debug-label")).toContain("Debug Options");
   });
 
   it("toggles almost-win debug mode to true when Almost Win button is clicked", () => {
     const setAlmostWinSpy = vi.spyOn(session, "setAlmostWin");
-    const buttons = fixture.nativeElement.querySelectorAll(
-      ".segmented-control button",
-    );
-    const almostWinBtn = buttons[1]; // Almost Win
 
-    almostWinBtn.click();
+    queryAll(fixture, ".segmented-control button")[1].click(); // Almost Win
 
     expect(setAlmostWinSpy).toHaveBeenCalledWith(true);
   });
 
   it("toggles almost-win debug mode to false when Normal button is clicked", () => {
     const setAlmostWinSpy = vi.spyOn(session, "setAlmostWin");
-    const buttons = fixture.nativeElement.querySelectorAll(
-      ".segmented-control button",
-    );
-    const normalBtn = buttons[0]; // Normal
 
-    normalBtn.click();
+    queryAll(fixture, ".segmented-control button")[0].click(); // Normal
 
     expect(setAlmostWinSpy).toHaveBeenCalledWith(false);
   });

@@ -109,7 +109,7 @@ describe("BoardInputManager", () => {
     });
 
     it("leaves a different hovered card untouched on pointerout", () => {
-      const { sprite, visual } = listenTo();
+      const { sprite } = listenTo();
       const other = new PlayingCardVisual(gameModel.tableaus[1].getCards()[0]);
       inputManager.hoveredCardVisual = other;
 
