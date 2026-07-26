@@ -1,15 +1,25 @@
 import { vi, type Mock } from "vitest";
 import * as Phaser from "phaser";
 
-/** Shape of a shadow filter recorded by a mock sprite. */
+/**
+ * A shadow filter recorded by a mock sprite. Field names follow Phaser's
+ * `addShadow(x, y, decay, power, color, samples, intensity)` parameters.
+ */
 export interface ShadowConfig {
   x: number;
   y: number;
   decay: number;
-  intensity: number;
+  power: number;
   color: number;
-  blur: number;
-  opacity: number;
+  samples: number;
+  intensity: number;
+  /** Which of the sprite's two filter lists the shadow was added to. */
+  list: "internal" | "external";
+  /**
+   * The padding override the shadow was left with. Null means the override was
+   * cleared so the filter computes the room it needs.
+   */
+  paddingOverride: number[] | null;
 }
 
 /**
@@ -34,7 +44,10 @@ export interface MockSprite {
   interactiveConfig: { useHandCursor: boolean } | null;
   filtersEnabled: boolean;
   shadowsAdded: ShadowConfig[];
-  filters: { external: { addShadow: (...args: number[]) => MockSprite } };
+  filters: {
+    internal: { addShadow: (...args: number[]) => MockShadowFilter };
+    external: { addShadow: (...args: number[]) => MockShadowFilter };
+  };
   setOrigin(x: number, y: number): MockSprite;
   setAlpha(alpha: number): MockSprite;
   setInteractive(config?: { useHandCursor: boolean }): MockSprite;
@@ -49,6 +62,16 @@ export interface MockSprite {
   emit(event: string, ...args: unknown[]): void;
 }
 
+/** The filter handle {@link MockSprite}'s `addShadow` returns. */
+export interface MockShadowFilter {
+  setPaddingOverride(
+    left: number | null,
+    top?: number,
+    right?: number,
+    bottom?: number,
+  ): MockShadowFilter;
+}
+
 /** Overridable initial fields for a {@link MockSprite}. */
 export type MockSpriteOptions = Partial<
   Pick<
@@ -61,6 +84,35 @@ export type MockSpriteOptions = Partial<
 export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
   const listeners = new Map<string, ((...args: unknown[]) => void)[]>();
   const data = new Map<string, unknown>();
+
+  /** Records a shadow and hands back a filter whose padding stays recorded. */
+  function addShadow(
+    list: "internal" | "external",
+    args: number[],
+  ): MockShadowFilter {
+    const [x, y, decay, power, color, samples, intensity] = args;
+    const recorded: ShadowConfig = {
+      x,
+      y,
+      decay,
+      power,
+      color,
+      samples,
+      intensity,
+      list,
+      // Phaser filters start with a zero override rather than no override.
+      paddingOverride: [0, 0, 0, 0],
+    };
+    sprite.shadowsAdded.push(recorded);
+
+    return {
+      setPaddingOverride(left, top = 0, right = 0, bottom = 0) {
+        recorded.paddingOverride =
+          left === null ? null : [left, top, right, bottom];
+        return this;
+      },
+    };
+  }
 
   const sprite: MockSprite = {
     x: options.x ?? 0,
@@ -79,21 +131,8 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
     filtersEnabled: false,
     shadowsAdded: [],
     filters: {
-      external: {
-        addShadow(...args: number[]): MockSprite {
-          const [x, y, decay, intensity, color, blur, opacity] = args;
-          sprite.shadowsAdded.push({
-            x,
-            y,
-            decay,
-            intensity,
-            color,
-            blur,
-            opacity,
-          });
-          return sprite;
-        },
-      },
+      internal: { addShadow: (...args) => addShadow("internal", args) },
+      external: { addShadow: (...args) => addShadow("external", args) },
     },
     setOrigin(x: number, y: number): MockSprite {
       sprite.originX = x;
