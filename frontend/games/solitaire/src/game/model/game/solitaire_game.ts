@@ -7,6 +7,7 @@ import { MoveRules } from "./move_rules";
 import { Dealer } from "./dealer";
 import { AppliedMove } from "./move_history";
 import {
+  CardLocations,
   CardPile,
   PileType,
   FOUNDATION_COUNT,
@@ -43,15 +44,23 @@ interface ResolvedMove {
  * events so rendering and UI layers can stay synchronized.
  */
 export class SolitaireGame extends EventEmitter<GameEvents> {
+  /**
+   * Where each card currently is, kept up to date by the piles themselves.
+   * Declared first so the piles below can be handed it as they are built.
+   */
+  private readonly locations = new CardLocations<PlayingCard>();
+
   /** The face-down stock pile from which cards are drawn. */
   public readonly stock = new CardPile<PlayingCard>(
     STOCK_PILE_ID,
     PileType.STOCK,
+    this.locations,
   );
   /** The face-up waste pile containing drawn cards. */
   public readonly waste = new CardPile<PlayingCard>(
     WASTE_PILE_ID,
     PileType.WASTE,
+    this.locations,
   );
   /** The four suit foundation piles (Hearts, Diamonds, Clubs, Spades). */
   public readonly foundations: CardPile<PlayingCard>[] = [];
@@ -115,6 +124,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       const pile = new CardPile<PlayingCard>(
         foundationPileId(i),
         PileType.FOUNDATION,
+        this.locations,
       );
       this.foundations.push(pile);
       this.pilesMap.set(pile.id, pile);
@@ -124,6 +134,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       const pile = new CardPile<PlayingCard>(
         tableauPileId(i),
         PileType.TABLEAU,
+        this.locations,
       );
       this.tableaus.push(pile);
       this.pilesMap.set(pile.id, pile);
@@ -153,27 +164,17 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
   /**
    * Finds which pile contains a given card.
    *
+   * A lookup, not a scan: this runs several times a frame from the view builder
+   * and up to once per candidate pile inside {@link autoMoveCard}, and the
+   * piles keep {@link CardLocations} current as cards move between them.
+   *
    * @param cardId The ID of the card to search for.
    * @returns The parent CardPile or undefined.
    */
   public getPileContainingCard(
     cardId: string,
   ): CardPile<PlayingCard> | undefined {
-    const card = this.getCardById(cardId);
-    if (!card) return undefined;
-
-    const allPiles = [
-      this.stock,
-      this.waste,
-      ...this.foundations,
-      ...this.tableaus,
-    ];
-    for (const pile of allPiles) {
-      if (pile.contains(card)) {
-        return pile;
-      }
-    }
-    return undefined;
+    return this.locations.get(cardId);
   }
 
   /**

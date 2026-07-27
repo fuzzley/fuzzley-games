@@ -39,6 +39,34 @@ export function tableauPileId(index: number): string {
   return `tableau-${index}`;
 }
 
+/**
+ * Records which pile each card currently sits in, so finding a card's pile is a
+ * lookup rather than a scan of the whole board.
+ *
+ * Maintained by {@link CardPile} itself rather than by the game, which is what
+ * keeps it honest: dealing, a move, an undo and a test helper all reach a pile
+ * through the same addCard/removeCard/clear, so there is no route that could
+ * change a pile without the index hearing about it.
+ */
+export class CardLocations<T extends Card = Card> {
+  private readonly pileByCardId = new Map<string, CardPile<T>>();
+
+  /** The pile holding the card with the given id, or undefined. */
+  get(cardId: string): CardPile<T> | undefined {
+    return this.pileByCardId.get(cardId);
+  }
+
+  /** Notes that a card now sits in a pile. Called by {@link CardPile}. */
+  record(cardId: string, pile: CardPile<T>): void {
+    this.pileByCardId.set(cardId, pile);
+  }
+
+  /** Forgets where a card was. Called by {@link CardPile}. */
+  forget(cardId: string): void {
+    this.pileByCardId.delete(cardId);
+  }
+}
+
 /** Represents a pile of cards on the board. */
 export class CardPile<T extends Card = Card> {
   /** A unique identifier for the card pile (e.g., "stock", "tableau-0"). */
@@ -50,6 +78,9 @@ export class CardPile<T extends Card = Card> {
   /** List of cards contained in this pile. */
   protected readonly cards: T[] = [];
 
+  /** Told about every card that joins or leaves, when the game supplies one. */
+  private readonly locations?: CardLocations<T>;
+
   /**
    * Constructs a card pile.
    *
@@ -57,10 +88,17 @@ export class CardPile<T extends Card = Card> {
    * @param type The role this pile plays. Defaults to {@link PileType.TABLEAU},
    *   which suits the generic "stack of cards" behavior used by tests and by
    *   the placeholder piles that visuals fall back to.
+   * @param locations Shared index to keep up to date as cards join and leave.
+   *   Optional so a standalone pile needs no ceremony.
    */
-  constructor(id: string = "", type: PileType = PileType.TABLEAU) {
+  constructor(
+    id: string = "",
+    type: PileType = PileType.TABLEAU,
+    locations?: CardLocations<T>,
+  ) {
     this.id = id;
     this.type = type;
+    this.locations = locations;
   }
 
   /** Returns a readonly list of cards. */
@@ -97,6 +135,7 @@ export class CardPile<T extends Card = Card> {
   /** Adds a card to the pile. */
   addCard(card: T): void {
     this.cards.push(card);
+    this.locations?.record(card.id, this);
   }
 
   /** Removes a card from the pile. */
@@ -104,11 +143,15 @@ export class CardPile<T extends Card = Card> {
     const index = this.cards.indexOf(card);
     if (index > -1) {
       this.cards.splice(index, 1);
+      this.locations?.forget(card.id);
     }
   }
 
   /** Clears all cards from the pile. */
   clear(): void {
+    for (const card of this.cards) {
+      this.locations?.forget(card.id);
+    }
     this.cards.length = 0;
   }
 }

@@ -1,5 +1,9 @@
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
 import { PileType } from "@/game/model/card/card_pile";
+import {
+  ALL_PLAYING_CARD_IDS,
+  playingCardIdToString,
+} from "@/game/model/card/playing_card";
 import { makePlayingCard } from "@test/support/card_builder";
 import {
   almostWon,
@@ -829,5 +833,62 @@ describe("SolitaireGame", () => {
       );
       expect(winCount).toBe(1);
     });
+  });
+});
+
+describe("SolitaireGame card location tracking", () => {
+  let game: SolitaireGame;
+
+  beforeEach(() => {
+    game = new SolitaireGame();
+    game.startNewGame();
+  });
+
+  it("agrees with the pile that actually holds each card", () => {
+    const disagreements = ALL_PLAYING_CARD_IDS.map((cardId) =>
+      playingCardIdToString(cardId),
+    ).filter((id) => {
+      const card = game.getCardById(id)!;
+      const pile = game.getPileContainingCard(id);
+      return !pile?.contains(card);
+    });
+
+    expect(disagreements).toEqual([]);
+  });
+
+  it("follows a card through a move", () => {
+    emptyBoard(game);
+    relocate(game, "card-spades-king", game.tableaus[0]);
+    const queen = relocate(game, "card-hearts-queen", game.tableaus[1]);
+
+    game.moveCardToPile(queen.id, game.tableaus[0].id);
+
+    expect(game.getPileContainingCard(queen.id)).toBe(game.tableaus[0]);
+  });
+
+  it("follows a card back through an undo", () => {
+    emptyBoard(game);
+    relocate(game, "card-spades-king", game.tableaus[0]);
+    const queen = relocate(game, "card-hearts-queen", game.tableaus[1]);
+    game.moveCardToPile(queen.id, game.tableaus[0].id);
+
+    game.undo();
+
+    expect(game.getPileContainingCard(queen.id)).toBe(game.tableaus[1]);
+  });
+
+  it("follows cards through a stock draw", () => {
+    const drawn = game.stock.topCard!;
+
+    game.drawCardsFromStock();
+
+    expect(game.getPileContainingCard(drawn.id)).toBe(game.waste);
+  });
+
+  it("forgets cards once a new deal clears the piles", () => {
+    const card = game.tableaus[0].topCard!;
+    emptyBoard(game);
+
+    expect(game.getPileContainingCard(card.id)).toBeUndefined();
   });
 });
