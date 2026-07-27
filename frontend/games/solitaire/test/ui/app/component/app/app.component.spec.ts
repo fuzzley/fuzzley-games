@@ -53,7 +53,7 @@ describe("AppComponent Composition", () => {
   });
 
   it("toggles showSettings based on child output emissions", () => {
-    expect(component.showSettings).toBe(false);
+    expect(component.showSettings()).toBe(false);
 
     // Get HeaderBarComponent debug element and trigger openSettings output
     const headerDe = fixture.debugElement.query(
@@ -61,7 +61,7 @@ describe("AppComponent Composition", () => {
     );
     headerDe.triggerEventHandler("openSettings", null);
     fixture.detectChanges();
-    expect(component.showSettings).toBe(true);
+    expect(component.showSettings()).toBe(true);
 
     // Get SettingsDrawerComponent debug element and trigger close output
     const drawerDe = fixture.debugElement.query(
@@ -69,6 +69,6 @@ describe("AppComponent Composition", () => {
     );
     drawerDe.triggerEventHandler("close", null);
     fixture.detectChanges();
-    expect(component.showSettings).toBe(false);
+    expect(component.showSettings()).toBe(false);
   });
 });

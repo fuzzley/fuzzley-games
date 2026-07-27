@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { ConfirmationService } from "../../service/confirmation.service";
 
 /**
@@ -8,20 +8,10 @@ import { ConfirmationService } from "../../service/confirmation.service";
  */
 @Component({
   selector: "app-confirmation-dialog",
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./confirmation_dialog.component.html",
   styleUrl: "./confirmation_dialog.component.css",
 })
 export class ConfirmationDialogComponent {
   protected readonly confirmation = inject(ConfirmationService);
-
-  /** Cancels the pending action and closes the confirmation dialog. */
-  cancel(): void {
-    this.confirmation.cancel();
-  }
-
-  /** Executes the pending action and closes the confirmation dialog. */
-  accept(): void {
-    this.confirmation.accept();
-  }
 }

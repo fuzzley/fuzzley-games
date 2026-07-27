@@ -1,5 +1,5 @@
 @if (confirmation.isOpen()) {
-  <div class="confirmation-overlay" (click)="cancel()">
+  <div class="confirmation-overlay" (click)="confirmation.cancel()">
     <div class="confirmation-card" (click)="$event.stopPropagation()">
       <div class="warning-icon-container">
         <svg
@@ -16,8 +16,12 @@
       <h3>Confirm Action</h3>
       <p class="confirmation-message">{{ confirmation.message() }}</p>
       <div class="confirmation-actions">
-        <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
-        <button class="btn btn-danger" (click)="accept()">Confirm</button>
+        <button class="btn btn-secondary" (click)="confirmation.cancel()">
+          Cancel
+        </button>
+        <button class="btn btn-danger" (click)="confirmation.accept()">
+          Confirm
+        </button>
       </div>
     </div>
   </div>

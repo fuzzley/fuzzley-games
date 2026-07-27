@@ -1,11 +1,36 @@
 import { Injectable, signal, computed, inject } from "@angular/core";
 import { GAME_MODEL } from "../provider/game_model.provider";
 
+/** A selectable table felt: its display name, board color, and overlay class. */
 export interface Theme {
   name: string;
   color: string;
   bgClass: string;
 }
+
+/** The table themes on offer, in the order they are shown. */
+const THEMES = {
+  green: { name: "Emerald Felt", color: "#0f4d0e", bgClass: "theme-green" },
+  blue: { name: "Deep Ocean", color: "#1b4353", bgClass: "theme-blue" },
+  charcoal: {
+    name: "Midnight Charcoal",
+    color: "#2b2d42",
+    bgClass: "theme-charcoal",
+  },
+  purple: { name: "Royal Velvet", color: "#3c096c", bgClass: "theme-purple" },
+} as const satisfies Record<string, Theme>;
+
+/**
+ * The key of a known theme.
+ *
+ * Derived from {@link THEMES} rather than listed separately, so the keys, the
+ * lookup table, and every signature taking a key stay in step — and an unknown
+ * key is a compile error rather than an undefined dereferenced at runtime.
+ */
+export type ThemeKey = keyof typeof THEMES;
+
+/** The default theme, whose color matches the default board background. */
+const DEFAULT_THEME_KEY: ThemeKey = "green";
 
 /**
  * Owns the table-theme catalog and the current selection. Applying a theme
@@ -17,19 +42,10 @@ export interface Theme {
 export class ThemeService {
   private readonly gameModel = inject(GAME_MODEL);
 
-  readonly themeKeys = ["green", "blue", "charcoal", "purple"] as const;
-  readonly themes: Record<string, Theme> = {
-    green: { name: "Emerald Felt", color: "#0f4d0e", bgClass: "theme-green" },
-    blue: { name: "Deep Ocean", color: "#1b4353", bgClass: "theme-blue" },
-    charcoal: {
-      name: "Midnight Charcoal",
-      color: "#2b2d42",
-      bgClass: "theme-charcoal",
-    },
-    purple: { name: "Royal Velvet", color: "#3c096c", bgClass: "theme-purple" },
-  };
+  readonly themes: Record<ThemeKey, Theme> = THEMES;
+  readonly themeKeys = Object.keys(THEMES) as ThemeKey[];
 
-  readonly selectedTheme = signal("green");
+  readonly selectedTheme = signal<ThemeKey>(DEFAULT_THEME_KEY);
   readonly currentBgClass = computed(
     () => this.themes[this.selectedTheme()].bgClass,
   );
@@ -38,15 +54,13 @@ export class ThemeService {
     // Restore the theme that matches the persisted background color, then apply
     // it so both the overlay class and the board camera reflect it on load.
     const loadedColor = this.gameModel.settings.backgroundColor;
-    const matchedKey = loadedColor
-      ? Object.keys(this.themes).find(
-          (key) => this.themes[key].color === loadedColor,
-        )
-      : undefined;
+    const matchedKey = this.themeKeys.find(
+      (key) => this.themes[key].color === loadedColor,
+    );
     this.setTheme(matchedKey ?? this.selectedTheme());
   }
 
-  setTheme(themeKey: string): void {
+  setTheme(themeKey: ThemeKey): void {
     this.selectedTheme.set(themeKey);
     this.gameModel.settings.setBackgroundColor(this.themes[themeKey].color);
   }

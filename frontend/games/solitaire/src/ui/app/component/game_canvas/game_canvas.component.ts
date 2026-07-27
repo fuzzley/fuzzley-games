@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   ElementRef,
@@ -24,6 +25,7 @@ declare global {
  */
 @Component({
   selector: "app-game-canvas",
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: "",
   styleUrl: "./game_canvas.component.css",
 })
