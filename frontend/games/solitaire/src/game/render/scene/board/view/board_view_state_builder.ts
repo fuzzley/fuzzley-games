@@ -80,7 +80,6 @@ class BoardViewStateBuilder {
       const stockEmpty = this.game.stock.isEmpty;
       backgrounds.push({
         pileId: this.game.stock.id,
-        pileType: PileType.STOCK,
         x: stockOrigin.x,
         y: stockOrigin.y,
         scale: this.spriteScale,
@@ -89,16 +88,11 @@ class BoardViewStateBuilder {
       });
     }
 
-    const pushPileBackground = (
-      pile: CardPile<PlayingCard>,
-      index: number,
-    ): void => {
+    const pushPileBackground = (pile: CardPile<PlayingCard>): void => {
       const origin = this.origins.get(pile.id);
       if (!origin) return;
       backgrounds.push({
         pileId: pile.id,
-        pileType: pile.type,
-        pileIndex: index,
         x: origin.x,
         y: origin.y,
         scale: this.spriteScale,
@@ -106,8 +100,8 @@ class BoardViewStateBuilder {
       });
     };
 
-    this.game.foundations.forEach(pushPileBackground);
-    this.game.tableaus.forEach(pushPileBackground);
+    this.game.foundations.forEach((pile) => pushPileBackground(pile));
+    this.game.tableaus.forEach((pile) => pushPileBackground(pile));
 
     return backgrounds;
   }

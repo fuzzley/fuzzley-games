@@ -1,14 +1,13 @@
 import { vi, describe, it, expect, beforeEach, type Mock } from "vitest";
 import { BoardViewApplier } from "@/game/render/scene/board/view/board_view_applier";
-import { BoardScene } from "@/game/render/scene/board/board_scene";
+import { BoardSprites } from "@/game/render/scene/board/view/board_sprites";
 import {
   BoardViewState,
   CardView,
   HighlightView,
 } from "@/game/render/scene/board/view/board_view_state";
 import { HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE } from "@/game/render/scene/board/view/board_geometry";
-import { PileType } from "@/game/model/card/card_pile";
-import { PlayingCardVisual } from "@/game/render/visual/card/playing_card_visual";
+import { STOCK_PILE_ID } from "@/game/model/card/card_pile";
 import {
   asSprite,
   createMockGraphics,
@@ -26,49 +25,48 @@ vi.mock("phaser", async () => {
 const HOVER_NUDGE_PX = HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE;
 
 describe("BoardViewApplier", () => {
-  let boardScene: BoardScene;
   let applier: BoardViewApplier;
   /** Every graphics object the applier has asked the scene for, in order. */
   let borders: MockGraphics[];
-  /** The scene's draggability setter, so tests can assert what it was told. */
+  /** The board's draggability setter, so tests can assert what it was told. */
   let setDraggable: Mock;
+  /** The card sprites the applier can find, keyed by card id. */
+  let cardSprites: Map<string, MockSprite>;
+  /** The pile background sprites the applier can find, keyed by pile id. */
+  let pileBackgrounds: Map<string, MockSprite>;
 
   beforeEach(() => {
     borders = [];
     setDraggable = vi.fn();
+    cardSprites = new Map();
+    pileBackgrounds = new Map([[STOCK_PILE_ID, createMockSprite()]]);
 
-    const add = {
-      graphics: vi.fn(() => {
+    // The applier only needs to find sprites and add graphics, so the whole
+    // seam is satisfied by two maps — no Phaser scene stand-in required.
+    const sprites: BoardSprites = {
+      cardSprite: (cardId) => {
+        const sprite = cardSprites.get(cardId);
+        return sprite ? asSprite(sprite) : undefined;
+      },
+      pileBackgroundSprite: (pileId) => {
+        const sprite = pileBackgrounds.get(pileId);
+        return sprite ? asSprite(sprite) : undefined;
+      },
+      addGraphics: () => {
         const graphics = createMockGraphics();
         borders.push(graphics);
-        return graphics;
-      }),
+        return graphics as unknown as Phaser.GameObjects.Graphics;
+      },
+      setDraggable,
     };
 
-    const input = { setDraggable };
-
-    boardScene = {
-      add,
-      input,
-      cardVisualsMap: new Map(),
-      stockPile: { sprite: createMockSprite() },
-      tableauPiles: Array.from({ length: 7 }, () => ({
-        sprite: createMockSprite(),
-      })),
-      foundationPiles: Array.from({ length: 4 }, () => ({
-        sprite: createMockSprite(),
-      })),
-    } as unknown as BoardScene;
-
-    applier = new BoardViewApplier(boardScene);
+    applier = new BoardViewApplier(sprites);
   });
 
   /** Registers a card sprite the applier can find, and returns the mock. */
   function registerCard(cardId: string, x = 0, y = 0): MockSprite {
     const sprite = createMockSprite({ x, y });
-    boardScene.cardVisualsMap.set(cardId, {
-      sprite: asSprite(sprite),
-    } as unknown as PlayingCardVisual);
+    cardSprites.set(cardId, sprite);
     return sprite;
   }
 
@@ -109,8 +107,7 @@ describe("BoardViewApplier", () => {
     const viewState: BoardViewState = {
       backgrounds: [
         {
-          pileId: "stock",
-          pileType: PileType.STOCK,
+          pileId: STOCK_PILE_ID,
           x: 100,
           y: 200,
           scale: 0.8,
@@ -122,7 +119,7 @@ describe("BoardViewApplier", () => {
       highlights: [],
     };
 
-    const sprite = boardScene.stockPile.sprite!;
+    const sprite = pileBackgrounds.get(STOCK_PILE_ID)!;
     // Pile backgrounds are interactive in the real scene, which is what gives
     // them the `input.cursor` the applier writes to.
     sprite.setInteractive();
@@ -137,10 +134,7 @@ describe("BoardViewApplier", () => {
   });
 
   it("snaps cards when snap flag is true", () => {
-    const cardSprite = createMockSprite({ x: 50, y: 50 });
-    boardScene.cardVisualsMap.set("card-1", {
-      sprite: asSprite(cardSprite),
-    } as unknown as PlayingCardVisual);
+    const cardSprite = registerCard("card-1", 50, 50);
 
     const viewState: BoardViewState = {
       backgrounds: [],
@@ -170,10 +164,7 @@ describe("BoardViewApplier", () => {
   });
 
   it("eases cards when snap flag is false", () => {
-    const cardSprite = createMockSprite({ x: 0, y: 0 });
-    boardScene.cardVisualsMap.set("card-1", {
-      sprite: asSprite(cardSprite),
-    } as unknown as PlayingCardVisual);
+    const cardSprite = registerCard("card-1", 0, 0);
 
     const viewState: BoardViewState = {
       backgrounds: [],
