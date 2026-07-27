@@ -339,6 +339,49 @@ export function createMockInput(): MockInput {
   return input;
 }
 
+/** A mock Phaser scene event emitter, enough for lifecycle hooks. */
+export interface MockSceneEvents {
+  once: Mock;
+  on: Mock;
+  /** Dispatches an event to its listeners, dropping any registered via once. */
+  emit(event: string, ...args: unknown[]): void;
+}
+
+/** Builds a {@link MockSceneEvents} so tests can drive scene lifecycle events. */
+export function createMockSceneEvents(): MockSceneEvents {
+  const listeners = new Map<string, ((...args: unknown[]) => void)[]>();
+  const onceListeners = new Map<string, ((...args: unknown[]) => void)[]>();
+
+  const add = (
+    map: Map<string, ((...args: unknown[]) => void)[]>,
+    event: string,
+    callback: (...args: unknown[]) => void,
+  ) => {
+    const existing = map.get(event) ?? [];
+    existing.push(callback);
+    map.set(event, existing);
+  };
+
+  return {
+    once: vi.fn((event: string, callback: (...args: unknown[]) => void) => {
+      add(onceListeners, event, callback);
+    }),
+    on: vi.fn((event: string, callback: (...args: unknown[]) => void) => {
+      add(listeners, event, callback);
+    }),
+    emit(event: string, ...args: unknown[]): void {
+      for (const callback of listeners.get(event) ?? []) {
+        callback(...args);
+      }
+      const once = onceListeners.get(event) ?? [];
+      onceListeners.delete(event);
+      for (const callback of once) {
+        callback(...args);
+      }
+    },
+  };
+}
+
 /** A mock Phaser scale manager that records and dispatches its listeners. */
 export interface MockScaleManager {
   on: Mock;
@@ -373,8 +416,10 @@ export function boardScenePhaserMock(): {
     add: { graphics: () => MockGraphics; sprite: Mock };
     scale: MockScaleManager;
     input: MockInput;
+    events: MockSceneEvents;
     cameras: { main: { setBackgroundColor: Mock } };
   };
+  Scenes: { Events: { SHUTDOWN: string } };
   Geom: { Rectangle: typeof MockRectangle };
 } {
   return {
@@ -388,8 +433,10 @@ export function boardScenePhaserMock(): {
       };
       scale = createMockScaleManager();
       input = createMockInput();
+      events = createMockSceneEvents();
       cameras = { main: { setBackgroundColor: vi.fn() } };
     },
+    Scenes: { Events: { SHUTDOWN: SHUTDOWN_EVENT } },
     Geom: {
       Rectangle: Object.assign(MockRectangle, {
         Intersection: rectangleIntersection,
@@ -397,3 +444,6 @@ export function boardScenePhaserMock(): {
     },
   };
 }
+
+/** The scene shutdown event name, matching Phaser's own. */
+export const SHUTDOWN_EVENT = "shutdown";

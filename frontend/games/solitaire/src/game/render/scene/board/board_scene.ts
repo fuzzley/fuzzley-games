@@ -1,4 +1,4 @@
-import { GameObjects, Scene } from "phaser";
+import { GameObjects, Scene, Scenes } from "phaser";
 
 import {
   ALL_PLAYING_CARD_IDS,
@@ -60,8 +60,12 @@ export class BoardScene extends Scene implements BoardSprites {
   }
 
   /**
-   * Initializes the game state model, instantiates card sprites,
-   * registers model event listeners, and draws the initial layout.
+   * Instantiates the sprites for the already-dealt model, registers model event
+   * listeners, and draws the initial layout.
+   *
+   * Deliberately does not deal: the model arrives ready to play (see
+   * {@link getGameModel}), so a scene restart re-renders the game in progress
+   * instead of silently throwing it away.
    */
   create() {
     this.inputManager = new BoardInputManager(this);
@@ -71,15 +75,20 @@ export class BoardScene extends Scene implements BoardSprites {
       () => this.gameModel.settings.cardBackStyle,
     );
 
-    this.gameModel.startNewGame();
     this.createPileBackgroundSprites();
     this.createCardSprites();
     this.setupEventListeners();
 
     // Apply the table background color and follow future changes (e.g. theme
-    // switches from the Angular UI) through the shared model.
-    this.gameModel.settings.backgroundColor$.subscribe((color) => {
-      this.cameras?.main?.setBackgroundColor(color);
+    // switches from the Angular UI) through the shared model. Released on
+    // shutdown: create() runs again on every scene restart, and without this
+    // each restart would leave another live subscription holding the old scene.
+    const backgroundSubscription =
+      this.gameModel.settings.backgroundColor$.subscribe((color) => {
+        this.cameras?.main?.setBackgroundColor(color);
+      });
+    this.events.once(Scenes.Events.SHUTDOWN, () => {
+      backgroundSubscription.unsubscribe();
     });
 
     this.inputManager.snapAll = true;

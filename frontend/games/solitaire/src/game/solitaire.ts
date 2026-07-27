@@ -5,29 +5,32 @@ import { BoardScene } from "./render/scene/board/board_scene";
 import { ViewportScaler } from "./render/scale/viewport_scaler";
 import { DEFAULT_BACKGROUND_COLOR } from "./model/game/game_settings";
 
-/** The id of the element the game canvas is mounted into. */
-const GAME_PARENT_ID = "game";
-
 /** Entry point to the game that loads assets and initializes the game. */
 export class Solitaire {
-  public game: Phaser.Game;
+  private game?: Phaser.Game;
 
   /** Keeps the canvas sized to the display's true pixel resolution. */
-  public scaler: ViewportScaler;
+  private scaler?: ViewportScaler;
 
   /**
    * Constructs the Solitaire game entry point.
    *
    * @param window The browser Window context in which the game is running.
+   * @param parent The element the game canvas is mounted into and sized to.
+   *   Passed in rather than looked up by id so whoever owns the element owns
+   *   the game's lifetime with it.
    */
-  constructor(private readonly window: Window) {}
+  constructor(
+    private readonly window: Window,
+    private readonly parent: HTMLElement,
+  ) {}
 
   /** Starts the game. */
-  public start() {
+  public start(): void {
     const gameConfig: Types.Core.GameConfig = {
       title: "fSolitaire",
       type: Phaser.AUTO,
-      parent: GAME_PARENT_ID,
+      parent: this.parent,
       // Only shown for the frame or two before the board scene applies the
       // persisted setting, but it should still be the same green.
       backgroundColor: DEFAULT_BACKGROUND_COLOR,
@@ -45,16 +48,26 @@ export class Solitaire {
       autoFocus: true,
       scene: [LoadingScene, BoardScene],
     };
-    this.game = new Phaser.Game(gameConfig);
+    const game = new Phaser.Game(gameConfig);
+    this.game = game;
 
     // The scale manager and canvas only exist once the game has booted.
-    this.game.events.once(Phaser.Core.Events.READY, () => {
-      const parent = this.window.document.getElementById(GAME_PARENT_ID);
-      if (!parent) {
-        throw new Error(`Game parent element #${GAME_PARENT_ID} not found`);
-      }
-      this.scaler = new ViewportScaler(this.window, this.game, parent);
+    game.events.once(Phaser.Core.Events.READY, () => {
+      this.scaler = new ViewportScaler(this.window, game, this.parent);
       this.scaler.start();
     });
+  }
+
+  /**
+   * Tears the game down, releasing the scaler's listeners and the canvas.
+   *
+   * Called by whoever started it when the element goes away, so a torn-down
+   * host does not leave a game running against a detached canvas.
+   */
+  public destroy(): void {
+    this.scaler?.stop();
+    this.scaler = undefined;
+    this.game?.destroy(true);
+    this.game = undefined;
   }
 }

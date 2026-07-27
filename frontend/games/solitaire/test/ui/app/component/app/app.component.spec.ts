@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { AppComponent } from "@/ui/app/component/app/app.component";
@@ -11,6 +11,19 @@ import {
 import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.component";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
 import { query } from "@test/support/dom";
+
+// The shell renders the game canvas host, which would otherwise boot a real
+// Phaser game against jsdom's unimplemented canvas.
+vi.mock("@/game/solitaire", () => ({
+  Solitaire: class {
+    start() {
+      /* no-op */
+    }
+    destroy() {
+      /* no-op */
+    }
+  },
+}));
 
 describe("AppComponent Composition", () => {
   let fixture: ComponentFixture<AppComponent>;
