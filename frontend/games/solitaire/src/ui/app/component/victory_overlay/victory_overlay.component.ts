@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { GameSessionService } from "../../service/game_session.service";
 
 /**
@@ -8,15 +8,10 @@ import { GameSessionService } from "../../service/game_session.service";
  */
 @Component({
   selector: "app-victory-overlay",
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./victory_overlay.component.html",
   styleUrl: "./victory_overlay.component.css",
 })
 export class VictoryOverlayComponent {
   protected readonly session = inject(GameSessionService);
-
-  /** Begins a new solitaire game, resetting all session state and timers. */
-  startNewGame(): void {
-    this.session.startNewGame();
-  }
 }

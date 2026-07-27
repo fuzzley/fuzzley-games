@@ -1,4 +1,9 @@
-import { Component, inject } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from "@angular/core";
 import { ThemeService } from "../../service/theme.service";
 import { HeaderBarComponent } from "../header_bar/header_bar.component";
 import { SettingsDrawerComponent } from "../settings_drawer/settings_drawer.component";
@@ -14,7 +19,7 @@ import { GameCanvasComponent } from "../game_canvas/game_canvas.component";
  */
 @Component({
   selector: "app-root",
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     GameCanvasComponent,
     HeaderBarComponent,
@@ -30,10 +35,15 @@ export class AppComponent {
   protected readonly theme = inject(ThemeService);
 
   /** Tracks whether the side settings drawer overlay is open. */
-  showSettings = false;
+  readonly showSettings = signal(false);
 
-  /** Toggles the display state of the settings drawer. */
-  toggleSettings(): void {
-    this.showSettings = !this.showSettings;
+  /** Opens the settings drawer. */
+  openSettings(): void {
+    this.showSettings.set(true);
+  }
+
+  /** Closes the settings drawer. */
+  closeSettings(): void {
+    this.showSettings.set(false);
   }
 }

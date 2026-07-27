@@ -24,14 +24,14 @@
         <div class="segmented-control">
           <button
             [class.active]="session.drawCount() === 1"
-            (click)="setDrawMode(1)"
+            (click)="session.setDrawMode(1)"
             class="segment-btn"
           >
             Draw 1
           </button>
           <button
             [class.active]="session.drawCount() === 3"
-            (click)="setDrawMode(3)"
+            (click)="session.setDrawMode(3)"
             class="segment-btn"
           >
             Draw 3
@@ -49,7 +49,7 @@
           <button
             class="card-back-option blue-back"
             [class.active]="session.cardBack() === 'card-back-blue'"
-            (click)="setCardBack('card-back-blue')"
+            (click)="session.setCardBack('card-back-blue')"
           >
             <div class="card-back-preview blue-pattern"></div>
             <span>Classic Blue</span>
@@ -57,7 +57,7 @@
           <button
             class="card-back-option red-back"
             [class.active]="session.cardBack() === 'card-back-red'"
-            (click)="setCardBack('card-back-red')"
+            (click)="session.setCardBack('card-back-red')"
           >
             <div class="card-back-preview red-pattern"></div>
             <span>Royal Red</span>
@@ -73,7 +73,7 @@
             <button
               class="theme-option"
               [class.active]="themeService.selectedTheme() === key"
-              (click)="setTheme(key)"
+              (click)="themeService.setTheme(key)"
               [style.backgroundColor]="themeService.themes[key].color"
               [title]="themeService.themes[key].name"
             >

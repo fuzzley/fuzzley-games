@@ -1,4 +1,10 @@
-import { Component, inject, input, output } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  input,
+  output,
+} from "@angular/core";
 import { GameSessionService } from "../../service/game_session.service";
 import { ThemeService } from "../../service/theme.service";
 import { DebugPanelComponent } from "../debug_panel/debug_panel.component";
@@ -10,7 +16,7 @@ import { DebugPanelComponent } from "../debug_panel/debug_panel.component";
  */
 @Component({
   selector: "app-settings-drawer",
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DebugPanelComponent],
   templateUrl: "./settings_drawer.component.html",
   styleUrl: "./settings_drawer.component.css",
@@ -27,22 +33,4 @@ export class SettingsDrawerComponent {
 
   /** Emitted when the user requests to close the settings drawer. */
   readonly close = output();
-
-  /**
-   * Sets the game draw mode (Draw 1 or Draw 3).
-   * Note: Changing draw mode prompts for confirmation and restarts the game session.
-   */
-  setDrawMode(mode: 1 | 3): void {
-    this.session.setDrawMode(mode);
-  }
-
-  /** Sets the visual styling of card back covers. */
-  setCardBack(style: "card-back-blue" | "card-back-red"): void {
-    this.session.setCardBack(style);
-  }
-
-  /** Sets the table theme key, which updates background color values. */
-  setTheme(themeKey: string): void {
-    this.themeService.setTheme(themeKey);
-  }
 }

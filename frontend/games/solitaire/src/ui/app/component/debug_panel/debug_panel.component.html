@@ -5,14 +5,14 @@
     <div class="segmented-control">
       <button
         [class.active]="!session.almostWin()"
-        (click)="toggleAlmostWin(false)"
+        (click)="session.setAlmostWin(false)"
         class="segment-btn"
       >
         Normal
       </button>
       <button
         [class.active]="session.almostWin()"
-        (click)="toggleAlmostWin(true)"
+        (click)="session.setAlmostWin(true)"
         class="segment-btn"
       >
         Almost Win

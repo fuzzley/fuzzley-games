@@ -1,6 +1,7 @@
 import { Injectable, signal, effect, inject, DestroyRef } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { GAME_MODEL } from "../provider/game_model.provider";
+import { CardBackStyle, DrawCount } from "@/game/model/game/game_settings";
 import { TimerService } from "./timer.service";
 import { ConfirmationService } from "./confirmation.service";
 
@@ -24,7 +25,7 @@ export class GameSessionService {
     initialValue: 3,
   });
   readonly cardBack = toSignal(this.gameModel.settings.cardBackStyle$, {
-    initialValue: "card-back-blue" as const,
+    initialValue: "card-back-blue" satisfies CardBackStyle,
   });
   readonly almostWin = toSignal(this.gameModel.settings.debug.almostWin$, {
     initialValue: false,
@@ -73,7 +74,7 @@ export class GameSessionService {
     );
   }
 
-  setDrawMode(mode: 1 | 3): void {
+  setDrawMode(mode: DrawCount): void {
     if (this.drawCount() === mode) return;
     if (this.moves() === 0) {
       this.gameModel.settings.setDrawCount(mode);
@@ -89,7 +90,7 @@ export class GameSessionService {
     }
   }
 
-  setCardBack(style: "card-back-blue" | "card-back-red"): void {
+  setCardBack(style: CardBackStyle): void {
     this.gameModel.settings.setCardBackStyle(style);
   }
 
