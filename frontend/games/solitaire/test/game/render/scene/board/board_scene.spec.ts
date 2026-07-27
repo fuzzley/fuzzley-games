@@ -5,7 +5,9 @@ import { resetGameModel } from "@/game/model/game/game_model_factory";
 import {
   MockInput,
   MockScaleManager,
+  MockSceneEvents,
   MockSprite,
+  SHUTDOWN_EVENT,
 } from "@test/support/phaser_mocks";
 import {
   computePileOrigins,
@@ -68,14 +70,53 @@ describe("BoardScene", () => {
   });
 
   describe("table background", () => {
-    it("repaints the camera when the background color setting changes", () => {
-      const camera = boardScene.cameras.main as unknown as {
+    /** The camera's recording background setter. */
+    function camera(): { setBackgroundColor: ReturnType<typeof vi.fn> } {
+      return boardScene.cameras.main as unknown as {
         setBackgroundColor: ReturnType<typeof vi.fn>;
       };
+    }
 
+    it("repaints the camera when the background color setting changes", () => {
       boardScene.gameModel.settings.setBackgroundColor("#123456");
 
-      expect(camera.setBackgroundColor).toHaveBeenCalledWith("#123456");
+      expect(camera().setBackgroundColor).toHaveBeenCalledWith("#123456");
+    });
+
+    it("stops following the setting once the scene shuts down", () => {
+      const events = boardScene.events as unknown as MockSceneEvents;
+      events.emit(SHUTDOWN_EVENT);
+      camera().setBackgroundColor.mockClear();
+
+      boardScene.gameModel.settings.setBackgroundColor("#654321");
+
+      // A scene restart runs create() again, so a subscription left behind here
+      // would accumulate one stale listener per restart.
+      expect(camera().setBackgroundColor).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("dealing", () => {
+    it("renders a board that is already dealt", () => {
+      const dealt = [
+        boardScene.gameModel.stock.size,
+        ...boardScene.gameModel.tableaus.map((pile) => pile.size),
+      ];
+
+      expect(dealt).toEqual([24, 1, 2, 3, 4, 5, 6, 7]);
+    });
+
+    it("does not re-deal when the scene is created again", () => {
+      const ace = relocate(
+        boardScene.gameModel,
+        "card-hearts-ace",
+        boardScene.gameModel.foundations[0],
+      );
+
+      boardScene.create();
+
+      // A renderer that dealt would throw the game in progress away.
+      expect(boardScene.gameModel.foundations[0].topCard).toBe(ace);
     });
   });
 
