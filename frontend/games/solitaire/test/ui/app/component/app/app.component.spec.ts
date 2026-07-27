@@ -67,7 +67,7 @@ describe("AppComponent Composition", () => {
     const drawerDe = fixture.debugElement.query(
       By.directive(SettingsDrawerComponent),
     );
-    drawerDe.triggerEventHandler("close", null);
+    drawerDe.triggerEventHandler("closed", null);
     fixture.detectChanges();
     expect(component.showSettings()).toBe(false);
   });

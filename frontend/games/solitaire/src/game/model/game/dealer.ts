@@ -1,6 +1,6 @@
 import { CardRegistry } from "../card/card_registry";
 import { CardPile } from "../card/card_pile";
-import { shuffle } from "../../common/shuffle";
+import { shuffle } from "@/game/common/shuffle";
 import {
   ALL_PLAYING_CARD_IDS,
   ALL_RANKS,

@@ -1,7 +1,7 @@
 <app-game-canvas />
 <div class="ui-overlay" [class]="theme.currentBgClass()">
   <app-header-bar (openSettings)="openSettings()" />
-  <app-settings-drawer [open]="showSettings()" (close)="closeSettings()" />
+  <app-settings-drawer [open]="showSettings()" (closed)="closeSettings()" />
   <app-victory-overlay />
   <app-confirmation-dialog />
 </div>

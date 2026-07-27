@@ -44,6 +44,7 @@
     "@typescript-eslint/eslint-plugin": "^8.65.0",
     "@typescript-eslint/parser": "^8.65.0",
     "@vitest/coverage-v8": "^4.1.10",
+    "angular-eslint": "^22.1.0",
     "concurrently": "^10.0.4",
     "jsdom": "^29.1.1",
     "prettier": "^3.9.6",

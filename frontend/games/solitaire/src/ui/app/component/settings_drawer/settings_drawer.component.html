@@ -1,9 +1,9 @@
 @if (open()) {
-  <div class="drawer-backdrop" (click)="close.emit()"></div>
+  <div class="drawer-backdrop" (click)="closed.emit()"></div>
   <div class="drawer">
     <div class="drawer-header">
       <h2>Game Options</h2>
-      <button class="btn-close" (click)="close.emit()">
+      <button class="btn-close" (click)="closed.emit()">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -95,7 +95,7 @@
     </div>
 
     <div class="drawer-footer">
-      <button class="btn btn-primary btn-block" (click)="close.emit()">
+      <button class="btn btn-primary btn-block" (click)="closed.emit()">
         Apply Settings
       </button>
     </div>

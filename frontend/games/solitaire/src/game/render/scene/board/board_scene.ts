@@ -207,7 +207,7 @@ export class BoardScene extends Scene implements BoardSprites {
    * Phaser scene update lifecycle hook. Automatically invoked every frame to compute and
    * apply the desired board view state.
    */
-  override update(timeMs: number, deltaMs: number): void {
+  override update(_timeMs: number, deltaMs: number): void {
     if (!this.inputManager || !this.viewApplier) return;
 
     const state = buildBoardViewState(

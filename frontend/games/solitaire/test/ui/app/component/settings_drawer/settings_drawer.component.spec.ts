@@ -56,7 +56,7 @@ describe("SettingsDrawerComponent", () => {
     fixture.detectChanges();
 
     let closeCount = 0;
-    component.close.subscribe(() => {
+    component.closed.subscribe(() => {
       closeCount++;
     });
 
@@ -70,7 +70,7 @@ describe("SettingsDrawerComponent", () => {
     fixture.detectChanges();
 
     let closeCount = 0;
-    component.close.subscribe(() => {
+    component.closed.subscribe(() => {
       closeCount++;
     });
 
