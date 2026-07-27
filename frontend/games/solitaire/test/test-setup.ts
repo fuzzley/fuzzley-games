@@ -37,3 +37,11 @@ if (!globalThis.localStorage) {
     configurable: true,
   });
 }
+
+// GameSettings persists to localStorage, and every test shares one store, so a
+// test that flips a setting would otherwise change the starting conditions of
+// everything that ran after it — a game left in almost-win mode deals a board
+// with an empty stock.
+beforeEach(() => {
+  localStorage.clear();
+});

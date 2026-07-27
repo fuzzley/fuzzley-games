@@ -1,4 +1,4 @@
-import { CardPile, PileType } from "@/game/model/card/card_pile";
+import { CardLocations, CardPile, PileType } from "@/game/model/card/card_pile";
 import { makeCard } from "@test/support/card_builder";
 
 describe("CardPile", () => {
@@ -142,5 +142,73 @@ describe("CardPile.size", () => {
     pile.addCard(makeCard({ id: "b" }));
 
     expect(pile.size).toBe(2);
+  });
+});
+
+describe("CardPile with a shared location index", () => {
+  it("records a card against the pile it is added to", () => {
+    const locations = new CardLocations();
+    const pile = new CardPile("tableau-0", PileType.TABLEAU, locations);
+    const card = makeCard({ id: "a" });
+
+    pile.addCard(card);
+
+    expect(locations.get("a")).toBe(pile);
+  });
+
+  it("forgets a card that is removed", () => {
+    const locations = new CardLocations();
+    const pile = new CardPile("tableau-0", PileType.TABLEAU, locations);
+    const card = makeCard({ id: "a" });
+    pile.addCard(card);
+
+    pile.removeCard(card);
+
+    expect(locations.get("a")).toBeUndefined();
+  });
+
+  it("forgets every card when the pile is cleared", () => {
+    const locations = new CardLocations();
+    const pile = new CardPile("tableau-0", PileType.TABLEAU, locations);
+    pile.addCard(makeCard({ id: "a" }));
+    pile.addCard(makeCard({ id: "b" }));
+
+    pile.clear();
+
+    expect([locations.get("a"), locations.get("b")]).toEqual([
+      undefined,
+      undefined,
+    ]);
+  });
+
+  it("follows a card moved from one pile to another", () => {
+    const locations = new CardLocations();
+    const source = new CardPile("tableau-0", PileType.TABLEAU, locations);
+    const target = new CardPile("tableau-1", PileType.TABLEAU, locations);
+    const card = makeCard({ id: "a" });
+    source.addCard(card);
+
+    source.removeCard(card);
+    target.addCard(card);
+
+    expect(locations.get("a")).toBe(target);
+  });
+
+  it("leaves the index alone when removing a card the pile never held", () => {
+    const locations = new CardLocations();
+    const holder = new CardPile("tableau-0", PileType.TABLEAU, locations);
+    const other = new CardPile("tableau-1", PileType.TABLEAU, locations);
+    const card = makeCard({ id: "a" });
+    holder.addCard(card);
+
+    other.removeCard(card);
+
+    expect(locations.get("a")).toBe(holder);
+  });
+
+  it("works without an index, for a standalone pile", () => {
+    const pile = new CardPile();
+
+    expect(() => pile.addCard(makeCard({ id: "a" }))).not.toThrow();
   });
 });
