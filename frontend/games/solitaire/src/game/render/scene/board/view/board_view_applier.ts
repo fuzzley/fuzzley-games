@@ -1,9 +1,8 @@
 import * as Phaser from "phaser";
-import { BoardScene } from "../board_scene";
 import { Point } from "@/game/common/point";
+import { BoardSprites } from "./board_sprites";
 import { BoardViewState, HighlightView } from "./board_view_state";
 import { HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE } from "./board_geometry";
-import { PileType } from "@/game/model/card/card_pile";
 
 /** Time constant (ms) for frame-rate-independent card position easing. */
 const POSITION_TAU_MS = 90;
@@ -53,7 +52,7 @@ export class BoardViewApplier {
    */
   private travelDistances = new Map<string, number>();
 
-  constructor(private readonly scene: BoardScene) {}
+  constructor(private readonly sprites: BoardSprites) {}
 
   /**
    * Whether any of the given cards had still not reached its target when the
@@ -82,16 +81,7 @@ export class BoardViewApplier {
       deltaMs > 0 ? 1 - Math.exp(-deltaMs / POSITION_TAU_MS) : 1;
 
     for (const backgroundView of viewState.backgrounds) {
-      let sprite: Phaser.GameObjects.Sprite | undefined;
-      if (backgroundView.pileType === PileType.STOCK) {
-        sprite = this.scene.stockPile.sprite;
-      } else if (backgroundView.pileType === PileType.FOUNDATION) {
-        const pileIndex = backgroundView.pileIndex ?? 0;
-        sprite = this.scene.foundationPiles[pileIndex]?.sprite;
-      } else if (backgroundView.pileType === PileType.TABLEAU) {
-        const pileIndex = backgroundView.pileIndex ?? 0;
-        sprite = this.scene.tableauPiles[pileIndex]?.sprite;
-      }
+      const sprite = this.sprites.pileBackgroundSprite(backgroundView.pileId);
 
       if (sprite?.active) {
         sprite.setPosition(backgroundView.x, backgroundView.y);
@@ -112,8 +102,7 @@ export class BoardViewApplier {
     const travelDistances = new Map<string, number>();
 
     for (const cardView of viewState.cards) {
-      const visual = this.scene.cardVisualsMap.get(cardView.cardId);
-      const sprite = visual?.sprite;
+      const sprite = this.sprites.cardSprite(cardView.cardId);
       if (sprite?.active) {
         if (cardView.snap || deltaMs <= 0) {
           sprite.setPosition(cardView.x, cardView.y);
@@ -144,7 +133,7 @@ export class BoardViewApplier {
           sprite.input.cursor = cardView.cursor;
         }
         if (sprite.getData("draggable") !== cardView.draggable) {
-          this.scene.input.setDraggable(sprite, cardView.draggable);
+          this.sprites.setDraggable(sprite, cardView.draggable);
           sprite.setData("draggable", cardView.draggable);
         }
       }
@@ -215,7 +204,7 @@ export class BoardViewApplier {
       return null;
     }
 
-    const sprite = this.scene.cardVisualsMap.get(cardId)?.sprite;
+    const sprite = this.sprites.cardSprite(cardId);
     if (!sprite?.active) {
       return null;
     }
@@ -228,7 +217,7 @@ export class BoardViewApplier {
     let border = this.highlightBorders[index];
     if (!border) {
       border = {
-        graphics: this.scene.add.graphics(),
+        graphics: this.sprites.addGraphics(),
         shapeKey: null,
         depth: null,
       };

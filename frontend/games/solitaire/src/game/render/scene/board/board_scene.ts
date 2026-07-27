@@ -1,16 +1,15 @@
-import { Scene } from "phaser";
+import { GameObjects, Scene } from "phaser";
 
-import { ALL_PLAYING_CARD_IDS } from "@/game/model/card/playing_card";
-import { StockPileVisual } from "../../visual/pile/stock_pile_visual";
-import { FoundationPileVisual } from "../../visual/pile/foundation_pile_visual";
-import { TableauPileVisual } from "../../visual/pile/tableau_pile_visual";
+import {
+  ALL_PLAYING_CARD_IDS,
+  playingCardIdToString,
+} from "@/game/model/card/playing_card";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
 import { getGameModel } from "@/game/model/game/game_model_factory";
-import { PlayingCardVisual } from "../../visual/card/playing_card_visual";
-import { playingCardIdToString } from "@/game/model/card/playing_card";
 import { BoardVisualFactory } from "./board_visual_factory";
 import { BoardInputManager } from "./input/board_input_manager";
 import { BoardViewApplier } from "./view/board_view_applier";
+import { BoardSprites } from "./view/board_sprites";
 import { buildBoardViewState } from "./view/board_view_state_builder";
 import { Viewport } from "./view/board_view_state";
 import {
@@ -22,24 +21,21 @@ import {
  * Handles rendering the fSolitaire game board using Phaser, reacting to
  * events emitted by the logical rules engine.
  */
-export class BoardScene extends Scene {
+export class BoardScene extends Scene implements BoardSprites {
   /** Transparency (alpha) level for pile background placeholders. */
   public static readonly PILE_BACKGROUND_ALPHA = 0.5;
 
   /** The logical solitaire game rules and state engine. */
   public readonly gameModel: SolitaireGame;
 
-  /** Registry of visual cards mapped by their unique string ID. */
-  public readonly cardVisualsMap = new Map<string, PlayingCardVisual>();
+  /** Card sprites, keyed by the card id the model gave them. */
+  private readonly cardSprites = new Map<string, GameObjects.Sprite>();
 
-  /** Visual representation of the stock pile. */
-  public readonly stockPile: StockPileVisual;
-
-  /** Visual representations of the four foundation piles. */
-  public readonly foundationPiles: FoundationPileVisual[];
-
-  /** Visual representations of the seven tableau piles. */
-  public readonly tableauPiles: TableauPileVisual[];
+  /**
+   * Pile background placeholder sprites, keyed by pile id. Piles drawn without
+   * a placeholder (the waste, which fans over bare table) are simply absent.
+   */
+  private readonly pileBackgrounds = new Map<string, GameObjects.Sprite>();
 
   /** Input handling manager for drag-and-drop and interaction. */
   private inputManager!: BoardInputManager;
@@ -61,13 +57,6 @@ export class BoardScene extends Scene {
     super("board-scene");
 
     this.gameModel = gameModel;
-    this.stockPile = new StockPileVisual(gameModel.stock);
-    this.foundationPiles = gameModel.foundations.map(
-      (pile) => new FoundationPileVisual(pile),
-    );
-    this.tableauPiles = gameModel.tableaus.map(
-      (pile) => new TableauPileVisual(pile),
-    );
   }
 
   /**
@@ -84,7 +73,7 @@ export class BoardScene extends Scene {
 
     this.gameModel.startNewGame();
     this.createPileBackgroundSprites();
-    this.createCardVisuals();
+    this.createCardSprites();
     this.setupEventListeners();
 
     // Apply the table background color and follow future changes (e.g. theme
@@ -115,51 +104,73 @@ export class BoardScene extends Scene {
     });
   }
 
-  /**
-   * Instantiates and registers the visual sprites for all playing cards in the game.
-   */
-  private createCardVisuals(): void {
+  /** Instantiates and registers a sprite for every playing card in the game. */
+  private createCardSprites(): void {
     for (const cardId of ALL_PLAYING_CARD_IDS) {
-      const fileName = playingCardIdToString(cardId);
-      const cardModel = this.gameModel.getCardById(fileName);
-      if (!cardModel) {
-        throw new Error(`Card model not found for: ${fileName}`);
+      const id = playingCardIdToString(cardId);
+      if (!this.gameModel.getCardById(id)) {
+        throw new Error(`Card model not found for: ${id}`);
       }
 
       const sprite = this.visualFactory.createCardSprite();
-      const visual = new PlayingCardVisual(cardModel);
-      visual.sprite = sprite;
-      this.cardVisualsMap.set(cardModel.id, visual);
+      this.cardSprites.set(id, sprite);
 
-      sprite.setData("cardVisual", visual);
-      this.inputManager.registerCardListeners(sprite, visual);
+      sprite.setData("cardId", id);
+      this.inputManager.registerCardListeners(sprite, id);
     }
   }
 
   /**
-   * Instantiates and registers the background sprites for the stock and tableau piles.
+   * Instantiates and registers the background sprites for the stock, foundation
+   * and tableau piles.
    */
   private createPileBackgroundSprites(): void {
-    // Stock pile background
-    const stockSprite = this.visualFactory.createStockBackground(
-      BoardScene.PILE_BACKGROUND_ALPHA,
-    );
+    const alpha = BoardScene.PILE_BACKGROUND_ALPHA;
+
+    const stockSprite = this.visualFactory.createStockBackground(alpha);
     this.inputManager.registerStockBackgroundListeners(stockSprite);
-    this.stockPile.sprite = stockSprite;
+    this.pileBackgrounds.set(this.gameModel.stock.id, stockSprite);
 
-    // Tableau piles background
-    for (const tableauPile of this.tableauPiles) {
-      tableauPile.sprite = this.visualFactory.createTableauBackground(
-        BoardScene.PILE_BACKGROUND_ALPHA,
+    for (const foundation of this.gameModel.foundations) {
+      this.pileBackgrounds.set(
+        foundation.id,
+        this.visualFactory.createFoundationBackground(alpha),
       );
     }
 
-    // Foundation piles background
-    for (const foundationPile of this.foundationPiles) {
-      foundationPile.sprite = this.visualFactory.createFoundationBackground(
-        BoardScene.PILE_BACKGROUND_ALPHA,
+    for (const tableau of this.gameModel.tableaus) {
+      this.pileBackgrounds.set(
+        tableau.id,
+        this.visualFactory.createTableauBackground(alpha),
       );
     }
+  }
+
+  // --- BoardSprites ---
+
+  /** @inheritDoc */
+  public cardSprite(cardId: string): GameObjects.Sprite | undefined {
+    return this.cardSprites.get(cardId);
+  }
+
+  /** @inheritDoc */
+  public pileBackgroundSprite(pileId: string): GameObjects.Sprite | undefined {
+    return this.pileBackgrounds.get(pileId);
+  }
+
+  /** @inheritDoc */
+  public addGraphics(): GameObjects.Graphics {
+    return this.add.graphics();
+  }
+
+  /** @inheritDoc */
+  public setDraggable(sprite: GameObjects.Sprite, draggable: boolean): void {
+    this.input.setDraggable(sprite, draggable);
+  }
+
+  /** Every registered card id, for callers that walk the whole board. */
+  public get cardIds(): Iterable<string> {
+    return this.cardSprites.keys();
   }
 
   /**

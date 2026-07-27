@@ -1,11 +1,7 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { BoardInputManager } from "@/game/render/scene/board/input/board_input_manager";
 import { SolitaireGame } from "@/game/model/game/solitaire_game";
-import { PlayingCardVisual } from "@/game/render/visual/card/playing_card_visual";
-import { StockPileVisual } from "@/game/render/visual/pile/stock_pile_visual";
-import { WastePileVisual } from "@/game/render/visual/pile/waste_pile_visual";
-import { TableauPileVisual } from "@/game/render/visual/pile/tableau_pile_visual";
-import { FoundationPileVisual } from "@/game/render/visual/pile/foundation_pile_visual";
+import { PlayingCard } from "@/game/model/card/playing_card";
 import { BoardScene } from "@/game/render/scene/board/board_scene";
 import {
   DESIGN_WIDTH_PX,
@@ -27,10 +23,7 @@ vi.mock("phaser", async () => {
 describe("BoardInputManager", () => {
   let gameModel: SolitaireGame;
   let input: MockInput;
-  let stockPile: StockPileVisual;
-  let wastePile: WastePileVisual;
-  let tableauPiles: TableauPileVisual[];
-  let foundationPiles: FoundationPileVisual[];
+  let cardSprites: Map<string, MockSprite>;
   let boardScene: BoardScene;
   let inputManager: BoardInputManager;
 
@@ -41,21 +34,15 @@ describe("BoardInputManager", () => {
     gameModel.startNewGame();
 
     input = createMockInput();
-    stockPile = new StockPileVisual(gameModel.stock);
-    wastePile = new WastePileVisual(gameModel.waste);
-    foundationPiles = gameModel.foundations.map(
-      (f) => new FoundationPileVisual(f),
-    );
-    tableauPiles = gameModel.tableaus.map((t) => new TableauPileVisual(t));
+    cardSprites = new Map();
 
     boardScene = {
       input,
       gameModel,
-      stockPile,
-      wastePile,
-      foundationPiles,
-      tableauPiles,
-      cardVisualsMap: new Map(),
+      cardSprite: (cardId: string) => {
+        const sprite = cardSprites.get(cardId);
+        return sprite ? asSprite(sprite) : undefined;
+      },
       pixelRatio: 1,
       // The design size, which lays the board out at a scale of exactly 1 so
       // the pile origins the drop tests aim at are the design coordinates.
@@ -66,10 +53,6 @@ describe("BoardInputManager", () => {
       },
     } as unknown as BoardScene;
 
-    stockPile.sprite = asSprite(
-      createMockSprite({ x: 40, y: 40, displayWidth: 220, displayHeight: 307 }),
-    );
-
     inputManager = new BoardInputManager(boardScene);
   });
 
@@ -78,44 +61,45 @@ describe("BoardInputManager", () => {
   });
 
   /** Registers card listeners for a fresh sprite bound to the given card. */
-  function listenTo(card = gameModel.tableaus[0].getCards()[0]): {
+  function listenTo(card: PlayingCard = gameModel.tableaus[0].getCards()[0]): {
     sprite: MockSprite;
-    visual: PlayingCardVisual;
+    card: PlayingCard;
   } {
-    const visual = new PlayingCardVisual(card);
     const sprite = createMockSprite();
-    visual.sprite = asSprite(sprite);
-    inputManager.registerCardListeners(asSprite(sprite), visual);
-    boardScene.cardVisualsMap.set(card.id, visual);
-    return { sprite, visual };
+    // The scene stamps the id onto the sprite, which is how the drag handlers
+    // recover which card a dragged object is.
+    sprite.setData("cardId", card.id);
+    inputManager.registerCardListeners(asSprite(sprite), card.id);
+    cardSprites.set(card.id, sprite);
+    return { sprite, card };
   }
 
   describe("card hover", () => {
     it("marks a card as hovered on pointerover", () => {
-      const { sprite, visual } = listenTo();
+      const { sprite, card } = listenTo();
 
       sprite.emit("pointerover");
 
-      expect(inputManager.hoveredCardVisual).toBe(visual);
+      expect(inputManager.hoveredCardId).toBe(card.id);
     });
 
     it("clears the hovered card on pointerout when it is the hovered card", () => {
-      const { sprite, visual } = listenTo();
-      inputManager.hoveredCardVisual = visual;
+      const { sprite, card } = listenTo();
+      inputManager.hoveredCardId = card.id;
 
       sprite.emit("pointerout");
 
-      expect(inputManager.hoveredCardVisual).toBeNull();
+      expect(inputManager.hoveredCardId).toBeNull();
     });
 
     it("leaves a different hovered card untouched on pointerout", () => {
       const { sprite } = listenTo();
-      const other = new PlayingCardVisual(gameModel.tableaus[1].getCards()[0]);
-      inputManager.hoveredCardVisual = other;
+      const otherId = gameModel.tableaus[1].getCards()[0].id;
+      inputManager.hoveredCardId = otherId;
 
       sprite.emit("pointerout");
 
-      expect(inputManager.hoveredCardVisual).toBe(other);
+      expect(inputManager.hoveredCardId).toBe(otherId);
     });
   });
 
@@ -226,17 +210,14 @@ describe("BoardInputManager", () => {
      */
     function registerDraggableTableauCard(): {
       sprite: MockSprite;
-      card: ReturnType<SolitaireGame["getCardById"]>;
+      card: PlayingCard;
     } {
-      const cards = gameModel.tableaus[0].getCards();
-      const card = cards[cards.length - 1];
-      const visual = new PlayingCardVisual(card);
+      const card = gameModel.tableaus[0].topCard!;
       // tableau-1 calculated layout origin: x: 348, y: 447
       const sprite = createMockSprite({ x: 350, y: 450 });
-      visual.sprite = asSprite(sprite);
-      sprite.setData("cardVisual", visual);
-      boardScene.cardVisualsMap.set(card.id, visual);
-      inputManager.registerCardListeners(asSprite(sprite), visual);
+      sprite.setData("cardId", card.id);
+      cardSprites.set(card.id, sprite);
+      inputManager.registerCardListeners(asSprite(sprite), card.id);
       inputManager.registerDragListeners();
       return { sprite, card };
     }
@@ -294,27 +275,25 @@ describe("BoardInputManager", () => {
     });
 
     it("tracks the dropped stack while it settles onto its new pile", () => {
-      const cards = gameModel.tableaus[0].getCards();
-      const cardVisual = new PlayingCardVisual(cards[cards.length - 1]);
+      const card = gameModel.tableaus[0].topCard!;
       // tableau-1 calculated layout origin: x: 348, y: 447
       const sprite = createMockSprite({ x: 350, y: 450 });
-      sprite.setData("cardVisual", cardVisual);
-      cardVisual.sprite = asSprite(sprite);
+      sprite.setData("cardId", card.id);
+      cardSprites.set(card.id, sprite);
       vi.spyOn(gameModel, "moveCardToPile").mockReturnValue(true);
       inputManager.registerDragListeners();
       input.emit("dragstart", {}, asSprite(sprite));
 
       input.emit("dragend", {}, asSprite(sprite));
 
-      expect(inputManager.flight?.cardIds).toEqual([cardVisual.playingCard.id]);
+      expect(inputManager.flight?.cardIds).toEqual([card.id]);
     });
 
     it("tracks nothing when the pile refuses the dropped stack", () => {
-      const cards = gameModel.tableaus[0].getCards();
-      const cardVisual = new PlayingCardVisual(cards[cards.length - 1]);
+      const card = gameModel.tableaus[0].topCard!;
       const sprite = createMockSprite({ x: 350, y: 450 });
-      sprite.setData("cardVisual", cardVisual);
-      cardVisual.sprite = asSprite(sprite);
+      sprite.setData("cardId", card.id);
+      cardSprites.set(card.id, sprite);
       vi.spyOn(gameModel, "moveCardToPile").mockReturnValue(false);
       inputManager.registerDragListeners();
       input.emit("dragstart", {}, asSprite(sprite));
@@ -385,25 +364,23 @@ describe("BoardInputManager", () => {
 
   describe("dragging", () => {
     let sprite: MockSprite;
-    let cardVisual: PlayingCardVisual;
+    let card: PlayingCard;
 
     beforeEach(() => {
-      const cards = gameModel.tableaus[0].getCards();
-      cardVisual = new PlayingCardVisual(cards[cards.length - 1]);
+      card = gameModel.tableaus[0].topCard!;
       sprite = createMockSprite({ x: 100, y: 150 });
-      sprite.setData("cardVisual", cardVisual);
-      cardVisual.sprite = asSprite(sprite);
-      boardScene.cardVisualsMap.set(cardVisual.playingCard.id, cardVisual);
+      sprite.setData("cardId", card.id);
+      cardSprites.set(card.id, sprite);
       inputManager.registerDragListeners();
     });
 
     it("captures the dragged stack on dragstart", () => {
       input.emit("dragstart", {}, asSprite(sprite));
 
-      expect(inputManager.drag?.cardIds).toEqual([cardVisual.playingCard.id]);
+      expect(inputManager.drag?.cardIds).toEqual([card.id]);
     });
 
-    it("does not start a drag when the sprite has no card visual", () => {
+    it("does not start a drag when the sprite is not a card", () => {
       const dummy = createMockSprite();
 
       input.emit("dragstart", {}, asSprite(dummy));
@@ -412,7 +389,7 @@ describe("BoardInputManager", () => {
     });
 
     it("does not start a drag when the card is in no model pile", () => {
-      gameModel.tableaus[0].removeCard(cardVisual.playingCard);
+      gameModel.tableaus[0].removeCard(card);
 
       input.emit("dragstart", {}, asSprite(sprite));
 
@@ -436,7 +413,7 @@ describe("BoardInputManager", () => {
       expect(() => input.emit("dragend", {}, asSprite(sprite))).not.toThrow();
     });
 
-    it("snaps back on dragend when the sprite has no card visual", () => {
+    it("snaps back on dragend when the sprite is not a card", () => {
       input.emit("dragstart", {}, asSprite(sprite));
       const dummy = createMockSprite();
 
@@ -455,10 +432,7 @@ describe("BoardInputManager", () => {
 
       input.emit("dragend", {}, asSprite(sprite));
 
-      expect(moveSpy).toHaveBeenCalledWith(
-        cardVisual.playingCard.id,
-        "tableau-1",
-      );
+      expect(moveSpy).toHaveBeenCalledWith(card.id, "tableau-1");
     });
 
     it("snaps back when dropped on a target but the move is rejected", () => {
@@ -486,7 +460,7 @@ describe("BoardInputManager", () => {
   describe("reset", () => {
     it("clears interaction state and requests a snap on reset", () => {
       const card = gameModel.tableaus[0].getCards()[0];
-      inputManager.hoveredCardVisual = new PlayingCardVisual(card);
+      inputManager.hoveredCardId = card.id;
       inputManager.isStockBackgroundHovered = true;
       inputManager.drag = { cardIds: [card.id], primary: { x: 1, y: 2 } };
       inputManager.snapAll = false;

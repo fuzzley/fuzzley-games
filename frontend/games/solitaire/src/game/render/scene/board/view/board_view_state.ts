@@ -1,5 +1,4 @@
 import { Point } from "@/game/common/point";
-import { PileType } from "@/game/model/card/card_pile";
 
 /**
  * The available drawable area, in device pixels, the board is laid out within.
@@ -65,14 +64,15 @@ export interface CardView {
   snap: boolean;
 }
 
-/** The desired presentation of a pile's background placeholder for one frame. */
+/**
+ * The desired presentation of a pile's background placeholder for one frame.
+ *
+ * Identified by pile id alone: the applier looks the sprite up by that id, so
+ * there is no pile type to branch on and no index that could go missing.
+ */
 export interface PileBackgroundView {
   /** The unique id of the pile the background belongs to. */
   pileId: string;
-  /** The role/type of the pile. */
-  pileType: PileType;
-  /** The index of the pile (for foundation or tableau), if applicable. */
-  pileIndex?: number;
   /** Absolute target x in screen pixels. */
   x: number;
   /** Absolute target y in screen pixels. */

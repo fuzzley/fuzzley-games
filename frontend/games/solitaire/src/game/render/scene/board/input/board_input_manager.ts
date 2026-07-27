@@ -1,6 +1,5 @@
 import * as Phaser from "phaser";
 import type { BoardScene } from "../board_scene";
-import type { PlayingCardVisual } from "@/game/render/visual/card/playing_card_visual";
 import { CardPile, PileType } from "@/game/model/card/card_pile";
 import type { PlayingCard } from "@/game/model/card/playing_card";
 import {
@@ -11,6 +10,15 @@ import {
 import { resolveDragTarget } from "./drop_target_resolver";
 
 /**
+ * The id of the card a sprite draws, as stamped on it when the scene created
+ * it, or null for a sprite that is not a card.
+ */
+function cardIdOf(gameObject: Phaser.GameObjects.Sprite): string | null {
+  const cardId: unknown = gameObject.getData("cardId");
+  return typeof cardId === "string" ? cardId : null;
+}
+
+/**
  * Coordinates and handles drag-and-drop state, overlaps, and mouse pointer events
  * for card sprites and empty pile placeholder sprites.
  */
@@ -18,8 +26,8 @@ export class BoardInputManager {
   /** Maximum milliseconds between two clicks for them to count as a double-click. */
   private static readonly DOUBLE_CLICK_MS = 350;
 
-  /** The currently hovered card visual wrapper. */
-  public hoveredCardVisual: PlayingCardVisual | null = null;
+  /** The id of the currently hovered card, or null when none is. */
+  public hoveredCardId: string | null = null;
 
   /** Whether the stock pile background sprite is currently hovered. */
   public isStockBackgroundHovered = false;
@@ -73,31 +81,33 @@ export class BoardInputManager {
 
   /**
    * Registers event listeners on individual playing card sprites.
+   *
+   * @param sprite The card's sprite.
+   * @param cardId The id of the card the sprite draws.
    */
   public registerCardListeners(
     sprite: Phaser.GameObjects.Sprite,
-    visual: PlayingCardVisual,
+    cardId: string,
   ): void {
     sprite.on("pointerover", () => {
-      this.hoveredCardVisual = visual;
+      this.hoveredCardId = cardId;
     });
 
     sprite.on("pointerout", () => {
-      if (this.hoveredCardVisual === visual) {
-        this.hoveredCardVisual = null;
+      if (this.hoveredCardId === cardId) {
+        this.hoveredCardId = null;
       }
     });
 
-    sprite.on("pointerdown", () => this.handleCardPointerDown(visual));
+    sprite.on("pointerdown", () => this.handleCardPointerDown(cardId));
   }
 
   /**
    * Handles a pointerdown on a card sprite: resolves the containing pile, then
    * dispatches to the double-click auto-move or stock-draw behavior.
    */
-  private handleCardPointerDown(visual: PlayingCardVisual): void {
+  private handleCardPointerDown(cardId: string): void {
     const game = this.boardScene.gameModel;
-    const cardId = visual.playingCard.id;
     const pile = game.getPileContainingCard(cardId);
     if (!pile) {
       throw new Error(`Card ${cardId} is not in a pile`);
@@ -128,7 +138,7 @@ export class BoardInputManager {
     this.lastClickedCardId = null;
 
     if (pile.type === PileType.STOCK) {
-      this.tryDrawFromStock(pile, visual);
+      this.tryDrawFromStock(pile, cardId);
     }
   }
 
@@ -163,11 +173,8 @@ export class BoardInputManager {
   /**
    * Draws from the stock when the clicked card is the top stock card.
    */
-  private tryDrawFromStock(
-    pile: CardPile<PlayingCard>,
-    visual: PlayingCardVisual,
-  ): void {
-    if (pile.topCard === visual.playingCard) {
+  private tryDrawFromStock(pile: CardPile<PlayingCard>, cardId: string): void {
+    if (pile.topCard?.id === cardId) {
       this.boardScene.gameModel.drawCardsFromStock();
     }
   }
@@ -200,15 +207,13 @@ export class BoardInputManager {
     pointer: Phaser.Input.Pointer,
     gameObject: Phaser.GameObjects.Sprite,
   ): void {
-    const visual = gameObject.getData("cardVisual") as PlayingCardVisual;
-    if (!visual) return;
+    const cardId = cardIdOf(gameObject);
+    if (!cardId) return;
 
-    const sourcePile = this.boardScene.gameModel.getPileContainingCard(
-      visual.playingCard.id,
-    );
+    const sourcePile = this.boardScene.gameModel.getPileContainingCard(cardId);
     if (!sourcePile) return;
 
-    const cardIds = this.stackFromCard(sourcePile, visual.playingCard.id);
+    const cardIds = this.stackFromCard(sourcePile, cardId);
     if (cardIds.length === 0) return;
 
     this.drag = {
@@ -240,13 +245,13 @@ export class BoardInputManager {
   ): void {
     if (!this.drag) return;
 
-    const visual = gameObject.getData("cardVisual") as PlayingCardVisual;
+    const cardId = cardIdOf(gameObject);
     const drag = this.drag;
 
     // Clear drag tracking state first so that layout/highlight updates can accurately reflect that we are no longer dragging.
     this.drag = null;
 
-    if (!visual) {
+    if (!cardId) {
       return;
     }
 
@@ -263,7 +268,7 @@ export class BoardInputManager {
     }
 
     const moved = this.boardScene.gameModel.moveCardToPile(
-      visual.playingCard.id,
+      cardId,
       target.pileId,
     );
     if (moved) {
@@ -297,7 +302,7 @@ export class BoardInputManager {
   /** Snapshot of the pointer-driven interaction state consumed by the view builder each frame. */
   public get interaction(): BoardInteractionState {
     return {
-      hoveredCardId: this.hoveredCardVisual?.playingCard.id ?? null,
+      hoveredCardId: this.hoveredCardId,
       isStockBackgroundHovered: this.isStockBackgroundHovered,
       drag: this.drag,
       flight: this.flightState,
@@ -310,7 +315,7 @@ export class BoardInputManager {
    * game reset so no stale hover, drag, or flight survives into the new deal.
    */
   public resetInteraction(): void {
-    this.hoveredCardVisual = null;
+    this.hoveredCardId = null;
     this.isStockBackgroundHovered = false;
     this.drag = null;
     this.flightState = null;

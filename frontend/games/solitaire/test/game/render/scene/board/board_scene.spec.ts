@@ -13,7 +13,6 @@ import {
 } from "@/game/render/scene/board/view/board_geometry";
 import { DESIGN_WIDTH_PX } from "@/game/render/scene/board/layout/board_layout_constants";
 import { STOCK_PILE_ID } from "@/game/model/card/card_pile";
-import { PlayingCardVisual } from "@/game/render/visual/card/playing_card_visual";
 import { relocate } from "@test/support/game_scenarios";
 
 vi.mock("phaser", async () => {
@@ -35,10 +34,27 @@ describe("BoardScene", () => {
     boardScene.create();
   });
 
-  /** The visual for a card sitting in the stock, for tracking its sprite. */
-  function stockCardVisual(): PlayingCardVisual {
+  /** The sprite of a card sitting in the stock, for tracking where it goes. */
+  function stockCardSprite(): MockSprite {
     const card = boardScene.gameModel.stock.getCards()[0];
-    return boardScene.cardVisualsMap.get(card.id)!;
+    return asMock(boardScene.cardSprite(card.id));
+  }
+
+  /** Every card sprite on the board. */
+  function allCardSprites(): MockSprite[] {
+    return [...boardScene.cardIds].map((cardId) =>
+      asMock(boardScene.cardSprite(cardId)),
+    );
+  }
+
+  /** The frame and alpha of each of the given piles' background sprites. */
+  function backgroundsOf(
+    pileIds: string[],
+  ): { frame: string; alpha: number }[] {
+    return pileIds.map((pileId) => {
+      const sprite = asMock(boardScene.pileBackgroundSprite(pileId));
+      return { frame: sprite.frame, alpha: sprite.alpha };
+    });
   }
 
   describe("construction", () => {
@@ -64,33 +80,37 @@ describe("BoardScene", () => {
   });
 
   describe("pile backgrounds", () => {
-    it("gives the stock pile a placeholder background at the shared alpha", () => {
-      const sprite = asMock(boardScene.stockPile.sprite);
+    const alpha = BoardScene.PILE_BACKGROUND_ALPHA;
 
-      expect(sprite.frame).toBe("card-placeholder-full-border-reset");
-      expect(sprite.alpha).toBe(BoardScene.PILE_BACKGROUND_ALPHA);
+    it("gives the stock pile a placeholder background at the shared alpha", () => {
+      expect(backgroundsOf([STOCK_PILE_ID])).toEqual([
+        { frame: "card-placeholder-full-border-reset", alpha },
+      ]);
     });
 
     it("gives every tableau pile a placeholder background at the shared alpha", () => {
-      const frames = boardScene.tableauPiles.map((p) => asMock(p.sprite).frame);
-      const alphas = boardScene.tableauPiles.map((p) => asMock(p.sprite).alpha);
+      const pileIds = boardScene.gameModel.tableaus.map((pile) => pile.id);
 
-      expect(frames).toEqual(Array(7).fill("card-placeholder"));
-      expect(alphas).toEqual(Array(7).fill(BoardScene.PILE_BACKGROUND_ALPHA));
+      expect(backgroundsOf(pileIds)).toEqual(
+        Array(7).fill({ frame: "card-placeholder", alpha }),
+      );
     });
 
     it("gives every foundation pile a placeholder background at the shared alpha", () => {
-      const frames = boardScene.foundationPiles.map(
-        (p) => asMock(p.sprite).frame,
-      );
-      const alphas = boardScene.foundationPiles.map(
-        (p) => asMock(p.sprite).alpha,
-      );
+      const pileIds = boardScene.gameModel.foundations.map((pile) => pile.id);
 
-      expect(frames).toEqual(
-        Array(4).fill("card-placeholder-full-border-circle"),
+      expect(backgroundsOf(pileIds)).toEqual(
+        Array(4).fill({
+          frame: "card-placeholder-full-border-circle",
+          alpha,
+        }),
       );
-      expect(alphas).toEqual(Array(4).fill(BoardScene.PILE_BACKGROUND_ALPHA));
+    });
+
+    it("gives the waste pile no background, so it fans over bare table", () => {
+      expect(
+        boardScene.pileBackgroundSprite(boardScene.gameModel.waste.id),
+      ).toBeUndefined();
     });
   });
 
@@ -107,7 +127,7 @@ describe("BoardScene", () => {
   describe("responsiveness", () => {
     it("snaps cards to their new places after a resize rather than easing", () => {
       const scale = boardScene.scale as unknown as MockScaleManager;
-      const sprite = asMock(stockCardVisual().sprite);
+      const sprite = stockCardSprite();
       boardScene.update(0, 16);
       const beforeResize = sprite.x;
 
@@ -132,7 +152,7 @@ describe("BoardScene", () => {
         viewport,
         computeScale(viewport),
       ).get(STOCK_PILE_ID)!;
-      const sprite = asMock(stockCardVisual().sprite);
+      const sprite = stockCardSprite();
 
       boardScene.update(0, 16);
 
@@ -153,7 +173,7 @@ describe("BoardScene", () => {
         "card-hearts-ace",
         boardScene.gameModel.tableaus[0],
       );
-      const sprite = asMock(boardScene.cardVisualsMap.get(ace.id)!.sprite);
+      const sprite = asMock(boardScene.cardSprite(ace.id));
       boardScene.update(0, 16); // the first frame snaps the board into place
 
       sprite.emit("pointerdown");
@@ -164,9 +184,7 @@ describe("BoardScene", () => {
 
     /** The highest depth of any card other than the given sprite. */
     function deepestCardExcept(sprite: MockSprite): number {
-      const others = [...boardScene.cardVisualsMap.values()]
-        .map((visual) => asMock(visual.sprite))
-        .filter((other) => other !== sprite);
+      const others = allCardSprites().filter((other) => other !== sprite);
       return Math.max(...others.map((other) => other.depth));
     }
 
@@ -194,9 +212,7 @@ describe("BoardScene", () => {
   describe("game reset", () => {
     /** The card sprite currently wearing a highlight border, if any. */
     function highlightedCardSprite(): MockSprite | undefined {
-      return [...boardScene.cardVisualsMap.values()]
-        .map((visual) => asMock(visual.sprite))
-        .find((sprite) => sprite.depth >= 1000);
+      return allCardSprites().find((sprite) => sprite.depth >= 1000);
     }
 
     it("drops a hover so no border survives into the new deal", () => {
@@ -205,7 +221,7 @@ describe("BoardScene", () => {
         "card-hearts-ace",
         boardScene.gameModel.tableaus[0],
       );
-      asMock(boardScene.cardVisualsMap.get(ace.id)!.sprite).emit("pointerover");
+      asMock(boardScene.cardSprite(ace.id)).emit("pointerover");
       boardScene.update(0, 16);
 
       // Dealing a fresh board is what raises game-reset, so the interaction
@@ -217,33 +233,25 @@ describe("BoardScene", () => {
     });
 
     it("snaps every card into place rather than easing from the old deal", () => {
+      const positions = () =>
+        allCardSprites().map((sprite) => ({ x: sprite.x, y: sprite.y }));
       boardScene.update(0, 16);
-      const before = [...boardScene.cardVisualsMap.values()].map((visual) => ({
-        x: asMock(visual.sprite).x,
-        y: asMock(visual.sprite).y,
-      }));
+      const before = positions();
 
       boardScene.gameModel.startNewGame();
       boardScene.update(16, 16);
 
-      const after = [...boardScene.cardVisualsMap.values()].map((visual) => ({
-        x: asMock(visual.sprite).x,
-        y: asMock(visual.sprite).y,
-      }));
       // A snap lands on the target in one frame; an ease would leave the cards
       // part way between the two deals.
+      const after = positions();
       expect(after).not.toEqual(before);
       boardScene.update(32, 16);
-      const settled = [...boardScene.cardVisualsMap.values()].map((visual) => ({
-        x: asMock(visual.sprite).x,
-        y: asMock(visual.sprite).y,
-      }));
-      expect(settled).toEqual(after);
+      expect(positions()).toEqual(after);
     });
   });
 
   describe("creation errors", () => {
-    it("throws when a card model is missing while creating visuals", () => {
+    it("throws when a card model is missing while creating sprites", () => {
       resetGameModel();
       const freshScene = new BoardScene();
       const getCardById = vi
