@@ -14,6 +14,14 @@ export class GameState {
   /** The total number of moves the player has made. */
   readonly moves$ = new BehaviorSubject<number>(0);
 
+  /**
+   * How many applied actions can still be taken back.
+   *
+   * Published so the UI can enable and disable an undo control without having
+   * to reach into the game's history itself.
+   */
+  readonly undoDepth$ = new BehaviorSubject<number>(0);
+
   /** Current score value. */
   get score(): number {
     return this.score$.value;
@@ -31,6 +39,16 @@ export class GameState {
   set moves(value: number) {
     if (value !== this.moves$.value) {
       this.moves$.next(value);
+    }
+  }
+
+  /** Current undo depth. */
+  get undoDepth(): number {
+    return this.undoDepth$.value;
+  }
+  set undoDepth(value: number) {
+    if (value !== this.undoDepth$.value) {
+      this.undoDepth$.next(value);
     }
   }
 }

@@ -21,11 +21,31 @@
   color: #fff;
   outline: none;
   touch-action: manipulation;
+  /* A label is never worth wrapping a button over. */
+  white-space: nowrap;
 }
 
 .btn-icon {
   width: 16px;
   height: 16px;
+}
+
+/*
+ * A disabled action still reads as an action that exists, just not one that is
+ * available yet — so it dims rather than disappearing, and drops the hover lift
+ * that would otherwise invite a click.
+ */
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn:disabled:hover {
+  transform: none;
+}
+
+.btn-secondary:disabled:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .btn-primary {

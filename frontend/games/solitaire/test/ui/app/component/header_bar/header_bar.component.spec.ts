@@ -8,7 +8,7 @@ import {
   createMockGameModel,
   asGameModel,
 } from "@test/support/game_model_mock";
-import { clickElement, queryText } from "@test/support/dom";
+import { clickElement, queryRequired, queryText } from "@test/support/dom";
 
 describe("HeaderBarComponent", () => {
   let component: HeaderBarComponent;
@@ -62,6 +62,30 @@ describe("HeaderBarComponent", () => {
     clickElement(fixture, "button[title*='New Game']");
 
     expect(newGameSpy).toHaveBeenCalled();
+  });
+
+  it("disables the undo button with nothing to take back", () => {
+    const undoButton = queryRequired(fixture, "button[title*='Undo']");
+
+    expect((undoButton as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("enables the undo button once the model has history", () => {
+    mockGameModel.state.undoDepth$.next(1);
+    fixture.detectChanges();
+
+    const undoButton = queryRequired(fixture, "button[title*='Undo']");
+    expect((undoButton as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("triggers session.undo() when the undo button is clicked", () => {
+    mockGameModel.state.undoDepth$.next(1);
+    fixture.detectChanges();
+    const undoSpy = vi.spyOn(session, "undo");
+
+    clickElement(fixture, "button[title*='Undo']");
+
+    expect(undoSpy).toHaveBeenCalled();
   });
 
   it("emits openSettings when settings button is clicked", () => {

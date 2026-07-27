@@ -181,4 +181,45 @@ describe("GameSessionService", () => {
       expect(harness.session.timerText()).toBe("00:01");
     });
   });
+
+  describe("undo", () => {
+    it("is unavailable with nothing to take back", () => {
+      const harness = buildSession(createMockGameModel({ undoDepth: 0 }));
+
+      expect(harness.session.canUndo()).toBe(false);
+    });
+
+    it("becomes available once the model has history", () => {
+      const harness = buildSession(createMockGameModel({ undoDepth: 0 }));
+
+      harness.model.state.undoDepth$.next(1);
+
+      expect(harness.session.canUndo()).toBe(true);
+    });
+
+    it("is unavailable on a won game, whose board is finished", () => {
+      const harness = buildSession(createMockGameModel({ undoDepth: 3 }));
+
+      harness.emitGameWon();
+      TestBed.flushEffects();
+
+      expect(harness.session.canUndo()).toBe(false);
+    });
+
+    it("takes the move back on the model", () => {
+      const harness = buildSession(createMockGameModel({ undoDepth: 2 }));
+
+      harness.session.undo();
+
+      expect(harness.model.undo).toHaveBeenCalledTimes(1);
+    });
+
+    it("does nothing when there is nothing to take back", () => {
+      const harness = buildSession(createMockGameModel({ undoDepth: 0 }));
+
+      harness.session.undo();
+
+      expect(harness.model.undo).not.toHaveBeenCalled();
+    });
+  });
 });

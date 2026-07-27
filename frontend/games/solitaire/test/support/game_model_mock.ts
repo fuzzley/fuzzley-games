@@ -5,6 +5,7 @@ import type { SolitaireGame } from "@/game/model/game/solitaire_game";
 export interface MockGameModelOverrides {
   score?: number;
   moves?: number;
+  undoDepth?: number;
   drawCount?: 1 | 3;
   cardBackStyle?: "card-back-blue" | "card-back-red";
   backgroundColor?: string;
@@ -20,6 +21,7 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
     state: {
       score$: new BehaviorSubject<number>(overrides.score ?? 0),
       moves$: new BehaviorSubject<number>(overrides.moves ?? 0),
+      undoDepth$: new BehaviorSubject<number>(overrides.undoDepth ?? 0),
       get score() {
         return this.score$.value;
       },
@@ -31,6 +33,12 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
       },
       set moves(v: number) {
         this.moves$.next(v);
+      },
+      get undoDepth() {
+        return this.undoDepth$.value;
+      },
+      set undoDepth(v: number) {
+        this.undoDepth$.next(v);
       },
     },
     settings: {
@@ -65,6 +73,7 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
     off: vi.fn(),
     startNewGame: vi.fn(),
     restartGame: vi.fn(),
+    undo: vi.fn(),
   };
 }
 

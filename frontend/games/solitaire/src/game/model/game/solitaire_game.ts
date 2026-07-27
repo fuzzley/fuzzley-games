@@ -5,6 +5,7 @@ import { GameState } from "./game_state";
 import { ScoringPolicy } from "./scoring_policy";
 import { MoveRules } from "./move_rules";
 import { Dealer } from "./dealer";
+import { AppliedMove } from "./move_history";
 import {
   CardPile,
   PileType,
@@ -64,6 +65,9 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
 
   private recycleCount = 0;
   private initialDeck: PlayingCard[] = [];
+
+  /** The applied actions, oldest first, that {@link undo} unwinds. */
+  private readonly history: AppliedMove[] = [];
 
   /** The persistent card instances shared across every deal. */
   private readonly registry = new CardRegistry();
@@ -204,6 +208,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     this.state.score = 0;
     this.state.moves = 0;
     this.recycleCount = 0;
+    this.clearHistory();
     this.resetPiles();
 
     if (this.settings.debug.almostWin) {
@@ -273,13 +278,26 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    */
   private drawFromStock(): void {
     const drawCount = Math.min(this.settings.drawCount, this.stock.size);
+    const drawn: PlayingCard[] = [];
     for (let i = 0; i < drawCount; i++) {
       const topCard = this.stock.topCard;
-      if (!topCard) return;
+      if (!topCard) break;
       this.stock.removeCard(topCard);
       topCard.faceUp = true;
       this.waste.addCard(topCard);
+      drawn.push(topCard);
     }
+
+    this.record({
+      kind: "draw",
+      // Reversed: the cards came off the top of the stock, so the order they
+      // were drawn in is the opposite of the order they sat in.
+      cardIds: drawn.reverse().map((card) => card.id),
+      fromPileId: this.stock.id,
+      toPileId: this.waste.id,
+      scoreDelta: 0,
+      faceUpBefore: false,
+    });
   }
 
   /**
@@ -287,6 +305,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    * guarantees the waste is non-empty.
    */
   private recycleWaste(): void {
+    const scoreBefore = this.state.score;
     this.recycleCount++;
     const penalty = this.scoring.recyclePenalty(
       this.settings.drawCount,
@@ -294,6 +313,8 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     );
     this.state.score = Math.max(0, this.state.score - penalty);
 
+    // Captured bottom-first before draining, which is the order undo restores.
+    const recycled = [...this.waste.getCards()];
     let card = this.waste.topCard;
     while (card) {
       this.waste.removeCard(card);
@@ -301,6 +322,15 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       this.stock.addCard(card);
       card = this.waste.topCard;
     }
+
+    this.record({
+      kind: "recycle",
+      cardIds: recycled.map((recycledCard) => recycledCard.id),
+      fromPileId: this.waste.id,
+      toPileId: this.stock.id,
+      scoreDelta: this.state.score - scoreBefore,
+      faceUpBefore: true,
+    });
   }
 
   /**
@@ -318,6 +348,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       return false;
     }
 
+    const scoreBefore = this.state.score;
     this.state.moves++;
     const scoreChange = this.scoring.moveScore(
       move.sourcePile.type,
@@ -326,10 +357,88 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     this.state.score = Math.max(0, this.state.score + scoreChange);
 
     this.executeMove(move.movingStack, move.sourcePile, move.targetPile);
-    this.autoFlipExposedCard(move.sourcePile);
+    const flippedCard = this.autoFlipExposedCard(move.sourcePile);
+
+    this.record({
+      kind: "move",
+      cardIds: move.movingStack.map((card) => card.id),
+      fromPileId: move.sourcePile.id,
+      toPileId: move.targetPile.id,
+      // Recorded after the flip, so the bonus it awarded is included and undo
+      // takes both back together.
+      scoreDelta: this.state.score - scoreBefore,
+      faceUpBefore: true,
+      flippedCardId: flippedCard?.id,
+    });
+
     this.checkWinCondition();
 
     return true;
+  }
+
+  /**
+   * Takes back the most recent action, restoring the piles, the face-up states,
+   * the score and the move count to what they were before it.
+   *
+   * @returns True if an action was taken back; false when there is no history.
+   */
+  public undo(): boolean {
+    const last = this.history.pop();
+    this.state.undoDepth = this.history.length;
+    if (!last) {
+      return false;
+    }
+
+    const fromPile = this.getPileById(last.fromPileId);
+    const toPile = this.getPileById(last.toPileId);
+    if (!fromPile || !toPile) {
+      return false;
+    }
+
+    // Turn the exposed card back down first: it is still in the pile the cards
+    // are about to be put back on top of.
+    if (last.flippedCardId) {
+      const flipped = this.getCardById(last.flippedCardId);
+      if (flipped) {
+        flipped.faceUp = false;
+      }
+    }
+
+    // cardIds are in source order, so re-appending in that order restores the
+    // pile exactly, whichever way the action itself moved them.
+    for (const cardId of last.cardIds) {
+      const card = this.getCardById(cardId);
+      if (!card) continue;
+      toPile.removeCard(card);
+      card.faceUp = last.faceUpBefore;
+      fromPile.addCard(card);
+    }
+
+    this.state.score = Math.max(0, this.state.score - last.scoreDelta);
+    this.state.moves--;
+    if (last.kind === "recycle") {
+      // So the next recycle is charged the same penalty this one was.
+      this.recycleCount--;
+    }
+
+    return true;
+  }
+
+  /** Whether there is an action {@link undo} can take back. */
+  public get canUndo(): boolean {
+    return this.history.length > 0;
+  }
+
+  /** Appends an applied action to the history and publishes the new depth. */
+  private record(move: AppliedMove): void {
+    this.history.push(move);
+    this.state.undoDepth = this.history.length;
+  }
+
+  /** Drops the whole history, for a new deal that nothing before it precedes. */
+  private clearHistory(): void {
+    this.history.length = 0;
+    this.state.undoDepth = 0;
   }
 
   /**
@@ -436,18 +545,22 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    * the exposed card is already face up.
    *
    * @param sourcePile The pile the moved stack was taken from.
+   * @returns The card that was turned face up, or undefined if none was.
    */
-  private autoFlipExposedCard(sourcePile: CardPile<PlayingCard>): void {
+  private autoFlipExposedCard(
+    sourcePile: CardPile<PlayingCard>,
+  ): PlayingCard | undefined {
     if (sourcePile.type !== PileType.TABLEAU) {
-      return;
+      return undefined;
     }
     const topRemaining = sourcePile.topCard;
     if (!topRemaining || topRemaining.faceUp) {
-      return;
+      return undefined;
     }
 
     topRemaining.faceUp = true;
     this.state.score += this.scoring.tableauFlipBonus();
+    return topRemaining;
   }
 
   /**

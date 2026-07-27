@@ -1,4 +1,11 @@
-import { Injectable, signal, effect, inject, DestroyRef } from "@angular/core";
+import {
+  Injectable,
+  signal,
+  computed,
+  effect,
+  inject,
+  DestroyRef,
+} from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { GAME_MODEL } from "../provider/game_model.provider";
 import { CardBackStyle, DrawCount } from "@/game/model/game/game_settings";
@@ -33,6 +40,16 @@ export class GameSessionService {
 
   readonly isGameWon = signal(false);
   readonly timerText = this.timer.timerText;
+
+  private readonly undoDepth = toSignal(this.gameModel.state.undoDepth$, {
+    initialValue: 0,
+  });
+
+  /**
+   * Whether there is a move to take back. A won game is excluded: the board is
+   * finished, and the victory overlay covers it.
+   */
+  readonly canUndo = computed(() => this.undoDepth() > 0 && !this.isGameWon());
 
   constructor() {
     // Auto-start the stopwatch once the first move is made (and not yet won).
@@ -88,6 +105,12 @@ export class GameSessionService {
         },
       );
     }
+  }
+
+  /** Takes back the most recent move, if there is one. */
+  undo(): void {
+    if (!this.canUndo()) return;
+    this.gameModel.undo();
   }
 
   setCardBack(style: CardBackStyle): void {
