@@ -31,6 +31,7 @@ export class SettingsDrawerComponent {
   /** Whether the side settings drawer is visible. */
   readonly open = input<boolean>(false);
 
-  /** Emitted when the user requests to close the settings drawer. */
-  readonly close = output();
+  /** Emitted when the user asks to close the settings drawer. Named `closed`
+   * rather than `close` so it cannot be confused with the native DOM event. */
+  readonly closed = output();
 }

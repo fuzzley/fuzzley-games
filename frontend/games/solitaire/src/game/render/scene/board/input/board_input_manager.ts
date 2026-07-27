@@ -58,24 +58,27 @@ export class BoardInputManager {
    * Binds the global drag and drop event listeners to Phaser's input system.
    */
   public registerDragListeners(): void {
+    // Phaser's drag events carry the pointer as their first argument, which
+    // none of these handlers need: the drag position comes from the event's own
+    // dragX/dragY, already converted into game space.
     this.boardScene.input.on(
       "dragstart",
-      (pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Sprite) =>
-        this.onDragStart(pointer, gameObject),
+      (_pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Sprite) =>
+        this.onDragStart(gameObject),
     );
     this.boardScene.input.on(
       "drag",
       (
-        pointer: Phaser.Input.Pointer,
-        gameObject: Phaser.GameObjects.Sprite,
+        _pointer: Phaser.Input.Pointer,
+        _gameObject: Phaser.GameObjects.Sprite,
         dragX: number,
         dragY: number,
-      ) => this.onDrag(pointer, gameObject, dragX, dragY),
+      ) => this.onDrag(dragX, dragY),
     );
     this.boardScene.input.on(
       "dragend",
-      (pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Sprite) =>
-        this.onDragEnd(pointer, gameObject),
+      (_pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Sprite) =>
+        this.onDragEnd(gameObject),
     );
   }
 
@@ -200,13 +203,8 @@ export class BoardInputManager {
     });
   }
 
-  /**
-   * Handles Phaser dragstart event.
-   */
-  private onDragStart(
-    pointer: Phaser.Input.Pointer,
-    gameObject: Phaser.GameObjects.Sprite,
-  ): void {
+  /** Picks up the card the drag started on, along with the stack above it. */
+  private onDragStart(gameObject: Phaser.GameObjects.Sprite): void {
     const cardId = cardIdOf(gameObject);
     if (!cardId) return;
 
@@ -222,27 +220,15 @@ export class BoardInputManager {
     };
   }
 
-  /**
-   * Handles Phaser drag event.
-   */
-  private onDrag(
-    pointer: Phaser.Input.Pointer,
-    gameObject: Phaser.GameObjects.Sprite,
-    dragX: number,
-    dragY: number,
-  ): void {
+  /** Follows the pointer with the stack in hand. */
+  private onDrag(dragX: number, dragY: number): void {
     if (this.drag) {
       this.drag.primary = { x: dragX, y: dragY };
     }
   }
 
-  /**
-   * Handles Phaser dragend event.
-   */
-  private onDragEnd(
-    pointer: Phaser.Input.Pointer,
-    gameObject: Phaser.GameObjects.Sprite,
-  ): void {
+  /** Drops the stack in hand onto whichever pile it was released over. */
+  private onDragEnd(gameObject: Phaser.GameObjects.Sprite): void {
     if (!this.drag) return;
 
     const cardId = cardIdOf(gameObject);
