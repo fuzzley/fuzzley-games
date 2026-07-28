@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach } from "vitest";
+import { InjectionToken } from "@angular/core";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { AppComponent } from "@/ui/app/component/app/app.component";
@@ -23,6 +24,16 @@ vi.mock("@/games/klondike/solitaire", () => ({
       /* no-op */
     }
   },
+}));
+
+// The board catalog is the only thing here that names Phaser, whose module
+// init does not survive jsdom. What this component does with a scene is the
+// subject; building a real one is not.
+vi.mock("@/ui/app/provider/board_catalog", () => ({
+  GAME_BOARD_SCENE: new InjectionToken("GAME_BOARD_SCENE", {
+    providedIn: "root",
+    factory: () => ({}),
+  }),
 }));
 
 describe("AppComponent Composition", () => {

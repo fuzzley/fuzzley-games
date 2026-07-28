@@ -3,7 +3,10 @@ import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed } from "@angular/core/testing";
 import { GameSessionService } from "@/ui/app/service/game_session.service";
 import { ConfirmationService } from "@/ui/app/service/confirmation.service";
-import { GAME_MODEL } from "@/ui/app/provider/game_model.provider";
+import {
+  GAME_MODEL,
+  GAME_RULE_OPTIONS,
+} from "@/ui/app/provider/game_model.provider";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import {
   createMockGameModel,
@@ -29,9 +32,39 @@ function buildSession(model: MockGameModel): Harness {
   });
 
   const presentation = createMockPresentation();
+  // The rule options the running game offers. Klondike's are a draw mode and a
+  // debug board; a game with neither supplies an empty object instead.
+  const ruleOptions = {
+    drawCount: {
+      options: [1, 3],
+      current: () => model.settings.drawCount,
+      set: (count: number): void => {
+        model.settings.setDrawCount(count);
+      },
+      subscribe: (listener: (count: number) => void) => {
+        const sub = model.settings.drawCount$.subscribe(listener);
+        return (): void => {
+          sub.unsubscribe();
+        };
+      },
+    },
+    almostWin: {
+      current: () => model.settings.debug.almostWin,
+      set: (enabled: boolean): void => {
+        model.settings.debug.setAlmostWin(enabled);
+      },
+      subscribe: (listener: (enabled: boolean) => void) => {
+        const sub = model.settings.debug.almostWin$.subscribe(listener);
+        return (): void => {
+          sub.unsubscribe();
+        };
+      },
+    },
+  };
   TestBed.configureTestingModule({
     providers: [
       { provide: GAME_MODEL, useValue: asGameModel(model) },
+      { provide: GAME_RULE_OPTIONS, useValue: ruleOptions },
       {
         provide: PresentationSettingsService,
         useValue: asPresentation(presentation),

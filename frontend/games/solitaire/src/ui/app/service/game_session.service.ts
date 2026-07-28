@@ -7,8 +7,7 @@ import {
   DestroyRef,
 } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { GAME_MODEL } from "../provider/game_model.provider";
-import { DrawCount } from "@/games/klondike/game_settings";
+import { GAME_MODEL, GAME_RULE_OPTIONS } from "../provider/game_model.provider";
 import {
   CardBackStyle,
   PresentationSettingsService,
@@ -28,20 +27,32 @@ export class GameSessionService {
   private readonly timer = inject(TimerService);
   private readonly confirmation = inject(ConfirmationService);
   private readonly presentation = inject(PresentationSettingsService);
+  private readonly rules = inject(GAME_RULE_OPTIONS);
   private readonly destroyRef = inject(DestroyRef);
 
   // --- Signals bridged from observable game state ---
   readonly score = toSignal(this.gameModel.state.score$, { initialValue: 0 });
   readonly moves = toSignal(this.gameModel.state.moves$, { initialValue: 0 });
-  readonly drawCount = toSignal(this.gameModel.settings.drawCount$, {
-    initialValue: 3,
-  });
+  /**
+   * The draw mode, or null for a game that has no stock to draw from.
+   *
+   * A signal fed by the game's own option rather than read off a settings
+   * object, because FreeCell has no such setting and must not be assumed to.
+   */
+  readonly drawCount = signal<number | null>(
+    this.rules.drawCount?.current() ?? null,
+  );
+
+  /** The draw modes the running game offers, empty when it offers none. */
+  readonly drawCountOptions: readonly number[] =
+    this.rules.drawCount?.options ?? [];
   readonly cardBack = toSignal(this.presentation.cardBackStyle$, {
     initialValue: "card-back-blue" satisfies CardBackStyle,
   });
-  readonly almostWin = toSignal(this.gameModel.settings.debug.almostWin$, {
-    initialValue: false,
-  });
+  /** The debug board toggle, or null for a game that offers none. */
+  readonly almostWin = signal<boolean | null>(
+    this.rules.almostWin?.current() ?? null,
+  );
 
   readonly isGameWon = signal(false);
   readonly timerText = this.timer.timerText;
@@ -57,6 +68,18 @@ export class GameSessionService {
   readonly canUndo = computed(() => this.undoDepth() > 0 && !this.isGameWon());
 
   constructor() {
+    // Follow whichever options the game offers, and none it does not.
+    const stopFollowingDraw = this.rules.drawCount?.subscribe((count) =>
+      this.drawCount.set(count),
+    );
+    const stopFollowingAlmostWin = this.rules.almostWin?.subscribe((enabled) =>
+      this.almostWin.set(enabled),
+    );
+    this.destroyRef.onDestroy(() => {
+      stopFollowingDraw?.();
+      stopFollowingAlmostWin?.();
+    });
+
     // Auto-start the stopwatch once the first move is made (and not yet won).
     effect(() => {
       const moves = this.moves();
@@ -96,15 +119,17 @@ export class GameSessionService {
     );
   }
 
-  setDrawMode(mode: DrawCount): void {
-    if (this.drawCount() === mode) return;
+  setDrawMode(mode: number): void {
+    const drawCount = this.rules.drawCount;
+    if (!drawCount || this.drawCount() === mode) return;
+
     if (this.moves() === 0) {
-      this.gameModel.settings.setDrawCount(mode);
+      drawCount.set(mode);
     } else {
       this.confirmIfInProgress(
         `Changing the draw mode to Draw ${mode} will restart the game. Are you sure you want to proceed?`,
         () => {
-          this.gameModel.settings.setDrawCount(mode);
+          drawCount.set(mode);
           this.gameModel.startNewGame();
           this.startFreshSession();
         },
@@ -123,7 +148,8 @@ export class GameSessionService {
   }
 
   setAlmostWin(enabled: boolean): void {
-    this.gameModel.settings.debug.setAlmostWin(enabled);
+    if (!this.rules.almostWin) return;
+    this.rules.almostWin.set(enabled);
     if (this.moves() > 0 || this.isGameWon()) {
       this.gameModel.startNewGame();
       this.startFreshSession();
