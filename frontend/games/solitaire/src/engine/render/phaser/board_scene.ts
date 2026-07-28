@@ -10,10 +10,8 @@ import { PhaserTableRenderer } from "./phaser_table_renderer";
 import { PhaserSprites } from "./phaser_sprites";
 import { buildBoardViewState } from "../view/board_view_state_builder";
 import { Viewport } from "../view/table_view_state";
-import {
-  DESIGN_WIDTH_PX,
-  DESIGN_HEIGHT_PX,
-} from "../layout/board_layout_constants";
+import { designSize } from "../layout/table_layout";
+import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
 
 /**
  * Handles rendering the fSolitaire game board using Phaser, reacting to
@@ -194,9 +192,10 @@ export class BoardScene extends Scene implements PhaserSprites {
    * design size before the scale manager has sized the canvas.
    */
   public get viewport(): Viewport {
+    const design = designSize(KLONDIKE_LAYOUT);
     return {
-      width: this.scale?.width || DESIGN_WIDTH_PX,
-      height: this.scale?.height || DESIGN_HEIGHT_PX,
+      width: this.scale?.width || design.width,
+      height: this.scale?.height || design.height,
       pixelRatio: this.pixelRatio,
     };
   }

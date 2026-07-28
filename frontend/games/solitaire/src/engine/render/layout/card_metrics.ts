@@ -29,11 +29,6 @@ export const CARD_RENDER_HEIGHT_PX = 307;
  */
 export const CARD_ART_SCALE = 2;
 
-/** The design reference width the board layout was authored at. */
-export const DESIGN_WIDTH_PX = 1807;
-/** The design reference height the board layout was authored at. */
-export const DESIGN_HEIGHT_PX = 950;
-
 /** The horizontal padding/margin at the edges of the board layout. */
 export const LAYOUT_PADDING_X = 40;
 /** The vertical padding/margin at the edges of the board layout. */
@@ -45,3 +40,17 @@ export const LAYOUT_GAP_Y = 40; // space between the top row and the bottom (tab
 
 /** The height of the top UI header bar overlay. */
 export const HEADER_HEIGHT_PX = 73;
+
+/**
+ * How far a card may still be from its slot while a highlight border stays on
+ * it, in design units.
+ *
+ * Sized to a hover expansion: moving the pointer down a fanned column retracts
+ * one card's expansion as it opens the next, so the card that just gained the
+ * border starts up to a nudge away from where it comes to rest. Holding the
+ * border back until it is pixel-perfect blanks it for the whole ease, most of
+ * which is spent inside the last couple of pixels. A card crossing the board
+ * between piles travels far further than a nudge, so it is still held back
+ * until it lands.
+ */
+export const HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE = 15;

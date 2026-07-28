@@ -1,14 +1,20 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { resolveDropTarget } from "@/engine/render/layout/drop_geometry";
 import {
+  klondikeDropCandidates,
+  measureKlondikeBoard,
   resolveDragTarget,
-  resolveDropTarget,
-} from "@/engine/render/layout/drop_target_resolver";
+} from "@/games/klondike/klondike_board";
+import {
+  CARD_HEIGHT_PX,
+  CARD_WIDTH_PX,
+} from "@/engine/render/layout/card_metrics";
 import {
   PileGeometry,
   Rect,
   Viewport,
 } from "@/engine/render/view/table_view_state";
-import { computeDropGeometries } from "@/engine/render/layout/board_geometry";
+import { computeDropGeometries } from "@/engine/render/layout/drop_geometry";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
@@ -24,9 +30,13 @@ describe("resolveDragTarget", () => {
 
   /** The drop rectangle the given pile occupies at this viewport. */
   function geometryOf(pileId: string): PileGeometry {
-    return computeDropGeometries(game, viewport).find(
-      (geometry) => geometry.pileId === pileId,
-    )!;
+    const metrics = measureKlondikeBoard(game, viewport);
+    return computeDropGeometries(
+      klondikeDropCandidates(game, metrics),
+      metrics.origins,
+      { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX },
+      metrics.scale,
+    ).find((geometry) => geometry.pileId === pileId)!;
   }
 
   it("returns the geometry of the pile the drag overlaps most", () => {
@@ -38,7 +48,7 @@ describe("resolveDragTarget", () => {
         cardIds: ["card-hearts-ace"],
         primary: { x: tableau1.x, y: tableau1.y },
       },
-      viewport,
+      measureKlondikeBoard(game, viewport),
     );
 
     expect(target).toEqual(tableau1);
@@ -48,7 +58,7 @@ describe("resolveDragTarget", () => {
     const target = resolveDragTarget(
       game,
       { cardIds: ["card-hearts-ace"], primary: { x: 9000, y: 9000 } },
-      viewport,
+      measureKlondikeBoard(game, viewport),
     );
 
     expect(target).toBeNull();
@@ -66,14 +76,14 @@ describe("resolveDragTarget", () => {
         cardIds: ["card-clubs-jack"],
         primary: { x: tableau1.x, y: tableau1.y + tableau1.height - 20 },
       },
-      viewport,
+      measureKlondikeBoard(game, viewport),
     );
 
     expect(target?.pileId).toBe("tableau-1");
   });
 });
 
-describe("drop_target_resolver", () => {
+describe("resolveDropTarget", () => {
   const geometries: PileGeometry[] = [
     { pileId: "tableau-0", x: 100, y: 300, width: 200, height: 300 },
     { pileId: "tableau-1", x: 400, y: 300, width: 200, height: 300 },
@@ -84,7 +94,7 @@ describe("drop_target_resolver", () => {
     // Overlaps tableau-0 partially
     const dragRect: Rect = { x: 150, y: 350, width: 200, height: 300 };
     const target = resolveDropTarget(dragRect, geometries);
-    expect(target).toBe("tableau-0");
+    expect(target?.pileId).toBe("tableau-0");
   });
 
   it("returns null if there is no overlap at all", () => {
@@ -97,6 +107,6 @@ describe("drop_target_resolver", () => {
     // Positioned right between tableau-0 and tableau-1 but mostly on tableau-1
     const dragRect: Rect = { x: 350, y: 300, width: 200, height: 300 };
     const target = resolveDropTarget(dragRect, geometries);
-    expect(target).toBe("tableau-1");
+    expect(target?.pileId).toBe("tableau-1");
   });
 });

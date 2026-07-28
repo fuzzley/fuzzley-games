@@ -12,8 +12,11 @@ import {
 import {
   computePileOrigins,
   computeScale,
-} from "@/engine/render/layout/board_geometry";
-import { DESIGN_WIDTH_PX } from "@/engine/render/layout/board_layout_constants";
+  designSize,
+} from "@/engine/render/layout/table_layout";
+import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
+
+const DESIGN_WIDTH_PX = designSize(KLONDIKE_LAYOUT).width;
 import { STOCK_PILE_ID } from "@/games/klondike/klondike_zones";
 import { relocate } from "@test/support/game_scenarios";
 
@@ -190,8 +193,9 @@ describe("BoardScene", () => {
     it("lays each card out where its pile's geometry puts it", () => {
       const viewport = boardScene.viewport;
       const stockOrigin = computePileOrigins(
+        KLONDIKE_LAYOUT,
         viewport,
-        computeScale(viewport),
+        computeScale(KLONDIKE_LAYOUT, viewport),
       ).get(STOCK_PILE_ID)!;
       const sprite = stockCardSprite();
 

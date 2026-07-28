@@ -1,28 +1,37 @@
 import { describe, it, expect } from "vitest";
 import {
-  computeDropGeometries,
   computePileOrigins,
   computeScale,
-  offsetsForPile,
+  designSize,
+} from "@/engine/render/layout/table_layout";
+import {
+  pileCardOffsets,
   stackedCardOffsets,
-  tableauCardOffsets,
-  wasteCardOffsets,
+} from "@/engine/render/layout/pile_layout";
+import {
+  KLONDIKE_LAYOUT,
+  TABLEAU_PILE_LAYOUT,
+  klondikePileLayout,
+  wastePileLayout,
   TABLEAU_FACE_DOWN_OFFSET,
   TABLEAU_FACE_UP_OFFSET,
   TABLEAU_HOVER_EXPANSION_OFFSET,
   WASTE_FAN_OFFSET_X,
   WASTE_MAX_FAN_CARDS,
-} from "@/engine/render/layout/board_geometry";
+} from "@/games/klondike/klondike_layout";
+import {
+  klondikeDropCandidates,
+  measureKlondikeBoard,
+} from "@/games/klondike/klondike_board";
+import { computeDropGeometries } from "@/engine/render/layout/drop_geometry";
 import {
   CARD_HEIGHT_PX,
   CARD_WIDTH_PX,
-  DESIGN_HEIGHT_PX,
-  DESIGN_WIDTH_PX,
   HEADER_HEIGHT_PX,
   LAYOUT_GAP_X,
   LAYOUT_PADDING_X,
   LAYOUT_PADDING_Y,
-} from "@/engine/render/layout/board_layout_constants";
+} from "@/engine/render/layout/card_metrics";
 import { CardPile } from "@/engine/core/card/card_pile";
 import {
   KlondikeRole,
@@ -38,6 +47,10 @@ import { Viewport } from "@/engine/render/view/table_view_state";
 import { makePlayingCard } from "@test/support/card_builder";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
+const DESIGN_WIDTH_PX = designSize(KLONDIKE_LAYOUT).width;
+const DESIGN_HEIGHT_PX = designSize(KLONDIKE_LAYOUT).height;
+const CARD_SIZE = { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX };
+
 /** A viewport at the design size, which lays out at a scale of exactly 1. */
 function designViewport(overrides: Partial<Viewport> = {}): Viewport {
   return {
@@ -50,13 +63,13 @@ function designViewport(overrides: Partial<Viewport> = {}): Viewport {
 
 describe("computeScale", () => {
   it("is 1 at the design size on a 1x display", () => {
-    expect(computeScale(designViewport())).toBe(1);
+    expect(computeScale(KLONDIKE_LAYOUT, designViewport())).toBe(1);
   });
 
   it("halves when the viewport is half the design width", () => {
     const viewport = designViewport({ width: DESIGN_WIDTH_PX / 2 });
 
-    expect(computeScale(viewport)).toBeCloseTo(0.5, 5);
+    expect(computeScale(KLONDIKE_LAYOUT, viewport)).toBeCloseTo(0.5, 5);
   });
 
   it("fits to whichever axis is tighter", () => {
@@ -66,7 +79,7 @@ describe("computeScale", () => {
       height: (DESIGN_HEIGHT_PX - HEADER_HEIGHT_PX) / 2 + HEADER_HEIGHT_PX,
     });
 
-    expect(computeScale(viewport)).toBeCloseTo(0.5, 5);
+    expect(computeScale(KLONDIKE_LAYOUT, viewport)).toBeCloseTo(0.5, 5);
   });
 
   it("scales up to the pixel ratio on a high density display", () => {
@@ -78,7 +91,7 @@ describe("computeScale", () => {
 
     // A design unit is worth two device pixels there, and rendering it as one
     // would throw away half the display's resolution.
-    expect(computeScale(viewport)).toBe(2);
+    expect(computeScale(KLONDIKE_LAYOUT, viewport)).toBe(2);
   });
 
   it("caps at the pixel ratio however much room there is", () => {
@@ -88,19 +101,19 @@ describe("computeScale", () => {
       pixelRatio: 2,
     };
 
-    expect(computeScale(viewport)).toBe(2);
+    expect(computeScale(KLONDIKE_LAYOUT, viewport)).toBe(2);
   });
 
   it("falls back to the pixel ratio for a zero-sized viewport", () => {
     const viewport: Viewport = { width: 0, height: 0, pixelRatio: 2 };
 
-    expect(computeScale(viewport)).toBe(2);
+    expect(computeScale(KLONDIKE_LAYOUT, viewport)).toBe(2);
   });
 });
 
 describe("computePileOrigins", () => {
   it("places every pile the board draws", () => {
-    const origins = computePileOrigins(designViewport(), 1);
+    const origins = computePileOrigins(KLONDIKE_LAYOUT, designViewport(), 1);
 
     const expectedIds = [
       STOCK_PILE_ID,
@@ -112,7 +125,7 @@ describe("computePileOrigins", () => {
   });
 
   it("starts the top row below the header", () => {
-    const origins = computePileOrigins(designViewport(), 1);
+    const origins = computePileOrigins(KLONDIKE_LAYOUT, designViewport(), 1);
 
     expect(origins.get(STOCK_PILE_ID)!.y).toBe(
       HEADER_HEIGHT_PX + LAYOUT_PADDING_Y,
@@ -120,7 +133,7 @@ describe("computePileOrigins", () => {
   });
 
   it("puts the tableau row a card and a gap below the top row", () => {
-    const origins = computePileOrigins(designViewport(), 1);
+    const origins = computePileOrigins(KLONDIKE_LAYOUT, designViewport(), 1);
 
     const topY = origins.get(STOCK_PILE_ID)!.y;
     const bottomY = origins.get(tableauPileId(0))!.y;
@@ -128,7 +141,7 @@ describe("computePileOrigins", () => {
   });
 
   it("lines each tableau up with its column", () => {
-    const origins = computePileOrigins(designViewport(), 1);
+    const origins = computePileOrigins(KLONDIKE_LAYOUT, designViewport(), 1);
 
     const columnWidth = CARD_WIDTH_PX + LAYOUT_GAP_X;
     const firstX = origins.get(tableauPileId(0))!.x;
@@ -139,7 +152,7 @@ describe("computePileOrigins", () => {
   });
 
   it("leaves a clear column between the waste and the first foundation", () => {
-    const origins = computePileOrigins(designViewport(), 1);
+    const origins = computePileOrigins(KLONDIKE_LAYOUT, designViewport(), 1);
 
     // Waste sits in column 1 and foundations start at column 3, so the fan has
     // the whole of column 2 to grow into.
@@ -152,7 +165,7 @@ describe("computePileOrigins", () => {
   it("centers the layout when the viewport is wider than it needs", () => {
     const wide = designViewport({ width: DESIGN_WIDTH_PX * 2 });
 
-    const origins = computePileOrigins(wide, 1);
+    const origins = computePileOrigins(KLONDIKE_LAYOUT, wide, 1);
 
     const layoutWidth =
       TABLEAU_COUNT * CARD_WIDTH_PX + (TABLEAU_COUNT - 1) * LAYOUT_GAP_X;
@@ -163,7 +176,7 @@ describe("computePileOrigins", () => {
   it("never squeezes tighter than the layout padding", () => {
     const narrow = designViewport({ width: 100 });
 
-    const origins = computePileOrigins(narrow, 1);
+    const origins = computePileOrigins(KLONDIKE_LAYOUT, narrow, 1);
 
     expect(origins.get(tableauPileId(0))!.x).toBe(LAYOUT_PADDING_X);
   });
@@ -171,6 +184,7 @@ describe("computePileOrigins", () => {
   it("converts the header by the pixel ratio, not the layout scale", () => {
     // The header is a DOM overlay measured in CSS pixels.
     const origins = computePileOrigins(
+      KLONDIKE_LAYOUT,
       {
         width: DESIGN_WIDTH_PX * 2,
         height: DESIGN_HEIGHT_PX * 2,
@@ -213,43 +227,43 @@ describe("tableauCardOffsets", () => {
   }
 
   it("gives a face-down card the tighter gap", () => {
-    const offsets = tableauCardOffsets(column(2, 0), null);
+    const offsets = pileCardOffsets(TABLEAU_PILE_LAYOUT, column(2, 0), null);
 
     expect(offsets[1].y).toBe(TABLEAU_FACE_DOWN_OFFSET);
   });
 
   it("gives a face-up card the wider gap", () => {
-    const offsets = tableauCardOffsets(column(0, 2), null);
+    const offsets = pileCardOffsets(TABLEAU_PILE_LAYOUT, column(0, 2), null);
 
     expect(offsets[1].y).toBe(TABLEAU_FACE_UP_OFFSET);
   });
 
   it("starts the column at its origin", () => {
-    const offsets = tableauCardOffsets(column(1, 2), null);
+    const offsets = pileCardOffsets(TABLEAU_PILE_LAYOUT, column(1, 2), null);
 
     expect(offsets[0]).toEqual({ x: 0, y: 0 });
   });
 
   it("opens an extra gap below the hovered card", () => {
     const cards = column(0, 3);
-    const plain = tableauCardOffsets(cards, null);
+    const plain = pileCardOffsets(TABLEAU_PILE_LAYOUT, cards, null);
 
-    const expanded = tableauCardOffsets(cards, cards[1].id);
+    const expanded = pileCardOffsets(TABLEAU_PILE_LAYOUT, cards, cards[1].id);
 
     expect(expanded[2].y - plain[2].y).toBe(TABLEAU_HOVER_EXPANSION_OFFSET);
   });
 
   it("leaves cards above the hovered one where they were", () => {
     const cards = column(0, 3);
-    const plain = tableauCardOffsets(cards, null);
+    const plain = pileCardOffsets(TABLEAU_PILE_LAYOUT, cards, null);
 
-    const expanded = tableauCardOffsets(cards, cards[1].id);
+    const expanded = pileCardOffsets(TABLEAU_PILE_LAYOUT, cards, cards[1].id);
 
     expect(expanded.slice(0, 2)).toEqual(plain.slice(0, 2));
   });
 
   it("fans straight down, never sideways", () => {
-    const offsets = tableauCardOffsets(column(2, 2), null);
+    const offsets = pileCardOffsets(TABLEAU_PILE_LAYOUT, column(2, 2), null);
 
     expect(offsets.every((offset) => offset.x === 0)).toBe(true);
   });
@@ -257,7 +271,10 @@ describe("tableauCardOffsets", () => {
 
 describe("wasteCardOffsets", () => {
   it("shows only the top card in Draw 1", () => {
-    const offsets = wasteCardOffsets(4, 1);
+    const offsets = pileCardOffsets(
+      wastePileLayout(1),
+      Array.from({ length: 4 }, () => makePlayingCard()),
+    );
 
     expect(offsets).toEqual([
       { x: 0, y: 0 },
@@ -268,7 +285,10 @@ describe("wasteCardOffsets", () => {
   });
 
   it("fans the top three in Draw 3", () => {
-    const offsets = wasteCardOffsets(3, 3);
+    const offsets = pileCardOffsets(
+      wastePileLayout(3),
+      Array.from({ length: 3 }, () => makePlayingCard()),
+    );
 
     expect(offsets.map((offset) => offset.x)).toEqual([
       0,
@@ -278,21 +298,30 @@ describe("wasteCardOffsets", () => {
   });
 
   it("keeps the buried cards stacked under the fan", () => {
-    const offsets = wasteCardOffsets(5, 3);
+    const offsets = pileCardOffsets(
+      wastePileLayout(3),
+      Array.from({ length: 5 }, () => makePlayingCard()),
+    );
 
     // Only the last three fan; the two beneath sit at the origin.
     expect(offsets.slice(0, 2).map((offset) => offset.x)).toEqual([0, 0]);
   });
 
   it("never fans more than the maximum", () => {
-    const offsets = wasteCardOffsets(10, 3);
+    const offsets = pileCardOffsets(
+      wastePileLayout(3),
+      Array.from({ length: 10 }, () => makePlayingCard()),
+    );
 
     const fanned = offsets.filter((offset) => offset.x > 0).length;
     expect(fanned).toBe(WASTE_MAX_FAN_CARDS - 1);
   });
 
   it("keeps the fan on one row", () => {
-    const offsets = wasteCardOffsets(3, 3);
+    const offsets = pileCardOffsets(
+      wastePileLayout(3),
+      Array.from({ length: 3 }, () => makePlayingCard()),
+    );
 
     expect(offsets.every((offset) => offset.y === 0)).toBe(true);
   });
@@ -304,7 +333,11 @@ describe("offsetsForPile", () => {
     pile.addCard(makePlayingCard({ id: "a", faceUp: true }));
     pile.addCard(makePlayingCard({ id: "b", faceUp: true }));
 
-    const offsets = offsetsForPile(pile, pile.getCards(), 3, null);
+    const offsets = pileCardOffsets(
+      klondikePileLayout(pile.role, 3),
+      pile.getCards(),
+      null,
+    );
 
     expect(offsets[1].x).toBe(WASTE_FAN_OFFSET_X);
   });
@@ -317,7 +350,11 @@ describe("offsetsForPile", () => {
     pile.addCard(makePlayingCard({ id: "a", faceUp: true }));
     pile.addCard(makePlayingCard({ id: "b", faceUp: true }));
 
-    const offsets = offsetsForPile(pile, pile.getCards(), 3, null);
+    const offsets = pileCardOffsets(
+      klondikePileLayout(pile.role, 3),
+      pile.getCards(),
+      null,
+    );
 
     expect(offsets[1]).toEqual({ x: 0, y: TABLEAU_FACE_UP_OFFSET });
   });
@@ -327,7 +364,11 @@ describe("offsetsForPile", () => {
     pile.addCard(makePlayingCard({ id: "a" }));
     pile.addCard(makePlayingCard({ id: "b" }));
 
-    const offsets = offsetsForPile(pile, pile.getCards(), 3, null);
+    const offsets = pileCardOffsets(
+      klondikePileLayout(pile.role, 3),
+      pile.getCards(),
+      null,
+    );
 
     expect(offsets).toEqual([
       { x: 0, y: 0 },
@@ -343,7 +384,11 @@ describe("offsetsForPile", () => {
     pile.addCard(makePlayingCard({ id: "a", faceUp: true }));
     pile.addCard(makePlayingCard({ id: "b", faceUp: true }));
 
-    const offsets = offsetsForPile(pile, pile.getCards(), 3, null);
+    const offsets = pileCardOffsets(
+      klondikePileLayout(pile.role, 3),
+      pile.getCards(),
+      null,
+    );
 
     expect(offsets[1]).toEqual({ x: 0, y: 0 });
   });
@@ -352,10 +397,18 @@ describe("offsetsForPile", () => {
 describe("computeDropGeometries", () => {
   let game: SolitaireGame;
 
-  function geometryFor(pileId: string) {
-    return computeDropGeometries(game, designViewport()).find(
-      (geometry) => geometry.pileId === pileId,
+  function dropGeometries() {
+    const metrics = measureKlondikeBoard(game, designViewport());
+    return computeDropGeometries(
+      klondikeDropCandidates(game, metrics),
+      metrics.origins,
+      CARD_SIZE,
+      metrics.scale,
     );
+  }
+
+  function geometryFor(pileId: string) {
+    return dropGeometries().find((geometry) => geometry.pileId === pileId);
   }
 
   beforeEach(() => {
@@ -365,9 +418,7 @@ describe("computeDropGeometries", () => {
   });
 
   it("offers every foundation and tableau as a target", () => {
-    const pileIds = computeDropGeometries(game, designViewport()).map(
-      (geometry) => geometry.pileId,
-    );
+    const pileIds = dropGeometries().map((geometry) => geometry.pileId);
 
     expect(pileIds.sort()).toEqual(
       [
@@ -378,9 +429,7 @@ describe("computeDropGeometries", () => {
   });
 
   it("does not offer the stock or waste, which accept no drops", () => {
-    const pileIds = computeDropGeometries(game, designViewport()).map(
-      (geometry) => geometry.pileId,
-    );
+    const pileIds = dropGeometries().map((geometry) => geometry.pileId);
 
     expect(pileIds).not.toContain(STOCK_PILE_ID);
     expect(pileIds).not.toContain(WASTE_PILE_ID);
@@ -408,7 +457,7 @@ describe("computeDropGeometries", () => {
   });
 
   it("puts each target where its pile is", () => {
-    const origins = computePileOrigins(designViewport(), 1);
+    const origins = computePileOrigins(KLONDIKE_LAYOUT, designViewport(), 1);
 
     const geometry = geometryFor(tableauPileId(2))!;
 
@@ -420,10 +469,17 @@ describe("computeDropGeometries", () => {
   it("scales the targets with the viewport", () => {
     const half = designViewport({ width: DESIGN_WIDTH_PX / 2 });
 
-    const geometry = computeDropGeometries(game, half).find(
-      (candidate) => candidate.pileId === tableauPileId(0),
-    )!;
+    const metrics = measureKlondikeBoard(game, half);
+    const geometry = computeDropGeometries(
+      klondikeDropCandidates(game, metrics),
+      metrics.origins,
+      CARD_SIZE,
+      metrics.scale,
+    ).find((candidate) => candidate.pileId === tableauPileId(0))!;
 
-    expect(geometry.width).toBeCloseTo(CARD_WIDTH_PX * computeScale(half), 5);
+    expect(geometry.width).toBeCloseTo(
+      CARD_WIDTH_PX * computeScale(KLONDIKE_LAYOUT, half),
+      5,
+    );
   });
 });

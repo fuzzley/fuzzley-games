@@ -8,7 +8,10 @@ import {
   DragInteraction,
   FlightInteraction,
 } from "../view/table_view_state";
-import { resolveDragTarget } from "../layout/drop_target_resolver";
+import {
+  measureKlondikeBoard,
+  resolveDragTarget,
+} from "@/games/klondike/klondike_board";
 
 /**
  * The id of the card a sprite draws, as stamped on it when the scene created
@@ -250,7 +253,7 @@ export class BoardInputManager {
     const target = resolveDragTarget(
       this.boardScene.gameModel,
       drag,
-      this.boardScene.viewport,
+      measureKlondikeBoard(this.boardScene.gameModel, this.boardScene.viewport),
     );
 
     if (!target) {
