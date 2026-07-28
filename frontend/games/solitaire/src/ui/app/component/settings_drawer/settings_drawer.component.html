@@ -18,29 +18,42 @@
     </div>
 
     <div class="drawer-content">
-      <!-- Draw Mode -->
+      <!-- Game -->
       <div class="setting-group">
-        <label class="setting-label">Draw Mode</label>
-        <div class="segmented-control">
-          <button
-            [class.active]="session.drawCount() === 1"
-            (click)="session.setDrawMode(1)"
-            class="segment-btn"
-          >
-            Draw 1
-          </button>
-          <button
-            [class.active]="session.drawCount() === 3"
-            (click)="session.setDrawMode(3)"
-            class="segment-btn"
-          >
-            Draw 3
-          </button>
+        <label class="setting-label">Game</label>
+        <div class="game-selector">
+          @for (game of session.games; track game.id) {
+            <button
+              class="game-option"
+              [class.active]="session.selectedGameId() === game.id"
+              (click)="session.selectGame(game.id)"
+            >
+              {{ game.name }}
+            </button>
+          }
         </div>
-        <p class="setting-desc">
-          Draw 1 is easier; Draw 3 is the standard Solitaire challenge.
-        </p>
       </div>
+
+      <!-- Draw Mode, for a game that has a stock to draw from -->
+      @if (session.drawCountOptions().length > 0) {
+        <div class="setting-group">
+          <label class="setting-label">Draw Mode</label>
+          <div class="segmented-control">
+            @for (mode of session.drawCountOptions(); track mode) {
+              <button
+                [class.active]="session.drawCount() === mode"
+                (click)="session.setDrawMode(mode)"
+                class="segment-btn"
+              >
+                Draw {{ mode }}
+              </button>
+            }
+          </div>
+          <p class="setting-desc">
+            Draw 1 is easier; Draw 3 is the standard Solitaire challenge.
+          </p>
+        </div>
+      }
 
       <!-- Card Back Style -->
       <div class="setting-group">
@@ -88,8 +101,8 @@
         </p>
       </div>
 
-      <!-- Debug Settings (Dev Mode Only) -->
-      @if (isDevMode) {
+      <!-- Debug Settings (dev mode, and only for a game that offers them) -->
+      @if (isDevMode && session.almostWin() !== null) {
         <app-debug-panel />
       }
     </div>

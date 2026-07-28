@@ -1,7 +1,9 @@
 import { vi } from "vitest";
+import { signal } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
 import type { SolitaireGame } from "@/games/klondike/solitaire_game";
 import type { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
+import type { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 
 export interface MockGameModelOverrides {
   score?: number;
@@ -108,4 +110,64 @@ export function asPresentation(
 /** Casts the mock to the SolitaireGame type expected by the GAME_MODEL token. */
 export function asGameModel(mock: MockGameModel): SolitaireGame {
   return mock as unknown as SolitaireGame;
+}
+
+/**
+ * A mock {@link GameCatalogService} holding one game, for specs that only care
+ * that the session service is bridged to *a* game rather than that it can swap.
+ *
+ * The rule options mirror Klondike's — a draw mode and a debug board — since
+ * that is the game whose controls the shell specs exercise. `select` records
+ * the request without dealing anything.
+ */
+export function createMockCatalog(model: MockGameModel) {
+  const ruleOptions = {
+    drawCount: {
+      options: [1, 3] as readonly number[],
+      current: () => model.settings.drawCount,
+      set: (count: number): void => {
+        model.settings.setDrawCount(count);
+      },
+      subscribe: (listener: (count: number) => void) => {
+        const sub = model.settings.drawCount$.subscribe(listener);
+        return (): void => {
+          sub.unsubscribe();
+        };
+      },
+    },
+    almostWin: {
+      current: () => model.settings.debug.almostWin,
+      set: (enabled: boolean): void => {
+        model.settings.debug.setAlmostWin(enabled);
+      },
+      subscribe: (listener: (enabled: boolean) => void) => {
+        const sub = model.settings.debug.almostWin$.subscribe(listener);
+        return (): void => {
+          sub.unsubscribe();
+        };
+      },
+    },
+  };
+
+  const selectedId = signal("klondike");
+  const session = signal({ game: model, ruleOptions });
+
+  return {
+    games: [
+      { id: "klondike", name: "Klondike" },
+      { id: "freecell", name: "FreeCell" },
+    ],
+    selectedId,
+    session,
+    select: vi.fn((id: string) => {
+      selectedId.set(id);
+    }),
+  };
+}
+
+export type MockCatalog = ReturnType<typeof createMockCatalog>;
+
+/** Casts the mock to the service type the UI injects. */
+export function asCatalog(mock: MockCatalog): GameCatalogService {
+  return mock as unknown as GameCatalogService;
 }

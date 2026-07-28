@@ -4,10 +4,11 @@ import { InjectionToken } from "@angular/core";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { AppComponent } from "@/ui/app/component/app/app.component";
-import { GAME_MODEL } from "@/ui/app/provider/game_model.provider";
+import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import {
   createMockGameModel,
-  asGameModel,
+  createMockCatalog,
+  asCatalog,
 } from "@test/support/game_model_mock";
 import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.component";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
@@ -47,7 +48,10 @@ describe("AppComponent Composition", () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
       providers: [
-        { provide: GAME_MODEL, useValue: asGameModel(mockGameModel) },
+        {
+          provide: GameCatalogService,
+          useValue: asCatalog(createMockCatalog(mockGameModel)),
+        },
       ],
     }).compileComponents();
 

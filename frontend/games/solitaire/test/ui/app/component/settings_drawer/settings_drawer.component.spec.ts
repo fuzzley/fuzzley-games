@@ -4,10 +4,11 @@ import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
 import { GameSessionService } from "@/ui/app/service/game_session.service";
 import { ThemeService } from "@/ui/app/service/theme.service";
-import { GAME_MODEL } from "@/ui/app/provider/game_model.provider";
+import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import {
   createMockGameModel,
-  asGameModel,
+  createMockCatalog,
+  asCatalog,
 } from "@test/support/game_model_mock";
 import { clickElement, query, queryAll } from "@test/support/dom";
 
@@ -26,7 +27,10 @@ describe("SettingsDrawerComponent", () => {
       providers: [
         GameSessionService,
         ThemeService,
-        { provide: GAME_MODEL, useValue: asGameModel(mockGameModel) },
+        {
+          provide: GameCatalogService,
+          useValue: asCatalog(createMockCatalog(mockGameModel)),
+        },
       ],
     }).compileComponents();
 

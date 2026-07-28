@@ -3,10 +3,11 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { VictoryOverlayComponent } from "@/ui/app/component/victory_overlay/victory_overlay.component";
 import { GameSessionService } from "@/ui/app/service/game_session.service";
-import { GAME_MODEL } from "@/ui/app/provider/game_model.provider";
+import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import {
   createMockGameModel,
-  asGameModel,
+  createMockCatalog,
+  asCatalog,
 } from "@test/support/game_model_mock";
 import { clickElement, query, queryText } from "@test/support/dom";
 
@@ -22,7 +23,10 @@ describe("VictoryOverlayComponent", () => {
       imports: [VictoryOverlayComponent],
       providers: [
         GameSessionService,
-        { provide: GAME_MODEL, useValue: asGameModel(mockGameModel) },
+        {
+          provide: GameCatalogService,
+          useValue: asCatalog(createMockCatalog(mockGameModel)),
+        },
       ],
     }).compileComponents();
 
