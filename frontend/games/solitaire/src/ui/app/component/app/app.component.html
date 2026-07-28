@@ -1,6 +1,9 @@
-<app-game-canvas />
+<div class="board-area" [class.rail-expanded]="menu.isExpanded()">
+  <app-game-canvas />
+</div>
 <div class="ui-overlay" [class]="theme.currentBgClass()">
   <app-header-bar (openSettings)="openSettings()" />
+  <app-game-menu />
   <app-settings-drawer [open]="showSettings()" (closed)="closeSettings()" />
   <app-victory-overlay />
   <app-confirmation-dialog />

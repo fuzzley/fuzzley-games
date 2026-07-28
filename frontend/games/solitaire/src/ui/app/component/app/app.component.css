@@ -1,3 +1,19 @@
+/*
+ * The board lays itself out beside the game rail rather than under it, so the
+ * leftmost column is never hidden. ViewportScaler watches this box, so
+ * expanding the rail re-lays the board out rather than leaving it overflowing.
+ */
+.board-area {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  padding-left: 56px;
+}
+
+.board-area.rail-expanded {
+  padding-left: 190px;
+}
+
 .ui-overlay {
   width: 100%;
   height: 100%;
