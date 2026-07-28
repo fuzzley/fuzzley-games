@@ -3,7 +3,7 @@ import { Point } from "@/engine/core/common/point";
 import { PhaserSprites } from "./phaser_sprites";
 import { TableRenderer } from "../view/table_renderer";
 import { TableViewState, HighlightView } from "../view/table_view_state";
-import { HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE } from "../layout/board_geometry";
+import { HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE } from "../layout/card_metrics";
 
 /** Time constant (ms) for frame-rate-independent card position easing. */
 const POSITION_TAU_MS = 90;

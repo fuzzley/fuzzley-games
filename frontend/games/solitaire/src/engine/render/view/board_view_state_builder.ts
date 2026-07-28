@@ -13,21 +13,24 @@ import {
   Viewport,
 } from "./table_view_state";
 import {
-  computeScale,
-  computePileOrigins,
-  offsetsForPile,
-  TABLEAU_FACE_UP_OFFSET,
   DRAG_BASE_DEPTH,
   DROP_TARGET_HIGHLIGHT_DEPTH,
   FLIGHT_BASE_DEPTH,
   HOVER_HIGHLIGHT_DEPTH,
-} from "../layout/board_geometry";
-import { resolveDragTarget } from "../layout/drop_target_resolver";
+  PILE_BACKGROUND_DEPTH,
+} from "../layout/drop_geometry";
+import { pileCardOffsets } from "../layout/pile_layout";
+import {
+  KlondikeBoardMetrics,
+  measureKlondikeBoard,
+  resolveDragTarget,
+} from "@/games/klondike/klondike_board";
+import { TABLEAU_FACE_UP_OFFSET } from "@/games/klondike/klondike_layout";
 import {
   CARD_ART_SCALE,
   CARD_RENDER_WIDTH_PX,
   CARD_RENDER_HEIGHT_PX,
-} from "../layout/board_layout_constants";
+} from "../layout/card_metrics";
 
 /**
  * Transient builder class that constructs the visual representation of the Solitaire board
@@ -38,21 +41,23 @@ class BoardViewStateBuilder {
   private readonly scale: number;
   /** Sprite scale: atlas texels to device pixels. */
   private readonly spriteScale: number;
-  private readonly origins: Map<string, Point>;
+  private readonly origins: ReadonlyMap<string, Point>;
   private readonly cardWidth: number;
   private readonly cardHeight: number;
+  private readonly metrics: KlondikeBoardMetrics;
 
   constructor(
     private readonly game: SolitaireGame,
     private readonly interaction: TableInteractionState,
-    private readonly viewport: Viewport,
+    viewport: Viewport,
   ) {
-    this.scale = computeScale(viewport);
+    this.metrics = measureKlondikeBoard(game, viewport);
+    this.scale = this.metrics.scale;
     // The artwork is authored larger than a card is drawn, so a sprite is
     // scaled down from its texels while the layout keeps working in design
     // units.
     this.spriteScale = this.scale / CARD_ART_SCALE;
-    this.origins = computePileOrigins(viewport, this.scale);
+    this.origins = this.metrics.origins;
     // Size the highlight from the drawn card size so its border hugs the
     // rendered card exactly, rather than the slightly larger layout grid cell.
     this.cardWidth = CARD_RENDER_WIDTH_PX * this.scale;
@@ -84,7 +89,7 @@ class BoardViewStateBuilder {
         x: stockOrigin.x,
         y: stockOrigin.y,
         scale: this.spriteScale,
-        depth: 0,
+        depth: PILE_BACKGROUND_DEPTH,
         cursor: stockEmpty ? "pointer" : "default",
       });
     }
@@ -97,7 +102,7 @@ class BoardViewStateBuilder {
         x: origin.x,
         y: origin.y,
         scale: this.spriteScale,
-        depth: 0,
+        depth: PILE_BACKGROUND_DEPTH,
       });
     };
 
@@ -155,10 +160,9 @@ class BoardViewStateBuilder {
           ? hoveredCardInPile.id
           : null;
 
-      const offsets = offsetsForPile(
-        pile,
+      const offsets = pileCardOffsets(
+        this.metrics.layoutFor(pile),
         pileCards,
-        this.game.settings.drawCount,
         expansionCardId,
       );
 
@@ -246,7 +250,7 @@ class BoardViewStateBuilder {
   ): HighlightView | null {
     // Asking the same resolver the drop itself will ask means the previewed
     // pile is the pile the card lands on, not a second guess at it.
-    const target = resolveDragTarget(this.game, drag, this.viewport);
+    const target = resolveDragTarget(this.game, drag, this.metrics);
     if (!target) {
       return null;
     }

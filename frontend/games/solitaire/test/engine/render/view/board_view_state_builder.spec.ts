@@ -9,15 +9,17 @@ import {
   CARD_ART_SCALE,
   CARD_RENDER_WIDTH_PX,
   CARD_RENDER_HEIGHT_PX,
-} from "@/engine/render/layout/board_layout_constants";
+} from "@/engine/render/layout/card_metrics";
 import {
-  computeDropGeometries,
   DRAG_BASE_DEPTH,
   HOVER_HIGHLIGHT_DEPTH,
+} from "@/engine/render/layout/drop_geometry";
+import {
   TABLEAU_FACE_UP_OFFSET,
   TABLEAU_FACE_DOWN_OFFSET,
   TABLEAU_HOVER_EXPANSION_OFFSET,
-} from "@/engine/render/layout/board_geometry";
+} from "@/games/klondike/klondike_layout";
+import { measureKlondikeBoard } from "@/games/klondike/klondike_board";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
 describe("board_view_state_builder", () => {
@@ -328,9 +330,7 @@ describe("board_view_state_builder", () => {
   describe("drag highlights", () => {
     /** The layout origin of a pile at this viewport. */
     function originOf(pileId: string): { x: number; y: number } {
-      return computeDropGeometries(game, viewport).find(
-        (geometry) => geometry.pileId === pileId,
-      )!;
+      return measureKlondikeBoard(game, viewport).origins.get(pileId)!;
     }
 
     /** Picks up a card from tableau-0 and holds it over the given point. */

@@ -3,10 +3,11 @@ import { BoardInputManager } from "@/engine/render/phaser/board_input_manager";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
-import {
-  DESIGN_WIDTH_PX,
-  DESIGN_HEIGHT_PX,
-} from "@/engine/render/layout/board_layout_constants";
+import { designSize } from "@/engine/render/layout/table_layout";
+import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
+
+const DESIGN_WIDTH_PX = designSize(KLONDIKE_LAYOUT).width;
+const DESIGN_HEIGHT_PX = designSize(KLONDIKE_LAYOUT).height;
 import {
   asSprite,
   createMockInput,
