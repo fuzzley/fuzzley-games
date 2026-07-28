@@ -236,3 +236,34 @@
     padding: 16px;
   }
 }
+
+/* Game picker: one button per game the engine can put on the table. */
+.game-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.game-option {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.game-option:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.game-option.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}

@@ -1,4 +1,3 @@
-import { InjectionToken, inject } from "@angular/core";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { TablePresentation } from "@/engine/render/presentation";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
@@ -7,8 +6,6 @@ import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { makeFreeCellBoardScene } from "@/games/freecell/freecell_board";
 import { SpiderGame } from "@/games/spider/spider_game";
 import { makeSpiderBoardScene } from "@/games/spider/spider_board";
-import { PresentationSettingsService } from "../service/presentation_settings.service";
-import { GAME_SESSION } from "./game_model.provider";
 
 /**
  * Builds the board that draws a game.
@@ -32,16 +29,3 @@ export function makeBoardScene(
   }
   throw new Error("No board is registered for this game.");
 }
-
-/** The board scene drawing the running game. */
-export const GAME_BOARD_SCENE = new InjectionToken<BoardScene>(
-  "GAME_BOARD_SCENE",
-  {
-    providedIn: "root",
-    factory: () =>
-      makeBoardScene(
-        inject(GAME_SESSION).game,
-        inject(PresentationSettingsService),
-      ),
-  },
-);

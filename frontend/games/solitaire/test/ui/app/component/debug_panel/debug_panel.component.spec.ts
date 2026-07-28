@@ -3,10 +3,11 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { DebugPanelComponent } from "@/ui/app/component/debug_panel/debug_panel.component";
 import { GameSessionService } from "@/ui/app/service/game_session.service";
-import { GAME_MODEL } from "@/ui/app/provider/game_model.provider";
+import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import {
   createMockGameModel,
-  asGameModel,
+  createMockCatalog,
+  asCatalog,
 } from "@test/support/game_model_mock";
 import { query, queryAll, queryText } from "@test/support/dom";
 
@@ -22,7 +23,10 @@ describe("DebugPanelComponent", () => {
       imports: [DebugPanelComponent],
       providers: [
         GameSessionService,
-        { provide: GAME_MODEL, useValue: asGameModel(mockGameModel) },
+        {
+          provide: GameCatalogService,
+          useValue: asCatalog(createMockCatalog(mockGameModel)),
+        },
       ],
     }).compileComponents();
 

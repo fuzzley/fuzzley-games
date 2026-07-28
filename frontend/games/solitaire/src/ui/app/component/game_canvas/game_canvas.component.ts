@@ -1,13 +1,14 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
   ElementRef,
+  effect,
   inject,
-  OnInit,
 } from "@angular/core";
 import { Solitaire } from "@/games/klondike/solitaire";
-import { GAME_BOARD_SCENE } from "../../provider/board_catalog";
+import { makeBoardScene } from "../../provider/board_catalog";
+import { GameCatalogService } from "../../service/game_catalog.service";
+import { PresentationSettingsService } from "../../service/presentation_settings.service";
 
 declare global {
   interface Window {
@@ -25,7 +26,7 @@ declare global {
  * down with the element it draws into.
  *
  * Which game is on the table is decided by the catalog, not here: this hosts
- * whichever board it is given.
+ * whichever board that game asks for, and rebuilds when the choice changes.
  */
 @Component({
   selector: "app-game-canvas",
@@ -33,25 +34,30 @@ declare global {
   template: "",
   styleUrl: "./game_canvas.component.css",
 })
-export class GameCanvasComponent implements OnInit {
+export class GameCanvasComponent {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly boardScene = inject(GAME_BOARD_SCENE);
+  private readonly catalog = inject(GameCatalogService);
+  private readonly presentation = inject(PresentationSettingsService);
 
-  ngOnInit(): void {
-    const solitaire = new Solitaire(
-      window,
-      this.host.nativeElement,
-      () => this.boardScene,
-    );
-    solitaire.start();
-    window.solitaire = solitaire;
+  constructor() {
+    // One Phaser host per game. Switching games tears the old canvas down and
+    // builds a new one, because a board is wired to the game it draws when it
+    // is constructed and there is nothing sensible to re-point at a different
+    // one mid-flight.
+    effect((onCleanup) => {
+      const { game } = this.catalog.session();
+      const solitaire = new Solitaire(window, this.host.nativeElement, () =>
+        makeBoardScene(game, this.presentation),
+      );
+      solitaire.start();
+      window.solitaire = solitaire;
 
-    this.destroyRef.onDestroy(() => {
-      solitaire.destroy();
-      if (window.solitaire === solitaire) {
-        delete window.solitaire;
-      }
+      onCleanup(() => {
+        solitaire.destroy();
+        if (window.solitaire === solitaire) {
+          delete window.solitaire;
+        }
+      });
     });
   }
 }

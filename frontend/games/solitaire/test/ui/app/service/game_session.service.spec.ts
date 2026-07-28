@@ -3,16 +3,15 @@ import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed } from "@angular/core/testing";
 import { GameSessionService } from "@/ui/app/service/game_session.service";
 import { ConfirmationService } from "@/ui/app/service/confirmation.service";
-import {
-  GAME_MODEL,
-  GAME_RULE_OPTIONS,
-} from "@/ui/app/provider/game_model.provider";
+import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import {
   createMockGameModel,
   createMockPresentation,
-  asGameModel,
+  createMockCatalog,
+  asCatalog,
   asPresentation,
+  type MockCatalog,
   type MockGameModel,
   type MockPresentation,
 } from "@test/support/game_model_mock";
@@ -21,6 +20,7 @@ interface Harness {
   session: GameSessionService;
   confirmation: ConfirmationService;
   model: MockGameModel;
+  catalog: MockCatalog;
   presentation: MockPresentation;
   emitGameWon: () => void;
 }
@@ -32,39 +32,10 @@ function buildSession(model: MockGameModel): Harness {
   });
 
   const presentation = createMockPresentation();
-  // The rule options the running game offers. Klondike's are a draw mode and a
-  // debug board; a game with neither supplies an empty object instead.
-  const ruleOptions = {
-    drawCount: {
-      options: [1, 3],
-      current: () => model.settings.drawCount,
-      set: (count: number): void => {
-        model.settings.setDrawCount(count);
-      },
-      subscribe: (listener: (count: number) => void) => {
-        const sub = model.settings.drawCount$.subscribe(listener);
-        return (): void => {
-          sub.unsubscribe();
-        };
-      },
-    },
-    almostWin: {
-      current: () => model.settings.debug.almostWin,
-      set: (enabled: boolean): void => {
-        model.settings.debug.setAlmostWin(enabled);
-      },
-      subscribe: (listener: (enabled: boolean) => void) => {
-        const sub = model.settings.debug.almostWin$.subscribe(listener);
-        return (): void => {
-          sub.unsubscribe();
-        };
-      },
-    },
-  };
+  const catalog = createMockCatalog(model);
   TestBed.configureTestingModule({
     providers: [
-      { provide: GAME_MODEL, useValue: asGameModel(model) },
-      { provide: GAME_RULE_OPTIONS, useValue: ruleOptions },
+      { provide: GameCatalogService, useValue: asCatalog(catalog) },
       {
         provide: PresentationSettingsService,
         useValue: asPresentation(presentation),
@@ -72,11 +43,15 @@ function buildSession(model: MockGameModel): Harness {
     ],
   });
   const session = TestBed.inject(GameSessionService);
+  // The metrics are bound by an effect now, so it has to have run before a
+  // test can read them.
+  TestBed.flushEffects();
   const confirmation = TestBed.inject(ConfirmationService);
   return {
     session,
     confirmation,
     model,
+    catalog,
     presentation,
     emitGameWon: () => emitGameWon(),
   };
@@ -271,6 +246,85 @@ describe("GameSessionService", () => {
       harness.session.undo();
 
       expect(harness.model.undo).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("choosing a game", () => {
+    it("offers every game in the catalog", () => {
+      const harness = buildSession(createMockGameModel());
+
+      expect(harness.session.games.map((game) => game.id)).toEqual([
+        "klondike",
+        "freecell",
+      ]);
+    });
+
+    it("reports which one is on the table", () => {
+      const harness = buildSession(createMockGameModel());
+
+      expect(harness.session.selectedGameId()).toBe("klondike");
+    });
+
+    it("switches immediately when no move has been made", () => {
+      const harness = buildSession(createMockGameModel({ moves: 0 }));
+
+      harness.session.selectGame("freecell");
+
+      expect(harness.catalog.select).toHaveBeenCalledWith("freecell");
+    });
+
+    it("asks first when a game is in progress", () => {
+      const harness = buildSession(createMockGameModel({ moves: 4 }));
+
+      harness.session.selectGame("freecell");
+
+      expect(harness.confirmation.isOpen()).toBe(true);
+      expect(harness.catalog.select).not.toHaveBeenCalled();
+    });
+
+    it("switches once the prompt is accepted", () => {
+      const harness = buildSession(createMockGameModel({ moves: 4 }));
+      harness.session.selectGame("freecell");
+
+      harness.confirmation.accept();
+
+      expect(harness.catalog.select).toHaveBeenCalledWith("freecell");
+    });
+
+    it("ignores picking the game already in play, which would deal a new one", () => {
+      const harness = buildSession(createMockGameModel({ moves: 4 }));
+
+      harness.session.selectGame("klondike");
+
+      expect(harness.catalog.select).not.toHaveBeenCalled();
+      expect(harness.confirmation.isOpen()).toBe(false);
+    });
+
+    it("re-binds its metrics to the game that arrives", () => {
+      const harness = buildSession(createMockGameModel({ score: 10 }));
+      const replacement = createMockGameModel({ score: 99 });
+
+      harness.catalog.session.set({
+        game: replacement,
+        ruleOptions: harness.catalog.session().ruleOptions,
+      });
+      TestBed.flushEffects();
+
+      expect(harness.session.score()).toBe(99);
+    });
+
+    it("stops following the game that left", () => {
+      const harness = buildSession(createMockGameModel({ score: 10 }));
+      const departing = harness.model;
+      harness.catalog.session.set({
+        game: createMockGameModel({ score: 99 }),
+        ruleOptions: harness.catalog.session().ruleOptions,
+      });
+      TestBed.flushEffects();
+
+      departing.state.score$.next(555);
+
+      expect(harness.session.score()).toBe(99);
     });
   });
 });

@@ -1,13 +1,8 @@
-import {
-  Injectable,
-  signal,
-  computed,
-  effect,
-  inject,
-  DestroyRef,
-} from "@angular/core";
+import { Injectable, signal, computed, effect, inject } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { GAME_MODEL, GAME_RULE_OPTIONS } from "../provider/game_model.provider";
+import { PlayableGame } from "@/engine/tableau/playable_game";
+import { CatalogEntry } from "../provider/game_catalog";
+import { GameCatalogService } from "./game_catalog.service";
 import {
   CardBackStyle,
   PresentationSettingsService,
@@ -16,50 +11,53 @@ import { TimerService } from "./timer.service";
 import { ConfirmationService } from "./confirmation.service";
 
 /**
- * Coordinates a play session: bridges the model's observable state to signals,
- * tracks the won state, drives the stopwatch, and orchestrates the lifecycle
- * actions (restart / new game / draw mode) behind confirmation when a game is
- * in progress.
+ * Coordinates a play session: bridges the running game's observable state to
+ * signals, tracks the won state, drives the stopwatch, and orchestrates the
+ * lifecycle actions behind confirmation when a game is in progress.
+ *
+ * Follows whichever game is on the table rather than binding to one. Picking a
+ * different game re-subscribes everything here to it, which is why the metrics
+ * are plain signals fed by an effect instead of bridged once from a fixed set
+ * of observables.
  */
 @Injectable({ providedIn: "root" })
 export class GameSessionService {
-  private readonly gameModel = inject(GAME_MODEL);
+  private readonly catalog = inject(GameCatalogService);
   private readonly timer = inject(TimerService);
   private readonly confirmation = inject(ConfirmationService);
   private readonly presentation = inject(PresentationSettingsService);
-  private readonly rules = inject(GAME_RULE_OPTIONS);
-  private readonly destroyRef = inject(DestroyRef);
 
-  // --- Signals bridged from observable game state ---
-  readonly score = toSignal(this.gameModel.state.score$, { initialValue: 0 });
-  readonly moves = toSignal(this.gameModel.state.moves$, { initialValue: 0 });
+  // --- Live metrics of whichever game is running ---
+  readonly score = signal(0);
+  readonly moves = signal(0);
+  private readonly undoDepth = signal(0);
+
   /**
    * The draw mode, or null for a game that has no stock to draw from.
    *
-   * A signal fed by the game's own option rather than read off a settings
-   * object, because FreeCell has no such setting and must not be assumed to.
+   * Fed by the game's own declared option rather than read off a settings
+   * object, because FreeCell and Spider have no such setting.
    */
-  readonly drawCount = signal<number | null>(
-    this.rules.drawCount?.current() ?? null,
-  );
+  readonly drawCount = signal<number | null>(null);
 
   /** The draw modes the running game offers, empty when it offers none. */
-  readonly drawCountOptions: readonly number[] =
-    this.rules.drawCount?.options ?? [];
+  readonly drawCountOptions = signal<readonly number[]>([]);
+
+  /** The debug board toggle, or null for a game that offers none. */
+  readonly almostWin = signal<boolean | null>(null);
+
   readonly cardBack = toSignal(this.presentation.cardBackStyle$, {
     initialValue: "card-back-blue" satisfies CardBackStyle,
   });
-  /** The debug board toggle, or null for a game that offers none. */
-  readonly almostWin = signal<boolean | null>(
-    this.rules.almostWin?.current() ?? null,
-  );
 
   readonly isGameWon = signal(false);
   readonly timerText = this.timer.timerText;
 
-  private readonly undoDepth = toSignal(this.gameModel.state.undoDepth$, {
-    initialValue: 0,
-  });
+  /** Every game that can be played. */
+  readonly games: readonly CatalogEntry[] = this.catalog.games;
+
+  /** The id of the game on the table. */
+  readonly selectedGameId = this.catalog.selectedId;
 
   /**
    * Whether there is a move to take back. A won game is excluded: the board is
@@ -68,16 +66,40 @@ export class GameSessionService {
   readonly canUndo = computed(() => this.undoDepth() > 0 && !this.isGameWon());
 
   constructor() {
-    // Follow whichever options the game offers, and none it does not.
-    const stopFollowingDraw = this.rules.drawCount?.subscribe((count) =>
-      this.drawCount.set(count),
-    );
-    const stopFollowingAlmostWin = this.rules.almostWin?.subscribe((enabled) =>
-      this.almostWin.set(enabled),
-    );
-    this.destroyRef.onDestroy(() => {
-      stopFollowingDraw?.();
-      stopFollowingAlmostWin?.();
+    // Re-bind everything to whichever game is on the table. Angular runs the
+    // cleanup before the next pass, so switching games never leaves a
+    // subscription pointing at the game that just left.
+    effect((onCleanup) => {
+      const { game, ruleOptions } = this.catalog.session();
+
+      const subscriptions = [
+        game.state.score$.subscribe((value) => this.score.set(value)),
+        game.state.moves$.subscribe((value) => this.moves.set(value)),
+        game.state.undoDepth$.subscribe((value) => this.undoDepth.set(value)),
+      ];
+
+      this.drawCountOptions.set(ruleOptions.drawCount?.options ?? []);
+      this.drawCount.set(ruleOptions.drawCount?.current() ?? null);
+      this.almostWin.set(ruleOptions.almostWin?.current() ?? null);
+      const stopFollowingDraw = ruleOptions.drawCount?.subscribe((count) =>
+        this.drawCount.set(count),
+      );
+      const stopFollowingAlmostWin = ruleOptions.almostWin?.subscribe(
+        (enabled) => this.almostWin.set(enabled),
+      );
+
+      const gameWonHandler = () => {
+        this.isGameWon.set(true);
+        this.timer.stop();
+      };
+      game.on("game-won", gameWonHandler);
+
+      onCleanup(() => {
+        subscriptions.forEach((subscription) => subscription.unsubscribe());
+        stopFollowingDraw?.();
+        stopFollowingAlmostWin?.();
+        game.off("game-won", gameWonHandler);
+      });
     });
 
     // Auto-start the stopwatch once the first move is made (and not yet won).
@@ -88,15 +110,29 @@ export class GameSessionService {
         this.timer.start();
       }
     });
+  }
 
-    const gameWonHandler = () => {
-      this.isGameWon.set(true);
-      this.timer.stop();
-    };
-    this.gameModel.on("game-won", gameWonHandler);
-    this.destroyRef.onDestroy(() => {
-      this.gameModel.off("game-won", gameWonHandler);
-    });
+  /** The game currently on the table. */
+  private get gameModel(): PlayableGame {
+    return this.catalog.session().game;
+  }
+
+  /**
+   * Puts a different game on the table, behind a confirmation when the current
+   * one is in progress.
+   *
+   * @param id The id of the game to play.
+   */
+  selectGame(id: string): void {
+    if (id === this.selectedGameId()) return;
+
+    this.confirmIfInProgress(
+      "Are you sure you want to switch games? Your current progress will be lost.",
+      () => {
+        this.catalog.select(id);
+        this.startFreshSession();
+      },
+    );
   }
 
   restartGame(): void {
@@ -120,7 +156,7 @@ export class GameSessionService {
   }
 
   setDrawMode(mode: number): void {
-    const drawCount = this.rules.drawCount;
+    const drawCount = this.catalog.session().ruleOptions.drawCount;
     if (!drawCount || this.drawCount() === mode) return;
 
     if (this.moves() === 0) {
@@ -148,8 +184,9 @@ export class GameSessionService {
   }
 
   setAlmostWin(enabled: boolean): void {
-    if (!this.rules.almostWin) return;
-    this.rules.almostWin.set(enabled);
+    const almostWin = this.catalog.session().ruleOptions.almostWin;
+    if (!almostWin) return;
+    almostWin.set(enabled);
     if (this.moves() > 0 || this.isGameWon()) {
       this.gameModel.startNewGame();
       this.startFreshSession();
