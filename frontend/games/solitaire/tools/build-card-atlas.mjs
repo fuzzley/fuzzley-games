@@ -22,12 +22,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const CARD_DIR = join(ROOT, "src/game/assets/sprites/card");
-const OUT_DIR = join(ROOT, "src/game/assets/sprites/atlas");
+const CARD_DIR = join(ROOT, "src/engine/render/assets/sprites/card");
+const OUT_DIR = join(ROOT, "src/engine/render/assets/sprites/atlas");
 
 /**
  * Texels per design unit. Must match CARD_ART_SCALE in
- * src/game/render/scene/board/layout/board_layout_constants.ts.
+ * src/engine/render/layout/board_layout_constants.ts.
  */
 const ART_SCALE = 2;
 

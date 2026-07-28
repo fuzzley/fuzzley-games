@@ -6,7 +6,7 @@ import { GameCanvasComponent } from "@/ui/app/component/game_canvas/game_canvas.
 /** Records every game the component constructs, and what it was handed. */
 const started: { parent: HTMLElement; destroyed: boolean }[] = [];
 
-vi.mock("@/game/solitaire", () => ({
+vi.mock("@/games/klondike/solitaire", () => ({
   Solitaire: class {
     private readonly record: { parent: HTMLElement; destroyed: boolean };
 

@@ -1,10 +1,10 @@
-import { CardPile } from "@/game/model/card/card_pile";
+import { CardPile } from "@/engine/core/card/card_pile";
 import {
   ALL_PLAYING_CARD_IDS,
   PlayingCard,
   playingCardIdToString,
-} from "@/game/model/card/playing_card";
-import { SolitaireGame } from "@/game/model/game/solitaire_game";
+} from "@/engine/core/card/playing_card";
+import { SolitaireGame } from "@/games/klondike/solitaire_game";
 
 /** Id of the only card left out of the foundations by {@link almostWon}. */
 export const CLUB_KING_ID = "card-clubs-king";
