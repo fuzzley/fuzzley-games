@@ -4,6 +4,7 @@ import { GameSettings } from "./game_settings";
 import { GameState } from "./game_state";
 import { ScoringPolicy } from "./scoring_policy";
 import { MoveRules } from "./move_rules";
+import { BoardQuery } from "@/engine/tableau/rules";
 import { Dealer } from "./dealer";
 import { AppliedMove } from "./move_history";
 import { CardLocations, CardPile } from "@/engine/core/card/card_pile";
@@ -483,12 +484,34 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     const sourceCards = sourcePile.getCards();
     const movingStack = sourceCards.slice(sourceCards.indexOf(card));
 
-    if (!this.moveRules.canPlace(card, targetPile, movingStack.length)) {
+    if (
+      !this.moveRules.canPlace({
+        card,
+        movingStack,
+        sourcePile,
+        targetPile,
+        board: this.board,
+      })
+    ) {
       return null;
     }
 
     return { movingStack, sourcePile, targetPile };
   }
+
+  /**
+   * The read-only view of the board handed to placement rules, so a rule can
+   * depend on the position as a whole rather than only on its target.
+   */
+  private readonly board: BoardQuery = {
+    pile: (pileId) => this.getPileById(pileId),
+    pilesByRole: (role) =>
+      [...this.pilesMap.values()].filter((pile) => pile.role === role),
+    emptyCount: (role) =>
+      [...this.pilesMap.values()].filter(
+        (pile) => pile.role === role && pile.isEmpty,
+      ).length,
+  };
 
   /**
    * Automatically moves a card to its best available destination.
