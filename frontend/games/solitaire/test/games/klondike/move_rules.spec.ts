@@ -39,7 +39,9 @@ describe("klondikePlacementRule", () => {
       card,
       ...Array.from({ length: movingStackSize - 1 }, () => makePlayingCard()),
     ];
-    return klondikePlacementRule(targetPile.role)({
+    const rule = klondikePlacementRule(targetPile.role);
+    if (!rule) return false;
+    return rule({
       card,
       movingStack,
       sourcePile: pileWith(KlondikeRole.TABLEAU),

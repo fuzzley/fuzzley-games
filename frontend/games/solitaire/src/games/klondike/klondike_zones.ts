@@ -173,6 +173,9 @@ function buildZoneSpecs(drawCount: DrawCount): readonly ZoneSpec[] {
       grab: { kind: "top-only" },
       draggable: false,
       face: "always-down",
+      backgroundKey: "card-placeholder-full-border-reset",
+      // Clicking the empty slot recycles the waste.
+      emptyIsActionable: true,
     },
     {
       id: WASTE_PILE_ID,
@@ -183,6 +186,8 @@ function buildZoneSpecs(drawCount: DrawCount): readonly ZoneSpec[] {
       grab: { kind: "top-only" },
       draggable: true,
       face: "always-up",
+      // No placeholder: the waste fans over bare table rather than sitting in a
+      // marked slot.
     },
   ];
 
@@ -198,6 +203,7 @@ function buildZoneSpecs(drawCount: DrawCount): readonly ZoneSpec[] {
       grab: { kind: "top-only" },
       draggable: true,
       face: "always-up",
+      backgroundKey: "card-placeholder-full-border-circle",
     });
   }
 
@@ -217,6 +223,7 @@ function buildZoneSpecs(drawCount: DrawCount): readonly ZoneSpec[] {
       grab: { kind: "any-face-up" },
       draggable: true,
       face: "card",
+      backgroundKey: "card-placeholder",
     });
   }
 

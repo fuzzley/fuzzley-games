@@ -1,43 +1,84 @@
-import { SolitaireGame } from "@/games/klondike/solitaire_game";
 import { CardPile } from "@/engine/core/card/card_pile";
-import { KlondikeRole } from "@/games/klondike/klondike_zones";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Point } from "@/engine/core/common/point";
 import {
-  TableInteractionState,
-  TableViewState,
-  CardView,
-  DragInteraction,
-  PileBackgroundView,
-  HighlightView,
-  Viewport,
-} from "@/engine/render/view/table_view_state";
+  CARD_ART_SCALE,
+  CARD_RENDER_HEIGHT_PX,
+  CARD_RENDER_WIDTH_PX,
+} from "@/engine/render/layout/card_metrics";
 import {
   DRAG_BASE_DEPTH,
   DROP_TARGET_HIGHLIGHT_DEPTH,
   FLIGHT_BASE_DEPTH,
   HOVER_HIGHLIGHT_DEPTH,
   PILE_BACKGROUND_DEPTH,
+  computeDropGeometries,
+  resolveDropTarget,
 } from "@/engine/render/layout/drop_geometry";
 import { pileCardOffsets } from "@/engine/render/layout/pile_layout";
+import { TableMetrics } from "@/engine/render/layout/table_layout";
+import {
+  CardView,
+  DragInteraction,
+  HighlightView,
+  PileBackgroundView,
+  PileGeometry,
+  TableInteractionState,
+  TableViewState,
+} from "@/engine/render/view/table_view_state";
 import { frameFor } from "../zone";
-import {
-  KlondikeBoardMetrics,
-  measureKlondikeBoard,
-  resolveDragTarget,
-} from "@/games/klondike/klondike_board";
-import { TABLEAU_FACE_UP_OFFSET } from "@/games/klondike/klondike_zones";
-import {
-  CARD_ART_SCALE,
-  CARD_RENDER_WIDTH_PX,
-  CARD_RENDER_HEIGHT_PX,
-} from "@/engine/render/layout/card_metrics";
+import { TablePresentation, TableView } from "./table_view";
 
 /**
- * Transient builder class that constructs the visual representation of the Solitaire board
- * for a single frame. It encapsulates shared layout metrics and calculations.
+ * Resolves the pile an in-flight drag would land on, as the pile's full drop
+ * rectangle.
+ *
+ * The single answer to "where does this drag go": the view builder calls it
+ * every frame to preview the target and the input handler calls it on release
+ * to commit the move, so the border can never promise a pile the drop then
+ * disagrees with.
+ *
+ * @param game The game being drawn.
+ * @param drag The active drag.
+ * @param metrics The board measured for this frame.
+ * @returns The target pile's geometry, or null when the drag overlaps no pile.
  */
-class BoardViewStateBuilder {
+export function resolveDragTarget(
+  game: TableView,
+  drag: DragInteraction,
+  metrics: TableMetrics,
+): PileGeometry | null {
+  const cardSize = metrics.layout.cardSize;
+  const geometries = computeDropGeometries(
+    game.dropTargetPiles.map((pile) => ({
+      pile,
+      layout: game.zoneFor(pile.id)?.layout ?? { kind: "stacked" },
+    })),
+    metrics.origins,
+    cardSize,
+    metrics.scale,
+  );
+
+  return resolveDropTarget(
+    {
+      x: drag.primary.x,
+      y: drag.primary.y,
+      width: cardSize.width * metrics.scale,
+      height: cardSize.height * metrics.scale,
+    },
+    geometries,
+  );
+}
+
+/**
+ * Builds the desired appearance of a table for one frame.
+ *
+ * Reads the game only through {@link TableView} and the zones, so the same
+ * builder draws Klondike, FreeCell or Spider: which piles exist, how each fans,
+ * which side of its cards it shows and what may be picked up are all declared
+ * rather than branched on here.
+ */
+class TableViewStateBuilder {
   /** Layout scale: design units to device pixels. */
   private readonly scale: number;
   /** Sprite scale: atlas texels to device pixels. */
@@ -45,29 +86,25 @@ class BoardViewStateBuilder {
   private readonly origins: ReadonlyMap<string, Point>;
   private readonly cardWidth: number;
   private readonly cardHeight: number;
-  private readonly metrics: KlondikeBoardMetrics;
 
   constructor(
-    private readonly game: SolitaireGame,
+    private readonly game: TableView,
     private readonly interaction: TableInteractionState,
-    viewport: Viewport,
+    private readonly metrics: TableMetrics,
+    private readonly presentation: TablePresentation,
   ) {
-    this.metrics = measureKlondikeBoard(game, viewport);
-    this.scale = this.metrics.scale;
+    this.scale = metrics.scale;
     // The artwork is authored larger than a card is drawn, so a sprite is
     // scaled down from its texels while the layout keeps working in design
     // units.
     this.spriteScale = this.scale / CARD_ART_SCALE;
-    this.origins = this.metrics.origins;
+    this.origins = metrics.origins;
     // Size the highlight from the drawn card size so its border hugs the
     // rendered card exactly, rather than the slightly larger layout grid cell.
     this.cardWidth = CARD_RENDER_WIDTH_PX * this.scale;
     this.cardHeight = CARD_RENDER_HEIGHT_PX * this.scale;
   }
 
-  /**
-   * Orchestrates the construction of all view state elements.
-   */
   public build(): TableViewState {
     return {
       backgrounds: this.buildBackgrounds(),
@@ -76,57 +113,47 @@ class BoardViewStateBuilder {
     };
   }
 
-  /**
-   * Computes the background representations for each pile.
-   */
+  /** A placeholder for every zone that declares one. */
   private buildBackgrounds(): PileBackgroundView[] {
     const backgrounds: PileBackgroundView[] = [];
 
-    const stockOrigin = this.origins.get(this.game.stock.id);
-    if (stockOrigin) {
-      const stockEmpty = this.game.stock.isEmpty;
-      backgrounds.push({
-        pileId: this.game.stock.id,
-        x: stockOrigin.x,
-        y: stockOrigin.y,
-        scale: this.spriteScale,
-        depth: PILE_BACKGROUND_DEPTH,
-        cursor: stockEmpty ? "pointer" : "default",
-      });
-    }
-
-    const pushPileBackground = (pile: CardPile<PlayingCard>): void => {
+    for (const pile of this.game.piles) {
+      const zone = this.game.zoneFor(pile.id);
       const origin = this.origins.get(pile.id);
-      if (!origin) return;
+      if (!zone?.backgroundKey || !origin) continue;
+
       backgrounds.push({
         pileId: pile.id,
         x: origin.x,
         y: origin.y,
         scale: this.spriteScale,
         depth: PILE_BACKGROUND_DEPTH,
+        // Only a slot that does something when clicked while empty invites one.
+        cursor: zone.emptyIsActionable && pile.isEmpty ? "pointer" : "default",
       });
-    };
-
-    this.game.foundations.forEach((pile) => pushPileBackground(pile));
-    this.game.tableaus.forEach((pile) => pushPileBackground(pile));
+    }
 
     return backgrounds;
   }
 
-  /**
-   * Computes the visual positions and states of all cards currently in play.
-   */
+  /** The position, frame and interactivity of every card in play. */
   private buildCards(): CardView[] {
     const cards: CardView[] = [];
     const draggedIds = this.interaction.drag?.cardIds ?? [];
     const dragSet = new Set(draggedIds);
     const dragPrimary = this.interaction.drag?.primary ?? null;
 
+    // A dragged stack keeps the spacing of the pile it came from, so a fanned
+    // column stays fanned in hand and a squarely stacked pile stays square.
     const dragSourcePile =
       draggedIds.length > 0
         ? this.game.getPileContainingCard(draggedIds[0])
         : null;
-    const isTableauDrag = dragSourcePile?.role === KlondikeRole.TABLEAU;
+    const dragSourceLayout = dragSourcePile
+      ? this.game.zoneFor(dragSourcePile.id)?.layout
+      : undefined;
+    const dragFanGap =
+      dragSourceLayout?.kind === "fan-down" ? dragSourceLayout.faceUpGap : 0;
 
     // Position in the flying stack, so the cards keep their order in the air.
     const flightOrder = new Map(
@@ -136,35 +163,16 @@ class BoardViewStateBuilder {
       ]),
     );
 
-    const allPiles = [
-      this.game.stock,
-      this.game.waste,
-      ...this.game.foundations,
-      ...this.game.tableaus,
-    ];
-
-    for (const pile of allPiles) {
+    for (const pile of this.game.piles) {
       const origin = this.origins.get(pile.id);
-      if (!origin) continue;
+      const zone = this.game.zoneFor(pile.id);
+      if (!origin || !zone) continue;
 
       const pileCards = pile.getCards();
-
-      const hoveredCardInPile = this.interaction.hoveredCardId
-        ? pileCards.find((card) => card.id === this.interaction.hoveredCardId)
-        : undefined;
-      // Only interactable cards expand on hover; a face-down tableau card, for
-      // example, cannot be picked up, so it should not open a gap beneath it.
-      const expansionCardId =
-        hoveredCardInPile &&
-        !this.interaction.drag &&
-        this.game.isCardInteractableInPile(hoveredCardInPile, pile)
-          ? hoveredCardInPile.id
-          : null;
-
       const offsets = pileCardOffsets(
-        this.metrics.layoutFor(pile),
+        zone.layout,
         pileCards,
-        expansionCardId,
+        this.expansionCardId(pile, pileCards),
       );
 
       for (let cardIndex = 0; cardIndex < pileCards.length; cardIndex++) {
@@ -173,17 +181,14 @@ class BoardViewStateBuilder {
 
         let x: number;
         let y: number;
-        let depth = cardIndex + 1; // card depths sit above the pile background at depth 0
+        // Card depths sit above the pile background at depth 0.
+        let depth = cardIndex + 1;
         let snap = this.interaction.snapAll;
 
         if (isDragged && dragPrimary) {
           const dragIndex = draggedIds.indexOf(card.id);
           x = dragPrimary.x;
-          y =
-            dragPrimary.y +
-            (isTableauDrag
-              ? dragIndex * TABLEAU_FACE_UP_OFFSET * this.scale
-              : 0);
+          y = dragPrimary.y + dragIndex * dragFanGap * this.scale;
           depth = DRAG_BASE_DEPTH + dragIndex;
           snap = true;
         } else {
@@ -205,11 +210,7 @@ class BoardViewStateBuilder {
           y,
           scale: this.spriteScale,
           depth,
-          frame: frameFor(
-            this.game.zoneFor(pile.id)?.face ?? "card",
-            card,
-            this.game.settings.cardBackStyle,
-          ),
+          frame: frameFor(zone.face, card, this.presentation.cardBackKey),
           cursor: this.game.isCardInteractableInPile(card, pile)
             ? "pointer"
             : "default",
@@ -223,8 +224,29 @@ class BoardViewStateBuilder {
   }
 
   /**
-   * Computes the highlight borders to draw: the drag feedback while a stack is
-   * in hand, and the hover border otherwise.
+   * The card in this pile whose fan should open to reveal more of it, or null.
+   *
+   * Only an interactable card expands: a face-down card, for example, cannot be
+   * picked up, so it should not open a gap beneath it.
+   */
+  private expansionCardId(
+    pile: CardPile<PlayingCard>,
+    pileCards: readonly PlayingCard[],
+  ): string | null {
+    if (!this.interaction.hoveredCardId || this.interaction.drag) {
+      return null;
+    }
+    const hovered = pileCards.find(
+      (card) => card.id === this.interaction.hoveredCardId,
+    );
+    return hovered && this.game.isCardInteractableInPile(hovered, pile)
+      ? hovered.id
+      : null;
+  }
+
+  /**
+   * The highlight borders to draw: drag feedback while a stack is in hand, and
+   * the hover border otherwise.
    */
   private buildHighlights(): HighlightView[] {
     const drag = this.interaction.drag;
@@ -238,8 +260,8 @@ class BoardViewStateBuilder {
   }
 
   /**
-   * Computes the border marking where the dragged stack would land if it were
-   * released now, or null when it would not be accepted anywhere.
+   * The border marking where the dragged stack would land if released now, or
+   * null when it would not be accepted anywhere.
    *
    * The card in hand wears no border of its own: it is already lifted above the
    * board and following the pointer, so the only thing left to say is where it
@@ -282,26 +304,13 @@ class BoardViewStateBuilder {
   }
 
   /**
-   * Computes the hover border for the card or empty pile under the pointer, or
-   * null when nothing hovered can be interacted with.
+   * The hover border for the card or empty slot under the pointer, or null when
+   * nothing hovered can be interacted with.
    */
   private buildHoverHighlight(): HighlightView | null {
-    const stockEmpty = this.game.stock.isEmpty;
-    const stockOrigin = this.origins.get(this.game.stock.id);
-
-    if (
-      this.interaction.isStockBackgroundHovered &&
-      stockEmpty &&
-      stockOrigin
-    ) {
-      return {
-        anchor: { kind: "point", x: stockOrigin.x, y: stockOrigin.y },
-        width: this.cardWidth,
-        height: this.cardHeight,
-        scale: this.scale,
-        depth: HOVER_HIGHLIGHT_DEPTH,
-        openBottom: false,
-      };
+    const backgroundHighlight = this.buildBackgroundHoverHighlight();
+    if (backgroundHighlight) {
+      return backgroundHighlight;
     }
 
     if (!this.interaction.hoveredCardId) {
@@ -334,21 +343,49 @@ class BoardViewStateBuilder {
       openBottom: cardIndex !== -1 && cardIndex < pileCards.length - 1,
     };
   }
+
+  /** The border for a hovered empty slot that does something when clicked. */
+  private buildBackgroundHoverHighlight(): HighlightView | null {
+    const pileId = this.interaction.hoveredBackgroundPileId;
+    if (!pileId) return null;
+
+    const pile = this.game.getPileById(pileId);
+    const zone = this.game.zoneFor(pileId);
+    const origin = this.origins.get(pileId);
+    if (!pile?.isEmpty || !zone?.emptyIsActionable || !origin) {
+      return null;
+    }
+
+    return {
+      anchor: { kind: "point", x: origin.x, y: origin.y },
+      width: this.cardWidth,
+      height: this.cardHeight,
+      scale: this.scale,
+      depth: HOVER_HIGHLIGHT_DEPTH,
+      openBottom: false,
+    };
+  }
 }
 
 /**
- * Builds the complete desired visual representation of the Solitaire board for one frame,
- * based on the logical game model, pointer-driven interaction state, and viewport size.
+ * Builds the complete desired appearance of a table for one frame.
  *
- * @param game The logical game rules and state.
- * @param interaction The current mouse pointer and drag state.
- * @param viewport The available screen space.
- * @returns The pure view state describing positions, depths, scale, frames, and highlight.
+ * @param game The game being drawn, read through its narrow view.
+ * @param interaction The current pointer and drag state.
+ * @param metrics The board measured for this viewport.
+ * @param presentation The player's choices about how cards look.
+ * @returns The pure view state describing positions, depths, frames and borders.
  */
-export function buildBoardViewState(
-  game: SolitaireGame,
+export function buildTableViewState(
+  game: TableView,
   interaction: TableInteractionState,
-  viewport: Viewport,
+  metrics: TableMetrics,
+  presentation: TablePresentation,
 ): TableViewState {
-  return new BoardViewStateBuilder(game, interaction, viewport).build();
+  return new TableViewStateBuilder(
+    game,
+    interaction,
+    metrics,
+    presentation,
+  ).build();
 }

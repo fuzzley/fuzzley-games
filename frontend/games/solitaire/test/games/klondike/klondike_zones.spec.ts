@@ -91,14 +91,19 @@ describe("klondikeZoneSpecs", () => {
     );
   });
 
-  it("accepts nothing onto the stock or the waste", () => {
-    const context = { targetPile: { isEmpty: true } };
+  it("makes the stock and the waste no kind of destination at all", () => {
     const [stock] = zonesOfRole(KlondikeRole.STOCK);
     const [waste] = zonesOfRole(KlondikeRole.WASTE);
 
-    expect([stock, waste].map((zone) => zone.accept(context as never))).toEqual(
-      [false, false],
+    expect([stock.accept, waste.accept]).toEqual([null, null]);
+  });
+
+  it("makes every foundation and tableau a destination", () => {
+    const destinations = klondikeZoneSpecs(3).filter(
+      (zone) => zone.accept !== null,
     );
+
+    expect(destinations.length).toBe(FOUNDATION_COUNT + TABLEAU_COUNT);
   });
 });
 

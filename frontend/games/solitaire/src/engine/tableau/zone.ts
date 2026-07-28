@@ -70,8 +70,14 @@ export interface ZoneSpec {
   /** How many cards it may hold. Undefined means unbounded. */
   readonly capacity?: number;
 
-  /** What it accepts. A zone that is never a destination uses `never`. */
-  readonly accept: PlacementRule;
+  /**
+   * What it accepts, or null when it is never a destination at all.
+   *
+   * Null rather than a rule that always says no, because "this pile cannot be
+   * dropped on" is a different statement from "this drop is illegal": a drag
+   * should not offer the Klondike stock as a target and then refuse it.
+   */
+  readonly accept: PlacementRule | null;
 
   /** What may be taken from it. */
   readonly grab: GrabRule;
@@ -86,6 +92,24 @@ export interface ZoneSpec {
 
   /** Which side of its cards it shows. */
   readonly face: FaceVisibility;
+
+  /**
+   * The artwork key for the placeholder drawn beneath the pile, or undefined
+   * for a pile drawn over bare table.
+   *
+   * Klondike's waste has none: it fans over the felt rather than sitting in a
+   * marked slot, so an empty waste should look like nothing at all.
+   */
+  readonly backgroundKey?: string;
+
+  /**
+   * Whether clicking this pile's empty slot does something.
+   *
+   * The Klondike stock's does — it recycles the waste — so an empty stock wants
+   * a pointer cursor and a hover border, while an empty foundation is inert and
+   * should offer neither.
+   */
+  readonly emptyIsActionable?: boolean;
 }
 
 /**

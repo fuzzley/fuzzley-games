@@ -2,7 +2,10 @@ import * as Phaser from "phaser";
 import { Types } from "phaser";
 import { LoadingScene } from "@/engine/render/phaser/loading_scene";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
-import { buildBoardViewState } from "@/engine/tableau/view/board_view_state_builder";
+import {
+  buildKlondikeViewState,
+  resolveKlondikeDropTarget,
+} from "./klondike_board";
 import { getGameModel } from "./game_model_factory";
 import { ViewportScaler } from "@/engine/render/phaser/viewport_scaler";
 import { DEFAULT_BACKGROUND_COLOR } from "./game_settings";
@@ -52,7 +55,11 @@ export class Solitaire {
       // game it draws and how to lay it out, and Phaser cannot supply either.
       scene: [
         LoadingScene,
-        new BoardScene(getGameModel(), buildBoardViewState),
+        new BoardScene(
+          getGameModel(),
+          buildKlondikeViewState,
+          resolveKlondikeDropTarget,
+        ),
       ],
     };
     const game = new Phaser.Game(gameConfig);
