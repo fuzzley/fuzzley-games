@@ -174,8 +174,14 @@ export interface TableInteractionState {
   hoveredBackgroundPileId: string | null;
   /** The active drag, or null when nothing is being dragged. */
   drag: DragInteraction | null;
-  /** The stack still flying to the pile it was moved to, or null when none is. */
-  flight: FlightInteraction | null;
+  /**
+   * The stacks still crossing the board, oldest first, or empty when none is.
+   *
+   * A list rather than one stack because actions overlap: a card double-pressed
+   * to a foundation is still in the air when the next one is sent after it, and
+   * a single slot would drop the first out of the air to make room.
+   */
+  flights: readonly FlightInteraction[];
   /**
    * When true every card snaps to its target this frame instead of easing. Set
    * for the first render and after a reset or resize so cards do not slide in

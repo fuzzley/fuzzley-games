@@ -292,9 +292,12 @@ export class BoardScene extends Scene implements PhaserSprites {
     // A flying stack is lifted above the board for as long as it is crossing
     // it. Only the applier eases the sprites, so it is the one that knows when
     // they have arrived and the stack can settle into its pile's own order.
-    const flight = this.inputManager.flight;
-    if (flight && !this.viewApplier.areCardsTravelling(flight.cardIds)) {
-      this.inputManager.endFlight();
+    // Each flight is retired on its own: one landing says nothing about
+    // another still on its way.
+    for (const flight of [...this.inputManager.flights]) {
+      if (!this.viewApplier.areCardsTravelling(flight.cardIds)) {
+        this.inputManager.endFlight(flight);
+      }
     }
 
     if (this.inputManager.snapAll) {

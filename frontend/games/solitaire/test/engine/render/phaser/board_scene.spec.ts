@@ -4,12 +4,14 @@ import { makeKlondikeBoardScene } from "@/games/klondike/solitaire";
 import { TestPresentation } from "@test/support/presentation";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
 import {
+  MockGraphics,
   MockInput,
   MockScaleManager,
   MockSceneEvents,
   MockSprite,
   SHUTDOWN_EVENT,
 } from "@test/support/phaser_mocks";
+import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
 import {
   computePileOrigins,
   computeScale,
@@ -263,22 +265,51 @@ describe("BoardScene", () => {
       expect(sprite.depth).toBeGreaterThan(deepestCardExcept(sprite));
     });
 
-    it("returns it to its foundation's own depth once it lands", () => {
+    it("settles it back among the resting cards once it lands", () => {
       const sprite = autoMoveTheAce();
       boardScene.update(16, 16); // in flight
 
       boardScene.update(32, 0); // a zero delta lands every card
       boardScene.update(48, 16); // the frame after it has landed
 
-      expect(sprite.depth).toBe(1); // the only card in its foundation
+      expect(sprite.depth).toBeLessThan(depthFor(RenderLayer.FLYING_CARD, 0));
     });
   });
 
   describe("game reset", () => {
-    /** The card sprite currently wearing a highlight border, if any. */
-    function highlightedCardSprite(): MockSprite | undefined {
-      return allCardSprites().find((sprite) => sprite.depth >= 1000);
+    /** Every highlight border the renderer has made, drawn or hidden. */
+    let borders: MockGraphics[];
+
+    beforeEach(() => {
+      borders = [];
+      // The renderer makes its borders lazily, on the first frame that needs
+      // one, so collecting them through the scene's own factory catches them
+      // all without reaching into the renderer.
+      const addGraphics = boardScene.addGraphics.bind(boardScene);
+      vi.spyOn(boardScene, "addGraphics").mockImplementation(() => {
+        const graphics = addGraphics();
+        borders.push(graphics as unknown as MockGraphics);
+        return graphics;
+      });
+    });
+
+    /** Whether any highlight border is currently drawn. */
+    function anyBorderDrawn(): boolean {
+      return borders.some((border) => border.visible);
     }
+
+    it("draws a border while a card is hovered", () => {
+      const ace = relocate(
+        klondikeGame,
+        "card-hearts-ace",
+        klondikeGame.tableaus[0],
+      );
+
+      asMock(boardScene.cardSprite(ace.id)).emit("pointerover");
+      boardScene.update(0, 16);
+
+      expect(anyBorderDrawn()).toBe(true);
+    });
 
     it("drops a hover so no border survives into the new deal", () => {
       const ace = relocate(
@@ -294,7 +325,7 @@ describe("BoardScene", () => {
       klondikeGame.startNewGame();
       boardScene.update(16, 16);
 
-      expect(highlightedCardSprite()).toBeUndefined();
+      expect(anyBorderDrawn()).toBe(false);
     });
 
     it("snaps every card into place rather than easing from the old deal", () => {

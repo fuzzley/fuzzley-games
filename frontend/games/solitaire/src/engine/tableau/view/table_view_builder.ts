@@ -151,13 +151,15 @@ class TableViewStateBuilder {
     const dragFanGap =
       dragSourceLayout?.kind === "fan-down" ? dragSourceLayout.faceUpGap : 0;
 
-    // Position in the flying stack, so the cards keep their order in the air.
-    const flightOrder = new Map(
-      (this.interaction.flight?.cardIds ?? []).map((cardId, index) => [
-        cardId,
-        index,
-      ]),
-    );
+    // Position in the air, counted across every flight in the order they began.
+    // A stack keeps its own order, and a later flight draws over an earlier one
+    // still settling.
+    const flightOrder = new Map<string, number>();
+    for (const flight of this.interaction.flights) {
+      for (const cardId of flight.cardIds) {
+        flightOrder.set(cardId, flightOrder.size);
+      }
+    }
 
     // Resting cards are ordered across the whole board rather than within each
     // pile, so two cards in different piles never share a depth and the order

@@ -266,6 +266,11 @@ describe("BoardInputManager", () => {
       sprite.emit("pointerdown");
     }
 
+    /** The card ids of each flight in the air, oldest first. */
+    function flownStacks(): string[][] {
+      return inputManager.flights.map((flight) => [...flight.cardIds]);
+    }
+
     it("tracks the whole auto-moved stack while it crosses the board", () => {
       vi.spyOn(gameModel, "autoMoveCard").mockReturnValue(true);
       const cards = gameModel.tableaus[2].getCards();
@@ -274,7 +279,7 @@ describe("BoardInputManager", () => {
 
       // A move takes the cards stacked on top of the clicked one with it, and
       // every one of them has the board to cross.
-      expect(inputManager.flight?.cardIds).toEqual([cards[1].id, cards[2].id]);
+      expect(flownStacks()).toEqual([[cards[1].id, cards[2].id]]);
     });
 
     it("tracks nothing when no pile accepts the auto-moved card", () => {
@@ -282,7 +287,7 @@ describe("BoardInputManager", () => {
 
       doubleClick();
 
-      expect(inputManager.flight).toBeNull();
+      expect(inputManager.flights).toEqual([]);
     });
 
     it("tracks the dropped stack while it settles onto its new pile", () => {
@@ -297,7 +302,7 @@ describe("BoardInputManager", () => {
 
       input.emit("dragend", {}, asSprite(sprite));
 
-      expect(inputManager.flight?.cardIds).toEqual([card.id]);
+      expect(flownStacks()).toEqual([[card.id]]);
     });
 
     it("tracks nothing when the pile refuses the dropped stack", () => {
@@ -311,16 +316,16 @@ describe("BoardInputManager", () => {
 
       input.emit("dragend", {}, asSprite(sprite));
 
-      expect(inputManager.flight).toBeNull();
+      expect(inputManager.flights).toEqual([]);
     });
 
     it("stops tracking the stack once it has landed", () => {
       vi.spyOn(gameModel, "autoMoveCard").mockReturnValue(true);
       doubleClick();
 
-      inputManager.endFlight();
+      inputManager.endFlight(inputManager.flights[0]);
 
-      expect(inputManager.flight).toBeNull();
+      expect(inputManager.flights).toEqual([]);
     });
 
     it("stops tracking the stack on a game reset", () => {
@@ -329,7 +334,7 @@ describe("BoardInputManager", () => {
 
       inputManager.resetInteraction();
 
-      expect(inputManager.flight).toBeNull();
+      expect(inputManager.flights).toEqual([]);
     });
   });
 
@@ -485,7 +490,7 @@ describe("BoardInputManager", () => {
         hoveredCardId: null,
         hoveredBackgroundPileId: null,
         drag: null,
-        flight: null,
+        flights: [],
         snapAll: true,
       });
     });

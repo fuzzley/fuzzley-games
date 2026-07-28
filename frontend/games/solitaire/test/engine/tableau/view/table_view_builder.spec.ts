@@ -34,7 +34,7 @@ describe("board_view_state_builder", () => {
       hoveredCardId: null,
       hoveredBackgroundPileId: null,
       drag: null,
-      flight: null,
+      flights: [],
       snapAll: false,
     };
   });
@@ -146,7 +146,7 @@ describe("board_view_state_builder", () => {
       // resting depth is the lowest on the board while it is still crossing it.
       const card = relocate(game, "card-hearts-ace", game.foundations[0]);
       const restingDepth = deepestRestingDepth();
-      interaction.flight = { cardIds: [card.id] };
+      interaction.flights = [{ cardIds: [card.id] }];
 
       const viewState = buildKlondikeViewState(game, presentation)(
         interaction,
@@ -160,7 +160,7 @@ describe("board_view_state_builder", () => {
     it("keeps the flying stack in its own order", () => {
       const lower = relocate(game, "card-spades-6", game.tableaus[1]);
       const upper = relocate(game, "card-hearts-5", game.tableaus[1]);
-      interaction.flight = { cardIds: [lower.id, upper.id] };
+      interaction.flights = [{ cardIds: [lower.id, upper.id] }];
 
       const viewState = buildKlondikeViewState(game, presentation)(
         interaction,
@@ -172,9 +172,44 @@ describe("board_view_state_builder", () => {
       expect(upperView.depth).toBeGreaterThan(lowerView.depth);
     });
 
+    it("draws a later flight over one still settling", () => {
+      const earlier = relocate(game, "card-hearts-ace", game.foundations[0]);
+      const later = relocate(game, "card-spades-ace", game.foundations[1]);
+      interaction.flights = [
+        { cardIds: [earlier.id] },
+        { cardIds: [later.id] },
+      ];
+
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
+
+      const earlierView = viewState.cards.find((v) => v.cardId === earlier.id)!;
+      const laterView = viewState.cards.find((v) => v.cardId === later.id)!;
+      expect(laterView.depth).toBeGreaterThan(earlierView.depth);
+    });
+
+    it("lifts every stack in the air above the resting board", () => {
+      const first = relocate(game, "card-hearts-ace", game.foundations[0]);
+      const second = relocate(game, "card-spades-ace", game.foundations[1]);
+      const restingDepth = deepestRestingDepth();
+      interaction.flights = [{ cardIds: [first.id] }, { cardIds: [second.id] }];
+
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
+
+      const flying = viewState.cards.filter((view) =>
+        [first.id, second.id].includes(view.cardId),
+      );
+      expect(flying.every((view) => view.depth > restingDepth)).toBe(true);
+    });
+
     it("keeps the flying stack below a stack in hand", () => {
       const card = relocate(game, "card-hearts-ace", game.foundations[0]);
-      interaction.flight = { cardIds: [card.id] };
+      interaction.flights = [{ cardIds: [card.id] }];
 
       const viewState = buildKlondikeViewState(game, presentation)(
         interaction,
@@ -187,7 +222,7 @@ describe("board_view_state_builder", () => {
 
     it("lands the card back among the resting cards once the flight ends", () => {
       const card = relocate(game, "card-hearts-ace", game.foundations[0]);
-      interaction.flight = null;
+      interaction.flights = [];
 
       const viewState = buildKlondikeViewState(game, presentation)(
         interaction,
@@ -204,7 +239,7 @@ describe("board_view_state_builder", () => {
         interaction,
         viewport,
       ).cards.find((view) => view.cardId === card.id)!;
-      interaction.flight = { cardIds: [card.id] };
+      interaction.flights = [{ cardIds: [card.id] }];
 
       const viewState = buildKlondikeViewState(game, presentation)(
         interaction,
