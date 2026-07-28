@@ -1,3 +1,4 @@
+import { PileRole } from "@/engine/core/card/card_pile";
 import { PlayingCard, rankBelow } from "@/engine/core/card/playing_card";
 import {
   PlacementContext,
@@ -11,7 +12,19 @@ import {
   singleCardOnly,
   suitFoundation,
 } from "@/engine/tableau/rules";
-import { FreeCellRole } from "./freecell_zones";
+
+/** The parts a pile can play in a FreeCell game. */
+export const FreeCellRole = {
+  /** A single-card holding cell. */
+  CELL: "cell",
+  /** A suit pile built up from Ace to King. */
+  FOUNDATION: "foundation",
+  /** A board column built down in alternating colors. */
+  TABLEAU: "tableau",
+} as const satisfies Record<string, PileRole>;
+
+/** One of the parts a FreeCell pile can play. */
+export type FreeCellRole = (typeof FreeCellRole)[keyof typeof FreeCellRole];
 
 /**
  * How many cards may be moved at once in the given position.

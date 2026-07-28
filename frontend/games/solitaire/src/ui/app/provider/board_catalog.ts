@@ -5,6 +5,8 @@ import { SolitaireGame } from "@/games/klondike/solitaire_game";
 import { makeKlondikeBoardScene } from "@/games/klondike/solitaire";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { makeFreeCellBoardScene } from "@/games/freecell/freecell_board";
+import { SpiderGame } from "@/games/spider/spider_game";
+import { makeSpiderBoardScene } from "@/games/spider/spider_board";
 import { PresentationSettingsService } from "../service/presentation_settings.service";
 import { GAME_SESSION } from "./game_model.provider";
 
@@ -24,6 +26,9 @@ export function makeBoardScene(
   }
   if (game instanceof FreeCellGame) {
     return makeFreeCellBoardScene(game, presentation);
+  }
+  if (game instanceof SpiderGame) {
+    return makeSpiderBoardScene(game, presentation);
   }
   throw new Error("No board is registered for this game.");
 }
