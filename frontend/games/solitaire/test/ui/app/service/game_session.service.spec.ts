@@ -78,10 +78,11 @@ describe("GameSessionService", () => {
       harness.model.state.moves$.next(12);
       harness.model.settings.drawCount$.next(1);
       harness.presentation.cardBackStyle$.next("card-back-red");
+      harness.catalog.setOption("drawCount", 1);
 
       expect(harness.session.score()).toBe(100);
       expect(harness.session.moves()).toBe(12);
-      expect(harness.session.drawCount()).toBe(1);
+      expect(harness.session.optionValues()["drawCount"]).toBe(1);
       expect(harness.session.cardBack()).toBe("card-back-red");
     });
 
@@ -109,28 +110,31 @@ describe("GameSessionService", () => {
       );
     });
 
-    it("does nothing when the draw mode is unchanged", () => {
-      harness.session.setDrawMode(3); // default is 3
+    it("does nothing when the rule is already set to that value", () => {
+      harness.session.setRuleOption("drawCount", 3); // default is 3
 
-      expect(harness.model.settings.setDrawCount).not.toHaveBeenCalled();
+      expect(harness.catalog.setOption).not.toHaveBeenCalled();
       expect(harness.confirmation.isOpen()).toBe(false);
     });
 
-    it("updates the draw count without starting a fresh game", () => {
-      harness.session.setDrawMode(1);
+    it("changes a rule without asking, since nothing is in progress", () => {
+      harness.session.setRuleOption("drawCount", 1);
 
-      expect(harness.model.settings.setDrawCount).toHaveBeenCalledWith(1);
-      expect(harness.model.startNewGame).not.toHaveBeenCalled();
+      expect(harness.catalog.setOption).toHaveBeenCalledWith("drawCount", 1);
       expect(harness.confirmation.isOpen()).toBe(false);
     });
 
-    it("updates almost win setting without starting a fresh game", () => {
-      harness.session.setAlmostWin(true);
+    it("changes a debug rule the same way", () => {
+      harness.session.setRuleOption("almostWin", 1);
 
-      expect(harness.model.settings.debug.setAlmostWin).toHaveBeenCalledWith(
-        true,
-      );
-      expect(harness.model.startNewGame).not.toHaveBeenCalled();
+      expect(harness.catalog.setOption).toHaveBeenCalledWith("almostWin", 1);
+    });
+
+    it("offers the game's rules, keeping the debug ones apart", () => {
+      expect([
+        harness.session.ruleOptions().map((option) => option.id),
+        harness.session.debugOptions().map((option) => option.id),
+      ]).toEqual([["drawCount"], ["almostWin"]]);
     });
   });
 
@@ -159,16 +163,17 @@ describe("GameSessionService", () => {
       expect(harness.confirmation.isOpen()).toBe(false);
     });
 
-    it("defers a draw-mode change behind confirmation", () => {
-      harness.session.setDrawMode(1);
+    it("defers a rule change behind confirmation", () => {
+      harness.session.setRuleOption("drawCount", 1);
 
       expect(harness.confirmation.isOpen()).toBe(true);
-      expect(harness.confirmation.message()).toContain("draw mode");
-      expect(harness.model.settings.setDrawCount).not.toHaveBeenCalled();
+      expect(harness.confirmation.message()).toContain("deal a new game");
+      expect(harness.catalog.setOption).not.toHaveBeenCalled();
 
       harness.confirmation.accept();
-      expect(harness.model.settings.setDrawCount).toHaveBeenCalledWith(1);
-      expect(harness.model.startNewGame).toHaveBeenCalled();
+      // The catalog deals the new game, rather than the old one being told to
+      // restart itself: a rule change can alter which cards exist at all.
+      expect(harness.catalog.setOption).toHaveBeenCalledWith("drawCount", 1);
     });
 
     it("does not restart when the prompt is cancelled", () => {
@@ -306,7 +311,6 @@ describe("GameSessionService", () => {
 
       harness.catalog.session.set({
         game: replacement,
-        ruleOptions: harness.catalog.session().ruleOptions,
       });
       TestBed.flushEffects();
 
@@ -318,7 +322,6 @@ describe("GameSessionService", () => {
       const departing = harness.model;
       harness.catalog.session.set({
         game: createMockGameModel({ score: 99 }),
-        ruleOptions: harness.catalog.session().ruleOptions,
       });
       TestBed.flushEffects();
 

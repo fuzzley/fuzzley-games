@@ -1,12 +1,41 @@
-import { DestroyRef, Injectable, inject, signal } from "@angular/core";
+import {
+  DestroyRef,
+  Injectable,
+  computed,
+  inject,
+  signal,
+} from "@angular/core";
 import {
   CatalogEntry,
   CatalogSession,
   GAME_CATALOG,
+  GameOptionSpec,
+  GameOptionValues,
   catalogEntry,
+  optionValue,
 } from "../provider/game_catalog";
 
 const STORAGE_KEY = "fsolitaire-game";
+const OPTIONS_STORAGE_KEY = "fsolitaire-game-options";
+
+/** The chosen rule options for every game, by game id. */
+type StoredOptions = Record<string, GameOptionValues>;
+
+/** Reads the stored rule options, tolerating anything unexpected in there. */
+function loadOptions(): StoredOptions {
+  if (typeof localStorage === "undefined") return {};
+  try {
+    const stored = localStorage.getItem(OPTIONS_STORAGE_KEY);
+    if (!stored) return {};
+    const parsed: unknown = JSON.parse(stored);
+    return typeof parsed === "object" && parsed !== null
+      ? (parsed as StoredOptions)
+      : {};
+  } catch (e) {
+    console.warn("Failed to read the stored rule options:", e);
+    return {};
+  }
+}
 
 /** The game named by the URL fragment, or null when it names nothing known. */
 function gameFromHash(): string | null {
@@ -59,12 +88,87 @@ export class GameCatalogService {
   /** The id of the game currently on the table. */
   readonly selectedId = this.selectedIdSignal.asReadonly();
 
+  /** Every game's chosen rule options, whether or not it is in play. */
+  private readonly optionsSignal = signal<StoredOptions>(loadOptions());
+
   private readonly sessionSignal = signal<CatalogSession>(
-    catalogEntry(initialGameId()).create(),
+    catalogEntry(initialGameId()).create(loadOptions()[initialGameId()] ?? {}),
   );
 
-  /** The dealt game currently on the table, and the options it offers. */
+  /** The dealt game currently on the table. */
   readonly session = this.sessionSignal.asReadonly();
+
+  /** The rules the game on the table lets the player choose. */
+  readonly options = computed<readonly GameOptionSpec[]>(
+    () => catalogEntry(this.selectedIdSignal()).options,
+  );
+
+  /** The chosen value of every option of the game on the table. */
+  readonly optionValues = computed<GameOptionValues>(() =>
+    this.valuesFor(this.selectedIdSignal(), this.optionsSignal()),
+  );
+
+  /**
+   * The chosen value of one option of the game on the table, or its default.
+   *
+   * @param optionId The id of the option to read.
+   */
+  valueOf(optionId: string): number | null {
+    const spec = this.options().find((option) => option.id === optionId);
+    return spec ? optionValue(this.optionValues(), spec) : null;
+  }
+
+  /**
+   * Plays the current game by a different rule, dealt afresh.
+   *
+   * Changing a rule always deals a new game rather than trying to adapt the
+   * one in progress. Some of them could not be adapted anyway — changing
+   * Spider's suit count changes which 104 cards exist — and a board halfway
+   * through under different rules is not a position anyone asked for.
+   *
+   * @param optionId The id of the option to set.
+   * @param value The value to set it to.
+   */
+  setOption(optionId: string, value: number): void {
+    const entry = this.selectedEntry;
+    const spec = entry.options.find((option) => option.id === optionId);
+    if (!spec || !spec.choices.some((choice) => choice.value === value)) {
+      return;
+    }
+    if (optionValue(this.optionValues(), spec) === value) {
+      return;
+    }
+
+    const updated: StoredOptions = {
+      ...this.optionsSignal(),
+      [entry.id]: {
+        ...this.valuesFor(entry.id, this.optionsSignal()),
+        [optionId]: value,
+      },
+    };
+    this.optionsSignal.set(updated);
+    this.persistOptions(updated);
+    this.sessionSignal.set(entry.create(updated[entry.id]));
+  }
+
+  /** The stored values for a game, with anything unrecognised dropped. */
+  private valuesFor(gameId: string, stored: StoredOptions): GameOptionValues {
+    const values = stored[gameId] ?? {};
+    const cleaned: Record<string, number> = {};
+    for (const spec of catalogEntry(gameId).options) {
+      cleaned[spec.id] = optionValue(values, spec);
+    }
+    return cleaned;
+  }
+
+  private persistOptions(options: StoredOptions): void {
+    if (typeof localStorage === "undefined") return;
+    try {
+      localStorage.setItem(OPTIONS_STORAGE_KEY, JSON.stringify(options));
+    } catch (e) {
+      console.warn("Failed to save the rule options:", e);
+    }
+  }
 
   constructor() {
     // Reflect the game the application actually opened on, so the URL is right
@@ -106,7 +210,9 @@ export class GameCatalogService {
     }
 
     this.selectedIdSignal.set(entry.id);
-    this.sessionSignal.set(entry.create());
+    this.sessionSignal.set(
+      entry.create(this.valuesFor(entry.id, this.optionsSignal())),
+    );
     this.persist(entry.id);
     this.writeHash(entry.id);
   }

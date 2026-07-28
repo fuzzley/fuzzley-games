@@ -43,19 +43,27 @@ describe("DebugPanelComponent", () => {
     expect(queryText(fixture, ".debug-label")).toContain("Debug Options");
   });
 
-  it("toggles almost-win debug mode to true when Almost Win button is clicked", () => {
-    const setAlmostWinSpy = vi.spyOn(session, "setAlmostWin");
+  it("turns almost-win on when its button is clicked", () => {
+    const setRuleOptionSpy = vi.spyOn(session, "setRuleOption");
 
     queryAll(fixture, ".segmented-control button")[1].click(); // Almost Win
 
-    expect(setAlmostWinSpy).toHaveBeenCalledWith(true);
+    expect(setRuleOptionSpy).toHaveBeenCalledWith("almostWin", 1);
   });
 
-  it("toggles almost-win debug mode to false when Normal button is clicked", () => {
-    const setAlmostWinSpy = vi.spyOn(session, "setAlmostWin");
+  it("turns almost-win off when Normal is clicked", () => {
+    const setRuleOptionSpy = vi.spyOn(session, "setRuleOption");
 
     queryAll(fixture, ".segmented-control button")[0].click(); // Normal
 
-    expect(setAlmostWinSpy).toHaveBeenCalledWith(false);
+    expect(setRuleOptionSpy).toHaveBeenCalledWith("almostWin", 0);
+  });
+
+  it("shows only debug rules, not the ones a player picks", () => {
+    expect(
+      queryAll(fixture, ".segmented-control button").map((b) =>
+        b.textContent?.trim(),
+      ),
+    ).toEqual(["Normal", "Almost Win"]);
   });
 });

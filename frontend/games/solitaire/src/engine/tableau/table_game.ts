@@ -156,6 +156,19 @@ export abstract class TableGame<
   }
 
   /**
+   * The id of every card in play.
+   *
+   * What a renderer needs to know which sprites to make. Read from the game
+   * rather than recomputed from a deck specification, because the two can
+   * disagree: a Spider board asked for two decks of four suits while the game
+   * was dealing eight copies of one, and every card the board then looked for
+   * by name was a card the game did not have.
+   */
+  public get cardIds(): readonly string[] {
+    return this.registry.ids();
+  }
+
+  /**
    * How many distinct cards the game has dealt with so far.
    *
    * Every card in play is registered, so this is what a win condition should

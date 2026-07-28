@@ -1,6 +1,4 @@
 import { BoardScene } from "@/engine/render/phaser/board_scene";
-import { deckCardIds } from "@/engine/core/card/deck";
-import { playingCardInstanceId } from "@/engine/core/card/playing_card";
 import { TablePresentation } from "@/engine/render/presentation";
 import {
   TableMetrics,
@@ -18,7 +16,6 @@ import {
   resolveDragTarget,
 } from "@/engine/tableau/view/table_view_builder";
 import { SPIDER_LAYOUT } from "./spider_layout";
-import { SPIDER_TWO_DECKS } from "./spider_deal";
 import { SpiderGame } from "./spider_game";
 import { spiderGestures, spiderStackFromCard } from "./spider_gestures";
 
@@ -49,8 +46,9 @@ export function resolveSpiderDropTarget(
 /**
  * Builds the Spider board scene.
  *
- * The card list is 104 long rather than 52, which is the only line here that
- * differs in kind from the other two games.
+ * Identical in shape to the other two: the card list comes from the game, so a
+ * one-suit Spider makes sprites for its eight copies of each spade rather than
+ * for a deck the board assumed it was playing with.
  */
 export function makeSpiderBoardScene(
   game: SpiderGame,
@@ -58,7 +56,7 @@ export function makeSpiderBoardScene(
 ): BoardScene {
   return new BoardScene({
     game,
-    cardIds: deckCardIds(SPIDER_TWO_DECKS).map(playingCardInstanceId),
+    cardIds: game.cardIds,
     layout: SPIDER_LAYOUT,
     buildViewState: buildSpiderViewState(game, presentation),
     resolveDropTarget: resolveSpiderDropTarget(game),

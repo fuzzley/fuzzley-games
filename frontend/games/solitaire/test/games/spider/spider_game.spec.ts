@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { SpiderGame } from "@/games/spider/spider_game";
-import { SPIDER_ONE_SUIT } from "@/games/spider/spider_deal";
+import {
+  SPIDER_ONE_SUIT,
+  SpiderSuitCount,
+  spiderDeck,
+} from "@/games/spider/spider_deal";
 import {
   FOUNDATION_COUNT,
   SpiderRole,
@@ -59,6 +63,67 @@ describe("SpiderGame", () => {
   beforeEach(() => {
     game = new SpiderGame();
     game.startNewGame();
+  });
+
+  describe("suit count", () => {
+    it("plays 104 cards whichever variant is chosen", () => {
+      const counts = [1, 2, 4].map((suits) => {
+        const variant = new SpiderGame(
+          deckCardIds(spiderDeck(suits as SpiderSuitCount)),
+        );
+        variant.startNewGame();
+        return variant.cardsInPlay;
+      });
+
+      expect(counts).toEqual([104, 104, 104]);
+    });
+
+    it("uses one suit for the gentle variant", () => {
+      const variant = new SpiderGame(deckCardIds(spiderDeck(1)));
+      variant.startNewGame();
+
+      const suits = new Set(
+        variant.piles.flatMap((pile) => pile.getCards()).map((c) => c.suit),
+      );
+      expect(suits.size).toBe(1);
+    });
+
+    it("uses two suits for the middle variant", () => {
+      const variant = new SpiderGame(deckCardIds(spiderDeck(2)));
+      variant.startNewGame();
+
+      const suits = new Set(
+        variant.piles.flatMap((pile) => pile.getCards()).map((c) => c.suit),
+      );
+      expect(suits.size).toBe(2);
+    });
+
+    it("makes eight copies of each card in the one-suit variant", () => {
+      const variant = new SpiderGame(deckCardIds(spiderDeck(1)));
+      variant.startNewGame();
+
+      const perFace = new Map<string, number>();
+      for (const card of variant.piles.flatMap((p) => p.getCards())) {
+        perFace.set(card.faceKey, (perFace.get(card.faceKey) ?? 0) + 1);
+      }
+      expect([...new Set(perFace.values())]).toEqual([8]);
+    });
+
+    /**
+     * The board used to compute its card list from a deck specification of its
+     * own, which disagreed with the game the moment a variant was chosen: it
+     * looked for hearts in a game dealing only spades and threw part way
+     * through making sprites.
+     */
+    it("names every card it holds, so a board can make a sprite for each", () => {
+      const variant = new SpiderGame(deckCardIds(spiderDeck(1)));
+      variant.startNewGame();
+
+      const onBoard = variant.piles
+        .flatMap((pile) => pile.getCards())
+        .map((card) => card.id);
+      expect([...variant.cardIds].sort()).toEqual([...onBoard].sort());
+    });
   });
 
   describe("two decks", () => {

@@ -30,6 +30,29 @@ export const SPIDER_ONE_SUIT: DeckSpec = {
   copies: 8,
 };
 
+/** How many suits a Spider game is played with. */
+export type SpiderSuitCount = 1 | 2 | 4;
+
+/** The suits used for each variant, in the order they are dealt. */
+const SUITS_BY_COUNT: Record<SpiderSuitCount, readonly Suit[]> = {
+  1: [Suit.SPADE],
+  2: [Suit.SPADE, Suit.HEART],
+  4: ALL_SUITS,
+};
+
+/**
+ * The deck for a Spider game of the given difficulty.
+ *
+ * Always 104 cards: fewer suits simply means more copies of each. One suit is
+ * the gentle version, four is the standard game, and two sits between them.
+ *
+ * @param suitCount How many suits to play with.
+ */
+export function spiderDeck(suitCount: SpiderSuitCount): DeckSpec {
+  const suits = SUITS_BY_COUNT[suitCount];
+  return { suits, ranks: ALL_RANKS, copies: 8 / suits.length };
+}
+
 /** How many cards the opening layout puts on the board. */
 export const OPENING_CARD_COUNT = 54;
 

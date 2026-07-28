@@ -18,24 +18,26 @@
     </div>
 
     <div class="drawer-content">
-      <!-- Draw Mode, for a game that has a stock to draw from -->
-      @if (session.drawCountOptions().length > 0) {
+      <!-- Whatever rules the game on the table lets a player choose -->
+      @for (option of session.ruleOptions(); track option.id) {
         <div class="setting-group">
-          <label class="setting-label">Draw Mode</label>
+          <label class="setting-label">{{ option.label }}</label>
           <div class="segmented-control">
-            @for (mode of session.drawCountOptions(); track mode) {
+            @for (choice of option.choices; track choice.value) {
               <button
-                [class.active]="session.drawCount() === mode"
-                (click)="session.setDrawMode(mode)"
                 class="segment-btn"
+                [class.active]="
+                  session.optionValues()[option.id] === choice.value
+                "
+                (click)="session.setRuleOption(option.id, choice.value)"
               >
-                Draw {{ mode }}
+                {{ choice.label }}
               </button>
             }
           </div>
-          <p class="setting-desc">
-            Draw 1 is easier; Draw 3 is the standard Solitaire challenge.
-          </p>
+          @if (option.description) {
+            <p class="setting-desc">{{ option.description }}</p>
+          }
         </div>
       }
 
@@ -86,7 +88,7 @@
       </div>
 
       <!-- Debug Settings (dev mode, and only for a game that offers them) -->
-      @if (isDevMode && session.almostWin() !== null) {
+      @if (isDevMode && session.debugOptions().length > 0) {
         <app-debug-panel />
       }
     </div>
