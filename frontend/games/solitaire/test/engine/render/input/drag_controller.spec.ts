@@ -198,22 +198,18 @@ describe("DragController", () => {
   });
 
   describe("flight", () => {
+    /** The card ids of each flight in the air, oldest first. */
+    function flownStacks(): string[][] {
+      return controller.flights.map((flight) => [...flight.cardIds]);
+    }
+
     it("tracks the cards a drop moved", () => {
       moved = ["a", "b"];
       controller.dragStarted("a", { x: 1, y: 1 });
 
       controller.dragEnded("tableau-1");
 
-      expect(controller.flight?.cardIds).toEqual(["a", "b"]);
-    });
-
-    it("tracks nothing when the drop moved nothing", () => {
-      moved = [];
-      controller.dragStarted("a", { x: 1, y: 1 });
-
-      controller.dragEnded("tableau-1");
-
-      expect(controller.flight).toBeNull();
+      expect(flownStacks()).toEqual([["a", "b"]]);
     });
 
     it("tracks the cards a secondary activate moved", () => {
@@ -223,17 +219,57 @@ describe("DragController", () => {
 
       controller.cardPressed("a");
 
-      expect(controller.flight?.cardIds).toEqual(["a"]);
+      expect(flownStacks()).toEqual([["a"]]);
     });
 
     it("lets the stack settle when the sprites have landed", () => {
-      moved = ["a"];
-      controller.dragStarted("a", { x: 1, y: 1 });
-      controller.dragEnded("tableau-1");
+      controller.beginFlight(["a"]);
 
-      controller.endFlight();
+      controller.endFlight(controller.flights[0]);
 
-      expect(controller.flight).toBeNull();
+      expect(controller.flights).toEqual([]);
+    });
+
+    it("lifts nothing when told to fly an empty stack", () => {
+      controller.beginFlight([]);
+
+      expect(controller.flights).toEqual([]);
+    });
+
+    it("keeps a second stack in the air alongside the first", () => {
+      controller.beginFlight(["a"]);
+
+      controller.beginFlight(["b"]);
+
+      // A single slot would drop the first out of the air to make room, and it
+      // would snap to its pile's depth halfway across the board.
+      expect(flownStacks()).toEqual([["a"], ["b"]]);
+    });
+
+    it("retires only the flight that landed", () => {
+      controller.beginFlight(["a"]);
+      controller.beginFlight(["b"]);
+
+      controller.endFlight(controller.flights[0]);
+
+      expect(flownStacks()).toEqual([["b"]]);
+    });
+
+    it("moves a card that flies again into the newer flight alone", () => {
+      controller.beginFlight(["a", "b"]);
+
+      controller.beginFlight(["b"]);
+
+      // Otherwise the older flight landing would retire a card still crossing.
+      expect(flownStacks()).toEqual([["a"], ["b"]]);
+    });
+
+    it("drops an older flight left with nothing in it", () => {
+      controller.beginFlight(["a"]);
+
+      controller.beginFlight(["a"]);
+
+      expect(flownStacks()).toEqual([["a"]]);
     });
   });
 
@@ -251,7 +287,7 @@ describe("DragController", () => {
         hoveredCardId: null,
         hoveredBackgroundPileId: null,
         drag: null,
-        flight: null,
+        flights: [],
         snapAll: true,
       });
     });

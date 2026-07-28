@@ -156,14 +156,19 @@ export class BoardInputManager {
     this.controller.snapAll = snap;
   }
 
-  /** The stack still crossing the board, or null when nothing is in flight. */
-  public get flight(): FlightInteraction | null {
-    return this.controller.flight;
+  /** The stacks still crossing the board, oldest first. */
+  public get flights(): readonly FlightInteraction[] {
+    return this.controller.flights;
   }
 
-  /** Lets the flying stack settle back onto the board. */
-  public endFlight(): void {
-    this.controller.endFlight();
+  /** Lifts a stack clear of the board while it crosses it. */
+  public beginFlight(cardIds: readonly string[]): void {
+    this.controller.beginFlight(cardIds);
+  }
+
+  /** Lets one flying stack settle back onto the board. */
+  public endFlight(flight: FlightInteraction): void {
+    this.controller.endFlight(flight);
   }
 
   /** Snapshot of the interaction state the view builder reads each frame. */

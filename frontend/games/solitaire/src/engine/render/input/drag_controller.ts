@@ -33,7 +33,7 @@ export class DragController {
   /** Whether every card should snap to its place this frame instead of easing. */
   public snapAll = true;
 
-  private flightState: FlightInteraction | null = null;
+  private readonly flightState: FlightInteraction[] = [];
   private lastPressTimeMs = 0;
   private lastPressedCardId: string | null = null;
 
@@ -170,22 +170,49 @@ export class DragController {
 
   // --- Flight ---
 
-  /** The stack still crossing the board, or null when nothing is in flight. */
-  public get flight(): FlightInteraction | null {
+  /** The stacks still crossing the board, oldest first. */
+  public get flights(): readonly FlightInteraction[] {
     return this.flightState;
   }
 
   /**
-   * Lets the flying stack settle back onto the board. Called once the sprites
-   * have reached the pile they were moved to.
+   * Lifts a stack clear of the board while it crosses it.
+   *
+   * A card already in the air is taken out of its old flight first, so a card
+   * moved again mid-flight belongs to the newer one alone and cannot be retired
+   * by whichever of the two lands first. A flight left with nothing in it goes
+   * with it.
+   *
+   * @param cardIds The cards to lift, bottom card of the stack first.
    */
-  public endFlight(): void {
-    this.flightState = null;
+  public beginFlight(cardIds: readonly string[]): void {
+    if (cardIds.length === 0) return;
+
+    const lifted = new Set(cardIds);
+    for (let index = this.flightState.length - 1; index >= 0; index--) {
+      const remaining = this.flightState[index].cardIds.filter(
+        (cardId) => !lifted.has(cardId),
+      );
+      if (remaining.length === 0) {
+        this.flightState.splice(index, 1);
+      } else {
+        this.flightState[index].cardIds = remaining;
+      }
+    }
+
+    this.flightState.push({ cardIds: [...cardIds] });
   }
 
-  private beginFlight(cardIds: readonly string[]): void {
-    if (cardIds.length > 0) {
-      this.flightState = { cardIds: [...cardIds] };
+  /**
+   * Lets one flying stack settle back onto the board. Called once its sprites
+   * have reached the pile they were moved to.
+   *
+   * @param flight The flight to retire, as handed out by {@link flights}.
+   */
+  public endFlight(flight: FlightInteraction): void {
+    const index = this.flightState.indexOf(flight);
+    if (index !== -1) {
+      this.flightState.splice(index, 1);
     }
   }
 
@@ -197,7 +224,7 @@ export class DragController {
       hoveredCardId: this.hoveredCardId,
       hoveredBackgroundPileId: this.hoveredBackgroundPileId,
       drag: this.drag,
-      flight: this.flightState,
+      flights: this.flightState,
       snapAll: this.snapAll,
     };
   }
@@ -210,7 +237,7 @@ export class DragController {
     this.hoveredCardId = null;
     this.hoveredBackgroundPileId = null;
     this.drag = null;
-    this.flightState = null;
+    this.flightState.length = 0;
     this.snapAll = true;
     this.resetPressTracking();
   }
