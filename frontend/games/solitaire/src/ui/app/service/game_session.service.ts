@@ -8,7 +8,11 @@ import {
 } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { GAME_MODEL } from "../provider/game_model.provider";
-import { CardBackStyle, DrawCount } from "@/games/klondike/game_settings";
+import { DrawCount } from "@/games/klondike/game_settings";
+import {
+  CardBackStyle,
+  PresentationSettingsService,
+} from "./presentation_settings.service";
 import { TimerService } from "./timer.service";
 import { ConfirmationService } from "./confirmation.service";
 
@@ -23,6 +27,7 @@ export class GameSessionService {
   private readonly gameModel = inject(GAME_MODEL);
   private readonly timer = inject(TimerService);
   private readonly confirmation = inject(ConfirmationService);
+  private readonly presentation = inject(PresentationSettingsService);
   private readonly destroyRef = inject(DestroyRef);
 
   // --- Signals bridged from observable game state ---
@@ -31,7 +36,7 @@ export class GameSessionService {
   readonly drawCount = toSignal(this.gameModel.settings.drawCount$, {
     initialValue: 3,
   });
-  readonly cardBack = toSignal(this.gameModel.settings.cardBackStyle$, {
+  readonly cardBack = toSignal(this.presentation.cardBackStyle$, {
     initialValue: "card-back-blue" satisfies CardBackStyle,
   });
   readonly almostWin = toSignal(this.gameModel.settings.debug.almostWin$, {
@@ -114,7 +119,7 @@ export class GameSessionService {
   }
 
   setCardBack(style: CardBackStyle): void {
-    this.gameModel.settings.setCardBackStyle(style);
+    this.presentation.setCardBackStyle(style);
   }
 
   setAlmostWin(enabled: boolean): void {

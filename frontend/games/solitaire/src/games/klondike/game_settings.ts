@@ -1,24 +1,16 @@
 import { BehaviorSubject, merge } from "rxjs";
 
-/** The visual style applied to the back of cards. */
-export type CardBackStyle = "card-back-blue" | "card-back-red";
-
 /** How many cards are drawn from the stock pile per draw action. */
 export type DrawCount = 1 | 3;
 
 /** The draw mode a new game starts in. */
 export const DEFAULT_DRAW_COUNT: DrawCount = 3;
 
-/** The default board background color (the emerald felt table). */
-export const DEFAULT_BACKGROUND_COLOR = "#0f4d0e";
-
 const LOCAL_STORAGE_KEY = "fsolitaire-settings";
 
 /** The persisted settings shape, mirroring the runtime settings tree. */
 interface PersistedSettings {
   drawCount: DrawCount;
-  cardBackStyle: CardBackStyle;
-  backgroundColor: string;
   debug: {
     almostWin: boolean;
   };
@@ -27,8 +19,6 @@ interface PersistedSettings {
 /** The values used when nothing valid is found in storage. */
 const DEFAULT_SETTINGS: PersistedSettings = {
   drawCount: DEFAULT_DRAW_COUNT,
-  cardBackStyle: "card-back-blue",
-  backgroundColor: DEFAULT_BACKGROUND_COLOR,
   debug: {
     almostWin: false,
   },
@@ -64,15 +54,6 @@ function loadPersistedSettings(): PersistedSettings {
         parsed.drawCount === 1 || parsed.drawCount === 3
           ? parsed.drawCount
           : DEFAULT_SETTINGS.drawCount,
-      cardBackStyle:
-        parsed.cardBackStyle === "card-back-blue" ||
-        parsed.cardBackStyle === "card-back-red"
-          ? parsed.cardBackStyle
-          : DEFAULT_SETTINGS.cardBackStyle,
-      backgroundColor:
-        typeof parsed.backgroundColor === "string" && parsed.backgroundColor
-          ? parsed.backgroundColor
-          : DEFAULT_SETTINGS.backgroundColor,
       debug: {
         almostWin:
           typeof parsed.debug?.almostWin === "boolean"
@@ -121,12 +102,6 @@ export class GameSettings {
   /** How many cards to draw from the stock pile at a time. */
   readonly drawCount$: BehaviorSubject<DrawCount>;
 
-  /** The visual style used for face-down card backs. */
-  readonly cardBackStyle$: BehaviorSubject<CardBackStyle>;
-
-  /** The board background color, as a CSS/Phaser color string. */
-  readonly backgroundColor$: BehaviorSubject<string>;
-
   /** Nested developer/debug settings. */
   readonly debug: DebugSettings;
 
@@ -134,19 +109,10 @@ export class GameSettings {
     const loaded = loadPersistedSettings();
 
     this.drawCount$ = new BehaviorSubject<DrawCount>(loaded.drawCount);
-    this.cardBackStyle$ = new BehaviorSubject<CardBackStyle>(
-      loaded.cardBackStyle,
-    );
-    this.backgroundColor$ = new BehaviorSubject<string>(loaded.backgroundColor);
     this.debug = new DebugSettings(loaded.debug.almostWin);
 
     let initialized = false;
-    merge(
-      this.drawCount$,
-      this.cardBackStyle$,
-      this.backgroundColor$,
-      this.debug.almostWin$,
-    ).subscribe(() => {
+    merge(this.drawCount$, this.debug.almostWin$).subscribe(() => {
       if (initialized) this.saveToLocalStorage();
     });
     initialized = true;
@@ -160,8 +126,6 @@ export class GameSettings {
     try {
       const data: PersistedSettings = {
         drawCount: this.drawCount,
-        cardBackStyle: this.cardBackStyle,
-        backgroundColor: this.backgroundColor,
         debug: {
           almostWin: this.debug.almostWin,
         },
@@ -181,30 +145,6 @@ export class GameSettings {
   setDrawCount(count: DrawCount): void {
     if (this.drawCount !== count) {
       this.drawCount$.next(count);
-    }
-  }
-
-  /** Current card back style value. */
-  get cardBackStyle(): CardBackStyle {
-    return this.cardBackStyle$.value;
-  }
-
-  /** Updates the card back style, publishing only on a real change. */
-  setCardBackStyle(style: CardBackStyle): void {
-    if (this.cardBackStyle !== style) {
-      this.cardBackStyle$.next(style);
-    }
-  }
-
-  /** Current board background color. */
-  get backgroundColor(): string {
-    return this.backgroundColor$.value;
-  }
-
-  /** Updates the board background color, publishing only on a real change. */
-  setBackgroundColor(color: string): void {
-    if (this.backgroundColor !== color) {
-      this.backgroundColor$.next(color);
     }
   }
 }

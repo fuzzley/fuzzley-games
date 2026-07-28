@@ -756,11 +756,10 @@ describe("SolitaireGame", () => {
   });
 
   describe("settings", () => {
-    it("starts a new game with the default draw count and card back", () => {
+    it("starts a new game with the default draw count", () => {
       game.startNewGame();
 
       expect(game.settings.drawCount).toBe(3);
-      expect(game.settings.cardBackStyle).toBe("card-back-blue");
     });
 
     it("publishes the new draw count when it changes", () => {
@@ -771,16 +770,6 @@ describe("SolitaireGame", () => {
 
       expect(game.settings.drawCount).toBe(1);
       expect(drawCounts).toContain(1);
-    });
-
-    it("publishes the new card back style when it changes", () => {
-      const cardBacks: string[] = [];
-      game.settings.cardBackStyle$.subscribe((v) => cardBacks.push(v));
-
-      game.settings.setCardBackStyle("card-back-red");
-
-      expect(game.settings.cardBackStyle).toBe("card-back-red");
-      expect(cardBacks).toContain("card-back-red");
     });
 
     it("publishes the new almostWin value when setAlmostWin is called", () => {

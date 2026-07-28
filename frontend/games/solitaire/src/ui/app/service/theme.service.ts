@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, inject } from "@angular/core";
-import { GAME_MODEL } from "../provider/game_model.provider";
+import { PresentationSettingsService } from "./presentation_settings.service";
 
 /** A selectable table felt: its display name, board color, and overlay class. */
 export interface Theme {
@@ -34,13 +34,13 @@ const DEFAULT_THEME_KEY: ThemeKey = "green";
 
 /**
  * Owns the table-theme catalog and the current selection. Applying a theme
- * routes the board background through the shared game model (the Phaser board
- * scene subscribes and repaints its camera), keeping the Angular layer
- * decoupled from Phaser.
+ * routes the board background through the presentation settings (the Phaser
+ * board scene follows them and repaints its camera), keeping the Angular layer
+ * decoupled from Phaser and the choice independent of which game is running.
  */
 @Injectable({ providedIn: "root" })
 export class ThemeService {
-  private readonly gameModel = inject(GAME_MODEL);
+  private readonly presentation = inject(PresentationSettingsService);
 
   readonly themes: Record<ThemeKey, Theme> = THEMES;
   readonly themeKeys = Object.keys(THEMES) as ThemeKey[];
@@ -53,7 +53,7 @@ export class ThemeService {
   constructor() {
     // Restore the theme that matches the persisted background color, then apply
     // it so both the overlay class and the board camera reflect it on load.
-    const loadedColor = this.gameModel.settings.backgroundColor;
+    const loadedColor = this.presentation.backgroundColor;
     const matchedKey = this.themeKeys.find(
       (key) => this.themes[key].color === loadedColor,
     );
@@ -62,6 +62,6 @@ export class ThemeService {
 
   setTheme(themeKey: ThemeKey): void {
     this.selectedTheme.set(themeKey);
-    this.gameModel.settings.setBackgroundColor(this.themes[themeKey].color);
+    this.presentation.setBackgroundColor(this.themes[themeKey].color);
   }
 }
