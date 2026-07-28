@@ -1,9 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
   TableLayoutSpec,
+  compactFor,
   computePileOrigins,
   computeScale,
   designSize,
+  measureTable,
 } from "@/engine/render/layout/table_layout";
 import { Viewport } from "@/engine/render/view/table_view_state";
 
@@ -119,4 +121,65 @@ describe("computePileOrigins", () => {
   function designViewport(): Viewport {
     return { ...designSize(layout()), pixelRatio: 1 };
   }
+});
+
+describe("compactFor", () => {
+  const wide: Viewport = { width: 1600, height: 900, pixelRatio: 1 };
+  const phone: Viewport = { width: 780, height: 1688, pixelRatio: 2 };
+
+  it("leaves a board alone when there is room", () => {
+    expect(compactFor(layout(), wide).gap).toEqual(layout().gap);
+  });
+
+  it("tightens the gaps on a small screen", () => {
+    expect(compactFor(layout(), phone).gap.x).toBeLessThan(layout().gap.x);
+  });
+
+  it("tightens the padding too", () => {
+    const roomy = layout({ padding: { x: 40, y: 40 } });
+
+    expect(compactFor(roomy, phone).padding.x).toBeLessThan(roomy.padding.x);
+  });
+
+  it("never loosens a board already drawn closer together than that", () => {
+    const tight = layout({ gap: { x: 2, y: 2 }, padding: { x: 2, y: 2 } });
+
+    const compact = compactFor(tight, phone);
+
+    expect([compact.gap.x, compact.padding.x]).toEqual([2, 2]);
+  });
+
+  it("judges width in CSS pixels, not device pixels", () => {
+    // 780 device pixels at 2x is a 390px phone, not a 780px tablet.
+    expect(compactFor(layout(), phone).gap.x).toBeLessThan(layout().gap.x);
+  });
+
+  it("keeps the columns, rows and slots exactly as they were", () => {
+    const compact = compactFor(layout({ columns: 10 }), phone);
+
+    expect([compact.columns, compact.rows, compact.slots.length]).toEqual([
+      10, 2, 2,
+    ]);
+  });
+
+  it("leaves an unmeasured viewport alone", () => {
+    const compact = compactFor(layout(), {
+      width: 0,
+      height: 0,
+      pixelRatio: 1,
+    });
+
+    expect(compact.gap).toEqual(layout().gap);
+  });
+
+  it("buys card size, which is the point", () => {
+    const spec = layout({ columns: 10 });
+
+    const roomy = measureTable(spec, wide).scale;
+    const tight = measureTable(spec, phone).scale;
+
+    // Same board, narrower screen: the compact gaps mean the scale does not
+    // fall as far as the raw width ratio would suggest.
+    expect(tight * (1600 / 780)).toBeGreaterThan(roomy);
+  });
 });
