@@ -1,6 +1,5 @@
 import { Rank } from "@/engine/core/card/playing_card";
 import {
-  PlacementContext,
   PlacementRule,
   byEmptiness,
   cardIs,
@@ -37,24 +36,5 @@ export function klondikePlacementRule(role: string): PlacementRule {
       return KLONDIKE_FOUNDATION_RULE;
     default:
       return never;
-  }
-}
-
-/**
- * Encapsulates the standard Klondike rules for whether a card may be placed on
- * a pile.
- *
- * Now a thin dispatch over composed rules rather than a method per pile role.
- * Injectable into the game for the same reason as before: an alternate ruleset
- * is a matter of swapping the policy.
- */
-export class MoveRules {
-  /**
-   * Whether the proposed move is legal under Klondike rules.
-   *
-   * @param context The card, the stack it carries, both piles, and the board.
-   */
-  public canPlace(context: PlacementContext): boolean {
-    return klondikePlacementRule(context.targetPile.role)(context);
   }
 }

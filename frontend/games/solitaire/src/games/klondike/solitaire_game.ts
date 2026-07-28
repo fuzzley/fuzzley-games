@@ -1,83 +1,53 @@
-import { EventEmitter } from "@/engine/core/common/event_emitter";
+import { CardPile } from "@/engine/core/card/card_pile";
+import { CardRegistry } from "@/engine/core/card/card_registry";
+import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
+import { AppliedMove } from "@/engine/tableau/move";
+import {
+  MoveEffects,
+  ResolvedMove,
+  TableGame,
+} from "@/engine/tableau/table_game";
+import { Dealer } from "./dealer";
 import { GameEvents } from "./game_events";
 import { GameSettings } from "./game_settings";
-import { GameState } from "./game_state";
-import { ScoringPolicy } from "./scoring_policy";
-import { MoveRules } from "./move_rules";
-import { BoardQuery } from "@/engine/tableau/rules";
-import { ZoneSpec, canGrab } from "@/engine/tableau/zone";
-import { Dealer } from "./dealer";
-import { AppliedMove } from "./move_history";
-import { CardLocations, CardPile } from "@/engine/core/card/card_pile";
 import {
   KlondikeRole,
   STOCK_PILE_ID,
   WASTE_PILE_ID,
-  klondikeZoneSpec,
   klondikeZoneSpecs,
-} from "@/games/klondike/klondike_zones";
-import { CardRegistry } from "@/engine/core/card/card_registry";
-import { PlayingCard, DeckCardId } from "@/engine/core/card/playing_card";
-import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-
-/** A move that has passed the rules: the cards to move and where they go. */
-interface ResolvedMove {
-  /** The card being moved plus everything stacked on it, bottom-first. */
-  movingStack: readonly PlayingCard[];
-  /** The pile the stack is leaving. */
-  sourcePile: CardPile<PlayingCard>;
-  /** The pile the stack is joining. */
-  targetPile: CardPile<PlayingCard>;
-}
+} from "./klondike_zones";
+import { ScoringPolicy } from "./scoring_policy";
 
 /**
- * Coordinates and validates the state of a standard Klondike Solitaire game.
+ * A standard Klondike Solitaire game.
  *
- * Owns the board's piles and orchestrates moves, draws, and scoring, delegating
- * the well-defined sub-problems to focused collaborators: {@link CardRegistry}
- * for card identity, {@link Dealer} for dealing, {@link MoveRules} for move
- * legality, and {@link ScoringPolicy} for scoring. Emits coarse lifecycle
- * events so rendering and UI layers can stay synchronized.
+ * Everything true of any solitaire — the piles, whether a move is legal, undo,
+ * auto-move — comes from {@link TableGame}. What is left here is Klondike
+ * itself: the stock with its draw and recycle, the bonus for turning over a
+ * card a move exposed, the scoring, and when the game has been won.
  */
-export class SolitaireGame extends EventEmitter<GameEvents> {
-  /**
-   * Where each card currently is, kept up to date by the piles themselves.
-   * Declared first so the piles below can be handed it as they are built.
-   */
-  private readonly locations = new CardLocations<PlayingCard>();
-
+export class SolitaireGame extends TableGame<GameEvents> {
   /** The face-down stock pile from which cards are drawn. */
   public readonly stock: CardPile<PlayingCard>;
   /** The face-up waste pile containing drawn cards. */
   public readonly waste: CardPile<PlayingCard>;
-  /** The four suit foundation piles (Hearts, Diamonds, Clubs, Spades). */
-  public readonly foundations: CardPile<PlayingCard>[] = [];
+  /** The four suit foundation piles. */
+  public readonly foundations: readonly CardPile<PlayingCard>[];
   /** The seven tableau piles arranged on the board. */
-  public readonly tableaus: CardPile<PlayingCard>[] = [];
+  public readonly tableaus: readonly CardPile<PlayingCard>[];
 
   /** Observable user-configurable game settings. */
-  public readonly settings = new GameSettings();
-  /** Observable live game metrics (score, moves). */
-  public readonly state = new GameState();
+  public readonly settings: GameSettings;
 
   private recycleCount = 0;
   private initialDeck: PlayingCard[] = [];
-
-  /** The applied actions, oldest first, that {@link undo} unwinds. */
-  private readonly history: AppliedMove[] = [];
-
-  /** The persistent card instances shared across every deal. */
-  private readonly registry = new CardRegistry();
-  private readonly pilesMap = new Map<string, CardPile<PlayingCard>>();
 
   /** Deals cards into the board's piles for new and restarted games. */
   private readonly dealer: Dealer;
 
   /** The rules used to score moves, flips, and recycles. */
   private readonly scoring: ScoringPolicy;
-
-  /** The rules governing whether a card may be placed on a pile. */
-  private readonly moveRules: MoveRules;
 
   /**
    * Initializes the piles.
@@ -87,101 +57,34 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    *   set to exercise short-deck handling through the public API.
    * @param scoring The scoring rules to apply. Injectable so an alternate
    *   ruleset can be supplied without touching the game logic.
-   * @param moveRules The move-legality rules to apply. Injectable for the same
-   *   reason as {@link scoring}.
+   * @param settings The settings to play by. A constructor parameter rather
+   *   than a field initializer because the zones are built from the draw mode
+   *   during `super`, before this class's own fields exist.
    */
   constructor(
     cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
     scoring: ScoringPolicy = new ScoringPolicy(),
-    moveRules: MoveRules = new MoveRules(),
+    settings: GameSettings = new GameSettings(),
   ) {
-    super();
+    const registry = new CardRegistry();
+    super({
+      zones: () => klondikeZoneSpecs(settings.drawCount),
+      registry,
+      // A foundation is always preferred over a column.
+      autoMoveRoles: [KlondikeRole.FOUNDATION, KlondikeRole.TABLEAU],
+    });
 
+    this.settings = settings;
     this.scoring = scoring;
-    this.moveRules = moveRules;
-    this.dealer = new Dealer(this.registry, cardIds);
-    this.initializePiles();
+    this.dealer = new Dealer(registry, cardIds);
 
     this.stock = this.requirePile(STOCK_PILE_ID);
     this.waste = this.requirePile(WASTE_PILE_ID);
+    this.foundations = this.pilesOfRole(KlondikeRole.FOUNDATION);
+    this.tableaus = this.pilesOfRole(KlondikeRole.TABLEAU);
   }
 
-  /**
-   * Creates one pile per declared zone.
-   *
-   * The zones are the single source of truth for what piles exist and what part
-   * each plays, so the board cannot be declared in one place and built in
-   * another. The named collections below are views onto the same piles, kept
-   * because most of the game reads for "the foundations" rather than for a role.
-   */
-  private initializePiles(): void {
-    for (const zone of klondikeZoneSpecs(this.settings.drawCount)) {
-      const pile = new CardPile<PlayingCard>(
-        zone.id,
-        zone.role,
-        this.locations,
-      );
-      this.pilesMap.set(pile.id, pile);
-      if (zone.role === KlondikeRole.FOUNDATION) this.foundations.push(pile);
-      if (zone.role === KlondikeRole.TABLEAU) this.tableaus.push(pile);
-    }
-  }
-
-  /** The pile with the given id, which the zones guarantee exists. */
-  private requirePile(pileId: string): CardPile<PlayingCard> {
-    const pile = this.pilesMap.get(pileId);
-    if (!pile) {
-      throw new Error(`No zone declares a pile with id: ${pileId}`);
-    }
-    return pile;
-  }
-
-  /**
-   * The zone describing the given pile, or undefined for an unknown id.
-   *
-   * How a pile behaves — what it accepts, what may be taken from it, which side
-   * of its cards it shows — is declared by its zone rather than switched on its
-   * role at each point of use.
-   */
-  public zoneFor(pileId: string): ZoneSpec | undefined {
-    return klondikeZoneSpec(pileId, this.settings.drawCount);
-  }
-
-  /**
-   * Fetches a pile by its unique string identifier.
-   *
-   * @param pileId The ID of the pile to find.
-   * @returns The matching CardPile or undefined.
-   */
-  public getPileById(pileId: string): CardPile<PlayingCard> | undefined {
-    return this.pilesMap.get(pileId);
-  }
-
-  /**
-   * Fetches a logical card by its string ID.
-   *
-   * @param cardId The ID of the card to find.
-   * @returns The PlayingCard or undefined.
-   */
-  public getCardById(cardId: string): PlayingCard | undefined {
-    return this.registry.get(cardId);
-  }
-
-  /**
-   * Finds which pile contains a given card.
-   *
-   * A lookup, not a scan: this runs several times a frame from the view builder
-   * and up to once per candidate pile inside {@link autoMoveCard}, and the
-   * piles keep {@link CardLocations} current as cards move between them.
-   *
-   * @param cardId The ID of the card to search for.
-   * @returns The parent CardPile or undefined.
-   */
-  public getPileContainingCard(
-    cardId: string,
-  ): CardPile<PlayingCard> | undefined {
-    return this.locations.get(cardId);
-  }
+  // --- Dealing ---
 
   /**
    * Shuffles the main deck and deals the initial game board.
@@ -196,9 +99,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     });
   }
 
-  /**
-   * Restarts the game using the exact same initial deck ordering.
-   */
+  /** Restarts the game using the exact same initial deck ordering. */
   public restartGame(): void {
     this.beginGame(() => this.reuseInitialDeck());
   }
@@ -221,8 +122,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     if (this.settings.debug.almostWin) {
       this.dealer.dealAlmostWin(this.foundations, this.tableaus);
     } else {
-      const deck = createDeck();
-      this.dealer.dealOpeningLayout(deck, this.tableaus, this.stock);
+      this.dealer.dealOpeningLayout(createDeck(), this.tableaus, this.stock);
     }
 
     this.emit("game-reset", undefined);
@@ -243,23 +143,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     });
   }
 
-  /**
-   * Resets all card piles to their initial empty state.
-   *
-   * The {@link CardRegistry} is intentionally left intact: the render layer's
-   * PlayingCardVisual wrappers retain references to those PlayingCard objects,
-   * so reusing the instances keeps the model and its sprites in sync.
-   */
-  private resetPiles(): void {
-    this.stock.clear();
-    this.waste.clear();
-    for (const foundation of this.foundations) {
-      foundation.clear();
-    }
-    for (const tableau of this.tableaus) {
-      tableau.clear();
-    }
-  }
+  // --- The stock ---
 
   /**
    * Draws cards from the stock pile to the waste pile.
@@ -280,9 +164,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     }
   }
 
-  /**
-   * Draws up to drawCount cards from the stock pile and moves them to the waste pile.
-   */
+  /** Draws up to drawCount cards from the stock pile onto the waste pile. */
   private drawFromStock(): void {
     const drawCount = Math.min(this.settings.drawCount, this.stock.size);
     const drawn: PlayingCard[] = [];
@@ -295,8 +177,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       drawn.push(topCard);
     }
 
-    this.record({
-      kind: "draw",
+    this.recordTransfer("draw", {
       // Reversed: the cards came off the top of the stock, so the order they
       // were drawn in is the opposite of the order they sat in.
       cardIds: drawn.reverse().map((card) => card.id),
@@ -330,8 +211,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
       card = this.waste.topCard;
     }
 
-    this.record({
-      kind: "recycle",
+    this.recordTransfer("recycle", {
       cardIds: recycled.map((recycledCard) => recycledCard.id),
       fromPileId: this.waste.id,
       toPileId: this.stock.id,
@@ -340,231 +220,43 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     });
   }
 
+  // --- What a Klondike move does beyond moving its cards ---
+
   /**
-   * Attempts to move a card and its stacked cards to a destination pile.
+   * Scores the move and turns over the card it exposed.
    *
-   * Performs rule checks before executing the move.
-   *
-   * @param cardId The ID of the card to move.
-   * @param targetPileId The ID of the destination pile.
-   * @returns True if the move was valid and executed; false otherwise.
+   * @inheritDoc
    */
-  public moveCardToPile(cardId: string, targetPileId: string): boolean {
-    const move = this.resolveMove(cardId, targetPileId);
-    if (!move) {
-      return false;
-    }
-
+  protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
     const scoreBefore = this.state.score;
-    this.state.moves++;
-    const scoreChange = this.scoring.moveScore(
-      move.sourcePile.role,
-      move.targetPile.role,
+    this.state.score = Math.max(
+      0,
+      this.state.score +
+        this.scoring.moveScore(move.sourcePile.role, move.targetPile.role),
     );
-    this.state.score = Math.max(0, this.state.score + scoreChange);
 
-    this.executeMove(move.movingStack, move.sourcePile, move.targetPile);
-    const flippedCard = this.autoFlipExposedCard(move.sourcePile);
+    const flipped = this.autoFlipExposedCard(move.sourcePile);
 
-    this.record({
-      kind: "move",
-      cardIds: move.movingStack.map((card) => card.id),
-      fromPileId: move.sourcePile.id,
-      toPileId: move.targetPile.id,
-      // Recorded after the flip, so the bonus it awarded is included and undo
+    return {
+      // The real delta, not what the policy proposed: the score is clamped at
+      // zero, so a 15 point penalty against a score of 10 moves it by 10. It is
+      // measured after the flip so the bonus that awarded is included and undo
       // takes both back together.
       scoreDelta: this.state.score - scoreBefore,
-      faceUpBefore: true,
-      flippedCardId: flippedCard?.id,
-    });
-
-    this.checkWinCondition();
-
-    return true;
+      flippedCardIds: flipped ? [flipped.id] : [],
+    };
   }
 
-  /**
-   * Takes back the most recent action, restoring the piles, the face-up states,
-   * the score and the move count to what they were before it.
-   *
-   * @returns True if an action was taken back; false when there is no history.
-   */
-  public undo(): boolean {
-    const last = this.history.pop();
-    this.state.undoDepth = this.history.length;
-    if (!last) {
-      return false;
-    }
+  /** @inheritDoc */
+  protected override afterMove(): void {
+    this.checkWinCondition();
+  }
 
-    const fromPile = this.getPileById(last.fromPileId);
-    const toPile = this.getPileById(last.toPileId);
-    if (!fromPile || !toPile) {
-      return false;
-    }
-
-    // Turn the exposed card back down first: it is still in the pile the cards
-    // are about to be put back on top of.
-    if (last.flippedCardId) {
-      const flipped = this.getCardById(last.flippedCardId);
-      if (flipped) {
-        flipped.faceUp = false;
-      }
-    }
-
-    // cardIds are in source order, so re-appending in that order restores the
-    // pile exactly, whichever way the action itself moved them.
-    for (const cardId of last.cardIds) {
-      const card = this.getCardById(cardId);
-      if (!card) continue;
-      toPile.removeCard(card);
-      card.faceUp = last.faceUpBefore;
-      fromPile.addCard(card);
-    }
-
-    this.state.score = Math.max(0, this.state.score - last.scoreDelta);
-    this.state.moves--;
-    if (last.kind === "recycle") {
+  /** @inheritDoc */
+  protected override afterUndo(move: AppliedMove): void {
+    if (move.kind === "recycle") {
       // So the next recycle is charged the same penalty this one was.
       this.recycleCount--;
-    }
-
-    return true;
-  }
-
-  /** Whether there is an action {@link undo} can take back. */
-  public get canUndo(): boolean {
-    return this.history.length > 0;
-  }
-
-  /** Appends an applied action to the history and publishes the new depth. */
-  private record(move: AppliedMove): void {
-    this.history.push(move);
-    this.state.undoDepth = this.history.length;
-  }
-
-  /** Drops the whole history, for a new deal that nothing before it precedes. */
-  private clearHistory(): void {
-    this.history.length = 0;
-    this.state.undoDepth = 0;
-  }
-
-  /**
-   * Whether moving a card, along with the cards stacked on it, to the given pile
-   * would be legal.
-   *
-   * The same question {@link moveCardToPile} answers before it commits, asked on
-   * its own so a caller can tell a player where a card may land without moving
-   * it there.
-   *
-   * @param cardId The ID of the card to move.
-   * @param targetPileId The ID of the destination pile.
-   * @returns True if the move would be accepted.
-   */
-  public canMoveCardToPile(cardId: string, targetPileId: string): boolean {
-    return this.resolveMove(cardId, targetPileId) !== null;
-  }
-
-  /**
-   * Resolves a requested move into the stack and piles it would act on, or null
-   * when the rules reject it.
-   *
-   * @param cardId The ID of the card to move.
-   * @param targetPileId The ID of the destination pile.
-   */
-  private resolveMove(
-    cardId: string,
-    targetPileId: string,
-  ): ResolvedMove | null {
-    const card = this.getCardById(cardId);
-    const targetPile = this.getPileById(targetPileId);
-    const sourcePile = this.getPileContainingCard(cardId);
-
-    if (!card || !targetPile || !sourcePile || sourcePile.id === targetPileId) {
-      return null;
-    }
-
-    // A card can only be moved if it is face up
-    if (!card.faceUp) {
-      return null;
-    }
-
-    // The moving stack is this card plus everything on top of it. The index is
-    // valid because getPileContainingCard only returns a pile holding the card.
-    const sourceCards = sourcePile.getCards();
-    const movingStack = sourceCards.slice(sourceCards.indexOf(card));
-
-    if (
-      !this.moveRules.canPlace({
-        card,
-        movingStack,
-        sourcePile,
-        targetPile,
-        board: this.board,
-      })
-    ) {
-      return null;
-    }
-
-    return { movingStack, sourcePile, targetPile };
-  }
-
-  /**
-   * The read-only view of the board handed to placement rules, so a rule can
-   * depend on the position as a whole rather than only on its target.
-   */
-  private readonly board: BoardQuery = {
-    pile: (pileId) => this.getPileById(pileId),
-    pilesByRole: (role) =>
-      [...this.pilesMap.values()].filter((pile) => pile.role === role),
-    emptyCount: (role) =>
-      [...this.pilesMap.values()].filter(
-        (pile) => pile.role === role && pile.isEmpty,
-      ).length,
-  };
-
-  /**
-   * Automatically moves a card to its best available destination.
-   *
-   * This centralizes the "double-click to auto-move" rule: a foundation is
-   * always preferred over a tableau, and the card is never moved onto the pile
-   * that already contains it. Each candidate move is delegated to
-   * {@link moveCardToPile}, so all standard validation, scoring, and events
-   * still apply and no move rules are duplicated here.
-   *
-   * @param cardId The ID of the card to auto-move.
-   * @returns True if the card was moved to a foundation or tableau; false if no
-   *   legal destination accepted it.
-   */
-  public autoMoveCard(cardId: string): boolean {
-    const sourcePile = this.getPileContainingCard(cardId);
-
-    for (const foundation of this.foundations) {
-      if (this.moveCardToPile(cardId, foundation.id)) {
-        return true;
-      }
-    }
-
-    for (const tableau of this.tableaus) {
-      if (sourcePile?.id === tableau.id) {
-        continue;
-      }
-      if (this.moveCardToPile(cardId, tableau.id)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /** Moves the stack from the source pile to the target pile. */
-  private executeMove(
-    movingStack: readonly PlayingCard[],
-    sourcePile: CardPile<PlayingCard>,
-    targetPile: CardPile<PlayingCard>,
-  ): void {
-    for (const movingCard of movingStack) {
-      sourcePile.removeCard(movingCard);
-      targetPile.addCard(movingCard);
     }
   }
 
@@ -592,73 +284,13 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     return topRemaining;
   }
 
-  /**
-   * Determines if a card is currently interactable based on standard Klondike rules.
-   *
-   * @param card The logical playing card model.
-   * @returns True if the card can be played/moved.
-   */
-  public isCardInteractable(card: PlayingCard): boolean {
-    const pile = this.getPileContainingCard(card.id);
-    return pile ? this.isCardInteractableInPile(card, pile) : false;
-  }
-
-  /**
-   * The pile-aware form of {@link isCardInteractable}, for callers that already
-   * know which pile holds the card (e.g. the per-frame view builder). Avoids the
-   * pile lookup that {@link isCardInteractable} performs.
-   *
-   * @param card The logical playing card model.
-   * @param pile The pile known to contain the card.
-   */
-  public isCardInteractableInPile(
-    card: PlayingCard,
-    pile: CardPile<PlayingCard>,
-  ): boolean {
-    const zone = this.zoneFor(pile.id);
-    return zone ? canGrab(zone.grab, card, pile) : false;
-  }
-
-  /**
-   * Determines if a card is currently draggable based on standard Klondike rules.
-   * Stock pile cards are clickable but not draggable.
-   *
-   * @param card The logical playing card model.
-   * @returns True if the card can be dragged.
-   */
-  public isCardDraggable(card: PlayingCard): boolean {
-    const pile = this.getPileContainingCard(card.id);
-    return pile ? this.isCardDraggableInPile(card, pile) : false;
-  }
-
-  /**
-   * The pile-aware form of {@link isCardDraggable}. See
-   * {@link isCardInteractableInPile}.
-   *
-   * @param card The logical playing card model.
-   * @param pile The pile known to contain the card.
-   */
-  public isCardDraggableInPile(
-    card: PlayingCard,
-    pile: CardPile<PlayingCard>,
-  ): boolean {
-    const zone = this.zoneFor(pile.id);
-    if (!zone?.draggable) {
-      return false;
-    }
-    return canGrab(zone.grab, card, pile);
-  }
-
   private checkWinCondition(): void {
     let totalFoundationCards = 0;
     for (const foundation of this.foundations) {
       totalFoundationCards += foundation.size;
     }
 
-    // Every card in play lives in the registry, so the game is won once they
-    // have all reached the foundations. Deriving the target from the registry
-    // (rather than a hardcoded 52) keeps a short injected deck consistent.
-    if (this.registry.size > 0 && totalFoundationCards === this.registry.size) {
+    if (this.cardsInPlay > 0 && totalFoundationCards === this.cardsInPlay) {
       this.emit("game-won", undefined);
     }
   }

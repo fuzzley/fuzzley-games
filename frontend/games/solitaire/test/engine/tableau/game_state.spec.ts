@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { GameState } from "@/games/klondike/game_state";
+import { GameState } from "@/engine/tableau/game_state";
 
 describe("GameState", () => {
   it("starts at zero", () => {

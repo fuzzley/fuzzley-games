@@ -1,14 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { MoveRules } from "@/games/klondike/move_rules";
+import { klondikePlacementRule } from "@/games/klondike/move_rules";
 import { CardPile } from "@/engine/core/card/card_pile";
 import { KlondikeRole } from "@/games/klondike/klondike_zones";
 import { PlayingCard, Suit, Rank } from "@/engine/core/card/playing_card";
 import { BoardQuery } from "@/engine/tableau/rules";
 import { makePlayingCard } from "@test/support/card_builder";
 
-describe("MoveRules", () => {
-  const rules = new MoveRules();
-
+describe("klondikePlacementRule", () => {
   function pileWith(
     type: KlondikeRole,
     ...cards: PlayingCard[]
@@ -41,7 +39,7 @@ describe("MoveRules", () => {
       card,
       ...Array.from({ length: movingStackSize - 1 }, () => makePlayingCard()),
     ];
-    return rules.canPlace({
+    return klondikePlacementRule(targetPile.role)({
       card,
       movingStack,
       sourcePile: pileWith(KlondikeRole.TABLEAU),

@@ -343,6 +343,22 @@ describe("SolitaireGame", () => {
       expect(game.moveCardToPile("invalid-card-id", "tableau-0")).toBe(false);
     });
 
+    it("rejects a face-down card even when it is the top of its pile", () => {
+      game.startNewGame();
+      emptyBoard(game);
+      const ace = relocate(game, "card-spades-ace", game.stock, false);
+
+      expect(game.moveCardToPile(ace.id, game.foundations[0].id)).toBe(false);
+    });
+
+    it("rejects a face-down card an auto-move would otherwise place", () => {
+      game.startNewGame();
+      emptyBoard(game);
+      const ace = relocate(game, "card-spades-ace", game.stock, false);
+
+      expect(game.autoMoveCard(ace.id)).toBe(false);
+    });
+
     it("rejects an unknown target pile id", () => {
       game.startNewGame();
       const cardId = game.stock.getCards()[0].id;

@@ -1,9 +1,8 @@
 import { PileRole } from "@/engine/core/card/card_pile";
 import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { ZoneSpec } from "@/engine/tableau/zone";
-import { never } from "@/engine/tableau/rules";
 import { DrawCount } from "./game_settings";
-import { KLONDIKE_FOUNDATION_RULE, KLONDIKE_TABLEAU_RULE } from "./move_rules";
+import { klondikePlacementRule } from "./move_rules";
 
 /**
  * The parts a pile can play in a Klondike game.
@@ -168,7 +167,7 @@ function buildZoneSpecs(drawCount: DrawCount): readonly ZoneSpec[] {
       role: KlondikeRole.STOCK,
       slot: { pileId: STOCK_PILE_ID, column: 0, row: 0 },
       layout: STACKED_PILE_LAYOUT,
-      accept: never,
+      accept: klondikePlacementRule(KlondikeRole.STOCK),
       // The top card is clickable — that is what draws — but pressing it must
       // not pick it up.
       grab: { kind: "top-only" },
@@ -180,7 +179,7 @@ function buildZoneSpecs(drawCount: DrawCount): readonly ZoneSpec[] {
       role: KlondikeRole.WASTE,
       slot: { pileId: WASTE_PILE_ID, column: 1, row: 0 },
       layout: wastePileLayout(drawCount),
-      accept: never,
+      accept: klondikePlacementRule(KlondikeRole.WASTE),
       grab: { kind: "top-only" },
       draggable: true,
       face: "always-up",
@@ -195,7 +194,7 @@ function buildZoneSpecs(drawCount: DrawCount): readonly ZoneSpec[] {
       // Column 2 is left clear for the waste fan to grow into.
       slot: { pileId: id, column: 3 + index, row: 0 },
       layout: STACKED_PILE_LAYOUT,
-      accept: KLONDIKE_FOUNDATION_RULE,
+      accept: klondikePlacementRule(KlondikeRole.FOUNDATION),
       grab: { kind: "top-only" },
       draggable: true,
       face: "always-up",
@@ -209,7 +208,7 @@ function buildZoneSpecs(drawCount: DrawCount): readonly ZoneSpec[] {
       role: KlondikeRole.TABLEAU,
       slot: { pileId: id, column: index, row: 1 },
       layout: TABLEAU_PILE_LAYOUT,
-      accept: KLONDIKE_TABLEAU_RULE,
+      accept: klondikePlacementRule(KlondikeRole.TABLEAU),
       // Any face-up card, ordered or not. Klondike validates only the bottom
       // card of a moving stack, so a broken run can be dragged as long as its
       // bottom card fits where it lands. FreeCell and Spider use a run rule
