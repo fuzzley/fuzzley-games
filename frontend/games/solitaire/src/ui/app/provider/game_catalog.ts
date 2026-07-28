@@ -2,6 +2,7 @@ import { InjectionToken } from "@angular/core";
 import { GameRuleOptions, PlayableGame } from "@/engine/tableau/playable_game";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
+import { SpiderGame } from "@/games/spider/spider_game";
 
 /** A game the application can put on the table. */
 export interface CatalogEntry {
@@ -68,6 +69,17 @@ export const GAME_CATALOG: readonly CatalogEntry[] = [
         // FreeCell offers no rule options at all: no draw mode, no stock.
         ruleOptions: {},
       };
+    },
+  },
+  {
+    id: "spider",
+    name: "Spider",
+    create: () => {
+      const game = new SpiderGame();
+      game.startNewGame();
+      // Spider's stock deals a whole row rather than turning cards over one at
+      // a time, so there is no draw mode to choose.
+      return { game, ruleOptions: {} };
     },
   },
 ];

@@ -177,15 +177,16 @@ export class SolitaireGame extends TableGame<GameEvents> {
       drawn.push(topCard);
     }
 
-    this.recordTransfer("draw", {
-      // Reversed: the cards came off the top of the stock, so the order they
-      // were drawn in is the opposite of the order they sat in.
-      cardIds: drawn.reverse().map((card) => card.id),
-      fromPileId: this.stock.id,
-      toPileId: this.waste.id,
-      scoreDelta: 0,
-      faceUpBefore: false,
-    });
+    this.recordTransfers("draw", [
+      {
+        // Reversed: the cards came off the top of the stock, so the order they
+        // were drawn in is the opposite of the order they sat in.
+        cardIds: drawn.reverse().map((card) => card.id),
+        fromPileId: this.stock.id,
+        toPileId: this.waste.id,
+        faceUpBefore: false,
+      },
+    ]);
   }
 
   /**
@@ -211,13 +212,18 @@ export class SolitaireGame extends TableGame<GameEvents> {
       card = this.waste.topCard;
     }
 
-    this.recordTransfer("recycle", {
-      cardIds: recycled.map((recycledCard) => recycledCard.id),
-      fromPileId: this.waste.id,
-      toPileId: this.stock.id,
-      scoreDelta: this.state.score - scoreBefore,
-      faceUpBefore: true,
-    });
+    this.recordTransfers(
+      "recycle",
+      [
+        {
+          cardIds: recycled.map((recycledCard) => recycledCard.id),
+          fromPileId: this.waste.id,
+          toPileId: this.stock.id,
+          faceUpBefore: true,
+        },
+      ],
+      { scoreDelta: this.state.score - scoreBefore },
+    );
   }
 
   // --- What a Klondike move does beyond moving its cards ---

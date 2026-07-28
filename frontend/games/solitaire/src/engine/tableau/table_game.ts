@@ -6,7 +6,7 @@ import {
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { EventEmitter } from "@/engine/core/common/event_emitter";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { AppliedMove, AppliedMoveKind } from "./move";
+import { AppliedMove, AppliedMoveKind, CardTransfer } from "./move";
 import { GameState } from "./game_state";
 import { BoardQuery } from "./rules";
 import { ZoneSpec, canGrab, hasRoomFor } from "./zone";
@@ -33,6 +33,15 @@ export interface MoveEffects {
   readonly scoreDelta: number;
   /** Cards the move turned face up by exposing them. */
   readonly flippedCardIds: readonly string[];
+  /**
+   * Further runs of cards the move relocated, in the order it relocated them.
+   *
+   * For a consequence of the move rather than the move itself: Spider sends a
+   * completed King-to-Ace run off to a foundation as soon as the move that
+   * finished it lands. Recording it here rather than as a separate action is
+   * what makes one undo take the whole thing back.
+   */
+  readonly followUpTransfers?: readonly CardTransfer[];
 }
 
 /** A move that changed nothing but the position of its cards. */
@@ -295,11 +304,16 @@ export abstract class TableGame<
     const effects = this.applyMoveEffects(move);
     this.record({
       kind: "move",
-      cardIds: move.movingStack.map((card) => card.id),
-      fromPileId: move.sourcePile.id,
-      toPileId: move.targetPile.id,
+      transfers: [
+        {
+          cardIds: move.movingStack.map((card) => card.id),
+          fromPileId: move.sourcePile.id,
+          toPileId: move.targetPile.id,
+          faceUpBefore: true,
+        },
+        ...(effects.followUpTransfers ?? []),
+      ],
       scoreDelta: effects.scoreDelta,
-      faceUpBefore: true,
       flippedCardIds: effects.flippedCardIds,
     });
 
@@ -372,13 +386,7 @@ export abstract class TableGame<
       return false;
     }
 
-    const fromPile = this.getPileById(last.fromPileId);
-    const toPile = this.getPileById(last.toPileId);
-    if (!fromPile || !toPile) {
-      return false;
-    }
-
-    // Turn exposed cards back down first: they are still in the pile the cards
+    // Turn exposed cards back down first: they are still in the piles the cards
     // are about to be put back on top of.
     for (const flippedId of last.flippedCardIds) {
       const flipped = this.getCardById(flippedId);
@@ -387,14 +395,10 @@ export abstract class TableGame<
       }
     }
 
-    // cardIds are in source order, so re-appending in that order restores the
-    // pile exactly, whichever way the action itself moved them.
-    for (const cardId of last.cardIds) {
-      const card = this.getCardById(cardId);
-      if (!card) continue;
-      toPile.removeCard(card);
-      card.faceUp = last.faceUpBefore;
-      fromPile.addCard(card);
+    // Reverse order, so a consequence is undone before its cause: a run that
+    // left for a foundation comes back before the move that completed it.
+    for (const transfer of [...last.transfers].reverse()) {
+      this.reverseTransfer(transfer);
     }
 
     this.state.score = Math.max(0, this.state.score - last.scoreDelta);
@@ -402,6 +406,23 @@ export abstract class TableGame<
     this.afterUndo(last);
 
     return true;
+  }
+
+  /** Puts one transfer's cards back where they came from. */
+  private reverseTransfer(transfer: CardTransfer): void {
+    const fromPile = this.getPileById(transfer.fromPileId);
+    const toPile = this.getPileById(transfer.toPileId);
+    if (!fromPile || !toPile) return;
+
+    // cardIds are in source order, so re-appending in that order restores the
+    // pile exactly, whichever way the action itself moved them.
+    for (const cardId of transfer.cardIds) {
+      const card = this.getCardById(cardId);
+      if (!card) continue;
+      toPile.removeCard(card);
+      card.faceUp = transfer.faceUpBefore;
+      fromPile.addCard(card);
+    }
   }
 
   /**
@@ -424,14 +445,27 @@ export abstract class TableGame<
   }
 
   /**
-   * Records a run of cards moving between piles outside the normal move path —
-   * a draw or a recycle — so undo can take it back like any other action.
+   * Records cards moving between piles outside the normal move path — a draw, a
+   * recycle, a dealt row — so undo can take it back like any other action.
+   *
+   * @param kind What the player did.
+   * @param transfers The runs relocated, in the order they were relocated.
+   * @param options The score it applied and any cards it turned face up.
    */
-  protected recordTransfer(
+  protected recordTransfers(
     kind: AppliedMoveKind,
-    move: Omit<AppliedMove, "kind" | "flippedCardIds">,
+    transfers: readonly CardTransfer[],
+    options: {
+      scoreDelta?: number;
+      flippedCardIds?: readonly string[];
+    } = {},
   ): void {
-    this.record({ ...move, kind, flippedCardIds: [] });
+    this.record({
+      kind,
+      transfers,
+      scoreDelta: options.scoreDelta ?? 0,
+      flippedCardIds: options.flippedCardIds ?? [],
+    });
   }
 
   /** Drops the whole history, for a new deal that nothing before it precedes. */

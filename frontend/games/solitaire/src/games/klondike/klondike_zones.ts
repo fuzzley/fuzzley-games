@@ -1,28 +1,7 @@
-import { PileRole } from "@/engine/core/card/card_pile";
 import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { ZoneSpec } from "@/engine/tableau/zone";
 import { DrawCount } from "./game_settings";
-import { klondikePlacementRule } from "./move_rules";
-
-/**
- * The parts a pile can play in a Klondike game.
- *
- * Klondike's own vocabulary, not the engine's: rule checks, scoring, layout and
- * gestures all branch on these, and a different game names different roles.
- */
-export const KlondikeRole = {
-  /** The face-down draw pile. */
-  STOCK: "stock",
-  /** The face-up pile of drawn cards. */
-  WASTE: "waste",
-  /** A suit pile built up from Ace to King. */
-  FOUNDATION: "foundation",
-  /** A board column built down in alternating colors. */
-  TABLEAU: "tableau",
-} as const satisfies Record<string, PileRole>;
-
-/** One of the parts a Klondike pile can play. */
-export type KlondikeRole = (typeof KlondikeRole)[keyof typeof KlondikeRole];
+import { KlondikeRole, klondikePlacementRule } from "./move_rules";
 
 /** The number of suit foundation piles in a standard Klondike game. */
 export const FOUNDATION_COUNT = 4;
@@ -229,3 +208,6 @@ function buildZoneSpecs(drawCount: DrawCount): readonly ZoneSpec[] {
 
   return zones;
 }
+
+/** Re-exported: the roles live with the rules that branch on them. */
+export { KlondikeRole };

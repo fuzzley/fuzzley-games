@@ -1,20 +1,10 @@
-import { PileRole } from "@/engine/core/card/card_pile";
 import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { ZoneSpec } from "@/engine/tableau/zone";
-import { freeCellPlacementRule, isOrderedPair } from "./freecell_rules";
-
-/** The parts a pile can play in a FreeCell game. */
-export const FreeCellRole = {
-  /** A single-card holding cell. */
-  CELL: "cell",
-  /** A suit pile built up from Ace to King. */
-  FOUNDATION: "foundation",
-  /** A board column built down in alternating colors. */
-  TABLEAU: "tableau",
-} as const satisfies Record<string, PileRole>;
-
-/** One of the parts a FreeCell pile can play. */
-export type FreeCellRole = (typeof FreeCellRole)[keyof typeof FreeCellRole];
+import {
+  FreeCellRole,
+  freeCellPlacementRule,
+  isOrderedPair,
+} from "./freecell_rules";
 
 /** The number of free cells. */
 export const CELL_COUNT = 4;
@@ -134,3 +124,6 @@ function buildZoneSpecs(): readonly ZoneSpec[] {
 
   return zones;
 }
+
+/** Re-exported: the roles live with the rules that branch on them. */
+export { FreeCellRole };
