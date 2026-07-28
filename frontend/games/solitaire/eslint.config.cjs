@@ -121,6 +121,32 @@ module.exports = tseslint.config(
     },
   },
   {
+    // The solitaire-family runtime. It may use the render tier's view contract
+    // and layout types, and must never name a particular game: the whole point
+    // of it is that Klondike, FreeCell and Spider all run on the same one.
+    files: ["src/engine/tableau/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "phaser",
+                "@/engine/render/phaser/*",
+                "@/games/*",
+                "@/ui/*",
+                "@angular/*",
+              ],
+              message:
+                "engine/tableau runs any solitaire: no game, no renderer backend, no UI.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // Games sit at the top of the engine, but below the application shell.
     files: ["src/games/**/*.ts"],
     rules: {
