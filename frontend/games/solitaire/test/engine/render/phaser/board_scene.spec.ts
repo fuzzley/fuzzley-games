@@ -4,6 +4,10 @@ import {
   buildKlondikeViewState,
   resolveKlondikeDropTarget,
 } from "@/games/klondike/klondike_board";
+import {
+  klondikeGestures,
+  klondikeStackFromCard,
+} from "@/games/klondike/klondike_gestures";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
 import {
   getGameModel,
@@ -46,6 +50,8 @@ function makeBoardScene(gameModel: SolitaireGame = getGameModel()): BoardScene {
     gameModel,
     buildKlondikeViewState,
     resolveKlondikeDropTarget,
+    klondikeGestures(gameModel),
+    klondikeStackFromCard(gameModel),
   );
 }
 

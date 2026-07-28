@@ -7,6 +7,8 @@ import { PhaserCardFactory } from "./phaser_card_factory";
 import { BoardInputManager } from "./board_input_manager";
 import { PhaserTableRenderer } from "./phaser_table_renderer";
 import { PhaserSprites } from "./phaser_sprites";
+import { StackFromCard } from "../input/drag_controller";
+import { IntentHandler } from "../input/table_intents";
 import {
   DragInteraction,
   PileGeometry,
@@ -78,6 +80,12 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Resolves the pile a drag would land on. */
   public readonly resolveDropTarget: ResolveDropTarget;
 
+  /** Carries out what a press or a drop means in this game. */
+  public readonly handleIntent: IntentHandler;
+
+  /** The cards that travel with the one being dragged. */
+  public readonly stackFromCard: StackFromCard;
+
   /**
    * Constructs the board scene.
    *
@@ -88,17 +96,24 @@ export class BoardScene extends Scene implements PhaserSprites {
    *   tier that knows about games.
    * @param resolveDropTarget Resolves the pile a drag would land on, for the
    *   same reason.
+   * @param handleIntent Carries out what a press or a drop means. The last of
+   *   the game's decisions the scene needs and cannot make.
+   * @param stackFromCard The cards that travel with the one being dragged.
    */
   constructor(
     gameModel: SolitaireGame,
     buildViewState: BuildTableViewState,
     resolveDropTarget: ResolveDropTarget,
+    handleIntent: IntentHandler,
+    stackFromCard: StackFromCard,
   ) {
     super("board-scene");
 
     this.gameModel = gameModel;
     this.buildViewState = buildViewState;
     this.resolveDropTarget = resolveDropTarget;
+    this.handleIntent = handleIntent;
+    this.stackFromCard = stackFromCard;
   }
 
   /**
@@ -172,28 +187,28 @@ export class BoardScene extends Scene implements PhaserSprites {
   }
 
   /**
-   * Instantiates and registers the background sprites for the stock, foundation
-   * and tableau piles.
+   * Instantiates a background sprite for every pile whose zone declares one.
+   *
+   * Which piles have a placeholder, what it looks like, and whether pressing it
+   * does anything are all read from the zones, so the scene creates the same
+   * sprites for any game without knowing what the piles are for.
    */
   private createPileBackgroundSprites(): void {
     const alpha = BoardScene.PILE_BACKGROUND_ALPHA;
 
-    const stockSprite = this.visualFactory.createStockBackground(alpha);
-    this.inputManager.registerStockBackgroundListeners(stockSprite);
-    this.pileBackgrounds.set(this.gameModel.stock.id, stockSprite);
+    for (const pile of this.gameModel.piles) {
+      const zone = this.gameModel.zoneFor(pile.id);
+      if (!zone?.backgroundKey) continue;
 
-    for (const foundation of this.gameModel.foundations) {
-      this.pileBackgrounds.set(
-        foundation.id,
-        this.visualFactory.createFoundationBackground(alpha),
+      const sprite = this.visualFactory.createPileBackground(
+        zone.backgroundKey,
+        alpha,
+        zone.emptyIsActionable ?? false,
       );
-    }
-
-    for (const tableau of this.gameModel.tableaus) {
-      this.pileBackgrounds.set(
-        tableau.id,
-        this.visualFactory.createTableauBackground(alpha),
-      );
+      this.pileBackgrounds.set(pile.id, sprite);
+      if (zone.emptyIsActionable) {
+        this.inputManager.registerPileBackgroundListeners(sprite, pile.id);
+      }
     }
   }
 

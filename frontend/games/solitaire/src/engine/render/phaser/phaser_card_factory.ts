@@ -1,5 +1,4 @@
 import * as Phaser from "phaser";
-import { CardBackStyle } from "@/games/klondike/game_settings";
 
 /**
  * Factory class responsible for creating and configuring Phaser sprite GameObjects
@@ -58,7 +57,7 @@ export class PhaserCardFactory {
    */
   constructor(
     private readonly scene: Phaser.Scene,
-    private readonly cardBackStyle: () => CardBackStyle,
+    private readonly cardBackStyle: () => string,
   ) {}
 
   /**
@@ -101,57 +100,27 @@ export class PhaserCardFactory {
   }
 
   /**
-   * Instantiates the stock pile placeholder sprite.
+   * Instantiates a pile's background placeholder sprite.
    *
+   * Which artwork marks a slot is the zone's business, not the factory's, so
+   * the frame is passed in rather than chosen here by pile role.
+   *
+   * @param frame The atlas frame the zone declared for its placeholder.
    * @param alpha Transparency level for the background.
-   * @returns The configured Stock Pile Sprite.
+   * @param interactive Whether the slot responds to the pointer at all. Only a
+   *   slot that does something when clicked needs to.
    */
-  createStockBackground(alpha: number): Phaser.GameObjects.Sprite {
-    const sprite = this.scene.add.sprite(
-      0,
-      0,
-      "card_assets",
-      "card-placeholder-full-border-reset",
-    );
+  createPileBackground(
+    frame: string,
+    alpha: number,
+    interactive: boolean,
+  ): Phaser.GameObjects.Sprite {
+    const sprite = this.scene.add.sprite(0, 0, "card_assets", frame);
     sprite.setOrigin(0, 0);
     sprite.setAlpha(alpha);
-    sprite.setInteractive({ useHandCursor: true });
-    return sprite;
-  }
-
-  /**
-   * Instantiates a tableau pile placeholder sprite.
-   *
-   * @param alpha Transparency level for the background.
-   * @returns The configured Tableau Pile Sprite.
-   */
-  createTableauBackground(alpha: number): Phaser.GameObjects.Sprite {
-    const sprite = this.scene.add.sprite(
-      0,
-      0,
-      "card_assets",
-      "card-placeholder",
-    );
-    sprite.setOrigin(0, 0);
-    sprite.setAlpha(alpha);
-    return sprite;
-  }
-
-  /**
-   * Instantiates a foundation pile placeholder sprite.
-   *
-   * @param alpha Transparency level for the background.
-   * @returns The configured Foundation Pile Sprite.
-   */
-  createFoundationBackground(alpha: number): Phaser.GameObjects.Sprite {
-    const sprite = this.scene.add.sprite(
-      0,
-      0,
-      "card_assets",
-      "card-placeholder-full-border-circle",
-    );
-    sprite.setOrigin(0, 0);
-    sprite.setAlpha(alpha);
+    if (interactive) {
+      sprite.setInteractive({ useHandCursor: true });
+    }
     return sprite;
   }
 }

@@ -1,6 +1,10 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { BoardInputManager } from "@/engine/render/phaser/board_input_manager";
 import { resolveKlondikeDropTarget } from "@/games/klondike/klondike_board";
+import {
+  klondikeGestures,
+  klondikeStackFromCard,
+} from "@/games/klondike/klondike_gestures";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
@@ -53,9 +57,11 @@ describe("BoardInputManager", () => {
         height: DESIGN_HEIGHT_PX,
         pixelRatio: 1,
       },
-      // The real Klondike resolver, so a drop lands where the game says it
-      // would rather than where a stub decides.
+      // The real Klondike wiring, so a press or a drop does what the game says
+      // it does rather than what a stub decides.
       resolveDropTarget: resolveKlondikeDropTarget,
+      handleIntent: klondikeGestures(gameModel),
+      stackFromCard: klondikeStackFromCard(gameModel),
     } as unknown as BoardScene;
 
     inputManager = new BoardInputManager(boardScene);
@@ -332,7 +338,10 @@ describe("BoardInputManager", () => {
 
     beforeEach(() => {
       stockBackground = createMockSprite();
-      inputManager.registerStockBackgroundListeners(asSprite(stockBackground));
+      inputManager.registerPileBackgroundListeners(
+        asSprite(stockBackground),
+        "stock",
+      );
     });
 
     it("recycles the waste when the empty stock background is clicked", () => {

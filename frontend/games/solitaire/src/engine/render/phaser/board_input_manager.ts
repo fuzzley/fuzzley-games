@@ -1,12 +1,10 @@
 import * as Phaser from "phaser";
 import type { BoardScene } from "./board_scene";
-import { CardPile } from "@/engine/core/card/card_pile";
-import { KlondikeRole } from "@/games/klondike/klondike_zones";
-import type { PlayingCard } from "@/engine/core/card/playing_card";
+import { DragController } from "../input/drag_controller";
 import {
-  TableInteractionState,
   DragInteraction,
   FlightInteraction,
+  TableInteractionState,
 } from "../view/table_view_state";
 
 /**
@@ -19,44 +17,29 @@ function cardIdOf(gameObject: Phaser.GameObjects.Sprite): string | null {
 }
 
 /**
- * Coordinates and handles drag-and-drop state, overlaps, and mouse pointer events
- * for card sprites and empty pile placeholder sprites.
+ * Binds Phaser's pointer and drag events to a {@link DragController}.
+ *
+ * Everything this does is translation. What a press means, which cards travel
+ * with a dragged one, and where a drop lands are all decided elsewhere — by the
+ * game's gesture map and the scene's drop resolver — so this class holds no
+ * rules and no state of its own beyond the controller it drives.
  */
 export class BoardInputManager {
-  /** Maximum milliseconds between two clicks for them to count as a double-click. */
-  private static readonly DOUBLE_CLICK_MS = 350;
-
-  /** The id of the currently hovered card, or null when none is. */
-  public hoveredCardId: string | null = null;
-
-  /** Whether the stock pile background sprite is currently hovered. */
-  public hoveredBackgroundPileId: string | null = null;
-
-  /** The transient drag interaction state. */
-  public drag: DragInteraction | null = null;
-
-  /** The stack still flying to the pile it was moved to, or null when none is. */
-  private flightState: FlightInteraction | null = null;
-
-  /** Flag to snap all cards immediately (e.g. on first load, resize, reset). */
-  public snapAll = true;
-
-  /** The timestamp of the last click on a card. */
-  private lastClickTimeMs = 0;
-
-  /** The ID of the last clicked card. */
-  private lastClickedCardId: string | null = null;
+  private readonly controller: DragController;
 
   /**
    * Constructs the board input manager.
    *
    * @param boardScene The parent board scene.
    */
-  constructor(private readonly boardScene: BoardScene) {}
+  constructor(private readonly boardScene: BoardScene) {
+    this.controller = new DragController(
+      boardScene.handleIntent,
+      boardScene.stackFromCard,
+    );
+  }
 
-  /**
-   * Binds the global drag and drop event listeners to Phaser's input system.
-   */
+  /** Binds the global drag and drop event listeners to Phaser's input system. */
   public registerDragListeners(): void {
     // Phaser's drag events carry the pointer as their first argument, which
     // none of these handlers need: the drag position comes from the event's own
@@ -73,7 +56,7 @@ export class BoardInputManager {
         _gameObject: Phaser.GameObjects.Sprite,
         dragX: number,
         dragY: number,
-      ) => this.onDrag(dragX, dragY),
+      ) => this.controller.dragMoved({ x: dragX, y: dragY }),
     );
     this.boardScene.input.on(
       "dragend",
@@ -83,7 +66,7 @@ export class BoardInputManager {
   }
 
   /**
-   * Registers event listeners on individual playing card sprites.
+   * Registers event listeners on an individual playing card sprite.
    *
    * @param sprite The card's sprite.
    * @param cardId The id of the card the sprite draws.
@@ -92,122 +75,24 @@ export class BoardInputManager {
     sprite: Phaser.GameObjects.Sprite,
     cardId: string,
   ): void {
-    sprite.on("pointerover", () => {
-      this.hoveredCardId = cardId;
-    });
-
-    sprite.on("pointerout", () => {
-      if (this.hoveredCardId === cardId) {
-        this.hoveredCardId = null;
-      }
-    });
-
-    sprite.on("pointerdown", () => this.handleCardPointerDown(cardId));
+    sprite.on("pointerover", () => this.controller.cardOver(cardId));
+    sprite.on("pointerout", () => this.controller.cardOut(cardId));
+    sprite.on("pointerdown", () => this.controller.cardPressed(cardId));
   }
 
   /**
-   * Handles a pointerdown on a card sprite: resolves the containing pile, then
-   * dispatches to the double-click auto-move or stock-draw behavior.
+   * Registers event listeners on a pile's background placeholder sprite.
+   *
+   * @param sprite The placeholder sprite.
+   * @param pileId The id of the pile it marks.
    */
-  private handleCardPointerDown(cardId: string): void {
-    const game = this.boardScene.gameModel;
-    const pile = game.getPileContainingCard(cardId);
-    if (!pile) {
-      throw new Error(`Card ${cardId} is not in a pile`);
-    }
-
-    // Only tableau/waste cards participate in double-click auto-moves. Where the
-    // card should land is a game rule, so delegate the decision to the model.
-    if (
-      pile.role === KlondikeRole.TABLEAU ||
-      pile.role === KlondikeRole.WASTE
-    ) {
-      if (this.isDoubleClick(cardId)) {
-        // Pressing a draggable card also begins a Phaser drag. A double-click
-        // is a click gesture, not a drag, so cancel the pending drag before
-        // auto-moving. Otherwise the trailing `dragend` re-runs the drop
-        // resolver on the card's original position and can move the card
-        // straight back — e.g. a King auto-moved to its foundation gets dropped
-        // onto the now-empty tableau it just left, so it never appears to move.
-        this.drag = null;
-        // The stack the model is about to move, read before it moves so the
-        // cards can be tracked across the board while their sprites catch up.
-        const movingCardIds = this.stackFromCard(pile, cardId);
-        if (game.autoMoveCard(cardId)) {
-          this.beginFlight(movingCardIds);
-        }
-      }
-      return;
-    }
-
-    this.lastClickTimeMs = 0;
-    this.lastClickedCardId = null;
-
-    if (pile.role === KlondikeRole.STOCK) {
-      this.tryDrawFromStock(pile, cardId);
-    }
-  }
-
-  /**
-   * The ids of the given card and every card stacked on top of it, which is
-   * the stack a move of that card takes with it.
-   */
-  private stackFromCard(pile: CardPile<PlayingCard>, cardId: string): string[] {
-    const cards = pile.getCards();
-    const cardIndex = cards.findIndex((card) => card.id === cardId);
-    return cardIndex === -1
-      ? []
-      : cards.slice(cardIndex).map((card) => card.id);
-  }
-
-  /**
-   * Records this click and reports whether it completes a double-click on the
-   * same card within {@link BoardInputManager.DOUBLE_CLICK_MS}.
-   */
-  private isDoubleClick(cardId: string): boolean {
-    const currentTimeMs = Date.now();
-    const doubleClick =
-      this.lastClickedCardId === cardId &&
-      currentTimeMs - this.lastClickTimeMs < BoardInputManager.DOUBLE_CLICK_MS;
-
-    this.lastClickTimeMs = currentTimeMs;
-    this.lastClickedCardId = cardId;
-
-    return doubleClick;
-  }
-
-  /**
-   * Draws from the stock when the clicked card is the top stock card.
-   */
-  private tryDrawFromStock(pile: CardPile<PlayingCard>, cardId: string): void {
-    if (pile.topCard?.id === cardId) {
-      this.boardScene.gameModel.drawCardsFromStock();
-    }
-  }
-
-  /**
-   * Registers event listeners on the stock pile background placeholder sprite.
-   */
-  public registerStockBackgroundListeners(
-    stockSprite: Phaser.GameObjects.Sprite,
+  public registerPileBackgroundListeners(
+    sprite: Phaser.GameObjects.Sprite,
+    pileId: string,
   ): void {
-    stockSprite.on("pointerdown", () => {
-      if (this.boardScene.gameModel.stock.isEmpty) {
-        this.boardScene.gameModel.drawCardsFromStock();
-      }
-    });
-
-    const stockPileId = this.boardScene.gameModel.stock.id;
-
-    stockSprite.on("pointerover", () => {
-      this.hoveredBackgroundPileId = stockPileId;
-    });
-
-    stockSprite.on("pointerout", () => {
-      if (this.hoveredBackgroundPileId === stockPileId) {
-        this.hoveredBackgroundPileId = null;
-      }
-    });
+    sprite.on("pointerdown", () => this.controller.backgroundPressed(pileId));
+    sprite.on("pointerover", () => this.controller.backgroundOver(pileId));
+    sprite.on("pointerout", () => this.controller.backgroundOut(pileId));
   }
 
   /** Picks up the card the drag started on, along with the stack above it. */
@@ -215,36 +100,16 @@ export class BoardInputManager {
     const cardId = cardIdOf(gameObject);
     if (!cardId) return;
 
-    const sourcePile = this.boardScene.gameModel.getPileContainingCard(cardId);
-    if (!sourcePile) return;
-
-    const cardIds = this.stackFromCard(sourcePile, cardId);
-    if (cardIds.length === 0) return;
-
-    this.drag = {
-      cardIds,
-      primary: { x: gameObject.x, y: gameObject.y },
-    };
-  }
-
-  /** Follows the pointer with the stack in hand. */
-  private onDrag(dragX: number, dragY: number): void {
-    if (this.drag) {
-      this.drag.primary = { x: dragX, y: dragY };
-    }
+    this.controller.dragStarted(cardId, { x: gameObject.x, y: gameObject.y });
   }
 
   /** Drops the stack in hand onto whichever pile it was released over. */
   private onDragEnd(gameObject: Phaser.GameObjects.Sprite): void {
-    if (!this.drag) return;
-
-    const cardId = cardIdOf(gameObject);
-    const drag = this.drag;
-
-    // Clear drag tracking state first so that layout/highlight updates can accurately reflect that we are no longer dragging.
-    this.drag = null;
-
-    if (!cardId) {
+    const drag = this.controller.drag;
+    if (!drag || !cardIdOf(gameObject)) {
+      // Nothing in hand, or a sprite that is not a card. Either way the drag is
+      // over, and the controller clears it.
+      this.controller.dragEnded(null);
       return;
     }
 
@@ -255,63 +120,60 @@ export class BoardInputManager {
       drag,
       this.boardScene.viewport,
     );
-
-    if (!target) {
-      return;
-    }
-
-    const moved = this.boardScene.gameModel.moveCardToPile(
-      cardId,
-      target.pileId,
-    );
-    if (moved) {
-      // The stack is released wherever the pointer left it, so it still has the
-      // board to cross to reach the pile that accepted it.
-      this.beginFlight(drag.cardIds);
-    }
+    this.controller.dragEnded(target?.pileId ?? null);
   }
 
-  /**
-   * Lifts the given stack above the board until its sprites have caught up with
-   * the pile the model has already moved them to.
-   */
-  private beginFlight(cardIds: string[]): void {
-    this.flightState = cardIds.length > 0 ? { cardIds } : null;
+  // --- The state the scene and the view builder read ---
+
+  /** The id of the currently hovered card, or null when none is. */
+  public get hoveredCardId(): string | null {
+    return this.controller.hoveredCardId;
+  }
+  public set hoveredCardId(cardId: string | null) {
+    this.controller.hoveredCardId = cardId;
+  }
+
+  /** The pile whose background slot is hovered, or null. */
+  public get hoveredBackgroundPileId(): string | null {
+    return this.controller.hoveredBackgroundPileId;
+  }
+  public set hoveredBackgroundPileId(pileId: string | null) {
+    this.controller.hoveredBackgroundPileId = pileId;
+  }
+
+  /** The transient drag interaction state. */
+  public get drag(): DragInteraction | null {
+    return this.controller.drag;
+  }
+  public set drag(drag: DragInteraction | null) {
+    this.controller.drag = drag;
+  }
+
+  /** Whether to snap all cards immediately rather than easing them. */
+  public get snapAll(): boolean {
+    return this.controller.snapAll;
+  }
+  public set snapAll(snap: boolean) {
+    this.controller.snapAll = snap;
   }
 
   /** The stack still crossing the board, or null when nothing is in flight. */
   public get flight(): FlightInteraction | null {
-    return this.flightState;
+    return this.controller.flight;
   }
 
-  /**
-   * Lets the flying stack settle back onto the board. Called by the scene once
-   * the sprites have reached the pile they were moved to.
-   */
+  /** Lets the flying stack settle back onto the board. */
   public endFlight(): void {
-    this.flightState = null;
+    this.controller.endFlight();
   }
 
-  /** Snapshot of the pointer-driven interaction state consumed by the view builder each frame. */
+  /** Snapshot of the interaction state the view builder reads each frame. */
   public get interaction(): TableInteractionState {
-    return {
-      hoveredCardId: this.hoveredCardId,
-      hoveredBackgroundPileId: this.hoveredBackgroundPileId,
-      drag: this.drag,
-      flight: this.flightState,
-      snapAll: this.snapAll,
-    };
+    return this.controller.interaction;
   }
 
-  /**
-   * Clears all pointer interaction state and requests a one-frame snap. Called on
-   * game reset so no stale hover, drag, or flight survives into the new deal.
-   */
+  /** Clears all interaction state and requests a one-frame snap. */
   public resetInteraction(): void {
-    this.hoveredCardId = null;
-    this.hoveredBackgroundPileId = null;
-    this.drag = null;
-    this.flightState = null;
-    this.snapAll = true;
+    this.controller.reset();
   }
 }
