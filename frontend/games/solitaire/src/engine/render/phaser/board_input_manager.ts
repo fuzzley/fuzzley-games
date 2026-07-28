@@ -1,6 +1,7 @@
 import * as Phaser from "phaser";
 import type { BoardScene } from "./board_scene";
-import { CardPile, PileType } from "@/engine/core/card/card_pile";
+import { CardPile } from "@/engine/core/card/card_pile";
+import { KlondikeRole } from "@/games/klondike/klondike_zones";
 import type { PlayingCard } from "@/engine/core/card/playing_card";
 import {
   TableInteractionState,
@@ -118,7 +119,10 @@ export class BoardInputManager {
 
     // Only tableau/waste cards participate in double-click auto-moves. Where the
     // card should land is a game rule, so delegate the decision to the model.
-    if (pile.type === PileType.TABLEAU || pile.type === PileType.WASTE) {
+    if (
+      pile.role === KlondikeRole.TABLEAU ||
+      pile.role === KlondikeRole.WASTE
+    ) {
       if (this.isDoubleClick(cardId)) {
         // Pressing a draggable card also begins a Phaser drag. A double-click
         // is a click gesture, not a drag, so cancel the pending drag before
@@ -140,7 +144,7 @@ export class BoardInputManager {
     this.lastClickTimeMs = 0;
     this.lastClickedCardId = null;
 
-    if (pile.type === PileType.STOCK) {
+    if (pile.role === KlondikeRole.STOCK) {
       this.tryDrawFromStock(pile, cardId);
     }
   }

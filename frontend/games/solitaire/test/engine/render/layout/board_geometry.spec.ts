@@ -23,15 +23,15 @@ import {
   LAYOUT_PADDING_X,
   LAYOUT_PADDING_Y,
 } from "@/engine/render/layout/board_layout_constants";
+import { CardPile } from "@/engine/core/card/card_pile";
 import {
-  CardPile,
-  PileType,
+  KlondikeRole,
   STOCK_PILE_ID,
   TABLEAU_COUNT,
   WASTE_PILE_ID,
   foundationPileId,
   tableauPileId,
-} from "@/engine/core/card/card_pile";
+} from "@/games/klondike/klondike_zones";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
 import { Viewport } from "@/engine/render/view/table_view_state";
@@ -300,7 +300,7 @@ describe("wasteCardOffsets", () => {
 
 describe("offsetsForPile", () => {
   it("fans a waste pile horizontally", () => {
-    const pile = new CardPile<PlayingCard>(WASTE_PILE_ID, PileType.WASTE);
+    const pile = new CardPile<PlayingCard>(WASTE_PILE_ID, KlondikeRole.WASTE);
     pile.addCard(makePlayingCard({ id: "a", faceUp: true }));
     pile.addCard(makePlayingCard({ id: "b", faceUp: true }));
 
@@ -310,7 +310,10 @@ describe("offsetsForPile", () => {
   });
 
   it("fans a tableau pile downwards", () => {
-    const pile = new CardPile<PlayingCard>(tableauPileId(0), PileType.TABLEAU);
+    const pile = new CardPile<PlayingCard>(
+      tableauPileId(0),
+      KlondikeRole.TABLEAU,
+    );
     pile.addCard(makePlayingCard({ id: "a", faceUp: true }));
     pile.addCard(makePlayingCard({ id: "b", faceUp: true }));
 
@@ -320,7 +323,7 @@ describe("offsetsForPile", () => {
   });
 
   it("stacks a stock pile", () => {
-    const pile = new CardPile<PlayingCard>(STOCK_PILE_ID, PileType.STOCK);
+    const pile = new CardPile<PlayingCard>(STOCK_PILE_ID, KlondikeRole.STOCK);
     pile.addCard(makePlayingCard({ id: "a" }));
     pile.addCard(makePlayingCard({ id: "b" }));
 
@@ -335,7 +338,7 @@ describe("offsetsForPile", () => {
   it("stacks a foundation pile", () => {
     const pile = new CardPile<PlayingCard>(
       foundationPileId(0),
-      PileType.FOUNDATION,
+      KlondikeRole.FOUNDATION,
     );
     pile.addCard(makePlayingCard({ id: "a", faceUp: true }));
     pile.addCard(makePlayingCard({ id: "b", faceUp: true }));

@@ -1,7 +1,8 @@
 import {
+  DeckCardId,
   PlayingCard,
-  PlayingCardId,
-  playingCardIdToString,
+  playingCardFaceKey,
+  playingCardInstanceId,
 } from "./playing_card";
 
 /**
@@ -33,13 +34,22 @@ export class CardRegistry {
    * Returns the persistent card for the given identity, creating and storing it
    * on first request. The same instance is returned on every subsequent call.
    *
-   * @param cardId The suit and type identifying the card.
+   * Keyed by instance id rather than by face, so a game dealing two decks gets
+   * two distinct Queens of Hearts instead of one shared between both piles.
+   *
+   * @param cardId The suit, rank and deck index identifying the card.
    */
-  getOrCreate(cardId: PlayingCardId): PlayingCard {
-    const id = playingCardIdToString(cardId);
+  getOrCreate(cardId: DeckCardId): PlayingCard {
+    const id = playingCardInstanceId(cardId);
     let card = this.cardsById.get(id);
     if (!card) {
-      card = new PlayingCard(id, cardId.suit, cardId.rank);
+      card = new PlayingCard(
+        id,
+        cardId.suit,
+        cardId.rank,
+        false,
+        playingCardFaceKey(cardId),
+      );
       this.cardsById.set(id, card);
     }
     return card;

@@ -1,43 +1,14 @@
 import { Card } from "./card";
 
-/** The role a pile plays in a Klondike game, used to drive rule checks. */
-export enum PileType {
-  /** The face-down draw pile. */
-  STOCK,
-  /** The face-up pile of drawn cards. */
-  WASTE,
-  /** A suit pile built up from Ace to King. */
-  FOUNDATION,
-  /** A board column built down in alternating colors. */
-  TABLEAU,
-}
-
-/** The number of suit foundation piles in a standard Klondike game. */
-export const FOUNDATION_COUNT = 4;
-
-/** The number of tableau columns in a standard Klondike game. */
-export const TABLEAU_COUNT = 7;
-
-/** The stable id of the single stock pile. */
-export const STOCK_PILE_ID = "stock";
-
-/** The stable id of the single waste pile. */
-export const WASTE_PILE_ID = "waste";
-
 /**
- * The stable id of the foundation pile at the given index.
+ * The part a pile plays in whichever game owns it, as an opaque tag.
  *
- * Both the game model and the render layout derive pile ids through this
- * function so the two can never drift apart.
+ * A string and not an enum because the engine has no opinion about what roles
+ * exist: Klondike has a stock, a waste, foundations and tableaus, FreeCell has
+ * free cells and no stock at all, and poker deals hands. Each game declares its
+ * own set and the engine only ever compares them for equality.
  */
-export function foundationPileId(index: number): string {
-  return `foundation-${index}`;
-}
-
-/** The stable id of the tableau column at the given index. See {@link foundationPileId}. */
-export function tableauPileId(index: number): string {
-  return `tableau-${index}`;
-}
+export type PileRole = string;
 
 /**
  * Records which pile each card currently sits in, so finding a card's pile is a
@@ -72,8 +43,8 @@ export class CardPile<T extends Card = Card> {
   /** A unique identifier for the card pile (e.g., "stock", "tableau-0"). */
   public readonly id: string;
 
-  /** The role this pile plays, used by rule and scoring logic. */
-  public readonly type: PileType;
+  /** The part this pile plays, used by rule and scoring logic. */
+  public readonly role: PileRole;
 
   /** List of cards contained in this pile. */
   protected readonly cards: T[] = [];
@@ -85,19 +56,19 @@ export class CardPile<T extends Card = Card> {
    * Constructs a card pile.
    *
    * @param id The unique ID for this pile.
-   * @param type The role this pile plays. Defaults to {@link PileType.TABLEAU},
-   *   which suits the generic "stack of cards" behavior used by tests and by
-   *   the placeholder piles that visuals fall back to.
+   * @param role The part this pile plays in its game. Defaults to the empty
+   *   role, which matches nothing a game defines and so behaves as a plain
+   *   stack of cards — what a standalone pile in a test wants.
    * @param locations Shared index to keep up to date as cards join and leave.
    *   Optional so a standalone pile needs no ceremony.
    */
   constructor(
     id: string = "",
-    type: PileType = PileType.TABLEAU,
+    role: PileRole = "",
     locations?: CardLocations<T>,
   ) {
     this.id = id;
-    this.type = type;
+    this.role = role;
     this.locations = locations;
   }
 

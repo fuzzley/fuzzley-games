@@ -1,4 +1,5 @@
-import { PileType } from "@/engine/core/card/card_pile";
+import { PileRole } from "@/engine/core/card/card_pile";
+import { KlondikeRole } from "@/games/klondike/klondike_zones";
 import { DrawCount } from "./game_settings";
 
 /**
@@ -25,21 +26,33 @@ export class ScoringPolicy {
   /**
    * The signed score change for moving a card between two pile types.
    *
-   * @param sourceType The type of the pile the card is leaving.
-   * @param targetType The type of the pile the card is moving to.
+   * @param sourceRole The type of the pile the card is leaving.
+   * @param targetRole The type of the pile the card is moving to.
    * @returns The points to add to the score (may be negative).
    */
-  public moveScore(sourceType: PileType, targetType: PileType): number {
-    if (sourceType === PileType.WASTE && targetType === PileType.TABLEAU) {
+  public moveScore(sourceRole: PileRole, targetRole: PileRole): number {
+    if (
+      sourceRole === KlondikeRole.WASTE &&
+      targetRole === KlondikeRole.TABLEAU
+    ) {
       return ScoringPolicy.WASTE_TO_TABLEAU;
     }
-    if (sourceType === PileType.WASTE && targetType === PileType.FOUNDATION) {
+    if (
+      sourceRole === KlondikeRole.WASTE &&
+      targetRole === KlondikeRole.FOUNDATION
+    ) {
       return ScoringPolicy.TO_FOUNDATION;
     }
-    if (sourceType === PileType.TABLEAU && targetType === PileType.FOUNDATION) {
+    if (
+      sourceRole === KlondikeRole.TABLEAU &&
+      targetRole === KlondikeRole.FOUNDATION
+    ) {
       return ScoringPolicy.TO_FOUNDATION;
     }
-    if (sourceType === PileType.FOUNDATION && targetType === PileType.TABLEAU) {
+    if (
+      sourceRole === KlondikeRole.FOUNDATION &&
+      targetRole === KlondikeRole.TABLEAU
+    ) {
       return ScoringPolicy.FOUNDATION_TO_TABLEAU;
     }
     return 0;

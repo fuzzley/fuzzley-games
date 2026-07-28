@@ -1,9 +1,7 @@
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
-import { PileType } from "@/engine/core/card/card_pile";
-import {
-  ALL_PLAYING_CARD_IDS,
-  playingCardIdToString,
-} from "@/engine/core/card/playing_card";
+import { KlondikeRole } from "@/games/klondike/klondike_zones";
+import { playingCardFaceKey } from "@/engine/core/card/playing_card";
+import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { makePlayingCard } from "@test/support/card_builder";
 import {
   almostWon,
@@ -32,12 +30,12 @@ describe("SolitaireGame", () => {
     });
 
     it("assigns each pile its Klondike role type", () => {
-      expect(game.stock.type).toBe(PileType.STOCK);
-      expect(game.waste.type).toBe(PileType.WASTE);
+      expect(game.stock.role).toBe(KlondikeRole.STOCK);
+      expect(game.waste.role).toBe(KlondikeRole.WASTE);
       expect(
-        game.foundations.every((p) => p.type === PileType.FOUNDATION),
+        game.foundations.every((p) => p.role === KlondikeRole.FOUNDATION),
       ).toBe(true);
-      expect(game.tableaus.every((p) => p.type === PileType.TABLEAU)).toBe(
+      expect(game.tableaus.every((p) => p.role === KlondikeRole.TABLEAU)).toBe(
         true,
       );
     });
@@ -846,7 +844,7 @@ describe("SolitaireGame card location tracking", () => {
 
   it("agrees with the pile that actually holds each card", () => {
     const disagreements = ALL_PLAYING_CARD_IDS.map((cardId) =>
-      playingCardIdToString(cardId),
+      playingCardFaceKey(cardId),
     ).filter((id) => {
       const card = game.getCardById(id)!;
       const pile = game.getPileContainingCard(id);

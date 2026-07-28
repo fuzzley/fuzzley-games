@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { Dealer } from "@/games/klondike/dealer";
 import { CardRegistry } from "@/engine/core/card/card_registry";
+import { CardPile } from "@/engine/core/card/card_pile";
 import {
-  CardPile,
-  PileType,
+  KlondikeRole,
   FOUNDATION_COUNT,
   TABLEAU_COUNT,
   foundationPileId,
   tableauPileId,
-} from "@/engine/core/card/card_pile";
+} from "@/games/klondike/klondike_zones";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 
 describe("Dealer", () => {
@@ -21,15 +21,16 @@ describe("Dealer", () => {
   beforeEach(() => {
     registry = new CardRegistry();
     dealer = new Dealer(registry);
-    stock = new CardPile<PlayingCard>("stock", PileType.STOCK);
+    stock = new CardPile<PlayingCard>("stock", KlondikeRole.STOCK);
     tableaus = Array.from(
       { length: TABLEAU_COUNT },
-      (_, i) => new CardPile<PlayingCard>(tableauPileId(i), PileType.TABLEAU),
+      (_, i) =>
+        new CardPile<PlayingCard>(tableauPileId(i), KlondikeRole.TABLEAU),
     );
     foundations = Array.from(
       { length: FOUNDATION_COUNT },
       (_, i) =>
-        new CardPile<PlayingCard>(foundationPileId(i), PileType.FOUNDATION),
+        new CardPile<PlayingCard>(foundationPileId(i), KlondikeRole.FOUNDATION),
     );
   });
 

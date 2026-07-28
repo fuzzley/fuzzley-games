@@ -43,4 +43,38 @@ describe("CardRegistry", () => {
 
     expect(registry.size).toBe(2);
   });
+
+  describe("with more than one deck in play", () => {
+    const spadeAceCopy = { ...spadeAce, deckIndex: 1 };
+
+    it("gives the second copy of a card its own instance", () => {
+      const first = registry.getOrCreate(spadeAce);
+
+      const second = registry.getOrCreate(spadeAceCopy);
+
+      expect(second).not.toBe(first);
+    });
+
+    it("names the two copies differently, so a pile can tell them apart", () => {
+      registry.getOrCreate(spadeAce);
+      registry.getOrCreate(spadeAceCopy);
+
+      expect(registry.get("card-spades-ace#1")).toBeDefined();
+    });
+
+    it("draws both copies from one face, so they look alike", () => {
+      const first = registry.getOrCreate(spadeAce);
+
+      const second = registry.getOrCreate(spadeAceCopy);
+
+      expect(second.faceKey).toBe(first.faceKey);
+    });
+
+    it("counts both copies", () => {
+      registry.getOrCreate(spadeAce);
+      registry.getOrCreate(spadeAceCopy);
+
+      expect(registry.size).toBe(2);
+    });
+  });
 });

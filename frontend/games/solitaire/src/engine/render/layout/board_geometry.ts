@@ -1,14 +1,14 @@
 import { Point } from "@/engine/core/common/point";
+import { CardPile } from "@/engine/core/card/card_pile";
 import {
-  CardPile,
-  PileType,
+  KlondikeRole,
   FOUNDATION_COUNT,
   TABLEAU_COUNT,
   STOCK_PILE_ID,
   WASTE_PILE_ID,
   foundationPileId,
   tableauPileId,
-} from "@/engine/core/card/card_pile";
+} from "@/games/klondike/klondike_zones";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DrawCount } from "@/games/klondike/game_settings";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
@@ -233,10 +233,10 @@ export function offsetsForPile(
   drawCount: DrawCount,
   expansionCardId: string | null,
 ): Point[] {
-  switch (pile.type) {
-    case PileType.WASTE:
+  switch (pile.role) {
+    case KlondikeRole.WASTE:
       return wasteCardOffsets(cards.length, drawCount);
-    case PileType.TABLEAU:
+    case KlondikeRole.TABLEAU:
       return tableauCardOffsets(cards, expansionCardId);
     default:
       return stackedCardOffsets(cards.length);
@@ -268,7 +268,7 @@ export function computeDropGeometries(
 
     let height = CARD_HEIGHT_PX * scale;
     const cards = pile.getCards();
-    if (pile.type === PileType.TABLEAU && cards.length > 0) {
+    if (pile.role === KlondikeRole.TABLEAU && cards.length > 0) {
       const offsets = tableauCardOffsets(cards, null);
       const lastOffsetY = offsets[offsets.length - 1].y;
       height = lastOffsetY * scale + CARD_HEIGHT_PX * scale;

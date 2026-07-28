@@ -5,19 +5,25 @@ export class PlayingCard implements Card {
   /**
    * Constructs a fully-initialized playing card.
    *
-   * Identity (id, suit, rank) is fixed at construction so a card can never
-   * exist in a half-built state; only {@link faceUp} changes over its lifetime.
+   * Identity (id, faceKey, suit, rank) is fixed at construction so a card can
+   * never exist in a half-built state; only {@link faceUp} changes over its
+   * lifetime.
    *
-   * @param id The canonical card id string (see {@link playingCardIdToString}).
+   * @param id The card's unique instance id (see {@link playingCardInstanceId}).
    * @param suit The suit of this card.
    * @param rank The face value rank of this card.
    * @param faceUp Whether the card starts face up. Defaults to face down.
+   * @param faceKey The artwork key for this card's face. Defaults to the key
+   *   its own suit and rank name, which is what every real card wants; it is a
+   *   parameter only so a caller that has already computed it need not pay for
+   *   it twice.
    */
   constructor(
     public readonly id: string,
     public readonly suit: Suit,
     public readonly rank: Rank,
     public faceUp = false,
+    public readonly faceKey: string = playingCardFaceKey({ suit, rank }),
   ) {}
 }
 
@@ -76,6 +82,22 @@ export interface PlayingCardId {
   rank: Rank;
 }
 
+/**
+ * A playing card identity in a game that may deal more than one deck.
+ *
+ * A {@link PlayingCardId} says which card this is to look at; the deck index
+ * says which copy of it, so two-deck Spider can tell its two Queens of Hearts
+ * apart while still drawing them with the same artwork.
+ */
+export interface DeckCardId extends PlayingCardId {
+  /**
+   * Which copy of the deck this card belongs to, counting from zero. Optional,
+   * and zero when omitted: a single-deck game has no copies to tell apart and
+   * should not have to say so.
+   */
+  deckIndex?: number;
+}
+
 /** Every suit, in the order foundations are laid out. */
 export const ALL_SUITS: readonly Suit[] = [
   Suit.SPADE,
@@ -102,15 +124,6 @@ export const ALL_RANKS: readonly Rank[] = [
 ];
 
 /**
- * A complete list of all 52 standard playing card identities, suit-major.
- *
- * Derived from {@link ALL_SUITS} and {@link ALL_RANKS} rather than listed, so a
- * deck can never drift out of sync with the enums that define it.
- */
-export const ALL_PLAYING_CARD_IDS: ReadonlyArray<PlayingCardId> =
-  ALL_SUITS.flatMap((suit) => ALL_RANKS.map((rank) => ({ suit, rank })));
-
-/**
  * The rank one step above `rank`, or undefined for the King.
  *
  * Klondike builds by consecutive rank in both directions. Stepping through
@@ -127,17 +140,36 @@ export function rankBelow(rank: Rank): Rank | undefined {
 }
 
 /**
- * Produces the canonical string identity for a card, e.g. `card-hearts-queen`.
+ * Produces the artwork key for a card's face, e.g. `card-hearts-queen`.
  *
- * This is the single source of truth for card id strings: the logical model
- * uses it to name cards, and the render layer reuses it to resolve texture
- * atlas frames, so the two can never drift apart.
+ * The single source of truth for what a card looks like: the render layer
+ * resolves texture atlas frames through this, so the artwork a card is drawn
+ * with can never drift from the suit and rank it claims. Every copy of a card
+ * shares one, which is the point — a game holding two decks draws both of its
+ * Queens of Hearts from the same frame.
  *
  * @param cardId The suit and rank of the card.
- * @returns The canonical `card-<suit>-<rank>` identity string.
+ * @returns The canonical `card-<suit>-<rank>` artwork key.
  */
-export function playingCardIdToString(cardId: PlayingCardId): string {
+export function playingCardFaceKey(cardId: PlayingCardId): string {
   return `card-${suitToString(cardId.suit)}-${rankToString(cardId.rank)}`;
+}
+
+/**
+ * Produces the unique instance id for one card of one deck.
+ *
+ * Deck zero's cards are named by their face key alone, so a single-deck game —
+ * which is every game until one deals two — has ids identical to its artwork
+ * keys, and nothing has to think about copies that do not exist. Later decks
+ * are suffixed.
+ *
+ * @param cardId The suit, rank and deck index of the card.
+ * @returns The card's unique instance id.
+ */
+export function playingCardInstanceId(cardId: DeckCardId): string {
+  const faceKey = playingCardFaceKey(cardId);
+  const deckIndex = cardId.deckIndex ?? 0;
+  return deckIndex === 0 ? faceKey : `${faceKey}#${deckIndex}`;
 }
 
 const SUIT_STRINGS: Record<Suit, string> = {

@@ -1,4 +1,5 @@
-import { CardPile, PileType } from "@/engine/core/card/card_pile";
+import { CardPile } from "@/engine/core/card/card_pile";
+import { KlondikeRole } from "@/games/klondike/klondike_zones";
 import {
   PlayingCard,
   rankAbove,
@@ -31,10 +32,10 @@ export class MoveRules {
     targetPile: CardPile<PlayingCard>,
     movingStackSize: number,
   ): boolean {
-    switch (targetPile.type) {
-      case PileType.TABLEAU:
+    switch (targetPile.role) {
+      case KlondikeRole.TABLEAU:
         return this.canPlaceOnTableau(card, targetPile);
-      case PileType.FOUNDATION:
+      case KlondikeRole.FOUNDATION:
         return this.canPlaceOnFoundation(card, targetPile, movingStackSize);
       default:
         // Stock and waste are never valid move destinations.

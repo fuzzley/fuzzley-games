@@ -1,9 +1,9 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import {
-  ALL_PLAYING_CARD_IDS,
   PlayingCard,
-  playingCardIdToString,
+  playingCardInstanceId,
 } from "@/engine/core/card/playing_card";
+import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
 
 /** Id of the only card left out of the foundations by {@link almostWon}. */
@@ -57,7 +57,7 @@ export function forceWasteRecycle(
 export function almostWon(game: SolitaireGame): void {
   emptyBoard(game);
   for (const cardId of ALL_PLAYING_CARD_IDS) {
-    const id = playingCardIdToString(cardId);
+    const id = playingCardInstanceId(cardId);
     if (id === CLUB_KING_ID) {
       continue;
     }

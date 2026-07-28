@@ -2,14 +2,14 @@ import { CardRegistry } from "@/engine/core/card/card_registry";
 import { CardPile } from "@/engine/core/card/card_pile";
 import { shuffle } from "@/engine/core/random/shuffle";
 import {
-  ALL_PLAYING_CARD_IDS,
   ALL_RANKS,
   ALL_SUITS,
   PlayingCard,
-  PlayingCardId,
-  playingCardIdToString,
+  DeckCardId,
+  playingCardInstanceId,
   Rank,
 } from "@/engine/core/card/playing_card";
+import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 
 /**
  * The card ranks loaded onto the foundations by an almost-win deal: everything
@@ -37,7 +37,7 @@ export class Dealer {
    */
   constructor(
     private readonly registry: CardRegistry,
-    private readonly cardIds: ReadonlyArray<PlayingCardId> = ALL_PLAYING_CARD_IDS,
+    private readonly cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
     private readonly random: () => number = Math.random,
   ) {}
 
@@ -120,11 +120,8 @@ export class Dealer {
    * part of the configured deck. Cards outside the deck are skipped, so an
    * almost-win deal from a partial deck simply places fewer cards.
    */
-  private placeFaceUp(
-    cardId: PlayingCardId,
-    pile: CardPile<PlayingCard>,
-  ): void {
-    const card = this.registry.get(playingCardIdToString(cardId));
+  private placeFaceUp(cardId: DeckCardId, pile: CardPile<PlayingCard>): void {
+    const card = this.registry.get(playingCardInstanceId(cardId));
     if (card) {
       card.faceUp = true;
       pile.addCard(card);

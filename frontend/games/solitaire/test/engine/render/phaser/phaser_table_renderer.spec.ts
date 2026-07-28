@@ -7,7 +7,7 @@ import {
   HighlightView,
 } from "@/engine/render/view/table_view_state";
 import { HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE } from "@/engine/render/layout/board_geometry";
-import { STOCK_PILE_ID } from "@/engine/core/card/card_pile";
+import { STOCK_PILE_ID } from "@/games/klondike/klondike_zones";
 import {
   asSprite,
   createMockGraphics,
