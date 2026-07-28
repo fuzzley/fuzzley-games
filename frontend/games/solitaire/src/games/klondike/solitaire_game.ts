@@ -5,17 +5,16 @@ import { GameState } from "./game_state";
 import { ScoringPolicy } from "./scoring_policy";
 import { MoveRules } from "./move_rules";
 import { BoardQuery } from "@/engine/tableau/rules";
+import { ZoneSpec, canGrab } from "@/engine/tableau/zone";
 import { Dealer } from "./dealer";
 import { AppliedMove } from "./move_history";
 import { CardLocations, CardPile } from "@/engine/core/card/card_pile";
 import {
   KlondikeRole,
-  FOUNDATION_COUNT,
-  TABLEAU_COUNT,
   STOCK_PILE_ID,
   WASTE_PILE_ID,
-  foundationPileId,
-  tableauPileId,
+  klondikeZoneSpec,
+  klondikeZoneSpecs,
 } from "@/games/klondike/klondike_zones";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard, DeckCardId } from "@/engine/core/card/playing_card";
@@ -48,17 +47,9 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
   private readonly locations = new CardLocations<PlayingCard>();
 
   /** The face-down stock pile from which cards are drawn. */
-  public readonly stock = new CardPile<PlayingCard>(
-    STOCK_PILE_ID,
-    KlondikeRole.STOCK,
-    this.locations,
-  );
+  public readonly stock: CardPile<PlayingCard>;
   /** The face-up waste pile containing drawn cards. */
-  public readonly waste = new CardPile<PlayingCard>(
-    WASTE_PILE_ID,
-    KlondikeRole.WASTE,
-    this.locations,
-  );
+  public readonly waste: CardPile<PlayingCard>;
   /** The four suit foundation piles (Hearts, Diamonds, Clubs, Spades). */
   public readonly foundations: CardPile<PlayingCard>[] = [];
   /** The seven tableau piles arranged on the board. */
@@ -110,32 +101,50 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     this.moveRules = moveRules;
     this.dealer = new Dealer(this.registry, cardIds);
     this.initializePiles();
+
+    this.stock = this.requirePile(STOCK_PILE_ID);
+    this.waste = this.requirePile(WASTE_PILE_ID);
   }
 
-  /** Initializes all card piles and registers them in the lookup map. */
+  /**
+   * Creates one pile per declared zone.
+   *
+   * The zones are the single source of truth for what piles exist and what part
+   * each plays, so the board cannot be declared in one place and built in
+   * another. The named collections below are views onto the same piles, kept
+   * because most of the game reads for "the foundations" rather than for a role.
+   */
   private initializePiles(): void {
-    this.pilesMap.set(this.stock.id, this.stock);
-    this.pilesMap.set(this.waste.id, this.waste);
-
-    for (let i = 0; i < FOUNDATION_COUNT; i++) {
+    for (const zone of klondikeZoneSpecs(this.settings.drawCount)) {
       const pile = new CardPile<PlayingCard>(
-        foundationPileId(i),
-        KlondikeRole.FOUNDATION,
+        zone.id,
+        zone.role,
         this.locations,
       );
-      this.foundations.push(pile);
       this.pilesMap.set(pile.id, pile);
+      if (zone.role === KlondikeRole.FOUNDATION) this.foundations.push(pile);
+      if (zone.role === KlondikeRole.TABLEAU) this.tableaus.push(pile);
     }
+  }
 
-    for (let i = 0; i < TABLEAU_COUNT; i++) {
-      const pile = new CardPile<PlayingCard>(
-        tableauPileId(i),
-        KlondikeRole.TABLEAU,
-        this.locations,
-      );
-      this.tableaus.push(pile);
-      this.pilesMap.set(pile.id, pile);
+  /** The pile with the given id, which the zones guarantee exists. */
+  private requirePile(pileId: string): CardPile<PlayingCard> {
+    const pile = this.pilesMap.get(pileId);
+    if (!pile) {
+      throw new Error(`No zone declares a pile with id: ${pileId}`);
     }
+    return pile;
+  }
+
+  /**
+   * The zone describing the given pile, or undefined for an unknown id.
+   *
+   * How a pile behaves — what it accepts, what may be taken from it, which side
+   * of its cards it shows — is declared by its zone rather than switched on its
+   * role at each point of use.
+   */
+  public zoneFor(pileId: string): ZoneSpec | undefined {
+    return klondikeZoneSpec(pileId, this.settings.drawCount);
   }
 
   /**
@@ -606,13 +615,8 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     card: PlayingCard,
     pile: CardPile<PlayingCard>,
   ): boolean {
-    if (pile.role === KlondikeRole.TABLEAU) {
-      // Any face-up card in a tableau is interactable.
-      return card.faceUp;
-    }
-
-    // The stock, waste, and foundation piles only expose their top card.
-    return pile.topCard === card;
+    const zone = this.zoneFor(pile.id);
+    return zone ? canGrab(zone.grab, card, pile) : false;
   }
 
   /**
@@ -638,10 +642,11 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     card: PlayingCard,
     pile: CardPile<PlayingCard>,
   ): boolean {
-    if (pile.role === KlondikeRole.STOCK) {
+    const zone = this.zoneFor(pile.id);
+    if (!zone?.draggable) {
       return false;
     }
-    return this.isCardInteractableInPile(card, pile);
+    return canGrab(zone.grab, card, pile);
   }
 
   private checkWinCondition(): void {

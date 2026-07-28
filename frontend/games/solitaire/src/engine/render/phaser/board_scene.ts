@@ -3,15 +3,30 @@ import { GameObjects, Scene, Scenes } from "phaser";
 import { playingCardInstanceId } from "@/engine/core/card/playing_card";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
-import { getGameModel } from "@/games/klondike/game_model_factory";
 import { PhaserCardFactory } from "./phaser_card_factory";
 import { BoardInputManager } from "./board_input_manager";
 import { PhaserTableRenderer } from "./phaser_table_renderer";
 import { PhaserSprites } from "./phaser_sprites";
-import { buildBoardViewState } from "../view/board_view_state_builder";
-import { Viewport } from "../view/table_view_state";
+import {
+  TableInteractionState,
+  TableViewState,
+  Viewport,
+} from "../view/table_view_state";
 import { designSize } from "../layout/table_layout";
 import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
+
+/**
+ * Produces the desired appearance of a board for one frame.
+ *
+ * The seam between the Phaser adapter and whatever game it is drawing: the
+ * scene knows how to put sprites where a view state says, and nothing about
+ * how that view state was decided.
+ */
+export type BuildTableViewState = (
+  game: SolitaireGame,
+  interaction: TableInteractionState,
+  viewport: Viewport,
+) => TableViewState;
 
 /**
  * Handles rendering the fSolitaire game board using Phaser, reacting to
@@ -42,17 +57,23 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Applier to commit calculated view states onto sprites and graphics. */
   private viewApplier!: PhaserTableRenderer;
 
+  /** Produces the desired appearance of the board for one frame. */
+  private readonly buildViewState: BuildTableViewState;
+
   /**
    * Constructs the board scene.
    *
-   * @param gameModel The shared game model to render. Defaults to the shared
-   *   singleton so Phaser can construct the scene with no arguments, and is
-   *   injectable so tests can supply their own model.
+   * @param gameModel The game model to render.
+   * @param buildViewState Produces the desired appearance of the board for one
+   *   frame. Handed in rather than imported: what a board looks like is a
+   *   property of the game being played, and the Phaser adapter sits below the
+   *   tier that knows about games.
    */
-  constructor(gameModel: SolitaireGame = getGameModel()) {
+  constructor(gameModel: SolitaireGame, buildViewState: BuildTableViewState) {
     super("board-scene");
 
     this.gameModel = gameModel;
+    this.buildViewState = buildViewState;
   }
 
   /**
@@ -207,7 +228,7 @@ export class BoardScene extends Scene implements PhaserSprites {
   override update(_timeMs: number, deltaMs: number): void {
     if (!this.inputManager || !this.viewApplier) return;
 
-    const state = buildBoardViewState(
+    const state = this.buildViewState(
       this.gameModel,
       this.inputManager.interaction,
       this.viewport,

@@ -1,5 +1,5 @@
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
-import { CardPile, PileRole } from "@/engine/core/card/card_pile";
+import { CardPile } from "@/engine/core/card/card_pile";
 import { KlondikeRole } from "@/games/klondike/klondike_zones";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Point } from "@/engine/core/common/point";
@@ -11,26 +11,27 @@ import {
   PileBackgroundView,
   HighlightView,
   Viewport,
-} from "./table_view_state";
+} from "@/engine/render/view/table_view_state";
 import {
   DRAG_BASE_DEPTH,
   DROP_TARGET_HIGHLIGHT_DEPTH,
   FLIGHT_BASE_DEPTH,
   HOVER_HIGHLIGHT_DEPTH,
   PILE_BACKGROUND_DEPTH,
-} from "../layout/drop_geometry";
-import { pileCardOffsets } from "../layout/pile_layout";
+} from "@/engine/render/layout/drop_geometry";
+import { pileCardOffsets } from "@/engine/render/layout/pile_layout";
+import { frameFor } from "../zone";
 import {
   KlondikeBoardMetrics,
   measureKlondikeBoard,
   resolveDragTarget,
 } from "@/games/klondike/klondike_board";
-import { TABLEAU_FACE_UP_OFFSET } from "@/games/klondike/klondike_layout";
+import { TABLEAU_FACE_UP_OFFSET } from "@/games/klondike/klondike_zones";
 import {
   CARD_ART_SCALE,
   CARD_RENDER_WIDTH_PX,
   CARD_RENDER_HEIGHT_PX,
-} from "../layout/card_metrics";
+} from "@/engine/render/layout/card_metrics";
 
 /**
  * Transient builder class that constructs the visual representation of the Solitaire board
@@ -204,9 +205,9 @@ class BoardViewStateBuilder {
           y,
           scale: this.spriteScale,
           depth,
-          frame: this.getCardFrame(
+          frame: frameFor(
+            this.game.zoneFor(pile.id)?.face ?? "card",
             card,
-            pile.role,
             this.game.settings.cardBackStyle,
           ),
           cursor: this.game.isCardInteractableInPile(card, pile)
@@ -332,23 +333,6 @@ class BoardViewStateBuilder {
       // border never draws a line across the covering card.
       openBottom: cardIndex !== -1 && cardIndex < pileCards.length - 1,
     };
-  }
-
-  /**
-   * Determines the frame or sprite key to use for rendering a playing card.
-   */
-  private getCardFrame(
-    card: PlayingCard,
-    pileRole: PileRole,
-    cardBack: string,
-  ): string {
-    if (pileRole === KlondikeRole.STOCK) {
-      return cardBack;
-    }
-    if (pileRole === KlondikeRole.TABLEAU) {
-      return card.faceUp ? card.faceKey : cardBack;
-    }
-    return card.faceKey; // waste, foundation
   }
 }
 

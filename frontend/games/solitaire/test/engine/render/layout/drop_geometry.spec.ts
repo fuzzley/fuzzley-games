@@ -8,8 +8,8 @@ import {
   pileCardOffsets,
   stackedCardOffsets,
 } from "@/engine/render/layout/pile_layout";
+import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
 import {
-  KLONDIKE_LAYOUT,
   TABLEAU_PILE_LAYOUT,
   klondikePileLayout,
   wastePileLayout,
@@ -18,7 +18,7 @@ import {
   TABLEAU_HOVER_EXPANSION_OFFSET,
   WASTE_FAN_OFFSET_X,
   WASTE_MAX_FAN_CARDS,
-} from "@/games/klondike/klondike_layout";
+} from "@/games/klondike/klondike_zones";
 import {
   klondikeDropCandidates,
   measureKlondikeBoard,

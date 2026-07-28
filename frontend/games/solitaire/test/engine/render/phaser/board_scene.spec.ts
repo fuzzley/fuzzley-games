@@ -1,7 +1,11 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
+import { buildBoardViewState } from "@/engine/tableau/view/board_view_state_builder";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
-import { resetGameModel } from "@/games/klondike/game_model_factory";
+import {
+  getGameModel,
+  resetGameModel,
+} from "@/games/klondike/game_model_factory";
 import {
   MockInput,
   MockScaleManager,
@@ -30,12 +34,20 @@ function asMock(sprite: unknown): MockSprite {
   return sprite as MockSprite;
 }
 
+/**
+ * A board scene drawing the given game, or the shared dealt one, laid out the
+ * way the real application lays it out.
+ */
+function makeBoardScene(gameModel: SolitaireGame = getGameModel()): BoardScene {
+  return new BoardScene(gameModel, buildBoardViewState);
+}
+
 describe("BoardScene", () => {
   let boardScene: BoardScene;
 
   beforeEach(() => {
     resetGameModel();
-    boardScene = new BoardScene();
+    boardScene = makeBoardScene();
     boardScene.create();
   });
 
@@ -66,7 +78,7 @@ describe("BoardScene", () => {
     it("renders the game model it is injected with", () => {
       const injectedModel = new SolitaireGame();
 
-      const scene = new BoardScene(injectedModel);
+      const scene = makeBoardScene(injectedModel);
 
       expect(scene.gameModel).toBe(injectedModel);
     });
@@ -298,7 +310,7 @@ describe("BoardScene", () => {
   describe("creation errors", () => {
     it("throws when a card model is missing while creating sprites", () => {
       resetGameModel();
-      const freshScene = new BoardScene();
+      const freshScene = makeBoardScene();
       const getCardById = vi
         .spyOn(SolitaireGame.prototype, "getCardById")
         .mockReturnValue(undefined);

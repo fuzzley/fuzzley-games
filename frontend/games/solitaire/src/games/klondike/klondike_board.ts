@@ -20,7 +20,8 @@ import {
   CARD_WIDTH_PX,
   CARD_HEIGHT_PX,
 } from "@/engine/render/layout/card_metrics";
-import { KLONDIKE_LAYOUT, klondikePileLayout } from "./klondike_layout";
+import { KLONDIKE_LAYOUT } from "./klondike_layout";
+import { klondikeZoneSpecs } from "./klondike_zones";
 import { SolitaireGame } from "./solitaire_game";
 
 /** The size of a Klondike card in design units. */
@@ -56,11 +57,13 @@ export function measureKlondikeBoard(
 ): KlondikeBoardMetrics {
   const scale = computeScale(KLONDIKE_LAYOUT, viewport);
   const origins = computePileOrigins(KLONDIKE_LAYOUT, viewport, scale);
-  const drawCount = game.settings.drawCount;
+  const zonesById = new Map(
+    klondikeZoneSpecs(game.settings.drawCount).map((zone) => [zone.id, zone]),
+  );
   return {
     scale,
     origins,
-    layoutFor: (pile) => klondikePileLayout(pile.role, drawCount),
+    layoutFor: (pile) => zonesById.get(pile.id)?.layout ?? { kind: "stacked" },
   };
 }
 
