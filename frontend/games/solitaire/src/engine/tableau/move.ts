@@ -72,3 +72,15 @@ export interface AppliedMove {
    */
   readonly flippedCardIds: readonly string[];
 }
+
+/**
+ * Every card an action relocated, bottom-first within each run it moved.
+ *
+ * The view lifts these clear of the board while their sprites catch up with the
+ * model, which has already put them in their new piles.
+ *
+ * @param move The applied action to read.
+ */
+export function relocatedCardIds(move: AppliedMove): readonly string[] {
+  return move.transfers.flatMap((transfer) => transfer.cardIds);
+}

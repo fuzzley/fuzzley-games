@@ -71,6 +71,15 @@ export interface BoardSceneOptions {
   readonly onBackgroundColor: Subscribe<string>;
   /** Follows new deals, so stale interaction state does not survive one. */
   readonly onReset: Subscribe<void>;
+  /**
+   * Follows the cards each action relocates, so every one of them is lifted
+   * clear of the board while it crosses it.
+   *
+   * The model is asked rather than the gesture map, because the model is the
+   * only thing that knows: a draw, a recycle, a dealt row and an undo all move
+   * cards without any gesture having decided which.
+   */
+  readonly onCardsRelocated: Subscribe<readonly string[]>;
 }
 
 /**
@@ -166,9 +175,15 @@ export class BoardScene extends Scene implements PhaserSprites {
     const stopFollowingResets = this.options.onReset(() => {
       this.inputManager.resetInteraction();
     });
+    const stopFollowingRelocations = this.options.onCardsRelocated(
+      (cardIds) => {
+        this.inputManager.beginFlight(cardIds);
+      },
+    );
     this.events.once(Scenes.Events.SHUTDOWN, () => {
       stopFollowingColor();
       stopFollowingResets();
+      stopFollowingRelocations();
     });
 
     this.inputManager.snapAll = true;

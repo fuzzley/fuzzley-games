@@ -207,6 +207,33 @@ describe("SolitaireGame", () => {
       const allFaceDown = game.stock.getCards().every((card) => !card.faceUp);
       expect(allFaceDown).toBe(true);
     });
+
+    it("announces the drawn cards so they can be lifted while they cross", () => {
+      game.startNewGame();
+      const announced: string[][] = [];
+      game.onCardsRelocated((cardIds) => announced.push([...cardIds]));
+
+      game.drawCardsFromStock();
+
+      // Without this the drawn cards take the waste's low depth the instant the
+      // model moves them, and slide under it on the way over.
+      expect(announced.flat().length).toBe(3);
+    });
+
+    it("announces the whole waste when it is recycled", () => {
+      game.startNewGame();
+      const recycled = [
+        relocate(game, "card-clubs-ace", game.waste).id,
+        relocate(game, "card-clubs-2", game.waste).id,
+      ];
+      game.stock.clear();
+      const announced: string[][] = [];
+      game.onCardsRelocated((cardIds) => announced.push([...cardIds]));
+
+      game.drawCardsFromStock();
+
+      expect(announced).toEqual([recycled]);
+    });
   });
 
   describe("canMoveCardToPile", () => {

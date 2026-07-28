@@ -6,7 +6,12 @@ import {
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { EventEmitter } from "@/engine/core/common/event_emitter";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { AppliedMove, AppliedMoveKind, CardTransfer } from "./move";
+import {
+  AppliedMove,
+  AppliedMoveKind,
+  CardTransfer,
+  relocatedCardIds,
+} from "./move";
 import { GameState } from "./game_state";
 import { BoardQuery } from "./rules";
 import { ZoneSpec, canGrab, hasRoomFor } from "./zone";
@@ -49,6 +54,16 @@ export const NO_MOVE_EFFECTS: MoveEffects = {
   scoreDelta: 0,
   flippedCardIds: [],
 };
+
+/**
+ * Told which cards an action just moved from one pile to another, bottom-first
+ * within each run it moved.
+ *
+ * The model relocates a card the instant the action is taken, while its sprite
+ * is still back at the pile it left. A view listens so it can lift those cards
+ * clear of the board until they have caught up.
+ */
+export type RelocationListener = (cardIds: readonly string[]) => void;
 
 /** How to build a table game's board. */
 export interface TableGameOptions {
@@ -93,6 +108,9 @@ export abstract class TableGame<
 
   /** The applied actions, oldest first, that {@link undo} unwinds. */
   private readonly history: AppliedMove[] = [];
+
+  /** Followers of the cards each action relocates. */
+  private readonly relocationListeners = new Set<RelocationListener>();
 
   private readonly zones: () => readonly ZoneSpec[];
   private readonly registry: CardRegistry;
@@ -417,6 +435,8 @@ export abstract class TableGame<
     this.state.score = Math.max(0, this.state.score - last.scoreDelta);
     this.state.moves--;
     this.afterUndo(last);
+    // The same cards, going the other way, and with the same board to cross.
+    this.announceRelocation(last);
 
     return true;
   }
@@ -451,10 +471,45 @@ export abstract class TableGame<
     return this.history.length > 0;
   }
 
-  /** Appends an applied action to the history and publishes the new depth. */
+  /**
+   * Appends an applied action to the history, publishes the new depth, and
+   * announces the cards it relocated.
+   *
+   * Every action that moves cards between piles passes through here, which is
+   * what makes it the one place the view has to listen to.
+   */
   protected record(move: AppliedMove): void {
     this.history.push(move);
     this.state.undoDepth = this.history.length;
+    this.announceRelocation(move);
+  }
+
+  /**
+   * Follows the cards each action relocates, including the ones undo puts back.
+   *
+   * A plain callback rather than an entry in the game's event map: the payload
+   * is the same for every game, and a subclass should not have to redeclare it
+   * to get the behaviour. Returns a function that stops following, so a caller
+   * that outlives nothing in particular still has a way to let go.
+   *
+   * @param listener Told which cards moved, bottom-first within each run.
+   * @returns Unsubscribes the listener.
+   */
+  public onCardsRelocated(listener: RelocationListener): () => void {
+    this.relocationListeners.add(listener);
+    return () => this.relocationListeners.delete(listener);
+  }
+
+  /** Tells the listeners which cards an action relocated, if it relocated any. */
+  private announceRelocation(move: AppliedMove): void {
+    const cardIds = relocatedCardIds(move);
+    if (cardIds.length === 0) return;
+
+    // A snapshot, so a listener that unsubscribes during dispatch does not
+    // change who is notified for this action.
+    for (const listener of [...this.relocationListeners]) {
+      listener(cardIds);
+    }
   }
 
   /**

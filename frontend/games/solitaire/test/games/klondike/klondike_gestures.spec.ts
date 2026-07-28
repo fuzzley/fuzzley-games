@@ -42,12 +42,6 @@ describe("klondikeGestures", () => {
       expect(game.state.moves).toBe(0);
     });
 
-    it("moves no cards, so nothing is tracked in flight", () => {
-      const top = game.stock.topCard!;
-
-      expect(handle({ kind: "activate", cardId: top.id })).toEqual([]);
-    });
-
     it("throws for a card that is in no pile, which should never happen", () => {
       const card = game.tableaus[0].topCard!;
       game.tableaus[0].removeCard(card);
@@ -68,15 +62,6 @@ describe("klondikeGestures", () => {
       expect(game.getPileContainingCard(ace.id)?.role).toBe("foundation");
     });
 
-    it("reports the moved stack so it can be followed across the board", () => {
-      emptyBoard(game);
-      const ace = relocate(game, "card-spades-ace", game.tableaus[0]);
-
-      const moved = handle({ kind: "activate-secondary", cardId: ace.id });
-
-      expect(moved).toEqual([ace.id]);
-    });
-
     it("auto-moves a waste card", () => {
       emptyBoard(game);
       const ace = relocate(game, "card-hearts-ace", game.waste);
@@ -89,18 +74,18 @@ describe("klondikeGestures", () => {
     it("never auto-moves a stock card", () => {
       const top = game.stock.topCard!;
 
-      const moved = handle({ kind: "activate-secondary", cardId: top.id });
+      handle({ kind: "activate-secondary", cardId: top.id });
 
-      expect(moved).toEqual([]);
+      expect(game.getPileContainingCard(top.id)?.id).toBe(game.stock.id);
     });
 
-    it("reports nothing when the card has nowhere to go", () => {
+    it("leaves the card where it is when it has nowhere to go", () => {
       emptyBoard(game);
       const two = relocate(game, "card-spades-2", game.tableaus[0]);
 
-      expect(handle({ kind: "activate-secondary", cardId: two.id })).toEqual(
-        [],
-      );
+      handle({ kind: "activate-secondary", cardId: two.id });
+
+      expect(game.getPileContainingCard(two.id)?.id).toBe(game.tableaus[0].id);
     });
   });
 
@@ -143,38 +128,25 @@ describe("klondikeGestures", () => {
       expect(game.getPileContainingCard(king.id)?.id).toBe(game.tableaus[1].id);
     });
 
-    it("reports the moved stack", () => {
-      emptyBoard(game);
-      const king = relocate(game, "card-spades-king", game.tableaus[0]);
-
-      const moved = handle({
-        kind: "drop",
-        cardIds: [king.id],
-        targetPileId: game.tableaus[1].id,
-      });
-
-      expect(moved).toEqual([king.id]);
-    });
-
-    it("reports nothing when released over no pile", () => {
+    it("leaves the stack where it is when released over no pile", () => {
       const card = game.tableaus[0].topCard!;
 
-      expect(
-        handle({ kind: "drop", cardIds: [card.id], targetPileId: null }),
-      ).toEqual([]);
+      handle({ kind: "drop", cardIds: [card.id], targetPileId: null });
+
+      expect(game.getPileContainingCard(card.id)?.id).toBe(game.tableaus[0].id);
     });
 
-    it("reports nothing when the rules refuse the drop", () => {
+    it("leaves the stack where it is when the rules refuse the drop", () => {
       emptyBoard(game);
       const two = relocate(game, "card-spades-2", game.tableaus[0]);
 
-      const moved = handle({
+      handle({
         kind: "drop",
         cardIds: [two.id],
         targetPileId: game.tableaus[1].id,
       });
 
-      expect(moved).toEqual([]);
+      expect(game.getPileContainingCard(two.id)?.id).toBe(game.tableaus[0].id);
     });
   });
 });

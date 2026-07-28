@@ -27,10 +27,11 @@ export type TableIntent =
     };
 
 /**
- * Carries out an intent and reports which cards it moved.
+ * Carries out an intent.
  *
- * The returned ids are the stack to track across the board while its sprites
- * catch up with the model, which has already moved them. Empty means nothing
- * moved — either the game ignores this intent, or the rules refused it.
+ * Reports nothing: which cards an intent moved is the model's to say, and it
+ * says so directly. A handler that had to return them would have to read the
+ * board before acting on it, and every game and every future action would have
+ * to remember to.
  */
-export type IntentHandler = (intent: TableIntent) => readonly string[];
+export type IntentHandler = (intent: TableIntent) => void;

@@ -69,5 +69,6 @@ export function makeSpiderBoardScene(
       game.on("game-reset", handler);
       return () => game.off("game-reset", handler);
     },
+    onCardsRelocated: (listener) => game.onCardsRelocated(listener),
   });
 }

@@ -259,69 +259,50 @@ describe("BoardInputManager", () => {
   });
 
   describe("flight tracking", () => {
-    /** Double clicks the given card's sprite. */
-    function doubleClick(card = gameModel.tableaus[2].getCards()[1]): void {
-      const { sprite } = listenTo(card);
-      sprite.emit("pointerdown");
-      sprite.emit("pointerdown");
-    }
-
     /** The card ids of each flight in the air, oldest first. */
     function flownStacks(): string[][] {
       return inputManager.flights.map((flight) => [...flight.cardIds]);
     }
 
-    it("tracks the whole auto-moved stack while it crosses the board", () => {
-      vi.spyOn(gameModel, "autoMoveCard").mockReturnValue(true);
-      const cards = gameModel.tableaus[2].getCards();
-
-      doubleClick(cards[1]);
-
-      // A move takes the cards stacked on top of the clicked one with it, and
-      // every one of them has the board to cross.
-      expect(flownStacks()).toEqual([[cards[1].id, cards[2].id]]);
-    });
-
-    it("tracks nothing when no pile accepts the auto-moved card", () => {
-      vi.spyOn(gameModel, "autoMoveCard").mockReturnValue(false);
-
-      doubleClick();
-
-      expect(inputManager.flights).toEqual([]);
-    });
-
-    it("tracks the dropped stack while it settles onto its new pile", () => {
-      const card = gameModel.tableaus[0].topCard!;
+    /** Picks up the given card's sprite and releases it over tableau 1. */
+    function dragAndDrop(card = gameModel.tableaus[0].topCard!): void {
       // tableau-1 calculated layout origin: x: 348, y: 447
       const sprite = createMockSprite({ x: 350, y: 450 });
       sprite.setData("cardId", card.id);
       cardSprites.set(card.id, sprite);
-      vi.spyOn(gameModel, "moveCardToPile").mockReturnValue(true);
       inputManager.registerDragListeners();
       input.emit("dragstart", {}, asSprite(sprite));
-
       input.emit("dragend", {}, asSprite(sprite));
+    }
+
+    it("lifts a stack it is told the model relocated", () => {
+      inputManager.beginFlight(["a", "b"]);
+
+      expect(flownStacks()).toEqual([["a", "b"]]);
+    });
+
+    it("tracks the dropped stack while it settles onto its new pile", () => {
+      const card = gameModel.tableaus[0].topCard!;
+      vi.spyOn(gameModel, "moveCardToPile").mockReturnValue(true);
+
+      dragAndDrop(card);
 
       expect(flownStacks()).toEqual([[card.id]]);
     });
 
-    it("tracks nothing when the pile refuses the dropped stack", () => {
+    it("still flies the stack home when the pile refuses it", () => {
       const card = gameModel.tableaus[0].topCard!;
-      const sprite = createMockSprite({ x: 350, y: 450 });
-      sprite.setData("cardId", card.id);
-      cardSprites.set(card.id, sprite);
       vi.spyOn(gameModel, "moveCardToPile").mockReturnValue(false);
-      inputManager.registerDragListeners();
-      input.emit("dragstart", {}, asSprite(sprite));
 
-      input.emit("dragend", {}, asSprite(sprite));
+      dragAndDrop(card);
 
-      expect(inputManager.flights).toEqual([]);
+      // Nothing moved in the model, so nothing announces it — but the card was
+      // left under the pointer and still has the board to cross to get home.
+      expect(flownStacks()).toEqual([[card.id]]);
     });
 
     it("stops tracking the stack once it has landed", () => {
-      vi.spyOn(gameModel, "autoMoveCard").mockReturnValue(true);
-      doubleClick();
+      inputManager.beginFlight(["a"]);
 
       inputManager.endFlight(inputManager.flights[0]);
 
@@ -329,8 +310,7 @@ describe("BoardInputManager", () => {
     });
 
     it("stops tracking the stack on a game reset", () => {
-      vi.spyOn(gameModel, "autoMoveCard").mockReturnValue(true);
-      doubleClick();
+      inputManager.beginFlight(["a"]);
 
       inputManager.resetInteraction();
 
