@@ -59,7 +59,7 @@ describe("BoardInputManager", () => {
       },
       // The real Klondike wiring, so a press or a drop does what the game says
       // it does rather than what a stub decides.
-      resolveDropTarget: resolveKlondikeDropTarget,
+      resolveDropTarget: resolveKlondikeDropTarget(gameModel),
       handleIntent: klondikeGestures(gameModel),
       stackFromCard: klondikeStackFromCard(gameModel),
     } as unknown as BoardScene;

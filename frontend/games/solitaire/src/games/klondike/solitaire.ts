@@ -8,19 +8,44 @@ import {
 } from "./klondike_board";
 import { klondikeGestures, klondikeStackFromCard } from "./klondike_gestures";
 import { getGameModel } from "./game_model_factory";
+import { SolitaireGame } from "./solitaire_game";
+import { KLONDIKE_LAYOUT } from "./klondike_layout";
+import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
+import { playingCardInstanceId } from "@/engine/core/card/playing_card";
 import { ViewportScaler } from "@/engine/render/phaser/viewport_scaler";
 import { DEFAULT_BACKGROUND_COLOR } from "./game_settings";
 
-/** Builds the board scene, wired to the shared Klondike game. */
-function makeBoardScene(): BoardScene {
-  const game = getGameModel();
-  return new BoardScene(
+/**
+ * Builds the board scene, wired to the shared Klondike game.
+ *
+ * Every decision the engine cannot make for itself is named here in one place:
+ * which cards exist, which grid they lie on, what a press means, where a drop
+ * lands, and how the board follows the player's choices.
+ */
+export function makeKlondikeBoardScene(
+  game: SolitaireGame = getGameModel(),
+): BoardScene {
+  return new BoardScene({
     game,
-    buildKlondikeViewState,
-    resolveKlondikeDropTarget,
-    klondikeGestures(game),
-    klondikeStackFromCard(game),
-  );
+    cardIds: ALL_PLAYING_CARD_IDS.map(playingCardInstanceId),
+    layout: KLONDIKE_LAYOUT,
+    buildViewState: buildKlondikeViewState(game),
+    resolveDropTarget: resolveKlondikeDropTarget(game),
+    handleIntent: klondikeGestures(game),
+    stackFromCard: klondikeStackFromCard(game),
+    cardBackKey: () => game.settings.cardBackStyle,
+    // Adapted from the settings' subject to a plain subscribe, because the
+    // render tier may not name a reactive library.
+    onBackgroundColor: (listener) => {
+      const subscription = game.settings.backgroundColor$.subscribe(listener);
+      return () => subscription.unsubscribe();
+    },
+    onReset: (listener) => {
+      const handler = () => listener();
+      game.on("game-reset", handler);
+      return () => game.off("game-reset", handler);
+    },
+  });
 }
 
 /** Entry point to the game that loads assets and initializes the game. */
@@ -66,7 +91,7 @@ export class Solitaire {
       autoFocus: true,
       // A scene instance rather than the class: the board has to be told which
       // game it draws and how to lay it out, and Phaser cannot supply either.
-      scene: [LoadingScene, makeBoardScene()],
+      scene: [LoadingScene, makeKlondikeBoardScene()],
     };
     const game = new Phaser.Game(gameConfig);
     this.game = game;

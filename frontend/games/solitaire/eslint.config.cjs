@@ -28,10 +28,12 @@ module.exports = tseslint.config(
   // The architecture the project is built on, as build errors rather than as a
   // convention. Each tier may depend only on the ones below it:
   //
-  //   games/*        rules, scoring, deal, layout numbers, gestures
-  //     -> engine/tableau   solitaire-family runtime (not yet extracted)
-  //     -> engine/render    view contract, layout maths, Phaser adapter
+  //   games/*             rules, scoring, deal, layout, zones, gestures
+  //     -> engine/tableau   solitaire-family runtime: zones, moves, undo, view
+  //     -> engine/render    view contract, layout maths, input, Phaser adapter
   //     -> engine/core      cards, piles, decks, RNG
+  //
+  // Nothing under src/engine names a game. That is enforced, not asserted.
   //
   // Relying on nobody crossing a tier by accident is how that kind of rule
   // quietly stops being true.
@@ -95,13 +97,6 @@ module.exports = tseslint.config(
   },
   {
     // The Phaser adapter may name Phaser, and nothing above it.
-    //
-    // One rule is missing on purpose: the adapter may still import @/games/*.
-    // The scene is typed against SolitaireGame and the input manager still maps
-    // Klondike's own gestures, so it draws one game rather than any game.
-    // Turning it on is the acceptance test for the change that splits the
-    // generic drag machinery out from the Klondike gesture map, so it goes in
-    // with that rather than as a rule with exemptions carved out of it.
     files: ["src/engine/render/phaser/**/*.ts"],
     rules: {
       "@typescript-eslint/no-restricted-imports": [
@@ -109,9 +104,16 @@ module.exports = tseslint.config(
         {
           patterns: [
             {
-              group: ["@/engine/tableau/*", "@/ui/*", "@angular/*"],
+              group: [
+                "@/engine/tableau/view/table_view_builder",
+                "@/games/*",
+                "@/ui/*",
+                "@angular/*",
+                "rxjs",
+                "rxjs/*",
+              ],
               message:
-                "The Phaser adapter is part of the engine and must not depend on the UI.",
+                "The Phaser adapter draws whatever it is handed: no game, no UI, no reactive library.",
             },
           ],
         },

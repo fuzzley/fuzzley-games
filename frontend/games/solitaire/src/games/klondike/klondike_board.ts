@@ -30,15 +30,11 @@ export function measureKlondikeBoard(viewport: Viewport): TableMetrics {
  */
 export function buildKlondikeViewState(
   game: SolitaireGame,
-  interaction: TableInteractionState,
-  viewport: Viewport,
-): TableViewState {
-  return buildTableViewState(
-    game,
-    interaction,
-    measureKlondikeBoard(viewport),
-    { cardBackKey: game.settings.cardBackStyle },
-  );
+): (interaction: TableInteractionState, viewport: Viewport) => TableViewState {
+  return (interaction, viewport) =>
+    buildTableViewState(game, interaction, measureKlondikeBoard(viewport), {
+      cardBackKey: game.settings.cardBackStyle,
+    });
 }
 
 /**
@@ -49,8 +45,7 @@ export function buildKlondikeViewState(
  */
 export function resolveKlondikeDropTarget(
   game: SolitaireGame,
-  drag: DragInteraction,
-  viewport: Viewport,
-): PileGeometry | null {
-  return resolveDragTarget(game, drag, measureKlondikeBoard(viewport));
+): (drag: DragInteraction, viewport: Viewport) => PileGeometry | null {
+  return (drag, viewport) =>
+    resolveDragTarget(game, drag, measureKlondikeBoard(viewport));
 }

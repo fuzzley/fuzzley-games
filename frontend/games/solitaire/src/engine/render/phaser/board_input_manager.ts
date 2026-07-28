@@ -116,7 +116,6 @@ export class BoardInputManager {
     // The same resolver the view builder previews with, so the card lands on
     // the pile the border promised it would.
     const target = this.boardScene.resolveDropTarget(
-      this.boardScene.gameModel,
       drag,
       this.boardScene.viewport,
     );
