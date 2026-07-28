@@ -10,10 +10,7 @@ import {
   CARD_RENDER_WIDTH_PX,
   CARD_RENDER_HEIGHT_PX,
 } from "@/engine/render/layout/card_metrics";
-import {
-  DRAG_BASE_DEPTH,
-  HOVER_HIGHLIGHT_DEPTH,
-} from "@/engine/render/layout/drop_geometry";
+import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
 import {
   TABLEAU_FACE_UP_OFFSET,
   TABLEAU_FACE_DOWN_OFFSET,
@@ -60,11 +57,39 @@ describe("board_view_state_builder", () => {
     // A full design viewport at 1x allows a layout scale of 1.0, which the
     // sprite renders at by scaling its larger artwork down.
     expect(cardView.scale).toBe(1.0 / CARD_ART_SCALE);
-    expect(cardView.depth).toBe(1); // first card in tableau gets depth 1
+    expect(cardView.depth).toBe(depthFor(RenderLayer.RESTING_CARD, 0));
     expect(cardView.frame).toBe(card.id); // face-up card uses its id
     expect(cardView.cursor).toBe("pointer");
     expect(cardView.draggable).toBe(true);
     expect(cardView.snap).toBe(false);
+  });
+
+  it("gives no two resting cards the same depth", () => {
+    // A freshly dealt board, so every pile that holds cards holds several.
+    const viewState = buildKlondikeViewState(game, presentation)(
+      interaction,
+      viewport,
+    );
+
+    // Per-pile depths would tie across piles and leave what covers what to the
+    // order the sprites happened to be created in.
+    const depths = viewState.cards.map((card) => card.depth);
+    expect(new Set(depths).size).toBe(depths.length);
+  });
+
+  it("stacks a pile's cards in the order they sit in it", () => {
+    emptyBoard(game);
+    const lower = relocate(game, "card-hearts-ace", game.tableaus[0], true);
+    const upper = relocate(game, "card-hearts-2", game.tableaus[0], true);
+
+    const viewState = buildKlondikeViewState(game, presentation)(
+      interaction,
+      viewport,
+    );
+
+    const lowerView = viewState.cards.find((c) => c.cardId === lower.id)!;
+    const upperView = viewState.cards.find((c) => c.cardId === upper.id)!;
+    expect(upperView.depth).toBeGreaterThan(lowerView.depth);
   });
 
   it("handles snapAll flag correctly", () => {
@@ -97,12 +122,12 @@ describe("board_view_state_builder", () => {
 
     expect(cardView1.x).toBe(500);
     expect(cardView1.y).toBe(600);
-    expect(cardView1.depth).toBe(1000);
+    expect(cardView1.depth).toBe(depthFor(RenderLayer.HELD_CARD, 0));
     expect(cardView1.snap).toBe(true);
 
     expect(cardView2.x).toBe(500);
     expect(cardView2.y).toBe(600 + 45); // offset for tableau drag
-    expect(cardView2.depth).toBe(1001);
+    expect(cardView2.depth).toBe(depthFor(RenderLayer.HELD_CARD, 1));
     expect(cardView2.snap).toBe(true);
   });
 
@@ -157,10 +182,10 @@ describe("board_view_state_builder", () => {
       );
 
       const flying = viewState.cards.find((view) => view.cardId === card.id)!;
-      expect(flying.depth).toBeLessThan(DRAG_BASE_DEPTH);
+      expect(flying.depth).toBeLessThan(depthFor(RenderLayer.HELD_CARD, 0));
     });
 
-    it("lands the card back at its pile's own depth once the flight ends", () => {
+    it("lands the card back among the resting cards once the flight ends", () => {
       const card = relocate(game, "card-hearts-ace", game.foundations[0]);
       interaction.flight = null;
 
@@ -170,7 +195,7 @@ describe("board_view_state_builder", () => {
       );
 
       const landed = viewState.cards.find((view) => view.cardId === card.id)!;
-      expect(landed.depth).toBe(1); // first card in the foundation
+      expect(landed.depth).toBeLessThan(depthFor(RenderLayer.FLYING_CARD, 0));
     });
 
     it("leaves the card's position to its pile while it flies", () => {
@@ -211,7 +236,7 @@ describe("board_view_state_builder", () => {
         width: CARD_RENDER_WIDTH_PX,
         height: CARD_RENDER_HEIGHT_PX,
         scale: 1,
-        depth: HOVER_HIGHLIGHT_DEPTH,
+        depth: depthFor(RenderLayer.HOVER_HINT),
         openBottom: false,
       },
     ]);
@@ -477,7 +502,9 @@ describe("board_view_state_builder", () => {
 
       // The card in hand is held over the place it is going, so the border must
       // not be drawn across it.
-      expect(viewState.highlights[0].depth).toBeLessThan(DRAG_BASE_DEPTH);
+      expect(viewState.highlights[0].depth).toBeLessThan(
+        depthFor(RenderLayer.HELD_CARD, 0),
+      );
     });
 
     it("keeps the border above the cards resting in the target pile", () => {
@@ -491,7 +518,7 @@ describe("board_view_state_builder", () => {
 
       const deepestCard = Math.max(
         ...viewState.cards
-          .filter((card) => card.depth < DRAG_BASE_DEPTH)
+          .filter((card) => card.depth < depthFor(RenderLayer.HELD_CARD, 0))
           .map((card) => card.depth),
       );
       expect(viewState.highlights[0].depth).toBeGreaterThan(deepestCard);
