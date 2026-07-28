@@ -14,7 +14,7 @@ import {
   computeScale,
 } from "@/engine/render/layout/board_geometry";
 import { DESIGN_WIDTH_PX } from "@/engine/render/layout/board_layout_constants";
-import { STOCK_PILE_ID } from "@/engine/core/card/card_pile";
+import { STOCK_PILE_ID } from "@/games/klondike/klondike_zones";
 import { relocate } from "@test/support/game_scenarios";
 
 vi.mock("phaser", async () => {

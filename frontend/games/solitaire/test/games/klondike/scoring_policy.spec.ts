@@ -1,5 +1,5 @@
 import { ScoringPolicy } from "@/games/klondike/scoring_policy";
-import { PileType } from "@/engine/core/card/card_pile";
+import { KlondikeRole } from "@/games/klondike/klondike_zones";
 
 describe("ScoringPolicy", () => {
   let scoring: ScoringPolicy;
@@ -10,25 +10,33 @@ describe("ScoringPolicy", () => {
 
   describe("moveScore", () => {
     it("scores +5 for waste to tableau", () => {
-      expect(scoring.moveScore(PileType.WASTE, PileType.TABLEAU)).toBe(5);
-    });
-
-    it("scores +10 for waste to foundation", () => {
-      expect(scoring.moveScore(PileType.WASTE, PileType.FOUNDATION)).toBe(10);
-    });
-
-    it("scores +10 for tableau to foundation", () => {
-      expect(scoring.moveScore(PileType.TABLEAU, PileType.FOUNDATION)).toBe(10);
-    });
-
-    it("scores -15 for foundation to tableau", () => {
-      expect(scoring.moveScore(PileType.FOUNDATION, PileType.TABLEAU)).toBe(
-        -15,
+      expect(scoring.moveScore(KlondikeRole.WASTE, KlondikeRole.TABLEAU)).toBe(
+        5,
       );
     });
 
+    it("scores +10 for waste to foundation", () => {
+      expect(
+        scoring.moveScore(KlondikeRole.WASTE, KlondikeRole.FOUNDATION),
+      ).toBe(10);
+    });
+
+    it("scores +10 for tableau to foundation", () => {
+      expect(
+        scoring.moveScore(KlondikeRole.TABLEAU, KlondikeRole.FOUNDATION),
+      ).toBe(10);
+    });
+
+    it("scores -15 for foundation to tableau", () => {
+      expect(
+        scoring.moveScore(KlondikeRole.FOUNDATION, KlondikeRole.TABLEAU),
+      ).toBe(-15);
+    });
+
     it("scores 0 for an unscored move such as tableau to tableau", () => {
-      expect(scoring.moveScore(PileType.TABLEAU, PileType.TABLEAU)).toBe(0);
+      expect(
+        scoring.moveScore(KlondikeRole.TABLEAU, KlondikeRole.TABLEAU),
+      ).toBe(0);
     });
   });
 

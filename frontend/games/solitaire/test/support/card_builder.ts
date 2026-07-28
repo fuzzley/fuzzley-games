@@ -6,7 +6,10 @@ import { PlayingCard, Suit, Rank } from "@/engine/core/card/playing_card";
  * fields a test actually cares about so the intent of each test stays obvious.
  */
 export function makeCard(overrides: Partial<Card> = {}): Card {
-  return { id: "card", faceUp: false, ...overrides };
+  const id = overrides.id ?? "card";
+  // Defaults to the id, which is what a single-deck game's cards look like and
+  // keeps a test that only names an id from having to name a face as well.
+  return { id, faceKey: id, faceUp: false, ...overrides };
 }
 
 /**

@@ -6,23 +6,19 @@ import { ScoringPolicy } from "./scoring_policy";
 import { MoveRules } from "./move_rules";
 import { Dealer } from "./dealer";
 import { AppliedMove } from "./move_history";
+import { CardLocations, CardPile } from "@/engine/core/card/card_pile";
 import {
-  CardLocations,
-  CardPile,
-  PileType,
+  KlondikeRole,
   FOUNDATION_COUNT,
   TABLEAU_COUNT,
   STOCK_PILE_ID,
   WASTE_PILE_ID,
   foundationPileId,
   tableauPileId,
-} from "@/engine/core/card/card_pile";
+} from "@/games/klondike/klondike_zones";
 import { CardRegistry } from "@/engine/core/card/card_registry";
-import {
-  PlayingCard,
-  PlayingCardId,
-  ALL_PLAYING_CARD_IDS,
-} from "@/engine/core/card/playing_card";
+import { PlayingCard, DeckCardId } from "@/engine/core/card/playing_card";
+import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 
 /** A move that has passed the rules: the cards to move and where they go. */
 interface ResolvedMove {
@@ -53,13 +49,13 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
   /** The face-down stock pile from which cards are drawn. */
   public readonly stock = new CardPile<PlayingCard>(
     STOCK_PILE_ID,
-    PileType.STOCK,
+    KlondikeRole.STOCK,
     this.locations,
   );
   /** The face-up waste pile containing drawn cards. */
   public readonly waste = new CardPile<PlayingCard>(
     WASTE_PILE_ID,
-    PileType.WASTE,
+    KlondikeRole.WASTE,
     this.locations,
   );
   /** The four suit foundation piles (Hearts, Diamonds, Clubs, Spades). */
@@ -103,7 +99,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
    *   reason as {@link scoring}.
    */
   constructor(
-    cardIds: ReadonlyArray<PlayingCardId> = ALL_PLAYING_CARD_IDS,
+    cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
     scoring: ScoringPolicy = new ScoringPolicy(),
     moveRules: MoveRules = new MoveRules(),
   ) {
@@ -123,7 +119,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     for (let i = 0; i < FOUNDATION_COUNT; i++) {
       const pile = new CardPile<PlayingCard>(
         foundationPileId(i),
-        PileType.FOUNDATION,
+        KlondikeRole.FOUNDATION,
         this.locations,
       );
       this.foundations.push(pile);
@@ -133,7 +129,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     for (let i = 0; i < TABLEAU_COUNT; i++) {
       const pile = new CardPile<PlayingCard>(
         tableauPileId(i),
-        PileType.TABLEAU,
+        KlondikeRole.TABLEAU,
         this.locations,
       );
       this.tableaus.push(pile);
@@ -352,8 +348,8 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     const scoreBefore = this.state.score;
     this.state.moves++;
     const scoreChange = this.scoring.moveScore(
-      move.sourcePile.type,
-      move.targetPile.type,
+      move.sourcePile.role,
+      move.targetPile.role,
     );
     this.state.score = Math.max(0, this.state.score + scoreChange);
 
@@ -551,7 +547,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
   private autoFlipExposedCard(
     sourcePile: CardPile<PlayingCard>,
   ): PlayingCard | undefined {
-    if (sourcePile.type !== PileType.TABLEAU) {
+    if (sourcePile.role !== KlondikeRole.TABLEAU) {
       return undefined;
     }
     const topRemaining = sourcePile.topCard;
@@ -587,7 +583,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     card: PlayingCard,
     pile: CardPile<PlayingCard>,
   ): boolean {
-    if (pile.type === PileType.TABLEAU) {
+    if (pile.role === KlondikeRole.TABLEAU) {
       // Any face-up card in a tableau is interactable.
       return card.faceUp;
     }
@@ -619,7 +615,7 @@ export class SolitaireGame extends EventEmitter<GameEvents> {
     card: PlayingCard,
     pile: CardPile<PlayingCard>,
   ): boolean {
-    if (pile.type === PileType.STOCK) {
+    if (pile.role === KlondikeRole.STOCK) {
       return false;
     }
     return this.isCardInteractableInPile(card, pile);

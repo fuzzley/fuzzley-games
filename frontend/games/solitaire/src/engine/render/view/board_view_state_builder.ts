@@ -1,5 +1,6 @@
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
-import { CardPile, PileType } from "@/engine/core/card/card_pile";
+import { CardPile, PileRole } from "@/engine/core/card/card_pile";
+import { KlondikeRole } from "@/games/klondike/klondike_zones";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Point } from "@/engine/core/common/point";
 import {
@@ -119,7 +120,7 @@ class BoardViewStateBuilder {
       draggedIds.length > 0
         ? this.game.getPileContainingCard(draggedIds[0])
         : null;
-    const isTableauDrag = dragSourcePile?.type === PileType.TABLEAU;
+    const isTableauDrag = dragSourcePile?.role === KlondikeRole.TABLEAU;
 
     // Position in the flying stack, so the cards keep their order in the air.
     const flightOrder = new Map(
@@ -201,7 +202,7 @@ class BoardViewStateBuilder {
           depth,
           frame: this.getCardFrame(
             card,
-            pile.type,
+            pile.role,
             this.game.settings.cardBackStyle,
           ),
           cursor: this.game.isCardInteractableInPile(card, pile)
@@ -334,16 +335,16 @@ class BoardViewStateBuilder {
    */
   private getCardFrame(
     card: PlayingCard,
-    pileType: PileType,
+    pileRole: PileRole,
     cardBack: string,
   ): string {
-    if (pileType === PileType.STOCK) {
+    if (pileRole === KlondikeRole.STOCK) {
       return cardBack;
     }
-    if (pileType === PileType.TABLEAU) {
-      return card.faceUp ? card.id : cardBack;
+    if (pileRole === KlondikeRole.TABLEAU) {
+      return card.faceUp ? card.faceKey : cardBack;
     }
-    return card.id; // waste, foundation
+    return card.faceKey; // waste, foundation
   }
 }
 

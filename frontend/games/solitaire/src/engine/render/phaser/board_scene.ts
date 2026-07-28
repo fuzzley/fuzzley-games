@@ -1,9 +1,7 @@
 import { GameObjects, Scene, Scenes } from "phaser";
 
-import {
-  ALL_PLAYING_CARD_IDS,
-  playingCardIdToString,
-} from "@/engine/core/card/playing_card";
+import { playingCardInstanceId } from "@/engine/core/card/playing_card";
+import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
 import { getGameModel } from "@/games/klondike/game_model_factory";
 import { PhaserCardFactory } from "./phaser_card_factory";
@@ -116,7 +114,7 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Instantiates and registers a sprite for every playing card in the game. */
   private createCardSprites(): void {
     for (const cardId of ALL_PLAYING_CARD_IDS) {
-      const id = playingCardIdToString(cardId);
+      const id = playingCardInstanceId(cardId);
       if (!this.gameModel.getCardById(id)) {
         throw new Error(`Card model not found for: ${id}`);
       }

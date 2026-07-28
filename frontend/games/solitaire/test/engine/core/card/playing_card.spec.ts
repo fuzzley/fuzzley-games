@@ -1,45 +1,14 @@
 import { describe, it, expect } from "vitest";
 import {
-  ALL_PLAYING_CARD_IDS,
   ALL_RANKS,
-  ALL_SUITS,
-  playingCardIdToString,
+  PlayingCard,
+  playingCardFaceKey,
+  playingCardInstanceId,
   rankAbove,
   rankBelow,
   Rank,
   Suit,
 } from "@/engine/core/card/playing_card";
-
-describe("ALL_PLAYING_CARD_IDS", () => {
-  it("covers a full standard deck", () => {
-    expect(ALL_PLAYING_CARD_IDS.length).toBe(52);
-  });
-
-  it("holds no duplicate identities", () => {
-    const ids = ALL_PLAYING_CARD_IDS.map(playingCardIdToString);
-
-    expect(new Set(ids).size).toBe(52);
-  });
-
-  it("pairs every suit with every rank", () => {
-    const pairs = new Set(
-      ALL_PLAYING_CARD_IDS.map((card) => `${card.suit}:${card.rank}`),
-    );
-
-    const expected = ALL_SUITS.flatMap((suit) =>
-      ALL_RANKS.map((rank) => `${suit}:${rank}`),
-    );
-    expect(pairs).toEqual(new Set(expected));
-  });
-
-  it("runs suit-major, so a suit's cards are contiguous and ascending", () => {
-    const firstThirteen = ALL_PLAYING_CARD_IDS.slice(0, ALL_RANKS.length);
-
-    expect(firstThirteen).toEqual(
-      ALL_RANKS.map((rank) => ({ suit: Suit.SPADE, rank })),
-    );
-  });
-});
 
 describe("ALL_RANKS", () => {
   it("ascends from Ace to King in consecutive steps, as the build rules assume", () => {
@@ -78,22 +47,75 @@ describe("rankBelow", () => {
   });
 });
 
-describe("playingCardIdToString", () => {
-  it("maps a suit and rank to its canonical id", () => {
-    const id = playingCardIdToString({ suit: Suit.HEART, rank: Rank.QUEEN });
+describe("playingCardFaceKey", () => {
+  it("maps a suit and rank to its canonical artwork key", () => {
+    const id = playingCardFaceKey({ suit: Suit.HEART, rank: Rank.QUEEN });
 
     expect(id).toBe("card-hearts-queen");
   });
 
   it("throws for an unknown suit", () => {
     expect(() =>
-      playingCardIdToString({ suit: 999 as Suit, rank: Rank.ACE }),
+      playingCardFaceKey({ suit: 999 as Suit, rank: Rank.ACE }),
     ).toThrow("Unknown Suit: 999");
   });
 
   it("throws for an unknown rank", () => {
     expect(() =>
-      playingCardIdToString({ suit: Suit.SPADE, rank: 999 as Rank }),
+      playingCardFaceKey({ suit: Suit.SPADE, rank: 999 as Rank }),
     ).toThrow("Unknown Rank: 999");
+  });
+});
+
+describe("playingCardInstanceId", () => {
+  it("names a deck-zero card by its face alone", () => {
+    const id = playingCardInstanceId({ suit: Suit.HEART, rank: Rank.QUEEN });
+
+    expect(id).toBe("card-hearts-queen");
+  });
+
+  it("treats an omitted deck index as deck zero", () => {
+    const implicit = playingCardInstanceId({
+      suit: Suit.HEART,
+      rank: Rank.QUEEN,
+    });
+
+    expect(implicit).toBe(
+      playingCardInstanceId({
+        suit: Suit.HEART,
+        rank: Rank.QUEEN,
+        deckIndex: 0,
+      }),
+    );
+  });
+
+  it("suffixes a card from a later deck", () => {
+    const id = playingCardInstanceId({
+      suit: Suit.HEART,
+      rank: Rank.QUEEN,
+      deckIndex: 1,
+    });
+
+    expect(id).toBe("card-hearts-queen#1");
+  });
+});
+
+describe("PlayingCard", () => {
+  it("derives its face key from its own suit and rank", () => {
+    const card = new PlayingCard("anything", Suit.DIAMOND, Rank.THREE);
+
+    expect(card.faceKey).toBe("card-diamonds-3");
+  });
+
+  it("keeps a face key it was handed, so a duplicate can share one face", () => {
+    const card = new PlayingCard(
+      "card-diamonds-3#1",
+      Suit.DIAMOND,
+      Rank.THREE,
+      false,
+      "card-diamonds-3",
+    );
+
+    expect(card.faceKey).toBe("card-diamonds-3");
   });
 });

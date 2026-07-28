@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { MoveRules } from "@/games/klondike/move_rules";
-import { CardPile, PileType } from "@/engine/core/card/card_pile";
+import { CardPile } from "@/engine/core/card/card_pile";
+import { KlondikeRole } from "@/games/klondike/klondike_zones";
 import { PlayingCard, Suit, Rank } from "@/engine/core/card/playing_card";
 import { makePlayingCard } from "@test/support/card_builder";
 
@@ -8,7 +9,7 @@ describe("MoveRules", () => {
   const rules = new MoveRules();
 
   function pileWith(
-    type: PileType,
+    type: KlondikeRole,
     ...cards: PlayingCard[]
   ): CardPile<PlayingCard> {
     const pile = new CardPile<PlayingCard>("pile", type);
@@ -22,13 +23,17 @@ describe("MoveRules", () => {
     it("allows a King onto an empty tableau", () => {
       const king = makePlayingCard({ suit: Suit.SPADE, rank: Rank.KING });
 
-      expect(rules.canPlace(king, pileWith(PileType.TABLEAU), 1)).toBe(true);
+      expect(rules.canPlace(king, pileWith(KlondikeRole.TABLEAU), 1)).toBe(
+        true,
+      );
     });
 
     it("rejects a non-King onto an empty tableau", () => {
       const queen = makePlayingCard({ suit: Suit.SPADE, rank: Rank.QUEEN });
 
-      expect(rules.canPlace(queen, pileWith(PileType.TABLEAU), 1)).toBe(false);
+      expect(rules.canPlace(queen, pileWith(KlondikeRole.TABLEAU), 1)).toBe(
+        false,
+      );
     });
 
     it("allows a descending, alternating-color card onto a tableau", () => {
@@ -36,7 +41,7 @@ describe("MoveRules", () => {
       const redQueen = makePlayingCard({ suit: Suit.HEART, rank: Rank.QUEEN });
 
       expect(
-        rules.canPlace(redQueen, pileWith(PileType.TABLEAU, blackKing), 1),
+        rules.canPlace(redQueen, pileWith(KlondikeRole.TABLEAU, blackKing), 1),
       ).toBe(true);
     });
 
@@ -45,7 +50,11 @@ describe("MoveRules", () => {
       const blackQueen = makePlayingCard({ suit: Suit.CLUB, rank: Rank.QUEEN });
 
       expect(
-        rules.canPlace(blackQueen, pileWith(PileType.TABLEAU, blackKing), 1),
+        rules.canPlace(
+          blackQueen,
+          pileWith(KlondikeRole.TABLEAU, blackKing),
+          1,
+        ),
       ).toBe(false);
     });
 
@@ -54,7 +63,7 @@ describe("MoveRules", () => {
       const redJack = makePlayingCard({ suit: Suit.HEART, rank: Rank.JACK });
 
       expect(
-        rules.canPlace(redJack, pileWith(PileType.TABLEAU, blackKing), 1),
+        rules.canPlace(redJack, pileWith(KlondikeRole.TABLEAU, blackKing), 1),
       ).toBe(false);
     });
   });
@@ -63,22 +72,26 @@ describe("MoveRules", () => {
     it("allows an Ace onto an empty foundation", () => {
       const ace = makePlayingCard({ suit: Suit.HEART, rank: Rank.ACE });
 
-      expect(rules.canPlace(ace, pileWith(PileType.FOUNDATION), 1)).toBe(true);
+      expect(rules.canPlace(ace, pileWith(KlondikeRole.FOUNDATION), 1)).toBe(
+        true,
+      );
     });
 
     it("rejects a non-Ace onto an empty foundation", () => {
       const two = makePlayingCard({ suit: Suit.HEART, rank: Rank.TWO });
 
-      expect(rules.canPlace(two, pileWith(PileType.FOUNDATION), 1)).toBe(false);
+      expect(rules.canPlace(two, pileWith(KlondikeRole.FOUNDATION), 1)).toBe(
+        false,
+      );
     });
 
     it("allows an ascending, same-suit card onto a foundation", () => {
       const ace = makePlayingCard({ suit: Suit.HEART, rank: Rank.ACE });
       const two = makePlayingCard({ suit: Suit.HEART, rank: Rank.TWO });
 
-      expect(rules.canPlace(two, pileWith(PileType.FOUNDATION, ace), 1)).toBe(
-        true,
-      );
+      expect(
+        rules.canPlace(two, pileWith(KlondikeRole.FOUNDATION, ace), 1),
+      ).toBe(true);
     });
 
     it("rejects a different-suit card onto a foundation", () => {
@@ -86,7 +99,11 @@ describe("MoveRules", () => {
       const spadeTwo = makePlayingCard({ suit: Suit.SPADE, rank: Rank.TWO });
 
       expect(
-        rules.canPlace(spadeTwo, pileWith(PileType.FOUNDATION, heartAce), 1),
+        rules.canPlace(
+          spadeTwo,
+          pileWith(KlondikeRole.FOUNDATION, heartAce),
+          1,
+        ),
       ).toBe(false);
     });
 
@@ -98,14 +115,20 @@ describe("MoveRules", () => {
       });
 
       expect(
-        rules.canPlace(heartThree, pileWith(PileType.FOUNDATION, heartAce), 1),
+        rules.canPlace(
+          heartThree,
+          pileWith(KlondikeRole.FOUNDATION, heartAce),
+          1,
+        ),
       ).toBe(false);
     });
 
     it("rejects a stack of more than one card onto a foundation", () => {
       const ace = makePlayingCard({ suit: Suit.HEART, rank: Rank.ACE });
 
-      expect(rules.canPlace(ace, pileWith(PileType.FOUNDATION), 2)).toBe(false);
+      expect(rules.canPlace(ace, pileWith(KlondikeRole.FOUNDATION), 2)).toBe(
+        false,
+      );
     });
   });
 
@@ -113,13 +136,13 @@ describe("MoveRules", () => {
     it("rejects any move onto the stock", () => {
       const king = makePlayingCard({ suit: Suit.SPADE, rank: Rank.KING });
 
-      expect(rules.canPlace(king, pileWith(PileType.STOCK), 1)).toBe(false);
+      expect(rules.canPlace(king, pileWith(KlondikeRole.STOCK), 1)).toBe(false);
     });
 
     it("rejects any move onto the waste", () => {
       const king = makePlayingCard({ suit: Suit.SPADE, rank: Rank.KING });
 
-      expect(rules.canPlace(king, pileWith(PileType.WASTE), 1)).toBe(false);
+      expect(rules.canPlace(king, pileWith(KlondikeRole.WASTE), 1)).toBe(false);
     });
   });
 });
