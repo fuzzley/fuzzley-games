@@ -5,7 +5,7 @@ import {
   klondikeGestures,
   klondikeStackFromCard,
 } from "@/games/klondike/klondike_gestures";
-import { SolitaireGame } from "@/games/klondike/solitaire_game";
+import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { designSize } from "@/engine/render/layout/table_layout";
@@ -27,7 +27,7 @@ vi.mock("phaser", async () => {
 });
 
 describe("BoardInputManager", () => {
-  let gameModel: SolitaireGame;
+  let gameModel: KlondikeGame;
   let input: MockInput;
   let cardSprites: Map<string, MockSprite>;
   let boardScene: BoardScene;
@@ -36,7 +36,7 @@ describe("BoardInputManager", () => {
   beforeEach(() => {
     vi.useFakeTimers();
 
-    gameModel = new SolitaireGame();
+    gameModel = new KlondikeGame();
     gameModel.startNewGame();
 
     input = createMockInput();

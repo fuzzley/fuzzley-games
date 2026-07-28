@@ -12,15 +12,15 @@ import {
   Viewport,
 } from "@/engine/render/view/table_view_state";
 import { computeDropGeometries } from "@/engine/render/layout/drop_geometry";
-import { SolitaireGame } from "@/games/klondike/solitaire_game";
+import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
 describe("resolveDragTarget", () => {
-  let game: SolitaireGame;
+  let game: KlondikeGame;
   const viewport: Viewport = { width: 1920, height: 1080, pixelRatio: 1 };
 
   beforeEach(() => {
-    game = new SolitaireGame();
+    game = new KlondikeGame();
     game.startNewGame();
     emptyBoard(game);
   });

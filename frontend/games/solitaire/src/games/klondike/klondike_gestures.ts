@@ -2,7 +2,7 @@ import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { IntentHandler } from "@/engine/render/input/table_intents";
 import { KlondikeRole } from "./klondike_zones";
-import { SolitaireGame } from "./solitaire_game";
+import { KlondikeGame } from "./klondike_game";
 
 /** The cards from `cardId` upwards, which is what a move of it takes along. */
 function stackFrom(
@@ -25,7 +25,7 @@ function stackFrom(
  *
  * @param game The game to act on.
  */
-export function klondikeGestures(game: SolitaireGame): IntentHandler {
+export function klondikeGestures(game: KlondikeGame): IntentHandler {
   return (intent) => {
     switch (intent.kind) {
       case "activate": {
@@ -82,7 +82,7 @@ export function klondikeGestures(game: SolitaireGame): IntentHandler {
  * @param game The game to read.
  */
 export function klondikeStackFromCard(
-  game: SolitaireGame,
+  game: KlondikeGame,
 ): (cardId: string) => readonly string[] {
   return (cardId) => {
     const pile = game.getPileContainingCard(cardId);

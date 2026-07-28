@@ -27,7 +27,7 @@ import { ScoringPolicy } from "./scoring_policy";
  * itself: the stock with its draw and recycle, the bonus for turning over a
  * card a move exposed, the scoring, and when the game has been won.
  */
-export class SolitaireGame extends TableGame<GameEvents> {
+export class KlondikeGame extends TableGame<GameEvents> {
   /** The face-down stock pile from which cards are drawn. */
   public readonly stock: CardPile<PlayingCard>;
   /** The face-up waste pile containing drawn cards. */

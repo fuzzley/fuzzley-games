@@ -24,7 +24,7 @@ const BELOW_KING: readonly Rank[] = ALL_RANKS.filter(
  *
  * Owns deck creation, shuffling, and the two opening layouts (a normal random
  * deal and the debug almost-win deal), keeping that responsibility out of
- * {@link SolitaireGame}. All cards it deals come from the shared
+ * {@link KlondikeGame}. All cards it deals come from the shared
  * {@link CardRegistry}, so instances are reused across deals.
  */
 export class Dealer {

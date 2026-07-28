@@ -1,8 +1,8 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
-import { makeKlondikeBoardScene } from "@/games/klondike/solitaire";
+import { makeKlondikeBoardScene } from "@/games/klondike/klondike";
 import { TestPresentation } from "@test/support/presentation";
-import { SolitaireGame } from "@/games/klondike/solitaire_game";
+import { KlondikeGame } from "@/games/klondike/klondike_game";
 import {
   MockGraphics,
   MockInput,
@@ -37,18 +37,18 @@ function asMock(sprite: unknown): MockSprite {
  * A board scene drawing the given game, or the shared dealt one, laid out the
  * way the real application lays it out.
  */
-let klondikeGame: SolitaireGame;
+let klondikeGame: KlondikeGame;
 let presentation: TestPresentation;
 
 /** A dealt Klondike game drawn with a presentation a test can drive. */
-function makeBoardScene(gameModel?: SolitaireGame): BoardScene {
+function makeBoardScene(gameModel?: KlondikeGame): BoardScene {
   klondikeGame = gameModel ?? dealtGame();
   presentation = new TestPresentation();
   return makeKlondikeBoardScene(klondikeGame, presentation);
 }
 
-function dealtGame(): SolitaireGame {
-  const game = new SolitaireGame();
+function dealtGame(): KlondikeGame {
+  const game = new KlondikeGame();
   game.startNewGame();
   return game;
 }
@@ -94,7 +94,7 @@ describe("BoardScene", () => {
 
   describe("construction", () => {
     it("renders the game model it is injected with", () => {
-      const injectedModel = new SolitaireGame();
+      const injectedModel = new KlondikeGame();
 
       const scene = makeBoardScene(injectedModel);
 
@@ -426,7 +426,7 @@ describe("BoardScene", () => {
     it("throws when a card model is missing while creating sprites", () => {
       const freshScene = makeBoardScene();
       const getCardById = vi
-        .spyOn(SolitaireGame.prototype, "getCardById")
+        .spyOn(KlondikeGame.prototype, "getCardById")
         .mockReturnValue(undefined);
 
       expect(() => freshScene.create()).toThrow("Card model not found for: ");

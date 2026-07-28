@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { SolitaireGame } from "@/games/klondike/solitaire_game";
+import { KlondikeGame } from "@/games/klondike/klondike_game";
 import {
   klondikeGestures,
   klondikeStackFromCard,
@@ -8,11 +8,11 @@ import { IntentHandler } from "@/engine/render/input/table_intents";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
 describe("klondikeGestures", () => {
-  let game: SolitaireGame;
+  let game: KlondikeGame;
   let handle: IntentHandler;
 
   beforeEach(() => {
-    game = new SolitaireGame();
+    game = new KlondikeGame();
     game.startNewGame();
     handle = klondikeGestures(game);
   });
@@ -152,10 +152,10 @@ describe("klondikeGestures", () => {
 });
 
 describe("klondikeStackFromCard", () => {
-  let game: SolitaireGame;
+  let game: KlondikeGame;
 
   beforeEach(() => {
-    game = new SolitaireGame();
+    game = new KlondikeGame();
     game.startNewGame();
   });
 
