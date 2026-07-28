@@ -29,28 +29,28 @@ export function spiderGestures(game: SpiderGame): IntentHandler {
         if (pile?.role === SpiderRole.STOCK) {
           game.dealRow();
         }
-        return [];
+        return;
       }
 
-      case "activate-pile": {
+      case "activate-pile":
         // The stock's slot is only pressable once it is empty, at which point
         // there is nothing left to deal.
-        return [];
-      }
+        return;
 
       case "activate-secondary": {
         const pile = game.getPileContainingCard(intent.cardId);
-        if (pile?.role !== SpiderRole.TABLEAU) return [];
-        const moving = stackFrom(pile, intent.cardId);
-        return game.autoMoveCard(intent.cardId) ? moving : [];
+        if (pile?.role === SpiderRole.TABLEAU) {
+          game.autoMoveCard(intent.cardId);
+        }
+        return;
       }
 
       case "drop": {
         const [primaryCardId] = intent.cardIds;
-        if (!intent.targetPileId || !primaryCardId) return [];
-        return game.moveCardToPile(primaryCardId, intent.targetPileId)
-          ? intent.cardIds
-          : [];
+        if (intent.targetPileId && primaryCardId) {
+          game.moveCardToPile(primaryCardId, intent.targetPileId);
+        }
+        return;
       }
     }
   };

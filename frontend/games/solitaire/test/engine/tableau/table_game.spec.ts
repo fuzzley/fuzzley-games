@@ -292,6 +292,87 @@ describe("TableGame", () => {
     });
   });
 
+  describe("cards-relocated", () => {
+    /**
+     * Starts following the cards each action relocates, returning the list the
+     * announcements are appended to.
+     */
+    function announcements(): readonly string[][] {
+      const announced: string[][] = [];
+      game.onCardsRelocated((cardIds) => announced.push([...cardIds]));
+      return announced;
+    }
+
+    it("announces the card a move relocated", () => {
+      const card = game.place(LEFT, Rank.FIVE);
+      const announced = announcements();
+
+      game.moveCardToPile(card.id, RIGHT);
+
+      expect(announced).toEqual([[card.id]]);
+    });
+
+    it("announces the whole stack the move took with it", () => {
+      const lower = game.place(LEFT, Rank.FIVE);
+      const upper = game.place(LEFT, Rank.FOUR);
+      const announced = announcements();
+
+      game.moveCardToPile(lower.id, RIGHT);
+
+      expect(announced).toEqual([[lower.id, upper.id]]);
+    });
+
+    it("announces the same cards when the move is taken back", () => {
+      const card = game.place(LEFT, Rank.FIVE);
+      game.moveCardToPile(card.id, RIGHT);
+      const announced = announcements();
+
+      game.undo();
+
+      // Undo relocates the same cards the other way, and they have the same
+      // board to cross getting home as they had going.
+      expect(announced).toEqual([[card.id]]);
+    });
+
+    it("announces nothing when the rules refuse the move", () => {
+      const card = game.place(LEFT, Rank.FIVE);
+      const announced = announcements();
+
+      game.moveCardToPile(card.id, LOCKED);
+
+      expect(announced).toEqual([]);
+    });
+
+    it("announces nothing when there is no move to take back", () => {
+      const announced = announcements();
+
+      game.undo();
+
+      expect(announced).toEqual([]);
+    });
+
+    it("announces nothing for cards dealt straight onto the board", () => {
+      const announced = announcements();
+
+      game.place(LEFT, Rank.FIVE);
+
+      // A deal puts every card where it belongs at once; nothing has a board to
+      // cross, and a flight per dealt card would be nonsense.
+      expect(announced).toEqual([]);
+    });
+
+    it("stops announcing to a listener that has let go", () => {
+      const card = game.place(LEFT, Rank.FIVE);
+      const announced: string[][] = [];
+      const stop = game.onCardsRelocated((ids) => announced.push([...ids]));
+
+      stop();
+      game.moveCardToPile(card.id, RIGHT);
+
+      expect(announced).toEqual([]);
+    });
+  });
+
   describe("autoMoveCard", () => {
     it("tries the roles the game named, best first", () => {
       const card = game.place(LEFT, Rank.FIVE);

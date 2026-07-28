@@ -27,21 +27,18 @@ export function freeCellGestures(game: FreeCellGame): IntentHandler {
       case "activate":
       case "activate-pile":
         // Nothing in FreeCell responds to a single press.
-        return [];
+        return;
 
-      case "activate-secondary": {
-        const pile = game.getPileContainingCard(intent.cardId);
-        if (!pile) return [];
-        const moving = stackFrom(pile, intent.cardId);
-        return game.autoMoveCard(intent.cardId) ? moving : [];
-      }
+      case "activate-secondary":
+        game.autoMoveCard(intent.cardId);
+        return;
 
       case "drop": {
         const [primaryCardId] = intent.cardIds;
-        if (!intent.targetPileId || !primaryCardId) return [];
-        return game.moveCardToPile(primaryCardId, intent.targetPileId)
-          ? intent.cardIds
-          : [];
+        if (intent.targetPileId && primaryCardId) {
+          game.moveCardToPile(primaryCardId, intent.targetPileId);
+        }
+        return;
       }
     }
   };

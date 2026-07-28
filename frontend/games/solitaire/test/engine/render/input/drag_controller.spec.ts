@@ -4,8 +4,6 @@ import { TableIntent } from "@/engine/render/input/table_intents";
 
 describe("DragController", () => {
   let intents: TableIntent[];
-  /** Cards the next handled intent should report as moved. */
-  let moved: readonly string[];
   /** The stack any card is treated as leading. */
   let stack: readonly string[];
   let clockMs: number;
@@ -13,13 +11,11 @@ describe("DragController", () => {
 
   beforeEach(() => {
     intents = [];
-    moved = [];
     stack = ["a"];
     clockMs = 1000;
     controller = new DragController(
       (intent) => {
         intents.push(intent);
-        return moved;
       },
       () => stack,
       () => clockMs,
@@ -203,8 +199,8 @@ describe("DragController", () => {
       return controller.flights.map((flight) => [...flight.cardIds]);
     }
 
-    it("tracks the cards a drop moved", () => {
-      moved = ["a", "b"];
+    it("flies the released stack to the pile that took it", () => {
+      stack = ["a", "b"];
       controller.dragStarted("a", { x: 1, y: 1 });
 
       controller.dragEnded("tableau-1");
@@ -212,14 +208,15 @@ describe("DragController", () => {
       expect(flownStacks()).toEqual([["a", "b"]]);
     });
 
-    it("tracks the cards a secondary activate moved", () => {
-      moved = ["a"];
-      controller.cardPressed("a");
-      clockMs += 50;
+    it("flies the released stack home when no pile took it", () => {
+      stack = ["a", "b"];
+      controller.dragStarted("a", { x: 1, y: 1 });
 
-      controller.cardPressed("a");
+      controller.dragEnded(null);
 
-      expect(flownStacks()).toEqual([["a"]]);
+      // Refused or not, the stack was left under the pointer and has the board
+      // to cross to get back to the pile it came from.
+      expect(flownStacks()).toEqual([["a", "b"]]);
     });
 
     it("lets the stack settle when the sprites have landed", () => {
@@ -275,10 +272,10 @@ describe("DragController", () => {
 
   describe("reset", () => {
     it("clears everything and asks for a snap", () => {
-      moved = ["a"];
       controller.cardOver("a");
       controller.backgroundOver("stock");
       controller.dragStarted("a", { x: 1, y: 1 });
+      controller.beginFlight(["b"]);
       controller.snapAll = false;
 
       controller.reset();

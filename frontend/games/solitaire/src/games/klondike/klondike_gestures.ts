@@ -24,7 +24,6 @@ function stackFrom(
  * is the same in every game.
  *
  * @param game The game to act on.
- * @returns The cards each intent moved, for the engine to track in flight.
  */
 export function klondikeGestures(game: SolitaireGame): IntentHandler {
   return (intent) => {
@@ -45,38 +44,33 @@ export function klondikeGestures(game: SolitaireGame): IntentHandler {
         ) {
           game.drawCardsFromStock();
         }
-        return [];
+        return;
       }
 
       case "activate-secondary": {
         const pile = game.getPileContainingCard(intent.cardId);
         if (
-          pile?.role !== KlondikeRole.TABLEAU &&
-          pile?.role !== KlondikeRole.WASTE
+          pile?.role === KlondikeRole.TABLEAU ||
+          pile?.role === KlondikeRole.WASTE
         ) {
-          return [];
+          game.autoMoveCard(intent.cardId);
         }
-        // Read before the move, so the stack can be followed across the board
-        // while its sprites catch up with the model.
-        const moving = stackFrom(pile, intent.cardId);
-        return game.autoMoveCard(intent.cardId) ? moving : [];
+        return;
       }
 
       case "activate-pile": {
         if (intent.pileId === game.stock.id && game.stock.isEmpty) {
           game.drawCardsFromStock();
         }
-        return [];
+        return;
       }
 
       case "drop": {
         const [primaryCardId] = intent.cardIds;
-        if (!intent.targetPileId || !primaryCardId) {
-          return [];
+        if (intent.targetPileId && primaryCardId) {
+          game.moveCardToPile(primaryCardId, intent.targetPileId);
         }
-        return game.moveCardToPile(primaryCardId, intent.targetPileId)
-          ? intent.cardIds
-          : [];
+        return;
       }
     }
   };

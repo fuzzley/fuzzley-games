@@ -74,6 +74,14 @@ describe("BoardScene", () => {
     );
   }
 
+  /** The highest depth of any card other than the given sprites. */
+  function deepestCardExcept(...lifted: MockSprite[]): number {
+    const others = allCardSprites().filter(
+      (sprite) => !lifted.includes(sprite),
+    );
+    return Math.max(...others.map((sprite) => sprite.depth));
+  }
+
   /** The frame and alpha of each of the given piles' background sprites. */
   function backgroundsOf(
     pileIds: string[],
@@ -249,12 +257,6 @@ describe("BoardScene", () => {
       return sprite;
     }
 
-    /** The highest depth of any card other than the given sprite. */
-    function deepestCardExcept(sprite: MockSprite): number {
-      const others = allCardSprites().filter((other) => other !== sprite);
-      return Math.max(...others.map((other) => other.depth));
-    }
-
     it("draws it over every other card while it crosses the board", () => {
       const sprite = autoMoveTheAce();
 
@@ -273,6 +275,80 @@ describe("BoardScene", () => {
       boardScene.update(48, 16); // the frame after it has landed
 
       expect(sprite.depth).toBeLessThan(depthFor(RenderLayer.FLYING_CARD, 0));
+    });
+  });
+
+  describe("cards the model relocates without a gesture reporting it", () => {
+    /** Presses the top of the stock once, which is what draws in Klondike. */
+    function drawFromStock(): MockSprite[] {
+      const top = klondikeGame.stock.topCard!;
+      boardScene.update(0, 16); // the first frame snaps the board into place
+
+      asMock(boardScene.cardSprite(top.id)).emit("pointerdown");
+
+      return klondikeGame.waste
+        .getCards()
+        .map((card) => asMock(boardScene.cardSprite(card.id)));
+    }
+
+    it("lifts the drawn cards over the board on their way to the waste", () => {
+      const drawn = drawFromStock();
+
+      boardScene.update(16, 16);
+
+      // A single press reports no move of its own, so before the model was
+      // asked these took the waste's depth the instant they were drawn.
+      const restingDepth = deepestCardExcept(...drawn);
+      expect(drawn.every((sprite) => sprite.depth > restingDepth)).toBe(true);
+    });
+
+    it("lifts the cards an undo puts back", () => {
+      const ace = relocate(
+        klondikeGame,
+        "card-hearts-ace",
+        klondikeGame.tableaus[0],
+      );
+      const sprite = asMock(boardScene.cardSprite(ace.id));
+      boardScene.update(0, 16);
+      sprite.emit("pointerdown");
+      sprite.emit("pointerdown"); // to a foundation
+      boardScene.update(16, 0); // land it there
+
+      klondikeGame.undo();
+      boardScene.update(32, 16);
+
+      // Undo never passes through the intent pipeline at all, so nothing used
+      // to lift the card it sent back across the board.
+      expect(sprite.depth).toBeGreaterThan(deepestCardExcept(sprite));
+    });
+
+    it("keeps an earlier stack lifted while a later one sets off", () => {
+      const first = relocate(
+        klondikeGame,
+        "card-hearts-ace",
+        klondikeGame.tableaus[0],
+      );
+      const second = relocate(
+        klondikeGame,
+        "card-spades-ace",
+        klondikeGame.tableaus[1],
+      );
+      const firstSprite = asMock(boardScene.cardSprite(first.id));
+      const secondSprite = asMock(boardScene.cardSprite(second.id));
+      boardScene.update(0, 16);
+
+      firstSprite.emit("pointerdown");
+      firstSprite.emit("pointerdown");
+      boardScene.update(16, 16); // still crossing
+      secondSprite.emit("pointerdown");
+      secondSprite.emit("pointerdown");
+      boardScene.update(32, 16);
+
+      const restingDepth = deepestCardExcept(firstSprite, secondSprite);
+      expect([
+        firstSprite.depth > restingDepth,
+        secondSprite.depth > firstSprite.depth,
+      ]).toEqual([true, true]);
     });
   });
 

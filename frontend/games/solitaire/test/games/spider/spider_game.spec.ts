@@ -311,6 +311,17 @@ describe("SpiderGame", () => {
       expect(game.state.moves).toBe(1);
     });
 
+    it("announces all ten cards so they are lifted while they cross", () => {
+      const announced: string[][] = [];
+      game.onCardsRelocated((cardIds) => announced.push([...cardIds]));
+
+      game.dealRow();
+
+      // Ten cards leaving one pile for ten others is the longest journey on the
+      // board: without the lift each one slides under the columns it passes.
+      expect(announced.flat().length).toBe(10);
+    });
+
     it("refuses to deal onto an empty column", () => {
       game.tableaus[0].clear();
 

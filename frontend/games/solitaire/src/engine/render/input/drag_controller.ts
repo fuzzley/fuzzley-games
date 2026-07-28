@@ -94,12 +94,12 @@ export class DragController {
     }
 
     this.drag = null;
-    this.beginFlight(this.handle({ kind: "activate-secondary", cardId }));
+    this.handle({ kind: "activate-secondary", cardId });
   }
 
   /** A pile's empty slot was pressed. */
   public backgroundPressed(pileId: string): void {
-    this.beginFlight(this.handle({ kind: "activate-pile", pileId }));
+    this.handle({ kind: "activate-pile", pileId });
   }
 
   /**
@@ -157,15 +157,18 @@ export class DragController {
     if (!drag) return;
     this.drag = null;
 
-    // Released wherever the pointer left it, so a stack that was accepted still
-    // has the board to cross to reach the pile that took it.
-    this.beginFlight(
-      this.handle({
-        kind: "drop",
-        cardIds: drag.cardIds,
-        targetPileId,
-      }),
-    );
+    this.handle({
+      kind: "drop",
+      cardIds: drag.cardIds,
+      targetPileId,
+    });
+
+    // Released wherever the pointer left it, so the stack has the board to
+    // cross whichever way it goes: on to the pile that took it, or back to the
+    // one it came from when nothing would. A refused drop moves nothing in the
+    // model and so is announced by nobody, which is why this is unconditional.
+    // An accepted one is announced too, and the newer flight supersedes this.
+    this.beginFlight(drag.cardIds);
   }
 
   // --- Flight ---
