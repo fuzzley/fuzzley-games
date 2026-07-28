@@ -5,34 +5,6 @@ import { PileGeometry, Rect } from "../view/table_view_state";
 import { PileLayout, pileHeight } from "./pile_layout";
 import { Size } from "./table_layout";
 
-/** Render depth of a pile's background placeholder, below every card. */
-export const PILE_BACKGROUND_DEPTH = 0;
-
-/**
- * Base render depth applied to a stack flying to the pile it was just moved to,
- * lifting it above every resting card.
- *
- * A card's resting depth only orders it within its own pile, so a card
- * auto-moved to a foundation takes its new pile's low depth the instant the
- * model moves it and would spend the whole flight drawn underneath the deeper
- * columns it crosses. Below {@link DRAG_BASE_DEPTH}, so a stack in hand still
- * covers a card flying past it.
- */
-export const FLIGHT_BASE_DEPTH = 500;
-
-/** Base render depth applied to a dragged card stack, lifting it above all resting cards. */
-export const DRAG_BASE_DEPTH = 1000;
-
-/** Render depth of the hover highlight border, above every card on the board. */
-export const HOVER_HIGHLIGHT_DEPTH = 2000;
-
-/**
- * Render depth of the drop-target border: above every resting card, but below
- * the dragged stack, so the card in hand stays on top of the place it is going
- * rather than being drawn over by it.
- */
-export const DROP_TARGET_HIGHLIGHT_DEPTH = DRAG_BASE_DEPTH - 1;
-
 /** A pile a dragged stack may be dropped onto. */
 export interface DropCandidate {
   /** The pile itself, whose cards set how far its target area reaches. */

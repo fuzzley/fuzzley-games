@@ -7,15 +7,11 @@ import {
   CARD_RENDER_WIDTH_PX,
 } from "@/engine/render/layout/card_metrics";
 import {
-  DRAG_BASE_DEPTH,
-  DROP_TARGET_HIGHLIGHT_DEPTH,
-  FLIGHT_BASE_DEPTH,
-  HOVER_HIGHLIGHT_DEPTH,
-  PILE_BACKGROUND_DEPTH,
   computeDropGeometries,
   resolveDropTarget,
 } from "@/engine/render/layout/drop_geometry";
 import { pileCardOffsets } from "@/engine/render/layout/pile_layout";
+import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
 import { TableMetrics } from "@/engine/render/layout/table_layout";
 import {
   CardView,
@@ -127,7 +123,7 @@ class TableViewStateBuilder {
         x: origin.x,
         y: origin.y,
         scale: this.spriteScale,
-        depth: PILE_BACKGROUND_DEPTH,
+        depth: depthFor(RenderLayer.PILE_BACKGROUND),
         // Only a slot that does something when clicked while empty invites one.
         cursor: zone.emptyIsActionable && pile.isEmpty ? "pointer" : "default",
       });
@@ -163,6 +159,11 @@ class TableViewStateBuilder {
       ]),
     );
 
+    // Resting cards are ordered across the whole board rather than within each
+    // pile, so two cards in different piles never share a depth and the order
+    // they are drawn in never falls back to the order their sprites were made.
+    let restingIndex = 0;
+
     for (const pile of this.game.piles) {
       const origin = this.origins.get(pile.id);
       const zone = this.game.zoneFor(pile.id);
@@ -181,15 +182,14 @@ class TableViewStateBuilder {
 
         let x: number;
         let y: number;
-        // Card depths sit above the pile background at depth 0.
-        let depth = cardIndex + 1;
+        let depth = depthFor(RenderLayer.RESTING_CARD, restingIndex++);
         let snap = this.interaction.snapAll;
 
         if (isDragged && dragPrimary) {
           const dragIndex = draggedIds.indexOf(card.id);
           x = dragPrimary.x;
           y = dragPrimary.y + dragIndex * dragFanGap * this.scale;
-          depth = DRAG_BASE_DEPTH + dragIndex;
+          depth = depthFor(RenderLayer.HELD_CARD, dragIndex);
           snap = true;
         } else {
           x = origin.x + offsets[cardIndex].x * this.scale;
@@ -200,7 +200,7 @@ class TableViewStateBuilder {
           // under them on its way to a depth it has not arrived at yet.
           const flightIndex = flightOrder.get(card.id);
           if (flightIndex !== undefined) {
-            depth = FLIGHT_BASE_DEPTH + flightIndex;
+            depth = depthFor(RenderLayer.FLYING_CARD, flightIndex);
           }
         }
 
@@ -298,7 +298,7 @@ class TableViewStateBuilder {
       width: this.cardWidth,
       height: this.cardHeight,
       scale: this.scale,
-      depth: DROP_TARGET_HIGHLIGHT_DEPTH,
+      depth: depthFor(RenderLayer.DROP_TARGET_HINT),
       openBottom: false,
     };
   }
@@ -337,7 +337,7 @@ class TableViewStateBuilder {
       width: this.cardWidth,
       height: this.cardHeight,
       scale: this.scale,
-      depth: HOVER_HIGHLIGHT_DEPTH,
+      depth: depthFor(RenderLayer.HOVER_HINT),
       // Leave the bottom edge open when another card is stacked on top, so the
       // border never draws a line across the covering card.
       openBottom: cardIndex !== -1 && cardIndex < pileCards.length - 1,
@@ -361,7 +361,7 @@ class TableViewStateBuilder {
       width: this.cardWidth,
       height: this.cardHeight,
       scale: this.scale,
-      depth: HOVER_HIGHLIGHT_DEPTH,
+      depth: depthFor(RenderLayer.HOVER_HINT),
       openBottom: false,
     };
   }
