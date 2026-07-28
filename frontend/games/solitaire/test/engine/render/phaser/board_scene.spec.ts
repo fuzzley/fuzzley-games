@@ -1,13 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
-import {
-  buildKlondikeViewState,
-  resolveKlondikeDropTarget,
-} from "@/games/klondike/klondike_board";
-import {
-  klondikeGestures,
-  klondikeStackFromCard,
-} from "@/games/klondike/klondike_gestures";
+import { makeKlondikeBoardScene } from "@/games/klondike/solitaire";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
 import {
   getGameModel,
@@ -45,14 +38,11 @@ function asMock(sprite: unknown): MockSprite {
  * A board scene drawing the given game, or the shared dealt one, laid out the
  * way the real application lays it out.
  */
+let klondikeGame: SolitaireGame;
+
 function makeBoardScene(gameModel: SolitaireGame = getGameModel()): BoardScene {
-  return new BoardScene(
-    gameModel,
-    buildKlondikeViewState,
-    resolveKlondikeDropTarget,
-    klondikeGestures(gameModel),
-    klondikeStackFromCard(gameModel),
-  );
+  klondikeGame = gameModel;
+  return makeKlondikeBoardScene(gameModel);
 }
 
 describe("BoardScene", () => {
@@ -66,7 +56,7 @@ describe("BoardScene", () => {
 
   /** The sprite of a card sitting in the stock, for tracking where it goes. */
   function stockCardSprite(): MockSprite {
-    const card = boardScene.gameModel.stock.getCards()[0];
+    const card = klondikeGame.stock.getCards()[0];
     return asMock(boardScene.cardSprite(card.id));
   }
 
@@ -93,7 +83,7 @@ describe("BoardScene", () => {
 
       const scene = makeBoardScene(injectedModel);
 
-      expect(scene.gameModel).toBe(injectedModel);
+      expect(scene.tableGame).toBe(injectedModel);
     });
   });
 
@@ -106,7 +96,7 @@ describe("BoardScene", () => {
     }
 
     it("repaints the camera when the background color setting changes", () => {
-      boardScene.gameModel.settings.setBackgroundColor("#123456");
+      klondikeGame.settings.setBackgroundColor("#123456");
 
       expect(camera().setBackgroundColor).toHaveBeenCalledWith("#123456");
     });
@@ -116,7 +106,7 @@ describe("BoardScene", () => {
       events.emit(SHUTDOWN_EVENT);
       camera().setBackgroundColor.mockClear();
 
-      boardScene.gameModel.settings.setBackgroundColor("#654321");
+      klondikeGame.settings.setBackgroundColor("#654321");
 
       // A scene restart runs create() again, so a subscription left behind here
       // would accumulate one stale listener per restart.
@@ -127,8 +117,8 @@ describe("BoardScene", () => {
   describe("dealing", () => {
     it("renders a board that is already dealt", () => {
       const dealt = [
-        boardScene.gameModel.stock.size,
-        ...boardScene.gameModel.tableaus.map((pile) => pile.size),
+        klondikeGame.stock.size,
+        ...klondikeGame.tableaus.map((pile) => pile.size),
       ];
 
       expect(dealt).toEqual([24, 1, 2, 3, 4, 5, 6, 7]);
@@ -136,15 +126,15 @@ describe("BoardScene", () => {
 
     it("does not re-deal when the scene is created again", () => {
       const ace = relocate(
-        boardScene.gameModel,
+        klondikeGame,
         "card-hearts-ace",
-        boardScene.gameModel.foundations[0],
+        klondikeGame.foundations[0],
       );
 
       boardScene.create();
 
       // A renderer that dealt would throw the game in progress away.
-      expect(boardScene.gameModel.foundations[0].topCard).toBe(ace);
+      expect(klondikeGame.foundations[0].topCard).toBe(ace);
     });
   });
 
@@ -158,7 +148,7 @@ describe("BoardScene", () => {
     });
 
     it("gives every tableau pile a placeholder background at the shared alpha", () => {
-      const pileIds = boardScene.gameModel.tableaus.map((pile) => pile.id);
+      const pileIds = klondikeGame.tableaus.map((pile) => pile.id);
 
       expect(backgroundsOf(pileIds)).toEqual(
         Array(7).fill({ frame: "card-placeholder", alpha }),
@@ -166,7 +156,7 @@ describe("BoardScene", () => {
     });
 
     it("gives every foundation pile a placeholder background at the shared alpha", () => {
-      const pileIds = boardScene.gameModel.foundations.map((pile) => pile.id);
+      const pileIds = klondikeGame.foundations.map((pile) => pile.id);
 
       expect(backgroundsOf(pileIds)).toEqual(
         Array(4).fill({
@@ -178,7 +168,7 @@ describe("BoardScene", () => {
 
     it("gives the waste pile no background, so it fans over bare table", () => {
       expect(
-        boardScene.pileBackgroundSprite(boardScene.gameModel.waste.id),
+        boardScene.pileBackgroundSprite(klondikeGame.waste.id),
       ).toBeUndefined();
     });
   });
@@ -239,9 +229,9 @@ describe("BoardScene", () => {
      */
     function autoMoveTheAce(): MockSprite {
       const ace = relocate(
-        boardScene.gameModel,
+        klondikeGame,
         "card-hearts-ace",
-        boardScene.gameModel.tableaus[0],
+        klondikeGame.tableaus[0],
       );
       const sprite = asMock(boardScene.cardSprite(ace.id));
       boardScene.update(0, 16); // the first frame snaps the board into place
@@ -287,16 +277,16 @@ describe("BoardScene", () => {
 
     it("drops a hover so no border survives into the new deal", () => {
       const ace = relocate(
-        boardScene.gameModel,
+        klondikeGame,
         "card-hearts-ace",
-        boardScene.gameModel.tableaus[0],
+        klondikeGame.tableaus[0],
       );
       asMock(boardScene.cardSprite(ace.id)).emit("pointerover");
       boardScene.update(0, 16);
 
       // Dealing a fresh board is what raises game-reset, so the interaction
       // state is cleared through the same path the game itself uses.
-      boardScene.gameModel.startNewGame();
+      klondikeGame.startNewGame();
       boardScene.update(16, 16);
 
       expect(highlightedCardSprite()).toBeUndefined();
@@ -308,7 +298,7 @@ describe("BoardScene", () => {
       boardScene.update(0, 16);
       const before = positions();
 
-      boardScene.gameModel.startNewGame();
+      klondikeGame.startNewGame();
       boardScene.update(16, 16);
 
       // A snap lands on the target in one frame; an ease would leave the cards

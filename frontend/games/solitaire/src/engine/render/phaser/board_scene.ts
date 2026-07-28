@@ -1,8 +1,5 @@
 import { GameObjects, Scene, Scenes } from "phaser";
 
-import { playingCardInstanceId } from "@/engine/core/card/playing_card";
-import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { SolitaireGame } from "@/games/klondike/solitaire_game";
 import { PhaserCardFactory } from "./phaser_card_factory";
 import { BoardInputManager } from "./board_input_manager";
 import { PhaserTableRenderer } from "./phaser_table_renderer";
@@ -16,8 +13,8 @@ import {
   TableViewState,
   Viewport,
 } from "../view/table_view_state";
-import { designSize } from "../layout/table_layout";
-import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
+import { TableLayoutSpec, designSize } from "../layout/table_layout";
+import { TableView } from "@/engine/tableau/view/table_view";
 
 /**
  * Produces the desired appearance of a board for one frame.
@@ -27,7 +24,6 @@ import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
  * how that view state was decided.
  */
 export type BuildTableViewState = (
-  game: SolitaireGame,
   interaction: TableInteractionState,
   viewport: Viewport,
 ) => TableViewState;
@@ -40,10 +36,42 @@ export type BuildTableViewState = (
  * that knows about games.
  */
 export type ResolveDropTarget = (
-  game: SolitaireGame,
   drag: DragInteraction,
   viewport: Viewport,
 ) => PileGeometry | null;
+
+/**
+ * Subscribes to a value the board follows, returning a function that stops
+ * following it.
+ *
+ * A plain callback rather than an observable because the render tier may not
+ * name a reactive library: whatever the game publishes with, it adapts to this.
+ */
+export type Subscribe<T> = (listener: (value: T) => void) => () => void;
+
+/** Everything a board scene needs from the game it is drawing. */
+export interface BoardSceneOptions {
+  /** The game to draw, read through its narrow view. */
+  readonly game: TableView;
+  /** The id of every card that needs a sprite. */
+  readonly cardIds: readonly string[];
+  /** The board's grid, for sizing before the canvas has been measured. */
+  readonly layout: TableLayoutSpec;
+  /** Produces the desired appearance of the board for one frame. */
+  readonly buildViewState: BuildTableViewState;
+  /** Resolves the pile a drag would land on. */
+  readonly resolveDropTarget: ResolveDropTarget;
+  /** Carries out what a press or a drop means in this game. */
+  readonly handleIntent: IntentHandler;
+  /** The cards that travel with the one being dragged. */
+  readonly stackFromCard: StackFromCard;
+  /** The artwork key for the back of a card, read when a sprite is made. */
+  readonly cardBackKey: () => string;
+  /** Follows the table colour. */
+  readonly onBackgroundColor: Subscribe<string>;
+  /** Follows new deals, so stale interaction state does not survive one. */
+  readonly onReset: Subscribe<void>;
+}
 
 /**
  * Handles rendering the fSolitaire game board using Phaser, reacting to
@@ -53,8 +81,16 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Transparency (alpha) level for pile background placeholders. */
   public static readonly PILE_BACKGROUND_ALPHA = 0.5;
 
-  /** The logical solitaire game rules and state engine. */
-  public readonly gameModel: SolitaireGame;
+  /**
+   * The game being drawn, read through its narrow view.
+   *
+   * Named `tableGame` rather than `game` because Phaser's Scene already has a
+   * `game`, and that one is the Phaser.Game running the canvas.
+   */
+  public readonly tableGame: TableView;
+
+  /** Everything this scene was told about the game it draws. */
+  private readonly options: BoardSceneOptions;
 
   /** Card sprites, keyed by the card id the model gave them. */
   private readonly cardSprites = new Map<string, GameObjects.Sprite>();
@@ -74,46 +110,34 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Applier to commit calculated view states onto sprites and graphics. */
   private viewApplier!: PhaserTableRenderer;
 
-  /** Produces the desired appearance of the board for one frame. */
-  private readonly buildViewState: BuildTableViewState;
-
-  /** Resolves the pile a drag would land on. */
-  public readonly resolveDropTarget: ResolveDropTarget;
-
-  /** Carries out what a press or a drop means in this game. */
-  public readonly handleIntent: IntentHandler;
-
-  /** The cards that travel with the one being dragged. */
-  public readonly stackFromCard: StackFromCard;
-
   /**
    * Constructs the board scene.
    *
-   * @param gameModel The game model to render.
-   * @param buildViewState Produces the desired appearance of the board for one
-   *   frame. Handed in rather than imported: what a board looks like is a
-   *   property of the game being played, and the Phaser adapter sits below the
-   *   tier that knows about games.
-   * @param resolveDropTarget Resolves the pile a drag would land on, for the
-   *   same reason.
-   * @param handleIntent Carries out what a press or a drop means. The last of
-   *   the game's decisions the scene needs and cannot make.
-   * @param stackFromCard The cards that travel with the one being dragged.
+   * @param options Everything the scene needs from the game it draws. Handed in
+   *   rather than imported: which cards exist, what a press means and where a
+   *   drop lands are all properties of the game, and the Phaser adapter sits
+   *   below the tier that knows about games.
    */
-  constructor(
-    gameModel: SolitaireGame,
-    buildViewState: BuildTableViewState,
-    resolveDropTarget: ResolveDropTarget,
-    handleIntent: IntentHandler,
-    stackFromCard: StackFromCard,
-  ) {
+  constructor(options: BoardSceneOptions) {
     super("board-scene");
 
-    this.gameModel = gameModel;
-    this.buildViewState = buildViewState;
-    this.resolveDropTarget = resolveDropTarget;
-    this.handleIntent = handleIntent;
-    this.stackFromCard = stackFromCard;
+    this.options = options;
+    this.tableGame = options.game;
+  }
+
+  /** Resolves the pile a drag would land on. */
+  public get resolveDropTarget(): ResolveDropTarget {
+    return this.options.resolveDropTarget;
+  }
+
+  /** Carries out what a press or a drop means in this game. */
+  public get handleIntent(): IntentHandler {
+    return this.options.handleIntent;
+  }
+
+  /** The cards that travel with the one being dragged. */
+  public get stackFromCard(): StackFromCard {
+    return this.options.stackFromCard;
   }
 
   /**
@@ -127,25 +151,24 @@ export class BoardScene extends Scene implements PhaserSprites {
   create() {
     this.inputManager = new BoardInputManager(this);
     this.viewApplier = new PhaserTableRenderer(this);
-    this.visualFactory = new PhaserCardFactory(
-      this,
-      () => this.gameModel.settings.cardBackStyle,
-    );
+    this.visualFactory = new PhaserCardFactory(this, this.options.cardBackKey);
 
     this.createPileBackgroundSprites();
     this.createCardSprites();
-    this.setupEventListeners();
 
     // Apply the table background color and follow future changes (e.g. theme
     // switches from the Angular UI) through the shared model. Released on
     // shutdown: create() runs again on every scene restart, and without this
     // each restart would leave another live subscription holding the old scene.
-    const backgroundSubscription =
-      this.gameModel.settings.backgroundColor$.subscribe((color) => {
-        this.cameras?.main?.setBackgroundColor(color);
-      });
+    const stopFollowingColor = this.options.onBackgroundColor((color) => {
+      this.cameras?.main?.setBackgroundColor(color);
+    });
+    const stopFollowingResets = this.options.onReset(() => {
+      this.inputManager.resetInteraction();
+    });
     this.events.once(Scenes.Events.SHUTDOWN, () => {
-      backgroundSubscription.unsubscribe();
+      stopFollowingColor();
+      stopFollowingResets();
     });
 
     this.inputManager.snapAll = true;
@@ -163,18 +186,10 @@ export class BoardScene extends Scene implements PhaserSprites {
     this.input.setPollAlways();
   }
 
-  /** Registers listeners on the game model to update graphics dynamically. */
-  private setupEventListeners() {
-    this.gameModel.on("game-reset", () => {
-      this.inputManager.resetInteraction();
-    });
-  }
-
   /** Instantiates and registers a sprite for every playing card in the game. */
   private createCardSprites(): void {
-    for (const cardId of ALL_PLAYING_CARD_IDS) {
-      const id = playingCardInstanceId(cardId);
-      if (!this.gameModel.getCardById(id)) {
+    for (const id of this.options.cardIds) {
+      if (!this.tableGame.getCardById(id)) {
         throw new Error(`Card model not found for: ${id}`);
       }
 
@@ -196,8 +211,8 @@ export class BoardScene extends Scene implements PhaserSprites {
   private createPileBackgroundSprites(): void {
     const alpha = BoardScene.PILE_BACKGROUND_ALPHA;
 
-    for (const pile of this.gameModel.piles) {
-      const zone = this.gameModel.zoneFor(pile.id);
+    for (const pile of this.tableGame.piles) {
+      const zone = this.tableGame.zoneFor(pile.id);
       if (!zone?.backgroundKey) continue;
 
       const sprite = this.visualFactory.createPileBackground(
@@ -253,7 +268,7 @@ export class BoardScene extends Scene implements PhaserSprites {
    * design size before the scale manager has sized the canvas.
    */
   public get viewport(): Viewport {
-    const design = designSize(KLONDIKE_LAYOUT);
+    const design = designSize(this.options.layout);
     return {
       width: this.scale?.width || design.width,
       height: this.scale?.height || design.height,
@@ -268,8 +283,7 @@ export class BoardScene extends Scene implements PhaserSprites {
   override update(_timeMs: number, deltaMs: number): void {
     if (!this.inputManager || !this.viewApplier) return;
 
-    const state = this.buildViewState(
-      this.gameModel,
+    const state = this.options.buildViewState(
       this.inputManager.interaction,
       this.viewport,
     );
