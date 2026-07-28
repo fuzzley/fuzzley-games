@@ -83,14 +83,28 @@ describe("SettingsDrawerComponent", () => {
     expect(closeCount).toBe(1);
   });
 
-  it("triggers draw mode selection change in session", () => {
+  it("renders whichever rules the game on the table offers", () => {
     fixture.componentRef.setInput("open", true);
     fixture.detectChanges();
-    const setDrawModeSpy = vi.spyOn(session, "setDrawMode");
+
+    // Scoped to the drawer's own groups: the debug panel nests its options
+    // inside .debug-panel and has its own spec.
+    expect(
+      queryAll(
+        fixture,
+        ".drawer-content > .setting-group .segmented-control button",
+      ).map((b) => b.textContent?.trim()),
+    ).toEqual(["Draw 1", "Draw 3"]);
+  });
+
+  it("changes a rule when one of its choices is clicked", () => {
+    fixture.componentRef.setInput("open", true);
+    fixture.detectChanges();
+    const setRuleOptionSpy = vi.spyOn(session, "setRuleOption");
 
     queryAll(fixture, ".segmented-control button")[0].click(); // Draw 1
 
-    expect(setDrawModeSpy).toHaveBeenCalledWith(1);
+    expect(setRuleOptionSpy).toHaveBeenCalledWith("drawCount", 1);
   });
 
   it("triggers card back design selection change in session", () => {

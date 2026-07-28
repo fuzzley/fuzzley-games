@@ -31,26 +31,3 @@ export interface PlayableGame {
   /** Unsubscribes from a lifecycle event. */
   off(event: PlayableGameEvent, listener: () => void): void;
 }
-
-/**
- * Rule options a game chooses to expose to the shell's settings panel.
- *
- * Optional because most games have none: Klondike offers a draw mode and a
- * debug board, FreeCell offers nothing at all, and a shell that assumed
- * otherwise could only ever host one game.
- */
-export interface GameRuleOptions {
-  /** How many cards a draw turns over, when the game has a stock that draws. */
-  readonly drawCount?: {
-    readonly options: readonly number[];
-    current(): number;
-    set(count: number): void;
-    subscribe(listener: (count: number) => void): () => void;
-  };
-  /** A debug board one move from being won. */
-  readonly almostWin?: {
-    current(): boolean;
-    set(enabled: boolean): void;
-    subscribe(listener: (enabled: boolean) => void): () => void;
-  };
-}

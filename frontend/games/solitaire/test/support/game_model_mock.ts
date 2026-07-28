@@ -121,36 +121,35 @@ export function asGameModel(mock: MockGameModel): SolitaireGame {
  * the request without dealing anything.
  */
 export function createMockCatalog(model: MockGameModel) {
-  const ruleOptions = {
-    drawCount: {
-      options: [1, 3] as readonly number[],
-      current: () => model.settings.drawCount,
-      set: (count: number): void => {
-        model.settings.setDrawCount(count);
-      },
-      subscribe: (listener: (count: number) => void) => {
-        const sub = model.settings.drawCount$.subscribe(listener);
-        return (): void => {
-          sub.unsubscribe();
-        };
-      },
+  const options = [
+    {
+      id: "drawCount",
+      label: "Draw Mode",
+      description: "Draw 1 is easier.",
+      choices: [
+        { value: 1, label: "Draw 1" },
+        { value: 3, label: "Draw 3" },
+      ],
+      defaultValue: 3,
     },
-    almostWin: {
-      current: () => model.settings.debug.almostWin,
-      set: (enabled: boolean): void => {
-        model.settings.debug.setAlmostWin(enabled);
-      },
-      subscribe: (listener: (enabled: boolean) => void) => {
-        const sub = model.settings.debug.almostWin$.subscribe(listener);
-        return (): void => {
-          sub.unsubscribe();
-        };
-      },
+    {
+      id: "almostWin",
+      label: "Almost Win Mode",
+      choices: [
+        { value: 0, label: "Normal" },
+        { value: 1, label: "Almost Win" },
+      ],
+      defaultValue: 0,
+      debugOnly: true,
     },
-  };
+  ];
 
   const selectedId = signal("klondike");
-  const session = signal({ game: model, ruleOptions });
+  const session = signal({ game: model });
+  const values = signal<Record<string, number>>({
+    drawCount: 3,
+    almostWin: 0,
+  });
 
   return {
     games: [
@@ -159,8 +158,14 @@ export function createMockCatalog(model: MockGameModel) {
     ],
     selectedId,
     session,
+    options: signal(options),
+    optionValues: values,
+    valueOf: (id: string) => values()[id] ?? null,
     select: vi.fn((id: string) => {
       selectedId.set(id);
+    }),
+    setOption: vi.fn((id: string, value: number) => {
+      values.set({ ...values(), [id]: value });
     }),
   };
 }

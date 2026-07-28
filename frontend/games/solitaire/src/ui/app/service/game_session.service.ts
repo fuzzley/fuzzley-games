@@ -1,7 +1,7 @@
 import { Injectable, signal, computed, effect, inject } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { PlayableGame } from "@/engine/tableau/playable_game";
-import { CatalogEntry } from "../provider/game_catalog";
+import { CatalogEntry, GameOptionSpec } from "../provider/game_catalog";
 import { GameCatalogService } from "./game_catalog.service";
 import {
   CardBackStyle,
@@ -32,19 +32,18 @@ export class GameSessionService {
   readonly moves = signal(0);
   private readonly undoDepth = signal(0);
 
-  /**
-   * The draw mode, or null for a game that has no stock to draw from.
-   *
-   * Fed by the game's own declared option rather than read off a settings
-   * object, because FreeCell and Spider have no such setting.
-   */
-  readonly drawCount = signal<number | null>(null);
+  /** The rules the running game lets a player choose, for the settings panel. */
+  readonly ruleOptions = computed<readonly GameOptionSpec[]>(() =>
+    this.catalog.options().filter((option) => !option.debugOnly),
+  );
 
-  /** The draw modes the running game offers, empty when it offers none. */
-  readonly drawCountOptions = signal<readonly number[]>([]);
+  /** The development-only rules the running game offers. */
+  readonly debugOptions = computed<readonly GameOptionSpec[]>(() =>
+    this.catalog.options().filter((option) => option.debugOnly),
+  );
 
-  /** The debug board toggle, or null for a game that offers none. */
-  readonly almostWin = signal<boolean | null>(null);
+  /** The chosen value of every rule of the running game, by option id. */
+  readonly optionValues = this.catalog.optionValues;
 
   readonly cardBack = toSignal(this.presentation.cardBackStyle$, {
     initialValue: "card-back-blue" satisfies CardBackStyle,
@@ -70,23 +69,13 @@ export class GameSessionService {
     // cleanup before the next pass, so switching games never leaves a
     // subscription pointing at the game that just left.
     effect((onCleanup) => {
-      const { game, ruleOptions } = this.catalog.session();
+      const { game } = this.catalog.session();
 
       const subscriptions = [
         game.state.score$.subscribe((value) => this.score.set(value)),
         game.state.moves$.subscribe((value) => this.moves.set(value)),
         game.state.undoDepth$.subscribe((value) => this.undoDepth.set(value)),
       ];
-
-      this.drawCountOptions.set(ruleOptions.drawCount?.options ?? []);
-      this.drawCount.set(ruleOptions.drawCount?.current() ?? null);
-      this.almostWin.set(ruleOptions.almostWin?.current() ?? null);
-      const stopFollowingDraw = ruleOptions.drawCount?.subscribe((count) =>
-        this.drawCount.set(count),
-      );
-      const stopFollowingAlmostWin = ruleOptions.almostWin?.subscribe(
-        (enabled) => this.almostWin.set(enabled),
-      );
 
       const gameWonHandler = () => {
         this.isGameWon.set(true);
@@ -96,8 +85,6 @@ export class GameSessionService {
 
       onCleanup(() => {
         subscriptions.forEach((subscription) => subscription.unsubscribe());
-        stopFollowingDraw?.();
-        stopFollowingAlmostWin?.();
         game.off("game-won", gameWonHandler);
       });
     });
@@ -155,22 +142,23 @@ export class GameSessionService {
     );
   }
 
-  setDrawMode(mode: number): void {
-    const drawCount = this.catalog.session().ruleOptions.drawCount;
-    if (!drawCount || this.drawCount() === mode) return;
+  /**
+   * Plays the current game by a different rule, behind a confirmation when a
+   * game is in progress.
+   *
+   * @param optionId The id of the rule to change.
+   * @param value The value to set it to.
+   */
+  setRuleOption(optionId: string, value: number): void {
+    if (this.catalog.valueOf(optionId) === value) return;
 
-    if (this.moves() === 0) {
-      drawCount.set(mode);
-    } else {
-      this.confirmIfInProgress(
-        `Changing the draw mode to Draw ${mode} will restart the game. Are you sure you want to proceed?`,
-        () => {
-          drawCount.set(mode);
-          this.gameModel.startNewGame();
-          this.startFreshSession();
-        },
-      );
-    }
+    this.confirmIfInProgress(
+      "Changing this will deal a new game. Are you sure you want to proceed?",
+      () => {
+        this.catalog.setOption(optionId, value);
+        this.startFreshSession();
+      },
+    );
   }
 
   /** Takes back the most recent move, if there is one. */
@@ -181,16 +169,6 @@ export class GameSessionService {
 
   setCardBack(style: CardBackStyle): void {
     this.presentation.setCardBackStyle(style);
-  }
-
-  setAlmostWin(enabled: boolean): void {
-    const almostWin = this.catalog.session().ruleOptions.almostWin;
-    if (!almostWin) return;
-    almostWin.set(enabled);
-    if (this.moves() > 0 || this.isGameWon()) {
-      this.gameModel.startNewGame();
-      this.startFreshSession();
-    }
   }
 
   /** Resets the won flag and stopwatch for a freshly (re)started game. */

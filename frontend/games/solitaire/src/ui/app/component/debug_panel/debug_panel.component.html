@@ -1,26 +1,22 @@
 <div class="debug-panel">
   <label class="setting-label debug-label">Debug Options</label>
-  <div class="setting-group">
-    <label class="setting-sublabel">Almost Win Mode</label>
-    <div class="segmented-control">
-      <button
-        [class.active]="!session.almostWin()"
-        (click)="session.setAlmostWin(false)"
-        class="segment-btn"
-      >
-        Normal
-      </button>
-      <button
-        [class.active]="session.almostWin()"
-        (click)="session.setAlmostWin(true)"
-        class="segment-btn"
-      >
-        Almost Win
-      </button>
+  @for (option of session.debugOptions(); track option.id) {
+    <div class="setting-group">
+      <label class="setting-sublabel">{{ option.label }}</label>
+      <div class="segmented-control">
+        @for (choice of option.choices; track choice.value) {
+          <button
+            class="segment-btn"
+            [class.active]="session.optionValues()[option.id] === choice.value"
+            (click)="session.setRuleOption(option.id, choice.value)"
+          >
+            {{ choice.label }}
+          </button>
+        }
+      </div>
+      @if (option.description) {
+        <p class="setting-desc">{{ option.description }}</p>
+      }
     </div>
-    <p class="setting-desc">
-      Pre-populates foundations so that dragging the remaining Kings will win
-      the game.
-    </p>
-  </div>
+  }
 </div>

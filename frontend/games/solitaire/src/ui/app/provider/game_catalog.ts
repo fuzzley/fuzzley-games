@@ -1,85 +1,159 @@
-import { InjectionToken } from "@angular/core";
-import { GameRuleOptions, PlayableGame } from "@/engine/tableau/playable_game";
+import { PlayableGame } from "@/engine/tableau/playable_game";
+import { deckCardIds } from "@/engine/core/card/deck";
+import { GameSettings } from "@/games/klondike/game_settings";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { SpiderGame } from "@/games/spider/spider_game";
+import { SpiderSuitCount, spiderDeck } from "@/games/spider/spider_deal";
+
+/** A value a rule option can be set to, and how to name it to a player. */
+export interface GameOptionChoice {
+  /** The stored value. Kept primitive so it round-trips through storage. */
+  readonly value: number;
+  /** What the choice is called. */
+  readonly label: string;
+}
+
+/**
+ * A rule a game lets the player choose.
+ *
+ * Declared as data rather than as named fields on a shared interface. The
+ * interface used to have a `drawCount` and an `almostWin` on it, which is
+ * Klondike's vocabulary in a place meant to serve every game — and it would
+ * have grown a `suitCount` for Spider, then one field per option per game
+ * forever. A game now says what it offers and the settings panel renders it.
+ */
+export interface GameOptionSpec {
+  /** Stable id, used for storage and for setting the value. */
+  readonly id: string;
+  /** What the option is called. */
+  readonly label: string;
+  /** A sentence explaining what choosing differently does. */
+  readonly description?: string;
+  /** The values on offer, in the order they are shown. */
+  readonly choices: readonly GameOptionChoice[];
+  /** The value used when the player has expressed no preference. */
+  readonly defaultValue: number;
+  /** Whether this is a development aid rather than a rule a player picks. */
+  readonly debugOnly?: boolean;
+}
+
+/** The chosen value of each option, by option id. */
+export type GameOptionValues = Readonly<Record<string, number>>;
 
 /** A game the application can put on the table. */
 export interface CatalogEntry {
-  /** Stable id, also the URL hash that selects it. */
+  /** Stable id, also the URL fragment that selects it. */
   readonly id: string;
   /** Name shown to a player. */
   readonly name: string;
-  /** Creates a dealt game and says what options it offers. */
-  create(): CatalogSession;
+  /** The rules this game lets the player choose. */
+  readonly options: readonly GameOptionSpec[];
+  /** Creates a dealt game playing by the given options. */
+  create(values: GameOptionValues): CatalogSession;
 }
 
-/** A dealt game and whatever rule options it offers. */
+/** A dealt game. */
 export interface CatalogSession {
   readonly game: PlayableGame;
-  readonly ruleOptions: GameRuleOptions;
 }
+
+/** Reads an option's value, falling back to its default. */
+export function optionValue(
+  values: GameOptionValues,
+  spec: GameOptionSpec,
+): number {
+  const value = values[spec.id];
+  return spec.choices.some((choice) => choice.value === value)
+    ? value
+    : spec.defaultValue;
+}
+
+const KLONDIKE_DRAW_COUNT: GameOptionSpec = {
+  id: "drawCount",
+  label: "Draw Mode",
+  description: "Draw 1 is easier; Draw 3 is the standard Solitaire challenge.",
+  choices: [
+    { value: 1, label: "Draw 1" },
+    { value: 3, label: "Draw 3" },
+  ],
+  defaultValue: 3,
+};
+
+const KLONDIKE_ALMOST_WIN: GameOptionSpec = {
+  id: "almostWin",
+  label: "Almost Win Mode",
+  description:
+    "Pre-populates foundations so that dragging the remaining Kings will win the game.",
+  choices: [
+    { value: 0, label: "Normal" },
+    { value: 1, label: "Almost Win" },
+  ],
+  defaultValue: 0,
+  debugOnly: true,
+};
+
+const SPIDER_SUIT_COUNT: GameOptionSpec = {
+  id: "suitCount",
+  label: "Suits",
+  description:
+    "Always 104 cards — fewer suits means more copies of each, and a far gentler game.",
+  choices: [
+    { value: 1, label: "1 Suit" },
+    { value: 2, label: "2 Suits" },
+    { value: 4, label: "4 Suits" },
+  ],
+  defaultValue: 4,
+};
 
 /**
  * Every game the engine can currently put on the table.
  *
- * An entry is: make the game, deal it, and say what options it offers. How to
- * draw it lives in board_catalog, which is what keeps Phaser out of everything
- * that only wants to know what is being played.
+ * An entry is: what it is called, which rules it lets the player choose, and
+ * how to deal one. Everything else — the rules themselves, the layout, the
+ * gestures — the game module already declared.
  */
 export const GAME_CATALOG: readonly CatalogEntry[] = [
   {
     id: "klondike",
     name: "Klondike",
-    create: () => {
-      const game = new SolitaireGame();
+    options: [KLONDIKE_DRAW_COUNT, KLONDIKE_ALMOST_WIN],
+    create: (values) => {
+      const settings = new GameSettings();
+      settings.setDrawCount(
+        optionValue(values, KLONDIKE_DRAW_COUNT) === 1 ? 1 : 3,
+      );
+      settings.debug.setAlmostWin(
+        optionValue(values, KLONDIKE_ALMOST_WIN) === 1,
+      );
+      const game = new SolitaireGame(undefined, undefined, settings);
       game.startNewGame();
-      return {
-        game,
-        ruleOptions: {
-          drawCount: {
-            options: [1, 3],
-            current: () => game.settings.drawCount,
-            set: (count) => game.settings.setDrawCount(count === 1 ? 1 : 3),
-            subscribe: (listener) => {
-              const sub = game.settings.drawCount$.subscribe(listener);
-              return () => sub.unsubscribe();
-            },
-          },
-          almostWin: {
-            current: () => game.settings.debug.almostWin,
-            set: (enabled) => game.settings.debug.setAlmostWin(enabled),
-            subscribe: (listener) => {
-              const sub = game.settings.debug.almostWin$.subscribe(listener);
-              return () => sub.unsubscribe();
-            },
-          },
-        },
-      };
+      return { game };
     },
   },
   {
     id: "freecell",
     name: "FreeCell",
+    // FreeCell has no rules to choose: no stock, no draw mode, no variants.
+    options: [],
     create: () => {
       const game = new FreeCellGame();
       game.startNewGame();
-      return {
-        game,
-        // FreeCell offers no rule options at all: no draw mode, no stock.
-        ruleOptions: {},
-      };
+      return { game };
     },
   },
   {
     id: "spider",
     name: "Spider",
-    create: () => {
-      const game = new SpiderGame();
+    options: [SPIDER_SUIT_COUNT],
+    create: (values) => {
+      const suitCount = optionValue(
+        values,
+        SPIDER_SUIT_COUNT,
+      ) as SpiderSuitCount;
+      const game = new SpiderGame(deckCardIds(spiderDeck(suitCount)));
       game.startNewGame();
-      // Spider's stock deals a whole row rather than turning cards over one at
-      // a time, so there is no draw mode to choose.
-      return { game, ruleOptions: {} };
+      return { game };
     },
   },
 ];
@@ -88,12 +162,3 @@ export const GAME_CATALOG: readonly CatalogEntry[] = [
 export function catalogEntry(id: string | null | undefined): CatalogEntry {
   return GAME_CATALOG.find((entry) => entry.id === id) ?? GAME_CATALOG[0];
 }
-
-/** The game the application should start on, chosen by URL hash. */
-export const SELECTED_GAME = new InjectionToken<CatalogEntry>("SELECTED_GAME", {
-  providedIn: "root",
-  factory: () =>
-    catalogEntry(
-      typeof location === "undefined" ? null : location.hash.replace(/^#/, ""),
-    ),
-});

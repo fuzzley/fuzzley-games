@@ -22,6 +22,11 @@ export class CardRegistry {
     return this.cardsById.size;
   }
 
+  /** The id of every card registered so far, in registration order. */
+  ids(): readonly string[] {
+    return [...this.cardsById.keys()];
+  }
+
   /**
    * Returns the registered card with the given id, or undefined if no card
    * with that id has been created yet.

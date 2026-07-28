@@ -9,8 +9,6 @@ import {
 import { klondikeGestures, klondikeStackFromCard } from "./klondike_gestures";
 import { SolitaireGame } from "./solitaire_game";
 import { KLONDIKE_LAYOUT } from "./klondike_layout";
-import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { playingCardInstanceId } from "@/engine/core/card/playing_card";
 import { ViewportScaler } from "@/engine/render/phaser/viewport_scaler";
 import {
   DEFAULT_BACKGROUND_COLOR,
@@ -30,7 +28,7 @@ export function makeKlondikeBoardScene(
 ): BoardScene {
   return new BoardScene({
     game,
-    cardIds: ALL_PLAYING_CARD_IDS.map(playingCardInstanceId),
+    cardIds: game.cardIds,
     layout: KLONDIKE_LAYOUT,
     buildViewState: buildKlondikeViewState(game, presentation),
     resolveDropTarget: resolveKlondikeDropTarget(game),

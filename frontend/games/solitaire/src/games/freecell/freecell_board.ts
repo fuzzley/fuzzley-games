@@ -1,6 +1,4 @@
 import { BoardScene } from "@/engine/render/phaser/board_scene";
-import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { playingCardInstanceId } from "@/engine/core/card/playing_card";
 import { TablePresentation } from "@/engine/render/presentation";
 import {
   TableMetrics,
@@ -57,7 +55,7 @@ export function makeFreeCellBoardScene(
 ): BoardScene {
   return new BoardScene({
     game,
-    cardIds: ALL_PLAYING_CARD_IDS.map(playingCardInstanceId),
+    cardIds: game.cardIds,
     layout: FREECELL_LAYOUT,
     buildViewState: buildFreeCellViewState(game, presentation),
     resolveDropTarget: resolveFreeCellDropTarget(game),
