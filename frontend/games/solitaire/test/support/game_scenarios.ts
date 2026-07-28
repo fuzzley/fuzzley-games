@@ -4,13 +4,13 @@ import {
   playingCardInstanceId,
 } from "@/engine/core/card/playing_card";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { SolitaireGame } from "@/games/klondike/solitaire_game";
+import { KlondikeGame } from "@/games/klondike/klondike_game";
 
 /** Id of the only card left out of the foundations by {@link almostWon}. */
 export const CLUB_KING_ID = "card-clubs-king";
 
 /** Empties every pile on the board so a test can build an exact position. */
-export function emptyBoard(game: SolitaireGame): void {
+export function emptyBoard(game: KlondikeGame): void {
   game.stock.clear();
   game.waste.clear();
   game.tableaus.forEach((tableau) => tableau.clear());
@@ -23,7 +23,7 @@ export function emptyBoard(game: SolitaireGame): void {
  * started so the card exists in the model.
  */
 export function relocate(
-  game: SolitaireGame,
+  game: KlondikeGame,
   cardId: string,
   targetPile: CardPile<PlayingCard>,
   faceUp = true,
@@ -40,7 +40,7 @@ export function relocate(
  * the waste, and draws so the game recycles the waste back into the stock.
  */
 export function forceWasteRecycle(
-  game: SolitaireGame,
+  game: KlondikeGame,
   card: PlayingCard,
 ): void {
   game.stock.clear();
@@ -54,7 +54,7 @@ export function forceWasteRecycle(
  * King of Clubs out, so a single move can complete the game. The game must
  * already have been started so the cards exist in the model.
  */
-export function almostWon(game: SolitaireGame): void {
+export function almostWon(game: KlondikeGame): void {
   emptyBoard(game);
   for (const cardId of ALL_PLAYING_CARD_IDS) {
     const id = playingCardInstanceId(cardId);

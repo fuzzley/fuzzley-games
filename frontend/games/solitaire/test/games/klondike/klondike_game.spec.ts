@@ -1,4 +1,4 @@
-import { SolitaireGame } from "@/games/klondike/solitaire_game";
+import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { KlondikeRole } from "@/games/klondike/klondike_zones";
 import { playingCardFaceKey } from "@/engine/core/card/playing_card";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
@@ -11,11 +11,11 @@ import {
   relocate,
 } from "@test/support/game_scenarios";
 
-describe("SolitaireGame", () => {
-  let game: SolitaireGame;
+describe("KlondikeGame", () => {
+  let game: KlondikeGame;
 
   beforeEach(() => {
-    game = new SolitaireGame();
+    game = new KlondikeGame();
   });
 
   describe("construction", () => {
@@ -86,7 +86,7 @@ describe("SolitaireGame", () => {
     });
 
     it("deals nothing when constructed with an empty deck", () => {
-      const shortGame = new SolitaireGame([]);
+      const shortGame = new KlondikeGame([]);
 
       shortGame.startNewGame();
 
@@ -184,7 +184,7 @@ describe("SolitaireGame", () => {
     });
 
     it("does nothing when both the stock and waste are empty", () => {
-      const emptyGame = new SolitaireGame();
+      const emptyGame = new KlondikeGame();
 
       emptyGame.drawCardsFromStock();
 
@@ -866,11 +866,11 @@ describe("SolitaireGame", () => {
   });
 });
 
-describe("SolitaireGame card location tracking", () => {
-  let game: SolitaireGame;
+describe("KlondikeGame card location tracking", () => {
+  let game: KlondikeGame;
 
   beforeEach(() => {
-    game = new SolitaireGame();
+    game = new KlondikeGame();
     game.startNewGame();
   });
 

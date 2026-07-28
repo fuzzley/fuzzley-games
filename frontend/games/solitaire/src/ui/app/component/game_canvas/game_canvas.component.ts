@@ -5,7 +5,7 @@ import {
   effect,
   inject,
 } from "@angular/core";
-import { Solitaire } from "@/games/klondike/solitaire";
+import { Klondike } from "@/games/klondike/klondike";
 import { makeBoardScene } from "../../provider/board_catalog";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { PresentationSettingsService } from "../../service/presentation_settings.service";
@@ -13,7 +13,7 @@ import { PresentationSettingsService } from "../../service/presentation_settings
 declare global {
   interface Window {
     /** The running game, exposed for debugging from the browser console. */
-    solitaire?: Solitaire;
+    klondike?: Klondike;
   }
 }
 
@@ -46,16 +46,16 @@ export class GameCanvasComponent {
     // one mid-flight.
     effect((onCleanup) => {
       const { game } = this.catalog.session();
-      const solitaire = new Solitaire(window, this.host.nativeElement, () =>
+      const klondike = new Klondike(window, this.host.nativeElement, () =>
         makeBoardScene(game, this.presentation),
       );
-      solitaire.start();
-      window.solitaire = solitaire;
+      klondike.start();
+      window.klondike = klondike;
 
       onCleanup(() => {
-        solitaire.destroy();
-        if (window.solitaire === solitaire) {
-          delete window.solitaire;
+        klondike.destroy();
+        if (window.klondike === klondike) {
+          delete window.klondike;
         }
       });
     });

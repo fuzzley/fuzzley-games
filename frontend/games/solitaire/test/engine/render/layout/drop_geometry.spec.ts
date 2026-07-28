@@ -39,7 +39,7 @@ import {
   tableauPileId,
 } from "@/games/klondike/klondike_zones";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { SolitaireGame } from "@/games/klondike/solitaire_game";
+import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { Viewport } from "@/engine/render/view/table_view_state";
 import { makePlayingCard } from "@test/support/card_builder";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
@@ -392,7 +392,7 @@ describe("offsetsForPile", () => {
 });
 
 describe("computeDropGeometries", () => {
-  let game: SolitaireGame;
+  let game: KlondikeGame;
 
   function dropGeometries() {
     const metrics = measureKlondikeBoard(designViewport());
@@ -412,7 +412,7 @@ describe("computeDropGeometries", () => {
   }
 
   beforeEach(() => {
-    game = new SolitaireGame();
+    game = new KlondikeGame();
     game.startNewGame();
     emptyBoard(game);
   });

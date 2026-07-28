@@ -5,7 +5,7 @@ import { DrawCount } from "./game_settings";
 /**
  * Encapsulates the standard Klondike scoring rules.
  *
- * Keeping the rules in one place lets {@link SolitaireGame} stay focused on
+ * Keeping the rules in one place lets {@link KlondikeGame} stay focused on
  * moving cards, keeps every magic number in a single readable spot, and makes
  * alternate rulesets (e.g. Vegas scoring) a matter of swapping the policy.
  */

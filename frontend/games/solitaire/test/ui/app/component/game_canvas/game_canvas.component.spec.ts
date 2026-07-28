@@ -17,8 +17,8 @@ vi.mock("@/ui/app/provider/board_catalog", () => ({
   }),
 }));
 
-vi.mock("@/games/klondike/solitaire", () => ({
-  Solitaire: class {
+vi.mock("@/games/klondike/klondike", () => ({
+  Klondike: class {
     private readonly record: { parent: HTMLElement; destroyed: boolean };
 
     constructor(_window: Window, parent: HTMLElement) {
@@ -50,7 +50,7 @@ describe("GameCanvasComponent", () => {
   });
 
   afterEach(() => {
-    delete window.solitaire;
+    delete window.klondike;
   });
 
   it("starts exactly one game", () => {
@@ -62,7 +62,7 @@ describe("GameCanvasComponent", () => {
   });
 
   it("exposes the running game for console debugging", () => {
-    expect(window.solitaire).toBeDefined();
+    expect(window.klondike).toBeDefined();
   });
 
   it("destroys the game when the host is torn down", () => {
@@ -74,6 +74,6 @@ describe("GameCanvasComponent", () => {
   it("stops exposing the game once it is destroyed", () => {
     fixture.destroy();
 
-    expect(window.solitaire).toBeUndefined();
+    expect(window.klondike).toBeUndefined();
   });
 });

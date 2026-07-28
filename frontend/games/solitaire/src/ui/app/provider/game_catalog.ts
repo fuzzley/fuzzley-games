@@ -1,7 +1,7 @@
 import { PlayableGame } from "@/engine/tableau/playable_game";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { GameSettings } from "@/games/klondike/game_settings";
-import { SolitaireGame } from "@/games/klondike/solitaire_game";
+import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { SpiderGame } from "@/games/spider/spider_game";
 import { SpiderSuitCount, spiderDeck } from "@/games/spider/spider_deal";
@@ -126,7 +126,7 @@ export const GAME_CATALOG: readonly CatalogEntry[] = [
       settings.debug.setAlmostWin(
         optionValue(values, KLONDIKE_ALMOST_WIN) === 1,
       );
-      const game = new SolitaireGame(undefined, undefined, settings);
+      const game = new KlondikeGame(undefined, undefined, settings);
       game.startNewGame();
       return { game };
     },

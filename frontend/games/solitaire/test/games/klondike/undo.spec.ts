@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { SolitaireGame } from "@/games/klondike/solitaire_game";
+import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { Rank, Suit } from "@/engine/core/card/playing_card";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
-describe("SolitaireGame undo", () => {
-  let game: SolitaireGame;
+describe("KlondikeGame undo", () => {
+  let game: KlondikeGame;
 
   beforeEach(() => {
-    game = new SolitaireGame();
+    game = new KlondikeGame();
     game.settings.setDrawCount(3);
     game.startNewGame();
   });

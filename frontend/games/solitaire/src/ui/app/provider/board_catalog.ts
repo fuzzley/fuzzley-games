@@ -1,7 +1,7 @@
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { TablePresentation } from "@/engine/render/presentation";
-import { SolitaireGame } from "@/games/klondike/solitaire_game";
-import { makeKlondikeBoardScene } from "@/games/klondike/solitaire";
+import { KlondikeGame } from "@/games/klondike/klondike_game";
+import { makeKlondikeBoardScene } from "@/games/klondike/klondike";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { makeFreeCellBoardScene } from "@/games/freecell/freecell_board";
 import { SpiderGame } from "@/games/spider/spider_game";
@@ -18,7 +18,7 @@ export function makeBoardScene(
   game: unknown,
   presentation: TablePresentation,
 ): BoardScene {
-  if (game instanceof SolitaireGame) {
+  if (game instanceof KlondikeGame) {
     return makeKlondikeBoardScene(game, presentation);
   }
   if (game instanceof FreeCellGame) {

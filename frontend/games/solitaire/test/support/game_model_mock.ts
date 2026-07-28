@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 import { signal } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
-import type { SolitaireGame } from "@/games/klondike/solitaire_game";
+import type { KlondikeGame } from "@/games/klondike/klondike_game";
 import type { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import type { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 
@@ -14,7 +14,7 @@ export interface MockGameModelOverrides {
 }
 
 /**
- * Builds a mock SolitaireGame with observable state/settings matching the real
+ * Builds a mock KlondikeGame with observable state/settings matching the real
  * API, for overriding the GAME_MODEL token in UI-layer specs.
  */
 export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
@@ -107,9 +107,9 @@ export function asPresentation(
   return mock as unknown as PresentationSettingsService;
 }
 
-/** Casts the mock to the SolitaireGame type expected by the GAME_MODEL token. */
-export function asGameModel(mock: MockGameModel): SolitaireGame {
-  return mock as unknown as SolitaireGame;
+/** Casts the mock to the KlondikeGame type expected by the GAME_MODEL token. */
+export function asGameModel(mock: MockGameModel): KlondikeGame {
+  return mock as unknown as KlondikeGame;
 }
 
 /**

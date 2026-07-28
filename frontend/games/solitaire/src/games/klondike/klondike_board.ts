@@ -15,7 +15,7 @@ import {
 } from "@/engine/tableau/view/table_view_builder";
 import { TablePresentation } from "@/engine/render/presentation";
 import { KLONDIKE_LAYOUT } from "./klondike_layout";
-import { SolitaireGame } from "./solitaire_game";
+import { KlondikeGame } from "./klondike_game";
 
 /** Measures the Klondike board for the given viewport. */
 export function measureKlondikeBoard(viewport: Viewport): TableMetrics {
@@ -30,7 +30,7 @@ export function measureKlondikeBoard(viewport: Viewport): TableMetrics {
  * the zones.
  */
 export function buildKlondikeViewState(
-  game: SolitaireGame,
+  game: KlondikeGame,
   presentation: TablePresentation,
 ): (interaction: TableInteractionState, viewport: Viewport) => TableViewState {
   return (interaction, viewport) =>
@@ -46,7 +46,7 @@ export function buildKlondikeViewState(
  * promise a pile the drop then disagrees with.
  */
 export function resolveKlondikeDropTarget(
-  game: SolitaireGame,
+  game: KlondikeGame,
 ): (drag: DragInteraction, viewport: Viewport) => PileGeometry | null {
   return (drag, viewport) =>
     resolveDragTarget(game, drag, measureKlondikeBoard(viewport));

@@ -7,7 +7,7 @@ import {
   resolveKlondikeDropTarget,
 } from "./klondike_board";
 import { klondikeGestures, klondikeStackFromCard } from "./klondike_gestures";
-import { SolitaireGame } from "./solitaire_game";
+import { KlondikeGame } from "./klondike_game";
 import { KLONDIKE_LAYOUT } from "./klondike_layout";
 import { ViewportScaler } from "@/engine/render/phaser/viewport_scaler";
 import {
@@ -23,7 +23,7 @@ import {
  * lands, and how the board follows the player's choices.
  */
 export function makeKlondikeBoardScene(
-  game: SolitaireGame,
+  game: KlondikeGame,
   presentation: TablePresentation,
 ): BoardScene {
   return new BoardScene({
@@ -46,14 +46,14 @@ export function makeKlondikeBoardScene(
 }
 
 /** Hosts a Phaser canvas running whichever board it is given. */
-export class Solitaire {
+export class Klondike {
   private game?: Phaser.Game;
 
   /** Keeps the canvas sized to the display's true pixel resolution. */
   private scaler?: ViewportScaler;
 
   /**
-   * Constructs the Solitaire game entry point.
+   * Constructs the Klondike game entry point.
    *
    * @param window The browser Window context in which the game is running.
    * @param parent The element the game canvas is mounted into and sized to.

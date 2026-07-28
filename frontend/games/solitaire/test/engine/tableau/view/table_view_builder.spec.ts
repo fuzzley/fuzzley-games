@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { SolitaireGame } from "@/games/klondike/solitaire_game";
+import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { buildKlondikeViewState } from "@/games/klondike/klondike_board";
 import {
   TableInteractionState,
@@ -23,12 +23,12 @@ import { TestPresentation } from "@test/support/presentation";
 const presentation = new TestPresentation();
 
 describe("board_view_state_builder", () => {
-  let game: SolitaireGame;
+  let game: KlondikeGame;
   const viewport: Viewport = { width: 1920, height: 1080, pixelRatio: 1 };
   let interaction: TableInteractionState;
 
   beforeEach(() => {
-    game = new SolitaireGame();
+    game = new KlondikeGame();
     game.startNewGame();
     interaction = {
       hoveredCardId: null,
