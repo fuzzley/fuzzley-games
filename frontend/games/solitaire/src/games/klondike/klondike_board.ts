@@ -13,6 +13,7 @@ import {
   buildTableViewState,
   resolveDragTarget,
 } from "@/engine/tableau/view/table_view_builder";
+import { TablePresentation } from "@/engine/render/presentation";
 import { KLONDIKE_LAYOUT } from "./klondike_layout";
 import { SolitaireGame } from "./solitaire_game";
 
@@ -30,10 +31,11 @@ export function measureKlondikeBoard(viewport: Viewport): TableMetrics {
  */
 export function buildKlondikeViewState(
   game: SolitaireGame,
+  presentation: TablePresentation,
 ): (interaction: TableInteractionState, viewport: Viewport) => TableViewState {
   return (interaction, viewport) =>
     buildTableViewState(game, interaction, measureKlondikeBoard(viewport), {
-      cardBackKey: game.settings.cardBackStyle,
+      cardBackKey: presentation.cardBackKey(),
     });
 }
 

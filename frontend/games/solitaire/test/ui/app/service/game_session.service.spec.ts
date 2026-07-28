@@ -4,16 +4,21 @@ import { TestBed } from "@angular/core/testing";
 import { GameSessionService } from "@/ui/app/service/game_session.service";
 import { ConfirmationService } from "@/ui/app/service/confirmation.service";
 import { GAME_MODEL } from "@/ui/app/provider/game_model.provider";
+import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import {
   createMockGameModel,
+  createMockPresentation,
   asGameModel,
+  asPresentation,
   type MockGameModel,
+  type MockPresentation,
 } from "@test/support/game_model_mock";
 
 interface Harness {
   session: GameSessionService;
   confirmation: ConfirmationService;
   model: MockGameModel;
+  presentation: MockPresentation;
   emitGameWon: () => void;
 }
 
@@ -23,12 +28,25 @@ function buildSession(model: MockGameModel): Harness {
     if (event === "game-won") emitGameWon = callback;
   });
 
+  const presentation = createMockPresentation();
   TestBed.configureTestingModule({
-    providers: [{ provide: GAME_MODEL, useValue: asGameModel(model) }],
+    providers: [
+      { provide: GAME_MODEL, useValue: asGameModel(model) },
+      {
+        provide: PresentationSettingsService,
+        useValue: asPresentation(presentation),
+      },
+    ],
   });
   const session = TestBed.inject(GameSessionService);
   const confirmation = TestBed.inject(ConfirmationService);
-  return { session, confirmation, model, emitGameWon: () => emitGameWon() };
+  return {
+    session,
+    confirmation,
+    model,
+    presentation,
+    emitGameWon: () => emitGameWon(),
+  };
 }
 
 describe("GameSessionService", () => {
@@ -51,7 +69,7 @@ describe("GameSessionService", () => {
       harness.model.state.score$.next(100);
       harness.model.state.moves$.next(12);
       harness.model.settings.drawCount$.next(1);
-      harness.model.settings.cardBackStyle$.next("card-back-red");
+      harness.presentation.cardBackStyle$.next("card-back-red");
 
       expect(harness.session.score()).toBe(100);
       expect(harness.session.moves()).toBe(12);
@@ -78,7 +96,7 @@ describe("GameSessionService", () => {
     it("forwards the card back style to the model", () => {
       harness.session.setCardBack("card-back-red");
 
-      expect(harness.model.settings.setCardBackStyle).toHaveBeenCalledWith(
+      expect(harness.presentation.setCardBackStyle).toHaveBeenCalledWith(
         "card-back-red",
       );
     });

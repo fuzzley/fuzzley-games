@@ -6,7 +6,9 @@ import {
   inject,
   OnInit,
 } from "@angular/core";
-import { Solitaire } from "@/games/klondike/solitaire";
+import { Solitaire, makeKlondikeBoardScene } from "@/games/klondike/solitaire";
+import { GAME_MODEL } from "../../provider/game_model.provider";
+import { PresentationSettingsService } from "../../service/presentation_settings.service";
 
 declare global {
   interface Window {
@@ -32,9 +34,15 @@ declare global {
 export class GameCanvasComponent implements OnInit {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly game = inject(GAME_MODEL);
+  private readonly presentation = inject(PresentationSettingsService);
 
   ngOnInit(): void {
-    const solitaire = new Solitaire(window, this.host.nativeElement);
+    // The composition root for the canvas: the game, how it looks, and the
+    // board that draws it are joined here rather than by any of the three.
+    const solitaire = new Solitaire(window, this.host.nativeElement, () =>
+      makeKlondikeBoardScene(this.game, this.presentation),
+    );
     solitaire.start();
     window.solitaire = solitaire;
 

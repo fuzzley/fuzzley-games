@@ -2,56 +2,61 @@
 import { describe, it, expect } from "vitest";
 import { TestBed } from "@angular/core/testing";
 import { ThemeService } from "@/ui/app/service/theme.service";
-import { GAME_MODEL } from "@/ui/app/provider/game_model.provider";
+import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import {
-  createMockGameModel,
-  asGameModel,
-  type MockGameModel,
+  createMockPresentation,
+  asPresentation,
+  type MockPresentation,
 } from "@test/support/game_model_mock";
 
-function buildService(model: MockGameModel): ThemeService {
+function buildService(presentation: MockPresentation): ThemeService {
   TestBed.configureTestingModule({
-    providers: [{ provide: GAME_MODEL, useValue: asGameModel(model) }],
+    providers: [
+      {
+        provide: PresentationSettingsService,
+        useValue: asPresentation(presentation),
+      },
+    ],
   });
   return TestBed.inject(ThemeService);
 }
 
 describe("ThemeService", () => {
   it("defaults to the green theme", () => {
-    const model = createMockGameModel();
+    const presentation = createMockPresentation();
 
-    const service = buildService(model);
+    const service = buildService(presentation);
 
     expect(service.selectedTheme()).toBe("green");
     expect(service.currentBgClass()).toBe("theme-green");
   });
 
-  it("applies the default theme color to the model on load", () => {
-    const model = createMockGameModel();
+  it("applies the default theme color on load", () => {
+    const presentation = createMockPresentation();
 
-    buildService(model);
+    buildService(presentation);
 
-    expect(model.settings.setBackgroundColor).toHaveBeenCalledWith("#0f4d0e");
+    expect(presentation.setBackgroundColor).toHaveBeenCalledWith("#0f4d0e");
   });
 
   it("restores the theme matching the persisted background color", () => {
-    const model = createMockGameModel({ backgroundColor: "#3c096c" });
+    const presentation = createMockPresentation({
+      backgroundColor: "#3c096c",
+    });
 
-    const service = buildService(model);
+    const service = buildService(presentation);
 
     expect(service.selectedTheme()).toBe("purple");
     expect(service.currentBgClass()).toBe("theme-purple");
   });
 
-  it("pushes the selected theme color to the model", () => {
-    const model = createMockGameModel();
-    const service = buildService(model);
+  it("pushes the selected theme color to the presentation settings", () => {
+    const presentation = createMockPresentation();
+    const service = buildService(presentation);
 
     service.setTheme("blue");
 
     expect(service.selectedTheme()).toBe("blue");
-    expect(model.settings.setBackgroundColor).toHaveBeenLastCalledWith(
-      "#1b4353",
-    );
+    expect(presentation.setBackgroundColor).toHaveBeenLastCalledWith("#1b4353");
   });
 });

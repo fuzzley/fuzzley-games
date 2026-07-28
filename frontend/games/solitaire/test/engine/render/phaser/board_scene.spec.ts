@@ -1,11 +1,8 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { makeKlondikeBoardScene } from "@/games/klondike/solitaire";
+import { TestPresentation } from "@test/support/presentation";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
-import {
-  getGameModel,
-  resetGameModel,
-} from "@/games/klondike/game_model_factory";
 import {
   MockInput,
   MockScaleManager,
@@ -39,17 +36,25 @@ function asMock(sprite: unknown): MockSprite {
  * way the real application lays it out.
  */
 let klondikeGame: SolitaireGame;
+let presentation: TestPresentation;
 
-function makeBoardScene(gameModel: SolitaireGame = getGameModel()): BoardScene {
-  klondikeGame = gameModel;
-  return makeKlondikeBoardScene(gameModel);
+/** A dealt Klondike game drawn with a presentation a test can drive. */
+function makeBoardScene(gameModel?: SolitaireGame): BoardScene {
+  klondikeGame = gameModel ?? dealtGame();
+  presentation = new TestPresentation();
+  return makeKlondikeBoardScene(klondikeGame, presentation);
+}
+
+function dealtGame(): SolitaireGame {
+  const game = new SolitaireGame();
+  game.startNewGame();
+  return game;
 }
 
 describe("BoardScene", () => {
   let boardScene: BoardScene;
 
   beforeEach(() => {
-    resetGameModel();
     boardScene = makeBoardScene();
     boardScene.create();
   });
@@ -96,7 +101,7 @@ describe("BoardScene", () => {
     }
 
     it("repaints the camera when the background color setting changes", () => {
-      klondikeGame.settings.setBackgroundColor("#123456");
+      presentation.setBackgroundColor("#123456");
 
       expect(camera().setBackgroundColor).toHaveBeenCalledWith("#123456");
     });
@@ -106,7 +111,7 @@ describe("BoardScene", () => {
       events.emit(SHUTDOWN_EVENT);
       camera().setBackgroundColor.mockClear();
 
-      klondikeGame.settings.setBackgroundColor("#654321");
+      presentation.setBackgroundColor("#654321");
 
       // A scene restart runs create() again, so a subscription left behind here
       // would accumulate one stale listener per restart.
@@ -312,7 +317,6 @@ describe("BoardScene", () => {
 
   describe("creation errors", () => {
     it("throws when a card model is missing while creating sprites", () => {
-      resetGameModel();
       const freshScene = makeBoardScene();
       const getCardById = vi
         .spyOn(SolitaireGame.prototype, "getCardById")

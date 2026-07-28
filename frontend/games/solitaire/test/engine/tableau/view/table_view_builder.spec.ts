@@ -21,6 +21,9 @@ import {
 } from "@/games/klondike/klondike_zones";
 import { measureKlondikeBoard } from "@/games/klondike/klondike_board";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
+import { TestPresentation } from "@test/support/presentation";
+
+const presentation = new TestPresentation();
 
 describe("board_view_state_builder", () => {
   let game: SolitaireGame;
@@ -44,7 +47,10 @@ describe("board_view_state_builder", () => {
     // Relocate one card to tableau-0
     const card = relocate(game, "card-hearts-ace", game.tableaus[0], true);
 
-    const viewState = buildKlondikeViewState(game)(interaction, viewport);
+    const viewState = buildKlondikeViewState(game, presentation)(
+      interaction,
+      viewport,
+    );
 
     expect(viewState.backgrounds.length).toBe(12); // stock, 4 foundations, 7 tableaus
     expect(viewState.cards.length).toBe(1);
@@ -63,7 +69,10 @@ describe("board_view_state_builder", () => {
 
   it("handles snapAll flag correctly", () => {
     interaction.snapAll = true;
-    const viewState = buildKlondikeViewState(game)(interaction, viewport);
+    const viewState = buildKlondikeViewState(game, presentation)(
+      interaction,
+      viewport,
+    );
     expect(viewState.cards.every((cardView) => cardView.snap)).toBe(true);
   });
 
@@ -78,7 +87,10 @@ describe("board_view_state_builder", () => {
     };
     interaction.hoveredCardId = card1.id;
 
-    const viewState = buildKlondikeViewState(game)(interaction, viewport);
+    const viewState = buildKlondikeViewState(game, presentation)(
+      interaction,
+      viewport,
+    );
 
     const cardView1 = viewState.cards.find((card) => card.cardId === card1.id)!;
     const cardView2 = viewState.cards.find((card) => card.cardId === card2.id)!;
@@ -97,7 +109,10 @@ describe("board_view_state_builder", () => {
   describe("a stack flying to the pile it was moved to", () => {
     /** The depth of the topmost card on the board as it currently stands. */
     function deepestRestingDepth(): number {
-      const viewState = buildKlondikeViewState(game)(interaction, viewport);
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
       return Math.max(...viewState.cards.map((card) => card.depth));
     }
 
@@ -108,7 +123,10 @@ describe("board_view_state_builder", () => {
       const restingDepth = deepestRestingDepth();
       interaction.flight = { cardIds: [card.id] };
 
-      const viewState = buildKlondikeViewState(game)(interaction, viewport);
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
 
       const flying = viewState.cards.find((view) => view.cardId === card.id)!;
       expect(flying.depth).toBeGreaterThan(restingDepth);
@@ -119,7 +137,10 @@ describe("board_view_state_builder", () => {
       const upper = relocate(game, "card-hearts-5", game.tableaus[1]);
       interaction.flight = { cardIds: [lower.id, upper.id] };
 
-      const viewState = buildKlondikeViewState(game)(interaction, viewport);
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
 
       const lowerView = viewState.cards.find((v) => v.cardId === lower.id)!;
       const upperView = viewState.cards.find((v) => v.cardId === upper.id)!;
@@ -130,7 +151,10 @@ describe("board_view_state_builder", () => {
       const card = relocate(game, "card-hearts-ace", game.foundations[0]);
       interaction.flight = { cardIds: [card.id] };
 
-      const viewState = buildKlondikeViewState(game)(interaction, viewport);
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
 
       const flying = viewState.cards.find((view) => view.cardId === card.id)!;
       expect(flying.depth).toBeLessThan(DRAG_BASE_DEPTH);
@@ -140,7 +164,10 @@ describe("board_view_state_builder", () => {
       const card = relocate(game, "card-hearts-ace", game.foundations[0]);
       interaction.flight = null;
 
-      const viewState = buildKlondikeViewState(game)(interaction, viewport);
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
 
       const landed = viewState.cards.find((view) => view.cardId === card.id)!;
       expect(landed.depth).toBe(1); // first card in the foundation
@@ -148,13 +175,16 @@ describe("board_view_state_builder", () => {
 
     it("leaves the card's position to its pile while it flies", () => {
       const card = relocate(game, "card-hearts-ace", game.foundations[0]);
-      const resting = buildKlondikeViewState(game)(
+      const resting = buildKlondikeViewState(game, presentation)(
         interaction,
         viewport,
       ).cards.find((view) => view.cardId === card.id)!;
       interaction.flight = { cardIds: [card.id] };
 
-      const viewState = buildKlondikeViewState(game)(interaction, viewport);
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
 
       // Only the depth is lifted: the applier eases the sprite to the pile, so
       // the target it eases towards must stay the card's place in that pile.
@@ -167,7 +197,10 @@ describe("board_view_state_builder", () => {
     emptyBoard(game); // stock is empty
     interaction.hoveredBackgroundPileId = "stock";
 
-    const viewState = buildKlondikeViewState(game)(interaction, viewport);
+    const viewState = buildKlondikeViewState(game, presentation)(
+      interaction,
+      viewport,
+    );
 
     const stockBackground = viewState.backgrounds.find(
       (backgroundView) => backgroundView.pileId === "stock",
@@ -189,7 +222,10 @@ describe("board_view_state_builder", () => {
     const card = relocate(game, "card-hearts-ace", game.tableaus[0], true);
     interaction.hoveredCardId = card.id;
 
-    const viewState = buildKlondikeViewState(game)(interaction, viewport);
+    const viewState = buildKlondikeViewState(game, presentation)(
+      interaction,
+      viewport,
+    );
 
     // Naming the card leaves the applier free to draw the border where the
     // sprite actually is, which is not the slot while the card is travelling.
@@ -207,7 +243,10 @@ describe("board_view_state_builder", () => {
     // Hover the bottom card (card1) which is covered by card2
     interaction.hoveredCardId = card1.id;
 
-    const viewState = buildKlondikeViewState(game)(interaction, viewport);
+    const viewState = buildKlondikeViewState(game, presentation)(
+      interaction,
+      viewport,
+    );
 
     expect(viewState.highlights[0].openBottom).toBe(true);
   });
@@ -219,7 +258,10 @@ describe("board_view_state_builder", () => {
 
     interaction.hoveredCardId = card2.id;
 
-    const viewState = buildKlondikeViewState(game)(interaction, viewport);
+    const viewState = buildKlondikeViewState(game, presentation)(
+      interaction,
+      viewport,
+    );
 
     expect(viewState.highlights[0].openBottom).toBe(false);
   });
@@ -231,7 +273,10 @@ describe("board_view_state_builder", () => {
 
     interaction.hoveredCardId = facedown.id;
 
-    const viewState = buildKlondikeViewState(game)(interaction, viewport);
+    const viewState = buildKlondikeViewState(game, presentation)(
+      interaction,
+      viewport,
+    );
 
     expect(viewState.highlights).toEqual([]);
   });
@@ -243,7 +288,10 @@ describe("board_view_state_builder", () => {
 
     interaction.hoveredCardId = card1.id;
 
-    const viewState = buildKlondikeViewState(game)(interaction, viewport);
+    const viewState = buildKlondikeViewState(game, presentation)(
+      interaction,
+      viewport,
+    );
 
     const cardView1 = viewState.cards.find((c) => c.cardId === card1.id)!;
     const cardView2 = viewState.cards.find((c) => c.cardId === card2.id)!;
@@ -260,7 +308,10 @@ describe("board_view_state_builder", () => {
 
     interaction.hoveredCardId = card1.id;
 
-    const viewState = buildKlondikeViewState(game)(interaction, viewport);
+    const viewState = buildKlondikeViewState(game, presentation)(
+      interaction,
+      viewport,
+    );
 
     const cardView1 = viewState.cards.find((c) => c.cardId === card1.id)!;
     const cardView2 = viewState.cards.find((c) => c.cardId === card2.id)!;
@@ -278,7 +329,10 @@ describe("board_view_state_builder", () => {
       pixelRatio: 2,
     };
 
-    const viewState = buildKlondikeViewState(game)(interaction, retinaViewport);
+    const viewState = buildKlondikeViewState(game, presentation)(
+      interaction,
+      retinaViewport,
+    );
 
     expect(viewState.cards[0].scale).toBe(2.0 / CARD_ART_SCALE);
   });
@@ -292,7 +346,10 @@ describe("board_view_state_builder", () => {
       pixelRatio: 2,
     };
 
-    const viewState = buildKlondikeViewState(game)(interaction, retinaViewport);
+    const viewState = buildKlondikeViewState(game, presentation)(
+      interaction,
+      retinaViewport,
+    );
 
     // The point of the exercise: at the pixel ratio the artwork was authored
     // for, one atlas texel lands on exactly one device pixel.
@@ -308,14 +365,14 @@ describe("board_view_state_builder", () => {
       pixelRatio: 2,
     };
 
-    const retinaState = buildKlondikeViewState(game)(
+    const retinaState = buildKlondikeViewState(game, presentation)(
       interaction,
       retinaViewport,
     );
 
     // Device pixels are twice as dense, so the same CSS position is twice the
     // coordinate. Anchored to the header, which is a CSS-pixel DOM overlay.
-    const baseView = buildKlondikeViewState(game)(
+    const baseView = buildKlondikeViewState(game, presentation)(
       interaction,
       viewport,
     ).cards.find((cardView) => cardView.cardId === card.id)!;
@@ -350,7 +407,10 @@ describe("board_view_state_builder", () => {
       const sevenHearts = relocate(game, "card-hearts-7", game.tableaus[1]);
       drag("card-spades-6", originOf("tableau-1")); // black 6 onto red 7
 
-      const viewState = buildKlondikeViewState(game)(interaction, viewport);
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
 
       expect(viewState.highlights[0].anchor).toEqual({
         kind: "card",
@@ -362,7 +422,10 @@ describe("board_view_state_builder", () => {
       const tableau1 = originOf("tableau-1");
       drag("card-spades-king", tableau1); // only a King may take an empty column
 
-      const viewState = buildKlondikeViewState(game)(interaction, viewport);
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
 
       expect(viewState.highlights[0].anchor).toEqual({
         kind: "point",
@@ -376,7 +439,10 @@ describe("board_view_state_builder", () => {
       relocate(game, "card-clubs-6", game.tableaus[1]);
       drag("card-diamonds-5", originOf("tableau-1"));
 
-      const viewState = buildKlondikeViewState(game)(interaction, viewport);
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
 
       // The column is two cards deep, so its drop rectangle is taller than the
       // border that marks the landing place.
@@ -390,7 +456,10 @@ describe("board_view_state_builder", () => {
       relocate(game, "card-hearts-7", game.tableaus[1]);
       drag("card-spades-6", originOf("tableau-1"));
 
-      const viewState = buildKlondikeViewState(game)(interaction, viewport);
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
 
       // The card is already lifted and following the pointer; the only thing
       // left to say is where it is going.
@@ -401,7 +470,10 @@ describe("board_view_state_builder", () => {
       relocate(game, "card-hearts-7", game.tableaus[1]);
       drag("card-spades-6", originOf("tableau-1"));
 
-      const viewState = buildKlondikeViewState(game)(interaction, viewport);
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
 
       // The card in hand is held over the place it is going, so the border must
       // not be drawn across it.
@@ -412,7 +484,10 @@ describe("board_view_state_builder", () => {
       relocate(game, "card-hearts-7", game.tableaus[1]);
       drag("card-spades-6", originOf("tableau-1"));
 
-      const viewState = buildKlondikeViewState(game)(interaction, viewport);
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
 
       const deepestCard = Math.max(
         ...viewState.cards
@@ -426,7 +501,10 @@ describe("board_view_state_builder", () => {
       relocate(game, "card-hearts-7", game.tableaus[1]);
       drag("card-diamonds-6", originOf("tableau-1")); // red 6 onto red 7
 
-      const viewState = buildKlondikeViewState(game)(interaction, viewport);
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
 
       expect(viewState.highlights).toEqual([]);
     });
@@ -435,7 +513,10 @@ describe("board_view_state_builder", () => {
       relocate(game, "card-hearts-7", game.tableaus[0]);
       drag("card-spades-6", originOf("tableau-0")); // legal rank and color
 
-      const viewState = buildKlondikeViewState(game)(interaction, viewport);
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
 
       // Legal on its face, but a card cannot land back where it came from.
       expect(viewState.highlights).toEqual([]);
@@ -444,7 +525,10 @@ describe("board_view_state_builder", () => {
     it("draws no border when the drag is over no pile at all", () => {
       drag("card-spades-king", { x: 9000, y: 9000 });
 
-      const viewState = buildKlondikeViewState(game)(interaction, viewport);
+      const viewState = buildKlondikeViewState(game, presentation)(
+        interaction,
+        viewport,
+      );
 
       expect(viewState.highlights).toEqual([]);
     });
@@ -455,7 +539,10 @@ describe("board_view_state_builder", () => {
     const card = relocate(game, "card-hearts-ace", game.tableaus[0], true);
     interaction.hoveredCardId = card.id;
 
-    const viewState = buildKlondikeViewState(game)(interaction, viewport);
+    const viewState = buildKlondikeViewState(game, presentation)(
+      interaction,
+      viewport,
+    );
 
     // Compared against the card's on-screen size, derived from its sprite
     // scale, so the highlight cannot drift from the card it outlines.
