@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
-import { buildBoardViewState } from "@/engine/render/view/board_view_state_builder";
+import { buildBoardViewState } from "@/engine/tableau/view/board_view_state_builder";
 import {
   TableInteractionState,
   Viewport,
@@ -18,7 +18,7 @@ import {
   TABLEAU_FACE_UP_OFFSET,
   TABLEAU_FACE_DOWN_OFFSET,
   TABLEAU_HOVER_EXPANSION_OFFSET,
-} from "@/games/klondike/klondike_layout";
+} from "@/games/klondike/klondike_zones";
 import { measureKlondikeBoard } from "@/games/klondike/klondike_board";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 

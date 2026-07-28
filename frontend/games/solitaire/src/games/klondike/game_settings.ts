@@ -6,6 +6,9 @@ export type CardBackStyle = "card-back-blue" | "card-back-red";
 /** How many cards are drawn from the stock pile per draw action. */
 export type DrawCount = 1 | 3;
 
+/** The draw mode a new game starts in. */
+export const DEFAULT_DRAW_COUNT: DrawCount = 3;
+
 /** The default board background color (the emerald felt table). */
 export const DEFAULT_BACKGROUND_COLOR = "#0f4d0e";
 
@@ -23,7 +26,7 @@ interface PersistedSettings {
 
 /** The values used when nothing valid is found in storage. */
 const DEFAULT_SETTINGS: PersistedSettings = {
-  drawCount: 3,
+  drawCount: DEFAULT_DRAW_COUNT,
   cardBackStyle: "card-back-blue",
   backgroundColor: DEFAULT_BACKGROUND_COLOR,
   debug: {
