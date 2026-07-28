@@ -1,0 +1,119 @@
+/*
+ * A rail rather than a modal drawer: it sits beside the board instead of over
+ * it, so switching games costs one click and dismisses nothing.
+ */
+.game-menu {
+  position: fixed;
+  top: 73px; /* below the header overlay */
+  left: 0;
+  bottom: 0;
+  width: 56px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 8px;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 6px 0 24px rgba(0, 0, 0, 0.35);
+  color: #e2e8f0;
+  pointer-events: auto;
+  user-select: none;
+  transition: width 0.18s ease;
+  z-index: 90;
+  overflow: hidden;
+}
+
+.game-menu.expanded {
+  width: 190px;
+}
+
+.menu-toggle,
+.game-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.menu-toggle:hover,
+.game-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.menu-toggle {
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.menu-toggle:hover {
+  color: #fff;
+}
+
+.toggle-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+}
+
+.menu-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.game-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.game-item.active {
+  background: rgba(37, 99, 235, 0.9);
+  border-color: rgba(96, 165, 250, 0.9);
+  color: #fff;
+}
+
+.game-item.active:hover {
+  background: rgba(37, 99, 235, 1);
+}
+
+/* The initial, which is all a collapsed rail has room to show. */
+.game-marker {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.game-item.active .game-marker {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.game-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+}

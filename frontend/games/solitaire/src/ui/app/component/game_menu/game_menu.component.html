@@ -1,0 +1,44 @@
+<nav class="game-menu" [class.expanded]="menu.isExpanded()">
+  <button
+    class="menu-toggle"
+    (click)="menu.toggle()"
+    [attr.aria-expanded]="menu.isExpanded()"
+    [attr.aria-label]="
+      menu.isExpanded() ? 'Collapse game menu' : 'Expand game menu'
+    "
+    title="Games"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      class="toggle-icon"
+    >
+      <path
+        fill="currentColor"
+        d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"
+      />
+    </svg>
+    @if (menu.isExpanded()) {
+      <span class="menu-title">Games</span>
+    }
+  </button>
+
+  <ul class="game-list">
+    @for (game of session.games; track game.id) {
+      <li>
+        <button
+          class="game-item"
+          [class.active]="session.selectedGameId() === game.id"
+          [attr.aria-current]="session.selectedGameId() === game.id"
+          (click)="session.selectGame(game.id)"
+          [title]="game.name"
+        >
+          <span class="game-marker">{{ game.name.charAt(0) }}</span>
+          @if (menu.isExpanded()) {
+            <span class="game-name">{{ game.name }}</span>
+          }
+        </button>
+      </li>
+    }
+  </ul>
+</nav>

@@ -64,6 +64,16 @@ export class ViewportScaler {
   /** Media query tracking the current pixel ratio, re-armed after each change. */
   private pixelRatioQuery: PixelRatioQuery | null = null;
 
+  /**
+   * Watches the parent for size changes the window never hears about.
+   *
+   * The canvas fills a box the application lays out, and that box can change
+   * without the window doing anything — a side panel opening, for one. Without
+   * this the board would keep the size it had before and either overflow its
+   * box or leave a gap beside it.
+   */
+  private parentObserver: ResizeObserver | null = null;
+
   private readonly onViewportChange = (): void => {
     this.apply();
   };
@@ -93,6 +103,23 @@ export class ViewportScaler {
   public start(): void {
     this.apply();
     this.window.addEventListener("resize", this.onViewportChange);
+    this.observeParent();
+  }
+
+  /**
+   * Watches the parent box, when the host supports it. Guarded because the
+   * parent is only required to be measurable, not to be a real element.
+   */
+  private observeParent(): void {
+    if (
+      typeof ResizeObserver === "undefined" ||
+      typeof Element === "undefined" ||
+      !(this.parent instanceof Element)
+    ) {
+      return;
+    }
+    this.parentObserver = new ResizeObserver(this.onViewportChange);
+    this.parentObserver.observe(this.parent);
   }
 
   /** Stops tracking changes, releasing every listener the scaler registered. */
@@ -100,6 +127,8 @@ export class ViewportScaler {
     this.window.removeEventListener("resize", this.onViewportChange);
     this.pixelRatioQuery?.removeEventListener("change", this.onViewportChange);
     this.pixelRatioQuery = null;
+    this.parentObserver?.disconnect();
+    this.parentObserver = null;
   }
 
   /** Resizes the canvas to the parent's current size at the current DPR. */

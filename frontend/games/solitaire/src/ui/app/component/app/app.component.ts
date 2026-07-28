@@ -10,6 +10,8 @@ import { SettingsDrawerComponent } from "../settings_drawer/settings_drawer.comp
 import { VictoryOverlayComponent } from "../victory_overlay/victory_overlay.component";
 import { ConfirmationDialogComponent } from "../confirmation_dialog/confirmation_dialog.component";
 import { GameCanvasComponent } from "../game_canvas/game_canvas.component";
+import { GameMenuComponent } from "../game_menu/game_menu.component";
+import { GameMenuService } from "../../service/game_menu.service";
 
 /**
  * The main container/shell component of the Solitaire application.
@@ -22,6 +24,7 @@ import { GameCanvasComponent } from "../game_canvas/game_canvas.component";
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     GameCanvasComponent,
+    GameMenuComponent,
     HeaderBarComponent,
     SettingsDrawerComponent,
     VictoryOverlayComponent,
@@ -33,6 +36,9 @@ import { GameCanvasComponent } from "../game_canvas/game_canvas.component";
 export class AppComponent {
   /** Reference to the ThemeService for binding the background color class to the layout. */
   protected readonly theme = inject(ThemeService);
+
+  /** Whether the game rail is expanded, which the board lays itself out around. */
+  protected readonly menu = inject(GameMenuService);
 
   /** Tracks whether the side settings drawer overlay is open. */
   readonly showSettings = signal(false);

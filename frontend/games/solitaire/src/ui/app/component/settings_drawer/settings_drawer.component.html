@@ -18,22 +18,6 @@
     </div>
 
     <div class="drawer-content">
-      <!-- Game -->
-      <div class="setting-group">
-        <label class="setting-label">Game</label>
-        <div class="game-selector">
-          @for (game of session.games; track game.id) {
-            <button
-              class="game-option"
-              [class.active]="session.selectedGameId() === game.id"
-              (click)="session.selectGame(game.id)"
-            >
-              {{ game.name }}
-            </button>
-          }
-        </div>
-      </div>
-
       <!-- Draw Mode, for a game that has a stock to draw from -->
       @if (session.drawCountOptions().length > 0) {
         <div class="setting-group">
