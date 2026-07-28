@@ -47,8 +47,13 @@ export interface AppliedMove {
   faceUpBefore: boolean;
 
   /**
-   * The tableau card this action turned face up by exposing it, if any. Undo
-   * turns it back down.
+   * The cards this action turned face up by exposing them. Undo turns them
+   * back down.
+   *
+   * A list rather than a single card, and empty rather than absent, because a
+   * game that never flips anything must be as expressible as one that flips a
+   * card per move: FreeCell deals every card face up and has nothing to turn
+   * over, while a Spider deal turns one card in each column at once.
    */
-  flippedCardId?: string;
+  flippedCardIds: readonly string[];
 }
