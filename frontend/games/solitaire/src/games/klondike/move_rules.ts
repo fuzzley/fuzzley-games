@@ -5,7 +5,6 @@ import {
   cardIs,
   descendingAlternatingColor,
   hasRank,
-  never,
   suitFoundation,
 } from "@/engine/tableau/rules";
 import { KlondikeRole } from "./klondike_zones";
@@ -23,18 +22,18 @@ export const KLONDIKE_TABLEAU_RULE: PlacementRule = byEmptiness(
 export const KLONDIKE_FOUNDATION_RULE: PlacementRule = suitFoundation;
 
 /**
- * The rule governing what a pile of the given role accepts. The stock and the
- * waste accept nothing — they are never move destinations.
+ * The rule governing what a pile of the given role accepts, or null for the
+ * stock and the waste, which are never move destinations at all.
  *
  * @param role The part the destination pile plays.
  */
-export function klondikePlacementRule(role: string): PlacementRule {
+export function klondikePlacementRule(role: string): PlacementRule | null {
   switch (role) {
     case KlondikeRole.TABLEAU:
       return KLONDIKE_TABLEAU_RULE;
     case KlondikeRole.FOUNDATION:
       return KLONDIKE_FOUNDATION_RULE;
     default:
-      return never;
+      return null;
   }
 }

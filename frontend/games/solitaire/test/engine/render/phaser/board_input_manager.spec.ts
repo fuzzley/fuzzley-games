@@ -1,5 +1,6 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { BoardInputManager } from "@/engine/render/phaser/board_input_manager";
+import { resolveKlondikeDropTarget } from "@/games/klondike/klondike_board";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
@@ -52,6 +53,9 @@ describe("BoardInputManager", () => {
         height: DESIGN_HEIGHT_PX,
         pixelRatio: 1,
       },
+      // The real Klondike resolver, so a drop lands where the game says it
+      // would rather than where a stub decides.
+      resolveDropTarget: resolveKlondikeDropTarget,
     } as unknown as BoardScene;
 
     inputManager = new BoardInputManager(boardScene);
@@ -351,15 +355,15 @@ describe("BoardInputManager", () => {
     it("marks the stock background hovered on pointerover", () => {
       stockBackground.emit("pointerover");
 
-      expect(inputManager.isStockBackgroundHovered).toBe(true);
+      expect(inputManager.hoveredBackgroundPileId).toBe("stock");
     });
 
     it("clears the stock background hover on pointerout", () => {
-      inputManager.isStockBackgroundHovered = true;
+      inputManager.hoveredBackgroundPileId = "stock";
 
       stockBackground.emit("pointerout");
 
-      expect(inputManager.isStockBackgroundHovered).toBe(false);
+      expect(inputManager.hoveredBackgroundPileId).toBeNull();
     });
   });
 
@@ -462,7 +466,7 @@ describe("BoardInputManager", () => {
     it("clears interaction state and requests a snap on reset", () => {
       const card = gameModel.tableaus[0].getCards()[0];
       inputManager.hoveredCardId = card.id;
-      inputManager.isStockBackgroundHovered = true;
+      inputManager.hoveredBackgroundPileId = "stock";
       inputManager.drag = { cardIds: [card.id], primary: { x: 1, y: 2 } };
       inputManager.snapAll = false;
 
@@ -470,7 +474,7 @@ describe("BoardInputManager", () => {
 
       expect(inputManager.interaction).toEqual({
         hoveredCardId: null,
-        isStockBackgroundHovered: false,
+        hoveredBackgroundPileId: null,
         drag: null,
         flight: null,
         snapAll: true,

@@ -8,10 +8,6 @@ import {
   DragInteraction,
   FlightInteraction,
 } from "../view/table_view_state";
-import {
-  measureKlondikeBoard,
-  resolveDragTarget,
-} from "@/games/klondike/klondike_board";
 
 /**
  * The id of the card a sprite draws, as stamped on it when the scene created
@@ -34,7 +30,7 @@ export class BoardInputManager {
   public hoveredCardId: string | null = null;
 
   /** Whether the stock pile background sprite is currently hovered. */
-  public isStockBackgroundHovered = false;
+  public hoveredBackgroundPileId: string | null = null;
 
   /** The transient drag interaction state. */
   public drag: DragInteraction | null = null;
@@ -201,12 +197,16 @@ export class BoardInputManager {
       }
     });
 
+    const stockPileId = this.boardScene.gameModel.stock.id;
+
     stockSprite.on("pointerover", () => {
-      this.isStockBackgroundHovered = true;
+      this.hoveredBackgroundPileId = stockPileId;
     });
 
     stockSprite.on("pointerout", () => {
-      this.isStockBackgroundHovered = false;
+      if (this.hoveredBackgroundPileId === stockPileId) {
+        this.hoveredBackgroundPileId = null;
+      }
     });
   }
 
@@ -250,10 +250,10 @@ export class BoardInputManager {
 
     // The same resolver the view builder previews with, so the card lands on
     // the pile the border promised it would.
-    const target = resolveDragTarget(
+    const target = this.boardScene.resolveDropTarget(
       this.boardScene.gameModel,
       drag,
-      measureKlondikeBoard(this.boardScene.gameModel, this.boardScene.viewport),
+      this.boardScene.viewport,
     );
 
     if (!target) {
@@ -296,7 +296,7 @@ export class BoardInputManager {
   public get interaction(): TableInteractionState {
     return {
       hoveredCardId: this.hoveredCardId,
-      isStockBackgroundHovered: this.isStockBackgroundHovered,
+      hoveredBackgroundPileId: this.hoveredBackgroundPileId,
       drag: this.drag,
       flight: this.flightState,
       snapAll: this.snapAll,
@@ -309,7 +309,7 @@ export class BoardInputManager {
    */
   public resetInteraction(): void {
     this.hoveredCardId = null;
-    this.isStockBackgroundHovered = false;
+    this.hoveredBackgroundPileId = null;
     this.drag = null;
     this.flightState = null;
     this.snapAll = true;

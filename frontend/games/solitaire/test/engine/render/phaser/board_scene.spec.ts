@@ -1,6 +1,9 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
-import { buildBoardViewState } from "@/engine/tableau/view/board_view_state_builder";
+import {
+  buildKlondikeViewState,
+  resolveKlondikeDropTarget,
+} from "@/games/klondike/klondike_board";
 import { SolitaireGame } from "@/games/klondike/solitaire_game";
 import {
   getGameModel,
@@ -39,7 +42,11 @@ function asMock(sprite: unknown): MockSprite {
  * way the real application lays it out.
  */
 function makeBoardScene(gameModel: SolitaireGame = getGameModel()): BoardScene {
-  return new BoardScene(gameModel, buildBoardViewState);
+  return new BoardScene(
+    gameModel,
+    buildKlondikeViewState,
+    resolveKlondikeDropTarget,
+  );
 }
 
 describe("BoardScene", () => {

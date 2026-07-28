@@ -8,6 +8,8 @@ import { BoardInputManager } from "./board_input_manager";
 import { PhaserTableRenderer } from "./phaser_table_renderer";
 import { PhaserSprites } from "./phaser_sprites";
 import {
+  DragInteraction,
+  PileGeometry,
   TableInteractionState,
   TableViewState,
   Viewport,
@@ -27,6 +29,19 @@ export type BuildTableViewState = (
   interaction: TableInteractionState,
   viewport: Viewport,
 ) => TableViewState;
+
+/**
+ * Resolves the pile a drag would land on.
+ *
+ * Handed in for the same reason as {@link BuildTableViewState}: where a card
+ * may go is a property of the game, and the Phaser adapter sits below the tier
+ * that knows about games.
+ */
+export type ResolveDropTarget = (
+  game: SolitaireGame,
+  drag: DragInteraction,
+  viewport: Viewport,
+) => PileGeometry | null;
 
 /**
  * Handles rendering the fSolitaire game board using Phaser, reacting to
@@ -60,6 +75,9 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Produces the desired appearance of the board for one frame. */
   private readonly buildViewState: BuildTableViewState;
 
+  /** Resolves the pile a drag would land on. */
+  public readonly resolveDropTarget: ResolveDropTarget;
+
   /**
    * Constructs the board scene.
    *
@@ -68,12 +86,19 @@ export class BoardScene extends Scene implements PhaserSprites {
    *   frame. Handed in rather than imported: what a board looks like is a
    *   property of the game being played, and the Phaser adapter sits below the
    *   tier that knows about games.
+   * @param resolveDropTarget Resolves the pile a drag would land on, for the
+   *   same reason.
    */
-  constructor(gameModel: SolitaireGame, buildViewState: BuildTableViewState) {
+  constructor(
+    gameModel: SolitaireGame,
+    buildViewState: BuildTableViewState,
+    resolveDropTarget: ResolveDropTarget,
+  ) {
     super("board-scene");
 
     this.gameModel = gameModel;
     this.buildViewState = buildViewState;
+    this.resolveDropTarget = resolveDropTarget;
   }
 
   /**

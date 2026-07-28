@@ -19,10 +19,7 @@ import {
   WASTE_FAN_OFFSET_X,
   WASTE_MAX_FAN_CARDS,
 } from "@/games/klondike/klondike_zones";
-import {
-  klondikeDropCandidates,
-  measureKlondikeBoard,
-} from "@/games/klondike/klondike_board";
+import { measureKlondikeBoard } from "@/games/klondike/klondike_board";
 import { computeDropGeometries } from "@/engine/render/layout/drop_geometry";
 import {
   CARD_HEIGHT_PX,
@@ -398,9 +395,12 @@ describe("computeDropGeometries", () => {
   let game: SolitaireGame;
 
   function dropGeometries() {
-    const metrics = measureKlondikeBoard(game, designViewport());
+    const metrics = measureKlondikeBoard(designViewport());
     return computeDropGeometries(
-      klondikeDropCandidates(game, metrics),
+      game.dropTargetPiles.map((pile) => ({
+        pile,
+        layout: game.zoneFor(pile.id)!.layout,
+      })),
       metrics.origins,
       CARD_SIZE,
       metrics.scale,
@@ -469,9 +469,12 @@ describe("computeDropGeometries", () => {
   it("scales the targets with the viewport", () => {
     const half = designViewport({ width: DESIGN_WIDTH_PX / 2 });
 
-    const metrics = measureKlondikeBoard(game, half);
+    const metrics = measureKlondikeBoard(half);
     const geometry = computeDropGeometries(
-      klondikeDropCandidates(game, metrics),
+      game.dropTargetPiles.map((pile) => ({
+        pile,
+        layout: game.zoneFor(pile.id)!.layout,
+      })),
       metrics.origins,
       CARD_SIZE,
       metrics.scale,

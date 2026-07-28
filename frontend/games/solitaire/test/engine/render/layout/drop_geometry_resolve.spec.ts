@@ -1,10 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { resolveDropTarget } from "@/engine/render/layout/drop_geometry";
-import {
-  klondikeDropCandidates,
-  measureKlondikeBoard,
-  resolveDragTarget,
-} from "@/games/klondike/klondike_board";
+import { measureKlondikeBoard } from "@/games/klondike/klondike_board";
+import { resolveDragTarget } from "@/engine/tableau/view/table_view_builder";
 import {
   CARD_HEIGHT_PX,
   CARD_WIDTH_PX,
@@ -30,9 +27,12 @@ describe("resolveDragTarget", () => {
 
   /** The drop rectangle the given pile occupies at this viewport. */
   function geometryOf(pileId: string): PileGeometry {
-    const metrics = measureKlondikeBoard(game, viewport);
+    const metrics = measureKlondikeBoard(viewport);
     return computeDropGeometries(
-      klondikeDropCandidates(game, metrics),
+      game.dropTargetPiles.map((pile) => ({
+        pile,
+        layout: game.zoneFor(pile.id)!.layout,
+      })),
       metrics.origins,
       { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX },
       metrics.scale,
@@ -48,7 +48,7 @@ describe("resolveDragTarget", () => {
         cardIds: ["card-hearts-ace"],
         primary: { x: tableau1.x, y: tableau1.y },
       },
-      measureKlondikeBoard(game, viewport),
+      measureKlondikeBoard(viewport),
     );
 
     expect(target).toEqual(tableau1);
@@ -58,7 +58,7 @@ describe("resolveDragTarget", () => {
     const target = resolveDragTarget(
       game,
       { cardIds: ["card-hearts-ace"], primary: { x: 9000, y: 9000 } },
-      measureKlondikeBoard(game, viewport),
+      measureKlondikeBoard(viewport),
     );
 
     expect(target).toBeNull();
@@ -76,7 +76,7 @@ describe("resolveDragTarget", () => {
         cardIds: ["card-clubs-jack"],
         primary: { x: tableau1.x, y: tableau1.y + tableau1.height - 20 },
       },
-      measureKlondikeBoard(game, viewport),
+      measureKlondikeBoard(viewport),
     );
 
     expect(target?.pileId).toBe("tableau-1");

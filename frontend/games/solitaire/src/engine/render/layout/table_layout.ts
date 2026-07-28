@@ -120,6 +120,40 @@ export function computeScale(
 }
 
 /**
+ * Everything the view needs to place a board for one frame.
+ *
+ * Measured once and handed to whoever needs it, so the scale and the origins
+ * are derived in one place rather than recomputed by the view builder, the drop
+ * resolver and the hit test independently — three answers that have to agree.
+ */
+export interface TableMetrics {
+  /** The board this measures. */
+  readonly layout: TableLayoutSpec;
+  /** Design units to screen pixels. */
+  readonly scale: number;
+  /** Where each pile's top-left corner sits, in screen pixels. */
+  readonly origins: ReadonlyMap<string, Point>;
+}
+
+/**
+ * Measures a board for the given viewport.
+ *
+ * @param layout The board's grid.
+ * @param viewport The available drawable area.
+ */
+export function measureTable(
+  layout: TableLayoutSpec,
+  viewport: Viewport,
+): TableMetrics {
+  const scale = computeScale(layout, viewport);
+  return {
+    layout,
+    scale,
+    origins: computePileOrigins(layout, viewport, scale),
+  };
+}
+
+/**
  * Computes the absolute screen origin of every pile the layout places.
  *
  * The board is centred horizontally when the viewport is wider than it needs,

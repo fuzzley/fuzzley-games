@@ -110,6 +110,13 @@ export abstract class TableGame<
 
   // --- The board ---
 
+  /** Every pile a dragged stack may be dropped onto, in declaration order. */
+  public get dropTargetPiles(): readonly CardPile<PlayingCard>[] {
+    return this.zones()
+      .filter((zone) => zone.accept !== null)
+      .map((zone) => this.requirePile(zone.id));
+  }
+
   /** Every pile on the board, in the order the zones declared them. */
   public get piles(): readonly CardPile<PlayingCard>[] {
     return [...this.pilesMap.values()];
@@ -230,7 +237,7 @@ export abstract class TableGame<
       !card ||
       !targetPile ||
       !sourcePile ||
-      !targetZone ||
+      !targetZone?.accept ||
       sourcePile.id === targetPileId
     ) {
       return null;

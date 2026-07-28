@@ -165,8 +165,13 @@ export interface FlightInteraction {
 export interface TableInteractionState {
   /** The id of the currently hovered card, or null. */
   hoveredCardId: string | null;
-  /** Whether the stock background placeholder is hovered. */
-  isStockBackgroundHovered: boolean;
+  /**
+   * The pile whose background placeholder is hovered, or null.
+   *
+   * A pile id rather than a flag for the stock: which empty slots respond to a
+   * click is a property the zones declare, and a game may have more than one.
+   */
+  hoveredBackgroundPileId: string | null;
   /** The active drag, or null when nothing is being dragged. */
   drag: DragInteraction | null;
   /** The stack still flying to the pile it was moved to, or null when none is. */

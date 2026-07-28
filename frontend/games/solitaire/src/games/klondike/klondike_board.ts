@@ -1,118 +1,56 @@
-import { Point } from "@/engine/core/common/point";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { CardPile } from "@/engine/core/card/card_pile";
 import {
-  DropCandidate,
-  computeDropGeometries,
-  resolveDropTarget,
-} from "@/engine/render/layout/drop_geometry";
-import { PileLayout } from "@/engine/render/layout/pile_layout";
-import {
-  computePileOrigins,
-  computeScale,
+  TableMetrics,
+  measureTable,
 } from "@/engine/render/layout/table_layout";
 import {
   DragInteraction,
   PileGeometry,
+  TableInteractionState,
+  TableViewState,
   Viewport,
 } from "@/engine/render/view/table_view_state";
 import {
-  CARD_WIDTH_PX,
-  CARD_HEIGHT_PX,
-} from "@/engine/render/layout/card_metrics";
+  buildTableViewState,
+  resolveDragTarget,
+} from "@/engine/tableau/view/table_view_builder";
 import { KLONDIKE_LAYOUT } from "./klondike_layout";
-import { klondikeZoneSpecs } from "./klondike_zones";
 import { SolitaireGame } from "./solitaire_game";
 
-/** The size of a Klondike card in design units. */
-const CARD_SIZE = { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX };
-
-/**
- * Everything the render layer needs to place a Klondike board for one frame:
- * the scale, where each pile sits, and how each arranges its cards.
- *
- * Computed once per frame and handed to whoever needs it, so the scale and the
- * origins are derived in one place rather than recomputed by the view builder,
- * the drop resolver and the hit test independently — three answers that have to
- * agree and previously only agreed by construction.
- */
-export interface KlondikeBoardMetrics {
-  /** Design units to screen pixels. */
-  readonly scale: number;
-  /** Where each pile's top-left corner sits, in screen pixels. */
-  readonly origins: ReadonlyMap<string, Point>;
-  /** How a pile of the given role arranges its cards. */
-  layoutFor(pile: CardPile<PlayingCard>): PileLayout;
+/** Measures the Klondike board for the given viewport. */
+export function measureKlondikeBoard(viewport: Viewport): TableMetrics {
+  return measureTable(KLONDIKE_LAYOUT, viewport);
 }
 
 /**
- * Measures the board for the given viewport.
+ * Draws a Klondike board for one frame.
  *
- * @param game The game, read for the draw mode that sets the waste fan.
- * @param viewport The available drawable area.
+ * All this adds to the generic builder is which grid the board uses and which
+ * card back the player picked; everything else the view needs is declared by
+ * the zones.
  */
-export function measureKlondikeBoard(
+export function buildKlondikeViewState(
   game: SolitaireGame,
+  interaction: TableInteractionState,
   viewport: Viewport,
-): KlondikeBoardMetrics {
-  const scale = computeScale(KLONDIKE_LAYOUT, viewport);
-  const origins = computePileOrigins(KLONDIKE_LAYOUT, viewport, scale);
-  const zonesById = new Map(
-    klondikeZoneSpecs(game.settings.drawCount).map((zone) => [zone.id, zone]),
+): TableViewState {
+  return buildTableViewState(
+    game,
+    interaction,
+    measureKlondikeBoard(viewport),
+    { cardBackKey: game.settings.cardBackStyle },
   );
-  return {
-    scale,
-    origins,
-    layoutFor: (pile) => zonesById.get(pile.id)?.layout ?? { kind: "stacked" },
-  };
 }
 
 /**
- * The piles a dragged stack may be dropped onto: the foundations and the
- * tableaus. The stock and the waste are never destinations.
- */
-export function klondikeDropCandidates(
-  game: SolitaireGame,
-  metrics: KlondikeBoardMetrics,
-): DropCandidate[] {
-  return [...game.foundations, ...game.tableaus].map((pile) => ({
-    pile,
-    layout: metrics.layoutFor(pile),
-  }));
-}
-
-/**
- * Resolves the pile an in-flight drag would land on, as the pile's full drop
- * rectangle.
+ * Resolves the pile a drag would land on, for the Klondike board.
  *
- * The single answer to "where does this drag go": the view builder calls it
- * every frame to preview the target and the input manager calls it on release
- * to commit the move, so the border can never promise a pile the drop then
- * disagrees with.
- *
- * @param game The game model.
- * @param drag The active drag.
- * @param metrics The board measured for this frame.
- * @returns The target pile's geometry, or null when the drag overlaps no pile.
+ * The same answer the view builder previews with, so the border can never
+ * promise a pile the drop then disagrees with.
  */
-export function resolveDragTarget(
+export function resolveKlondikeDropTarget(
   game: SolitaireGame,
   drag: DragInteraction,
-  metrics: KlondikeBoardMetrics,
+  viewport: Viewport,
 ): PileGeometry | null {
-  const geometries = computeDropGeometries(
-    klondikeDropCandidates(game, metrics),
-    metrics.origins,
-    CARD_SIZE,
-    metrics.scale,
-  );
-  return resolveDropTarget(
-    {
-      x: drag.primary.x,
-      y: drag.primary.y,
-      width: CARD_SIZE.width * metrics.scale,
-      height: CARD_SIZE.height * metrics.scale,
-    },
-    geometries,
-  );
+  return resolveDragTarget(game, drag, measureKlondikeBoard(viewport));
 }

@@ -35,12 +35,6 @@ module.exports = tseslint.config(
   //
   // Relying on nobody crossing a tier by accident is how that kind of rule
   // quietly stops being true.
-  //
-  // One rule is missing on purpose: engine/render may still import @/games/*,
-  // because the view builder, the board geometry and the board scene all still
-  // name SolitaireGame. Turning it on is the acceptance test for the stage that
-  // makes them read zone specs instead, so it goes in with that change rather
-  // than as a rule with exemptions carved out of it.
   {
     // The bottom tier: pure card and pile mechanics. Free of rules, rendering,
     // and any framework at all, rxjs included, so it stays usable from anywhere.
@@ -85,13 +79,14 @@ module.exports = tseslint.config(
                 "phaser",
                 "@/engine/render/phaser/*",
                 "@/engine/tableau/*",
+                "@/games/*",
                 "@/ui/*",
                 "@angular/*",
                 "rxjs",
                 "rxjs/*",
               ],
               message:
-                "Only engine/render/phaser may name Phaser; the rest of the render tier is backend-agnostic.",
+                "engine/render sits below games and below the Phaser adapter: no Phaser, no game, no framework.",
             },
           ],
         },
@@ -100,6 +95,13 @@ module.exports = tseslint.config(
   },
   {
     // The Phaser adapter may name Phaser, and nothing above it.
+    //
+    // One rule is missing on purpose: the adapter may still import @/games/*.
+    // The scene is typed against SolitaireGame and the input manager still maps
+    // Klondike's own gestures, so it draws one game rather than any game.
+    // Turning it on is the acceptance test for the change that splits the
+    // generic drag machinery out from the Klondike gesture map, so it goes in
+    // with that rather than as a rule with exemptions carved out of it.
     files: ["src/engine/render/phaser/**/*.ts"],
     rules: {
       "@typescript-eslint/no-restricted-imports": [
