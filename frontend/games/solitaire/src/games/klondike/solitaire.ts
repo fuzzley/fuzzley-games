@@ -6,9 +6,22 @@ import {
   buildKlondikeViewState,
   resolveKlondikeDropTarget,
 } from "./klondike_board";
+import { klondikeGestures, klondikeStackFromCard } from "./klondike_gestures";
 import { getGameModel } from "./game_model_factory";
 import { ViewportScaler } from "@/engine/render/phaser/viewport_scaler";
 import { DEFAULT_BACKGROUND_COLOR } from "./game_settings";
+
+/** Builds the board scene, wired to the shared Klondike game. */
+function makeBoardScene(): BoardScene {
+  const game = getGameModel();
+  return new BoardScene(
+    game,
+    buildKlondikeViewState,
+    resolveKlondikeDropTarget,
+    klondikeGestures(game),
+    klondikeStackFromCard(game),
+  );
+}
 
 /** Entry point to the game that loads assets and initializes the game. */
 export class Solitaire {
@@ -53,14 +66,7 @@ export class Solitaire {
       autoFocus: true,
       // A scene instance rather than the class: the board has to be told which
       // game it draws and how to lay it out, and Phaser cannot supply either.
-      scene: [
-        LoadingScene,
-        new BoardScene(
-          getGameModel(),
-          buildKlondikeViewState,
-          resolveKlondikeDropTarget,
-        ),
-      ],
+      scene: [LoadingScene, makeBoardScene()],
     };
     const game = new Phaser.Game(gameConfig);
     this.game = game;

@@ -95,8 +95,12 @@ describe("PhaserCardFactory", () => {
     expect(padding && padding.every((value) => value !== 0)).toBe(true);
   });
 
-  it("creates an interactive stock background with the given alpha", () => {
-    const sprite = factory.createStockBackground(0.5) as unknown as MockSprite;
+  it("creates an interactive background with the given alpha", () => {
+    const sprite = factory.createPileBackground(
+      "card-placeholder-full-border-reset",
+      0.5,
+      true,
+    ) as unknown as MockSprite;
 
     expect(addSprite).toHaveBeenCalledWith(
       0,
@@ -110,9 +114,11 @@ describe("PhaserCardFactory", () => {
     expect(sprite.interactiveConfig).toEqual({ useHandCursor: true });
   });
 
-  it("creates a non-interactive tableau background with the given alpha", () => {
-    const sprite = factory.createTableauBackground(
+  it("creates a non-interactive background with the given alpha", () => {
+    const sprite = factory.createPileBackground(
+      "card-placeholder",
       0.4,
+      false,
     ) as unknown as MockSprite;
 
     expect(addSprite).toHaveBeenCalledWith(
@@ -125,9 +131,11 @@ describe("PhaserCardFactory", () => {
     expect(sprite.interactiveConfig).toBeNull();
   });
 
-  it("creates a non-interactive foundation background with the given alpha", () => {
-    const sprite = factory.createFoundationBackground(
+  it("draws whatever frame the zone asked for", () => {
+    const sprite = factory.createPileBackground(
+      "card-placeholder-full-border-circle",
       0.6,
+      false,
     ) as unknown as MockSprite;
 
     expect(addSprite).toHaveBeenCalledWith(
