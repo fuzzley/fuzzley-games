@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 import { BehaviorSubject } from "rxjs";
-import type { SolitaireGame } from "@/game/model/game/solitaire_game";
+import type { SolitaireGame } from "@/games/klondike/solitaire_game";
 
 export interface MockGameModelOverrides {
   score?: number;

@@ -1,6 +1,6 @@
 import { InjectionToken } from "@angular/core";
-import { SolitaireGame } from "@/game/model/game/solitaire_game";
-import { getGameModel } from "@/game/model/game/game_model_factory";
+import { SolitaireGame } from "@/games/klondike/solitaire_game";
+import { getGameModel } from "@/games/klondike/game_model_factory";
 
 /**
  * Injection token that provides the shared SolitaireGame model instance.

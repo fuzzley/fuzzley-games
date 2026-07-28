@@ -1,5 +1,5 @@
-import { Card } from "@/game/model/card/card";
-import { PlayingCard, Suit, Rank } from "@/game/model/card/playing_card";
+import { Card } from "@/engine/core/card/card";
+import { PlayingCard, Suit, Rank } from "@/engine/core/card/playing_card";
 
 /**
  * Builds a plain {@link Card} with sensible defaults. Pass overrides for the

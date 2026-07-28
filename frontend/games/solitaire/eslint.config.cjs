@@ -23,12 +23,28 @@ module.exports = tseslint.config(
       },
     },
   },
+  // --- Engine tier boundaries ---
+  //
+  // The architecture the project is built on, as build errors rather than as a
+  // convention. Each tier may depend only on the ones below it:
+  //
+  //   games/*        rules, scoring, deal, layout numbers, gestures
+  //     -> engine/tableau   solitaire-family runtime (not yet extracted)
+  //     -> engine/render    view contract, layout maths, Phaser adapter
+  //     -> engine/core      cards, piles, decks, RNG
+  //
+  // Relying on nobody crossing a tier by accident is how that kind of rule
+  // quietly stops being true.
+  //
+  // One rule is missing on purpose: engine/render may still import @/games/*,
+  // because the view builder, the board geometry and the board scene all still
+  // name SolitaireGame. Turning it on is the acceptance test for the stage that
+  // makes them read zone specs instead, so it goes in with that change rather
+  // than as a rule with exemptions carved out of it.
   {
-    // The architectural boundary the project is built on: the model is pure
-    // game logic and must never reach into rendering or the UI. Relying on
-    // nobody doing it by accident is how that kind of rule quietly stops being
-    // true, so it is enforced here.
-    files: ["src/game/model/**/*.ts"],
+    // The bottom tier: pure card and pile mechanics. Free of rules, rendering,
+    // and any framework at all, rxjs included, so it stays usable from anywhere.
+    files: ["src/engine/core/**/*.ts"],
     rules: {
       "@typescript-eslint/no-restricted-imports": [
         "error",
@@ -36,15 +52,82 @@ module.exports = tseslint.config(
           patterns: [
             {
               group: [
-                "**/render/**",
-                "**/ui/**",
-                "@/game/render/*",
+                "@/engine/render/*",
+                "@/engine/tableau/*",
+                "@/games/*",
                 "@/ui/*",
                 "phaser",
                 "@angular/*",
+                "rxjs",
+                "rxjs/*",
               ],
               message:
-                "The model layer must stay free of rendering, Angular and Phaser.",
+                "engine/core is the bottom tier: no rendering, no game rules, no frameworks.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // The render tier, minus its Phaser adapter. This is what makes the
+    // renderer a port rather than a habit: layout maths, the view contract and
+    // the drag maths may not name Phaser, so they stay testable with no mocks.
+    files: ["src/engine/render/**/*.ts"],
+    ignores: ["src/engine/render/phaser/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "phaser",
+                "@/engine/render/phaser/*",
+                "@/engine/tableau/*",
+                "@/ui/*",
+                "@angular/*",
+                "rxjs",
+                "rxjs/*",
+              ],
+              message:
+                "Only engine/render/phaser may name Phaser; the rest of the render tier is backend-agnostic.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // The Phaser adapter may name Phaser, and nothing above it.
+    files: ["src/engine/render/phaser/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/engine/tableau/*", "@/ui/*", "@angular/*"],
+              message:
+                "The Phaser adapter is part of the engine and must not depend on the UI.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Games sit at the top of the engine, but below the application shell.
+    files: ["src/games/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/ui/*", "@angular/*"],
+              message:
+                "A game must not depend on the Angular shell that happens to host it.",
             },
           ],
         },

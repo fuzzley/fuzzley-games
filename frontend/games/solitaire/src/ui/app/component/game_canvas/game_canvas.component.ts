@@ -6,7 +6,7 @@ import {
   inject,
   OnInit,
 } from "@angular/core";
-import { Solitaire } from "@/game/solitaire";
+import { Solitaire } from "@/games/klondike/solitaire";
 
 declare global {
   interface Window {

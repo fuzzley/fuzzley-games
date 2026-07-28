@@ -8,7 +8,7 @@ import {
 } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { GAME_MODEL } from "../provider/game_model.provider";
-import { CardBackStyle, DrawCount } from "@/game/model/game/game_settings";
+import { CardBackStyle, DrawCount } from "@/games/klondike/game_settings";
 import { TimerService } from "./timer.service";
 import { ConfirmationService } from "./confirmation.service";
 
