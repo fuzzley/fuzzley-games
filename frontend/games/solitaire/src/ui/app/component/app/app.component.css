@@ -14,6 +14,18 @@
   padding-left: 190px;
 }
 
+/*
+ * Narrow screens: the rail keeps a 44px strip beside the board and its open
+ * panel floats over the top, so the board's width does not change when the
+ * menu is opened and the stock is never covered.
+ */
+@media (max-width: 720px) {
+  .board-area,
+  .board-area.rail-expanded {
+    padding-left: 44px;
+  }
+}
+
 .ui-overlay {
   width: 100%;
   height: 100%;

@@ -120,6 +120,55 @@ export function computeScale(
 }
 
 /**
+ * Below this CSS width a board tightens its gaps to buy card size.
+ *
+ * The same figure the application uses to decide the game rail should stop
+ * taking a column's worth of screen: at that size every design unit spent on
+ * the space between piles is one not spent on the cards themselves.
+ */
+export const COMPACT_MAX_WIDTH_CSS_PX = 720;
+
+/** Space between piles on a small screen, in design units. */
+const COMPACT_GAP = { x: 8, y: 14 };
+
+/** Space at the edges of the board on a small screen, in design units. */
+const COMPACT_PADDING = { x: 8, y: 14 };
+
+/**
+ * The board tightened for a small screen, or the board unchanged.
+ *
+ * A phone holding a ten-column Spider board spends about a tenth of its width
+ * on gaps authored for a desktop. Reclaiming it makes the cards about a tenth
+ * larger, which is worth having even though it does not make a ten-column game
+ * roomy on a phone — nothing short of turning it sideways does that.
+ *
+ * @param spec The board's grid.
+ * @param viewport The available drawable area.
+ */
+export function compactFor(
+  spec: TableLayoutSpec,
+  viewport: Viewport,
+): TableLayoutSpec {
+  const cssWidth = viewport.width / (viewport.pixelRatio || 1);
+  if (cssWidth === 0 || cssWidth > COMPACT_MAX_WIDTH_CSS_PX) {
+    return spec;
+  }
+  // Tighten, never loosen: a board already drawn closer together than this
+  // asked for that, and a small screen is no reason to spread it out.
+  return {
+    ...spec,
+    gap: {
+      x: Math.min(spec.gap.x, COMPACT_GAP.x),
+      y: Math.min(spec.gap.y, COMPACT_GAP.y),
+    },
+    padding: {
+      x: Math.min(spec.padding.x, COMPACT_PADDING.x),
+      y: Math.min(spec.padding.y, COMPACT_PADDING.y),
+    },
+  };
+}
+
+/**
  * Everything the view needs to place a board for one frame.
  *
  * Measured once and handed to whoever needs it, so the scale and the origins
@@ -142,9 +191,10 @@ export interface TableMetrics {
  * @param viewport The available drawable area.
  */
 export function measureTable(
-  layout: TableLayoutSpec,
+  rawLayout: TableLayoutSpec,
   viewport: Viewport,
 ): TableMetrics {
+  const layout = compactFor(rawLayout, viewport);
   const scale = computeScale(layout, viewport);
   return {
     layout,
