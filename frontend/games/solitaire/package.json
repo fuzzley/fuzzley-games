@@ -36,7 +36,7 @@
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "^2.6.4",
     "@analogjs/vitest-angular": "^2.6.4",
-    "@angular/build": "^22.0.8",
+    "@angular/build": "^22.0.9",
     "@angular/compiler-cli": "^22.0.8",
     "@eslint/js": "^10.0.1",
     "@resvg/resvg-js": "^2.6.2",
@@ -46,7 +46,7 @@
     "@vitest/coverage-v8": "^4.1.10",
     "angular-eslint": "^22.1.0",
     "concurrently": "^10.0.4",
-    "jsdom": "^29.1.1",
+    "jsdom": "^30.0.1",
     "prettier": "^3.9.6",
     "sharp": "^0.35.3",
     "typescript": "^6.0.3",
