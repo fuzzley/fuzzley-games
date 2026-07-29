@@ -39,10 +39,7 @@ export function relocate(
  * Forces a waste-to-stock recycle: empties the stock, places a single card in
  * the waste, and draws so the game recycles the waste back into the stock.
  */
-export function forceWasteRecycle(
-  game: KlondikeGame,
-  card: PlayingCard,
-): void {
+export function forceWasteRecycle(game: KlondikeGame, card: PlayingCard): void {
   game.stock.clear();
   game.waste.clear();
   game.waste.addCard(card);
