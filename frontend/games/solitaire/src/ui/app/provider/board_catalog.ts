@@ -10,6 +10,8 @@ import { YukonGame } from "@/games/yukon/yukon_game";
 import { makeYukonBoardScene } from "@/games/yukon/yukon_board";
 import { EightOffGame } from "@/games/eight_off/eight_off_game";
 import { makeEightOffBoardScene } from "@/games/eight_off/eight_off_board";
+import { ScorpionGame } from "@/games/scorpion/scorpion_game";
+import { makeScorpionBoardScene } from "@/games/scorpion/scorpion_board";
 
 /**
  * Builds the board that draws a game.
@@ -38,6 +40,9 @@ export function makeBoardScene(
   }
   if (game instanceof EightOffGame) {
     return makeEightOffBoardScene(game, presentation);
+  }
+  if (game instanceof ScorpionGame) {
+    return makeScorpionBoardScene(game, presentation);
   }
   throw new Error("No board is registered for this game.");
 }

@@ -9,6 +9,7 @@ import { SpiderSuitCount, spiderDeck } from "@/games/spider/spider_deal";
 import { YukonGame } from "@/games/yukon/yukon_game";
 import { YukonVariant } from "@/games/yukon/yukon_rules";
 import { EightOffGame } from "@/games/eight_off/eight_off_game";
+import { ScorpionGame } from "@/games/scorpion/scorpion_game";
 
 /** A value a rule option can be set to, and how to name it to a player. */
 export interface GameOptionChoice {
@@ -235,6 +236,18 @@ export const GAME_CATALOG: readonly CatalogEntry[] = [
     options: [],
     create: () => {
       const game = new EightOffGame();
+      game.startNewGame();
+      return { game };
+    },
+  },
+  {
+    id: "scorpion",
+    name: "Scorpion",
+    // Nothing to choose: one deck, one deal, and a stock that empties itself in
+    // a single press.
+    options: [],
+    create: () => {
+      const game = new ScorpionGame();
       game.startNewGame();
       return { game };
     },
