@@ -8,6 +8,7 @@ import { SpiderGame } from "@/games/spider/spider_game";
 import { SpiderSuitCount, spiderDeck } from "@/games/spider/spider_deal";
 import { YukonGame } from "@/games/yukon/yukon_game";
 import { YukonVariant } from "@/games/yukon/yukon_rules";
+import { EightOffGame } from "@/games/eight_off/eight_off_game";
 
 /** A value a rule option can be set to, and how to name it to a player. */
 export interface GameOptionChoice {
@@ -222,6 +223,18 @@ export const GAME_CATALOG: readonly CatalogEntry[] = [
           ? FreeCellVariant.BAKERS_KINGS_ONLY
           : FreeCellVariant.BAKERS;
       const game = new FreeCellGame(undefined, undefined, variant);
+      game.startNewGame();
+      return { game };
+    },
+  },
+  {
+    id: "eightoff",
+    name: "Eight Off",
+    // Nothing to choose: no stock, no draw mode, and the cell count is the
+    // name of the game.
+    options: [],
+    create: () => {
+      const game = new EightOffGame();
       game.startNewGame();
       return { game };
     },
