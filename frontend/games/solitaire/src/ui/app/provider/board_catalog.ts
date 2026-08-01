@@ -8,6 +8,8 @@ import { SpiderGame } from "@/games/spider/spider_game";
 import { makeSpiderBoardScene } from "@/games/spider/spider_board";
 import { YukonGame } from "@/games/yukon/yukon_game";
 import { makeYukonBoardScene } from "@/games/yukon/yukon_board";
+import { EightOffGame } from "@/games/eight_off/eight_off_game";
+import { makeEightOffBoardScene } from "@/games/eight_off/eight_off_board";
 
 /**
  * Builds the board that draws a game.
@@ -33,6 +35,9 @@ export function makeBoardScene(
   // column accepts, which the zones already declare, and in nothing drawn.
   if (game instanceof YukonGame) {
     return makeYukonBoardScene(game, presentation);
+  }
+  if (game instanceof EightOffGame) {
+    return makeEightOffBoardScene(game, presentation);
   }
   throw new Error("No board is registered for this game.");
 }
