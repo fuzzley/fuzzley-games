@@ -14,11 +14,11 @@ export function rootElement(fixture: ComponentFixture<unknown>): HTMLElement {
 }
 
 /** The first element matching `selector`, or null when nothing matches. */
-export function query(
+export function query<T extends HTMLElement = HTMLElement>(
   fixture: ComponentFixture<unknown>,
   selector: string,
-): HTMLElement | null {
-  return rootElement(fixture).querySelector<HTMLElement>(selector);
+): T | null {
+  return rootElement(fixture).querySelector<T>(selector);
 }
 
 /**
@@ -26,11 +26,11 @@ export function query(
  * selector that has drifted from the template fails at the line that uses it
  * rather than as a confusing null further along.
  */
-export function queryRequired(
+export function queryRequired<T extends HTMLElement = HTMLElement>(
   fixture: ComponentFixture<unknown>,
   selector: string,
-): HTMLElement {
-  const element = query(fixture, selector);
+): T {
+  const element = query<T>(fixture, selector);
   if (!element) {
     throw new Error(`No element matched selector: ${selector}`);
   }
@@ -38,11 +38,11 @@ export function queryRequired(
 }
 
 /** Every element matching `selector`, in document order. */
-export function queryAll(
+export function queryAll<T extends HTMLElement = HTMLElement>(
   fixture: ComponentFixture<unknown>,
   selector: string,
-): HTMLElement[] {
-  return [...rootElement(fixture).querySelectorAll<HTMLElement>(selector)];
+): T[] {
+  return [...rootElement(fixture).querySelectorAll<T>(selector)];
 }
 
 /** The trimmed text content of the first element matching `selector`. */
