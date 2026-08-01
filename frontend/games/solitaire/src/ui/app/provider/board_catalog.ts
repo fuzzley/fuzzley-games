@@ -6,6 +6,8 @@ import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { makeFreeCellBoardScene } from "@/games/freecell/freecell_board";
 import { SpiderGame } from "@/games/spider/spider_game";
 import { makeSpiderBoardScene } from "@/games/spider/spider_board";
+import { ScorpionGame } from "@/games/scorpion/scorpion_game";
+import { makeScorpionBoardScene } from "@/games/scorpion/scorpion_board";
 
 /**
  * Builds the board that draws a game.
@@ -26,6 +28,9 @@ export function makeBoardScene(
   }
   if (game instanceof SpiderGame) {
     return makeSpiderBoardScene(game, presentation);
+  }
+  if (game instanceof ScorpionGame) {
+    return makeScorpionBoardScene(game, presentation);
   }
   throw new Error("No board is registered for this game.");
 }

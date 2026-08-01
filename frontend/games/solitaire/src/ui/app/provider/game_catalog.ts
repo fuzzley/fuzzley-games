@@ -5,6 +5,7 @@ import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { SpiderGame } from "@/games/spider/spider_game";
 import { SpiderSuitCount, spiderDeck } from "@/games/spider/spider_deal";
+import { ScorpionGame } from "@/games/scorpion/scorpion_game";
 
 /** A value a rule option can be set to, and how to name it to a player. */
 export interface GameOptionChoice {
@@ -152,6 +153,18 @@ export const GAME_CATALOG: readonly CatalogEntry[] = [
         SPIDER_SUIT_COUNT,
       ) as SpiderSuitCount;
       const game = new SpiderGame(deckCardIds(spiderDeck(suitCount)));
+      game.startNewGame();
+      return { game };
+    },
+  },
+  {
+    id: "scorpion",
+    name: "Scorpion",
+    // Nothing to choose: one deck, one deal, and a stock that empties itself in
+    // a single press.
+    options: [],
+    create: () => {
+      const game = new ScorpionGame();
       game.startNewGame();
       return { game };
     },
