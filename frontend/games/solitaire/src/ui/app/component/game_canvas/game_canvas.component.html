@@ -1,35 +1,35 @@
-<div
-  class="loading-overlay"
-  [class.hidden]="!isInitializing()"
-  role="status"
-  aria-live="polite"
-  [attr.aria-busy]="isInitializing()"
->
-  <div class="skeleton-table">
-    <div class="skeleton-top-row">
-      @for (group of layoutSpec().topRow; track $index) {
-        <div class="skeleton-group" [attr.data-type]="group.type">
-          @for (slot of range(group.count); track $index) {
-            <div class="skeleton-pile-slot">
-              <div class="skeleton-shimmer"></div>
-            </div>
-          }
-        </div>
-      }
-    </div>
-    <div class="skeleton-tableau">
-      @for (colIndex of tableauColumns(); track colIndex) {
-        <div class="skeleton-tableau-pile">
+<div #canvasHost class="canvas-container"></div>
+
+@if (isInitializing()) {
+  <div
+    class="loading-overlay"
+    [class.hidden]="!isInitializing()"
+    role="status"
+    [attr.aria-busy]="isInitializing()"
+  >
+    <div
+      class="skeleton-grid"
+      [style.grid-template-columns]="
+        'repeat(' + layoutSpec().columns + ', 1fr)'
+      "
+      [style.grid-template-rows]="'repeat(' + layoutSpec().rows + ', 1fr)'"
+    >
+      @for (slot of layoutSpec().slots; track slot.pileId) {
+        <div
+          class="skeleton-slot"
+          [style.grid-column]="slot.column + 1"
+          [style.grid-row]="slot.row + 1"
+        >
           <div class="skeleton-shimmer"></div>
         </div>
       }
     </div>
-  </div>
 
-  <div class="loading-badge">
-    <div class="spinner-ring">
-      <div class="mini-card-icon">♠</div>
+    <div class="loading-badge">
+      <div class="spinner-ring">
+        <div class="mini-card-icon">♠</div>
+      </div>
+      <div class="loading-text">Loading {{ gameName() }}...</div>
     </div>
-    <div class="loading-text">Loading {{ gameName() }}...</div>
   </div>
-</div>
+}

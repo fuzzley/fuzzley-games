@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   input,
   output,
@@ -29,6 +30,11 @@ export class SettingsDrawerComponent {
 
   /** Exposes build mode configuration to conditional UI rendering. */
   protected readonly isDevMode = import.meta.env.DEV;
+
+  /** Title of the game currently active. */
+  readonly activeGameTitle = computed(
+    () => this.docService.activeGameDoc()?.title ?? "Solitaire",
+  );
 
   /** Whether the side settings drawer is visible. */
   readonly open = input<boolean>(false);

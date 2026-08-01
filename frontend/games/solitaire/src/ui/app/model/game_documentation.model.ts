@@ -1,20 +1,13 @@
 /**
- * Category or context of a documentation screenshot visual aid.
- */
-export type ScreenshotType = 'overview' | 'rule_detail' | 'variant';
-
-/**
- * Metadata for a screenshot embedded in a game's documentation.
+ * Metadata for a hero screenshot embedded in a game's documentation.
  */
 export interface DocScreenshot {
-  /** Relative URL path to the screenshot image (e.g. '/docs/screenshots/klondike/overview.png'). */
+  /** Relative URL path to the screenshot image (e.g. './docs/screenshots/klondike/overview.png'). */
   readonly url: string;
   /** Human-readable caption explaining what the screenshot demonstrates. */
   readonly caption: string;
   /** Alt text for screen readers and accessibility. */
   readonly altText: string;
-  /** Type tag identifying the section or feature illustrated. */
-  readonly type?: ScreenshotType;
 }
 
 /**
@@ -44,23 +37,23 @@ export interface DetailedRulesDoc {
 }
 
 /**
- * Explanation of a game option / variant setting available to players.
+ * Explanation of an option choice bound to its numeric value.
  */
 export interface GameOptionDocChoice {
-  /** Label of the choice (e.g. 'Draw 1', '4 Suits', 'Kings Only'). */
-  readonly label: string;
+  /** The option value matching GameOptionChoice.value in the catalog. */
+  readonly value: number;
   /** Detailed explanation of how this choice affects gameplay and difficulty. */
   readonly effect: string;
 }
 
+/**
+ * Documentation bound to a game option id.
+ * Label and high-level description are read directly from GameOptionSpec in the catalog.
+ */
 export interface GameOptionDoc {
   /** The option id matching a GameOptionSpec in the catalog. */
   readonly optionId: string;
-  /** Title of the option shown to players. */
-  readonly label: string;
-  /** High-level description of what changing this setting alters. */
-  readonly description: string;
-  /** Explanations for each available choice. */
+  /** Explanations for each available choice value. */
   readonly choicesExplanation: readonly GameOptionDocChoice[];
 }
 
@@ -68,14 +61,12 @@ export interface GameOptionDoc {
  * Complete documentation structure for a game in fSolitaire.
  */
 export interface GameDocumentation {
-  /** Stable identifier matching CatalogEntry.id. */
-  readonly gameId: string;
-  /** Human-readable game title. */
+  /** Human-readable game title (e.g. 'Klondike Solitaire'). */
   readonly title: string;
   /** Link to Wikipedia article for this game, if available. */
   readonly wikipediaUrl?: string;
-  /** Visual screenshots showcasing board layout, mechanics, and variants. */
-  readonly screenshots: readonly DocScreenshot[];
+  /** Hero screenshot showcasing board layout. */
+  readonly screenshot?: DocScreenshot;
   /** Summary and win condition. */
   readonly summary: GameSummaryDoc;
   /** Full detailed rules. */

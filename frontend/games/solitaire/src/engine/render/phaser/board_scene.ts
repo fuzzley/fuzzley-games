@@ -202,7 +202,9 @@ export class BoardScene extends Scene implements PhaserSprites {
     // test, so the hover would stay attached to a card that has left.
     this.input.setPollAlways();
 
-    this.options.onReady?.();
+    this.events.once(Scenes.Events.POST_UPDATE, () => {
+      this.options.onReady?.();
+    });
   }
 
   /** Instantiates and registers a sprite for every playing card in the game. */
