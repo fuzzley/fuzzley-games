@@ -15,11 +15,13 @@ import { YUKON_LAYOUT } from "./yukon_layout";
 export function makeYukonBoardScene(
   game: YukonGame,
   presentation: TablePresentation,
+  onReady?: () => void,
 ): BoardScene {
   return makeTableBoardScene({
     game,
     layout: YUKON_LAYOUT,
     handleIntent: stocklessGestures(game),
     presentation,
+    onReady,
   });
 }

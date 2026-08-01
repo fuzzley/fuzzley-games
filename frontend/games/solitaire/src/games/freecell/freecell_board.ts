@@ -15,11 +15,13 @@ import { FreeCellGame } from "./freecell_game";
 export function makeFreeCellBoardScene(
   game: FreeCellGame,
   presentation: TablePresentation,
+  onReady?: () => void,
 ): BoardScene {
   return makeTableBoardScene({
     game,
     layout: FREECELL_LAYOUT,
     handleIntent: stocklessGestures(game),
     presentation,
+    onReady,
   });
 }

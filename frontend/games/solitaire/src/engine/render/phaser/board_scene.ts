@@ -80,6 +80,8 @@ export interface BoardSceneOptions {
    * cards without any gesture having decided which.
    */
   readonly onCardsRelocated: Subscribe<readonly string[]>;
+  /** Notifies when the board scene finishes initial sprite setup and is ready to render. */
+  readonly onReady?: () => void;
 }
 
 /**
@@ -199,6 +201,8 @@ export class BoardScene extends Scene implements PhaserSprites {
     // the card out from under it — and without polling Phaser never re-runs the
     // test, so the hover would stay attached to a card that has left.
     this.input.setPollAlways();
+
+    this.options.onReady?.();
   }
 
   /** Instantiates and registers a sprite for every playing card in the game. */

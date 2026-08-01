@@ -14,11 +14,13 @@ import { scorpionGestures } from "./scorpion_gestures";
 export function makeScorpionBoardScene(
   game: ScorpionGame,
   presentation: TablePresentation,
+  onReady?: () => void,
 ): BoardScene {
   return makeTableBoardScene({
     game,
     layout: SCORPION_LAYOUT,
     handleIntent: scorpionGestures(game),
     presentation,
+    onReady,
   });
 }
