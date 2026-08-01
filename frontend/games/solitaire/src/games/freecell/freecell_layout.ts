@@ -8,7 +8,11 @@ import {
   LAYOUT_PADDING_X,
   LAYOUT_PADDING_Y,
 } from "@/engine/render/layout/card_metrics";
-import { TABLEAU_COUNT, freeCellZoneSpecs } from "./freecell_zones";
+import {
+  FreeCellVariant,
+  TABLEAU_COUNT,
+  freeCellZoneSpecs,
+} from "./freecell_zones";
 
 /**
  * The FreeCell board: eight columns wide, with the four cells and the four
@@ -16,11 +20,14 @@ import { TABLEAU_COUNT, freeCellZoneSpecs } from "./freecell_zones";
  *
  * Eight columns rather than Klondike's seven, and nothing in the engine was
  * told about it — the design width falls out of the grid.
+ *
+ * Which variant the slots are read from does not matter — the rules vary with
+ * it, the grid does not — so this serves Baker's Game unchanged.
  */
 export const FREECELL_LAYOUT: TableLayoutSpec = {
   columns: TABLEAU_COUNT,
   rows: 2,
-  slots: freeCellZoneSpecs().map((zone) => zone.slot),
+  slots: freeCellZoneSpecs(FreeCellVariant.FREECELL).map((zone) => zone.slot),
   cardSize: { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX },
   gap: { x: LAYOUT_GAP_X, y: LAYOUT_GAP_Y },
   padding: { x: LAYOUT_PADDING_X, y: LAYOUT_PADDING_Y },

@@ -3,6 +3,7 @@ import { deckCardIds } from "@/engine/core/card/deck";
 import { GameSettings } from "@/games/klondike/game_settings";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
+import { FreeCellVariant } from "@/games/freecell/freecell_rules";
 import { SpiderGame } from "@/games/spider/spider_game";
 import { SpiderSuitCount, spiderDeck } from "@/games/spider/spider_deal";
 
@@ -93,6 +94,18 @@ const KLONDIKE_ALMOST_WIN: GameOptionSpec = {
   debugOnly: true,
 };
 
+const BAKERS_EMPTY_COLUMNS: GameOptionSpec = {
+  id: "emptyColumns",
+  label: "Empty Columns",
+  description:
+    "Kings Only is the harder variant: it also caps how many cards move at once, because a run can no longer be staged in an empty column.",
+  choices: [
+    { value: 0, label: "Any Card" },
+    { value: 1, label: "Kings Only" },
+  ],
+  defaultValue: 0,
+};
+
 const SPIDER_SUIT_COUNT: GameOptionSpec = {
   id: "suitCount",
   label: "Suits",
@@ -134,10 +147,14 @@ export const GAME_CATALOG: readonly CatalogEntry[] = [
   {
     id: "freecell",
     name: "FreeCell",
-    // FreeCell has no rules to choose: no stock, no draw mode, no variants.
+    // FreeCell has no rules to choose: no stock, no draw mode, no options.
     options: [],
     create: () => {
-      const game = new FreeCellGame();
+      const game = new FreeCellGame(
+        undefined,
+        undefined,
+        FreeCellVariant.FREECELL,
+      );
       game.startNewGame();
       return { game };
     },
@@ -152,6 +169,23 @@ export const GAME_CATALOG: readonly CatalogEntry[] = [
         SPIDER_SUIT_COUNT,
       ) as SpiderSuitCount;
       const game = new SpiderGame(deckCardIds(spiderDeck(suitCount)));
+      game.startNewGame();
+      return { game };
+    },
+  },
+  {
+    id: "bakers",
+    name: "Baker's Game",
+    options: [BAKERS_EMPTY_COLUMNS],
+    // The same class as FreeCell, playing by a different set of column rules.
+    // Historically the derivation runs this way round — FreeCell was built from
+    // Baker's Game — but the code has to pick one of them to be the module.
+    create: (values) => {
+      const variant =
+        optionValue(values, BAKERS_EMPTY_COLUMNS) === 1
+          ? FreeCellVariant.BAKERS_KINGS_ONLY
+          : FreeCellVariant.BAKERS;
+      const game = new FreeCellGame(undefined, undefined, variant);
       game.startNewGame();
       return { game };
     },
