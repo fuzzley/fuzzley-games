@@ -14,11 +14,13 @@ import { spiderGestures } from "./spider_gestures";
 export function makeSpiderBoardScene(
   game: SpiderGame,
   presentation: TablePresentation,
+  onReady?: () => void,
 ): BoardScene {
   return makeTableBoardScene({
     game,
     layout: SPIDER_LAYOUT,
     handleIntent: spiderGestures(game),
     presentation,
+    onReady,
   });
 }

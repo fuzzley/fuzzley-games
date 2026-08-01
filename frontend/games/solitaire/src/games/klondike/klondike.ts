@@ -25,6 +25,7 @@ import {
 export function makeKlondikeBoardScene(
   game: KlondikeGame,
   presentation: TablePresentation,
+  onReady?: () => void,
 ): BoardScene {
   return new BoardScene({
     game,
@@ -42,6 +43,7 @@ export function makeKlondikeBoardScene(
       return () => game.off("game-reset", handler);
     },
     onCardsRelocated: (listener) => game.onCardsRelocated(listener),
+    onReady,
   });
 }
 

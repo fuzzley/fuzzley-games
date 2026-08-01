@@ -23,26 +23,27 @@ import { makeScorpionBoardScene } from "@/games/scorpion/scorpion_board";
 export function makeBoardScene(
   game: unknown,
   presentation: TablePresentation,
+  onReady?: () => void,
 ): BoardScene {
   if (game instanceof KlondikeGame) {
-    return makeKlondikeBoardScene(game, presentation);
+    return makeKlondikeBoardScene(game, presentation, onReady);
   }
   if (game instanceof FreeCellGame) {
-    return makeFreeCellBoardScene(game, presentation);
+    return makeFreeCellBoardScene(game, presentation, onReady);
   }
   if (game instanceof SpiderGame) {
-    return makeSpiderBoardScene(game, presentation);
+    return makeSpiderBoardScene(game, presentation, onReady);
   }
   // One board for all three of the Yukon family: the variants differ in what a
   // column accepts, which the zones already declare, and in nothing drawn.
   if (game instanceof YukonGame) {
-    return makeYukonBoardScene(game, presentation);
+    return makeYukonBoardScene(game, presentation, onReady);
   }
   if (game instanceof EightOffGame) {
-    return makeEightOffBoardScene(game, presentation);
+    return makeEightOffBoardScene(game, presentation, onReady);
   }
   if (game instanceof ScorpionGame) {
-    return makeScorpionBoardScene(game, presentation);
+    return makeScorpionBoardScene(game, presentation, onReady);
   }
   throw new Error("No board is registered for this game.");
 }

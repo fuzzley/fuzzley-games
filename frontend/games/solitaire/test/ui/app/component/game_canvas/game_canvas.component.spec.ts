@@ -5,7 +5,7 @@ import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { GameCanvasComponent } from "@/ui/app/component/game_canvas/game_canvas.component";
 
 /** Records every game the component constructs, and what it was handed. */
-const started: { parent: HTMLElement; destroyed: boolean }[] = [];
+const started: { parent: HTMLElement; destroyed: boolean; makeScene: () => void }[] = [];
 
 // The board catalog is the only thing here that names Phaser, whose module
 // init does not survive jsdom. What this component does with a scene is the
@@ -15,18 +15,24 @@ vi.mock("@/ui/app/provider/board_catalog", () => ({
     providedIn: "root",
     factory: () => ({}),
   }),
+  makeBoardScene: (_game: unknown, _presentation: unknown, onReady?: () => void) => {
+    onReady?.();
+    return {};
+  },
 }));
 
 vi.mock("@/games/klondike/klondike", () => ({
   Klondike: class {
-    private readonly record: { parent: HTMLElement; destroyed: boolean };
+    private readonly record: { parent: HTMLElement; destroyed: boolean; makeScene: () => void };
 
-    constructor(_window: Window, parent: HTMLElement) {
-      this.record = { parent, destroyed: false };
+    constructor(_window: Window, parent: HTMLElement, makeBoardScene: () => void) {
+      this.record = { parent, destroyed: false, makeScene: makeBoardScene };
     }
 
     start() {
       started.push(this.record);
+      // Simulate Phaser starting and triggering scene creation
+      this.record.makeScene();
     }
 
     destroy() {
@@ -75,5 +81,28 @@ describe("GameCanvasComponent", () => {
     fixture.destroy();
 
     expect(window.klondike).toBeUndefined();
+  });
+
+  it("renders the loading placeholder element with proper accessibility attributes", () => {
+    const overlay: HTMLElement | null = fixture.nativeElement.querySelector(".loading-overlay");
+    expect(overlay).not.toBeNull();
+    expect(overlay?.getAttribute("role")).toBe("status");
+  });
+
+  it("hides the loading overlay once initialization ready is signaled", () => {
+    const component = fixture.componentInstance;
+    expect(component.isInitializing()).toBe(false);
+
+    const overlay: HTMLElement | null = fixture.nativeElement.querySelector(".loading-overlay");
+    expect(overlay?.classList.contains("hidden")).toBe(true);
+  });
+
+  it("displays the game name badge during loading", () => {
+    const component = fixture.componentInstance;
+    component.isInitializing.set(true);
+    fixture.detectChanges();
+
+    const textElement: HTMLElement | null = fixture.nativeElement.querySelector(".loading-text");
+    expect(textElement?.textContent).toContain("Loading Klondike...");
   });
 });

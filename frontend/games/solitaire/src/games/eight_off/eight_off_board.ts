@@ -14,11 +14,13 @@ import { EightOffGame } from "./eight_off_game";
 export function makeEightOffBoardScene(
   game: EightOffGame,
   presentation: TablePresentation,
+  onReady?: () => void,
 ): BoardScene {
   return makeTableBoardScene({
     game,
     layout: EIGHT_OFF_LAYOUT,
     handleIntent: stocklessGestures(game),
     presentation,
+    onReady,
   });
 }

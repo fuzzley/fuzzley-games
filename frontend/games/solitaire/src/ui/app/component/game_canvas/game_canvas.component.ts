@@ -2,13 +2,16 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  computed,
   effect,
   inject,
+  signal,
 } from "@angular/core";
 import { Klondike } from "@/games/klondike/klondike";
 import { makeBoardScene } from "../../provider/board_catalog";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { PresentationSettingsService } from "../../service/presentation_settings.service";
+import { gameLayoutSpec } from "../../model/game_layout_spec";
 
 declare global {
   interface Window {
@@ -18,7 +21,7 @@ declare global {
 }
 
 /**
- * Hosts the Phaser game canvas.
+ * Hosts the Phaser game canvas and provides a modern loading placeholder overlay during initialization.
  *
  * The game used to boot as a side effect of importing a module from main.ts,
  * which tied its lifetime to module evaluation order rather than to anything
@@ -31,13 +34,34 @@ declare global {
 @Component({
   selector: "app-game-canvas",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: "",
+  templateUrl: "./game_canvas.component.html",
   styleUrl: "./game_canvas.component.css",
 })
 export class GameCanvasComponent {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly catalog = inject(GameCatalogService);
   private readonly presentation = inject(PresentationSettingsService);
+
+  /** Tracks whether the current game is initializing/building its scene. */
+  readonly isInitializing = signal<boolean>(true);
+
+  /** Name of the game currently being prepared. */
+  readonly gameName = computed(() => this.catalog.selectedEntry?.name ?? "Game");
+
+  /** Skeleton layout spec matching the game currently selected. */
+  readonly layoutSpec = computed(() =>
+    gameLayoutSpec(this.catalog.selectedId?.() ?? "klondike"),
+  );
+
+  /** Array of tableau column indices for grid iterations. */
+  readonly tableauColumns = computed(() =>
+    Array.from({ length: this.layoutSpec().tableauColumns }, (_, i) => i),
+  );
+
+  /** Helper to generate slot iteration arrays in template. */
+  range(count: number): number[] {
+    return Array.from({ length: count }, (_, i) => i);
+  }
 
   constructor() {
     // One Phaser host per game. Switching games tears the old canvas down and
@@ -46,8 +70,14 @@ export class GameCanvasComponent {
     // one mid-flight.
     effect((onCleanup) => {
       const { game } = this.catalog.session();
+      this.isInitializing.set(true);
+
+      const onReady = () => {
+        this.isInitializing.set(false);
+      };
+
       const klondike = new Klondike(window, this.host.nativeElement, () =>
-        makeBoardScene(game, this.presentation),
+        makeBoardScene(game, this.presentation, onReady),
       );
       klondike.start();
       window.klondike = klondike;

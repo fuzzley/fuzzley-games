@@ -25,6 +25,8 @@ export interface TableBoardOptions<
   readonly handleIntent: IntentHandler;
   /** How the player has asked the table to look. */
   readonly presentation: TablePresentation;
+  /** Optional callback fired when the board scene finishes initial sprite setup. */
+  readonly onReady?: () => void;
 }
 
 /**
@@ -42,7 +44,7 @@ export interface TableBoardOptions<
 export function makeTableBoardScene<
   EventMap extends Record<string, unknown> & { "game-reset": undefined },
 >(options: TableBoardOptions<EventMap>): BoardScene {
-  const { game, layout, handleIntent, presentation } = options;
+  const { game, layout, handleIntent, presentation, onReady } = options;
   const measure = (viewport: Viewport) => measureTable(layout, viewport);
 
   return new BoardScene({
@@ -67,5 +69,6 @@ export function makeTableBoardScene<
       return () => game.off("game-reset", handler);
     },
     onCardsRelocated: (listener) => game.onCardsRelocated(listener),
+    onReady,
   });
 }
