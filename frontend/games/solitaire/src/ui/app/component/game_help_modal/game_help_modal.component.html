@@ -74,6 +74,7 @@
             id="tab-overview"
             data-tab="overview"
             [attr.aria-selected]="activeTab() === 'overview'"
+            [attr.tabindex]="activeTab() === 'overview' ? 0 : -1"
             aria-controls="panel-overview"
             [class.active]="activeTab() === 'overview'"
             (click)="selectTab('overview')"
@@ -87,6 +88,7 @@
             id="tab-rules"
             data-tab="rules"
             [attr.aria-selected]="activeTab() === 'rules'"
+            [attr.tabindex]="activeTab() === 'rules' ? 0 : -1"
             aria-controls="panel-rules"
             [class.active]="activeTab() === 'rules'"
             (click)="selectTab('rules')"
@@ -101,6 +103,7 @@
               id="tab-variants"
               data-tab="variants"
               [attr.aria-selected]="activeTab() === 'variants'"
+              [attr.tabindex]="activeTab() === 'variants' ? 0 : -1"
               aria-controls="panel-variants"
               [class.active]="activeTab() === 'variants'"
               (click)="selectTab('variants')"
@@ -145,20 +148,31 @@
                     <div
                       class="img-skeleton-container"
                       [class.is-loaded]="heroImageLoaded()"
+                      [class.is-failed]="heroImageFailed()"
                     >
-                      <img
-                        [src]="screenshot.url"
-                        [alt]="screenshot.altText"
-                        class="screenshot-img"
-                        [class.loaded]="heroImageLoaded()"
-                        loading="lazy"
-                        (load)="onImageLoad()"
-                        (error)="onImageError()"
-                      />
+                      @if (!heroImageFailed()) {
+                        <img
+                          [src]="screenshot.url"
+                          [alt]="screenshot.altText"
+                          class="screenshot-img"
+                          [class.loaded]="heroImageLoaded()"
+                          loading="lazy"
+                          width="800"
+                          height="500"
+                          (load)="onImageLoad()"
+                          (error)="onImageError()"
+                        />
+                      }
                     </div>
-                    <p class="screenshot-caption">
-                      {{ screenshot.caption }}
-                    </p>
+                    @if (heroImageFailed()) {
+                      <p class="screenshot-failed-text">
+                        Screenshot unavailable
+                      </p>
+                    } @else {
+                      <p class="screenshot-caption">
+                        {{ screenshot.caption }}
+                      </p>
+                    }
                   </div>
                 }
               </section>

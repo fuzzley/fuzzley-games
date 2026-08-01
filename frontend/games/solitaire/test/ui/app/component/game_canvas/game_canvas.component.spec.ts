@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
-import { InjectionToken } from "@angular/core";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { GameCanvasComponent } from "@/ui/app/component/game_canvas/game_canvas.component";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
-import { query, queryAll } from "@test/support/dom";
+import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
+import { query, queryAll, queryText } from "@test/support/dom";
 
 /** Records every game the component constructs, and what it was handed. */
 const started: {
@@ -16,10 +16,6 @@ const started: {
 let readyCallback: (() => void) | undefined;
 
 vi.mock("@/ui/app/provider/board_catalog", () => ({
-  GAME_BOARD_SCENE: new InjectionToken("GAME_BOARD_SCENE", {
-    providedIn: "root",
-    factory: () => ({}),
-  }),
   makeBoardScene: (
     _game: unknown,
     _presentation: unknown,
@@ -79,6 +75,7 @@ describe("GameCanvasComponent", () => {
 
   afterEach(() => {
     delete window.klondike;
+    vi.useRealTimers();
   });
 
   it("starts exactly one game", () => {
@@ -110,12 +107,12 @@ describe("GameCanvasComponent", () => {
     expect(overlay?.classList.contains("hidden")).toBe(false);
   });
 
-  it("hides the loading overlay once ready is signaled asynchronously", () => {
+  it("hides the loading overlay with hidden class once ready is signaled asynchronously", () => {
     readyCallback?.();
     fixture.detectChanges();
 
     const overlay = query(fixture, ".loading-overlay");
-    expect(overlay).toBeNull();
+    expect(overlay?.classList.contains("hidden")).toBe(true);
   });
 
   it("displays the game name badge during loading", () => {
@@ -123,9 +120,9 @@ describe("GameCanvasComponent", () => {
     expect(textElement?.textContent).toContain("Loading Klondike");
   });
 
-  it("renders the layout grid slots matching TableLayoutSpec slot count", () => {
+  it("renders the layout grid slots matching TableLayoutSpec slot count dynamically", () => {
     const slots = queryAll(fixture, ".skeleton-slot");
-    expect(slots.length).toBe(7 + 1 + 1 + 4); // 7 tableau, 1 stock, 1 waste, 4 foundations
+    expect(slots.length).toBe(KLONDIKE_LAYOUT.slots.length);
   });
 
   it("re-shows loading overlay when switching games in catalog", () => {
@@ -136,9 +133,34 @@ describe("GameCanvasComponent", () => {
     fixture.detectChanges();
 
     const overlay = query(fixture, ".loading-overlay");
-    expect(overlay).not.toBeNull();
+    expect(overlay?.classList.contains("hidden")).toBe(false);
     expect(query(fixture, ".loading-text")?.textContent).toContain(
       "Loading Spider",
+    );
+  });
+
+  it("hides loading overlay after 8 seconds if readyCallback never fires", () => {
+    vi.useFakeTimers();
+    const timeoutFixture = TestBed.createComponent(GameCanvasComponent);
+    timeoutFixture.detectChanges();
+
+    vi.advanceTimersByTime(8000);
+    timeoutFixture.detectChanges();
+
+    const overlay = query(timeoutFixture, ".loading-overlay");
+    expect(overlay?.classList.contains("hidden")).toBe(true);
+  });
+
+  it("displays initialization timeout message in overlay after 8 seconds", () => {
+    vi.useFakeTimers();
+    const timeoutFixture = TestBed.createComponent(GameCanvasComponent);
+    timeoutFixture.detectChanges();
+
+    vi.advanceTimersByTime(8000);
+    timeoutFixture.detectChanges();
+
+    expect(queryText(timeoutFixture, ".loading-text")).toContain(
+      "Board initialization timed out",
     );
   });
 });

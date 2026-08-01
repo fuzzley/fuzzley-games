@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { GameHelpModalComponent } from "@/ui/app/component/game_help_modal/game_help_modal.component";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
@@ -31,6 +31,11 @@ describe("GameHelpModalComponent", () => {
     docService = TestBed.inject(GameDocumentationService);
     catalogService = TestBed.inject(GameCatalogService);
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    document.body.style.overflow = "";
+    vi.useRealTimers();
   });
 
   it("is hidden when docService.isOpen is false", () => {
@@ -147,7 +152,91 @@ describe("GameHelpModalComponent", () => {
     expect(docService.isOpen()).toBe(false);
   });
 
-  it("renders skeleton container without loaded class when hero image has not loaded", () => {
+  it("locks body scroll to hidden when modal is open and restores it when closed", () => {
+    docService.openHelp();
+    fixture.detectChanges();
+    expect(document.body.style.overflow).toBe("hidden");
+
+    docService.closeHelp();
+    fixture.detectChanges();
+    expect(document.body.style.overflow).toBe("");
+  });
+
+  it("focuses close button when modal opens", () => {
+    vi.useFakeTimers();
+    docService.openHelp();
+    fixture.detectChanges();
+    vi.advanceTimersByTime(10);
+
+    const closeBtn = queryRequired(fixture, ".btn-modal-close");
+    expect(document.activeElement).toBe(closeBtn);
+  });
+
+  it("restores focus to previous active element on close", () => {
+    const triggerButton = document.createElement("button");
+    document.body.appendChild(triggerButton);
+    triggerButton.focus();
+
+    docService.openHelp();
+    fixture.detectChanges();
+
+    docService.closeHelp();
+    fixture.detectChanges();
+
+    expect(document.activeElement).toBe(triggerButton);
+    document.body.removeChild(triggerButton);
+  });
+
+  it("traps Tab focus to last element when Shift+Tab pressed on first focusable item", () => {
+    vi.useFakeTimers();
+    docService.openHelp();
+    fixture.detectChanges();
+    vi.advanceTimersByTime(10);
+
+    const dialogEl = queryRequired(fixture, ".modal-dialog");
+    const focusables = Array.from(
+      dialogEl.querySelectorAll<HTMLElement>(
+        "button, a[href], input, select, textarea, [tabindex]",
+      ),
+    ).filter((el) => el.tabIndex !== -1 && !el.hasAttribute("disabled"));
+
+    const firstFocusable = focusables[0];
+    const lastFocusable = focusables[focusables.length - 1];
+    firstFocusable.focus();
+
+    const tabEvent = new KeyboardEvent("keydown", {
+      key: "Tab",
+      shiftKey: true,
+      bubbles: true,
+    });
+    document.dispatchEvent(tabEvent);
+
+    expect(document.activeElement).toBe(lastFocusable);
+  });
+
+  it("navigates tabs using ArrowRight and ArrowLeft keydown events and moves DOM focus", () => {
+    vi.useFakeTimers();
+    docService.openHelp();
+    fixture.detectChanges();
+
+    const summaryTab = queryRequired(fixture, '[data-tab="overview"]');
+    summaryTab.focus();
+
+    const arrowRight = new KeyboardEvent("keydown", {
+      key: "ArrowRight",
+      bubbles: true,
+    });
+    summaryTab.dispatchEvent(arrowRight);
+    fixture.detectChanges();
+
+    expect(component.activeTab()).toBe("rules");
+    vi.advanceTimersByTime(10);
+
+    const rulesTab = queryRequired(fixture, '[data-tab="rules"]');
+    expect(document.activeElement).toBe(rulesTab);
+  });
+
+  it("renders skeleton container without loaded or failed class when hero image has not loaded", () => {
     docService.openHelp();
     fixture.detectChanges();
 
@@ -155,6 +244,7 @@ describe("GameHelpModalComponent", () => {
     const img = queryRequired(fixture, ".screenshot-img");
 
     expect(container.classList.contains("is-loaded")).toBe(false);
+    expect(container.classList.contains("is-failed")).toBe(false);
     expect(img.classList.contains("loaded")).toBe(false);
   });
 
@@ -171,7 +261,22 @@ describe("GameHelpModalComponent", () => {
     expect(img.classList.contains("loaded")).toBe(true);
   });
 
-  it("clamps tab to summary when opening help for a game without variants after visiting options tab", () => {
+  it("marks skeleton container as failed when image error event fires", () => {
+    docService.openHelp();
+    fixture.detectChanges();
+
+    const img = queryRequired(fixture, ".screenshot-img");
+    img.dispatchEvent(new Event("error"));
+    fixture.detectChanges();
+
+    const container = queryRequired(fixture, ".img-skeleton-container");
+    expect(container.classList.contains("is-failed")).toBe(true);
+    expect(queryText(fixture, ".screenshot-failed-text")).toContain(
+      "Screenshot unavailable",
+    );
+  });
+
+  it("resets active tab to summary when opening modal for a game without variants after visiting options", () => {
     catalogService.select("klondike");
     docService.openHelp();
     fixture.detectChanges();
@@ -190,7 +295,7 @@ describe("GameHelpModalComponent", () => {
     expect(component.activeTab()).toBe("overview");
   });
 
-  it("resets active tab to overview when modal is reopened", () => {
+  it("resets active tab to summary when modal is reopened", () => {
     docService.openHelp();
     fixture.detectChanges();
 

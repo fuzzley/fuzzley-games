@@ -235,6 +235,12 @@
   min-height: auto;
 }
 
+.img-skeleton-container.is-failed {
+  animation: none;
+  background: transparent;
+  min-height: auto;
+}
+
 .screenshot-img {
   border-radius: 8px;
   max-width: 100%;
@@ -255,6 +261,20 @@
   margin-top: 0.6rem;
   margin-bottom: 0.2rem;
   font-style: italic;
+}
+
+.screenshot-failed-text {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin-top: 0.6rem;
+  margin-bottom: 0.2rem;
+  font-style: italic;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .img-skeleton-container {
+    animation: none !important;
+  }
 }
 
 .rules-grid {

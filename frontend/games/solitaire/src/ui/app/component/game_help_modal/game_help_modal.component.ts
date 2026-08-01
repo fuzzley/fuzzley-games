@@ -3,11 +3,11 @@ import {
   Component,
   ElementRef,
   HostListener,
-  ViewChild,
   computed,
   effect,
   inject,
   signal,
+  viewChild,
 } from "@angular/core";
 import { GameDocumentationService } from "../../service/game_documentation.service";
 import { GameCatalogService } from "../../service/game_catalog.service";
@@ -29,10 +29,10 @@ export class GameHelpModalComponent {
   protected readonly docService = inject(GameDocumentationService);
   protected readonly catalog = inject(GameCatalogService);
 
-  @ViewChild("dialogElement")
-  private readonly dialogRef?: ElementRef<HTMLElement>;
-  @ViewChild("closeBtn")
-  private readonly closeBtnRef?: ElementRef<HTMLButtonElement>;
+  private readonly dialogRef =
+    viewChild<ElementRef<HTMLElement>>("dialogElement");
+  private readonly closeBtnRef =
+    viewChild<ElementRef<HTMLButtonElement>>("closeBtn");
 
   /** User's explicitly requested tab. */
   readonly selectedTab = signal<DocTab>("overview");
@@ -42,7 +42,7 @@ export class GameHelpModalComponent {
 
   /** Display title for the modal. */
   readonly modalTitle = computed(
-    () => this.doc()?.title ?? this.catalog.selectedEntry?.name ?? "Klondike",
+    () => this.doc()?.title ?? this.catalog.selectedEntry.name,
   );
 
   /** Active tab, clamped to 'overview' if variants tab has no options. */
@@ -58,18 +58,23 @@ export class GameHelpModalComponent {
   /** Whether the hero screenshot image loaded successfully. */
   readonly heroImageLoaded = signal<boolean>(false);
 
+  /** Whether the hero screenshot image failed to load. */
+  readonly heroImageFailed = signal<boolean>(false);
+
   private previousActiveElement: HTMLElement | null = null;
 
   constructor() {
-    effect(() => {
+    effect((onCleanup) => {
       const open = this.docService.isOpen();
       if (open) {
         this.selectedTab.set("overview");
         this.heroImageLoaded.set(false);
+        this.heroImageFailed.set(false);
         this.previousActiveElement = document.activeElement as HTMLElement;
         document.body.style.overflow = "hidden";
+
         setTimeout(() => {
-          this.closeBtnRef?.nativeElement.focus();
+          this.closeBtnRef()?.nativeElement.focus();
         }, 0);
       } else {
         document.body.style.overflow = "";
@@ -81,6 +86,10 @@ export class GameHelpModalComponent {
           this.previousActiveElement = null;
         }
       }
+
+      onCleanup(() => {
+        document.body.style.overflow = "";
+      });
     });
   }
 
@@ -92,51 +101,57 @@ export class GameHelpModalComponent {
   /** Marks the hero screenshot image as successfully loaded. */
   onImageLoad(): void {
     this.heroImageLoaded.set(true);
+    this.heroImageFailed.set(false);
   }
 
   /** Marks the hero screenshot image as failed to load. */
   onImageError(): void {
+    this.heroImageFailed.set(true);
     this.heroImageLoaded.set(false);
   }
 
-  /** Closes the modal when pressing the Escape key. */
-  @HostListener("document:keydown.escape", ["$event"])
-  onEscapeKey(event: KeyboardEvent): void {
-    if (this.docService.isOpen()) {
+  /** Handles keyboard shortcuts (Escape and Tab focus trapping) inside modal. */
+  @HostListener("document:keydown", ["$event"])
+  onDocumentKeydown(event: KeyboardEvent): void {
+    if (!this.docService.isOpen()) return;
+
+    if (event.key === "Escape") {
       event.preventDefault();
       this.docService.closeHelp();
+      return;
     }
-  }
 
-  /** Traps Tab focus navigation inside the modal dialog. */
-  @HostListener("document:keydown.tab", ["$event"])
-  onTabKey(event: KeyboardEvent): void {
-    if (!this.docService.isOpen() || !this.dialogRef) return;
+    if (event.key === "Tab") {
+      const dialogEl = this.dialogRef()?.nativeElement;
+      if (!dialogEl) return;
 
-    const dialog = this.dialogRef.nativeElement;
-    const focusables = dialog.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    );
-    if (focusables.length === 0) return;
+      const focusables = Array.from(
+        dialogEl.querySelectorAll<HTMLElement>(
+          "button, a[href], input, select, textarea, [tabindex]",
+        ),
+      ).filter((el) => el.tabIndex !== -1 && !el.hasAttribute("disabled"));
 
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
+      if (focusables.length === 0) return;
 
-    if (event.shiftKey) {
-      if (
-        document.activeElement === first ||
-        !dialog.contains(document.activeElement)
-      ) {
-        event.preventDefault();
-        last.focus();
-      }
-    } else {
-      if (
-        document.activeElement === last ||
-        !dialog.contains(document.activeElement)
-      ) {
-        event.preventDefault();
-        first.focus();
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+
+      if (event.shiftKey) {
+        if (
+          document.activeElement === first ||
+          !dialogEl.contains(document.activeElement)
+        ) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (
+          document.activeElement === last ||
+          !dialogEl.contains(document.activeElement)
+        ) {
+          event.preventDefault();
+          first.focus();
+        }
       }
     }
   }
@@ -161,7 +176,18 @@ export class GameHelpModalComponent {
 
     if (nextIndex !== -1) {
       event.preventDefault();
-      this.selectTab(tabs[nextIndex]);
+      const nextTab = tabs[nextIndex];
+      this.selectTab(nextTab);
+
+      const dialogEl = this.dialogRef()?.nativeElement;
+      if (dialogEl) {
+        setTimeout(() => {
+          const targetBtn = dialogEl.querySelector<HTMLElement>(
+            `[data-tab="${nextTab}"]`,
+          );
+          targetBtn?.focus();
+        }, 0);
+      }
     }
   }
 
