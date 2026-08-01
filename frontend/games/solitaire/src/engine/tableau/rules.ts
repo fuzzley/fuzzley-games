@@ -125,14 +125,45 @@ export function hasRank(rank: Rank): (card: PlayingCard) => boolean {
   return (card) => card.rank === rank;
 }
 
+// --- Run adjacency ---------------------------------------------------------
+//
+// What may sit directly on what within a run, as a pair of cards rather than a
+// board position. Two things ask the question and they have to agree: a zone's
+// `run` grab rule, which decides whether a stack may be lifted at all, and the
+// build rule below it, which decides whether that stack may land. Defining the
+// pair once and deriving the build rule from it is what keeps them from
+// drifting apart.
+
+/**
+ * Whether `upper` may sit directly on `lower`: one rank down, in the other
+ * colour. Klondike and FreeCell build this way.
+ */
+export function isOrderedPair(lower: PlayingCard, upper: PlayingCard): boolean {
+  return upper.rank === rankBelow(lower.rank) && isRed(lower) !== isRed(upper);
+}
+
+/**
+ * Whether `upper` may sit directly on `lower`: one rank down, in the same suit.
+ * Spider lifts runs this way, and Baker's Game, Eight Off and Scorpion build
+ * this way as well as lifting.
+ */
+export function isSameSuitRun(lower: PlayingCard, upper: PlayingCard): boolean {
+  return lower.suit === upper.suit && upper.rank === rankBelow(lower.rank);
+}
+
 /** Builds down by one rank in alternating colors: the Klondike tableau. */
 export const descendingAlternatingColor: PlacementRule = (context) => {
   const topCard = context.targetPile.topCard;
-  if (!topCard) return false;
-  return (
-    isRed(context.card) !== isRed(topCard) &&
-    context.card.rank === rankBelow(topCard.rank)
-  );
+  return topCard ? isOrderedPair(topCard, context.card) : false;
+};
+
+/**
+ * Builds down by one rank in the same suit: the Baker's Game, Eight Off and
+ * Scorpion tableau, and the harder half of the Yukon family.
+ */
+export const descendingSameSuit: PlacementRule = (context) => {
+  const topCard = context.targetPile.topCard;
+  return topCard ? isSameSuitRun(topCard, context.card) : false;
 };
 
 /** Builds down by one rank regardless of suit: the Spider tableau. */

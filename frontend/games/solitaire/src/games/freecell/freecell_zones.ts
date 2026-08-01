@@ -1,10 +1,7 @@
 import { PileLayout } from "@/engine/render/layout/pile_layout";
+import { isOrderedPair } from "@/engine/tableau/rules";
 import { ZoneSpec } from "@/engine/tableau/zone";
-import {
-  FreeCellRole,
-  freeCellPlacementRule,
-  isOrderedPair,
-} from "./freecell_rules";
+import { FreeCellRole, freeCellPlacementRule } from "./freecell_rules";
 
 /** The number of free cells. */
 export const CELL_COUNT = 4;

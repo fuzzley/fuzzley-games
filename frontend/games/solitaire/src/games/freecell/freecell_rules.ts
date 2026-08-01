@@ -1,5 +1,4 @@
 import { PileRole } from "@/engine/core/card/card_pile";
-import { PlayingCard, rankBelow } from "@/engine/core/card/playing_card";
 import {
   PlacementContext,
   PlacementRule,
@@ -7,7 +6,6 @@ import {
   anyCard,
   byEmptiness,
   descendingAlternatingColor,
-  isRed,
   maxStackSize,
   singleCardOnly,
   suitFoundation,
@@ -64,14 +62,6 @@ export const FREECELL_CELL_RULE: PlacementRule = all(singleCardOnly, anyCard);
 
 /** A FreeCell foundation: the standard Ace-up-by-suit pile. */
 export const FREECELL_FOUNDATION_RULE: PlacementRule = suitFoundation;
-
-/**
- * Whether `upper` may sit directly on `lower` within a movable run: one rank
- * down, in the other colour.
- */
-export function isOrderedPair(lower: PlayingCard, upper: PlayingCard): boolean {
-  return upper.rank === rankBelow(lower.rank) && isRed(lower) !== isRed(upper);
-}
 
 /**
  * The rule governing what a pile of the given role accepts, or null for a role

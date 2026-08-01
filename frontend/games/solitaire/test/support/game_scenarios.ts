@@ -9,12 +9,22 @@ import { KlondikeGame } from "@/games/klondike/klondike_game";
 /** Id of the only card left out of the foundations by {@link almostWon}. */
 export const CLUB_KING_ID = "card-clubs-king";
 
+/**
+ * As much of a dealt game as building an exact position needs.
+ *
+ * Structural rather than a game class, so every game can use these: the board
+ * is the same shape whichever solitaire is on it, and a helper that named
+ * `KlondikeGame` would have to be copied once per variant.
+ */
+export interface DealtBoard {
+  readonly piles: readonly CardPile<PlayingCard>[];
+  getCardById(cardId: string): PlayingCard | undefined;
+  getPileContainingCard(cardId: string): CardPile<PlayingCard> | undefined;
+}
+
 /** Empties every pile on the board so a test can build an exact position. */
-export function emptyBoard(game: KlondikeGame): void {
-  game.stock.clear();
-  game.waste.clear();
-  game.tableaus.forEach((tableau) => tableau.clear());
-  game.foundations.forEach((foundation) => foundation.clear());
+export function emptyBoard(game: DealtBoard): void {
+  game.piles.forEach((pile) => pile.clear());
 }
 
 /**
@@ -23,7 +33,7 @@ export function emptyBoard(game: KlondikeGame): void {
  * started so the card exists in the model.
  */
 export function relocate(
-  game: KlondikeGame,
+  game: DealtBoard,
   cardId: string,
   targetPile: CardPile<PlayingCard>,
   faceUp = true,

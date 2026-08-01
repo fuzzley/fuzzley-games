@@ -1,5 +1,4 @@
 import { PileRole } from "@/engine/core/card/card_pile";
-import { PlayingCard, Rank, rankBelow } from "@/engine/core/card/playing_card";
 import {
   PlacementRule,
   anyCard,
@@ -33,38 +32,6 @@ export const SPIDER_TABLEAU_RULE: PlacementRule = byEmptiness(
   anyCard,
   descendingAnySuit,
 );
-
-/**
- * Whether `upper` may sit directly on `lower` within a movable run: one rank
- * down, in the same suit.
- */
-export function isSameSuitRun(lower: PlayingCard, upper: PlayingCard): boolean {
-  return lower.suit === upper.suit && upper.rank === rankBelow(lower.rank);
-}
-
-/**
- * Whether the top `13` cards of the given run are a complete King-to-Ace
- * sequence in one suit, which Spider removes from the board.
- *
- * @param cards A column's cards, bottom-first.
- */
-export function completedRunStart(cards: readonly PlayingCard[]): number {
-  if (cards.length < RUN_LENGTH) return -1;
-
-  const start = cards.length - RUN_LENGTH;
-  const run = cards.slice(start);
-  if (run[0].rank !== Rank.KING || run[run.length - 1].rank !== Rank.ACE) {
-    return -1;
-  }
-  for (let index = 0; index < run.length - 1; index++) {
-    if (!run[index].faceUp) return -1;
-    if (!isSameSuitRun(run[index], run[index + 1])) return -1;
-  }
-  return start;
-}
-
-/** How many cards a complete run holds: King down to Ace. */
-export const RUN_LENGTH = 13;
 
 /**
  * The rule governing what a pile of the given role accepts, or null for one
