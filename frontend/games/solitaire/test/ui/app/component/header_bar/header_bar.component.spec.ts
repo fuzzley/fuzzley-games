@@ -69,17 +69,23 @@ describe("HeaderBarComponent", () => {
   });
 
   it("disables the undo button with nothing to take back", () => {
-    const undoButton = queryRequired(fixture, "button[title*='Undo']");
+    const undoButton = queryRequired<HTMLButtonElement>(
+      fixture,
+      "button[title*='Undo']",
+    );
 
-    expect((undoButton as HTMLButtonElement).disabled).toBe(true);
+    expect(undoButton.disabled).toBe(true);
   });
 
   it("enables the undo button once the model has history", () => {
     mockGameModel.state.undoDepth$.next(1);
     fixture.detectChanges();
 
-    const undoButton = queryRequired(fixture, "button[title*='Undo']");
-    expect((undoButton as HTMLButtonElement).disabled).toBe(false);
+    const undoButton = queryRequired<HTMLButtonElement>(
+      fixture,
+      "button[title*='Undo']",
+    );
+    expect(undoButton.disabled).toBe(false);
   });
 
   it("triggers session.undo() when the undo button is clicked", () => {
@@ -93,13 +99,11 @@ describe("HeaderBarComponent", () => {
   });
 
   it("emits openSettings when settings button is clicked", () => {
-    let emittedCount = 0;
-    component.openSettings.subscribe(() => {
-      emittedCount++;
-    });
+    const openSettingsSpy = vi.fn();
+    component.openSettings.subscribe(openSettingsSpy);
 
     clickElement(fixture, ".btn-settings");
 
-    expect(emittedCount).toBe(1);
+    expect(openSettingsSpy).toHaveBeenCalledOnce();
   });
 });

@@ -68,7 +68,7 @@ describe("VictoryOverlayComponent", () => {
     fixture.detectChanges();
     const newGameSpy = vi.spyOn(session, "startNewGame");
 
-    clickElement(fixture, "button");
+    clickElement(fixture, ".btn-gradient");
 
     expect(newGameSpy).toHaveBeenCalled();
   });

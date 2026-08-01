@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { DebugPanelComponent } from "@/ui/app/component/debug_panel/debug_panel.component";
 import { GameSessionService } from "@/ui/app/service/game_session.service";
@@ -9,7 +9,7 @@ import {
   createMockCatalog,
   asCatalog,
 } from "@test/support/game_model_mock";
-import { query, queryAll, queryText } from "@test/support/dom";
+import { clickElement, query, queryAll, queryText } from "@test/support/dom";
 
 describe("DebugPanelComponent", () => {
   let fixture: ComponentFixture<DebugPanelComponent>;
@@ -44,19 +44,18 @@ describe("DebugPanelComponent", () => {
   });
 
   it("turns almost-win on when its button is clicked", () => {
-    const setRuleOptionSpy = vi.spyOn(session, "setRuleOption");
+    clickElement(fixture, ".segmented-control button:nth-child(2)");
 
-    queryAll(fixture, ".segmented-control button")[1].click(); // Almost Win
-
-    expect(setRuleOptionSpy).toHaveBeenCalledWith("almostWin", 1);
+    expect(session.optionValues()["almostWin"]).toBe(1);
   });
 
   it("turns almost-win off when Normal is clicked", () => {
-    const setRuleOptionSpy = vi.spyOn(session, "setRuleOption");
+    clickElement(fixture, ".segmented-control button:nth-child(2)");
+    fixture.detectChanges();
 
-    queryAll(fixture, ".segmented-control button")[0].click(); // Normal
+    clickElement(fixture, ".segmented-control button:nth-child(1)");
 
-    expect(setRuleOptionSpy).toHaveBeenCalledWith("almostWin", 0);
+    expect(session.optionValues()["almostWin"]).toBe(0);
   });
 
   it("shows only debug rules, not the ones a player picks", () => {

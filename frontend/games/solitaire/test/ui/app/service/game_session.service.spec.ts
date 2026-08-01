@@ -197,18 +197,25 @@ describe("GameSessionService", () => {
   });
 
   describe("when the game is won", () => {
-    it("marks the session won and stops the timer", () => {
+    it("marks the session won when the game-won event fires", () => {
       const harness = buildSession(createMockGameModel());
-      harness.model.state.moves$.next(1);
-      TestBed.flushEffects();
-      vi.advanceTimersByTime(1000);
-      expect(harness.session.timerText()).toBe("00:01");
 
       harness.emitGameWon();
       TestBed.flushEffects();
 
       expect(harness.session.isGameWon()).toBe(true);
+    });
+
+    it("freezes the timer once the game is won", () => {
+      const harness = buildSession(createMockGameModel());
+      harness.model.state.moves$.next(1);
+      TestBed.flushEffects();
+      vi.advanceTimersByTime(1000);
+
+      harness.emitGameWon();
+      TestBed.flushEffects();
       vi.advanceTimersByTime(5000);
+
       expect(harness.session.timerText()).toBe("00:01");
     });
   });
