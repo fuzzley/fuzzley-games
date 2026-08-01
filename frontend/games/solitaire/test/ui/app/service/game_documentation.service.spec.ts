@@ -4,7 +4,6 @@ import { TestBed } from "@angular/core/testing";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { GAME_CATALOG } from "@/ui/app/provider/game_catalog";
-import { GAME_DOCUMENTATION_REGISTRY } from "@/ui/app/provider/game_documentation_data";
 
 describe("GameDocumentationService", () => {
   let service: GameDocumentationService;

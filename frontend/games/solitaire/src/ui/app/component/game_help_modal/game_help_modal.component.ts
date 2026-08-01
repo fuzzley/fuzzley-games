@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   HostListener,
+  effect,
   inject,
   signal,
 } from "@angular/core";
@@ -25,6 +26,22 @@ export class GameHelpModalComponent {
 
   /** Currently selected documentation tab. */
   readonly activeTab = signal<DocTab>("overview");
+
+  constructor() {
+    effect(() => {
+      const doc = this.docService.activeGameDoc();
+      const isOpen = this.docService.isOpen();
+
+      if (!isOpen) {
+        this.activeTab.set("overview");
+      } else if (
+        this.activeTab() === "variants" &&
+        doc.settingsAndVariants.length === 0
+      ) {
+        this.activeTab.set("overview");
+      }
+    });
+  }
 
   /** Set of image URLs that have finished loading. */
   readonly loadedImages = signal<Set<string>>(new Set());

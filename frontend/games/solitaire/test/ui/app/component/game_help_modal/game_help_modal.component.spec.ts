@@ -24,7 +24,8 @@ describe("GameHelpModalComponent", () => {
   });
 
   it("is hidden when docService.isOpen is false", () => {
-    expect(fixture.nativeElement.querySelector(".modal-backdrop")).toBeNull();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector(".modal-backdrop")).toBeNull();
   });
 
   it("renders modal dialog when docService.isOpen is true", () => {
@@ -45,8 +46,9 @@ describe("GameHelpModalComponent", () => {
     expect(queryText(fixture, ".callout-title")).toContain("Objective & Win Condition");
 
     // Click Detailed Rules tab
-    const tabs = fixture.nativeElement.querySelectorAll(".tab-btn");
-    (tabs[1] as HTMLButtonElement).click();
+    const el = fixture.nativeElement as HTMLElement;
+    const tabs = el.querySelectorAll<HTMLButtonElement>(".tab-btn");
+    tabs[1].click();
     fixture.detectChanges();
 
     expect(component.activeTab()).toBe("rules");
@@ -57,7 +59,8 @@ describe("GameHelpModalComponent", () => {
     docService.openHelp();
     fixture.detectChanges();
 
-    const tabs = Array.from(fixture.nativeElement.querySelectorAll(".tab-btn")) as HTMLButtonElement[];
+    const el = fixture.nativeElement as HTMLElement;
+    const tabs = Array.from(el.querySelectorAll<HTMLButtonElement>(".tab-btn"));
     const tabTexts = tabs.map((t) => t.textContent?.trim());
     expect(tabTexts.some((text) => text?.includes("Screenshots"))).toBe(false);
   });
@@ -70,7 +73,8 @@ describe("GameHelpModalComponent", () => {
     fixture.detectChanges();
 
     expect(docService.isOpen()).toBe(false);
-    expect(fixture.nativeElement.querySelector(".modal-backdrop")).toBeNull();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector(".modal-backdrop")).toBeNull();
   });
 
   it("closes modal when pressing Escape key", () => {
@@ -106,5 +110,47 @@ describe("GameHelpModalComponent", () => {
     const container = queryRequired(fixture, ".img-skeleton-container");
     expect(container.classList.contains("is-loaded")).toBe(true);
     expect(img.classList.contains("loaded")).toBe(true);
+  });
+
+  it("resets active tab to overview when opening help for a game without variants after visiting options tab on a game with variants", () => {
+    const catalogService = TestBed.inject(GameCatalogService);
+    catalogService.select("klondike"); // Game with variants
+    docService.openHelp();
+    fixture.detectChanges();
+
+    // Select Options & Variants tab
+    const el = fixture.nativeElement as HTMLElement;
+    const tabs = el.querySelectorAll<HTMLButtonElement>(".tab-btn");
+    tabs[2].click();
+    fixture.detectChanges();
+    expect(component.activeTab()).toBe("variants");
+
+    // Close help modal
+    docService.closeHelp();
+    fixture.detectChanges();
+
+    // Switch to FreeCell (no variants) and open help
+    catalogService.select("freecell");
+    docService.openHelp();
+    fixture.detectChanges();
+
+    expect(component.activeTab()).toBe("overview");
+    expect(queryText(fixture, ".callout-title")).toContain("Objective & Win Condition");
+  });
+
+  it("resets active tab to overview when closing modal", () => {
+    docService.openHelp();
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    const tabs = el.querySelectorAll<HTMLButtonElement>(".tab-btn");
+    tabs[1].click();
+    fixture.detectChanges();
+    expect(component.activeTab()).toBe("rules");
+
+    docService.closeHelp();
+    fixture.detectChanges();
+
+    expect(component.activeTab()).toBe("overview");
   });
 });
