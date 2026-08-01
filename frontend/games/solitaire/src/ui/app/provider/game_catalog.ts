@@ -5,6 +5,8 @@ import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { SpiderGame } from "@/games/spider/spider_game";
 import { SpiderSuitCount, spiderDeck } from "@/games/spider/spider_deal";
+import { YukonGame } from "@/games/yukon/yukon_game";
+import { YukonVariant } from "@/games/yukon/yukon_rules";
 
 /** A value a rule option can be set to, and how to name it to a player. */
 export interface GameOptionChoice {
@@ -107,6 +109,26 @@ const SPIDER_SUIT_COUNT: GameOptionSpec = {
 };
 
 /**
+ * Which of the Yukon family to deal.
+ *
+ * The values are the {@link YukonVariant} members themselves rather than a
+ * parallel list of numbers, so the choices a player is offered and the games
+ * they select cannot drift apart.
+ */
+const YUKON_VARIANT: GameOptionSpec = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Alaska and Russian Solitaire deal like Yukon but build the columns by suit rather than by alternating color.",
+  choices: [
+    { value: YukonVariant.YUKON, label: "Yukon" },
+    { value: YukonVariant.ALASKA, label: "Alaska" },
+    { value: YukonVariant.RUSSIAN, label: "Russian Solitaire" },
+  ],
+  defaultValue: YukonVariant.YUKON,
+};
+
+/**
  * Every game the engine can currently put on the table.
  *
  * An entry is: what it is called, which rules it lets the player choose, and
@@ -152,6 +174,20 @@ export const GAME_CATALOG: readonly CatalogEntry[] = [
         SPIDER_SUIT_COUNT,
       ) as SpiderSuitCount;
       const game = new SpiderGame(deckCardIds(spiderDeck(suitCount)));
+      game.startNewGame();
+      return { game };
+    },
+  },
+  {
+    id: "yukon",
+    name: "Yukon",
+    // One entry for three games: they share a deal, a board and a grab rule,
+    // and differ only in what an occupied column accepts, which is a rule a
+    // player picks rather than a game they switch to.
+    options: [YUKON_VARIANT],
+    create: (values) => {
+      const variant = optionValue(values, YUKON_VARIANT) as YukonVariant;
+      const game = new YukonGame(undefined, undefined, variant);
       game.startNewGame();
       return { game };
     },
