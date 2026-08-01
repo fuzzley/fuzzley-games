@@ -1,6 +1,7 @@
 import { PileLayout } from "@/engine/render/layout/pile_layout";
+import { isSameSuitRun } from "@/engine/tableau/rules";
 import { ZoneSpec } from "@/engine/tableau/zone";
-import { SpiderRole, isSameSuitRun, spiderPlacementRule } from "./spider_rules";
+import { SpiderRole, spiderPlacementRule } from "./spider_rules";
 
 /** The number of tableau columns. */
 export const TABLEAU_COUNT = 10;

@@ -8,8 +8,11 @@ import {
   ResolvedMove,
   TableGame,
 } from "@/engine/tableau/table_game";
+import {
+  collectCompletedRuns,
+  flipExposedTop,
+} from "@/games/common/completed_runs";
 import { SPIDER_TWO_DECKS, SpiderDealer } from "./spider_deal";
-import { RUN_LENGTH, completedRunStart } from "./spider_rules";
 import { SpiderRole, STOCK_PILE_ID, spiderZoneSpecs } from "./spider_zones";
 
 /** Lifecycle events a Spider game emits. */
@@ -141,7 +144,7 @@ export class SpiderGame extends TableGame<SpiderEvents> {
     }
 
     // A dealt card can complete a run, and more than one column at a time.
-    const collected = this.collectCompletedRuns();
+    const collected = collectCompletedRuns(this.tableaus, this.foundations);
     this.recordTransfers("deal", [...transfers, ...collected.transfers], {
       flippedCardIds: collected.flippedCardIds,
     });
@@ -153,11 +156,14 @@ export class SpiderGame extends TableGame<SpiderEvents> {
 
   /** @inheritDoc */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
-    const flipped = this.flipExposedCard(move.sourcePile);
+    const flipped =
+      move.sourcePile.role === SpiderRole.TABLEAU
+        ? flipExposedTop(move.sourcePile)
+        : undefined;
     // Collected after the flip, because taking a run off can expose another
     // card, and every card this move turned over has to be recorded together
     // for undo to turn them all back down.
-    const collected = this.collectCompletedRuns();
+    const collected = collectCompletedRuns(this.tableaus, this.foundations);
     return {
       scoreDelta: 0,
       flippedCardIds: [
@@ -171,62 +177,6 @@ export class SpiderGame extends TableGame<SpiderEvents> {
   /** @inheritDoc */
   protected override afterMove(): void {
     this.checkWinCondition();
-  }
-
-  /**
-   * Turns the newly exposed top card of a column face up.
-   *
-   * @returns The card turned over, or undefined if none was.
-   */
-  private flipExposedCard(
-    sourcePile: CardPile<PlayingCard>,
-  ): PlayingCard | undefined {
-    if (sourcePile.role !== SpiderRole.TABLEAU) return undefined;
-    const top = sourcePile.topCard;
-    if (!top || top.faceUp) return undefined;
-    top.faceUp = true;
-    return top;
-  }
-
-  /**
-   * Sends every completed King-to-Ace run off to a foundation.
-   *
-   * Returns what it moved and what it turned over, so the caller can record
-   * both as part of the action that caused them — a completed run is a
-   * consequence of a move, not a move of its own.
-   */
-  private collectCompletedRuns(): {
-    transfers: CardTransfer[];
-    flippedCardIds: string[];
-  } {
-    const transfers: CardTransfer[] = [];
-    const flippedCardIds: string[] = [];
-
-    for (const tableau of this.tableaus) {
-      const start = completedRunStart(tableau.getCards());
-      if (start === -1) continue;
-
-      const foundation = this.foundations.find((pile) => pile.isEmpty);
-      if (!foundation) continue;
-
-      const run = tableau.getCards().slice(start, start + RUN_LENGTH);
-      for (const card of run) {
-        tableau.removeCard(card);
-        foundation.addCard(card);
-      }
-      transfers.push({
-        cardIds: run.map((card) => card.id),
-        fromPileId: tableau.id,
-        toPileId: foundation.id,
-        faceUpBefore: true,
-      });
-
-      // Taking a run off can expose a face-down card underneath it.
-      const flipped = this.flipExposedCard(tableau);
-      if (flipped) flippedCardIds.push(flipped.id);
-    }
-
-    return { transfers, flippedCardIds };
   }
 
   private checkWinCondition(): void {

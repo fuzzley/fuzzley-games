@@ -1,73 +1,25 @@
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { TablePresentation } from "@/engine/render/presentation";
-import {
-  TableMetrics,
-  measureTable,
-} from "@/engine/render/layout/table_layout";
-import {
-  DragInteraction,
-  PileGeometry,
-  TableInteractionState,
-  TableViewState,
-  Viewport,
-} from "@/engine/render/view/table_view_state";
-import {
-  buildTableViewState,
-  resolveDragTarget,
-} from "@/engine/tableau/view/table_view_builder";
+import { makeTableBoardScene } from "@/games/common/board_scene_factory";
+import { stocklessGestures } from "@/games/common/stockless_gestures";
 import { FREECELL_LAYOUT } from "./freecell_layout";
 import { FreeCellGame } from "./freecell_game";
-import { freeCellGestures, freeCellStackFromCard } from "./freecell_gestures";
-
-/** Measures the FreeCell board for the given viewport. */
-export function measureFreeCellBoard(viewport: Viewport): TableMetrics {
-  return measureTable(FREECELL_LAYOUT, viewport);
-}
-
-/** Draws a FreeCell board for one frame. */
-export function buildFreeCellViewState(
-  game: FreeCellGame,
-  presentation: TablePresentation,
-): (interaction: TableInteractionState, viewport: Viewport) => TableViewState {
-  return (interaction, viewport) =>
-    buildTableViewState(game, interaction, measureFreeCellBoard(viewport), {
-      cardBackKey: presentation.cardBackKey(),
-    });
-}
-
-/** Resolves the pile a drag would land on, for the FreeCell board. */
-export function resolveFreeCellDropTarget(
-  game: FreeCellGame,
-): (drag: DragInteraction, viewport: Viewport) => PileGeometry | null {
-  return (drag, viewport) =>
-    resolveDragTarget(game, drag, measureFreeCellBoard(viewport));
-}
 
 /**
  * Builds the FreeCell board scene.
  *
- * The same shape as Klondike's, which is the point: a game supplies its cards,
- * its grid, its gestures and its look, and the engine does the rest.
+ * A game supplies its grid, its gestures and its look, and the engine does the
+ * rest. FreeCell's gestures are the shared stockless ones unchanged: with the
+ * whole board dealt at the start there is nothing a single press could do.
  */
 export function makeFreeCellBoardScene(
   game: FreeCellGame,
   presentation: TablePresentation,
 ): BoardScene {
-  return new BoardScene({
+  return makeTableBoardScene({
     game,
-    cardIds: game.cardIds,
     layout: FREECELL_LAYOUT,
-    buildViewState: buildFreeCellViewState(game, presentation),
-    resolveDropTarget: resolveFreeCellDropTarget(game),
-    handleIntent: freeCellGestures(game),
-    stackFromCard: freeCellStackFromCard(game),
-    cardBackKey: () => presentation.cardBackKey(),
-    onBackgroundColor: presentation.onBackgroundColor,
-    onReset: (listener) => {
-      const handler = () => listener();
-      game.on("game-reset", handler);
-      return () => game.off("game-reset", handler);
-    },
-    onCardsRelocated: (listener) => game.onCardsRelocated(listener),
+    handleIntent: stocklessGestures(game),
+    presentation,
   });
 }

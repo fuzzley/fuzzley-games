@@ -13,8 +13,11 @@ import {
   cardIs,
   descendingAlternatingColor,
   descendingAnySuit,
+  descendingSameSuit,
   hasRank,
+  isOrderedPair,
   isRed,
+  isSameSuitRun,
   maxStackSize,
   never,
   singleCardOnly,
@@ -210,6 +213,95 @@ describe("descendingAnySuit", () => {
     const context = contextOf(blackKing(), pileWith("tableau", blackQueen()));
 
     expect(descendingAnySuit(context)).toBe(false);
+  });
+});
+
+const spadeQueen = () =>
+  makePlayingCard({ suit: Suit.SPADE, rank: Rank.QUEEN, id: "sq" });
+
+describe("descendingSameSuit", () => {
+  it("accepts the next card down in the same suit", () => {
+    const context = contextOf(spadeQueen(), pileWith("tableau", blackKing()));
+
+    expect(descendingSameSuit(context)).toBe(true);
+  });
+
+  it("rejects the same color in a different suit, unlike the Spider rule", () => {
+    const context = contextOf(blackQueen(), pileWith("tableau", blackKing()));
+
+    expect(descendingSameSuit(context)).toBe(false);
+  });
+
+  it("rejects a same-suit card that is not one lower", () => {
+    const jack = makePlayingCard({
+      suit: Suit.SPADE,
+      rank: Rank.JACK,
+      id: "sj",
+    });
+
+    expect(
+      descendingSameSuit(contextOf(jack, pileWith("t", blackKing()))),
+    ).toBe(false);
+  });
+
+  it("rejects building below an Ace, which has nothing under it", () => {
+    const ace = makePlayingCard({ suit: Suit.SPADE, rank: Rank.ACE, id: "sa" });
+
+    expect(
+      descendingSameSuit(contextOf(spadeQueen(), pileWith("t", ace))),
+    ).toBe(false);
+  });
+
+  it("rejects an empty pile, which byEmptiness is expected to have handled", () => {
+    expect(descendingSameSuit(contextOf(spadeQueen(), pileWith("t")))).toBe(
+      false,
+    );
+  });
+});
+
+describe("isOrderedPair", () => {
+  it("accepts one rank down in the other color", () => {
+    expect(isOrderedPair(blackKing(), redQueen())).toBe(true);
+  });
+
+  it("rejects the same color", () => {
+    expect(isOrderedPair(blackKing(), blackQueen())).toBe(false);
+  });
+
+  it("rejects a rank that is not one lower", () => {
+    const redJack = makePlayingCard({
+      suit: Suit.HEART,
+      rank: Rank.JACK,
+      id: "hj",
+    });
+
+    expect(isOrderedPair(blackKing(), redJack)).toBe(false);
+  });
+});
+
+describe("isSameSuitRun", () => {
+  it("accepts one rank down in the same suit", () => {
+    expect(isSameSuitRun(blackKing(), spadeQueen())).toBe(true);
+  });
+
+  it("rejects the same color in a different suit", () => {
+    expect(isSameSuitRun(blackKing(), blackQueen())).toBe(false);
+  });
+
+  it("rejects a rank that is not one lower", () => {
+    const spadeJack = makePlayingCard({
+      suit: Suit.SPADE,
+      rank: Rank.JACK,
+      id: "sj",
+    });
+
+    expect(isSameSuitRun(blackKing(), spadeJack)).toBe(false);
+  });
+
+  it("rejects anything under an Ace", () => {
+    const ace = makePlayingCard({ suit: Suit.SPADE, rank: Rank.ACE, id: "sa" });
+
+    expect(isSameSuitRun(ace, spadeQueen())).toBe(false);
   });
 });
 
