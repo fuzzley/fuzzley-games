@@ -4,7 +4,11 @@ import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { TableGame } from "@/engine/tableau/table_game";
 import { FreeCellDealer } from "./freecell_deal";
-import { FreeCellRole, freeCellZoneSpecs } from "./freecell_zones";
+import {
+  FreeCellRole,
+  FreeCellVariant,
+  freeCellZoneSpecs,
+} from "./freecell_zones";
 
 /** Lifecycle events a FreeCell game emits. */
 export type FreeCellEvents = {
@@ -24,6 +28,10 @@ export type FreeCellEvents = {
  *
  * What is left is a board, the rules its zones declare, and a win condition,
  * which is the measure of how much {@link TableGame} carries on its own.
+ *
+ * Also plays Baker's Game, which differs only in what its columns build by. It
+ * gets its own catalog entry but not its own class: a separate module would
+ * duplicate six files in order to change two rules.
  */
 export class FreeCellGame extends TableGame<FreeCellEvents> {
   /** The four single-card holding cells. */
@@ -43,14 +51,18 @@ export class FreeCellGame extends TableGame<FreeCellEvents> {
    * @param cardIds The card identities to deal from. Defaults to a full 52-card
    *   deck; injectable so a test can supply a shorter one.
    * @param random Source of shuffle randomness, injectable for a fixed deal.
+   * @param variant The column rules to play by. A constructor parameter rather
+   *   than a field because the zones closure is built from it during `super`,
+   *   before this class's own fields exist.
    */
   constructor(
     cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
     random: () => number = Math.random,
+    variant: FreeCellVariant = FreeCellVariant.FREECELL,
   ) {
     const registry = new CardRegistry();
     super({
-      zones: () => freeCellZoneSpecs(),
+      zones: () => freeCellZoneSpecs(variant),
       registry,
       // A foundation is always best; a cell is a last resort, since parking a
       // card there is what a player is trying to avoid.

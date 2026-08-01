@@ -1,7 +1,11 @@
 import { PileLayout } from "@/engine/render/layout/pile_layout";
-import { isOrderedPair } from "@/engine/tableau/rules";
 import { ZoneSpec } from "@/engine/tableau/zone";
-import { FreeCellRole, freeCellPlacementRule } from "./freecell_rules";
+import {
+  FreeCellRole,
+  FreeCellVariant,
+  freeCellPlacementRule,
+  freeCellRunAdjacency,
+} from "./freecell_rules";
 
 /** The number of free cells. */
 export const CELL_COUNT = 4;
@@ -54,20 +58,34 @@ export const TABLEAU_PILE_LAYOUT: PileLayout = {
 export const STACKED_PILE_LAYOUT: PileLayout = { kind: "stacked" };
 
 /**
- * The sixteen zones of a FreeCell board.
+ * The sixteen zones of a FreeCell board, under the given rule set.
  *
  * Free cells at the left of the top row, foundations at the right of it, and
  * the eight columns filling the bottom row. Unlike Klondike there is no stock
  * and no waste at all, which is most of why FreeCell is worth building: nothing
- * in the engine may assume a game has either.
+ * in the engine may assume a game has either. The board is the same shape in
+ * every variant; only what the columns accept and give up differs.
+ *
+ * Memoized per variant, and that matters beyond saving sixteen allocations:
+ * `TableGame.zoneFor` rebuilds its id index whenever the zone array is a
+ * different array, so returning a fresh one per call would rebuild the index
+ * once per card per frame. There are three variants, so the cache is bounded
+ * and cannot go stale.
  */
-export function freeCellZoneSpecs(): readonly ZoneSpec[] {
-  return ZONES;
+export function freeCellZoneSpecs(
+  variant: FreeCellVariant,
+): readonly ZoneSpec[] {
+  let zones = zonesByVariant.get(variant);
+  if (!zones) {
+    zones = buildZoneSpecs(variant);
+    zonesByVariant.set(variant, zones);
+  }
+  return zones;
 }
 
-const ZONES: readonly ZoneSpec[] = buildZoneSpecs();
+const zonesByVariant = new Map<FreeCellVariant, readonly ZoneSpec[]>();
 
-function buildZoneSpecs(): readonly ZoneSpec[] {
+function buildZoneSpecs(variant: FreeCellVariant): readonly ZoneSpec[] {
   const zones: ZoneSpec[] = [];
 
   for (let index = 0; index < CELL_COUNT; index++) {
@@ -79,7 +97,7 @@ function buildZoneSpecs(): readonly ZoneSpec[] {
       layout: STACKED_PILE_LAYOUT,
       // The whole point of a cell: it holds exactly one card.
       capacity: 1,
-      accept: freeCellPlacementRule(FreeCellRole.CELL),
+      accept: freeCellPlacementRule(FreeCellRole.CELL, variant),
       grab: { kind: "top-only" },
       draggable: true,
       face: "always-up",
@@ -94,7 +112,7 @@ function buildZoneSpecs(): readonly ZoneSpec[] {
       role: FreeCellRole.FOUNDATION,
       slot: { pileId: id, column: CELL_COUNT + index, row: 0 },
       layout: STACKED_PILE_LAYOUT,
-      accept: freeCellPlacementRule(FreeCellRole.FOUNDATION),
+      accept: freeCellPlacementRule(FreeCellRole.FOUNDATION, variant),
       grab: { kind: "top-only" },
       draggable: true,
       face: "always-up",
@@ -109,10 +127,11 @@ function buildZoneSpecs(): readonly ZoneSpec[] {
       role: FreeCellRole.TABLEAU,
       slot: { pileId: id, column: index, row: 1 },
       layout: TABLEAU_PILE_LAYOUT,
-      accept: freeCellPlacementRule(FreeCellRole.TABLEAU),
-      // Only a properly ordered run may be lifted. Klondike is laxer; FreeCell
-      // is not, because a column has no face-down cards to hide a broken one.
-      grab: { kind: "run", adjacent: isOrderedPair },
+      accept: freeCellPlacementRule(FreeCellRole.TABLEAU, variant),
+      // Only a properly ordered run may be lifted, ordered by whatever the
+      // variant builds by. Klondike is laxer; FreeCell is not, because a column
+      // has no face-down cards to hide a broken one.
+      grab: { kind: "run", adjacent: freeCellRunAdjacency(variant) },
       draggable: true,
       face: "always-up",
       backgroundKey: "card-placeholder",
@@ -122,5 +141,5 @@ function buildZoneSpecs(): readonly ZoneSpec[] {
   return zones;
 }
 
-/** Re-exported: the roles live with the rules that branch on them. */
-export { FreeCellRole };
+/** Re-exported: the roles and variants live with the rules that branch on them. */
+export { FreeCellRole, FreeCellVariant };
