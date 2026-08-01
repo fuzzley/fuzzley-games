@@ -39,7 +39,6 @@ vi.mock("@/ui/app/provider/board_catalog", () => ({
 
 describe("AppComponent Composition", () => {
   let fixture: ComponentFixture<AppComponent>;
-  let component: AppComponent;
   let mockGameModel: ReturnType<typeof createMockGameModel>;
 
   beforeEach(async () => {
@@ -56,7 +55,6 @@ describe("AppComponent Composition", () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(AppComponent);
-    component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
@@ -67,23 +65,30 @@ describe("AppComponent Composition", () => {
     expect(query(fixture, "app-confirmation-dialog")).not.toBeNull();
   });
 
-  it("toggles showSettings based on child output emissions", () => {
-    expect(component.showSettings()).toBe(false);
+  it("opens the settings drawer when header bar requests settings", () => {
+    const headerDe = fixture.debugElement.query(
+      By.directive(HeaderBarComponent),
+    );
 
-    // Get HeaderBarComponent debug element and trigger openSettings output
+    headerDe.triggerEventHandler("openSettings", null);
+    fixture.detectChanges();
+
+    expect(query(fixture, ".drawer")).not.toBeNull();
+  });
+
+  it("closes the settings drawer when settings drawer emits closed", () => {
     const headerDe = fixture.debugElement.query(
       By.directive(HeaderBarComponent),
     );
     headerDe.triggerEventHandler("openSettings", null);
     fixture.detectChanges();
-    expect(component.showSettings()).toBe(true);
-
-    // Get SettingsDrawerComponent debug element and trigger close output
     const drawerDe = fixture.debugElement.query(
       By.directive(SettingsDrawerComponent),
     );
+
     drawerDe.triggerEventHandler("closed", null);
     fixture.detectChanges();
-    expect(component.showSettings()).toBe(false);
+
+    expect(query(fixture, ".drawer")).toBeNull();
   });
 });

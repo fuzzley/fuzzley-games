@@ -21,23 +21,18 @@ describe("ConfirmationDialogComponent", () => {
   });
 
   it("does not render the confirmation dialog overlay by default", () => {
-    confirmation.isOpen.set(false);
-    fixture.detectChanges();
-
     expect(query(fixture, ".confirmation-overlay")).toBeNull();
   });
 
-  it("renders the confirmation dialog overlay when isOpen is true", () => {
-    confirmation.isOpen.set(true);
-    confirmation.message.set("Test confirmation message?");
+  it("renders the confirmation dialog overlay when requested", () => {
+    confirmation.request("Test confirmation message?", vi.fn());
     fixture.detectChanges();
 
     expect(query(fixture, ".confirmation-overlay")).not.toBeNull();
   });
 
   it("renders the message it was opened with", () => {
-    confirmation.isOpen.set(true);
-    confirmation.message.set("Test confirmation message?");
+    confirmation.request("Test confirmation message?", vi.fn());
     fixture.detectChanges();
 
     expect(queryText(fixture, ".confirmation-message")).toBe(
@@ -45,33 +40,39 @@ describe("ConfirmationDialogComponent", () => {
     );
   });
 
-  it("triggers confirmation.cancel() when Backdrop is clicked", () => {
-    confirmation.isOpen.set(true);
+  it("closes the dialog without running the action when backdrop is clicked", () => {
+    const action = vi.fn();
+    confirmation.request("Confirm?", action);
     fixture.detectChanges();
-    const cancelSpy = vi.spyOn(confirmation, "cancel");
 
     clickElement(fixture, ".confirmation-overlay");
+    fixture.detectChanges();
 
-    expect(cancelSpy).toHaveBeenCalled();
+    expect(action).not.toHaveBeenCalled();
+    expect(query(fixture, ".confirmation-overlay")).toBeNull();
   });
 
-  it("triggers confirmation.cancel() when Cancel button is clicked", () => {
-    confirmation.isOpen.set(true);
+  it("closes the dialog without running the action when Cancel button is clicked", () => {
+    const action = vi.fn();
+    confirmation.request("Confirm?", action);
     fixture.detectChanges();
-    const cancelSpy = vi.spyOn(confirmation, "cancel");
 
     clickElement(fixture, ".btn-secondary");
+    fixture.detectChanges();
 
-    expect(cancelSpy).toHaveBeenCalled();
+    expect(action).not.toHaveBeenCalled();
+    expect(query(fixture, ".confirmation-overlay")).toBeNull();
   });
 
-  it("triggers confirmation.accept() when Confirm button is clicked", () => {
-    confirmation.isOpen.set(true);
+  it("executes the action and closes the dialog when Confirm button is clicked", () => {
+    const action = vi.fn();
+    confirmation.request("Confirm?", action);
     fixture.detectChanges();
-    const acceptSpy = vi.spyOn(confirmation, "accept");
 
     clickElement(fixture, ".btn-danger");
+    fixture.detectChanges();
 
-    expect(acceptSpy).toHaveBeenCalled();
+    expect(action).toHaveBeenCalledOnce();
+    expect(query(fixture, ".confirmation-overlay")).toBeNull();
   });
 });

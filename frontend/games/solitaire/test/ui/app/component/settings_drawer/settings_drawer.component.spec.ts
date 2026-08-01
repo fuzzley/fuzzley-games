@@ -58,29 +58,23 @@ describe("SettingsDrawerComponent", () => {
   it("emits close when the backdrop is clicked", () => {
     fixture.componentRef.setInput("open", true);
     fixture.detectChanges();
-
-    let closeCount = 0;
-    component.closed.subscribe(() => {
-      closeCount++;
-    });
+    const closeSpy = vi.fn();
+    component.closed.subscribe(closeSpy);
 
     clickElement(fixture, ".drawer-backdrop");
 
-    expect(closeCount).toBe(1);
+    expect(closeSpy).toHaveBeenCalledOnce();
   });
 
   it("emits close when the close button is clicked", () => {
     fixture.componentRef.setInput("open", true);
     fixture.detectChanges();
-
-    let closeCount = 0;
-    component.closed.subscribe(() => {
-      closeCount++;
-    });
+    const closeSpy = vi.fn();
+    component.closed.subscribe(closeSpy);
 
     clickElement(fixture, ".btn-close");
 
-    expect(closeCount).toBe(1);
+    expect(closeSpy).toHaveBeenCalledOnce();
   });
 
   it("renders whichever rules the game on the table offers", () => {
@@ -100,30 +94,30 @@ describe("SettingsDrawerComponent", () => {
   it("changes a rule when one of its choices is clicked", () => {
     fixture.componentRef.setInput("open", true);
     fixture.detectChanges();
-    const setRuleOptionSpy = vi.spyOn(session, "setRuleOption");
 
-    queryAll(fixture, ".segmented-control button")[0].click(); // Draw 1
+    clickElement(
+      fixture,
+      ".drawer-content > .setting-group .segmented-control button:nth-child(1)",
+    );
 
-    expect(setRuleOptionSpy).toHaveBeenCalledWith("drawCount", 1);
+    expect(session.optionValues()["drawCount"]).toBe(1);
   });
 
   it("triggers card back design selection change in session", () => {
     fixture.componentRef.setInput("open", true);
     fixture.detectChanges();
-    const setCardBackSpy = vi.spyOn(session, "setCardBack");
 
     clickElement(fixture, ".card-back-option.red-back");
 
-    expect(setCardBackSpy).toHaveBeenCalledWith("card-back-red");
+    expect(session.cardBack()).toBe("card-back-red");
   });
 
   it("triggers table theme selection change in ThemeService", () => {
     fixture.componentRef.setInput("open", true);
     fixture.detectChanges();
-    const setThemeSpy = vi.spyOn(themeService, "setTheme");
 
     clickElement(fixture, ".theme-option[title='Royal Velvet']");
 
-    expect(setThemeSpy).toHaveBeenCalledWith("purple");
+    expect(themeService.selectedTheme()).toBe("purple");
   });
 });

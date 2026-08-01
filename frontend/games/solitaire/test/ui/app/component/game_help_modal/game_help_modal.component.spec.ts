@@ -12,7 +12,6 @@ import {
 } from "@test/support/dom";
 
 describe("GameHelpModalComponent", () => {
-  let component: GameHelpModalComponent;
   let fixture: ComponentFixture<GameHelpModalComponent>;
   let docService: GameDocumentationService;
   let catalogService: GameCatalogService;
@@ -27,7 +26,6 @@ describe("GameHelpModalComponent", () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(GameHelpModalComponent);
-    component = fixture.componentInstance;
     docService = TestBed.inject(GameDocumentationService);
     catalogService = TestBed.inject(GameCatalogService);
     fixture.detectChanges();
@@ -56,7 +54,8 @@ describe("GameHelpModalComponent", () => {
     docService.openHelp();
     fixture.detectChanges();
 
-    expect(component.activeTab()).toBe("overview");
+    const overviewTab = queryRequired(fixture, '[data-tab="overview"]');
+    expect(overviewTab.classList.contains("active")).toBe(true);
     expect(queryText(fixture, ".callout-title")).toContain(
       "Objective & Win Condition",
     );
@@ -69,7 +68,8 @@ describe("GameHelpModalComponent", () => {
     clickElement(fixture, '[data-tab="rules"]');
     fixture.detectChanges();
 
-    expect(component.activeTab()).toBe("rules");
+    const rulesTab = queryRequired(fixture, '[data-tab="rules"]');
+    expect(rulesTab.classList.contains("active")).toBe(true);
     expect(queryText(fixture, ".rules-grid")).toContain("Board Layout");
   });
 
@@ -229,10 +229,10 @@ describe("GameHelpModalComponent", () => {
     summaryTab.dispatchEvent(arrowRight);
     fixture.detectChanges();
 
-    expect(component.activeTab()).toBe("rules");
+    const rulesTab = queryRequired(fixture, '[data-tab="rules"]');
+    expect(rulesTab.classList.contains("active")).toBe(true);
     vi.advanceTimersByTime(10);
 
-    const rulesTab = queryRequired(fixture, '[data-tab="rules"]');
     expect(document.activeElement).toBe(rulesTab);
   });
 
@@ -280,35 +280,27 @@ describe("GameHelpModalComponent", () => {
     catalogService.select("klondike");
     docService.openHelp();
     fixture.detectChanges();
-
     clickElement(fixture, '[data-tab="variants"]');
-    fixture.detectChanges();
-    expect(component.activeTab()).toBe("variants");
-
     docService.closeHelp();
-    fixture.detectChanges();
-
     catalogService.select("freecell");
+
     docService.openHelp();
     fixture.detectChanges();
 
-    expect(component.activeTab()).toBe("overview");
+    const overviewTab = queryRequired(fixture, '[data-tab="overview"]');
+    expect(overviewTab.classList.contains("active")).toBe(true);
   });
 
   it("resets active tab to summary when modal is reopened", () => {
     docService.openHelp();
     fixture.detectChanges();
-
     clickElement(fixture, '[data-tab="rules"]');
-    fixture.detectChanges();
-    expect(component.activeTab()).toBe("rules");
-
     docService.closeHelp();
-    fixture.detectChanges();
 
     docService.openHelp();
     fixture.detectChanges();
 
-    expect(component.activeTab()).toBe("overview");
+    const overviewTab = queryRequired(fixture, '[data-tab="overview"]');
+    expect(overviewTab.classList.contains("active")).toBe(true);
   });
 });
