@@ -82,8 +82,21 @@
       <div class="setting-group">
         <label class="setting-label">Game Rules & Documentation</label>
         <button class="btn btn-secondary btn-block" (click)="openRules()">
-          <img src="icons/help-circle.svg" class="btn-icon" style="width: 18px; height: 18px; margin-right: 6px;" alt="Help" />
-          How to Play {{ docService.activeGameDoc().title }}
+          <svg
+            class="btn-icon"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          How to Play {{ activeGameTitle() }}
         </button>
       </div>
 

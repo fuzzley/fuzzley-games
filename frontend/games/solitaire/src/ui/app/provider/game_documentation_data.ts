@@ -1,25 +1,27 @@
+import { YukonVariant } from "@/games/yukon/yukon_rules";
 import { GameDocumentation } from "../model/game_documentation.model";
 
 /**
- * Registry containing comprehensive, verified documentation and screenshot visual aids
+ * Registry containing comprehensive, verified documentation and hero screenshot visual aids
  * for all solitaire games in fSolitaire.
  */
-export const GAME_DOCUMENTATION_REGISTRY: Readonly<Record<string, GameDocumentation>> = {
+export const GAME_DOCUMENTATION_REGISTRY: Readonly<
+  Record<string, GameDocumentation>
+> = {
   klondike: {
-    gameId: "klondike",
     title: "Klondike Solitaire",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Klondike_(solitaire)",
-    screenshots: [
-      {
-        url: "./docs/screenshots/klondike/overview.png",
-        caption: "Klondike initial deal showing seven tableau columns, stock, waste, and four foundation piles.",
-        altText: "Klondike solitaire board overview",
-        type: "overview",
-      },
-    ],
+    screenshot: {
+      url: "./docs/screenshots/klondike/overview.png",
+      caption:
+        "Klondike initial deal showing seven tableau columns, stock, waste, and four foundation piles.",
+      altText: "Klondike solitaire board overview",
+    },
     summary: {
-      objective: "Build all 52 cards onto the four foundation piles by suit in ascending order from Ace to King.",
-      winCondition: "All cards are transferred to the foundations (Ace through King for Hearts, Diamonds, Clubs, and Spades).",
+      objective:
+        "Build all 52 cards onto the four foundation piles by suit in ascending order from Ace to King.",
+      winCondition:
+        "All cards are transferred to the foundations (Ace through King for Hearts, Diamonds, Clubs, and Spades).",
       quickOverview:
         "Klondike is the classic solitaire game. Cards are dealt into 7 tableau columns with increasing hidden cards. Players draw cards from the stock to the waste pile and build tableau runs in descending rank with alternating colors.",
     },
@@ -47,36 +49,35 @@ export const GAME_DOCUMENTATION_REGISTRY: Readonly<Record<string, GameDocumentat
     settingsAndVariants: [
       {
         optionId: "drawCount",
-        label: "Draw Mode",
-        description: "Controls how many cards are flipped from the stock to the waste pile per draw.",
         choicesExplanation: [
           {
-            label: "Draw 1",
-            effect: "Easier mode. Flips 1 card at a time, making every stock card directly accessible.",
+            value: 1,
+            effect:
+              "Easier mode. Flips 1 card at a time, making every stock card directly accessible.",
           },
           {
-            label: "Draw 3",
-            effect: "Standard challenge. Flips 3 cards at a time; only the top card of the 3 is immediately playable.",
+            value: 3,
+            effect:
+              "Standard challenge. Flips 3 cards at a time; only the top card of the 3 is immediately playable.",
           },
         ],
       },
     ],
   },
   freecell: {
-    gameId: "freecell",
     title: "FreeCell",
     wikipediaUrl: "https://en.wikipedia.org/wiki/FreeCell",
-    screenshots: [
-      {
-        url: "./docs/screenshots/freecell/overview.png",
-        caption: "FreeCell board with 4 free cells top-left, 4 foundations top-right, and 8 fully face-up tableau columns.",
-        altText: "FreeCell board overview",
-        type: "overview",
-      },
-    ],
+    screenshot: {
+      url: "./docs/screenshots/freecell/overview.png",
+      caption:
+        "FreeCell board with 4 free cells top-left, 4 foundations top-right, and 8 fully face-up tableau columns.",
+      altText: "FreeCell board overview",
+    },
     summary: {
-      objective: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
-      winCondition: "All 52 cards are sorted into their respective suit foundations from Ace through King.",
+      objective:
+        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      winCondition:
+        "All 52 cards are sorted into their respective suit foundations from Ace through King.",
       quickOverview:
         "FreeCell is a highly strategic solitaire game played with all cards dealt face-up into 8 columns. Four free cells act as temporary storage locations while you arrange columns in descending order with alternating colors.",
     },
@@ -103,20 +104,19 @@ export const GAME_DOCUMENTATION_REGISTRY: Readonly<Record<string, GameDocumentat
     settingsAndVariants: [],
   },
   spider: {
-    gameId: "spider",
     title: "Spider Solitaire",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Spider_(solitaire)",
-    screenshots: [
-      {
-        url: "./docs/screenshots/spider/overview.png",
-        caption: "Spider board featuring 10 tableau columns and stock deals at bottom-left.",
-        altText: "Spider solitaire board overview",
-        type: "overview",
-      },
-    ],
+    screenshot: {
+      url: "./docs/screenshots/spider/overview.png",
+      caption:
+        "Spider board featuring 10 tableau columns and stock deals at bottom-left.",
+      altText: "Spider solitaire board overview",
+    },
     summary: {
-      objective: "Assemble 8 full same-suit sequences from King down to Ace on the tableau to clear them.",
-      winCondition: "All 8 13-card sequences (King to Ace of same suit) are completed and removed from the board.",
+      objective:
+        "Assemble 8 full same-suit sequences from King down to Ace on the tableau to clear them.",
+      winCondition:
+        "All 8 13-card sequences (King to Ace of same suit) are completed and removed from the board.",
       quickOverview:
         "Spider uses two 52-card decks (104 cards total). Players build descending sequences in 10 tableau columns. Completed King-to-Ace same-suit runs are automatically cleared to foundation slots.",
     },
@@ -143,39 +143,38 @@ export const GAME_DOCUMENTATION_REGISTRY: Readonly<Record<string, GameDocumentat
     settingsAndVariants: [
       {
         optionId: "suitCount",
-        label: "Suit Count",
-        description: "Selects the number of suits used across the 104 cards, controlling game difficulty.",
         choicesExplanation: [
           {
-            label: "1 Suit",
-            effect: "Easiest mode (104 Spades). Every run is in suit, allowing easy multi-card moves and sequence builds.",
+            value: 1,
+            effect:
+              "Easiest mode (104 Spades). Every run is in suit, allowing easy multi-card moves and sequence builds.",
           },
           {
-            label: "2 Suits",
-            effect: "Medium mode (Spades & Hearts). Requires balancing mixed-suit building with same-suit runs.",
+            value: 2,
+            effect:
+              "Medium mode (Spades & Hearts). Requires balancing mixed-suit building with same-suit runs.",
           },
           {
-            label: "4 Suits",
-            effect: "Classic hard challenge (Spades, Hearts, Diamonds, Clubs). Highly tactical and tight sequence control.",
+            value: 4,
+            effect:
+              "Classic hard challenge (Spades, Hearts, Diamonds, Clubs). Highly tactical and tight sequence control.",
           },
         ],
       },
     ],
   },
   yukon: {
-    gameId: "yukon",
     title: "Yukon Solitaire",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Yukon_(solitaire)",
-    screenshots: [
-      {
-        url: "./docs/screenshots/yukon/overview.png",
-        caption: "Yukon board featuring 7 tableau columns with face-down and face-up card groups, and 4 foundations.",
-        altText: "Yukon solitaire board overview",
-        type: "overview",
-      },
-    ],
+    screenshot: {
+      url: "./docs/screenshots/yukon/overview.png",
+      caption:
+        "Yukon board featuring 7 tableau columns with face-down and face-up card groups, and 4 foundations.",
+      altText: "Yukon solitaire board overview",
+    },
     summary: {
-      objective: "Build all 52 cards onto four foundations by suit from Ace to King.",
+      objective:
+        "Build all 52 cards onto four foundations by suit from Ace to King.",
       winCondition: "All cards are placed in order on the foundations.",
       quickOverview:
         "Yukon is a fast-paced game with no stock pile. All cards are dealt to the tableau at the start. The signature rule of Yukon is that ANY face-up card can be moved regardless of how many cards are sitting on top of it.",
@@ -203,39 +202,38 @@ export const GAME_DOCUMENTATION_REGISTRY: Readonly<Record<string, GameDocumentat
     settingsAndVariants: [
       {
         optionId: "variant",
-        label: "Yukon Variant",
-        description: "Chooses between the three games in the Yukon family.",
         choicesExplanation: [
           {
-            label: "Yukon",
-            effect: "Standard game. Tableau columns build down in alternating colors.",
+            value: YukonVariant.YUKON,
+            effect:
+              "Standard game. Tableau columns build down in alternating colors.",
           },
           {
-            label: "Alaska",
-            effect: "Gentler suit variant. Tableau columns build either UP or DOWN in the SAME SUIT.",
+            value: YukonVariant.ALASKA,
+            effect:
+              "Gentler suit variant. Tableau columns build either UP or DOWN in the SAME SUIT.",
           },
           {
-            label: "Russian Solitaire",
-            effect: "Hardest variant. Tableau columns build DOWN in the SAME SUIT.",
+            value: YukonVariant.RUSSIAN,
+            effect:
+              "Hardest variant. Tableau columns build DOWN in the SAME SUIT.",
           },
         ],
       },
     ],
   },
   bakers: {
-    gameId: "bakers",
     title: "Baker's Game",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Baker%27s_Game",
-    screenshots: [
-      {
-        url: "./docs/screenshots/bakers/overview.png",
-        caption: "Baker's Game board with 4 free cells, 4 foundations, and 8 same-suit building tableau columns.",
-        altText: "Baker's Game board overview",
-        type: "overview",
-      },
-    ],
+    screenshot: {
+      url: "./docs/screenshots/bakers/overview.png",
+      caption:
+        "Baker's Game board with 4 free cells, 4 foundations, and 8 same-suit building tableau columns.",
+      altText: "Baker's Game board overview",
+    },
     summary: {
-      objective: "Move all 52 cards to the foundations from Ace to King by suit.",
+      objective:
+        "Move all 52 cards to the foundations from Ace to King by suit.",
       winCondition: "All four foundations completed from Ace through King.",
       quickOverview:
         "Baker's Game is the direct predecessor to FreeCell. It shares FreeCell's deal and 4 free cells, but requires tableau columns to be built strictly in the SAME SUIT rather than alternating colors.",
@@ -263,36 +261,35 @@ export const GAME_DOCUMENTATION_REGISTRY: Readonly<Record<string, GameDocumentat
     settingsAndVariants: [
       {
         optionId: "emptyColumns",
-        label: "Empty Columns Rule",
-        description: "Controls what cards are allowed to fill an empty tableau column.",
         choicesExplanation: [
           {
-            label: "Any Card",
-            effect: "Standard Baker's Game. Any card can enter an empty column, providing full supermove staging capacity.",
+            value: 0,
+            effect:
+              "Standard Baker's Game. Any card can enter an empty column, providing full supermove staging capacity.",
           },
           {
-            label: "Kings Only",
-            effect: "Harder variant. Only Kings can enter empty columns, restricting supermoves to (Free Cells + 1).",
+            value: 1,
+            effect:
+              "Harder variant. Only Kings can enter empty columns, restricting supermoves to (Free Cells + 1).",
           },
         ],
       },
     ],
   },
   eightoff: {
-    gameId: "eightoff",
     title: "Eight Off",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Eight_Off",
-    screenshots: [
-      {
-        url: "./docs/screenshots/eightoff/overview.png",
-        caption: "Eight Off board featuring 8 free cells, 4 foundations, and 8 tableau columns.",
-        altText: "Eight Off board overview",
-        type: "overview",
-      },
-    ],
+    screenshot: {
+      url: "./docs/screenshots/eightoff/overview.png",
+      caption:
+        "Eight Off board featuring 8 free cells, 4 foundations, and 8 tableau columns.",
+      altText: "Eight Off board overview",
+    },
     summary: {
-      objective: "Move all 52 cards to the four suit foundation piles, built Ace to King.",
-      winCondition: "All cards transferred to suit foundations Ace through King.",
+      objective:
+        "Move all 52 cards to the four suit foundation piles, built Ace to King.",
+      winCondition:
+        "All cards transferred to suit foundations Ace through King.",
       quickOverview:
         "Eight Off is a cousin of FreeCell and Baker's Game featuring 8 free cells instead of 4. Four of the cells start occupied by cards during deal. Tableau columns build strictly down in the same suit, and empty columns accept Kings only.",
     },
@@ -318,26 +315,19 @@ export const GAME_DOCUMENTATION_REGISTRY: Readonly<Record<string, GameDocumentat
     settingsAndVariants: [],
   },
   scorpion: {
-    gameId: "scorpion",
     title: "Scorpion Solitaire",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Scorpion_(solitaire)",
-    screenshots: [
-      {
-        url: "./docs/screenshots/scorpion/overview.png",
-        caption: "Scorpion board featuring 7 tableau columns, stock reserve, and foundation area.",
-        altText: "Scorpion solitaire board overview",
-        type: "overview",
-      },
-      {
-        url: "./docs/screenshots/scorpion/rules_modal_preview.png",
-        caption: "Interactive in-game documentation modal overlay.",
-        altText: "Scorpion in-game rules modal preview",
-        type: "rule_detail",
-      },
-    ],
+    screenshot: {
+      url: "./docs/screenshots/scorpion/overview.png",
+      caption:
+        "Scorpion board featuring 7 tableau columns, stock reserve, and foundation area.",
+      altText: "Scorpion solitaire board overview",
+    },
     summary: {
-      objective: "Build four 13-card same-suit sequences from King down to Ace on the tableau.",
-      winCondition: "All 4 suits assembled in complete King-to-Ace runs on the board.",
+      objective:
+        "Build four 13-card same-suit sequences from King down to Ace on the tableau.",
+      winCondition:
+        "All 4 suits assembled in complete King-to-Ace runs on the board.",
       quickOverview:
         "Scorpion combines the open-stack dragging mechanics of Yukon with the same-suit sequence completion goals of Spider. Players move any face-up card along with all cards on top of it to build same-suit descending runs.",
     },

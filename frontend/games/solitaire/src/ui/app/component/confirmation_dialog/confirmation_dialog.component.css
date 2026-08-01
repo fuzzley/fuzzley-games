@@ -10,7 +10,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000; /* Higher than settings drawer (101) and victory overlay (1000) */
+  z-index: 2000; /* Higher than settings drawer (101), victory overlay (1000), and rules help modal (1500) */
   pointer-events: auto;
   user-select: none;
 }

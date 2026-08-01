@@ -1,33 +1,57 @@
 @if (docService.isOpen()) {
-  <div
-    class="modal-backdrop"
-    (click)="onBackdropClick($event)"
-    role="dialog"
-    aria-modal="true"
-    [attr.aria-label]="docService.activeGameDoc().title + ' Rules & Documentation'"
-  >
-    <div class="modal-dialog">
+  <div class="modal-backdrop" (click)="onBackdropClick($event)">
+    <div
+      #dialogElement
+      class="modal-dialog"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="modalTitle() + ' Rules & Documentation'"
+      tabindex="-1"
+    >
       <!-- Modal Header -->
       <div class="modal-header">
         <div class="header-title-group">
           <div class="title-with-icon">
-            <img src="icons/help-circle.svg" class="header-icon" alt="Help" />
-            <h2 class="game-title">{{ docService.activeGameDoc().title }}</h2>
+            <svg
+              class="header-icon"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <h2 class="game-title">{{ modalTitle() }}</h2>
           </div>
-          @if (docService.activeGameDoc().wikipediaUrl) {
+          @if (doc()?.wikipediaUrl; as wikiUrl) {
             <a
-              [href]="docService.activeGameDoc().wikipediaUrl"
+              [href]="wikiUrl"
               target="_blank"
               rel="noopener noreferrer"
               class="wiki-badge"
               title="View article on Wikipedia"
             >
-              <img src="icons/wikipedia.svg" class="badge-icon" alt="Wikipedia" />
+              <svg
+                class="badge-icon"
+                fill="currentColor"
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
+                />
+              </svg>
               <span>Wikipedia</span>
             </a>
           }
         </div>
         <button
+          #closeBtn
           class="btn-modal-close"
           (click)="docService.closeHelp()"
           title="Close documentation (Esc)"
@@ -37,142 +61,224 @@
         </button>
       </div>
 
-      <!-- Navigation Tabs -->
-      <nav class="modal-tabs" aria-label="Documentation sections">
-        <button
-          class="tab-btn"
-          [class.active]="activeTab() === 'overview'"
-          (click)="selectTab('overview')"
+      @if (doc(); as activeDoc) {
+        <!-- Navigation Tabs -->
+        <nav
+          class="modal-tabs"
+          role="tablist"
+          aria-label="Documentation sections"
         >
-          Summary
-        </button>
-        <button
-          class="tab-btn"
-          [class.active]="activeTab() === 'rules'"
-          (click)="selectTab('rules')"
-        >
-          Detailed Rules
-        </button>
-        @if (docService.activeGameDoc().settingsAndVariants.length > 0) {
           <button
             class="tab-btn"
-            [class.active]="activeTab() === 'variants'"
-            (click)="selectTab('variants')"
+            role="tab"
+            id="tab-overview"
+            data-tab="overview"
+            [attr.aria-selected]="activeTab() === 'overview'"
+            aria-controls="panel-overview"
+            [class.active]="activeTab() === 'overview'"
+            (click)="selectTab('overview')"
+            (keydown)="onTabKeydown($event, 'overview')"
           >
-            Options & Variants
+            Summary
           </button>
-        }
-      </nav>
+          <button
+            class="tab-btn"
+            role="tab"
+            id="tab-rules"
+            data-tab="rules"
+            [attr.aria-selected]="activeTab() === 'rules'"
+            aria-controls="panel-rules"
+            [class.active]="activeTab() === 'rules'"
+            (click)="selectTab('rules')"
+            (keydown)="onTabKeydown($event, 'rules')"
+          >
+            Detailed Rules
+          </button>
+          @if (activeDoc.settingsAndVariants.length > 0) {
+            <button
+              class="tab-btn"
+              role="tab"
+              id="tab-variants"
+              data-tab="variants"
+              [attr.aria-selected]="activeTab() === 'variants'"
+              aria-controls="panel-variants"
+              [class.active]="activeTab() === 'variants'"
+              (click)="selectTab('variants')"
+              (keydown)="onTabKeydown($event, 'variants')"
+            >
+              Options & Variants
+            </button>
+          }
+        </nav>
 
-      <!-- Modal Body Content -->
-      <div class="modal-body">
-        @switch (activeTab()) {
-          @case ('overview') {
-            <section class="doc-section animated-fade">
-              <div class="callout-card primary-callout">
-                <h3 class="callout-title">Objective & Win Condition</h3>
-                <p class="objective-text">
-                  <strong>Objective:</strong> {{ docService.activeGameDoc().summary.objective }}
-                </p>
-                <p class="win-text">
-                  <strong>Win Condition:</strong> {{ docService.activeGameDoc().summary.winCondition }}
-                </p>
-              </div>
-
-              <div class="overview-block">
-                <h4>Game Overview</h4>
-                <p class="overview-p">{{ docService.activeGameDoc().summary.quickOverview }}</p>
-              </div>
-
-              @if (docService.activeGameDoc().screenshots.length > 0) {
-                <div class="hero-screenshot-card">
-                  <div
-                    class="img-skeleton-container"
-                    [class.is-loaded]="isImageLoaded(docService.activeGameDoc().screenshots[0].url)"
-                  >
-                    <img
-                      [src]="docService.activeGameDoc().screenshots[0].url"
-                      [alt]="docService.activeGameDoc().screenshots[0].altText"
-                      class="screenshot-img"
-                      [class.loaded]="isImageLoaded(docService.activeGameDoc().screenshots[0].url)"
-                      (load)="onImageLoad(docService.activeGameDoc().screenshots[0].url)"
-                    />
-                  </div>
-                  <p class="screenshot-caption">
-                    {{ docService.activeGameDoc().screenshots[0].caption }}
+        <!-- Modal Body Content -->
+        <div class="modal-body">
+          @switch (activeTab()) {
+            @case ("overview") {
+              <section
+                id="panel-overview"
+                role="tabpanel"
+                aria-labelledby="tab-overview"
+                class="doc-section animated-fade"
+              >
+                <div class="callout-card primary-callout">
+                  <h3 class="callout-title">Objective & Win Condition</h3>
+                  <p class="objective-text">
+                    <strong>Objective:</strong>
+                    {{ activeDoc.summary.objective }}
+                  </p>
+                  <p class="win-text">
+                    <strong>Win Condition:</strong>
+                    {{ activeDoc.summary.winCondition }}
                   </p>
                 </div>
-              }
-            </section>
-          }
 
-          @case ('rules') {
-            <section class="doc-section animated-fade">
-              <div class="rules-grid">
-                <div class="rule-card">
-                  <h4>Board Layout</h4>
-                  <ul>
-                    @for (item of docService.activeGameDoc().detailedRules.layout; track $index) {
-                      <li>{{ item }}</li>
-                    }
-                  </ul>
+                <div class="overview-block">
+                  <h4>Game Overview</h4>
+                  <p class="overview-p">
+                    {{ activeDoc.summary.quickOverview }}
+                  </p>
                 </div>
 
-                <div class="rule-card">
-                  <h4>Sequence Building Rules</h4>
-                  <ul>
-                    @for (item of docService.activeGameDoc().detailedRules.sequenceBuilding; track $index) {
-                      <li>{{ item }}</li>
-                    }
-                  </ul>
-                </div>
+                @if (activeDoc.screenshot; as screenshot) {
+                  <div class="hero-screenshot-card">
+                    <div
+                      class="img-skeleton-container"
+                      [class.is-loaded]="heroImageLoaded()"
+                    >
+                      <img
+                        [src]="screenshot.url"
+                        [alt]="screenshot.altText"
+                        class="screenshot-img"
+                        [class.loaded]="heroImageLoaded()"
+                        loading="lazy"
+                        (load)="onImageLoad()"
+                        (error)="onImageError()"
+                      />
+                    </div>
+                    <p class="screenshot-caption">
+                      {{ screenshot.caption }}
+                    </p>
+                  </div>
+                }
+              </section>
+            }
 
-                <div class="rule-card">
-                  <h4>Card Movement & Grabbing</h4>
-                  <ul>
-                    @for (item of docService.activeGameDoc().detailedRules.cardMovement; track $index) {
-                      <li>{{ item }}</li>
-                    }
-                  </ul>
-                </div>
+            @case ("rules") {
+              <section
+                id="panel-rules"
+                role="tabpanel"
+                aria-labelledby="tab-rules"
+                class="doc-section animated-fade"
+              >
+                <div class="rules-grid">
+                  <div class="rule-card">
+                    <h4>Board Layout</h4>
+                    <ul>
+                      @for (
+                        item of activeDoc.detailedRules.layout;
+                        track $index
+                      ) {
+                        <li>{{ item }}</li>
+                      }
+                    </ul>
+                  </div>
 
-                @if (docService.activeGameDoc().detailedRules.specialRules; as special) {
-                  @if (special.length > 0) {
-                    <div class="rule-card special-card">
-                      <h4>Special Game Mechanics</h4>
-                      <ul>
-                        @for (item of special; track $index) {
-                          <li>{{ item }}</li>
+                  <div class="rule-card">
+                    <h4>Sequence Building Rules</h4>
+                    <ul>
+                      @for (
+                        item of activeDoc.detailedRules.sequenceBuilding;
+                        track $index
+                      ) {
+                        <li>{{ item }}</li>
+                      }
+                    </ul>
+                  </div>
+
+                  <div class="rule-card">
+                    <h4>Card Movement & Grabbing</h4>
+                    <ul>
+                      @for (
+                        item of activeDoc.detailedRules.cardMovement;
+                        track $index
+                      ) {
+                        <li>{{ item }}</li>
+                      }
+                    </ul>
+                  </div>
+
+                  @if (activeDoc.detailedRules.specialRules; as special) {
+                    @if (special.length > 0) {
+                      <div class="rule-card special-card">
+                        <h4>Special Game Mechanics</h4>
+                        <ul>
+                          @for (item of special; track $index) {
+                            <li>{{ item }}</li>
+                          }
+                        </ul>
+                      </div>
+                    }
+                  }
+                </div>
+              </section>
+            }
+
+            @case ("variants") {
+              <section
+                id="panel-variants"
+                role="tabpanel"
+                aria-labelledby="tab-variants"
+                class="doc-section animated-fade"
+              >
+                @for (
+                  optionDoc of activeDoc.settingsAndVariants;
+                  track optionDoc.optionId
+                ) {
+                  @if (docService.getOptionSpec(optionDoc.optionId); as spec) {
+                    <div class="variant-card">
+                      <h3 class="option-title">{{ spec.label }}</h3>
+                      @if (spec.description) {
+                        <p class="option-desc">{{ spec.description }}</p>
+                      }
+
+                      <div class="choices-list">
+                        @for (
+                          choice of optionDoc.choicesExplanation;
+                          track choice.value
+                        ) {
+                          <div class="choice-item">
+                            <span class="choice-badge">
+                              {{
+                                docService.getChoiceLabel(
+                                  optionDoc.optionId,
+                                  choice.value
+                                )
+                              }}
+                            </span>
+                            <span class="choice-effect">{{
+                              choice.effect
+                            }}</span>
+                          </div>
                         }
-                      </ul>
+                      </div>
                     </div>
                   }
                 }
-              </div>
-            </section>
+              </section>
+            }
           }
-
-          @case ('variants') {
-            <section class="doc-section animated-fade">
-              @for (option of docService.activeGameDoc().settingsAndVariants; track option.optionId) {
-                <div class="variant-card">
-                  <h3 class="option-title">{{ option.label }}</h3>
-                  <p class="option-desc">{{ option.description }}</p>
-                  
-                  <div class="choices-list">
-                    @for (choice of option.choicesExplanation; track choice.label) {
-                      <div class="choice-item">
-                        <span class="choice-badge">{{ choice.label }}</span>
-                        <span class="choice-effect">{{ choice.effect }}</span>
-                      </div>
-                    }
-                  </div>
-                </div>
-              }
-            </section>
-          }
-        }
-      </div>
+        </div>
+      } @else {
+        <div class="modal-body">
+          <section class="doc-section animated-fade">
+            <div class="callout-card">
+              <h3 class="callout-title">Documentation Unavailable</h3>
+              <p class="overview-p">Rules for this game aren't written yet.</p>
+            </div>
+          </section>
+        </div>
+      }
 
       <!-- Modal Footer -->
       <div class="modal-footer">

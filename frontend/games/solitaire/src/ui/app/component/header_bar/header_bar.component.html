@@ -26,7 +26,16 @@
       title="Undo last move"
       aria-label="Undo last move"
     >
-      <img src="icons/undo.svg" class="btn-icon" alt="Undo" />
+      <svg
+        class="btn-icon"
+        fill="currentColor"
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88c3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"
+        />
+      </svg>
       <span class="btn-text">Undo</span>
     </button>
     <button
@@ -35,7 +44,16 @@
       title="Restart current game"
       aria-label="Restart current game"
     >
-      <img src="icons/restart.svg" class="btn-icon" alt="Restart" />
+      <svg
+        class="btn-icon"
+        fill="currentColor"
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+        />
+      </svg>
       <span class="btn-text">Restart</span>
     </button>
     <button
@@ -44,16 +62,36 @@
       title="Start a brand new game"
       aria-label="Start a brand new game"
     >
-      <img src="icons/plus.svg" class="btn-icon" alt="New Game" />
+      <svg
+        class="btn-icon"
+        fill="currentColor"
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+      >
+        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+      </svg>
       <span class="btn-text">New Game</span>
     </button>
     <button
-      class="btn-circle btn-rules"
+      class="btn-circle"
       (click)="docService.openHelp()"
       title="How to Play / Game Rules"
       aria-label="How to Play / Game Rules"
     >
-      <img src="icons/help-circle.svg" class="btn-icon" alt="Help" />
+      <svg
+        class="btn-icon"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
     </button>
     <button
       class="btn-circle btn-settings"
@@ -61,7 +99,16 @@
       title="Game Settings"
       aria-label="Game Settings"
     >
-      <img src="icons/settings.svg" class="btn-icon" alt="Settings" />
+      <svg
+        class="btn-icon"
+        fill="currentColor"
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M19.14 12.94c.04-.3.06-.61.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 0 0-.59.22L2.74 8.87a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94c0 .31.04.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6s-1.62 3.6-3.6 3.6z"
+        />
+      </svg>
     </button>
   </div>
 </header>

@@ -4,14 +4,23 @@ import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { GameHelpModalComponent } from "@/ui/app/component/game_help_modal/game_help_modal.component";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
-import { queryRequired, queryText, clickElement } from "@test/support/dom";
+import {
+  queryRequired,
+  queryText,
+  clickElement,
+  query,
+} from "@test/support/dom";
 
 describe("GameHelpModalComponent", () => {
   let component: GameHelpModalComponent;
   let fixture: ComponentFixture<GameHelpModalComponent>;
   let docService: GameDocumentationService;
+  let catalogService: GameCatalogService;
 
   beforeEach(async () => {
+    localStorage.clear();
+    location.hash = "";
+
     await TestBed.configureTestingModule({
       imports: [GameHelpModalComponent],
       providers: [GameDocumentationService, GameCatalogService],
@@ -20,12 +29,13 @@ describe("GameHelpModalComponent", () => {
     fixture = TestBed.createComponent(GameHelpModalComponent);
     component = fixture.componentInstance;
     docService = TestBed.inject(GameDocumentationService);
+    catalogService = TestBed.inject(GameCatalogService);
     fixture.detectChanges();
   });
 
   it("is hidden when docService.isOpen is false", () => {
-    const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector(".modal-backdrop")).toBeNull();
+    const backdrop = query(fixture, ".modal-backdrop");
+    expect(backdrop).toBeNull();
   });
 
   it("renders modal dialog when docService.isOpen is true", () => {
@@ -33,36 +43,56 @@ describe("GameHelpModalComponent", () => {
     fixture.detectChanges();
 
     const dialog = queryRequired(fixture, ".modal-dialog");
-    expect(dialog).not.toBeNull();
+    expect(dialog.getAttribute("role")).toBe("dialog");
     expect(queryText(fixture, ".game-title")).toContain("Klondike Solitaire");
   });
 
-  it("switches tabs between Summary, Detailed Rules, and Options", () => {
+  it("defaults to the summary tab on open", () => {
     docService.openHelp();
     fixture.detectChanges();
 
-    // Default tab is 'overview'
     expect(component.activeTab()).toBe("overview");
-    expect(queryText(fixture, ".callout-title")).toContain("Objective & Win Condition");
+    expect(queryText(fixture, ".callout-title")).toContain(
+      "Objective & Win Condition",
+    );
+  });
 
-    // Click Detailed Rules tab
-    const el = fixture.nativeElement as HTMLElement;
-    const tabs = el.querySelectorAll<HTMLButtonElement>(".tab-btn");
-    tabs[1].click();
+  it("shows detailed rules when clicking the rules tab", () => {
+    docService.openHelp();
+    fixture.detectChanges();
+
+    clickElement(fixture, '[data-tab="rules"]');
     fixture.detectChanges();
 
     expect(component.activeTab()).toBe("rules");
-    expect(queryText(fixture, ".rules-grid")).not.toBeNull();
+    expect(queryText(fixture, ".rules-grid")).toContain("Board Layout");
   });
 
   it("does not render a screenshots tab button", () => {
     docService.openHelp();
     fixture.detectChanges();
 
-    const el = fixture.nativeElement as HTMLElement;
-    const tabs = Array.from(el.querySelectorAll<HTMLButtonElement>(".tab-btn"));
-    const tabTexts = tabs.map((t) => t.textContent?.trim());
-    expect(tabTexts.some((text) => text?.includes("Screenshots"))).toBe(false);
+    const tabsNav = queryRequired(fixture, ".modal-tabs");
+    expect(tabsNav.textContent).not.toContain("Screenshots");
+  });
+
+  it("does not render options tab button for games with no options", () => {
+    catalogService.select("freecell");
+    docService.openHelp();
+    fixture.detectChanges();
+
+    const variantsTab = query(fixture, '[data-tab="variants"]');
+    expect(variantsTab).toBeNull();
+  });
+
+  it("renders Wikipedia badge link when wikipediaUrl is defined", () => {
+    catalogService.select("klondike");
+    docService.openHelp();
+    fixture.detectChanges();
+
+    const wikiBadge = query(fixture, ".wiki-badge");
+    expect(wikiBadge).not.toBeNull();
+    expect(wikiBadge?.getAttribute("href")).toContain("wikipedia.org");
   });
 
   it("closes modal when clicking close button", () => {
@@ -73,11 +103,32 @@ describe("GameHelpModalComponent", () => {
     fixture.detectChanges();
 
     expect(docService.isOpen()).toBe(false);
-    const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector(".modal-backdrop")).toBeNull();
+    expect(query(fixture, ".modal-backdrop")).toBeNull();
   });
 
-  it("closes modal when pressing Escape key", () => {
+  it("closes modal when clicking the backdrop", () => {
+    docService.openHelp();
+    fixture.detectChanges();
+
+    const backdrop = queryRequired(fixture, ".modal-backdrop");
+    backdrop.click();
+    fixture.detectChanges();
+
+    expect(docService.isOpen()).toBe(false);
+  });
+
+  it("does not close modal when clicking inside modal-dialog content", () => {
+    docService.openHelp();
+    fixture.detectChanges();
+
+    const dialog = queryRequired(fixture, ".modal-dialog");
+    dialog.click();
+    fixture.detectChanges();
+
+    expect(docService.isOpen()).toBe(true);
+  });
+
+  it("closes modal when pressing Escape key while open", () => {
     docService.openHelp();
     fixture.detectChanges();
 
@@ -88,7 +139,15 @@ describe("GameHelpModalComponent", () => {
     expect(docService.isOpen()).toBe(false);
   });
 
-  it("renders skeleton container without loaded class when image has not loaded", () => {
+  it("does nothing when pressing Escape key while already closed", () => {
+    const escapeEvent = new KeyboardEvent("keydown", { key: "Escape" });
+    document.dispatchEvent(escapeEvent);
+    fixture.detectChanges();
+
+    expect(docService.isOpen()).toBe(false);
+  });
+
+  it("renders skeleton container without loaded class when hero image has not loaded", () => {
     docService.openHelp();
     fixture.detectChanges();
 
@@ -112,43 +171,37 @@ describe("GameHelpModalComponent", () => {
     expect(img.classList.contains("loaded")).toBe(true);
   });
 
-  it("resets active tab to overview when opening help for a game without variants after visiting options tab on a game with variants", () => {
-    const catalogService = TestBed.inject(GameCatalogService);
-    catalogService.select("klondike"); // Game with variants
+  it("clamps tab to summary when opening help for a game without variants after visiting options tab", () => {
+    catalogService.select("klondike");
     docService.openHelp();
     fixture.detectChanges();
 
-    // Select Options & Variants tab
-    const el = fixture.nativeElement as HTMLElement;
-    const tabs = el.querySelectorAll<HTMLButtonElement>(".tab-btn");
-    tabs[2].click();
+    clickElement(fixture, '[data-tab="variants"]');
     fixture.detectChanges();
     expect(component.activeTab()).toBe("variants");
 
-    // Close help modal
     docService.closeHelp();
     fixture.detectChanges();
 
-    // Switch to FreeCell (no variants) and open help
     catalogService.select("freecell");
     docService.openHelp();
     fixture.detectChanges();
 
     expect(component.activeTab()).toBe("overview");
-    expect(queryText(fixture, ".callout-title")).toContain("Objective & Win Condition");
   });
 
-  it("resets active tab to overview when closing modal", () => {
+  it("resets active tab to overview when modal is reopened", () => {
     docService.openHelp();
     fixture.detectChanges();
 
-    const el = fixture.nativeElement as HTMLElement;
-    const tabs = el.querySelectorAll<HTMLButtonElement>(".tab-btn");
-    tabs[1].click();
+    clickElement(fixture, '[data-tab="rules"]');
     fixture.detectChanges();
     expect(component.activeTab()).toBe("rules");
 
     docService.closeHelp();
+    fixture.detectChanges();
+
+    docService.openHelp();
     fixture.detectChanges();
 
     expect(component.activeTab()).toBe("overview");

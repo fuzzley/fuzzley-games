@@ -3,35 +3,51 @@ import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { InjectionToken } from "@angular/core";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { GameCanvasComponent } from "@/ui/app/component/game_canvas/game_canvas.component";
+import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
+import { query, queryAll } from "@test/support/dom";
 
 /** Records every game the component constructs, and what it was handed. */
-const started: { parent: HTMLElement; destroyed: boolean; makeScene: () => void }[] = [];
+const started: {
+  parent: HTMLElement;
+  destroyed: boolean;
+  makeScene: () => void;
+}[] = [];
 
-// The board catalog is the only thing here that names Phaser, whose module
-// init does not survive jsdom. What this component does with a scene is the
-// subject; building a real one is not.
+let readyCallback: (() => void) | undefined;
+
 vi.mock("@/ui/app/provider/board_catalog", () => ({
   GAME_BOARD_SCENE: new InjectionToken("GAME_BOARD_SCENE", {
     providedIn: "root",
     factory: () => ({}),
   }),
-  makeBoardScene: (_game: unknown, _presentation: unknown, onReady?: () => void) => {
-    onReady?.();
+  makeBoardScene: (
+    _game: unknown,
+    _presentation: unknown,
+    onReady?: () => void,
+  ) => {
+    readyCallback = onReady;
     return {};
   },
 }));
 
 vi.mock("@/games/klondike/klondike", () => ({
   Klondike: class {
-    private readonly record: { parent: HTMLElement; destroyed: boolean; makeScene: () => void };
+    private readonly record: {
+      parent: HTMLElement;
+      destroyed: boolean;
+      makeScene: () => void;
+    };
 
-    constructor(_window: Window, parent: HTMLElement, makeBoardScene: () => void) {
+    constructor(
+      _window: Window,
+      parent: HTMLElement,
+      makeBoardScene: () => void,
+    ) {
       this.record = { parent, destroyed: false, makeScene: makeBoardScene };
     }
 
     start() {
       started.push(this.record);
-      // Simulate Phaser starting and triggering scene creation
       this.record.makeScene();
     }
 
@@ -43,14 +59,20 @@ vi.mock("@/games/klondike/klondike", () => ({
 
 describe("GameCanvasComponent", () => {
   let fixture: ComponentFixture<GameCanvasComponent>;
+  let catalog: GameCatalogService;
 
   beforeEach(async () => {
+    localStorage.clear();
+    location.hash = "";
     started.length = 0;
+    readyCallback = undefined;
 
     await TestBed.configureTestingModule({
       imports: [GameCanvasComponent],
+      providers: [GameCatalogService],
     }).compileComponents();
 
+    catalog = TestBed.inject(GameCatalogService);
     fixture = TestBed.createComponent(GameCanvasComponent);
     fixture.detectChanges();
   });
@@ -63,8 +85,9 @@ describe("GameCanvasComponent", () => {
     expect(started.length).toBe(1);
   });
 
-  it("mounts the game into its own host element", () => {
-    expect(started[0].parent).toBe(fixture.nativeElement);
+  it("mounts the game into its own canvasHost container element", () => {
+    const container = query(fixture, ".canvas-container");
+    expect(started[0].parent).toBe(container);
   });
 
   it("exposes the running game for console debugging", () => {
@@ -73,36 +96,49 @@ describe("GameCanvasComponent", () => {
 
   it("destroys the game when the host is torn down", () => {
     fixture.destroy();
-
     expect(started[0].destroyed).toBe(true);
   });
 
   it("stops exposing the game once it is destroyed", () => {
     fixture.destroy();
-
     expect(window.klondike).toBeUndefined();
   });
 
-  it("renders the loading placeholder element with proper accessibility attributes", () => {
-    const overlay: HTMLElement | null = fixture.nativeElement.querySelector(".loading-overlay");
+  it("shows loading overlay before ready callback fires", () => {
+    const overlay = query(fixture, ".loading-overlay");
     expect(overlay).not.toBeNull();
-    expect(overlay?.getAttribute("role")).toBe("status");
+    expect(overlay?.classList.contains("hidden")).toBe(false);
   });
 
-  it("hides the loading overlay once initialization ready is signaled", () => {
-    const component = fixture.componentInstance;
-    expect(component.isInitializing()).toBe(false);
+  it("hides the loading overlay once ready is signaled asynchronously", () => {
+    readyCallback?.();
+    fixture.detectChanges();
 
-    const overlay: HTMLElement | null = fixture.nativeElement.querySelector(".loading-overlay");
-    expect(overlay?.classList.contains("hidden")).toBe(true);
+    const overlay = query(fixture, ".loading-overlay");
+    expect(overlay).toBeNull();
   });
 
   it("displays the game name badge during loading", () => {
-    const component = fixture.componentInstance;
-    component.isInitializing.set(true);
+    const textElement = query(fixture, ".loading-text");
+    expect(textElement?.textContent).toContain("Loading Klondike");
+  });
+
+  it("renders the layout grid slots matching TableLayoutSpec slot count", () => {
+    const slots = queryAll(fixture, ".skeleton-slot");
+    expect(slots.length).toBe(7 + 1 + 1 + 4); // 7 tableau, 1 stock, 1 waste, 4 foundations
+  });
+
+  it("re-shows loading overlay when switching games in catalog", () => {
+    readyCallback?.();
     fixture.detectChanges();
 
-    const textElement: HTMLElement | null = fixture.nativeElement.querySelector(".loading-text");
-    expect(textElement?.textContent).toContain("Loading Klondike...");
+    catalog.select("spider");
+    fixture.detectChanges();
+
+    const overlay = query(fixture, ".loading-overlay");
+    expect(overlay).not.toBeNull();
+    expect(query(fixture, ".loading-text")?.textContent).toContain(
+      "Loading Spider",
+    );
   });
 });
