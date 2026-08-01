@@ -5,6 +5,7 @@ import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { SpiderGame } from "@/games/spider/spider_game";
 import { SpiderSuitCount, spiderDeck } from "@/games/spider/spider_deal";
+import { EightOffGame } from "@/games/eight_off/eight_off_game";
 
 /** A value a rule option can be set to, and how to name it to a player. */
 export interface GameOptionChoice {
@@ -152,6 +153,18 @@ export const GAME_CATALOG: readonly CatalogEntry[] = [
         SPIDER_SUIT_COUNT,
       ) as SpiderSuitCount;
       const game = new SpiderGame(deckCardIds(spiderDeck(suitCount)));
+      game.startNewGame();
+      return { game };
+    },
+  },
+  {
+    id: "eightoff",
+    name: "Eight Off",
+    // Nothing to choose: no stock, no draw mode, and the cell count is the
+    // name of the game.
+    options: [],
+    create: () => {
+      const game = new EightOffGame();
       game.startNewGame();
       return { game };
     },
