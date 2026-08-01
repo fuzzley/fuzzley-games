@@ -6,10 +6,12 @@ import {
 } from "@angular/core";
 import { GameSessionService } from "../../service/game_session.service";
 
+import { GameDocumentationService } from "../../service/game_documentation.service";
+
 /**
  * Manages the top header bar of the Solitaire game.
  * Renders game status metrics (score, elapsed time, total moves) and actions
- * such as restarting the game, beginning a new game, or opening the settings panel.
+ * such as restarting the game, beginning a new game, opening rules, or opening the settings panel.
  */
 @Component({
   selector: "app-header-bar",
@@ -19,6 +21,7 @@ import { GameSessionService } from "../../service/game_session.service";
 })
 export class HeaderBarComponent {
   protected readonly session = inject(GameSessionService);
+  protected readonly docService = inject(GameDocumentationService);
 
   /** Emitted when the user requests to open the settings panel. */
   readonly openSettings = output();
