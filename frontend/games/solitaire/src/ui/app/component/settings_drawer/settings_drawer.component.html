@@ -4,16 +4,7 @@
     <div class="drawer-header">
       <h2>Game Options</h2>
       <button class="btn-close" (click)="closed.emit()">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          class="close-icon"
-        >
-          <path
-            fill="currentColor"
-            d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
-          />
-        </svg>
+        <img src="icons/close.svg" class="close-icon" alt="Close" />
       </button>
     </div>
 
@@ -85,6 +76,15 @@
         <p class="setting-desc">
           Theme: {{ themeService.themes[themeService.selectedTheme()].name }}
         </p>
+      </div>
+
+      <!-- Game Rules & Documentation -->
+      <div class="setting-group">
+        <label class="setting-label">Game Rules & Documentation</label>
+        <button class="btn btn-secondary btn-block" (click)="openRules()">
+          <img src="icons/help-circle.svg" class="btn-icon" style="width: 18px; height: 18px; margin-right: 6px;" alt="Help" />
+          How to Play {{ docService.activeGameDoc().title }}
+        </button>
       </div>
 
       <!-- Debug Settings (dev mode, and only for a game that offers them) -->
