@@ -1,35 +1,35 @@
 <div #canvasHost class="canvas-container"></div>
 
-@if (isInitializing()) {
+<div
+  class="loading-overlay"
+  [class.hidden]="!isInitializing()"
+  role="status"
+  [attr.aria-busy]="isInitializing()"
+>
   <div
-    class="loading-overlay"
-    [class.hidden]="!isInitializing()"
-    role="status"
-    [attr.aria-busy]="isInitializing()"
+    class="skeleton-grid"
+    [style.grid-template-columns]="'repeat(' + layoutSpec().columns + ', 1fr)'"
+    [style.grid-template-rows]="'repeat(' + layoutSpec().rows + ', 1fr)'"
   >
-    <div
-      class="skeleton-grid"
-      [style.grid-template-columns]="
-        'repeat(' + layoutSpec().columns + ', 1fr)'
-      "
-      [style.grid-template-rows]="'repeat(' + layoutSpec().rows + ', 1fr)'"
-    >
-      @for (slot of layoutSpec().slots; track slot.pileId) {
-        <div
-          class="skeleton-slot"
-          [style.grid-column]="slot.column + 1"
-          [style.grid-row]="slot.row + 1"
-        >
-          <div class="skeleton-shimmer"></div>
-        </div>
-      }
-    </div>
-
-    <div class="loading-badge">
-      <div class="spinner-ring">
-        <div class="mini-card-icon">♠</div>
+    @for (slot of layoutSpec().slots; track slot.pileId) {
+      <div
+        class="skeleton-slot"
+        [style.grid-column]="slot.column + 1"
+        [style.grid-row]="slot.row + 1"
+      >
+        <div class="skeleton-shimmer"></div>
       </div>
-      <div class="loading-text">Loading {{ gameName() }}...</div>
-    </div>
+    }
   </div>
-}
+
+  <div class="loading-badge">
+    <div class="spinner-ring">
+      <div class="mini-card-icon">♠</div>
+    </div>
+    @if (hasInitializationFailed()) {
+      <div class="loading-text">Board initialization timed out</div>
+    } @else {
+      <div class="loading-text">Loading {{ gameName() }}...</div>
+    }
+  </div>
+</div>

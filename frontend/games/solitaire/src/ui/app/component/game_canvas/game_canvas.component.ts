@@ -2,11 +2,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  ViewChild,
   computed,
   effect,
   inject,
   signal,
+  viewChild,
 } from "@angular/core";
 import { Klondike } from "@/games/klondike/klondike";
 import { makeBoardScene } from "../../provider/board_catalog";
@@ -37,11 +37,14 @@ export class GameCanvasComponent {
   private readonly catalog = inject(GameCatalogService);
   private readonly presentation = inject(PresentationSettingsService);
 
-  @ViewChild("canvasHost", { static: true })
-  protected readonly canvasHostRef!: ElementRef<HTMLElement>;
+  protected readonly canvasHostRef =
+    viewChild.required<ElementRef<HTMLElement>>("canvasHost");
 
   /** Tracks whether the current game is initializing/building its scene. */
   readonly isInitializing = signal<boolean>(true);
+
+  /** Tracks whether the initialization process timed out. */
+  readonly hasInitializationFailed = signal<boolean>(false);
 
   /** Name of the game currently being prepared. */
   readonly gameName = computed(
@@ -57,6 +60,7 @@ export class GameCanvasComponent {
     effect((onCleanup) => {
       const { game } = this.catalog.session();
       this.isInitializing.set(true);
+      this.hasInitializationFailed.set(false);
 
       let readyFired = false;
       const onReady = () => {
@@ -66,11 +70,12 @@ export class GameCanvasComponent {
 
       const timeoutId = setTimeout(() => {
         if (!readyFired) {
+          this.hasInitializationFailed.set(true);
           this.isInitializing.set(false);
         }
       }, 8000);
 
-      const hostElement = this.canvasHostRef?.nativeElement;
+      const hostElement = this.canvasHostRef().nativeElement;
       const klondike = new Klondike(window, hostElement, () =>
         makeBoardScene(game, this.presentation, onReady),
       );
