@@ -163,7 +163,15 @@ export interface FlightInteraction {
  * with the model, this is the complete input to {@link TableViewState}.
  */
 export interface TableInteractionState {
-  /** The id of the currently hovered card, or null. */
+  /**
+   * The id of the card the pointer is examining, or null.
+   *
+   * The card under the mouse, or — since a finger cannot hover — the card a
+   * finger last touched, which stays named until another is touched or the
+   * bare table is pressed. That is what lets a tap open a fan and leave it
+   * open long enough to read, rather than for as long as the finger is in the
+   * way of what it uncovered.
+   */
   hoveredCardId: string | null;
   /**
    * The pile whose background placeholder is hovered, or null.

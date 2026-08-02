@@ -57,11 +57,34 @@ export class DragController {
     this.hoveredCardId = cardId;
   }
 
-  /** The pointer left a card, which un-hovers it only if it was the hovered one. */
-  public cardOut(cardId: string): void {
+  /**
+   * The pointer left a card, which un-hovers it only if it was the hovered one.
+   *
+   * @param cardId The card the pointer left.
+   * @param lingers Whether the card stays examined after the pointer has gone.
+   *   Set when the pointer was a finger. A mouse leaving a card is a decision
+   *   to stop looking at it; a finger lifting is not — it has nowhere to rest,
+   *   and while it is down it covers the very corner the fan just uncovered.
+   *   So a tapped card stays open until the player touches something else,
+   *   which is what makes a tap reveal as much as a hover does.
+   */
+  public cardOut(cardId: string, lingers = false): void {
+    if (lingers) return;
     if (this.hoveredCardId === cardId) {
       this.hoveredCardId = null;
     }
+  }
+
+  /**
+   * The pointer was pressed on bare table, where no card or slot answers.
+   *
+   * The way a lingering reveal is put back. A mouse clears one by moving off
+   * the card, which a finger cannot do, so without this a tapped column would
+   * stay open until some other card was tapped.
+   */
+  public pressedBareTable(): void {
+    this.hoveredCardId = null;
+    this.hoveredBackgroundPileId = null;
   }
 
   /** The pointer moved onto a pile's background slot. */

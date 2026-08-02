@@ -62,6 +62,42 @@ describe("DragController", () => {
     });
   });
 
+  describe("a tapped card", () => {
+    it("stays examined after the finger lifts", () => {
+      controller.cardOver("a");
+
+      controller.cardOut("a", true);
+
+      expect(controller.hoveredCardId).toBe("a");
+    });
+
+    it("gives way to the next card touched", () => {
+      controller.cardOver("a");
+      controller.cardOut("a", true);
+
+      controller.cardOver("b");
+
+      expect(controller.hoveredCardId).toBe("b");
+    });
+
+    it("is put back by a press on bare table", () => {
+      controller.cardOver("a");
+      controller.cardOut("a", true);
+
+      controller.pressedBareTable();
+
+      expect(controller.hoveredCardId).toBeNull();
+    });
+
+    it("is put back along with a lingering slot", () => {
+      controller.backgroundOver("stock");
+
+      controller.pressedBareTable();
+
+      expect(controller.hoveredBackgroundPileId).toBeNull();
+    });
+  });
+
   describe("presses", () => {
     it("reports a press as an activate", () => {
       controller.cardPressed("a");

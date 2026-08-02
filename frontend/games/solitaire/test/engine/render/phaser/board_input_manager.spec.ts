@@ -85,6 +85,10 @@ describe("BoardInputManager", () => {
     return { sprite, card };
   }
 
+  /** The pointer Phaser hands to an out event, from a mouse or from a finger. */
+  const MOUSE = { wasTouch: false };
+  const FINGER = { wasTouch: true };
+
   describe("card hover", () => {
     it("marks a card as hovered on pointerover", () => {
       const { sprite, card } = listenTo();
@@ -98,7 +102,7 @@ describe("BoardInputManager", () => {
       const { sprite, card } = listenTo();
       inputManager.hoveredCardId = card.id;
 
-      sprite.emit("pointerout");
+      sprite.emit("pointerout", MOUSE);
 
       expect(inputManager.hoveredCardId).toBeNull();
     });
@@ -108,9 +112,42 @@ describe("BoardInputManager", () => {
       const otherId = gameModel.tableaus[1].getCards()[0].id;
       inputManager.hoveredCardId = otherId;
 
-      sprite.emit("pointerout");
+      sprite.emit("pointerout", MOUSE);
 
       expect(inputManager.hoveredCardId).toBe(otherId);
+    });
+  });
+
+  describe("card tap", () => {
+    it("keeps the tapped card examined after the finger lifts", () => {
+      const { sprite, card } = listenTo();
+
+      sprite.emit("pointerover");
+      sprite.emit("pointerout", FINGER);
+
+      expect(inputManager.hoveredCardId).toBe(card.id);
+    });
+
+    it("puts a tapped card back when bare table is pressed", () => {
+      const { sprite } = listenTo();
+      inputManager.registerDragListeners();
+      sprite.emit("pointerover");
+      sprite.emit("pointerout", FINGER);
+
+      input.emit("pointerdown", {}, []);
+
+      expect(inputManager.hoveredCardId).toBeNull();
+    });
+
+    it("leaves it alone when the press landed on something", () => {
+      const { sprite, card } = listenTo();
+      inputManager.registerDragListeners();
+      sprite.emit("pointerover");
+      sprite.emit("pointerout", FINGER);
+
+      input.emit("pointerdown", {}, [asSprite(sprite)]);
+
+      expect(inputManager.hoveredCardId).toBe(card.id);
     });
   });
 
@@ -356,6 +393,15 @@ describe("BoardInputManager", () => {
       inputManager.hoveredBackgroundPileId = "stock";
 
       stockBackground.emit("pointerout");
+
+      expect(inputManager.hoveredBackgroundPileId).toBeNull();
+    });
+
+    it("clears a lingering stock background hover on a bare table press", () => {
+      inputManager.registerDragListeners();
+      inputManager.hoveredBackgroundPileId = "stock";
+
+      input.emit("pointerdown", {}, []);
 
       expect(inputManager.hoveredBackgroundPileId).toBeNull();
     });

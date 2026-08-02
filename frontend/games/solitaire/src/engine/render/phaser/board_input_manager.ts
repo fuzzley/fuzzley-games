@@ -41,6 +41,22 @@ export class BoardInputManager {
 
   /** Binds the global drag and drop event listeners to Phaser's input system. */
   public registerDragListeners(): void {
+    // A press the board itself hears, rather than one of its sprites: an empty
+    // `currentlyOver` means it landed on bare table, which is how a lingering
+    // reveal is put back. Phaser only raises this one for presses on the
+    // canvas, so a press on the header does not reach it.
+    this.boardScene.input.on(
+      "pointerdown",
+      (
+        _pointer: Phaser.Input.Pointer,
+        currentlyOver: readonly Phaser.GameObjects.GameObject[],
+      ) => {
+        if (currentlyOver.length === 0) {
+          this.controller.pressedBareTable();
+        }
+      },
+    );
+
     // Phaser's drag events carry the pointer as their first argument, which
     // none of these handlers need: the drag position comes from the event's own
     // dragX/dragY, already converted into game space.
@@ -76,7 +92,11 @@ export class BoardInputManager {
     cardId: string,
   ): void {
     sprite.on("pointerover", () => this.controller.cardOver(cardId));
-    sprite.on("pointerout", () => this.controller.cardOut(cardId));
+    // A finger's departure is not a decision to stop looking: it leaves the
+    // instant the tap ends, so the card it touched stays open.
+    sprite.on("pointerout", (pointer: Phaser.Input.Pointer) =>
+      this.controller.cardOut(cardId, pointer.wasTouch),
+    );
     sprite.on("pointerdown", () => this.controller.cardPressed(cardId));
   }
 
