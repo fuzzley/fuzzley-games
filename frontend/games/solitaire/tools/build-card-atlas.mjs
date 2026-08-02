@@ -27,7 +27,7 @@ const OUT_DIR = join(ROOT, "src/engine/render/assets/sprites/atlas");
 
 /**
  * Texels per design unit. Must match CARD_ART_SCALE in
- * src/engine/render/layout/board_layout_constants.ts.
+ * src/engine/render/layout/card_metrics.ts.
  */
 const ART_SCALE = 2;
 
