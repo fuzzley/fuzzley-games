@@ -1,54 +1,65 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { TestBed } from "@angular/core/testing";
 import { ConfirmationService } from "@/ui/app/service/confirmation.service";
 
 describe("ConfirmationService", () => {
-  let service: ConfirmationService;
+  let confirmation: ConfirmationService;
 
   beforeEach(() => {
-    service = TestBed.inject(ConfirmationService);
+    TestBed.configureTestingModule({});
+    confirmation = TestBed.inject(ConfirmationService);
   });
 
   it("starts closed with no message", () => {
-    expect(service.isOpen()).toBe(false);
-    expect(service.message()).toBe("");
+    expect(confirmation.isOpen()).toBe(false);
+    expect(confirmation.message()).toBe("");
   });
 
-  it("opens with the given message when an action is requested", () => {
-    service.request("Are you sure?", () => {});
+  it("opens with the message it was given", () => {
+    void confirmation.ask("Throw the game away?");
 
-    expect(service.isOpen()).toBe(true);
-    expect(service.message()).toBe("Are you sure?");
+    expect(confirmation.isOpen()).toBe(true);
+    expect(confirmation.message()).toBe("Throw the game away?");
   });
 
-  it("runs the pending action and closes on accept", () => {
-    const action = vi.fn();
-    service.request("Confirm?", action);
+  it("resolves true when accepted", async () => {
+    const answer = confirmation.ask("Sure?");
 
-    service.accept();
+    confirmation.accept();
 
-    expect(action).toHaveBeenCalledOnce();
-    expect(service.isOpen()).toBe(false);
+    await expect(answer).resolves.toBe(true);
   });
 
-  it("does not run the action and closes on cancel", () => {
-    const action = vi.fn();
-    service.request("Confirm?", action);
+  it("resolves false when cancelled", async () => {
+    const answer = confirmation.ask("Sure?");
 
-    service.cancel();
+    confirmation.cancel();
 
-    expect(action).not.toHaveBeenCalled();
-    expect(service.isOpen()).toBe(false);
+    await expect(answer).resolves.toBe(false);
   });
 
-  it("does not re-run the action on a second accept", () => {
-    const action = vi.fn();
-    service.request("Confirm?", action);
+  it("closes once answered", async () => {
+    const answer = confirmation.ask("Sure?");
+    confirmation.accept();
+    await answer;
 
-    service.accept();
-    service.accept();
+    expect(confirmation.isOpen()).toBe(false);
+  });
 
-    expect(action).toHaveBeenCalledOnce();
+  it("declines an outstanding question when a second one arrives", async () => {
+    const first = confirmation.ask("First?");
+
+    void confirmation.ask("Second?");
+
+    // Otherwise the first caller waits forever on a promise whose dialog has
+    // been replaced.
+    await expect(first).resolves.toBe(false);
+    expect(confirmation.message()).toBe("Second?");
+  });
+
+  it("ignores an answer when nothing was asked", () => {
+    expect(() => confirmation.accept()).not.toThrow();
+    expect(confirmation.isOpen()).toBe(false);
   });
 });

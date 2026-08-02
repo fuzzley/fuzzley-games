@@ -3,14 +3,9 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { AppComponent } from "@/ui/app/component/app/app.component";
-import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
-import {
-  createMockGameModel,
-  createMockCatalog,
-  asCatalog,
-} from "@test/support/game_model_mock";
 import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.component";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
+import { configureUiTestBed } from "@test/support/ui/testbed";
 import { query, queryRequired } from "@test/support/dom";
 
 // The shell renders the game canvas host, which would otherwise boot a real
@@ -37,15 +32,7 @@ describe("AppComponent Composition", () => {
   let fixture: ComponentFixture<AppComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [AppComponent],
-      providers: [
-        {
-          provide: GameCatalogService,
-          useValue: asCatalog(createMockCatalog(createMockGameModel())),
-        },
-      ],
-    }).compileComponents();
+    await configureUiTestBed(AppComponent);
 
     fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();

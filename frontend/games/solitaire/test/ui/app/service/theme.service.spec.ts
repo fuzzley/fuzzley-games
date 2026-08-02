@@ -7,7 +7,7 @@ import {
   createMockPresentation,
   asPresentation,
   type MockPresentation,
-} from "@test/support/game_model_mock";
+} from "@test/support/ui/presentation_mock";
 
 function buildService(presentation: MockPresentation): ThemeService {
   TestBed.configureTestingModule({

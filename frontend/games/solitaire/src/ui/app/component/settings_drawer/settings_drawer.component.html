@@ -23,11 +23,11 @@
 
     <div class="drawer-content">
       <!-- Whatever rules the game on the table lets a player choose -->
-      @for (option of session.ruleOptions(); track option.id) {
+      @for (option of catalog.ruleOptions(); track option.id) {
         <app-option-group
           [option]="option"
-          [value]="session.optionValues()[option.id]"
-          (choose)="session.setRuleOption(option.id, $event)"
+          [value]="catalog.optionValues()[option.id]"
+          (choose)="lifecycle.setRuleOption(option.id, $event)"
         />
       }
 
@@ -44,8 +44,10 @@
               type="button"
               class="card-back-option"
               role="radio"
-              [attr.aria-checked]="session.cardBack() === design.style"
-              (click)="session.setCardBack(design.style)"
+              [attr.aria-checked]="
+                presentation.cardBackStyle() === design.style
+              "
+              (click)="presentation.setCardBackStyle(design.style)"
             >
               <span
                 class="card-back-preview"
@@ -112,7 +114,7 @@
       </div>
 
       <!-- Debug Settings (dev mode, and only for a game that offers them) -->
-      @if (isDevMode && session.debugOptions().length > 0) {
+      @if (isDevMode && catalog.debugOptions().length > 0) {
         <app-debug-panel />
       }
     </div>

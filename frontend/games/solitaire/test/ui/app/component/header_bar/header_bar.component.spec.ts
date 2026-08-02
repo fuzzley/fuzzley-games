@@ -2,108 +2,119 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.component";
-import { GameSessionService } from "@/ui/app/service/game_session.service";
-import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
-import {
-  createMockGameModel,
-  createMockCatalog,
-  asCatalog,
-} from "@test/support/game_model_mock";
+import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
+import { ConfirmationService } from "@/ui/app/service/confirmation.service";
+import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import { clickElement, queryRequired, queryText } from "@test/support/dom";
+import { flushMicrotasks } from "@test/support/async";
 
 describe("HeaderBarComponent", () => {
-  let component: HeaderBarComponent;
   let fixture: ComponentFixture<HeaderBarComponent>;
-  let mockGameModel: ReturnType<typeof createMockGameModel>;
-  let session: GameSessionService;
+  let harness: UiHarness;
 
   beforeEach(async () => {
-    mockGameModel = createMockGameModel({ score: 120, moves: 10 });
-
-    await TestBed.configureTestingModule({
-      imports: [HeaderBarComponent],
-      providers: [
-        GameSessionService,
-        {
-          provide: GameCatalogService,
-          useValue: asCatalog(createMockCatalog(mockGameModel)),
-        },
-      ],
-    }).compileComponents();
+    harness = await configureUiTestBed(HeaderBarComponent, {
+      score: 120,
+      moves: 10,
+    });
 
     fixture = TestBed.createComponent(HeaderBarComponent);
-    component = fixture.componentInstance;
-    session = TestBed.inject(GameSessionService);
     fixture.detectChanges();
   });
 
-  it("renders metrics from the session", () => {
-    expect(queryText(fixture, ".score-card .value")).toBe("120");
-    expect(queryText(fixture, ".moves-card .value")).toBe("10");
-    expect(queryText(fixture, ".timer-card .value")).toBe("00:00");
+  /** The undo button, whichever state it is in. */
+  function undoButton(): HTMLButtonElement {
+    return queryRequired<HTMLButtonElement>(fixture, "button[title*='Undo']");
+  }
+
+  describe("the metrics", () => {
+    it("reports what the game currently reads", () => {
+      expect([
+        queryText(fixture, ".score-card .value"),
+        queryText(fixture, ".moves-card .value"),
+        queryText(fixture, ".timer-card .value"),
+      ]).toEqual(["120", "10", "00:00"]);
+    });
+
+    it("follows the game as it changes", () => {
+      harness.model.state.score$.next(350);
+      harness.model.state.moves$.next(25);
+      fixture.detectChanges();
+
+      expect([
+        queryText(fixture, ".score-card .value"),
+        queryText(fixture, ".moves-card .value"),
+      ]).toEqual(["350", "25"]);
+    });
   });
 
-  it("updates metrics dynamically when session state changes", () => {
-    mockGameModel.state.score$.next(350);
-    mockGameModel.state.moves$.next(25);
-    fixture.detectChanges();
+  describe("undo", () => {
+    it("is disabled with nothing to take back", () => {
+      expect(undoButton().disabled).toBe(true);
+    });
 
-    expect(queryText(fixture, ".score-card .value")).toBe("350");
-    expect(queryText(fixture, ".moves-card .value")).toBe("25");
+    it("is enabled once the game has history", () => {
+      harness.model.state.undoDepth$.next(1);
+      fixture.detectChanges();
+
+      expect(undoButton().disabled).toBe(false);
+    });
+
+    it("takes the move back on the game when clicked", () => {
+      harness.model.state.undoDepth$.next(1);
+      fixture.detectChanges();
+
+      undoButton().click();
+
+      expect(harness.model.undo).toHaveBeenCalledOnce();
+    });
   });
 
-  it("triggers session.restartGame() when restart button is clicked", () => {
-    const restartSpy = vi.spyOn(session, "restartGame");
+  describe("the lifecycle actions", () => {
+    // This fixture has ten moves on the board, so both of these are
+    // destructive and ask before going ahead.
 
-    clickElement(fixture, "button[title*='Restart']");
+    it("asks before restarting, rather than throwing the game away", async () => {
+      clickElement(fixture, "button[title*='Restart']");
+      await flushMicrotasks();
 
-    expect(restartSpy).toHaveBeenCalled();
-  });
+      expect(TestBed.inject(ConfirmationService).isOpen()).toBe(true);
+      expect(harness.model.restartGame).not.toHaveBeenCalled();
+    });
 
-  it("triggers session.startNewGame() when new game button is clicked", () => {
-    const newGameSpy = vi.spyOn(session, "startNewGame");
+    it("restarts once that prompt is accepted", async () => {
+      clickElement(fixture, "button[title*='Restart']");
+      await flushMicrotasks();
 
-    clickElement(fixture, "button[title*='New Game']");
+      TestBed.inject(ConfirmationService).accept();
+      await flushMicrotasks();
 
-    expect(newGameSpy).toHaveBeenCalled();
-  });
+      expect(harness.model.restartGame).toHaveBeenCalledOnce();
+    });
 
-  it("disables the undo button with nothing to take back", () => {
-    const undoButton = queryRequired<HTMLButtonElement>(
-      fixture,
-      "button[title*='Undo']",
-    );
+    it("deals a new game once its prompt is accepted", async () => {
+      clickElement(fixture, "button[title*='New Game']");
+      await flushMicrotasks();
 
-    expect(undoButton.disabled).toBe(true);
-  });
+      TestBed.inject(ConfirmationService).accept();
+      await flushMicrotasks();
 
-  it("enables the undo button once the model has history", () => {
-    mockGameModel.state.undoDepth$.next(1);
-    fixture.detectChanges();
+      expect(harness.model.startNewGame).toHaveBeenCalledOnce();
+    });
 
-    const undoButton = queryRequired<HTMLButtonElement>(
-      fixture,
-      "button[title*='Undo']",
-    );
-    expect(undoButton.disabled).toBe(false);
-  });
+    it("opens the rules", () => {
+      clickElement(fixture, "button[title*='How to Play']");
 
-  it("triggers session.undo() when the undo button is clicked", () => {
-    mockGameModel.state.undoDepth$.next(1);
-    fixture.detectChanges();
-    const undoSpy = vi.spyOn(session, "undo");
+      expect(TestBed.inject(GameDocumentationService).isOpen()).toBe(true);
+    });
 
-    clickElement(fixture, "button[title*='Undo']");
+    it("asks the shell to open settings", () => {
+      const openSettings = vi.fn();
+      fixture.componentInstance.openSettings.subscribe(openSettings);
 
-    expect(undoSpy).toHaveBeenCalled();
-  });
+      clickElement(fixture, ".btn-settings");
 
-  it("emits openSettings when settings button is clicked", () => {
-    const openSettingsSpy = vi.fn();
-    component.openSettings.subscribe(openSettingsSpy);
-
-    clickElement(fixture, ".btn-settings");
-
-    expect(openSettingsSpy).toHaveBeenCalledOnce();
+      expect(openSettings).toHaveBeenCalledOnce();
+    });
   });
 });

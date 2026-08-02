@@ -2,38 +2,21 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
-import { GameSessionService } from "@/ui/app/service/game_session.service";
 import { ThemeService } from "@/ui/app/service/theme.service";
-import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
-import {
-  createMockGameModel,
-  createMockCatalog,
-  asCatalog,
-} from "@test/support/game_model_mock";
-import { clickElement, queryAll, queryRequired } from "@test/support/dom";
-import { isDialogOpen, pressEscape } from "@test/support/dialog";
+import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
+import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
+import { clickElement, queryAll } from "@test/support/dom";
+import { flushMicrotasks } from "@test/support/async";
+import { clickBackdrop, isDialogOpen, pressEscape } from "@test/support/dialog";
 
 describe("SettingsDrawerComponent", () => {
   let fixture: ComponentFixture<SettingsDrawerComponent>;
-  let session: GameSessionService;
-  let themeService: ThemeService;
+  let harness: UiHarness;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [SettingsDrawerComponent],
-      providers: [
-        GameSessionService,
-        ThemeService,
-        {
-          provide: GameCatalogService,
-          useValue: asCatalog(createMockCatalog(createMockGameModel())),
-        },
-      ],
-    }).compileComponents();
+    harness = await configureUiTestBed(SettingsDrawerComponent);
 
     fixture = TestBed.createComponent(SettingsDrawerComponent);
-    session = TestBed.inject(GameSessionService);
-    themeService = TestBed.inject(ThemeService);
     fixture.detectChanges();
   });
 
@@ -43,120 +26,137 @@ describe("SettingsDrawerComponent", () => {
     fixture.detectChanges();
   }
 
-  it("stays closed until asked to open", () => {
-    expect(isDialogOpen(fixture)).toBe(false);
+  /** Watches the drawer's close request. */
+  function onClose(): ReturnType<typeof vi.fn> {
+    const spy = vi.fn();
+    fixture.componentInstance.closed.subscribe(spy);
+    return spy;
+  }
+
+  /** The drawer's own rule buttons, excluding the debug panel's. */
+  function ruleButtons(): HTMLElement[] {
+    return queryAll(fixture, ".drawer-content > app-option-group .segment-btn");
+  }
+
+  describe("showing and hiding", () => {
+    it("stays closed until asked to open", () => {
+      expect(isDialogOpen(fixture)).toBe(false);
+    });
+
+    it("opens when the open input is set", () => {
+      openDrawer();
+
+      expect(isDialogOpen(fixture)).toBe(true);
+    });
+
+    it("asks to close when the close button is clicked", () => {
+      openDrawer();
+      const closed = onClose();
+
+      clickElement(fixture, ".btn-close");
+
+      expect(closed).toHaveBeenCalledOnce();
+    });
+
+    it("asks to close when the backdrop is clicked", () => {
+      openDrawer();
+      const closed = onClose();
+
+      clickBackdrop(fixture);
+
+      expect(closed).toHaveBeenCalledOnce();
+    });
+
+    it("asks to close on Escape", () => {
+      openDrawer();
+      const closed = onClose();
+
+      pressEscape();
+
+      expect(closed).toHaveBeenCalledOnce();
+    });
   });
 
-  it("opens when the open input is set", () => {
-    openDrawer();
+  describe("the game's rules", () => {
+    it("renders whichever ones the game on the table offers", () => {
+      openDrawer();
 
-    expect(isDialogOpen(fixture)).toBe(true);
+      expect(ruleButtons().map((button) => button.textContent?.trim())).toEqual(
+        ["Draw 1", "Draw 3"],
+      );
+    });
+
+    it("marks the chosen one as checked, not merely highlighted", () => {
+      openDrawer();
+
+      expect(ruleButtons()[1].getAttribute("aria-checked")).toBe("true");
+    });
+
+    it("changes the rule when another choice is clicked", async () => {
+      openDrawer();
+
+      ruleButtons()[0].click();
+      await flushMicrotasks();
+
+      expect(harness.catalog.setOption).toHaveBeenCalledWith("drawCount", 1);
+    });
   });
 
-  it("asks to close when the close button is clicked", () => {
-    openDrawer();
-    const closeSpy = vi.fn();
-    fixture.componentInstance.closed.subscribe(closeSpy);
+  describe("the card back", () => {
+    it("changes when one is picked", () => {
+      openDrawer();
 
-    clickElement(fixture, ".btn-close");
+      clickElement(fixture, ".card-back-selector button:nth-child(2)");
 
-    expect(closeSpy).toHaveBeenCalledOnce();
+      expect(harness.presentation.cardBackStyle()).toBe("card-back-red");
+    });
+
+    it("marks the chosen one as checked", () => {
+      openDrawer();
+
+      clickElement(fixture, ".card-back-selector button:nth-child(2)");
+      fixture.detectChanges();
+
+      expect(
+        queryAll(fixture, ".card-back-selector button")[1].getAttribute(
+          "aria-checked",
+        ),
+      ).toBe("true");
+    });
   });
 
-  it("asks to close when the backdrop is clicked", () => {
-    openDrawer();
-    const closeSpy = vi.fn();
-    fixture.componentInstance.closed.subscribe(closeSpy);
+  describe("the table theme", () => {
+    it("changes when a swatch is picked", () => {
+      openDrawer();
 
-    queryRequired<HTMLDialogElement>(fixture, "dialog").click();
+      clickElement(fixture, ".theme-option[aria-label='Royal Velvet']");
 
-    expect(closeSpy).toHaveBeenCalledOnce();
+      expect(TestBed.inject(ThemeService).selectedTheme()).toBe("purple");
+    });
+
+    it("names each swatch, which is otherwise just a colour", () => {
+      openDrawer();
+
+      expect(
+        queryAll(fixture, ".theme-option").map((button) =>
+          button.getAttribute("aria-label"),
+        ),
+      ).toEqual([
+        "Emerald Felt",
+        "Deep Ocean",
+        "Midnight Charcoal",
+        "Royal Velvet",
+      ]);
+    });
   });
 
-  it("asks to close on Escape", () => {
+  it("opens the rules and closes itself out of the way", () => {
     openDrawer();
-    const closeSpy = vi.fn();
-    fixture.componentInstance.closed.subscribe(closeSpy);
+    const closed = onClose();
 
-    pressEscape();
+    clickElement(fixture, ".drawer-content .btn-secondary");
 
-    expect(closeSpy).toHaveBeenCalledOnce();
-  });
-
-  it("renders whichever rules the game on the table offers", () => {
-    openDrawer();
-
-    // Scoped to the drawer's own groups: the debug panel nests its options
-    // inside .debug-panel and has its own spec.
-    expect(
-      queryAll(fixture, ".drawer-content > app-option-group .segment-btn").map(
-        (button) => button.textContent?.trim(),
-      ),
-    ).toEqual(["Draw 1", "Draw 3"]);
-  });
-
-  it("marks the chosen rule as checked, not merely highlighted", () => {
-    openDrawer();
-
-    const drawThree = queryAll(
-      fixture,
-      ".drawer-content > app-option-group .segment-btn",
-    )[1];
-    expect(drawThree.getAttribute("aria-checked")).toBe("true");
-  });
-
-  it("changes a rule when one of its choices is clicked", () => {
-    openDrawer();
-
-    clickElement(
-      fixture,
-      ".drawer-content > app-option-group .segment-btn:nth-child(1)",
-    );
-
-    expect(session.optionValues()["drawCount"]).toBe(1);
-  });
-
-  it("changes the card back when one is picked", () => {
-    openDrawer();
-
-    clickElement(fixture, ".card-back-selector button:nth-child(2)");
-
-    expect(session.cardBack()).toBe("card-back-red");
-  });
-
-  it("marks the chosen card back as checked", () => {
-    openDrawer();
-
-    clickElement(fixture, ".card-back-selector button:nth-child(2)");
-    fixture.detectChanges();
-
-    expect(
-      queryAll(fixture, ".card-back-selector button")[1].getAttribute(
-        "aria-checked",
-      ),
-    ).toBe("true");
-  });
-
-  it("changes the table theme when a swatch is picked", () => {
-    openDrawer();
-
-    clickElement(fixture, ".theme-option[aria-label='Royal Velvet']");
-
-    expect(themeService.selectedTheme()).toBe("purple");
-  });
-
-  it("names each theme swatch, which is otherwise just a colour", () => {
-    openDrawer();
-
-    expect(
-      queryAll(fixture, ".theme-option").map((button) =>
-        button.getAttribute("aria-label"),
-      ),
-    ).toEqual([
-      "Emerald Felt",
-      "Deep Ocean",
-      "Midnight Charcoal",
-      "Royal Velvet",
-    ]);
+    expect(TestBed.inject(GameDocumentationService).isOpen()).toBe(true);
+    expect(closed).toHaveBeenCalledOnce();
   });
 });

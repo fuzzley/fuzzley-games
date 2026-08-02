@@ -1,51 +1,29 @@
 // @vitest-environment jsdom
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { VictoryOverlayComponent } from "@/ui/app/component/victory_overlay/victory_overlay.component";
-import { GameSessionService } from "@/ui/app/service/game_session.service";
-import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
-import {
-  createMockGameModel,
-  createMockCatalog,
-  asCatalog,
-  type MockGameModel,
-} from "@test/support/game_model_mock";
-import { clickElement, queryRequired, queryText } from "@test/support/dom";
-import { isDialogOpen, pressEscape } from "@test/support/dialog";
+import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
+import { clickElement, queryText } from "@test/support/dom";
+import { flushMicrotasks } from "@test/support/async";
+import { clickBackdrop, isDialogOpen, pressEscape } from "@test/support/dialog";
 
 describe("VictoryOverlayComponent", () => {
   let fixture: ComponentFixture<VictoryOverlayComponent>;
-  let model: MockGameModel;
-  let session: GameSessionService;
-  let winGame: () => void;
+  let harness: UiHarness;
 
   beforeEach(async () => {
-    model = createMockGameModel({ score: 500, moves: 45 });
-    // Captured from the model's own listener registration, so the win arrives
-    // the way a real one does rather than by setting the flag directly.
-    model.on = vi.fn((event: string, callback: () => void) => {
-      if (event === "game-won") winGame = callback;
+    harness = await configureUiTestBed(VictoryOverlayComponent, {
+      score: 500,
+      moves: 45,
     });
 
-    await TestBed.configureTestingModule({
-      imports: [VictoryOverlayComponent],
-      providers: [
-        GameSessionService,
-        {
-          provide: GameCatalogService,
-          useValue: asCatalog(createMockCatalog(model)),
-        },
-      ],
-    }).compileComponents();
-
     fixture = TestBed.createComponent(VictoryOverlayComponent);
-    session = TestBed.inject(GameSessionService);
     fixture.detectChanges();
   });
 
   /** Wins the game the way the engine reports it, and renders the result. */
   function win(): void {
-    winGame();
+    harness.model.emit("game-won");
     fixture.detectChanges();
   }
 
@@ -78,12 +56,13 @@ describe("VictoryOverlayComponent", () => {
     ).toBe("Score");
   });
 
-  it("deals a new game when Play Again is clicked", () => {
+  it("deals a new game when Play Again is clicked", async () => {
     win();
 
     clickElement(fixture, ".btn-gradient");
+    await flushMicrotasks();
 
-    expect(model.startNewGame).toHaveBeenCalledOnce();
+    expect(harness.model.startNewGame).toHaveBeenCalledOnce();
   });
 
   it("refuses to close on Escape, since a finished board has nothing behind it", () => {
@@ -92,14 +71,13 @@ describe("VictoryOverlayComponent", () => {
     pressEscape();
     fixture.detectChanges();
 
-    expect(session.isGameWon()).toBe(true);
     expect(isDialogOpen(fixture)).toBe(true);
   });
 
   it("refuses to close when the backdrop is clicked", () => {
     win();
 
-    queryRequired<HTMLDialogElement>(fixture, "dialog").click();
+    clickBackdrop(fixture);
     fixture.detectChanges();
 
     expect(isDialogOpen(fixture)).toBe(true);

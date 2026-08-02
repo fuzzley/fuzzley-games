@@ -84,6 +84,16 @@ export class GameCatalogService {
     () => catalogEntry(this.selectedIdSignal()).options,
   );
 
+  /** The rules a player picks, for the settings panel. */
+  readonly ruleOptions = computed<readonly GameOptionSpec[]>(() =>
+    this.options().filter((option) => !option.debugOnly),
+  );
+
+  /** The development-only rules, which the debug panel shows separately. */
+  readonly debugOptions = computed<readonly GameOptionSpec[]>(() =>
+    this.options().filter((option) => option.debugOnly),
+  );
+
   /** The chosen value of every option of the game on the table. */
   readonly optionValues = computed<GameOptionValues>(() =>
     this.valuesFor(this.selectedIdSignal(), this.optionsSignal()),

@@ -6,10 +6,14 @@ import {
   input,
   output,
 } from "@angular/core";
-import { GameSessionService } from "../../service/game_session.service";
+import { GameCatalogService } from "../../service/game_catalog.service";
+import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { ThemeKey, ThemeService } from "../../service/theme.service";
 import { GameDocumentationService } from "../../service/game_documentation.service";
-import { CardBackStyle } from "../../service/presentation_settings.service";
+import {
+  CardBackStyle,
+  PresentationSettingsService,
+} from "../../service/presentation_settings.service";
 import { DebugPanelComponent } from "../debug_panel/debug_panel.component";
 import { OptionGroupComponent } from "../option_group/option_group.component";
 import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
@@ -42,8 +46,10 @@ interface ThemeSwatch {
   styleUrl: "./settings_drawer.component.css",
 })
 export class SettingsDrawerComponent {
-  protected readonly session = inject(GameSessionService);
+  protected readonly catalog = inject(GameCatalogService);
+  protected readonly lifecycle = inject(GameLifecycleService);
   protected readonly themeService = inject(ThemeService);
+  protected readonly presentation = inject(PresentationSettingsService);
   private readonly docService = inject(GameDocumentationService);
 
   /** Exposes build mode configuration to conditional UI rendering. */

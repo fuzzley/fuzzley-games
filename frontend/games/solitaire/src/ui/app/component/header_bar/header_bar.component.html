@@ -6,23 +6,23 @@
   <div class="metrics">
     <div class="metric-card score-card">
       <span class="label">SCORE</span>
-      <span class="value">{{ session.score() }}</span>
+      <span class="value">{{ metrics.score() }}</span>
     </div>
     <div class="metric-card timer-card">
       <span class="label">TIME</span>
-      <span class="value">{{ session.timerText() }}</span>
+      <span class="value">{{ metrics.timerText() }}</span>
     </div>
     <div class="metric-card moves-card">
       <span class="label">MOVES</span>
-      <span class="value">{{ session.moves() }}</span>
+      <span class="value">{{ metrics.moves() }}</span>
     </div>
   </div>
 
   <div class="actions">
     <button
       class="btn btn-secondary"
-      (click)="session.undo()"
-      [disabled]="!session.canUndo()"
+      (click)="lifecycle.undo()"
+      [disabled]="!metrics.canUndo()"
       title="Undo last move"
       aria-label="Undo last move"
     >
@@ -40,7 +40,7 @@
     </button>
     <button
       class="btn btn-secondary"
-      (click)="session.restartGame()"
+      (click)="lifecycle.restartGame()"
       title="Restart current game"
       aria-label="Restart current game"
     >
@@ -58,7 +58,7 @@
     </button>
     <button
       class="btn btn-primary"
-      (click)="session.startNewGame()"
+      (click)="lifecycle.startNewGame()"
       title="Start a brand new game"
       aria-label="Start a brand new game"
     >
