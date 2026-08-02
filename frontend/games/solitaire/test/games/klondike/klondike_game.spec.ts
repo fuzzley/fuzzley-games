@@ -3,13 +3,8 @@ import { KlondikeRole } from "@/games/klondike/klondike_zones";
 import { playingCardFaceKey } from "@/engine/core/card/playing_card";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { makePlayingCard } from "@test/support/card_builder";
-import {
-  almostWon,
-  CLUB_KING_ID,
-  emptyBoard,
-  forceWasteRecycle,
-  relocate,
-} from "@test/support/game_scenarios";
+import { emptyBoard, relocate } from "@test/support/game_scenarios";
+import { almostWon, CLUB_KING_ID, forceWasteRecycle } from "./scenarios";
 
 describe("KlondikeGame", () => {
   let game: KlondikeGame;

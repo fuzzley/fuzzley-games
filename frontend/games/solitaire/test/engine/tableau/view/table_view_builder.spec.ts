@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { KlondikeGame } from "@/games/klondike/klondike_game";
-import { buildKlondikeViewState } from "@/games/klondike/klondike_board";
+import { FakeTableGame } from "@test/support/fake_table/game";
+import { buildFakeTableViewState } from "@test/support/fake_table/board";
 import {
   TableInteractionState,
   Viewport,
@@ -15,20 +15,20 @@ import {
   TABLEAU_FACE_UP_OFFSET,
   TABLEAU_FACE_DOWN_OFFSET,
   TABLEAU_HOVER_EXPANSION_OFFSET,
-} from "@/games/klondike/klondike_zones";
-import { measureKlondikeBoard } from "@/games/klondike/klondike_board";
+} from "@test/support/fake_table/zones";
+import { measureFakeTable } from "@test/support/fake_table/board";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { TestPresentation } from "@test/support/presentation";
 
 const presentation = new TestPresentation();
 
 describe("board_view_state_builder", () => {
-  let game: KlondikeGame;
+  let game: FakeTableGame;
   const viewport: Viewport = { width: 1920, height: 1080, pixelRatio: 1 };
   let interaction: TableInteractionState;
 
   beforeEach(() => {
-    game = new KlondikeGame();
+    game = new FakeTableGame();
     game.startNewGame();
     interaction = {
       hoveredCardId: null,
@@ -44,7 +44,7 @@ describe("board_view_state_builder", () => {
     // Relocate one card to tableau-0
     const card = relocate(game, "card-hearts-ace", game.tableaus[0], true);
 
-    const viewState = buildKlondikeViewState(game, presentation)(
+    const viewState = buildFakeTableViewState(game, presentation)(
       interaction,
       viewport,
     );
@@ -66,7 +66,7 @@ describe("board_view_state_builder", () => {
 
   it("gives no two resting cards the same depth", () => {
     // A freshly dealt board, so every pile that holds cards holds several.
-    const viewState = buildKlondikeViewState(game, presentation)(
+    const viewState = buildFakeTableViewState(game, presentation)(
       interaction,
       viewport,
     );
@@ -82,7 +82,7 @@ describe("board_view_state_builder", () => {
     const lower = relocate(game, "card-hearts-ace", game.tableaus[0], true);
     const upper = relocate(game, "card-hearts-2", game.tableaus[0], true);
 
-    const viewState = buildKlondikeViewState(game, presentation)(
+    const viewState = buildFakeTableViewState(game, presentation)(
       interaction,
       viewport,
     );
@@ -94,7 +94,7 @@ describe("board_view_state_builder", () => {
 
   it("handles snapAll flag correctly", () => {
     interaction.snapAll = true;
-    const viewState = buildKlondikeViewState(game, presentation)(
+    const viewState = buildFakeTableViewState(game, presentation)(
       interaction,
       viewport,
     );
@@ -112,7 +112,7 @@ describe("board_view_state_builder", () => {
     };
     interaction.hoveredCardId = card1.id;
 
-    const viewState = buildKlondikeViewState(game, presentation)(
+    const viewState = buildFakeTableViewState(game, presentation)(
       interaction,
       viewport,
     );
@@ -134,7 +134,7 @@ describe("board_view_state_builder", () => {
   describe("a stack flying to the pile it was moved to", () => {
     /** The depth of the topmost card on the board as it currently stands. */
     function deepestRestingDepth(): number {
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -148,7 +148,7 @@ describe("board_view_state_builder", () => {
       const restingDepth = deepestRestingDepth();
       interaction.flights = [{ cardIds: [card.id] }];
 
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -162,7 +162,7 @@ describe("board_view_state_builder", () => {
       const upper = relocate(game, "card-hearts-5", game.tableaus[1]);
       interaction.flights = [{ cardIds: [lower.id, upper.id] }];
 
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -180,7 +180,7 @@ describe("board_view_state_builder", () => {
         { cardIds: [later.id] },
       ];
 
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -196,7 +196,7 @@ describe("board_view_state_builder", () => {
       const restingDepth = deepestRestingDepth();
       interaction.flights = [{ cardIds: [first.id] }, { cardIds: [second.id] }];
 
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -211,7 +211,7 @@ describe("board_view_state_builder", () => {
       const card = relocate(game, "card-hearts-ace", game.foundations[0]);
       interaction.flights = [{ cardIds: [card.id] }];
 
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -224,7 +224,7 @@ describe("board_view_state_builder", () => {
       const card = relocate(game, "card-hearts-ace", game.foundations[0]);
       interaction.flights = [];
 
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -235,13 +235,13 @@ describe("board_view_state_builder", () => {
 
     it("leaves the card's position to its pile while it flies", () => {
       const card = relocate(game, "card-hearts-ace", game.foundations[0]);
-      const resting = buildKlondikeViewState(game, presentation)(
+      const resting = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       ).cards.find((view) => view.cardId === card.id)!;
       interaction.flights = [{ cardIds: [card.id] }];
 
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -257,7 +257,7 @@ describe("board_view_state_builder", () => {
     emptyBoard(game); // stock is empty
     interaction.hoveredBackgroundPileId = "stock";
 
-    const viewState = buildKlondikeViewState(game, presentation)(
+    const viewState = buildFakeTableViewState(game, presentation)(
       interaction,
       viewport,
     );
@@ -282,7 +282,7 @@ describe("board_view_state_builder", () => {
     const card = relocate(game, "card-hearts-ace", game.tableaus[0], true);
     interaction.hoveredCardId = card.id;
 
-    const viewState = buildKlondikeViewState(game, presentation)(
+    const viewState = buildFakeTableViewState(game, presentation)(
       interaction,
       viewport,
     );
@@ -303,7 +303,7 @@ describe("board_view_state_builder", () => {
     // Hover the bottom card (card1) which is covered by card2
     interaction.hoveredCardId = card1.id;
 
-    const viewState = buildKlondikeViewState(game, presentation)(
+    const viewState = buildFakeTableViewState(game, presentation)(
       interaction,
       viewport,
     );
@@ -318,7 +318,7 @@ describe("board_view_state_builder", () => {
 
     interaction.hoveredCardId = card2.id;
 
-    const viewState = buildKlondikeViewState(game, presentation)(
+    const viewState = buildFakeTableViewState(game, presentation)(
       interaction,
       viewport,
     );
@@ -333,7 +333,7 @@ describe("board_view_state_builder", () => {
 
     interaction.hoveredCardId = facedown.id;
 
-    const viewState = buildKlondikeViewState(game, presentation)(
+    const viewState = buildFakeTableViewState(game, presentation)(
       interaction,
       viewport,
     );
@@ -348,7 +348,7 @@ describe("board_view_state_builder", () => {
 
     interaction.hoveredCardId = card1.id;
 
-    const viewState = buildKlondikeViewState(game, presentation)(
+    const viewState = buildFakeTableViewState(game, presentation)(
       interaction,
       viewport,
     );
@@ -368,7 +368,7 @@ describe("board_view_state_builder", () => {
 
     interaction.hoveredCardId = card1.id;
 
-    const viewState = buildKlondikeViewState(game, presentation)(
+    const viewState = buildFakeTableViewState(game, presentation)(
       interaction,
       viewport,
     );
@@ -389,7 +389,7 @@ describe("board_view_state_builder", () => {
       pixelRatio: 2,
     };
 
-    const viewState = buildKlondikeViewState(game, presentation)(
+    const viewState = buildFakeTableViewState(game, presentation)(
       interaction,
       retinaViewport,
     );
@@ -406,7 +406,7 @@ describe("board_view_state_builder", () => {
       pixelRatio: 2,
     };
 
-    const viewState = buildKlondikeViewState(game, presentation)(
+    const viewState = buildFakeTableViewState(game, presentation)(
       interaction,
       retinaViewport,
     );
@@ -425,14 +425,14 @@ describe("board_view_state_builder", () => {
       pixelRatio: 2,
     };
 
-    const retinaState = buildKlondikeViewState(game, presentation)(
+    const retinaState = buildFakeTableViewState(game, presentation)(
       interaction,
       retinaViewport,
     );
 
     // Device pixels are twice as dense, so the same CSS position is twice the
     // coordinate. Anchored to the header, which is a CSS-pixel DOM overlay.
-    const baseView = buildKlondikeViewState(game, presentation)(
+    const baseView = buildFakeTableViewState(game, presentation)(
       interaction,
       viewport,
     ).cards.find((cardView) => cardView.cardId === card.id)!;
@@ -448,7 +448,7 @@ describe("board_view_state_builder", () => {
   describe("drag highlights", () => {
     /** The layout origin of a pile at this viewport. */
     function originOf(pileId: string): { x: number; y: number } {
-      return measureKlondikeBoard(viewport).origins.get(pileId)!;
+      return measureFakeTable(viewport).origins.get(pileId)!;
     }
 
     /** Picks up a card from tableau-0 and holds it over the given point. */
@@ -467,7 +467,7 @@ describe("board_view_state_builder", () => {
       const sevenHearts = relocate(game, "card-hearts-7", game.tableaus[1]);
       drag("card-spades-6", originOf("tableau-1")); // black 6 onto red 7
 
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -482,7 +482,7 @@ describe("board_view_state_builder", () => {
       const tableau1 = originOf("tableau-1");
       drag("card-spades-king", tableau1); // only a King may take an empty column
 
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -499,7 +499,7 @@ describe("board_view_state_builder", () => {
       relocate(game, "card-clubs-6", game.tableaus[1]);
       drag("card-diamonds-5", originOf("tableau-1"));
 
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -516,7 +516,7 @@ describe("board_view_state_builder", () => {
       relocate(game, "card-hearts-7", game.tableaus[1]);
       drag("card-spades-6", originOf("tableau-1"));
 
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -530,7 +530,7 @@ describe("board_view_state_builder", () => {
       relocate(game, "card-hearts-7", game.tableaus[1]);
       drag("card-spades-6", originOf("tableau-1"));
 
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -546,7 +546,7 @@ describe("board_view_state_builder", () => {
       relocate(game, "card-hearts-7", game.tableaus[1]);
       drag("card-spades-6", originOf("tableau-1"));
 
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -563,7 +563,7 @@ describe("board_view_state_builder", () => {
       relocate(game, "card-hearts-7", game.tableaus[1]);
       drag("card-diamonds-6", originOf("tableau-1")); // red 6 onto red 7
 
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -575,7 +575,7 @@ describe("board_view_state_builder", () => {
       relocate(game, "card-hearts-7", game.tableaus[0]);
       drag("card-spades-6", originOf("tableau-0")); // legal rank and color
 
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -587,7 +587,7 @@ describe("board_view_state_builder", () => {
     it("draws no border when the drag is over no pile at all", () => {
       drag("card-spades-king", { x: 9000, y: 9000 });
 
-      const viewState = buildKlondikeViewState(game, presentation)(
+      const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
         viewport,
       );
@@ -601,7 +601,7 @@ describe("board_view_state_builder", () => {
     const card = relocate(game, "card-hearts-ace", game.tableaus[0], true);
     interaction.hoveredCardId = card.id;
 
-    const viewState = buildKlondikeViewState(game, presentation)(
+    const viewState = buildFakeTableViewState(game, presentation)(
       interaction,
       viewport,
     );
