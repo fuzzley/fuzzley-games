@@ -323,7 +323,7 @@ describe("KlondikeGame undo", () => {
 
   describe("the almost-win board", () => {
     it("takes back the winning move", () => {
-      game.settings.debug.setAlmostWin(true);
+      game.almostWin = true;
       game.startNewGame();
       const king = game.tableaus[0].topCard!;
       expect(king.rank).toBe(Rank.KING);

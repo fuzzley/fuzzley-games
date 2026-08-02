@@ -2,10 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   FOUNDATION_COUNT,
   KlondikeRole,
-  STOCK_PILE_ID,
   TABLEAU_COUNT,
-  WASTE_PILE_ID,
-  klondikeZoneSpec,
   klondikeZoneSpecs,
 } from "@/games/klondike/klondike_zones";
 
@@ -104,19 +101,5 @@ describe("klondikeZoneSpecs", () => {
     );
 
     expect(destinations.length).toBe(FOUNDATION_COUNT + TABLEAU_COUNT);
-  });
-});
-
-describe("klondikeZoneSpec", () => {
-  it("finds a zone by its pile id", () => {
-    expect(klondikeZoneSpec(STOCK_PILE_ID, 3)?.role).toBe(KlondikeRole.STOCK);
-  });
-
-  it("finds the waste", () => {
-    expect(klondikeZoneSpec(WASTE_PILE_ID, 3)?.role).toBe(KlondikeRole.WASTE);
-  });
-
-  it("is undefined for a pile the board does not declare", () => {
-    expect(klondikeZoneSpec("nowhere", 3)).toBeUndefined();
   });
 });

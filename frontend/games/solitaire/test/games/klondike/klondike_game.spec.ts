@@ -790,14 +790,8 @@ describe("KlondikeGame", () => {
       expect(game.settings.drawCount).toBe(1);
     });
 
-    it("reports the new almostWin value when setAlmostWin is called", () => {
-      game.settings.debug.setAlmostWin(true);
-
-      expect(game.settings.debug.almostWin).toBe(true);
-    });
-
     it("deals an almost-win board layout when almostWin is true", () => {
-      game.settings.debug.setAlmostWin(true);
+      game.almostWin = true;
       game.startNewGame();
 
       // Check foundations are filled with 12 cards each (A to Q)

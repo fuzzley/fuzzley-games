@@ -1,7 +1,7 @@
 import { PlayableGame } from "@/engine/tableau/playable_game";
 import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { deckCardIds } from "@/engine/core/card/deck";
-import { GameSettings } from "@/games/klondike/game_settings";
+import { KlondikeSettings } from "@/games/klondike/klondike_settings";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
@@ -178,11 +178,11 @@ const KLONDIKE = {
   options: [KLONDIKE_DRAW_COUNT, KLONDIKE_ALMOST_WIN],
   layout: KLONDIKE_LAYOUT,
   create: (values: GameOptionValues) => {
-    const settings = new GameSettings(
+    const settings = new KlondikeSettings(
       optionValue(values, KLONDIKE_DRAW_COUNT) === 1 ? 1 : 3,
-      optionValue(values, KLONDIKE_ALMOST_WIN) === 1,
     );
     const game = new KlondikeGame(undefined, undefined, settings);
+    game.almostWin = optionValue(values, KLONDIKE_ALMOST_WIN) === 1;
     game.startNewGame();
     return { game };
   },

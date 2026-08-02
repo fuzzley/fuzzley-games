@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { klondikePlacementRule } from "@/games/klondike/move_rules";
+import { klondikePlacementRule } from "@/games/klondike/klondike_rules";
 import { CardPile } from "@/engine/core/card/card_pile";
 import { KlondikeRole } from "@/games/klondike/klondike_zones";
 import { PlayingCard, Suit, Rank } from "@/engine/core/card/playing_card";
