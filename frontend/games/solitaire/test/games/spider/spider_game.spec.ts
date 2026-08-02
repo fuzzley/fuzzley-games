@@ -334,6 +334,24 @@ describe("SpiderGame", () => {
       expect(game.dealRow()).toBe(false);
     });
 
+    /*
+     * A stock holding fewer cards than there are columns is not a position the
+     * standard 104-card deal reaches, but a short injected deck does, and a row
+     * that runs out mid-deal must stop rather than deal an undefined card. The
+     * columns it did reach keep their cards.
+     */
+    it("deals what is left when the stock cannot fill a whole row", () => {
+      game.stock.clear();
+      const spare = game.tableaus[0].topCard!;
+      game.tableaus[0].removeCard(spare);
+      game.stock.addCard(spare);
+
+      const dealt = game.dealRow();
+
+      expect(dealt).toBe(true);
+      expect(game.stock.isEmpty).toBe(true);
+    });
+
     it("is taken back by a single undo, all ten cards", () => {
       const before = game.tableaus.map((t) => t.size);
       game.dealRow();

@@ -1,18 +1,18 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { BoardInputManager } from "@/engine/render/phaser/board_input_manager";
-import { resolveKlondikeDropTarget } from "@/games/klondike/klondike_board";
+import { resolveFakeTableDropTarget } from "@test/support/fake_table/board";
 import {
-  klondikeGestures,
-  klondikeStackFromCard,
-} from "@/games/klondike/klondike_gestures";
-import { KlondikeGame } from "@/games/klondike/klondike_game";
+  fakeTableGestures,
+  fakeTableStackFromCard,
+} from "@test/support/fake_table/board";
+import { FakeTableGame } from "@test/support/fake_table/game";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { designSize } from "@/engine/render/layout/table_layout";
-import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
+import { FAKE_TABLE_LAYOUT } from "@test/support/fake_table/board";
 
-const DESIGN_WIDTH_PX = designSize(KLONDIKE_LAYOUT).width;
-const DESIGN_HEIGHT_PX = designSize(KLONDIKE_LAYOUT).height;
+const DESIGN_WIDTH_PX = designSize(FAKE_TABLE_LAYOUT).width;
+const DESIGN_HEIGHT_PX = designSize(FAKE_TABLE_LAYOUT).height;
 import {
   asSprite,
   createMockInput,
@@ -27,7 +27,7 @@ vi.mock("phaser", async () => {
 });
 
 describe("BoardInputManager", () => {
-  let gameModel: KlondikeGame;
+  let gameModel: FakeTableGame;
   let input: MockInput;
   let cardSprites: Map<string, MockSprite>;
   let boardScene: BoardScene;
@@ -36,7 +36,7 @@ describe("BoardInputManager", () => {
   beforeEach(() => {
     vi.useFakeTimers();
 
-    gameModel = new KlondikeGame();
+    gameModel = new FakeTableGame();
     gameModel.startNewGame();
 
     input = createMockInput();
@@ -57,11 +57,11 @@ describe("BoardInputManager", () => {
         height: DESIGN_HEIGHT_PX,
         pixelRatio: 1,
       },
-      // The real Klondike wiring, so a press or a drop does what the game says
+      // The fixture's real wiring, so a press or a drop does what the game says
       // it does rather than what a stub decides.
-      resolveDropTarget: resolveKlondikeDropTarget(gameModel),
-      handleIntent: klondikeGestures(gameModel),
-      stackFromCard: klondikeStackFromCard(gameModel),
+      resolveDropTarget: resolveFakeTableDropTarget(gameModel),
+      handleIntent: fakeTableGestures(gameModel),
+      stackFromCard: fakeTableStackFromCard(gameModel),
     } as unknown as BoardScene;
 
     inputManager = new BoardInputManager(boardScene);
