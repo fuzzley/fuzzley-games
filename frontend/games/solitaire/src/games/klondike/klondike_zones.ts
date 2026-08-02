@@ -1,7 +1,7 @@
 import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { ZoneSpec } from "@/engine/tableau/zone";
-import { DrawCount } from "./game_settings";
-import { KlondikeRole, klondikePlacementRule } from "./move_rules";
+import { DrawCount } from "./klondike_settings";
+import { KlondikeRole, klondikePlacementRule } from "./klondike_rules";
 
 /** The number of suit foundation piles in a standard Klondike game. */
 export const FOUNDATION_COUNT = 4;
@@ -120,24 +120,7 @@ export function klondikeZoneSpecs(drawCount: DrawCount): readonly ZoneSpec[] {
   return zones;
 }
 
-/**
- * The zone describing the pile with the given id, or undefined for an id the
- * board does not define.
- */
-export function klondikeZoneSpec(
-  pileId: string,
-  drawCount: DrawCount,
-): ZoneSpec | undefined {
-  let byId = zonesById.get(drawCount);
-  if (!byId) {
-    byId = new Map(klondikeZoneSpecs(drawCount).map((zone) => [zone.id, zone]));
-    zonesById.set(drawCount, byId);
-  }
-  return byId.get(pileId);
-}
-
 const zonesByDrawCount = new Map<DrawCount, readonly ZoneSpec[]>();
-const zonesById = new Map<DrawCount, ReadonlyMap<string, ZoneSpec>>();
 
 function buildZoneSpecs(drawCount: DrawCount): readonly ZoneSpec[] {
   const zones: ZoneSpec[] = [

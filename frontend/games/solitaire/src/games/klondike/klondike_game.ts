@@ -6,8 +6,8 @@ import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { AppliedMove } from "@/engine/tableau/move";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
-import { dealKlondikeAlmostWin, dealKlondikeLayout } from "./dealer";
-import { GameSettings } from "./game_settings";
+import { dealKlondikeAlmostWin, dealKlondikeLayout } from "./klondike_deal";
+import { KlondikeSettings } from "./klondike_settings";
 import {
   KlondikeRole,
   STOCK_PILE_ID,
@@ -36,7 +36,10 @@ export class KlondikeGame extends DealtTableGame {
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
   /** User-configurable game settings. */
-  public readonly settings: GameSettings;
+  public readonly settings: KlondikeSettings;
+
+  /** Whether to deal a nearly finished board, for verification. */
+  public almostWin = false;
 
   private recycleCount = 0;
 
@@ -58,7 +61,7 @@ export class KlondikeGame extends DealtTableGame {
   constructor(
     cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
     scoring: ScoringPolicy = new ScoringPolicy(),
-    settings: GameSettings = new GameSettings(),
+    settings: KlondikeSettings = new KlondikeSettings(),
   ) {
     super({
       zones: () => klondikeZoneSpecs(settings.drawCount),
@@ -90,7 +93,7 @@ export class KlondikeGame extends DealtTableGame {
     // been recycled is part of the board being dealt.
     this.recycleCount = 0;
 
-    if (this.settings.debug.almostWin) {
+    if (this.almostWin) {
       dealKlondikeAlmostWin(this.deck, this.foundations, this.tableaus);
     } else {
       dealKlondikeLayout(deck, this.tableaus, this.stock);
