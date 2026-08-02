@@ -14,8 +14,10 @@ if (typeof window !== "undefined") {
 
 /**
  * An in-memory Storage for the node test environment, which has no
- * localStorage. GameSettings reads and writes it, so specs that construct
- * settings need a working implementation rather than a stub that throws.
+ * localStorage. LocalStorageService reads and writes it on behalf of the
+ * settings that persist — the chosen game, its rules, the card back and the
+ * felt — so specs touching any of them need a working implementation rather
+ * than a stub that throws.
  */
 function createMemoryStorage(): Storage {
   const entries = new Map<string, string>();
@@ -45,10 +47,10 @@ if (!globalThis.localStorage) {
   });
 }
 
-// GameSettings persists to localStorage, and every test shares one store, so a
-// test that flips a setting would otherwise change the starting conditions of
-// everything that ran after it — a game left in almost-win mode deals a board
-// with an empty stock.
+// The persisted settings share one store across every test, so a test that
+// flips one would otherwise change the starting conditions of everything that
+// ran after it — a game left in almost-win mode deals a board with an empty
+// stock.
 beforeEach(() => {
   localStorage.clear();
 });

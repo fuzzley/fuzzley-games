@@ -1,13 +1,33 @@
+import { InjectionToken } from "@angular/core";
 import { YukonVariant } from "@/games/yukon/yukon_rules";
 import { GameDocumentation } from "../model/game_documentation.model";
+
+/** Documentation for every game, by game id. */
+export type GameDocumentationRegistry = Readonly<
+  Record<string, GameDocumentation>
+>;
+
+/**
+ * The documentation the application shows.
+ *
+ * A token rather than a direct import so a spec can supply its own. A
+ * component spec that asserts against the real prose is really asserting that
+ * nobody has reworded a rules page — which is not what it is for, and breaks
+ * it when someone does.
+ */
+export const GAME_DOCUMENTATION = new InjectionToken<GameDocumentationRegistry>(
+  "GAME_DOCUMENTATION",
+  {
+    providedIn: "root",
+    factory: () => GAME_DOCUMENTATION_REGISTRY,
+  },
+);
 
 /**
  * Registry containing comprehensive, verified documentation and hero screenshot visual aids
  * for all solitaire games in fSolitaire.
  */
-export const GAME_DOCUMENTATION_REGISTRY: Readonly<
-  Record<string, GameDocumentation>
-> = {
+export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry = {
   klondike: {
     title: "Klondike Solitaire",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Klondike_(solitaire)",

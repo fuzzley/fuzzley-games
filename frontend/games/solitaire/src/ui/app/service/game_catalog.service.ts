@@ -200,7 +200,13 @@ export class GameCatalogService {
     if (entry.id === this.selectedIdSignal()) return;
 
     this.applySelection(entry.id);
-    void this.router.navigate([entry.id]);
+
+    // The board is already showing the new game, so a URL that fails to
+    // follow it is a broken link rather than a broken game. Reported and
+    // survived, instead of surfacing as an unhandled rejection.
+    this.router.navigate([entry.id]).catch((e: unknown) => {
+      console.warn(`Failed to route to "${entry.id}":`, e);
+    });
   }
 
   /**

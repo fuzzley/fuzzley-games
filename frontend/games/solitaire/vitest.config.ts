@@ -12,6 +12,18 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
+      include: ["src/**/*.ts"],
+      thresholds: {
+        // A floor a little under where the suite currently stands, so a
+        // change that drops coverage fails rather than relying on a reviewer
+        // noticing. Raise these when the real figures move up; they are meant
+        // to ratchet, which is why they are not set to the current numbers
+        // exactly.
+        statements: 90,
+        branches: 80,
+        functions: 90,
+        lines: 90,
+      },
     },
   },
   resolve: {
