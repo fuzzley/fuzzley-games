@@ -155,9 +155,9 @@ module.exports = tseslint.config(
         {
           patterns: [
             {
-              group: ["@/ui/*", "@angular/*"],
+              group: ["@/ui/*", "@angular/*", "rxjs", "rxjs/*"],
               message:
-                "A game must not depend on the Angular shell that happens to host it.",
+                "A game must not depend on the Angular shell that happens to host it, nor on a reactive library: a game publishes with the engine's own event emitter, and the shell adapts at its own boundary.",
             },
           ],
         },

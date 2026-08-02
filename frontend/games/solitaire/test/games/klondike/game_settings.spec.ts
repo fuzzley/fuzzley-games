@@ -1,67 +1,63 @@
-import { GameSettings } from "@/games/klondike/game_settings";
+import {
+  DEFAULT_DRAW_COUNT,
+  GameSettings,
+} from "@/games/klondike/game_settings";
 
-describe("GameSettings Persistence", () => {
+describe("GameSettings", () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
-  it("should initialize with default values when localStorage is empty", () => {
+  it("starts at the default draw count with debug aids off", () => {
     const settings = new GameSettings();
-    expect(settings.drawCount).toBe(3);
+
+    expect(settings.drawCount).toBe(DEFAULT_DRAW_COUNT);
     expect(settings.debug.almostWin).toBe(false);
   });
 
-  it("should save settings to localStorage when changed", () => {
-    const settings = new GameSettings();
-
-    settings.drawCount$.next(1);
-    settings.debug.almostWin$.next(true);
-
-    const stored = localStorage.getItem("fsolitaire-settings");
-    expect(stored).not.toBeNull();
-    expect(JSON.parse(stored!)).toEqual({
-      drawCount: 1,
-      debug: { almostWin: true },
-    });
-  });
-
-  it("should load settings from localStorage on creation", () => {
-    localStorage.setItem(
-      "fsolitaire-settings",
-      JSON.stringify({ drawCount: 1, debug: { almostWin: true } }),
-    );
-
-    const settings = new GameSettings();
+  it("takes the rules it is constructed with", () => {
+    const settings = new GameSettings(1, true);
 
     expect(settings.drawCount).toBe(1);
     expect(settings.debug.almostWin).toBe(true);
   });
 
-  it("should handle corrupted JSON in localStorage gracefully and fallback to defaults", () => {
-    localStorage.setItem("fsolitaire-settings", "{ not json");
-
+  it("reports the draw count it was last set to", () => {
     const settings = new GameSettings();
 
-    expect(settings.drawCount).toBe(3);
-    expect(settings.debug.almostWin).toBe(false);
+    settings.setDrawCount(1);
+
+    expect(settings.drawCount).toBe(1);
   });
 
-  it("should handle invalid values in localStorage and fallback to defaults", () => {
-    localStorage.setItem(
-      "fsolitaire-settings",
-      // 5 is not a draw mode; almostWin must be a boolean.
-      JSON.stringify({ drawCount: 5, debug: { almostWin: "yes" } }),
-    );
-
+  it("reports the almost-win choice it was last set to", () => {
     const settings = new GameSettings();
 
-    expect(settings.drawCount).toBe(3);
-    expect(settings.debug.almostWin).toBe(false);
+    settings.debug.setAlmostWin(true);
+
+    expect(settings.debug.almostWin).toBe(true);
+  });
+
+  /*
+   * The point of the split. GameCatalogService persists every game's chosen
+   * options under `fsolitaire-game-options` and deals a fresh game when one
+   * changes, so a second copy here would be a second source of truth. Worse,
+   * the copy used to live under `fsolitaire-settings` — the key the
+   * presentation settings migrate away from — and overwrote what that
+   * migration reads.
+   */
+  it("persists nothing, leaving storage to the catalog that owns it", () => {
+    const settings = new GameSettings();
+
+    settings.setDrawCount(1);
+    settings.debug.setAlmostWin(true);
+
+    expect(localStorage.length).toBe(0);
   });
 
   it("keeps no opinion about how the table looks, which is not a Klondike rule", () => {
     const settings = new GameSettings();
 
-    expect(Object.keys(settings)).not.toContain("cardBackStyle$");
+    expect(Object.keys(settings)).not.toContain("cardBackStyle");
   });
 });
