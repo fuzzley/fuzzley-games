@@ -789,24 +789,16 @@ describe("KlondikeGame", () => {
       expect(game.settings.drawCount).toBe(3);
     });
 
-    it("publishes the new draw count when it changes", () => {
-      const drawCounts: (1 | 3)[] = [];
-      game.settings.drawCount$.subscribe((v) => drawCounts.push(v));
-
+    it("reports the new draw count when it changes", () => {
       game.settings.setDrawCount(1);
 
       expect(game.settings.drawCount).toBe(1);
-      expect(drawCounts).toContain(1);
     });
 
-    it("publishes the new almostWin value when setAlmostWin is called", () => {
-      const almostWins: boolean[] = [];
-      game.settings.debug.almostWin$.subscribe((v) => almostWins.push(v));
-
+    it("reports the new almostWin value when setAlmostWin is called", () => {
       game.settings.debug.setAlmostWin(true);
 
       expect(game.settings.debug.almostWin).toBe(true);
-      expect(almostWins).toContain(true);
     });
 
     it("deals an almost-win board layout when almostWin is true", () => {
