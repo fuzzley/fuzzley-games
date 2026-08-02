@@ -6,6 +6,7 @@ import {
   output,
 } from "@angular/core";
 import { GameOptionSpec } from "../../provider/game_catalog";
+import { RadioGroupDirective } from "../../directive/radio_group.directive";
 
 /** A running count, so every group's label has an id its control can name. */
 let nextGroupId = 0;
@@ -24,6 +25,7 @@ let nextGroupId = 0;
 @Component({
   selector: "app-option-group",
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RadioGroupDirective],
   templateUrl: "./option_group.component.html",
   styleUrl: "./option_group.component.scss",
 })

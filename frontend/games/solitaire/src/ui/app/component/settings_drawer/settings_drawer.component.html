@@ -36,7 +36,7 @@
         <span class="setting-label" id="card-back-label">Card Back Design</span>
         <div
           class="card-back-selector"
-          role="radiogroup"
+          appRadioGroup
           aria-labelledby="card-back-label"
         >
           @for (design of cardBackDesigns; track design.style) {
@@ -65,7 +65,7 @@
         <span class="setting-label" id="table-theme-label">Table Theme</span>
         <div
           class="theme-selector"
-          role="radiogroup"
+          appRadioGroup
           aria-labelledby="table-theme-label"
         >
           @for (swatch of themeSwatches(); track swatch.key) {
