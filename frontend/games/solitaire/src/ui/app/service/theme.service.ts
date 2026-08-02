@@ -48,7 +48,18 @@ export class ThemeService {
   readonly themes: Record<ThemeKey, Theme> = THEMES;
   readonly themeKeys = Object.keys(THEMES) as ThemeKey[];
 
-  readonly selectedTheme = signal<ThemeKey>(DEFAULT_THEME_KEY);
+  private readonly selectedThemeSignal = signal<ThemeKey>(DEFAULT_THEME_KEY);
+
+  /**
+   * The felt currently chosen.
+   *
+   * Read-only from the outside, like every other piece of service state here.
+   * It was writable, which made a wrong theme reachable in one step: setting
+   * it directly moves the highlighted swatch without telling the presentation
+   * settings, so the swatch and the felt on the table disagree. {@link
+   * setTheme} is what keeps them together.
+   */
+  readonly selectedTheme = this.selectedThemeSignal.asReadonly();
 
   /** The colour of the felt currently chosen. */
   readonly currentColor = computed(
@@ -66,7 +77,7 @@ export class ThemeService {
   }
 
   setTheme(themeKey: ThemeKey): void {
-    this.selectedTheme.set(themeKey);
+    this.selectedThemeSignal.set(themeKey);
     this.presentation.setBackgroundColor(this.themes[themeKey].color);
   }
 }

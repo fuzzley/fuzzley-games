@@ -27,7 +27,7 @@
         <app-option-group
           [option]="option"
           [value]="catalog.optionValues()[option.id]"
-          (choose)="lifecycle.setRuleOption(option.id, $event)"
+          (choose)="chooseRule(option.id, $event)"
         />
       }
 

@@ -18,5 +18,10 @@ import { OptionGroupComponent } from "../option_group/option_group.component";
 })
 export class DebugPanelComponent {
   protected readonly catalog = inject(GameCatalogService);
-  protected readonly lifecycle = inject(GameLifecycleService);
+  private readonly lifecycle = inject(GameLifecycleService);
+
+  /** Plays the current game by a different debug rule, dealt afresh. */
+  protected chooseRule(optionId: string, value: number): void {
+    void this.lifecycle.setRuleOption(optionId, value);
+  }
 }

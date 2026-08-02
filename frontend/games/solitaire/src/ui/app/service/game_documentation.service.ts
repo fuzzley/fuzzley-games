@@ -11,8 +11,10 @@ export class GameDocumentationService {
   private readonly catalog = inject(GameCatalogService);
   private readonly registry = inject(GAME_DOCUMENTATION);
 
+  private readonly isOpenSignal = signal(false);
+
   /** Whether the documentation modal is showing. */
-  readonly isOpen = signal(false);
+  readonly isOpen = this.isOpenSignal.asReadonly();
 
   /** Documentation for the game on the table, or undefined if not documented. */
   readonly activeGameDoc = computed<GameDocumentation | undefined>(
@@ -21,17 +23,17 @@ export class GameDocumentationService {
 
   /** Opens the documentation modal. */
   openHelp(): void {
-    this.isOpen.set(true);
+    this.isOpenSignal.set(true);
   }
 
   /** Closes the documentation modal. */
   closeHelp(): void {
-    this.isOpen.set(false);
+    this.isOpenSignal.set(false);
   }
 
   /** Toggles the documentation modal. */
   toggleHelp(): void {
-    this.isOpen.update((open) => !open);
+    this.isOpenSignal.update((open) => !open);
   }
 
   /**
