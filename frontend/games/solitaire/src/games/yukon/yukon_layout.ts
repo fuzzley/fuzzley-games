@@ -1,13 +1,4 @@
-import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
-import {
-  CARD_HEIGHT_PX,
-  CARD_WIDTH_PX,
-  HEADER_HEIGHT_PX,
-  LAYOUT_GAP_X,
-  LAYOUT_GAP_Y,
-  LAYOUT_PADDING_X,
-  LAYOUT_PADDING_Y,
-} from "@/engine/render/layout/card_metrics";
+import { tableLayout } from "@/engine/render/layout/table_layout";
 import { DEFAULT_YUKON_VARIANT } from "./yukon_rules";
 import { TABLEAU_COUNT, yukonZoneSpecs } from "./yukon_zones";
 
@@ -25,16 +16,12 @@ import { TABLEAU_COUNT, yukonZoneSpecs } from "./yukon_zones";
  * the three differ only in what a column accepts — but the default is passed
  * explicitly rather than left to a fallback, so the choice is visible.
  */
-export const YUKON_LAYOUT: TableLayoutSpec = {
+export const YUKON_LAYOUT = tableLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
   slots: yukonZoneSpecs(DEFAULT_YUKON_VARIANT).map((zone) => zone.slot),
-  cardSize: { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX },
-  gap: { x: LAYOUT_GAP_X, y: LAYOUT_GAP_Y },
-  padding: { x: LAYOUT_PADDING_X, y: LAYOUT_PADDING_Y },
-  headerHeightPx: HEADER_HEIGHT_PX,
   // Taller than any other board here, because the last column is eleven cards
   // deep from the first deal: six packed face-down plus five fanned face-up,
   // and it only grows as cards are moved onto it.
   designHeightPx: 1150,
-};
+});

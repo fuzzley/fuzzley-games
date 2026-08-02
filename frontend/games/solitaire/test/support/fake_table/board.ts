@@ -1,16 +1,7 @@
 import {
-  CARD_HEIGHT_PX,
-  CARD_WIDTH_PX,
-  HEADER_HEIGHT_PX,
-  LAYOUT_GAP_X,
-  LAYOUT_GAP_Y,
-  LAYOUT_PADDING_X,
-  LAYOUT_PADDING_Y,
-} from "@/engine/render/layout/card_metrics";
-import {
-  TableLayoutSpec,
   TableMetrics,
   measureTable,
+  tableLayout,
 } from "@/engine/render/layout/table_layout";
 import { IntentHandler } from "@/engine/render/input/table_intents";
 import { TablePresentation } from "@/engine/render/presentation";
@@ -47,16 +38,12 @@ import { FakeRole, TABLEAU_COUNT, fakeZoneSpecs } from "./zones";
  * another. The design height reserves room below the grid for a column fanned
  * deeper than its row.
  */
-export const FAKE_TABLE_LAYOUT: TableLayoutSpec = {
+export const FAKE_TABLE_LAYOUT = tableLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
   slots: fakeZoneSpecs(DEFAULT_DRAW_COUNT).map((zone) => zone.slot),
-  cardSize: { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX },
-  gap: { x: LAYOUT_GAP_X, y: LAYOUT_GAP_Y },
-  padding: { x: LAYOUT_PADDING_X, y: LAYOUT_PADDING_Y },
-  headerHeightPx: HEADER_HEIGHT_PX,
   designHeightPx: 950,
-};
+});
 
 /** Measures the fake board for the given viewport. */
 export function measureFakeTable(viewport: Viewport): TableMetrics {
