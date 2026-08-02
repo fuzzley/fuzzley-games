@@ -1,11 +1,11 @@
 <div class="debug-panel" role="group" aria-labelledby="debug-panel-label">
   <p class="debug-label" id="debug-panel-label">Debug Options</p>
-  @for (option of session.debugOptions(); track option.id) {
+  @for (option of catalog.debugOptions(); track option.id) {
     <app-option-group
       [option]="option"
-      [value]="session.optionValues()[option.id]"
+      [value]="catalog.optionValues()[option.id]"
       [compactLabel]="true"
-      (choose)="session.setRuleOption(option.id, $event)"
+      (choose)="lifecycle.setRuleOption(option.id, $event)"
     />
   }
 </div>

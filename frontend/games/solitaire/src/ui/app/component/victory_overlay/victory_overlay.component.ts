@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
-import { GameSessionService } from "../../service/game_session.service";
+import { GameMetricsService } from "../../service/game_metrics.service";
+import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
 
 /**
@@ -19,5 +20,6 @@ import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
   styleUrl: "./victory_overlay.component.css",
 })
 export class VictoryOverlayComponent {
-  protected readonly session = inject(GameSessionService);
+  protected readonly metrics = inject(GameMetricsService);
+  protected readonly lifecycle = inject(GameLifecycleService);
 }

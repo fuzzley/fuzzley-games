@@ -38,15 +38,13 @@
 
 <nav class="game-menu" [class.expanded]="menu.isExpanded()" aria-label="Games">
   <ul class="game-list" id="game-menu-list">
-    @for (game of session.games; track game.id) {
+    @for (game of catalog.games; track game.id) {
       <li>
         <button
           type="button"
           class="game-item"
-          [class.active]="session.selectedGameId() === game.id"
-          [attr.aria-current]="
-            session.selectedGameId() === game.id ? 'page' : null
-          "
+          [class.active]="catalog.selectedId() === game.id"
+          [attr.aria-current]="catalog.selectedId() === game.id ? 'page' : null"
           (click)="chooseGame(game.id)"
           [title]="game.name"
         >

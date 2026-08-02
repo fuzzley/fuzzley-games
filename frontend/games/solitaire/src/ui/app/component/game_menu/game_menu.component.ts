@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
-import { GameSessionService } from "../../service/game_session.service";
+import { GameCatalogService } from "../../service/game_catalog.service";
+import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { GameMenuService } from "../../service/game_menu.service";
 
 /**
@@ -20,16 +21,20 @@ import { GameMenuService } from "../../service/game_menu.service";
   styleUrl: "./game_menu.component.css",
 })
 export class GameMenuComponent {
-  protected readonly session = inject(GameSessionService);
+  protected readonly catalog = inject(GameCatalogService);
+  private readonly lifecycle = inject(GameLifecycleService);
   protected readonly menu = inject(GameMenuService);
 
   /**
    * Picks a game, closing the rail when it is covering the board.
    *
    * Leaving it open on a phone would hide the board the player just asked for.
+   * The rail closes without waiting on the confirmation the switch may raise:
+   * the prompt is a modal over everything, and leaving the menu open behind it
+   * only means it is still there if the player declines.
    */
   protected chooseGame(id: string): void {
-    this.session.selectGame(id);
+    void this.lifecycle.selectGame(id);
     this.menu.collapseIfOverlay();
   }
 }

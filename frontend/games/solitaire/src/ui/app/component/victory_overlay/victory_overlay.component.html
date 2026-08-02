@@ -1,5 +1,5 @@
 <app-modal-dialog
-  [open]="session.isGameWon()"
+  [open]="metrics.isGameWon()"
   dialogRole="alertdialog"
   label="You won"
   [dismissible]="false"
@@ -29,22 +29,22 @@
     <dl class="victory-stats">
       <div class="v-stat">
         <dt class="v-lbl">Score</dt>
-        <dd class="v-val">{{ session.score() }}</dd>
+        <dd class="v-val">{{ metrics.score() }}</dd>
       </div>
       <div class="v-stat">
         <dt class="v-lbl">Time</dt>
-        <dd class="v-val">{{ session.timerText() }}</dd>
+        <dd class="v-val">{{ metrics.timerText() }}</dd>
       </div>
       <div class="v-stat">
         <dt class="v-lbl">Moves</dt>
-        <dd class="v-val">{{ session.moves() }}</dd>
+        <dd class="v-val">{{ metrics.moves() }}</dd>
       </div>
     </dl>
 
     <button
       type="button"
       class="btn btn-gradient btn-large btn-block"
-      (click)="session.startNewGame()"
+      (click)="lifecycle.startNewGame()"
     >
       Play Again
     </button>
