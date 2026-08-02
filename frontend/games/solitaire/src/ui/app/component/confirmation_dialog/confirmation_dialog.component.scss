@@ -19,7 +19,7 @@
   color: var(--text-bright);
   animation: popIn 0.3s var(--ease-spring);
 
-  h3 {
+  h2 {
     @include gradient-text(var(--danger), var(--danger-light));
     font-size: var(--font-2xl);
     font-weight: 700;

@@ -21,5 +21,13 @@ import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
 })
 export class VictoryOverlayComponent {
   protected readonly metrics = inject(GameMetricsService);
-  protected readonly lifecycle = inject(GameLifecycleService);
+  private readonly lifecycle = inject(GameLifecycleService);
+
+  /**
+   * Deals a new game. Nothing is asked first: the board behind this card is
+   * finished, so there is no progress left to lose.
+   */
+  protected playAgain(): void {
+    void this.lifecycle.startNewGame();
+  }
 }

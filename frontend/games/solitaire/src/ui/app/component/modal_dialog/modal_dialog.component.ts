@@ -40,6 +40,16 @@ export class ModalDialogComponent {
   readonly label = input<string>("");
 
   /**
+   * The id of the element that says what the dialog is about, announced after
+   * its name.
+   *
+   * The name alone is a title — "Confirm action" — and a prompt whose whole
+   * purpose is making sure the stake was understood should not leave the
+   * stake as the one part a screen reader has to go looking for.
+   */
+  readonly describedBy = input<string>("");
+
+  /**
    * `alertdialog` for a prompt that interrupts to ask something, `dialog`
    * otherwise. Screen readers treat the two differently, so a confirmation
    * should not claim to be the same kind of thing as a help panel.

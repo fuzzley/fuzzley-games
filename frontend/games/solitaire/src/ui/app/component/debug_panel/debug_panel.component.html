@@ -5,7 +5,7 @@
       [option]="option"
       [value]="catalog.optionValues()[option.id]"
       [compactLabel]="true"
-      (choose)="lifecycle.setRuleOption(option.id, $event)"
+      (choose)="chooseRule(option.id, $event)"
     />
   }
 </div>
