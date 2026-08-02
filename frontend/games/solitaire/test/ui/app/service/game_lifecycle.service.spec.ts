@@ -40,164 +40,164 @@ function buildLifecycle(overrides: MockGameModelOverrides = {}): Harness {
 describe("GameLifecycleService", () => {
   describe("with a fresh game, which has nothing to lose", () => {
     it("restarts without asking", async () => {
-      const h = buildLifecycle();
+      const harness = buildLifecycle();
 
-      await h.lifecycle.restartGame();
+      await harness.lifecycle.restartGame();
 
-      expect(h.model.restartGame).toHaveBeenCalledOnce();
-      expect(h.confirmation.isOpen()).toBe(false);
+      expect(harness.model.restartGame).toHaveBeenCalledOnce();
+      expect(harness.confirmation.isOpen()).toBe(false);
     });
 
     it("deals a new game without asking", async () => {
-      const h = buildLifecycle();
+      const harness = buildLifecycle();
 
-      await h.lifecycle.startNewGame();
+      await harness.lifecycle.startNewGame();
 
-      expect(h.model.startNewGame).toHaveBeenCalledOnce();
+      expect(harness.model.startNewGame).toHaveBeenCalledOnce();
     });
 
     it("switches games without asking", async () => {
-      const h = buildLifecycle();
+      const harness = buildLifecycle();
 
-      await h.lifecycle.selectGame("freecell");
+      await harness.lifecycle.selectGame("freecell");
 
-      expect(h.catalog.select).toHaveBeenCalledWith("freecell");
+      expect(harness.catalog.select).toHaveBeenCalledWith("freecell");
     });
 
     it("changes a rule without asking", async () => {
-      const h = buildLifecycle();
+      const harness = buildLifecycle();
 
-      await h.lifecycle.setRuleOption("drawCount", 1);
+      await harness.lifecycle.setRuleOption("drawCount", 1);
 
-      expect(h.catalog.setOption).toHaveBeenCalledWith("drawCount", 1);
+      expect(harness.catalog.setOption).toHaveBeenCalledWith("drawCount", 1);
     });
   });
 
   describe("with a game in progress", () => {
     /** Starts an action and answers the prompt it raises. */
     async function answer(
-      h: Harness,
+      harness: Harness,
       action: Promise<void>,
       confirmed: boolean,
     ): Promise<void> {
-      expect(h.confirmation.isOpen()).toBe(true);
-      if (confirmed) h.confirmation.accept();
-      else h.confirmation.cancel();
+      expect(harness.confirmation.isOpen()).toBe(true);
+      if (confirmed) harness.confirmation.accept();
+      else harness.confirmation.cancel();
       await action;
     }
 
     it("asks before restarting", () => {
-      const h = buildLifecycle({ moves: 5 });
+      const harness = buildLifecycle({ moves: 5 });
 
-      void h.lifecycle.restartGame();
+      void harness.lifecycle.restartGame();
 
-      expect(h.confirmation.isOpen()).toBe(true);
-      expect(h.confirmation.message()).toContain("restart this game");
-      expect(h.model.restartGame).not.toHaveBeenCalled();
+      expect(harness.confirmation.isOpen()).toBe(true);
+      expect(harness.confirmation.message()).toContain("restart this game");
+      expect(harness.model.restartGame).not.toHaveBeenCalled();
     });
 
     it("restarts once the prompt is accepted", async () => {
-      const h = buildLifecycle({ moves: 5 });
+      const harness = buildLifecycle({ moves: 5 });
 
-      await answer(h, h.lifecycle.restartGame(), true);
+      await answer(harness, harness.lifecycle.restartGame(), true);
 
-      expect(h.model.restartGame).toHaveBeenCalledOnce();
+      expect(harness.model.restartGame).toHaveBeenCalledOnce();
     });
 
     it("does not restart when the prompt is declined", async () => {
-      const h = buildLifecycle({ moves: 5 });
+      const harness = buildLifecycle({ moves: 5 });
 
-      await answer(h, h.lifecycle.restartGame(), false);
+      await answer(harness, harness.lifecycle.restartGame(), false);
 
-      expect(h.model.restartGame).not.toHaveBeenCalled();
+      expect(harness.model.restartGame).not.toHaveBeenCalled();
     });
 
     it("asks before switching games", () => {
-      const h = buildLifecycle({ moves: 4 });
+      const harness = buildLifecycle({ moves: 4 });
 
-      void h.lifecycle.selectGame("freecell");
+      void harness.lifecycle.selectGame("freecell");
 
-      expect(h.confirmation.isOpen()).toBe(true);
-      expect(h.catalog.select).not.toHaveBeenCalled();
+      expect(harness.confirmation.isOpen()).toBe(true);
+      expect(harness.catalog.select).not.toHaveBeenCalled();
     });
 
     it("switches once the prompt is accepted", async () => {
-      const h = buildLifecycle({ moves: 4 });
+      const harness = buildLifecycle({ moves: 4 });
 
-      await answer(h, h.lifecycle.selectGame("freecell"), true);
+      await answer(harness, harness.lifecycle.selectGame("freecell"), true);
 
-      expect(h.catalog.select).toHaveBeenCalledWith("freecell");
+      expect(harness.catalog.select).toHaveBeenCalledWith("freecell");
     });
 
     it("asks before changing a rule, which deals a new game", async () => {
-      const h = buildLifecycle({ moves: 5 });
+      const harness = buildLifecycle({ moves: 5 });
 
-      const action = h.lifecycle.setRuleOption("drawCount", 1);
+      const action = harness.lifecycle.setRuleOption("drawCount", 1);
 
-      expect(h.confirmation.message()).toContain("deal a new game");
-      await answer(h, action, true);
-      expect(h.catalog.setOption).toHaveBeenCalledWith("drawCount", 1);
+      expect(harness.confirmation.message()).toContain("deal a new game");
+      await answer(harness, action, true);
+      expect(harness.catalog.setOption).toHaveBeenCalledWith("drawCount", 1);
     });
 
     it("stops asking once the game is won, since it is already over", async () => {
-      const h = buildLifecycle({ moves: 5 });
-      h.model.emit("game-won");
+      const harness = buildLifecycle({ moves: 5 });
+      harness.model.emit("game-won");
       TestBed.flushEffects();
 
-      await h.lifecycle.restartGame();
+      await harness.lifecycle.restartGame();
 
-      expect(h.confirmation.isOpen()).toBe(false);
-      expect(h.model.restartGame).toHaveBeenCalledOnce();
+      expect(harness.confirmation.isOpen()).toBe(false);
+      expect(harness.model.restartGame).toHaveBeenCalledOnce();
     });
   });
 
   describe("actions that change nothing", () => {
     it("ignores picking the game already in play, which would deal a new one", async () => {
-      const h = buildLifecycle({ moves: 4 });
+      const harness = buildLifecycle({ moves: 4 });
 
-      await h.lifecycle.selectGame("klondike");
+      await harness.lifecycle.selectGame("klondike");
 
-      expect(h.catalog.select).not.toHaveBeenCalled();
-      expect(h.confirmation.isOpen()).toBe(false);
+      expect(harness.catalog.select).not.toHaveBeenCalled();
+      expect(harness.confirmation.isOpen()).toBe(false);
     });
 
     it("ignores setting a rule to the value it already has", async () => {
-      const h = buildLifecycle({ moves: 4 });
+      const harness = buildLifecycle({ moves: 4 });
 
-      await h.lifecycle.setRuleOption("drawCount", 3);
+      await harness.lifecycle.setRuleOption("drawCount", 3);
 
-      expect(h.catalog.setOption).not.toHaveBeenCalled();
-      expect(h.confirmation.isOpen()).toBe(false);
+      expect(harness.catalog.setOption).not.toHaveBeenCalled();
+      expect(harness.confirmation.isOpen()).toBe(false);
     });
   });
 
   describe("undo", () => {
     it("takes the move back on the game", () => {
-      const h = buildLifecycle({ undoDepth: 2 });
+      const harness = buildLifecycle({ undoDepth: 2 });
 
-      h.lifecycle.undo();
+      harness.lifecycle.undo();
 
-      expect(h.model.undo).toHaveBeenCalledOnce();
+      expect(harness.model.undo).toHaveBeenCalledOnce();
     });
 
     it("does nothing when there is nothing to take back", () => {
-      const h = buildLifecycle({ undoDepth: 0 });
+      const harness = buildLifecycle({ undoDepth: 0 });
 
-      h.lifecycle.undo();
+      harness.lifecycle.undo();
 
-      expect(h.model.undo).not.toHaveBeenCalled();
+      expect(harness.model.undo).not.toHaveBeenCalled();
     });
   });
 
   describe("after a game is dealt afresh", () => {
     it("clears the won flag, so the victory card goes away", async () => {
-      const h = buildLifecycle();
-      h.model.emit("game-won");
+      const harness = buildLifecycle();
+      harness.model.emit("game-won");
       TestBed.flushEffects();
 
-      await h.lifecycle.startNewGame();
+      await harness.lifecycle.startNewGame();
 
-      expect(h.metrics.isGameWon()).toBe(false);
+      expect(harness.metrics.isGameWon()).toBe(false);
     });
   });
 });

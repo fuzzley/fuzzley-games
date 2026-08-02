@@ -1,7 +1,11 @@
+<!--
+  The board is the routed view: which game is on the table is the whole of
+  this application's navigable state.
+-->
 <div class="board-area" [class.rail-expanded]="menu.isExpanded()">
-  <app-game-canvas />
+  <router-outlet />
 </div>
-<div class="ui-overlay" [class]="theme.currentBgClass()">
+<div class="ui-overlay">
   <app-header-bar (openSettings)="openSettings()" />
   <app-game-menu />
   <app-settings-drawer [open]="showSettings()" (closed)="closeSettings()" />

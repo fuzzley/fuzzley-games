@@ -28,7 +28,7 @@ describe("ThemeService", () => {
     const service = buildService(presentation);
 
     expect(service.selectedTheme()).toBe("green");
-    expect(service.currentBgClass()).toBe("theme-green");
+    expect(service.currentColor()).toBe("#0f4d0e");
   });
 
   it("applies the default theme color on load", () => {
@@ -47,7 +47,7 @@ describe("ThemeService", () => {
     const service = buildService(presentation);
 
     expect(service.selectedTheme()).toBe("purple");
-    expect(service.currentBgClass()).toBe("theme-purple");
+    expect(service.currentColor()).toBe("#3c096c");
   });
 
   it("pushes the selected theme color to the presentation settings", () => {

@@ -1,10 +1,7 @@
-import {
-  DestroyRef,
-  Injectable,
-  computed,
-  inject,
-  signal,
-} from "@angular/core";
+import { Injectable, computed, inject, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { NavigationEnd, Router } from "@angular/router";
+import { filter } from "rxjs";
 import {
   CatalogEntry,
   CatalogSession,
@@ -22,13 +19,6 @@ const OPTIONS_STORAGE_KEY = "fsolitaire-game-options";
 /** The chosen rule options for every game, by game id. */
 type StoredOptions = Record<string, GameOptionValues>;
 
-/** The game named by the URL fragment, or null when it names nothing known. */
-function gameFromHash(): string | null {
-  if (typeof location === "undefined") return null;
-  const id = location.hash.replace(/^#/, "");
-  return GAME_CATALOG.some((entry) => entry.id === id) ? id : null;
-}
-
 /**
  * Owns which game is on the table, and the dealt session of it.
  *
@@ -37,30 +27,31 @@ function gameFromHash(): string | null {
  * and everything downstream — the header's score, the board on the canvas —
  * follows the signal to it.
  *
- * The choice is mirrored into the URL fragment, so a game is linkable and the
- * back button moves between games rather than out of the application.
+ * The choice is a route, so a game is linkable and the back button moves
+ * between games rather than out of the application. This used to be done by
+ * hand — a constructor assigning `location.hash` and a `hashchange` listener
+ * reading it back — which meant every spec that touched the catalog had to
+ * reset the fragment first.
  */
 @Injectable({ providedIn: "root" })
 export class GameCatalogService {
-  private readonly destroyRef = inject(DestroyRef);
   private readonly storage = inject(LocalStorageService);
+  private readonly router = inject(Router);
 
   /** Every game that can be played, in the order they are offered. */
   readonly games: readonly CatalogEntry[] = GAME_CATALOG;
 
   /**
-   * The game to open on.
+   * The game to open on when the URL names none.
    *
-   * The URL wins, so a link to `#spider` opens Spider whatever was last
-   * played; otherwise the last game played, and otherwise the first in the
-   * catalog. Resolved once here rather than by three calls to a helper, which
-   * is what it was before and which read storage three times to do it.
+   * The last game played, and otherwise the first in the catalog. Read by the
+   * empty-path redirect in the route table, which is where "the URL names
+   * none" is decided.
    */
-  private readonly initialId = catalogEntry(
-    gameFromHash() ?? this.storage.readString(STORAGE_KEY),
-  ).id;
+  readonly initialGameId = catalogEntry(this.storage.readString(STORAGE_KEY))
+    .id;
 
-  private readonly selectedIdSignal = signal<string>(this.initialId);
+  private readonly selectedIdSignal = signal<string>(this.initialGameId);
 
   /** The id of the game currently on the table. */
   readonly selectedId = this.selectedIdSignal.asReadonly();
@@ -71,8 +62,8 @@ export class GameCatalogService {
   );
 
   private readonly sessionSignal = signal<CatalogSession>(
-    catalogEntry(this.initialId).create(
-      this.optionsSignal()[this.initialId] ?? {},
+    catalogEntry(this.initialGameId).create(
+      this.optionsSignal()[this.initialGameId] ?? {},
     ),
   );
 
@@ -162,22 +153,27 @@ export class GameCatalogService {
   }
 
   constructor() {
-    // Reflect the game the application actually opened on, so the URL is right
-    // even when it was chosen from storage or fell back to the default.
-    this.writeHash(this.selectedIdSignal());
+    // Follow the URL. This is what makes the back button move between games,
+    // and what puts a pasted link on the right board.
+    //
+    // A navigation this service started itself arrives here naming the game
+    // already in play and falls straight out of `applySelection`, so there is
+    // no loop to break.
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => {
+        const id = this.gameIdFromUrl();
+        if (id) this.applySelection(id);
+      });
+  }
 
-    if (typeof window === "undefined") return;
-    // Following the fragment is what makes the back button move between games.
-    // A hash this service wrote itself resolves to the game already in play and
-    // falls straight out of `select`, so there is no loop to break.
-    const onHashChange = () => {
-      const id = gameFromHash();
-      if (id) this.select(id);
-    };
-    window.addEventListener("hashchange", onHashChange);
-    this.destroyRef.onDestroy(() => {
-      window.removeEventListener("hashchange", onHashChange);
-    });
+  /** The game the current URL names, or null when it names nothing known. */
+  private gameIdFromUrl(): string | null {
+    const id = this.router.url.split(/[/?#]/).filter(Boolean)[0];
+    return GAME_CATALOG.some((entry) => entry.id === id) ? id : null;
   }
 
   /** The catalog entry currently selected. */
@@ -186,30 +182,42 @@ export class GameCatalogService {
   }
 
   /**
-   * Puts a different game on the table, dealt and ready.
+   * Puts a different game on the table, dealt and ready, and routes to it.
    *
    * Selecting the game already in play is ignored rather than dealing a fresh
    * one: choosing "Klondike" from the menu while playing Klondike should not
    * throw the game away. "New Game" is what does that.
    *
+   * The board changes here rather than waiting for the navigation to land.
+   * Routing is how the choice is *recorded* — linkable, and on the back stack
+   * — but a player who has just clicked "Spider" should not be looking at
+   * Klondike until a promise resolves.
+   *
    * @param id The id of the game to play.
    */
   select(id: string): void {
     const entry = catalogEntry(id);
-    if (entry.id === this.selectedIdSignal()) {
-      return;
-    }
+    if (entry.id === this.selectedIdSignal()) return;
+
+    this.applySelection(entry.id);
+    void this.router.navigate([entry.id]);
+  }
+
+  /**
+   * Deals the named game and makes it the one on the table.
+   *
+   * The half of {@link select} that does not touch the URL, so a navigation
+   * arriving from the back button or a pasted link does not bounce back out
+   * to the router.
+   */
+  private applySelection(id: string): void {
+    const entry = catalogEntry(id);
+    if (entry.id === this.selectedIdSignal()) return;
 
     this.selectedIdSignal.set(entry.id);
     this.sessionSignal.set(
       entry.create(this.valuesFor(entry.id, this.optionsSignal())),
     );
     this.storage.writeString(STORAGE_KEY, entry.id);
-    this.writeHash(entry.id);
-  }
-
-  private writeHash(id: string): void {
-    if (typeof location === "undefined" || location.hash === `#${id}`) return;
-    location.hash = id;
   }
 }
