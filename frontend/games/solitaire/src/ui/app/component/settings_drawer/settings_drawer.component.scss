@@ -1,0 +1,181 @@
+@use "../../styles" as *;
+
+// No backdrop element and no z-index: the surrounding <app-modal-dialog> is a
+// native <dialog>, which paints the scrim, traps focus, closes on Escape and
+// makes the board behind it inert — none of which this drawer used to do.
+//
+// `margin-left: auto` inside the dialog's centring flexbox is what pins the
+// panel to the right edge without taking it out of flow.
+.drawer {
+  @include glass(20px);
+  width: 320px;
+  max-width: 100vw;
+  box-sizing: border-box;
+  height: 100dvh;
+  margin-left: auto;
+  background: var(--surface-panel);
+  border-left: 1px solid var(--border-default);
+  box-shadow: var(--shadow-drawer);
+  display: flex;
+  flex-direction: column;
+  color: var(--text-body);
+  user-select: none;
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--border-default);
+
+  h2 {
+    font-size: var(--font-xl);
+    font-weight: 700;
+    margin: 0;
+  }
+}
+
+.btn-close {
+  @include icon-button(var(--radius-sm));
+}
+
+.close-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.drawer-content {
+  flex: 1;
+  padding: var(--space-6);
+  overflow-y: auto;
+}
+
+.setting-group {
+  margin-bottom: var(--space-6);
+}
+
+.setting-label {
+  @include field-label;
+}
+
+// --- Card back selector ---
+
+.card-back-selector {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.card-back-option {
+  @include transition(background, border-color, color);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--wash-faint);
+  border: 2px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  cursor: pointer;
+  color: var(--text-muted);
+
+  &:hover {
+    background: var(--wash-subtle);
+    border-color: var(--border-strong);
+  }
+
+  &[aria-checked="true"] {
+    background: var(--accent-wash);
+    border-color: var(--accent);
+    color: var(--text-bright);
+  }
+}
+
+.card-back-preview {
+  width: 48px;
+  height: 68px;
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-2);
+  box-shadow: var(--shadow-swatch);
+}
+
+// The two previews are the same weave in two colourways, so the pattern is
+// described once and handed the pair of tokens it should draw with.
+@mixin dot-weave($base, $dot) {
+  background-color: $base;
+  background-image:
+    radial-gradient(circle, $dot 20%, transparent 20%),
+    radial-gradient(circle, $dot 20%, transparent 20%);
+  background-size: 8px 8px;
+  background-position:
+    0 0,
+    4px 4px;
+  border: 1px solid var(--border-vivid);
+}
+
+.blue-pattern {
+  @include dot-weave(var(--card-back-blue-base), var(--card-back-blue-dot));
+}
+
+.red-pattern {
+  @include dot-weave(var(--card-back-red-base), var(--card-back-red-dot));
+}
+
+// --- Theme selector ---
+
+.theme-selector {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.theme-option {
+  @include transition(transform, border-color);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  position: relative;
+  box-shadow: var(--shadow-swatch);
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  &[aria-checked="true"] {
+    border-color: var(--text-bright);
+    transform: scale(1.05);
+  }
+}
+
+.theme-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background-color: var(--text-bright);
+  border-radius: 50%;
+}
+
+.theme-name {
+  margin-top: var(--space-2);
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  line-height: var(--leading-tight);
+}
+
+.drawer-footer {
+  padding: var(--space-6);
+  border-top: 1px solid var(--border-default);
+}
+
+@include below("phone") {
+  .drawer-header,
+  .drawer-content,
+  .drawer-footer {
+    padding: var(--space-4);
+  }
+}

@@ -1,0 +1,18 @@
+// The global stylesheet — the only one loaded outside a component, from
+// `main.ts`.
+//
+// It holds the three kinds of rule that cannot live in a component:
+//
+//   - the design tokens, which every component reads with `var()`;
+//   - the document reset, the focus ring and the button system, which are worn
+//     by markup in several components at once and so cannot be scoped to any
+//     one of them;
+//   - every `@keyframes`, whose names are global no matter where they are
+//     written.
+//
+// Everything else belongs to a component. If a rule here only ever matches one
+// component's markup, it is in the wrong file.
+@use "tokens";
+@use "base";
+@use "buttons";
+@use "animations";

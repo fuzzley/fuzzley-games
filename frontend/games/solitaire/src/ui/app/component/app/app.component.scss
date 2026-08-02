@@ -1,0 +1,38 @@
+@use "../../styles" as *;
+
+// The board lays itself out beside the game rail rather than under it, so the
+// leftmost column is never hidden. ViewportScaler watches this box, so
+// expanding the rail re-lays the board out rather than leaving it overflowing.
+//
+// The widths come from the shared layout tokens, which is also where the rail
+// itself reads them: the inset and the thing it insets past cannot drift.
+.board-area {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  padding-left: var(--rail-collapsed-width);
+
+  &.rail-expanded {
+    padding-left: var(--rail-expanded-width);
+  }
+}
+
+// Narrow screens: the rail keeps its collapsed strip beside the board and its
+// open panel floats over the top, so the board's width does not change when
+// the menu is opened and the stock is never covered. The token already narrows
+// at this breakpoint; only the expanded case needs overriding.
+@include below("tablet") {
+  .board-area.rail-expanded {
+    padding-left: var(--rail-collapsed-width);
+  }
+}
+
+.ui-overlay {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  pointer-events: none;
+}

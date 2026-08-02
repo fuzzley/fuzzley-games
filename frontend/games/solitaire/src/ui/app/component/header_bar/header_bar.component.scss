@@ -1,0 +1,151 @@
+@use "../../styles" as *;
+
+.header-bar {
+  @include glass(12px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: var(--header-height);
+  box-sizing: border-box;
+  padding: var(--space-3) var(--space-6);
+  background: var(--surface-panel-translucent);
+  border-bottom: 1px solid var(--border-default);
+  box-shadow: var(--shadow-panel);
+  pointer-events: auto;
+  color: var(--text-primary);
+  user-select: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+}
+
+.brand-text {
+  @include gradient-text(var(--accent-sky), var(--accent-violet));
+  font-size: var(--font-2xl);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.metrics {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--wash-subtle);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  min-width: 90px;
+  padding: var(--space-1) var(--space-4);
+
+  .label {
+    font-size: var(--font-2xs);
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 2px;
+  }
+
+  .value {
+    font-size: var(--font-lg);
+    font-weight: 700;
+    font-family: monospace;
+    color: var(--text-primary);
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+
+  // Every action in here is a hit target before it is a decoration, so all of
+  // them clear the platform minimum whether or not they are showing a label.
+  .btn,
+  .btn-circle {
+    @include tap-target;
+  }
+}
+
+// Four labelled actions need a wide header. Below this the labels go and the
+// buttons become icon circles, which is roomier than letting them crowd the
+// metrics — and well above the point where they would start wrapping.
+@include below("desktop") {
+  .actions .btn {
+    padding: var(--space-2);
+    justify-content: center;
+    border-radius: 50%;
+
+    .btn-text {
+      display: none;
+    }
+
+    .btn-icon {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+    }
+  }
+}
+
+@include below("tablet") {
+  .header-bar {
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .brand-text {
+    font-size: var(--font-xl);
+  }
+
+  .metrics {
+    gap: var(--space-2);
+  }
+
+  .metric-card {
+    min-width: 70px;
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .actions {
+    gap: var(--space-2);
+  }
+}
+
+@include below("phone") {
+  .header-bar {
+    padding: var(--space-2);
+  }
+
+  .brand-text {
+    font-size: var(--font-lg);
+  }
+
+  .metrics {
+    gap: var(--space-1);
+  }
+
+  .metric-card {
+    min-width: 48px;
+    padding: var(--space-1);
+
+    .label {
+      font-size: var(--font-2xs);
+      letter-spacing: 0.05em;
+    }
+
+    .value {
+      font-size: var(--font-md);
+    }
+  }
+
+  .actions {
+    gap: var(--space-1);
+  }
+}

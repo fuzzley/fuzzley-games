@@ -1,0 +1,28 @@
+// --- Document reset ---
+// The app fills the viewport: the game canvas host inside it sizes itself to
+// 100% height, which only resolves if every ancestor does too.
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+app-root {
+  display: block;
+  height: 100%;
+}
+
+// --- Focus ---
+// A single visible ring for keyboard users, on everything focusable. The
+// button rules deliberately do not clear their outline: removing the focus
+// indicator without replacing it is WCAG 2.4.7, and it is the reason this
+// block exists rather than a per-component :focus rule.
+//
+// :focus-visible rather than :focus, so a mouse click does not leave a ring
+// behind on a button that was only pressed.
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}

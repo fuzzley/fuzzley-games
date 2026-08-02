@@ -59,7 +59,7 @@ describe("VictoryOverlayComponent", () => {
   it("deals a new game when Play Again is clicked", async () => {
     win();
 
-    clickElement(fixture, ".btn-gradient");
+    clickElement(fixture, ".btn-warning");
     await flushMicrotasks();
 
     expect(harness.model.startNewGame).toHaveBeenCalledOnce();

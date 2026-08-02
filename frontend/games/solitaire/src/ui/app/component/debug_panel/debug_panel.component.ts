@@ -14,7 +14,7 @@ import { OptionGroupComponent } from "../option_group/option_group.component";
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [OptionGroupComponent],
   templateUrl: "./debug_panel.component.html",
-  styleUrl: "./debug_panel.component.css",
+  styleUrl: "./debug_panel.component.scss",
 })
 export class DebugPanelComponent {
   protected readonly catalog = inject(GameCatalogService);

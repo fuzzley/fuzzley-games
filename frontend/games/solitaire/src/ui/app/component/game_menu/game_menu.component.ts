@@ -18,7 +18,7 @@ import { GameMenuService } from "../../service/game_menu.service";
   selector: "app-game-menu",
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./game_menu.component.html",
-  styleUrl: "./game_menu.component.css",
+  styleUrl: "./game_menu.component.scss",
 })
 export class GameMenuComponent {
   protected readonly catalog = inject(GameCatalogService);

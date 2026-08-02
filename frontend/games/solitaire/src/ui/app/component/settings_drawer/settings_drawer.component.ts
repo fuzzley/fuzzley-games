@@ -43,7 +43,7 @@ interface ThemeSwatch {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DebugPanelComponent, OptionGroupComponent, ModalDialogComponent],
   templateUrl: "./settings_drawer.component.html",
-  styleUrl: "./settings_drawer.component.css",
+  styleUrl: "./settings_drawer.component.scss",
 })
 export class SettingsDrawerComponent {
   protected readonly catalog = inject(GameCatalogService);

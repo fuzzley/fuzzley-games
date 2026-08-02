@@ -17,7 +17,7 @@ import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ModalDialogComponent],
   templateUrl: "./victory_overlay.component.html",
-  styleUrl: "./victory_overlay.component.css",
+  styleUrl: "./victory_overlay.component.scss",
 })
 export class VictoryOverlayComponent {
   protected readonly metrics = inject(GameMetricsService);

@@ -1,0 +1,59 @@
+@use "sass:color";
+
+// Source colours — the only place in the application a hue is typed out.
+//
+// Nothing outside this folder reads these. Components read the custom
+// properties in `_tokens.scss`, which give each of them a name describing the
+// role it plays rather than the colour it is. What this file buys is that the
+// five surfaces cut from slate-900 at five different opacities are five
+// references to one value instead of five hand-written `rgba()` triples that
+// have to be found and edited together.
+//
+// The ramps are Tailwind's, which is where the original literals came from.
+
+$black: #000000;
+$white: #ffffff;
+
+$slate-50: #f8fafc;
+$slate-100: #f1f5f9;
+$slate-200: #e2e8f0;
+$slate-300: #cbd5e1;
+$slate-400: #94a3b8;
+$slate-700: #334155;
+$slate-800: #1e293b;
+$slate-900: #0f172a;
+
+$blue-400: #60a5fa;
+$blue-500: #3b82f6;
+$blue-600: #2563eb;
+$blue-900: #1e3a8a;
+
+$sky-400: #38bdf8;
+$sky-500: #0ea5e9;
+
+$purple-500: #a855f7;
+
+$red-400: #f87171;
+$red-500: #ef4444;
+$red-600: #dc2626;
+$red-900: #7f1d1d;
+
+$amber-400: #fbbf24;
+$amber-500: #f59e0b;
+$amber-600: #d97706;
+
+// The board itself. `felt` is the default table colour the Phaser side paints
+// (see engine/render/presentation.ts); `felt-shade` is the darker green the
+// loading overlay lays over it while the board builds.
+$felt: #0f4d0e;
+$felt-shade: #0c2d19;
+
+/// A source colour at a given opacity.
+///
+/// `color.change` rather than the older `rgba($colour, $opacity)` form: it is
+/// the interface Sass intends to keep, and it reads as what it does. Named
+/// `with-alpha` rather than `alpha` so as not to shadow Sass's own global
+/// `alpha()`, which reads an opacity rather than setting one.
+@function with-alpha($color, $opacity) {
+  @return color.change($color, $alpha: $opacity);
+}

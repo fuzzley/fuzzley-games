@@ -15,7 +15,7 @@ import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ModalDialogComponent],
   templateUrl: "./confirmation_dialog.component.html",
-  styleUrl: "./confirmation_dialog.component.css",
+  styleUrl: "./confirmation_dialog.component.scss",
 })
 export class ConfirmationDialogComponent {
   protected readonly confirmation = inject(ConfirmationService);
