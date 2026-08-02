@@ -1,20 +1,31 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from "vitest";
 import { TestBed } from "@angular/core/testing";
+import { provideRouter, withHashLocation } from "@angular/router";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { GAME_CATALOG } from "@/ui/app/provider/game_catalog";
 
+/*
+ * The real documentation, deliberately: this spec is about whether the shipped
+ * rules cover the shipped games, so a fake registry would have nothing to say.
+ * The component that renders it uses a fake — see test/support/ui.
+ */
 describe("GameDocumentationService", () => {
   let service: GameDocumentationService;
   let catalog: GameCatalogService;
 
   beforeEach(() => {
     localStorage.clear();
-    location.hash = "";
 
     TestBed.configureTestingModule({
-      providers: [GameDocumentationService, GameCatalogService],
+      providers: [
+        // A route per game, so selecting one has somewhere to navigate.
+        provideRouter(
+          GAME_CATALOG.map((entry) => ({ path: entry.id, children: [] })),
+          withHashLocation(),
+        ),
+      ],
     });
 
     service = TestBed.inject(GameDocumentationService);

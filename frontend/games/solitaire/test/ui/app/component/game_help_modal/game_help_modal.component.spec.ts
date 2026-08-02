@@ -3,32 +3,25 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { GameHelpModalComponent } from "@/ui/app/component/game_help_modal/game_help_modal.component";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
-import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
+import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import {
   queryRequired,
   queryText,
   clickElement,
   query,
 } from "@test/support/dom";
-import { isDialogOpen, pressEscape } from "@test/support/dialog";
+import { clickBackdrop, isDialogOpen, pressEscape } from "@test/support/dialog";
 
 describe("GameHelpModalComponent", () => {
   let fixture: ComponentFixture<GameHelpModalComponent>;
   let docService: GameDocumentationService;
-  let catalogService: GameCatalogService;
+  let harness: UiHarness;
 
   beforeEach(async () => {
-    localStorage.clear();
-    location.hash = "";
-
-    await TestBed.configureTestingModule({
-      imports: [GameHelpModalComponent],
-      providers: [GameDocumentationService, GameCatalogService],
-    }).compileComponents();
+    harness = await configureUiTestBed(GameHelpModalComponent);
 
     fixture = TestBed.createComponent(GameHelpModalComponent);
     docService = TestBed.inject(GameDocumentationService);
-    catalogService = TestBed.inject(GameCatalogService);
     fixture.detectChanges();
   });
 
@@ -43,16 +36,25 @@ describe("GameHelpModalComponent", () => {
     return queryRequired(fixture, `[data-tab="${name}"]`);
   }
 
+  /** Which tab is currently selected. */
+  function selectedTab(): string | null {
+    return (
+      query(fixture, '[role="tab"][aria-selected="true"]')?.getAttribute(
+        "data-tab",
+      ) ?? null
+    );
+  }
+
   describe("showing and hiding", () => {
     it("stays closed until help is asked for", () => {
       expect(isDialogOpen(fixture)).toBe(false);
     });
 
-    it("opens when help is asked for", () => {
+    it("opens on the documentation for the game on the table", () => {
       openHelp();
 
       expect(isDialogOpen(fixture)).toBe(true);
-      expect(queryText(fixture, ".game-title").length).toBeGreaterThan(0);
+      expect(queryText(fixture, ".game-title")).toBe("Test Klondike");
     });
 
     it("closes when the close button is clicked", () => {
@@ -77,7 +79,7 @@ describe("GameHelpModalComponent", () => {
     it("closes when the backdrop outside the panel is clicked", () => {
       openHelp();
 
-      queryRequired<HTMLDialogElement>(fixture, "dialog").click();
+      clickBackdrop(fixture);
       fixture.detectChanges();
 
       expect(docService.isOpen()).toBe(false);
@@ -98,14 +100,24 @@ describe("GameHelpModalComponent", () => {
 
       expect(docService.isOpen()).toBe(false);
     });
+
+    it("says so for a game with no documentation written yet", () => {
+      harness.catalog.catalog.select("scorpion");
+      openHelp();
+
+      expect(queryText(fixture, ".callout-title")).toContain(
+        "Documentation Unavailable",
+      );
+    });
   });
 
   describe("focus", () => {
     it("moves focus into the dialog when it opens", () => {
       openHelp();
 
-      const dialog = queryRequired(fixture, "dialog");
-      expect(dialog.contains(document.activeElement)).toBe(true);
+      expect(
+        queryRequired(fixture, "dialog").contains(document.activeElement),
+      ).toBe(true);
     });
 
     it("lands on the close button rather than the outbound Wikipedia link", () => {
@@ -134,9 +146,9 @@ describe("GameHelpModalComponent", () => {
     it("opens on the summary tab", () => {
       openHelp();
 
-      expect(tab("overview").getAttribute("aria-selected")).toBe("true");
-      expect(queryText(fixture, ".callout-title")).toContain(
-        "Objective & Win Condition",
+      expect(selectedTab()).toBe("overview");
+      expect(queryText(fixture, ".objective-text")).toContain(
+        "Move every card to the foundations.",
       );
     });
 
@@ -146,12 +158,28 @@ describe("GameHelpModalComponent", () => {
       clickElement(fixture, '[data-tab="rules"]');
       fixture.detectChanges();
 
-      expect(tab("rules").getAttribute("aria-selected")).toBe("true");
-      expect(queryText(fixture, ".rules-grid")).toContain("Board Layout");
+      expect(selectedTab()).toBe("rules");
+      expect(queryText(fixture, ".rules-grid")).toContain(
+        "Seven tableau columns.",
+      );
+    });
+
+    it("explains each choice on the variants tab", () => {
+      openHelp();
+
+      clickElement(fixture, '[data-tab="variants"]');
+      fixture.detectChanges();
+
+      // Joined to the catalog: the label comes from the rule the game
+      // declares, the explanation from the documentation.
+      expect(queryText(fixture, ".choice-badge")).toBe("Draw 1");
+      expect(queryText(fixture, ".choice-effect")).toBe(
+        "Turns one card at a time.",
+      );
     });
 
     it("offers no variants tab for a game with no options", () => {
-      catalogService.select("freecell");
+      harness.catalog.catalog.select("freecell");
       openHelp();
 
       expect(query(fixture, '[data-tab="variants"]')).toBeNull();
@@ -159,27 +187,35 @@ describe("GameHelpModalComponent", () => {
 
     it("moves to the next tab on ArrowRight", () => {
       openHelp();
-      tab("overview").focus();
 
       tab("overview").dispatchEvent(
         new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }),
       );
       fixture.detectChanges();
 
-      expect(tab("rules").getAttribute("aria-selected")).toBe("true");
+      expect(selectedTab()).toBe("rules");
     });
 
     it("wraps to the last tab on ArrowLeft from the first", () => {
-      catalogService.select("klondike");
       openHelp();
-      tab("overview").focus();
 
       tab("overview").dispatchEvent(
         new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }),
       );
       fixture.detectChanges();
 
-      expect(tab("variants").getAttribute("aria-selected")).toBe("true");
+      expect(selectedTab()).toBe("variants");
+    });
+
+    it("moves focus to the tab it selects", () => {
+      openHelp();
+
+      tab("overview").dispatchEvent(
+        new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }),
+      );
+      fixture.detectChanges();
+
+      expect(document.activeElement).toBe(tab("rules"));
     });
 
     it("keeps the tablist to one tab stop, as a tablist should", () => {
@@ -200,19 +236,18 @@ describe("GameHelpModalComponent", () => {
 
       openHelp();
 
-      expect(tab("overview").getAttribute("aria-selected")).toBe("true");
+      expect(selectedTab()).toBe("overview");
     });
 
     it("falls back to summary when the new game lacks the tab that was open", () => {
-      catalogService.select("klondike");
       openHelp();
       clickElement(fixture, '[data-tab="variants"]');
       docService.closeHelp();
-      catalogService.select("freecell");
+      harness.catalog.catalog.select("freecell");
 
       openHelp();
 
-      expect(tab("overview").getAttribute("aria-selected")).toBe("true");
+      expect(selectedTab()).toBe("overview");
     });
   });
 
@@ -254,12 +289,28 @@ describe("GameHelpModalComponent", () => {
     });
   });
 
-  it("links out to Wikipedia when the documentation has an article", () => {
-    catalogService.select("klondike");
-    openHelp();
+  describe("the Wikipedia link", () => {
+    it("is offered when the documentation names an article", () => {
+      openHelp();
 
-    expect(query(fixture, ".wiki-badge")?.getAttribute("href")).toContain(
-      "wikipedia.org",
-    );
+      expect(query(fixture, ".wiki-badge")?.getAttribute("href")).toContain(
+        "wikipedia.org",
+      );
+    });
+
+    it("opens safely, without handing the new tab an opener", () => {
+      openHelp();
+
+      expect(query(fixture, ".wiki-badge")?.getAttribute("rel")).toContain(
+        "noopener",
+      );
+    });
+
+    it("is absent when the documentation names none", () => {
+      harness.catalog.catalog.select("freecell");
+      openHelp();
+
+      expect(query(fixture, ".wiki-badge")).toBeNull();
+    });
   });
 });

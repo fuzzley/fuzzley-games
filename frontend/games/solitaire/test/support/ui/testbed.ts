@@ -3,6 +3,8 @@ import { Type } from "@angular/core";
 import { provideRouter } from "@angular/router";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
+import { GAME_DOCUMENTATION } from "@/ui/app/provider/game_documentation_data";
+import { TEST_DOCUMENTATION } from "./documentation_mock";
 import {
   createMockGameModel,
   type MockGameModel,
@@ -55,6 +57,8 @@ export async function configureUiTestBed(
         provide: PresentationSettingsService,
         useValue: asPresentation(presentation),
       },
+      // Test prose, so a spec never fails because a rules page was reworded.
+      { provide: GAME_DOCUMENTATION, useValue: TEST_DOCUMENTATION },
     ],
   }).compileComponents();
 
