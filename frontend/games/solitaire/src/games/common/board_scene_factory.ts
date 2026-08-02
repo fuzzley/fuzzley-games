@@ -14,11 +14,9 @@ import {
 } from "@/engine/tableau/view/table_view_builder";
 
 /** What a board needs of the game it draws, beyond the board itself. */
-export interface TableBoardOptions<
-  EventMap extends Record<string, unknown> & { "game-reset": undefined },
-> {
+export interface TableBoardOptions {
   /** The game to draw. */
-  readonly game: TableGame<EventMap>;
+  readonly game: TableGame;
   /** Where its piles sit. */
   readonly layout: TableLayoutSpec;
   /** What a press or a drop means in it. */
@@ -37,13 +35,10 @@ export interface TableBoardOptions<
  * drop, hand the lot to a {@link BoardScene}. A game supplies the three things
  * that actually differ and the engine does the rest.
  *
- * Constrained on the event map rather than on a game class so it stays honest
- * about what it uses: a board follows new deals and nothing else, so any game
- * that announces one can be drawn.
+ * Takes any {@link TableGame} rather than a particular game class: a board
+ * follows new deals and nothing else, and every table game announces those.
  */
-export function makeTableBoardScene<
-  EventMap extends Record<string, unknown> & { "game-reset": undefined },
->(options: TableBoardOptions<EventMap>): BoardScene {
+export function makeTableBoardScene(options: TableBoardOptions): BoardScene {
   const { game, layout, handleIntent, presentation, onReady } = options;
   const measure = (viewport: Viewport) => measureTable(layout, viewport);
 

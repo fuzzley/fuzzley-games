@@ -2,14 +2,11 @@ import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
+import { DealtTableGame } from "@/engine/tableau/dealt_game";
+import { DeckSource } from "@/engine/tableau/deck_source";
 import { AppliedMove } from "@/engine/tableau/move";
-import {
-  MoveEffects,
-  ResolvedMove,
-  TableGame,
-} from "@/engine/tableau/table_game";
-import { Dealer } from "./dealer";
-import { GameEvents } from "./game_events";
+import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
+import { dealKlondikeAlmostWin, dealKlondikeLayout } from "./dealer";
 import { GameSettings } from "./game_settings";
 import {
   KlondikeRole,
@@ -23,11 +20,12 @@ import { ScoringPolicy } from "./scoring_policy";
  * A standard Klondike Solitaire game.
  *
  * Everything true of any solitaire — the piles, whether a move is legal, undo,
- * auto-move — comes from {@link TableGame}. What is left here is Klondike
- * itself: the stock with its draw and recycle, the bonus for turning over a
- * card a move exposed, the scoring, and when the game has been won.
+ * auto-move, the deal and restart cycle, the win — comes from
+ * {@link DealtTableGame}. What is left here is Klondike itself: the stock with
+ * its draw and recycle, the bonus for turning over a card a move exposed, and
+ * the scoring.
  */
-export class KlondikeGame extends TableGame<GameEvents> {
+export class KlondikeGame extends DealtTableGame {
   /** The face-down stock pile from which cards are drawn. */
   public readonly stock: CardPile<PlayingCard>;
   /** The face-up waste pile containing drawn cards. */
@@ -37,14 +35,10 @@ export class KlondikeGame extends TableGame<GameEvents> {
   /** The seven tableau piles arranged on the board. */
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
-  /** Observable user-configurable game settings. */
+  /** User-configurable game settings. */
   public readonly settings: GameSettings;
 
   private recycleCount = 0;
-  private initialDeck: PlayingCard[] = [];
-
-  /** Deals cards into the board's piles for new and restarted games. */
-  private readonly dealer: Dealer;
 
   /** The rules used to score moves, flips, and recycles. */
   private readonly scoring: ScoringPolicy;
@@ -66,17 +60,16 @@ export class KlondikeGame extends TableGame<GameEvents> {
     scoring: ScoringPolicy = new ScoringPolicy(),
     settings: GameSettings = new GameSettings(),
   ) {
-    const registry = new CardRegistry();
     super({
       zones: () => klondikeZoneSpecs(settings.drawCount),
-      registry,
+      deck: new DeckSource(new CardRegistry(), cardIds),
       // A foundation is always preferred over a column.
       autoMoveRoles: [KlondikeRole.FOUNDATION, KlondikeRole.TABLEAU],
+      winsWhenAllCardsIn: KlondikeRole.FOUNDATION,
     });
 
     this.settings = settings;
     this.scoring = scoring;
-    this.dealer = new Dealer(registry, cardIds);
 
     this.stock = this.requirePile(STOCK_PILE_ID);
     this.waste = this.requirePile(WASTE_PILE_ID);
@@ -87,60 +80,21 @@ export class KlondikeGame extends TableGame<GameEvents> {
   // --- Dealing ---
 
   /**
-   * Shuffles the main deck and deals the initial game board.
+   * Deals the opening board: tableau column i receives i+1 cards, with the top
+   * card face-up.
    *
-   * Tableau column i receives i+1 cards, with the top card face-up.
+   * @inheritDoc
    */
-  public startNewGame(): void {
-    this.beginGame(() => {
-      const deck = this.dealer.createShuffledDeck();
-      this.initialDeck = [...deck];
-      return deck;
-    });
-  }
-
-  /** Restarts the game using the exact same initial deck ordering. */
-  public restartGame(): void {
-    this.beginGame(() => this.reuseInitialDeck());
-  }
-
-  /**
-   * Resets the score, counters, and piles, then deals a fresh board. The deck
-   * source varies between a new game and a restart, so it is supplied by the
-   * caller; the almost-win debug board ignores it.
-   *
-   * @param createDeck Produces the deck to deal when not dealing an almost-win
-   *   board.
-   */
-  private beginGame(createDeck: () => PlayingCard[]): void {
-    this.state.score = 0;
-    this.state.moves = 0;
+  protected override dealBoard(deck: PlayingCard[]): void {
+    // Zeroed here rather than in a hook of its own: how many times the waste has
+    // been recycled is part of the board being dealt.
     this.recycleCount = 0;
-    this.clearHistory();
-    this.resetPiles();
 
     if (this.settings.debug.almostWin) {
-      this.dealer.dealAlmostWin(this.foundations, this.tableaus);
+      dealKlondikeAlmostWin(this.deck, this.foundations, this.tableaus);
     } else {
-      this.dealer.dealOpeningLayout(createDeck(), this.tableaus, this.stock);
+      dealKlondikeLayout(deck, this.tableaus, this.stock);
     }
-
-    this.emit("game-reset", undefined);
-  }
-
-  /**
-   * Returns the stored initial deck, all cards reset face-down, so a restart
-   * replays the exact same deal. Lazily creates and stores a deck the first
-   * time if no game has been dealt yet.
-   */
-  private reuseInitialDeck(): PlayingCard[] {
-    if (this.initialDeck.length === 0) {
-      this.initialDeck = [...this.dealer.createShuffledDeck()];
-    }
-    return this.initialDeck.map((card) => {
-      card.faceUp = false;
-      return card;
-    });
   }
 
   // --- The stock ---
@@ -254,11 +208,6 @@ export class KlondikeGame extends TableGame<GameEvents> {
   }
 
   /** @inheritDoc */
-  protected override afterMove(): void {
-    this.checkWinCondition();
-  }
-
-  /** @inheritDoc */
   protected override afterUndo(move: AppliedMove): void {
     if (move.kind === "recycle") {
       // So the next recycle is charged the same penalty this one was.
@@ -288,16 +237,5 @@ export class KlondikeGame extends TableGame<GameEvents> {
     topRemaining.faceUp = true;
     this.state.score += this.scoring.tableauFlipBonus();
     return topRemaining;
-  }
-
-  private checkWinCondition(): void {
-    let totalFoundationCards = 0;
-    for (const foundation of this.foundations) {
-      totalFoundationCards += foundation.size;
-    }
-
-    if (this.cardsInPlay > 0 && totalFoundationCards === this.cardsInPlay) {
-      this.emit("game-won", undefined);
-    }
   }
 }

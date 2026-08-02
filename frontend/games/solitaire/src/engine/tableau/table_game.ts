@@ -65,6 +65,22 @@ export const NO_MOVE_EFFECTS: MoveEffects = {
  */
 export type RelocationListener = (cardIds: readonly string[]) => void;
 
+/**
+ * The lifecycle events every table game publishes.
+ *
+ * One declaration rather than six identical ones. Every game announces exactly
+ * these two and nothing else, which is what lets {@link TableGame} emit them
+ * itself: a win is decided by counting cards, and a subclass that had to
+ * redeclare the event in order to be told about it would be paying for the
+ * privilege of receiving something the engine already knows.
+ */
+export type TableGameEvents = {
+  /** Emitted when every card in play has reached the winning role. */
+  "game-won": undefined;
+  /** Emitted when the game is restarted or a new game is dealt. */
+  "game-reset": undefined;
+};
+
 /** How to build a table game's board. */
 export interface TableGameOptions {
   /** The zones to create piles for, and the rules each pile plays by. */
@@ -77,6 +93,17 @@ export interface TableGameOptions {
    * free cell, then a column.
    */
   readonly autoMoveRoles: readonly PileRole[];
+  /**
+   * The role that holds every card once the game is won, or undefined for a
+   * game that is never won by gathering cards.
+   *
+   * Every solitaire here ends the same way — every card in play sitting in
+   * piles of one role — and each of them used to count that for itself, in
+   * three different spellings. Naming the role instead lets the engine check
+   * it after every action, which is also the only way a game whose *last* move
+   * is a follow-up rather than a player's move gets noticed at all.
+   */
+  readonly winsWhenAllCardsIn?: PileRole;
 }
 
 /**
@@ -92,7 +119,7 @@ export interface TableGameOptions {
  * has them adds them; FreeCell, which has no stock at all, simply does not.
  */
 export abstract class TableGame<
-  EventMap extends Record<string, unknown>,
+  EventMap extends Record<string, unknown> & TableGameEvents = TableGameEvents,
 > extends EventEmitter<EventMap> {
   /** Observable live game metrics (score, moves, undo depth). */
   public readonly state = new GameState();
@@ -115,12 +142,14 @@ export abstract class TableGame<
   private readonly zones: () => readonly ZoneSpec[];
   private readonly registry: CardRegistry;
   private readonly autoMoveRoles: readonly PileRole[];
+  private readonly winningRole?: PileRole;
 
   constructor(options: TableGameOptions) {
     super();
     this.zones = options.zones;
     this.registry = options.registry;
     this.autoMoveRoles = options.autoMoveRoles;
+    this.winningRole = options.winsWhenAllCardsIn;
 
     for (const zone of this.zones()) {
       const pile = new CardPile<PlayingCard>(
@@ -349,7 +378,34 @@ export abstract class TableGame<
     });
 
     this.afterMove(move);
+    this.checkWinCondition();
     return true;
+  }
+
+  /**
+   * Emits `game-won` if every card in play now sits in the winning role.
+   *
+   * Called after every move. A game that moves cards by some other route — a
+   * Spider row that completes the last run as it lands — calls it once that
+   * action is recorded.
+   *
+   * Counted against {@link cardsInPlay} rather than a hardcoded 52, so a short
+   * injected deck still reaches a coherent end, and guarded against an empty
+   * board so a game that has dealt nothing has not thereby won.
+   */
+  protected checkWinCondition(): void {
+    if (this.winningRole === undefined) {
+      return;
+    }
+
+    let collected = 0;
+    for (const pile of this.pilesOfRole(this.winningRole)) {
+      collected += pile.size;
+    }
+
+    if (this.cardsInPlay > 0 && collected === this.cardsInPlay) {
+      this.emit("game-won", undefined);
+    }
   }
 
   /**

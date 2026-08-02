@@ -10,9 +10,6 @@ import {
 import { anyCard, never } from "@/engine/tableau/rules";
 import { ZoneSpec } from "@/engine/tableau/zone";
 
-/** Events a bare table game has no need of. */
-type NoEvents = Record<string, never>;
-
 const LEFT = "left";
 const RIGHT = "right";
 const LOCKED = "locked";
@@ -38,7 +35,7 @@ function zone(id: string, overrides: Partial<ZoneSpec> = {}): ZoneSpec {
  * Exercising the runtime through a game this plain keeps these tests about
  * moves, undo and auto-move rather than about Klondike.
  */
-class TestGame extends TableGame<NoEvents> {
+class TestGame extends TableGame {
   /** Effects the next move should report, for the scoring and flip paths. */
   public nextEffects: MoveEffects | null = null;
   public movesSeen: ResolvedMove[] = [];
