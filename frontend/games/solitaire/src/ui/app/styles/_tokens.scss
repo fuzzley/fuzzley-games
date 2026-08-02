@@ -32,6 +32,9 @@
   // wordmark — and as a white flash on every load, before Phaser had painted.
   --table-felt: #{$felt};
 
+  // How dark the table gets at its edges. See the vignette in the game canvas.
+  --table-vignette: #{with-alpha($black, 0.38)};
+
   // --- Surfaces ---
   // Layered darks. `panel` is the chrome around the board, `raised` a card
   // sitting on it, `sunken` a well cut into one, `card` a bordered block
@@ -83,7 +86,6 @@
   --accent-strong: #{$blue-600};
   --accent-light: #{$blue-400};
   --accent-sky: #{$sky-400};
-  --accent-violet: #{$purple-500};
 
   --danger: #{$red-500};
   --danger-strong: #{$red-600};
@@ -170,6 +172,15 @@
   --leading-tight: 1.4;
   --leading-normal: 1.5;
   --leading-relaxed: 1.6;
+
+  // How wide a paragraph is allowed to get, in characters.
+  //
+  // The help modal is up to 1200px wide because its rules cards want the room,
+  // and the prose above them was inheriting it — running to about 137
+  // characters a line, roughly twice the width at which the eye reliably finds
+  // the start of the next one. `ch` rather than a pixel width so the measure
+  // follows the font size instead of only holding at one of them.
+  --measure-prose: 68ch;
 
   // --- Radii ---
   --radius-sm: 4px;
