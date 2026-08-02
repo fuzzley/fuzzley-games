@@ -3,6 +3,7 @@ import { makeBoardScene } from "@/ui/app/provider/board_catalog";
 import {
   CatalogEntry,
   GAME_CATALOG,
+  GameId,
   GameOptionSpec,
   GameOptionValues,
 } from "@/ui/app/provider/game_catalog";
@@ -104,9 +105,15 @@ describe("every game in the catalog", () => {
     (_name, entry, values) => {
       const { game } = entry.create(values);
 
-      expect(() => makeBoardScene(game, new TestPresentation())).not.toThrow();
+      expect(() =>
+        makeBoardScene(entry.id as GameId, game, new TestPresentation()),
+      ).not.toThrow();
     },
   );
+
+  it.each(DEALS)("%s declares the grid its board lies on", (_name, entry) => {
+    expect(entry.layout.slots.length).toBeGreaterThan(0);
+  });
 
   it.each(DEALS)("%s deals again on restart", (_name, entry, values) => {
     const { game } = entry.create(values);

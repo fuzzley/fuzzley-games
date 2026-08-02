@@ -1,6 +1,8 @@
 import { vi } from "vitest";
 import { signal } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
+import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
+import { FREECELL_LAYOUT } from "@/games/freecell/freecell_layout";
 import type { KlondikeGame } from "@/games/klondike/klondike_game";
 import type { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import type { GameCatalogService } from "@/ui/app/service/game_catalog.service";
@@ -152,15 +154,24 @@ export function createMockCatalog(model: MockGameModel) {
     almostWin: 0,
   });
 
+  const games = [
+    { id: "klondike", name: "Klondike", options, layout: KLONDIKE_LAYOUT },
+    { id: "freecell", name: "FreeCell", options: [], layout: FREECELL_LAYOUT },
+  ];
+
   return {
-    games: [
-      { id: "klondike", name: "Klondike" },
-      { id: "freecell", name: "FreeCell" },
-    ],
+    games,
     selectedId,
     session,
     options: signal(options),
     optionValues: values,
+    // A real entry rather than a stub: the game canvas reads its layout to
+    // draw the loading skeleton, and a mock that omitted this used to leave
+    // that undefined at runtime with nothing to catch it.
+    get selectedEntry() {
+      return games.find((game) => game.id === selectedId()) ?? games[0];
+    },
+    optionSpec: (id: string) => options.find((option) => option.id === id),
     valueOf: (id: string) => values()[id] ?? null,
     select: vi.fn((id: string) => {
       selectedId.set(id);

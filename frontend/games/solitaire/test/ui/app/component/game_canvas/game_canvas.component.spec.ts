@@ -6,17 +6,25 @@ import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
 import { query, queryAll, queryText } from "@test/support/dom";
 
-/** Records every game the component constructs, and what it was handed. */
-const started: {
+/** One Phaser host the component built, and what it was handed. */
+interface StartedHost {
   parent: HTMLElement;
   destroyed: boolean;
   makeScene: () => void;
-}[] = [];
+}
 
+/**
+ * The hosts started so far, and the ready callback the board was given.
+ *
+ * Module state, because `vi.mock` factories are hoisted above everything and
+ * cannot close over anything declared per-test. Reset in `beforeEach`.
+ */
+const started: StartedHost[] = [];
 let readyCallback: (() => void) | undefined;
 
 vi.mock("@/ui/app/provider/board_catalog", () => ({
   makeBoardScene: (
+    _gameId: string,
     _game: unknown,
     _presentation: unknown,
     onReady?: () => void,
@@ -26,13 +34,9 @@ vi.mock("@/ui/app/provider/board_catalog", () => ({
   },
 }));
 
-vi.mock("@/games/klondike/klondike", () => ({
-  Klondike: class {
-    private readonly record: {
-      parent: HTMLElement;
-      destroyed: boolean;
-      makeScene: () => void;
-    };
+vi.mock("@/engine/render/phaser/phaser_host", () => ({
+  PhaserHost: class {
+    private readonly record: StartedHost;
 
     constructor(
       _window: Window,
@@ -74,93 +78,113 @@ describe("GameCanvasComponent", () => {
   });
 
   afterEach(() => {
-    delete window.klondike;
+    delete window.fsolitaire;
     vi.useRealTimers();
   });
 
-  it("starts exactly one game", () => {
-    expect(started.length).toBe(1);
-  });
-
-  it("mounts the game into its own canvasHost container element", () => {
-    const container = query(fixture, ".canvas-container");
-    expect(started[0].parent).toBe(container);
-  });
-
-  it("exposes the running game for console debugging", () => {
-    expect(window.klondike).toBeDefined();
-  });
-
-  it("destroys the game when the host is torn down", () => {
-    fixture.destroy();
-    expect(started[0].destroyed).toBe(true);
-  });
-
-  it("stops exposing the game once it is destroyed", () => {
-    fixture.destroy();
-    expect(window.klondike).toBeUndefined();
-  });
-
-  it("shows loading overlay before ready callback fires", () => {
-    const overlay = query(fixture, ".loading-overlay");
-    expect(overlay).not.toBeNull();
-    expect(overlay?.classList.contains("hidden")).toBe(false);
-  });
-
-  it("hides the loading overlay with hidden class once ready is signaled asynchronously", () => {
+  /** Reports the board ready, as a built scene does. */
+  function boardReady(): void {
     readyCallback?.();
     fixture.detectChanges();
+  }
 
-    const overlay = query(fixture, ".loading-overlay");
-    expect(overlay?.classList.contains("hidden")).toBe(true);
-  });
-
-  it("displays the game name badge during loading", () => {
-    const textElement = query(fixture, ".loading-text");
-    expect(textElement?.textContent).toContain("Loading Klondike");
-  });
-
-  it("renders the layout grid slots matching TableLayoutSpec slot count dynamically", () => {
-    const slots = queryAll(fixture, ".skeleton-slot");
-    expect(slots.length).toBe(KLONDIKE_LAYOUT.slots.length);
-  });
-
-  it("re-shows loading overlay when switching games in catalog", () => {
-    readyCallback?.();
-    fixture.detectChanges();
-
-    catalog.select("spider");
-    fixture.detectChanges();
-
-    const overlay = query(fixture, ".loading-overlay");
-    expect(overlay?.classList.contains("hidden")).toBe(false);
-    expect(query(fixture, ".loading-text")?.textContent).toContain(
-      "Loading Spider",
+  /** Whether the loading overlay is currently covering the board. */
+  function isLoading(): boolean {
+    return (
+      query(fixture, ".loading-overlay")?.classList.contains("hidden") === false
     );
+  }
+
+  describe("the Phaser host", () => {
+    it("starts exactly one game", () => {
+      expect(started.length).toBe(1);
+    });
+
+    it("mounts the game into its own container element", () => {
+      expect(started[0].parent).toBe(query(fixture, ".canvas-container"));
+    });
+
+    it("destroys the game when the host is torn down", () => {
+      fixture.destroy();
+
+      expect(started[0].destroyed).toBe(true);
+    });
+
+    it("exposes the running game for console debugging in development", () => {
+      expect(window.fsolitaire).toBe(catalog.session().game);
+    });
+
+    it("stops exposing the game once it is destroyed", () => {
+      fixture.destroy();
+
+      expect(window.fsolitaire).toBeUndefined();
+    });
   });
 
-  it("hides loading overlay after 8 seconds if readyCallback never fires", () => {
-    vi.useFakeTimers();
-    const timeoutFixture = TestBed.createComponent(GameCanvasComponent);
-    timeoutFixture.detectChanges();
+  describe("the loading overlay", () => {
+    it("covers the board until the scene reports itself ready", () => {
+      expect(isLoading()).toBe(true);
+    });
 
-    vi.advanceTimersByTime(8000);
-    timeoutFixture.detectChanges();
+    it("uncovers it once the scene is ready", () => {
+      boardReady();
 
-    const overlay = query(timeoutFixture, ".loading-overlay");
-    expect(overlay?.classList.contains("hidden")).toBe(true);
+      expect(isLoading()).toBe(false);
+    });
+
+    it("names the game being dealt", () => {
+      expect(queryText(fixture, ".loading-text")).toContain("Loading Klondike");
+    });
+
+    it("draws a placeholder for every pile the board will have", () => {
+      expect(queryAll(fixture, ".skeleton-slot").length).toBe(
+        KLONDIKE_LAYOUT.slots.length,
+      );
+    });
+
+    it("marks the board busy while it builds", () => {
+      expect(
+        query(fixture, ".canvas-container")?.getAttribute("aria-busy"),
+      ).toBe("true");
+    });
+
+    it("stops marking it busy once it is ready", () => {
+      boardReady();
+
+      expect(
+        query(fixture, ".canvas-container")?.getAttribute("aria-busy"),
+      ).toBe("false");
+    });
+
+    it("returns when a different game is chosen", () => {
+      boardReady();
+
+      catalog.select("spider");
+      fixture.detectChanges();
+
+      expect(isLoading()).toBe(true);
+      expect(queryText(fixture, ".loading-text")).toContain("Loading Spider");
+    });
   });
 
-  it("displays initialization timeout message in overlay after 8 seconds", () => {
-    vi.useFakeTimers();
-    const timeoutFixture = TestBed.createComponent(GameCanvasComponent);
-    timeoutFixture.detectChanges();
+  describe("when a board never reports itself ready", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      // A fresh fixture, so the timeout is armed while the timers are fake.
+      fixture = TestBed.createComponent(GameCanvasComponent);
+      fixture.detectChanges();
+      vi.advanceTimersByTime(8000);
+      fixture.detectChanges();
+    });
 
-    vi.advanceTimersByTime(8000);
-    timeoutFixture.detectChanges();
+    it("stops covering the board rather than spinning forever", () => {
+      expect(isLoading()).toBe(false);
+    });
 
-    expect(queryText(timeoutFixture, ".loading-text")).toContain(
-      "Board initialization timed out",
-    );
+    it("says what went wrong", () => {
+      expect(queryText(fixture, ".loading-text")).toContain(
+        "Board initialization timed out",
+      );
+    });
   });
 });
