@@ -1,150 +1,62 @@
-import { BehaviorSubject, merge } from "rxjs";
-
 /** How many cards are drawn from the stock pile per draw action. */
 export type DrawCount = 1 | 3;
 
 /** The draw mode a new game starts in. */
 export const DEFAULT_DRAW_COUNT: DrawCount = 3;
 
-const LOCAL_STORAGE_KEY = "fsolitaire-settings";
-
-/** The persisted settings shape, mirroring the runtime settings tree. */
-interface PersistedSettings {
-  drawCount: DrawCount;
-  debug: {
-    almostWin: boolean;
-  };
-}
-
-/** The values used when nothing valid is found in storage. */
-const DEFAULT_SETTINGS: PersistedSettings = {
-  drawCount: DEFAULT_DRAW_COUNT,
-  debug: {
-    almostWin: false,
-  },
-};
-
-/** Returns a deep copy of the default settings so callers can't mutate them. */
-function defaultSettings(): PersistedSettings {
-  return {
-    ...DEFAULT_SETTINGS,
-    debug: { ...DEFAULT_SETTINGS.debug },
-  };
-}
-
 /**
- * Reads and validates persisted settings from localStorage, filling any
- * missing or invalid fields with defaults. Pure aside from the storage read,
- * so the validation logic is easy to test in isolation.
- */
-function loadPersistedSettings(): PersistedSettings {
-  if (typeof localStorage === "undefined") {
-    return defaultSettings();
-  }
-
-  try {
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (!stored) {
-      return defaultSettings();
-    }
-
-    const parsed = JSON.parse(stored) as Partial<PersistedSettings>;
-    return {
-      drawCount:
-        parsed.drawCount === 1 || parsed.drawCount === 3
-          ? parsed.drawCount
-          : DEFAULT_SETTINGS.drawCount,
-      debug: {
-        almostWin:
-          typeof parsed.debug?.almostWin === "boolean"
-            ? parsed.debug.almostWin
-            : DEFAULT_SETTINGS.debug.almostWin,
-      },
-    };
-  } catch (e) {
-    console.warn("Failed to load settings from localStorage:", e);
-    return defaultSettings();
-  }
-}
-
-/**
- * Developer/Debug only settings grouped separately.
+ * Developer/debug only settings, grouped separately.
  */
 export class DebugSettings {
-  /** Hidden setting to place the board state into an almost win state. */
-  readonly almostWin$: BehaviorSubject<boolean>;
+  private almostWinValue: boolean;
 
   constructor(almostWin = false) {
-    this.almostWin$ = new BehaviorSubject<boolean>(almostWin);
+    this.almostWinValue = almostWin;
   }
 
-  /** Current almost-win setting value. */
+  /** Whether to deal a nearly finished board, for verification. */
   get almostWin(): boolean {
-    return this.almostWin$.value;
+    return this.almostWinValue;
   }
 
-  /** Updates the almost-win setting, publishing only on a real change. */
+  /** Chooses whether the next deal is an almost-win board. */
   setAlmostWin(enabled: boolean): void {
-    if (this.almostWin !== enabled) {
-      this.almostWin$.next(enabled);
-    }
+    this.almostWinValue = enabled;
   }
 }
 
 /**
- * Observable, user-configurable game settings.
+ * The Klondike rules a player can choose.
  *
- * Each field is a BehaviorSubject so consumers can subscribe to individual
- * setting changes. Convenience getters provide synchronous access to the
- * current value.
+ * A plain value object, read synchronously at the moment it matters: the zones
+ * closure reads the draw count when the board is built, and the dealer reads
+ * the debug flag when a game is dealt. Nothing follows these over time.
+ *
+ * It deliberately neither loads nor saves. {@link GameCatalogService} owns
+ * persistence for every game's options — including Klondike's — and deals a
+ * fresh game whenever one changes, so a second copy here would be a second
+ * source of truth for the same two values. It was also written to
+ * `fsolitaire-settings`, the key the presentation settings migrate away from,
+ * and so overwrote the very blob that migration reads.
  */
 export class GameSettings {
-  /** How many cards to draw from the stock pile at a time. */
-  readonly drawCount$: BehaviorSubject<DrawCount>;
+  private drawCountValue: DrawCount;
 
   /** Nested developer/debug settings. */
   readonly debug: DebugSettings;
 
-  constructor() {
-    const loaded = loadPersistedSettings();
-
-    this.drawCount$ = new BehaviorSubject<DrawCount>(loaded.drawCount);
-    this.debug = new DebugSettings(loaded.debug.almostWin);
-
-    let initialized = false;
-    merge(this.drawCount$, this.debug.almostWin$).subscribe(() => {
-      if (initialized) this.saveToLocalStorage();
-    });
-    initialized = true;
+  constructor(drawCount: DrawCount = DEFAULT_DRAW_COUNT, almostWin = false) {
+    this.drawCountValue = drawCount;
+    this.debug = new DebugSettings(almostWin);
   }
 
-  private saveToLocalStorage(): void {
-    if (typeof localStorage === "undefined") {
-      return;
-    }
-
-    try {
-      const data: PersistedSettings = {
-        drawCount: this.drawCount,
-        debug: {
-          almostWin: this.debug.almostWin,
-        },
-      };
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-    } catch (e) {
-      console.warn("Failed to save settings to localStorage:", e);
-    }
-  }
-
-  /** Current draw count value. */
+  /** How many cards a draw turns over. */
   get drawCount(): DrawCount {
-    return this.drawCount$.value;
+    return this.drawCountValue;
   }
 
-  /** Updates the draw count, publishing only on a real change. */
+  /** Chooses how many cards a draw turns over. */
   setDrawCount(count: DrawCount): void {
-    if (this.drawCount !== count) {
-      this.drawCount$.next(count);
-    }
+    this.drawCountValue = count;
   }
 }

@@ -178,11 +178,10 @@ const KLONDIKE = {
   options: [KLONDIKE_DRAW_COUNT, KLONDIKE_ALMOST_WIN],
   layout: KLONDIKE_LAYOUT,
   create: (values: GameOptionValues) => {
-    const settings = new GameSettings();
-    settings.setDrawCount(
+    const settings = new GameSettings(
       optionValue(values, KLONDIKE_DRAW_COUNT) === 1 ? 1 : 3,
+      optionValue(values, KLONDIKE_ALMOST_WIN) === 1,
     );
-    settings.debug.setAlmostWin(optionValue(values, KLONDIKE_ALMOST_WIN) === 1);
     const game = new KlondikeGame(undefined, undefined, settings);
     game.startNewGame();
     return { game };
