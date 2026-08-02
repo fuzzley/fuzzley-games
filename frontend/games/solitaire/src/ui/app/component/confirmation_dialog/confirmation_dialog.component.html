@@ -2,6 +2,7 @@
   [open]="confirmation.isOpen()"
   dialogRole="alertdialog"
   label="Confirm action"
+  describedBy="confirmation-message"
   (closed)="confirmation.cancel()"
 >
   <div class="confirmation-card">
@@ -17,8 +18,10 @@
         />
       </svg>
     </div>
-    <h3>Confirm Action</h3>
-    <p class="confirmation-message">{{ confirmation.message() }}</p>
+    <h2>Confirm Action</h2>
+    <p class="confirmation-message" id="confirmation-message">
+      {{ confirmation.message() }}
+    </p>
     <div class="confirmation-actions">
       <button
         type="button"

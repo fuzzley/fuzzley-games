@@ -21,8 +21,12 @@
   align-items: center;
 }
 
+// The heading's own margin and font-size are reset here rather than being
+// inherited from the UA: it is an <h1> for the document outline, and its
+// appearance is the brand mark it always was.
 .brand-text {
   @include gradient-text(var(--accent-sky), var(--accent-violet));
+  margin: 0;
   font-size: var(--font-2xl);
   font-weight: 800;
   letter-spacing: -0.025em;

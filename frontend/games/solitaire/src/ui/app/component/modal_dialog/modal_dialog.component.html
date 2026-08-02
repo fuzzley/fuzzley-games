@@ -11,6 +11,7 @@
   class="modal"
   [attr.role]="dialogRole()"
   [attr.aria-label]="label() || null"
+  [attr.aria-describedby]="describedBy() || null"
   (cancel)="onCancel($event)"
   (click)="onClick($event)"
 >

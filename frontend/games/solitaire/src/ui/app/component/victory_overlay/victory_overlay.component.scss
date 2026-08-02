@@ -20,7 +20,7 @@
   transform: scale(1);
   animation: popIn 0.5s var(--ease-spring);
 
-  h1 {
+  h2 {
     @include gradient-text(var(--warning), var(--warning-light));
     font-size: var(--font-4xl);
     font-weight: 800;
@@ -103,7 +103,7 @@
   .victory-card {
     padding: var(--space-6) var(--space-4);
 
-    h1 {
+    h2 {
       font-size: var(--font-3xl);
     }
   }

@@ -142,6 +142,14 @@ describe("GameCanvasComponent", () => {
       );
     });
 
+    it("describes the board as an image, not an application", () => {
+      // `role="application"` suppresses a screen reader's browse mode and is
+      // only honest once there is a keyboard interface to replace it with.
+      expect(query(fixture, ".canvas-container")?.getAttribute("role")).toBe(
+        "img",
+      );
+    });
+
     it("marks the board busy while it builds", () => {
       expect(
         query(fixture, ".canvas-container")?.getAttribute("aria-busy"),
