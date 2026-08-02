@@ -19,6 +19,19 @@
 // hue is typed once and its five surfaces follow it.
 
 :root {
+  // --- The table ---
+  // The felt, mirrored out of the presentation settings onto the root element
+  // by the shell, so the page behind the chrome is the same colour as the board
+  // the Phaser camera paints. The value here is the felt a player starts on;
+  // the shell overwrites it the moment they choose another.
+  //
+  // It has to be a real background rather than nothing, because the header is
+  // translucent and blurred across the full width while the board it blurs
+  // stops at the game rail. With no background the strip left of the rail
+  // sampled the UA's white and came out as a pale band up the side of the
+  // wordmark — and as a white flash on every load, before Phaser had painted.
+  --table-felt: #{$felt};
+
   // --- Surfaces ---
   // Layered darks. `panel` is the chrome around the board, `raised` a card
   // sitting on it, `sunken` a well cut into one, `card` a bordered block
