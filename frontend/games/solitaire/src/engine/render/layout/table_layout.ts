@@ -1,5 +1,14 @@
 import { Point } from "@/engine/core/common/point";
 import { Viewport } from "../view/table_view_state";
+import {
+  CARD_HEIGHT_PX,
+  CARD_WIDTH_PX,
+  HEADER_HEIGHT_PX,
+  LAYOUT_GAP_X,
+  LAYOUT_GAP_Y,
+  LAYOUT_PADDING_X,
+  LAYOUT_PADDING_Y,
+} from "./card_metrics";
 
 /** A width and height in design units. */
 export interface Size {
@@ -62,6 +71,46 @@ export interface TableLayoutSpec {
    * wider board.
    */
   readonly designHeightPx?: number;
+}
+
+/** What distinguishes one board's grid from another's. */
+export interface TableGridSpec {
+  /** How many card-widths across the grid is. */
+  readonly columns: number;
+  /** How many card-heights down the grid is. */
+  readonly rows: number;
+  /** Where each pile sits. Piles absent from this list are not drawn. */
+  readonly slots: readonly SlotPlacement[];
+  /** See {@link TableLayoutSpec.designHeightPx}. */
+  readonly designHeightPx?: number;
+}
+
+/**
+ * A board's grid, with the measurements every board shares filled in.
+ *
+ * Card size, gaps, padding and header height are properties of the card artwork
+ * and the shell, not of any one game — a game that set them differently would
+ * be drawing on a different table. Every board restated all four anyway, which
+ * meant seven imports from `card_metrics` per layout file to say nothing that
+ * varied.
+ *
+ * What a game does decide is how wide its grid is, how many rows it has, where
+ * its piles sit, and how far its columns fan below them. Those are what this
+ * takes.
+ *
+ * @param grid What distinguishes this board from any other.
+ */
+export function tableLayout(grid: TableGridSpec): TableLayoutSpec {
+  return {
+    columns: grid.columns,
+    rows: grid.rows,
+    slots: grid.slots,
+    cardSize: { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX },
+    gap: { x: LAYOUT_GAP_X, y: LAYOUT_GAP_Y },
+    padding: { x: LAYOUT_PADDING_X, y: LAYOUT_PADDING_Y },
+    headerHeightPx: HEADER_HEIGHT_PX,
+    designHeightPx: grid.designHeightPx,
+  };
 }
 
 /**

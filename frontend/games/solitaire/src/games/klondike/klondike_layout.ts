@@ -1,13 +1,4 @@
-import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
-import {
-  CARD_HEIGHT_PX,
-  CARD_WIDTH_PX,
-  HEADER_HEIGHT_PX,
-  LAYOUT_GAP_X,
-  LAYOUT_GAP_Y,
-  LAYOUT_PADDING_X,
-  LAYOUT_PADDING_Y,
-} from "@/engine/render/layout/card_metrics";
+import { tableLayout } from "@/engine/render/layout/table_layout";
 import { TABLEAU_COUNT, klondikeZoneSpecs } from "./klondike_zones";
 import { DEFAULT_DRAW_COUNT } from "./klondike_settings";
 
@@ -20,16 +11,12 @@ import { DEFAULT_DRAW_COUNT } from "./klondike_settings";
  * they are read from does not matter — the fan varies with it, the grid does
  * not.
  */
-export const KLONDIKE_LAYOUT: TableLayoutSpec = {
+export const KLONDIKE_LAYOUT = tableLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
   slots: klondikeZoneSpecs(DEFAULT_DRAW_COUNT).map((zone) => zone.slot),
-  cardSize: { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX },
-  gap: { x: LAYOUT_GAP_X, y: LAYOUT_GAP_Y },
-  padding: { x: LAYOUT_PADDING_X, y: LAYOUT_PADDING_Y },
-  headerHeightPx: HEADER_HEIGHT_PX,
   // The grid alone needs 819, but a tableau column fans about a card and a half
   // below its row. This is the height the board was authored at, and it is what
   // keeps a long column on screen.
   designHeightPx: 950,
-};
+});
