@@ -426,6 +426,23 @@ describe("YukonGame", () => {
     });
   });
 
+  /*
+   * A card can be pulled back off a foundation onto a column, and when it is,
+   * nothing gets turned over: a foundation has no buried cards under it. Only a
+   * column exposes a face-down card by giving one up.
+   */
+  describe("taking a card back off a foundation", () => {
+    it("turns nothing face up", () => {
+      emptyBoard(game);
+      const ace = relocate(game, "card-spades-ace", game.foundations[0]);
+      const two = relocate(game, "card-hearts-2", game.tableaus[0], false);
+
+      game.moveCardToPile(ace.id, game.tableaus[1].id);
+
+      expect(two.faceUp).toBe(false);
+    });
+  });
+
   describe("the zones", () => {
     /**
      * The board rebuilds its pile index whenever the zone array is a different
