@@ -62,6 +62,10 @@ describe("AppComponent Composition", () => {
     expect(query(fixture, "app-confirmation-dialog")).not.toBeNull();
   });
 
+  it("puts the board in a main landmark, so it can be navigated to", () => {
+    expect(query(fixture, "main.board-area")).not.toBeNull();
+  });
+
   it("keeps the settings drawer closed to begin with", () => {
     expect(drawerIsOpen()).toBe(false);
   });

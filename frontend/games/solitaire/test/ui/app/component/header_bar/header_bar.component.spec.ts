@@ -27,6 +27,10 @@ describe("HeaderBarComponent", () => {
     return queryRequired<HTMLButtonElement>(fixture, "button[title*='Undo']");
   }
 
+  it("carries the document's one heading, so it is not headingless at rest", () => {
+    expect(queryText(fixture, "h1")).toBe("fSolitaire");
+  });
+
   describe("the metrics", () => {
     it("reports what the game currently reads", () => {
       expect([
