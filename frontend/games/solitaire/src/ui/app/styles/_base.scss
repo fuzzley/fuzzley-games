@@ -18,6 +18,12 @@ body {
   height: 100%;
 }
 
+// On the root rather than on `body`, so the browser propagates it to the
+// viewport canvas and the colour also covers any overscroll.
+html {
+  background: var(--table-felt);
+}
+
 // The document's typographic defaults, inherited by everything that does not
 // override them. `line-height` belongs here rather than on the components
 // because a unitless value inherits as the ratio rather than as the computed
