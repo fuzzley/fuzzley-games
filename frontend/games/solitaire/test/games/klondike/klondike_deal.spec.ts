@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import {
   dealKlondikeAlmostWin,
   dealKlondikeLayout,
-} from "@/games/klondike/dealer";
+} from "@/games/klondike/klondike_deal";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { CardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";

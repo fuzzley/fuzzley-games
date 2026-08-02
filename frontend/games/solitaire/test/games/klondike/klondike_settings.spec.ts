@@ -1,41 +1,36 @@
 import {
   DEFAULT_DRAW_COUNT,
-  GameSettings,
-} from "@/games/klondike/game_settings";
+  KlondikeSettings,
+} from "@/games/klondike/klondike_settings";
 
-describe("GameSettings", () => {
+describe("KlondikeSettings", () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
-  it("starts at the default draw count with debug aids off", () => {
-    const settings = new GameSettings();
+  it("starts at the default draw count", () => {
+    const settings = new KlondikeSettings();
 
     expect(settings.drawCount).toBe(DEFAULT_DRAW_COUNT);
-    expect(settings.debug.almostWin).toBe(false);
   });
 
-  it("takes the rules it is constructed with", () => {
-    const settings = new GameSettings(1, true);
+  it("takes the draw count it is constructed with", () => {
+    const settings = new KlondikeSettings(1);
 
     expect(settings.drawCount).toBe(1);
-    expect(settings.debug.almostWin).toBe(true);
   });
 
+  /*
+   * The reason this is an object at all rather than a constructor argument: the
+   * zones closure keeps reading it, so a change made after the game was built
+   * still reaches the board.
+   */
   it("reports the draw count it was last set to", () => {
-    const settings = new GameSettings();
+    const settings = new KlondikeSettings();
 
     settings.setDrawCount(1);
 
     expect(settings.drawCount).toBe(1);
-  });
-
-  it("reports the almost-win choice it was last set to", () => {
-    const settings = new GameSettings();
-
-    settings.debug.setAlmostWin(true);
-
-    expect(settings.debug.almostWin).toBe(true);
   });
 
   /*
@@ -47,16 +42,15 @@ describe("GameSettings", () => {
    * migration reads.
    */
   it("persists nothing, leaving storage to the catalog that owns it", () => {
-    const settings = new GameSettings();
+    const settings = new KlondikeSettings();
 
     settings.setDrawCount(1);
-    settings.debug.setAlmostWin(true);
 
     expect(localStorage.length).toBe(0);
   });
 
   it("keeps no opinion about how the table looks, which is not a Klondike rule", () => {
-    const settings = new GameSettings();
+    const settings = new KlondikeSettings();
 
     expect(Object.keys(settings)).not.toContain("cardBackStyle");
   });
