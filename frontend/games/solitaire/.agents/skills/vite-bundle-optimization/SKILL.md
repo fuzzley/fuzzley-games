@@ -83,7 +83,6 @@ their content hashes in `dist/` while the manifest can go on naming them plainly
 - `ART_SCALE` in the tool must stay equal to `CARD_ART_SCALE` in
   `src/engine/render/layout/card_metrics.ts`. They are two halves of one number
   — texels per design unit — and the cards render at the wrong size if they
-  drift. (The tool's own comment still points at `board_layout_constants.ts`,
-  which no longer exists; trust the path here.)
+  drift.
 - The tool fails the build if any frame comes out without a stamped edge. That
   check is deliberate; do not weaken it to get a build through.
