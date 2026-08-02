@@ -7,6 +7,10 @@ import {
   designSize,
   measureTable,
 } from "@/engine/render/layout/table_layout";
+import {
+  HEADER_HEIGHT_COMPACT_PX,
+  HEADER_HEIGHT_PX,
+} from "@/engine/render/layout/card_metrics";
 import { Viewport } from "@/engine/render/view/table_view_state";
 
 /**
@@ -147,6 +151,28 @@ describe("compactFor", () => {
     const compact = compactFor(tight, phone);
 
     expect([compact.gap.x, compact.padding.x]).toEqual([2, 2]);
+  });
+
+  it("reserves the compacted header the shell actually draws", () => {
+    const desktopHeader = layout({ headerHeightPx: HEADER_HEIGHT_PX });
+
+    const compact = compactFor(desktopHeader, phone);
+
+    expect(compact.headerHeightPx).toBe(HEADER_HEIGHT_COMPACT_PX);
+  });
+
+  it("leaves the header alone when there is room for the full one", () => {
+    const desktopHeader = layout({ headerHeightPx: HEADER_HEIGHT_PX });
+
+    expect(compactFor(desktopHeader, wide).headerHeightPx).toBe(
+      HEADER_HEIGHT_PX,
+    );
+  });
+
+  it("never grows a header already shorter than the compact one", () => {
+    const shallow = layout({ headerHeightPx: 30 });
+
+    expect(compactFor(shallow, phone).headerHeightPx).toBe(30);
   });
 
   it("judges width in CSS pixels, not device pixels", () => {
