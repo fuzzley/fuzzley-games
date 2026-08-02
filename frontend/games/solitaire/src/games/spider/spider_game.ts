@@ -2,26 +2,16 @@ import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import { DealtTableGame } from "@/engine/tableau/dealt_game";
+import { DeckSource } from "@/engine/tableau/deck_source";
 import { CardTransfer } from "@/engine/tableau/move";
-import {
-  MoveEffects,
-  ResolvedMove,
-  TableGame,
-} from "@/engine/tableau/table_game";
+import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import {
   collectCompletedRuns,
   flipExposedTop,
 } from "@/games/common/completed_runs";
-import { SPIDER_TWO_DECKS, SpiderDealer } from "./spider_deal";
+import { SPIDER_TWO_DECKS, dealSpiderLayout } from "./spider_deal";
 import { SpiderRole, STOCK_PILE_ID, spiderZoneSpecs } from "./spider_zones";
-
-/** Lifecycle events a Spider game emits. */
-export type SpiderEvents = {
-  /** Emitted when all eight runs have been completed. */
-  "game-won": undefined;
-  /** Emitted when the game is restarted or a new game is dealt. */
-  "game-reset": undefined;
-};
 
 /**
  * A game of Spider.
@@ -36,16 +26,13 @@ export type SpiderEvents = {
  * separate action either: one undo takes both back, which is why an applied
  * move records a list of transfers rather than a single from-and-to.
  */
-export class SpiderGame extends TableGame<SpiderEvents> {
+export class SpiderGame extends DealtTableGame {
   /** The face-down pile that deals a row at a time. */
   public readonly stock: CardPile<PlayingCard>;
   /** The eight piles completed runs go to. */
   public readonly foundations: readonly CardPile<PlayingCard>[];
   /** The ten columns. */
   public readonly tableaus: readonly CardPile<PlayingCard>[];
-
-  private initialDeck: PlayingCard[] = [];
-  private readonly dealer: SpiderDealer;
 
   /**
    * @param cardIds The card identities to deal from. Defaults to two full
@@ -56,52 +43,23 @@ export class SpiderGame extends TableGame<SpiderEvents> {
     cardIds: ReadonlyArray<DeckCardId> = deckCardIds(SPIDER_TWO_DECKS),
     random: () => number = Math.random,
   ) {
-    const registry = new CardRegistry();
     super({
       zones: () => spiderZoneSpecs(),
-      registry,
+      deck: new DeckSource(new CardRegistry(), cardIds, random),
       // Only a column will take a card; a foundation is never a destination a
       // player can choose.
       autoMoveRoles: [SpiderRole.TABLEAU],
+      winsWhenAllCardsIn: SpiderRole.FOUNDATION,
     });
 
-    this.dealer = new SpiderDealer(registry, cardIds, random);
     this.stock = this.requirePile(STOCK_PILE_ID);
     this.foundations = this.pilesOfRole(SpiderRole.FOUNDATION);
     this.tableaus = this.pilesOfRole(SpiderRole.TABLEAU);
   }
 
-  /** Shuffles the decks and deals a fresh board. */
-  public startNewGame(): void {
-    this.beginGame(() => {
-      const deck = this.dealer.createShuffledDeck();
-      this.initialDeck = [...deck];
-      return deck;
-    });
-  }
-
-  /** Restarts the game using the exact same deal. */
-  public restartGame(): void {
-    this.beginGame(() => this.reuseInitialDeck());
-  }
-
-  private beginGame(createDeck: () => PlayingCard[]): void {
-    this.state.score = 0;
-    this.state.moves = 0;
-    this.clearHistory();
-    this.resetPiles();
-    this.dealer.dealOpeningLayout(createDeck(), this.tableaus, this.stock);
-    this.emit("game-reset", undefined);
-  }
-
-  private reuseInitialDeck(): PlayingCard[] {
-    if (this.initialDeck.length === 0) {
-      this.initialDeck = [...this.dealer.createShuffledDeck()];
-    }
-    return this.initialDeck.map((card) => {
-      card.faceUp = false;
-      return card;
-    });
+  /** @inheritDoc */
+  protected override dealBoard(deck: PlayingCard[]): void {
+    dealSpiderLayout(deck, this.tableaus, this.stock);
   }
 
   // --- The stock ---
@@ -148,6 +106,9 @@ export class SpiderGame extends TableGame<SpiderEvents> {
     this.recordTransfers("deal", [...transfers, ...collected.transfers], {
       flippedCardIds: collected.flippedCardIds,
     });
+    // Dealing a row can finish the last run, so the win is checked here as well
+    // as after a move: this is an action the player took that the engine's own
+    // move path never sees.
     this.checkWinCondition();
     return true;
   }
@@ -172,20 +133,5 @@ export class SpiderGame extends TableGame<SpiderEvents> {
       ],
       followUpTransfers: collected.transfers,
     };
-  }
-
-  /** @inheritDoc */
-  protected override afterMove(): void {
-    this.checkWinCondition();
-  }
-
-  private checkWinCondition(): void {
-    const collected = this.foundations.reduce(
-      (total, pile) => total + pile.size,
-      0,
-    );
-    if (this.cardsInPlay > 0 && collected === this.cardsInPlay) {
-      this.emit("game-won", undefined);
-    }
   }
 }

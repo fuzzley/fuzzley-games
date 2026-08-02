@@ -1,7 +1,12 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { Dealer } from "@/games/klondike/dealer";
+import {
+  dealKlondikeAlmostWin,
+  dealKlondikeLayout,
+} from "@/games/klondike/dealer";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { CardPile } from "@/engine/core/card/card_pile";
+import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
+import { DeckSource } from "@/engine/tableau/deck_source";
 import {
   KlondikeRole,
   FOUNDATION_COUNT,
@@ -11,16 +16,16 @@ import {
 } from "@/games/klondike/klondike_zones";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 
-describe("Dealer", () => {
+describe("the Klondike deal", () => {
   let registry: CardRegistry;
-  let dealer: Dealer;
+  let deck: DeckSource;
   let stock: CardPile<PlayingCard>;
   let tableaus: CardPile<PlayingCard>[];
   let foundations: CardPile<PlayingCard>[];
 
   beforeEach(() => {
     registry = new CardRegistry();
-    dealer = new Dealer(registry);
+    deck = new DeckSource(registry, ALL_PLAYING_CARD_IDS);
     stock = new CardPile<PlayingCard>("stock", KlondikeRole.STOCK);
     tableaus = Array.from(
       { length: TABLEAU_COUNT },
@@ -34,36 +39,9 @@ describe("Dealer", () => {
     );
   });
 
-  describe("createShuffledDeck", () => {
-    it("returns a full 52-card deck", () => {
-      expect(dealer.createShuffledDeck().length).toBe(52);
-    });
-
-    it("returns every card face down", () => {
-      const allFaceDown = dealer.createShuffledDeck().every((c) => !c.faceUp);
-
-      expect(allFaceDown).toBe(true);
-    });
-
-    it("registers every dealt card for later lookup", () => {
-      const deck = dealer.createShuffledDeck();
-
-      const allRegistered = deck.every((c) => registry.get(c.id) === c);
-      expect(allRegistered).toBe(true);
-    });
-
-    it("deals nothing from an empty deck", () => {
-      const emptyDealer = new Dealer(registry, []);
-
-      expect(emptyDealer.createShuffledDeck()).toEqual([]);
-    });
-  });
-
-  describe("dealOpeningLayout", () => {
+  describe("dealKlondikeLayout", () => {
     it("deals an increasing number of cards to each tableau", () => {
-      const deck = dealer.createShuffledDeck();
-
-      dealer.dealOpeningLayout(deck, tableaus, stock);
+      dealKlondikeLayout(deck.createShuffledDeck(), tableaus, stock);
 
       expect(tableaus.map((t) => t.getCards().length)).toEqual([
         1, 2, 3, 4, 5, 6, 7,
@@ -71,9 +49,7 @@ describe("Dealer", () => {
     });
 
     it("leaves only the top card of each tableau face up", () => {
-      const deck = dealer.createShuffledDeck();
-
-      dealer.dealOpeningLayout(deck, tableaus, stock);
+      dealKlondikeLayout(deck.createShuffledDeck(), tableaus, stock);
 
       const layout = tableaus.map((t) => t.getCards().map((c) => c.faceUp));
       expect(layout).toEqual([
@@ -88,18 +64,25 @@ describe("Dealer", () => {
     });
 
     it("puts the remaining cards face down on the stock", () => {
-      const deck = dealer.createShuffledDeck();
-
-      dealer.dealOpeningLayout(deck, tableaus, stock);
+      dealKlondikeLayout(deck.createShuffledDeck(), tableaus, stock);
 
       expect(stock.getCards().length).toBe(24);
       expect(stock.getCards().every((c) => !c.faceUp)).toBe(true);
     });
+
+    it("deals nothing at all from an empty deck", () => {
+      const empty = new DeckSource(registry, []);
+
+      dealKlondikeLayout(empty.createShuffledDeck(), tableaus, stock);
+
+      expect(tableaus.every((t) => t.isEmpty)).toBe(true);
+      expect(stock.isEmpty).toBe(true);
+    });
   });
 
-  describe("dealAlmostWin", () => {
+  describe("dealKlondikeAlmostWin", () => {
     it("fills every foundation with Ace through Queen, face up", () => {
-      dealer.dealAlmostWin(foundations, tableaus);
+      dealKlondikeAlmostWin(deck, foundations, tableaus);
 
       expect(foundations.map((f) => f.getCards().length)).toEqual([
         12, 12, 12, 12,
@@ -111,11 +94,26 @@ describe("Dealer", () => {
     });
 
     it("seeds only the first four tableaus with a single King", () => {
-      dealer.dealAlmostWin(foundations, tableaus);
+      dealKlondikeAlmostWin(deck, foundations, tableaus);
 
       expect(tableaus.map((t) => t.getCards().length)).toEqual([
         1, 1, 1, 1, 0, 0, 0,
       ]);
+    });
+
+    /*
+     * A short deck has no King of Clubs to place, so the almost-win board is
+     * simply smaller rather than the deal failing on a card it cannot find.
+     */
+    it("places only the cards a short deck actually holds", () => {
+      const short = new DeckSource(registry, ALL_PLAYING_CARD_IDS.slice(0, 13));
+
+      dealKlondikeAlmostWin(short, foundations, tableaus);
+
+      const placed =
+        foundations.reduce((total, pile) => total + pile.size, 0) +
+        tableaus.reduce((total, pile) => total + pile.size, 0);
+      expect(placed).toBe(13);
     });
   });
 });

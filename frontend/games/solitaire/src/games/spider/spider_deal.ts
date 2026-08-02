@@ -1,14 +1,11 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
-import { DeckSpec, deckCardIds } from "@/engine/core/card/deck";
+import { DeckSpec } from "@/engine/core/card/deck";
 import {
   ALL_RANKS,
   ALL_SUITS,
-  DeckCardId,
   PlayingCard,
   Suit,
 } from "@/engine/core/card/playing_card";
-import { shuffle } from "@/engine/core/random/shuffle";
 
 /**
  * Two full decks: 104 cards, with two of every face.
@@ -56,68 +53,41 @@ export function spiderDeck(suitCount: SpiderSuitCount): DeckSpec {
 /** How many cards the opening layout puts on the board. */
 export const OPENING_CARD_COUNT = 54;
 
-/** Deals cards into a Spider board. */
-export class SpiderDealer {
-  /**
-   * @param registry The shared registry supplying persistent card instances.
-   * @param cardIds The card identities to deal from. Defaults to two decks.
-   * @param random Source of shuffle randomness, injectable for a fixed deal.
-   */
-  constructor(
-    private readonly registry: CardRegistry,
-    private readonly cardIds: ReadonlyArray<DeckCardId> = deckCardIds(
-      SPIDER_TWO_DECKS,
-    ),
-    private readonly random: () => number = Math.random,
-  ) {}
+/**
+ * Deals the Spider opening layout: 54 cards across the columns, only the top of
+ * each face up, and everything left over face-down onto the stock.
+ *
+ * The first four columns get six cards and the rest five, which is what dealing
+ * 54 across ten columns comes to.
+ *
+ * @param deck The cards to deal, which this drains.
+ * @param tableaus The columns to deal onto.
+ * @param stock The stock to fill with the remainder.
+ */
+export function dealSpiderLayout(
+  deck: PlayingCard[],
+  tableaus: readonly CardPile<PlayingCard>[],
+  stock: CardPile<PlayingCard>,
+): void {
+  if (tableaus.length === 0) return;
 
-  /** Registers every card face-down and returns them freshly shuffled. */
-  public createShuffledDeck(): PlayingCard[] {
-    const deck = this.cardIds.map((cardId) => {
-      const card = this.registry.getOrCreate(cardId);
-      card.faceUp = false;
-      return card;
-    });
-    shuffle(deck, this.random);
-    return deck;
+  const toDeal = Math.min(OPENING_CARD_COUNT, deck.length);
+  for (let dealt = 0; dealt < toDeal; dealt++) {
+    const card = deck.pop();
+    if (!card) break;
+    card.faceUp = false;
+    tableaus[dealt % tableaus.length].addCard(card);
   }
 
-  /**
-   * Deals the opening layout: 54 cards across the columns, only the top of each
-   * face up, and everything left over face-down onto the stock.
-   *
-   * The first four columns get six cards and the rest five, which is what
-   * dealing 54 across ten columns comes to.
-   *
-   * @param deck The cards to deal, which this method drains.
-   * @param tableaus The columns to deal onto.
-   * @param stock The stock to fill with the remainder.
-   */
-  public dealOpeningLayout(
-    deck: PlayingCard[],
-    tableaus: readonly CardPile<PlayingCard>[],
-    stock: CardPile<PlayingCard>,
-  ): void {
-    if (tableaus.length === 0) return;
+  for (const tableau of tableaus) {
+    const top = tableau.topCard;
+    if (top) top.faceUp = true;
+  }
 
-    const toDeal = Math.min(OPENING_CARD_COUNT, deck.length);
-    for (let dealt = 0; dealt < toDeal; dealt++) {
-      const card = deck.pop();
-      if (!card) break;
-      card.faceUp = false;
-      tableaus[dealt % tableaus.length].addCard(card);
-    }
-
-    for (const tableau of tableaus) {
-      const top = tableau.topCard;
-      if (top) top.faceUp = true;
-    }
-
-    while (deck.length > 0) {
-      const card = deck.pop();
-      if (!card) break;
-      card.faceUp = false;
-      stock.addCard(card);
-    }
+  while (deck.length > 0) {
+    const card = deck.pop();
+    if (!card) break;
+    card.faceUp = false;
+    stock.addCard(card);
   }
 }

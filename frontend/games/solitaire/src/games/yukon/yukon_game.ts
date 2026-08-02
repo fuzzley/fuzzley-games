@@ -2,22 +2,12 @@ import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
-import {
-  MoveEffects,
-  ResolvedMove,
-  TableGame,
-} from "@/engine/tableau/table_game";
+import { DealtTableGame } from "@/engine/tableau/dealt_game";
+import { DeckSource } from "@/engine/tableau/deck_source";
+import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { flipExposedTop } from "@/games/common/completed_runs";
-import { YukonDealer } from "./yukon_deal";
+import { dealYukonLayout } from "./yukon_deal";
 import { YukonRole, YukonVariant, yukonZoneSpecs } from "./yukon_zones";
-
-/** Lifecycle events a Yukon game emits. */
-export type YukonEvents = {
-  /** Emitted when every card has reached a foundation. */
-  "game-won": undefined;
-  /** Emitted when the game is restarted or a new game is dealt. */
-  "game-reset": undefined;
-};
 
 /**
  * A game of Yukon, Alaska or Russian Solitaire.
@@ -33,14 +23,11 @@ export type YukonEvents = {
  * Like FreeCell, there is no score: the Yukon family is played against the
  * deal, so a move earns nothing and turning a card over earns nothing either.
  */
-export class YukonGame extends TableGame<YukonEvents> {
+export class YukonGame extends DealtTableGame {
   /** The four suit foundation piles. */
   public readonly foundations: readonly CardPile<PlayingCard>[];
   /** The seven columns. */
   public readonly tableaus: readonly CardPile<PlayingCard>[];
-
-  private initialDeck: PlayingCard[] = [];
-  private readonly dealer: YukonDealer;
 
   /**
    * @param cardIds The card identities to deal from. Defaults to a full 52-card
@@ -55,53 +42,23 @@ export class YukonGame extends TableGame<YukonEvents> {
     random: () => number = Math.random,
     variant: YukonVariant = YukonVariant.YUKON,
   ) {
-    const registry = new CardRegistry();
     super({
       zones: () => yukonZoneSpecs(variant),
-      registry,
+      deck: new DeckSource(new CardRegistry(), cardIds, random),
       // A foundation and nothing else. A column would take the card too, but
       // auto-moving to one means flinging a stack of unknown size at whichever
       // column happens to be declared first, which is never what was meant.
       autoMoveRoles: [YukonRole.FOUNDATION],
+      winsWhenAllCardsIn: YukonRole.FOUNDATION,
     });
 
-    this.dealer = new YukonDealer(registry, cardIds, random);
     this.foundations = this.pilesOfRole(YukonRole.FOUNDATION);
     this.tableaus = this.pilesOfRole(YukonRole.TABLEAU);
   }
 
-  /** Shuffles the deck and deals a fresh board. */
-  public startNewGame(): void {
-    this.beginGame(() => {
-      const deck = this.dealer.createShuffledDeck();
-      this.initialDeck = [...deck];
-      return deck;
-    });
-  }
-
-  /** Restarts the game using the exact same deal. */
-  public restartGame(): void {
-    this.beginGame(() => this.reuseInitialDeck());
-  }
-
-  private beginGame(createDeck: () => PlayingCard[]): void {
-    this.state.moves = 0;
-    this.clearHistory();
-    this.resetPiles();
-    this.dealer.dealOpeningLayout(createDeck(), this.tableaus);
-    this.emit("game-reset", undefined);
-  }
-
-  private reuseInitialDeck(): PlayingCard[] {
-    if (this.initialDeck.length === 0) {
-      this.initialDeck = [...this.dealer.createShuffledDeck()];
-    }
-    // Turned back down, because the dealer decides which cards a deal shows and
-    // the previous deal left some of these face up.
-    return this.initialDeck.map((card) => {
-      card.faceUp = false;
-      return card;
-    });
+  /** @inheritDoc */
+  protected override dealBoard(deck: PlayingCard[]): void {
+    dealYukonLayout(deck, this.tableaus);
   }
 
   // --- What a Yukon move does beyond moving its cards ---
@@ -123,18 +80,5 @@ export class YukonGame extends TableGame<YukonEvents> {
       scoreDelta: 0,
       flippedCardIds: flipped ? [flipped.id] : [],
     };
-  }
-
-  /** @inheritDoc */
-  protected override afterMove(): void {
-    const onFoundations = this.foundations.reduce(
-      (total, pile) => total + pile.size,
-      0,
-    );
-    // Counted against the cards actually in play rather than 52, so a short
-    // injected deck can still be won.
-    if (this.cardsInPlay > 0 && onFoundations === this.cardsInPlay) {
-      this.emit("game-won", undefined);
-    }
   }
 }
