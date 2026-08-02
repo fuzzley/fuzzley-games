@@ -1,17 +1,27 @@
-<!-- Only meaningful while the rail covers the board; hidden by CSS otherwise. -->
+<!--
+  Only meaningful while the rail covers the board; hidden by CSS otherwise.
+  A button rather than a div: it is a real way to dismiss the menu, so it
+  should be reachable by the keyboard rather than only by a tap.
+-->
 @if (menu.isExpanded()) {
-  <div class="menu-backdrop" (click)="menu.setExpanded(false)"></div>
+  <button
+    type="button"
+    class="menu-backdrop"
+    (click)="menu.setExpanded(false)"
+    aria-label="Close game menu"
+  ></button>
 }
 
 <button
+  type="button"
   class="menu-toggle"
   [class.expanded]="menu.isExpanded()"
   (click)="menu.toggle()"
   [attr.aria-expanded]="menu.isExpanded()"
+  aria-controls="game-menu-list"
   [attr.aria-label]="
     menu.isExpanded() ? 'Collapse game menu' : 'Expand game menu'
   "
-  title="Games"
 >
   <svg
     class="toggle-icon"
@@ -26,21 +36,28 @@
   }
 </button>
 
-<nav class="game-menu" [class.expanded]="menu.isExpanded()">
-  <ul class="game-list">
+<nav class="game-menu" [class.expanded]="menu.isExpanded()" aria-label="Games">
+  <ul class="game-list" id="game-menu-list">
     @for (game of session.games; track game.id) {
       <li>
         <button
+          type="button"
           class="game-item"
           [class.active]="session.selectedGameId() === game.id"
-          [attr.aria-current]="session.selectedGameId() === game.id"
+          [attr.aria-current]="
+            session.selectedGameId() === game.id ? 'page' : null
+          "
           (click)="chooseGame(game.id)"
           [title]="game.name"
         >
-          <span class="game-marker">{{ game.name.charAt(0) }}</span>
-          @if (menu.isExpanded()) {
-            <span class="game-name">{{ game.name }}</span>
-          }
+          <span class="game-marker" aria-hidden="true">{{
+            game.name.charAt(0)
+          }}</span>
+          <span
+            class="game-name"
+            [class.visually-hidden]="!menu.isExpanded()"
+            >{{ game.name }}</span
+          >
         </button>
       </li>
     }

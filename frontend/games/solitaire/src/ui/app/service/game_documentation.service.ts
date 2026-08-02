@@ -2,7 +2,6 @@ import { Injectable, computed, inject, signal } from "@angular/core";
 import { GameCatalogService } from "./game_catalog.service";
 import { GameDocumentation } from "../model/game_documentation.model";
 import { GAME_DOCUMENTATION_REGISTRY } from "../provider/game_documentation_data";
-import { GameOptionSpec } from "../provider/game_catalog";
 
 /**
  * Manages game documentation accessibility, active game rules lookup, and
@@ -42,23 +41,5 @@ export class GameDocumentationService {
    */
   getDocumentation(gameId: string): GameDocumentation | undefined {
     return GAME_DOCUMENTATION_REGISTRY[gameId];
-  }
-
-  /**
-   * Looks up the GameOptionSpec from the active game's catalog entry.
-   */
-  getOptionSpec(optionId: string): GameOptionSpec | undefined {
-    return this.catalog.selectedEntry.options.find(
-      (spec) => spec.id === optionId,
-    );
-  }
-
-  /**
-   * Looks up the display label for an option choice by numeric value.
-   */
-  getChoiceLabel(optionId: string, choiceValue: number): string {
-    const spec = this.getOptionSpec(optionId);
-    const choice = spec?.choices.find((c) => c.value === choiceValue);
-    return choice?.label ?? String(choiceValue);
   }
 }

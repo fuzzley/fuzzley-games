@@ -1,35 +1,20 @@
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  padding: 1.5rem;
-  animation: fadeIn 0.2s ease-out;
-  pointer-events: auto;
-}
-
+/*
+ * No backdrop element and no z-index: the surrounding <app-modal-dialog> is a
+ * native <dialog>, which paints the scrim and puts this in the top layer.
+ */
 .modal-dialog {
-  background: rgba(26, 32, 44, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-  color: #e2e8f0;
+  background: var(--surface-modal);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-modal);
+  color: var(--text-body);
   display: flex;
   flex-direction: column;
-  height: 90vh;
-  max-height: 90vh;
+  height: 90dvh;
   max-width: 1200px;
   width: 90vw;
   overflow: hidden;
-}
-
-.modal-dialog:focus {
-  outline: none;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .modal-header {
@@ -54,13 +39,13 @@
 }
 
 .header-icon {
-  color: #38bdf8;
+  color: var(--accent-sky);
   height: 28px;
   width: 28px;
 }
 
 .game-title {
-  color: #ffffff;
+  color: var(--text-bright);
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
@@ -72,7 +57,7 @@
   background: rgba(56, 189, 248, 0.12);
   border: 1px solid rgba(56, 189, 248, 0.3);
   border-radius: 20px;
-  color: #38bdf8;
+  color: var(--accent-sky);
   display: inline-flex;
   font-size: 0.8rem;
   font-weight: 600;
@@ -84,8 +69,8 @@
 
 .wiki-badge:hover {
   background: rgba(56, 189, 248, 0.25);
-  border-color: #38bdf8;
-  color: #ffffff;
+  border-color: var(--accent-sky);
+  color: var(--text-bright);
 }
 
 .badge-icon {
@@ -94,21 +79,25 @@
 }
 
 .btn-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap-target-min);
+  min-height: var(--tap-target-min);
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 1.75rem;
   line-height: 1;
-  padding: 0.25rem 0.5rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   transition:
-    color 0.2s ease,
-    background-color 0.2s ease;
+    color var(--duration-base) ease,
+    background-color var(--duration-base) ease;
 }
 
 .btn-modal-close:hover {
-  color: #ffffff;
+  color: var(--text-bright);
   background-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -124,21 +113,24 @@
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
-  color: #94a3b8;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 600;
+  min-height: var(--tap-target-min);
   padding: 0.6rem 1rem;
-  transition: all 0.2s ease;
+  transition:
+    color var(--duration-base) ease,
+    border-color var(--duration-base) ease;
 }
 
 .tab-btn:hover {
-  color: #f1f5f9;
+  color: var(--text-heading);
 }
 
 .tab-btn.active {
-  border-bottom-color: #38bdf8;
-  color: #38bdf8;
+  border-bottom-color: var(--accent-sky);
+  color: var(--accent-sky);
 }
 
 .modal-body {
@@ -165,7 +157,7 @@
 }
 
 .callout-title {
-  color: #38bdf8;
+  color: var(--accent-sky);
   font-size: 1.1rem;
   font-weight: 700;
   margin: 0 0 0.75rem 0;
@@ -179,14 +171,14 @@
 }
 
 .overview-block h4 {
-  color: #f1f5f9;
+  color: var(--text-heading);
   font-size: 1.05rem;
   font-weight: 600;
   margin: 0 0 0.5rem 0;
 }
 
 .overview-p {
-  color: #cbd5e1;
+  color: var(--text-secondary);
   font-size: 0.95rem;
   line-height: 1.6;
   margin: 0;
@@ -256,7 +248,7 @@
 }
 
 .screenshot-caption {
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 0.85rem;
   margin-top: 0.6rem;
   margin-bottom: 0.2rem;
@@ -264,7 +256,7 @@
 }
 
 .screenshot-failed-text {
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 0.85rem;
   margin-top: 0.6rem;
   margin-bottom: 0.2rem;
@@ -291,7 +283,7 @@
 }
 
 .rule-card h4 {
-  color: #38bdf8;
+  color: var(--accent-sky);
   font-size: 1rem;
   font-weight: 600;
   margin: 0 0 0.75rem 0;
@@ -303,7 +295,7 @@
 }
 
 .rule-card li {
-  color: #cbd5e1;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   line-height: 1.5;
   margin-bottom: 0.5rem;
@@ -317,14 +309,14 @@
 }
 
 .option-title {
-  color: #f1f5f9;
+  color: var(--text-heading);
   font-size: 1.1rem;
   font-weight: 700;
   margin: 0 0 0.4rem 0;
 }
 
 .option-desc {
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 0.9rem;
   margin: 0 0 1rem 0;
 }
@@ -345,7 +337,7 @@
   background: rgba(56, 189, 248, 0.15);
   border: 1px solid rgba(56, 189, 248, 0.3);
   border-radius: 6px;
-  color: #38bdf8;
+  color: var(--accent-sky);
   font-size: 0.8rem;
   font-weight: 700;
   min-width: 100px;
@@ -354,7 +346,7 @@
 }
 
 .choice-effect {
-  color: #cbd5e1;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   line-height: 1.4;
 }

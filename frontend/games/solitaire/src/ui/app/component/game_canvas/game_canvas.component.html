@@ -1,13 +1,19 @@
-<div #canvasHost class="canvas-container"></div>
-
+<!--
+  `aria-busy` belongs on the region that is loading — the board itself — rather
+  than on the spinner announcing it.
+-->
 <div
-  class="loading-overlay"
-  [class.hidden]="!isInitializing()"
-  role="status"
+  #canvasHost
+  class="canvas-container"
+  role="application"
+  [attr.aria-label]="gameName() + ' board'"
   [attr.aria-busy]="isInitializing()"
->
+></div>
+
+<div class="loading-overlay" [class.hidden]="!isInitializing()">
   <div
     class="skeleton-grid"
+    aria-hidden="true"
     [style.grid-template-columns]="'repeat(' + layoutSpec().columns + ', 1fr)'"
     [style.grid-template-rows]="'repeat(' + layoutSpec().rows + ', 1fr)'"
   >
@@ -23,13 +29,20 @@
   </div>
 
   <div class="loading-badge">
-    <div class="spinner-ring">
+    <div class="spinner-ring" aria-hidden="true">
       <div class="mini-card-icon">♠</div>
     </div>
-    @if (hasInitializationFailed()) {
-      <div class="loading-text">Board initialization timed out</div>
-    } @else {
-      <div class="loading-text">Loading {{ gameName() }}...</div>
-    }
+    <!--
+      The live region is always present and only its text changes, so the
+      status is announced when it arrives rather than the whole region
+      appearing and disappearing around it.
+    -->
+    <p class="loading-text" role="status">
+      @if (hasInitializationFailed()) {
+        Board initialization timed out
+      } @else if (isInitializing()) {
+        Loading {{ gameName() }}...
+      }
+    </p>
   </div>
 </div>

@@ -1,9 +1,16 @@
 import "@angular/compiler";
 import { setupTestBed } from "@analogjs/vitest-angular/setup-testbed";
+import { installDialogPolyfill } from "./support/dialog_polyfill";
 
 setupTestBed({
   zoneless: true,
 });
+
+// The overlays are native <dialog> elements, which jsdom parses but does not
+// implement. Only the specs running in the jsdom environment have a window.
+if (typeof window !== "undefined") {
+  installDialogPolyfill(window);
+}
 
 /**
  * An in-memory Storage for the node test environment, which has no

@@ -1,43 +1,52 @@
-@if (session.isGameWon()) {
-  <div class="victory-overlay">
-    <div class="victory-card">
-      <div class="trophy-container">
-        <div class="trophy-glow"></div>
-        <svg
-          class="trophy-icon"
-          fill="currentColor"
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M18 2H6c-1.1 0-2 .9-2 2v3c0 2.24 1.51 4.13 3.56 4.72c.54 1.5 1.76 2.7 3.29 3.12V18H9v2h6v-2h-1.85v-3.16c1.53-.42 2.75-1.62 3.29-3.12C18.49 11.13 20 9.24 20 7V4c0-1.1-.9-2-2-2zm-3 8h-2v2H9v-2H7V4h8v6zm3-3h-1v2.11c-.75-.43-1.58-.73-2.48-.89V4h3v3zm-11 .22V4h3v3.22c-.9.16-1.73.46-2.48.89H7z"
-          />
-        </svg>
-      </div>
-      <h1>Congratulations!</h1>
-      <p class="victory-subtitle">You have successfully cleared the board!</p>
-
-      <div class="victory-stats">
-        <div class="v-stat">
-          <span class="v-val">{{ session.score() }}</span>
-          <span class="v-lbl">Score</span>
-        </div>
-        <div class="v-stat">
-          <span class="v-val">{{ session.timerText() }}</span>
-          <span class="v-lbl">Time</span>
-        </div>
-        <div class="v-stat">
-          <span class="v-val">{{ session.moves() }}</span>
-          <span class="v-lbl">Moves</span>
-        </div>
-      </div>
-
-      <button
-        class="btn btn-gradient btn-large btn-block"
-        (click)="session.startNewGame()"
+<app-modal-dialog
+  [open]="session.isGameWon()"
+  dialogRole="alertdialog"
+  label="You won"
+  [dismissible]="false"
+>
+  <div class="victory-card">
+    <div class="trophy-container">
+      <div class="trophy-glow"></div>
+      <svg
+        class="trophy-icon"
+        fill="currentColor"
+        aria-hidden="true"
+        viewBox="0 0 24 24"
       >
-        Play Again
-      </button>
+        <path
+          d="M18 2H6c-1.1 0-2 .9-2 2v3c0 2.24 1.51 4.13 3.56 4.72c.54 1.5 1.76 2.7 3.29 3.12V18H9v2h6v-2h-1.85v-3.16c1.53-.42 2.75-1.62 3.29-3.12C18.49 11.13 20 9.24 20 7V4c0-1.1-.9-2-2-2zm-3 8h-2v2H9v-2H7V4h8v6zm3-3h-1v2.11c-.75-.43-1.58-.73-2.48-.89V4h3v3zm-11 .22V4h3v3.22c-.9.16-1.73.46-2.48.89H7z"
+        />
+      </svg>
     </div>
+    <h1>Congratulations!</h1>
+    <p class="victory-subtitle">You have successfully cleared the board!</p>
+
+    <!--
+      A description list, so each figure is announced with the name of what it
+      measures. The term comes first in the markup and the value is lifted
+      above it visually by the stylesheet.
+    -->
+    <dl class="victory-stats">
+      <div class="v-stat">
+        <dt class="v-lbl">Score</dt>
+        <dd class="v-val">{{ session.score() }}</dd>
+      </div>
+      <div class="v-stat">
+        <dt class="v-lbl">Time</dt>
+        <dd class="v-val">{{ session.timerText() }}</dd>
+      </div>
+      <div class="v-stat">
+        <dt class="v-lbl">Moves</dt>
+        <dd class="v-val">{{ session.moves() }}</dd>
+      </div>
+    </dl>
+
+    <button
+      type="button"
+      class="btn btn-gradient btn-large btn-block"
+      (click)="session.startNewGame()"
+    >
+      Play Again
+    </button>
   </div>
-}
+</app-modal-dialog>

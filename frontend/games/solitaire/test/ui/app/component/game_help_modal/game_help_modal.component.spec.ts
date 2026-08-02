@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { GameHelpModalComponent } from "@/ui/app/component/game_help_modal/game_help_modal.component";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
@@ -10,6 +10,7 @@ import {
   clickElement,
   query,
 } from "@test/support/dom";
+import { isDialogOpen, pressEscape } from "@test/support/dialog";
 
 describe("GameHelpModalComponent", () => {
   let fixture: ComponentFixture<GameHelpModalComponent>;
@@ -31,276 +32,234 @@ describe("GameHelpModalComponent", () => {
     fixture.detectChanges();
   });
 
-  afterEach(() => {
-    document.body.style.overflow = "";
-    vi.useRealTimers();
-  });
-
-  it("is hidden when docService.isOpen is false", () => {
-    const backdrop = query(fixture, ".modal-backdrop");
-    expect(backdrop).toBeNull();
-  });
-
-  it("renders modal dialog when docService.isOpen is true", () => {
+  /** Opens the modal and renders it. */
+  function openHelp(): void {
     docService.openHelp();
     fixture.detectChanges();
+  }
 
-    const dialog = queryRequired(fixture, ".modal-dialog");
-    expect(dialog.getAttribute("role")).toBe("dialog");
-    expect(queryText(fixture, ".game-title")).toContain("Klondike Solitaire");
-  });
+  /** The tab button for a named tab. */
+  function tab(name: string): HTMLElement {
+    return queryRequired(fixture, `[data-tab="${name}"]`);
+  }
 
-  it("defaults to the summary tab on open", () => {
-    docService.openHelp();
-    fixture.detectChanges();
-
-    const overviewTab = queryRequired(fixture, '[data-tab="overview"]');
-    expect(overviewTab.classList.contains("active")).toBe(true);
-    expect(queryText(fixture, ".callout-title")).toContain(
-      "Objective & Win Condition",
-    );
-  });
-
-  it("shows detailed rules when clicking the rules tab", () => {
-    docService.openHelp();
-    fixture.detectChanges();
-
-    clickElement(fixture, '[data-tab="rules"]');
-    fixture.detectChanges();
-
-    const rulesTab = queryRequired(fixture, '[data-tab="rules"]');
-    expect(rulesTab.classList.contains("active")).toBe(true);
-    expect(queryText(fixture, ".rules-grid")).toContain("Board Layout");
-  });
-
-  it("does not render a screenshots tab button", () => {
-    docService.openHelp();
-    fixture.detectChanges();
-
-    const tabsNav = queryRequired(fixture, ".modal-tabs");
-    expect(tabsNav.textContent).not.toContain("Screenshots");
-  });
-
-  it("does not render options tab button for games with no options", () => {
-    catalogService.select("freecell");
-    docService.openHelp();
-    fixture.detectChanges();
-
-    const variantsTab = query(fixture, '[data-tab="variants"]');
-    expect(variantsTab).toBeNull();
-  });
-
-  it("renders Wikipedia badge link when wikipediaUrl is defined", () => {
-    catalogService.select("klondike");
-    docService.openHelp();
-    fixture.detectChanges();
-
-    const wikiBadge = query(fixture, ".wiki-badge");
-    expect(wikiBadge).not.toBeNull();
-    expect(wikiBadge?.getAttribute("href")).toContain("wikipedia.org");
-  });
-
-  it("closes modal when clicking close button", () => {
-    docService.openHelp();
-    fixture.detectChanges();
-
-    clickElement(fixture, ".btn-modal-close");
-    fixture.detectChanges();
-
-    expect(docService.isOpen()).toBe(false);
-    expect(query(fixture, ".modal-backdrop")).toBeNull();
-  });
-
-  it("closes modal when clicking the backdrop", () => {
-    docService.openHelp();
-    fixture.detectChanges();
-
-    const backdrop = queryRequired(fixture, ".modal-backdrop");
-    backdrop.click();
-    fixture.detectChanges();
-
-    expect(docService.isOpen()).toBe(false);
-  });
-
-  it("does not close modal when clicking inside modal-dialog content", () => {
-    docService.openHelp();
-    fixture.detectChanges();
-
-    const dialog = queryRequired(fixture, ".modal-dialog");
-    dialog.click();
-    fixture.detectChanges();
-
-    expect(docService.isOpen()).toBe(true);
-  });
-
-  it("closes modal when pressing Escape key while open", () => {
-    docService.openHelp();
-    fixture.detectChanges();
-
-    const escapeEvent = new KeyboardEvent("keydown", { key: "Escape" });
-    document.dispatchEvent(escapeEvent);
-    fixture.detectChanges();
-
-    expect(docService.isOpen()).toBe(false);
-  });
-
-  it("does nothing when pressing Escape key while already closed", () => {
-    const escapeEvent = new KeyboardEvent("keydown", { key: "Escape" });
-    document.dispatchEvent(escapeEvent);
-    fixture.detectChanges();
-
-    expect(docService.isOpen()).toBe(false);
-  });
-
-  it("locks body scroll to hidden when modal is open and restores it when closed", () => {
-    docService.openHelp();
-    fixture.detectChanges();
-    expect(document.body.style.overflow).toBe("hidden");
-
-    docService.closeHelp();
-    fixture.detectChanges();
-    expect(document.body.style.overflow).toBe("");
-  });
-
-  it("focuses close button when modal opens", () => {
-    vi.useFakeTimers();
-    docService.openHelp();
-    fixture.detectChanges();
-    vi.advanceTimersByTime(10);
-
-    const closeBtn = queryRequired(fixture, ".btn-modal-close");
-    expect(document.activeElement).toBe(closeBtn);
-  });
-
-  it("restores focus to previous active element on close", () => {
-    const triggerButton = document.createElement("button");
-    document.body.appendChild(triggerButton);
-    triggerButton.focus();
-
-    docService.openHelp();
-    fixture.detectChanges();
-
-    docService.closeHelp();
-    fixture.detectChanges();
-
-    expect(document.activeElement).toBe(triggerButton);
-    document.body.removeChild(triggerButton);
-  });
-
-  it("traps Tab focus to last element when Shift+Tab pressed on first focusable item", () => {
-    vi.useFakeTimers();
-    docService.openHelp();
-    fixture.detectChanges();
-    vi.advanceTimersByTime(10);
-
-    const dialogEl = queryRequired(fixture, ".modal-dialog");
-    const focusables = Array.from(
-      dialogEl.querySelectorAll<HTMLElement>(
-        "button, a[href], input, select, textarea, [tabindex]",
-      ),
-    ).filter((el) => el.tabIndex !== -1 && !el.hasAttribute("disabled"));
-
-    const firstFocusable = focusables[0];
-    const lastFocusable = focusables[focusables.length - 1];
-    firstFocusable.focus();
-
-    const tabEvent = new KeyboardEvent("keydown", {
-      key: "Tab",
-      shiftKey: true,
-      bubbles: true,
+  describe("showing and hiding", () => {
+    it("stays closed until help is asked for", () => {
+      expect(isDialogOpen(fixture)).toBe(false);
     });
-    document.dispatchEvent(tabEvent);
 
-    expect(document.activeElement).toBe(lastFocusable);
-  });
+    it("opens when help is asked for", () => {
+      openHelp();
 
-  it("navigates tabs using ArrowRight and ArrowLeft keydown events and moves DOM focus", () => {
-    vi.useFakeTimers();
-    docService.openHelp();
-    fixture.detectChanges();
-
-    const summaryTab = queryRequired(fixture, '[data-tab="overview"]');
-    summaryTab.focus();
-
-    const arrowRight = new KeyboardEvent("keydown", {
-      key: "ArrowRight",
-      bubbles: true,
+      expect(isDialogOpen(fixture)).toBe(true);
+      expect(queryText(fixture, ".game-title").length).toBeGreaterThan(0);
     });
-    summaryTab.dispatchEvent(arrowRight);
-    fixture.detectChanges();
 
-    const rulesTab = queryRequired(fixture, '[data-tab="rules"]');
-    expect(rulesTab.classList.contains("active")).toBe(true);
-    vi.advanceTimersByTime(10);
+    it("closes when the close button is clicked", () => {
+      openHelp();
 
-    expect(document.activeElement).toBe(rulesTab);
+      clickElement(fixture, ".btn-modal-close");
+      fixture.detectChanges();
+
+      expect(docService.isOpen()).toBe(false);
+      expect(isDialogOpen(fixture)).toBe(false);
+    });
+
+    it("closes on Escape", () => {
+      openHelp();
+
+      pressEscape();
+      fixture.detectChanges();
+
+      expect(docService.isOpen()).toBe(false);
+    });
+
+    it("closes when the backdrop outside the panel is clicked", () => {
+      openHelp();
+
+      queryRequired<HTMLDialogElement>(fixture, "dialog").click();
+      fixture.detectChanges();
+
+      expect(docService.isOpen()).toBe(false);
+    });
+
+    it("stays open when the panel itself is clicked", () => {
+      openHelp();
+
+      queryRequired(fixture, ".modal-dialog").click();
+      fixture.detectChanges();
+
+      expect(docService.isOpen()).toBe(true);
+    });
+
+    it("does nothing when Escape is pressed while already closed", () => {
+      pressEscape();
+      fixture.detectChanges();
+
+      expect(docService.isOpen()).toBe(false);
+    });
   });
 
-  it("renders skeleton container without loaded or failed class when hero image has not loaded", () => {
-    docService.openHelp();
-    fixture.detectChanges();
+  describe("focus", () => {
+    it("moves focus into the dialog when it opens", () => {
+      openHelp();
 
-    const container = queryRequired(fixture, ".img-skeleton-container");
-    const img = queryRequired(fixture, ".screenshot-img");
+      const dialog = queryRequired(fixture, "dialog");
+      expect(dialog.contains(document.activeElement)).toBe(true);
+    });
 
-    expect(container.classList.contains("is-loaded")).toBe(false);
-    expect(container.classList.contains("is-failed")).toBe(false);
-    expect(img.classList.contains("loaded")).toBe(false);
+    it("lands on the close button rather than the outbound Wikipedia link", () => {
+      openHelp();
+
+      expect(document.activeElement).toBe(
+        queryRequired(fixture, ".btn-modal-close"),
+      );
+    });
+
+    it("restores focus to whatever opened it", () => {
+      const trigger = document.createElement("button");
+      document.body.appendChild(trigger);
+      trigger.focus();
+
+      openHelp();
+      docService.closeHelp();
+      fixture.detectChanges();
+
+      expect(document.activeElement).toBe(trigger);
+      trigger.remove();
+    });
   });
 
-  it("marks skeleton container and image as loaded when image load event fires", () => {
-    docService.openHelp();
-    fixture.detectChanges();
+  describe("tabs", () => {
+    it("opens on the summary tab", () => {
+      openHelp();
 
-    const img = queryRequired(fixture, ".screenshot-img");
-    img.dispatchEvent(new Event("load"));
-    fixture.detectChanges();
+      expect(tab("overview").getAttribute("aria-selected")).toBe("true");
+      expect(queryText(fixture, ".callout-title")).toContain(
+        "Objective & Win Condition",
+      );
+    });
 
-    const container = queryRequired(fixture, ".img-skeleton-container");
-    expect(container.classList.contains("is-loaded")).toBe(true);
-    expect(img.classList.contains("loaded")).toBe(true);
+    it("shows the detailed rules when the rules tab is clicked", () => {
+      openHelp();
+
+      clickElement(fixture, '[data-tab="rules"]');
+      fixture.detectChanges();
+
+      expect(tab("rules").getAttribute("aria-selected")).toBe("true");
+      expect(queryText(fixture, ".rules-grid")).toContain("Board Layout");
+    });
+
+    it("offers no variants tab for a game with no options", () => {
+      catalogService.select("freecell");
+      openHelp();
+
+      expect(query(fixture, '[data-tab="variants"]')).toBeNull();
+    });
+
+    it("moves to the next tab on ArrowRight", () => {
+      openHelp();
+      tab("overview").focus();
+
+      tab("overview").dispatchEvent(
+        new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }),
+      );
+      fixture.detectChanges();
+
+      expect(tab("rules").getAttribute("aria-selected")).toBe("true");
+    });
+
+    it("wraps to the last tab on ArrowLeft from the first", () => {
+      catalogService.select("klondike");
+      openHelp();
+      tab("overview").focus();
+
+      tab("overview").dispatchEvent(
+        new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }),
+      );
+      fixture.detectChanges();
+
+      expect(tab("variants").getAttribute("aria-selected")).toBe("true");
+    });
+
+    it("keeps the tablist to one tab stop, as a tablist should", () => {
+      openHelp();
+
+      clickElement(fixture, '[data-tab="rules"]');
+      fixture.detectChanges();
+
+      expect(tab("overview").getAttribute("tabindex")).toBe("-1");
+      expect(tab("rules").getAttribute("tabindex")).toBe("0");
+    });
+
+    it("returns to the summary tab when reopened", () => {
+      openHelp();
+      clickElement(fixture, '[data-tab="rules"]');
+      docService.closeHelp();
+      fixture.detectChanges();
+
+      openHelp();
+
+      expect(tab("overview").getAttribute("aria-selected")).toBe("true");
+    });
+
+    it("falls back to summary when the new game lacks the tab that was open", () => {
+      catalogService.select("klondike");
+      openHelp();
+      clickElement(fixture, '[data-tab="variants"]');
+      docService.closeHelp();
+      catalogService.select("freecell");
+
+      openHelp();
+
+      expect(tab("overview").getAttribute("aria-selected")).toBe("true");
+    });
   });
 
-  it("marks skeleton container as failed when image error event fires", () => {
-    docService.openHelp();
-    fixture.detectChanges();
+  describe("the hero screenshot", () => {
+    it("shows neither loaded nor failed before the image resolves", () => {
+      openHelp();
 
-    const img = queryRequired(fixture, ".screenshot-img");
-    img.dispatchEvent(new Event("error"));
-    fixture.detectChanges();
+      const container = queryRequired(fixture, ".img-skeleton-container");
+      expect(container.classList.contains("is-loaded")).toBe(false);
+      expect(container.classList.contains("is-failed")).toBe(false);
+    });
 
-    const container = queryRequired(fixture, ".img-skeleton-container");
-    expect(container.classList.contains("is-failed")).toBe(true);
-    expect(queryText(fixture, ".screenshot-failed-text")).toContain(
-      "Screenshot unavailable",
-    );
+    it("marks itself loaded once the image arrives", () => {
+      openHelp();
+
+      queryRequired(fixture, ".screenshot-img").dispatchEvent(
+        new Event("load"),
+      );
+      fixture.detectChanges();
+
+      expect(
+        queryRequired(fixture, ".img-skeleton-container").classList.contains(
+          "is-loaded",
+        ),
+      ).toBe(true);
+    });
+
+    it("says so when the image cannot be loaded", () => {
+      openHelp();
+
+      queryRequired(fixture, ".screenshot-img").dispatchEvent(
+        new Event("error"),
+      );
+      fixture.detectChanges();
+
+      expect(queryText(fixture, ".screenshot-failed-text")).toContain(
+        "Screenshot unavailable",
+      );
+    });
   });
 
-  it("resets active tab to summary when opening modal for a game without variants after visiting options", () => {
+  it("links out to Wikipedia when the documentation has an article", () => {
     catalogService.select("klondike");
-    docService.openHelp();
-    fixture.detectChanges();
-    clickElement(fixture, '[data-tab="variants"]');
-    docService.closeHelp();
-    catalogService.select("freecell");
+    openHelp();
 
-    docService.openHelp();
-    fixture.detectChanges();
-
-    const overviewTab = queryRequired(fixture, '[data-tab="overview"]');
-    expect(overviewTab.classList.contains("active")).toBe(true);
-  });
-
-  it("resets active tab to summary when modal is reopened", () => {
-    docService.openHelp();
-    fixture.detectChanges();
-    clickElement(fixture, '[data-tab="rules"]');
-    docService.closeHelp();
-
-    docService.openHelp();
-    fixture.detectChanges();
-
-    const overviewTab = queryRequired(fixture, '[data-tab="overview"]');
-    expect(overviewTab.classList.contains("active")).toBe(true);
+    expect(query(fixture, ".wiki-badge")?.getAttribute("href")).toContain(
+      "wikipedia.org",
+    );
   });
 });

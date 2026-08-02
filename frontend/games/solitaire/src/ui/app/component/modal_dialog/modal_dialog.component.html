@@ -1,0 +1,18 @@
+<!--
+  The click handler is light dismiss, and the lint rules that want a keyboard
+  equivalent beside it do not know what a <dialog> is. Both are already
+  satisfied by the element itself: it takes focus when `showModal()` opens it,
+  and Escape reaches the (cancel) handler below without any listener of ours.
+  Adding a keydown here would duplicate the browser, not add to it.
+-->
+<!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+<dialog
+  #dialog
+  class="modal"
+  [attr.role]="dialogRole()"
+  [attr.aria-label]="label() || null"
+  (cancel)="onCancel($event)"
+  (click)="onClick($event)"
+>
+  <ng-content />
+</dialog>

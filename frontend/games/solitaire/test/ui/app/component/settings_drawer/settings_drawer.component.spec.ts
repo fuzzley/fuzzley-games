@@ -10,18 +10,15 @@ import {
   createMockCatalog,
   asCatalog,
 } from "@test/support/game_model_mock";
-import { clickElement, query, queryAll } from "@test/support/dom";
+import { clickElement, queryAll, queryRequired } from "@test/support/dom";
+import { isDialogOpen, pressEscape } from "@test/support/dialog";
 
 describe("SettingsDrawerComponent", () => {
-  let component: SettingsDrawerComponent;
   let fixture: ComponentFixture<SettingsDrawerComponent>;
-  let mockGameModel: ReturnType<typeof createMockGameModel>;
   let session: GameSessionService;
   let themeService: ThemeService;
 
   beforeEach(async () => {
-    mockGameModel = createMockGameModel();
-
     await TestBed.configureTestingModule({
       imports: [SettingsDrawerComponent],
       providers: [
@@ -29,95 +26,137 @@ describe("SettingsDrawerComponent", () => {
         ThemeService,
         {
           provide: GameCatalogService,
-          useValue: asCatalog(createMockCatalog(mockGameModel)),
+          useValue: asCatalog(createMockCatalog(createMockGameModel())),
         },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SettingsDrawerComponent);
-    component = fixture.componentInstance;
     session = TestBed.inject(GameSessionService);
     themeService = TestBed.inject(ThemeService);
     fixture.detectChanges();
   });
 
-  it("does not render the settings drawer if open input is false", () => {
-    fixture.componentRef.setInput("open", false);
-    fixture.detectChanges();
-
-    expect(query(fixture, ".drawer")).toBeNull();
-  });
-
-  it("renders the settings drawer when open input is true", () => {
+  /** Opens the drawer and renders it. */
+  function openDrawer(): void {
     fixture.componentRef.setInput("open", true);
     fixture.detectChanges();
+  }
 
-    expect(query(fixture, ".drawer")).not.toBeNull();
+  it("stays closed until asked to open", () => {
+    expect(isDialogOpen(fixture)).toBe(false);
   });
 
-  it("emits close when the backdrop is clicked", () => {
-    fixture.componentRef.setInput("open", true);
-    fixture.detectChanges();
+  it("opens when the open input is set", () => {
+    openDrawer();
+
+    expect(isDialogOpen(fixture)).toBe(true);
+  });
+
+  it("asks to close when the close button is clicked", () => {
+    openDrawer();
     const closeSpy = vi.fn();
-    component.closed.subscribe(closeSpy);
-
-    clickElement(fixture, ".drawer-backdrop");
-
-    expect(closeSpy).toHaveBeenCalledOnce();
-  });
-
-  it("emits close when the close button is clicked", () => {
-    fixture.componentRef.setInput("open", true);
-    fixture.detectChanges();
-    const closeSpy = vi.fn();
-    component.closed.subscribe(closeSpy);
+    fixture.componentInstance.closed.subscribe(closeSpy);
 
     clickElement(fixture, ".btn-close");
 
     expect(closeSpy).toHaveBeenCalledOnce();
   });
 
+  it("asks to close when the backdrop is clicked", () => {
+    openDrawer();
+    const closeSpy = vi.fn();
+    fixture.componentInstance.closed.subscribe(closeSpy);
+
+    queryRequired<HTMLDialogElement>(fixture, "dialog").click();
+
+    expect(closeSpy).toHaveBeenCalledOnce();
+  });
+
+  it("asks to close on Escape", () => {
+    openDrawer();
+    const closeSpy = vi.fn();
+    fixture.componentInstance.closed.subscribe(closeSpy);
+
+    pressEscape();
+
+    expect(closeSpy).toHaveBeenCalledOnce();
+  });
+
   it("renders whichever rules the game on the table offers", () => {
-    fixture.componentRef.setInput("open", true);
-    fixture.detectChanges();
+    openDrawer();
 
     // Scoped to the drawer's own groups: the debug panel nests its options
     // inside .debug-panel and has its own spec.
     expect(
-      queryAll(
-        fixture,
-        ".drawer-content > .setting-group .segmented-control button",
-      ).map((b) => b.textContent?.trim()),
+      queryAll(fixture, ".drawer-content > app-option-group .segment-btn").map(
+        (button) => button.textContent?.trim(),
+      ),
     ).toEqual(["Draw 1", "Draw 3"]);
   });
 
+  it("marks the chosen rule as checked, not merely highlighted", () => {
+    openDrawer();
+
+    const drawThree = queryAll(
+      fixture,
+      ".drawer-content > app-option-group .segment-btn",
+    )[1];
+    expect(drawThree.getAttribute("aria-checked")).toBe("true");
+  });
+
   it("changes a rule when one of its choices is clicked", () => {
-    fixture.componentRef.setInput("open", true);
-    fixture.detectChanges();
+    openDrawer();
 
     clickElement(
       fixture,
-      ".drawer-content > .setting-group .segmented-control button:nth-child(1)",
+      ".drawer-content > app-option-group .segment-btn:nth-child(1)",
     );
 
     expect(session.optionValues()["drawCount"]).toBe(1);
   });
 
-  it("triggers card back design selection change in session", () => {
-    fixture.componentRef.setInput("open", true);
-    fixture.detectChanges();
+  it("changes the card back when one is picked", () => {
+    openDrawer();
 
-    clickElement(fixture, ".card-back-option.red-back");
+    clickElement(fixture, ".card-back-selector button:nth-child(2)");
 
     expect(session.cardBack()).toBe("card-back-red");
   });
 
-  it("triggers table theme selection change in ThemeService", () => {
-    fixture.componentRef.setInput("open", true);
+  it("marks the chosen card back as checked", () => {
+    openDrawer();
+
+    clickElement(fixture, ".card-back-selector button:nth-child(2)");
     fixture.detectChanges();
 
-    clickElement(fixture, ".theme-option[title='Royal Velvet']");
+    expect(
+      queryAll(fixture, ".card-back-selector button")[1].getAttribute(
+        "aria-checked",
+      ),
+    ).toBe("true");
+  });
+
+  it("changes the table theme when a swatch is picked", () => {
+    openDrawer();
+
+    clickElement(fixture, ".theme-option[aria-label='Royal Velvet']");
 
     expect(themeService.selectedTheme()).toBe("purple");
+  });
+
+  it("names each theme swatch, which is otherwise just a colour", () => {
+    openDrawer();
+
+    expect(
+      queryAll(fixture, ".theme-option").map((button) =>
+        button.getAttribute("aria-label"),
+      ),
+    ).toEqual([
+      "Emerald Felt",
+      "Deep Ocean",
+      "Midnight Charcoal",
+      "Royal Velvet",
+    ]);
   });
 });

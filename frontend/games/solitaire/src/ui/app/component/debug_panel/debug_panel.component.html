@@ -1,22 +1,11 @@
-<div class="debug-panel">
-  <label class="setting-label debug-label">Debug Options</label>
+<div class="debug-panel" role="group" aria-labelledby="debug-panel-label">
+  <p class="debug-label" id="debug-panel-label">Debug Options</p>
   @for (option of session.debugOptions(); track option.id) {
-    <div class="setting-group">
-      <label class="setting-sublabel">{{ option.label }}</label>
-      <div class="segmented-control">
-        @for (choice of option.choices; track choice.value) {
-          <button
-            class="segment-btn"
-            [class.active]="session.optionValues()[option.id] === choice.value"
-            (click)="session.setRuleOption(option.id, choice.value)"
-          >
-            {{ choice.label }}
-          </button>
-        }
-      </div>
-      @if (option.description) {
-        <p class="setting-desc">{{ option.description }}</p>
-      }
-    </div>
+    <app-option-group
+      [option]="option"
+      [value]="session.optionValues()[option.id]"
+      [compactLabel]="true"
+      (choose)="session.setRuleOption(option.id, $event)"
+    />
   }
 </div>
