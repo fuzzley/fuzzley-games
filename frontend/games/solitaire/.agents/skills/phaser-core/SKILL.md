@@ -5,15 +5,20 @@ description: Master skill for Phaser 4 canvas rendering, scene lifecycles, textu
 
 # Phaser 4 Rendering & Scene Master Skill
 
-This skill governs Phaser 4 canvas integration within fSolitaire. Phaser 4 is isolated in `src/engine/render/phaser` and `src/game/render` to ensure game logic remains framework-agnostic.
+This skill governs Phaser 4 canvas integration within fSolitaire. Phaser 4 is isolated in `src/engine/render/phaser` so that game logic stays framework-agnostic.
 
 ## Key Architectural Principles
 
-1. **Decoupled Renderer**: Phaser 4 code MUST live exclusively under `src/engine/render/phaser` or `src/game/render`. Core card logic (`engine/core`), layout math (`engine/render`), and rules engine (`engine/tableau`) must NEVER import Phaser.
+1. **Decoupled Renderer**: Phaser 4 code MUST live under `src/engine/render/phaser`. Core card logic (`src/engine/core`), layout math (`src/engine/render`), and the rules runtime (`src/engine/tableau`) must NEVER import Phaser — ESLint enforces this. Games assemble their board through `src/games/common/board_scene_factory.ts` rather than reaching for Phaser directly.
 2. **Phaser Canvas Host**: `PhaserHost` (`src/engine/render/phaser/phaser_host.ts`) hosts Phaser scenes. The Angular application shell hands a board factory to `PhaserHost` without importing Phaser modules directly into UI components.
 3. **Texture Atlas Management**:
-   - Card graphics and UI textures are built into single texture atlas files via `tools/build-card-atlas.mjs`.
-   - Run `yarn build:atlas` whenever SVG assets or card frame graphics in `assets/` are added or modified.
+   - Card graphics are packed into a Phaser **multi-atlas** (a manifest plus one
+     or more PNG pages) by `tools/build-card-atlas.mjs`, written to
+     `src/engine/render/assets/sprites/atlas/`.
+   - Run `yarn build:atlas` whenever the card SVGs in
+     `src/engine/render/assets/sprites/card/` change. The atlas is a committed
+     build artifact, so a stale one ships.
+   - See the `vite-bundle-optimization` skill for the toolchain in full.
 
 ## Core Phaser 4 Sub-topics & Reference Map
 
@@ -36,7 +41,7 @@ maps.
 
 ## Phaser 4 Best Practices for Solitaire
 
-- **Card Sprites & Depth**: Maintain explicit z-index/depth ordering for cards on piles. Top card of a pile should always have the highest depth in its pile.
-- **Batching & Draw Calls**: Batch card renders using containers or texture atlases to maintain 60 FPS performance on canvas.
-- **Input Boundaries**: Derive card touch/click bounds directly from `engine/render` layout bounds rather than hardcoding canvas positions.
-- **Clean Scene Teardown**: Ensure scene listeners, tweens, and texture allocations are cleaned up on scene destruction or variant change.
+- **Card Sprites & Depth**: Every depth comes from `depthFor(RenderLayer.X)` in `src/engine/render/layout/render_layers.ts` — that enum is the board's z-order, back to front. Never invent a raw depth number.
+- **Input Boundaries**: Derive card touch/click bounds from the `engine/render` layout bounds rather than hardcoding canvas positions.
+- **Clean Scene Teardown**: Clean up scene listeners, tweens and any textures the scene created on destruction or variant change.
+- **Performance**: See the `phaser-canvas-performance` skill for batching, allocation and teardown detail — and measure before optimizing.

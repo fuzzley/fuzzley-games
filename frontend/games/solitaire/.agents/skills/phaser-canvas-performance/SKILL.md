@@ -5,25 +5,42 @@ description: Canvas profiling, texture memory management, garbage collection red
 
 # Phaser 4 Canvas Performance & Profiling
 
-> Performance optimization guidelines for maintaining 60 FPS canvas rendering, minimal draw calls, zero garbage collection pauses during gameplay, and clean WebGL texture memory lifecycle in fSolitaire.
+> Keeping the board at 60 FPS: minimal texture swaps, no allocation in the hot
+> path, and a clean teardown between variants.
 
-## Core Performance Rules
+## Measure First
 
-### 1. Maintain Single Texture Atlas Batching
-- **One Draw Call per Frame:** All card faces, backs, foundation markers, and UI graphics MUST be packed into the card texture atlas via `yarn build:atlas`.
-- **Texture Switching Penalty:** Avoid interleaving Game Objects that use separate textures (e.g. Sprite A from Atlas, Sprite B from loose image, Sprite C from Atlas), as this forces WebGL texture swaps.
+Do not optimize from a hunch. Chrome DevTools MCP is configured for this project
+— run the app with `yarn start`, take a performance trace while dragging a
+stack, and look at the actual frame budget before changing anything. A "fix"
+with no before-and-after number is a guess.
 
-### 2. Zero-Allocation Render Loop (Prevent GC Spikes)
-- Do NOT allocate new objects, arrays, or anonymous function closures inside `update()` or drag-move event handlers.
-- **Pre-allocate Vectors & Rectangles:** Reuse instance properties for scratch calculations:
+## 1. Minimize Texture Swaps
+
+All card faces, backs and placeholders come from the generated card atlas
+(`yarn build:atlas`). Keep new board artwork in that atlas rather than loading
+loose images, and avoid interleaving atlas-backed sprites with
+separately-textured ones in z-order, since each switch breaks the WebGL batch.
+
+**The atlas is multi-page, so "one draw call per frame" is not the target.**
+Frames are packed into as few pages as fit inside `MAX_PAGE_PX` (4096) and the
+build currently emits two (`card_assets-0.png`, `card_assets-1.png`). A frame
+touching both pages costs at least two draws — that is expected, not a
+regression. The goal is _few and stable_ texture bindings, not one.
+
+## 2. Zero-Allocation Render Loop
+
+Do not allocate objects, arrays, or closures inside `update()` or drag-move
+handlers — at 60–120 pointer events a second, that is what turns into GC pauses
+mid-drag.
 
 ```ts
-// Bad: Creates garbage on every pointer move (60-120 times/sec)
+// Bad: garbage on every pointer move
 onPointerMove(pointer: Phaser.Input.Pointer) {
   const bounds = new Phaser.Geom.Rectangle(pointer.x, pointer.y, 80, 120);
 }
 
-// Good: Reuse pre-allocated scratch objects
+// Good: reuse a pre-allocated scratch object
 private readonly scratchBounds = new Phaser.Geom.Rectangle();
 
 onPointerMove(pointer: Phaser.Input.Pointer) {
@@ -31,23 +48,43 @@ onPointerMove(pointer: Phaser.Input.Pointer) {
 }
 ```
 
-### 3. Object Pooling for Particle & Victory Animations
-- When spawning win animation cards or particle bursts, use Phaser `Group` object pools rather than creating and destroying sprites:
+## 3. Pool Victory & Particle Sprites
+
+For win animations and particle bursts, reuse sprites from a `Group` pool rather
+than creating and destroying them:
 
 ```ts
-// Reuse dead sprites from pool instead of instantiation
-const cardSprite = this.victoryPool.getFirstDead(true, x, y, 'card-atlas', frameKey);
+const cardSprite = this.victoryPool.getFirstDead(
+  true,
+  x,
+  y,
+  "card-atlas",
+  frameKey,
+);
 if (cardSprite) {
   cardSprite.setActive(true).setVisible(true);
 }
 ```
 
-### 4. Explicit Depth Sorting vs. Canvas Re-parenting
-- Use depth values (`card.setDepth(z)`) to control pile stack ordering rather than removing and re-adding children to containers.
-- Depth sorting in Phaser 4 is WebGL batch-friendly and avoids DOM/tree array re-index overhead.
+## 4. Depth Comes From `RenderLayer`
 
-### 5. Clean Scene Shutdown & Memory Teardown
-When switching solitaire variants (e.g., Klondike to Spider):
-- Stop and remove all active tweens via `this.tweens.killAll()`.
-- Remove custom pointer event listeners (`this.input.off(...)`).
-- Destroy created render textures or temporary canvas textures to prevent memory leaks.
+Order sprites with depth, never by removing and re-adding children to
+containers. **Take the value from `depthFor(RenderLayer.X)`
+(`src/engine/render/layout/render_layers.ts`) rather than inventing a number.**
+That enum is the board's whole z-order, back to front, and each layer owns a
+band 1000 wide — which is what lets a card be ordered within its pile with no
+risk of overtaking the layer above.
+
+The bands exist for cases that are easy to get wrong: a card moved to a
+foundation takes its new pile's low resting depth the instant the model moves
+it, so it flies as `FLYING_CARD` and would otherwise spend the whole flight
+drawn underneath the columns it crosses.
+
+## 5. Clean Scene Teardown
+
+When switching variants (Klondike → Spider), leaks compound across switches:
+
+- `this.tweens.killAll()` — a tween holding a destroyed sprite keeps it alive.
+- `this.input.off(...)` for every listener the board added.
+- Destroy any render textures or temporary canvas textures the scene created.
+  The card atlas itself is shared and must **not** be destroyed with the scene.

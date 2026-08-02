@@ -73,4 +73,4 @@ Common role keys: `'Submitter'`, `'Transformer'`, `'Texturer'`.
 | `addVignette(x, y, radius, strength, color, blendMode)`                            | Vignette                  |
 | `addWipe(wipeWidth, direction, axis, reveal, wipeTexture)`                         | Wipe transition           |
 
-See the [filters-and-postfx skill](../phaser-filters-and-postfx/SKILL.md) for the full list.
+See the [filters-and-postfx skill](../../phaser-filters-and-postfx/SKILL.md) for the full list.
