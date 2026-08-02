@@ -15,8 +15,8 @@ import { query, queryRequired } from "@test/support/dom";
 
 // The shell renders the game canvas host, which would otherwise boot a real
 // Phaser game against jsdom's unimplemented canvas.
-vi.mock("@/games/klondike/klondike", () => ({
-  Klondike: class {
+vi.mock("@/engine/render/phaser/phaser_host", () => ({
+  PhaserHost: class {
     start() {
       /* no-op */
     }

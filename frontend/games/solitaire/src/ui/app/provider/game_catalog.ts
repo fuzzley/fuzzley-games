@@ -1,15 +1,22 @@
 import { PlayableGame } from "@/engine/tableau/playable_game";
+import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { GameSettings } from "@/games/klondike/game_settings";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
+import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { FreeCellVariant } from "@/games/freecell/freecell_rules";
+import { FREECELL_LAYOUT } from "@/games/freecell/freecell_layout";
 import { SpiderGame } from "@/games/spider/spider_game";
 import { SpiderSuitCount, spiderDeck } from "@/games/spider/spider_deal";
+import { SPIDER_LAYOUT } from "@/games/spider/spider_layout";
 import { YukonGame } from "@/games/yukon/yukon_game";
 import { YukonVariant } from "@/games/yukon/yukon_rules";
+import { YUKON_LAYOUT } from "@/games/yukon/yukon_layout";
 import { EightOffGame } from "@/games/eight_off/eight_off_game";
+import { EIGHT_OFF_LAYOUT } from "@/games/eight_off/eight_off_layout";
 import { ScorpionGame } from "@/games/scorpion/scorpion_game";
+import { SCORPION_LAYOUT } from "@/games/scorpion/scorpion_layout";
 
 /** A value a rule option can be set to, and how to name it to a player. */
 export interface GameOptionChoice {
@@ -46,21 +53,34 @@ export interface GameOptionSpec {
 /** The chosen value of each option, by option id. */
 export type GameOptionValues = Readonly<Record<string, number>>;
 
-/** A game the application can put on the table. */
-export interface CatalogEntry {
+/**
+ * A game the application can put on the table.
+ *
+ * Everything the application needs to know about a game that is not the game
+ * itself: what to call it, which rules it offers, the grid it lies on, and how
+ * to deal one. The layout used to live in a second registry keyed by the same
+ * id, which meant adding a game meant remembering to edit both.
+ *
+ * Generic in the game it deals so the board registry can be checked against
+ * it: a board that draws Spider cannot be registered against the entry that
+ * deals Klondike.
+ */
+export interface CatalogEntry<TGame extends PlayableGame = PlayableGame> {
   /** Stable id, also the URL fragment that selects it. */
   readonly id: string;
   /** Name shown to a player. */
   readonly name: string;
   /** The rules this game lets the player choose. */
   readonly options: readonly GameOptionSpec[];
+  /** The grid this game's board lies on, renderer-agnostic. */
+  readonly layout: TableLayoutSpec;
   /** Creates a dealt game playing by the given options. */
-  create(values: GameOptionValues): CatalogSession;
+  create(values: GameOptionValues): CatalogSession<TGame>;
 }
 
 /** A dealt game. */
-export interface CatalogSession {
-  readonly game: PlayableGame;
+export interface CatalogSession<TGame extends PlayableGame = PlayableGame> {
+  readonly game: TGame;
 }
 
 /** Reads an option's value, falling back to its default. */
@@ -143,116 +163,157 @@ const YUKON_VARIANT: GameOptionSpec = {
   defaultValue: YukonVariant.YUKON,
 };
 
-/**
- * Every game the engine can currently put on the table.
+/*
+ * The entries.
  *
- * An entry is: what it is called, which rules it lets the player choose, and
- * how to deal one. Everything else — the rules themselves, the layout, the
- * gestures — the game module already declared.
+ * Declared with `satisfies` rather than an explicit annotation so each keeps
+ * its literal id and its concrete game type: that is what lets the board
+ * registry be checked against this one instead of dispatching on `instanceof`
+ * at runtime.
  */
-export const GAME_CATALOG: readonly CatalogEntry[] = [
-  {
-    id: "klondike",
-    name: "Klondike",
-    options: [KLONDIKE_DRAW_COUNT, KLONDIKE_ALMOST_WIN],
-    create: (values) => {
-      const settings = new GameSettings();
-      settings.setDrawCount(
-        optionValue(values, KLONDIKE_DRAW_COUNT) === 1 ? 1 : 3,
-      );
-      settings.debug.setAlmostWin(
-        optionValue(values, KLONDIKE_ALMOST_WIN) === 1,
-      );
-      const game = new KlondikeGame(undefined, undefined, settings);
-      game.startNewGame();
-      return { game };
-    },
+
+const KLONDIKE = {
+  id: "klondike" as const,
+  name: "Klondike",
+  options: [KLONDIKE_DRAW_COUNT, KLONDIKE_ALMOST_WIN],
+  layout: KLONDIKE_LAYOUT,
+  create: (values: GameOptionValues) => {
+    const settings = new GameSettings();
+    settings.setDrawCount(
+      optionValue(values, KLONDIKE_DRAW_COUNT) === 1 ? 1 : 3,
+    );
+    settings.debug.setAlmostWin(optionValue(values, KLONDIKE_ALMOST_WIN) === 1);
+    const game = new KlondikeGame(undefined, undefined, settings);
+    game.startNewGame();
+    return { game };
   },
-  {
-    id: "freecell",
-    name: "FreeCell",
-    // FreeCell has no rules to choose: no stock, no draw mode, no options.
-    options: [],
-    create: () => {
-      const game = new FreeCellGame(
-        undefined,
-        undefined,
-        FreeCellVariant.FREECELL,
-      );
-      game.startNewGame();
-      return { game };
-    },
+} satisfies CatalogEntry<KlondikeGame>;
+
+const FREECELL = {
+  id: "freecell" as const,
+  name: "FreeCell",
+  // FreeCell has no rules to choose: no stock, no draw mode, no options.
+  options: [],
+  layout: FREECELL_LAYOUT,
+  create: () => {
+    const game = new FreeCellGame(
+      undefined,
+      undefined,
+      FreeCellVariant.FREECELL,
+    );
+    game.startNewGame();
+    return { game };
   },
-  {
-    id: "spider",
-    name: "Spider",
-    options: [SPIDER_SUIT_COUNT],
-    create: (values) => {
-      const suitCount = optionValue(
-        values,
-        SPIDER_SUIT_COUNT,
-      ) as SpiderSuitCount;
-      const game = new SpiderGame(deckCardIds(spiderDeck(suitCount)));
-      game.startNewGame();
-      return { game };
-    },
+} satisfies CatalogEntry<FreeCellGame>;
+
+const SPIDER = {
+  id: "spider" as const,
+  name: "Spider",
+  options: [SPIDER_SUIT_COUNT],
+  layout: SPIDER_LAYOUT,
+  create: (values: GameOptionValues) => {
+    const suitCount = optionValue(values, SPIDER_SUIT_COUNT) as SpiderSuitCount;
+    const game = new SpiderGame(deckCardIds(spiderDeck(suitCount)));
+    game.startNewGame();
+    return { game };
   },
-  {
-    id: "yukon",
-    name: "Yukon",
-    // One entry for three games: they share a deal, a board and a grab rule,
-    // and differ only in what an occupied column accepts, which is a rule a
-    // player picks rather than a game they switch to.
-    options: [YUKON_VARIANT],
-    create: (values) => {
-      const variant = optionValue(values, YUKON_VARIANT) as YukonVariant;
-      const game = new YukonGame(undefined, undefined, variant);
-      game.startNewGame();
-      return { game };
-    },
+} satisfies CatalogEntry<SpiderGame>;
+
+const YUKON = {
+  id: "yukon" as const,
+  name: "Yukon",
+  // One entry for three games: they share a deal, a board and a grab rule,
+  // and differ only in what an occupied column accepts, which is a rule a
+  // player picks rather than a game they switch to.
+  options: [YUKON_VARIANT],
+  layout: YUKON_LAYOUT,
+  create: (values: GameOptionValues) => {
+    const variant = optionValue(values, YUKON_VARIANT) as YukonVariant;
+    const game = new YukonGame(undefined, undefined, variant);
+    game.startNewGame();
+    return { game };
   },
-  {
-    id: "bakers",
-    name: "Baker's Game",
-    options: [BAKERS_EMPTY_COLUMNS],
-    // The same class as FreeCell, playing by a different set of column rules.
-    // Historically the derivation runs this way round — FreeCell was built from
-    // Baker's Game — but the code has to pick one of them to be the module.
-    create: (values) => {
-      const variant =
-        optionValue(values, BAKERS_EMPTY_COLUMNS) === 1
-          ? FreeCellVariant.BAKERS_KINGS_ONLY
-          : FreeCellVariant.BAKERS;
-      const game = new FreeCellGame(undefined, undefined, variant);
-      game.startNewGame();
-      return { game };
-    },
+} satisfies CatalogEntry<YukonGame>;
+
+const BAKERS = {
+  id: "bakers" as const,
+  name: "Baker's Game",
+  options: [BAKERS_EMPTY_COLUMNS],
+  // The same board as FreeCell, which it shares a layout with.
+  layout: FREECELL_LAYOUT,
+  // The same class as FreeCell, playing by a different set of column rules.
+  // Historically the derivation runs this way round — FreeCell was built from
+  // Baker's Game — but the code has to pick one of them to be the module.
+  create: (values: GameOptionValues) => {
+    const variant =
+      optionValue(values, BAKERS_EMPTY_COLUMNS) === 1
+        ? FreeCellVariant.BAKERS_KINGS_ONLY
+        : FreeCellVariant.BAKERS;
+    const game = new FreeCellGame(undefined, undefined, variant);
+    game.startNewGame();
+    return { game };
   },
-  {
-    id: "eightoff",
-    name: "Eight Off",
-    // Nothing to choose: no stock, no draw mode, and the cell count is the
-    // name of the game.
-    options: [],
-    create: () => {
-      const game = new EightOffGame();
-      game.startNewGame();
-      return { game };
-    },
+} satisfies CatalogEntry<FreeCellGame>;
+
+const EIGHT_OFF = {
+  id: "eightoff" as const,
+  name: "Eight Off",
+  // Nothing to choose: no stock, no draw mode, and the cell count is the
+  // name of the game.
+  options: [],
+  layout: EIGHT_OFF_LAYOUT,
+  create: () => {
+    const game = new EightOffGame();
+    game.startNewGame();
+    return { game };
   },
-  {
-    id: "scorpion",
-    name: "Scorpion",
-    // Nothing to choose: one deck, one deal, and a stock that empties itself in
-    // a single press.
-    options: [],
-    create: () => {
-      const game = new ScorpionGame();
-      game.startNewGame();
-      return { game };
-    },
+} satisfies CatalogEntry<EightOffGame>;
+
+const SCORPION = {
+  id: "scorpion" as const,
+  name: "Scorpion",
+  // Nothing to choose: one deck, one deal, and a stock that empties itself in
+  // a single press.
+  options: [],
+  layout: SCORPION_LAYOUT,
+  create: () => {
+    const game = new ScorpionGame();
+    game.startNewGame();
+    return { game };
   },
-];
+} satisfies CatalogEntry<ScorpionGame>;
+
+/**
+ * Every game the engine can currently put on the table, in the order they are
+ * offered.
+ *
+ * Typed as the tuple of its entries rather than as `CatalogEntry[]` so the ids
+ * and the dealt game types survive. {@link GAME_CATALOG} is the same list
+ * under the erased type most callers want.
+ */
+export const CATALOG_ENTRIES = [
+  KLONDIKE,
+  FREECELL,
+  SPIDER,
+  YUKON,
+  BAKERS,
+  EIGHT_OFF,
+  SCORPION,
+] as const;
+
+/** Every game the application can put on the table. */
+export const GAME_CATALOG: readonly CatalogEntry[] = CATALOG_ENTRIES;
+
+/** One of the entries, with its id and dealt game type intact. */
+export type KnownCatalogEntry = (typeof CATALOG_ENTRIES)[number];
+
+/** The id of a game in the catalog. */
+export type GameId = KnownCatalogEntry["id"];
+
+/** The game type a given entry deals. */
+export type GameOf<Id extends GameId> = ReturnType<
+  Extract<KnownCatalogEntry, { id: Id }>["create"]
+>["game"];
 
 /** The catalog entry with the given id, or the first one. */
 export function catalogEntry(id: string | null | undefined): CatalogEntry {
