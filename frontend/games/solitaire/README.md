@@ -1,6 +1,6 @@
 # fSolitaire
 
-A browser-based Solitaire game engine supporting multiple solitaire variants, built with [Phaser 4](https://phaser.io/) canvas rendering and an [Angular 22](https://angular.dev/) application shell.
+A browser-based Solitaire game engine supporting multiple solitaire variants, built with [Phaser 4](https://phaser.io/) canvas rendering, an [Angular 22](https://angular.dev/) application shell, and [Sass](https://sass-lang.com/) for UI styling.
 
 The [latest version of the game](http://fuzzley.info/project/solitaire/) is hosted at http://fuzzley.info/project/solitaire/.
 
@@ -14,8 +14,6 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Eight Off**: Similar to FreeCell but with eight reserve cells and same-suit column building.
 - **Scorpion**: Yukon-style unconstrained card group moves with a reserve stock.
 
-Have fun!
-
 ## Development
 
 This project uses [Yarn](https://yarnpkg.com/) for dependency management and [Vite](https://vite.dev/) for the dev server and production build.
@@ -28,6 +26,9 @@ yarn preview     # serve the production build locally
 yarn test        # run tests with Vitest
 yarn lint        # run ESLint
 yarn prettier    # format the code with Prettier
+yarn skills:link # link agent skills from .agents/skills to .claude/skills
 ```
 
-The game code lives in `src/` (bundled by Vite via `src/ui/app/main.ts`). The Angular UI components are located in `src/ui/`, while the Phaser game logic, rendering, and solitaire runtime reside in `src/engine/` and `src/games/`.
+The game code lives in `src/` (bundled by Vite via `src/ui/app/main.ts`). The Angular UI components and Sass design system (`src/ui/app/styles/`) are located in `src/ui/`, while the Phaser game logic, rendering, and solitaire runtime reside in `src/engine/` and `src/games/`.
+
+Agent configuration and reusable skills live in `.agents/skills/`. Run `yarn skills:link` to link skills across for Claude Code discovery.
