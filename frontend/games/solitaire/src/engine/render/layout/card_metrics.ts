@@ -38,8 +38,26 @@ export const LAYOUT_GAP_X = 30; // space between adjacent columns
 /** The vertical space between the top row (Stock, Waste, Foundations) and the bottom row (Tableaus). */
 export const LAYOUT_GAP_Y = 40; // space between the top row and the bottom (tableau) row
 
-/** The height of the top UI header bar overlay. */
+/**
+ * The height of the top UI header bar overlay.
+ *
+ * Mirrors `--header-height` in `src/ui/app/styles/_tokens.scss`, which is the
+ * value the header actually draws itself at. The board cannot read that token —
+ * it lays itself out in the canvas, not in the DOM — so the number is stated
+ * twice and the two have to be changed together.
+ */
 export const HEADER_HEIGHT_PX = 73;
+
+/**
+ * The height of the header once the chrome compacts, in CSS pixels.
+ *
+ * The shell shrinks the header on a narrow screen, at the same width
+ * `COMPACT_MAX_WIDTH_CSS_PX` names in `table_layout.ts` — so a board that went
+ * on reserving the full {@link HEADER_HEIGHT_PX} there was holding back
+ * thirteen pixels of a phone screen for a header that had already given them
+ * up.
+ */
+export const HEADER_HEIGHT_COMPACT_PX = 60;
 
 /**
  * How far a card may still be from its slot while a highlight border stays on
