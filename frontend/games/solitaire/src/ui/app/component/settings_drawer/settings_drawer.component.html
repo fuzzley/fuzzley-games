@@ -119,13 +119,19 @@
       }
     </div>
 
+    <!--
+      "Done", not "Apply Settings". Every control in this drawer commits as it
+      is touched — changing a rule deals a new game before the drawer is even
+      closed — so a button promising to apply them implied pending changes
+      that never existed, and implied the ✕ beside it would discard them.
+    -->
     <div class="drawer-footer">
       <button
         type="button"
         class="btn btn-primary btn-block"
         (click)="closed.emit()"
       >
-        Apply Settings
+        Done
       </button>
     </div>
   </div>
