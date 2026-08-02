@@ -160,6 +160,28 @@ function isRunFrom(
 }
 
 /**
+ * Whether a zone draws the given card face up.
+ *
+ * Separate from {@link PlayingCard.faceUp} because a zone may override it, and
+ * separate from {@link canGrab} because being readable and being liftable are
+ * different questions: an Eight Off column shows every card it holds while
+ * offering up only the top of a same-suit run.
+ *
+ * @param face The zone's face visibility.
+ * @param card The card being drawn.
+ */
+export function showsFace(face: FaceVisibility, card: PlayingCard): boolean {
+  switch (face) {
+    case "always-down":
+      return false;
+    case "always-up":
+      return true;
+    case "card":
+      return card.faceUp;
+  }
+}
+
+/**
  * The artwork key a zone shows for one of its cards.
  *
  * @param face The zone's face visibility.
@@ -171,14 +193,7 @@ export function frameFor(
   card: PlayingCard,
   cardBackKey: string,
 ): string {
-  switch (face) {
-    case "always-down":
-      return cardBackKey;
-    case "always-up":
-      return card.faceKey;
-    case "card":
-      return card.faceUp ? card.faceKey : cardBackKey;
-  }
+  return showsFace(face, card) ? card.faceKey : cardBackKey;
 }
 
 /** Whether the pile has room for `count` more cards under the zone's capacity. */

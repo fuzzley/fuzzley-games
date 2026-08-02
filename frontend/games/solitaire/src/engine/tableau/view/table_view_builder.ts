@@ -1,4 +1,3 @@
-import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Point } from "@/engine/core/common/point";
 import {
@@ -22,7 +21,7 @@ import {
   TableInteractionState,
   TableViewState,
 } from "@/engine/render/view/table_view_state";
-import { frameFor } from "../zone";
+import { ZoneSpec, frameFor, showsFace } from "../zone";
 import { TablePresentation, TableView } from "./table_view";
 
 /**
@@ -175,7 +174,7 @@ class TableViewStateBuilder {
       const offsets = pileCardOffsets(
         zone.layout,
         pileCards,
-        this.expansionCardId(pile, pileCards),
+        this.expansionCardId(zone, pileCards),
       );
 
       for (let cardIndex = 0; cardIndex < pileCards.length; cardIndex++) {
@@ -228,11 +227,15 @@ class TableViewStateBuilder {
   /**
    * The card in this pile whose fan should open to reveal more of it, or null.
    *
-   * Only an interactable card expands: a face-down card, for example, cannot be
-   * picked up, so it should not open a gap beneath it.
+   * Any card the zone draws face up expands, whether or not the rules would let
+   * it be picked up. The gap is how a player reads a buried card's suit, and a
+   * card too deep in a column to lift is the one they most need to read: an
+   * Eight Off column offers up only the top of a same-suit run, so tying the
+   * expansion to grabbability left almost every covered card unreadable. A card
+   * drawn face down has nothing to reveal, so it still opens no gap.
    */
   private expansionCardId(
-    pile: CardPile<PlayingCard>,
+    zone: ZoneSpec,
     pileCards: readonly PlayingCard[],
   ): string | null {
     if (!this.interaction.hoveredCardId || this.interaction.drag) {
@@ -241,9 +244,7 @@ class TableViewStateBuilder {
     const hovered = pileCards.find(
       (card) => card.id === this.interaction.hoveredCardId,
     );
-    return hovered && this.game.isCardInteractableInPile(hovered, pile)
-      ? hovered.id
-      : null;
+    return hovered && showsFace(zone.face, hovered) ? hovered.id : null;
   }
 
   /**

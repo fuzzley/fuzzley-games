@@ -341,7 +341,7 @@ describe("board_view_state_builder", () => {
     expect(viewState.highlights).toEqual([]);
   });
 
-  it("expands the pile below an interactable hovered tableau card", () => {
+  it("expands the pile below a face-up hovered tableau card", () => {
     emptyBoard(game);
     const card1 = relocate(game, "card-hearts-ace", game.tableaus[0], true);
     const card2 = relocate(game, "card-hearts-2", game.tableaus[0], true);
@@ -375,7 +375,7 @@ describe("board_view_state_builder", () => {
 
     const cardView1 = viewState.cards.find((c) => c.cardId === card1.id)!;
     const cardView2 = viewState.cards.find((c) => c.cardId === card2.id)!;
-    // A face-down card is not interactable, so no extra gap opens beneath it.
+    // A card drawn face down has nothing to reveal, so no gap opens beneath it.
     expect(cardView2.y - cardView1.y).toBe(TABLEAU_FACE_DOWN_OFFSET);
   });
 

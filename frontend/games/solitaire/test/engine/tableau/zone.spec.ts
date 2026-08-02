@@ -12,6 +12,7 @@ import {
   canGrab,
   frameFor,
   hasRoomFor,
+  showsFace,
 } from "@/engine/tableau/zone";
 import { never } from "@/engine/tableau/rules";
 import { makePlayingCard } from "@test/support/card_builder";
@@ -127,6 +128,27 @@ describe("canGrab", () => {
         false,
       );
     });
+  });
+});
+
+describe("showsFace", () => {
+  const faceUp = card(Suit.HEART, Rank.QUEEN);
+  const faceDown = card(Suit.HEART, Rank.QUEEN, false);
+
+  it("hides the face in an always-down zone even when the card is face up", () => {
+    expect(showsFace("always-down", faceUp)).toBe(false);
+  });
+
+  it("shows the face in an always-up zone even when the card is face down", () => {
+    expect(showsFace("always-up", faceDown)).toBe(true);
+  });
+
+  it("defers to a face-up card in a card-driven zone", () => {
+    expect(showsFace("card", faceUp)).toBe(true);
+  });
+
+  it("defers to a face-down card in a card-driven zone", () => {
+    expect(showsFace("card", faceDown)).toBe(false);
   });
 });
 
