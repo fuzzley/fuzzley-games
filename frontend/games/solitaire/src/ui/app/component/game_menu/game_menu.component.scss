@@ -1,0 +1,195 @@
+@use "../../styles" as *;
+
+// A rail rather than a modal drawer: on a wide screen it sits beside the board
+// instead of over it, so switching games costs one click and dismisses nothing.
+// Below the overlay breakpoint it slides over the board instead, because 56px
+// of a phone is a seventh of the screen and the board needs it more.
+//
+// The widths and the offset below the header come from the shared layout
+// tokens, which the board area also reads to inset itself.
+.menu-toggle,
+.game-menu {
+  @include glass(20px);
+  @include transition(width, $duration: var(--duration-fast));
+  position: fixed;
+  left: 0;
+  box-sizing: border-box;
+  background: var(--surface-rail);
+  border-right: 1px solid var(--border-default);
+  color: var(--text-body);
+  pointer-events: auto;
+  user-select: none;
+  z-index: var(--z-rail);
+  box-shadow: var(--shadow-rail);
+}
+
+.menu-toggle {
+  top: var(--header-height);
+  width: var(--rail-collapsed-width);
+  height: var(--tap-target-min);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  border-top: none;
+  border-left: none;
+  border-bottom: none;
+  color: var(--text-muted);
+  font: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+
+  &.expanded {
+    width: var(--rail-expanded-width);
+  }
+
+  &:hover {
+    color: var(--text-bright);
+  }
+}
+
+.game-menu {
+  top: calc(var(--header-height) + var(--tap-target-min));
+  bottom: 0;
+  width: var(--rail-collapsed-width);
+  padding: var(--space-2);
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  &.expanded {
+    width: var(--rail-expanded-width);
+  }
+}
+
+.toggle-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+}
+
+.menu-title {
+  font-size: var(--font-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.game-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.game-item {
+  @include transition(
+    background,
+    border-color,
+    $duration: var(--duration-fast)
+  );
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--tap-target-min);
+  padding: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--wash-soft);
+  }
+
+  &.active {
+    background: var(--accent-fill);
+    border-color: var(--accent-fill-border);
+    color: var(--text-bright);
+
+    &:hover {
+      background: var(--accent-strong);
+    }
+
+    .game-marker {
+      background: var(--wash-medium);
+    }
+  }
+}
+
+// The initial, which is all a collapsed rail has room to show.
+.game-marker {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--wash-soft);
+  font-size: var(--font-xs);
+  font-weight: 700;
+}
+
+.game-name {
+  font-size: var(--font-sm);
+  font-weight: 600;
+
+  // A collapsed rail shows the initial, but the button still needs to say
+  // which game it picks — so the name is hidden from the eye rather than from
+  // the accessibility tree.
+  &.visually-hidden {
+    @include visually-hidden;
+  }
+}
+
+// Only used while the rail overlays the board.
+.menu-backdrop {
+  display: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+// Narrow screens: the rail keeps a strip beside the board so a game is still
+// one tap away and nothing ever covers the stock, but opening it slides a
+// proper panel over the board rather than pushing it into a corner.
+@include below("tablet") {
+  .menu-toggle {
+    justify-content: center;
+    padding: 0;
+
+    &.expanded {
+      width: min(72vw, 260px);
+      justify-content: flex-start;
+      padding: 0 var(--space-3);
+      z-index: var(--z-rail-overlay-toggle);
+    }
+  }
+
+  .game-menu.expanded {
+    width: min(72vw, 260px);
+    padding: var(--space-3);
+    z-index: var(--z-rail-overlay-panel);
+  }
+
+  // Roomier targets for a thumb.
+  .game-item {
+    min-height: 48px;
+  }
+
+  .menu-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: var(--surface-scrim);
+    z-index: var(--z-rail-overlay-backdrop);
+    pointer-events: auto;
+  }
+}

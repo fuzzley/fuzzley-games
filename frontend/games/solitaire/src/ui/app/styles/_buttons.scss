@@ -1,0 +1,133 @@
+@use "sass:map";
+@use "palette" as *;
+@use "mixins" as *;
+
+// The button system.
+//
+// Global rather than a component, because these classes are worn by markup in
+// five different components and emulated view encapsulation would otherwise
+// scope them to whichever one declared them.
+//
+// The three filled variants share a shape: a two-stop gradient that lightens
+// by one ramp step on hover, over a drop shadow tinted with the same hue. The
+// `@each` below emits them from that description rather than from three
+// near-identical twenty-line blocks — so a fourth variant is four lines here,
+// and no variant can quietly drift out of the shape.
+
+$filled-variants: (
+  "primary": (
+    "base": var(--accent),
+    "strong": var(--accent-strong),
+    "light": var(--accent-light),
+    "shadow": $blue-600,
+  ),
+  "warning": (
+    "base": var(--warning),
+    "strong": var(--warning-strong),
+    "light": var(--warning-light),
+    "shadow": $amber-600,
+  ),
+  "danger": (
+    "base": var(--danger),
+    "strong": var(--danger-strong),
+    "light": var(--danger-light),
+    "shadow": $red-600,
+  ),
+);
+
+.btn {
+  @include transition(background, box-shadow, transform, opacity);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  color: var(--text-bright);
+  touch-action: manipulation;
+  // A label is never worth wrapping a button over.
+  white-space: nowrap;
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+}
+
+// A disabled action still reads as an action that exists, just not one that is
+// available yet — so it dims rather than disappearing, and drops the hover lift
+// that would otherwise invite a click.
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+
+  &:hover {
+    transform: none;
+  }
+}
+
+@each $name, $variant in $filled-variants {
+  .btn-#{$name} {
+    background: linear-gradient(
+      135deg,
+      map.get($variant, "base") 0%,
+      map.get($variant, "strong") 100%
+    );
+    box-shadow: 0 4px 14px with-alpha(map.get($variant, "shadow"), 0.4);
+
+    &:hover {
+      background: linear-gradient(
+        135deg,
+        map.get($variant, "light") 0%,
+        map.get($variant, "base") 100%
+      );
+      transform: translateY(-1px);
+    }
+  }
+}
+
+.btn-secondary {
+  background: var(--wash-soft);
+  border: 1px solid var(--border-strong);
+
+  &:hover {
+    background: var(--wash-medium);
+    transform: translateY(-1px);
+  }
+
+  &:disabled:hover {
+    background: var(--wash-soft);
+  }
+}
+
+.btn-circle {
+  @include flex-center;
+  @include transition(background, transform);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  background: var(--wash-soft);
+  cursor: pointer;
+  color: var(--text-primary);
+  touch-action: manipulation;
+
+  &:hover {
+    background: var(--wash-medium);
+    transform: rotate(45deg);
+  }
+}
+
+.btn-block {
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-large {
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--font-md);
+  border-radius: var(--radius-md);
+}

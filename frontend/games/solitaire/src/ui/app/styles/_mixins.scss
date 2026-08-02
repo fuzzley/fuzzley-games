@@ -1,0 +1,150 @@
+@use "sass:list";
+@use "sass:map";
+@use "sass:meta";
+
+// Patterns that repeat across components.
+//
+// Angular's emulated view encapsulation is what makes this file necessary: a
+// class defined in one component's stylesheet cannot be used by another, so
+// before Sass the only way to share a multi-declaration pattern was to type it
+// out again. Every mixin here replaces at least two verbatim copies.
+//
+// The rule of thumb for what belongs: a mixin is for a *pattern* — several
+// declarations that only make sense together. A single value is a token, and
+// belongs in `_tokens.scss` where a component can read it with `var()`.
+
+/// The frosted-glass treatment on the chrome that floats over the board.
+///
+/// The unprefixed property is not enough on its own: Safari has shipped
+/// `backdrop-filter` only behind the prefix for its entire life, and the board
+/// showing through un-blurred is the difference between chrome and a smear.
+@mixin glass($blur) {
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+}
+
+/// Paint text with a gradient.
+///
+/// `-webkit-text-fill-color: transparent` is what actually reveals the
+/// background through the glyphs, and it is not a fallback — no engine
+/// implements this effect any other way. The unprefixed `background-clip` is
+/// included because every current engine now honours it, and the prefixed one
+/// alone would leave the text solid on whatever ships next.
+@mixin gradient-text($from, $to, $angle: 135deg) {
+  background: linear-gradient($angle, $from 0%, $to 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/// A transition over named properties, at the shared duration and easing.
+///
+///     @include transition(background, transform);
+///     @include transition(width, $duration: var(--duration-fast));
+///
+/// Always naming the properties is the point. `transition: all` also animates
+/// layout properties, which is a reliable way to make a hover state cost a
+/// reflow — and spelling out three properties by hand, each with its own
+/// `var(--duration-base) var(--ease-standard)`, is four lines of noise that
+/// tended to drift a component at a time.
+@mixin transition($properties...) {
+  $options: meta.keywords($properties);
+  $duration: var(--duration-base);
+  $easing: var(--ease-standard);
+
+  @if map.has-key($options, duration) {
+    $duration: map.get($options, duration);
+  }
+  @if map.has-key($options, easing) {
+    $easing: map.get($options, easing);
+  }
+
+  $value: ();
+  @each $property in $properties {
+    $value: list.append($value, #{$property} $duration $easing, comma);
+  }
+
+  transition: $value;
+}
+
+/// Centre a box's children on both axes.
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/// Guarantee the platform minimum hit target.
+///
+/// `min-` rather than fixed, so a control that is already larger — a labelled
+/// button, a full-width row — keeps its own size.
+@mixin tap-target {
+  min-width: var(--tap-target-min);
+  min-height: var(--tap-target-min);
+}
+
+/// Hide from the eye, keep for the accessibility tree.
+///
+/// `clip-path` with a 1px box rather than `display: none` or `visibility:
+/// hidden`, both of which remove the element from the accessibility tree — the
+/// opposite of the intent. Used where an icon carries the meaning visually but
+/// the control still has to announce what it does.
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/// The heading over a group of settings controls.
+///
+/// Worn by the settings drawer's own sections and by every `<app-option-group>`
+/// inside them. Two components, so it cannot be a class in either of their
+/// stylesheets — and too small a system to earn a place in the global sheet
+/// beside `.btn`.
+@mixin field-label {
+  display: block;
+  font-size: var(--font-sm);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-3);
+}
+
+/// A borderless button whose whole content is an icon or a glyph.
+///
+/// The close control in the settings drawer and the one in the help modal were
+/// this, twice, differing only in the corner radius.
+@mixin icon-button($radius: var(--radius-md)) {
+  @include flex-center;
+  @include tap-target;
+  @include transition(color, background);
+  background: transparent;
+  border: none;
+  border-radius: $radius;
+  color: var(--text-muted);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--wash-soft);
+    color: var(--text-bright);
+  }
+}
+
+/// A bordered panel sitting on a modal's surface.
+///
+/// The help modal had four of these — the rules cards, the variant cards, the
+/// callout and the screenshot frame — agreeing on the radius and disagreeing on
+/// the background by an opacity step nobody chose deliberately.
+@mixin panel-card($padding: var(--space-5)) {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: $padding;
+}

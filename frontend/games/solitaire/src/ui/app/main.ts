@@ -3,7 +3,7 @@ import { provideZonelessChangeDetection } from "@angular/core";
 import { provideRouter, withHashLocation } from "@angular/router";
 import { AppComponent } from "./component/app/app.component";
 import { routes } from "./routes";
-import "./styles.css";
+import "./styles/global.scss";
 
 // Zoneless: the UI is entirely signal-based, and without zone.js patching
 // requestAnimationFrame there is no way for Phaser's game loop to drag the

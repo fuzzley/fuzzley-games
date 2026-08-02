@@ -1,0 +1,207 @@
+@use "palette" as *;
+@use "breakpoints" as *;
+
+// The design tokens.
+//
+// Custom properties rather than Sass variables, and deliberately so. Angular's
+// emulated view encapsulation scopes a component's *rules*, but custom
+// properties inherit through the DOM regardless, so every `var(--x)` below
+// resolves inside every component stylesheet. That is what makes this the one
+// place a colour or a dimension is named, and it is why the answer to "Sass or
+// custom properties?" here is both:
+//
+//   - a custom property for any value a component reads, or that changes at a
+//     breakpoint, or that a theme will want to swap at runtime;
+//   - Sass for the values that build these, and for the ones CSS cannot carry
+//     at all (see `_breakpoints.scss`).
+//
+// The opacities below are cut from the source colours in `_palette.scss`, so a
+// hue is typed once and its five surfaces follow it.
+
+:root {
+  // --- Surfaces ---
+  // Layered darks. `panel` is the chrome around the board, `raised` a card
+  // sitting on it, `sunken` a well cut into one, `card` a bordered block
+  // inside a modal.
+  --surface-panel: #{with-alpha($slate-900, 0.95)};
+  --surface-panel-translucent: #{with-alpha($slate-900, 0.5)};
+  --surface-rail: #{with-alpha($slate-900, 0.82)};
+  --surface-raised: #{with-alpha($slate-800, 0.85)};
+  // Its own name because it is its own role, though it currently resolves to
+  // the same value as the panel: this used to be #1a202c, a second near-black
+  // that differed from the panel's by less than the eye resolves at 95%
+  // opacity.
+  --surface-modal: #{with-alpha($slate-900, 0.95)};
+  --surface-card: #{with-alpha($slate-900, 0.6)};
+  --surface-sunken: #{with-alpha($black, 0.2)};
+  --surface-scrim: #{with-alpha($black, 0.6)};
+  --surface-scrim-heavy: #{with-alpha($slate-900, 0.85)};
+  // Laid over the board itself while it builds, so the loading state reads as
+  // the table dimmed rather than as a grey sheet in front of it.
+  --surface-felt-scrim: #{with-alpha($felt-shade, 0.65)};
+  // The two ends of a loading placeholder's shimmer.
+  --surface-skeleton: #{with-alpha($slate-800, 0.5)};
+  --surface-skeleton-highlight: #{with-alpha($slate-700, 0.8)};
+
+  // Faint white washes, used for hover states and hairline fills.
+  --wash-faint: #{with-alpha($white, 0.03)};
+  --wash-subtle: #{with-alpha($white, 0.05)};
+  --wash-soft: #{with-alpha($white, 0.1)};
+  --wash-medium: #{with-alpha($white, 0.2)};
+
+  // --- Text ---
+  // `muted` is the lightest tone that still clears 4.5:1 on the panel
+  // surfaces. Anything dimmer than this is decoration, not text.
+  --text-primary: #{$slate-50};
+  --text-bright: #{$white};
+  --text-body: #{$slate-200};
+  --text-secondary: #{$slate-300};
+  --text-muted: #{$slate-400};
+  --text-heading: #{$slate-100};
+
+  // --- Borders ---
+  --border-subtle: #{with-alpha($white, 0.05)};
+  --border-default: #{with-alpha($white, 0.1)};
+  --border-strong: #{with-alpha($white, 0.15)};
+  --border-vivid: #{with-alpha($white, 0.3)};
+
+  // --- Accents ---
+  --accent: #{$blue-500};
+  --accent-strong: #{$blue-600};
+  --accent-light: #{$blue-400};
+  --accent-sky: #{$sky-400};
+  --accent-violet: #{$purple-500};
+
+  --danger: #{$red-500};
+  --danger-strong: #{$red-600};
+  --danger-light: #{$red-400};
+
+  --warning: #{$amber-500};
+  --warning-strong: #{$amber-600};
+  --warning-light: #{$amber-400};
+
+  // --- Tints ---
+  // The accents at low opacity: the fill behind a chosen swatch, the glow
+  // under a selected segment, the filled row in the game rail. Translucent
+  // rather than solid so the blurred board still reads through the chrome.
+  --accent-wash: #{with-alpha($blue-500, 0.1)};
+  --accent-glow: #{with-alpha($blue-500, 0.3)};
+  --accent-fill: #{with-alpha($blue-600, 0.9)};
+  --accent-fill-border: #{with-alpha($blue-400, 0.9)};
+
+  --sky-wash-faint: #{with-alpha($sky-500, 0.05)};
+  --sky-wash: #{with-alpha($sky-400, 0.12)};
+  --sky-wash-strong: #{with-alpha($sky-400, 0.25)};
+  --sky-border: #{with-alpha($sky-400, 0.3)};
+
+  --danger-wash: #{with-alpha($red-500, 0.02)};
+  --danger-border: #{with-alpha($red-500, 0.3)};
+  --danger-glow: #{with-alpha($red-500, 0.15)};
+
+  --warning-glow: #{with-alpha($amber-500, 0.15)};
+
+  // --- Card back swatches (the settings drawer previews) ---
+  --card-back-blue-base: #{$blue-900};
+  --card-back-blue-dot: #{$blue-600};
+  --card-back-red-base: #{$red-900};
+  --card-back-red-dot: #{$red-600};
+
+  // --- Spacing ---
+  // A 4px scale. Every gap, pad and margin in the application is one of these
+  // eight steps; the arbitrary 6px, 9px, 10px, 14px and 28px values they
+  // replaced were near-misses of each other rather than decisions.
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  // --- Type ---
+  // Nine sizes, down from the fifteen that were in use — most of which were
+  // within half a pixel of a neighbour. `sm` is the interface default: labels,
+  // buttons and list rows. `md` is running prose.
+  --font-2xs: 0.625rem;
+  --font-xs: 0.75rem;
+  --font-sm: 0.875rem;
+  --font-md: 1rem;
+  --font-lg: 1.125rem;
+  --font-xl: 1.25rem;
+  --font-2xl: 1.5rem;
+  --font-3xl: 1.75rem;
+  --font-4xl: 2.25rem;
+
+  --leading-tight: 1.4;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.6;
+
+  // --- Radii ---
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-pill: 999px;
+
+  // --- Elevation ---
+  --shadow-subtle: 0 4px 12px #{with-alpha($black, 0.15)};
+  --shadow-swatch: 0 2px 8px #{with-alpha($black, 0.3)};
+  --shadow-panel: 0 4px 30px #{with-alpha($black, 0.2)};
+  --shadow-rail: 6px 0 24px #{with-alpha($black, 0.35)};
+  --shadow-drawer: -10px 0 30px #{with-alpha($black, 0.4)};
+  --shadow-badge: 0 12px 32px #{with-alpha($black, 0.4)};
+  --shadow-card: 0 10px 40px #{with-alpha($black, 0.5)};
+  --shadow-modal: 0 25px 50px -12px #{with-alpha($black, 0.7)};
+
+  // --- Motion ---
+  // Durations are named so that the `transition` mixin can default to one and
+  // a component can ask for another without typing a number.
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-decelerate: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 0.15s;
+  --duration-base: 0.2s;
+  --duration-slow: 0.35s;
+
+  // --- Focus ---
+  // One ring, used everywhere. See the :focus-visible block in `_base.scss`.
+  --focus-ring-color: var(--accent-light);
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  // --- Layout ---
+  // The header height and the rail widths are read by three components that
+  // must agree on them: the header draws itself this tall, the rail hangs
+  // below it, and the board area insets itself past the rail. Declared once so
+  // they cannot drift apart.
+  --header-height: 73px;
+  --rail-collapsed-width: 56px;
+  --rail-expanded-width: 190px;
+
+  // --- Stacking order ---
+  // The full ladder, in one place. The overlays themselves are native
+  // <dialog> elements promoted to the browser's top layer, so they do not
+  // appear here — only the chrome that has to sit above the board.
+  --z-rail: 90;
+  --z-rail-overlay-backdrop: 100;
+  --z-rail-overlay-panel: 101;
+  --z-rail-overlay-toggle: 102;
+  --z-loading: 10;
+  --z-loading-badge: 12;
+
+  // --- Minimum hit target ---
+  // WCAG 2.5.8 asks for 24px; the platform guidelines ask for 44. A card game
+  // is played by thumbs, so 44 it is.
+  --tap-target-min: 44px;
+}
+
+// Compact chrome on narrow screens. The header shrinks and the rail narrows
+// with it, and both sides read the change from here.
+@include below("tablet") {
+  :root {
+    --header-height: 60px;
+    --rail-collapsed-width: 44px;
+  }
+}

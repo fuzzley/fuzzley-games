@@ -1,0 +1,51 @@
+@use "sass:map";
+
+// The widths the layout changes at.
+//
+// This is the one part of the design system that cannot be a custom property:
+// `@media (max-width: var(--x))` is not valid CSS, because media conditions are
+// evaluated before custom properties resolve. Before Sass, that meant six
+// hand-written pixel values spread across five files — 480, 520, 720, 768,
+// 1000 and 1024 — where 520 and 480 were the same intent typed twice, as were
+// 768 and 720, and 1024 and 1000.
+//
+// Three remain, each named for what it protects rather than for a device:
+//
+//   phone    Below it a dialog card is most of the screen, so it gives up its
+//            generous padding rather than its content.
+//   tablet   Below it the chrome compacts: the header shrinks, the game rail
+//            narrows and then overlays the board instead of sitting beside it.
+//            The tokens carrying those dimensions are re-declared at this
+//            width in `_tokens.scss`.
+//   desktop  Below it there is no room for four labelled actions in the
+//            header, so they become icon buttons.
+$breakpoints: (
+  "phone": 480px,
+  "tablet": 720px,
+  "desktop": 1000px,
+);
+
+@function _width($name) {
+  @if not map.has-key($breakpoints, $name) {
+    @error "Unknown breakpoint `#{$name}`. Known: #{map.keys($breakpoints)}.";
+  }
+  @return map.get($breakpoints, $name);
+}
+
+/// Narrower than the named width.
+///
+/// The 0.02px is the conventional guard against a viewport landing exactly on
+/// a boundary and matching both this and `from()` — small enough that no
+/// device resolves inside it, large enough to survive fractional DPI scaling.
+@mixin below($name) {
+  @media (max-width: #{_width($name) - 0.02px}) {
+    @content;
+  }
+}
+
+/// The named width and wider.
+@mixin from($name) {
+  @media (min-width: #{_width($name)}) {
+    @content;
+  }
+}

@@ -18,7 +18,7 @@ import { GameDocumentationService } from "../../service/game_documentation.servi
   selector: "app-header-bar",
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./header_bar.component.html",
-  styleUrl: "./header_bar.component.css",
+  styleUrl: "./header_bar.component.scss",
 })
 export class HeaderBarComponent {
   protected readonly metrics = inject(GameMetricsService);

@@ -1,0 +1,152 @@
+// Every keyframe animation in the application, and the one block that turns
+// them all off.
+//
+// These live here rather than beside the components that play them because
+// `@keyframes` names are global whatever file they are written in — Angular's
+// emulated encapsulation rewrites selectors, not at-rule identifiers. That is
+// not a style preference; it was a bug. The board's loading skeleton and the
+// help modal's image placeholder each defined `@keyframes shimmer`, meaning
+// two different animations under one name, and whichever stylesheet the
+// browser saw last silently replaced the other — a sweeping highlight applied
+// to an element expecting a scrolling gradient, and vice versa.
+//
+// The rule this file exists to enforce: if it is a `@keyframes`, it is
+// declared once, here, under a name that says which animation it is.
+
+// Cards that arrive: the victory and confirmation dialogs.
+@keyframes popIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// Panels that resolve into place: the help modal and its tab panels.
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// A highlight travelling across a placeholder that is a fixed shape — the
+// board's pile slots, where the moving part is a child laid over the slot.
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+// A gradient scrolling within a placeholder whose size is not yet known — the
+// help modal's screenshot frame, which has no child to move across it.
+@keyframes shimmerBand {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+// The loading spinner, and the suit glyph inside it turning the other way so
+// that it stays upright.
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinReverse {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+
+// The loading badge, breathing so a slow deal does not look like a hang.
+@keyframes pulseGlow {
+  0%,
+  100% {
+    box-shadow:
+      var(--shadow-badge),
+      0 0 20px var(--accent-wash);
+  }
+  50% {
+    box-shadow:
+      var(--shadow-badge),
+      0 0 30px var(--accent-glow);
+  }
+}
+
+// The victory trophy.
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+// The warning icon on a destructive confirmation.
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.85;
+  }
+}
+
+// Reduced motion.
+//
+// Global rather than per-component: a player who has asked the platform for
+// less movement has asked once, and every hover lift, spinning gear, bouncing
+// trophy and shimmering skeleton in the application is covered by this one
+// block. Transitions collapse to near-zero rather than to `none` so that
+// anything relying on a transitionend event still fires.
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  // Hover states that move rather than fade have nothing to fade to, so they
+  // are dropped outright.
+  .btn:hover,
+  .btn-circle:hover {
+    transform: none;
+  }
+
+  // A shimmer collapsed to 0.01ms is a flicker rather than a stillness, so the
+  // loading placeholders stop instead. They are decoration over a state the
+  // badge already announces in words.
+  .skeleton-shimmer,
+  .img-skeleton-container {
+    animation: none !important;
+  }
+}

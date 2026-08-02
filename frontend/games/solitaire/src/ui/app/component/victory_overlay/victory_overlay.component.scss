@@ -1,0 +1,123 @@
+@use "../../styles" as *;
+
+// No overlay element and no z-index: the surrounding <app-modal-dialog> is a
+// native <dialog>, so the browser paints the scrim and puts this in the top
+// layer.
+.victory-card {
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-10);
+  width: 420px;
+  max-width: calc(100vw - var(--space-8));
+  box-sizing: border-box;
+  text-align: center;
+  box-shadow:
+    var(--shadow-card),
+    0 0 100px var(--warning-glow);
+  color: var(--text-bright);
+  user-select: none;
+  transform: scale(1);
+  animation: popIn 0.5s var(--ease-spring);
+
+  h1 {
+    @include gradient-text(var(--warning), var(--warning-light));
+    font-size: var(--font-4xl);
+    font-weight: 800;
+    margin: 0 0 var(--space-2);
+  }
+}
+
+.trophy-container {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto var(--space-6);
+}
+
+.trophy-icon {
+  width: 80px;
+  height: 80px;
+  color: var(--warning);
+  position: relative;
+  z-index: 2;
+  animation: bounce 2s infinite;
+}
+
+.trophy-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, var(--warning-glow) 0%, transparent 70%);
+  z-index: 1;
+}
+
+.victory-subtitle {
+  color: var(--text-muted);
+  font-size: var(--font-md);
+  margin: 0 0 var(--space-8);
+}
+
+.victory-stats {
+  display: flex;
+  justify-content: space-around;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin: 0 0 var(--space-8);
+  border: 1px solid var(--border-subtle);
+}
+
+// Value above label, with the term still first in the markup.
+.v-stat {
+  display: flex;
+  flex-direction: column-reverse;
+
+  dd {
+    margin: 0;
+  }
+
+  .v-val {
+    font-size: var(--font-2xl);
+    font-weight: 800;
+    color: var(--text-primary);
+    font-family: monospace;
+  }
+
+  // `--text-muted` rather than the slate-500 this used to be: on the sunken
+  // well inside the card that measured about 3.6:1, under the 4.5:1 a 12px
+  // label needs.
+  .v-lbl {
+    font-size: var(--font-xs);
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-top: var(--space-1);
+  }
+}
+
+@include below("phone") {
+  .victory-card {
+    padding: var(--space-6) var(--space-4);
+
+    h1 {
+      font-size: var(--font-3xl);
+    }
+  }
+
+  .victory-subtitle {
+    margin-bottom: var(--space-5);
+  }
+
+  .victory-stats {
+    padding: var(--space-3) var(--space-2);
+    margin-bottom: var(--space-6);
+  }
+
+  .v-stat .v-val {
+    font-size: var(--font-xl);
+  }
+}

@@ -33,7 +33,7 @@ import { GameMenuService } from "../../service/game_menu.service";
     ConfirmationDialogComponent,
   ],
   templateUrl: "./app.component.html",
-  styleUrl: "./app.component.css",
+  styleUrl: "./app.component.scss",
 })
 export class AppComponent {
   /** Whether the game rail is expanded, which the board lays itself out around. */

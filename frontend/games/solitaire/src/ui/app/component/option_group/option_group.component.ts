@@ -25,7 +25,7 @@ let nextGroupId = 0;
   selector: "app-option-group",
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./option_group.component.html",
-  styleUrl: "./option_group.component.css",
+  styleUrl: "./option_group.component.scss",
 })
 export class OptionGroupComponent {
   /** The rule being offered. */

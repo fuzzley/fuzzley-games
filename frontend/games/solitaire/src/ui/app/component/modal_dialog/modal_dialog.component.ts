@@ -30,7 +30,7 @@ export type ModalRole = "dialog" | "alertdialog";
   selector: "app-modal-dialog",
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./modal_dialog.component.html",
-  styleUrl: "./modal_dialog.component.css",
+  styleUrl: "./modal_dialog.component.scss",
 })
 export class ModalDialogComponent {
   /** Whether the dialog is showing. */

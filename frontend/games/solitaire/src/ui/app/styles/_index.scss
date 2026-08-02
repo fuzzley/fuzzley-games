@@ -1,0 +1,15 @@
+// The toolkit — the one thing a component stylesheet imports:
+//
+//     @use "../../styles" as *;
+//
+// It emits no CSS. That is the property everything else here depends on:
+// because it forwards only mixins, functions and variables, eleven components
+// importing it produce one copy of the rules, not eleven. Anything that emits
+// a rule belongs in `global.scss`, which is loaded once from `main.ts`.
+//
+// `_palette.scss` is deliberately not forwarded. Components should not reach
+// for a source colour; they read the role-named custom properties that
+// `_tokens.scss` cuts from it, which is what keeps a theme change a change to
+// one file.
+@forward "breakpoints";
+@forward "mixins";

@@ -47,7 +47,7 @@ const BOARD_READY_TIMEOUT_MS = 8_000;
   selector: "app-game-canvas",
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./game_canvas.component.html",
-  styleUrl: "./game_canvas.component.css",
+  styleUrl: "./game_canvas.component.scss",
 })
 export class GameCanvasComponent {
   private readonly catalog = inject(GameCatalogService);

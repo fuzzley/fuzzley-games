@@ -38,7 +38,7 @@ interface VariantCard {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ModalDialogComponent],
   templateUrl: "./game_help_modal.component.html",
-  styleUrl: "./game_help_modal.component.css",
+  styleUrl: "./game_help_modal.component.scss",
 })
 export class GameHelpModalComponent {
   protected readonly docService = inject(GameDocumentationService);
