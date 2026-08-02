@@ -3,9 +3,20 @@
     The application's one <h1>. Without it the document had no heading at all
     until a dialog opened, and the only h1 in the source was inside the victory
     card — a heading that existed only on a board you had already cleared.
+
+    It names the game as well as the application, because with the rail
+    collapsed to its strip of two-character badges the board itself is the only
+    thing left saying which solitaire this is — and telling Klondike from Yukon
+    by their opening deal is not a reasonable ask. Both halves are in the
+    heading whatever the width; which of them is on the screen is the
+    stylesheet's business, and the document title carries the same pair for the
+    widths where neither is.
   -->
   <div class="brand">
-    <h1 class="brand-text">fSolitaire</h1>
+    <h1 class="brand-text">
+      <span class="wordmark">fSolitaire</span>
+      <span class="brand-game">{{ gameName() }}</span>
+    </h1>
   </div>
 
   <!--
@@ -59,24 +70,23 @@
       </svg>
       <span class="btn-text">Undo</span>
     </button>
-    <button
-      class="btn btn-secondary"
-      (click)="restart()"
-      title="Restart current game"
-      aria-label="Restart current game"
-    >
-      <svg
-        class="btn-icon"
-        fill="currentColor"
-        aria-hidden="true"
-        viewBox="0 0 24 24"
+
+    <!--
+      Restart keeps its place in the bar for as long as there is one; below the
+      compact width it is in the overflow menu at the end of this row instead.
+    -->
+    @if (!viewport.isCompact()) {
+      <button
+        class="btn btn-secondary"
+        (click)="restart()"
+        title="Restart current game"
+        aria-label="Restart current game"
       >
-        <path
-          d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
-        />
-      </svg>
-      <span class="btn-text">Restart</span>
-    </button>
+        <ng-container [ngTemplateOutlet]="restartIcon" />
+        <span class="btn-text">Restart</span>
+      </button>
+    }
+
     <button
       class="btn btn-primary"
       (click)="newGame()"
@@ -93,33 +103,51 @@
       </svg>
       <span class="btn-text">New Game</span>
     </button>
-    <!--
-      Stands down below the tablet breakpoint, where five hit targets at the
-      platform minimum no longer fit beside the metrics. It is the one action
-      here with a second way in: the settings drawer carries a full-width "How
-      to Play" button, and the drawer's own control stays in the header.
-    -->
-    <button
-      class="btn-circle btn-help"
-      (click)="docService.openHelp()"
-      title="How to Play / Game Rules"
-      aria-label="How to Play / Game Rules"
-    >
-      <svg
-        class="btn-icon"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-        viewBox="0 0 24 24"
+
+    @if (!viewport.isCompact()) {
+      <button
+        class="btn-circle btn-help"
+        (click)="openHelp()"
+        title="How to Play / Game Rules"
+        aria-label="How to Play / Game Rules"
       >
-        <circle cx="12" cy="12" r="10" />
-        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-        <line x1="12" y1="17" x2="12.01" y2="17" />
-      </svg>
-    </button>
+        <ng-container [ngTemplateOutlet]="helpIcon" />
+      </button>
+    }
+
+    <!--
+      Everything the bar has run out of room for, under one button.
+
+      A disclosure rather than a `role="menu"`: the panel holds ordinary
+      buttons, and claiming the menu role would promise arrow-key navigation
+      between items that a two-entry dropdown has no business implementing.
+      `aria-expanded` and `aria-controls` are what actually have to be true —
+      and `aria-haspopup` is not among them, since it announces the widget this
+      deliberately is not.
+    -->
+    @if (viewport.isCompact()) {
+      <button
+        #menuToggle
+        class="btn-circle btn-overflow"
+        (click)="toggleMenu()"
+        [attr.aria-expanded]="isMenuOpen()"
+        aria-controls="header-overflow-menu"
+        title="More actions"
+        aria-label="More actions"
+      >
+        <svg
+          class="btn-icon"
+          fill="currentColor"
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M12 8a2 2 0 1 0 0-4a2 2 0 0 0 0 4zm0 2a2 2 0 1 0 0 4a2 2 0 0 0 0-4zm0 6a2 2 0 1 0 0 4a2 2 0 0 0 0-4z"
+          />
+        </svg>
+      </button>
+    }
+
     <button
       class="btn-circle btn-circle-turns btn-settings"
       (click)="openSettings.emit()"
@@ -139,3 +167,80 @@
     </button>
   </div>
 </header>
+
+<!--
+  The dropdown, and the layer that dismisses it.
+
+  Outside the header rather than inside the button they hang from, because the
+  header is frosted glass: an element with a `backdrop-filter` is a containing
+  block for `position: fixed` descendants, so a full-screen dismiss layer
+  written in there is silently clipped to the header's own sixty pixels — it
+  looked right, and swallowed nothing.
+
+  The backdrop is a real button rather than a div with a click handler, so the
+  menu can be dismissed by the keyboard as well as by tapping the board. It
+  covers the header too: the tap that closes the menu should close the menu,
+  and not also press whatever it landed on.
+-->
+@if (viewport.isCompact() && isMenuOpen()) {
+  <div class="overflow-menu" id="header-overflow-menu">
+    <button
+      #firstMenuItem
+      class="overflow-item"
+      (click)="restart()"
+      aria-label="Restart current game"
+    >
+      <ng-container [ngTemplateOutlet]="restartIcon" />
+      <span>Restart</span>
+    </button>
+    <button
+      class="overflow-item"
+      (click)="openHelp()"
+      aria-label="How to Play / Game Rules"
+    >
+      <ng-container [ngTemplateOutlet]="helpIcon" />
+      <span>How to Play</span>
+    </button>
+  </div>
+  <button
+    class="overflow-backdrop"
+    (click)="closeMenu()"
+    aria-label="Close menu"
+  ></button>
+}
+
+<!--
+  The two icons that appear in both arrangements, drawn once. A restart arrow
+  in the bar and a restart arrow in the menu are the same drawing; copying the
+  path data would make them the same drawing only for as long as nobody
+  redrew one of them.
+-->
+<ng-template #restartIcon>
+  <svg
+    class="btn-icon"
+    fill="currentColor"
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+  >
+    <path
+      d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+    />
+  </svg>
+</ng-template>
+
+<ng-template #helpIcon>
+  <svg
+    class="btn-icon"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+  >
+    <circle cx="12" cy="12" r="10" />
+    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+    <line x1="12" y1="17" x2="12.01" y2="17" />
+  </svg>
+</ng-template>

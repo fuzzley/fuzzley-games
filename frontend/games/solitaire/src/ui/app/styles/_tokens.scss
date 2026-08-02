@@ -229,12 +229,24 @@
   // The full ladder, in one place. The overlays themselves are native
   // <dialog> elements promoted to the browser's top layer, so they do not
   // appear here — only the chrome that has to sit above the board.
+  //
+  // Two groups, and the one comparison between them that matters: the board's
+  // own loading state paints inside the routed view, the chrome paints inside
+  // the shell's overlay, and `--z-chrome` is what keeps the header, the rail
+  // and the score above a board that is still building. Without it the loading
+  // scrim — positioned, and so painted after everything with `z-index: auto` —
+  // covered the header for as long as the deal took.
+  --z-loading: 10;
+  --z-loading-badge: 12;
+
+  --z-chrome: 200;
+  // Within the chrome, the rail and its overlay panel. The header's overflow
+  // menu clears them so a dropdown is never dimmed by a rail opening behind it.
   --z-rail: 90;
   --z-rail-overlay-backdrop: 100;
   --z-rail-overlay-panel: 101;
   --z-rail-overlay-toggle: 102;
-  --z-loading: 10;
-  --z-loading-badge: 12;
+  --z-header-menu: 110;
 
   // --- Minimum hit target ---
   // WCAG 2.5.8 asks for 24px; the platform guidelines ask for 44. A card game

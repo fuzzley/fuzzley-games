@@ -27,12 +27,21 @@
   }
 }
 
+// The chrome around the board, and above it.
+//
+// The z-index is the load-time half of that: the board's loading scrim is
+// positioned and stacked, so with both layers on `auto` it painted over the
+// header and the player watched a deal with no score, no clock and no way back
+// to the menu. This is also what makes the overlay a stacking context, so the
+// rail's own ladder is read relative to the chrome rather than against the
+// board underneath it.
 .ui-overlay {
   width: 100%;
   height: 100%;
   position: absolute;
   top: 0;
   left: 0;
+  z-index: var(--z-chrome);
   box-sizing: border-box;
   pointer-events: none;
 }

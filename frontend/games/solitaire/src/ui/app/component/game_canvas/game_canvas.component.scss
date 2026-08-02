@@ -42,6 +42,13 @@
 // The loading state is the table dimmed rather than a sheet in front of it:
 // the scrim is cut from the felt green, so the board appears to resolve out of
 // itself once the deal lands.
+//
+// The scrim runs the full height so the dimmed felt is continuous behind the
+// translucent header, but its contents start below the header — the same strip
+// the board itself reserves for the chrome (see `headerHeightPx` in
+// `engine/render/layout/table_layout.ts`). A skeleton that ignored it drew its
+// top row of slots where no card will ever be dealt, half of it behind the
+// header, which is the one place the placeholder should not be.
 .loading-overlay {
   @include glass(8px);
   @include transition(opacity, visibility);
@@ -52,6 +59,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding-top: var(--header-height);
+  box-sizing: border-box;
   background: var(--surface-felt-scrim);
   opacity: 1;
   visibility: visible;
@@ -102,10 +111,13 @@
   animation: shimmerSweep 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }
 
+// Centred on the board rather than on the element: the overlay reaches up
+// behind the header, and the half of it the header covers is not part of what
+// the player is looking at.
 .loading-badge {
   @include glass(12px);
   position: absolute;
-  top: 50%;
+  top: calc(50% + var(--header-height) / 2);
   left: 50%;
   transform: translate(-50%, -50%);
   display: flex;

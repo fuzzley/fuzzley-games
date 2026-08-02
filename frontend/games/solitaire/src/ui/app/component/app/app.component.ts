@@ -6,7 +6,9 @@ import {
   inject,
   signal,
 } from "@angular/core";
+import { Title } from "@angular/platform-browser";
 import { RouterOutlet } from "@angular/router";
+import { GameCatalogService } from "../../service/game_catalog.service";
 import { PresentationSettingsService } from "../../service/presentation_settings.service";
 import { HeaderBarComponent } from "../header_bar/header_bar.component";
 import { SettingsDrawerComponent } from "../settings_drawer/settings_drawer.component";
@@ -43,7 +45,9 @@ export class AppComponent {
   protected readonly menu = inject(GameMenuService);
 
   private readonly presentation = inject(PresentationSettingsService);
+  private readonly catalog = inject(GameCatalogService);
   private readonly document = inject(DOCUMENT);
+  private readonly title = inject(Title);
 
   /** Tracks whether the side settings drawer overlay is open. */
   protected readonly showSettings = signal(false);
@@ -68,6 +72,19 @@ export class AppComponent {
         "--table-felt",
         this.presentation.backgroundColor(),
       );
+    });
+
+    // The tab says which game is on the table.
+    //
+    // Which game that is, is the whole of this application's navigable state,
+    // and everywhere else it is already answered: the URL names it, the rail
+    // marks it, the header prints it when it has the room. The title is what
+    // answers it for a bookmark, a history entry and a second tab of the same
+    // application — none of which can see any of those.
+    //
+    // Game first, because a tab strip crops from the right.
+    effect(() => {
+      this.title.setTitle(`${this.catalog.selectedEntry.name} · fSolitaire`);
     });
   }
 
