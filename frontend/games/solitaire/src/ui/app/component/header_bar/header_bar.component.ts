@@ -27,4 +27,22 @@ export class HeaderBarComponent {
 
   /** Emitted when the user requests to open the settings panel. */
   readonly openSettings = output();
+
+  /**
+   * Deals the same game again, or asks first if there is one to lose.
+   *
+   * The lifecycle actions are async because they may have to wait on that
+   * prompt. Discarding the promise is deliberate — the answer is acted on
+   * inside the service, and there is nothing here left to do with it — but it
+   * is discarded explicitly rather than by a template calling an async method
+   * and dropping what it returns where no lint rule can see it.
+   */
+  protected restart(): void {
+    void this.lifecycle.restartGame();
+  }
+
+  /** Deals a new game, or asks first if there is one to lose. */
+  protected newGame(): void {
+    void this.lifecycle.startNewGame();
+  }
 }

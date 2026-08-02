@@ -53,7 +53,7 @@ interface ThemeSwatch {
 })
 export class SettingsDrawerComponent {
   protected readonly catalog = inject(GameCatalogService);
-  protected readonly lifecycle = inject(GameLifecycleService);
+  private readonly lifecycle = inject(GameLifecycleService);
   protected readonly themeService = inject(ThemeService);
   protected readonly presentation = inject(PresentationSettingsService);
   private readonly docService = inject(GameDocumentationService);
@@ -110,5 +110,13 @@ export class SettingsDrawerComponent {
   protected openRules(): void {
     this.closed.emit();
     this.docService.openHelp();
+  }
+
+  /**
+   * Plays the current game by a different rule, dealt afresh after the prompt
+   * that changing one raises.
+   */
+  protected chooseRule(optionId: string, value: number): void {
+    void this.lifecycle.setRuleOption(optionId, value);
   }
 }
