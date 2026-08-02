@@ -32,3 +32,9 @@ yarn skills:link # link agent skills from .agents/skills to .claude/skills
 The game code lives in `src/` (bundled by Vite via `src/ui/app/main.ts`). The Angular UI components and Sass design system (`src/ui/app/styles/`) are located in `src/ui/`, while the Phaser game logic, rendering, and solitaire runtime reside in `src/engine/` and `src/games/`.
 
 Agent configuration and reusable skills live in `.agents/skills/`. Run `yarn skills:link` to link skills across for Claude Code discovery.
+
+## License
+
+This project source code is licensed under the [GNU General Public License v3.0 only](LICENSE).
+
+The playing card artwork is [Vector Playing Cards](https://sourceforge.net/projects/vector-cards/) by Chris Aguilar, copyright 2011, used under the [GNU Lesser General Public License v3.0](https://www.gnu.org/licenses/lgpl-3.0.html). See [NOTICE](NOTICE) for the files it covers and for how to substitute a different deck.
