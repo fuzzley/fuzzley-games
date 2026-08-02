@@ -120,6 +120,27 @@
   --space-10: 40px;
 
   // --- Type ---
+  // Two faces, and until this block existed the application declared neither.
+  // Nothing set a `font-family` anywhere, so every label, heading and rule page
+  // rendered in the UA's default serif; `<button>` came out in Arial, because
+  // form controls do not inherit the property; and two components reached for a
+  // bare `monospace` keyword. Three unrelated faces, none of them chosen.
+  //
+  // System stacks rather than a webfont. The build is copied into a
+  // subdirectory of a static host, so a self-hosted file is payload on every
+  // load and a hosted one is a network request this application otherwise never
+  // makes — and neither buys anything the platform's own interface face does
+  // not already give, on a screen that is mostly card artwork.
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI Variable Text",
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  // The figures that change while you are watching them — the score, the clock,
+  // the move count, the victory stats. Monospaced so the number does not
+  // resize its own container on the way from 9 to 10.
+  --font-mono:
+    ui-monospace, "Cascadia Mono", "SF Mono", "Segoe UI Mono", "Roboto Mono",
+    Menlo, Consolas, monospace;
+
   // Nine sizes, down from the fifteen that were in use — most of which were
   // within half a pixel of a neighbour. `sm` is the interface default: labels,
   // buttons and list rows. `md` is running prose.
