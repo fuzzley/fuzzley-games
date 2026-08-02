@@ -1,5 +1,5 @@
 import { CardLocations, CardPile } from "@/engine/core/card/card_pile";
-import { KlondikeRole } from "@/games/klondike/klondike_zones";
+import { FakeRole } from "@test/support/fake_table/zones";
 import { makeCard } from "@test/support/card_builder";
 
 describe("CardPile", () => {
@@ -10,9 +10,9 @@ describe("CardPile", () => {
   });
 
   it("exposes the pile type it was constructed with", () => {
-    const pile = new CardPile("foundation-0", KlondikeRole.FOUNDATION);
+    const pile = new CardPile("foundation-0", FakeRole.FOUNDATION);
 
-    expect(pile.role).toBe(KlondikeRole.FOUNDATION);
+    expect(pile.role).toBe(FakeRole.FOUNDATION);
   });
 
   it("starts empty", () => {
@@ -149,7 +149,7 @@ describe("CardPile.size", () => {
 describe("CardPile with a shared location index", () => {
   it("records a card against the pile it is added to", () => {
     const locations = new CardLocations();
-    const pile = new CardPile("tableau-0", KlondikeRole.TABLEAU, locations);
+    const pile = new CardPile("tableau-0", FakeRole.TABLEAU, locations);
     const card = makeCard({ id: "a" });
 
     pile.addCard(card);
@@ -159,7 +159,7 @@ describe("CardPile with a shared location index", () => {
 
   it("forgets a card that is removed", () => {
     const locations = new CardLocations();
-    const pile = new CardPile("tableau-0", KlondikeRole.TABLEAU, locations);
+    const pile = new CardPile("tableau-0", FakeRole.TABLEAU, locations);
     const card = makeCard({ id: "a" });
     pile.addCard(card);
 
@@ -170,7 +170,7 @@ describe("CardPile with a shared location index", () => {
 
   it("forgets every card when the pile is cleared", () => {
     const locations = new CardLocations();
-    const pile = new CardPile("tableau-0", KlondikeRole.TABLEAU, locations);
+    const pile = new CardPile("tableau-0", FakeRole.TABLEAU, locations);
     pile.addCard(makeCard({ id: "a" }));
     pile.addCard(makeCard({ id: "b" }));
 
@@ -184,8 +184,8 @@ describe("CardPile with a shared location index", () => {
 
   it("follows a card moved from one pile to another", () => {
     const locations = new CardLocations();
-    const source = new CardPile("tableau-0", KlondikeRole.TABLEAU, locations);
-    const target = new CardPile("tableau-1", KlondikeRole.TABLEAU, locations);
+    const source = new CardPile("tableau-0", FakeRole.TABLEAU, locations);
+    const target = new CardPile("tableau-1", FakeRole.TABLEAU, locations);
     const card = makeCard({ id: "a" });
     source.addCard(card);
 
@@ -197,8 +197,8 @@ describe("CardPile with a shared location index", () => {
 
   it("leaves the index alone when removing a card the pile never held", () => {
     const locations = new CardLocations();
-    const holder = new CardPile("tableau-0", KlondikeRole.TABLEAU, locations);
-    const other = new CardPile("tableau-1", KlondikeRole.TABLEAU, locations);
+    const holder = new CardPile("tableau-0", FakeRole.TABLEAU, locations);
+    const other = new CardPile("tableau-1", FakeRole.TABLEAU, locations);
     const card = makeCard({ id: "a" });
     holder.addCard(card);
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { resolveDropTarget } from "@/engine/render/layout/drop_geometry";
-import { measureKlondikeBoard } from "@/games/klondike/klondike_board";
+import { measureFakeTable } from "@test/support/fake_table/board";
 import { resolveDragTarget } from "@/engine/tableau/view/table_view_builder";
 import {
   CARD_HEIGHT_PX,
@@ -12,22 +12,22 @@ import {
   Viewport,
 } from "@/engine/render/view/table_view_state";
 import { computeDropGeometries } from "@/engine/render/layout/drop_geometry";
-import { KlondikeGame } from "@/games/klondike/klondike_game";
+import { FakeTableGame } from "@test/support/fake_table/game";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
 describe("resolveDragTarget", () => {
-  let game: KlondikeGame;
+  let game: FakeTableGame;
   const viewport: Viewport = { width: 1920, height: 1080, pixelRatio: 1 };
 
   beforeEach(() => {
-    game = new KlondikeGame();
+    game = new FakeTableGame();
     game.startNewGame();
     emptyBoard(game);
   });
 
   /** The drop rectangle the given pile occupies at this viewport. */
   function geometryOf(pileId: string): PileGeometry {
-    const metrics = measureKlondikeBoard(viewport);
+    const metrics = measureFakeTable(viewport);
     return computeDropGeometries(
       game.dropTargetPiles.map((pile) => ({
         pile,
@@ -48,7 +48,7 @@ describe("resolveDragTarget", () => {
         cardIds: ["card-hearts-ace"],
         primary: { x: tableau1.x, y: tableau1.y },
       },
-      measureKlondikeBoard(viewport),
+      measureFakeTable(viewport),
     );
 
     expect(target).toEqual(tableau1);
@@ -58,7 +58,7 @@ describe("resolveDragTarget", () => {
     const target = resolveDragTarget(
       game,
       { cardIds: ["card-hearts-ace"], primary: { x: 9000, y: 9000 } },
-      measureKlondikeBoard(viewport),
+      measureFakeTable(viewport),
     );
 
     expect(target).toBeNull();
@@ -76,7 +76,7 @@ describe("resolveDragTarget", () => {
         cardIds: ["card-clubs-jack"],
         primary: { x: tableau1.x, y: tableau1.y + tableau1.height - 20 },
       },
-      measureKlondikeBoard(viewport),
+      measureFakeTable(viewport),
     );
 
     expect(target?.pileId).toBe("tableau-1");

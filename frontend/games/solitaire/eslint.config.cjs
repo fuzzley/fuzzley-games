@@ -182,6 +182,30 @@ module.exports = tseslint.config(
     ],
   },
   {
+    // The engine's own tests are held to the boundary the engine is held to.
+    //
+    // Klondike used to be the de facto fixture for all of it: seven specs under
+    // test/engine imported `@/games/klondike`, so "nothing under src/engine
+    // names a game" was true of the source and quietly false of the tests that
+    // prove it. That coupling ran the wrong way — a change to Klondike broke
+    // the engine's specs — and it is what `test/support/fake_table` replaces.
+    files: ["test/engine/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/games/*"],
+              message:
+                "An engine spec must not name a game. Drive the engine with @test/support/fake_table instead, and if it cannot express what you need, extend the fixture.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ["test/**/*.ts"],
     rules: {
       // A test asserts its preconditions by construction: after a deal,

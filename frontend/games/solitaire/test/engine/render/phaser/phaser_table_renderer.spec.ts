@@ -7,7 +7,7 @@ import {
   HighlightView,
 } from "@/engine/render/view/table_view_state";
 import { HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE } from "@/engine/render/layout/card_metrics";
-import { STOCK_PILE_ID } from "@/games/klondike/klondike_zones";
+import { STOCK_PILE_ID } from "@test/support/fake_table/zones";
 import {
   asSprite,
   createMockGraphics,

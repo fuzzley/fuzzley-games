@@ -1,8 +1,8 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
-import { makeKlondikeBoardScene } from "@/games/klondike/klondike";
+import { makeFakeTableBoardScene } from "@test/support/fake_table/scene";
 import { TestPresentation } from "@test/support/presentation";
-import { KlondikeGame } from "@/games/klondike/klondike_game";
+import { FakeTableGame } from "@test/support/fake_table/game";
 import {
   MockGraphics,
   MockInput,
@@ -17,10 +17,10 @@ import {
   computeScale,
   designSize,
 } from "@/engine/render/layout/table_layout";
-import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
+import { FAKE_TABLE_LAYOUT } from "@test/support/fake_table/board";
 
-const DESIGN_WIDTH_PX = designSize(KLONDIKE_LAYOUT).width;
-import { STOCK_PILE_ID } from "@/games/klondike/klondike_zones";
+const DESIGN_WIDTH_PX = designSize(FAKE_TABLE_LAYOUT).width;
+import { STOCK_PILE_ID } from "@test/support/fake_table/zones";
 import { relocate } from "@test/support/game_scenarios";
 
 vi.mock("phaser", async () => {
@@ -37,18 +37,18 @@ function asMock(sprite: unknown): MockSprite {
  * A board scene drawing the given game, or the shared dealt one, laid out the
  * way the real application lays it out.
  */
-let klondikeGame: KlondikeGame;
+let fakeGame: FakeTableGame;
 let presentation: TestPresentation;
 
-/** A dealt Klondike game drawn with a presentation a test can drive. */
-function makeBoardScene(gameModel?: KlondikeGame): BoardScene {
-  klondikeGame = gameModel ?? dealtGame();
+/** A dealt game drawn with a presentation a test can drive. */
+function makeBoardScene(gameModel?: FakeTableGame): BoardScene {
+  fakeGame = gameModel ?? dealtGame();
   presentation = new TestPresentation();
-  return makeKlondikeBoardScene(klondikeGame, presentation);
+  return makeFakeTableBoardScene(fakeGame, presentation);
 }
 
-function dealtGame(): KlondikeGame {
-  const game = new KlondikeGame();
+function dealtGame(): FakeTableGame {
+  const game = new FakeTableGame();
   game.startNewGame();
   return game;
 }
@@ -63,7 +63,7 @@ describe("BoardScene", () => {
 
   /** The sprite of a card sitting in the stock, for tracking where it goes. */
   function stockCardSprite(): MockSprite {
-    const card = klondikeGame.stock.getCards()[0];
+    const card = fakeGame.stock.getCards()[0];
     return asMock(boardScene.cardSprite(card.id));
   }
 
@@ -94,7 +94,7 @@ describe("BoardScene", () => {
 
   describe("construction", () => {
     it("renders the game model it is injected with", () => {
-      const injectedModel = new KlondikeGame();
+      const injectedModel = new FakeTableGame();
 
       const scene = makeBoardScene(injectedModel);
 
@@ -132,8 +132,8 @@ describe("BoardScene", () => {
   describe("dealing", () => {
     it("renders a board that is already dealt", () => {
       const dealt = [
-        klondikeGame.stock.size,
-        ...klondikeGame.tableaus.map((pile) => pile.size),
+        fakeGame.stock.size,
+        ...fakeGame.tableaus.map((pile) => pile.size),
       ];
 
       expect(dealt).toEqual([24, 1, 2, 3, 4, 5, 6, 7]);
@@ -141,15 +141,15 @@ describe("BoardScene", () => {
 
     it("does not re-deal when the scene is created again", () => {
       const ace = relocate(
-        klondikeGame,
+        fakeGame,
         "card-hearts-ace",
-        klondikeGame.foundations[0],
+        fakeGame.foundations[0],
       );
 
       boardScene.create();
 
       // A renderer that dealt would throw the game in progress away.
-      expect(klondikeGame.foundations[0].topCard).toBe(ace);
+      expect(fakeGame.foundations[0].topCard).toBe(ace);
     });
   });
 
@@ -163,7 +163,7 @@ describe("BoardScene", () => {
     });
 
     it("gives every tableau pile a placeholder background at the shared alpha", () => {
-      const pileIds = klondikeGame.tableaus.map((pile) => pile.id);
+      const pileIds = fakeGame.tableaus.map((pile) => pile.id);
 
       expect(backgroundsOf(pileIds)).toEqual(
         Array(7).fill({ frame: "card-placeholder", alpha }),
@@ -171,7 +171,7 @@ describe("BoardScene", () => {
     });
 
     it("gives every foundation pile a placeholder background at the shared alpha", () => {
-      const pileIds = klondikeGame.foundations.map((pile) => pile.id);
+      const pileIds = fakeGame.foundations.map((pile) => pile.id);
 
       expect(backgroundsOf(pileIds)).toEqual(
         Array(4).fill({
@@ -183,7 +183,7 @@ describe("BoardScene", () => {
 
     it("gives the waste pile no background, so it fans over bare table", () => {
       expect(
-        boardScene.pileBackgroundSprite(klondikeGame.waste.id),
+        boardScene.pileBackgroundSprite(fakeGame.waste.id),
       ).toBeUndefined();
     });
   });
@@ -223,9 +223,9 @@ describe("BoardScene", () => {
     it("lays each card out where its pile's geometry puts it", () => {
       const viewport = boardScene.viewport;
       const stockOrigin = computePileOrigins(
-        KLONDIKE_LAYOUT,
+        FAKE_TABLE_LAYOUT,
         viewport,
-        computeScale(KLONDIKE_LAYOUT, viewport),
+        computeScale(FAKE_TABLE_LAYOUT, viewport),
       ).get(STOCK_PILE_ID)!;
       const sprite = stockCardSprite();
 
@@ -243,11 +243,7 @@ describe("BoardScene", () => {
      * sprite, which is still back at the tableau with the board to cross.
      */
     function autoMoveTheAce(): MockSprite {
-      const ace = relocate(
-        klondikeGame,
-        "card-hearts-ace",
-        klondikeGame.tableaus[0],
-      );
+      const ace = relocate(fakeGame, "card-hearts-ace", fakeGame.tableaus[0]);
       const sprite = asMock(boardScene.cardSprite(ace.id));
       boardScene.update(0, 16); // the first frame snaps the board into place
 
@@ -279,14 +275,14 @@ describe("BoardScene", () => {
   });
 
   describe("cards the model relocates without a gesture reporting it", () => {
-    /** Presses the top of the stock once, which is what draws in Klondike. */
+    /** Presses the top of the stock once, which is what draws. */
     function drawFromStock(): MockSprite[] {
-      const top = klondikeGame.stock.topCard!;
+      const top = fakeGame.stock.topCard!;
       boardScene.update(0, 16); // the first frame snaps the board into place
 
       asMock(boardScene.cardSprite(top.id)).emit("pointerdown");
 
-      return klondikeGame.waste
+      return fakeGame.waste
         .getCards()
         .map((card) => asMock(boardScene.cardSprite(card.id)));
     }
@@ -303,18 +299,14 @@ describe("BoardScene", () => {
     });
 
     it("lifts the cards an undo puts back", () => {
-      const ace = relocate(
-        klondikeGame,
-        "card-hearts-ace",
-        klondikeGame.tableaus[0],
-      );
+      const ace = relocate(fakeGame, "card-hearts-ace", fakeGame.tableaus[0]);
       const sprite = asMock(boardScene.cardSprite(ace.id));
       boardScene.update(0, 16);
       sprite.emit("pointerdown");
       sprite.emit("pointerdown"); // to a foundation
       boardScene.update(16, 0); // land it there
 
-      klondikeGame.undo();
+      fakeGame.undo();
       boardScene.update(32, 16);
 
       // Undo never passes through the intent pipeline at all, so nothing used
@@ -323,15 +315,11 @@ describe("BoardScene", () => {
     });
 
     it("keeps an earlier stack lifted while a later one sets off", () => {
-      const first = relocate(
-        klondikeGame,
-        "card-hearts-ace",
-        klondikeGame.tableaus[0],
-      );
+      const first = relocate(fakeGame, "card-hearts-ace", fakeGame.tableaus[0]);
       const second = relocate(
-        klondikeGame,
+        fakeGame,
         "card-spades-ace",
-        klondikeGame.tableaus[1],
+        fakeGame.tableaus[1],
       );
       const firstSprite = asMock(boardScene.cardSprite(first.id));
       const secondSprite = asMock(boardScene.cardSprite(second.id));
@@ -375,11 +363,7 @@ describe("BoardScene", () => {
     }
 
     it("draws a border while a card is hovered", () => {
-      const ace = relocate(
-        klondikeGame,
-        "card-hearts-ace",
-        klondikeGame.tableaus[0],
-      );
+      const ace = relocate(fakeGame, "card-hearts-ace", fakeGame.tableaus[0]);
 
       asMock(boardScene.cardSprite(ace.id)).emit("pointerover");
       boardScene.update(0, 16);
@@ -388,17 +372,13 @@ describe("BoardScene", () => {
     });
 
     it("drops a hover so no border survives into the new deal", () => {
-      const ace = relocate(
-        klondikeGame,
-        "card-hearts-ace",
-        klondikeGame.tableaus[0],
-      );
+      const ace = relocate(fakeGame, "card-hearts-ace", fakeGame.tableaus[0]);
       asMock(boardScene.cardSprite(ace.id)).emit("pointerover");
       boardScene.update(0, 16);
 
       // Dealing a fresh board is what raises game-reset, so the interaction
       // state is cleared through the same path the game itself uses.
-      klondikeGame.startNewGame();
+      fakeGame.startNewGame();
       boardScene.update(16, 16);
 
       expect(anyBorderDrawn()).toBe(false);
@@ -410,7 +390,7 @@ describe("BoardScene", () => {
       boardScene.update(0, 16);
       const before = positions();
 
-      klondikeGame.startNewGame();
+      fakeGame.startNewGame();
       boardScene.update(16, 16);
 
       // A snap lands on the target in one frame; an ease would leave the cards
@@ -426,7 +406,7 @@ describe("BoardScene", () => {
     it("throws when a card model is missing while creating sprites", () => {
       const freshScene = makeBoardScene();
       const getCardById = vi
-        .spyOn(KlondikeGame.prototype, "getCardById")
+        .spyOn(FakeTableGame.prototype, "getCardById")
         .mockReturnValue(undefined);
 
       expect(() => freshScene.create()).toThrow("Card model not found for: ");
