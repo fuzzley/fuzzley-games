@@ -1,7 +1,7 @@
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { TablePresentation } from "@/engine/render/presentation";
 import { PlayableGame } from "@/engine/tableau/playable_game";
-import { makeKlondikeBoardScene } from "@/games/klondike/klondike";
+import { makeKlondikeBoardScene } from "@/games/klondike/klondike_board";
 import { makeFreeCellBoardScene } from "@/games/freecell/freecell_board";
 import { makeSpiderBoardScene } from "@/games/spider/spider_board";
 import { makeYukonBoardScene } from "@/games/yukon/yukon_board";
