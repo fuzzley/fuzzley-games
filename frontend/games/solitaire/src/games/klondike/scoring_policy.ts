@@ -1,6 +1,6 @@
 import { PileRole } from "@/engine/core/card/card_pile";
-import { KlondikeRole } from "@/games/klondike/klondike_zones";
-import { DrawCount } from "./game_settings";
+import { KlondikeRole } from "./klondike_rules";
+import { DrawCount } from "./klondike_settings";
 
 /**
  * Encapsulates the standard Klondike scoring rules.

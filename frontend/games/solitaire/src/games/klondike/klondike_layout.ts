@@ -9,7 +9,7 @@ import {
   LAYOUT_PADDING_Y,
 } from "@/engine/render/layout/card_metrics";
 import { TABLEAU_COUNT, klondikeZoneSpecs } from "./klondike_zones";
-import { DEFAULT_DRAW_COUNT } from "./game_settings";
+import { DEFAULT_DRAW_COUNT } from "./klondike_settings";
 
 /**
  * The Klondike board: stock and waste at the left of the top row, foundations
