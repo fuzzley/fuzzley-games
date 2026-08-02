@@ -1,66 +1,96 @@
 ---
 name: typescript-strict-patterns
-description: Immutable game state modeling, strict type narrowing, ESLint restricted import enforcement, pure card primitives, and Google TypeScript style compliance for fSolitaire. Triggers on: typescript, type safety, strict mode, discriminated union, immutable state, card primitives, google ts style.
+description: How fSolitaire models cards and moves in TypeScript — the core enums, readonly identity, the move/undo shape, and Google TypeScript style compliance. Triggers on: typescript, type safety, strict mode, immutable state, card primitives, readonly, google ts style.
 ---
 
 # TypeScript Strict Patterns & Type Safety
 
-> TypeScript coding standards, strict type safety rules, discriminated unions, and Google TypeScript style guidelines for fSolitaire.
+> The type conventions this codebase actually uses. Match them; do not import
+> patterns from other card-game projects.
 
-## Pure Card Primitives (`src/engine/core`)
+## Card Primitives Are Numeric Enums (`src/engine/core`)
 
-- Core primitives (`Suit`, `Rank`, `PlayingCard`, `CardPile`, `Deck`) must be pure TypeScript structures.
-- **Strict Prohibition:** `src/engine/core` MUST NEVER import Phaser, Angular, RxJS, DOM elements, or higher-level tableau renderers.
-- Use explicit enums or string literal unions for Suits and Ranks:
+`src/engine/core/card/playing_card.ts` defines:
 
 ```ts
-export type Suit = 'spades' | 'hearts' | 'diamonds' | 'clubs';
-export type SuitColor = 'red' | 'black';
+export enum Suit {
+  SPADE,
+  HEART,
+  DIAMOND,
+  CLUB,
+}
 
-export function getSuitColor(suit: Suit): SuitColor {
-  return suit === 'hearts' || suit === 'diamonds' ? 'red' : 'black';
+export enum Rank {
+  ACE,
+  TWO,
+  THREE,
+  // ... through KING
 }
 ```
 
-## Discriminated Unions for Solitaire Move Actions
+**Not string literal unions.** `Rank`'s members are ordered and consecutive on
+purpose — the build rules compare them arithmetically, so `ACE + 1 === TWO` and
+a descending run is a subtraction rather than a lookup table. Changing these to
+strings would silently break every rank comparison in the games.
 
-Model solitaire engine actions using tagged discriminated unions to ensure exhaustive `switch`/`case` type checking:
+## Identity: `id` vs `faceKey`
 
-```ts
-export type TableauMoveAction =
-  | { type: 'MOVE_CARDS'; fromZone: string; toZone: string; cards: readonly PlayingCard[] }
-  | { type: 'DEAL_STOCK'; count: number }
-  | { type: 'FLIP_CARD'; cardId: string }
-  | { type: 'AUTO_COMPLETE' };
+`Card` (`src/engine/core/card/card.ts`) carries two identifiers, and the
+distinction matters:
 
-export function processAction(action: TableauMoveAction, state: GameState): GameState {
-  switch (action.type) {
-    case 'MOVE_CARDS':
-      return applyMove(state, action.fromZone, action.toZone, action.cards);
-    case 'DEAL_STOCK':
-      return applyStockDeal(state, action.count);
-    case 'FLIP_CARD':
-      return applyCardFlip(state, action.cardId);
-    case 'AUTO_COMPLETE':
-      return applyAutoComplete(state);
-  }
-}
-```
+- **`readonly id`** — this one card, uniquely across the whole game.
+- **`readonly faceKey`** — the artwork. Cards that look alike share one.
 
-## Architectural Tier Import Boundaries (`@typescript-eslint/no-restricted-imports`)
+Two-deck games hold two Queens of Hearts: the same card to look at, two
+different cards to move. **Use `id` for anything positional and `faceKey` for
+anything visual or set-like.** Hashing a board position on `id` when you meant
+`faceKey` produces a key that never collides where it should.
 
-TypeScript architectural boundaries are enforced as hard errors in ESLint (`eslint.config.cjs`). Each tier may depend ONLY on tiers below it:
+On `PlayingCard`, identity is fixed at construction (`id`, `suit`, `rank`,
+`faceKey` are all `readonly`) so a card can never exist half-built; only
+`faceUp` changes over its lifetime.
 
-| Tier | Directory | Allowed Imports | Explicit Restrictions |
-|---|---|---|---|
-| 1 | `src/engine/core` | Standard TS primitives | `engine/render/*`, `engine/tableau/*`, `games/*`, `ui/*`, `phaser`, `@angular/*`, `rxjs` |
-| 2 | `src/engine/render` | `engine/core` | `phaser`, `engine/render/phaser/*`, `engine/tableau/*`, `games/*`, `ui/*` |
-| 3 | `src/engine/render/phaser` | `engine/core`, `engine/render`, `phaser` | `engine/tableau/view/table_view_builder`, `games/*`, `ui/*`, `@angular/*` |
-| 4 | `src/engine/tableau` | `engine/core`, `engine/render` | `phaser`, `engine/render/phaser/*`, `games/*`, `ui/*` |
-| 5 | `src/games/*` | `engine/*` | `ui/*`, `@angular/*` |
+## Moves Are Applied, Not Reduced
 
-## TypeScript Best Practices
+The engine is **not** a reducer over an action union. `TableGame`
+(`src/engine/tableau/table_game.ts`) is an abstract class that mutates piles and
+records history:
 
-- **Avoid `any`:** Never use `as any`. Use generic constraints or `unknown` with type guards if unknown.
-- **Explicit Return Types:** Specify explicit return types on all exported functions and public service methods.
-- **Readonly Collections:** Mark array properties on immutable state objects as `readonly PlayingCard[]` or `ReadonlyArray<T>` to prevent accidental direct mutation.
+- `canMoveCardToPile(cardId, targetPileId): boolean` — ask the rules.
+- `resolveMove(...)` → `ResolvedMove` (`movingStack`, `sourcePile`, `targetPile`).
+- `moveCardToPile(cardId, targetPileId): boolean` — perform it.
+- `applyMoveEffects(move): MoveEffects` — the variant's hook for score changes,
+  cards it flipped, and `followUpTransfers` for consequences of the move (Spider
+  sending a completed run to a foundation). Recording those here rather than as
+  a separate action is what makes one `undo()` take the whole thing back.
+- `undo()` reverses an `AppliedMove` off the history.
+
+Where immutability lives here is in the **shape of these records** —
+`ResolvedMove` and `MoveEffects` are fully `readonly`, with `readonly
+PlayingCard[]` and `readonly string[]` members — not in replacing the board on
+every move. Follow that: new engine types describing something that happened are
+`readonly` throughout.
+
+## Architectural Import Boundaries
+
+Enforced as hard ESLint errors in `eslint.config.cjs`. The canonical table lives
+in `.agents/AGENTS.md` and is explained in the `solitaire-engine-architecture`
+skill — **read it there rather than keeping a fourth copy in sync.**
+
+Two points that are easy to get wrong:
+
+- `rxjs` is restricted in every engine tier _and_ in `src/games/*`. A game
+  publishes through the engine's own `EventEmitter`
+  (`src/engine/core/common/event_emitter.ts`); the Angular shell adapts to
+  reactive types at its own boundary.
+- `src/engine/render/phaser` may import Phaser, but not
+  `@/engine/tableau/view/table_view_builder` — the adapter draws whatever it is
+  handed and must not reach up for the thing that builds the view.
+
+## Style
+
+- **No `as any`.** Use generics, or `unknown` plus a type guard. `instance as
+unknown as Target` is a last resort worth a comment explaining why.
+- **Explicit return types** on exported functions and public methods.
+- **`readonly` collections** on anything describing state that already happened.
+- Follow the [Google TypeScript style guide](https://google.github.io/styleguide/tsguide.html).

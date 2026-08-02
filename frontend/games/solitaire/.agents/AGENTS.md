@@ -195,7 +195,18 @@ per-tool directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   links hold absolute paths inside gitignored `.claude/`, so re-run it after a
   fresh clone or a move — a dangling link silently drops the skill. Restart
   Claude Code if `.claude/skills` did not exist when the session started.
-- **Flat skills directory.** Every skill lives directly under `.agents/skills/<name>/SKILL.md` (including all namespaced `phaser-*` skills). Adding a skill means creating a new top-level directory under `.agents/skills` plus a `yarn skills:link` re-run.
+- **Flat skills directory.** Every skill lives directly under
+  `.agents/skills/<name>/SKILL.md`, including the namespaced `phaser-*` ones.
+  Adding a skill means a new top-level directory plus a `yarn skills:link`
+  re-run.
+- **A skill describes code that exists.** Skills are read as authoritative, so
+  an agent follows an invented path into a compile error rather than looking.
+  A design for something not yet built belongs in a doc or an issue, not in a
+  skill. `yarn skills:check` (part of `yarn lint`) enforces the checkable half
+  of this: every relative markdown link between skills must resolve, and every
+  backticked repo path must exist. Skills quoting another project's source tree
+  are listed as upstream exceptions in `.agents/check-skill-references.mjs`;
+  a skill about this repository is checked by default.
 - **Vendored skills:** `angular-developer` and `angular-new-app` come from
   upstream and are hash-locked in `skills-lock.json`. They are listed in
   `.prettierignore` so formatting does not defeat the lock; do not hand-edit
