@@ -93,8 +93,14 @@
       </svg>
       <span class="btn-text">New Game</span>
     </button>
+    <!--
+      Stands down below the tablet breakpoint, where five hit targets at the
+      platform minimum no longer fit beside the metrics. It is the one action
+      here with a second way in: the settings drawer carries a full-width "How
+      to Play" button, and the drawer's own control stays in the header.
+    -->
     <button
-      class="btn-circle"
+      class="btn-circle btn-help"
       (click)="docService.openHelp()"
       title="How to Play / Game Rules"
       aria-label="How to Play / Game Rules"

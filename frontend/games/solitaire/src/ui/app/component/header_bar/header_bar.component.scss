@@ -5,6 +5,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-4);
   height: var(--header-height);
   box-sizing: border-box;
   padding: var(--space-3) var(--space-6);
@@ -16,25 +17,45 @@
   user-select: none;
 }
 
+// The three groups give way in a fixed order, and that order is what keeps the
+// header on the screen at every width rather than only at the four the
+// breakpoints happen to name.
+//
+// Each group used to size itself to its content and refuse to shrink, so the
+// header's own minimum width ran far ahead of the breakpoint meant to have
+// relieved it: 807px in the band starting at 720, and 636px in the band
+// starting at 480. In between, the header pushed the document wider than the
+// viewport and the whole page scrolled sideways — which on a phone left Help
+// and Settings off the right-hand edge, where no amount of scrolling the board
+// could reach them.
+//
+// The actions never shrink. Every one of them is a hit target at the platform
+// minimum, and a control squeezed under that is worse than one that has
+// deliberately stood down. The brand yields first, being the only thing here
+// that is decoration; the metrics yield second, and clip rather than push,
+// which is the backstop for any width narrower than the tiers below plan for.
 .brand {
   display: flex;
   align-items: center;
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
-// The heading's own margin and font-size are reset here rather than being
-// inherited from the UA: it is an <h1> for the document outline, and its
-// appearance is the brand mark it always was.
 .brand-text {
   @include gradient-text(var(--accent-sky), var(--accent-violet));
   margin: 0;
   font-size: var(--font-2xl);
   font-weight: 800;
   letter-spacing: -0.025em;
+  white-space: nowrap;
 }
 
 .metrics {
   display: flex;
   gap: var(--space-4);
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .metric-card {
@@ -42,10 +63,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  flex: 0 1 auto;
+  min-width: 90px;
   background: var(--wash-subtle);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
-  min-width: 90px;
   padding: var(--space-1) var(--space-4);
 
   .label {
@@ -72,7 +94,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  flex-shrink: 0;
+  flex: 0 0 auto;
 
   // Every action in here is a hit target before it is a decoration, so all of
   // them clear the platform minimum whether or not they are showing a label.
@@ -84,7 +106,10 @@
 
 // Four labelled actions need a wide header. Below this the labels go and the
 // buttons become icon circles, which is roomier than letting them crowd the
-// metrics — and well above the point where they would start wrapping.
+// metrics — and well above the point where they would start wrapping. The
+// metric cards tighten on the same breakpoint rather than waiting for the next
+// one, which is what brings the header's minimum below the width this band
+// starts at.
 @include below("desktop") {
   .actions .btn {
     padding: var(--space-2);
@@ -101,28 +126,46 @@
       margin: 0;
     }
   }
-}
-
-@include below("tablet") {
-  .header-bar {
-    padding: var(--space-2) var(--space-4);
-  }
-
-  .brand-text {
-    font-size: var(--font-xl);
-  }
 
   .metrics {
     gap: var(--space-2);
   }
 
   .metric-card {
-    min-width: 70px;
+    min-width: 72px;
+    padding: var(--space-1) var(--space-3);
+  }
+}
+
+@include below("tablet") {
+  .header-bar {
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+  }
+
+  // The wordmark stands down, but stays in the accessibility tree: it is the
+  // document's only <h1>, and hiding it outright would leave the page with no
+  // heading at all until a dialog opened.
+  .brand {
+    @include visually-hidden;
+  }
+
+  .metric-card {
+    min-width: 0;
     padding: var(--space-1) var(--space-2);
   }
 
   .actions {
-    gap: var(--space-2);
+    gap: var(--space-1);
+  }
+
+  // Five hit targets at the platform minimum leave the metrics less room than
+  // their own content needs, and a flex item does not shrink below that — so
+  // the third card was simply cut off at the edge of the group. Help is the one
+  // action here with a second way in: the settings drawer carries a full-width
+  // "How to Play" button, and the drawer's own control stays in the header.
+  .actions .btn-help {
+    display: none;
   }
 }
 
@@ -131,29 +174,37 @@
     padding: var(--space-2);
   }
 
-  .brand-text {
-    font-size: var(--font-lg);
-  }
-
+  // One strip rather than three cards. At this width three bordered boxes spend
+  // more of the header on their own chrome — two borders and two paddings each
+  // — than on the figures inside them.
   .metrics {
-    gap: var(--space-1);
+    gap: 0;
+    background: var(--wash-subtle);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
   }
 
   .metric-card {
-    min-width: 48px;
-    padding: var(--space-1);
+    background: none;
+    border: none;
+    border-radius: 0;
 
+    // A hairline between neighbours, standing in for the borders the cards
+    // themselves have just given up.
+    & + .metric-card {
+      border-left: 1px solid var(--border-subtle);
+    }
+
+    // The figures carry themselves at this size — the clock unmistakably so —
+    // while the words naming them would cost a third of the header. Hidden from
+    // the eye only: score and moves are live regions, and it is the label that
+    // makes the announcement "Score 350" rather than a bare "350".
     .label {
-      font-size: var(--font-2xs);
-      letter-spacing: 0.05em;
+      @include visually-hidden;
     }
 
     .value {
-      font-size: var(--font-md);
+      font-size: var(--font-sm);
     }
-  }
-
-  .actions {
-    gap: var(--space-1);
   }
 }
