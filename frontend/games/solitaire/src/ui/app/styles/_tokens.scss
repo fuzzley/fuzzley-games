@@ -19,6 +19,22 @@
 // hue is typed once and its five surfaces follow it.
 
 :root {
+  // --- The table ---
+  // The felt, mirrored out of the presentation settings onto the root element
+  // by the shell, so the page behind the chrome is the same colour as the board
+  // the Phaser camera paints. The value here is the felt a player starts on;
+  // the shell overwrites it the moment they choose another.
+  //
+  // It has to be a real background rather than nothing, because the header is
+  // translucent and blurred across the full width while the board it blurs
+  // stops at the game rail. With no background the strip left of the rail
+  // sampled the UA's white and came out as a pale band up the side of the
+  // wordmark — and as a white flash on every load, before Phaser had painted.
+  --table-felt: #{$felt};
+
+  // How dark the table gets at its edges. See the vignette in the game canvas.
+  --table-vignette: #{with-alpha($black, 0.38)};
+
   // --- Surfaces ---
   // Layered darks. `panel` is the chrome around the board, `raised` a card
   // sitting on it, `sunken` a well cut into one, `card` a bordered block
@@ -70,7 +86,6 @@
   --accent-strong: #{$blue-600};
   --accent-light: #{$blue-400};
   --accent-sky: #{$sky-400};
-  --accent-violet: #{$purple-500};
 
   --danger: #{$red-500};
   --danger-strong: #{$red-600};
@@ -120,6 +135,27 @@
   --space-10: 40px;
 
   // --- Type ---
+  // Two faces, and until this block existed the application declared neither.
+  // Nothing set a `font-family` anywhere, so every label, heading and rule page
+  // rendered in the UA's default serif; `<button>` came out in Arial, because
+  // form controls do not inherit the property; and two components reached for a
+  // bare `monospace` keyword. Three unrelated faces, none of them chosen.
+  //
+  // System stacks rather than a webfont. The build is copied into a
+  // subdirectory of a static host, so a self-hosted file is payload on every
+  // load and a hosted one is a network request this application otherwise never
+  // makes — and neither buys anything the platform's own interface face does
+  // not already give, on a screen that is mostly card artwork.
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI Variable Text",
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  // The figures that change while you are watching them — the score, the clock,
+  // the move count, the victory stats. Monospaced so the number does not
+  // resize its own container on the way from 9 to 10.
+  --font-mono:
+    ui-monospace, "Cascadia Mono", "SF Mono", "Segoe UI Mono", "Roboto Mono",
+    Menlo, Consolas, monospace;
+
   // Nine sizes, down from the fifteen that were in use — most of which were
   // within half a pixel of a neighbour. `sm` is the interface default: labels,
   // buttons and list rows. `md` is running prose.
@@ -136,6 +172,15 @@
   --leading-tight: 1.4;
   --leading-normal: 1.5;
   --leading-relaxed: 1.6;
+
+  // How wide a paragraph is allowed to get, in characters.
+  //
+  // The help modal is up to 1200px wide because its rules cards want the room,
+  // and the prose above them was inheriting it — running to about 137
+  // characters a line, roughly twice the width at which the eye reliably finds
+  // the start of the next one. `ch` rather than a pixel width so the measure
+  // follows the font size instead of only holding at one of them.
+  --measure-prose: 68ch;
 
   // --- Radii ---
   --radius-sm: 4px;

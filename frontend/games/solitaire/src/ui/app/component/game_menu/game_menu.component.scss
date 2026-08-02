@@ -118,23 +118,33 @@
       background: var(--accent-strong);
     }
 
+    // Cut into the filled row rather than laid over it. The white wash used
+    // here left the badge at #4e7ddf, which carries its white lettering at
+    // 3.94:1 — under the 4.5:1 that ten-pixel text needs. Darkening instead of
+    // lightening takes it past 7:1, and reads as inset besides.
     .game-marker {
-      background: var(--wash-medium);
+      background: var(--surface-sunken);
     }
   }
 }
 
-// The initial, which is all a collapsed rail has room to show.
+// The two-character badge, which is all a collapsed rail has room to show —
+// and the most it needs, since one character put the same S on both Spider and
+// Scorpion. Sized in `ch` so the box follows the two characters inside it
+// rather than being a square that happens to fit them at one font size.
 .game-marker {
-  flex: 0 0 22px;
-  width: 22px;
-  height: 22px;
+  flex: 0 0 auto;
+  min-width: 2.4ch;
+  height: 24px;
+  padding: 0 var(--space-1);
+  box-sizing: border-box;
   display: grid;
   place-items: center;
   border-radius: var(--radius-sm);
   background: var(--wash-soft);
-  font-size: var(--font-xs);
+  font-size: var(--font-2xs);
   font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .game-name {
@@ -179,7 +189,14 @@
     z-index: var(--z-rail-overlay-panel);
   }
 
-  // Roomier targets for a thumb.
+  // Roomier targets for a thumb. The rail's own padding comes off too: at 44px
+  // wide, eight pixels of it each side left the button 28px across, which is a
+  // long way under the target size this application sets for itself everywhere
+  // else. The panel keeps its padding once expanded, where there is room.
+  .game-menu:not(.expanded) {
+    padding: var(--space-1);
+  }
+
   .game-item {
     min-height: 48px;
   }
