@@ -1,11 +1,19 @@
 <!--
   `aria-busy` belongs on the region that is loading — the board itself — rather
   than on the spinner announcing it.
+
+  `role="img"`, not `role="application"`. Application tells a screen reader to
+  stop interpreting keys and hand them all to us, which is only honest once
+  there is a keyboard interface to hand them to. There is not: the board is
+  played with a pointer. Claiming the role suppressed browse mode and offered
+  nothing back, leaving the canvas less reachable than it is as a labelled
+  image. Should the board ever be playable from the keyboard, this is the
+  attribute to revisit first.
 -->
 <div
   #canvasHost
   class="canvas-container"
-  role="application"
+  role="img"
   [attr.aria-label]="gameName() + ' board'"
   [attr.aria-busy]="isInitializing()"
 ></div>

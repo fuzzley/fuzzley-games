@@ -17,6 +17,7 @@ import {
 import { DebugPanelComponent } from "../debug_panel/debug_panel.component";
 import { OptionGroupComponent } from "../option_group/option_group.component";
 import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
+import { RadioGroupDirective } from "../../directive/radio_group.directive";
 
 /** One card back a player can choose, and how to preview it. */
 interface CardBackDesign {
@@ -41,13 +42,18 @@ interface ThemeSwatch {
 @Component({
   selector: "app-settings-drawer",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DebugPanelComponent, OptionGroupComponent, ModalDialogComponent],
+  imports: [
+    DebugPanelComponent,
+    OptionGroupComponent,
+    ModalDialogComponent,
+    RadioGroupDirective,
+  ],
   templateUrl: "./settings_drawer.component.html",
   styleUrl: "./settings_drawer.component.scss",
 })
 export class SettingsDrawerComponent {
   protected readonly catalog = inject(GameCatalogService);
-  protected readonly lifecycle = inject(GameLifecycleService);
+  private readonly lifecycle = inject(GameLifecycleService);
   protected readonly themeService = inject(ThemeService);
   protected readonly presentation = inject(PresentationSettingsService);
   private readonly docService = inject(GameDocumentationService);
@@ -104,5 +110,13 @@ export class SettingsDrawerComponent {
   protected openRules(): void {
     this.closed.emit();
     this.docService.openHelp();
+  }
+
+  /**
+   * Plays the current game by a different rule, dealt afresh after the prompt
+   * that changing one raises.
+   */
+  protected chooseRule(optionId: string, value: number): void {
+    void this.lifecycle.setRuleOption(optionId, value);
   }
 }

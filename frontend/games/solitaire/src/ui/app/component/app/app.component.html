@@ -1,10 +1,15 @@
 <!--
   The board is the routed view: which game is on the table is the whole of
   this application's navigable state.
+
+  A <main> rather than a div, because the board is the primary content and
+  landmark navigation is how a screen reader gets to it. Without one, the only
+  landmarks were the header and the game rail — the chrome around the thing
+  the player came for, and not the thing itself.
 -->
-<div class="board-area" [class.rail-expanded]="menu.isExpanded()">
+<main class="board-area" [class.rail-expanded]="menu.isExpanded()">
   <router-outlet />
-</div>
+</main>
 <div class="ui-overlay">
   <app-header-bar (openSettings)="openSettings()" />
   <app-game-menu />

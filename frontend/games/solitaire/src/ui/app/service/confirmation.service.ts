@@ -18,8 +18,14 @@ import { Injectable, signal } from "@angular/core";
  */
 @Injectable({ providedIn: "root" })
 export class ConfirmationService {
-  readonly isOpen = signal(false);
-  readonly message = signal("");
+  private readonly isOpenSignal = signal(false);
+  private readonly messageSignal = signal("");
+
+  /** Whether a prompt is currently showing. */
+  readonly isOpen = this.isOpenSignal.asReadonly();
+
+  /** What the current prompt is asking. */
+  readonly message = this.messageSignal.asReadonly();
 
   /** Settles the promise handed to the current asker. */
   private settlePending: ((confirmed: boolean) => void) | null = null;
@@ -36,8 +42,8 @@ export class ConfirmationService {
     // safe reading: whatever it was about to do, it now will not.
     this.settle(false);
 
-    this.message.set(message);
-    this.isOpen.set(true);
+    this.messageSignal.set(message);
+    this.isOpenSignal.set(true);
     return new Promise<boolean>((resolve) => {
       this.settlePending = resolve;
     });
@@ -54,7 +60,7 @@ export class ConfirmationService {
   private settle(confirmed: boolean): void {
     const resolve = this.settlePending;
     this.settlePending = null;
-    this.isOpen.set(false);
+    this.isOpenSignal.set(false);
     resolve?.(confirmed);
   }
 }

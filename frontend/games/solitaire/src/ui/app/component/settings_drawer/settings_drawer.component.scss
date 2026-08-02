@@ -139,6 +139,25 @@
   position: relative;
   box-shadow: var(--shadow-swatch);
 
+  // The swatch reads as a 36px dot, which is under the `--tap-target-min` the
+  // rest of the application's controls honour. Grown with a pseudo-element
+  // rather than by enlarging the circle: the minimum is about how big a thumb
+  // has to be accurate, not about how big the paint is, and four 44px discs
+  // is a different design from the one that was drawn.
+  //
+  // The swatches sit on a `--space-3` gap, so a 44px target still leaves 4px
+  // between one and the next rather than stealing its neighbour's taps.
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: var(--tap-target-min);
+    height: var(--tap-target-min);
+    border-radius: 50%;
+  }
+
   &:hover {
     transform: scale(1.1);
   }

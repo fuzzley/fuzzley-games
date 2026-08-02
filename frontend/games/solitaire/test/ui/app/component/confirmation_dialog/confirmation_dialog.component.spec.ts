@@ -44,6 +44,19 @@ describe("ConfirmationDialogComponent", () => {
     expect(query(fixture, "dialog")?.getAttribute("role")).toBe("alertdialog");
   });
 
+  it("points the dialog's description at the message, not just its title", () => {
+    void ask("Your current progress will be lost.");
+
+    const describedBy = query(fixture, "dialog")?.getAttribute(
+      "aria-describedby",
+    );
+
+    expect(describedBy).toBe("confirmation-message");
+    expect(query(fixture, `#${describedBy}`)?.textContent?.trim()).toBe(
+      "Your current progress will be lost.",
+    );
+  });
+
   it("renders the message it was opened with", () => {
     void ask("Test confirmation message?");
 
