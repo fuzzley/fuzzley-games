@@ -118,8 +118,12 @@
       background: var(--accent-strong);
     }
 
+    // Cut into the filled row rather than laid over it. The white wash used
+    // here left the badge at #4e7ddf, which carries its white lettering at
+    // 3.94:1 — under the 4.5:1 that ten-pixel text needs. Darkening instead of
+    // lightening takes it past 7:1, and reads as inset besides.
     .game-marker {
-      background: var(--wash-medium);
+      background: var(--surface-sunken);
     }
   }
 }
