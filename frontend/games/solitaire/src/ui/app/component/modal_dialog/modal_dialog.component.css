@@ -20,6 +20,15 @@
   display: none;
   align-items: center;
   justify-content: center;
+
+  /*
+   * The shell's overlay layer is `pointer-events: none` so that clicks fall
+   * through to the board behind it. A dialog is a DOM descendant of that
+   * layer and inherits the property — being promoted to the top layer changes
+   * what paints in front of what, not which values are inherited — so without
+   * this every control inside every overlay is unclickable.
+   */
+  pointer-events: auto;
 }
 
 .modal[open] {
