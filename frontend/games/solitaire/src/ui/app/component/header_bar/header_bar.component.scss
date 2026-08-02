@@ -42,7 +42,10 @@
 }
 
 .brand-text {
-  @include gradient-text(var(--accent-sky), var(--accent-violet));
+  // Sky into the accent blue. It ran sky into violet, which was the only
+  // violet in the application — a third hue family on a screen that is already
+  // green felt under slate chrome, and one the accent system never answered.
+  @include gradient-text(var(--accent-sky), var(--accent));
   margin: 0;
   font-size: var(--font-2xl);
   font-weight: 800;

@@ -117,8 +117,21 @@ $filled-variants: (
 
   &:hover {
     background: var(--wash-medium);
-    transform: rotate(45deg);
   }
+}
+
+// A circular icon button whose glyph turns under the pointer.
+//
+// Worn by the settings gear, where turning is what the icon depicts. Every
+// `.btn-circle` used to do this, which meant the help mark turned too — and a
+// question mark rotated forty-five degrees reads as something having gone
+// wrong rather than as an answer to the pointer.
+//
+// Here in the global sheet rather than in the header's own stylesheet so that
+// the reduced-motion block below it still wins: an Angular component selector
+// carries an extra attribute and would outrank it.
+.btn-circle-turns:hover {
+  transform: rotate(45deg);
 }
 
 .btn-block {
