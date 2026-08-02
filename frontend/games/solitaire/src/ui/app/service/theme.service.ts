@@ -1,23 +1,26 @@
 import { Injectable, signal, computed, inject } from "@angular/core";
 import { PresentationSettingsService } from "./presentation_settings.service";
 
-/** A selectable table felt: its display name, board color, and overlay class. */
+/** A selectable table felt: its display name and board colour. */
 export interface Theme {
   name: string;
   color: string;
-  bgClass: string;
 }
 
-/** The table themes on offer, in the order they are shown. */
+/**
+ * The table themes on offer, in the order they are shown.
+ *
+ * Each used to carry a `bgClass` too, which the shell bound onto the overlay
+ * — but no stylesheet ever defined `.theme-green` and friends, so the classes
+ * had no effect. The felt is drawn by the Phaser camera, which follows
+ * `color` through the presentation settings; there was never a second thing
+ * for the class to tint.
+ */
 const THEMES = {
-  green: { name: "Emerald Felt", color: "#0f4d0e", bgClass: "theme-green" },
-  blue: { name: "Deep Ocean", color: "#1b4353", bgClass: "theme-blue" },
-  charcoal: {
-    name: "Midnight Charcoal",
-    color: "#2b2d42",
-    bgClass: "theme-charcoal",
-  },
-  purple: { name: "Royal Velvet", color: "#3c096c", bgClass: "theme-purple" },
+  green: { name: "Emerald Felt", color: "#0f4d0e" },
+  blue: { name: "Deep Ocean", color: "#1b4353" },
+  charcoal: { name: "Midnight Charcoal", color: "#2b2d42" },
+  purple: { name: "Royal Velvet", color: "#3c096c" },
 } as const satisfies Record<string, Theme>;
 
 /**
@@ -46,8 +49,10 @@ export class ThemeService {
   readonly themeKeys = Object.keys(THEMES) as ThemeKey[];
 
   readonly selectedTheme = signal<ThemeKey>(DEFAULT_THEME_KEY);
-  readonly currentBgClass = computed(
-    () => this.themes[this.selectedTheme()].bgClass,
+
+  /** The colour of the felt currently chosen. */
+  readonly currentColor = computed(
+    () => this.themes[this.selectedTheme()].color,
   );
 
   constructor() {

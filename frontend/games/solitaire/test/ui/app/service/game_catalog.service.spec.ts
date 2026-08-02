@@ -1,13 +1,47 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
 import { TestBed } from "@angular/core/testing";
+import { Router, provideRouter, withHashLocation } from "@angular/router";
+import { Location } from "@angular/common";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { GAME_CATALOG } from "@/ui/app/provider/game_catalog";
+import { routes } from "@/ui/app/routes";
 
-/** A catalog service built through the injector, so DestroyRef resolves. */
-function buildCatalog(): GameCatalogService {
-  TestBed.configureTestingModule({});
-  return TestBed.inject(GameCatalogService);
+// The routed component hosts a Phaser canvas, whose module init does not
+// survive jsdom. What the catalog does with the URL is the subject; booting a
+// renderer to find out is not.
+vi.mock("@/engine/render/phaser/phaser_host", () => ({
+  PhaserHost: class {
+    start() {
+      /* no-op */
+    }
+    destroy() {
+      /* no-op */
+    }
+  },
+}));
+
+vi.mock("@/ui/app/provider/board_catalog", () => ({
+  makeBoardScene: () => ({}),
+}));
+
+interface Harness {
+  catalog: GameCatalogService;
+  router: Router;
+  location: Location;
+}
+
+/** A catalog wired to the application's real route table. */
+function buildCatalog(): Harness {
+  TestBed.configureTestingModule({
+    providers: [provideRouter(routes, withHashLocation())],
+  });
+
+  return {
+    catalog: TestBed.inject(GameCatalogService),
+    router: TestBed.inject(Router),
+    location: TestBed.inject(Location),
+  };
 }
 
 describe("GameCatalogService", () => {
@@ -16,128 +50,143 @@ describe("GameCatalogService", () => {
     location.hash = "";
   });
 
-  afterEach(() => {
-    location.hash = "";
-  });
-
   describe("choosing what to open on", () => {
     it("opens on the first game when nothing says otherwise", () => {
-      expect(buildCatalog().selectedId()).toBe(GAME_CATALOG[0].id);
-    });
-
-    it("opens on the game the URL names", () => {
-      location.hash = "spider";
-
-      expect(buildCatalog().selectedId()).toBe("spider");
+      expect(buildCatalog().catalog.initialGameId).toBe(GAME_CATALOG[0].id);
     });
 
     it("opens on the game last played", () => {
       localStorage.setItem("fsolitaire-game", "freecell");
 
-      expect(buildCatalog().selectedId()).toBe("freecell");
+      expect(buildCatalog().catalog.initialGameId).toBe("freecell");
     });
 
-    it("lets the URL win over the game last played, so a link is honoured", () => {
-      localStorage.setItem("fsolitaire-game", "freecell");
-      location.hash = "spider";
+    it("ignores a stored game it no longer has", () => {
+      localStorage.setItem("fsolitaire-game", "poker");
 
-      expect(buildCatalog().selectedId()).toBe("spider");
+      expect(buildCatalog().catalog.initialGameId).toBe(GAME_CATALOG[0].id);
     });
 
-    it("ignores a URL naming no game it has", () => {
-      location.hash = "poker";
-
-      expect(buildCatalog().selectedId()).toBe(GAME_CATALOG[0].id);
-    });
-
-    it("writes the game it opened on into the URL", () => {
+    it("sends an empty URL to the game it opens on", async () => {
       localStorage.setItem("fsolitaire-game", "spider");
+      const harness = buildCatalog();
 
-      buildCatalog();
+      await harness.router.navigateByUrl("/");
 
-      expect(location.hash).toBe("#spider");
+      expect(harness.location.path()).toBe("/spider");
+    });
+  });
+
+  describe("following the URL", () => {
+    it("puts the game the URL names on the table", async () => {
+      const harness = buildCatalog();
+
+      await harness.router.navigateByUrl("/spider");
+
+      expect(harness.catalog.selectedId()).toBe("spider");
+    });
+
+    it("lets the URL win over the game last played, so a link is honoured", async () => {
+      localStorage.setItem("fsolitaire-game", "freecell");
+      const harness = buildCatalog();
+
+      await harness.router.navigateByUrl("/spider");
+
+      expect(harness.catalog.selectedId()).toBe("spider");
+    });
+
+    it("sends a URL naming no game it has back to a playable board", async () => {
+      const harness = buildCatalog();
+
+      await harness.router.navigateByUrl("/poker");
+
+      expect(harness.location.path()).toBe(`/${GAME_CATALOG[0].id}`);
+      expect(harness.catalog.selectedId()).toBe(GAME_CATALOG[0].id);
+    });
+
+    it("deals the game it navigates to", async () => {
+      const harness = buildCatalog();
+      const before = harness.catalog.session();
+
+      await harness.router.navigateByUrl("/spider");
+
+      expect(harness.catalog.session()).not.toBe(before);
+    });
+
+    it("does not re-deal when the URL names the game already in play", async () => {
+      const harness = buildCatalog();
+      await harness.router.navigateByUrl("/klondike");
+      const before = harness.catalog.session();
+
+      await harness.router.navigateByUrl("/klondike");
+
+      expect(harness.catalog.session()).toBe(before);
+    });
+
+    it("moves back to the previous game, so the back button works", async () => {
+      const harness = buildCatalog();
+      await harness.router.navigateByUrl("/klondike");
+      await harness.router.navigateByUrl("/spider");
+
+      harness.location.back();
+      await harness.router.navigateByUrl(harness.location.path());
+
+      expect(harness.catalog.selectedId()).toBe("klondike");
     });
   });
 
   describe("selecting", () => {
-    it("puts the chosen game on the table", () => {
-      const catalog = buildCatalog();
+    it("puts the chosen game on the table straight away", () => {
+      const harness = buildCatalog();
 
-      catalog.select("freecell");
+      harness.catalog.select("freecell");
 
-      expect(catalog.selectedId()).toBe("freecell");
+      // Without waiting on the navigation: a player who clicked "FreeCell"
+      // should not be looking at Klondike until a promise resolves.
+      expect(harness.catalog.selectedId()).toBe("freecell");
     });
 
     it("deals it", () => {
-      const catalog = buildCatalog();
-      const before = catalog.session();
+      const harness = buildCatalog();
+      const before = harness.catalog.session();
 
-      catalog.select("freecell");
+      harness.catalog.select("freecell");
 
-      expect(catalog.session()).not.toBe(before);
+      expect(harness.catalog.session()).not.toBe(before);
     });
 
-    it("records it in the URL", () => {
-      const catalog = buildCatalog();
+    it("records it in the URL", async () => {
+      const harness = buildCatalog();
 
-      catalog.select("spider");
+      harness.catalog.select("spider");
+      await harness.router.navigate(["spider"]);
 
-      expect(location.hash).toBe("#spider");
+      expect(harness.location.path()).toBe("/spider");
     });
 
     it("remembers it for next time", () => {
-      const catalog = buildCatalog();
+      const harness = buildCatalog();
 
-      catalog.select("spider");
+      harness.catalog.select("spider");
 
       expect(localStorage.getItem("fsolitaire-game")).toBe("spider");
     });
 
     it("ignores the game already in play, which would throw it away", () => {
-      const catalog = buildCatalog();
-      const before = catalog.session();
+      const harness = buildCatalog();
+      const before = harness.catalog.session();
 
-      catalog.select(catalog.selectedId());
+      harness.catalog.select(harness.catalog.selectedId());
 
-      expect(catalog.session()).toBe(before);
+      expect(harness.catalog.session()).toBe(before);
     });
 
     it("ignores a game it does not have", () => {
-      const catalog = buildCatalog();
+      const harness = buildCatalog();
 
-      catalog.select("poker");
+      harness.catalog.select("poker");
 
-      expect(catalog.selectedId()).toBe(GAME_CATALOG[0].id);
-    });
-  });
-
-  describe("following the URL", () => {
-    it("switches when the fragment changes, so the back button works", () => {
-      const catalog = buildCatalog();
-
-      location.hash = "spider";
-      window.dispatchEvent(new HashChangeEvent("hashchange"));
-
-      expect(catalog.selectedId()).toBe("spider");
-    });
-
-    it("ignores a fragment naming no game it has", () => {
-      const catalog = buildCatalog();
-      const before = catalog.selectedId();
-
-      location.hash = "poker";
-      window.dispatchEvent(new HashChangeEvent("hashchange"));
-
-      expect(catalog.selectedId()).toBe(before);
-    });
-
-    it("does not re-deal when the fragment names the game already in play", () => {
-      const catalog = buildCatalog();
-      const before = catalog.session();
-
-      window.dispatchEvent(new HashChangeEvent("hashchange"));
-
-      expect(catalog.session()).toBe(before);
+      expect(harness.catalog.selectedId()).toBe(GAME_CATALOG[0].id);
     });
   });
 });

@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { Type } from "@angular/core";
+import { provideRouter } from "@angular/router";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import {
@@ -46,6 +47,9 @@ export async function configureUiTestBed(
   await TestBed.configureTestingModule({
     imports: [component],
     providers: [
+      // No routes: the catalog is mocked, so nothing under test navigates.
+      // The router is here because the shell renders an outlet.
+      provideRouter([]),
       { provide: GameCatalogService, useValue: asCatalog(catalog.catalog) },
       {
         provide: PresentationSettingsService,
