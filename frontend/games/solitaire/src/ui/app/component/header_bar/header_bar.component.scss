@@ -56,10 +56,14 @@
     margin-bottom: 2px;
   }
 
+  // `tabular-nums` on top of the monospaced face because the clock reads a
+  // digit narrower on some stacks otherwise, and a metric that changes width
+  // once a second drags the two beside it along with it.
   .value {
     font-size: var(--font-lg);
     font-weight: 700;
-    font-family: monospace;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
     color: var(--text-primary);
   }
 }
