@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
-import {
-  klondikeGestures,
-  klondikeStackFromCard,
-} from "@/games/klondike/klondike_gestures";
+import { klondikeGestures } from "@/games/klondike/klondike_gestures";
+import { stackFromCard } from "@/engine/tableau/view/grabbable_stack";
 import { IntentHandler } from "@/engine/render/input/table_intents";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
@@ -151,7 +149,13 @@ describe("klondikeGestures", () => {
   });
 });
 
-describe("klondikeStackFromCard", () => {
+/*
+ * The stack a Klondike drag carries, which is the engine's helper rather than a
+ * Klondike one: a column here gives up any face-up card along with whatever is
+ * stacked on it, ordered or not, and `canGrab` asks the zone instead of
+ * imposing a rule of its own.
+ */
+describe("the stack a Klondike drag picks up", () => {
   let game: KlondikeGame;
 
   beforeEach(() => {
@@ -164,19 +168,40 @@ describe("klondikeStackFromCard", () => {
     const king = relocate(game, "card-spades-king", game.tableaus[0]);
     const queen = relocate(game, "card-hearts-queen", game.tableaus[0]);
 
-    expect(klondikeStackFromCard(game)(king.id)).toEqual([king.id, queen.id]);
+    expect(stackFromCard(game)(king.id)).toEqual([king.id, queen.id]);
+  });
+
+  it("takes an unordered run, which a Klondike column allows", () => {
+    emptyBoard(game);
+    const king = relocate(game, "card-spades-king", game.tableaus[0]);
+    const two = relocate(game, "card-hearts-2", game.tableaus[0]);
+
+    expect(stackFromCard(game)(king.id)).toEqual([king.id, two.id]);
   });
 
   it("takes just the top card when nothing rests on it", () => {
     const top = game.tableaus[0].topCard!;
 
-    expect(klondikeStackFromCard(game)(top.id)).toEqual([top.id]);
+    expect(stackFromCard(game)(top.id)).toEqual([top.id]);
   });
 
   it("takes nothing for a card that is in no pile", () => {
     const card = game.tableaus[0].topCard!;
     game.tableaus[0].removeCard(card);
 
-    expect(klondikeStackFromCard(game)(card.id)).toEqual([]);
+    expect(stackFromCard(game)(card.id)).toEqual([]);
+  });
+
+  /*
+   * The one thing the hand-rolled copy left out. A face-down card cannot be
+   * picked up, so a drag of one carries nothing rather than the stack it sits
+   * at the bottom of.
+   */
+  it("takes nothing for a face-down card", () => {
+    emptyBoard(game);
+    const buried = relocate(game, "card-spades-king", game.tableaus[0], false);
+    relocate(game, "card-hearts-queen", game.tableaus[0]);
+
+    expect(stackFromCard(game)(buried.id)).toEqual([]);
   });
 });

@@ -1,18 +1,6 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
 import { IntentHandler } from "@/engine/render/input/table_intents";
 import { KlondikeRole } from "./klondike_zones";
 import { KlondikeGame } from "./klondike_game";
-
-/** The cards from `cardId` upwards, which is what a move of it takes along. */
-function stackFrom(
-  pile: CardPile<PlayingCard>,
-  cardId: string,
-): readonly string[] {
-  const cards = pile.getCards();
-  const index = cards.findIndex((card) => card.id === cardId);
-  return index === -1 ? [] : cards.slice(index).map((card) => card.id);
-}
 
 /**
  * What a press or a drop means in Klondike.
@@ -73,19 +61,5 @@ export function klondikeGestures(game: KlondikeGame): IntentHandler {
         return;
       }
     }
-  };
-}
-
-/**
- * The cards a drag of the given card picks up: it and everything resting on it.
- *
- * @param game The game to read.
- */
-export function klondikeStackFromCard(
-  game: KlondikeGame,
-): (cardId: string) => readonly string[] {
-  return (cardId) => {
-    const pile = game.getPileContainingCard(cardId);
-    return pile ? stackFrom(pile, cardId) : [];
   };
 }
