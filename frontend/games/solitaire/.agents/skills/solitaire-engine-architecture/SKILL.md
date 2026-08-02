@@ -14,8 +14,6 @@ This skill defines the decoupled 6-tier architecture for fSolitaire. Each tier m
            |
       [ src/games ]            Game Rules & Variants (Klondike, FreeCell, Spider)
            |
-     [ src/game/render ]       Phaser Scene Bridge / Integration Binding
-           |
   +--------+--------+
   |                 |
   v                 v
@@ -48,7 +46,7 @@ Architectural boundaries are strictly enforced as build errors via ESLint (`@typ
    - **MUST NOT** import `Phaser`, `games`, `ui`, `Angular`, or `RxJS`.
 5. **`src/games/*`** _(Variant Extensions)_
    - Variant deal rules, scoring mechanics, layout setup (`games/klondike`, `games/freecell`, `games/spider`).
-   - **MUST NOT** import `ui` or `@angular/*`.
+   - **MUST NOT** import `ui`, `@angular/*`, or `RxJS`. A game publishes through the engine's own `EventEmitter`; the Angular shell adapts to reactive types at its own boundary.
 
 ## Adding a New Solitaire Game Variant
 

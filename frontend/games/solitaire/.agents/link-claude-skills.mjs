@@ -23,9 +23,8 @@ const REPO_ROOT = path.dirname(AGENTS_DIR);
 const SOURCE_DIR = path.join(AGENTS_DIR, "skills");
 const TARGET_DIR = path.join(REPO_ROOT, ".claude", "skills");
 
-// Only a directory holding SKILL.md directly is a skill. Deeper SKILL.md files
-// -- such as `phaser/tweens/SKILL.md` -- are reference material that the parent
-// skill points at, and no agent discovers them as skills of their own.
+// Only a directory directly under `.agents/skills` holding `SKILL.md` is a skill.
+// Every skill (including all `phaser-*` skills) lives directly under `.agents/skills/<name>/SKILL.md`.
 function discoverSkills(sourceDir) {
   return fs
     .readdirSync(sourceDir, { withFileTypes: true })
