@@ -5,7 +5,12 @@ import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.com
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
 import { ConfirmationService } from "@/ui/app/service/confirmation.service";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
-import { clickElement, queryRequired, queryText } from "@test/support/dom";
+import {
+  clickElement,
+  queryAll,
+  queryRequired,
+  queryText,
+} from "@test/support/dom";
 import { flushMicrotasks } from "@test/support/async";
 
 describe("HeaderBarComponent", () => {
@@ -38,6 +43,26 @@ describe("HeaderBarComponent", () => {
         queryText(fixture, ".moves-card .value"),
         queryText(fixture, ".timer-card .value"),
       ]).toEqual(["120", "10", "00:00"]);
+    });
+
+    it("announces score and moves as they change, with their labels", () => {
+      const live = queryAll(fixture, "[role='status']");
+
+      expect(live.map((card) => card.className.split(" ")[1])).toEqual([
+        "score-card",
+        "moves-card",
+      ]);
+      // Without this the announcement is a bare number, which says that
+      // something changed but not what.
+      expect(
+        live.every((card) => card.getAttribute("aria-atomic") === "true"),
+      ).toBe(true);
+    });
+
+    it("leaves the timer silent, since a stopwatch that interrupts every second is unusable", () => {
+      expect(
+        queryRequired(fixture, ".timer-card").getAttribute("role"),
+      ).toBeNull();
     });
 
     it("follows the game as it changes", () => {

@@ -8,8 +8,24 @@
     <h1 class="brand-text">fSolitaire</h1>
   </div>
 
+  <!--
+    Score and moves announce themselves when they change. A sighted player
+    sees the score move as a consequence of the move they just made; without
+    this the same feedback needed a trip back up to the header to go and read.
+
+    The live region is the whole card rather than the number inside it, and
+    `aria-atomic` is what makes the announcement "Score 350" rather than a
+    bare "350" — the label is the half that says what changed. Putting the
+    region on the card also keeps the figure in the accessibility tree once,
+    where a separate visually-hidden region would have added a second copy of
+    it for anyone reading the header rather than listening to it.
+
+    Not the timer: it changes every second, and a stopwatch that interrupts
+    once a second is unusable rather than informative. It stays readable on
+    demand, which is the right amount of attention for elapsed time.
+  -->
   <div class="metrics">
-    <div class="metric-card score-card">
+    <div class="metric-card score-card" role="status" aria-atomic="true">
       <span class="label">SCORE</span>
       <span class="value">{{ metrics.score() }}</span>
     </div>
@@ -17,7 +33,7 @@
       <span class="label">TIME</span>
       <span class="value">{{ metrics.timerText() }}</span>
     </div>
-    <div class="metric-card moves-card">
+    <div class="metric-card moves-card" role="status" aria-atomic="true">
       <span class="label">MOVES</span>
       <span class="value">{{ metrics.moves() }}</span>
     </div>
