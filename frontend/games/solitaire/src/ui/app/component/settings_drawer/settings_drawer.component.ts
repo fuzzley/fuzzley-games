@@ -17,6 +17,7 @@ import {
 import { DebugPanelComponent } from "../debug_panel/debug_panel.component";
 import { OptionGroupComponent } from "../option_group/option_group.component";
 import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
+import { RadioGroupDirective } from "../../directive/radio_group.directive";
 
 /** One card back a player can choose, and how to preview it. */
 interface CardBackDesign {
@@ -41,7 +42,12 @@ interface ThemeSwatch {
 @Component({
   selector: "app-settings-drawer",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DebugPanelComponent, OptionGroupComponent, ModalDialogComponent],
+  imports: [
+    DebugPanelComponent,
+    OptionGroupComponent,
+    ModalDialogComponent,
+    RadioGroupDirective,
+  ],
   templateUrl: "./settings_drawer.component.html",
   styleUrl: "./settings_drawer.component.scss",
 })

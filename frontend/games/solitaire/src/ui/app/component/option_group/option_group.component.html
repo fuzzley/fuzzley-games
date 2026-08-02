@@ -6,11 +6,7 @@
     >{{ option().label }}</span
   >
 
-  <div
-    class="segmented-control"
-    role="radiogroup"
-    [attr.aria-labelledby]="labelId"
-  >
+  <div class="segmented-control" appRadioGroup [attr.aria-labelledby]="labelId">
     @for (choice of option().choices; track choice.value) {
       <button
         type="button"
