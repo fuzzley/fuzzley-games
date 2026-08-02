@@ -61,13 +61,21 @@ export type MockCatalog = Pick<
   | "setOption"
 >;
 
-/** The mock, plus the handles a spec needs to drive it. */
+/**
+ * The mock, plus the handles a spec needs to drive it.
+ *
+ * The spies carry the signature of what they stand in for rather than
+ * `vi.fn()`'s bare one, so a spec can put a game on the table by calling
+ * `select("freecell")` as well as assert that something else did.
+ */
 export interface MockCatalogHarness {
   readonly catalog: MockCatalog;
   /** Puts a different dealt game on the table, as re-dealing does. */
   deal(game: MockGameModel): void;
-  readonly select: ReturnType<typeof vi.fn>;
-  readonly setOption: ReturnType<typeof vi.fn>;
+  readonly select: ReturnType<typeof vi.fn<(id: string) => void>>;
+  readonly setOption: ReturnType<
+    typeof vi.fn<(id: string, value: number) => void>
+  >;
 }
 
 /** Builds a mock catalog around one dealt game. */

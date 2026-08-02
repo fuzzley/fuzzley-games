@@ -1,13 +1,6 @@
-import { DestroyRef, Injectable, inject, signal } from "@angular/core";
+import { Injectable, inject, signal } from "@angular/core";
 import { LocalStorageService } from "./local_storage.service";
-
-/**
- * Below this width the rail overlays the board instead of sitting beside it.
- *
- * A 56px rail is a reasonable tithe on a laptop and a seventh of a phone, and
- * the board needs every pixel it can get — Spider lays out ten columns.
- */
-export const RAIL_OVERLAY_MAX_WIDTH_PX = 720;
+import { ViewportService } from "./viewport.service";
 
 const STORAGE_KEY = "fsolitaire-menu-expanded";
 
@@ -21,13 +14,12 @@ const STORAGE_KEY = "fsolitaire-menu-expanded";
  */
 @Injectable({ providedIn: "root" })
 export class GameMenuService {
-  private readonly destroyRef = inject(DestroyRef);
   private readonly storage = inject(LocalStorageService);
+  private readonly viewport = inject(ViewportService);
 
   private readonly expanded = signal(
     this.storage.readString(STORAGE_KEY) === "true",
   );
-  private readonly overlay = signal(false);
 
   /** Whether the rail is expanded to show game names. */
   readonly isExpanded = this.expanded.asReadonly();
@@ -35,22 +27,13 @@ export class GameMenuService {
   /**
    * Whether the rail is currently covering the board rather than sitting
    * beside it, which is what a narrow screen gets.
+   *
+   * The same width at which the header compacts, because it is the same
+   * judgement: a 56px rail is a reasonable tithe on a laptop and a seventh of a
+   * phone, and the board needs every pixel it can get — Spider lays out ten
+   * columns.
    */
-  readonly isOverlay = this.overlay.asReadonly();
-
-  constructor() {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-
-    const query = window.matchMedia(
-      `(max-width: ${RAIL_OVERLAY_MAX_WIDTH_PX}px)`,
-    );
-    this.overlay.set(query.matches);
-    const onChange = () => this.overlay.set(query.matches);
-    query.addEventListener("change", onChange);
-    this.destroyRef.onDestroy(() => {
-      query.removeEventListener("change", onChange);
-    });
-  }
+  readonly isOverlay = this.viewport.isCompact;
 
   /**
    * Closes the rail if it is covering the board.
@@ -60,7 +43,7 @@ export class GameMenuService {
    * for. On a wider screen it sits beside the board and can stay put.
    */
   collapseIfOverlay(): void {
-    if (this.overlay()) {
+    if (this.isOverlay()) {
       this.setExpanded(false);
     }
   }

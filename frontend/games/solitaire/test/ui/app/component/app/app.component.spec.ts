@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
-import { By } from "@angular/platform-browser";
+import { By, Title } from "@angular/platform-browser";
 import { AppComponent } from "@/ui/app/component/app/app.component";
 import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.component";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
-import { configureUiTestBed } from "@test/support/ui/testbed";
+import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import { query, queryRequired } from "@test/support/dom";
 
 // The shell renders the game canvas host, which would otherwise boot a real
@@ -30,9 +30,10 @@ vi.mock("@/ui/app/provider/board_catalog", () => ({
 
 describe("AppComponent Composition", () => {
   let fixture: ComponentFixture<AppComponent>;
+  let harness: UiHarness;
 
   beforeEach(async () => {
-    await configureUiTestBed(AppComponent);
+    harness = await configureUiTestBed(AppComponent);
 
     fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
@@ -64,6 +65,17 @@ describe("AppComponent Composition", () => {
 
   it("puts the board in a main landmark, so it can be navigated to", () => {
     expect(query(fixture, "main.board-area")).not.toBeNull();
+  });
+
+  it("names the game on the table in the page title", () => {
+    expect(TestBed.inject(Title).getTitle()).toBe("Klondike · fSolitaire");
+  });
+
+  it("retitles the page when a different game is put on the table", () => {
+    harness.catalog.select("freecell");
+    fixture.detectChanges();
+
+    expect(TestBed.inject(Title).getTitle()).toBe("FreeCell · fSolitaire");
   });
 
   it("keeps the settings drawer closed to begin with", () => {
