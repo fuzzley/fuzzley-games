@@ -1,0 +1,75 @@
+/*
+ * The one definition of a labelled setting and its segmented control. These
+ * rules used to exist twice, verbatim, in the settings drawer and the debug
+ * panel, because view encapsulation stopped the panel inheriting them.
+ */
+:host {
+  display: block;
+}
+
+.setting-group {
+  margin-bottom: 28px;
+}
+
+.setting-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+
+/* Nested under a heading of its own — the debug panel's per-option labels. */
+.setting-label-compact {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: none;
+  letter-spacing: normal;
+  margin-bottom: 8px;
+}
+
+/*
+ * `--text-muted` rather than the slate-500 this used to be: on the drawer's
+ * panel surface that measured about 3.9:1, under the 4.5:1 that 12px body text
+ * needs.
+ */
+.setting-desc {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.segmented-control {
+  display: flex;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  border: 1px solid var(--border-subtle);
+}
+
+.segment-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  /* A setting is toggled with a thumb as often as a cursor. */
+  min-height: var(--tap-target-min);
+  padding: 8px 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 6px;
+  transition:
+    background var(--duration-base) var(--ease-standard),
+    color var(--duration-base) var(--ease-standard);
+}
+
+.segment-btn.active {
+  background: var(--accent);
+  color: var(--text-bright);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}

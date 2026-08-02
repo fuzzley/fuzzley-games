@@ -170,8 +170,16 @@ module.exports = tseslint.config(
     processor: angular.processInlineTemplates,
   },
   {
+    // Templates are linted for accessibility as well as correctness. The a11y
+    // ruleset is what keeps a control's visible state and its announced state
+    // from drifting: an `.active` class with no `aria-checked` beside it looks
+    // right and tells a screen reader nothing, and that is not the sort of
+    // thing that gets caught by looking at the page.
     files: ["src/ui/**/*.html"],
-    extends: [...angular.configs.templateRecommended],
+    extends: [
+      ...angular.configs.templateRecommended,
+      ...angular.configs.templateAccessibility,
+    ],
   },
   {
     files: ["test/**/*.ts"],

@@ -109,12 +109,21 @@ export class GameCatalogService {
   );
 
   /**
+   * The declaration of one rule of the game on the table.
+   *
+   * @param optionId The id of the option to look up.
+   */
+  optionSpec(optionId: string): GameOptionSpec | undefined {
+    return this.options().find((option) => option.id === optionId);
+  }
+
+  /**
    * The chosen value of one option of the game on the table, or its default.
    *
    * @param optionId The id of the option to read.
    */
   valueOf(optionId: string): number | null {
-    const spec = this.options().find((option) => option.id === optionId);
+    const spec = this.optionSpec(optionId);
     return spec ? optionValue(this.optionValues(), spec) : null;
   }
 

@@ -1,32 +1,25 @@
-.drawer-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 100;
-  pointer-events: auto;
-}
-
+/*
+ * No backdrop element and no z-index: the surrounding <app-modal-dialog> is a
+ * native <dialog>, which paints the scrim, traps focus, closes on Escape and
+ * makes the board behind it inert — none of which this drawer used to do.
+ *
+ * `margin-left: auto` inside the dialog's centring flexbox is what pins the
+ * panel to the right edge without taking it out of flow.
+ */
 .drawer {
-  position: fixed;
-  top: 0;
-  right: 0;
   width: 320px;
   max-width: 100vw;
   box-sizing: border-box;
-  height: 100vh;
-  background: rgba(15, 23, 42, 0.95);
+  height: 100dvh;
+  margin-left: auto;
+  background: var(--surface-panel);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid var(--border-default);
   box-shadow: -10px 0 30px rgba(0, 0, 0, 0.4);
-  z-index: 101;
   display: flex;
   flex-direction: column;
-  color: #e2e8f0;
-  pointer-events: auto;
+  color: var(--text-body);
   user-select: none;
 }
 
@@ -35,7 +28,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-default);
 }
 
 .drawer-header h2 {
@@ -45,18 +38,24 @@
 }
 
 .btn-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap-target-min);
+  min-height: var(--tap-target-min);
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--text-muted);
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: all 0.2s;
+  border-radius: var(--radius-sm);
+  transition:
+    color var(--duration-base) var(--ease-standard),
+    background var(--duration-base) var(--ease-standard);
 }
 
 .btn-close:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-bright);
+  background: var(--wash-soft);
 }
 
 .close-icon {
@@ -78,45 +77,10 @@
   display: block;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 12px;
-}
-
-.setting-desc {
-  margin-top: 8px;
-  font-size: 0.75rem;
-  color: #64748b;
-  line-height: 1.4;
-}
-
-/* Segmented Control */
-.segmented-control {
-  display: flex;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  padding: 2px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.segment-btn {
-  flex: 1;
-  background: transparent;
-  border: none;
-  padding: 8px 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #94a3b8;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-
-.segment-btn.active {
-  background: #3b82f6;
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
 }
 
 /* Card Back Selector */
@@ -132,37 +96,40 @@
   align-items: center;
   background: rgba(255, 255, 255, 0.03);
   border: 2px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 12px;
   cursor: pointer;
-  transition: all 0.2s;
-  color: #94a3b8;
+  transition:
+    background var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard),
+    color var(--duration-base) var(--ease-standard);
+  color: var(--text-muted);
 }
 
 .card-back-option:hover {
   background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: var(--border-strong);
 }
 
-.card-back-option.active {
+.card-back-option[aria-checked="true"] {
   background: rgba(59, 130, 246, 0.1);
-  border-color: #3b82f6;
-  color: #fff;
+  border-color: var(--accent);
+  color: var(--text-bright);
 }
 
 .card-back-preview {
   width: 48px;
   height: 68px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   margin-bottom: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .blue-pattern {
-  background-color: #1e3a8a;
+  background-color: var(--card-back-blue-base);
   background-image:
-    radial-gradient(circle, #2563eb 20%, transparent 20%),
-    radial-gradient(circle, #2563eb 20%, transparent 20%);
+    radial-gradient(circle, var(--card-back-blue-dot) 20%, transparent 20%),
+    radial-gradient(circle, var(--card-back-blue-dot) 20%, transparent 20%);
   background-size: 8px 8px;
   background-position:
     0 0,
@@ -171,10 +138,10 @@
 }
 
 .red-pattern {
-  background-color: #7f1d1d;
+  background-color: var(--card-back-red-base);
   background-image:
-    radial-gradient(circle, #dc2626 20%, transparent 20%),
-    radial-gradient(circle, #dc2626 20%, transparent 20%);
+    radial-gradient(circle, var(--card-back-red-dot) 20%, transparent 20%),
+    radial-gradient(circle, var(--card-back-red-dot) 20%, transparent 20%);
   background-size: 8px 8px;
   background-position:
     0 0,
@@ -196,7 +163,9 @@
   border: 2px solid transparent;
   cursor: pointer;
   position: relative;
-  transition: all 0.2s;
+  transition:
+    transform var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -204,8 +173,8 @@
   transform: scale(1.1);
 }
 
-.theme-option.active {
-  border-color: #fff;
+.theme-option[aria-checked="true"] {
+  border-color: var(--text-bright);
   transform: scale(1.05);
 }
 
@@ -216,54 +185,26 @@
   transform: translate(-50%, -50%);
   width: 8px;
   height: 8px;
-  background-color: #fff;
+  background-color: var(--text-bright);
   border-radius: 50%;
+}
+
+.theme-name {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 .drawer-footer {
   padding: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-default);
 }
 
 @media (max-width: 480px) {
-  .drawer-header {
-    padding: 16px;
-  }
-  .drawer-content {
-    padding: 16px;
-  }
+  .drawer-header,
+  .drawer-content,
   .drawer-footer {
     padding: 16px;
   }
-}
-
-/* Game picker: one button per game the engine can put on the table. */
-.game-selector {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
-  gap: 0.5rem;
-}
-
-.game-option {
-  padding: 0.6rem 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.06);
-  color: inherit;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
-}
-
-.game-option:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.game-option.active {
-  background: #2563eb;
-  border-color: #2563eb;
-  color: #fff;
 }

@@ -1,0 +1,31 @@
+<div class="setting-group">
+  <span
+    class="setting-label"
+    [class.setting-label-compact]="compactLabel()"
+    [id]="labelId"
+    >{{ option().label }}</span
+  >
+
+  <div
+    class="segmented-control"
+    role="radiogroup"
+    [attr.aria-labelledby]="labelId"
+  >
+    @for (choice of option().choices; track choice.value) {
+      <button
+        type="button"
+        class="segment-btn"
+        role="radio"
+        [attr.aria-checked]="selectedValue() === choice.value"
+        [class.active]="selectedValue() === choice.value"
+        (click)="choose.emit(choice.value)"
+      >
+        {{ choice.label }}
+      </button>
+    }
+  </div>
+
+  @if (option().description) {
+    <p class="setting-desc">{{ option().description }}</p>
+  }
+</div>

@@ -7,33 +7,85 @@ import {
   output,
 } from "@angular/core";
 import { GameSessionService } from "../../service/game_session.service";
-import { ThemeService } from "../../service/theme.service";
+import { ThemeKey, ThemeService } from "../../service/theme.service";
 import { GameDocumentationService } from "../../service/game_documentation.service";
+import { CardBackStyle } from "../../service/presentation_settings.service";
 import { DebugPanelComponent } from "../debug_panel/debug_panel.component";
+import { OptionGroupComponent } from "../option_group/option_group.component";
+import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
+
+/** One card back a player can choose, and how to preview it. */
+interface CardBackDesign {
+  readonly style: CardBackStyle;
+  readonly label: string;
+  readonly patternClass: string;
+}
+
+/** One table felt swatch, resolved for rendering. */
+interface ThemeSwatch {
+  readonly key: ThemeKey;
+  readonly name: string;
+  readonly color: string;
+  readonly selected: boolean;
+}
 
 /**
- * Controls the settings side drawer overlay.
- * Exposes UI configurations including draw mode (Draw 1 vs Draw 3), card back
- * designs, table felt background theme options, and quick game documentation access.
+ * Controls the settings side drawer.
+ * Exposes the rules the running game offers, card back designs, table felt
+ * themes, and quick access to the game's documentation.
  */
 @Component({
   selector: "app-settings-drawer",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DebugPanelComponent],
+  imports: [DebugPanelComponent, OptionGroupComponent, ModalDialogComponent],
   templateUrl: "./settings_drawer.component.html",
   styleUrl: "./settings_drawer.component.css",
 })
 export class SettingsDrawerComponent {
   protected readonly session = inject(GameSessionService);
   protected readonly themeService = inject(ThemeService);
-  protected readonly docService = inject(GameDocumentationService);
+  private readonly docService = inject(GameDocumentationService);
 
   /** Exposes build mode configuration to conditional UI rendering. */
   protected readonly isDevMode = import.meta.env.DEV;
 
   /** Title of the game currently active. */
-  readonly activeGameTitle = computed(
+  protected readonly activeGameTitle = computed(
     () => this.docService.activeGameDoc()?.title ?? "Solitaire",
+  );
+
+  /** The card backs on offer. Static, so a plain array rather than a signal. */
+  protected readonly cardBackDesigns: readonly CardBackDesign[] = [
+    {
+      style: "card-back-blue",
+      label: "Classic Blue",
+      patternClass: "blue-pattern",
+    },
+    {
+      style: "card-back-red",
+      label: "Royal Red",
+      patternClass: "red-pattern",
+    },
+  ];
+
+  /**
+   * The felt swatches, resolved once per change rather than by indexing into
+   * the theme table from the template — which ran on every change detection
+   * pass and put the lookup somewhere it could not be checked.
+   */
+  protected readonly themeSwatches = computed<readonly ThemeSwatch[]>(() => {
+    const selected = this.themeService.selectedTheme();
+    return this.themeService.themeKeys.map((key) => ({
+      key,
+      name: this.themeService.themes[key].name,
+      color: this.themeService.themes[key].color,
+      selected: key === selected,
+    }));
+  });
+
+  /** The name of the felt currently on the table. */
+  protected readonly selectedThemeName = computed(
+    () => this.themeService.themes[this.themeService.selectedTheme()].name,
   );
 
   /** Whether the side settings drawer is visible. */
@@ -43,7 +95,7 @@ export class SettingsDrawerComponent {
    * rather than `close` so it cannot be confused with the native DOM event. */
   readonly closed = output();
 
-  openRules(): void {
+  protected openRules(): void {
     this.closed.emit();
     this.docService.openHelp();
   }

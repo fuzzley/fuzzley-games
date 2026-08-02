@@ -17,7 +17,7 @@
 .loading-overlay {
   position: absolute;
   inset: 0;
-  z-index: 10;
+  z-index: var(--z-loading);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -28,8 +28,8 @@
   opacity: 1;
   visibility: visible;
   transition:
-    opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    visibility 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity 0.25s var(--ease-standard),
+    visibility 0.25s var(--ease-standard);
   pointer-events: auto;
   user-select: none;
 }
@@ -57,9 +57,9 @@
   width: 100%;
   max-width: 84px;
   aspect-ratio: 71 / 96;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.07);
-  border: 1.5px dashed rgba(255, 255, 255, 0.2);
+  border: 1.5px dashed var(--wash-medium);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   justify-self: center;
@@ -106,16 +106,16 @@
   padding: 14px 24px;
   border-radius: 30px;
   background: rgba(15, 23, 42, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--border-strong);
   box-shadow:
     0 12px 32px rgba(0, 0, 0, 0.4),
     0 0 20px rgba(59, 130, 246, 0.15);
-  color: #f8fafc;
+  color: var(--text-primary);
   font-family: inherit;
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  z-index: 12;
+  z-index: var(--z-loading-badge);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   animation: pulseGlow 2.5s infinite ease-in-out;
@@ -140,8 +140,8 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 2.5px solid rgba(255, 255, 255, 0.2);
-  border-top-color: #60a5fa;
+  border: 2.5px solid var(--wash-medium);
+  border-top-color: var(--accent-light);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -150,7 +150,7 @@
 
 .mini-card-icon {
   font-size: 11px;
-  color: #60a5fa;
+  color: var(--accent-light);
   animation: spinReverse 1s linear infinite;
 }
 
@@ -174,18 +174,12 @@
 
 .loading-text {
   white-space: nowrap;
-  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+  background: linear-gradient(
+    135deg,
+    var(--text-bright) 0%,
+    var(--text-secondary) 100%
+  );
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-
-/* Accessibility: Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-  .skeleton-shimmer,
-  .loading-badge,
-  .spinner-ring,
-  .mini-card-icon {
-    animation: none !important;
-  }
 }

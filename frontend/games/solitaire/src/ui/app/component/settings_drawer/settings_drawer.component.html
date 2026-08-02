@@ -1,9 +1,13 @@
-@if (open()) {
-  <div class="drawer-backdrop" (click)="closed.emit()"></div>
+<app-modal-dialog [open]="open()" label="Game options" (closed)="closed.emit()">
   <div class="drawer">
     <div class="drawer-header">
       <h2>Game Options</h2>
-      <button class="btn-close" (click)="closed.emit()">
+      <button
+        type="button"
+        class="btn-close"
+        (click)="closed.emit()"
+        aria-label="Close game options"
+      >
         <svg
           class="close-icon"
           fill="currentColor"
@@ -20,77 +24,75 @@
     <div class="drawer-content">
       <!-- Whatever rules the game on the table lets a player choose -->
       @for (option of session.ruleOptions(); track option.id) {
-        <div class="setting-group">
-          <label class="setting-label">{{ option.label }}</label>
-          <div class="segmented-control">
-            @for (choice of option.choices; track choice.value) {
-              <button
-                class="segment-btn"
-                [class.active]="
-                  session.optionValues()[option.id] === choice.value
-                "
-                (click)="session.setRuleOption(option.id, choice.value)"
-              >
-                {{ choice.label }}
-              </button>
-            }
-          </div>
-          @if (option.description) {
-            <p class="setting-desc">{{ option.description }}</p>
-          }
-        </div>
+        <app-option-group
+          [option]="option"
+          [value]="session.optionValues()[option.id]"
+          (choose)="session.setRuleOption(option.id, $event)"
+        />
       }
 
       <!-- Card Back Style -->
       <div class="setting-group">
-        <label class="setting-label">Card Back Design</label>
-        <div class="card-back-selector">
-          <button
-            class="card-back-option blue-back"
-            [class.active]="session.cardBack() === 'card-back-blue'"
-            (click)="session.setCardBack('card-back-blue')"
-          >
-            <div class="card-back-preview blue-pattern"></div>
-            <span>Classic Blue</span>
-          </button>
-          <button
-            class="card-back-option red-back"
-            [class.active]="session.cardBack() === 'card-back-red'"
-            (click)="session.setCardBack('card-back-red')"
-          >
-            <div class="card-back-preview red-pattern"></div>
-            <span>Royal Red</span>
-          </button>
+        <span class="setting-label" id="card-back-label">Card Back Design</span>
+        <div
+          class="card-back-selector"
+          role="radiogroup"
+          aria-labelledby="card-back-label"
+        >
+          @for (design of cardBackDesigns; track design.style) {
+            <button
+              type="button"
+              class="card-back-option"
+              role="radio"
+              [attr.aria-checked]="session.cardBack() === design.style"
+              (click)="session.setCardBack(design.style)"
+            >
+              <span
+                class="card-back-preview"
+                [class]="design.patternClass"
+                aria-hidden="true"
+              ></span>
+              <span>{{ design.label }}</span>
+            </button>
+          }
         </div>
       </div>
 
       <!-- Table Themes -->
       <div class="setting-group">
-        <label class="setting-label">Table Theme</label>
-        <div class="theme-selector">
-          @for (key of themeService.themeKeys; track key) {
+        <span class="setting-label" id="table-theme-label">Table Theme</span>
+        <div
+          class="theme-selector"
+          role="radiogroup"
+          aria-labelledby="table-theme-label"
+        >
+          @for (swatch of themeSwatches(); track swatch.key) {
             <button
+              type="button"
               class="theme-option"
-              [class.active]="themeService.selectedTheme() === key"
-              (click)="themeService.setTheme(key)"
-              [style.backgroundColor]="themeService.themes[key].color"
-              [title]="themeService.themes[key].name"
+              role="radio"
+              [attr.aria-checked]="swatch.selected"
+              [attr.aria-label]="swatch.name"
+              (click)="themeService.setTheme(swatch.key)"
+              [style.backgroundColor]="swatch.color"
             >
-              @if (themeService.selectedTheme() === key) {
-                <div class="theme-indicator"></div>
+              @if (swatch.selected) {
+                <span class="theme-indicator" aria-hidden="true"></span>
               }
             </button>
           }
         </div>
-        <p class="setting-desc">
-          Theme: {{ themeService.themes[themeService.selectedTheme()].name }}
-        </p>
+        <p class="theme-name">Theme: {{ selectedThemeName() }}</p>
       </div>
 
       <!-- Game Rules & Documentation -->
       <div class="setting-group">
-        <label class="setting-label">Game Rules & Documentation</label>
-        <button class="btn btn-secondary btn-block" (click)="openRules()">
+        <span class="setting-label">Game Rules & Documentation</span>
+        <button
+          type="button"
+          class="btn btn-secondary btn-block"
+          (click)="openRules()"
+        >
           <svg
             class="btn-icon"
             fill="none"
@@ -116,9 +118,13 @@
     </div>
 
     <div class="drawer-footer">
-      <button class="btn btn-primary btn-block" (click)="closed.emit()">
+      <button
+        type="button"
+        class="btn btn-primary btn-block"
+        (click)="closed.emit()"
+      >
         Apply Settings
       </button>
     </div>
   </div>
-}
+</app-modal-dialog>

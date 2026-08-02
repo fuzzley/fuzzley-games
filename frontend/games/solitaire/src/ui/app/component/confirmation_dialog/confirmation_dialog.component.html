@@ -1,28 +1,39 @@
-@if (confirmation.isOpen()) {
-  <div class="confirmation-overlay" (click)="confirmation.cancel()">
-    <div class="confirmation-card" (click)="$event.stopPropagation()">
-      <div class="warning-icon-container">
-        <svg
-          class="warning-icon"
-          fill="currentColor"
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
-          />
-        </svg>
-      </div>
-      <h3>Confirm Action</h3>
-      <p class="confirmation-message">{{ confirmation.message() }}</p>
-      <div class="confirmation-actions">
-        <button class="btn btn-secondary" (click)="confirmation.cancel()">
-          Cancel
-        </button>
-        <button class="btn btn-danger" (click)="confirmation.accept()">
-          Confirm
-        </button>
-      </div>
+<app-modal-dialog
+  [open]="confirmation.isOpen()"
+  dialogRole="alertdialog"
+  label="Confirm action"
+  (closed)="confirmation.cancel()"
+>
+  <div class="confirmation-card">
+    <div class="warning-icon-container">
+      <svg
+        class="warning-icon"
+        fill="currentColor"
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+        />
+      </svg>
+    </div>
+    <h3>Confirm Action</h3>
+    <p class="confirmation-message">{{ confirmation.message() }}</p>
+    <div class="confirmation-actions">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="confirmation.cancel()"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn btn-danger"
+        (click)="confirmation.accept()"
+      >
+        Confirm
+      </button>
     </div>
   </div>
-}
+</app-modal-dialog>

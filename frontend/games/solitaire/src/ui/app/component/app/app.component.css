@@ -2,27 +2,30 @@
  * The board lays itself out beside the game rail rather than under it, so the
  * leftmost column is never hidden. ViewportScaler watches this box, so
  * expanding the rail re-lays the board out rather than leaving it overflowing.
+ *
+ * The widths come from the shared layout tokens, which is also where the rail
+ * itself reads them: the inset and the thing it insets past cannot drift.
  */
 .board-area {
   position: absolute;
   inset: 0;
   box-sizing: border-box;
-  padding-left: 56px;
+  padding-left: var(--rail-collapsed-width);
 }
 
 .board-area.rail-expanded {
-  padding-left: 190px;
+  padding-left: var(--rail-expanded-width);
 }
 
 /*
- * Narrow screens: the rail keeps a 44px strip beside the board and its open
- * panel floats over the top, so the board's width does not change when the
- * menu is opened and the stock is never covered.
+ * Narrow screens: the rail keeps its collapsed strip beside the board and its
+ * open panel floats over the top, so the board's width does not change when
+ * the menu is opened and the stock is never covered. The token already
+ * narrows at this breakpoint; only the expanded case needs overriding.
  */
 @media (max-width: 720px) {
-  .board-area,
   .board-area.rail-expanded {
-    padding-left: 44px;
+    padding-left: var(--rail-collapsed-width);
   }
 }
 

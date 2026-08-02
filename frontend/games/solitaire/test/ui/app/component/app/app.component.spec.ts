@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import { InjectionToken } from "@angular/core";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { AppComponent } from "@/ui/app/component/app/app.component";
@@ -12,7 +11,7 @@ import {
 } from "@test/support/game_model_mock";
 import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.component";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
-import { query } from "@test/support/dom";
+import { query, queryRequired } from "@test/support/dom";
 
 // The shell renders the game canvas host, which would otherwise boot a real
 // Phaser game against jsdom's unimplemented canvas.
@@ -31,25 +30,19 @@ vi.mock("@/games/klondike/klondike", () => ({
 // init does not survive jsdom. What this component does with a scene is the
 // subject; building a real one is not.
 vi.mock("@/ui/app/provider/board_catalog", () => ({
-  GAME_BOARD_SCENE: new InjectionToken("GAME_BOARD_SCENE", {
-    providedIn: "root",
-    factory: () => ({}),
-  }),
+  makeBoardScene: () => ({}),
 }));
 
 describe("AppComponent Composition", () => {
   let fixture: ComponentFixture<AppComponent>;
-  let mockGameModel: ReturnType<typeof createMockGameModel>;
 
   beforeEach(async () => {
-    mockGameModel = createMockGameModel();
-
     await TestBed.configureTestingModule({
       imports: [AppComponent],
       providers: [
         {
           provide: GameCatalogService,
-          useValue: asCatalog(createMockCatalog(mockGameModel)),
+          useValue: asCatalog(createMockCatalog(createMockGameModel())),
         },
       ],
     }).compileComponents();
@@ -58,37 +51,45 @@ describe("AppComponent Composition", () => {
     fixture.detectChanges();
   });
 
+  /** Whether the settings drawer is showing. */
+  function drawerIsOpen(): boolean {
+    return queryRequired<HTMLDialogElement>(
+      fixture,
+      "app-settings-drawer dialog",
+    ).open;
+  }
+
+  /** Fires an output of one of the shell's children. */
+  function emitFromChild(component: unknown, output: string): void {
+    fixture.debugElement
+      .query(By.directive(component as never))
+      .triggerEventHandler(output, null);
+    fixture.detectChanges();
+  }
+
   it("renders the child components in the shell", () => {
     expect(query(fixture, "app-header-bar")).not.toBeNull();
+    expect(query(fixture, "app-game-menu")).not.toBeNull();
     expect(query(fixture, "app-settings-drawer")).not.toBeNull();
     expect(query(fixture, "app-victory-overlay")).not.toBeNull();
     expect(query(fixture, "app-confirmation-dialog")).not.toBeNull();
   });
 
-  it("opens the settings drawer when header bar requests settings", () => {
-    const headerDe = fixture.debugElement.query(
-      By.directive(HeaderBarComponent),
-    );
-
-    headerDe.triggerEventHandler("openSettings", null);
-    fixture.detectChanges();
-
-    expect(query(fixture, ".drawer")).not.toBeNull();
+  it("keeps the settings drawer closed to begin with", () => {
+    expect(drawerIsOpen()).toBe(false);
   });
 
-  it("closes the settings drawer when settings drawer emits closed", () => {
-    const headerDe = fixture.debugElement.query(
-      By.directive(HeaderBarComponent),
-    );
-    headerDe.triggerEventHandler("openSettings", null);
-    fixture.detectChanges();
-    const drawerDe = fixture.debugElement.query(
-      By.directive(SettingsDrawerComponent),
-    );
+  it("opens the settings drawer when the header bar asks for it", () => {
+    emitFromChild(HeaderBarComponent, "openSettings");
 
-    drawerDe.triggerEventHandler("closed", null);
-    fixture.detectChanges();
+    expect(drawerIsOpen()).toBe(true);
+  });
 
-    expect(query(fixture, ".drawer")).toBeNull();
+  it("closes the settings drawer when it asks to be closed", () => {
+    emitFromChild(HeaderBarComponent, "openSettings");
+
+    emitFromChild(SettingsDrawerComponent, "closed");
+
+    expect(drawerIsOpen()).toBe(false);
   });
 });
