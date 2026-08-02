@@ -48,9 +48,7 @@
           (click)="chooseGame(game.id)"
           [title]="game.name"
         >
-          <span class="game-marker" aria-hidden="true">{{
-            game.name.charAt(0)
-          }}</span>
+          <span class="game-marker" aria-hidden="true">{{ game.marker }}</span>
           <span
             class="game-name"
             [class.visually-hidden]="!menu.isExpanded()"
