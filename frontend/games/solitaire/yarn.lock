@@ -396,17 +396,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/router@npm:22.0.8":
-  version: 22.0.8
-  resolution: "@angular/router@npm:22.0.8"
+"@angular/router@npm:^22.0.8":
+  version: 22.1.0
+  resolution: "@angular/router@npm:22.1.0"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/common": 22.0.8
-    "@angular/core": 22.0.8
-    "@angular/platform-browser": 22.0.8
+    "@angular/common": 22.1.0
+    "@angular/core": 22.1.0
+    "@angular/platform-browser": 22.1.0
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/cd0cb17da9c1bf8481a9b87b8b287ce2a18f540b61855be7660dd167d2c535035cb13bb9de204326d84b6f1a388082865581cbbfa6d969b9065fb97c10f8507e
+  checksum: 10c0/eb913cd52c88d2b8b3f2a43d424464d22ffb8fbc7c65ffe27d8a8b4180761804c4f2eeb7f70d2d6ea2f08492e907fdc45cd2438303dbe6e5a03856078b7e9efd
   languageName: node
   linkType: hard
 
@@ -3871,7 +3871,7 @@ __metadata:
     "@angular/compiler-cli": "npm:^22.0.8"
     "@angular/core": "npm:^22.0.8"
     "@angular/platform-browser": "npm:^22.0.8"
-    "@angular/router": "npm:22.0.8"
+    "@angular/router": "npm:^22.0.8"
     "@eslint/js": "npm:^10.0.1"
     "@resvg/resvg-js": "npm:^2.6.2"
     "@types/core-js": "npm:^2.5.8"
