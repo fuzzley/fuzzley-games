@@ -1,3 +1,8 @@
 # Ignore artifacts:
 build
 coverage
+
+# Vendored skills. These are pulled from upstream and their content hashes are
+# recorded in skills-lock.json, so reformatting them would defeat the lock.
+.agents/skills/angular-developer
+.agents/skills/angular-new-app

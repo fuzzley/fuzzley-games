@@ -17,15 +17,29 @@ This skill governs Phaser 4 canvas integration within fSolitaire. Phaser 4 is is
 
 ## Core Phaser 4 Sub-topics & Reference Map
 
-This directory contains specialized reference modules for detailed Phaser 4 features:
+This directory bundles specialized reference modules for detailed Phaser 4
+features. They are reference material, not skills of their own: no agent
+discovers a `SKILL.md` nested this deep, so read the file directly when a task
+touches its topic.
+
+Each entry below is a directory beside this file containing a `SKILL.md` — for
+example `tweens/SKILL.md`. Some also carry a `references/REFERENCE.md` with the
+full API surface.
 
 - **Scene Management & Config**: `game-setup-and-config/`, `scenes/`
 - **Asset Loading & Textures**: `loading-assets/`, `sprites-and-images/`, `render-textures/`
 - **Input & Drag Mathematics**: `input-keyboard-mouse-touch/`, `geometry-and-math/`
-- **Groups & Scene Hierarchy**: `groups-and-containers/`
+- **Groups & Scene Hierarchy**: `groups-and-containers/`, `game-object-components/`
 - **Animations & Tweens**: `animations/`, `tweens/`, `time-and-timers/`
+- **Drawing & Text**: `graphics-and-shapes/`, `text-and-bitmaptext/`, `curves-and-paths/`
 - **Audio & Visual Effects**: `audio-and-sound/`, `filters-and-postfx/`, `particles/`
+- **Cameras & Display**: `cameras/`, `scale-and-responsive/`
+- **State & Events**: `data-manager/`, `events-system/`, `actions-and-utilities/`
 - **Phaser 4 Migration & Features**: `v3-to-v4-migration/`, `v4-new-features/`
+
+Also bundled but unused by a card game: `physics-arcade/`, `physics-matter/`,
+`tilemaps/`. Reach for them only if a task genuinely calls for physics or tile
+maps.
 
 ## Phaser 4 Best Practices for Solitaire
 

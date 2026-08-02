@@ -1,7 +1,10 @@
 # Agents
+# `.agents/` is committed: it holds the shared instructions and skills. The
+# per-tool directories are machine-local -- `.claude/skills` is rebuilt from
+# `.agents/skills` by `yarn skills:link`.
 .gemini
 .claude
-CLAUDE.md
+CLAUDE.local.md
 
 # Logs
 logs

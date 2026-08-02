@@ -40,7 +40,7 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
 
 ### Layer Breakdown
 
-1. **`src/engine/core`** *(Bottom Tier)*
+1. **`src/engine/core`** _(Bottom Tier)_
    - Pure card, suit, rank, deck, pile, and RNG primitives.
    - Free of all external dependencies, frameworks, rendering logic, RxJS, Phaser, or Angular.
 2. **`src/engine/render`**
@@ -52,12 +52,12 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
 4. **`src/engine/tableau`**
    - Solitaire-family generic runtime engine (tableau layout rules, zones, moves, undo/redo stack, table view builder).
    - Serves as the generic execution engine for Klondike, FreeCell, and Spider without depending on a specific renderer backend or game variant.
-5. **`src/games/*`** *(Top of Engine Tier)*
+5. **`src/games/*`** _(Top of Engine Tier)_
    - Game-specific deal rules, scoring mechanics, layout setup, and gesture handling (`games/klondike`, `games/freecell`, `games/spider`).
    - Sits above `engine/*` layers, but below the Angular UI application shell.
 6. **`src/game/render`**
    - Phaser scene bridge connecting the active game runtime with Phaser scene lifecycles.
-7. **`src/ui/*`** *(Application Shell)*
+7. **`src/ui/*`** _(Application Shell)_
    - Angular application shell hosting the game canvas viewport, control overlays, and variant selection UI.
 
 ### UI Shell Structure
@@ -104,7 +104,7 @@ brings in the mixins and breakpoints and nothing else:
   view encapsulation means a class cannot be shared between components. One
   declaration is a token, not a mixin.
 - **Three breakpoints, by name.** `@include below("phone" | "tablet" |
-  "desktop")`; never a raw pixel width. Adding a fourth means adding it to
+"desktop")`; never a raw pixel width. Adding a fourth means adding it to
   `$breakpoints` and saying what it protects.
 - **`@keyframes` are global — declare them in `_animations.scss`.** Angular's
   emulated encapsulation rewrites selectors, not at-rule names, so two
@@ -126,13 +126,13 @@ brings in the mixins and breakpoints and nothing else:
 
 Architecture guidelines are enforced as hard build errors rather than conventions via ESLint (`eslint.config.cjs`) using `@typescript-eslint/no-restricted-imports`. Each tier may depend only on the tiers below it:
 
-| Tier / Directory | Allowed Dependencies | Explicitly Restricted Imports (`@typescript-eslint/no-restricted-imports`) |
-| :--- | :--- | :--- |
-| `src/engine/core` | Standard TS primitives | `@/engine/render/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `phaser`, `@angular/*`, `rxjs` |
-| `src/engine/render` *(excl. phaser/)* | `engine/core` | `phaser`, `@/engine/render/phaser/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs` |
-| `src/engine/render/phaser` | Phaser 4, `engine/core`, `engine/render` | `@/engine/tableau/view/table_view_builder`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs` |
-| `src/engine/tableau` | `engine/core`, `engine/render` | `phaser`, `@/engine/render/phaser/*`, `@/games/*`, `@/ui/*`, `@angular/*` |
-| `src/games/*` | `engine/*` | `@/ui/*`, `@angular/*` |
+| Tier / Directory                      | Allowed Dependencies                     | Explicitly Restricted Imports (`@typescript-eslint/no-restricted-imports`)                              |
+| :------------------------------------ | :--------------------------------------- | :------------------------------------------------------------------------------------------------------ |
+| `src/engine/core`                     | Standard TS primitives                   | `@/engine/render/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `phaser`, `@angular/*`, `rxjs`        |
+| `src/engine/render` _(excl. phaser/)_ | `engine/core`                            | `phaser`, `@/engine/render/phaser/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs` |
+| `src/engine/render/phaser`            | Phaser 4, `engine/core`, `engine/render` | `@/engine/tableau/view/table_view_builder`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                 |
+| `src/engine/tableau`                  | `engine/core`, `engine/render`           | `phaser`, `@/engine/render/phaser/*`, `@/games/*`, `@/ui/*`, `@angular/*`                               |
+| `src/games/*`                         | `engine/*`                               | `@/ui/*`, `@angular/*`                                                                                  |
 
 Note that the generic Phaser canvas host is `engine/render/phaser/phaser_host.ts`
 (`PhaserHost`). It is handed a board to run, so the shell never imports a game
@@ -143,9 +143,11 @@ module in order to host one.
 ## Build & Deploy System
 
 ### Package Manager
+
 This project uses **Yarn 4**. Always use Yarn commands instead of NPM (`yarn <command>`).
 
 ### Development Commands
+
 - **Run Development Server:** `yarn start` or `yarn dev` (launches Vite dev server at `http://localhost:9000/`).
 - **Build Card Atlas:** `yarn build:atlas` (runs `tools/build-card-atlas.mjs` to convert SVG assets into texture atlas files).
 - **Production Build:** `yarn build` (generates bundled production assets in `dist/` with Phaser manual chunking).
@@ -156,6 +158,7 @@ This project uses **Yarn 4**. Always use Yarn commands instead of NPM (`yarn <co
 - **Format Codebase:** `yarn prettier` (runs Prettier auto-formatting across the repository).
 
 ### CI/CD Deployment Pipeline (`.github/workflows/deploy.yml`)
+
 Deployments are automated via GitHub Actions on every push to `main` (or manual `workflow_dispatch`):
 
 1. **`verify` Job (Quality Gate):**
@@ -174,6 +177,32 @@ Deployments are automated via GitHub Actions on every push to `main` (or manual 
 
 - **Debugging:** Chrome DevTools MCP support is enabled. Use it to inspect element states, logs, and game behavior.
 - **Local Game Testing:** Start the server with `yarn start` and navigate to `http://localhost:9000/`.
+
+---
+
+## Agent Configuration (`.agents/`)
+
+`.agents/` is the committed, tool-neutral home for everything agents read. The
+per-tool directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
+
+- **Instructions:** this file. The root `AGENTS.md` and `CLAUDE.md` are thin
+  pointers to it, because those are the filenames agents actually look for —
+  `AGENTS.md` for Codex, Cursor, Copilot, and Amp; `CLAUDE.md` for Claude Code,
+  which does not read `AGENTS.md`. Edit this file, not the pointers.
+- **Skills:** `.agents/skills/<name>/SKILL.md`. Gemini CLI reads this path
+  directly. Claude Code only discovers `.claude/skills/<name>/SKILL.md`, so
+  **`yarn skills:link`** links each skill across (a junction on Windows). The
+  links hold absolute paths inside gitignored `.claude/`, so re-run it after a
+  fresh clone or a move — a dangling link silently drops the skill. Restart
+  Claude Code if `.claude/skills` did not exist when the session started.
+- **One level only.** A skill is a directory holding `SKILL.md` directly. A
+  `SKILL.md` nested deeper — `phaser/tweens/SKILL.md` — is reference material
+  that its parent skill points at, and is never discovered on its own. Adding a
+  skill means a new top-level directory plus a `yarn skills:link` re-run.
+- **Vendored skills:** `angular-developer` and `angular-new-app` come from
+  upstream and are hash-locked in `skills-lock.json`. They are listed in
+  `.prettierignore` so formatting does not defeat the lock; do not hand-edit
+  them.
 
 ---
 
