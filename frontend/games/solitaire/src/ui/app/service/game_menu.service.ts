@@ -1,4 +1,5 @@
 import { DestroyRef, Injectable, inject, signal } from "@angular/core";
+import { LocalStorageService } from "./local_storage.service";
 
 /**
  * Below this width the rail overlays the board instead of sitting beside it.
@@ -9,17 +10,6 @@ import { DestroyRef, Injectable, inject, signal } from "@angular/core";
 export const RAIL_OVERLAY_MAX_WIDTH_PX = 720;
 
 const STORAGE_KEY = "fsolitaire-menu-expanded";
-
-/** Whether the menu was left open, defaulting to collapsed. */
-function loadExpanded(): boolean {
-  if (typeof localStorage === "undefined") return false;
-  try {
-    return localStorage.getItem(STORAGE_KEY) === "true";
-  } catch (e) {
-    console.warn("Failed to read the game menu state:", e);
-    return false;
-  }
-}
 
 /**
  * Whether the game rail is showing names or just initials.
@@ -32,7 +22,11 @@ function loadExpanded(): boolean {
 @Injectable({ providedIn: "root" })
 export class GameMenuService {
   private readonly destroyRef = inject(DestroyRef);
-  private readonly expanded = signal(loadExpanded());
+  private readonly storage = inject(LocalStorageService);
+
+  private readonly expanded = signal(
+    this.storage.readString(STORAGE_KEY) === "true",
+  );
   private readonly overlay = signal(false);
 
   /** Whether the rail is expanded to show game names. */
@@ -80,15 +74,6 @@ export class GameMenuService {
   setExpanded(expanded: boolean): void {
     if (this.expanded() === expanded) return;
     this.expanded.set(expanded);
-    this.persist(expanded);
-  }
-
-  private persist(expanded: boolean): void {
-    if (typeof localStorage === "undefined") return;
-    try {
-      localStorage.setItem(STORAGE_KEY, String(expanded));
-    } catch (e) {
-      console.warn("Failed to save the game menu state:", e);
-    }
+    this.storage.writeString(STORAGE_KEY, String(expanded));
   }
 }

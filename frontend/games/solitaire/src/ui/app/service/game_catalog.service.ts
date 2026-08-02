@@ -14,6 +14,7 @@ import {
   catalogEntry,
   optionValue,
 } from "../provider/game_catalog";
+import { LocalStorageService } from "./local_storage.service";
 
 const STORAGE_KEY = "fsolitaire-game";
 const OPTIONS_STORAGE_KEY = "fsolitaire-game-options";
@@ -21,48 +22,11 @@ const OPTIONS_STORAGE_KEY = "fsolitaire-game-options";
 /** The chosen rule options for every game, by game id. */
 type StoredOptions = Record<string, GameOptionValues>;
 
-/** Reads the stored rule options, tolerating anything unexpected in there. */
-function loadOptions(): StoredOptions {
-  if (typeof localStorage === "undefined") return {};
-  try {
-    const stored = localStorage.getItem(OPTIONS_STORAGE_KEY);
-    if (!stored) return {};
-    const parsed: unknown = JSON.parse(stored);
-    return typeof parsed === "object" && parsed !== null
-      ? (parsed as StoredOptions)
-      : {};
-  } catch (e) {
-    console.warn("Failed to read the stored rule options:", e);
-    return {};
-  }
-}
-
 /** The game named by the URL fragment, or null when it names nothing known. */
 function gameFromHash(): string | null {
   if (typeof location === "undefined") return null;
   const id = location.hash.replace(/^#/, "");
   return GAME_CATALOG.some((entry) => entry.id === id) ? id : null;
-}
-
-/** The game last played, from storage. */
-function gameFromStorage(): string | null {
-  if (typeof localStorage === "undefined") return null;
-  try {
-    return localStorage.getItem(STORAGE_KEY);
-  } catch (e) {
-    console.warn("Failed to read the selected game:", e);
-    return null;
-  }
-}
-
-/**
- * The game to open on.
- *
- * The URL wins, so a link to `#spider` opens Spider whatever was last played;
- * otherwise the last game played, and otherwise the first in the catalog.
- */
-function initialGameId(): string {
-  return catalogEntry(gameFromHash() ?? gameFromStorage()).id;
 }
 
 /**
@@ -79,20 +43,37 @@ function initialGameId(): string {
 @Injectable({ providedIn: "root" })
 export class GameCatalogService {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly storage = inject(LocalStorageService);
 
   /** Every game that can be played, in the order they are offered. */
   readonly games: readonly CatalogEntry[] = GAME_CATALOG;
 
-  private readonly selectedIdSignal = signal<string>(initialGameId());
+  /**
+   * The game to open on.
+   *
+   * The URL wins, so a link to `#spider` opens Spider whatever was last
+   * played; otherwise the last game played, and otherwise the first in the
+   * catalog. Resolved once here rather than by three calls to a helper, which
+   * is what it was before and which read storage three times to do it.
+   */
+  private readonly initialId = catalogEntry(
+    gameFromHash() ?? this.storage.readString(STORAGE_KEY),
+  ).id;
+
+  private readonly selectedIdSignal = signal<string>(this.initialId);
 
   /** The id of the game currently on the table. */
   readonly selectedId = this.selectedIdSignal.asReadonly();
 
   /** Every game's chosen rule options, whether or not it is in play. */
-  private readonly optionsSignal = signal<StoredOptions>(loadOptions());
+  private readonly optionsSignal = signal<StoredOptions>(
+    this.storage.readObject<StoredOptions>(OPTIONS_STORAGE_KEY) ?? {},
+  );
 
   private readonly sessionSignal = signal<CatalogSession>(
-    catalogEntry(initialGameId()).create(loadOptions()[initialGameId()] ?? {}),
+    catalogEntry(this.initialId).create(
+      this.optionsSignal()[this.initialId] ?? {},
+    ),
   );
 
   /** The dealt game currently on the table. */
@@ -156,7 +137,7 @@ export class GameCatalogService {
       },
     };
     this.optionsSignal.set(updated);
-    this.persistOptions(updated);
+    this.storage.writeObject(OPTIONS_STORAGE_KEY, updated);
     this.sessionSignal.set(entry.create(updated[entry.id]));
   }
 
@@ -168,15 +149,6 @@ export class GameCatalogService {
       cleaned[spec.id] = optionValue(values, spec);
     }
     return cleaned;
-  }
-
-  private persistOptions(options: StoredOptions): void {
-    if (typeof localStorage === "undefined") return;
-    try {
-      localStorage.setItem(OPTIONS_STORAGE_KEY, JSON.stringify(options));
-    } catch (e) {
-      console.warn("Failed to save the rule options:", e);
-    }
   }
 
   constructor() {
@@ -222,21 +194,12 @@ export class GameCatalogService {
     this.sessionSignal.set(
       entry.create(this.valuesFor(entry.id, this.optionsSignal())),
     );
-    this.persist(entry.id);
+    this.storage.writeString(STORAGE_KEY, entry.id);
     this.writeHash(entry.id);
   }
 
   private writeHash(id: string): void {
     if (typeof location === "undefined" || location.hash === `#${id}`) return;
     location.hash = id;
-  }
-
-  private persist(id: string): void {
-    if (typeof localStorage === "undefined") return;
-    try {
-      localStorage.setItem(STORAGE_KEY, id);
-    } catch (e) {
-      console.warn("Failed to save the selected game:", e);
-    }
   }
 }
