@@ -8,6 +8,30 @@
   overflow: hidden;
 }
 
+// The table, lit from above.
+//
+// The felt is a single flat colour the Phaser camera fills with, which is what
+// a sheet of paper looks like rather than a baize table under a lamp. This lays
+// the falloff over the canvas instead of painting it into the felt: the camera
+// goes on filling with the one colour the player chose, the lighting stays the
+// shell's business, and it costs the renderer nothing.
+//
+// Centred above the middle because that is where the board is — the cards sit
+// in the upper half and the room below them is the part that should fall away.
+// No z-index, so it stays under the loading overlay; `pointer-events: none`
+// because it covers the cards and must never take a press meant for one.
+:host::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 125% 105% at 50% 32%,
+    transparent 38%,
+    var(--table-vignette) 100%
+  );
+}
+
 .canvas-container {
   position: absolute;
   inset: 0;

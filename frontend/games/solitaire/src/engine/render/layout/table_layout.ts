@@ -3,6 +3,7 @@ import { Viewport } from "../view/table_view_state";
 import {
   CARD_HEIGHT_PX,
   CARD_WIDTH_PX,
+  HEADER_HEIGHT_COMPACT_PX,
   HEADER_HEIGHT_PX,
   LAYOUT_GAP_X,
   LAYOUT_GAP_Y,
@@ -191,6 +192,10 @@ const COMPACT_PADDING = { x: 8, y: 14 };
  * larger, which is worth having even though it does not make a ten-column game
  * roomy on a phone — nothing short of turning it sideways does that.
  *
+ * The header comes down with them. The shell compacts its own chrome at this
+ * same width, so a board that went on reserving the full desktop header height
+ * was holding back thirteen pixels for a header that had already given them up.
+ *
  * @param spec The board's grid.
  * @param viewport The available drawable area.
  */
@@ -214,6 +219,7 @@ export function compactFor(
       x: Math.min(spec.padding.x, COMPACT_PADDING.x),
       y: Math.min(spec.padding.y, COMPACT_PADDING.y),
     },
+    headerHeightPx: Math.min(spec.headerHeightPx, HEADER_HEIGHT_COMPACT_PX),
   };
 }
 

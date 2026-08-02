@@ -146,11 +146,15 @@
   margin: 0 0 var(--space-3);
 }
 
+// The prose holds a readable measure rather than spanning a 1200px modal. The
+// cards below it keep the full width: a grid of short rules is not prose, and
+// narrowing it would only add rows.
 .objective-text,
 .win-text {
   font-size: var(--font-md);
   line-height: var(--leading-normal);
   margin: var(--space-1) 0;
+  max-width: var(--measure-prose);
 }
 
 .overview-block h4 {
@@ -165,6 +169,7 @@
   font-size: var(--font-md);
   line-height: var(--leading-relaxed);
   margin: 0;
+  max-width: var(--measure-prose);
 }
 
 // --- Screenshot ---

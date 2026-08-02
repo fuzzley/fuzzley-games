@@ -1,3 +1,13 @@
+// --- Colour scheme ---
+// Declares the document dark, which is what makes the native furniture follow:
+// scrollbars, form controls and the initial canvas the browser paints before
+// anything else has. Without it the help modal's scroll area wore the light
+// platform scrollbar — arrow buttons and all — down the side of a near-black
+// panel, because the engine had no way to know the page was dark.
+:root {
+  color-scheme: dark;
+}
+
 // --- Document reset ---
 // The app fills the viewport: the game canvas host inside it sizes itself to
 // 100% height, which only resolves if every ancestor does too.
@@ -8,9 +18,43 @@ body {
   height: 100%;
 }
 
+// On the root rather than on `body`, so the browser propagates it to the
+// viewport canvas and the colour also covers any overscroll.
+html {
+  background: var(--table-felt);
+}
+
+// The document's typographic defaults, inherited by everything that does not
+// override them. `line-height` belongs here rather than on the components
+// because a unitless value inherits as the ratio rather than as the computed
+// length, so a heading at `--font-3xl` gets leading proportional to itself.
+body {
+  font-family: var(--font-sans);
+  font-size: var(--font-md);
+  line-height: var(--leading-normal);
+  color: var(--text-body);
+  // The interface is light text on dark surfaces, where the default stem
+  // darkening reads as a smear rather than as weight.
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 app-root {
   display: block;
   height: 100%;
+}
+
+// Form controls are the one place `font-family` does not inherit: the UA hands
+// them its own face, which is why every button in the application was rendering
+// in Arial while the text beside it was not. Every control here is styled text,
+// so they take the document's face. Type selectors, so any component class
+// still wins on size and weight.
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
 }
 
 // --- Focus ---

@@ -70,6 +70,16 @@ export interface CatalogEntry<TGame extends PlayableGame = PlayableGame> {
   readonly id: string;
   /** Name shown to a player. */
   readonly name: string;
+  /**
+   * Two characters standing for the game in a collapsed game rail.
+   *
+   * Stated rather than sliced off the front of the name, which is what the rail
+   * used to do: Spider and Scorpion both start with S, so two of the seven
+   * games wore the same badge, and F, B and E say nothing about which of
+   * FreeCell, Baker's Game and Eight Off is meant. Two characters is what a
+   * collapsed rail has room for, and it is enough to tell all seven apart.
+   */
+  readonly marker: string;
   /** The rules this game lets the player choose. */
   readonly options: readonly GameOptionSpec[];
   /** The grid this game's board lies on, renderer-agnostic. */
@@ -175,6 +185,7 @@ const YUKON_VARIANT: GameOptionSpec = {
 const KLONDIKE = {
   id: "klondike" as const,
   name: "Klondike",
+  marker: "KL",
   options: [KLONDIKE_DRAW_COUNT, KLONDIKE_ALMOST_WIN],
   layout: KLONDIKE_LAYOUT,
   create: (values: GameOptionValues) => {
@@ -191,6 +202,7 @@ const KLONDIKE = {
 const FREECELL = {
   id: "freecell" as const,
   name: "FreeCell",
+  marker: "FC",
   // FreeCell has no rules to choose: no stock, no draw mode, no options.
   options: [],
   layout: FREECELL_LAYOUT,
@@ -208,6 +220,7 @@ const FREECELL = {
 const SPIDER = {
   id: "spider" as const,
   name: "Spider",
+  marker: "SP",
   options: [SPIDER_SUIT_COUNT],
   layout: SPIDER_LAYOUT,
   create: (values: GameOptionValues) => {
@@ -221,6 +234,7 @@ const SPIDER = {
 const YUKON = {
   id: "yukon" as const,
   name: "Yukon",
+  marker: "YU",
   // One entry for three games: they share a deal, a board and a grab rule,
   // and differ only in what an occupied column accepts, which is a rule a
   // player picks rather than a game they switch to.
@@ -237,6 +251,7 @@ const YUKON = {
 const BAKERS = {
   id: "bakers" as const,
   name: "Baker's Game",
+  marker: "BG",
   options: [BAKERS_EMPTY_COLUMNS],
   // The same board as FreeCell, which it shares a layout with.
   layout: FREECELL_LAYOUT,
@@ -257,6 +272,7 @@ const BAKERS = {
 const EIGHT_OFF = {
   id: "eightoff" as const,
   name: "Eight Off",
+  marker: "EO",
   // Nothing to choose: no stock, no draw mode, and the cell count is the
   // name of the game.
   options: [],
@@ -271,6 +287,7 @@ const EIGHT_OFF = {
 const SCORPION = {
   id: "scorpion" as const,
   name: "Scorpion",
+  marker: "SC",
   // Nothing to choose: one deck, one deal, and a stock that empties itself in
   // a single press.
   options: [],
