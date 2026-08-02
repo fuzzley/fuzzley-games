@@ -22,8 +22,6 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
            |
       [ src/games ]            Game Rules & Variants (Klondike, FreeCell, Spider)
            |
-     [ src/game/render ]       Phaser Scene Bridge / Integration Binding
-           |
   +--------+--------+
   |                 |
   v                 v
@@ -55,9 +53,8 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
 5. **`src/games/*`** _(Top of Engine Tier)_
    - Game-specific deal rules, scoring mechanics, layout setup, and gesture handling (`games/klondike`, `games/freecell`, `games/spider`).
    - Sits above `engine/*` layers, but below the Angular UI application shell.
-6. **`src/game/render`**
-   - Phaser scene bridge connecting the active game runtime with Phaser scene lifecycles.
-7. **`src/ui/*`** _(Application Shell)_
+   - A game reaches the canvas through `src/games/common/board_scene_factory.ts`, which turns a game plus its layout and gesture map into a `BoardScene`. There is no separate scene-bridge tier: `PhaserHost` mounts whatever board factory it is handed.
+6. **`src/ui/*`** _(Application Shell)_
    - Angular application shell hosting the game canvas viewport, control overlays, and variant selection UI.
 
 ### UI Shell Structure
@@ -132,7 +129,7 @@ Architecture guidelines are enforced as hard build errors rather than convention
 | `src/engine/render` _(excl. phaser/)_ | `engine/core`                            | `phaser`, `@/engine/render/phaser/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs` |
 | `src/engine/render/phaser`            | Phaser 4, `engine/core`, `engine/render` | `@/engine/tableau/view/table_view_builder`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                 |
 | `src/engine/tableau`                  | `engine/core`, `engine/render`           | `phaser`, `@/engine/render/phaser/*`, `@/games/*`, `@/ui/*`, `@angular/*`                               |
-| `src/games/*`                         | `engine/*`                               | `@/ui/*`, `@angular/*`                                                                                  |
+| `src/games/*`                         | `engine/*`                               | `@/ui/*`, `@angular/*`, `rxjs`                                                                          |
 
 Note that the generic Phaser canvas host is `engine/render/phaser/phaser_host.ts`
 (`PhaserHost`). It is handed a board to run, so the shell never imports a game
