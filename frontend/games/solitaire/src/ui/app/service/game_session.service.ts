@@ -1,5 +1,4 @@
 import { Injectable, signal, computed, effect, inject } from "@angular/core";
-import { toSignal } from "@angular/core/rxjs-interop";
 import { PlayableGame } from "@/engine/tableau/playable_game";
 import { CatalogEntry, GameOptionSpec } from "../provider/game_catalog";
 import { GameCatalogService } from "./game_catalog.service";
@@ -45,9 +44,7 @@ export class GameSessionService {
   /** The chosen value of every rule of the running game, by option id. */
   readonly optionValues = this.catalog.optionValues;
 
-  readonly cardBack = toSignal(this.presentation.cardBackStyle$, {
-    initialValue: "card-back-blue" satisfies CardBackStyle,
-  });
+  readonly cardBack = this.presentation.cardBackStyle;
 
   readonly isGameWon = signal(false);
   readonly timerText = this.timer.timerText;

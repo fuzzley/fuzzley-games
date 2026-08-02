@@ -77,7 +77,7 @@ describe("GameSessionService", () => {
       harness.model.state.score$.next(100);
       harness.model.state.moves$.next(12);
       harness.model.settings.drawCount$.next(1);
-      harness.presentation.cardBackStyle$.next("card-back-red");
+      harness.presentation.cardBackStyle.set("card-back-red");
       harness.catalog.setOption("drawCount", 1);
 
       expect(harness.session.score()).toBe(100);

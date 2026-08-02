@@ -78,23 +78,24 @@ export function createMockPresentation(
     backgroundColor?: string;
   } = {},
 ) {
+  const cardBackStyle = signal<"card-back-blue" | "card-back-red">(
+    overrides.cardBackStyle ?? "card-back-blue",
+  );
+  const backgroundColor = signal(overrides.backgroundColor ?? "");
+
   return {
-    cardBackStyle$: new BehaviorSubject<"card-back-blue" | "card-back-red">(
-      overrides.cardBackStyle ?? "card-back-blue",
-    ),
-    backgroundColor$: new BehaviorSubject<string | undefined>(
-      overrides.backgroundColor,
-    ),
-    get cardBackStyle() {
-      return this.cardBackStyle$.value;
-    },
-    get backgroundColor() {
-      return this.backgroundColor$.value;
-    },
-    cardBackKey: vi.fn(() => "card-back-blue"),
+    cardBackStyle,
+    backgroundColor,
+    cardBackKey: () => cardBackStyle(),
     onBackgroundColor: vi.fn(() => () => undefined),
-    setCardBackStyle: vi.fn(),
-    setBackgroundColor: vi.fn(),
+    // Real state behind the spy, so a spec can assert either the call or the
+    // value it produced.
+    setCardBackStyle: vi.fn((style: "card-back-blue" | "card-back-red") => {
+      cardBackStyle.set(style);
+    }),
+    setBackgroundColor: vi.fn((color: string) => {
+      backgroundColor.set(color);
+    }),
   };
 }
 

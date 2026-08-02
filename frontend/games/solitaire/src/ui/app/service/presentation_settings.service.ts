@@ -1,9 +1,9 @@
-import { Injectable } from "@angular/core";
-import { BehaviorSubject, merge } from "rxjs";
+import { Injectable, Injector, effect, inject, signal } from "@angular/core";
 import {
   DEFAULT_BACKGROUND_COLOR,
   TablePresentation,
 } from "@/engine/render/presentation";
+import { LocalStorageService } from "./local_storage.service";
 
 /** The visual style applied to the back of cards. */
 export type CardBackStyle = "card-back-blue" | "card-back-red";
@@ -33,18 +33,92 @@ function isCardBackStyle(value: unknown): value is CardBackStyle {
   return value === "card-back-blue" || value === "card-back-red";
 }
 
-/** Reads and validates whichever stored blob is present, filling gaps with defaults. */
-function loadPersisted(): PersistedPresentation {
-  if (typeof localStorage === "undefined") {
-    return { ...DEFAULTS };
+/**
+ * The player's choices about how the table looks, independent of what is being
+ * played on it.
+ *
+ * Split out of the Klondike game settings because a card back and a felt colour
+ * are the same preference in every game, while a draw count is a Klondike rule.
+ *
+ * Held as signals, like the rest of the application. It implements
+ * {@link TablePresentation} — the shape a board scene asks for — by adapting
+ * at that boundary rather than by being reactive in the renderer's idiom
+ * throughout: the Phaser side wants a subscribe-and-unsubscribe callback, and
+ * that is the only place one is built.
+ */
+@Injectable({ providedIn: "root" })
+export class PresentationSettingsService implements TablePresentation {
+  private readonly storage = inject(LocalStorageService);
+  private readonly injector = inject(Injector);
+
+  private readonly loaded = this.loadPersisted();
+
+  private readonly cardBackStyleSignal = signal<CardBackStyle>(
+    this.loaded.cardBackStyle,
+  );
+  private readonly backgroundColorSignal = signal(this.loaded.backgroundColor);
+
+  /** The visual style used for face-down card backs. */
+  readonly cardBackStyle = this.cardBackStyleSignal.asReadonly();
+
+  /** The board background color, as a CSS/Phaser color string. */
+  readonly backgroundColor = this.backgroundColorSignal.asReadonly();
+
+  /**
+   * Updates the card back style.
+   *
+   * Writing the same value again is a no-op by virtue of signal equality, so
+   * there is no guard here and no spurious save behind it.
+   */
+  setCardBackStyle(style: CardBackStyle): void {
+    this.cardBackStyleSignal.set(style);
   }
 
-  for (const key of [STORAGE_KEY, LEGACY_STORAGE_KEY]) {
-    try {
-      const stored = localStorage.getItem(key);
-      if (!stored) continue;
+  /** Updates the board background color. */
+  setBackgroundColor(color: string): void {
+    this.backgroundColorSignal.set(color);
+  }
 
-      const parsed = JSON.parse(stored) as Partial<PersistedPresentation>;
+  /** @inheritDoc */
+  cardBackKey(): string {
+    return this.cardBackStyleSignal();
+  }
+
+  /**
+   * @inheritDoc
+   *
+   * The adapter between the signal held here and the callback the Phaser
+   * board follows. `effect` delivers the current value on registration and
+   * every change after it, which is the contract the board expects, and
+   * destroying the effect is what unsubscribing means.
+   */
+  readonly onBackgroundColor = (listener: (color: string) => void) => {
+    const ref = effect(() => listener(this.backgroundColorSignal()), {
+      injector: this.injector,
+    });
+    return () => ref.destroy();
+  };
+
+  constructor() {
+    // Persist whenever either setting changes. The effect also runs once on
+    // registration, which rewrites what was just read — harmless, and cheaper
+    // than the `let initialized` flag that used to suppress it.
+    effect(() => {
+      const data: PersistedPresentation = {
+        cardBackStyle: this.cardBackStyleSignal(),
+        backgroundColor: this.backgroundColorSignal(),
+      };
+      this.storage.writeObject(STORAGE_KEY, data);
+    });
+  }
+
+  /** Reads whichever stored blob is present, filling gaps with defaults. */
+  private loadPersisted(): PersistedPresentation {
+    for (const key of [STORAGE_KEY, LEGACY_STORAGE_KEY]) {
+      const parsed =
+        this.storage.readObject<Partial<PersistedPresentation>>(key);
+      if (!parsed) continue;
+
       return {
         cardBackStyle: isCardBackStyle(parsed.cardBackStyle)
           ? parsed.cardBackStyle
@@ -54,87 +128,7 @@ function loadPersisted(): PersistedPresentation {
             ? parsed.backgroundColor
             : DEFAULTS.backgroundColor,
       };
-    } catch (e) {
-      console.warn(`Failed to load presentation settings from ${key}:`, e);
     }
-  }
-  return { ...DEFAULTS };
-}
-
-/**
- * The player's choices about how the table looks, independent of what is being
- * played on it.
- *
- * Split out of the Klondike game settings because a card back and a felt colour
- * are the same preference in every game, while a draw count is a Klondike rule.
- * Implements {@link TablePresentation}, which is the shape a board scene asks
- * for, so any game's board can be handed these.
- */
-@Injectable({ providedIn: "root" })
-export class PresentationSettingsService implements TablePresentation {
-  /** The visual style used for face-down card backs. */
-  readonly cardBackStyle$: BehaviorSubject<CardBackStyle>;
-
-  /** The board background color, as a CSS/Phaser color string. */
-  readonly backgroundColor$: BehaviorSubject<string>;
-
-  constructor() {
-    const loaded = loadPersisted();
-    this.cardBackStyle$ = new BehaviorSubject(loaded.cardBackStyle);
-    this.backgroundColor$ = new BehaviorSubject(loaded.backgroundColor);
-
-    let initialized = false;
-    merge(this.cardBackStyle$, this.backgroundColor$).subscribe(() => {
-      if (initialized) this.save();
-    });
-    initialized = true;
-  }
-
-  /** @inheritDoc */
-  cardBackKey(): string {
-    return this.cardBackStyle;
-  }
-
-  /** @inheritDoc */
-  readonly onBackgroundColor = (listener: (color: string) => void) => {
-    const subscription = this.backgroundColor$.subscribe(listener);
-    return () => subscription.unsubscribe();
-  };
-
-  /** Current card back style value. */
-  get cardBackStyle(): CardBackStyle {
-    return this.cardBackStyle$.value;
-  }
-
-  /** Updates the card back style, publishing only on a real change. */
-  setCardBackStyle(style: CardBackStyle): void {
-    if (this.cardBackStyle !== style) {
-      this.cardBackStyle$.next(style);
-    }
-  }
-
-  /** Current board background color. */
-  get backgroundColor(): string {
-    return this.backgroundColor$.value;
-  }
-
-  /** Updates the board background color, publishing only on a real change. */
-  setBackgroundColor(color: string): void {
-    if (this.backgroundColor !== color) {
-      this.backgroundColor$.next(color);
-    }
-  }
-
-  private save(): void {
-    if (typeof localStorage === "undefined") return;
-    try {
-      const data: PersistedPresentation = {
-        cardBackStyle: this.cardBackStyle,
-        backgroundColor: this.backgroundColor,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch (e) {
-      console.warn("Failed to save presentation settings:", e);
-    }
+    return { ...DEFAULTS };
   }
 }

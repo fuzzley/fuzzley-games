@@ -53,7 +53,7 @@ export class ThemeService {
   constructor() {
     // Restore the theme that matches the persisted background color, then apply
     // it so both the overlay class and the board camera reflect it on load.
-    const loadedColor = this.presentation.backgroundColor;
+    const loadedColor = this.presentation.backgroundColor();
     const matchedKey = this.themeKeys.find(
       (key) => this.themes[key].color === loadedColor,
     );
