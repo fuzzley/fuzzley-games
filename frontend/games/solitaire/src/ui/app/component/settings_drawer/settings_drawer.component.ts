@@ -14,6 +14,7 @@ import {
   CardBackStyle,
   PresentationSettingsService,
 } from "../../service/presentation_settings.service";
+import { CARD_DECKS, CardDeckSpec } from "@/engine/render/card_deck";
 import { DebugPanelComponent } from "../debug_panel/debug_panel.component";
 import { OptionGroupComponent } from "../option_group/option_group.component";
 import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
@@ -24,6 +25,11 @@ interface CardBackDesign {
   readonly style: CardBackStyle;
   readonly label: string;
   readonly patternClass: string;
+}
+
+/** One deck a player can choose, resolved for rendering. */
+interface CardDeckChoice extends CardDeckSpec {
+  readonly selected: boolean;
 }
 
 /** One table felt swatch, resolved for rendering. */
@@ -79,6 +85,15 @@ export class SettingsDrawerComponent {
       patternClass: "red-pattern",
     },
   ];
+
+  /** The decks on offer, with the chosen one marked. */
+  protected readonly deckChoices = computed<readonly CardDeckChoice[]>(() => {
+    const selected = this.presentation.cardDeck();
+    return CARD_DECKS.map((deck) => ({
+      ...deck,
+      selected: deck.id === selected,
+    }));
+  });
 
   /**
    * The felt swatches, resolved once per change rather than by indexing into

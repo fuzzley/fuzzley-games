@@ -4,6 +4,7 @@ import { LoadingScene } from "./loading_scene";
 import { BoardScene } from "./board_scene";
 import { ViewportScaler } from "./viewport_scaler";
 import { DEFAULT_BACKGROUND_COLOR } from "../presentation";
+import { CardDeckId } from "../card_deck";
 
 /**
  * Hosts a Phaser canvas running whichever board it is given.
@@ -26,11 +27,15 @@ export class PhaserHost {
    *   the game's lifetime with it.
    * @param makeBoardScene Builds the board to show. Handed in so the host can
    *   run any game the engine can build, rather than importing one.
+   * @param deckId The deck to have loaded before the board is shown. Only the
+   *   player's current one is fetched up front; the board loads another itself
+   *   if they change their mind.
    */
   constructor(
     private readonly window: Window,
     private readonly parent: HTMLElement,
     private readonly makeBoardScene: () => BoardScene,
+    private readonly deckId: CardDeckId,
   ) {}
 
   /** Starts the game. */
@@ -56,7 +61,7 @@ export class PhaserHost {
       autoFocus: true,
       // A scene instance rather than the class: the board has to be told which
       // game it draws and how to lay it out, and Phaser cannot supply either.
-      scene: [LoadingScene, this.makeBoardScene()],
+      scene: [new LoadingScene(this.deckId), this.makeBoardScene()],
     };
     const game = new Phaser.Game(gameConfig);
     this.game = game;

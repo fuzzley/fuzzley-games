@@ -3,6 +3,9 @@ import * as Phaser from "phaser";
 import { PhaserCardFactory } from "@/engine/render/phaser/phaser_card_factory";
 import { createMockSprite, MockSprite } from "@test/support/phaser_mocks";
 
+/** The texture of whichever deck is on the table. */
+const DECK_TEXTURE = "cards:indexed";
+
 describe("PhaserCardFactory", () => {
   let addSprite: ReturnType<typeof vi.fn>;
   let factory: PhaserCardFactory;
@@ -10,7 +13,11 @@ describe("PhaserCardFactory", () => {
   beforeEach(() => {
     addSprite = vi.fn(() => createMockSprite());
     const scene = { add: { sprite: addSprite } } as unknown as Phaser.Scene;
-    factory = new PhaserCardFactory(scene, () => "card-back-blue");
+    factory = new PhaserCardFactory(
+      scene,
+      () => "card-back-blue",
+      () => DECK_TEXTURE,
+    );
   });
 
   it("creates a card sprite from the card-back frame with a standard origin", () => {
@@ -19,7 +26,7 @@ describe("PhaserCardFactory", () => {
     expect(addSprite).toHaveBeenCalledWith(
       0,
       0,
-      "card_assets",
+      DECK_TEXTURE,
       "card-back-blue",
     );
     expect(sprite.originX).toBe(0);
@@ -30,6 +37,7 @@ describe("PhaserCardFactory", () => {
     const redFactory = new PhaserCardFactory(
       { add: { sprite: addSprite } } as unknown as Phaser.Scene,
       () => "card-back-red",
+      () => DECK_TEXTURE,
     );
 
     redFactory.createCardSprite();
@@ -37,7 +45,7 @@ describe("PhaserCardFactory", () => {
     expect(addSprite).toHaveBeenCalledWith(
       0,
       0,
-      "card_assets",
+      DECK_TEXTURE,
       "card-back-red",
     );
   });
@@ -105,7 +113,7 @@ describe("PhaserCardFactory", () => {
     expect(addSprite).toHaveBeenCalledWith(
       0,
       0,
-      "card_assets",
+      DECK_TEXTURE,
       "card-placeholder-full-border-reset",
     );
     expect(sprite.originX).toBe(0);
@@ -124,7 +132,7 @@ describe("PhaserCardFactory", () => {
     expect(addSprite).toHaveBeenCalledWith(
       0,
       0,
-      "card_assets",
+      DECK_TEXTURE,
       "card-placeholder",
     );
     expect(sprite.alpha).toBe(0.4);
@@ -141,7 +149,7 @@ describe("PhaserCardFactory", () => {
     expect(addSprite).toHaveBeenCalledWith(
       0,
       0,
-      "card_assets",
+      DECK_TEXTURE,
       "card-placeholder-full-border-circle",
     );
     expect(sprite.alpha).toBe(0.6);

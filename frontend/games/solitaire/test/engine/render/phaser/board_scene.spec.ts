@@ -6,11 +6,14 @@ import { FakeTableGame } from "@test/support/fake_table/game";
 import {
   MockGraphics,
   MockInput,
+  MockLoader,
   MockScaleManager,
   MockSceneEvents,
   MockSprite,
+  MockTextures,
   SHUTDOWN_EVENT,
 } from "@test/support/phaser_mocks";
+import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
 import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
 import {
   computePileOrigins,
@@ -88,7 +91,7 @@ describe("BoardScene", () => {
   ): { frame: string; alpha: number }[] {
     return pileIds.map((pileId) => {
       const sprite = asMock(boardScene.pileBackgroundSprite(pileId));
-      return { frame: sprite.frame, alpha: sprite.alpha };
+      return { frame: sprite.frame.name, alpha: sprite.alpha };
     });
   }
 
@@ -126,6 +129,105 @@ describe("BoardScene", () => {
       // A scene restart runs create() again, so a subscription left behind here
       // would accumulate one stale listener per restart.
       expect(camera().setBackgroundColor).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("card deck", () => {
+    /** The scene's mock loader, which finishes a load only when told to. */
+    function loader(): MockLoader {
+      return boardScene.load as unknown as MockLoader;
+    }
+
+    /** The scene's mock texture cache. */
+    function textures(): MockTextures {
+      return boardScene.textures as unknown as MockTextures;
+    }
+
+    /** Every sprite the board draws, cards and pile placeholders alike. */
+    function allSprites(): MockSprite[] {
+      const backgrounds = fakeGame.piles
+        .map((pile) => boardScene.pileBackgroundSprite(pile.id))
+        .filter((sprite) => sprite !== undefined)
+        .map(asMock);
+      return [...allCardSprites(), ...backgrounds];
+    }
+
+    /** The distinct texture keys the board is currently drawing from. */
+    function texturesInUse(): string[] {
+      return [...new Set(allSprites().map((sprite) => sprite.texture.key))];
+    }
+
+    it("draws every sprite from the deck the player is using", () => {
+      expect(texturesInUse()).toEqual([`cards:${DEFAULT_CARD_DECK}`]);
+    });
+
+    it("redraws every card and placeholder from a deck already loaded", () => {
+      textures().add("cards:classic");
+
+      presentation.setCardDeck("classic");
+
+      expect(texturesInUse()).toEqual(["cards:classic"]);
+    });
+
+    it("keeps each sprite on the frame it was showing", () => {
+      const before = allSprites().map((sprite) => sprite.frame.name);
+      textures().add("cards:classic");
+
+      presentation.setCardDeck("classic");
+
+      // A swap that dropped the frame would leave every sprite showing the
+      // whole atlas page instead of its card.
+      expect(allSprites().map((sprite) => sprite.frame.name)).toEqual(before);
+    });
+
+    it("loads a deck it has never drawn before switching to it", () => {
+      presentation.setCardDeck("classic");
+
+      expect(loader().requested).toEqual(["cards:classic"]);
+      expect(texturesInUse()).toEqual([`cards:${DEFAULT_CARD_DECK}`]);
+    });
+
+    it("switches once the load it was waiting on finishes", () => {
+      presentation.setCardDeck("classic");
+
+      loader().complete(textures());
+
+      expect(texturesInUse()).toEqual(["cards:classic"]);
+    });
+
+    it("stays on the deck it has when the load fails", () => {
+      presentation.setCardDeck("classic");
+
+      loader().complete(false);
+
+      // Pointing sprites at a texture that never arrived would draw the whole
+      // board as blank rectangles, which is worse than the deck being left.
+      expect(texturesInUse()).toEqual([`cards:${DEFAULT_CARD_DECK}`]);
+    });
+
+    it("ignores a load that finishes after the player changed their mind", () => {
+      presentation.setCardDeck("classic");
+      presentation.setCardDeck(DEFAULT_CARD_DECK);
+
+      loader().complete(textures());
+
+      expect(texturesInUse()).toEqual([`cards:${DEFAULT_CARD_DECK}`]);
+    });
+
+    it("does not reload a deck it is already drawing", () => {
+      presentation.setCardDeck(DEFAULT_CARD_DECK);
+
+      expect(loader().requested).toEqual([]);
+    });
+
+    it("stops following the setting once the scene shuts down", () => {
+      const events = boardScene.events as unknown as MockSceneEvents;
+      events.emit(SHUTDOWN_EVENT);
+      textures().add("cards:classic");
+
+      presentation.setCardDeck("classic");
+
+      expect(texturesInUse()).toEqual([`cards:${DEFAULT_CARD_DECK}`]);
     });
   });
 

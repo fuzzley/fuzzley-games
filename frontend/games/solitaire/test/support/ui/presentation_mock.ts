@@ -4,6 +4,7 @@ import type {
   CardBackStyle,
   PresentationSettingsService,
 } from "@/ui/app/service/presentation_settings.service";
+import { CardDeckId, DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
 
 /**
  * A mock of the presentation settings, which are no longer part of any game.
@@ -18,23 +19,31 @@ export function createMockPresentation(
   overrides: {
     cardBackStyle?: CardBackStyle;
     backgroundColor?: string;
+    cardDeck?: CardDeckId;
   } = {},
 ) {
   const cardBackStyle = signal<CardBackStyle>(
     overrides.cardBackStyle ?? "card-back-blue",
   );
   const backgroundColor = signal(overrides.backgroundColor ?? "");
+  const cardDeck = signal<CardDeckId>(overrides.cardDeck ?? DEFAULT_CARD_DECK);
 
   return {
     cardBackStyle,
     backgroundColor,
+    cardDeck,
     cardBackKey: () => cardBackStyle(),
+    cardDeckId: () => cardDeck(),
     onBackgroundColor: vi.fn(() => () => undefined),
+    onCardDeck: vi.fn(() => () => undefined),
     setCardBackStyle: vi.fn((style: CardBackStyle) => {
       cardBackStyle.set(style);
     }),
     setBackgroundColor: vi.fn((color: string) => {
       backgroundColor.set(color);
+    }),
+    setCardDeck: vi.fn((deckId: CardDeckId) => {
+      cardDeck.set(deckId);
     }),
   };
 }

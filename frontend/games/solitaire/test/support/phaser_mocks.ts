@@ -1,5 +1,6 @@
 import { vi, type Mock } from "vitest";
 import * as Phaser from "phaser";
+import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
 
 /**
  * A shadow filter recorded by a mock sprite. Field names follow Phaser's
@@ -36,7 +37,14 @@ export interface MockSprite {
   originY: number;
   depth: number;
   scale: number;
-  frame: string;
+  /**
+   * Modelled as Phaser has it — an object with a name, not a bare string —
+   * because production code reads `sprite.frame.name` to keep a sprite on the
+   * frame it is showing while its texture changes underneath it.
+   */
+  frame: { name: string };
+  /** The texture the sprite draws from, as Phaser's `sprite.texture.key`. */
+  texture: { key: string };
   active: boolean;
   displayWidth: number;
   displayHeight: number;
@@ -53,6 +61,7 @@ export interface MockSprite {
   setInteractive(config?: { useHandCursor: boolean }): MockSprite;
   enableFilters(): MockSprite;
   setFrame(frame: string): MockSprite;
+  setTexture(key: string, frame?: string): MockSprite;
   setPosition(x: number, y: number): MockSprite;
   setScale(scale: number): MockSprite;
   setDepth(depth: number): MockSprite;
@@ -74,11 +83,13 @@ export interface MockShadowFilter {
 
 /** Overridable initial fields for a {@link MockSprite}. */
 export type MockSpriteOptions = Partial<
-  Pick<
-    MockSprite,
-    "x" | "y" | "frame" | "active" | "displayWidth" | "displayHeight"
-  >
->;
+  Pick<MockSprite, "x" | "y" | "active" | "displayWidth" | "displayHeight">
+> & {
+  /** The frame's name, which is the only part of it a caller ever sets. */
+  frame?: string;
+  /** The texture the sprite is created from. */
+  texture?: string;
+};
 
 /** Builds a {@link MockSprite} with recording setters and its own listeners. */
 export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
@@ -122,7 +133,8 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
     originY: 0,
     depth: 0,
     scale: 1,
-    frame: options.frame ?? "",
+    frame: { name: options.frame ?? "" },
+    texture: { key: options.texture ?? "" },
     active: options.active ?? true,
     displayWidth: options.displayWidth ?? 220,
     displayHeight: options.displayHeight ?? 307,
@@ -153,7 +165,15 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
       return sprite;
     },
     setFrame(frame: string): MockSprite {
-      sprite.frame = frame;
+      sprite.frame = { name: frame };
+      return sprite;
+    },
+    setTexture(key: string, frame?: string): MockSprite {
+      sprite.texture = { key };
+      // Phaser keeps the current frame when none is named, and so does this:
+      // a swap that dropped the frame would leave the sprite showing the whole
+      // atlas page, which is the bug worth being able to catch.
+      if (frame !== undefined) sprite.frame = { name: frame };
       return sprite;
     },
     setPosition(x: number, y: number): MockSprite {
@@ -382,6 +402,71 @@ export function createMockSceneEvents(): MockSceneEvents {
   };
 }
 
+/** A mock Phaser texture cache, holding just the keys that are registered. */
+export interface MockTextures {
+  exists(key: string): boolean;
+  /** Registers a texture, as a completed load would. */
+  add(key: string): void;
+}
+
+/** Builds a {@link MockTextures} pre-loaded with the given keys. */
+export function createMockTextures(...keys: string[]): MockTextures {
+  const present = new Set(keys);
+  return {
+    exists: (key: string) => present.has(key),
+    add: (key: string) => {
+      present.add(key);
+    },
+  };
+}
+
+/**
+ * A mock Phaser loader.
+ *
+ * Records what was asked for and leaves finishing it to the test, because when
+ * a load completes — and whether it produces a texture at all — is exactly what
+ * the deck swap has to get right.
+ */
+export interface MockLoader {
+  multiatlas: Mock;
+  once: Mock;
+  start: Mock;
+  /** The texture keys `multiatlas` has been asked for, in order. */
+  readonly requested: string[];
+  /**
+   * Fires the loader's completion listeners.
+   *
+   * @param textures Registers the requested keys first, as a successful load
+   *   would. Pass false to complete without them, which is what a failed load
+   *   looks like from here.
+   */
+  complete(textures?: MockTextures | false): void;
+}
+
+/** Builds a {@link MockLoader} whose completion a test drives. */
+export function createMockLoader(): MockLoader {
+  const requested: string[] = [];
+  const completionListeners: (() => void)[] = [];
+
+  return {
+    requested,
+    multiatlas: vi.fn((key: string) => {
+      requested.push(key);
+    }),
+    once: vi.fn((event: string, callback: () => void) => {
+      if (event === LOADER_COMPLETE_EVENT) completionListeners.push(callback);
+    }),
+    start: vi.fn(),
+    complete(textures?: MockTextures | false): void {
+      if (textures) {
+        for (const key of requested) textures.add(key);
+      }
+      const listeners = completionListeners.splice(0);
+      for (const callback of listeners) callback();
+    },
+  };
+}
+
 /** A mock Phaser scale manager that records and dispatches its listeners. */
 export interface MockScaleManager {
   on: Mock;
@@ -418,8 +503,11 @@ export function boardScenePhaserMock(): {
     input: MockInput;
     events: MockSceneEvents;
     cameras: { main: { setBackgroundColor: Mock } };
+    textures: MockTextures;
+    load: MockLoader;
   };
   Scenes: { Events: { SHUTDOWN: string } };
+  Loader: { Events: { COMPLETE: string } };
   Geom: { Rectangle: typeof MockRectangle };
 } {
   return {
@@ -427,16 +515,21 @@ export function boardScenePhaserMock(): {
       add = {
         graphics: () => createMockGraphics(),
         sprite: vi.fn(
-          (x?: number, y?: number, _texture?: string, frame?: string) =>
-            createMockSprite({ x, y, frame }),
+          (x?: number, y?: number, texture?: string, frame?: string) =>
+            createMockSprite({ x, y, texture, frame }),
         ),
       };
       scale = createMockScaleManager();
       input = createMockInput();
       events = createMockSceneEvents();
       cameras = { main: { setBackgroundColor: vi.fn() } };
+      // The deck the board boots on is already loaded by the time a board
+      // scene is created; anything else it has to fetch for itself.
+      textures = createMockTextures(BOOT_TEXTURE_KEY);
+      load = createMockLoader();
     },
     Scenes: { Events: { SHUTDOWN: SHUTDOWN_EVENT } },
+    Loader: { Events: { COMPLETE: LOADER_COMPLETE_EVENT } },
     Geom: {
       Rectangle: Object.assign(MockRectangle, {
         Intersection: rectangleIntersection,
@@ -447,3 +540,15 @@ export function boardScenePhaserMock(): {
 
 /** The scene shutdown event name, matching Phaser's own. */
 export const SHUTDOWN_EVENT = "shutdown";
+
+/** The loader event a board scene waits on before swapping a deck in. */
+export const LOADER_COMPLETE_EVENT = "complete";
+
+/**
+ * The texture a mock scene starts with loaded.
+ *
+ * Matches the deck {@link TestPresentation} reports by default, so a board
+ * scene built over the two finds its own deck already in the cache — the same
+ * way a real one does, the loading scene having fetched it first.
+ */
+export const BOOT_TEXTURE_KEY = `cards:${DEFAULT_CARD_DECK}`;

@@ -66,7 +66,10 @@
   gap: var(--space-4);
 }
 
-.card-back-option {
+// A swatch a player picks between: a preview, a label, and a selected state.
+// Shared by the card backs and the decks, which are the same control over
+// different artwork.
+@mixin swatch-option {
   @include transition(background, border-color, color);
   flex: 1;
   display: flex;
@@ -89,6 +92,10 @@
     border-color: var(--accent);
     color: var(--text-bright);
   }
+}
+
+.card-back-option {
+  @include swatch-option;
 }
 
 .card-back-preview {
@@ -119,6 +126,50 @@
 
 .red-pattern {
   @include dot-weave(var(--card-back-red-base), var(--card-back-red-dot));
+}
+
+// --- Card deck selector ---
+
+.card-deck-selector {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.card-deck-option {
+  @include swatch-option;
+  gap: var(--space-1);
+  text-align: center;
+}
+
+.card-deck-preview {
+  width: 100%;
+  max-width: 96px;
+  height: auto;
+  margin-bottom: var(--space-2);
+  filter: drop-shadow(var(--shadow-swatch));
+}
+
+.card-deck-preview-card {
+  fill: var(--card-face);
+  stroke: var(--border-vivid);
+  stroke-width: 1;
+}
+
+.card-deck-preview-rank {
+  fill: var(--card-ink-red);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.card-deck-preview-pip {
+  fill: var(--card-ink-red);
+}
+
+.card-deck-description {
+  font-size: var(--font-2xs);
+  line-height: var(--leading-tight);
+  color: var(--text-muted);
 }
 
 // --- Theme selector ---
