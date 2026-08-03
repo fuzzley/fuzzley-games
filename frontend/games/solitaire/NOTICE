@@ -41,11 +41,6 @@ Files covered
         The vector source, in the two cuts this project offers as decks. Both
         are modified; see "Modifications" below.
 
-    src/engine/render/assets/sprites/card/card-<suit>-<rank>.png
-    src/engine/render/assets/sprites/card/card-back-*.png
-
-        Rasterized derivative works, produced from the vector source above.
-
     Any texture atlas pages and manifests generated into the build output by
     `yarn build:atlas`, insofar as they embed the artwork above.
 
