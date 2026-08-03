@@ -74,18 +74,35 @@ export interface AppliedMove {
 }
 
 /**
- * Every card an action relocated, bottom-first within each run it moved.
+ * Every card an action relocated, bottom-first within each run as the cards now
+ * lie.
  *
  * The view lifts these clear of the board while their sprites catch up with the
- * model, which has already put them in their new piles.
+ * model, and draws them in the order they are given — so the order has to be the
+ * one they came to rest in, not the one they left in. Those differ: a Klondike
+ * draw pops the stock from the top and pushes onto the waste, turning the run
+ * over, and a recycle turns it back. {@link CardTransfer.cardIds} records where
+ * the cards came *from*, because that is what undo needs.
+ *
+ * Which way round a given action leaves its cards is not something to ask the
+ * action, whose {@link AppliedMoveKind} is a word a game chose. It is something
+ * to read off the board the action has already been applied to, which is what
+ * `positionOf` reports — and reading it that way is right in both directions,
+ * since undo puts the cards back and moves them again.
  *
  * @param move The applied action to read.
+ * @param positionOf Where a card now lies, as a rank that orders the whole
+ *   board. Supplied by the caller because the runs of a single action can end
+ *   up in different piles.
  */
-export function relocatedCardIds(move: AppliedMove): readonly string[] {
-  if (move.kind === "draw") {
-    return move.transfers.flatMap((transfer) =>
-      [...transfer.cardIds].reverse(),
-    );
-  }
-  return move.transfers.flatMap((transfer) => transfer.cardIds);
+export function relocatedCardIds(
+  move: AppliedMove,
+  positionOf: (cardId: string) => number,
+): readonly string[] {
+  // Sorted within each transfer rather than across all of them, so the runs stay
+  // in the order the action relocated them — a run that left for a foundation
+  // still lands after the move that completed it.
+  return move.transfers.flatMap((transfer) =>
+    [...transfer.cardIds].sort((a, b) => positionOf(a) - positionOf(b)),
+  );
 }
