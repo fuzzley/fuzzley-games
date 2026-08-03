@@ -57,7 +57,9 @@ export function makeTableBoardScene(options: TableBoardOptions): BoardScene {
     handleIntent,
     stackFromCard: stackFromCard(game),
     cardBackKey: () => presentation.cardBackKey(),
+    cardDeckId: () => presentation.cardDeckId(),
     onBackgroundColor: presentation.onBackgroundColor,
+    onCardDeck: presentation.onCardDeck,
     onReset: (listener) => {
       const handler = () => listener();
       game.on("game-reset", handler);

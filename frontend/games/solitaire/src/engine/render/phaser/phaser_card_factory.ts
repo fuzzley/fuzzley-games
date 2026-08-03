@@ -54,10 +54,14 @@ export class PhaserCardFactory {
    * @param cardBackStyle Supplies the current card-back frame to use for new
    *   card sprites. Injected so the factory needs no knowledge of the game
    *   model or scene internals.
+   * @param textureKey Supplies the texture of the deck currently on the table.
+   *   Read per sprite rather than captured, so a sprite made after the player
+   *   changes deck is drawn from the deck they changed to.
    */
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly cardBackStyle: () => string,
+    private readonly textureKey: () => string,
   ) {}
 
   /**
@@ -69,7 +73,7 @@ export class PhaserCardFactory {
     const sprite = this.scene.add.sprite(
       0,
       0,
-      "card_assets",
+      this.textureKey(),
       this.cardBackStyle(),
     );
     sprite.setOrigin(0, 0);
@@ -115,7 +119,7 @@ export class PhaserCardFactory {
     alpha: number,
     interactive: boolean,
   ): Phaser.GameObjects.Sprite {
-    const sprite = this.scene.add.sprite(0, 0, "card_assets", frame);
+    const sprite = this.scene.add.sprite(0, 0, this.textureKey(), frame);
     sprite.setOrigin(0, 0);
     sprite.setAlpha(alpha);
     if (interactive) {

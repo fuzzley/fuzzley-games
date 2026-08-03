@@ -1,4 +1,4 @@
-import { GameObjects, Scene, Scenes } from "phaser";
+import { GameObjects, Loader, Scene, Scenes } from "phaser";
 
 import { PhaserCardFactory } from "./phaser_card_factory";
 import { BoardInputManager } from "./board_input_manager";
@@ -14,6 +14,8 @@ import {
   Viewport,
 } from "../view/table_view_state";
 import { TableLayoutSpec, designSize } from "../layout/table_layout";
+import { CardDeckId } from "../card_deck";
+import { cardDeckAtlas, cardDeckTextureKey } from "./card_deck_atlas";
 import { TableView } from "@/engine/tableau/view/table_view";
 
 /**
@@ -67,8 +69,12 @@ export interface BoardSceneOptions {
   readonly stackFromCard: StackFromCard;
   /** The artwork key for the back of a card, read when a sprite is made. */
   readonly cardBackKey: () => string;
+  /** The deck to draw from, read when the scene is created. */
+  readonly cardDeckId: () => CardDeckId;
   /** Follows the table colour. */
   readonly onBackgroundColor: Subscribe<string>;
+  /** Follows the deck the player has chosen. */
+  readonly onCardDeck: Subscribe<CardDeckId>;
   /** Follows new deals, so stale interaction state does not survive one. */
   readonly onReset: Subscribe<void>;
   /**
@@ -111,6 +117,21 @@ export class BoardScene extends Scene implements PhaserSprites {
    * a placeholder (the waste, which fans over bare table) are simply absent.
    */
   private readonly pileBackgrounds = new Map<string, GameObjects.Sprite>();
+
+  /**
+   * The deck being drawn. Every sprite's texture, and the one new sprites are
+   * made from.
+   */
+  private deckId!: CardDeckId;
+
+  /**
+   * The deck a load is running for, or null when none is.
+   *
+   * What makes a late arrival safe to ignore: a player who switches away and
+   * back while the first load is still running should end on the deck they
+   * chose last, not on whichever load happened to finish last.
+   */
+  private awaitingDeck: CardDeckId | null = null;
 
   /** Input handling manager for drag-and-drop and interaction. */
   private inputManager!: BoardInputManager;
@@ -160,9 +181,15 @@ export class BoardScene extends Scene implements PhaserSprites {
    * instead of silently throwing it away.
    */
   create() {
+    this.deckId = this.options.cardDeckId();
+    this.awaitingDeck = null;
     this.inputManager = new BoardInputManager(this);
     this.viewApplier = new PhaserTableRenderer(this);
-    this.visualFactory = new PhaserCardFactory(this, this.options.cardBackKey);
+    this.visualFactory = new PhaserCardFactory(
+      this,
+      this.options.cardBackKey,
+      () => cardDeckTextureKey(this.deckId),
+    );
 
     this.createPileBackgroundSprites();
     this.createCardSprites();
@@ -182,10 +209,14 @@ export class BoardScene extends Scene implements PhaserSprites {
         this.inputManager.beginFlight(cardIds);
       },
     );
+    const stopFollowingDeck = this.options.onCardDeck((deckId) => {
+      this.useDeck(deckId);
+    });
     this.events.once(Scenes.Events.SHUTDOWN, () => {
       stopFollowingColor();
       stopFollowingResets();
       stopFollowingRelocations();
+      stopFollowingDeck();
     });
 
     this.inputManager.snapAll = true;
@@ -245,6 +276,65 @@ export class BoardScene extends Scene implements PhaserSprites {
       if (zone.emptyIsActionable) {
         this.inputManager.registerPileBackgroundListeners(sprite, pile.id);
       }
+    }
+  }
+
+  /**
+   * Draws the board from a different deck.
+   *
+   * Loads it first if this is the first time the player has asked for it, and
+   * leaves the board on the deck it has if that load fails: a texture that
+   * never arrived would draw every card as a blank rectangle, which is worse
+   * than the deck they were trying to leave.
+   *
+   * @param deckId The deck to switch to.
+   */
+  private useDeck(deckId: CardDeckId): void {
+    if (deckId === this.deckId) {
+      this.awaitingDeck = null;
+      return;
+    }
+
+    const { textureKey, manifest } = cardDeckAtlas(deckId);
+    if (this.textures.exists(textureKey)) {
+      this.awaitingDeck = null;
+      this.applyDeck(deckId);
+      return;
+    }
+
+    // Every switch after the first is the branch above, because a deck stays in
+    // the texture cache once loaded. Only the first costs a fetch.
+    this.awaitingDeck = deckId;
+    this.load.multiatlas(textureKey, manifest as unknown as string, undefined);
+    this.load.once(Loader.Events.COMPLETE, () => {
+      // Ignored unless this is still the deck being waited for: switching away
+      // and back mid-load would otherwise let the stale arrival win.
+      if (this.awaitingDeck !== deckId) return;
+      this.awaitingDeck = null;
+      if (this.textures.exists(textureKey)) {
+        this.applyDeck(deckId);
+      }
+    });
+    this.load.start();
+  }
+
+  /**
+   * Repoints every sprite at the given deck's texture.
+   *
+   * Frame names are the same in every deck, so each sprite keeps the frame it
+   * was already showing and the per-frame reconciliation in
+   * {@link PhaserTableRenderer} has nothing to undo.
+   */
+  private applyDeck(deckId: CardDeckId): void {
+    this.deckId = deckId;
+    const textureKey = cardDeckTextureKey(deckId);
+
+    for (const sprite of [
+      ...this.cardSprites.values(),
+      ...this.pileBackgrounds.values(),
+    ]) {
+      sprite.setTexture(textureKey, sprite.frame.name);
+      sprite.setOrigin(0, 0);
     }
   }
 

@@ -60,6 +60,57 @@
         </div>
       </div>
 
+      <!-- Card Deck -->
+      <div class="setting-group">
+        <span class="setting-label" id="card-deck-label">Card Deck</span>
+        <div
+          class="card-deck-selector"
+          appRadioGroup
+          aria-labelledby="card-deck-label"
+        >
+          @for (deck of deckChoices(); track deck.id) {
+            <button
+              type="button"
+              class="card-deck-option"
+              role="radio"
+              [attr.aria-checked]="deck.selected"
+              (click)="presentation.setCardDeck(deck.id)"
+            >
+              <!--
+                The top of a King as a fanned column leaves it showing, which
+                is the whole of what the choice changes. The deck's own index
+                pip is not here because it is not there either — it sits below
+                the fold, which is the reason the corner pip exists.
+              -->
+              <svg
+                class="card-deck-preview"
+                viewBox="0 0 66 30"
+                aria-hidden="true"
+              >
+                <rect
+                  x="0.5"
+                  y="0.5"
+                  width="65"
+                  height="29"
+                  rx="3"
+                  class="card-deck-preview-card"
+                />
+                <text x="5" y="21" class="card-deck-preview-rank">K</text>
+                @if (deck.hasCornerPips) {
+                  <path
+                    d="M6 20 a2.6 2.6 0 0 1 4.4 0 a2.6 2.6 0 0 1 4.4 0 c0 3-4.4 6.2-4.4 6.2 S6 23 6 20 z"
+                    class="card-deck-preview-pip"
+                    transform="translate(44 -11)"
+                  />
+                }
+              </svg>
+              <span>{{ deck.name }}</span>
+              <span class="card-deck-description">{{ deck.description }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
       <!-- Table Themes -->
       <div class="setting-group">
         <span class="setting-label" id="table-theme-label">Table Theme</span>

@@ -1,3 +1,5 @@
+import { CardDeckId } from "./card_deck";
+
 /**
  * Subscribes to a value the board follows, returning a function that stops
  * following it.
@@ -18,8 +20,21 @@ export interface TablePresentation {
   /** The artwork key for the back of a card. */
   cardBackKey(): string;
 
+  /** The deck the cards are drawn from. */
+  cardDeckId(): CardDeckId;
+
   /** Follows the table colour. */
   readonly onBackgroundColor: Subscribe<string>;
+
+  /**
+   * Follows the deck.
+   *
+   * A subscription rather than a read like {@link cardBackKey}, because a deck
+   * is a texture: swapping one in means having it loaded first, so the board
+   * has to be told when the choice changes rather than noticing on the next
+   * frame.
+   */
+  readonly onCardDeck: Subscribe<CardDeckId>;
 }
 
 /** The board colour used before a player has chosen one. */

@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { TestBed } from "@angular/core/testing";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/presentation";
+import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
 
 /**
  * A service built through the injector.
@@ -94,6 +95,39 @@ describe("PresentationSettingsService", () => {
 
       expect(buildSettings().cardBackStyle()).toBe("card-back-blue");
     });
+
+    it("starts on the default deck when nothing is stored", () => {
+      expect(buildSettings().cardDeck()).toBe(DEFAULT_CARD_DECK);
+    });
+
+    it("loads the deck it stored", () => {
+      localStorage.setItem(
+        "fsolitaire-presentation",
+        JSON.stringify({ cardDeck: "classic" }),
+      );
+
+      expect(buildSettings().cardDeck()).toBe("classic");
+    });
+
+    it("falls back to the default deck for settings written before it existed", () => {
+      // A player who chose a felt colour before decks were offered has no deck
+      // recorded, and should get the one everyone else starts on.
+      localStorage.setItem(
+        "fsolitaire-presentation",
+        JSON.stringify({ backgroundColor: "#1b4353" }),
+      );
+
+      expect(buildSettings().cardDeck()).toBe(DEFAULT_CARD_DECK);
+    });
+
+    it("falls back to the default deck for one this build does not have", () => {
+      localStorage.setItem(
+        "fsolitaire-presentation",
+        JSON.stringify({ cardDeck: "art-deco" }),
+      );
+
+      expect(buildSettings().cardDeck()).toBe(DEFAULT_CARD_DECK);
+    });
   });
 
   describe("saving", () => {
@@ -102,11 +136,13 @@ describe("PresentationSettingsService", () => {
 
       settings.setCardBackStyle("card-back-red");
       settings.setBackgroundColor("#3c096c");
+      settings.setCardDeck("classic");
       TestBed.flushEffects();
 
       expect(stored()).toEqual({
         cardBackStyle: "card-back-red",
         backgroundColor: "#3c096c",
+        cardDeck: "classic",
       });
     });
 

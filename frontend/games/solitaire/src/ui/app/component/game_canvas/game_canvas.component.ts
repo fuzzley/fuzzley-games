@@ -6,6 +6,7 @@ import {
   effect,
   inject,
   signal,
+  untracked,
   viewChild,
 } from "@angular/core";
 import { PhaserHost } from "@/engine/render/phaser/phaser_host";
@@ -93,10 +94,17 @@ export class GameCanvasComponent {
         }
       }, BOARD_READY_TIMEOUT_MS);
 
+      // Read untracked: which deck to preload is a question asked once, when
+      // the canvas boots. Tracking it would tear the whole host down every time
+      // the player changed deck, which is exactly what the board's own swap
+      // exists to avoid.
+      const deckId = untracked(() => this.presentation.cardDeckId());
+
       const host = new PhaserHost(
         window,
         this.canvasHostRef().nativeElement,
         () => makeBoardScene(gameId, game, this.presentation, onReady),
+        deckId,
       );
       host.start();
 

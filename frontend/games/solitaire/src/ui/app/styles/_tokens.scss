@@ -115,11 +115,15 @@
 
   --warning-glow: #{with-alpha($amber-500, 0.15)};
 
-  // --- Card back swatches (the settings drawer previews) ---
+  // --- Card swatches (the settings drawer previews) ---
   --card-back-blue-base: #{$blue-900};
   --card-back-blue-dot: #{$blue-600};
   --card-back-red-base: #{$red-900};
   --card-back-red-dot: #{$red-600};
+  // The face of a card, for the deck preview. Paper and a red pip, because the
+  // preview is a drawing of a real card rather than a piece of the interface.
+  --card-face: #{$white};
+  --card-ink-red: #{$red-600};
 
   // --- Spacing ---
   // A 4px scale. Every gap, pad and margin in the application is one of these

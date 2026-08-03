@@ -66,9 +66,11 @@ const MAX_PAGE_PX = 4096;
  * be located by ink coverage and then told apart from the court cards' inner
  * frames, and left every cut a hair away from dragging a neighbour's edge into
  * the frame.
+ *
+ * Every deck's sheet shares this shape; which file a deck is drawn from is in
+ * {@link DECKS}.
  */
 const SHEET = {
-  file: "playing_card_assets_large.svg",
   width: 3249,
   height: 1709,
   cols: 13,
@@ -80,6 +82,22 @@ const SHEET = {
 
 /** A card's own size on the sheet, in user units, and how far it may vary. */
 const SHEET_CARD = { width: 224, height: 313, tolerance: 3 };
+
+/**
+ * The decks on offer, each drawn from its own sheet and written to its own
+ * directory under OUT_DIR.
+ *
+ * A sheet apiece rather than one sheet cut two ways, so either deck can be
+ * edited, re-rendered or replaced without touching the other. They are the same
+ * drawing on the same gutter grid; `corner_pips` adds a layer of suit badges.
+ *
+ * Ids match CardDeckId in src/engine/render/card_deck.ts, which is what the
+ * player's choice is stored as and what the loader looks a deck up by.
+ */
+const DECKS = [
+  { id: "classic", file: "playing_card_assets_large.svg" },
+  { id: "indexed", file: "playing_card_assets_corner_pips.svg" },
+];
 
 /** Pixels per SVG user unit when rendering the sheet. */
 const SHEET_PPU = ART_SCALE;
@@ -589,20 +607,28 @@ function packPages(frames) {
   return pages;
 }
 
-/** Removes atlas artefacts from a previous build so stale pages cannot linger. */
-async function cleanOutput() {
-  const existing = await readdir(OUT_DIR).catch(() => []);
+/** Removes a deck's artefacts from a previous build so stale pages cannot linger. */
+async function cleanOutput(outDir) {
+  const existing = await readdir(outDir).catch(() => []);
   for (const file of existing) {
     if (/^card_assets(-\d+)?\.png$/.test(file)) {
-      await unlink(join(OUT_DIR, file));
+      await unlink(join(outDir, file));
     }
   }
 }
 
-async function main() {
-  const sheetSvg = await readFile(join(CARD_DIR, SHEET.file), "utf8");
+/**
+ * Builds one deck's atlas from its own sheet.
+ *
+ * @param {typeof DECKS[number]} deck The deck to build.
+ * @param {{name: string, png: Buffer}[]} placeholderFrames The shared placeholders.
+ */
+async function buildDeck(deck, placeholderFrames) {
+  console.log(`${deck.id}  (${deck.file}):`);
+
+  const source = await readFile(join(CARD_DIR, deck.file), "utf8");
   const sheet = await rasterize(
-    sheetSvg,
+    source,
     { x: 0, y: 0, w: SHEET.width, h: SHEET.height },
     SHEET.width * SHEET_PPU,
     SHEET.height * SHEET_PPU,
@@ -637,6 +663,71 @@ async function main() {
     },
   );
 
+  await assertEdgesAreClear(cardFrames);
+
+  // Placeholders are outline art already, and are drawn under the cards rather
+  // than overlapping them, so only the cards are stamped.
+  const stampedCards = await stampCardEdge(cardFrames);
+  await assertEdgesAreStamped(stampedCards);
+
+  const frames = [...stampedCards, ...placeholderFrames];
+  const pages = packPages(frames);
+
+  const outDir = join(OUT_DIR, deck.id);
+  await mkdir(outDir, { recursive: true });
+  await cleanOutput(outDir);
+
+  const textures = [];
+  for (const [index, page] of pages.entries()) {
+    const image = `card_assets-${index}.png`;
+    await sharp({
+      create: {
+        width: page.width,
+        height: page.height,
+        channels: 4,
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      },
+    })
+      .composite(
+        page.frames.map((frame) => ({
+          input: frame.png,
+          left: frame.x,
+          top: frame.y,
+        })),
+      )
+      .png({ compressionLevel: 9 })
+      .toFile(join(outDir, image));
+
+    textures.push({
+      image,
+      format: "RGBA8888",
+      size: { w: page.width, h: page.height },
+      scale: 1,
+      frames: page.frames.map((frame) => ({
+        filename: frame.name,
+        frame: { x: frame.x, y: frame.y, w: FRAME_W, h: FRAME_H },
+        anchor: { x: 0.5, y: 0.5 },
+      })),
+    });
+
+    console.log(
+      `  ${image}  ${page.width}x${page.height}  ${page.frames.length} frames`,
+    );
+  }
+
+  await writeFile(
+    join(outDir, "card_assets_atlas.json"),
+    `${JSON.stringify({ textures }, null, 2)}\n`,
+  );
+
+  console.log(
+    `  ${frames.length} frames at ${FRAME_W}x${FRAME_H} (${ART_SCALE}x) across ${pages.length} page(s)`,
+  );
+}
+
+async function main() {
+  // Cut once and shared by every deck: the placeholders mark an empty pile
+  // rather than being cards, so no deck draws them differently.
   const placeholderSvg = await readFile(
     join(CARD_DIR, PLACEHOLDERS.file),
     "utf8",
@@ -660,65 +751,11 @@ async function main() {
     (_row, col) => ({ left: col * FRAME_W, top: 0 }),
   );
 
-  await assertEdgesAreClear(cardFrames);
-
-  // Placeholders are outline art already, and are drawn under the cards rather
-  // than overlapping them, so only the cards are stamped.
-  const stampedCards = await stampCardEdge(cardFrames);
-  await assertEdgesAreStamped(stampedCards);
-
-  const frames = [...stampedCards, ...placeholderFrames];
-  const pages = packPages(frames);
-
-  await mkdir(OUT_DIR, { recursive: true });
-  await cleanOutput();
-
-  const textures = [];
-  for (const [index, page] of pages.entries()) {
-    const image = `card_assets-${index}.png`;
-    await sharp({
-      create: {
-        width: page.width,
-        height: page.height,
-        channels: 4,
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      },
-    })
-      .composite(
-        page.frames.map((frame) => ({
-          input: frame.png,
-          left: frame.x,
-          top: frame.y,
-        })),
-      )
-      .png({ compressionLevel: 9 })
-      .toFile(join(OUT_DIR, image));
-
-    textures.push({
-      image,
-      format: "RGBA8888",
-      size: { w: page.width, h: page.height },
-      scale: 1,
-      frames: page.frames.map((frame) => ({
-        filename: frame.name,
-        frame: { x: frame.x, y: frame.y, w: FRAME_W, h: FRAME_H },
-        anchor: { x: 0.5, y: 0.5 },
-      })),
-    });
-
-    console.log(
-      `  ${image}  ${page.width}x${page.height}  ${page.frames.length} frames`,
-    );
+  for (const deck of DECKS) {
+    await buildDeck(deck, placeholderFrames);
   }
 
-  await writeFile(
-    join(OUT_DIR, "card_assets_atlas.json"),
-    `${JSON.stringify({ textures }, null, 2)}\n`,
-  );
-
-  console.log(
-    `Built ${frames.length} frames at ${FRAME_W}x${FRAME_H} (${ART_SCALE}x) across ${pages.length} page(s).`,
-  );
+  console.log(`Built ${DECKS.length} decks.`);
 }
 
 await main();

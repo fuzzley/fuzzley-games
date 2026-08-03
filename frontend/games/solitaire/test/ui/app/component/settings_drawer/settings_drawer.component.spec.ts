@@ -8,6 +8,7 @@ import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import { clickElement, queryAll } from "@test/support/dom";
 import { flushMicrotasks } from "@test/support/async";
 import { clickBackdrop, isDialogOpen, pressEscape } from "@test/support/dialog";
+import { CARD_DECKS } from "@/engine/render/card_deck";
 
 describe("SettingsDrawerComponent", () => {
   let fixture: ComponentFixture<SettingsDrawerComponent>;
@@ -122,6 +123,50 @@ describe("SettingsDrawerComponent", () => {
           "aria-checked",
         ),
       ).toBe("true");
+    });
+  });
+
+  describe("the card deck", () => {
+    /** The deck buttons, in the order the catalog offers them. */
+    function deckButtons(): Element[] {
+      return queryAll(fixture, ".card-deck-selector button");
+    }
+
+    it("offers every deck in the catalog", () => {
+      openDrawer();
+
+      expect(deckButtons().length).toBe(CARD_DECKS.length);
+    });
+
+    it("changes when one is picked", () => {
+      openDrawer();
+
+      clickElement(fixture, ".card-deck-selector button:nth-child(1)");
+
+      expect(harness.presentation.cardDeck()).toBe(CARD_DECKS[0].id);
+    });
+
+    it("marks the chosen one as checked", () => {
+      openDrawer();
+
+      clickElement(fixture, ".card-deck-selector button:nth-child(1)");
+      fixture.detectChanges();
+
+      expect(
+        deckButtons().map((button) => button.getAttribute("aria-checked")),
+      ).toEqual(["true", "false"]);
+    });
+
+    it("shows the corner pip only on the deck that has one", () => {
+      openDrawer();
+
+      // The preview is the whole of what tells the two decks apart, so an
+      // identical pair would leave the choice looking like it does nothing.
+      const pipCounts = deckButtons().map(
+        (button) => button.querySelectorAll(".card-deck-preview-pip").length,
+      );
+
+      expect(pipCounts).toEqual([0, 1]);
     });
   });
 
