@@ -82,5 +82,10 @@ export interface AppliedMove {
  * @param move The applied action to read.
  */
 export function relocatedCardIds(move: AppliedMove): readonly string[] {
+  if (move.kind === "draw") {
+    return move.transfers.flatMap((transfer) =>
+      [...transfer.cardIds].reverse(),
+    );
+  }
   return move.transfers.flatMap((transfer) => transfer.cardIds);
 }

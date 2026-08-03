@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
-import { AppliedMove } from "@/engine/tableau/move";
+import { AppliedMove, relocatedCardIds } from "@/engine/tableau/move";
 import {
   MoveEffects,
   ResolvedMove,
@@ -421,6 +421,48 @@ describe("TableGame", () => {
       game.clearAll();
 
       expect(game.isCardInteractable(orphan)).toBe(false);
+    });
+  });
+
+  describe("relocatedCardIds", () => {
+    it("returns card ids in bottom-first destination order for draw moves", () => {
+      const drawMove: AppliedMove = {
+        kind: "draw",
+        transfers: [
+          {
+            cardIds: ["card-1", "card-2", "card-3"],
+            fromPileId: "stock",
+            toPileId: "waste",
+            faceUpBefore: false,
+          },
+        ],
+        scoreDelta: 0,
+        flippedCardIds: [],
+      };
+
+      expect(relocatedCardIds(drawMove)).toEqual([
+        "card-3",
+        "card-2",
+        "card-1",
+      ]);
+    });
+
+    it("preserves card order for standard non-draw moves", () => {
+      const standardMove: AppliedMove = {
+        kind: "move",
+        transfers: [
+          {
+            cardIds: ["card-1", "card-2"],
+            fromPileId: "tableau-0",
+            toPileId: "tableau-1",
+            faceUpBefore: true,
+          },
+        ],
+        scoreDelta: 0,
+        flippedCardIds: [],
+      };
+
+      expect(relocatedCardIds(standardMove)).toEqual(["card-1", "card-2"]);
     });
   });
 });
