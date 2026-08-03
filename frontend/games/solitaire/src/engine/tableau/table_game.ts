@@ -548,7 +548,8 @@ export abstract class TableGame<
    * to get the behaviour. Returns a function that stops following, so a caller
    * that outlives nothing in particular still has a way to let go.
    *
-   * @param listener Told which cards moved, bottom-first within each run.
+   * @param listener Told which cards moved, bottom-first within each run as
+   *   they now lie.
    * @returns Unsubscribes the listener.
    */
   public onCardsRelocated(listener: RelocationListener): () => void {
@@ -556,9 +557,29 @@ export abstract class TableGame<
     return () => this.relocationListeners.delete(listener);
   }
 
+  /**
+   * Where every card in play now lies, as a rank that orders the whole board.
+   *
+   * Counted across the piles rather than within each one, so two cards in
+   * different piles never share a rank — the same ordering the view builder
+   * gives resting cards, so the two agree by construction. Built fresh per
+   * announcement because that is the only thing it is for: an action has just
+   * moved the cards it is about to describe.
+   */
+  private boardOrder(): Map<string, number> {
+    const order = new Map<string, number>();
+    for (const pile of this.piles) {
+      for (const card of pile.getCards()) {
+        order.set(card.id, order.size);
+      }
+    }
+    return order;
+  }
+
   /** Tells the listeners which cards an action relocated, if it relocated any. */
   private announceRelocation(move: AppliedMove): void {
-    const cardIds = relocatedCardIds(move);
+    const order = this.boardOrder();
+    const cardIds = relocatedCardIds(move, (cardId) => order.get(cardId) ?? -1);
     if (cardIds.length === 0) return;
 
     // A snapshot, so a listener that unsubscribes during dispatch does not

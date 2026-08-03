@@ -203,19 +203,22 @@ describe("KlondikeGame", () => {
       expect(allFaceDown).toBe(true);
     });
 
-    it("announces the drawn cards so they can be lifted while they cross", () => {
+    it("announces the drawn cards in the order they land in the waste", () => {
       game.startNewGame();
       const announced: string[][] = [];
       game.onCardsRelocated((cardIds) => announced.push([...cardIds]));
 
       game.drawCardsFromStock();
 
-      // Without this the drawn cards take the waste's low depth the instant the
-      // model moves them, and slide under it on the way over.
-      expect(announced.flat().length).toBe(3);
+      // Without the announcement the drawn cards take the waste's low depth the
+      // instant the model moves them, and slide under it on the way over. And a
+      // draw comes off the top of the stock, so the run arrives turned over:
+      // named the other way round, the three would cross the table in the
+      // reverse of the order they are about to fan out in.
+      expect(announced).toEqual([game.waste.getCards().map((card) => card.id)]);
     });
 
-    it("announces the whole waste when it is recycled", () => {
+    it("announces the whole waste, in the order it lands in the stock", () => {
       game.startNewGame();
       const recycled = [
         relocate(game, "card-clubs-ace", game.waste).id,
@@ -227,7 +230,9 @@ describe("KlondikeGame", () => {
 
       game.drawCardsFromStock();
 
-      expect(announced).toEqual([recycled]);
+      // A recycle turns the run over the same way a draw does, the top of the
+      // waste going down into the stock first.
+      expect(announced).toEqual([[...recycled].reverse()]);
     });
   });
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
-import { AppliedMove, relocatedCardIds } from "@/engine/tableau/move";
+import { AppliedMove } from "@/engine/tableau/move";
 import {
   MoveEffects,
   ResolvedMove,
@@ -64,6 +64,30 @@ class TestGame extends TableGame {
     card.faceUp = faceUp;
     this.requirePile(pileId).addCard(card);
     return card;
+  }
+
+  /**
+   * Moves a whole pile onto another from the top down, the way a stock draw
+   * does, so the run arrives turned over.
+   *
+   * Recorded as a game must record it: `cardIds` in the order the cards sat in
+   * the pile they left, which is the order undo puts them back in. Named
+   * something no game calls its actions, because which way round a run lands is
+   * not supposed to be read off the name.
+   */
+  public turnOver(fromPileId: string, toPileId: string): void {
+    const from = this.requirePile(fromPileId);
+    const to = this.requirePile(toPileId);
+    const cardIds = from.getCards().map((card) => card.id);
+
+    for (const card of [...from.getCards()].reverse()) {
+      from.removeCard(card);
+      to.addCard(card);
+    }
+
+    this.recordTransfers("turn-over", [
+      { cardIds, fromPileId, toPileId, faceUpBefore: true },
+    ]);
   }
 
   /** Empties the board, exposing `resetPiles` for a test that needs it. */
@@ -424,45 +448,50 @@ describe("TableGame", () => {
     });
   });
 
-  describe("relocatedCardIds", () => {
-    it("returns card ids in bottom-first destination order for draw moves", () => {
-      const drawMove: AppliedMove = {
-        kind: "draw",
-        transfers: [
-          {
-            cardIds: ["card-1", "card-2", "card-3"],
-            fromPileId: "stock",
-            toPileId: "waste",
-            faceUpBefore: false,
-          },
-        ],
-        scoreDelta: 0,
-        flippedCardIds: [],
-      };
+  describe("announcing what moved", () => {
+    /** Every announcement made from here on, in the order they arrived. */
+    function recordAnnouncements(): string[][] {
+      const announced: string[][] = [];
+      game.onCardsRelocated((cardIds) => announced.push([...cardIds]));
+      return announced;
+    }
 
-      expect(relocatedCardIds(drawMove)).toEqual([
-        "card-3",
-        "card-2",
-        "card-1",
-      ]);
+    it("names a run that arrived turned over in the order it landed", () => {
+      const bottom = game.place(LEFT, Rank.TWO);
+      const middle = game.place(LEFT, Rank.THREE);
+      const top = game.place(LEFT, Rank.FOUR);
+      const announced = recordAnnouncements();
+
+      game.turnOver(LEFT, RIGHT);
+
+      // The view draws them in the order it is given, so a run that came off
+      // the top of one pile and onto another has to be named the way it now
+      // lies — not the way it sat in the pile it left, which is what the
+      // transfer records for undo.
+      expect(announced).toEqual([[top.id, middle.id, bottom.id]]);
     });
 
-    it("preserves card order for standard non-draw moves", () => {
-      const standardMove: AppliedMove = {
-        kind: "move",
-        transfers: [
-          {
-            cardIds: ["card-1", "card-2"],
-            fromPileId: "tableau-0",
-            toPileId: "tableau-1",
-            faceUpBefore: true,
-          },
-        ],
-        scoreDelta: 0,
-        flippedCardIds: [],
-      };
+    it("names a run that kept its order the way it already was", () => {
+      const lower = game.place(LEFT, Rank.TWO);
+      const upper = game.place(LEFT, Rank.THREE);
+      const announced = recordAnnouncements();
 
-      expect(relocatedCardIds(standardMove)).toEqual(["card-1", "card-2"]);
+      game.moveCardToPile(lower.id, RIGHT);
+
+      expect(announced).toEqual([[lower.id, upper.id]]);
+    });
+
+    it("names a turned-over run the way undo leaves it", () => {
+      const bottom = game.place(LEFT, Rank.TWO);
+      const top = game.place(LEFT, Rank.THREE);
+      game.turnOver(LEFT, RIGHT);
+      const announced = recordAnnouncements();
+
+      game.undo();
+
+      // Undo re-appends in the order the cards came from, so they are back the
+      // way they started and the announcement says so.
+      expect(announced).toEqual([[bottom.id, top.id]]);
     });
   });
 });
