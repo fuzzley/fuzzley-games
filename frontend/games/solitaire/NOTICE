@@ -42,8 +42,28 @@ Files covered
         The vector source, in the three cuts this project offers as decks.
         All are modified; see "Modifications" below.
 
-    Any texture atlas pages and manifests generated into the build output by
-    `yarn build:atlas`, insofar as they embed the artwork above.
+    src/engine/render/assets/sprites/atlas/classic/card_assets-0.png
+    src/engine/render/assets/sprites/atlas/indexed/card_assets-0.png
+    src/engine/render/assets/sprites/atlas/all-corner-pips/card_assets-0.png
+
+        The texture atlas pages `yarn build:atlas` renders from the three
+        sheets above, a directory per deck. These are checked in rather than
+        built on demand, so the artwork is redistributed with this repository
+        in raster form as well as in vector form, and these pages carry its
+        license with them.
+
+        Each deck's second page, `card_assets-1.png`, holds only the pile
+        placeholders cut from `card_placeholders.svg`, which is this project's
+        own work. It is named here because the split between the two pages is
+        a packing detail that can change, not a promise: whichever page a card
+        frame lands on is covered.
+
+        The `card_assets_atlas.json` beside each page records frame names and
+        coordinates rather than artwork, and is covered only insofar as it is
+        part of the same derived work.
+
+    Copies of those pages in any build output, which `yarn build` emits into
+    `dist/assets/` under content-hashed names.
 
 These files are licensed under LGPL-3.0, not under the project's GPL-3.0
 license. LGPL-3.0 applies to the artwork and to derivative works of the artwork;
@@ -65,18 +85,23 @@ Applying to all three files:
     apart from the court cards' inner frames. Only the position of each card
     changed; the artwork within each card is untouched.
 
-Applying to `playing_card_assets_corner_pips.svg` and `playing_card_assets_all_corner_pips.svg`:
+Applying to `playing_card_assets_corner_pips.svg` and
+`playing_card_assets_all_corner_pips.svg`:
 
-  * Suit pips were added in the blank margin at the top right (for aces and court
-    cards in `corner_pips`, and for all 52 cards in `all_corner_pips`). A fanned
-    tableau column leaves only the top 45 of a card's 307 design units showing,
-    and the deck places its corner suit pip below that line. The added pips repeat
-    each card's own corner index pip at its own size, in a layer of their own;
-    they cover no artwork, and no original element was edited.
+  * Suit pips were added in the blank margin at the top right — on the aces
+    and courts in `corner_pips`, and on all 52 cards in `all_corner_pips`. A
+    fanned tableau column leaves only the top 45 of a card's 307 design units
+    showing, and the deck places its own corner suit pip below that line. The
+    added pips repeat each card's corner index pip at its own size, in a layer
+    of their own; they cover no artwork, and no original element was edited.
 
 So `playing_card_assets_large.svg` is the artwork as its author drew it, laid
-out differently. All changes are reproducible from the upstream file, and the
-file before them is in this repository's history.
+out differently, and the two pip decks are that same layout with a layer added.
+All three are reproducible from the upstream file, which is in this
+repository's history as the first committed revision of
+`playing_card_assets_large.svg` — the only one of the three that ever existed
+here unmodified, the other two having been added already carrying their
+changes.
 
 Relationship to LICENSE
 -----------------------
@@ -93,9 +118,9 @@ LGPL-3.0 requires that recipients be able to replace the covered work with a
 modified or alternative version. Two things make that practical here:
 
   * The vector source is retained in this repository, so the artwork can be
-    edited rather than only redistributed. It carries the changes recorded under
-    "Modifications" above; the file as the author distributed it is in this
-    repository's history.
+    edited rather than only redistributed — and not only the rasterized pages
+    cut from it. It carries the changes recorded under "Modifications" above;
+    the file as the author distributed it is in this repository's history.
 
   * Card artwork is resolved through the key returned by playingCardFaceKey()
     in src/engine/core/card/playing_card.ts, so replacing a deck is a matter of
