@@ -69,12 +69,13 @@
 // A swatch a player picks between: a preview, a label, and a selected state.
 // Shared by the card backs and the decks, which are the same control over
 // different artwork.
+//
+// The surface and the selected state only. Which way the preview and the label
+// sit is the selector's own business: two card backs fit across the drawer and
+// three decks with a sentence each do not.
 @mixin swatch-option {
   @include transition(background, border-color, color);
-  flex: 1;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   background: var(--wash-faint);
   border: 2px solid var(--border-default);
   border-radius: var(--radius-md);
@@ -96,6 +97,9 @@
 
 .card-back-option {
   @include swatch-option;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
 }
 
 .card-back-preview {
@@ -130,23 +134,55 @@
 
 // --- Card deck selector ---
 
+// A row per deck rather than a column each. The drawer is 320px wide, so three
+// across leaves about 50px an option — not enough for a preview that has to
+// show two cards, and nowhere near enough for a sentence underneath it.
 .card-deck-selector {
   display: flex;
-  gap: var(--space-4);
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .card-deck-option {
   @include swatch-option;
-  gap: var(--space-1);
-  text-align: center;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: left;
 }
 
 .card-deck-preview {
-  width: 100%;
-  max-width: 96px;
+  flex: none;
+  width: 88px;
   height: auto;
-  margin-bottom: var(--space-2);
   filter: drop-shadow(var(--shadow-swatch));
+}
+
+.card-deck-label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.card-deck-name {
+  font-weight: 600;
+}
+
+// Pushed to the far edge by the label taking the room between them.
+.card-deck-spinner {
+  @include spinner-ring(16px, 2px);
+  flex: none;
+  margin-left: auto;
+}
+
+// Holds its line whether or not there is anything in it, so the options below
+// do not jump when a load fails.
+.card-deck-problem {
+  min-height: var(--space-5);
+  margin: var(--space-3) 0 0;
+  font-size: var(--font-2xs);
+  line-height: var(--leading-tight);
+  color: var(--warning);
 }
 
 .card-deck-preview-card {

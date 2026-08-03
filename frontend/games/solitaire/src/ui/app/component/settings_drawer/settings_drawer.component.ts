@@ -27,10 +27,35 @@ interface CardBackDesign {
   readonly patternClass: string;
 }
 
+/** One card in a deck's preview, drawn as a fan would leave it showing. */
+interface CardDeckPreviewCard {
+  /** The index the strip shows, and what the card is tracked by. */
+  readonly rank: string;
+  /** Where the strip sits in the preview's viewBox. */
+  readonly x: number;
+  /** Whether this deck marks this card in its top right corner. */
+  readonly hasPip: boolean;
+}
+
 /** One deck a player can choose, resolved for rendering. */
 interface CardDeckChoice extends CardDeckSpec {
   readonly selected: boolean;
+  /** Whether the board is still fetching this deck's artwork. */
+  readonly pending: boolean;
+  readonly preview: readonly CardDeckPreviewCard[];
 }
+
+/**
+ * The two cards every deck preview shows.
+ *
+ * A court and a spot card, because that is the pair the three decks disagree
+ * about: `classic` marks neither, `indexed` the court alone, `all-corner-pips`
+ * both. One card could only ever tell two of the three apart.
+ */
+const PREVIEW_CARDS: readonly { rank: string; x: number; court: boolean }[] = [
+  { rank: "K", x: 0, court: true },
+  { rank: "7", x: 72, court: false },
+];
 
 /** One table felt swatch, resolved for rendering. */
 interface ThemeSwatch {
@@ -86,12 +111,21 @@ export class SettingsDrawerComponent {
     },
   ];
 
-  /** The decks on offer, with the chosen one marked. */
+  /** The decks on offer, with the chosen one marked and its preview resolved. */
   protected readonly deckChoices = computed<readonly CardDeckChoice[]>(() => {
     const selected = this.presentation.cardDeck();
+    const pending = this.presentation.pendingCardDeck();
     return CARD_DECKS.map((deck) => ({
       ...deck,
       selected: deck.id === selected,
+      pending: deck.id === pending,
+      preview: PREVIEW_CARDS.map((card) => ({
+        rank: card.rank,
+        x: card.x,
+        hasPip:
+          deck.pipCoverage === "all" ||
+          (deck.pipCoverage === "courts" && card.court),
+      })),
     }));
   });
 

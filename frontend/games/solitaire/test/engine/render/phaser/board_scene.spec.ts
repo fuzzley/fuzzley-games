@@ -180,6 +180,31 @@ describe("BoardScene", () => {
       expect(allSprites().map((sprite) => sprite.frame.name)).toEqual(before);
     });
 
+    it("keeps each sprite anchored at its top left corner", () => {
+      textures().add("cards:classic");
+
+      presentation.setCardDeck("classic");
+
+      // The frames are anchored at their centres, so a swap that let Phaser
+      // move the origin onto the new frame's anchor would shift the whole
+      // table by half a card.
+      const origins = allSprites().map((sprite) => [
+        sprite.originX,
+        sprite.originY,
+      ]);
+      expect(origins).toEqual(origins.map(() => [0, 0]));
+    });
+
+    it("releases the deck it leaves", () => {
+      textures().add("cards:classic");
+
+      presentation.setCardDeck("classic");
+
+      // An atlas page is sixty megabytes of texture memory once uploaded, and
+      // a deck the board is no longer drawing is not worth holding it for.
+      expect(textures().exists(`cards:${DEFAULT_CARD_DECK}`)).toBe(false);
+    });
+
     it("loads a deck it has never drawn before switching to it", () => {
       presentation.setCardDeck("classic");
 
@@ -218,6 +243,62 @@ describe("BoardScene", () => {
       presentation.setCardDeck(DEFAULT_CARD_DECK);
 
       expect(loader().requested).toEqual([]);
+    });
+
+    /** What the board has said about the deck, as `<kind>:<deck>` pairs. */
+    function statusesReported(): string[] {
+      return presentation.cardDeckStatuses.map(
+        (status) => `${status.kind}:${status.deckId}`,
+      );
+    }
+
+    it("says which deck it booted on", () => {
+      // The drawer has to start from something, and only the board knows what
+      // is actually on the table.
+      expect(statusesReported()).toEqual([`drawn:${DEFAULT_CARD_DECK}`]);
+    });
+
+    it("says a deck is on its way before it arrives", () => {
+      presentation.setCardDeck("classic");
+
+      expect(statusesReported().at(-1)).toBe("loading:classic");
+    });
+
+    it("says the deck is drawn once the load finishes", () => {
+      presentation.setCardDeck("classic");
+
+      loader().complete(textures());
+
+      expect(statusesReported()).toEqual([
+        `drawn:${DEFAULT_CARD_DECK}`,
+        "loading:classic",
+        "drawn:classic",
+      ]);
+    });
+
+    it("says the deck is unavailable when the load fails", () => {
+      presentation.setCardDeck("classic");
+
+      loader().complete(false);
+
+      // Without this the drawer would be left showing a deck the board never
+      // drew, and would persist it for the next visit to fail on too.
+      expect(statusesReported().at(-1)).toBe("unavailable:classic");
+    });
+
+    it("answers for a deck that is still wanted and no other", () => {
+      presentation.setCardDeck("classic");
+      presentation.setCardDeck(DEFAULT_CARD_DECK);
+
+      loader().complete(textures());
+
+      // The switch back is answered at once, and the load that arrives after it
+      // is nobody's question by then.
+      expect(statusesReported()).toEqual([
+        `drawn:${DEFAULT_CARD_DECK}`,
+        "loading:classic",
+        `drawn:${DEFAULT_CARD_DECK}`,
+      ]);
     });
 
     it("stops following the setting once the scene shuts down", () => {

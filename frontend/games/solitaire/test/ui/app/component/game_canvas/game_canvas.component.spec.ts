@@ -3,6 +3,7 @@ import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { GameCanvasComponent } from "@/ui/app/component/game_canvas/game_canvas.component";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
+import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
 import { query, queryAll, queryText } from "@test/support/dom";
 
@@ -172,6 +173,67 @@ describe("GameCanvasComponent", () => {
 
       expect(isLoading()).toBe(true);
       expect(queryText(fixture, ".loading-text")).toContain("Loading Spider");
+    });
+  });
+
+  describe("the deck badge", () => {
+    /** Whether the deck swap badge is showing. */
+    function isSwappingDeck(): boolean {
+      return (
+        query(fixture, ".deck-badge")?.classList.contains("hidden") === false
+      );
+    }
+
+    /** Says a deck is being fetched, as the board does. */
+    function deckLoading(): void {
+      TestBed.inject(PresentationSettingsService).reportCardDeckStatus({
+        kind: "loading",
+        deckId: "classic",
+      });
+      fixture.detectChanges();
+    }
+
+    it("stays out of the way while the table is up to date", () => {
+      expect(isSwappingDeck()).toBe(false);
+    });
+
+    it("appears while a deck is on its way", () => {
+      deckLoading();
+
+      // The board stays playable through a swap, so this is a badge in the
+      // corner rather than the overlay that covers the table for a deal.
+      expect(isSwappingDeck()).toBe(true);
+    });
+
+    it("names the deck being fetched", () => {
+      deckLoading();
+
+      expect(queryText(fixture, ".deck-badge")).toContain("Loading Classic");
+    });
+
+    it("goes away once the board has drawn it", () => {
+      const presentation = TestBed.inject(PresentationSettingsService);
+      deckLoading();
+
+      presentation.reportCardDeckStatus({ kind: "drawn", deckId: "classic" });
+      fixture.detectChanges();
+
+      expect(isSwappingDeck()).toBe(false);
+    });
+
+    it("goes away when the deck cannot be fetched at all", () => {
+      const presentation = TestBed.inject(PresentationSettingsService);
+      deckLoading();
+
+      presentation.reportCardDeckStatus({
+        kind: "unavailable",
+        deckId: "classic",
+      });
+      fixture.detectChanges();
+
+      // The drawer is where a player is told why; the badge only ever says
+      // something is on its way, and by now nothing is.
+      expect(isSwappingDeck()).toBe(false);
     });
   });
 

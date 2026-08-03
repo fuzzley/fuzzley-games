@@ -201,4 +201,67 @@ describe("PresentationSettingsService", () => {
       expect(seen).not.toContain("#3c096c");
     });
   });
+
+  describe("what the board says about the deck", () => {
+    it("holds the deck being fetched while it is on its way", () => {
+      const settings = buildSettings();
+
+      settings.setCardDeck("classic");
+      settings.reportCardDeckStatus({ kind: "loading", deckId: "classic" });
+
+      expect(settings.pendingCardDeck()).toBe("classic");
+    });
+
+    it("stops waiting once the board draws it", () => {
+      const settings = buildSettings();
+      settings.reportCardDeckStatus({ kind: "loading", deckId: "classic" });
+
+      settings.reportCardDeckStatus({ kind: "drawn", deckId: "classic" });
+
+      expect(settings.pendingCardDeck()).toBe(null);
+    });
+
+    it("puts the choice back when a deck cannot be fetched", () => {
+      const settings = buildSettings();
+      settings.reportCardDeckStatus({
+        kind: "drawn",
+        deckId: DEFAULT_CARD_DECK,
+      });
+      settings.setCardDeck("classic");
+
+      settings.reportCardDeckStatus({ kind: "unavailable", deckId: "classic" });
+
+      // Otherwise the drawer goes on showing a deck the board never drew — and
+      // persists it, so the next visit starts by failing to load it again.
+      expect(settings.cardDeck()).toBe(DEFAULT_CARD_DECK);
+    });
+
+    it("says which deck could not be fetched and what is on the table", () => {
+      const settings = buildSettings();
+      settings.reportCardDeckStatus({
+        kind: "drawn",
+        deckId: DEFAULT_CARD_DECK,
+      });
+
+      settings.reportCardDeckStatus({ kind: "unavailable", deckId: "classic" });
+
+      expect(settings.cardDeckProblem()).toBe(
+        "Couldn't load Classic — still using Corner Pips.",
+      );
+    });
+
+    it("has nothing to explain before anything has gone wrong", () => {
+      expect(buildSettings().cardDeckProblem()).toBe(null);
+    });
+
+    it("drops the complaint when another deck is chosen", () => {
+      const settings = buildSettings();
+      settings.reportCardDeckStatus({ kind: "unavailable", deckId: "classic" });
+
+      settings.setCardDeck("all-corner-pips");
+
+      // Yesterday's failure has nothing to say about today's choice.
+      expect(settings.cardDeckProblem()).toBe(null);
+    });
+  });
 });

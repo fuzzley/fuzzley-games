@@ -74,41 +74,68 @@
               class="card-deck-option"
               role="radio"
               [attr.aria-checked]="deck.selected"
+              [attr.aria-busy]="deck.pending"
               (click)="presentation.setCardDeck(deck.id)"
             >
               <!--
-                The top of a King as a fanned column leaves it showing, which
-                is the whole of what the choice changes. The deck's own index
-                pip is not here because it is not there either — it sits below
+                The tops of a King and a seven as a fanned column leaves them
+                showing, which is the whole of what the choice changes — and it
+                takes both to tell three decks apart. The decks' own index pips
+                are not here because they are not there either: they sit below
                 the fold, which is the reason the corner pip exists.
               -->
               <svg
                 class="card-deck-preview"
-                viewBox="0 0 66 30"
+                viewBox="0 0 138 30"
                 aria-hidden="true"
               >
-                <rect
-                  x="0.5"
-                  y="0.5"
-                  width="65"
-                  height="29"
-                  rx="3"
-                  class="card-deck-preview-card"
-                />
-                <text x="5" y="21" class="card-deck-preview-rank">K</text>
-                @if (deck.hasCornerPips) {
-                  <path
-                    d="M6 20 a2.6 2.6 0 0 1 4.4 0 a2.6 2.6 0 0 1 4.4 0 c0 3-4.4 6.2-4.4 6.2 S6 23 6 20 z"
-                    class="card-deck-preview-pip"
-                    transform="translate(44 -11)"
-                  />
+                @for (card of deck.preview; track card.rank) {
+                  <g [attr.transform]="'translate(' + card.x + ' 0)'">
+                    <rect
+                      x="0.5"
+                      y="0.5"
+                      width="65"
+                      height="29"
+                      rx="3"
+                      class="card-deck-preview-card"
+                    />
+                    <text x="5" y="21" class="card-deck-preview-rank">
+                      {{ card.rank }}
+                    </text>
+                    @if (card.hasPip) {
+                      <path
+                        d="M6 20 a2.6 2.6 0 0 1 4.4 0 a2.6 2.6 0 0 1 4.4 0 c0 3-4.4 6.2-4.4 6.2 S6 23 6 20 z"
+                        class="card-deck-preview-pip"
+                        transform="translate(44 -11)"
+                      />
+                    }
+                  </g>
                 }
               </svg>
-              <span>{{ deck.name }}</span>
-              <span class="card-deck-description">{{ deck.description }}</span>
+              <span class="card-deck-label">
+                <span class="card-deck-name">{{ deck.name }}</span>
+                <span class="card-deck-description">{{
+                  deck.description
+                }}</span>
+              </span>
+              <!--
+                A deck is a couple of megabytes of artwork, so the table can be
+                seconds behind the choice on a slow connection. Without this the
+                cards simply do not change and the drawer looks broken.
+              -->
+              @if (deck.pending) {
+                <span class="card-deck-spinner" aria-hidden="true"></span>
+              }
             </button>
           }
         </div>
+        <!--
+          Always present so the message is announced when it arrives, rather
+          than the live region appearing along with it.
+        -->
+        <p class="card-deck-problem" role="status">
+          {{ presentation.cardDeckProblem() }}
+        </p>
       </div>
 
       <!-- Table Themes -->

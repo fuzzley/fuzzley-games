@@ -15,7 +15,8 @@ import {
 } from "../view/table_view_state";
 import { TableLayoutSpec, designSize } from "../layout/table_layout";
 import { CardDeckId } from "../card_deck";
-import { cardDeckAtlas, cardDeckTextureKey } from "./card_deck_atlas";
+import { CardDeckStatus, Subscribe } from "../presentation";
+import { cardDeckTextureKey, loadCardDeck } from "./card_deck_atlas";
 import { TableView } from "@/engine/tableau/view/table_view";
 
 /**
@@ -42,15 +43,6 @@ export type ResolveDropTarget = (
   viewport: Viewport,
 ) => PileGeometry | null;
 
-/**
- * Subscribes to a value the board follows, returning a function that stops
- * following it.
- *
- * A plain callback rather than an observable because the render tier may not
- * name a reactive library: whatever the game publishes with, it adapts to this.
- */
-export type Subscribe<T> = (listener: (value: T) => void) => () => void;
-
 /** Everything a board scene needs from the game it is drawing. */
 export interface BoardSceneOptions {
   /** The game to draw, read through its narrow view. */
@@ -75,6 +67,8 @@ export interface BoardSceneOptions {
   readonly onBackgroundColor: Subscribe<string>;
   /** Follows the deck the player has chosen. */
   readonly onCardDeck: Subscribe<CardDeckId>;
+  /** Told which deck the board is drawing, and when it cannot draw one. */
+  readonly reportCardDeckStatus: (status: CardDeckStatus) => void;
   /** Follows new deals, so stale interaction state does not survive one. */
   readonly onReset: Subscribe<void>;
   /**
@@ -282,50 +276,70 @@ export class BoardScene extends Scene implements PhaserSprites {
   /**
    * Draws the board from a different deck.
    *
-   * Loads it first if this is the first time the player has asked for it, and
-   * leaves the board on the deck it has if that load fails: a texture that
-   * never arrived would draw every card as a blank rectangle, which is worse
-   * than the deck they were trying to leave.
+   * Fetches it first unless it is already in the texture cache, and leaves the
+   * board on the deck it has if that fetch fails: a texture that never arrived
+   * would draw every card as a blank rectangle, which is worse than the deck
+   * they were trying to leave.
    *
    * @param deckId The deck to switch to.
    */
   private useDeck(deckId: CardDeckId): void {
     if (deckId === this.deckId) {
       this.awaitingDeck = null;
+      // Said again rather than passed over in silence: this is the branch the
+      // deck the board booted on arrives through, and the one a revert comes
+      // back through, and both are answers somebody is waiting for.
+      this.options.reportCardDeckStatus({ kind: "drawn", deckId });
       return;
     }
 
-    const { textureKey, manifest } = cardDeckAtlas(deckId);
-    if (this.textures.exists(textureKey)) {
+    if (this.textures.exists(cardDeckTextureKey(deckId))) {
       this.awaitingDeck = null;
       this.applyDeck(deckId);
       return;
     }
 
-    // Every switch after the first is the branch above, because a deck stays in
-    // the texture cache once loaded. Only the first costs a fetch.
     this.awaitingDeck = deckId;
-    this.load.multiatlas(textureKey, manifest as unknown as string, undefined);
+    this.options.reportCardDeckStatus({ kind: "loading", deckId });
+    const textureKey = loadCardDeck(this.load, deckId);
     this.load.once(Loader.Events.COMPLETE, () => {
       // Ignored unless this is still the deck being waited for: switching away
-      // and back mid-load would otherwise let the stale arrival win.
+      // and back mid-load would otherwise let the stale arrival win — and
+      // answer for a question that is no longer being asked.
       if (this.awaitingDeck !== deckId) return;
       this.awaitingDeck = null;
       if (this.textures.exists(textureKey)) {
         this.applyDeck(deckId);
+      } else {
+        this.options.reportCardDeckStatus({ kind: "unavailable", deckId });
       }
     });
     this.load.start();
   }
 
   /**
-   * Repoints every sprite at the given deck's texture.
+   * Repoints every sprite at the given deck's texture, and lets go of the one
+   * being left.
    *
    * Frame names are the same in every deck, so each sprite keeps the frame it
    * was already showing and the per-frame reconciliation in
    * {@link PhaserTableRenderer} has nothing to undo.
+   *
+   * The origin has to be put back after each swap. A `Sprite` takes its
+   * `setTexture` from the TextureCrop component, which passes the frame on to
+   * `setFrame` with `updateOrigin` left at its default — and every card frame
+   * records a custom pivot at its centre, while the board places cards by their
+   * top left corner. `setFrame`'s own `updateOrigin` parameter is not reachable
+   * from here without first setting the texture to its `__BASE` frame.
+   *
+   * The outgoing deck is dropped rather than kept for a quick return: a page is
+   * 4032x3732, which is sixty megabytes of texture memory once uploaded, and
+   * three of those resident is more than a mobile GPU should be asked to hold
+   * for a preference. Coming back re-reads it from the browser's cache, so what
+   * a return actually costs is a decode and an upload rather than a download.
    */
   private applyDeck(deckId: CardDeckId): void {
+    const previousKey = cardDeckTextureKey(this.deckId);
     this.deckId = deckId;
     const textureKey = cardDeckTextureKey(deckId);
 
@@ -336,6 +350,12 @@ export class BoardScene extends Scene implements PhaserSprites {
       sprite.setTexture(textureKey, sprite.frame.name);
       sprite.setOrigin(0, 0);
     }
+
+    // After the sprites, never before: releasing a texture still being drawn
+    // from would blank the board for a frame.
+    this.textures.remove(previousKey);
+
+    this.options.reportCardDeckStatus({ kind: "drawn", deckId });
   }
 
   // --- PhaserSprites ---

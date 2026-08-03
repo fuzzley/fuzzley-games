@@ -1,11 +1,14 @@
 /**
  * Which drawing of the 52 cards the table is dealt from.
  *
- * The artwork ships in two cuts of the same drawing. `classic` is the deck as
+ * The artwork ships in three cuts of the same drawing. `classic` is the deck as
  * its author drew it; `indexed` adds a suit pip in the blank margin at the top
  * right of every ace and court, because a fanned column covers all but the top
  * 45 of a card's 307 design units and the deck's own corner pip sits below that
- * line — which leaves a covered King red, and nothing more.
+ * line — which leaves a covered King red, and nothing more. `all-corner-pips`
+ * marks the spot cards the same way, which they do not strictly need — their
+ * body pips reach into the strip — but which some players would rather read
+ * than count.
  *
  * A deck is a property of the artwork rather than of any game, so it lives here
  * beside the rest of the render tier's vocabulary and is offered to a board
@@ -16,6 +19,16 @@
  */
 export type CardDeckId = "classic" | "indexed" | "all-corner-pips";
 
+/**
+ * Which cards a deck marks with a pip in the top right corner.
+ *
+ * The whole of what the decks differ by, so the settings drawer can draw a
+ * preview of the difference rather than testing an id. A scale rather than a
+ * flag because there are three decks and a flag can only tell two apart: it
+ * left `indexed` and `all-corner-pips` claiming the same picture.
+ */
+export type CardPipCoverage = "none" | "courts" | "all";
+
 /** One deck, as the settings drawer offers it. */
 export interface CardDeckSpec {
   /** What the choice is stored and looked up as. */
@@ -24,12 +37,8 @@ export interface CardDeckSpec {
   readonly name: string;
   /** One line on what choosing it gets them. */
   readonly description: string;
-  /**
-   * Whether this deck marks an ace or court with a pip in its top right
-   * corner. What the difference between the decks actually is, so the settings
-   * drawer can draw a preview of it rather than testing an id.
-   */
-  readonly hasCornerPips: boolean;
+  /** Which cards carry a corner pip. */
+  readonly pipCoverage: CardPipCoverage;
 }
 
 /**
@@ -44,19 +53,19 @@ export const CARD_DECKS: readonly CardDeckSpec[] = [
     id: "classic",
     name: "Classic",
     description: "The artwork as it was drawn.",
-    hasCornerPips: false,
+    pipCoverage: "none",
   },
   {
     id: "indexed",
     name: "Corner Pips",
-    description: "Adds a suit pip that stays visible when a card is covered.",
-    hasCornerPips: true,
+    description: "Marks every ace and court, which a fan would otherwise hide.",
+    pipCoverage: "courts",
   },
   {
     id: "all-corner-pips",
     name: "All Corner Pips",
-    description: "Adds top-right suit pips to all cards, including number cards.",
-    hasCornerPips: true,
+    description: "The same mark on every card, spot cards included.",
+    pipCoverage: "all",
   },
 ];
 

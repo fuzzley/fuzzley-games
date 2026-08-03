@@ -1,4 +1,7 @@
-import { TablePresentation } from "@/engine/render/presentation";
+import {
+  CardDeckStatus,
+  TablePresentation,
+} from "@/engine/render/presentation";
 import { CardDeckId, DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
 
 /**
@@ -11,6 +14,7 @@ import { CardDeckId, DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
 export class TestPresentation implements TablePresentation {
   private readonly listeners: ((color: string) => void)[] = [];
   private readonly deckListeners: ((deckId: CardDeckId) => void)[] = [];
+  private readonly deckStatuses: CardDeckStatus[] = [];
 
   constructor(
     private cardBack = "card-back-blue",
@@ -77,5 +81,21 @@ export class TestPresentation implements TablePresentation {
   /** How many deck followers are currently subscribed, for leak checks. */
   get deckListenerCount(): number {
     return this.deckListeners.length;
+  }
+
+  /** @inheritDoc */
+  reportCardDeckStatus(status: CardDeckStatus): void {
+    this.deckStatuses.push(status);
+  }
+
+  /**
+   * Everything the board has said about the deck, oldest first.
+   *
+   * Kept in full rather than as a latest-value, because what a swap has to get
+   * right is the sequence: a load that finishes after the player has changed
+   * their mind must not answer at all.
+   */
+  get cardDeckStatuses(): readonly CardDeckStatus[] {
+    return this.deckStatuses;
   }
 }

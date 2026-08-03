@@ -6,9 +6,9 @@ import {
   effect,
   inject,
   signal,
-  untracked,
   viewChild,
 } from "@angular/core";
+import { CARD_DECKS } from "@/engine/render/card_deck";
 import { PhaserHost } from "@/engine/render/phaser/phaser_host";
 import { PlayableGame } from "@/engine/tableau/playable_game";
 import { makeBoardScene } from "../../provider/board_catalog";
@@ -74,6 +74,17 @@ export class GameCanvasComponent {
     () => this.catalog.selectedEntry.layout,
   );
 
+  /**
+   * What the deck being fetched is called, or null when the table is up to
+   * date. Named rather than merely flagged, because the badge saying which deck
+   * is on its way is the whole of what makes the wait explicable.
+   */
+  protected readonly pendingDeckName = computed(() => {
+    const pending = this.presentation.pendingCardDeck();
+    if (!pending) return null;
+    return CARD_DECKS.find((deck) => deck.id === pending)?.name ?? null;
+  });
+
   constructor() {
     effect((onCleanup) => {
       const { game } = this.catalog.session();
@@ -94,17 +105,11 @@ export class GameCanvasComponent {
         }
       }, BOARD_READY_TIMEOUT_MS);
 
-      // Read untracked: which deck to preload is a question asked once, when
-      // the canvas boots. Tracking it would tear the whole host down every time
-      // the player changed deck, which is exactly what the board's own swap
-      // exists to avoid.
-      const deckId = untracked(() => this.presentation.cardDeckId());
-
       const host = new PhaserHost(
         window,
         this.canvasHostRef().nativeElement,
         () => makeBoardScene(gameId, game, this.presentation, onReady),
-        deckId,
+        this.presentation,
       );
       host.start();
 

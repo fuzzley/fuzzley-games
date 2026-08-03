@@ -140,13 +140,7 @@
 // The spinner, with a micro suit glyph counter-rotating inside it so that it
 // stays the right way up.
 .spinner-ring {
-  @include flex-center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2.5px solid var(--wash-medium);
-  border-top-color: var(--accent-light);
-  animation: spin 1s linear infinite;
+  @include spinner-ring(24px);
 }
 
 .mini-card-icon {
@@ -158,4 +152,37 @@
 .loading-text {
   @include gradient-text(var(--text-bright), var(--text-secondary));
   white-space: nowrap;
+}
+
+// The deck swap's own badge, in a corner rather than over the middle: the board
+// is still playable while the artwork is on its way, and a badge across the
+// table would say otherwise. Below the header for the same reason the overlay
+// starts there.
+.deck-badge {
+  @include glass(12px);
+  @include transition(opacity, visibility);
+  position: absolute;
+  top: calc(var(--header-height) + var(--space-4));
+  right: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--surface-scrim-heavy);
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  z-index: var(--z-loading-badge);
+
+  &.hidden {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.deck-badge-spinner {
+  @include spinner-ring(14px, 2px);
+  flex: none;
 }

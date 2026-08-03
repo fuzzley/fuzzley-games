@@ -5,7 +5,7 @@ import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/sett
 import { ThemeService } from "@/ui/app/service/theme.service";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
-import { clickElement, queryAll } from "@test/support/dom";
+import { clickElement, queryAll, queryText } from "@test/support/dom";
 import { flushMicrotasks } from "@test/support/async";
 import { clickBackdrop, isDialogOpen, pressEscape } from "@test/support/dialog";
 import { CARD_DECKS } from "@/engine/render/card_deck";
@@ -157,15 +157,64 @@ describe("SettingsDrawerComponent", () => {
       ).toEqual(["true", "false", "false"]);
     });
 
-    it("shows the corner pip only on the decks that have one", () => {
+    it("draws a preview no two decks share", () => {
       openDrawer();
 
-      // The preview is what tells the decks apart in the drawer.
+      // The preview is the whole of what tells the decks apart in the drawer,
+      // so any two that drew the same one would leave the choice between them
+      // looking like it does nothing.
+      const previews = deckButtons().map(
+        (button) => button.querySelector(".card-deck-preview")?.innerHTML,
+      );
+
+      expect(new Set(previews).size).toBe(previews.length);
+    });
+
+    it("marks as many cards in the preview as the deck marks", () => {
+      openDrawer();
+
       const pipCounts = deckButtons().map(
         (button) => button.querySelectorAll(".card-deck-preview-pip").length,
       );
 
-      expect(pipCounts).toEqual([0, 1, 1]);
+      // None, the court alone, then both cards in the preview.
+      expect(pipCounts).toEqual([0, 1, 2]);
+    });
+
+    it("marks the deck being fetched as busy", () => {
+      harness.presentation.pendingCardDeck.set("classic");
+      openDrawer();
+
+      // A deck is a couple of megabytes, so without this the cards simply do
+      // not change for a few seconds and the drawer looks broken.
+      expect(
+        deckButtons().map((button) => button.getAttribute("aria-busy")),
+      ).toEqual(["true", "false", "false"]);
+    });
+
+    it("shows a spinner beside the deck being fetched, and no other", () => {
+      harness.presentation.pendingCardDeck.set("classic");
+      openDrawer();
+
+      const spinners = deckButtons().map(
+        (button) => button.querySelectorAll(".card-deck-spinner").length,
+      );
+      expect(spinners).toEqual([1, 0, 0]);
+    });
+
+    it("waits on nothing when the table is up to date", () => {
+      openDrawer();
+
+      expect(queryAll(fixture, ".card-deck-spinner")).toEqual([]);
+    });
+
+    it("says why the deck on the table is not the one chosen", () => {
+      harness.presentation.cardDeckProblem.set("Couldn't load Classic.");
+      openDrawer();
+
+      expect(queryText(fixture, ".card-deck-problem")).toBe(
+        "Couldn't load Classic.",
+      );
     });
   });
 
