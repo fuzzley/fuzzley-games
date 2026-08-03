@@ -52,19 +52,19 @@ export const CARD_DECKS: readonly CardDeckSpec[] = [
   {
     id: "classic",
     name: "Classic",
-    description: "The artwork as it was drawn.",
+    description: "Card artwork unchanged.",
     pipCoverage: "none",
   },
   {
     id: "indexed",
     name: "Corner Pips",
-    description: "Marks every ace and court, which a fan would otherwise hide.",
+    description: "Marks every ace, king, queen, and jack with suit pips.",
     pipCoverage: "courts",
   },
   {
     id: "all-corner-pips",
     name: "All Corner Pips",
-    description: "The same mark on every card, spot cards included.",
+    description: "Marks every card with suit pips.",
     pipCoverage: "all",
   },
 ];
