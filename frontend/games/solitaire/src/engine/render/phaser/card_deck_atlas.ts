@@ -1,6 +1,7 @@
 import { CardDeckId } from "../card_deck";
 import classicAtlas from "../assets/sprites/atlas/classic/card_assets_atlas.json";
 import indexedAtlas from "../assets/sprites/atlas/indexed/card_assets_atlas.json";
+import allCornerPipsAtlas from "../assets/sprites/atlas/all-corner-pips/card_assets_atlas.json";
 
 /**
  * What a Phaser loader needs to put a deck on the table.
@@ -47,6 +48,7 @@ const atlasPageUrls = import.meta.glob<string>(
 const manifests: Record<CardDeckId, AtlasManifest> = {
   classic: classicAtlas,
   indexed: indexedAtlas,
+  "all-corner-pips": allCornerPipsAtlas,
 };
 
 /**

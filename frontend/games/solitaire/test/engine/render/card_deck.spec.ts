@@ -28,11 +28,10 @@ describe("card decks", () => {
   });
 
   it("tells the decks apart by whether they carry corner pips", () => {
-    // What the settings drawer draws its preview from, and the whole of the
-    // difference between the two decks.
+    // What the settings drawer draws its preview from.
     const withPips = CARD_DECKS.filter((deck) => deck.hasCornerPips);
 
-    expect(withPips.length).toBe(1);
+    expect(withPips.length).toBe(2);
   });
 
   it("rejects a value that names no deck", () => {

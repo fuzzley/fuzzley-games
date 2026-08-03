@@ -154,19 +154,18 @@ describe("SettingsDrawerComponent", () => {
 
       expect(
         deckButtons().map((button) => button.getAttribute("aria-checked")),
-      ).toEqual(["true", "false"]);
+      ).toEqual(["true", "false", "false"]);
     });
 
-    it("shows the corner pip only on the deck that has one", () => {
+    it("shows the corner pip only on the decks that have one", () => {
       openDrawer();
 
-      // The preview is the whole of what tells the two decks apart, so an
-      // identical pair would leave the choice looking like it does nothing.
+      // The preview is what tells the decks apart in the drawer.
       const pipCounts = deckButtons().map(
         (button) => button.querySelectorAll(".card-deck-preview-pip").length,
       );
 
-      expect(pipCounts).toEqual([0, 1]);
+      expect(pipCounts).toEqual([0, 1, 1]);
     });
   });
 

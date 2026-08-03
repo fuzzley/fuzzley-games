@@ -14,7 +14,7 @@
  * reaching into the canvas adapter; what a deck means to the loader is in
  * `phaser/card_deck_atlas.ts`.
  */
-export type CardDeckId = "classic" | "indexed";
+export type CardDeckId = "classic" | "indexed" | "all-corner-pips";
 
 /** One deck, as the settings drawer offers it. */
 export interface CardDeckSpec {
@@ -50,6 +50,12 @@ export const CARD_DECKS: readonly CardDeckSpec[] = [
     id: "indexed",
     name: "Corner Pips",
     description: "Adds a suit pip that stays visible when a card is covered.",
+    hasCornerPips: true,
+  },
+  {
+    id: "all-corner-pips",
+    name: "All Corner Pips",
+    description: "Adds top-right suit pips to all cards, including number cards.",
     hasCornerPips: true,
   },
 ];
