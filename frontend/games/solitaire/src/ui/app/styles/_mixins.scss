@@ -137,6 +137,21 @@
   }
 }
 
+/// A ring turning to say something is on its way.
+///
+/// Worn by the board's loading badge and by the deck a player is waiting on in
+/// the settings drawer — two components, so it cannot be a class in either.
+/// `spin` itself lives in `_animations.scss`, like every other keyframe.
+@mixin spinner-ring($size, $thickness: 2.5px) {
+  @include flex-center;
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+  border: $thickness solid var(--wash-medium);
+  border-top-color: var(--accent-light);
+  animation: spin 1s linear infinite;
+}
+
 /// A bordered panel sitting on a modal's surface.
 ///
 /// The help modal had four of these — the rules cards, the variant cards, the

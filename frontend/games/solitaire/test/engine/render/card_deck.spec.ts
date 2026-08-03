@@ -27,11 +27,13 @@ describe("card decks", () => {
     expect(described).toEqual(CARD_DECKS);
   });
 
-  it("tells the decks apart by whether they carry corner pips", () => {
-    // What the settings drawer draws its preview from.
-    const withPips = CARD_DECKS.filter((deck) => deck.hasCornerPips);
+  it("gives every deck a pip coverage no other deck claims", () => {
+    // What the settings drawer draws its preview from: two decks claiming the
+    // same coverage would be offered as two identical pictures, and the choice
+    // between them would look like it does nothing.
+    const coverages = CARD_DECKS.map((deck) => deck.pipCoverage);
 
-    expect(withPips.length).toBe(2);
+    expect(new Set(coverages).size).toBe(CARD_DECKS.length);
   });
 
   it("rejects a value that names no deck", () => {

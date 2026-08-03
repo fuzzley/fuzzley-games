@@ -60,6 +60,7 @@ export function makeTableBoardScene(options: TableBoardOptions): BoardScene {
     cardDeckId: () => presentation.cardDeckId(),
     onBackgroundColor: presentation.onBackgroundColor,
     onCardDeck: presentation.onCardDeck,
+    reportCardDeckStatus: (status) => presentation.reportCardDeckStatus(status),
     onReset: (listener) => {
       const handler = () => listener();
       game.on("game-reset", handler);

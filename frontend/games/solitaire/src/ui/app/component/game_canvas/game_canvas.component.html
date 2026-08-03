@@ -54,3 +54,22 @@
     </p>
   </div>
 </div>
+
+<!--
+  A deck swap fetches a couple of megabytes while the board stays playable, so
+  it gets a badge in the corner rather than the overlay above: nothing is
+  blocked, and a player who has already closed the settings drawer still knows
+  why the cards have not changed yet.
+
+  Present whether or not a deck is loading, and hidden when none is, for the
+  same reason as the loading text above: a live region that arrives with its
+  message is a region that has nothing to announce.
+-->
+<div class="deck-badge" [class.hidden]="!pendingDeckName()">
+  <span class="deck-badge-spinner" aria-hidden="true"></span>
+  <span role="status">
+    @if (pendingDeckName(); as deckName) {
+      Loading {{ deckName }} cards...
+    }
+  </span>
+</div>

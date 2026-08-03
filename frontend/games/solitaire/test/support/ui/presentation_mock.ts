@@ -20,6 +20,8 @@ export function createMockPresentation(
     cardBackStyle?: CardBackStyle;
     backgroundColor?: string;
     cardDeck?: CardDeckId;
+    pendingCardDeck?: CardDeckId | null;
+    cardDeckProblem?: string | null;
   } = {},
 ) {
   const cardBackStyle = signal<CardBackStyle>(
@@ -27,15 +29,26 @@ export function createMockPresentation(
   );
   const backgroundColor = signal(overrides.backgroundColor ?? "");
   const cardDeck = signal<CardDeckId>(overrides.cardDeck ?? DEFAULT_CARD_DECK);
+  // Held as signals like the rest, so a spec can put the drawer into a
+  // mid-swap or failed state and read what it drew.
+  const pendingCardDeck = signal<CardDeckId | null>(
+    overrides.pendingCardDeck ?? null,
+  );
+  const cardDeckProblem = signal<string | null>(
+    overrides.cardDeckProblem ?? null,
+  );
 
   return {
     cardBackStyle,
     backgroundColor,
     cardDeck,
+    pendingCardDeck,
+    cardDeckProblem,
     cardBackKey: () => cardBackStyle(),
     cardDeckId: () => cardDeck(),
     onBackgroundColor: vi.fn(() => () => undefined),
     onCardDeck: vi.fn(() => () => undefined),
+    reportCardDeckStatus: vi.fn(),
     setCardBackStyle: vi.fn((style: CardBackStyle) => {
       cardBackStyle.set(style);
     }),

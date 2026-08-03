@@ -3,6 +3,12 @@ import * as Phaser from "phaser";
 import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
 
 /**
+ * Where a card frame is anchored, as every deck's manifest records it, and so
+ * where Phaser puts a sprite's origin when it takes a new frame.
+ */
+const FRAME_ANCHOR = 0.5;
+
+/**
  * A shadow filter recorded by a mock sprite. Field names follow Phaser's
  * `addShadow(x, y, decay, power, color, samples, intensity)` parameters.
  */
@@ -174,6 +180,13 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
       // a swap that dropped the frame would leave the sprite showing the whole
       // atlas page, which is the bug worth being able to catch.
       if (frame !== undefined) sprite.frame = { name: frame };
+      // And moves the origin onto the new frame's own anchor, which a Sprite
+      // gives no way to opt out of. Modelled because the card frames are
+      // anchored at their centres while the board places cards by their top
+      // left corner: a swap that did not put the origin back would shift the
+      // whole table by half a card.
+      sprite.originX = FRAME_ANCHOR;
+      sprite.originY = FRAME_ANCHOR;
       return sprite;
     },
     setPosition(x: number, y: number): MockSprite {
@@ -407,6 +420,8 @@ export interface MockTextures {
   exists(key: string): boolean;
   /** Registers a texture, as a completed load would. */
   add(key: string): void;
+  /** Releases a texture, as the renderer freeing its GPU memory would. */
+  remove(key: string): void;
 }
 
 /** Builds a {@link MockTextures} pre-loaded with the given keys. */
@@ -416,6 +431,9 @@ export function createMockTextures(...keys: string[]): MockTextures {
     exists: (key: string) => present.has(key),
     add: (key: string) => {
       present.add(key);
+    },
+    remove: (key: string) => {
+      present.delete(key);
     },
   };
 }
