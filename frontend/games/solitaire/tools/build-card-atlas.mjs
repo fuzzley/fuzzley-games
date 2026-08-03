@@ -58,23 +58,28 @@ const MAX_PAGE_PX = 4096;
  * The card sheet. The 52 faces occupy four rows of thirteen; the two backs sit
  * alone on a fifth.
  *
- * Cards abut, and every boundary between them carries a hairline rule shared by
- * the cards either side of it. The rule belongs to the print sheet, not to a
- * card, so a card's own artwork stops short of it. Cutting cards on an assumed
- * grid puts that rule, and a sliver of the neighbouring card, inside the frame;
- * the rules are located in the render instead and each card cut from the middle
- * of the space between them.
+ * Cards are separated by a gutter, so each one is an island of ink with nothing
+ * of its neighbours anywhere near it. That is what lets the cutter find the
+ * cards themselves — the runs of lines that carry ink — rather than inferring
+ * them from the lines in between. The sheet as originally drawn had its cards
+ * abutting and sharing a single hairline rule along each boundary, which had to
+ * be located by ink coverage and then told apart from the court cards' inner
+ * frames, and left every cut a hair away from dragging a neighbour's edge into
+ * the frame.
  */
 const SHEET = {
   file: "playing_card_assets_large.svg",
-  width: 3060,
-  height: 1620,
+  width: 3249,
+  height: 1709,
   cols: 13,
   /** Rows of card faces. */
   faceRows: 4,
   /** Total rows, including the row holding the two backs. */
   rows: 5,
 };
+
+/** A card's own size on the sheet, in user units, and how far it may vary. */
+const SHEET_CARD = { width: 224, height: 313, tolerance: 3 };
 
 /** Pixels per SVG user unit when rendering the sheet. */
 const SHEET_PPU = ART_SCALE;
@@ -155,169 +160,107 @@ async function rasterize(svg, box, width, height) {
 }
 
 /**
- * Marks every pixel that is opaque and dark, which on this sheet means ink:
- * a grid rule, a pip, or a line of a court card's engraving.
+ * Marks every pixel the sheet has drawn something on, card or gutter.
+ *
+ * Anything but full transparency counts, so a card's white body marks just as a
+ * pip does and the only clear lines on the sheet are the gutters. Antialiasing
+ * along a card's outline lands well above this threshold.
  *
  * @param {{data: Buffer, info: sharp.OutputInfo}} sheet The rendered sheet.
  * @returns {Uint8Array} One byte per pixel, row major.
  */
-function inkMask(sheet) {
+function paintedMask(sheet) {
   const { data, info } = sheet;
   const mask = new Uint8Array(info.width * info.height);
   for (let pixel = 0; pixel < mask.length; pixel++) {
-    const i = pixel * 4;
-    const luma = (data[i] + data[i + 1] + data[i + 2]) / 3;
-    mask[pixel] = data[i + 3] > 128 && luma < 170 ? 1 : 0;
+    mask[pixel] = data[pixel * 4 + 3] > 16 ? 1 : 0;
   }
   return mask;
 }
 
 /**
- * Finds the centre of each band of lines whose ink coverage clears `threshold`.
+ * Splits a line profile into the runs that carry paint.
  *
- * Bands separated by less than `mergeGap` are treated as one, because a rule
- * two or three pixels wide can dip below the threshold in the middle where
- * antialiasing splits it.
- *
- * @param {number[]} coverage Ink coverage per line, 0 to 1.
- * @param {number} threshold Coverage a line must reach to count as a rule.
- * @param {number} [mergeGap=3] Largest gap that still counts as the same band.
- * @returns {number[]} The centre of each band.
+ * @param {number[]} painted How many painted pixels each line holds.
+ * @returns {{start: number, end: number}[]} Inclusive runs, ascending.
  */
-function ruleCentres(coverage, threshold, mergeGap = 3) {
-  const hits = [];
-  for (let i = 0; i < coverage.length; i++) {
-    if (coverage[i] > threshold) hits.push(i);
-  }
-  if (hits.length === 0) return [];
-
-  const centres = [];
-  let start = hits[0];
-  let previous = hits[0];
-  for (const hit of hits.slice(1)) {
-    if (hit > previous + mergeGap) {
-      centres.push((start + previous) / 2);
-      start = hit;
+function paintedRuns(painted) {
+  const runs = [];
+  let start = -1;
+  for (let i = 0; i < painted.length; i++) {
+    if (painted[i] > 0 && start < 0) start = i;
+    if (painted[i] === 0 && start >= 0) {
+      runs.push({ start, end: i - 1 });
+      start = -1;
     }
-    previous = hit;
   }
-  centres.push((start + previous) / 2);
-  return centres;
+  if (start >= 0) runs.push({ start, end: painted.length - 1 });
+  return runs;
 }
 
 /**
- * Picks the `count` candidates that form the sheet's regular grid.
+ * Checks a set of runs is the row or column of cards it should be.
  *
- * Coverage alone cannot separate a rule from a court card's inner frame, which
- * in a column of nothing but court cards runs the full height of the block just
- * as a rule does. Even spacing can: the grid is regular, so the outermost
- * candidates fix a pitch and every rule sits on it.
+ * A stray mark out in a gutter would bridge two cards into one run, and a card
+ * that failed to draw would leave a run missing, so both the count and each
+ * run's size are worth stating. Getting this wrong offsets every crop on the
+ * axis, which is far easier to catch here than in a built atlas.
  *
- * @param {number[]} candidates Rule candidates, ascending.
- * @param {number} count How many rules the grid has.
+ * @param {{start: number, end: number}[]} runs The runs found.
+ * @param {number} count How many cards the axis holds.
+ * @param {number} size A card's size along the axis, in pixels.
  * @param {string} axis Axis name, for error messages.
- * @returns {number[]} The selected rules.
  */
-function selectGridRules(candidates, count, axis) {
-  if (candidates.length < count) {
+function assertCardRuns(runs, count, size, axis) {
+  if (runs.length !== count) {
     throw new Error(
-      `Expected at least ${count} ${axis} rules on the card sheet, found ` +
-        `${candidates.length}: ${candidates.join(", ")}`,
+      `Expected ${count} ${axis} runs of cards on the sheet, found ` +
+        `${runs.length}: ${runs.map((r) => `${r.start}-${r.end}`).join(", ")}`,
     );
   }
-
-  const first = candidates[0];
-  const pitch = (candidates[candidates.length - 1] - first) / (count - 1);
-  const selected = [];
-  for (let k = 0; k < count; k++) {
-    const target = first + k * pitch;
-    selected.push(
-      candidates.reduce((best, candidate) =>
-        Math.abs(candidate - target) < Math.abs(best - target)
-          ? candidate
-          : best,
-      ),
-    );
-  }
-
-  const tolerance = pitch * 0.1;
-  for (let k = 0; k < count; k++) {
-    const drift = Math.abs(selected[k] - (first + k * pitch));
-    if (drift > tolerance || (k > 0 && selected[k] === selected[k - 1])) {
+  const slack = SHEET_CARD.tolerance * SHEET_PPU;
+  for (const [index, run] of runs.entries()) {
+    const span = run.end - run.start + 1;
+    if (Math.abs(span - size) > slack) {
       throw new Error(
-        `The ${axis} rules on the card sheet are not on a regular grid; ` +
-          `expected ${count} at a pitch of ${pitch.toFixed(1)}px but matched ` +
-          `${selected.join(", ")} from candidates ${candidates.join(", ")}`,
+        `The ${axis} run at ${index} spans ${span}px, but a card is ${size}px ` +
+          `give or take ${slack}; something is drawn out in a gutter`,
       );
     }
   }
-  return selected;
 }
 
 /**
- * Locates the sheet's grid rules.
+ * Locates the cards on the sheet.
  *
- * A rule is the only thing on the sheet that runs the full length of the card
- * block, which is what separates it from artwork that merely looks like a line,
- * such as the frame around a court card. Vertical rules are measured over the
- * face rows only, because a column past the second has no card on the row of
- * backs and so would fall short of full coverage.
+ * Every card is surrounded by a gutter, so the lines that carry no paint at all
+ * are exactly the gaps between them and a run of painted lines is exactly one
+ * row or column of cards. Columns are found over the whole sheet rather than
+ * the face rows alone: the row of backs holds only two cards, and the columns
+ * past it are established by the faces above.
  *
  * @param {{data: Buffer, info: sharp.OutputInfo}} sheet The rendered sheet.
- * @returns {{columns: number[], rows: number[], rowPitch: number}} Rule positions in pixels.
+ * @returns {{columns: {start: number, end: number}[], rows: {start: number, end: number}[]}} Card spans in pixels.
  */
-function findGridRules(sheet) {
+function findCards(sheet) {
   const { width, height } = sheet.info;
-  const mask = inkMask(sheet);
+  const mask = paintedMask(sheet);
 
-  let minX = width;
-  let maxX = -1;
-  let minY = height;
-  let maxY = -1;
+  const columnPaint = new Array(width).fill(0);
+  const rowPaint = new Array(height).fill(0);
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       if (!mask[y * width + x]) continue;
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
+      columnPaint[x]++;
+      rowPaint[y]++;
     }
   }
 
-  // Trimmed slightly so the band cannot spill into the row of backs.
-  const faceBottom =
-    minY + ((maxY - minY) * SHEET.faceRows * 0.98) / SHEET.rows;
-
-  const columnCoverage = [];
-  for (let x = 0; x < width; x++) {
-    let hits = 0;
-    for (let y = minY; y <= faceBottom; y++) hits += mask[y * width + x];
-    columnCoverage.push(hits / (faceBottom - minY + 1));
-  }
-
-  const rowCoverage = [];
-  for (let y = 0; y < height; y++) {
-    let hits = 0;
-    for (let x = minX; x <= maxX; x++) hits += mask[y * width + x];
-    rowCoverage.push(hits / (maxX - minX + 1));
-  }
-
-  const columns = selectGridRules(
-    ruleCentres(columnCoverage, 0.85),
-    SHEET.cols + 1,
-    "vertical",
-  );
-  const rows = selectGridRules(
-    ruleCentres(rowCoverage, 0.9),
-    SHEET.faceRows + 1,
-    "horizontal",
-  );
-
-  return {
-    columns,
-    rows,
-    rowPitch: (rows[rows.length - 1] - rows[0]) / (rows.length - 1),
-  };
+  const columns = paintedRuns(columnPaint);
+  const rows = paintedRuns(rowPaint);
+  assertCardRuns(columns, SHEET.cols, SHEET_CARD.width * SHEET_PPU, "vertical");
+  assertCardRuns(rows, SHEET.rows, SHEET_CARD.height * SHEET_PPU, "horizontal");
+  return { columns, rows };
 }
 
 /**
@@ -467,8 +410,8 @@ async function assertEdgesAreClear(frames) {
 
   if (dirty.length > 0) {
     throw new Error(
-      `Frames have a rule running along an edge, so the crop is picking up a ` +
-        `neighbouring card:\n  ${dirty.join("\n  ")}`,
+      `Frames have a line running along an edge, so the crop is off its ` +
+        `card:\n  ${dirty.join("\n  ")}`,
     );
   }
 }
@@ -476,17 +419,16 @@ async function assertEdgesAreClear(frames) {
 /**
  * The hairline edge stamped onto every card frame.
  *
- * The sheet draws one rule between each pair of abutting cards, shared by both,
- * so a card's own outline lies outside its frame everywhere except where it
- * curves around a corner. Cutting inside the rule — which is what keeps a
- * neighbour's edge out of the frame — therefore leaves a card with nothing to
- * bound it, and two overlapping face-up cards read as a single white shape.
- * That is worst in the waste, where three cards fan across each other, but it
- * costs just as much down a tableau column of face-up cards.
+ * A card is a little larger than the frame cut from it, so its own outline
+ * falls outside the frame everywhere except where it curves around a corner.
+ * The cut therefore leaves a card with nothing to bound it, and two overlapping
+ * face-up cards read as a single white shape. That is worst in the waste, where
+ * three cards fan across each other, but it costs just as much down a tableau
+ * column of face-up cards.
  *
- * The card's real outline cannot be recovered from the sheet: taking in half a
- * rule on each side means widening the frame, and the frame size is what the
- * board layout measures a card by. So the edge is drawn on here instead.
+ * The card's real outline cannot be kept: taking it in means widening the
+ * frame, and the frame size is what the board layout measures a card by. So the
+ * edge is drawn on here instead.
  *
  * The drop shadow cannot stand in for it. Its light sits off the top-left, so
  * it throws down and to the right, while every fan in the game overlaps in the
@@ -666,10 +608,10 @@ async function main() {
     SHEET.height * SHEET_PPU,
   );
 
-  const grid = findGridRules(sheet);
+  const cards = findCards(sheet);
   console.log(
-    `  grid: ${grid.columns.length} vertical rules, ` +
-      `${grid.rows.length} horizontal, row pitch ${grid.rowPitch.toFixed(1)}px`,
+    `  grid: ${cards.columns.length} columns of cards, ` +
+      `${cards.rows.length} rows`,
   );
 
   const cardFrames = await cutFrames(
@@ -683,17 +625,14 @@ async function main() {
     SHEET.rows,
     SHEET.cols,
     (row, col) => {
-      // Centre the frame in the space between the rules either side of the
-      // card, which keeps the crop clear of both by the widest possible margin.
-      const top =
-        row < SHEET.faceRows
-          ? (grid.rows[row] + grid.rows[row + 1]) / 2
-          : grid.rows[SHEET.faceRows] + grid.rowPitch / 2;
+      // Centre the frame on the card itself. The frame is a little smaller than
+      // the card, so this trims an even sliver off all four sides and keeps the
+      // whole gutter — and everything beyond it — outside the crop.
+      const column = cards.columns[col];
+      const line = cards.rows[row];
       return {
-        left: Math.round(
-          (grid.columns[col] + grid.columns[col + 1]) / 2 - FRAME_W / 2,
-        ),
-        top: Math.round(top - FRAME_H / 2),
+        left: Math.round((column.start + column.end + 1) / 2 - FRAME_W / 2),
+        top: Math.round((line.start + line.end + 1) / 2 - FRAME_H / 2),
       };
     },
   );

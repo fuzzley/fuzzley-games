@@ -37,13 +37,12 @@ Files covered
 
     src/engine/render/assets/sprites/card/playing_card_assets_large.svg
 
-        The unmodified vector source, as distributed by the author.
+        The vector source, modified by this project. See "Modifications" below.
 
     src/engine/render/assets/sprites/card/card-<suit>-<rank>.png
     src/engine/render/assets/sprites/card/card-back-*.png
 
-        Rasterized derivative works, produced from the vector source above by
-        tools/build-card-atlas.mjs.
+        Rasterized derivative works, produced from the vector source above.
 
     Any texture atlas pages and manifests generated into the build output by
     `yarn build:atlas`, insofar as they embed the artwork above.
@@ -52,6 +51,31 @@ These files are licensed under LGPL-3.0, not under the project's GPL-3.0
 license. LGPL-3.0 applies to the artwork and to derivative works of the artwork;
 it does not extend to the rest of this project, which is an independent work
 that merely displays it.
+
+Modifications
+-------------
+
+The vector source carries changes made by this project rather than by the
+original author, which LGPL-3.0 requires be stated. Both were made on
+2026-08-02 and neither redraws any card:
+
+  * Each ace and court card gained a suit pip in the blank margin at its top
+    right. A fanned tableau column leaves only the top 45 of a card's 307 design
+    units showing, and the deck places its corner suit pip below that line on
+    every rank. Cards 2-10 stay legible there because their body pips reach up
+    into the strip, but an ace has only a centre pip and a court has portrait
+    frame, so a covered one could not be told from its same-coloured twin. The
+    added pip repeats that card's own corner index pip at its own size, in a
+    layer of its own; it covers no artwork, and no original element was edited.
+
+  * The cards were moved apart onto a regular grid with a gutter between them.
+    As drawn, cards abutted and shared a single hairline rule along each
+    boundary, which the atlas cutter had to locate by ink coverage and tell
+    apart from the court cards' inner frames. Only the position of each card
+    changed; the artwork within each card is untouched.
+
+Both changes are reproducible from the upstream file, and the file before them
+is in this repository's history.
 
 Relationship to LICENSE
 -----------------------
@@ -67,8 +91,10 @@ Substituting different artwork
 LGPL-3.0 requires that recipients be able to replace the covered work with a
 modified or alternative version. Two things make that practical here:
 
-  * The unmodified vector source is retained in this repository, so the artwork
-    can be edited rather than only redistributed.
+  * The vector source is retained in this repository, so the artwork can be
+    edited rather than only redistributed. It carries the changes recorded under
+    "Modifications" above; the file as the author distributed it is in this
+    repository's history.
 
   * Card artwork is resolved through the key returned by playingCardFaceKey()
     in src/engine/core/card/playing_card.ts, so replacing a deck is a matter of
