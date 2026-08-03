@@ -97,6 +97,7 @@ const SHEET_CARD = { width: 224, height: 313, tolerance: 3 };
 const DECKS = [
   { id: "classic", file: "playing_card_assets_large.svg" },
   { id: "indexed", file: "playing_card_assets_corner_pips.svg" },
+  { id: "all-corner-pips", file: "playing_card_assets_all_corner_pips.svg" },
 ];
 
 /** Pixels per SVG user unit when rendering the sheet. */
