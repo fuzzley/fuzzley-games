@@ -524,7 +524,7 @@ export function boardScenePhaserMock(): {
     textures: MockTextures;
     load: MockLoader;
   };
-  Scenes: { Events: { SHUTDOWN: string } };
+  Scenes: { Events: { SHUTDOWN: string; POST_UPDATE: string } };
   Loader: { Events: { COMPLETE: string } };
   Geom: { Rectangle: typeof MockRectangle };
 } {
@@ -546,7 +546,9 @@ export function boardScenePhaserMock(): {
       textures = createMockTextures(BOOT_TEXTURE_KEY);
       load = createMockLoader();
     },
-    Scenes: { Events: { SHUTDOWN: SHUTDOWN_EVENT } },
+    Scenes: {
+      Events: { SHUTDOWN: SHUTDOWN_EVENT, POST_UPDATE: POST_UPDATE_EVENT },
+    },
     Loader: { Events: { COMPLETE: LOADER_COMPLETE_EVENT } },
     Geom: {
       Rectangle: Object.assign(MockRectangle, {
@@ -558,6 +560,13 @@ export function boardScenePhaserMock(): {
 
 /** The scene shutdown event name, matching Phaser's own. */
 export const SHUTDOWN_EVENT = "shutdown";
+
+/**
+ * The event raised after the first frame is drawn, matching Phaser's own. A
+ * board announces it is ready on this one, since that is the first moment
+ * there is something on the canvas to show.
+ */
+export const POST_UPDATE_EVENT = "postupdate";
 
 /** The loader event a board scene waits on before swapping a deck in. */
 export const LOADER_COMPLETE_EVENT = "complete";
