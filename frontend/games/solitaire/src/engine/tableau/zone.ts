@@ -142,6 +142,10 @@ export function canGrab(
  * A card buried under a broken sequence cannot be lifted, because everything
  * above it comes with it and the pile it lands on would have to accept the
  * whole thing.
+ *
+ * Every card in the run must be face up, the topmost included: a run is only a
+ * run if the player can read all of it. Checking adjacency pairwise would leave
+ * the last card's face untested, since it is never the `lower` of a pair.
  */
 function isRunFrom(
   pile: CardPile<PlayingCard>,
@@ -152,9 +156,11 @@ function isRunFrom(
   const start = cards.indexOf(card);
   if (start === -1) return false;
 
-  for (let index = start; index < cards.length - 1; index++) {
+  for (let index = start; index < cards.length; index++) {
     if (!cards[index].faceUp) return false;
-    if (!adjacent(cards[index], cards[index + 1])) return false;
+    if (index + 1 < cards.length && !adjacent(cards[index], cards[index + 1])) {
+      return false;
+    }
   }
   return true;
 }
