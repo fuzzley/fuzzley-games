@@ -1,5 +1,10 @@
-import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { ZoneSpec } from "@/engine/tableau/zone";
+import { zoneAt } from "@/engine/tableau/zone_builder";
+import { STACKED_PILE_LAYOUT } from "../common/pile_layouts";
+import {
+  PLAIN_PLACEHOLDER,
+  RECYCLING_STOCK_PLACEHOLDER,
+} from "../common/zone_presets";
 import {
   COLUMN_COUNT,
   MontanaRole,
@@ -26,10 +31,14 @@ export function cellPileId(row: number, column: number): string {
   return `cell-${row}-${column}`;
 }
 
-/** Every cell holds at most one card, so it never fans. */
-export const STACKED_PILE_LAYOUT: PileLayout = { kind: "stacked" };
-
-/** The fifty-three zones of a Montana board. */
+/**
+ * The fifty-three zones of a Montana board.
+ *
+ * Built cell by cell rather than from the shared row presets, and deliberately:
+ * those describe a row of *like* piles, and no two positions in this grid are
+ * alike — each accepts only the successor of the card to its left. The grid is
+ * the game, so writing it out is saying what the game is.
+ */
 export function montanaZoneSpecs(): readonly ZoneSpec[] {
   return ZONES;
 }
@@ -41,42 +50,51 @@ function buildZoneSpecs(): readonly ZoneSpec[] {
 
   for (let row = 0; row < ROW_COUNT; row++) {
     for (let column = 0; column < COLUMN_COUNT; column++) {
-      const id = cellPileId(row, column);
-      zones.push({
-        id,
-        role: MontanaRole.CELL,
-        slot: { pileId: id, column, row },
-        layout: STACKED_PILE_LAYOUT,
-        // The whole grid is single-card positions; a gap is simply an empty one.
-        capacity: 1,
-        // The neighbour is captured here, where both cells are in hand, rather
-        // than parsed out of an id at rule time.
-        accept: montanaCellRule(column === 0 ? null : cellPileId(row, column - 1)),
-        grab: { kind: "top-only" },
-        draggable: true,
-        // Nothing is ever hidden: the entire position is visible from the deal.
-        face: "always-up",
-        backgroundKey: "card-placeholder",
-      });
+      zones.push(
+        zoneAt({
+          id: cellPileId(row, column),
+          role: MontanaRole.CELL,
+          column,
+          row,
+          layout: STACKED_PILE_LAYOUT,
+          // The whole grid is single-card positions; a gap is simply an empty
+          // one.
+          capacity: 1,
+          // The neighbour is captured here, where both cells are in hand,
+          // rather than parsed out of an id at rule time.
+          accept: montanaCellRule(
+            column === 0 ? null : cellPileId(row, column - 1),
+          ),
+          grab: { kind: "top-only" },
+          draggable: true,
+          // Nothing is ever hidden: the entire position is visible from the
+          // deal.
+          face: "always-up",
+          backgroundKey: PLAIN_PLACEHOLDER,
+        }),
+      );
     }
   }
 
-  zones.push({
-    id: REDEAL_PILE_ID,
-    role: MontanaRole.REDEAL,
-    // Beside the grid rather than in it, on the row a player's eye starts at.
-    slot: { pileId: REDEAL_PILE_ID, column: COLUMN_COUNT, row: 0 },
-    layout: STACKED_PILE_LAYOUT,
-    // Never a destination and never a source: it is a button that happens to be
-    // drawn on the table.
-    accept: null,
-    grab: { kind: "none" },
-    draggable: false,
-    face: "always-down",
-    backgroundKey: "card-placeholder-full-border-reset",
-    // Pressing the empty slot is the whole point of it.
-    emptyIsActionable: true,
-  });
+  zones.push(
+    zoneAt({
+      id: REDEAL_PILE_ID,
+      role: MontanaRole.REDEAL,
+      // Beside the grid rather than in it, on the row a player's eye starts at.
+      column: COLUMN_COUNT,
+      row: 0,
+      layout: STACKED_PILE_LAYOUT,
+      // Never a destination and never a source: it is a button that happens to
+      // be drawn on the table.
+      accept: null,
+      grab: { kind: "none" },
+      draggable: false,
+      face: "always-down",
+      backgroundKey: RECYCLING_STOCK_PLACEHOLDER,
+      // Pressing the empty slot is the whole point of it.
+      emptyIsActionable: true,
+    }),
+  );
 
   return zones;
 }

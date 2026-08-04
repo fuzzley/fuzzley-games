@@ -1,5 +1,6 @@
-import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { ZoneSpec } from "@/engine/tableau/zone";
+import { OPEN_COLUMN_LAYOUT } from "../common/pile_layouts";
+import { columnRow, foundationRow } from "../common/zone_presets";
 import {
   BakersDozenRole,
   bakersDozenPlacementRule,
@@ -19,84 +20,34 @@ export const FOUNDATION_COUNT = 4;
  */
 export const FOUNDATION_COLUMN_OFFSET = TABLEAU_COUNT - FOUNDATION_COUNT;
 
-/** The stable id of the foundation pile at the given index. */
-export function foundationPileId(index: number): string {
-  return `foundation-${index}`;
-}
-
-/** The stable id of the tableau column at the given index. */
-export function tableauPileId(index: number): string {
-  return `tableau-${index}`;
-}
-
-/** Downward gap below a column card before the next one. */
-export const TABLEAU_CARD_OFFSET = 45;
-
-/** Extra downward gap opened below the hovered card, to say which one it is. */
-export const TABLEAU_HOVER_EXPANSION_OFFSET = 15;
-
-/**
- * How a Baker's Dozen column arranges its cards.
- *
- * Both gaps are the same: every card is dealt face up, so there are no
- * face-down cards to pack more tightly.
- */
-export const TABLEAU_PILE_LAYOUT: PileLayout = {
-  kind: "fan-down",
-  faceUpGap: TABLEAU_CARD_OFFSET,
-  faceDownGap: TABLEAU_CARD_OFFSET,
-  hoverExpansion: TABLEAU_HOVER_EXPANSION_OFFSET,
-};
-
-/** How a foundation arranges its cards: squarely. */
-export const STACKED_PILE_LAYOUT: PileLayout = { kind: "stacked" };
-
 /** The seventeen zones of a Baker's Dozen board. */
 export function bakersDozenZoneSpecs(): readonly ZoneSpec[] {
   return ZONES;
 }
 
-const ZONES: readonly ZoneSpec[] = buildZoneSpecs();
-
-function buildZoneSpecs(): readonly ZoneSpec[] {
-  const zones: ZoneSpec[] = [];
-
-  for (let index = 0; index < FOUNDATION_COUNT; index++) {
-    const id = foundationPileId(index);
-    zones.push({
-      id,
-      role: BakersDozenRole.FOUNDATION,
-      slot: { pileId: id, column: FOUNDATION_COLUMN_OFFSET + index, row: 0 },
-      layout: STACKED_PILE_LAYOUT,
-      accept: bakersDozenPlacementRule(BakersDozenRole.FOUNDATION),
-      grab: { kind: "top-only" },
-      draggable: true,
-      face: "always-up",
-      backgroundKey: "card-placeholder-full-border-circle",
-    });
-  }
-
-  for (let index = 0; index < TABLEAU_COUNT; index++) {
-    const id = tableauPileId(index);
-    zones.push({
-      id,
-      role: BakersDozenRole.TABLEAU,
-      slot: { pileId: id, column: index, row: 1 },
-      layout: TABLEAU_PILE_LAYOUT,
-      accept: bakersDozenPlacementRule(BakersDozenRole.TABLEAU),
-      // One card at a time. There is nowhere to stage a run — no cells, and no
-      // empty column will ever take one — so a multi-card move could not be
-      // carried out by any sequence of legal single moves.
-      grab: { kind: "top-only" },
-      draggable: true,
-      // Every card is dealt face up, so nothing is ever turned over.
-      face: "always-up",
-      backgroundKey: "card-placeholder",
-    });
-  }
-
-  return zones;
-}
+const ZONES: readonly ZoneSpec[] = [
+  ...foundationRow({
+    count: FOUNDATION_COUNT,
+    column: FOUNDATION_COLUMN_OFFSET,
+    row: 0,
+    role: BakersDozenRole.FOUNDATION,
+    accept: bakersDozenPlacementRule(BakersDozenRole.FOUNDATION),
+  }),
+  ...columnRow({
+    count: TABLEAU_COUNT,
+    column: 0,
+    row: 1,
+    role: BakersDozenRole.TABLEAU,
+    accept: bakersDozenPlacementRule(BakersDozenRole.TABLEAU),
+    // One card at a time. There is nowhere to stage a run — no cells, and no
+    // empty column will ever take one — so a multi-card move could not be
+    // carried out by any sequence of legal single moves.
+    grab: { kind: "top-only" },
+    // Every card is dealt face up, so nothing is ever turned over.
+    layout: OPEN_COLUMN_LAYOUT,
+    face: "always-up",
+  }),
+];
 
 /** Re-exported: the roles live with the rules that branch on them. */
 export { BakersDozenRole };

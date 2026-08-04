@@ -1,4 +1,4 @@
-import { tableLayout } from "@/engine/render/layout/table_layout";
+import { boardLayout } from "../common/board_layout";
 import { TABLEAU_COUNT, klondikeZoneSpecs } from "./klondike_zones";
 import { DEFAULT_DRAW_COUNT } from "./klondike_settings";
 
@@ -11,10 +11,10 @@ import { DEFAULT_DRAW_COUNT } from "./klondike_settings";
  * they are read from does not matter — the fan varies with it, the grid does
  * not.
  */
-export const KLONDIKE_LAYOUT = tableLayout({
+export const KLONDIKE_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
-  slots: klondikeZoneSpecs(DEFAULT_DRAW_COUNT).map((zone) => zone.slot),
+  zones: klondikeZoneSpecs(DEFAULT_DRAW_COUNT),
   // The grid alone needs 819, but a tableau column fans about a card and a half
   // below its row. This is the height the board was authored at, and it is what
   // keeps a long column on screen.

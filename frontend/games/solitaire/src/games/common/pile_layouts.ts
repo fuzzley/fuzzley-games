@@ -30,6 +30,36 @@ export const TABLEAU_HOVER_EXPANSION_OFFSET = 15;
 export const STACKED_PILE_LAYOUT: PileLayout = { kind: "stacked" };
 
 /**
+ * Horizontal gap between fanned waste cards.
+ *
+ * Wide enough to clear a card's index corner, so each fanned card shows its own
+ * rank and suit rather than a bare sliver of paper. The waste sits in column 1
+ * and the foundations start at column 3, so the fan has the whole of column 2
+ * to grow into: a three card fan stays clear of the first foundation up to an
+ * offset of about 125.
+ */
+export const WASTE_FAN_OFFSET_X = 55;
+
+/** Maximum number of waste cards to fan the edges of in multi-draw mode. */
+export const WASTE_MAX_FAN_CARDS = 3;
+
+/**
+ * How a waste arranges its cards for the given draw mode.
+ *
+ * Draw 1 turns one card at a time, so there is never more than one to show and
+ * fanning would only leave a gap where the second card is not.
+ *
+ * @param drawCount How many cards a draw turns over.
+ */
+export function wasteFanLayout(drawCount: number): PileLayout {
+  return {
+    kind: "fan-right",
+    gap: WASTE_FAN_OFFSET_X,
+    maxVisible: drawCount === 1 ? 1 : WASTE_MAX_FAN_CARDS,
+  };
+}
+
+/**
  * How a column arranges its cards when some of them are dealt face down.
  *
  * The two gaps differ, so a run of buried cards packs tighter than the readable

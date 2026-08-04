@@ -1,4 +1,4 @@
-import { tableLayout } from "@/engine/render/layout/table_layout";
+import { boardLayout } from "../common/board_layout";
 import { TABLEAU_COUNT, simpleSimonZoneSpecs } from "./simple_simon_zones";
 
 /**
@@ -11,10 +11,10 @@ import { TABLEAU_COUNT, simpleSimonZoneSpecs } from "./simple_simon_zones";
  * of the game rather than draining steadily onto foundations the way they do in
  * Klondike. The reserved height is set for that rather than for the deal.
  */
-export const SIMPLE_SIMON_LAYOUT = tableLayout({
+export const SIMPLE_SIMON_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
-  slots: simpleSimonZoneSpecs().map((zone) => zone.slot),
+  zones: simpleSimonZoneSpecs(),
   // A column of fifteen at a 45-unit gap reaches about 1500 from the top of the
   // board. Ten columns means width binds the scale on any ordinary viewport, so
   // the extra height below the grid is slack and costs the cards nothing — the

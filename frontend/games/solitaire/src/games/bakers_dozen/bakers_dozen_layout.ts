@@ -1,4 +1,4 @@
-import { tableLayout } from "@/engine/render/layout/table_layout";
+import { boardLayout } from "../common/board_layout";
 import { TABLEAU_COUNT, bakersDozenZoneSpecs } from "./bakers_dozen_zones";
 
 /**
@@ -14,10 +14,10 @@ import { TABLEAU_COUNT, bakersDozenZoneSpecs } from "./bakers_dozen_zones";
  * reserved height below is free, in the sense Eight Off's layout sets out. It
  * could be raised considerably before it started costing card size.
  */
-export const BAKERS_DOZEN_LAYOUT = tableLayout({
+export const BAKERS_DOZEN_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
-  slots: bakersDozenZoneSpecs().map((zone) => zone.slot),
+  zones: bakersDozenZoneSpecs(),
   // Columns start at four and grow slowly: cards leave for the foundations one
   // at a time and never come back, and no column can be started over. Twelve
   // deep at a 45-unit gap is beyond what a real game reaches, and reaches about

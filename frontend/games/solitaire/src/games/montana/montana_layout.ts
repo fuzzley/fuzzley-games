@@ -1,4 +1,4 @@
-import { tableLayout } from "@/engine/render/layout/table_layout";
+import { boardLayout } from "../common/board_layout";
 import { BOARD_COLUMN_COUNT, montanaZoneSpecs } from "./montana_zones";
 import { ROW_COUNT } from "./montana_rules";
 
@@ -15,8 +15,8 @@ import { ROW_COUNT } from "./montana_rules";
  * Fourteen columns across four rows is the largest grid in the application, and
  * width binds the scale comfortably at it.
  */
-export const MONTANA_LAYOUT = tableLayout({
+export const MONTANA_LAYOUT = boardLayout({
   columns: BOARD_COLUMN_COUNT,
   rows: ROW_COUNT,
-  slots: montanaZoneSpecs().map((zone) => zone.slot),
+  zones: montanaZoneSpecs(),
 });

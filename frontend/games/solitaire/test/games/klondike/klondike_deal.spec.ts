@@ -11,9 +11,11 @@ import {
   KlondikeRole,
   FOUNDATION_COUNT,
   TABLEAU_COUNT,
+} from "@/games/klondike/klondike_zones";
+import {
   foundationPileId,
   tableauPileId,
-} from "@/games/klondike/klondike_zones";
+} from "@/games/common/pile_ids";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 
 describe("the Klondike deal", () => {

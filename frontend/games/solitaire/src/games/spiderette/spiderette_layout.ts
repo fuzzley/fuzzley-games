@@ -1,4 +1,4 @@
-import { tableLayout } from "@/engine/render/layout/table_layout";
+import { boardLayout } from "../common/board_layout";
 import { TABLEAU_COUNT, spideretteZoneSpecs } from "./spiderette_zones";
 
 /**
@@ -14,10 +14,10 @@ import { TABLEAU_COUNT, spideretteZoneSpecs } from "./spiderette_zones";
  * directly, so the figure below is a judgement about how deep columns really get
  * rather than a free allowance.
  */
-export const SPIDERETTE_LAYOUT = tableLayout({
+export const SPIDERETTE_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
-  slots: spideretteZoneSpecs().map((zone) => zone.slot),
+  zones: spideretteZoneSpecs(),
   // Scorpion's reservation, for the same reason: every card that leaves a column
   // joins another, so a board collects into two or three deep stacks before the
   // first run completes. Six buried cards at 18 and eight showing at 45 reaches

@@ -1,4 +1,4 @@
-import { tableLayout } from "@/engine/render/layout/table_layout";
+import { boardLayout } from "../common/board_layout";
 import {
   BOARD_COLUMN_COUNT,
   doubleKlondikeZoneSpecs,
@@ -16,10 +16,10 @@ import {
  * At eleven columns width binds the scale comfortably, so the reserved height
  * below is free — the trade Eight Off's layout sets out at length.
  */
-export const DOUBLE_KLONDIKE_LAYOUT = tableLayout({
+export const DOUBLE_KLONDIKE_LAYOUT = boardLayout({
   columns: BOARD_COLUMN_COUNT,
   rows: 2,
-  slots: doubleKlondikeZoneSpecs().map((zone) => zone.slot),
+  zones: doubleKlondikeZoneSpecs(),
   // Columns run deeper than Klondike's: the ninth is dealt nine cards before a
   // single move is made, and two decks feed a tableau only two columns wider.
   // Eight buried at 18 under ten showing at 45 reaches about 1050 from the top
