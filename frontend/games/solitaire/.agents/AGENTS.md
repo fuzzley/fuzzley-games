@@ -1,6 +1,6 @@
 # fSolitaire
 
-Browser-based Solitaire engine supporting multiple solitaire variants (Klondike, FreeCell, Spider) built with Phaser 4 canvas rendering and an Angular 22 application shell.
+Browser-based Solitaire engine supporting many solitaire variants — Klondike, FreeCell, Spider, Yukon, Forty Thieves, Montana and the rest of `src/games` — built with Phaser 4 canvas rendering and an Angular 22 application shell.
 
 ## Technology Stack
 
@@ -20,7 +20,7 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
 ```
        [ src/ui ]              Angular Application Shell (Header, Navigation, UI Controls)
            |
-      [ src/games ]            Game Rules & Variants (Klondike, FreeCell, Spider)
+      [ src/games ]            Game Rules & Variants (one directory per game)
            |
   +--------+--------+
   |                 |
@@ -49,9 +49,11 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
    - Draws card textures, scenes, and canvas elements. Stays unaware of specific game rules or UI components.
 4. **`src/engine/tableau`**
    - Solitaire-family generic runtime engine (tableau layout rules, zones, moves, undo/redo stack, table view builder).
-   - Serves as the generic execution engine for Klondike, FreeCell, and Spider without depending on a specific renderer backend or game variant.
+   - Serves as the generic execution engine for every game in `src/games` without depending on a specific renderer backend or game variant.
 5. **`src/games/*`** _(Top of Engine Tier)_
-   - Game-specific deal rules, scoring mechanics, layout setup, and gesture handling (`games/klondike`, `games/freecell`, `games/spider`).
+   - Game-specific deal rules, scoring mechanics, layout setup, and gesture handling — one directory per game (`games/klondike`, `games/freecell`, `games/montana`, …).
+   - Code shared between games lives in `games/common`: collecting completed runs, drawing and recycling a stock, dealing a card to every column, and the gesture map for a game with no stock.
+   - A different board grid means a different catalog entry; the same grid under different rules means a variant option on an existing one. See the `solitaire-engine-architecture` skill.
    - Sits above `engine/*` layers, but below the Angular UI application shell.
    - A game reaches the canvas through `src/games/common/board_scene_factory.ts`, which turns a game plus its layout and gesture map into a `BoardScene`. There is no separate scene-bridge tier: `PhaserHost` mounts whatever board factory it is handed.
 6. **`src/ui/*`** _(Application Shell)_
