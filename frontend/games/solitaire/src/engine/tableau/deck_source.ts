@@ -54,9 +54,7 @@ export class DeckSource {
 
   /** Registers every card and returns them freshly shuffled. */
   createShuffledDeck(): PlayingCard[] {
-    const deck = this.register();
-    shuffle(deck, this.random);
-    return deck;
+    return shuffle(this.register(), this.random);
   }
 
   /**

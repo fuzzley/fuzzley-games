@@ -6,12 +6,8 @@ import {
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { EventEmitter } from "@/engine/core/common/event_emitter";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import {
-  AppliedMove,
-  AppliedMoveKind,
-  CardTransfer,
-  relocatedCardIds,
-} from "./move";
+import { AppliedMove, AppliedMoveKind, CardTransfer } from "./move";
+import { MoveHistory, RelocationListener } from "./move_history";
 import { GameState } from "./game_state";
 import { BoardQuery } from "./rules";
 import { ZoneSpec, canGrab, hasRoomFor } from "./zone";
@@ -55,15 +51,8 @@ export const NO_MOVE_EFFECTS: MoveEffects = {
   flippedCardIds: [],
 };
 
-/**
- * Told which cards an action just moved from one pile to another, bottom-first
- * within each run it moved.
- *
- * The model relocates a card the instant the action is taken, while its sprite
- * is still back at the pile it left. A view listens so it can lift those cards
- * clear of the board until they have caught up.
- */
-export type RelocationListener = (cardIds: readonly string[]) => void;
+/** Re-exported: a caller of {@link TableGame.onCardsRelocated} needs the shape. */
+export type { RelocationListener };
 
 /**
  * The lifecycle events every table game publishes.
@@ -133,11 +122,13 @@ export abstract class TableGame<
     CardPile<PlayingCard>[]
   >();
 
-  /** The applied actions, oldest first, that {@link undo} unwinds. */
-  private readonly history: AppliedMove[] = [];
-
-  /** Followers of the cards each action relocates. */
-  private readonly relocationListeners = new Set<RelocationListener>();
+  /**
+   * The applied actions {@link undo} unwinds, and who is following them.
+   *
+   * Handed this game as its board, which it satisfies structurally: a history
+   * needs only to look piles and cards up by id and to walk the piles in order.
+   */
+  private readonly history: MoveHistory = new MoveHistory(this);
 
   private readonly zones: () => readonly ZoneSpec[];
   private readonly registry: CardRegistry;
@@ -467,51 +458,21 @@ export abstract class TableGame<
    * @returns True if an action was taken back; false when there is no history.
    */
   public undo(): boolean {
-    const last = this.history.pop();
-    this.state.undoDepth = this.history.length;
+    const last = this.history.takeBack();
+    this.state.undoDepth = this.history.depth;
     if (!last) {
       return false;
-    }
-
-    // Turn exposed cards back down first: they are still in the piles the cards
-    // are about to be put back on top of.
-    for (const flippedId of last.flippedCardIds) {
-      const flipped = this.getCardById(flippedId);
-      if (flipped) {
-        flipped.faceUp = false;
-      }
-    }
-
-    // Reverse order, so a consequence is undone before its cause: a run that
-    // left for a foundation comes back before the move that completed it.
-    for (const transfer of [...last.transfers].reverse()) {
-      this.reverseTransfer(transfer);
     }
 
     this.state.score = Math.max(0, this.state.score - last.scoreDelta);
     this.state.moves--;
     this.afterUndo(last);
     // The same cards, going the other way, and with the same board to cross.
-    this.announceRelocation(last);
+    // Announced after the hook, so a game that adjusts anything on undo has
+    // done so before a view is told the cards have moved.
+    this.history.announce(last);
 
     return true;
-  }
-
-  /** Puts one transfer's cards back where they came from. */
-  private reverseTransfer(transfer: CardTransfer): void {
-    const fromPile = this.getPileById(transfer.fromPileId);
-    const toPile = this.getPileById(transfer.toPileId);
-    if (!fromPile || !toPile) return;
-
-    // cardIds are in source order, so re-appending in that order restores the
-    // pile exactly, whichever way the action itself moved them.
-    for (const cardId of transfer.cardIds) {
-      const card = this.getCardById(cardId);
-      if (!card) continue;
-      toPile.removeCard(card);
-      card.faceUp = transfer.faceUpBefore;
-      fromPile.addCard(card);
-    }
   }
 
   /**
@@ -524,7 +485,7 @@ export abstract class TableGame<
 
   /** Whether there is an action {@link undo} can take back. */
   public get canUndo(): boolean {
-    return this.history.length > 0;
+    return this.history.canUndo;
   }
 
   /**
@@ -535,9 +496,8 @@ export abstract class TableGame<
    * what makes it the one place the view has to listen to.
    */
   protected record(move: AppliedMove): void {
-    this.history.push(move);
-    this.state.undoDepth = this.history.length;
-    this.announceRelocation(move);
+    this.history.record(move);
+    this.state.undoDepth = this.history.depth;
   }
 
   /**
@@ -553,40 +513,7 @@ export abstract class TableGame<
    * @returns Unsubscribes the listener.
    */
   public onCardsRelocated(listener: RelocationListener): () => void {
-    this.relocationListeners.add(listener);
-    return () => this.relocationListeners.delete(listener);
-  }
-
-  /**
-   * Where every card in play now lies, as a rank that orders the whole board.
-   *
-   * Counted across the piles rather than within each one, so two cards in
-   * different piles never share a rank — the same ordering the view builder
-   * gives resting cards, so the two agree by construction. Built fresh per
-   * announcement because that is the only thing it is for: an action has just
-   * moved the cards it is about to describe.
-   */
-  private boardOrder(): Map<string, number> {
-    const order = new Map<string, number>();
-    for (const pile of this.piles) {
-      for (const card of pile.getCards()) {
-        order.set(card.id, order.size);
-      }
-    }
-    return order;
-  }
-
-  /** Tells the listeners which cards an action relocated, if it relocated any. */
-  private announceRelocation(move: AppliedMove): void {
-    const order = this.boardOrder();
-    const cardIds = relocatedCardIds(move, (cardId) => order.get(cardId) ?? -1);
-    if (cardIds.length === 0) return;
-
-    // A snapshot, so a listener that unsubscribes during dispatch does not
-    // change who is notified for this action.
-    for (const listener of [...this.relocationListeners]) {
-      listener(cardIds);
-    }
+    return this.history.onCardsRelocated(listener);
   }
 
   /**
@@ -615,7 +542,7 @@ export abstract class TableGame<
 
   /** Drops the whole history, for a new deal that nothing before it precedes. */
   protected clearHistory(): void {
-    this.history.length = 0;
+    this.history.clear();
     this.state.undoDepth = 0;
   }
 
