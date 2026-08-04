@@ -1,6 +1,7 @@
-import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { isSameSuitRun } from "@/engine/tableau/rules";
 import { ZoneSpec } from "@/engine/tableau/zone";
+import { OPEN_COLUMN_LAYOUT } from "../common/pile_layouts";
+import { cellRow, columnRow, foundationRow } from "../common/zone_presets";
 import { EightOffRole, eightOffPlacementRule } from "./eight_off_rules";
 
 /** The number of free cells. Eight of them, which is where the name comes from. */
@@ -32,43 +33,6 @@ export const TABLEAU_COLUMN_OFFSET = Math.floor(
   (BOARD_COLUMN_COUNT - TABLEAU_COUNT) / 2,
 );
 
-/** The stable id of the free cell at the given index. */
-export function cellPileId(index: number): string {
-  return `cell-${index}`;
-}
-
-/** The stable id of the foundation pile at the given index. */
-export function foundationPileId(index: number): string {
-  return `foundation-${index}`;
-}
-
-/** The stable id of the tableau column at the given index. */
-export function tableauPileId(index: number): string {
-  return `tableau-${index}`;
-}
-
-/** Downward gap below a tableau card before the next one. */
-export const TABLEAU_CARD_OFFSET = 45;
-
-/** Extra downward gap opened below the hovered card, to say which one it is. */
-export const TABLEAU_HOVER_EXPANSION_OFFSET = 15;
-
-/**
- * How an Eight Off column arranges its cards.
- *
- * Both gaps are the same, for the same reason FreeCell's are: every card is
- * dealt face up, so there are no face-down cards to pack more tightly.
- */
-export const TABLEAU_PILE_LAYOUT: PileLayout = {
-  kind: "fan-down",
-  faceUpGap: TABLEAU_CARD_OFFSET,
-  faceDownGap: TABLEAU_CARD_OFFSET,
-  hoverExpansion: TABLEAU_HOVER_EXPANSION_OFFSET,
-};
-
-/** How a cell or a foundation arranges its cards: squarely, and at most a few. */
-export const STACKED_PILE_LAYOUT: PileLayout = { kind: "stacked" };
-
 /**
  * The twenty zones of an Eight Off board.
  *
@@ -82,69 +46,37 @@ export function eightOffZoneSpecs(): readonly ZoneSpec[] {
   return ZONES;
 }
 
-const ZONES: readonly ZoneSpec[] = buildZoneSpecs();
-
-function buildZoneSpecs(): readonly ZoneSpec[] {
-  const zones: ZoneSpec[] = [];
-
-  for (let index = 0; index < CELL_COUNT; index++) {
-    const id = cellPileId(index);
-    zones.push({
-      id,
-      role: EightOffRole.CELL,
-      slot: { pileId: id, column: index, row: 0 },
-      layout: STACKED_PILE_LAYOUT,
-      // The whole point of a cell: it holds exactly one card.
-      capacity: 1,
-      accept: eightOffPlacementRule(EightOffRole.CELL),
-      grab: { kind: "top-only" },
-      draggable: true,
-      face: "always-up",
-      backgroundKey: "card-placeholder",
-    });
-  }
-
-  for (let index = 0; index < FOUNDATION_COUNT; index++) {
-    const id = foundationPileId(index);
-    zones.push({
-      id,
-      role: EightOffRole.FOUNDATION,
-      slot: { pileId: id, column: CELL_COUNT + index, row: 0 },
-      layout: STACKED_PILE_LAYOUT,
-      accept: eightOffPlacementRule(EightOffRole.FOUNDATION),
-      grab: { kind: "top-only" },
-      draggable: true,
-      face: "always-up",
-      backgroundKey: "card-placeholder-full-border-circle",
-    });
-  }
-
-  for (let index = 0; index < TABLEAU_COUNT; index++) {
-    const id = tableauPileId(index);
-    zones.push({
-      id,
-      role: EightOffRole.TABLEAU,
-      slot: {
-        pileId: id,
-        column: TABLEAU_COLUMN_OFFSET + index,
-        row: 1,
-      },
-      layout: TABLEAU_PILE_LAYOUT,
-      accept: eightOffPlacementRule(EightOffRole.TABLEAU),
-      // A run here is one suit, not merely one colour, which is the same
-      // question the build rule asks — so both derive from `isSameSuitRun` and
-      // cannot drift apart.
-      grab: { kind: "run", adjacent: isSameSuitRun },
-      draggable: true,
-      // Every card is dealt face up, so nothing is ever turned over and the
-      // game has no hidden information at all.
-      face: "always-up",
-      backgroundKey: "card-placeholder",
-    });
-  }
-
-  return zones;
-}
+const ZONES: readonly ZoneSpec[] = [
+  ...cellRow({
+    count: CELL_COUNT,
+    column: 0,
+    row: 0,
+    role: EightOffRole.CELL,
+    accept: eightOffPlacementRule(EightOffRole.CELL),
+  }),
+  ...foundationRow({
+    count: FOUNDATION_COUNT,
+    column: CELL_COUNT,
+    row: 0,
+    role: EightOffRole.FOUNDATION,
+    accept: eightOffPlacementRule(EightOffRole.FOUNDATION),
+  }),
+  ...columnRow({
+    count: TABLEAU_COUNT,
+    column: TABLEAU_COLUMN_OFFSET,
+    row: 1,
+    role: EightOffRole.TABLEAU,
+    accept: eightOffPlacementRule(EightOffRole.TABLEAU),
+    // A run here is one suit, not merely one colour, which is the same question
+    // the build rule asks — so both derive from `isSameSuitRun` and cannot
+    // drift apart.
+    grab: { kind: "run", adjacent: isSameSuitRun },
+    // Every card is dealt face up, so nothing is ever turned over and the game
+    // has no hidden information at all.
+    layout: OPEN_COLUMN_LAYOUT,
+    face: "always-up",
+  }),
+];
 
 /** Re-exported: the roles live with the rules that branch on them. */
 export { EightOffRole };

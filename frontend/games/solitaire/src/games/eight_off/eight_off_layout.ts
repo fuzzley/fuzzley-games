@@ -1,4 +1,4 @@
-import { tableLayout } from "@/engine/render/layout/table_layout";
+import { boardLayout } from "../common/board_layout";
 import { BOARD_COLUMN_COUNT, eightOffZoneSpecs } from "./eight_off_zones";
 
 /**
@@ -25,10 +25,10 @@ import { BOARD_COLUMN_COUNT, eightOffZoneSpecs } from "./eight_off_zones";
  * tableau before they leave it. Paying a little on the opening deal to stop
  * paying on every card after it is the better trade.
  */
-export const EIGHT_OFF_LAYOUT = tableLayout({
+export const EIGHT_OFF_LAYOUT = boardLayout({
   columns: BOARD_COLUMN_COUNT,
   rows: 2,
-  slots: eightOffZoneSpecs().map((zone) => zone.slot),
+  zones: eightOffZoneSpecs(),
   // Room below the grid for a column rather deeper than the six it is dealt.
   // Free, per the note above: width is what binds the scale here.
   designHeightPx: 1200,
