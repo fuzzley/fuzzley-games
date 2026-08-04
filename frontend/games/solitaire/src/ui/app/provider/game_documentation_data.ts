@@ -648,4 +648,82 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry = {
       },
     ],
   },
+  maria: {
+    title: "Maria",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Forty_Thieves_(card_game)",
+    screenshot: {
+      url: "./docs/screenshots/maria/overview.png",
+      caption:
+        "Maria board showing nine face-up columns of four centred beneath the stock, waste and eight foundations.",
+      altText: "Maria solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
+      winCondition:
+        "All 104 cards are sorted onto the eight foundations, two per suit.",
+      quickOverview:
+        "Maria is Forty Thieves on a narrower board: nine columns of four instead of ten, built down in alternating colours with runs moving as a unit. Fewer columns means a smaller tableau and a longer stock to work through.",
+    },
+    detailedRules: {
+      layout: [
+        "Tableau: 9 columns of 4 cards, all face-up.",
+        "Foundations: 8 suit piles, two per suit.",
+        "Stock: the remaining 68 cards, drawn one at a time onto a waste.",
+      ],
+      cardMovement: [
+        "A card can be picked up with an unbroken alternating-colour descending run resting on it.",
+        "Any card can start an empty column.",
+        "The top card of a foundation can be taken back down onto a column.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in ALTERNATING COLORS.",
+      ],
+      specialRules: [
+        "No Recycle: the stock is dealt through exactly once, as in the rest of the Forty Thieves family.",
+        "Narrow Board: nine columns hold only 36 of the 104 cards, so more of the deck arrives through the stock than in Forty Thieves proper.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
+  limited: {
+    title: "Limited",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Forty_Thieves_(card_game)",
+    screenshot: {
+      url: "./docs/screenshots/limited/overview.png",
+      caption:
+        "Limited board showing twelve shallow face-up columns of three beneath the stock, waste and eight foundations.",
+      altText: "Limited solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
+      winCondition:
+        "All 104 cards are sorted onto the eight foundations, two per suit.",
+      quickOverview:
+        "Limited spreads Forty Thieves wider and shallower: twelve columns of three, built down in a single suit with runs moving as a unit. Every column is only two cards deep beneath its top, so far more of the tableau is immediately playable.",
+    },
+    detailedRules: {
+      layout: [
+        "Tableau: 12 columns of 3 cards, all face-up — the widest board in the family.",
+        "Foundations: 8 suit piles, two per suit.",
+        "Stock: the remaining 68 cards, drawn one at a time onto a waste.",
+      ],
+      cardMovement: [
+        "A card can be picked up with an unbroken same-suit descending run resting on it.",
+        "Any card can start an empty column.",
+        "The top card of a foundation can be taken back down onto a column.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in SAME SUIT.",
+      ],
+      specialRules: [
+        "No Recycle: the stock is dealt through exactly once, as in the rest of the Forty Thieves family.",
+        "Shallow Columns: with only three cards per column, almost the whole tableau is reachable from the opening position.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
 };

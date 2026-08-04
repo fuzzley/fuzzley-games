@@ -46,6 +46,10 @@ export const FortyThievesVariant = {
   JOSEPHINE: 1,
   /** Rank and File: build down in alternating colours, and bury three per column. */
   RANK_AND_FILE: 2,
+  /** Maria: nine columns of four, built down in alternating colours. */
+  MARIA: 3,
+  /** Limited: twelve columns of three, built down in suit. */
+  LIMITED: 4,
 } as const;
 
 /** One of the three games in the Forty Thieves family. */
@@ -56,7 +60,7 @@ export type FortyThievesVariant =
 export const DEFAULT_FORTY_THIEVES_VARIANT: FortyThievesVariant =
   FortyThievesVariant.FORTY_THIEVES;
 
-/** The three things a variant decides, which have to agree with each other. */
+/** Everything a variant decides, which has to hang together. */
 interface VariantRules {
   /** What an occupied column accepts. */
   readonly occupied: PlacementRule;
@@ -64,6 +68,10 @@ interface VariantRules {
   readonly grab: GrabRule;
   /** How many cards of each column the deal buries. */
   readonly buriedPerColumn: number;
+  /** How many columns the board has. */
+  readonly tableauCount: number;
+  /** How many cards each column is dealt. */
+  readonly cardsPerColumn: number;
 }
 
 /**
@@ -87,11 +95,15 @@ const VARIANT_RULES: Readonly<Record<FortyThievesVariant, VariantRules>> = {
     // a column is dismantled card by card or not at all.
     grab: { kind: "top-only" },
     buriedPerColumn: 0,
+    tableauCount: 10,
+    cardsPerColumn: 4,
   },
   [FortyThievesVariant.JOSEPHINE]: {
     occupied: descendingSameSuit,
     grab: { kind: "run", adjacent: isSameSuitRun },
     buriedPerColumn: 0,
+    tableauCount: 10,
+    cardsPerColumn: 4,
   },
   [FortyThievesVariant.RANK_AND_FILE]: {
     occupied: descendingAlternatingColor,
@@ -99,6 +111,27 @@ const VARIANT_RULES: Readonly<Record<FortyThievesVariant, VariantRules>> = {
     // The trade for the gentler build: three of every four cards start hidden,
     // so the opening position is largely unknown.
     buriedPerColumn: 3,
+    tableauCount: 10,
+    cardsPerColumn: 4,
+  },
+  // A narrower board than the rest of the family, and the reason the board
+  // width is derived rather than fixed: nine columns still need ten slots
+  // across the top for the stock, the waste and eight foundations.
+  [FortyThievesVariant.MARIA]: {
+    occupied: descendingAlternatingColor,
+    grab: { kind: "run", adjacent: isOrderedPair },
+    buriedPerColumn: 0,
+    tableauCount: 9,
+    cardsPerColumn: 4,
+  },
+  // Wider and shallower: thirty-six cards spread across twelve columns of
+  // three, so every column is only two cards deep beneath its top.
+  [FortyThievesVariant.LIMITED]: {
+    occupied: descendingSameSuit,
+    grab: { kind: "run", adjacent: isSameSuitRun },
+    buriedPerColumn: 0,
+    tableauCount: 12,
+    cardsPerColumn: 3,
   },
 };
 
@@ -138,6 +171,20 @@ export function fortyThievesBuriedPerColumn(
 /** Whether the variant deals any of its cards face down. */
 export function fortyThievesHidesCards(variant: FortyThievesVariant): boolean {
   return VARIANT_RULES[variant].buriedPerColumn > 0;
+}
+
+/** How many columns `variant` lays out. */
+export function fortyThievesTableauCount(
+  variant: FortyThievesVariant,
+): number {
+  return VARIANT_RULES[variant].tableauCount;
+}
+
+/** How many cards `variant` deals to each column. */
+export function fortyThievesCardsPerColumn(
+  variant: FortyThievesVariant,
+): number {
+  return VARIANT_RULES[variant].cardsPerColumn;
 }
 
 /**

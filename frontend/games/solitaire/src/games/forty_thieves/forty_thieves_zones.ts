@@ -6,10 +6,8 @@ import {
   fortyThievesGrabRule,
   fortyThievesHidesCards,
   fortyThievesPlacementRule,
+  fortyThievesTableauCount,
 } from "./forty_thieves_rules";
-
-/** The number of tableau columns. */
-export const TABLEAU_COUNT = 10;
 
 /**
  * The number of foundations: eight, two per suit, because the game is dealt
@@ -26,13 +24,38 @@ export const WASTE_PILE_ID = "waste";
 /**
  * The grid column the leftmost foundation sits in.
  *
- * Stock, waste, then eight foundations comes to exactly ten slots across a
- * ten-column board — the tidiest top row of any game here. Klondike has to leave
- * a column clear for its waste fan to grow into; this game draws one card at a
- * time, so its waste never fans and the foundations can start immediately after
- * it.
+ * Stock, waste, then eight foundations — which this game can pack together
+ * because it draws one card at a time, so its waste never fans and needs no
+ * clear column beside it the way Klondike's does.
  */
 export const FOUNDATION_COLUMN_OFFSET = 2;
+
+/**
+ * How many slots the top row needs: the stock, the waste and every foundation.
+ *
+ * The floor under every board in the family. Maria deals only nine columns but
+ * still has to seat ten across the top, so its board is wider than its tableau —
+ * the same trade Eight Off makes for its eight cells.
+ */
+export const TOP_ROW_SLOT_COUNT = FOUNDATION_COLUMN_OFFSET + FOUNDATION_COUNT;
+
+/** How many grid columns a variant's board is wide. */
+export function boardColumnCount(variant: FortyThievesVariant): number {
+  return Math.max(fortyThievesTableauCount(variant), TOP_ROW_SLOT_COUNT);
+}
+
+/**
+ * The grid column the leftmost tableau column sits in.
+ *
+ * Zero for every variant whose tableau is at least as wide as the top row, and
+ * a centring nudge for Maria, whose nine columns sit under ten slots. Derived
+ * rather than written out so it stays right if the counts ever change.
+ */
+export function tableauColumnOffset(variant: FortyThievesVariant): number {
+  return Math.floor(
+    (boardColumnCount(variant) - fortyThievesTableauCount(variant)) / 2,
+  );
+}
 
 /** The stable id of the foundation pile at the given index. */
 export function foundationPileId(index: number): string {
@@ -78,13 +101,13 @@ export const WASTE_PILE_LAYOUT: PileLayout = {
 };
 
 /**
- * The twenty zones of a Forty Thieves board, for the given variant.
+ * The zones of a Forty Thieves board, for the given variant.
  *
- * Memoized because the only things that vary are the column grab rule, the
- * column build rule and whether cards are drawn face down — all of which follow
- * the variant, so there are exactly three possible answers. Rebuilding twenty
- * objects every frame to discover that would be wasteful, and caching them
- * cannot go stale for the same reason.
+ * Memoized because everything that varies — the column count, the build rule,
+ * the grab rule, whether cards are dealt face down — follows the variant, so
+ * there are exactly as many possible answers as there are variants. Rebuilding
+ * twenty objects every frame to discover that would be wasteful, and caching
+ * them cannot go stale for the same reason.
  */
 export function fortyThievesZoneSpecs(
   variant: FortyThievesVariant,
@@ -145,12 +168,14 @@ function buildZoneSpecs(variant: FortyThievesVariant): readonly ZoneSpec[] {
     });
   }
 
-  for (let index = 0; index < TABLEAU_COUNT; index++) {
+  const tableauCount = fortyThievesTableauCount(variant);
+  const columnOffset = tableauColumnOffset(variant);
+  for (let index = 0; index < tableauCount; index++) {
     const id = tableauPileId(index);
     zones.push({
       id,
       role: FortyThievesRole.TABLEAU,
-      slot: { pileId: id, column: index, row: 1 },
+      slot: { pileId: id, column: columnOffset + index, row: 1 },
       layout: TABLEAU_PILE_LAYOUT,
       accept: fortyThievesPlacementRule(FortyThievesRole.TABLEAU, variant),
       grab: fortyThievesGrabRule(variant),

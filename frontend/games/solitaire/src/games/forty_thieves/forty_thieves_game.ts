@@ -50,10 +50,17 @@ export class FortyThievesGame extends DealtTableGame {
   public readonly waste: CardPile<PlayingCard>;
   /** The eight foundation piles, two per suit. */
   public readonly foundations: readonly CardPile<PlayingCard>[];
-  /** The ten columns. */
+  /** The columns, however many this variant lays out. */
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
-  private readonly variant: FortyThievesVariant;
+  /**
+   * Which of the family is being played.
+   *
+   * Public because the board has to know: three of the five variants sit on
+   * boards of different widths, and the board factory is handed only the game.
+   * Nothing in the rules reads it — those are declared by the zones.
+   */
+  public readonly variant: FortyThievesVariant;
 
   /**
    * @param cardIds The card identities to deal from. Defaults to two full
