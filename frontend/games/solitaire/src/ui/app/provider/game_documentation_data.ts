@@ -68,6 +68,26 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry = {
     },
     settingsAndVariants: [
       {
+        optionId: "variant",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "The original: columns build down in alternating colours and only a King can fill an empty column.",
+          },
+          {
+            value: 1,
+            effect:
+              "Whitehead: every card is dealt face-up, columns build down in the SAME COLOUR, any card can fill an empty column, and only proper runs can be lifted. Nothing is hidden, so the whole game is planning.",
+          },
+          {
+            value: 2,
+            effect:
+              "Thumb and Pouch: a card can land on any suit except its own, and any card can fill an empty column — a much looser build than the original, though the deal still hides most of the board.",
+          },
+        ],
+      },
+      {
         optionId: "drawCount",
         choicesExplanation: [
           {

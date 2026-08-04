@@ -1,7 +1,14 @@
 import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { ZoneSpec } from "@/engine/tableau/zone";
 import { DrawCount } from "./klondike_settings";
-import { KlondikeRole, klondikePlacementRule } from "./klondike_rules";
+import {
+  DEFAULT_KLONDIKE_VARIANT,
+  KlondikeRole,
+  KlondikeVariant,
+  klondikeDealsFaceUp,
+  klondikeGrabRule,
+  klondikePlacementRule,
+} from "./klondike_rules";
 
 /** The number of suit foundation piles in a standard Klondike game. */
 export const FOUNDATION_COUNT = 4;
@@ -104,25 +111,37 @@ export function klondikePileLayout(
 }
 
 /**
- * The thirteen zones of a Klondike board, for the given draw mode.
+ * The thirteen zones of a Klondike board, for the given draw mode and variant.
  *
- * Memoized because the only thing that varies is the waste fan, which follows
- * the draw count and so has exactly two possible answers. Rebuilding thirteen
- * objects every frame to discover that would be wasteful, and caching them
- * cannot go stale for the same reason.
+ * Memoized because everything that varies — the waste fan, the column build
+ * rule, the column grab rule, whether cards are hidden — follows those two
+ * values, so there are exactly six possible answers. Rebuilding thirteen objects
+ * every frame to discover that would be wasteful, and caching them cannot go
+ * stale for the same reason.
+ *
+ * The variant defaults, so the many callers that only care about the draw mode —
+ * the layout, and every spec written before the family grew — say nothing about
+ * it and get the original game.
  */
-export function klondikeZoneSpecs(drawCount: DrawCount): readonly ZoneSpec[] {
-  let zones = zonesByDrawCount.get(drawCount);
+export function klondikeZoneSpecs(
+  drawCount: DrawCount,
+  variant: KlondikeVariant = DEFAULT_KLONDIKE_VARIANT,
+): readonly ZoneSpec[] {
+  const key = `${drawCount}:${variant}`;
+  let zones = zonesByKey.get(key);
   if (!zones) {
-    zones = buildZoneSpecs(drawCount);
-    zonesByDrawCount.set(drawCount, zones);
+    zones = buildZoneSpecs(drawCount, variant);
+    zonesByKey.set(key, zones);
   }
   return zones;
 }
 
-const zonesByDrawCount = new Map<DrawCount, readonly ZoneSpec[]>();
+const zonesByKey = new Map<string, readonly ZoneSpec[]>();
 
-function buildZoneSpecs(drawCount: DrawCount): readonly ZoneSpec[] {
+function buildZoneSpecs(
+  drawCount: DrawCount,
+  variant: KlondikeVariant,
+): readonly ZoneSpec[] {
   const zones: ZoneSpec[] = [
     {
       id: STOCK_PILE_ID,
@@ -176,15 +195,18 @@ function buildZoneSpecs(drawCount: DrawCount): readonly ZoneSpec[] {
       role: KlondikeRole.TABLEAU,
       slot: { pileId: id, column: index, row: 1 },
       layout: TABLEAU_PILE_LAYOUT,
-      accept: klondikePlacementRule(KlondikeRole.TABLEAU),
-      // Any face-up card, ordered or not. Klondike validates only the bottom
-      // card of a moving stack, so a broken run can be dragged as long as its
-      // bottom card fits where it lands. FreeCell and Spider use a run rule
-      // instead; changing Klondike to match would be a rules change, not a
-      // refactor.
-      grab: { kind: "any-face-up" },
+      accept: klondikePlacementRule(KlondikeRole.TABLEAU, variant),
+      // Klondike itself takes any face-up card, ordered or not: it validates
+      // only the bottom card of a moving stack, so a broken run can be dragged
+      // as long as that card fits where it lands. Whitehead and Thumb and Pouch
+      // take proper runs instead, which the variant table pairs with their
+      // build rules.
+      grab: klondikeGrabRule(variant),
       draggable: true,
-      face: "card",
+      // Whitehead hides nothing, so deferring to the card would be the same as
+      // always-up — but saying it outright is what makes the deal's own
+      // face-up flag and the zone agree by construction.
+      face: klondikeDealsFaceUp(variant) ? "always-up" : "card",
       backgroundKey: "card-placeholder",
     });
   }
@@ -192,5 +214,5 @@ function buildZoneSpecs(drawCount: DrawCount): readonly ZoneSpec[] {
   return zones;
 }
 
-/** Re-exported: the roles live with the rules that branch on them. */
-export { KlondikeRole };
+/** Re-exported: the roles and variants live with the rules that branch on them. */
+export { KlondikeRole, KlondikeVariant };

@@ -23,17 +23,22 @@ const BELOW_KING: readonly Rank[] = ALL_RANKS.filter(
  * @param deck The cards to deal, which this drains.
  * @param tableaus The tableau piles to deal onto.
  * @param stock The stock pile to fill with the remainder.
+ * @param allFaceUp Whether to show every card the columns receive rather than
+ *   only the top of each. Whitehead's whole character: the same staircase with
+ *   nothing hidden in it. The stock is still dealt face down either way — it is
+ *   drawn from, not read.
  */
 export function dealKlondikeLayout(
   deck: PlayingCard[],
   tableaus: readonly CardPile<PlayingCard>[],
   stock: CardPile<PlayingCard>,
+  allFaceUp = false,
 ): void {
   for (let tableauIndex = 0; tableauIndex < tableaus.length; tableauIndex++) {
     for (let cardIndex = 0; cardIndex <= tableauIndex; cardIndex++) {
       const card = deck.pop();
       if (card) {
-        card.faceUp = cardIndex === tableauIndex;
+        card.faceUp = allFaceUp || cardIndex === tableauIndex;
         tableaus[tableauIndex].addCard(card);
       }
     }
