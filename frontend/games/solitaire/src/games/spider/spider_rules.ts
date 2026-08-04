@@ -4,7 +4,6 @@ import {
   anyCard,
   byEmptiness,
   descendingAnySuit,
-  never,
 } from "@/engine/tableau/rules";
 
 /** The parts a pile can play in a Spider game. */
@@ -49,6 +48,3 @@ export function spiderPlacementRule(role: string): PlacementRule | null {
       return null;
   }
 }
-
-/** Exported for symmetry with the other games; nothing accepts a drop but a column. */
-export const SPIDER_NON_TARGET_RULE = never;

@@ -7,13 +7,14 @@ import {
   anyCard,
   byEmptiness,
   cardIs,
+  cellStagingLimit,
   descendingAlternatingColor,
   descendingSameSuit,
   hasRank,
   isOrderedPair,
   isSameSuitRun,
   maxStackSize,
-  singleCardOnly,
+  singleCardCell,
   suitFoundation,
 } from "@/engine/tableau/rules";
 
@@ -96,9 +97,7 @@ export function supermoveLimit(context: PlacementContext): number {
  * same defect that function's doc warns about for the destination column — an
  * allowance the board cannot actually make good on.
  */
-export function kingsOnlySupermoveLimit(context: PlacementContext): number {
-  return context.board.emptyCount(FreeCellRole.CELL) + 1;
-}
+export const kingsOnlySupermoveLimit = cellStagingLimit(FreeCellRole.CELL);
 
 /** The two halves of a variant's column rules, which have to agree. */
 interface VariantRules {
@@ -140,7 +139,7 @@ const VARIANT_RULES: Readonly<Record<FreeCellVariant, VariantRules>> = {
 };
 
 /** A free cell: one card, any card. Every variant agrees. */
-export const FREECELL_CELL_RULE: PlacementRule = all(singleCardOnly, anyCard);
+export const FREECELL_CELL_RULE: PlacementRule = singleCardCell;
 
 /** A FreeCell foundation: the standard Ace-up-by-suit pile. */
 export const FREECELL_FOUNDATION_RULE: PlacementRule = suitFoundation;
