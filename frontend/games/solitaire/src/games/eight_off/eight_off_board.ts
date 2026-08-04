@@ -1,7 +1,7 @@
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { TablePresentation } from "@/engine/render/presentation";
 import { makeTableBoardScene } from "@/games/common/board_scene_factory";
-import { stocklessGestures } from "@/games/common/stockless_gestures";
+import { stocklessGestures } from "@/games/common/table_gestures";
 import { EIGHT_OFF_LAYOUT } from "./eight_off_layout";
 import { EightOffGame } from "./eight_off_game";
 

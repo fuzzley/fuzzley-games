@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { stocklessGestures } from "@/games/common/stockless_gestures";
+import { stocklessGestures } from "@/games/common/table_gestures";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { FreeCellRole } from "@/games/freecell/freecell_zones";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";

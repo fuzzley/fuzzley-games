@@ -1,4 +1,5 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
+import { drawOnStockTop, tableGestures } from "@/games/common/table_gestures";
 import { DoubleKlondikeGame } from "./double_klondike_game";
 import { DoubleKlondikeRole } from "./double_klondike_zones";
 
@@ -15,50 +16,15 @@ import { DoubleKlondikeRole } from "./double_klondike_zones";
 export function doubleKlondikeGestures(
   game: DoubleKlondikeGame,
 ): IntentHandler {
-  return (intent) => {
-    switch (intent.kind) {
-      case "activate": {
-        const pile = game.getPileContainingCard(intent.cardId);
-        // Every card in play is in some pile. A press on one that is not means
-        // the board and its sprites have drifted apart, which should fail
-        // loudly rather than quietly do nothing.
-        if (!pile) {
-          throw new Error(`Card ${intent.cardId} is not in a pile`);
-        }
-        if (
-          pile.role === DoubleKlondikeRole.STOCK &&
-          pile.topCard?.id === intent.cardId
-        ) {
-          game.drawCardsFromStock();
-        }
-        return;
+  return tableGestures(game, {
+    onCardPress: drawOnStockTop(DoubleKlondikeRole.STOCK, () =>
+      game.drawCardsFromStock(),
+    ),
+    onPilePress: (pileId) => {
+      if (pileId === game.stock.id && game.stock.isEmpty) {
+        game.drawCardsFromStock();
       }
-
-      case "activate-secondary": {
-        const pile = game.getPileContainingCard(intent.cardId);
-        if (
-          pile?.role === DoubleKlondikeRole.TABLEAU ||
-          pile?.role === DoubleKlondikeRole.WASTE
-        ) {
-          game.autoMoveCard(intent.cardId);
-        }
-        return;
-      }
-
-      case "activate-pile": {
-        if (intent.pileId === game.stock.id && game.stock.isEmpty) {
-          game.drawCardsFromStock();
-        }
-        return;
-      }
-
-      case "drop": {
-        const [primaryCardId] = intent.cardIds;
-        if (intent.targetPileId && primaryCardId) {
-          game.moveCardToPile(primaryCardId, intent.targetPileId);
-        }
-        return;
-      }
-    }
-  };
+    },
+    autoMoveFrom: [DoubleKlondikeRole.TABLEAU, DoubleKlondikeRole.WASTE],
+  });
 }
