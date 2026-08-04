@@ -30,6 +30,8 @@ import {
   LIMITED_LAYOUT,
   MARIA_LAYOUT,
 } from "@/games/forty_thieves/forty_thieves_layout";
+import { DoubleKlondikeGame } from "@/games/double_klondike/double_klondike_game";
+import { DOUBLE_KLONDIKE_LAYOUT } from "@/games/double_klondike/double_klondike_layout";
 import { EasthavenGame } from "@/games/easthaven/easthaven_game";
 import { EASTHAVEN_LAYOUT } from "@/games/easthaven/easthaven_layout";
 import { SpideretteGame } from "@/games/spiderette/spiderette_game";
@@ -442,6 +444,21 @@ const LIMITED = {
   },
 } satisfies CatalogEntry<FortyThievesGame>;
 
+const DOUBLE_KLONDIKE = {
+  id: "doubleklondike" as const,
+  name: "Double Klondike",
+  marker: "DK",
+  // Nothing to choose: two decks, a staircase deal, and a draw of three with
+  // unlimited recycles.
+  options: [],
+  layout: DOUBLE_KLONDIKE_LAYOUT,
+  create: () => {
+    const game = new DoubleKlondikeGame();
+    game.startNewGame();
+    return { game };
+  },
+} satisfies CatalogEntry<DoubleKlondikeGame>;
+
 const EASTHAVEN = {
   id: "easthaven" as const,
   name: "Easthaven",
@@ -517,6 +534,7 @@ export const CATALOG_ENTRIES = [
   FORTY_THIEVES,
   MARIA,
   LIMITED,
+  DOUBLE_KLONDIKE,
 ] as const;
 
 /** Every game the application can put on the table. */

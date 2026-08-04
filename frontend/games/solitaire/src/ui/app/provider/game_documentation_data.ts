@@ -726,4 +726,45 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry = {
     },
     settingsAndVariants: [],
   },
+  doubleklondike: {
+    title: "Double Klondike",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Klondike_(solitaire)",
+    screenshot: {
+      url: "./docs/screenshots/doubleklondike/overview.png",
+      caption:
+        "Double Klondike board showing nine tableau columns, stock and waste, and eight foundation piles.",
+      altText: "Double Klondike solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Build all 104 cards from two decks onto the eight foundation piles by suit, from Ace to King.",
+      winCondition:
+        "All 104 cards are transferred to the eight foundations, two per suit.",
+      quickOverview:
+        "Double Klondike is Klondike dealt from two decks: nine columns in the familiar staircase, eight foundations, and a stock of 59 drawn three at a time with unlimited recycles.",
+    },
+    detailedRules: {
+      layout: [
+        "Tableau: 9 columns containing 1 to 9 cards respectively, top card face-up.",
+        "Foundations: 8 suit piles, two per suit for the two decks.",
+        "Stock: the remaining 59 cards, face-down at top-left.",
+        "Waste: face-up pile where drawn cards land, fanned three at a time.",
+      ],
+      cardMovement: [
+        "Any face-up card can be moved along with everything stacked on it, ordered or not.",
+        "Only a King (or a stack headed by a King) can be placed into an empty column — but with two decks there are eight Kings, so spaces are far easier to fill than in Klondike.",
+        "Cards on the waste or the tableau can be moved to foundations or other columns.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in ALTERNATING COLORS.",
+      ],
+      specialRules: [
+        "Stock Recycle: when the stock empties, clicking it recycles the waste back into the stock, as often as you like.",
+        "Congested Middle Game: eight foundations must be fed from a tableau only two columns wider than Klondike's, so twice the cards does not mean twice the room.",
+        "Scoring: the same scoring as Klondike — 10 points to a foundation, 5 for a waste card onto a column, 5 for turning a card over, and a penalty for recycling past the free passes.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
 };

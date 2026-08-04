@@ -11,6 +11,7 @@ import { makeSimpleSimonBoardScene } from "@/games/simple_simon/simple_simon_boa
 import { makeBakersDozenBoardScene } from "@/games/bakers_dozen/bakers_dozen_board";
 import { makeSeahavenBoardScene } from "@/games/seahaven/seahaven_board";
 import { makeSpideretteBoardScene } from "@/games/spiderette/spiderette_board";
+import { makeDoubleKlondikeBoardScene } from "@/games/double_klondike/double_klondike_board";
 import { makeEasthavenBoardScene } from "@/games/easthaven/easthaven_board";
 import { makeFortyThievesBoardScene } from "@/games/forty_thieves/forty_thieves_board";
 import { GameId, GameOf } from "./game_catalog";
@@ -61,6 +62,7 @@ const BOARD_FACTORIES: { [Id in GameId]: BoardFactory<Id> } = {
   fortythieves: makeFortyThievesBoardScene,
   maria: makeFortyThievesBoardScene,
   limited: makeFortyThievesBoardScene,
+  doubleklondike: makeDoubleKlondikeBoardScene,
 };
 
 /**
