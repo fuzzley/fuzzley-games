@@ -3,6 +3,7 @@ import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { KlondikeSettings } from "@/games/klondike/klondike_settings";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
+import { KlondikeVariant } from "@/games/klondike/klondike_rules";
 import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { FreeCellVariant } from "@/games/freecell/freecell_rules";
@@ -202,17 +203,38 @@ const YUKON_VARIANT: GameOptionSpec = {
  * at runtime.
  */
 
+/**
+ * Which of the Klondike family to deal.
+ *
+ * The values are the {@link KlondikeVariant} members themselves rather than a
+ * parallel list of numbers, so the choices a player is offered and the games
+ * they select cannot drift apart.
+ */
+const KLONDIKE_VARIANT: GameOptionSpec = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Whitehead deals every card face-up and builds in one colour; Thumb and Pouch lets a card land on any suit but its own. Both let any card fill an empty column.",
+  choices: [
+    { value: KlondikeVariant.KLONDIKE, label: "Klondike" },
+    { value: KlondikeVariant.WHITEHEAD, label: "Whitehead" },
+    { value: KlondikeVariant.THUMB_AND_POUCH, label: "Thumb and Pouch" },
+  ],
+  defaultValue: KlondikeVariant.KLONDIKE,
+};
+
 const KLONDIKE = {
   id: "klondike" as const,
   name: "Klondike",
   marker: "KL",
-  options: [KLONDIKE_DRAW_COUNT, KLONDIKE_ALMOST_WIN],
+  options: [KLONDIKE_VARIANT, KLONDIKE_DRAW_COUNT, KLONDIKE_ALMOST_WIN],
   layout: KLONDIKE_LAYOUT,
   create: (values: GameOptionValues) => {
     const settings = new KlondikeSettings(
       optionValue(values, KLONDIKE_DRAW_COUNT) === 1 ? 1 : 3,
     );
-    const game = new KlondikeGame(undefined, undefined, settings);
+    const variant = optionValue(values, KLONDIKE_VARIANT) as KlondikeVariant;
+    const game = new KlondikeGame(undefined, undefined, settings, variant);
     game.almostWin = optionValue(values, KLONDIKE_ALMOST_WIN) === 1;
     game.startNewGame();
     return { game };

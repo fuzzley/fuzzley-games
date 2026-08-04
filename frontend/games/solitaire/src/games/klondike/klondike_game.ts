@@ -10,6 +10,11 @@ import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
 import { dealKlondikeAlmostWin, dealKlondikeLayout } from "./klondike_deal";
 import { KlondikeSettings } from "./klondike_settings";
 import {
+  DEFAULT_KLONDIKE_VARIANT,
+  KlondikeVariant,
+  klondikeDealsFaceUp,
+} from "./klondike_rules";
+import {
   KlondikeRole,
   STOCK_PILE_ID,
   WASTE_PILE_ID,
@@ -47,6 +52,9 @@ export class KlondikeGame extends DealtTableGame {
   /** The rules used to score moves, flips, and recycles. */
   private readonly scoring: ScoringPolicy;
 
+  /** Which of the family is being played. */
+  public readonly variant: KlondikeVariant;
+
   /**
    * Initializes the piles.
    *
@@ -58,14 +66,16 @@ export class KlondikeGame extends DealtTableGame {
    * @param settings The settings to play by. A constructor parameter rather
    *   than a field initializer because the zones are built from the draw mode
    *   during `super`, before this class's own fields exist.
+   * @param variant Which of the three games to play, for the same reason.
    */
   constructor(
     cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
     scoring: ScoringPolicy = new ScoringPolicy(),
     settings: KlondikeSettings = new KlondikeSettings(),
+    variant: KlondikeVariant = DEFAULT_KLONDIKE_VARIANT,
   ) {
     super({
-      zones: () => klondikeZoneSpecs(settings.drawCount),
+      zones: () => klondikeZoneSpecs(settings.drawCount, variant),
       deck: new DeckSource(new CardRegistry(), cardIds),
       // A foundation is always preferred over a column.
       autoMoveRoles: [KlondikeRole.FOUNDATION, KlondikeRole.TABLEAU],
@@ -74,6 +84,7 @@ export class KlondikeGame extends DealtTableGame {
 
     this.settings = settings;
     this.scoring = scoring;
+    this.variant = variant;
 
     this.stock = this.requirePile(STOCK_PILE_ID);
     this.waste = this.requirePile(WASTE_PILE_ID);
@@ -97,7 +108,12 @@ export class KlondikeGame extends DealtTableGame {
     if (this.almostWin) {
       dealKlondikeAlmostWin(this.deck, this.foundations, this.tableaus);
     } else {
-      dealKlondikeLayout(deck, this.tableaus, this.stock);
+      dealKlondikeLayout(
+        deck,
+        this.tableaus,
+        this.stock,
+        klondikeDealsFaceUp(this.variant),
+      );
     }
   }
 
