@@ -491,4 +491,61 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry = {
     },
     settingsAndVariants: [],
   },
+  spiderette: {
+    title: "Spiderette",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Spiderette",
+    screenshot: {
+      url: "./docs/screenshots/spiderette/overview.png",
+      caption:
+        "Spiderette board showing seven columns dealt in a staircase, the row-dealing stock, and four foundation slots.",
+      altText: "Spiderette solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Build four 13-card same-suit sequences from King down to Ace on the tableau.",
+      winCondition:
+        "All 4 suits assembled in complete King-to-Ace runs and cleared to the foundations.",
+      quickOverview:
+        "Spiderette is Spider played with one deck on seven columns. Columns build down by rank in any suit but only same-suit runs can be lifted, and the stock deals a card onto every column at once rather than turning cards into a waste.",
+    },
+    detailedRules: {
+      layout: [
+        "Tableau: 7 columns dealt 1 to 7 cards, only the top card of each face-up.",
+        "Stock: the remaining 24 cards, dealt a row at a time.",
+        "Foundations: 4 automated slots for completed King-to-Ace same-suit runs.",
+      ],
+      cardMovement: [
+        "A card can be picked up only with an unbroken same-suit descending run resting on it.",
+        "Any card, or any run, can be moved into an empty column.",
+        "Turning over a column's newly exposed card happens automatically.",
+      ],
+      sequenceBuilding: [
+        "Tableau: Built DOWN by RANK in ANY SUIT.",
+        "Lifting: Only unbroken SAME SUIT descending runs can be moved.",
+        "Completion: Complete King-to-Ace same-suit runs clear to the foundations automatically.",
+      ],
+      specialRules: [
+        "Row Deal: pressing the stock deals one card face-up onto every column at once.",
+        "Deals Onto Empty Columns: unlike Spider, the stock will deal even when a column is empty. Neither deal divides evenly by seven, so the final row is always short and refusing would strand it.",
+      ],
+    },
+    settingsAndVariants: [
+      {
+        optionId: "variant",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "The standard deal: Klondike's staircase of 1 to 7 cards, burying 21 cards and leaving 24 in the stock.",
+
+          },
+          {
+            value: 1,
+            effect:
+              "Will o' the Wisp: a flat 3 cards to every column, burying only 14 but leaving 31 in the stock — fewer hidden cards up front, more forced deals later.",
+          },
+        ],
+      },
+    ],
+  },
 };

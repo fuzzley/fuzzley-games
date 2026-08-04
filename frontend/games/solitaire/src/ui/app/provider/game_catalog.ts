@@ -23,6 +23,9 @@ import { BakersDozenGame } from "@/games/bakers_dozen/bakers_dozen_game";
 import { BAKERS_DOZEN_LAYOUT } from "@/games/bakers_dozen/bakers_dozen_layout";
 import { SeahavenGame } from "@/games/seahaven/seahaven_game";
 import { SEAHAVEN_LAYOUT } from "@/games/seahaven/seahaven_layout";
+import { SpideretteGame } from "@/games/spiderette/spiderette_game";
+import { SpideretteVariant } from "@/games/spiderette/spiderette_rules";
+import { SPIDERETTE_LAYOUT } from "@/games/spiderette/spiderette_layout";
 
 /** A value a rule option can be set to, and how to name it to a player. */
 export interface GameOptionChoice {
@@ -350,6 +353,42 @@ const SEAHAVEN = {
 } satisfies CatalogEntry<SeahavenGame>;
 
 /**
+ * Which of the Spiderette pair to deal.
+ *
+ * The values are the {@link SpideretteVariant} members themselves rather than a
+ * parallel list of numbers, so the choices a player is offered and the games
+ * they select cannot drift apart — the same arrangement the Yukon option uses.
+ */
+const SPIDERETTE_VARIANT: GameOptionSpec = {
+  id: "variant",
+  label: "Deal",
+  description:
+    "Will o' the Wisp deals a flat three cards to every column instead of Klondike's staircase, burying fewer cards but leaving more in the stock.",
+  choices: [
+    { value: SpideretteVariant.SPIDERETTE, label: "Spiderette" },
+    { value: SpideretteVariant.WILL_O_THE_WISP, label: "Will o' the Wisp" },
+  ],
+  defaultValue: SpideretteVariant.SPIDERETTE,
+};
+
+const SPIDERETTE = {
+  id: "spiderette" as const,
+  name: "Spiderette",
+  marker: "SD",
+  // One entry for both: they share a board, a build rule, a grab rule and a
+  // stock, and differ only in the opening deal — a rule a player picks rather
+  // than a game they switch to.
+  options: [SPIDERETTE_VARIANT],
+  layout: SPIDERETTE_LAYOUT,
+  create: (values: GameOptionValues) => {
+    const variant = optionValue(values, SPIDERETTE_VARIANT) as SpideretteVariant;
+    const game = new SpideretteGame(undefined, undefined, variant);
+    game.startNewGame();
+    return { game };
+  },
+} satisfies CatalogEntry<SpideretteGame>;
+
+/**
  * Every game the engine can currently put on the table, in the order they are
  * offered.
  *
@@ -368,6 +407,7 @@ export const CATALOG_ENTRIES = [
   SIMPLE_SIMON,
   BAKERS_DOZEN,
   SEAHAVEN,
+  SPIDERETTE,
 ] as const;
 
 /** Every game the application can put on the table. */
