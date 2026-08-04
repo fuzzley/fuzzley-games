@@ -412,4 +412,44 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry = {
     },
     settingsAndVariants: [],
   },
+  bakersdozen: {
+    title: "Baker's Dozen",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Baker's_Dozen_(solitaire)",
+    screenshot: {
+      url: "./docs/screenshots/bakersdozen/overview.png",
+      caption:
+        "Baker's Dozen board showing thirteen face-up columns of four cards and four foundation slots.",
+      altText: "Baker's Dozen solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      winCondition:
+        "All 52 cards are sorted into their suit foundations from Ace through King.",
+      quickOverview:
+        "Baker's Dozen deals thirteen columns of four cards face-up with the Kings sunk to the bottom of their columns. Cards move one at a time and build down by rank in any suit — but an emptied column can never be refilled, which inverts the instinct every other solitaire teaches.",
+    },
+    detailedRules: {
+      layout: [
+        "Tableau: 13 columns of 4 cards each, all face-up.",
+        "Foundations: 4 suit piles at the right of the top row, initially empty.",
+        "No Stock: all 52 cards are on the tableau from the first move.",
+      ],
+      cardMovement: [
+        "Only the top card of a column can be moved, one card at a time.",
+        "A card can go onto any column whose top card is exactly 1 rank higher, of any suit.",
+        "Empty columns cannot be filled by any card — once a column is cleared it stays empty for the rest of the game.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN by RANK in ANY SUIT.",
+      ],
+      specialRules: [
+        "Kings Sink: after the deal, every King is moved to the bottom of its column. A King can never be moved, so one left on top would bury the cards beneath it for the whole game.",
+        "Dead Columns: because empty columns cannot be refilled, clearing one is a loss of working space rather than a gain — the opposite of Klondike, FreeCell and Spider.",
+        "No Staging: with no free cells and no usable empty columns, there is nowhere to park a card, so multi-card moves are impossible by construction.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
 };
