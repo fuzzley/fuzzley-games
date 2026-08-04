@@ -11,6 +11,7 @@ import { makeSimpleSimonBoardScene } from "@/games/simple_simon/simple_simon_boa
 import { makeBakersDozenBoardScene } from "@/games/bakers_dozen/bakers_dozen_board";
 import { makeSeahavenBoardScene } from "@/games/seahaven/seahaven_board";
 import { makeSpideretteBoardScene } from "@/games/spiderette/spiderette_board";
+import { makeEasthavenBoardScene } from "@/games/easthaven/easthaven_board";
 import { GameId, GameOf } from "./game_catalog";
 
 /** Builds the Phaser board that draws a particular game. */
@@ -51,6 +52,7 @@ const BOARD_FACTORIES: { [Id in GameId]: BoardFactory<Id> } = {
   // One board for both Spiderette variants: they differ in the opening deal,
   // which the game has laid out before a board ever draws it.
   spiderette: makeSpideretteBoardScene,
+  easthaven: makeEasthavenBoardScene,
 };
 
 /**

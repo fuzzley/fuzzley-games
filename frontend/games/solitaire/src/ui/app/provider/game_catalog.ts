@@ -23,6 +23,8 @@ import { BakersDozenGame } from "@/games/bakers_dozen/bakers_dozen_game";
 import { BAKERS_DOZEN_LAYOUT } from "@/games/bakers_dozen/bakers_dozen_layout";
 import { SeahavenGame } from "@/games/seahaven/seahaven_game";
 import { SEAHAVEN_LAYOUT } from "@/games/seahaven/seahaven_layout";
+import { EasthavenGame } from "@/games/easthaven/easthaven_game";
+import { EASTHAVEN_LAYOUT } from "@/games/easthaven/easthaven_layout";
 import { SpideretteGame } from "@/games/spiderette/spiderette_game";
 import { SpideretteVariant } from "@/games/spiderette/spiderette_rules";
 import { SPIDERETTE_LAYOUT } from "@/games/spiderette/spiderette_layout";
@@ -352,6 +354,21 @@ const SEAHAVEN = {
   },
 } satisfies CatalogEntry<SeahavenGame>;
 
+const EASTHAVEN = {
+  id: "easthaven" as const,
+  name: "Easthaven",
+  marker: "EH",
+  // Nothing to choose: one deck, one deal, and a stock whose only decision is
+  // whether the board will let it deal.
+  options: [],
+  layout: EASTHAVEN_LAYOUT,
+  create: () => {
+    const game = new EasthavenGame();
+    game.startNewGame();
+    return { game };
+  },
+} satisfies CatalogEntry<EasthavenGame>;
+
 /**
  * Which of the Spiderette pair to deal.
  *
@@ -408,6 +425,7 @@ export const CATALOG_ENTRIES = [
   BAKERS_DOZEN,
   SEAHAVEN,
   SPIDERETTE,
+  EASTHAVEN,
 ] as const;
 
 /** Every game the application can put on the table. */
