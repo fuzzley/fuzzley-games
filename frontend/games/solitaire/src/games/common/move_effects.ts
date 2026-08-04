@@ -27,7 +27,7 @@ export function flipOnlyEffects(
   move: ResolvedMove,
   columnRole: PileRole,
 ): MoveEffects {
-  const flipped = flipExposedTopOfColumn(move, columnRole);
+  const flipped = flipExposedTopOfColumn(move.sourcePile, columnRole);
   return {
     scoreDelta: 0,
     flippedCardIds: flipped ? [flipped.id] : [],
@@ -53,7 +53,7 @@ export function runCollectingEffects(
   columns: readonly CardPile<PlayingCard>[],
   foundations: readonly CardPile<PlayingCard>[],
 ): MoveEffects {
-  const flipped = flipExposedTopOfColumn(move, columnRole);
+  const flipped = flipExposedTopOfColumn(move.sourcePile, columnRole);
   // Collected after the flip, because taking a run off can expose another card,
   // and every card this move turned over has to be recorded together for undo
   // to turn them all back down.
@@ -68,12 +68,21 @@ export function runCollectingEffects(
   };
 }
 
-/** The card a move exposed, if it came off a column that buries cards. */
-function flipExposedTopOfColumn(
-  move: ResolvedMove,
+/**
+ * Turns over the newly exposed top card of a pile, if that pile is a column.
+ *
+ * The role guard is the point: a move leaving a foundation, a cell or the waste
+ * exposes nothing that was hidden, so there is nothing to turn and no bonus to
+ * award for turning it. Klondike and Double Klondike call this directly,
+ * because they score the flip as well as making it.
+ *
+ * @param pile The pile the move left.
+ * @param columnRole The role of the piles that bury cards.
+ * @returns The card turned over, or undefined if nothing was.
+ */
+export function flipExposedTopOfColumn(
+  pile: CardPile<PlayingCard>,
   columnRole: PileRole,
 ): PlayingCard | undefined {
-  return move.sourcePile.role === columnRole
-    ? flipExposedTop(move.sourcePile)
-    : undefined;
+  return pile.role === columnRole ? flipExposedTop(pile) : undefined;
 }

@@ -22,8 +22,7 @@ export interface GridPlacement {
 
 /** How to build a row of like piles: what they are, and where they sit. */
 export interface ZoneRowSpec
-  extends Omit<ZoneSpec, "id" | "slot">,
-    GridPlacement {
+  extends Omit<ZoneSpec, "id" | "slot">, GridPlacement {
   /** How many piles to build. */
   readonly count: number;
   /** The stable id of the pile at the given index. */
@@ -32,8 +31,7 @@ export interface ZoneRowSpec
 
 /** A single pile, described the same way but placed by hand. */
 export interface SingleZoneSpec
-  extends Omit<ZoneSpec, "slot">,
-    Omit<GridPlacement, "column"> {
+  extends Omit<ZoneSpec, "slot">, Omit<GridPlacement, "column"> {
   /** The grid column the pile sits in. */
   readonly column: number;
 }

@@ -7,6 +7,7 @@ import { DeckSource } from "@/engine/tableau/deck_source";
 import { AppliedMove } from "@/engine/tableau/move";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
+import { flipExposedTopOfColumn } from "@/games/common/move_effects";
 import { dealKlondikeAlmostWin, dealKlondikeLayout } from "./klondike_deal";
 import { KlondikeSettings } from "./klondike_settings";
 import {
@@ -218,16 +219,10 @@ export class KlondikeGame extends DealtTableGame {
   private autoFlipExposedCard(
     sourcePile: CardPile<PlayingCard>,
   ): PlayingCard | undefined {
-    if (sourcePile.role !== KlondikeRole.TABLEAU) {
-      return undefined;
+    const flipped = flipExposedTopOfColumn(sourcePile, KlondikeRole.TABLEAU);
+    if (flipped) {
+      this.state.score += this.scoring.tableauFlipBonus();
     }
-    const topRemaining = sourcePile.topCard;
-    if (!topRemaining || topRemaining.faceUp) {
-      return undefined;
-    }
-
-    topRemaining.faceUp = true;
-    this.state.score += this.scoring.tableauFlipBonus();
-    return topRemaining;
+    return flipped;
   }
 }

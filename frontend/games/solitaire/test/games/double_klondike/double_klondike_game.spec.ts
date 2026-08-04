@@ -154,9 +154,9 @@ describe("DoubleKlondikeGame column rules", () => {
   it("lets the second deck's King start one too", () => {
     relocate(game, "card-spades-king#1", game.tableaus[1]);
 
-    expect(
-      game.moveCardToPile("card-spades-king#1", game.tableaus[0].id),
-    ).toBe(true);
+    expect(game.moveCardToPile("card-spades-king#1", game.tableaus[0].id)).toBe(
+      true,
+    );
   });
 
   it("refuses anything but a King into an empty column", () => {

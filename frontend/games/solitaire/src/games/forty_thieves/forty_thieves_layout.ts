@@ -1,10 +1,7 @@
 import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { boardLayout } from "../common/board_layout";
 import { FortyThievesVariant } from "./forty_thieves_rules";
-import {
-  boardColumnCount,
-  fortyThievesZoneSpecs,
-} from "./forty_thieves_zones";
+import { boardColumnCount, fortyThievesZoneSpecs } from "./forty_thieves_zones";
 
 /**
  * The board a variant lies on.

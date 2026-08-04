@@ -57,9 +57,7 @@ describe("spideretteGestures", () => {
 
       handle({ kind: "activate-secondary", cardId: nine.id });
 
-      expect(game.getPileContainingCard(nine.id)?.id).toBe(
-        game.tableaus[1].id,
-      );
+      expect(game.getPileContainingCard(nine.id)?.id).toBe(game.tableaus[1].id);
     });
 
     it("never auto-moves a stock card", () => {
@@ -83,9 +81,7 @@ describe("spideretteGestures", () => {
         targetPileId: game.tableaus[1].id,
       });
 
-      expect(game.getPileContainingCard(nine.id)?.id).toBe(
-        game.tableaus[1].id,
-      );
+      expect(game.getPileContainingCard(nine.id)?.id).toBe(game.tableaus[1].id);
     });
 
     it("leaves the run where it is when released over no pile", () => {
@@ -93,9 +89,7 @@ describe("spideretteGestures", () => {
 
       handle({ kind: "drop", cardIds: [card.id], targetPileId: null });
 
-      expect(game.getPileContainingCard(card.id)?.id).toBe(
-        game.tableaus[0].id,
-      );
+      expect(game.getPileContainingCard(card.id)?.id).toBe(game.tableaus[0].id);
     });
   });
 });

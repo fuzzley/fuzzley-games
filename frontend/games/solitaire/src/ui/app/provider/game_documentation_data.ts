@@ -577,7 +577,6 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
             value: 0,
             effect:
               "The standard deal: Klondike's staircase of 1 to 7 cards, burying 21 cards and leaving 24 in the stock.",
-
           },
           {
             value: 1,

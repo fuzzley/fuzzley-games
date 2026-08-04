@@ -5,10 +5,7 @@ import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { dealBakersDozenLayout } from "./bakers_dozen_deal";
-import {
-  BakersDozenRole,
-  bakersDozenZoneSpecs,
-} from "./bakers_dozen_zones";
+import { BakersDozenRole, bakersDozenZoneSpecs } from "./bakers_dozen_zones";
 
 /**
  * A game of Baker's Dozen.
