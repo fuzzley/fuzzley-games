@@ -81,12 +81,17 @@ export abstract class DealtTableGame<
    *
    * Lazily shuffles one the first time, so restarting before ever having dealt
    * is a new game rather than an empty board.
+   *
+   * Handed out as a copy, because {@link dealBoard} is free to drain what it is
+   * given and every game's deal does exactly that. Passing the stored array
+   * itself emptied it on the first restart, so the second restart found nothing
+   * to replay and quietly dealt a freshly shuffled game instead.
    */
   private reuseInitialDeck(): PlayingCard[] {
     if (this.initialDeck.length === 0) {
       this.initialDeck = [...this.deck.createShuffledDeck()];
     }
-    return this.deck.reset(this.initialDeck);
+    return this.deck.reset([...this.initialDeck]);
   }
 
   /**

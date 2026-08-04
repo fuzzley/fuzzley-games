@@ -44,9 +44,16 @@ class TestDealtGame extends DealtTableGame {
     });
   }
 
+  /*
+   * Drains the deck, as every real game's deal does and as the contract on
+   * `dealBoard` invites. A deal that merely iterated would leave the stored
+   * deal intact by accident and hide whether a restart is replayable twice.
+   */
   protected override dealBoard(deck: PlayingCard[]): void {
     this.deals.push(deck.map((card) => card.id));
-    for (const card of deck) {
+    while (deck.length > 0) {
+      const card = deck.pop();
+      if (!card) break;
       card.faceUp = true;
       this.requirePile(HAND).addCard(card);
     }
@@ -133,6 +140,22 @@ describe("DealtTableGame", () => {
 
       const dealt = game.getPileById(HAND)?.getCards() ?? [];
       expect(dealt.length).toBe(5);
+    });
+
+    /*
+     * The stored deal is handed to `dealBoard`, which is free to drain it — so
+     * it has to be handed a copy. Restarting once and restarting twice are
+     * different code paths only because the first restart used to empty the
+     * very thing the second one replays from.
+     */
+    it("deals the same cards again however many times it is restarted", () => {
+      game.startNewGame();
+
+      game.restartGame();
+      game.restartGame();
+
+      expect(game.deals[1]).toEqual(game.deals[0]);
+      expect(game.deals[2]).toEqual(game.deals[0]);
     });
 
     it("deals a fresh game when nothing has been dealt yet", () => {

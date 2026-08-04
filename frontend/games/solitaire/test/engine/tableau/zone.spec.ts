@@ -128,6 +128,19 @@ describe("canGrab", () => {
         false,
       );
     });
+
+    /*
+     * The topmost card is never the `lower` of an adjacency pair, so a check
+     * written pairwise would never look at its face. No deal lays a face-down
+     * card on a face-up one today, but a run the player cannot read is not a
+     * run whatever put it there.
+     */
+    it("refuses a run whose topmost card is face down", () => {
+      const king = card(Suit.SPADE, Rank.KING);
+      const queen = card(Suit.HEART, Rank.QUEEN, false);
+
+      expect(canGrab(grab, king, pileWith(king, queen))).toBe(false);
+    });
   });
 });
 
