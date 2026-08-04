@@ -1,10 +1,29 @@
 import { InjectionToken } from "@angular/core";
 import { YukonVariant } from "@/games/yukon/yukon_rules";
 import { GameDocumentation } from "../model/game_documentation.model";
+import { GameId } from "./game_catalog";
 
-/** Documentation for every game, by game id. */
+/**
+ * Documentation by game id, as a consumer receives it.
+ *
+ * Deliberately loose in its keys: a spec supplies a registry covering only the
+ * games its mock catalog offers, and the service answers `undefined` for a game
+ * it has no page for. What ships is held to {@link CompleteGameDocumentation}.
+ */
 export type GameDocumentationRegistry = Readonly<
   Record<string, GameDocumentation>
+>;
+
+/**
+ * A registry that documents every game in the catalog.
+ *
+ * The shipped registry is declared as this so that adding a game without
+ * writing its rules page is a compile error. It was checked only by a spec
+ * before, which meant a game could ship with a Help button that opened
+ * nothing: the easiest of all the steps to forget, in the longest file to edit.
+ */
+export type CompleteGameDocumentation = Readonly<
+  Record<GameId, GameDocumentation>
 >;
 
 /**
@@ -27,7 +46,8 @@ export const GAME_DOCUMENTATION = new InjectionToken<GameDocumentationRegistry>(
  * Registry containing comprehensive, verified documentation and hero screenshot visual aids
  * for all solitaire games in fSolitaire.
  */
-export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry = {
+export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
+  CompleteGameDocumentation = {
   klondike: {
     title: "Klondike Solitaire",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Klondike_(solitaire)",
