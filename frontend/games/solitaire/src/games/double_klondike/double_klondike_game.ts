@@ -7,7 +7,10 @@ import { DeckSource } from "@/engine/tableau/deck_source";
 import { AppliedMove } from "@/engine/tableau/move";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
-import { ScoringPolicy } from "@/games/klondike/scoring_policy";
+import {
+  ScoringPolicy,
+  ScoringRoles,
+} from "@/games/klondike/scoring_policy";
 import {
   DOUBLE_KLONDIKE_TWO_DECKS,
   dealDoubleKlondikeLayout,
@@ -18,6 +21,19 @@ import {
   WASTE_PILE_ID,
   doubleKlondikeZoneSpecs,
 } from "./double_klondike_zones";
+
+/**
+ * Which of this game's roles the shared scoring policy treats as what.
+ *
+ * Stated rather than left to coincide with Klondike's spelling: the policy
+ * compares whatever it is given, so this is the whole of the coupling between
+ * the two games and it is now visible in one place.
+ */
+const DOUBLE_KLONDIKE_SCORING_ROLES: ScoringRoles = {
+  waste: DoubleKlondikeRole.WASTE,
+  tableau: DoubleKlondikeRole.TABLEAU,
+  foundation: DoubleKlondikeRole.FOUNDATION,
+};
 
 /** How many cards a draw turns over. */
 export const DRAW_COUNT = 3;
@@ -35,9 +51,10 @@ export const DRAW_COUNT = 3;
  * tableau only two columns wider, so the middle game is much more congested.
  *
  * The scoring is Klondike's, taken rather than restated: {@link ScoringPolicy}
- * is a policy object built to be injected, and it decides what a move is worth
- * by comparing pile roles, which this game names identically. That shared
- * vocabulary is load-bearing and the spec pins it down.
+ * is a policy object built to be injected, and it is told which of this game's
+ * roles are the waste, the columns and the foundations. It used to compare
+ * against Klondike's own role strings, so this game's had to spell them
+ * identically or every move would have scored zero without failing to compile.
  */
 export class DoubleKlondikeGame extends DealtTableGame {
   /** The face-down stock pile from which cards are drawn. */
@@ -64,7 +81,7 @@ export class DoubleKlondikeGame extends DealtTableGame {
   constructor(
     cardIds: ReadonlyArray<DeckCardId> = deckCardIds(DOUBLE_KLONDIKE_TWO_DECKS),
     random: () => number = Math.random,
-    scoring: ScoringPolicy = new ScoringPolicy(),
+    scoring: ScoringPolicy = new ScoringPolicy(DOUBLE_KLONDIKE_SCORING_ROLES),
   ) {
     super({
       zones: () => doubleKlondikeZoneSpecs(),

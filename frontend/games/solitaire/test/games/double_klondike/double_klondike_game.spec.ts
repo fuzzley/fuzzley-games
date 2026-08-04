@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { Rank } from "@/engine/core/card/playing_card";
-import { KlondikeRole } from "@/games/klondike/klondike_rules";
+import { ScoringPolicy } from "@/games/klondike/scoring_policy";
 import { DoubleKlondikeGame } from "@/games/double_klondike/double_klondike_game";
 import { DOUBLE_KLONDIKE_TWO_DECKS } from "@/games/double_klondike/double_klondike_deal";
 import { DoubleKlondikeRole } from "@/games/double_klondike/double_klondike_rules";
@@ -91,24 +91,29 @@ describe("DoubleKlondikeGame deal", () => {
 });
 
 /*
- * The coupling the compiler cannot see. ScoringPolicy is Klondike's, and it
- * decides what a move is worth by comparing pile role *strings*. Renaming a
- * role here would leave every move scoring zero without breaking the build, so
- * the vocabulary is pinned down directly as well as through the scores below.
+ * This game shares Klondike's ScoringPolicy, which used to decide what a move
+ * was worth by comparing role *strings* against Klondike's own — so renaming a
+ * role here left every move scoring zero without breaking the build, and the
+ * vocabulary had to be pinned down to compensate.
+ *
+ * The policy is now told which roles are which, so the two games no longer have
+ * to agree on spellings and there is nothing to pin. What is worth asserting is
+ * the property that pinning stood in for: that this game's own roles score.
  */
-describe("DoubleKlondikeGame role vocabulary", () => {
-  it("names its roles exactly as Klondike does, which the shared scoring assumes", () => {
-    expect([
-      DoubleKlondikeRole.STOCK,
-      DoubleKlondikeRole.WASTE,
-      DoubleKlondikeRole.FOUNDATION,
+describe("DoubleKlondikeGame scoring vocabulary", () => {
+  it("scores by its own roles rather than by matching Klondike's spelling", () => {
+    const scoring = new ScoringPolicy({
+      waste: DoubleKlondikeRole.WASTE,
+      tableau: DoubleKlondikeRole.TABLEAU,
+      foundation: DoubleKlondikeRole.FOUNDATION,
+    });
+
+    const toFoundation = scoring.moveScore(
       DoubleKlondikeRole.TABLEAU,
-    ]).toEqual([
-      KlondikeRole.STOCK,
-      KlondikeRole.WASTE,
-      KlondikeRole.FOUNDATION,
-      KlondikeRole.TABLEAU,
-    ]);
+      DoubleKlondikeRole.FOUNDATION,
+    );
+
+    expect(toFoundation).toBeGreaterThan(0);
   });
 });
 

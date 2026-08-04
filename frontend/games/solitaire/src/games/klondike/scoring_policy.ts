@@ -3,6 +3,31 @@ import { KlondikeRole } from "./klondike_rules";
 import { DrawCount } from "./klondike_settings";
 
 /**
+ * The piles a scoring rule distinguishes between.
+ *
+ * Named rather than assumed. This policy is shared with Double Klondike, and it
+ * used to compare raw role strings against Klondike's own — so a game whose
+ * roles happened to spell "tableau" differently would have compiled cleanly and
+ * scored every move zero. Passing the roles in makes that a type error instead
+ * of a silent one, and lets a game keep its own vocabulary.
+ */
+export interface ScoringRoles {
+  /** The face-up pile of drawn cards. */
+  readonly waste: PileRole;
+  /** A board column. */
+  readonly tableau: PileRole;
+  /** A suit pile built up from Ace to King. */
+  readonly foundation: PileRole;
+}
+
+/** The roles a standard Klondike board plays by. */
+export const KLONDIKE_SCORING_ROLES: ScoringRoles = {
+  waste: KlondikeRole.WASTE,
+  tableau: KlondikeRole.TABLEAU,
+  foundation: KlondikeRole.FOUNDATION,
+};
+
+/**
  * Encapsulates the standard Klondike scoring rules.
  *
  * Keeping the rules in one place lets {@link KlondikeGame} stay focused on
@@ -24,6 +49,12 @@ export class ScoringPolicy {
   private static readonly DRAW_THREE_RECYCLE_PENALTY = 20;
 
   /**
+   * @param roles Which piles this policy treats as the waste, the columns and
+   *   the foundations. Defaults to Klondike's own.
+   */
+  constructor(private readonly roles: ScoringRoles = KLONDIKE_SCORING_ROLES) {}
+
+  /**
    * The signed score change for moving a card between two pile types.
    *
    * @param sourceRole The type of the pile the card is leaving.
@@ -31,28 +62,18 @@ export class ScoringPolicy {
    * @returns The points to add to the score (may be negative).
    */
   public moveScore(sourceRole: PileRole, targetRole: PileRole): number {
-    if (
-      sourceRole === KlondikeRole.WASTE &&
-      targetRole === KlondikeRole.TABLEAU
-    ) {
+    const { waste, tableau, foundation } = this.roles;
+
+    if (sourceRole === waste && targetRole === tableau) {
       return ScoringPolicy.WASTE_TO_TABLEAU;
     }
-    if (
-      sourceRole === KlondikeRole.WASTE &&
-      targetRole === KlondikeRole.FOUNDATION
-    ) {
+    if (sourceRole === waste && targetRole === foundation) {
       return ScoringPolicy.TO_FOUNDATION;
     }
-    if (
-      sourceRole === KlondikeRole.TABLEAU &&
-      targetRole === KlondikeRole.FOUNDATION
-    ) {
+    if (sourceRole === tableau && targetRole === foundation) {
       return ScoringPolicy.TO_FOUNDATION;
     }
-    if (
-      sourceRole === KlondikeRole.FOUNDATION &&
-      targetRole === KlondikeRole.TABLEAU
-    ) {
+    if (sourceRole === foundation && targetRole === tableau) {
       return ScoringPolicy.FOUNDATION_TO_TABLEAU;
     }
     return 0;

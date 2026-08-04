@@ -5,7 +5,7 @@ import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
-import { flipExposedTop } from "@/games/common/completed_runs";
+import { flipOnlyEffects } from "@/games/common/move_effects";
 import { dealYukonLayout } from "./yukon_deal";
 import { YukonRole, YukonVariant, yukonZoneSpecs } from "./yukon_zones";
 
@@ -72,13 +72,6 @@ export class YukonGame extends DealtTableGame {
    * @inheritDoc
    */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
-    const flipped =
-      move.sourcePile.role === YukonRole.TABLEAU
-        ? flipExposedTop(move.sourcePile)
-        : undefined;
-    return {
-      scoreDelta: 0,
-      flippedCardIds: flipped ? [flipped.id] : [],
-    };
+    return flipOnlyEffects(move, YukonRole.TABLEAU);
   }
 }

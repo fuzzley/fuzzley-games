@@ -5,7 +5,7 @@ import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
-import { flipExposedTop } from "@/games/common/completed_runs";
+import { flipOnlyEffects } from "@/games/common/move_effects";
 import { dealRowFromStock } from "@/games/common/row_deal";
 import { dealEasthavenLayout } from "./easthaven_deal";
 import {
@@ -118,13 +118,6 @@ export class EasthavenGame extends DealtTableGame {
    * @inheritDoc
    */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
-    const flipped =
-      move.sourcePile.role === EasthavenRole.TABLEAU
-        ? flipExposedTop(move.sourcePile)
-        : undefined;
-    return {
-      scoreDelta: 0,
-      flippedCardIds: flipped ? [flipped.id] : [],
-    };
+    return flipOnlyEffects(move, EasthavenRole.TABLEAU);
   }
 }
