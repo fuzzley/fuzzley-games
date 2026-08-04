@@ -10,9 +10,9 @@ import { buildTableViewState } from "@/engine/tableau/view/table_view_builder";
 import { EightOffGame } from "@/games/eight_off/eight_off_game";
 import { EIGHT_OFF_LAYOUT } from "@/games/eight_off/eight_off_layout";
 import {
-  TABLEAU_CARD_OFFSET,
+  TABLEAU_FACE_UP_OFFSET as TABLEAU_CARD_OFFSET,
   TABLEAU_HOVER_EXPANSION_OFFSET,
-} from "@/games/eight_off/eight_off_zones";
+} from "@/games/common/pile_layouts";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
 

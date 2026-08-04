@@ -1,4 +1,4 @@
-import { tableLayout } from "@/engine/render/layout/table_layout";
+import { boardLayout } from "../common/board_layout";
 import { TABLEAU_COUNT, seahavenZoneSpecs } from "./seahaven_zones";
 
 /**
@@ -14,10 +14,10 @@ import { TABLEAU_COUNT, seahavenZoneSpecs } from "./seahaven_zones";
  * Width binds the scale at this width on any ordinary viewport, so the reserved
  * height below is free in the sense Eight Off's layout sets out at length.
  */
-export const SEAHAVEN_LAYOUT = tableLayout({
+export const SEAHAVEN_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
-  slots: seahavenZoneSpecs().map((zone) => zone.slot),
+  zones: seahavenZoneSpecs(),
   // Columns run deep: a strict same-suit build with only four cells means a lot
   // of cards land back on the tableau before they leave it. Fourteen deep at a
   // 45-unit gap reaches about 1364 from the top of the board, and reserving
