@@ -587,4 +587,65 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry = {
     },
     settingsAndVariants: [],
   },
+  fortythieves: {
+    title: "Forty Thieves",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Forty_Thieves_(card_game)",
+    screenshot: {
+      url: "./docs/screenshots/fortythieves/overview.png",
+      caption:
+        "Forty Thieves board with stock and waste top-left, eight foundations across the top, and ten columns of four.",
+      altText: "Forty Thieves solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
+      winCondition:
+        "All 104 cards are sorted onto the eight foundations, two per suit.",
+      quickOverview:
+        "Forty Thieves deals two decks into ten columns of four and turns the stock one card at a time onto a waste that is never recycled. Columns build down in a single suit and move one card at a time, which makes it one of the hardest classic patiences.",
+    },
+    detailedRules: {
+      layout: [
+        "Tableau: 10 columns of 4 cards, all face-up in the standard game.",
+        "Foundations: 8 suit piles, two per suit for the two decks.",
+        "Stock: the remaining 64 cards, drawn one at a time.",
+        "Waste: a single face-up card where the drawn card lands.",
+      ],
+      cardMovement: [
+        "The top card of any column, or the card on the waste, can be moved.",
+        "Any card can start an empty column — the only real generosity in the game, since there are no free cells.",
+        "The top card of a foundation can be taken back down onto a column.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in SAME SUIT.",
+      ],
+      specialRules: [
+        "No Recycle: the stock is dealt through exactly once. When the 64 cards are gone they are gone, so every drawn card must be placed now or buried under the next.",
+        "One Card At A Time: the standard game moves a single card per move, with no free cells and no staging, so a column is dismantled card by card or not at all.",
+      ],
+    },
+    settingsAndVariants: [
+      {
+        optionId: "variant",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "The original and the hardest: build down in suit and move exactly one card at a time.",
+          },
+          {
+            value: 1,
+            effect:
+              "Josephine (also called Streets): the same same-suit build, but a complete same-suit run can be moved as a unit, which is a large easing.",
+          },
+          {
+            value: 2,
+            effect:
+              "Rank and File: columns build down in alternating colours and runs move as a unit, but three of every four dealt cards start face-down.",
+          },
+        ],
+      },
+    ],
+  },
 };
