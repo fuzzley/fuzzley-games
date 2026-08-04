@@ -21,6 +21,8 @@ import { SimpleSimonGame } from "@/games/simple_simon/simple_simon_game";
 import { SIMPLE_SIMON_LAYOUT } from "@/games/simple_simon/simple_simon_layout";
 import { BakersDozenGame } from "@/games/bakers_dozen/bakers_dozen_game";
 import { BAKERS_DOZEN_LAYOUT } from "@/games/bakers_dozen/bakers_dozen_layout";
+import { SeahavenGame } from "@/games/seahaven/seahaven_game";
+import { SEAHAVEN_LAYOUT } from "@/games/seahaven/seahaven_layout";
 
 /** A value a rule option can be set to, and how to name it to a player. */
 export interface GameOptionChoice {
@@ -332,6 +334,21 @@ const BAKERS_DOZEN = {
   },
 } satisfies CatalogEntry<BakersDozenGame>;
 
+const SEAHAVEN = {
+  id: "seahaven" as const,
+  name: "Seahaven Towers",
+  marker: "ST",
+  // Nothing to choose: one deck, one deal, and the cell count is fixed at the
+  // four that make the game what it is.
+  options: [],
+  layout: SEAHAVEN_LAYOUT,
+  create: () => {
+    const game = new SeahavenGame();
+    game.startNewGame();
+    return { game };
+  },
+} satisfies CatalogEntry<SeahavenGame>;
+
 /**
  * Every game the engine can currently put on the table, in the order they are
  * offered.
@@ -350,6 +367,7 @@ export const CATALOG_ENTRIES = [
   SCORPION,
   SIMPLE_SIMON,
   BAKERS_DOZEN,
+  SEAHAVEN,
 ] as const;
 
 /** Every game the application can put on the table. */

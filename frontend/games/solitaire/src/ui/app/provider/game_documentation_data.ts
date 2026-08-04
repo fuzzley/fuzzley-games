@@ -452,4 +452,43 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry = {
     },
     settingsAndVariants: [],
   },
+  seahaven: {
+    title: "Seahaven Towers",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Seahaven_Towers",
+    screenshot: {
+      url: "./docs/screenshots/seahaven/overview.png",
+      caption:
+        "Seahaven Towers board with 4 cells top-left, 4 foundations top-right, and 10 face-up columns of five.",
+      altText: "Seahaven Towers solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      winCondition:
+        "All 52 cards are sorted into their suit foundations from Ace through King.",
+      quickOverview:
+        "Seahaven Towers deals ten columns of five face-up cards, with the two leftover cards already filling two of its four cells. Columns build down in a single suit and open only to a King, which makes it the tightest of the cell games.",
+    },
+    detailedRules: {
+      layout: [
+        "Cells: 4 single-card holding cells at top-left, two of them filled by the deal.",
+        "Foundations: 4 suit piles at top-right, initially empty.",
+        "Tableau: 10 columns of 5 cards, all face-up.",
+      ],
+      cardMovement: [
+        "Any single card can be placed into an empty cell.",
+        "Only a King (or a run headed by a King) can start an empty column.",
+        "Multi-card moves simulate moving cards one at a time through the open cells.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in SAME SUIT.",
+      ],
+      specialRules: [
+        "Supermove Capacity: strictly (Free Cells + 1), with no doubling for empty columns. Because an empty column accepts only a King and a moving run's only King is its bottom card, an empty column can never stage part of a run.",
+        "Opening Squeeze: the deal spends two of the four cells, so the game begins with the least slack of any cell game here — freeing those two cells is usually the first task.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
 };
