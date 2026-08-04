@@ -4,12 +4,12 @@ import { deckCardIds } from "@/engine/core/card/deck";
 import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
-import { CardTransfer } from "@/engine/tableau/move";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import {
   collectCompletedRuns,
   flipExposedTop,
 } from "@/games/common/completed_runs";
+import { dealRowFromStock } from "@/games/common/row_deal";
 import { SPIDER_TWO_DECKS, dealSpiderLayout } from "./spider_deal";
 import { SpiderRole, STOCK_PILE_ID, spiderZoneSpecs } from "./spider_zones";
 
@@ -86,20 +86,7 @@ export class SpiderGame extends DealtTableGame {
     }
 
     this.state.moves++;
-    const transfers: CardTransfer[] = [];
-    for (const tableau of this.tableaus) {
-      const card = this.stock.topCard;
-      if (!card) break;
-      this.stock.removeCard(card);
-      card.faceUp = true;
-      tableau.addCard(card);
-      transfers.push({
-        cardIds: [card.id],
-        fromPileId: this.stock.id,
-        toPileId: tableau.id,
-        faceUpBefore: false,
-      });
-    }
+    const transfers = dealRowFromStock(this.stock, this.tableaus);
 
     // A dealt card can complete a run, and more than one column at a time.
     const collected = collectCompletedRuns(this.tableaus, this.foundations);

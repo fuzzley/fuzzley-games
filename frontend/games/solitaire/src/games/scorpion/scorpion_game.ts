@@ -4,12 +4,12 @@ import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
-import { CardTransfer } from "@/engine/tableau/move";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import {
   collectCompletedRuns,
   flipExposedTop,
 } from "@/games/common/completed_runs";
+import { dealRowFromStock } from "@/games/common/row_deal";
 import { dealScorpionLayout } from "./scorpion_deal";
 import {
   STOCK_PILE_ID,
@@ -102,20 +102,10 @@ export class ScorpionGame extends DealtTableGame {
     }
 
     this.state.moves++;
-    const transfers: CardTransfer[] = [];
-    for (const tableau of this.tableaus.slice(0, STOCK_DEAL_COLUMN_COUNT)) {
-      const card = this.stock.topCard;
-      if (!card) break;
-      this.stock.removeCard(card);
-      card.faceUp = true;
-      tableau.addCard(card);
-      transfers.push({
-        cardIds: [card.id],
-        fromPileId: this.stock.id,
-        toPileId: tableau.id,
-        faceUpBefore: false,
-      });
-    }
+    const transfers = dealRowFromStock(
+      this.stock,
+      this.tableaus.slice(0, STOCK_DEAL_COLUMN_COUNT),
+    );
 
     // A dealt card can complete a run, and can uncover one buried under the
     // column it lands on top of.
