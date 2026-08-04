@@ -23,6 +23,9 @@ import { BakersDozenGame } from "@/games/bakers_dozen/bakers_dozen_game";
 import { BAKERS_DOZEN_LAYOUT } from "@/games/bakers_dozen/bakers_dozen_layout";
 import { SeahavenGame } from "@/games/seahaven/seahaven_game";
 import { SEAHAVEN_LAYOUT } from "@/games/seahaven/seahaven_layout";
+import { FortyThievesGame } from "@/games/forty_thieves/forty_thieves_game";
+import { FortyThievesVariant } from "@/games/forty_thieves/forty_thieves_rules";
+import { FORTY_THIEVES_LAYOUT } from "@/games/forty_thieves/forty_thieves_layout";
 import { EasthavenGame } from "@/games/easthaven/easthaven_game";
 import { EASTHAVEN_LAYOUT } from "@/games/easthaven/easthaven_layout";
 import { SpideretteGame } from "@/games/spiderette/spiderette_game";
@@ -354,6 +357,45 @@ const SEAHAVEN = {
   },
 } satisfies CatalogEntry<SeahavenGame>;
 
+/**
+ * Which of the Forty Thieves family to deal.
+ *
+ * The values are the {@link FortyThievesVariant} members themselves rather than
+ * a parallel list of numbers, so the choices a player is offered and the games
+ * they select cannot drift apart.
+ */
+const FORTY_THIEVES_VARIANT: GameOptionSpec = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Josephine lets same-suit runs move as a unit; Rank and File builds in alternating colours but buries three of every four cards.",
+  choices: [
+    { value: FortyThievesVariant.FORTY_THIEVES, label: "Forty Thieves" },
+    { value: FortyThievesVariant.JOSEPHINE, label: "Josephine" },
+    { value: FortyThievesVariant.RANK_AND_FILE, label: "Rank and File" },
+  ],
+  defaultValue: FortyThievesVariant.FORTY_THIEVES,
+};
+
+const FORTY_THIEVES = {
+  id: "fortythieves" as const,
+  name: "Forty Thieves",
+  marker: "FT",
+  // One entry for three games: they share a deck, a deal shape, a board and a
+  // stock, and differ in rules a player picks rather than games they switch to.
+  options: [FORTY_THIEVES_VARIANT],
+  layout: FORTY_THIEVES_LAYOUT,
+  create: (values: GameOptionValues) => {
+    const variant = optionValue(
+      values,
+      FORTY_THIEVES_VARIANT,
+    ) as FortyThievesVariant;
+    const game = new FortyThievesGame(undefined, undefined, variant);
+    game.startNewGame();
+    return { game };
+  },
+} satisfies CatalogEntry<FortyThievesGame>;
+
 const EASTHAVEN = {
   id: "easthaven" as const,
   name: "Easthaven",
@@ -426,6 +468,7 @@ export const CATALOG_ENTRIES = [
   SEAHAVEN,
   SPIDERETTE,
   EASTHAVEN,
+  FORTY_THIEVES,
 ] as const;
 
 /** Every game the application can put on the table. */

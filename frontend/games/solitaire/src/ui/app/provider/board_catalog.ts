@@ -12,6 +12,7 @@ import { makeBakersDozenBoardScene } from "@/games/bakers_dozen/bakers_dozen_boa
 import { makeSeahavenBoardScene } from "@/games/seahaven/seahaven_board";
 import { makeSpideretteBoardScene } from "@/games/spiderette/spiderette_board";
 import { makeEasthavenBoardScene } from "@/games/easthaven/easthaven_board";
+import { makeFortyThievesBoardScene } from "@/games/forty_thieves/forty_thieves_board";
 import { GameId, GameOf } from "./game_catalog";
 
 /** Builds the Phaser board that draws a particular game. */
@@ -53,6 +54,9 @@ const BOARD_FACTORIES: { [Id in GameId]: BoardFactory<Id> } = {
   // which the game has laid out before a board ever draws it.
   spiderette: makeSpideretteBoardScene,
   easthaven: makeEasthavenBoardScene,
+  // One board for all three of the Forty Thieves family: the variants differ in
+  // what a column accepts and what may be lifted, which the zones declare.
+  fortythieves: makeFortyThievesBoardScene,
 };
 
 /**
