@@ -2,7 +2,10 @@ import { isSameSuitRun } from "@/engine/tableau/rules";
 import { ZoneSpec } from "@/engine/tableau/zone";
 import { OPEN_COLUMN_LAYOUT } from "../common/pile_layouts";
 import { columnRow, foundationRow } from "../common/zone_presets";
-import { SimpleSimonRole, simpleSimonPlacementRule } from "./simple_simon_rules";
+import {
+  SimpleSimonRole,
+  simpleSimonPlacementRule,
+} from "./simple_simon_rules";
 
 /** The number of tableau columns. */
 export const TABLEAU_COUNT = 10;

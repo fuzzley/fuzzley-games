@@ -7,10 +7,7 @@ import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { collectCompletedRuns } from "@/games/common/completed_runs";
 import { dealSimpleSimonLayout } from "./simple_simon_deal";
-import {
-  SimpleSimonRole,
-  simpleSimonZoneSpecs,
-} from "./simple_simon_zones";
+import { SimpleSimonRole, simpleSimonZoneSpecs } from "./simple_simon_zones";
 
 /**
  * A game of Simple Simon.

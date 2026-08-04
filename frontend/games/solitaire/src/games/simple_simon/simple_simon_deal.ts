@@ -9,7 +9,9 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
  * columns on the right are nearly free to dismantle, and clearing one outright
  * is the first thing a player looks for.
  */
-export const CARDS_PER_COLUMN: readonly number[] = [8, 8, 8, 7, 6, 5, 4, 3, 2, 1];
+export const CARDS_PER_COLUMN: readonly number[] = [
+  8, 8, 8, 7, 6, 5, 4, 3, 2, 1,
+];
 
 /**
  * Deals `deck` into the Simple Simon opening layout, consuming it from the top

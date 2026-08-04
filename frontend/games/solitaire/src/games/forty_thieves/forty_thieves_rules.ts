@@ -174,9 +174,7 @@ export function fortyThievesHidesCards(variant: FortyThievesVariant): boolean {
 }
 
 /** How many columns `variant` lays out. */
-export function fortyThievesTableauCount(
-  variant: FortyThievesVariant,
-): number {
+export function fortyThievesTableauCount(variant: FortyThievesVariant): number {
   return VARIANT_RULES[variant].tableauCount;
 }
 

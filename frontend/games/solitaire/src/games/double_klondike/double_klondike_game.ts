@@ -7,10 +7,8 @@ import { DeckSource } from "@/engine/tableau/deck_source";
 import { AppliedMove } from "@/engine/tableau/move";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
-import {
-  ScoringPolicy,
-  ScoringRoles,
-} from "@/games/klondike/scoring_policy";
+import { flipExposedTopOfColumn } from "@/games/common/move_effects";
+import { ScoringPolicy, ScoringRoles } from "@/games/klondike/scoring_policy";
 import {
   DOUBLE_KLONDIKE_TWO_DECKS,
   dealDoubleKlondikeLayout,
@@ -142,7 +140,8 @@ export class DoubleKlondikeGame extends DealtTableGame {
     this.recycleCount++;
     this.state.score = Math.max(
       0,
-      this.state.score - this.scoring.recyclePenalty(DRAW_COUNT, this.recycleCount),
+      this.state.score -
+        this.scoring.recyclePenalty(DRAW_COUNT, this.recycleCount),
     );
 
     this.recordTransfers(
@@ -196,16 +195,13 @@ export class DoubleKlondikeGame extends DealtTableGame {
   private autoFlipExposedCard(
     sourcePile: CardPile<PlayingCard>,
   ): PlayingCard | undefined {
-    if (sourcePile.role !== DoubleKlondikeRole.TABLEAU) {
-      return undefined;
+    const flipped = flipExposedTopOfColumn(
+      sourcePile,
+      DoubleKlondikeRole.TABLEAU,
+    );
+    if (flipped) {
+      this.state.score += this.scoring.tableauFlipBonus();
     }
-    const topRemaining = sourcePile.topCard;
-    if (!topRemaining || topRemaining.faceUp) {
-      return undefined;
-    }
-
-    topRemaining.faceUp = true;
-    this.state.score += this.scoring.tableauFlipBonus();
-    return topRemaining;
+    return flipped;
   }
 }

@@ -160,10 +160,7 @@ describe("MontanaGame gap rules", () => {
     relocate(game, cardId(Suit.SPADE, Rank.SIX), cell(game, 1, 5));
 
     expect(
-      game.moveCardToPile(
-        cardId(Suit.SPADE, Rank.SIX),
-        cell(game, 0, 1).id,
-      ),
+      game.moveCardToPile(cardId(Suit.SPADE, Rank.SIX), cell(game, 0, 1).id),
     ).toBe(true);
   });
 
@@ -172,10 +169,7 @@ describe("MontanaGame gap rules", () => {
     relocate(game, cardId(Suit.HEART, Rank.SIX), cell(game, 1, 5));
 
     expect(
-      game.moveCardToPile(
-        cardId(Suit.HEART, Rank.SIX),
-        cell(game, 0, 1).id,
-      ),
+      game.moveCardToPile(cardId(Suit.HEART, Rank.SIX), cell(game, 0, 1).id),
     ).toBe(false);
   });
 
@@ -184,10 +178,7 @@ describe("MontanaGame gap rules", () => {
     relocate(game, cardId(Suit.SPADE, Rank.SEVEN), cell(game, 1, 5));
 
     expect(
-      game.moveCardToPile(
-        cardId(Suit.SPADE, Rank.SEVEN),
-        cell(game, 0, 1).id,
-      ),
+      game.moveCardToPile(cardId(Suit.SPADE, Rank.SEVEN), cell(game, 0, 1).id),
     ).toBe(false);
   });
 
@@ -195,10 +186,7 @@ describe("MontanaGame gap rules", () => {
     relocate(game, cardId(Suit.HEART, Rank.TWO), cell(game, 2, 7));
 
     expect(
-      game.moveCardToPile(
-        cardId(Suit.HEART, Rank.TWO),
-        cell(game, 0, 0).id,
-      ),
+      game.moveCardToPile(cardId(Suit.HEART, Rank.TWO), cell(game, 0, 0).id),
     ).toBe(true);
   });
 
@@ -206,10 +194,7 @@ describe("MontanaGame gap rules", () => {
     relocate(game, cardId(Suit.HEART, Rank.THREE), cell(game, 2, 7));
 
     expect(
-      game.moveCardToPile(
-        cardId(Suit.HEART, Rank.THREE),
-        cell(game, 0, 0).id,
-      ),
+      game.moveCardToPile(cardId(Suit.HEART, Rank.THREE), cell(game, 0, 0).id),
     ).toBe(false);
   });
 
@@ -222,10 +207,7 @@ describe("MontanaGame gap rules", () => {
     relocate(game, cardId(Suit.SPADE, Rank.TWO), cell(game, 1, 5));
 
     expect(
-      game.moveCardToPile(
-        cardId(Suit.SPADE, Rank.TWO),
-        cell(game, 0, 1).id,
-      ),
+      game.moveCardToPile(cardId(Suit.SPADE, Rank.TWO), cell(game, 0, 1).id),
     ).toBe(false);
   });
 
@@ -233,10 +215,7 @@ describe("MontanaGame gap rules", () => {
     relocate(game, cardId(Suit.SPADE, Rank.TWO), cell(game, 1, 5));
 
     expect(
-      game.moveCardToPile(
-        cardId(Suit.SPADE, Rank.TWO),
-        cell(game, 0, 5).id,
-      ),
+      game.moveCardToPile(cardId(Suit.SPADE, Rank.TWO), cell(game, 0, 5).id),
     ).toBe(false);
   });
 
@@ -246,10 +225,7 @@ describe("MontanaGame gap rules", () => {
     relocate(game, cardId(Suit.SPADE, Rank.SIX), cell(game, 1, 5));
 
     expect(
-      game.moveCardToPile(
-        cardId(Suit.SPADE, Rank.SIX),
-        cell(game, 0, 1).id,
-      ),
+      game.moveCardToPile(cardId(Suit.SPADE, Rank.SIX), cell(game, 0, 1).id),
     ).toBe(false);
   });
 });
@@ -342,10 +318,7 @@ describe("MontanaGame redeal", () => {
     expect([
       cell(game, 0, 0).topCard?.id,
       cell(game, 0, 1).topCard?.id,
-    ]).toEqual([
-      cardId(Suit.SPADE, Rank.TWO),
-      cardId(Suit.SPADE, Rank.THREE),
-    ]);
+    ]).toEqual([cardId(Suit.SPADE, Rank.TWO), cardId(Suit.SPADE, Rank.THREE)]);
   });
 
   it("opens the row's gap immediately after its settled run", () => {

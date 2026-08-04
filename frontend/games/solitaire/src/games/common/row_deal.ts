@@ -3,6 +3,54 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
 import { CardTransfer } from "@/engine/tableau/move";
 
 /**
+ * Deals a fixed number of cards to each column, then one to each cell.
+ *
+ * The opening of every all-face-up cell game. Eight Off and Seahaven had
+ * character-for-character identical copies of this, including the comment,
+ * differing only in how many cards a column gets.
+ *
+ * Every card goes down face up, so there is nothing to turn over later and no
+ * bonus for doing so — the player can see the whole position from the first
+ * move, and the game is entirely one of planning.
+ *
+ * Short decks are dealt round-robin rather than column-by-column, so a deck too
+ * small to fill the tableau still spreads across every column instead of
+ * loading the first few and leaving the rest bare.
+ *
+ * @param deck The cards to deal, which this drains.
+ * @param tableaus The columns to deal onto.
+ * @param cells The cells the leftover cards go into.
+ * @param cardsPerColumn How many cards each column is dealt.
+ */
+export function dealColumnsThenCells(
+  deck: PlayingCard[],
+  tableaus: readonly CardPile<PlayingCard>[],
+  cells: readonly CardPile<PlayingCard>[],
+  cardsPerColumn: number,
+): void {
+  if (tableaus.length === 0) return;
+
+  const toColumns = Math.min(deck.length, tableaus.length * cardsPerColumn);
+  for (let dealt = 0; dealt < toColumns; dealt++) {
+    const card = deck.pop();
+    if (!card) break;
+    card.faceUp = true;
+    tableaus[dealt % tableaus.length].addCard(card);
+  }
+
+  // One card per cell, and no more: a cell's capacity is declared on its zone
+  // and enforced by the move rules, but CardPile.addCard takes whatever it is
+  // given. Dealing straight into a pile bypasses the rules, so the limit has to
+  // be honoured here as well as declared there.
+  for (const cell of cells) {
+    const card = deck.pop();
+    if (!card) break;
+    card.faceUp = true;
+    cell.addCard(card);
+  }
+}
+
+/**
  * Deals one card face up from the stock onto each of the given columns.
  *
  * The other kind of stock: rather than turning cards into a waste for the

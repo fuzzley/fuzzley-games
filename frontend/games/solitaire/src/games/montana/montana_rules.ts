@@ -1,9 +1,5 @@
 import { CardPile, PileRole } from "@/engine/core/card/card_pile";
-import {
-  PlayingCard,
-  Rank,
-  rankAbove,
-} from "@/engine/core/card/playing_card";
+import { PlayingCard, Rank, rankAbove } from "@/engine/core/card/playing_card";
 import {
   PlacementRule,
   all,

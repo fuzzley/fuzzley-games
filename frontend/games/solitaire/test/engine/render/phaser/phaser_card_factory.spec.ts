@@ -42,12 +42,7 @@ describe("PhaserCardFactory", () => {
 
     redFactory.createCardSprite();
 
-    expect(addSprite).toHaveBeenCalledWith(
-      0,
-      0,
-      DECK_TEXTURE,
-      "card-back-red",
-    );
+    expect(addSprite).toHaveBeenCalledWith(0, 0, DECK_TEXTURE, "card-back-red");
   });
 
   it("makes the card sprite interactive with a hand cursor", () => {

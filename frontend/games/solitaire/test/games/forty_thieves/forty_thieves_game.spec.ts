@@ -60,9 +60,7 @@ describe("FortyThievesGame deal", () => {
   });
 
   it("deals ten columns of four", () => {
-    expect(game.tableaus.map((pile) => pile.size)).toEqual(
-      Array(10).fill(4),
-    );
+    expect(game.tableaus.map((pile) => pile.size)).toEqual(Array(10).fill(4));
   });
 
   it("puts the remaining sixty-four on the stock", () => {

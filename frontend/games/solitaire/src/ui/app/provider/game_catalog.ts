@@ -541,7 +541,10 @@ const SPIDERETTE = {
   options: [SPIDERETTE_VARIANT],
   layout: SPIDERETTE_LAYOUT,
   create: (values: GameOptionValues) => {
-    const variant = optionValue(values, SPIDERETTE_VARIANT) as SpideretteVariant;
+    const variant = optionValue(
+      values,
+      SPIDERETTE_VARIANT,
+    ) as SpideretteVariant;
     const game = new SpideretteGame(undefined, undefined, variant);
     game.startNewGame();
     return { game };
