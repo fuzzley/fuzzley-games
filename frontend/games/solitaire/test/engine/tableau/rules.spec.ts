@@ -13,10 +13,14 @@ import {
   cardIs,
   descendingAlternatingColor,
   descendingAnySuit,
+  descendingDifferentSuit,
+  descendingSameColor,
   descendingSameSuit,
   hasRank,
+  isDifferentSuitRun,
   isOrderedPair,
   isRed,
+  isSameColorRun,
   isSameSuitRun,
   maxStackSize,
   never,
@@ -259,6 +263,52 @@ describe("descendingSameSuit", () => {
   });
 });
 
+describe("descendingSameColor", () => {
+  it("accepts the next card down in the other suit of the same color", () => {
+    const context = contextOf(blackQueen(), pileWith("tableau", blackKing()));
+
+    expect(descendingSameColor(context)).toBe(true);
+  });
+
+  it("rejects the other color, which the Klondike rule would take", () => {
+    const context = contextOf(redQueen(), pileWith("tableau", blackKing()));
+
+    expect(descendingSameColor(context)).toBe(false);
+  });
+
+  it("rejects an empty pile, which byEmptiness is expected to have handled", () => {
+    expect(descendingSameColor(contextOf(blackQueen(), pileWith("t")))).toBe(
+      false,
+    );
+  });
+});
+
+describe("descendingDifferentSuit", () => {
+  it("accepts the next card down in another suit of the same color", () => {
+    const context = contextOf(blackQueen(), pileWith("tableau", blackKing()));
+
+    expect(descendingDifferentSuit(context)).toBe(true);
+  });
+
+  it("accepts the next card down in the other color", () => {
+    const context = contextOf(redQueen(), pileWith("tableau", blackKing()));
+
+    expect(descendingDifferentSuit(context)).toBe(true);
+  });
+
+  it("rejects the same suit, which is the one suit it refuses", () => {
+    const context = contextOf(spadeQueen(), pileWith("tableau", blackKing()));
+
+    expect(descendingDifferentSuit(context)).toBe(false);
+  });
+
+  it("rejects an empty pile, which byEmptiness is expected to have handled", () => {
+    expect(descendingDifferentSuit(contextOf(redQueen(), pileWith("t")))).toBe(
+      false,
+    );
+  });
+});
+
 describe("isOrderedPair", () => {
   it("accepts one rank down in the other color", () => {
     expect(isOrderedPair(blackKing(), redQueen())).toBe(true);
@@ -302,6 +352,54 @@ describe("isSameSuitRun", () => {
     const ace = makePlayingCard({ suit: Suit.SPADE, rank: Rank.ACE, id: "sa" });
 
     expect(isSameSuitRun(ace, spadeQueen())).toBe(false);
+  });
+});
+
+describe("isSameColorRun", () => {
+  it("accepts one rank down in the same suit", () => {
+    expect(isSameColorRun(blackKing(), spadeQueen())).toBe(true);
+  });
+
+  it("accepts one rank down in the other suit of the same color", () => {
+    expect(isSameColorRun(blackKing(), blackQueen())).toBe(true);
+  });
+
+  it("rejects the other color", () => {
+    expect(isSameColorRun(blackKing(), redQueen())).toBe(false);
+  });
+
+  it("rejects a rank that is not one lower", () => {
+    const spadeJack = makePlayingCard({
+      suit: Suit.SPADE,
+      rank: Rank.JACK,
+      id: "sj",
+    });
+
+    expect(isSameColorRun(blackKing(), spadeJack)).toBe(false);
+  });
+});
+
+describe("isDifferentSuitRun", () => {
+  it("accepts one rank down in the other color", () => {
+    expect(isDifferentSuitRun(blackKing(), redQueen())).toBe(true);
+  });
+
+  it("accepts one rank down in another suit of the same color", () => {
+    expect(isDifferentSuitRun(blackKing(), blackQueen())).toBe(true);
+  });
+
+  it("rejects the same suit", () => {
+    expect(isDifferentSuitRun(blackKing(), spadeQueen())).toBe(false);
+  });
+
+  it("rejects a rank that is not one lower", () => {
+    const redJack = makePlayingCard({
+      suit: Suit.HEART,
+      rank: Rank.JACK,
+      id: "hj",
+    });
+
+    expect(isDifferentSuitRun(blackKing(), redJack)).toBe(false);
   });
 });
 

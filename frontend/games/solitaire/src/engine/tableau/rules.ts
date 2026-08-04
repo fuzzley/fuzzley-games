@@ -151,6 +151,36 @@ export function isSameSuitRun(lower: PlayingCard, upper: PlayingCard): boolean {
   return lower.suit === upper.suit && upper.rank === rankBelow(lower.rank);
 }
 
+/**
+ * Whether `upper` may sit directly on `lower`: one rank down, in the same
+ * colour. Whitehead builds and lifts this way.
+ *
+ * Between {@link isOrderedPair} and {@link isSameSuitRun} in strictness, and
+ * that is the whole of Whitehead's character: two suits will take a card where
+ * alternating colours would offer two and a single suit only one.
+ */
+export function isSameColorRun(
+  lower: PlayingCard,
+  upper: PlayingCard,
+): boolean {
+  return upper.rank === rankBelow(lower.rank) && isRed(lower) === isRed(upper);
+}
+
+/**
+ * Whether `upper` may sit directly on `lower`: one rank down, in any suit but
+ * `lower`'s own. Thumb and Pouch builds and lifts this way.
+ *
+ * The laxest of the four, and deliberately not the same as "any suit at all":
+ * three of the four suits will take a card, which is what makes Thumb and Pouch
+ * the gentle Klondike rather than a game with no column rule.
+ */
+export function isDifferentSuitRun(
+  lower: PlayingCard,
+  upper: PlayingCard,
+): boolean {
+  return lower.suit !== upper.suit && upper.rank === rankBelow(lower.rank);
+}
+
 /** Builds down by one rank in alternating colors: the Klondike tableau. */
 export const descendingAlternatingColor: PlacementRule = (context) => {
   const topCard = context.targetPile.topCard;
@@ -164,6 +194,21 @@ export const descendingAlternatingColor: PlacementRule = (context) => {
 export const descendingSameSuit: PlacementRule = (context) => {
   const topCard = context.targetPile.topCard;
   return topCard ? isSameSuitRun(topCard, context.card) : false;
+};
+
+/** Builds down by one rank in the same color: the Whitehead tableau. */
+export const descendingSameColor: PlacementRule = (context) => {
+  const topCard = context.targetPile.topCard;
+  return topCard ? isSameColorRun(topCard, context.card) : false;
+};
+
+/**
+ * Builds down by one rank in any suit but the one below it: the Thumb and
+ * Pouch tableau.
+ */
+export const descendingDifferentSuit: PlacementRule = (context) => {
+  const topCard = context.targetPile.topCard;
+  return topCard ? isDifferentSuitRun(topCard, context.card) : false;
 };
 
 /** Builds down by one rank regardless of suit: the Spider tableau. */
