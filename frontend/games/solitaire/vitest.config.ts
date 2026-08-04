@@ -19,10 +19,10 @@ export default defineConfig({
         // noticing. Raise these when the real figures move up; they are meant
         // to ratchet, which is why they are not set to the current numbers
         // exactly.
-        statements: 90,
-        branches: 80,
-        functions: 90,
-        lines: 90,
+        statements: 93,
+        branches: 84,
+        functions: 93,
+        lines: 94,
       },
     },
   },
