@@ -1,4 +1,4 @@
-import { tableLayout } from "@/engine/render/layout/table_layout";
+import { boardLayout } from "../common/board_layout";
 import { DEFAULT_YUKON_VARIANT } from "./yukon_rules";
 import { TABLEAU_COUNT, yukonZoneSpecs } from "./yukon_zones";
 
@@ -16,10 +16,10 @@ import { TABLEAU_COUNT, yukonZoneSpecs } from "./yukon_zones";
  * the three differ only in what a column accepts — but the default is passed
  * explicitly rather than left to a fallback, so the choice is visible.
  */
-export const YUKON_LAYOUT = tableLayout({
+export const YUKON_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
-  slots: yukonZoneSpecs(DEFAULT_YUKON_VARIANT).map((zone) => zone.slot),
+  zones: yukonZoneSpecs(DEFAULT_YUKON_VARIANT),
   // Taller than any other board here, because the last column is eleven cards
   // deep from the first deal: six packed face-down plus five fanned face-up,
   // and it only grows as cards are moved onto it.

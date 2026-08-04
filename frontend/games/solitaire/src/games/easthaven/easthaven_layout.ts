@@ -1,4 +1,4 @@
-import { tableLayout } from "@/engine/render/layout/table_layout";
+import { boardLayout } from "../common/board_layout";
 import { TABLEAU_COUNT, easthavenZoneSpecs } from "./easthaven_zones";
 
 /**
@@ -12,10 +12,10 @@ import { TABLEAU_COUNT, easthavenZoneSpecs } from "./easthaven_zones";
  * unit reserved below costs card size directly. The figure is a judgement about
  * how deep columns really get rather than a free allowance.
  */
-export const EASTHAVEN_LAYOUT = tableLayout({
+export const EASTHAVEN_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
-  slots: easthavenZoneSpecs().map((zone) => zone.slot),
+  zones: easthavenZoneSpecs(),
   // Shallower than Spiderette's, because cards leave for the foundations
   // throughout rather than only as finished thirteen-card runs. Two buried cards
   // at 18 under nine showing at 45 reaches about 1000 from the top of the board;

@@ -1,4 +1,4 @@
-import { tableLayout } from "@/engine/render/layout/table_layout";
+import { boardLayout } from "../common/board_layout";
 import {
   FreeCellVariant,
   TABLEAU_COUNT,
@@ -15,10 +15,10 @@ import {
  * Which variant the slots are read from does not matter — the rules vary with
  * it, the grid does not — so this serves Baker's Game unchanged.
  */
-export const FREECELL_LAYOUT = tableLayout({
+export const FREECELL_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
-  slots: freeCellZoneSpecs(FreeCellVariant.FREECELL).map((zone) => zone.slot),
+  zones: freeCellZoneSpecs(FreeCellVariant.FREECELL),
   // A column can reach thirteen cards deep at 45 units apart, so the board
   // reserves rather more below its grid than Klondike does.
   designHeightPx: 1120,

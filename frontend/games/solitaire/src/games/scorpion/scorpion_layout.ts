@@ -1,4 +1,4 @@
-import { tableLayout } from "@/engine/render/layout/table_layout";
+import { boardLayout } from "../common/board_layout";
 import { TABLEAU_COUNT, scorpionZoneSpecs } from "./scorpion_zones";
 
 /**
@@ -8,10 +8,10 @@ import { TABLEAU_COUNT, scorpionZoneSpecs } from "./scorpion_zones";
  * Klondike's grid exactly, minus the waste — which is what a seven-column game
  * with no draw comes to.
  */
-export const SCORPION_LAYOUT = tableLayout({
+export const SCORPION_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
-  slots: scorpionZoneSpecs().map((zone) => zone.slot),
+  zones: scorpionZoneSpecs(),
   // Columns run deeper than Klondike's: every card that leaves a column joins
   // another, so a well-played board collects most of the deck into two or three
   // stacks before the first run completes. Reserving more than the grid needs

@@ -84,17 +84,28 @@ export function zoneAt(spec: SingleZoneSpec): ZoneSpec {
  * builder asks for them every frame. Ten games cached that in a module-level
  * const and four in a hand-rolled `Map`; this is the one spelling.
  *
- * @param build Builds the zones for one key.
+ * Memoizing is not merely tidy here: {@link TableGame.zoneFor} rebuilds its id
+ * index whenever it is handed a different array, and it is asked once per card
+ * per frame, so returning a fresh array each call would rebuild that index
+ * forever. The cache is bounded by the number of variants, so it cannot grow
+ * without limit and cannot go stale.
+ *
+ * @param build Builds the zones for one set of choices.
+ * @param keyOf Reduces those choices to a cache key. Defaults to the first
+ *   argument, which is all a game with a single variant needs; Klondike varies
+ *   by draw mode *and* variant and composes the two.
  * @returns The memoized form of `build`.
  */
-export function memoizeZones<K>(
-  build: (key: K) => readonly ZoneSpec[],
-): (key: K) => readonly ZoneSpec[] {
-  const cache = new Map<K, readonly ZoneSpec[]>();
-  return (key: K) => {
+export function memoizeZones<Args extends readonly unknown[]>(
+  build: (...args: Args) => readonly ZoneSpec[],
+  keyOf: (...args: Args) => unknown = (...args) => args[0],
+): (...args: Args) => readonly ZoneSpec[] {
+  const cache = new Map<unknown, readonly ZoneSpec[]>();
+  return (...args: Args) => {
+    const key = keyOf(...args);
     let zones = cache.get(key);
     if (!zones) {
-      zones = build(key);
+      zones = build(...args);
       cache.set(key, zones);
     }
     return zones;

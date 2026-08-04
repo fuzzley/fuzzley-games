@@ -1,4 +1,5 @@
-import { TableLayoutSpec, tableLayout } from "@/engine/render/layout/table_layout";
+import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import { boardLayout } from "../common/board_layout";
 import { FortyThievesVariant } from "./forty_thieves_rules";
 import {
   boardColumnCount,
@@ -37,10 +38,10 @@ export function fortyThievesLayout(
 const layoutByVariant = new Map<FortyThievesVariant, TableLayoutSpec>();
 
 function buildLayout(variant: FortyThievesVariant): TableLayoutSpec {
-  return tableLayout({
+  return boardLayout({
     columns: boardColumnCount(variant),
     rows: 2,
-    slots: fortyThievesZoneSpecs(variant).map((zone) => zone.slot),
+    zones: fortyThievesZoneSpecs(variant),
     // Columns run deep: a hundred and four cards against ten columns or fewer,
     // with a strict same-suit build in three of the five, means a lot of cards
     // land back on the tableau before they leave it. Fourteen deep at a 45-unit

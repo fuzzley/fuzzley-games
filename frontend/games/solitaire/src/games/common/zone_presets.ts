@@ -44,16 +44,26 @@ export interface FoundationRowOptions extends RowPlacement {
   readonly role: PileRole;
   /** What may be placed here. */
   readonly accept: PlacementRule | null;
+  /**
+   * What may be lifted back off. Defaults to the top card.
+   *
+   * Set to `{ kind: "none" }` by the games whose foundations are a destination
+   * only: a Spider or Simple Simon run arrives by completing itself, and taking
+   * it back apart is not a move.
+   */
+  readonly grab?: GrabRule;
+  /** Whether a card may be dragged back off. Defaults to true. */
+  readonly draggable?: boolean;
 }
 
 /**
  * A row of suit foundations: the piles a game is won onto.
  *
- * Always the top card only, always face up, always behind the circled
- * placeholder that tells it apart from a column at a glance.
+ * Always face up, always behind the circled placeholder that tells it apart
+ * from a column at a glance.
  */
 export function foundationRow(options: FoundationRowOptions): ZoneSpec[] {
-  const { count, column, row, role, accept } = options;
+  const { count, column, row, role, accept, grab, draggable } = options;
   return zoneRow({
     count,
     column,
@@ -62,8 +72,8 @@ export function foundationRow(options: FoundationRowOptions): ZoneSpec[] {
     accept,
     id: foundationPileId,
     layout: STACKED_PILE_LAYOUT,
-    grab: { kind: "top-only" },
-    draggable: true,
+    grab: grab ?? { kind: "top-only" },
+    draggable: draggable ?? true,
     face: "always-up",
     backgroundKey: FOUNDATION_PLACEHOLDER,
   });
@@ -152,13 +162,22 @@ export interface StockZoneOptions {
   /** The grid row it sits in. */
   readonly row: number;
   /**
-   * Whether the empty slot can be pressed to bring the waste back.
+   * The placeholder artwork drawn behind the empty slot.
    *
-   * Also chooses the artwork: a stock that comes round again is marked with a
-   * recycle arrow, and one that does not gets the plain placeholder, because an
-   * arrow promising a recycle that will never happen is a lie the board tells.
+   * Stated rather than derived from whether the stock recycles, because the
+   * boards do not currently agree: Spider, Spiderette and Easthaven wear the
+   * recycle arrow without recycling, while Scorpion and Forty Thieves use the
+   * plain slot for the same "deals once and is finished" stock. Deriving it
+   * would quietly restyle three boards.
    */
-  readonly recycles?: boolean;
+  readonly backgroundKey: string;
+  /**
+   * Whether pressing the empty slot does something — Klondike's recycle.
+   *
+   * Purely the cursor and hover border; the press itself is handled by the
+   * game's gesture map.
+   */
+  readonly emptyIsActionable?: boolean;
 }
 
 /**
@@ -168,19 +187,20 @@ export interface StockZoneOptions {
  * a card while a drag refuses to pick one up.
  */
 export function stockZone(options: StockZoneOptions): ZoneSpec {
-  const { id, role, accept, column, row, recycles = false } = options;
+  const { id, role, accept, column, row, backgroundKey, emptyIsActionable } =
+    options;
   return zoneAt({
     id,
     role,
     accept,
     column,
     row,
+    backgroundKey,
+    emptyIsActionable,
     layout: STACKED_PILE_LAYOUT,
     grab: { kind: "top-only" },
     draggable: false,
     face: "always-down",
-    backgroundKey: recycles ? RECYCLING_STOCK_PLACEHOLDER : PLAIN_PLACEHOLDER,
-    emptyIsActionable: recycles,
   });
 }
 
