@@ -1,4 +1,5 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
+import { tableGestures } from "@/games/common/table_gestures";
 import { MontanaGame } from "./montana_game";
 import { REDEAL_PILE_ID } from "./montana_zones";
 
@@ -15,29 +16,11 @@ import { REDEAL_PILE_ID } from "./montana_zones";
  * meaning to give it.
  */
 export function montanaGestures(game: MontanaGame): IntentHandler {
-  return (intent) => {
-    switch (intent.kind) {
-      case "activate":
-        // Nothing responds to a single press on a card.
-        return;
-
-      case "activate-pile":
-        if (intent.pileId === REDEAL_PILE_ID) {
-          game.redeal();
-        }
-        return;
-
-      case "activate-secondary":
-        game.autoMoveCard(intent.cardId);
-        return;
-
-      case "drop": {
-        const [primaryCardId] = intent.cardIds;
-        if (intent.targetPileId && primaryCardId) {
-          game.moveCardToPile(primaryCardId, intent.targetPileId);
-        }
-        return;
+  return tableGestures(game, {
+    onPilePress: (pileId) => {
+      if (pileId === REDEAL_PILE_ID) {
+        game.redeal();
       }
-    }
-  };
+    },
+  });
 }
