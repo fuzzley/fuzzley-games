@@ -137,9 +137,11 @@ module.exports = tseslint.config(
                 "@/games/*",
                 "@/ui/*",
                 "@angular/*",
+                "rxjs",
+                "rxjs/*",
               ],
               message:
-                "engine/tableau runs any solitaire: no game, no renderer backend, no UI.",
+                "engine/tableau runs any solitaire: no game, no renderer backend, no UI, and no reactive library — every game inherits this tier, so a dependency here is a dependency of all of them.",
             },
           ],
         },

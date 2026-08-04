@@ -60,13 +60,13 @@ export class GameMetricsService {
     effect((onCleanup) => {
       const { game } = this.catalog.session();
 
-      const subscriptions = [
-        game.state.score$.subscribe((value) => this.scoreSignal.set(value)),
-        game.state.moves$.subscribe((value) => this.movesSignal.set(value)),
-        game.state.undoDepth$.subscribe((value) =>
-          this.undoDepthSignal.set(value),
-        ),
-      ];
+      // Reports the metrics once on subscribe, so switching to a game already
+      // in progress shows its score rather than zero.
+      const unsubscribe = game.state.onChange((metrics) => {
+        this.scoreSignal.set(metrics.score);
+        this.movesSignal.set(metrics.moves);
+        this.undoDepthSignal.set(metrics.undoDepth);
+      });
 
       const gameWonHandler = () => {
         this.wonSignal.set(true);
@@ -75,7 +75,7 @@ export class GameMetricsService {
       game.on("game-won", gameWonHandler);
 
       onCleanup(() => {
-        subscriptions.forEach((subscription) => subscription.unsubscribe());
+        unsubscribe();
         game.off("game-won", gameWonHandler);
       });
     });

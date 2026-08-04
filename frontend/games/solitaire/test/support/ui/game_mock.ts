@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import { BehaviorSubject } from "rxjs";
+import { GameState } from "@/engine/tableau/game_state";
 import type { PlayableGame } from "@/engine/tableau/playable_game";
 
 /** The starting readings of a mock game. */
@@ -10,31 +10,23 @@ export interface MockGameModelOverrides {
 }
 
 /**
- * A stand-in for a dealt game, exposing the observable state the UI follows.
+ * A stand-in for a dealt game, exposing the live state the UI follows.
  *
- * Holds real BehaviorSubjects rather than stubs so a spec can push a score or
- * a move count and watch it arrive, which is how the UI actually receives
- * them.
+ * Holds a real {@link GameState} rather than stubbed streams, so a spec sets a
+ * score or a move count the way the game itself does — `state.score = 350` —
+ * and the publishing behaviour under test is the real one.
  */
 export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
   /** Listeners registered by whoever is following this game. */
   const listeners = new Map<string, Set<() => void>>();
 
+  const state = new GameState();
+  state.score = overrides.score ?? 0;
+  state.moves = overrides.moves ?? 0;
+  state.undoDepth = overrides.undoDepth ?? 0;
+
   return {
-    state: {
-      score$: new BehaviorSubject<number>(overrides.score ?? 0),
-      moves$: new BehaviorSubject<number>(overrides.moves ?? 0),
-      undoDepth$: new BehaviorSubject<number>(overrides.undoDepth ?? 0),
-      get score() {
-        return this.score$.value;
-      },
-      get moves() {
-        return this.moves$.value;
-      },
-      get undoDepth() {
-        return this.undoDepth$.value;
-      },
-    },
+    state,
 
     on(event: string, callback: () => void) {
       const set = listeners.get(event) ?? new Set<() => void>();

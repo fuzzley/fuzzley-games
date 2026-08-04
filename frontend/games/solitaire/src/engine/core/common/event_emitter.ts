@@ -14,17 +14,22 @@ export class EventEmitter<EventMap extends Record<string, unknown>> {
    *
    * @param event The name of the event to listen for.
    * @param listener The callback function to invoke when the event is emitted.
+   * @returns Unsubscribes the listener. Handing back a disposer means a caller
+   *   that subscribes an inline closure can still let go of it, without having
+   *   to keep a reference around to pass to {@link off}. A caller that already
+   *   holds its listener can keep using `off` and ignore this.
    */
   public on<K extends keyof EventMap>(
     event: K,
     listener: Listener<EventMap[K]>,
-  ): void {
+  ): () => void {
     let list = this.listeners[event];
     if (!list) {
       list = [];
       this.listeners[event] = list;
     }
     list.push(listener);
+    return () => this.off(event, listener);
   }
 
   /**

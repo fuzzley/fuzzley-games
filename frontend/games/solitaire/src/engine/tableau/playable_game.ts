@@ -1,7 +1,19 @@
-import { GameState } from "./game_state";
+import { GameMetrics } from "./game_state";
 
 /** The lifecycle events every playable game publishes. */
 export type PlayableGameEvent = "game-won" | "game-reset";
+
+/**
+ * The live metrics a shell may read and follow, but not write.
+ *
+ * A game's own {@link GameState} satisfies this. Narrowing it here is what
+ * stops a consumer from assigning `game.state.score = 999`: the score is the
+ * game's to keep, and a display only ever reads it.
+ */
+export interface ReadableGameState extends GameMetrics {
+  /** Follows the metrics, reporting them once immediately. */
+  onChange(listener: (metrics: GameMetrics) => void): () => void;
+}
 
 /**
  * What an application shell needs from a game to run a session of it: live
@@ -13,8 +25,8 @@ export type PlayableGameEvent = "game-won" | "game-reset";
  * shell is written against this rather than against any of them.
  */
 export interface PlayableGame {
-  /** Observable live metrics: score, moves, undo depth. */
-  readonly state: GameState;
+  /** Live metrics: score, moves, undo depth. Read-only from out here. */
+  readonly state: ReadableGameState;
 
   /** Deals a fresh game. */
   startNewGame(): void;
