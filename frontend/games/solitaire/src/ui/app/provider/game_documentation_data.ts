@@ -787,4 +787,45 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry = {
     },
     settingsAndVariants: [],
   },
+  montana: {
+    title: "Montana",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Montana_(solitaire)",
+    screenshot: {
+      url: "./docs/screenshots/montana/overview.png",
+      caption:
+        "Montana board showing 48 cards laid in a grid of four rows by thirteen, with four gaps and the redeal marker beside it.",
+      altText: "Montana solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Arrange each of the four rows into a single suit running from Two up to King.",
+      winCondition:
+        "Every row reads Two through King in one suit, with the gap parked at the end.",
+      quickOverview:
+        "Montana, also played as Gaps, deals 48 cards — a deck without its Aces — into a grid of four rows by thirteen, leaving four gaps. You move a card into a gap only if it continues the run to the gap's left, and you win by sorting all four rows.",
+    },
+    detailedRules: {
+      layout: [
+        "Grid: 4 rows of 13 cells, each holding at most one card.",
+        "Gaps: 4 empty cells, where the Aces would have fallen.",
+        "Redeal: a marker beside the grid, worth two uses per game.",
+      ],
+      cardMovement: [
+        "A gap accepts the card one rank higher than the card immediately to its left, in the same suit.",
+        "A gap in the leftmost column accepts any Two.",
+        "A gap immediately to the right of a King accepts nothing — it is dead for the rest of the deal, and creating one is the mistake to avoid.",
+        "Moving a card leaves a new gap behind it, so every move both opens and closes an opportunity.",
+      ],
+      sequenceBuilding: [
+        "Rows: Built UP in SAME SUIT from Two to King, left to right.",
+        "There are no foundations and no stacking — cards only ever move between cells.",
+      ],
+      specialRules: [
+        "Redeals: pressing the marker gathers every card that is not yet part of its row's run from the left, shuffles them, and lays them back out after each run — leaving one fresh gap per row. Two redeals per game.",
+        "No Aces: the Aces are not in play at all, which is what creates the four gaps.",
+        "Won by Arrangement: unlike every other game here, nothing is gathered onto a pile — the cards end where they started, in cells, just in the right order.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
 };
