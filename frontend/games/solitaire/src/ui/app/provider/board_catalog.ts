@@ -9,6 +9,7 @@ import { makeEightOffBoardScene } from "@/games/eight_off/eight_off_board";
 import { makeScorpionBoardScene } from "@/games/scorpion/scorpion_board";
 import { makeSimpleSimonBoardScene } from "@/games/simple_simon/simple_simon_board";
 import { makeBakersDozenBoardScene } from "@/games/bakers_dozen/bakers_dozen_board";
+import { makeSeahavenBoardScene } from "@/games/seahaven/seahaven_board";
 import { GameId, GameOf } from "./game_catalog";
 
 /** Builds the Phaser board that draws a particular game. */
@@ -45,6 +46,7 @@ const BOARD_FACTORIES: { [Id in GameId]: BoardFactory<Id> } = {
   scorpion: makeScorpionBoardScene,
   simplesimon: makeSimpleSimonBoardScene,
   bakersdozen: makeBakersDozenBoardScene,
+  seahaven: makeSeahavenBoardScene,
 };
 
 /**
