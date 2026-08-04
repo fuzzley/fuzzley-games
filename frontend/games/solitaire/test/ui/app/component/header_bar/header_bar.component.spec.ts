@@ -100,8 +100,8 @@ describe("HeaderBarComponent", () => {
     });
 
     it("follows the game as it changes", () => {
-      harness.model.state.score$.next(350);
-      harness.model.state.moves$.next(25);
+      harness.model.state.score = 350;
+      harness.model.state.moves = 25;
       fixture.detectChanges();
 
       expect([
@@ -117,14 +117,14 @@ describe("HeaderBarComponent", () => {
     });
 
     it("is enabled once the game has history", () => {
-      harness.model.state.undoDepth$.next(1);
+      harness.model.state.undoDepth = 1;
       fixture.detectChanges();
 
       expect(undoButton().disabled).toBe(false);
     });
 
     it("takes the move back on the game when clicked", () => {
-      harness.model.state.undoDepth$.next(1);
+      harness.model.state.undoDepth = 1;
       fixture.detectChanges();
 
       undoButton().click();

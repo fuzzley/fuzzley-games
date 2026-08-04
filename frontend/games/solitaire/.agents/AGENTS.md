@@ -130,7 +130,7 @@ Architecture guidelines are enforced as hard build errors rather than convention
 | `src/engine/core`                     | Standard TS primitives                   | `@/engine/render/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `phaser`, `@angular/*`, `rxjs`        |
 | `src/engine/render` _(excl. phaser/)_ | `engine/core`                            | `phaser`, `@/engine/render/phaser/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs` |
 | `src/engine/render/phaser`            | Phaser 4, `engine/core`, `engine/render` | `@/engine/tableau/view/table_view_builder`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                 |
-| `src/engine/tableau`                  | `engine/core`, `engine/render`           | `phaser`, `@/engine/render/phaser/*`, `@/games/*`, `@/ui/*`, `@angular/*`                               |
+| `src/engine/tableau`                  | `engine/core`, `engine/render`           | `phaser`, `@/engine/render/phaser/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                       |
 | `src/games/*`                         | `engine/*`                               | `@/ui/*`, `@angular/*`, `rxjs`                                                                          |
 
 Note that the generic Phaser canvas host is `engine/render/phaser/phaser_host.ts`
