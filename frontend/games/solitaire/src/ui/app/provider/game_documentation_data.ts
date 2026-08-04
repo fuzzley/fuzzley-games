@@ -372,4 +372,44 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry = {
     },
     settingsAndVariants: [],
   },
+  simplesimon: {
+    title: "Simple Simon",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Simple_Simon_(solitaire)",
+    screenshot: {
+      url: "./docs/screenshots/simplesimon/overview.png",
+      caption:
+        "Simple Simon board showing ten fully face-up tableau columns and four foundation slots.",
+      altText: "Simple Simon solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Build four 13-card same-suit sequences from King down to Ace on the tableau.",
+      winCondition:
+        "All 4 suits assembled in complete King-to-Ace runs and cleared to the foundations.",
+      quickOverview:
+        "Simple Simon plays by Spider's rules on an open board: one deck, ten columns, every card face-up, and no stock at all. Columns build down by rank in any suit, but only a same-suit run can be picked up, so the whole game is deciding which mixed piles you can afford to build.",
+    },
+    detailedRules: {
+      layout: [
+        "Tableau: 10 columns dealt 8, 8, 8, 7, 6, 5, 4, 3, 2, 1 cards, all face-up.",
+        "Foundations: 4 automated slots for completed King-to-Ace same-suit runs.",
+        "No Stock: every one of the 52 cards is on the tableau from the first move.",
+      ],
+      cardMovement: [
+        "A card can be picked up only with an unbroken same-suit descending run resting on it.",
+        "Any card, or any run, can be moved into an empty tableau column.",
+        "There is no limit on how many cards move at once: a run travels in one piece rather than being staged through spare squares.",
+      ],
+      sequenceBuilding: [
+        "Tableau: Built DOWN by RANK in ANY SUIT.",
+        "Lifting: Only unbroken SAME SUIT descending runs can be moved.",
+        "Completion: Complete King-to-Ace same-suit runs clear to the foundations automatically.",
+      ],
+      specialRules: [
+        "No Recovery: with no stock and no face-down cards, a position played into a corner cannot be rescued — every deal is winnable or not from the opening move.",
+        "The Staircase: the short columns on the right are the cheapest to clear, and opening a column early is usually worth more than any single run.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
 };
