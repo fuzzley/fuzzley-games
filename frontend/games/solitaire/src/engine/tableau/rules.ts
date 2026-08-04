@@ -189,42 +189,56 @@ export function isDifferentSuitRun(
   return lower.suit !== upper.suit && upper.rank === rankBelow(lower.rank);
 }
 
+/**
+ * Whether `upper` may sit directly on `lower`: one rank down, any suit at all.
+ * Spider builds this way, though it only lifts a single suit.
+ */
+export function isAnySuitRun(lower: PlayingCard, upper: PlayingCard): boolean {
+  return upper.rank === rankBelow(lower.rank);
+}
+
+/**
+ * The build rule that lets a card land on a pile whose top card it may sit on.
+ *
+ * Every descending build is this same shape — look at the top card, ask the
+ * pair predicate — and each was written out in full, so the five of them
+ * repeated one four-line body five times. Deriving them from the adjacency
+ * predicates is also what keeps a zone's `run` grab rule and its build rule
+ * asking the same question.
+ *
+ * @param adjacent Whether the upper card may sit on the lower one.
+ */
+export function buildsOn(
+  adjacent: (lower: PlayingCard, upper: PlayingCard) => boolean,
+): PlacementRule {
+  return (context) => {
+    const topCard = context.targetPile.topCard;
+    return topCard ? adjacent(topCard, context.card) : false;
+  };
+}
+
 /** Builds down by one rank in alternating colors: the Klondike tableau. */
-export const descendingAlternatingColor: PlacementRule = (context) => {
-  const topCard = context.targetPile.topCard;
-  return topCard ? isOrderedPair(topCard, context.card) : false;
-};
+export const descendingAlternatingColor: PlacementRule =
+  buildsOn(isOrderedPair);
 
 /**
  * Builds down by one rank in the same suit: the Baker's Game, Eight Off and
  * Scorpion tableau, and the harder half of the Yukon family.
  */
-export const descendingSameSuit: PlacementRule = (context) => {
-  const topCard = context.targetPile.topCard;
-  return topCard ? isSameSuitRun(topCard, context.card) : false;
-};
+export const descendingSameSuit: PlacementRule = buildsOn(isSameSuitRun);
 
 /** Builds down by one rank in the same color: the Whitehead tableau. */
-export const descendingSameColor: PlacementRule = (context) => {
-  const topCard = context.targetPile.topCard;
-  return topCard ? isSameColorRun(topCard, context.card) : false;
-};
+export const descendingSameColor: PlacementRule = buildsOn(isSameColorRun);
 
 /**
  * Builds down by one rank in any suit but the one below it: the Thumb and
  * Pouch tableau.
  */
-export const descendingDifferentSuit: PlacementRule = (context) => {
-  const topCard = context.targetPile.topCard;
-  return topCard ? isDifferentSuitRun(topCard, context.card) : false;
-};
+export const descendingDifferentSuit: PlacementRule =
+  buildsOn(isDifferentSuitRun);
 
 /** Builds down by one rank regardless of suit: the Spider tableau. */
-export const descendingAnySuit: PlacementRule = (context) => {
-  const topCard = context.targetPile.topCard;
-  if (!topCard) return false;
-  return context.card.rank === rankBelow(topCard.rank);
-};
+export const descendingAnySuit: PlacementRule = buildsOn(isAnySuitRun);
 
 /** Builds up by one rank in the same suit: a foundation. */
 export const ascendingSameSuit: PlacementRule = (context) => {
@@ -244,3 +258,31 @@ export const suitFoundation: PlacementRule = all(
   singleCardOnly,
   byEmptiness(cardIs(hasRank(Rank.ACE)), ascendingSameSuit),
 );
+
+/** A holding cell: one card, and any card will do. */
+export const singleCardCell: PlacementRule = all(singleCardOnly, anyCard);
+
+/**
+ * How many cards a run of empty cells can shuffle around: `free cells + 1`.
+ *
+ * The staging arithmetic behind every supermove — park cards in the free cells,
+ * move the one underneath, put them back. Three games reach this same figure:
+ * Eight Off, Seahaven, and FreeCell's Kings-only variant. Each denies empty
+ * columns any staging value, which is what removes the `x 2 ^ (empty columns)`
+ * term FreeCell proper carries.
+ *
+ * Why those games deny it: a moving run descends in one suit, so its only King
+ * is its bottom card. Every sub-run a supermove stages is a proper suffix of
+ * that run, so its bottom card is never a King and can never be parked in a
+ * Kings-only empty column. Empty columns are therefore worth nothing to stage
+ * with, and the decomposition reduces to `F + 1` exactly.
+ *
+ * Counting them anyway would let a player start a move the board cannot finish.
+ *
+ * @param cellRole The role of the piles that count as staging space.
+ */
+export function cellStagingLimit(
+  cellRole: PileRole,
+): (context: PlacementContext) => number {
+  return (context) => context.board.emptyCount(cellRole) + 1;
+}

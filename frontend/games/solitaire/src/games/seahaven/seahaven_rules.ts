@@ -1,16 +1,15 @@
 import { PileRole } from "@/engine/core/card/card_pile";
 import { Rank } from "@/engine/core/card/playing_card";
 import {
-  PlacementContext,
   PlacementRule,
   all,
-  anyCard,
   byEmptiness,
   cardIs,
+  cellStagingLimit,
   descendingSameSuit,
   hasRank,
   maxStackSize,
-  singleCardOnly,
+  singleCardCell,
   suitFoundation,
 } from "@/engine/tableau/rules";
 
@@ -28,32 +27,18 @@ export const SeahavenRole = {
 export type SeahavenRole = (typeof SeahavenRole)[keyof typeof SeahavenRole];
 
 /**
- * How many cards may be moved at once in the given position: `free cells + 1`,
- * with no doubling for empty columns.
+ * How many cards may be moved at once: `free cells + 1`, with no doubling for
+ * empty columns.
  *
- * Exact rather than a conservative approximation, and the reason is the
- * Kings-only empty column. FreeCell's `(free cells + 1) x 2 ^ (empty columns)`
- * assumes an empty column can stage an arbitrary sub-run on the way past. Here a
- * column takes only a King.
- *
- * A moving run is descending in one suit, so its only King is its bottom card.
- * Every sub-run a supermove stages is a proper suffix of that run, so its bottom
- * card is never a King, so it can never be parked in a Kings-only empty column.
- * Empty columns therefore contribute nothing, and the decomposition reduces to:
- * park the top `F` cards in cells, move the bottom card, replace the `F` cards.
- *
- * That also means there is no empty-destination special case to write. FreeCell
- * needs one because its destination would otherwise be counted as staging space
- * for the very run it is receiving; here an empty column was never worth
- * anything, so subtracting it would change nothing.
+ * Exact rather than a conservative approximation, because a Seahaven column
+ * takes only a King — see {@link cellStagingLimit} for why that reduces the
+ * arithmetic, and why there is no empty-destination special case to write.
  *
  * With only four cells this bites hard: five is the most that can ever move, and
- * four or fewer for almost the whole game. Seahaven is the tightest of the
- * cell games for exactly this reason.
+ * four or fewer for almost the whole game. Seahaven is the tightest of the cell
+ * games for exactly this reason.
  */
-export function supermoveLimit(context: PlacementContext): number {
-  return context.board.emptyCount(SeahavenRole.CELL) + 1;
-}
+export const supermoveLimit = cellStagingLimit(SeahavenRole.CELL);
 
 /**
  * A Seahaven column: only a King may start an empty one, anything after builds
@@ -66,7 +51,7 @@ export const SEAHAVEN_TABLEAU_RULE: PlacementRule = all(
 );
 
 /** A cell: one card, any card. */
-export const SEAHAVEN_CELL_RULE: PlacementRule = all(singleCardOnly, anyCard);
+export const SEAHAVEN_CELL_RULE: PlacementRule = singleCardCell;
 
 /** A Seahaven foundation: the standard Ace-up-by-suit pile. */
 export const SEAHAVEN_FOUNDATION_RULE: PlacementRule = suitFoundation;

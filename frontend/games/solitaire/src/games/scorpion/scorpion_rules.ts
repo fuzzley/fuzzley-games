@@ -6,7 +6,6 @@ import {
   cardIs,
   descendingSameSuit,
   hasRank,
-  never,
 } from "@/engine/tableau/rules";
 
 /** The parts a pile can play in a Scorpion game. */
@@ -53,6 +52,3 @@ export function scorpionPlacementRule(role: string): PlacementRule | null {
       return null;
   }
 }
-
-/** Exported for symmetry with the other games; nothing accepts a drop but a column. */
-export const SCORPION_NON_TARGET_RULE = never;
