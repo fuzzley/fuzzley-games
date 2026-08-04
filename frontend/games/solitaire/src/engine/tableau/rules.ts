@@ -1,4 +1,3 @@
-import { Card } from "@/engine/core/card/card";
 import { CardPile, PileRole } from "@/engine/core/card/card_pile";
 import {
   PlayingCard,
@@ -20,11 +19,20 @@ import {
  * Narrow on purpose: a rule can ask what is where, and can change nothing.
  */
 export interface BoardQuery {
-  /** The pile with the given id, or undefined. */
-  pile(pileId: string): CardPile<Card> | undefined;
+  /**
+   * The pile with the given id, or undefined.
+   *
+   * Typed to {@link PlayingCard} rather than the bare {@link Card} the piles are
+   * declared over, because a rule that looks up another pile almost always wants
+   * to read a card off it: Montana accepts a card only when it follows the one
+   * in the cell to its left, in suit and rank, and neither is visible on a
+   * `Card`. Every board handed to a rule is built from playing cards, so this
+   * narrows nothing that was ever true.
+   */
+  pile(pileId: string): CardPile<PlayingCard> | undefined;
 
   /** Every pile playing the given part, in the order the game declared them. */
-  pilesByRole(role: PileRole): readonly CardPile<Card>[];
+  pilesByRole(role: PileRole): readonly CardPile<PlayingCard>[];
 
   /** How many piles playing the given part are empty. */
   emptyCount(role: PileRole): number;
