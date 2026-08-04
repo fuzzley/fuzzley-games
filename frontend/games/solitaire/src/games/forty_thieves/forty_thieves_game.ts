@@ -5,7 +5,7 @@ import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
-import { flipExposedTop } from "@/games/common/completed_runs";
+import { flipOnlyEffects } from "@/games/common/move_effects";
 import { drawToWaste } from "@/games/common/stock_pile";
 import {
   FORTY_THIEVES_TWO_DECKS,
@@ -139,13 +139,6 @@ export class FortyThievesGame extends DealtTableGame {
    * @inheritDoc
    */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
-    const flipped =
-      move.sourcePile.role === FortyThievesRole.TABLEAU
-        ? flipExposedTop(move.sourcePile)
-        : undefined;
-    return {
-      scoreDelta: 0,
-      flippedCardIds: flipped ? [flipped.id] : [],
-    };
+    return flipOnlyEffects(move, FortyThievesRole.TABLEAU);
   }
 }

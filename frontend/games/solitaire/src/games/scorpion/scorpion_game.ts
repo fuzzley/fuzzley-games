@@ -5,10 +5,8 @@ import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
-import {
-  collectCompletedRuns,
-  flipExposedTop,
-} from "@/games/common/completed_runs";
+import { collectCompletedRuns } from "@/games/common/completed_runs";
+import { runCollectingEffects } from "@/games/common/move_effects";
 import { dealRowFromStock } from "@/games/common/row_deal";
 import { dealScorpionLayout } from "./scorpion_deal";
 import {
@@ -123,21 +121,11 @@ export class ScorpionGame extends DealtTableGame {
 
   /** @inheritDoc */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
-    const flipped =
-      move.sourcePile.role === ScorpionRole.TABLEAU
-        ? flipExposedTop(move.sourcePile)
-        : undefined;
-    // Collected after the flip, because taking a run off can expose another
-    // card, and every card this move turned over has to be recorded together
-    // for undo to turn them all back down.
-    const collected = collectCompletedRuns(this.tableaus, this.foundations);
-    return {
-      scoreDelta: 0,
-      flippedCardIds: [
-        ...(flipped ? [flipped.id] : []),
-        ...collected.flippedCardIds,
-      ],
-      followUpTransfers: collected.transfers,
-    };
+    return runCollectingEffects(
+      move,
+      ScorpionRole.TABLEAU,
+      this.tableaus,
+      this.foundations,
+    );
   }
 }
