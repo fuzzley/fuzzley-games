@@ -6,6 +6,7 @@ import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { AppliedMove } from "@/engine/tableau/move";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
+import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
 import { dealKlondikeAlmostWin, dealKlondikeLayout } from "./klondike_deal";
 import { KlondikeSettings } from "./klondike_settings";
 import {
@@ -123,32 +124,21 @@ export class KlondikeGame extends DealtTableGame {
 
   /** Draws up to drawCount cards from the stock pile onto the waste pile. */
   private drawFromStock(): void {
-    const drawCount = Math.min(this.settings.drawCount, this.stock.size);
-    const drawn: PlayingCard[] = [];
-    for (let i = 0; i < drawCount; i++) {
-      const topCard = this.stock.topCard;
-      if (!topCard) break;
-      this.stock.removeCard(topCard);
-      topCard.faceUp = true;
-      this.waste.addCard(topCard);
-      drawn.push(topCard);
-    }
-
-    this.recordTransfers("draw", [
-      {
-        // Reversed: the cards came off the top of the stock, so the order they
-        // were drawn in is the opposite of the order they sat in.
-        cardIds: drawn.reverse().map((card) => card.id),
-        fromPileId: this.stock.id,
-        toPileId: this.waste.id,
-        faceUpBefore: false,
-      },
-    ]);
+    this.recordTransfers(
+      "draw",
+      drawToWaste(this.stock, this.waste, this.settings.drawCount),
+    );
   }
 
   /**
-   * Recycles the waste pile back into the stock pile, face-down. The caller
-   * guarantees the waste is non-empty.
+   * Recycles the waste pile back into the stock pile, face-down, and charges
+   * the penalty for having done so. The caller guarantees the waste is
+   * non-empty.
+   *
+   * The penalty is applied before the cards move so the recorded delta covers
+   * both, and it is the *real* delta rather than what the policy proposed: the
+   * score is clamped at zero, so a 100 point penalty against a score of 20
+   * moves it by 20 and undo has to put back exactly that.
    */
   private recycleWaste(): void {
     const scoreBefore = this.state.score;
@@ -159,26 +149,9 @@ export class KlondikeGame extends DealtTableGame {
     );
     this.state.score = Math.max(0, this.state.score - penalty);
 
-    // Captured bottom-first before draining, which is the order undo restores.
-    const recycled = [...this.waste.getCards()];
-    let card = this.waste.topCard;
-    while (card) {
-      this.waste.removeCard(card);
-      card.faceUp = false;
-      this.stock.addCard(card);
-      card = this.waste.topCard;
-    }
-
     this.recordTransfers(
       "recycle",
-      [
-        {
-          cardIds: recycled.map((recycledCard) => recycledCard.id),
-          fromPileId: this.waste.id,
-          toPileId: this.stock.id,
-          faceUpBefore: true,
-        },
-      ],
+      recycleWasteToStock(this.waste, this.stock),
       { scoreDelta: this.state.score - scoreBefore },
     );
   }
