@@ -19,6 +19,8 @@ import { ScorpionGame } from "@/games/scorpion/scorpion_game";
 import { SCORPION_LAYOUT } from "@/games/scorpion/scorpion_layout";
 import { SimpleSimonGame } from "@/games/simple_simon/simple_simon_game";
 import { SIMPLE_SIMON_LAYOUT } from "@/games/simple_simon/simple_simon_layout";
+import { BakersDozenGame } from "@/games/bakers_dozen/bakers_dozen_game";
+import { BAKERS_DOZEN_LAYOUT } from "@/games/bakers_dozen/bakers_dozen_layout";
 
 /** A value a rule option can be set to, and how to name it to a player. */
 export interface GameOptionChoice {
@@ -315,6 +317,21 @@ const SIMPLE_SIMON = {
   },
 } satisfies CatalogEntry<SimpleSimonGame>;
 
+const BAKERS_DOZEN = {
+  id: "bakersdozen" as const,
+  name: "Baker's Dozen",
+  marker: "BD",
+  // Nothing to choose: one deck, one deal, no stock, and the column count is
+  // the name of the game.
+  options: [],
+  layout: BAKERS_DOZEN_LAYOUT,
+  create: () => {
+    const game = new BakersDozenGame();
+    game.startNewGame();
+    return { game };
+  },
+} satisfies CatalogEntry<BakersDozenGame>;
+
 /**
  * Every game the engine can currently put on the table, in the order they are
  * offered.
@@ -332,6 +349,7 @@ export const CATALOG_ENTRIES = [
   EIGHT_OFF,
   SCORPION,
   SIMPLE_SIMON,
+  BAKERS_DOZEN,
 ] as const;
 
 /** Every game the application can put on the table. */
