@@ -74,6 +74,19 @@ describe("the game catalog", () => {
     expect(GAME_CATALOG[0].id).toBe("klondike");
   });
 
+  /*
+   * A collapsed game rail shows the marker and nothing else, so two games
+   * wearing the same one are indistinguishable to anyone playing at a width
+   * that collapses it. The names alone do not prevent this — Spider and
+   * Scorpion, Simple Simon and Seahaven, Baker's Game and Baker's Dozen all
+   * collide on their first two letters.
+   */
+  it("badges every game with a distinct marker", () => {
+    const markers = GAME_CATALOG.map((entry) => entry.marker);
+
+    expect(new Set(markers).size).toBe(markers.length);
+  });
+
   it.each(GAMES)(
     "%s offers each of its rules under a distinct id",
     (_name, entry) => {
