@@ -548,4 +548,43 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry = {
       },
     ],
   },
+  easthaven: {
+    title: "Easthaven",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Easthaven_(solitaire)",
+    screenshot: {
+      url: "./docs/screenshots/easthaven/overview.png",
+      caption:
+        "Easthaven board showing seven columns of three, the row-dealing stock, and four foundation piles.",
+      altText: "Easthaven solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      winCondition:
+        "All 52 cards are sorted into their suit foundations from Ace through King.",
+      quickOverview:
+        "Easthaven joins Spider's stock to Klondike's objective. Seven columns of three build down in alternating colours, but the stock deals a card onto every column at once — and it refuses to deal at all while any column stands empty.",
+    },
+    detailedRules: {
+      layout: [
+        "Tableau: 7 columns of 3 cards, two face-down under one face-up.",
+        "Stock: the remaining 31 cards, dealt a row at a time.",
+        "Foundations: 4 suit piles, filled by the player one card at a time.",
+      ],
+      cardMovement: [
+        "A card can be picked up only with an unbroken alternating-colour descending run resting on it — stricter than Klondike, which allows a broken pile to be dragged.",
+        "Only a King (or a run headed by a King) can fill an empty column.",
+        "Turning over a column's newly exposed card happens automatically.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in ALTERNATING COLORS.",
+      ],
+      specialRules: [
+        "Row Deal: pressing the stock deals one card face-up onto every column at once. The stock holds 31 against 7 columns, so the final row is a short one of three.",
+        "No Deal Onto Empty Columns: the stock refuses while any column stands empty. Combined with Kings-only spaces, a player holding an empty column and no free King has neither a move that fills it nor a stock that will deal — which is how Easthaven is lost outright rather than merely stalled.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
 };
