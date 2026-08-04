@@ -2,14 +2,16 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { Rank } from "@/engine/core/card/playing_card";
 import { FortyThievesGame } from "@/games/forty_thieves/forty_thieves_game";
+import { FORTY_THIEVES_TWO_DECKS } from "@/games/forty_thieves/forty_thieves_deal";
 import {
-  CARDS_PER_COLUMN,
-  FORTY_THIEVES_TWO_DECKS,
-} from "@/games/forty_thieves/forty_thieves_deal";
-import { FortyThievesVariant } from "@/games/forty_thieves/forty_thieves_rules";
+  FortyThievesVariant,
+  fortyThievesCardsPerColumn,
+  fortyThievesTableauCount,
+} from "@/games/forty_thieves/forty_thieves_rules";
 import {
   FOUNDATION_COUNT,
-  TABLEAU_COUNT,
+  boardColumnCount,
+  tableauColumnOffset,
 } from "@/games/forty_thieves/forty_thieves_zones";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
@@ -59,7 +61,7 @@ describe("FortyThievesGame deal", () => {
 
   it("deals ten columns of four", () => {
     expect(game.tableaus.map((pile) => pile.size)).toEqual(
-      Array(TABLEAU_COUNT).fill(CARDS_PER_COLUMN),
+      Array(10).fill(4),
     );
   });
 
@@ -77,7 +79,7 @@ describe("FortyThievesGame deal", () => {
 
   it("lays out ten columns and eight foundations", () => {
     expect([game.tableaus.length, game.foundations.length]).toEqual([
-      TABLEAU_COUNT,
+      10,
       FOUNDATION_COUNT,
     ]);
   });
@@ -96,7 +98,7 @@ describe("FortyThievesGame deal", () => {
     const faceUpCounts = rankAndFile.tableaus.map(
       (pile) => pile.getCards().filter((card) => card.faceUp).length,
     );
-    expect(faceUpCounts).toEqual(Array(TABLEAU_COUNT).fill(1));
+    expect(faceUpCounts).toEqual(Array(10).fill(1));
   });
 
   it("replays the same deal on a restart", () => {
@@ -109,6 +111,88 @@ describe("FortyThievesGame deal", () => {
     expect(
       game.piles.map((pile) => pile.getCards().map((card) => card.id)),
     ).toEqual(before);
+  });
+});
+
+/*
+ * Maria and Limited reach the same 36-card tableau from different shapes, and
+ * are the reason the board width is derived rather than fixed.
+ */
+describe("FortyThievesGame board shapes", () => {
+  const SHAPES: [
+    name: string,
+    variant: FortyThievesVariant,
+    columns: number,
+    perColumn: number,
+  ][] = [
+    ["Forty Thieves", FortyThievesVariant.FORTY_THIEVES, 10, 4],
+    ["Maria", FortyThievesVariant.MARIA, 9, 4],
+    ["Limited", FortyThievesVariant.LIMITED, 12, 3],
+  ];
+
+  it.each(SHAPES)(
+    "%s deals its own grid",
+    (_name, variant, columns, perColumn) => {
+      const game = newGame(variant);
+
+      expect(game.tableaus.map((pile) => pile.size)).toEqual(
+        Array(columns).fill(perColumn),
+      );
+    },
+  );
+
+  it.each(SHAPES)(
+    "%s puts every card it did not deal on the stock",
+    (_name, variant, columns, perColumn) => {
+      const game = newGame(variant);
+
+      expect(game.stock.size).toBe(104 - columns * perColumn);
+    },
+  );
+
+  it("widens the board to seat the top row when the tableau is narrower", () => {
+    // Maria deals nine columns but still needs ten slots across the top for the
+    // stock, the waste and eight foundations.
+    expect(boardColumnCount(FortyThievesVariant.MARIA)).toBe(10);
+  });
+
+  it("centres a tableau narrower than its board", () => {
+    expect(tableauColumnOffset(FortyThievesVariant.MARIA)).toBe(0);
+  });
+
+  it("lets a wide tableau set the board width instead", () => {
+    expect(boardColumnCount(FortyThievesVariant.LIMITED)).toBe(12);
+  });
+
+  it("keeps the declared shape and the dealt shape in step", () => {
+    const game = newGame(FortyThievesVariant.LIMITED);
+
+    expect([game.tableaus.length, game.tableaus[0].size]).toEqual([
+      fortyThievesTableauCount(FortyThievesVariant.LIMITED),
+      fortyThievesCardsPerColumn(FortyThievesVariant.LIMITED),
+    ]);
+  });
+
+  it("builds Limited down in suit, not in colour", () => {
+    const limited = newGame(FortyThievesVariant.LIMITED);
+    emptyBoard(limited);
+    relocate(limited, "card-spades-9", limited.tableaus[0]);
+    relocate(limited, "card-hearts-8", limited.tableaus[1]);
+
+    expect(
+      limited.moveCardToPile("card-hearts-8", limited.tableaus[0].id),
+    ).toBe(false);
+  });
+
+  it("builds Maria down in alternating colours", () => {
+    const maria = newGame(FortyThievesVariant.MARIA);
+    emptyBoard(maria);
+    relocate(maria, "card-spades-9", maria.tableaus[0]);
+    relocate(maria, "card-hearts-8", maria.tableaus[1]);
+
+    expect(maria.moveCardToPile("card-hearts-8", maria.tableaus[0].id)).toBe(
+      true,
+    );
   });
 });
 

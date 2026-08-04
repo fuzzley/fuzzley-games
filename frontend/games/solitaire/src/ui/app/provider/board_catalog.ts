@@ -54,9 +54,13 @@ const BOARD_FACTORIES: { [Id in GameId]: BoardFactory<Id> } = {
   // which the game has laid out before a board ever draws it.
   spiderette: makeSpideretteBoardScene,
   easthaven: makeEasthavenBoardScene,
-  // One board for all three of the Forty Thieves family: the variants differ in
-  // what a column accepts and what may be lifted, which the zones declare.
+  // One board for the whole Forty Thieves family. The variants differ in what a
+  // column accepts and what may be lifted, which the zones declare, and Maria
+  // and Limited differ in grid as well — which the factory reads off the game
+  // rather than being told, since a board factory is handed only that.
   fortythieves: makeFortyThievesBoardScene,
+  maria: makeFortyThievesBoardScene,
+  limited: makeFortyThievesBoardScene,
 };
 
 /**

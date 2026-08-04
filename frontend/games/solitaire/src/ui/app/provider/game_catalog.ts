@@ -25,7 +25,11 @@ import { SeahavenGame } from "@/games/seahaven/seahaven_game";
 import { SEAHAVEN_LAYOUT } from "@/games/seahaven/seahaven_layout";
 import { FortyThievesGame } from "@/games/forty_thieves/forty_thieves_game";
 import { FortyThievesVariant } from "@/games/forty_thieves/forty_thieves_rules";
-import { FORTY_THIEVES_LAYOUT } from "@/games/forty_thieves/forty_thieves_layout";
+import {
+  FORTY_THIEVES_LAYOUT,
+  LIMITED_LAYOUT,
+  MARIA_LAYOUT,
+} from "@/games/forty_thieves/forty_thieves_layout";
 import { EasthavenGame } from "@/games/easthaven/easthaven_game";
 import { EASTHAVEN_LAYOUT } from "@/games/easthaven/easthaven_layout";
 import { SpideretteGame } from "@/games/spiderette/spiderette_game";
@@ -396,6 +400,48 @@ const FORTY_THIEVES = {
   },
 } satisfies CatalogEntry<FortyThievesGame>;
 
+/*
+ * Maria and Limited are entries of their own rather than choices on the Forty
+ * Thieves entry, because they change the board rather than the rules on it: a
+ * variant option redeals the same grid, and these two are nine and twelve
+ * columns against its ten. They still share the module, the class and the board
+ * factory, which reads the grid off the game.
+ */
+
+const MARIA = {
+  id: "maria" as const,
+  name: "Maria",
+  marker: "MA",
+  options: [],
+  layout: MARIA_LAYOUT,
+  create: () => {
+    const game = new FortyThievesGame(
+      undefined,
+      undefined,
+      FortyThievesVariant.MARIA,
+    );
+    game.startNewGame();
+    return { game };
+  },
+} satisfies CatalogEntry<FortyThievesGame>;
+
+const LIMITED = {
+  id: "limited" as const,
+  name: "Limited",
+  marker: "LI",
+  options: [],
+  layout: LIMITED_LAYOUT,
+  create: () => {
+    const game = new FortyThievesGame(
+      undefined,
+      undefined,
+      FortyThievesVariant.LIMITED,
+    );
+    game.startNewGame();
+    return { game };
+  },
+} satisfies CatalogEntry<FortyThievesGame>;
+
 const EASTHAVEN = {
   id: "easthaven" as const,
   name: "Easthaven",
@@ -469,6 +515,8 @@ export const CATALOG_ENTRIES = [
   SPIDERETTE,
   EASTHAVEN,
   FORTY_THIEVES,
+  MARIA,
+  LIMITED,
 ] as const;
 
 /** Every game the application can put on the table. */
