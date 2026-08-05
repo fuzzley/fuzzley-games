@@ -65,6 +65,30 @@ export function resolveDragTarget(
   );
 }
 
+/** Where one card is drawn this frame, and whether it eases there. */
+interface CardPlacement {
+  /** Horizontal position in device pixels. */
+  readonly x: number;
+  /** Vertical position in device pixels. */
+  readonly y: number;
+  /** Drawing order, from {@link depthFor}. */
+  readonly depth: number;
+  /** Whether the card arrives immediately rather than easing towards it. */
+  readonly snap: boolean;
+}
+
+/** The stack currently in hand, and how it is spaced while carried. */
+interface DragContext {
+  /** The cards being carried, bottom-first. */
+  readonly cardIds: readonly string[];
+  /** Where the pointer is, or null when nothing is being carried. */
+  readonly primary: Point | null;
+  /** The vertical gap the carried stack keeps, in design units. */
+  readonly fanGap: number;
+  /** Whether the given card is one of the cards in hand. */
+  holds(cardId: string): boolean;
+}
+
 /**
  * Builds the desired appearance of a table for one frame.
  *
@@ -133,36 +157,16 @@ class TableViewStateBuilder {
 
   /** The position, frame and interactivity of every card in play. */
   private buildCards(): CardView[] {
+    const drag = this.dragContext();
+    const flightOrder = this.flightOrder();
     const cards: CardView[] = [];
-    const draggedIds = this.interaction.drag?.cardIds ?? [];
-    const dragSet = new Set(draggedIds);
-    const dragPrimary = this.interaction.drag?.primary ?? null;
-
-    // A dragged stack keeps the spacing of the pile it came from, so a fanned
-    // column stays fanned in hand and a squarely stacked pile stays square.
-    const dragSourcePile =
-      draggedIds.length > 0
-        ? this.game.getPileContainingCard(draggedIds[0])
-        : null;
-    const dragSourceLayout = dragSourcePile
-      ? this.game.zoneFor(dragSourcePile.id)?.layout
-      : undefined;
-    const dragFanGap =
-      dragSourceLayout?.kind === "fan-down" ? dragSourceLayout.faceUpGap : 0;
-
-    // Position in the air, counted across every flight in the order they began.
-    // A stack keeps its own order, and a later flight draws over an earlier one
-    // still settling.
-    const flightOrder = new Map<string, number>();
-    for (const flight of this.interaction.flights) {
-      for (const cardId of flight.cardIds) {
-        flightOrder.set(cardId, flightOrder.size);
-      }
-    }
 
     // Resting cards are ordered across the whole board rather than within each
     // pile, so two cards in different piles never share a depth and the order
     // they are drawn in never falls back to the order their sprites were made.
+    //
+    // Counted for every card, held ones included, because this ordering has to
+    // agree card-for-card with the one the model announces relocations by.
     let restingIndex = 0;
 
     for (const pile of this.game.piles) {
@@ -179,49 +183,122 @@ class TableViewStateBuilder {
 
       for (let cardIndex = 0; cardIndex < pileCards.length; cardIndex++) {
         const card = pileCards[cardIndex];
-        const isDragged = dragSet.has(card.id);
+        const restingDepth = depthFor(RenderLayer.RESTING_CARD, restingIndex++);
 
-        let x: number;
-        let y: number;
-        let depth = depthFor(RenderLayer.RESTING_CARD, restingIndex++);
-        let snap = this.interaction.snapAll;
-
-        if (isDragged && dragPrimary) {
-          const dragIndex = draggedIds.indexOf(card.id);
-          x = dragPrimary.x;
-          y = dragPrimary.y + dragIndex * dragFanGap * this.scale;
-          depth = depthFor(RenderLayer.HELD_CARD, dragIndex);
-          snap = true;
-        } else {
-          x = origin.x + offsets[cardIndex].x * this.scale;
-          y = origin.y + offsets[cardIndex].y * this.scale;
-
-          // A card in the air is lifted clear of the board, so it crosses over
-          // the columns between it and its destination instead of sliding
-          // under them on its way to a depth it has not arrived at yet.
-          const flightIndex = flightOrder.get(card.id);
-          if (flightIndex !== undefined) {
-            depth = depthFor(RenderLayer.FLYING_CARD, flightIndex);
-          }
-        }
+        const placement =
+          drag.primary && drag.holds(card.id)
+            ? this.heldPlacement(card.id, drag, drag.primary)
+            : this.restingPlacement(
+                origin,
+                offsets[cardIndex],
+                restingDepth,
+                flightOrder.get(card.id),
+              );
 
         cards.push({
           cardId: card.id,
-          x,
-          y,
+          x: placement.x,
+          y: placement.y,
+          depth: placement.depth,
+          snap: placement.snap,
           scale: this.spriteScale,
-          depth,
           frame: frameFor(zone.face, card, this.presentation.cardBackKey),
           cursor: this.game.isCardInteractableInPile(card, pile)
             ? "pointer"
             : "default",
           draggable: this.game.isCardDraggableInPile(card, pile),
-          snap,
         });
       }
     }
 
     return cards;
+  }
+
+  /**
+   * The stack in hand, and the spacing it keeps.
+   *
+   * A dragged stack keeps the spacing of the pile it came from, so a fanned
+   * column stays fanned in hand and a squarely stacked pile stays square.
+   */
+  private dragContext(): DragContext {
+    const cardIds = this.interaction.drag?.cardIds ?? [];
+    const primary = this.interaction.drag?.primary ?? null;
+    const held = new Set(cardIds);
+
+    const sourcePile =
+      cardIds.length > 0 ? this.game.getPileContainingCard(cardIds[0]) : null;
+    const sourceLayout = sourcePile
+      ? this.game.zoneFor(sourcePile.id)?.layout
+      : undefined;
+
+    return {
+      cardIds,
+      primary,
+      fanGap: sourceLayout?.kind === "fan-down" ? sourceLayout.faceUpGap : 0,
+      holds: (cardId) => held.has(cardId),
+    };
+  }
+
+  /**
+   * Where each card in the air sits in the drawing order.
+   *
+   * Counted across every flight in the order they began, so a stack keeps its
+   * own order and a later flight draws over an earlier one still settling.
+   */
+  private flightOrder(): ReadonlyMap<string, number> {
+    const order = new Map<string, number>();
+    for (const flight of this.interaction.flights) {
+      for (const cardId of flight.cardIds) {
+        order.set(cardId, order.size);
+      }
+    }
+    return order;
+  }
+
+  /**
+   * Where a card being carried is drawn: under the pointer, fanned in hand.
+   *
+   * Takes the pointer position rather than reading it back off the context, so
+   * that the caller's check for "is anything being carried" is what narrows it
+   * and no cast is needed here.
+   */
+  private heldPlacement(
+    cardId: string,
+    drag: DragContext,
+    primary: Point,
+  ): CardPlacement {
+    const dragIndex = drag.cardIds.indexOf(cardId);
+    return {
+      x: primary.x,
+      y: primary.y + dragIndex * drag.fanGap * this.scale,
+      depth: depthFor(RenderLayer.HELD_CARD, dragIndex),
+      // A card in hand follows the pointer exactly rather than easing after it.
+      snap: true,
+    };
+  }
+
+  /**
+   * Where a card that is not in hand is drawn: at its place in its pile.
+   *
+   * A card in the air is lifted clear of the board, so it crosses over the
+   * columns between it and its destination instead of sliding under them on its
+   * way to a depth it has not arrived at yet.
+   */
+  private restingPlacement(
+    origin: Point,
+    offset: Point,
+    restingDepth: number,
+    flightIndex: number | undefined,
+  ): CardPlacement {
+    return {
+      x: origin.x + offset.x * this.scale,
+      y: origin.y + offset.y * this.scale,
+      depth:
+        flightIndex === undefined
+          ? restingDepth
+          : depthFor(RenderLayer.FLYING_CARD, flightIndex),
+      snap: this.interaction.snapAll,
+    };
   }
 
   /**

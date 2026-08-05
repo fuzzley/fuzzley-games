@@ -1,5 +1,6 @@
-import { GameObjects, Loader, Scene, Scenes } from "phaser";
+import { GameObjects, Scene, Scenes } from "phaser";
 
+import { BoardDeckLoader } from "./board_deck_loader";
 import { PhaserCardFactory } from "./phaser_card_factory";
 import { BoardInputManager } from "./board_input_manager";
 import { PhaserTableRenderer } from "./phaser_table_renderer";
@@ -16,7 +17,7 @@ import {
 import { TableLayoutSpec, designSize } from "../layout/table_layout";
 import { CardDeckId } from "../card_deck";
 import { CardDeckStatus, Subscribe } from "../presentation";
-import { cardDeckTextureKey, loadCardDeck } from "./card_deck_atlas";
+import { cardDeckTextureKey } from "./card_deck_atlas";
 import { TableView } from "@/engine/tableau/view/table_view";
 
 /**
@@ -112,20 +113,8 @@ export class BoardScene extends Scene implements PhaserSprites {
    */
   private readonly pileBackgrounds = new Map<string, GameObjects.Sprite>();
 
-  /**
-   * The deck being drawn. Every sprite's texture, and the one new sprites are
-   * made from.
-   */
-  private deckId!: CardDeckId;
-
-  /**
-   * The deck a load is running for, or null when none is.
-   *
-   * What makes a late arrival safe to ignore: a player who switches away and
-   * back while the first load is still running should end on the deck they
-   * chose last, not on whichever load happened to finish last.
-   */
-  private awaitingDeck: CardDeckId | null = null;
+  /** Which deck the board is drawn from, and how a change of deck arrives. */
+  private deckLoader!: BoardDeckLoader;
 
   /** Input handling manager for drag-and-drop and interaction. */
   private inputManager!: BoardInputManager;
@@ -175,46 +164,64 @@ export class BoardScene extends Scene implements PhaserSprites {
    * instead of silently throwing it away.
    */
   create() {
-    this.deckId = this.options.cardDeckId();
-    this.awaitingDeck = null;
+    this.createCollaborators();
+    this.createPileBackgroundSprites();
+    this.createCardSprites();
+    this.followTheModel();
+    this.wireInput();
+
+    this.events.once(Scenes.Events.POST_UPDATE, () => {
+      this.options.onReady?.();
+    });
+  }
+
+  /** The three objects that do the scene's actual work, and the deck they use. */
+  private createCollaborators(): void {
+    this.deckLoader = new BoardDeckLoader(this, this.options.cardDeckId());
     this.inputManager = new BoardInputManager(this);
     this.viewApplier = new PhaserTableRenderer(this);
     this.visualFactory = new PhaserCardFactory(
       this,
       this.options.cardBackKey,
-      () => cardDeckTextureKey(this.deckId),
+      () => cardDeckTextureKey(this.deckLoader.deckId),
     );
+  }
 
-    this.createPileBackgroundSprites();
-    this.createCardSprites();
-
-    // Apply the table background color and follow future changes (e.g. theme
-    // switches from the Angular UI) through the shared model. Released on
-    // shutdown: create() runs again on every scene restart, and without this
-    // each restart would leave another live subscription holding the old scene.
-    const stopFollowingColor = this.options.onBackgroundColor((color) => {
-      this.cameras?.main?.setBackgroundColor(color);
-    });
-    const stopFollowingResets = this.options.onReset(() => {
-      this.inputManager.resetInteraction();
-    });
-    const stopFollowingRelocations = this.options.onCardsRelocated(
-      (cardIds) => {
+  /**
+   * Follows everything the shared model publishes, and lets go on shutdown.
+   *
+   * Releasing matters: `create` runs again on every scene restart, and without
+   * this each restart would leave another live subscription holding the scene
+   * that has just gone.
+   */
+  private followTheModel(): void {
+    const stopFollowing = [
+      // The table background colour, so a theme switch in the Angular shell
+      // reaches the canvas.
+      this.options.onBackgroundColor((color) => {
+        this.cameras?.main?.setBackgroundColor(color);
+      }),
+      this.options.onReset(() => {
+        this.inputManager.resetInteraction();
+      }),
+      this.options.onCardsRelocated((cardIds) => {
         this.inputManager.beginFlight(cardIds);
-      },
-    );
-    const stopFollowingDeck = this.options.onCardDeck((deckId) => {
-      this.useDeck(deckId);
-    });
+      }),
+      this.options.onCardDeck((deckId) => {
+        this.deckLoader.use(deckId);
+      }),
+    ];
+
     this.events.once(Scenes.Events.SHUTDOWN, () => {
-      stopFollowingColor();
-      stopFollowingResets();
-      stopFollowingRelocations();
-      stopFollowingDeck();
+      for (const stop of stopFollowing) stop();
     });
+  }
 
+  /** Puts the pointer to work, and says how often to look at it. */
+  private wireInput(): void {
+    // Everything is placed outright on the first frame and after a resize,
+    // rather than easing in from wherever it happened to be.
     this.inputManager.snapAll = true;
-
     this.scale.on("resize", () => {
       this.inputManager.snapAll = true;
     });
@@ -226,10 +233,11 @@ export class BoardScene extends Scene implements PhaserSprites {
     // the card out from under it — and without polling Phaser never re-runs the
     // test, so the hover would stay attached to a card that has left.
     this.input.setPollAlways();
+  }
 
-    this.events.once(Scenes.Events.POST_UPDATE, () => {
-      this.options.onReady?.();
-    });
+  /** @inheritDoc */
+  public texturedSprites(): Iterable<GameObjects.Sprite> {
+    return [...this.cardSprites.values(), ...this.pileBackgrounds.values()];
   }
 
   /** Instantiates and registers a sprite for every playing card in the game. */
@@ -273,89 +281,9 @@ export class BoardScene extends Scene implements PhaserSprites {
     }
   }
 
-  /**
-   * Draws the board from a different deck.
-   *
-   * Fetches it first unless it is already in the texture cache, and leaves the
-   * board on the deck it has if that fetch fails: a texture that never arrived
-   * would draw every card as a blank rectangle, which is worse than the deck
-   * they were trying to leave.
-   *
-   * @param deckId The deck to switch to.
-   */
-  private useDeck(deckId: CardDeckId): void {
-    if (deckId === this.deckId) {
-      this.awaitingDeck = null;
-      // Said again rather than passed over in silence: this is the branch the
-      // deck the board booted on arrives through, and the one a revert comes
-      // back through, and both are answers somebody is waiting for.
-      this.options.reportCardDeckStatus({ kind: "drawn", deckId });
-      return;
-    }
-
-    if (this.textures.exists(cardDeckTextureKey(deckId))) {
-      this.awaitingDeck = null;
-      this.applyDeck(deckId);
-      return;
-    }
-
-    this.awaitingDeck = deckId;
-    this.options.reportCardDeckStatus({ kind: "loading", deckId });
-    const textureKey = loadCardDeck(this.load, deckId);
-    this.load.once(Loader.Events.COMPLETE, () => {
-      // Ignored unless this is still the deck being waited for: switching away
-      // and back mid-load would otherwise let the stale arrival win — and
-      // answer for a question that is no longer being asked.
-      if (this.awaitingDeck !== deckId) return;
-      this.awaitingDeck = null;
-      if (this.textures.exists(textureKey)) {
-        this.applyDeck(deckId);
-      } else {
-        this.options.reportCardDeckStatus({ kind: "unavailable", deckId });
-      }
-    });
-    this.load.start();
-  }
-
-  /**
-   * Repoints every sprite at the given deck's texture, and lets go of the one
-   * being left.
-   *
-   * Frame names are the same in every deck, so each sprite keeps the frame it
-   * was already showing and the per-frame reconciliation in
-   * {@link PhaserTableRenderer} has nothing to undo.
-   *
-   * The origin has to be put back after each swap. A `Sprite` takes its
-   * `setTexture` from the TextureCrop component, which passes the frame on to
-   * `setFrame` with `updateOrigin` left at its default — and every card frame
-   * records a custom pivot at its centre, while the board places cards by their
-   * top left corner. `setFrame`'s own `updateOrigin` parameter is not reachable
-   * from here without first setting the texture to its `__BASE` frame.
-   *
-   * The outgoing deck is dropped rather than kept for a quick return: a page is
-   * 4032x3732, which is sixty megabytes of texture memory once uploaded, and
-   * three of those resident is more than a mobile GPU should be asked to hold
-   * for a preference. Coming back re-reads it from the browser's cache, so what
-   * a return actually costs is a decode and an upload rather than a download.
-   */
-  private applyDeck(deckId: CardDeckId): void {
-    const previousKey = cardDeckTextureKey(this.deckId);
-    this.deckId = deckId;
-    const textureKey = cardDeckTextureKey(deckId);
-
-    for (const sprite of [
-      ...this.cardSprites.values(),
-      ...this.pileBackgrounds.values(),
-    ]) {
-      sprite.setTexture(textureKey, sprite.frame.name);
-      sprite.setOrigin(0, 0);
-    }
-
-    // After the sprites, never before: releasing a texture still being drawn
-    // from would blank the board for a frame.
-    this.textures.remove(previousKey);
-
-    this.options.reportCardDeckStatus({ kind: "drawn", deckId });
+  /** Says how the deck the player asked for is getting on. */
+  public reportCardDeckStatus(status: CardDeckStatus): void {
+    this.options.reportCardDeckStatus(status);
   }
 
   // --- PhaserSprites ---
