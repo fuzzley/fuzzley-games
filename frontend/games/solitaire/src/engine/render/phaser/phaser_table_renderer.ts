@@ -1,9 +1,68 @@
 import * as Phaser from "phaser";
+import { GameObjects } from "phaser";
 import { Point } from "@/engine/core/common/point";
 import { PhaserSprites } from "./phaser_sprites";
 import { TableRenderer } from "../view/table_renderer";
-import { TableViewState, HighlightView } from "../view/table_view_state";
+import {
+  CardView,
+  HighlightView,
+  PileBackgroundView,
+  TableViewState,
+} from "../view/table_view_state";
 import { HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE } from "../layout/card_metrics";
+
+/**
+ * Gives a sprite the cursor its view asks for, if it does not already have it.
+ *
+ * Guarded because assigning to `input.cursor` is not free, and this is asked of
+ * every sprite on the board every frame.
+ */
+function syncCursor(sprite: GameObjects.Sprite, cursor: string): void {
+  if (sprite.input && sprite.input.cursor !== cursor) {
+    sprite.input.cursor = cursor;
+  }
+}
+
+/**
+ * Moves a card towards where it belongs, and says how far it still has to go.
+ *
+ * A card eases rather than jumps, so it converges on its target over several
+ * frames — except one in hand, which follows the pointer exactly, and one on a
+ * frame with no elapsed time to ease over.
+ *
+ * @param sprite The sprite to move.
+ * @param cardView Where it belongs.
+ * @param interpolationFactor How far of the remaining distance to cover.
+ * @param outright Whether to place it exactly rather than ease.
+ * @returns The distance still to travel, or null once it has arrived — which
+ *   is what tells a settling card from one crossing the board.
+ */
+function moveCard(
+  sprite: GameObjects.Sprite,
+  cardView: CardView,
+  interpolationFactor: number,
+  outright: boolean,
+): number | null {
+  if (outright) {
+    sprite.setPosition(cardView.x, cardView.y);
+    return null;
+  }
+
+  sprite.x += (cardView.x - sprite.x) * interpolationFactor;
+  sprite.y += (cardView.y - sprite.y) * interpolationFactor;
+
+  const remainingX = Math.abs(sprite.x - cardView.x);
+  const remainingY = Math.abs(sprite.y - cardView.y);
+  if (
+    remainingX < POSITION_SETTLE_THRESHOLD_PX &&
+    remainingY < POSITION_SETTLE_THRESHOLD_PX
+  ) {
+    sprite.setPosition(cardView.x, cardView.y);
+    return null;
+  }
+
+  return Math.max(remainingX, remainingY);
+}
 
 /** Time constant (ms) for frame-rate-independent card position easing. */
 const POSITION_TAU_MS = 90;
@@ -85,20 +144,7 @@ export class PhaserTableRenderer implements TableRenderer {
       deltaMs > 0 ? 1 - Math.exp(-deltaMs / POSITION_TAU_MS) : 1;
 
     for (const backgroundView of viewState.backgrounds) {
-      const sprite = this.sprites.pileBackgroundSprite(backgroundView.pileId);
-
-      if (sprite?.active) {
-        sprite.setPosition(backgroundView.x, backgroundView.y);
-        sprite.setScale(backgroundView.scale);
-        sprite.setDepth(backgroundView.depth);
-        if (
-          backgroundView.cursor &&
-          sprite.input &&
-          sprite.input.cursor !== backgroundView.cursor
-        ) {
-          sprite.input.cursor = backgroundView.cursor;
-        }
-      }
+      this.applyBackground(backgroundView);
     }
 
     // How far each still-easing card has left to travel, so a border can tell a
@@ -107,44 +153,63 @@ export class PhaserTableRenderer implements TableRenderer {
 
     for (const cardView of viewState.cards) {
       const sprite = this.sprites.cardSprite(cardView.cardId);
-      if (sprite?.active) {
-        if (cardView.snap || deltaMs <= 0) {
-          sprite.setPosition(cardView.x, cardView.y);
-        } else {
-          sprite.x += (cardView.x - sprite.x) * interpolationFactor;
-          sprite.y += (cardView.y - sprite.y) * interpolationFactor;
-          const remainingX = Math.abs(sprite.x - cardView.x);
-          const remainingY = Math.abs(sprite.y - cardView.y);
-          if (
-            remainingX < POSITION_SETTLE_THRESHOLD_PX &&
-            remainingY < POSITION_SETTLE_THRESHOLD_PX
-          ) {
-            sprite.setPosition(cardView.x, cardView.y);
-          } else {
-            travelDistances.set(
-              cardView.cardId,
-              Math.max(remainingX, remainingY),
-            );
-          }
-        }
-        sprite.setScale(cardView.scale);
-        sprite.setDepth(cardView.depth);
-        if (sprite.frame.name !== cardView.frame) {
-          sprite.setFrame(cardView.frame);
-          sprite.setOrigin(0, 0);
-        }
-        if (sprite.input && sprite.input.cursor !== cardView.cursor) {
-          sprite.input.cursor = cardView.cursor;
-        }
-        if (sprite.getData("draggable") !== cardView.draggable) {
-          this.sprites.setDraggable(sprite, cardView.draggable);
-          sprite.setData("draggable", cardView.draggable);
-        }
+      if (!sprite?.active) continue;
+
+      const remaining = moveCard(
+        sprite,
+        cardView,
+        interpolationFactor,
+        cardView.snap || deltaMs <= 0,
+      );
+      if (remaining !== null) {
+        travelDistances.set(cardView.cardId, remaining);
       }
+
+      this.syncAppearance(sprite, cardView);
     }
 
     this.travelDistances = travelDistances;
     this.drawHighlights(viewState.highlights, travelDistances);
+  }
+
+  /** Puts one placeholder where its view says, and gives it the right cursor. */
+  private applyBackground(backgroundView: PileBackgroundView): void {
+    const sprite = this.sprites.pileBackgroundSprite(backgroundView.pileId);
+    if (!sprite?.active) return;
+
+    sprite.setPosition(backgroundView.x, backgroundView.y);
+    sprite.setScale(backgroundView.scale);
+    sprite.setDepth(backgroundView.depth);
+    if (backgroundView.cursor) {
+      syncCursor(sprite, backgroundView.cursor);
+    }
+  }
+
+  /**
+   * Brings everything about a card that is not its position into line: how big
+   * it is, what it is drawn over, which side it shows, and what it invites.
+   *
+   * Each is guarded on having actually changed, because Phaser's setters are
+   * not free and this runs for every card every frame.
+   */
+  private syncAppearance(
+    sprite: GameObjects.Sprite,
+    cardView: CardView,
+  ): void {
+    sprite.setScale(cardView.scale);
+    sprite.setDepth(cardView.depth);
+
+    if (sprite.frame.name !== cardView.frame) {
+      sprite.setFrame(cardView.frame);
+      sprite.setOrigin(0, 0);
+    }
+
+    syncCursor(sprite, cardView.cursor);
+
+    if (sprite.getData("draggable") !== cardView.draggable) {
+      this.sprites.setDraggable(sprite, cardView.draggable);
+      sprite.setData("draggable", cardView.draggable);
+    }
   }
 
   /**
