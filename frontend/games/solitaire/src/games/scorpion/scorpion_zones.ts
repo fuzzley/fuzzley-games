@@ -1,7 +1,7 @@
 import { ZoneSpec } from "@/engine/tableau/zone";
 import { STOCK_PILE_ID } from "../common/pile_ids";
 import {
-  PLAIN_PLACEHOLDER,
+  CLOSED_STOCK_PLACEHOLDER,
   columnRow,
   foundationRow,
   stockZone,
@@ -35,9 +35,9 @@ const ZONES: readonly ZoneSpec[] = [
     column: 0,
     row: 0,
     accept: scorpionPlacementRule(ScorpionRole.STOCK),
-    // A plain slot rather than Klondike's and Spider's recycle arrow: this
+    // A closed slot rather than Klondike's recycle arrow: this
     // stock deals once and is then finished, so there is nothing to come back.
-    backgroundKey: PLAIN_PLACEHOLDER,
+    backgroundKey: CLOSED_STOCK_PLACEHOLDER,
   }),
   ...foundationRow({
     // Column 1 and 2 are left clear, which keeps the top row Klondike's shape.

@@ -2,7 +2,7 @@ import { isOrderedPair } from "@/engine/tableau/rules";
 import { ZoneSpec } from "@/engine/tableau/zone";
 import { STOCK_PILE_ID } from "../common/pile_ids";
 import {
-  RECYCLING_STOCK_PLACEHOLDER,
+  CLOSED_STOCK_PLACEHOLDER,
   columnRow,
   foundationRow,
   stockZone,
@@ -39,7 +39,7 @@ const ZONES: readonly ZoneSpec[] = [
     row: 0,
     // Clickable, so a press deals a row, but nothing is ever lifted from it.
     accept: easthavenPlacementRule(EasthavenRole.STOCK),
-    backgroundKey: RECYCLING_STOCK_PLACEHOLDER,
+    backgroundKey: CLOSED_STOCK_PLACEHOLDER,
   }),
   ...foundationRow({
     count: FOUNDATION_COUNT,

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
-  Pile background placeholders, laid out as three 220x307 cells matching the
+  Pile background placeholders, laid out as four 220x307 cells matching the
   card frame size. Vector so tools/build-card-atlas.mjs can rasterize them at
   the same multiplier as the card faces; the geometry is measured from the
   original hand-drawn bitmaps these replaced, in stroke-centreline coordinates.
@@ -8,12 +8,13 @@
   Cell 0: card-placeholder                     (tableau piles, open at the bottom)
   Cell 1: card-placeholder-full-border-circle  (foundation piles)
   Cell 2: card-placeholder-full-border-reset   (stock pile, redeal affordance)
+  Cell 3: card-placeholder-full-border         (plain closed slot)
 -->
 <svg
   xmlns="http://www.w3.org/2000/svg"
-  width="660"
+  width="880"
   height="307"
-  viewBox="0 0 660 307"
+  viewBox="0 0 880 307"
   version="1.1"
 >
   <g fill="none" stroke="#ffffff" stroke-linecap="butt" stroke-linejoin="round">
@@ -45,6 +46,11 @@
         fill="#ffffff"
         stroke="none"
       />
+    </g>
+
+    <!-- card-placeholder-full-border -->
+    <g id="card-placeholder-full-border" transform="translate(660,0)">
+      <rect x="10.5" y="12.5" width="193" height="283" rx="10.5" stroke-width="5" />
     </g>
   </g>
 </svg>

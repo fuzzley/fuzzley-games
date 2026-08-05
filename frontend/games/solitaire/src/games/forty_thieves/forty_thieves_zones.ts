@@ -3,7 +3,7 @@ import { ZoneSpec } from "@/engine/tableau/zone";
 import { memoizeZones } from "@/engine/tableau/zone_builder";
 import { STOCK_PILE_ID, WASTE_PILE_ID } from "../common/pile_ids";
 import {
-  PLAIN_PLACEHOLDER,
+  CLOSED_STOCK_PLACEHOLDER,
   columnRow,
   foundationRow,
   stockZone,
@@ -92,11 +92,9 @@ export const fortyThievesZoneSpecs = memoizeZones(
       // The top card is clickable — that is what draws — but pressing it must
       // not pick it up.
       accept: fortyThievesPlacementRule(FortyThievesRole.STOCK, variant),
-      // Deliberately not the reset placeholder Klondike and Spider use, and
-      // deliberately no `emptyIsActionable`: there is no recycle in this
-      // family, so an emptied stock is spent for good and should not invite a
-      // press that does nothing.
-      backgroundKey: PLAIN_PLACEHOLDER,
+      // Closed slot placeholder and deliberately no `emptyIsActionable`:
+      // there is no recycle in this family, so an emptied stock is spent for good.
+      backgroundKey: CLOSED_STOCK_PLACEHOLDER,
     }),
     wasteZone({
       id: WASTE_PILE_ID,
