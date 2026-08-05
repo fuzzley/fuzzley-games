@@ -126,13 +126,14 @@ const SHEET_RANKS = [
 /** The two card backs, on the sheet's fifth row. */
 const SHEET_BACKS = ["card-back-blue", "card-back-red"];
 
-/** The placeholder sheet: three cells of the design frame size, in a row. */
+/** The placeholder sheet: four cells of the design frame size, in a row. */
 const PLACEHOLDERS = {
   file: "card_placeholders.svg",
   names: [
     "card-placeholder",
     "card-placeholder-full-border-circle",
     "card-placeholder-full-border-reset",
+    "card-placeholder-full-border",
   ],
 };
 

@@ -2,7 +2,7 @@ import { isSameSuitRun } from "@/engine/tableau/rules";
 import { ZoneSpec } from "@/engine/tableau/zone";
 import { STOCK_PILE_ID } from "../common/pile_ids";
 import {
-  RECYCLING_STOCK_PLACEHOLDER,
+  CLOSED_STOCK_PLACEHOLDER,
   columnRow,
   foundationRow,
   stockZone,
@@ -44,7 +44,7 @@ const ZONES: readonly ZoneSpec[] = [
     column: 0,
     row: 0,
     accept: spiderettePlacementRule(SpideretteRole.STOCK),
-    backgroundKey: RECYCLING_STOCK_PLACEHOLDER,
+    backgroundKey: CLOSED_STOCK_PLACEHOLDER,
   }),
   ...foundationRow({
     count: FOUNDATION_COUNT,

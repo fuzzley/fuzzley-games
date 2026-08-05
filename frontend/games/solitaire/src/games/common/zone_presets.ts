@@ -28,6 +28,9 @@ export const FOUNDATION_PLACEHOLDER = "card-placeholder-full-border-circle";
 /** The placeholder carrying a recycle arrow, for a stock that comes round again. */
 export const RECYCLING_STOCK_PLACEHOLDER = "card-placeholder-full-border-reset";
 
+/** The closed placeholder with no inner mark, for a stock that deals once and cannot be reset. */
+export const CLOSED_STOCK_PLACEHOLDER = "card-placeholder-full-border";
+
 /** Where a row of piles sits, and how many of it there are. */
 interface RowPlacement {
   /** How many piles to build. */
@@ -162,13 +165,10 @@ export interface StockZoneOptions {
   /** The grid row it sits in. */
   readonly row: number;
   /**
-   * The placeholder artwork drawn behind the empty slot.
-   *
-   * Stated rather than derived from whether the stock recycles, because the
-   * boards do not currently agree: Spider, Spiderette and Easthaven wear the
-   * recycle arrow without recycling, while Scorpion and Forty Thieves use the
-   * plain slot for the same "deals once and is finished" stock. Deriving it
-   * would quietly restyle three boards.
+   * The placeholder artwork drawn behind the empty slot:
+   * RECYCLING_STOCK_PLACEHOLDER for stocks that can be reset (Klondike),
+   * CLOSED_STOCK_PLACEHOLDER for stocks that deal once and cannot be reset
+   * (Spider, Spiderette, Easthaven, Scorpion, Forty Thieves).
    */
   readonly backgroundKey: string;
   /**
