@@ -24,13 +24,6 @@ export type CardBackStyle = "card-back-blue" | "card-back-red";
 
 const STORAGE_KEY = "fsolitaire-presentation";
 
-/**
- * The key these settings used to share with the Klondike rules.
- *
- * Read once as a fallback so a player who already chose a felt colour or a card
- * back keeps it rather than being silently reset by the split.
- */
-const LEGACY_STORAGE_KEY = "fsolitaire-settings";
 
 /** The persisted shape. */
 interface PersistedPresentation {
@@ -219,28 +212,24 @@ export class PresentationSettingsService implements TablePresentation {
     });
   }
 
-  /** Reads whichever stored blob is present, filling gaps with defaults. */
+  /** Reads stored settings, filling gaps with defaults. */
   private loadPersisted(): PersistedPresentation {
-    for (const key of [STORAGE_KEY, LEGACY_STORAGE_KEY]) {
-      const parsed =
-        this.storage.readObject<Partial<PersistedPresentation>>(key);
-      if (!parsed) continue;
+    const parsed =
+      this.storage.readObject<Partial<PersistedPresentation>>(STORAGE_KEY);
+    if (!parsed) return { ...DEFAULTS };
 
-      return {
-        cardBackStyle: isCardBackStyle(parsed.cardBackStyle)
-          ? parsed.cardBackStyle
-          : DEFAULTS.cardBackStyle,
-        backgroundColor:
-          typeof parsed.backgroundColor === "string" && parsed.backgroundColor
-            ? parsed.backgroundColor
-            : DEFAULTS.backgroundColor,
-        // Absent for anyone whose settings predate the deck choice, and for
-        // everyone reading the legacy key, so both fall to the default.
-        cardDeck: isCardDeckId(parsed.cardDeck)
-          ? parsed.cardDeck
-          : DEFAULTS.cardDeck,
-      };
-    }
-    return { ...DEFAULTS };
+    return {
+      cardBackStyle: isCardBackStyle(parsed.cardBackStyle)
+        ? parsed.cardBackStyle
+        : DEFAULTS.cardBackStyle,
+      backgroundColor:
+        typeof parsed.backgroundColor === "string" && parsed.backgroundColor
+          ? parsed.backgroundColor
+          : DEFAULTS.backgroundColor,
+      // Absent for anyone whose settings predate the deck choice, so falls to the default.
+      cardDeck: isCardDeckId(parsed.cardDeck)
+        ? parsed.cardDeck
+        : DEFAULTS.cardDeck,
+    };
   }
 }
