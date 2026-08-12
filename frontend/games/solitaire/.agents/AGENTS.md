@@ -53,7 +53,7 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
 5. **`src/games/*`** _(Top of Engine Tier)_
    - Game-specific deal rules, scoring mechanics, layout setup, and gesture handling — one directory per game (`games/klondike`, `games/freecell`, `games/montana`, …).
    - Code shared between games lives in `games/common`: collecting completed runs, drawing and recycling a stock, dealing a card to every column, and the gesture map for a game with no stock.
-   - A different board grid means a different catalog entry; the same grid under different rules means a variant option on an existing one. See the `solitaire-engine-architecture` skill.
+   - A different board grid means a different catalog entry; the same grid under different rules means a variant option on an existing one. See the `add-solitaire-game` skill.
    - Sits above `engine/*` layers, but below the Angular UI application shell.
    - A game reaches the canvas through `src/games/common/board_scene_factory.ts`, which turns a game plus its layout and gesture map into a `BoardScene`. There is no separate scene-bridge tier: `PhaserHost` mounts whatever board factory it is handed.
 6. **`src/ui/*`** _(Application Shell)_

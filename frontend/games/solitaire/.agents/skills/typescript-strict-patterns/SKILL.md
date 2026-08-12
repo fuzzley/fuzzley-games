@@ -74,8 +74,8 @@ every move. Follow that: new engine types describing something that happened are
 ## Architectural Import Boundaries
 
 Enforced as hard ESLint errors in `eslint.config.cjs`. The canonical table lives
-in `.agents/AGENTS.md` and is explained in the `solitaire-engine-architecture`
-skill — **read it there rather than keeping a fourth copy in sync.**
+in `.agents/AGENTS.md` and is explained in the `add-solitaire-game` skill —
+**read it there rather than keeping a fourth copy in sync.**
 
 Two points that are easy to get wrong:
 

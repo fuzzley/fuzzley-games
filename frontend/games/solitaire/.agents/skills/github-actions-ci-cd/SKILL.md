@@ -57,7 +57,7 @@ workflow's test step if the gate is wanted for real.
 
 - **Lint failures.** Reproduce with `yarn lint`. The usual cause is an
   architectural boundary violation from `@typescript-eslint/no-restricted-imports`
-  — see `solitaire-engine-architecture`. (`register.cjs` in the lint script is
+  — see `add-solitaire-game`. (`register.cjs` in the lint script is
   only a `util.styleText` polyfill for older Node; it is not lint config.)
 - **Typecheck failures.** `yarn tsc` already runs both passes: `tsc` over the
   app, then `yarn tsc:test` over the specs. A failure naming a `test/` file
