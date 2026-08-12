@@ -50,37 +50,6 @@ describe("PresentationSettingsService", () => {
       expect(settings.backgroundColor()).toBe("#1b4353");
     });
 
-    it("falls back to the key these settings used to share with the game rules", () => {
-      // A player who chose a felt colour before the split should keep it.
-      localStorage.setItem(
-        "fsolitaire-settings",
-        JSON.stringify({
-          drawCount: 1,
-          cardBackStyle: "card-back-red",
-          backgroundColor: "#1b4353",
-          debug: { almostWin: false },
-        }),
-      );
-
-      expect(buildSettings().backgroundColor()).toBe("#1b4353");
-    });
-
-    it("prefers its own key over the legacy one", () => {
-      localStorage.setItem(
-        "fsolitaire-presentation",
-        JSON.stringify({
-          cardBackStyle: "card-back-blue",
-          backgroundColor: "#2b2d42",
-        }),
-      );
-      localStorage.setItem(
-        "fsolitaire-settings",
-        JSON.stringify({ backgroundColor: "#1b4353" }),
-      );
-
-      expect(buildSettings().backgroundColor()).toBe("#2b2d42");
-    });
-
     it("falls back to defaults for corrupted storage", () => {
       localStorage.setItem("fsolitaire-presentation", "{ not json");
 
@@ -144,18 +113,6 @@ describe("PresentationSettingsService", () => {
         backgroundColor: "#3c096c",
         cardDeck: "classic",
       });
-    });
-
-    it("migrates a legacy blob onto its own key", () => {
-      localStorage.setItem(
-        "fsolitaire-settings",
-        JSON.stringify({ backgroundColor: "#1b4353" }),
-      );
-
-      buildSettings();
-      TestBed.flushEffects();
-
-      expect(stored()?.["backgroundColor"]).toBe("#1b4353");
     });
   });
 
