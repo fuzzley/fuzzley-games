@@ -30,9 +30,12 @@ export default defineConfig({
     alias: [
       {
         find: /^@test\//,
-        replacement: path.resolve(__dirname, "./test") + "/",
+        replacement: path.resolve(import.meta.dirname, "./test") + "/",
       },
-      { find: /^@\//, replacement: path.resolve(__dirname, "./src") + "/" },
+      {
+        find: /^@\//,
+        replacement: path.resolve(import.meta.dirname, "./src") + "/",
+      },
     ],
   },
 });
