@@ -1,7 +1,12 @@
 import { bootstrapApplication } from "@angular/platform-browser";
-import { provideZonelessChangeDetection } from "@angular/core";
+import {
+  inject,
+  provideAppInitializer,
+  provideZonelessChangeDetection,
+} from "@angular/core";
 import { provideRouter, withHashLocation } from "@angular/router";
 import { AppComponent } from "./component/app/app.component";
+import { SavedGameService } from "./service/saved_game.service";
 import { routes } from "./routes";
 import "./styles/global.scss";
 
@@ -12,10 +17,15 @@ import "./styles/global.scss";
 // Hash location: the built application is copied into a subdirectory of a
 // static host that will not rewrite unknown paths onto index.html, so a
 // fragment is the only form of URL that survives a reload.
+//
+// The saved game is restored before the first render, and saved from then on.
 bootstrapApplication(AppComponent, {
   providers: [
     provideZonelessChangeDetection(),
     provideRouter(routes, withHashLocation()),
+    provideAppInitializer(() => {
+      inject(SavedGameService);
+    }),
   ],
 }).catch((err: unknown) => {
   console.error(err);
