@@ -19,11 +19,8 @@ import { GameMenuComponent } from "../game_menu/game_menu.component";
 import { GameMenuService } from "../../service/game_menu.service";
 
 /**
- * The main container/shell component of the Solitaire application.
- *
- * Composes the chrome around the board — header, game rail, settings drawer,
- * help modal, victory card and confirmation prompt — and lays itself out
- * around the routed board.
+ * Composes the chrome around the routed board: header, game rail, settings
+ * drawer, help modal, victory card and confirmation prompt.
  */
 @Component({
   selector: "app-root",
@@ -41,7 +38,7 @@ import { GameMenuService } from "../../service/game_menu.service";
   styleUrl: "./app.component.scss",
 })
 export class AppComponent {
-  /** Whether the game rail is expanded, which the board lays itself out around. */
+  /** The game rail's state, which the board lays itself out around. */
   protected readonly menu = inject(GameMenuService);
 
   private readonly presentation = inject(PresentationSettingsService);
@@ -49,24 +46,13 @@ export class AppComponent {
   private readonly document = inject(DOCUMENT);
   private readonly title = inject(Title);
 
-  /** Tracks whether the side settings drawer overlay is open. */
+  /** Whether the settings drawer is open. */
   protected readonly showSettings = signal(false);
 
   constructor() {
-    // The page follows the felt.
-    //
-    // The header is translucent and blurred across the full width, but the
-    // board it blurs stops at the game rail — so left of the rail it was
-    // sampling a document with no background at all, which resolved to the
-    // UA's white and showed as a pale band up the side of the wordmark.
-    // Mirroring the chosen felt onto the root gives the header one continuous
-    // colour to sample, and makes the strip behind the rail read as table
-    // rather than as paper.
-    //
-    // Written to the DOM rather than bound in the template because the element
-    // that needs it is the document root, which is outside this component's
-    // view — and it has to be the root for the browser to propagate the colour
-    // to the viewport canvas.
+    // Paint the page with the felt, so the translucent header blurs table
+    // rather than white where the board stops at the rail. It is set on the
+    // document root, outside this view, so the colour reaches the viewport.
     effect(() => {
       this.document.documentElement.style.setProperty(
         "--table-felt",
@@ -74,15 +60,8 @@ export class AppComponent {
       );
     });
 
-    // The tab says which game is on the table.
-    //
-    // Which game that is, is the whole of this application's navigable state,
-    // and everywhere else it is already answered: the URL names it, the rail
-    // marks it, the header prints it when it has the room. The title is what
-    // answers it for a bookmark, a history entry and a second tab of the same
-    // application — none of which can see any of those.
-    //
-    // Game first, because a tab strip crops from the right.
+    // Name the game in the tab title, first because a tab strip crops from the
+    // right.
     effect(() => {
       this.title.setTitle(`${this.catalog.selectedEntry.name} · fSolitaire`);
     });

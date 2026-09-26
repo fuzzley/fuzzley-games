@@ -18,21 +18,14 @@ import { PresentationSettingsService } from "../../service/presentation_settings
 
 declare global {
   interface Window {
-    /**
-     * The running game, exposed for poking at from the browser console.
-     * Development builds only — see the effect below.
-     */
+    /** The running game, exposed to the console in development builds. */
     fsolitaire?: PlayableGame;
   }
 }
 
 /**
- * How long to wait for a board to report itself ready before saying so.
- *
- * Generous: the atlas is a few hundred kilobytes and a cold load on a slow
- * connection is legitimately slow. This is the point past which silence is
- * more likely to be a broken board than a slow one, and a player deserves to
- * be told rather than left watching a spinner.
+ * How long to wait, generously, for a board to report itself ready before
+ * saying it failed.
  */
 const BOARD_READY_TIMEOUT_MS = 8_000;
 
@@ -40,9 +33,8 @@ const BOARD_READY_TIMEOUT_MS = 8_000;
  * Hosts the Phaser game canvas, with a skeleton of the board's own layout
  * shown while it builds.
  *
- * The canvas mounts inside a dedicated child element so Phaser owns that
- * subtree outright and never fights Angular over the loading overlay beside
- * it.
+ * Phaser gets a child element of its own, so it never fights Angular over the
+ * loading overlay beside it.
  */
 @Component({
   selector: "app-game-canvas",
@@ -76,8 +68,7 @@ export class GameCanvasComponent {
 
   /**
    * What the deck being fetched is called, or null when the table is up to
-   * date. Named rather than merely flagged, because the badge saying which deck
-   * is on its way is the whole of what makes the wait explicable.
+   * date.
    */
   protected readonly pendingDeckName = computed(() => {
     const pending = this.presentation.pendingCardDeck();
@@ -113,9 +104,7 @@ export class GameCanvasComponent {
       );
       host.start();
 
-      // A console handle on the running game, for development only: a
-      // production bundle should not ship a global that pins the whole game
-      // object in memory and invites tinkering.
+      // Development only: a production global would pin the game in memory.
       if (import.meta.env.DEV) {
         window.fsolitaire = game;
       }

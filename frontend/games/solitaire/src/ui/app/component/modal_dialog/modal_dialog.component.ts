@@ -8,23 +8,12 @@ import {
   viewChild,
 } from "@angular/core";
 
-/** How much of the browser's modal behaviour a host wants. */
+/** Names the role a modal takes. */
 export type ModalRole = "dialog" | "alertdialog";
 
 /**
- * A modal built on the native `<dialog>` element.
- *
- * `showModal()` is what makes this worth having: the browser supplies the
- * focus trap, the initial focus move, the focus restore on close, Escape, the
- * `inert` background and the backdrop, and it promotes the element to the top
- * layer so it draws above everything regardless of z-index. All of that was
- * previously hand-written — a keydown listener on `document`, a querySelector
- * for focusable children, a saved `previousActiveElement`, a `body.style
- * .overflow` lock and a z-index ladder climbing to 2000 — and each copy of it
- * was slightly different from the others.
- *
- * Content is projected, so a host writes its own body and keeps its own
- * styling; what it gets from here is the behaviour.
+ * Shows projected content in a native `<dialog>`, which supplies the focus
+ * trap, Escape, focus restore and inert background.
  */
 @Component({
   selector: "app-modal-dialog",
@@ -42,26 +31,13 @@ export class ModalDialogComponent {
   /**
    * The id of the element that says what the dialog is about, announced after
    * its name.
-   *
-   * The name alone is a title — "Confirm action" — and a prompt whose whole
-   * purpose is making sure the stake was understood should not leave the
-   * stake as the one part a screen reader has to go looking for.
    */
   readonly describedBy = input<string>("");
 
-  /**
-   * `alertdialog` for a prompt that interrupts to ask something, `dialog`
-   * otherwise. Screen readers treat the two differently, so a confirmation
-   * should not claim to be the same kind of thing as a help panel.
-   */
+  /** `alertdialog` for a prompt that interrupts to ask, else `dialog`. */
   readonly dialogRole = input<ModalRole>("dialog");
 
-  /**
-   * Whether Escape and a backdrop click dismiss the dialog.
-   *
-   * The victory card is the exception: it has one action, and closing it would
-   * leave a finished board with no way back to it.
-   */
+  /** Whether Escape and a backdrop click dismiss the dialog. */
   readonly dismissible = input(true);
 
   /** Emitted when the dialog asks to close — Escape, backdrop, or the host. */
@@ -86,11 +62,11 @@ export class ModalDialogComponent {
   }
 
   /**
-   * Escape, which the browser routes here as `cancel` before it closes.
+   * Handles Escape, which the browser reports as `cancel`, by asking the host
+   * to close a dismissible dialog.
    *
-   * A non-dismissible dialog cancels the cancel; everything else lets the host
-   * decide by way of `closed`, so the open state stays owned in one place
-   * rather than being half in the DOM and half in a signal.
+   * The browser never closes it itself, so the `open` input stays the only
+   * state.
    */
   protected onCancel(event: Event): void {
     event.preventDefault();
@@ -100,12 +76,8 @@ export class ModalDialogComponent {
   }
 
   /**
-   * Light dismiss.
-   *
-   * A click on the backdrop lands on the `<dialog>` itself, because the
-   * backdrop is the element's own `::backdrop` pseudo — so a click whose
-   * target is the dialog rather than anything inside it came from outside the
-   * visible panel.
+   * Closes a dismissible dialog on a backdrop click, which targets the
+   * `<dialog>` itself rather than anything inside it.
    */
   protected onClick(event: MouseEvent): void {
     if (this.dismissible() && event.target === this.dialogRef().nativeElement) {
