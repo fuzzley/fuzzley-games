@@ -13,16 +13,10 @@ export const TABLEAU_COUNT = 10;
 /** The number of completed runs a full game produces: four, from one deck. */
 export const FOUNDATION_COUNT = 4;
 
-/**
- * The grid column the leftmost foundation sits in.
- *
- * The four foundations sit at the right of the top row, leaving the left of it
- * bare. There is no stock to put there — which is the point of the game, and
- * looks like it.
- */
+/** The grid column the leftmost foundation sits in, at the right of the row. */
 export const FOUNDATION_COLUMN_OFFSET = TABLEAU_COUNT - FOUNDATION_COUNT;
 
-/** The fourteen zones of a Simple Simon board. */
+/** Returns the fourteen zones of a Simple Simon board. */
 export function simpleSimonZoneSpecs(): readonly ZoneSpec[] {
   return ZONES;
 }
@@ -45,12 +39,7 @@ const ZONES: readonly ZoneSpec[] = [
     row: 1,
     role: SimpleSimonRole.TABLEAU,
     accept: simpleSimonPlacementRule(SimpleSimonRole.TABLEAU),
-    // Same-suit descending only, which is the same question the build rule
-    // does *not* ask — a column takes any descending card and gives up only a
-    // single suit. Both halves derive from the shared predicates, so neither
-    // can drift from what the other expects.
     grab: { kind: "run", adjacent: isSameSuitRun },
-    // Every card is dealt face up, so there is nothing to turn over.
     layout: OPEN_COLUMN_LAYOUT,
     face: "always-up",
   }),

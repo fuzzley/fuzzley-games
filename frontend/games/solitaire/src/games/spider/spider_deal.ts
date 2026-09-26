@@ -7,13 +7,7 @@ import {
   Suit,
 } from "@/engine/core/card/playing_card";
 
-/**
- * Two full decks: 104 cards, with two of every face.
- *
- * The first deck specification in the project that is not one standard 52, and
- * the reason the `id` / `faceKey` split exists at all — a two-deck game holds
- * two Queens of Hearts, which look alike and move separately.
- */
+/** Two full decks: 104 cards, with two of every face. */
 export const SPIDER_TWO_DECKS: DeckSpec = {
   suits: ALL_SUITS,
   ranks: ALL_RANKS,
@@ -27,7 +21,7 @@ export const SPIDER_ONE_SUIT: DeckSpec = {
   copies: 8,
 };
 
-/** How many suits a Spider game is played with. */
+/** Says how many suits a Spider game is played with. */
 export type SpiderSuitCount = 1 | 2 | 4;
 
 /** The suits used for each variant, in the order they are dealt. */
@@ -38,12 +32,8 @@ const SUITS_BY_COUNT: Record<SpiderSuitCount, readonly Suit[]> = {
 };
 
 /**
- * The deck for a Spider game of the given difficulty.
- *
- * Always 104 cards: fewer suits simply means more copies of each. One suit is
- * the gentle version, four is the standard game, and two sits between them.
- *
- * @param suitCount How many suits to play with.
+ * Returns the 104-card deck for a Spider game of `suitCount` suits, with more
+ * copies of each suit when there are fewer.
  */
 export function spiderDeck(suitCount: SpiderSuitCount): DeckSpec {
   const suits = SUITS_BY_COUNT[suitCount];
@@ -57,12 +47,7 @@ export const OPENING_CARD_COUNT = 54;
  * Deals the Spider opening layout: 54 cards across the columns, only the top of
  * each face up, and everything left over face-down onto the stock.
  *
- * The first four columns get six cards and the rest five, which is what dealing
- * 54 across ten columns comes to.
- *
  * @param deck The cards to deal, which this drains.
- * @param tableaus The columns to deal onto.
- * @param stock The stock to fill with the remainder.
  */
 export function dealSpiderLayout(
   deck: PlayingCard[],

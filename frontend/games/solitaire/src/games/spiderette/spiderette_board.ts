@@ -5,15 +5,7 @@ import { SPIDERETTE_LAYOUT } from "./spiderette_layout";
 import { SpideretteGame } from "./spiderette_game";
 import { spideretteGestures } from "./spiderette_gestures";
 
-/**
- * Builds the Spiderette board scene.
- *
- * One board for both variants: they differ in the opening deal, which the game
- * has already laid out by the time a board draws it, and in nothing drawn.
- *
- * Spiderette writes its own gesture map rather than taking the shared stockless
- * one, because pressing its stock deals a row.
- */
+/** Builds the Spiderette board scene, which is the same for both variants. */
 export function makeSpideretteBoardScene(
   game: SpideretteGame,
   presentation: TablePresentation,
