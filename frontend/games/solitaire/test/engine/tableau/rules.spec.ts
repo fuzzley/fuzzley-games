@@ -38,7 +38,7 @@ function pileWith(
   return pile;
 }
 
-/** A board with the stated number of empty piles in each role. */
+/** Returns a board with the stated number of empty piles in each role. */
 function boardWith(empties: Record<string, number> = {}): BoardQuery {
   return {
     pile: () => undefined,
@@ -141,7 +141,7 @@ describe("combinators", () => {
 });
 
 describe("maxStackSize", () => {
-  // FreeCell's supermove limit, the rule that made board context necessary.
+  // FreeCell's supermove limit, which needs to see the whole board.
   const supermove = maxStackSize(
     (context) =>
       (context.board.emptyCount("cell") + 1) *

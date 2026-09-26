@@ -36,14 +36,14 @@ function asMock(sprite: unknown): MockSprite {
   return sprite as MockSprite;
 }
 
-/**
- * A board scene drawing the given game, or the shared dealt one, laid out the
- * way the real application lays it out.
- */
+/** The game the current scene draws, and the presentation it follows. */
 let fakeGame: FakeTableGame;
 let presentation: TestPresentation;
 
-/** A dealt game drawn with a presentation a test can drive. */
+/**
+ * Builds a board scene drawing the given game, or a freshly dealt one, with a
+ * presentation a test can drive.
+ */
 function makeBoardScene(gameModel?: FakeTableGame): BoardScene {
   fakeGame = gameModel ?? dealtGame();
   presentation = new TestPresentation();
@@ -64,20 +64,20 @@ describe("BoardScene", () => {
     boardScene.create();
   });
 
-  /** The sprite of a card sitting in the stock, for tracking where it goes. */
+  /** Returns the sprite of a card in the stock, for tracking where it goes. */
   function stockCardSprite(): MockSprite {
     const card = fakeGame.stock.getCards()[0];
     return asMock(boardScene.cardSprite(card.id));
   }
 
-  /** Every card sprite on the board. */
+  /** Returns every card sprite on the board. */
   function allCardSprites(): MockSprite[] {
     return [...boardScene.cardIds].map((cardId) =>
       asMock(boardScene.cardSprite(cardId)),
     );
   }
 
-  /** The highest depth of any card other than the given sprites. */
+  /** Returns the highest depth of any card other than the given sprites. */
   function deepestCardExcept(...lifted: MockSprite[]): number {
     const others = allCardSprites().filter(
       (sprite) => !lifted.includes(sprite),
@@ -85,7 +85,7 @@ describe("BoardScene", () => {
     return Math.max(...others.map((sprite) => sprite.depth));
   }
 
-  /** The frame and alpha of each of the given piles' background sprites. */
+  /** Returns the frame and alpha of each of the given piles' backgrounds. */
   function backgroundsOf(
     pileIds: string[],
   ): { frame: string; alpha: number }[] {
@@ -106,7 +106,7 @@ describe("BoardScene", () => {
   });
 
   describe("table background", () => {
-    /** The camera's recording background setter. */
+    /** Returns the camera's recording background setter. */
     function camera(): { setBackgroundColor: ReturnType<typeof vi.fn> } {
       return boardScene.cameras.main as unknown as {
         setBackgroundColor: ReturnType<typeof vi.fn>;
@@ -133,17 +133,17 @@ describe("BoardScene", () => {
   });
 
   describe("card deck", () => {
-    /** The scene's mock loader, which finishes a load only when told to. */
+    /** Returns the scene's mock loader, which finishes a load when told to. */
     function loader(): MockLoader {
       return boardScene.load as unknown as MockLoader;
     }
 
-    /** The scene's mock texture cache. */
+    /** Returns the scene's mock texture cache. */
     function textures(): MockTextures {
       return boardScene.textures as unknown as MockTextures;
     }
 
-    /** Every sprite the board draws, cards and pile placeholders alike. */
+    /** Returns every sprite the board draws, cards and placeholders alike. */
     function allSprites(): MockSprite[] {
       const backgrounds = fakeGame.piles
         .map((pile) => boardScene.pileBackgroundSprite(pile.id))
@@ -152,7 +152,7 @@ describe("BoardScene", () => {
       return [...allCardSprites(), ...backgrounds];
     }
 
-    /** The distinct texture keys the board is currently drawing from. */
+    /** Returns the distinct texture keys the board is drawing from. */
     function texturesInUse(): string[] {
       return [...new Set(allSprites().map((sprite) => sprite.texture.key))];
     }
@@ -245,7 +245,7 @@ describe("BoardScene", () => {
       expect(loader().requested).toEqual([]);
     });
 
-    /** What the board has said about the deck, as `<kind>:<deck>` pairs. */
+    /** Returns what the board said about the deck, as `<kind>:<deck>` pairs. */
     function statusesReported(): string[] {
       return presentation.cardDeckStatuses.map(
         (status) => `${status.kind}:${status.deckId}`,
@@ -421,9 +421,8 @@ describe("BoardScene", () => {
 
   describe("auto-moved card", () => {
     /**
-     * Puts the ace of hearts face up on top of tableau 0, lays the board out,
-     * then double clicks it so the model moves it to a foundation. Returns its
-     * sprite, which is still back at the tableau with the board to cross.
+     * Puts the ace of hearts on top of tableau 0 and double clicks it to a
+     * foundation, returning its sprite, which is still back at the tableau.
      */
     function autoMoveTheAce(): MockSprite {
       const ace = relocate(fakeGame, "card-hearts-ace", fakeGame.tableaus[0]);
@@ -475,8 +474,7 @@ describe("BoardScene", () => {
 
       boardScene.update(16, 16);
 
-      // A single press reports no move of its own, so before the model was
-      // asked these took the waste's depth the instant they were drawn.
+      // A draw is not a move, but the model still announces what it moved.
       const restingDepth = deepestCardExcept(...drawn);
       expect(drawn.every((sprite) => sprite.depth > restingDepth)).toBe(true);
     });
@@ -492,8 +490,7 @@ describe("BoardScene", () => {
       fakeGame.undo();
       boardScene.update(32, 16);
 
-      // Undo never passes through the intent pipeline at all, so nothing used
-      // to lift the card it sent back across the board.
+      // Undo bypasses the intent pipeline, but the model still announces it.
       expect(sprite.depth).toBeGreaterThan(deepestCardExcept(sprite));
     });
 
@@ -540,7 +537,7 @@ describe("BoardScene", () => {
       });
     });
 
-    /** Whether any highlight border is currently drawn. */
+    /** Returns whether any highlight border is currently drawn. */
     function anyBorderDrawn(): boolean {
       return borders.some((border) => border.visible);
     }

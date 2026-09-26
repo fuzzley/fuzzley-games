@@ -13,9 +13,8 @@ describe("card decks", () => {
   });
 
   it("offers the deck a new player is given", () => {
-    // A default nothing in the catalog matches would leave the settings drawer
-    // with no option checked and the loader asking for an atlas that is not
-    // built.
+    // Otherwise the drawer would check no deck and the loader would ask for an
+    // atlas that is not built.
     expect(isCardDeckId(DEFAULT_CARD_DECK)).toBe(true);
   });
 
@@ -28,9 +27,7 @@ describe("card decks", () => {
   });
 
   it("gives every deck a pip coverage no other deck claims", () => {
-    // What the settings drawer draws its preview from: two decks claiming the
-    // same coverage would be offered as two identical pictures, and the choice
-    // between them would look like it does nothing.
+    // The drawer previews coverage, so two decks sharing one would look alike.
     const coverages = CARD_DECKS.map((deck) => deck.pipCoverage);
 
     expect(new Set(coverages).size).toBe(CARD_DECKS.length);

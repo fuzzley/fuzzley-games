@@ -41,7 +41,6 @@ describe("board_view_state_builder", () => {
 
   it("computes positions, scales, and depths for all piles and card views", () => {
     emptyBoard(game);
-    // Relocate one card to tableau-0
     const card = relocate(game, "card-hearts-ace", game.tableaus[0], true);
 
     const viewState = buildFakeTableViewState(game, presentation)(
@@ -132,7 +131,7 @@ describe("board_view_state_builder", () => {
   });
 
   describe("a stack flying to the pile it was moved to", () => {
-    /** The depth of the topmost card on the board as it currently stands. */
+    /** Returns the depth of the topmost card on the board as it stands. */
     function deepestRestingDepth(): number {
       const viewState = buildFakeTableViewState(game, presentation)(
         interaction,
@@ -446,7 +445,7 @@ describe("board_view_state_builder", () => {
   });
 
   describe("drag highlights", () => {
-    /** The layout origin of a pile at this viewport. */
+    /** Returns the layout origin of a pile at this viewport. */
     function originOf(pileId: string): { x: number; y: number } {
       return measureFakeTable(viewport).origins.get(pileId)!;
     }

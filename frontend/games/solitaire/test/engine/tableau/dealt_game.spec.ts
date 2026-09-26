@@ -25,11 +25,8 @@ function zone(id: string, overrides: Partial<ZoneSpec> = {}): ZoneSpec {
 }
 
 /**
- * The smallest dealt game there is: every card goes onto one pile, and the game
- * is won once they have all reached the other.
- *
- * Plain on purpose, so these tests are about the deal-and-restart cycle rather
- * than about any particular solitaire.
+ * Plays the smallest dealt game there is: every card goes onto one pile, and
+ * the game is won once they have all reached the other.
  */
 class TestDealtGame extends DealtTableGame {
   /** Every deal this game has laid out, in order, for asserting a replay. */
@@ -45,9 +42,8 @@ class TestDealtGame extends DealtTableGame {
   }
 
   /*
-   * Drains the deck, as every real game's deal does and as the contract on
-   * `dealBoard` invites. A deal that merely iterated would leave the stored
-   * deal intact by accident and hide whether a restart is replayable twice.
+   * Drains the deck, as a real game's deal does, so the tests see whether a
+   * restart replays from a copy.
    */
   protected override dealBoard(deck: PlayingCard[]): void {
     this.deals.push(deck.map((card) => card.id));
@@ -128,9 +124,8 @@ describe("DealtTableGame", () => {
     });
 
     /*
-     * The reason a restart cannot simply re-add the stored cards: a card is a
-     * persistent instance shared with its sprite, and the game just played left
-     * some of them turned over.
+     * Cards are persistent instances, so the game just played left some of
+     * them turned over.
      */
     it("turns the stored deal back to the side the deck deals", () => {
       game.startNewGame();
@@ -143,10 +138,8 @@ describe("DealtTableGame", () => {
     });
 
     /*
-     * The stored deal is handed to `dealBoard`, which is free to drain it — so
-     * it has to be handed a copy. Restarting once and restarting twice are
-     * different code paths only because the first restart used to empty the
-     * very thing the second one replays from.
+     * `dealBoard` may drain what it is given, so a restart must hand it a copy
+     * or the next restart has nothing to replay.
      */
     it("deals the same cards again however many times it is restarted", () => {
       game.startNewGame();
@@ -189,10 +182,6 @@ describe("DealtTableGame", () => {
       expect(wins).toBe(0);
     });
 
-    /*
-     * An empty board is not a won one. Counting against the cards actually in
-     * play is also what lets a short injected deck reach a coherent end.
-     */
     it("does not call an undealt board a win", () => {
       let wins = 0;
       game.on("game-won", () => wins++);

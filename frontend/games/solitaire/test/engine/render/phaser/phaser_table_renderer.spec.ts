@@ -70,7 +70,7 @@ describe("PhaserTableRenderer", () => {
     return sprite;
   }
 
-  /** A card view with the fields this suite does not care about filled in. */
+  /** Returns a card view with the fields this suite ignores filled in. */
   function cardView(
     overrides: Partial<CardView> & { cardId: string },
   ): CardView {
@@ -87,7 +87,7 @@ describe("PhaserTableRenderer", () => {
     };
   }
 
-  /** A highlight view sized 100x150 at scale 1, anchored as given. */
+  /** Returns a highlight view sized 100x150 at scale 1, anchored as given. */
   function highlightView(
     anchor: HighlightView["anchor"],
     overrides: Partial<HighlightView> = {},
