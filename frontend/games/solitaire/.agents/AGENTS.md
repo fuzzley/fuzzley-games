@@ -224,6 +224,39 @@ per-tool directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
 
 ---
 
+## Writing Documentation
+
+These rules cover every doc comment: classes, interfaces, functions, HTML, SCSS, workflows and scripts.
+
+- **Open with one sentence.** The first paragraph is a single sentence that briefly says what the thing does or what it is for.
+- **Classes and interfaces:** Write the sentence as if "This class", "This interface", or "An instance of this class" came before it, e.g. `Records the moves a game has applied so they can be taken back.`, not `This class records…` or `A class that records…`.
+- **Functions and methods:** Write in the third person, always starting with a verb prhase, as if "This function" came before it, e.g. `Returns the pile under a point.` or `Moves the top card to its foundation.`
+- **Further paragraphs are rare.** Add additional paragarphs only when it stops a caller from misusing the code, or when it answers a "why" that a reader is very likely to ask and cannot answer from the name or the code itself. Don't use one to restate the implementation, list alternatives you rejected, or tell the history of the code.
+- **`@param` and `@returns` only when they add something.** Leave them out when they only repeat the name and type or when they are already described sufficiently in the description.
+- **Inline comments follow the same rules:** Only for what the code cannot say for itself (e.g. disambiguate a "why" that a user is very likely to ask after reading the code).
+
+```ts
+// Too much
+/**
+ * Subscribes a listener to a specific event.
+ *
+ * Subscriptions are managed using a registry that maps event names to arrays of
+ * listener functions. This allows for efficient registration and unregistration
+ * of listeners without the need for manual cleanup.
+ *
+ * @param event The name of the event to listen for.
+ * @param listener The callback function to invoke when the event is emitted.
+ * @returns Unsubscribes the listener. Handing back a disposer means a caller
+ *   that subscribes an inline closure can still let go of it, without having
+ *   to keep a reference around to pass to {@link off}.
+ */
+
+// Enough
+/** Subscribes a listener to an event and returns a function that unsubscribes it. */
+```
+
+---
+
 ## Writing Unit Tests
 
 - **Test Coverage:** Maintain high test coverage after modifying code. `vitest.config.ts` enforces a floor (90% statements/functions/lines, 80% branches); `yarn test:coverage` fails below it. Raise the floor as the real figures rise.
