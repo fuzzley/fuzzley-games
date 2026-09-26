@@ -21,11 +21,11 @@ start at the first unticked item. Delete this file once every item is done.
 
 ## Engine and game structure
 
-- [ ] **One place to record game actions.** A single engine method counts the
-      move, records it and checks for a win, so no game increments the move
-      count by hand.
-- [ ] **Shared deal-and-collect helper.** Spider, Spiderette and Scorpion use
-      one helper instead of three copies.
+- [x] **One place to record game actions.** `TableGame.commitAction` counts the
+      move, records it and checks for a win. Montana's win moved from the
+      removed `afterMove` hook to an `isWon` override.
+- [x] **Shared deal-and-collect helper.** `dealRowCollectingRuns` in
+      `games/common/row_deal.ts`.
 - [ ] **Set each game's zones once, when the game is built.** Replace the zones
       callback with a plain list and delete the memoizer and cache logic.
 - [ ] **Pass Klondike a draw count instead of a settings object.** The tests

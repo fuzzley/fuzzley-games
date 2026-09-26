@@ -127,7 +127,6 @@ export class KlondikeGame extends DealtTableGame {
       return;
     }
 
-    this.state.moves++;
     if (!this.stock.isEmpty) {
       this.drawFromStock();
     } else {
@@ -137,7 +136,7 @@ export class KlondikeGame extends DealtTableGame {
 
   /** Draws up to drawCount cards from the stock pile onto the waste pile. */
   private drawFromStock(): void {
-    this.recordTransfers(
+    this.commitAction(
       "draw",
       drawToWaste(this.stock, this.waste, this.settings.drawCount),
     );
@@ -156,11 +155,9 @@ export class KlondikeGame extends DealtTableGame {
     );
     this.state.score = Math.max(0, this.state.score - penalty);
 
-    this.recordTransfers(
-      "recycle",
-      recycleWasteToStock(this.waste, this.stock),
-      { scoreDelta: this.state.score - scoreBefore },
-    );
+    this.commitAction("recycle", recycleWasteToStock(this.waste, this.stock), {
+      scoreDelta: this.state.score - scoreBefore,
+    });
   }
 
   // --- What a Klondike move does beyond moving its cards ---

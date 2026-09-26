@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { CardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { dealRowFromStock } from "@/games/common/row_deal";
+import { ALL_RANKS, PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import {
+  dealRowCollectingRuns,
+  dealRowFromStock,
+} from "@/games/common/row_deal";
 import { makePlayingCard } from "@test/support/card_builder";
 
 /**
@@ -27,6 +30,29 @@ function columnsOf(count: number): CardPile<PlayingCard>[] {
 /** Returns the ids of a pile's cards, bottom first. */
 function idsIn(pile: CardPile<PlayingCard>): string[] {
   return pile.getCards().map((card) => card.id);
+}
+
+/** Returns a face-up spade of the given rank, named for its rank. */
+function spade(rank: Rank, faceUp = true): PlayingCard {
+  return makePlayingCard({ id: `spade-${rank}`, rank, faceUp });
+}
+
+/** Returns a pile holding the given cards, bottom first. */
+function pileOf(
+  id: string,
+  cards: readonly PlayingCard[] = [],
+): CardPile<PlayingCard> {
+  const pile = new CardPile<PlayingCard>(id);
+  for (const card of cards) pile.addCard(card);
+  return pile;
+}
+
+/** Returns King down to Two of spades, bottom first: a run the Ace finishes. */
+function runAwaitingAce(): PlayingCard[] {
+  return [...ALL_RANKS]
+    .reverse()
+    .filter((rank) => rank !== Rank.ACE)
+    .map((rank) => spade(rank));
 }
 
 describe("dealRowFromStock", () => {
@@ -129,5 +155,69 @@ describe("dealRowFromStock", () => {
         faceUpBefore: false,
       },
     ]);
+  });
+});
+
+describe("dealRowCollectingRuns", () => {
+  it("sends a run the dealt card completes to a foundation", () => {
+    const column = pileOf("tableau-0", runAwaitingAce());
+    const foundation = pileOf("foundation-0");
+
+    dealRowCollectingRuns(
+      pileOf("stock", [spade(Rank.ACE, false)]),
+      [column],
+      [column],
+      [foundation],
+    );
+
+    expect([column.size, foundation.size]).toEqual([0, 13]);
+  });
+
+  it("reports the deal and then the run it completed, as one action", () => {
+    const column = pileOf("tableau-0", runAwaitingAce());
+
+    const { transfers } = dealRowCollectingRuns(
+      pileOf("stock", [spade(Rank.ACE, false)]),
+      [column],
+      [column],
+      [pileOf("foundation-0")],
+    );
+
+    expect(transfers.map((t) => [t.fromPileId, t.toPileId])).toEqual([
+      ["stock", "tableau-0"],
+      ["tableau-0", "foundation-0"],
+    ]);
+  });
+
+  it("collects a finished run from a column it did not deal to", () => {
+    const dealtTo = pileOf("tableau-0");
+    const finished = pileOf("tableau-1", [
+      ...runAwaitingAce(),
+      spade(Rank.ACE),
+    ]);
+    const foundation = pileOf("foundation-0");
+
+    dealRowCollectingRuns(
+      stockOf(1),
+      [dealtTo],
+      [dealtTo, finished],
+      [foundation],
+    );
+
+    expect(foundation.size).toBe(13);
+  });
+
+  it("reports a card that taking a run off turned face up", () => {
+    const buried = makePlayingCard({ id: "buried", faceUp: false });
+    const column = pileOf("tableau-0", [buried, ...runAwaitingAce()]);
+
+    const { flippedCardIds } = dealRowCollectingRuns(
+      pileOf("stock", [spade(Rank.ACE, false)]),
+      [column],
+      [column],
+      [pileOf("foundation-0")],
+    );
+
+    expect(flippedCardIds).toEqual(["buried"]);
   });
 });

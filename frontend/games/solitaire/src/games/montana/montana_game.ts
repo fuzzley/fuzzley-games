@@ -7,7 +7,7 @@ import { readNumber, readObject } from "@/engine/core/common/json_reader";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { AppliedMove, CardTransfer } from "@/engine/tableau/move";
-import { ResolvedMove } from "@/engine/tableau/table_game";
+
 import {
   MONTANA_DECK,
   dealMontanaLayout,
@@ -64,7 +64,7 @@ export class MontanaGame extends DealtTableGame {
       // A card fits at most one gap, so auto-moving it guesses nothing.
       autoMoveRoles: [MontanaRole.CELL],
       // Deliberately absent: this game is won by arrangement, not by gathering
-      // cards into a role. See `afterMove`.
+      // cards into a role. See `isWon`.
     });
 
     this.random = random;
@@ -85,15 +85,11 @@ export class MontanaGame extends DealtTableGame {
   // --- The win ---
 
   /**
-   * Announces the win when the grid comes out in order.
-   *
-   * @inheritDoc
+   * Returns whether the grid has come out in order, which is how Montana is
+   * won.
    */
-  protected override afterMove(move: ResolvedMove): void {
-    void move;
-    if (isMontanaSolved(this.rows)) {
-      this.emit("game-won", undefined);
-    }
+  protected override isWon(): boolean {
+    return isMontanaSolved(this.rows);
   }
 
   // --- The redeal ---
@@ -121,7 +117,6 @@ export class MontanaGame extends DealtTableGame {
     }
 
     this.redealsUsed++;
-    this.state.moves++;
 
     const shuffled = this.gatherable();
     shuffle(shuffled, this.random);
@@ -155,7 +150,7 @@ export class MontanaGame extends DealtTableGame {
       });
     });
 
-    this.recordTransfers("redeal", transfers);
+    this.commitAction("redeal", transfers);
     return true;
   }
 
