@@ -1,17 +1,10 @@
 /**
- * A minimal `<dialog>` implementation for jsdom.
+ * Implements the parts of `<dialog>` the application relies on, which jsdom
+ * parses without implementing.
  *
- * jsdom 30 parses the element and reflects its `open` attribute but ships none
- * of its methods, so `showModal()` is undefined and every spec touching a
- * modal throws. This fills that gap rather than the components defending
- * against it: the production code targets browsers, where `<dialog>` is the
- * whole point of the component, and it should not carry `?.` guards for a test
- * environment's missing API.
- *
- * Modelled on the parts of the specification the application actually relies
- * on: opening moves focus in, Escape raises `cancel`, closing raises `close`
- * and restores focus. The top layer, `::backdrop` and inertness have no
- * meaning without layout, so they are not simulated.
+ * Opening moves focus in, Escape raises `cancel`, and closing raises `close`
+ * and restores focus. The top layer, `::backdrop` and inertness mean nothing
+ * without layout, so they are left out.
  */
 
 /** Elements a browser would consider for initial dialog focus. */

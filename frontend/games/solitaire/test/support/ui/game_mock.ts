@@ -3,7 +3,7 @@ import type { GameSnapshot } from "@/engine/tableau/game_snapshot";
 import { GameState } from "@/engine/tableau/game_state";
 import type { PlayableGame } from "@/engine/tableau/playable_game";
 
-/** The starting readings of a mock game. */
+/** Sets the starting readings of a mock game. */
 export interface MockGameModelOverrides {
   score?: number;
   moves?: number;
@@ -11,11 +11,8 @@ export interface MockGameModelOverrides {
 }
 
 /**
- * A stand-in for a dealt game, exposing the live state the UI follows.
- *
- * Holds a real {@link GameState} rather than stubbed streams, so a spec sets a
- * score or a move count the way the game itself does — `state.score = 350` —
- * and the publishing behaviour under test is the real one.
+ * Creates a stand-in for a dealt game, with a real {@link GameState} that a
+ * spec sets as the game itself would.
  */
 export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
   /** Listeners registered by whoever is following this game. */
@@ -39,12 +36,7 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
       listeners.get(event)?.delete(callback);
     },
 
-    /**
-     * Raises an event as the real game would.
-     *
-     * Lets a spec win a game by the route the application uses, rather than by
-     * reaching past it and setting a flag.
-     */
+    /** Raises an event as the real game would. */
     emit(event: string) {
       listeners.get(event)?.forEach((callback) => callback());
     },
@@ -53,7 +45,7 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
     restartGame: vi.fn(),
     undo: vi.fn(),
 
-    /** An empty board carrying the mock's score and moves. */
+    /** Returns an empty board carrying the mock's score and moves. */
     snapshot: vi.fn((): GameSnapshot => ({
       piles: [],
       score: state.score,
@@ -69,12 +61,8 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
 export type MockGameModel = ReturnType<typeof createMockGameModel>;
 
 /**
- * The mock as the game type the catalog session holds.
- *
- * No cast: the mock implements {@link PlayableGame} structurally, and this
- * signature is what checks that it still does. If the interface grows a member
- * the mock lacks, this fails to compile rather than the mock quietly diverging
- * from the thing it stands in for.
+ * Returns the mock as the game type the catalog session holds, which checks at
+ * compile time that it still fits.
  */
 export function asGameModel(mock: MockGameModel): PlayableGame {
   return mock;

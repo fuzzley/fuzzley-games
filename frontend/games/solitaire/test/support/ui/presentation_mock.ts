@@ -7,13 +7,8 @@ import type {
 import { CardDeckId, DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
 
 /**
- * A mock of the presentation settings, which are no longer part of any game.
- *
- * Separate from the game mock because the split is the point: a card back and
- * a felt colour outlive whichever game is being played.
- *
- * The setters hold real state behind the spy, so a spec can assert either the
- * call or the value it produced — the latter usually reads better.
+ * Creates a mock of the presentation settings whose setters hold real state
+ * behind their spies.
  */
 export function createMockPresentation(
   overrides: {

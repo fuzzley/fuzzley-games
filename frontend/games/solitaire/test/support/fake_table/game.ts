@@ -11,20 +11,11 @@ import { FakeRole, STOCK_PILE_ID, WASTE_PILE_ID, fakeZoneSpecs } from "./zones";
 export const DEFAULT_DRAW_COUNT = 3;
 
 /**
- * A solitaire that exists only to be run by the engine.
+ * Plays a solitaire that exists only for the engine's tests, so they need not
+ * import a real game from the tier above.
  *
- * Every engine test needs *a* game to drive, and Klondike used to be it — which
- * left `test/engine` importing `@/games/klondike` in seven files, so the tier
- * boundary the lint config calls "enforced, not asserted" held for `src` and
- * quietly did not for the tests. Worse, it made the engine's specs break
- * whenever Klondike changed, which is precisely backwards.
- *
- * Shaped like a conventional solitaire on purpose: a stock that draws into a
- * waste, foundations built up, columns fanned down, and a card turned over when
- * a move exposes it. That covers the cases the engine has to handle — a pile
- * that is clickable but not draggable, one drawn face-down whatever its cards
- * say, one with no placeholder behind it, and a fan that expands under the
- * pointer — without being any game in particular.
+ * Its stock, waste, foundations and fanned columns cover the piles the engine
+ * has to handle without being any game in particular.
  */
 export class FakeTableGame extends DealtTableGame {
   /** The face-down pile a press draws from. */
@@ -40,11 +31,10 @@ export class FakeTableGame extends DealtTableGame {
   public readonly drawCount: number;
 
   /**
-   * @param cardIds The card identities to deal from. Defaults to a full 52-card
-   *   deck; a partial set exercises short-deck handling.
-   * @param random Source of shuffle randomness, injectable for a fixed deal.
-   * @param drawCount How many cards a draw turns over. A constructor parameter
-   *   because the zones are built from it during `super`.
+   * Creates a game whose piles are empty until the first deal.
+   *
+   * @param drawCount How many cards a draw turns over, passed in because the
+   *   zones are built from it during `super`.
    */
   constructor(
     cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
@@ -89,8 +79,8 @@ export class FakeTableGame extends DealtTableGame {
   }
 
   /**
-   * Draws from the stock onto the waste, or recycles the waste when the stock
-   * has run out. Does nothing when both are empty.
+   * Draws from the stock onto the waste, or recycles the waste once the stock
+   * is empty.
    */
   public drawCardsFromStock(): void {
     if (this.stock.isEmpty && this.waste.isEmpty) {
@@ -115,8 +105,8 @@ export class FakeTableGame extends DealtTableGame {
 
     this.recordTransfers("draw", [
       {
-        // Reversed: the cards came off the top of the stock, so the order they
-        // were drawn in is the opposite of the order they sat in.
+        // Reversed into the order they sat in the stock, which a transfer
+        // records.
         cardIds: drawn.reverse().map((card) => card.id),
         fromPileId: this.stock.id,
         toPileId: this.waste.id,
@@ -152,9 +142,8 @@ export class FakeTableGame extends DealtTableGame {
    * @inheritDoc
    */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
-    // Spelled out rather than borrowed from `games/common`: a fixture the
-    // engine's own tests run on must not reach into the tier above it, or the
-    // boundary it exists to protect is breached by the thing protecting it.
+    // Not borrowed from `games/common`, which the engine's tests must not
+    // import.
     const exposed =
       move.sourcePile.role === FakeRole.TABLEAU
         ? move.sourcePile.topCard

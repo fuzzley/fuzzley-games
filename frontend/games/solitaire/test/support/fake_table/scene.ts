@@ -9,13 +9,7 @@ import {
 } from "./board";
 import { FakeTableGame } from "./game";
 
-/**
- * Builds the Phaser board scene that draws the fake game.
- *
- * Kept apart from `board.ts` because this is the only half that names Phaser:
- * the specs that exercise layout maths and view state run without a canvas, and
- * importing a scene into them would drag the whole renderer along.
- */
+/** Builds the Phaser board scene that draws the fake game. */
 export function makeFakeTableBoardScene(
   game: FakeTableGame,
   presentation: TablePresentation,

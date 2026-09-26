@@ -21,22 +21,13 @@ import { FakeTableGame, DEFAULT_DRAW_COUNT } from "./game";
 import { FakeRole, TABLEAU_COUNT, fakeZoneSpecs } from "./zones";
 
 /*
- * Deliberately free of Phaser, and of anything that imports it.
- *
- * The layout maths, the view state and the drop resolver are all renderer
- * agnostic, and the specs that exercise them run without a canvas and without a
- * Phaser mock. Importing `BoardScene` here would drag the whole engine into
- * every one of them, which is how this file first broke them. The scene lives
- * next door in `scene.ts` for exactly that reason.
+ * Deliberately free of Phaser, so the specs using it run without a canvas; the
+ * scene lives in `scene.ts`.
  */
 
 /**
- * The grid the fake board lies on.
- *
- * Seven columns and two rows, with the slots taken from the zone specs rather
- * than restated, so a pile cannot be declared in one place and positioned in
- * another. The design height reserves room below the grid for a column fanned
- * deeper than its row.
+ * The grid the fake board lies on: seven columns by two rows, with room below
+ * for a fanned column.
  */
 export const FAKE_TABLE_LAYOUT = tableLayout({
   columns: TABLEAU_COUNT,
@@ -70,11 +61,8 @@ export function resolveFakeTableDropTarget(
 }
 
 /**
- * What a press or a drop means on the fake board.
- *
- * Pressing the top of the stock draws; pressing the empty stock recycles;
- * double-pressing a card in a column or the waste sends it wherever it will go.
- * Enough shape for the input tests to have something to assert against.
+ * Returns what a press or a drop means on the fake board, where pressing the
+ * stock draws and pressing it empty recycles.
  */
 export function fakeTableGestures(game: FakeTableGame): IntentHandler {
   return (intent) => {
@@ -119,7 +107,7 @@ export function fakeTableGestures(game: FakeTableGame): IntentHandler {
   };
 }
 
-/** The cards a drag of the given card picks up. */
+/** Returns the cards a drag of the given card picks up. */
 export function fakeTableStackFromCard(
   game: FakeTableGame,
 ): (cardId: string) => readonly string[] {

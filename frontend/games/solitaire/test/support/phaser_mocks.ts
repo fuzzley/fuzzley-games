@@ -9,8 +9,8 @@ import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
 const FRAME_ANCHOR = 0.5;
 
 /**
- * A shadow filter recorded by a mock sprite. Field names follow Phaser's
- * `addShadow(x, y, decay, power, color, samples, intensity)` parameters.
+ * Records a shadow filter a mock sprite was given, with fields named after
+ * Phaser's `addShadow(x, y, decay, power, color, samples, intensity)`.
  */
 export interface ShadowConfig {
   x: number;
@@ -23,17 +23,15 @@ export interface ShadowConfig {
   /** Which of the sprite's two filter lists the shadow was added to. */
   list: "internal" | "external";
   /**
-   * The padding override the shadow was left with. Null means the override was
-   * cleared so the filter computes the room it needs.
+   * The padding override the shadow was left with, or null once cleared so the
+   * filter computes its own.
    */
   paddingOverride: number[] | null;
 }
 
 /**
- * A lightweight stand-in for a Phaser sprite. Setter methods record their
- * effect on plain fields so tests can assert resulting state, and it registers
- * and dispatches its own pointer listeners so tests can drive interaction with
- * {@link MockSprite.emit} instead of reaching into mock call internals.
+ * Stands in for a Phaser sprite, recording what its setters do on plain fields
+ * and dispatching its own pointer listeners through {@link MockSprite.emit}.
  */
 export interface MockSprite {
   x: number;
@@ -43,11 +41,7 @@ export interface MockSprite {
   originY: number;
   depth: number;
   scale: number;
-  /**
-   * Modelled as Phaser has it — an object with a name, not a bare string —
-   * because production code reads `sprite.frame.name` to keep a sprite on the
-   * frame it is showing while its texture changes underneath it.
-   */
+  /** The frame, as an object with a name, since the sources read its name. */
   frame: { name: string };
   /** The texture the sprite draws from, as Phaser's `sprite.texture.key`. */
   texture: { key: string };
@@ -77,7 +71,7 @@ export interface MockSprite {
   emit(event: string, ...args: unknown[]): void;
 }
 
-/** The filter handle {@link MockSprite}'s `addShadow` returns. */
+/** Stands in for the filter handle {@link MockSprite}'s `addShadow` returns. */
 export interface MockShadowFilter {
   setPaddingOverride(
     left: number | null,
@@ -87,7 +81,7 @@ export interface MockShadowFilter {
   ): MockShadowFilter;
 }
 
-/** Overridable initial fields for a {@link MockSprite}. */
+/** Overrides the initial fields of a {@link MockSprite}. */
 export type MockSpriteOptions = Partial<
   Pick<MockSprite, "x" | "y" | "active" | "displayWidth" | "displayHeight">
 > & {
@@ -176,15 +170,10 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
     },
     setTexture(key: string, frame?: string): MockSprite {
       sprite.texture = { key };
-      // Phaser keeps the current frame when none is named, and so does this:
-      // a swap that dropped the frame would leave the sprite showing the whole
-      // atlas page, which is the bug worth being able to catch.
+      // Phaser keeps the current frame when none is named.
       if (frame !== undefined) sprite.frame = { name: frame };
-      // And moves the origin onto the new frame's own anchor, which a Sprite
-      // gives no way to opt out of. Modelled because the card frames are
-      // anchored at their centres while the board places cards by their top
-      // left corner: a swap that did not put the origin back would shift the
-      // whole table by half a card.
+      // Phaser also moves the origin to the new frame's centred anchor, which
+      // the sources have to undo.
       sprite.originX = FRAME_ANCHOR;
       sprite.originY = FRAME_ANCHOR;
       return sprite;
@@ -231,9 +220,8 @@ export function asSprite(sprite: MockSprite): Phaser.GameObjects.Sprite {
 }
 
 /**
- * A mock Phaser Graphics object whose draw methods are spies. Transform and
- * visibility setters record onto plain fields so tests can assert where a
- * border ended up rather than that a setter was called.
+ * Stands in for a Phaser Graphics object, with spies for drawing and plain
+ * fields for where it was put and whether it shows.
  */
 export interface MockGraphics {
   x: number;
@@ -287,7 +275,7 @@ export function createMockGraphics(): MockGraphics {
   return graphics;
 }
 
-/** A rectangle with the surface of Phaser.Geom.Rectangle used by sources. */
+/** Stands in for the parts of Phaser.Geom.Rectangle the sources use. */
 export class MockRectangle {
   constructor(
     public x = 0,
@@ -326,10 +314,11 @@ export function rectangleIntersection(
 }
 
 /**
- * Returns a partial mock of the phaser module exposing only Geom.Rectangle,
- * enough for sources that compute rectangle overlaps. Load it from an async
- * `vi.mock("phaser", ...)` factory so the phaser module is not required at
- * runtime in the node test environment.
+ * Returns a mock of the phaser module holding only Geom.Rectangle, enough for
+ * sources that compute rectangle overlaps.
+ *
+ * Load it from an async `vi.mock("phaser", ...)` factory, so the node test
+ * environment never loads the real phaser module.
  */
 export function geomPhaserMock(): {
   Geom: { Rectangle: typeof MockRectangle };
@@ -343,7 +332,7 @@ export function geomPhaserMock(): {
   };
 }
 
-/** A mock Phaser input system that records and dispatches its listeners. */
+/** Stands in for a Phaser input system, recording and dispatching listeners. */
 export interface MockInput {
   on: Mock;
   setDraggable: Mock;
@@ -372,7 +361,7 @@ export function createMockInput(): MockInput {
   return input;
 }
 
-/** A mock Phaser scene event emitter, enough for lifecycle hooks. */
+/** Stands in for a Phaser scene's event emitter, enough for lifecycle hooks. */
 export interface MockSceneEvents {
   once: Mock;
   on: Mock;
@@ -415,7 +404,7 @@ export function createMockSceneEvents(): MockSceneEvents {
   };
 }
 
-/** A mock Phaser texture cache, holding just the keys that are registered. */
+/** Stands in for a Phaser texture cache, holding just the registered keys. */
 export interface MockTextures {
   exists(key: string): boolean;
   /** Registers a texture, as a completed load would. */
@@ -439,11 +428,8 @@ export function createMockTextures(...keys: string[]): MockTextures {
 }
 
 /**
- * A mock Phaser loader.
- *
- * Records what was asked for and leaves finishing it to the test, because when
- * a load completes — and whether it produces a texture at all — is exactly what
- * the deck swap has to get right.
+ * Stands in for a Phaser loader, recording what was asked for and leaving the
+ * test to finish each load.
  */
 export interface MockLoader {
   multiatlas: Mock;
@@ -454,9 +440,9 @@ export interface MockLoader {
   /**
    * Fires the loader's completion listeners.
    *
-   * @param textures Registers the requested keys first, as a successful load
-   *   would. Pass false to complete without them, which is what a failed load
-   *   looks like from here.
+   * @param textures The cache to register the requested keys in first, as a
+   *   successful load would; false completes without them, as a failed load
+   *   does.
    */
   complete(textures?: MockTextures | false): void;
 }
@@ -485,7 +471,7 @@ export function createMockLoader(): MockLoader {
   };
 }
 
-/** A mock Phaser scale manager that records and dispatches its listeners. */
+/** Stands in for a Phaser scale manager, recording and firing listeners. */
 export interface MockScaleManager {
   on: Mock;
   emit(event: string, ...args: unknown[]): void;
@@ -509,10 +495,11 @@ export function createMockScaleManager(): MockScaleManager {
 }
 
 /**
- * Returns a mock of the phaser module suitable for exercising BoardScene: a
- * Scene base class exposing recording add/scale/input members plus a
- * Geom.Rectangle stand-in. Load it from an async `vi.mock("phaser", ...)`
- * factory so the real phaser module is not required in the node environment.
+ * Returns a mock of the phaser module for exercising BoardScene: a Scene base
+ * class with recording members, and a Geom.Rectangle stand-in.
+ *
+ * Load it from an async `vi.mock("phaser", ...)` factory, so the node test
+ * environment never loads the real phaser module.
  */
 export function boardScenePhaserMock(): {
   Scene: new (...args: unknown[]) => {
@@ -562,9 +549,8 @@ export function boardScenePhaserMock(): {
 export const SHUTDOWN_EVENT = "shutdown";
 
 /**
- * The event raised after the first frame is drawn, matching Phaser's own. A
- * board announces it is ready on this one, since that is the first moment
- * there is something on the canvas to show.
+ * The event raised after a frame is drawn, matching Phaser's own, on which a
+ * board announces it is ready.
  */
 export const POST_UPDATE_EVENT = "postupdate";
 
@@ -572,10 +558,8 @@ export const POST_UPDATE_EVENT = "postupdate";
 export const LOADER_COMPLETE_EVENT = "complete";
 
 /**
- * The texture a mock scene starts with loaded.
- *
- * Matches the deck {@link TestPresentation} reports by default, so a board
- * scene built over the two finds its own deck already in the cache — the same
- * way a real one does, the loading scene having fetched it first.
+ * The texture a mock scene starts with loaded: the deck
+ * {@link TestPresentation} reports by default, as a loading scene would have
+ * fetched it.
  */
 export const BOOT_TEXTURE_KEY = `cards:${DEFAULT_CARD_DECK}`;

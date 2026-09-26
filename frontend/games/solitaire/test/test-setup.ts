@@ -16,11 +16,8 @@ if (typeof window !== "undefined") {
 installCompressionStreams();
 
 /**
- * An in-memory Storage for the node test environment, which has no
- * localStorage. LocalStorageService reads and writes it on behalf of the
- * settings that persist — the chosen game, its rules, the card back and the
- * felt — so specs touching any of them need a working implementation rather
- * than a stub that throws.
+ * Returns an in-memory Storage for the node test environment, which has no
+ * localStorage.
  */
 function createMemoryStorage(): Storage {
   const entries = new Map<string, string>();
@@ -50,10 +47,8 @@ if (!globalThis.localStorage) {
   });
 }
 
-// The persisted settings share one store across every test, so a test that
-// flips one would otherwise change the starting conditions of everything that
-// ran after it — a game left in almost-win mode deals a board with an empty
-// stock.
+// Every test shares one store, so clear it before a setting leaks into the
+// next test.
 beforeEach(() => {
   localStorage.clear();
 });
