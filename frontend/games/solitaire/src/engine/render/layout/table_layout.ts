@@ -33,7 +33,7 @@ export interface TableLayoutSpec {
   readonly columns: number;
   /** How many card-heights down the grid is. */
   readonly rows: number;
-  /** Where each pile sits. Piles absent from this list are not drawn. */
+  /** Where each pile sits; piles absent from this list are not drawn. */
   readonly slots: readonly SlotPlacement[];
   /** The size of one grid cell, in design units. */
   readonly cardSize: Size;
@@ -63,7 +63,7 @@ export interface TableGridSpec {
   readonly columns: number;
   /** How many card-heights down the grid is. */
   readonly rows: number;
-  /** Where each pile sits. Piles absent from this list are not drawn. */
+  /** Where each pile sits; piles absent from this list are not drawn. */
   readonly slots: readonly SlotPlacement[];
   /** The design height the board reserves; see {@link TableLayoutSpec}. */
   readonly designHeightPx?: number;
