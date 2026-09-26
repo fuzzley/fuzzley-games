@@ -2,6 +2,7 @@ import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
+import { readNumber, readObject } from "@/engine/core/common/json_reader";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { AppliedMove } from "@/engine/tableau/move";
@@ -22,6 +23,18 @@ import {
   klondikeZoneSpecs,
 } from "./klondike_zones";
 import { ScoringPolicy } from "./scoring_policy";
+
+/** What Klondike keeps outside its piles, for a snapshot. */
+interface KlondikeExtra {
+  /** How many times the waste has been recycled. */
+  readonly recycleCount: number;
+}
+
+/** Reads a snapshot's extra state as Klondike's. */
+function readKlondikeExtra(value: unknown): KlondikeExtra {
+  const extra = readObject(value, "extra");
+  return { recycleCount: readNumber(extra.recycleCount, "extra.recycleCount") };
+}
 
 /**
  * A standard Klondike Solitaire game.
@@ -206,6 +219,16 @@ export class KlondikeGame extends DealtTableGame {
       // So the next recycle is charged the same penalty this one was.
       this.recycleCount--;
     }
+  }
+
+  /** @inheritDoc */
+  protected override saveExtra(): KlondikeExtra {
+    return { recycleCount: this.recycleCount };
+  }
+
+  /** @inheritDoc */
+  protected override restoreExtra(extra: unknown): void {
+    this.recycleCount = readKlondikeExtra(extra).recycleCount;
   }
 
   /**

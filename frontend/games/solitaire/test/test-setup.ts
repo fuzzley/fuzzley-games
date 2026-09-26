@@ -1,5 +1,6 @@
 import "@angular/compiler";
 import { setupTestBed } from "@analogjs/vitest-angular/setup-testbed";
+import { installCompressionStreams } from "./support/compression_streams";
 import { installDialogPolyfill } from "./support/dialog_polyfill";
 
 setupTestBed({
@@ -11,6 +12,8 @@ setupTestBed({
 if (typeof window !== "undefined") {
   installDialogPolyfill(window);
 }
+
+installCompressionStreams();
 
 /**
  * An in-memory Storage for the node test environment, which has no

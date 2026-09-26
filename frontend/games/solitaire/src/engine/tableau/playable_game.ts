@@ -1,3 +1,4 @@
+import { GameSnapshot } from "./game_snapshot";
 import { GameMetrics } from "./game_state";
 
 /** The lifecycle events every playable game publishes. */
@@ -36,6 +37,12 @@ export interface PlayableGame {
 
   /** Takes back the most recent action. */
   undo(): boolean;
+
+  /** Captures the game so it can be restored. */
+  snapshot(): GameSnapshot;
+
+  /** Puts the game back as a snapshot describes it. */
+  restore(snapshot: GameSnapshot): void;
 
   /** Subscribes to a lifecycle event. */
   on(event: PlayableGameEvent, listener: () => void): void;

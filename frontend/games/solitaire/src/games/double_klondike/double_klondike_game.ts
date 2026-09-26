@@ -2,6 +2,7 @@ import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import { readNumber, readObject } from "@/engine/core/common/json_reader";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { AppliedMove } from "@/engine/tableau/move";
@@ -35,6 +36,18 @@ const DOUBLE_KLONDIKE_SCORING_ROLES: ScoringRoles = {
 
 /** How many cards a draw turns over. */
 export const DRAW_COUNT = 3;
+
+/** What Double Klondike keeps outside its piles, for a snapshot. */
+interface DoubleKlondikeExtra {
+  /** How many times the waste has been recycled. */
+  readonly recycleCount: number;
+}
+
+/** Reads a snapshot's extra state as Double Klondike's. */
+function readDoubleKlondikeExtra(value: unknown): DoubleKlondikeExtra {
+  const extra = readObject(value, "extra");
+  return { recycleCount: readNumber(extra.recycleCount, "extra.recycleCount") };
+}
 
 /**
  * A game of Double Klondike.
@@ -183,6 +196,16 @@ export class DoubleKlondikeGame extends DealtTableGame {
       // So the next recycle is charged the same penalty this one was.
       this.recycleCount--;
     }
+  }
+
+  /** @inheritDoc */
+  protected override saveExtra(): DoubleKlondikeExtra {
+    return { recycleCount: this.recycleCount };
+  }
+
+  /** @inheritDoc */
+  protected override restoreExtra(extra: unknown): void {
+    this.recycleCount = readDoubleKlondikeExtra(extra).recycleCount;
   }
 
   /**

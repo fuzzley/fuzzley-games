@@ -8,4 +8,24 @@
       (choose)="chooseRule(option.id, $event)"
     />
   }
+
+  <div class="load-position">
+    <label class="load-label" for="load-position-text">Load Game State</label>
+    <textarea
+      #positionText
+      id="load-position-text"
+      class="load-text"
+      rows="3"
+      placeholder="Paste a bug report's game state"
+    ></textarea>
+    <button
+      type="button"
+      class="btn btn-secondary btn-block btn-load"
+      (click)="loadPosition(positionText.value)"
+    >
+      Load
+    </button>
+    <!-- Always present, so a problem is announced when it arrives. -->
+    <p class="load-problem" role="status">{{ loadProblem() }}</p>
+  </div>
 </div>

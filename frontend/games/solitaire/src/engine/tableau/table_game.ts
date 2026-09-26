@@ -546,6 +546,17 @@ export abstract class TableGame<
     this.state.undoDepth = 0;
   }
 
+  /** The actions {@link undo} can take back, oldest first. */
+  protected get appliedHistory(): readonly AppliedMove[] {
+    return this.history.entries();
+  }
+
+  /** Replaces the actions {@link undo} can take back, oldest first. */
+  protected replaceHistory(moves: readonly AppliedMove[]): void {
+    this.history.load(moves);
+    this.state.undoDepth = this.history.depth;
+  }
+
   // --- Interaction ---
 
   /** Whether the card can currently be picked up at all. */

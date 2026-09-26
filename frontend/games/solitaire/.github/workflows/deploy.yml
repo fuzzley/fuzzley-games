@@ -61,7 +61,10 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      # The commit goes into the build so a bug report can name it.
       - name: Build production assets
+        env:
+          VITE_COMMIT_SHA: ${{ github.sha }}
         run: yarn build
 
       - name: Configure git credentials

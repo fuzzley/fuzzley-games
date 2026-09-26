@@ -1,12 +1,13 @@
 import { Injectable, inject } from "@angular/core";
+import { decodePosition } from "../model/game_position";
 import { GameCatalogService } from "./game_catalog.service";
 import { GameMetricsService } from "./game_metrics.service";
 import { ConfirmationService } from "./confirmation.service";
 
 /**
  * Everything that changes which game is on the table, or throws away the one
- * that is: choosing a game, restarting, dealing afresh, changing a rule, and
- * taking a move back.
+ * that is: choosing a game, restarting, dealing afresh, changing a rule,
+ * loading a reported game, and taking a move back.
  *
  * Each destructive action asks first when a game is under way, and every one
  * of them reads the same way — confirm, then act — because
@@ -88,6 +89,42 @@ export class GameLifecycleService {
 
     this.catalog.setOption(optionId, value);
     this.metrics.reset();
+  }
+
+  /**
+   * Puts the game from a bug report's game state on the table: its game, its
+   * rules and its position.
+   *
+   * @param text The report's game state, or any text containing it.
+   * @returns Whether it was loaded, which it is not when the player declines.
+   * @throws Error if the text holds no game state, or one naming a game or
+   *   rule this build does not have, or a position that does not fit it.
+   */
+  async loadPosition(text: string): Promise<boolean> {
+    const { gameId, options, snapshot } = await decodePosition(text);
+    const entry = this.catalog.games.find((game) => game.id === gameId);
+    if (!entry) throw new Error(`There is no game "${gameId}".`);
+    for (const [optionId, value] of Object.entries(options)) {
+      const option = entry.options.find((spec) => spec.id === optionId);
+      if (!option?.choices.some((choice) => choice.value === value)) {
+        throw new Error(`${entry.name} has no rule "${optionId}" of ${value}.`);
+      }
+    }
+    if (
+      !(await this.confirmIfInProgress(
+        "Are you sure you want to load this game? Your current progress will be lost.",
+      ))
+    ) {
+      return false;
+    }
+
+    this.catalog.select(entry.id);
+    for (const [optionId, value] of Object.entries(options)) {
+      this.catalog.setOption(optionId, value);
+    }
+    this.catalog.session().game.restore(snapshot);
+    this.metrics.reset();
+    return true;
   }
 
   /** Takes back the most recent move, if there is one. */

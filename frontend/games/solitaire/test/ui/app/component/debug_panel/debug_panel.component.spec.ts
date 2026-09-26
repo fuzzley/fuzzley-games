@@ -1,9 +1,16 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { DebugPanelComponent } from "@/ui/app/component/debug_panel/debug_panel.component";
+import { encodePosition } from "@/ui/app/model/game_position";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
-import { query, queryAll, queryText } from "@test/support/dom";
+import {
+  clickElement,
+  query,
+  queryAll,
+  queryRequired,
+  queryText,
+} from "@test/support/dom";
 import { flushMicrotasks } from "@test/support/async";
 
 describe("DebugPanelComponent", () => {
@@ -49,5 +56,62 @@ describe("DebugPanelComponent", () => {
 
   it("marks the chosen mode as checked", () => {
     expect(choices()[0].getAttribute("aria-checked")).toBe("true");
+  });
+
+  describe("loading a bug report's game", () => {
+    /** Pastes text into the loader and presses Load. */
+    function load(text: string): void {
+      queryRequired<HTMLTextAreaElement>(fixture, ".load-text").value = text;
+      clickElement(fixture, ".btn-load");
+    }
+
+    /** A report's game state for the mock game. */
+    function reported(): Promise<string> {
+      return encodePosition({
+        gameId: "klondike",
+        options: { drawCount: 3, almostWin: 0 },
+        snapshot: harness.model.snapshot(),
+      });
+    }
+
+    /** The loader's problem line, as rendered. */
+    function problem(): string {
+      fixture.detectChanges();
+      return queryText(fixture, ".load-problem");
+    }
+
+    it("puts the pasted game on the table", async () => {
+      const text = await reported();
+
+      load(text);
+
+      await vi.waitFor(() => {
+        expect(harness.model.restore).toHaveBeenCalledOnce();
+      });
+    });
+
+    it("says when the game is loaded, so the drawer can close", async () => {
+      const text = await reported();
+      const loaded = vi.fn();
+      fixture.componentInstance.loaded.subscribe(loaded);
+
+      load(text);
+
+      await vi.waitFor(() => {
+        expect(loaded).toHaveBeenCalledOnce();
+      });
+    });
+
+    it("says why pasted text could not be loaded", async () => {
+      load("hello");
+
+      await vi.waitFor(() => {
+        expect(problem()).not.toBe("");
+      });
+    });
+
+    it("has no problem to report before anything is loaded", () => {
+      expect(problem()).toBe("");
+    });
   });
 });

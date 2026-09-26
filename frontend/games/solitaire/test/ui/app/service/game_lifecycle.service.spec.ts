@@ -1,6 +1,10 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { TestBed } from "@angular/core/testing";
+import {
+  encodePosition,
+  type GamePosition,
+} from "@/ui/app/model/game_position";
 import { GameLifecycleService } from "@/ui/app/service/game_lifecycle.service";
 import { GameMetricsService } from "@/ui/app/service/game_metrics.service";
 import { ConfirmationService } from "@/ui/app/service/confirmation.service";
@@ -198,6 +202,85 @@ describe("GameLifecycleService", () => {
       await harness.lifecycle.startNewGame();
 
       expect(harness.metrics.isGameWon()).toBe(false);
+    });
+  });
+
+  describe("loading a reported game", () => {
+    /** A report's game state for the given game, rules and snapshot. */
+    function reported(
+      harness: Harness,
+      position: Partial<GamePosition> = {},
+    ): Promise<string> {
+      return encodePosition({
+        gameId: "klondike",
+        options: { drawCount: 3, almostWin: 0 },
+        snapshot: harness.model.snapshot(),
+        ...position,
+      });
+    }
+
+    it("puts the reported position on the table", async () => {
+      const harness = buildLifecycle();
+      const snapshot = { ...harness.model.snapshot(), score: 250 };
+
+      await harness.lifecycle.loadPosition(
+        await reported(harness, { snapshot }),
+      );
+
+      expect(harness.model.restore).toHaveBeenCalledWith(snapshot);
+    });
+
+    it("switches to the reported game", async () => {
+      const harness = buildLifecycle();
+
+      await harness.lifecycle.loadPosition(
+        await reported(harness, { gameId: "freecell", options: {} }),
+      );
+
+      expect(harness.catalog.catalog.selectedId()).toBe("freecell");
+    });
+
+    it("plays it by the reported rules", async () => {
+      const harness = buildLifecycle();
+
+      await harness.lifecycle.loadPosition(
+        await reported(harness, { options: { drawCount: 1 } }),
+      );
+
+      expect(harness.catalog.catalog.valueOf("drawCount")).toBe(1);
+    });
+
+    it("does not load over a game in progress when the prompt is declined", async () => {
+      const harness = buildLifecycle({ moves: 4 });
+      const loading = harness.lifecycle.loadPosition(await reported(harness));
+      await vi.waitFor(() => {
+        expect(harness.confirmation.isOpen()).toBe(true);
+      });
+
+      harness.confirmation.cancel();
+
+      expect(await loading).toBe(false);
+      expect(harness.model.restore).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["no game state", () => Promise.resolve("hello"), /no game state/],
+      [
+        "a game this build lacks",
+        (harness: Harness) => reported(harness, { gameId: "poker" }),
+        /no game "poker"/,
+      ],
+      [
+        "a rule value the game lacks",
+        (harness: Harness) => reported(harness, { options: { drawCount: 5 } }),
+        /no rule "drawCount" of 5/,
+      ],
+    ])("rejects text with %s", async (_name, text, error) => {
+      const harness = buildLifecycle();
+
+      await expect(
+        harness.lifecycle.loadPosition(await text(harness)),
+      ).rejects.toThrow(error);
     });
   });
 });
