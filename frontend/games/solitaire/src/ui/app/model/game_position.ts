@@ -57,7 +57,7 @@ export async function decodePosition(
   if (!json) {
     throw new Error(`The game state unpacks to over ${maxBytes} bytes.`);
   }
-  return readPosition(parseJson(new TextDecoder().decode(json)));
+  return readGamePosition(parseJson(new TextDecoder().decode(json)));
 }
 
 function parseJson(json: string): unknown {
@@ -68,11 +68,19 @@ function parseJson(json: string): unknown {
   }
 }
 
-function readPosition(value: unknown): GamePosition {
-  const position = readObject(value, "position");
+/**
+ * Reads a value from outside, such as parsed JSON, as a position.
+ *
+ * @throws Error naming the first part that is malformed.
+ */
+export function readGamePosition(
+  value: unknown,
+  path = "position",
+): GamePosition {
+  const position = readObject(value, path);
   return {
-    gameId: readString(position.gameId, "position.gameId"),
-    options: readRecord(position.options, "position.options", readNumber),
-    snapshot: readGameSnapshot(position.snapshot, "position.snapshot"),
+    gameId: readString(position.gameId, `${path}.gameId`),
+    options: readRecord(position.options, `${path}.options`, readNumber),
+    snapshot: readGameSnapshot(position.snapshot, `${path}.snapshot`),
   };
 }

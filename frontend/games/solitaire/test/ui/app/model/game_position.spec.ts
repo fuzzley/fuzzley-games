@@ -3,6 +3,7 @@ import { KlondikeGame } from "@/games/klondike/klondike_game";
 import {
   decodePosition,
   encodePosition,
+  readGamePosition,
   type GamePosition,
 } from "@/ui/app/model/game_position";
 
@@ -43,6 +44,14 @@ describe("game position encoding", () => {
     const decoded = await decodePosition(field);
 
     expect(decoded).toEqual(original);
+  });
+
+  it("reads back a position written out as JSON", () => {
+    const original = position();
+
+    const read = readGamePosition(JSON.parse(JSON.stringify(original)));
+
+    expect(read).toEqual(original);
   });
 
   it("rejects text with no game state in it", async () => {
