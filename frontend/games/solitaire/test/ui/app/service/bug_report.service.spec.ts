@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { TestBed } from "@angular/core/testing";
 import {
   BUG_REPORT_FIELDS,
@@ -110,6 +110,10 @@ function formFieldIds(form: string): string[] {
 }
 
 describe("BugReportService", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("opens a new issue on the configured form", async () => {
     const { service } = buildService();
 
@@ -181,6 +185,17 @@ describe("BugReportService", () => {
       );
     });
 
+    it("rounds the pixel ratio a browser reports with float noise", async () => {
+      const { service } = buildService();
+      vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(
+        2.0000000596046448,
+      );
+
+      expect(await prefilled(service, BUG_REPORT_FIELDS.environment)).toContain(
+        "at 2× pixel ratio",
+      );
+    });
+
     it("names the cards and the felt on the table", async () => {
       const { service } = buildService();
 
@@ -248,6 +263,69 @@ describe("BugReportService", () => {
       expect(await prefilled(service, BUG_REPORT_FIELDS.gameState)).toBe(
         "The game state was too large to attach.",
       );
+    });
+  });
+
+  describe("opening a report", () => {
+    /** A stand-in for the tab `window.open` returns. */
+    interface FakeTab {
+      opener: unknown;
+      location: { href: string };
+    }
+
+    /** Makes `window.open` hand back a fake tab, rather than open one. */
+    function fakeTab() {
+      const tab: FakeTab = { opener: window, location: { href: "" } };
+      const open = vi
+        .spyOn(window, "open")
+        .mockReturnValue(tab as unknown as Window);
+      return { tab, open };
+    }
+
+    it("opens the report in a new tab", async () => {
+      const { service } = buildService();
+      const { tab } = fakeTab();
+
+      await service.openReport();
+
+      expect(tab.location.href).toBe(await reportUrl(service));
+    });
+
+    it("opens the tab before the report is built, while the click counts", () => {
+      const { service } = buildService();
+      const { open } = fakeTab();
+
+      void service.openReport();
+
+      expect(open).toHaveBeenCalledOnce();
+    });
+
+    it("gives the new tab no hold on this one", async () => {
+      const { service } = buildService();
+      const { tab } = fakeTab();
+
+      await service.openReport();
+
+      expect(tab.opener).toBeNull();
+    });
+
+    it("goes to the report in this tab when a new one is blocked", async () => {
+      const { service } = buildService();
+      const view = {
+        open: () => null,
+        location: { href: "" },
+        navigator: { userAgent: "test" },
+        innerWidth: 800,
+        innerHeight: 600,
+        devicePixelRatio: 1,
+      };
+      vi.spyOn(document, "defaultView", "get").mockReturnValue(
+        view as unknown as Window & typeof globalThis,
+      );
+
+      await service.openReport();
+
+      expect(view.location.href).toBe(await reportUrl(service));
     });
   });
 

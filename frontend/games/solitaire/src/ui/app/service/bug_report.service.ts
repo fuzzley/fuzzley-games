@@ -26,7 +26,7 @@ export interface BugReportDraft {
   readonly position: GamePosition;
 }
 
-/** Builds the link to a new GitHub bug report, with the game attached. */
+/** Builds and opens new GitHub bug reports, with the game attached. */
 @Injectable({ providedIn: "root" })
 export class BugReportService {
   private readonly config = inject(BUG_REPORT_CONFIG);
@@ -62,6 +62,21 @@ export class BugReportService {
       await this.fitGameState(url, draft.position),
     );
     return url.toString();
+  }
+
+  /** Opens a new bug report about the game on the table in a new tab. */
+  async openReport(): Promise<void> {
+    const view = this.document.defaultView;
+    if (!view) return;
+
+    const tab = view.open("", "_blank");
+    const url = await this.issueUrl(this.draft());
+    if (tab) {
+      tab.opener = null;
+      tab.location.href = url;
+    } else {
+      view.location.href = url;
+    }
   }
 
   /** The game-state field, keeping the newest history that fits in the link. */
@@ -133,7 +148,7 @@ export class BugReportService {
     const browser = view
       ? [
           `- Browser: ${view.navigator.userAgent}`,
-          `- Window: ${view.innerWidth}×${view.innerHeight} at ${view.devicePixelRatio}× pixel ratio`,
+          `- Window: ${view.innerWidth}×${view.innerHeight} at ${Math.round(view.devicePixelRatio * 100) / 100}× pixel ratio`,
         ]
       : [];
     return [

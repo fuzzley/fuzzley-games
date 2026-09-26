@@ -37,8 +37,11 @@
 .brand {
   display: flex;
   align-items: center;
-  flex: 0 1 auto;
+  // A shrink factor far above the metrics', so the brand gives up its room
+  // before they give up any; clipped, so it never draws over them.
+  flex: 0 1000 auto;
   min-width: 0;
+  overflow: hidden;
 }
 
 .brand-text {

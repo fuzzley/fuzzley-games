@@ -113,6 +113,15 @@
       >
         <ng-container [ngTemplateOutlet]="helpIcon" />
       </button>
+
+      <button
+        class="btn-circle btn-bug-report"
+        (click)="reportBug()"
+        title="Report a Bug"
+        aria-label="Report a Bug (opens GitHub in a new tab)"
+      >
+        <ng-container [ngTemplateOutlet]="bugIcon" />
+      </button>
     }
 
     <!--
@@ -201,6 +210,14 @@
       <ng-container [ngTemplateOutlet]="helpIcon" />
       <span>How to Play</span>
     </button>
+    <button
+      class="overflow-item"
+      (click)="reportBug()"
+      aria-label="Report a Bug (opens GitHub in a new tab)"
+    >
+      <ng-container [ngTemplateOutlet]="bugIcon" />
+      <span>Report a Bug</span>
+    </button>
   </div>
   <button
     class="overflow-backdrop"
@@ -210,7 +227,7 @@
 }
 
 <!--
-  The two icons that appear in both arrangements, drawn once. A restart arrow
+  The icons that appear in both arrangements, drawn once. A restart arrow
   in the bar and a restart arrow in the menu are the same drawing; copying the
   path data would make them the same drawing only for as long as nobody
   redrew one of them.
@@ -242,5 +259,18 @@
     <circle cx="12" cy="12" r="10" />
     <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
     <line x1="12" y1="17" x2="12.01" y2="17" />
+  </svg>
+</ng-template>
+
+<ng-template #bugIcon>
+  <svg
+    class="btn-icon"
+    fill="currentColor"
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+  >
+    <path
+      d="M20 8h-2.81a5.985 5.985 0 0 0-1.82-1.96L17 4.41L15.59 3l-2.17 2.17a6.002 6.002 0 0 0-2.83 0L8.41 3L7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"
+    />
   </svg>
 </ng-template>
