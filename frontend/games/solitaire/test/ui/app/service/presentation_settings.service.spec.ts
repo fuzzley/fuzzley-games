@@ -6,17 +6,15 @@ import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/presentation";
 import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
 
 /**
- * A service built through the injector.
- *
- * It reads storage in a field initializer and persists from an effect, both of
- * which need an injection context — so it is resolved rather than constructed.
+ * Returns a service built through the injector, which its field initializer
+ * and its effect both need.
  */
 function buildSettings(): PresentationSettingsService {
   TestBed.configureTestingModule({});
   return TestBed.inject(PresentationSettingsService);
 }
 
-/** What is currently in the service's own storage key. */
+/** Returns what is currently in the service's own storage key. */
 function stored(): Record<string, unknown> | null {
   const raw = localStorage.getItem("fsolitaire-presentation");
   return raw ? (JSON.parse(raw) as Record<string, unknown>) : null;

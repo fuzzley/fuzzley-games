@@ -7,7 +7,7 @@ import { PresentationSettingsService } from "@/ui/app/service/presentation_setti
 import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
 import { query, queryAll, queryText } from "@test/support/dom";
 
-/** One Phaser host the component built, and what it was handed. */
+/** Records one Phaser host the component built, and what it was handed. */
 interface StartedHost {
   parent: HTMLElement;
   destroyed: boolean;
@@ -89,7 +89,7 @@ describe("GameCanvasComponent", () => {
     fixture.detectChanges();
   }
 
-  /** Whether the loading overlay is currently covering the board. */
+  /** Returns whether the loading overlay is covering the board. */
   function isLoading(): boolean {
     return (
       query(fixture, ".loading-overlay")?.classList.contains("hidden") === false
@@ -177,7 +177,7 @@ describe("GameCanvasComponent", () => {
   });
 
   describe("the deck badge", () => {
-    /** Whether the deck swap badge is showing. */
+    /** Returns whether the deck swap badge is showing. */
     function isSwappingDeck(): boolean {
       return (
         query(fixture, ".deck-badge")?.classList.contains("hidden") === false

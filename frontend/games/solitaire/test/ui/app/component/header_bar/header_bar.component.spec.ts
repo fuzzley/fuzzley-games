@@ -44,7 +44,7 @@ describe("HeaderBarComponent", () => {
     viewport.restore();
   });
 
-  /** The undo button, whichever state it is in. */
+  /** Returns the undo button, whichever state it is in. */
   function undoButton(): HTMLButtonElement {
     return queryRequired<HTMLButtonElement>(fixture, "button[title*='Undo']");
   }
@@ -210,7 +210,7 @@ describe("HeaderBarComponent", () => {
       fixture.detectChanges();
     }
 
-    /** The labels of the actions currently inside the menu. */
+    /** Returns the labels of the actions currently inside the menu. */
     function menuLabels(): string[] {
       return queryAll(fixture, ".overflow-item").map(
         (item) => item.textContent?.trim() ?? "",

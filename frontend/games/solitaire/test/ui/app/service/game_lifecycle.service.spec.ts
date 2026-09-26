@@ -206,7 +206,7 @@ describe("GameLifecycleService", () => {
   });
 
   describe("loading a reported game", () => {
-    /** A report's game state for the given game, rules and snapshot. */
+    /** Returns a report's game state for the given game, rules and snapshot. */
     function reported(
       harness: Harness,
       position: Partial<GamePosition> = {},

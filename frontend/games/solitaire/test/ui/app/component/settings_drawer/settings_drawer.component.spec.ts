@@ -43,7 +43,7 @@ describe("SettingsDrawerComponent", () => {
     return spy;
   }
 
-  /** The drawer's own rule buttons, excluding the debug panel's. */
+  /** Returns the drawer's own rule buttons, excluding the debug panel's. */
   function ruleButtons(): HTMLElement[] {
     return queryAll(fixture, ".drawer-content > app-option-group .segment-btn");
   }
@@ -136,7 +136,7 @@ describe("SettingsDrawerComponent", () => {
   });
 
   describe("the card deck", () => {
-    /** The deck buttons, in the order the catalog offers them. */
+    /** Returns the deck buttons, in the order the catalog offers them. */
     function deckButtons(): Element[] {
       return queryAll(fixture, ".card-deck-selector button");
     }
@@ -169,9 +169,7 @@ describe("SettingsDrawerComponent", () => {
     it("draws a preview no two decks share", () => {
       openDrawer();
 
-      // The preview is the whole of what tells the decks apart in the drawer,
-      // so any two that drew the same one would leave the choice between them
-      // looking like it does nothing.
+      // The preview alone tells the decks apart, so no two may draw the same.
       const previews = deckButtons().map(
         (button) => button.querySelector(".card-deck-preview")?.innerHTML,
       );
@@ -194,8 +192,7 @@ describe("SettingsDrawerComponent", () => {
       harness.presentation.pendingCardDeck.set("classic");
       openDrawer();
 
-      // A deck is a couple of megabytes, so without this the cards simply do
-      // not change for a few seconds and the drawer looks broken.
+      // A deck can take seconds to load, so the drawer says it is on its way.
       expect(
         deckButtons().map((button) => button.getAttribute("aria-busy")),
       ).toEqual(["true", "false", "false"]);
@@ -253,7 +250,7 @@ describe("SettingsDrawerComponent", () => {
   });
 
   describe("reporting a bug", () => {
-    /** The link to a new bug report. */
+    /** Returns the link to a new bug report. */
     function reportLink(): HTMLAnchorElement {
       return queryRequired<HTMLAnchorElement>(fixture, ".btn-report");
     }

@@ -8,8 +8,7 @@ import { GAME_CATALOG } from "@/ui/app/provider/game_catalog";
 import { routes } from "@/ui/app/routes";
 
 // The routed component hosts a Phaser canvas, whose module init does not
-// survive jsdom. What the catalog does with the URL is the subject; booting a
-// renderer to find out is not.
+// survive jsdom.
 vi.mock("@/engine/render/phaser/phaser_host", () => ({
   PhaserHost: class {
     start() {
@@ -31,7 +30,7 @@ interface Harness {
   location: Location;
 }
 
-/** A catalog wired to the application's real route table. */
+/** Returns a catalog wired to the application's real route table. */
 function buildCatalog(): Harness {
   TestBed.configureTestingModule({
     providers: [provideRouter(routes, withHashLocation())],
