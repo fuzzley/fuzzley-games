@@ -1,13 +1,16 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
+import { DebugPanelComponent } from "@/ui/app/component/debug_panel/debug_panel.component";
 import { ThemeService } from "@/ui/app/service/theme.service";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
 import { BugReportService } from "@/ui/app/service/bug_report.service";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import {
   clickElement,
+  query,
   queryAll,
   queryRequired,
   queryText,
@@ -287,6 +290,28 @@ describe("SettingsDrawerComponent", () => {
 
       expect(reportLink().target).toBe("_blank");
       expect(reportLink().relList.contains("noopener")).toBe(true);
+    });
+  });
+
+  describe("the debug panel", () => {
+    it("is offered for a game with no debug rules, to load a report", () => {
+      harness.catalog.select("freecell");
+
+      openDrawer();
+
+      expect(query(fixture, "app-debug-panel")).not.toBeNull();
+    });
+
+    it("closes the drawer once a reported game is loaded", () => {
+      openDrawer();
+      const closed = onClose();
+      const panel = fixture.debugElement.query(
+        By.directive(DebugPanelComponent),
+      ).componentInstance as DebugPanelComponent;
+
+      panel.loaded.emit();
+
+      expect(closed).toHaveBeenCalledOnce();
     });
   });
 
