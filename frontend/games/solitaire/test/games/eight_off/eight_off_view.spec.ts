@@ -25,23 +25,19 @@ const VIEWPORT: Viewport = { width: 1920, height: 1080, pixelRatio: 1 };
 const METRICS = measureTable(EIGHT_OFF_LAYOUT, VIEWPORT);
 
 /**
- * Design units converted to the screen pixels the view state is built in.
+ * Returns design units converted to the screen pixels the view state is built
+ * in.
  *
- * The layout scale is irrational on any real viewport, so a gap is compared
- * with {@link expect.toBeCloseTo} rather than exactly: summing offsets and
- * scaling the sum is not the same arithmetic as scaling each offset and summing
- * those, and the two disagree in the last bit or two.
+ * Compare the result with `toBeCloseTo`: scaling a sum and summing scaled parts
+ * disagree in the last bit or two.
  */
 function onScreen(designUnits: number): number {
   return designUnits * METRICS.scale;
 }
 
 /**
- * Eight Off is the reason the hover expansion is not tied to grabbability. A
- * column gives up only the top of a same-suit run, so almost every covered card
- * is one the rules will not lift — and a covered court card is exactly the one
- * whose suit is unreadable, because its picture fills the strip a pip would
- * show in.
+ * Checks that a fan opens under a covered card the rules will not lift, which
+ * in Eight Off is almost every covered card.
  */
 describe("the Eight Off board", () => {
   let game: EightOffGame;
@@ -63,7 +59,7 @@ describe("the Eight Off board", () => {
     relocate(game, "card-diamonds-queen", game.tableaus[0]);
   });
 
-  /** The board drawn with the given card under the pointer, or with none. */
+  /** Returns the board drawn with the given card under the pointer, or none. */
   function draw(hoveredCardId: string | null) {
     const interaction: TableInteractionState = {
       hoveredCardId,
@@ -77,7 +73,7 @@ describe("the Eight Off board", () => {
     });
   }
 
-  /** The gap between the buried card and the one covering it, in pixels. */
+  /** Returns the gap between the buried card and the one covering it. */
   function gapBelowBuried(hoveredCardId: string | null): number {
     const cards = draw(hoveredCardId).cards;
     const buriedView = cards.find((card) => card.cardId === buried.id)!;

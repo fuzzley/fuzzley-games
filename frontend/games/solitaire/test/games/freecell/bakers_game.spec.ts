@@ -5,14 +5,10 @@ import { FreeCellVariant } from "@/games/freecell/freecell_zones";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
 
-/**
- * A fixed randomness sequence, so every deal in this file is the same deal.
- * `sequenceRandom` yields zero once it runs out, which keeps the rest of the
- * shuffle deterministic too.
- */
+/** A fixed randomness sequence, so every deal in this file is the same deal. */
 const SHUFFLE_SEQUENCE = [0.17, 0.83, 0.42, 0.06, 0.91, 0.55, 0.28, 0.74];
 
-/** A dealt game playing by the given rule set. */
+/** Returns a dealt game playing by the given rule set. */
 function dealtGame(variant: FreeCellVariant): FreeCellGame {
   const game = new FreeCellGame(
     undefined,
@@ -23,10 +19,7 @@ function dealtGame(variant: FreeCellVariant): FreeCellGame {
   return game;
 }
 
-/**
- * Cards used only to occupy space. None of them appears in any run a test
- * builds, so blocking the board can never disturb the position under test.
- */
+/** Cards used only to occupy space, none of them in any run a test builds. */
 const FILLER = [
   "card-diamonds-2",
   "card-diamonds-3",
@@ -42,10 +35,8 @@ const FILLER = [
 ];
 
 /**
- * Fills every column and cell that is still empty and was not asked for, so the
- * only staging capacity left is the capacity a test named. Without this an
- * emptied board has six empty columns and an allowance in the dozens, which
- * hides every case the supermove limit is about.
+ * Fills every empty column and cell a test did not ask to keep, so the only
+ * staging capacity left is what it named.
  */
 function blockBoard(
   game: FreeCellGame,
@@ -64,7 +55,7 @@ function blockBoard(
   });
 }
 
-/** Clears the board and lays the 8 and 7 of spades on column 0, the 9 on column 1. */
+/** Clears the board, then lays spade 8 and 7 on column 0 and 9 on column 1. */
 function runOfTwo(game: FreeCellGame): PlayingCard {
   emptyBoard(game);
   const eight = relocate(game, "card-spades-8", game.tableaus[0]);
@@ -73,7 +64,7 @@ function runOfTwo(game: FreeCellGame): PlayingCard {
   return eight;
 }
 
-/** As {@link runOfTwo}, one card longer: 9-8-7 of spades onto a waiting ten. */
+/** Builds {@link runOfTwo}'s run one card longer: 9-8-7 of spades to a ten. */
 function runOfThree(game: FreeCellGame): PlayingCard {
   emptyBoard(game);
   const nine = relocate(game, "card-spades-9", game.tableaus[0]);
@@ -83,7 +74,7 @@ function runOfThree(game: FreeCellGame): PlayingCard {
   return nine;
 }
 
-/** The card ids in each column, in order, for comparing one deal against another. */
+/** Returns the card ids in each column, to compare one deal with another. */
 function columnIds(game: FreeCellGame): string[][] {
   return game.tableaus.map((tableau) =>
     tableau.getCards().map((card) => card.id),

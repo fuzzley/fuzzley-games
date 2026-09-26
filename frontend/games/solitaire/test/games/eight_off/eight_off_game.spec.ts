@@ -12,9 +12,8 @@ import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
 
 /**
- * A fixed shuffle. The particular values mean nothing; what matters is that the
- * deal is the same on every run, so a failure here is a failure of the game and
- * not of a lucky arrangement of cards.
+ * A fixed shuffle, so the deal is the same on every run and a failure here is a
+ * failure of the game rather than of a lucky arrangement of cards.
  */
 const SHUFFLE_VALUES = [0.37, 0.11, 0.83, 0.5, 0.06];
 
@@ -30,10 +29,8 @@ const ACE_IDS = [
 ];
 
 /**
- * Cards used only to occupy a pile. Diamonds and clubs throughout, because
- * every position below is built from spades and hearts, so a blocker can never
- * be mistaken for part of one — and being off-suit, it can never accept a card
- * a test is trying to move either.
+ * Cards used only to occupy a pile, all diamonds and clubs so none can join or
+ * take a card from the spade and heart positions below.
  */
 const FILLER_IDS = [
   "card-diamonds-2",
@@ -61,10 +58,7 @@ const FILLER_IDS = [
  * Reduces the board to exactly the slack a test asks for: `freeCells` cells and
  * `emptyColumns` columns left empty, with every other empty pile blocked.
  *
- * Called after a test has built its position, so it only ever fills what the
- * test left over. Without it a cleared board has eight free cells and six spare
- * columns, the supermove limit is nine, and no run small enough to construct
- * would ever be refused.
+ * Call it after building the position, since it fills whatever is left empty.
  */
 function leaveSlack(
   game: EightOffGame,
@@ -82,8 +76,8 @@ function leaveSlack(
 }
 
 /**
- * A four-card same-suit run on column 0 with the nine it wants to land on
- * waiting on column 1. Returns the bottom card of the run.
+ * Builds a four-card same-suit run on column 0, with the Nine it wants waiting
+ * on column 1, and returns the run's bottom card.
  */
 function runOfFour(game: EightOffGame): PlayingCard {
   emptyBoard(game);

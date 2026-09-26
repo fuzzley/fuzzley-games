@@ -12,9 +12,6 @@ export const CLUB_KING_ID = "card-clubs-king";
 /**
  * Forces a waste-to-stock recycle: empties the stock, places a single card in
  * the waste, and draws so the game recycles the waste back into the stock.
- *
- * Klondike's own, and deliberately not in the shared scenarios: a stock, a
- * waste and a draw are three things most of the games here do not have.
  */
 export function forceWasteRecycle(game: KlondikeGame, card: PlayingCard): void {
   game.stock.clear();
@@ -25,8 +22,9 @@ export function forceWasteRecycle(game: KlondikeGame, card: PlayingCard): void {
 
 /**
  * Places 51 of the 52 cards face-up on their suit foundations, leaving only the
- * King of Clubs out, so a single move can complete the game. The game must
- * already have been started so the cards exist in the model.
+ * King of Clubs out, so a single move can complete the game.
+ *
+ * The game must already be dealt, so the cards exist.
  */
 export function almostWon(game: KlondikeGame): void {
   emptyBoard(game);

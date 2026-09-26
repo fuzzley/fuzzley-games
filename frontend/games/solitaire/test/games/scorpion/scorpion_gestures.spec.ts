@@ -10,7 +10,7 @@ import { scorpionGestures } from "@/games/scorpion/scorpion_gestures";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
 
-/** The instance id of a card in this single-deck game. */
+/** Returns the instance id of a card in this single-deck game. */
 function id(suit: Suit, rank: Rank): string {
   return playingCardInstanceId({ suit, rank });
 }

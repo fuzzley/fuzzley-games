@@ -7,9 +7,8 @@ import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
 
 /*
- * Driven through FreeCell, which is one of the six games that take these
- * gestures unchanged. A real game rather than a stub of {@link MovableGame},
- * so what a gesture did can be read off the board instead of off a call count.
+ * Driven through FreeCell, a real game, so what a gesture did is read off the
+ * board rather than a call count.
  */
 describe("stocklessGestures", () => {
   let game: FreeCellGame;
@@ -21,7 +20,7 @@ describe("stocklessGestures", () => {
     handle = stocklessGestures(game);
   });
 
-  /** The id of the pile currently holding the given card. */
+  /** Returns the id of the pile currently holding the given card. */
   function pileOf(cardId: string): string | undefined {
     return game.getPileContainingCard(cardId)?.id;
   }

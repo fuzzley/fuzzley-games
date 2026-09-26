@@ -41,9 +41,7 @@ const KING_TO_TWO = [
  * Builds a King-down-to-Two run in the first column and leaves the Ace alone in
  * the second, so that one move finishes the run.
  *
- * Returns the game with an otherwise empty board: every test below is about
- * what that single move does, and a board still holding its deal would let a
- * stray column complete a run of its own.
+ * The rest of the board is left empty, so no stray column completes a run.
  */
 function boardOneMoveFromARun(game: SimpleSimonGame): void {
   emptyBoard(game);

@@ -27,13 +27,7 @@ function newGame(
   return game;
 }
 
-/**
- * Deals `rows` full rows from the opening position.
- *
- * No column can empty itself while only dealing, so the stock stays willing
- * throughout — which is what makes this a plain loop rather than a loop that has
- * to keep refilling spaces.
- */
+/** Deals `rows` full rows from the opening position. */
 function dealRows(game: EasthavenGame, rows: number): void {
   for (let row = 0; row < rows; row++) {
     game.dealRow();
@@ -163,10 +157,6 @@ describe("EasthavenGame stock", () => {
     );
   });
 
-  /*
-   * Spider's rule, kept — and the reason Easthaven can be lost outright, since
-   * only a King may refill the space that is blocking the deal.
-   */
   it("refuses to deal while a column is empty", () => {
     const game = newGame();
     game.tableaus[0].clear();
@@ -190,11 +180,6 @@ describe("EasthavenGame stock", () => {
     expect(game.stock.size).toBe(3);
   });
 
-  /*
-   * The short last row is the case `dealRowFromStock` handles by simply
-   * stopping when the stock runs out, so it is worth pinning down that only
-   * three columns grow rather than all seven.
-   */
   it("deals a short final row onto only as many columns as it can reach", () => {
     const game = newGame();
     dealRows(game, 4);

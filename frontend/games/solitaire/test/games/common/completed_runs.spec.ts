@@ -15,7 +15,7 @@ import {
 } from "@/games/common/completed_runs";
 import { makePlayingCard } from "@test/support/card_builder";
 
-/** A card named the way a single-deck game names it, face up by default. */
+/** Returns a card named as a single-deck game names it, face up by default. */
 function card(suit: Suit, rank: Rank, faceUp = true): PlayingCard {
   return makePlayingCard({
     id: playingCardInstanceId({ suit, rank }),
@@ -25,12 +25,12 @@ function card(suit: Suit, rank: Rank, faceUp = true): PlayingCard {
   });
 }
 
-/** King down to Ace of one suit, bottom-first: a finished run as it sits. */
+/** Returns King down to Ace of one suit, bottom first: a finished run. */
 function fullRun(suit: Suit = Suit.SPADE): PlayingCard[] {
   return [...ALL_RANKS].reverse().map((rank) => card(suit, rank));
 }
 
-/** A pile holding the given cards, bottom-first. */
+/** Returns a pile holding the given cards, bottom first. */
 function pileOf(
   id: string,
   cards: readonly PlayingCard[] = [],
@@ -40,7 +40,7 @@ function pileOf(
   return pile;
 }
 
-/** The ids of a pile's cards, bottom-first. */
+/** Returns the ids of a pile's cards, bottom first. */
 function idsIn(pile: CardPile<PlayingCard>): string[] {
   return pile.getCards().map((pileCard) => pileCard.id);
 }

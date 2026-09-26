@@ -40,7 +40,7 @@ const RANK_NAMES: Record<number, string> = {
   [Rank.KING]: "king",
 };
 
-/** The card id for a suit and rank, as the single-deck registry names it. */
+/** Returns the card id for a suit and rank, as the registry names it. */
 function cardId(suit: Suit, rank: Rank): string {
   return `card-${SUIT_NAMES[suit]}-${RANK_NAMES[rank]}`;
 }
@@ -70,7 +70,7 @@ function newGame(): MontanaGame {
   return game;
 }
 
-/** The cell at a row and column of the grid. */
+/** Returns the cell at a row and column of the grid. */
 function cell(game: MontanaGame, row: number, column: number) {
   return game.cells[row * COLUMN_COUNT + column];
 }
@@ -198,10 +198,6 @@ describe("MontanaGame gap rules", () => {
     ).toBe(false);
   });
 
-  /*
-   * The dead gap, and the thing a player spends the game avoiding: nothing
-   * follows a King, so the cell beyond one can never be filled again.
-   */
   it("refuses every card into the gap beyond a King", () => {
     relocate(game, cardId(Suit.SPADE, Rank.KING), cell(game, 0, 0));
     relocate(game, cardId(Suit.SPADE, Rank.TWO), cell(game, 1, 5));
@@ -303,10 +299,6 @@ describe("MontanaGame redeal", () => {
     expect(game.cells.filter((pile) => pile.size > 1)).toEqual([]);
   });
 
-  /*
-   * The point of a redeal: what is already in order stays put, so progress is
-   * never thrown away.
-   */
   it("leaves a settled run where it is", () => {
     emptyBoard(game);
     relocate(game, cardId(Suit.SPADE, Rank.TWO), cell(game, 0, 0));

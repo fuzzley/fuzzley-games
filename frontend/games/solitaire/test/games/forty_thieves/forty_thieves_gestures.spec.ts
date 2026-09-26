@@ -50,11 +50,7 @@ describe("fortyThievesGestures", () => {
     });
   });
 
-  /*
-   * The gesture-level half of the family's defining rule. Klondike's map
-   * recycles the waste here; there is nothing to recycle into, so an empty
-   * stock's slot must stay inert.
-   */
+  /* Unlike Klondike's, an empty stock's slot has nothing to recycle. */
   describe("activate-pile", () => {
     it("does not recycle the waste when the empty stock slot is pressed", () => {
       emptyBoard(game);

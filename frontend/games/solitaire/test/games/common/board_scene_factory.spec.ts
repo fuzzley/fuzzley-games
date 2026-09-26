@@ -69,7 +69,7 @@ describe("makeTableBoardScene", () => {
     return built;
   }
 
-  /** A dealt game over the given deck, defaulting to a standard 52. */
+  /** Returns a dealt game over the given deck, a standard 52 by default. */
   function dealtGame(cardIds?: typeof ONE_SUIT): FakeTableGame {
     const dealt = new FakeTableGame(cardIds);
     dealt.startNewGame();
@@ -226,10 +226,8 @@ describe("makeTableBoardScene", () => {
       const midway = positions();
       scene.update(32, 16);
 
-      // A deal the board heard about snaps every card into place in a single
-      // frame. These are still easing, so nothing reached the shut-down scene
-      // — which is the point: create() runs again on every restart, and a
-      // subscription left behind here would hold the scene it belonged to.
+      // Still easing: a subscription the shut-down scene left behind would
+      // have snapped them into place.
       expect(positions()).not.toEqual(midway);
     });
 
