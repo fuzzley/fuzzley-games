@@ -1,21 +1,14 @@
 import { Card } from "@/engine/core/card/card";
 import { PlayingCard, Suit, Rank } from "@/engine/core/card/playing_card";
 
-/**
- * Builds a plain {@link Card} with sensible defaults. Pass overrides for the
- * fields a test actually cares about so the intent of each test stays obvious.
- */
+/** Builds a plain {@link Card}, with overrides for the fields a test uses. */
 export function makeCard(overrides: Partial<Card> = {}): Card {
   const id = overrides.id ?? "card";
-  // Defaults to the id, which is what a single-deck game's cards look like and
-  // keeps a test that only names an id from having to name a face as well.
+  // The face defaults to the id, as a single-deck game's does.
   return { id, faceKey: id, faceUp: false, ...overrides };
 }
 
-/**
- * Builds a {@link PlayingCard} with sensible defaults. Only the fields a test
- * depends on need to be supplied via overrides.
- */
+/** Builds a {@link PlayingCard}, with overrides for the fields a test uses. */
 export function makePlayingCard(
   overrides: Partial<Pick<PlayingCard, "id" | "faceUp" | "suit" | "rank">> = {},
 ): PlayingCard {
