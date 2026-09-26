@@ -1,15 +1,9 @@
 @use "sass:color";
 
-// Source colours — the only place in the application a hue is typed out.
+// Source colours, the only place in the application a hue is typed out.
 //
-// Nothing outside this folder reads these. Components read the custom
-// properties in `_tokens.scss`, which give each of them a name describing the
-// role it plays rather than the colour it is. What this file buys is that the
-// five surfaces cut from slate-900 at five different opacities are five
-// references to one value instead of five hand-written `rgba()` triples that
-// have to be found and edited together.
-//
-// The ramps are Tailwind's, which is where the original literals came from.
+// Only `_tokens.scss` reads these; components read the role-named tokens it
+// cuts from them. The ramps are Tailwind's.
 
 $black: #000000;
 $white: #ffffff;
@@ -40,18 +34,15 @@ $amber-400: #fbbf24;
 $amber-500: #f59e0b;
 $amber-600: #d97706;
 
-// The board itself. `felt` is the default table colour the Phaser side paints
-// (see engine/render/presentation.ts); `felt-shade` is the darker green the
-// loading overlay lays over it while the board builds.
+// The board: `felt` mirrors the default table colour in
+// `engine/render/presentation.ts`, and `felt-shade` is the loading overlay's
+// darker green.
 $felt: #0f4d0e;
 $felt-shade: #0c2d19;
 
-/// A source colour at a given opacity.
+/// Returns a source colour at a given opacity.
 ///
-/// `color.change` rather than the older `rgba($colour, $opacity)` form: it is
-/// the interface Sass intends to keep, and it reads as what it does. Named
-/// `with-alpha` rather than `alpha` so as not to shadow Sass's own global
-/// `alpha()`, which reads an opacity rather than setting one.
+/// Not named `alpha`, which would shadow Sass's own `alpha()`.
 @function with-alpha($color, $opacity) {
   @return color.change($color, $alpha: $opacity);
 }

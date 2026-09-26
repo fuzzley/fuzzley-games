@@ -1,8 +1,6 @@
 @use "../../styles" as *;
 
-// No overlay element and no z-index: the surrounding <app-modal-dialog> is a
-// native <dialog>, so the browser paints the scrim and puts this in the top
-// layer above whatever else is open.
+// No scrim or z-index: <app-modal-dialog> puts this in the top layer.
 .confirmation-card {
   user-select: none;
   background: var(--surface-raised);

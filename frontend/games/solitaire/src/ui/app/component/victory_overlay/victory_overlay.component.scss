@@ -1,8 +1,6 @@
 @use "../../styles" as *;
 
-// No overlay element and no z-index: the surrounding <app-modal-dialog> is a
-// native <dialog>, so the browser paints the scrim and puts this in the top
-// layer.
+// No scrim or z-index: <app-modal-dialog> puts this in the top layer.
 .victory-card {
   background: var(--surface-raised);
   border: 1px solid var(--border-strong);
@@ -88,9 +86,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  // `--text-muted` rather than the slate-500 this used to be: on the sunken
-  // well inside the card that measured about 3.6:1, under the 4.5:1 a 12px
-  // label needs.
+  // `--text-muted`, which clears 4.5:1 on the sunken well.
   .v-lbl {
     font-size: var(--font-xs);
     font-weight: 600;

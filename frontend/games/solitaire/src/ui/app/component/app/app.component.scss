@@ -1,11 +1,7 @@
 @use "../../styles" as *;
 
-// The board lays itself out beside the game rail rather than under it, so the
-// leftmost column is never hidden. ViewportScaler watches this box, so
-// expanding the rail re-lays the board out rather than leaving it overflowing.
-//
-// The widths come from the shared layout tokens, which is also where the rail
-// itself reads them: the inset and the thing it insets past cannot drift.
+// The board sits beside the game rail rather than under it, so its leftmost
+// column is never hidden.
 .board-area {
   position: absolute;
   inset: 0;
@@ -17,24 +13,15 @@
   }
 }
 
-// Narrow screens: the rail keeps its collapsed strip beside the board and its
-// open panel floats over the top, so the board's width does not change when
-// the menu is opened and the stock is never covered. The token already narrows
-// at this breakpoint; only the expanded case needs overriding.
+// On a narrow screen the open rail floats over the board, so opening it does
+// not change the board's width.
 @include below("tablet") {
   .board-area.rail-expanded {
     padding-left: var(--rail-collapsed-width);
   }
 }
 
-// The chrome around the board, and above it.
-//
-// The z-index is the load-time half of that: the board's loading scrim is
-// positioned and stacked, so with both layers on `auto` it painted over the
-// header and the player watched a deal with no score, no clock and no way back
-// to the menu. This is also what makes the overlay a stacking context, so the
-// rail's own ladder is read relative to the chrome rather than against the
-// board underneath it.
+// The chrome around the board, stacked above the board's loading scrim.
 .ui-overlay {
   width: 100%;
   height: 100%;

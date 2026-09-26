@@ -1,35 +1,13 @@
 @use "palette" as *;
 @use "breakpoints" as *;
 
-// The design tokens.
-//
-// Custom properties rather than Sass variables, and deliberately so. Angular's
-// emulated view encapsulation scopes a component's *rules*, but custom
-// properties inherit through the DOM regardless, so every `var(--x)` below
-// resolves inside every component stylesheet. That is what makes this the one
-// place a colour or a dimension is named, and it is why the answer to "Sass or
-// custom properties?" here is both:
-//
-//   - a custom property for any value a component reads, or that changes at a
-//     breakpoint, or that a theme will want to swap at runtime;
-//   - Sass for the values that build these, and for the ones CSS cannot carry
-//     at all (see `_breakpoints.scss`).
-//
-// The opacities below are cut from the source colours in `_palette.scss`, so a
-// hue is typed once and its five surfaces follow it.
+// The design tokens, as custom properties because those inherit into every
+// component's encapsulated stylesheet. Sass cuts them from `_palette.scss`.
 
 :root {
   // --- The table ---
-  // The felt, mirrored out of the presentation settings onto the root element
-  // by the shell, so the page behind the chrome is the same colour as the board
-  // the Phaser camera paints. The value here is the felt a player starts on;
-  // the shell overwrites it the moment they choose another.
-  //
-  // It has to be a real background rather than nothing, because the header is
-  // translucent and blurred across the full width while the board it blurs
-  // stops at the game rail. With no background the strip left of the rail
-  // sampled the UA's white and came out as a pale band up the side of the
-  // wordmark — and as a white flash on every load, before Phaser had painted.
+  // The felt a player starts on, which the shell overwrites with their choice
+  // so the page behind the chrome matches the board.
   --table-felt: #{$felt};
 
   // How dark the table gets at its edges. See the vignette in the game canvas.
@@ -43,10 +21,7 @@
   --surface-panel-translucent: #{with-alpha($slate-900, 0.5)};
   --surface-rail: #{with-alpha($slate-900, 0.82)};
   --surface-raised: #{with-alpha($slate-800, 0.85)};
-  // Its own name because it is its own role, though it currently resolves to
-  // the same value as the panel: this used to be #1a202c, a second near-black
-  // that differed from the panel's by less than the eye resolves at 95%
-  // opacity.
+  // Its own role, though it currently matches the panel.
   --surface-modal: #{with-alpha($slate-900, 0.95)};
   --surface-card: #{with-alpha($slate-900, 0.6)};
   --surface-sunken: #{with-alpha($black, 0.2)};
@@ -126,9 +101,7 @@
   --card-ink-red: #{$red-600};
 
   // --- Spacing ---
-  // A 4px scale. Every gap, pad and margin in the application is one of these
-  // eight steps; the arbitrary 6px, 9px, 10px, 14px and 28px values they
-  // replaced were near-misses of each other rather than decisions.
+  // A 4px scale, which every gap, pad and margin in the application uses.
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -139,30 +112,19 @@
   --space-10: 40px;
 
   // --- Type ---
-  // Two faces, and until this block existed the application declared neither.
-  // Nothing set a `font-family` anywhere, so every label, heading and rule page
-  // rendered in the UA's default serif; `<button>` came out in Arial, because
-  // form controls do not inherit the property; and two components reached for a
-  // bare `monospace` keyword. Three unrelated faces, none of them chosen.
-  //
-  // System stacks rather than a webfont. The build is copied into a
-  // subdirectory of a static host, so a self-hosted file is payload on every
-  // load and a hosted one is a network request this application otherwise never
-  // makes — and neither buys anything the platform's own interface face does
-  // not already give, on a screen that is mostly card artwork.
+  // System stacks rather than a webfont, which would cost a download on every
+  // load for a screen that is mostly card artwork.
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, "Segoe UI Variable Text",
     "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  // The figures that change while you are watching them — the score, the clock,
-  // the move count, the victory stats. Monospaced so the number does not
-  // resize its own container on the way from 9 to 10.
+  // For the figures that change as you watch, monospaced so a number does not
+  // resize its container on the way from 9 to 10.
   --font-mono:
     ui-monospace, "Cascadia Mono", "SF Mono", "Segoe UI Mono", "Roboto Mono",
     Menlo, Consolas, monospace;
 
-  // Nine sizes, down from the fifteen that were in use — most of which were
-  // within half a pixel of a neighbour. `sm` is the interface default: labels,
-  // buttons and list rows. `md` is running prose.
+  // `sm` is the interface default for labels, buttons and list rows; `md` is
+  // running prose.
   --font-2xs: 0.625rem;
   --font-xs: 0.75rem;
   --font-sm: 0.875rem;
@@ -178,12 +140,6 @@
   --leading-relaxed: 1.6;
 
   // How wide a paragraph is allowed to get, in characters.
-  //
-  // The help modal is up to 1200px wide because its rules cards want the room,
-  // and the prose above them was inheriting it — running to about 137
-  // characters a line, roughly twice the width at which the eye reliably finds
-  // the start of the next one. `ch` rather than a pixel width so the measure
-  // follows the font size instead of only holding at one of them.
   --measure-prose: 68ch;
 
   // --- Radii ---
@@ -221,25 +177,14 @@
   --focus-ring-offset: 2px;
 
   // --- Layout ---
-  // The header height and the rail widths are read by three components that
-  // must agree on them: the header draws itself this tall, the rail hangs
-  // below it, and the board area insets itself past the rail. Declared once so
-  // they cannot drift apart.
+  // Read by the header, the rail and the board area, which must agree on them.
   --header-height: 73px;
   --rail-collapsed-width: 56px;
   --rail-expanded-width: 190px;
 
   // --- Stacking order ---
-  // The full ladder, in one place. The overlays themselves are native
-  // <dialog> elements promoted to the browser's top layer, so they do not
-  // appear here — only the chrome that has to sit above the board.
-  //
-  // Two groups, and the one comparison between them that matters: the board's
-  // own loading state paints inside the routed view, the chrome paints inside
-  // the shell's overlay, and `--z-chrome` is what keeps the header, the rail
-  // and the score above a board that is still building. Without it the loading
-  // scrim — positioned, and so painted after everything with `z-index: auto` —
-  // covered the header for as long as the deal took.
+  // The full ladder, less the dialogs, which sit in the browser's top layer.
+  // `--z-chrome` keeps the header and rail above the board's loading scrim.
   --z-loading: 10;
   --z-loading-badge: 12;
 
