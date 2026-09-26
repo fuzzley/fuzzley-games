@@ -1,6 +1,6 @@
 /**
- * Readers for values from outside the program, such as parsed JSON. Each
- * returns the value typed, or throws an error naming it by its path.
+ * Reads values from outside the program, such as parsed JSON, throwing an error
+ * that names any bad value by its path.
  */
 
 /** Reads one value, found at `path`, as a `T`. */
@@ -10,7 +10,7 @@ function fail(path: string, expected: string): never {
   throw new Error(`${path} is not ${expected}.`);
 }
 
-/** An object, whose fields the caller reads one by one. */
+/** Reads an object, leaving its fields for the caller to read one by one. */
 export function readObject(
   value: unknown,
   path: string,
@@ -21,7 +21,7 @@ export function readObject(
   return value as Readonly<Record<string, unknown>>;
 }
 
-/** An object used as a map, with every value read by `readValue`. */
+/** Reads an object used as a map, reading every value with `readValue`. */
 export function readRecord<T>(
   value: unknown,
   path: string,
@@ -35,7 +35,7 @@ export function readRecord<T>(
   );
 }
 
-/** A list, with every item read by `readItem`. */
+/** Reads a list, reading every item with `readItem`. */
 export function readList<T>(
   value: unknown,
   path: string,
@@ -47,19 +47,19 @@ export function readList<T>(
   );
 }
 
-/** A string. */
+/** Reads a string. */
 export function readString(value: unknown, path: string): string {
   if (typeof value !== "string") fail(path, "text");
   return value;
 }
 
-/** True or false. */
+/** Reads true or false. */
 export function readBoolean(value: unknown, path: string): boolean {
   if (typeof value !== "boolean") fail(path, "true or false");
   return value;
 }
 
-/** A finite number. */
+/** Reads a finite number. */
 export function readNumber(value: unknown, path: string): number {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     fail(path, "a number");

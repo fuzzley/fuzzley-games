@@ -1,12 +1,7 @@
 /**
- * Shuffles `items` in place using a Fisher-Yates shuffle.
+ * Shuffles `items` in place with a Fisher-Yates shuffle and returns the array.
  *
- * @param items The array to shuffle. Mutated.
- * @param random Source of randomness returning a value in [0, 1). Defaults to
- *   Math.random. Injectable so callers (and tests) can supply a deterministic
- *   sequence.
- * @returns The same array, so a caller that wants to shuffle and hand the
- *   result straight on does not need a temporary to do it.
+ * @param random Returns a number in [0, 1), like `Math.random`.
  */
 export function shuffle<T>(items: T[], random: () => number = Math.random): T[] {
   for (let i = items.length - 1; i > 0; i--) {
