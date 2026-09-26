@@ -225,9 +225,9 @@
         </a>
       </div>
 
-      <!-- Debug Settings (dev mode, and only for a game that offers them) -->
-      @if (isDevMode && catalog.debugOptions().length > 0) {
-        <app-debug-panel />
+      <!-- Debug Settings (dev mode); closes once a reported game is loaded -->
+      @if (isDevMode) {
+        <app-debug-panel (loaded)="closed.emit()" />
       }
     </div>
 

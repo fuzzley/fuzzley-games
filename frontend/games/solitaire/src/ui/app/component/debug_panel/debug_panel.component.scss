@@ -38,3 +38,37 @@
     content: "\26A1";
   }
 }
+
+// --- Loading a bug report's game ---
+
+.load-position {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.load-label {
+  @include field-label;
+}
+
+.load-text {
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--font-2xs);
+  color: var(--text-body);
+  background: var(--wash-subtle);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  resize: vertical;
+}
+
+.load-problem {
+  min-height: var(--space-5);
+  margin: 0;
+  font-size: var(--font-2xs);
+  line-height: var(--leading-tight);
+  color: var(--danger);
+}
