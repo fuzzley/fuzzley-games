@@ -8,6 +8,11 @@ export interface BugReportConfig {
   readonly template: string;
   /** The commit this build was made from, or null for a local build. */
   readonly commit: string | null;
+  /**
+   * The longest link to allow. GitHub fails links of about 7,000 characters
+   * for a signed-out visitor, whose link is carried through the sign-in page.
+   */
+  readonly maxUrlChars: number;
 }
 
 /** Where "Report a Bug" leads, and the build it reports. */
@@ -19,6 +24,7 @@ export const BUG_REPORT_CONFIG = new InjectionToken<BugReportConfig>(
       newIssueUrl: "https://github.com/fuzzley/fSolitaire/issues/new",
       template: "bug_report.yml",
       commit: import.meta.env.VITE_COMMIT_SHA ?? null,
+      maxUrlChars: 6000,
     }),
   },
 );

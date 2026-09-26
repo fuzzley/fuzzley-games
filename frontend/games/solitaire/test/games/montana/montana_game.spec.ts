@@ -395,6 +395,6 @@ describe("MontanaGame snapshot", () => {
 
     expect(() =>
       copy.restore({ ...newGame().snapshot(), extra: null }),
-    ).toThrow(/not Montana's/);
+    ).toThrow(/extra is not an object/);
   });
 });

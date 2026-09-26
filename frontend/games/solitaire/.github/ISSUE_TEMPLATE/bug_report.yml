@@ -38,3 +38,8 @@ body:
     attributes:
       label: Environment
       description: Which build of fSolitaire, and the browser and settings it was running with.
+  - type: textarea
+    id: game-state
+    attributes:
+      label: Game state
+      description: The game as it was when you filed this, so it can be loaded exactly as you saw it. Please leave it in.

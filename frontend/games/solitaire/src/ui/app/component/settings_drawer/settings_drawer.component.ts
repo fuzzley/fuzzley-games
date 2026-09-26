@@ -5,6 +5,7 @@ import {
   inject,
   input,
   output,
+  resource,
 } from "@angular/core";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
@@ -155,11 +156,17 @@ export class SettingsDrawerComponent {
   readonly open = input<boolean>(false);
 
   /**
-   * Where "Report a Bug" leads, rebuilt each time the drawer opens so the
-   * window size it reports is current.
+   * The bug report link, rebuilt each time the drawer opens and whenever
+   * something it describes changes while open.
    */
+  private readonly bugReportLink = resource({
+    params: () => (this.open() ? this.bugReport.draft() : undefined),
+    loader: ({ params }) => this.bugReport.issueUrl(params),
+  });
+
+  /** Where "Report a Bug" leads, once the link is ready. */
   protected readonly bugReportUrl = computed(() =>
-    this.open() ? this.bugReport.issueUrl() : null,
+    this.bugReportLink.hasValue() ? this.bugReportLink.value() : null,
   );
 
   /** Emitted when the user asks to close the settings drawer. Named `closed`

@@ -255,12 +255,31 @@ describe("SettingsDrawerComponent", () => {
       return queryRequired<HTMLAnchorElement>(fixture, ".btn-report");
     }
 
-    it("links to a new report describing the game on the table", () => {
+    it("links to a new report describing the game on the table", async () => {
+      const service = TestBed.inject(BugReportService);
       openDrawer();
 
-      expect(reportLink().href).toBe(
-        TestBed.inject(BugReportService).issueUrl(),
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(reportLink().href).toBe(await service.issueUrl(service.draft()));
+    });
+
+    it("follows a rule changed while the drawer is open", async () => {
+      openDrawer();
+      await fixture.whenStable();
+
+      harness.catalog.setOption("drawCount", 1);
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(new URL(reportLink().href).searchParams.get("game")).toBe(
+        "Klondike · Draw Mode: Draw 1",
       );
+    });
+
+    it("has nowhere to lead while the drawer is closed", () => {
+      expect(reportLink().hasAttribute("href")).toBe(false);
     });
 
     it("opens the report in a new tab, leaving the board where it is", () => {
