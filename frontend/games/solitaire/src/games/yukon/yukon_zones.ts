@@ -9,20 +9,12 @@ export const FOUNDATION_COUNT = 4;
 /** The number of tableau columns. */
 export const TABLEAU_COUNT = 7;
 
-/**
- * The eleven zones of a Yukon board, for the given variant.
- *
- * Memoized per variant, and that matters rather than merely being tidy:
- * {@link TableGame.zoneFor} rebuilds its id index whenever the zone array is a
- * different array, and it is asked once per card per frame. Handing back a new
- * array each time would rebuild the index every frame forever.
- */
+/** Returns the eleven zones of a Yukon board under a variant. */
 export const yukonZoneSpecs = memoizeZones(
   (variant: YukonVariant): readonly ZoneSpec[] => [
     ...foundationRow({
-      // Klondike's foundation columns, with the top-left corner left bare on
-      // purpose: the gap where a player expects a stock and a waste is how the
-      // board says this game has neither.
+      // Klondike's foundation columns, leaving bare the top left, where a
+      // stock would be.
       count: FOUNDATION_COUNT,
       column: 3,
       row: 0,
@@ -35,10 +27,6 @@ export const yukonZoneSpecs = memoizeZones(
       row: 1,
       role: YukonRole.TABLEAU,
       accept: yukonPlacementRule(YukonRole.TABLEAU, variant),
-      // The defining rule of the family: any face-up card lifts with everything
-      // resting on it, ordered or not. Only the bottom card of the moving stack
-      // is checked against the target, so a column can be dismantled from the
-      // middle — which is what makes a game with no stock winnable at all.
       grab: { kind: "any-face-up" },
     }),
   ],

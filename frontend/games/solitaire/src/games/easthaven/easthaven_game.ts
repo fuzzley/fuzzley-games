@@ -15,22 +15,8 @@ import {
 } from "./easthaven_zones";
 
 /**
- * A game of Easthaven.
- *
- * Spider's stock bolted to Klondike's objective. Seven columns of three build
- * down in alternating colours, cards reach the four foundations because the
- * player put them there, and a press of the stock deals a card onto every
- * column at once rather than turning one into a waste.
- *
- * The two halves make each other harder. Klondike survives Kings-only spaces
- * because its stock keeps offering fresh cards whatever the board looks like;
- * Spider survives its row deal because any card may start a column. Easthaven
- * takes the strict half of each, and the result is a game that can be lost
- * outright rather than merely stalled — see {@link canDeal}.
- *
- * There is no score, as there is none in FreeCell or the Yukon family: the game
- * is played against the deal, so a move earns nothing and turning a card over
- * earns nothing either.
+ * Plays Easthaven: Klondike's columns and foundations with a stock that deals a
+ * card onto every column.
  */
 export class EasthavenGame extends DealtTableGame {
   /** The face-down pile that deals a row at a time. */
@@ -40,11 +26,7 @@ export class EasthavenGame extends DealtTableGame {
   /** The seven columns. */
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
-  /**
-   * @param cardIds The card identities to deal from. Defaults to a full 52-card
-   *   deck; injectable so a test can supply a shorter one.
-   * @param random Source of shuffle randomness, injectable for a fixed deal.
-   */
+  /** Creates a game whose piles are empty until the first deal. */
   constructor(
     cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
     random: () => number = Math.random,
@@ -52,10 +34,8 @@ export class EasthavenGame extends DealtTableGame {
     super({
       zones: () => easthavenZoneSpecs(),
       deck: new DeckSource(new CardRegistry(), cardIds, random),
-      // A foundation and nothing else. A column would take the card too, but
-      // auto-moving to one means flinging a stack of unknown size at whichever
-      // column happens to be declared first, which is never what was meant —
-      // the same reasoning the Yukon family applies.
+      // Foundations only: sending a stack to whichever column is declared
+      // first is never what was meant.
       autoMoveRoles: [EasthavenRole.FOUNDATION],
       winsWhenAllCardsIn: EasthavenRole.FOUNDATION,
     });
@@ -75,26 +55,19 @@ export class EasthavenGame extends DealtTableGame {
   /**
    * Whether the stock may deal, which it may only when no column is empty.
    *
-   * Spider's rule, kept — and unlike Spiderette, kept deliberately rather than
-   * inherited. A card dealt onto an empty column is unrecoverable, and here the
-   * consequence is sharper than in Spider: only a King may refill a space, so a
-   * player holding an empty column and no free King has neither a move that
-   * fills it nor a stock that will deal. That is a real way to lose Easthaven
-   * rather than an oversight, and it is what the Kings-only column rule is for.
+   * Spider's rule, kept deliberately, although with Kings-only columns it can
+   * leave a player with neither a move nor a deal.
    */
   public get canDeal(): boolean {
     return !this.stock.isEmpty && this.tableaus.every((pile) => !pile.isEmpty);
   }
 
   /**
-   * Deals one card face up onto each column, as far as the stock reaches.
+   * Deals one card face up onto each column as far as the stock reaches, as
+   * one undoable action, and returns whether the stock could deal.
    *
-   * Recorded as one action, so a single undo takes the whole row back. The
-   * stock holds 31 against seven columns, so the last deal is a short row of
-   * three — no special case, because dealing stops when the stock runs out.
-   *
-   * No win check follows, unlike Spider's deal: a dealt card lands on a column,
-   * never on a foundation, so no deal can be the move that finishes the game.
+   * Unlike Spider's deal, no win check follows: a dealt card never lands on a
+   * foundation.
    */
   public dealRow(): boolean {
     if (!this.canDeal) {
@@ -110,10 +83,6 @@ export class EasthavenGame extends DealtTableGame {
 
   /**
    * Turns over the card the move exposed.
-   *
-   * The only effect a move has. There is no score to change, and no completed
-   * run to collect — a foundation here is filled a card at a time by the player,
-   * so there is nothing for the game to notice on its behalf.
    *
    * @inheritDoc
    */
