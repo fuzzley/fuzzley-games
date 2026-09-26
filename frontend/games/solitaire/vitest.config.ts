@@ -14,11 +14,8 @@ export default defineConfig({
       reporter: ["text", "json", "html"],
       include: ["src/**/*.ts"],
       thresholds: {
-        // A floor a little under where the suite currently stands, so a
-        // change that drops coverage fails rather than relying on a reviewer
-        // noticing. Raise these when the real figures move up; they are meant
-        // to ratchet, which is why they are not set to the current numbers
-        // exactly.
+        // A floor a little under the suite's real figures; raise it as they
+        // rise.
         statements: 94,
         branches: 85,
         functions: 95,
