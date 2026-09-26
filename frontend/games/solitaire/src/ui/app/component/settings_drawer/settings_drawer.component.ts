@@ -22,14 +22,14 @@ import { OptionGroupComponent } from "../option_group/option_group.component";
 import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
 import { RadioGroupDirective } from "../../directive/radio_group.directive";
 
-/** One card back a player can choose, and how to preview it. */
+/** Describes one card back a player can choose, and how to preview it. */
 interface CardBackDesign {
   readonly style: CardBackStyle;
   readonly label: string;
   readonly patternClass: string;
 }
 
-/** One card in a deck's preview, drawn as a fan would leave it showing. */
+/** Describes one card in a deck's preview, as a fan would leave it showing. */
 interface CardDeckPreviewCard {
   /** The index the strip shows, and what the card is tracked by. */
   readonly rank: string;
@@ -39,7 +39,7 @@ interface CardDeckPreviewCard {
   readonly hasPip: boolean;
 }
 
-/** One deck a player can choose, resolved for rendering. */
+/** Describes one deck a player can choose, resolved for rendering. */
 interface CardDeckChoice extends CardDeckSpec {
   readonly selected: boolean;
   /** Whether the board is still fetching this deck's artwork. */
@@ -48,18 +48,15 @@ interface CardDeckChoice extends CardDeckSpec {
 }
 
 /**
- * The two cards every deck preview shows.
- *
- * A court and a spot card, because that is the pair the three decks disagree
- * about: `classic` marks neither, `indexed` the court alone, `all-corner-pips`
- * both. One card could only ever tell two of the three apart.
+ * The two cards every deck preview shows: a court and a spot card, which
+ * together tell the three decks apart.
  */
 const PREVIEW_CARDS: readonly { rank: string; x: number; court: boolean }[] = [
   { rank: "K", x: 0, court: true },
   { rank: "7", x: 72, court: false },
 ];
 
-/** One table felt swatch, resolved for rendering. */
+/** Describes one table felt swatch, resolved for rendering. */
 interface ThemeSwatch {
   readonly key: ThemeKey;
   readonly name: string;
@@ -68,9 +65,8 @@ interface ThemeSwatch {
 }
 
 /**
- * Controls the settings side drawer.
- * Exposes the rules the running game offers, card back designs, table felt
- * themes, and quick access to the game's documentation.
+ * Offers the running game's rules, the card back, deck and felt, and links to
+ * the rules page and a bug report.
  */
 @Component({
   selector: "app-settings-drawer",
@@ -92,7 +88,7 @@ export class SettingsDrawerComponent {
   private readonly docService = inject(GameDocumentationService);
   private readonly bugReport = inject(BugReportService);
 
-  /** Exposes build mode configuration to conditional UI rendering. */
+  /** Whether this is a development build, which shows the debug panel. */
   protected readonly isDevMode = import.meta.env.DEV;
 
   /** Title of the game currently active. */
@@ -100,7 +96,7 @@ export class SettingsDrawerComponent {
     () => this.docService.activeGameDoc()?.title ?? "Solitaire",
   );
 
-  /** The card backs on offer. Static, so a plain array rather than a signal. */
+  /** The card backs on offer. */
   protected readonly cardBackDesigns: readonly CardBackDesign[] = [
     {
       style: "card-back-blue",
@@ -132,11 +128,7 @@ export class SettingsDrawerComponent {
     }));
   });
 
-  /**
-   * The felt swatches, resolved once per change rather than by indexing into
-   * the theme table from the template — which ran on every change detection
-   * pass and put the lookup somewhere it could not be checked.
-   */
+  /** The felt swatches, with the chosen one marked. */
   protected readonly themeSwatches = computed<readonly ThemeSwatch[]>(() => {
     const selected = this.themeService.selectedTheme();
     return this.themeService.themeKeys.map((key) => ({
@@ -169,8 +161,10 @@ export class SettingsDrawerComponent {
     this.bugReportLink.hasValue() ? this.bugReportLink.value() : null,
   );
 
-  /** Emitted when the user asks to close the settings drawer. Named `closed`
-   * rather than `close` so it cannot be confused with the native DOM event. */
+  /**
+   * Emitted when the player asks to close the drawer; not `close`, which would
+   * be confused with the native DOM event.
+   */
   readonly closed = output();
 
   protected openRules(): void {

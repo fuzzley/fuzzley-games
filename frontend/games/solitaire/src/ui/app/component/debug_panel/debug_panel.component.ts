@@ -10,10 +10,8 @@ import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { OptionGroupComponent } from "../option_group/option_group.component";
 
 /**
- * Developer-only debug controls.
- * Exposes tools to manipulate the active game state for testing (e.g. Almost
- * Win Mode, or loading the game from a bug report). Conditionally rendered in
- * development builds by the settings drawer that hosts it.
+ * Offers development-only controls, such as Almost Win Mode and loading the
+ * game from a bug report.
  */
 @Component({
   selector: "app-debug-panel",

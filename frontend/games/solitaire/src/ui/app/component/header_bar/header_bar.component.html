@@ -1,16 +1,8 @@
 <header class="header-bar">
   <!--
-    The application's one <h1>. Without it the document had no heading at all
-    until a dialog opened, and the only h1 in the source was inside the victory
-    card — a heading that existed only on a board you had already cleared.
-
-    It names the game as well as the application, because with the rail
-    collapsed to its strip of two-character badges the board itself is the only
-    thing left saying which solitaire this is — and telling Klondike from Yukon
-    by their opening deal is not a reasonable ask. Both halves are in the
-    heading whatever the width; which of them is on the screen is the
-    stylesheet's business, and the document title carries the same pair for the
-    widths where neither is.
+    The application's one <h1>, naming the game as well as the application
+    because a collapsed rail no longer does. Both halves stay in the heading at
+    every width; the stylesheet decides which are visible.
   -->
   <div class="brand">
     <h1 class="brand-text">
@@ -20,20 +12,9 @@
   </div>
 
   <!--
-    Score and moves announce themselves when they change. A sighted player
-    sees the score move as a consequence of the move they just made; without
-    this the same feedback needed a trip back up to the header to go and read.
-
-    The live region is the whole card rather than the number inside it, and
-    `aria-atomic` is what makes the announcement "Score 350" rather than a
-    bare "350" — the label is the half that says what changed. Putting the
-    region on the card also keeps the figure in the accessibility tree once,
-    where a separate visually-hidden region would have added a second copy of
-    it for anyone reading the header rather than listening to it.
-
-    Not the timer: it changes every second, and a stopwatch that interrupts
-    once a second is unusable rather than informative. It stays readable on
-    demand, which is the right amount of attention for elapsed time.
+    Score and moves announce themselves when they change. Each whole card is an
+    atomic live region, so it reads "Score 350" rather than "350". The timer is
+    not live: announcing it every second would drown out everything else.
   -->
   <div class="metrics">
     <div class="metric-card score-card" role="status" aria-atomic="true">
@@ -71,10 +52,7 @@
       <span class="btn-text">Undo</span>
     </button>
 
-    <!--
-      Restart keeps its place in the bar for as long as there is one; below the
-      compact width it is in the overflow menu at the end of this row instead.
-    -->
+    <!-- Below the compact width, restart moves into the overflow menu. -->
     @if (!viewport.isCompact()) {
       <button
         class="btn btn-secondary"
@@ -125,14 +103,9 @@
     }
 
     <!--
-      Everything the bar has run out of room for, under one button.
-
-      A disclosure rather than a `role="menu"`: the panel holds ordinary
-      buttons, and claiming the menu role would promise arrow-key navigation
-      between items that a two-entry dropdown has no business implementing.
-      `aria-expanded` and `aria-controls` are what actually have to be true —
-      and `aria-haspopup` is not among them, since it announces the widget this
-      deliberately is not.
+      Everything the bar has run out of room for, under one button. A
+      disclosure rather than a `role="menu"`, which would promise arrow-key
+      navigation, so it has no `aria-haspopup` either.
     -->
     @if (viewport.isCompact()) {
       <button
@@ -178,18 +151,9 @@
 </header>
 
 <!--
-  The dropdown, and the layer that dismisses it.
-
-  Outside the header rather than inside the button they hang from, because the
-  header is frosted glass: an element with a `backdrop-filter` is a containing
-  block for `position: fixed` descendants, so a full-screen dismiss layer
-  written in there is silently clipped to the header's own sixty pixels — it
-  looked right, and swallowed nothing.
-
-  The backdrop is a real button rather than a div with a click handler, so the
-  menu can be dismissed by the keyboard as well as by tapping the board. It
-  covers the header too: the tap that closes the menu should close the menu,
-  and not also press whatever it landed on.
+  The dropdown and the layer that dismisses it, outside the header because its
+  `backdrop-filter` would clip a `position: fixed` child to the header. The
+  layer is a button, so the keyboard can dismiss the menu too.
 -->
 @if (viewport.isCompact() && isMenuOpen()) {
   <div class="overflow-menu" id="header-overflow-menu">
@@ -226,12 +190,7 @@
   ></button>
 }
 
-<!--
-  The icons that appear in both arrangements, drawn once. A restart arrow
-  in the bar and a restart arrow in the menu are the same drawing; copying the
-  path data would make them the same drawing only for as long as nobody
-  redrew one of them.
--->
+<!-- The icons both arrangements use, drawn once. -->
 <ng-template #restartIcon>
   <svg
     class="btn-icon"

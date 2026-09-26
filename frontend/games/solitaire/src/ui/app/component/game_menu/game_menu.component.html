@@ -1,7 +1,6 @@
 <!--
-  Only meaningful while the rail covers the board; hidden by CSS otherwise.
-  A button rather than a div: it is a real way to dismiss the menu, so it
-  should be reachable by the keyboard rather than only by a tap.
+  A button, so the keyboard can dismiss the menu too; CSS shows it only while
+  the rail covers the board.
 -->
 @if (menu.isExpanded()) {
   <button
