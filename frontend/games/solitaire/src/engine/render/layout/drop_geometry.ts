@@ -5,7 +5,7 @@ import { PileGeometry, Rect } from "../view/table_view_state";
 import { PileLayout, pileHeight } from "./pile_layout";
 import { Size } from "./table_layout";
 
-/** A pile a dragged stack may be dropped onto. */
+/** Describes a pile a dragged stack may be dropped onto. */
 export interface DropCandidate {
   /** The pile itself, whose cards set how far its target area reaches. */
   readonly pile: CardPile<Card>;
@@ -14,17 +14,12 @@ export interface DropCandidate {
 }
 
 /**
- * Computes the screen rectangle each candidate pile accepts a drop within.
+ * Computes the screen rectangle each candidate pile accepts a drop within,
+ * which for a fanned pile grows with its cards.
  *
- * A fanned pile's rectangle grows with its cards, so a stack released low in a
- * long column still overlaps it. Pure, so the hit test is testable without a
- * renderer.
- *
- * @param candidates The piles that accept drops, with their arrangements.
  * @param origins Pile origins from the table layout, in screen pixels.
  * @param cardSize The size of one card, in design units.
  * @param scale The layout scale, from design units to screen pixels.
- * @returns The candidate rectangles, in screen coordinates.
  */
 export function computeDropGeometries(
   candidates: readonly DropCandidate[],
@@ -64,12 +59,10 @@ function overlapArea(first: Rect, second: Rect): number {
 }
 
 /**
- * Resolves which candidate a dragged stack is over, by finding the rectangle it
- * overlaps most.
+ * Returns the candidate the dragged card overlaps most, or null if it overlaps
+ * none.
  *
- * @param dragRect The absolute screen bounds of the primary dragged card.
- * @param geometries The candidate pile rectangles.
- * @returns The target pile's geometry, or null when the drag overlaps none.
+ * @param dragRect The screen bounds of the card the player grabbed.
  */
 export function resolveDropTarget(
   dragRect: Rect,
