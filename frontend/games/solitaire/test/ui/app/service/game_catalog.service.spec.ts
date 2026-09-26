@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed } from "@angular/core/testing";
 import { Router } from "@angular/router";
 import { Location } from "@angular/common";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
-import { GAME_CATALOG } from "@/ui/app/provider/game_catalog";
+import { GAME_CATALOG, catalogEntry } from "@/ui/app/provider/game_catalog";
 import { provideAppRouter } from "@/ui/app/routes";
 
 // The routed component hosts a Phaser canvas, whose module init does not
@@ -186,6 +186,74 @@ describe("GameCatalogService", () => {
       harness.catalog.select("poker");
 
       expect(harness.catalog.selectedId()).toBe(GAME_CATALOG[0].id);
+    });
+  });
+
+  describe("loading a game by its rules", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("plays the game on the table by the given rules", () => {
+      const harness = buildCatalog();
+
+      harness.catalog.load("klondike", { drawCount: 1 });
+
+      expect(harness.catalog.valueOf("drawCount")).toBe(1);
+    });
+
+    it("switches to the named game", () => {
+      const harness = buildCatalog();
+
+      harness.catalog.load("spider", { suitCount: 1 });
+
+      expect(harness.catalog.selectedId()).toBe("spider");
+      expect(harness.catalog.valueOf("suitCount")).toBe(1);
+    });
+
+    it("deals once, however many rules change", () => {
+      const harness = buildCatalog();
+      const create = vi.spyOn(catalogEntry("klondike"), "create");
+
+      harness.catalog.load("klondike", { drawCount: 1, variant: 1 });
+
+      expect(create).toHaveBeenCalledOnce();
+    });
+
+    it("keeps the rules it does not name", () => {
+      const harness = buildCatalog();
+      harness.catalog.setOption("drawCount", 1);
+
+      harness.catalog.load("klondike", { variant: 1 });
+
+      expect(harness.catalog.valueOf("drawCount")).toBe(1);
+    });
+
+    it("plays a rule by its default when the value is not on offer", () => {
+      const harness = buildCatalog();
+
+      harness.catalog.load("klondike", { drawCount: 5 });
+
+      expect(harness.catalog.valueOf("drawCount")).toBe(3);
+    });
+
+    it("leaves the game on the table alone when nothing changes", () => {
+      const harness = buildCatalog();
+      const before = harness.catalog.session();
+
+      harness.catalog.load("klondike", harness.catalog.optionValues());
+
+      expect(harness.catalog.session()).toBe(before);
+    });
+
+    it("records a switch in the URL", async () => {
+      const harness = buildCatalog();
+
+      harness.catalog.load("spider", {});
+
+      await vi.waitFor(() => {
+        expect(harness.location.path()).toBe("/spider");
+      });
     });
   });
 });

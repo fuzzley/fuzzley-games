@@ -48,6 +48,7 @@ export type MockCatalog = Pick<
   | "valueOf"
   | "select"
   | "setOption"
+  | "load"
 >;
 
 /** Holds the mock catalog and the handles a spec needs to drive it. */
@@ -58,6 +59,9 @@ export interface MockCatalogHarness {
   readonly select: ReturnType<typeof vi.fn<(id: string) => void>>;
   readonly setOption: ReturnType<
     typeof vi.fn<(id: string, value: number) => void>
+  >;
+  readonly load: ReturnType<
+    typeof vi.fn<(id: string, values: Record<string, number>) => void>
   >;
 }
 
@@ -86,6 +90,10 @@ export function createMockCatalog(model: MockGameModel): MockCatalogHarness {
   const setOption = vi.fn((id: string, value: number) => {
     values.set({ ...values(), [id]: value });
   });
+  const load = vi.fn((id: string, chosen: Record<string, number>) => {
+    selectedId.set(id);
+    values.set({ ...values(), ...chosen });
+  });
 
   const catalog = {
     games,
@@ -102,6 +110,7 @@ export function createMockCatalog(model: MockGameModel): MockCatalogHarness {
     valueOf: (id: string) => values()[id] ?? null,
     select,
     setOption,
+    load,
   } as unknown as MockCatalog;
 
   return {
@@ -109,6 +118,7 @@ export function createMockCatalog(model: MockGameModel): MockCatalogHarness {
     deal: (game: MockGameModel) => session.set({ game: asGameModel(game) }),
     select,
     setOption,
+    load,
   };
 }
 

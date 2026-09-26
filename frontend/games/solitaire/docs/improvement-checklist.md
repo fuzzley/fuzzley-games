@@ -16,8 +16,8 @@ start at the first unticked item. Delete this file once every item is done.
       route asks first. Declining restores the browser's place in history,
       except for an entry typed into the address bar, which Angular cannot
       place.
-- [ ] **Load a reported position in one step.** Loading deals a throwaway game
-      for each rule option before restoring the position.
+- [x] **Load a reported position in one step.** The catalog's `load` records
+      the rules and deals once, or not at all when nothing changes.
 
 ## Engine and game structure
 
