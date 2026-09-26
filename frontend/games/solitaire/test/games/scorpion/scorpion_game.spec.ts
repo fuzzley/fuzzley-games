@@ -24,9 +24,8 @@ const ONE_SUIT = deckCardIds({
 });
 
 /**
- * A dealt game with a fixed shuffle, so every deal in this file is the same one.
- *
- * @param cardIds The deck to deal. Defaults to a standard 52.
+ * Returns a game dealt with a fixed shuffle, so every deal in this file is the
+ * same one.
  */
 function dealtGame(cardIds?: ReadonlyArray<DeckCardId>): ScorpionGame {
   const game = new ScorpionGame(cardIds, sequenceRandom([]));
@@ -34,12 +33,12 @@ function dealtGame(cardIds?: ReadonlyArray<DeckCardId>): ScorpionGame {
   return game;
 }
 
-/** The instance id of a card in this single-deck game. */
+/** Returns the instance id of a card in this single-deck game. */
 function id(suit: Suit, rank: Rank): string {
   return playingCardInstanceId({ suit, rank });
 }
 
-/** Which side up each card of a column is sitting, bottom-first. */
+/** Returns which side up each card of a column is sitting, bottom first. */
 function faceUpFlags(game: ScorpionGame, column: number): boolean[] {
   return game.tableaus[column].getCards().map((card) => card.faceUp);
 }
@@ -60,8 +59,7 @@ function stackKingToTwo(
 
 /**
  * Finishes a spade run on column 0 by moving its Ace there with a heart Nine
- * already resting on the Ace, so the run ends up one card below the top. Leaves
- * a heart Ten on column 2 for the Nine to move on to.
+ * resting on it, and leaves a heart Ten on column 2 for the Nine.
  */
 function buryRunUnderNine(game: ScorpionGame): void {
   emptyBoard(game);
@@ -319,11 +317,6 @@ describe("ScorpionGame", () => {
       expect(game.stock.getCards().every((card) => !card.faceUp)).toBe(true);
     });
 
-    /**
-     * The one place copying Spider would be wrong: Spider refuses to deal while
-     * a column is empty, because a card dealt there is unrecoverable. Scorpion
-     * has no such rule.
-     */
     it("deals happily while a column is empty", () => {
       game.tableaus[6].clear();
 
@@ -430,11 +423,8 @@ describe("ScorpionGame", () => {
   });
 
   /**
-   * The Yukon grab rule lets a player lift an Ace that already has a card
-   * resting on it and drop the pair onto the Two, finishing a run that is not at
-   * the top of its column. Only the top thirteen cards are inspected, so the run
-   * stays where it is — which is how the game is conventionally played, and
-   * corrects itself the moment the covering card moves away.
+   * Checks that a run finished beneath a card stays put until that card moves
+   * away, as the game is conventionally played.
    */
   describe("a run buried under a later card", () => {
     it("is not collected while the covering card sits on it", () => {

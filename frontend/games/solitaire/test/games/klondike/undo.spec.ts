@@ -12,7 +12,7 @@ describe("KlondikeGame undo", () => {
     game.startNewGame();
   });
 
-  /** The ids in a pile, bottom-first, paired with their face-up state. */
+  /** Returns the ids in a pile, bottom first, with their face-up state. */
   function snapshot(pileId: string): { id: string; faceUp: boolean }[] {
     return game
       .getPileById(pileId)!

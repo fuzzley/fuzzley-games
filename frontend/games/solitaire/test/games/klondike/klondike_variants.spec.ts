@@ -13,7 +13,7 @@ function newGame(variant: KlondikeVariant): KlondikeGame {
   return game;
 }
 
-/** The columns of a board built by hand, with the run's landing card ready. */
+/** Returns the columns of a hand-built board, with the landing card ready. */
 function twoColumns(
   variant: KlondikeVariant,
   lower: string,
@@ -28,10 +28,8 @@ function twoColumns(
 
 describe("Klondike column builds, by variant", () => {
   /*
-   * The same landing card put to all three rules. A black Nine onto a black Ten
-   * separates them completely: Klondike wants the other colour, Whitehead wants
-   * this one, and Thumb and Pouch wants anything but the same suit — which
-   * clubs on spades satisfies.
+   * A club Nine onto a spade Ten separates the three rules: Klondike refuses
+   * the same colour, which Whitehead wants and Thumb and Pouch allows.
    */
   it("refuses the same colour under Klondike", () => {
     const game = twoColumns(
@@ -123,11 +121,6 @@ describe("Klondike empty columns, by variant", () => {
 });
 
 describe("Klondike lifting, by variant", () => {
-  /*
-   * Klondike's laxity is the thing most easily lost by giving the family a
-   * shared grab rule, so it is worth its own case: a broken pile can be dragged
-   * as long as the card at the bottom of it fits where it lands.
-   */
   it("carries a broken pile under Klondike", () => {
     const game = newGame(KlondikeVariant.KLONDIKE);
     emptyBoard(game);

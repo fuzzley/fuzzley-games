@@ -23,11 +23,6 @@ describe("easthavenGestures", () => {
       expect(game.stock.size).toBe(24);
     });
 
-    /*
-     * The gesture-level half of Easthaven's hardest rule: a press on the stock
-     * is simply refused while a column stands empty, rather than dealing into
-     * the space.
-     */
     it("refuses to deal while a column is empty", () => {
       game.tableaus[0].clear();
       const top = game.stock.topCard!;

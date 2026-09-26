@@ -4,18 +4,11 @@ import { eightOffZoneSpecs } from "@/games/eight_off/eight_off_zones";
 import { seahavenZoneSpecs } from "@/games/seahaven/seahaven_zones";
 
 /**
- * The zones each board declares, checked against what they were before the
- * shared row builders replaced the hand-written loops.
+ * Describes a zone as the boards declared it before the shared row builders,
+ * so the rewrite can be checked to have changed nothing a player sees.
  *
- * A mechanical migration across fourteen boards is exactly the kind of change
- * that passes every game's own tests while quietly moving a pile one column
- * over or dropping a placeholder. The expectations below are the boards as they
- * were, transcribed from the previous revision — so this fails if the
- * rewrite changed anything a player could see.
- *
- * Functions are compared by what they are rather than by identity: a rule is a
- * fresh closure on each build, so the useful question is whether a zone that
- * accepted cards still accepts them and one that never did still does not.
+ * Rules are compared by whether they accept cards at all, since each build
+ * makes a fresh closure.
  */
 interface ComparableZone {
   readonly id: string;
@@ -57,7 +50,7 @@ const OPEN_COLUMN = {
   hoverExpansion: 15,
 };
 
-/** A cell as every all-face-up game declared one. */
+/** Returns a cell as every all-face-up game declared one. */
 function cell(index: number, role: string, column: number): ComparableZone {
   return {
     id: `cell-${index}`,
@@ -75,7 +68,7 @@ function cell(index: number, role: string, column: number): ComparableZone {
   };
 }
 
-/** A foundation as every game declared one. */
+/** Returns a foundation as every game declared one. */
 function foundation(index: number, role: string, column: number) {
   return {
     id: `foundation-${index}`,
@@ -93,7 +86,7 @@ function foundation(index: number, role: string, column: number) {
   };
 }
 
-/** An all-face-up, same-suit-run column. */
+/** Returns an all-face-up, same-suit-run column. */
 function openColumn(index: number, role: string, column: number) {
   return {
     id: `tableau-${index}`,

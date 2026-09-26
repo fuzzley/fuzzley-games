@@ -5,8 +5,8 @@ import { dealRowFromStock } from "@/games/common/row_deal";
 import { makePlayingCard } from "@test/support/card_builder";
 
 /**
- * A face-down stock of `count` cards named `stock-0` upwards, bottom-first —
- * so `stock-0` is at the bottom and the highest-numbered card deals first.
+ * Returns a face-down stock of `count` cards named `stock-0` upwards, bottom
+ * first, so the highest-numbered card deals first.
  */
 function stockOf(count: number): CardPile<PlayingCard> {
   const stock = new CardPile<PlayingCard>("stock");
@@ -16,7 +16,7 @@ function stockOf(count: number): CardPile<PlayingCard> {
   return stock;
 }
 
-/** Empty columns named `tableau-0` upwards. */
+/** Returns empty columns named `tableau-0` upwards. */
 function columnsOf(count: number): CardPile<PlayingCard>[] {
   return Array.from(
     { length: count },
@@ -24,7 +24,7 @@ function columnsOf(count: number): CardPile<PlayingCard>[] {
   );
 }
 
-/** The ids of a pile's cards, bottom-first. */
+/** Returns the ids of a pile's cards, bottom first. */
 function idsIn(pile: CardPile<PlayingCard>): string[] {
   return pile.getCards().map((card) => card.id);
 }

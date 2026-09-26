@@ -91,14 +91,8 @@ describe("DoubleKlondikeGame deal", () => {
 });
 
 /*
- * This game shares Klondike's ScoringPolicy, which used to decide what a move
- * was worth by comparing role *strings* against Klondike's own — so renaming a
- * role here left every move scoring zero without breaking the build, and the
- * vocabulary had to be pinned down to compensate.
- *
- * The policy is now told which roles are which, so the two games no longer have
- * to agree on spellings and there is nothing to pin. What is worth asserting is
- * the property that pinning stood in for: that this game's own roles score.
+ * The shared scoring policy is told this game's roles, so what matters is that
+ * they score.
  */
 describe("DoubleKlondikeGame scoring vocabulary", () => {
   it("scores by its own roles rather than by matching Klondike's spelling", () => {
@@ -290,7 +284,7 @@ describe("DoubleKlondikeGame win condition", () => {
 });
 
 describe("DoubleKlondikeGame snapshot", () => {
-  /** A dealt game that has drawn through its stock and recycled the waste. */
+  /** Returns a game that has drawn through its stock and recycled the waste. */
   function recycledOnce(): DoubleKlondikeGame {
     const game = newGame();
     while (!game.stock.isEmpty) {

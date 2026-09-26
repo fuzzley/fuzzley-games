@@ -40,7 +40,7 @@ function place(
   return card;
 }
 
-/** The instance id of a card, choosing which of the two decks it comes from. */
+/** Returns the instance id of a card from the named one of the two decks. */
 function id(suit: Suit, rank: Rank, deckIndex = 0): string {
   const face = playingCardFaceKey({ suit, rank });
   return deckIndex === 0 ? face : `${face}#${deckIndex}`;
@@ -109,12 +109,6 @@ describe("SpiderGame", () => {
       expect([...new Set(perFace.values())]).toEqual([8]);
     });
 
-    /**
-     * The board used to compute its card list from a deck specification of its
-     * own, which disagreed with the game the moment a variant was chosen: it
-     * looked for hearts in a game dealing only spades and threw part way
-     * through making sprites.
-     */
     it("names every card it holds, so a board can make a sprite for each", () => {
       const variant = new SpiderGame(deckCardIds(spiderDeck(1)));
       variant.startNewGame();
@@ -334,12 +328,6 @@ describe("SpiderGame", () => {
       expect(game.dealRow()).toBe(false);
     });
 
-    /*
-     * A stock holding fewer cards than there are columns is not a position the
-     * standard 104-card deal reaches, but a short injected deck does, and a row
-     * that runs out mid-deal must stop rather than deal an undefined card. The
-     * columns it did reach keep their cards.
-     */
     it("deals what is left when the stock cannot fill a whole row", () => {
       game.stock.clear();
       const spare = game.tableaus[0].topCard!;
