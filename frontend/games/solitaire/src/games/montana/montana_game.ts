@@ -21,16 +21,10 @@ import {
 } from "./montana_rules";
 import { montanaZoneSpecs } from "./montana_zones";
 
-/**
- * How many redeals a game allows.
- *
- * Two is the usual figure, and it is what keeps the game a puzzle rather than a
- * grind: with unlimited redeals almost any deal comes out eventually, and with
- * none most deals are dead within a dozen moves.
- */
+/** How many redeals a game allows. */
 export const MAX_REDEALS = 2;
 
-/** What Montana keeps outside its piles, for a snapshot. */
+/** Holds what Montana keeps outside its piles, for a snapshot. */
 interface MontanaExtra {
   /** How many of the {@link MAX_REDEALS} redeals have been spent. */
   readonly redealsUsed: number;
@@ -43,23 +37,8 @@ function readMontanaExtra(value: unknown): MontanaExtra {
 }
 
 /**
- * A game of Montana, also played as Gaps.
- *
- * Forty-eight cards laid in a grid of four rows by thirteen, with four gaps
- * where the Aces would have been. A gap is filled by the card that continues the
- * run to its left — same suit, one rank up — and the game is won when every row
- * reads Two through King in a single suit.
- *
- * It is the odd one out here in almost every way. There is no stock, no
- * foundation and no tableau; there are no runs to build and nothing is ever
- * stacked, because every one of the fifty-two positions holds at most one card.
- * A move does not put a card *on* another card, it puts a card *somewhere*, and
- * whether that somewhere will have it depends on the cell to its left.
- *
- * Two consequences run through the code below. The placement rule has to see a
- * pile that is not its own target, which is what the board query on a rule's
- * context is for. And the win is an arrangement rather than a gathering, so
- * `winsWhenAllCardsIn` cannot express it and this game announces its own win.
+ * Plays Montana, also called Gaps: forty-eight cards in a four-by-thirteen
+ * grid, where each gap takes the card that continues the run to its left.
  */
 export class MontanaGame extends DealtTableGame {
   /** The fifty-two grid positions, row-major. */
@@ -69,10 +48,10 @@ export class MontanaGame extends DealtTableGame {
   private readonly random: () => number;
 
   /**
-   * @param cardIds The card identities to deal from. Defaults to a deck without
-   *   its Aces; injectable so a test can supply a shorter one.
-   * @param random Source of randomness, injectable for a fixed deal. Held as
-   *   well as handed to the deck, because the gaps are placed by it too.
+   * Creates a game whose piles are empty until the first deal.
+   *
+   * @param random Returns a number in [0, 1), which places the gaps and
+   *   shuffles redeals as well as the deck.
    */
   constructor(
     cardIds: ReadonlyArray<DeckCardId> = deckCardIds(MONTANA_DECK),
@@ -82,8 +61,7 @@ export class MontanaGame extends DealtTableGame {
       zones: () => montanaZoneSpecs(),
       // Dealt face up: the whole position is visible from the first move.
       deck: new DeckSource(new CardRegistry(), cardIds, random, true),
-      // A card's only legal home is a gap that wants it, so sending it there on
-      // a double press is exactly right — there is no column to fling it at.
+      // A card fits at most one gap, so auto-moving it guesses nothing.
       autoMoveRoles: [MontanaRole.CELL],
       // Deliberately absent: this game is won by arrangement, not by gathering
       // cards into a role. See `afterMove`.
@@ -95,8 +73,6 @@ export class MontanaGame extends DealtTableGame {
 
   /** @inheritDoc */
   protected override dealBoard(deck: PlayingCard[]): void {
-    // Zeroed here rather than in a hook of its own: how many redeals have been
-    // spent is part of the board being dealt.
     this.redealsUsed = 0;
     dealMontanaLayout(deck, this.cells, this.random);
   }
@@ -110,10 +86,6 @@ export class MontanaGame extends DealtTableGame {
 
   /**
    * Announces the win when the grid comes out in order.
-   *
-   * Every other game here names a role that must hold every card and lets the
-   * engine count. Montana's cards never leave their role, so there is nothing to
-   * count and the check has to look at the shape of the board instead.
    *
    * @inheritDoc
    */
@@ -134,25 +106,14 @@ export class MontanaGame extends DealtTableGame {
   /**
    * Whether a redeal is available: one must be left, and it must have something
    * to do.
-   *
-   * A board already in order has nothing to gather, and redealing it would spend
-   * a redeal to shuffle an empty set — so the button refuses rather than
-   * quietly wasting one.
    */
   public get canRedeal(): boolean {
     return this.redealsRemaining > 0 && this.gatherable().length > 0;
   }
 
   /**
-   * Gathers every card that is not in its final place, shuffles them, and lays
-   * them back out after each row's settled run.
-   *
-   * Recorded as a single action — one transfer per card that actually moved — so
-   * one undo takes the whole redeal back. That is a great many transfers for one
-   * press, which is exactly why an applied move records a list of them rather
-   * than a single from-and-to.
-   *
-   * @returns True if a redeal happened.
+   * Shuffles every card not yet in its final place back out after each row's
+   * settled run, as one undoable action, and returns whether it could.
    */
   public redeal(): boolean {
     if (!this.canRedeal) {
@@ -217,8 +178,8 @@ export class MontanaGame extends DealtTableGame {
   }
 
   /**
-   * Every card that a redeal would pick up: those outside their row's settled
-   * run.
+   * Returns every card a redeal would pick up: those outside their row's
+   * settled run.
    */
   private gatherable(): PlayingCard[] {
     return this.rows.flatMap((row) =>

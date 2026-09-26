@@ -13,7 +13,7 @@ import {
   resolveDragTarget,
 } from "@/engine/tableau/view/table_view_builder";
 
-/** What a board needs of the game it draws, beyond the board itself. */
+/** Gives a board what it needs of the game it draws. */
 export interface TableBoardOptions {
   /** The game to draw. */
   readonly game: TableGame;
@@ -23,21 +23,11 @@ export interface TableBoardOptions {
   readonly handleIntent: IntentHandler;
   /** How the player has asked the table to look. */
   readonly presentation: TablePresentation;
-  /** Optional callback fired when the board scene finishes initial sprite setup. */
+  /** Called once the scene has made its sprites and drawn its first frame. */
   readonly onReady?: () => void;
 }
 
-/**
- * Builds the board scene that draws a table game.
- *
- * Every game's board was the same four functions closing over a different
- * layout, game and gesture map — measure the grid, build a frame, resolve a
- * drop, hand the lot to a {@link BoardScene}. A game supplies the three things
- * that actually differ and the engine does the rest.
- *
- * Takes any {@link TableGame} rather than a particular game class: a board
- * follows new deals and nothing else, and every table game announces those.
- */
+/** Builds the board scene that draws a table game. */
 export function makeTableBoardScene(options: TableBoardOptions): BoardScene {
   const { game, layout, handleIntent, presentation, onReady } = options;
   const measure = (viewport: Viewport) => measureTable(layout, viewport);

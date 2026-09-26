@@ -229,13 +229,8 @@ describe("FortyThievesGame column rules", () => {
   });
 
   /*
-   * The rule that makes the original as hard as it is, and the one thing
-   * Josephine changes.
-   *
-   * The landing card is the Ten of the *same* suit on purpose, so the build
-   * rule would happily take the run and only the grab rule can refuse it. With
-   * an off-suit Ten this would pass whatever the grab rule said, and the
-   * Josephine case below would be untestable.
+   * The landing card is a Ten of the same suit, so only the grab rule can
+   * refuse the run and the Josephine case below tests something.
    */
   it("refuses to lift a card with anything resting on it", () => {
     relocate(game, "card-spades-9", game.tableaus[0]);
@@ -347,10 +342,6 @@ describe("FortyThievesGame stock", () => {
     expect(game.waste.topCard?.faceUp).toBe(true);
   });
 
-  /*
-   * The defining rule of the family: the stock is dealt through exactly once.
-   * Klondike would recycle here.
-   */
   it("refuses to draw once the stock is spent, with no recycle", () => {
     const game = newGame();
     while (game.canDraw) {

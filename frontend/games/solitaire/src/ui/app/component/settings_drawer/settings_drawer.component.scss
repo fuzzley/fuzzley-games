@@ -1,11 +1,7 @@
 @use "../../styles" as *;
 
-// No backdrop element and no z-index: the surrounding <app-modal-dialog> is a
-// native <dialog>, which paints the scrim, traps focus, closes on Escape and
-// makes the board behind it inert — none of which this drawer used to do.
-//
-// `margin-left: auto` inside the dialog's centring flexbox is what pins the
-// panel to the right edge without taking it out of flow.
+// No scrim or z-index: <app-modal-dialog> puts this in the top layer.
+// `margin-left: auto` pins the panel to the right of the dialog's flexbox.
 .drawer {
   @include glass(20px);
   width: 320px;
@@ -66,13 +62,8 @@
   gap: var(--space-4);
 }
 
-// A swatch a player picks between: a preview, a label, and a selected state.
-// Shared by the card backs and the decks, which are the same control over
-// different artwork.
-//
-// The surface and the selected state only. Which way the preview and the label
-// sit is the selector's own business: two card backs fit across the drawer and
-// three decks with a sentence each do not.
+// A swatch a player picks between, shared by the card backs and the decks;
+// each selector lays out its own preview and label.
 @mixin swatch-option {
   @include transition(background, border-color, color);
   display: flex;
@@ -134,9 +125,8 @@
 
 // --- Card deck selector ---
 
-// A row per deck rather than a column each. The drawer is 320px wide, so three
-// across leaves about 50px an option — not enough for a preview that has to
-// show two cards, and nowhere near enough for a sentence underneath it.
+// A row per deck, since three across a 320px drawer leaves no room for a
+// preview and a sentence.
 .card-deck-selector {
   display: flex;
   flex-direction: column;
@@ -226,14 +216,8 @@
   position: relative;
   box-shadow: var(--shadow-swatch);
 
-  // The swatch reads as a 36px dot, which is under the `--tap-target-min` the
-  // rest of the application's controls honour. Grown with a pseudo-element
-  // rather than by enlarging the circle: the minimum is about how big a thumb
-  // has to be accurate, not about how big the paint is, and four 44px discs
-  // is a different design from the one that was drawn.
-  //
-  // The swatches sit on a `--space-3` gap, so a 44px target still leaves 4px
-  // between one and the next rather than stealing its neighbour's taps.
+  // A pseudo-element grows the 36px dot's target to `--tap-target-min` without
+  // enlarging the dot; the `--space-3` gap keeps neighbours' targets apart.
   &::after {
     content: "";
     position: absolute;

@@ -29,11 +29,8 @@ function zone(id: string, overrides: Partial<ZoneSpec> = {}): ZoneSpec {
 }
 
 /**
- * The smallest game the runtime can run: two piles that accept anything, and a
- * third that accepts nothing and gives nothing up.
- *
- * Exercising the runtime through a game this plain keeps these tests about
- * moves, undo and auto-move rather than about Klondike.
+ * Plays the smallest game the runtime can run: two piles that accept anything,
+ * and a third that accepts nothing and gives nothing up.
  */
 class TestGame extends TableGame {
   /** Effects the next move should report, for the scoring and flip paths. */
@@ -70,10 +67,8 @@ class TestGame extends TableGame {
    * Moves a whole pile onto another from the top down, the way a stock draw
    * does, so the run arrives turned over.
    *
-   * Recorded as a game must record it: `cardIds` in the order the cards sat in
-   * the pile they left, which is the order undo puts them back in. Named
-   * something no game calls its actions, because which way round a run lands is
-   * not supposed to be read off the name.
+   * Its action is named nothing a game uses, since which way round a run lands
+   * must not be read off the name.
    */
   public turnOver(fromPileId: string, toPileId: string): void {
     const from = this.requirePile(fromPileId);
@@ -449,7 +444,7 @@ describe("TableGame", () => {
   });
 
   describe("announcing what moved", () => {
-    /** Every announcement made from here on, in the order they arrived. */
+    /** Returns every announcement made from here on, in the order made. */
     function recordAnnouncements(): string[][] {
       const announced: string[][] = [];
       game.onCardsRelocated((cardIds) => announced.push([...cardIds]));
@@ -464,10 +459,7 @@ describe("TableGame", () => {
 
       game.turnOver(LEFT, RIGHT);
 
-      // The view draws them in the order it is given, so a run that came off
-      // the top of one pile and onto another has to be named the way it now
-      // lies — not the way it sat in the pile it left, which is what the
-      // transfer records for undo.
+      // Named as the run now lies, not as the transfer records it for undo.
       expect(announced).toEqual([[top.id, middle.id, bottom.id]]);
     });
 

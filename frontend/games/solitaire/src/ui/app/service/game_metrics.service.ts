@@ -3,17 +3,10 @@ import { GameCatalogService } from "./game_catalog.service";
 import { TimerService } from "./timer.service";
 
 /**
- * What the game on the table currently reads: score, moves, elapsed time, and
- * whether it has been won.
+ * Reads out the game on the table: its score, moves, elapsed time, and whether
+ * it has been won.
  *
- * Follows whichever game is on the table rather than binding to one. Picking a
- * different game re-subscribes everything here to it, which is why these are
- * plain signals fed by an effect rather than bridged once from a fixed set of
- * observables.
- *
- * Deliberately read-only from the outside apart from {@link reset}, which is
- * how a lifecycle action says a fresh game has been dealt. Anything that
- * *changes* the game lives in {@link GameLifecycleService}.
+ * Anything that changes the game belongs in {@link GameLifecycleService}.
  */
 @Injectable({ providedIn: "root" })
 export class GameMetricsService {
@@ -37,31 +30,19 @@ export class GameMetricsService {
   /** Elapsed time, formatted `mm:ss`. */
   readonly timerText = this.timer.timerText;
 
-  /**
-   * Whether a game is under way — moves made, and not yet won.
-   *
-   * This is the question every destructive action asks before throwing the
-   * board away.
-   */
+  /** Whether a game is under way: moves made, and not yet won. */
   readonly isInProgress = computed(() => this.moves() > 0 && !this.isGameWon());
 
-  /**
-   * Whether there is a move to take back. A won game is excluded: the board is
-   * finished, and the victory overlay covers it.
-   */
+  /** Whether there is a move to take back, which a won game never has. */
   readonly canUndo = computed(
     () => this.undoDepthSignal() > 0 && !this.isGameWon(),
   );
 
   constructor() {
-    // Re-bind everything to whichever game is on the table. Angular runs the
-    // cleanup before the next pass, so switching games never leaves a
-    // subscription pointing at the game that just left.
+    // Follow whichever game is on the table; the cleanup lets go of the last.
     effect((onCleanup) => {
       const { game } = this.catalog.session();
 
-      // Reports the metrics once on subscribe, so switching to a game already
-      // in progress shows its score rather than zero.
       const unsubscribe = game.state.onChange((metrics) => {
         this.scoreSignal.set(metrics.score);
         this.movesSignal.set(metrics.moves);
@@ -80,7 +61,6 @@ export class GameMetricsService {
       });
     });
 
-    // Auto-start the stopwatch once the first move is made (and not yet won).
     effect(() => {
       if (this.isInProgress() && !this.timer.isRunning) {
         this.timer.start();

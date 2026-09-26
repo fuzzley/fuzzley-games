@@ -1,15 +1,8 @@
 /**
- * Lets the microtask queue drain.
+ * Lets the microtask queue drain, so an async action a click started has
+ * finished before a spec asserts.
  *
- * The lifecycle actions are `async` because they may have to wait on a
- * confirmation. Even when they do not — a fresh game has nothing to lose, so
- * nothing is asked — the work still lands one turn of the microtask queue
- * after the click that started it. A spec that clicks a button and asserts
- * immediately would read the state from before that turn.
- *
- * Several iterations rather than one, because a chain of awaits inside the
- * action queues a continuation per link and one `await` here only drains the
- * first.
+ * Several turns, because each await in a chain queues its own continuation.
  */
 export async function flushMicrotasks(): Promise<void> {
   for (let i = 0; i < 5; i++) {

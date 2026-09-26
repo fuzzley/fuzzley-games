@@ -7,31 +7,17 @@ import {
   TableInteractionState,
 } from "../view/table_view_state";
 
-/**
- * The id of the card a sprite draws, as stamped on it when the scene created
- * it, or null for a sprite that is not a card.
- */
+/** Returns the id of the card a sprite draws, or null if it is not a card. */
 function cardIdOf(gameObject: Phaser.GameObjects.Sprite): string | null {
   const cardId: unknown = gameObject.getData("cardId");
   return typeof cardId === "string" ? cardId : null;
 }
 
-/**
- * Binds Phaser's pointer and drag events to a {@link DragController}.
- *
- * Everything this does is translation. What a press means, which cards travel
- * with a dragged one, and where a drop lands are all decided elsewhere — by the
- * game's gesture map and the scene's drop resolver — so this class holds no
- * rules and no state of its own beyond the controller it drives.
- */
+/** Binds Phaser's pointer and drag events to a {@link DragController}. */
 export class BoardInputManager {
   private readonly controller: DragController;
 
-  /**
-   * Constructs the board input manager.
-   *
-   * @param boardScene The parent board scene.
-   */
+  /** Creates the input manager for a board scene. */
   constructor(private readonly boardScene: BoardScene) {
     this.controller = new DragController(
       boardScene.handleIntent,
@@ -41,10 +27,8 @@ export class BoardInputManager {
 
   /** Binds the global drag and drop event listeners to Phaser's input system. */
   public registerDragListeners(): void {
-    // A press the board itself hears, rather than one of its sprites: an empty
-    // `currentlyOver` means it landed on bare table, which is how a lingering
-    // reveal is put back. Phaser only raises this one for presses on the
-    // canvas, so a press on the header does not reach it.
+    // An empty `currentlyOver` means the press landed on bare table rather
+    // than on a sprite.
     this.boardScene.input.on(
       "pointerdown",
       (
@@ -57,9 +41,8 @@ export class BoardInputManager {
       },
     );
 
-    // Phaser's drag events carry the pointer as their first argument, which
-    // none of these handlers need: the drag position comes from the event's own
-    // dragX/dragY, already converted into game space.
+    // Positions come from dragX and dragY, which are already in game space,
+    // rather than from the pointer.
     this.boardScene.input.on(
       "dragstart",
       (_pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Sprite) =>
@@ -81,31 +64,20 @@ export class BoardInputManager {
     );
   }
 
-  /**
-   * Registers event listeners on an individual playing card sprite.
-   *
-   * @param sprite The card's sprite.
-   * @param cardId The id of the card the sprite draws.
-   */
+  /** Registers pointer listeners on a card's sprite. */
   public registerCardListeners(
     sprite: Phaser.GameObjects.Sprite,
     cardId: string,
   ): void {
     sprite.on("pointerover", () => this.controller.cardOver(cardId));
-    // A finger's departure is not a decision to stop looking: it leaves the
-    // instant the tap ends, so the card it touched stays open.
+    // A finger leaves as soon as a tap ends, so the card it touched stays open.
     sprite.on("pointerout", (pointer: Phaser.Input.Pointer) =>
       this.controller.cardOut(cardId, pointer.wasTouch),
     );
     sprite.on("pointerdown", () => this.controller.cardPressed(cardId));
   }
 
-  /**
-   * Registers event listeners on a pile's background placeholder sprite.
-   *
-   * @param sprite The placeholder sprite.
-   * @param pileId The id of the pile it marks.
-   */
+  /** Registers pointer listeners on a pile's placeholder sprite. */
   public registerPileBackgroundListeners(
     sprite: Phaser.GameObjects.Sprite,
     pileId: string,
@@ -127,8 +99,6 @@ export class BoardInputManager {
   private onDragEnd(gameObject: Phaser.GameObjects.Sprite): void {
     const drag = this.controller.drag;
     if (!drag || !cardIdOf(gameObject)) {
-      // Nothing in hand, or a sprite that is not a card. Either way the drag is
-      // over, and the controller clears it.
       this.controller.dragEnded(null);
       return;
     }
@@ -160,7 +130,7 @@ export class BoardInputManager {
     this.controller.hoveredBackgroundPileId = pileId;
   }
 
-  /** The transient drag interaction state. */
+  /** The active drag, or null when nothing is in hand. */
   public get drag(): DragInteraction | null {
     return this.controller.drag;
   }
@@ -191,7 +161,7 @@ export class BoardInputManager {
     this.controller.endFlight(flight);
   }
 
-  /** Snapshot of the interaction state the view builder reads each frame. */
+  /** The interaction state the view builder reads each frame. */
   public get interaction(): TableInteractionState {
     return this.controller.interaction;
   }

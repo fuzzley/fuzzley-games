@@ -24,7 +24,7 @@ describe("DebugPanelComponent", () => {
     fixture.detectChanges();
   });
 
-  /** The panel's choice buttons. */
+  /** Returns the panel's choice buttons. */
   function choices(): HTMLElement[] {
     return queryAll(fixture, ".segment-btn");
   }
@@ -65,7 +65,7 @@ describe("DebugPanelComponent", () => {
       clickElement(fixture, ".btn-load");
     }
 
-    /** A report's game state for the mock game. */
+    /** Returns a report's game state for the mock game. */
     function reported(): Promise<string> {
       return encodePosition({
         gameId: "klondike",
@@ -74,7 +74,7 @@ describe("DebugPanelComponent", () => {
       });
     }
 
-    /** The loader's problem line, as rendered. */
+    /** Returns the loader's problem line, as rendered. */
     function problem(): string {
       fixture.detectChanges();
       return queryText(fixture, ".load-problem");

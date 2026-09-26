@@ -11,22 +11,7 @@ import {
   freeCellZoneSpecs,
 } from "./freecell_zones";
 
-/**
- * A game of FreeCell.
- *
- * Notable mostly for what it does not have. There is no stock, so nothing draws
- * and nothing recycles. Every card is dealt face up, so nothing is ever turned
- * over and there is no bonus for doing so. There is no score at all — FreeCell
- * is played against the deal, not for points.
- *
- * What is left is a board and the rules its zones declare, which is the measure
- * of how much {@link DealtTableGame} carries on its own. Even the win condition
- * is declared rather than coded.
- *
- * Also plays Baker's Game, which differs only in what its columns build by. It
- * gets its own catalog entry but not its own class: a separate module would
- * duplicate six files in order to change two rules.
- */
+/** Plays FreeCell or Baker's Game: eight open columns, four cells, no stock. */
 export class FreeCellGame extends DealtTableGame {
   /** The four single-card holding cells. */
   public readonly cells: readonly CardPile<PlayingCard>[];
@@ -39,12 +24,10 @@ export class FreeCellGame extends DealtTableGame {
   public almostWin = false;
 
   /**
-   * @param cardIds The card identities to deal from. Defaults to a full 52-card
-   *   deck; injectable so a test can supply a shorter one.
-   * @param random Source of shuffle randomness, injectable for a fixed deal.
-   * @param variant The column rules to play by. A constructor parameter rather
-   *   than a field because the zones closure is built from it during `super`,
-   *   before this class's own fields exist.
+   * Creates a game whose piles are empty until the first deal.
+   *
+   * @param variant The column rules to play by, passed in because the zones are
+   *   built from it during `super`, before this class's fields exist.
    */
   constructor(
     cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
@@ -53,7 +36,7 @@ export class FreeCellGame extends DealtTableGame {
   ) {
     super({
       zones: () => freeCellZoneSpecs(variant),
-      // Dealt face up: FreeCell has no hidden information at all.
+      // Dealt face up: FreeCell hides nothing.
       deck: new DeckSource(new CardRegistry(), cardIds, random, true),
       // A foundation is always best; a cell is a last resort, since parking a
       // card there is what a player is trying to avoid.

@@ -5,12 +5,7 @@ import { stocklessGestures } from "@/games/common/table_gestures";
 import { EIGHT_OFF_LAYOUT } from "./eight_off_layout";
 import { EightOffGame } from "./eight_off_game";
 
-/**
- * Builds the Eight Off board scene.
- *
- * The whole board is dealt at the start, so the shared stockless gestures are
- * the right ones unchanged: a single press has nothing it could do.
- */
+/** Builds the Eight Off board scene. */
 export function makeEightOffBoardScene(
   game: EightOffGame,
   presentation: TablePresentation,

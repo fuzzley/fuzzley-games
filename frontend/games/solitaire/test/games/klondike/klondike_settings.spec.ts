@@ -20,11 +20,6 @@ describe("KlondikeSettings", () => {
     expect(settings.drawCount).toBe(1);
   });
 
-  /*
-   * The reason this is an object at all rather than a constructor argument: the
-   * zones closure keeps reading it, so a change made after the game was built
-   * still reaches the board.
-   */
   it("reports the draw count it was last set to", () => {
     const settings = new KlondikeSettings();
 
@@ -33,14 +28,6 @@ describe("KlondikeSettings", () => {
     expect(settings.drawCount).toBe(1);
   });
 
-  /*
-   * The point of the split. GameCatalogService persists every game's chosen
-   * options under `fsolitaire-game-options` and deals a fresh game when one
-   * changes, so a second copy here would be a second source of truth. Worse,
-   * the copy used to live under `fsolitaire-settings` — the key the
-   * presentation settings migrate away from — and overwrote what that
-   * migration reads.
-   */
   it("persists nothing, leaving storage to the catalog that owns it", () => {
     const settings = new KlondikeSettings();
 

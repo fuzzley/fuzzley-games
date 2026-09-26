@@ -17,12 +17,10 @@ vi.mock("phaser", async () => {
 });
 
 /**
- * Every combination of the rules a game offers.
+ * Returns every combination of the rules a game offers.
  *
- * A sweep rather than a spot check because the two catalogs are the one place
- * a game is wired up twice — once to be dealt and once to be drawn — and a
- * rule that reshapes the board is exactly the sort of thing that gets added to
- * one and forgotten in the other.
+ * A sweep, since a game is wired up twice, to be dealt and to be drawn, and a
+ * rule can reach one and be forgotten in the other.
  */
 function ruleCombinations(
   options: readonly GameOptionSpec[],
@@ -39,7 +37,7 @@ function ruleCombinations(
   );
 }
 
-/** One game and one setting of its rules, named for the failure message. */
+/** Pairs a game with one setting of its rules, named for failure messages. */
 type Deal = [name: string, entry: CatalogEntry, values: GameOptionValues];
 
 /** Every game paired with every setting of the rules it offers. */
@@ -65,7 +63,7 @@ const RULES: [name: string, option: GameOptionSpec][] = GAME_CATALOG.flatMap(
     ]),
 );
 
-/** The first card, in board order, that can legally move, and where to. */
+/** Returns the first card, in board order, that can legally move, and where. */
 function firstLegalMove(
   game: TableGame,
 ): { cardId: string; pileId: string } | null {
@@ -111,13 +109,6 @@ describe("the game catalog", () => {
     expect(GAME_CATALOG[0].id).toBe("klondike");
   });
 
-  /*
-   * A collapsed game rail shows the marker and nothing else, so two games
-   * wearing the same one are indistinguishable to anyone playing at a width
-   * that collapses it. The names alone do not prevent this — Spider and
-   * Scorpion, Simple Simon and Seahaven, Baker's Game and Baker's Dozen all
-   * collide on their first two letters.
-   */
   it("badges every game with a distinct marker", () => {
     const markers = GAME_CATALOG.map((entry) => entry.marker);
 

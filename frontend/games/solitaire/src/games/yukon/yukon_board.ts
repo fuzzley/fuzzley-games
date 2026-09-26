@@ -5,13 +5,7 @@ import { stocklessGestures } from "@/games/common/table_gestures";
 import { YukonGame } from "./yukon_game";
 import { YUKON_LAYOUT } from "./yukon_layout";
 
-/**
- * Builds the Yukon board scene.
- *
- * The same grid for all three variants, and the shared stockless gestures
- * unchanged: with the whole deck dealt at the start there is nothing a single
- * press could draw or recycle.
- */
+/** Builds the Yukon board scene, which is the same for all three variants. */
 export function makeYukonBoardScene(
   game: YukonGame,
   presentation: TablePresentation,

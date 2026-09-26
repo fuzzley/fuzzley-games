@@ -14,10 +14,10 @@ import { GameDocumentationService } from "../../service/game_documentation.servi
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
 
-/** The tabbed views available in the game documentation modal. */
+/** Names a tab of the documentation modal. */
 export type DocTab = "overview" | "rules" | "variants";
 
-/** One documented rule option, resolved against the catalog for rendering. */
+/** Describes a documented rule option, resolved against the catalog. */
 interface VariantCard {
   readonly optionId: string;
   readonly label: string;
@@ -25,14 +25,7 @@ interface VariantCard {
   readonly choices: readonly { value: number; label: string; effect: string }[];
 }
 
-/**
- * Modal dialog displaying in-game rules, summaries, movement instructions,
- * variant descriptions, Wikipedia links, and a hero screenshot.
- *
- * The dialog behaviour — focus trap, Escape, focus restore, background inert —
- * comes from <app-modal-dialog> wrapping a native <dialog>. This component
- * only decides what goes inside it and which tab is showing.
- */
+/** Shows the rules of the game on the table in a tabbed dialog. */
 @Component({
   selector: "app-game-help-modal",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,7 +40,7 @@ export class GameHelpModalComponent {
   private readonly injector = inject(Injector);
   private readonly changeDetector = inject(ChangeDetectorRef);
 
-  /** User's explicitly requested tab. */
+  /** The tab the player last chose. */
   private readonly selectedTab = signal<DocTab>("overview");
 
   /** Active documentation entry, or undefined if missing. */
@@ -74,13 +67,7 @@ export class GameHelpModalComponent {
     return this.availableTabs().includes(tab) ? tab : "overview";
   });
 
-  /**
-   * The variants tab's content, joined to the catalog once per change.
-   *
-   * The template used to call into the documentation service twice per choice
-   * from inside a nested loop, which re-ran the whole join on every change
-   * detection pass.
-   */
+  /** The variants tab's content, joined to the catalog. */
   protected readonly variantCards = computed<readonly VariantCard[]>(() => {
     const doc = this.doc();
     if (!doc) return [];
@@ -141,13 +128,7 @@ export class GameHelpModalComponent {
     this.heroImageLoaded.set(false);
   }
 
-  /**
-   * Left/Right arrow navigation between tabs.
-   *
-   * A tablist is a single tab stop whose arrows move between the tabs, so the
-   * roving `tabindex` in the template and this handler are what make the tabs
-   * behave the way the `role="tab"` on them promises.
-   */
+  /** Moves between tabs with the left and right arrow keys. */
   protected onTabKeydown(event: KeyboardEvent, currentTab: DocTab): void {
     const tabs = this.availableTabs();
     const currentIndex = tabs.indexOf(currentTab);
@@ -161,11 +142,7 @@ export class GameHelpModalComponent {
     const nextTab = tabs[(currentIndex + step + tabs.length) % tabs.length];
     this.selectTab(nextTab);
 
-    // Focus follows selection in an automatic tablist, but the button is only
-    // focusable once it has been re-rendered with a tabindex of 0.
-    // `afterNextRender` is what the two `setTimeout(…, 0)` calls here were
-    // reaching for, and unlike them it is tied to the render rather than to a
-    // guess about how long one takes.
+    // Focus the new tab once it has re-rendered with a tabindex of 0.
     this.changeDetector.markForCheck();
     afterNextRender(
       () => {

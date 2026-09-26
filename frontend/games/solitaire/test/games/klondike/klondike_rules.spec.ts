@@ -27,8 +27,9 @@ describe("klondikePlacementRule", () => {
 
   /**
    * Asks whether `card`, carrying `movingStackSize` cards including itself, may
-   * be placed on `targetPile`. The filler cards above it are never inspected —
-   * only how many there are matters to these rules.
+   * be placed on `targetPile`.
+   *
+   * Only the number of filler cards above it matters to these rules.
    */
   function canPlace(
     card: PlayingCard,

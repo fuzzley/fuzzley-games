@@ -16,22 +16,14 @@ import { LocalStorageService } from "./local_storage.service";
 const STORAGE_KEY = "fsolitaire-game";
 const OPTIONS_STORAGE_KEY = "fsolitaire-game-options";
 
-/** The chosen rule options for every game, by game id. */
+/** Maps each game id to the rule options chosen for it. */
 type StoredOptions = Record<string, GameOptionValues>;
 
 /**
  * Owns which game is on the table, and the dealt session of it.
  *
- * A signal rather than a one-shot injection token because the choice can change
- * while the application is running: picking a different game deals a new one
- * and everything downstream — the header's score, the board on the canvas —
- * follows the signal to it.
- *
- * The choice is a route, so a game is linkable and the back button moves
- * between games rather than out of the application. This used to be done by
- * hand — a constructor assigning `location.hash` and a `hashchange` listener
- * reading it back — which meant every spec that touched the catalog had to
- * reset the fragment first.
+ * The choice is also a route, so a game is linkable and the back button moves
+ * between games.
  */
 @Injectable({ providedIn: "root" })
 export class GameCatalogService {
@@ -42,11 +34,8 @@ export class GameCatalogService {
   readonly games: readonly CatalogEntry[] = GAME_CATALOG;
 
   /**
-   * The game to open on when the URL names none.
-   *
-   * The last game played, and otherwise the first in the catalog. Read by the
-   * empty-path redirect in the route table, which is where "the URL names
-   * none" is decided.
+   * The game to open on when the URL names none: the last one played, or else
+   * the first in the catalog.
    */
   readonly initialGameId = catalogEntry(this.storage.readString(STORAGE_KEY))
     .id;
@@ -90,36 +79,18 @@ export class GameCatalogService {
     this.valuesFor(this.selectedIdSignal(), this.optionsSignal()),
   );
 
-  /**
-   * The declaration of one rule of the game on the table.
-   *
-   * @param optionId The id of the option to look up.
-   */
+  /** Returns the declaration of one rule of the game on the table. */
   optionSpec(optionId: string): GameOptionSpec | undefined {
     return this.options().find((option) => option.id === optionId);
   }
 
-  /**
-   * The chosen value of one option of the game on the table, or its default.
-   *
-   * @param optionId The id of the option to read.
-   */
+  /** Returns the value chosen for a rule of the game on the table. */
   valueOf(optionId: string): number | null {
     const spec = this.optionSpec(optionId);
     return spec ? optionValue(this.optionValues(), spec) : null;
   }
 
-  /**
-   * Plays the current game by a different rule, dealt afresh.
-   *
-   * Changing a rule always deals a new game rather than trying to adapt the
-   * one in progress. Some of them could not be adapted anyway — changing
-   * Spider's suit count changes which 104 cards exist — and a board halfway
-   * through under different rules is not a position anyone asked for.
-   *
-   * @param optionId The id of the option to set.
-   * @param value The value to set it to.
-   */
+  /** Plays the current game by a different rule, dealt afresh. */
   setOption(optionId: string, value: number): void {
     const entry = this.selectedEntry;
     const spec = entry.options.find((option) => option.id === optionId);
@@ -142,7 +113,7 @@ export class GameCatalogService {
     this.sessionSignal.set(entry.create(updated[entry.id]));
   }
 
-  /** The stored values for a game, with anything unrecognised dropped. */
+  /** Returns the stored values for a game, dropping anything unrecognised. */
   private valuesFor(gameId: string, stored: StoredOptions): GameOptionValues {
     const values = stored[gameId] ?? {};
     const cleaned: Record<string, number> = {};
@@ -153,12 +124,9 @@ export class GameCatalogService {
   }
 
   constructor() {
-    // Follow the URL. This is what makes the back button move between games,
-    // and what puts a pasted link on the right board.
-    //
-    // A navigation this service started itself arrives here naming the game
-    // already in play and falls straight out of `applySelection`, so there is
-    // no loop to break.
+    // Follow the URL, so the back button and pasted links choose the game. A
+    // navigation this service started names the game already in play, which
+    // `applySelection` ignores.
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
@@ -170,7 +138,7 @@ export class GameCatalogService {
       });
   }
 
-  /** The game the current URL names, or null when it names nothing known. */
+  /** Returns the game the current URL names, or null if it names none. */
   private gameIdFromUrl(): string | null {
     const id = this.router.url.split(/[/?#]/).filter(Boolean)[0];
     return GAME_CATALOG.some((entry) => entry.id === id) ? id : null;
@@ -182,18 +150,11 @@ export class GameCatalogService {
   }
 
   /**
-   * Puts a different game on the table, dealt and ready, and routes to it.
+   * Deals a different game onto the table and routes to it, ignoring the game
+   * already in play.
    *
-   * Selecting the game already in play is ignored rather than dealing a fresh
-   * one: choosing "Klondike" from the menu while playing Klondike should not
-   * throw the game away. "New Game" is what does that.
-   *
-   * The board changes here rather than waiting for the navigation to land.
-   * Routing is how the choice is *recorded* — linkable, and on the back stack
-   * — but a player who has just clicked "Spider" should not be looking at
-   * Klondike until a promise resolves.
-   *
-   * @param id The id of the game to play.
+   * The board changes at once rather than when the navigation lands, so the
+   * player never waits on the router to see the game they picked.
    */
   select(id: string): void {
     const entry = catalogEntry(id);
@@ -201,20 +162,16 @@ export class GameCatalogService {
 
     this.applySelection(entry.id);
 
-    // The board is already showing the new game, so a URL that fails to
-    // follow it is a broken link rather than a broken game. Reported and
-    // survived, instead of surfacing as an unhandled rejection.
+    // The board already shows the new game, so a failed navigation is only
+    // logged.
     this.router.navigate([entry.id]).catch((e: unknown) => {
       console.warn(`Failed to route to "${entry.id}":`, e);
     });
   }
 
   /**
-   * Deals the named game and makes it the one on the table.
-   *
-   * The half of {@link select} that does not touch the URL, so a navigation
-   * arriving from the back button or a pasted link does not bounce back out
-   * to the router.
+   * Deals the named game onto the table without touching the URL, for a
+   * navigation that has already happened.
    */
   private applySelection(id: string): void {
     const entry = catalogEntry(id);

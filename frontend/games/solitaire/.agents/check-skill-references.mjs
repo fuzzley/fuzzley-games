@@ -1,15 +1,7 @@
 #!/usr/bin/env node
 // Checks that the skills under `.agents/skills` still describe the repository
-// as it is.
-//
-// Skills are read by agents as authoritative, so a skill naming a path that
-// does not exist is worse than no skill at all: an agent follows it into a
-// compile error rather than looking. Two checks, both cheap:
-//
-//   1. Every relative markdown link resolves. Renaming a skill directory
-//      silently breaks the links pointing at it, and nothing else notices.
-//   2. Every backticked repo path exists. Catches guessed paths and ones left
-//      behind by a move.
+// as it is: every relative markdown link resolves, and every backticked repo
+// path exists.
 //
 // Usage: node .agents/check-skill-references.mjs
 
@@ -21,15 +13,11 @@ const AGENTS_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.dirname(AGENTS_DIR);
 const SKILLS_DIR = path.join(AGENTS_DIR, "skills");
 
-// Skills whose backticked paths point into someone else's source tree, so the
-// repo-path check would fail on every line of them. The Phaser topic skills are
-// generated from Phaser's own documentation and cite paths like
-// `src/tweens/TweenManager.js`; the Angular ones are vendored and hash-locked
-// in skills-lock.json.
+// Skills whose backticked paths point into another project's source tree: the
+// Phaser skills generated from its documentation, and the vendored Angular
+// ones.
 //
-// Everything else is checked. Adding a skill that describes THIS repository
-// needs no entry here -- that default is deliberate, so a new project skill is
-// held to the check rather than quietly exempt.
+// A skill about this repository needs no entry here, so it is checked.
 const UPSTREAM_SKILLS = new Set([
   "angular-developer",
   "angular-new-app",

@@ -78,11 +78,8 @@
               (click)="presentation.setCardDeck(deck.id)"
             >
               <!--
-                The tops of a King and a seven as a fanned column leaves them
-                showing, which is the whole of what the choice changes — and it
-                takes both to tell three decks apart. The decks' own index pips
-                are not here because they are not there either: they sit below
-                the fold, which is the reason the corner pip exists.
+                The tops of a King and a seven, as a fanned column shows them:
+                all that differs between the decks.
               -->
               <svg
                 class="card-deck-preview"
@@ -118,21 +115,14 @@
                   deck.description
                 }}</span>
               </span>
-              <!--
-                A deck is a couple of megabytes of artwork, so the table can be
-                seconds behind the choice on a slow connection. Without this the
-                cards simply do not change and the drawer looks broken.
-              -->
+              <!-- A deck can take seconds to load, so say it is on its way. -->
               @if (deck.pending) {
                 <span class="card-deck-spinner" aria-hidden="true"></span>
               }
             </button>
           }
         </div>
-        <!--
-          Always present so the message is announced when it arrives, rather
-          than the live region appearing along with it.
-        -->
+        <!-- Always present, so a problem is announced when it arrives. -->
         <p class="card-deck-problem" role="status">
           {{ presentation.cardDeckProblem() }}
         </p>
@@ -231,12 +221,7 @@
       }
     </div>
 
-    <!--
-      "Done", not "Apply Settings". Every control in this drawer commits as it
-      is touched — changing a rule deals a new game before the drawer is even
-      closed — so a button promising to apply them implied pending changes
-      that never existed, and implied the ✕ beside it would discard them.
-    -->
+    <!-- "Done", not "Apply": every control here applies as it is touched. -->
     <div class="drawer-footer">
       <button
         type="button"

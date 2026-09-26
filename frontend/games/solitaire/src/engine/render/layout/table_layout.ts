@@ -11,13 +11,13 @@ import {
   LAYOUT_PADDING_Y,
 } from "./card_metrics";
 
-/** A width and height in design units. */
+/** Holds a width and height in design units. */
 export interface Size {
   width: number;
   height: number;
 }
 
-/** Where one pile sits in the table's grid. */
+/** Places one pile in the table's grid. */
 export interface SlotPlacement {
   /** The pile this slot belongs to. */
   readonly pileId: string;
@@ -27,22 +27,13 @@ export interface SlotPlacement {
   readonly row: number;
 }
 
-/**
- * Where a game's piles sit, as a grid of card-sized slots.
- *
- * The whole board as data, so a game declares its shape instead of a layout
- * function hardcoding one: Klondike is 7 columns by 2 rows with a gap where the
- * waste fan needs room, FreeCell is 8 by 2 with free cells and foundations
- * sharing the top row, Spider is 10 by 2. Everything downstream — the design
- * size, the scale, the pile origins, the drop rectangles — is derived from
- * this, so a game with more columns simply gets a wider board.
- */
+/** Describes a board as a grid of card-sized slots for a game's piles. */
 export interface TableLayoutSpec {
   /** How many card-widths across the grid is. */
   readonly columns: number;
   /** How many card-heights down the grid is. */
   readonly rows: number;
-  /** Where each pile sits. Piles absent from this list are not drawn. */
+  /** Where each pile sits; piles absent from this list are not drawn. */
   readonly slots: readonly SlotPlacement[];
   /** The size of one grid cell, in design units. */
   readonly cardSize: Size;
@@ -51,8 +42,8 @@ export interface TableLayoutSpec {
   /** Space at the edges of the board, in design units. */
   readonly padding: Point;
   /**
-   * Height of the UI header overlaying the top of the canvas, in CSS pixels.
-   * The board lays itself out below it.
+   * Height of the header overlaying the top of the canvas, which the board lays
+   * itself out below, in CSS pixels.
    */
   readonly headerHeightPx: number;
 
@@ -60,47 +51,25 @@ export interface TableLayoutSpec {
    * The design height the board reserves, overriding the height its grid alone
    * would need.
    *
-   * A fanned column reaches well past the slot it starts in — a Klondike
-   * tableau runs about a card and a half below its row — and a board sized to
-   * its bare grid would scale itself up until that column ran off the bottom of
-   * the screen. How much room to leave is a judgement about how long a column
-   * gets in practice rather than something arithmetic can answer, so a game
-   * that fans states it.
-   *
-   * Width needs no such override: nothing fans sideways past the grid, so the
-   * columns account for themselves and a game with more of them simply gets a
-   * wider board.
+   * A game whose columns fan sets this, or the board scales up until a long
+   * column runs off the bottom of the screen.
    */
   readonly designHeightPx?: number;
 }
 
-/** What distinguishes one board's grid from another's. */
+/** Describes what distinguishes one board's grid from another's. */
 export interface TableGridSpec {
   /** How many card-widths across the grid is. */
   readonly columns: number;
   /** How many card-heights down the grid is. */
   readonly rows: number;
-  /** Where each pile sits. Piles absent from this list are not drawn. */
+  /** Where each pile sits; piles absent from this list are not drawn. */
   readonly slots: readonly SlotPlacement[];
-  /** See {@link TableLayoutSpec.designHeightPx}. */
+  /** The design height the board reserves; see {@link TableLayoutSpec}. */
   readonly designHeightPx?: number;
 }
 
-/**
- * A board's grid, with the measurements every board shares filled in.
- *
- * Card size, gaps, padding and header height are properties of the card artwork
- * and the shell, not of any one game — a game that set them differently would
- * be drawing on a different table. Every board restated all four anyway, which
- * meant seven imports from `card_metrics` per layout file to say nothing that
- * varied.
- *
- * What a game does decide is how wide its grid is, how many rows it has, where
- * its piles sit, and how far its columns fan below them. Those are what this
- * takes.
- *
- * @param grid What distinguishes this board from any other.
- */
+/** Completes a board's grid with the measurements every board shares. */
 export function tableLayout(grid: TableGridSpec): TableLayoutSpec {
   return {
     columns: grid.columns,
@@ -114,16 +83,7 @@ export function tableLayout(grid: TableGridSpec): TableLayoutSpec {
   };
 }
 
-/**
- * The size the board would occupy at scale 1, header included.
- *
- * Derived from the grid rather than fixed, which is what lets a game choose its
- * own column count: an 8-column board is wider than a 7-column one by exactly
- * one card and one gap, and its scale falls out of that without anyone
- * restating a design width.
- *
- * @param spec The board's grid.
- */
+/** Returns the size the board occupies at scale 1, header included. */
 export function designSize(spec: TableLayoutSpec): Size {
   const width =
     spec.columns * spec.cardSize.width +
@@ -138,17 +98,11 @@ export function designSize(spec: TableLayoutSpec): Size {
 }
 
 /**
- * Computes the uniform scale factor that fits the board onto the viewport,
- * accounting for the header overlay.
+ * Computes the scale, from design units to device pixels, that fits the board
+ * below the header.
  *
- * The result maps design units to device pixels, so it is capped at the
- * viewport's pixel ratio rather than at 1.0: on a 2x display a design unit is
- * worth two device pixels, and rendering it as one would waste half the
- * display's resolution.
- *
- * @param spec The board's grid.
- * @param viewport The available drawable area.
- * @returns The scale factor in the range (0, viewport.pixelRatio].
+ * It is capped at the pixel ratio rather than at 1, so a high density display
+ * draws a design unit with more than one device pixel.
  */
 export function computeScale(
   spec: TableLayoutSpec,
@@ -170,11 +124,10 @@ export function computeScale(
 }
 
 /**
- * Below this CSS width a board tightens its gaps to buy card size.
+ * The widest screen, in CSS pixels, on which a board tightens its gaps to give
+ * its cards more room.
  *
- * The same figure the application uses to decide the game rail should stop
- * taking a column's worth of screen: at that size every design unit spent on
- * the space between piles is one not spent on the cards themselves.
+ * Mirrors the `tablet` breakpoint in `src/ui/app/styles/_breakpoints.scss`.
  */
 export const COMPACT_MAX_WIDTH_CSS_PX = 720;
 
@@ -185,19 +138,8 @@ const COMPACT_GAP = { x: 8, y: 14 };
 const COMPACT_PADDING = { x: 8, y: 14 };
 
 /**
- * The board tightened for a small screen, or the board unchanged.
- *
- * A phone holding a ten-column Spider board spends about a tenth of its width
- * on gaps authored for a desktop. Reclaiming it makes the cards about a tenth
- * larger, which is worth having even though it does not make a ten-column game
- * roomy on a phone — nothing short of turning it sideways does that.
- *
- * The header comes down with them. The shell compacts its own chrome at this
- * same width, so a board that went on reserving the full desktop header height
- * was holding back thirteen pixels for a header that had already given them up.
- *
- * @param spec The board's grid.
- * @param viewport The available drawable area.
+ * Returns the board with its gaps, padding and header tightened for a small
+ * screen, or unchanged on a larger one.
  */
 export function compactFor(
   spec: TableLayoutSpec,
@@ -207,8 +149,7 @@ export function compactFor(
   if (cssWidth === 0 || cssWidth > COMPACT_MAX_WIDTH_CSS_PX) {
     return spec;
   }
-  // Tighten, never loosen: a board already drawn closer together than this
-  // asked for that, and a small screen is no reason to spread it out.
+  // Never loosen a board that is already tighter than this.
   return {
     ...spec,
     gap: {
@@ -223,13 +164,7 @@ export function compactFor(
   };
 }
 
-/**
- * Everything the view needs to place a board for one frame.
- *
- * Measured once and handed to whoever needs it, so the scale and the origins
- * are derived in one place rather than recomputed by the view builder, the drop
- * resolver and the hit test independently — three answers that have to agree.
- */
+/** Holds everything the view needs to place a board for one frame. */
 export interface TableMetrics {
   /** The board this measures. */
   readonly layout: TableLayoutSpec;
@@ -239,12 +174,7 @@ export interface TableMetrics {
   readonly origins: ReadonlyMap<string, Point>;
 }
 
-/**
- * Measures a board for the given viewport.
- *
- * @param layout The board's grid.
- * @param viewport The available drawable area.
- */
+/** Measures a board for a viewport, compacting it first on a small screen. */
 export function measureTable(
   rawLayout: TableLayoutSpec,
   viewport: Viewport,
@@ -259,15 +189,10 @@ export function measureTable(
 }
 
 /**
- * Computes the absolute screen origin of every pile the layout places.
+ * Computes the top-left screen origin of every pile the layout places,
+ * centring the board horizontally when there is room.
  *
- * The board is centred horizontally when the viewport is wider than it needs,
- * and falls back to its padding when narrower.
- *
- * @param spec The board's grid.
- * @param viewport The available drawable area.
  * @param scale The scale factor from {@link computeScale}.
- * @returns A map from pile id to its top-left origin, in screen pixels.
  */
 export function computePileOrigins(
   spec: TableLayoutSpec,

@@ -9,7 +9,7 @@ import {
 import type { AppliedMove } from "@/engine/tableau/move";
 import { FakeTableGame } from "@test/support/fake_table/game";
 
-/** A game dealt in deck order, then played: two draws and a score. */
+/** Returns a game dealt in deck order, then played: two draws and a score. */
 function playedGame(): FakeTableGame {
   const game = new FakeTableGame(ALL_PLAYING_CARD_IDS, () => 0.999);
   game.startNewGame();
@@ -19,19 +19,19 @@ function playedGame(): FakeTableGame {
   return game;
 }
 
-/** A game dealt differently from {@link playedGame}, and not yet played. */
+/** Returns a game dealt unlike {@link playedGame}, and not yet played. */
 function freshGame(): FakeTableGame {
   const game = new FakeTableGame(ALL_PLAYING_CARD_IDS, () => 0);
   game.startNewGame();
   return game;
 }
 
-/** What {@link ModalGame} keeps outside its piles. */
+/** Holds what {@link ModalGame} keeps outside its piles. */
 interface ModalExtra {
   readonly mode: string;
 }
 
-/** A game that keeps a mode outside its piles, and rejects a missing one. */
+/** Plays a game keeping a mode outside its piles, and rejects a missing one. */
 class ModalGame extends FakeTableGame {
   public mode = "classic";
 
@@ -44,7 +44,7 @@ class ModalGame extends FakeTableGame {
   }
 }
 
-/** A {@link ModalGame} dealt and switched out of its default mode. */
+/** Returns a {@link ModalGame} dealt and switched out of its default mode. */
 function modalGame(): ModalGame {
   const game = new ModalGame(ALL_PLAYING_CARD_IDS, () => 0.999);
   game.startNewGame();

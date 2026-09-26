@@ -17,14 +17,7 @@ export const FOUNDATION_COUNT = 8;
 
 export { STOCK_PILE_ID };
 
-/**
- * The nineteen zones of a Spider board.
- *
- * The stock sits alone at the left of the top row with the eight foundations
- * filling the right of it, and ten columns run along the bottom. Ten columns is
- * a third board width, and the design size falls out of the grid as it did for
- * the other two.
- */
+/** Returns the nineteen zones of a Spider board. */
 export function spiderZoneSpecs(): readonly ZoneSpec[] {
   return ZONES;
 }
@@ -55,8 +48,6 @@ const ZONES: readonly ZoneSpec[] = [
     row: 1,
     role: SpiderRole.TABLEAU,
     accept: spiderPlacementRule(SpiderRole.TABLEAU),
-    // Same-suit descending only. A column builds up mixed easily and then
-    // cannot be moved, which is the whole difficulty of the game.
     grab: { kind: "run", adjacent: isSameSuitRun },
   }),
 ];

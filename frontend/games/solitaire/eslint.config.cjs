@@ -25,21 +25,14 @@ module.exports = tseslint.config(
   },
   // --- Engine tier boundaries ---
   //
-  // The architecture the project is built on, as build errors rather than as a
-  // convention. Each tier may depend only on the ones below it:
+  // Each tier may depend only on the ones below it:
   //
   //   games/*             rules, scoring, deal, layout, zones, gestures
   //     -> engine/tableau   solitaire-family runtime: zones, moves, undo, view
   //     -> engine/render    view contract, layout maths, input, Phaser adapter
   //     -> engine/core      cards, piles, decks, RNG
-  //
-  // Nothing under src/engine names a game. That is enforced, not asserted.
-  //
-  // Relying on nobody crossing a tier by accident is how that kind of rule
-  // quietly stops being true.
   {
-    // The bottom tier: pure card and pile mechanics. Free of rules, rendering,
-    // and any framework at all, rxjs included, so it stays usable from anywhere.
+    // The bottom tier: card and pile mechanics, free of any framework.
     files: ["src/engine/core/**/*.ts"],
     rules: {
       "@typescript-eslint/no-restricted-imports": [
@@ -66,9 +59,8 @@ module.exports = tseslint.config(
     },
   },
   {
-    // The render tier, minus its Phaser adapter. This is what makes the
-    // renderer a port rather than a habit: layout maths, the view contract and
-    // the drag maths may not name Phaser, so they stay testable with no mocks.
+    // The render tier minus its Phaser adapter, kept free of Phaser so it can
+    // be tested without mocks.
     files: ["src/engine/render/**/*.ts"],
     ignores: ["src/engine/render/phaser/**/*.ts"],
     rules: {
@@ -121,9 +113,8 @@ module.exports = tseslint.config(
     },
   },
   {
-    // The solitaire-family runtime. It may use the render tier's view contract
-    // and layout types, and must never name a particular game: the whole point
-    // of it is that Klondike, FreeCell and Spider all run on the same one.
+    // The solitaire-family runtime, which may use the render tier's contracts
+    // but must never name a game.
     files: ["src/engine/tableau/**/*.ts"],
     rules: {
       "@typescript-eslint/no-restricted-imports": [
@@ -172,11 +163,8 @@ module.exports = tseslint.config(
     processor: angular.processInlineTemplates,
   },
   {
-    // Templates are linted for accessibility as well as correctness. The a11y
-    // ruleset is what keeps a control's visible state and its announced state
-    // from drifting: an `.active` class with no `aria-checked` beside it looks
-    // right and tells a screen reader nothing, and that is not the sort of
-    // thing that gets caught by looking at the page.
+    // Templates are linted for accessibility too, which catches a visible state
+    // with no announced state to match it.
     files: ["src/ui/**/*.html"],
     extends: [
       ...angular.configs.templateRecommended,
@@ -184,13 +172,8 @@ module.exports = tseslint.config(
     ],
   },
   {
-    // The engine's own tests are held to the boundary the engine is held to.
-    //
-    // Klondike used to be the de facto fixture for all of it: seven specs under
-    // test/engine imported `@/games/klondike`, so "nothing under src/engine
-    // names a game" was true of the source and quietly false of the tests that
-    // prove it. That coupling ran the wrong way — a change to Klondike broke
-    // the engine's specs — and it is what `test/support/fake_table` replaces.
+    // The engine's own tests are held to the engine's boundary, and play on
+    // `test/support/fake_table` rather than a real game.
     files: ["test/engine/**/*.ts"],
     rules: {
       "@typescript-eslint/no-restricted-imports": [
@@ -210,10 +193,8 @@ module.exports = tseslint.config(
   {
     files: ["test/**/*.ts"],
     rules: {
-      // A test asserts its preconditions by construction: after a deal,
-      // `game.getCardById(id)!` states that the card is there, and if the
-      // assumption is ever wrong the test should fail loudly on the spot.
-      // Defensive branching around it would only hide that.
+      // A test's `!` states a precondition, and should fail loudly if it is
+      // ever wrong.
       "@typescript-eslint/no-non-null-assertion": "off",
     },
   },

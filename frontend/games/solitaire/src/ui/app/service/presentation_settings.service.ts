@@ -19,13 +19,13 @@ import {
 } from "@/engine/render/card_deck";
 import { LocalStorageService } from "./local_storage.service";
 
-/** The visual style applied to the back of cards. */
+/** Names the artwork on the back of the cards. */
 export type CardBackStyle = "card-back-blue" | "card-back-red";
 
 const STORAGE_KEY = "fsolitaire-presentation";
 
 
-/** The persisted shape. */
+/** Holds the presentation settings as they are stored. */
 interface PersistedPresentation {
   cardBackStyle: CardBackStyle;
   backgroundColor: string;
@@ -42,23 +42,14 @@ function isCardBackStyle(value: unknown): value is CardBackStyle {
   return value === "card-back-blue" || value === "card-back-red";
 }
 
-/** What a deck is called, for a sentence about it. */
+/** Returns what a deck is called, for a sentence about it. */
 function deckName(deckId: CardDeckId): string {
   return CARD_DECKS.find((deck) => deck.id === deckId)?.name ?? deckId;
 }
 
 /**
- * The player's choices about how the table looks, independent of what is being
+ * Holds the player's choices about how the table looks, whatever game is
  * played on it.
- *
- * Split out of the Klondike game settings because a card back and a felt colour
- * are the same preference in every game, while a draw count is a Klondike rule.
- *
- * Held as signals, like the rest of the application. It implements
- * {@link TablePresentation} — the shape a board scene asks for — by adapting
- * at that boundary rather than by being reactive in the renderer's idiom
- * throughout: the Phaser side wants a subscribe-and-unsubscribe callback, and
- * that is the only place one is built.
  */
 @Injectable({ providedIn: "root" })
 export class PresentationSettingsService implements TablePresentation {
@@ -73,12 +64,7 @@ export class PresentationSettingsService implements TablePresentation {
   private readonly backgroundColorSignal = signal(this.loaded.backgroundColor);
   private readonly cardDeckSignal = signal<CardDeckId>(this.loaded.cardDeck);
 
-  /**
-   * The deck the board is fetching, if it is fetching one.
-   *
-   * Session state, not a setting: what is persisted is the deck the player
-   * asked for, and on the next visit the board starts by loading it again.
-   */
+  /** The deck the board is fetching, if it is fetching one. */
   private readonly pendingCardDeckSignal = signal<CardDeckId | null>(null);
 
   /** The deck the board last said it was drawing. */
@@ -113,12 +99,7 @@ export class PresentationSettingsService implements TablePresentation {
     )}.`;
   });
 
-  /**
-   * Updates the card back style.
-   *
-   * Writing the same value again is a no-op by virtue of signal equality, so
-   * there is no guard here and no spurious save behind it.
-   */
+  /** Updates the card back style. */
   setCardBackStyle(style: CardBackStyle): void {
     this.cardBackStyleSignal.set(style);
   }
@@ -130,19 +111,14 @@ export class PresentationSettingsService implements TablePresentation {
 
   /** Updates the deck the cards are drawn from. */
   setCardDeck(deckId: CardDeckId): void {
-    // A fresh choice clears the last complaint, whether or not it succeeds.
-    // Leaving it up would attach yesterday's failure to today's deck.
+    // A fresh choice clears the last failure, whether or not it succeeds.
     this.unavailableCardDeckSignal.set(null);
     this.cardDeckSignal.set(deckId);
   }
 
   /**
-   * @inheritDoc
-   *
-   * A deck that could not be fetched puts the choice back to the one on the
-   * table. The alternative is a settings drawer that goes on showing a deck the
-   * board never drew — and, worse, persists it, so the next visit starts by
-   * failing to load the same deck again.
+   * Records how the board is getting on with the chosen deck, putting the
+   * choice back to the deck on the table if the new one could not be fetched.
    */
   reportCardDeckStatus(status: CardDeckStatus): void {
     switch (status.kind) {
@@ -172,12 +148,8 @@ export class PresentationSettingsService implements TablePresentation {
   }
 
   /**
-   * @inheritDoc
-   *
-   * The adapter between the signal held here and the callback the Phaser
-   * board follows. `effect` delivers the current value on registration and
-   * every change after it, which is the contract the board expects, and
-   * destroying the effect is what unsubscribing means.
+   * Follows the table colour with an effect, which reports the current value
+   * at once and every change after it.
    */
   readonly onBackgroundColor = (listener: (color: string) => void) => {
     const ref = effect(() => listener(this.backgroundColorSignal()), {
@@ -186,11 +158,7 @@ export class PresentationSettingsService implements TablePresentation {
     return () => ref.destroy();
   };
 
-  /**
-   * @inheritDoc
-   *
-   * The same adapter as {@link onBackgroundColor}, for the same reason.
-   */
+  /** Follows the deck the way {@link onBackgroundColor} follows the colour. */
   readonly onCardDeck = (listener: (deckId: CardDeckId) => void) => {
     const ref = effect(() => listener(this.cardDeckSignal()), {
       injector: this.injector,
@@ -199,9 +167,8 @@ export class PresentationSettingsService implements TablePresentation {
   };
 
   constructor() {
-    // Persist whenever either setting changes. The effect also runs once on
-    // registration, which rewrites what was just read — harmless, and cheaper
-    // than the `let initialized` flag that used to suppress it.
+    // Save on every change. The first run rewrites what was just read, which
+    // is harmless.
     effect(() => {
       const data: PersistedPresentation = {
         cardBackStyle: this.cardBackStyleSignal(),
@@ -226,7 +193,7 @@ export class PresentationSettingsService implements TablePresentation {
         typeof parsed.backgroundColor === "string" && parsed.backgroundColor
           ? parsed.backgroundColor
           : DEFAULTS.backgroundColor,
-      // Absent for anyone whose settings predate the deck choice, so falls to the default.
+      // Absent from settings saved before the deck could be chosen.
       cardDeck: isCardDeckId(parsed.cardDeck)
         ? parsed.cardDeck
         : DEFAULTS.cardDeck,

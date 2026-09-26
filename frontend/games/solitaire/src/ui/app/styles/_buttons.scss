@@ -2,17 +2,10 @@
 @use "palette" as *;
 @use "mixins" as *;
 
-// The button system.
+// The button system, global because several components' markup wears it.
 //
-// Global rather than a component, because these classes are worn by markup in
-// five different components and emulated view encapsulation would otherwise
-// scope them to whichever one declared them.
-//
-// The three filled variants share a shape: a two-stop gradient that lightens
-// by one ramp step on hover, over a drop shadow tinted with the same hue. The
-// `@each` below emits them from that description rather than from three
-// near-identical twenty-line blocks — so a fourth variant is four lines here,
-// and no variant can quietly drift out of the shape.
+// The filled variants share one shape, a gradient over a shadow of the same
+// hue, so the `@each` below emits them all from one table.
 
 $filled-variants: (
   "primary": (
@@ -123,16 +116,9 @@ $filled-variants: (
   }
 }
 
-// A circular icon button whose glyph turns under the pointer.
-//
-// Worn by the settings gear, where turning is what the icon depicts. Every
-// `.btn-circle` used to do this, which meant the help mark turned too — and a
-// question mark rotated forty-five degrees reads as something having gone
-// wrong rather than as an answer to the pointer.
-//
-// Here in the global sheet rather than in the header's own stylesheet so that
-// the reduced-motion block below it still wins: an Angular component selector
-// carries an extra attribute and would outrank it.
+// A circular icon button whose glyph turns under the pointer, for the settings
+// gear. Global so the reduced-motion block below still outranks it, which a
+// component selector's extra attribute would not.
 .btn-circle-turns:hover {
   transform: rotate(45deg);
 }

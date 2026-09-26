@@ -6,14 +6,6 @@
  * Rasterizes the card sheet and the pile placeholders at ART_SCALE times the
  * design frame size, packs the frames into as few atlas pages as fit within
  * MAX_PAGE_PX, and writes the pages plus a Phaser multi-atlas manifest.
- *
- * The sheet is rendered in one pass by rewriting the SVG root to a viewBox over
- * the card block with preserveAspectRatio="none". That maps every grid cell onto
- * a whole number of pixels, so each frame is cut out at exactly its final size
- * and never goes through a resampling step.
- *
- * Cut frames carry no edge of their own, so each is stamped with one before it
- * is packed. See {@link CARD_EDGE}.
  */
 import { Resvg } from "@resvg/resvg-js";
 import sharp from "sharp";
@@ -26,8 +18,8 @@ const CARD_DIR = join(ROOT, "src/engine/render/assets/sprites/card");
 const OUT_DIR = join(ROOT, "src/engine/render/assets/sprites/atlas");
 
 /**
- * Texels per design unit. Must match CARD_ART_SCALE in
- * src/engine/render/layout/card_metrics.ts.
+ * Texels per design unit, which must match `CARD_ART_SCALE` in
+ * `src/engine/render/layout/card_metrics.ts`.
  */
 const ART_SCALE = 2;
 
@@ -39,36 +31,22 @@ const FRAME_W = DESIGN_FRAME_W * ART_SCALE;
 const FRAME_H = DESIGN_FRAME_H * ART_SCALE;
 
 /**
- * Transparent pixels kept between frames. Without a gutter, bilinear sampling
- * at a fractional scale reaches past a frame's edge and pulls in the
- * neighbouring card, fringing the card borders.
+ * Transparent pixels kept between frames, so bilinear sampling at a fractional
+ * scale cannot pull in the neighbouring card.
  */
 const GUTTER = 8;
 
 /** Transparent border around the outside of a page, for the same reason. */
 const MARGIN = 4;
 
-/**
- * Largest page dimension to emit. WebGL guarantees far more than this on
- * desktop, but 4096 is the floor still found on older mobile GPUs.
- */
+/** Largest page dimension to emit: the most some older mobile GPUs allow. */
 const MAX_PAGE_PX = 4096;
 
 /**
- * The card sheet. The 52 faces occupy four rows of thirteen; the two backs sit
- * alone on a fifth.
+ * The shape every deck's card sheet shares: the 52 faces in four rows of
+ * thirteen, and the two backs alone on a fifth.
  *
- * Cards are separated by a gutter, so each one is an island of ink with nothing
- * of its neighbours anywhere near it. That is what lets the cutter find the
- * cards themselves — the runs of lines that carry ink — rather than inferring
- * them from the lines in between. The sheet as originally drawn had its cards
- * abutting and sharing a single hairline rule along each boundary, which had to
- * be located by ink coverage and then told apart from the court cards' inner
- * frames, and left every cut a hair away from dragging a neighbour's edge into
- * the frame.
- *
- * Every deck's sheet shares this shape; which file a deck is drawn from is in
- * {@link DECKS}.
+ * Gutters separate the cards, which is how the cutter finds them.
  */
 const SHEET = {
   width: 3249,
@@ -87,12 +65,7 @@ const SHEET_CARD = { width: 224, height: 313, tolerance: 3 };
  * The decks on offer, each drawn from its own sheet and written to its own
  * directory under OUT_DIR.
  *
- * A sheet apiece rather than one sheet cut two ways, so either deck can be
- * edited, re-rendered or replaced without touching the other. They are the same
- * drawing on the same gutter grid; `corner_pips` adds a layer of suit badges.
- *
- * Ids match CardDeckId in src/engine/render/card_deck.ts, which is what the
- * player's choice is stored as and what the loader looks a deck up by.
+ * Ids must match `CardDeckId` in `src/engine/render/card_deck.ts`.
  */
 const DECKS = [
   { id: "classic", file: "playing_card_assets_large.svg" },
@@ -140,10 +113,8 @@ const PLACEHOLDERS = {
 /**
  * Rasterizes an SVG region to exactly `width` x `height` pixels.
  *
- * Rewrites the root element's sizing attributes so the given user-unit box maps
- * onto the whole output, stretching each axis independently. The card grid's
- * cells are not square in user units, so a uniform fit would leave them on
- * fractional pixel boundaries.
+ * Each axis stretches independently, so grid cells that are not square in user
+ * units still land on whole pixels.
  *
  * @param {string} svg The SVG document source.
  * @param {{x: number, y: number, w: number, h: number}} box The user-unit region to render.
@@ -180,11 +151,10 @@ async function rasterize(svg, box, width, height) {
 }
 
 /**
- * Marks every pixel the sheet has drawn something on, card or gutter.
+ * Marks every pixel the sheet has drawn something on.
  *
- * Anything but full transparency counts, so a card's white body marks just as a
- * pip does and the only clear lines on the sheet are the gutters. Antialiasing
- * along a card's outline lands well above this threshold.
+ * Anything but full transparency counts, so the only clear lines on the sheet
+ * are the gutters.
  *
  * @param {{data: Buffer, info: sharp.OutputInfo}} sheet The rendered sheet.
  * @returns {Uint8Array} One byte per pixel, row major.
@@ -219,12 +189,8 @@ function paintedRuns(painted) {
 }
 
 /**
- * Checks a set of runs is the row or column of cards it should be.
- *
- * A stray mark out in a gutter would bridge two cards into one run, and a card
- * that failed to draw would leave a run missing, so both the count and each
- * run's size are worth stating. Getting this wrong offsets every crop on the
- * axis, which is far easier to catch here than in a built atlas.
+ * Checks a set of runs is the row or column of cards it should be, in count and
+ * in size.
  *
  * @param {{start: number, end: number}[]} runs The runs found.
  * @param {number} count How many cards the axis holds.
@@ -251,13 +217,11 @@ function assertCardRuns(runs, count, size, axis) {
 }
 
 /**
- * Locates the cards on the sheet.
+ * Locates the cards on the sheet, each run of painted lines being one row or
+ * column of cards.
  *
- * Every card is surrounded by a gutter, so the lines that carry no paint at all
- * are exactly the gaps between them and a run of painted lines is exactly one
- * row or column of cards. Columns are found over the whole sheet rather than
- * the face rows alone: the row of backs holds only two cards, and the columns
- * past it are established by the faces above.
+ * Columns are found over the whole sheet, since the row of backs holds only two
+ * cards.
  *
  * @param {{data: Buffer, info: sharp.OutputInfo}} sheet The rendered sheet.
  * @returns {{columns: {start: number, end: number}[], rows: {start: number, end: number}[]}} Card spans in pixels.
@@ -284,12 +248,8 @@ function findCards(sheet) {
 }
 
 /**
- * Cuts a grid of frames out of a rendered sheet.
- *
- * The crop is always exactly FRAME_W x FRAME_H, so a frame is a straight
- * integer copy of the render and never goes through a resampling step. Only the
- * origin is rounded, leaving each card at most half a pixel off centre within
- * its own frame.
+ * Cuts a grid of exactly FRAME_W x FRAME_H frames out of a rendered sheet,
+ * copying pixels without resampling.
  *
  * @param {{data: Buffer, info: sharp.OutputInfo}} sheet The rendered sheet.
  * @param {(row: number, col: number) => string | null} nameAt Frame name for a cell, or null to skip it.
@@ -327,9 +287,8 @@ async function cutFrames(sheet, nameAt, rows, cols, originAt) {
 const EDGE_RING_PX = 10;
 
 /**
- * How much of each corner to ignore when inspecting an edge, in pixels. A
- * card's own outline is only ever inside the frame where it curves around a
- * corner; along the straight runs it falls outside.
+ * How much of each corner to ignore when inspecting an edge, in pixels, since
+ * only there does a card's own outline fall inside the frame.
  */
 const EDGE_CORNER_PX = 48;
 
@@ -343,10 +302,6 @@ const EDGE_NAMES = ["left", "right", "top", "bottom"];
  * Decodes a frame and returns a scorer for how much of one of its edges is
  * inked at a given depth, as a fraction of that edge's length.
  *
- * The corners are left out of every measurement: what the callers are looking
- * for is a line that runs the length of a side, and a card's own outline is
- * inside the frame only where it curves around a corner.
- *
  * @param {Buffer} png The frame to measure.
  * @returns {Promise<(edge: string, depth: number) => number>} The scorer.
  */
@@ -356,7 +311,7 @@ async function edgeScorer(png) {
     .raw()
     .toBuffer({ resolveWithObject: true });
 
-  /** Whether the pixel is opaque ink, rather than paper or an antialiased edge. */
+  /** Returns whether a pixel is ink, not paper or an antialiased edge. */
   const isInk = (x, y) => {
     const i = (y * info.width + x) * 4;
     if (data[i + 3] <= 250) return 0;
@@ -389,18 +344,10 @@ async function edgeScorer(png) {
 }
 
 /**
- * Fails the build if any frame has a neighbouring card's rule inside it.
+ * Fails the build if any frame has a neighbouring card's rule inside it: a line
+ * inking most of an edge's length, unlike artwork that merely sits near it.
  *
- * What distinguishes a bled rule from artwork that merely sits near the edge is
- * its length: a rule runs the whole side of the card, while a pip or an index
- * glyph covers a little of it. So each line within the ring is scored by how
- * much of the edge it inks, and only a line that runs most of the way fails.
- * Measured against the built frames rather than trusted to the grid arithmetic,
- * because getting this wrong shows up in game as a stray line down one side of
- * a card and nowhere else.
- *
- * Runs on the raw cut, before {@link stampCardEdge} draws an edge of the card's
- * own along every side, which this would otherwise read as four bled rules.
+ * Run it before {@link stampCardEdge}, whose edge it would read as bled.
  *
  * @param {{name: string, png: Buffer}[]} frames The cut frames.
  */
@@ -437,39 +384,19 @@ async function assertEdgesAreClear(frames) {
 }
 
 /**
- * The hairline edge stamped onto every card frame.
+ * The hairline edge stamped onto every card frame, in texels.
  *
- * A card is a little larger than the frame cut from it, so its own outline
- * falls outside the frame everywhere except where it curves around a corner.
- * The cut therefore leaves a card with nothing to bound it, and two overlapping
- * face-up cards read as a single white shape. That is worst in the waste, where
- * three cards fan across each other, but it costs just as much down a tableau
- * column of face-up cards.
- *
- * The card's real outline cannot be kept: taking it in means widening the
- * frame, and the frame size is what the board layout measures a card by. So the
- * edge is drawn on here instead.
- *
- * The drop shadow cannot stand in for it. Its light sits off the top-left, so
- * it throws down and to the right, while every fan in the game overlaps in the
- * direction the shadow travels away from: the waste fans right, putting the
- * seam on the upper card's left edge, and a tableau fans down, putting it on
- * the upper card's top edge. The shadow always lands on felt, never in a seam.
- *
- * Measured in texels, so the edge scales with the card: at ART_SCALE 2 these
- * four are two design units, which come out between about 0.9px and 4px over
- * the range of layout scales the board runs at.
+ * The frame is cut a little inside the card, losing its outline, so without
+ * this two overlapping face-up cards read as one white shape. The drop shadow
+ * cannot stand in for it, since it falls away from the seams the fans make.
  */
 const CARD_EDGE = {
   width: 4,
   color: "#000000",
   opacity: 0.55,
   /**
-   * Corner radius of the stroke's centreline. A frame's own corner is a short
-   * 45 degree chamfer rather than an arc, and it runs anywhere from three to
-   * six texels depending on the card, so no single radius hugs them all. A
-   * radius this tight keeps the stroke against the frame edge all the way in,
-   * and the composite clips back whatever overhangs a given card's chamfer.
+   * Corner radius of the stroke's centreline, kept tight because the frames'
+   * chamfered corners vary; the composite clips whatever overhangs.
    */
   radius: 2,
 };
@@ -497,10 +424,8 @@ function renderCardEdge() {
 /**
  * Stamps the card edge onto each frame.
  *
- * Composited `atop` so the stroke is clipped to the card's own silhouette and
- * cannot land in the transparent corners. A stroke left sitting out there would
- * be pulled back over the card by bilinear sampling at a fractional scale,
- * which is the same fringing GUTTER exists to keep out.
+ * Composited `atop`, so the stroke stays inside the card's silhouette rather
+ * than in the transparent corners, where sampling would fringe it back in.
  *
  * @param {{name: string, png: Buffer}[]} frames The cut frames.
  * @returns {Promise<{name: string, png: Buffer}[]>} The stamped frames.
@@ -519,8 +444,8 @@ async function stampCardEdge(frames) {
 }
 
 /**
- * Depth the stamped edge is measured at. One texel in, so the measurement does
- * not turn on how the outermost row of the stroke happened to antialias.
+ * Depth the stamped edge is measured at: one texel in, clear of the outermost
+ * row's antialiasing.
  */
 const EDGE_STAMP_DEPTH = 1;
 
@@ -529,11 +454,6 @@ const EDGE_STAMP_COVERAGE = 0.9;
 
 /**
  * Fails the build if a frame came out of {@link stampCardEdge} without an edge.
- *
- * The mirror of {@link assertEdgesAreClear}: that one runs on the raw cut and
- * rejects a frame whose edge is inked by its neighbour, this one runs on the
- * stamped frame and rejects one whose edge is not inked at all. Between them
- * the only thing allowed to reach a frame's edge is the card's own.
  *
  * @param {{name: string, png: Buffer}[]} frames The stamped frames.
  */
@@ -609,7 +529,7 @@ function packPages(frames) {
   return pages;
 }
 
-/** Removes a deck's artefacts from a previous build so stale pages cannot linger. */
+/** Removes a deck's previous build, so stale pages cannot linger. */
 async function cleanOutput(outDir) {
   const existing = await readdir(outDir).catch(() => []);
   for (const file of existing) {
@@ -653,9 +573,8 @@ async function buildDeck(deck, placeholderFrames) {
     SHEET.rows,
     SHEET.cols,
     (row, col) => {
-      // Centre the frame on the card itself. The frame is a little smaller than
-      // the card, so this trims an even sliver off all four sides and keeps the
-      // whole gutter — and everything beyond it — outside the crop.
+      // Centre the frame on the card, trimming an even sliver off each side and
+      // keeping the gutter out of the crop.
       const column = cards.columns[col];
       const line = cards.rows[row];
       return {

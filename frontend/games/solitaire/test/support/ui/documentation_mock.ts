@@ -5,16 +5,11 @@ import type {
 import type { GameDocumentationRegistry } from "@/ui/app/provider/game_documentation_data";
 
 /**
- * Documentation for the two games the mock catalog offers.
+ * Documentation for the two games the mock catalog offers, in place of the real
+ * prose so no spec breaks when a rules page is reworded.
  *
- * Deliberately not the real prose. A component spec that asserted against the
- * shipped rules text would fail the day someone reworded a rules page, which
- * tells nobody anything about the modal that renders it. What the modal is
- * responsible for is showing whichever documentation it is given, and that is
- * what this lets a spec check.
- *
- * Klondike here has a documented option so the variants tab has something to
- * show; FreeCell has none, which is the case the tab has to hide itself for.
+ * Klondike documents an option so the variants tab has something to show;
+ * FreeCell documents none, so the tab hides.
  */
 const KLONDIKE_DRAW_COUNT_DOC: GameOptionDoc = {
   optionId: "drawCount",

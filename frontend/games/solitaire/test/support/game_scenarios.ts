@@ -2,13 +2,9 @@ import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 
 /**
- * As much of a dealt game as building an exact position needs.
+ * Exposes as much of any dealt game as building an exact position needs.
  *
- * Structural rather than a game class, so every game can use these: the board
- * is the same shape whichever solitaire is on it, and a helper that named
- * `KlondikeGame` would have to be copied once per variant. Helpers that really
- * do need a particular game — one that draws from a stock, say — belong beside
- * that game's specs rather than here.
+ * Helpers that need a particular game belong beside that game's specs.
  */
 export interface DealtBoard {
   readonly piles: readonly CardPile<PlayingCard>[];
@@ -22,9 +18,10 @@ export function emptyBoard(game: DealtBoard): void {
 }
 
 /**
- * Moves the card with the given id out of whatever pile currently holds it and
- * onto the target pile, returning the card. The game must already have been
- * started so the card exists in the model.
+ * Moves a card from whatever pile holds it onto the target pile, and returns
+ * it.
+ *
+ * The game must already be dealt, so the card exists.
  */
 export function relocate(
   game: DealtBoard,

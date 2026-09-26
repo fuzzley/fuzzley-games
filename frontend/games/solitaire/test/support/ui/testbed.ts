@@ -21,7 +21,7 @@ import {
   type MockPresentation,
 } from "./presentation_mock";
 
-/** Everything a UI spec needs to drive the component it just built. */
+/** Holds everything a UI spec needs to drive the component it just built. */
 export interface UiHarness {
   readonly model: MockGameModel;
   readonly catalog: MockCatalogHarness;
@@ -31,9 +31,6 @@ export interface UiHarness {
 /**
  * Configures a TestBed with the mock catalog and presentation the UI layer
  * expects, and returns the handles for driving them.
- *
- * Six component specs previously repeated the same fifteen lines of provider
- * wiring, which meant a change to the mock's shape was a change to six files.
  *
  * @param component The component under test, added to `imports`.
  * @param options Starting readings for the dealt game.

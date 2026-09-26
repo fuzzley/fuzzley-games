@@ -12,7 +12,7 @@ import { GameState } from "./game_state";
 import { BoardQuery } from "./rules";
 import { ZoneSpec, canGrab, hasRoomFor } from "./zone";
 
-/** A move that has passed the rules: the cards to move and where they go. */
+/** Describes a move that has passed the rules: its cards and where they go. */
 export interface ResolvedMove {
   /** The card being moved plus everything stacked on it, bottom-first. */
   readonly movingStack: readonly PlayingCard[];
@@ -23,11 +23,8 @@ export interface ResolvedMove {
 }
 
 /**
- * What a move did beyond relocating its cards.
- *
- * Returned by {@link TableGame.applyMoveEffects} so undo can put all of it
- * back together. Both fields are inert by default, which is what makes a game
- * that neither scores nor flips — FreeCell — as expressible as one that does.
+ * Records what a move did beyond relocating its cards, so undo can take that
+ * back too.
  */
 export interface MoveEffects {
   /** The score change the move actually applied. */
@@ -35,12 +32,8 @@ export interface MoveEffects {
   /** Cards the move turned face up by exposing them. */
   readonly flippedCardIds: readonly string[];
   /**
-   * Further runs of cards the move relocated, in the order it relocated them.
-   *
-   * For a consequence of the move rather than the move itself: Spider sends a
-   * completed King-to-Ace run off to a foundation as soon as the move that
-   * finished it lands. Recording it here rather than as a separate action is
-   * what makes one undo take the whole thing back.
+   * Further runs the move relocated as a consequence, such as a completed
+   * Spider run, so one undo takes them back with it.
    */
   readonly followUpTransfers?: readonly CardTransfer[];
 }
@@ -51,18 +44,10 @@ export const NO_MOVE_EFFECTS: MoveEffects = {
   flippedCardIds: [],
 };
 
-/** Re-exported: a caller of {@link TableGame.onCardsRelocated} needs the shape. */
+/** Re-exported for callers of {@link TableGame.onCardsRelocated}. */
 export type { RelocationListener };
 
-/**
- * The lifecycle events every table game publishes.
- *
- * One declaration rather than six identical ones. Every game announces exactly
- * these two and nothing else, which is what lets {@link TableGame} emit them
- * itself: a win is decided by counting cards, and a subclass that had to
- * redeclare the event in order to be told about it would be paying for the
- * privilege of receiving something the engine already knows.
- */
+/** Maps the lifecycle events every table game publishes to their payloads. */
 export type TableGameEvents = {
   /** Emitted when every card in play has reached the winning role. */
   "game-won": undefined;
@@ -70,42 +55,24 @@ export type TableGameEvents = {
   "game-reset": undefined;
 };
 
-/** How to build a table game's board. */
+/** Configures a table game's board. */
 export interface TableGameOptions {
   /** The zones to create piles for, and the rules each pile plays by. */
   readonly zones: () => readonly ZoneSpec[];
   /** Supplies the persistent card instances the game deals. */
   readonly registry: CardRegistry;
-  /**
-   * The roles {@link TableGame.autoMoveCard} tries, best first. Klondike
-   * prefers a foundation over a column; FreeCell tries a foundation, then a
-   * free cell, then a column.
-   */
+  /** The roles {@link TableGame.autoMoveCard} tries, best first. */
   readonly autoMoveRoles: readonly PileRole[];
   /**
    * The role that holds every card once the game is won, or undefined for a
    * game that is never won by gathering cards.
-   *
-   * Every solitaire here ends the same way — every card in play sitting in
-   * piles of one role — and each of them used to count that for itself, in
-   * three different spellings. Naming the role instead lets the engine check
-   * it after every action, which is also the only way a game whose *last* move
-   * is a follow-up rather than a player's move gets noticed at all.
    */
   readonly winsWhenAllCardsIn?: PileRole;
 }
 
 /**
- * The board and the move machinery shared by the solitaire family.
- *
- * Owns the piles, where every card is, whether a move is legal, and the
- * history that undo unwinds — everything that is the same whether the game is
- * Klondike, FreeCell or Spider. What differs is declared rather than coded: the
- * zones say what the piles are and what they accept, and a subclass supplies
- * whatever a move does beyond moving cards.
- *
- * Deliberately knows nothing about stocks, foundations or draws. A game that
- * has them adds them; FreeCell, which has no stock at all, simply does not.
+ * Holds the board and move machinery shared by the solitaire family: the piles,
+ * where every card is, whether a move is legal, and the history undo unwinds.
  */
 export abstract class TableGame<
   EventMap extends Record<string, unknown> & TableGameEvents = TableGameEvents,
@@ -122,12 +89,7 @@ export abstract class TableGame<
     CardPile<PlayingCard>[]
   >();
 
-  /**
-   * The applied actions {@link undo} unwinds, and who is following them.
-   *
-   * Handed this game as its board, which it satisfies structurally: a history
-   * needs only to look piles and cards up by id and to walk the piles in order.
-   */
+  /** The applied actions {@link undo} unwinds, and who is following them. */
   private readonly history: MoveHistory = new MoveHistory(this);
 
   private readonly zones: () => readonly ZoneSpec[];
@@ -169,17 +131,17 @@ export abstract class TableGame<
     return [...this.pilesMap.values()];
   }
 
-  /** Every pile playing the given part, in declaration order. */
+  /** Returns every pile playing the given part, in declaration order. */
   public pilesOfRole(role: PileRole): readonly CardPile<PlayingCard>[] {
     return this.pilesByRoleMap.get(role) ?? [];
   }
 
-  /** The pile with the given id, or undefined. */
+  /** Returns the pile with the given id, or undefined. */
   public getPileById(pileId: string): CardPile<PlayingCard> | undefined {
     return this.pilesMap.get(pileId);
   }
 
-  /** The pile with the given id, which the zones guarantee exists. */
+  /** Returns the pile with the given id, throwing if no zone declares it. */
   protected requirePile(pileId: string): CardPile<PlayingCard> {
     const pile = this.pilesMap.get(pileId);
     if (!pile) {
@@ -188,58 +150,35 @@ export abstract class TableGame<
     return pile;
   }
 
-  /** The card with the given id, or undefined if it was never registered. */
+  /** Returns the card with the given id, or undefined if never registered. */
   public getCardById(cardId: string): PlayingCard | undefined {
     return this.registry.get(cardId);
   }
 
-  /**
-   * The id of every card in play.
-   *
-   * What a renderer needs to know which sprites to make. Read from the game
-   * rather than recomputed from a deck specification, because the two can
-   * disagree: a Spider board asked for two decks of four suits while the game
-   * was dealing eight copies of one, and every card the board then looked for
-   * by name was a card the game did not have.
-   */
+  /** The id of every card in play, which a renderer should make sprites for. */
   public get cardIds(): readonly string[] {
     return this.registry.ids();
   }
 
   /**
-   * How many distinct cards the game has dealt with so far.
-   *
-   * Every card in play is registered, so this is what a win condition should
-   * count against rather than a hardcoded 52 — which keeps a short injected
-   * deck consistent.
+   * How many distinct cards are in play, which a win condition should count
+   * against rather than 52.
    */
   public get cardsInPlay(): number {
     return this.registry.size;
   }
 
-  /**
-   * Finds which pile contains a given card.
-   *
-   * A lookup, not a scan: this runs several times a frame from the view builder
-   * and up to once per candidate pile inside {@link autoMoveCard}, and the
-   * piles keep {@link CardLocations} current as cards move between them.
-   */
+  /** Finds which pile contains a given card. */
   public getPileContainingCard(
     cardId: string,
   ): CardPile<PlayingCard> | undefined {
     return this.locations.get(cardId);
   }
 
-  /**
-   * The zone describing the given pile, or undefined for an unknown id.
-   *
-   * How a pile behaves is declared by its zone rather than switched on its role
-   * at each point of use.
-   */
+  /** Returns the zone describing the given pile, or undefined if unknown. */
   public zoneFor(pileId: string): ZoneSpec | undefined {
-    // Indexed, not scanned: this runs once per card per frame from the view
-    // builder. The index is rebuilt only when the zone list is a different
-    // array, which it is exactly when something that shapes the zones changed.
+    // Indexed because the view builder asks once per card per frame. A new
+    // zone array means the zones changed, so the index is rebuilt.
     const zones = this.zones();
     if (this.zoneIndex?.source !== zones) {
       this.zoneIndex = {
@@ -263,7 +202,7 @@ export abstract class TableGame<
       this.pilesOfRole(role).filter((pile) => pile.isEmpty).length,
   };
 
-  /** Empties every pile, leaving the registry intact so sprites keep their cards. */
+  /** Empties every pile, keeping the registry so sprites keep their cards. */
   protected resetPiles(): void {
     for (const pile of this.pilesMap.values()) {
       pile.clear();
@@ -273,8 +212,8 @@ export abstract class TableGame<
   // --- Moves ---
 
   /**
-   * Whether moving a card, along with the cards stacked on it, to the given
-   * pile would be legal.
+   * Returns whether moving a card, with the cards stacked on it, to a pile
+   * would be legal.
    */
   public canMoveCardToPile(cardId: string, targetPileId: string): boolean {
     return this.resolveMove(cardId, targetPileId) !== null;
@@ -303,10 +242,8 @@ export abstract class TableGame<
       return null;
     }
 
-    // A face-down card cannot be moved, whatever its zone allows a player to
-    // reach for. The Klondike stock's top card is grabbable — that is what
-    // makes it clickable to draw — but it is still face down and still not
-    // going anywhere.
+    // Checked apart from the grab rule, which lets the face-down top of the
+    // Klondike stock be clicked to draw.
     if (!card.faceUp) {
       return null;
     }
@@ -316,8 +253,8 @@ export abstract class TableGame<
       return null;
     }
 
-    // The moving stack is this card plus everything on top of it. The index is
-    // valid because getPileContainingCard only returns a pile holding the card.
+    // indexOf cannot miss: getPileContainingCard only returns a pile holding
+    // the card.
     const sourceCards = sourcePile.getCards();
     const movingStack = sourceCards.slice(sourceCards.indexOf(card));
 
@@ -336,9 +273,8 @@ export abstract class TableGame<
   }
 
   /**
-   * Attempts to move a card and its stacked cards to a destination pile.
-   *
-   * @returns True if the move was valid and executed; false otherwise.
+   * Moves a card and the cards stacked on it to a pile, returning whether the
+   * rules allowed it.
    */
   public moveCardToPile(cardId: string, targetPileId: string): boolean {
     const move = this.resolveMove(cardId, targetPileId);
@@ -376,13 +312,8 @@ export abstract class TableGame<
   /**
    * Emits `game-won` if every card in play now sits in the winning role.
    *
-   * Called after every move. A game that moves cards by some other route — a
-   * Spider row that completes the last run as it lands — calls it once that
-   * action is recorded.
-   *
-   * Counted against {@link cardsInPlay} rather than a hardcoded 52, so a short
-   * injected deck still reaches a coherent end, and guarded against an empty
-   * board so a game that has dealt nothing has not thereby won.
+   * A move calls this itself; a game that moves cards by another route, such
+   * as a dealt Spider row, calls it once that action is recorded.
    */
   protected checkWinCondition(): void {
     if (this.winningRole === undefined) {
@@ -403,11 +334,6 @@ export abstract class TableGame<
    * Applies whatever a move does beyond relocating its cards, and reports it so
    * undo can put it back.
    *
-   * The template method every solitaire fills differently: Klondike scores the
-   * move and turns over the card it exposed, FreeCell does neither. Doing
-   * nothing is the default, so a game only overrides this if it has something
-   * to say.
-   *
    * @param move The move, already applied to the piles.
    */
   protected applyMoveEffects(move: ResolvedMove): MoveEffects {
@@ -415,22 +341,14 @@ export abstract class TableGame<
     return NO_MOVE_EFFECTS;
   }
 
-  /**
-   * Called once a move and its effects are recorded, for whatever the game
-   * wants to check afterwards — most obviously whether it has been won.
-   */
+  /** Does whatever the game needs once a move and its effects are recorded. */
   protected afterMove(move: ResolvedMove): void {
     void move;
   }
 
   /**
-   * Automatically moves a card to its best available destination, trying the
-   * roles the game named in order.
-   *
-   * Each candidate is delegated to {@link moveCardToPile}, so all validation,
-   * scoring and effects still apply and no rules are duplicated here.
-   *
-   * @returns True if the card found a home.
+   * Moves a card to the first pile that takes it, trying the game's auto-move
+   * roles in order, and returns whether one did.
    */
   public autoMoveCard(cardId: string): boolean {
     const sourcePile = this.getPileContainingCard(cardId);
@@ -452,10 +370,8 @@ export abstract class TableGame<
   // --- History ---
 
   /**
-   * Takes back the most recent action, restoring the piles, the face-up states,
-   * the score and the move count to what they were before it.
-   *
-   * @returns True if an action was taken back; false when there is no history.
+   * Takes back the most recent action, score and move count included, and
+   * returns whether there was one.
    */
   public undo(): boolean {
     const last = this.history.takeBack();
@@ -467,17 +383,16 @@ export abstract class TableGame<
     this.state.score = Math.max(0, this.state.score - last.scoreDelta);
     this.state.moves--;
     this.afterUndo(last);
-    // The same cards, going the other way, and with the same board to cross.
-    // Announced after the hook, so a game that adjusts anything on undo has
-    // done so before a view is told the cards have moved.
+    // Announced after the hook, so the game has finished adjusting before a
+    // view hears the cards moved.
     this.history.announce(last);
 
     return true;
   }
 
   /**
-   * Called once an action has been taken back, for side effects the game keeps
-   * outside the history — Klondike's recycle count, for one.
+   * Reverses side effects the game keeps outside the history, such as
+   * Klondike's recycle count, once an action is taken back.
    */
   protected afterUndo(move: AppliedMove): void {
     void move;
@@ -491,9 +406,6 @@ export abstract class TableGame<
   /**
    * Appends an applied action to the history, publishes the new depth, and
    * announces the cards it relocated.
-   *
-   * Every action that moves cards between piles passes through here, which is
-   * what makes it the one place the view has to listen to.
    */
   protected record(move: AppliedMove): void {
     this.history.record(move);
@@ -501,16 +413,8 @@ export abstract class TableGame<
   }
 
   /**
-   * Follows the cards each action relocates, including the ones undo puts back.
-   *
-   * A plain callback rather than an entry in the game's event map: the payload
-   * is the same for every game, and a subclass should not have to redeclare it
-   * to get the behaviour. Returns a function that stops following, so a caller
-   * that outlives nothing in particular still has a way to let go.
-   *
-   * @param listener Told which cards moved, bottom-first within each run as
-   *   they now lie.
-   * @returns Unsubscribes the listener.
+   * Follows the cards each action relocates, including those undo puts back,
+   * and returns a function that stops following them.
    */
   public onCardsRelocated(listener: RelocationListener): () => void {
     return this.history.onCardsRelocated(listener);
@@ -520,9 +424,7 @@ export abstract class TableGame<
    * Records cards moving between piles outside the normal move path — a draw, a
    * recycle, a dealt row — so undo can take it back like any other action.
    *
-   * @param kind What the player did.
    * @param transfers The runs relocated, in the order they were relocated.
-   * @param options The score it applied and any cards it turned face up.
    */
   protected recordTransfers(
     kind: AppliedMoveKind,
@@ -559,15 +461,15 @@ export abstract class TableGame<
 
   // --- Interaction ---
 
-  /** Whether the card can currently be picked up at all. */
+  /** Returns whether the card can currently be picked up at all. */
   public isCardInteractable(card: PlayingCard): boolean {
     const pile = this.getPileContainingCard(card.id);
     return pile ? this.isCardInteractableInPile(card, pile) : false;
   }
 
   /**
-   * The pile-aware form of {@link isCardInteractable}, for callers that already
-   * know which pile holds the card (e.g. the per-frame view builder).
+   * Does what {@link isCardInteractable} does, for a caller that already knows
+   * which pile holds the card.
    */
   public isCardInteractableInPile(
     card: PlayingCard,
@@ -577,13 +479,16 @@ export abstract class TableGame<
     return zone ? canGrab(zone.grab, card, pile) : false;
   }
 
-  /** Whether the card can currently be dragged. */
+  /** Returns whether the card can currently be dragged. */
   public isCardDraggable(card: PlayingCard): boolean {
     const pile = this.getPileContainingCard(card.id);
     return pile ? this.isCardDraggableInPile(card, pile) : false;
   }
 
-  /** The pile-aware form of {@link isCardDraggable}. */
+  /**
+   * Does what {@link isCardDraggable} does, for a caller that already knows
+   * which pile holds the card.
+   */
   public isCardDraggableInPile(
     card: PlayingCard,
     pile: CardPile<PlayingCard>,

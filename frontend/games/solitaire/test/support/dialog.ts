@@ -2,18 +2,13 @@ import type { ComponentFixture } from "@angular/core/testing";
 import { queryRequired } from "./dom";
 
 /**
- * Helpers for driving the native <dialog> the overlays are built on.
- *
- * The behaviour under test is the browser's, so these press the same keys and
- * click the same places a player would rather than calling the component's
- * methods.
+ * Drives the native <dialog> the overlays are built on the way a player would,
+ * by key and by click.
  */
 
 /**
- * Presses Escape.
- *
- * Dispatched on the document, which is where the browser routes it: the
- * topmost open dialog receives `cancel` from there.
+ * Presses Escape on the document, from which the topmost open dialog receives
+ * `cancel`.
  */
 export function pressEscape(): void {
   document.dispatchEvent(
@@ -21,7 +16,7 @@ export function pressEscape(): void {
   );
 }
 
-/** Whether the fixture's dialog is currently showing. */
+/** Returns whether the fixture's dialog is showing. */
 export function isDialogOpen(fixture: ComponentFixture<unknown>): boolean {
   return queryRequired<HTMLDialogElement>(fixture, "dialog").open;
 }

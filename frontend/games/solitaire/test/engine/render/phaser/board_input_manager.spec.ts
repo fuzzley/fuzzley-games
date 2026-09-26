@@ -296,7 +296,7 @@ describe("BoardInputManager", () => {
   });
 
   describe("flight tracking", () => {
-    /** The card ids of each flight in the air, oldest first. */
+    /** Returns the card ids of each flight in the air, oldest first. */
     function flownStacks(): string[][] {
       return inputManager.flights.map((flight) => [...flight.cardIds]);
     }

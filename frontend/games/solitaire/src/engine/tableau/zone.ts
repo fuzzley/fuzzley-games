@@ -4,14 +4,7 @@ import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { SlotPlacement } from "@/engine/render/layout/table_layout";
 import { PlacementRule } from "./rules";
 
-/**
- * Which cards in a zone a player may pick up.
- *
- * The question every solitaire answers differently and none answers per card:
- * a Klondike foundation gives up only its top card, a Klondike column gives up
- * any face-up card and everything on it, and a FreeCell column gives up only a
- * properly ordered run.
- */
+/** Says which cards in a zone a player may pick up. */
 export type GrabRule =
   /** Nothing here can be picked up. */
   | { readonly kind: "none" }
@@ -21,7 +14,7 @@ export type GrabRule =
   | { readonly kind: "any-face-up" }
   /**
    * Any face-up card whose covering cards form an unbroken run by
-   * {@link adjacent}. FreeCell and Spider; Klondike is deliberately laxer.
+   * {@link adjacent}.
    */
   | {
       readonly kind: "run";
@@ -30,11 +23,8 @@ export type GrabRule =
     };
 
 /**
- * How a zone decides which side of its cards to show.
- *
- * Distinct from the cards' own {@link PlayingCard.faceUp} because some zones
- * override it wholesale: a Klondike stock is drawn face-down whatever its cards
- * think, a waste face-up, and only a tableau defers to the card.
+ * Says which side of its cards a zone shows, which may override the cards' own
+ * {@link PlayingCard.faceUp}.
  */
 export type FaceVisibility =
   /** Show whichever side the card itself says. */
@@ -45,14 +35,8 @@ export type FaceVisibility =
   | "always-down";
 
 /**
- * One pile of a game's board, and everything that distinguishes it from the
- * others.
- *
- * This is the replacement for switching on a pile's role. A role remains as an
- * opaque tag for scoring and grouping, but the behaviour that used to hang off
- * it — how the pile arranges its cards, what it accepts, what can be taken from
- * it, which side is shown — is declared here instead of branched on in five
- * separate places.
+ * Describes one pile of a game's board and everything that distinguishes it
+ * from the others.
  */
 export interface ZoneSpec {
   /** The unique id of the pile this describes. */
@@ -67,15 +51,14 @@ export interface ZoneSpec {
   /** How it arranges the cards stacked in it. */
   readonly layout: PileLayout;
 
-  /** How many cards it may hold. Undefined means unbounded. */
+  /** How many cards it may hold, or undefined for no limit. */
   readonly capacity?: number;
 
   /**
    * What it accepts, or null when it is never a destination at all.
    *
-   * Null rather than a rule that always says no, because "this pile cannot be
-   * dropped on" is a different statement from "this drop is illegal": a drag
-   * should not offer the Klondike stock as a target and then refuse it.
+   * Null, unlike a rule that refuses everything, keeps a drag from offering the
+   * pile as a target.
    */
   readonly accept: PlacementRule | null;
 
@@ -83,10 +66,8 @@ export interface ZoneSpec {
   readonly grab: GrabRule;
 
   /**
-   * Whether a card taken from here may be dragged.
-   *
-   * Separate from {@link grab} because the Klondike stock is clickable but not
-   * draggable: pressing it draws rather than picks anything up.
+   * Whether a card taken from here may be dragged, rather than only clicked
+   * like the top of the Klondike stock.
    */
   readonly draggable: boolean;
 
@@ -96,29 +77,17 @@ export interface ZoneSpec {
   /**
    * The artwork key for the placeholder drawn beneath the pile, or undefined
    * for a pile drawn over bare table.
-   *
-   * Klondike's waste has none: it fans over the felt rather than sitting in a
-   * marked slot, so an empty waste should look like nothing at all.
    */
   readonly backgroundKey?: string;
 
   /**
-   * Whether clicking this pile's empty slot does something.
-   *
-   * The Klondike stock's does — it recycles the waste — so an empty stock wants
-   * a pointer cursor and a hover border, while an empty foundation is inert and
-   * should offer neither.
+   * Whether clicking this pile's empty slot does something, and so earns a
+   * pointer cursor and a hover border.
    */
   readonly emptyIsActionable?: boolean;
 }
 
-/**
- * Whether `card` can be picked up out of `pile` under the given rule.
- *
- * @param grab The zone's grab rule.
- * @param card The card the player is reaching for.
- * @param pile The pile holding it.
- */
+/** Returns whether `card` can be picked up out of `pile` under a grab rule. */
 export function canGrab(
   grab: GrabRule,
   card: PlayingCard,
@@ -137,15 +106,8 @@ export function canGrab(
 }
 
 /**
- * Whether the cards from `card` upwards form an unbroken run.
- *
- * A card buried under a broken sequence cannot be lifted, because everything
- * above it comes with it and the pile it lands on would have to accept the
- * whole thing.
- *
- * Every card in the run must be face up, the topmost included: a run is only a
- * run if the player can read all of it. Checking adjacency pairwise would leave
- * the last card's face untested, since it is never the `lower` of a pair.
+ * Returns whether the cards from `card` upwards are all face up and form an
+ * unbroken run.
  */
 function isRunFrom(
   pile: CardPile<PlayingCard>,
@@ -165,17 +127,7 @@ function isRunFrom(
   return true;
 }
 
-/**
- * Whether a zone draws the given card face up.
- *
- * Separate from {@link PlayingCard.faceUp} because a zone may override it, and
- * separate from {@link canGrab} because being readable and being liftable are
- * different questions: an Eight Off column shows every card it holds while
- * offering up only the top of a same-suit run.
- *
- * @param face The zone's face visibility.
- * @param card The card being drawn.
- */
+/** Returns whether a zone draws the given card face up. */
 export function showsFace(face: FaceVisibility, card: PlayingCard): boolean {
   switch (face) {
     case "always-down":
@@ -187,13 +139,7 @@ export function showsFace(face: FaceVisibility, card: PlayingCard): boolean {
   }
 }
 
-/**
- * The artwork key a zone shows for one of its cards.
- *
- * @param face The zone's face visibility.
- * @param card The card being drawn.
- * @param cardBackKey The artwork key for the back of a card.
- */
+/** Returns the artwork key a zone shows for one of its cards. */
 export function frameFor(
   face: FaceVisibility,
   card: PlayingCard,
@@ -202,7 +148,7 @@ export function frameFor(
   return showsFace(face, card) ? card.faceKey : cardBackKey;
 }
 
-/** Whether the pile has room for `count` more cards under the zone's capacity. */
+/** Returns whether the pile has room for `count` more cards. */
 export function hasRoomFor(
   spec: ZoneSpec,
   pile: CardPile<PlayingCard>,

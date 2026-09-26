@@ -4,12 +4,8 @@
   display: block;
 }
 
-// Only the panel's own frame lives here now. The labelled segmented controls
-// inside it are <app-option-group>, which owns that styling once rather than
-// this file holding a verbatim copy of the settings drawer's.
-//
-// The negative margins bleed the tinted band out to the drawer's edges, past
-// the padding it sits inside — so they have to be the drawer's padding step.
+// The negative margins bleed the tinted band out to the drawer's edges, so
+// they must match the drawer's padding.
 .debug-panel {
   margin-top: var(--space-8);
   padding-top: var(--space-6);

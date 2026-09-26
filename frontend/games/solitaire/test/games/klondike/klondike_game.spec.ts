@@ -105,7 +105,6 @@ describe("KlondikeGame", () => {
       const cardRef = firstGameCards[0];
       const cardId = cardRef.id;
 
-      // Start new game again
       game.startNewGame();
       const newCardRef = game.getCardById(cardId);
       expect(newCardRef).toBe(cardRef);
@@ -123,12 +122,10 @@ describe("KlondikeGame", () => {
         t.getCards().map((c) => c.faceUp),
       );
 
-      // Make a move/draw
       game.drawCardsFromStock();
       expect(game.state.moves).toBe(1);
       expect(game.stock.getCards().length).not.toBe(24);
 
-      // Restart game
       game.restartGame();
 
       expect(game.state.moves).toBe(0);
@@ -210,11 +207,7 @@ describe("KlondikeGame", () => {
 
       game.drawCardsFromStock();
 
-      // Without the announcement the drawn cards take the waste's low depth the
-      // instant the model moves them, and slide under it on the way over. And a
-      // draw comes off the top of the stock, so the run arrives turned over:
-      // named the other way round, the three would cross the table in the
-      // reverse of the order they are about to fan out in.
+      // Announced as the run now lies on the waste, which a draw turns over.
       expect(announced).toEqual([game.waste.getCards().map((card) => card.id)]);
     });
 
@@ -799,38 +792,33 @@ describe("KlondikeGame", () => {
       game.almostWin = true;
       game.startNewGame();
 
-      // Check foundations are filled with 12 cards each (A to Q)
+      // Ace to Queen on every foundation.
       expect(game.foundations[0].getCards().length).toBe(12);
       expect(game.foundations[1].getCards().length).toBe(12);
       expect(game.foundations[2].getCards().length).toBe(12);
       expect(game.foundations[3].getCards().length).toBe(12);
 
-      // Check foundations are face-up
       expect(
         game.foundations.every((f) => f.getCards().every((c) => c.faceUp)),
       ).toBe(true);
 
-      // Check tableaus 0-3 contain exactly 1 card (the King)
+      // A King alone on each of the first four columns.
       expect(game.tableaus[0].getCards().length).toBe(1);
       expect(game.tableaus[1].getCards().length).toBe(1);
       expect(game.tableaus[2].getCards().length).toBe(1);
       expect(game.tableaus[3].getCards().length).toBe(1);
 
-      // Check tableaus 4-6 are empty
       expect(game.tableaus[4].getCards().length).toBe(0);
       expect(game.tableaus[5].getCards().length).toBe(0);
       expect(game.tableaus[6].getCards().length).toBe(0);
 
-      // Check stock and waste are empty
       expect(game.stock.getCards().length).toBe(0);
       expect(game.waste.getCards().length).toBe(0);
 
-      // Check that moving one King to foundation works
       const kingSpade = game.tableaus[0].getCards()[0];
       const moved = game.moveCardToPile(kingSpade.id, game.foundations[0].id);
       expect(moved).toBe(true);
 
-      // Move other Kings
       game.moveCardToPile(
         game.tableaus[1].getCards()[0].id,
         game.foundations[1].id,
@@ -910,7 +898,7 @@ describe("KlondikeGame card location tracking", () => {
 });
 
 describe("KlondikeGame snapshot", () => {
-  /** A dealt game that has drawn through its stock and recycled the waste. */
+  /** Returns a game that has drawn through its stock and recycled the waste. */
   function recycledOnce(): KlondikeGame {
     const game = new KlondikeGame();
     game.startNewGame();

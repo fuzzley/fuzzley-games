@@ -65,10 +65,6 @@ describe("DeckSource", () => {
       expect(deck.register().every((card) => card.faceUp)).toBe(true);
     });
 
-    /*
-     * What a restart depends on: the previous deal turned some of these over,
-     * and the deal about to happen decides for itself which ones show.
-     */
     it("turns cards left face up by a previous deal back down", () => {
       const deck = new DeckSource(registry, ALL_PLAYING_CARD_IDS);
       const cards = deck.register();

@@ -1,38 +1,31 @@
 import { Card } from "./card";
 
 /**
- * The part a pile plays in whichever game owns it, as an opaque tag.
+ * Names the part a pile plays in its game, such as a stock or a free cell.
  *
- * A string and not an enum because the engine has no opinion about what roles
- * exist: Klondike has a stock, a waste, foundations and tableaus, FreeCell has
- * free cells and no stock at all, and poker deals hands. Each game declares its
- * own set and the engine only ever compares them for equality.
+ * A plain string because each game declares its own roles; the engine only
+ * compares them for equality.
  */
 export type PileRole = string;
 
 /**
- * Records which pile each card currently sits in, so finding a card's pile is a
- * lookup rather than a scan of the whole board.
- *
- * Maintained by {@link CardPile} itself rather than by the game, which is what
- * keeps it honest: dealing, a move, an undo and a test helper all reach a pile
- * through the same addCard/removeCard/clear, so there is no route that could
- * change a pile without the index hearing about it.
+ * Records which pile each card sits in, so finding a card's pile is a lookup
+ * rather than a scan of the whole board.
  */
 export class CardLocations<T extends Card = Card> {
   private readonly pileByCardId = new Map<string, CardPile<T>>();
 
-  /** The pile holding the card with the given id, or undefined. */
+  /** Returns the pile holding the card with the given id, or undefined. */
   get(cardId: string): CardPile<T> | undefined {
     return this.pileByCardId.get(cardId);
   }
 
-  /** Notes that a card now sits in a pile. Called by {@link CardPile}. */
+  /** Notes that a card now sits in a pile, on behalf of {@link CardPile}. */
   record(cardId: string, pile: CardPile<T>): void {
     this.pileByCardId.set(cardId, pile);
   }
 
-  /** Forgets where a card was. Called by {@link CardPile}. */
+  /** Forgets where a card was, on behalf of {@link CardPile}. */
   forget(cardId: string): void {
     this.pileByCardId.delete(cardId);
   }
@@ -46,21 +39,19 @@ export class CardPile<T extends Card = Card> {
   /** The part this pile plays, used by rule and scoring logic. */
   public readonly role: PileRole;
 
-  /** List of cards contained in this pile. */
+  /** The cards in this pile, from the bottom up. */
   protected readonly cards: T[] = [];
 
-  /** Told about every card that joins or leaves, when the game supplies one. */
+  /** The index to tell about every card that joins or leaves, if any. */
   private readonly locations?: CardLocations<T>;
 
   /**
-   * Constructs a card pile.
+   * Creates an empty pile.
    *
-   * @param id The unique ID for this pile.
-   * @param role The part this pile plays in its game. Defaults to the empty
-   *   role, which matches nothing a game defines and so behaves as a plain
-   *   stack of cards — what a standalone pile in a test wants.
-   * @param locations Shared index to keep up to date as cards join and leave.
-   *   Optional so a standalone pile needs no ceremony.
+   * @param role The part this pile plays in its game. The default empty role
+   *   matches nothing a game defines, which suits a standalone pile.
+   * @param locations The index, shared by every pile in a game, to keep up to
+   *   date as cards join and leave.
    */
   constructor(
     id: string = "",
@@ -72,18 +63,12 @@ export class CardPile<T extends Card = Card> {
     this.locations = locations;
   }
 
-  /** Returns a readonly list of cards. */
+  /** Returns the cards in this pile, from the bottom up. */
   getCards(): ReadonlyArray<T> {
     return this.cards;
   }
 
-  /**
-   * The card on top of the pile — the last one added — or undefined when the
-   * pile is empty.
-   *
-   * Every rule that asks about a pile asks about its top card, so owning the
-   * answer here keeps callers from re-deriving `cards[cards.length - 1]`.
-   */
+  /** The card on top of the pile, the last one added, or undefined if empty. */
   get topCard(): T | undefined {
     return this.cards[this.cards.length - 1];
   }
@@ -103,7 +88,7 @@ export class CardPile<T extends Card = Card> {
     return this.cards.includes(card);
   }
 
-  /** Adds a card to the pile. */
+  /** Adds a card to the top of the pile. */
   addCard(card: T): void {
     this.cards.push(card);
     this.locations?.record(card.id, this);

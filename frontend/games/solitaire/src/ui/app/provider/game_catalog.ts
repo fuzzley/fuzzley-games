@@ -41,23 +41,15 @@ import { SpideretteGame } from "@/games/spiderette/spiderette_game";
 import { SpideretteVariant } from "@/games/spiderette/spiderette_rules";
 import { SPIDERETTE_LAYOUT } from "@/games/spiderette/spiderette_layout";
 
-/** A value a rule option can be set to, and how to name it to a player. */
+/** Describes a value a rule option can take, and its name for a player. */
 export interface GameOptionChoice {
-  /** The stored value. Kept primitive so it round-trips through storage. */
+  /** The stored value, kept primitive so it round-trips through storage. */
   readonly value: number;
   /** What the choice is called. */
   readonly label: string;
 }
 
-/**
- * A rule a game lets the player choose.
- *
- * Declared as data rather than as named fields on a shared interface. The
- * interface used to have a `drawCount` and an `almostWin` on it, which is
- * Klondike's vocabulary in a place meant to serve every game — and it would
- * have grown a `suitCount` for Spider, then one field per option per game
- * forever. A game now says what it offers and the settings panel renders it.
- */
+/** Describes a rule a game lets the player choose. */
 export interface GameOptionSpec {
   /** Stable id, used for storage and for setting the value. */
   readonly id: string;
@@ -73,20 +65,14 @@ export interface GameOptionSpec {
   readonly debugOnly?: boolean;
 }
 
-/** The chosen value of each option, by option id. */
+/** Maps each option id to its chosen value. */
 export type GameOptionValues = Readonly<Record<string, number>>;
 
 /**
- * A game the application can put on the table.
+ * Describes a game the application can put on the table: its name, its rules,
+ * its grid, and how to deal one.
  *
- * Everything the application needs to know about a game that is not the game
- * itself: what to call it, which rules it offers, the grid it lies on, and how
- * to deal one. The layout used to live in a second registry keyed by the same
- * id, which meant adding a game meant remembering to edit both.
- *
- * Generic in the game it deals so the board registry can be checked against
- * it: a board that draws Spider cannot be registered against the entry that
- * deals Klondike.
+ * Generic in the game it deals so the board registry can be checked against it.
  */
 export interface CatalogEntry<TGame extends PlayableGame = PlayableGame> {
   /** Stable id, also the URL fragment that selects it. */
@@ -94,13 +80,8 @@ export interface CatalogEntry<TGame extends PlayableGame = PlayableGame> {
   /** Name shown to a player. */
   readonly name: string;
   /**
-   * Two characters standing for the game in a collapsed game rail.
-   *
-   * Stated rather than sliced off the front of the name, which is what the rail
-   * used to do: Spider and Scorpion both start with S, so two of the seven
-   * games wore the same badge, and F, B and E say nothing about which of
-   * FreeCell, Baker's Game and Eight Off is meant. Two characters is what a
-   * collapsed rail has room for, and it is enough to tell all seven apart.
+   * Two characters standing for the game in a collapsed game rail, chosen by
+   * hand because many names share a first letter.
    */
   readonly marker: string;
   /** The rules this game lets the player choose. */
@@ -111,7 +92,7 @@ export interface CatalogEntry<TGame extends PlayableGame = PlayableGame> {
   create(values: GameOptionValues): CatalogSession<TGame>;
 }
 
-/** A dealt game. */
+/** Holds a dealt game. */
 export interface CatalogSession<TGame extends PlayableGame = PlayableGame> {
   readonly game: TGame;
 }
@@ -176,13 +157,7 @@ const SPIDER_SUIT_COUNT: GameOptionSpec = {
   defaultValue: 4,
 };
 
-/**
- * Which of the Yukon family to deal.
- *
- * The values are the {@link YukonVariant} members themselves rather than a
- * parallel list of numbers, so the choices a player is offered and the games
- * they select cannot drift apart.
- */
+/** Which of the Yukon family to deal. */
 const YUKON_VARIANT: GameOptionSpec = {
   id: "variant",
   label: "Variant",
@@ -197,21 +172,11 @@ const YUKON_VARIANT: GameOptionSpec = {
 };
 
 /*
- * The entries.
- *
- * Declared with `satisfies` rather than an explicit annotation so each keeps
- * its literal id and its concrete game type: that is what lets the board
- * registry be checked against this one instead of dispatching on `instanceof`
- * at runtime.
+ * The entries, each declared with `satisfies` so it keeps the literal id and
+ * game type the board registry is checked against.
  */
 
-/**
- * Which of the Klondike family to deal.
- *
- * The values are the {@link KlondikeVariant} members themselves rather than a
- * parallel list of numbers, so the choices a player is offered and the games
- * they select cannot drift apart.
- */
+/** Which of the Klondike family to deal. */
 const KLONDIKE_VARIANT: GameOptionSpec = {
   id: "variant",
   label: "Variant",
@@ -247,7 +212,6 @@ const FREECELL = {
   id: "freecell" as const,
   name: "FreeCell",
   marker: "FC",
-  // FreeCell has no rules to choose: no stock, no draw mode, no options.
   options: [],
   layout: FREECELL_LAYOUT,
   create: () => {
@@ -279,9 +243,6 @@ const YUKON = {
   id: "yukon" as const,
   name: "Yukon",
   marker: "YU",
-  // One entry for three games: they share a deal, a board and a grab rule,
-  // and differ only in what an occupied column accepts, which is a rule a
-  // player picks rather than a game they switch to.
   options: [YUKON_VARIANT],
   layout: YUKON_LAYOUT,
   create: (values: GameOptionValues) => {
@@ -297,11 +258,8 @@ const BAKERS = {
   name: "Baker's Game",
   marker: "BG",
   options: [BAKERS_EMPTY_COLUMNS],
-  // The same board as FreeCell, which it shares a layout with.
   layout: FREECELL_LAYOUT,
-  // The same class as FreeCell, playing by a different set of column rules.
-  // Historically the derivation runs this way round — FreeCell was built from
-  // Baker's Game — but the code has to pick one of them to be the module.
+  // FreeCell's class, playing by Baker's Game's column rules.
   create: (values: GameOptionValues) => {
     const variant =
       optionValue(values, BAKERS_EMPTY_COLUMNS) === 1
@@ -317,8 +275,6 @@ const EIGHT_OFF = {
   id: "eightoff" as const,
   name: "Eight Off",
   marker: "EO",
-  // Nothing to choose: no stock, no draw mode, and the cell count is the
-  // name of the game.
   options: [],
   layout: EIGHT_OFF_LAYOUT,
   create: () => {
@@ -332,8 +288,6 @@ const SCORPION = {
   id: "scorpion" as const,
   name: "Scorpion",
   marker: "SC",
-  // Nothing to choose: one deck, one deal, and a stock that empties itself in
-  // a single press.
   options: [],
   layout: SCORPION_LAYOUT,
   create: () => {
@@ -347,7 +301,6 @@ const SIMPLE_SIMON = {
   id: "simplesimon" as const,
   name: "Simple Simon",
   marker: "SS",
-  // Nothing to choose: one deck, one deal, and no stock to draw from.
   options: [],
   layout: SIMPLE_SIMON_LAYOUT,
   create: () => {
@@ -361,8 +314,6 @@ const BAKERS_DOZEN = {
   id: "bakersdozen" as const,
   name: "Baker's Dozen",
   marker: "BD",
-  // Nothing to choose: one deck, one deal, no stock, and the column count is
-  // the name of the game.
   options: [],
   layout: BAKERS_DOZEN_LAYOUT,
   create: () => {
@@ -376,8 +327,6 @@ const SEAHAVEN = {
   id: "seahaven" as const,
   name: "Seahaven Towers",
   marker: "ST",
-  // Nothing to choose: one deck, one deal, and the cell count is fixed at the
-  // four that make the game what it is.
   options: [],
   layout: SEAHAVEN_LAYOUT,
   create: () => {
@@ -387,13 +336,7 @@ const SEAHAVEN = {
   },
 } satisfies CatalogEntry<SeahavenGame>;
 
-/**
- * Which of the Forty Thieves family to deal.
- *
- * The values are the {@link FortyThievesVariant} members themselves rather than
- * a parallel list of numbers, so the choices a player is offered and the games
- * they select cannot drift apart.
- */
+/** Which of the Forty Thieves family to deal. */
 const FORTY_THIEVES_VARIANT: GameOptionSpec = {
   id: "variant",
   label: "Variant",
@@ -411,8 +354,6 @@ const FORTY_THIEVES = {
   id: "fortythieves" as const,
   name: "Forty Thieves",
   marker: "FT",
-  // One entry for three games: they share a deck, a deal shape, a board and a
-  // stock, and differ in rules a player picks rather than games they switch to.
   options: [FORTY_THIEVES_VARIANT],
   layout: FORTY_THIEVES_LAYOUT,
   create: (values: GameOptionValues) => {
@@ -427,11 +368,8 @@ const FORTY_THIEVES = {
 } satisfies CatalogEntry<FortyThievesGame>;
 
 /*
- * Maria and Limited are entries of their own rather than choices on the Forty
- * Thieves entry, because they change the board rather than the rules on it: a
- * variant option redeals the same grid, and these two are nine and twelve
- * columns against its ten. They still share the module, the class and the board
- * factory, which reads the grid off the game.
+ * Maria and Limited are entries of their own rather than Forty Thieves variants
+ * because they change the grid, not just the rules on it.
  */
 
 const MARIA = {
@@ -472,7 +410,6 @@ const MONTANA = {
   id: "montana" as const,
   name: "Montana",
   marker: "MO",
-  // Nothing to choose: one deck without its Aces, one grid, and two redeals.
   options: [],
   layout: MONTANA_LAYOUT,
   create: () => {
@@ -486,8 +423,6 @@ const DOUBLE_KLONDIKE = {
   id: "doubleklondike" as const,
   name: "Double Klondike",
   marker: "DK",
-  // Nothing to choose: two decks, a staircase deal, and a draw of three with
-  // unlimited recycles.
   options: [],
   layout: DOUBLE_KLONDIKE_LAYOUT,
   create: () => {
@@ -501,8 +436,6 @@ const EASTHAVEN = {
   id: "easthaven" as const,
   name: "Easthaven",
   marker: "EH",
-  // Nothing to choose: one deck, one deal, and a stock whose only decision is
-  // whether the board will let it deal.
   options: [],
   layout: EASTHAVEN_LAYOUT,
   create: () => {
@@ -512,13 +445,7 @@ const EASTHAVEN = {
   },
 } satisfies CatalogEntry<EasthavenGame>;
 
-/**
- * Which of the Spiderette pair to deal.
- *
- * The values are the {@link SpideretteVariant} members themselves rather than a
- * parallel list of numbers, so the choices a player is offered and the games
- * they select cannot drift apart — the same arrangement the Yukon option uses.
- */
+/** Which of the Spiderette pair to deal. */
 const SPIDERETTE_VARIANT: GameOptionSpec = {
   id: "variant",
   label: "Deal",
@@ -535,9 +462,6 @@ const SPIDERETTE = {
   id: "spiderette" as const,
   name: "Spiderette",
   marker: "SD",
-  // One entry for both: they share a board, a build rule, a grab rule and a
-  // stock, and differ only in the opening deal — a rule a player picks rather
-  // than a game they switch to.
   options: [SPIDERETTE_VARIANT],
   layout: SPIDERETTE_LAYOUT,
   create: (values: GameOptionValues) => {
@@ -552,12 +476,11 @@ const SPIDERETTE = {
 } satisfies CatalogEntry<SpideretteGame>;
 
 /**
- * Every game the engine can currently put on the table, in the order they are
- * offered.
+ * Every game the application can put on the table, in the order they are
+ * offered, as a tuple so each entry keeps its id and game type.
  *
- * Typed as the tuple of its entries rather than as `CatalogEntry[]` so the ids
- * and the dealt game types survive. {@link GAME_CATALOG} is the same list
- * under the erased type most callers want.
+ * {@link GAME_CATALOG} is the same list under the erased type most callers
+ * want.
  */
 export const CATALOG_ENTRIES = [
   KLONDIKE,
@@ -582,18 +505,18 @@ export const CATALOG_ENTRIES = [
 /** Every game the application can put on the table. */
 export const GAME_CATALOG: readonly CatalogEntry[] = CATALOG_ENTRIES;
 
-/** One of the entries, with its id and dealt game type intact. */
+/** Names one of the entries, with its id and dealt game type intact. */
 export type KnownCatalogEntry = (typeof CATALOG_ENTRIES)[number];
 
-/** The id of a game in the catalog. */
+/** Names a game in the catalog by its id. */
 export type GameId = KnownCatalogEntry["id"];
 
-/** The game type a given entry deals. */
+/** Resolves to the game type a given entry deals. */
 export type GameOf<Id extends GameId> = ReturnType<
   Extract<KnownCatalogEntry, { id: Id }>["create"]
 >["game"];
 
-/** The catalog entry with the given id, or the first one. */
+/** Returns the catalog entry with the given id, or the first one. */
 export function catalogEntry(id: string | null | undefined): CatalogEntry {
   return GAME_CATALOG.find((entry) => entry.id === id) ?? GAME_CATALOG[0];
 }

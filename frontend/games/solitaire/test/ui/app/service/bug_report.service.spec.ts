@@ -66,12 +66,12 @@ function buildService(
   return { service: TestBed.inject(BugReportService), catalog, model };
 }
 
-/** The link the service builds for the game on the table. */
+/** Returns the link the service builds for the game on the table. */
 function reportUrl(service: BugReportService): Promise<string> {
   return service.issueUrl(service.draft());
 }
 
-/** One field of the report, as the issue form will receive it. */
+/** Returns one field of the report, as the issue form will receive it. */
 async function prefilled(
   service: BugReportService,
   fieldId: string,
@@ -79,7 +79,7 @@ async function prefilled(
   return new URL(await reportUrl(service)).searchParams.get(fieldId) ?? "";
 }
 
-/** A snapshot with a long history of distinct actions, newest last. */
+/** Returns a snapshot with a long history of distinct actions, newest last. */
 function longHistory(actions: number): GameSnapshot {
   const history = Array.from({ length: actions }, (_, index): AppliedMove => ({
     kind: "move",
@@ -104,7 +104,7 @@ function longHistory(actions: number): GameSnapshot {
   };
 }
 
-/** The `id` of every field the issue form declares. */
+/** Returns the `id` of every field the issue form declares. */
 function formFieldIds(form: string): string[] {
   return [...form.matchAll(/^\s+id:\s*(\S+)\s*$/gm)].map((match) => match[1]);
 }
@@ -267,7 +267,7 @@ describe("BugReportService", () => {
   });
 
   describe("opening a report", () => {
-    /** A stand-in for the tab `window.open` returns. */
+    /** Stands in for the tab `window.open` returns. */
     interface FakeTab {
       opener: unknown;
       location: { href: string };

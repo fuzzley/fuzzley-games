@@ -100,10 +100,6 @@ describe("the Klondike deal", () => {
       ]);
     });
 
-    /*
-     * A short deck has no King of Clubs to place, so the almost-win board is
-     * simply smaller rather than the deal failing on a card it cannot find.
-     */
     it("places only the cards a short deck actually holds", () => {
       const short = new DeckSource(registry, ALL_PLAYING_CARD_IDS.slice(0, 13));
 

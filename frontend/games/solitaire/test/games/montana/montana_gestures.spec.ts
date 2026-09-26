@@ -19,11 +19,6 @@ describe("montanaGestures", () => {
   const cell = (row: number, column: number) =>
     game.cells[row * COLUMN_COUNT + column];
 
-  /*
-   * The redeal marker is this game's only press, and the only way a player
-   * reaches the redeal at all — there is no stock to click and no button in the
-   * shell for it.
-   */
   describe("activate-pile", () => {
     it("redeals when the marker is pressed", () => {
       handle({ kind: "activate-pile", pileId: REDEAL_PILE_ID });

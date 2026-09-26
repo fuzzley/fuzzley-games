@@ -5,14 +5,7 @@ import { BoardScene } from "./board_scene";
 import { ViewportScaler } from "./viewport_scaler";
 import { DEFAULT_BACKGROUND_COLOR, TablePresentation } from "../presentation";
 
-/**
- * Hosts a Phaser canvas running whichever board it is given.
- *
- * Knows nothing about any particular solitaire: it is handed a factory for the
- * board to show and mounts a canvas around it. It lived in the Klondike module
- * and was called `Klondike` for as long as Klondike was the only game, which
- * left the Angular shell importing `games/klondike` in order to run Spider.
- */
+/** Hosts a Phaser canvas running whichever board it is given. */
 export class PhaserHost {
   private game?: Phaser.Game;
 
@@ -20,17 +13,11 @@ export class PhaserHost {
   private scaler?: ViewportScaler;
 
   /**
-   * @param window The browser Window context in which the game is running.
-   * @param parent The element the game canvas is mounted into and sized to.
-   *   Passed in rather than looked up by id so whoever owns the element owns
-   *   the game's lifetime with it.
-   * @param makeBoardScene Builds the board to show. Handed in so the host can
-   *   run any game the engine can build, rather than importing one.
-   * @param presentation How the player has asked the table to look, for the
-   *   loading scene to read the deck to fetch before the board is shown. The
-   *   same object the board follows, rather than a snapshot taken beside it:
-   *   only the player's current deck is fetched up front, and the board loads
-   *   another itself if they change their mind.
+   * Creates a host that mounts a canvas into `parent` when started.
+   *
+   * @param makeBoardScene Builds the board to show.
+   * @param presentation How the player has asked the table to look, which the
+   *   loading scene reads for the deck to fetch.
    */
   constructor(
     private readonly window: Window,
@@ -45,13 +32,11 @@ export class PhaserHost {
       title: "fSolitaire",
       type: Phaser.AUTO,
       parent: this.parent,
-      // Only shown for the frame or two before the board scene applies the
-      // persisted setting, but it should still be the same green.
+      // Shown only until the board applies the player's colour.
       backgroundColor: DEFAULT_BACKGROUND_COLOR,
       scale: {
-        // NONE, because every built-in mode sizes the canvas backing store in
-        // CSS pixels. ViewportScaler drives the size instead so the canvas
-        // rasterizes at the display's device resolution.
+        // ViewportScaler sizes the canvas in device pixels; every built-in mode
+        // would use CSS pixels.
         mode: Phaser.Scale.ScaleModes.NONE,
       },
       render: {
@@ -60,8 +45,8 @@ export class PhaserHost {
       },
       canvasStyle: `display: block; width: 100%; height: 100%;`,
       autoFocus: true,
-      // A scene instance rather than the class: the board has to be told which
-      // game it draws and how to lay it out, and Phaser cannot supply either.
+      // Instances, because Phaser cannot pass a scene its constructor
+      // arguments.
       scene: [new LoadingScene(this.presentation), this.makeBoardScene()],
     };
     const game = new Phaser.Game(gameConfig);
@@ -74,12 +59,7 @@ export class PhaserHost {
     });
   }
 
-  /**
-   * Tears the game down, releasing the scaler's listeners and the canvas.
-   *
-   * Called by whoever started it when the element goes away, so a torn-down
-   * host does not leave a game running against a detached canvas.
-   */
+  /** Tears the game down, releasing the scaler's listeners and the canvas. */
   public destroy(): void {
     this.scaler?.stop();
     this.scaler = undefined;

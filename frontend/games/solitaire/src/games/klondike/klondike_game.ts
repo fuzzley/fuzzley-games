@@ -24,7 +24,7 @@ import {
 } from "./klondike_zones";
 import { ScoringPolicy } from "./scoring_policy";
 
-/** What Klondike keeps outside its piles, for a snapshot. */
+/** Holds what Klondike keeps outside its piles, for a snapshot. */
 interface KlondikeExtra {
   /** How many times the waste has been recycled. */
   readonly recycleCount: number;
@@ -37,13 +37,7 @@ function readKlondikeExtra(value: unknown): KlondikeExtra {
 }
 
 /**
- * A standard Klondike Solitaire game.
- *
- * Everything true of any solitaire — the piles, whether a move is legal, undo,
- * auto-move, the deal and restart cycle, the win — comes from
- * {@link DealtTableGame}. What is left here is Klondike itself: the stock with
- * its draw and recycle, the bonus for turning over a card a move exposed, and
- * the scoring.
+ * Plays Klondike or one of its variants, scoring each move, flip and recycle.
  */
 export class KlondikeGame extends DealtTableGame {
   /** The face-down stock pile from which cards are drawn. */
@@ -70,17 +64,11 @@ export class KlondikeGame extends DealtTableGame {
   public readonly variant: KlondikeVariant;
 
   /**
-   * Initializes the piles.
+   * Creates a game whose piles are empty until the first deal.
    *
-   * @param cardIds The card identities to deal from. Defaults to a full
-   *   standard 52-card deck. Injectable so tests can supply a partial or empty
-   *   set to exercise short-deck handling through the public API.
-   * @param scoring The scoring rules to apply. Injectable so an alternate
-   *   ruleset can be supplied without touching the game logic.
-   * @param settings The settings to play by. A constructor parameter rather
-   *   than a field initializer because the zones are built from the draw mode
-   *   during `super`, before this class's own fields exist.
-   * @param variant Which of the three games to play, for the same reason.
+   * @param settings The settings to play by. It and `variant` are parameters
+   *   because the zones are built from them during `super`, before this
+   *   class's fields exist.
    */
   constructor(
     cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
@@ -109,14 +97,11 @@ export class KlondikeGame extends DealtTableGame {
   // --- Dealing ---
 
   /**
-   * Deals the opening board: tableau column i receives i+1 cards, with the top
-   * card face-up.
+   * Deals the opening board, or an almost-won one if {@link almostWin} is set.
    *
    * @inheritDoc
    */
   protected override dealBoard(deck: PlayingCard[]): void {
-    // Zeroed here rather than in a hook of its own: how many times the waste has
-    // been recycled is part of the board being dealt.
     this.recycleCount = 0;
 
     if (this.almostWin) {
@@ -134,10 +119,8 @@ export class KlondikeGame extends DealtTableGame {
   // --- The stock ---
 
   /**
-   * Draws cards from the stock pile to the waste pile.
-   *
-   * If stock is empty, recycles waste back into stock. Does nothing (and counts
-   * no move) when both the stock and waste are empty.
+   * Draws from the stock onto the waste, or recycles the waste once the stock
+   * is empty.
    */
   public drawCardsFromStock(): void {
     if (this.stock.isEmpty && this.waste.isEmpty) {
@@ -161,14 +144,8 @@ export class KlondikeGame extends DealtTableGame {
   }
 
   /**
-   * Recycles the waste pile back into the stock pile, face-down, and charges
-   * the penalty for having done so. The caller guarantees the waste is
-   * non-empty.
-   *
-   * The penalty is applied before the cards move so the recorded delta covers
-   * both, and it is the *real* delta rather than what the policy proposed: the
-   * score is clamped at zero, so a 100 point penalty against a score of 20
-   * moves it by 20 and undo has to put back exactly that.
+   * Recycles the non-empty waste back into the stock, face down, and charges
+   * the penalty for doing so.
    */
   private recycleWaste(): void {
     const scoreBefore = this.state.score;
@@ -204,10 +181,7 @@ export class KlondikeGame extends DealtTableGame {
     const flipped = this.autoFlipExposedCard(move.sourcePile);
 
     return {
-      // The real delta, not what the policy proposed: the score is clamped at
-      // zero, so a 15 point penalty against a score of 10 moves it by 10. It is
-      // measured after the flip so the bonus that awarded is included and undo
-      // takes both back together.
+      // Measured after the flip, so undo takes back its bonus too.
       scoreDelta: this.state.score - scoreBefore,
       flippedCardIds: flipped ? [flipped.id] : [],
     };
@@ -232,12 +206,8 @@ export class KlondikeGame extends DealtTableGame {
   }
 
   /**
-   * Turns the newly exposed top card of a tableau face up after a move,
-   * awarding the flip bonus. Does nothing for non-tableau source piles or when
-   * the exposed card is already face up.
-   *
-   * @param sourcePile The pile the moved stack was taken from.
-   * @returns The card that was turned face up, or undefined if none was.
+   * Turns face up the card a move exposed in a column, awarding the flip bonus,
+   * and returns it if there was one.
    */
   private autoFlipExposedCard(
     sourcePile: CardPile<PlayingCard>,

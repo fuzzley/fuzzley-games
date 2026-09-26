@@ -8,18 +8,9 @@
   overflow: hidden;
 }
 
-// The table, lit from above.
-//
-// The felt is a single flat colour the Phaser camera fills with, which is what
-// a sheet of paper looks like rather than a baize table under a lamp. This lays
-// the falloff over the canvas instead of painting it into the felt: the camera
-// goes on filling with the one colour the player chose, the lighting stays the
-// shell's business, and it costs the renderer nothing.
-//
-// Centred above the middle because that is where the board is — the cards sit
-// in the upper half and the room below them is the part that should fall away.
-// No z-index, so it stays under the loading overlay; `pointer-events: none`
-// because it covers the cards and must never take a press meant for one.
+// A light falling on the felt from above, laid over the canvas so the camera
+// can keep filling with the plain colour the player chose. It centres above
+// the middle, where the cards are, and must never take a press meant for one.
 :host::after {
   content: "";
   position: absolute;
@@ -39,16 +30,9 @@
   height: 100%;
 }
 
-// The loading state is the table dimmed rather than a sheet in front of it:
-// the scrim is cut from the felt green, so the board appears to resolve out of
-// itself once the deal lands.
-//
-// The scrim runs the full height so the dimmed felt is continuous behind the
-// translucent header, but its contents start below the header — the same strip
-// the board itself reserves for the chrome (see `headerHeightPx` in
-// `engine/render/layout/table_layout.ts`). A skeleton that ignored it drew its
-// top row of slots where no card will ever be dealt, half of it behind the
-// header, which is the one place the placeholder should not be.
+// The loading state dims the table rather than covering it. The scrim runs
+// behind the translucent header, but its contents start below it, where the
+// board does (see `headerHeightPx` in `engine/render/layout/table_layout.ts`).
 .loading-overlay {
   @include glass(8px);
   @include transition(opacity, visibility);
@@ -111,9 +95,7 @@
   animation: shimmerSweep 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }
 
-// Centred on the board rather than on the element: the overlay reaches up
-// behind the header, and the half of it the header covers is not part of what
-// the player is looking at.
+// Centred on the board below the header rather than on the whole overlay.
 .loading-badge {
   @include glass(12px);
   position: absolute;
@@ -154,10 +136,8 @@
   white-space: nowrap;
 }
 
-// The deck swap's own badge, in a corner rather than over the middle: the board
-// is still playable while the artwork is on its way, and a badge across the
-// table would say otherwise. Below the header for the same reason the overlay
-// starts there.
+// The deck swap's badge, tucked into a corner below the header because the
+// board stays playable while a deck loads.
 .deck-badge {
   @include glass(12px);
   @include transition(opacity, visibility);

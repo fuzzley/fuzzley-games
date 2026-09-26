@@ -63,9 +63,8 @@ describe("BakersDozenGame deal", () => {
   });
 
   /*
-   * Stated as "no King sits above a non-King" rather than "every King is at
-   * index 0", because a column can be dealt two Kings and then both belong at
-   * the bottom. The index form passes on most shuffles and is wrong on those.
+   * Checked as "no King above a non-King" rather than "every King at index 0",
+   * since a column dealt two Kings has both at the bottom.
    */
   it("sinks every King it dealt beneath every other card in its column", () => {
     const columnsWithARaisedKing = game.tableaus.filter((pile) => {
@@ -138,10 +137,6 @@ describe("BakersDozenGame column rules", () => {
     expect(moved).toBe(false);
   });
 
-  /*
-   * The rule the whole game turns on. Every other solitaire here would take
-   * this card.
-   */
   it("refuses every card into an empty column, which can never be refilled", () => {
     relocate(game, "card-spades-king", game.tableaus[1]);
 

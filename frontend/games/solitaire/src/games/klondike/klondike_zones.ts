@@ -33,18 +33,12 @@ export const TABLEAU_COUNT = 7;
 export { STOCK_PILE_ID, WASTE_PILE_ID };
 
 /**
- * The grid column the leftmost foundation sits in.
- *
- * Column 2 is left clear for the waste fan to grow into.
+ * The grid column the leftmost foundation sits in, leaving column 2 clear for
+ * the waste fan.
  */
 export const FOUNDATION_COLUMN_OFFSET = 3;
 
-/**
- * The arrangement a Klondike pile of the given role uses.
- *
- * @param role The part the pile plays.
- * @param drawCount How many cards a draw turns over, which sets the waste fan.
- */
+/** Returns a Klondike pile's layout for its role and the draw count. */
 export function klondikePileLayout(
   role: string,
   drawCount: number,
@@ -59,17 +53,7 @@ export function klondikePileLayout(
   }
 }
 
-/**
- * The thirteen zones of a Klondike board, for the given draw mode and variant.
- *
- * Everything that varies — the waste fan, the column build rule, the column
- * grab rule, whether cards are hidden — follows those two values, so there are
- * exactly six possible answers and the cache is keyed on both.
- *
- * The variant defaults, so the many callers that only care about the draw mode —
- * the layout, and every spec written before the family grew — say nothing about
- * it and get the original game.
- */
+/** Returns the thirteen zones of a Klondike board. */
 export const klondikeZoneSpecs = memoizeZones(
   (
     drawCount: DrawCount,
@@ -80,8 +64,6 @@ export const klondikeZoneSpecs = memoizeZones(
       role: KlondikeRole.STOCK,
       column: 0,
       row: 0,
-      // The top card is clickable — that is what draws — but pressing it must
-      // not pick it up.
       accept: klondikePlacementRule(KlondikeRole.STOCK),
       backgroundKey: RECYCLING_STOCK_PLACEHOLDER,
       // Clicking the empty slot recycles the waste.
@@ -108,15 +90,8 @@ export const klondikeZoneSpecs = memoizeZones(
       row: 1,
       role: KlondikeRole.TABLEAU,
       accept: klondikePlacementRule(KlondikeRole.TABLEAU, variant),
-      // Klondike itself takes any face-up card, ordered or not: it validates
-      // only the bottom card of a moving stack, so a broken run can be dragged
-      // as long as that card fits where it lands. Whitehead and Thumb and Pouch
-      // take proper runs instead, which the variant table pairs with their
-      // build rules.
       grab: klondikeGrabRule(variant),
-      // Whitehead hides nothing, so deferring to the card would be the same as
-      // always-up — but saying it outright is what makes the deal's own
-      // face-up flag and the zone agree by construction.
+      // Read from the same flag as the deal, so the two agree by construction.
       face: klondikeDealsFaceUp(variant) ? "always-up" : "card",
     }),
   ],

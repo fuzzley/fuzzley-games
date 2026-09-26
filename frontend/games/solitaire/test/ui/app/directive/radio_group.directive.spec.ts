@@ -7,9 +7,8 @@ import { queryAll, queryRequired } from "@test/support/dom";
 import { flushMicrotasks } from "@test/support/async";
 
 /**
- * A group shaped like the ones in the application: buttons carrying
- * `role="radio"`, one of them checked, with the checked one bound rather than
- * fixed so the roving tab stop has something to follow.
+ * Hosts a radio group like the application's, with the checked radio bound so
+ * the roving tab stop has something to follow.
  */
 @Component({
   selector: "test-radio-host",
@@ -49,12 +48,12 @@ describe("RadioGroupDirective", () => {
     await fixture.whenStable();
   });
 
-  /** The group's radios, in document order. */
+  /** Returns the group's radios, in document order. */
   function radios(): HTMLElement[] {
     return queryAll(fixture, '[role="radio"]');
   }
 
-  /** Each radio's tabindex, in document order. */
+  /** Returns each radio's tabindex, in document order. */
   function tabStops(): number[] {
     return radios().map((radio) => radio.tabIndex);
   }

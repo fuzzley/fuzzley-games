@@ -5,12 +5,7 @@ import { EASTHAVEN_LAYOUT } from "./easthaven_layout";
 import { EasthavenGame } from "./easthaven_game";
 import { easthavenGestures } from "./easthaven_gestures";
 
-/**
- * Builds the Easthaven board scene.
- *
- * Easthaven writes its own gesture map rather than taking the shared stockless
- * one, because pressing its stock deals a row.
- */
+/** Builds the Easthaven board scene. */
 export function makeEasthavenBoardScene(
   game: EasthavenGame,
   presentation: TablePresentation,

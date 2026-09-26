@@ -77,20 +77,15 @@ jobs:
           PAT_TOKEN: ${{ secrets.MAIN_REPO_DEPLOY_PAT }}
           FORCE_DEPLOY: ${{ github.event.inputs.force }}
         run: |
-          # 1. Clone the main website repository (fuzzley/fuzzley)
           git clone --depth 1 https://x-access-token:${{ env.PAT_TOKEN }}@github.com/fuzzley/fuzzley.git main-website
 
-          # 2. Define the destination folder in the website repo
           DEST_DIR="main-website/frontend/public/project/solitaire"
 
-          # 3. Clean out any old files
           rm -rf "$DEST_DIR"
           mkdir -p "$DEST_DIR"
 
-          # 4. Copy new build files
           cp -r dist/* "$DEST_DIR"/
 
-          # 5. Commit and push the updates if there are changes
           cd main-website
           git add .
 
