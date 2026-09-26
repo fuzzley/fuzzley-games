@@ -1,58 +1,49 @@
+import { IntentHandler } from "@/engine/render/input/table_intents";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { TablePresentation } from "@/engine/render/presentation";
 import { PlayableGame } from "@/engine/tableau/playable_game";
-import { makeKlondikeBoardScene } from "@/games/klondike/klondike_board";
-import { makeFreeCellBoardScene } from "@/games/freecell/freecell_board";
-import { makeSpiderBoardScene } from "@/games/spider/spider_board";
-import { makeYukonBoardScene } from "@/games/yukon/yukon_board";
-import { makeEightOffBoardScene } from "@/games/eight_off/eight_off_board";
-import { makeScorpionBoardScene } from "@/games/scorpion/scorpion_board";
-import { makeSimpleSimonBoardScene } from "@/games/simple_simon/simple_simon_board";
-import { makeBakersDozenBoardScene } from "@/games/bakers_dozen/bakers_dozen_board";
-import { makeSeahavenBoardScene } from "@/games/seahaven/seahaven_board";
-import { makeSpideretteBoardScene } from "@/games/spiderette/spiderette_board";
-import { makeDoubleKlondikeBoardScene } from "@/games/double_klondike/double_klondike_board";
-import { makeMontanaBoardScene } from "@/games/montana/montana_board";
-import { makeEasthavenBoardScene } from "@/games/easthaven/easthaven_board";
-import { makeFortyThievesBoardScene } from "@/games/forty_thieves/forty_thieves_board";
-import { GameId, GameOf } from "./game_catalog";
+import { makeTableBoardScene } from "@/games/common/board_scene_factory";
+import { stocklessGestures } from "@/games/common/table_gestures";
+import { doubleKlondikeGestures } from "@/games/double_klondike/double_klondike_gestures";
+import { easthavenGestures } from "@/games/easthaven/easthaven_gestures";
+import { fortyThievesGestures } from "@/games/forty_thieves/forty_thieves_gestures";
+import { klondikeGestures } from "@/games/klondike/klondike_gestures";
+import { montanaGestures } from "@/games/montana/montana_gestures";
+import { scorpionGestures } from "@/games/scorpion/scorpion_gestures";
+import { spiderGestures } from "@/games/spider/spider_gestures";
+import { spideretteGestures } from "@/games/spiderette/spiderette_gestures";
+import { GameId, GameOf, catalogEntry } from "./game_catalog";
 
-/** Builds the Phaser board that draws a particular game. */
-type BoardFactory<Id extends GameId> = (
-  game: GameOf<Id>,
-  presentation: TablePresentation,
-  onReady?: () => void,
-) => BoardScene;
+/** Says what a press or a drop means in a particular game. */
+type GestureMap<Id extends GameId> = (game: GameOf<Id>) => IntentHandler;
 
 /**
- * The board that draws each game, typed so that a game without a board, or
- * with the wrong one, does not compile.
+ * What each game does with a press or a drop, typed so that a game without a
+ * gesture map, or with the wrong one, does not compile.
  */
-const BOARD_FACTORIES: { [Id in GameId]: BoardFactory<Id> } = {
-  klondike: makeKlondikeBoardScene,
-  freecell: makeFreeCellBoardScene,
-  spider: makeSpiderBoardScene,
-  yukon: makeYukonBoardScene,
-  // Baker's Game is played by FreeCell's class, so it uses FreeCell's board.
-  bakers: makeFreeCellBoardScene,
-  eightoff: makeEightOffBoardScene,
-  scorpion: makeScorpionBoardScene,
-  simplesimon: makeSimpleSimonBoardScene,
-  bakersdozen: makeBakersDozenBoardScene,
-  seahaven: makeSeahavenBoardScene,
-  spiderette: makeSpideretteBoardScene,
-  easthaven: makeEasthavenBoardScene,
-  // Maria and Limited are played by the Forty Thieves class, whose board
-  // factory reads the grid off the game.
-  fortythieves: makeFortyThievesBoardScene,
-  maria: makeFortyThievesBoardScene,
-  limited: makeFortyThievesBoardScene,
-  doubleklondike: makeDoubleKlondikeBoardScene,
-  montana: makeMontanaBoardScene,
+const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
+  klondike: klondikeGestures,
+  freecell: stocklessGestures,
+  spider: spiderGestures,
+  yukon: stocklessGestures,
+  bakers: stocklessGestures,
+  eightoff: stocklessGestures,
+  scorpion: scorpionGestures,
+  simplesimon: stocklessGestures,
+  bakersdozen: stocklessGestures,
+  seahaven: stocklessGestures,
+  spiderette: spideretteGestures,
+  easthaven: easthavenGestures,
+  fortythieves: fortyThievesGestures,
+  maria: fortyThievesGestures,
+  limited: fortyThievesGestures,
+  doubleklondike: doubleKlondikeGestures,
+  montana: montanaGestures,
 };
 
 /**
- * Builds the board that draws a dealt game.
+ * Builds the board that draws a dealt game, on the grid its catalog entry
+ * declares.
  *
  * @param game The dealt game, which must be the one `gameId` deals; the cast
  *   below trusts that, because the catalog holds sessions under an erased type.
@@ -64,6 +55,13 @@ export function makeBoardScene(
   presentation: TablePresentation,
   onReady?: () => void,
 ): BoardScene {
-  const factory = BOARD_FACTORIES[gameId] as BoardFactory<GameId>;
-  return factory(game as GameOf<GameId>, presentation, onReady);
+  const tableGame = game as GameOf<GameId>;
+  const gestures = GESTURES[gameId] as GestureMap<GameId>;
+  return makeTableBoardScene({
+    game: tableGame,
+    layout: catalogEntry(gameId).layout,
+    handleIntent: gestures(tableGame),
+    presentation,
+    onReady,
+  });
 }

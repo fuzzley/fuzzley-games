@@ -30,8 +30,9 @@ start at the first unticked item. Delete this file once every item is done.
       indexes the list in its constructor; `memoizeZones` is gone.
 - [x] **Pass Klondike a draw count instead of a settings object.**
       `DrawCount` now lives in `klondike_rules.ts`.
-- [ ] **Replace the per-game board files with a gesture map.** Each game id maps
-      to its gestures, and the layout comes from the catalog entry.
+- [x] **Replace the per-game board files with a gesture map.** `GESTURES` in
+      `board_catalog.ts`; the catalog spec checks every rule option deals onto
+      its entry's grid.
 - [ ] **Share Klondike's stock and scoring with Double Klondike.** One object
       owns the recycle count, drawing, recycling and scoring.
 - [ ] **Use options objects in game constructors.** Remove the placeholder
