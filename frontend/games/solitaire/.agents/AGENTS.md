@@ -40,6 +40,8 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
 
 1. **`src/engine/core`** _(Bottom Tier)_
    - Pure card, suit, rank, deck, pile, and RNG primitives.
+   - `common/` holds the helpers every tier shares: an event emitter, readers
+     for untrusted JSON, gzip, and base64url.
    - Free of all external dependencies, frameworks, rendering logic, RxJS, Phaser, or Angular.
 2. **`src/engine/render`**
    - Renderer-agnostic layout mathematics, view contracts, drag calculations, and input bounds.
@@ -66,12 +68,13 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
   layout, how to deal one) and is Phaser-free; `board_catalog.ts` maps those ids
   to Phaser board factories through a mapped type, so a game without a board is
   a compile error. `game_documentation_data.ts` supplies the rules pages behind
-  an injection token, so specs can swap in their own.
+  an injection token, so specs can swap in their own; `bug_report_config.ts`
+  does the same for where a bug report is filed and which build filed it.
 - **`src/ui/app/service`** — `GameCatalogService` owns which game is on the
   table (routed, see below); `GameMetricsService` reads the running game;
   `GameLifecycleService` changes it, behind a confirmation when there is a game
   to lose; the rest are small and single-purpose (theme, timer, storage,
-  presentation, documentation, menu).
+  presentation, documentation, menu, bug report).
 - **`src/ui/app/component`** — one folder per component. `modal_dialog` and
   `option_group` are the shared ones: every overlay is a native `<dialog>` via
   the first, and every settings control is the second.
@@ -165,7 +168,8 @@ Deployments are automated via GitHub Actions on every push to `main` (or manual 
    - Executes `yarn lint`, `yarn tsc`, and `yarn test`.
    - Pipeline aborts if any step fails.
 2. **`build-and-sync` Job:**
-   - Runs `yarn build` to produce production assets in `dist/`.
+   - Runs `yarn build` to produce production assets in `dist/`, with
+     `VITE_COMMIT_SHA` set so a bug report filed from the site names its build.
    - Clones the target host website repository (`fuzzley/fuzzley`).
    - Copies `dist/*` assets to `main-website/frontend/public/project/solitaire`.
    - Automatically commits and pushes asset updates to `fuzzley/fuzzley`.

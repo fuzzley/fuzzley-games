@@ -107,6 +107,17 @@ export class MoveHistory {
     this.applied.length = 0;
   }
 
+  /** The applied actions, oldest first. */
+  entries(): readonly AppliedMove[] {
+    return [...this.applied];
+  }
+
+  /** Replaces the history with the given actions, oldest first. */
+  load(moves: readonly AppliedMove[]): void {
+    this.applied.length = 0;
+    this.applied.push(...moves);
+  }
+
   /**
    * Follows the cards each action relocates, including the ones undo puts back.
    *

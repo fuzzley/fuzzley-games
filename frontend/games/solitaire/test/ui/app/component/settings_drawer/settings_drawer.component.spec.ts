@@ -1,11 +1,20 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
+import { DebugPanelComponent } from "@/ui/app/component/debug_panel/debug_panel.component";
 import { ThemeService } from "@/ui/app/service/theme.service";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
+import { BugReportService } from "@/ui/app/service/bug_report.service";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
-import { clickElement, queryAll, queryText } from "@test/support/dom";
+import {
+  clickElement,
+  query,
+  queryAll,
+  queryRequired,
+  queryText,
+} from "@test/support/dom";
 import { flushMicrotasks } from "@test/support/async";
 import { clickBackdrop, isDialogOpen, pressEscape } from "@test/support/dialog";
 import { CARD_DECKS } from "@/engine/render/card_deck";
@@ -240,6 +249,69 @@ describe("SettingsDrawerComponent", () => {
         "Midnight Charcoal",
         "Royal Velvet",
       ]);
+    });
+  });
+
+  describe("reporting a bug", () => {
+    /** The link to a new bug report. */
+    function reportLink(): HTMLAnchorElement {
+      return queryRequired<HTMLAnchorElement>(fixture, ".btn-report");
+    }
+
+    it("links to a new report describing the game on the table", async () => {
+      const service = TestBed.inject(BugReportService);
+      openDrawer();
+
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(reportLink().href).toBe(await service.issueUrl(service.draft()));
+    });
+
+    it("follows a rule changed while the drawer is open", async () => {
+      openDrawer();
+      await fixture.whenStable();
+
+      harness.catalog.setOption("drawCount", 1);
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(new URL(reportLink().href).searchParams.get("game")).toBe(
+        "Klondike · Draw Mode: Draw 1",
+      );
+    });
+
+    it("has nowhere to lead while the drawer is closed", () => {
+      expect(reportLink().hasAttribute("href")).toBe(false);
+    });
+
+    it("opens the report in a new tab, leaving the board where it is", () => {
+      openDrawer();
+
+      expect(reportLink().target).toBe("_blank");
+      expect(reportLink().relList.contains("noopener")).toBe(true);
+    });
+  });
+
+  describe("the debug panel", () => {
+    it("is offered for a game with no debug rules, to load a report", () => {
+      harness.catalog.select("freecell");
+
+      openDrawer();
+
+      expect(query(fixture, "app-debug-panel")).not.toBeNull();
+    });
+
+    it("closes the drawer once a reported game is loaded", () => {
+      openDrawer();
+      const closed = onClose();
+      const panel = fixture.debugElement.query(
+        By.directive(DebugPanelComponent),
+      ).componentInstance as DebugPanelComponent;
+
+      panel.loaded.emit();
+
+      expect(closed).toHaveBeenCalledOnce();
     });
   });
 

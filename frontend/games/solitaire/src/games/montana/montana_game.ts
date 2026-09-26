@@ -3,6 +3,7 @@ import { CardRegistry } from "@/engine/core/card/card_registry";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
+import { readNumber, readObject } from "@/engine/core/common/json_reader";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { AppliedMove, CardTransfer } from "@/engine/tableau/move";
@@ -28,6 +29,18 @@ import { montanaZoneSpecs } from "./montana_zones";
  * none most deals are dead within a dozen moves.
  */
 export const MAX_REDEALS = 2;
+
+/** What Montana keeps outside its piles, for a snapshot. */
+interface MontanaExtra {
+  /** How many of the {@link MAX_REDEALS} redeals have been spent. */
+  readonly redealsUsed: number;
+}
+
+/** Reads a snapshot's extra state as Montana's. */
+function readMontanaExtra(value: unknown): MontanaExtra {
+  const extra = readObject(value, "extra");
+  return { redealsUsed: readNumber(extra.redealsUsed, "extra.redealsUsed") };
+}
 
 /**
  * A game of Montana, also played as Gaps.
@@ -191,6 +204,16 @@ export class MontanaGame extends DealtTableGame {
       // So the player gets the spent redeal back with the board.
       this.redealsUsed--;
     }
+  }
+
+  /** @inheritDoc */
+  protected override saveExtra(): MontanaExtra {
+    return { redealsUsed: this.redealsUsed };
+  }
+
+  /** @inheritDoc */
+  protected override restoreExtra(extra: unknown): void {
+    this.redealsUsed = readMontanaExtra(extra).redealsUsed;
   }
 
   /**
