@@ -5,13 +5,7 @@ import { DOUBLE_KLONDIKE_LAYOUT } from "./double_klondike_layout";
 import { DoubleKlondikeGame } from "./double_klondike_game";
 import { doubleKlondikeGestures } from "./double_klondike_gestures";
 
-/**
- * Builds the Double Klondike board scene.
- *
- * Double Klondike writes its own gesture map rather than taking the shared
- * stockless one, because pressing its stock draws and pressing its empty stock
- * recycles.
- */
+/** Builds the Double Klondike board scene. */
 export function makeDoubleKlondikeBoardScene(
   game: DoubleKlondikeGame,
   presentation: TablePresentation,
