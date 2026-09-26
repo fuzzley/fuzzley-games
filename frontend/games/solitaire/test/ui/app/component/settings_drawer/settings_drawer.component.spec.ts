@@ -4,8 +4,14 @@ import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
 import { ThemeService } from "@/ui/app/service/theme.service";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
+import { BugReportService } from "@/ui/app/service/bug_report.service";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
-import { clickElement, queryAll, queryText } from "@test/support/dom";
+import {
+  clickElement,
+  queryAll,
+  queryRequired,
+  queryText,
+} from "@test/support/dom";
 import { flushMicrotasks } from "@test/support/async";
 import { clickBackdrop, isDialogOpen, pressEscape } from "@test/support/dialog";
 import { CARD_DECKS } from "@/engine/render/card_deck";
@@ -240,6 +246,28 @@ describe("SettingsDrawerComponent", () => {
         "Midnight Charcoal",
         "Royal Velvet",
       ]);
+    });
+  });
+
+  describe("reporting a bug", () => {
+    /** The link to a new bug report. */
+    function reportLink(): HTMLAnchorElement {
+      return queryRequired<HTMLAnchorElement>(fixture, ".btn-report");
+    }
+
+    it("links to a new report describing the game on the table", () => {
+      openDrawer();
+
+      expect(reportLink().href).toBe(
+        TestBed.inject(BugReportService).issueUrl(),
+      );
+    });
+
+    it("opens the report in a new tab, leaving the board where it is", () => {
+      openDrawer();
+
+      expect(reportLink().target).toBe("_blank");
+      expect(reportLink().relList.contains("noopener")).toBe(true);
     });
   });
 

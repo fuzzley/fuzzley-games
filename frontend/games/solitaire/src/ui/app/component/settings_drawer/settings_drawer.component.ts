@@ -10,6 +10,7 @@ import { GameCatalogService } from "../../service/game_catalog.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { ThemeKey, ThemeService } from "../../service/theme.service";
 import { GameDocumentationService } from "../../service/game_documentation.service";
+import { BugReportService } from "../../service/bug_report.service";
 import {
   CardBackStyle,
   PresentationSettingsService,
@@ -88,6 +89,7 @@ export class SettingsDrawerComponent {
   protected readonly themeService = inject(ThemeService);
   protected readonly presentation = inject(PresentationSettingsService);
   private readonly docService = inject(GameDocumentationService);
+  private readonly bugReport = inject(BugReportService);
 
   /** Exposes build mode configuration to conditional UI rendering. */
   protected readonly isDevMode = import.meta.env.DEV;
@@ -151,6 +153,14 @@ export class SettingsDrawerComponent {
 
   /** Whether the side settings drawer is visible. */
   readonly open = input<boolean>(false);
+
+  /**
+   * Where "Report a Bug" leads, rebuilt each time the drawer opens so the
+   * window size it reports is current.
+   */
+  protected readonly bugReportUrl = computed(() =>
+    this.open() ? this.bugReport.issueUrl() : null,
+  );
 
   /** Emitted when the user asks to close the settings drawer. Named `closed`
    * rather than `close` so it cannot be confused with the native DOM event. */

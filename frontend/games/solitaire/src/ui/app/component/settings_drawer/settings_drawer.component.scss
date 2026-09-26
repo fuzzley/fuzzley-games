@@ -273,6 +273,13 @@
   line-height: var(--leading-tight);
 }
 
+// --- Reporting a problem ---
+
+// For screen readers; the icon beside it says the same visually.
+.new-tab-hint {
+  @include visually-hidden;
+}
+
 .drawer-footer {
   padding: var(--space-6);
   border-top: 1px solid var(--border-default);
