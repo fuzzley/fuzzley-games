@@ -42,7 +42,7 @@ class TestGame extends TableGame {
 
   constructor(zones: readonly ZoneSpec[] = defaultZones) {
     const registry = new CardRegistry();
-    super({ zones: () => zones, registry, autoMoveRoles: [RIGHT, LEFT] });
+    super({ zones: zones, registry, autoMoveRoles: [RIGHT, LEFT] });
     this.cards = registry;
   }
 

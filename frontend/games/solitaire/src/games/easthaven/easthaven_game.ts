@@ -32,7 +32,7 @@ export class EasthavenGame extends DealtTableGame {
     random: () => number = Math.random,
   ) {
     super({
-      zones: () => easthavenZoneSpecs(),
+      zones: easthavenZoneSpecs(),
       deck: new DeckSource(new CardRegistry(), cardIds, random),
       // Foundations only: sending a stack to whichever column is declared
       // first is never what was meant.

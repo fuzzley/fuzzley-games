@@ -33,7 +33,7 @@ export class SpiderGame extends DealtTableGame {
     random: () => number = Math.random,
   ) {
     super({
-      zones: () => spiderZoneSpecs(),
+      zones: spiderZoneSpecs(),
       deck: new DeckSource(new CardRegistry(), cardIds, random),
       // Only a column will take a card; a foundation is never a destination a
       // player can choose.

@@ -35,7 +35,7 @@ export class ScorpionGame extends DealtTableGame {
     random: () => number = Math.random,
   ) {
     super({
-      zones: () => scorpionZoneSpecs(),
+      zones: scorpionZoneSpecs(),
       deck: new DeckSource(new CardRegistry(), cardIds, random),
       // Only a column will take a card; a foundation is never a destination a
       // player can choose.

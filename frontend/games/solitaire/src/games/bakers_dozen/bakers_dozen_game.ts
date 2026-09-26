@@ -23,7 +23,7 @@ export class BakersDozenGame extends DealtTableGame {
     random: () => number = Math.random,
   ) {
     super({
-      zones: () => bakersDozenZoneSpecs(),
+      zones: bakersDozenZoneSpecs(),
       // Dealt face up: the whole position is visible from the first move.
       deck: new DeckSource(new CardRegistry(), cardIds, random, true),
       // Foundations only: which column a card goes to is the player's whole

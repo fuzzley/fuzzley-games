@@ -42,7 +42,7 @@ export class FakeTableGame extends DealtTableGame {
     drawCount: number = DEFAULT_DRAW_COUNT,
   ) {
     super({
-      zones: () => fakeZoneSpecs(drawCount),
+      zones: fakeZoneSpecs(drawCount),
       deck: new DeckSource(new CardRegistry(), cardIds, random),
       autoMoveRoles: [FakeRole.FOUNDATION, FakeRole.TABLEAU],
       winsWhenAllCardsIn: FakeRole.FOUNDATION,

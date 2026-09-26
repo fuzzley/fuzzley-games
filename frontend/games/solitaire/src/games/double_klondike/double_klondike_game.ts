@@ -69,7 +69,7 @@ export class DoubleKlondikeGame extends DealtTableGame {
     scoring: ScoringPolicy = new ScoringPolicy(DOUBLE_KLONDIKE_SCORING_ROLES),
   ) {
     super({
-      zones: () => doubleKlondikeZoneSpecs(),
+      zones: doubleKlondikeZoneSpecs(),
       deck: new DeckSource(new CardRegistry(), cardIds, random),
       // A foundation is always preferred over a column.
       autoMoveRoles: [

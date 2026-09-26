@@ -34,7 +34,7 @@ class TestDealtGame extends DealtTableGame {
 
   constructor(cardIds = ALL_PLAYING_CARD_IDS.slice(0, 5)) {
     super({
-      zones: () => [zone(HAND), zone(HOME)],
+      zones: [zone(HAND), zone(HOME)],
       deck: new DeckSource(new CardRegistry(), cardIds),
       autoMoveRoles: [HOME],
       winsWhenAllCardsIn: HOME,

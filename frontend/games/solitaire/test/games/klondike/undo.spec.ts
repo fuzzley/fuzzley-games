@@ -7,8 +7,8 @@ describe("KlondikeGame undo", () => {
   let game: KlondikeGame;
 
   beforeEach(() => {
-    game = new KlondikeGame();
-    game.settings.setDrawCount(3);
+    // Draw 3, so a draw moves several cards and their order is tested.
+    game = new KlondikeGame(undefined, undefined, 3);
     game.startNewGame();
   });
 

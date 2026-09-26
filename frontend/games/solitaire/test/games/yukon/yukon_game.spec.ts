@@ -7,11 +7,7 @@ import {
   Suit,
 } from "@/engine/core/card/playing_card";
 import { YukonGame } from "@/games/yukon/yukon_game";
-import {
-  FOUNDATION_COUNT,
-  TABLEAU_COUNT,
-  yukonZoneSpecs,
-} from "@/games/yukon/yukon_zones";
+import { FOUNDATION_COUNT, TABLEAU_COUNT } from "@/games/yukon/yukon_zones";
 import { YukonVariant } from "@/games/yukon/yukon_rules";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
@@ -428,20 +424,6 @@ describe("YukonGame", () => {
       game.moveCardToPile(ace.id, game.tableaus[1].id);
 
       expect(two.faceUp).toBe(false);
-    });
-  });
-
-  describe("the zones", () => {
-    it("hands back the same array for a variant it has already built", () => {
-      expect(yukonZoneSpecs(YukonVariant.ALASKA)).toBe(
-        yukonZoneSpecs(YukonVariant.ALASKA),
-      );
-    });
-
-    it("builds a different set of zones for a different variant", () => {
-      expect(yukonZoneSpecs(YukonVariant.ALASKA)).not.toBe(
-        yukonZoneSpecs(YukonVariant.RUSSIAN),
-      );
     });
   });
 });

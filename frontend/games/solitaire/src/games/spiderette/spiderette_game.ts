@@ -43,7 +43,7 @@ export class SpideretteGame extends DealtTableGame {
     variant: SpideretteVariant = DEFAULT_SPIDERETTE_VARIANT,
   ) {
     super({
-      zones: () => spideretteZoneSpecs(),
+      zones: spideretteZoneSpecs(),
       deck: new DeckSource(new CardRegistry(), cardIds, random),
       // Only a column will take a card; a foundation is never a destination a
       // player can choose.

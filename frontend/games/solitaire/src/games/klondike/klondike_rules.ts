@@ -53,6 +53,12 @@ export type KlondikeVariant =
 export const DEFAULT_KLONDIKE_VARIANT: KlondikeVariant =
   KlondikeVariant.KLONDIKE;
 
+/** Says how many cards a draw turns over. */
+export type DrawCount = 1 | 3;
+
+/** The draw mode a game is dealt in when nothing says otherwise. */
+export const DEFAULT_DRAW_COUNT: DrawCount = 3;
+
 /** Holds everything a variant decides, which has to hang together. */
 interface VariantRules {
   /** What an empty column accepts. */

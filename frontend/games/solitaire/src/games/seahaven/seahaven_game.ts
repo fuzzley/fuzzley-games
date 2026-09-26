@@ -25,7 +25,7 @@ export class SeahavenGame extends DealtTableGame {
     random: () => number = Math.random,
   ) {
     super({
-      zones: () => seahavenZoneSpecs(),
+      zones: seahavenZoneSpecs(),
       // Dealt face up: the whole position is visible from the first move.
       deck: new DeckSource(new CardRegistry(), cardIds, random, true),
       // A foundation is always best and a cell is the last resort, since

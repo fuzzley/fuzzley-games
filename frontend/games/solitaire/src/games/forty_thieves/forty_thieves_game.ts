@@ -57,7 +57,7 @@ export class FortyThievesGame extends DealtTableGame {
     variant: FortyThievesVariant = DEFAULT_FORTY_THIEVES_VARIANT,
   ) {
     super({
-      zones: () => fortyThievesZoneSpecs(variant),
+      zones: fortyThievesZoneSpecs(variant),
       deck: new DeckSource(new CardRegistry(), cardIds, random),
       // Foundations only: which column a card goes to is most of the player's
       // decision.

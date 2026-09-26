@@ -1,5 +1,4 @@
 import { ZoneSpec } from "@/engine/tableau/zone";
-import { memoizeZones } from "@/engine/tableau/zone_builder";
 import { OPEN_COLUMN_LAYOUT } from "../common/pile_layouts";
 import { cellRow, columnRow, foundationRow } from "../common/zone_presets";
 import {
@@ -22,8 +21,10 @@ export const TABLEAU_COUNT = 8;
  * Returns the sixteen zones of a FreeCell board under a variant: cells and
  * foundations along the top, eight columns below.
  */
-export const freeCellZoneSpecs = memoizeZones(
-  (variant: FreeCellVariant): readonly ZoneSpec[] => [
+export function freeCellZoneSpecs(
+  variant: FreeCellVariant,
+): readonly ZoneSpec[] {
+  return [
     ...cellRow({
       count: CELL_COUNT,
       column: 0,
@@ -48,8 +49,8 @@ export const freeCellZoneSpecs = memoizeZones(
       layout: OPEN_COLUMN_LAYOUT,
       face: "always-up",
     }),
-  ],
-);
+  ];
+}
 
 /** Re-exported: the roles and variants live with the rules that branch on them. */
 export { FreeCellRole, FreeCellVariant };
