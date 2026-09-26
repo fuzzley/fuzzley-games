@@ -233,7 +233,7 @@ These rules cover every doc comment: classes, interfaces, functions, HTML, SCSS,
 - **Functions and methods:** Write in the third person, always starting with a verb phrase, as if "This function" came before it, e.g. `Returns the pile under a point.` or `Moves the top card to its foundation.`
 - **Further paragraphs are rare.** Add additional paragraphs only when it stops a caller from misusing the code, or when it answers a "why" that a reader is very likely to ask and cannot answer from the name or the code itself. Don't use one to restate the implementation, list alternatives you rejected, or tell the history of the code.
 - **`@param` and `@returns` only when they add something.** Leave them out when they only repeat the name and type or when they are already described sufficiently in the description.
-- **Inline comments follow the same rules:** Only for what the code cannot say for itself (e.g. disambiguate a "why" that a user is very likely to ask after reading the code).
+- **Inline comments follow the same rules:** Only write implementation comments for what the code cannot say for itself (e.g. disambiguate a "why" that a user is very likely to ask after reading the code).
 
 ```ts
 // Too much
