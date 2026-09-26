@@ -103,9 +103,8 @@ export class DoubleKlondikeGame extends DealtTableGame {
       return;
     }
 
-    this.state.moves++;
     if (!this.stock.isEmpty) {
-      this.recordTransfers(
+      this.commitAction(
         "draw",
         drawToWaste(this.stock, this.waste, DRAW_COUNT),
       );
@@ -127,11 +126,9 @@ export class DoubleKlondikeGame extends DealtTableGame {
         this.scoring.recyclePenalty(DRAW_COUNT, this.recycleCount),
     );
 
-    this.recordTransfers(
-      "recycle",
-      recycleWasteToStock(this.waste, this.stock),
-      { scoreDelta: this.state.score - scoreBefore },
-    );
+    this.commitAction("recycle", recycleWasteToStock(this.waste, this.stock), {
+      scoreDelta: this.state.score - scoreBefore,
+    });
   }
 
   // --- What a Double Klondike move does beyond moving its cards ---

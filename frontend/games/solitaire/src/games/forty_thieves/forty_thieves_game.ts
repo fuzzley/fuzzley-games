@@ -90,11 +90,7 @@ export class FortyThievesGame extends DealtTableGame {
       return false;
     }
 
-    this.state.moves++;
-    this.recordTransfers(
-      "draw",
-      drawToWaste(this.stock, this.waste, DRAW_COUNT),
-    );
+    this.commitAction("draw", drawToWaste(this.stock, this.waste, DRAW_COUNT));
     return true;
   }
 

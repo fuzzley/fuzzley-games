@@ -80,7 +80,7 @@ class TestGame extends TableGame {
       to.addCard(card);
     }
 
-    this.recordTransfers("turn-over", [
+    this.commitAction("turn-over", [
       { cardIds, fromPileId, toPileId, faceUpBefore: true },
     ]);
   }
@@ -440,6 +440,33 @@ describe("TableGame", () => {
       game.clearAll();
 
       expect(game.isCardInteractable(orphan)).toBe(false);
+    });
+  });
+
+  describe("actions outside the move path", () => {
+    it("counts one as a move", () => {
+      game.place(LEFT, Rank.TWO);
+
+      game.turnOver(LEFT, RIGHT);
+
+      expect(game.state.moves).toBe(1);
+    });
+
+    it("makes one available to undo", () => {
+      game.place(LEFT, Rank.TWO);
+
+      game.turnOver(LEFT, RIGHT);
+
+      expect(game.state.undoDepth).toBe(1);
+    });
+
+    it("takes one back as a single move", () => {
+      game.place(LEFT, Rank.TWO);
+      game.turnOver(LEFT, RIGHT);
+
+      game.undo();
+
+      expect(game.state.moves).toBe(0);
     });
   });
 

@@ -5,9 +5,8 @@ import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
-import { collectCompletedRuns } from "@/games/common/completed_runs";
 import { runCollectingEffects } from "@/games/common/move_effects";
-import { dealRowFromStock } from "@/games/common/row_deal";
+import { dealRowCollectingRuns } from "@/games/common/row_deal";
 import { dealSpideretteLayout } from "./spiderette_deal";
 import {
   DEFAULT_SPIDERETTE_VARIANT,
@@ -84,17 +83,15 @@ export class SpideretteGame extends DealtTableGame {
       return false;
     }
 
-    this.state.moves++;
-    const transfers = dealRowFromStock(this.stock, this.tableaus);
-
-    // A dealt card can complete a run, and more than one column at a time.
-    const collected = collectCompletedRuns(this.tableaus, this.foundations);
-    this.recordTransfers("deal", [...transfers, ...collected.transfers], {
-      flippedCardIds: collected.flippedCardIds,
+    const dealt = dealRowCollectingRuns(
+      this.stock,
+      this.tableaus,
+      this.tableaus,
+      this.foundations,
+    );
+    this.commitAction("deal", dealt.transfers, {
+      flippedCardIds: dealt.flippedCardIds,
     });
-    // The engine checks for a win only after a move, and a dealt row can finish
-    // the last run.
-    this.checkWinCondition();
     return true;
   }
 

@@ -74,8 +74,7 @@ export class EasthavenGame extends DealtTableGame {
       return false;
     }
 
-    this.state.moves++;
-    this.recordTransfers("deal", dealRowFromStock(this.stock, this.tableaus));
+    this.commitAction("deal", dealRowFromStock(this.stock, this.tableaus));
     return true;
   }
 

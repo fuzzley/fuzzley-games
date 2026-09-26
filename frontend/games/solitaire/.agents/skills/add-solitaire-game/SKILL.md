@@ -128,6 +128,9 @@ A plain function taking the deck and the piles, draining the deck. Reuse first:
   `src/games/common/row_deal.ts`, the opening of every all-face-up cell game.
 - `dealRowFromStock(stock, columns)` — same file, for a Spider-style stock that
   pushes a card onto every column and returns one transfer per card.
+- `dealRowCollectingRuns(stock, dealTo, columns, foundations)` — same file, for
+  a stock deal that can finish a run: it deals, sends every completed run to a
+  foundation, and returns the transfers and flipped cards to commit together.
 
 Set `card.faceUp` explicitly for every card you place. Dealing puts cards into
 piles directly and so **bypasses the placement rules entirely** — a cell's
@@ -167,8 +170,12 @@ The only required override is `dealBoard(deck)`. Optionally:
   `flipExposedTopOfColumn` directly.
 - A stock action. `drawToWaste(stock, waste, count)` and
   `recycleWasteToStock(waste, stock)` from `src/games/common/stock_pile.ts` move
-  the cards and return transfers; the game records them, because whether a
-  recycle costs points is the game's business, not the stock's.
+  the cards and return transfers. The game commits them with
+  `commitAction(kind, transfers, options)`, because whether a recycle costs
+  points is the game's business, not the stock's.
+- `isWon()` — only for a game won by the order of its cards rather than by
+  gathering them into one role. Montana overrides it and leaves
+  `winsWhenAllCardsIn` unset.
 
 **Everything you do not write:** the piles and where every card is, move
 legality, `moveCardToPile` / `autoMoveCard`, undo and the move history, the win
@@ -178,10 +185,11 @@ Two things to get right when the game acts outside the normal move path:
 
 1. **Fold consequences into the causing action.** A completed run collected after
    a move goes in that move's `followUpTransfers` / `flippedCardIds`, so one undo
-   takes the whole thing back. Record a dealt row and the runs it completed with
-   a single `recordTransfers` call.
-2. **Check the win yourself for actions the move path never sees.** Spiderette's
-   `dealRow` calls `checkWinCondition()` because dealing can finish the last run.
+   takes the whole thing back. Commit a dealt row and the runs it completed with
+   a single `commitAction` call, which `dealRowCollectingRuns` sets up.
+2. **Commit through `commitAction`, and nothing else.** It counts the move,
+   makes it undoable and checks for a win, as `moveCardToPile` does. Never
+   change `state.moves` by hand: undo takes back one move per committed action.
 
 ---
 

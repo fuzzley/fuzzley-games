@@ -87,7 +87,6 @@ export class FakeTableGame extends DealtTableGame {
       return;
     }
 
-    this.state.moves++;
     if (this.stock.isEmpty) {
       this.recycleWaste();
       return;
@@ -103,7 +102,7 @@ export class FakeTableGame extends DealtTableGame {
       drawn.push(top);
     }
 
-    this.recordTransfers("draw", [
+    this.commitAction("draw", [
       {
         // Reversed into the order they sat in the stock, which a transfer
         // records.
@@ -126,7 +125,7 @@ export class FakeTableGame extends DealtTableGame {
       card = this.waste.topCard;
     }
 
-    this.recordTransfers("recycle", [
+    this.commitAction("recycle", [
       {
         cardIds: recycled.map((recycledCard) => recycledCard.id),
         fromPileId: this.waste.id,
