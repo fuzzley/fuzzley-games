@@ -126,7 +126,8 @@ export class GameCatalogService {
   constructor() {
     // Follow the URL, so the back button and pasted links choose the game. A
     // navigation this service started names the game already in play, which
-    // `applySelection` ignores.
+    // `applySelection` ignores, and the route's guard has already confirmed
+    // any other that would throw away a game under way.
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
