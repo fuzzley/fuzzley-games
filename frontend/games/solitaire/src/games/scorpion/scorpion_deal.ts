@@ -4,7 +4,7 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
 /** How many cards each column is dealt. */
 export const COLUMN_SIZE = 7;
 
-/** How many columns start with face-down cards buried under their face-up ones. */
+/** How many columns start with face-down cards under their face-up ones. */
 export const HIDDEN_COLUMN_COUNT = 4;
 
 /** How many cards those columns hide. */
@@ -15,18 +15,7 @@ export const HIDDEN_PER_COLUMN = 3;
  * four columns hiding their first three, and whatever is left over face-down
  * onto the stock.
  *
- * The whole deck goes out at once bar three, and twelve of the forty-nine dealt
- * cards are hidden. That is the entire difficulty setting of the game:
- * everything else is visible from the first move, so a lost Scorpion is lost to
- * a decision rather than to a card you could not see.
- *
- * Column by column rather than round-robin, because which cards are hidden is
- * positional here — the bottom three of the first four columns — and dealing
- * across the board would put them somewhere else.
- *
  * @param deck The cards to deal, which this drains.
- * @param tableaus The columns to deal onto.
- * @param stock The stock to fill with the remainder.
  */
 export function dealScorpionLayout(
   deck: PlayingCard[],

@@ -14,7 +14,7 @@ export const SimpleSimonRole = {
   TABLEAU: "tableau",
 } as const satisfies Record<string, PileRole>;
 
-/** One of the parts a Simple Simon pile can play. */
+/** Names one of the parts a Simple Simon pile can play. */
 export type SimpleSimonRole =
   (typeof SimpleSimonRole)[keyof typeof SimpleSimonRole];
 
@@ -22,12 +22,7 @@ export type SimpleSimonRole =
  * A Simple Simon column: any card starts an empty one, and anything after
  * builds down by rank regardless of suit.
  *
- * The same rule Spider plays by, and for the same reason: suit matters for
- * *lifting* a run, not for landing one. What separates the two games is
- * everything around this rule rather than the rule itself — one deck instead of
- * two, no stock at all, and every card face up from the first move. Simple Simon
- * is Spider with the hidden information and the dealt rows taken away, which is
- * what makes it a puzzle to be solved rather than a game to be survived.
+ * Suit matters only for lifting a run, which the zone's grab rule checks.
  */
 export const SIMPLE_SIMON_TABLEAU_RULE: PlacementRule = byEmptiness(
   anyCard,
@@ -35,12 +30,8 @@ export const SIMPLE_SIMON_TABLEAU_RULE: PlacementRule = byEmptiness(
 );
 
 /**
- * The rule governing what a pile of the given role accepts, or null for one
- * that is never a destination.
- *
- * There is no stock, so a column is the only thing on the board a card can be
- * dropped onto: a foundation is not somewhere a player puts a card, it is where
- * a completed run goes by itself.
+ * Returns what a pile of a role accepts, or null for a foundation, where a
+ * player never puts a card.
  */
 export function simpleSimonPlacementRule(role: string): PlacementRule | null {
   switch (role) {

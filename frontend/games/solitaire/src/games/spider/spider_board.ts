@@ -5,12 +5,7 @@ import { SPIDER_LAYOUT } from "./spider_layout";
 import { SpiderGame } from "./spider_game";
 import { spiderGestures } from "./spider_gestures";
 
-/**
- * Builds the Spider board scene.
- *
- * Spider writes its own gesture map rather than taking the shared stockless
- * one, because pressing its stock deals a row.
- */
+/** Builds the Spider board scene. */
 export function makeSpiderBoardScene(
   game: SpiderGame,
   presentation: TablePresentation,
