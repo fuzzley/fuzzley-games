@@ -94,6 +94,16 @@ export class LocalStorageService {
       console.warn(`Failed to serialise "${key}" for storage:`, e);
     }
   }
+
+  /** Removes a key, doing nothing where there is nowhere to remove it from. */
+  remove(key: string): void {
+    if (!this.storage) return;
+    try {
+      this.storage.removeItem(key);
+    } catch (e) {
+      console.warn(`Failed to remove "${key}" from storage:`, e);
+    }
+  }
 }
 
 /**

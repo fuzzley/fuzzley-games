@@ -73,5 +73,26 @@ describe("LocalStorageService", () => {
 
       expect(storage.readString("key")).toBeNull();
     });
+
+    it("survives a removal that throws", () => {
+      const storage = buildStorage();
+      vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
+        throw new DOMException("SecurityError");
+      });
+      vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+      expect(() => storage.remove("key")).not.toThrow();
+    });
+  });
+
+  describe("removal", () => {
+    it("forgets what was written", () => {
+      const storage = buildStorage();
+      storage.writeString("key", "value");
+
+      storage.remove("key");
+
+      expect(storage.readString("key")).toBeNull();
+    });
   });
 });
