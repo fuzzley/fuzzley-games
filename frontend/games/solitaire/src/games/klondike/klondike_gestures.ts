@@ -4,15 +4,8 @@ import { KlondikeRole } from "./klondike_zones";
 import { KlondikeGame } from "./klondike_game";
 
 /**
- * What a press or a drop means in Klondike.
- *
- * Pressing the top of the stock draws. Pressing the empty stock recycles the
- * waste. Double-pressing a card in the tableau or the waste sends it wherever
- * it will go. Everything else about handling a pointer — hover, the double
- * press window, the stack in hand, the flight afterwards — is the engine's, and
- * is the same in every game.
- *
- * @param game The game to act on.
+ * Returns what a press or a drop means in Klondike, where pressing the stock
+ * draws and pressing the empty stock recycles the waste.
  */
 export function klondikeGestures(game: KlondikeGame): IntentHandler {
   return tableGestures(game, {
