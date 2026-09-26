@@ -7,20 +7,7 @@ import { boardColumnCount, fortyThievesZoneSpecs } from "./forty_thieves_zones";
  * Returns the board a variant lies on: stock, waste and eight foundations along
  * the top, and the columns beneath.
  */
-export function fortyThievesLayout(
-  variant: FortyThievesVariant,
-): TableLayoutSpec {
-  let layout = layoutByVariant.get(variant);
-  if (!layout) {
-    layout = buildLayout(variant);
-    layoutByVariant.set(variant, layout);
-  }
-  return layout;
-}
-
-const layoutByVariant = new Map<FortyThievesVariant, TableLayoutSpec>();
-
-function buildLayout(variant: FortyThievesVariant): TableLayoutSpec {
+function fortyThievesLayout(variant: FortyThievesVariant): TableLayoutSpec {
   return boardLayout({
     columns: boardColumnCount(variant),
     rows: 2,

@@ -78,11 +78,17 @@ function firstLegalMove(
   return null;
 }
 
-/** Makes up to `count` moves, each the first legal one the board offers. */
-function playMoves(game: PlayableGame, count: number): void {
+/** Returns a dealt game as the table game every catalog entry deals. */
+function asTableGame(game: PlayableGame): TableGame {
   if (!(game instanceof TableGame)) {
     throw new Error("Every game in the catalog is a table game.");
   }
+  return game;
+}
+
+/** Makes up to `count` moves, each the first legal one the board offers. */
+function playMoves(dealt: PlayableGame, count: number): void {
+  const game = asTableGame(dealt);
   for (let made = 0; made < count; made++) {
     const move = firstLegalMove(game);
     if (!move) return;
@@ -152,9 +158,16 @@ describe("every game in the catalog", () => {
     },
   );
 
-  it.each(DEALS)("%s declares the grid its board lies on", (_name, entry) => {
-    expect(entry.layout.slots.length).toBeGreaterThan(0);
-  });
+  it.each(DEALS)(
+    "%s deals its piles onto the grid its entry declares",
+    (_name, entry, values) => {
+      const game = asTableGame(entry.create(values).game);
+
+      const slots = game.piles.map((pile) => game.zoneFor(pile.id)?.slot);
+
+      expect(slots).toEqual(entry.layout.slots);
+    },
+  );
 
   it.each(DEALS)("%s deals again on restart", (_name, entry, values) => {
     const { game } = entry.create(values);

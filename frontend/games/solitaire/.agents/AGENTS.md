@@ -66,8 +66,9 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
 - **`src/ui/app/provider`** — the data the shell is built around, and the only
   place a game is named. `game_catalog.ts` declares every game (id, name, rules,
   layout, how to deal one) and is Phaser-free; `board_catalog.ts` maps those ids
-  to Phaser board factories through a mapped type, so a game without a board is
-  a compile error. `game_documentation_data.ts` supplies the rules pages behind
+  to each game's gestures through a mapped type, so a game without them is a
+  compile error, and draws every game on the grid its entry declares.
+  `game_documentation_data.ts` supplies the rules pages behind
   an injection token, so specs can swap in their own; `bug_report_config.ts`
   does the same for where a bug report is filed and which build filed it.
 - **`src/ui/app/service`** — `GameCatalogService` owns which game is on the

@@ -21,7 +21,7 @@ The one hard constraint: **a catalog entry carries exactly one `layout`**, so an
 option cannot change the grid. A different board grid is therefore always a new
 entry. Maria and Limited are entries of their own for exactly this reason —
 nine and twelve columns are not Forty Thieves' ten — while still sharing
-`FortyThievesGame`, its module and its board factory.
+`FortyThievesGame`, its module and its gestures.
 
 Same grid, different rules: default to a **variant option** on the existing
 entry. Whitehead and Thumb and Pouch are options on Klondike, Alaska and Russian
@@ -35,11 +35,11 @@ reason.
 
 These are three independent decisions, and it is worth keeping them apart:
 
-| Decision                                                | Driven by                                                                          |
-| :------------------------------------------------------ | :--------------------------------------------------------------------------------- |
-| Share the game **class**?                               | How much of the rules differ. Two lines → share it.                                |
-| Share the **catalog entry** (i.e. be a variant option)? | Same grid → yes by default. Different grid → impossible.                           |
-| Share the **board factory**?                            | Effectively always, when the class is shared: a board reads the grid off the game. |
+| Decision                                                | Driven by                                                |
+| :------------------------------------------------------ | :------------------------------------------------------- |
+| Share the game **class**?                               | How much of the rules differ. Two lines → share it.      |
+| Share the **catalog entry** (i.e. be a variant option)? | Same grid → yes by default. Different grid → impossible. |
+| Share the **gestures**?                                 | Always, when the class is shared.                        |
 
 ### Adding a variant to an existing game
 
@@ -208,13 +208,18 @@ judgement is `designHeightPx`: the grid's own height is not enough, because a
 column fans well below its row. Klondike authors 950, FreeCell 1120 for columns
 that can reach thirteen cards at 45px apart.
 
+The catalog entry carries this layout (step 8), and both the loading skeleton
+and the board are drawn on it. Every rule option of one entry must therefore
+deal onto the same grid, which `test/ui/app/provider/catalog.spec.ts` checks for
+every game.
+
 ---
 
 ## 7. `<game>_gestures.ts` — only if a press means something
 
-A game with no stock does not need this file at all: pass
-`stocklessGestures(game)` from `src/games/common/table_gestures.ts`, as FreeCell
-does.
+A game with no stock does not need this file at all: map it to
+`stocklessGestures` from `src/games/common/table_gestures.ts` in step 8, as
+FreeCell does.
 
 Otherwise call `tableGestures(game, options)` with:
 
@@ -229,35 +234,7 @@ Otherwise call `tableGestures(game, options)` with:
 
 ---
 
-## 8. `<game>_board.ts` — the scene
-
-Nearly boilerplate, and intentionally so:
-
-```ts
-export function makeMyGameBoardScene(
-  game: MyGame,
-  presentation: TablePresentation,
-  onReady?: () => void,
-): BoardScene {
-  return makeTableBoardScene({
-    game,
-    layout: MY_GAME_LAYOUT,
-    handleIntent: myGameGestures(game),
-    presentation,
-    onReady,
-  });
-}
-```
-
-`makeTableBoardScene` (`src/games/common/board_scene_factory.ts`) measures the
-grid, builds each frame's view state, resolves drops and follows resets. There is
-no scene-bridge tier below this: `PhaserHost`
-(`src/engine/render/phaser/phaser_host.ts`) mounts whatever board factory it is
-handed, so the shell never imports a game in order to host one.
-
----
-
-## 9. Register it — three provider edits
+## 8. Register it — three provider edits
 
 1. **`src/ui/app/provider/game_catalog.ts`** — declare the entry (`id`, `name`,
    two-character `marker`, `options`, `layout`, `create`) with `satisfies
@@ -265,9 +242,13 @@ CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
    preserves the literal id and concrete game type that the board registry is
    checked against. Add it to `CATALOG_ENTRIES`. `create` must call
    `game.startNewGame()` before returning `{ game }`.
-2. **`src/ui/app/provider/board_catalog.ts`** — map the id to the factory in
-   `BOARD_FACTORIES`. The mapped type means a missing or mismatched board is a
-   compile error, not a runtime throw.
+2. **`src/ui/app/provider/board_catalog.ts`** — map the id to its gestures in
+   `GESTURES`. The mapped type means a missing or mismatched entry is a compile
+   error, not a runtime throw. There is no per-game board file:
+   `makeTableBoardScene` (`src/games/common/board_scene_factory.ts`) draws every
+   game from its gestures and its entry's `layout`, and `PhaserHost`
+   (`src/engine/render/phaser/phaser_host.ts`) mounts whatever board it is
+   handed, so the shell never imports a game in order to host one.
 3. **`src/ui/app/provider/game_documentation_data.ts`** — add the rules page.
    `CompleteGameDocumentation` is `Record<GameId, …>`, so shipping a game with no
    page is also a compile error. Capture its hero screenshot to
@@ -277,7 +258,7 @@ CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
 
 ---
 
-## 10. Test it
+## 9. Test it
 
 `test/games/<game>/<game>_game.spec.ts` — the deal, each rule that is actually
 this game's own, the win condition, and undo of anything that moves more than one
