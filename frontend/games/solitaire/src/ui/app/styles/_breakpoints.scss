@@ -17,12 +17,12 @@
 //            narrows and then overlays the board instead of sitting beside it.
 //            The tokens carrying those dimensions are re-declared at this
 //            width in `_tokens.scss`.
-//   desktop  Below it there is no room for four labelled actions in the
-//            header, so they become icon buttons.
+//   desktop  Below it there is no room for the header's labelled actions
+//            beside a long game name, so they become icon buttons.
 $breakpoints: (
   "phone": 480px,
   "tablet": 720px,
-  "desktop": 1000px,
+  "desktop": 1200px,
 );
 
 @function _width($name) {

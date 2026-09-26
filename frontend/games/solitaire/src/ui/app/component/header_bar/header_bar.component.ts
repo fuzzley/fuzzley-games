@@ -15,18 +15,19 @@ import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { GameDocumentationService } from "../../service/game_documentation.service";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { ViewportService } from "../../service/viewport.service";
+import { BugReportService } from "../../service/bug_report.service";
 
 /**
  * The top header bar.
  *
  * Renders which game is on the table, what it currently reads (score, elapsed
  * time, moves) and the actions that act on it: undo, restart, deal a new game,
- * open the rules, open settings.
+ * open the rules, report a bug, open settings.
  *
  * On a narrow screen the last of those do not fit — five hit targets at the
  * platform minimum leave the metrics less room than their own content needs —
- * so restart and the rules move into an overflow menu rather than one of them
- * being dropped. They move rather than being duplicated and hidden: see
+ * so restart, the rules and bug reports move into an overflow menu rather than
+ * any of them being dropped. They move rather than being duplicated and hidden: see
  * {@link ViewportService}.
  */
 @Component({
@@ -48,6 +49,7 @@ export class HeaderBarComponent {
   protected readonly viewport = inject(ViewportService);
 
   private readonly catalog = inject(GameCatalogService);
+  private readonly bugReport = inject(BugReportService);
 
   /**
    * The button the overflow menu hangs from, so that dismissing the menu can
@@ -137,5 +139,11 @@ export class HeaderBarComponent {
   protected openHelp(): void {
     this.closeMenu();
     this.docService.openHelp();
+  }
+
+  /** Opens a new bug report about the game on the table, in a new tab. */
+  protected reportBug(): void {
+    this.closeMenu();
+    void this.bugReport.openReport();
   }
 }
