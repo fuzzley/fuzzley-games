@@ -1,16 +1,9 @@
 #!/usr/bin/env node
-// Bridges `.agents/skills` into `.claude/skills` so Claude Code can discover
-// the project's skills.
+// Links each skill in `.agents/skills` into `.claude/skills`, where Claude Code
+// discovers skills, using a junction on Windows.
 //
-// `.agents/skills` is the source of truth: it is committed, and Gemini CLI
-// reads it directly. Claude Code only discovers project skills at
-// `.claude/skills/<name>/SKILL.md`, but it follows a symlink placed at that
-// `<name>` entry. This script creates one link per skill (a junction on
-// Windows, where symlinks need Administrator or Developer Mode).
-//
-// The links live under the gitignored `.claude/` and hold absolute targets, so
-// they are machine-local and break whenever the repository is moved or cloned.
-// Re-run `yarn skills:link` to rebuild them.
+// The links hold absolute paths, so re-run `yarn skills:link` after the
+// repository moves or is cloned.
 //
 // Usage: node .agents/link-claude-skills.mjs
 
@@ -23,8 +16,8 @@ const REPO_ROOT = path.dirname(AGENTS_DIR);
 const SOURCE_DIR = path.join(AGENTS_DIR, "skills");
 const TARGET_DIR = path.join(REPO_ROOT, ".claude", "skills");
 
-// Only a directory directly under `.agents/skills` holding `SKILL.md` is a skill.
-// Every skill (including all `phaser-*` skills) lives directly under `.agents/skills/<name>/SKILL.md`.
+// Returns the skills in `sourceDir`: each directory directly under it that
+// holds a `SKILL.md`.
 function discoverSkills(sourceDir) {
   return fs
     .readdirSync(sourceDir, { withFileTypes: true })
@@ -84,9 +77,9 @@ function linkSkill(name, results) {
   results.created.push(name);
 }
 
-// Remove links this script owns -- ones pointing into any `.agents/skills`,
-// including the dangling ones left behind by an earlier repository path -- that
-// no longer match a skill. Real directories are never touched.
+// Removes the links this script owns, including dangling ones from an earlier
+// repository path, that no longer match a skill. Real directories are never
+// touched.
 function pruneStaleLinks(skills, results) {
   for (const entry of fs.readdirSync(TARGET_DIR, { withFileTypes: true })) {
     const linkPath = path.join(TARGET_DIR, entry.name);
