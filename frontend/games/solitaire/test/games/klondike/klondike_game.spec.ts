@@ -908,3 +908,40 @@ describe("KlondikeGame card location tracking", () => {
     expect(game.getPileContainingCard(card.id)).toBeUndefined();
   });
 });
+
+describe("KlondikeGame snapshot", () => {
+  /** A dealt game that has drawn through its stock and recycled the waste. */
+  function recycledOnce(): KlondikeGame {
+    const game = new KlondikeGame();
+    game.startNewGame();
+    while (!game.stock.isEmpty) {
+      game.drawCardsFromStock();
+    }
+    game.drawCardsFromStock();
+    return game;
+  }
+
+  it("records how many times the waste has been recycled", () => {
+    const game = recycledOnce();
+
+    expect(game.snapshot().extra).toEqual({ recycleCount: 1 });
+  });
+
+  it("restores the recycle count", () => {
+    const copy = new KlondikeGame();
+    copy.startNewGame();
+
+    copy.restore(recycledOnce().snapshot());
+
+    expect(copy.snapshot().extra).toEqual({ recycleCount: 1 });
+  });
+
+  it("rejects a snapshot without the recycle count", () => {
+    const copy = new KlondikeGame();
+    copy.startNewGame();
+
+    expect(() =>
+      copy.restore({ ...recycledOnce().snapshot(), extra: null }),
+    ).toThrow(/not Klondike's/);
+  });
+});

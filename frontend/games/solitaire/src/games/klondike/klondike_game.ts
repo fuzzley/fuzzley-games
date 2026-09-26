@@ -23,6 +23,22 @@ import {
 } from "./klondike_zones";
 import { ScoringPolicy } from "./scoring_policy";
 
+/** What Klondike keeps outside its piles, for a snapshot. */
+interface KlondikeExtra {
+  /** How many times the waste has been recycled. */
+  readonly recycleCount: number;
+}
+
+/** Whether a snapshot's extra state is one Klondike saved. */
+function isKlondikeExtra(extra: unknown): extra is KlondikeExtra {
+  return (
+    typeof extra === "object" &&
+    extra !== null &&
+    "recycleCount" in extra &&
+    typeof extra.recycleCount === "number"
+  );
+}
+
 /**
  * A standard Klondike Solitaire game.
  *
@@ -206,6 +222,19 @@ export class KlondikeGame extends DealtTableGame {
       // So the next recycle is charged the same penalty this one was.
       this.recycleCount--;
     }
+  }
+
+  /** @inheritDoc */
+  protected override saveExtra(): KlondikeExtra {
+    return { recycleCount: this.recycleCount };
+  }
+
+  /** @inheritDoc */
+  protected override restoreExtra(extra: unknown): void {
+    if (!isKlondikeExtra(extra)) {
+      throw new Error("The snapshot's extra state is not Klondike's.");
+    }
+    this.recycleCount = extra.recycleCount;
   }
 
   /**

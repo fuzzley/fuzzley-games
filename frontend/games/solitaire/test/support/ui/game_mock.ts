@@ -1,4 +1,5 @@
 import { vi } from "vitest";
+import type { GameSnapshot } from "@/engine/tableau/game_snapshot";
 import { GameState } from "@/engine/tableau/game_state";
 import type { PlayableGame } from "@/engine/tableau/playable_game";
 
@@ -51,6 +52,17 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
     startNewGame: vi.fn(),
     restartGame: vi.fn(),
     undo: vi.fn(),
+
+    /** An empty board carrying the mock's score and moves. */
+    snapshot: vi.fn((): GameSnapshot => ({
+      piles: [],
+      score: state.score,
+      moves: state.moves,
+      extra: null,
+      history: [],
+      deal: [],
+    })),
+    restore: vi.fn(),
   };
 }
 
