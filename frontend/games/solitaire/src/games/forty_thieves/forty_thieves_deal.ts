@@ -11,12 +11,7 @@ import {
   fortyThievesCardsPerColumn,
 } from "./forty_thieves_rules";
 
-/**
- * Two full decks: 104 cards, with two of every face.
- *
- * The whole family plays with these, which is where the name comes from — forty
- * cards dealt to the tableau out of a hundred and four.
- */
+/** Two full decks: 104 cards, with two of every face. */
 export const FORTY_THIEVES_TWO_DECKS: DeckSpec = {
   suits: ALL_SUITS,
   ranks: ALL_RANKS,
@@ -24,24 +19,10 @@ export const FORTY_THIEVES_TWO_DECKS: DeckSpec = {
 };
 
 /**
- * Deals the opening layout for the given variant and puts the rest on the stock.
- *
- * Forty cards to the columns in the games that give the family its name — ten
- * columns of four — and thirty-six in Maria and Limited, which reach the same
- * total from nine columns of four and twelve of three. Everything not dealt goes
- * to the stock, so a narrower tableau simply means a longer countdown.
- *
- * How many of each column are buried varies too: none in most of the family,
- * where the whole tableau is visible from the first move, and three in Rank and
- * File, which trades that openness for its gentler alternating-colour build.
- *
- * A short injected deck simply runs out; the columns already dealt stand as they
- * are rather than the deal failing.
+ * Deals the opening for a variant, burying as many cards of each column as it
+ * says, and puts the rest face down on the stock.
  *
  * @param deck The cards to deal, which this drains.
- * @param tableaus The columns to deal onto.
- * @param stock The stock to fill with the remainder.
- * @param variant Which of the openings to lay out.
  */
 export function dealFortyThievesLayout(
   deck: PlayingCard[],

@@ -8,13 +8,8 @@ import { fortyThievesGestures } from "./forty_thieves_gestures";
 /**
  * Builds the board scene for any of the Forty Thieves family.
  *
- * One factory for all five, which is what lets three catalog entries share it.
- * The grid is read from the game's own variant rather than passed in, because a
- * board factory is handed only the game — and Maria and Limited sit on boards
- * of different widths from the three that share the ten-column grid.
- *
- * Forty Thieves writes its own gesture map rather than taking the shared
- * stockless one, because pressing its stock draws.
+ * The grid comes from the game's variant, since the variants differ in width
+ * and a board factory is handed only the game.
  */
 export function makeFortyThievesBoardScene(
   game: FortyThievesGame,
