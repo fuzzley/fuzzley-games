@@ -175,6 +175,42 @@ describe("GameLifecycleService", () => {
     });
   });
 
+  describe("navigating to a game by URL", () => {
+    it("lets the router show the game already on the table without asking", async () => {
+      const harness = buildLifecycle({ moves: 4 });
+
+      const allowed = await harness.lifecycle.confirmNavigation("klondike");
+
+      expect(allowed).toBe(true);
+      expect(harness.confirmation.isOpen()).toBe(false);
+    });
+
+    it("lets the router replace a fresh game without asking", async () => {
+      const harness = buildLifecycle();
+
+      const allowed = await harness.lifecycle.confirmNavigation("freecell");
+
+      expect(allowed).toBe(true);
+    });
+
+    it("asks before the router replaces a game under way", () => {
+      const harness = buildLifecycle({ moves: 4 });
+
+      void harness.lifecycle.confirmNavigation("freecell");
+
+      expect(harness.confirmation.message()).toContain("switch games");
+    });
+
+    it("resolves to the player's answer", async () => {
+      const harness = buildLifecycle({ moves: 4 });
+      const allowed = harness.lifecycle.confirmNavigation("freecell");
+
+      harness.confirmation.cancel();
+
+      expect(await allowed).toBe(false);
+    });
+  });
+
   describe("undo", () => {
     it("takes the move back on the game", () => {
       const harness = buildLifecycle({ undoDepth: 2 });

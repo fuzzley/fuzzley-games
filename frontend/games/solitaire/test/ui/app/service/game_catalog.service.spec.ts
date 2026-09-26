@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { TestBed } from "@angular/core/testing";
-import { Router, provideRouter, withHashLocation } from "@angular/router";
+import { Router } from "@angular/router";
 import { Location } from "@angular/common";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { GAME_CATALOG } from "@/ui/app/provider/game_catalog";
-import { routes } from "@/ui/app/routes";
+import { provideAppRouter } from "@/ui/app/routes";
 
 // The routed component hosts a Phaser canvas, whose module init does not
 // survive jsdom.
@@ -33,7 +33,7 @@ interface Harness {
 /** Returns a catalog wired to the application's real route table. */
 function buildCatalog(): Harness {
   TestBed.configureTestingModule({
-    providers: [provideRouter(routes, withHashLocation())],
+    providers: [provideAppRouter()],
   });
 
   return {

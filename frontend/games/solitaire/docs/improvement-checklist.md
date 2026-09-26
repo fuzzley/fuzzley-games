@@ -12,8 +12,10 @@ start at the first unticked item. Delete this file once every item is done.
 - [x] **Reset the won flag and stopwatch whenever the game changes.** Commit
       `ac8ecbf`, which also fixes the stopwatch that stuck at zero after loading
       a position mid-game.
-- [ ] **Ask before Back throws away a game in progress.** Back still discards
-      the game and overwrites the saved game without a prompt.
+- [x] **Ask before Back throws away a game in progress.** A guard on the game
+      route asks first. Declining restores the browser's place in history,
+      except for an entry typed into the address bar, which Angular cannot
+      place.
 - [ ] **Load a reported position in one step.** Loading deals a throwaway game
       for each rule option before restoring the position.
 
