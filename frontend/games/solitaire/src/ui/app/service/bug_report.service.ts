@@ -19,7 +19,7 @@ export const BUG_REPORT_FIELDS = {
 /** The game-state field when not even the board fits in the link. */
 const GAME_STATE_TOO_LARGE = "The game state was too large to attach.";
 
-/** What a bug report says about the game on the table, before it is linked. */
+/** Describes the game on the table for a bug report, before it is linked. */
 export interface BugReportDraft {
   readonly game: string;
   readonly environment: string;
@@ -49,8 +49,8 @@ export class BugReportService {
   }
 
   /**
-   * The address of a new bug report carrying the draft, with as much of the
-   * undo history as fits in {@link BugReportConfig.maxUrlChars}.
+   * Returns the address of a new bug report carrying the draft, with as much
+   * of the undo history as fits in {@link BugReportConfig.maxUrlChars}.
    */
   async issueUrl(draft: BugReportDraft): Promise<string> {
     const url = new URL(this.config.newIssueUrl);
@@ -79,7 +79,7 @@ export class BugReportService {
     }
   }
 
-  /** The game-state field, keeping the newest history that fits in the link. */
+  /** Returns the game-state field, with as much new history as fits. */
   private async fitGameState(
     url: URL,
     position: GamePosition,
@@ -104,7 +104,7 @@ export class BugReportService {
     return best;
   }
 
-  /** A summary line, then the position with its newest `kept` actions. */
+  /** Returns a summary, then the position with its newest `kept` actions. */
   private async describeGameState(
     position: GamePosition,
     kept: number,
@@ -124,14 +124,14 @@ export class BugReportService {
     ].join("\n");
   }
 
-  /** Whether the link stays within the limit with this game-state field. */
+  /** Returns whether the link stays within the limit with this game state. */
   private fits(url: URL, gameState: string): boolean {
     const probe = new URL(url);
     probe.searchParams.set(BUG_REPORT_FIELDS.gameState, gameState);
     return probe.toString().length <= this.config.maxUrlChars;
   }
 
-  /** The game and its player-facing rules: `Klondike · Draw Mode: Draw 3`. */
+  /** Returns the game and its rules, like `Klondike · Draw Mode: Draw 3`. */
   private describeGame(): string {
     const values = this.catalog.optionValues();
     const rules = this.catalog.ruleOptions().map((option) => {
@@ -142,7 +142,7 @@ export class BugReportService {
     return [this.catalog.selectedEntry.name, ...rules].join(" · ");
   }
 
-  /** The build, browser and presentation settings, as a Markdown list. */
+  /** Returns the build, browser and table settings as a Markdown list. */
   private describeEnvironment(): string {
     const view = this.document.defaultView;
     const browser = view

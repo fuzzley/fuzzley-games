@@ -1,6 +1,6 @@
 import { InjectionToken } from "@angular/core";
 
-/** Where a bug report is filed, and which build is filing it. */
+/** Says where a bug report is filed, and which build is filing it. */
 export interface BugReportConfig {
   /** The page that opens a new issue on the project. */
   readonly newIssueUrl: string;
@@ -9,8 +9,8 @@ export interface BugReportConfig {
   /** The commit this build was made from, or null for a local build. */
   readonly commit: string | null;
   /**
-   * The longest link to allow. GitHub fails links of about 7,000 characters
-   * for a signed-out visitor, whose link is carried through the sign-in page.
+   * The longest link to allow, below the roughly 7,000 characters at which
+   * GitHub fails a signed-out visitor's link.
    */
   readonly maxUrlChars: number;
 }

@@ -1,36 +1,15 @@
 import { Injectable } from "@angular/core";
 
 /**
- * Reading and writing the browser's local storage, without the ceremony.
- *
- * Three services were each carrying the same three concerns inline: the
- * `typeof localStorage === "undefined"` guard for environments that have none,
- * a try/catch for the quota and privacy-mode failures that make `setItem`
- * throw, and a `console.warn` naming what was lost. That is a lot of noise
- * around a preference, and it was written out five times over two storage
- * shapes.
- *
- * Injectable rather than a module-level helper so a spec can hand a service a
- * storage it controls, instead of reaching for the real one and having to
- * clear it between tests.
+ * Reads and writes the browser's local storage, warning rather than throwing
+ * where it is missing or refuses.
  */
 @Injectable({ providedIn: "root" })
 export class LocalStorageService {
-  /**
-   * The backing store, or null where there is none.
-   *
-   * Resolved once at construction: an environment does not grow a
-   * `localStorage` halfway through a session, and re-checking on every read
-   * only spreads the guard back out again.
-   */
+  /** The backing store, or null where there is none. */
   private readonly storage: Storage | null = readableStorage();
 
-  /**
-   * Reads a raw string.
-   *
-   * @param key The key to read.
-   * @return The stored string, or null when absent or unreadable.
-   */
+  /** Reads a raw string, or null when it is absent or unreadable. */
   readString(key: string): string | null {
     if (!this.storage) return null;
     try {
@@ -42,14 +21,9 @@ export class LocalStorageService {
   }
 
   /**
-   * Reads and parses stored JSON.
+   * Reads stored JSON, or null when it is absent, corrupt or not an object.
    *
-   * Anything unparseable or of an unexpected shape reads as null rather than
-   * throwing: storage is written by older versions of this application and by
-   * whoever else has the console open, so its contents are input, not data.
-   *
-   * @param key The key to read.
-   * @return The parsed value, or null when absent, corrupt, or not an object.
+   * The object's fields are not checked, so treat them as untrusted input.
    */
   readObject<T>(key: string): T | null {
     const raw = this.readString(key);
@@ -66,12 +40,7 @@ export class LocalStorageService {
     }
   }
 
-  /**
-   * Writes a raw string, doing nothing where there is nowhere to write.
-   *
-   * @param key The key to write.
-   * @param value The string to store.
-   */
+  /** Writes a raw string, doing nothing where there is nowhere to write. */
   writeString(key: string, value: string): void {
     if (!this.storage) return;
     try {
@@ -81,12 +50,7 @@ export class LocalStorageService {
     }
   }
 
-  /**
-   * Writes a value as JSON.
-   *
-   * @param key The key to write.
-   * @param value The value to serialise and store.
-   */
+  /** Writes a value as JSON. */
   writeObject(key: string, value: unknown): void {
     try {
       this.writeString(key, JSON.stringify(value));
@@ -107,10 +71,9 @@ export class LocalStorageService {
 }
 
 /**
- * The local storage, if this environment has one that can be touched.
+ * Returns the local storage, if this environment has one that can be touched.
  *
- * Reading the property itself can throw where storage is disabled by policy,
- * which is why this is more than an `undefined` check.
+ * Reading the property can itself throw where storage is disabled by policy.
  */
 function readableStorage(): Storage | null {
   try {
