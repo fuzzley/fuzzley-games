@@ -6,28 +6,15 @@ import {
 } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
 
-/**
- * The cards a game deals from, and the state they arrive in.
- *
- * Every game had its own copy of this: register each identity against the
- * shared registry, turn it to the side the game deals, shuffle. The only thing
- * they disagreed about was that side — Klondike buries its deal face down,
- * FreeCell shows the whole board — so that is the one thing this takes as a
- * parameter and the rest is written once.
- *
- * Holds the {@link CardRegistry} rather than being handed one alongside it, so
- * the cards a game deals and the cards it can look up by id cannot come from
- * two different places.
- */
+/** Supplies the cards a game deals from, turned to the side it deals them. */
 export class DeckSource {
   /**
-   * @param registry The shared registry supplying persistent card instances.
+   * Creates a deck of the given cards, drawn from the shared registry.
+   *
    * @param cardIds The card identities to deal from. A partial set is a short
    *   deck, which every game is expected to survive.
-   * @param random Source of shuffle randomness in [0, 1). Injectable so a deal
-   *   can be made deterministic in tests.
-   * @param dealsFaceUp Which side a freshly dealt card shows. False buries the
-   *   deal; true is for the games with no hidden information at all.
+   * @param random Returns a number in [0, 1) for shuffling.
+   * @param dealsFaceUp Whether a freshly dealt card shows its face.
    */
   constructor(
     public readonly registry: CardRegistry,
@@ -42,11 +29,8 @@ export class DeckSource {
   }
 
   /**
-   * Registers every card and returns them in deck order, each turned to the
-   * side this deck deals.
-   *
-   * A fresh array every call, so a caller may shuffle or drain it without
-   * disturbing the registry it came from.
+   * Registers every card and returns a fresh array of them in deck order, each
+   * turned to the side this deck deals.
    */
   register(): PlayingCard[] {
     return this.reset(this.cardIds.map((id) => this.registry.getOrCreate(id)));
@@ -57,12 +41,7 @@ export class DeckSource {
     return shuffle(this.register(), this.random);
   }
 
-  /**
-   * Turns the given cards back to the side this deck deals, in place.
-   *
-   * What a restart needs: the previous deal left some of these face up, and the
-   * deal about to happen decides for itself which ones show.
-   */
+  /** Turns the given cards back to the side this deck deals, in place. */
   reset(cards: PlayingCard[]): PlayingCard[] {
     for (const card of cards) {
       card.faceUp = this.dealsFaceUp;
@@ -71,13 +50,10 @@ export class DeckSource {
   }
 
   /**
-   * The registered card for one identity, or undefined for a card this deck
-   * does not deal.
+   * Returns the registered card for one identity, or undefined for a card this
+   * deck does not deal.
    *
-   * For a deal that places named cards rather than whatever comes off the top:
-   * an almost-win board asks for each suit's King by name, and a short deck
-   * simply does not have one to give. Answers from the registry, so it is only
-   * meaningful once {@link register} has run.
+   * Only meaningful once {@link register} has run.
    */
   find(cardId: DeckCardId): PlayingCard | undefined {
     return this.registry.get(playingCardInstanceId(cardId));

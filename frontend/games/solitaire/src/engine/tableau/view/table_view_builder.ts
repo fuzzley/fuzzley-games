@@ -25,18 +25,10 @@ import { ZoneSpec, frameFor, showsFace } from "../zone";
 import { TablePresentation, TableView } from "./table_view";
 
 /**
- * Resolves the pile an in-flight drag would land on, as the pile's full drop
- * rectangle.
+ * Resolves the pile a drag would land on, as its drop rectangle, or null if it
+ * is over none.
  *
- * The single answer to "where does this drag go": the view builder calls it
- * every frame to preview the target and the input handler calls it on release
- * to commit the move, so the border can never promise a pile the drop then
- * disagrees with.
- *
- * @param game The game being drawn.
- * @param drag The active drag.
- * @param metrics The board measured for this frame.
- * @returns The target pile's geometry, or null when the drag overlaps no pile.
+ * Both the hover preview and the drop itself ask this, so the two agree.
  */
 export function resolveDragTarget(
   game: TableView,
@@ -65,7 +57,7 @@ export function resolveDragTarget(
   );
 }
 
-/** Where one card is drawn this frame, and whether it eases there. */
+/** Places one card for this frame and says whether it eases there. */
 interface CardPlacement {
   /** Horizontal position in device pixels. */
   readonly x: number;
@@ -77,7 +69,7 @@ interface CardPlacement {
   readonly snap: boolean;
 }
 
-/** The stack currently in hand, and how it is spaced while carried. */
+/** Describes the stack in hand and how it is spaced while carried. */
 interface DragContext {
   /** The cards being carried, bottom-first. */
   readonly cardIds: readonly string[];
@@ -85,18 +77,11 @@ interface DragContext {
   readonly primary: Point | null;
   /** The vertical gap the carried stack keeps, in design units. */
   readonly fanGap: number;
-  /** Whether the given card is one of the cards in hand. */
+  /** Returns whether the given card is one of the cards in hand. */
   holds(cardId: string): boolean;
 }
 
-/**
- * Builds the desired appearance of a table for one frame.
- *
- * Reads the game only through {@link TableView} and the zones, so the same
- * builder draws Klondike, FreeCell or Spider: which piles exist, how each fans,
- * which side of its cards it shows and what may be picked up are all declared
- * rather than branched on here.
- */
+/** Builds the desired appearance of a table for one frame. */
 class TableViewStateBuilder {
   /** Layout scale: design units to device pixels. */
   private readonly scale: number;
@@ -113,13 +98,9 @@ class TableViewStateBuilder {
     private readonly presentation: TablePresentation,
   ) {
     this.scale = metrics.scale;
-    // The artwork is authored larger than a card is drawn, so a sprite is
-    // scaled down from its texels while the layout keeps working in design
-    // units.
     this.spriteScale = this.scale / CARD_ART_SCALE;
     this.origins = metrics.origins;
-    // Size the highlight from the drawn card size so its border hugs the
-    // rendered card exactly, rather than the slightly larger layout grid cell.
+    // The drawn size rather than the grid cell, so a highlight hugs the card.
     this.cardWidth = CARD_RENDER_WIDTH_PX * this.scale;
     this.cardHeight = CARD_RENDER_HEIGHT_PX * this.scale;
   }
@@ -132,7 +113,7 @@ class TableViewStateBuilder {
     };
   }
 
-  /** A placeholder for every zone that declares one. */
+  /** Returns a placeholder for every zone that declares one. */
   private buildBackgrounds(): PileBackgroundView[] {
     const backgrounds: PileBackgroundView[] = [];
 
@@ -147,7 +128,6 @@ class TableViewStateBuilder {
         y: origin.y,
         scale: this.spriteScale,
         depth: depthFor(RenderLayer.PILE_BACKGROUND),
-        // Only a slot that does something when clicked while empty invites one.
         cursor: zone.emptyIsActionable && pile.isEmpty ? "pointer" : "default",
       });
     }
@@ -155,18 +135,14 @@ class TableViewStateBuilder {
     return backgrounds;
   }
 
-  /** The position, frame and interactivity of every card in play. */
+  /** Returns the position, frame and interactivity of every card in play. */
   private buildCards(): CardView[] {
     const drag = this.dragContext();
     const flightOrder = this.flightOrder();
     const cards: CardView[] = [];
 
-    // Resting cards are ordered across the whole board rather than within each
-    // pile, so two cards in different piles never share a depth and the order
-    // they are drawn in never falls back to the order their sprites were made.
-    //
-    // Counted for every card, held ones included, because this ordering has to
-    // agree card-for-card with the one the model announces relocations by.
+    // Counted for every card, held ones included, to match the board order the
+    // model announces relocations by.
     let restingIndex = 0;
 
     for (const pile of this.game.piles) {
@@ -214,12 +190,7 @@ class TableViewStateBuilder {
     return cards;
   }
 
-  /**
-   * The stack in hand, and the spacing it keeps.
-   *
-   * A dragged stack keeps the spacing of the pile it came from, so a fanned
-   * column stays fanned in hand and a squarely stacked pile stays square.
-   */
+  /** Returns the stack in hand, spaced like the pile it came from. */
   private dragContext(): DragContext {
     const cardIds = this.interaction.drag?.cardIds ?? [];
     const primary = this.interaction.drag?.primary ?? null;
@@ -240,10 +211,8 @@ class TableViewStateBuilder {
   }
 
   /**
-   * Where each card in the air sits in the drawing order.
-   *
-   * Counted across every flight in the order they began, so a stack keeps its
-   * own order and a later flight draws over an earlier one still settling.
+   * Returns where each card in the air sits in the drawing order, with later
+   * flights over earlier ones.
    */
   private flightOrder(): ReadonlyMap<string, number> {
     const order = new Map<string, number>();
@@ -255,13 +224,7 @@ class TableViewStateBuilder {
     return order;
   }
 
-  /**
-   * Where a card being carried is drawn: under the pointer, fanned in hand.
-   *
-   * Takes the pointer position rather than reading it back off the context, so
-   * that the caller's check for "is anything being carried" is what narrows it
-   * and no cast is needed here.
-   */
+  /** Places a card being carried under the pointer, fanned in hand. */
   private heldPlacement(
     cardId: string,
     drag: DragContext,
@@ -278,11 +241,8 @@ class TableViewStateBuilder {
   }
 
   /**
-   * Where a card that is not in hand is drawn: at its place in its pile.
-   *
-   * A card in the air is lifted clear of the board, so it crosses over the
-   * columns between it and its destination instead of sliding under them on its
-   * way to a depth it has not arrived at yet.
+   * Places a card that is not in hand at its place in its pile, lifted above
+   * the board while it is in the air.
    */
   private restingPlacement(
     origin: Point,
@@ -302,14 +262,11 @@ class TableViewStateBuilder {
   }
 
   /**
-   * The card in this pile whose fan should open to reveal more of it, or null.
+   * Returns the hovered card in this pile if its fan should open to reveal more
+   * of it, or null.
    *
-   * Any card the zone draws face up expands, whether or not the rules would let
-   * it be picked up. The gap is how a player reads a buried card's suit, and a
-   * card too deep in a column to lift is the one they most need to read: an
-   * Eight Off column offers up only the top of a same-suit run, so tying the
-   * expansion to grabbability left almost every covered card unreadable. A card
-   * drawn face down has nothing to reveal, so it still opens no gap.
+   * Any card drawn face up opens, even one the rules will not let go of, since
+   * a buried card is the one a player most needs to read.
    */
   private expansionCardId(
     zone: ZoneSpec,
@@ -325,8 +282,8 @@ class TableViewStateBuilder {
   }
 
   /**
-   * The highlight borders to draw: drag feedback while a stack is in hand, and
-   * the hover border otherwise.
+   * Returns the highlight borders to draw: drag feedback while a stack is in
+   * hand, and the hover border otherwise.
    */
   private buildHighlights(): HighlightView[] {
     const drag = this.interaction.drag;
@@ -340,19 +297,12 @@ class TableViewStateBuilder {
   }
 
   /**
-   * The border marking where the dragged stack would land if released now, or
-   * null when it would not be accepted anywhere.
-   *
-   * The card in hand wears no border of its own: it is already lifted above the
-   * board and following the pointer, so the only thing left to say is where it
-   * is going — and only when it can actually go there, so the border never
-   * invites a drop the rules will refuse.
+   * Returns the border marking where the dragged stack would land if released
+   * now, or null if it would not be accepted there.
    */
   private buildDropTargetHighlight(
     drag: DragInteraction,
   ): HighlightView | null {
-    // Asking the same resolver the drop itself will ask means the previewed
-    // pile is the pile the card lands on, not a second guess at it.
     const target = resolveDragTarget(this.game, drag, this.metrics);
     if (!target) {
       return null;
@@ -366,9 +316,8 @@ class TableViewStateBuilder {
       return null;
     }
 
-    // Outline the card the stack would land on, which is the pile itself when
-    // there is nothing in it yet. Sized to a card either way, so the border
-    // marks the landing place rather than the whole column it belongs to.
+    // Outline the card the stack would land on, or the empty slot, rather than
+    // the whole column.
     const topCard = targetPile.topCard;
 
     return {
@@ -384,8 +333,8 @@ class TableViewStateBuilder {
   }
 
   /**
-   * The hover border for the card or empty slot under the pointer, or null when
-   * nothing hovered can be interacted with.
+   * Returns the hover border for the card or empty slot under the pointer, or
+   * null when nothing hovered can be interacted with.
    */
   private buildHoverHighlight(): HighlightView | null {
     const backgroundHighlight = this.buildBackgroundHoverHighlight();
@@ -418,13 +367,11 @@ class TableViewStateBuilder {
       height: this.cardHeight,
       scale: this.scale,
       depth: depthFor(RenderLayer.HOVER_HINT),
-      // Leave the bottom edge open when another card is stacked on top, so the
-      // border never draws a line across the covering card.
       openBottom: cardIndex !== -1 && cardIndex < pileCards.length - 1,
     };
   }
 
-  /** The border for a hovered empty slot that does something when clicked. */
+  /** Returns the border for a hovered empty slot that does something. */
   private buildBackgroundHoverHighlight(): HighlightView | null {
     const pileId = this.interaction.hoveredBackgroundPileId;
     if (!pileId) return null;
@@ -447,15 +394,7 @@ class TableViewStateBuilder {
   }
 }
 
-/**
- * Builds the complete desired appearance of a table for one frame.
- *
- * @param game The game being drawn, read through its narrow view.
- * @param interaction The current pointer and drag state.
- * @param metrics The board measured for this viewport.
- * @param presentation The player's choices about how cards look.
- * @returns The pure view state describing positions, depths, frames and borders.
- */
+/** Builds the complete desired appearance of a table for one frame. */
 export function buildTableViewState(
   game: TableView,
   interaction: TableInteractionState,

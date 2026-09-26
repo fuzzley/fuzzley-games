@@ -1,6 +1,6 @@
 import { EventEmitter } from "@/engine/core/common/event_emitter";
 
-/** The live metrics a game publishes, as a caller reads them. */
+/** Holds the live metrics a game publishes. */
 export interface GameMetrics {
   /** The player's current score. */
   readonly score: number;
@@ -10,24 +10,13 @@ export interface GameMetrics {
   readonly undoDepth: number;
 }
 
-/** The events {@link GameState} publishes. */
+/** Maps each event {@link GameState} publishes to its payload. */
 type GameStateEvents = {
   /** Emitted whenever any metric changes, carrying them all. */
   "metrics-changed": GameMetrics;
 };
 
-/**
- * Live game metrics that the application shell displays.
- *
- * Published with the engine's own {@link EventEmitter} rather than with a
- * reactive library. Every game inherits this through its base class, so a
- * `BehaviorSubject` here put rxjs into the dependencies of all fourteen of them
- * — the very thing `src/games/**` is forbidden from importing directly.
- *
- * The getter/setter pairs are what let game logic keep writing `state.score +=
- * 5`, and each setter publishes only on a real change, so a move that scores
- * nothing does not wake the shell.
- */
+/** Publishes the live game metrics the application shell displays. */
 export class GameState extends EventEmitter<GameStateEvents> {
   private scoreValue = 0;
   private movesValue = 0;
@@ -55,12 +44,7 @@ export class GameState extends EventEmitter<GameStateEvents> {
     }
   }
 
-  /**
-   * How many applied actions can still be taken back.
-   *
-   * Published so the UI can enable and disable an undo control without having
-   * to reach into the game's history itself.
-   */
+  /** How many applied actions can still be taken back. */
   get undoDepth(): number {
     return this.undoDepthValue;
   }
@@ -72,14 +56,8 @@ export class GameState extends EventEmitter<GameStateEvents> {
   }
 
   /**
-   * Follows the metrics, and reports them once immediately.
-   *
-   * The immediate call is what a `BehaviorSubject` gave for free and what a
-   * subscriber actually needs: a display bound to a game already in progress
-   * should show its score, not zero until the next move.
-   *
-   * @param listener Told the metrics now and on every later change.
-   * @returns Unsubscribes the listener.
+   * Follows the metrics, reporting them once immediately, and returns a
+   * function that stops following them.
    */
   onChange(listener: (metrics: GameMetrics) => void): () => void {
     const unsubscribe = this.on("metrics-changed", listener);
@@ -87,7 +65,7 @@ export class GameState extends EventEmitter<GameStateEvents> {
     return unsubscribe;
   }
 
-  /** The metrics as they stand. */
+  /** Returns the metrics as they stand. */
   snapshot(): GameMetrics {
     return {
       score: this.scoreValue,
