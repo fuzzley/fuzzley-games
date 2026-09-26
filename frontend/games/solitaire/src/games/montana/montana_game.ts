@@ -29,6 +29,22 @@ import { montanaZoneSpecs } from "./montana_zones";
  */
 export const MAX_REDEALS = 2;
 
+/** What Montana keeps outside its piles, for a snapshot. */
+interface MontanaExtra {
+  /** How many of the {@link MAX_REDEALS} redeals have been spent. */
+  readonly redealsUsed: number;
+}
+
+/** Whether a snapshot's extra state is one Montana saved. */
+function isMontanaExtra(extra: unknown): extra is MontanaExtra {
+  return (
+    typeof extra === "object" &&
+    extra !== null &&
+    "redealsUsed" in extra &&
+    typeof extra.redealsUsed === "number"
+  );
+}
+
 /**
  * A game of Montana, also played as Gaps.
  *
@@ -191,6 +207,19 @@ export class MontanaGame extends DealtTableGame {
       // So the player gets the spent redeal back with the board.
       this.redealsUsed--;
     }
+  }
+
+  /** @inheritDoc */
+  protected override saveExtra(): MontanaExtra {
+    return { redealsUsed: this.redealsUsed };
+  }
+
+  /** @inheritDoc */
+  protected override restoreExtra(extra: unknown): void {
+    if (!isMontanaExtra(extra)) {
+      throw new Error("The snapshot's extra state is not Montana's.");
+    }
+    this.redealsUsed = extra.redealsUsed;
   }
 
   /**

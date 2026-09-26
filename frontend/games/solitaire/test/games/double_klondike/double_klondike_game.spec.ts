@@ -288,3 +288,37 @@ describe("DoubleKlondikeGame win condition", () => {
     expect(won).toBe(true);
   });
 });
+
+describe("DoubleKlondikeGame snapshot", () => {
+  /** A dealt game that has drawn through its stock and recycled the waste. */
+  function recycledOnce(): DoubleKlondikeGame {
+    const game = newGame();
+    while (!game.stock.isEmpty) {
+      game.drawCardsFromStock();
+    }
+    game.drawCardsFromStock();
+    return game;
+  }
+
+  it("records how many times the waste has been recycled", () => {
+    const game = recycledOnce();
+
+    expect(game.snapshot().extra).toEqual({ recycleCount: 1 });
+  });
+
+  it("restores the recycle count", () => {
+    const copy = newGame();
+
+    copy.restore(recycledOnce().snapshot());
+
+    expect(copy.snapshot().extra).toEqual({ recycleCount: 1 });
+  });
+
+  it("rejects a snapshot without the recycle count", () => {
+    const copy = newGame();
+
+    expect(() =>
+      copy.restore({ ...recycledOnce().snapshot(), extra: null }),
+    ).toThrow(/not Double Klondike's/);
+  });
+});

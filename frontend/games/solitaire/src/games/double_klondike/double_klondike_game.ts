@@ -36,6 +36,22 @@ const DOUBLE_KLONDIKE_SCORING_ROLES: ScoringRoles = {
 /** How many cards a draw turns over. */
 export const DRAW_COUNT = 3;
 
+/** What Double Klondike keeps outside its piles, for a snapshot. */
+interface DoubleKlondikeExtra {
+  /** How many times the waste has been recycled. */
+  readonly recycleCount: number;
+}
+
+/** Whether a snapshot's extra state is one Double Klondike saved. */
+function isDoubleKlondikeExtra(extra: unknown): extra is DoubleKlondikeExtra {
+  return (
+    typeof extra === "object" &&
+    extra !== null &&
+    "recycleCount" in extra &&
+    typeof extra.recycleCount === "number"
+  );
+}
+
 /**
  * A game of Double Klondike.
  *
@@ -183,6 +199,19 @@ export class DoubleKlondikeGame extends DealtTableGame {
       // So the next recycle is charged the same penalty this one was.
       this.recycleCount--;
     }
+  }
+
+  /** @inheritDoc */
+  protected override saveExtra(): DoubleKlondikeExtra {
+    return { recycleCount: this.recycleCount };
+  }
+
+  /** @inheritDoc */
+  protected override restoreExtra(extra: unknown): void {
+    if (!isDoubleKlondikeExtra(extra)) {
+      throw new Error("The snapshot's extra state is not Double Klondike's.");
+    }
+    this.recycleCount = extra.recycleCount;
   }
 
   /**

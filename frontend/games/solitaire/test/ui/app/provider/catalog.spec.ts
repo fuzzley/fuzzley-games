@@ -7,6 +7,8 @@ import {
   GameOptionSpec,
   GameOptionValues,
 } from "@/ui/app/provider/game_catalog";
+import type { PlayableGame } from "@/engine/tableau/playable_game";
+import { TableGame } from "@/engine/tableau/table_game";
 import { TestPresentation } from "@test/support/presentation";
 
 vi.mock("phaser", async () => {
@@ -62,6 +64,41 @@ const RULES: [name: string, option: GameOptionSpec][] = GAME_CATALOG.flatMap(
       option,
     ]),
 );
+
+/** The first card, in board order, that can legally move, and where to. */
+function firstLegalMove(
+  game: TableGame,
+): { cardId: string; pileId: string } | null {
+  for (const pile of game.piles) {
+    for (const card of pile.getCards()) {
+      const target = game.dropTargetPiles.find((drop) =>
+        game.canMoveCardToPile(card.id, drop.id),
+      );
+      if (target) return { cardId: card.id, pileId: target.id };
+    }
+  }
+  return null;
+}
+
+/** Makes up to `count` moves, each the first legal one the board offers. */
+function playMoves(game: PlayableGame, count: number): void {
+  if (!(game instanceof TableGame)) {
+    throw new Error("Every game in the catalog is a table game.");
+  }
+  for (let made = 0; made < count; made++) {
+    const move = firstLegalMove(game);
+    if (!move) return;
+    game.moveCardToPile(move.cardId, move.pileId);
+  }
+}
+
+/** Plays three moves, then takes back more than it played. */
+function playOn(game: PlayableGame): void {
+  playMoves(game, 3);
+  for (let undone = 0; undone < 5; undone++) {
+    game.undo();
+  }
+}
 
 describe("the game catalog", () => {
   it("names every game by a distinct id", () => {
@@ -133,4 +170,32 @@ describe("every game in the catalog", () => {
 
     expect(() => game.restartGame()).not.toThrow();
   });
+
+  it.each(DEALS)(
+    "%s restores a snapshot of itself onto a fresh deal",
+    (_name, entry, values) => {
+      const original = entry.create(values).game;
+      playMoves(original, 5);
+      const copy = entry.create(values).game;
+
+      copy.restore(original.snapshot());
+
+      expect(copy.snapshot()).toEqual(original.snapshot());
+    },
+  );
+
+  it.each(DEALS)(
+    "%s plays on from a restored snapshot as the original does",
+    (_name, entry, values) => {
+      const original = entry.create(values).game;
+      playMoves(original, 5);
+      const copy = entry.create(values).game;
+      copy.restore(original.snapshot());
+
+      playOn(original);
+      playOn(copy);
+
+      expect(copy.snapshot()).toEqual(original.snapshot());
+    },
+  );
 });
