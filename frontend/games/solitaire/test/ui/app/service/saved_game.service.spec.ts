@@ -59,7 +59,7 @@ function start(
   return { model, catalog };
 }
 
-/** The game in storage, or null when there is none. */
+/** Returns the game in storage, or null when there is none. */
 function stored(): GamePosition | null {
   const raw = localStorage.getItem(STORAGE_KEY);
   return raw ? (JSON.parse(raw) as GamePosition) : null;

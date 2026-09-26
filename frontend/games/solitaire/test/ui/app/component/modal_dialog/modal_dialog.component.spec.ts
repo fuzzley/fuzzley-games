@@ -10,8 +10,8 @@ import { query, queryRequired, queryText } from "@test/support/dom";
 import { isDialogOpen, clickBackdrop, pressEscape } from "@test/support/dialog";
 
 /**
- * A host shaped like the real ones: it owns the open state and closes on the
- * dialog's request, rather than letting the DOM own half of it.
+ * Hosts a dialog as the real components do, owning the open state and closing
+ * on the dialog's request.
  */
 @Component({
   selector: "test-modal-host",
@@ -215,9 +215,7 @@ describe("ModalDialogComponent", () => {
     });
 
     it("does not ask to close when the host has already closed it", () => {
-      // The request travels one way. A host lowering `open` itself must not be
-      // told to close as a result, or every programmatic close makes a round
-      // trip back through the host that started it.
+      // A host that lowers `open` itself is not told to close in return.
       open();
 
       host.open.set(false);

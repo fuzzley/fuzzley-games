@@ -4,8 +4,8 @@ import { TestBed } from "@angular/core/testing";
 import { GameMenuService } from "@/ui/app/service/game_menu.service";
 
 /**
- * A menu service built through the injector, so DestroyRef resolves and the
- * media-query listener is released with the test's injector.
+ * Returns a menu service built through the injector, so DestroyRef resolves
+ * and releases the media-query listener with it.
  */
 function buildMenu(): GameMenuService {
   TestBed.resetTestingModule();

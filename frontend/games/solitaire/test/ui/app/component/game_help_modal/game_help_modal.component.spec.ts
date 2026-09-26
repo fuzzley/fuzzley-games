@@ -31,12 +31,12 @@ describe("GameHelpModalComponent", () => {
     fixture.detectChanges();
   }
 
-  /** The tab button for a named tab. */
+  /** Returns the tab button for a named tab. */
   function tab(name: string): HTMLElement {
     return queryRequired(fixture, `[data-tab="${name}"]`);
   }
 
-  /** Which tab is currently selected. */
+  /** Returns which tab is selected. */
   function selectedTab(): string | null {
     return (
       query(fixture, '[role="tab"][aria-selected="true"]')?.getAttribute(

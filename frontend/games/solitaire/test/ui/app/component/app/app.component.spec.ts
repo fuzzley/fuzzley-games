@@ -22,8 +22,7 @@ vi.mock("@/engine/render/phaser/phaser_host", () => ({
 }));
 
 // The board catalog is the only thing here that names Phaser, whose module
-// init does not survive jsdom. What this component does with a scene is the
-// subject; building a real one is not.
+// init does not survive jsdom.
 vi.mock("@/ui/app/provider/board_catalog", () => ({
   makeBoardScene: () => ({}),
 }));
@@ -39,7 +38,7 @@ describe("AppComponent Composition", () => {
     fixture.detectChanges();
   });
 
-  /** Whether the settings drawer is showing. */
+  /** Returns whether the settings drawer is showing. */
   function drawerIsOpen(): boolean {
     return queryRequired<HTMLDialogElement>(
       fixture,
