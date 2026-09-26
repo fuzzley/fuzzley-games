@@ -47,6 +47,9 @@ $filled-variants: (
   border: none;
   cursor: pointer;
   color: var(--text-bright);
+  // Defaults a <button> gets from the browser, for a link styled as one.
+  box-sizing: border-box;
+  text-decoration: none;
   touch-action: manipulation;
   // A label is never worth wrapping a button over.
   white-space: nowrap;
