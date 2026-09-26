@@ -1,17 +1,9 @@
-// Every keyframe animation in the application, and the one block that turns
-// them all off.
+// Declares every keyframe animation in the application, and the one block that
+// turns them all off.
 //
-// These live here rather than beside the components that play them because
-// `@keyframes` names are global whatever file they are written in — Angular's
-// emulated encapsulation rewrites selectors, not at-rule identifiers. That is
-// not a style preference; it was a bug. The board's loading skeleton and the
-// help modal's image placeholder each defined `@keyframes shimmer`, meaning
-// two different animations under one name, and whichever stylesheet the
-// browser saw last silently replaced the other — a sweeping highlight applied
-// to an element expecting a scrolling gradient, and vice versa.
-//
-// The rule this file exists to enforce: if it is a `@keyframes`, it is
-// declared once, here, under a name that says which animation it is.
+// Keyframes live here because their names are global: Angular's encapsulation
+// rewrites selectors, not at-rule names, so two components' animations of one
+// name would silently replace each other.
 
 // Cards that arrive: the victory and confirmation dialogs.
 @keyframes popIn {
@@ -118,13 +110,8 @@
   }
 }
 
-// Reduced motion.
-//
-// Global rather than per-component: a player who has asked the platform for
-// less movement has asked once, and every hover lift, spinning gear, bouncing
-// trophy and shimmering skeleton in the application is covered by this one
-// block. Transitions collapse to near-zero rather than to `none` so that
-// anything relying on a transitionend event still fires.
+// Reduced motion, for every animation and transition at once. Transitions
+// collapse to near zero rather than `none`, so `transitionend` still fires.
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -142,9 +129,8 @@
     transform: none;
   }
 
-  // A shimmer collapsed to 0.01ms is a flicker rather than a stillness, so the
-  // loading placeholders stop instead. They are decoration over a state the
-  // badge already announces in words.
+  // A shimmer collapsed to 0.01ms would flicker, so loading placeholders stop
+  // instead.
   .skeleton-shimmer,
   .img-skeleton-container {
     animation: none !important;
