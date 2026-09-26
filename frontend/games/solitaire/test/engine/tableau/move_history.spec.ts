@@ -5,12 +5,7 @@ import { AppliedMove } from "@/engine/tableau/move";
 import { HistoryBoard, MoveHistory } from "@/engine/tableau/move_history";
 import { makePlayingCard } from "@test/support/card_builder";
 
-/**
- * The history exercised on its own, which is the point of it having been split
- * out of {@link TableGame}: undo used to be reachable only by dealing a real
- * game and playing it, so a test of "does a consequence come back before its
- * cause" had to be written as a test of Spider.
- */
+/** Gives a history two piles to move cards between, without any game. */
 class TestBoard implements HistoryBoard {
   readonly from = new CardPile<PlayingCard>("from", "column");
   readonly to = new CardPile<PlayingCard>("to", "column");
@@ -49,7 +44,7 @@ class TestBoard implements HistoryBoard {
   }
 }
 
-/** An applied move that carried one card from `from` to `to`. */
+/** Returns an applied move that carried one card from `from` to `to`. */
 function moved(cardId: string, overrides: Partial<AppliedMove> = {}) {
   return {
     kind: "move" as const,
@@ -111,9 +106,8 @@ describe("MoveHistory", () => {
   });
 
   /*
-   * A consequence has to be undone before its cause: a Spider run that left for
-   * a foundation comes back before the move that completed it, or it would be
-   * put back onto a column that has not yet received the card beneath it.
+   * A consequence is undone before its cause, or a completed run would go back
+   * onto a column still missing the card beneath it.
    */
   it("reverses an action's transfers last one first", () => {
     const first = board.deal(Rank.KING);

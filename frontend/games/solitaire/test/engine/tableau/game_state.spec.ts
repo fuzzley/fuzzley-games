@@ -71,10 +71,6 @@ describe("GameState", () => {
     expect(published.map((metrics) => metrics.undoDepth)).toEqual([0, 3]);
   });
 
-  /*
-   * What a BehaviorSubject gave for free, and what a display bound to a game
-   * already in progress needs: the current score, not zero until the next move.
-   */
   it("reports the current readings to a late follower", () => {
     const state = new GameState();
     state.score = 40;

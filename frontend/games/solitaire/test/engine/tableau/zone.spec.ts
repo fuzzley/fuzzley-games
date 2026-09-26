@@ -23,7 +23,7 @@ function pileWith(...cards: PlayingCard[]): CardPile<PlayingCard> {
   return pile;
 }
 
-/** A card that knows its own suit and rank, face up unless stated. */
+/** Returns a card of the given suit and rank, face up unless stated. */
 function card(
   suit: Suit,
   rank: Rank,
@@ -130,10 +130,8 @@ describe("canGrab", () => {
     });
 
     /*
-     * The topmost card is never the `lower` of an adjacency pair, so a check
-     * written pairwise would never look at its face. No deal lays a face-down
-     * card on a face-up one today, but a run the player cannot read is not a
-     * run whatever put it there.
+     * The topmost card is never the `lower` of a pair, so a pairwise check
+     * alone would never look at its face.
      */
     it("refuses a run whose topmost card is face down", () => {
       const king = card(Suit.SPADE, Rank.KING);

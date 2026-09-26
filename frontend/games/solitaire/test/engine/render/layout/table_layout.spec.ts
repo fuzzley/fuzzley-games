@@ -13,10 +13,7 @@ import {
 } from "@/engine/render/layout/card_metrics";
 import { Viewport } from "@/engine/render/view/table_view_state";
 
-/**
- * A board with the given column count and nothing else remarkable, so a test
- * can vary one dimension and read the consequence.
- */
+/** Returns an unremarkable board with the given overrides. */
 function layout(overrides: Partial<TableLayoutSpec> = {}): TableLayoutSpec {
   return {
     columns: 4,
@@ -109,7 +106,7 @@ describe("computePileOrigins", () => {
   });
 
   it("keeps an eight-column board inside a viewport sized for it", () => {
-    // The FreeCell shape: eight columns, and nothing in the engine restated.
+    // The FreeCell shape: eight columns.
     const spec = layout({
       columns: 8,
       slots: [{ pileId: "last", column: 7, row: 0 }],
