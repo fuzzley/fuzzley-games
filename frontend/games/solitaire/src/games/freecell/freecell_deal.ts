@@ -3,14 +3,10 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DeckSource } from "@/engine/tableau/deck_source";
 
 /**
- * Deals `deck` across the columns, one card to each in turn.
- *
- * Every card is dealt face up, so there is nothing to turn over later and no
- * bonus for doing so. The columns are filled round-robin, which is what gives
- * the first four seven cards and the last four six.
+ * Deals `deck` face up across the columns, one card to each in turn, so the
+ * first four get seven cards and the rest six.
  *
  * @param deck The cards to deal, which this drains.
- * @param tableaus The columns to deal onto.
  */
 export function dealFreeCellLayout(
   deck: PlayingCard[],
@@ -33,8 +29,6 @@ export function dealFreeCellLayout(
  * the foundations, and the last card of each waiting on a column.
  *
  * @param deck The cards to deal from, which this registers rather than drains.
- * @param foundations The foundation piles to fill.
- * @param tableaus The columns to seed with the final cards.
  */
 export function dealFreeCellAlmostWin(
   deck: DeckSource,

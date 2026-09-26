@@ -19,19 +19,8 @@ export const FOUNDATION_COUNT = 4;
 export const TABLEAU_COUNT = 8;
 
 /**
- * The sixteen zones of a FreeCell board, under the given rule set.
- *
- * Free cells at the left of the top row, foundations at the right of it, and
- * the eight columns filling the bottom row. Unlike Klondike there is no stock
- * and no waste at all, which is most of why FreeCell is worth building: nothing
- * in the engine may assume a game has either. The board is the same shape in
- * every variant; only what the columns accept and give up differs.
- *
- * Memoized per variant, and that matters beyond saving sixteen allocations:
- * `TableGame.zoneFor` rebuilds its id index whenever the zone array is a
- * different array, so returning a fresh one per call would rebuild the index
- * once per card per frame. There are three variants, so the cache is bounded
- * and cannot go stale.
+ * Returns the sixteen zones of a FreeCell board under a variant: cells and
+ * foundations along the top, eight columns below.
  */
 export const freeCellZoneSpecs = memoizeZones(
   (variant: FreeCellVariant): readonly ZoneSpec[] => [
@@ -55,9 +44,6 @@ export const freeCellZoneSpecs = memoizeZones(
       row: 1,
       role: FreeCellRole.TABLEAU,
       accept: freeCellPlacementRule(FreeCellRole.TABLEAU, variant),
-      // Only a properly ordered run may be lifted, ordered by whatever the
-      // variant builds by. Klondike is laxer; FreeCell is not, because a column
-      // has no face-down cards to hide a broken one.
       grab: { kind: "run", adjacent: freeCellRunAdjacency(variant) },
       layout: OPEN_COLUMN_LAYOUT,
       face: "always-up",

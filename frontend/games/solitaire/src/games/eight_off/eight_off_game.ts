@@ -8,17 +8,8 @@ import { dealEightOffLayout } from "./eight_off_deal";
 import { EightOffRole, eightOffZoneSpecs } from "./eight_off_zones";
 
 /**
- * A game of Eight Off.
- *
- * FreeCell's shape with three rules changed: twice as many cells, columns that
- * build down in suit rather than in alternating colours, and empty columns that
- * take only a King. The first makes it easier, the second and third make it
- * harder, and between them almost every deal is winnable with care.
- *
- * None of that is written here. It is declared by the zones and the placement
- * rules; what is left in this class is a board and a deal — which, as with
- * FreeCell, is the measure of how much {@link DealtTableGame} carries on its
- * own. Even the win condition is declared rather than coded.
+ * Plays Eight Off: FreeCell with eight cells, same-suit builds and Kings-only
+ * empty columns.
  */
 export class EightOffGame extends DealtTableGame {
   /** The eight single-card holding cells. */
@@ -28,11 +19,7 @@ export class EightOffGame extends DealtTableGame {
   /** The eight columns. */
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
-  /**
-   * @param cardIds The card identities to deal from. Defaults to a full 52-card
-   *   deck; injectable so a test can supply a shorter one.
-   * @param random Source of shuffle randomness, injectable for a fixed deal.
-   */
+  /** Creates a game whose piles are empty until the first deal. */
   constructor(
     cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
     random: () => number = Math.random,
