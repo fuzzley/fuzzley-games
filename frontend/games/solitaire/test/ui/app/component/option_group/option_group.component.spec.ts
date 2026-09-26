@@ -34,12 +34,12 @@ describe("OptionGroupComponent", () => {
     fixture.detectChanges();
   });
 
-  /** The group's choice buttons, in the order they are offered. */
+  /** Returns the group's choice buttons, in the order they are offered. */
   function choices(): HTMLElement[] {
     return queryAll(fixture, ".segment-btn");
   }
 
-  /** Which choice is marked as the current one, by label. */
+  /** Returns the label of the choice marked as the current one. */
   function checkedLabel(): string | undefined {
     return choices()
       .find((button) => button.getAttribute("aria-checked") === "true")

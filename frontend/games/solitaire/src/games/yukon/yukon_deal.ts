@@ -1,27 +1,14 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 
-/**
- * How many face-up cards every column but the first receives.
- *
- * The five is what makes Yukon Yukon. Klondike shows one card per column and
- * hides the rest behind a stock; Yukon has no stock at all, so it puts five
- * face-up cards on each column instead and asks the player to work with
- * everything they can see.
- */
+/** How many face-up cards every column but the first receives. */
 export const FACE_UP_PER_COLUMN = 5;
 
 /**
- * Deals `deck` across the columns in the Yukon shape, consuming it from the
- * top (end).
+ * Deals the whole deck across the columns: one card on the first, then i
+ * face-down cards under five face-up ones on column i.
  *
- * The whole deck goes onto the columns: one card on the first, then column i
- * takes i face-down cards under its five face-up ones. That comes to
- * 1 + 6 + 7 + 8 + 9 + 10 + 11 = 52, which is why the family needs no stock and
- * why it deals in exactly this shape.
- *
- * @param deck The cards to deal, which this drains.
- * @param tableaus The columns to deal onto.
+ * @param deck The cards to deal, which this drains from the end.
  */
 export function dealYukonLayout(
   deck: PlayingCard[],

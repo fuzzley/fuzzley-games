@@ -150,10 +150,8 @@ describe("klondikeGestures", () => {
 });
 
 /*
- * The stack a Klondike drag carries, which is the engine's helper rather than a
- * Klondike one: a column here gives up any face-up card along with whatever is
- * stacked on it, ordered or not, and `canGrab` asks the zone instead of
- * imposing a rule of its own.
+ * A Klondike drag uses the engine's helper, which asks the zone what may be
+ * lifted, so Klondike's lax grab rule still applies.
  */
 describe("the stack a Klondike drag picks up", () => {
   let game: KlondikeGame;
@@ -192,11 +190,6 @@ describe("the stack a Klondike drag picks up", () => {
     expect(stackFromCard(game)(card.id)).toEqual([]);
   });
 
-  /*
-   * The one thing the hand-rolled copy left out. A face-down card cannot be
-   * picked up, so a drag of one carries nothing rather than the stack it sits
-   * at the bottom of.
-   */
   it("takes nothing for a face-down card", () => {
     emptyBoard(game);
     const buried = relocate(game, "card-spades-king", game.tableaus[0], false);

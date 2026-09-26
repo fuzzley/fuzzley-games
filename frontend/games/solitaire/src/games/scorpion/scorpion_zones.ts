@@ -16,14 +16,7 @@ export const FOUNDATION_COUNT = 4;
 
 export { STOCK_PILE_ID };
 
-/**
- * The twelve zones of a Scorpion board.
- *
- * Klondike's grid with the waste taken out: the stock alone at the left of the
- * top row, four foundations at the right of it, and seven columns along the
- * bottom. Seven columns because Scorpion deals seven, and four foundations
- * because one deck completes four runs.
- */
+/** Returns the twelve zones of a Scorpion board. */
 export function scorpionZoneSpecs(): readonly ZoneSpec[] {
   return ZONES;
 }
@@ -35,12 +28,10 @@ const ZONES: readonly ZoneSpec[] = [
     column: 0,
     row: 0,
     accept: scorpionPlacementRule(ScorpionRole.STOCK),
-    // A closed slot rather than Klondike's recycle arrow: this
-    // stock deals once and is then finished, so there is nothing to come back.
     backgroundKey: CLOSED_STOCK_PLACEHOLDER,
   }),
   ...foundationRow({
-    // Column 1 and 2 are left clear, which keeps the top row Klondike's shape.
+    // Columns 1 and 2 stay clear, as in Klondike's top row.
     count: FOUNDATION_COUNT,
     column: 3,
     row: 0,
@@ -57,10 +48,7 @@ const ZONES: readonly ZoneSpec[] = [
     row: 1,
     role: ScorpionRole.TABLEAU,
     accept: scorpionPlacementRule(ScorpionRole.TABLEAU),
-    // The Yukon rule, and the defining feature of the game: any face-up card
-    // lifts with everything resting on it, ordered or not. Only the bottom card
-    // of the moving stack is checked against the target, so a player shifts a
-    // jumble by digging out the one card underneath it that fits.
+    // Any face-up card lifts with everything on it, as in Yukon.
     grab: { kind: "any-face-up" },
   }),
 ];

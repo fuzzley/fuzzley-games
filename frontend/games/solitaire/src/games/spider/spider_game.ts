@@ -12,17 +12,8 @@ import { SPIDER_TWO_DECKS, dealSpiderLayout } from "./spider_deal";
 import { SpiderRole, STOCK_PILE_ID, spiderZoneSpecs } from "./spider_zones";
 
 /**
- * A game of Spider.
- *
- * Two decks, ten columns, and a stock that deals a card to every column at
- * once rather than turning cards into a waste. Columns build down by rank
- * regardless of suit, but only a same-suit run can be lifted — which is what
- * makes it hard.
- *
- * A completed King-to-Ace run leaves the board as soon as the move that
- * finished it lands. That is not a move the player made, and it is not a
- * separate action either: one undo takes both back, which is why an applied
- * move records a list of transfers rather than a single from-and-to.
+ * Plays Spider: two decks on ten columns, a stock that deals a card to every
+ * column, and completed runs that leave the board by themselves.
  */
 export class SpiderGame extends DealtTableGame {
   /** The face-down pile that deals a row at a time. */
@@ -33,9 +24,10 @@ export class SpiderGame extends DealtTableGame {
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
   /**
-   * @param cardIds The card identities to deal from. Defaults to two full
-   *   decks; a one-suit set makes the easy variant.
-   * @param random Source of shuffle randomness, injectable for a fixed deal.
+   * Creates a game whose piles are empty until the first deal.
+   *
+   * @param cardIds The cards to deal from, such as a one-suit set for the easy
+   *   variant.
    */
   constructor(
     cardIds: ReadonlyArray<DeckCardId> = deckCardIds(SPIDER_TWO_DECKS),
@@ -62,21 +54,14 @@ export class SpiderGame extends DealtTableGame {
 
   // --- The stock ---
 
-  /**
-   * Whether the stock may deal, which it may only when no column is empty.
-   *
-   * The rule exists because a card dealt onto an empty column is unrecoverable:
-   * an empty column is the most valuable thing on a Spider board.
-   */
+  /** Whether the stock may deal, which it may only when no column is empty. */
   public get canDeal(): boolean {
     return !this.stock.isEmpty && this.tableaus.every((t) => !t.isEmpty);
   }
 
   /**
-   * Deals one card face up onto every column.
-   *
-   * Ten cards to ten different piles, as one action: the transfers are recorded
-   * together so a single undo takes the whole row back.
+   * Deals one card face up onto every column as one undoable action, and
+   * returns whether the stock could deal.
    */
   public dealRow(): boolean {
     if (!this.canDeal) {
@@ -91,9 +76,8 @@ export class SpiderGame extends DealtTableGame {
     this.recordTransfers("deal", [...transfers, ...collected.transfers], {
       flippedCardIds: collected.flippedCardIds,
     });
-    // Dealing a row can finish the last run, so the win is checked here as well
-    // as after a move: this is an action the player took that the engine's own
-    // move path never sees.
+    // The engine checks for a win only after a move, and a dealt row can finish
+    // the last run.
     this.checkWinCondition();
     return true;
   }

@@ -19,19 +19,8 @@ import {
 export const STOCK_DEAL_COLUMN_COUNT = 3;
 
 /**
- * A game of Scorpion.
- *
- * A Spider and Yukon hybrid: it collects King-to-Ace runs like Spider, but it
- * lifts cards like Yukon. Any face-up card can be picked up along with the whole
- * jumble sitting on it, so a column is never stuck — the question is only ever
- * whether the card at the bottom of what you are lifting has somewhere to land.
- * In exchange the landing is strict, same-suit only, where Spider takes any
- * descending card at all.
- *
- * A completed run leaves the board as soon as the move that finished it lands.
- * That is not a move the player made, and it is not a separate action either:
- * one undo takes both back, which is why an applied move records a list of
- * transfers rather than a single from-and-to.
+ * Plays Scorpion: Spider's run collecting with Yukon's lifting, where any
+ * face-up card lifts with everything on it but lands only on its own suit.
  */
 export class ScorpionGame extends DealtTableGame {
   /** The three-card pile that deals itself out in one press. */
@@ -41,11 +30,7 @@ export class ScorpionGame extends DealtTableGame {
   /** The seven columns. */
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
-  /**
-   * @param cardIds The card identities to deal from. Defaults to one standard
-   *   deck; injectable so a test can supply a shorter one.
-   * @param random Source of shuffle randomness, injectable for a fixed deal.
-   */
+  /** Creates a game whose piles are empty until the first deal. */
   constructor(
     cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
     random: () => number = Math.random,
@@ -74,25 +59,16 @@ export class ScorpionGame extends DealtTableGame {
   /**
    * Whether the stock may deal, which it may whenever it still holds cards.
    *
-   * Deliberately *not* Spider's rule, which also refuses while a column is
-   * empty. Scorpion has no such restriction — an empty column here is filled by
-   * a King you chose to move there, and the three stock cards are the only cards
-   * in the game you never get a say about. Anyone reading this alongside
-   * `SpiderGame.canDeal` should know the omission is the rule, not a copy that
-   * lost a clause.
+   * Unlike Spider, an empty column deliberately does not stop a deal, as
+   * Scorpion's rules have it.
    */
   public get canDeal(): boolean {
     return !this.stock.isEmpty;
   }
 
   /**
-   * Deals the whole stock: one card face up onto each of the first three
-   * columns.
-   *
-   * All three at once, and once only — there is no draw and no recycle, so this
-   * is the single moment in a game of Scorpion when cards arrive from outside
-   * the tableau. Recorded as one action, so a single undo takes the whole lot
-   * back.
+   * Deals the whole stock, one card face up onto each of the first three
+   * columns, as one undoable action, and returns whether it could.
    */
   public dealStock(): boolean {
     if (!this.canDeal) {
@@ -111,8 +87,8 @@ export class ScorpionGame extends DealtTableGame {
     this.recordTransfers("deal", [...transfers, ...collected.transfers], {
       flippedCardIds: collected.flippedCardIds,
     });
-    // Dealing the stock can finish the last run, so the win is checked here as
-    // well as after a move: this is an action the engine's move path never sees.
+    // The engine checks for a win only after a move, and dealing the stock can
+    // finish the last run.
     this.checkWinCondition();
     return true;
   }

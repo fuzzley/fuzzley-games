@@ -4,13 +4,7 @@ import {
 } from "@/engine/render/presentation";
 import { CardDeckId, DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
 
-/**
- * A {@link TablePresentation} a test can drive directly.
- *
- * The real one is an Angular service backed by rxjs and localStorage; none of
- * that is what a board test is about, so this is the same two values with a
- * setter that notifies.
- */
+/** Implements {@link TablePresentation} with plain values a test can set. */
 export class TestPresentation implements TablePresentation {
   private readonly listeners: ((color: string) => void)[] = [];
   private readonly deckListeners: ((deckId: CardDeckId) => void)[] = [];
@@ -88,13 +82,7 @@ export class TestPresentation implements TablePresentation {
     this.deckStatuses.push(status);
   }
 
-  /**
-   * Everything the board has said about the deck, oldest first.
-   *
-   * Kept in full rather than as a latest-value, because what a swap has to get
-   * right is the sequence: a load that finishes after the player has changed
-   * their mind must not answer at all.
-   */
+  /** Everything the board has said about the deck, oldest first. */
   get cardDeckStatuses(): readonly CardDeckStatus[] {
     return this.deckStatuses;
   }

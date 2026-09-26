@@ -6,21 +6,16 @@ import {
   bakersDozenPlacementRule,
 } from "./bakers_dozen_rules";
 
-/** The number of tableau columns. Thirteen, which is the name of the game. */
+/** The number of tableau columns, which gives the game its name. */
 export const TABLEAU_COUNT = 13;
 
 /** The number of suit foundation piles. */
 export const FOUNDATION_COUNT = 4;
 
-/**
- * The grid column the leftmost foundation sits in.
- *
- * The foundations sit at the right of the top row, as Simple Simon's do and for
- * the same reason: there is no stock to occupy the left of it.
- */
+/** The grid column the leftmost foundation sits in, at the right of the row. */
 export const FOUNDATION_COLUMN_OFFSET = TABLEAU_COUNT - FOUNDATION_COUNT;
 
-/** The seventeen zones of a Baker's Dozen board. */
+/** Returns the seventeen zones of a Baker's Dozen board. */
 export function bakersDozenZoneSpecs(): readonly ZoneSpec[] {
   return ZONES;
 }
@@ -39,11 +34,9 @@ const ZONES: readonly ZoneSpec[] = [
     row: 1,
     role: BakersDozenRole.TABLEAU,
     accept: bakersDozenPlacementRule(BakersDozenRole.TABLEAU),
-    // One card at a time. There is nowhere to stage a run — no cells, and no
-    // empty column will ever take one — so a multi-card move could not be
-    // carried out by any sequence of legal single moves.
+    // One card at a time: with no cells and no refillable columns, nothing
+    // could stage a run.
     grab: { kind: "top-only" },
-    // Every card is dealt face up, so nothing is ever turned over.
     layout: OPEN_COLUMN_LAYOUT,
     face: "always-up",
   }),

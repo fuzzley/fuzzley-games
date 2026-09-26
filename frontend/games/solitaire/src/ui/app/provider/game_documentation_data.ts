@@ -4,36 +4,24 @@ import { GameDocumentation } from "../model/game_documentation.model";
 import { GameId } from "./game_catalog";
 
 /**
- * Documentation by game id, as a consumer receives it.
+ * Maps a game id to its documentation, as a consumer receives it.
  *
- * Deliberately loose in its keys: a spec supplies a registry covering only the
- * games its mock catalog offers, and the service answers `undefined` for a game
- * it has no page for. What ships is held to {@link CompleteGameDocumentation}.
+ * Loose in its keys so a spec can document only the games it offers; what
+ * ships is held to {@link CompleteGameDocumentation}.
  */
 export type GameDocumentationRegistry = Readonly<
   Record<string, GameDocumentation>
 >;
 
 /**
- * A registry that documents every game in the catalog.
- *
- * The shipped registry is declared as this so that adding a game without
- * writing its rules page is a compile error. It was checked only by a spec
- * before, which meant a game could ship with a Help button that opened
- * nothing: the easiest of all the steps to forget, in the longest file to edit.
+ * Maps every game in the catalog to its documentation, so a game without a
+ * rules page does not compile.
  */
 export type CompleteGameDocumentation = Readonly<
   Record<GameId, GameDocumentation>
 >;
 
-/**
- * The documentation the application shows.
- *
- * A token rather than a direct import so a spec can supply its own. A
- * component spec that asserts against the real prose is really asserting that
- * nobody has reworded a rules page — which is not what it is for, and breaks
- * it when someone does.
- */
+/** The documentation the application shows, as a token a spec can replace. */
 export const GAME_DOCUMENTATION = new InjectionToken<GameDocumentationRegistry>(
   "GAME_DOCUMENTATION",
   {
@@ -42,10 +30,7 @@ export const GAME_DOCUMENTATION = new InjectionToken<GameDocumentationRegistry>(
   },
 );
 
-/**
- * Registry containing comprehensive, verified documentation and hero screenshot visual aids
- * for all solitaire games in fSolitaire.
- */
+/** The rules page of every game in the catalog. */
 export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
   CompleteGameDocumentation = {
   klondike: {

@@ -5,12 +5,7 @@ import { stocklessGestures } from "@/games/common/table_gestures";
 import { SIMPLE_SIMON_LAYOUT } from "./simple_simon_layout";
 import { SimpleSimonGame } from "./simple_simon_game";
 
-/**
- * Builds the Simple Simon board scene.
- *
- * The whole board is dealt at the start, so the shared stockless gestures are
- * the right ones unchanged: there is no stock for a single press to draw from.
- */
+/** Builds the Simple Simon board scene. */
 export function makeSimpleSimonBoardScene(
   game: SimpleSimonGame,
   presentation: TablePresentation,

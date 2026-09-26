@@ -48,7 +48,7 @@ const DESIGN_WIDTH_PX = designSize(FAKE_TABLE_LAYOUT).width;
 const DESIGN_HEIGHT_PX = designSize(FAKE_TABLE_LAYOUT).height;
 const CARD_SIZE = { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX };
 
-/** A viewport at the design size, which lays out at a scale of exactly 1. */
+/** Returns a viewport at the design size, which lays out at a scale of 1. */
 function designViewport(overrides: Partial<Viewport> = {}): Viewport {
   return {
     width: DESIGN_WIDTH_PX,
@@ -211,7 +211,7 @@ describe("stackedCardOffsets", () => {
 });
 
 describe("tableauCardOffsets", () => {
-  /** A tableau column of face-down cards with `faceUpCount` face up on top. */
+  /** Returns a column of face-down cards with `faceUpCount` face up on top. */
   function column(faceDownCount: number, faceUpCount: number): PlayingCard[] {
     return [
       ...Array.from({ length: faceDownCount }, (_, i) =>

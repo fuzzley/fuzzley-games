@@ -1,12 +1,7 @@
 @use "../../styles" as *;
 
-// A rail rather than a modal drawer: on a wide screen it sits beside the board
-// instead of over it, so switching games costs one click and dismisses nothing.
-// Below the overlay breakpoint it slides over the board instead, because 56px
-// of a phone is a seventh of the screen and the board needs it more.
-//
-// The widths and the offset below the header come from the shared layout
-// tokens, which the board area also reads to inset itself.
+// A rail beside the board on a wide screen, and over it on a narrow one. Its
+// widths are layout tokens, which the board also reads to inset itself.
 .menu-toggle,
 .game-menu {
   @include glass(20px);
@@ -118,20 +113,15 @@
       background: var(--accent-strong);
     }
 
-    // Cut into the filled row rather than laid over it. The white wash used
-    // here left the badge at #4e7ddf, which carries its white lettering at
-    // 3.94:1 — under the 4.5:1 that ten-pixel text needs. Darkening instead of
-    // lightening takes it past 7:1, and reads as inset besides.
+    // Darkened rather than lightened, so its white lettering clears 4.5:1.
     .game-marker {
       background: var(--surface-sunken);
     }
   }
 }
 
-// The two-character badge, which is all a collapsed rail has room to show —
-// and the most it needs, since one character put the same S on both Spider and
-// Scorpion. Sized in `ch` so the box follows the two characters inside it
-// rather than being a square that happens to fit them at one font size.
+// The two-character badge a collapsed rail shows, sized in `ch` to follow the
+// characters inside it.
 .game-marker {
   flex: 0 0 auto;
   min-width: 2.4ch;
@@ -151,9 +141,7 @@
   font-size: var(--font-sm);
   font-weight: 600;
 
-  // A collapsed rail shows the initial, but the button still needs to say
-  // which game it picks — so the name is hidden from the eye rather than from
-  // the accessibility tree.
+  // Hidden from the eye only, so the button still names its game.
   &.visually-hidden {
     @include visually-hidden;
   }
@@ -167,9 +155,8 @@
   cursor: pointer;
 }
 
-// Narrow screens: the rail keeps a strip beside the board so a game is still
-// one tap away and nothing ever covers the stock, but opening it slides a
-// proper panel over the board rather than pushing it into a corner.
+// On a narrow screen the strip stays beside the board, and opening it slides a
+// panel over the board.
 @include below("tablet") {
   .menu-toggle {
     justify-content: center;
@@ -189,10 +176,8 @@
     z-index: var(--z-rail-overlay-panel);
   }
 
-  // Roomier targets for a thumb. The rail's own padding comes off too: at 44px
-  // wide, eight pixels of it each side left the button 28px across, which is a
-  // long way under the target size this application sets for itself everywhere
-  // else. The panel keeps its padding once expanded, where there is room.
+  // Roomier targets for a thumb. The collapsed rail drops its padding so its
+  // buttons reach the minimum tap size.
   .game-menu:not(.expanded) {
     padding: var(--space-1);
   }

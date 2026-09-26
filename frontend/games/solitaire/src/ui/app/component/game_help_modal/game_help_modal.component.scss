@@ -1,7 +1,6 @@
 @use "../../styles" as *;
 
-// No backdrop element and no z-index: the surrounding <app-modal-dialog> is a
-// native <dialog>, which paints the scrim and puts this in the top layer.
+// No scrim or z-index: <app-modal-dialog> puts this in the top layer.
 .modal-dialog {
   background: var(--surface-modal);
   border: 1px solid var(--border-strong);
@@ -146,9 +145,8 @@
   margin: 0 0 var(--space-3);
 }
 
-// The prose holds a readable measure rather than spanning a 1200px modal. The
-// cards below it keep the full width: a grid of short rules is not prose, and
-// narrowing it would only add rows.
+// Prose keeps a readable measure, while the grid of rule cards below it keeps
+// the full width.
 .objective-text,
 .win-text {
   font-size: var(--font-md);
@@ -180,9 +178,8 @@
   text-align: center;
 }
 
-// A placeholder whose height is not known until the image lands, so the
-// shimmer scrolls a gradient within the box rather than sweeping a child
-// across it. See `shimmerBand` in the shared animations.
+// The shimmer scrolls a gradient within the box, whose height is unknown until
+// the image lands; see `shimmerBand` in the shared animations.
 .img-skeleton-container {
   @include flex-center;
   position: relative;

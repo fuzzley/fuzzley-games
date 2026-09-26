@@ -5,12 +5,7 @@ import { stocklessGestures } from "@/games/common/table_gestures";
 import { BAKERS_DOZEN_LAYOUT } from "./bakers_dozen_layout";
 import { BakersDozenGame } from "./bakers_dozen_game";
 
-/**
- * Builds the Baker's Dozen board scene.
- *
- * The whole board is dealt at the start, so the shared stockless gestures are
- * the right ones unchanged: there is no stock for a single press to draw from.
- */
+/** Builds the Baker's Dozen board scene. */
 export function makeBakersDozenBoardScene(
   game: BakersDozenGame,
   presentation: TablePresentation,

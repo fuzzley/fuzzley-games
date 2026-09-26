@@ -1,9 +1,6 @@
 // --- Colour scheme ---
-// Declares the document dark, which is what makes the native furniture follow:
-// scrollbars, form controls and the initial canvas the browser paints before
-// anything else has. Without it the help modal's scroll area wore the light
-// platform scrollbar — arrow buttons and all — down the side of a near-black
-// panel, because the engine had no way to know the page was dark.
+// Declares the document dark, so native scrollbars, form controls and the
+// browser's first paint follow.
 :root {
   color-scheme: dark;
 }
@@ -24,10 +21,8 @@ html {
   background: var(--table-felt);
 }
 
-// The document's typographic defaults, inherited by everything that does not
-// override them. `line-height` belongs here rather than on the components
-// because a unitless value inherits as the ratio rather than as the computed
-// length, so a heading at `--font-3xl` gets leading proportional to itself.
+// The document's typographic defaults. A unitless `line-height` inherits as a
+// ratio, so every heading gets leading proportional to its own size.
 body {
   font-family: var(--font-sans);
   font-size: var(--font-md);
@@ -44,11 +39,8 @@ app-root {
   height: 100%;
 }
 
-// Form controls are the one place `font-family` does not inherit: the UA hands
-// them its own face, which is why every button in the application was rendering
-// in Arial while the text beside it was not. Every control here is styled text,
-// so they take the document's face. Type selectors, so any component class
-// still wins on size and weight.
+// Form controls take the document's face, which they do not inherit. Type
+// selectors, so any component class still wins on size and weight.
 button,
 input,
 select,
@@ -58,13 +50,9 @@ textarea {
 }
 
 // --- Focus ---
-// A single visible ring for keyboard users, on everything focusable. The
-// button rules deliberately do not clear their outline: removing the focus
-// indicator without replacing it is WCAG 2.4.7, and it is the reason this
-// block exists rather than a per-component :focus rule.
-//
-// :focus-visible rather than :focus, so a mouse click does not leave a ring
-// behind on a button that was only pressed.
+// A single visible ring for keyboard users, on everything focusable, so no
+// component should clear its outline. :focus-visible, so a mouse click leaves
+// no ring behind.
 :focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);
   outline-offset: var(--focus-ring-offset);

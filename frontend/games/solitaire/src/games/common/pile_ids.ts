@@ -1,24 +1,16 @@
-/**
- * The stable pile ids every board names its piles with.
- *
- * Both the game model and the render layout derive pile ids through these, so
- * the two can never drift apart. Written once rather than per game: thirteen
- * games declared byte-identical copies of `foundationPileId` and
- * `tableauPileId`, which is thirteen chances for one board to start calling its
- * columns something else.
- */
+/** Names the piles on every board with stable ids. */
 
-/** The stable id of the foundation pile at the given index. */
+/** Returns the stable id of the foundation pile at the given index. */
 export function foundationPileId(index: number): string {
   return `foundation-${index}`;
 }
 
-/** The stable id of the tableau column at the given index. */
+/** Returns the stable id of the tableau column at the given index. */
 export function tableauPileId(index: number): string {
   return `tableau-${index}`;
 }
 
-/** The stable id of the holding cell at the given index. */
+/** Returns the stable id of the holding cell at the given index. */
 export function cellPileId(index: number): string {
   return `cell-${index}`;
 }

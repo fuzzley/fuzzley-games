@@ -27,34 +27,22 @@ export const FOUNDATION_COUNT = 8;
 export { STOCK_PILE_ID, WASTE_PILE_ID };
 
 /**
- * The grid column the leftmost foundation sits in.
- *
- * Stock, waste, then eight foundations — which this game can pack together
- * because it draws one card at a time, so its waste never fans and needs no
- * clear column beside it the way Klondike's does.
+ * The grid column the leftmost foundation sits in, right beside the waste,
+ * which never fans.
  */
 export const FOUNDATION_COLUMN_OFFSET = 2;
 
-/**
- * How many slots the top row needs: the stock, the waste and every foundation.
- *
- * The floor under every board in the family. Maria deals only nine columns but
- * still has to seat ten across the top, so its board is wider than its tableau —
- * the same trade Eight Off makes for its eight cells.
- */
+/** How many slots the top row needs: stock, waste and every foundation. */
 export const TOP_ROW_SLOT_COUNT = FOUNDATION_COLUMN_OFFSET + FOUNDATION_COUNT;
 
-/** How many grid columns a variant's board is wide. */
+/** Returns how many grid columns a variant's board is wide. */
 export function boardColumnCount(variant: FortyThievesVariant): number {
   return Math.max(fortyThievesTableauCount(variant), TOP_ROW_SLOT_COUNT);
 }
 
 /**
- * The grid column the leftmost tableau column sits in.
- *
- * Zero for every variant whose tableau is at least as wide as the top row, and
- * a centring nudge for Maria, whose nine columns sit under ten slots. Derived
- * rather than written out so it stays right if the counts ever change.
+ * Returns the grid column the leftmost tableau column sits in, centring a
+ * tableau narrower than the top row.
  */
 export function tableauColumnOffset(variant: FortyThievesVariant): number {
   return Math.floor(
@@ -62,26 +50,14 @@ export function tableauColumnOffset(variant: FortyThievesVariant): number {
   );
 }
 
-/**
- * How the waste arranges its cards: one at a time.
- *
- * A draw turns a single card, so there is never more than one to show and
- * fanning would only leave a gap where the second card is not — the same
- * reasoning Klondike applies to its own Draw 1 mode.
- */
+/** How the waste arranges its cards: only the top one shows. */
 export const WASTE_PILE_LAYOUT: PileLayout = {
   kind: "fan-right",
   gap: 0,
   maxVisible: 1,
 };
 
-/**
- * The zones of a Forty Thieves board, for the given variant.
- *
- * Everything that varies — the column count, the build rule, the grab rule,
- * whether cards are dealt face down — follows the variant, so there are exactly
- * as many possible answers as there are variants.
- */
+/** Returns the zones of a Forty Thieves board under a variant. */
 export const fortyThievesZoneSpecs = memoizeZones(
   (variant: FortyThievesVariant): readonly ZoneSpec[] => [
     stockZone({
@@ -89,11 +65,8 @@ export const fortyThievesZoneSpecs = memoizeZones(
       role: FortyThievesRole.STOCK,
       column: 0,
       row: 0,
-      // The top card is clickable — that is what draws — but pressing it must
-      // not pick it up.
       accept: fortyThievesPlacementRule(FortyThievesRole.STOCK, variant),
-      // Closed slot placeholder and deliberately no `emptyIsActionable`:
-      // there is no recycle in this family, so an emptied stock is spent for good.
+      // No `emptyIsActionable`: the stock is never recycled.
       backgroundKey: CLOSED_STOCK_PLACEHOLDER,
     }),
     wasteZone({
@@ -118,8 +91,6 @@ export const fortyThievesZoneSpecs = memoizeZones(
       role: FortyThievesRole.TABLEAU,
       accept: fortyThievesPlacementRule(FortyThievesRole.TABLEAU, variant),
       grab: fortyThievesGrabRule(variant),
-      // Only Rank and File buries anything; the other two show every card from
-      // the deal, so deferring to the card would be the same as always-up.
       face: fortyThievesHidesCards(variant) ? "card" : "always-up",
     }),
   ],

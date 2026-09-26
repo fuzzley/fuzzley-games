@@ -230,7 +230,7 @@ describe("DragController", () => {
   });
 
   describe("flight", () => {
-    /** The card ids of each flight in the air, oldest first. */
+    /** Returns the card ids of each flight in the air, oldest first. */
     function flownStacks(): string[][] {
       return controller.flights.map((flight) => [...flight.cardIds]);
     }
@@ -274,8 +274,7 @@ describe("DragController", () => {
 
       controller.beginFlight(["b"]);
 
-      // A single slot would drop the first out of the air to make room, and it
-      // would snap to its pile's depth halfway across the board.
+      // Both stay in the air; a single slot would have dropped the first.
       expect(flownStacks()).toEqual([["a"], ["b"]]);
     });
 

@@ -9,16 +9,12 @@ import { IntentHandler } from "./table_intents";
 /** Maximum milliseconds between two presses for them to count as a double. */
 const DOUBLE_PRESS_MS = 350;
 
-/** How the controller learns which cards travel with the one being dragged. */
+/** Returns the cards that travel with the one being dragged. */
 export type StackFromCard = (cardId: string) => readonly string[];
 
 /**
- * The pointer-driven half of playing a card game: what is hovered, what is in
+ * Tracks what the pointer is doing to the table: what is hovered, what is in
  * hand, what is still crossing the board, and whether two presses were a double.
- *
- * Framework-free and game-free. A backend feeds it pointer events, a game
- * handles the intents it reports, and the view builder reads the interaction
- * state it exposes. None of that changes between Klondike and FreeCell.
  */
 export class DragController {
   /** The id of the currently hovered card, or null when none is. */
@@ -30,7 +26,7 @@ export class DragController {
   /** The active drag, or null when nothing is in hand. */
   public drag: DragInteraction | null = null;
 
-  /** Whether every card should snap to its place this frame instead of easing. */
+  /** Whether every card snaps to its place this frame instead of easing. */
   public snapAll = true;
 
   private readonly flightState: FlightInteraction[] = [];
@@ -38,11 +34,9 @@ export class DragController {
   private lastPressedCardId: string | null = null;
 
   /**
-   * @param handle Carries out the intents the controller reports.
-   * @param stackFromCard The cards that travel with a given card, so a drag
-   *   picks up everything resting on what was grabbed.
-   * @param now Reads the clock, for the double-press window. Injectable so a
-   *   test can control it.
+   * Creates a controller that reports intents to `handle`.
+   *
+   * @param now Reads the clock in milliseconds, for timing double presses.
    */
   constructor(
     private readonly handle: IntentHandler,
@@ -52,21 +46,17 @@ export class DragController {
 
   // --- Hover ---
 
-  /** The pointer moved onto a card. */
+  /** Notes that the pointer moved onto a card. */
   public cardOver(cardId: string): void {
     this.hoveredCardId = cardId;
   }
 
   /**
-   * The pointer left a card, which un-hovers it only if it was the hovered one.
+   * Un-hovers a card the pointer left, if it was the hovered one.
    *
-   * @param cardId The card the pointer left.
-   * @param lingers Whether the card stays examined after the pointer has gone.
-   *   Set when the pointer was a finger. A mouse leaving a card is a decision
-   *   to stop looking at it; a finger lifting is not — it has nowhere to rest,
-   *   and while it is down it covers the very corner the fan just uncovered.
-   *   So a tapped card stays open until the player touches something else,
-   *   which is what makes a tap reveal as much as a hover does.
+   * @param lingers Whether the card stays hovered anyway, as it does for a
+   *   finger: a finger covered the corner the fan uncovered, so the card stays
+   *   open until the player touches something else.
    */
   public cardOut(cardId: string, lingers = false): void {
     if (lingers) return;
@@ -76,23 +66,20 @@ export class DragController {
   }
 
   /**
-   * The pointer was pressed on bare table, where no card or slot answers.
-   *
-   * The way a lingering reveal is put back. A mouse clears one by moving off
-   * the card, which a finger cannot do, so without this a tapped column would
-   * stay open until some other card was tapped.
+   * Clears the hover after a press on bare table, which is how a finger closes
+   * a card it tapped open.
    */
   public pressedBareTable(): void {
     this.hoveredCardId = null;
     this.hoveredBackgroundPileId = null;
   }
 
-  /** The pointer moved onto a pile's background slot. */
+  /** Notes that the pointer moved onto a pile's background slot. */
   public backgroundOver(pileId: string): void {
     this.hoveredBackgroundPileId = pileId;
   }
 
-  /** The pointer left a pile's background slot. */
+  /** Notes that the pointer left a pile's background slot. */
   public backgroundOut(pileId: string): void {
     if (this.hoveredBackgroundPileId === pileId) {
       this.hoveredBackgroundPileId = null;
@@ -102,12 +89,11 @@ export class DragController {
   // --- Presses ---
 
   /**
-   * A card was pressed.
+   * Reports a press on a card, and an `activate-secondary` too if it completes
+   * a double press.
    *
-   * Always reports an `activate`. When it completes a double press on the same
-   * card it reports an `activate-secondary` as well, and cancels any drag the
-   * press began: a double press is a click gesture, not a drag, and letting the
-   * trailing release run the drop resolver would move the card a second time.
+   * A double press cancels any drag the press began, so its release does not
+   * move the card a second time.
    */
   public cardPressed(cardId: string): void {
     this.handle({ kind: "activate", cardId });
@@ -120,7 +106,7 @@ export class DragController {
     this.handle({ kind: "activate-secondary", cardId });
   }
 
-  /** A pile's empty slot was pressed. */
+  /** Reports a press on a pile's empty slot. */
   public backgroundPressed(pileId: string): void {
     this.handle({ kind: "activate-pile", pileId });
   }
@@ -141,12 +127,7 @@ export class DragController {
     return isDouble;
   }
 
-  /**
-   * Forgets the press history, so the next press cannot complete a double.
-   *
-   * A backend calls this after a press it has already acted on, which is how a
-   * repeated press on the same card stays a series of single presses.
-   */
+  /** Forgets the press history, so the next press cannot complete a double. */
   public resetPressTracking(): void {
     this.lastPressTimeMs = 0;
     this.lastPressedCardId = null;
@@ -154,7 +135,7 @@ export class DragController {
 
   // --- Dragging ---
 
-  /** A drag began on a card, at the given position. */
+  /** Picks up a card, and every card resting on it, at a point. */
   public dragStarted(cardId: string, at: Point): void {
     const cardIds = this.stackFromCard(cardId);
     if (cardIds.length === 0) return;
@@ -162,7 +143,7 @@ export class DragController {
     this.drag = { cardIds: [...cardIds], primary: { x: at.x, y: at.y } };
   }
 
-  /** The stack in hand followed the pointer. */
+  /** Moves the stack in hand to follow the pointer. */
   public dragMoved(to: Point): void {
     if (this.drag) {
       this.drag.primary = { x: to.x, y: to.y };
@@ -170,10 +151,10 @@ export class DragController {
   }
 
   /**
-   * The stack in hand was released over the given pile, or over nothing.
+   * Reports the stack in hand released over a pile, or over nothing.
    *
-   * Clears the drag before reporting it, so the frame that renders the drop
-   * already knows nothing is in hand.
+   * Clears the drag first, so the frame that renders the drop already knows
+   * nothing is in hand.
    */
   public dragEnded(targetPileId: string | null): void {
     const drag = this.drag;
@@ -186,11 +167,9 @@ export class DragController {
       targetPileId,
     });
 
-    // Released wherever the pointer left it, so the stack has the board to
-    // cross whichever way it goes: on to the pile that took it, or back to the
-    // one it came from when nothing would. A refused drop moves nothing in the
-    // model and so is announced by nobody, which is why this is unconditional.
-    // An accepted one is announced too, and the newer flight supersedes this.
+    // Fly either way: to the pile that took the stack, or back where it came
+    // from. Only an accepted drop is announced by the model, whose newer
+    // flight then supersedes this one.
     this.beginFlight(drag.cardIds);
   }
 
@@ -204,10 +183,8 @@ export class DragController {
   /**
    * Lifts a stack clear of the board while it crosses it.
    *
-   * A card already in the air is taken out of its old flight first, so a card
-   * moved again mid-flight belongs to the newer one alone and cannot be retired
-   * by whichever of the two lands first. A flight left with nothing in it goes
-   * with it.
+   * A card already in the air moves from its old flight to this one, so only
+   * the newer flight's landing can retire it.
    *
    * @param cardIds The cards to lift, bottom card of the stack first.
    */
@@ -230,8 +207,7 @@ export class DragController {
   }
 
   /**
-   * Lets one flying stack settle back onto the board. Called once its sprites
-   * have reached the pile they were moved to.
+   * Settles a flying stack back onto the board once its sprites have landed.
    *
    * @param flight The flight to retire, as handed out by {@link flights}.
    */
@@ -244,7 +220,7 @@ export class DragController {
 
   // --- State ---
 
-  /** Snapshot of the interaction state the view builder reads each frame. */
+  /** The interaction state the view builder reads each frame. */
   public get interaction(): TableInteractionState {
     return {
       hoveredCardId: this.hoveredCardId,
@@ -255,10 +231,7 @@ export class DragController {
     };
   }
 
-  /**
-   * Clears all interaction state and requests a one-frame snap. Called on a new
-   * deal so no stale hover, drag or flight survives into it.
-   */
+  /** Clears all interaction state for a new deal and snaps every card. */
   public reset(): void {
     this.hoveredCardId = null;
     this.hoveredBackgroundPileId = null;

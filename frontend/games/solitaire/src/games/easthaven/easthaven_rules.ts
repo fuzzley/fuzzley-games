@@ -19,24 +19,15 @@ export const EasthavenRole = {
   TABLEAU: "tableau",
 } as const satisfies Record<string, PileRole>;
 
-/** One of the parts an Easthaven pile can play. */
+/** Names one of the parts an Easthaven pile can play. */
 export type EasthavenRole = (typeof EasthavenRole)[keyof typeof EasthavenRole];
 
 /**
  * An Easthaven column: a King starts an empty one, and anything after builds
  * down in alternating colors.
  *
- * Klondike's column rule exactly. What makes Easthaven its own game is the pair
- * this rule is bolted to: Spider's row-dealing stock, and a stock that refuses
- * to deal while any column stands empty. Kings-only spaces are an inconvenience
- * in Klondike, where the stock keeps offering cards regardless; here they can
- * end the game outright, because a column you cannot fill is a stock you cannot
- * use.
- *
- * Nothing limits how many cards may land at once. It does not need to: an
- * Easthaven run is carried in one piece rather than staged through spare
- * squares the way a FreeCell supermove is, so there is no staging capacity to
- * run out of.
+ * No stack limit applies, since a run moves in one piece rather than through
+ * spare cells.
  */
 export const EASTHAVEN_TABLEAU_RULE: PlacementRule = byEmptiness(
   cardIs(hasRank(Rank.KING)),
@@ -47,14 +38,8 @@ export const EASTHAVEN_TABLEAU_RULE: PlacementRule = byEmptiness(
 export const EASTHAVEN_FOUNDATION_RULE: PlacementRule = suitFoundation;
 
 /**
- * The rule governing what a pile of the given role accepts, or null for one
- * that is never a destination.
- *
- * The stock is never dropped onto. The foundations are, which is what separates
- * this game from Spider and Scorpion: a card reaches a foundation because the
- * player put it there, not because a run completed itself.
- *
- * @param role The part the pile plays.
+ * Returns what a pile of a role accepts, or null for the stock, which is never
+ * a destination.
  */
 export function easthavenPlacementRule(role: string): PlacementRule | null {
   switch (role) {

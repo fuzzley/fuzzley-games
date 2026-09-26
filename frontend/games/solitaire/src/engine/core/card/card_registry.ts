@@ -9,10 +9,8 @@ import {
  * Owns the single persistent {@link PlayingCard} instance for each card
  * identity.
  *
- * The render layer's visuals hold references to these instances, so every deal
- * reuses the same objects rather than recreating them. The registry is the one
- * place that guarantees that identity, which keeps the model and its rendered
- * sprites in sync across restarts.
+ * Every deal reuses these instances because the render layer's sprites hold
+ * references to them.
  */
 export class CardRegistry {
   private readonly cardsById = new Map<string, PlayingCard>();
@@ -22,7 +20,7 @@ export class CardRegistry {
     return this.cardsById.size;
   }
 
-  /** The id of every card registered so far, in registration order. */
+  /** Returns the id of every card registered so far, in registration order. */
   ids(): readonly string[] {
     return [...this.cardsById.keys()];
   }
@@ -36,13 +34,10 @@ export class CardRegistry {
   }
 
   /**
-   * Returns the persistent card for the given identity, creating and storing it
-   * on first request. The same instance is returned on every subsequent call.
+   * Returns the persistent card for an identity, creating it on first request.
    *
-   * Keyed by instance id rather than by face, so a game dealing two decks gets
-   * two distinct Queens of Hearts instead of one shared between both piles.
-   *
-   * @param cardId The suit, rank and deck index identifying the card.
+   * Cards are keyed by deck index as well as face, so a game dealing two decks
+   * gets two distinct Queens of Hearts.
    */
   getOrCreate(cardId: DeckCardId): PlayingCard {
     const id = playingCardInstanceId(cardId);

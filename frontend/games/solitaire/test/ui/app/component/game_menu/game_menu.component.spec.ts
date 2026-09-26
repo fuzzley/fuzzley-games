@@ -26,7 +26,7 @@ describe("GameMenuComponent", () => {
     fixture.detectChanges();
   });
 
-  /** The buttons listing the games on offer. */
+  /** Returns the buttons listing the games on offer. */
   function gameItems(): HTMLElement[] {
     return queryAll(fixture, ".game-item");
   }

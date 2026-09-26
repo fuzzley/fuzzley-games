@@ -4,14 +4,8 @@ import { DoubleKlondikeGame } from "./double_klondike_game";
 import { DoubleKlondikeRole } from "./double_klondike_zones";
 
 /**
- * What a press or a drop means in Double Klondike.
- *
- * Klondike's gesture map exactly, because the stock behaves the same way from
- * the player's side: pressing the top of the stock draws three, pressing the
- * empty stock recycles the waste, and double-pressing a card in a column or on
- * the waste sends it wherever it will go.
- *
- * @param game The game to act on.
+ * Returns what a press or a drop means in Double Klondike, which is what it
+ * means in Klondike.
  */
 export function doubleKlondikeGestures(
   game: DoubleKlondikeGame,

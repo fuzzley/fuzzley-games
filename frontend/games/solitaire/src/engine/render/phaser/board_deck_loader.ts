@@ -4,38 +4,26 @@ import { CardDeckId } from "../card_deck";
 import { CardDeckStatus } from "../presentation";
 import { cardDeckTextureKey, loadCardDeck } from "./card_deck_atlas";
 
-/** What a deck loader needs of the scene it draws into. */
+/** Gives a deck loader what it needs of the scene it draws into. */
 export interface DeckLoaderHost {
-  /** The texture cache, for testing what is resident and releasing what is not. */
+  /** The texture cache, to check what is resident and release what is not. */
   readonly textures: Textures.TextureManager;
   /** The loader, for fetching a deck that is not resident. */
   readonly load: Loader.LoaderPlugin;
-  /** Every sprite drawn from the deck texture, cards and placeholders alike. */
+  /** Returns every card and placeholder sprite drawn from the deck texture. */
   texturedSprites(): Iterable<GameObjects.Sprite>;
   /** Says how the deck the player asked for is getting on. */
   reportCardDeckStatus(status: CardDeckStatus): void;
 }
 
-/**
- * Which deck the board is drawn from, and how it gets there.
- *
- * Lifted out of {@link BoardScene}, where it was about a sixth of the file and
- * shared nothing with the rest of it but the sprite maps it iterates. Fetching
- * an atlas, guarding against a stale arrival, repointing every sprite and
- * releasing the texture being left is asset management, not board drawing.
- */
+/** Loads the deck the board is drawn from and repoints every sprite at it. */
 export class BoardDeckLoader {
-  /**
-   * The deck a load is running for, or null when none is.
-   *
-   * What makes a late arrival safe to ignore: a player who switches away and
-   * back while the first load is still running should end on the deck they
-   * chose last, not on whichever load happened to finish last.
-   */
+  /** The deck a load is running for, or null when none is. */
   private awaiting: CardDeckId | null = null;
 
   /**
-   * @param host The scene to load into and draw from.
+   * Creates a loader for a scene.
+   *
    * @param current The deck the board booted on.
    */
   constructor(
@@ -43,30 +31,20 @@ export class BoardDeckLoader {
     private current: CardDeckId,
   ) {}
 
-  /**
-   * The deck being drawn. Every sprite's texture, and the one new sprites are
-   * made from.
-   */
+  /** The deck every sprite, old or new, is drawn from. */
   get deckId(): CardDeckId {
     return this.current;
   }
 
   /**
-   * Draws the board from a different deck.
-   *
-   * Fetches it first unless it is already in the texture cache, and leaves the
-   * board on the deck it has if that fetch fails: a texture that never arrived
-   * would draw every card as a blank rectangle, which is worse than the deck
-   * they were trying to leave.
-   *
-   * @param deckId The deck to switch to.
+   * Draws the board from a deck, fetching it first if needed and staying on the
+   * current deck if the fetch fails.
    */
   use(deckId: CardDeckId): void {
     if (deckId === this.current) {
       this.awaiting = null;
-      // Said again rather than passed over in silence: this is the branch the
-      // deck the board booted on arrives through, and the one a revert comes
-      // back through, and both are answers somebody is waiting for.
+      // Reported even though nothing changed: the boot deck and a revert both
+      // arrive here, and someone is waiting on each.
       this.host.reportCardDeckStatus({ kind: "drawn", deckId });
       return;
     }
@@ -81,9 +59,8 @@ export class BoardDeckLoader {
     this.host.reportCardDeckStatus({ kind: "loading", deckId });
     const textureKey = loadCardDeck(this.host.load, deckId);
     this.host.load.once(Loader.Events.COMPLETE, () => {
-      // Ignored unless this is still the deck being waited for: switching away
-      // and back mid-load would otherwise let the stale arrival win — and
-      // answer for a question that is no longer being asked.
+      // A player who switched again mid-load wants their later choice, not
+      // whichever load finishes last.
       if (this.awaiting !== deckId) return;
       this.awaiting = null;
       if (this.host.textures.exists(textureKey)) {
@@ -96,25 +73,11 @@ export class BoardDeckLoader {
   }
 
   /**
-   * Repoints every sprite at the given deck's texture, and lets go of the one
-   * being left.
+   * Repoints every sprite at a deck's texture and releases the old one.
    *
-   * Frame names are the same in every deck, so each sprite keeps the frame it
-   * was already showing and the per-frame reconciliation in
-   * {@link PhaserTableRenderer} has nothing to undo.
-   *
-   * The origin has to be put back after each swap. A `Sprite` takes its
-   * `setTexture` from the TextureCrop component, which passes the frame on to
-   * `setFrame` with `updateOrigin` left at its default — and every card frame
-   * records a custom pivot at its centre, while the board places cards by their
-   * top left corner. `setFrame`'s own `updateOrigin` parameter is not reachable
-   * from here without first setting the texture to its `__BASE` frame.
-   *
-   * The outgoing deck is dropped rather than kept for a quick return: a page is
-   * 4032x3732, which is sixty megabytes of texture memory once uploaded, and
-   * three of those resident is more than a mobile GPU should be asked to hold
-   * for a preference. Coming back re-reads it from the browser's cache, so what
-   * a return actually costs is a decode and an upload rather than a download.
+   * The old texture is not kept for a quick return because each deck takes
+   * about sixty megabytes of texture memory, and a mobile GPU should not have
+   * to hold several.
    */
   private apply(deckId: CardDeckId): void {
     const previousKey = cardDeckTextureKey(this.current);
@@ -123,6 +86,8 @@ export class BoardDeckLoader {
 
     for (const sprite of this.host.texturedSprites()) {
       sprite.setTexture(textureKey, sprite.frame.name);
+      // setTexture moves the origin to the frame's centred pivot, but the board
+      // places cards by their top left corner.
       sprite.setOrigin(0, 0);
     }
 

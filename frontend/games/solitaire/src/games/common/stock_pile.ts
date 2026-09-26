@@ -3,29 +3,13 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
 import { CardTransfer } from "@/engine/tableau/move";
 
 /**
- * The two things a stock-and-waste game does with its stock.
- *
- * Klondike, Forty Thieves and Double Klondike all turn cards from a face-down
- * stock onto a face-up waste, and two of the three turn the waste back over when
- * the stock runs out. The mechanics are identical in all of them — including the
- * two order reversals below, which are the easy part to get wrong — so they are
- * written once here rather than transcribed per game.
- *
- * Deliberately unaware of scoring, move counts and history. A stock that emptied
- * itself into the undo stack would be making decisions that belong to the game:
- * Klondike charges a penalty for a recycle and Forty Thieves has no recycle at
- * all. These functions move cards and report what they moved; the caller records
- * it.
+ * Draws from a stock onto a waste and recycles the waste back, leaving the
+ * caller to score and record what moved.
  */
 
 /**
- * Turns up to `count` cards from the stock onto the waste, face up.
- *
- * @param stock The face-down pile to draw from.
- * @param waste The face-up pile to draw onto.
- * @param count How many cards a draw turns over. More than the stock holds
- *   simply draws the stock out.
- * @returns The single transfer this moved, or nothing when the stock was empty.
+ * Turns up to `count` cards from the stock onto the waste, face up, and returns
+ * the transfer it made, if any.
  */
 export function drawToWaste(
   stock: CardPile<PlayingCard>,
@@ -47,10 +31,8 @@ export function drawToWaste(
 
   return [
     {
-      // Reversed: the cards came off the top of the stock, so the order they
-      // were drawn in is the opposite of the order they sat in. A transfer
-      // records where cards came *from*, which is what lets undo re-append them
-      // and get the original pile back.
+      // Reversed into the order they sat in the stock, which a transfer
+      // records.
       cardIds: drawn.reverse().map((card) => card.id),
       fromPileId: stock.id,
       toPileId: waste.id,
@@ -60,11 +42,8 @@ export function drawToWaste(
 }
 
 /**
- * Turns the whole waste back onto the stock, face down.
- *
- * @param waste The face-up pile to empty.
- * @param stock The face-down pile to refill.
- * @returns The single transfer this moved, or nothing when the waste was empty.
+ * Turns the whole waste back onto the stock, face down, and returns the
+ * transfer it made, if any.
  */
 export function recycleWasteToStock(
   waste: CardPile<PlayingCard>,

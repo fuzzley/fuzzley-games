@@ -164,11 +164,6 @@ describe("SpideretteGame stock", () => {
     ]);
   });
 
-  /*
-   * The rule that separates this stock from Spider's, which refuses while any
-   * column stands empty. Twenty-four cards across seven columns cannot come out
-   * evenly, so a game that had emptied a column would strand the short last row.
-   */
   it("deals even when a column is empty, unlike Spider", () => {
     const game = newGame();
     game.tableaus[0].clear();

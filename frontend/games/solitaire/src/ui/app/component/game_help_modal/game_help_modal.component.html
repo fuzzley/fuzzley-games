@@ -46,14 +46,9 @@
         }
       </div>
       <!--
-        `autofocus` so the browser lands here rather than on the first
-        focusable child, which is the outbound Wikipedia link.
-
-        The lint rule objects to autofocus because stealing focus on page load
-        disorients people. Inside a modal it is the opposite: the dialog is
-        taking focus either way, and this only says which control it should
-        land on. It is the mechanism the HTML specification names for exactly
-        this, and the alternative is the setTimeout-and-focus() this replaced.
+        `autofocus` so opening the dialog lands here rather than on the
+        Wikipedia link. The lint rule is about autofocus on page load, which a
+        modal taking focus is not.
       -->
       <!-- eslint-disable @angular-eslint/template/no-autofocus -->
       <button

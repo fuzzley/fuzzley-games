@@ -1,4 +1,4 @@
-/** The part of Node's `process` this needs; the specs have no Node types. */
+/** Describes the part of Node's `process` this needs, lacking Node's types. */
 interface NodeProcess {
   getBuiltinModule(
     id: "node:stream/web",
@@ -6,9 +6,8 @@ interface NodeProcess {
 }
 
 /**
- * Puts Node's compression streams on the global scope when the jsdom
- * environment has left them off, as it does. The bug report encodes game state
- * with them.
+ * Puts Node's compression streams on the global scope where jsdom leaves them
+ * off, for the bug report's encoding.
  */
 export function installCompressionStreams(): void {
   if (typeof CompressionStream !== "undefined") return;

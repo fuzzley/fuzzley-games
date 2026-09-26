@@ -7,19 +7,19 @@ import {
 } from "@/engine/core/common/json_reader";
 import { AppliedMove, CardTransfer } from "./move";
 
-/** A card as it lies in a pile. */
+/** Records a card as it lies in a pile. */
 export interface CardSnapshot {
   readonly id: string;
   readonly faceUp: boolean;
 }
 
-/** A pile and its cards, bottom-first. */
+/** Records a pile and its cards, bottom first. */
 export interface PileSnapshot {
   readonly id: string;
   readonly cards: readonly CardSnapshot[];
 }
 
-/** Everything needed to put a dealt game back exactly as it was. */
+/** Records everything needed to put a dealt game back exactly as it was. */
 export interface GameSnapshot {
   /** Every pile, in the order the game declares them. */
   readonly piles: readonly PileSnapshot[];
@@ -34,8 +34,9 @@ export interface GameSnapshot {
 }
 
 /**
- * Reads a value from outside, such as parsed JSON, as a snapshot. Whether it
- * fits a particular game is for `restore` to say.
+ * Reads a value from outside, such as parsed JSON, as a snapshot.
+ *
+ * Whether it fits a particular game is for `restore` to say.
  *
  * @throws Error naming the first part that is malformed.
  */

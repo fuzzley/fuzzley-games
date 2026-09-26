@@ -11,14 +11,7 @@ import {
 } from "@/engine/tableau/rules";
 import { ZoneSpec } from "@/engine/tableau/zone";
 
-/**
- * The parts a pile plays on the fake board.
- *
- * Deliberately the four a solitaire can have rather than any one game's set: a
- * pile cards are drawn from, a pile they are drawn into, piles built up and
- * columns built down. That is the shape the engine has to cope with, so it is
- * the shape it is tested against.
- */
+/** The parts a pile plays on the fake board. */
 export const FakeRole = {
   /** The face-down pile a press draws from. */
   STOCK: "stock",
@@ -30,7 +23,7 @@ export const FakeRole = {
   TABLEAU: "tableau",
 } as const satisfies Record<string, PileRole>;
 
-/** One of the parts a fake pile can play. */
+/** Names one of the parts a fake pile can play. */
 export type FakeRole = (typeof FakeRole)[keyof typeof FakeRole];
 
 /** The number of foundation piles. */
@@ -45,12 +38,12 @@ export const STOCK_PILE_ID = "stock";
 /** The stable id of the single waste pile. */
 export const WASTE_PILE_ID = "waste";
 
-/** The stable id of the foundation pile at the given index. */
+/** Returns the stable id of the foundation pile at the given index. */
 export function foundationPileId(index: number): string {
   return `foundation-${index}`;
 }
 
-/** The stable id of the tableau column at the given index. */
+/** Returns the stable id of the tableau column at the given index. */
 export function tableauPileId(index: number): string {
   return `tableau-${index}`;
 }
@@ -82,12 +75,8 @@ export const TABLEAU_PILE_LAYOUT: PileLayout = {
 export const STACKED_PILE_LAYOUT: PileLayout = { kind: "stacked" };
 
 /**
- * How the waste arranges its cards for the given draw mode.
- *
- * Drawing one card at a time leaves nothing to fan, which is the case that
- * exercises a `maxVisible` of one.
- *
- * @param drawCount How many cards a draw turns over.
+ * Returns how the waste arranges its cards when each draw turns over
+ * `drawCount`.
  */
 export function wastePileLayout(drawCount: number): PileLayout {
   return {
@@ -97,12 +86,7 @@ export function wastePileLayout(drawCount: number): PileLayout {
   };
 }
 
-/**
- * The arrangement a pile of the given role uses.
- *
- * @param role The part the pile plays.
- * @param drawCount How many cards a draw turns over, which sets the waste fan.
- */
+/** Returns a fake pile's layout for its role and the draw count. */
 export function fakePileLayout(role: string, drawCount: number): PileLayout {
   switch (role) {
     case FakeRole.TABLEAU:
@@ -121,10 +105,8 @@ export const FAKE_TABLEAU_RULE: PlacementRule = byEmptiness(
 );
 
 /**
- * What a pile of the given role accepts, or null for the stock and waste, which
- * are never move destinations.
- *
- * @param role The part the destination pile plays.
+ * Returns what a pile of a role accepts, or null for the stock and waste,
+ * which are never destinations.
  */
 export function fakePlacementRule(role: string): PlacementRule | null {
   switch (role) {
@@ -137,13 +119,7 @@ export function fakePlacementRule(role: string): PlacementRule | null {
   }
 }
 
-/**
- * The thirteen zones of the fake board, for the given draw mode.
- *
- * Stock and waste at the left of the top row, foundations at the right of it,
- * and the columns filling the bottom row. Memoized per draw mode, because the
- * only thing that varies is the waste fan.
- */
+/** Returns the thirteen zones of the fake board, memoized per draw count. */
 export function fakeZoneSpecs(drawCount: number): readonly ZoneSpec[] {
   let zones = zonesByDrawCount.get(drawCount);
   if (!zones) {

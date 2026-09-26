@@ -25,35 +25,26 @@ export const FOUNDATION_COUNT = 8;
 export { STOCK_PILE_ID, WASTE_PILE_ID };
 
 /**
- * The grid column the leftmost foundation sits in.
- *
- * Stock at 0, waste at 1, and column 2 left clear for the waste fan to grow
- * into — exactly as Klondike arranges its own top row, and for the same reason:
- * a draw of three fans rightwards and would otherwise run into the first
- * foundation.
+ * The grid column the leftmost foundation sits in, leaving column 2 clear for
+ * the waste fan.
  */
 export const FOUNDATION_COLUMN_OFFSET = 3;
 
 /**
- * How many grid columns the board is wide.
- *
- * The top row binds, as it does in Eight Off and Maria: stock, waste, a clear
- * column and eight foundations need eleven slots, while only nine columns hang
- * beneath them.
+ * How many grid columns the board is wide, set by the eleven slots of the top
+ * row rather than the nine columns below it.
  */
 export const BOARD_COLUMN_COUNT = FOUNDATION_COLUMN_OFFSET + FOUNDATION_COUNT;
 
 /**
- * The grid column the leftmost tableau column sits in.
- *
- * Derived rather than written as `1`, so it stays centred if the counts above
- * ever change.
+ * The grid column the leftmost tableau column sits in, centring the columns
+ * under the top row.
  */
 export const TABLEAU_COLUMN_OFFSET = Math.floor(
   (BOARD_COLUMN_COUNT - TABLEAU_COUNT) / 2,
 );
 
-/** The nineteen zones of a Double Klondike board. */
+/** Returns the nineteen zones of a Double Klondike board. */
 export function doubleKlondikeZoneSpecs(): readonly ZoneSpec[] {
   return ZONES;
 }
@@ -64,8 +55,6 @@ const ZONES: readonly ZoneSpec[] = [
     role: DoubleKlondikeRole.STOCK,
     column: 0,
     row: 0,
-    // The top card is clickable — that is what draws — but pressing it must not
-    // pick it up.
     accept: doubleKlondikePlacementRule(DoubleKlondikeRole.STOCK),
     backgroundKey: RECYCLING_STOCK_PLACEHOLDER,
     // Clicking the empty slot recycles the waste, as in Klondike.
@@ -77,7 +66,6 @@ const ZONES: readonly ZoneSpec[] = [
     column: 1,
     row: 0,
     accept: doubleKlondikePlacementRule(DoubleKlondikeRole.WASTE),
-    // The last three fanned rightwards, as Klondike fans its own.
     layout: wasteFanLayout(3),
   }),
   ...foundationRow({
@@ -93,8 +81,7 @@ const ZONES: readonly ZoneSpec[] = [
     row: 1,
     role: DoubleKlondikeRole.TABLEAU,
     accept: doubleKlondikePlacementRule(DoubleKlondikeRole.TABLEAU),
-    // Any face-up card, ordered or not — Klondike's deliberately lax rule, kept
-    // here so the two play the same way.
+    // Klondike's deliberately lax rule, so the two play alike.
     grab: { kind: "any-face-up" },
   }),
 ];

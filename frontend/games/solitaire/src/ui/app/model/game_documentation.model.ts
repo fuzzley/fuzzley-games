@@ -1,8 +1,9 @@
-/**
- * Metadata for a hero screenshot embedded in a game's documentation.
- */
+/** Describes a screenshot shown at the top of a game's rules page. */
 export interface DocScreenshot {
-  /** Relative URL path to the screenshot image (e.g. './docs/screenshots/klondike/overview.png'). */
+  /**
+   * The image's relative URL, such as
+   * `./docs/screenshots/klondike/overview.png`.
+   */
   readonly url: string;
   /** Human-readable caption explaining what the screenshot demonstrates. */
   readonly caption: string;
@@ -10,9 +11,7 @@ export interface DocScreenshot {
   readonly altText: string;
 }
 
-/**
- * High-level summary and win condition for a game.
- */
+/** Summarises a game and says how it is won. */
 export interface GameSummaryDoc {
   /** The primary objective of the game (e.g. move all cards to foundations). */
   readonly objective: string;
@@ -22,23 +21,19 @@ export interface GameSummaryDoc {
   readonly quickOverview: string;
 }
 
-/**
- * Detailed explanation of layout, movement, sequence building, and special mechanics.
- */
+/** Explains a game's layout, how cards move, how they build, and any extras. */
 export interface DetailedRulesDoc {
-  /** Overview of board areas (Tableau, Foundations, Stock, Waste, FreeCells, Reserves). */
+  /** The areas of the board, such as the tableau, foundations and stock. */
   readonly layout: readonly string[];
   /** Rules governing how cards and stacks are grabbed and moved. */
   readonly cardMovement: readonly string[];
   /** Rules for building sequences on tableau columns and foundations. */
   readonly sequenceBuilding: readonly string[];
-  /** Game-specific mechanics (e.g. stock recycle limits, supermove staging limit formulas). */
+  /** Rules particular to the game, such as recycle limits or supermove size. */
   readonly specialRules?: readonly string[];
 }
 
-/**
- * Explanation of an option choice bound to its numeric value.
- */
+/** Explains one choice of a rule option. */
 export interface GameOptionDocChoice {
   /** The option value matching GameOptionChoice.value in the catalog. */
   readonly value: number;
@@ -47,8 +42,10 @@ export interface GameOptionDocChoice {
 }
 
 /**
- * Documentation bound to a game option id.
- * Label and high-level description are read directly from GameOptionSpec in the catalog.
+ * Explains the choices of one rule option.
+ *
+ * Its label and description come from the option's `GameOptionSpec` in the
+ * catalog.
  */
 export interface GameOptionDoc {
   /** The option id matching a GameOptionSpec in the catalog. */
@@ -57,9 +54,7 @@ export interface GameOptionDoc {
   readonly choicesExplanation: readonly GameOptionDocChoice[];
 }
 
-/**
- * Complete documentation structure for a game in fSolitaire.
- */
+/** Holds a game's rules page. */
 export interface GameDocumentation {
   /** Human-readable game title (e.g. 'Klondike Solitaire'). */
   readonly title: string;

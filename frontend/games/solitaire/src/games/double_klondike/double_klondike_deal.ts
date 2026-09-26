@@ -14,17 +14,10 @@ export const DOUBLE_KLONDIKE_TWO_DECKS: DeckSpec = {
 };
 
 /**
- * Deals the Double Klondike opening layout: column i receives i + 1 cards with
- * only its top card face up, and everything left over goes face down onto the
- * stock. Consumes `deck` from the top (end).
+ * Deals the Double Klondike opening: column i receives i + 1 cards with only
+ * its top card face up, and the rest go face down onto the stock.
  *
- * Klondike's staircase run out to nine columns, which comes to 45 cards and
- * leaves 59 on the stock — a far longer stock than Klondike's 24, and the reason
- * the game takes as long as it does.
- *
- * @param deck The cards to deal, which this drains.
- * @param tableaus The columns to deal onto.
- * @param stock The stock to fill with the remainder.
+ * @param deck The cards to deal, which this drains from the end.
  */
 export function dealDoubleKlondikeLayout(
   deck: PlayingCard[],

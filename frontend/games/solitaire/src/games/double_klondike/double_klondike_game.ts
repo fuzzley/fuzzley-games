@@ -21,13 +21,7 @@ import {
   doubleKlondikeZoneSpecs,
 } from "./double_klondike_zones";
 
-/**
- * Which of this game's roles the shared scoring policy treats as what.
- *
- * Stated rather than left to coincide with Klondike's spelling: the policy
- * compares whatever it is given, so this is the whole of the coupling between
- * the two games and it is now visible in one place.
- */
+/** Which of this game's roles the shared scoring policy treats as what. */
 const DOUBLE_KLONDIKE_SCORING_ROLES: ScoringRoles = {
   waste: DoubleKlondikeRole.WASTE,
   tableau: DoubleKlondikeRole.TABLEAU,
@@ -37,7 +31,7 @@ const DOUBLE_KLONDIKE_SCORING_ROLES: ScoringRoles = {
 /** How many cards a draw turns over. */
 export const DRAW_COUNT = 3;
 
-/** What Double Klondike keeps outside its piles, for a snapshot. */
+/** Holds what Double Klondike keeps outside its piles, for a snapshot. */
 interface DoubleKlondikeExtra {
   /** How many times the waste has been recycled. */
   readonly recycleCount: number;
@@ -50,22 +44,8 @@ function readDoubleKlondikeExtra(value: unknown): DoubleKlondikeExtra {
 }
 
 /**
- * A game of Double Klondike.
- *
- * Klondike dealt from two decks: nine columns in the same staircase, eight
- * foundations, and a stock of fifty-nine drawn three at a time with the waste
- * recycled as often as the player likes.
- *
- * Twice the cards do not make it twice the game. Eight Kings rather than four
- * means an empty column is far easier to fill, and the long stock gives many
- * more passes to find a card — but eight foundations have to be fed from a
- * tableau only two columns wider, so the middle game is much more congested.
- *
- * The scoring is Klondike's, taken rather than restated: {@link ScoringPolicy}
- * is a policy object built to be injected, and it is told which of this game's
- * roles are the waste, the columns and the foundations. It used to compare
- * against Klondike's own role strings, so this game's had to spell them
- * identically or every move would have scored zero without failing to compile.
+ * Plays Double Klondike: Klondike dealt from two decks onto nine columns and
+ * eight foundations, with the waste recycled as often as the player likes.
  */
 export class DoubleKlondikeGame extends DealtTableGame {
   /** The face-down stock pile from which cards are drawn. */
@@ -82,13 +62,7 @@ export class DoubleKlondikeGame extends DealtTableGame {
   /** The rules used to score moves, flips, and recycles. */
   private readonly scoring: ScoringPolicy;
 
-  /**
-   * @param cardIds The card identities to deal from. Defaults to two full
-   *   decks; injectable so a test can supply a shorter one.
-   * @param random Source of shuffle randomness, injectable for a fixed deal.
-   * @param scoring The scoring rules to apply. Injectable so an alternate
-   *   ruleset can be supplied without touching the game logic.
-   */
+  /** Creates a game whose piles are empty until the first deal. */
   constructor(
     cardIds: ReadonlyArray<DeckCardId> = deckCardIds(DOUBLE_KLONDIKE_TWO_DECKS),
     random: () => number = Math.random,
@@ -114,8 +88,6 @@ export class DoubleKlondikeGame extends DealtTableGame {
 
   /** @inheritDoc */
   protected override dealBoard(deck: PlayingCard[]): void {
-    // Zeroed here rather than in a hook of its own: how many times the waste has
-    // been recycled is part of the board being dealt.
     this.recycleCount = 0;
     dealDoubleKlondikeLayout(deck, this.tableaus, this.stock);
   }
@@ -125,8 +97,6 @@ export class DoubleKlondikeGame extends DealtTableGame {
   /**
    * Draws cards from the stock onto the waste, recycling the waste back into
    * the stock when the stock is spent.
-   *
-   * Does nothing, and counts no move, when both are empty.
    */
   public drawCardsFromStock(): void {
     if (this.stock.isEmpty && this.waste.isEmpty) {
@@ -145,8 +115,8 @@ export class DoubleKlondikeGame extends DealtTableGame {
   }
 
   /**
-   * Recycles the waste back into the stock, face down, and charges the penalty
-   * for having done so. The caller guarantees the waste is non-empty.
+   * Recycles the non-empty waste back into the stock, face down, and charges
+   * the penalty for doing so.
    */
   private recycleWaste(): void {
     const scoreBefore = this.state.score;
@@ -182,9 +152,7 @@ export class DoubleKlondikeGame extends DealtTableGame {
     const flipped = this.autoFlipExposedCard(move.sourcePile);
 
     return {
-      // The real delta, not what the policy proposed: the score is clamped at
-      // zero. Measured after the flip so the bonus that awarded is included and
-      // undo takes both back together.
+      // Measured after the flip, so undo takes back its bonus too.
       scoreDelta: this.state.score - scoreBefore,
       flippedCardIds: flipped ? [flipped.id] : [],
     };
@@ -209,11 +177,8 @@ export class DoubleKlondikeGame extends DealtTableGame {
   }
 
   /**
-   * Turns the newly exposed top card of a column face up after a move, awarding
-   * the flip bonus.
-   *
-   * @param sourcePile The pile the moved stack was taken from.
-   * @returns The card that was turned face up, or undefined if none was.
+   * Turns face up the card a move exposed in a column, awarding the flip bonus,
+   * and returns it if there was one.
    */
   private autoFlipExposedCard(
     sourcePile: CardPile<PlayingCard>,

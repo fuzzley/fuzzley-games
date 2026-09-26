@@ -7,18 +7,13 @@ import { isSameSuitRun } from "@/engine/tableau/rules";
 export const RUN_LENGTH = 13;
 
 /**
- * Where a completed King-to-Ace run starts in a column, or -1 for a column that
- * has not finished one.
+ * Returns where a completed King-to-Ace run starts at the top of a column, or
+ * -1 if there is none.
  *
- * Only the top {@link RUN_LENGTH} cards are considered, so a run that a later
- * card has been stacked on top of is not collected. That is deliberate rather
- * than an oversight, and it matters in Scorpion: its grab rule lets a player
- * lift an Ace with cards already resting on it and drop the pair onto the Two,
- * finishing a run that is not at the top of its column. Leaving it in place is
- * how the game is conventionally played, and it corrects itself — the run is
- * collected the moment the covering card moves away.
+ * A run with a card stacked on it, which Scorpion allows, is deliberately left
+ * until that card moves away, as the game is conventionally played.
  *
- * @param cards A column's cards, bottom-first.
+ * @param cards A column's cards, bottom first.
  */
 export function completedRunStart(cards: readonly PlayingCard[]): number {
   if (cards.length < RUN_LENGTH) return -1;
@@ -36,14 +31,10 @@ export function completedRunStart(cards: readonly PlayingCard[]): number {
 }
 
 /**
- * Turns the pile's newly exposed top card face up.
+ * Turns the pile's top card face up and returns it, or undefined if it was
+ * already face up.
  *
- * Deliberately says nothing about which piles deserve this: a foundation and a
- * stock both have top cards and neither should be turned over by a move that
- * happened to leave one exposed. The caller checks the role, because only the
- * caller knows which of its roles is a column.
- *
- * @returns The card turned over, or undefined if none was.
+ * Checking that the pile is a column is the caller's job.
  */
 export function flipExposedTop(
   pile: CardPile<PlayingCard>,
@@ -55,22 +46,11 @@ export function flipExposedTop(
 }
 
 /**
- * Sends every completed King-to-Ace run off to a foundation.
+ * Sends every completed King-to-Ace run off to a foundation, and returns what
+ * it moved and turned over for the caller to record with the move behind it.
  *
- * Shared by Spider and Scorpion, which differ in almost everything else — how
- * many decks, how many columns, what a column accepts, what may be lifted from
- * one — and agree exactly here. Every column is rescanned rather than only the
- * ones a move touched, because one move can finish two runs, and because a run
- * left buried by an earlier move (see {@link completedRunStart}) becomes
- * collectable as soon as anything uncovers it.
- *
- * Returns what it moved and what it turned over rather than recording anything
- * itself, so the caller can fold both into the action that caused them: a
- * completed run is a consequence of a move, not a move of its own, and one undo
- * has to take the whole thing back.
- *
- * @param tableaus The columns to scan.
- * @param foundations The piles a completed run may go to.
+ * Every column is rescanned, not just the ones a move touched, since a run
+ * left covered earlier becomes collectable once anything uncovers it.
  */
 export function collectCompletedRuns(
   tableaus: readonly CardPile<PlayingCard>[],

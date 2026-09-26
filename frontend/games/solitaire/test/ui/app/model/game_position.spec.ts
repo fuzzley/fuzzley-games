@@ -7,7 +7,7 @@ import {
   type GamePosition,
 } from "@/ui/app/model/game_position";
 
-/** A Klondike game dealt and drawn from once. */
+/** Returns the position of a Klondike game dealt and drawn from once. */
 function position(): GamePosition {
   const game = new KlondikeGame();
   game.startNewGame();

@@ -20,16 +20,14 @@ export const YukonRole = {
   TABLEAU: "tableau",
 } as const satisfies Record<string, PileRole>;
 
-/** One of the parts a Yukon pile can play. */
+/** Names one of the parts a Yukon pile can play. */
 export type YukonRole = (typeof YukonRole)[keyof typeof YukonRole];
 
 /**
  * Which of the Yukon family is being played.
  *
- * Numbered rather than named because the settings panel stores an option as a
- * number: making the variant those numbers lets the catalog hand its choice
- * straight to the game, instead of keeping a translation table that could drift
- * from the choices it offers.
+ * Numbered because the settings panel stores an option as a number, which the
+ * catalog hands straight to the game.
  */
 export const YukonVariant = {
   /** The original: columns build down in alternating colors. */
@@ -40,24 +38,13 @@ export const YukonVariant = {
   RUSSIAN: 2,
 } as const;
 
-/** One of the three games in the Yukon family. */
+/** Names one of the three games in the Yukon family. */
 export type YukonVariant = (typeof YukonVariant)[keyof typeof YukonVariant];
 
 /** The variant dealt when nothing says otherwise. */
 export const DEFAULT_YUKON_VARIANT: YukonVariant = YukonVariant.YUKON;
 
-/**
- * What an occupied column accepts, per variant.
- *
- * The single thing the three games disagree about — they share a deal, a grab
- * rule, an empty-column rule and a foundation — so the difference is a table of
- * three rules rather than three modules.
- *
- * Alaska is genuinely up *or* down in suit, which is what separates it from
- * Russian Solitaire: an Alaska column will take the Nine of Spades on either
- * the Eight or the Ten of Spades, and that extra direction is the whole of its
- * reputation as the gentler of the two.
- */
+/** What an occupied column accepts, per variant. */
 const OCCUPIED_COLUMN_RULES: Readonly<Record<YukonVariant, PlacementRule>> = {
   [YukonVariant.YUKON]: descendingAlternatingColor,
   [YukonVariant.ALASKA]: any(ascendingSameSuit, descendingSameSuit),
@@ -65,15 +52,11 @@ const OCCUPIED_COLUMN_RULES: Readonly<Record<YukonVariant, PlacementRule>> = {
 };
 
 /**
- * A column of the given variant: only a King may start an empty one, and
- * anything after builds by the variant's rule.
+ * Returns the rule for a column under a variant: only a King may start an
+ * empty one, and anything after builds by the variant's rule.
  *
- * Nothing here limits how many cards may land at once. It does not need to: a
- * Yukon stack is carried in one piece rather than shuffled through spare
- * squares the way a FreeCell supermove is, so there is no staging capacity to
- * run out of.
- *
- * @param variant Which of the three games is being played.
+ * No stack limit applies, since a stack moves in one piece rather than through
+ * spare cells.
  */
 export function yukonTableauRule(variant: YukonVariant): PlacementRule {
   return byEmptiness(
@@ -82,19 +65,12 @@ export function yukonTableauRule(variant: YukonVariant): PlacementRule {
   );
 }
 
-/** A Yukon foundation: the standard Ace-up-by-suit pile, one card at a time. */
+/** A Yukon foundation: the standard Ace-up-by-suit pile. */
 export const YUKON_FOUNDATION_RULE: PlacementRule = suitFoundation;
 
 /**
- * The rule governing what a pile of the given role accepts, or null for a role
- * that is never a destination.
- *
- * Both roles are destinations, which is the same observation FreeCell makes:
- * the Yukon family has no stock and no waste, so there is no pile a drag should
- * offer and then refuse.
- *
- * @param role The part the pile plays.
- * @param variant Which of the three games is being played.
+ * Returns what a pile of a role accepts under a variant, or null for an
+ * unknown role.
  */
 export function yukonPlacementRule(
   role: string,

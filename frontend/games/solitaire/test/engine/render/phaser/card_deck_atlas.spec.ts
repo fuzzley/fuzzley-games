@@ -8,7 +8,7 @@ import classicAtlas from "@/engine/render/assets/sprites/atlas/classic/card_asse
 import indexedAtlas from "@/engine/render/assets/sprites/atlas/indexed/card_assets_atlas.json";
 import allCornerPipsAtlas from "@/engine/render/assets/sprites/atlas/all-corner-pips/card_assets_atlas.json";
 
-/** A manifest as `yarn build:atlas` writes it, read for its frame names. */
+/** Describes a manifest `yarn build:atlas` writes, for its frame names. */
 interface BuiltAtlas {
   textures: { image: string; frames: { filename: string }[] }[];
 }
@@ -20,7 +20,7 @@ const BUILT_ATLASES: Record<string, BuiltAtlas> = {
   "all-corner-pips": allCornerPipsAtlas,
 };
 
-/** Every frame name a built manifest declares, sorted. */
+/** Returns every frame name a built manifest declares, sorted. */
 function frameNames(atlas: BuiltAtlas): string[] {
   return atlas.textures
     .flatMap((texture) => texture.frames.map((frame) => frame.filename))

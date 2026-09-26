@@ -184,8 +184,7 @@ describe("FreeCellGame", () => {
   describe("the supermove limit", () => {
     /**
      * Blocks every column and cell not named, so the only free capacity is what
-     * a test asks for. Without this a cleared board has six empty columns and
-     * the limit is 64, which hides every interesting case.
+     * a test asks for.
      */
     function block(options: {
       keepColumnsEmpty?: number[];
@@ -218,7 +217,7 @@ describe("FreeCellGame", () => {
       });
     }
 
-    /** A three-card run on column 0 with a nine waiting on column 1. */
+    /** Builds a three-card run on column 0 with a nine waiting on column 1. */
     function runOfThree(): PlayingCard {
       clearBoard(game);
       const eight = place(game, "card-spades-8", game.tableaus[0]);

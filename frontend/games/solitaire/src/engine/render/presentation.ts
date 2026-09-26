@@ -5,43 +5,31 @@ import { CardDeckId } from "./card_deck";
  * following it.
  *
  * A plain callback rather than an observable because the render tier may not
- * name a reactive library: whatever publishes the value adapts to this.
+ * depend on RxJS.
  */
 export type Subscribe<T> = (listener: (value: T) => void) => () => void;
 
-/**
- * What a board has to say about the deck it was asked to draw.
- *
- * Choosing a deck is the one table setting that cannot simply be obeyed: it is
- * a couple of megabytes of texture, which has to arrive before anything can be
- * drawn from it and may not arrive at all. So the board answers, and whoever
- * offered the choice can say the deck is on its way rather than leaving the
- * player looking at cards that have not changed.
- */
+/** Describes how far a board has got with drawing the deck it was asked for. */
 export type CardDeckStatus =
-  /** Being fetched. Nothing on the table has changed yet. */
+  /** Being fetched, with nothing on the table changed yet. */
   | { readonly kind: "loading"; readonly deckId: CardDeckId }
-  /** On the table. Every card and placeholder is drawn from it. */
+  /** On the table, drawing every card and placeholder. */
   | { readonly kind: "drawn"; readonly deckId: CardDeckId }
   /**
-   * Could not be fetched. The board is still drawing whichever deck it last
-   * reported as `drawn`: a texture that never arrived would draw every card as
-   * a blank rectangle, which is worse than the deck being left.
+   * Could not be fetched, so the board keeps drawing the deck it last reported
+   * as `drawn`.
    */
   | { readonly kind: "unavailable"; readonly deckId: CardDeckId };
 
 /**
- * The player's choices about how the table looks.
- *
- * Deliberately not part of any game. Which card back and which felt colour a
- * player prefers is the same preference whether they are playing Klondike,
- * FreeCell or Spider, so it is supplied to a board rather than owned by one.
+ * Supplies the player's choices about how the table looks, which are the same
+ * whatever the game.
  */
 export interface TablePresentation {
-  /** The artwork key for the back of a card. */
+  /** Returns the artwork key for the back of a card. */
   cardBackKey(): string;
 
-  /** The deck the cards are drawn from. */
+  /** Returns the deck the cards are drawn from. */
   cardDeckId(): CardDeckId;
 
   /** Follows the table colour. */
@@ -50,21 +38,12 @@ export interface TablePresentation {
   /**
    * Follows the deck.
    *
-   * A subscription rather than a read like {@link cardBackKey}, because a deck
-   * is a texture: swapping one in means having it loaded first, so the board
-   * has to be told when the choice changes rather than noticing on the next
-   * frame.
+   * A subscription, unlike {@link cardBackKey}, because a new deck has to be
+   * loaded before it can be drawn.
    */
   readonly onCardDeck: Subscribe<CardDeckId>;
 
-  /**
-   * Told which deck the board is actually drawing, whenever that changes.
-   *
-   * The answer to {@link onCardDeck}, and the only setting that has one: a
-   * chosen felt colour is the felt colour, but a chosen deck is a request that
-   * takes time and can fail. Without this the drawer would go on showing a deck
-   * the board never managed to draw.
-   */
+  /** Reports which deck the board is actually drawing, whenever it changes. */
   reportCardDeckStatus(status: CardDeckStatus): void;
 }
 

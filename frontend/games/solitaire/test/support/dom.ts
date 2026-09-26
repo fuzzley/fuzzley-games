@@ -1,19 +1,16 @@
 import type { ComponentFixture } from "@angular/core/testing";
 
 /**
- * Typed access to a fixture's rendered DOM.
- *
- * Angular types `ComponentFixture.nativeElement` as `any`, so touching it
- * directly spreads `any` through every query and assertion that follows. These
- * helpers narrow it once, in one place.
+ * Gives typed access to a fixture's rendered DOM, whose `nativeElement`
+ * Angular types as `any`.
  */
 
-/** The fixture's root rendered element. */
+/** Returns the fixture's root rendered element. */
 export function rootElement(fixture: ComponentFixture<unknown>): HTMLElement {
   return fixture.nativeElement as HTMLElement;
 }
 
-/** The first element matching `selector`, or null when nothing matches. */
+/** Returns the first element matching `selector`, or null. */
 export function query<T extends HTMLElement = HTMLElement>(
   fixture: ComponentFixture<unknown>,
   selector: string,
@@ -21,11 +18,7 @@ export function query<T extends HTMLElement = HTMLElement>(
   return rootElement(fixture).querySelector<T>(selector);
 }
 
-/**
- * The first element matching `selector`. Throws when nothing matches, so a
- * selector that has drifted from the template fails at the line that uses it
- * rather than as a confusing null further along.
- */
+/** Returns the first element matching `selector`, throwing if there is none. */
 export function queryRequired<T extends HTMLElement = HTMLElement>(
   fixture: ComponentFixture<unknown>,
   selector: string,
@@ -37,7 +30,7 @@ export function queryRequired<T extends HTMLElement = HTMLElement>(
   return element;
 }
 
-/** Every element matching `selector`, in document order. */
+/** Returns every element matching `selector`, in document order. */
 export function queryAll<T extends HTMLElement = HTMLElement>(
   fixture: ComponentFixture<unknown>,
   selector: string,
@@ -45,7 +38,7 @@ export function queryAll<T extends HTMLElement = HTMLElement>(
   return [...rootElement(fixture).querySelectorAll<T>(selector)];
 }
 
-/** The trimmed text content of the first element matching `selector`. */
+/** Returns the trimmed text of the first element matching `selector`. */
 export function queryText(
   fixture: ComponentFixture<unknown>,
   selector: string,

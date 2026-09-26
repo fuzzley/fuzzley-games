@@ -5,13 +5,7 @@ import { MONTANA_LAYOUT } from "./montana_layout";
 import { MontanaGame } from "./montana_game";
 import { montanaGestures } from "./montana_gestures";
 
-/**
- * Builds the Montana board scene.
- *
- * Montana writes its own gesture map rather than taking the shared stockless
- * one, because pressing its redeal marker reshuffles the board — the one press
- * this game answers.
- */
+/** Builds the Montana board scene. */
 export function makeMontanaBoardScene(
   game: MontanaGame,
   presentation: TablePresentation,

@@ -16,17 +16,12 @@ const BELOW_KING: readonly Rank[] = ALL_RANKS.filter(
 );
 
 /**
- * Deals `deck` into the standard Klondike opening layout: tableau column i
- * receives i + 1 cards with only its top card face-up, and every remaining card
- * goes face-down onto the stock. Consumes `deck` from the top (end).
+ * Deals the Klondike opening: column i receives i + 1 cards with only its top
+ * card face up, and the rest go face down onto the stock.
  *
- * @param deck The cards to deal, which this drains.
- * @param tableaus The tableau piles to deal onto.
- * @param stock The stock pile to fill with the remainder.
- * @param allFaceUp Whether to show every card the columns receive rather than
- *   only the top of each. Whitehead's whole character: the same staircase with
- *   nothing hidden in it. The stock is still dealt face down either way — it is
- *   drawn from, not read.
+ * @param deck The cards to deal, which this drains from the end.
+ * @param allFaceUp Whether every card in the columns is face up, as in
+ *   Whitehead; the stock is face down either way.
  */
 export function dealKlondikeLayout(
   deck: PlayingCard[],
@@ -53,16 +48,10 @@ export function dealKlondikeLayout(
 }
 
 /**
- * Deals an almost-won board for verification: Ace through Queen of each suit
- * are loaded face-up onto the foundations, and the four Kings are placed
- * face-up on the first four tableaus, leaving the stock and waste empty.
- *
- * Cards outside the configured deck are skipped, so an almost-win deal from a
- * partial deck simply places fewer cards.
+ * Deals an almost-won board for verification: Ace to Queen of each suit on the
+ * foundations, and each King face up on a column of its own.
  *
  * @param deck The cards to deal from, which this registers rather than drains.
- * @param foundations The foundation piles to fill.
- * @param tableaus The tableau piles to seed with Kings.
  */
 export function dealKlondikeAlmostWin(
   deck: DeckSource,

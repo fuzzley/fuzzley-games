@@ -1,11 +1,6 @@
 /**
- * A stand-in for `window.matchMedia`, which jsdom does not implement at all.
- *
- * Without it every spec runs at whatever width the production code falls back
- * to when the browser cannot be asked — which is the roomy arrangement, and so
- * the compact one would never be exercised. This answers `max-width` queries
- * against a width the spec sets, and notifies the listeners the application
- * registered, so a component can be watched moving between the two.
+ * Stands in for `window.matchMedia`, which jsdom lacks, answering `max-width`
+ * queries against a width a spec sets.
  */
 export interface FakeViewport {
   /** Sets the viewport width and tells every live query about it. */
@@ -14,7 +9,7 @@ export interface FakeViewport {
   restore(): void;
 }
 
-/** One `max-width` query the code under test is holding on to. */
+/** Records one `max-width` query the code under test holds. */
 interface FakeQuery {
   readonly maxWidth: number;
   readonly state: { matches: boolean };
@@ -24,9 +19,10 @@ interface FakeQuery {
 const MAX_WIDTH = /max-width:\s*([\d.]+)px/;
 
 /**
- * Installs the fake at a starting width. Call {@link FakeViewport.restore} in
- * an `afterEach`, so a spec that never asked for one still sees a host without
- * `matchMedia`.
+ * Installs the fake at a starting width.
+ *
+ * Call {@link FakeViewport.restore} in an `afterEach`, so a spec that never
+ * asked for one still sees a host without `matchMedia`.
  *
  * @param width The viewport width to start at, in CSS pixels.
  */

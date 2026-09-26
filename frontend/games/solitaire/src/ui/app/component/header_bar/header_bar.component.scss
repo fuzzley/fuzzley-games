@@ -17,23 +17,9 @@
   user-select: none;
 }
 
-// The three groups give way in a fixed order, and that order is what keeps the
-// header on the screen at every width rather than only at the four the
-// breakpoints happen to name.
-//
-// Each group used to size itself to its content and refuse to shrink, so the
-// header's own minimum width ran far ahead of the breakpoint meant to have
-// relieved it: 807px in the band starting at 720, and 636px in the band
-// starting at 480. In between, the header pushed the document wider than the
-// viewport and the whole page scrolled sideways — which on a phone left Help
-// and Settings off the right-hand edge, where no amount of scrolling the board
-// could reach them.
-//
-// The actions never shrink. Every one of them is a hit target at the platform
-// minimum, and a control squeezed under that is worse than one that has
-// deliberately stood down. The brand yields first, being the only thing here
-// that is decoration; the metrics yield second, and clip rather than push,
-// which is the backstop for any width narrower than the tiers below plan for.
+// The groups give way in a fixed order, which keeps the header on screen at
+// every width: the brand first, then the metrics, which clip rather than push.
+// The actions never shrink below the minimum tap size.
 .brand {
   display: flex;
   align-items: center;
@@ -53,9 +39,7 @@
 }
 
 .wordmark {
-  // Sky into the accent blue. It ran sky into violet, which was the only
-  // violet in the application — a third hue family on a screen that is already
-  // green felt under slate chrome, and one the accent system never answered.
+  // Sky into the accent blue.
   @include gradient-text(var(--accent-sky), var(--accent));
   font-size: var(--font-2xl);
   font-weight: 800;
@@ -63,11 +47,8 @@
   white-space: nowrap;
 }
 
-// The game on the table, set as the quieter half of the heading: the
-// application is named once and stops changing, and this is the part that
-// answers the question a player actually has. A rule rather than a bullet or a
-// dash between them, so nothing new arrives in the accessibility tree — the
-// heading reads "fSolitaire Klondike" either way.
+// The game on the table, as the quieter half of the heading. A drawn rule
+// separates the two, so the heading still reads "fSolitaire Klondike".
 .brand-game {
   padding-left: var(--space-3);
   border-left: 1px solid var(--border-strong);
@@ -108,9 +89,8 @@
     margin-bottom: 2px;
   }
 
-  // `tabular-nums` on top of the monospaced face because the clock reads a
-  // digit narrower on some stacks otherwise, and a metric that changes width
-  // once a second drags the two beside it along with it.
+  // `tabular-nums` as well, since some font stacks draw a narrower digit and a
+  // clock that changes width drags its neighbours along.
   .value {
     font-size: var(--font-lg);
     font-weight: 700;
@@ -126,8 +106,7 @@
   gap: var(--space-3);
   flex: 0 0 auto;
 
-  // Every action in here is a hit target before it is a decoration, so all of
-  // them clear the platform minimum whether or not they are showing a label.
+  // Every action clears the minimum tap size, labelled or not.
   .btn,
   .btn-circle {
     @include tap-target;
@@ -135,19 +114,9 @@
 }
 
 // --- The overflow menu ---
-//
-// Only ever rendered below the compact width, where the bar has run out of
-// room; see the header component for why the actions move into it rather than
-// being drawn twice and hidden.
 
-// Hung under the right-hand end of the header, which is where the button that
-// opens it is. Fixed rather than absolute, and outside the header rather than
-// inside it, because the frosted header is a containing block for both — see
-// the template.
-//
-// `pointer-events` because the shell's overlay layer is transparent to the
-// pointer by default and hands it back per piece of chrome; out here the panel
-// is no longer inside the header that had already done so.
+// Hung under the button at the right of the header. It turns `pointer-events`
+// back on, which the shell's overlay layer turns off.
 .overflow-menu {
   @include glass(20px);
   position: fixed;
@@ -169,8 +138,7 @@
   animation: fadeIn var(--duration-fast) var(--ease-decelerate);
 }
 
-// A row rather than a button: in here the label is the control and the icon is
-// beside it, which is the other way round from the bar these actions came from.
+// A labelled row with its icon beside it, unlike the icon buttons in the bar.
 .overflow-item {
   @include transition(background, color);
   display: flex;
@@ -201,10 +169,8 @@
   }
 }
 
-// The dismiss layer. Transparent, because a two-entry dropdown does not earn a
-// scrim over the board — but it covers the header and the rail as well as the
-// board, so the tap that closes the menu is a tap that closes the menu and
-// nothing else. One step under the panel, which is the only thing above it.
+// The dismiss layer: transparent, but covering the header and rail too, so the
+// tap that closes the menu presses nothing else.
 .overflow-backdrop {
   position: fixed;
   inset: 0;
@@ -216,12 +182,8 @@
   cursor: default;
 }
 
-// Four labelled actions need a wide header. Below this the labels go and the
-// buttons become icon circles, which is roomier than letting them crowd the
-// metrics — and well above the point where they would start wrapping. The
-// metric cards tighten on the same breakpoint rather than waiting for the next
-// one, which is what brings the header's minimum below the width this band
-// starts at.
+// Below this width the action labels go and the metric cards tighten, which
+// keeps the header's minimum width inside the band.
 @include below("desktop") {
   .actions .btn {
     padding: var(--space-2);
@@ -239,10 +201,8 @@
     }
   }
 
-  // The wordmark is the half of the heading that stands down first: there is
-  // room for one of the two here, and the application's own name is the one
-  // that never changes and is on the tab beside the favicon anyway. Hidden from
-  // the eye only, so the heading still reads whole.
+  // The wordmark gives way to the game's name, hidden from the eye only so the
+  // heading still reads whole.
   .wordmark {
     @include visually-hidden;
   }
@@ -268,10 +228,7 @@
     padding: var(--space-2) var(--space-4);
   }
 
-  // The heading stands down, but stays in the accessibility tree: it is the
-  // document's only <h1>, and hiding it outright would leave the page with no
-  // heading at all until a dialog opened. Which game is on the table is still
-  // said out loud here — by the rail's badge, and by the page title.
+  // Hidden from the eye only: it is the document's one <h1>.
   .brand {
     @include visually-hidden;
   }
@@ -282,9 +239,7 @@
   }
 
   // Four hit targets, not five: restart and the rules are in the overflow menu
-  // at this width. Five at the platform minimum left the metrics less room than
-  // their own content needs, and a flex item does not shrink below that — so
-  // the third card was simply cut off at the edge of the group.
+  // at this width.
   .actions {
     gap: var(--space-1);
   }
@@ -295,9 +250,8 @@
     padding: var(--space-2);
   }
 
-  // One strip rather than three cards. At this width three bordered boxes spend
-  // more of the header on their own chrome — two borders and two paddings each
-  // — than on the figures inside them.
+  // One strip rather than three cards, whose borders and padding would take
+  // more room than their figures.
   .metrics {
     gap: 0;
     background: var(--wash-subtle);
@@ -316,10 +270,7 @@
       border-left: 1px solid var(--border-subtle);
     }
 
-    // The figures carry themselves at this size — the clock unmistakably so —
-    // while the words naming them would cost a third of the header. Hidden from
-    // the eye only: score and moves are live regions, and it is the label that
-    // makes the announcement "Score 350" rather than a bare "350".
+    // Hidden from the eye only, since the live regions announce the labels.
     .label {
       @include visually-hidden;
     }

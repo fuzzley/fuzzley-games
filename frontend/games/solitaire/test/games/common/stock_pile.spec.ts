@@ -4,12 +4,12 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
 import { makePlayingCard } from "@test/support/card_builder";
 
-/** The ids of a pile's cards, bottom-first. */
+/** Returns the ids of a pile's cards, bottom first. */
 function idsIn(pile: CardPile<PlayingCard>): string[] {
   return pile.getCards().map((card) => card.id);
 }
 
-/** Whether every card in a pile is lying the given way up. */
+/** Returns whether every card in a pile lies the given way up. */
 function allFaceUp(pile: CardPile<PlayingCard>, faceUp: boolean): boolean {
   return pile.getCards().every((card) => card.faceUp === faceUp);
 }
@@ -105,9 +105,7 @@ describe("stock and waste", () => {
 
       const transfers = drawToWaste(stock, waste, 3);
 
-      // Bottom-first, which is the opposite of the order they were drawn in:
-      // a transfer records where cards came *from*, so undo can re-append them
-      // and get the original stock back.
+      // Bottom first, the reverse of the draw, so undo can rebuild the stock.
       expect(transfers).toEqual([
         {
           cardIds: ["card-2", "card-3", "card-4"],

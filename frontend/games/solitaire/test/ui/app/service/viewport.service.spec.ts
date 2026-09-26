@@ -18,8 +18,8 @@ describe("ViewportService", () => {
   let viewport: FakeViewport | null = null;
 
   /**
-   * A service built through the injector, so DestroyRef resolves and the
-   * media-query listener is released with the test's injector.
+   * Returns a service built through the injector, so DestroyRef resolves and
+   * releases the media-query listener with it.
    */
   function buildViewport(): ViewportService {
     TestBed.resetTestingModule();

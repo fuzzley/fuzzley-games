@@ -5,7 +5,7 @@ import { GameSnapshot, PileSnapshot } from "./game_snapshot";
 import { AppliedMove } from "./move";
 import { TableGame, TableGameEvents, TableGameOptions } from "./table_game";
 
-/** How to build a game that deals itself from a deck. */
+/** Configures a game that deals itself from a deck. */
 export interface DealtTableGameOptions extends Omit<
   TableGameOptions,
   "registry"
@@ -15,19 +15,8 @@ export interface DealtTableGameOptions extends Omit<
 }
 
 /**
- * A table game dealt from a deck, with the new-game and restart cycle written
- * once.
- *
- * Every game had its own copy of this, and the copies had drifted: the same
- * five steps in the same order, but one resetting a score the game never used,
- * another turning the reused deck face down and another not, and the win check
- * spelled three different ways. None of that was a decision — it was six
- * transcriptions of one idea.
- *
- * What actually differs between games is where the cards go, so that is the one
- * thing left abstract. A game says how to deal a board; the order of operations
- * around it, the deck kept aside so a restart replays the same game, and the
- * announcement afterwards all belong here.
+ * Deals a table game from a deck and replays that deal on a restart, leaving
+ * each game only to say where the cards go.
  */
 export abstract class DealtTableGame<
   EventMap extends Record<string, unknown> & TableGameEvents = TableGameEvents,
@@ -35,13 +24,7 @@ export abstract class DealtTableGame<
   /** The cards this game deals from. */
   protected readonly deck: DeckSource;
 
-  /**
-   * The deal a restart replays.
-   *
-   * Held in dealt order rather than as a seed, because a card is a persistent
-   * instance shared with its sprite: the same objects go back on the table,
-   * turned back to the side the deck deals.
-   */
+  /** The deal a restart replays, in dealt order. */
   private initialDeck: PlayingCard[] = [];
 
   constructor(options: DealtTableGameOptions) {
@@ -110,20 +93,22 @@ export abstract class DealtTableGame<
     this.emit("game-reset", undefined);
   }
 
-  /** State this game keeps outside its piles, for a snapshot. None by default. */
+  /** Returns the state this game keeps outside its piles, for a snapshot. */
   protected saveExtra(): unknown {
     return null;
   }
 
   /**
-   * Restores what {@link saveExtra} saved. Runs before the board changes, so
-   * throwing rejects the snapshot and leaves the game as it was.
+   * Restores what {@link saveExtra} saved.
+   *
+   * Runs before the board changes, so throwing rejects the snapshot and leaves
+   * the game as it was.
    */
   protected restoreExtra(extra: unknown): void {
     void extra;
   }
 
-  /** The snapshot's piles as this game's own, holding every card once. */
+  /** Returns the snapshot's piles as this game's, holding every card once. */
   private resolveBoard(piles: readonly PileSnapshot[]) {
     this.checkEveryCardOnce(
       piles.flatMap((pile) => pile.cards.map((card) => card.id)),
@@ -138,7 +123,7 @@ export abstract class DealtTableGame<
     }));
   }
 
-  /** The snapshot's deal as this game's cards; empty if it has none. */
+  /** Returns the snapshot's deal as this game's cards; empty if it has none. */
   private resolveDeal(cardIds: readonly string[]): PlayingCard[] {
     if (cardIds.length > 0) this.checkEveryCardOnce(cardIds, "deal");
     return cardIds.map((id) => this.resolveCard(id));
@@ -181,13 +166,7 @@ export abstract class DealtTableGame<
     return card;
   }
 
-  /**
-   * Clears the board and deals it again.
-   *
-   * The score and the move count go back to zero whether or not the game keeps
-   * a score, so a restart can never inherit one. The history is dropped rather
-   * than unwound: there is nothing before a new deal to undo back to.
-   */
+  /** Clears the board, score, move count and history, then deals again. */
   private beginGame(createDeck: () => PlayingCard[]): void {
     this.state.score = 0;
     this.state.moves = 0;
@@ -198,15 +177,8 @@ export abstract class DealtTableGame<
   }
 
   /**
-   * The stored deal, turned back to the side the deck deals.
-   *
-   * Lazily shuffles one the first time, so restarting before ever having dealt
-   * is a new game rather than an empty board.
-   *
-   * Handed out as a copy, because {@link dealBoard} is free to drain what it is
-   * given and every game's deal does exactly that. Passing the stored array
-   * itself emptied it on the first restart, so the second restart found nothing
-   * to replay and quietly dealt a freshly shuffled game instead.
+   * Returns a copy of the stored deal for {@link dealBoard} to drain, turned
+   * back to the side the deck deals, shuffling one first if there is none.
    */
   private reuseInitialDeck(): PlayingCard[] {
     if (this.initialDeck.length === 0) {
@@ -218,9 +190,8 @@ export abstract class DealtTableGame<
   /**
    * Lays the deck out into the opening position for this game.
    *
-   * Called with the piles already empty and the history already cleared, so an
-   * implementation only has to place cards. Anything else a fresh board needs
-   * reset — a recycle count, say — belongs here too.
+   * The piles and history are already empty; anything else a fresh board needs
+   * reset, such as a recycle count, belongs here too.
    *
    * @param deck The cards to deal, which an implementation is free to drain.
    */

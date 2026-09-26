@@ -20,31 +20,19 @@ import { CardDeckStatus, Subscribe } from "../presentation";
 import { cardDeckTextureKey } from "./card_deck_atlas";
 import { TableView } from "@/engine/tableau/view/table_view";
 
-/**
- * Produces the desired appearance of a board for one frame.
- *
- * The seam between the Phaser adapter and whatever game it is drawing: the
- * scene knows how to put sprites where a view state says, and nothing about
- * how that view state was decided.
- */
+/** Produces the desired appearance of a board for one frame. */
 export type BuildTableViewState = (
   interaction: TableInteractionState,
   viewport: Viewport,
 ) => TableViewState;
 
-/**
- * Resolves the pile a drag would land on.
- *
- * Handed in for the same reason as {@link BuildTableViewState}: where a card
- * may go is a property of the game, and the Phaser adapter sits below the tier
- * that knows about games.
- */
+/** Resolves the pile a drag would land on. */
 export type ResolveDropTarget = (
   drag: DragInteraction,
   viewport: Viewport,
 ) => PileGeometry | null;
 
-/** Everything a board scene needs from the game it is drawing. */
+/** Gives a board scene everything it needs from the game it draws. */
 export interface BoardSceneOptions {
   /** The game to draw, read through its narrow view. */
   readonly game: TableView;
@@ -68,27 +56,20 @@ export interface BoardSceneOptions {
   readonly onBackgroundColor: Subscribe<string>;
   /** Follows the deck the player has chosen. */
   readonly onCardDeck: Subscribe<CardDeckId>;
-  /** Told which deck the board is drawing, and when it cannot draw one. */
+  /** Reports which deck the board is drawing, or that it cannot draw one. */
   readonly reportCardDeckStatus: (status: CardDeckStatus) => void;
   /** Follows new deals, so stale interaction state does not survive one. */
   readonly onReset: Subscribe<void>;
   /**
-   * Follows the cards each action relocates, so every one of them is lifted
-   * clear of the board while it crosses it.
-   *
-   * The model is asked rather than the gesture map, because the model is the
-   * only thing that knows: a draw, a recycle, a dealt row and an undo all move
-   * cards without any gesture having decided which.
+   * Follows the cards each action relocates, so each is lifted clear of the
+   * board while it crosses it.
    */
   readonly onCardsRelocated: Subscribe<readonly string[]>;
-  /** Notifies when the board scene finishes initial sprite setup and is ready to render. */
+  /** Called once the scene has made its sprites and drawn its first frame. */
   readonly onReady?: () => void;
 }
 
-/**
- * Handles rendering the fSolitaire game board using Phaser, reacting to
- * events emitted by the logical rules engine.
- */
+/** Draws a game's board with Phaser and turns pointer input into intents. */
 export class BoardScene extends Scene implements PhaserSprites {
   /** Transparency (alpha) level for pile background placeholders. */
   public static readonly PILE_BACKGROUND_ALPHA = 0.5;
@@ -96,8 +77,8 @@ export class BoardScene extends Scene implements PhaserSprites {
   /**
    * The game being drawn, read through its narrow view.
    *
-   * Named `tableGame` rather than `game` because Phaser's Scene already has a
-   * `game`, and that one is the Phaser.Game running the canvas.
+   * Not `game`, which a Phaser scene already uses for the Phaser.Game running
+   * it.
    */
   public readonly tableGame: TableView;
 
@@ -107,32 +88,22 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Card sprites, keyed by the card id the model gave them. */
   private readonly cardSprites = new Map<string, GameObjects.Sprite>();
 
-  /**
-   * Pile background placeholder sprites, keyed by pile id. Piles drawn without
-   * a placeholder (the waste, which fans over bare table) are simply absent.
-   */
+  /** Placeholder sprites, keyed by pile id, for the piles that have one. */
   private readonly pileBackgrounds = new Map<string, GameObjects.Sprite>();
 
-  /** Which deck the board is drawn from, and how a change of deck arrives. */
+  /** The loader for the deck the board is drawn from. */
   private deckLoader!: BoardDeckLoader;
 
-  /** Input handling manager for drag-and-drop and interaction. */
+  /** The bridge from Phaser's pointer events to the drag controller. */
   private inputManager!: BoardInputManager;
 
   /** Factory for creating Phaser sprites. */
   private visualFactory!: PhaserCardFactory;
 
-  /** Applier to commit calculated view states onto sprites and graphics. */
+  /** Applies each frame's view state to the sprites. */
   private viewApplier!: PhaserTableRenderer;
 
-  /**
-   * Constructs the board scene.
-   *
-   * @param options Everything the scene needs from the game it draws. Handed in
-   *   rather than imported: which cards exist, what a press means and where a
-   *   drop lands are all properties of the game, and the Phaser adapter sits
-   *   below the tier that knows about games.
-   */
+  /** Creates a scene that draws the game `options` describes. */
   constructor(options: BoardSceneOptions) {
     super("board-scene");
 
@@ -156,12 +127,10 @@ export class BoardScene extends Scene implements PhaserSprites {
   }
 
   /**
-   * Instantiates the sprites for the already-dealt model, registers model event
-   * listeners, and draws the initial layout.
+   * Makes the sprites for the already-dealt game and starts following it.
    *
-   * Deliberately does not deal: the model arrives ready to play (see
-   * {@link getGameModel}), so a scene restart re-renders the game in progress
-   * instead of silently throwing it away.
+   * It does not deal, so a scene restart redraws the game in progress rather
+   * than throwing it away.
    */
   create() {
     this.createCollaborators();
@@ -175,7 +144,7 @@ export class BoardScene extends Scene implements PhaserSprites {
     });
   }
 
-  /** The three objects that do the scene's actual work, and the deck they use. */
+  /** Creates the objects that do the scene's work. */
   private createCollaborators(): void {
     this.deckLoader = new BoardDeckLoader(this, this.options.cardDeckId());
     this.inputManager = new BoardInputManager(this);
@@ -188,16 +157,11 @@ export class BoardScene extends Scene implements PhaserSprites {
   }
 
   /**
-   * Follows everything the shared model publishes, and lets go on shutdown.
-   *
-   * Releasing matters: `create` runs again on every scene restart, and without
-   * this each restart would leave another live subscription holding the scene
-   * that has just gone.
+   * Follows everything the model publishes until the scene shuts down, since
+   * `create` subscribes again on every restart.
    */
   private followTheModel(): void {
     const stopFollowing = [
-      // The table background colour, so a theme switch in the Angular shell
-      // reaches the canvas.
       this.options.onBackgroundColor((color) => {
         this.cameras?.main?.setBackgroundColor(color);
       }),
@@ -217,10 +181,8 @@ export class BoardScene extends Scene implements PhaserSprites {
     });
   }
 
-  /** Puts the pointer to work, and says how often to look at it. */
+  /** Registers the pointer listeners and snaps cards into place on a resize. */
   private wireInput(): void {
-    // Everything is placed outright on the first frame and after a resize,
-    // rather than easing in from wherever it happened to be.
     this.inputManager.snapAll = true;
     this.scale.on("resize", () => {
       this.inputManager.snapAll = true;
@@ -228,14 +190,12 @@ export class BoardScene extends Scene implements PhaserSprites {
 
     this.inputManager.registerDragListeners();
 
-    // Hit test every frame rather than only when the pointer itself moves.
-    // Cards move under a stationary pointer all the time — a stock draw slides
-    // the card out from under it — and without polling Phaser never re-runs the
-    // test, so the hover would stay attached to a card that has left.
+    // Hit test every frame, because cards move under a pointer that stays
+    // still.
     this.input.setPollAlways();
   }
 
-  /** @inheritDoc */
+  /** Returns every card and placeholder sprite drawn from the deck texture. */
   public texturedSprites(): Iterable<GameObjects.Sprite> {
     return [...this.cardSprites.values(), ...this.pileBackgrounds.values()];
   }
@@ -255,13 +215,7 @@ export class BoardScene extends Scene implements PhaserSprites {
     }
   }
 
-  /**
-   * Instantiates a background sprite for every pile whose zone declares one.
-   *
-   * Which piles have a placeholder, what it looks like, and whether pressing it
-   * does anything are all read from the zones, so the scene creates the same
-   * sprites for any game without knowing what the piles are for.
-   */
+  /** Creates a placeholder sprite for every pile whose zone declares one. */
   private createPileBackgroundSprites(): void {
     const alpha = BoardScene.PILE_BACKGROUND_ALPHA;
 
@@ -335,10 +289,7 @@ export class BoardScene extends Scene implements PhaserSprites {
     };
   }
 
-  /**
-   * Phaser scene update lifecycle hook. Automatically invoked every frame to compute and
-   * apply the desired board view state.
-   */
+  /** Applies this frame's view state, then lands every flight that arrived. */
   override update(_timeMs: number, deltaMs: number): void {
     if (!this.inputManager || !this.viewApplier) return;
 
@@ -348,11 +299,7 @@ export class BoardScene extends Scene implements PhaserSprites {
     );
     this.viewApplier.apply(state, deltaMs);
 
-    // A flying stack is lifted above the board for as long as it is crossing
-    // it. Only the applier eases the sprites, so it is the one that knows when
-    // they have arrived and the stack can settle into its pile's own order.
-    // Each flight is retired on its own: one landing says nothing about
-    // another still on its way.
+    // A copy, since landing a flight removes it from the list.
     for (const flight of [...this.inputManager.flights]) {
       if (!this.viewApplier.areCardsTravelling(flight.cardIds)) {
         this.inputManager.endFlight(flight);

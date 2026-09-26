@@ -6,12 +6,7 @@ import type { GameOptionSpec } from "@/ui/app/provider/game_catalog";
 import type { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { asGameModel, type MockGameModel } from "./game_mock";
 
-/**
- * The rules the mock catalog offers.
- *
- * Klondike's — a draw mode and a debug board — since that is the game whose
- * controls the shell specs exercise.
- */
+/** The rules the mock catalog offers: Klondike's draw mode and debug board. */
 const OPTIONS: readonly GameOptionSpec[] = [
   {
     id: "drawCount",
@@ -36,14 +31,8 @@ const OPTIONS: readonly GameOptionSpec[] = [
 ];
 
 /**
- * A catalog holding two games, for specs that care what the UI does with a
- * catalog rather than which games are in the real one.
- *
- * Typed as a `Pick` of the real service, so a member the UI starts using — or
- * one that changes shape — fails to compile here rather than reading as
- * `undefined` at runtime. That is not hypothetical: `selectedEntry` was added
- * to the service and missed here, and the game canvas read a layout off
- * nothing for as long as no spec happened to render it.
+ * Stands in for the catalog service with two games, typed as a `Pick` of it so
+ * the mock cannot drift from the real shape.
  */
 export type MockCatalog = Pick<
   GameCatalogService,
@@ -61,13 +50,7 @@ export type MockCatalog = Pick<
   | "setOption"
 >;
 
-/**
- * The mock, plus the handles a spec needs to drive it.
- *
- * The spies carry the signature of what they stand in for rather than
- * `vi.fn()`'s bare one, so a spec can put a game on the table by calling
- * `select("freecell")` as well as assert that something else did.
- */
+/** Holds the mock catalog and the handles a spec needs to drive it. */
 export interface MockCatalogHarness {
   readonly catalog: MockCatalog;
   /** Puts a different dealt game on the table, as re-dealing does. */

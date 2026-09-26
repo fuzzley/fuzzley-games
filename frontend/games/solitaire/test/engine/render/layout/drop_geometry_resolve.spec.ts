@@ -25,7 +25,7 @@ describe("resolveDragTarget", () => {
     emptyBoard(game);
   });
 
-  /** The drop rectangle the given pile occupies at this viewport. */
+  /** Returns the drop rectangle the given pile occupies at this viewport. */
   function geometryOf(pileId: string): PileGeometry {
     const metrics = measureFakeTable(viewport);
     return computeDropGeometries(

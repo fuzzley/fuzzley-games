@@ -9,20 +9,10 @@ import { SpideretteVariant } from "./spiderette_rules";
 export const WISP_CARDS_PER_COLUMN = 3;
 
 /**
- * Deals the opening layout for the given variant and puts the rest on the stock.
- *
- * The two differ only here. Spiderette takes Klondike's staircase — column i
- * gets i + 1 cards, 28 in all — and Will o' the Wisp deals a flat three to each,
- * 21 in all. Both bury everything but the top card of each column, and both send
- * what is left to the stock: 24 cards for Spiderette, 31 for Will o' the Wisp.
- *
- * Neither number divides by seven, which is the fact the stock rule downstream
- * has to accommodate — the last deal is a short row rather than a full one.
+ * Deals Spiderette's staircase or Will o' the Wisp's columns of three, with
+ * only each column's top card face up, and the rest face down on the stock.
  *
  * @param deck The cards to deal, which this drains.
- * @param tableaus The columns to deal onto.
- * @param stock The stock to fill with the remainder.
- * @param variant Which of the two openings to lay out.
  */
 export function dealSpideretteLayout(
   deck: PlayingCard[],

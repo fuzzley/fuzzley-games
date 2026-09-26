@@ -7,7 +7,7 @@ import {
 } from "@/engine/render/phaser/viewport_scaler";
 import { ViewportScaler } from "@/engine/render/phaser/viewport_scaler";
 
-/** A media query that records its listeners so tests can fire a DPR change. */
+/** Stands in for a media query, recording listeners to fire a DPR change. */
 class FakePixelRatioQuery implements PixelRatioQuery {
   public readonly listeners: (() => void)[] = [];
 
@@ -28,7 +28,7 @@ class FakePixelRatioQuery implements PixelRatioQuery {
   }
 }
 
-/** A window whose pixel ratio and size the test drives directly. */
+/** Stands in for a window whose pixel ratio and size a test drives. */
 class FakeWindow implements ScalerWindow {
   public devicePixelRatio: number;
   public readonly resizeListeners: (() => void)[] = [];
@@ -64,7 +64,7 @@ class FakeWindow implements ScalerWindow {
   }
 }
 
-/** A game recording the canvas size and zoom the scaler applies to it. */
+/** Stands in for a game, recording the canvas size and zoom it is given. */
 class FakeGame implements ScalableGame {
   public readonly canvas = { style: { width: "", height: "" } };
   public zoom = 1;
@@ -82,7 +82,7 @@ class FakeGame implements ScalableGame {
   };
 }
 
-/** A parent element of a fixed CSS size. */
+/** Stands in for a parent element of a fixed CSS size. */
 class FakeParent implements MeasurableParent {
   constructor(
     public width: number,

@@ -4,13 +4,10 @@ import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
 
 /**
- * The card shown when the player clears the board.
- * Displays final game statistics (score, elapsed time, total moves) and a
+ * Shows the final score, time and moves once the board is cleared, with a
  * button to play again.
  *
- * Deliberately not dismissible: "Play Again" is the only way on from a
- * finished board, and an Escape that dropped the player back onto it with no
- * moves left would be a dead end.
+ * Not dismissible, since a finished board has nowhere else to go.
  */
 @Component({
   selector: "app-victory-overlay",
@@ -23,10 +20,7 @@ export class VictoryOverlayComponent {
   protected readonly metrics = inject(GameMetricsService);
   private readonly lifecycle = inject(GameLifecycleService);
 
-  /**
-   * Deals a new game. Nothing is asked first: the board behind this card is
-   * finished, so there is no progress left to lose.
-   */
+  /** Deals a new game without asking: a finished board has nothing to lose. */
   protected playAgain(): void {
     void this.lifecycle.startNewGame();
   }

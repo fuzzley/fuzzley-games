@@ -26,22 +26,8 @@ import {
 export const DRAW_COUNT = 1;
 
 /**
- * A game of Forty Thieves, Josephine or Rank and File.
- *
- * Two decks across ten columns of four, eight foundations, and a stock that
- * turns one card at a time onto a waste — **and never takes it back**. That last
- * point is the whole character of the family. Klondike's stock is a resource to
- * be cycled and reconsidered; this one is a countdown. Every card drawn is a
- * card that must be placed now or left buried under the next one, and when the
- * sixty-four are gone they are gone.
- *
- * The three variants differ in what a column accepts, what may be lifted from
- * one, and how much of the deal is buried. All of that is declared by the zones
- * and the placement rules, so nothing below this line knows which is being
- * played.
- *
- * There is no score: like FreeCell and the Yukon family, the game is played
- * against the deal.
+ * Plays Forty Thieves or one of its variants: two decks, eight foundations, and
+ * a stock drawn one card at a time that is never recycled.
  */
 export class FortyThievesGame extends DealtTableGame {
   /** The face-down stock, drawn one card at a time and never recycled. */
@@ -54,21 +40,16 @@ export class FortyThievesGame extends DealtTableGame {
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
   /**
-   * Which of the family is being played.
-   *
-   * Public because the board has to know: three of the five variants sit on
-   * boards of different widths, and the board factory is handed only the game.
-   * Nothing in the rules reads it — those are declared by the zones.
+   * Which of the family is being played, public because the board factory
+   * reads the board's width from it.
    */
   public readonly variant: FortyThievesVariant;
 
   /**
-   * @param cardIds The card identities to deal from. Defaults to two full
-   *   decks; injectable so a test can supply a shorter one.
-   * @param random Source of shuffle randomness, injectable for a fixed deal.
-   * @param variant Which of the three games to play. A constructor parameter
-   *   rather than a field because the zones are built from it during `super`,
-   *   before this class's own fields exist.
+   * Creates a game whose piles are empty until the first deal.
+   *
+   * @param variant Which game of the family to play, passed in because the
+   *   zones are built from it during `super`, before this class's fields exist.
    */
   constructor(
     cardIds: ReadonlyArray<DeckCardId> = deckCardIds(FORTY_THIEVES_TWO_DECKS),
@@ -78,9 +59,8 @@ export class FortyThievesGame extends DealtTableGame {
     super({
       zones: () => fortyThievesZoneSpecs(variant),
       deck: new DeckSource(new CardRegistry(), cardIds, random),
-      // A foundation and nothing else. A column would often take the card too,
-      // but auto-moving to one means picking a column on the player's behalf
-      // when which column it goes to is most of the decision.
+      // Foundations only: which column a card goes to is most of the player's
+      // decision.
       autoMoveRoles: [FortyThievesRole.FOUNDATION],
       winsWhenAllCardsIn: FortyThievesRole.FOUNDATION,
     });
@@ -99,21 +79,12 @@ export class FortyThievesGame extends DealtTableGame {
 
   // --- The stock ---
 
-  /**
-   * Whether the stock has a card left to turn.
-   *
-   * There is no second clause, and that is the point: no recycle, so an empty
-   * stock is the end of the stock rather than the end of a pass through it.
-   */
+  /** Whether the stock has a card left to turn, as it is never recycled. */
   public get canDraw(): boolean {
     return !this.stock.isEmpty;
   }
 
-  /**
-   * Turns one card from the stock onto the waste.
-   *
-   * @returns True if a card was drawn.
-   */
+  /** Turns a card from the stock onto the waste, returning whether it could. */
   public drawCard(): boolean {
     if (!this.canDraw) {
       return false;
@@ -131,10 +102,6 @@ export class FortyThievesGame extends DealtTableGame {
 
   /**
    * Turns over the card the move exposed.
-   *
-   * The only effect a move has, and only Rank and File ever has one to turn: the
-   * other two deal every card face up, so this is a no-op there rather than a
-   * branch on the variant.
    *
    * @inheritDoc
    */

@@ -16,34 +16,28 @@ import { YukonVariant } from "@/games/yukon/yukon_rules";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
 
-/**
- * A dealt game of the given variant.
- *
- * The shuffle is fixed rather than random so a failure is reproducible; which
- * permutation it produces never matters, because every test that cares about
- * particular cards clears the board and places them itself.
- */
+/** Returns a game of the given variant, dealt with a fixed shuffle. */
 function dealtGame(variant: YukonVariant = YukonVariant.YUKON): YukonGame {
   const game = new YukonGame(ALL_PLAYING_CARD_IDS, sequenceRandom([]), variant);
   game.startNewGame();
   return game;
 }
 
-/** A dealt game holding only the given cards, for short-deck behaviour. */
+/** Returns a dealt game holding only the given cards, for a short deck. */
 function shortDeckGame(cardIds: readonly DeckCardId[]): YukonGame {
   const game = new YukonGame(cardIds, sequenceRandom([]));
   game.startNewGame();
   return game;
 }
 
-/** How many cards each column shows, which is what the deal shape is about. */
+/** Returns how many cards each column shows. */
 function faceUpCounts(game: YukonGame): number[] {
   return game.tableaus.map(
     (tableau) => tableau.getCards().filter((card) => card.faceUp).length,
   );
 }
 
-/** The id of every card the deal put on the board, column by column. */
+/** Returns the id of every card the deal put on the board, column by column. */
 function dealtCardIds(game: YukonGame): string[] {
   return game.tableaus.flatMap((tableau) =>
     tableau.getCards().map((card) => card.id),
@@ -122,10 +116,8 @@ describe("YukonGame", () => {
 
   describe("lifting a buried card", () => {
     /**
-     * A Nine of Spades with an unrelated Two resting on it, and a Ten of
-     * Diamonds waiting on the next column. The Nine is buried under a card that
-     * does not follow it in any sequence, which no other game here would let a
-     * player touch.
+     * Builds a Nine of Spades with an unrelated Two resting on it, and a Ten of
+     * Diamonds waiting on the next column.
      */
     function buriedOutOfSequence(): void {
       emptyBoard(game);
@@ -291,8 +283,8 @@ describe("YukonGame", () => {
 
   describe("turning over an exposed card", () => {
     /**
-     * A face-down Four under a Nine of Spades, with a Ten of Diamonds on the
-     * next column for the Nine to move to.
+     * Buries a face-down Four under a Nine of Spades, with a Ten of Diamonds on
+     * the next column for the Nine, and returns the Four.
      */
     function coveredFaceDownCard(): PlayingCard {
       emptyBoard(game);
@@ -426,11 +418,7 @@ describe("YukonGame", () => {
     });
   });
 
-  /*
-   * A card can be pulled back off a foundation onto a column, and when it is,
-   * nothing gets turned over: a foundation has no buried cards under it. Only a
-   * column exposes a face-down card by giving one up.
-   */
+  /* A foundation has no buried cards, so taking one off turns nothing over. */
   describe("taking a card back off a foundation", () => {
     it("turns nothing face up", () => {
       emptyBoard(game);
@@ -444,11 +432,6 @@ describe("YukonGame", () => {
   });
 
   describe("the zones", () => {
-    /**
-     * The board rebuilds its pile index whenever the zone array is a different
-     * array, and asks for it once per card per frame. A fresh array each time
-     * would rebuild that index forever.
-     */
     it("hands back the same array for a variant it has already built", () => {
       expect(yukonZoneSpecs(YukonVariant.ALASKA)).toBe(
         yukonZoneSpecs(YukonVariant.ALASKA),

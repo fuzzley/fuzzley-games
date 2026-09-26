@@ -1,8 +1,6 @@
 @use "../../styles" as *;
 
-// The one definition of a labelled setting and its segmented control. These
-// rules used to exist twice, verbatim, in the settings drawer and the debug
-// panel, because view encapsulation stopped the panel inheriting them.
+// A labelled setting and its segmented control.
 :host {
   display: block;
 }
@@ -25,9 +23,7 @@
   margin-bottom: var(--space-2);
 }
 
-// `--text-muted` rather than the slate-500 this used to be: on the drawer's
-// panel surface that measured about 3.9:1, under the 4.5:1 that 12px body text
-// needs.
+// `--text-muted`, which clears 4.5:1 on the drawer's surface.
 .setting-desc {
   margin-top: var(--space-2);
   font-size: var(--font-xs);

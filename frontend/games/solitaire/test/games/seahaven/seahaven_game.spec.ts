@@ -18,10 +18,8 @@ import { sequenceRandom } from "@test/support/sequence_random";
 const SHUFFLE_VALUES = [0.37, 0.11, 0.83, 0.5, 0.06];
 
 /**
- * Cards used only to occupy a pile. Diamonds and clubs throughout, because every
- * position below is built from spades, so a blocker can never be mistaken for
- * part of a run — and being off-suit it can never accept a card a test is trying
- * to move either.
+ * Cards used only to occupy a pile, all diamonds and clubs so none can join or
+ * take a card from the spade positions below.
  */
 const FILLER_IDS = [
   "card-diamonds-2",
@@ -44,13 +42,8 @@ const FILLER_IDS = [
  * Reduces the board to exactly the slack a test asks for: `freeCells` cells and
  * `emptyColumns` columns left empty, with every other empty pile blocked.
  *
- * Called after a test has built its position, so it only ever fills what the
- * test left over. Without it a cleared board has four free cells and eight spare
- * columns, and no run small enough to construct would ever be refused.
- *
- * Empty columns are a parameter even though Seahaven's limit ignores them —
- * being able to leave one standing is exactly what lets a test show that it is
- * ignored.
+ * Call it after building the position, since it fills whatever is left empty.
+ * Empty columns are a parameter so a test can show that the limit ignores them.
  */
 function leaveSlack(
   game: SeahavenGame,
@@ -68,8 +61,8 @@ function leaveSlack(
 }
 
 /**
- * A three-card same-suit run on column 0 with the nine it wants to land on
- * waiting on column 1. Returns the bottom card of the run.
+ * Builds a three-card same-suit run on column 0, with the Nine it wants waiting
+ * on column 1, and returns the run's bottom card.
  */
 function runOfThree(game: SeahavenGame): PlayingCard {
   emptyBoard(game);
@@ -192,12 +185,6 @@ describe("SeahavenGame", () => {
     });
   });
 
-  /*
-   * The rule that separates Seahaven from FreeCell. FreeCell would double the
-   * allowance for each empty column; here an empty column takes only a King, a
-   * moving run's only King is its bottom card, and so no sub-run staged on the
-   * way could ever be parked in one.
-   */
   describe("the supermove limit", () => {
     it("carries a run the free cells can stage", () => {
       const eight = runOfThree(game);
@@ -214,10 +201,8 @@ describe("SeahavenGame", () => {
     });
 
     /*
-     * One free cell and one empty column. Seahaven's limit is two, so the run
-     * of three is refused. FreeCell's `(cells + 1) x 2 ^ (empty columns)` would
-     * make it four and allow the move, so this is the case that actually
-     * distinguishes the two formulas rather than merely exercising one.
+     * One free cell and one empty column: Seahaven allows two cards here, where
+     * FreeCell's formula would allow four.
      */
     it("does not count an empty column as staging space", () => {
       const eight = runOfThree(game);
