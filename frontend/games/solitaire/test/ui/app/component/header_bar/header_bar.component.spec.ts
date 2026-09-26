@@ -4,6 +4,7 @@ import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.component";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
 import { ConfirmationService } from "@/ui/app/service/confirmation.service";
+import { BugReportService } from "@/ui/app/service/bug_report.service";
 import { COMPACT_MAX_WIDTH_PX } from "@/ui/app/service/viewport.service";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import {
@@ -52,6 +53,13 @@ describe("HeaderBarComponent", () => {
   function narrow(): void {
     viewport.setWidth(NARROW);
     fixture.detectChanges();
+  }
+
+  /** Watches for a bug report being opened, without opening one. */
+  function spyOnReports() {
+    return vi
+      .spyOn(TestBed.inject(BugReportService), "openReport")
+      .mockResolvedValue();
   }
 
   describe("the heading", () => {
@@ -171,6 +179,20 @@ describe("HeaderBarComponent", () => {
       expect(TestBed.inject(GameDocumentationService).isOpen()).toBe(true);
     });
 
+    it("reports a bug from an icon beside the rules", () => {
+      const openReport = spyOnReports();
+
+      clickElement(fixture, ".btn-bug-report");
+
+      expect(openReport).toHaveBeenCalledOnce();
+    });
+
+    it("names the icon-only bug report button for a screen reader", () => {
+      expect(
+        queryRequired(fixture, ".btn-bug-report").getAttribute("aria-label"),
+      ).toContain("Report a Bug");
+    });
+
     it("asks the shell to open settings", () => {
       const openSettings = vi.fn();
       fixture.componentInstance.openSettings.subscribe(openSettings);
@@ -203,13 +225,14 @@ describe("HeaderBarComponent", () => {
       expect([
         query(fixture, "button[title*='Restart']"),
         query(fixture, ".btn-help"),
-      ]).toEqual([null, null]);
+        query(fixture, ".btn-bug-report"),
+      ]).toEqual([null, null, null]);
     });
 
     it("holds them behind one button instead of dropping them", () => {
       openMenu();
 
-      expect(menuLabels()).toEqual(["Restart", "How to Play"]);
+      expect(menuLabels()).toEqual(["Restart", "How to Play", "Report a Bug"]);
     });
 
     it("stays shut until it is asked for", () => {
@@ -239,15 +262,24 @@ describe("HeaderBarComponent", () => {
     it("opens the rules from the menu", () => {
       openMenu();
 
-      clickElement(fixture, ".overflow-item:last-child");
+      clickElement(fixture, ".overflow-item[aria-label*='How to Play']");
 
       expect(TestBed.inject(GameDocumentationService).isOpen()).toBe(true);
+    });
+
+    it("reports a bug from the menu", () => {
+      const openReport = spyOnReports();
+      openMenu();
+
+      clickElement(fixture, ".overflow-item[aria-label*='Report a Bug']");
+
+      expect(openReport).toHaveBeenCalledOnce();
     });
 
     it("closes once an action has been taken", () => {
       openMenu();
 
-      clickElement(fixture, ".overflow-item:last-child");
+      clickElement(fixture, ".overflow-item[aria-label*='How to Play']");
       fixture.detectChanges();
 
       expect(query(fixture, ".overflow-menu")).toBeNull();
