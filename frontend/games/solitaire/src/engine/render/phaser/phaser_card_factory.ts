@@ -1,30 +1,16 @@
 import * as Phaser from "phaser";
 
-/**
- * Factory class responsible for creating and configuring Phaser sprite GameObjects
- * for playing cards and pile backgrounds.
- */
+/** Makes the sprites for cards and pile placeholders. */
 export class PhaserCardFactory {
   /**
-   * The drop shadow applied to every card sprite.
+   * The drop shadow applied to every card sprite, as the arguments to
+   * `FilterList.addShadow`, none of which mean what they sound like.
    *
-   * Field names match the parameters of `FilterList.addShadow(x, y, decay,
-   * power, color, samples, intensity)`, none of which mean what they sound
-   * like. From the filter's shader:
-   *
-   * - `x` and `y` place a light in the filter texture's coordinate space, where
-   *   the texture spans 0 to 1. They are not an offset. Putting the light off
-   *   the top-left corner throws the shadow down and to the right.
-   * - Each of `samples` steps travels `decay / 12 * intensity` of the way
-   *   towards the light, so those three together set how far the shadow
-   *   reaches. Twelve is the shader's ceiling on `samples`; spending all of
-   *   them buys a smoother gradient rather than a longer one.
-   * - `power` is what one sample contributes where it lands on the card, so
-   *   `samples * power` is roughly how dark the shadow gets at its deepest.
-   *
-   * The reach is a fraction of the filter texture, which for an internal filter
-   * is the card, so the shadow stays proportional to the card at every layout
-   * scale.
+   * - `x` and `y` place a light in the card's 0-to-1 texture space; off the
+   *   top-left corner, it throws the shadow down and to the right.
+   * - Each of the `samples` steps travels `decay / 12 * intensity` towards the
+   *   light, so those three set the shadow's reach; 12 samples is the most.
+   * - `samples * power` is roughly how dark the shadow gets at its deepest.
    */
   private static readonly CARD_SHADOW = {
     x: -1.5,
@@ -39,24 +25,16 @@ export class PhaserCardFactory {
   /**
    * Room left around the card for the shadow to draw into, in texels.
    *
-   * Phaser sizes this itself from `x * width * decay * intensity`, which
-   * assumes the light sits inside the texture. This one is outside it, so the
-   * distance to it — and with it the shadow's reach — grows across the card,
-   * and Phaser's estimate comes out short enough to cut the gradient off part
-   * way through its fade.
+   * Set by hand because Phaser's own estimate assumes the light is inside the
+   * texture, and cuts this shadow off part way through its fade.
    */
   private static readonly CARD_SHADOW_PADDING = { x: 32, y: 48 };
 
   /**
-   * Constructs the visual factory with the active Phaser Scene context.
+   * Creates a factory that adds sprites to a scene.
    *
-   * @param scene The active Phaser Scene.
-   * @param cardBackStyle Supplies the current card-back frame to use for new
-   *   card sprites. Injected so the factory needs no knowledge of the game
-   *   model or scene internals.
-   * @param textureKey Supplies the texture of the deck currently on the table.
-   *   Read per sprite rather than captured, so a sprite made after the player
-   *   changes deck is drawn from the deck they changed to.
+   * @param cardBackStyle Returns the card-back frame for a new card sprite.
+   * @param textureKey Returns the texture of the deck currently on the table.
    */
   constructor(
     private readonly scene: Phaser.Scene,
@@ -64,11 +42,7 @@ export class PhaserCardFactory {
     private readonly textureKey: () => string,
   ) {}
 
-  /**
-   * Instantiates and configures a card sprite with standard origin and shadow filters.
-   *
-   * @returns The configured Sprite.
-   */
+  /** Creates an interactive card sprite with a drop shadow. */
   createCardSprite(): Phaser.GameObjects.Sprite {
     const sprite = this.scene.add.sprite(
       0,
@@ -79,10 +53,8 @@ export class PhaserCardFactory {
     sprite.setOrigin(0, 0);
     sprite.enableFilters();
 
-    // Internal, not external: an external filter is composited in screen space,
-    // which makes Phaser allocate a canvas-sized framebuffer per filtered
-    // object - 52 of them every frame, at whatever resolution the display runs
-    // at. An internal filter works in the card's own space instead.
+    // Internal, because an external filter needs a canvas-sized framebuffer for
+    // every card, every frame.
     const shadow = PhaserCardFactory.CARD_SHADOW;
     const padding = PhaserCardFactory.CARD_SHADOW_PADDING;
     sprite.filters?.internal
@@ -97,22 +69,16 @@ export class PhaserCardFactory {
       )
       ?.setPaddingOverride(-padding.x, -padding.y, padding.x, padding.y);
 
-    // Make card sprite interactive for pointer events
     sprite.setInteractive({ useHandCursor: true });
 
     return sprite;
   }
 
   /**
-   * Instantiates a pile's background placeholder sprite.
+   * Creates a pile's placeholder sprite.
    *
-   * Which artwork marks a slot is the zone's business, not the factory's, so
-   * the frame is passed in rather than chosen here by pile role.
-   *
-   * @param frame The atlas frame the zone declared for its placeholder.
-   * @param alpha Transparency level for the background.
-   * @param interactive Whether the slot responds to the pointer at all. Only a
-   *   slot that does something when clicked needs to.
+   * @param frame The atlas frame the pile's zone declared for its placeholder.
+   * @param interactive Whether the slot responds to the pointer.
    */
   createPileBackground(
     frame: string,
