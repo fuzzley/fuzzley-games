@@ -9,11 +9,8 @@ import {
  * The FreeCell board: eight columns wide, with the four cells and the four
  * foundations sharing the top row and the columns filling the bottom.
  *
- * Eight columns rather than Klondike's seven, and nothing in the engine was
- * told about it — the design width falls out of the grid.
- *
- * Which variant the slots are read from does not matter — the rules vary with
- * it, the grid does not — so this serves Baker's Game unchanged.
+ * Any variant would do for reading the zones: it changes the rules, not the
+ * grid.
  */
 export const FREECELL_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,

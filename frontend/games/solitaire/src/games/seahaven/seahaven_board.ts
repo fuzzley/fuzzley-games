@@ -5,12 +5,7 @@ import { stocklessGestures } from "@/games/common/table_gestures";
 import { SEAHAVEN_LAYOUT } from "./seahaven_layout";
 import { SeahavenGame } from "./seahaven_game";
 
-/**
- * Builds the Seahaven Towers board scene.
- *
- * The whole board is dealt at the start, so the shared stockless gestures are
- * the right ones unchanged: there is no stock for a single press to draw from.
- */
+/** Builds the Seahaven Towers board scene. */
 export function makeSeahavenBoardScene(
   game: SeahavenGame,
   presentation: TablePresentation,

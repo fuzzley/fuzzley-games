@@ -8,20 +8,10 @@ export const CARDS_PER_COLUMN = 4;
  * Deals `deck` four to a column, face up, with every King sunk to the bottom of
  * the column it landed in.
  *
- * Sinking the Kings is not a flourish, it is what makes the game playable. A
- * King can never be moved anywhere — nothing builds on it and no empty column
- * will take it — so a King dealt on top of a column would bury the three cards
- * beneath it for the whole game, and thirteen columns dealt at random would
- * usually strand several. Putting them underneath costs nothing, since the cards
- * above them stay reachable.
- *
- * The other cards keep the order they were dealt in. Only the Kings move, and
- * only to the bottom.
- *
- * A short injected deck simply deals fewer columns, leaving the rest empty.
+ * A King can never move, so one dealt on top would bury the cards beneath it
+ * for the whole game.
  *
  * @param deck The cards to deal, which this drains.
- * @param tableaus The columns to deal onto.
  */
 export function dealBakersDozenLayout(
   deck: PlayingCard[],
@@ -43,10 +33,8 @@ export function dealBakersDozenLayout(
 }
 
 /**
- * The column reordered so its Kings sit at the bottom, each group otherwise
- * keeping the order it was dealt in.
- *
- * @param column The cards dealt to one column, in dealt order.
+ * Returns a column with its Kings moved to the bottom, the cards otherwise in
+ * the order they were dealt.
  */
 function sinkKings(column: readonly PlayingCard[]): PlayingCard[] {
   const kings = column.filter((card) => card.rank === Rank.KING);

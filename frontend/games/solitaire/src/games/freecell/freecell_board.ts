@@ -5,13 +5,7 @@ import { stocklessGestures } from "@/games/common/table_gestures";
 import { FREECELL_LAYOUT } from "./freecell_layout";
 import { FreeCellGame } from "./freecell_game";
 
-/**
- * Builds the FreeCell board scene.
- *
- * A game supplies its grid, its gestures and its look, and the engine does the
- * rest. FreeCell's gestures are the shared stockless ones unchanged: with the
- * whole board dealt at the start there is nothing a single press could do.
- */
+/** Builds the FreeCell board scene. */
 export function makeFreeCellBoardScene(
   game: FreeCellGame,
   presentation: TablePresentation,
