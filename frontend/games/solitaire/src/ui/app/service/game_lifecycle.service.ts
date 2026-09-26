@@ -29,7 +29,6 @@ export class GameLifecycleService {
     }
 
     this.catalog.select(id);
-    this.metrics.reset();
   }
 
   /** Deals the same game again from the start. */
@@ -43,7 +42,6 @@ export class GameLifecycleService {
     }
 
     this.catalog.session().game.restartGame();
-    this.metrics.reset();
   }
 
   /** Deals a new game of whatever is on the table. */
@@ -57,7 +55,6 @@ export class GameLifecycleService {
     }
 
     this.catalog.session().game.startNewGame();
-    this.metrics.reset();
   }
 
   /** Plays the current game by a different rule. */
@@ -72,7 +69,6 @@ export class GameLifecycleService {
     }
 
     this.catalog.setOption(optionId, value);
-    this.metrics.reset();
   }
 
   /**
@@ -107,7 +103,6 @@ export class GameLifecycleService {
       this.catalog.setOption(optionId, value);
     }
     this.catalog.session().game.restore(snapshot);
-    this.metrics.reset();
     return true;
   }
 
