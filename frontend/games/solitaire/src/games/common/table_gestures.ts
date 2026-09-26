@@ -2,7 +2,7 @@ import { CardPile, PileRole } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { IntentHandler } from "@/engine/render/input/table_intents";
 
-/** The two things a gesture can ask any game to do. */
+/** Exposes the two moves a gesture can ask any game to make. */
 export interface MovableGame {
   /** Moves a card and its stacked cards to a destination pile. */
   moveCardToPile(cardId: string, targetPileId: string): boolean;
@@ -10,53 +10,33 @@ export interface MovableGame {
   autoMoveCard(cardId: string): boolean;
 }
 
-/** A game a gesture map can also ask where a card is. */
+/** Extends a {@link MovableGame} with a way to ask where a card is. */
 export interface GestureGame extends MovableGame {
-  /** The pile holding the given card, or undefined. */
+  /** Returns the pile holding the given card, or undefined. */
   getPileContainingCard(cardId: string): CardPile<PlayingCard> | undefined;
 }
 
-/** What a game does with the presses only it understands. */
+/** Says what a game does with the presses only it understands. */
 export interface TableGestureOptions {
-  /**
-   * A single press on a card — a Klondike draw, a Spider row.
-   *
-   * Told the pile holding the card, which may be undefined when the board and
-   * its sprites have drifted apart. Most games ignore that case; Klondike
-   * treats it as something that should fail loudly.
-   */
+  /** Handles a single press on a card, such as a Klondike draw. */
   readonly onCardPress?: (
     cardId: string,
     pile: CardPile<PlayingCard> | undefined,
   ) => void;
 
-  /** A single press on an empty pile slot — Klondike's recycle, Montana's redeal. */
+  /** Handles a press on an empty pile slot, such as Klondike's recycle. */
   readonly onPilePress?: (pileId: string) => void;
 
   /**
-   * The roles a double press will send a card from. Omit for any role at all,
-   * which is what a game with no stock wants: everything on its board is in
-   * play.
+   * The roles a double press will send a card from, or undefined for every
+   * role.
    */
   readonly autoMoveFrom?: readonly PileRole[];
 }
 
 /**
- * What a press or a drop means, for any game.
- *
- * Nine games wrote out their own four-case switch, and the `drop` case was
- * byte-identical in every one of them — Spider's map and Spiderette's, and
- * Klondike's and Double Klondike's, were identical throughout but for the
- * identifiers. What actually differs is what a press on the stock does and
- * which piles answer a double press, so those are the parameters and the rest
- * is written once.
- *
- * Everything else about handling a pointer — hover, the double press window,
- * the stack in hand, the flight afterwards — is the engine's, and is the same
- * in every game.
- *
- * @param game The game to act on.
- * @param options What this game does with a press.
+ * Returns an intent handler that moves cards on a drop or a double press, and
+ * leaves single presses to `options`.
  */
 export function tableGestures(
   game: GestureGame,
@@ -94,17 +74,8 @@ export function tableGestures(
 }
 
 /**
- * A press handler for a stock whose top card is the one that draws.
- *
- * Klondike, Double Klondike and Forty Thieves. Pressing a card buried in the
- * stock does nothing, and pressing anything else is handled on the second
- * press.
- *
- * A card in no pile means the board and its sprites have drifted apart, which
- * fails loudly rather than quietly doing nothing.
- *
- * @param stockRole The role of the pile that draws.
- * @param draw What a press on it does.
+ * Returns a press handler that calls `draw` when the stock's top card is
+ * pressed, and throws for a card in no pile.
  */
 export function drawOnStockTop(
   stockRole: PileRole,
@@ -120,16 +91,7 @@ export function drawOnStockTop(
   };
 }
 
-/**
- * A press handler for a stock that deals wherever it is pressed.
- *
- * Spider, Spiderette, Scorpion and Easthaven, whose stocks deal a row rather
- * than turning a card into a waste — so which card was pressed does not matter,
- * only that it was the stock.
- *
- * @param stockRole The role of the pile that deals.
- * @param deal What a press on it does.
- */
+/** Returns a press handler that calls `deal` when any stock card is pressed. */
 export function dealOnStockPress(
   stockRole: PileRole,
   deal: () => void,
@@ -142,16 +104,8 @@ export function dealOnStockPress(
 }
 
 /**
- * What a press or a drop means in a game with no stock.
- *
- * There is nothing to draw and nothing to recycle, so a single press does
- * nothing at all and no empty slot is worth clicking. A double press sends a
- * card wherever it will go, and a drop is a move.
- *
- * Shared by FreeCell, Baker's Game, Eight Off and the Yukon family — every game
- * whose whole board is dealt at the start.
- *
- * @param game The game to act on.
+ * Returns the intent handler for a game with no stock, where a single press
+ * does nothing.
  */
 export function stocklessGestures(game: GestureGame): IntentHandler {
   return tableGestures(game);
