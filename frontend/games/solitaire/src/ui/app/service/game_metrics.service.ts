@@ -1,4 +1,11 @@
-import { Injectable, computed, effect, inject, signal } from "@angular/core";
+import {
+  Injectable,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from "@angular/core";
 import { GameCatalogService } from "./game_catalog.service";
 import { TimerService } from "./timer.service";
 
@@ -40,6 +47,9 @@ export class GameMetricsService {
 
   constructor() {
     // Follow whichever game is on the table; the cleanup lets go of the last.
+    // A new game and a new deal both reset the readings here, rather than
+    // waiting to be told, because the router can put a game on the table
+    // without going through GameLifecycleService.
     effect((onCleanup) => {
       const { game } = this.catalog.session();
 
@@ -48,16 +58,21 @@ export class GameMetricsService {
         this.movesSignal.set(metrics.moves);
         this.undoDepthSignal.set(metrics.undoDepth);
       });
+      // After the subscription, so the reset reads this game's moves.
+      this.reset();
 
       const gameWonHandler = () => {
         this.wonSignal.set(true);
         this.timer.stop();
       };
+      const gameResetHandler = () => this.reset();
       game.on("game-won", gameWonHandler);
+      game.on("game-reset", gameResetHandler);
 
       onCleanup(() => {
         unsubscribe();
         game.off("game-won", gameWonHandler);
+        game.off("game-reset", gameResetHandler);
       });
     });
 
@@ -68,9 +83,16 @@ export class GameMetricsService {
     });
   }
 
-  /** Clears the won flag and the stopwatch for a freshly dealt game. */
-  reset(): void {
-    this.wonSignal.set(false);
-    this.timer.reset();
+  /**
+   * Clears the won flag and the stopwatch for a game just put on the table,
+   * starting the stopwatch at once for one restored part-way through.
+   */
+  private reset(): void {
+    // Untracked, so the effect that calls this does not re-run on every move.
+    untracked(() => {
+      this.wonSignal.set(false);
+      this.timer.reset();
+      if (this.isInProgress()) this.timer.start();
+    });
   }
 }
