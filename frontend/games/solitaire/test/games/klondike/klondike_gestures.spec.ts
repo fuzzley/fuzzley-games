@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { DoubleKlondikeGame } from "@/games/double_klondike/double_klondike_game";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { klondikeGestures } from "@/games/klondike/klondike_gestures";
 import { stackFromCard } from "@/engine/tableau/view/grabbable_stack";
@@ -22,6 +23,18 @@ describe("klondikeGestures", () => {
       handle({ kind: "activate", cardId: top.id });
 
       expect(game.waste.size).toBe(3);
+    });
+
+    it("draws from Double Klondike's stock too, which shares them", () => {
+      const double = new DoubleKlondikeGame();
+      double.startNewGame();
+
+      klondikeGestures(double)({
+        kind: "activate",
+        cardId: double.stock.topCard!.id,
+      });
+
+      expect(double.waste.size).toBe(3);
     });
 
     it("does not draw when a buried stock card is pressed", () => {

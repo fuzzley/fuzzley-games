@@ -164,8 +164,11 @@ The only required override is `dealBoard(deck)`. Optionally:
 - `applyMoveEffects(move)` — what a move does beyond relocating cards. Two shapes
   are already written in `src/games/common/move_effects.ts`: `flipOnlyEffects`
   (Yukon, Easthaven, Forty Thieves) and `runCollectingEffects` (Spider,
-  Spiderette, Scorpion). Klondike scores its flip and so calls
-  `flipExposedTopOfColumn` directly.
+  Spiderette, Scorpion). The Klondike family scores its flip, so
+  `KlondikeFamilyGame` (`src/games/klondike/klondike_family_game.ts`) calls
+  `flipExposedTopOfColumn` directly. A game played with Klondike's stock and
+  scoring extends that class and writes only `dealLayout`, as Double Klondike
+  does.
 - A stock action. `drawToWaste(stock, waste, count)` and
   `recycleWasteToStock(waste, stock)` from `src/games/common/stock_pile.ts` move
   the cards and return transfers. The game commits them with
