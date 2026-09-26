@@ -4,7 +4,7 @@ import { TablePresentation } from "@/engine/render/presentation";
 import { PlayableGame } from "@/engine/tableau/playable_game";
 import { makeTableBoardScene } from "@/games/common/board_scene_factory";
 import { stocklessGestures } from "@/games/common/table_gestures";
-import { doubleKlondikeGestures } from "@/games/double_klondike/double_klondike_gestures";
+
 import { easthavenGestures } from "@/games/easthaven/easthaven_gestures";
 import { fortyThievesGestures } from "@/games/forty_thieves/forty_thieves_gestures";
 import { klondikeGestures } from "@/games/klondike/klondike_gestures";
@@ -37,7 +37,7 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
   fortythieves: fortyThievesGestures,
   maria: fortyThievesGestures,
   limited: fortyThievesGestures,
-  doubleklondike: doubleKlondikeGestures,
+  doubleklondike: klondikeGestures,
   montana: montanaGestures,
 };
 

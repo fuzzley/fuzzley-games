@@ -33,8 +33,11 @@ start at the first unticked item. Delete this file once every item is done.
 - [x] **Replace the per-game board files with a gesture map.** `GESTURES` in
       `board_catalog.ts`; the catalog spec checks every rule option deals onto
       its entry's grid.
-- [ ] **Share Klondike's stock and scoring with Double Klondike.** One object
-      owns the recycle count, drawing, recycling and scoring.
+- [x] **Share Klondike's stock and scoring with Double Klondike.** Done as a
+      shared base class, `KlondikeFamilyGame`, rather than the delegate object
+      first proposed: everything the two games shared was an engine hook, which
+      a delegate would have needed forwarding in both. Double Klondike now uses
+      Klondike's gestures too.
 - [ ] **Use options objects in game constructors.** Remove the placeholder
       `undefined` arguments, type option values so the casts go away, and share
       one create-and-deal helper.
