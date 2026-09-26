@@ -3,6 +3,7 @@ import { CardRegistry } from "@/engine/core/card/card_registry";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
+import { readNumber, readObject } from "@/engine/core/common/json_reader";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { AppliedMove, CardTransfer } from "@/engine/tableau/move";
@@ -35,14 +36,10 @@ interface MontanaExtra {
   readonly redealsUsed: number;
 }
 
-/** Whether a snapshot's extra state is one Montana saved. */
-function isMontanaExtra(extra: unknown): extra is MontanaExtra {
-  return (
-    typeof extra === "object" &&
-    extra !== null &&
-    "redealsUsed" in extra &&
-    typeof extra.redealsUsed === "number"
-  );
+/** Reads a snapshot's extra state as Montana's. */
+function readMontanaExtra(value: unknown): MontanaExtra {
+  const extra = readObject(value, "extra");
+  return { redealsUsed: readNumber(extra.redealsUsed, "extra.redealsUsed") };
 }
 
 /**
@@ -216,10 +213,7 @@ export class MontanaGame extends DealtTableGame {
 
   /** @inheritDoc */
   protected override restoreExtra(extra: unknown): void {
-    if (!isMontanaExtra(extra)) {
-      throw new Error("The snapshot's extra state is not Montana's.");
-    }
-    this.redealsUsed = extra.redealsUsed;
+    this.redealsUsed = readMontanaExtra(extra).redealsUsed;
   }
 
   /**

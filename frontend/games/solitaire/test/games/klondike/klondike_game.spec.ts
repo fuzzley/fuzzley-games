@@ -942,6 +942,6 @@ describe("KlondikeGame snapshot", () => {
 
     expect(() =>
       copy.restore({ ...recycledOnce().snapshot(), extra: null }),
-    ).toThrow(/not Klondike's/);
+    ).toThrow(/extra is not an object/);
   });
 });

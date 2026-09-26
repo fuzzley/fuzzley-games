@@ -2,6 +2,7 @@ import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
+import { readNumber, readObject } from "@/engine/core/common/json_reader";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { AppliedMove } from "@/engine/tableau/move";
@@ -29,14 +30,10 @@ interface KlondikeExtra {
   readonly recycleCount: number;
 }
 
-/** Whether a snapshot's extra state is one Klondike saved. */
-function isKlondikeExtra(extra: unknown): extra is KlondikeExtra {
-  return (
-    typeof extra === "object" &&
-    extra !== null &&
-    "recycleCount" in extra &&
-    typeof extra.recycleCount === "number"
-  );
+/** Reads a snapshot's extra state as Klondike's. */
+function readKlondikeExtra(value: unknown): KlondikeExtra {
+  const extra = readObject(value, "extra");
+  return { recycleCount: readNumber(extra.recycleCount, "extra.recycleCount") };
 }
 
 /**
@@ -231,10 +228,7 @@ export class KlondikeGame extends DealtTableGame {
 
   /** @inheritDoc */
   protected override restoreExtra(extra: unknown): void {
-    if (!isKlondikeExtra(extra)) {
-      throw new Error("The snapshot's extra state is not Klondike's.");
-    }
-    this.recycleCount = extra.recycleCount;
+    this.recycleCount = readKlondikeExtra(extra).recycleCount;
   }
 
   /**

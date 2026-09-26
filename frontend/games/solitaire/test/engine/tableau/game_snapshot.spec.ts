@@ -1,8 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import type {
-  CardSnapshot,
-  GameSnapshot,
+import { readObject, readString } from "@/engine/core/common/json_reader";
+import {
+  type CardSnapshot,
+  type GameSnapshot,
+  readGameSnapshot,
 } from "@/engine/tableau/game_snapshot";
 import type { AppliedMove } from "@/engine/tableau/move";
 import { FakeTableGame } from "@test/support/fake_table/game";
@@ -38,15 +40,7 @@ class ModalGame extends FakeTableGame {
   }
 
   protected override restoreExtra(extra: unknown): void {
-    if (
-      typeof extra !== "object" ||
-      extra === null ||
-      !("mode" in extra) ||
-      typeof extra.mode !== "string"
-    ) {
-      throw new Error("No mode.");
-    }
-    this.mode = extra.mode;
+    this.mode = readString(readObject(extra, "extra").mode, "extra.mode");
   }
 }
 
@@ -242,5 +236,66 @@ describe("DealtTableGame snapshots", () => {
     attemptRestore(fresh, corrupt(playedGame().snapshot()));
 
     expect(fresh.snapshot()).toEqual(before);
+  });
+});
+
+/** Values shaped wrongly for a snapshot, and what reading each says. */
+const MALFORMED: [
+  name: string,
+  malform: (snapshot: GameSnapshot) => unknown,
+  error: RegExp,
+][] = [
+  ["something other than an object", () => 42, /snapshot is not an object/],
+  [
+    "piles that are not a list",
+    (snapshot) => ({ ...snapshot, piles: {} }),
+    /piles is not a list/,
+  ],
+  [
+    "a card with no face",
+    (snapshot) => ({
+      ...snapshot,
+      piles: [{ ...snapshot.piles[0], cards: [{ id: "card-spades-ace" }] }],
+    }),
+    /piles\[0\]\.cards\[0\]\.faceUp is not true or false/,
+  ],
+  [
+    "a score that is not a number",
+    (snapshot) => ({ ...snapshot, score: "high" }),
+    /score is not a number/,
+  ],
+  [
+    "an action with nowhere for its cards to go",
+    (snapshot) => ({
+      ...snapshot,
+      history: [
+        {
+          ...snapshot.history[0],
+          transfers: [{ ...snapshot.history[0].transfers[0], toPileId: 7 }],
+        },
+      ],
+    }),
+    /history\[0\]\.transfers\[0\]\.toPileId is not text/,
+  ],
+  [
+    "a deal of numbers",
+    (snapshot) => ({ ...snapshot, deal: [1] }),
+    /deal\[0\] is not text/,
+  ],
+];
+
+describe("readGameSnapshot", () => {
+  it("reads back a snapshot written out as JSON", () => {
+    const snapshot = playedGame().snapshot();
+
+    const parsed = readGameSnapshot(JSON.parse(JSON.stringify(snapshot)));
+
+    expect(parsed).toEqual(snapshot);
+  });
+
+  it.each(MALFORMED)("rejects %s", (_name, malform, error) => {
+    const value = malform(playedGame().snapshot());
+
+    expect(() => readGameSnapshot(value)).toThrow(error);
   });
 });

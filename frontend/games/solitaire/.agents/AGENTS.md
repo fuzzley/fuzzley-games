@@ -40,6 +40,8 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
 
 1. **`src/engine/core`** _(Bottom Tier)_
    - Pure card, suit, rank, deck, pile, and RNG primitives.
+   - `common/` holds the helpers every tier shares: an event emitter, readers
+     for untrusted JSON, gzip, and base64url.
    - Free of all external dependencies, frameworks, rendering logic, RxJS, Phaser, or Angular.
 2. **`src/engine/render`**
    - Renderer-agnostic layout mathematics, view contracts, drag calculations, and input bounds.
