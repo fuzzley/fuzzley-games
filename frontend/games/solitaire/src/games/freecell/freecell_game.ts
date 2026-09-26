@@ -35,7 +35,7 @@ export class FreeCellGame extends DealtTableGame {
     variant: FreeCellVariant = FreeCellVariant.FREECELL,
   ) {
     super({
-      zones: () => freeCellZoneSpecs(variant),
+      zones: freeCellZoneSpecs(variant),
       // Dealt face up: FreeCell hides nothing.
       deck: new DeckSource(new CardRegistry(), cardIds, random, true),
       // A foundation is always best; a cell is a last resort, since parking a

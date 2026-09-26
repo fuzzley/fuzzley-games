@@ -10,9 +10,10 @@ import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
 import { flipExposedTopOfColumn } from "@/games/common/move_effects";
 import { dealKlondikeAlmostWin, dealKlondikeLayout } from "./klondike_deal";
-import { KlondikeSettings } from "./klondike_settings";
 import {
+  DEFAULT_DRAW_COUNT,
   DEFAULT_KLONDIKE_VARIANT,
+  DrawCount,
   KlondikeVariant,
   klondikeDealsFaceUp,
 } from "./klondike_rules";
@@ -49,8 +50,8 @@ export class KlondikeGame extends DealtTableGame {
   /** The seven tableau piles arranged on the board. */
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
-  /** User-configurable game settings. */
-  public readonly settings: KlondikeSettings;
+  /** How many cards a draw turns over. */
+  public readonly drawCount: DrawCount;
 
   /** Whether to deal a nearly finished board, for verification. */
   public almostWin = false;
@@ -66,25 +67,25 @@ export class KlondikeGame extends DealtTableGame {
   /**
    * Creates a game whose piles are empty until the first deal.
    *
-   * @param settings The settings to play by. It and `variant` are parameters
-   *   because the zones are built from them during `super`, before this
-   *   class's fields exist.
+   * @param drawCount How many cards a draw turns over. It and `variant` are
+   *   parameters because the zones are built from them during `super`, before
+   *   this class's fields exist.
    */
   constructor(
     cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
     scoring: ScoringPolicy = new ScoringPolicy(),
-    settings: KlondikeSettings = new KlondikeSettings(),
+    drawCount: DrawCount = DEFAULT_DRAW_COUNT,
     variant: KlondikeVariant = DEFAULT_KLONDIKE_VARIANT,
   ) {
     super({
-      zones: () => klondikeZoneSpecs(settings.drawCount, variant),
+      zones: klondikeZoneSpecs(drawCount, variant),
       deck: new DeckSource(new CardRegistry(), cardIds),
       // A foundation is always preferred over a column.
       autoMoveRoles: [KlondikeRole.FOUNDATION, KlondikeRole.TABLEAU],
       winsWhenAllCardsIn: KlondikeRole.FOUNDATION,
     });
 
-    this.settings = settings;
+    this.drawCount = drawCount;
     this.scoring = scoring;
     this.variant = variant;
 
@@ -138,7 +139,7 @@ export class KlondikeGame extends DealtTableGame {
   private drawFromStock(): void {
     this.commitAction(
       "draw",
-      drawToWaste(this.stock, this.waste, this.settings.drawCount),
+      drawToWaste(this.stock, this.waste, this.drawCount),
     );
   }
 
@@ -150,7 +151,7 @@ export class KlondikeGame extends DealtTableGame {
     const scoreBefore = this.state.score;
     this.recycleCount++;
     const penalty = this.scoring.recyclePenalty(
-      this.settings.drawCount,
+      this.drawCount,
       this.recycleCount,
     );
     this.state.score = Math.max(0, this.state.score - penalty);

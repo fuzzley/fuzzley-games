@@ -25,7 +25,7 @@ export class SimpleSimonGame extends DealtTableGame {
     random: () => number = Math.random,
   ) {
     super({
-      zones: () => simpleSimonZoneSpecs(),
+      zones: simpleSimonZoneSpecs(),
       // Dealt face up: the whole position is visible from the first move.
       deck: new DeckSource(new CardRegistry(), cardIds, random, true),
       // Only a column will take a card; a foundation is never a destination a

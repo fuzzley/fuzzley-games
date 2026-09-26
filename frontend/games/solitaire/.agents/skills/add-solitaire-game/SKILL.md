@@ -108,12 +108,10 @@ up), `wasteFanLayout(drawCount)`.
 (Klondike columns — deliberately lax), or `{ kind: "run", adjacent }` (FreeCell,
 Spider). It must agree with the build rule from step 2.
 
-**Memoize the result.** Wrap in `memoizeZones` from
-`src/engine/tableau/zone_builder.ts` (or export a module-level const when the
-board takes no parameters, as Spiderette does). `TableGame.zoneFor` rebuilds its
-id index whenever it is handed a different array and is asked once per card per
-frame, so returning a fresh array per call rebuilds that index forever. The cache
-is bounded by the number of variants, so it cannot go stale.
+**Write it as a plain function of the choices that shape the board**, such as
+the variant or the draw count. The game hands the result to `super` once and
+`TableGame` indexes it there, so a game's zones are fixed for its life: changing
+a rule deals a new game rather than reshaping this one.
 
 For a slot that is not a plain consecutive row — Montana's grid — `zoneRow`
 accepts a function for `column`.
@@ -147,7 +145,7 @@ replays the same game.
 
 ```ts
 super({
-  zones: () => myGameZoneSpecs(variant),
+  zones: myGameZoneSpecs(variant),
   deck: new DeckSource(new CardRegistry(), cardIds, random, /* faceUp */ true),
   autoMoveRoles: [MyRole.FOUNDATION, MyRole.TABLEAU, MyRole.CELL],
   winsWhenAllCardsIn: MyRole.FOUNDATION,
@@ -159,7 +157,7 @@ Then grab your piles with `this.pilesOfRole(role)` / `this.requirePile(id)`.
 Constructor shape, followed by every game: `(cardIds = ALL_PLAYING_CARD_IDS,
 random = Math.random, variant?)`. Both defaults are there so a test can supply a
 short deck and a fixed shuffle. A variant is a constructor parameter rather than
-a field because the zones closure is built from it during `super`.
+a field because the zones are built from it during `super`.
 
 The only required override is `dealBoard(deck)`. Optionally:
 
@@ -350,7 +348,6 @@ Reading it as a decision, when you are unsure where a new piece belongs:
 
 ## Traps that have actually bitten
 
-- **Zones not memoized** — a per-frame index rebuild. See step 3.
 - **Grab and build rules disagreeing** — a run liftable but not landable, which
   only shows up mid-drag. Pair them in one table.
 - **A supermove limit the board cannot honour** — an empty _destination_ column

@@ -26,10 +26,10 @@ start at the first unticked item. Delete this file once every item is done.
       removed `afterMove` hook to an `isWon` override.
 - [x] **Shared deal-and-collect helper.** `dealRowCollectingRuns` in
       `games/common/row_deal.ts`.
-- [ ] **Set each game's zones once, when the game is built.** Replace the zones
-      callback with a plain list and delete the memoizer and cache logic.
-- [ ] **Pass Klondike a draw count instead of a settings object.** The tests
-      that change draw mode mid-game build a new game instead.
+- [x] **Set each game's zones once, when the game is built.** `TableGame`
+      indexes the list in its constructor; `memoizeZones` is gone.
+- [x] **Pass Klondike a draw count instead of a settings object.**
+      `DrawCount` now lives in `klondike_rules.ts`.
 - [ ] **Replace the per-game board files with a gesture map.** Each game id maps
       to its gestures, and the layout comes from the catalog entry.
 - [ ] **Share Klondike's stock and scoring with Double Klondike.** One object
@@ -79,3 +79,12 @@ start at the first unticked item. Delete this file once every item is done.
 - [ ] Run the verify job on pull requests, and deploy only on pushes.
 - [ ] Cache Yarn packages in the Node setup step.
 - [ ] Add a concurrency group so two deploys can't race.
+
+## New findings
+
+Found while working through the list above, and not yet part of it.
+
+- [ ] **WebGL contexts outlive their games.** Switching games quickly makes
+      Chrome warn "Too many active WebGL contexts. Oldest context will be
+      lost." `PhaserHost.destroy` does not release the context explicitly, so
+      each switch leaves one for the garbage collector.

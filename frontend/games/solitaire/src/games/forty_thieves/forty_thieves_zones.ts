@@ -1,6 +1,5 @@
 import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { ZoneSpec } from "@/engine/tableau/zone";
-import { memoizeZones } from "@/engine/tableau/zone_builder";
 import { STOCK_PILE_ID, WASTE_PILE_ID } from "../common/pile_ids";
 import {
   CLOSED_STOCK_PLACEHOLDER,
@@ -58,8 +57,10 @@ export const WASTE_PILE_LAYOUT: PileLayout = {
 };
 
 /** Returns the zones of a Forty Thieves board under a variant. */
-export const fortyThievesZoneSpecs = memoizeZones(
-  (variant: FortyThievesVariant): readonly ZoneSpec[] => [
+export function fortyThievesZoneSpecs(
+  variant: FortyThievesVariant,
+): readonly ZoneSpec[] {
+  return [
     stockZone({
       id: STOCK_PILE_ID,
       role: FortyThievesRole.STOCK,
@@ -93,8 +94,8 @@ export const fortyThievesZoneSpecs = memoizeZones(
       grab: fortyThievesGrabRule(variant),
       face: fortyThievesHidesCards(variant) ? "card" : "always-up",
     }),
-  ],
-);
+  ];
+}
 
 /** Re-exported: the roles live with the rules that branch on them. */
 export { FortyThievesRole };

@@ -58,7 +58,7 @@ export class MontanaGame extends DealtTableGame {
     random: () => number = Math.random,
   ) {
     super({
-      zones: () => montanaZoneSpecs(),
+      zones: montanaZoneSpecs(),
       // Dealt face up: the whole position is visible from the first move.
       deck: new DeckSource(new CardRegistry(), cardIds, random, true),
       // A card fits at most one gap, so auto-moving it guesses nothing.

@@ -57,8 +57,11 @@ export type TableGameEvents = {
 
 /** Configures a table game's board. */
 export interface TableGameOptions {
-  /** The zones to create piles for, and the rules each pile plays by. */
-  readonly zones: () => readonly ZoneSpec[];
+  /**
+   * The zones to create piles for, and the rules each pile plays by, which are
+   * fixed for the life of the game.
+   */
+  readonly zones: readonly ZoneSpec[];
   /** Supplies the persistent card instances the game deals. */
   readonly registry: CardRegistry;
   /** The roles {@link TableGame.autoMoveCard} tries, best first. */
@@ -89,22 +92,30 @@ export abstract class TableGame<
     CardPile<PlayingCard>[]
   >();
 
+  /** Each pile's zone, by pile id. */
+  private readonly zonesById: ReadonlyMap<string, ZoneSpec>;
+
   /** The applied actions {@link undo} unwinds, and who is following them. */
   private readonly history: MoveHistory = new MoveHistory(this);
 
-  private readonly zones: () => readonly ZoneSpec[];
   private readonly registry: CardRegistry;
   private readonly autoMoveRoles: readonly PileRole[];
   private readonly winningRole?: PileRole;
 
+  /** Every pile on the board, in the order the zones declared them. */
+  public readonly piles: readonly CardPile<PlayingCard>[];
+
+  /** Every pile a dragged stack may be dropped onto, in declaration order. */
+  public readonly dropTargetPiles: readonly CardPile<PlayingCard>[];
+
   constructor(options: TableGameOptions) {
     super();
-    this.zones = options.zones;
     this.registry = options.registry;
     this.autoMoveRoles = options.autoMoveRoles;
     this.winningRole = options.winsWhenAllCardsIn;
 
-    for (const zone of this.zones()) {
+    const { zones } = options;
+    for (const zone of zones) {
       const pile = new CardPile<PlayingCard>(
         zone.id,
         zone.role,
@@ -115,21 +126,15 @@ export abstract class TableGame<
       byRole.push(pile);
       this.pilesByRoleMap.set(zone.role, byRole);
     }
-  }
 
-  // --- The board ---
-
-  /** Every pile a dragged stack may be dropped onto, in declaration order. */
-  public get dropTargetPiles(): readonly CardPile<PlayingCard>[] {
-    return this.zones()
+    this.zonesById = new Map(zones.map((zone) => [zone.id, zone]));
+    this.piles = [...this.pilesMap.values()];
+    this.dropTargetPiles = zones
       .filter((zone) => zone.accept !== null)
       .map((zone) => this.requirePile(zone.id));
   }
 
-  /** Every pile on the board, in the order the zones declared them. */
-  public get piles(): readonly CardPile<PlayingCard>[] {
-    return [...this.pilesMap.values()];
-  }
+  // --- The board ---
 
   /** Returns every pile playing the given part, in declaration order. */
   public pilesOfRole(role: PileRole): readonly CardPile<PlayingCard>[] {
@@ -177,22 +182,8 @@ export abstract class TableGame<
 
   /** Returns the zone describing the given pile, or undefined if unknown. */
   public zoneFor(pileId: string): ZoneSpec | undefined {
-    // Indexed because the view builder asks once per card per frame. A new
-    // zone array means the zones changed, so the index is rebuilt.
-    const zones = this.zones();
-    if (this.zoneIndex?.source !== zones) {
-      this.zoneIndex = {
-        source: zones,
-        byId: new Map(zones.map((zone) => [zone.id, zone])),
-      };
-    }
-    return this.zoneIndex.byId.get(pileId);
+    return this.zonesById.get(pileId);
   }
-
-  private zoneIndex: {
-    source: readonly ZoneSpec[];
-    byId: ReadonlyMap<string, ZoneSpec>;
-  } | null = null;
 
   /** The read-only view of the board handed to placement rules. */
   public readonly board: BoardQuery = {

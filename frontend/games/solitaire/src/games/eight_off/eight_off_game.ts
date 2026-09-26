@@ -25,7 +25,7 @@ export class EightOffGame extends DealtTableGame {
     random: () => number = Math.random,
   ) {
     super({
-      zones: () => eightOffZoneSpecs(),
+      zones: eightOffZoneSpecs(),
       // Dealt face up: the whole position is visible from the first move.
       deck: new DeckSource(new CardRegistry(), cardIds, random, true),
       // A foundation is always best and a cell is the last resort, since

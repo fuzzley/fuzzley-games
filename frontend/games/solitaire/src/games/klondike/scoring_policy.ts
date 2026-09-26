@@ -1,6 +1,5 @@
 import { PileRole } from "@/engine/core/card/card_pile";
-import { KlondikeRole } from "./klondike_rules";
-import { DrawCount } from "./klondike_settings";
+import { DrawCount, KlondikeRole } from "./klondike_rules";
 
 /** Names the roles a scoring rule tells apart. */
 export interface ScoringRoles {

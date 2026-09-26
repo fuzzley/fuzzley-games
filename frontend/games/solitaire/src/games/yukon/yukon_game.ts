@@ -31,7 +31,7 @@ export class YukonGame extends DealtTableGame {
     variant: YukonVariant = YukonVariant.YUKON,
   ) {
     super({
-      zones: () => yukonZoneSpecs(variant),
+      zones: yukonZoneSpecs(variant),
       deck: new DeckSource(new CardRegistry(), cardIds, random),
       // Foundations only: sending a stack to whichever column is declared
       // first is never what was meant.
