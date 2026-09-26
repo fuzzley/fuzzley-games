@@ -8,37 +8,21 @@ import {
 } from "@/engine/core/card/playing_card";
 
 /**
- * A read-only view of the whole board, for rules that depend on more than the
- * pile a card is landing on.
- *
- * FreeCell is why this exists. Its supermove limit is
- * `(free cells + 1) x 2^(empty columns)` — how many cards may move at once is a
- * property of the position, not of the target. A rule that only saw its target
- * could not express it.
- *
- * Narrow on purpose: a rule can ask what is where, and can change nothing.
+ * Lets a rule read the whole board, for rules that depend on more than the pile
+ * a card is landing on.
  */
 export interface BoardQuery {
-  /**
-   * The pile with the given id, or undefined.
-   *
-   * Typed to {@link PlayingCard} rather than the bare {@link Card} the piles are
-   * declared over, because a rule that looks up another pile almost always wants
-   * to read a card off it: Montana accepts a card only when it follows the one
-   * in the cell to its left, in suit and rank, and neither is visible on a
-   * `Card`. Every board handed to a rule is built from playing cards, so this
-   * narrows nothing that was ever true.
-   */
+  /** Returns the pile with the given id, or undefined. */
   pile(pileId: string): CardPile<PlayingCard> | undefined;
 
-  /** Every pile playing the given part, in the order the game declared them. */
+  /** Returns every pile playing a part, in declaration order. */
   pilesByRole(role: PileRole): readonly CardPile<PlayingCard>[];
 
-  /** How many piles playing the given part are empty. */
+  /** Returns how many piles playing the given part are empty. */
   emptyCount(role: PileRole): number;
 }
 
-/** Everything a placement rule is allowed to know about a proposed move. */
+/** Tells a placement rule everything it may know about a proposed move. */
 export interface PlacementContext {
   /** The card being moved: the bottom of the moving stack. */
   readonly card: PlayingCard;
@@ -56,39 +40,30 @@ export interface PlacementContext {
   readonly board: BoardQuery;
 }
 
-/**
- * Whether a proposed move is legal.
- *
- * A function rather than a class so rules compose: a game builds the rule for
- * each of its zones out of the pieces below instead of writing a method per
- * pile role.
- */
+/** Decides whether a proposed move is legal. */
 export type PlacementRule = (context: PlacementContext) => boolean;
 
 // --- Combinators -----------------------------------------------------------
 
-/** A rule that accepts nothing. The default for a pile that is not a destination. */
+/** A rule that accepts nothing. */
 export const never: PlacementRule = () => false;
 
 /** A rule that accepts any card. */
 export const anyCard: PlacementRule = () => true;
 
-/** A rule that holds only when every one of `rules` holds. */
+/** Returns a rule that holds only when every one of `rules` holds. */
 export function all(...rules: readonly PlacementRule[]): PlacementRule {
   return (context) => rules.every((rule) => rule(context));
 }
 
-/** A rule that holds when any one of `rules` holds. */
+/** Returns a rule that holds when any one of `rules` holds. */
 export function any(...rules: readonly PlacementRule[]): PlacementRule {
   return (context) => rules.some((rule) => rule(context));
 }
 
 /**
- * Applies one rule to an empty target and another to an occupied one.
- *
- * The shape almost every build rule actually has: what may start a pile is a
- * different question from what may continue it. An empty Klondike tableau takes
- * a King and an occupied one takes the next card down.
+ * Returns a rule that applies one rule to an empty target and another to an
+ * occupied one.
  */
 export function byEmptiness(
   whenEmpty: PlacementRule,
@@ -98,7 +73,7 @@ export function byEmptiness(
     context.targetPile.isEmpty ? whenEmpty(context) : whenOccupied(context);
 }
 
-/** A rule that holds when the moved card satisfies `predicate`. */
+/** Returns a rule that holds when the moved card satisfies `predicate`. */
 export function cardIs(
   predicate: (card: PlayingCard) => boolean,
 ): PlacementRule {
@@ -110,10 +85,8 @@ export const singleCardOnly: PlacementRule = (context) =>
   context.movingStack.length === 1;
 
 /**
- * A rule that holds when the moving stack is no larger than the board
- * currently allows.
- *
- * @param limit How many cards may move at once in the given position.
+ * Returns a rule that holds when the moving stack is no larger than `limit`
+ * allows in the current position.
  */
 export function maxStackSize(
   limit: (context: PlacementContext) => number,
@@ -123,49 +96,41 @@ export function maxStackSize(
 
 // --- Playing card rules ----------------------------------------------------
 
-/** Whether the card is a red suit (hearts or diamonds). */
+/** Returns whether the card is a red suit (hearts or diamonds). */
 export function isRed(card: PlayingCard): boolean {
   return card.suit === Suit.HEART || card.suit === Suit.DIAMOND;
 }
 
-/** A predicate matching cards of the given rank, for use with {@link cardIs}. */
+/** Returns a predicate matching one rank, for use with {@link cardIs}. */
 export function hasRank(rank: Rank): (card: PlayingCard) => boolean {
   return (card) => card.rank === rank;
 }
 
 // --- Run adjacency ---------------------------------------------------------
 //
-// What may sit directly on what within a run, as a pair of cards rather than a
-// board position. Two things ask the question and they have to agree: a zone's
-// `run` grab rule, which decides whether a stack may be lifted at all, and the
-// build rule below it, which decides whether that stack may land. Defining the
-// pair once and deriving the build rule from it is what keeps them from
-// drifting apart.
+// Whether one card may sit directly on another. A zone's `run` grab rule and
+// its build rule both ask this, and deriving both from one pair predicate is
+// what keeps them in agreement.
 
 /**
- * Whether `upper` may sit directly on `lower`: one rank down, in the other
- * colour. Klondike and FreeCell build this way.
+ * Returns whether `upper` may sit on `lower` as in Klondike: one rank down, in
+ * the other colour.
  */
 export function isOrderedPair(lower: PlayingCard, upper: PlayingCard): boolean {
   return upper.rank === rankBelow(lower.rank) && isRed(lower) !== isRed(upper);
 }
 
 /**
- * Whether `upper` may sit directly on `lower`: one rank down, in the same suit.
- * Spider lifts runs this way, and Baker's Game, Eight Off and Scorpion build
- * this way as well as lifting.
+ * Returns whether `upper` may sit on `lower` as in a Spider run: one rank
+ * down, in the same suit.
  */
 export function isSameSuitRun(lower: PlayingCard, upper: PlayingCard): boolean {
   return lower.suit === upper.suit && upper.rank === rankBelow(lower.rank);
 }
 
 /**
- * Whether `upper` may sit directly on `lower`: one rank down, in the same
- * colour. Whitehead builds and lifts this way.
- *
- * Between {@link isOrderedPair} and {@link isSameSuitRun} in strictness, and
- * that is the whole of Whitehead's character: two suits will take a card where
- * alternating colours would offer two and a single suit only one.
+ * Returns whether `upper` may sit on `lower` as in Whitehead: one rank down, in
+ * the same colour.
  */
 export function isSameColorRun(
   lower: PlayingCard,
@@ -175,12 +140,8 @@ export function isSameColorRun(
 }
 
 /**
- * Whether `upper` may sit directly on `lower`: one rank down, in any suit but
- * `lower`'s own. Thumb and Pouch builds and lifts this way.
- *
- * The laxest of the four, and deliberately not the same as "any suit at all":
- * three of the four suits will take a card, which is what makes Thumb and Pouch
- * the gentle Klondike rather than a game with no column rule.
+ * Returns whether `upper` may sit on `lower` as in Thumb and Pouch: one rank
+ * down, in any suit but `lower`'s own.
  */
 export function isDifferentSuitRun(
   lower: PlayingCard,
@@ -190,23 +151,16 @@ export function isDifferentSuitRun(
 }
 
 /**
- * Whether `upper` may sit directly on `lower`: one rank down, any suit at all.
- * Spider builds this way, though it only lifts a single suit.
+ * Returns whether `upper` may sit on `lower` as in a Spider build: one rank
+ * down, in any suit.
  */
 export function isAnySuitRun(lower: PlayingCard, upper: PlayingCard): boolean {
   return upper.rank === rankBelow(lower.rank);
 }
 
 /**
- * The build rule that lets a card land on a pile whose top card it may sit on.
- *
- * Every descending build is this same shape — look at the top card, ask the
- * pair predicate — and each was written out in full, so the five of them
- * repeated one four-line body five times. Deriving them from the adjacency
- * predicates is also what keeps a zone's `run` grab rule and its build rule
- * asking the same question.
- *
- * @param adjacent Whether the upper card may sit on the lower one.
+ * Returns a build rule that lets a card land on a pile whose top card it may
+ * sit on by `adjacent`.
  */
 export function buildsOn(
   adjacent: (lower: PlayingCard, upper: PlayingCard) => boolean,
@@ -252,7 +206,7 @@ export const ascendingSameSuit: PlacementRule = (context) => {
 
 /**
  * The standard suit foundation: an Ace starts it, and each card after builds up
- * in the same suit, one at a time. Shared by Klondike, FreeCell and Spider.
+ * in the same suit, one at a time.
  */
 export const suitFoundation: PlacementRule = all(
   singleCardOnly,
@@ -263,23 +217,12 @@ export const suitFoundation: PlacementRule = all(
 export const singleCardCell: PlacementRule = all(singleCardOnly, anyCard);
 
 /**
- * How many cards a run of empty cells can shuffle around: `free cells + 1`.
+ * Returns how many cards the empty piles of `cellRole` let a player move at
+ * once: `free cells + 1`.
  *
- * The staging arithmetic behind every supermove — park cards in the free cells,
- * move the one underneath, put them back. Three games reach this same figure:
- * Eight Off, Seahaven, and FreeCell's Kings-only variant. Each denies empty
- * columns any staging value, which is what removes the `x 2 ^ (empty columns)`
- * term FreeCell proper carries.
- *
- * Why those games deny it: a moving run descends in one suit, so its only King
- * is its bottom card. Every sub-run a supermove stages is a proper suffix of
- * that run, so its bottom card is never a King and can never be parked in a
- * Kings-only empty column. Empty columns are therefore worth nothing to stage
- * with, and the decomposition reduces to `F + 1` exactly.
- *
- * Counting them anyway would let a player start a move the board cannot finish.
- *
- * @param cellRole The role of the piles that count as staging space.
+ * For games whose empty columns take only Kings: no part of a same-suit run
+ * but its bottom card is a King, so unlike in FreeCell an empty column cannot
+ * stage anything and adds no `x 2 ^ (empty columns)` term.
  */
 export function cellStagingLimit(
   cellRole: PileRole,
