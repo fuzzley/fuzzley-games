@@ -101,16 +101,55 @@ export class GameCatalogService {
       return;
     }
 
+    this.storeOptions(entry, { [optionId]: value });
+    this.deal(entry);
+  }
+
+  /**
+   * Puts the named game on the table by the given rules and routes to it,
+   * dealing once however many rules change.
+   *
+   * Rules it does not name keep their chosen values, and a value the game does
+   * not offer falls back to the default. The game already on the table, by the
+   * same rules, is left alone.
+   */
+  load(id: string, values: GameOptionValues): void {
+    const entry = catalogEntry(id);
+    const switching = entry.id !== this.selectedIdSignal();
+    const before = this.valuesFor(entry.id, this.optionsSignal());
+    this.storeOptions(entry, values);
+    const after = this.valuesFor(entry.id, this.optionsSignal());
+    const sameRules = entry.options.every(
+      (spec) => before[spec.id] === after[spec.id],
+    );
+    if (!switching && sameRules) return;
+
+    this.deal(entry);
+    if (switching) this.route(entry.id);
+  }
+
+  /** Records rule values for a game, keeping those it does not name. */
+  private storeOptions(entry: CatalogEntry, values: GameOptionValues): void {
+    const stored = this.optionsSignal();
+    const merged = {
+      ...stored,
+      [entry.id]: { ...stored[entry.id], ...values },
+    };
     const updated: StoredOptions = {
-      ...this.optionsSignal(),
-      [entry.id]: {
-        ...this.valuesFor(entry.id, this.optionsSignal()),
-        [optionId]: value,
-      },
+      ...stored,
+      [entry.id]: this.valuesFor(entry.id, merged),
     };
     this.optionsSignal.set(updated);
     this.storage.writeObject(OPTIONS_STORAGE_KEY, updated);
-    this.sessionSignal.set(entry.create(updated[entry.id]));
+  }
+
+  /** Deals a game onto the table by its chosen rules, and remembers it. */
+  private deal(entry: CatalogEntry): void {
+    this.selectedIdSignal.set(entry.id);
+    this.sessionSignal.set(
+      entry.create(this.valuesFor(entry.id, this.optionsSignal())),
+    );
+    this.storage.writeString(STORAGE_KEY, entry.id);
   }
 
   /** Returns the stored values for a game, dropping anything unrecognised. */
@@ -162,11 +201,14 @@ export class GameCatalogService {
     if (entry.id === this.selectedIdSignal()) return;
 
     this.applySelection(entry.id);
+    this.route(entry.id);
+  }
 
-    // The board already shows the new game, so a failed navigation is only
-    // logged.
-    this.router.navigate([entry.id]).catch((e: unknown) => {
-      console.warn(`Failed to route to "${entry.id}":`, e);
+  /** Records the game on the table in the URL. */
+  private route(id: string): void {
+    // The board already shows the game, so a failed navigation is only logged.
+    this.router.navigate([id]).catch((e: unknown) => {
+      console.warn(`Failed to route to "${id}":`, e);
     });
   }
 
@@ -178,10 +220,6 @@ export class GameCatalogService {
     const entry = catalogEntry(id);
     if (entry.id === this.selectedIdSignal()) return;
 
-    this.selectedIdSignal.set(entry.id);
-    this.sessionSignal.set(
-      entry.create(this.valuesFor(entry.id, this.optionsSignal())),
-    );
-    this.storage.writeString(STORAGE_KEY, entry.id);
+    this.deal(entry);
   }
 }

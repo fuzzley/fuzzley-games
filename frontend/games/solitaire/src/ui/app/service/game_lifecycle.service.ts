@@ -109,10 +109,7 @@ export class GameLifecycleService {
       return false;
     }
 
-    this.catalog.select(entry.id);
-    for (const [optionId, value] of Object.entries(options)) {
-      this.catalog.setOption(optionId, value);
-    }
+    this.catalog.load(entry.id, options);
     this.catalog.session().game.restore(snapshot);
     return true;
   }
