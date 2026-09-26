@@ -12,7 +12,7 @@ import {
 import { GameSnapshot, readGameSnapshot } from "@/engine/tableau/game_snapshot";
 import { GameOptionValues } from "../provider/game_catalog";
 
-/** A game as a bug report carries it: which game, by which rules, and where. */
+/** Records a game as a bug report carries it: which, by what rules, where. */
 export interface GamePosition {
   readonly gameId: string;
   readonly options: GameOptionValues;

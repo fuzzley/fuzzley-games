@@ -18,25 +18,11 @@ const STEP_BY_KEY: Readonly<Record<string, number>> = {
 };
 
 /**
- * The keyboard half of the `radiogroup` pattern.
+ * Gives a `radiogroup` its keyboard behaviour: a single tab stop, with the
+ * arrow keys moving between its radios.
  *
- * `role="radiogroup"` with `role="radio"` children is a promise about the
- * keyboard as much as a description of the markup: the group is one tab stop,
- * and the arrows move within it. Three groups in this application declared the
- * role and left every button independently tabbable with no arrow handling, so
- * a screen reader announced "radio, 2 of 3" over a control that did not behave
- * like one.
- *
- * Applying this directive is what makes the role true. It owns both halves —
- * the roving `tabindex` and the arrow keys — because a group with one and not
- * the other is the bug it exists to prevent.
- *
- * Selection is manual: the arrows move focus, and Space or Enter chooses,
- * which for a `<button>` needs no handler of ours. The alternative, where
- * focus and selection move together, is the more common reading of the pattern
- * and the wrong one here — one of these groups is the rule picker, where
- * choosing deals a new game behind a confirmation prompt. Arrowing across it
- * would raise a modal per keystroke.
+ * The arrows move focus without choosing, because choosing a rule deals a new
+ * game behind a confirmation prompt.
  */
 @Directive({
   selector: "[appRadioGroup]",
@@ -49,9 +35,8 @@ export class RadioGroupDirective {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   constructor() {
-    // `aria-checked` is bound by the host template and the radios themselves
-    // can come and go with the game on the table, so the tab stop has to
-    // follow the DOM rather than being placed once and left there.
+    // The radios and their `aria-checked` change with the game on the table,
+    // so the tab stop follows the DOM.
     const observer = new MutationObserver(() => {
       this.syncTabStops();
     });
@@ -73,10 +58,8 @@ export class RadioGroupDirective {
   }
 
   /**
-   * Moves focus within the group, leaving the choice to the player.
-   *
-   * Wraps at both ends, and takes Home and End to the first and last, which is
-   * what the authoring practices ask of a group that wraps.
+   * Moves focus within the group, wrapping at the ends, and leaves the choice
+   * to the player.
    */
   protected onKeydown(event: KeyboardEvent): void {
     const radios = this.radios();
@@ -98,7 +81,7 @@ export class RadioGroupDirective {
     this.syncTabStops(next);
   }
 
-  /** Where a navigation key lands, or null when the key is not one. */
+  /** Returns where a navigation key lands, or null when the key is not one. */
   private nextIndex(key: string, from: number, count: number): number | null {
     if (key === "Home") return 0;
     if (key === "End") return count - 1;
@@ -108,14 +91,8 @@ export class RadioGroupDirective {
   }
 
   /**
-   * Leaves exactly one radio in the tab order.
-   *
-   * The checked one, so tabbing into the group lands on the current choice.
-   * With none checked the first takes it, because a group nothing can tab into
-   * is worse than one whose entry point is arbitrary.
-   *
-   * @param preferred The index to make the tab stop regardless of what is
-   *     checked, used while the arrows are moving focus around.
+   * Leaves exactly one radio in the tab order: `preferred` if given, else the
+   * checked one, else the first.
    */
   private syncTabStops(preferred?: number): void {
     const radios = this.radios();
@@ -131,7 +108,7 @@ export class RadioGroupDirective {
     });
   }
 
-  /** The group's radios, in document order. */
+  /** Returns the group's radios, in document order. */
   private radios(): HTMLElement[] {
     return Array.from(
       this.host.nativeElement.querySelectorAll<HTMLElement>(RADIO_SELECTOR),

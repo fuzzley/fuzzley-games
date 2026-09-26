@@ -25,41 +25,25 @@ type BoardFactory<Id extends GameId> = (
 ) => BoardScene;
 
 /**
- * The board that draws each game.
- *
- * Kept apart from the game catalog because this is the only side that names
- * Phaser: everything that merely wants to know what is being played — the
- * header, the settings panel, their tests — can then stay clear of it.
- *
- * The mapped type is what ties the two halves together. Every id in the
- * catalog must appear here, with a factory taking exactly the game that id
- * deals, so adding a game without a board is a compile error rather than the
- * runtime `throw` that used to sit at the bottom of an `instanceof` chain —
- * and a board wired to the wrong game no longer type-checks at all.
+ * The board that draws each game, typed so that a game without a board, or
+ * with the wrong one, does not compile.
  */
 const BOARD_FACTORIES: { [Id in GameId]: BoardFactory<Id> } = {
   klondike: makeKlondikeBoardScene,
   freecell: makeFreeCellBoardScene,
   spider: makeSpiderBoardScene,
-  // One board for all three of the Yukon family: the variants differ in what a
-  // column accepts, which the zones already declare, and in nothing drawn.
   yukon: makeYukonBoardScene,
-  // Baker's Game is FreeCell's class under different column rules, so it is
-  // also FreeCell's board.
+  // Baker's Game is played by FreeCell's class, so it uses FreeCell's board.
   bakers: makeFreeCellBoardScene,
   eightoff: makeEightOffBoardScene,
   scorpion: makeScorpionBoardScene,
   simplesimon: makeSimpleSimonBoardScene,
   bakersdozen: makeBakersDozenBoardScene,
   seahaven: makeSeahavenBoardScene,
-  // One board for both Spiderette variants: they differ in the opening deal,
-  // which the game has laid out before a board ever draws it.
   spiderette: makeSpideretteBoardScene,
   easthaven: makeEasthavenBoardScene,
-  // One board for the whole Forty Thieves family. The variants differ in what a
-  // column accepts and what may be lifted, which the zones declare, and Maria
-  // and Limited differ in grid as well — which the factory reads off the game
-  // rather than being told, since a board factory is handed only that.
+  // Maria and Limited are played by the Forty Thieves class, whose board
+  // factory reads the grid off the game.
   fortythieves: makeFortyThievesBoardScene,
   maria: makeFortyThievesBoardScene,
   limited: makeFortyThievesBoardScene,
@@ -70,18 +54,8 @@ const BOARD_FACTORIES: { [Id in GameId]: BoardFactory<Id> } = {
 /**
  * Builds the board that draws a dealt game.
  *
- * The id and the game are narrowed together by the cast below. That is not a
- * new assumption: a catalog entry declares its id and the game it deals in one
- * place, and the table above is checked against that declaration — so the only
- * way to reach here with a mismatched pair is to have taken them from
- * different entries. What is lost by this point is the *proof*, not the fact:
- * {@link GameCatalogService} holds a dealt session under the erased
- * `PlayableGame`, because everything else that reads it — the header, the
- * settings panel — has no business knowing which game it has.
- *
- * @param gameId The id of the game being drawn.
- * @param game The dealt game itself, which must be the one that id deals.
- * @param presentation The player's table settings, which the board follows.
+ * @param game The dealt game, which must be the one `gameId` deals; the cast
+ *   below trusts that, because the catalog holds sessions under an erased type.
  * @param onReady Called once the board has finished building itself.
  */
 export function makeBoardScene(

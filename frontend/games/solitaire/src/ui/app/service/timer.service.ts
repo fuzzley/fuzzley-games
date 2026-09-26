@@ -6,10 +6,7 @@ import {
   inject,
 } from "@angular/core";
 
-/**
- * A simple stopwatch with no knowledge of the game. Tracks elapsed seconds and
- * exposes a formatted `mm:ss` string. Callers drive it via start/stop/reset.
- */
+/** Counts elapsed seconds and formats them as `mm:ss`. */
 @Injectable({ providedIn: "root" })
 export class TimerService {
   private readonly secondsElapsed = signal(0);

@@ -96,7 +96,7 @@ export class SavedGameService {
   }
 }
 
-/** Whether two sets of rule values choose the same value for every rule. */
+/** Returns whether two sets of rule values agree on every rule. */
 function sameValues(a: GameOptionValues, b: GameOptionValues): boolean {
   const ids = new Set([...Object.keys(a), ...Object.keys(b)]);
   return [...ids].every((id) => a[id] === b[id]);

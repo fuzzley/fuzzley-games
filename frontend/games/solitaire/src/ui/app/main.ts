@@ -10,15 +10,12 @@ import { SavedGameService } from "./service/saved_game.service";
 import { routes } from "./routes";
 import "./styles/global.scss";
 
-// Zoneless: the UI is entirely signal-based, and without zone.js patching
-// requestAnimationFrame there is no way for Phaser's game loop to drag the
-// Angular change detector along with it at 60fps.
+// Zoneless, so Phaser's game loop does not run change detection every frame.
 //
-// Hash location: the built application is copied into a subdirectory of a
-// static host that will not rewrite unknown paths onto index.html, so a
-// fragment is the only form of URL that survives a reload.
+// Hash location, because the static host this is copied onto will not rewrite
+// unknown paths onto index.html.
 //
-// The saved game is restored before the first render, and saved from then on.
+// The saved game is restored before the first render.
 bootstrapApplication(AppComponent, {
   providers: [
     provideZonelessChangeDetection(),
