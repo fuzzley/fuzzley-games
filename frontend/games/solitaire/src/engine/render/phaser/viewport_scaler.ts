@@ -1,7 +1,6 @@
 /**
- * The slice of `Phaser.Game` the scaler drives. Narrowed to what is actually
- * used so the scaler can be unit tested without booting a real game;
- * `Phaser.Game` satisfies this structurally.
+ * Describes the slice of `Phaser.Game` the scaler drives, so a test need not
+ * boot a real game.
  */
 export interface ScalableGame {
   /** The game's canvas element, whose CSS size the scaler pins. */
@@ -13,28 +12,26 @@ export interface ScalableGame {
   };
 }
 
-/**
- * The subscription surface of a media query. `MediaQueryList` satisfies this
- * structurally.
- */
+/** Describes the subscription surface of a `MediaQueryList`. */
 export interface PixelRatioQuery {
   addEventListener(type: "change", listener: () => void): void;
   removeEventListener(type: "change", listener: () => void): void;
 }
 
-/**
- * The slice of `Window` the scaler reads. `Window` satisfies this structurally.
- */
+/** Describes the slice of `Window` the scaler reads. */
 export interface ScalerWindow {
   /** Device pixels per CSS pixel for the display the window is on. */
   readonly devicePixelRatio: number;
   addEventListener(type: "resize", listener: () => void): void;
   removeEventListener(type: "resize", listener: () => void): void;
-  /** Absent on hosts without media query support, in which case DPR changes go unobserved. */
+  /**
+   * Matches a media query; a host without them leaves pixel ratio changes
+   * unobserved.
+   */
   matchMedia?(query: string): PixelRatioQuery;
 }
 
-/** The element the canvas fills, measured for the CSS layout size. */
+/** Describes the element the canvas fills and is sized from. */
 export interface MeasurableParent {
   getBoundingClientRect(): { width: number; height: number };
 }
@@ -42,22 +39,13 @@ export interface MeasurableParent {
 /**
  * Sizes the game canvas so it rasterizes at the display's true resolution.
  *
- * Phaser's scale modes size the canvas backing store in CSS pixels and never
- * consult `devicePixelRatio`, so on any display where a CSS pixel is more than
- * one device pixel — Windows at 125%, a HiDPI panel, browser zoom — the browser
- * upscales the finished frame and everything drawn softens. This runs the game
- * in `NONE` mode instead and sets the backing store to the CSS size times the
- * pixel ratio, while pinning the canvas' CSS size to the layout size.
- *
- * Zoom is set to the reciprocal of the pixel ratio so Phaser's `displayScale`
- * resolves to the pixel ratio, which keeps pointer input converting correctly
- * from CSS coordinates into the now device-pixel game space.
+ * Phaser's own scale modes size the canvas in CSS pixels, which blurs the board
+ * on any display with more than one device pixel per CSS pixel.
  */
 export class ViewportScaler {
   /**
-   * Upper bound on the pixel ratio the canvas is rendered at. Beyond roughly 2x
-   * the sharpness gain stops being visible while the pixel count keeps growing
-   * quadratically, so 3x and 4x mobile panels are rendered at 2x.
+   * The highest pixel ratio the canvas is rendered at, beyond which sharpness
+   * stops visibly improving while the pixel count keeps growing.
    */
   public static readonly MAX_PIXEL_RATIO = 2;
 
@@ -65,12 +53,8 @@ export class ViewportScaler {
   private pixelRatioQuery: PixelRatioQuery | null = null;
 
   /**
-   * Watches the parent for size changes the window never hears about.
-   *
-   * The canvas fills a box the application lays out, and that box can change
-   * without the window doing anything — a side panel opening, for one. Without
-   * this the board would keep the size it had before and either overflow its
-   * box or leave a gap beside it.
+   * Watches the parent for size changes the window never hears about, such as
+   * a side panel opening.
    */
   private parentObserver: ResizeObserver | null = null;
 
@@ -78,13 +62,7 @@ export class ViewportScaler {
     this.apply();
   };
 
-  /**
-   * Constructs the viewport scaler.
-   *
-   * @param window The browser Window context the game is running in.
-   * @param game The game whose canvas and scale manager are driven.
-   * @param parent The element the canvas fills, measured for the CSS size.
-   */
+  /** Creates a scaler that sizes the game's canvas to fill `parent`. */
   constructor(
     private readonly window: ScalerWindow,
     private readonly game: ScalableGame,
@@ -106,10 +84,7 @@ export class ViewportScaler {
     this.observeParent();
   }
 
-  /**
-   * Watches the parent box, when the host supports it. Guarded because the
-   * parent is only required to be measurable, not to be a real element.
-   */
+  /** Watches the parent box, if it is a real element and the host allows it. */
   private observeParent(): void {
     if (
       typeof ResizeObserver === "undefined" ||
@@ -138,6 +113,8 @@ export class ViewportScaler {
     const cssWidth = Math.max(1, Math.floor(bounds.width));
     const cssHeight = Math.max(1, Math.floor(bounds.height));
 
+    // Makes Phaser's displayScale the pixel ratio, so pointer input maps from
+    // CSS pixels into the device-pixel game space.
     this.game.scale.setZoom(1 / pixelRatio);
     this.game.scale.resize(cssWidth * pixelRatio, cssHeight * pixelRatio);
 
@@ -156,10 +133,8 @@ export class ViewportScaler {
   }
 
   /**
-   * Re-arms the pixel ratio media query. The query matches only the ratio in
-   * effect when it was created, so moving the window to a different display or
-   * changing browser zoom stops it matching and fires `change`, at which point
-   * it is replaced with a query for the new ratio.
+   * Replaces the pixel ratio media query with one for the current ratio, whose
+   * `change` fires when the window moves display or the browser zooms.
    */
   private watchPixelRatio(): void {
     const query = this.window.matchMedia?.(

@@ -12,10 +12,8 @@ import {
 import { HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE } from "../layout/card_metrics";
 
 /**
- * Gives a sprite the cursor its view asks for, if it does not already have it.
- *
- * Guarded because assigning to `input.cursor` is not free, and this is asked of
- * every sprite on the board every frame.
+ * Gives a sprite the cursor its view asks for, skipping the costly assignment
+ * if it already has it.
  */
 function syncCursor(sprite: GameObjects.Sprite, cursor: string): void {
   if (sprite.input && sprite.input.cursor !== cursor) {
@@ -24,18 +22,11 @@ function syncCursor(sprite: GameObjects.Sprite, cursor: string): void {
 }
 
 /**
- * Moves a card towards where it belongs, and says how far it still has to go.
+ * Eases a card towards where it belongs and returns how far it still has to
+ * go, or null once it has arrived.
  *
- * A card eases rather than jumps, so it converges on its target over several
- * frames — except one in hand, which follows the pointer exactly, and one on a
- * frame with no elapsed time to ease over.
- *
- * @param sprite The sprite to move.
- * @param cardView Where it belongs.
- * @param interpolationFactor How far of the remaining distance to cover.
+ * @param interpolationFactor The fraction of the remaining distance to cover.
  * @param outright Whether to place it exactly rather than ease.
- * @returns The distance still to travel, or null once it has arrived — which
- *   is what tells a settling card from one crossing the board.
  */
 function moveCard(
   sprite: GameObjects.Sprite,
@@ -83,12 +74,8 @@ const HIGHLIGHT_COLOR = 0xebef9b;
 const HIGHLIGHT_ALPHA = 0.9;
 
 /**
- * A pooled highlight border, paired with the shape currently stroked into it.
- *
- * The path is drawn in the object's own space and the object is moved, so
- * following a card costs a `setPosition` rather than a path rebuild every
- * frame. The key records what was drawn so it is only redrawn when the size or
- * the open edge actually changes.
+ * Pairs a pooled highlight border with the shape and depth last set on it, so
+ * neither is redone unless it changes.
  */
 interface HighlightBorder {
   graphics: Phaser.GameObjects.Graphics;
@@ -98,48 +85,31 @@ interface HighlightBorder {
 }
 
 /**
- * The Phaser backend for {@link TableRenderer}.
- *
- * Reconciles a view state onto Phaser sprites — positions, scales, depths,
- * frames, cursors, draggability — and draws the highlight borders. Card
- * positions are eased rather than set, so a sprite converges on its target over
- * several frames instead of jumping there.
+ * Implements {@link TableRenderer} with Phaser sprites, easing cards towards
+ * their targets and drawing highlight borders.
  */
 export class PhaserTableRenderer implements TableRenderer {
   /** Highlight borders, created on demand and reused across frames. */
   private readonly highlightBorders: HighlightBorder[] = [];
 
   /**
-   * How far each card still had to travel at the end of the last applied frame,
-   * keyed by card id. Cards that reached their target are absent.
+   * How far each card still had to travel after the last frame, for the cards
+   * that had not arrived.
    */
   private travelDistances = new Map<string, number>();
 
   constructor(private readonly sprites: PhaserSprites) {}
 
   /**
-   * Whether any of the given cards had still not reached its target when the
-   * last frame was applied.
-   *
-   * The applier owns the easing, so it is the only thing that can tell a card
-   * that has arrived from one still on its way. The scene asks so it can retire
-   * a flight once the moved stack has landed.
-   *
-   * @param cardIds The card ids to test.
+   * Returns whether any of the given cards had not yet reached its target when
+   * the last frame was applied.
    */
   public areCardsTravelling(cardIds: readonly string[]): boolean {
     return cardIds.some((cardId) => this.travelDistances.has(cardId));
   }
 
-  /**
-   * Applies the desired view state onto Phaser sprites, syncing positions,
-   * scales, depths, frames, cursors, and drawing highlights.
-   *
-   * @param viewState The target board view state to render.
-   * @param deltaMs Elapsed time since the last frame in milliseconds.
-   */
+  /** Eases every sprite towards a view state and draws its highlights. */
   public apply(viewState: TableViewState, deltaMs: number): void {
-    // Frame-rate independent interpolation constant
     const interpolationFactor =
       deltaMs > 0 ? 1 - Math.exp(-deltaMs / POSITION_TAU_MS) : 1;
 
@@ -147,8 +117,6 @@ export class PhaserTableRenderer implements TableRenderer {
       this.applyBackground(backgroundView);
     }
 
-    // How far each still-easing card has left to travel, so a border can tell a
-    // card settling into place from one crossing the board.
     const travelDistances = new Map<string, number>();
 
     for (const cardView of viewState.cards) {
@@ -186,11 +154,8 @@ export class PhaserTableRenderer implements TableRenderer {
   }
 
   /**
-   * Brings everything about a card that is not its position into line: how big
-   * it is, what it is drawn over, which side it shows, and what it invites.
-   *
-   * Each is guarded on having actually changed, because Phaser's setters are
-   * not free and this runs for every card every frame.
+   * Brings a card's scale, depth, frame, cursor and draggability into line with
+   * its view.
    */
   private syncAppearance(
     sprite: GameObjects.Sprite,
@@ -249,15 +214,8 @@ export class PhaserTableRenderer implements TableRenderer {
   }
 
   /**
-   * Resolves where a highlight's border belongs this frame, or null when it
-   * should not be drawn at all.
-   *
-   * A card anchor reads the sprite's live position rather than the layout's
-   * target, so the border rides the same easing as the card and can never lead
-   * or lag it. A card still crossing the board is skipped: it is on its way out
-   * from under the pointer that highlighted it. One merely settling the last few
-   * pixels into its slot keeps its border, so stepping the pointer down a column
-   * does not blank it while the fan reshuffles.
+   * Returns where a highlight's border belongs this frame, or null if the card
+   * it follows is still crossing the board.
    */
   private resolveHighlightPosition(
     highlight: HighlightView,

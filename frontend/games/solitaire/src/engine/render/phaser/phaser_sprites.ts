@@ -1,21 +1,15 @@
 import type { GameObjects } from "phaser";
 
 /**
- * The scene surface the view applier writes through: a way to find the sprite
- * for a card or a pile background, plus the two scene services it needs.
+ * Gives the view applier the sprites and scene services it writes through.
  *
- * Narrowed to this so the applier does not have to name `BoardScene`, which
- * names the applier in turn. Sprites are addressed by the same ids the model
- * uses, so a lookup can never disagree with the view state it came from.
+ * Narrowed so the applier need not import `BoardScene`, which imports it.
  */
 export interface PhaserSprites {
-  /** The sprite for the card with the given id, or undefined if unregistered. */
+  /** Returns the sprite for a card, or undefined if it has none. */
   cardSprite(cardId: string): GameObjects.Sprite | undefined;
 
-  /**
-   * The background placeholder sprite for the given pile, or undefined for
-   * piles drawn without one (the waste fans over bare table).
-   */
+  /** Returns a pile's placeholder sprite, or undefined if it has none. */
   pileBackgroundSprite(pileId: string): GameObjects.Sprite | undefined;
 
   /** Adds a graphics object to the scene's display list. */
