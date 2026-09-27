@@ -119,15 +119,21 @@
 
 // --- Filters ---
 
-// One scrolling row rather than wrapping, so a phone keeps the list in view.
+// Wrapping rather than scrolling sideways, so every filter stays in view on a
+// phone; a facet's chips wrap as one, keeping them together on a line.
 .filters {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-6);
   border-bottom: 1px solid var(--border-default);
-  overflow-x: auto;
-  scrollbar-width: none;
+}
+
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 .filter-divider {
@@ -356,8 +362,15 @@
     margin: 0 var(--space-4);
   }
 
+  // A wider gap stands in for the dividers, which would end a line as often
+  // as sit between two facets once the row wraps.
   .filters {
+    column-gap: var(--space-4);
     padding: var(--space-3) var(--space-4);
+  }
+
+  .filter-divider {
+    display: none;
   }
 
   .panes {
