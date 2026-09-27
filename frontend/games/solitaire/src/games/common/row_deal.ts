@@ -1,6 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { CardTransfer } from "@/engine/tableau/move";
+import { collectCompletedRuns } from "./completed_runs";
+import { itemAt } from "@/engine/core/common/item_at";
 
 /**
  * Deals a fixed number of cards face up to each column, round-robin, then one
@@ -21,7 +23,7 @@ export function dealColumnsThenCells(
     const card = deck.pop();
     if (!card) break;
     card.faceUp = true;
-    tableaus[dealt % tableaus.length].addCard(card);
+    itemAt(tableaus, dealt % tableaus.length).addCard(card);
   }
 
   // One card per cell: dealing straight into a pile bypasses the zone's
@@ -61,4 +63,27 @@ export function dealRowFromStock(
     });
   }
   return transfers;
+}
+
+/**
+ * Deals one card face up from the stock onto each of `dealTo`, then sends any
+ * run that completed to a foundation, and returns everything it moved and
+ * turned over for the caller to commit as one action.
+ *
+ * @param columns Every column a completed run may sit in, which a deal onto
+ *   only some of them, like Scorpion's, still has to scan.
+ */
+export function dealRowCollectingRuns(
+  stock: CardPile<PlayingCard>,
+  dealTo: readonly CardPile<PlayingCard>[],
+  columns: readonly CardPile<PlayingCard>[],
+  foundations: readonly CardPile<PlayingCard>[],
+): { transfers: CardTransfer[]; flippedCardIds: string[] } {
+  const dealt = dealRowFromStock(stock, dealTo);
+  // A dealt card can complete a run, and more than one column at a time.
+  const collected = collectCompletedRuns(columns, foundations);
+  return {
+    transfers: [...dealt, ...collected.transfers],
+    flippedCardIds: collected.flippedCardIds,
+  };
 }

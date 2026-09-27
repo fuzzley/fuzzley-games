@@ -23,6 +23,19 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
   state.moves = overrides.moves ?? 0;
   state.undoDepth = overrides.undoDepth ?? 0;
 
+  /** Raises an event as the real game would. */
+  const emit = (event: string) => {
+    listeners.get(event)?.forEach((callback) => callback());
+  };
+
+  /** Clears the readings and announces the new deal, as a real deal does. */
+  const deal = () => {
+    state.score = 0;
+    state.moves = 0;
+    state.undoDepth = 0;
+    emit("game-reset");
+  };
+
   return {
     state,
 
@@ -36,13 +49,10 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
       listeners.get(event)?.delete(callback);
     },
 
-    /** Raises an event as the real game would. */
-    emit(event: string) {
-      listeners.get(event)?.forEach((callback) => callback());
-    },
+    emit,
 
-    startNewGame: vi.fn(),
-    restartGame: vi.fn(),
+    startNewGame: vi.fn(deal),
+    restartGame: vi.fn(deal),
     undo: vi.fn(),
 
     /** Returns an empty board carrying the mock's score and moves. */
@@ -54,7 +64,13 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
       history: [],
       deal: [],
     })),
-    restore: vi.fn(),
+    /** Takes the snapshot's readings and announces them, as a restore does. */
+    restore: vi.fn((snapshot: GameSnapshot) => {
+      state.score = snapshot.score;
+      state.moves = snapshot.moves;
+      state.undoDepth = snapshot.history.length;
+      emit("game-reset");
+    }),
   };
 }
 

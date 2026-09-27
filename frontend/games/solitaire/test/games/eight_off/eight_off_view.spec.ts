@@ -46,10 +46,10 @@ describe("the Eight Off board", () => {
   let covering: PlayingCard;
 
   beforeEach(() => {
-    game = new EightOffGame(
-      ALL_PLAYING_CARD_IDS,
-      sequenceRandom(SHUFFLE_VALUES),
-    );
+    game = new EightOffGame({
+      cardIds: ALL_PLAYING_CARD_IDS,
+      random: sequenceRandom(SHUFFLE_VALUES),
+    });
     game.startNewGame();
 
     emptyBoard(game);

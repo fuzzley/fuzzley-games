@@ -50,29 +50,3 @@ export function zoneAt(spec: SingleZoneSpec): ZoneSpec {
   const { column, row, ...zone } = spec;
   return { ...zone, slot: { pileId: zone.id, column, row } };
 }
-
-/**
- * Remembers the zones built for each set of choices, so a game hands back the
- * same array every time.
- *
- * {@link TableGame.zoneFor} rebuilds its index whenever the array changes, and
- * it is asked once per card per frame.
- *
- * @param keyOf Reduces the choices to a cache key; the first argument by
- *   default.
- */
-export function memoizeZones<Args extends readonly unknown[]>(
-  build: (...args: Args) => readonly ZoneSpec[],
-  keyOf: (...args: Args) => unknown = (...args) => args[0],
-): (...args: Args) => readonly ZoneSpec[] {
-  const cache = new Map<unknown, readonly ZoneSpec[]>();
-  return (...args: Args) => {
-    const key = keyOf(...args);
-    let zones = cache.get(key);
-    if (!zones) {
-      zones = build(...args);
-      cache.set(key, zones);
-    }
-    return zones;
-  };
-}

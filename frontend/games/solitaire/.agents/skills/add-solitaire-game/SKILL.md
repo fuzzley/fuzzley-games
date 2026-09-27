@@ -21,7 +21,7 @@ The one hard constraint: **a catalog entry carries exactly one `layout`**, so an
 option cannot change the grid. A different board grid is therefore always a new
 entry. Maria and Limited are entries of their own for exactly this reason —
 nine and twelve columns are not Forty Thieves' ten — while still sharing
-`FortyThievesGame`, its module and its board factory.
+`FortyThievesGame`, its module and its gestures.
 
 Same grid, different rules: default to a **variant option** on the existing
 entry. Whitehead and Thumb and Pouch are options on Klondike, Alaska and Russian
@@ -35,20 +35,22 @@ reason.
 
 These are three independent decisions, and it is worth keeping them apart:
 
-| Decision                                                | Driven by                                                                          |
-| :------------------------------------------------------ | :--------------------------------------------------------------------------------- |
-| Share the game **class**?                               | How much of the rules differ. Two lines → share it.                                |
-| Share the **catalog entry** (i.e. be a variant option)? | Same grid → yes by default. Different grid → impossible.                           |
-| Share the **board factory**?                            | Effectively always, when the class is shared: a board reads the grid off the game. |
+| Decision                                                | Driven by                                                |
+| :------------------------------------------------------ | :------------------------------------------------------- |
+| Share the game **class**?                               | How much of the rules differ. Two lines → share it.      |
+| Share the **catalog entry** (i.e. be a variant option)? | Same grid → yes by default. Different grid → impossible. |
+| Share the **gestures**?                                 | Always, when the class is shared.                        |
 
 ### Adding a variant to an existing game
 
 No new directory, no new board. Add a member to the game's variant union in
 `<game>_rules.ts`, add its row to that file's variant table, and add a choice to
 the `GameOptionSpec` in `src/ui/app/provider/game_catalog.ts`. Use the variant
-enum members themselves as the option's `value`s — as `YUKON_VARIANT` and
-`SPIDERETTE_VARIANT` do — so the choices offered and the games selected cannot
-drift apart. Then document the new choice under `settingsAndVariants` in
+enum members themselves as the option's `value`s, and type the spec as
+`GameOptionSpec<MyVariant>` — as `YUKON_VARIANT` and `SPIDERETTE_VARIANT` do —
+so `optionValue` hands back the variant without a cast, and the choices offered
+and the games selected cannot drift apart. Then document the new choice under
+`settingsAndVariants` in
 `src/ui/app/provider/game_documentation_data.ts`.
 
 ---
@@ -108,12 +110,10 @@ up), `wasteFanLayout(drawCount)`.
 (Klondike columns — deliberately lax), or `{ kind: "run", adjacent }` (FreeCell,
 Spider). It must agree with the build rule from step 2.
 
-**Memoize the result.** Wrap in `memoizeZones` from
-`src/engine/tableau/zone_builder.ts` (or export a module-level const when the
-board takes no parameters, as Spiderette does). `TableGame.zoneFor` rebuilds its
-id index whenever it is handed a different array and is asked once per card per
-frame, so returning a fresh array per call rebuilds that index forever. The cache
-is bounded by the number of variants, so it cannot go stale.
+**Write it as a plain function of the choices that shape the board**, such as
+the variant or the draw count. The game hands the result to `super` once and
+`TableGame` indexes it there, so a game's zones are fixed for its life: changing
+a rule deals a new game rather than reshaping this one.
 
 For a slot that is not a plain consecutive row — Montana's grid — `zoneRow`
 accepts a function for `column`.
@@ -128,6 +128,9 @@ A plain function taking the deck and the piles, draining the deck. Reuse first:
   `src/games/common/row_deal.ts`, the opening of every all-face-up cell game.
 - `dealRowFromStock(stock, columns)` — same file, for a Spider-style stock that
   pushes a card onto every column and returns one transfer per card.
+- `dealRowCollectingRuns(stock, dealTo, columns, foundations)` — same file, for
+  a stock deal that can finish a run: it deals, sends every completed run to a
+  foundation, and returns the transfers and flipped cards to commit together.
 
 Set `card.faceUp` explicitly for every card you place. Dealing puts cards into
 piles directly and so **bypasses the placement rules entirely** — a cell's
@@ -144,7 +147,7 @@ replays the same game.
 
 ```ts
 super({
-  zones: () => myGameZoneSpecs(variant),
+  zones: myGameZoneSpecs(variant),
   deck: new DeckSource(new CardRegistry(), cardIds, random, /* faceUp */ true),
   autoMoveRoles: [MyRole.FOUNDATION, MyRole.TABLEAU, MyRole.CELL],
   winsWhenAllCardsIn: MyRole.FOUNDATION,
@@ -153,22 +156,32 @@ super({
 
 Then grab your piles with `this.pilesOfRole(role)` / `this.requirePile(id)`.
 
-Constructor shape, followed by every game: `(cardIds = ALL_PLAYING_CARD_IDS,
-random = Math.random, variant?)`. Both defaults are there so a test can supply a
-short deck and a fixed shuffle. A variant is a constructor parameter rather than
-a field because the zones closure is built from it during `super`.
+Constructor shape, followed by every game: one options object extending
+`DeckOptions` (`src/games/common/deck_options.ts`), destructured with its
+defaults — `constructor({ cardIds = ALL_PLAYING_CARD_IDS, random = Math.random,
+variant = DEFAULT_MY_VARIANT }: MyGameOptions = {})`. `cardIds` and `random` are
+there so a test can supply a short deck and a fixed shuffle. A variant is an
+option rather than a field set later because the zones are built from it during
+`super`.
 
 The only required override is `dealBoard(deck)`. Optionally:
 
 - `applyMoveEffects(move)` — what a move does beyond relocating cards. Two shapes
   are already written in `src/games/common/move_effects.ts`: `flipOnlyEffects`
   (Yukon, Easthaven, Forty Thieves) and `runCollectingEffects` (Spider,
-  Spiderette, Scorpion). Klondike scores its flip and so calls
-  `flipExposedTopOfColumn` directly.
+  Spiderette, Scorpion). The Klondike family scores its flip, so
+  `KlondikeFamilyGame` (`src/games/klondike/klondike_family_game.ts`) calls
+  `flipExposedTopOfColumn` directly. A game played with Klondike's stock and
+  scoring extends that class and writes only `dealLayout`, as Double Klondike
+  does.
 - A stock action. `drawToWaste(stock, waste, count)` and
   `recycleWasteToStock(waste, stock)` from `src/games/common/stock_pile.ts` move
-  the cards and return transfers; the game records them, because whether a
-  recycle costs points is the game's business, not the stock's.
+  the cards and return transfers. The game commits them with
+  `commitAction(kind, transfers, options)`, because whether a recycle costs
+  points is the game's business, not the stock's.
+- `isWon()` — only for a game won by the order of its cards rather than by
+  gathering them into one role. Montana overrides it and leaves
+  `winsWhenAllCardsIn` unset.
 
 **Everything you do not write:** the piles and where every card is, move
 legality, `moveCardToPile` / `autoMoveCard`, undo and the move history, the win
@@ -178,10 +191,11 @@ Two things to get right when the game acts outside the normal move path:
 
 1. **Fold consequences into the causing action.** A completed run collected after
    a move goes in that move's `followUpTransfers` / `flippedCardIds`, so one undo
-   takes the whole thing back. Record a dealt row and the runs it completed with
-   a single `recordTransfers` call.
-2. **Check the win yourself for actions the move path never sees.** Spiderette's
-   `dealRow` calls `checkWinCondition()` because dealing can finish the last run.
+   takes the whole thing back. Commit a dealt row and the runs it completed with
+   a single `commitAction` call, which `dealRowCollectingRuns` sets up.
+2. **Commit through `commitAction`, and nothing else.** It counts the move,
+   makes it undoable and checks for a win, as `moveCardToPile` does. Never
+   change `state.moves` by hand: undo takes back one move per committed action.
 
 ---
 
@@ -202,13 +216,18 @@ judgement is `designHeightPx`: the grid's own height is not enough, because a
 column fans well below its row. Klondike authors 950, FreeCell 1120 for columns
 that can reach thirteen cards at 45px apart.
 
+The catalog entry carries this layout (step 8), and both the loading skeleton
+and the board are drawn on it. Every rule option of one entry must therefore
+deal onto the same grid, which `test/ui/app/provider/catalog.spec.ts` checks for
+every game.
+
 ---
 
 ## 7. `<game>_gestures.ts` — only if a press means something
 
-A game with no stock does not need this file at all: pass
-`stocklessGestures(game)` from `src/games/common/table_gestures.ts`, as FreeCell
-does.
+A game with no stock does not need this file at all: map it to
+`stocklessGestures` from `src/games/common/table_gestures.ts` in step 8, as
+FreeCell does.
 
 Otherwise call `tableGestures(game, options)` with:
 
@@ -223,45 +242,21 @@ Otherwise call `tableGestures(game, options)` with:
 
 ---
 
-## 8. `<game>_board.ts` — the scene
-
-Nearly boilerplate, and intentionally so:
-
-```ts
-export function makeMyGameBoardScene(
-  game: MyGame,
-  presentation: TablePresentation,
-  onReady?: () => void,
-): BoardScene {
-  return makeTableBoardScene({
-    game,
-    layout: MY_GAME_LAYOUT,
-    handleIntent: myGameGestures(game),
-    presentation,
-    onReady,
-  });
-}
-```
-
-`makeTableBoardScene` (`src/games/common/board_scene_factory.ts`) measures the
-grid, builds each frame's view state, resolves drops and follows resets. There is
-no scene-bridge tier below this: `PhaserHost`
-(`src/engine/render/phaser/phaser_host.ts`) mounts whatever board factory it is
-handed, so the shell never imports a game in order to host one.
-
----
-
-## 9. Register it — three provider edits
+## 8. Register it — three provider edits
 
 1. **`src/ui/app/provider/game_catalog.ts`** — declare the entry (`id`, `name`,
    two-character `marker`, `options`, `layout`, `create`) with `satisfies
 CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
    preserves the literal id and concrete game type that the board registry is
-   checked against. Add it to `CATALOG_ENTRIES`. `create` must call
-   `game.startNewGame()` before returning `{ game }`.
-2. **`src/ui/app/provider/board_catalog.ts`** — map the id to the factory in
-   `BOARD_FACTORIES`. The mapped type means a missing or mismatched board is a
-   compile error, not a runtime throw.
+   checked against. Add it to `CATALOG_ENTRIES`. `create` returns
+   `dealt(new MyGame({ … }))`, which deals the game before handing it over.
+2. **`src/ui/app/provider/board_catalog.ts`** — map the id to its gestures in
+   `GESTURES`. The mapped type means a missing or mismatched entry is a compile
+   error, not a runtime throw. There is no per-game board file:
+   `makeTableBoardScene` (`src/games/common/board_scene_factory.ts`) draws every
+   game from its gestures and its entry's `layout`, and `PhaserHost`
+   (`src/engine/render/phaser/phaser_host.ts`) mounts whatever board it is
+   handed, so the shell never imports a game in order to host one.
 3. **`src/ui/app/provider/game_documentation_data.ts`** — add the rules page.
    `CompleteGameDocumentation` is `Record<GameId, …>`, so shipping a game with no
    page is also a compile error. Capture its hero screenshot to
@@ -271,7 +266,7 @@ CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
 
 ---
 
-## 10. Test it
+## 9. Test it
 
 `test/games/<game>/<game>_game.spec.ts` — the deal, each rule that is actually
 this game's own, the win condition, and undo of anything that moves more than one
@@ -342,7 +337,6 @@ Reading it as a decision, when you are unsure where a new piece belongs:
 
 ## Traps that have actually bitten
 
-- **Zones not memoized** — a per-frame index rebuild. See step 3.
 - **Grab and build rules disagreeing** — a run liftable but not landable, which
   only shows up mid-drag. Pair them in one table.
 - **A supermove limit the board cannot honour** — an empty _destination_ column

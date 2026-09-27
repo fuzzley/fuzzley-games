@@ -8,6 +8,7 @@ import { TablePresentation } from "@/engine/render/presentation";
 import { Viewport } from "@/engine/render/view/table_view_state";
 import { TableGame } from "@/engine/tableau/table_game";
 import { stackFromCard } from "@/engine/tableau/view/grabbable_stack";
+import { pileBackgrounds } from "@/engine/tableau/view/pile_backgrounds";
 import {
   buildTableViewState,
   resolveDragTarget,
@@ -33,10 +34,10 @@ export function makeTableBoardScene(options: TableBoardOptions): BoardScene {
   const measure = (viewport: Viewport) => measureTable(layout, viewport);
 
   return new BoardScene({
-    game,
     // Read from the game rather than from a deck specification, so a variant
     // that deals a different set of cards gets sprites for the ones it has.
     cardIds: game.cardIds,
+    backgrounds: pileBackgrounds(game),
     layout,
     buildViewState: (interaction, viewport) =>
       buildTableViewState(game, interaction, measure(viewport), {

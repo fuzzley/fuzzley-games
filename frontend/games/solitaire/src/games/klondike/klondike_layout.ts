@@ -1,6 +1,6 @@
 import { boardLayout } from "../common/board_layout";
 import { TABLEAU_COUNT, klondikeZoneSpecs } from "./klondike_zones";
-import { DEFAULT_DRAW_COUNT } from "./klondike_settings";
+import { DEFAULT_DRAW_COUNT } from "./klondike_rules";
 
 /**
  * The Klondike board: stock and waste at the left of the top row, foundations

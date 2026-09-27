@@ -143,7 +143,7 @@
               role="radio"
               [attr.aria-checked]="swatch.selected"
               [attr.aria-label]="swatch.name"
-              (click)="themeService.setTheme(swatch.key)"
+              (click)="presentation.setTheme(swatch.key)"
               [style.backgroundColor]="swatch.color"
             >
               @if (swatch.selected) {

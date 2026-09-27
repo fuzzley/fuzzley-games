@@ -10,11 +10,10 @@ const SHUFFLE_SEQUENCE = [0.17, 0.83, 0.42, 0.06, 0.91, 0.55, 0.28, 0.74];
 
 /** Returns a dealt game playing by the given rule set. */
 function dealtGame(variant: FreeCellVariant): FreeCellGame {
-  const game = new FreeCellGame(
-    undefined,
-    sequenceRandom(SHUFFLE_SEQUENCE),
+  const game = new FreeCellGame({
+    random: sequenceRandom(SHUFFLE_SEQUENCE),
     variant,
-  );
+  });
   game.startNewGame();
   return game;
 }

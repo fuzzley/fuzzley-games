@@ -56,10 +56,6 @@ describe("klondikeZoneSpecs", () => {
     });
   });
 
-  it("returns the same zones for a repeated draw mode", () => {
-    expect(klondikeZoneSpecs(3)).toBe(klondikeZoneSpecs(3));
-  });
-
   it("draws the stock face-down whatever its cards say", () => {
     const [stock] = zonesOfRole(KlondikeRole.STOCK);
 

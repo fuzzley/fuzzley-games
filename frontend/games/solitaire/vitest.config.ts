@@ -16,10 +16,10 @@ export default defineConfig({
       thresholds: {
         // A floor a little under the suite's real figures; raise it as they
         // rise.
-        statements: 94,
-        branches: 85,
-        functions: 95,
-        lines: 95,
+        statements: 95,
+        branches: 88,
+        functions: 96,
+        lines: 96,
       },
     },
   },

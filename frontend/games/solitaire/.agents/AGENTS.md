@@ -66,15 +66,17 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
 - **`src/ui/app/provider`** — the data the shell is built around, and the only
   place a game is named. `game_catalog.ts` declares every game (id, name, rules,
   layout, how to deal one) and is Phaser-free; `board_catalog.ts` maps those ids
-  to Phaser board factories through a mapped type, so a game without a board is
-  a compile error. `game_documentation_data.ts` supplies the rules pages behind
+  to each game's gestures through a mapped type, so a game without them is a
+  compile error, and draws every game on the grid its entry declares.
+  `game_documentation_data.ts` supplies the rules pages behind
   an injection token, so specs can swap in their own; `bug_report_config.ts`
   does the same for where a bug report is filed and which build filed it.
 - **`src/ui/app/service`** — `GameCatalogService` owns which game is on the
   table (routed, see below); `GameMetricsService` reads the running game;
   `GameLifecycleService` changes it, behind a confirmation when there is a game
-  to lose; the rest are small and single-purpose (theme, timer, storage,
-  presentation, documentation, menu, bug report, saved game).
+  to lose; the rest are small and single-purpose (timer, storage,
+  presentation, including the felt, documentation, menu, bug report, saved
+  game).
 - **`src/ui/app/component`** — one folder per component. `modal_dialog` and
   `option_group` are the shared ones: every overlay is a native `<dialog>` via
   the first, and every settings control is the second.
@@ -132,9 +134,10 @@ Architecture guidelines are enforced as hard build errors rather than convention
 | :------------------------------------ | :--------------------------------------- | :------------------------------------------------------------------------------------------------------ |
 | `src/engine/core`                     | Standard TS primitives                   | `@/engine/render/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `phaser`, `@angular/*`, `rxjs`        |
 | `src/engine/render` _(excl. phaser/)_ | `engine/core`                            | `phaser`, `@/engine/render/phaser/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs` |
-| `src/engine/render/phaser`            | Phaser 4, `engine/core`, `engine/render` | `@/engine/tableau/view/table_view_builder`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                 |
+| `src/engine/render/phaser`            | Phaser 4, `engine/core`, `engine/render` | `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                                       |
 | `src/engine/tableau`                  | `engine/core`, `engine/render`           | `phaser`, `@/engine/render/phaser/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                       |
 | `src/games/*`                         | `engine/*`                               | `@/ui/*`, `@angular/*`, `rxjs`                                                                          |
+| `src/ui` _(excl. app/provider/)_      | everything but games                     | `@/games/*`                                                                                             |
 
 Note that the generic Phaser canvas host is `engine/render/phaser/phaser_host.ts`
 (`PhaserHost`). It is handed a board to run, so the shell never imports a game
@@ -154,20 +157,20 @@ This project uses **Yarn 4**. Always use Yarn commands instead of NPM (`yarn <co
 - **Build Card Atlas:** `yarn build:atlas` (runs `tools/build-card-atlas.mjs` to convert SVG assets into texture atlas files).
 - **Production Build:** `yarn build` (generates bundled production assets in `dist/` with Phaser manual chunking).
 - **Run Unit Tests:** `yarn test` (runs Vitest once) or `yarn test:watch` / `yarn test:coverage`.
-- **Linting:** `yarn lint` (runs ESLint via `register.cjs` over `src` and `test`).
-- **Type Checking:** `yarn tsc` (runs TypeScript compiler checks for both app and test configs).
+- **Linting:** `yarn lint` (checks the skills' references, runs ESLint over `src` and `test`, then checks formatting with `yarn prettier:check`).
+- **Type Checking:** `yarn tsc` (runs TypeScript compiler checks for both app and test configs, emitting nothing).
 - **Full Verification Pipeline:** `yarn verify` (runs `yarn lint && yarn tsc && yarn build && yarn test`).
 - **Format Codebase:** `yarn prettier` (runs Prettier auto-formatting across the repository).
 
 ### CI/CD Deployment Pipeline (`.github/workflows/deploy.yml`)
 
-Deployments are automated via GitHub Actions on every push to `main` (or manual `workflow_dispatch`):
+Deployments are automated via GitHub Actions on every push to `main` (or manual `workflow_dispatch`). A pull request into `main` runs the `verify` job only:
 
 1. **`verify` Job (Quality Gate):**
-   - Installs dependencies (`yarn install --immutable`).
+   - Restores Yarn's package cache, keyed on `yarn.lock`, and installs dependencies (`yarn install --immutable`).
    - Executes `yarn lint`, `yarn tsc`, and `yarn test`.
    - Pipeline aborts if any step fails.
-2. **`build-and-sync` Job:**
+2. **`build-and-sync` Job** (never for a pull request, and one deploy at a time):
    - Runs `yarn build` to produce production assets in `dist/`, with
      `VITE_COMMIT_SHA` set so a bug report filed from the site names its build.
    - Clones the target host website repository (`fuzzley/fuzzley`).
@@ -259,7 +262,7 @@ These rules cover every doc comment: classes, interfaces, functions, HTML, SCSS,
 
 ## Writing Unit Tests
 
-- **Test Coverage:** Maintain high test coverage after modifying code. `vitest.config.ts` enforces a floor (90% statements/functions/lines, 80% branches); `yarn test:coverage` fails below it. Raise the floor as the real figures rise.
+- **Test Coverage:** Maintain high test coverage after modifying code. `vitest.config.ts` enforces a coverage floor a little under the suite's real figures; `yarn test:coverage` fails below it. Raise the floor as the real figures rise.
 - **UI Test Doubles:** `test/support/ui` holds the shell's doubles — the game, catalog, presentation and documentation mocks — plus `configureUiTestBed`, which wires them into a TestBed. Prefer it over assembling providers by hand. The catalog mock is typed as a `Pick` of the real service so it cannot drift out of shape unnoticed.
 - **Don't Assert Production Prose:** A component spec should not depend on the wording of a rules page. Use the test documentation registry, which `configureUiTestBed` provides.
 - **Arrange, Act, Assert:** Structure each test case cleanly: arrange block, act block, assert block. Avoid multiple AAA cycles per test case; create focused test cases instead.

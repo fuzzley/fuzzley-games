@@ -52,7 +52,6 @@ const ROOT_FILES = new Set([
   "eslint.config.cjs",
   "tsconfig.json",
   "tsconfig.spec.json",
-  "register.cjs",
   "index.html",
   "skills-lock.json",
   ".prettierignore",

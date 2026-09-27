@@ -1,11 +1,6 @@
 import * as Phaser from "phaser";
-import type { BoardScene } from "./board_scene";
 import { DragController } from "../input/drag_controller";
-import {
-  DragInteraction,
-  FlightInteraction,
-  TableInteractionState,
-} from "../view/table_view_state";
+import { DragInteraction } from "../view/table_view_state";
 
 /** Returns the id of the card a sprite draws, or null if it is not a card. */
 function cardIdOf(gameObject: Phaser.GameObjects.Sprite): string | null {
@@ -13,23 +8,26 @@ function cardIdOf(gameObject: Phaser.GameObjects.Sprite): string | null {
   return typeof cardId === "string" ? cardId : null;
 }
 
+/** Gives an input binder what it needs of the scene it listens to. */
+export interface InputHost {
+  /** The scene's input plugin, which raises the pointer and drag events. */
+  readonly input: Phaser.Input.InputPlugin;
+  /** Returns the pile a stack released now would land on, or null for none. */
+  dropTargetFor(drag: DragInteraction): string | null;
+}
+
 /** Binds Phaser's pointer and drag events to a {@link DragController}. */
 export class BoardInputManager {
-  private readonly controller: DragController;
-
-  /** Creates the input manager for a board scene. */
-  constructor(private readonly boardScene: BoardScene) {
-    this.controller = new DragController(
-      boardScene.handleIntent,
-      boardScene.stackFromCard,
-    );
-  }
+  constructor(
+    private readonly host: InputHost,
+    private readonly controller: DragController,
+  ) {}
 
   /** Binds the global drag and drop event listeners to Phaser's input system. */
   public registerDragListeners(): void {
     // An empty `currentlyOver` means the press landed on bare table rather
     // than on a sprite.
-    this.boardScene.input.on(
+    this.host.input.on(
       "pointerdown",
       (
         _pointer: Phaser.Input.Pointer,
@@ -43,12 +41,12 @@ export class BoardInputManager {
 
     // Positions come from dragX and dragY, which are already in game space,
     // rather than from the pointer.
-    this.boardScene.input.on(
+    this.host.input.on(
       "dragstart",
       (_pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Sprite) =>
         this.onDragStart(gameObject),
     );
-    this.boardScene.input.on(
+    this.host.input.on(
       "drag",
       (
         _pointer: Phaser.Input.Pointer,
@@ -57,7 +55,7 @@ export class BoardInputManager {
         dragY: number,
       ) => this.controller.dragMoved({ x: dragX, y: dragY }),
     );
-    this.boardScene.input.on(
+    this.host.input.on(
       "dragend",
       (_pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Sprite) =>
         this.onDragEnd(gameObject),
@@ -103,71 +101,6 @@ export class BoardInputManager {
       return;
     }
 
-    // The same resolver the view builder previews with, so the card lands on
-    // the pile the border promised it would.
-    const target = this.boardScene.resolveDropTarget(
-      drag,
-      this.boardScene.viewport,
-    );
-    this.controller.dragEnded(target?.pileId ?? null);
-  }
-
-  // --- The state the scene and the view builder read ---
-
-  /** The id of the currently hovered card, or null when none is. */
-  public get hoveredCardId(): string | null {
-    return this.controller.hoveredCardId;
-  }
-  public set hoveredCardId(cardId: string | null) {
-    this.controller.hoveredCardId = cardId;
-  }
-
-  /** The pile whose background slot is hovered, or null. */
-  public get hoveredBackgroundPileId(): string | null {
-    return this.controller.hoveredBackgroundPileId;
-  }
-  public set hoveredBackgroundPileId(pileId: string | null) {
-    this.controller.hoveredBackgroundPileId = pileId;
-  }
-
-  /** The active drag, or null when nothing is in hand. */
-  public get drag(): DragInteraction | null {
-    return this.controller.drag;
-  }
-  public set drag(drag: DragInteraction | null) {
-    this.controller.drag = drag;
-  }
-
-  /** Whether to snap all cards immediately rather than easing them. */
-  public get snapAll(): boolean {
-    return this.controller.snapAll;
-  }
-  public set snapAll(snap: boolean) {
-    this.controller.snapAll = snap;
-  }
-
-  /** The stacks still crossing the board, oldest first. */
-  public get flights(): readonly FlightInteraction[] {
-    return this.controller.flights;
-  }
-
-  /** Lifts a stack clear of the board while it crosses it. */
-  public beginFlight(cardIds: readonly string[]): void {
-    this.controller.beginFlight(cardIds);
-  }
-
-  /** Lets one flying stack settle back onto the board. */
-  public endFlight(flight: FlightInteraction): void {
-    this.controller.endFlight(flight);
-  }
-
-  /** The interaction state the view builder reads each frame. */
-  public get interaction(): TableInteractionState {
-    return this.controller.interaction;
-  }
-
-  /** Clears all interaction state and requests a one-frame snap. */
-  public resetInteraction(): void {
-    this.controller.reset();
+    this.controller.dragEnded(this.host.dropTargetFor(drag));
   }
 }

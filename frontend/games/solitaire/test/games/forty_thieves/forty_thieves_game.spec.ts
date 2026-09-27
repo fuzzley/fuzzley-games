@@ -43,11 +43,11 @@ function newGame(
   variant: FortyThievesVariant = FortyThievesVariant.FORTY_THIEVES,
   cardIds = deckCardIds(FORTY_THIEVES_TWO_DECKS),
 ): FortyThievesGame {
-  const game = new FortyThievesGame(
+  const game = new FortyThievesGame({
     cardIds,
-    sequenceRandom(SHUFFLE_VALUES),
+    random: sequenceRandom(SHUFFLE_VALUES),
     variant,
-  );
+  });
   game.startNewGame();
   return game;
 }

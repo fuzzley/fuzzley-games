@@ -5,10 +5,11 @@ import { PhaserCardFactory } from "./phaser_card_factory";
 import { BoardInputManager } from "./board_input_manager";
 import { PhaserTableRenderer } from "./phaser_table_renderer";
 import { PhaserSprites } from "./phaser_sprites";
-import { StackFromCard } from "../input/drag_controller";
+import { DragController, StackFromCard } from "../input/drag_controller";
 import { IntentHandler } from "../input/table_intents";
 import {
   DragInteraction,
+  PileBackgroundSpec,
   PileGeometry,
   TableInteractionState,
   TableViewState,
@@ -18,7 +19,6 @@ import { TableLayoutSpec, designSize } from "../layout/table_layout";
 import { CardDeckId } from "../card_deck";
 import { CardDeckStatus, Subscribe } from "../presentation";
 import { cardDeckTextureKey } from "./card_deck_atlas";
-import { TableView } from "@/engine/tableau/view/table_view";
 
 /** Produces the desired appearance of a board for one frame. */
 export type BuildTableViewState = (
@@ -34,10 +34,10 @@ export type ResolveDropTarget = (
 
 /** Gives a board scene everything it needs from the game it draws. */
 export interface BoardSceneOptions {
-  /** The game to draw, read through its narrow view. */
-  readonly game: TableView;
   /** The id of every card that needs a sprite. */
   readonly cardIds: readonly string[];
+  /** The placeholder drawn beneath each pile that has one. */
+  readonly backgrounds: readonly PileBackgroundSpec[];
   /** The board's grid, for sizing before the canvas has been measured. */
   readonly layout: TableLayoutSpec;
   /** Produces the desired appearance of the board for one frame. */
@@ -74,14 +74,6 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Transparency (alpha) level for pile background placeholders. */
   public static readonly PILE_BACKGROUND_ALPHA = 0.5;
 
-  /**
-   * The game being drawn, read through its narrow view.
-   *
-   * Not `game`, which a Phaser scene already uses for the Phaser.Game running
-   * it.
-   */
-  public readonly tableGame: TableView;
-
   /** Everything this scene was told about the game it draws. */
   private readonly options: BoardSceneOptions;
 
@@ -93,6 +85,9 @@ export class BoardScene extends Scene implements PhaserSprites {
 
   /** The loader for the deck the board is drawn from. */
   private deckLoader!: BoardDeckLoader;
+
+  /** What the pointer is doing to the table, which each frame is drawn from. */
+  private controller!: DragController;
 
   /** The bridge from Phaser's pointer events to the drag controller. */
   private inputManager!: BoardInputManager;
@@ -108,22 +103,6 @@ export class BoardScene extends Scene implements PhaserSprites {
     super("board-scene");
 
     this.options = options;
-    this.tableGame = options.game;
-  }
-
-  /** Resolves the pile a drag would land on. */
-  public get resolveDropTarget(): ResolveDropTarget {
-    return this.options.resolveDropTarget;
-  }
-
-  /** Carries out what a press or a drop means in this game. */
-  public get handleIntent(): IntentHandler {
-    return this.options.handleIntent;
-  }
-
-  /** The cards that travel with the one being dragged. */
-  public get stackFromCard(): StackFromCard {
-    return this.options.stackFromCard;
   }
 
   /**
@@ -147,7 +126,20 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Creates the objects that do the scene's work. */
   private createCollaborators(): void {
     this.deckLoader = new BoardDeckLoader(this, this.options.cardDeckId());
-    this.inputManager = new BoardInputManager(this);
+    this.controller = new DragController(
+      this.options.handleIntent,
+      this.options.stackFromCard,
+    );
+    this.inputManager = new BoardInputManager(
+      {
+        input: this.input,
+        // The same resolver the view builder previews with, so the card lands
+        // on the pile the border promised it would.
+        dropTargetFor: (drag) =>
+          this.options.resolveDropTarget(drag, this.viewport)?.pileId ?? null,
+      },
+      this.controller,
+    );
     this.viewApplier = new PhaserTableRenderer(this);
     this.visualFactory = new PhaserCardFactory(
       this,
@@ -166,10 +158,10 @@ export class BoardScene extends Scene implements PhaserSprites {
         this.cameras?.main?.setBackgroundColor(color);
       }),
       this.options.onReset(() => {
-        this.inputManager.resetInteraction();
+        this.controller.reset();
       }),
       this.options.onCardsRelocated((cardIds) => {
-        this.inputManager.beginFlight(cardIds);
+        this.controller.beginFlight(cardIds);
       }),
       this.options.onCardDeck((deckId) => {
         this.deckLoader.use(deckId);
@@ -183,9 +175,9 @@ export class BoardScene extends Scene implements PhaserSprites {
 
   /** Registers the pointer listeners and snaps cards into place on a resize. */
   private wireInput(): void {
-    this.inputManager.snapAll = true;
+    this.controller.snapAll = true;
     this.scale.on("resize", () => {
-      this.inputManager.snapAll = true;
+      this.controller.snapAll = true;
     });
 
     this.inputManager.registerDragListeners();
@@ -203,10 +195,6 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Instantiates and registers a sprite for every playing card in the game. */
   private createCardSprites(): void {
     for (const id of this.options.cardIds) {
-      if (!this.tableGame.getCardById(id)) {
-        throw new Error(`Card model not found for: ${id}`);
-      }
-
       const sprite = this.visualFactory.createCardSprite();
       this.cardSprites.set(id, sprite);
 
@@ -215,22 +203,19 @@ export class BoardScene extends Scene implements PhaserSprites {
     }
   }
 
-  /** Creates a placeholder sprite for every pile whose zone declares one. */
+  /** Creates a placeholder sprite for every pile that has one. */
   private createPileBackgroundSprites(): void {
     const alpha = BoardScene.PILE_BACKGROUND_ALPHA;
 
-    for (const pile of this.tableGame.piles) {
-      const zone = this.tableGame.zoneFor(pile.id);
-      if (!zone?.backgroundKey) continue;
-
+    for (const { pileId, frame, actionable } of this.options.backgrounds) {
       const sprite = this.visualFactory.createPileBackground(
-        zone.backgroundKey,
+        frame,
         alpha,
-        zone.emptyIsActionable ?? false,
+        actionable,
       );
-      this.pileBackgrounds.set(pile.id, sprite);
-      if (zone.emptyIsActionable) {
-        this.inputManager.registerPileBackgroundListeners(sprite, pile.id);
+      this.pileBackgrounds.set(pileId, sprite);
+      if (actionable) {
+        this.inputManager.registerPileBackgroundListeners(sprite, pileId);
       }
     }
   }
@@ -291,23 +276,21 @@ export class BoardScene extends Scene implements PhaserSprites {
 
   /** Applies this frame's view state, then lands every flight that arrived. */
   override update(_timeMs: number, deltaMs: number): void {
-    if (!this.inputManager || !this.viewApplier) return;
+    if (!this.controller || !this.viewApplier) return;
 
     const state = this.options.buildViewState(
-      this.inputManager.interaction,
+      this.controller.interaction,
       this.viewport,
     );
     this.viewApplier.apply(state, deltaMs);
 
     // A copy, since landing a flight removes it from the list.
-    for (const flight of [...this.inputManager.flights]) {
+    for (const flight of [...this.controller.flights]) {
       if (!this.viewApplier.areCardsTravelling(flight.cardIds)) {
-        this.inputManager.endFlight(flight);
+        this.controller.endFlight(flight);
       }
     }
 
-    if (this.inputManager.snapAll) {
-      this.inputManager.snapAll = false;
-    }
+    this.controller.snapAll = false;
   }
 }

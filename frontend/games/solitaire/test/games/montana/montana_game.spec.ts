@@ -62,10 +62,10 @@ const ROW_RANKS = [
 ];
 
 function newGame(): MontanaGame {
-  const game = new MontanaGame(
-    deckCardIds(MONTANA_DECK),
-    sequenceRandom(SHUFFLE_VALUES),
-  );
+  const game = new MontanaGame({
+    cardIds: deckCardIds(MONTANA_DECK),
+    random: sequenceRandom(SHUFFLE_VALUES),
+  });
   game.startNewGame();
   return game;
 }

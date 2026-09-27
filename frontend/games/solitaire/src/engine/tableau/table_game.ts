@@ -57,15 +57,18 @@ export type TableGameEvents = {
 
 /** Configures a table game's board. */
 export interface TableGameOptions {
-  /** The zones to create piles for, and the rules each pile plays by. */
-  readonly zones: () => readonly ZoneSpec[];
+  /**
+   * The zones to create piles for, and the rules each pile plays by, which are
+   * fixed for the life of the game.
+   */
+  readonly zones: readonly ZoneSpec[];
   /** Supplies the persistent card instances the game deals. */
   readonly registry: CardRegistry;
   /** The roles {@link TableGame.autoMoveCard} tries, best first. */
   readonly autoMoveRoles: readonly PileRole[];
   /**
    * The role that holds every card once the game is won, or undefined for a
-   * game that is never won by gathering cards.
+   * game won some other way, which overrides {@link TableGame.isWon}.
    */
   readonly winsWhenAllCardsIn?: PileRole;
 }
@@ -89,22 +92,30 @@ export abstract class TableGame<
     CardPile<PlayingCard>[]
   >();
 
+  /** Each pile's zone, by pile id. */
+  private readonly zonesById: ReadonlyMap<string, ZoneSpec>;
+
   /** The applied actions {@link undo} unwinds, and who is following them. */
   private readonly history: MoveHistory = new MoveHistory(this);
 
-  private readonly zones: () => readonly ZoneSpec[];
   private readonly registry: CardRegistry;
   private readonly autoMoveRoles: readonly PileRole[];
   private readonly winningRole?: PileRole;
 
+  /** Every pile on the board, in the order the zones declared them. */
+  public readonly piles: readonly CardPile<PlayingCard>[];
+
+  /** Every pile a dragged stack may be dropped onto, in declaration order. */
+  public readonly dropTargetPiles: readonly CardPile<PlayingCard>[];
+
   constructor(options: TableGameOptions) {
     super();
-    this.zones = options.zones;
     this.registry = options.registry;
     this.autoMoveRoles = options.autoMoveRoles;
     this.winningRole = options.winsWhenAllCardsIn;
 
-    for (const zone of this.zones()) {
+    const { zones } = options;
+    for (const zone of zones) {
       const pile = new CardPile<PlayingCard>(
         zone.id,
         zone.role,
@@ -115,21 +126,15 @@ export abstract class TableGame<
       byRole.push(pile);
       this.pilesByRoleMap.set(zone.role, byRole);
     }
-  }
 
-  // --- The board ---
-
-  /** Every pile a dragged stack may be dropped onto, in declaration order. */
-  public get dropTargetPiles(): readonly CardPile<PlayingCard>[] {
-    return this.zones()
+    this.zonesById = new Map(zones.map((zone) => [zone.id, zone]));
+    this.piles = [...this.pilesMap.values()];
+    this.dropTargetPiles = zones
       .filter((zone) => zone.accept !== null)
       .map((zone) => this.requirePile(zone.id));
   }
 
-  /** Every pile on the board, in the order the zones declared them. */
-  public get piles(): readonly CardPile<PlayingCard>[] {
-    return [...this.pilesMap.values()];
-  }
+  // --- The board ---
 
   /** Returns every pile playing the given part, in declaration order. */
   public pilesOfRole(role: PileRole): readonly CardPile<PlayingCard>[] {
@@ -177,22 +182,8 @@ export abstract class TableGame<
 
   /** Returns the zone describing the given pile, or undefined if unknown. */
   public zoneFor(pileId: string): ZoneSpec | undefined {
-    // Indexed because the view builder asks once per card per frame. A new
-    // zone array means the zones changed, so the index is rebuilt.
-    const zones = this.zones();
-    if (this.zoneIndex?.source !== zones) {
-      this.zoneIndex = {
-        source: zones,
-        byId: new Map(zones.map((zone) => [zone.id, zone])),
-      };
-    }
-    return this.zoneIndex.byId.get(pileId);
+    return this.zonesById.get(pileId);
   }
-
-  private zoneIndex: {
-    source: readonly ZoneSpec[];
-    byId: ReadonlyMap<string, ZoneSpec>;
-  } | null = null;
 
   /** The read-only view of the board handed to placement rules. */
   public readonly board: BoardQuery = {
@@ -282,14 +273,13 @@ export abstract class TableGame<
       return false;
     }
 
-    this.state.moves++;
     for (const movingCard of move.movingStack) {
       move.sourcePile.removeCard(movingCard);
       move.targetPile.addCard(movingCard);
     }
 
     const effects = this.applyMoveEffects(move);
-    this.record({
+    this.commit({
       kind: "move",
       transfers: [
         {
@@ -303,31 +293,27 @@ export abstract class TableGame<
       scoreDelta: effects.scoreDelta,
       flippedCardIds: effects.flippedCardIds,
     });
-
-    this.afterMove(move);
-    this.checkWinCondition();
     return true;
   }
 
   /**
-   * Emits `game-won` if every card in play now sits in the winning role.
+   * Returns whether the game is won, which by default is once every card in
+   * play sits in the winning role.
    *
-   * A move calls this itself; a game that moves cards by another route, such
-   * as a dealt Spider row, calls it once that action is recorded.
+   * Asked after every committed action, so a game won some other way, such as
+   * by the order of its cards, overrides this rather than announcing the win
+   * itself.
    */
-  protected checkWinCondition(): void {
-    if (this.winningRole === undefined) {
-      return;
+  protected isWon(): boolean {
+    if (this.winningRole === undefined || this.cardsInPlay === 0) {
+      return false;
     }
 
     let collected = 0;
     for (const pile of this.pilesOfRole(this.winningRole)) {
       collected += pile.size;
     }
-
-    if (this.cardsInPlay > 0 && collected === this.cardsInPlay) {
-      this.emit("game-won", undefined);
-    }
+    return collected === this.cardsInPlay;
   }
 
   /**
@@ -339,11 +325,6 @@ export abstract class TableGame<
   protected applyMoveEffects(move: ResolvedMove): MoveEffects {
     void move;
     return NO_MOVE_EFFECTS;
-  }
-
-  /** Does whatever the game needs once a move and its effects are recorded. */
-  protected afterMove(move: ResolvedMove): void {
-    void move;
   }
 
   /**
@@ -404,12 +385,16 @@ export abstract class TableGame<
   }
 
   /**
-   * Appends an applied action to the history, publishes the new depth, and
-   * announces the cards it relocated.
+   * Counts an applied action as one move, records it for undo, announces the
+   * cards it relocated, and announces the win if it brought one about.
    */
-  protected record(move: AppliedMove): void {
+  private commit(move: AppliedMove): void {
+    this.state.moves++;
     this.history.record(move);
     this.state.undoDepth = this.history.depth;
+    if (this.isWon()) {
+      this.emit("game-won", undefined);
+    }
   }
 
   /**
@@ -421,12 +406,15 @@ export abstract class TableGame<
   }
 
   /**
-   * Records cards moving between piles outside the normal move path — a draw, a
-   * recycle, a dealt row — so undo can take it back like any other action.
+   * Commits cards moving between piles outside the normal move path, such as a
+   * draw, a recycle or a dealt row, as one move that undo can take back.
+   *
+   * Fold anything the action caused, such as a run it completed, into the same
+   * call, so one undo takes the whole action back.
    *
    * @param transfers The runs relocated, in the order they were relocated.
    */
-  protected recordTransfers(
+  protected commitAction(
     kind: AppliedMoveKind,
     transfers: readonly CardTransfer[],
     options: {
@@ -434,7 +422,7 @@ export abstract class TableGame<
       flippedCardIds?: readonly string[];
     } = {},
   ): void {
-    this.record({
+    this.commit({
       kind,
       transfers,
       scoreDelta: options.scoreDelta ?? 0,

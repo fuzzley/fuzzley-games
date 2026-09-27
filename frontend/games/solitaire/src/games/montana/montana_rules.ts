@@ -66,7 +66,7 @@ export function settledPrefixLength(
 
   let length = 1;
   while (length < row.length) {
-    const previous = row[length - 1].topCard;
+    const previous = row[length - 1]?.topCard;
     const next = row[length]?.topCard;
     if (!previous || !next) break;
     if (next.suit !== previous.suit) break;

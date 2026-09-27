@@ -119,19 +119,8 @@ export function fakePlacementRule(role: string): PlacementRule | null {
   }
 }
 
-/** Returns the thirteen zones of the fake board, memoized per draw count. */
+/** Returns the thirteen zones of the fake board. */
 export function fakeZoneSpecs(drawCount: number): readonly ZoneSpec[] {
-  let zones = zonesByDrawCount.get(drawCount);
-  if (!zones) {
-    zones = buildZoneSpecs(drawCount);
-    zonesByDrawCount.set(drawCount, zones);
-  }
-  return zones;
-}
-
-const zonesByDrawCount = new Map<number, readonly ZoneSpec[]>();
-
-function buildZoneSpecs(drawCount: number): readonly ZoneSpec[] {
   const zones: ZoneSpec[] = [
     {
       id: STOCK_PILE_ID,

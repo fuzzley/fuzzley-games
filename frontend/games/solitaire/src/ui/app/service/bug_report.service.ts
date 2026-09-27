@@ -4,7 +4,6 @@ import { GamePosition, encodePosition } from "../model/game_position";
 import { BUG_REPORT_CONFIG } from "../provider/bug_report_config";
 import { GameCatalogService } from "./game_catalog.service";
 import { PresentationSettingsService } from "./presentation_settings.service";
-import { ThemeService } from "./theme.service";
 
 /**
  * The issue form fields the application fills in, by the `id` each has in
@@ -32,7 +31,6 @@ export class BugReportService {
   private readonly config = inject(BUG_REPORT_CONFIG);
   private readonly catalog = inject(GameCatalogService);
   private readonly presentation = inject(PresentationSettingsService);
-  private readonly theme = inject(ThemeService);
   private readonly document = inject(DOCUMENT);
 
   /** Describes the game on the table, reading signals a caller can follow. */
@@ -154,7 +152,7 @@ export class BugReportService {
     return [
       `- Build: ${this.config.commit ?? "local build"}`,
       ...browser,
-      `- Cards: ${this.presentation.cardDeck()} deck, ${this.presentation.cardBackStyle()} back, ${this.theme.selectedTheme()} felt`,
+      `- Cards: ${this.presentation.cardDeck()} deck, ${this.presentation.cardBackStyle()} back, ${this.presentation.theme()} felt`,
     ].join("\n");
   }
 }

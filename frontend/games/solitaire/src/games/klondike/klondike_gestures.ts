@@ -1,13 +1,13 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
 import { drawOnStockTop, tableGestures } from "@/games/common/table_gestures";
 import { KlondikeRole } from "./klondike_zones";
-import { KlondikeGame } from "./klondike_game";
+import { KlondikeFamilyGame } from "./klondike_family_game";
 
 /**
- * Returns what a press or a drop means in Klondike, where pressing the stock
- * draws and pressing the empty stock recycles the waste.
+ * Returns what a press or a drop means in a game of the Klondike family, where
+ * pressing the stock draws and pressing the empty stock recycles the waste.
  */
-export function klondikeGestures(game: KlondikeGame): IntentHandler {
+export function klondikeGestures(game: KlondikeFamilyGame): IntentHandler {
   return tableGestures(game, {
     onCardPress: drawOnStockTop(KlondikeRole.STOCK, () =>
       game.drawCardsFromStock(),
