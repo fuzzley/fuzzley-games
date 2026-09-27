@@ -4,6 +4,10 @@ import { GameCatalogService } from "./game_catalog.service";
 import { GameMetricsService } from "./game_metrics.service";
 import { ConfirmationService } from "./confirmation.service";
 
+/** What the player is asked before another game replaces one under way. */
+const SWITCH_GAME_MESSAGE =
+  "Are you sure you want to switch games? Your current progress will be lost.";
+
 /**
  * Changes which game is on the table, or throws away the one that is, asking
  * first when a game is under way.
@@ -20,16 +24,22 @@ export class GameLifecycleService {
    */
   async selectGame(id: string): Promise<void> {
     if (id === this.catalog.selectedId()) return;
-    if (
-      !(await this.confirmIfInProgress(
-        "Are you sure you want to switch games? Your current progress will be lost.",
-      ))
-    ) {
-      return;
-    }
+    if (!(await this.confirmIfInProgress(SWITCH_GAME_MESSAGE))) return;
 
     this.catalog.select(id);
-    this.metrics.reset();
+  }
+
+  /**
+   * Resolves whether a navigation may put the named game on the table, asking
+   * first when that would throw away a game under way.
+   *
+   * The game already on the table passes without asking, because
+   * {@link selectGame} deals a game before routing to it.
+   */
+  confirmNavigation(gameId: string): Promise<boolean> {
+    return gameId === this.catalog.selectedId()
+      ? Promise.resolve(true)
+      : this.confirmIfInProgress(SWITCH_GAME_MESSAGE);
   }
 
   /** Deals the same game again from the start. */
@@ -43,7 +53,6 @@ export class GameLifecycleService {
     }
 
     this.catalog.session().game.restartGame();
-    this.metrics.reset();
   }
 
   /** Deals a new game of whatever is on the table. */
@@ -57,7 +66,6 @@ export class GameLifecycleService {
     }
 
     this.catalog.session().game.startNewGame();
-    this.metrics.reset();
   }
 
   /** Plays the current game by a different rule. */
@@ -72,7 +80,6 @@ export class GameLifecycleService {
     }
 
     this.catalog.setOption(optionId, value);
-    this.metrics.reset();
   }
 
   /**
@@ -102,12 +109,8 @@ export class GameLifecycleService {
       return false;
     }
 
-    this.catalog.select(entry.id);
-    for (const [optionId, value] of Object.entries(options)) {
-      this.catalog.setOption(optionId, value);
-    }
+    this.catalog.load(entry.id, options);
     this.catalog.session().game.restore(snapshot);
-    this.metrics.reset();
     return true;
   }
 

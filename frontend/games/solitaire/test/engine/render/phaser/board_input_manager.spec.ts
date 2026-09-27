@@ -1,18 +1,19 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
-import { BoardInputManager } from "@/engine/render/phaser/board_input_manager";
-import { resolveFakeTableDropTarget } from "@test/support/fake_table/board";
+import { PlayingCard } from "@/engine/core/card/playing_card";
+import { DragController } from "@/engine/render/input/drag_controller";
+import { designSize } from "@/engine/render/layout/table_layout";
 import {
+  BoardInputManager,
+  InputHost,
+} from "@/engine/render/phaser/board_input_manager";
+import { Viewport } from "@/engine/render/view/table_view_state";
+import {
+  FAKE_TABLE_LAYOUT,
   fakeTableGestures,
   fakeTableStackFromCard,
+  resolveFakeTableDropTarget,
 } from "@test/support/fake_table/board";
 import { FakeTableGame } from "@test/support/fake_table/game";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { BoardScene } from "@/engine/render/phaser/board_scene";
-import { designSize } from "@/engine/render/layout/table_layout";
-import { FAKE_TABLE_LAYOUT } from "@test/support/fake_table/board";
-
-const DESIGN_WIDTH_PX = designSize(FAKE_TABLE_LAYOUT).width;
-const DESIGN_HEIGHT_PX = designSize(FAKE_TABLE_LAYOUT).height;
 import {
   asSprite,
   createMockInput,
@@ -20,6 +21,12 @@ import {
   MockInput,
   MockSprite,
 } from "@test/support/phaser_mocks";
+
+/**
+ * The design size, which lays the board out at a scale of exactly 1 so the
+ * pile origins the drop tests aim at are the design coordinates.
+ */
+const VIEWPORT: Viewport = { ...designSize(FAKE_TABLE_LAYOUT), pixelRatio: 1 };
 
 vi.mock("phaser", async () => {
   const mocks = await import("@test/support/phaser_mocks");
@@ -29,8 +36,7 @@ vi.mock("phaser", async () => {
 describe("BoardInputManager", () => {
   let gameModel: FakeTableGame;
   let input: MockInput;
-  let cardSprites: Map<string, MockSprite>;
-  let boardScene: BoardScene;
+  let controller: DragController;
   let inputManager: BoardInputManager;
 
   beforeEach(() => {
@@ -40,31 +46,18 @@ describe("BoardInputManager", () => {
     gameModel.startNewGame();
 
     input = createMockInput();
-    cardSprites = new Map();
-
-    boardScene = {
-      input,
-      gameModel,
-      cardSprite: (cardId: string) => {
-        const sprite = cardSprites.get(cardId);
-        return sprite ? asSprite(sprite) : undefined;
-      },
-      pixelRatio: 1,
-      // The design size, which lays the board out at a scale of exactly 1 so
-      // the pile origins the drop tests aim at are the design coordinates.
-      viewport: {
-        width: DESIGN_WIDTH_PX,
-        height: DESIGN_HEIGHT_PX,
-        pixelRatio: 1,
-      },
-      // The fixture's real wiring, so a press or a drop does what the game says
-      // it does rather than what a stub decides.
-      resolveDropTarget: resolveFakeTableDropTarget(gameModel),
-      handleIntent: fakeTableGestures(gameModel),
-      stackFromCard: fakeTableStackFromCard(gameModel),
-    } as unknown as BoardScene;
-
-    inputManager = new BoardInputManager(boardScene);
+    // The fixture's real wiring, so a press or a drop does what the game says
+    // it does rather than what a stub decides.
+    controller = new DragController(
+      fakeTableGestures(gameModel),
+      fakeTableStackFromCard(gameModel),
+    );
+    const dropTarget = resolveFakeTableDropTarget(gameModel);
+    const host: InputHost = {
+      input: input as unknown as InputHost["input"],
+      dropTargetFor: (drag) => dropTarget(drag, VIEWPORT)?.pileId ?? null,
+    };
+    inputManager = new BoardInputManager(host, controller);
   });
 
   afterEach(() => {
@@ -81,7 +74,6 @@ describe("BoardInputManager", () => {
     // recover which card a dragged object is.
     sprite.setData("cardId", card.id);
     inputManager.registerCardListeners(asSprite(sprite), card.id);
-    cardSprites.set(card.id, sprite);
     return { sprite, card };
   }
 
@@ -95,26 +87,26 @@ describe("BoardInputManager", () => {
 
       sprite.emit("pointerover");
 
-      expect(inputManager.hoveredCardId).toBe(card.id);
+      expect(controller.hoveredCardId).toBe(card.id);
     });
 
     it("clears the hovered card on pointerout when it is the hovered card", () => {
       const { sprite, card } = listenTo();
-      inputManager.hoveredCardId = card.id;
+      controller.cardOver(card.id);
 
       sprite.emit("pointerout", MOUSE);
 
-      expect(inputManager.hoveredCardId).toBeNull();
+      expect(controller.hoveredCardId).toBeNull();
     });
 
     it("leaves a different hovered card untouched on pointerout", () => {
       const { sprite } = listenTo();
       const otherId = gameModel.tableaus[1].getCards()[0].id;
-      inputManager.hoveredCardId = otherId;
+      controller.cardOver(otherId);
 
       sprite.emit("pointerout", MOUSE);
 
-      expect(inputManager.hoveredCardId).toBe(otherId);
+      expect(controller.hoveredCardId).toBe(otherId);
     });
   });
 
@@ -125,7 +117,7 @@ describe("BoardInputManager", () => {
       sprite.emit("pointerover");
       sprite.emit("pointerout", FINGER);
 
-      expect(inputManager.hoveredCardId).toBe(card.id);
+      expect(controller.hoveredCardId).toBe(card.id);
     });
 
     it("puts a tapped card back when bare table is pressed", () => {
@@ -136,7 +128,7 @@ describe("BoardInputManager", () => {
 
       input.emit("pointerdown", {}, []);
 
-      expect(inputManager.hoveredCardId).toBeNull();
+      expect(controller.hoveredCardId).toBeNull();
     });
 
     it("leaves it alone when the press landed on something", () => {
@@ -147,7 +139,7 @@ describe("BoardInputManager", () => {
 
       input.emit("pointerdown", {}, [asSprite(sprite)]);
 
-      expect(inputManager.hoveredCardId).toBe(card.id);
+      expect(controller.hoveredCardId).toBe(card.id);
     });
   });
 
@@ -264,7 +256,6 @@ describe("BoardInputManager", () => {
       // tableau-1 calculated layout origin: x: 348, y: 447
       const sprite = createMockSprite({ x: 350, y: 450 });
       sprite.setData("cardId", card.id);
-      cardSprites.set(card.id, sprite);
       inputManager.registerCardListeners(asSprite(sprite), card.id);
       inputManager.registerDragListeners();
       return { sprite, card };
@@ -278,7 +269,7 @@ describe("BoardInputManager", () => {
       input.emit("dragstart", {}, asSprite(sprite)); // second press begins a drag
       sprite.emit("pointerdown"); // completes the double click
 
-      expect(inputManager.drag).toBeNull();
+      expect(controller.drag).toBeNull();
     });
 
     it("does not re-drop the card on the dragend following the double click", () => {
@@ -298,7 +289,7 @@ describe("BoardInputManager", () => {
   describe("flight tracking", () => {
     /** Returns the card ids of each flight in the air, oldest first. */
     function flownStacks(): string[][] {
-      return inputManager.flights.map((flight) => [...flight.cardIds]);
+      return controller.flights.map((flight) => [...flight.cardIds]);
     }
 
     /** Picks up the given card's sprite and releases it over tableau 1. */
@@ -306,17 +297,10 @@ describe("BoardInputManager", () => {
       // tableau-1 calculated layout origin: x: 348, y: 447
       const sprite = createMockSprite({ x: 350, y: 450 });
       sprite.setData("cardId", card.id);
-      cardSprites.set(card.id, sprite);
       inputManager.registerDragListeners();
       input.emit("dragstart", {}, asSprite(sprite));
       input.emit("dragend", {}, asSprite(sprite));
     }
-
-    it("lifts a stack it is told the model relocated", () => {
-      inputManager.beginFlight(["a", "b"]);
-
-      expect(flownStacks()).toEqual([["a", "b"]]);
-    });
 
     it("tracks the dropped stack while it settles onto its new pile", () => {
       const card = gameModel.tableaus[0].topCard!;
@@ -336,22 +320,6 @@ describe("BoardInputManager", () => {
       // Nothing moved in the model, so nothing announces it — but the card was
       // left under the pointer and still has the board to cross to get home.
       expect(flownStacks()).toEqual([[card.id]]);
-    });
-
-    it("stops tracking the stack once it has landed", () => {
-      inputManager.beginFlight(["a"]);
-
-      inputManager.endFlight(inputManager.flights[0]);
-
-      expect(inputManager.flights).toEqual([]);
-    });
-
-    it("stops tracking the stack on a game reset", () => {
-      inputManager.beginFlight(["a"]);
-
-      inputManager.resetInteraction();
-
-      expect(inputManager.flights).toEqual([]);
     });
   });
 
@@ -386,24 +354,24 @@ describe("BoardInputManager", () => {
     it("marks the stock background hovered on pointerover", () => {
       stockBackground.emit("pointerover");
 
-      expect(inputManager.hoveredBackgroundPileId).toBe("stock");
+      expect(controller.hoveredBackgroundPileId).toBe("stock");
     });
 
     it("clears the stock background hover on pointerout", () => {
-      inputManager.hoveredBackgroundPileId = "stock";
+      controller.backgroundOver("stock");
 
       stockBackground.emit("pointerout");
 
-      expect(inputManager.hoveredBackgroundPileId).toBeNull();
+      expect(controller.hoveredBackgroundPileId).toBeNull();
     });
 
     it("clears a lingering stock background hover on a bare table press", () => {
       inputManager.registerDragListeners();
-      inputManager.hoveredBackgroundPileId = "stock";
+      controller.backgroundOver("stock");
 
       input.emit("pointerdown", {}, []);
 
-      expect(inputManager.hoveredBackgroundPileId).toBeNull();
+      expect(controller.hoveredBackgroundPileId).toBeNull();
     });
   });
 
@@ -415,14 +383,13 @@ describe("BoardInputManager", () => {
       card = gameModel.tableaus[0].topCard!;
       sprite = createMockSprite({ x: 100, y: 150 });
       sprite.setData("cardId", card.id);
-      cardSprites.set(card.id, sprite);
       inputManager.registerDragListeners();
     });
 
     it("captures the dragged stack on dragstart", () => {
       input.emit("dragstart", {}, asSprite(sprite));
 
-      expect(inputManager.drag?.cardIds).toEqual([card.id]);
+      expect(controller.drag?.cardIds).toEqual([card.id]);
     });
 
     it("does not start a drag when the sprite is not a card", () => {
@@ -430,7 +397,7 @@ describe("BoardInputManager", () => {
 
       input.emit("dragstart", {}, asSprite(dummy));
 
-      expect(inputManager.drag).toBeNull();
+      expect(controller.drag).toBeNull();
     });
 
     it("does not start a drag when the card is in no model pile", () => {
@@ -438,20 +405,20 @@ describe("BoardInputManager", () => {
 
       input.emit("dragstart", {}, asSprite(sprite));
 
-      expect(inputManager.drag).toBeNull();
+      expect(controller.drag).toBeNull();
     });
 
     it("updates the primary drag position on drag", () => {
       input.emit("dragstart", {}, asSprite(sprite));
       input.emit("drag", {}, asSprite(sprite), 200, 300);
 
-      expect(inputManager.drag?.primary).toEqual({ x: 200, y: 300 });
+      expect(controller.drag?.primary).toEqual({ x: 200, y: 300 });
     });
 
     it("ignores drag events when nothing is being dragged", () => {
       input.emit("drag", {}, asSprite(sprite), 200, 300);
 
-      expect(inputManager.drag).toBeNull();
+      expect(controller.drag).toBeNull();
     });
 
     it("ignores dragend when nothing is being dragged", () => {
@@ -464,7 +431,7 @@ describe("BoardInputManager", () => {
 
       input.emit("dragend", {}, asSprite(dummy));
 
-      expect(inputManager.drag).toBeNull();
+      expect(controller.drag).toBeNull();
     });
 
     it("moves the card when dropped on a valid target pile", () => {
@@ -487,7 +454,7 @@ describe("BoardInputManager", () => {
 
       input.emit("dragend", {}, asSprite(sprite));
 
-      expect(inputManager.drag).toBeNull();
+      expect(controller.drag).toBeNull();
     });
 
     it("snaps back without moving when dropped away from every pile", () => {
@@ -498,27 +465,7 @@ describe("BoardInputManager", () => {
       input.emit("dragend", {}, asSprite(sprite));
 
       expect(moveSpy).not.toHaveBeenCalled();
-      expect(inputManager.drag).toBeNull();
-    });
-  });
-
-  describe("reset", () => {
-    it("clears interaction state and requests a snap on reset", () => {
-      const card = gameModel.tableaus[0].getCards()[0];
-      inputManager.hoveredCardId = card.id;
-      inputManager.hoveredBackgroundPileId = "stock";
-      inputManager.drag = { cardIds: [card.id], primary: { x: 1, y: 2 } };
-      inputManager.snapAll = false;
-
-      inputManager.resetInteraction();
-
-      expect(inputManager.interaction).toEqual({
-        hoveredCardId: null,
-        hoveredBackgroundPileId: null,
-        drag: null,
-        flights: [],
-        snapAll: true,
-      });
+      expect(controller.drag).toBeNull();
     });
   });
 });

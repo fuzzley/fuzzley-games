@@ -55,10 +55,10 @@ describe("SimpleSimonGame deal", () => {
   let game: SimpleSimonGame;
 
   beforeEach(() => {
-    game = new SimpleSimonGame(
-      ALL_PLAYING_CARD_IDS,
-      sequenceRandom(SHUFFLE_VALUES),
-    );
+    game = new SimpleSimonGame({
+      cardIds: ALL_PLAYING_CARD_IDS,
+      random: sequenceRandom(SHUFFLE_VALUES),
+    });
     game.startNewGame();
   });
 
@@ -103,10 +103,10 @@ describe("SimpleSimonGame column rules", () => {
   let game: SimpleSimonGame;
 
   beforeEach(() => {
-    game = new SimpleSimonGame(
-      ALL_PLAYING_CARD_IDS,
-      sequenceRandom(SHUFFLE_VALUES),
-    );
+    game = new SimpleSimonGame({
+      cardIds: ALL_PLAYING_CARD_IDS,
+      random: sequenceRandom(SHUFFLE_VALUES),
+    });
     game.startNewGame();
     emptyBoard(game);
   });
@@ -173,10 +173,10 @@ describe("SimpleSimonGame completed runs", () => {
   let game: SimpleSimonGame;
 
   beforeEach(() => {
-    game = new SimpleSimonGame(
-      ALL_PLAYING_CARD_IDS,
-      sequenceRandom(SHUFFLE_VALUES),
-    );
+    game = new SimpleSimonGame({
+      cardIds: ALL_PLAYING_CARD_IDS,
+      random: sequenceRandom(SHUFFLE_VALUES),
+    });
     game.startNewGame();
     boardOneMoveFromARun(game);
   });
@@ -204,10 +204,10 @@ describe("SimpleSimonGame completed runs", () => {
 
 describe("SimpleSimonGame win condition", () => {
   it("is won once every card in play has been collected", () => {
-    const game = new SimpleSimonGame(
-      SPADES_ONLY,
-      sequenceRandom(SHUFFLE_VALUES),
-    );
+    const game = new SimpleSimonGame({
+      cardIds: SPADES_ONLY,
+      random: sequenceRandom(SHUFFLE_VALUES),
+    });
     game.startNewGame();
     boardOneMoveFromARun(game);
     let won = false;
@@ -219,10 +219,10 @@ describe("SimpleSimonGame win condition", () => {
   });
 
   it("is not won while cards remain on the tableau", () => {
-    const game = new SimpleSimonGame(
-      ALL_PLAYING_CARD_IDS,
-      sequenceRandom(SHUFFLE_VALUES),
-    );
+    const game = new SimpleSimonGame({
+      cardIds: ALL_PLAYING_CARD_IDS,
+      random: sequenceRandom(SHUFFLE_VALUES),
+    });
     game.startNewGame();
     boardOneMoveFromARun(game);
     let won = false;

@@ -111,15 +111,40 @@ describe("GameMetricsService", () => {
       expect(metrics.timerText()).toBe("00:01");
     });
 
-    it("clears on reset, for a freshly dealt game", () => {
+    it("clears when the game is dealt again", () => {
       const { metrics, model } = buildMetrics();
       model.state.moves = 1;
       TestBed.flushEffects();
       vi.advanceTimersByTime(3000);
 
-      metrics.reset();
+      model.startNewGame();
+      TestBed.flushEffects();
 
       expect(metrics.timerText()).toBe("00:00");
+    });
+
+    it("clears and waits for a first move when another game replaces it", () => {
+      const { metrics, model, catalog } = buildMetrics();
+      model.state.moves = 1;
+      TestBed.flushEffects();
+      vi.advanceTimersByTime(3000);
+
+      catalog.deal(createMockGameModel());
+      TestBed.flushEffects();
+      vi.advanceTimersByTime(5000);
+
+      expect(metrics.timerText()).toBe("00:00");
+    });
+
+    it("times a restored game from zero, since it is already under way", () => {
+      const { metrics, model } = buildMetrics({ moves: 4 });
+      vi.advanceTimersByTime(3000);
+
+      model.restore({ ...model.snapshot(), moves: 9 });
+      TestBed.flushEffects();
+      vi.advanceTimersByTime(2000);
+
+      expect(metrics.timerText()).toBe("00:02");
     });
   });
 
@@ -133,12 +158,24 @@ describe("GameMetricsService", () => {
       expect(metrics.isGameWon()).toBe(true);
     });
 
-    it("is no longer won after a reset", () => {
+    it("is no longer won once the game is dealt again", () => {
       const { metrics, model } = buildMetrics();
       model.emit("game-won");
       TestBed.flushEffects();
 
-      metrics.reset();
+      model.startNewGame();
+      TestBed.flushEffects();
+
+      expect(metrics.isGameWon()).toBe(false);
+    });
+
+    it("is no longer won once another game replaces it, however it got there", () => {
+      const { metrics, model, catalog } = buildMetrics();
+      model.emit("game-won");
+      TestBed.flushEffects();
+
+      catalog.deal(createMockGameModel());
+      TestBed.flushEffects();
 
       expect(metrics.isGameWon()).toBe(false);
     });

@@ -1,13 +1,13 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
-import { collectCompletedRuns } from "@/games/common/completed_runs";
 import { runCollectingEffects } from "@/games/common/move_effects";
-import { dealRowFromStock } from "@/games/common/row_deal";
+import { dealRowCollectingRuns } from "@/games/common/row_deal";
+import { DeckOptions } from "@/games/common/deck_options";
 import { dealScorpionLayout } from "./scorpion_deal";
 import {
   STOCK_PILE_ID,
@@ -31,12 +31,12 @@ export class ScorpionGame extends DealtTableGame {
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
   /** Creates a game whose piles are empty until the first deal. */
-  constructor(
-    cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
-    random: () => number = Math.random,
-  ) {
+  constructor({
+    cardIds = ALL_PLAYING_CARD_IDS,
+    random = Math.random,
+  }: DeckOptions = {}) {
     super({
-      zones: () => scorpionZoneSpecs(),
+      zones: scorpionZoneSpecs(),
       deck: new DeckSource(new CardRegistry(), cardIds, random),
       // Only a column will take a card; a foundation is never a destination a
       // player can choose.
@@ -75,21 +75,15 @@ export class ScorpionGame extends DealtTableGame {
       return false;
     }
 
-    this.state.moves++;
-    const transfers = dealRowFromStock(
+    const dealt = dealRowCollectingRuns(
       this.stock,
       this.tableaus.slice(0, STOCK_DEAL_COLUMN_COUNT),
+      this.tableaus,
+      this.foundations,
     );
-
-    // A dealt card can complete a run, and can uncover one buried under the
-    // column it lands on top of.
-    const collected = collectCompletedRuns(this.tableaus, this.foundations);
-    this.recordTransfers("deal", [...transfers, ...collected.transfers], {
-      flippedCardIds: collected.flippedCardIds,
+    this.commitAction("deal", dealt.transfers, {
+      flippedCardIds: dealt.flippedCardIds,
     });
-    // The engine checks for a win only after a move, and dealing the stock can
-    // finish the last run.
-    this.checkWinCondition();
     return true;
   }
 

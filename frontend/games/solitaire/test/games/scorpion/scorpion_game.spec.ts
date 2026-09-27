@@ -28,7 +28,7 @@ const ONE_SUIT = deckCardIds({
  * same one.
  */
 function dealtGame(cardIds?: ReadonlyArray<DeckCardId>): ScorpionGame {
-  const game = new ScorpionGame(cardIds, sequenceRandom([]));
+  const game = new ScorpionGame({ cardIds, random: sequenceRandom([]) });
   game.startNewGame();
   return game;
 }

@@ -41,11 +41,11 @@ function newGame(
   variant: SpideretteVariant = SpideretteVariant.SPIDERETTE,
   cardIds: typeof ALL_PLAYING_CARD_IDS = ALL_PLAYING_CARD_IDS,
 ): SpideretteGame {
-  const game = new SpideretteGame(
+  const game = new SpideretteGame({
     cardIds,
-    sequenceRandom(SHUFFLE_VALUES),
+    random: sequenceRandom(SHUFFLE_VALUES),
     variant,
-  );
+  });
   game.startNewGame();
   return game;
 }

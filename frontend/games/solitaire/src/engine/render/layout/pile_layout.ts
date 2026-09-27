@@ -111,9 +111,6 @@ export function pileHeight(
   cards: ReadonlyArray<Card>,
   cardHeight: number,
 ): number {
-  if (cards.length === 0) {
-    return cardHeight;
-  }
-  const offsets = pileCardOffsets(layout, cards);
-  return offsets[offsets.length - 1].y + cardHeight;
+  const last = pileCardOffsets(layout, cards).at(-1);
+  return (last?.y ?? 0) + cardHeight;
 }

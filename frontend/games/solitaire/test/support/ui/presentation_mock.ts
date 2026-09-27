@@ -1,10 +1,15 @@
 import { vi } from "vitest";
-import { signal } from "@angular/core";
+import { computed, signal } from "@angular/core";
 import type {
   CardBackStyle,
   PresentationSettingsService,
 } from "@/ui/app/service/presentation_settings.service";
 import { CardDeckId, DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
+import {
+  DEFAULT_THEME,
+  TABLE_THEMES,
+  ThemeKey,
+} from "@/ui/app/model/table_theme";
 
 /**
  * Creates a mock of the presentation settings whose setters hold real state
@@ -13,7 +18,7 @@ import { CardDeckId, DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
 export function createMockPresentation(
   overrides: {
     cardBackStyle?: CardBackStyle;
-    backgroundColor?: string;
+    theme?: ThemeKey;
     cardDeck?: CardDeckId;
     pendingCardDeck?: CardDeckId | null;
     cardDeckProblem?: string | null;
@@ -22,7 +27,7 @@ export function createMockPresentation(
   const cardBackStyle = signal<CardBackStyle>(
     overrides.cardBackStyle ?? "card-back-blue",
   );
-  const backgroundColor = signal(overrides.backgroundColor ?? "");
+  const theme = signal<ThemeKey>(overrides.theme ?? DEFAULT_THEME);
   const cardDeck = signal<CardDeckId>(overrides.cardDeck ?? DEFAULT_CARD_DECK);
   // Held as signals like the rest, so a spec can put the drawer into a
   // mid-swap or failed state and read what it drew.
@@ -35,7 +40,8 @@ export function createMockPresentation(
 
   return {
     cardBackStyle,
-    backgroundColor,
+    theme,
+    backgroundColor: computed(() => TABLE_THEMES[theme()].color),
     cardDeck,
     pendingCardDeck,
     cardDeckProblem,
@@ -47,8 +53,8 @@ export function createMockPresentation(
     setCardBackStyle: vi.fn((style: CardBackStyle) => {
       cardBackStyle.set(style);
     }),
-    setBackgroundColor: vi.fn((color: string) => {
-      backgroundColor.set(color);
+    setTheme: vi.fn((key: ThemeKey) => {
+      theme.set(key);
     }),
     setCardDeck: vi.fn((deckId: CardDeckId) => {
       cardDeck.set(deckId);

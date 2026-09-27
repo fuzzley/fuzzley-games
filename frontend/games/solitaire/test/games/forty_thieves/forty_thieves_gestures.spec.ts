@@ -154,11 +154,9 @@ describe("fortyThievesGestures", () => {
 
   describe("under Josephine", () => {
     it("drops a whole same-suit run the variant allows", () => {
-      const josephine = new FortyThievesGame(
-        undefined,
-        undefined,
-        FortyThievesVariant.JOSEPHINE,
-      );
+      const josephine = new FortyThievesGame({
+        variant: FortyThievesVariant.JOSEPHINE,
+      });
       josephine.startNewGame();
       emptyBoard(josephine);
       const nine = relocate(josephine, "card-spades-9", josephine.tableaus[0]);

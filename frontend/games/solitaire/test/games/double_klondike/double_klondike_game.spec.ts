@@ -40,7 +40,10 @@ const ACE_IDS = [
 function newGame(
   cardIds = deckCardIds(DOUBLE_KLONDIKE_TWO_DECKS),
 ): DoubleKlondikeGame {
-  const game = new DoubleKlondikeGame(cardIds, sequenceRandom(SHUFFLE_VALUES));
+  const game = new DoubleKlondikeGame({
+    cardIds,
+    random: sequenceRandom(SHUFFLE_VALUES),
+  });
   game.startNewGame();
   return game;
 }

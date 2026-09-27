@@ -1,5 +1,4 @@
 import { ZoneSpec } from "@/engine/tableau/zone";
-import { memoizeZones } from "@/engine/tableau/zone_builder";
 import { columnRow, foundationRow } from "../common/zone_presets";
 import { YukonRole, YukonVariant, yukonPlacementRule } from "./yukon_rules";
 
@@ -10,8 +9,8 @@ export const FOUNDATION_COUNT = 4;
 export const TABLEAU_COUNT = 7;
 
 /** Returns the eleven zones of a Yukon board under a variant. */
-export const yukonZoneSpecs = memoizeZones(
-  (variant: YukonVariant): readonly ZoneSpec[] => [
+export function yukonZoneSpecs(variant: YukonVariant): readonly ZoneSpec[] {
+  return [
     ...foundationRow({
       // Klondike's foundation columns, leaving bare the top left, where a
       // stock would be.
@@ -29,8 +28,8 @@ export const yukonZoneSpecs = memoizeZones(
       accept: yukonPlacementRule(YukonRole.TABLEAU, variant),
       grab: { kind: "any-face-up" },
     }),
-  ],
-);
+  ];
+}
 
 /** Re-exported: the roles and the variants live with the rules they shape. */
 export { YukonRole, YukonVariant };

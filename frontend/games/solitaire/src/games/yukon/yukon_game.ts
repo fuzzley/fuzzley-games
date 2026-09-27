@@ -1,13 +1,20 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { flipOnlyEffects } from "@/games/common/move_effects";
+import { DeckOptions } from "@/games/common/deck_options";
 import { dealYukonLayout } from "./yukon_deal";
 import { YukonRole, YukonVariant, yukonZoneSpecs } from "./yukon_zones";
+
+/** Configures a game of the Yukon family. */
+export interface YukonOptions extends DeckOptions {
+  /** Which of the three games to play. */
+  readonly variant?: YukonVariant;
+}
 
 /**
  * Plays Yukon, Alaska or Russian Solitaire: one deck on seven columns with no
@@ -19,19 +26,14 @@ export class YukonGame extends DealtTableGame {
   /** The seven columns. */
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
-  /**
-   * Creates a game whose piles are empty until the first deal.
-   *
-   * @param variant Which of the three games to play, passed in because the
-   *   zones are built from it during `super`, before this class's fields exist.
-   */
-  constructor(
-    cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
-    random: () => number = Math.random,
-    variant: YukonVariant = YukonVariant.YUKON,
-  ) {
+  /** Creates a game whose piles are empty until the first deal. */
+  constructor({
+    cardIds = ALL_PLAYING_CARD_IDS,
+    random = Math.random,
+    variant = YukonVariant.YUKON,
+  }: YukonOptions = {}) {
     super({
-      zones: () => yukonZoneSpecs(variant),
+      zones: yukonZoneSpecs(variant),
       deck: new DeckSource(new CardRegistry(), cardIds, random),
       // Foundations only: sending a stack to whichever column is declared
       // first is never what was meant.

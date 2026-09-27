@@ -1,12 +1,13 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { deckCardIds } from "@/engine/core/card/deck";
-import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { flipOnlyEffects } from "@/games/common/move_effects";
 import { drawToWaste } from "@/games/common/stock_pile";
+import { DeckOptions } from "@/games/common/deck_options";
 import {
   FORTY_THIEVES_TWO_DECKS,
   dealFortyThievesLayout,
@@ -24,6 +25,12 @@ import {
 
 /** How many cards a draw turns over: one, in every game of the family. */
 export const DRAW_COUNT = 1;
+
+/** Configures a game of the Forty Thieves family. */
+export interface FortyThievesOptions extends DeckOptions {
+  /** Which game of the family to play. */
+  readonly variant?: FortyThievesVariant;
+}
 
 /**
  * Plays Forty Thieves or one of its variants: two decks, eight foundations, and
@@ -45,19 +52,14 @@ export class FortyThievesGame extends DealtTableGame {
    */
   public readonly variant: FortyThievesVariant;
 
-  /**
-   * Creates a game whose piles are empty until the first deal.
-   *
-   * @param variant Which game of the family to play, passed in because the
-   *   zones are built from it during `super`, before this class's fields exist.
-   */
-  constructor(
-    cardIds: ReadonlyArray<DeckCardId> = deckCardIds(FORTY_THIEVES_TWO_DECKS),
-    random: () => number = Math.random,
-    variant: FortyThievesVariant = DEFAULT_FORTY_THIEVES_VARIANT,
-  ) {
+  /** Creates a game whose piles are empty until the first deal. */
+  constructor({
+    cardIds = deckCardIds(FORTY_THIEVES_TWO_DECKS),
+    random = Math.random,
+    variant = DEFAULT_FORTY_THIEVES_VARIANT,
+  }: FortyThievesOptions = {}) {
     super({
-      zones: () => fortyThievesZoneSpecs(variant),
+      zones: fortyThievesZoneSpecs(variant),
       deck: new DeckSource(new CardRegistry(), cardIds, random),
       // Foundations only: which column a card goes to is most of the player's
       // decision.
@@ -90,11 +92,7 @@ export class FortyThievesGame extends DealtTableGame {
       return false;
     }
 
-    this.state.moves++;
-    this.recordTransfers(
-      "draw",
-      drawToWaste(this.stock, this.waste, DRAW_COUNT),
-    );
+    this.commitAction("draw", drawToWaste(this.stock, this.waste, DRAW_COUNT));
     return true;
   }
 

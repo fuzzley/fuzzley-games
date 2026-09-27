@@ -24,6 +24,7 @@ import { FAKE_TABLE_LAYOUT } from "@test/support/fake_table/board";
 
 const DESIGN_WIDTH_PX = designSize(FAKE_TABLE_LAYOUT).width;
 import { STOCK_PILE_ID } from "@test/support/fake_table/zones";
+import { pileBackgrounds } from "@/engine/tableau/view/pile_backgrounds";
 import { relocate } from "@test/support/game_scenarios";
 
 vi.mock("phaser", async () => {
@@ -96,12 +97,14 @@ describe("BoardScene", () => {
   }
 
   describe("construction", () => {
-    it("renders the game model it is injected with", () => {
-      const injectedModel = new FakeTableGame();
+    it("draws a placeholder under each pile it is handed one for, and no others", () => {
+      const withPlaceholder = fakeGame.piles
+        .filter((pile) => boardScene.pileBackgroundSprite(pile.id))
+        .map((pile) => pile.id);
 
-      const scene = makeBoardScene(injectedModel);
-
-      expect(scene.tableGame).toBe(injectedModel);
+      expect(withPlaceholder).toEqual(
+        pileBackgrounds(fakeGame).map((background) => background.pileId),
+      );
     });
   });
 
@@ -579,19 +582,6 @@ describe("BoardScene", () => {
       expect(after).not.toEqual(before);
       boardScene.update(32, 16);
       expect(positions()).toEqual(after);
-    });
-  });
-
-  describe("creation errors", () => {
-    it("throws when a card model is missing while creating sprites", () => {
-      const freshScene = makeBoardScene();
-      const getCardById = vi
-        .spyOn(FakeTableGame.prototype, "getCardById")
-        .mockReturnValue(undefined);
-
-      expect(() => freshScene.create()).toThrow("Card model not found for: ");
-
-      getCardById.mockRestore();
     });
   });
 });

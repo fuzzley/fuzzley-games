@@ -34,7 +34,7 @@ class TestDealtGame extends DealtTableGame {
 
   constructor(cardIds = ALL_PLAYING_CARD_IDS.slice(0, 5)) {
     super({
-      zones: () => [zone(HAND), zone(HOME)],
+      zones: [zone(HAND), zone(HOME)],
       deck: new DeckSource(new CardRegistry(), cardIds),
       autoMoveRoles: [HOME],
       winsWhenAllCardsIn: HOME,
@@ -60,6 +60,24 @@ class TestDealtGame extends DealtTableGame {
     for (const card of [...this.requirePile(HAND).getCards()]) {
       this.moveCardToPile(card.id, HOME);
     }
+  }
+
+  /** Sweeps every card home at once, as an action outside the move path. */
+  public sweepHome(): void {
+    const hand = this.requirePile(HAND);
+    const cards = [...hand.getCards()];
+    for (const card of cards) {
+      hand.removeCard(card);
+      this.requirePile(HOME).addCard(card);
+    }
+    this.commitAction("sweep", [
+      {
+        cardIds: cards.map((card) => card.id),
+        fromPileId: HAND,
+        toPileId: HOME,
+        faceUpBefore: true,
+      },
+    ]);
   }
 }
 
@@ -165,6 +183,16 @@ describe("DealtTableGame", () => {
       game.startNewGame();
 
       game.sendAllHome();
+
+      expect(wins).toBe(1);
+    });
+
+    it("announces a win that an action outside the move path brings about", () => {
+      let wins = 0;
+      game.on("game-won", () => wins++);
+      game.startNewGame();
+
+      game.sweepHome();
 
       expect(wins).toBe(1);
     });

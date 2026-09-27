@@ -1,9 +1,10 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
+import { DeckOptions } from "@/games/common/deck_options";
 import { dealBakersDozenLayout } from "./bakers_dozen_deal";
 import { BakersDozenRole, bakersDozenZoneSpecs } from "./bakers_dozen_zones";
 
@@ -18,12 +19,12 @@ export class BakersDozenGame extends DealtTableGame {
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
   /** Creates a game whose piles are empty until the first deal. */
-  constructor(
-    cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
-    random: () => number = Math.random,
-  ) {
+  constructor({
+    cardIds = ALL_PLAYING_CARD_IDS,
+    random = Math.random,
+  }: DeckOptions = {}) {
     super({
-      zones: () => bakersDozenZoneSpecs(),
+      zones: bakersDozenZoneSpecs(),
       // Dealt face up: the whole position is visible from the first move.
       deck: new DeckSource(new CardRegistry(), cardIds, random, true),
       // Foundations only: which column a card goes to is the player's whole

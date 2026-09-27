@@ -3,6 +3,7 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
 import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { SlotPlacement } from "@/engine/render/layout/table_layout";
 import { PlacementRule } from "./rules";
+import { itemAt } from "@/engine/core/common/item_at";
 
 /** Says which cards in a zone a player may pick up. */
 export type GrabRule =
@@ -119,10 +120,10 @@ function isRunFrom(
   if (start === -1) return false;
 
   for (let index = start; index < cards.length; index++) {
-    if (!cards[index].faceUp) return false;
-    if (index + 1 < cards.length && !adjacent(cards[index], cards[index + 1])) {
-      return false;
-    }
+    const lower = itemAt(cards, index);
+    const upper = cards[index + 1];
+    if (!lower.faceUp) return false;
+    if (upper && !adjacent(lower, upper)) return false;
   }
   return true;
 }

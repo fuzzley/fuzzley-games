@@ -5,6 +5,7 @@ import {
   TableInteractionState,
 } from "../view/table_view_state";
 import { IntentHandler } from "./table_intents";
+import { itemAt } from "@/engine/core/common/item_at";
 
 /** Maximum milliseconds between two presses for them to count as a double. */
 const DOUBLE_PRESS_MS = 350;
@@ -193,13 +194,12 @@ export class DragController {
 
     const lifted = new Set(cardIds);
     for (let index = this.flightState.length - 1; index >= 0; index--) {
-      const remaining = this.flightState[index].cardIds.filter(
-        (cardId) => !lifted.has(cardId),
-      );
+      const flight = itemAt(this.flightState, index);
+      const remaining = flight.cardIds.filter((cardId) => !lifted.has(cardId));
       if (remaining.length === 0) {
         this.flightState.splice(index, 1);
       } else {
-        this.flightState[index].cardIds = remaining;
+        flight.cardIds = remaining;
       }
     }
 

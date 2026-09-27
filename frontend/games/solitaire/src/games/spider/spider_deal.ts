@@ -6,6 +6,7 @@ import {
   PlayingCard,
   Suit,
 } from "@/engine/core/card/playing_card";
+import { itemAt } from "@/engine/core/common/item_at";
 
 /** Two full decks: 104 cards, with two of every face. */
 export const SPIDER_TWO_DECKS: DeckSpec = {
@@ -61,7 +62,7 @@ export function dealSpiderLayout(
     const card = deck.pop();
     if (!card) break;
     card.faceUp = false;
-    tableaus[dealt % tableaus.length].addCard(card);
+    itemAt(tableaus, dealt % tableaus.length).addCard(card);
   }
 
   for (const tableau of tableaus) {

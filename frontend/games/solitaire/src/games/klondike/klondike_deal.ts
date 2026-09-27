@@ -6,6 +6,7 @@ import {
   Rank,
 } from "@/engine/core/card/playing_card";
 import { DeckSource } from "@/engine/tableau/deck_source";
+import { itemAt } from "@/engine/core/common/item_at";
 
 /**
  * The card ranks loaded onto the foundations by an almost-win deal: everything
@@ -29,12 +30,12 @@ export function dealKlondikeLayout(
   stock: CardPile<PlayingCard>,
   allFaceUp = false,
 ): void {
-  for (let tableauIndex = 0; tableauIndex < tableaus.length; tableauIndex++) {
+  for (const [tableauIndex, tableau] of tableaus.entries()) {
     for (let cardIndex = 0; cardIndex <= tableauIndex; cardIndex++) {
       const card = deck.pop();
       if (card) {
         card.faceUp = allFaceUp || cardIndex === tableauIndex;
-        tableaus[tableauIndex].addCard(card);
+        tableau.addCard(card);
       }
     }
   }
@@ -76,8 +77,8 @@ export function dealKlondikeAlmostWin(
   // waits on the tableau in the same position as its own foundation.
   ALL_SUITS.forEach((suit, suitIndex) => {
     for (const rank of BELOW_KING) {
-      placeFaceUp(suit, rank, foundations[suitIndex]);
+      placeFaceUp(suit, rank, itemAt(foundations, suitIndex));
     }
-    placeFaceUp(suit, Rank.KING, tableaus[suitIndex]);
+    placeFaceUp(suit, Rank.KING, itemAt(tableaus, suitIndex));
   });
 }

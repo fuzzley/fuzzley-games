@@ -77,10 +77,10 @@ describe("SeahavenGame", () => {
   let game: SeahavenGame;
 
   beforeEach(() => {
-    game = new SeahavenGame(
-      ALL_PLAYING_CARD_IDS,
-      sequenceRandom(SHUFFLE_VALUES),
-    );
+    game = new SeahavenGame({
+      cardIds: ALL_PLAYING_CARD_IDS,
+      random: sequenceRandom(SHUFFLE_VALUES),
+    });
     game.startNewGame();
   });
 
@@ -217,7 +217,10 @@ describe("SeahavenGame", () => {
       const aces = ALL_PLAYING_CARD_IDS.filter(
         (card) => card.rank === Rank.ACE,
       );
-      const short = new SeahavenGame(aces, sequenceRandom(SHUFFLE_VALUES));
+      const short = new SeahavenGame({
+        cardIds: aces,
+        random: sequenceRandom(SHUFFLE_VALUES),
+      });
       short.startNewGame();
       emptyBoard(short);
       relocate(short, "card-spades-ace", short.foundations[0]);

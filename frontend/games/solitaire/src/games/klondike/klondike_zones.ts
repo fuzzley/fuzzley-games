@@ -1,6 +1,5 @@
 import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { ZoneSpec } from "@/engine/tableau/zone";
-import { memoizeZones } from "@/engine/tableau/zone_builder";
 import { STOCK_PILE_ID, WASTE_PILE_ID } from "../common/pile_ids";
 import {
   BURIED_COLUMN_LAYOUT,
@@ -14,9 +13,9 @@ import {
   stockZone,
   wasteZone,
 } from "../common/zone_presets";
-import { DrawCount } from "./klondike_settings";
 import {
   DEFAULT_KLONDIKE_VARIANT,
+  DrawCount,
   KlondikeRole,
   KlondikeVariant,
   klondikeDealsFaceUp,
@@ -54,11 +53,11 @@ export function klondikePileLayout(
 }
 
 /** Returns the thirteen zones of a Klondike board. */
-export const klondikeZoneSpecs = memoizeZones(
-  (
-    drawCount: DrawCount,
-    variant: KlondikeVariant = DEFAULT_KLONDIKE_VARIANT,
-  ): readonly ZoneSpec[] => [
+export function klondikeZoneSpecs(
+  drawCount: DrawCount,
+  variant: KlondikeVariant = DEFAULT_KLONDIKE_VARIANT,
+): readonly ZoneSpec[] {
+  return [
     stockZone({
       id: STOCK_PILE_ID,
       role: KlondikeRole.STOCK,
@@ -94,9 +93,8 @@ export const klondikeZoneSpecs = memoizeZones(
       // Read from the same flag as the deal, so the two agree by construction.
       face: klondikeDealsFaceUp(variant) ? "always-up" : "card",
     }),
-  ],
-  (drawCount, variant = DEFAULT_KLONDIKE_VARIANT) => `${drawCount}:${variant}`,
-);
+  ];
+}
 
 /** Re-exported: the roles and variants live with the rules that branch on them. */
 export { KlondikeRole, KlondikeVariant };

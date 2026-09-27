@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
+import { ZoneSpec } from "@/engine/tableau/zone";
 import { KlondikeVariant } from "@/games/klondike/klondike_rules";
 import {
   KlondikeRole,
@@ -8,7 +9,7 @@ import {
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
 function newGame(variant: KlondikeVariant): KlondikeGame {
-  const game = new KlondikeGame(undefined, undefined, undefined, variant);
+  const game = new KlondikeGame({ variant });
   game.startNewGame();
   return game;
 }
@@ -193,24 +194,29 @@ describe("the Whitehead deal", () => {
 });
 
 describe("klondikeZoneSpecs across variants", () => {
-  it("memoizes each draw mode and variant pair separately", () => {
-    const whitehead = klondikeZoneSpecs(3, KlondikeVariant.WHITEHEAD);
+  /** Returns the first zone of a role. */
+  function zoneOf(zones: readonly ZoneSpec[], role: string): ZoneSpec {
+    return zones.find((zone) => zone.role === role)!;
+  }
 
-    expect(whitehead).toBe(klondikeZoneSpecs(3, KlondikeVariant.WHITEHEAD));
-  });
-
-  it("does not hand a variant another variant's zones", () => {
+  it("gives each variant its own column grab rule", () => {
     const klondike = klondikeZoneSpecs(3, KlondikeVariant.KLONDIKE);
     const whitehead = klondikeZoneSpecs(3, KlondikeVariant.WHITEHEAD);
 
-    expect(klondike).not.toBe(whitehead);
+    expect([
+      zoneOf(klondike, KlondikeRole.TABLEAU).grab.kind,
+      zoneOf(whitehead, KlondikeRole.TABLEAU).grab.kind,
+    ]).toEqual(["any-face-up", "run"]);
   });
 
-  it("keeps the draw mode independent of the variant", () => {
+  it("fans the waste by the draw mode whatever the variant", () => {
     const drawOne = klondikeZoneSpecs(1, KlondikeVariant.WHITEHEAD);
     const drawThree = klondikeZoneSpecs(3, KlondikeVariant.WHITEHEAD);
 
-    expect(drawOne).not.toBe(drawThree);
+    expect([
+      zoneOf(drawOne, KlondikeRole.WASTE).layout,
+      zoneOf(drawThree, KlondikeRole.WASTE).layout,
+    ]).toMatchObject([{ maxVisible: 1 }, { maxVisible: 3 }]);
   });
 
   it("shows a Whitehead column face up whatever its cards say", () => {
@@ -222,8 +228,11 @@ describe("klondikeZoneSpecs across variants", () => {
   });
 
   it("defaults to the original game when no variant is named", () => {
-    expect(klondikeZoneSpecs(3)).toBe(
-      klondikeZoneSpecs(3, KlondikeVariant.KLONDIKE),
-    );
+    const tableau = zoneOf(klondikeZoneSpecs(3), KlondikeRole.TABLEAU);
+
+    expect(tableau).toMatchObject({
+      face: "card",
+      grab: { kind: "any-face-up" },
+    });
   });
 });

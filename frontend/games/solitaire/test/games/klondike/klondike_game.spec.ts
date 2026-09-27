@@ -1,4 +1,5 @@
 import { KlondikeGame } from "@/games/klondike/klondike_game";
+import { DrawCount } from "@/games/klondike/klondike_rules";
 import { KlondikeRole } from "@/games/klondike/klondike_zones";
 import { playingCardFaceKey } from "@/engine/core/card/playing_card";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
@@ -81,7 +82,7 @@ describe("KlondikeGame", () => {
     });
 
     it("deals nothing when constructed with an empty deck", () => {
-      const shortGame = new KlondikeGame([]);
+      const shortGame = new KlondikeGame({ cardIds: [] });
 
       shortGame.startNewGame();
 
@@ -724,9 +725,15 @@ describe("KlondikeGame", () => {
   });
 
   describe("recycle penalties", () => {
+    /** Returns a freshly dealt game in the given draw mode. */
+    function dealtFor(drawCount: DrawCount): KlondikeGame {
+      const dealt = new KlondikeGame({ drawCount });
+      dealt.startNewGame();
+      return dealt;
+    }
+
     it("does not penalize the first waste recycle in Draw 1 mode", () => {
-      game.startNewGame();
-      game.settings.setDrawCount(1);
+      const game = dealtFor(1);
       const king = game.getCardById(CLUB_KING_ID)!;
       game.state.score = 200;
 
@@ -736,8 +743,7 @@ describe("KlondikeGame", () => {
     });
 
     it("penalizes 100 points for a second waste recycle in Draw 1 mode", () => {
-      game.startNewGame();
-      game.settings.setDrawCount(1);
+      const game = dealtFor(1);
       const king = game.getCardById(CLUB_KING_ID)!;
       forceWasteRecycle(game, king);
       game.state.score = 200;
@@ -748,8 +754,7 @@ describe("KlondikeGame", () => {
     });
 
     it("does not penalize the first three waste recycles in Draw 3 mode", () => {
-      game.startNewGame();
-      game.settings.setDrawCount(3);
+      const game = dealtFor(3);
       const king = game.getCardById(CLUB_KING_ID)!;
       game.state.score = 200;
 
@@ -761,8 +766,7 @@ describe("KlondikeGame", () => {
     });
 
     it("penalizes 20 points for a fourth waste recycle in Draw 3 mode", () => {
-      game.startNewGame();
-      game.settings.setDrawCount(3);
+      const game = dealtFor(3);
       const king = game.getCardById(CLUB_KING_ID)!;
       forceWasteRecycle(game, king);
       forceWasteRecycle(game, king);
@@ -775,21 +779,26 @@ describe("KlondikeGame", () => {
     });
   });
 
-  describe("settings", () => {
-    it("starts a new game with the default draw count", () => {
+  describe("options", () => {
+    it("draws three cards at a time by default", () => {
       game.startNewGame();
 
-      expect(game.settings.drawCount).toBe(3);
+      game.drawCardsFromStock();
+
+      expect(game.waste.size).toBe(3);
     });
 
-    it("reports the new draw count when it changes", () => {
-      game.settings.setDrawCount(1);
+    it("draws one card at a time when built for Draw 1", () => {
+      const drawOne = new KlondikeGame({ drawCount: 1 });
+      drawOne.startNewGame();
 
-      expect(game.settings.drawCount).toBe(1);
+      drawOne.drawCardsFromStock();
+
+      expect(drawOne.waste.size).toBe(1);
     });
 
     it("deals an almost-win board layout when almostWin is true", () => {
-      game.almostWin = true;
+      game = new KlondikeGame({ almostWin: true });
       game.startNewGame();
 
       // Ace to Queen on every foundation.
