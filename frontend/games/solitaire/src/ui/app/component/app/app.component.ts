@@ -18,6 +18,7 @@ import { GameHelpModalComponent } from "../game_help_modal/game_help_modal.compo
 import { GameMenuComponent } from "../game_menu/game_menu.component";
 import { GameBrowserComponent } from "../game_browser/game_browser.component";
 import { GameMenuService } from "../../service/game_menu.service";
+import { GameBrowserService } from "../../service/game_browser.service";
 
 /**
  * Composes the chrome around the routed board: header, game rail, game
@@ -26,6 +27,8 @@ import { GameMenuService } from "../../service/game_menu.service";
 @Component({
   selector: "app-root",
   changeDetection: ChangeDetectionStrategy.OnPush,
+  // Ctrl or Command with K opens the game browser from anywhere.
+  host: { "(document:keydown)": "browser.openOnShortcut($event)" },
   imports: [
     RouterOutlet,
     GameMenuComponent,
@@ -42,6 +45,8 @@ import { GameMenuService } from "../../service/game_menu.service";
 export class AppComponent {
   /** The game rail's state, which the board lays itself out around. */
   protected readonly menu = inject(GameMenuService);
+
+  protected readonly browser = inject(GameBrowserService);
 
   private readonly presentation = inject(PresentationSettingsService);
   private readonly catalog = inject(GameCatalogService);

@@ -1,12 +1,25 @@
-import { Injectable, signal } from "@angular/core";
+import { DOCUMENT } from "@angular/common";
+import { Injectable, inject, signal } from "@angular/core";
 
 /** Opens and closes the game browser, from wherever a game can be chosen. */
 @Injectable({ providedIn: "root" })
 export class GameBrowserService {
+  private readonly document = inject(DOCUMENT);
+
   private readonly isOpenSignal = signal(false);
 
   /** Whether the browser is showing. */
   readonly isOpen = this.isOpenSignal.asReadonly();
+
+  /** The keyboard shortcut that opens the browser, as `aria-keyshortcuts` names it. */
+  readonly shortcutKeys = "Control+K Meta+K";
+
+  /** The keyboard shortcut as a player on this platform would write it. */
+  readonly shortcutLabel = /Mac|iPhone|iPad/.test(
+    this.document.defaultView?.navigator.userAgent ?? "",
+  )
+    ? "⌘K"
+    : "Ctrl K";
 
   /** Opens the browser. */
   open(): void {
@@ -16,5 +29,18 @@ export class GameBrowserService {
   /** Closes the browser. */
   close(): void {
     this.isOpenSignal.set(false);
+  }
+
+  /**
+   * Opens the browser if a key press is its shortcut, Ctrl or Command with K,
+   * keeping the key from the browser's own use of it.
+   */
+  openOnShortcut(event: KeyboardEvent): void {
+    const modified = event.ctrlKey || event.metaKey;
+    if (!modified || event.altKey || event.shiftKey) return;
+    if (event.key.toLowerCase() !== "k") return;
+
+    event.preventDefault();
+    this.open();
   }
 }

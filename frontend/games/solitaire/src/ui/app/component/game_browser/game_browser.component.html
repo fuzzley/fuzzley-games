@@ -64,6 +64,15 @@
         (keydown)="onSearchKeydown($event)"
       />
       <!-- eslint-enable @angular-eslint/template/no-autofocus -->
+      <!--
+        Teaches the shortcut for next time. Hidden from a screen reader, which
+        hears it from the header's switcher instead.
+      -->
+      @if (!query()) {
+        <kbd class="search-shortcut" aria-hidden="true">{{
+          browser.shortcutLabel
+        }}</kbd>
+      }
     </div>
 
     <div class="filters" role="group" aria-label="Filter games">

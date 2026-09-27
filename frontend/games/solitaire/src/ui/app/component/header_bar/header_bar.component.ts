@@ -16,13 +16,14 @@ import { GameDocumentationService } from "../../service/game_documentation.servi
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { ViewportService } from "../../service/viewport.service";
 import { BugReportService } from "../../service/bug_report.service";
+import { GameBrowserService } from "../../service/game_browser.service";
 
 /**
  * Shows the game on the table, its score, time and moves, and the actions
  * that act on it.
  *
- * On a narrow screen, restart, the rules and bug reports move into an overflow
- * menu.
+ * On a narrow screen, restart, the rules, bug reports and settings move into
+ * an overflow menu.
  */
 @Component({
   selector: "app-header-bar",
@@ -39,6 +40,7 @@ export class HeaderBarComponent {
   protected readonly lifecycle = inject(GameLifecycleService);
   protected readonly docService = inject(GameDocumentationService);
   protected readonly viewport = inject(ViewportService);
+  protected readonly browser = inject(GameBrowserService);
 
   private readonly catalog = inject(GameCatalogService);
   private readonly bugReport = inject(BugReportService);
@@ -60,6 +62,14 @@ export class HeaderBarComponent {
 
   /** The name of the game on the table. */
   protected readonly gameName = computed(() => this.catalog.selectedEntry.name);
+
+  /** What a screen reader calls the switcher: the game, then what it does. */
+  protected readonly switcherLabel = computed(
+    () => `${this.gameName()}, choose a game`,
+  );
+
+  /** The switcher's tooltip, which teaches its keyboard shortcut. */
+  protected readonly switcherTitle = `Choose a game (${this.browser.shortcutLabel})`;
 
   private readonly menuOpen = signal(false);
 
@@ -112,6 +122,12 @@ export class HeaderBarComponent {
   protected openHelp(): void {
     this.closeMenu();
     this.docService.openHelp();
+  }
+
+  /** Asks for the settings drawer, from the overflow menu. */
+  protected showSettings(): void {
+    this.closeMenu();
+    this.openSettings.emit();
   }
 
   /** Opens a new bug report about the game on the table, in a new tab. */

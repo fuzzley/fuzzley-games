@@ -5,6 +5,7 @@ import { By, Title } from "@angular/platform-browser";
 import { AppComponent } from "@/ui/app/component/app/app.component";
 import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.component";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
+import { GameBrowserService } from "@/ui/app/service/game_browser.service";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import { query, queryRequired } from "@test/support/dom";
 
@@ -57,6 +58,7 @@ describe("AppComponent Composition", () => {
   it("renders the child components in the shell", () => {
     expect(query(fixture, "app-header-bar")).not.toBeNull();
     expect(query(fixture, "app-game-menu")).not.toBeNull();
+    expect(query(fixture, "app-game-browser")).not.toBeNull();
     expect(query(fixture, "app-settings-drawer")).not.toBeNull();
     expect(query(fixture, "app-victory-overlay")).not.toBeNull();
     expect(query(fixture, "app-confirmation-dialog")).not.toBeNull();
@@ -93,5 +95,13 @@ describe("AppComponent Composition", () => {
     emitFromChild(SettingsDrawerComponent, "closed");
 
     expect(drawerIsOpen()).toBe(false);
+  });
+
+  it("opens the game browser on Ctrl and K from anywhere", () => {
+    document.body.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "k", ctrlKey: true, bubbles: true }),
+    );
+
+    expect(TestBed.inject(GameBrowserService).isOpen()).toBe(true);
   });
 });

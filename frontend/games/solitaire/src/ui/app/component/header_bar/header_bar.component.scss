@@ -18,14 +18,23 @@
 }
 
 // The groups give way in a fixed order, which keeps the header on screen at
-// every width: the brand first, then the metrics, which clip rather than push.
-// The actions never shrink below the minimum tap size.
+// every width: the heading and game switcher first, then the metrics, which
+// clip rather than push. The actions never shrink below the minimum tap size.
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  // A shrink factor far above the metrics', so this group gives up its room
+  // before they give up any.
+  flex: 0 1000 auto;
+  min-width: 0;
+}
+
+// Clipped, so a long wordmark never draws over the switcher.
 .brand {
   display: flex;
   align-items: center;
-  // A shrink factor far above the metrics', so the brand gives up its room
-  // before they give up any; clipped, so it never draws over them.
-  flex: 0 1000 auto;
+  flex: 0 0 auto;
   min-width: 0;
   overflow: hidden;
 }
@@ -47,18 +56,59 @@
   white-space: nowrap;
 }
 
-// The game on the table, as the quieter half of the heading. A drawn rule
-// separates the two, so the heading still reads "fSolitaire Klondike".
+// The heading's second half, heard rather than seen: the switcher beside it
+// shows the game's name.
 .brand-game {
-  padding-left: var(--space-3);
-  border-left: 1px solid var(--border-strong);
+  @include visually-hidden;
+}
+
+// The game on the table, as the button that opens the game browser. The icon
+// says there are more games; the chevron, that pressing it offers them.
+.game-switcher {
+  @include transition(background, border-color, color);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 0 1 auto;
+  min-width: var(--tap-target-min);
+  min-height: var(--tap-target-min);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--wash-subtle);
+  color: var(--text-secondary);
+  font: inherit;
   font-size: var(--font-md);
   font-weight: 600;
-  line-height: 1.6;
-  color: var(--text-secondary);
-  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-strong);
+    background: var(--wash-soft);
+    color: var(--text-bright);
+  }
+}
+
+.switcher-icon,
+.switcher-chevron {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+}
+
+.switcher-icon {
+  color: var(--accent-sky);
+}
+
+.switcher-chevron {
+  color: var(--text-muted);
+}
+
+.switcher-name {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .metrics {
@@ -201,15 +251,10 @@
     }
   }
 
-  // The wordmark gives way to the game's name, hidden from the eye only so the
+  // The wordmark gives way to the switcher, hidden from the eye only so the
   // heading still reads whole.
   .wordmark {
     @include visually-hidden;
-  }
-
-  .brand-game {
-    padding-left: 0;
-    border-left: none;
   }
 
   .metrics {
@@ -231,6 +276,26 @@
   // Hidden from the eye only: it is the document's one <h1>.
   .brand {
     @include visually-hidden;
+  }
+
+  // The group is down to the switcher alone, which is an action like the
+  // rest, so the metrics give way before it does.
+  .identity {
+    flex-shrink: 0;
+  }
+
+  // Just the switcher's icon, round like the actions beside it; a screen
+  // reader still hears the game's name.
+  .game-switcher {
+    flex: 0 0 auto;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  .switcher-name,
+  .switcher-chevron {
+    display: none;
   }
 
   .metric-card {
