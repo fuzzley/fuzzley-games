@@ -22,7 +22,10 @@ const ACES_ONLY = ALL_PLAYING_CARD_IDS.filter((card) => card.rank === Rank.ACE);
 function newGame(
   cardIds: typeof ALL_PLAYING_CARD_IDS = ALL_PLAYING_CARD_IDS,
 ): BakersDozenGame {
-  const game = new BakersDozenGame(cardIds, sequenceRandom(SHUFFLE_VALUES));
+  const game = new BakersDozenGame({
+    cardIds,
+    random: sequenceRandom(SHUFFLE_VALUES),
+  });
   game.startNewGame();
   return game;
 }

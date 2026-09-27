@@ -68,9 +68,9 @@ describe("SpiderGame", () => {
   describe("suit count", () => {
     it("plays 104 cards whichever variant is chosen", () => {
       const counts = [1, 2, 4].map((suits) => {
-        const variant = new SpiderGame(
-          deckCardIds(spiderDeck(suits as SpiderSuitCount)),
-        );
+        const variant = new SpiderGame({
+          cardIds: deckCardIds(spiderDeck(suits as SpiderSuitCount)),
+        });
         variant.startNewGame();
         return variant.cardsInPlay;
       });
@@ -79,7 +79,7 @@ describe("SpiderGame", () => {
     });
 
     it("uses one suit for the gentle variant", () => {
-      const variant = new SpiderGame(deckCardIds(spiderDeck(1)));
+      const variant = new SpiderGame({ cardIds: deckCardIds(spiderDeck(1)) });
       variant.startNewGame();
 
       const suits = new Set(
@@ -89,7 +89,7 @@ describe("SpiderGame", () => {
     });
 
     it("uses two suits for the middle variant", () => {
-      const variant = new SpiderGame(deckCardIds(spiderDeck(2)));
+      const variant = new SpiderGame({ cardIds: deckCardIds(spiderDeck(2)) });
       variant.startNewGame();
 
       const suits = new Set(
@@ -99,7 +99,7 @@ describe("SpiderGame", () => {
     });
 
     it("makes eight copies of each card in the one-suit variant", () => {
-      const variant = new SpiderGame(deckCardIds(spiderDeck(1)));
+      const variant = new SpiderGame({ cardIds: deckCardIds(spiderDeck(1)) });
       variant.startNewGame();
 
       const perFace = new Map<string, number>();
@@ -110,7 +110,7 @@ describe("SpiderGame", () => {
     });
 
     it("names every card it holds, so a board can make a sprite for each", () => {
-      const variant = new SpiderGame(deckCardIds(spiderDeck(1)));
+      const variant = new SpiderGame({ cardIds: deckCardIds(spiderDeck(1)) });
       variant.startNewGame();
 
       const onBoard = variant.piles
@@ -487,7 +487,7 @@ describe("SpiderGame", () => {
 
   describe("winning", () => {
     it("announces the win once all eight runs are collected", () => {
-      const oneSuit = new SpiderGame(deckCardIds(SPIDER_ONE_SUIT));
+      const oneSuit = new SpiderGame({ cardIds: deckCardIds(SPIDER_ONE_SUIT) });
       oneSuit.startNewGame();
       let won = false;
       oneSuit.on("game-won", () => {

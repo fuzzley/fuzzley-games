@@ -14,14 +14,18 @@ import { sequenceRandom } from "@test/support/sequence_random";
 
 /** Returns a game of the given variant, dealt with a fixed shuffle. */
 function dealtGame(variant: YukonVariant = YukonVariant.YUKON): YukonGame {
-  const game = new YukonGame(ALL_PLAYING_CARD_IDS, sequenceRandom([]), variant);
+  const game = new YukonGame({
+    cardIds: ALL_PLAYING_CARD_IDS,
+    random: sequenceRandom([]),
+    variant,
+  });
   game.startNewGame();
   return game;
 }
 
 /** Returns a dealt game holding only the given cards, for a short deck. */
 function shortDeckGame(cardIds: readonly DeckCardId[]): YukonGame {
-  const game = new YukonGame(cardIds, sequenceRandom([]));
+  const game = new YukonGame({ cardIds, random: sequenceRandom([]) });
   game.startNewGame();
   return game;
 }

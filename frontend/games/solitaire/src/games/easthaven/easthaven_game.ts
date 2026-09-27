@@ -1,12 +1,13 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { flipOnlyEffects } from "@/games/common/move_effects";
 import { dealRowFromStock } from "@/games/common/row_deal";
+import { DeckOptions } from "@/games/common/deck_options";
 import { dealEasthavenLayout } from "./easthaven_deal";
 import {
   EasthavenRole,
@@ -27,10 +28,10 @@ export class EasthavenGame extends DealtTableGame {
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
   /** Creates a game whose piles are empty until the first deal. */
-  constructor(
-    cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
-    random: () => number = Math.random,
-  ) {
+  constructor({
+    cardIds = ALL_PLAYING_CARD_IDS,
+    random = Math.random,
+  }: DeckOptions = {}) {
     super({
       zones: easthavenZoneSpecs(),
       deck: new DeckSource(new CardRegistry(), cardIds, random),

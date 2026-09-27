@@ -1,8 +1,9 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
-import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import { PlayingCard } from "@/engine/core/card/playing_card";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { DeckSource } from "@/engine/tableau/deck_source";
+import { DeckOptions } from "@/games/common/deck_options";
 import { dealKlondikeAlmostWin, dealKlondikeLayout } from "./klondike_deal";
 import { KlondikeFamilyGame } from "./klondike_family_game";
 import {
@@ -15,6 +16,18 @@ import {
 import { KlondikeRole, klondikeZoneSpecs } from "./klondike_zones";
 import { ScoringPolicy } from "./scoring_policy";
 
+/** Configures a game of Klondike or one of its variants. */
+export interface KlondikeOptions extends DeckOptions {
+  /** How moves, flips and recycles score; the standard rules by default. */
+  readonly scoring?: ScoringPolicy;
+  /** How many cards a draw turns over. */
+  readonly drawCount?: DrawCount;
+  /** Which of the family to play. */
+  readonly variant?: KlondikeVariant;
+  /** Whether to deal a nearly finished board, for verification. */
+  readonly almostWin?: boolean;
+}
+
 /** Plays Klondike or one of its variants. */
 export class KlondikeGame extends KlondikeFamilyGame {
   /** The four suit foundation piles. */
@@ -23,27 +36,23 @@ export class KlondikeGame extends KlondikeFamilyGame {
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
   /** Whether to deal a nearly finished board, for verification. */
-  public almostWin = false;
+  public readonly almostWin: boolean;
 
   /** Which of the family is being played. */
   public readonly variant: KlondikeVariant;
 
-  /**
-   * Creates a game whose piles are empty until the first deal.
-   *
-   * @param drawCount How many cards a draw turns over. It and `variant` are
-   *   parameters because the zones are built from them during `super`, before
-   *   this class's fields exist.
-   */
-  constructor(
-    cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
-    scoring: ScoringPolicy = new ScoringPolicy(),
-    drawCount: DrawCount = DEFAULT_DRAW_COUNT,
-    variant: KlondikeVariant = DEFAULT_KLONDIKE_VARIANT,
-  ) {
+  /** Creates a game whose piles are empty until the first deal. */
+  constructor({
+    cardIds = ALL_PLAYING_CARD_IDS,
+    random = Math.random,
+    scoring = new ScoringPolicy(),
+    drawCount = DEFAULT_DRAW_COUNT,
+    variant = DEFAULT_KLONDIKE_VARIANT,
+    almostWin = false,
+  }: KlondikeOptions = {}) {
     super({
       zones: klondikeZoneSpecs(drawCount, variant),
-      deck: new DeckSource(new CardRegistry(), cardIds),
+      deck: new DeckSource(new CardRegistry(), cardIds, random),
       // A foundation is always preferred over a column.
       autoMoveRoles: [KlondikeRole.FOUNDATION, KlondikeRole.TABLEAU],
       winsWhenAllCardsIn: KlondikeRole.FOUNDATION,
@@ -53,6 +62,7 @@ export class KlondikeGame extends KlondikeFamilyGame {
     });
 
     this.variant = variant;
+    this.almostWin = almostWin;
     this.foundations = this.pilesOfRole(KlondikeRole.FOUNDATION);
     this.tableaus = this.pilesOfRole(KlondikeRole.TABLEAU);
   }

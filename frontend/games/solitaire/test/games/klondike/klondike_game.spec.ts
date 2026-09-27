@@ -82,7 +82,7 @@ describe("KlondikeGame", () => {
     });
 
     it("deals nothing when constructed with an empty deck", () => {
-      const shortGame = new KlondikeGame([]);
+      const shortGame = new KlondikeGame({ cardIds: [] });
 
       shortGame.startNewGame();
 
@@ -727,7 +727,7 @@ describe("KlondikeGame", () => {
   describe("recycle penalties", () => {
     /** Returns a freshly dealt game in the given draw mode. */
     function dealtFor(drawCount: DrawCount): KlondikeGame {
-      const dealt = new KlondikeGame(undefined, undefined, drawCount);
+      const dealt = new KlondikeGame({ drawCount });
       dealt.startNewGame();
       return dealt;
     }
@@ -789,7 +789,7 @@ describe("KlondikeGame", () => {
     });
 
     it("draws one card at a time when built for Draw 1", () => {
-      const drawOne = new KlondikeGame(undefined, undefined, 1);
+      const drawOne = new KlondikeGame({ drawCount: 1 });
       drawOne.startNewGame();
 
       drawOne.drawCardsFromStock();
@@ -798,7 +798,7 @@ describe("KlondikeGame", () => {
     });
 
     it("deals an almost-win board layout when almostWin is true", () => {
-      game.almostWin = true;
+      game = new KlondikeGame({ almostWin: true });
       game.startNewGame();
 
       // Ace to Queen on every foundation.

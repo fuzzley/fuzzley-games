@@ -1,12 +1,13 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { deckCardIds } from "@/engine/core/card/deck";
-import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { runCollectingEffects } from "@/games/common/move_effects";
 import { dealRowCollectingRuns } from "@/games/common/row_deal";
+import { DeckOptions } from "@/games/common/deck_options";
 import { SPIDER_TWO_DECKS, dealSpiderLayout } from "./spider_deal";
 import { SpiderRole, STOCK_PILE_ID, spiderZoneSpecs } from "./spider_zones";
 
@@ -25,13 +26,13 @@ export class SpiderGame extends DealtTableGame {
   /**
    * Creates a game whose piles are empty until the first deal.
    *
-   * @param cardIds The cards to deal from, such as a one-suit set for the easy
-   *   variant.
+   * Its `cardIds` chooses the suits, such as a one-suit set for the easy
+   * variant.
    */
-  constructor(
-    cardIds: ReadonlyArray<DeckCardId> = deckCardIds(SPIDER_TWO_DECKS),
-    random: () => number = Math.random,
-  ) {
+  constructor({
+    cardIds = deckCardIds(SPIDER_TWO_DECKS),
+    random = Math.random,
+  }: DeckOptions = {}) {
     super({
       zones: spiderZoneSpecs(),
       deck: new DeckSource(new CardRegistry(), cardIds, random),

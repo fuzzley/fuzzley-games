@@ -1,13 +1,14 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { deckCardIds } from "@/engine/core/card/deck";
-import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import { PlayingCard } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
 import { readNumber, readObject } from "@/engine/core/common/json_reader";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { AppliedMove, CardTransfer } from "@/engine/tableau/move";
 
+import { DeckOptions } from "@/games/common/deck_options";
 import {
   MONTANA_DECK,
   dealMontanaLayout,
@@ -50,13 +51,12 @@ export class MontanaGame extends DealtTableGame {
   /**
    * Creates a game whose piles are empty until the first deal.
    *
-   * @param random Returns a number in [0, 1), which places the gaps and
-   *   shuffles redeals as well as the deck.
+   * Its `random` places the gaps and shuffles redeals as well as the deck.
    */
-  constructor(
-    cardIds: ReadonlyArray<DeckCardId> = deckCardIds(MONTANA_DECK),
-    random: () => number = Math.random,
-  ) {
+  constructor({
+    cardIds = deckCardIds(MONTANA_DECK),
+    random = Math.random,
+  }: DeckOptions = {}) {
     super({
       zones: montanaZoneSpecs(),
       // Dealt face up: the whole position is visible from the first move.
