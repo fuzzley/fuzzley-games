@@ -196,6 +196,16 @@ describe("GameBrowserComponent", () => {
       open();
     });
 
+    it("shows the shortcut that opens it in the empty field", () => {
+      expect(queryText(fixture, ".search-shortcut")).toBe("Ctrl K");
+    });
+
+    it("drops the shortcut once the player types", () => {
+      type("free");
+
+      expect(query(fixture, ".search-shortcut")).toBeNull();
+    });
+
     it("narrows the list to the matches", () => {
       type("free");
 

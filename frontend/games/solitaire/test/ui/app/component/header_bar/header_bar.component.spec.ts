@@ -5,6 +5,7 @@ import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.com
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
 import { ConfirmationService } from "@/ui/app/service/confirmation.service";
 import { BugReportService } from "@/ui/app/service/bug_report.service";
+import { GameBrowserService } from "@/ui/app/service/game_browser.service";
 import { COMPACT_MAX_WIDTH_PX } from "@/ui/app/service/viewport.service";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import {
@@ -75,6 +76,50 @@ describe("HeaderBarComponent", () => {
       fixture.detectChanges();
 
       expect(queryText(fixture, "h1 .brand-game")).toBe("FreeCell");
+    });
+  });
+
+  describe("the game switcher", () => {
+    it("shows the game on the table", () => {
+      expect(queryText(fixture, ".switcher-name")).toBe("Klondike");
+    });
+
+    it("names the game, then what it does, for a screen reader", () => {
+      expect(
+        queryRequired(fixture, ".game-switcher").getAttribute("aria-label"),
+      ).toBe("Klondike, choose a game");
+    });
+
+    it("says that it opens a dialog", () => {
+      expect(
+        queryRequired(fixture, ".game-switcher").getAttribute("aria-haspopup"),
+      ).toBe("dialog");
+    });
+
+    it("names its keyboard shortcut", () => {
+      expect(
+        queryRequired(fixture, ".game-switcher").getAttribute(
+          "aria-keyshortcuts",
+        ),
+      ).toBe("Control+K Meta+K");
+    });
+
+    it("teaches its keyboard shortcut in its tooltip", () => {
+      expect(queryRequired(fixture, ".game-switcher").title).toBe(
+        "Choose a game (Ctrl K)",
+      );
+    });
+
+    it("opens the game browser", () => {
+      clickElement(fixture, ".game-switcher");
+
+      expect(TestBed.inject(GameBrowserService).isOpen()).toBe(true);
+    });
+
+    it("stays in the bar on a narrow screen", () => {
+      narrow();
+
+      expect(query(fixture, ".game-switcher")).not.toBeNull();
     });
   });
 
@@ -226,13 +271,19 @@ describe("HeaderBarComponent", () => {
         query(fixture, "button[title*='Restart']"),
         query(fixture, ".btn-help"),
         query(fixture, ".btn-bug-report"),
-      ]).toEqual([null, null, null]);
+        query(fixture, ".btn-settings"),
+      ]).toEqual([null, null, null, null]);
     });
 
     it("holds them behind one button instead of dropping them", () => {
       openMenu();
 
-      expect(menuLabels()).toEqual(["Restart", "How to Play", "Report a Bug"]);
+      expect(menuLabels()).toEqual([
+        "Restart",
+        "How to Play",
+        "Report a Bug",
+        "Settings",
+      ]);
     });
 
     it("stays shut until it is asked for", () => {
@@ -274,6 +325,16 @@ describe("HeaderBarComponent", () => {
       clickElement(fixture, ".overflow-item[aria-label*='Report a Bug']");
 
       expect(openReport).toHaveBeenCalledOnce();
+    });
+
+    it("asks the shell to open settings from the menu", () => {
+      const openSettings = vi.fn();
+      fixture.componentInstance.openSettings.subscribe(openSettings);
+      openMenu();
+
+      clickElement(fixture, ".overflow-item[aria-label*='Settings']");
+
+      expect(openSettings).toHaveBeenCalledOnce();
     });
 
     it("closes once an action has been taken", () => {

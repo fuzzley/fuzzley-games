@@ -97,6 +97,26 @@
   }
 }
 
+.search-shortcut {
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  pointer-events: none;
+
+  // No keyboard to press it on.
+  @media (hover: none) {
+    display: none;
+  }
+}
+
 // --- Filters ---
 
 // One scrolling row rather than wrapping, so a phone keeps the list in view.
