@@ -53,6 +53,12 @@ and the games selected cannot drift apart. Then document the new choice under
 `settingsAndVariants` in
 `src/ui/app/provider/game_documentation_data.ts`.
 
+If the variant is known by a name of its own, as Whitehead and Russian Solitaire
+are, also add it to its game's `variants` in
+`src/ui/app/provider/game_profile_data.ts`, so the game browser lists it as a
+game. A choice that only makes the game easier or harder, as Spider's suit count
+does, stays a rule: rate it with a `DifficultyByRule` instead.
+
 ---
 
 ## 2. `<game>_rules.ts` — roles and what each pile accepts
@@ -242,7 +248,7 @@ Otherwise call `tableGestures(game, options)` with:
 
 ---
 
-## 8. Register it — three provider edits
+## 8. Register it — four provider edits
 
 1. **`src/ui/app/provider/game_catalog.ts`** — declare the entry (`id`, `name`,
    two-character `marker`, `options`, `layout`, `create`) with `satisfies
@@ -259,8 +265,17 @@ CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
    handed, so the shell never imports a game in order to host one.
 3. **`src/ui/app/provider/game_documentation_data.ts`** — add the rules page.
    `CompleteGameDocumentation` is `Record<GameId, …>`, so shipping a game with no
-   page is also a compile error. Capture its hero screenshot to
-   `public/docs/screenshots/<id>/overview.png`.
+   page is also a compile error. Capture its hero screenshot, on the default
+   green table, to `public/docs/screenshots/<id>/overview.png`, then run
+   `yarn build:thumbs`: it crops the chrome away and writes the game browser's
+   `thumb.webp` and `preview.webp` beside the screenshot, and a spec fails while
+   either is missing.
+4. **`src/ui/app/provider/game_profile_data.ts`** — add the profile the game
+   browser lists it by: its family, tagline, difficulty, decks, whether every
+   card is dealt in view, and any variants with names of their own.
+   `CompleteGameProfiles` is keyed by `GameId` as well, and
+   `test/ui/app/provider/game_profile.spec.ts` checks the deck count and
+   visibility against a deal.
 
 **Routes and the game rail need no edit** — both are derived from the catalog.
 

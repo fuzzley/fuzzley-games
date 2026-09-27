@@ -31,6 +31,8 @@ function item(
     allCardsVisible: false,
     aliases: [],
     pinned: {},
+    thumbnailUrl: "./test/thumb.webp",
+    previewUrl: "./test/preview.webp",
     ...overrides,
   };
 }
