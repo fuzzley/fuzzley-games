@@ -251,7 +251,7 @@ Otherwise call `tableGestures(game, options)` with:
 ## 8. Register it — four provider edits
 
 1. **`src/ui/app/provider/game_catalog.ts`** — declare the entry (`id`, `name`,
-   two-character `marker`, `options`, `layout`, `create`) with `satisfies
+   `options`, `layout`, `create`) with `satisfies
 CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
    preserves the literal id and concrete game type that the board registry is
    checked against. Add it to `CATALOG_ENTRIES`. `create` returns
@@ -277,7 +277,8 @@ CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
    `test/ui/app/provider/game_profile.spec.ts` checks the deck count and
    visibility against a deal.
 
-**Routes and the game rail need no edit** — both are derived from the catalog.
+**Routes and the game browser need no other edit** — the routes are derived
+from the catalog, and the browser lists a game from its entry and its profile.
 
 ---
 

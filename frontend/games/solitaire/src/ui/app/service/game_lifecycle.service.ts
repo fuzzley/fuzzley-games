@@ -20,17 +20,6 @@ export class GameLifecycleService {
   private readonly confirmation = inject(ConfirmationService);
 
   /**
-   * Puts a different game on the table; choosing the one already in play does
-   * nothing.
-   */
-  async selectGame(id: string): Promise<void> {
-    if (id === this.catalog.selectedId()) return;
-    if (!(await this.confirmIfInProgress(SWITCH_GAME_MESSAGE))) return;
-
-    this.catalog.select(id);
-  }
-
-  /**
    * Puts a game on the table by the given rules, asking first when that would
    * throw away a game under way.
    *
@@ -68,7 +57,7 @@ export class GameLifecycleService {
    * first when that would throw away a game under way.
    *
    * The game already on the table passes without asking, because
-   * {@link selectGame} deals a game before routing to it.
+   * {@link playGame} deals a game before routing to it.
    */
   confirmNavigation(gameId: string): Promise<boolean> {
     return gameId === this.catalog.selectedId()

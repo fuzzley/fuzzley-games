@@ -112,10 +112,10 @@ describe("routes", () => {
       expect(harness.catalog.selectedId()).toBe("spider");
     });
 
-    it("asks once when the game menu switches games", async () => {
+    it("asks once when the game browser switches games", async () => {
       const harness = await onKlondike();
       playAMove(harness);
-      const switching = harness.lifecycle.selectGame("spider");
+      const switching = harness.lifecycle.playGame("spider", {}, "Spider");
       harness.confirmation.accept();
       await switching;
 

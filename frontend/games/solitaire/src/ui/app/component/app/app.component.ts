@@ -15,14 +15,12 @@ import { SettingsDrawerComponent } from "../settings_drawer/settings_drawer.comp
 import { VictoryOverlayComponent } from "../victory_overlay/victory_overlay.component";
 import { ConfirmationDialogComponent } from "../confirmation_dialog/confirmation_dialog.component";
 import { GameHelpModalComponent } from "../game_help_modal/game_help_modal.component";
-import { GameMenuComponent } from "../game_menu/game_menu.component";
 import { GameBrowserComponent } from "../game_browser/game_browser.component";
-import { GameMenuService } from "../../service/game_menu.service";
 import { GameBrowserService } from "../../service/game_browser.service";
 
 /**
- * Composes the chrome around the routed board: header, game rail, game
- * browser, settings drawer, help modal, victory card and confirmation prompt.
+ * Composes the chrome around the routed board: header, game browser, settings
+ * drawer, help modal, victory card and confirmation prompt.
  */
 @Component({
   selector: "app-root",
@@ -31,7 +29,6 @@ import { GameBrowserService } from "../../service/game_browser.service";
   host: { "(document:keydown)": "browser.openOnShortcut($event)" },
   imports: [
     RouterOutlet,
-    GameMenuComponent,
     GameBrowserComponent,
     HeaderBarComponent,
     SettingsDrawerComponent,
@@ -43,9 +40,6 @@ import { GameBrowserService } from "../../service/game_browser.service";
   styleUrl: "./app.component.scss",
 })
 export class AppComponent {
-  /** The game rail's state, which the board lays itself out around. */
-  protected readonly menu = inject(GameMenuService);
-
   protected readonly browser = inject(GameBrowserService);
 
   private readonly presentation = inject(PresentationSettingsService);
@@ -58,8 +52,8 @@ export class AppComponent {
 
   constructor() {
     // Paint the page with the felt, so the translucent header blurs table
-    // rather than white where the board stops at the rail. It is set on the
-    // document root, outside this view, so the colour reaches the viewport.
+    // rather than white wherever the canvas leaves the page bare. It is set on
+    // the document root, outside this view, so the colour reaches the viewport.
     effect(() => {
       this.document.documentElement.style.setProperty(
         "--table-felt",

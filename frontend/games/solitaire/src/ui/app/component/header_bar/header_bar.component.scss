@@ -219,8 +219,8 @@
   }
 }
 
-// The dismiss layer: transparent, but covering the header and rail too, so the
-// tap that closes the menu presses nothing else.
+// The dismiss layer: transparent, but covering the header and board too, so
+// the tap that closes the menu presses nothing else.
 .overflow-backdrop {
   position: fixed;
   inset: 0;
