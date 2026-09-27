@@ -4,7 +4,9 @@ import { provideRouter } from "@angular/router";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import { GAME_DOCUMENTATION } from "@/ui/app/provider/game_documentation_data";
+import { GAME_PROFILES } from "@/ui/app/provider/game_profile_data";
 import { TEST_DOCUMENTATION } from "./documentation_mock";
+import { TEST_PROFILES } from "./profile_mock";
 import {
   createMockGameModel,
   type MockGameModel,
@@ -56,6 +58,7 @@ export async function configureUiTestBed(
       },
       // Test prose, so a spec never fails because a rules page was reworded.
       { provide: GAME_DOCUMENTATION, useValue: TEST_DOCUMENTATION },
+      { provide: GAME_PROFILES, useValue: TEST_PROFILES },
     ],
   }).compileComponents();
 

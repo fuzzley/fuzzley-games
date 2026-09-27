@@ -79,6 +79,14 @@ export class GameCatalogService {
     this.valuesFor(this.selectedIdSignal(), this.optionsSignal()),
   );
 
+  /**
+   * Returns the chosen value of every option of a game, whether or not it is
+   * on the table.
+   */
+  optionValuesFor(gameId: string): GameOptionValues {
+    return this.valuesFor(gameId, this.optionsSignal());
+  }
+
   /** Returns the declaration of one rule of the game on the table. */
   optionSpec(optionId: string): GameOptionSpec | undefined {
     return this.options().find((option) => option.id === optionId);
