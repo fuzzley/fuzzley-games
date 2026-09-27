@@ -157,10 +157,7 @@ export class PhaserTableRenderer implements TableRenderer {
    * Brings a card's scale, depth, frame, cursor and draggability into line with
    * its view.
    */
-  private syncAppearance(
-    sprite: GameObjects.Sprite,
-    cardView: CardView,
-  ): void {
+  private syncAppearance(sprite: GameObjects.Sprite, cardView: CardView): void {
     sprite.setScale(cardView.scale);
     sprite.setDepth(cardView.depth);
 
