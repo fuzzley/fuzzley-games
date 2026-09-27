@@ -51,6 +51,8 @@
   --text-secondary: #{$slate-300};
   --text-muted: #{$slate-400};
   --text-heading: #{$slate-100};
+  // Dark, for a label on a fill too light to carry white, such as the amber.
+  --text-inverse: #{$slate-900};
 
   // --- Borders ---
   --border-subtle: #{with-alpha($white, 0.05)};
@@ -59,13 +61,17 @@
   --border-vivid: #{with-alpha($white, 0.3)};
 
   // --- Accents ---
+  // `strong` and `deep` are the shades that carry a white label at 4.5:1;
+  // the base and `light` fall short of it.
   --accent: #{$blue-500};
   --accent-strong: #{$blue-600};
+  --accent-deep: #{$blue-700};
   --accent-light: #{$blue-400};
   --accent-sky: #{$sky-400};
 
   --danger: #{$red-500};
   --danger-strong: #{$red-600};
+  --danger-deep: #{$red-700};
   --danger-light: #{$red-400};
 
   --warning: #{$amber-500};

@@ -6,24 +6,35 @@
 //
 // The filled variants share one shape, a gradient over a shadow of the same
 // hue, so the `@each` below emits them all from one table.
+//
+// Each label clears 4.5:1 against every stop of its gradient, at rest and
+// under the pointer. That keeps white labels to the darker blues and reds, and
+// gives the amber a dark one, since no shade of it that still reads as gold
+// carries white.
 
 $filled-variants: (
   "primary": (
-    "base": var(--accent),
-    "strong": var(--accent-strong),
-    "light": var(--accent-light),
+    "from": var(--accent-strong),
+    "to": var(--accent-deep),
+    "hover-from": var(--accent-strong),
+    "hover-to": var(--accent-strong),
+    "label": var(--text-bright),
     "shadow": $blue-600,
   ),
   "warning": (
-    "base": var(--warning),
-    "strong": var(--warning-strong),
-    "light": var(--warning-light),
+    "from": var(--warning),
+    "to": var(--warning-strong),
+    "hover-from": var(--warning-light),
+    "hover-to": var(--warning),
+    "label": var(--text-inverse),
     "shadow": $amber-600,
   ),
   "danger": (
-    "base": var(--danger),
-    "strong": var(--danger-strong),
-    "light": var(--danger-light),
+    "from": var(--danger-strong),
+    "to": var(--danger-deep),
+    "hover-from": var(--danger-strong),
+    "hover-to": var(--danger-strong),
+    "label": var(--text-bright),
     "shadow": $red-600,
   ),
 );
@@ -69,16 +80,17 @@ $filled-variants: (
   .btn-#{$name} {
     background: linear-gradient(
       135deg,
-      map.get($variant, "base") 0%,
-      map.get($variant, "strong") 100%
+      map.get($variant, "from") 0%,
+      map.get($variant, "to") 100%
     );
+    color: map.get($variant, "label");
     box-shadow: 0 4px 14px with-alpha(map.get($variant, "shadow"), 0.4);
 
     &:hover {
       background: linear-gradient(
         135deg,
-        map.get($variant, "light") 0%,
-        map.get($variant, "base") 100%
+        map.get($variant, "hover-from") 0%,
+        map.get($variant, "hover-to") 100%
       );
       transform: translateY(-1px);
     }
