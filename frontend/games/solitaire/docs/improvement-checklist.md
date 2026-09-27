@@ -61,13 +61,18 @@ start at the first unticked item. Delete this file once every item is done.
 
 ## Build tooling
 
-- [ ] Add `noEmit` to `tsconfig.json` so type-checking stops writing into
-      `dist/`, and drop the options that only matter for output.
-- [ ] Remove the unused `concurrently` and `@types/core-js` packages.
-- [ ] Move `eslint` into devDependencies.
-- [ ] Delete `register.cjs` and add an `engines` field for Node instead.
-- [ ] Remove the references to the empty `custom_typings` directory.
-- [ ] Correct the coverage floor quoted in `.agents/AGENTS.md`.
+- [x] Stop type-checking from writing into `dist/`. Done with `--noEmit` on
+      the `tsc` scripts, not in `tsconfig.json`: the Angular Vite plugin emits
+      through that config, and `noEmit` there left the build with 4 modules
+      instead of 428 while still reporting success. The output options stay for
+      the same reason.
+- [x] Remove the unused `concurrently` and `@types/core-js` packages.
+- [x] Move `eslint` into devDependencies.
+- [x] Delete `register.cjs` and add an `engines` field for Node instead, which
+      mirrors `@angular/core`, the strictest of the toolchain.
+- [x] Remove the references to the empty `custom_typings` directory.
+- [x] Correct the coverage floor quoted in `.agents/AGENTS.md`, and in the
+      vitest skill, by pointing at `vitest.config.ts` instead of quoting it.
 
 ## Formatting
 

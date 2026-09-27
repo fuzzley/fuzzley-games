@@ -11,10 +11,9 @@ This skill defines the testing standard for fSolitaire using Vitest (v4) and Ana
 
 - **Run Tests**: `yarn test` (single pass) or `yarn test:watch` (watch mode).
 - **Check Coverage**: `yarn test:coverage`.
-- **Enforced Floor**:
-  - Statements, Functions, Lines: **90%**
-  - Branches: **80%**
-  - _Never allow code changes to drop coverage below these thresholds._
+- **Enforced Floor**: the `thresholds` in `vitest.config.ts`, set a little under
+  the suite's real figures. _Never allow code changes to drop coverage below
+  them_, and raise them as the real figures rise.
 
 ## Test Architecture & Rules
 

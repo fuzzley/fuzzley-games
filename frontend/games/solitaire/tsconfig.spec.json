@@ -4,6 +4,6 @@
     "rootDir": "./",
     "types": ["vitest/globals", "vite/client"]
   },
-  "exclude": ["custom_typings/**/*", "node_modules"],
+  "exclude": ["node_modules"],
   "include": ["src/**/*", "test/**/*"]
 }

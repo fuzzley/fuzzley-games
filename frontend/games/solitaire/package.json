@@ -5,6 +5,9 @@
   "private": true,
   "type": "module",
   "packageManager": "yarn@4.17.1",
+  "engines": {
+    "node": "^22.22.3 || ^24.15.0 || >=26.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "start": "vite",
@@ -18,10 +21,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "lint": "yarn skills:check && node -r ./register.cjs node_modules/eslint/bin/eslint.js src test",
-    "tsc": "tsc && yarn tsc:test",
+    "lint": "yarn skills:check && eslint src test",
+    "tsc": "tsc --noEmit && yarn tsc:test",
     "tsc:test": "tsc --noEmit -p tsconfig.spec.json",
-    "tsc:w": "tsc -w",
+    "tsc:w": "tsc -w --noEmit",
     "verify": "yarn lint && yarn tsc && yarn build && yarn test",
     "prettier": "prettier . --write"
   },
@@ -42,12 +45,11 @@
     "@angular/compiler-cli": "^22.1.6",
     "@eslint/js": "^10.0.1",
     "@resvg/resvg-js": "^2.6.2",
-    "@types/core-js": "^2.5.8",
     "@typescript-eslint/eslint-plugin": "^8.70.0",
     "@typescript-eslint/parser": "^8.70.0",
     "@vitest/coverage-v8": "^4.1.11",
     "angular-eslint": "^22.5.0",
-    "concurrently": "^10.0.5",
+    "eslint": "^10.10.0",
     "jsdom": "^30.0.1",
     "prettier": "^3.9.6",
     "sass": "^1.104.1",
@@ -63,7 +65,6 @@
     "@angular/core": "^22.1.6",
     "@angular/platform-browser": "^22.1.6",
     "@angular/router": "^22.1.6",
-    "eslint": "^10.10.0",
     "phaser": "^4.2.1",
     "rxjs": "^7.8.2",
     "tslib": "^2.8.1"
