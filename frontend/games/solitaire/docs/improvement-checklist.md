@@ -55,8 +55,9 @@ start at the first unticked item. Delete this file once every item is done.
 
 ## UI
 
-- [ ] **Save the chosen felt theme instead of its colour.** Includes a one-time
-      migration of colours already saved.
+- [x] **Save the chosen felt theme instead of its colour.** Presentation
+      settings own the felt; a colour saved by an earlier build is read as its
+      felt. `ThemeService` is gone.
 
 ## Build tooling
 

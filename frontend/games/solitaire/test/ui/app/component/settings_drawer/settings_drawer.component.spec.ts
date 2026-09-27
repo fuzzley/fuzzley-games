@@ -4,7 +4,6 @@ import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
 import { DebugPanelComponent } from "@/ui/app/component/debug_panel/debug_panel.component";
-import { ThemeService } from "@/ui/app/service/theme.service";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
 import { BugReportService } from "@/ui/app/service/bug_report.service";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
@@ -230,7 +229,7 @@ describe("SettingsDrawerComponent", () => {
 
       clickElement(fixture, ".theme-option[aria-label='Royal Velvet']");
 
-      expect(TestBed.inject(ThemeService).selectedTheme()).toBe("purple");
+      expect(harness.presentation.theme()).toBe("purple");
     });
 
     it("names each swatch, which is otherwise just a colour", () => {

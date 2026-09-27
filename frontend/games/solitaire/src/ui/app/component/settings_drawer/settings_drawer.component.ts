@@ -9,7 +9,7 @@ import {
 } from "@angular/core";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
-import { ThemeKey, ThemeService } from "../../service/theme.service";
+import { TABLE_THEMES, THEME_KEYS, ThemeKey } from "../../model/table_theme";
 import { GameDocumentationService } from "../../service/game_documentation.service";
 import { BugReportService } from "../../service/bug_report.service";
 import {
@@ -83,7 +83,7 @@ interface ThemeSwatch {
 export class SettingsDrawerComponent {
   protected readonly catalog = inject(GameCatalogService);
   private readonly lifecycle = inject(GameLifecycleService);
-  protected readonly themeService = inject(ThemeService);
+
   protected readonly presentation = inject(PresentationSettingsService);
   private readonly docService = inject(GameDocumentationService);
   private readonly bugReport = inject(BugReportService);
@@ -130,18 +130,18 @@ export class SettingsDrawerComponent {
 
   /** The felt swatches, with the chosen one marked. */
   protected readonly themeSwatches = computed<readonly ThemeSwatch[]>(() => {
-    const selected = this.themeService.selectedTheme();
-    return this.themeService.themeKeys.map((key) => ({
+    const selected = this.presentation.theme();
+    return THEME_KEYS.map((key) => ({
       key,
-      name: this.themeService.themes[key].name,
-      color: this.themeService.themes[key].color,
+      name: TABLE_THEMES[key].name,
+      color: TABLE_THEMES[key].color,
       selected: key === selected,
     }));
   });
 
   /** The name of the felt currently on the table. */
   protected readonly selectedThemeName = computed(
-    () => this.themeService.themes[this.themeService.selectedTheme()].name,
+    () => TABLE_THEMES[this.presentation.theme()].name,
   );
 
   /** Whether the side settings drawer is visible. */
