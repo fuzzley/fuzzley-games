@@ -84,7 +84,7 @@ start at the first unticked item. Delete this file once every item is done.
 
 ## Types and lint
 
-- [ ] **Lint the rule that only the provider folder names a game.**
+- [x] **Lint the rule that only the provider folder names a game.**
 - [ ] **Enable `noUncheckedIndexedAccess`.**
 
 ## CI

@@ -165,6 +165,26 @@ module.exports = tseslint.config(
     processor: angular.processInlineTemplates,
   },
   {
+    // The provider folder is the only part of the shell that names a game, so
+    // adding one touches that folder and nothing else in the shell.
+    files: ["src/ui/**/*.ts"],
+    ignores: ["src/ui/app/provider/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/games/*"],
+              message:
+                "Only src/ui/app/provider names a game. Reach it through the catalog there instead.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // Templates are linted for accessibility too, which catches a visible state
     // with no announced state to match it.
     files: ["src/ui/**/*.html"],
