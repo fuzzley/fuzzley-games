@@ -104,6 +104,7 @@ interface FilterChip {
 @Component({
   selector: "app-game-browser",
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { "(keydown)": "onKeydown($event)" },
   imports: [ModalDialogComponent, GamePreviewComponent],
   templateUrl: "./game_browser.component.html",
   styleUrl: "./game_browser.component.scss",
@@ -139,6 +140,8 @@ export class GameBrowserComponent {
   private readonly preview = viewChild(GamePreviewComponent);
   private readonly heading =
     viewChild.required<ElementRef<HTMLHeadingElement>>("heading");
+  private readonly search =
+    viewChild.required<ElementRef<HTMLInputElement>>("search");
 
   /** Whether any filter is on. */
   protected readonly filtering = computed(() => hasFilters(this.filters()));
@@ -323,6 +326,26 @@ export class GameBrowserComponent {
         return;
     }
     event.preventDefault();
+  }
+
+  /**
+   * Takes the shortcut that opened the browser back to the search, from
+   * wherever focus is in it, selecting the search so typing replaces it.
+   */
+  protected onKeydown(event: KeyboardEvent): void {
+    if (!this.browser.isShortcut(event)) return;
+
+    event.preventDefault();
+    this.showingDetail.set(false);
+    // A narrow screen's preview hides the field until it has gone.
+    afterNextRender(
+      () => {
+        const field = this.search().nativeElement;
+        field.focus();
+        field.select();
+      },
+      { injector: this.injector },
+    );
   }
 
   /**
