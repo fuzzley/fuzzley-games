@@ -6,6 +6,7 @@ import {
   playingCardInstanceId,
 } from "@/engine/core/card/playing_card";
 import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
+import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
 import { designSize, measureTable } from "@/engine/render/layout/table_layout";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { makeTableBoardScene } from "@/games/common/board_scene_factory";
@@ -14,10 +15,10 @@ import {
   fakeTableGestures,
 } from "@test/support/fake_table/board";
 import { FakeTableGame } from "@test/support/fake_table/game";
-import { tableauPileId } from "@test/support/fake_table/zones";
 import { relocate } from "@test/support/game_scenarios";
 import {
   MockGraphics,
+  MockInput,
   MockSceneEvents,
   MockSprite,
   MockTextures,
@@ -41,6 +42,11 @@ const ONE_SUIT = deckCardIds({
 /** Views a Phaser sprite handle as the underlying recording mock sprite. */
 function asMock(sprite: unknown): MockSprite {
   return sprite as MockSprite;
+}
+
+/** Views a scene's input plugin as the recording mock that raises its events. */
+function inputOf(scene: BoardScene): MockInput {
+  return scene.input as unknown as MockInput;
 }
 
 describe("makeTableBoardScene", () => {
@@ -107,7 +113,15 @@ describe("makeTableBoardScene", () => {
       const lower = relocate(game, "card-spades-9", game.tableaus[0]);
       const upper = relocate(game, "card-hearts-8", game.tableaus[0]);
 
-      expect(scene.stackFromCard(lower.id)).toEqual([lower.id, upper.id]);
+      inputOf(scene).emit("dragstart", {}, scene.cardSprite(lower.id));
+      scene.update(0, 16);
+
+      const held = depthFor(RenderLayer.HELD_CARD);
+      expect(
+        [lower, upper].map(
+          (card) => asMock(scene.cardSprite(card.id)).depth >= held,
+        ),
+      ).toEqual([true, true]);
     });
   });
 
@@ -122,19 +136,20 @@ describe("makeTableBoardScene", () => {
       ]);
     });
 
-    it("resolves a drop against that grid", () => {
-      const pileId = tableauPileId(1);
+    it("lands a released stack on the pile under it on that grid", () => {
+      const ace = relocate(game, "card-spades-ace", game.tableaus[0]);
+      const foundation = game.foundations[0];
       const origin = measureTable(
         FAKE_TABLE_LAYOUT,
         scene.viewport,
-      ).origins.get(pileId)!;
+      ).origins.get(foundation.id)!;
+      const sprite = scene.cardSprite(ace.id);
 
-      const target = scene.resolveDropTarget(
-        { cardIds: ["card-spades-ace"], primary: origin },
-        scene.viewport,
-      );
+      inputOf(scene).emit("dragstart", {}, sprite);
+      inputOf(scene).emit("drag", {}, sprite, origin.x, origin.y);
+      inputOf(scene).emit("dragend", {}, sprite);
 
-      expect(target?.pileId).toBe(pileId);
+      expect(game.getPileContainingCard(ace.id)).toBe(foundation);
     });
   });
 
@@ -142,7 +157,7 @@ describe("makeTableBoardScene", () => {
     it("carries them out", () => {
       const top = game.stock.topCard!;
 
-      scene.handleIntent({ kind: "activate", cardId: top.id });
+      asMock(scene.cardSprite(top.id)).emit("pointerdown");
 
       // Pressing the top of the stock is what draws on the fake board.
       expect(game.waste.size).toBe(3);
@@ -243,7 +258,7 @@ describe("makeTableBoardScene", () => {
       scene.update(0, 16);
       const top = game.stock.topCard!;
 
-      scene.handleIntent({ kind: "activate", cardId: top.id });
+      asMock(scene.cardSprite(top.id)).emit("pointerdown");
       scene.update(16, 16);
 
       // A draw moves cards without any gesture reporting which, so only the

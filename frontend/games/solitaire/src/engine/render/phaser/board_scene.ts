@@ -5,7 +5,7 @@ import { PhaserCardFactory } from "./phaser_card_factory";
 import { BoardInputManager } from "./board_input_manager";
 import { PhaserTableRenderer } from "./phaser_table_renderer";
 import { PhaserSprites } from "./phaser_sprites";
-import { StackFromCard } from "../input/drag_controller";
+import { DragController, StackFromCard } from "../input/drag_controller";
 import { IntentHandler } from "../input/table_intents";
 import {
   DragInteraction,
@@ -86,6 +86,9 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** The loader for the deck the board is drawn from. */
   private deckLoader!: BoardDeckLoader;
 
+  /** What the pointer is doing to the table, which each frame is drawn from. */
+  private controller!: DragController;
+
   /** The bridge from Phaser's pointer events to the drag controller. */
   private inputManager!: BoardInputManager;
 
@@ -100,21 +103,6 @@ export class BoardScene extends Scene implements PhaserSprites {
     super("board-scene");
 
     this.options = options;
-  }
-
-  /** Resolves the pile a drag would land on. */
-  public get resolveDropTarget(): ResolveDropTarget {
-    return this.options.resolveDropTarget;
-  }
-
-  /** Carries out what a press or a drop means in this game. */
-  public get handleIntent(): IntentHandler {
-    return this.options.handleIntent;
-  }
-
-  /** The cards that travel with the one being dragged. */
-  public get stackFromCard(): StackFromCard {
-    return this.options.stackFromCard;
   }
 
   /**
@@ -138,7 +126,20 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Creates the objects that do the scene's work. */
   private createCollaborators(): void {
     this.deckLoader = new BoardDeckLoader(this, this.options.cardDeckId());
-    this.inputManager = new BoardInputManager(this);
+    this.controller = new DragController(
+      this.options.handleIntent,
+      this.options.stackFromCard,
+    );
+    this.inputManager = new BoardInputManager(
+      {
+        input: this.input,
+        // The same resolver the view builder previews with, so the card lands
+        // on the pile the border promised it would.
+        dropTargetFor: (drag) =>
+          this.options.resolveDropTarget(drag, this.viewport)?.pileId ?? null,
+      },
+      this.controller,
+    );
     this.viewApplier = new PhaserTableRenderer(this);
     this.visualFactory = new PhaserCardFactory(
       this,
@@ -157,10 +158,10 @@ export class BoardScene extends Scene implements PhaserSprites {
         this.cameras?.main?.setBackgroundColor(color);
       }),
       this.options.onReset(() => {
-        this.inputManager.resetInteraction();
+        this.controller.reset();
       }),
       this.options.onCardsRelocated((cardIds) => {
-        this.inputManager.beginFlight(cardIds);
+        this.controller.beginFlight(cardIds);
       }),
       this.options.onCardDeck((deckId) => {
         this.deckLoader.use(deckId);
@@ -174,9 +175,9 @@ export class BoardScene extends Scene implements PhaserSprites {
 
   /** Registers the pointer listeners and snaps cards into place on a resize. */
   private wireInput(): void {
-    this.inputManager.snapAll = true;
+    this.controller.snapAll = true;
     this.scale.on("resize", () => {
-      this.inputManager.snapAll = true;
+      this.controller.snapAll = true;
     });
 
     this.inputManager.registerDragListeners();
@@ -275,23 +276,21 @@ export class BoardScene extends Scene implements PhaserSprites {
 
   /** Applies this frame's view state, then lands every flight that arrived. */
   override update(_timeMs: number, deltaMs: number): void {
-    if (!this.inputManager || !this.viewApplier) return;
+    if (!this.controller || !this.viewApplier) return;
 
     const state = this.options.buildViewState(
-      this.inputManager.interaction,
+      this.controller.interaction,
       this.viewport,
     );
     this.viewApplier.apply(state, deltaMs);
 
     // A copy, since landing a flight removes it from the list.
-    for (const flight of [...this.inputManager.flights]) {
+    for (const flight of [...this.controller.flights]) {
       if (!this.viewApplier.areCardsTravelling(flight.cardIds)) {
-        this.inputManager.endFlight(flight);
+        this.controller.endFlight(flight);
       }
     }
 
-    if (this.inputManager.snapAll) {
-      this.inputManager.snapAll = false;
-    }
+    this.controller.snapAll = false;
   }
 }
