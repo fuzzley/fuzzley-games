@@ -156,8 +156,8 @@ This project uses **Yarn 4**. Always use Yarn commands instead of NPM (`yarn <co
 - **Build Card Atlas:** `yarn build:atlas` (runs `tools/build-card-atlas.mjs` to convert SVG assets into texture atlas files).
 - **Production Build:** `yarn build` (generates bundled production assets in `dist/` with Phaser manual chunking).
 - **Run Unit Tests:** `yarn test` (runs Vitest once) or `yarn test:watch` / `yarn test:coverage`.
-- **Linting:** `yarn lint` (runs ESLint via `register.cjs` over `src` and `test`).
-- **Type Checking:** `yarn tsc` (runs TypeScript compiler checks for both app and test configs).
+- **Linting:** `yarn lint` (checks the skills' references, then runs ESLint over `src` and `test`).
+- **Type Checking:** `yarn tsc` (runs TypeScript compiler checks for both app and test configs, emitting nothing).
 - **Full Verification Pipeline:** `yarn verify` (runs `yarn lint && yarn tsc && yarn build && yarn test`).
 - **Format Codebase:** `yarn prettier` (runs Prettier auto-formatting across the repository).
 
@@ -261,7 +261,7 @@ These rules cover every doc comment: classes, interfaces, functions, HTML, SCSS,
 
 ## Writing Unit Tests
 
-- **Test Coverage:** Maintain high test coverage after modifying code. `vitest.config.ts` enforces a floor (90% statements/functions/lines, 80% branches); `yarn test:coverage` fails below it. Raise the floor as the real figures rise.
+- **Test Coverage:** Maintain high test coverage after modifying code. `vitest.config.ts` enforces a coverage floor a little under the suite's real figures; `yarn test:coverage` fails below it. Raise the floor as the real figures rise.
 - **UI Test Doubles:** `test/support/ui` holds the shell's doubles — the game, catalog, presentation and documentation mocks — plus `configureUiTestBed`, which wires them into a TestBed. Prefer it over assembling providers by hand. The catalog mock is typed as a `Pick` of the real service so it cannot drift out of shape unnoticed.
 - **Don't Assert Production Prose:** A component spec should not depend on the wording of a rules page. Use the test documentation registry, which `configureUiTestBed` provides.
 - **Arrange, Act, Assert:** Structure each test case cleanly: arrange block, act block, assert block. Avoid multiple AAA cycles per test case; create focused test cases instead.

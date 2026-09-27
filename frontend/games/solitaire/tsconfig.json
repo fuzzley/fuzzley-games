@@ -40,6 +40,5 @@
     }
   },
   "exclude": ["node_modules", "**/*.spec.ts"],
-  "include": ["src", "custom_typings"],
-  "typeRoots": ["./node_modules/@types", "./custom_typings"]
+  "include": ["src"]
 }
