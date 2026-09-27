@@ -75,6 +75,14 @@ describe("GameBrowserService", () => {
     expect([browser.isOpen(), event.defaultPrevented]).toEqual([false, false]);
   });
 
+  it("recognises its shortcut", () => {
+    expect(service().isShortcut(keydown("k", { metaKey: true }))).toBe(true);
+  });
+
+  it("does not take another key press for its shortcut", () => {
+    expect(service().isShortcut(keydown("k", { altKey: true }))).toBe(false);
+  });
+
   it("writes the shortcut as it reads off a keyboard that is not a Mac's", () => {
     expect(service().shortcutLabel).toBe("Ctrl K");
   });

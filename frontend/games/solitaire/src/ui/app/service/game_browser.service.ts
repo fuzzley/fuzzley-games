@@ -31,14 +31,19 @@ export class GameBrowserService {
     this.isOpenSignal.set(false);
   }
 
+  /** Returns whether a key press is the browser's shortcut, Ctrl or Command with K. */
+  isShortcut(event: KeyboardEvent): boolean {
+    const modified = event.ctrlKey || event.metaKey;
+    if (!modified || event.altKey || event.shiftKey) return false;
+    return event.key.toLowerCase() === "k";
+  }
+
   /**
-   * Opens the browser if a key press is its shortcut, Ctrl or Command with K,
-   * keeping the key from the browser's own use of it.
+   * Opens the browser if a key press is its shortcut, keeping the key from the
+   * browser's own use of it.
    */
   openOnShortcut(event: KeyboardEvent): void {
-    const modified = event.ctrlKey || event.metaKey;
-    if (!modified || event.altKey || event.shiftKey) return;
-    if (event.key.toLowerCase() !== "k") return;
+    if (!this.isShortcut(event)) return;
 
     event.preventDefault();
     this.open();

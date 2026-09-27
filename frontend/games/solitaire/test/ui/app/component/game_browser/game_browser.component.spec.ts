@@ -88,6 +88,20 @@ describe("GameBrowserComponent", () => {
     fixture.detectChanges();
   }
 
+  /** Presses Ctrl and K on an element, returning the key press. */
+  async function pressShortcut(target: HTMLElement): Promise<KeyboardEvent> {
+    const event = new KeyboardEvent("keydown", {
+      key: "k",
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    target.dispatchEvent(event);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    return event;
+  }
+
   /** Returns the listed games' names, as a screen reader hears them. */
   function listed(): string[] {
     return queryAll(fixture, '[role="option"]').map(
@@ -289,6 +303,37 @@ describe("GameBrowserComponent", () => {
         fixture.detectChanges();
         expect(queryText(fixture, '[aria-live="polite"]')).toBe("1 game.");
       });
+    });
+  });
+
+  describe("its shortcut, pressed while open", () => {
+    beforeEach(async () => {
+      await build();
+      open();
+    });
+
+    it("takes focus back to the search field", async () => {
+      const list = queryRequired(fixture, ".list-pane");
+      list.focus();
+
+      await pressShortcut(list);
+
+      expect(document.activeElement).toBe(searchField());
+    });
+
+    it("selects the search, so typing replaces it", async () => {
+      type("free");
+
+      await pressShortcut(queryRequired(fixture, ".list-pane"));
+
+      const field = searchField();
+      expect([field.selectionStart, field.selectionEnd]).toEqual([0, 4]);
+    });
+
+    it("keeps the key from the web browser's own use of it", async () => {
+      const event = await pressShortcut(searchField());
+
+      expect(event.defaultPrevented).toBe(true);
     });
   });
 
@@ -546,6 +591,14 @@ describe("GameBrowserComponent", () => {
       expect(
         queryRequired(fixture, ".browser").classList.contains("showing-detail"),
       ).toBe(false);
+    });
+
+    it("goes back from a preview to the search on its shortcut", async () => {
+      await click(row("FreeCell"));
+
+      await pressShortcut(queryRequired(fixture, ".title"));
+
+      expect(document.activeElement).toBe(searchField());
     });
 
     it("goes back to the list on Escape, rather than closing", async () => {
