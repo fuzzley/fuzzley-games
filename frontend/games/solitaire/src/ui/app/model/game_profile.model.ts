@@ -10,6 +10,13 @@ export const Difficulty = {
 /** Names one step of the {@link Difficulty} scale. */
 export type Difficulty = (typeof Difficulty)[keyof typeof Difficulty];
 
+/** What each step of the difficulty scale is called. */
+export const DIFFICULTY_LABELS: Readonly<Record<Difficulty, string>> = {
+  [Difficulty.EASY]: "Easy",
+  [Difficulty.MEDIUM]: "Medium",
+  [Difficulty.HARD]: "Hard",
+};
+
 /** Describes a difficulty that one of a game's rules decides. */
 export interface DifficultyByRule {
   /** The rule, by its option id in the catalog. */
