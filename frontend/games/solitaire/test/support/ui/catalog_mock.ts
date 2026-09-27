@@ -44,6 +44,7 @@ export type MockCatalog = Pick<
   | "ruleOptions"
   | "debugOptions"
   | "optionValues"
+  | "optionValuesFor"
   | "optionSpec"
   | "valueOf"
   | "select"
@@ -103,6 +104,8 @@ export function createMockCatalog(model: MockGameModel): MockCatalogHarness {
     ruleOptions: computed(() => options().filter((o) => !o.debugOnly)),
     debugOptions: computed(() => options().filter((o) => o.debugOnly)),
     optionValues: computed(() => values()),
+    // One store of rules for every game, which is all a spec needs.
+    optionValuesFor: () => values(),
     get selectedEntry() {
       return games.find((game) => game.id === selectedId()) ?? games[0];
     },

@@ -16,11 +16,12 @@ import { VictoryOverlayComponent } from "../victory_overlay/victory_overlay.comp
 import { ConfirmationDialogComponent } from "../confirmation_dialog/confirmation_dialog.component";
 import { GameHelpModalComponent } from "../game_help_modal/game_help_modal.component";
 import { GameMenuComponent } from "../game_menu/game_menu.component";
+import { GameBrowserComponent } from "../game_browser/game_browser.component";
 import { GameMenuService } from "../../service/game_menu.service";
 
 /**
- * Composes the chrome around the routed board: header, game rail, settings
- * drawer, help modal, victory card and confirmation prompt.
+ * Composes the chrome around the routed board: header, game rail, game
+ * browser, settings drawer, help modal, victory card and confirmation prompt.
  */
 @Component({
   selector: "app-root",
@@ -28,6 +29,7 @@ import { GameMenuService } from "../../service/game_menu.service";
   imports: [
     RouterOutlet,
     GameMenuComponent,
+    GameBrowserComponent,
     HeaderBarComponent,
     SettingsDrawerComponent,
     GameHelpModalComponent,

@@ -23,6 +23,9 @@
   --surface-raised: #{with-alpha($slate-800, 0.85)};
   // Its own role, though it currently matches the panel.
   --surface-modal: #{with-alpha($slate-900, 0.95)};
+  // The modal's surface made opaque, for a bar that content scrolls beneath
+  // and would otherwise show through.
+  --surface-modal-solid: #{$slate-900};
   --surface-card: #{with-alpha($slate-900, 0.6)};
   --surface-sunken: #{with-alpha($black, 0.2)};
   --surface-scrim: #{with-alpha($black, 0.6)};
@@ -181,6 +184,14 @@
   --header-height: 73px;
   --rail-collapsed-width: 56px;
   --rail-expanded-width: 190px;
+
+  // The game browser: the most room it takes, the width of its list, and a
+  // row's picture of a board, which `yarn build:thumbs` draws at twice this.
+  --browser-width: 1080px;
+  --browser-height: 760px;
+  --browser-list-width: 400px;
+  --browser-thumb-width: 96px;
+  --browser-thumb-height: 54px;
 
   // --- Stacking order ---
   // The full ladder, less the dialogs, which sit in the browser's top layer.
