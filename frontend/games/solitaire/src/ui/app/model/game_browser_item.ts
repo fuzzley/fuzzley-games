@@ -29,6 +29,10 @@ export interface GameBrowserItem {
    * browser; every other rule keeps the player's choice.
    */
   readonly pinned: GameOptionValues;
+  /** A small picture of the board, for a row of the list. */
+  readonly thumbnailUrl: string;
+  /** A large picture of the board, for the preview pane. */
+  readonly previewUrl: string;
 }
 
 /**
@@ -48,11 +52,15 @@ export function browserItems(
       if (profile?.family !== family.id) return [];
 
       const variants = profile.variants ?? [];
+      // A variant shows its game's board, which it shares.
+      const screenshots = `./docs/screenshots/${entry.id}`;
       const shared = {
         gameId: entry.id,
         family,
         decks: profile.decks,
         allCardsVisible: profile.allCardsVisible,
+        thumbnailUrl: `${screenshots}/thumb.webp`,
+        previewUrl: `${screenshots}/preview.webp`,
       };
       const parent: GameBrowserItem = {
         ...shared,

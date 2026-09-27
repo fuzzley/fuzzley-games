@@ -88,6 +88,26 @@ describe("browserItems", () => {
     expect(named("FreeCell").pinned).toEqual({});
   });
 
+  it("pictures every item with images that exist", () => {
+    // What `yarn build:thumbs` writes, as the paths the public folder serves.
+    const images = new Set(
+      Object.keys(import.meta.glob("/public/docs/screenshots/*/*.webp")).map(
+        (path) => path.replace("/public/", "./"),
+      ),
+    );
+
+    const missing = ITEMS.flatMap((item) => [
+      item.thumbnailUrl,
+      item.previewUrl,
+    ]).filter((url) => !images.has(url));
+
+    expect(missing).toEqual([]);
+  });
+
+  it("pictures a variant with its game's board", () => {
+    expect(named("Alaska").previewUrl).toBe(named("Yukon").previewUrl);
+  });
+
   it("leaves out a game with no profile", () => {
     const registry = {
       families: GAME_PROFILE_REGISTRY.families,
