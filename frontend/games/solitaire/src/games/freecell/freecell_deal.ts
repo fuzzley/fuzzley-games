@@ -1,6 +1,7 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DeckSource } from "@/engine/tableau/deck_source";
+import { itemAt } from "@/engine/core/common/item_at";
 
 /**
  * Deals `deck` face up across the columns, one card to each in turn, so the
@@ -19,7 +20,7 @@ export function dealFreeCellLayout(
     const card = deck.pop();
     if (!card) break;
     card.faceUp = true;
-    tableaus[column].addCard(card);
+    itemAt(tableaus, column).addCard(card);
     column = (column + 1) % tableaus.length;
   }
 }
@@ -50,8 +51,8 @@ export function dealFreeCellAlmostWin(
   let suitIndex = 0;
   for (const suitCards of bySuit.values()) {
     const ordered = [...suitCards].sort((a, b) => a.rank - b.rank);
-    const foundation = foundations[suitIndex % foundations.length];
-    const tableau = tableaus[suitIndex % tableaus.length];
+    const foundation = itemAt(foundations, suitIndex % foundations.length);
+    const tableau = itemAt(tableaus, suitIndex % tableaus.length);
     for (const card of ordered.slice(0, ordered.length - 1)) {
       foundation.addCard(card);
     }

@@ -2,6 +2,7 @@ import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { CardTransfer } from "@/engine/tableau/move";
 import { isSameSuitRun } from "@/engine/tableau/rules";
+import { itemAt } from "@/engine/core/common/item_at";
 
 /** How many cards a complete run holds: King down to Ace. */
 export const RUN_LENGTH = 13;
@@ -20,12 +21,13 @@ export function completedRunStart(cards: readonly PlayingCard[]): number {
 
   const start = cards.length - RUN_LENGTH;
   const run = cards.slice(start);
-  if (run[0].rank !== Rank.KING || run[run.length - 1].rank !== Rank.ACE) {
+  if (run[0]?.rank !== Rank.KING || run.at(-1)?.rank !== Rank.ACE) {
     return -1;
   }
-  for (let index = 0; index < run.length - 1; index++) {
-    if (!run[index].faceUp) return -1;
-    if (!isSameSuitRun(run[index], run[index + 1])) return -1;
+  for (let index = 0; index + 1 < run.length; index++) {
+    const lower = itemAt(run, index);
+    if (!lower.faceUp) return -1;
+    if (!isSameSuitRun(lower, itemAt(run, index + 1))) return -1;
   }
   return start;
 }

@@ -24,14 +24,14 @@ export function dealDoubleKlondikeLayout(
   tableaus: readonly CardPile<PlayingCard>[],
   stock: CardPile<PlayingCard>,
 ): void {
-  for (let column = 0; column < tableaus.length; column++) {
+  for (const [column, tableau] of tableaus.entries()) {
     for (let dealt = 0; dealt <= column; dealt++) {
       const card = deck.pop();
       // A short injected deck simply runs out; the columns already dealt stand
       // as they are rather than the deal failing.
       if (!card) return;
       card.faceUp = dealt === column;
-      tableaus[column].addCard(card);
+      tableau.addCard(card);
     }
   }
 

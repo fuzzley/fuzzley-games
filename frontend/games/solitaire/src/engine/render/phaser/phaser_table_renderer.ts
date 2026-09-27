@@ -206,7 +206,7 @@ export class PhaserTableRenderer implements TableRenderer {
       index < this.highlightBorders.length;
       index++
     ) {
-      this.highlightBorders[index].graphics.setVisible(false);
+      this.highlightBorders[index]?.graphics.setVisible(false);
     }
   }
 

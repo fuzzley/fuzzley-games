@@ -22,7 +22,7 @@ export function dealScorpionLayout(
   tableaus: readonly CardPile<PlayingCard>[],
   stock: CardPile<PlayingCard>,
 ): void {
-  for (let column = 0; column < tableaus.length; column++) {
+  for (const [column, tableau] of tableaus.entries()) {
     const hidden = column < HIDDEN_COLUMN_COUNT ? HIDDEN_PER_COLUMN : 0;
     for (let depth = 0; depth < COLUMN_SIZE; depth++) {
       const card = deck.pop();
@@ -30,7 +30,7 @@ export function dealScorpionLayout(
       // there is nothing left for the stock either.
       if (!card) return;
       card.faceUp = depth >= hidden;
-      tableaus[column].addCard(card);
+      tableau.addCard(card);
     }
   }
 

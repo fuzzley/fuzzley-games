@@ -85,7 +85,10 @@ start at the first unticked item. Delete this file once every item is done.
 ## Types and lint
 
 - [x] **Lint the rule that only the provider folder names a game.**
-- [ ] **Enable `noUncheckedIndexedAccess`.**
+- [x] **Enable `noUncheckedIndexedAccess`.** On for source, where its 45
+      errors were fixed with `for...of`, guards, and a checked `itemAt` for
+      positions a loop guarantees. Off for specs, whose 1,120 errors were all
+      positional reads like `game.tableaus[0]`, noted in `tsconfig.spec.json`.
 
 ## CI
 

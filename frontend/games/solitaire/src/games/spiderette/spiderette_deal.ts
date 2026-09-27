@@ -22,7 +22,7 @@ export function dealSpideretteLayout(
 ): void {
   if (tableaus.length === 0) return;
 
-  for (let column = 0; column < tableaus.length; column++) {
+  for (const [column, tableau] of tableaus.entries()) {
     const count =
       variant === SpideretteVariant.WILL_O_THE_WISP
         ? WISP_CARDS_PER_COLUMN
@@ -33,7 +33,7 @@ export function dealSpideretteLayout(
       // as they are rather than the deal failing.
       if (!card) return;
       card.faceUp = dealt === count - 1;
-      tableaus[column].addCard(card);
+      tableau.addCard(card);
     }
   }
 
