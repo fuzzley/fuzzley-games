@@ -76,9 +76,11 @@ start at the first unticked item. Delete this file once every item is done.
 
 ## Formatting
 
-- [ ] Add a `.gitattributes` file that forces LF endings.
-- [ ] List any renormalize commit in a blame-ignore file.
-- [ ] Add a check-only Prettier step to lint, and fix the files that drifted.
+- [x] Add a `.gitattributes` file that forces LF endings.
+- [x] ~~List any renormalize commit in a blame-ignore file.~~ Not needed: every
+      committed file was already LF, so renormalizing changed no content and
+      there is no commit to ignore.
+- [x] Add a check-only Prettier step to lint, and fix the files that drifted.
 
 ## Types and lint
 

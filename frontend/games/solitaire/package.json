@@ -21,12 +21,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "lint": "yarn skills:check && eslint src test",
+    "lint": "yarn skills:check && eslint src test && yarn prettier:check",
     "tsc": "tsc --noEmit && yarn tsc:test",
     "tsc:test": "tsc --noEmit -p tsconfig.spec.json",
     "tsc:w": "tsc -w --noEmit",
     "verify": "yarn lint && yarn tsc && yarn build && yarn test",
-    "prettier": "prettier . --write"
+    "prettier": "prettier . --write",
+    "prettier:check": "prettier . --check"
   },
   "repository": {
     "type": "git",
