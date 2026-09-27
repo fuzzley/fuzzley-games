@@ -47,9 +47,16 @@ export class GameHelpModalComponent {
   /** Active documentation entry, or undefined if missing. */
   protected readonly doc = computed(() => this.docService.activeGameDoc());
 
+  /** The catalog entry of the game whose rules are shown. */
+  private readonly shownEntry = computed(() =>
+    this.catalog.games.find(
+      (entry) => entry.id === this.docService.shownGameId(),
+    ),
+  );
+
   /** Display title for the modal. */
   protected readonly modalTitle = computed(
-    () => this.doc()?.title ?? this.catalog.selectedEntry.name,
+    () => this.doc()?.title ?? this.shownEntry()?.name ?? "",
   );
 
   /** The tabs this game's documentation actually has content for. */
@@ -73,8 +80,9 @@ export class GameHelpModalComponent {
     const doc = this.doc();
     if (!doc) return [];
 
+    const options = this.shownEntry()?.options ?? [];
     return doc.settingsAndVariants.flatMap((optionDoc): VariantCard[] => {
-      const spec = this.catalog.optionSpec(optionDoc.optionId);
+      const spec = options.find((option) => option.id === optionDoc.optionId);
       if (!spec) return [];
 
       return [

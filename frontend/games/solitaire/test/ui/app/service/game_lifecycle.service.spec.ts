@@ -175,6 +175,72 @@ describe("GameLifecycleService", () => {
     });
   });
 
+  describe("playing a game by its rules", () => {
+    it("puts the game on the table by those rules", async () => {
+      const harness = buildLifecycle();
+
+      await harness.lifecycle.playGame("freecell", {}, "FreeCell");
+
+      expect(harness.catalog.catalog.selectedId()).toBe("freecell");
+    });
+
+    it("plays the game already on the table by other rules", async () => {
+      const harness = buildLifecycle();
+
+      await harness.lifecycle.playGame(
+        "klondike",
+        { drawCount: 1 },
+        "Klondike",
+      );
+
+      expect(harness.catalog.catalog.optionValues()["drawCount"]).toBe(1);
+    });
+
+    it("leaves the game on the table alone when nothing would change", async () => {
+      const harness = buildLifecycle({ moves: 4 });
+
+      const played = await harness.lifecycle.playGame(
+        "klondike",
+        { drawCount: 3 },
+        "Klondike",
+      );
+
+      expect(played).toBe(true);
+      expect(harness.catalog.load).not.toHaveBeenCalled();
+      expect(harness.confirmation.isOpen()).toBe(false);
+    });
+
+    it("names the game it is switching to when a game is under way", () => {
+      const harness = buildLifecycle({ moves: 4 });
+
+      void harness.lifecycle.playGame("freecell", {}, "Baker's Game");
+
+      expect(harness.confirmation.message()).toContain(
+        "Switch to Baker's Game?",
+      );
+    });
+
+    it("says it deals afresh when only the rules change", () => {
+      const harness = buildLifecycle({ moves: 4 });
+
+      void harness.lifecycle.playGame("klondike", { drawCount: 1 }, "Klondike");
+
+      expect(harness.confirmation.message()).toContain(
+        "Deal a new game of Klondike",
+      );
+    });
+
+    it("keeps the game under way when the prompt is declined", async () => {
+      const harness = buildLifecycle({ moves: 4 });
+      const played = harness.lifecycle.playGame("freecell", {}, "FreeCell");
+
+      harness.confirmation.cancel();
+
+      expect(await played).toBe(false);
+      expect(harness.catalog.catalog.selectedId()).toBe("klondike");
+    });
+  });
+
   describe("navigating to a game by URL", () => {
     it("lets the router show the game already on the table without asking", async () => {
       const harness = buildLifecycle({ moves: 4 });

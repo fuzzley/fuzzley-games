@@ -1,5 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import { decodePosition } from "../model/game_position";
+import { GameOptionValues } from "../provider/game_catalog";
 import { GameCatalogService } from "./game_catalog.service";
 import { GameMetricsService } from "./game_metrics.service";
 import { ConfirmationService } from "./confirmation.service";
@@ -27,6 +28,39 @@ export class GameLifecycleService {
     if (!(await this.confirmIfInProgress(SWITCH_GAME_MESSAGE))) return;
 
     this.catalog.select(id);
+  }
+
+  /**
+   * Puts a game on the table by the given rules, asking first when that would
+   * throw away a game under way.
+   *
+   * Rules it does not name keep their chosen values, and the game already on
+   * the table by the same rules is left alone.
+   *
+   * @param name What the prompt calls the game, which for a named variant is
+   *   not its catalog entry's name.
+   * @returns Whether the game is on the table by those rules afterwards, which
+   *   it is not when the player declines.
+   */
+  async playGame(
+    id: string,
+    values: GameOptionValues,
+    name: string,
+  ): Promise<boolean> {
+    const switching = id !== this.catalog.selectedId();
+    const current = this.catalog.optionValues();
+    const sameRules = Object.entries(values).every(
+      ([optionId, value]) => current[optionId] === value,
+    );
+    if (!switching && sameRules) return true;
+
+    const message = switching
+      ? `Switch to ${name}? Your current progress will be lost.`
+      : `Deal a new game of ${name} by these rules? Your current progress will be lost.`;
+    if (!(await this.confirmIfInProgress(message))) return false;
+
+    this.catalog.load(id, values);
+    return true;
   }
 
   /**

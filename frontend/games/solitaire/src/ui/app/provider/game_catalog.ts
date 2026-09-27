@@ -120,6 +120,15 @@ export function optionValue<T extends number>(
   return chosen ? chosen.value : spec.defaultValue;
 }
 
+/** Returns whether two sets of rule values agree on every rule. */
+export function sameOptionValues(
+  a: GameOptionValues,
+  b: GameOptionValues,
+): boolean {
+  const ids = new Set([...Object.keys(a), ...Object.keys(b)]);
+  return [...ids].every((id) => a[id] === b[id]);
+}
+
 /** Deals a game and holds it as a session. */
 function dealt<TGame extends PlayableGame>(game: TGame): CatalogSession<TGame> {
   game.startNewGame();
