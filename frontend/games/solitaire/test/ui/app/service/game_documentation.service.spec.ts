@@ -52,6 +52,34 @@ describe("GameDocumentationService", () => {
     expect(service.isOpen()).toBe(true);
   });
 
+  it("closes on toggleHelp() while open", () => {
+    service.openHelp();
+
+    service.toggleHelp();
+
+    expect(service.isOpen()).toBe(false);
+  });
+
+  it("shows the rules of the game it is opened for", () => {
+    service.openHelp("spider");
+
+    expect(service.shownGameId()).toBe("spider");
+  });
+
+  it("shows the game on the table when opened for none", () => {
+    service.openHelp();
+
+    expect(service.shownGameId()).toBe(catalog.selectedId());
+  });
+
+  it("goes back to the game on the table once closed", () => {
+    service.openHelp("spider");
+
+    service.closeHelp();
+
+    expect(service.shownGameId()).toBe(catalog.selectedId());
+  });
+
   it("provides documentation for every game entry defined in GAME_CATALOG", () => {
     for (const gameEntry of GAME_CATALOG) {
       const doc = service.getDocumentation(gameEntry.id);

@@ -1,7 +1,7 @@
 import { Injectable, effect, inject } from "@angular/core";
 import type { PlayableGame } from "@/engine/tableau/playable_game";
 import { GamePosition, readGamePosition } from "../model/game_position";
-import { GameOptionValues } from "../provider/game_catalog";
+import { sameOptionValues } from "../provider/game_catalog";
 import { GameCatalogService } from "./game_catalog.service";
 import { LocalStorageService } from "./local_storage.service";
 
@@ -64,7 +64,7 @@ export class SavedGameService {
     if (
       !saved ||
       saved.gameId !== this.catalog.selectedId() ||
-      !sameValues(saved.options, this.catalog.optionValues())
+      !sameOptionValues(saved.options, this.catalog.optionValues())
     ) {
       return;
     }
@@ -94,10 +94,4 @@ export class SavedGameService {
     };
     this.storage.writeObject(STORAGE_KEY, position);
   }
-}
-
-/** Returns whether two sets of rule values agree on every rule. */
-function sameValues(a: GameOptionValues, b: GameOptionValues): boolean {
-  const ids = new Set([...Object.keys(a), ...Object.keys(b)]);
-  return [...ids].every((id) => a[id] === b[id]);
 }
