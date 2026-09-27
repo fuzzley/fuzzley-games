@@ -36,16 +36,49 @@ describe("PresentationSettingsService", () => {
     it("loads what it stored", () => {
       localStorage.setItem(
         "fsolitaire-presentation",
-        JSON.stringify({
-          cardBackStyle: "card-back-red",
-          backgroundColor: "#1b4353",
-        }),
+        JSON.stringify({ cardBackStyle: "card-back-red", theme: "blue" }),
       );
 
       const settings = buildSettings();
 
       expect(settings.cardBackStyle()).toBe("card-back-red");
-      expect(settings.backgroundColor()).toBe("#1b4353");
+      expect(settings.theme()).toBe("blue");
+    });
+
+    it("paints the table in the chosen felt's colour", () => {
+      localStorage.setItem(
+        "fsolitaire-presentation",
+        JSON.stringify({ theme: "purple" }),
+      );
+
+      expect(buildSettings().backgroundColor()).toBe("#3c096c");
+    });
+
+    it("keeps a felt an earlier build stored only as its colour", () => {
+      localStorage.setItem(
+        "fsolitaire-presentation",
+        JSON.stringify({ backgroundColor: "#3c096c" }),
+      );
+
+      expect(buildSettings().theme()).toBe("purple");
+    });
+
+    it("falls back to the default felt for a colour no felt has", () => {
+      localStorage.setItem(
+        "fsolitaire-presentation",
+        JSON.stringify({ backgroundColor: "#123456" }),
+      );
+
+      expect(buildSettings().theme()).toBe("green");
+    });
+
+    it("falls back to the default felt for one this build does not have", () => {
+      localStorage.setItem(
+        "fsolitaire-presentation",
+        JSON.stringify({ theme: "tartan" }),
+      );
+
+      expect(buildSettings().theme()).toBe("green");
     });
 
     it("falls back to defaults for corrupted storage", () => {
@@ -102,13 +135,13 @@ describe("PresentationSettingsService", () => {
       const settings = buildSettings();
 
       settings.setCardBackStyle("card-back-red");
-      settings.setBackgroundColor("#3c096c");
+      settings.setTheme("purple");
       settings.setCardDeck("classic");
       TestBed.flushEffects();
 
       expect(stored()).toEqual({
         cardBackStyle: "card-back-red",
-        backgroundColor: "#3c096c",
+        theme: "purple",
         cardDeck: "classic",
       });
     });
@@ -128,7 +161,7 @@ describe("PresentationSettingsService", () => {
       const seen: string[] = [];
       settings.onBackgroundColor((color) => seen.push(color));
 
-      settings.setBackgroundColor("#3c096c");
+      settings.setTheme("purple");
       TestBed.flushEffects();
 
       expect(seen.at(-1)).toBe("#3c096c");
@@ -150,7 +183,7 @@ describe("PresentationSettingsService", () => {
       const stop = settings.onBackgroundColor((color) => seen.push(color));
       stop();
 
-      settings.setBackgroundColor("#3c096c");
+      settings.setTheme("purple");
       TestBed.flushEffects();
 
       expect(seen).not.toContain("#3c096c");

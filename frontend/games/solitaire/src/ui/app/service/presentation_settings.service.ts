@@ -8,7 +8,6 @@ import {
 } from "@angular/core";
 import {
   CardDeckStatus,
-  DEFAULT_BACKGROUND_COLOR,
   TablePresentation,
 } from "@/engine/render/presentation";
 import {
@@ -17,6 +16,13 @@ import {
   DEFAULT_CARD_DECK,
   isCardDeckId,
 } from "@/engine/render/card_deck";
+import {
+  DEFAULT_THEME,
+  TABLE_THEMES,
+  ThemeKey,
+  isThemeKey,
+  themeWithColor,
+} from "../model/table_theme";
 import { LocalStorageService } from "./local_storage.service";
 
 /** Names the artwork on the back of the cards. */
@@ -24,17 +30,24 @@ export type CardBackStyle = "card-back-blue" | "card-back-red";
 
 const STORAGE_KEY = "fsolitaire-presentation";
 
-
 /** Holds the presentation settings as they are stored. */
 interface PersistedPresentation {
   cardBackStyle: CardBackStyle;
-  backgroundColor: string;
+  theme: ThemeKey;
   cardDeck: CardDeckId;
+}
+
+/**
+ * Holds the presentation settings as a build before this one may have stored
+ * them, which kept the felt's colour rather than the felt.
+ */
+interface StoredPresentation extends Partial<PersistedPresentation> {
+  backgroundColor?: unknown;
 }
 
 const DEFAULTS: PersistedPresentation = {
   cardBackStyle: "card-back-blue",
-  backgroundColor: DEFAULT_BACKGROUND_COLOR,
+  theme: DEFAULT_THEME,
   cardDeck: DEFAULT_CARD_DECK,
 };
 
@@ -61,7 +74,7 @@ export class PresentationSettingsService implements TablePresentation {
   private readonly cardBackStyleSignal = signal<CardBackStyle>(
     this.loaded.cardBackStyle,
   );
-  private readonly backgroundColorSignal = signal(this.loaded.backgroundColor);
+  private readonly themeSignal = signal<ThemeKey>(this.loaded.theme);
   private readonly cardDeckSignal = signal<CardDeckId>(this.loaded.cardDeck);
 
   /** The deck the board is fetching, if it is fetching one. */
@@ -78,8 +91,13 @@ export class PresentationSettingsService implements TablePresentation {
   /** The visual style used for face-down card backs. */
   readonly cardBackStyle = this.cardBackStyleSignal.asReadonly();
 
+  /** The table felt the player chose. */
+  readonly theme = this.themeSignal.asReadonly();
+
   /** The board background color, as a CSS/Phaser color string. */
-  readonly backgroundColor = this.backgroundColorSignal.asReadonly();
+  readonly backgroundColor = computed(
+    () => TABLE_THEMES[this.themeSignal()].color,
+  );
 
   /** The deck the cards are drawn from. */
   readonly cardDeck = this.cardDeckSignal.asReadonly();
@@ -104,9 +122,9 @@ export class PresentationSettingsService implements TablePresentation {
     this.cardBackStyleSignal.set(style);
   }
 
-  /** Updates the board background color. */
-  setBackgroundColor(color: string): void {
-    this.backgroundColorSignal.set(color);
+  /** Lays the table with a different felt. */
+  setTheme(theme: ThemeKey): void {
+    this.themeSignal.set(theme);
   }
 
   /** Updates the deck the cards are drawn from. */
@@ -152,7 +170,7 @@ export class PresentationSettingsService implements TablePresentation {
    * at once and every change after it.
    */
   readonly onBackgroundColor = (listener: (color: string) => void) => {
-    const ref = effect(() => listener(this.backgroundColorSignal()), {
+    const ref = effect(() => listener(this.backgroundColor()), {
       injector: this.injector,
     });
     return () => ref.destroy();
@@ -172,7 +190,7 @@ export class PresentationSettingsService implements TablePresentation {
     effect(() => {
       const data: PersistedPresentation = {
         cardBackStyle: this.cardBackStyleSignal(),
-        backgroundColor: this.backgroundColorSignal(),
+        theme: this.themeSignal(),
         cardDeck: this.cardDeckSignal(),
       };
       this.storage.writeObject(STORAGE_KEY, data);
@@ -181,18 +199,16 @@ export class PresentationSettingsService implements TablePresentation {
 
   /** Reads stored settings, filling gaps with defaults. */
   private loadPersisted(): PersistedPresentation {
-    const parsed =
-      this.storage.readObject<Partial<PersistedPresentation>>(STORAGE_KEY);
+    const parsed = this.storage.readObject<StoredPresentation>(STORAGE_KEY);
     if (!parsed) return { ...DEFAULTS };
 
     return {
       cardBackStyle: isCardBackStyle(parsed.cardBackStyle)
         ? parsed.cardBackStyle
         : DEFAULTS.cardBackStyle,
-      backgroundColor:
-        typeof parsed.backgroundColor === "string" && parsed.backgroundColor
-          ? parsed.backgroundColor
-          : DEFAULTS.backgroundColor,
+      theme: isThemeKey(parsed.theme)
+        ? parsed.theme
+        : (themeWithColor(parsed.backgroundColor) ?? DEFAULTS.theme),
       // Absent from settings saved before the deck could be chosen.
       cardDeck: isCardDeckId(parsed.cardDeck)
         ? parsed.cardDeck
