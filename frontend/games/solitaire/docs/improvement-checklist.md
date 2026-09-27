@@ -47,9 +47,9 @@ start at the first unticked item. Delete this file once every item is done.
 
 ## Rendering
 
-- [ ] **Pass placeholder data to the board scene.** Removes the Phaser adapter's
-      only import from the tableau engine.
-- [ ] **Block tableau imports in the Phaser adapter's lint rule.**
+- [x] **Pass placeholder data to the board scene.** `BoardSceneOptions` takes
+      `backgrounds`, built by `pileBackgrounds` in `engine/tableau/view`.
+- [x] **Block tableau imports in the Phaser adapter's lint rule.**
 - [ ] **Slim the board input manager.** The scene owns the drag controller, and
       the input manager only binds Phaser events.
 

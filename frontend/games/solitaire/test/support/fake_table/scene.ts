@@ -1,5 +1,6 @@
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { TablePresentation } from "@/engine/render/presentation";
+import { pileBackgrounds } from "@/engine/tableau/view/pile_backgrounds";
 import {
   FAKE_TABLE_LAYOUT,
   buildFakeTableViewState,
@@ -16,8 +17,8 @@ export function makeFakeTableBoardScene(
   onReady?: () => void,
 ): BoardScene {
   return new BoardScene({
-    game,
     cardIds: game.cardIds,
+    backgrounds: pileBackgrounds(game),
     layout: FAKE_TABLE_LAYOUT,
     buildViewState: buildFakeTableViewState(game, presentation),
     resolveDropTarget: resolveFakeTableDropTarget(game),

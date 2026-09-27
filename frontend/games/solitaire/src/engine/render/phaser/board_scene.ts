@@ -9,6 +9,7 @@ import { StackFromCard } from "../input/drag_controller";
 import { IntentHandler } from "../input/table_intents";
 import {
   DragInteraction,
+  PileBackgroundSpec,
   PileGeometry,
   TableInteractionState,
   TableViewState,
@@ -18,7 +19,6 @@ import { TableLayoutSpec, designSize } from "../layout/table_layout";
 import { CardDeckId } from "../card_deck";
 import { CardDeckStatus, Subscribe } from "../presentation";
 import { cardDeckTextureKey } from "./card_deck_atlas";
-import { TableView } from "@/engine/tableau/view/table_view";
 
 /** Produces the desired appearance of a board for one frame. */
 export type BuildTableViewState = (
@@ -34,10 +34,10 @@ export type ResolveDropTarget = (
 
 /** Gives a board scene everything it needs from the game it draws. */
 export interface BoardSceneOptions {
-  /** The game to draw, read through its narrow view. */
-  readonly game: TableView;
   /** The id of every card that needs a sprite. */
   readonly cardIds: readonly string[];
+  /** The placeholder drawn beneath each pile that has one. */
+  readonly backgrounds: readonly PileBackgroundSpec[];
   /** The board's grid, for sizing before the canvas has been measured. */
   readonly layout: TableLayoutSpec;
   /** Produces the desired appearance of the board for one frame. */
@@ -74,14 +74,6 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Transparency (alpha) level for pile background placeholders. */
   public static readonly PILE_BACKGROUND_ALPHA = 0.5;
 
-  /**
-   * The game being drawn, read through its narrow view.
-   *
-   * Not `game`, which a Phaser scene already uses for the Phaser.Game running
-   * it.
-   */
-  public readonly tableGame: TableView;
-
   /** Everything this scene was told about the game it draws. */
   private readonly options: BoardSceneOptions;
 
@@ -108,7 +100,6 @@ export class BoardScene extends Scene implements PhaserSprites {
     super("board-scene");
 
     this.options = options;
-    this.tableGame = options.game;
   }
 
   /** Resolves the pile a drag would land on. */
@@ -203,10 +194,6 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Instantiates and registers a sprite for every playing card in the game. */
   private createCardSprites(): void {
     for (const id of this.options.cardIds) {
-      if (!this.tableGame.getCardById(id)) {
-        throw new Error(`Card model not found for: ${id}`);
-      }
-
       const sprite = this.visualFactory.createCardSprite();
       this.cardSprites.set(id, sprite);
 
@@ -215,22 +202,19 @@ export class BoardScene extends Scene implements PhaserSprites {
     }
   }
 
-  /** Creates a placeholder sprite for every pile whose zone declares one. */
+  /** Creates a placeholder sprite for every pile that has one. */
   private createPileBackgroundSprites(): void {
     const alpha = BoardScene.PILE_BACKGROUND_ALPHA;
 
-    for (const pile of this.tableGame.piles) {
-      const zone = this.tableGame.zoneFor(pile.id);
-      if (!zone?.backgroundKey) continue;
-
+    for (const { pileId, frame, actionable } of this.options.backgrounds) {
       const sprite = this.visualFactory.createPileBackground(
-        zone.backgroundKey,
+        frame,
         alpha,
-        zone.emptyIsActionable ?? false,
+        actionable,
       );
-      this.pileBackgrounds.set(pile.id, sprite);
-      if (zone.emptyIsActionable) {
-        this.inputManager.registerPileBackgroundListeners(sprite, pile.id);
+      this.pileBackgrounds.set(pileId, sprite);
+      if (actionable) {
+        this.inputManager.registerPileBackgroundListeners(sprite, pileId);
       }
     }
   }

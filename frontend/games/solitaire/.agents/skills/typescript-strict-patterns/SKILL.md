@@ -83,9 +83,9 @@ Two points that are easy to get wrong:
   publishes through the engine's own `EventEmitter`
   (`src/engine/core/common/event_emitter.ts`); the Angular shell adapts to
   reactive types at its own boundary.
-- `src/engine/render/phaser` may import Phaser, but not
-  `@/engine/tableau/view/table_view_builder` — the adapter draws whatever it is
-  handed and must not reach up for the thing that builds the view.
+- `src/engine/render/phaser` may import Phaser, but nothing from
+  `@/engine/tableau/*` — the adapter draws whatever it is handed, and the
+  tableau runtime beside it reaches it only as data in `BoardSceneOptions`.
 
 ## Style
 
