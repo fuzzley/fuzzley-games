@@ -166,6 +166,12 @@ describe("GameBrowserComponent", () => {
       expect(searchField().placeholder).toBe("Search 3 games");
     });
 
+    it("leaves the scrolling list out of the tab order", () => {
+      open();
+
+      expect(query(fixture, ".list-pane")?.getAttribute("tabindex")).toBe("-1");
+    });
+
     it("starts on the game on the table", () => {
       open();
 
@@ -322,6 +328,20 @@ describe("GameBrowserComponent", () => {
 
     it("offers Clear only while a filter is on", () => {
       expect(query(fixture, ".chip-clear")).toBeNull();
+    });
+
+    it("keeps each facet's chips together, so they wrap as one", () => {
+      const groups = queryAll(fixture, ".filter-group").map((group) =>
+        Array.from(group.querySelectorAll(".chip"), (c) =>
+          c.textContent?.trim(),
+        ),
+      );
+
+      expect(groups).toEqual([
+        ["Easy", "Medium", "Hard"],
+        ["1 deck", "2 decks"],
+        ["All cards visible"],
+      ]);
     });
   });
 
