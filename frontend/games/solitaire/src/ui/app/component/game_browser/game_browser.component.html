@@ -80,26 +80,28 @@
         @if (!$first) {
           <span class="filter-divider" aria-hidden="true"></span>
         }
-        @for (chip of group; track chip.label) {
-          <button
-            type="button"
-            class="chip"
-            [attr.aria-pressed]="chip.pressed"
-            (click)="chip.toggle()"
-          >
-            @if (chip.pressed) {
-              <svg
-                class="chip-check"
-                fill="currentColor"
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-              >
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19L21 7l-1.41-1.41z" />
-              </svg>
-            }
-            {{ chip.label }}
-          </button>
-        }
+        <div class="filter-group">
+          @for (chip of group; track chip.label) {
+            <button
+              type="button"
+              class="chip"
+              [attr.aria-pressed]="chip.pressed"
+              (click)="chip.toggle()"
+            >
+              @if (chip.pressed) {
+                <svg
+                  class="chip-check"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19L21 7l-1.41-1.41z" />
+                </svg>
+              }
+              {{ chip.label }}
+            </button>
+          }
+        </div>
       }
       @if (filtering()) {
         <button type="button" class="chip chip-clear" (click)="clearFilters()">
@@ -111,7 +113,12 @@
     <p class="visually-hidden" aria-live="polite">{{ announcement() }}</p>
 
     <div class="panes">
-      <div class="list-pane">
+      <!--
+        Out of the tab order, which the browser otherwise gives a scrolling
+        box with nothing focusable in it: the search field moves through the
+        list instead.
+      -->
+      <div class="list-pane" tabindex="-1">
         <!--
           Rows are chosen by pointer here and by the arrow keys from the search
           field, which owns focus as a combobox does, so they take none of
