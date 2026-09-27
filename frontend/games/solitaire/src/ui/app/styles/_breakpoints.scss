@@ -5,10 +5,10 @@
 //
 //   phone    Below it a dialog card is most of the screen, so it gives up its
 //            generous padding rather than its content.
-//   tablet   Below it the chrome compacts: the header shrinks, the game rail
-//            narrows and then overlays the board instead of sitting beside it.
-//            The tokens carrying those dimensions are re-declared at this
-//            width in `_tokens.scss`.
+//   tablet   Below it the chrome compacts: the header shrinks, and the game
+//            browser fills the screen, showing its list and a preview one at
+//            a time. The header height is re-declared at this width in
+//            `_tokens.scss`.
 //   desktop  Below it there is no room for the header's labelled actions
 //            beside a long game name, so they become icon buttons.
 $breakpoints: (

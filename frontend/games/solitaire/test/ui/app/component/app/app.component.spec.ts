@@ -57,7 +57,6 @@ describe("AppComponent Composition", () => {
 
   it("renders the child components in the shell", () => {
     expect(query(fixture, "app-header-bar")).not.toBeNull();
-    expect(query(fixture, "app-game-menu")).not.toBeNull();
     expect(query(fixture, "app-game-browser")).not.toBeNull();
     expect(query(fixture, "app-settings-drawer")).not.toBeNull();
     expect(query(fixture, "app-victory-overlay")).not.toBeNull();

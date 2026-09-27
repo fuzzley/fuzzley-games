@@ -91,11 +91,6 @@ export interface CatalogEntry<TGame extends PlayableGame = PlayableGame> {
   readonly id: string;
   /** Name shown to a player. */
   readonly name: string;
-  /**
-   * Two characters standing for the game in a collapsed game rail, chosen by
-   * hand because many names share a first letter.
-   */
-  readonly marker: string;
   /** The rules this game lets the player choose. */
   readonly options: readonly GameOptionSpec[];
   /** The grid this game's board lies on, renderer-agnostic. */
@@ -247,7 +242,6 @@ const SPIDERETTE_VARIANT: GameOptionSpec<SpideretteVariant> = {
 const KLONDIKE = {
   id: "klondike" as const,
   name: "Klondike",
-  marker: "KL",
   options: [KLONDIKE_VARIANT, KLONDIKE_DRAW_COUNT, KLONDIKE_ALMOST_WIN],
   layout: KLONDIKE_LAYOUT,
   create: (values: GameOptionValues) =>
@@ -263,7 +257,6 @@ const KLONDIKE = {
 const FREECELL = {
   id: "freecell" as const,
   name: "FreeCell",
-  marker: "FC",
   options: [],
   layout: FREECELL_LAYOUT,
   create: () => dealt(new FreeCellGame()),
@@ -272,7 +265,6 @@ const FREECELL = {
 const SPIDER = {
   id: "spider" as const,
   name: "Spider",
-  marker: "SP",
   options: [SPIDER_SUIT_COUNT],
   layout: SPIDER_LAYOUT,
   create: (values: GameOptionValues) =>
@@ -288,7 +280,6 @@ const SPIDER = {
 const YUKON = {
   id: "yukon" as const,
   name: "Yukon",
-  marker: "YU",
   options: [YUKON_VARIANT],
   layout: YUKON_LAYOUT,
   create: (values: GameOptionValues) =>
@@ -298,7 +289,6 @@ const YUKON = {
 const BAKERS = {
   id: "bakers" as const,
   name: "Baker's Game",
-  marker: "BG",
   options: [BAKERS_EMPTY_COLUMNS],
   layout: FREECELL_LAYOUT,
   // FreeCell's class, playing by Baker's Game's column rules.
@@ -316,7 +306,6 @@ const BAKERS = {
 const EIGHT_OFF = {
   id: "eightoff" as const,
   name: "Eight Off",
-  marker: "EO",
   options: [],
   layout: EIGHT_OFF_LAYOUT,
   create: () => dealt(new EightOffGame()),
@@ -325,7 +314,6 @@ const EIGHT_OFF = {
 const SCORPION = {
   id: "scorpion" as const,
   name: "Scorpion",
-  marker: "SC",
   options: [],
   layout: SCORPION_LAYOUT,
   create: () => dealt(new ScorpionGame()),
@@ -334,7 +322,6 @@ const SCORPION = {
 const SIMPLE_SIMON = {
   id: "simplesimon" as const,
   name: "Simple Simon",
-  marker: "SS",
   options: [],
   layout: SIMPLE_SIMON_LAYOUT,
   create: () => dealt(new SimpleSimonGame()),
@@ -343,7 +330,6 @@ const SIMPLE_SIMON = {
 const BAKERS_DOZEN = {
   id: "bakersdozen" as const,
   name: "Baker's Dozen",
-  marker: "BD",
   options: [],
   layout: BAKERS_DOZEN_LAYOUT,
   create: () => dealt(new BakersDozenGame()),
@@ -352,7 +338,6 @@ const BAKERS_DOZEN = {
 const SEAHAVEN = {
   id: "seahaven" as const,
   name: "Seahaven Towers",
-  marker: "ST",
   options: [],
   layout: SEAHAVEN_LAYOUT,
   create: () => dealt(new SeahavenGame()),
@@ -361,7 +346,6 @@ const SEAHAVEN = {
 const FORTY_THIEVES = {
   id: "fortythieves" as const,
   name: "Forty Thieves",
-  marker: "FT",
   options: [FORTY_THIEVES_VARIANT],
   layout: FORTY_THIEVES_LAYOUT,
   create: (values: GameOptionValues) =>
@@ -380,7 +364,6 @@ const FORTY_THIEVES = {
 const MARIA = {
   id: "maria" as const,
   name: "Maria",
-  marker: "MA",
   options: [],
   layout: MARIA_LAYOUT,
   create: () =>
@@ -390,7 +373,6 @@ const MARIA = {
 const LIMITED = {
   id: "limited" as const,
   name: "Limited",
-  marker: "LI",
   options: [],
   layout: LIMITED_LAYOUT,
   create: () =>
@@ -400,7 +382,6 @@ const LIMITED = {
 const MONTANA = {
   id: "montana" as const,
   name: "Montana",
-  marker: "MO",
   options: [],
   layout: MONTANA_LAYOUT,
   create: () => dealt(new MontanaGame()),
@@ -409,7 +390,6 @@ const MONTANA = {
 const DOUBLE_KLONDIKE = {
   id: "doubleklondike" as const,
   name: "Double Klondike",
-  marker: "DK",
   options: [],
   layout: DOUBLE_KLONDIKE_LAYOUT,
   create: () => dealt(new DoubleKlondikeGame()),
@@ -418,7 +398,6 @@ const DOUBLE_KLONDIKE = {
 const EASTHAVEN = {
   id: "easthaven" as const,
   name: "Easthaven",
-  marker: "EH",
   options: [],
   layout: EASTHAVEN_LAYOUT,
   create: () => dealt(new EasthavenGame()),
@@ -427,7 +406,6 @@ const EASTHAVEN = {
 const SPIDERETTE = {
   id: "spiderette" as const,
   name: "Spiderette",
-  marker: "SD",
   options: [SPIDERETTE_VARIANT],
   layout: SPIDERETTE_LAYOUT,
   create: (values: GameOptionValues) =>

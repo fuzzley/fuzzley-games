@@ -60,14 +60,6 @@ describe("GameLifecycleService", () => {
       expect(harness.model.startNewGame).toHaveBeenCalledOnce();
     });
 
-    it("switches games without asking", async () => {
-      const harness = buildLifecycle();
-
-      await harness.lifecycle.selectGame("freecell");
-
-      expect(harness.catalog.select).toHaveBeenCalledWith("freecell");
-    });
-
     it("changes a rule without asking", async () => {
       const harness = buildLifecycle();
 
@@ -81,7 +73,7 @@ describe("GameLifecycleService", () => {
     /** Starts an action and answers the prompt it raises. */
     async function answer(
       harness: Harness,
-      action: Promise<void>,
+      action: Promise<unknown>,
       confirmed: boolean,
     ): Promise<void> {
       expect(harness.confirmation.isOpen()).toBe(true);
@@ -116,21 +108,16 @@ describe("GameLifecycleService", () => {
       expect(harness.model.restartGame).not.toHaveBeenCalled();
     });
 
-    it("asks before switching games", () => {
-      const harness = buildLifecycle({ moves: 4 });
-
-      void harness.lifecycle.selectGame("freecell");
-
-      expect(harness.confirmation.isOpen()).toBe(true);
-      expect(harness.catalog.select).not.toHaveBeenCalled();
-    });
-
     it("switches once the prompt is accepted", async () => {
       const harness = buildLifecycle({ moves: 4 });
 
-      await answer(harness, harness.lifecycle.selectGame("freecell"), true);
+      await answer(
+        harness,
+        harness.lifecycle.playGame("freecell", {}, "FreeCell"),
+        true,
+      );
 
-      expect(harness.catalog.select).toHaveBeenCalledWith("freecell");
+      expect(harness.catalog.catalog.selectedId()).toBe("freecell");
     });
 
     it("asks before changing a rule, which deals a new game", async () => {
@@ -156,15 +143,6 @@ describe("GameLifecycleService", () => {
   });
 
   describe("actions that change nothing", () => {
-    it("ignores picking the game already in play, which would deal a new one", async () => {
-      const harness = buildLifecycle({ moves: 4 });
-
-      await harness.lifecycle.selectGame("klondike");
-
-      expect(harness.catalog.select).not.toHaveBeenCalled();
-      expect(harness.confirmation.isOpen()).toBe(false);
-    });
-
     it("ignores setting a rule to the value it already has", async () => {
       const harness = buildLifecycle({ moves: 4 });
 

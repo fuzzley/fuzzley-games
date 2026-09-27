@@ -115,12 +115,6 @@ describe("the game catalog", () => {
     expect(GAME_CATALOG[0].id).toBe("klondike");
   });
 
-  it("badges every game with a distinct marker", () => {
-    const markers = GAME_CATALOG.map((entry) => entry.marker);
-
-    expect(new Set(markers).size).toBe(markers.length);
-  });
-
   it.each(GAMES)(
     "%s offers each of its rules under a distinct id",
     (_name, entry) => {
