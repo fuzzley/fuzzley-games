@@ -209,7 +209,7 @@ describe("HeaderBarComponent", () => {
     });
 
     it("deals a new game once its prompt is accepted", async () => {
-      clickElement(fixture, "button[title*='New Game']");
+      clickElement(fixture, "button[title*='new game']");
       await flushMicrotasks();
 
       TestBed.inject(ConfirmationService).accept();
