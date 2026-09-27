@@ -137,6 +137,7 @@ Architecture guidelines are enforced as hard build errors rather than convention
 | `src/engine/render/phaser`            | Phaser 4, `engine/core`, `engine/render` | `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                                       |
 | `src/engine/tableau`                  | `engine/core`, `engine/render`           | `phaser`, `@/engine/render/phaser/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                       |
 | `src/games/*`                         | `engine/*`                               | `@/ui/*`, `@angular/*`, `rxjs`                                                                          |
+| `src/ui` _(excl. app/provider/)_      | everything but games                     | `@/games/*`                                                                                             |
 
 Note that the generic Phaser canvas host is `engine/render/phaser/phaser_host.ts`
 (`PhaserHost`). It is handed a board to run, so the shell never imports a game
