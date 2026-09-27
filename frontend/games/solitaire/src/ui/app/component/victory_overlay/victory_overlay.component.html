@@ -40,12 +40,23 @@
       </div>
     </dl>
 
-    <button
-      type="button"
-      class="btn btn-warning btn-large btn-block"
-      (click)="playAgain()"
-    >
-      Play Again
-    </button>
+    <div class="victory-actions">
+      <button
+        type="button"
+        class="btn btn-warning btn-large btn-block"
+        (click)="playAgain()"
+      >
+        Play Again
+      </button>
+      <!-- Opens over the card, which stays until a new game is dealt. -->
+      <button
+        type="button"
+        class="btn btn-secondary btn-large btn-block"
+        aria-haspopup="dialog"
+        (click)="browser.open()"
+      >
+        Choose another game
+      </button>
+    </div>
   </div>
 </app-modal-dialog>

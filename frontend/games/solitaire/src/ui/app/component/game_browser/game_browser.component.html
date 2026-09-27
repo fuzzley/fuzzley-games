@@ -1,0 +1,235 @@
+<app-modal-dialog
+  [open]="browser.isOpen()"
+  label="Choose a game"
+  (closed)="onCloseRequest()"
+>
+  <div class="browser" [class.showing-detail]="showingDetail()">
+    <div class="browser-header">
+      <!-- Focusable from script only, for coming back from a preview. -->
+      <h2 #heading class="browser-title" tabindex="-1">Choose a game</h2>
+      <button
+        type="button"
+        class="btn-close"
+        (click)="browser.close()"
+        aria-label="Close game browser"
+      >
+        <svg
+          class="close-icon"
+          fill="currentColor"
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <div class="search">
+      <svg
+        class="search-icon"
+        fill="currentColor"
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+        />
+      </svg>
+      <!--
+        The field keeps focus while the arrow keys move through the list, as a
+        combobox does. It takes focus on opening only where there is a
+        keyboard to type with: on a phone, the on-screen keyboard would cover
+        the list. The lint rule is about autofocus on page load, which a
+        dialog taking focus is not.
+      -->
+      <!-- eslint-disable @angular-eslint/template/no-autofocus -->
+      <input
+        #search
+        class="search-input"
+        type="search"
+        role="combobox"
+        aria-label="Search games"
+        aria-autocomplete="list"
+        aria-expanded="true"
+        aria-controls="game-browser-results"
+        [attr.aria-activedescendant]="activeRow()?.id ?? null"
+        [attr.autofocus]="viewport.isCompact() ? null : ''"
+        [placeholder]="placeholder"
+        [value]="query()"
+        autocomplete="off"
+        spellcheck="false"
+        (input)="setQuery(search.value)"
+        (keydown)="onSearchKeydown($event)"
+      />
+      <!-- eslint-enable @angular-eslint/template/no-autofocus -->
+      <!--
+        Teaches the shortcut for next time. Hidden from a screen reader, which
+        hears it from the header's switcher instead.
+      -->
+      @if (!query()) {
+        <kbd class="search-shortcut" aria-hidden="true">{{
+          browser.shortcutLabel
+        }}</kbd>
+      }
+    </div>
+
+    <div class="filters" role="group" aria-label="Filter games">
+      @for (group of filterGroups(); track $index) {
+        @if (!$first) {
+          <span class="filter-divider" aria-hidden="true"></span>
+        }
+        @for (chip of group; track chip.label) {
+          <button
+            type="button"
+            class="chip"
+            [attr.aria-pressed]="chip.pressed"
+            (click)="chip.toggle()"
+          >
+            @if (chip.pressed) {
+              <svg
+                class="chip-check"
+                fill="currentColor"
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+              >
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19L21 7l-1.41-1.41z" />
+              </svg>
+            }
+            {{ chip.label }}
+          </button>
+        }
+      }
+      @if (filtering()) {
+        <button type="button" class="chip chip-clear" (click)="clearFilters()">
+          Clear
+        </button>
+      }
+    </div>
+
+    <p class="visually-hidden" aria-live="polite">{{ announcement() }}</p>
+
+    <div class="panes">
+      <div class="list-pane">
+        <!--
+          Rows are chosen by pointer here and by the arrow keys from the search
+          field, which owns focus as a combobox does, so they take none of
+          their own. The lint rules asking for a keyboard handler and a tab
+          stop on each do not know the pattern.
+        -->
+        <div
+          class="results"
+          id="game-browser-results"
+          role="listbox"
+          aria-label="Games"
+        >
+          @for (section of sections(); track section.id) {
+            <div
+              class="section"
+              role="group"
+              [attr.aria-labelledby]="section.headingId"
+            >
+              <div
+                class="section-heading"
+                role="presentation"
+                [id]="section.headingId"
+              >
+                {{ section.name }}
+              </div>
+              @for (row of section.rows; track row.id) {
+                <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+                <div
+                  class="row"
+                  role="option"
+                  [id]="row.id"
+                  [attr.aria-selected]="row.id === activeRow()?.id"
+                  [attr.aria-label]="row.label"
+                  [attr.aria-describedby]="row.taglineId"
+                  (click)="select(row)"
+                  (dblclick)="play(row, row.values)"
+                >
+                  <img
+                    class="thumb"
+                    [src]="row.item.thumbnailUrl"
+                    alt=""
+                    width="96"
+                    height="54"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <span class="row-text">
+                    <!--
+                      Every segment an element, so the whitespace between them
+                      is dropped rather than splitting a word where it matched.
+                    -->
+                    <span class="row-name">
+                      @for (segment of row.nameSegments; track $index) {
+                        @if (segment.match) {
+                          <mark>{{ segment.text }}</mark>
+                        } @else {
+                          <span>{{ segment.text }}</span>
+                        }
+                      }
+                      @if (row.rules) {
+                        <span class="row-rules">&nbsp;· {{ row.rules }}</span>
+                      }
+                    </span>
+                    <span class="row-tagline" [id]="row.taglineId">{{
+                      row.item.tagline
+                    }}</span>
+                  </span>
+                  <span class="row-meta">
+                    @if (row.playing) {
+                      <span class="badge-playing">Playing</span>
+                    }
+                    <span class="difficulty">
+                      <span class="dots" aria-hidden="true">
+                        @for (on of row.dots; track $index) {
+                          <span class="dot" [class.on]="on"></span>
+                        }
+                      </span>
+                      {{ row.difficulty }}
+                    </span>
+                    @if (row.item.decks === 2) {
+                      <span class="decks">2 decks</span>
+                    }
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        @if (sections().length === 0) {
+          <div class="empty">
+            <p class="empty-message">{{ emptyMessage() }}</p>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="clearAll()"
+            >
+              Show every game
+            </button>
+          </div>
+        }
+      </div>
+
+      <div class="preview-pane">
+        @if (activeRow(); as row) {
+          <app-game-preview
+            [item]="row.item"
+            [values]="row.values"
+            [options]="activeOptions()"
+            [overview]="activeOverview()"
+            [playing]="row.playing"
+            [showBack]="viewport.isCompact()"
+            (deal)="play(row, $event)"
+            (help)="showRules(row)"
+            (back)="back()"
+          />
+        }
+      </div>
+    </div>
+  </div>
+</app-modal-dialog>

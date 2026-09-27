@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { GameMetricsService } from "../../service/game_metrics.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
+import { GameBrowserService } from "../../service/game_browser.service";
 import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
 
 /**
- * Shows the final score, time and moves once the board is cleared, with a
- * button to play again.
+ * Shows the final score, time and moves once the board is cleared, with
+ * buttons to play again or to choose another game.
  *
- * Not dismissible, since a finished board has nowhere else to go.
+ * Not dismissible, since a finished board has nothing to go back to.
  */
 @Component({
   selector: "app-victory-overlay",
@@ -18,6 +19,7 @@ import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
 })
 export class VictoryOverlayComponent {
   protected readonly metrics = inject(GameMetricsService);
+  protected readonly browser = inject(GameBrowserService);
   private readonly lifecycle = inject(GameLifecycleService);
 
   /** Deals a new game without asking: a finished board has nothing to lose. */

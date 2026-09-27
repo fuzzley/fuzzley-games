@@ -15,6 +15,7 @@
     "build:dev": "vite build --mode development",
     "build:prod": "vite build --mode production",
     "build:atlas": "node tools/build-card-atlas.mjs",
+    "build:thumbs": "node tools/build-screenshot-thumbs.mjs",
     "skills:link": "node .agents/link-claude-skills.mjs",
     "skills:check": "node .agents/check-skill-references.mjs",
     "preview": "vite preview",
