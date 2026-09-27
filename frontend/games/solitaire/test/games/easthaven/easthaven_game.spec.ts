@@ -22,7 +22,10 @@ const ACES_ONLY = ALL_PLAYING_CARD_IDS.filter((card) => card.rank === Rank.ACE);
 function newGame(
   cardIds: typeof ALL_PLAYING_CARD_IDS = ALL_PLAYING_CARD_IDS,
 ): EasthavenGame {
-  const game = new EasthavenGame(cardIds, sequenceRandom(SHUFFLE_VALUES));
+  const game = new EasthavenGame({
+    cardIds,
+    random: sequenceRandom(SHUFFLE_VALUES),
+  });
   game.startNewGame();
   return game;
 }

@@ -46,9 +46,11 @@ These are three independent decisions, and it is worth keeping them apart:
 No new directory, no new board. Add a member to the game's variant union in
 `<game>_rules.ts`, add its row to that file's variant table, and add a choice to
 the `GameOptionSpec` in `src/ui/app/provider/game_catalog.ts`. Use the variant
-enum members themselves as the option's `value`s — as `YUKON_VARIANT` and
-`SPIDERETTE_VARIANT` do — so the choices offered and the games selected cannot
-drift apart. Then document the new choice under `settingsAndVariants` in
+enum members themselves as the option's `value`s, and type the spec as
+`GameOptionSpec<MyVariant>` — as `YUKON_VARIANT` and `SPIDERETTE_VARIANT` do —
+so `optionValue` hands back the variant without a cast, and the choices offered
+and the games selected cannot drift apart. Then document the new choice under
+`settingsAndVariants` in
 `src/ui/app/provider/game_documentation_data.ts`.
 
 ---
@@ -154,10 +156,13 @@ super({
 
 Then grab your piles with `this.pilesOfRole(role)` / `this.requirePile(id)`.
 
-Constructor shape, followed by every game: `(cardIds = ALL_PLAYING_CARD_IDS,
-random = Math.random, variant?)`. Both defaults are there so a test can supply a
-short deck and a fixed shuffle. A variant is a constructor parameter rather than
-a field because the zones are built from it during `super`.
+Constructor shape, followed by every game: one options object extending
+`DeckOptions` (`src/games/common/deck_options.ts`), destructured with its
+defaults — `constructor({ cardIds = ALL_PLAYING_CARD_IDS, random = Math.random,
+variant = DEFAULT_MY_VARIANT }: MyGameOptions = {})`. `cardIds` and `random` are
+there so a test can supply a short deck and a fixed shuffle. A variant is an
+option rather than a field set later because the zones are built from it during
+`super`.
 
 The only required override is `dealBoard(deck)`. Optionally:
 
@@ -243,8 +248,8 @@ Otherwise call `tableGestures(game, options)` with:
    two-character `marker`, `options`, `layout`, `create`) with `satisfies
 CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
    preserves the literal id and concrete game type that the board registry is
-   checked against. Add it to `CATALOG_ENTRIES`. `create` must call
-   `game.startNewGame()` before returning `{ game }`.
+   checked against. Add it to `CATALOG_ENTRIES`. `create` returns
+   `dealt(new MyGame({ … }))`, which deals the game before handing it over.
 2. **`src/ui/app/provider/board_catalog.ts`** — map the id to its gestures in
    `GESTURES`. The mapped type means a missing or mismatched entry is a compile
    error, not a runtime throw. There is no per-game board file:

@@ -1,10 +1,11 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { deckCardIds } from "@/engine/core/card/deck";
-import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { KlondikeFamilyGame } from "@/games/klondike/klondike_family_game";
 import { ScoringPolicy, ScoringRoles } from "@/games/klondike/scoring_policy";
+import { DeckOptions } from "@/games/common/deck_options";
 import {
   DOUBLE_KLONDIKE_TWO_DECKS,
   dealDoubleKlondikeLayout,
@@ -24,6 +25,12 @@ const DOUBLE_KLONDIKE_SCORING_ROLES: ScoringRoles = {
 /** How many cards a draw turns over. */
 export const DRAW_COUNT = 3;
 
+/** Configures a game of Double Klondike. */
+export interface DoubleKlondikeOptions extends DeckOptions {
+  /** How moves, flips and recycles score; the standard rules by default. */
+  readonly scoring?: ScoringPolicy;
+}
+
 /**
  * Plays Double Klondike: Klondike dealt from two decks onto nine columns and
  * eight foundations, with the waste recycled as often as the player likes.
@@ -35,11 +42,11 @@ export class DoubleKlondikeGame extends KlondikeFamilyGame {
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
   /** Creates a game whose piles are empty until the first deal. */
-  constructor(
-    cardIds: ReadonlyArray<DeckCardId> = deckCardIds(DOUBLE_KLONDIKE_TWO_DECKS),
-    random: () => number = Math.random,
-    scoring: ScoringPolicy = new ScoringPolicy(DOUBLE_KLONDIKE_SCORING_ROLES),
-  ) {
+  constructor({
+    cardIds = deckCardIds(DOUBLE_KLONDIKE_TWO_DECKS),
+    random = Math.random,
+    scoring = new ScoringPolicy(DOUBLE_KLONDIKE_SCORING_ROLES),
+  }: DoubleKlondikeOptions = {}) {
     super({
       zones: doubleKlondikeZoneSpecs(),
       deck: new DeckSource(new CardRegistry(), cardIds, random),

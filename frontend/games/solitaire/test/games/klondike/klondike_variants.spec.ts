@@ -9,7 +9,7 @@ import {
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
 function newGame(variant: KlondikeVariant): KlondikeGame {
-  const game = new KlondikeGame(undefined, undefined, undefined, variant);
+  const game = new KlondikeGame({ variant });
   game.startNewGame();
   return game;
 }

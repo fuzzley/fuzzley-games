@@ -38,11 +38,12 @@ start at the first unticked item. Delete this file once every item is done.
       first proposed: everything the two games shared was an engine hook, which
       a delegate would have needed forwarding in both. Double Klondike now uses
       Klondike's gestures too.
-- [ ] **Use options objects in game constructors.** Remove the placeholder
-      `undefined` arguments, type option values so the casts go away, and share
-      one create-and-deal helper.
-- [ ] **Update the add-game skill.** Change it in the same commit as any item
-      above that changes its recipe.
+- [x] **Use options objects in game constructors.** Every game takes one
+      options object extending `DeckOptions`; `GameOptionSpec<T>` types each
+      option's values; the catalog deals through `dealt`. `almostWin` became a
+      readonly option.
+- [x] **Update the add-game skill.** Updated in the same commit as each item
+      above that changed its recipe.
 
 ## Rendering
 

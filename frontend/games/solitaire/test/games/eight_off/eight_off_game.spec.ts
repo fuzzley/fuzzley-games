@@ -93,10 +93,10 @@ describe("EightOffGame", () => {
   let game: EightOffGame;
 
   beforeEach(() => {
-    game = new EightOffGame(
-      ALL_PLAYING_CARD_IDS,
-      sequenceRandom(SHUFFLE_VALUES),
-    );
+    game = new EightOffGame({
+      cardIds: ALL_PLAYING_CARD_IDS,
+      random: sequenceRandom(SHUFFLE_VALUES),
+    });
     game.startNewGame();
   });
 
@@ -323,10 +323,10 @@ describe("EightOffGame", () => {
 
   describe("winning", () => {
     it("announces the win when the last card reaches a foundation", () => {
-      const acesGame = new EightOffGame(
-        ACES_ONLY,
-        sequenceRandom(SHUFFLE_VALUES),
-      );
+      const acesGame = new EightOffGame({
+        cardIds: ACES_ONLY,
+        random: sequenceRandom(SHUFFLE_VALUES),
+      });
       let won = false;
       acesGame.on("game-won", () => {
         won = true;

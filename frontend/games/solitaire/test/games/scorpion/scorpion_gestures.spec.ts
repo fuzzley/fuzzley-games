@@ -20,7 +20,7 @@ describe("scorpionGestures", () => {
   let handle: IntentHandler;
 
   beforeEach(() => {
-    game = new ScorpionGame(undefined, sequenceRandom([]));
+    game = new ScorpionGame({ random: sequenceRandom([]) });
     game.startNewGame();
     handle = scorpionGestures(game);
   });

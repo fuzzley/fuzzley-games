@@ -362,11 +362,11 @@ describe("FreeCellGame", () => {
 
   describe("winning", () => {
     it("announces the win when the last card reaches a foundation", () => {
+      game = new FreeCellGame({ almostWin: true });
       let won = false;
       game.on("game-won", () => {
         won = true;
       });
-      game.almostWin = true;
       game.startNewGame();
       for (const tableau of game.tableaus) {
         const king = tableau.topCard;

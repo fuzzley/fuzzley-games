@@ -1,12 +1,13 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { runCollectingEffects } from "@/games/common/move_effects";
 import { dealRowCollectingRuns } from "@/games/common/row_deal";
+import { DeckOptions } from "@/games/common/deck_options";
 import { dealSpideretteLayout } from "./spiderette_deal";
 import {
   DEFAULT_SPIDERETTE_VARIANT,
@@ -17,6 +18,12 @@ import {
   STOCK_PILE_ID,
   spideretteZoneSpecs,
 } from "./spiderette_zones";
+
+/** Configures a game of Spiderette or Will o' the Wisp. */
+export interface SpideretteOptions extends DeckOptions {
+  /** Which of the two openings to deal. */
+  readonly variant?: SpideretteVariant;
+}
 
 /**
  * Plays Spiderette or Will o' the Wisp: Spider's rules on one deck and seven
@@ -32,16 +39,12 @@ export class SpideretteGame extends DealtTableGame {
 
   private readonly variant: SpideretteVariant;
 
-  /**
-   * Creates a game whose piles are empty until the first deal.
-   *
-   * @param variant Which of the two openings to deal.
-   */
-  constructor(
-    cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
-    random: () => number = Math.random,
-    variant: SpideretteVariant = DEFAULT_SPIDERETTE_VARIANT,
-  ) {
+  /** Creates a game whose piles are empty until the first deal. */
+  constructor({
+    cardIds = ALL_PLAYING_CARD_IDS,
+    random = Math.random,
+    variant = DEFAULT_SPIDERETTE_VARIANT,
+  }: SpideretteOptions = {}) {
     super({
       zones: spideretteZoneSpecs(),
       deck: new DeckSource(new CardRegistry(), cardIds, random),

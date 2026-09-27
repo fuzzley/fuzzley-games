@@ -15,7 +15,7 @@ describe("stocklessGestures", () => {
   let handle: IntentHandler;
 
   beforeEach(() => {
-    game = new FreeCellGame(undefined, sequenceRandom([]));
+    game = new FreeCellGame({ random: sequenceRandom([]) });
     game.startNewGame();
     handle = stocklessGestures(game);
   });

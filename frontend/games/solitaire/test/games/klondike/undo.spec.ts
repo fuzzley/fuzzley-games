@@ -8,7 +8,7 @@ describe("KlondikeGame undo", () => {
 
   beforeEach(() => {
     // Draw 3, so a draw moves several cards and their order is tested.
-    game = new KlondikeGame(undefined, undefined, 3);
+    game = new KlondikeGame({ drawCount: 3 });
     game.startNewGame();
   });
 
@@ -323,7 +323,7 @@ describe("KlondikeGame undo", () => {
 
   describe("the almost-win board", () => {
     it("takes back the winning move", () => {
-      game.almostWin = true;
+      game = new KlondikeGame({ drawCount: 3, almostWin: true });
       game.startNewGame();
       const king = game.tableaus[0].topCard!;
       expect(king.rank).toBe(Rank.KING);
