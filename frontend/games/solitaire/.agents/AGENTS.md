@@ -69,14 +69,16 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
   to each game's gestures through a mapped type, so a game without them is a
   compile error, and draws every game on the grid its entry declares.
   `game_documentation_data.ts` supplies the rules pages behind
-  an injection token, so specs can swap in their own; `bug_report_config.ts`
-  does the same for where a bug report is filed and which build filed it.
+  an injection token, so specs can swap in their own; `game_profile_data.ts`
+  does the same for the family, difficulty and tagline the game browser lists
+  each game by, and `bug_report_config.ts` for where a bug report is filed and
+  which build filed it.
 - **`src/ui/app/service`** — `GameCatalogService` owns which game is on the
   table (routed, see below); `GameMetricsService` reads the running game;
   `GameLifecycleService` changes it, behind a confirmation when there is a game
   to lose; the rest are small and single-purpose (timer, storage,
-  presentation, including the felt, documentation, menu, bug report, saved
-  game).
+  presentation, including the felt, documentation, game browser, recent
+  games, bug report, saved game).
 - **`src/ui/app/component`** — one folder per component. `modal_dialog` and
   `option_group` are the shared ones: every overlay is a native `<dialog>` via
   the first, and every settings control is the second.
@@ -155,6 +157,7 @@ This project uses **Yarn 4**. Always use Yarn commands instead of NPM (`yarn <co
 
 - **Run Development Server:** `yarn start` or `yarn dev` (launches Vite dev server at `http://localhost:9000/`).
 - **Build Card Atlas:** `yarn build:atlas` (runs `tools/build-card-atlas.mjs` to convert SVG assets into texture atlas files).
+- **Build Screenshot Thumbnails:** `yarn build:thumbs` (runs `tools/build-screenshot-thumbs.mjs` to crop each game's rules-page screenshot into the game browser's `thumb.webp` and `preview.webp`).
 - **Production Build:** `yarn build` (generates bundled production assets in `dist/` with Phaser manual chunking).
 - **Run Unit Tests:** `yarn test` (runs Vitest once) or `yarn test:watch` / `yarn test:coverage`.
 - **Linting:** `yarn lint` (checks the skills' references, runs ESLint over `src` and `test`, then checks formatting with `yarn prettier:check`).

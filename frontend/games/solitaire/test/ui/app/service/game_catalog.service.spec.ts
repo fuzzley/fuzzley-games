@@ -246,6 +246,23 @@ describe("GameCatalogService", () => {
       expect(harness.catalog.session()).toBe(before);
     });
 
+    it("remembers the rules of a game once another is on the table", () => {
+      const harness = buildCatalog();
+      harness.catalog.load("spider", { suitCount: 1 });
+
+      harness.catalog.load("klondike", {});
+
+      expect(harness.catalog.optionValuesFor("spider")["suitCount"]).toBe(1);
+    });
+
+    it("reads a game never played by its default rules", () => {
+      const harness = buildCatalog();
+
+      const values = harness.catalog.optionValuesFor("spider");
+
+      expect(values["suitCount"]).toBe(4);
+    });
+
     it("records a switch in the URL", async () => {
       const harness = buildCatalog();
 

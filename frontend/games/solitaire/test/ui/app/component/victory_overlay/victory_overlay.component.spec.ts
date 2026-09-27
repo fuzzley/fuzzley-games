@@ -2,6 +2,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { VictoryOverlayComponent } from "@/ui/app/component/victory_overlay/victory_overlay.component";
+import { GameBrowserService } from "@/ui/app/service/game_browser.service";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import { clickElement, queryText } from "@test/support/dom";
 import { flushMicrotasks } from "@test/support/async";
@@ -63,6 +64,14 @@ describe("VictoryOverlayComponent", () => {
     await flushMicrotasks();
 
     expect(harness.model.startNewGame).toHaveBeenCalledOnce();
+  });
+
+  it("offers another game in the game browser", () => {
+    win();
+
+    clickElement(fixture, ".btn-secondary");
+
+    expect(TestBed.inject(GameBrowserService).isOpen()).toBe(true);
   });
 
   it("refuses to close on Escape, since a finished board has nothing behind it", () => {

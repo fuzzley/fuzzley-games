@@ -1,0 +1,60 @@
+<article class="preview" [attr.aria-labelledby]="titleId">
+  @if (showBack()) {
+    <button type="button" class="btn-back" (click)="back.emit()">
+      <svg
+        class="back-icon"
+        fill="currentColor"
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+      >
+        <path d="M15.41 7.41L14 6l-6 6l6 6l1.41-1.41L10.83 12z" />
+      </svg>
+      All games
+    </button>
+  }
+
+  <div class="shot">
+    <img
+      class="shot-image"
+      [src]="item().previewUrl"
+      [alt]="imageAlt()"
+      width="1280"
+      height="720"
+      decoding="async"
+    />
+  </div>
+
+  <!-- Focusable from script only, so a narrow screen can land here. -->
+  <h3 #title class="title" [id]="titleId" tabindex="-1">{{ item().name }}</h3>
+
+  <ul class="facts" aria-label="At a glance">
+    @for (fact of facts(); track fact) {
+      <li class="fact">{{ fact }}</li>
+    }
+  </ul>
+
+  @if (overview()) {
+    <p class="overview">{{ overview() }}</p>
+  }
+
+  @for (option of options(); track option.id) {
+    <app-option-group
+      [option]="option"
+      [value]="chosen()[option.id]"
+      (choose)="choose(option.id, $event)"
+    />
+  }
+
+  <div class="actions">
+    <button
+      type="button"
+      class="btn btn-primary btn-play"
+      (click)="deal.emit(chosen())"
+    >
+      {{ playLabel() }}
+    </button>
+    <button type="button" class="btn btn-secondary" (click)="help.emit()">
+      How to play
+    </button>
+  </div>
+</article>

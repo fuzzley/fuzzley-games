@@ -178,6 +178,26 @@ describe("GameHelpModalComponent", () => {
       );
     });
 
+    it("opens on the rules of a game other than the one on the table", () => {
+      harness.catalog.catalog.select("freecell");
+
+      docService.openHelp("klondike");
+      fixture.detectChanges();
+
+      expect(queryText(fixture, ".game-title")).toBe("Test Klondike");
+    });
+
+    it("labels the choices of a game other than the one on the table", () => {
+      harness.catalog.catalog.select("freecell");
+      docService.openHelp("klondike");
+      fixture.detectChanges();
+
+      clickElement(fixture, '[data-tab="variants"]');
+      fixture.detectChanges();
+
+      expect(queryText(fixture, ".choice-badge")).toBe("Draw 1");
+    });
+
     it("offers no variants tab for a game with no options", () => {
       harness.catalog.catalog.select("freecell");
       openHelp();

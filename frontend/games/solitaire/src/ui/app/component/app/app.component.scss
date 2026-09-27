@@ -1,24 +1,9 @@
 @use "../../styles" as *;
 
-// The board sits beside the game rail rather than under it, so its leftmost
-// column is never hidden.
+// The whole window: the board lays itself out below the header.
 .board-area {
   position: absolute;
   inset: 0;
-  box-sizing: border-box;
-  padding-left: var(--rail-collapsed-width);
-
-  &.rail-expanded {
-    padding-left: var(--rail-expanded-width);
-  }
-}
-
-// On a narrow screen the open rail floats over the board, so opening it does
-// not change the board's width.
-@include below("tablet") {
-  .board-area.rail-expanded {
-    padding-left: var(--rail-collapsed-width);
-  }
 }
 
 // The chrome around the board, stacked above the board's loading scrim.

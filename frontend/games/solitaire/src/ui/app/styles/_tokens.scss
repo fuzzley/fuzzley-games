@@ -19,10 +19,12 @@
   // inside a modal.
   --surface-panel: #{with-alpha($slate-900, 0.95)};
   --surface-panel-translucent: #{with-alpha($slate-900, 0.5)};
-  --surface-rail: #{with-alpha($slate-900, 0.82)};
   --surface-raised: #{with-alpha($slate-800, 0.85)};
   // Its own role, though it currently matches the panel.
   --surface-modal: #{with-alpha($slate-900, 0.95)};
+  // The modal's surface made opaque, for a bar that content scrolls beneath
+  // and would otherwise show through.
+  --surface-modal-solid: #{$slate-900};
   --surface-card: #{with-alpha($slate-900, 0.6)};
   --surface-sunken: #{with-alpha($black, 0.2)};
   --surface-scrim: #{with-alpha($black, 0.6)};
@@ -72,8 +74,8 @@
 
   // --- Tints ---
   // The accents at low opacity: the fill behind a chosen swatch, the glow
-  // under a selected segment, the filled row in the game rail. Translucent
-  // rather than solid so the blurred board still reads through the chrome.
+  // under a selected segment, a pressed filter chip. Translucent rather than
+  // solid so the blurred board still reads through the chrome.
   --accent-wash: #{with-alpha($blue-500, 0.1)};
   --accent-glow: #{with-alpha($blue-500, 0.3)};
   --accent-fill: #{with-alpha($blue-600, 0.9)};
@@ -154,7 +156,6 @@
   --shadow-subtle: 0 4px 12px #{with-alpha($black, 0.15)};
   --shadow-swatch: 0 2px 8px #{with-alpha($black, 0.3)};
   --shadow-panel: 0 4px 30px #{with-alpha($black, 0.2)};
-  --shadow-rail: 6px 0 24px #{with-alpha($black, 0.35)};
   --shadow-drawer: -10px 0 30px #{with-alpha($black, 0.4)};
   --shadow-badge: 0 12px 32px #{with-alpha($black, 0.4)};
   --shadow-card: 0 10px 40px #{with-alpha($black, 0.5)};
@@ -177,24 +178,25 @@
   --focus-ring-offset: 2px;
 
   // --- Layout ---
-  // Read by the header, the rail and the board area, which must agree on them.
+  // Read by the header and the game canvas, which must agree on it.
   --header-height: 73px;
-  --rail-collapsed-width: 56px;
-  --rail-expanded-width: 190px;
+
+  // The game browser: the most room it takes, the width of its list, and a
+  // row's picture of a board, which `yarn build:thumbs` draws at twice this.
+  --browser-width: 1080px;
+  --browser-height: 760px;
+  --browser-list-width: 400px;
+  --browser-thumb-width: 96px;
+  --browser-thumb-height: 54px;
 
   // --- Stacking order ---
   // The full ladder, less the dialogs, which sit in the browser's top layer.
-  // `--z-chrome` keeps the header and rail above the board's loading scrim.
+  // `--z-chrome` keeps the header above the board's loading scrim.
   --z-loading: 10;
   --z-loading-badge: 12;
 
   --z-chrome: 200;
-  // Within the chrome, the rail and its overlay panel. The header's overflow
-  // menu clears them so a dropdown is never dimmed by a rail opening behind it.
-  --z-rail: 90;
-  --z-rail-overlay-backdrop: 100;
-  --z-rail-overlay-panel: 101;
-  --z-rail-overlay-toggle: 102;
+  // Within the chrome, the header's overflow menu over the header.
   --z-header-menu: 110;
 
   // --- Minimum hit target ---
@@ -203,11 +205,10 @@
   --tap-target-min: 44px;
 }
 
-// Compact chrome on narrow screens. The header shrinks and the rail narrows
-// with it, and both sides read the change from here.
+// Compact chrome on narrow screens. The header shrinks, and the canvas reads
+// the change from here.
 @include below("tablet") {
   :root {
     --header-height: 60px;
-    --rail-collapsed-width: 44px;
   }
 }
