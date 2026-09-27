@@ -180,8 +180,10 @@ export class GameCatalogService {
 
   /** Returns the game the current URL names, or null if it names none. */
   private gameIdFromUrl(): string | null {
-    const id = this.router.url.split(/[/?#]/).filter(Boolean)[0];
-    return GAME_CATALOG.some((entry) => entry.id === id) ? id : null;
+    const [id] = this.router.url.split(/[/?#]/).filter(Boolean);
+    return id !== undefined && GAME_CATALOG.some((entry) => entry.id === id)
+      ? id
+      : null;
   }
 
   /** The catalog entry currently selected. */

@@ -13,6 +13,7 @@ import {
 import { GameDocumentationService } from "../../service/game_documentation.service";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
+import { itemAt } from "@/engine/core/common/item_at";
 
 /** Names a tab of the documentation modal. */
 export type DocTab = "overview" | "rules" | "variants";
@@ -139,7 +140,10 @@ export class GameHelpModalComponent {
     if (step === 0) return;
 
     event.preventDefault();
-    const nextTab = tabs[(currentIndex + step + tabs.length) % tabs.length];
+    const nextTab = itemAt(
+      tabs,
+      (currentIndex + step + tabs.length) % tabs.length,
+    );
     this.selectTab(nextTab);
 
     // Focus the new tab once it has re-rendered with a tabindex of 0.

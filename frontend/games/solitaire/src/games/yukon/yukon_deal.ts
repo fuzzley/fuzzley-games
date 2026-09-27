@@ -14,7 +14,7 @@ export function dealYukonLayout(
   deck: PlayingCard[],
   tableaus: readonly CardPile<PlayingCard>[],
 ): void {
-  for (let column = 0; column < tableaus.length; column++) {
+  for (const [column, tableau] of tableaus.entries()) {
     // The first column is the exception in both directions: no cards buried
     // under it, and a single card on it rather than five.
     const faceUpCount = column === 0 ? 1 : FACE_UP_PER_COLUMN;
@@ -26,7 +26,7 @@ export function dealYukonLayout(
       if (!card) return;
       // The first `column` cards of a column are its buried ones.
       card.faceUp = dealt >= column;
-      tableaus[column].addCard(card);
+      tableau.addCard(card);
     }
   }
 }

@@ -470,5 +470,5 @@ export type GameOf<Id extends GameId> = ReturnType<
 
 /** Returns the catalog entry with the given id, or the first one. */
 export function catalogEntry(id: string | null | undefined): CatalogEntry {
-  return GAME_CATALOG.find((entry) => entry.id === id) ?? GAME_CATALOG[0];
+  return GAME_CATALOG.find((entry) => entry.id === id) ?? CATALOG_ENTRIES[0];
 }

@@ -8,6 +8,7 @@ import {
 } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
 import { COLUMN_COUNT, ROW_COUNT, settledPrefixLength } from "./montana_rules";
+import { itemAt } from "@/engine/core/common/item_at";
 
 /** The forty-eight cards Montana plays with: a standard deck minus its Aces. */
 export const MONTANA_DECK: DeckSpec = {
@@ -32,13 +33,13 @@ export function dealMontanaLayout(
 ): void {
   const gaps = chooseGaps(cells.length, GAP_COUNT, random);
 
-  for (let index = 0; index < cells.length; index++) {
+  for (const [index, cell] of cells.entries()) {
     if (gaps.has(index)) continue;
     const card = deck.pop();
     // A short injected deck simply leaves the later cells empty.
     if (!card) return;
     card.faceUp = true;
-    cells[index].addCard(card);
+    cell.addCard(card);
   }
 }
 
@@ -97,7 +98,7 @@ export function redealArrangement(
 
     for (let column = 0; column < COLUMN_COUNT; column++) {
       if (column < settled) {
-        placed[base + column] = row[column].topCard ?? null;
+        placed[base + column] = itemAt(row, column).topCard ?? null;
         continue;
       }
       // The cell immediately after a settled run is the row's gap; everything

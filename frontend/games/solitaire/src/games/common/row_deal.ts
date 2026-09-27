@@ -2,6 +2,7 @@ import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { CardTransfer } from "@/engine/tableau/move";
 import { collectCompletedRuns } from "./completed_runs";
+import { itemAt } from "@/engine/core/common/item_at";
 
 /**
  * Deals a fixed number of cards face up to each column, round-robin, then one
@@ -22,7 +23,7 @@ export function dealColumnsThenCells(
     const card = deck.pop();
     if (!card) break;
     card.faceUp = true;
-    tableaus[dealt % tableaus.length].addCard(card);
+    itemAt(tableaus, dealt % tableaus.length).addCard(card);
   }
 
   // One card per cell: dealing straight into a pile bypasses the zone's

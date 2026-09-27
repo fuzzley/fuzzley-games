@@ -15,13 +15,13 @@ export function dealSimpleSimonLayout(
   deck: PlayingCard[],
   tableaus: readonly CardPile<PlayingCard>[],
 ): void {
-  for (let column = 0; column < tableaus.length; column++) {
+  for (const [column, tableau] of tableaus.entries()) {
     const count = CARDS_PER_COLUMN[column] ?? 0;
     for (let dealt = 0; dealt < count; dealt++) {
       const card = deck.pop();
       if (!card) return;
       card.faceUp = true;
-      tableaus[column].addCard(card);
+      tableau.addCard(card);
     }
   }
 }

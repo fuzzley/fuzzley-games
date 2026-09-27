@@ -23,6 +23,7 @@ import {
 } from "@/engine/render/view/table_view_state";
 import { ZoneSpec, frameFor, showsFace } from "../zone";
 import { TablePresentation, TableView } from "./table_view";
+import { itemAt } from "@/engine/core/common/item_at";
 
 /**
  * Resolves the pile a drag would land on, as its drop rectangle, or null if it
@@ -157,8 +158,7 @@ class TableViewStateBuilder {
         this.expansionCardId(zone, pileCards),
       );
 
-      for (let cardIndex = 0; cardIndex < pileCards.length; cardIndex++) {
-        const card = pileCards[cardIndex];
+      for (const [cardIndex, card] of pileCards.entries()) {
         const restingDepth = depthFor(RenderLayer.RESTING_CARD, restingIndex++);
 
         const placement =
@@ -166,7 +166,7 @@ class TableViewStateBuilder {
             ? this.heldPlacement(card.id, drag, drag.primary)
             : this.restingPlacement(
                 origin,
-                offsets[cardIndex],
+                itemAt(offsets, cardIndex),
                 restingDepth,
                 flightOrder.get(card.id),
               );
@@ -196,8 +196,11 @@ class TableViewStateBuilder {
     const primary = this.interaction.drag?.primary ?? null;
     const held = new Set(cardIds);
 
+    const [primaryCardId] = cardIds;
     const sourcePile =
-      cardIds.length > 0 ? this.game.getPileContainingCard(cardIds[0]) : null;
+      primaryCardId === undefined
+        ? null
+        : this.game.getPileContainingCard(primaryCardId);
     const sourceLayout = sourcePile
       ? this.game.zoneFor(sourcePile.id)?.layout
       : undefined;
@@ -309,9 +312,11 @@ class TableViewStateBuilder {
     }
 
     const targetPile = this.game.getPileById(target.pileId);
+    const [primaryCardId] = drag.cardIds;
     if (
       !targetPile ||
-      !this.game.canMoveCardToPile(drag.cardIds[0], target.pileId)
+      primaryCardId === undefined ||
+      !this.game.canMoveCardToPile(primaryCardId, target.pileId)
     ) {
       return null;
     }

@@ -5,6 +5,7 @@ import {
   afterNextRender,
   inject,
 } from "@angular/core";
+import { itemAt } from "@/engine/core/common/item_at";
 
 /** The children this directive governs, in document order. */
 const RADIO_SELECTOR = '[role="radio"]';
@@ -77,7 +78,7 @@ export class RadioGroupDirective {
     if (next === null) return;
 
     event.preventDefault();
-    radios[next].focus();
+    itemAt(radios, next).focus();
     this.syncTabStops(next);
   }
 

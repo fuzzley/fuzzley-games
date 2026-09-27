@@ -21,6 +21,7 @@ import {
   settledPrefixLength,
 } from "./montana_rules";
 import { montanaZoneSpecs } from "./montana_zones";
+import { itemAt } from "@/engine/core/common/item_at";
 
 /** How many redeals a game allows. */
 export const MAX_REDEALS = 2;
@@ -135,7 +136,7 @@ export class MontanaGame extends DealtTableGame {
     const transfers: CardTransfer[] = [];
     arrangement.forEach((card, index) => {
       if (!card) return;
-      const cell = this.cells[index];
+      const cell = itemAt(this.cells, index);
       cell.addCard(card);
 
       const from = origin.get(card.id);
