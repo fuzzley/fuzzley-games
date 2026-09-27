@@ -13,6 +13,16 @@ export interface Viewport {
   pixelRatio: number;
 }
 
+/** Describes the placeholder a pile is drawn over, fixed for a board's life. */
+export interface PileBackgroundSpec {
+  /** The pile it sits beneath. */
+  readonly pileId: string;
+  /** The artwork key it is drawn from. */
+  readonly frame: string;
+  /** Whether pressing the empty slot does something, making it clickable. */
+  readonly actionable: boolean;
+}
+
 /** Describes a rectangle in screen coordinates. */
 export interface Rect {
   x: number;

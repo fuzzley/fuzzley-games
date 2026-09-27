@@ -88,7 +88,9 @@ module.exports = tseslint.config(
     },
   },
   {
-    // The Phaser adapter may name Phaser, and nothing above it.
+    // The Phaser adapter may name Phaser, and nothing above it: not even the
+    // tableau runtime beside it, whose data reaches it through BoardScene's
+    // options.
     files: ["src/engine/render/phaser/**/*.ts"],
     rules: {
       "@typescript-eslint/no-restricted-imports": [
@@ -97,7 +99,7 @@ module.exports = tseslint.config(
           patterns: [
             {
               group: [
-                "@/engine/tableau/view/table_view_builder",
+                "@/engine/tableau/*",
                 "@/games/*",
                 "@/ui/*",
                 "@angular/*",
@@ -105,7 +107,7 @@ module.exports = tseslint.config(
                 "rxjs/*",
               ],
               message:
-                "The Phaser adapter draws whatever it is handed: no game, no UI, no reactive library.",
+                "The Phaser adapter draws whatever it is handed: no tableau runtime, no game, no UI, no reactive library.",
             },
           ],
         },

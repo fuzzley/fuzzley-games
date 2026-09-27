@@ -81,8 +81,16 @@ describe("makeTableBoardScene", () => {
   });
 
   describe("the game it draws", () => {
-    it("draws the game it was handed", () => {
-      expect(scene.tableGame).toBe(game);
+    it("draws a placeholder under each pile whose zone declares one", () => {
+      const withPlaceholder = game.piles
+        .filter((pile) => scene.pileBackgroundSprite(pile.id))
+        .map((pile) => pile.id);
+
+      expect(withPlaceholder).toEqual(
+        game.piles
+          .filter((pile) => game.zoneFor(pile.id)?.backgroundKey)
+          .map((pile) => pile.id),
+      );
     });
 
     it("makes a sprite for every card the game holds, and no others", () => {
