@@ -14,15 +14,19 @@ summary below is a guide to its intent, not a substitute for its contents.
 
 ## Shape of the Pipeline
 
-Two jobs, on push to `main` or a manual `workflow_dispatch`:
+Two jobs, on push to `main`, a pull request into `main`, or a manual
+`workflow_dispatch`:
 
-1. **`verify`** — checkout, Node 26, Corepack, an immutable install, then
-   `yarn lint`, `yarn tsc` and `yarn test` as three separate steps. Separate
-   rather than `yarn verify`, because `yarn verify` also runs a build that the
-   second job would immediately repeat.
-2. **`build-and-sync`** — `needs: verify`. Builds, clones `fuzzley/fuzzley` with
-   a PAT, replaces `main-website/frontend/public/project/solitaire` with
-   `dist/*`, and commits only if something changed.
+1. **`verify`** — checkout, Node 26, Corepack, a restore of Yarn's package
+   cache, an immutable install, then `yarn lint`, `yarn tsc` and `yarn test` as
+   three separate steps. Separate rather than `yarn verify`, because
+   `yarn verify` also runs a build that the second job would immediately
+   repeat. This is the only job a pull request runs.
+2. **`build-and-sync`** — `needs: verify`, and skipped for a pull request.
+   Builds, clones `fuzzley/fuzzley` with a PAT, replaces
+   `main-website/frontend/public/project/solitaire` with `dist/*`, and commits
+   only if something changed. Its concurrency group runs one deploy at a time:
+   a later push waits, and a deploy under way is never cancelled.
 
 `workflow_dispatch` takes a `force` boolean. Without it the sync step ends at
 `git diff-index --quiet HEAD` and skips the commit when the build is
@@ -38,17 +42,22 @@ anyway, which is the escape hatch when the website repo has drifted.
    match `package.json` rather than quietly resolving something else.
 3. **Corepack before Yarn.** `corepack enable` has to run before any `yarn`
    command, or the runner's bundled Yarn 1 answers instead of `yarn@4.17.1`.
-4. **The destination is wiped, not merged.** The sync `rm -rf`s the destination
+   That includes the step that asks Yarn for its cache folder, which is why the
+   cache is restored with `actions/cache` rather than `setup-node`'s
+   `cache: yarn`, which looks the folder up before Corepack runs.
+4. **Pull requests never deploy.** `build-and-sync` keeps its
+   `if: github.event_name != 'pull_request'`, so a branch is checked without
+   being published.
+5. **The destination is wiped, not merged.** The sync `rm -rf`s the destination
    directory before copying, so a file that stops being produced stops being
    served. Anything hand-added under that path in the website repo is lost on
    the next deploy.
-5. **No secrets in logs.** `MAIN_REPO_DEPLOY_PAT` is interpolated into a clone
+6. **No secrets in logs.** `MAIN_REPO_DEPLOY_PAT` is interpolated into a clone
    URL. Never echo it, and never `set -x` a step that handles it.
 
 ## Coverage Is Not Gated in CI
 
-`vitest.config.ts` sets a floor (90% statements/functions/lines, 80% branches),
-but CI runs `yarn test`, not `yarn test:coverage` — **the floor is only enforced
+`vitest.config.ts` sets a coverage floor, but CI runs `yarn test`, not `yarn test:coverage` — **the floor is only enforced
 when someone runs it locally.** Do not read a green pipeline as evidence that
 coverage held. Either run `yarn test:coverage` before pushing, or change the
 workflow's test step if the gate is wanted for real.

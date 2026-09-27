@@ -164,13 +164,13 @@ This project uses **Yarn 4**. Always use Yarn commands instead of NPM (`yarn <co
 
 ### CI/CD Deployment Pipeline (`.github/workflows/deploy.yml`)
 
-Deployments are automated via GitHub Actions on every push to `main` (or manual `workflow_dispatch`):
+Deployments are automated via GitHub Actions on every push to `main` (or manual `workflow_dispatch`). A pull request into `main` runs the `verify` job only:
 
 1. **`verify` Job (Quality Gate):**
-   - Installs dependencies (`yarn install --immutable`).
+   - Restores Yarn's package cache, keyed on `yarn.lock`, and installs dependencies (`yarn install --immutable`).
    - Executes `yarn lint`, `yarn tsc`, and `yarn test`.
    - Pipeline aborts if any step fails.
-2. **`build-and-sync` Job:**
+2. **`build-and-sync` Job** (never for a pull request, and one deploy at a time):
    - Runs `yarn build` to produce production assets in `dist/`, with
      `VITE_COMMIT_SHA` set so a bug report filed from the site names its build.
    - Clones the target host website repository (`fuzzley/fuzzley`).

@@ -92,9 +92,12 @@ start at the first unticked item. Delete this file once every item is done.
 
 ## CI
 
-- [ ] Run the verify job on pull requests, and deploy only on pushes.
-- [ ] Cache Yarn packages in the Node setup step.
-- [ ] Add a concurrency group so two deploys can't race.
+- [x] Run the verify job on pull requests, and deploy only on pushes.
+- [x] Cache Yarn packages. Done with `actions/cache` on the folder Yarn
+      reports, not `setup-node`'s `cache: yarn`, which looks it up before
+      Corepack has installed Yarn 4.
+- [x] Add a concurrency group so two deploys can't race. Untested until the
+      workflow next runs on GitHub; it parses and passes Prettier locally.
 
 ## New findings
 
