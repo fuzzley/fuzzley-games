@@ -4,10 +4,10 @@
  *
  *   yarn build:thumbs
  *
- * Reads `public/docs/screenshots/<id>/overview.png`, crops away the chrome
- * around the board, and writes a `thumb.webp` for a row of the list and a
+ * Reads `public/docs/screenshots/<id>/overview.png`, crops away the header
+ * above the board, and writes a `thumb.webp` for a row of the list and a
  * `preview.webp` for the preview pane beside it. The full screenshots run to
- * 700 KB apiece, too heavy to list.
+ * a megabyte apiece, too heavy to list.
  */
 import sharp from "sharp";
 import { readdir, stat } from "node:fs/promises";
@@ -31,8 +31,8 @@ const OUTPUTS = [
 const QUALITY = 80;
 
 /**
- * The most of either dimension the chrome may take before the crop is
- * assumed to have missed the felt.
+ * The most of the height the header may take before the crop is assumed to
+ * have missed the felt.
  */
 const MAX_CHROME_FRACTION = 0.2;
 
@@ -48,12 +48,10 @@ function isFelt(r, g, b) {
 }
 
 /**
- * Finds the board below the chrome, and the colour of the felt along its
+ * Finds the board below the header, and the colour of the felt along its
  * bottom edge.
  *
- * The board starts at the first row of felt below the header, down a column
- * near the middle, and the first column of felt right of any rail, along a
- * row near the bottom, where no pile reaches.
+ * The board starts at the first row of felt down a column near the middle.
  */
 async function findBoard(source) {
   const { data, info } = await sharp(source)
@@ -67,23 +65,17 @@ async function findBoard(source) {
   const column = Math.floor(info.width * 0.45);
   let top = 0;
   while (top < info.height && !feltAt(column, top)) top++;
-  const row = Math.floor(info.height * 0.9);
-  let left = 0;
-  while (left < info.width && !feltAt(left, row)) left++;
 
-  if (
-    top > info.height * MAX_CHROME_FRACTION ||
-    left > info.width * MAX_CHROME_FRACTION
-  ) {
+  if (top > info.height * MAX_CHROME_FRACTION) {
     throw new Error(
-      `${source}: found no felt near the edges. Capture screenshots on the default green table.`,
+      `${source}: found no felt below the header. Capture screenshots on the default green table.`,
     );
   }
   const i =
     ((info.height - 1) * info.width + Math.floor(info.width / 2)) *
     info.channels;
   return {
-    region: { left, top, width: info.width - left, height: info.height - top },
+    region: { left: 0, top, width: info.width, height: info.height - top },
     felt: { r: data[i], g: data[i + 1], b: data[i + 2] },
   };
 }
