@@ -187,7 +187,10 @@ Deployments are automated via GitHub Actions on every push to `main` (or manual 
 
 ## Running & Debugging
 
-- **Debugging:** Chrome DevTools MCP support is enabled. Use it to inspect element states, logs, and game behavior.
+- **Debugging:** Chrome DevTools MCP support is enabled. Use it to inspect
+  element states, logs, and game behavior. Always close any Chrome instance
+  started via Chrome DevTools MCP when done using it to prevent lingering
+  unused Chrome instances.
 - **Local Game Testing:** Start the server with `yarn start` and navigate to `http://localhost:9000/`.
 
 ---
