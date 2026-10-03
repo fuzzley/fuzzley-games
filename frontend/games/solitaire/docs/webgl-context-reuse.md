@@ -16,7 +16,7 @@ start at the first step not marked done. Each step is one commit.
 
 | Step | What                             | State   |
 | ---- | -------------------------------- | ------- |
-| 0    | Baseline                         | pending |
+| 0    | Baseline                         | done    |
 | 1    | End a board's subscriptions      | pending |
 | 2    | Release the context on destroy   | pending |
 | 3    | Let a board load its own deck    | pending |
@@ -27,6 +27,45 @@ start at the first step not marked done. Each step is one commit.
 
 - 2026-10-02: Plan written; branch `perf/webgl-context-reuse` created from
   `main` at `db1114c`.
+- 2026-10-02, step 0: Baseline taken on a dev build in desktop Chrome, with the
+  probe below, loading Klondike and then switching ten times.
+  - 12 WebGL contexts created for 11 games. After a forced collection (taking a
+    heap snapshot), 11 were still alive and not lost.
+  - The heap held 11 `Game`, 11 `BoardScene`, 11 `LoadingScene`, 11
+    `WebGLRenderer`, 11 `TextureManager` and 1,557 `Sprite` objects. **Every
+    game ever built stays in memory.** The garbage collector is not slow: it
+    cannot free them. So Chrome's warning comes from the cap of 16 live
+    contexts, which is reached after about 15 switches.
+  - Switch time, from changing the hash to the loading overlay hiding: median
+    124 ms, range 118–144 ms (atlas served from the HTTP cache).
+  - No warnings or errors in the console during the ten switches.
+
+### Measuring
+
+Load the page from `about:blank` with this init script. A hash change alone does
+not reload the page, so the script would not run.
+
+```js
+const orig = HTMLCanvasElement.prototype.getContext;
+const seen = new WeakSet();
+window.__ctx = { created: 0, refs: [] };
+HTMLCanvasElement.prototype.getContext = function (type, ...rest) {
+  const ctx = orig.call(this, type, ...rest);
+  if (ctx && /webgl/.test(String(type)) && !seen.has(ctx)) {
+    seen.add(ctx);
+    window.__ctx.created++;
+    window.__ctx.refs.push(new WeakRef(ctx));
+  }
+  return ctx;
+};
+```
+
+Then switch games by setting `location.hash = "#/<id>"`, waiting for
+`.loading-overlay` to gain `hidden` each time, through `freecell`, `spider`,
+`yukon`, `bakers`, `scorpion`, `fortythieves`, `montana`, `eightoff`,
+`seahaven` and `klondike`. Take a heap snapshot, which forces a collection, then
+count `window.__ctx.refs` whose context is alive and `!isContextLost()`. Count
+objects by constructor name in the snapshot's `nodes` and `strings`.
 
 ## What happens today
 
