@@ -68,7 +68,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       ],
       specialRules: [
         "Draw Mode: Configurable between Draw 1 (draw one card at a time from stock) and Draw 3 (draw three cards at a time).",
-        "Stock Recycle: When the stock empties, clicking it recycles cards from the waste pile back into the stock.",
+        "Stock Recycle: When the stock empties, clicking it recycles cards from the waste pile back into the stock — as often as you like under standard scoring, and a limited number of times under Vegas scoring.",
       ],
     },
     settingsAndVariants: [
@@ -109,6 +109,21 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
             value: 3,
             effect:
               "Standard challenge. Flips 3 cards at a time; only the top card of the 3 is immediately playable.",
+          },
+        ],
+      },
+      {
+        optionId: "scoring",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "Standard scoring: 10 points for each card to a foundation, 5 for a waste card onto a column and for each card turned over, minus 15 for taking a card back off a foundation, and a penalty for recycling the stock past the free passes. The score never drops below zero, and the stock can be recycled as often as you like.",
+          },
+          {
+            value: 1,
+            effect:
+              "Las Vegas scoring: you start $52 down, having bought the deck at a dollar a card, and win $5 back for every card you put on a foundation (taking one back costs $5). The score can stay negative. The stock can be gone through only once in Draw 1, or three times in Draw 3; pips on the empty stock count the recycles left, and once they are spent it becomes a plain outline.",
           },
         ],
       },

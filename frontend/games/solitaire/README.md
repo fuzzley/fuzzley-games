@@ -6,7 +6,7 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 
 ## Included Solitaire Games
 
-- **Klondike**: Classic solitaire supporting Draw 1 and Draw 3 modes, with Whitehead, Thumb and Pouch, and Saratoga rule variants.
+- **Klondike**: Classic solitaire supporting Draw 1 and Draw 3 modes and standard or Vegas scoring, with Whitehead, Thumb and Pouch, and Saratoga rule variants.
 - **FreeCell**: The classic open-information solitaire puzzle game with four reserve cells.
 - **Spider**: Multi-suit spider solitaire with options for 1-Suit (Easy), 2-Suit (Medium), and 4-Suit (Hard) games.
 - **Yukon**: Playable in standard Yukon, Alaska, and Russian Solitaire variants.

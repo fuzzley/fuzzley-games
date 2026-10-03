@@ -361,7 +361,9 @@ export abstract class TableGame<
       return false;
     }
 
-    this.state.score = Math.max(0, this.state.score - last.scoreDelta);
+    // Not clamped: the delta is what the action applied, after any floor the
+    // game keeps, and some games' scores run below zero.
+    this.state.score -= last.scoreDelta;
     this.state.moves--;
     this.afterUndo(last);
     // Announced after the hook, so the game has finished adjusting before a

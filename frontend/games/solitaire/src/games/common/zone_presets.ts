@@ -23,6 +23,27 @@ export const RECYCLING_STOCK_PLACEHOLDER = "card-placeholder-full-border-reset";
 /** The unmarked placeholder, for a stock that deals only once. */
 export const CLOSED_STOCK_PLACEHOLDER = "card-placeholder-full-border";
 
+/**
+ * How many uses the pip artwork can count: a stock or marker allowing one of
+ * these many recycles or redeals can show a pip for each.
+ */
+export const PIP_COUNTS: readonly number[] = [2];
+
+/**
+ * Returns the recycle arrow with a pip for each of `allowed` uses, filled for
+ * each of the `remaining` ones, or the plain recycle arrow when no pip artwork
+ * counts that many.
+ */
+export function recyclePipsPlaceholder(
+  remaining: number,
+  allowed: number,
+): string {
+  if (!PIP_COUNTS.includes(allowed) || remaining < 1 || remaining > allowed) {
+    return RECYCLING_STOCK_PLACEHOLDER;
+  }
+  return `${RECYCLING_STOCK_PLACEHOLDER}-${remaining}-of-${allowed}`;
+}
+
 /** Places a row of piles and says how many there are. */
 interface RowPlacement {
   /** How many piles to build. */

@@ -248,8 +248,10 @@ Otherwise call `tableGestures(game, options)` with:
   and `pileBackgroundKey` on the game, as `KlondikeFamilyGame` and
   `MontanaGame` do. The view asks both every frame, so the slot drops its
   pointer and shows `CLOSED_STOCK_PLACEHOLDER` the moment a press would do
-  nothing. Montana also uses `pileBackgroundKey` to show the redeals left as
-  pips.
+  nothing. Montana and Vegas-scored Klondike also use `pileBackgroundKey` to
+  show the redeals or recycles left as pips, naming the artwork with
+  `recyclePipsPlaceholder` from `src/games/common/zone_presets.ts`. Pip
+  artwork exists only for the counts in its `PIP_COUNTS`.
 
 - `autoMoveFrom` — which roles answer a double press. Omit it entirely for a
   stockless game: everything on the board is in play.

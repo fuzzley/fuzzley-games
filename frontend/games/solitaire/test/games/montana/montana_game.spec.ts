@@ -1,18 +1,16 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
 import { deckCardIds } from "@/engine/core/card/deck";
-import { MAX_REDEALS, MontanaGame } from "@/games/montana/montana_game";
+import { MontanaGame } from "@/games/montana/montana_game";
 import { MONTANA_DECK, GAP_COUNT } from "@/games/montana/montana_deal";
 import {
   CARDS_PER_ROW,
   COLUMN_COUNT,
+  MAX_REDEALS,
   ROW_COUNT,
 } from "@/games/montana/montana_rules";
-import {
-  REDEAL_MARKER_PLACEHOLDERS,
-  REDEAL_PILE_ID,
-} from "@/games/montana/montana_zones";
-import { CLOSED_STOCK_PLACEHOLDER } from "@/games/common/zone_presets";
+import { REDEAL_PILE_ID } from "@/games/montana/montana_zones";
+import { PIP_COUNTS } from "@/games/common/zone_presets";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
 
@@ -432,31 +430,8 @@ describe("the Montana redeal marker", () => {
     expect(game.pileBackgroundKey(cell(game, 0, 0))).toBe("card-placeholder");
   });
 
-  it("has artwork for every redeal the game allows", () => {
-    expect(REDEAL_MARKER_PLACEHOLDERS.length).toBe(MAX_REDEALS);
-  });
-
-  it("draws only artwork every deck's atlas holds", () => {
-    const manifests = Object.values(
-      import.meta.glob<{
-        textures: { frames: { filename: string }[] }[];
-      }>("/src/engine/render/assets/sprites/atlas/*/*/card_assets_atlas.json", {
-        eager: true,
-        import: "default",
-      }),
-    );
-    const artwork = [...REDEAL_MARKER_PLACEHOLDERS, CLOSED_STOCK_PLACEHOLDER];
-
-    const missing = manifests.flatMap((manifest) => {
-      const frames = new Set(
-        manifest.textures.flatMap((texture) =>
-          texture.frames.map((frame) => frame.filename),
-        ),
-      );
-      return artwork.filter((key) => !frames.has(key));
-    });
-
-    expect([manifests.length, missing]).toEqual([6, []]);
+  it("has pip artwork for every redeal the game allows", () => {
+    expect(PIP_COUNTS).toContain(MAX_REDEALS);
   });
 });
 

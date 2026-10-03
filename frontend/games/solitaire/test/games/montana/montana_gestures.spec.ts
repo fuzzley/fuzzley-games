@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { MAX_REDEALS, MontanaGame } from "@/games/montana/montana_game";
+import { MontanaGame } from "@/games/montana/montana_game";
+import { MAX_REDEALS } from "@/games/montana/montana_rules";
 import { montanaGestures } from "@/games/montana/montana_gestures";
 import { COLUMN_COUNT } from "@/games/montana/montana_rules";
 import { REDEAL_PILE_ID } from "@/games/montana/montana_zones";

@@ -9,7 +9,10 @@ import { DeckSource } from "@/engine/tableau/deck_source";
 import { AppliedMove, CardTransfer } from "@/engine/tableau/move";
 
 import { DeckOptions } from "@/games/common/deck_options";
-import { CLOSED_STOCK_PLACEHOLDER } from "@/games/common/zone_presets";
+import {
+  CLOSED_STOCK_PLACEHOLDER,
+  recyclePipsPlaceholder,
+} from "@/games/common/zone_presets";
 import {
   MONTANA_DECK,
   dealMontanaLayout,
@@ -17,19 +20,13 @@ import {
   rowsOf,
 } from "./montana_deal";
 import {
+  MAX_REDEALS,
   MontanaRole,
   isMontanaSolved,
   settledPrefixLength,
 } from "./montana_rules";
-import {
-  REDEAL_MARKER_PLACEHOLDERS,
-  REDEAL_PILE_ID,
-  montanaZoneSpecs,
-} from "./montana_zones";
+import { REDEAL_PILE_ID, montanaZoneSpecs } from "./montana_zones";
 import { itemAt } from "@/engine/core/common/item_at";
-
-/** How many redeals a game allows. */
-export const MAX_REDEALS = 2;
 
 /** Holds what Montana keeps outside its piles, for a snapshot. */
 interface MontanaExtra {
@@ -173,7 +170,7 @@ export class MontanaGame extends DealtTableGame {
       return super.pileBackgroundKey(pile);
     }
     return this.canRedeal
-      ? itemAt(REDEAL_MARKER_PLACEHOLDERS, this.redealsUsed)
+      ? recyclePipsPlaceholder(this.redealsRemaining, MAX_REDEALS)
       : CLOSED_STOCK_PLACEHOLDER;
   }
 
