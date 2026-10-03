@@ -57,7 +57,7 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
    - Code shared between games lives in `games/common`: collecting completed runs, drawing and recycling a stock, dealing a card to every column, and the gesture map for a game with no stock.
    - A different board grid means a different catalog entry; the same grid under different rules means a variant option on an existing one. See the `add-solitaire-game` skill.
    - Sits above `engine/*` layers, but below the Angular UI application shell.
-   - A game reaches the canvas through `src/games/common/board_scene_factory.ts`, which turns a game plus its layout and gesture map into a `BoardScene`. There is no separate scene-bridge tier: `PhaserHost` mounts whatever board factory it is handed.
+   - A game reaches the canvas through `src/games/common/board_scene_factory.ts`, which turns a game plus its layout and gesture map into a `BoardScene`. There is no separate scene-bridge tier: `PhaserHost` swaps in whatever board factory it is handed.
 6. **`src/ui/*`** _(Application Shell)_
    - Angular application shell hosting the game canvas viewport, control overlays, and variant selection UI.
 
@@ -143,7 +143,10 @@ Architecture guidelines are enforced as hard build errors rather than convention
 
 Note that the generic Phaser canvas host is `engine/render/phaser/phaser_host.ts`
 (`PhaserHost`). It is handed a board to run, so the shell never imports a game
-module in order to host one.
+module in order to host one. It keeps one Phaser game, and so one WebGL context,
+for the canvas component's whole life, and swaps each new board scene into it.
+A board scene therefore has to release everything it subscribed to when it ends,
+on `SHUTDOWN` or `DESTROY`, because the game it ran in lives on.
 
 ---
 

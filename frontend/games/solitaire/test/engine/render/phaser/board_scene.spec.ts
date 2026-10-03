@@ -4,6 +4,8 @@ import { makeFakeTableBoardScene } from "@test/support/fake_table/scene";
 import { TestPresentation } from "@test/support/presentation";
 import { FakeTableGame } from "@test/support/fake_table/game";
 import {
+  BOOT_TEXTURE_KEY,
+  DESTROY_EVENT,
   MockGraphics,
   MockInput,
   MockLoader,
@@ -15,7 +17,11 @@ import {
   RESTORE_WEBGL_EVENT,
   SHUTDOWN_EVENT,
 } from "@test/support/phaser_mocks";
-import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
+import { CardDeckId, DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
+import {
+  cardDeckTextureKey,
+  residentCardDecks,
+} from "@/engine/render/phaser/card_deck_atlas";
 import { PhaserCardFactory } from "@/engine/render/phaser/phaser_card_factory";
 import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
 import {
@@ -99,7 +105,24 @@ describe("BoardScene", () => {
     });
   }
 
+  /** Returns how many times the shared shadow texture has been drawn. */
+  function shadowRenders(): number {
+    const textures = boardScene.textures as unknown as MockTextures;
+    return (
+      textures.dynamicTexture(PhaserCardFactory.SHADOW_TEXTURE_KEY)
+        ?.renderCount ?? 0
+    );
+  }
+
   describe("construction", () => {
+    it("registers under a key no other board shares", () => {
+      const next = makeBoardScene();
+
+      // Phaser throws on a key already in use, and the next board is added to
+      // the game before the last one is gone if the swap is queued.
+      expect(next.key).not.toBe(boardScene.key);
+    });
+
     it("draws a placeholder under each pile it is handed one for, and no others", () => {
       const withPlaceholder = fakeGame.piles
         .filter((pile) => boardScene.pileBackgroundSprite(pile.id))
@@ -116,15 +139,6 @@ describe("BoardScene", () => {
     function allShadows(): MockSprite[] {
       return [...boardScene.cardIds].map((cardId) =>
         asMock(boardScene.cardShadowSprite(cardId)),
-      );
-    }
-
-    /** Returns how many times the shared shadow texture has been drawn. */
-    function shadowRenders(): number {
-      const textures = boardScene.textures as unknown as MockTextures;
-      return (
-        textures.dynamicTexture(PhaserCardFactory.SHADOW_TEXTURE_KEY)
-          ?.renderCount ?? 0
       );
     }
 
@@ -157,18 +171,6 @@ describe("BoardScene", () => {
       );
 
       expect(shadowRenders()).toBe(before + 1);
-    });
-
-    it("stops redrawing the shadow once the scene shuts down", () => {
-      const events = boardScene.events as unknown as MockSceneEvents;
-      events.emit(SHUTDOWN_EVENT);
-      const before = shadowRenders();
-
-      (boardScene.renderer as unknown as MockRenderer).emit(
-        RESTORE_WEBGL_EVENT,
-      );
-
-      expect(shadowRenders()).toBe(before);
     });
   });
 
@@ -306,6 +308,91 @@ describe("BoardScene", () => {
       expect(texturesInUse()).toEqual([`cards:${DEFAULT_CARD_DECK}`]);
     });
 
+    it("releases a deck that finishes loading after the player changed their mind", () => {
+      presentation.setCardDeck("classic");
+      presentation.setCardDeck(DEFAULT_CARD_DECK);
+
+      loader().complete(textures());
+
+      expect(residentCardDecks(textures())).toEqual([DEFAULT_CARD_DECK]);
+    });
+
+    describe("on boot", () => {
+      /**
+       * Builds a board for a player who chose `chosen`, with only the given
+       * decks loaded, as an earlier board may have left them.
+       */
+      function bootScene(chosen: CardDeckId, ...loaded: CardDeckId[]): void {
+        fakeGame = dealtGame();
+        presentation = new TestPresentation(undefined, undefined, chosen);
+        boardScene = makeFakeTableBoardScene(fakeGame, presentation);
+        textures().remove(BOOT_TEXTURE_KEY);
+        for (const deckId of loaded) {
+          textures().add(cardDeckTextureKey(deckId));
+        }
+      }
+
+      it("loads the chosen deck first when no deck is loaded", () => {
+        bootScene("classic");
+
+        boardScene.preload();
+
+        expect(loader().requested).toEqual(["cards:classic"]);
+      });
+
+      it("loads nothing when the chosen deck is loaded", () => {
+        bootScene("classic", "classic");
+
+        boardScene.preload();
+
+        expect(loader().requested).toEqual([]);
+      });
+
+      it("draws from the chosen deck and releases any other left loaded", () => {
+        bootScene("classic", "indexed", "classic");
+        boardScene.preload();
+
+        boardScene.create();
+
+        expect({
+          inUse: texturesInUse(),
+          resident: residentCardDecks(textures()),
+        }).toEqual({ inUse: ["cards:classic"], resident: ["classic"] });
+      });
+
+      it("draws from another loaded deck while it fetches the chosen one", () => {
+        bootScene("classic", "indexed");
+        boardScene.preload();
+
+        boardScene.create();
+
+        // The board is playable at once, with the corner badge saying the
+        // chosen deck is on its way.
+        expect({
+          inUse: texturesInUse(),
+          requested: loader().requested,
+          status: presentation.cardDeckStatuses.at(-1),
+        }).toEqual({
+          inUse: ["cards:indexed"],
+          requested: ["cards:classic"],
+          status: { kind: "loading", deckId: "classic" },
+        });
+      });
+
+      it("moves to the chosen deck once it arrives, releasing the one it booted on", () => {
+        bootScene("classic", "indexed");
+        boardScene.preload();
+        boardScene.create();
+
+        loader().complete(textures());
+
+        expect({
+          inUse: texturesInUse(),
+          resident: residentCardDecks(textures()),
+        }).toEqual({ inUse: ["cards:classic"], resident: ["classic"] });
+      });
+    });
+
     it("does not reload a deck it is already drawing", () => {
       presentation.setCardDeck(DEFAULT_CARD_DECK);
 
@@ -400,6 +487,63 @@ describe("BoardScene", () => {
 
       // A renderer that dealt would throw the game in progress away.
       expect(fakeGame.foundations[0].topCard).toBe(ace);
+    });
+  });
+
+  // Phaser destroys a removed scene, or every scene of a destroyed game,
+  // without shutting it down first.
+  describe.each([SHUTDOWN_EVENT, DESTROY_EVENT])(
+    "once the scene ends with %s",
+    (event) => {
+      /** Raises the event that ends the scene. */
+      function endScene(): void {
+        (boardScene.events as unknown as MockSceneEvents).emit(event);
+      }
+
+      it("stops following the presentation", () => {
+        endScene();
+
+        expect([
+          presentation.listenerCount,
+          presentation.deckListenerCount,
+        ]).toEqual([0, 0]);
+      });
+
+      it("stops listening for the canvas to resize", () => {
+        const scale = boardScene.scale as unknown as MockScaleManager;
+
+        endScene();
+
+        expect(scale.listenerCount("resize")).toBe(0);
+      });
+
+      it("stops redrawing the shadow when a lost WebGL context is restored", () => {
+        endScene();
+        const before = shadowRenders();
+
+        (boardScene.renderer as unknown as MockRenderer).emit(
+          RESTORE_WEBGL_EVENT,
+        );
+
+        expect(shadowRenders()).toBe(before);
+      });
+    },
+  );
+
+  describe("a restarted scene", () => {
+    it("lets go of everything when it is then destroyed", () => {
+      const events = boardScene.events as unknown as MockSceneEvents;
+      const scale = boardScene.scale as unknown as MockScaleManager;
+      events.emit(SHUTDOWN_EVENT);
+      boardScene.create();
+
+      events.emit(DESTROY_EVENT);
+
+      expect([
+        presentation.listenerCount,
+        presentation.deckListenerCount,
+        scale.listenerCount("resize"),
+      ]).toEqual([0, 0, 0]);
     });
   });
 

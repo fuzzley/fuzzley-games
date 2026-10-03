@@ -3,6 +3,7 @@ import { CARD_DECKS } from "@/engine/render/card_deck";
 import {
   cardDeckAtlas,
   cardDeckTextureKey,
+  residentCardDecks,
 } from "@/engine/render/phaser/card_deck_atlas";
 import classicAtlas from "@/engine/render/assets/sprites/atlas/classic/card_assets_atlas.json";
 import indexedAtlas from "@/engine/render/assets/sprites/atlas/indexed/card_assets_atlas.json";
@@ -66,5 +67,13 @@ describe("card deck atlases", () => {
     const [indexedPage] = cardDeckAtlas("indexed").manifest.textures;
 
     expect(classicPage.image).not.toBe(indexedPage.image);
+  });
+
+  it("lists the decks that are loaded, in the order they are offered", () => {
+    const loaded = new Set(["cards:all-corner-pips", "cards:classic", "other"]);
+
+    const resident = residentCardDecks({ exists: (key) => loaded.has(key) });
+
+    expect(resident).toEqual(["classic", "all-corner-pips"]);
   });
 });

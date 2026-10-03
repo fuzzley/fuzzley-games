@@ -18,7 +18,11 @@ import {
 import { TableLayoutSpec, designSize } from "../layout/table_layout";
 import { CardDeckId } from "../card_deck";
 import { CardDeckStatus, Subscribe } from "../presentation";
-import { cardDeckTextureKey } from "./card_deck_atlas";
+import {
+  cardDeckTextureKey,
+  loadCardDeck,
+  residentCardDecks,
+} from "./card_deck_atlas";
 
 /** Produces the desired appearance of a board for one frame. */
 export type BuildTableViewState = (
@@ -50,7 +54,10 @@ export interface BoardSceneOptions {
   readonly stackFromCard: StackFromCard;
   /** The artwork key for the back of a card, read when a sprite is made. */
   readonly cardBackKey: () => string;
-  /** The deck to draw from, read when the scene is created. */
+  /**
+   * The deck the player has chosen, which the scene boots on if it is loaded
+   * and loads first if no deck is.
+   */
   readonly cardDeckId: () => CardDeckId;
   /** Follows the table colour. */
   readonly onBackgroundColor: Subscribe<string>;
@@ -73,6 +80,17 @@ export interface BoardSceneOptions {
 export class BoardScene extends Scene implements PhaserSprites {
   /** Transparency (alpha) level for pile background placeholders. */
   public static readonly PILE_BACKGROUND_ALPHA = 0.5;
+
+  /** How many boards have been built, which numbers each one's key. */
+  private static boardsBuilt = 0;
+
+  /**
+   * The key the scene is registered under, which no other board shares.
+   *
+   * Unique because a board is swapped into a running game, and Phaser throws on
+   * a key already in use, which an add queued ahead of a remove would hit.
+   */
+  public readonly key: string;
 
   /** Everything this scene was told about the game it draws. */
   private readonly options: BoardSceneOptions;
@@ -103,9 +121,29 @@ export class BoardScene extends Scene implements PhaserSprites {
 
   /** Creates a scene that draws the game `options` describes. */
   constructor(options: BoardSceneOptions) {
-    super("board-scene");
+    const key = `board-scene-${++BoardScene.boardsBuilt}`;
+    super(key);
 
+    this.key = key;
     this.options = options;
+  }
+
+  /** Loads the deck the player chose, unless a deck is loaded to boot on. */
+  preload() {
+    if (this.bootDeck() === null) {
+      loadCardDeck(this.load, this.options.cardDeckId());
+    }
+  }
+
+  /**
+   * Returns the deck to draw the board from at first: the one the player chose
+   * if it is loaded, or else any deck that is, which the board leaves as soon
+   * as the chosen one arrives.
+   */
+  private bootDeck(): CardDeckId | null {
+    const chosen = this.options.cardDeckId();
+    const resident = residentCardDecks(this.textures);
+    return resident.includes(chosen) ? chosen : (resident[0] ?? null);
   }
 
   /**
@@ -129,7 +167,12 @@ export class BoardScene extends Scene implements PhaserSprites {
 
   /** Creates the objects that do the scene's work. */
   private createCollaborators(): void {
-    this.deckLoader = new BoardDeckLoader(this, this.options.cardDeckId());
+    this.deckLoader = new BoardDeckLoader(
+      this,
+      // The chosen deck, even if its load failed, so the board still reports
+      // a deck when there is none to draw.
+      this.bootDeck() ?? this.options.cardDeckId(),
+    );
     this.controller = new DragController(
       this.options.handleIntent,
       this.options.stackFromCard,
@@ -153,8 +196,25 @@ export class BoardScene extends Scene implements PhaserSprites {
   }
 
   /**
-   * Follows everything the model publishes until the scene shuts down, since
-   * `create` subscribes again on every restart.
+   * Runs `release` once, when the scene shuts down or is destroyed, whichever
+   * comes first.
+   *
+   * Both, because Phaser destroys a running scene without shutting it down
+   * first, whether the scene is removed or the whole game is destroyed.
+   */
+  private whenSceneEnds(release: () => void): void {
+    const end = () => {
+      this.events.off(Scenes.Events.SHUTDOWN, end);
+      this.events.off(Scenes.Events.DESTROY, end);
+      release();
+    };
+    this.events.once(Scenes.Events.SHUTDOWN, end);
+    this.events.once(Scenes.Events.DESTROY, end);
+  }
+
+  /**
+   * Follows everything the model publishes until the scene ends, since `create`
+   * subscribes again on every restart.
    */
   private followTheModel(): void {
     const stopFollowing = [
@@ -172,7 +232,7 @@ export class BoardScene extends Scene implements PhaserSprites {
       }),
     ];
 
-    this.events.once(Scenes.Events.SHUTDOWN, () => {
+    this.whenSceneEnds(() => {
       for (const stop of stopFollowing) stop();
     });
   }
@@ -184,7 +244,7 @@ export class BoardScene extends Scene implements PhaserSprites {
   private redrawShadowAfterContextLoss(): void {
     const redraw = () => this.visualFactory.bakeCardShadow();
     this.renderer.on(Renderer.Events.RESTORE_WEBGL, redraw);
-    this.events.once(Scenes.Events.SHUTDOWN, () => {
+    this.whenSceneEnds(() => {
       this.renderer.off(Renderer.Events.RESTORE_WEBGL, redraw);
     });
   }
@@ -192,8 +252,13 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Registers the pointer listeners and snaps cards into place on a resize. */
   private wireInput(): void {
     this.controller.snapAll = true;
-    this.scale.on("resize", () => {
+    const snapAll = () => {
       this.controller.snapAll = true;
+    };
+    // The scale manager belongs to the game, which outlives the scene.
+    this.scale.on("resize", snapAll);
+    this.whenSceneEnds(() => {
+      this.scale.off("resize", snapAll);
     });
 
     this.inputManager.registerDragListeners();
