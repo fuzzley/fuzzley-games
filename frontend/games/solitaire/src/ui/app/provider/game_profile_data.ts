@@ -400,14 +400,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       family: "golf",
       tagline:
         "Play cards a rank up or down onto one pile to clear seven columns.",
-      difficulty: {
-        optionId: "variant",
-        byChoice: {
-          [GolfVariant.GOLF]: Difficulty.HARD,
-          [GolfVariant.QUEENS_ON_KINGS]: Difficulty.HARD,
-          [GolfVariant.PUTT_PUTT]: Difficulty.MEDIUM,
-        },
-      },
+      difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: false,
       variants: [
@@ -493,14 +486,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     labellelucie: {
       family: "fan",
       tagline: "Eighteen fans built down in suit, with two redeals.",
-      difficulty: {
-        optionId: "variant",
-        byChoice: {
-          [LaBelleLucieVariant.LA_BELLE_LUCIE]: Difficulty.HARD,
-          [LaBelleLucieVariant.THE_FAN]: Difficulty.HARD,
-          [LaBelleLucieVariant.SHAMROCKS]: Difficulty.MEDIUM,
-        },
-      },
+      difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: true,
       aliases: ["Fair Lucy", "Midnight Oil"],
@@ -531,15 +517,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       family: "canfield",
       tagline:
         "Work through a thirteen-card reserve onto foundations of any rank.",
-      difficulty: {
-        optionId: "variant",
-        byChoice: {
-          [CanfieldVariant.CANFIELD]: Difficulty.HARD,
-          [CanfieldVariant.STOREHOUSE]: Difficulty.MEDIUM,
-          [CanfieldVariant.SUPERIOR]: Difficulty.MEDIUM,
-          [CanfieldVariant.RAINBOW]: Difficulty.HARD,
-        },
-      },
+      difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: false,
       aliases: ["Demon", "Fascination"],
@@ -598,13 +576,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     pyramid: {
       family: "pairing",
       tagline: "Pair free cards totalling thirteen to take the pyramid apart.",
-      difficulty: {
-        optionId: "goal",
-        byChoice: {
-          [PyramidGoal.ALL_CARDS]: Difficulty.HARD,
-          [PyramidGoal.PYRAMID_ONLY]: Difficulty.MEDIUM,
-        },
-      },
+      difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: false,
       variants: [
@@ -627,14 +599,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     beleagueredcastle: {
       family: "castle",
       tagline: "Eight open rows around the Aces, one card at a time.",
-      difficulty: {
-        optionId: "variant",
-        byChoice: {
-          [CastleVariant.BELEAGUERED_CASTLE]: Difficulty.MEDIUM,
-          [CastleVariant.STREETS_AND_ALLEYS]: Difficulty.HARD,
-          [CastleVariant.CITADEL]: Difficulty.EASY,
-        },
-      },
+      difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: true,
       variants: [
