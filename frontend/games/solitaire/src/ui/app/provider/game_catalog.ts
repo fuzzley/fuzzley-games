@@ -94,6 +94,15 @@ import {
   DEFAULT_MONTE_CARLO_VARIANT,
   MonteCarloVariant,
 } from "@/games/monte_carlo/monte_carlo_rules";
+import { LaBelleLucieGame } from "@/games/la_belle_lucie/la_belle_lucie_game";
+import {
+  LA_BELLE_LUCIE_LAYOUT,
+  TREFOIL_LAYOUT,
+} from "@/games/la_belle_lucie/la_belle_lucie_layout";
+import {
+  DEFAULT_LA_BELLE_LUCIE_VARIANT,
+  LaBelleLucieVariant,
+} from "@/games/la_belle_lucie/la_belle_lucie_rules";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -419,6 +428,20 @@ const MONTE_CARLO_VARIANT: GameOptionSpec<MonteCarloVariant> = {
   defaultValue: DEFAULT_MONTE_CARLO_VARIANT,
 };
 
+/** Which of the games on La Belle Lucie's eighteen fans to deal. */
+const LA_BELLE_LUCIE_VARIANT: GameOptionSpec<LaBelleLucieVariant> = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "The Fan lets a King fill an empty fan but allows no redeal; Shamrocks builds up or down in any suit, but never past three cards to a fan.",
+  choices: [
+    { value: LaBelleLucieVariant.LA_BELLE_LUCIE, label: "La Belle Lucie" },
+    { value: LaBelleLucieVariant.THE_FAN, label: "The Fan" },
+    { value: LaBelleLucieVariant.SHAMROCKS, label: "Shamrocks" },
+  ],
+  defaultValue: DEFAULT_LA_BELLE_LUCIE_VARIANT,
+};
+
 /*
  * The entries, each declared with `satisfies` so it keeps the literal id and
  * game type the board registry is checked against.
@@ -741,6 +764,32 @@ const MONTE_CARLO = {
     ),
 } satisfies CatalogEntry<MonteCarloGame>;
 
+const LA_BELLE_LUCIE = {
+  id: "labellelucie" as const,
+  name: "La Belle Lucie",
+  options: [LA_BELLE_LUCIE_VARIANT],
+  layout: LA_BELLE_LUCIE_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(
+      new LaBelleLucieGame({
+        variant: optionValue(values, LA_BELLE_LUCIE_VARIANT),
+      }),
+    ),
+} satisfies CatalogEntry<LaBelleLucieGame>;
+
+/*
+ * Trefoil plays by La Belle Lucie's rules on sixteen fans, a grid of its own,
+ * so it is an entry of its own.
+ */
+const TREFOIL = {
+  id: "trefoil" as const,
+  name: "Trefoil",
+  options: [],
+  layout: TREFOIL_LAYOUT,
+  create: () =>
+    dealt(new LaBelleLucieGame({ variant: LaBelleLucieVariant.TREFOIL })),
+} satisfies CatalogEntry<LaBelleLucieGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -778,6 +827,8 @@ export const CATALOG_ENTRIES = [
   BRISTOL,
   NESTOR,
   MONTE_CARLO,
+  LA_BELLE_LUCIE,
+  TREFOIL,
 ] as const;
 
 /** Every game the application can put on the table. */

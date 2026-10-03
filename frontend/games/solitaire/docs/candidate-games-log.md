@@ -59,7 +59,7 @@ need:
 - [x] 6. Bristol and Belvedere.
 - [x] 7. P1, then Nestor.
 - [x] 8. Monte Carlo and Thirteens.
-- [ ] 9. La Belle Lucie, The Fan, Shamrocks and Trefoil.
+- [x] 9. La Belle Lucie, The Fan, Shamrocks and Trefoil.
 - [ ] 10. E2, then Canfield, Storehouse, Superior Canfield and Rainbow.
 - [ ] 11. Penguin.
 - [ ] 12. Black Hole and All in a Row.
@@ -233,7 +233,7 @@ descendingAnySuit)`, top-only. The stock deals a row onto the reserves
     give-up case on a hand-built deck.
   - Tooling: the scratchpad gate script now exits non-zero on a failure, so a
     commit chained after it cannot land on a red gate.
-- Step 8: Monte Carlo and Thirteens.
+- Step 8 (`7e596a0`): Monte Carlo and Thirteens.
   - `src/games/monte_carlo`: the stock at column 0, the 5 × 5 grid at
     columns 1–5 (`cell-<row>-<column>`), the discard at column 6 (7 × 5,
     no `designHeightPx`: nothing fans). Each cell's rule closes over the set
@@ -259,19 +259,49 @@ descendingAnySuit)`, top-only. The stock deals a row onto the reserves
     browser: a double press paired two touching Kings, and a press of the
     stock closed the gap and dealt two cards.
   - Tests: `test/games/monte_carlo/monte_carlo_game.spec.ts`.
+- Step 9: La Belle Lucie, The Fan, Shamrocks and Trefoil.
+  - `src/games/la_belle_lucie`: one `VARIANT_RULES` table pairs each
+    variant's fan count, empty and occupied fan rules, fan capacity, redeal
+    count and whether the Aces start on the foundations. La Belle Lucie (18
+    fans, down in suit, 2 redeals), The Fan (Kings to empty fans, no redeal),
+    Shamrocks (up or down in any suit, `capacity: 3`, no redeal) and Trefoil
+    (16 fans, Aces dealt to the foundations, 2 redeals).
+  - Board: the redeal marker at the left of the top row, the foundations at
+    its right, and the fans in two rows, the second at row 2.4: a fractional
+    pitch of 1.4 rows (`FAN_ROW_PITCH`) keeps a four-card fan clear of the row
+    beneath, which a whole row could not do even for three cards. 9 × 3.4
+    for eighteen fans and 8 × 3.4 for Trefoil, `designHeightPx` 1470.
+  - The redeal follows Montana's: gather fan by fan, shuffle with the game's
+    `random`, deal in threes from the first fan, one `"redeal"` action,
+    `afterUndo` hands the redeal back, `saveExtra`/`restoreExtra` keep the
+    count, and the marker shows pips or the plain outline. Fans hold several
+    cards, so the redeal records one transfer per card, listing each fan's
+    cards top first: undo replays them in reverse, appending each card to its
+    old fan bottom first, which rebuilds every fan in order however the new
+    deal mixed them. The variants without a redeal keep the marker (every
+    option of an entry deals onto one grid) as a plain, inert outline.
+  - Entries "La Belle Lucie" (`labellelucie`, with a "Variant" option of La
+    Belle Lucie, The Fan and Shamrocks) and "Trefoil" (`trefoil`, its own
+    grid), both `laBelleLucieGestures`, in the Fan family. Rules pages,
+    profiles (La Belle Lucie and The Fan Hard, Shamrocks and Trefoil
+    Medium), named variants The Fan and Shamrocks, the README, screenshots
+    and thumbnails. Checked in the browser: a press on the marker redeals,
+    and undo restores the board exactly. The merci is left out, as the survey
+    advised.
+  - Tests: `test/games/la_belle_lucie/la_belle_lucie_game.spec.ts`.
 
 ## Next
 
-Step 9: La Belle Lucie, The Fan, Shamrocks and Trefoil. Fans of three, built
-down in suit and never refilled; the redeal copies `MontanaGame.redeal`
-(gather fan by fan, shuffle with the game's `random`, deal in threes, one
-`"redeal"` action, `afterUndo`, `saveExtra`/`restoreExtra`) with a marker
-zone showing pips via `recyclePipsPlaceholder` (two redeals: two pips exist).
-Shamrocks: up or down regardless of suit, `capacity: 3`. The Fan: Kings to
-empty fans, no redeal. Trefoil (an entry of its own, sixteen fans with the
-Aces on the foundations) shares the class. A fan of three reaches 403 design
-units, more than the 353-unit row pitch, so either rows at a fractional pitch
-(E3 is in) or a tighter `faceUpGap`.
+Step 10: E2, then Canfield, Storehouse, Superior Canfield and Rainbow. E2 is a
+foundation rule that reads the base rank from the board (the bottom card of
+any occupied foundation) rather than closing over a value, which survives
+`restore()` and restarts. The automatic fill from the reserve goes in
+`applyMoveEffects` as a follow-up transfer plus the reserve's newly exposed
+card in `flippedCardIds`. The stock uses `drawToWaste(…, 3)` and
+`recycleWasteToStock`; extend `DealtTableGame` directly rather than
+`KlondikeFamilyGame`. E1 already has `ascendingSameSuitWrapping`,
+`descendingAlternatingColorWrapping`, `descendingAnySuitWrapping` and the
+matching run adjacencies.
 
 Screenshots: open each new entry in a fresh isolated browser context (a game
 left in progress raises the "switch games?" confirmation). In a development

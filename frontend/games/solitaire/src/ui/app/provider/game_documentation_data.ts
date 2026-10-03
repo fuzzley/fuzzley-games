@@ -1497,4 +1497,103 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       },
     ],
   },
+  labellelucie: {
+    title: "La Belle Lucie",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/La_Belle_Lucie",
+    screenshot: {
+      url: "./docs/screenshots/labellelucie/overview.png",
+      caption:
+        "La Belle Lucie board showing the redeal marker and four empty foundations along the top, and eighteen face-up fans in two rows of nine.",
+      altText: "La Belle Lucie solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      winCondition: "All 52 cards are sorted into their suit foundations.",
+      quickOverview:
+        "La Belle Lucie deals the whole deck face-up into seventeen fans of three cards and one of a single card. Only the top card of a fan can move, onto a foundation or onto the next higher card of its suit. An emptied fan stays empty — and when you are stuck, the fans can be gathered, shuffled and dealt again in threes, twice per game.",
+    },
+    detailedRules: {
+      layout: [
+        "Foundations: 4 suit piles at the top-right, initially empty.",
+        "Redeal: a marker at the top-left, worth two uses per game. Its pips count them: filled for each redeal left, hollow for each one spent.",
+        "Tableau: 17 fans of 3 face-up cards and 1 fan of a single card, in two rows.",
+      ],
+      cardMovement: [
+        "Only the top card of a fan can be moved, one card at a time.",
+        "A card can go onto a fan whose top card is the same suit and exactly 1 rank higher.",
+        "An empty fan can never be filled again.",
+        "Press the redeal marker to gather every card left in the fans, shuffle them, and deal them out again in threes from the first fan.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Fans: Built DOWN in SAME SUIT.",
+      ],
+      specialRules: [
+        "Two Redeals: each redeal deals the cards in threes, so the fans grow fewer as the foundations fill. Once both are spent, or no card is left in the fans, the marker becomes a plain outline.",
+        "Buried Kings: a King can never move except to its foundation, so one dealt above lower cards of its suit blocks them until a redeal.",
+      ],
+    },
+    settingsAndVariants: [
+      {
+        optionId: "variant",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "La Belle Lucie: fans build down in suit, empty fans stay empty, and the fans can be redealt twice.",
+          },
+          {
+            value: 1,
+            effect:
+              "The Fan: as La Belle Lucie, but a King — and only a King — can fill an empty fan, and there is no redeal. Each emptied fan becomes a place to free a buried King.",
+          },
+          {
+            value: 2,
+            effect:
+              "Shamrocks: fans build up or down by rank in any suit, but no fan may ever hold more than three cards, and there is no redeal. Empty fans stay empty.",
+          },
+        ],
+      },
+    ],
+  },
+  trefoil: {
+    title: "Trefoil",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/La_Belle_Lucie",
+    screenshot: {
+      url: "./docs/screenshots/trefoil/overview.png",
+      caption:
+        "Trefoil board showing the redeal marker at the top-left, the four Aces on their foundations, and sixteen face-up fans of three in two rows of eight.",
+      altText: "Trefoil solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      winCondition: "All 52 cards are sorted into their suit foundations.",
+      quickOverview:
+        "Trefoil is La Belle Lucie with the four Aces already on the foundations. The other 48 cards are dealt face-up into sixteen fans of three. Only the top card of a fan moves, an emptied fan stays empty, and the fans can be gathered and dealt again twice.",
+    },
+    detailedRules: {
+      layout: [
+        "Foundations: 4 suit piles at the top-right, each started with an Ace.",
+        "Redeal: a marker at the top-left, worth two uses per game. Its pips count them: filled for each redeal left, hollow for each one spent.",
+        "Tableau: 16 fans of 3 face-up cards, in two rows of eight.",
+      ],
+      cardMovement: [
+        "Only the top card of a fan can be moved, one card at a time.",
+        "A card can go onto a fan whose top card is the same suit and exactly 1 rank higher.",
+        "An empty fan can never be filled again.",
+        "Press the redeal marker to gather every card left in the fans, shuffle them, and deal them out again in threes from the first fan.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from the Ace to King.",
+        "Fans: Built DOWN in SAME SUIT.",
+      ],
+      specialRules: [
+        "Two Redeals: once both are spent, or no card is left in the fans, the marker becomes a plain outline.",
+        "With the Aces out of the way from the start, every Two can go home as soon as it is free, which makes Trefoil easier than La Belle Lucie.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
 };
