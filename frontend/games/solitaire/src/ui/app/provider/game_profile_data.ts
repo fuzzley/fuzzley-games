@@ -653,5 +653,13 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       decks: 1,
       allCardsVisible: true,
     },
+    pokersquares: {
+      family: "other",
+      tagline: "Place 25 cards in a grid to make ten poker hands.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 1,
+      allCardsVisible: false,
+      aliases: ["Poker Solitaire"],
+    },
   },
 };

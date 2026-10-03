@@ -138,6 +138,12 @@ import {
   CastleVariant,
   DEFAULT_CASTLE_VARIANT,
 } from "@/games/beleaguered_castle/castle_rules";
+import { PokerSquaresGame } from "@/games/poker_squares/poker_squares_game";
+import { POKER_SQUARES_LAYOUT } from "@/games/poker_squares/poker_squares_layout";
+import {
+  DEFAULT_POKER_SQUARES_SCORING,
+  PokerSquaresScoring,
+} from "@/games/poker_squares/poker_squares_rules";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -536,6 +542,19 @@ const CASTLE_VARIANT: GameOptionSpec<CastleVariant> = {
     { value: CastleVariant.CITADEL, label: "Citadel" },
   ],
   defaultValue: DEFAULT_CASTLE_VARIANT,
+};
+
+/** Which scoring Poker Squares counts its lines by. */
+const POKER_SQUARES_SCORING: GameOptionSpec<PokerSquaresScoring> = {
+  id: "scoring",
+  label: "Scoring",
+  description:
+    "American scoring pays most for flushes and wins at 200; English scoring pays more for a straight than a flush and wins at 70.",
+  choices: [
+    { value: PokerSquaresScoring.AMERICAN, label: "American" },
+    { value: PokerSquaresScoring.ENGLISH, label: "English" },
+  ],
+  defaultValue: DEFAULT_POKER_SQUARES_SCORING,
 };
 
 /*
@@ -975,6 +994,19 @@ const FORTRESS = {
   create: () => dealt(new CastleGame({ variant: CastleVariant.FORTRESS })),
 } satisfies CatalogEntry<CastleGame>;
 
+const POKER_SQUARES = {
+  id: "pokersquares" as const,
+  name: "Poker Squares",
+  options: [POKER_SQUARES_SCORING],
+  layout: POKER_SQUARES_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(
+      new PokerSquaresGame({
+        scoring: optionValue(values, POKER_SQUARES_SCORING),
+      }),
+    ),
+} satisfies CatalogEntry<PokerSquaresGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -1023,6 +1055,7 @@ export const CATALOG_ENTRIES = [
   TRI_PEAKS,
   BELEAGUERED_CASTLE,
   FORTRESS,
+  POKER_SQUARES,
 ] as const;
 
 /** Every game the application can put on the table. */

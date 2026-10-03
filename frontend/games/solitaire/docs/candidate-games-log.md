@@ -68,7 +68,7 @@ need:
 - [x] 15. TriPeaks.
 - [x] 16. E5, then Beleaguered Castle, Streets and Alleys, Citadel and
       Fortress.
-- [ ] 17. Poker Squares.
+- [x] 17. Poker Squares.
 - [ ] 18. The README, the survey's status, the skill, `yarn verify` and
       coverage.
 
@@ -443,7 +443,7 @@ descendingAnySuit)`, top-only.
     `minOverlapArea`. A throwaway spec over 2000 random deals showed the
     misses before the fix, and a test pins the sliver case.
   - Tests: `test/games/tri_peaks/tri_peaks_game.spec.ts`.
-- Step 16: E5, then Beleaguered Castle, Streets and Alleys, Citadel and
+- Step 16 (`fec7581`): E5, then Beleaguered Castle, Streets and Alleys, Citadel and
   Fortress.
   - E5: `pileWidth` beside `pileHeight` in
     `src/engine/render/layout/pile_layout.ts`; `computeDropGeometries` now
@@ -476,21 +476,38 @@ descendingAnySuit)`, top-only.
     "demon" (Canfield) keeps an alias case.
   - Tests: `test/games/beleaguered_castle/castle_game.spec.ts` and a
     sideways-fan case in `drop_geometry.spec.ts`.
+- Step 17: Poker Squares.
+  - `src/games/poker_squares/poker_hands.ts`: a pure `evaluateHand` naming
+    the best poker hand a line's cards make. Pairs, threes, two pair, fours
+    and full houses count as soon as they are there; straights (Ace low or
+    high, never round the corner) and flushes need all five cards.
+  - Rules: an American and an English points table (the survey's), each with
+    its winning score (200 or 70); `scoreGrid` sums the ten rows and columns.
+    A square takes a single card only from the hand, has `capacity: 1` and
+    `grab: none`.
+  - `applyMoveEffects` rescores the grid into `state.score`, returns the
+    change as the move's `scoreDelta`, and draws the next card into the hand
+    as a follow-up transfer, so one undo takes back the placement, the score
+    and the draw. The deal turns the first card into the hand; there is no
+    stock press. `isWon`: the grid is full and the score reaches the system's
+    threshold. `autoMoveRoles` is empty: where a card goes is the game.
+  - Board: the stock and the hand at the left, the 5 × 5 grid beside them
+    (6 × 5, no `designHeightPx`). The running total shows in the header's
+    score, so E6 (a separate status readout) was not needed.
+  - A "Poker Squares" entry (`pokersquares`, alias Poker Solitaire) with a
+    "Scoring" option, `stocklessGestures`, a rules page, a profile in "More
+    games" (Medium), the README, the screenshot (ten cards placed by
+    synthetic drags, which also checks dragging end to end) and thumbnails.
+  - Tests: `poker_hands.spec.ts` and `poker_squares_game.spec.ts` in
+    `test/games/poker_squares`.
 
 ## Next
 
-Step 17: Poker Squares. Twenty-five cells taking a card only from the hand
-(Calculation's one-card hand, drawn by pressing the stock while the hand is
-empty), `grab: none` once filled. A pure hand evaluator in the game's
-directory; after each placement update `state.score` and record the change
-as the move's `scoreDelta` so undo takes it back. Options: American or
-English scoring. `isWon` when the grid is full and the score reaches the
-system's threshold (200 or 70).
-
-Screenshots: open each new entry in a fresh isolated browser context (a game
-left in progress raises the "switch games?" confirmation). In a development
-build the running game is on `window.fsolitaire`, and synthetic `mousedown`
-on the canvas plus `mouseup` on `window` drive presses.
+Step 18: wrap-up. The survey's status line and a status line under each of
+items 10 to 26 (with the departures logged here), the `add-solitaire-game`
+skill's examples and new shared pieces (`pair_removal.ts`, `playOnPress`,
+`pullFirstCard`, `sinkKings`, the `uncovered` grab, `baseRankFoundation`,
+`pileWidth`), `yarn verify`, and `yarn test:coverage` against the floor.
 
 ## Picking it back up
 
