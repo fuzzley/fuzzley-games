@@ -44,6 +44,10 @@ export const FreeCellVariant = {
   BAKERS: "bakers",
   /** Baker's Game with only a King allowed to start an empty column. */
   BAKERS_KINGS_ONLY: "bakers-kings-only",
+  /** Challenge FreeCell: FreeCell with the Aces and Twos dealt underneath. */
+  CHALLENGE: "challenge",
+  /** Super Challenge FreeCell: Challenge FreeCell with Kings-only spaces. */
+  SUPER_CHALLENGE: "super-challenge",
 } as const;
 
 /** Names one of the rule sets a FreeCell board can be played by. */
@@ -72,12 +76,17 @@ export function supermoveLimit(context: PlacementContext): number {
  */
 export const kingsOnlySupermoveLimit = cellStagingLimit(FreeCellRole.CELL);
 
-/** Holds the two halves of a variant's column rules, which have to agree. */
+/**
+ * Holds the two halves of a variant's column rules, which have to agree, and
+ * how it deals.
+ */
 interface VariantRules {
   /** What a column accepts, empty or occupied, supermove limit included. */
   readonly tableau: PlacementRule;
   /** Whether `upper` may sit directly on `lower` within a liftable run. */
   readonly adjacent: (lower: PlayingCard, upper: PlayingCard) => boolean;
+  /** Whether the deal puts the Aces and Twos at the bottom of the columns. */
+  readonly buriesAcesAndTwos: boolean;
 }
 
 /**
@@ -91,6 +100,7 @@ const VARIANT_RULES: Readonly<Record<FreeCellVariant, VariantRules>> = {
       maxStackSize(supermoveLimit),
     ),
     adjacent: isOrderedPair,
+    buriesAcesAndTwos: false,
   },
   [FreeCellVariant.BAKERS]: {
     tableau: all(
@@ -98,6 +108,7 @@ const VARIANT_RULES: Readonly<Record<FreeCellVariant, VariantRules>> = {
       maxStackSize(supermoveLimit),
     ),
     adjacent: isSameSuitRun,
+    buriesAcesAndTwos: false,
   },
   [FreeCellVariant.BAKERS_KINGS_ONLY]: {
     tableau: all(
@@ -105,6 +116,25 @@ const VARIANT_RULES: Readonly<Record<FreeCellVariant, VariantRules>> = {
       maxStackSize(kingsOnlySupermoveLimit),
     ),
     adjacent: isSameSuitRun,
+    buriesAcesAndTwos: false,
+  },
+  [FreeCellVariant.CHALLENGE]: {
+    tableau: all(
+      byEmptiness(anyCard, descendingAlternatingColor),
+      maxStackSize(supermoveLimit),
+    ),
+    adjacent: isOrderedPair,
+    buriesAcesAndTwos: true,
+  },
+  // In any descending run only the bottom card can be a King, whatever the
+  // colours, so Kings-only spaces cap a supermove as they do in Baker's Game.
+  [FreeCellVariant.SUPER_CHALLENGE]: {
+    tableau: all(
+      byEmptiness(cardIs(hasRank(Rank.KING)), descendingAlternatingColor),
+      maxStackSize(kingsOnlySupermoveLimit),
+    ),
+    adjacent: isOrderedPair,
+    buriesAcesAndTwos: true,
   },
 };
 
@@ -119,6 +149,11 @@ export function freeCellRunAdjacency(
   variant: FreeCellVariant,
 ): (lower: PlayingCard, upper: PlayingCard) => boolean {
   return VARIANT_RULES[variant].adjacent;
+}
+
+/** Returns whether `variant` deals the Aces and Twos to the column bottoms. */
+export function freeCellBuriesAcesAndTwos(variant: FreeCellVariant): boolean {
+  return VARIANT_RULES[variant].buriesAcesAndTwos;
 }
 
 /**

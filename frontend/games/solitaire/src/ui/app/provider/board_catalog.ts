@@ -27,6 +27,7 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
   spider: spiderGestures,
   yukon: stocklessGestures,
   bakers: stocklessGestures,
+  challengefreecell: stocklessGestures,
   eightoff: stocklessGestures,
   scorpion: scorpionGestures,
   simplesimon: stocklessGestures,

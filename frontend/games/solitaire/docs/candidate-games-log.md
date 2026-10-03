@@ -34,7 +34,7 @@ Add every game in Part A of the survey:
 - [x] 2. E7, then Vegas scoring.
 - [x] 3. Moosehide.
 - [x] 4. Wasp and Scorpion II.
-- [ ] 5. Challenge and Super Challenge FreeCell.
+- [x] 5. Challenge and Super Challenge FreeCell.
 - [ ] 6. Indian and Number Ten.
 - [ ] 7. Lucas.
 - [ ] 8. Mrs. Mop.
@@ -95,7 +95,7 @@ Add every game in Part A of the survey:
     README line, and a "Moosehide column" block in `yukon_game.spec.ts`.
   - `game_search.spec.ts` lists Yukon's variants from the real catalog, so
     it gained Moosehide too.
-- Step 4: Wasp and Scorpion II.
+- Step 4 (`1c5c325`): Wasp and Scorpion II.
   - `ScorpionVariant` and a `VARIANT_RULES` table in `scorpion_rules.ts`
     pairing each variant's empty-column rule with how many columns it buries
     cards in: Scorpion (Kings, 4), Wasp (any card, 4), Scorpion II (Kings, 3).
@@ -106,6 +106,25 @@ Add every game in Part A of the survey:
   - A "Variant" option on the Scorpion entry, its rules-page entry, named
     variants (Wasp Easy, Scorpion II Medium), the README line, and Wasp and
     Scorpion II blocks in `scorpion_game.spec.ts`.
+- Step 5: Challenge and Super Challenge FreeCell.
+  - `FreeCellVariant.CHALLENGE` and `SUPER_CHALLENGE` in `freecell_rules.ts`.
+    The table gained `buriesAcesAndTwos`. Super Challenge pairs Kings-only
+    spaces with `kingsOnlySupermoveLimit` and alternating colours.
+  - `pullCards` in the new `src/games/common/pull_cards.ts` takes cards out of
+    a deck in the order the deal would reach them. `dealFreeCellLayout` puts
+    the Aces and Twos back on top, so the usual round-robin deals them first,
+    one per column. It goes in `common` now because Lucas (step 7) is its
+    second user.
+  - A "Challenge FreeCell" entry (`challengefreecell`) on `FREECELL_LAYOUT`
+    with an "Empty Columns: Any Card / Kings Only" option, `stocklessGestures`,
+    a rules page (no Wikipedia article exists), a FreeCell-family profile
+    (Hard) with "Super Challenge FreeCell" as a named variant, and the README.
+  - Screenshot: `public/docs/screenshots/challengefreecell/overview.png`,
+    captured with the Chrome DevTools MCP in an isolated browser context (so
+    no saved game is restored) at 1440 × 810 at 2×, on the dev server already
+    running on port 9000. Re-encoded losslessly with sharp at compression
+    level 9, then `yarn build:thumbs`, which rewrote no other game's images.
+  - Tests: `challenge_freecell.spec.ts` and `pull_cards.spec.ts`.
 
 ## Picking it back up
 

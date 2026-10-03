@@ -157,6 +157,21 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       decks: 1,
       allCardsVisible: true,
     },
+    challengefreecell: {
+      family: "freecell",
+      tagline: "FreeCell with every Ace and Two dealt to the bottom.",
+      difficulty: Difficulty.HARD,
+      decks: 1,
+      allCardsVisible: true,
+      variants: [
+        {
+          name: "Super Challenge FreeCell",
+          values: { emptyColumns: 1 },
+          tagline: "Challenge FreeCell where only Kings fill a space.",
+          difficulty: Difficulty.HARD,
+        },
+      ],
+    },
     eightoff: {
       family: "freecell",
       tagline: "Eight cells, half of them filled, and same-suit columns.",
