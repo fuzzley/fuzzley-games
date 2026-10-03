@@ -21,6 +21,7 @@ import { laBelleLucieGestures } from "@/games/la_belle_lucie/la_belle_lucie_gest
 import { canfieldGestures } from "@/games/canfield/canfield_gestures";
 import { blackHoleGestures } from "@/games/black_hole/black_hole_gestures";
 import { pyramidGestures } from "@/games/pyramid/pyramid_gestures";
+import { triPeaksGestures } from "@/games/tri_peaks/tri_peaks_gestures";
 import { GameId, GameOf, catalogEntry } from "./game_catalog";
 
 /** Says what a press or a drop means in a particular game. */
@@ -68,6 +69,7 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
   allinarow: blackHoleGestures,
   grandfathersclock: stocklessGestures,
   pyramid: pyramidGestures,
+  tripeaks: triPeaksGestures,
 };
 
 /**

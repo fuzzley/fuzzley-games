@@ -1878,4 +1878,42 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       },
     ],
   },
+  tripeaks: {
+    title: "TriPeaks",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Tri_Peaks_(game)",
+    screenshot: {
+      url: "./docs/screenshots/tripeaks/overview.png",
+      caption:
+        "TriPeaks board showing three overlapping peaks of face-down cards over a base of ten face-up cards, with the stock and the waste centred beneath.",
+      altText: "TriPeaks solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Clear all three peaks by playing their cards onto the waste, one rank up or down at a time.",
+      winCondition:
+        "Every card in the peaks has been played. Cards left in the stock do not matter.",
+      quickOverview:
+        "TriPeaks deals twenty-eight cards as three overlapping peaks: rows of three, six and nine face-down cards over a base of ten face-up ones, with one more card starting the waste. Any uncovered card can be played onto the waste if it is one rank above or below the waste's top card, in any suit, with King and Ace adjacent — and a face-down card turns up as soon as nothing covers it.",
+    },
+    detailedRules: {
+      layout: [
+        "Peaks: 28 cards — rows of 3, 6 and 9 face-down cards over a base of 10 face-up cards, each row half covering the one above.",
+        "Stock: 23 face-down cards beneath the peaks, turned one at a time.",
+        "Waste: a single pile beside the stock, started with one card from the deal.",
+      ],
+      cardMovement: [
+        "Press an uncovered card to play it onto the waste, or drag it there.",
+        "A card is uncovered once both cards overlapping it from below are gone, and turns face-up at that moment.",
+        "Press the stock to turn its top card onto the waste, whatever its rank.",
+      ],
+      sequenceBuilding: [
+        "Waste: one rank HIGHER or LOWER than its top card, in ANY SUIT, with King and Ace adjacent — a chain can climb, fall and turn the corner.",
+      ],
+      specialRules: [
+        "One Pass: the stock is never recycled.",
+        "Long Chains: the art is to keep a chain going as long as you can before turning the next stock card, and to uncover the face-down cards of all three peaks evenly.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
 };

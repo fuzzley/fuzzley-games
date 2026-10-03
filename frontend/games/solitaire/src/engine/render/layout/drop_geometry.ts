@@ -60,16 +60,19 @@ function overlapArea(first: Rect, second: Rect): number {
 
 /**
  * Returns the candidate the dragged card overlaps most, or null if it overlaps
- * none.
+ * none by more than `minOverlapArea`.
  *
  * @param dragRect The screen bounds of the card the player grabbed.
+ * @param minOverlapArea The overlap, in square screen pixels, a candidate must
+ *   exceed; by default any overlap at all will do.
  */
 export function resolveDropTarget(
   dragRect: Rect,
   geometries: readonly PileGeometry[],
+  minOverlapArea = 0,
 ): PileGeometry | null {
   let target: PileGeometry | null = null;
-  let maxOverlapArea = 0;
+  let maxOverlapArea = minOverlapArea;
 
   for (const geometry of geometries) {
     const area = overlapArea(dragRect, geometry);

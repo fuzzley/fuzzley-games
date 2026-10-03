@@ -70,14 +70,14 @@ describe("resolveDragTarget", () => {
     const tableau0 = geometryOf("tableau-0");
     const tableau1 = geometryOf("tableau-1");
 
-    // Mostly over the empty column, which takes only a King, and partly over
-    // the King.
+    // Mostly over the empty column, which takes only a King, and well over
+    // the King too.
     const target = resolveDragTarget(
       game,
       {
         cardIds: ["card-hearts-queen"],
         primary: {
-          x: tableau1.x - (tableau1.x - tableau0.x) / 3,
+          x: tableau1.x - (tableau1.x - tableau0.x) * 0.4,
           y: tableau1.y,
         },
       },
@@ -85,6 +85,28 @@ describe("resolveDragTarget", () => {
     );
 
     expect(target?.pileId).toBe("tableau-0");
+  });
+
+  it("keeps to the pile it overlaps most when a taker is barely touched", () => {
+    relocate(game, "card-spades-king", game.tableaus[0], true);
+    relocate(game, "card-hearts-queen", game.waste, true);
+    const tableau0 = geometryOf("tableau-0");
+    const tableau1 = geometryOf("tableau-1");
+
+    // A sliver over the King, the rest over the empty column.
+    const target = resolveDragTarget(
+      game,
+      {
+        cardIds: ["card-hearts-queen"],
+        primary: {
+          x: tableau1.x - (tableau1.x - tableau0.x) * 0.2,
+          y: tableau1.y,
+        },
+      },
+      measureFakeTable(viewport),
+    );
+
+    expect(target?.pileId).toBe("tableau-1");
   });
 
   it("follows a tableau's rectangle as it grows with its fanned cards", () => {
