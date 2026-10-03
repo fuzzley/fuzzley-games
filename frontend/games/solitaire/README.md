@@ -35,6 +35,8 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Bristol**: Eight fans of three built down regardless of suit, three reserves the stock deals onto, and foundations built up regardless of suit; Belvedere, which starts with one Ace on a foundation, is its variant option.
 - **Nestor**: Eight open columns and a four-card reserve, cleared by pairing free cards of the same rank.
 - **Monte Carlo**: A five-by-five grid cleared by pairing touching cards of the same rank, then closed up and refilled from the stock; Monte Carlo Thirteens, which pairs cards adding up to thirteen, is its variant option.
+- **La Belle Lucie**: Seventeen fans of three and one single card, built down in suit, with two redeals; The Fan and Shamrocks are its variant options.
+- **Trefoil**: La Belle Lucie with the Aces dealt to the foundations and the rest in sixteen fans of three.
 
 ## Development
 

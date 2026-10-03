@@ -9,6 +9,7 @@ import { GolfVariant } from "@/games/golf/golf_rules";
 import { CalculationVariant } from "@/games/calculation/calculation_rules";
 import { BristolVariant } from "@/games/bristol/bristol_rules";
 import { MonteCarloVariant } from "@/games/monte_carlo/monte_carlo_rules";
+import { LaBelleLucieVariant } from "@/games/la_belle_lucie/la_belle_lucie_rules";
 import {
   Difficulty,
   GameFamilyProfile,
@@ -467,6 +468,43 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           difficulty: Difficulty.MEDIUM,
         },
       ],
+    },
+    labellelucie: {
+      family: "fan",
+      tagline: "Eighteen fans built down in suit, with two redeals.",
+      difficulty: {
+        optionId: "variant",
+        byChoice: {
+          [LaBelleLucieVariant.LA_BELLE_LUCIE]: Difficulty.HARD,
+          [LaBelleLucieVariant.THE_FAN]: Difficulty.HARD,
+          [LaBelleLucieVariant.SHAMROCKS]: Difficulty.MEDIUM,
+        },
+      },
+      decks: 1,
+      allCardsVisible: true,
+      aliases: ["Fair Lucy", "Midnight Oil"],
+      variants: [
+        {
+          name: "The Fan",
+          values: { variant: LaBelleLucieVariant.THE_FAN },
+          tagline:
+            "La Belle Lucie where Kings fill empty fans, with no redeal.",
+          difficulty: Difficulty.HARD,
+        },
+        {
+          name: "Shamrocks",
+          values: { variant: LaBelleLucieVariant.SHAMROCKS },
+          tagline: "Fans of at most three, built up or down in any suit.",
+          difficulty: Difficulty.MEDIUM,
+        },
+      ],
+    },
+    trefoil: {
+      family: "fan",
+      tagline: "La Belle Lucie with the Aces already on the foundations.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 1,
+      allCardsVisible: true,
     },
   },
 };
