@@ -153,8 +153,25 @@ export class BoardScene extends Scene implements PhaserSprites {
   }
 
   /**
-   * Follows everything the model publishes until the scene shuts down, since
-   * `create` subscribes again on every restart.
+   * Runs `release` once, when the scene shuts down or is destroyed, whichever
+   * comes first.
+   *
+   * Both, because Phaser destroys a running scene without shutting it down
+   * first, whether the scene is removed or the whole game is destroyed.
+   */
+  private whenSceneEnds(release: () => void): void {
+    const end = () => {
+      this.events.off(Scenes.Events.SHUTDOWN, end);
+      this.events.off(Scenes.Events.DESTROY, end);
+      release();
+    };
+    this.events.once(Scenes.Events.SHUTDOWN, end);
+    this.events.once(Scenes.Events.DESTROY, end);
+  }
+
+  /**
+   * Follows everything the model publishes until the scene ends, since `create`
+   * subscribes again on every restart.
    */
   private followTheModel(): void {
     const stopFollowing = [
@@ -172,7 +189,7 @@ export class BoardScene extends Scene implements PhaserSprites {
       }),
     ];
 
-    this.events.once(Scenes.Events.SHUTDOWN, () => {
+    this.whenSceneEnds(() => {
       for (const stop of stopFollowing) stop();
     });
   }
@@ -184,7 +201,7 @@ export class BoardScene extends Scene implements PhaserSprites {
   private redrawShadowAfterContextLoss(): void {
     const redraw = () => this.visualFactory.bakeCardShadow();
     this.renderer.on(Renderer.Events.RESTORE_WEBGL, redraw);
-    this.events.once(Scenes.Events.SHUTDOWN, () => {
+    this.whenSceneEnds(() => {
       this.renderer.off(Renderer.Events.RESTORE_WEBGL, redraw);
     });
   }
@@ -192,8 +209,13 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Registers the pointer listeners and snaps cards into place on a resize. */
   private wireInput(): void {
     this.controller.snapAll = true;
-    this.scale.on("resize", () => {
+    const snapAll = () => {
       this.controller.snapAll = true;
+    };
+    // The scale manager belongs to the game, which outlives the scene.
+    this.scale.on("resize", snapAll);
+    this.whenSceneEnds(() => {
+      this.scale.off("resize", snapAll);
     });
 
     this.inputManager.registerDragListeners();

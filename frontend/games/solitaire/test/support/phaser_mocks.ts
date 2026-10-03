@@ -395,6 +395,7 @@ export function createMockInput(): MockInput {
 export interface MockSceneEvents {
   once: Mock;
   on: Mock;
+  off: Mock;
   /** Dispatches an event to its listeners, dropping any registered via once. */
   emit(event: string, ...args: unknown[]): void;
 }
@@ -420,6 +421,14 @@ export function createMockSceneEvents(): MockSceneEvents {
     }),
     on: vi.fn((event: string, callback: (...args: unknown[]) => void) => {
       add(listeners, event, callback);
+    }),
+    off: vi.fn((event: string, callback: (...args: unknown[]) => void) => {
+      for (const map of [listeners, onceListeners]) {
+        map.set(
+          event,
+          (map.get(event) ?? []).filter((existing) => existing !== callback),
+        );
+      }
     }),
     emit(event: string, ...args: unknown[]): void {
       for (const callback of listeners.get(event) ?? []) {
@@ -652,20 +661,33 @@ export function createMockLoader(): MockLoader {
 /** Stands in for a Phaser scale manager, recording and firing listeners. */
 export interface MockScaleManager {
   on: Mock;
+  off: Mock;
   emit(event: string, ...args: unknown[]): void;
+  /** Returns how many listeners an event has, for leak checks. */
+  listenerCount(event: string): number;
   width: number;
   height: number;
 }
 
 /** Builds a {@link MockScaleManager} so tests can drive resize via emit. */
 export function createMockScaleManager(): MockScaleManager {
-  const listeners = new Map<string, (...args: unknown[]) => void>();
+  const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
   return {
     on: vi.fn((event: string, callback: (...args: unknown[]) => void) => {
-      listeners.set(event, callback);
+      const existing = listeners.get(event) ?? new Set();
+      existing.add(callback);
+      listeners.set(event, existing);
+    }),
+    off: vi.fn((event: string, callback: (...args: unknown[]) => void) => {
+      listeners.get(event)?.delete(callback);
     }),
     emit(event: string, ...args: unknown[]): void {
-      listeners.get(event)?.(...args);
+      for (const callback of listeners.get(event) ?? []) {
+        callback(...args);
+      }
+    },
+    listenerCount(event: string): number {
+      return listeners.get(event)?.size ?? 0;
     },
     width: 0,
     height: 0,
@@ -691,7 +713,9 @@ export function boardScenePhaserMock(): {
     load: MockLoader;
     renderer: MockRenderer;
   };
-  Scenes: { Events: { SHUTDOWN: string; POST_UPDATE: string } };
+  Scenes: {
+    Events: { SHUTDOWN: string; DESTROY: string; POST_UPDATE: string };
+  };
   Loader: { Events: { COMPLETE: string } };
   Renderer: { Events: { RESTORE_WEBGL: string } };
   Geom: { Rectangle: typeof MockRectangle };
@@ -717,7 +741,11 @@ export function boardScenePhaserMock(): {
       renderer = createMockRenderer();
     },
     Scenes: {
-      Events: { SHUTDOWN: SHUTDOWN_EVENT, POST_UPDATE: POST_UPDATE_EVENT },
+      Events: {
+        SHUTDOWN: SHUTDOWN_EVENT,
+        DESTROY: DESTROY_EVENT,
+        POST_UPDATE: POST_UPDATE_EVENT,
+      },
     },
     Loader: { Events: { COMPLETE: LOADER_COMPLETE_EVENT } },
     Renderer: { Events: { RESTORE_WEBGL: RESTORE_WEBGL_EVENT } },
@@ -731,6 +759,12 @@ export function boardScenePhaserMock(): {
 
 /** The scene shutdown event name, matching Phaser's own. */
 export const SHUTDOWN_EVENT = "shutdown";
+
+/**
+ * The scene destroy event name, matching Phaser's own, which a scene raises
+ * without shutting down first when it is removed or its game is destroyed.
+ */
+export const DESTROY_EVENT = "destroy";
 
 /**
  * The event raised after a frame is drawn, matching Phaser's own, on which a

@@ -4,6 +4,7 @@ import { makeFakeTableBoardScene } from "@test/support/fake_table/scene";
 import { TestPresentation } from "@test/support/presentation";
 import { FakeTableGame } from "@test/support/fake_table/game";
 import {
+  DESTROY_EVENT,
   MockGraphics,
   MockInput,
   MockLoader,
@@ -99,6 +100,15 @@ describe("BoardScene", () => {
     });
   }
 
+  /** Returns how many times the shared shadow texture has been drawn. */
+  function shadowRenders(): number {
+    const textures = boardScene.textures as unknown as MockTextures;
+    return (
+      textures.dynamicTexture(PhaserCardFactory.SHADOW_TEXTURE_KEY)
+        ?.renderCount ?? 0
+    );
+  }
+
   describe("construction", () => {
     it("draws a placeholder under each pile it is handed one for, and no others", () => {
       const withPlaceholder = fakeGame.piles
@@ -116,15 +126,6 @@ describe("BoardScene", () => {
     function allShadows(): MockSprite[] {
       return [...boardScene.cardIds].map((cardId) =>
         asMock(boardScene.cardShadowSprite(cardId)),
-      );
-    }
-
-    /** Returns how many times the shared shadow texture has been drawn. */
-    function shadowRenders(): number {
-      const textures = boardScene.textures as unknown as MockTextures;
-      return (
-        textures.dynamicTexture(PhaserCardFactory.SHADOW_TEXTURE_KEY)
-          ?.renderCount ?? 0
       );
     }
 
@@ -157,18 +158,6 @@ describe("BoardScene", () => {
       );
 
       expect(shadowRenders()).toBe(before + 1);
-    });
-
-    it("stops redrawing the shadow once the scene shuts down", () => {
-      const events = boardScene.events as unknown as MockSceneEvents;
-      events.emit(SHUTDOWN_EVENT);
-      const before = shadowRenders();
-
-      (boardScene.renderer as unknown as MockRenderer).emit(
-        RESTORE_WEBGL_EVENT,
-      );
-
-      expect(shadowRenders()).toBe(before);
     });
   });
 
@@ -400,6 +389,63 @@ describe("BoardScene", () => {
 
       // A renderer that dealt would throw the game in progress away.
       expect(fakeGame.foundations[0].topCard).toBe(ace);
+    });
+  });
+
+  // Phaser destroys a removed scene, or every scene of a destroyed game,
+  // without shutting it down first.
+  describe.each([SHUTDOWN_EVENT, DESTROY_EVENT])(
+    "once the scene ends with %s",
+    (event) => {
+      /** Raises the event that ends the scene. */
+      function endScene(): void {
+        (boardScene.events as unknown as MockSceneEvents).emit(event);
+      }
+
+      it("stops following the presentation", () => {
+        endScene();
+
+        expect([
+          presentation.listenerCount,
+          presentation.deckListenerCount,
+        ]).toEqual([0, 0]);
+      });
+
+      it("stops listening for the canvas to resize", () => {
+        const scale = boardScene.scale as unknown as MockScaleManager;
+
+        endScene();
+
+        expect(scale.listenerCount("resize")).toBe(0);
+      });
+
+      it("stops redrawing the shadow when a lost WebGL context is restored", () => {
+        endScene();
+        const before = shadowRenders();
+
+        (boardScene.renderer as unknown as MockRenderer).emit(
+          RESTORE_WEBGL_EVENT,
+        );
+
+        expect(shadowRenders()).toBe(before);
+      });
+    },
+  );
+
+  describe("a restarted scene", () => {
+    it("lets go of everything when it is then destroyed", () => {
+      const events = boardScene.events as unknown as MockSceneEvents;
+      const scale = boardScene.scale as unknown as MockScaleManager;
+      events.emit(SHUTDOWN_EVENT);
+      boardScene.create();
+
+      events.emit(DESTROY_EVENT);
+
+      expect([
+        presentation.listenerCount,
+        presentation.deckListenerCount,
+        scale.listenerCount("resize"),
+      ]).toEqual([0, 0, 0]);
     });
   });
 
