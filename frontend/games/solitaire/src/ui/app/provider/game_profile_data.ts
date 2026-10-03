@@ -263,6 +263,18 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           tagline: "Alternating colours, but most of the deal face-down.",
           difficulty: Difficulty.HARD,
         },
+        {
+          name: "Indian",
+          values: { variant: FortyThievesVariant.INDIAN },
+          tagline: "Columns of three, building on any suit but a card's own.",
+          difficulty: Difficulty.MEDIUM,
+        },
+        {
+          name: "Number Ten",
+          values: { variant: FortyThievesVariant.NUMBER_TEN },
+          tagline: "Alternating colours with runs, half the deal face-down.",
+          difficulty: Difficulty.MEDIUM,
+        },
       ],
     },
     maria: {

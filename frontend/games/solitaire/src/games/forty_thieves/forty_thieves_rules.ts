@@ -4,6 +4,7 @@ import {
   anyCard,
   byEmptiness,
   descendingAlternatingColor,
+  descendingDifferentSuit,
   descendingSameSuit,
   isOrderedPair,
   isSameSuitRun,
@@ -44,6 +45,10 @@ export const FortyThievesVariant = {
   MARIA: 3,
   /** Limited: twelve columns of three, built down in suit. */
   LIMITED: 4,
+  /** Indian: columns of three, one buried, built down in any other suit. */
+  INDIAN: 5,
+  /** Number Ten: two of every four buried, alternating colours, runs move. */
+  NUMBER_TEN: 6,
 } as const;
 
 /** Names one of the games in the Forty Thieves family. */
@@ -109,6 +114,20 @@ const VARIANT_RULES: Readonly<Record<FortyThievesVariant, VariantRules>> = {
     buriedPerColumn: 0,
     tableauCount: 12,
     cardsPerColumn: 3,
+  },
+  [FortyThievesVariant.INDIAN]: {
+    occupied: descendingDifferentSuit,
+    grab: { kind: "top-only" },
+    buriedPerColumn: 1,
+    tableauCount: 10,
+    cardsPerColumn: 3,
+  },
+  [FortyThievesVariant.NUMBER_TEN]: {
+    occupied: descendingAlternatingColor,
+    grab: { kind: "run", adjacent: isOrderedPair },
+    buriedPerColumn: 2,
+    tableauCount: 10,
+    cardsPerColumn: 4,
   },
 };
 
