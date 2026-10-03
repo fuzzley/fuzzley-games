@@ -86,6 +86,8 @@ import {
   BristolVariant,
   DEFAULT_BRISTOL_VARIANT,
 } from "@/games/bristol/bristol_rules";
+import { NestorGame } from "@/games/nestor/nestor_game";
+import { NESTOR_LAYOUT } from "@/games/nestor/nestor_layout";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -701,6 +703,14 @@ const BRISTOL = {
     dealt(new BristolGame({ variant: optionValue(values, BRISTOL_VARIANT) })),
 } satisfies CatalogEntry<BristolGame>;
 
+const NESTOR = {
+  id: "nestor" as const,
+  name: "Nestor",
+  options: [],
+  layout: NESTOR_LAYOUT,
+  create: () => dealt(new NestorGame()),
+} satisfies CatalogEntry<NestorGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -736,6 +746,7 @@ export const CATALOG_ENTRIES = [
   CALCULATION,
   FLOWER_GARDEN,
   BRISTOL,
+  NESTOR,
 ] as const;
 
 /** Every game the application can put on the table. */

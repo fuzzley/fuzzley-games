@@ -33,6 +33,7 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Calculation**: Four foundations built regardless of suit by ones, twos, threes and fours, from a stock turned a card at a time onto four waste piles; Sir Tommy, which builds every foundation up from an Ace, is its variant option.
 - **Flower Garden**: Six open beds built down regardless of suit, and a sixteen-card bouquet whose every card is free to play.
 - **Bristol**: Eight fans of three built down regardless of suit, three reserves the stock deals onto, and foundations built up regardless of suit; Belvedere, which starts with one Ace on a foundation, is its variant option.
+- **Nestor**: Eight open columns and a four-card reserve, cleared by pairing free cards of the same rank.
 
 ## Development
 

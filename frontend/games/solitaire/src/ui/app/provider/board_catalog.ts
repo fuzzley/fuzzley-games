@@ -53,6 +53,7 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
   calculation: calculationGestures,
   flowergarden: stocklessGestures,
   bristol: bristolGestures,
+  nestor: stocklessGestures,
 };
 
 /**

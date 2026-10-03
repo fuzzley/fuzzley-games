@@ -57,7 +57,7 @@ need:
 - [x] 4. Calculation and Sir Tommy.
 - [x] 5. E3, then Flower Garden.
 - [x] 6. Bristol and Belvedere.
-- [ ] 7. P1, then Nestor.
+- [x] 7. P1, then Nestor.
 - [ ] 8. Monte Carlo and Thirteens.
 - [ ] 9. La Belle Lucie, The Fan, Shamrocks and Trefoil.
 - [ ] 10. E2, then Canfield, Storehouse, Superior Canfield and Rainbow.
@@ -189,7 +189,7 @@ descendingAnySuit)`, top-only.
     and `test/games/flower_garden/flower_garden_game.spec.ts`.
   - Tooling: the work log is now updated by a second scratchpad helper that
     ticks the plan, stamps the previous step's commit and rewrites "Next".
-- Step 6: Bristol and Belvedere.
+- Step 6 (`b118615`): Bristol and Belvedere.
   - `sinkKings` moved from `bakers_dozen_deal.ts` to
     `src/games/common/sink_kings.ts`, with a spec of its own.
   - `pullFirstCard` joined `src/games/common/pull_cards.ts`: it takes the
@@ -210,15 +210,39 @@ descendingAnySuit)`, top-only. The stock deals a row onto the reserves
   - Tests: `test/games/bristol/bristol_game.spec.ts`,
     `test/games/common/sink_kings.spec.ts`, and `pullFirstCard` cases in
     `pull_cards.spec.ts`.
+- Step 7: P1, then Nestor.
+  - P1 in `src/games/common/pair_removal.ts`, written there at once since
+    Monte Carlo follows: `pairsWithTop(isPair)` accepts a single card that
+    pairs with the pile's top card, `sameRank` is Nestor's pair, and
+    `discardPairEffects(move, discard)` sends the top two cards of the
+    target pile to the discard as a follow-up transfer, so one undo puts both
+    back. A move straight onto the discard is left alone (Pyramid's Kings).
+  - `src/games/nestor`: four reserve piles (`reserve-0` to `-3`) at the
+    left of the top row and the discard at its right, eight columns beneath
+    (8 × 2, `designHeightPx` 1060). Columns and reserves carry no capacity,
+    per P1. `winsWhenAllCardsIn: DISCARD`; `autoMoveRoles` are the columns
+    and reserves, so a double press pairs a card with the first free partner.
+  - The deal passes a card that repeats a rank in its column to the bottom of
+    the deck; after a full turn of the deck with nothing usable it gives the
+    rule up and takes the next card, so it always ends.
+  - A new "Pairing games" family. A "Nestor" entry (`nestor`),
+    `stocklessGestures`, a rules page, a profile (Medium), the README, the
+    screenshot and thumbnails. Checked in the browser: a double press on a
+    column's Nine paired it with the reserve's Nine.
+  - Tests: `test/games/nestor/nestor_game.spec.ts`, including the deal's
+    give-up case on a hand-built deck.
+  - Tooling: the scratchpad gate script now exits non-zero on a failure, so a
+    commit chained after it cannot land on a red gate.
 
 ## Next
 
-Step 7: P1, then Nestor. P1 (pair removal) goes in `src/games/common` once
-its second user (Monte Carlo, step 8) arrives; Nestor can write it locally
-first or put it in `common` straight away, since Monte Carlo follows at once.
-The paired piles take no `capacity` (`hasRoomFor` runs before the accept
-rule). The deal must give up on the no-duplicate-rank rule rather than loop
-when the remaining cards all repeat a rank in the last column.
+Step 8: Monte Carlo and Thirteens. Twenty-five cell piles, each with a rule
+closing over its eight neighbours' ids (as Montana's cells close over their
+left neighbour), no capacity (P1). Consolidation is a press on the stock,
+committed as one action like Montana's redeal: one transfer per card that
+shifts, then the refill. Thirteens pairs ranks totalling 13 and removes Kings
+alone, which needs the discard to take a lone King (`discardPairEffects`
+already leaves a move onto the discard alone).
 
 Screenshots: open each new entry in a fresh isolated browser context (a game
 left in progress raises the "switch games?" confirmation). In a development
