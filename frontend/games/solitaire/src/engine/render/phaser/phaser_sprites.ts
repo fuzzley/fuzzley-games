@@ -28,4 +28,11 @@ export interface PhaserSprites {
 
   /** Sets whether the given sprite can be dragged. */
   setDraggable(sprite: GameObjects.Sprite, draggable: boolean): void;
+
+  /**
+   * Puts a placeholder's cursor on the canvas at once if the pointer is over
+   * it, since Phaser otherwise shows a changed cursor only when the pointer
+   * next enters the sprite.
+   */
+  showPileBackgroundCursor(pileId: string): void;
 }

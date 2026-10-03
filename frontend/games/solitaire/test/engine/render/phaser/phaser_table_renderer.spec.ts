@@ -42,6 +42,8 @@ describe("PhaserTableRenderer", () => {
   let cardShadows: Map<string, MockSprite>;
   /** The pile background sprites the applier can find, keyed by pile id. */
   let pileBackgrounds: Map<string, MockSprite>;
+  /** The placeholders whose cursor the applier asked to show at once. */
+  let cursorsShown: string[];
   /**
    * The density of the atlas the sprites are drawn from, 1 unless a test says
    * otherwise, so a sprite's scale is its view's.
@@ -57,6 +59,7 @@ describe("PhaserTableRenderer", () => {
       [STOCK_PILE_ID, createMockSprite({ frame: STOCK_FRAME })],
     ]);
     artScale = 1;
+    cursorsShown = [];
 
     // The applier only needs to find sprites and add graphics, so the whole
     // seam is satisfied by maps — no Phaser scene stand-in required.
@@ -82,6 +85,7 @@ describe("PhaserTableRenderer", () => {
         return graphics as unknown as Phaser.GameObjects.Graphics;
       },
       setDraggable,
+      showPileBackgroundCursor: (pileId) => cursorsShown.push(pileId),
     };
 
     applier = new PhaserTableRenderer(sprites);
@@ -165,12 +169,26 @@ describe("PhaserTableRenderer", () => {
     expect(sprite.input?.cursor).toBe("pointer");
   });
 
-  describe("placeholder artwork", () => {
-    /** Returns a view state holding only the stock's placeholder, drawn as given. */
-    function stockDrawnFrom(frame: string): TableViewState {
+  describe("a placeholder that changes during a game", () => {
+    /**
+     * Returns a view state holding only the stock's placeholder, drawn from
+     * the given artwork with the given cursor.
+     */
+    function stockDrawnFrom(
+      frame: string,
+      cursor?: "pointer" | "default",
+    ): TableViewState {
       return {
         backgrounds: [
-          { pileId: STOCK_PILE_ID, x: 100, y: 200, scale: 1, depth: 5, frame },
+          {
+            pileId: STOCK_PILE_ID,
+            x: 100,
+            y: 200,
+            scale: 1,
+            depth: 5,
+            frame,
+            cursor,
+          },
         ],
         cards: [],
         highlights: [],
@@ -191,6 +209,23 @@ describe("PhaserTableRenderer", () => {
       applier.apply(stockDrawnFrom("card-placeholder-full-border"), 16);
 
       expect([sprite.originX, sprite.originY]).toEqual([0, 0]);
+    });
+
+    it("shows a changed cursor at once, in case the pointer is already over it", () => {
+      // An interactive mock sprite starts with the default cursor.
+      pileBackgrounds.get(STOCK_PILE_ID)!.setInteractive();
+
+      applier.apply(stockDrawnFrom(STOCK_FRAME, "pointer"), 16);
+
+      expect(cursorsShown).toEqual([STOCK_PILE_ID]);
+    });
+
+    it("leaves the canvas cursor alone while the cursor stays the same", () => {
+      pileBackgrounds.get(STOCK_PILE_ID)!.setInteractive();
+
+      applier.apply(stockDrawnFrom(STOCK_FRAME, "default"), 16);
+
+      expect(cursorsShown).toEqual([]);
     });
 
     it("leaves the artwork alone while its view asks for the same", () => {

@@ -86,12 +86,30 @@ up again from here. Update it with every commit.
   - Tests in `montana_game.spec.ts` cover each state. They also check that
     every deck's atlas holds the marker's artwork, using `import.meta.glob`
     over the six manifests.
-- Step 5: the Klondike family.
+- Step 5 (`58a7fe1`): the Klondike family.
   - `KlondikeFamilyGame` overrides the same two methods. Once the stock and the
     waste are both empty, the stock shows `CLOSED_STOCK_PLACEHOLDER` and is not
     pressable. This covers Klondike, its variants and Double Klondike.
   - The gesture is unchanged. `drawCardsFromStock` already returned early in
     that state, so a press on the inactive stock still does nothing.
+- Step 6, part 1: checked in the browser (`yarn start`, 1440 × 810 at 2×) by
+  pressing the Montana marker with mouse events dispatched on the canvas.
+  - The pips, the hollow pip, the closed outline and undo all drew correctly,
+    with no console errors.
+  - **Bug found and fixed:** after the last redeal the cursor stayed a pointer
+    until the mouse left the marker. Phaser applies a sprite's cursor only when
+    the pointer enters it.
+  - The fix: `PhaserSprites` gained `showPileBackgroundCursor(pileId)`.
+    `PhaserTableRenderer` calls it when a placeholder's cursor changes, and
+    `BoardScene` puts the cursor on the canvas through `input.setCursor` if the
+    drag controller says the pointer is over that placeholder. Cards keep the
+    old behaviour; nothing changes their cursor under a still pointer.
+  - The mock input records the canvas cursor. A scene test checks that the
+    cursor drops at once, and fails without the fix.
+  - Klondike was not checked by hand. Its unit tests cover it, and it uses the
+    same engine path.
+- Note: the dev server restores the saved game on reload. Clear local storage
+  to start from a fresh deal.
 
 ## Picking it back up
 
