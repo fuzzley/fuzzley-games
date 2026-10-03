@@ -19,19 +19,21 @@ Work in this order. Each step compiles against the one before it.
 
 The one hard constraint: **a catalog entry carries exactly one `layout`**, so an
 option cannot change the grid. A different board grid is therefore always a new
-entry. Maria and Limited are entries of their own for exactly this reason —
-nine and twelve columns are not Forty Thieves' ten — while still sharing
-`FortyThievesGame`, its module and its gestures.
+entry. Maria, Limited and Lucas are entries of their own for exactly this
+reason — nine, twelve and thirteen columns are not Forty Thieves' ten — while
+still sharing `FortyThievesGame`, its module and its gestures. Mrs. Mop shares
+`SimpleSimonGame` and Blue Moon `MontanaGame` the same way.
 
 Same grid, different rules: default to a **variant option** on the existing
-entry. Whitehead and Thumb and Pouch are options on Klondike, Alaska and Russian
-Solitaire on Yukon, Josephine and Rank and File on Forty Thieves, Will o' the
-Wisp on Spiderette — all traditional games with their own names, all options.
+entry. Whitehead, Thumb and Pouch and Saratoga are options on Klondike, Alaska,
+Russian Solitaire and Moosehide on Yukon, Josephine, Rank and File, Indian and
+Number Ten on Forty Thieves, Will o' the Wisp on Spiderette, and Red Moon on
+Blue Moon — all traditional games with their own names, all options.
 
-Baker's Game is the one that goes the other way: its own catalog entry on
-FreeCell's grid, sharing `FreeCellGame` and `FREECELL_LAYOUT`, so that FreeCell's
-entry can stay optionless. Follow the default unless you have that kind of
-reason.
+Baker's Game and Challenge FreeCell are the ones that go the other way: each is
+its own catalog entry on FreeCell's grid, sharing `FreeCellGame` and
+`FREECELL_LAYOUT`, so that FreeCell's entry can stay optionless. Follow the
+default unless you have that kind of reason.
 
 These are three independent decisions, and it is worth keeping them apart:
 

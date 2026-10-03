@@ -1,7 +1,7 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { deckCardIds } from "@/engine/core/card/deck";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
 import { readNumber, readObject } from "@/engine/core/common/json_reader";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
@@ -14,19 +14,26 @@ import {
   recyclePipsPlaceholder,
 } from "@/games/common/zone_presets";
 import {
-  MONTANA_DECK,
-  dealMontanaLayout,
+  dealMontanaFamilyLayout,
   redealArrangement,
   rowsOf,
 } from "./montana_deal";
 import {
   DEFAULT_MAX_REDEALS,
+  DEFAULT_MONTANA_VARIANT,
   MaxRedeals,
   MontanaRole,
   isMontanaSolved,
+  montanaColumnCount,
+  montanaDeck,
+  montanaFirstRank,
   settledPrefixLength,
 } from "./montana_rules";
-import { REDEAL_PILE_ID, montanaZoneSpecs } from "./montana_zones";
+import {
+  MontanaVariant,
+  REDEAL_PILE_ID,
+  montanaZoneSpecs,
+} from "./montana_zones";
 import { itemAt } from "@/engine/core/common/item_at";
 
 /** Holds what Montana keeps outside its piles, for a snapshot. */
@@ -41,22 +48,31 @@ function readMontanaExtra(value: unknown): MontanaExtra {
   return { redealsUsed: readNumber(extra.redealsUsed, "extra.redealsUsed") };
 }
 
-/** Configures a game of Montana. */
+/** Configures a game of the Montana family. */
 export interface MontanaOptions extends DeckOptions {
-  /** How many redeals the game allows: three makes it Addiction. */
+  /** Which game of the family to play. */
+  readonly variant?: MontanaVariant;
+  /** How many redeals the game allows: three makes Montana Addiction. */
   readonly maxRedeals?: MaxRedeals;
 }
 
 /**
- * Plays Montana, also called Gaps: forty-eight cards in a four-by-thirteen
- * grid, where each gap takes the card that continues the run to its left.
+ * Plays Montana, also called Gaps, or Blue Moon or Red Moon: cards in a grid
+ * of four rows, where each gap takes the card that continues the run to its
+ * left.
  */
 export class MontanaGame extends DealtTableGame {
-  /** The fifty-two grid positions, row-major. */
+  /** The grid positions, row-major. */
   public readonly cells: readonly CardPile<PlayingCard>[];
+
+  /** Which of the family is being played. */
+  public readonly variant: MontanaVariant;
 
   /** How many redeals the game allows. */
   public readonly maxRedeals: MaxRedeals;
+
+  /** The rank every row starts with. */
+  private readonly firstRank: Rank;
 
   private redealsUsed = 0;
   private readonly random: () => number;
@@ -67,12 +83,13 @@ export class MontanaGame extends DealtTableGame {
    * Its `random` places the gaps and shuffles redeals as well as the deck.
    */
   constructor({
-    cardIds = deckCardIds(MONTANA_DECK),
+    variant = DEFAULT_MONTANA_VARIANT,
+    cardIds = deckCardIds(montanaDeck(variant)),
     random = Math.random,
     maxRedeals = DEFAULT_MAX_REDEALS,
   }: MontanaOptions = {}) {
     super({
-      zones: montanaZoneSpecs(maxRedeals),
+      zones: montanaZoneSpecs(variant, maxRedeals),
       // Dealt face up: the whole position is visible from the first move.
       deck: new DeckSource(new CardRegistry(), cardIds, random, true),
       // A card fits at most one gap, so auto-moving it guesses nothing.
@@ -82,19 +99,21 @@ export class MontanaGame extends DealtTableGame {
     });
 
     this.random = random;
+    this.variant = variant;
     this.maxRedeals = maxRedeals;
+    this.firstRank = montanaFirstRank(variant);
     this.cells = this.pilesOfRole(MontanaRole.CELL);
   }
 
   /** @inheritDoc */
   protected override dealBoard(deck: PlayingCard[]): void {
     this.redealsUsed = 0;
-    dealMontanaLayout(deck, this.cells, this.random);
+    dealMontanaFamilyLayout(this.variant, deck, this.rows, this.random);
   }
 
   /** The grid as rows, left to right within each. */
   public get rows(): readonly (readonly CardPile<PlayingCard>[])[] {
-    return rowsOf(this.cells);
+    return rowsOf(this.cells, montanaColumnCount(this.variant));
   }
 
   // --- The win ---
@@ -104,7 +123,7 @@ export class MontanaGame extends DealtTableGame {
    * won.
    */
   protected override isWon(): boolean {
-    return isMontanaSolved(this.rows);
+    return isMontanaSolved(this.rows, this.firstRank);
   }
 
   // --- The redeal ---
@@ -135,7 +154,7 @@ export class MontanaGame extends DealtTableGame {
 
     const shuffled = this.gatherable();
     shuffle(shuffled, this.random);
-    const arrangement = redealArrangement(this.cells, shuffled);
+    const arrangement = redealArrangement(this.rows, shuffled, this.firstRank);
 
     // Every card comes off the board before any goes back, so a cell being
     // vacated and filled in the same pass cannot collide.
@@ -222,7 +241,7 @@ export class MontanaGame extends DealtTableGame {
   private gatherable(): PlayingCard[] {
     return this.rows.flatMap((row) =>
       row
-        .slice(settledPrefixLength(row))
+        .slice(settledPrefixLength(row, this.firstRank))
         .map((cell) => cell.topCard)
         .filter((card): card is PlayingCard => card !== undefined),
     );

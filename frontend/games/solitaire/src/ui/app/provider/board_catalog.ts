@@ -42,6 +42,7 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
   lucas: fortyThievesGestures,
   doubleklondike: klondikeGestures,
   montana: montanaGestures,
+  bluemoon: montanaGestures,
 };
 
 /**

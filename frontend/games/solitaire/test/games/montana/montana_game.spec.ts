@@ -4,15 +4,18 @@ import { deckCardIds } from "@/engine/core/card/deck";
 import { MontanaGame } from "@/games/montana/montana_game";
 import { MONTANA_DECK, GAP_COUNT } from "@/games/montana/montana_deal";
 import {
-  CARDS_PER_ROW,
-  COLUMN_COUNT,
   DEFAULT_MAX_REDEALS,
+  MontanaVariant,
   ROW_COUNT,
+  montanaColumnCount,
 } from "@/games/montana/montana_rules";
 import { REDEAL_PILE_ID } from "@/games/montana/montana_zones";
 import { PIP_COUNTS } from "@/games/common/zone_presets";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
+
+/** How many columns Montana's grid has. */
+const COLUMN_COUNT = montanaColumnCount(MontanaVariant.MONTANA);
 
 /**
  * A fixed shuffle, so the deal is the same on every run and a failure here is a
@@ -442,8 +445,8 @@ describe("the Montana board", () => {
     expect(game.getPileById(REDEAL_PILE_ID)?.isEmpty).toBe(true);
   });
 
-  it("counts a solved row as twelve cards against thirteen cells", () => {
-    expect([CARDS_PER_ROW, COLUMN_COUNT]).toEqual([12, 13]);
+  it("lays each row out in thirteen cells, for twelve cards and a gap", () => {
+    expect(COLUMN_COUNT).toBe(13);
   });
 });
 

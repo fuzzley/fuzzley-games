@@ -38,7 +38,7 @@ Add every game in Part A of the survey:
 - [x] 6. Indian and Number Ten.
 - [x] 7. Lucas.
 - [x] 8. Mrs. Mop.
-- [ ] 9. Addiction, Blue Moon and Red Moon.
+- [x] 9. Addiction, Blue Moon and Red Moon.
 - [ ] 10. Screenshots and thumbnails for the new entries, the README, the
       survey's status, and `yarn verify`.
 
@@ -160,7 +160,7 @@ cardsPerColumn)`, and `SimpleSimonGame` takes a `variant`, defaulting its
   - Tests: a Mrs. Mop block in `simple_simon_game.spec.ts`.
   - Tooling note: a very long Bash heredoc script failed to parse in this
     environment; writing whole files with the Write tool worked instead.
-- Step 9, part 1: Addiction.
+- Step 9, part 1 (`9ba57b0`): Addiction.
   - Three-pip artwork: cells 6 to 8 of `card_placeholders.svg`
     (`…-reset-3-of-3`, `-2-of-3`, `-1-of-3`), three pips of radius 16, 44
     apart, in the same row as the two-pip set. Named in
@@ -177,6 +177,38 @@ cardsPerColumn)`, and `SimpleSimonGame` takes a `variant`, defaulting its
   - Checked in the browser: with `redeals: 3` stored, the marker draws three
     filled pips.
   - Tests: an Addiction block in `montana_game.spec.ts`.
+- Step 9, part 2: Blue Moon and Red Moon.
+  - `MontanaVariant` (`MONTANA`, `BLUE_MOON`, `RED_MOON`) in
+    `montana_rules.ts`, with each variant's first rank (Two, or Ace for the
+    Moons). The deck, the column count (13 or 14) and whether the first
+    column is fixed are all derived from it. `COLUMN_COUNT` and
+    `CARDS_PER_ROW` are gone; `montanaColumnCount(variant)` replaces them.
+  - `montanaCellRule`, `settledPrefixLength`, `isMontanaSolved` and
+    `redealArrangement` take the first rank. A row is solved when its settled
+    run fills all but its last cell, whatever its length.
+  - `montana_deal.ts`: `dealMontanaFamilyLayout` picks the deal.
+    `dealBlueMoonLayout` deals 52 cards across columns 1 to 13, then moves
+    each Ace, in reading order, to the head of the next row, as PySol does.
+    `dealRedMoonLayout` pulls the Aces (`pullCards`, its third user) to
+    column 0 and deals the rest across columns 2 to 13. Montana's own deal
+    draws the same random numbers as before, so its fixed-shuffle specs did
+    not change.
+  - `montanaZoneSpecs(variant, maxRedeals)`: in the Moons, column 0 has
+    `accept: null` and `grab: none`, so an Ace never moves and nothing lands
+    before it. `boardColumnCount(variant)` replaces `BOARD_COLUMN_COUNT`.
+    `BLUE_MOON_LAYOUT` is 15 columns by 4 rows.
+  - **Departure from the survey:** the survey has two new entries. Blue Moon
+    and Red Moon share one grid and differ only in the deal, so by the
+    `add-solitaire-game` skill's rule Red Moon is a "Deal" option on a single
+    "Blue Moon" entry (`bluemoon`), as Will o' the Wisp is on Spiderette. Red
+    Moon is still listed in the game browser as a named variant (Easy).
+  - The entry uses `montanaGestures`; a rules page, a profile in "More
+    games" (Medium), the README, and the screenshot. Checked Red Moon in the
+    browser too: each row's gap sits beside its Ace. No console errors.
+  - The `add-solitaire-game` skill's examples now name the new entries and
+    options.
+  - Tests: `test/games/montana/moons.spec.ts`; Montana's specs read the
+    column count from `montanaColumnCount`.
 
 ## Picking it back up
 

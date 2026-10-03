@@ -1,9 +1,12 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { IntentHandler } from "@/engine/render/input/table_intents";
 import { MontanaGame } from "@/games/montana/montana_game";
-import { DEFAULT_MAX_REDEALS } from "@/games/montana/montana_rules";
 import { montanaGestures } from "@/games/montana/montana_gestures";
-import { COLUMN_COUNT } from "@/games/montana/montana_rules";
+import {
+  DEFAULT_MAX_REDEALS,
+  MontanaVariant,
+  montanaColumnCount,
+} from "@/games/montana/montana_rules";
 import { REDEAL_PILE_ID } from "@/games/montana/montana_zones";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
@@ -18,7 +21,7 @@ describe("montanaGestures", () => {
   });
 
   const cell = (row: number, column: number) =>
-    game.cells[row * COLUMN_COUNT + column];
+    game.cells[row * montanaColumnCount(MontanaVariant.MONTANA) + column];
 
   describe("activate-pile", () => {
     it("redeals when the marker is pressed", () => {
