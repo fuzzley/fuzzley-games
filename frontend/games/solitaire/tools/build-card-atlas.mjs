@@ -117,6 +117,9 @@ const PLACEHOLDERS = {
     "card-placeholder-full-border",
     "card-placeholder-full-border-reset-2-of-2",
     "card-placeholder-full-border-reset-1-of-2",
+    "card-placeholder-full-border-reset-3-of-3",
+    "card-placeholder-full-border-reset-2-of-3",
+    "card-placeholder-full-border-reset-1-of-3",
   ],
 };
 

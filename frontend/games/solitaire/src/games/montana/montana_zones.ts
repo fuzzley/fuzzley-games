@@ -7,7 +7,8 @@ import {
 } from "../common/zone_presets";
 import {
   COLUMN_COUNT,
-  MAX_REDEALS,
+  DEFAULT_MAX_REDEALS,
+  MaxRedeals,
   MontanaRole,
   ROW_COUNT,
   montanaCellRule,
@@ -28,17 +29,14 @@ export function cellPileId(row: number, column: number): string {
 }
 
 /**
- * Returns the fifty-three zones of a Montana board.
+ * Returns the fifty-three zones of a Montana board allowing `maxRedeals`
+ * redeals.
  *
  * Built cell by cell because each cell's rule depends on its left neighbour.
  */
-export function montanaZoneSpecs(): readonly ZoneSpec[] {
-  return ZONES;
-}
-
-const ZONES: readonly ZoneSpec[] = buildZoneSpecs();
-
-function buildZoneSpecs(): readonly ZoneSpec[] {
+export function montanaZoneSpecs(
+  maxRedeals: MaxRedeals = DEFAULT_MAX_REDEALS,
+): readonly ZoneSpec[] {
   const zones: ZoneSpec[] = [];
 
   for (let row = 0; row < ROW_COUNT; row++) {
@@ -80,7 +78,7 @@ function buildZoneSpecs(): readonly ZoneSpec[] {
       draggable: false,
       face: "always-down",
       // How it starts out; the game redraws it as redeals are spent.
-      backgroundKey: recyclePipsPlaceholder(MAX_REDEALS, MAX_REDEALS),
+      backgroundKey: recyclePipsPlaceholder(maxRedeals, maxRedeals),
       // Pressing the empty slot is the whole point of it.
       emptyIsActionable: true,
     }),

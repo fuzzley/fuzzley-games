@@ -25,8 +25,11 @@ export const COLUMN_COUNT = 13;
 /** How many rows the grid has: one per suit. */
 export const ROW_COUNT = 4;
 
-/** How many redeals a game allows. */
-export const MAX_REDEALS = 2;
+/** Says how many redeals a game allows: two in Montana, three in Addiction. */
+export type MaxRedeals = 2 | 3;
+
+/** How many redeals a game allows when nothing says otherwise. */
+export const DEFAULT_MAX_REDEALS: MaxRedeals = 2;
 
 /**
  * How many cards a finished row holds: Two through King, with the gap at the

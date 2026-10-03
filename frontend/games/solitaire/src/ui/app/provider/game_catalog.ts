@@ -46,6 +46,7 @@ import {
 } from "@/games/forty_thieves/forty_thieves_layout";
 import { MontanaGame } from "@/games/montana/montana_game";
 import { MONTANA_LAYOUT } from "@/games/montana/montana_layout";
+import { DEFAULT_MAX_REDEALS, MaxRedeals } from "@/games/montana/montana_rules";
 import { DoubleKlondikeGame } from "@/games/double_klondike/double_klondike_game";
 import { DOUBLE_KLONDIKE_LAYOUT } from "@/games/double_klondike/double_klondike_layout";
 import { EasthavenGame } from "@/games/easthaven/easthaven_game";
@@ -273,6 +274,19 @@ const SCORPION_VARIANT: GameOptionSpec<ScorpionVariant> = {
   defaultValue: ScorpionVariant.SCORPION,
 };
 
+/** How many redeals a Montana game allows. */
+const MONTANA_REDEALS: GameOptionSpec<MaxRedeals> = {
+  id: "redeals",
+  label: "Redeals",
+  description:
+    "Three redeals is the game called Addiction: one more chance to shuffle the stuck cards back out.",
+  choices: [
+    { value: 2, label: "2 Redeals" },
+    { value: 3, label: "3 Redeals" },
+  ],
+  defaultValue: DEFAULT_MAX_REDEALS,
+};
+
 /** Which of the Spiderette pair to deal. */
 const SPIDERETTE_VARIANT: GameOptionSpec<SpideretteVariant> = {
   id: "variant",
@@ -484,9 +498,12 @@ const LUCAS = {
 const MONTANA = {
   id: "montana" as const,
   name: "Montana",
-  options: [],
+  options: [MONTANA_REDEALS],
   layout: MONTANA_LAYOUT,
-  create: () => dealt(new MontanaGame()),
+  create: (values: GameOptionValues) =>
+    dealt(
+      new MontanaGame({ maxRedeals: optionValue(values, MONTANA_REDEALS) }),
+    ),
 } satisfies CatalogEntry<MontanaGame>;
 
 const DOUBLE_KLONDIKE = {

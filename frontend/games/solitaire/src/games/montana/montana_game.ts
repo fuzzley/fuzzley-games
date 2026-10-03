@@ -20,7 +20,8 @@ import {
   rowsOf,
 } from "./montana_deal";
 import {
-  MAX_REDEALS,
+  DEFAULT_MAX_REDEALS,
+  MaxRedeals,
   MontanaRole,
   isMontanaSolved,
   settledPrefixLength,
@@ -30,7 +31,7 @@ import { itemAt } from "@/engine/core/common/item_at";
 
 /** Holds what Montana keeps outside its piles, for a snapshot. */
 interface MontanaExtra {
-  /** How many of the {@link MAX_REDEALS} redeals have been spent. */
+  /** How many of the game's redeals have been spent. */
   readonly redealsUsed: number;
 }
 
@@ -40,6 +41,12 @@ function readMontanaExtra(value: unknown): MontanaExtra {
   return { redealsUsed: readNumber(extra.redealsUsed, "extra.redealsUsed") };
 }
 
+/** Configures a game of Montana. */
+export interface MontanaOptions extends DeckOptions {
+  /** How many redeals the game allows: three makes it Addiction. */
+  readonly maxRedeals?: MaxRedeals;
+}
+
 /**
  * Plays Montana, also called Gaps: forty-eight cards in a four-by-thirteen
  * grid, where each gap takes the card that continues the run to its left.
@@ -47,6 +54,9 @@ function readMontanaExtra(value: unknown): MontanaExtra {
 export class MontanaGame extends DealtTableGame {
   /** The fifty-two grid positions, row-major. */
   public readonly cells: readonly CardPile<PlayingCard>[];
+
+  /** How many redeals the game allows. */
+  public readonly maxRedeals: MaxRedeals;
 
   private redealsUsed = 0;
   private readonly random: () => number;
@@ -59,9 +69,10 @@ export class MontanaGame extends DealtTableGame {
   constructor({
     cardIds = deckCardIds(MONTANA_DECK),
     random = Math.random,
-  }: DeckOptions = {}) {
+    maxRedeals = DEFAULT_MAX_REDEALS,
+  }: MontanaOptions = {}) {
     super({
-      zones: montanaZoneSpecs(),
+      zones: montanaZoneSpecs(maxRedeals),
       // Dealt face up: the whole position is visible from the first move.
       deck: new DeckSource(new CardRegistry(), cardIds, random, true),
       // A card fits at most one gap, so auto-moving it guesses nothing.
@@ -71,6 +82,7 @@ export class MontanaGame extends DealtTableGame {
     });
 
     this.random = random;
+    this.maxRedeals = maxRedeals;
     this.cells = this.pilesOfRole(MontanaRole.CELL);
   }
 
@@ -99,7 +111,7 @@ export class MontanaGame extends DealtTableGame {
 
   /** How many redeals the player has left. */
   public get redealsRemaining(): number {
-    return Math.max(0, MAX_REDEALS - this.redealsUsed);
+    return Math.max(0, this.maxRedeals - this.redealsUsed);
   }
 
   /**
@@ -170,7 +182,7 @@ export class MontanaGame extends DealtTableGame {
       return super.pileBackgroundKey(pile);
     }
     return this.canRedeal
-      ? recyclePipsPlaceholder(this.redealsRemaining, MAX_REDEALS)
+      ? recyclePipsPlaceholder(this.redealsRemaining, this.maxRedeals)
       : CLOSED_STOCK_PLACEHOLDER;
   }
 

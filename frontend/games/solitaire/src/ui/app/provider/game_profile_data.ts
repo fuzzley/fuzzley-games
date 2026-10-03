@@ -319,6 +319,14 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       decks: 1,
       allCardsVisible: true,
       aliases: ["Gaps"],
+      variants: [
+        {
+          name: "Addiction",
+          values: { redeals: 3 },
+          tagline: "Montana with a third redeal.",
+          difficulty: Difficulty.MEDIUM,
+        },
+      ],
     },
   },
 };
