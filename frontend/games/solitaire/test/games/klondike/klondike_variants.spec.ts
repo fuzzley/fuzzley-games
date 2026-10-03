@@ -193,6 +193,69 @@ describe("the Whitehead deal", () => {
   });
 });
 
+describe("Saratoga", () => {
+  it("shows every card it deals to the columns", () => {
+    const game = newGame(KlondikeVariant.SARATOGA);
+
+    const hidden = game.tableaus
+      .flatMap((pile) => pile.getCards())
+      .filter((card) => !card.faceUp);
+    expect(hidden).toEqual([]);
+  });
+
+  it("still buries the stock", () => {
+    const game = newGame(KlondikeVariant.SARATOGA);
+
+    expect(game.stock.getCards().every((card) => !card.faceUp)).toBe(true);
+  });
+
+  it("builds down in alternating colours, as Klondike does", () => {
+    const game = twoColumns(
+      KlondikeVariant.SARATOGA,
+      "card-spades-10",
+      "card-hearts-9",
+    );
+
+    expect(game.moveCardToPile("card-hearts-9", game.tableaus[0].id)).toBe(
+      true,
+    );
+  });
+
+  it("takes only a King into an empty column", () => {
+    const game = newGame(KlondikeVariant.SARATOGA);
+    emptyBoard(game);
+    relocate(game, "card-spades-9", game.tableaus[1]);
+
+    expect(game.moveCardToPile("card-spades-9", game.tableaus[0].id)).toBe(
+      false,
+    );
+  });
+
+  it("refuses a broken pile, which an all-face-up deal would otherwise free", () => {
+    const game = newGame(KlondikeVariant.SARATOGA);
+    emptyBoard(game);
+    relocate(game, "card-spades-10", game.tableaus[0]);
+    relocate(game, "card-hearts-2", game.tableaus[0]);
+    relocate(game, "card-hearts-jack", game.tableaus[1]);
+
+    expect(game.moveCardToPile("card-spades-10", game.tableaus[1].id)).toBe(
+      false,
+    );
+  });
+
+  it("carries an alternating-colour run", () => {
+    const game = newGame(KlondikeVariant.SARATOGA);
+    emptyBoard(game);
+    relocate(game, "card-spades-10", game.tableaus[0]);
+    relocate(game, "card-hearts-9", game.tableaus[0]);
+    relocate(game, "card-hearts-jack", game.tableaus[1]);
+
+    expect(game.moveCardToPile("card-spades-10", game.tableaus[1].id)).toBe(
+      true,
+    );
+  });
+});
+
 describe("klondikeZoneSpecs across variants", () => {
   /** Returns the first zone of a role. */
   function zoneOf(zones: readonly ZoneSpec[], role: string): ZoneSpec {

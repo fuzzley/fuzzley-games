@@ -90,6 +90,11 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
             effect:
               "Thumb and Pouch: a card can land on any suit except its own, and any card can fill an empty column — a much looser build than the original, though the deal still hides most of the board.",
           },
+          {
+            value: 3,
+            effect:
+              "Saratoga: the original rules, but all 28 column cards are dealt face-up. Only proper alternating-colour runs can be lifted, and only a King can fill an empty column; the stock is the only thing left hidden.",
+          },
         ],
       },
       {

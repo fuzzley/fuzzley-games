@@ -29,8 +29,8 @@ Add every game in Part A of the survey:
 
 ## Plan
 
-- [ ] 0. Commit this log.
-- [ ] 1. Saratoga.
+- [x] 0. Commit this log.
+- [x] 1. Saratoga.
 - [ ] 2. E7, then Vegas scoring.
 - [ ] 3. Moosehide.
 - [ ] 4. Wasp and Scorpion II.
@@ -46,7 +46,19 @@ Add every game in Part A of the survey:
 
 ### 2026-10-03
 
-- Step 0: wrote this log.
+- Step 0 (`07330ef`): wrote this log.
+- Step 1: Saratoga.
+  - `KlondikeVariant.SARATOGA` (3) in `klondike_rules.ts`: Kings into spaces,
+    alternating colours, and `dealsFaceUp: true`, which the deal and the
+    column's face rule already read.
+  - **Departure from the survey:** it grabs `{ kind: "run", adjacent:
+isOrderedPair }`, not `any-face-up`. Klondike's lax grab is harmless only
+    because its face-up cards always form a run; with every card dealt face up
+    it would lift unordered piles, as Yukon does.
+  - A "Saratoga" choice in `KLONDIKE_VARIANT`, its rules-page entry, a named
+    variant in the Klondike profile (Easy), and the README line.
+  - Tests in `klondike_variants.spec.ts`: the face-up deal, the buried stock,
+    the build, Kings-only spaces, and that a broken pile will not lift.
 
 ## Picking it back up
 
