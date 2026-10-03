@@ -717,7 +717,7 @@
       "image": "card_assets-1.png",
       "format": "RGBA8888",
       "size": {
-        "w": 1792,
+        "w": 2688,
         "h": 622
       },
       "scale": 1,
@@ -765,6 +765,32 @@
           "filename": "card-placeholder-full-border",
           "frame": {
             "x": 1348,
+            "y": 4,
+            "w": 440,
+            "h": 614
+          },
+          "anchor": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "card-placeholder-full-border-reset-2-of-2",
+          "frame": {
+            "x": 1796,
+            "y": 4,
+            "w": 440,
+            "h": 614
+          },
+          "anchor": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "card-placeholder-full-border-reset-1-of-2",
+          "frame": {
+            "x": 2244,
             "y": 4,
             "w": 440,
             "h": 614

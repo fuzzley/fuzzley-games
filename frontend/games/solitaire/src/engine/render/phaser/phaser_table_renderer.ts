@@ -13,12 +13,14 @@ import { HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE } from "../layout/card_metrics";
 
 /**
  * Gives a sprite the cursor its view asks for, skipping the costly assignment
- * if it already has it.
+ * if it already has it, and returns whether it changed.
  */
-function syncCursor(sprite: GameObjects.Sprite, cursor: string): void {
-  if (sprite.input && sprite.input.cursor !== cursor) {
-    sprite.input.cursor = cursor;
+function syncCursor(sprite: GameObjects.Sprite, cursor: string): boolean {
+  if (!sprite.input || sprite.input.cursor === cursor) {
+    return false;
   }
+  sprite.input.cursor = cursor;
+  return true;
 }
 
 /**
@@ -147,16 +149,25 @@ export class PhaserTableRenderer implements TableRenderer {
     this.drawHighlights(viewState.highlights, travelDistances);
   }
 
-  /** Puts one placeholder where its view says, and gives it the right cursor. */
+  /**
+   * Puts one placeholder where its view says, with the artwork and cursor it
+   * asks for.
+   */
   private applyBackground(backgroundView: PileBackgroundView): void {
     const sprite = this.sprites.pileBackgroundSprite(backgroundView.pileId);
     if (!sprite?.active) return;
 
+    if (sprite.frame.name !== backgroundView.frame) {
+      sprite.setFrame(backgroundView.frame);
+      sprite.setOrigin(0, 0);
+    }
     sprite.setPosition(backgroundView.x, backgroundView.y);
     sprite.setScale(this.spriteScale(backgroundView.scale));
     sprite.setDepth(backgroundView.depth);
-    if (backgroundView.cursor) {
-      syncCursor(sprite, backgroundView.cursor);
+    if (backgroundView.cursor && syncCursor(sprite, backgroundView.cursor)) {
+      // A slot can stop being pressable under a pointer that has not moved,
+      // as Montana's marker does on its last redeal.
+      this.sprites.showPileBackgroundCursor(backgroundView.pileId);
     }
   }
 

@@ -27,6 +27,9 @@ vi.mock("phaser", async () => {
 /** The distance a hover expansion nudges a card at a layout scale of 1. */
 const HOVER_NUDGE_PX = HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE;
 
+/** The artwork the stock's placeholder sprite starts out drawn from. */
+const STOCK_FRAME = "card-placeholder-full-border-reset";
+
 describe("PhaserTableRenderer", () => {
   let applier: PhaserTableRenderer;
   /** Every graphics object the applier has asked the scene for, in order. */
@@ -39,6 +42,8 @@ describe("PhaserTableRenderer", () => {
   let cardShadows: Map<string, MockSprite>;
   /** The pile background sprites the applier can find, keyed by pile id. */
   let pileBackgrounds: Map<string, MockSprite>;
+  /** The placeholders whose cursor the applier asked to show at once. */
+  let cursorsShown: string[];
   /**
    * The density of the atlas the sprites are drawn from, 1 unless a test says
    * otherwise, so a sprite's scale is its view's.
@@ -50,8 +55,11 @@ describe("PhaserTableRenderer", () => {
     setDraggable = vi.fn();
     cardSprites = new Map();
     cardShadows = new Map();
-    pileBackgrounds = new Map([[STOCK_PILE_ID, createMockSprite()]]);
+    pileBackgrounds = new Map([
+      [STOCK_PILE_ID, createMockSprite({ frame: STOCK_FRAME })],
+    ]);
     artScale = 1;
+    cursorsShown = [];
 
     // The applier only needs to find sprites and add graphics, so the whole
     // seam is satisfied by maps — no Phaser scene stand-in required.
@@ -77,6 +85,7 @@ describe("PhaserTableRenderer", () => {
         return graphics as unknown as Phaser.GameObjects.Graphics;
       },
       setDraggable,
+      showPileBackgroundCursor: (pileId) => cursorsShown.push(pileId),
     };
 
     applier = new PhaserTableRenderer(sprites);
@@ -138,6 +147,7 @@ describe("PhaserTableRenderer", () => {
           y: 200,
           scale: 0.8,
           depth: 5,
+          frame: STOCK_FRAME,
           cursor: "pointer",
         },
       ],
@@ -157,6 +167,75 @@ describe("PhaserTableRenderer", () => {
     expect(sprite.scale).toBe(0.8);
     expect(sprite.depth).toBe(5);
     expect(sprite.input?.cursor).toBe("pointer");
+  });
+
+  describe("a placeholder that changes during a game", () => {
+    /**
+     * Returns a view state holding only the stock's placeholder, drawn from
+     * the given artwork with the given cursor.
+     */
+    function stockDrawnFrom(
+      frame: string,
+      cursor?: "pointer" | "default",
+    ): TableViewState {
+      return {
+        backgrounds: [
+          {
+            pileId: STOCK_PILE_ID,
+            x: 100,
+            y: 200,
+            scale: 1,
+            depth: 5,
+            frame,
+            cursor,
+          },
+        ],
+        cards: [],
+        highlights: [],
+      };
+    }
+
+    it("swaps the artwork when its view asks for another", () => {
+      const sprite = pileBackgrounds.get(STOCK_PILE_ID)!;
+
+      applier.apply(stockDrawnFrom("card-placeholder-full-border"), 16);
+
+      expect(sprite.frame.name).toBe("card-placeholder-full-border");
+    });
+
+    it("keeps the placeholder anchored at its top-left corner after a swap", () => {
+      const sprite = pileBackgrounds.get(STOCK_PILE_ID)!;
+
+      applier.apply(stockDrawnFrom("card-placeholder-full-border"), 16);
+
+      expect([sprite.originX, sprite.originY]).toEqual([0, 0]);
+    });
+
+    it("shows a changed cursor at once, in case the pointer is already over it", () => {
+      // An interactive mock sprite starts with the default cursor.
+      pileBackgrounds.get(STOCK_PILE_ID)!.setInteractive();
+
+      applier.apply(stockDrawnFrom(STOCK_FRAME, "pointer"), 16);
+
+      expect(cursorsShown).toEqual([STOCK_PILE_ID]);
+    });
+
+    it("leaves the canvas cursor alone while the cursor stays the same", () => {
+      pileBackgrounds.get(STOCK_PILE_ID)!.setInteractive();
+
+      applier.apply(stockDrawnFrom(STOCK_FRAME, "default"), 16);
+
+      expect(cursorsShown).toEqual([]);
+    });
+
+    it("leaves the artwork alone while its view asks for the same", () => {
+      const sprite = pileBackgrounds.get(STOCK_PILE_ID)!;
+      const setFrame = vi.spyOn(sprite, "setFrame");
+
+      applier.apply(stockDrawnFrom(STOCK_FRAME), 16);
+
+      expect(setFrame).not.toHaveBeenCalled();
+    });
   });
 
   it("snaps cards when snap flag is true", () => {
@@ -235,7 +314,16 @@ describe("PhaserTableRenderer", () => {
     /** Returns a view state holding one card and the stock's placeholder. */
     function oneCardAt(scale: number): TableViewState {
       return {
-        backgrounds: [{ pileId: STOCK_PILE_ID, x: 0, y: 0, scale, depth: 5 }],
+        backgrounds: [
+          {
+            pileId: STOCK_PILE_ID,
+            x: 0,
+            y: 0,
+            scale,
+            depth: 5,
+            frame: STOCK_FRAME,
+          },
+        ],
         cards: [cardView({ cardId: "card-1", scale })],
         highlights: [],
       };

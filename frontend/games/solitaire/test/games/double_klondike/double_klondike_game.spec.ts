@@ -214,6 +214,16 @@ describe("DoubleKlondikeGame stock", () => {
     expect(game.state.moves).toBe(0);
   });
 
+  it("stops looking pressable when both the stock and the waste are empty", () => {
+    const game = newGame();
+    emptyBoard(game);
+
+    expect([
+      game.pileBackgroundKey(game.stock),
+      game.isEmptySlotActionable(game.stock),
+    ]).toEqual(["card-placeholder-full-border", false]);
+  });
+
   it("takes a draw back in one undo", () => {
     const game = newGame();
     game.drawCardsFromStock();

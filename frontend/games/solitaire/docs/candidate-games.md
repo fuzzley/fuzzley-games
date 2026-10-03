@@ -217,10 +217,11 @@ a large `maxVisible` fans a whole pile, but:
 
 ### E6. A status readout for game-specific counters
 
-`GameMetrics` holds only score, moves and undo depth. Montana's remaining
-redeals are already invisible to the player today, and these games add more:
-La Belle Lucie's redeals, Vegas' passes, Golf's strokes, and Poker Squares'
-line scores. An optional `status` on `PlayableGame` (a short label and value,
+`GameMetrics` holds only score, moves and undo depth. A count of two or three
+can be drawn on the board instead, as Montana's redeal marker does with pips
+(see [`montana-redeal-count.md`](montana-redeal-count.md)). These games add
+counters that pips cannot carry: La Belle Lucie's redeals, Vegas' passes,
+Golf's strokes, and Poker Squares' line scores. An optional `status` on `PlayableGame` (a short label and value,
 evented like the metrics) would cover all of them, shown in
 `header_bar.component.html` when present.
 
@@ -304,9 +305,10 @@ and three passes when drawing three. Play is otherwise Klondike.
   −52, gives +5 per card to a foundation and −5 per card taken back off one,
   with no flip bonus and no recycle penalty.
 - A pass limit in `KlondikeFamilyGame.drawCardsFromStock`, which already counts
-  `recycleCount`. Once the passes are spent, recycling stops working. The stock
-  slot keeps its recycle artwork, because a zone's `backgroundKey` is fixed for
-  the game's life; an E6 readout would show the passes left.
+  `recycleCount`. Once the passes are spent, recycling stops working.
+  `KlondikeFamilyGame.isSpentStock` would count the passes too, so the stock
+  shows the closed outline and drops its pointer. An E6 readout would show the
+  passes left.
 - A "Scoring: Standard / Vegas" option on the Klondike entry.
 
 ### 3. Moosehide
@@ -496,7 +498,8 @@ on Montana. **Effort:** M for the two Moons, S for Addiction.
 **What it takes.**
 
 - Addiction: `MAX_REDEALS` becomes a constructor option, plus a "Redeals: 2 /
-  3" choice. E6 would finally show the player how many are left.
+  3" choice. The marker shows two pips, from `REDEAL_MARKER_PLACEHOLDERS`, so
+  three redeals need a three-pip set of artwork.
 - The Moons: generalise `src/games/montana` over the column count (14) and the
   deck (`MONTANA_DECK` without Aces versus the full deck). Column 0 holds the
   Aces for good: `accept: null` and `grab: { kind: "none" }`. `montanaCellRule`

@@ -204,6 +204,9 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
     },
     setFrame(frame: string): MockSprite {
       sprite.frame = { name: frame };
+      // Phaser moves the origin to the new frame's anchor, as setTexture does.
+      sprite.originX = FRAME_ANCHOR;
+      sprite.originY = FRAME_ANCHOR;
       return sprite;
     },
     setTexture(key: string, frame?: string): MockSprite {
@@ -380,6 +383,9 @@ export interface MockInput {
   on: Mock;
   setDraggable: Mock;
   setPollAlways: Mock;
+  /** The cursor last put on the canvas, as Phaser's `setCursor` puts it. */
+  canvasCursor: string;
+  setCursor(interactiveObject: { cursor: string | boolean }): void;
   /** Phaser's own default: hit test only when the pointer itself moves. */
   pollRate: number;
   emit(event: string, ...args: unknown[]): void;
@@ -396,6 +402,13 @@ export function createMockInput(): MockInput {
     setPollAlways: vi.fn(() => {
       input.pollRate = 0;
     }),
+    canvasCursor: "",
+    setCursor(interactiveObject: { cursor: string | boolean }): void {
+      // Phaser leaves the canvas alone for an object with no cursor of its own.
+      if (typeof interactiveObject.cursor === "string") {
+        input.canvasCursor = interactiveObject.cursor;
+      }
+    },
     pollRate: -1,
     emit(event: string, ...args: unknown[]): void {
       listeners.get(event)?.(...args);

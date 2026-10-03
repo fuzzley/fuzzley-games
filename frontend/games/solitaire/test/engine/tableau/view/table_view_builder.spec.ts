@@ -1,7 +1,11 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { FakeTableGame } from "@test/support/fake_table/game";
+import {
+  FakeTableGame,
+  StockOverrideTableGame,
+} from "@test/support/fake_table/game";
 import { buildFakeTableViewState } from "@test/support/fake_table/board";
 import {
+  PileBackgroundView,
   TableInteractionState,
   Viewport,
 } from "@/engine/render/view/table_view_state";
@@ -272,6 +276,63 @@ describe("board_view_state_builder", () => {
         openBottom: false,
       },
     ]);
+  });
+
+  describe("a placeholder its game redraws", () => {
+    let overridden: StockOverrideTableGame;
+
+    beforeEach(() => {
+      overridden = new StockOverrideTableGame();
+      overridden.startNewGame();
+      emptyBoard(overridden);
+    });
+
+    /** Returns the stock's placeholder in the frame the game draws now. */
+    function stockBackground(): PileBackgroundView | undefined {
+      return buildFakeTableViewState(overridden, presentation)(
+        interaction,
+        viewport,
+      ).backgrounds.find((background) => background.pileId === "stock");
+    }
+
+    it("draws a placeholder from its zone's artwork by default", () => {
+      const background = buildFakeTableViewState(game, presentation)(
+        interaction,
+        viewport,
+      ).backgrounds.find((view) => view.pileId === "stock");
+
+      expect(background?.frame).toBe(game.zoneFor("stock")?.backgroundKey);
+    });
+
+    it("draws a placeholder from the artwork its game shows now", () => {
+      overridden.stockBackgroundKey = "card-placeholder-full-border";
+
+      expect(stockBackground()?.frame).toBe("card-placeholder-full-border");
+    });
+
+    it("gives a pressable empty slot a pointer", () => {
+      overridden.stockActionable = true;
+
+      expect(stockBackground()?.cursor).toBe("pointer");
+    });
+
+    it("gives an empty slot that would do nothing the default cursor", () => {
+      overridden.stockActionable = false;
+
+      expect(stockBackground()?.cursor).toBe("default");
+    });
+
+    it("draws no hover border over an empty slot that would do nothing", () => {
+      overridden.stockActionable = false;
+      interaction.hoveredBackgroundPileId = "stock";
+
+      const viewState = buildFakeTableViewState(overridden, presentation)(
+        interaction,
+        viewport,
+      );
+
+      expect(viewState.highlights).toEqual([]);
+    });
   });
 
   it("anchors a hover highlight to the card rather than to its slot", () => {
