@@ -64,6 +64,29 @@ describe("resolveDragTarget", () => {
     expect(target).toBeNull();
   });
 
+  it("prefers a pile that takes the stack over one it overlaps more", () => {
+    relocate(game, "card-spades-king", game.tableaus[0], true);
+    relocate(game, "card-hearts-queen", game.waste, true);
+    const tableau0 = geometryOf("tableau-0");
+    const tableau1 = geometryOf("tableau-1");
+
+    // Mostly over the empty column, which takes only a King, and partly over
+    // the King.
+    const target = resolveDragTarget(
+      game,
+      {
+        cardIds: ["card-hearts-queen"],
+        primary: {
+          x: tableau1.x - (tableau1.x - tableau0.x) / 3,
+          y: tableau1.y,
+        },
+      },
+      measureFakeTable(viewport),
+    );
+
+    expect(target?.pileId).toBe("tableau-0");
+  });
+
   it("follows a tableau's rectangle as it grows with its fanned cards", () => {
     relocate(game, "card-spades-king", game.tableaus[1], true);
     relocate(game, "card-hearts-queen", game.tableaus[1], true);

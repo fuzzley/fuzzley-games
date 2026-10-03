@@ -28,7 +28,10 @@ import { itemAt } from "@/engine/core/common/item_at";
  * Resolves the pile a drag would land on, as its drop rectangle, or null if it
  * is over none.
  *
- * Both the hover preview and the drop itself ask this, so the two agree.
+ * Prefers the piles that would take the stack, and only then the one the drag
+ * overlaps most, so where piles overlap, as a pyramid's do, a card held over
+ * a free card and the covered one beside it lands where it can. Both the hover
+ * preview and the drop itself ask this, so the two agree.
  */
 export function resolveDragTarget(
   game: TableView,
@@ -46,14 +49,23 @@ export function resolveDragTarget(
     metrics.scale,
   );
 
-  return resolveDropTarget(
-    {
-      x: drag.primary.x,
-      y: drag.primary.y,
-      width: cardSize.width * metrics.scale,
-      height: cardSize.height * metrics.scale,
-    },
-    geometries,
+  const dragRect = {
+    x: drag.primary.x,
+    y: drag.primary.y,
+    width: cardSize.width * metrics.scale,
+    height: cardSize.height * metrics.scale,
+  };
+  const [primaryCardId] = drag.cardIds;
+  const accepting =
+    primaryCardId === undefined
+      ? []
+      : geometries.filter((geometry) =>
+          game.canMoveCardToPile(primaryCardId, geometry.pileId),
+        );
+
+  return (
+    resolveDropTarget(dragRect, accepting) ??
+    resolveDropTarget(dragRect, geometries)
   );
 }
 

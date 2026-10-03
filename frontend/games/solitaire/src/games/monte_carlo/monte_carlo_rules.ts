@@ -1,5 +1,5 @@
 import { PileRole } from "@/engine/core/card/card_pile";
-import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import { Rank } from "@/engine/core/card/playing_card";
 import {
   PlacementRule,
   all,
@@ -7,7 +7,12 @@ import {
   hasRank,
   singleCardOnly,
 } from "@/engine/tableau/rules";
-import { PairTest, pairsWithTop, sameRank } from "../common/pair_removal";
+import {
+  PairTest,
+  pairsWithTop,
+  sameRank,
+  totalsThirteen,
+} from "../common/pair_removal";
 
 /** The parts a pile can play in a Monte Carlo game. */
 export const MonteCarloRole = {
@@ -43,21 +48,6 @@ export type MonteCarloVariant =
 /** The variant dealt when nothing says otherwise. */
 export const DEFAULT_MONTE_CARLO_VARIANT: MonteCarloVariant =
   MonteCarloVariant.MONTE_CARLO;
-
-/** What a Thirteens pair adds up to. */
-export const PAIR_TOTAL = 13;
-
-/** Returns a card's value: one for the Ace up to thirteen for the King. */
-export function pipValue(card: PlayingCard): number {
-  return card.rank - Rank.ACE + 1;
-}
-
-/**
- * Returns whether two cards total thirteen, counting the Ace as one, the Jack
- * as eleven and the Queen as twelve.
- */
-export const totalsThirteen: PairTest = (first, second) =>
-  pipValue(first) + pipValue(second) === PAIR_TOTAL;
 
 /** Returns the pair test a variant plays by. */
 export function monteCarloPairTest(variant: MonteCarloVariant): PairTest {

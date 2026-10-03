@@ -12,7 +12,12 @@ export function stackFromCard(
     const pile = view.getPileContainingCard(cardId);
     const card = view.getCardById(cardId);
     const zone = pile ? view.zoneFor(pile.id) : undefined;
-    if (!pile || !card || !zone || !canGrab(zone.grab, card, pile)) {
+    if (
+      !pile ||
+      !card ||
+      !zone ||
+      !canGrab(zone.grab, card, pile, view.board)
+    ) {
       return [];
     }
 

@@ -2,7 +2,7 @@ import { CardPile, PileRole } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { SlotPlacement } from "@/engine/render/layout/table_layout";
-import { PlacementRule } from "./rules";
+import { BoardQuery, PlacementRule } from "./rules";
 import { itemAt } from "@/engine/core/common/item_at";
 
 /** Says which cards in a zone a player may pick up. */
@@ -21,6 +21,15 @@ export type GrabRule =
       readonly kind: "run";
       /** Whether `upper` may sit directly on `lower` within a run. */
       readonly adjacent: (lower: PlayingCard, upper: PlayingCard) => boolean;
+    }
+  /**
+   * Only the card on top, and only while every pile in {@link coveredBy} is
+   * empty, as a pyramid's card is free once the two below it are gone.
+   */
+  | {
+      readonly kind: "uncovered";
+      /** The ids of the piles whose cards lie over this one. */
+      readonly coveredBy: readonly string[];
     };
 
 /**
@@ -88,11 +97,16 @@ export interface ZoneSpec {
   readonly emptyIsActionable?: boolean;
 }
 
-/** Returns whether `card` can be picked up out of `pile` under a grab rule. */
+/**
+ * Returns whether `card` can be picked up out of `pile` under a grab rule.
+ *
+ * @param board The rest of the board, which an `uncovered` rule reads.
+ */
 export function canGrab(
   grab: GrabRule,
   card: PlayingCard,
   pile: CardPile<PlayingCard>,
+  board: BoardQuery,
 ): boolean {
   switch (grab.kind) {
     case "none":
@@ -103,6 +117,8 @@ export function canGrab(
       return card.faceUp;
     case "run":
       return card.faceUp && isRunFrom(pile, card, grab.adjacent);
+    case "uncovered":
+      return pile.topCard === card && isUncovered(grab.coveredBy, board);
   }
 }
 
@@ -126,6 +142,14 @@ function isRunFrom(
     if (upper && !adjacent(lower, upper)) return false;
   }
   return true;
+}
+
+/** Returns whether every pile in `coveredBy` is empty. */
+export function isUncovered(
+  coveredBy: readonly string[],
+  board: BoardQuery,
+): boolean {
+  return coveredBy.every((pileId) => board.pile(pileId)?.isEmpty ?? true);
 }
 
 /** Returns whether a zone draws the given card face up. */
