@@ -12,12 +12,12 @@ import { YukonRole, YukonVariant, yukonZoneSpecs } from "./yukon_zones";
 
 /** Configures a game of the Yukon family. */
 export interface YukonOptions extends DeckOptions {
-  /** Which of the three games to play. */
+  /** Which of the family to play. */
   readonly variant?: YukonVariant;
 }
 
 /**
- * Plays Yukon, Alaska or Russian Solitaire: one deck on seven columns with no
+ * Plays Yukon, Alaska, Russian Solitaire or Moosehide: one deck on seven columns with no
  * stock, where any face-up card lifts with everything resting on it.
  */
 export class YukonGame extends DealtTableGame {

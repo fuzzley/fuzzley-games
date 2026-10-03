@@ -11,6 +11,7 @@ import { ScorpionGame } from "@/games/scorpion/scorpion_game";
 import {
   FOUNDATION_COUNT,
   ScorpionRole,
+  ScorpionVariant,
   TABLEAU_COUNT,
 } from "@/games/scorpion/scorpion_zones";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
@@ -515,5 +516,69 @@ describe("ScorpionGame", () => {
         ScorpionRole.TABLEAU,
       );
     });
+  });
+});
+
+/** Returns a game of a variant, dealt with the same fixed shuffle. */
+function dealtVariant(variant: ScorpionVariant): ScorpionGame {
+  const game = new ScorpionGame({ random: sequenceRandom([]), variant });
+  game.startNewGame();
+  return game;
+}
+
+/** Returns which columns the deal buried any card in. */
+function columnsWithHiddenCards(game: ScorpionGame): number[] {
+  return game.tableaus.flatMap((tableau, column) =>
+    tableau.getCards().some((card) => !card.faceUp) ? [column] : [],
+  );
+}
+
+describe("Wasp", () => {
+  it("accepts any card onto an empty column", () => {
+    const game = dealtVariant(ScorpionVariant.WASP);
+    emptyBoard(game);
+    const queen = relocate(game, id(Suit.SPADE, Rank.QUEEN), game.tableaus[1]);
+
+    expect(game.moveCardToPile(queen.id, game.tableaus[0].id)).toBe(true);
+  });
+
+  it("moves a jumble into an empty column with the card under it", () => {
+    const game = dealtVariant(ScorpionVariant.WASP);
+    emptyBoard(game);
+    relocate(game, id(Suit.SPADE, Rank.FIVE), game.tableaus[1]);
+    relocate(game, id(Suit.HEART, Rank.JACK), game.tableaus[1]);
+
+    game.moveCardToPile(id(Suit.SPADE, Rank.FIVE), game.tableaus[0].id);
+
+    expect(game.tableaus[0].size).toBe(2);
+  });
+
+  it("still buries cards in the first four columns", () => {
+    const game = dealtVariant(ScorpionVariant.WASP);
+
+    expect(columnsWithHiddenCards(game)).toEqual([0, 1, 2, 3]);
+  });
+});
+
+describe("Scorpion II", () => {
+  it("buries cards in only the first three columns", () => {
+    const game = dealtVariant(ScorpionVariant.SCORPION_II);
+
+    expect(columnsWithHiddenCards(game)).toEqual([0, 1, 2]);
+  });
+
+  it("still hides three cards in each of them", () => {
+    const game = dealtVariant(ScorpionVariant.SCORPION_II);
+
+    const hidden = game.tableaus[0].getCards().filter((card) => !card.faceUp);
+    expect(hidden.length).toBe(3);
+  });
+
+  it("refuses anything but a King onto an empty column", () => {
+    const game = dealtVariant(ScorpionVariant.SCORPION_II);
+    emptyBoard(game);
+    const queen = relocate(game, id(Suit.SPADE, Rank.QUEEN), game.tableaus[1]);
+
+    expect(game.moveCardToPile(queen.id, game.tableaus[0].id)).toBe(false);
   });
 });

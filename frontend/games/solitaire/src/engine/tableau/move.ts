@@ -40,8 +40,8 @@ export interface AppliedMove {
   readonly transfers: readonly CardTransfer[];
 
   /**
-   * The score change this action actually applied, after clamping at zero, so
-   * undo can subtract it exactly.
+   * The score change this action actually applied, after any floor the game
+   * keeps, so undo can subtract it exactly.
    */
   readonly scoreDelta: number;
 

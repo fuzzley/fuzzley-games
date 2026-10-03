@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { Rank } from "@/engine/core/card/playing_card";
-import { ScoringPolicy } from "@/games/klondike/scoring_policy";
+import { StandardScoringPolicy } from "@/games/klondike/scoring_policy";
 import { DoubleKlondikeGame } from "@/games/double_klondike/double_klondike_game";
 import { DOUBLE_KLONDIKE_TWO_DECKS } from "@/games/double_klondike/double_klondike_deal";
 import { DoubleKlondikeRole } from "@/games/double_klondike/double_klondike_rules";
@@ -99,7 +99,7 @@ describe("DoubleKlondikeGame deal", () => {
  */
 describe("DoubleKlondikeGame scoring vocabulary", () => {
   it("scores by its own roles rather than by matching Klondike's spelling", () => {
-    const scoring = new ScoringPolicy({
+    const scoring = new StandardScoringPolicy({
       waste: DoubleKlondikeRole.WASTE,
       tableau: DoubleKlondikeRole.TABLEAU,
       foundation: DoubleKlondikeRole.FOUNDATION,

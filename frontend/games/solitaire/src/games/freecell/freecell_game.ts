@@ -6,13 +6,14 @@ import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { DeckOptions } from "@/games/common/deck_options";
 import { dealFreeCellAlmostWin, dealFreeCellLayout } from "./freecell_deal";
+import { freeCellBuriesAcesAndTwos } from "./freecell_rules";
 import {
   FreeCellRole,
   FreeCellVariant,
   freeCellZoneSpecs,
 } from "./freecell_zones";
 
-/** Configures a game of FreeCell or Baker's Game. */
+/** Configures a game of FreeCell, Baker's Game or Challenge FreeCell. */
 export interface FreeCellOptions extends DeckOptions {
   /** The column rules to play by. */
   readonly variant?: FreeCellVariant;
@@ -20,7 +21,10 @@ export interface FreeCellOptions extends DeckOptions {
   readonly almostWin?: boolean;
 }
 
-/** Plays FreeCell or Baker's Game: eight open columns, four cells, no stock. */
+/**
+ * Plays FreeCell, Baker's Game or Challenge FreeCell: eight open columns, four
+ * cells, no stock.
+ */
 export class FreeCellGame extends DealtTableGame {
   /** The four single-card holding cells. */
   public readonly cells: readonly CardPile<PlayingCard>[];
@@ -31,6 +35,9 @@ export class FreeCellGame extends DealtTableGame {
 
   /** Whether to deal a nearly finished board, for verification. */
   public readonly almostWin: boolean;
+
+  /** The column rules being played by. */
+  public readonly variant: FreeCellVariant;
 
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
@@ -54,6 +61,7 @@ export class FreeCellGame extends DealtTableGame {
     });
 
     this.almostWin = almostWin;
+    this.variant = variant;
     this.cells = this.pilesOfRole(FreeCellRole.CELL);
     this.foundations = this.pilesOfRole(FreeCellRole.FOUNDATION);
     this.tableaus = this.pilesOfRole(FreeCellRole.TABLEAU);
@@ -64,7 +72,11 @@ export class FreeCellGame extends DealtTableGame {
     if (this.almostWin) {
       dealFreeCellAlmostWin(this.deck, this.foundations, this.tableaus);
     } else {
-      dealFreeCellLayout(deck, this.tableaus);
+      dealFreeCellLayout(
+        deck,
+        this.tableaus,
+        freeCellBuriesAcesAndTwos(this.variant),
+      );
     }
   }
 }

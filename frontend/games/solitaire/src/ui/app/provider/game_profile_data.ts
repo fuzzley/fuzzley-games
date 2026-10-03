@@ -3,6 +3,8 @@ import { KlondikeVariant } from "@/games/klondike/klondike_rules";
 import { YukonVariant } from "@/games/yukon/yukon_rules";
 import { FortyThievesVariant } from "@/games/forty_thieves/forty_thieves_rules";
 import { SpideretteVariant } from "@/games/spiderette/spiderette_rules";
+import { ScorpionVariant } from "@/games/scorpion/scorpion_rules";
+import { MontanaVariant } from "@/games/montana/montana_rules";
 import {
   Difficulty,
   GameFamilyProfile,
@@ -93,6 +95,12 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           tagline: "Klondike where a card lands on any suit but its own.",
           difficulty: Difficulty.EASY,
         },
+        {
+          name: "Saratoga",
+          values: { variant: KlondikeVariant.SARATOGA },
+          tagline: "Klondike with every column card dealt face-up.",
+          difficulty: Difficulty.EASY,
+        },
       ],
     },
     freecell: {
@@ -135,6 +143,12 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           tagline: "Yukon building down in the same suit only.",
           difficulty: Difficulty.HARD,
         },
+        {
+          name: "Moosehide",
+          values: { variant: YukonVariant.MOOSEHIDE },
+          tagline: "Yukon where a card lands on any suit but its own.",
+          difficulty: Difficulty.EASY,
+        },
       ],
     },
     bakers: {
@@ -143,6 +157,21 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: true,
+    },
+    challengefreecell: {
+      family: "freecell",
+      tagline: "FreeCell with every Ace and Two dealt to the bottom.",
+      difficulty: Difficulty.HARD,
+      decks: 1,
+      allCardsVisible: true,
+      variants: [
+        {
+          name: "Super Challenge FreeCell",
+          values: { emptyColumns: 1 },
+          tagline: "Challenge FreeCell where only Kings fill a space.",
+          difficulty: Difficulty.HARD,
+        },
+      ],
     },
     eightoff: {
       family: "freecell",
@@ -157,12 +186,33 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: false,
+      variants: [
+        {
+          name: "Wasp",
+          values: { variant: ScorpionVariant.WASP },
+          tagline: "Scorpion where any card can fill an empty column.",
+          difficulty: Difficulty.EASY,
+        },
+        {
+          name: "Scorpion II",
+          values: { variant: ScorpionVariant.SCORPION_II },
+          tagline: "Scorpion with cards hidden in only three columns.",
+          difficulty: Difficulty.MEDIUM,
+        },
+      ],
     },
     simplesimon: {
       family: "spider",
       tagline: "Spider on an open board: every card face-up, no stock.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
+      allCardsVisible: true,
+    },
+    mrsmop: {
+      family: "spider",
+      tagline: "Two decks dealt face-up across thirteen columns, no stock.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 2,
       allCardsVisible: true,
     },
     bakersdozen: {
@@ -221,6 +271,18 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           tagline: "Alternating colours, but most of the deal face-down.",
           difficulty: Difficulty.HARD,
         },
+        {
+          name: "Indian",
+          values: { variant: FortyThievesVariant.INDIAN },
+          tagline: "Columns of three, building on any suit but a card's own.",
+          difficulty: Difficulty.MEDIUM,
+        },
+        {
+          name: "Number Ten",
+          values: { variant: FortyThievesVariant.NUMBER_TEN },
+          tagline: "Alternating colours with runs, half the deal face-down.",
+          difficulty: Difficulty.MEDIUM,
+        },
       ],
     },
     maria: {
@@ -233,6 +295,13 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     limited: {
       family: "fortythieves",
       tagline: "Forty Thieves spread over twelve shallow columns.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 2,
+      allCardsVisible: false,
+    },
+    lucas: {
+      family: "fortythieves",
+      tagline: "Thirteen columns of three, with the Aces already home.",
       difficulty: Difficulty.MEDIUM,
       decks: 2,
       allCardsVisible: false,
@@ -251,6 +320,29 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       decks: 1,
       allCardsVisible: true,
       aliases: ["Gaps"],
+      variants: [
+        {
+          name: "Addiction",
+          values: { redeals: 3 },
+          tagline: "Montana with a third redeal.",
+          difficulty: Difficulty.MEDIUM,
+        },
+      ],
+    },
+    bluemoon: {
+      family: "other",
+      tagline: "Montana with the Aces in play, fixed at the head of each row.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 1,
+      allCardsVisible: true,
+      variants: [
+        {
+          name: "Red Moon",
+          values: { variant: MontanaVariant.RED_MOON },
+          tagline: "Blue Moon with every gap dealt beside its Ace.",
+          difficulty: Difficulty.EASY,
+        },
+      ],
     },
   },
 };

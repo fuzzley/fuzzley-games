@@ -261,6 +261,7 @@ describe("searching the real catalog", () => {
       "Yukon",
       "Alaska",
       "Russian Solitaire",
+      "Moosehide",
     ]);
   });
 });

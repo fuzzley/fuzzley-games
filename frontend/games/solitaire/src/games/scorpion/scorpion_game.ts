@@ -10,17 +10,29 @@ import { dealRowCollectingRuns } from "@/games/common/row_deal";
 import { DeckOptions } from "@/games/common/deck_options";
 import { dealScorpionLayout } from "./scorpion_deal";
 import {
+  DEFAULT_SCORPION_VARIANT,
+  scorpionHiddenColumnCount,
+} from "./scorpion_rules";
+import {
   STOCK_PILE_ID,
   ScorpionRole,
+  ScorpionVariant,
   scorpionZoneSpecs,
 } from "./scorpion_zones";
 
 /** How many columns the stock deals onto: the first three, one card each. */
 export const STOCK_DEAL_COLUMN_COUNT = 3;
 
+/** Configures a game of the Scorpion family. */
+export interface ScorpionOptions extends DeckOptions {
+  /** Which game of the family to play. */
+  readonly variant?: ScorpionVariant;
+}
+
 /**
- * Plays Scorpion: Spider's run collecting with Yukon's lifting, where any
- * face-up card lifts with everything on it but lands only on its own suit.
+ * Plays Scorpion, Wasp or Scorpion II: Spider's run collecting with Yukon's
+ * lifting, where any face-up card lifts with everything on it but lands only
+ * on its own suit.
  */
 export class ScorpionGame extends DealtTableGame {
   /** The three-card pile that deals itself out in one press. */
@@ -30,13 +42,17 @@ export class ScorpionGame extends DealtTableGame {
   /** The seven columns. */
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
+  /** Which of the family is being played. */
+  public readonly variant: ScorpionVariant;
+
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
     random = Math.random,
-  }: DeckOptions = {}) {
+    variant = DEFAULT_SCORPION_VARIANT,
+  }: ScorpionOptions = {}) {
     super({
-      zones: scorpionZoneSpecs(),
+      zones: scorpionZoneSpecs(variant),
       deck: new DeckSource(new CardRegistry(), cardIds, random),
       // Only a column will take a card; a foundation is never a destination a
       // player can choose.
@@ -44,6 +60,7 @@ export class ScorpionGame extends DealtTableGame {
       winsWhenAllCardsIn: ScorpionRole.FOUNDATION,
     });
 
+    this.variant = variant;
     this.stock = this.requirePile(STOCK_PILE_ID);
     this.foundations = this.pilesOfRole(ScorpionRole.FOUNDATION);
     this.tableaus = this.pilesOfRole(ScorpionRole.TABLEAU);
@@ -51,7 +68,12 @@ export class ScorpionGame extends DealtTableGame {
 
   /** @inheritDoc */
   protected override dealBoard(deck: PlayingCard[]): void {
-    dealScorpionLayout(deck, this.tableaus, this.stock);
+    dealScorpionLayout(
+      deck,
+      this.tableaus,
+      this.stock,
+      scorpionHiddenColumnCount(this.variant),
+    );
   }
 
   // --- The stock ---
