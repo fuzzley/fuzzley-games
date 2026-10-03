@@ -93,6 +93,12 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           tagline: "Klondike where a card lands on any suit but its own.",
           difficulty: Difficulty.EASY,
         },
+        {
+          name: "Saratoga",
+          values: { variant: KlondikeVariant.SARATOGA },
+          tagline: "Klondike with every column card dealt face-up.",
+          difficulty: Difficulty.EASY,
+        },
       ],
     },
     freecell: {

@@ -198,11 +198,12 @@ const KLONDIKE_VARIANT: GameOptionSpec<KlondikeVariant> = {
   id: "variant",
   label: "Variant",
   description:
-    "Whitehead deals every card face-up and builds in one colour; Thumb and Pouch lets a card land on any suit but its own. Both let any card fill an empty column.",
+    "Whitehead deals every card face-up and builds in one colour; Thumb and Pouch lets a card land on any suit but its own. Both let any card fill an empty column. Saratoga is Klondike with every column card dealt face-up.",
   choices: [
     { value: KlondikeVariant.KLONDIKE, label: "Klondike" },
     { value: KlondikeVariant.WHITEHEAD, label: "Whitehead" },
     { value: KlondikeVariant.THUMB_AND_POUCH, label: "Thumb and Pouch" },
+    { value: KlondikeVariant.SARATOGA, label: "Saratoga" },
   ],
   defaultValue: KlondikeVariant.KLONDIKE,
 };
