@@ -10,6 +10,7 @@ import { CalculationVariant } from "@/games/calculation/calculation_rules";
 import { BristolVariant } from "@/games/bristol/bristol_rules";
 import { MonteCarloVariant } from "@/games/monte_carlo/monte_carlo_rules";
 import { LaBelleLucieVariant } from "@/games/la_belle_lucie/la_belle_lucie_rules";
+import { CanfieldVariant } from "@/games/canfield/canfield_rules";
 import {
   Difficulty,
   GameFamilyProfile,
@@ -83,6 +84,12 @@ const FAMILIES: readonly GameFamilyProfile[] = [
     name: "Pairing games",
     description:
       "Clear the board two cards at a time, pairing cards that match or add up.",
+  },
+  {
+    id: "canfield",
+    name: "Canfield family",
+    description:
+      "Feed four columns from a reserve, with foundations that start wherever the deal says.",
   },
   {
     id: "other",
@@ -505,6 +512,44 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: true,
+    },
+    canfield: {
+      family: "canfield",
+      tagline:
+        "Work through a thirteen-card reserve onto foundations of any rank.",
+      difficulty: {
+        optionId: "variant",
+        byChoice: {
+          [CanfieldVariant.CANFIELD]: Difficulty.HARD,
+          [CanfieldVariant.STOREHOUSE]: Difficulty.MEDIUM,
+          [CanfieldVariant.SUPERIOR]: Difficulty.MEDIUM,
+          [CanfieldVariant.RAINBOW]: Difficulty.HARD,
+        },
+      },
+      decks: 1,
+      allCardsVisible: false,
+      aliases: ["Demon", "Fascination"],
+      variants: [
+        {
+          name: "Storehouse",
+          values: { variant: CanfieldVariant.STOREHOUSE },
+          tagline: "Canfield from the Twos, building in suit.",
+          difficulty: Difficulty.MEDIUM,
+          aliases: ["Thirteen Up", "Reserve"],
+        },
+        {
+          name: "Superior Canfield",
+          values: { variant: CanfieldVariant.SUPERIOR },
+          tagline: "Canfield with the reserve face-up and spaces left open.",
+          difficulty: Difficulty.MEDIUM,
+        },
+        {
+          name: "Rainbow",
+          values: { variant: CanfieldVariant.RAINBOW },
+          tagline: "Canfield building regardless of colour, one pass.",
+          difficulty: Difficulty.HARD,
+        },
+      ],
     },
   },
 };

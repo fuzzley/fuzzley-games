@@ -103,6 +103,12 @@ import {
   DEFAULT_LA_BELLE_LUCIE_VARIANT,
   LaBelleLucieVariant,
 } from "@/games/la_belle_lucie/la_belle_lucie_rules";
+import { CanfieldGame } from "@/games/canfield/canfield_game";
+import { CANFIELD_LAYOUT } from "@/games/canfield/canfield_layout";
+import {
+  CanfieldVariant,
+  DEFAULT_CANFIELD_VARIANT,
+} from "@/games/canfield/canfield_rules";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -440,6 +446,21 @@ const LA_BELLE_LUCIE_VARIANT: GameOptionSpec<LaBelleLucieVariant> = {
     { value: LaBelleLucieVariant.SHAMROCKS, label: "Shamrocks" },
   ],
   defaultValue: DEFAULT_LA_BELLE_LUCIE_VARIANT,
+};
+
+/** Which of the Canfield family to deal. */
+const CANFIELD_VARIANT: GameOptionSpec<CanfieldVariant> = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Storehouse starts the foundations with the Twos and builds in suit; Superior Canfield deals the reserve face-up and leaves spaces for you to fill; Rainbow builds regardless of colour from a one-pass stock.",
+  choices: [
+    { value: CanfieldVariant.CANFIELD, label: "Canfield" },
+    { value: CanfieldVariant.STOREHOUSE, label: "Storehouse" },
+    { value: CanfieldVariant.SUPERIOR, label: "Superior Canfield" },
+    { value: CanfieldVariant.RAINBOW, label: "Rainbow" },
+  ],
+  defaultValue: DEFAULT_CANFIELD_VARIANT,
 };
 
 /*
@@ -790,6 +811,15 @@ const TREFOIL = {
     dealt(new LaBelleLucieGame({ variant: LaBelleLucieVariant.TREFOIL })),
 } satisfies CatalogEntry<LaBelleLucieGame>;
 
+const CANFIELD = {
+  id: "canfield" as const,
+  name: "Canfield",
+  options: [CANFIELD_VARIANT],
+  layout: CANFIELD_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(new CanfieldGame({ variant: optionValue(values, CANFIELD_VARIANT) })),
+} satisfies CatalogEntry<CanfieldGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -829,6 +859,7 @@ export const CATALOG_ENTRIES = [
   MONTE_CARLO,
   LA_BELLE_LUCIE,
   TREFOIL,
+  CANFIELD,
 ] as const;
 
 /** Every game the application can put on the table. */

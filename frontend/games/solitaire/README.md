@@ -37,6 +37,7 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Monte Carlo**: A five-by-five grid cleared by pairing touching cards of the same rank, then closed up and refilled from the stock; Monte Carlo Thirteens, which pairs cards adding up to thirteen, is its variant option.
 - **La Belle Lucie**: Seventeen fans of three and one single card, built down in suit, with two redeals; The Fan and Shamrocks are its variant options.
 - **Trefoil**: La Belle Lucie with the Aces dealt to the foundations and the rest in sixteen fans of three.
+- **Canfield**: Four columns fed from a thirteen-card reserve onto foundations that start on a rank the deal chooses and turn the corner from King to Ace; Storehouse, Superior Canfield and Rainbow are its variant options.
 
 ## Development
 

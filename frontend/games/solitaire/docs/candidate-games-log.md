@@ -60,7 +60,7 @@ need:
 - [x] 7. P1, then Nestor.
 - [x] 8. Monte Carlo and Thirteens.
 - [x] 9. La Belle Lucie, The Fan, Shamrocks and Trefoil.
-- [ ] 10. E2, then Canfield, Storehouse, Superior Canfield and Rainbow.
+- [x] 10. E2, then Canfield, Storehouse, Superior Canfield and Rainbow.
 - [ ] 11. Penguin.
 - [ ] 12. Black Hole and All in a Row.
 - [ ] 13. Grandfather's Clock.
@@ -259,7 +259,7 @@ descendingAnySuit)`, top-only. The stock deals a row onto the reserves
     browser: a double press paired two touching Kings, and a press of the
     stock closed the gap and dealt two cards.
   - Tests: `test/games/monte_carlo/monte_carlo_game.spec.ts`.
-- Step 9: La Belle Lucie, The Fan, Shamrocks and Trefoil.
+- Step 9 (`70ae357`): La Belle Lucie, The Fan, Shamrocks and Trefoil.
   - `src/games/la_belle_lucie`: one `VARIANT_RULES` table pairs each
     variant's fan count, empty and occupied fan rules, fan capacity, redeal
     count and whether the Aces start on the foundations. La Belle Lucie (18
@@ -289,19 +289,50 @@ descendingAnySuit)`, top-only. The stock deals a row onto the reserves
     and undo restores the board exactly. The merci is left out, as the survey
     advised.
   - Tests: `test/games/la_belle_lucie/la_belle_lucie_game.spec.ts`.
+- Step 10: E2, then Canfield, Storehouse, Superior Canfield and Rainbow.
+  - E2 in `src/engine/tableau/rules.ts`: `baseRankOf(board, role)` reads the
+    bottom card of the first occupied foundation, and
+    `baseRankFoundation(role)` starts an empty foundation on that rank (any
+    card while all are empty) and builds up in suit with wrap. Read from the
+    board, so nothing extra is saved and restarts and restores just work.
+  - `src/games/canfield`: a `VARIANT_RULES` table pairs each variant's
+    column adjacency (build and run grab both derive from it), draw count,
+    recycle limit, whether Twos start the foundations, whether the reserve is
+    face up, and whether the reserve fills spaces. Canfield (alternating
+    colours, draw 3, unlimited), Storehouse (in suit, Twos, draw 1, two
+    recycles in pips, as PySol plays it rather than Wikipedia's single pass),
+    Superior Canfield (reserve face up and fanned, spaces take any card or
+    run), Rainbow (any suit, draw 1, no recycle).
+  - Board: stock, waste and foundations as Klondike's top row (7 wide), the
+    reserve under the stock, the four columns under the foundations
+    (`designHeightPx` 1420 for a fourteen-card column or the fanned reserve).
+  - `applyMoveEffects` turns up the reserve's new top card when the move took
+    one, and when a move empties a column (and the variant fills spaces) moves
+    the reserve's top card in as a follow-up transfer and turns up the next,
+    so one undo takes it all back. An empty column takes the reserve's card,
+    or a waste card once the reserve is empty.
+  - The stock follows `KlondikeFamilyGame` without its scoring: `drawToWaste`,
+    `recycleWasteToStock`, a recycle count with `afterUndo` and
+    `saveExtra`/`restoreExtra`, pips for a counted limit and the plain
+    outline once spent.
+  - A new "Canfield family". A "Canfield" entry (`canfield`, aliases Demon
+    and Fascination) with a "Variant" option, a rules page, a profile
+    (Canfield and Rainbow Hard, Storehouse and Superior Medium) with the three
+    named variants, the README, the screenshot (one draw in, to show the
+    waste) and thumbnails. Canfield's traditional scoring is left out.
+  - Tests: `test/games/canfield/canfield_game.spec.ts` and E2 cases in
+    `rules.spec.ts`.
 
 ## Next
 
-Step 10: E2, then Canfield, Storehouse, Superior Canfield and Rainbow. E2 is a
-foundation rule that reads the base rank from the board (the bottom card of
-any occupied foundation) rather than closing over a value, which survives
-`restore()` and restarts. The automatic fill from the reserve goes in
-`applyMoveEffects` as a follow-up transfer plus the reserve's newly exposed
-card in `flippedCardIds`. The stock uses `drawToWaste(…, 3)` and
-`recycleWasteToStock`; extend `DealtTableGame` directly rather than
-`KlondikeFamilyGame`. E1 already has `ascendingSameSuitWrapping`,
-`descendingAlternatingColorWrapping`, `descendingAnySuitWrapping` and the
-matching run adjacencies.
+Step 11: Penguin. Seven columns of seven; the first card dealt is the beak,
+and the other three of its rank go to the foundations as they are dealt, the
+next card taking each one's place. Foundations use `baseRankFoundation` (E2);
+columns build down in suit wrapping (`descendingSameSuitWrapping` with an
+`isSameSuitRunWrapping` run grab, no stack limit); an empty column takes only
+the rank below the beak (`baseRankOf` minus one, wrapping) or a run headed by
+one. Seven cells (`cellRow({ count: 7 })`). An eleven-slot top row over seven
+centred columns.
 
 Screenshots: open each new entry in a fresh isolated browser context (a game
 left in progress raises the "switch games?" confirmation). In a development

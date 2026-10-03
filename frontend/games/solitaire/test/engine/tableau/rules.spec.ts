@@ -11,6 +11,8 @@ import {
   ascendingAnySuit,
   ascendingSameSuit,
   ascendingSameSuitWrapping,
+  baseRankFoundation,
+  baseRankOf,
   byEmptiness,
   cardIs,
   descendingAlternatingColor,
@@ -573,6 +575,81 @@ describe("descending wrapping builds", () => {
 
     const accepted = descendingAnySuitWrapping(
       contextOf(card(Suit.HEART, Rank.KING), pile),
+    );
+
+    expect(accepted).toBe(true);
+  });
+});
+
+/** Returns a board whose foundations are the given piles. */
+function boardOfFoundations(
+  ...foundations: CardPile<PlayingCard>[]
+): BoardQuery {
+  return {
+    pile: () => undefined,
+    pilesByRole: (role) => (role === "foundation" ? foundations : []),
+    emptyCount: () => 0,
+  };
+}
+
+describe("baseRankOf", () => {
+  it("reads the bottom card of the first foundation holding any", () => {
+    const board = boardOfFoundations(
+      pileWith("foundation"),
+      pileWith(
+        "foundation",
+        card(Suit.HEART, Rank.SEVEN),
+        card(Suit.HEART, Rank.EIGHT),
+      ),
+    );
+
+    expect(baseRankOf(board, "foundation")).toBe(Rank.SEVEN);
+  });
+
+  it("has no answer while every foundation is empty", () => {
+    const board = boardOfFoundations(pileWith("foundation"));
+
+    expect(baseRankOf(board, "foundation")).toBeUndefined();
+  });
+});
+
+describe("baseRankFoundation", () => {
+  const rule = baseRankFoundation("foundation");
+
+  /** Asks the rule about a card landing on an empty foundation. */
+  function startsEmptyWith(placed: PlayingCard, board: BoardQuery): boolean {
+    return rule(contextOf(placed, pileWith("foundation"), { board }));
+  }
+
+  it("starts an empty foundation with the base rank", () => {
+    const board = boardOfFoundations(
+      pileWith("foundation", card(Suit.HEART, Rank.SEVEN)),
+    );
+
+    expect(startsEmptyWith(card(Suit.CLUB, Rank.SEVEN), board)).toBe(true);
+  });
+
+  it("refuses any other rank on an empty foundation", () => {
+    const board = boardOfFoundations(
+      pileWith("foundation", card(Suit.HEART, Rank.SEVEN)),
+    );
+
+    expect(startsEmptyWith(card(Suit.CLUB, Rank.ACE), board)).toBe(false);
+  });
+
+  it("lets any card start the first foundation", () => {
+    const board = boardOfFoundations(pileWith("foundation"));
+
+    expect(startsEmptyWith(card(Suit.CLUB, Rank.FIVE), board)).toBe(true);
+  });
+
+  it("builds up in suit past the King to the Ace", () => {
+    const pile = pileWith("foundation", card(Suit.HEART, Rank.KING));
+
+    const accepted = rule(
+      contextOf(card(Suit.HEART, Rank.ACE), pile, {
+        board: boardOfFoundations(pile),
+      }),
     );
 
     expect(accepted).toBe(true);
