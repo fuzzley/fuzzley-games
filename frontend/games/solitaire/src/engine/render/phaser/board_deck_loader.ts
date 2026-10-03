@@ -2,7 +2,11 @@ import { GameObjects, Loader, Textures } from "phaser";
 
 import { CardDeckId } from "../card_deck";
 import { CardDeckStatus } from "../presentation";
-import { cardDeckTextureKey, loadCardDeck } from "./card_deck_atlas";
+import {
+  cardDeckTextureKey,
+  loadCardDeck,
+  residentCardDecks,
+} from "./card_deck_atlas";
 
 /** Gives a deck loader what it needs of the scene it draws into. */
 export interface DeckLoaderHost {
@@ -24,7 +28,7 @@ export class BoardDeckLoader {
   /**
    * Creates a loader for a scene.
    *
-   * @param current The deck the board booted on.
+   * @param current The deck the board booted on, which must be resident.
    */
   constructor(
     private readonly host: DeckLoaderHost,
@@ -43,8 +47,10 @@ export class BoardDeckLoader {
   use(deckId: CardDeckId): void {
     if (deckId === this.current) {
       this.awaiting = null;
-      // Reported even though nothing changed: the boot deck and a revert both
-      // arrive here, and someone is waiting on each.
+      // The boot deck and a revert both arrive here. The boot deck may find a
+      // deck an earlier board left behind, and each is reported even though
+      // nothing changed, because someone is waiting on it.
+      this.releaseOtherDecks();
       this.host.reportCardDeckStatus({ kind: "drawn", deckId });
       return;
     }
@@ -61,7 +67,10 @@ export class BoardDeckLoader {
     this.host.load.once(Loader.Events.COMPLETE, () => {
       // A player who switched again mid-load wants their later choice, not
       // whichever load finishes last.
-      if (this.awaiting !== deckId) return;
+      if (this.awaiting !== deckId) {
+        this.releaseOtherDecks();
+        return;
+      }
       this.awaiting = null;
       if (this.host.textures.exists(textureKey)) {
         this.apply(deckId);
@@ -72,15 +81,8 @@ export class BoardDeckLoader {
     this.host.load.start();
   }
 
-  /**
-   * Repoints every sprite at a deck's texture and releases the old one.
-   *
-   * The old texture is not kept for a quick return because each deck takes
-   * about sixty megabytes of texture memory, and a mobile GPU should not have
-   * to hold several.
-   */
+  /** Repoints every sprite at a deck's texture and releases the old one. */
   private apply(deckId: CardDeckId): void {
-    const previousKey = cardDeckTextureKey(this.current);
     this.current = deckId;
     const textureKey = cardDeckTextureKey(deckId);
 
@@ -93,8 +95,23 @@ export class BoardDeckLoader {
 
     // After the sprites, never before: releasing a texture still being drawn
     // from would blank the board for a frame.
-    this.host.textures.remove(previousKey);
+    this.releaseOtherDecks();
 
     this.host.reportCardDeckStatus({ kind: "drawn", deckId });
+  }
+
+  /**
+   * Releases every loaded deck but the one the board is drawn from.
+   *
+   * None is kept for a quick return because each deck takes about sixty
+   * megabytes of texture memory, and a mobile GPU should not have to hold
+   * several.
+   */
+  private releaseOtherDecks(): void {
+    for (const deckId of residentCardDecks(this.host.textures)) {
+      if (deckId !== this.current) {
+        this.host.textures.remove(cardDeckTextureKey(deckId));
+      }
+    }
   }
 }

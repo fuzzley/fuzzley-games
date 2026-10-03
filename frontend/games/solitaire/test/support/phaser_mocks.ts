@@ -734,8 +734,8 @@ export function boardScenePhaserMock(): {
       input = createMockInput();
       events = createMockSceneEvents();
       cameras = { main: { setBackgroundColor: vi.fn() } };
-      // The deck the board boots on is already loaded by the time a board
-      // scene is created; anything else it has to fetch for itself.
+      // The deck the board boots on is already loaded, so a spec can call
+      // create without preload; anything else it has to fetch for itself.
       textures = createMockTextures(BOOT_TEXTURE_KEY);
       load = createMockLoader();
       renderer = createMockRenderer();
@@ -783,7 +783,7 @@ export const RESTORE_WEBGL_EVENT = "restorewebgl";
 
 /**
  * The texture a mock scene starts with loaded: the deck
- * {@link TestPresentation} reports by default, as a loading scene would have
- * fetched it.
+ * {@link TestPresentation} reports by default, as the board's own preload or an
+ * earlier board would have left it.
  */
 export const BOOT_TEXTURE_KEY = `cards:${DEFAULT_CARD_DECK}`;

@@ -1,9 +1,8 @@
 import * as Phaser from "phaser";
 import { Types } from "phaser";
-import { LoadingScene } from "./loading_scene";
 import { BoardScene } from "./board_scene";
 import { ScalableGame, ViewportScaler } from "./viewport_scaler";
-import { DEFAULT_BACKGROUND_COLOR, TablePresentation } from "../presentation";
+import { DEFAULT_BACKGROUND_COLOR } from "../presentation";
 
 /**
  * Describes the slice of `Phaser.Game` the host drives, so a spec need not boot
@@ -34,14 +33,11 @@ export class PhaserHost {
    * Creates a host that mounts a canvas into `parent` when started.
    *
    * @param makeBoardScene Builds the board to show.
-   * @param presentation How the player has asked the table to look, which the
-   *   loading scene reads for the deck to fetch.
    */
   constructor(
     private readonly window: Window,
     private readonly parent: HTMLElement,
     private readonly makeBoardScene: () => BoardScene,
-    private readonly presentation: TablePresentation,
     private readonly createGame: CreateGame = (config) =>
       new Phaser.Game(config),
   ) {}
@@ -65,9 +61,9 @@ export class PhaserHost {
       },
       canvasStyle: `display: block; width: 100%; height: 100%;`,
       autoFocus: true,
-      // Instances, because Phaser cannot pass a scene its constructor
+      // An instance, because Phaser cannot pass a scene its constructor
       // arguments.
-      scene: [new LoadingScene(this.presentation), this.makeBoardScene()],
+      scene: [this.makeBoardScene()],
     };
     const game = this.createGame(gameConfig);
     this.game = game;

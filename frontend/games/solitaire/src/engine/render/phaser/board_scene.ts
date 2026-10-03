@@ -18,7 +18,11 @@ import {
 import { TableLayoutSpec, designSize } from "../layout/table_layout";
 import { CardDeckId } from "../card_deck";
 import { CardDeckStatus, Subscribe } from "../presentation";
-import { cardDeckTextureKey } from "./card_deck_atlas";
+import {
+  cardDeckTextureKey,
+  loadCardDeck,
+  residentCardDecks,
+} from "./card_deck_atlas";
 
 /** Produces the desired appearance of a board for one frame. */
 export type BuildTableViewState = (
@@ -50,7 +54,10 @@ export interface BoardSceneOptions {
   readonly stackFromCard: StackFromCard;
   /** The artwork key for the back of a card, read when a sprite is made. */
   readonly cardBackKey: () => string;
-  /** The deck to draw from, read when the scene is created. */
+  /**
+   * The deck the player has chosen, which the scene boots on if it is loaded
+   * and loads first if no deck is.
+   */
   readonly cardDeckId: () => CardDeckId;
   /** Follows the table colour. */
   readonly onBackgroundColor: Subscribe<string>;
@@ -108,6 +115,24 @@ export class BoardScene extends Scene implements PhaserSprites {
     this.options = options;
   }
 
+  /** Loads the deck the player chose, unless a deck is loaded to boot on. */
+  preload() {
+    if (this.bootDeck() === null) {
+      loadCardDeck(this.load, this.options.cardDeckId());
+    }
+  }
+
+  /**
+   * Returns the deck to draw the board from at first: the one the player chose
+   * if it is loaded, or else any deck that is, which the board leaves as soon
+   * as the chosen one arrives.
+   */
+  private bootDeck(): CardDeckId | null {
+    const chosen = this.options.cardDeckId();
+    const resident = residentCardDecks(this.textures);
+    return resident.includes(chosen) ? chosen : (resident[0] ?? null);
+  }
+
   /**
    * Makes the sprites for the already-dealt game and starts following it.
    *
@@ -129,7 +154,12 @@ export class BoardScene extends Scene implements PhaserSprites {
 
   /** Creates the objects that do the scene's work. */
   private createCollaborators(): void {
-    this.deckLoader = new BoardDeckLoader(this, this.options.cardDeckId());
+    this.deckLoader = new BoardDeckLoader(
+      this,
+      // The chosen deck, even if its load failed, so the board still reports
+      // a deck when there is none to draw.
+      this.bootDeck() ?? this.options.cardDeckId(),
+    );
     this.controller = new DragController(
       this.options.handleIntent,
       this.options.stackFromCard,
