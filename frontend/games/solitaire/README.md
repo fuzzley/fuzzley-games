@@ -38,6 +38,7 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **La Belle Lucie**: Seventeen fans of three and one single card, built down in suit, with two redeals; The Fan and Shamrocks are its variant options.
 - **Trefoil**: La Belle Lucie with the Aces dealt to the foundations and the rest in sixteen fans of three.
 - **Canfield**: Four columns fed from a thirteen-card reserve onto foundations that start on a rank the deal chooses and turn the corner from King to Ace; Storehouse, Superior Canfield and Rainbow are its variant options.
+- **Penguin**: Seven open columns built down in suit round the corner, a seven-cell flipper, and foundations that start on the rank of the first card dealt.
 
 ## Development
 

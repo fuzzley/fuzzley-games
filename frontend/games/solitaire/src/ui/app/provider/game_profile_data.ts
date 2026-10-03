@@ -551,5 +551,12 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
         },
       ],
     },
+    penguin: {
+      family: "freecell",
+      tagline: "Seven columns in suit, a seven-cell flipper, and a dealt beak.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 1,
+      allCardsVisible: true,
+    },
   },
 };

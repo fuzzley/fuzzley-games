@@ -1662,4 +1662,42 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       },
     ],
   },
+  penguin: {
+    title: "Penguin",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Penguin_(solitaire)",
+    screenshot: {
+      url: "./docs/screenshots/penguin/overview.png",
+      caption:
+        "Penguin board showing the seven cells of the flipper and four foundations along the top, three of them started with the beak's rank, and seven face-up columns of seven beneath.",
+      altText: "Penguin solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Build all 52 cards onto the four foundations, in suit from the beak's rank, round past the King to the Ace.",
+      winCondition: "All 52 cards are on the foundations.",
+      quickOverview:
+        "Penguin deals the deck face-up into seven columns of seven. The first card dealt, at the top of the first column, is the beak: the other three cards of its rank go straight to the foundations, and every foundation builds up in suit from that rank. Columns build down in suit, turning the corner from Ace to King, and whole runs move at once. Seven cells — the flipper — hold a card each.",
+    },
+    detailedRules: {
+      layout: [
+        "Flipper: 7 single-card cells at the top-left.",
+        "Foundations: 4 piles at the top-right, three of them started by the deal with the other cards of the beak's rank.",
+        "Tableau: 7 columns of 7 face-up cards, the beak at the top of the first.",
+      ],
+      cardMovement: [
+        "Any single card can go into an empty cell.",
+        "A same-suit run moves as a unit, however long it is and however many cells are free.",
+        "An empty column takes only a card of the rank below the beak, or a run headed by one.",
+      ],
+      sequenceBuilding: [
+        "Foundations: start on the beak's rank, then Built UP in SAME SUIT, from King round to Ace.",
+        "Tableau: Built DOWN in SAME SUIT, from Ace round to King.",
+      ],
+      specialRules: [
+        "The Beak: the card at the top of the first column sets the rank every foundation starts on, and it is buried under six more — freeing it is often the first job.",
+        "Nearly Always Winnable: David Parlett's game can be won from almost every deal with careful play.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
 };

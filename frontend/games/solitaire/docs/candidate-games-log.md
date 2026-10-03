@@ -61,7 +61,7 @@ need:
 - [x] 8. Monte Carlo and Thirteens.
 - [x] 9. La Belle Lucie, The Fan, Shamrocks and Trefoil.
 - [x] 10. E2, then Canfield, Storehouse, Superior Canfield and Rainbow.
-- [ ] 11. Penguin.
+- [x] 11. Penguin.
 - [ ] 12. Black Hole and All in a Row.
 - [ ] 13. Grandfather's Clock.
 - [ ] 14. E4, then Pyramid.
@@ -289,7 +289,7 @@ descendingAnySuit)`, top-only. The stock deals a row onto the reserves
     and undo restores the board exactly. The merci is left out, as the survey
     advised.
   - Tests: `test/games/la_belle_lucie/la_belle_lucie_game.spec.ts`.
-- Step 10: E2, then Canfield, Storehouse, Superior Canfield and Rainbow.
+- Step 10 (`02f6bad`): E2, then Canfield, Storehouse, Superior Canfield and Rainbow.
   - E2 in `src/engine/tableau/rules.ts`: `baseRankOf(board, role)` reads the
     bottom card of the first occupied foundation, and
     `baseRankFoundation(role)` starts an empty foundation on that rank (any
@@ -322,17 +322,32 @@ descendingAnySuit)`, top-only. The stock deals a row onto the reserves
     waste) and thumbnails. Canfield's traditional scoring is left out.
   - Tests: `test/games/canfield/canfield_game.spec.ts` and E2 cases in
     `rules.spec.ts`.
+- Step 11: Penguin.
+  - `src/games/penguin`: seven cells (`cellRow`) and four foundations make
+    an eleven-slot top row over seven columns centred at column 2 (11 × 2,
+    `designHeightPx` 1400 for a thirteen-card column).
+  - Foundations use E2's `baseRankFoundation`. Columns build down in suit
+    round the corner (`descendingSameSuitWrapping`) and lift
+    `isSameSuitRunWrapping` runs with no stack limit. An empty column takes
+    only the rank below the beak, read with `baseRankOf` and
+    `rankBelowWrapping`, or a run headed by one.
+  - The deal: the first card is the beak, at the top of the first column;
+    each other card of its rank goes to the next foundation as it turns up,
+    and the card after it is dealt in its place.
+  - A "Penguin" entry (`penguin`) in the FreeCell family, `stocklessGestures`,
+    a rules page, a profile (Medium), the README, the screenshot and
+    thumbnails.
+  - Tests: `test/games/penguin/penguin_game.spec.ts`.
 
 ## Next
 
-Step 11: Penguin. Seven columns of seven; the first card dealt is the beak,
-and the other three of its rank go to the foundations as they are dealt, the
-next card taking each one's place. Foundations use `baseRankFoundation` (E2);
-columns build down in suit wrapping (`descendingSameSuitWrapping` with an
-`isSameSuitRunWrapping` run grab, no stack limit); an empty column takes only
-the rank below the beak (`baseRankOf` minus one, wrapping) or a run headed by
-one. Seven cells (`cellRow({ count: 7 })`). An eleven-slot top row over seven
-centred columns.
+Step 12: Black Hole and All in a Row, in the Golf family. One foundation
+taking a card a rank either way with wrap (`isAdjacentRank(true)`); Black
+Hole's starts with the Ace of Spades (`DeckSource.find` or `pullFirstCard`)
+and seventeen fans of three, All in a Row's starts empty over thirteen columns
+of four, so they are two entries sharing one class. A single press plays a
+card, as in Golf (`golfGestures` shape). Seventeen fans and the hole fill an
+18-slot block, which can reuse La Belle Lucie's fractional row pitch.
 
 Screenshots: open each new entry in a fresh isolated browser context (a game
 left in progress raises the "switch games?" confirmation). In a development

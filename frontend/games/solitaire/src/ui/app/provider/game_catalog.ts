@@ -109,6 +109,8 @@ import {
   CanfieldVariant,
   DEFAULT_CANFIELD_VARIANT,
 } from "@/games/canfield/canfield_rules";
+import { PenguinGame } from "@/games/penguin/penguin_game";
+import { PENGUIN_LAYOUT } from "@/games/penguin/penguin_layout";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -820,6 +822,14 @@ const CANFIELD = {
     dealt(new CanfieldGame({ variant: optionValue(values, CANFIELD_VARIANT) })),
 } satisfies CatalogEntry<CanfieldGame>;
 
+const PENGUIN = {
+  id: "penguin" as const,
+  name: "Penguin",
+  options: [],
+  layout: PENGUIN_LAYOUT,
+  create: () => dealt(new PenguinGame()),
+} satisfies CatalogEntry<PenguinGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -860,6 +870,7 @@ export const CATALOG_ENTRIES = [
   LA_BELLE_LUCIE,
   TREFOIL,
   CANFIELD,
+  PENGUIN,
 ] as const;
 
 /** Every game the application can put on the table. */
