@@ -183,6 +183,18 @@ const BAKERS_EMPTY_COLUMNS: GameOptionSpec = {
   defaultValue: 0,
 };
 
+const CHALLENGE_EMPTY_COLUMNS: GameOptionSpec = {
+  id: "emptyColumns",
+  label: "Empty Columns",
+  description:
+    "Kings Only is Super Challenge FreeCell: it also caps how many cards move at once, because a run can no longer be staged in an empty column.",
+  choices: [
+    { value: 0, label: "Any Card" },
+    { value: 1, label: "Kings Only" },
+  ],
+  defaultValue: 0,
+};
+
 const SPIDER_SUIT_COUNT: GameOptionSpec<SpiderSuitCount> = {
   id: "suitCount",
   label: "Suits",
@@ -342,6 +354,27 @@ const BAKERS = {
     ),
 } satisfies CatalogEntry<FreeCellGame>;
 
+/*
+ * Challenge FreeCell is an entry of its own, as Baker's Game is, so that
+ * FreeCell's entry can stay optionless.
+ */
+
+const CHALLENGE_FREECELL = {
+  id: "challengefreecell" as const,
+  name: "Challenge FreeCell",
+  options: [CHALLENGE_EMPTY_COLUMNS],
+  layout: FREECELL_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(
+      new FreeCellGame({
+        variant:
+          optionValue(values, CHALLENGE_EMPTY_COLUMNS) === 1
+            ? FreeCellVariant.SUPER_CHALLENGE
+            : FreeCellVariant.CHALLENGE,
+      }),
+    ),
+} satisfies CatalogEntry<FreeCellGame>;
+
 const EIGHT_OFF = {
   id: "eightoff" as const,
   name: "Eight Off",
@@ -467,6 +500,7 @@ export const CATALOG_ENTRIES = [
   SPIDER,
   YUKON,
   BAKERS,
+  CHALLENGE_FREECELL,
   EIGHT_OFF,
   SCORPION,
   SIMPLE_SIMON,

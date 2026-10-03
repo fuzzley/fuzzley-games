@@ -11,6 +11,7 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Spider**: Multi-suit spider solitaire with options for 1-Suit (Easy), 2-Suit (Medium), and 4-Suit (Hard) games.
 - **Yukon**: Playable in standard Yukon, Alaska, Russian Solitaire, and Moosehide variants.
 - **Baker's Game**: Predecessor to FreeCell with same-suit column building, with choices for Any Card or Kings Only empty columns.
+- **Challenge FreeCell**: FreeCell with the Aces and Twos dealt to the bottom of the columns, with Super Challenge FreeCell's Kings-only empty columns as an option.
 - **Eight Off**: FreeCell cousin featuring eight reserve cells, same-suit column building, and Kings-only empty columns.
 - **Scorpion**: Yukon-style unconstrained card group moves to build same-suit descending runs, with a 3-card reserve stock; playable as Scorpion, Wasp, or Scorpion II.
 - **Simple Simon**: Spider-style building and completion on an open board of ten columns with all 52 cards dealt face-up and no stock.

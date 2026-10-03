@@ -347,6 +347,60 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       },
     ],
   },
+  challengefreecell: {
+    title: "Challenge FreeCell",
+    screenshot: {
+      url: "./docs/screenshots/challengefreecell/overview.png",
+      caption:
+        "Challenge FreeCell board with 4 free cells, 4 foundations, and 8 face-up columns, each with an Ace or a Two at the bottom.",
+      altText: "Challenge FreeCell board overview",
+    },
+    summary: {
+      objective:
+        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      winCondition:
+        "All 52 cards are sorted into their suit foundations from Ace through King.",
+      quickOverview:
+        "Challenge FreeCell is FreeCell with the deal rigged against you: the four Aces and four Twos are dealt first, one to the bottom of each column, so every foundation starts at the very bottom of the board. Super Challenge FreeCell also lets only Kings fill an empty column.",
+    },
+    detailedRules: {
+      layout: [
+        "Free Cells: 4 single-card holding cells at top-left.",
+        "Foundations: 4 suit piles at top-right, initially empty.",
+        "Tableau: 8 columns with all 52 cards dealt face-up, an Ace or a Two at the bottom of each.",
+      ],
+      cardMovement: [
+        "Any single card can be placed into an empty free cell.",
+        "Any card can start an empty column, or only a King under Super Challenge.",
+        "Multi-card moves (supermoves) simulate moving cards through open free cells and empty columns.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in ALTERNATING COLORS.",
+      ],
+      specialRules: [
+        "Buried Foundations: no foundation can be started until a whole column has been dismantled down to its Ace, so the opening is spent clearing columns rather than playing up.",
+        "Supermove Capacity: (Free Cells + 1) * 2^(Empty Columns) with any card in a space; strictly (Free Cells + 1) when only Kings fill a space, because a moving run's only King is its bottom card.",
+      ],
+    },
+    settingsAndVariants: [
+      {
+        optionId: "emptyColumns",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "Challenge FreeCell. Any card can enter an empty column, giving full supermove staging capacity.",
+          },
+          {
+            value: 1,
+            effect:
+              "Super Challenge FreeCell. Only Kings can enter an empty column, restricting supermoves to (Free Cells + 1).",
+          },
+        ],
+      },
+    ],
+  },
   eightoff: {
     title: "Eight Off",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Eight_Off",
