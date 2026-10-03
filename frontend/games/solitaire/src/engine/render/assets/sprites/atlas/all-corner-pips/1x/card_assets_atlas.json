@@ -762,6 +762,32 @@
             "x": 0.5,
             "y": 0.5
           }
+        },
+        {
+          "filename": "card-placeholder-full-border-reset-2-of-2",
+          "frame": {
+            "x": 2968,
+            "y": 949,
+            "w": 220,
+            "h": 307
+          },
+          "anchor": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "card-placeholder-full-border-reset-1-of-2",
+          "frame": {
+            "x": 3196,
+            "y": 949,
+            "w": 220,
+            "h": 307
+          },
+          "anchor": {
+            "x": 0.5,
+            "y": 0.5
+          }
         }
       ]
     }
