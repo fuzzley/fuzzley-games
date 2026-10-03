@@ -9,7 +9,7 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Klondike**: Classic solitaire supporting Draw 1 and Draw 3 modes and standard or Vegas scoring, with Whitehead, Thumb and Pouch, and Saratoga rule variants.
 - **FreeCell**: The classic open-information solitaire puzzle game with four reserve cells.
 - **Spider**: Multi-suit spider solitaire with options for 1-Suit (Easy), 2-Suit (Medium), and 4-Suit (Hard) games.
-- **Yukon**: Playable in standard Yukon, Alaska, and Russian Solitaire variants.
+- **Yukon**: Playable in standard Yukon, Alaska, Russian Solitaire, and Moosehide variants.
 - **Baker's Game**: Predecessor to FreeCell with same-suit column building, with choices for Any Card or Kings Only empty columns.
 - **Eight Off**: FreeCell cousin featuring eight reserve cells, same-suit column building, and Kings-only empty columns.
 - **Scorpion**: Yukon-style unconstrained card group moves to build same-suit descending runs, with a 3-card reserve stock.

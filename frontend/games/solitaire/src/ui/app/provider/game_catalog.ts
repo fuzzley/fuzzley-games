@@ -200,11 +200,12 @@ const YUKON_VARIANT: GameOptionSpec<YukonVariant> = {
   id: "variant",
   label: "Variant",
   description:
-    "Alaska and Russian Solitaire deal like Yukon but build the columns by suit rather than by alternating color.",
+    "Alaska and Russian Solitaire deal like Yukon but build the columns by suit rather than by alternating color; Moosehide lets a card land on any suit but its own.",
   choices: [
     { value: YukonVariant.YUKON, label: "Yukon" },
     { value: YukonVariant.ALASKA, label: "Alaska" },
     { value: YukonVariant.RUSSIAN, label: "Russian Solitaire" },
+    { value: YukonVariant.MOOSEHIDE, label: "Moosehide" },
   ],
   defaultValue: YukonVariant.YUKON,
 };
