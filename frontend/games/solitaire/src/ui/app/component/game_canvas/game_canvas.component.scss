@@ -60,12 +60,28 @@
 
 // The pile slots, drawn where the board is about to put them.
 .skeleton-grid {
-  display: grid;
   width: 92%;
   max-width: 1150px;
   height: 82%;
-  gap: var(--space-4);
   padding: var(--space-6);
+  box-sizing: border-box;
+}
+
+// The padding box of the grid, which the cells are placed in by percentage.
+.skeleton-board {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+// One grid cell; half the gap on each side keeps a whole gap between two.
+.skeleton-cell {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  // Not stretched, which would override the placeholder's aspect ratio.
+  align-items: flex-start;
+  padding: calc(var(--space-4) / 2);
   box-sizing: border-box;
 }
 
@@ -79,7 +95,6 @@
   border: 1.5px dashed var(--wash-medium);
   box-shadow: var(--shadow-subtle);
   overflow: hidden;
-  justify-self: center;
 }
 
 .skeleton-shimmer {

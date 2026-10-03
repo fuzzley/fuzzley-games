@@ -1,5 +1,6 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import { PlayingCard } from "@/engine/core/card/playing_card";
+import { sinkKings } from "../common/sink_kings";
 
 /** How many cards each column is dealt: four across thirteen columns is 52. */
 export const CARDS_PER_COLUMN = 4;
@@ -30,14 +31,4 @@ export function dealBakersDozenLayout(
       tableau.addCard(card);
     }
   }
-}
-
-/**
- * Returns a column with its Kings moved to the bottom, the cards otherwise in
- * the order they were dealt.
- */
-function sinkKings(column: readonly PlayingCard[]): PlayingCard[] {
-  const kings = column.filter((card) => card.rank === Rank.KING);
-  const rest = column.filter((card) => card.rank !== Rank.KING);
-  return [...kings, ...rest];
 }

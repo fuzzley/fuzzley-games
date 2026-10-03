@@ -22,13 +22,17 @@ option cannot change the grid. A different board grid is therefore always a new
 entry. Maria, Limited and Lucas are entries of their own for exactly this
 reason — nine, twelve and thirteen columns are not Forty Thieves' ten — while
 still sharing `FortyThievesGame`, its module and its gestures. Mrs. Mop shares
-`SimpleSimonGame` and Blue Moon `MontanaGame` the same way.
+`SimpleSimonGame`, Blue Moon `MontanaGame`, Trefoil `LaBelleLucieGame`, All in
+a Row `BlackHoleGame` and Fortress `CastleGame` the same way.
 
 Same grid, different rules: default to a **variant option** on the existing
 entry. Whitehead, Thumb and Pouch and Saratoga are options on Klondike, Alaska,
 Russian Solitaire and Moosehide on Yukon, Josephine, Rank and File, Indian and
-Number Ten on Forty Thieves, Will o' the Wisp on Spiderette, and Red Moon on
-Blue Moon — all traditional games with their own names, all options.
+Number Ten on Forty Thieves, Will o' the Wisp on Spiderette, Red Moon on Blue
+Moon, Putt Putt on Golf, Sir Tommy on Calculation, Belvedere on Bristol, The Fan
+and Shamrocks on La Belle Lucie, Storehouse, Superior Canfield and Rainbow on
+Canfield, and Streets and Alleys and Citadel on Beleaguered Castle — all
+traditional games with their own names, all options.
 
 Baker's Game and Challenge FreeCell are the ones that go the other way: each is
 its own catalog entry on FreeCell's grid, sharing `FreeCellGame` and
@@ -77,11 +81,17 @@ writing predicates by hand:
   `cardIs(predicate)`, `hasRank`, `never`, `anyCard`, `singleCardOnly`,
   `maxStackSize(limit)`.
 - **Adjacency** (what may sit directly on what) — `isOrderedPair`,
-  `isSameSuitRun`, `isSameColorRun`, `isDifferentSuitRun`, `isAnySuitRun`.
+  `isSameSuitRun`, `isSameColorRun`, `isDifferentSuitRun`, `isAnySuitRun`,
+  the wrapping forms where an Ace takes a King (`isOrderedPairWrapping`,
+  `isSameSuitRunWrapping`, `isAnySuitRunWrapping`), and `isAdjacentRank(wraps)`
+  for the Golf family's one rank up or down.
 - **Builds**, each derived from an adjacency via `buildsOn` —
   `descendingAlternatingColor`, `descendingSameSuit`, `descendingSameColor`,
-  `descendingDifferentSuit`, `descendingAnySuit`, `ascendingSameSuit`.
-- **Whole piles** — `suitFoundation` (Ace up by suit), `singleCardCell`.
+  `descendingDifferentSuit`, `descendingAnySuit`, their `…Wrapping` forms,
+  `ascendingSameSuit`, `ascendingSameSuitWrapping` and `ascendingAnySuit`.
+- **Whole piles** — `suitFoundation` (Ace up by suit), `singleCardCell`, and
+  `baseRankFoundation(role)` for foundations that start on a rank the deal
+  chooses, read off the board with `baseRankOf` (Canfield, Penguin).
 - **Staging** — `cellStagingLimit(cellRole)` for the `free cells + 1` supermove
   limit shared by Eight Off, Seahaven and Kings-only Baker's Game.
 
@@ -115,8 +125,11 @@ from `src/games/common/pile_layouts.ts` — `STACKED_PILE_LAYOUT`,
 up), `wasteFanLayout(drawCount)`.
 
 `GrabRule` is the interesting choice: `"none"`, `"top-only"`, `"any-face-up"`
-(Klondike columns — deliberately lax), or `{ kind: "run", adjacent }` (FreeCell,
-Spider). It must agree with the build rule from step 2.
+(Klondike columns — deliberately lax), `{ kind: "run", adjacent }` (FreeCell,
+Spider), or `{ kind: "uncovered", coveredBy }` for a card free only once the
+piles lying over it are empty (Pyramid, TriPeaks; `isUncovered` in
+`src/engine/tableau/zone.ts` asks the same of an accept rule). It must agree
+with the build rule from step 2.
 
 **Write it as a plain function of the choices that shape the board**, such as
 the variant or the draw count. The game hands the result to `super` once and
@@ -124,7 +137,11 @@ the variant or the draw count. The game hands the result to `super` once and
 a rule deals a new game rather than reshaping this one.
 
 For a slot that is not a plain consecutive row — Montana's grid — `zoneRow`
-accepts a function for `column`.
+accepts a function for `column`. Slots may be fractional: Flower Garden's
+bouquet overlaps at fractional columns, Pyramid's rows sit half a row apart and
+Grandfather's Clock lays its foundations on a circle. Piles are drawn in
+declaration order, so declare the ones that should lie on top last; the loading
+skeleton places fractional slots too.
 
 ---
 
@@ -139,6 +156,11 @@ A plain function taking the deck and the piles, draining the deck. Reuse first:
 - `dealRowCollectingRuns(stock, dealTo, columns, foundations)` — same file, for
   a stock deal that can finish a run: it deals, sends every completed run to a
   foundation, and returns the transfers and flipped cards to commit together.
+- `pullCards(deck, predicate)` and `pullFirstCard(deck, predicate)` —
+  `src/games/common/pull_cards.ts`, for cards the deal places before the rest,
+  such as Aces that start on the foundations.
+- `sinkKings(column)` — `src/games/common/sink_kings.ts`, for a game whose
+  columns never take a King (Baker's Dozen, Bristol).
 
 Set `card.faceUp` explicitly for every card you place. Dealing puts cards into
 piles directly and so **bypasses the placement rules entirely** — a cell's
@@ -181,7 +203,11 @@ The only required override is `dealBoard(deck)`. Optionally:
   `KlondikeFamilyGame` (`src/games/klondike/klondike_family_game.ts`) calls
   `flipExposedTopOfColumn` directly. A game played with Klondike's stock and
   scoring extends that class and writes only `dealLayout`, as Double Klondike
-  does.
+  does. A pairing game (Nestor, Monte Carlo, Pyramid) takes `pairsWithTop`,
+  `sameRank` or `totalsThirteen` and `discardPairEffects` from
+  `src/games/common/pair_removal.ts`: the partner's pile takes the card, then
+  the effect sends both to the discard. Such a pile must have no `capacity`,
+  which is checked before the accept rule.
 - A stock action. `drawToWaste(stock, waste, count)` and
   `recycleWasteToStock(waste, stock)` from `src/games/common/stock_pile.ts` move
   the cards and return transfers. The game commits them with
@@ -240,8 +266,11 @@ FreeCell does.
 Otherwise call `tableGestures(game, options)` with:
 
 - `onCardPress` — `drawOnStockTop(role, draw)` for a stock whose top card draws
-  (Klondike, Forty Thieves), or `dealOnStockPress(role, deal)` for one that deals
-  a row wherever it is pressed (Spider, Scorpion, Easthaven).
+  (Klondike, Forty Thieves), `dealOnStockPress(role, deal)` for one that deals
+  a row wherever it is pressed (Spider, Scorpion, Easthaven), or
+  `playOnPress(game, roles)` where a single press plays a card (Golf, Black
+  Hole, TriPeaks) — with `autoMoveFrom: []`, so a double press plays nothing
+  more.
 - `onPilePress` — a press on an _empty_ slot: Klondike's recycle, Montana's
   redeal. Pair it with `emptyIsActionable` on the zone, which is what gives the
   slot a pointer cursor and a hover border.

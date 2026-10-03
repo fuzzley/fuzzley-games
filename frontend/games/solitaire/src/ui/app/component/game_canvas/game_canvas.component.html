@@ -12,21 +12,22 @@
 ></div>
 
 <div class="loading-overlay" [class.hidden]="!isInitializing()">
-  <div
-    class="skeleton-grid"
-    aria-hidden="true"
-    [style.grid-template-columns]="'repeat(' + layoutSpec().columns + ', 1fr)'"
-    [style.grid-template-rows]="'repeat(' + layoutSpec().rows + ', 1fr)'"
-  >
-    @for (slot of layoutSpec().slots; track slot.pileId) {
-      <div
-        class="skeleton-slot"
-        [style.grid-column]="slot.column + 1"
-        [style.grid-row]="slot.row + 1"
-      >
-        <div class="skeleton-shimmer"></div>
-      </div>
-    }
+  <div class="skeleton-grid" aria-hidden="true">
+    <div class="skeleton-board">
+      @for (slot of skeletonSlots(); track slot.pileId) {
+        <div
+          class="skeleton-cell"
+          [style.left]="slot.left"
+          [style.top]="slot.top"
+          [style.width]="slot.width"
+          [style.height]="slot.height"
+        >
+          <div class="skeleton-slot">
+            <div class="skeleton-shimmer"></div>
+          </div>
+        </div>
+      }
+    </div>
   </div>
 
   <div class="loading-badge">

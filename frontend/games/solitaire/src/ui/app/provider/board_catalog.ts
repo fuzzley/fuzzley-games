@@ -12,6 +12,16 @@ import { montanaGestures } from "@/games/montana/montana_gestures";
 import { scorpionGestures } from "@/games/scorpion/scorpion_gestures";
 import { spiderGestures } from "@/games/spider/spider_gestures";
 import { spideretteGestures } from "@/games/spiderette/spiderette_gestures";
+import { acesUpGestures } from "@/games/aces_up/aces_up_gestures";
+import { golfGestures } from "@/games/golf/golf_gestures";
+import { calculationGestures } from "@/games/calculation/calculation_gestures";
+import { bristolGestures } from "@/games/bristol/bristol_gestures";
+import { monteCarloGestures } from "@/games/monte_carlo/monte_carlo_gestures";
+import { laBelleLucieGestures } from "@/games/la_belle_lucie/la_belle_lucie_gestures";
+import { canfieldGestures } from "@/games/canfield/canfield_gestures";
+import { blackHoleGestures } from "@/games/black_hole/black_hole_gestures";
+import { pyramidGestures } from "@/games/pyramid/pyramid_gestures";
+import { triPeaksGestures } from "@/games/tri_peaks/tri_peaks_gestures";
 import { GameId, GameOf, catalogEntry } from "./game_catalog";
 
 /** Says what a press or a drop means in a particular game. */
@@ -43,6 +53,26 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
   doubleklondike: klondikeGestures,
   montana: montanaGestures,
   bluemoon: montanaGestures,
+  bisley: stocklessGestures,
+  acesup: acesUpGestures,
+  golf: golfGestures,
+  calculation: calculationGestures,
+  flowergarden: stocklessGestures,
+  bristol: bristolGestures,
+  nestor: stocklessGestures,
+  montecarlo: monteCarloGestures,
+  labellelucie: laBelleLucieGestures,
+  trefoil: laBelleLucieGestures,
+  canfield: canfieldGestures,
+  penguin: stocklessGestures,
+  blackhole: blackHoleGestures,
+  allinarow: blackHoleGestures,
+  grandfathersclock: stocklessGestures,
+  pyramid: pyramidGestures,
+  tripeaks: triPeaksGestures,
+  beleagueredcastle: stocklessGestures,
+  fortress: stocklessGestures,
+  pokersquares: stocklessGestures,
 };
 
 /**

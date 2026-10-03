@@ -114,3 +114,21 @@ export function pileHeight(
   const last = pileCardOffsets(layout, cards).at(-1);
   return (last?.y ?? 0) + cardHeight;
 }
+
+/**
+ * Returns how far a pile's cards reach right of its origin, in design units,
+ * which a pile fanned sideways grows as it gains cards.
+ *
+ * @param cards The pile's cards, bottom first.
+ */
+export function pileWidth(
+  layout: PileLayout,
+  cards: ReadonlyArray<Card>,
+  cardWidth: number,
+): number {
+  const widest = Math.max(
+    0,
+    ...pileCardOffsets(layout, cards).map((offset) => offset.x),
+  );
+  return widest + cardWidth;
+}

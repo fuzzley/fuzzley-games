@@ -14,8 +14,15 @@ import {
   hasRoomFor,
   showsFace,
 } from "@/engine/tableau/zone";
-import { never } from "@/engine/tableau/rules";
+import { BoardQuery, never } from "@/engine/tableau/rules";
 import { makePlayingCard } from "@test/support/card_builder";
+
+/** A board with no other piles on it, for the rules that never read one. */
+const EMPTY_BOARD: BoardQuery = {
+  pile: () => undefined,
+  pilesByRole: () => [],
+  emptyCount: () => 0,
+};
 
 function pileWith(...cards: PlayingCard[]): CardPile<PlayingCard> {
   const pile = new CardPile<PlayingCard>("pile", "tableau");
@@ -40,7 +47,7 @@ describe("canGrab", () => {
     it("refuses even the top card", () => {
       const top = card(Suit.SPADE, Rank.KING);
 
-      expect(canGrab(grab, top, pileWith(top))).toBe(false);
+      expect(canGrab(grab, top, pileWith(top), EMPTY_BOARD)).toBe(false);
     });
   });
 
@@ -51,14 +58,16 @@ describe("canGrab", () => {
       const bottom = card(Suit.SPADE, Rank.KING);
       const top = card(Suit.HEART, Rank.QUEEN);
 
-      expect(canGrab(grab, top, pileWith(bottom, top))).toBe(true);
+      expect(canGrab(grab, top, pileWith(bottom, top), EMPTY_BOARD)).toBe(true);
     });
 
     it("refuses a buried card", () => {
       const bottom = card(Suit.SPADE, Rank.KING);
       const top = card(Suit.HEART, Rank.QUEEN);
 
-      expect(canGrab(grab, bottom, pileWith(bottom, top))).toBe(false);
+      expect(canGrab(grab, bottom, pileWith(bottom, top), EMPTY_BOARD)).toBe(
+        false,
+      );
     });
   });
 
@@ -69,20 +78,22 @@ describe("canGrab", () => {
       const bottom = card(Suit.SPADE, Rank.KING);
       const top = card(Suit.HEART, Rank.QUEEN);
 
-      expect(canGrab(grab, bottom, pileWith(bottom, top))).toBe(true);
+      expect(canGrab(grab, bottom, pileWith(bottom, top), EMPTY_BOARD)).toBe(
+        true,
+      );
     });
 
     it("refuses a face-down card", () => {
       const down = card(Suit.SPADE, Rank.KING, false);
 
-      expect(canGrab(grab, down, pileWith(down))).toBe(false);
+      expect(canGrab(grab, down, pileWith(down), EMPTY_BOARD)).toBe(false);
     });
 
     it("allows a broken run, which is why Klondike uses it", () => {
       const king = card(Suit.SPADE, Rank.KING);
       const two = card(Suit.HEART, Rank.TWO);
 
-      expect(canGrab(grab, king, pileWith(king, two))).toBe(true);
+      expect(canGrab(grab, king, pileWith(king, two), EMPTY_BOARD)).toBe(true);
     });
   });
 
@@ -98,35 +109,42 @@ describe("canGrab", () => {
       const queen = card(Suit.HEART, Rank.QUEEN);
       const jack = card(Suit.SPADE, Rank.JACK);
 
-      expect(canGrab(grab, king, pileWith(king, queen, jack))).toBe(true);
+      expect(
+        canGrab(grab, king, pileWith(king, queen, jack), EMPTY_BOARD),
+      ).toBe(true);
     });
 
     it("refuses a card whose covering cards break the run", () => {
       const king = card(Suit.SPADE, Rank.KING);
       const two = card(Suit.HEART, Rank.TWO);
 
-      expect(canGrab(grab, king, pileWith(king, two))).toBe(false);
+      expect(canGrab(grab, king, pileWith(king, two), EMPTY_BOARD)).toBe(false);
     });
 
     it("allows the top card, which leads a run of one", () => {
       const king = card(Suit.SPADE, Rank.KING);
       const two = card(Suit.HEART, Rank.TWO);
 
-      expect(canGrab(grab, two, pileWith(king, two))).toBe(true);
+      expect(canGrab(grab, two, pileWith(king, two), EMPTY_BOARD)).toBe(true);
     });
 
     it("refuses a face-down card", () => {
       const down = card(Suit.SPADE, Rank.KING, false);
 
-      expect(canGrab(grab, down, pileWith(down))).toBe(false);
+      expect(canGrab(grab, down, pileWith(down), EMPTY_BOARD)).toBe(false);
     });
 
     it("refuses a card that is not in the pile", () => {
       const absent = card(Suit.CLUB, Rank.FOUR);
 
-      expect(canGrab(grab, absent, pileWith(card(Suit.SPADE, Rank.KING)))).toBe(
-        false,
-      );
+      expect(
+        canGrab(
+          grab,
+          absent,
+          pileWith(card(Suit.SPADE, Rank.KING)),
+          EMPTY_BOARD,
+        ),
+      ).toBe(false);
     });
 
     /*
@@ -137,8 +155,51 @@ describe("canGrab", () => {
       const king = card(Suit.SPADE, Rank.KING);
       const queen = card(Suit.HEART, Rank.QUEEN, false);
 
-      expect(canGrab(grab, king, pileWith(king, queen))).toBe(false);
+      expect(canGrab(grab, king, pileWith(king, queen), EMPTY_BOARD)).toBe(
+        false,
+      );
     });
+  });
+});
+
+describe("canGrab uncovered", () => {
+  const grab: GrabRule = { kind: "uncovered", coveredBy: ["left", "right"] };
+
+  /** Returns a board holding the two covering piles, with the given cards. */
+  function boardWith(left: PlayingCard[], right: PlayingCard[]): BoardQuery {
+    const piles = new Map([
+      ["left", pileWith(...left)],
+      ["right", pileWith(...right)],
+    ]);
+    return {
+      pile: (pileId) => piles.get(pileId),
+      pilesByRole: () => [],
+      emptyCount: () => 0,
+    };
+  }
+
+  it("lets the top card go once both covering piles are empty", () => {
+    const top = card(Suit.HEART, Rank.FIVE);
+
+    expect(canGrab(grab, top, pileWith(top), boardWith([], []))).toBe(true);
+  });
+
+  it("holds the card while either covering pile has a card", () => {
+    const top = card(Suit.HEART, Rank.FIVE);
+    const cover = card(Suit.CLUB, Rank.TWO);
+
+    expect(canGrab(grab, top, pileWith(top), boardWith([], [cover]))).toBe(
+      false,
+    );
+  });
+
+  it("refuses a card beneath the top even when uncovered", () => {
+    const bottom = card(Suit.HEART, Rank.FIVE);
+    const top = card(Suit.HEART, Rank.SIX);
+
+    expect(
+      canGrab(grab, bottom, pileWith(bottom, top), boardWith([], [])),
+    ).toBe(false);
   });
 });
 

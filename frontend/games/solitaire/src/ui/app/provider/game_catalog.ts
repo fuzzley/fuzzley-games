@@ -61,6 +61,89 @@ import { EASTHAVEN_LAYOUT } from "@/games/easthaven/easthaven_layout";
 import { SpideretteGame } from "@/games/spiderette/spiderette_game";
 import { SpideretteVariant } from "@/games/spiderette/spiderette_rules";
 import { SPIDERETTE_LAYOUT } from "@/games/spiderette/spiderette_layout";
+import { BisleyGame } from "@/games/bisley/bisley_game";
+import { BISLEY_LAYOUT } from "@/games/bisley/bisley_layout";
+import { AcesUpGame } from "@/games/aces_up/aces_up_game";
+import { ACES_UP_LAYOUT } from "@/games/aces_up/aces_up_layout";
+import {
+  AcesUpSpaces,
+  DEFAULT_ACES_UP_SPACES,
+} from "@/games/aces_up/aces_up_rules";
+import { GolfGame } from "@/games/golf/golf_game";
+import { GOLF_LAYOUT } from "@/games/golf/golf_layout";
+import { DEFAULT_GOLF_VARIANT, GolfVariant } from "@/games/golf/golf_rules";
+import { CalculationGame } from "@/games/calculation/calculation_game";
+import { CALCULATION_LAYOUT } from "@/games/calculation/calculation_layout";
+import {
+  CalculationVariant,
+  DEFAULT_CALCULATION_VARIANT,
+} from "@/games/calculation/calculation_rules";
+import { FlowerGardenGame } from "@/games/flower_garden/flower_garden_game";
+import { FLOWER_GARDEN_LAYOUT } from "@/games/flower_garden/flower_garden_layout";
+import { BristolGame } from "@/games/bristol/bristol_game";
+import { BRISTOL_LAYOUT } from "@/games/bristol/bristol_layout";
+import {
+  BristolVariant,
+  DEFAULT_BRISTOL_VARIANT,
+} from "@/games/bristol/bristol_rules";
+import { NestorGame } from "@/games/nestor/nestor_game";
+import { NESTOR_LAYOUT } from "@/games/nestor/nestor_layout";
+import { MonteCarloGame } from "@/games/monte_carlo/monte_carlo_game";
+import { MONTE_CARLO_LAYOUT } from "@/games/monte_carlo/monte_carlo_layout";
+import {
+  DEFAULT_MONTE_CARLO_VARIANT,
+  MonteCarloVariant,
+} from "@/games/monte_carlo/monte_carlo_rules";
+import { LaBelleLucieGame } from "@/games/la_belle_lucie/la_belle_lucie_game";
+import {
+  LA_BELLE_LUCIE_LAYOUT,
+  TREFOIL_LAYOUT,
+} from "@/games/la_belle_lucie/la_belle_lucie_layout";
+import {
+  DEFAULT_LA_BELLE_LUCIE_VARIANT,
+  LaBelleLucieVariant,
+} from "@/games/la_belle_lucie/la_belle_lucie_rules";
+import { CanfieldGame } from "@/games/canfield/canfield_game";
+import { CANFIELD_LAYOUT } from "@/games/canfield/canfield_layout";
+import {
+  CanfieldVariant,
+  DEFAULT_CANFIELD_VARIANT,
+} from "@/games/canfield/canfield_rules";
+import { PenguinGame } from "@/games/penguin/penguin_game";
+import { PENGUIN_LAYOUT } from "@/games/penguin/penguin_layout";
+import { BlackHoleGame } from "@/games/black_hole/black_hole_game";
+import {
+  ALL_IN_A_ROW_LAYOUT,
+  BLACK_HOLE_LAYOUT,
+} from "@/games/black_hole/black_hole_layout";
+import { BlackHoleVariant } from "@/games/black_hole/black_hole_rules";
+import { GrandfathersClockGame } from "@/games/grandfathers_clock/grandfathers_clock_game";
+import { GRANDFATHERS_CLOCK_LAYOUT } from "@/games/grandfathers_clock/grandfathers_clock_layout";
+import { PyramidGame } from "@/games/pyramid/pyramid_game";
+import { PYRAMID_LAYOUT } from "@/games/pyramid/pyramid_layout";
+import {
+  DEFAULT_PYRAMID_GOAL,
+  DEFAULT_PYRAMID_PASSES,
+  PyramidGoal,
+  PyramidPasses,
+} from "@/games/pyramid/pyramid_rules";
+import { TriPeaksGame } from "@/games/tri_peaks/tri_peaks_game";
+import { TRI_PEAKS_LAYOUT } from "@/games/tri_peaks/tri_peaks_layout";
+import { CastleGame } from "@/games/beleaguered_castle/castle_game";
+import {
+  BELEAGUERED_CASTLE_LAYOUT,
+  FORTRESS_LAYOUT,
+} from "@/games/beleaguered_castle/castle_layout";
+import {
+  CastleVariant,
+  DEFAULT_CASTLE_VARIANT,
+} from "@/games/beleaguered_castle/castle_rules";
+import { PokerSquaresGame } from "@/games/poker_squares/poker_squares_game";
+import { POKER_SQUARES_LAYOUT } from "@/games/poker_squares/poker_squares_layout";
+import {
+  DEFAULT_POKER_SQUARES_SCORING,
+  PokerSquaresScoring,
+} from "@/games/poker_squares/poker_squares_rules";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -320,6 +403,160 @@ const SPIDERETTE_VARIANT: GameOptionSpec<SpideretteVariant> = {
   defaultValue: SpideretteVariant.SPIDERETTE,
 };
 
+/** What may fill an empty column in Aces Up. */
+const ACES_UP_SPACES: GameOptionSpec<AcesUpSpaces> = {
+  id: "emptyColumns",
+  label: "Empty Columns",
+  description:
+    "Aces Only is the harder game: a space can only take an Ace, so every other card has to wait for the discard.",
+  choices: [
+    { value: AcesUpSpaces.ANY_CARD, label: "Any Card" },
+    { value: AcesUpSpaces.ACES_ONLY, label: "Aces Only" },
+  ],
+  defaultValue: DEFAULT_ACES_UP_SPACES,
+};
+
+/** Which of the Golf family to deal. */
+const GOLF_VARIANT: GameOptionSpec<GolfVariant> = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Golf lets nothing onto a King; one house rule lets a Queen go there. Putt Putt turns the corner, so a King and an Ace are a rank apart both ways.",
+  choices: [
+    { value: GolfVariant.GOLF, label: "Golf" },
+    { value: GolfVariant.QUEENS_ON_KINGS, label: "Queens on Kings" },
+    { value: GolfVariant.PUTT_PUTT, label: "Putt Putt" },
+  ],
+  defaultValue: DEFAULT_GOLF_VARIANT,
+};
+
+/** Which of the games on Calculation's board to deal. */
+const CALCULATION_VARIANT: GameOptionSpec<CalculationVariant> = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Sir Tommy builds every foundation up by one from an Ace, which the player has to wait for, rather than by Calculation's four intervals.",
+  choices: [
+    { value: CalculationVariant.CALCULATION, label: "Calculation" },
+    { value: CalculationVariant.SIR_TOMMY, label: "Sir Tommy" },
+  ],
+  defaultValue: DEFAULT_CALCULATION_VARIANT,
+};
+
+/** Which of the games on Bristol's board to deal. */
+const BRISTOL_VARIANT: GameOptionSpec<BristolVariant> = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Belvedere starts one foundation with an Ace, so there is somewhere to play from the first move.",
+  choices: [
+    { value: BristolVariant.BRISTOL, label: "Bristol" },
+    { value: BristolVariant.BELVEDERE, label: "Belvedere" },
+  ],
+  defaultValue: DEFAULT_BRISTOL_VARIANT,
+};
+
+/** Which of the games on Monte Carlo's grid to deal. */
+const MONTE_CARLO_VARIANT: GameOptionSpec<MonteCarloVariant> = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Thirteens pairs touching cards that add up to thirteen, and lets a King go on its own.",
+  choices: [
+    { value: MonteCarloVariant.MONTE_CARLO, label: "Monte Carlo" },
+    { value: MonteCarloVariant.THIRTEENS, label: "Thirteens" },
+  ],
+  defaultValue: DEFAULT_MONTE_CARLO_VARIANT,
+};
+
+/** Which of the games on La Belle Lucie's eighteen fans to deal. */
+const LA_BELLE_LUCIE_VARIANT: GameOptionSpec<LaBelleLucieVariant> = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "The Fan lets a King fill an empty fan but allows no redeal; Shamrocks builds up or down in any suit, but never past three cards to a fan.",
+  choices: [
+    { value: LaBelleLucieVariant.LA_BELLE_LUCIE, label: "La Belle Lucie" },
+    { value: LaBelleLucieVariant.THE_FAN, label: "The Fan" },
+    { value: LaBelleLucieVariant.SHAMROCKS, label: "Shamrocks" },
+  ],
+  defaultValue: DEFAULT_LA_BELLE_LUCIE_VARIANT,
+};
+
+/** Which of the Canfield family to deal. */
+const CANFIELD_VARIANT: GameOptionSpec<CanfieldVariant> = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Storehouse starts the foundations with the Twos and builds in suit; Superior Canfield deals the reserve face-up and leaves spaces for you to fill; Rainbow builds regardless of colour from a one-pass stock.",
+  choices: [
+    { value: CanfieldVariant.CANFIELD, label: "Canfield" },
+    { value: CanfieldVariant.STOREHOUSE, label: "Storehouse" },
+    { value: CanfieldVariant.SUPERIOR, label: "Superior Canfield" },
+    { value: CanfieldVariant.RAINBOW, label: "Rainbow" },
+  ],
+  defaultValue: DEFAULT_CANFIELD_VARIANT,
+};
+
+/** When a game of Pyramid is won. */
+const PYRAMID_GOAL: GameOptionSpec<PyramidGoal> = {
+  id: "goal",
+  label: "Goal",
+  description:
+    "Pyramid Only is Relaxed Pyramid: clearing the pyramid wins, whatever is left in the stock and waste.",
+  choices: [
+    { value: PyramidGoal.ALL_CARDS, label: "All Cards" },
+    { value: PyramidGoal.PYRAMID_ONLY, label: "Pyramid Only" },
+  ],
+  defaultValue: DEFAULT_PYRAMID_GOAL,
+};
+
+/** How many times Pyramid's stock may be gone through. */
+const PYRAMID_PASSES: GameOptionSpec<PyramidPasses> = {
+  id: "passes",
+  label: "Passes",
+  description:
+    "Three passes turns the waste back over twice, as Par Pyramid allows.",
+  choices: [
+    { value: 1, label: "1 Pass" },
+    { value: 3, label: "3 Passes" },
+  ],
+  defaultValue: DEFAULT_PYRAMID_PASSES,
+};
+
+/** Which of the games on Beleaguered Castle's eight rows to deal. */
+const CASTLE_VARIANT: GameOptionSpec<CastleVariant> = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Streets and Alleys deals the Aces into the rows instead of the foundations; Citadel sends every card it can home while dealing.",
+  choices: [
+    {
+      value: CastleVariant.BELEAGUERED_CASTLE,
+      label: "Beleaguered Castle",
+    },
+    {
+      value: CastleVariant.STREETS_AND_ALLEYS,
+      label: "Streets and Alleys",
+    },
+    { value: CastleVariant.CITADEL, label: "Citadel" },
+  ],
+  defaultValue: DEFAULT_CASTLE_VARIANT,
+};
+
+/** Which scoring Poker Squares counts its lines by. */
+const POKER_SQUARES_SCORING: GameOptionSpec<PokerSquaresScoring> = {
+  id: "scoring",
+  label: "Scoring",
+  description:
+    "American scoring pays most for flushes and wins at 200; English scoring pays more for a straight than a flush and wins at 70.",
+  choices: [
+    { value: PokerSquaresScoring.AMERICAN, label: "American" },
+    { value: PokerSquaresScoring.ENGLISH, label: "English" },
+  ],
+  defaultValue: DEFAULT_POKER_SQUARES_SCORING,
+};
+
 /*
  * The entries, each declared with `satisfies` so it keeps the literal id and
  * game type the board registry is checked against.
@@ -567,6 +804,209 @@ const SPIDERETTE = {
     ),
 } satisfies CatalogEntry<SpideretteGame>;
 
+const BISLEY = {
+  id: "bisley" as const,
+  name: "Bisley",
+  options: [],
+  layout: BISLEY_LAYOUT,
+  create: () => dealt(new BisleyGame()),
+} satisfies CatalogEntry<BisleyGame>;
+
+const ACES_UP = {
+  id: "acesup" as const,
+  name: "Aces Up",
+  options: [ACES_UP_SPACES],
+  layout: ACES_UP_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(new AcesUpGame({ spaces: optionValue(values, ACES_UP_SPACES) })),
+} satisfies CatalogEntry<AcesUpGame>;
+
+const GOLF = {
+  id: "golf" as const,
+  name: "Golf",
+  options: [GOLF_VARIANT],
+  layout: GOLF_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(new GolfGame({ variant: optionValue(values, GOLF_VARIANT) })),
+} satisfies CatalogEntry<GolfGame>;
+
+const CALCULATION = {
+  id: "calculation" as const,
+  name: "Calculation",
+  options: [CALCULATION_VARIANT],
+  layout: CALCULATION_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(
+      new CalculationGame({
+        variant: optionValue(values, CALCULATION_VARIANT),
+      }),
+    ),
+} satisfies CatalogEntry<CalculationGame>;
+
+const FLOWER_GARDEN = {
+  id: "flowergarden" as const,
+  name: "Flower Garden",
+  options: [],
+  layout: FLOWER_GARDEN_LAYOUT,
+  create: () => dealt(new FlowerGardenGame()),
+} satisfies CatalogEntry<FlowerGardenGame>;
+
+const BRISTOL = {
+  id: "bristol" as const,
+  name: "Bristol",
+  options: [BRISTOL_VARIANT],
+  layout: BRISTOL_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(new BristolGame({ variant: optionValue(values, BRISTOL_VARIANT) })),
+} satisfies CatalogEntry<BristolGame>;
+
+const NESTOR = {
+  id: "nestor" as const,
+  name: "Nestor",
+  options: [],
+  layout: NESTOR_LAYOUT,
+  create: () => dealt(new NestorGame()),
+} satisfies CatalogEntry<NestorGame>;
+
+const MONTE_CARLO = {
+  id: "montecarlo" as const,
+  name: "Monte Carlo",
+  options: [MONTE_CARLO_VARIANT],
+  layout: MONTE_CARLO_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(
+      new MonteCarloGame({ variant: optionValue(values, MONTE_CARLO_VARIANT) }),
+    ),
+} satisfies CatalogEntry<MonteCarloGame>;
+
+const LA_BELLE_LUCIE = {
+  id: "labellelucie" as const,
+  name: "La Belle Lucie",
+  options: [LA_BELLE_LUCIE_VARIANT],
+  layout: LA_BELLE_LUCIE_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(
+      new LaBelleLucieGame({
+        variant: optionValue(values, LA_BELLE_LUCIE_VARIANT),
+      }),
+    ),
+} satisfies CatalogEntry<LaBelleLucieGame>;
+
+/*
+ * Trefoil plays by La Belle Lucie's rules on sixteen fans, a grid of its own,
+ * so it is an entry of its own.
+ */
+const TREFOIL = {
+  id: "trefoil" as const,
+  name: "Trefoil",
+  options: [],
+  layout: TREFOIL_LAYOUT,
+  create: () =>
+    dealt(new LaBelleLucieGame({ variant: LaBelleLucieVariant.TREFOIL })),
+} satisfies CatalogEntry<LaBelleLucieGame>;
+
+const CANFIELD = {
+  id: "canfield" as const,
+  name: "Canfield",
+  options: [CANFIELD_VARIANT],
+  layout: CANFIELD_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(new CanfieldGame({ variant: optionValue(values, CANFIELD_VARIANT) })),
+} satisfies CatalogEntry<CanfieldGame>;
+
+const PENGUIN = {
+  id: "penguin" as const,
+  name: "Penguin",
+  options: [],
+  layout: PENGUIN_LAYOUT,
+  create: () => dealt(new PenguinGame()),
+} satisfies CatalogEntry<PenguinGame>;
+
+const BLACK_HOLE = {
+  id: "blackhole" as const,
+  name: "Black Hole",
+  options: [],
+  layout: BLACK_HOLE_LAYOUT,
+  create: () => dealt(new BlackHoleGame()),
+} satisfies CatalogEntry<BlackHoleGame>;
+
+/*
+ * All in a Row plays by Black Hole's rules on thirteen columns, a grid of its
+ * own, so it is an entry of its own.
+ */
+const ALL_IN_A_ROW = {
+  id: "allinarow" as const,
+  name: "All in a Row",
+  options: [],
+  layout: ALL_IN_A_ROW_LAYOUT,
+  create: () =>
+    dealt(new BlackHoleGame({ variant: BlackHoleVariant.ALL_IN_A_ROW })),
+} satisfies CatalogEntry<BlackHoleGame>;
+
+const GRANDFATHERS_CLOCK = {
+  id: "grandfathersclock" as const,
+  name: "Grandfather's Clock",
+  options: [],
+  layout: GRANDFATHERS_CLOCK_LAYOUT,
+  create: () => dealt(new GrandfathersClockGame()),
+} satisfies CatalogEntry<GrandfathersClockGame>;
+
+const PYRAMID = {
+  id: "pyramid" as const,
+  name: "Pyramid",
+  options: [PYRAMID_GOAL, PYRAMID_PASSES],
+  layout: PYRAMID_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(
+      new PyramidGame({
+        goal: optionValue(values, PYRAMID_GOAL),
+        passes: optionValue(values, PYRAMID_PASSES),
+      }),
+    ),
+} satisfies CatalogEntry<PyramidGame>;
+
+const TRI_PEAKS = {
+  id: "tripeaks" as const,
+  name: "TriPeaks",
+  options: [],
+  layout: TRI_PEAKS_LAYOUT,
+  create: () => dealt(new TriPeaksGame()),
+} satisfies CatalogEntry<TriPeaksGame>;
+
+const BELEAGUERED_CASTLE = {
+  id: "beleagueredcastle" as const,
+  name: "Beleaguered Castle",
+  options: [CASTLE_VARIANT],
+  layout: BELEAGUERED_CASTLE_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(new CastleGame({ variant: optionValue(values, CASTLE_VARIANT) })),
+} satisfies CatalogEntry<CastleGame>;
+
+/*
+ * Fortress deals ten rows rather than eight, a grid of its own, so it is an
+ * entry of its own.
+ */
+const FORTRESS = {
+  id: "fortress" as const,
+  name: "Fortress",
+  options: [],
+  layout: FORTRESS_LAYOUT,
+  create: () => dealt(new CastleGame({ variant: CastleVariant.FORTRESS })),
+} satisfies CatalogEntry<CastleGame>;
+
+const POKER_SQUARES = {
+  id: "pokersquares" as const,
+  name: "Poker Squares",
+  options: [POKER_SQUARES_SCORING],
+  layout: POKER_SQUARES_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(
+      new PokerSquaresGame({
+        scoring: optionValue(values, POKER_SQUARES_SCORING),
+      }),
+    ),
+} satisfies CatalogEntry<PokerSquaresGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -596,6 +1036,26 @@ export const CATALOG_ENTRIES = [
   DOUBLE_KLONDIKE,
   MONTANA,
   BLUE_MOON,
+  BISLEY,
+  ACES_UP,
+  GOLF,
+  CALCULATION,
+  FLOWER_GARDEN,
+  BRISTOL,
+  NESTOR,
+  MONTE_CARLO,
+  LA_BELLE_LUCIE,
+  TREFOIL,
+  CANFIELD,
+  PENGUIN,
+  BLACK_HOLE,
+  ALL_IN_A_ROW,
+  GRANDFATHERS_CLOCK,
+  PYRAMID,
+  TRI_PEAKS,
+  BELEAGUERED_CASTLE,
+  FORTRESS,
+  POKER_SQUARES,
 ] as const;
 
 /** Every game the application can put on the table. */
