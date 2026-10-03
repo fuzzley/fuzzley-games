@@ -13,7 +13,7 @@ import { GameLifecycleService } from "@/ui/app/service/game_lifecycle.service";
 // survive jsdom.
 vi.mock("@/engine/render/phaser/phaser_host", () => ({
   PhaserHost: class {
-    start() {
+    show() {
       /* no-op */
     }
     destroy() {

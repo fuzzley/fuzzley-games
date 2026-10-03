@@ -1,6 +1,6 @@
 import type { Loader } from "phaser";
 
-import { CardDeckId } from "../card_deck";
+import { CARD_DECKS, CardDeckId } from "../card_deck";
 import classicAtlas from "../assets/sprites/atlas/classic/card_assets_atlas.json";
 import indexedAtlas from "../assets/sprites/atlas/indexed/card_assets_atlas.json";
 import allCornerPipsAtlas from "../assets/sprites/atlas/all-corner-pips/card_assets_atlas.json";
@@ -68,6 +68,15 @@ function atlasPageUrl(deckId: CardDeckId, image: string): string {
  */
 export function cardDeckTextureKey(deckId: CardDeckId): string {
   return `cards:${deckId}`;
+}
+
+/** Returns every deck whose texture is loaded, in the order decks are offered. */
+export function residentCardDecks(textures: {
+  exists(key: string): boolean;
+}): CardDeckId[] {
+  return CARD_DECKS.map((deck) => deck.id).filter((deckId) =>
+    textures.exists(cardDeckTextureKey(deckId)),
+  );
 }
 
 /** Returns everything the loader needs for one deck. */

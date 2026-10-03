@@ -72,9 +72,10 @@ is more than one: frames are packed into as few pages as fit inside
 mobile GPUs.
 
 The atlas is checked in and loaded **through the bundler**, not from `public/`.
-`src/engine/render/phaser/loading_scene.ts` imports the manifest and resolves
-page filenames against an `import.meta.glob` of the PNGs, so the pages keep
-their content hashes in `dist/` while the manifest can go on naming them plainly.
+`src/engine/render/phaser/card_deck_atlas.ts` imports each deck's manifest and
+resolves page filenames against an `import.meta.glob` of the PNGs, so the pages
+keep their content hashes in `dist/` while the manifest can go on naming them
+plainly.
 
 **Rules:**
 

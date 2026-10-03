@@ -11,7 +11,7 @@ import { provideAppRouter } from "@/ui/app/routes";
 // survive jsdom.
 vi.mock("@/engine/render/phaser/phaser_host", () => ({
   PhaserHost: class {
-    start() {
+    show() {
       /* no-op */
     }
     destroy() {

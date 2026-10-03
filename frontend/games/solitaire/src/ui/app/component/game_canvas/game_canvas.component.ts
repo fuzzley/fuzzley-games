@@ -1,11 +1,13 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   computed,
   effect,
   inject,
   signal,
+  untracked,
   viewChild,
 } from "@angular/core";
 import { CARD_DECKS } from "@/engine/render/card_deck";
@@ -49,6 +51,12 @@ export class GameCanvasComponent {
   private readonly canvasHostRef =
     viewChild.required<ElementRef<HTMLElement>>("canvasHost");
 
+  /**
+   * The Phaser game, kept for the component's whole life so every deal reuses
+   * its WebGL context, and made on the first deal, once the canvas host exists.
+   */
+  private host?: PhaserHost;
+
   /** Whether the current game is still building its scene. */
   protected readonly isInitializing = signal(true);
 
@@ -77,6 +85,10 @@ export class GameCanvasComponent {
   });
 
   constructor() {
+    inject(DestroyRef).onDestroy(() => {
+      this.host?.destroy();
+    });
+
     effect((onCleanup) => {
       const { game } = this.catalog.session();
       const gameId = this.catalog.selectedId() as GameId;
@@ -96,13 +108,16 @@ export class GameCanvasComponent {
         }
       }, BOARD_READY_TIMEOUT_MS);
 
-      const host = new PhaserHost(
-        window,
-        this.canvasHostRef().nativeElement,
-        () => makeBoardScene(gameId, game, this.presentation, onReady),
-        this.presentation,
-      );
-      host.start();
+      const parent = this.canvasHostRef().nativeElement;
+      // Untracked, because a board swapped into a running game is built at
+      // once, and the settings it reads and follows must not become this
+      // effect's: a new deck would deal the game again.
+      untracked(() => {
+        this.host ??= new PhaserHost(window, parent);
+        this.host.show(() =>
+          makeBoardScene(gameId, game, this.presentation, onReady),
+        );
+      });
 
       // Development only: a production global would pin the game in memory.
       if (import.meta.env.DEV) {
@@ -111,7 +126,6 @@ export class GameCanvasComponent {
 
       onCleanup(() => {
         clearTimeout(timeoutId);
-        host.destroy();
         if (window.fsolitaire === game) {
           delete window.fsolitaire;
         }
