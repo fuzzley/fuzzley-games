@@ -5,9 +5,9 @@ engine could play without a major rework. For each one it gives the rules,
 where they come from, whether it is a variant of a game already in the catalog,
 and what code it would take.
 
-**Status:** items 1 to 9 and E7 are built;
-[`candidate-games-log.md`](candidate-games-log.md) records how, and where the
-build departed from what is written here. Nothing from item 10 on is built.
+**Status:** items 1 to 9 and E7 are built. Where the build departed from what
+is written here, the item's own status line says so. Nothing from item 10 on is
+built.
 
 When this survey was written, the catalog held Klondike (with Whitehead and
 Thumb and Pouch), FreeCell, Baker's Game, Eight Off, Seahaven Towers, Spider,
