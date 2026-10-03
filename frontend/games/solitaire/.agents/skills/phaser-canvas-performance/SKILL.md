@@ -22,11 +22,30 @@ All card faces, backs and placeholders come from the generated card atlas
 loose images, and avoid interleaving atlas-backed sprites with
 separately-textured ones in z-order, since each switch breaks the WebGL batch.
 
-**The atlas is multi-page, so "one draw call per frame" is not the target.**
-Frames are packed into as few pages as fit inside `MAX_PAGE_PX` (4096) and the
-build currently emits two (`card_assets-0.png`, `card_assets-1.png`). A frame
-touching both pages costs at least two draws — that is expected, not a
-regression. The goal is _few and stable_ texture bindings, not one.
+**The atlas can be multi-page, so "one draw call per frame" is not the target.**
+Frames are packed into as few pages as fit inside `MAX_PAGE_PX` (4096). Each
+deck's 2× set takes two pages (`card_assets-0.png`, `card_assets-1.png`) and its
+1× set takes one. A frame touching both pages costs at least two draws. That is
+expected, not a regression. The goal is _few and stable_ texture bindings, not
+one.
+
+**Draw from the cheapest atlas that does not enlarge the cards.** Each deck is
+built at 1× and 2× (see
+[vite-bundle-optimization](../vite-bundle-optimization/SKILL.md)). 2× costs
+four times the GPU memory, about 62 MB against 16 MB. `BoardDeckLoader`
+(`src/engine/render/phaser/board_deck_loader.ts`) works like this:
+
+- It loads 1× while the board's layout scale is at most 1. That covers phones in
+  both orientations and most 1080p desktops.
+- It moves to 2× once a resize enlarges the board past that.
+- It never moves back down on a resize, so a board does not reload its atlas
+  back and forth.
+
+View state therefore carries the layout scale, and only
+`PhaserTableRenderer` divides it by `PhaserSprites.cardArtScale`. Anything
+measured in texels, such as the baked shadow's padding, must be multiplied by
+the density. It must also be redrawn from `BoardScene.artScaleChanged` when the
+density changes.
 
 **Never give a per-card sprite a filter.** A filtered object is drawn through
 framebuffers of its own, at its texture's full size, every frame: a shadow

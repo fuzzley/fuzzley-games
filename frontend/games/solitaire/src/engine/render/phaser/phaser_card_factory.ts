@@ -1,5 +1,7 @@
 import * as Phaser from "phaser";
 
+import { CardArtScale } from "../layout/card_metrics";
+
 /** Makes the sprites for cards, the shadows they cast, and pile placeholders. */
 export class PhaserCardFactory {
   /** The texture every card's shadow sprite is drawn from. */
@@ -26,12 +28,13 @@ export class PhaserCardFactory {
   };
 
   /**
-   * Room left around the card for the shadow to draw into, in texels.
+   * Room left around the card for the shadow to draw into, in design units,
+   * which is this many texels per unit of the atlas's density.
    *
    * Set by hand because Phaser's own estimate assumes the light is inside the
    * texture, and cuts this shadow off part way through its fade.
    */
-  private static readonly CARD_SHADOW_PADDING = { x: 32, y: 48 };
+  private static readonly CARD_SHADOW_PADDING = { x: 16, y: 24 };
 
   /** The texture the card shadow was drawn into, once it has been. */
   private shadowTexture: Phaser.Textures.DynamicTexture | null = null;
@@ -41,12 +44,21 @@ export class PhaserCardFactory {
    *
    * @param cardBackStyle Returns the card-back frame for a new card sprite.
    * @param textureKey Returns the texture of the deck currently on the table.
+   * @param artScale Returns the density of that texture.
    */
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly cardBackStyle: () => string,
     private readonly textureKey: () => string,
+    private readonly artScale: () => CardArtScale,
   ) {}
+
+  /** Returns the room left around the card for its shadow, in texels. */
+  private shadowPadding(): { x: number; y: number } {
+    const padding = PhaserCardFactory.CARD_SHADOW_PADDING;
+    const artScale = this.artScale();
+    return { x: padding.x * artScale, y: padding.y * artScale };
+  }
 
   /** Creates an interactive card sprite. */
   createCardSprite(): Phaser.GameObjects.Sprite {
@@ -68,10 +80,11 @@ export class PhaserCardFactory {
    *
    * Drawn once rather than filtered on every card, because a filter renders
    * its card through framebuffers of its own every frame, which a phone's GPU
-   * cannot keep up with.
+   * cannot keep up with. Drawn again, resized, when the atlas changes density,
+   * after which each shadow sprite needs {@link fitCardShadow}.
    */
   bakeCardShadow(): void {
-    const padding = PhaserCardFactory.CARD_SHADOW_PADDING;
+    const padding = this.shadowPadding();
     const caster = this.makeCardOutline();
     const outline = this.makeCardOutline();
     const shadow = PhaserCardFactory.CARD_SHADOW;
@@ -105,16 +118,26 @@ export class PhaserCardFactory {
    * exactly as its card is.
    */
   createCardShadow(): Phaser.GameObjects.Sprite {
-    const padding = PhaserCardFactory.CARD_SHADOW_PADDING;
     const sprite = this.scene.add.sprite(
       0,
       0,
       PhaserCardFactory.SHADOW_TEXTURE_KEY,
     );
+    this.fitCardShadow(sprite);
+    return sprite;
+  }
+
+  /**
+   * Fits a shadow sprite to the shadow as last drawn, which changes size with
+   * the atlas's density.
+   */
+  fitCardShadow(sprite: Phaser.GameObjects.Sprite): void {
+    const padding = this.shadowPadding();
+    // Taking the texture again resizes the sprite to its frame.
+    sprite.setTexture(PhaserCardFactory.SHADOW_TEXTURE_KEY);
     // Anchored at the card's corner rather than its own, so it lines up with a
     // card sprite given the same position.
     sprite.setDisplayOrigin(padding.x, padding.y);
-    return sprite;
   }
 
   /**
@@ -122,7 +145,7 @@ export class PhaserCardFactory {
    * texture, for drawing the shadow from.
    */
   private makeCardOutline(): Phaser.GameObjects.Sprite {
-    const padding = PhaserCardFactory.CARD_SHADOW_PADDING;
+    const padding = this.shadowPadding();
     const sprite = this.scene.make.sprite(
       { key: this.textureKey(), frame: this.cardBackStyle() },
       false,
@@ -133,14 +156,16 @@ export class PhaserCardFactory {
   }
 
   /**
-   * Returns the texture the shadow is drawn into, creating it at the given size
-   * the first time.
+   * Returns the texture the shadow is drawn into at the given size, creating
+   * it the first time and resizing it in place after that, so the sprites
+   * drawing from it keep it.
    */
   private shadowTextureSized(
     width: number,
     height: number,
   ): Phaser.Textures.DynamicTexture | null {
-    if (this.shadowTexture) return this.shadowTexture;
+    // Phaser leaves a texture already this size alone.
+    if (this.shadowTexture) return this.shadowTexture.setSize(width, height);
 
     const textures = this.scene.textures;
     // Left by an earlier run of the scene, whose shadow sprites went with it.

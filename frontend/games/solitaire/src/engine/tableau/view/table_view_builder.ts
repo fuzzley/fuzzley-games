@@ -1,7 +1,6 @@
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Point } from "@/engine/core/common/point";
 import {
-  CARD_ART_SCALE,
   CARD_RENDER_HEIGHT_PX,
   CARD_RENDER_WIDTH_PX,
 } from "@/engine/render/layout/card_metrics";
@@ -86,8 +85,6 @@ interface DragContext {
 class TableViewStateBuilder {
   /** Layout scale: design units to device pixels. */
   private readonly scale: number;
-  /** Sprite scale: atlas texels to device pixels. */
-  private readonly spriteScale: number;
   private readonly origins: ReadonlyMap<string, Point>;
   private readonly cardWidth: number;
   private readonly cardHeight: number;
@@ -99,7 +96,6 @@ class TableViewStateBuilder {
     private readonly presentation: TablePresentation,
   ) {
     this.scale = metrics.scale;
-    this.spriteScale = this.scale / CARD_ART_SCALE;
     this.origins = metrics.origins;
     // The drawn size rather than the grid cell, so a highlight hugs the card.
     this.cardWidth = CARD_RENDER_WIDTH_PX * this.scale;
@@ -127,7 +123,7 @@ class TableViewStateBuilder {
         pileId: pile.id,
         x: origin.x,
         y: origin.y,
-        scale: this.spriteScale,
+        scale: this.scale,
         depth: depthFor(RenderLayer.PILE_BACKGROUND),
         cursor: zone.emptyIsActionable && pile.isEmpty ? "pointer" : "default",
       });
@@ -177,7 +173,7 @@ class TableViewStateBuilder {
           y: placement.y,
           depth: placement.depth,
           snap: placement.snap,
-          scale: this.spriteScale,
+          scale: this.scale,
           frame: frameFor(zone.face, card, this.presentation.cardBackKey),
           cursor: this.game.isCardInteractableInPile(card, pile)
             ? "pointer"

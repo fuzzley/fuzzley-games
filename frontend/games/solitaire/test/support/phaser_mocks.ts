@@ -8,9 +8,19 @@ import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
  */
 const FRAME_ANCHOR = 0.5;
 
-/** The size of a card frame in every deck's atlas, in texels. */
+/** The size of a card frame in every deck's 2x atlas, in texels. */
 const CARD_ART_WIDTH = 440;
 const CARD_ART_HEIGHT = 614;
+
+/**
+ * Returns the size of a frame drawn from a texture, in texels: half the 2x
+ * size for a 1x atlas, whose key ends in `@1x`, and the 2x size for any other.
+ */
+function frameSizeOf(textureKey: string): { width: number; height: number } {
+  return textureKey.endsWith("@1x")
+    ? { width: CARD_ART_WIDTH / 2, height: CARD_ART_HEIGHT / 2 }
+    : { width: CARD_ART_WIDTH, height: CARD_ART_HEIGHT };
+}
 
 /**
  * Records a shadow filter a mock sprite was given, with fields named after
@@ -142,6 +152,7 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
     };
   }
 
+  const frameSize = frameSizeOf(options.texture ?? "");
   const sprite: MockSprite = {
     x: options.x ?? 0,
     y: options.y ?? 0,
@@ -152,8 +163,8 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
     displayOriginY: 0,
     depth: 0,
     scale: 1,
-    width: options.width ?? CARD_ART_WIDTH,
-    height: options.height ?? CARD_ART_HEIGHT,
+    width: options.width ?? frameSize.width,
+    height: options.height ?? frameSize.height,
     destroyed: false,
     frame: { name: options.frame ?? "" },
     texture: { key: options.texture ?? "" },
@@ -199,6 +210,8 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
       sprite.texture = { key };
       // Phaser keeps the current frame when none is named.
       if (frame !== undefined) sprite.frame = { name: frame };
+      // Phaser sizes the sprite to its new frame.
+      Object.assign(sprite, frameSizeOf(key));
       // Phaser also moves the origin to the new frame's centred anchor, which
       // the sources have to undo.
       sprite.originX = FRAME_ANCHOR;
@@ -466,12 +479,14 @@ export interface DynamicTextureStroke {
  */
 export interface MockDynamicTexture {
   readonly key: string;
-  readonly width: number;
-  readonly height: number;
+  width: number;
+  height: number;
   /** What the texture holds, as drawn since it was last cleared. */
   contents: DynamicTextureStroke[];
   /** How many times it has rendered what it was told to draw. */
   renderCount: number;
+  /** Resizes the texture in place, as Phaser does. */
+  setSize(width: number, height: number): MockDynamicTexture;
   clear(): MockDynamicTexture;
   draw(sprite: MockSprite): MockDynamicTexture;
   erase(sprite: MockSprite): MockDynamicTexture;
@@ -507,6 +522,11 @@ function createMockDynamicTexture(
     height,
     contents: [],
     renderCount: 0,
+    setSize(newWidth, newHeight) {
+      texture.width = newWidth;
+      texture.height = newHeight;
+      return texture;
+    },
     clear() {
       queued.push(() => {
         texture.contents = [];
@@ -667,6 +687,8 @@ export interface MockScaleManager {
   listenerCount(event: string): number;
   width: number;
   height: number;
+  /** Device pixels per CSS pixel, which the board reads as its pixel ratio. */
+  displayScale: { x: number; y: number };
 }
 
 /** Builds a {@link MockScaleManager} so tests can drive resize via emit. */
@@ -691,6 +713,7 @@ export function createMockScaleManager(): MockScaleManager {
     },
     width: 0,
     height: 0,
+    displayScale: { x: 1, y: 1 },
   };
 }
 
@@ -785,5 +808,8 @@ export const RESTORE_WEBGL_EVENT = "restorewebgl";
  * The texture a mock scene starts with loaded: the deck
  * {@link TestPresentation} reports by default, as the board's own preload or an
  * earlier board would have left it.
+ *
+ * At 1x, because a mock scene's viewport falls back to the board's design size
+ * at a pixel ratio of 1, which is a layout scale of 1.
  */
-export const BOOT_TEXTURE_KEY = `cards:${DEFAULT_CARD_DECK}`;
+export const BOOT_TEXTURE_KEY = `cards:${DEFAULT_CARD_DECK}@1x`;

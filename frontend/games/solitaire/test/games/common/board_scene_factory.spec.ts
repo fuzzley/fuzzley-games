@@ -9,6 +9,7 @@ import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
 import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
 import { designSize, measureTable } from "@/engine/render/layout/table_layout";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
+import { cardAtlasTextureKey } from "@/engine/render/phaser/card_deck_atlas";
 import { makeTableBoardScene } from "@/games/common/board_scene_factory";
 import {
   FAKE_TABLE_LAYOUT,
@@ -190,15 +191,14 @@ describe("makeTableBoardScene", () => {
     });
 
     it("redraws from the deck the player switches to", () => {
+      const classic = cardAtlasTextureKey({ deckId: "classic", artScale: 1 });
       const textures = scene.textures as unknown as MockTextures;
-      textures.add("cards:classic");
+      textures.add(classic);
 
       presentation.setCardDeck("classic");
 
       const card = game.stock.topCard!;
-      expect(asMock(scene.cardSprite(card.id)).texture.key).toBe(
-        "cards:classic",
-      );
+      expect(asMock(scene.cardSprite(card.id)).texture.key).toBe(classic);
     });
   });
 
