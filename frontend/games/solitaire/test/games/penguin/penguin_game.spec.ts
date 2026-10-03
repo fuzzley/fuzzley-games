@@ -1,11 +1,16 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { Rank } from "@/engine/core/card/playing_card";
+import { CardPile } from "@/engine/core/card/card_pile";
+import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
 import { PenguinGame } from "@/games/penguin/penguin_game";
-import { CARDS_PER_COLUMN } from "@/games/penguin/penguin_deal";
+import {
+  CARDS_PER_COLUMN,
+  dealPenguinLayout,
+} from "@/games/penguin/penguin_deal";
 import { TABLEAU_COUNT } from "@/games/penguin/penguin_zones";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
+import { makePlayingCard } from "@test/support/card_builder";
 
 /** A fixed shuffle, so the deal is the same on every run. */
 const SHUFFLE_VALUES = [0.37, 0.11, 0.83, 0.5, 0.06];
@@ -58,6 +63,31 @@ describe("PenguinGame deal", () => {
       .filter((card) => card.rank === beak.rank);
 
     expect(sameRank).toEqual([beak]);
+  });
+});
+
+describe("dealPenguinLayout", () => {
+  /** Returns a face-down card of the given suit and rank. */
+  function card(suit: Suit, rank: Rank): PlayingCard {
+    return makePlayingCard({ id: `${suit}-${rank}`, suit, rank });
+  }
+
+  it("sends home a card of the beak's rank that turns up after the last row", () => {
+    const column = new CardPile<PlayingCard>("column");
+    const foundation = new CardPile<PlayingCard>("foundation");
+    const lastSeven = card(Suit.SPADE, Rank.SEVEN);
+    // Dealt from the end: the beak, six more to fill the column, then a Seven.
+    const deck = [
+      lastSeven,
+      ...[Rank.ACE, Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE, Rank.SIX].map(
+        (rank) => card(Suit.CLUB, rank),
+      ),
+      card(Suit.HEART, Rank.SEVEN),
+    ];
+
+    dealPenguinLayout(deck, [foundation], [column]);
+
+    expect(foundation.getCards()).toEqual([lastSeven]);
   });
 });
 
