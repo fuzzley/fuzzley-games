@@ -603,5 +603,13 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
         },
       ],
     },
+    tripeaks: {
+      family: "golf",
+      tagline: "Clear three peaks onto the waste, a rank up or down at a time.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 1,
+      allCardsVisible: false,
+      aliases: ["Three Peaks", "Tri Towers"],
+    },
   },
 };

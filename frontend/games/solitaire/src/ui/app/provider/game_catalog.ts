@@ -127,6 +127,8 @@ import {
   PyramidGoal,
   PyramidPasses,
 } from "@/games/pyramid/pyramid_rules";
+import { TriPeaksGame } from "@/games/tri_peaks/tri_peaks_game";
+import { TRI_PEAKS_LAYOUT } from "@/games/tri_peaks/tri_peaks_layout";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -915,6 +917,14 @@ const PYRAMID = {
     ),
 } satisfies CatalogEntry<PyramidGame>;
 
+const TRI_PEAKS = {
+  id: "tripeaks" as const,
+  name: "TriPeaks",
+  options: [],
+  layout: TRI_PEAKS_LAYOUT,
+  create: () => dealt(new TriPeaksGame()),
+} satisfies CatalogEntry<TriPeaksGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -960,6 +970,7 @@ export const CATALOG_ENTRIES = [
   ALL_IN_A_ROW,
   GRANDFATHERS_CLOCK,
   PYRAMID,
+  TRI_PEAKS,
 ] as const;
 
 /** Every game the application can put on the table. */

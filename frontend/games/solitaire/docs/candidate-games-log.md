@@ -65,7 +65,7 @@ need:
 - [x] 12. Black Hole and All in a Row.
 - [x] 13. Grandfather's Clock.
 - [x] 14. E4, then Pyramid.
-- [ ] 15. TriPeaks.
+- [x] 15. TriPeaks.
 - [ ] 16. E5, then Beleaguered Castle, Streets and Alleys, Citadel and
       Fortress.
 - [ ] 17. Poker Squares.
@@ -379,7 +379,7 @@ descendingAnySuit)`, top-only.
     Wikipedia article), `stocklessGestures`, a rules page, a profile in
     "More games" (Easy), the README, the screenshot and thumbnails.
   - Tests: `test/games/grandfathers_clock/grandfathers_clock_game.spec.ts`.
-- Step 14: E4, then Pyramid.
+- Step 14 (`a06fd72`): E4, then Pyramid.
   - E4: `GrabRule` gained `{ kind: "uncovered"; coveredBy }`: the top card,
     only while every pile in `coveredBy` is empty (`isUncovered`, exported
     from `zone.ts` for accept rules too). `canGrab` now takes the
@@ -414,15 +414,47 @@ descendingAnySuit)`, top-only.
   - Tests: `test/games/pyramid/pyramid_game.spec.ts`, `uncovered` cases in
     `zone.spec.ts`, and a preference case in
     `drop_geometry_resolve.spec.ts`.
+- Step 15: TriPeaks.
+  - `src/games/tri_peaks`: `PEAK_PLACES` lists the twenty-eight places row by
+    row from the tips (3, 6, 9, then a base of 10 at columns 0–9), each
+    covered by the cards half a column either side of it in the row below,
+    which become its `uncovered` grab's `coveredBy`. Rows sit half a row
+    apart, declared top down; the stock and waste are centred a row below the
+    base (10 × 3.5, no `designHeightPx`).
+  - The waste takes a card a rank either way with King and Ace adjacent
+    (`isAdjacentRank(true)`), as PySol and most versions play it. The stock
+    turns one card onto it, one pass. `isWon` is overridden: the peaks are
+    clear.
+  - Flip-on-uncover in `applyMoveEffects`: after every move, each face-down
+    place whose covering places are all empty turns face up, reported in
+    `flippedCardIds` so undo turns it back down. Only TriPeaks needs it, so
+    it stays in the game.
+  - A single press plays a free card (`playOnPress`) or turns the stock.
+  - A "TriPeaks" entry (`tripeaks`, aliases Three Peaks and Tri Towers) in
+    the Golf family, a rules page, a profile (Medium), the README, the
+    screenshot and thumbnails. PySol's streak scoring is left out. Checked
+    in the browser: a press on a base card played it onto the waste.
+  - Fix to step 14's drop-target preference, found by a rare failure of
+    `board_input_manager.spec.ts` (the fake table deals with `Math.random`):
+    a card dropped squarely on one column jumped to the neighbour it barely
+    touched whenever only the neighbour would take it. A pile that takes the
+    stack now wins only if the card overlaps it by at least a quarter of a
+    card (`PREFERRED_TARGET_MIN_OVERLAP`); `resolveDropTarget` gained a
+    `minOverlapArea`. A throwaway spec over 2000 random deals showed the
+    misses before the fix, and a test pins the sliver case.
+  - Tests: `test/games/tri_peaks/tri_peaks_game.spec.ts`.
 
 ## Next
 
-Step 15: TriPeaks. Golf's machinery (one waste-foundation, `playOnPress`,
-`isWon` on an empty tableau) with `isAdjacentRank(true)`, E4's `coveredBy`
-for availability, and flip-on-uncover in `applyMoveEffects`: after a card
-leaves, turn up every face-down card whose `coveredBy` piles are all empty,
-reported in `flippedCardIds`. Rows of 3, 6 and 9 face down over 10 face up,
-each row half-offset, ten columns wide.
+Step 16: E5, then Beleaguered Castle, Streets and Alleys, Citadel and
+Fortress. E5: a `pileWidth` alongside `pileHeight` in
+`src/engine/render/layout/pile_layout.ts`, so `computeDropGeometries` grows
+a horizontal fan's drop area along its length. Then the Castle family: rows
+of cards fanned sideways (`fan-right` with a large `maxVisible`), four wings
+each side of a column of foundations, top-only, `byEmptiness(anyCard,
+descendingAnySuit)`; Streets and Alleys shuffles the Aces in, Citadel sends
+cards home during the deal; Fortress (ten rows, up or down in suit, no Aces
+placed) is an entry of its own.
 
 Screenshots: open each new entry in a fresh isolated browser context (a game
 left in progress raises the "switch games?" confirmation). In a development
