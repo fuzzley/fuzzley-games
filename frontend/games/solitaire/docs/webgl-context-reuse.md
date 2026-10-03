@@ -17,7 +17,7 @@ start at the first step not marked done. Each step is one commit.
 | Step | What                             | State   |
 | ---- | -------------------------------- | ------- |
 | 0    | Baseline                         | done    |
-| 1    | End a board's subscriptions      | pending |
+| 1    | End a board's subscriptions      | done    |
 | 2    | Release the context on destroy   | pending |
 | 3    | Let a board load its own deck    | pending |
 | 4    | Keep one game and swap boards    | pending |
@@ -39,6 +39,14 @@ start at the first step not marked done. Each step is one commit.
   - Switch time, from changing the hash to the loading overlay hiding: median
     124 ms, range 118–144 ms (atlas served from the HTTP cache).
   - No warnings or errors in the console during the ten switches.
+- 2026-10-02, step 1: `BoardScene.whenSceneEnds` runs each release on whichever
+  of `SHUTDOWN` or `DESTROY` comes first. The resize listener is now released
+  too. Five new specs fail without the change. Measured with the same probe:
+  after a forced collection, **1** `Game`, `BoardScene`, `WebGLRenderer` and
+  live context remain, and 121 sprites (down from 11 of each and 1,557
+  sprites). The presentation's root effects were what kept every game alive.
+  Switch time is unchanged (median 140 ms; the run-to-run spread is about
+  20 ms). Each switch still creates a context, so steps 2–4 still stand.
 
 ### Measuring
 
