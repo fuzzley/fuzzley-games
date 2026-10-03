@@ -54,7 +54,7 @@ need:
 - [x] 1. Bisley.
 - [x] 2. Aces Up.
 - [x] 3. E1, then Golf and Putt Putt.
-- [ ] 4. Calculation and Sir Tommy.
+- [x] 4. Calculation and Sir Tommy.
 - [ ] 5. E3, then Flower Garden.
 - [ ] 6. Bristol and Belvedere.
 - [ ] 7. P1, then Nestor.
@@ -113,7 +113,7 @@ descendingSameSuit)`), top-only, and never refill. The deal pulls the
     session scratchpad, not the repository; it only inserts text at fixed
     markers, so the diffs read as hand edits.
   - Tests: `test/games/aces_up/aces_up_game.spec.ts`.
-- Step 3: E1, then Golf and Putt Putt.
+- Step 3 (`673ffb1`): E1, then Golf and Putt Putt.
   - E1: `rankAboveWrapping` and `rankBelowWrapping` in
     `src/engine/core/card/playing_card.ts`. In `src/engine/tableau/rules.ts`:
     the wrapping adjacencies `isSameSuitRunWrapping` (Penguin),
@@ -141,6 +141,40 @@ descendingSameSuit)`), top-only, and never refill. The deal pulls the
     variant, the README, the screenshot and thumbnails.
   - Tests: `test/games/golf/golf_game.spec.ts`, and E1 cases in
     `rules.spec.ts` and `playing_card.spec.ts`.
+- Step 4: Calculation and Sir Tommy.
+  - `src/games/calculation`: stock, hand and four foundations along the
+    top, a waste pile under each foundation (6 × 2, `designHeightPx` 1400
+    for a thirteen-card waste pile). `HAND_PILE_ID` joined
+    `src/games/common/pile_ids.ts` (Pyramid and Poker Squares use one too).
+  - The hand is a one-card pile with `accept: null`; the stock draws into
+    it only while it is empty (`canDraw`), which enforces "place each card
+    before turning the next". Waste piles take a single card only from the
+    hand (`WASTE_RULE`), so a parked card can leave only for a foundation.
+  - `calculationFoundationRule(step)`: starts on rank `step`, then each card
+    is `step` ranks higher, wrapping, in any suit; `capacity: 13` closes it
+    at its King. Foundations have `grab: none`. The deal takes the first
+    Ace, Two, Three and Four the deal reaches (`pullCards` with a predicate
+    that removes each rank from a set as it is found).
+  - `CalculationVariant`: Sir Tommy deals no foundation and builds each
+    from an Ace with `ascendingAnySuit`. A "Variant" option, and Sir Tommy
+    (alias Old Patience) as a named variant.
+  - A "Calculation" entry (`calculation`, alias Broken Intervals), a rules
+    page, a profile in "More games" (Medium), the README, the screenshot and
+    thumbnails.
+  - Screenshot note: a game left in progress in the `shots` browser context
+    raises the "switch games?" confirmation on navigation; open each new
+    entry in a fresh isolated context instead.
+  - Tests: `test/games/calculation/calculation_game.spec.ts`.
+
+## Next
+
+Step 5: E3 (absolute, percentage-placed skeleton slots in
+`game_canvas.component.html`/`.scss`, with a spec rendering a fractional
+layout), then Flower Garden. The registration helper the earlier steps used
+lived in the session scratchpad; it inserts each provider edit at a fixed
+marker (before "Every game the application can put on the table", at the end
+of `GESTURES`, of the documentation registry and of the profiles, and before
+"## Development" in the README) and is quick to rewrite.
 
 ## Picking it back up
 

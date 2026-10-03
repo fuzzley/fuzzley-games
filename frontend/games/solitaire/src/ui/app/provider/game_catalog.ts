@@ -72,6 +72,12 @@ import {
 import { GolfGame } from "@/games/golf/golf_game";
 import { GOLF_LAYOUT } from "@/games/golf/golf_layout";
 import { DEFAULT_GOLF_VARIANT, GolfVariant } from "@/games/golf/golf_rules";
+import { CalculationGame } from "@/games/calculation/calculation_game";
+import { CALCULATION_LAYOUT } from "@/games/calculation/calculation_layout";
+import {
+  CalculationVariant,
+  DEFAULT_CALCULATION_VARIANT,
+} from "@/games/calculation/calculation_rules";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -358,6 +364,19 @@ const GOLF_VARIANT: GameOptionSpec<GolfVariant> = {
   defaultValue: DEFAULT_GOLF_VARIANT,
 };
 
+/** Which of the games on Calculation's board to deal. */
+const CALCULATION_VARIANT: GameOptionSpec<CalculationVariant> = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Sir Tommy builds every foundation up by one from an Ace, which the player has to wait for, rather than by Calculation's four intervals.",
+  choices: [
+    { value: CalculationVariant.CALCULATION, label: "Calculation" },
+    { value: CalculationVariant.SIR_TOMMY, label: "Sir Tommy" },
+  ],
+  defaultValue: DEFAULT_CALCULATION_VARIANT,
+};
+
 /*
  * The entries, each declared with `satisfies` so it keeps the literal id and
  * game type the board registry is checked against.
@@ -631,6 +650,19 @@ const GOLF = {
     dealt(new GolfGame({ variant: optionValue(values, GOLF_VARIANT) })),
 } satisfies CatalogEntry<GolfGame>;
 
+const CALCULATION = {
+  id: "calculation" as const,
+  name: "Calculation",
+  options: [CALCULATION_VARIANT],
+  layout: CALCULATION_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(
+      new CalculationGame({
+        variant: optionValue(values, CALCULATION_VARIANT),
+      }),
+    ),
+} satisfies CatalogEntry<CalculationGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -663,6 +695,7 @@ export const CATALOG_ENTRIES = [
   BISLEY,
   ACES_UP,
   GOLF,
+  CALCULATION,
 ] as const;
 
 /** Every game the application can put on the table. */

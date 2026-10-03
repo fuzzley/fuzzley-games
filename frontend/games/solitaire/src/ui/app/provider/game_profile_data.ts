@@ -6,6 +6,7 @@ import { SpideretteVariant } from "@/games/spiderette/spiderette_rules";
 import { ScorpionVariant } from "@/games/scorpion/scorpion_rules";
 import { MontanaVariant } from "@/games/montana/montana_rules";
 import { GolfVariant } from "@/games/golf/golf_rules";
+import { CalculationVariant } from "@/games/calculation/calculation_rules";
 import {
   Difficulty,
   GameFamilyProfile,
@@ -385,6 +386,24 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: { variant: GolfVariant.PUTT_PUTT },
           tagline: "Golf where the ranks turn the corner from King to Ace.",
           difficulty: Difficulty.MEDIUM,
+        },
+      ],
+    },
+    calculation: {
+      family: "other",
+      tagline: "Build four foundations by ones, twos, threes and fours.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 1,
+      allCardsVisible: false,
+      aliases: ["Broken Intervals"],
+      variants: [
+        {
+          name: "Sir Tommy",
+          values: { variant: CalculationVariant.SIR_TOMMY },
+          tagline:
+            "Four foundations from Ace to King, any suit, four waste piles.",
+          difficulty: Difficulty.MEDIUM,
+          aliases: ["Old Patience"],
         },
       ],
     },
