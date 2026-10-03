@@ -234,3 +234,12 @@ from the plan above, and what comes next.
     GPU memory (65 → 17 MB) and decode time (4× fewer pixels) are the real
     gains.
   - Next: step 2, view state in design units.
+- **Step 2 — view state in design units.** (Step 1 landed as `1034d12`.)
+  `CardView.scale` and `PileBackgroundView.scale` now carry the layout scale;
+  `PhaserTableRenderer` divides by the new `PhaserSprites.cardArtScale`.
+  `CARD_ART_SCALE` is gone, replaced by `type CardArtScale = 1 | 2` in
+  `card_metrics.ts`. `BoardScene.cardArtScale` returns a fixed 2 until step 3.
+  - Deviation: the builder spec's "draws 2x artwork texel for texel" test
+    moved to `phaser_table_renderer.spec.ts` (with a 1× twin), since the
+    builder no longer knows about texels.
+  - Next: step 3, choosing the density per board.
