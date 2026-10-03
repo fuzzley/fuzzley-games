@@ -1312,4 +1312,43 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       },
     ],
   },
+  flowergarden: {
+    title: "Flower Garden",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Flower_Garden_(solitaire)",
+    screenshot: {
+      url: "./docs/screenshots/flowergarden/overview.png",
+      caption:
+        "Flower Garden board showing the sixteen-card bouquet fanned across the top left, four empty foundations at the top right, and six face-up beds of six cards beneath.",
+      altText: "Flower Garden solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      winCondition: "All 52 cards are sorted into their suit foundations.",
+      quickOverview:
+        "Flower Garden deals thirty-six cards face-up into six beds of six, and fans the other sixteen out as the bouquet. Every card in the bouquet is free to play at any time — onto a foundation or onto a bed — while the beds build down regardless of suit, one card at a time.",
+    },
+    detailedRules: {
+      layout: [
+        "Bouquet: 16 face-up cards fanned across the top-left, every one of them available.",
+        "Foundations: 4 suit piles at the top-right, initially empty.",
+        "Beds: 6 columns of 6 face-up cards.",
+      ],
+      cardMovement: [
+        "Any bouquet card can be played onto a foundation or a bed, wherever it sits in the fan.",
+        "Only the top card of a bed can be moved, one card at a time.",
+        "An empty bed can be filled with any card, from the bouquet or another bed.",
+        "Nothing is ever put back into the bouquet.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Beds: Built DOWN by RANK in ANY SUIT.",
+      ],
+      specialRules: [
+        "The Bouquet as a Reserve: the bouquet is like sixteen free cells that start full — the art is spending its cards to dig out the low cards buried in the beds.",
+        "No Stock: every card is in view from the first move.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
 };

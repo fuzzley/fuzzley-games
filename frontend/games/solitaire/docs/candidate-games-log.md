@@ -55,7 +55,7 @@ need:
 - [x] 2. Aces Up.
 - [x] 3. E1, then Golf and Putt Putt.
 - [x] 4. Calculation and Sir Tommy.
-- [ ] 5. E3, then Flower Garden.
+- [x] 5. E3, then Flower Garden.
 - [ ] 6. Bristol and Belvedere.
 - [ ] 7. P1, then Nestor.
 - [ ] 8. Monte Carlo and Thirteens.
@@ -141,7 +141,7 @@ descendingSameSuit)`), top-only, and never refill. The deal pulls the
     variant, the README, the screenshot and thumbnails.
   - Tests: `test/games/golf/golf_game.spec.ts`, and E1 cases in
     `rules.spec.ts` and `playing_card.spec.ts`.
-- Step 4: Calculation and Sir Tommy.
+- Step 4 (`aaac4bd`): Calculation and Sir Tommy.
   - `src/games/calculation`: stock, hand and four foundations along the
     top, a waste pile under each foundation (6 × 2, `designHeightPx` 1400
     for a thirteen-card waste pile). `HAND_PILE_ID` joined
@@ -165,16 +165,42 @@ descendingSameSuit)`), top-only, and never refill. The deal pulls the
     raises the "switch games?" confirmation on navigation; open each new
     entry in a fresh isolated context instead.
   - Tests: `test/games/calculation/calculation_game.spec.ts`.
+- Step 5: E3, then Flower Garden.
+  - E3: `skeletonSlots` in the new `src/ui/app/model/skeleton_slots.ts`
+    places each skeleton slot as a percentage of the board: left and top from
+    its column and row, width and height of one cell. The canvas component
+    exposes it as a `computed()`, and the template draws absolutely
+    positioned `.skeleton-cell`s inside a `.skeleton-board` that is the grid's
+    padding box, half a gap of padding on each side of every cell. The CSS
+    grid and `grid-column`/`grid-row` are gone. Checked in the browser by
+    forcing the overlay visible: Flower Garden's bouquet overlaps as the board
+    does, and Klondike's skeleton still reads as its 7 × 2 grid.
+  - `src/games/flower_garden`: the bouquet is sixteen one-card piles
+    (`bouquet-0` to `-15`) at columns `i × 4 / 15`, so each card shows about
+    67 design units; `accept: null`, top-only, no placeholder, so a played
+    card leaves a gap. The foundations sit at columns 5–8 of the top row and
+    the six beds are centred beneath at column 1.5 (9 × 2, `designHeightPx`
+    1450 for a fifteen-card bed). Beds: `byEmptiness(anyCard,
+descendingAnySuit)`, top-only.
+  - A "Flower Garden" entry (`flowergarden`, aliases The Garden and
+    Bouquet), `stocklessGestures`, a rules page, a profile in "More games"
+    (Medium), the README, the screenshot and thumbnails.
+  - Tests: `test/ui/app/model/skeleton_slots.spec.ts` (a fractional layout)
+    and `test/games/flower_garden/flower_garden_game.spec.ts`.
+  - Tooling: the work log is now updated by a second scratchpad helper that
+    ticks the plan, stamps the previous step's commit and rewrites "Next".
 
 ## Next
 
-Step 5: E3 (absolute, percentage-placed skeleton slots in
-`game_canvas.component.html`/`.scss`, with a spec rendering a fractional
-layout), then Flower Garden. The registration helper the earlier steps used
-lived in the session scratchpad; it inserts each provider edit at a fixed
-marker (before "Every game the application can put on the table", at the end
-of `GESTURES`, of the documentation registry and of the profiles, and before
-"## Development" in the README) and is quick to rewrite.
+Step 6: Bristol and Belvedere. Move `sinkKings` from
+`src/games/bakers_dozen/bakers_dozen_deal.ts` to `src/games/common` (Bristol
+is its second user). Foundations use `byEmptiness(Ace, ascendingAnySuit)`,
+which E1 already provides.
+
+Screenshots: open each new entry in a fresh isolated browser context (a game
+left in progress raises the "switch games?" confirmation). In a development
+build the running game is on `window.fsolitaire`, and synthetic `mousedown`
+on the canvas plus `mouseup` on `window` drive presses.
 
 ## Picking it back up
 

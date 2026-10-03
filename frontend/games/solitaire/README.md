@@ -31,6 +31,7 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Aces Up**: Four columns dealt a card at a time, discarding every card a higher card of its suit outranks until only the Aces remain; spaces can take any card, or only Aces.
 - **Golf**: Seven open columns cleared onto a single foundation one rank up or down at a time, with a one-pass stock; Golf, Queens on Kings, and Putt Putt, which turns the corner from King to Ace.
 - **Calculation**: Four foundations built regardless of suit by ones, twos, threes and fours, from a stock turned a card at a time onto four waste piles; Sir Tommy, which builds every foundation up from an Ace, is its variant option.
+- **Flower Garden**: Six open beds built down regardless of suit, and a sixteen-card bouquet whose every card is free to play.
 
 ## Development
 

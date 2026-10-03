@@ -407,5 +407,14 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
         },
       ],
     },
+    flowergarden: {
+      family: "other",
+      tagline:
+        "Six beds and a sixteen-card bouquet, every bouquet card in play.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 1,
+      allCardsVisible: true,
+      aliases: ["The Garden", "Bouquet"],
+    },
   },
 };
