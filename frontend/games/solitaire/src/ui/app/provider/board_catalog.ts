@@ -50,6 +50,7 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
   acesup: acesUpGestures,
   golf: golfGestures,
   calculation: calculationGestures,
+  flowergarden: stocklessGestures,
 };
 
 /**

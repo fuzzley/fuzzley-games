@@ -78,6 +78,8 @@ import {
   CalculationVariant,
   DEFAULT_CALCULATION_VARIANT,
 } from "@/games/calculation/calculation_rules";
+import { FlowerGardenGame } from "@/games/flower_garden/flower_garden_game";
+import { FLOWER_GARDEN_LAYOUT } from "@/games/flower_garden/flower_garden_layout";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -663,6 +665,14 @@ const CALCULATION = {
     ),
 } satisfies CatalogEntry<CalculationGame>;
 
+const FLOWER_GARDEN = {
+  id: "flowergarden" as const,
+  name: "Flower Garden",
+  options: [],
+  layout: FLOWER_GARDEN_LAYOUT,
+  create: () => dealt(new FlowerGardenGame()),
+} satisfies CatalogEntry<FlowerGardenGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -696,6 +706,7 @@ export const CATALOG_ENTRIES = [
   ACES_UP,
   GOLF,
   CALCULATION,
+  FLOWER_GARDEN,
 ] as const;
 
 /** Every game the application can put on the table. */
