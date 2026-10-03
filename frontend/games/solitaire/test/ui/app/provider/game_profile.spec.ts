@@ -6,6 +6,7 @@ import {
   GameOptionValues,
 } from "@/ui/app/provider/game_catalog";
 import { GAME_PROFILE_REGISTRY } from "@/ui/app/provider/game_profile_data";
+import { GAME_DOCUMENTATION_REGISTRY } from "@/ui/app/provider/game_documentation_data";
 import type {
   DifficultyByRule,
   DifficultyRating,
@@ -52,6 +53,43 @@ const RULE_RATINGS: RuleRating[] = PROFILED.flatMap(
     ),
   ],
 );
+
+/** Every game, rather than variant, whose difficulty a rule decides. */
+const GAME_RULE_RATINGS: RuleRating[] = PROFILED.flatMap(
+  ([name, entry, profile]) => byRule(name, entry, profile.difficulty),
+);
+
+/**
+ * Returns the rules a game's named variants fix, which the game's own row
+ * fixes to their defaults.
+ */
+function rulesFixedByVariants(profile: GameProfile): string[] {
+  return (profile.variants ?? []).flatMap((variant) =>
+    Object.keys(variant.values),
+  );
+}
+
+/** Every choice but the default of a rule some named variant fixes. */
+const FIXED_CHOICES = PROFILED.flatMap(([name, entry, profile]) => {
+  const fixed = rulesFixedByVariants(profile);
+  return entry.options
+    .filter((option) => fixed.includes(option.id))
+    .flatMap((option) =>
+      option.choices
+        .filter((choice) => choice.value !== option.defaultValue)
+        .map(
+          (
+            choice,
+          ): [
+            name: string,
+            choice: string,
+            profile: GameProfile,
+            optionId: string,
+            value: number,
+          ] => [name, choice.label, profile, option.id, choice.value],
+        ),
+    );
+});
 
 /** Every named variant, with the entry that plays it. */
 const VARIANTS = PROFILED.flatMap(([, entry, profile]) =>
@@ -145,6 +183,41 @@ describe("the game profiles", () => {
       );
 
       expect(offered).toBe(true);
+    },
+  );
+
+  it.each(GAME_RULE_RATINGS)(
+    "rate %s by a rule its row leaves the player to choose",
+    (_name, entry, rating) => {
+      const fixed = rulesFixedByVariants(profileOf(entry));
+
+      expect(fixed).not.toContain(rating.optionId);
+    },
+  );
+
+  it.each(FIXED_CHOICES)(
+    "list %s's %s as a variant, since its row deals only the default",
+    (_name, _choice, profile, optionId, value) => {
+      const listed = (profile.variants ?? []).some(
+        (variant) => variant.values[optionId] === value,
+      );
+
+      expect(listed).toBe(true);
+    },
+  );
+
+  it.each(VARIANTS)(
+    "explain %s on its game's rules page, which the browser previews it by",
+    (_name, entry, values) => {
+      const doc = GAME_DOCUMENTATION_REGISTRY[entry.id as GameId];
+
+      const explained = Object.entries(values).some(([optionId, value]) =>
+        doc.settingsAndVariants
+          .find((option) => option.optionId === optionId)
+          ?.choicesExplanation.some((choice) => choice.value === value),
+      );
+
+      expect(explained).toBe(true);
     },
   );
 

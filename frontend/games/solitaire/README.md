@@ -58,7 +58,9 @@ yarn dev         # start the dev server on http://localhost:9000
 yarn build       # produce a production build in dist/
 yarn preview     # serve the production build locally
 yarn test        # run tests with Vitest
-yarn lint        # run ESLint
+yarn lint        # check the skills' references, run ESLint, and check formatting
+yarn tsc         # type-check the app and the tests
+yarn verify      # lint, type-check, build and test in one go
 yarn prettier    # format the code with Prettier
 yarn skills:link # link agent skills from .agents/skills to .claude/skills
 ```
