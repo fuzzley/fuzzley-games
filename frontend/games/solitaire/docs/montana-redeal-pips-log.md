@@ -40,7 +40,7 @@ up again from here. Update it with every commit.
 - [x] 4. Montana: draw the pips, and make the marker inactive when it cannot
       redeal. Update the rules page.
 - [x] 5. Klondike family: make the empty stock inactive when the waste is empty.
-- [ ] 6. Retake Montana's screenshot and thumbnails, update the skills and the
+- [x] 6. Retake Montana's screenshot and thumbnails, update the skills and the
       options doc, and run `yarn verify`.
 
 ## Progress
@@ -92,7 +92,7 @@ up again from here. Update it with every commit.
     pressable. This covers Klondike, its variants and Double Klondike.
   - The gesture is unchanged. `drawCardsFromStock` already returned early in
     that state, so a press on the inactive stock still does nothing.
-- Step 6, part 1: checked in the browser (`yarn start`, 1440 × 810 at 2×) by
+- Step 6, part 1 (`4e55fc8`): checked in the browser (`yarn start`, 1440 × 810 at 2×) by
   pressing the Montana marker with mouse events dispatched on the canvas.
   - The pips, the hollow pip, the closed outline and undo all drew correctly,
     with no console errors.
@@ -108,6 +108,16 @@ up again from here. Update it with every commit.
     cursor drops at once, and fails without the fix.
   - Klondike was not checked by hand. Its unit tests cover it, and it uses the
     same engine path.
+- Step 6, part 2: the screenshot and the docs.
+  - Retook Montana's `overview.png` on a fresh deal at 1440 × 810 at 2×, so the
+    marker shows two filled pips, then ran `yarn build:thumbs`. The capture was
+    re-encoded losslessly with sharp at compression level 9. Do not pass sharp
+    an `effort`: it turns on palette quantisation, which is lossy.
+  - The `add-solitaire-game` skill, step 7, now names the two overrides.
+  - `montana-redeal-count.md` says the options are built.
+  - `candidate-games.md`: E6, Vegas scoring and Addiction no longer say the
+    stock keeps its recycle artwork or that the redeals are invisible.
+  - `yarn verify` passes.
 - Note: the dev server restores the saved game on reload. Clear local storage
   to start from a fresh deal.
 
@@ -119,4 +129,5 @@ git log --oneline main..
 yarn verify
 ```
 
-Then continue with the first unchecked step above.
+Every step is done. What is left is review, then a merge into `main` (which
+deploys).
