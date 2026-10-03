@@ -271,3 +271,44 @@ from the plan above, and what comes next.
     factory calls it unconditionally.
   - Coverage holds at 97.4 / 90.8 / 98.0 / 98.8 (floor 95 / 88 / 96 / 96).
   - Next: browser verification, then step 4 (docs and skills).
+- **Browser verification.** (Step 3 landed as `65d3277`.) Dev build, Chrome
+  emulating 390×844 at ratio 3 with a 4× CPU slowdown, unless noted. The
+  canvas is 780×1688 because the scaler caps the ratio at 2.
+
+  | Check                        | `main`                  | Branch                  |
+  | ---------------------------- | ----------------------- | ----------------------- |
+  | Resident textures (phone)    | 63.1 MB                 | 16.7 MB                 |
+  | Atlas                        | 4032×3732 + 1792×622    | 3420×1260               |
+  | Shadow                       | 504×710                 | 252×356                 |
+  | Atlas download (Corner Pips) | 1863 KB (2 pages)       | 1585 KB (1 page)        |
+  | Klondike idle / drag         | 0.52 / 0.55 ms, 2 draws | 0.54 / 0.57 ms, 2 draws |
+  | Spider idle                  | 1.03 ms, 2 draws        | 1.03 ms, 2 draws        |
+
+  The `main` frame times are the earlier baseline; the branch figures are
+  means with `gl.finish()`, within noise of it.
+  - Only `atlas/indexed/1x/card_assets-0.png` is fetched as an image on the
+    phone. The other `card_assets-*.png?import&url` entries are the 1 KB
+    modules Vite serves for the page glob in dev; a production build inlines
+    them.
+  - **Screenshots** of the same saved game on `main` and the branch: the 1×
+    art is visibly smoother. `main` skips texels, so pips, indices and face
+    cards have jagged edges at this size. The shadow halo looks the same. The
+    card back's moiré is about the same in both, since Spider still shrinks
+    the 1× art about 3×.
+  - **Deck switch** on the phone fetches only `classic/1x` (1581 KB) and
+    releases `indexed@1x`.
+  - **Context loss and restore** rebakes the shadow at 252×356. The board is
+    pixel-identical to before the loss.
+  - **Ten game switches** keep `cards:indexed@1x` with no atlas fetch.
+  - **Desktop 1920×1080:**
+    - At ratio 1, Spider boots on 1× (layout scale 0.75).
+    - At ratio 2 it upgrades: 3 frames draw the 1× art enlarged while 2× loads,
+      then every frame draws 2×. No frame draws fewer than 2 batches.
+      `cards:indexed@1x` is released and the shadow is rebaked at 504×710.
+    - Shrinking back keeps 2× with no fetch.
+  - **Side observation (not this branch):** when the emulated ratio went from
+    2 back to 1, `ViewportScaler`'s `(resolution: …dppx)` query did not fire.
+    The canvas stayed 3840 wide until a `resize` event. The emulator reports
+    the ratio as 1.0000000298, so this may be an emulation quirk; not looked
+    into.
+  - Next: step 4 (docs and skills).
