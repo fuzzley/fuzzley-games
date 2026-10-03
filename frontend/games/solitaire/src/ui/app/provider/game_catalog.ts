@@ -61,6 +61,8 @@ import { EASTHAVEN_LAYOUT } from "@/games/easthaven/easthaven_layout";
 import { SpideretteGame } from "@/games/spiderette/spiderette_game";
 import { SpideretteVariant } from "@/games/spiderette/spiderette_rules";
 import { SPIDERETTE_LAYOUT } from "@/games/spiderette/spiderette_layout";
+import { BisleyGame } from "@/games/bisley/bisley_game";
+import { BISLEY_LAYOUT } from "@/games/bisley/bisley_layout";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -567,6 +569,14 @@ const SPIDERETTE = {
     ),
 } satisfies CatalogEntry<SpideretteGame>;
 
+const BISLEY = {
+  id: "bisley" as const,
+  name: "Bisley",
+  options: [],
+  layout: BISLEY_LAYOUT,
+  create: () => dealt(new BisleyGame()),
+} satisfies CatalogEntry<BisleyGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -596,6 +606,7 @@ export const CATALOG_ENTRIES = [
   DOUBLE_KLONDIKE,
   MONTANA,
   BLUE_MOON,
+  BISLEY,
 ] as const;
 
 /** Every game the application can put on the table. */

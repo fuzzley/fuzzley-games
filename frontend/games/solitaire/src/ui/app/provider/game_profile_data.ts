@@ -344,5 +344,12 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
         },
       ],
     },
+    bisley: {
+      family: "other",
+      tagline: "Build each suit up from its Ace and down from its King.",
+      difficulty: Difficulty.EASY,
+      decks: 1,
+      allCardsVisible: true,
+    },
   },
 };
