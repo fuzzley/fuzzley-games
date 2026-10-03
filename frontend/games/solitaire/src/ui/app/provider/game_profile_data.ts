@@ -4,6 +4,7 @@ import { YukonVariant } from "@/games/yukon/yukon_rules";
 import { FortyThievesVariant } from "@/games/forty_thieves/forty_thieves_rules";
 import { SpideretteVariant } from "@/games/spiderette/spiderette_rules";
 import { ScorpionVariant } from "@/games/scorpion/scorpion_rules";
+import { MontanaVariant } from "@/games/montana/montana_rules";
 import {
   Difficulty,
   GameFamilyProfile,
@@ -325,6 +326,21 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: { redeals: 3 },
           tagline: "Montana with a third redeal.",
           difficulty: Difficulty.MEDIUM,
+        },
+      ],
+    },
+    bluemoon: {
+      family: "other",
+      tagline: "Montana with the Aces in play, fixed at the head of each row.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 1,
+      allCardsVisible: true,
+      variants: [
+        {
+          name: "Red Moon",
+          values: { variant: MontanaVariant.RED_MOON },
+          tagline: "Blue Moon with every gap dealt beside its Ace.",
+          difficulty: Difficulty.EASY,
         },
       ],
     },

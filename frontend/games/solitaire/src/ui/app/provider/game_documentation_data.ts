@@ -1037,4 +1037,61 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       },
     ],
   },
+  bluemoon: {
+    title: "Blue Moon",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Gaps",
+    screenshot: {
+      url: "./docs/screenshots/bluemoon/overview.png",
+      caption:
+        "Blue Moon board showing all 52 cards in four rows of fourteen, an Ace at the head of each row, four gaps, and the redeal marker beside the grid.",
+      altText: "Blue Moon solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Arrange each of the four rows into a single suit running from its Ace up to King.",
+      winCondition:
+        "Every row reads Ace through King in one suit, with the gap parked at the end.",
+      quickOverview:
+        "Blue Moon is Montana played with the whole deck. The 52 cards are dealt in four rows, then each Ace is moved to the head of a row of its own, leaving a gap where it was. A gap takes the card that continues the run to its left, and each Ace decides which suit its row is built in.",
+    },
+    detailedRules: {
+      layout: [
+        "Grid: 4 rows of 14 cells, each holding at most one card.",
+        "Aces: one at the start of every row, fixed there for the whole game.",
+        "Gaps: 4 empty cells, where the Aces were dealt.",
+        "Redeal: a marker beside the grid, worth two uses per game. Its pips count them: filled for each redeal left, hollow for each one spent.",
+      ],
+      cardMovement: [
+        "A gap accepts the card one rank higher than the card immediately to its left, in the same suit.",
+        "A gap beside an Ace accepts that Ace's Two.",
+        "A gap immediately to the right of a King accepts nothing until the King moves on.",
+        "The Aces never move, and nothing can be placed in front of them.",
+      ],
+      sequenceBuilding: [
+        "Rows: Built UP in SAME SUIT from the Ace to King, left to right.",
+        "There are no foundations and no stacking — cards only ever move between cells.",
+      ],
+      specialRules: [
+        "Redeals: pressing the marker gathers every card that is not yet part of its row's run from the Ace, shuffles them, and lays them back out after each run — leaving one fresh gap per row. Two redeals per game; once they are spent, or nothing is left to gather, the marker becomes a plain outline.",
+        "Won by Arrangement: as in Montana, nothing is gathered onto a pile — the cards end in cells, just in the right order.",
+      ],
+    },
+    settingsAndVariants: [
+      {
+        optionId: "variant",
+        choicesExplanation: [
+          {
+            value: 1,
+            effect:
+              "Blue Moon: the gaps are wherever the Aces happened to be dealt, so a row may have to wait for its first gap to open.",
+          },
+          {
+            value: 2,
+            effect:
+              "Red Moon: the Aces are dealt straight to the head of the rows and the gaps right beside them, so every row can start building with its Two from the first move. The easier of the two.",
+          },
+        ],
+      },
+    ],
+  },
 };

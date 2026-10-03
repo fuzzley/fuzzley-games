@@ -26,6 +26,7 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Lucas**: Forty Thieves variant with the eight Aces dealt to the foundations and thirteen 3-card columns, building in suit with same-suit runs.
 - **Double Klondike**: Two-deck Klondike dealt across nine columns with eight foundations and unlimited stock recycles.
 - **Montana**: Gaps-style solitaire played on a 4×13 grid without Aces; sort rows from Two to King in suit into spaces left by moved cards, featuring two redeals, or three as Addiction.
+- **Blue Moon**: Montana with the Aces in play, fixed at the start of four 14-cell rows; Red Moon, which deals the gaps beside the Aces, is its deal option.
 
 ## Development
 

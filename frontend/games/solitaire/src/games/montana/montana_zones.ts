@@ -6,22 +6,28 @@ import {
   recyclePipsPlaceholder,
 } from "../common/zone_presets";
 import {
-  COLUMN_COUNT,
   DEFAULT_MAX_REDEALS,
+  DEFAULT_MONTANA_VARIANT,
   MaxRedeals,
   MontanaRole,
+  MontanaVariant,
   ROW_COUNT,
   montanaCellRule,
+  montanaColumnCount,
+  montanaFirstColumnFixed,
+  montanaFirstRank,
 } from "./montana_rules";
 
 /** The stable id of the redeal marker. */
 export const REDEAL_PILE_ID = "redeal";
 
 /**
- * How many grid columns the board is wide: the thirteen of the grid plus one
- * for the redeal marker beside it.
+ * Returns how many grid columns the board of `variant` is wide: the grid's
+ * own plus one for the redeal marker beside it.
  */
-export const BOARD_COLUMN_COUNT = COLUMN_COUNT + 1;
+export function boardColumnCount(variant: MontanaVariant): number {
+  return montanaColumnCount(variant) + 1;
+}
 
 /** Returns the stable id of the cell at the given row and column. */
 export function cellPileId(row: number, column: number): string {
@@ -29,18 +35,25 @@ export function cellPileId(row: number, column: number): string {
 }
 
 /**
- * Returns the fifty-three zones of a Montana board allowing `maxRedeals`
- * redeals.
+ * Returns the zones of a board of `variant` allowing `maxRedeals` redeals: the
+ * grid's cells, row by row, then the redeal marker.
  *
  * Built cell by cell because each cell's rule depends on its left neighbour.
  */
 export function montanaZoneSpecs(
+  variant: MontanaVariant = DEFAULT_MONTANA_VARIANT,
   maxRedeals: MaxRedeals = DEFAULT_MAX_REDEALS,
 ): readonly ZoneSpec[] {
   const zones: ZoneSpec[] = [];
+  const columnCount = montanaColumnCount(variant);
+  const firstRank = montanaFirstRank(variant);
+  const firstColumnFixed = montanaFirstColumnFixed(variant);
 
   for (let row = 0; row < ROW_COUNT; row++) {
-    for (let column = 0; column < COLUMN_COUNT; column++) {
+    for (let column = 0; column < columnCount; column++) {
+      // The Moons' Aces head their rows for good: nothing lands there and
+      // nothing leaves.
+      const fixed = firstColumnFixed && column === 0;
       zones.push(
         zoneAt({
           id: cellPileId(row, column),
@@ -51,11 +64,14 @@ export function montanaZoneSpecs(
           capacity: 1,
           // The neighbour is captured here, where both cells are in hand,
           // rather than parsed out of an id at rule time.
-          accept: montanaCellRule(
-            column === 0 ? null : cellPileId(row, column - 1),
-          ),
-          grab: { kind: "top-only" },
-          draggable: true,
+          accept: fixed
+            ? null
+            : montanaCellRule(
+                column === 0 ? null : cellPileId(row, column - 1),
+                firstRank,
+              ),
+          grab: fixed ? { kind: "none" } : { kind: "top-only" },
+          draggable: !fixed,
           face: "always-up",
           backgroundKey: PLAIN_PLACEHOLDER,
         }),
@@ -68,7 +84,7 @@ export function montanaZoneSpecs(
       id: REDEAL_PILE_ID,
       role: MontanaRole.REDEAL,
       // Beside the grid rather than in it, on the row a player's eye starts at.
-      column: COLUMN_COUNT,
+      column: columnCount,
       row: 0,
       layout: STACKED_PILE_LAYOUT,
       // Never a destination and never a source: it is a button that happens to
@@ -87,5 +103,5 @@ export function montanaZoneSpecs(
   return zones;
 }
 
-/** Re-exported: the roles live with the rules that branch on them. */
-export { MontanaRole };
+/** Re-exported: the roles and variants live with the rules that shape them. */
+export { MontanaRole, MontanaVariant };

@@ -45,8 +45,15 @@ import {
   MARIA_LAYOUT,
 } from "@/games/forty_thieves/forty_thieves_layout";
 import { MontanaGame } from "@/games/montana/montana_game";
-import { MONTANA_LAYOUT } from "@/games/montana/montana_layout";
-import { DEFAULT_MAX_REDEALS, MaxRedeals } from "@/games/montana/montana_rules";
+import {
+  BLUE_MOON_LAYOUT,
+  MONTANA_LAYOUT,
+} from "@/games/montana/montana_layout";
+import {
+  DEFAULT_MAX_REDEALS,
+  MaxRedeals,
+  MontanaVariant,
+} from "@/games/montana/montana_rules";
 import { DoubleKlondikeGame } from "@/games/double_klondike/double_klondike_game";
 import { DOUBLE_KLONDIKE_LAYOUT } from "@/games/double_klondike/double_klondike_layout";
 import { EasthavenGame } from "@/games/easthaven/easthaven_game";
@@ -287,6 +294,19 @@ const MONTANA_REDEALS: GameOptionSpec<MaxRedeals> = {
   defaultValue: DEFAULT_MAX_REDEALS,
 };
 
+/** Which of the Moons to deal, which share a grid and differ in the deal. */
+const MOON_DEAL: GameOptionSpec<MontanaVariant> = {
+  id: "variant",
+  label: "Deal",
+  description:
+    "Red Moon deals the gaps right beside the Aces, so every row can start building at once; Blue Moon leaves them wherever the Aces fell.",
+  choices: [
+    { value: MontanaVariant.BLUE_MOON, label: "Blue Moon" },
+    { value: MontanaVariant.RED_MOON, label: "Red Moon" },
+  ],
+  defaultValue: MontanaVariant.BLUE_MOON,
+};
+
 /** Which of the Spiderette pair to deal. */
 const SPIDERETTE_VARIANT: GameOptionSpec<SpideretteVariant> = {
   id: "variant",
@@ -506,6 +526,20 @@ const MONTANA = {
     ),
 } satisfies CatalogEntry<MontanaGame>;
 
+/*
+ * Blue Moon is an entry of its own because its grid is fourteen wide, not
+ * Montana's thirteen. Red Moon shares its grid, so it is an option on it.
+ */
+
+const BLUE_MOON = {
+  id: "bluemoon" as const,
+  name: "Blue Moon",
+  options: [MOON_DEAL],
+  layout: BLUE_MOON_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(new MontanaGame({ variant: optionValue(values, MOON_DEAL) })),
+} satisfies CatalogEntry<MontanaGame>;
+
 const DOUBLE_KLONDIKE = {
   id: "doubleklondike" as const,
   name: "Double Klondike",
@@ -561,6 +595,7 @@ export const CATALOG_ENTRIES = [
   LUCAS,
   DOUBLE_KLONDIKE,
   MONTANA,
+  BLUE_MOON,
 ] as const;
 
 /** Every game the application can put on the table. */
