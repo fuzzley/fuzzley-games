@@ -1444,4 +1444,57 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     },
     settingsAndVariants: [],
   },
+  montecarlo: {
+    title: "Monte Carlo",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Monte_Carlo_(solitaire)",
+    screenshot: {
+      url: "./docs/screenshots/montecarlo/overview.png",
+      caption:
+        "Monte Carlo board showing the stock at the left, twenty-five face-up cards in a five-by-five grid, and the empty discard at the right.",
+      altText: "Monte Carlo solitaire board overview",
+    },
+    summary: {
+      objective: "Discard the whole deck in pairs of touching cards.",
+      winCondition: "All 52 cards are on the discard.",
+      quickOverview:
+        "Monte Carlo deals twenty-five cards face-up into a five-by-five grid. Remove pairs of the same rank that touch — side by side, one above the other, or corner to corner. Then consolidate: the remaining cards close up towards the top left, in reading order, and the stock fills the gaps left at the end.",
+    },
+    detailedRules: {
+      layout: [
+        "Stock: 27 face-down cards at the left of the grid.",
+        "Grid: 5 rows of 5 face-up cards.",
+        "Discard: a single pile at the right of the grid, initially empty.",
+      ],
+      cardMovement: [
+        "Drag a card onto a touching card of the same rank, in any suit, and both go to the discard. Diagonal neighbours count.",
+        "Double-press a card to pair it with the first touching card of its rank.",
+        "Press the stock to consolidate: every card left slides towards the top left in reading order, closing the gaps, and the stock deals into the cells left empty at the end.",
+        "Once the stock is gone, its empty slot still consolidates the grid.",
+      ],
+      sequenceBuilding: [
+        "Nothing is built: cards only leave the grid, two at a time.",
+        "Cards keep their reading order when they slide, so a card's neighbours change with every consolidation.",
+      ],
+      specialRules: [
+        "Lost Game: if no touching pair is left and consolidating changes nothing, the game is over.",
+        "Choosing Pairs: which pairs you take decides how the grid closes up, and so which cards end up touching next.",
+      ],
+    },
+    settingsAndVariants: [
+      {
+        optionId: "variant",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect: "Monte Carlo: touching pairs of the same rank.",
+          },
+          {
+            value: 1,
+            effect:
+              "Monte Carlo Thirteens: touching pairs that add up to thirteen — Ace and Queen, Two and Jack, Three and Ten, and so on, with the Ace counting one, the Jack eleven and the Queen twelve. A King adds up to thirteen by itself, so it goes to the discard alone: drag it there or double-press it.",
+          },
+        ],
+      },
+    ],
+  },
 };
