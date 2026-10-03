@@ -297,6 +297,43 @@ export const descendingAnySuitWrapping: PlacementRule =
   buildsOn(isAnySuitRunWrapping);
 
 /**
+ * Returns the rank every foundation of `role` starts on: the bottom card of the
+ * first one holding any, or undefined while they are all empty.
+ *
+ * For a game whose deal chooses the starting rank, such as Canfield or
+ * Penguin. Read from the board rather than kept by the game, so it needs no
+ * saving and is right after every restart and restore.
+ */
+export function baseRankOf(
+  board: BoardQuery,
+  role: PileRole,
+): Rank | undefined {
+  for (const pile of board.pilesByRole(role)) {
+    const bottom = pile.getCards()[0];
+    if (bottom) return bottom.rank;
+  }
+  return undefined;
+}
+
+/**
+ * Returns a foundation that starts on the rank the deal chose, read with
+ * {@link baseRankOf}, and builds up in suit from it, turning the corner from
+ * King to Ace.
+ *
+ * While every foundation of `role` is empty any card may start one, and so
+ * decide the rank for the rest.
+ */
+export function baseRankFoundation(role: PileRole): PlacementRule {
+  return all(
+    singleCardOnly,
+    byEmptiness((context) => {
+      const base = baseRankOf(context.board, role);
+      return base === undefined || context.card.rank === base;
+    }, ascendingSameSuitWrapping),
+  );
+}
+
+/**
  * The standard suit foundation: an Ace starts it, and each card after builds up
  * in the same suit, one at a time.
  */

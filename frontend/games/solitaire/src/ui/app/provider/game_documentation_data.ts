@@ -1596,4 +1596,70 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     },
     settingsAndVariants: [],
   },
+  canfield: {
+    title: "Canfield",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Canfield_(solitaire)",
+    screenshot: {
+      url: "./docs/screenshots/canfield/overview.png",
+      caption:
+        "Canfield board showing the stock and waste at the top-left, the first foundation started by the deal, the thirteen-card reserve under the stock, and four columns of one card each.",
+      altText: "Canfield solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Build all 52 cards onto the four foundations, each in suit from the rank the deal chose, round past the King to the Ace.",
+      winCondition: "All 52 cards are on the foundations.",
+      quickOverview:
+        "Canfield deals thirteen cards to a reserve, turns the next card onto a foundation — its rank is where every foundation starts — and one card to each of four columns. The columns build down in alternating colours, turning the corner from Ace to King, and a space is filled from the reserve at once. The stock is drawn three at a time, as often as you like.",
+    },
+    detailedRules: {
+      layout: [
+        "Stock: the face-down cards at the top-left, drawn three at a time onto the waste beside it.",
+        "Foundations: 4 piles at the top-right, the first started by the deal.",
+        "Reserve: 13 cards under the stock, face-down but for the top card.",
+        "Tableau: 4 columns under the foundations, one face-up card each.",
+      ],
+      cardMovement: [
+        "The top card of the waste, the top card of the reserve and any properly built run in a column can be moved.",
+        "When a column empties, the reserve's top card fills it at once. Once the reserve is gone, a space can be filled from the waste.",
+        "Taking a card off the reserve turns up the one beneath it.",
+        "Pressing the stock draws three cards onto the waste; pressing the empty stock turns the waste back over.",
+      ],
+      sequenceBuilding: [
+        "Foundations: start on the rank of the card the deal turned up, then Built UP in SAME SUIT, from King round to Ace.",
+        "Tableau: Built DOWN in ALTERNATING COLORS, from Ace round to King.",
+      ],
+      specialRules: [
+        "Unlimited Redeals: the waste can be turned back over as often as you like.",
+        "The Reserve Is the Game: getting through the reserve's thirteen cards is the usual path to a win, since the stock always comes round again.",
+      ],
+    },
+    settingsAndVariants: [
+      {
+        optionId: "variant",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "Canfield: columns build down in alternating colours, the reserve fills spaces at once, and the stock is drawn in threes with unlimited redeals.",
+          },
+          {
+            value: 1,
+            effect:
+              "Storehouse: the four Twos start the foundations, columns build down in suit, and the stock is drawn one card at a time with two redeals, counted in pips on the empty stock. Easier than Canfield.",
+          },
+          {
+            value: 2,
+            effect:
+              "Superior Canfield: the reserve is dealt face-up and fanned so every card in it can be read, and spaces are not filled automatically — any card or run can fill one, whenever you choose.",
+          },
+          {
+            value: 3,
+            effect:
+              "Rainbow: columns build down regardless of colour, and the stock is drawn one card at a time with no redeal.",
+          },
+        ],
+      },
+    ],
+  },
 };
