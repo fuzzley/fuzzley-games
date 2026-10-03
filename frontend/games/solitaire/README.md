@@ -19,7 +19,7 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Seahaven Towers**: Tight reserve-cell game with ten 5-card columns, four cells, same-suit building, and Kings-only empty columns.
 - **Spiderette**: Single-deck Spider on seven columns with row-dealing stock; playable in standard staircase deal or Will o' the Wisp (flat 3 cards per column).
 - **Easthaven**: Blends Klondike's alternating-colour building and foundations with Spider's row-dealing stock across seven columns.
-- **Forty Thieves**: Two-deck patience with 10 columns of 4 cards, eight foundations, single-card moves, and no stock recycling; supports standard Forty Thieves, Josephine, and Rank and File variants.
+- **Forty Thieves**: Two-deck patience with 10 columns of 4 cards, eight foundations, single-card moves, and no stock recycling; supports standard Forty Thieves, Josephine, Rank and File, Indian, and Number Ten variants.
 - **Maria**: Forty Thieves variant on a 9-column grid, building down in alternating colours with multi-card run moves.
 - **Limited**: Forty Thieves variant on a wide 12-column grid of 3-card columns with same-suit building and multi-card run moves.
 - **Double Klondike**: Two-deck Klondike dealt across nine columns with eight foundations and unlimited stock recycles.

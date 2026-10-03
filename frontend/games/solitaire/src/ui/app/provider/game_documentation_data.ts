@@ -769,6 +769,16 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
             effect:
               "Rank and File: columns build down in alternating colours and runs move as a unit, but three of every four dealt cards start face-down.",
           },
+          {
+            value: 5,
+            effect:
+              "Indian: only three cards to a column, the bottom one face-down, leaving 74 in the stock. A card lands on any suit except its own, one card at a time.",
+          },
+          {
+            value: 6,
+            effect:
+              "Number Ten: four cards to a column with the bottom two face-down. Columns build down in alternating colours, and a run in sequence moves as a unit.",
+          },
         ],
       },
     ],

@@ -243,11 +243,13 @@ const FORTY_THIEVES_VARIANT: GameOptionSpec<FortyThievesVariant> = {
   id: "variant",
   label: "Variant",
   description:
-    "Josephine lets same-suit runs move as a unit; Rank and File builds in alternating colours but buries three of every four cards.",
+    "Josephine lets same-suit runs move as a unit; Rank and File builds in alternating colours but buries three of every four cards. Indian deals three to a column and builds on any other suit; Number Ten buries two of four and builds in alternating colours.",
   choices: [
     { value: FortyThievesVariant.FORTY_THIEVES, label: "Forty Thieves" },
     { value: FortyThievesVariant.JOSEPHINE, label: "Josephine" },
     { value: FortyThievesVariant.RANK_AND_FILE, label: "Rank and File" },
+    { value: FortyThievesVariant.INDIAN, label: "Indian" },
+    { value: FortyThievesVariant.NUMBER_TEN, label: "Number Ten" },
   ],
   defaultValue: FortyThievesVariant.FORTY_THIEVES,
 };
