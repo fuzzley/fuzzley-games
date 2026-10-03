@@ -39,7 +39,7 @@ Add every game in Part A of the survey:
 - [x] 7. Lucas.
 - [x] 8. Mrs. Mop.
 - [x] 9. Addiction, Blue Moon and Red Moon.
-- [ ] 10. Screenshots and thumbnails for the new entries, the README, the
+- [x] 10. Screenshots and thumbnails for the new entries, the README, the
       survey's status, and `yarn verify`.
 
 ## Progress
@@ -177,7 +177,7 @@ cardsPerColumn)`, and `SimpleSimonGame` takes a `variant`, defaulting its
   - Checked in the browser: with `redeals: 3` stored, the marker draws three
     filled pips.
   - Tests: an Addiction block in `montana_game.spec.ts`.
-- Step 9, part 2: Blue Moon and Red Moon.
+- Step 9, part 2 (`7970f3c`): Blue Moon and Red Moon.
   - `MontanaVariant` (`MONTANA`, `BLUE_MOON`, `RED_MOON`) in
     `montana_rules.ts`, with each variant's first rank (Two, or Ace for the
     Moons). The deck, the column count (13 or 14) and whether the first
@@ -209,6 +209,21 @@ cardsPerColumn)`, and `SimpleSimonGame` takes a `variant`, defaulting its
     options.
   - Tests: `test/games/montana/moons.spec.ts`; Montana's specs read the
     column count from `montanaColumnCount`.
+- Step 10: wrap-up.
+  - Screenshots and thumbnails were taken with each new entry (steps 5, 7, 8
+    and 9), and the README gained each game as it landed.
+  - `candidate-games.md` now says items 1 to 9 and E7 are built, with a
+    status line under each and the two departures (Saratoga's grab, Red Moon
+    as an option).
+  - `yarn verify` passes: lint, tsc, build, and 2563 tests in 107 files.
+  - `yarn test:coverage` passes: 97.5% statements, 91.2% branches, 98.1%
+    functions, 98.9% lines, against a floor of 95 / 88 / 96 / 96. The floor
+    was left where it is.
+
+## What is left
+
+- Review, then a merge into `main`, which deploys.
+- Items 10 onwards in the survey, starting with its suggested order.
 
 ## Picking it back up
 
@@ -217,3 +232,5 @@ git switch candidate-games-1-9
 git log --oneline main..
 yarn verify
 ```
+
+Every step is done.
