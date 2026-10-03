@@ -119,6 +119,14 @@ import {
 import { BlackHoleVariant } from "@/games/black_hole/black_hole_rules";
 import { GrandfathersClockGame } from "@/games/grandfathers_clock/grandfathers_clock_game";
 import { GRANDFATHERS_CLOCK_LAYOUT } from "@/games/grandfathers_clock/grandfathers_clock_layout";
+import { PyramidGame } from "@/games/pyramid/pyramid_game";
+import { PYRAMID_LAYOUT } from "@/games/pyramid/pyramid_layout";
+import {
+  DEFAULT_PYRAMID_GOAL,
+  DEFAULT_PYRAMID_PASSES,
+  PyramidGoal,
+  PyramidPasses,
+} from "@/games/pyramid/pyramid_rules";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -471,6 +479,32 @@ const CANFIELD_VARIANT: GameOptionSpec<CanfieldVariant> = {
     { value: CanfieldVariant.RAINBOW, label: "Rainbow" },
   ],
   defaultValue: DEFAULT_CANFIELD_VARIANT,
+};
+
+/** When a game of Pyramid is won. */
+const PYRAMID_GOAL: GameOptionSpec<PyramidGoal> = {
+  id: "goal",
+  label: "Goal",
+  description:
+    "Pyramid Only is Relaxed Pyramid: clearing the pyramid wins, whatever is left in the stock and waste.",
+  choices: [
+    { value: PyramidGoal.ALL_CARDS, label: "All Cards" },
+    { value: PyramidGoal.PYRAMID_ONLY, label: "Pyramid Only" },
+  ],
+  defaultValue: DEFAULT_PYRAMID_GOAL,
+};
+
+/** How many times Pyramid's stock may be gone through. */
+const PYRAMID_PASSES: GameOptionSpec<PyramidPasses> = {
+  id: "passes",
+  label: "Passes",
+  description:
+    "Three passes turns the waste back over twice, as Par Pyramid allows.",
+  choices: [
+    { value: 1, label: "1 Pass" },
+    { value: 3, label: "3 Passes" },
+  ],
+  defaultValue: DEFAULT_PYRAMID_PASSES,
 };
 
 /*
@@ -867,6 +901,20 @@ const GRANDFATHERS_CLOCK = {
   create: () => dealt(new GrandfathersClockGame()),
 } satisfies CatalogEntry<GrandfathersClockGame>;
 
+const PYRAMID = {
+  id: "pyramid" as const,
+  name: "Pyramid",
+  options: [PYRAMID_GOAL, PYRAMID_PASSES],
+  layout: PYRAMID_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(
+      new PyramidGame({
+        goal: optionValue(values, PYRAMID_GOAL),
+        passes: optionValue(values, PYRAMID_PASSES),
+      }),
+    ),
+} satisfies CatalogEntry<PyramidGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -911,6 +959,7 @@ export const CATALOG_ENTRIES = [
   BLACK_HOLE,
   ALL_IN_A_ROW,
   GRANDFATHERS_CLOCK,
+  PYRAMID,
 ] as const;
 
 /** Every game the application can put on the table. */

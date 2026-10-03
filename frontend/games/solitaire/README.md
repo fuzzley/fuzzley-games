@@ -42,6 +42,7 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Black Hole**: Seventeen open fans of three played into a single foundation started with the Ace of Spades, one rank up or down with King and Ace adjacent.
 - **All in a Row**: Black Hole's rules on thirteen columns of four, with the foundation started by any card.
 - **Grandfather's Clock**: Twelve foundations laid round a dial, each built up in suit round the corner to the hour it stands at, from eight open columns.
+- **Pyramid**: A pyramid of twenty-eight cards taken apart by pairing free cards that total thirteen, with Kings going alone and a stock turned one card at a time; the goal can be every card or the pyramid alone (Relaxed Pyramid), with one pass or three.
 
 ## Development
 

@@ -11,6 +11,7 @@ import { BristolVariant } from "@/games/bristol/bristol_rules";
 import { MonteCarloVariant } from "@/games/monte_carlo/monte_carlo_rules";
 import { LaBelleLucieVariant } from "@/games/la_belle_lucie/la_belle_lucie_rules";
 import { CanfieldVariant } from "@/games/canfield/canfield_rules";
+import { PyramidGoal } from "@/games/pyramid/pyramid_rules";
 import {
   Difficulty,
   GameFamilyProfile,
@@ -580,6 +581,27 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       decks: 1,
       allCardsVisible: true,
       aliases: ["Clock"],
+    },
+    pyramid: {
+      family: "pairing",
+      tagline: "Pair free cards totalling thirteen to take the pyramid apart.",
+      difficulty: {
+        optionId: "goal",
+        byChoice: {
+          [PyramidGoal.ALL_CARDS]: Difficulty.HARD,
+          [PyramidGoal.PYRAMID_ONLY]: Difficulty.MEDIUM,
+        },
+      },
+      decks: 1,
+      allCardsVisible: false,
+      variants: [
+        {
+          name: "Relaxed Pyramid",
+          values: { goal: PyramidGoal.PYRAMID_ONLY },
+          tagline: "Pyramid won once the pyramid itself is cleared.",
+          difficulty: Difficulty.MEDIUM,
+        },
+      ],
     },
   },
 };

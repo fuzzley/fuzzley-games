@@ -64,7 +64,7 @@ need:
 - [x] 11. Penguin.
 - [x] 12. Black Hole and All in a Row.
 - [x] 13. Grandfather's Clock.
-- [ ] 14. E4, then Pyramid.
+- [x] 14. E4, then Pyramid.
 - [ ] 15. TriPeaks.
 - [ ] 16. E5, then Beleaguered Castle, Streets and Alleys, Citadel and
       Fortress.
@@ -358,7 +358,7 @@ descendingAnySuit)`, top-only. The stock deals a row onto the reserves
     pages, profiles (Medium), the README, screenshots and thumbnails.
   - Tests: `test/games/black_hole/black_hole_game.spec.ts` and `playOnPress`
     cases in `table_gestures.spec.ts`.
-- Step 13: Grandfather's Clock.
+- Step 13 (`98fd877`): Grandfather's Clock.
   - `src/games/grandfathers_clock`: `DIAL` lists the twelve foundations in
     deal order, PySol's: the Two of Spades at five o'clock, each hour
     clockwise one rank higher with the suits taken in turn, to the King of
@@ -379,19 +379,50 @@ descendingAnySuit)`, top-only.
     Wikipedia article), `stocklessGestures`, a rules page, a profile in
     "More games" (Easy), the README, the screenshot and thumbnails.
   - Tests: `test/games/grandfathers_clock/grandfathers_clock_game.spec.ts`.
+- Step 14: E4, then Pyramid.
+  - E4: `GrabRule` gained `{ kind: "uncovered"; coveredBy }`: the top card,
+    only while every pile in `coveredBy` is empty (`isUncovered`, exported
+    from `zone.ts` for accept rules too). `canGrab` now takes the
+    `BoardQuery`; `TableGame` passes `this.board`, and `TableView` gained
+    `board` so `stackFromCard` can. Zone specs pass an empty board.
+  - The drop-target refinement, for every game: `resolveDragTarget` first
+    looks among the piles that would take the dragged stack and only then
+    falls back to plain overlap. On a pyramid, where places overlap by half a
+    card, a card held over a free card and a covered one lands where it can;
+    elsewhere a drop that overlaps an illegal pile more than a legal one now
+    lands on the legal one rather than flying back.
+  - `totalsThirteen`, `pipValue` and `PAIR_TOTAL` moved from Monte Carlo
+    into `src/games/common/pair_removal.ts`, Pyramid being their second user.
+  - `src/games/pyramid`: twenty-eight places `pyramid-<row>-<index>`, row
+    `r` at grid row `r / 2` and column `(6 − r) / 2 + index`, declared top
+    down so each row half covers the one above; each place grabs `uncovered`
+    by the two places below it and takes a partner only while uncovered
+    (`pyramidPairRule`). The stock and hand sit in the top-left corner beside
+    the peak, the waste and discard in the top-right (7 × 4, no
+    `designHeightPx`).
+  - The hand and waste pair too (`OPEN_PAIR_RULE`); the discard takes a lone
+    King. A stock press moves the hand's card to the waste and turns the next
+    into the hand, one `"draw"` action; with the "3 Passes" option the empty
+    stock turns hand and waste back over (`"recycle"`, counted in pips,
+    undo and snapshot as Canfield's).
+  - Options "Goal" (All Cards, or Pyramid Only: Relaxed Pyramid, a named
+    variant) and "Passes" (1 or 3). `isWon` is overridden for the goal.
+  - A "Pyramid" entry (`pyramid`) in the Pairing games, a rules page, a
+    profile (Hard, Relaxed Medium), the README, the screenshot and
+    thumbnails. Checked in the browser: a double press sent a free King to
+    the discard, and a stock press turned a card into the hand.
+  - Tests: `test/games/pyramid/pyramid_game.spec.ts`, `uncovered` cases in
+    `zone.spec.ts`, and a preference case in
+    `drop_geometry_resolve.spec.ts`.
 
 ## Next
 
-Step 14: E4, then Pyramid. E4 adds a grab kind
-`{ kind: "uncovered"; coveredBy: readonly string[] }` (top card, and only
-while every pile in `coveredBy` is empty); `canGrab` then needs the board,
-which touches `zone.ts`, `TableGame.resolveMove`, the
-`isCardInteractable…`/`isCardDraggable…` methods, and `stackFromCard` in
-`grabbable_stack.ts` (the `TableView` gains `board`). Consider the
-drop-target refinement in `resolveDragTarget` (prefer piles that accept the
-stack). Pyramid then pairs uncovered cards totalling 13 (move
-`totalsThirteen` from Monte Carlo into `pair_removal.ts`), Kings go alone,
-a hand pile holds the drawn card, and rows sit at half-row offsets.
+Step 15: TriPeaks. Golf's machinery (one waste-foundation, `playOnPress`,
+`isWon` on an empty tableau) with `isAdjacentRank(true)`, E4's `coveredBy`
+for availability, and flip-on-uncover in `applyMoveEffects`: after a card
+leaves, turn up every face-down card whose `coveredBy` piles are all empty,
+reported in `flippedCardIds`. Rows of 3, 6 and 9 face down over 10 face up,
+each row half-offset, ten columns wide.
 
 Screenshots: open each new entry in a fresh isolated browser context (a game
 left in progress raises the "switch games?" confirmation). In a development

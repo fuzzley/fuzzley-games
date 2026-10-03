@@ -1806,4 +1806,76 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     },
     settingsAndVariants: [],
   },
+  pyramid: {
+    title: "Pyramid",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Pyramid_(solitaire)",
+    screenshot: {
+      url: "./docs/screenshots/pyramid/overview.png",
+      caption:
+        "Pyramid board showing twenty-eight face-up cards in a pyramid of seven rows, the stock and hand at the top-left and the waste and discard at the top-right.",
+      altText: "Pyramid solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Discard the whole deck in pairs that total thirteen, and Kings on their own.",
+      winCondition:
+        "Every card is on the discard — or, under the Pyramid Only goal, the pyramid is cleared.",
+      quickOverview:
+        "Pyramid deals twenty-eight cards face-up in a pyramid of seven rows, each row half covering the one above. A card is free once no card lies over it. Pair free cards that add up to thirteen — Ace and Queen, Two and Jack, and so on — and discard Kings on their own. The stock is turned one card at a time into the hand, where it can pair too.",
+    },
+    detailedRules: {
+      layout: [
+        "Pyramid: 28 face-up cards in 7 rows, each card half covered by the two below it.",
+        "Stock: the other 24 cards, face-down at the top-left, with the hand beside it.",
+        "Waste: the turned cards that found no pair, at the top-right; only its top card is free.",
+        "Discard: a single pile at the top-right, initially empty.",
+      ],
+      cardMovement: [
+        "Drag a free card onto another free card that adds up to thirteen with it, and both go to the discard.",
+        "Drag a King to the discard, or double-press it; it needs no partner.",
+        "Double-press a free card to pair it with the first free partner.",
+        "Press the stock to turn its top card into the hand; the card held there moves to the waste.",
+      ],
+      sequenceBuilding: [
+        "Nothing is built: cards only leave, two at a time or a King alone.",
+        "Values: Ace 1, Two to Ten as marked, Jack 11, Queen 12, King 13.",
+        "A free card is a pyramid card with nothing over it, the card in the hand, or the waste's top card.",
+      ],
+      specialRules: [
+        "Covered Cards: each pyramid card is held by the two cards that overlap it from below; it frees once both are gone.",
+        "Passes: the stock is gone through once, or three times with the 3 Passes option, counted in pips on the empty stock.",
+      ],
+    },
+    settingsAndVariants: [
+      {
+        optionId: "goal",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "All Cards: the game is won only once every card, stock and waste included, is discarded.",
+          },
+          {
+            value: 1,
+            effect:
+              "Pyramid Only: Relaxed Pyramid — clearing the pyramid wins, whatever is left in the stock and waste.",
+          },
+        ],
+      },
+      {
+        optionId: "passes",
+        choicesExplanation: [
+          {
+            value: 1,
+            effect: "1 Pass: the stock is gone through once.",
+          },
+          {
+            value: 3,
+            effect:
+              "3 Passes: once the stock is out, pressing its slot turns the waste back over, twice per game — Par Pyramid's allowance.",
+          },
+        ],
+      },
+    ],
+  },
 };

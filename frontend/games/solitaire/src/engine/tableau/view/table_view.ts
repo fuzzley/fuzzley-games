@@ -1,5 +1,6 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { BoardQuery } from "../rules";
 import { ZoneSpec } from "../zone";
 
 /** Exposes the read-only parts of a table game that drawing it requires. */
@@ -9,6 +10,9 @@ export interface TableView {
 
   /** Every pile a dragged stack may be dropped onto. */
   readonly dropTargetPiles: readonly CardPile<PlayingCard>[];
+
+  /** The board as the rules read it, which some grab rules consult. */
+  readonly board: BoardQuery;
 
   /** Returns the zone describing a pile, or undefined for an unknown id. */
   zoneFor(pileId: string): ZoneSpec | undefined;
