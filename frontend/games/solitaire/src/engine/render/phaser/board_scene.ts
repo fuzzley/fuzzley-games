@@ -389,6 +389,14 @@ export class BoardScene extends Scene implements PhaserSprites {
     this.input.setDraggable(sprite, draggable);
   }
 
+  /** @inheritDoc */
+  public showPileBackgroundCursor(pileId: string): void {
+    const sprite = this.pileBackgrounds.get(pileId);
+    if (sprite?.input && this.controller.hoveredBackgroundPileId === pileId) {
+      this.input.setCursor(sprite.input);
+    }
+  }
+
   /** Every registered card id, for callers that walk the whole board. */
   public get cardIds(): Iterable<string> {
     return this.cardSprites.keys();
