@@ -63,6 +63,12 @@ import { SpideretteVariant } from "@/games/spiderette/spiderette_rules";
 import { SPIDERETTE_LAYOUT } from "@/games/spiderette/spiderette_layout";
 import { BisleyGame } from "@/games/bisley/bisley_game";
 import { BISLEY_LAYOUT } from "@/games/bisley/bisley_layout";
+import { AcesUpGame } from "@/games/aces_up/aces_up_game";
+import { ACES_UP_LAYOUT } from "@/games/aces_up/aces_up_layout";
+import {
+  AcesUpSpaces,
+  DEFAULT_ACES_UP_SPACES,
+} from "@/games/aces_up/aces_up_rules";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -322,6 +328,19 @@ const SPIDERETTE_VARIANT: GameOptionSpec<SpideretteVariant> = {
   defaultValue: SpideretteVariant.SPIDERETTE,
 };
 
+/** What may fill an empty column in Aces Up. */
+const ACES_UP_SPACES: GameOptionSpec<AcesUpSpaces> = {
+  id: "emptyColumns",
+  label: "Empty Columns",
+  description:
+    "Aces Only is the harder game: a space can only take an Ace, so every other card has to wait for the discard.",
+  choices: [
+    { value: AcesUpSpaces.ANY_CARD, label: "Any Card" },
+    { value: AcesUpSpaces.ACES_ONLY, label: "Aces Only" },
+  ],
+  defaultValue: DEFAULT_ACES_UP_SPACES,
+};
+
 /*
  * The entries, each declared with `satisfies` so it keeps the literal id and
  * game type the board registry is checked against.
@@ -577,6 +596,15 @@ const BISLEY = {
   create: () => dealt(new BisleyGame()),
 } satisfies CatalogEntry<BisleyGame>;
 
+const ACES_UP = {
+  id: "acesup" as const,
+  name: "Aces Up",
+  options: [ACES_UP_SPACES],
+  layout: ACES_UP_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(new AcesUpGame({ spaces: optionValue(values, ACES_UP_SPACES) })),
+} satisfies CatalogEntry<AcesUpGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -607,6 +635,7 @@ export const CATALOG_ENTRIES = [
   MONTANA,
   BLUE_MOON,
   BISLEY,
+  ACES_UP,
 ] as const;
 
 /** Every game the application can put on the table. */

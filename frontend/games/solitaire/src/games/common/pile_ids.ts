@@ -20,3 +20,6 @@ export const STOCK_PILE_ID = "stock";
 
 /** The stable id of the single waste pile. */
 export const WASTE_PILE_ID = "waste";
+
+/** The stable id of the single pile beaten or paired cards are put away on. */
+export const DISCARD_PILE_ID = "discard";

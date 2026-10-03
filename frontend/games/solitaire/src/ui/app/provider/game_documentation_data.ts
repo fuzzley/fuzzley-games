@@ -1136,4 +1136,60 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     },
     settingsAndVariants: [],
   },
+  acesup: {
+    title: "Aces Up",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Aces_Up",
+    screenshot: {
+      url: "./docs/screenshots/acesup/overview.png",
+      caption:
+        "Aces Up board showing the stock at the left, four columns of one card each, and the empty discard at the right.",
+      altText: "Aces Up solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Discard all 48 cards that are not Aces, leaving only the four Aces on the table.",
+      winCondition:
+        "The stock is dealt out and nothing but Aces remains in the columns.",
+      quickOverview:
+        "Aces Up deals one card to each of four columns. Whenever two columns show cards of the same suit, the lower one can be discarded; Aces rank high, so they can never be. When nothing more can go, deal another card onto every column, and keep going until the stock runs out.",
+    },
+    detailedRules: {
+      layout: [
+        "Stock: 48 face-down cards at the left, dealt four at a time.",
+        "Tableau: 4 columns, each dealt one face-up card to start.",
+        "Discard: a single pile at the right, initially empty.",
+      ],
+      cardMovement: [
+        "The top card of a column can be discarded while another column's top card is the same suit and higher.",
+        "The top card of a column can be moved into an empty column.",
+        "Pressing the stock deals one card face-up onto each column.",
+        "Double-press a card to discard it, or to move it into a space when it cannot be discarded.",
+      ],
+      sequenceBuilding: [
+        "Nothing is built: cards are only ever discarded or moved into a space.",
+        "Aces rank above Kings, so an Ace can never be discarded.",
+      ],
+      specialRules: [
+        "Buried Cards: a card dealt over another hides it until the top card is discarded or moved into a space — spaces are what dig a buried card out.",
+        "The stock can be dealt at any time, but it is dealt only once.",
+      ],
+    },
+    settingsAndVariants: [
+      {
+        optionId: "emptyColumns",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "Any Card: the usual game — the top card of any other column can be moved into a space.",
+          },
+          {
+            value: 1,
+            effect:
+              "Aces Only: a space can take only an Ace. An Ace dealt on top of a buried card can be lifted off, but no other card can, which makes the game much harder.",
+          },
+        ],
+      },
+    ],
+  },
 };

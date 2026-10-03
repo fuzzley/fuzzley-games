@@ -52,7 +52,7 @@ need:
 
 - [x] 0. Commit this log.
 - [x] 1. Bisley.
-- [ ] 2. Aces Up.
+- [x] 2. Aces Up.
 - [ ] 3. E1, then Golf and Putt Putt.
 - [ ] 4. Calculation and Sir Tommy.
 - [ ] 5. E3, then Flower Garden.
@@ -77,7 +77,7 @@ need:
 ### 2026-10-03
 
 - Step 0 (`06db3ff`): wrote this log.
-- Step 1: Bisley.
+- Step 1 (`c888bad`): Bisley.
   - `src/games/bisley`: the Ace foundations (`foundation-0` to `-3`) and
     the King foundations (`king-foundation-0` to `-3`) both play the
     `FOUNDATION` role, so `winsWhenAllCardsIn` covers the two kinds. Each
@@ -95,6 +95,24 @@ descendingSameSuit)`), top-only, and never refill. The deal pulls the
     profile in "More games" (Easy), the README, the screenshot and
     thumbnails.
   - Tests: `test/games/bisley/bisley_game.spec.ts`.
+- Step 2: Aces Up.
+  - `src/games/aces_up`: stock, four columns and a discard in one row
+    (6 × 1, `designHeightPx` 1050 for a thirteen-card column).
+    `DISCARD_PILE_ID` joined `src/games/common/pile_ids.ts`, since Nestor,
+    Monte Carlo and Pyramid discard too.
+  - The discard's rule is the game: a column's top card while another
+    column's top card is the same suit and higher, counting the Ace as 14
+    (`acesHighValue`). An empty column takes a single card, or under the
+    `emptyColumns` option (`AcesUpSpaces`) only an Ace.
+  - The stock deals a row with `dealRowFromStock` as one action, pressed
+    through `dealOnStockPress`. A double press tries the discard, then a
+    space. `isWon` is overridden: the stock is empty and only Aces are left.
+  - An "Aces Up" entry (`acesup`), a rules page, a profile in "More games"
+    (Hard), the README, the screenshot and thumbnails.
+  - Tooling: provider edits are scripted by a registration helper kept in the
+    session scratchpad, not the repository; it only inserts text at fixed
+    markers, so the diffs read as hand edits.
+  - Tests: `test/games/aces_up/aces_up_game.spec.ts`.
 
 ## Picking it back up
 

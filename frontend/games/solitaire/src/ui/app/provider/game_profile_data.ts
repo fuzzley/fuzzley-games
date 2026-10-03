@@ -351,5 +351,12 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       decks: 1,
       allCardsVisible: true,
     },
+    acesup: {
+      family: "other",
+      tagline: "Discard every card a higher card of its suit outranks.",
+      difficulty: Difficulty.HARD,
+      decks: 1,
+      allCardsVisible: false,
+    },
   },
 };
