@@ -15,14 +15,21 @@ import {
   TableViewState,
   Viewport,
 } from "../view/table_view_state";
-import { TableLayoutSpec, designSize } from "../layout/table_layout";
-import { CardArtScale } from "../layout/card_metrics";
+import {
+  TableLayoutSpec,
+  designSize,
+  measureTable,
+} from "../layout/table_layout";
+import { CardArtScale, cardArtScaleFor } from "../layout/card_metrics";
 import { CardDeckId } from "../card_deck";
 import { CardDeckStatus, Subscribe } from "../presentation";
 import {
-  cardDeckTextureKey,
-  loadCardDeck,
-  residentCardDecks,
+  CardAtlas,
+  cardAtlasTextureKey,
+  chooseCardAtlas,
+  loadCardAtlas,
+  residentCardAtlases,
+  sameCardAtlas,
 } from "./card_deck_atlas";
 
 /** Produces the desired appearance of a board for one frame. */
@@ -131,20 +138,44 @@ export class BoardScene extends Scene implements PhaserSprites {
 
   /** Loads the deck the player chose, unless a deck is loaded to boot on. */
   preload() {
-    if (this.bootDeck() === null) {
-      loadCardDeck(this.load, this.options.cardDeckId());
+    if (this.bootAtlas() === null) {
+      loadCardAtlas(this.load, this.wantedAtlas());
     }
   }
 
+  /** Returns the chosen deck at the density the board's size calls for. */
+  private wantedAtlas(): CardAtlas {
+    return {
+      deckId: this.options.cardDeckId(),
+      artScale: this.wantedArtScale(),
+    };
+  }
+
   /**
-   * Returns the deck to draw the board from at first: the one the player chose
-   * if it is loaded, or else any deck that is, which the board leaves as soon
-   * as the chosen one arrives.
+   * Returns the atlas to draw the board from at first: the chosen deck if it is
+   * loaded dense enough, or else any atlas that is loaded, preferring the
+   * chosen deck, which the board leaves as soon as the one it wants arrives.
    */
-  private bootDeck(): CardDeckId | null {
-    const chosen = this.options.cardDeckId();
-    const resident = residentCardDecks(this.textures);
-    return resident.includes(chosen) ? chosen : (resident[0] ?? null);
+  private bootAtlas(): CardAtlas | null {
+    const wanted = this.wantedAtlas();
+    const resident = residentCardAtlases(this.textures);
+    const chosen = chooseCardAtlas(wanted.deckId, wanted.artScale, resident);
+    return (
+      resident.find((atlas) => sameCardAtlas(atlas, chosen)) ??
+      resident.find((atlas) => atlas.deckId === wanted.deckId) ??
+      resident[0] ??
+      null
+    );
+  }
+
+  /**
+   * Returns the density the board's current size calls for, measured as the
+   * view is, so the cards are never drawn larger than their artwork.
+   */
+  public wantedArtScale(): CardArtScale {
+    return cardArtScaleFor(
+      measureTable(this.options.layout, this.viewport).scale,
+    );
   }
 
   /**
@@ -172,7 +203,7 @@ export class BoardScene extends Scene implements PhaserSprites {
       this,
       // The chosen deck, even if its load failed, so the board still reports
       // a deck when there is none to draw.
-      this.bootDeck() ?? this.options.cardDeckId(),
+      this.bootAtlas() ?? this.wantedAtlas(),
     );
     this.controller = new DragController(
       this.options.handleIntent,
@@ -192,7 +223,8 @@ export class BoardScene extends Scene implements PhaserSprites {
     this.visualFactory = new PhaserCardFactory(
       this,
       this.options.cardBackKey,
-      () => cardDeckTextureKey(this.deckLoader.deckId),
+      () => cardAtlasTextureKey(this.deckLoader.atlas),
+      () => this.deckLoader.atlas.artScale,
     );
   }
 
@@ -250,16 +282,20 @@ export class BoardScene extends Scene implements PhaserSprites {
     });
   }
 
-  /** Registers the pointer listeners and snaps cards into place on a resize. */
+  /**
+   * Registers the pointer listeners, and on a resize snaps cards into place and
+   * fetches denser artwork if the cards have outgrown it.
+   */
   private wireInput(): void {
     this.controller.snapAll = true;
-    const snapAll = () => {
+    const onResize = () => {
       this.controller.snapAll = true;
+      this.deckLoader.refit();
     };
     // The scale manager belongs to the game, which outlives the scene.
-    this.scale.on("resize", snapAll);
+    this.scale.on("resize", onResize);
     this.whenSceneEnds(() => {
-      this.scale.off("resize", snapAll);
+      this.scale.off("resize", onResize);
     });
 
     this.inputManager.registerDragListeners();
@@ -313,11 +349,19 @@ export class BoardScene extends Scene implements PhaserSprites {
     this.options.reportCardDeckStatus(status);
   }
 
+  /** Redraws the shadow at the density the cards are now drawn at. */
+  public artScaleChanged(): void {
+    this.visualFactory.bakeCardShadow();
+    for (const shadow of this.cardShadows.values()) {
+      this.visualFactory.fitCardShadow(shadow);
+    }
+  }
+
   // --- PhaserSprites ---
 
   /** @inheritDoc */
   public get cardArtScale(): CardArtScale {
-    return 2;
+    return this.deckLoader.atlas.artScale;
   }
 
   /** @inheritDoc */
