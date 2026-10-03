@@ -6,11 +6,10 @@ page, or by pressing a marker that has quietly stopped working. This file lists
 the ways we could show the count, and what each one costs, so we can pick one
 together.
 
-**Status:** built on the `montana-redeal-pips` branch. We chose options 1 and
-2a, and made Klondike's empty stock inactive as well. The pips sit inside the
-ring rather than under the arrow, so they stay readable on a phone.
-[`montana-redeal-pips-log.md`](montana-redeal-pips-log.md) records the build.
-The rest of this file is the review as it stood when we chose.
+**Status:** built. We chose options 1 and 2a, and made Klondike's empty stock
+inactive as well. The pips sit inside the ring rather than under the arrow, so
+they stay readable on a phone. The rest of this file is the review as it stood
+when we chose.
 
 ## Where things stand
 
