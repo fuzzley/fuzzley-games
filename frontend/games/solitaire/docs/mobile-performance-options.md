@@ -3,8 +3,8 @@
 Cards dragged slowly in phone browsers because every card had its own shadow
 filter. Commit `db1114c` replaced those filters with one baked shadow texture,
 which was option 1A of the original plan. This file lists the options that plan
-left for later, so we can choose what to do next. Options 4 and 4′ are built;
-none of the others is yet.
+left for later, so we can choose what to do next. Options 4, 4′ and 5 are
+built; none of the others is yet.
 
 ## Where things stand
 
@@ -23,9 +23,10 @@ What is left:
 - **Spider still spends about 0.4 ms a frame on shadows.** It draws 104 shadow
   sprites over the full card area, and most of them are stacked out of sight in
   the stock. Option 2 addresses this.
-- **Each deck's atlas takes about 65 MB of GPU memory**, in pages of 4032×3732
-  and 1792×622. Option 4 (done) uploads it once per session instead of once
-  per game switch. Option 5 would shrink it.
+- **The atlas download is still about 1.6 MB per deck.** On a phone, option 5
+  (done) cut the atlas's GPU memory from about 62 MB to 16 MB. Option 4 (done)
+  uploads it once per session instead of once per game switch. The PNG itself
+  shrank only from 1.9 MB. Option 14 addresses the download.
 - **The board redraws every frame even when nothing moves.** That is 60 to 120
   times a second, which costs battery and heat over a long game. Option 3
   addresses this.
@@ -43,7 +44,7 @@ S, M and L are rough relative sizes.
 | 3   | Stop rendering when nothing changes           | Battery, heat             | Idle frames drop to zero                     | M      | Medium-high: a missed wake-up freezes it   |
 | 4   | **Done:** keep one Phaser game across games   | Memory, switch time       | One WebGL context; atlas uploaded once       | M–L    | Medium: scene cleanup must be complete     |
 | 4′  | **Done:** release the context when destroying | Memory                    | Old contexts freed straight away             | S      | Low                                        |
-| 5   | Half-resolution atlas on small screens        | Memory, load time         | About 65 MB → 16 MB per deck                 | M      | Low-medium                                 |
+| 5   | **Done:** half-resolution atlas where it fits | Memory, load time         | 63 MB → 17 MB of textures on a phone         | M      | Low-medium                                 |
 | 6   | Turn off WebGL multisampling                  | Memory, GPU bandwidth     | Unknown; may be small on phone GPUs          | S      | Low                                        |
 | 7   | Lighter effects over the canvas               | Compositing time          | Measurable only on a device                  | S      | Low (visible design change)                |
 | 8   | Set depth only when it changes                | Frame time                | One full display-list sort per frame removed | S      | Low                                        |
@@ -167,9 +168,43 @@ memory at once. That is a few lines of code, but switching gets no faster.
 
 ### 5. Half-resolution atlas on small screens
 
-Card art is 440×614 (`CARD_ART_SCALE` is 2 in
-`src/engine/render/layout/card_metrics.ts`). A phone shows a card about 107
-device pixels wide, so the GPU holds about 16 times as many pixels as it shows.
+**Done.** A board now draws from a half-size atlas whenever its layout scale is
+at most 1, so its cards are never drawn larger than the art. That covers phones
+in both orientations and most 1080p desktops.
+
+On the phone benchmark:
+
+| Measurement    | Before                 | After            |
+| -------------- | ---------------------- | ---------------- |
+| Textures       | 63.1 MB                | 16.7 MB          |
+| Atlas pages    | 4032×3732 and 1792×622 | one 3420×1260    |
+| Shadow texture | 504×710                | 252×356          |
+| Atlas download | 1863 KB                | 1585 KB          |
+| Klondike, idle | 0.52 ms, 2 draws       | 0.54 ms, 2 draws |
+| Klondike, drag | 0.55 ms                | 0.57 ms          |
+| Spider, idle   | 1.03 ms, 2 draws       | 1.03 ms, 2 draws |
+
+- **Download:** it barely shrank. A filtered shrink leaves in-between colours,
+  which PNG compresses poorly.
+- **Look:** screenshots of the same deal show smoother pips, indices and face
+  cards. The full-size art had been skipping texels.
+- **Growing past scale 1:** a desktop window that grows past scale 1 draws the
+  half-size art enlarged for three frames while the full set loads, then
+  releases the half-size set.
+
+How it was built:
+
+- Every deck is built at 1× and 2×; the 1× frames are shrunk from the finished
+  2× ones (`1034d12`).
+- View state stays in design units, and only the renderer divides by the
+  atlas's density (`916a0c4`). The con below about the layout maths did not
+  arise.
+- The board chooses the density, and moves up to 2× when a resize calls for it,
+  but never back down (`65d3277`).
+
+Before this, card art was 440×614, 2 texels per design unit. A phone shows a card
+about 107 device pixels wide, so the GPU held about 16 times as many pixels as it
+showed.
 
 The atlas build would also produce a half-size set. The board scene, which
 loads the deck, would choose it when its card scale is small enough.
@@ -185,7 +220,7 @@ loads the deck, would choose it when its card scale is small enough.
 **Cons**
 
 - It adds a second set of atlas files per deck to build, ship and keep in step.
-- `CARD_ART_SCALE` would become a value chosen at load time instead of a
+- The art's density would become a value chosen at load time instead of a
   constant, which reaches into the layout maths.
 - If a phone is rotated or a window enlarged past the threshold, the cards stay
   soft until the full-size set is loaded.
@@ -454,10 +489,8 @@ To take the same measurements again:
    changes the priorities.
 2. **Options 8 and 9.** They are small and safe, and each fits in one commit.
 3. **Option 2.** It removes Spider's remaining shadow overdraw.
-4. **Option 5.** It cuts memory. Options 4 and 4′, which came before it,
-   are done.
-5. **Option 3.** It saves battery and heat, and makes option 7 free while the
+4. **Option 3.** It saves battery and heat, and makes option 7 free while the
    board is idle.
-6. **The rest, only on evidence.** Do options 6, 7, 12 and 13 only if a
+5. **The rest, only on evidence.** Do options 6, 7, 12 and 13 only if a
    real-device trace points at them. Do options 10, 11 and 14 only if a
    measurement shows they are worth it.
