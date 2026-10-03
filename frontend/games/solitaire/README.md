@@ -41,6 +41,7 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Penguin**: Seven open columns built down in suit round the corner, a seven-cell flipper, and foundations that start on the rank of the first card dealt.
 - **Black Hole**: Seventeen open fans of three played into a single foundation started with the Ace of Spades, one rank up or down with King and Ace adjacent.
 - **All in a Row**: Black Hole's rules on thirteen columns of four, with the foundation started by any card.
+- **Grandfather's Clock**: Twelve foundations laid round a dial, each built up in suit round the corner to the hour it stands at, from eight open columns.
 
 ## Development
 

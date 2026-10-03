@@ -65,6 +65,7 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
   penguin: stocklessGestures,
   blackhole: blackHoleGestures,
   allinarow: blackHoleGestures,
+  grandfathersclock: stocklessGestures,
 };
 
 /**
