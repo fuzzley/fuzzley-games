@@ -5,7 +5,9 @@ import {
   playingCardFaceKey,
   playingCardInstanceId,
   rankAbove,
+  rankAboveWrapping,
   rankBelow,
+  rankBelowWrapping,
   Rank,
   Suit,
 } from "@/engine/core/card/playing_card";
@@ -44,6 +46,26 @@ describe("rankBelow", () => {
 
   it("has nothing below the Ace", () => {
     expect(rankBelow(Rank.ACE)).toBeUndefined();
+  });
+});
+
+describe("rankAboveWrapping", () => {
+  it("steps up one rank", () => {
+    expect(rankAboveWrapping(Rank.FIVE)).toBe(Rank.SIX);
+  });
+
+  it("turns the corner from King to Ace", () => {
+    expect(rankAboveWrapping(Rank.KING)).toBe(Rank.ACE);
+  });
+});
+
+describe("rankBelowWrapping", () => {
+  it("steps down one rank", () => {
+    expect(rankBelowWrapping(Rank.FIVE)).toBe(Rank.FOUR);
+  });
+
+  it("turns the corner from Ace to King", () => {
+    expect(rankBelowWrapping(Rank.ACE)).toBe(Rank.KING);
   });
 });
 

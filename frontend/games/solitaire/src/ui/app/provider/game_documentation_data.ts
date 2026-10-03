@@ -1192,4 +1192,64 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       },
     ],
   },
+  golf: {
+    title: "Golf",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Golf_(patience)",
+    screenshot: {
+      url: "./docs/screenshots/golf/overview.png",
+      caption:
+        "Golf board showing the stock and the foundation along the top, and seven face-up columns of five cards beneath.",
+      altText: "Golf solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Clear all seven columns by playing their cards onto the foundation, one rank up or down at a time.",
+      winCondition:
+        "Every column is empty. Cards left in the stock do not matter.",
+      quickOverview:
+        "Golf deals seven columns of five cards face-up and starts the foundation with one more. Any column's top card can be played onto the foundation if it is one rank above or below the foundation's top card, in any suit. When nothing can be played, turn the next stock card onto the foundation and carry on — but the stock goes through only once.",
+    },
+    detailedRules: {
+      layout: [
+        "Stock: 16 face-down cards at the top-left, turned one at a time.",
+        "Foundation: a single pile beside the stock, started with one card from the deal.",
+        "Tableau: 7 columns of 5 cards, all face-up.",
+      ],
+      cardMovement: [
+        "Press a column's top card to play it onto the foundation, or drag it there.",
+        "Press the stock to turn its top card onto the foundation, whatever its rank.",
+        "Nothing is ever placed on a column: cards only leave them.",
+      ],
+      sequenceBuilding: [
+        "Foundation: one rank HIGHER or LOWER than its top card, in ANY SUIT — a run can go up and down as it likes.",
+        "Nothing may be played on a King, so a King ends the run until the stock is turned.",
+      ],
+      specialRules: [
+        "One Pass: the stock is never recycled; once it is gone, the game ends when nothing more can be played.",
+        "Long Runs: the trick is to plan a chain up and down through several columns before turning the next stock card.",
+      ],
+    },
+    settingsAndVariants: [
+      {
+        optionId: "variant",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "Golf: the original — a King on the foundation blocks it until the next stock card is turned, and an Ace can only take a Two.",
+          },
+          {
+            value: 1,
+            effect:
+              "Queens on Kings: a common house rule — a Queen can be played on a King, so a King no longer blocks the foundation. Kings and Aces are still not adjacent.",
+          },
+          {
+            value: 2,
+            effect:
+              "Putt Putt: the ranks turn the corner, so a King takes a Queen or an Ace, and an Ace takes a Two or a King. Nothing ever blocks the foundation, which makes it the easiest of the three.",
+          },
+        ],
+      },
+    ],
+  },
 };

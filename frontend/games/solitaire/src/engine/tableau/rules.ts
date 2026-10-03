@@ -4,7 +4,9 @@ import {
   Rank,
   Suit,
   rankAbove,
+  rankAboveWrapping,
   rankBelow,
+  rankBelowWrapping,
 } from "@/engine/core/card/playing_card";
 
 /**
@@ -159,6 +161,59 @@ export function isAnySuitRun(lower: PlayingCard, upper: PlayingCard): boolean {
 }
 
 /**
+ * Returns whether `upper` may sit on `lower` as in a Penguin run: one rank
+ * down in the same suit, with an Ace taking a King.
+ */
+export function isSameSuitRunWrapping(
+  lower: PlayingCard,
+  upper: PlayingCard,
+): boolean {
+  return (
+    lower.suit === upper.suit && upper.rank === rankBelowWrapping(lower.rank)
+  );
+}
+
+/**
+ * Returns whether `upper` may sit on `lower` as in Canfield: one rank down in
+ * the other colour, with an Ace taking a King.
+ */
+export function isOrderedPairWrapping(
+  lower: PlayingCard,
+  upper: PlayingCard,
+): boolean {
+  return (
+    upper.rank === rankBelowWrapping(lower.rank) &&
+    isRed(lower) !== isRed(upper)
+  );
+}
+
+/**
+ * Returns whether `upper` may sit on `lower` as in Rainbow: one rank down in
+ * any suit, with an Ace taking a King.
+ */
+export function isAnySuitRunWrapping(
+  lower: PlayingCard,
+  upper: PlayingCard,
+): boolean {
+  return upper.rank === rankBelowWrapping(lower.rank);
+}
+
+/**
+ * Returns an adjacency that holds when the two cards are one rank apart either
+ * way, in any suit, as on a Golf foundation.
+ *
+ * @param wraps Whether an Ace and a King count as one rank apart.
+ */
+export function isAdjacentRank(
+  wraps: boolean,
+): (lower: PlayingCard, upper: PlayingCard) => boolean {
+  return (lower, upper) => {
+    const apart = Math.abs(lower.rank - upper.rank);
+    return apart === 1 || (wraps && apart === Rank.KING - Rank.ACE);
+  };
+}
+
+/**
  * Returns a build rule that lets a card land on a pile whose top card it may
  * sit on by `adjacent`.
  */
@@ -203,6 +258,43 @@ export const ascendingSameSuit: PlacementRule = (context) => {
     context.card.rank === rankAbove(topCard.rank)
   );
 };
+
+/**
+ * Builds up by one rank in the same suit, turning the corner from King to Ace:
+ * a foundation that starts on a rank the deal chooses.
+ */
+export const ascendingSameSuitWrapping: PlacementRule = buildsOn(
+  (lower, upper) =>
+    lower.suit === upper.suit && upper.rank === rankAboveWrapping(lower.rank),
+);
+
+/** Builds up by one rank regardless of suit: a Bristol or Sir Tommy foundation. */
+export const ascendingAnySuit: PlacementRule = buildsOn(
+  (lower, upper) => upper.rank === rankAbove(lower.rank),
+);
+
+/**
+ * Builds down by one rank in the same suit, with an Ace taking a King: the
+ * Penguin tableau.
+ */
+export const descendingSameSuitWrapping: PlacementRule = buildsOn(
+  isSameSuitRunWrapping,
+);
+
+/**
+ * Builds down by one rank in alternating colours, with an Ace taking a King:
+ * the Canfield tableau.
+ */
+export const descendingAlternatingColorWrapping: PlacementRule = buildsOn(
+  isOrderedPairWrapping,
+);
+
+/**
+ * Builds down by one rank in any suit, with an Ace taking a King: the Rainbow
+ * tableau.
+ */
+export const descendingAnySuitWrapping: PlacementRule =
+  buildsOn(isAnySuitRunWrapping);
 
 /**
  * The standard suit foundation: an Ace starts it, and each card after builds up

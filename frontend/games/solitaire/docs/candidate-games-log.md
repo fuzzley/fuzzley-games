@@ -53,7 +53,7 @@ need:
 - [x] 0. Commit this log.
 - [x] 1. Bisley.
 - [x] 2. Aces Up.
-- [ ] 3. E1, then Golf and Putt Putt.
+- [x] 3. E1, then Golf and Putt Putt.
 - [ ] 4. Calculation and Sir Tommy.
 - [ ] 5. E3, then Flower Garden.
 - [ ] 6. Bristol and Belvedere.
@@ -95,7 +95,7 @@ descendingSameSuit)`), top-only, and never refill. The deal pulls the
     profile in "More games" (Easy), the README, the screenshot and
     thumbnails.
   - Tests: `test/games/bisley/bisley_game.spec.ts`.
-- Step 2: Aces Up.
+- Step 2 (`55e63c6`): Aces Up.
   - `src/games/aces_up`: stock, four columns and a discard in one row
     (6 × 1, `designHeightPx` 1050 for a thirteen-card column).
     `DISCARD_PILE_ID` joined `src/games/common/pile_ids.ts`, since Nestor,
@@ -113,6 +113,34 @@ descendingSameSuit)`), top-only, and never refill. The deal pulls the
     session scratchpad, not the repository; it only inserts text at fixed
     markers, so the diffs read as hand edits.
   - Tests: `test/games/aces_up/aces_up_game.spec.ts`.
+- Step 3: E1, then Golf and Putt Putt.
+  - E1: `rankAboveWrapping` and `rankBelowWrapping` in
+    `src/engine/core/card/playing_card.ts`. In `src/engine/tableau/rules.ts`:
+    the wrapping adjacencies `isSameSuitRunWrapping` (Penguin),
+    `isOrderedPairWrapping` (Canfield) and `isAnySuitRunWrapping` (Rainbow),
+    with their builds `descending…Wrapping`; `isAdjacentRank(wraps)` for the
+    Golf family; and the foundations `ascendingSameSuitWrapping` and
+    `ascendingAnySuit`. All landed now, with tests, so later steps only use
+    them.
+  - `src/games/golf`: stock and foundation along the top, seven columns of
+    five beneath (7 × 2, `designHeightPx` 1020). The foundation is also the
+    waste: the stock turns onto it with `drawToWaste`. Columns have
+    `accept: null`; the foundation has `grab: none`.
+  - `GolfVariant`: Golf (nothing on a King), Queens on Kings (a house rule
+    the survey lists), and Putt Putt (wraps). One "Variant" option rather
+    than the survey's two, since Putt Putt makes the Kings rule moot.
+  - A single press plays a column card (`autoMoveCard`) or turns the stock,
+    as PySol does; `autoMoveFrom: []` so a double press does nothing more.
+    Checked in the browser with synthetic mouse events on the canvas (pointer
+    events do not reach Phaser; `mousedown` on the canvas and `mouseup` on
+    `window` do).
+  - Golf scoring (strokes, lower is better) is left out: it needs E6 or a
+    header label change, and the game is playable without it.
+  - A new "Golf family" in `FAMILIES`. A "Golf" entry (`golf`), a rules
+    page, a profile (Hard, Putt Putt Medium) with "Putt Putt" as a named
+    variant, the README, the screenshot and thumbnails.
+  - Tests: `test/games/golf/golf_game.spec.ts`, and E1 cases in
+    `rules.spec.ts` and `playing_card.spec.ts`.
 
 ## Picking it back up
 

@@ -13,6 +13,7 @@ import { scorpionGestures } from "@/games/scorpion/scorpion_gestures";
 import { spiderGestures } from "@/games/spider/spider_gestures";
 import { spideretteGestures } from "@/games/spiderette/spiderette_gestures";
 import { acesUpGestures } from "@/games/aces_up/aces_up_gestures";
+import { golfGestures } from "@/games/golf/golf_gestures";
 import { GameId, GameOf, catalogEntry } from "./game_catalog";
 
 /** Says what a press or a drop means in a particular game. */
@@ -46,6 +47,7 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
   bluemoon: montanaGestures,
   bisley: stocklessGestures,
   acesup: acesUpGestures,
+  golf: golfGestures,
 };
 
 /**

@@ -69,6 +69,9 @@ import {
   AcesUpSpaces,
   DEFAULT_ACES_UP_SPACES,
 } from "@/games/aces_up/aces_up_rules";
+import { GolfGame } from "@/games/golf/golf_game";
+import { GOLF_LAYOUT } from "@/games/golf/golf_layout";
+import { DEFAULT_GOLF_VARIANT, GolfVariant } from "@/games/golf/golf_rules";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -341,6 +344,20 @@ const ACES_UP_SPACES: GameOptionSpec<AcesUpSpaces> = {
   defaultValue: DEFAULT_ACES_UP_SPACES,
 };
 
+/** Which of the Golf family to deal. */
+const GOLF_VARIANT: GameOptionSpec<GolfVariant> = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Golf lets nothing onto a King; one house rule lets a Queen go there. Putt Putt turns the corner, so a King and an Ace are a rank apart both ways.",
+  choices: [
+    { value: GolfVariant.GOLF, label: "Golf" },
+    { value: GolfVariant.QUEENS_ON_KINGS, label: "Queens on Kings" },
+    { value: GolfVariant.PUTT_PUTT, label: "Putt Putt" },
+  ],
+  defaultValue: DEFAULT_GOLF_VARIANT,
+};
+
 /*
  * The entries, each declared with `satisfies` so it keeps the literal id and
  * game type the board registry is checked against.
@@ -605,6 +622,15 @@ const ACES_UP = {
     dealt(new AcesUpGame({ spaces: optionValue(values, ACES_UP_SPACES) })),
 } satisfies CatalogEntry<AcesUpGame>;
 
+const GOLF = {
+  id: "golf" as const,
+  name: "Golf",
+  options: [GOLF_VARIANT],
+  layout: GOLF_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(new GolfGame({ variant: optionValue(values, GOLF_VARIANT) })),
+} satisfies CatalogEntry<GolfGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -636,6 +662,7 @@ export const CATALOG_ENTRIES = [
   BLUE_MOON,
   BISLEY,
   ACES_UP,
+  GOLF,
 ] as const;
 
 /** Every game the application can put on the table. */
