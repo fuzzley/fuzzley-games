@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
-  Pile background placeholders, laid out as four 220x307 cells matching the
+  Pile background placeholders, laid out as six 220x307 cells matching the
   card frame size. Vector so tools/build-card-atlas.mjs can rasterize them at
   the same multiplier as the card faces; the geometry is measured from the
   original hand-drawn bitmaps these replaced, in stroke-centreline coordinates.
@@ -9,12 +9,14 @@
   Cell 1: card-placeholder-full-border-circle  (foundation piles)
   Cell 2: card-placeholder-full-border-reset   (stock pile, redeal affordance)
   Cell 3: card-placeholder-full-border         (plain closed slot)
+  Cell 4: card-placeholder-full-border-reset-2-of-2  (redeal, two of two left)
+  Cell 5: card-placeholder-full-border-reset-1-of-2  (redeal, one of two left)
 -->
 <svg
   xmlns="http://www.w3.org/2000/svg"
-  width="880"
+  width="1320"
   height="307"
-  viewBox="0 0 880 307"
+  viewBox="0 0 1320 307"
   version="1.1"
 >
   <g fill="none" stroke="#ffffff" stroke-linecap="butt" stroke-linejoin="round">
@@ -51,6 +53,36 @@
     <!-- card-placeholder-full-border -->
     <g id="card-placeholder-full-border" transform="translate(660,0)">
       <rect x="10.5" y="12.5" width="193" height="283" rx="10.5" stroke-width="5" />
+    </g>
+
+    <!--
+      The reset placeholder with a pip per redeal inside the ring, where there
+      is room for pips large enough to read on a phone: filled for each redeal
+      left, hollow for each one spent. Both pips are 18 units in radius.
+    -->
+    <g id="card-placeholder-full-border-reset-2-of-2" transform="translate(880,0)">
+      <rect x="13.5" y="12.5" width="193" height="283" rx="10.5" stroke-width="5" />
+      <path d="M 48.4,201.0 A 78,78 0 1 1 156.4,214.7" stroke-width="5" />
+      <path
+        d="M 71.7,187.5 L 110.5,228.5 L 56.0,241.5 Z"
+        fill="#ffffff"
+        stroke="none"
+      />
+      <circle cx="84" cy="152.4" r="18" fill="#ffffff" stroke="none" />
+      <circle cx="135" cy="152.4" r="18" fill="#ffffff" stroke="none" />
+    </g>
+
+    <g id="card-placeholder-full-border-reset-1-of-2" transform="translate(1100,0)">
+      <rect x="13.5" y="12.5" width="193" height="283" rx="10.5" stroke-width="5" />
+      <path d="M 48.4,201.0 A 78,78 0 1 1 156.4,214.7" stroke-width="5" />
+      <path
+        d="M 71.7,187.5 L 110.5,228.5 L 56.0,241.5 Z"
+        fill="#ffffff"
+        stroke="none"
+      />
+      <circle cx="84" cy="152.4" r="18" fill="#ffffff" stroke="none" />
+      <!-- Stroked inside the filled pip's edge, so both are the same size. -->
+      <circle cx="135" cy="152.4" r="14.5" stroke-width="7" />
     </g>
   </g>
 </svg>

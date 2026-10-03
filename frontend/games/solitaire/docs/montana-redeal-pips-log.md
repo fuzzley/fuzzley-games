@@ -36,7 +36,7 @@ up again from here. Update it with every commit.
 - [x] 1. Commit the options doc and this log.
 - [x] 2. Engine: let a game choose a placeholder's artwork and whether its
       empty slot is pressable, frame by frame.
-- [ ] 3. Art: add the pip placeholders and rebuild the atlases.
+- [x] 3. Art: add the pip placeholders and rebuild the atlases.
 - [ ] 4. Montana: draw the pips, and make the marker inactive when it cannot
       redeal. Update the rules page.
 - [ ] 5. Klondike family: make the empty stock inactive when the waste is empty.
@@ -48,7 +48,7 @@ up again from here. Update it with every commit.
 ### 2026-10-03
 
 - Step 1 (`67d0b94`): wrote this log and committed it with the options doc.
-- Step 2: the engine hook.
+- Step 2 (`e3894c4`): the engine hook.
   - `TableView` and `TableGame` gained `pileBackgroundKey(pile)` and
     `isEmptySlotActionable(pile)`. By default they read the zone's
     `backgroundKey` and `emptyIsActionable`, and a game overrides them.
@@ -63,6 +63,18 @@ up again from here. Update it with every commit.
     anchor, as Phaser does. `StockOverrideTableGame` in
     `test/support/fake_table/game.ts` lets a spec set the stock's artwork and
     whether it is pressable.
+- Step 3: the pip artwork.
+  - Two new frames in `card_placeholders.svg`, which is now six cells wide:
+    `card-placeholder-full-border-reset-2-of-2` and
+    `card-placeholder-full-border-reset-1-of-2`. Each is the reset placeholder
+    with two pips of radius 18 inside the ring: filled for a redeal left,
+    stroked (width 7, inside the same edge) for one spent.
+  - Inside the ring rather than under the arrow, which the options doc sketched.
+    A test render at phone and desktop sizes showed pips under the arrow had
+    to be too small to read on a phone.
+  - `yarn build:atlas` rebuilt all three decks with no new pages. Each 1x page
+    kept its size (+3 KB); each 2x second page grew from 1792 to 2688 px wide
+    (+10 KB).
 
 ## Picking it back up
 
