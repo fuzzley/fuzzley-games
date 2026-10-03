@@ -111,6 +111,12 @@ import {
 } from "@/games/canfield/canfield_rules";
 import { PenguinGame } from "@/games/penguin/penguin_game";
 import { PENGUIN_LAYOUT } from "@/games/penguin/penguin_layout";
+import { BlackHoleGame } from "@/games/black_hole/black_hole_game";
+import {
+  ALL_IN_A_ROW_LAYOUT,
+  BLACK_HOLE_LAYOUT,
+} from "@/games/black_hole/black_hole_layout";
+import { BlackHoleVariant } from "@/games/black_hole/black_hole_rules";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -830,6 +836,27 @@ const PENGUIN = {
   create: () => dealt(new PenguinGame()),
 } satisfies CatalogEntry<PenguinGame>;
 
+const BLACK_HOLE = {
+  id: "blackhole" as const,
+  name: "Black Hole",
+  options: [],
+  layout: BLACK_HOLE_LAYOUT,
+  create: () => dealt(new BlackHoleGame()),
+} satisfies CatalogEntry<BlackHoleGame>;
+
+/*
+ * All in a Row plays by Black Hole's rules on thirteen columns, a grid of its
+ * own, so it is an entry of its own.
+ */
+const ALL_IN_A_ROW = {
+  id: "allinarow" as const,
+  name: "All in a Row",
+  options: [],
+  layout: ALL_IN_A_ROW_LAYOUT,
+  create: () =>
+    dealt(new BlackHoleGame({ variant: BlackHoleVariant.ALL_IN_A_ROW })),
+} satisfies CatalogEntry<BlackHoleGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -871,6 +898,8 @@ export const CATALOG_ENTRIES = [
   TREFOIL,
   CANFIELD,
   PENGUIN,
+  BLACK_HOLE,
+  ALL_IN_A_ROW,
 ] as const;
 
 /** Every game the application can put on the table. */

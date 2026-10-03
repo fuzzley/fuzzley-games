@@ -558,5 +558,20 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       decks: 1,
       allCardsVisible: true,
     },
+    blackhole: {
+      family: "golf",
+      tagline:
+        "Play every card into the hole, a rank up or down round the corner.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 1,
+      allCardsVisible: true,
+    },
+    allinarow: {
+      family: "golf",
+      tagline: "Thirteen columns of four, played onto one pile from any start.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 1,
+      allCardsVisible: true,
+    },
   },
 };
