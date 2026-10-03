@@ -66,7 +66,7 @@ need:
 - [x] 13. Grandfather's Clock.
 - [x] 14. E4, then Pyramid.
 - [x] 15. TriPeaks.
-- [ ] 16. E5, then Beleaguered Castle, Streets and Alleys, Citadel and
+- [x] 16. E5, then Beleaguered Castle, Streets and Alleys, Citadel and
       Fortress.
 - [ ] 17. Poker Squares.
 - [ ] 18. The README, the survey's status, the skill, `yarn verify` and
@@ -414,7 +414,7 @@ descendingAnySuit)`, top-only.
   - Tests: `test/games/pyramid/pyramid_game.spec.ts`, `uncovered` cases in
     `zone.spec.ts`, and a preference case in
     `drop_geometry_resolve.spec.ts`.
-- Step 15: TriPeaks.
+- Step 15 (`8b20bf0`): TriPeaks.
   - `src/games/tri_peaks`: `PEAK_PLACES` lists the twenty-eight places row by
     row from the tips (3, 6, 9, then a base of 10 at columns 0–9), each
     covered by the cards half a column either side of it in the row below,
@@ -443,18 +443,49 @@ descendingAnySuit)`, top-only.
     `minOverlapArea`. A throwaway spec over 2000 random deals showed the
     misses before the fix, and a test pins the sliver case.
   - Tests: `test/games/tri_peaks/tri_peaks_game.spec.ts`.
+- Step 16: E5, then Beleaguered Castle, Streets and Alleys, Citadel and
+  Fortress.
+  - E5: `pileWidth` beside `pileHeight` in
+    `src/engine/render/layout/pile_layout.ts`; `computeDropGeometries` now
+    sizes a drop area's width by it, so a row fanned sideways takes a drop
+    anywhere along its length. No `fan-left`: both wings fan right, which
+    puts a left-wing row's free card next to the foundations, the easier
+    reach.
+  - `src/games/beleaguered_castle` (`CastleGame`): a `VARIANT_RULES` table
+    pairs each variant's rows per wing, whether the Aces start home, whether
+    the deal sends cards home, and the occupied-row build. Rows fan right with
+    a 55-unit gap and no limit (`ROW_LAYOUT`), grab top-only, take any card
+    when empty. Foundations stand in column 4 (centred at fractional rows for
+    Fortress's five-row wings), the left wing at column 0 and the right at
+    column 5, so a row holds fifteen cards before it reaches the foundations
+    (9 × 4, or 9 × 5 for Fortress; no `designHeightPx`).
+  - The deal goes round the rows in turn until the deck is out: Beleaguered
+    Castle and Citadel place the Aces first (six a row); Streets and Alleys
+    deals all 52 (seven to the left wing, six to the right); Citadel sends a
+    card the foundations would take straight home; Fortress deals 52 over ten
+    rows (two of six, eight of five) and builds up or down in suit.
+  - Entries "Beleaguered Castle" (`beleagueredcastle`, a "Variant" option
+    with Streets and Alleys and Citadel, both named variants) and "Fortress"
+    (`fortress`, its own grid), `stocklessGestures`, a new "Castle family",
+    rules pages, profiles (Beleaguered Castle Medium, Streets and Alleys and
+    Fortress Hard, Citadel Easy), the README, screenshots and thumbnails.
+    Checked in the browser: a double press on a row's free Two sent it home.
+  - `game_search.spec.ts` expected "streets" to find Josephine (alias
+    Streets) first; Streets and Alleys, an exact name, now rightly ranks
+    first, so the case says so, Josephine is still checked to be found, and
+    "demon" (Canfield) keeps an alias case.
+  - Tests: `test/games/beleaguered_castle/castle_game.spec.ts` and a
+    sideways-fan case in `drop_geometry.spec.ts`.
 
 ## Next
 
-Step 16: E5, then Beleaguered Castle, Streets and Alleys, Citadel and
-Fortress. E5: a `pileWidth` alongside `pileHeight` in
-`src/engine/render/layout/pile_layout.ts`, so `computeDropGeometries` grows
-a horizontal fan's drop area along its length. Then the Castle family: rows
-of cards fanned sideways (`fan-right` with a large `maxVisible`), four wings
-each side of a column of foundations, top-only, `byEmptiness(anyCard,
-descendingAnySuit)`; Streets and Alleys shuffles the Aces in, Citadel sends
-cards home during the deal; Fortress (ten rows, up or down in suit, no Aces
-placed) is an entry of its own.
+Step 17: Poker Squares. Twenty-five cells taking a card only from the hand
+(Calculation's one-card hand, drawn by pressing the stock while the hand is
+empty), `grab: none` once filled. A pure hand evaluator in the game's
+directory; after each placement update `state.score` and record the change
+as the move's `scoreDelta` so undo takes it back. Options: American or
+English scoring. `isWon` when the grid is full and the score reaches the
+system's threshold (200 or 70).
 
 Screenshots: open each new entry in a fresh isolated browser context (a game
 left in progress raises the "switch games?" confirmation). In a development

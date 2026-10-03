@@ -44,6 +44,8 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Grandfather's Clock**: Twelve foundations laid round a dial, each built up in suit round the corner to the hour it stands at, from eight open columns.
 - **Pyramid**: A pyramid of twenty-eight cards taken apart by pairing free cards that total thirteen, with Kings going alone and a stock turned one card at a time; the goal can be every card or the pyramid alone (Relaxed Pyramid), with one pass or three.
 - **TriPeaks**: Three overlapping peaks cleared onto a single waste one rank up or down with King and Ace adjacent, each face-down card turning up once nothing covers it.
+- **Beleaguered Castle**: Eight open rows fanned sideways around a column of Aces, built down regardless of suit one card at a time; Streets and Alleys and Citadel are its variant options.
+- **Fortress**: Ten open rows fanned sideways, built up or down in suit, with every Ace buried.
 
 ## Development
 

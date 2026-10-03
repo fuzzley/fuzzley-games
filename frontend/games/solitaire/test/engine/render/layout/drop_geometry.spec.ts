@@ -446,6 +446,25 @@ describe("computeDropGeometries", () => {
     );
   });
 
+  it("grows a target across with the cards fanned along it", () => {
+    const row = new CardPile<PlayingCard>("row");
+    row.addCard(makePlayingCard({ id: "first" }));
+    row.addCard(makePlayingCard({ id: "second" }));
+    const fanned = { kind: "fan-right", gap: 55, maxVisible: 52 } as const;
+
+    const [geometry] = computeDropGeometries(
+      [{ pile: row, layout: fanned }],
+      new Map([["row", { x: 0, y: 0 }]]),
+      CARD_SIZE,
+      1,
+    );
+
+    expect([geometry?.width, geometry?.height]).toEqual([
+      CARD_WIDTH_PX + 55,
+      CARD_HEIGHT_PX,
+    ]);
+  });
+
   it("leaves a foundation at a single card however many it holds", () => {
     relocate(game, "card-hearts-ace", game.foundations[0]);
     relocate(game, "card-hearts-2", game.foundations[0]);

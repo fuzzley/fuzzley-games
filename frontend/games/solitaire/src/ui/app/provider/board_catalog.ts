@@ -70,6 +70,8 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
   grandfathersclock: stocklessGestures,
   pyramid: pyramidGestures,
   tripeaks: triPeaksGestures,
+  beleagueredcastle: stocklessGestures,
+  fortress: stocklessGestures,
 };
 
 /**

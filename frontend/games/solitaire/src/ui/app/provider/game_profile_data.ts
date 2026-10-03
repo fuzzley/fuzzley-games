@@ -12,6 +12,7 @@ import { MonteCarloVariant } from "@/games/monte_carlo/monte_carlo_rules";
 import { LaBelleLucieVariant } from "@/games/la_belle_lucie/la_belle_lucie_rules";
 import { CanfieldVariant } from "@/games/canfield/canfield_rules";
 import { PyramidGoal } from "@/games/pyramid/pyramid_rules";
+import { CastleVariant } from "@/games/beleaguered_castle/castle_rules";
 import {
   Difficulty,
   GameFamilyProfile,
@@ -91,6 +92,12 @@ const FAMILIES: readonly GameFamilyProfile[] = [
     name: "Canfield family",
     description:
       "Feed four columns from a reserve, with foundations that start wherever the deal says.",
+  },
+  {
+    id: "castle",
+    name: "Castle family",
+    description:
+      "Rows fanned sideways either side of the foundations, every card in view and moved one at a time.",
   },
   {
     id: "other",
@@ -610,6 +617,41 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       decks: 1,
       allCardsVisible: false,
       aliases: ["Three Peaks", "Tri Towers"],
+    },
+    beleagueredcastle: {
+      family: "castle",
+      tagline: "Eight open rows around the Aces, one card at a time.",
+      difficulty: {
+        optionId: "variant",
+        byChoice: {
+          [CastleVariant.BELEAGUERED_CASTLE]: Difficulty.MEDIUM,
+          [CastleVariant.STREETS_AND_ALLEYS]: Difficulty.HARD,
+          [CastleVariant.CITADEL]: Difficulty.EASY,
+        },
+      },
+      decks: 1,
+      allCardsVisible: true,
+      variants: [
+        {
+          name: "Streets and Alleys",
+          values: { variant: CastleVariant.STREETS_AND_ALLEYS },
+          tagline: "Beleaguered Castle with the Aces dealt into the rows.",
+          difficulty: Difficulty.HARD,
+        },
+        {
+          name: "Citadel",
+          values: { variant: CastleVariant.CITADEL },
+          tagline: "Beleaguered Castle sending cards home as they are dealt.",
+          difficulty: Difficulty.EASY,
+        },
+      ],
+    },
+    fortress: {
+      family: "castle",
+      tagline: "Ten open rows built up or down in suit, Aces buried.",
+      difficulty: Difficulty.HARD,
+      decks: 1,
+      allCardsVisible: true,
     },
   },
 };

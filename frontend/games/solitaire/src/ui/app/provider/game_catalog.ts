@@ -129,6 +129,15 @@ import {
 } from "@/games/pyramid/pyramid_rules";
 import { TriPeaksGame } from "@/games/tri_peaks/tri_peaks_game";
 import { TRI_PEAKS_LAYOUT } from "@/games/tri_peaks/tri_peaks_layout";
+import { CastleGame } from "@/games/beleaguered_castle/castle_game";
+import {
+  BELEAGUERED_CASTLE_LAYOUT,
+  FORTRESS_LAYOUT,
+} from "@/games/beleaguered_castle/castle_layout";
+import {
+  CastleVariant,
+  DEFAULT_CASTLE_VARIANT,
+} from "@/games/beleaguered_castle/castle_rules";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -507,6 +516,26 @@ const PYRAMID_PASSES: GameOptionSpec<PyramidPasses> = {
     { value: 3, label: "3 Passes" },
   ],
   defaultValue: DEFAULT_PYRAMID_PASSES,
+};
+
+/** Which of the games on Beleaguered Castle's eight rows to deal. */
+const CASTLE_VARIANT: GameOptionSpec<CastleVariant> = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Streets and Alleys deals the Aces into the rows instead of the foundations; Citadel sends every card it can home while dealing.",
+  choices: [
+    {
+      value: CastleVariant.BELEAGUERED_CASTLE,
+      label: "Beleaguered Castle",
+    },
+    {
+      value: CastleVariant.STREETS_AND_ALLEYS,
+      label: "Streets and Alleys",
+    },
+    { value: CastleVariant.CITADEL, label: "Citadel" },
+  ],
+  defaultValue: DEFAULT_CASTLE_VARIANT,
 };
 
 /*
@@ -925,6 +954,27 @@ const TRI_PEAKS = {
   create: () => dealt(new TriPeaksGame()),
 } satisfies CatalogEntry<TriPeaksGame>;
 
+const BELEAGUERED_CASTLE = {
+  id: "beleagueredcastle" as const,
+  name: "Beleaguered Castle",
+  options: [CASTLE_VARIANT],
+  layout: BELEAGUERED_CASTLE_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(new CastleGame({ variant: optionValue(values, CASTLE_VARIANT) })),
+} satisfies CatalogEntry<CastleGame>;
+
+/*
+ * Fortress deals ten rows rather than eight, a grid of its own, so it is an
+ * entry of its own.
+ */
+const FORTRESS = {
+  id: "fortress" as const,
+  name: "Fortress",
+  options: [],
+  layout: FORTRESS_LAYOUT,
+  create: () => dealt(new CastleGame({ variant: CastleVariant.FORTRESS })),
+} satisfies CatalogEntry<CastleGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -971,6 +1021,8 @@ export const CATALOG_ENTRIES = [
   GRANDFATHERS_CLOCK,
   PYRAMID,
   TRI_PEAKS,
+  BELEAGUERED_CASTLE,
+  FORTRESS,
 ] as const;
 
 /** Every game the application can put on the table. */
