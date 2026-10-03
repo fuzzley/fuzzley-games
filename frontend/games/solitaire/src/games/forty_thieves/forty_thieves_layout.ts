@@ -26,5 +26,8 @@ export const FORTY_THIEVES_LAYOUT = fortyThievesLayout(
 /** Maria's board: nine columns centred under a ten-wide top row. */
 export const MARIA_LAYOUT = fortyThievesLayout(FortyThievesVariant.MARIA);
 
-/** Limited's board: twelve columns, the widest in the family. */
+/** Limited's board: twelve columns. */
 export const LIMITED_LAYOUT = fortyThievesLayout(FortyThievesVariant.LIMITED);
+
+/** Lucas's board: thirteen columns, the widest in the family. */
+export const LUCAS_LAYOUT = fortyThievesLayout(FortyThievesVariant.LUCAS);

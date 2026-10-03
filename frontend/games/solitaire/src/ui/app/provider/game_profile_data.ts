@@ -291,6 +291,13 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       decks: 2,
       allCardsVisible: false,
     },
+    lucas: {
+      family: "fortythieves",
+      tagline: "Thirteen columns of three, with the Aces already home.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 2,
+      allCardsVisible: false,
+    },
     doubleklondike: {
       family: "klondike",
       tagline: "Klondike from two decks, on nine columns.",

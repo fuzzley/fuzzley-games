@@ -36,7 +36,7 @@ Add every game in Part A of the survey:
 - [x] 4. Wasp and Scorpion II.
 - [x] 5. Challenge and Super Challenge FreeCell.
 - [x] 6. Indian and Number Ten.
-- [ ] 7. Lucas.
+- [x] 7. Lucas.
 - [ ] 8. Mrs. Mop.
 - [ ] 9. Addiction, Blue Moon and Red Moon.
 - [ ] 10. Screenshots and thumbnails for the new entries, the README, the
@@ -125,7 +125,7 @@ Add every game in Part A of the survey:
     running on port 9000. Re-encoded losslessly with sharp at compression
     level 9, then `yarn build:thumbs`, which rewrote no other game's images.
   - Tests: `challenge_freecell.spec.ts` and `pull_cards.spec.ts`.
-- Step 6: Indian and Number Ten.
+- Step 6 (`5e0c898`): Indian and Number Ten.
   - Two rows in Forty Thieves' `VARIANT_RULES`: `INDIAN` (5: any other suit,
     top-only, 1 buried, 3 per column) and `NUMBER_TEN` (6: alternating
     colours, `isOrderedPair` runs, 2 buried, 4 per column). The deal and the
@@ -133,6 +133,17 @@ Add every game in Part A of the survey:
   - Choices in `FORTY_THIEVES_VARIANT`, rules-page entries, named variants
     (both Medium), the README line, and Indian and Number Ten blocks in
     `forty_thieves_game.spec.ts`.
+- Step 7: Lucas.
+  - `FortyThievesVariant.LUCAS` (7): same-suit runs, 13 columns of 3, and a
+    new `acesStartOnFoundations` field (false for every other row).
+  - `dealFortyThievesLayout` now takes the foundations. For Lucas it pulls
+    the Aces with `pullCards` and lays one on each foundation, leaving 96:
+    39 for the columns and 57 for the stock.
+  - `LUCAS_LAYOUT`, a "Lucas" entry (`lucas`) with `fortyThievesGestures`,
+    a rules page, a Forty Thieves-family profile (Medium), the README, and
+    the screenshot and thumbnails, captured as in step 5. Limited's rules page
+    no longer calls it the widest board in the family.
+  - Tests: a Lucas block in `forty_thieves_game.spec.ts`.
 
 ## Picking it back up
 

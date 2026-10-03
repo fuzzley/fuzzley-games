@@ -37,6 +37,7 @@ import { FortyThievesVariant } from "@/games/forty_thieves/forty_thieves_rules";
 import {
   FORTY_THIEVES_LAYOUT,
   LIMITED_LAYOUT,
+  LUCAS_LAYOUT,
   MARIA_LAYOUT,
 } from "@/games/forty_thieves/forty_thieves_layout";
 import { MontanaGame } from "@/games/montana/montana_game";
@@ -432,8 +433,8 @@ const FORTY_THIEVES = {
 } satisfies CatalogEntry<FortyThievesGame>;
 
 /*
- * Maria and Limited are entries of their own rather than Forty Thieves variants
- * because they change the grid, not just the rules on it.
+ * Maria, Limited and Lucas are entries of their own rather than Forty Thieves
+ * variants because they change the grid, not just the rules on it.
  */
 
 const MARIA = {
@@ -452,6 +453,15 @@ const LIMITED = {
   layout: LIMITED_LAYOUT,
   create: () =>
     dealt(new FortyThievesGame({ variant: FortyThievesVariant.LIMITED })),
+} satisfies CatalogEntry<FortyThievesGame>;
+
+const LUCAS = {
+  id: "lucas" as const,
+  name: "Lucas",
+  options: [],
+  layout: LUCAS_LAYOUT,
+  create: () =>
+    dealt(new FortyThievesGame({ variant: FortyThievesVariant.LUCAS })),
 } satisfies CatalogEntry<FortyThievesGame>;
 
 const MONTANA = {
@@ -513,6 +523,7 @@ export const CATALOG_ENTRIES = [
   FORTY_THIEVES,
   MARIA,
   LIMITED,
+  LUCAS,
   DOUBLE_KLONDIKE,
   MONTANA,
 ] as const;
