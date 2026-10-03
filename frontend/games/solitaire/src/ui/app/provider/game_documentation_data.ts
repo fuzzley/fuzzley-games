@@ -1252,4 +1252,64 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       },
     ],
   },
+  calculation: {
+    title: "Calculation",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Calculation_(card_game)",
+    screenshot: {
+      url: "./docs/screenshots/calculation/overview.png",
+      caption:
+        "Calculation board showing the stock and the hand at the left, the four foundations started with an Ace, a Two, a Three and a Four, and four empty waste piles beneath them.",
+      altText: "Calculation solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Build all four foundations up to their King, each by its own interval, regardless of suit.",
+      winCondition:
+        "All 52 cards are on the foundations, each ending on a King.",
+      quickOverview:
+        "Calculation starts four foundations with an Ace, a Two, a Three and a Four. The first counts up in ones, the second in twos, the third in threes and the fourth in fours, counting on past the King from the Ace. Turn the stock one card at a time and put each card on a foundation or park it on one of four waste piles — where it waits, buried under whatever you park on it later.",
+    },
+    detailedRules: {
+      layout: [
+        "Stock: the face-down cards at the top-left, turned one at a time.",
+        "Hand: the card just turned, beside the stock, waiting to be placed.",
+        "Foundations: 4 piles started with an Ace, a Two, a Three and a Four, in any suits.",
+        "Waste: 4 piles beneath the foundations, initially empty.",
+      ],
+      cardMovement: [
+        "Press the stock to turn its top card into the hand. The next card can be turned only once the hand is empty.",
+        "The card in the hand must go to a foundation or onto any waste pile.",
+        "Only the top card of a waste pile can move, and only to a foundation.",
+        "Double-press a card in the hand or on a waste pile to send it to a foundation that takes it.",
+      ],
+      sequenceBuilding: [
+        "Foundation 1: A 2 3 4 5 6 7 8 9 10 J Q K — up in ones.",
+        "Foundation 2: 2 4 6 8 10 Q A 3 5 7 9 J K — up in twos.",
+        "Foundation 3: 3 6 9 Q 2 5 8 J A 4 7 10 K — up in threes.",
+        "Foundation 4: 4 8 Q 3 7 J 2 6 10 A 5 9 K — up in fours.",
+        "Suits never matter, and every foundation ends on its King.",
+      ],
+      specialRules: [
+        "One Pass: the stock is never recycled.",
+        "Waste Discipline: a waste pile is a stack, not a store — plan each one to come off in the order its foundation will want, high cards underneath. Kings are usually best kept to one pile, since every foundation ends on one.",
+      ],
+    },
+    settingsAndVariants: [
+      {
+        optionId: "variant",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "Calculation: the foundations start on an Ace, a Two, a Three and a Four, and build by ones, twos, threes and fours.",
+          },
+          {
+            value: 1,
+            effect:
+              "Sir Tommy, also called Old Patience: the foundations start empty, each begun by an Ace as one turns up and built up by one to the King, regardless of suit. The waste piles work just as in Calculation.",
+          },
+        ],
+      },
+    ],
+  },
 };
