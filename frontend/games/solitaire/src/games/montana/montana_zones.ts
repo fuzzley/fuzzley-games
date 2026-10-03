@@ -1,10 +1,7 @@
 import { ZoneSpec } from "@/engine/tableau/zone";
 import { zoneAt } from "@/engine/tableau/zone_builder";
 import { STACKED_PILE_LAYOUT } from "../common/pile_layouts";
-import {
-  PLAIN_PLACEHOLDER,
-  RECYCLING_STOCK_PLACEHOLDER,
-} from "../common/zone_presets";
+import { PLAIN_PLACEHOLDER } from "../common/zone_presets";
 import {
   COLUMN_COUNT,
   MontanaRole,
@@ -14,6 +11,16 @@ import {
 
 /** The stable id of the redeal marker. */
 export const REDEAL_PILE_ID = "redeal";
+
+/**
+ * The redeal marker's artwork while it can redeal, indexed by how many
+ * redeals are spent: a recycle arrow with a pip per redeal, filled for each
+ * one left.
+ */
+export const REDEAL_MARKER_PLACEHOLDERS = [
+  "card-placeholder-full-border-reset-2-of-2",
+  "card-placeholder-full-border-reset-1-of-2",
+] as const;
 
 /**
  * How many grid columns the board is wide: the thirteen of the grid plus one
@@ -78,7 +85,8 @@ function buildZoneSpecs(): readonly ZoneSpec[] {
       grab: { kind: "none" },
       draggable: false,
       face: "always-down",
-      backgroundKey: RECYCLING_STOCK_PLACEHOLDER,
+      // How it starts out; the game redraws it as redeals are spent.
+      backgroundKey: REDEAL_MARKER_PLACEHOLDERS[0],
       // Pressing the empty slot is the whole point of it.
       emptyIsActionable: true,
     }),

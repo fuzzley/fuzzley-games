@@ -37,7 +37,7 @@ up again from here. Update it with every commit.
 - [x] 2. Engine: let a game choose a placeholder's artwork and whether its
       empty slot is pressable, frame by frame.
 - [x] 3. Art: add the pip placeholders and rebuild the atlases.
-- [ ] 4. Montana: draw the pips, and make the marker inactive when it cannot
+- [x] 4. Montana: draw the pips, and make the marker inactive when it cannot
       redeal. Update the rules page.
 - [ ] 5. Klondike family: make the empty stock inactive when the waste is empty.
 - [ ] 6. Retake Montana's screenshot and thumbnails, update the skills and the
@@ -63,7 +63,7 @@ up again from here. Update it with every commit.
     anchor, as Phaser does. `StockOverrideTableGame` in
     `test/support/fake_table/game.ts` lets a spec set the stock's artwork and
     whether it is pressable.
-- Step 3: the pip artwork.
+- Step 3 (`516d9ea`): the pip artwork.
   - Two new frames in `card_placeholders.svg`, which is now six cells wide:
     `card-placeholder-full-border-reset-2-of-2` and
     `card-placeholder-full-border-reset-1-of-2`. Each is the reset placeholder
@@ -75,6 +75,17 @@ up again from here. Update it with every commit.
   - `yarn build:atlas` rebuilt all three decks with no new pages. Each 1x page
     kept its size (+3 KB); each 2x second page grew from 1792 to 2688 px wide
     (+10 KB).
+- Step 4: Montana.
+  - `REDEAL_MARKER_PLACEHOLDERS` in `montana_zones.ts` lists the marker's
+    artwork by redeals spent, and the zone starts on the first.
+  - `MontanaGame` overrides `pileBackgroundKey` and `isEmptySlotActionable` for
+    the marker. While `canRedeal`, it shows the pips for `redealsUsed` and is
+    pressable. Otherwise it shows `CLOSED_STOCK_PLACEHOLDER` and is not.
+  - Undo, restore and a new deal need no extra code: the view asks every frame.
+  - The rules page describes the pips and the plain outline.
+  - Tests in `montana_game.spec.ts` cover each state. They also check that
+    every deck's atlas holds the marker's artwork, using `import.meta.glob`
+    over the six manifests.
 
 ## Picking it back up
 

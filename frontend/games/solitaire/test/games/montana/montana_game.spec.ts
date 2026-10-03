@@ -8,7 +8,11 @@ import {
   COLUMN_COUNT,
   ROW_COUNT,
 } from "@/games/montana/montana_rules";
-import { REDEAL_PILE_ID } from "@/games/montana/montana_zones";
+import {
+  REDEAL_MARKER_PLACEHOLDERS,
+  REDEAL_PILE_ID,
+} from "@/games/montana/montana_zones";
+import { CLOSED_STOCK_PLACEHOLDER } from "@/games/common/zone_presets";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
 
@@ -349,6 +353,110 @@ describe("MontanaGame redeal", () => {
     game.undo();
 
     expect(game.redealsRemaining).toBe(MAX_REDEALS);
+  });
+});
+
+describe("the Montana redeal marker", () => {
+  let game: MontanaGame;
+
+  beforeEach(() => {
+    game = newGame();
+  });
+
+  /** Returns the artwork the marker shows now. */
+  function markerArtwork(): string | undefined {
+    return game.pileBackgroundKey(game.getPileById(REDEAL_PILE_ID)!);
+  }
+
+  /** Returns whether pressing the marker would do something now. */
+  function markerPressable(): boolean {
+    return game.isEmptySlotActionable(game.getPileById(REDEAL_PILE_ID)!);
+  }
+
+  /** Spends every redeal the game allows. */
+  function spendEveryRedeal(): void {
+    for (let used = 0; used < MAX_REDEALS; used++) {
+      game.redeal();
+    }
+  }
+
+  it("shows a filled pip for each redeal on a fresh deal", () => {
+    expect(markerArtwork()).toBe("card-placeholder-full-border-reset-2-of-2");
+  });
+
+  it("hollows a pip when a redeal is spent", () => {
+    game.redeal();
+
+    expect(markerArtwork()).toBe("card-placeholder-full-border-reset-1-of-2");
+  });
+
+  it("fills the pip again when the redeal is undone", () => {
+    game.redeal();
+
+    game.undo();
+
+    expect(markerArtwork()).toBe("card-placeholder-full-border-reset-2-of-2");
+  });
+
+  it("shows the plain outline once every redeal is spent", () => {
+    spendEveryRedeal();
+
+    expect(markerArtwork()).toBe("card-placeholder-full-border");
+  });
+
+  it("shows the plain outline when there is nothing to gather", () => {
+    oneMoveFromSolved(game);
+    game.moveCardToPile(
+      cardId(Suit.CLUB, Rank.KING),
+      cell(game, ROW_COUNT - 1, 11).id,
+    );
+
+    expect(markerArtwork()).toBe("card-placeholder-full-border");
+  });
+
+  it("can be pressed while a redeal is left", () => {
+    game.redeal();
+
+    expect(markerPressable()).toBe(true);
+  });
+
+  it("cannot be pressed once every redeal is spent", () => {
+    spendEveryRedeal();
+
+    expect(markerPressable()).toBe(false);
+  });
+
+  it("leaves the cells drawn over their own placeholder", () => {
+    spendEveryRedeal();
+
+    expect(game.pileBackgroundKey(cell(game, 0, 0))).toBe("card-placeholder");
+  });
+
+  it("has artwork for every redeal the game allows", () => {
+    expect(REDEAL_MARKER_PLACEHOLDERS.length).toBe(MAX_REDEALS);
+  });
+
+  it("draws only artwork every deck's atlas holds", () => {
+    const manifests = Object.values(
+      import.meta.glob<{
+        textures: { frames: { filename: string }[] }[];
+      }>("/src/engine/render/assets/sprites/atlas/*/*/card_assets_atlas.json", {
+        eager: true,
+        import: "default",
+      }),
+    );
+    const artwork = [...REDEAL_MARKER_PLACEHOLDERS, CLOSED_STOCK_PLACEHOLDER];
+
+    const missing = manifests.flatMap((manifest) => {
+      const frames = new Set(
+        manifest.textures.flatMap((texture) =>
+          texture.frames.map((frame) => frame.filename),
+        ),
+      );
+      return artwork.filter((key) => !frames.has(key));
+    });
+
+    expect([manifests.length, missing]).toEqual([6, []]);
   });
 });
 
