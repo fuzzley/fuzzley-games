@@ -29,6 +29,7 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Blue Moon**: Montana with the Aces in play, fixed at the start of four 14-cell rows; Red Moon, which deals the gaps beside the Aces, is its deal option.
 - **Bisley**: Thirteen open columns building up or down in suit, played onto foundations that climb from each Ace and descend from each King.
 - **Aces Up**: Four columns dealt a card at a time, discarding every card a higher card of its suit outranks until only the Aces remain; spaces can take any card, or only Aces.
+- **Golf**: Seven open columns cleared onto a single foundation one rank up or down at a time, with a one-pass stock; Golf, Queens on Kings, and Putt Putt, which turns the corner from King to Ace.
 
 ## Development
 

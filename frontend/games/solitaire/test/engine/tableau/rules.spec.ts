@@ -8,15 +8,21 @@ import {
   all,
   any,
   anyCard,
+  ascendingAnySuit,
   ascendingSameSuit,
+  ascendingSameSuitWrapping,
   byEmptiness,
   cardIs,
   descendingAlternatingColor,
+  descendingAlternatingColorWrapping,
   descendingAnySuit,
+  descendingAnySuitWrapping,
   descendingDifferentSuit,
   descendingSameColor,
   descendingSameSuit,
+  descendingSameSuitWrapping,
   hasRank,
+  isAdjacentRank,
   isDifferentSuitRun,
   isOrderedPair,
   isRed,
@@ -437,5 +443,138 @@ describe("suitFoundation", () => {
     const context = contextOf(ace, pileWith("foundation"), { stackSize: 2 });
 
     expect(suitFoundation(context)).toBe(false);
+  });
+});
+
+/** Returns a card of the given suit and rank, with an id naming both. */
+function card(suit: Suit, rank: Rank): PlayingCard {
+  return makePlayingCard({ suit, rank, id: `${suit}-${rank}`, faceUp: true });
+}
+
+describe("isAdjacentRank", () => {
+  it("holds for cards one rank apart, upwards or downwards, in any suit", () => {
+    const adjacent = isAdjacentRank(false);
+
+    const pairs = [
+      adjacent(card(Suit.SPADE, Rank.FIVE), card(Suit.HEART, Rank.SIX)),
+      adjacent(card(Suit.SPADE, Rank.FIVE), card(Suit.CLUB, Rank.FOUR)),
+    ];
+
+    expect(pairs).toEqual([true, true]);
+  });
+
+  it("refuses cards two ranks apart", () => {
+    const adjacent = isAdjacentRank(true);
+
+    expect(
+      adjacent(card(Suit.SPADE, Rank.FIVE), card(Suit.HEART, Rank.SEVEN)),
+    ).toBe(false);
+  });
+
+  it("keeps an Ace and a King apart unless it wraps", () => {
+    const ace = card(Suit.SPADE, Rank.ACE);
+    const king = card(Suit.HEART, Rank.KING);
+
+    expect([
+      isAdjacentRank(false)(ace, king),
+      isAdjacentRank(true)(ace, king),
+      isAdjacentRank(true)(king, ace),
+    ]).toEqual([false, true, true]);
+  });
+});
+
+describe("ascendingSameSuitWrapping", () => {
+  it("builds up in suit", () => {
+    const pile = pileWith("foundation", card(Suit.HEART, Rank.NINE));
+
+    const accepted = ascendingSameSuitWrapping(
+      contextOf(card(Suit.HEART, Rank.TEN), pile),
+    );
+
+    expect(accepted).toBe(true);
+  });
+
+  it("puts an Ace on a King of its suit", () => {
+    const pile = pileWith("foundation", card(Suit.HEART, Rank.KING));
+
+    const accepted = ascendingSameSuitWrapping(
+      contextOf(card(Suit.HEART, Rank.ACE), pile),
+    );
+
+    expect(accepted).toBe(true);
+  });
+
+  it("refuses another suit", () => {
+    const pile = pileWith("foundation", card(Suit.HEART, Rank.KING));
+
+    const accepted = ascendingSameSuitWrapping(
+      contextOf(card(Suit.SPADE, Rank.ACE), pile),
+    );
+
+    expect(accepted).toBe(false);
+  });
+});
+
+describe("ascendingAnySuit", () => {
+  it("builds up regardless of suit", () => {
+    const pile = pileWith("foundation", card(Suit.HEART, Rank.NINE));
+
+    const accepted = ascendingAnySuit(
+      contextOf(card(Suit.CLUB, Rank.TEN), pile),
+    );
+
+    expect(accepted).toBe(true);
+  });
+
+  it("puts nothing on a King", () => {
+    const pile = pileWith("foundation", card(Suit.HEART, Rank.KING));
+
+    const accepted = ascendingAnySuit(
+      contextOf(card(Suit.HEART, Rank.ACE), pile),
+    );
+
+    expect(accepted).toBe(false);
+  });
+});
+
+describe("descending wrapping builds", () => {
+  it("puts a King of the same suit on an Ace", () => {
+    const pile = pileWith("tableau", card(Suit.HEART, Rank.ACE));
+
+    const accepted = descendingSameSuitWrapping(
+      contextOf(card(Suit.HEART, Rank.KING), pile),
+    );
+
+    expect(accepted).toBe(true);
+  });
+
+  it("puts a King of the other colour on an Ace", () => {
+    const pile = pileWith("tableau", card(Suit.HEART, Rank.ACE));
+
+    const accepted = descendingAlternatingColorWrapping(
+      contextOf(card(Suit.SPADE, Rank.KING), pile),
+    );
+
+    expect(accepted).toBe(true);
+  });
+
+  it("refuses a King of the same colour on an Ace", () => {
+    const pile = pileWith("tableau", card(Suit.HEART, Rank.ACE));
+
+    const accepted = descendingAlternatingColorWrapping(
+      contextOf(card(Suit.DIAMOND, Rank.KING), pile),
+    );
+
+    expect(accepted).toBe(false);
+  });
+
+  it("puts a King of any suit on an Ace", () => {
+    const pile = pileWith("tableau", card(Suit.HEART, Rank.ACE));
+
+    const accepted = descendingAnySuitWrapping(
+      contextOf(card(Suit.HEART, Rank.KING), pile),
+    );
+
+    expect(accepted).toBe(true);
   });
 });

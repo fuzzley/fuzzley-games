@@ -5,6 +5,7 @@ import { FortyThievesVariant } from "@/games/forty_thieves/forty_thieves_rules";
 import { SpideretteVariant } from "@/games/spiderette/spiderette_rules";
 import { ScorpionVariant } from "@/games/scorpion/scorpion_rules";
 import { MontanaVariant } from "@/games/montana/montana_rules";
+import { GolfVariant } from "@/games/golf/golf_rules";
 import {
   Difficulty,
   GameFamilyProfile,
@@ -60,6 +61,12 @@ const FAMILIES: readonly GameFamilyProfile[] = [
     name: "Forty Thieves family",
     description:
       "Two decks dealt into shallow columns, with a long stock to work through.",
+  },
+  {
+    id: "golf",
+    name: "Golf family",
+    description:
+      "Play cards one rank up or down onto a single pile until the tableau is clear.",
   },
   {
     id: "other",
@@ -357,6 +364,29 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: false,
+    },
+    golf: {
+      family: "golf",
+      tagline:
+        "Play cards a rank up or down onto one pile to clear seven columns.",
+      difficulty: {
+        optionId: "variant",
+        byChoice: {
+          [GolfVariant.GOLF]: Difficulty.HARD,
+          [GolfVariant.QUEENS_ON_KINGS]: Difficulty.HARD,
+          [GolfVariant.PUTT_PUTT]: Difficulty.MEDIUM,
+        },
+      },
+      decks: 1,
+      allCardsVisible: false,
+      variants: [
+        {
+          name: "Putt Putt",
+          values: { variant: GolfVariant.PUTT_PUTT },
+          tagline: "Golf where the ranks turn the corner from King to Ace.",
+          difficulty: Difficulty.MEDIUM,
+        },
+      ],
     },
   },
 };
