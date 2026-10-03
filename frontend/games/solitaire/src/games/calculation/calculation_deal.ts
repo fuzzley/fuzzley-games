@@ -1,6 +1,6 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
-import { pullCards } from "../common/pull_cards";
+import { ALL_RANKS, PlayingCard } from "@/engine/core/card/playing_card";
+import { pullFirstCard } from "../common/pull_cards";
 import { CalculationVariant } from "./calculation_rules";
 
 /**
@@ -18,11 +18,13 @@ export function dealCalculationLayout(
   stock: CardPile<PlayingCard>,
 ): void {
   if (variant === CalculationVariant.CALCULATION) {
-    // Ranks are removed as they are found, so only the first of each is.
-    const wanted = new Set<Rank>(foundations.map((_, index) => index));
-    for (const card of pullCards(deck, (card) => wanted.delete(card.rank))) {
+    // The foundation at index `i` starts on the rank `i` above the Ace.
+    for (const [index, foundation] of foundations.entries()) {
+      const rank = ALL_RANKS[index];
+      const card = pullFirstCard(deck, (card) => card.rank === rank);
+      if (!card) continue;
       card.faceUp = true;
-      foundations[card.rank]?.addCard(card);
+      foundation.addCard(card);
     }
   }
 

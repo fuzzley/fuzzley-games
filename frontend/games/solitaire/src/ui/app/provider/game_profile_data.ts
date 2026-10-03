@@ -7,6 +7,7 @@ import { ScorpionVariant } from "@/games/scorpion/scorpion_rules";
 import { MontanaVariant } from "@/games/montana/montana_rules";
 import { GolfVariant } from "@/games/golf/golf_rules";
 import { CalculationVariant } from "@/games/calculation/calculation_rules";
+import { BristolVariant } from "@/games/bristol/bristol_rules";
 import {
   Difficulty,
   GameFamilyProfile,
@@ -68,6 +69,12 @@ const FAMILIES: readonly GameFamilyProfile[] = [
     name: "Golf family",
     description:
       "Play cards one rank up or down onto a single pile until the tableau is clear.",
+  },
+  {
+    id: "fan",
+    name: "Fan family",
+    description:
+      "Short fans of cards played off one at a time, with no free cells to fall back on.",
   },
   {
     id: "other",
@@ -415,6 +422,21 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       decks: 1,
       allCardsVisible: true,
       aliases: ["The Garden", "Bouquet"],
+    },
+    bristol: {
+      family: "fan",
+      tagline: "Eight fans and three reserves the stock deals onto.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 1,
+      allCardsVisible: false,
+      variants: [
+        {
+          name: "Belvedere",
+          values: { variant: BristolVariant.BELVEDERE },
+          tagline: "Bristol with one Ace already on a foundation.",
+          difficulty: Difficulty.MEDIUM,
+        },
+      ],
     },
   },
 };

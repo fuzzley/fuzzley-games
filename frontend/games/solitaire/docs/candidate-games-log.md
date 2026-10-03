@@ -56,7 +56,7 @@ need:
 - [x] 3. E1, then Golf and Putt Putt.
 - [x] 4. Calculation and Sir Tommy.
 - [x] 5. E3, then Flower Garden.
-- [ ] 6. Bristol and Belvedere.
+- [x] 6. Bristol and Belvedere.
 - [ ] 7. P1, then Nestor.
 - [ ] 8. Monte Carlo and Thirteens.
 - [ ] 9. La Belle Lucie, The Fan, Shamrocks and Trefoil.
@@ -165,7 +165,7 @@ descendingSameSuit)`), top-only, and never refill. The deal pulls the
     raises the "switch games?" confirmation on navigation; open each new
     entry in a fresh isolated context instead.
   - Tests: `test/games/calculation/calculation_game.spec.ts`.
-- Step 5: E3, then Flower Garden.
+- Step 5 (`69e88fe`): E3, then Flower Garden.
   - E3: `skeletonSlots` in the new `src/ui/app/model/skeleton_slots.ts`
     places each skeleton slot as a percentage of the board: left and top from
     its column and row, width and height of one cell. The canvas component
@@ -189,13 +189,36 @@ descendingAnySuit)`, top-only.
     and `test/games/flower_garden/flower_garden_game.spec.ts`.
   - Tooling: the work log is now updated by a second scratchpad helper that
     ticks the plan, stamps the previous step's commit and rewrites "Next".
+- Step 6: Bristol and Belvedere.
+  - `sinkKings` moved from `bakers_dozen_deal.ts` to
+    `src/games/common/sink_kings.ts`, with a spec of its own.
+  - `pullFirstCard` joined `src/games/common/pull_cards.ts`: it takes the
+    first matching card the deal would reach. Belvedere uses it for its Ace,
+    and Calculation's deal now uses it per rank instead of a stateful
+    predicate.
+  - `src/games/bristol`: stock, three reserves (`reserve-0` to `-2`,
+    stacked, `accept: null`, top-only) and four foundations along the top,
+    eight fans beneath (8 × 2, `designHeightPx` 1300). Foundations:
+    `byEmptiness(Ace, ascendingAnySuit)`. Fans: `byEmptiness(never,
+descendingAnySuit)`, top-only. The stock deals a row onto the reserves
+    with `dealRowFromStock`, through `dealOnStockPress`.
+  - `BristolVariant`: Belvedere lays the first Ace the deal reaches on the
+    first foundation. A "Variant" option and Belvedere as a named variant.
+  - A new "Fan family" in `FAMILIES`, which La Belle Lucie joins at step 9.
+    A "Bristol" entry (`bristol`), a rules page, a profile (Medium), the
+    README, the screenshot and thumbnails.
+  - Tests: `test/games/bristol/bristol_game.spec.ts`,
+    `test/games/common/sink_kings.spec.ts`, and `pullFirstCard` cases in
+    `pull_cards.spec.ts`.
 
 ## Next
 
-Step 6: Bristol and Belvedere. Move `sinkKings` from
-`src/games/bakers_dozen/bakers_dozen_deal.ts` to `src/games/common` (Bristol
-is its second user). Foundations use `byEmptiness(Ace, ascendingAnySuit)`,
-which E1 already provides.
+Step 7: P1, then Nestor. P1 (pair removal) goes in `src/games/common` once
+its second user (Monte Carlo, step 8) arrives; Nestor can write it locally
+first or put it in `common` straight away, since Monte Carlo follows at once.
+The paired piles take no `capacity` (`hasRoomFor` runs before the accept
+rule). The deal must give up on the no-duplicate-rank rule rather than loop
+when the remaining cards all repeat a rank in the last column.
 
 Screenshots: open each new entry in a fresh isolated browser context (a game
 left in progress raises the "switch games?" confirmation). In a development
