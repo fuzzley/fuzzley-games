@@ -61,6 +61,12 @@ const POSITION_TAU_MS = 90;
 /** Distance (px) within which an easing card snaps exactly to target. */
 const POSITION_SETTLE_THRESHOLD_PX = 0.5;
 
+/**
+ * How far below its card a shadow is drawn: under the card casting it, but
+ * over the card beneath, which it falls on, since card depths are whole.
+ */
+const SHADOW_DEPTH_BELOW_CARD = 0.5;
+
 /** Pre-scale stroke width of the highlight border. */
 const HIGHLIGHT_LINE_THICKNESS = 9;
 
@@ -134,6 +140,7 @@ export class PhaserTableRenderer implements TableRenderer {
       }
 
       this.syncAppearance(sprite, cardView);
+      this.placeShadow(sprite, cardView);
     }
 
     this.travelDistances = travelDistances;
@@ -172,6 +179,16 @@ export class PhaserTableRenderer implements TableRenderer {
       this.sprites.setDraggable(sprite, cardView.draggable);
       sprite.setData("draggable", cardView.draggable);
     }
+  }
+
+  /** Puts a card's shadow under the card, wherever it has eased to. */
+  private placeShadow(card: GameObjects.Sprite, cardView: CardView): void {
+    const shadow = this.sprites.cardShadowSprite(cardView.cardId);
+    if (!shadow?.active) return;
+
+    shadow.setPosition(card.x, card.y);
+    shadow.setScale(cardView.scale);
+    shadow.setDepth(cardView.depth - SHADOW_DEPTH_BELOW_CARD);
   }
 
   /**

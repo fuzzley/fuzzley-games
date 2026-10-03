@@ -7,13 +7,16 @@ import {
   MockGraphics,
   MockInput,
   MockLoader,
+  MockRenderer,
   MockScaleManager,
   MockSceneEvents,
   MockSprite,
   MockTextures,
+  RESTORE_WEBGL_EVENT,
   SHUTDOWN_EVENT,
 } from "@test/support/phaser_mocks";
 import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
+import { PhaserCardFactory } from "@/engine/render/phaser/phaser_card_factory";
 import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
 import {
   computePileOrigins,
@@ -105,6 +108,67 @@ describe("BoardScene", () => {
       expect(withPlaceholder).toEqual(
         pileBackgrounds(fakeGame).map((background) => background.pileId),
       );
+    });
+  });
+
+  describe("card shadows", () => {
+    /** Returns the shadow sprite of every card, in card order. */
+    function allShadows(): MockSprite[] {
+      return [...boardScene.cardIds].map((cardId) =>
+        asMock(boardScene.cardShadowSprite(cardId)),
+      );
+    }
+
+    /** Returns how many times the shared shadow texture has been drawn. */
+    function shadowRenders(): number {
+      const textures = boardScene.textures as unknown as MockTextures;
+      return (
+        textures.dynamicTexture(PhaserCardFactory.SHADOW_TEXTURE_KEY)
+          ?.renderCount ?? 0
+      );
+    }
+
+    it("gives every card a shadow", () => {
+      expect(allShadows().every((shadow) => shadow !== undefined)).toBe(true);
+    });
+
+    it("keeps each shadow under its card", () => {
+      boardScene.update(0, 16);
+
+      const cards = allCardSprites().map((sprite) => [sprite.x, sprite.y]);
+      expect(allShadows().map((shadow) => [shadow.x, shadow.y])).toEqual(cards);
+    });
+
+    it("keeps the shadows on their own texture when the deck changes", () => {
+      (boardScene.textures as unknown as MockTextures).add("cards:classic");
+
+      presentation.setCardDeck("classic");
+
+      const keys = new Set(allShadows().map((shadow) => shadow.texture.key));
+      expect([...keys]).toEqual([PhaserCardFactory.SHADOW_TEXTURE_KEY]);
+    });
+
+    it("redraws the shadow once a lost WebGL context is restored", () => {
+      const before = shadowRenders();
+
+      // A restored context comes back with every framebuffer empty.
+      (boardScene.renderer as unknown as MockRenderer).emit(
+        RESTORE_WEBGL_EVENT,
+      );
+
+      expect(shadowRenders()).toBe(before + 1);
+    });
+
+    it("stops redrawing the shadow once the scene shuts down", () => {
+      const events = boardScene.events as unknown as MockSceneEvents;
+      events.emit(SHUTDOWN_EVENT);
+      const before = shadowRenders();
+
+      (boardScene.renderer as unknown as MockRenderer).emit(
+        RESTORE_WEBGL_EVENT,
+      );
+
+      expect(shadowRenders()).toBe(before);
     });
   });
 

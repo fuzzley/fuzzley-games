@@ -8,6 +8,10 @@ import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
  */
 const FRAME_ANCHOR = 0.5;
 
+/** The size of a card frame in every deck's atlas, in texels. */
+const CARD_ART_WIDTH = 440;
+const CARD_ART_HEIGHT = 614;
+
 /**
  * Records a shadow filter a mock sprite was given, with fields named after
  * Phaser's `addShadow(x, y, decay, power, color, samples, intensity)`.
@@ -39,8 +43,16 @@ export interface MockSprite {
   alpha: number;
   originX: number;
   originY: number;
+  /** The origin in texels, as Phaser's `setDisplayOrigin` sets it. */
+  displayOriginX: number;
+  displayOriginY: number;
   depth: number;
   scale: number;
+  /** The frame's own size, in texels. */
+  width: number;
+  height: number;
+  /** Whether the sprite has been destroyed. */
+  destroyed: boolean;
   /** The frame, as an object with a name, since the sources read its name. */
   frame: { name: string };
   /** The texture the sprite draws from, as Phaser's `sprite.texture.key`. */
@@ -57,6 +69,7 @@ export interface MockSprite {
     external: { addShadow: (...args: number[]) => MockShadowFilter };
   };
   setOrigin(x: number, y: number): MockSprite;
+  setDisplayOrigin(x: number, y: number): MockSprite;
   setAlpha(alpha: number): MockSprite;
   setInteractive(config?: { useHandCursor: boolean }): MockSprite;
   enableFilters(): MockSprite;
@@ -69,6 +82,7 @@ export interface MockSprite {
   getData(key: string): unknown;
   on(event: string, callback: (...args: unknown[]) => void): MockSprite;
   emit(event: string, ...args: unknown[]): void;
+  destroy(): void;
 }
 
 /** Stands in for the filter handle {@link MockSprite}'s `addShadow` returns. */
@@ -83,7 +97,10 @@ export interface MockShadowFilter {
 
 /** Overrides the initial fields of a {@link MockSprite}. */
 export type MockSpriteOptions = Partial<
-  Pick<MockSprite, "x" | "y" | "active" | "displayWidth" | "displayHeight">
+  Pick<
+    MockSprite,
+    "x" | "y" | "active" | "displayWidth" | "displayHeight" | "width" | "height"
+  >
 > & {
   /** The frame's name, which is the only part of it a caller ever sets. */
   frame?: string;
@@ -131,8 +148,13 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
     alpha: 1,
     originX: 0,
     originY: 0,
+    displayOriginX: 0,
+    displayOriginY: 0,
     depth: 0,
     scale: 1,
+    width: options.width ?? CARD_ART_WIDTH,
+    height: options.height ?? CARD_ART_HEIGHT,
+    destroyed: false,
     frame: { name: options.frame ?? "" },
     texture: { key: options.texture ?? "" },
     active: options.active ?? true,
@@ -149,6 +171,11 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
     setOrigin(x: number, y: number): MockSprite {
       sprite.originX = x;
       sprite.originY = y;
+      return sprite;
+    },
+    setDisplayOrigin(x: number, y: number): MockSprite {
+      sprite.displayOriginX = x;
+      sprite.displayOriginY = y;
       return sprite;
     },
     setAlpha(alpha: number): MockSprite {
@@ -208,6 +235,9 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
       for (const callback of listeners.get(event) ?? []) {
         callback(...args);
       }
+    },
+    destroy(): void {
+      sprite.destroyed = true;
     },
   };
 
@@ -404,6 +434,93 @@ export function createMockSceneEvents(): MockSceneEvents {
   };
 }
 
+/**
+ * Records a sprite drawn into or erased from a {@link MockDynamicTexture}, as
+ * it was when the texture rendered it.
+ */
+export interface DynamicTextureStroke {
+  /** Whether the sprite was drawn, or used to erase. */
+  op: "draw" | "erase";
+  /** The texture and frame the sprite showed. */
+  texture: string;
+  frame: string;
+  /** Where its origin was. */
+  x: number;
+  y: number;
+  /** The shadow filters it carried. */
+  shadows: ShadowConfig[];
+}
+
+/**
+ * Stands in for a Phaser DynamicTexture, queueing what it is told to draw and
+ * recording it as its contents once rendered.
+ */
+export interface MockDynamicTexture {
+  readonly key: string;
+  readonly width: number;
+  readonly height: number;
+  /** What the texture holds, as drawn since it was last cleared. */
+  contents: DynamicTextureStroke[];
+  /** How many times it has rendered what it was told to draw. */
+  renderCount: number;
+  clear(): MockDynamicTexture;
+  draw(sprite: MockSprite): MockDynamicTexture;
+  erase(sprite: MockSprite): MockDynamicTexture;
+  render(): MockDynamicTexture;
+}
+
+/** Builds a {@link MockDynamicTexture} of the given size. */
+function createMockDynamicTexture(
+  key: string,
+  width: number,
+  height: number,
+): MockDynamicTexture {
+  // Phaser buffers commands and only carries them out on render.
+  const queued: (() => void)[] = [];
+
+  /** Queues a sprite to be recorded as it is when the texture renders. */
+  function queueStroke(op: "draw" | "erase", sprite: MockSprite): void {
+    queued.push(() => {
+      texture.contents.push({
+        op,
+        texture: sprite.texture.key,
+        frame: sprite.frame.name,
+        x: sprite.x,
+        y: sprite.y,
+        shadows: [...sprite.shadowsAdded],
+      });
+    });
+  }
+
+  const texture: MockDynamicTexture = {
+    key,
+    width,
+    height,
+    contents: [],
+    renderCount: 0,
+    clear() {
+      queued.push(() => {
+        texture.contents = [];
+      });
+      return texture;
+    },
+    draw(sprite) {
+      queueStroke("draw", sprite);
+      return texture;
+    },
+    erase(sprite) {
+      queueStroke("erase", sprite);
+      return texture;
+    },
+    render() {
+      for (const command of queued.splice(0)) command();
+      texture.renderCount++;
+      return texture;
+    },
+  };
+  return texture;
+}
+
 /** Stands in for a Phaser texture cache, holding just the registered keys. */
 export interface MockTextures {
   exists(key: string): boolean;
@@ -411,11 +528,23 @@ export interface MockTextures {
   add(key: string): void;
   /** Releases a texture, as the renderer freeing its GPU memory would. */
   remove(key: string): void;
+  /**
+   * Registers a texture to draw into, or returns null if the key is taken, as
+   * Phaser does.
+   */
+  addDynamicTexture(
+    key: string,
+    width: number,
+    height: number,
+  ): MockDynamicTexture | null;
+  /** Returns the texture to draw into registered under a key, if any. */
+  dynamicTexture(key: string): MockDynamicTexture | undefined;
 }
 
 /** Builds a {@link MockTextures} pre-loaded with the given keys. */
 export function createMockTextures(...keys: string[]): MockTextures {
   const present = new Set(keys);
+  const dynamic = new Map<string, MockDynamicTexture>();
   return {
     exists: (key: string) => present.has(key),
     add: (key: string) => {
@@ -423,7 +552,56 @@ export function createMockTextures(...keys: string[]): MockTextures {
     },
     remove: (key: string) => {
       present.delete(key);
+      dynamic.delete(key);
     },
+    addDynamicTexture: (key: string, width: number, height: number) => {
+      if (present.has(key)) return null;
+      const texture = createMockDynamicTexture(key, width, height);
+      present.add(key);
+      dynamic.set(key, texture);
+      return texture;
+    },
+    dynamicTexture: (key: string) => dynamic.get(key),
+  };
+}
+
+/** Stands in for a Phaser renderer's event emitter. */
+export interface MockRenderer {
+  on: Mock;
+  off: Mock;
+  /** Dispatches an event to the listeners still registered for it. */
+  emit(event: string, ...args: unknown[]): void;
+}
+
+/** Builds a {@link MockRenderer} so tests can raise renderer events. */
+export function createMockRenderer(): MockRenderer {
+  const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
+  return {
+    on: vi.fn((event: string, callback: (...args: unknown[]) => void) => {
+      const existing = listeners.get(event) ?? new Set();
+      existing.add(callback);
+      listeners.set(event, existing);
+    }),
+    off: vi.fn((event: string, callback: (...args: unknown[]) => void) => {
+      listeners.get(event)?.delete(callback);
+    }),
+    emit(event: string, ...args: unknown[]): void {
+      for (const callback of listeners.get(event) ?? []) {
+        callback(...args);
+      }
+    },
+  };
+}
+
+/**
+ * Builds the stand-in for a scene's `make` factory, which creates sprites
+ * without adding them to the display list.
+ */
+export function createMockMake(): { sprite: Mock } {
+  return {
+    sprite: vi.fn((config: { key?: string; frame?: string }) =>
+      createMockSprite({ texture: config.key, frame: config.frame }),
+    ),
   };
 }
 
@@ -504,15 +682,18 @@ export function createMockScaleManager(): MockScaleManager {
 export function boardScenePhaserMock(): {
   Scene: new (...args: unknown[]) => {
     add: { graphics: () => MockGraphics; sprite: Mock };
+    make: { sprite: Mock };
     scale: MockScaleManager;
     input: MockInput;
     events: MockSceneEvents;
     cameras: { main: { setBackgroundColor: Mock } };
     textures: MockTextures;
     load: MockLoader;
+    renderer: MockRenderer;
   };
   Scenes: { Events: { SHUTDOWN: string; POST_UPDATE: string } };
   Loader: { Events: { COMPLETE: string } };
+  Renderer: { Events: { RESTORE_WEBGL: string } };
   Geom: { Rectangle: typeof MockRectangle };
 } {
   return {
@@ -524,6 +705,7 @@ export function boardScenePhaserMock(): {
             createMockSprite({ x, y, texture, frame }),
         ),
       };
+      make = createMockMake();
       scale = createMockScaleManager();
       input = createMockInput();
       events = createMockSceneEvents();
@@ -532,11 +714,13 @@ export function boardScenePhaserMock(): {
       // scene is created; anything else it has to fetch for itself.
       textures = createMockTextures(BOOT_TEXTURE_KEY);
       load = createMockLoader();
+      renderer = createMockRenderer();
     },
     Scenes: {
       Events: { SHUTDOWN: SHUTDOWN_EVENT, POST_UPDATE: POST_UPDATE_EVENT },
     },
     Loader: { Events: { COMPLETE: LOADER_COMPLETE_EVENT } },
+    Renderer: { Events: { RESTORE_WEBGL: RESTORE_WEBGL_EVENT } },
     Geom: {
       Rectangle: Object.assign(MockRectangle, {
         Intersection: rectangleIntersection,
@@ -556,6 +740,12 @@ export const POST_UPDATE_EVENT = "postupdate";
 
 /** The loader event a board scene waits on before swapping a deck in. */
 export const LOADER_COMPLETE_EVENT = "complete";
+
+/**
+ * The renderer event raised once a lost WebGL context is back, matching
+ * Phaser's own.
+ */
+export const RESTORE_WEBGL_EVENT = "restorewebgl";
 
 /**
  * The texture a mock scene starts with loaded: the deck
