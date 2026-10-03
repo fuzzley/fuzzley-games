@@ -31,6 +31,7 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
   eightoff: stocklessGestures,
   scorpion: scorpionGestures,
   simplesimon: stocklessGestures,
+  mrsmop: stocklessGestures,
   bakersdozen: stocklessGestures,
   seahaven: stocklessGestures,
   spiderette: spideretteGestures,

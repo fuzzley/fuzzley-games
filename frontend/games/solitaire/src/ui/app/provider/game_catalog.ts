@@ -27,7 +27,11 @@ import { ScorpionGame } from "@/games/scorpion/scorpion_game";
 import { ScorpionVariant } from "@/games/scorpion/scorpion_rules";
 import { SCORPION_LAYOUT } from "@/games/scorpion/scorpion_layout";
 import { SimpleSimonGame } from "@/games/simple_simon/simple_simon_game";
-import { SIMPLE_SIMON_LAYOUT } from "@/games/simple_simon/simple_simon_layout";
+import { SimpleSimonVariant } from "@/games/simple_simon/simple_simon_rules";
+import {
+  MRS_MOP_LAYOUT,
+  SIMPLE_SIMON_LAYOUT,
+} from "@/games/simple_simon/simple_simon_layout";
 import { BakersDozenGame } from "@/games/bakers_dozen/bakers_dozen_game";
 import { BAKERS_DOZEN_LAYOUT } from "@/games/bakers_dozen/bakers_dozen_layout";
 import { SeahavenGame } from "@/games/seahaven/seahaven_game";
@@ -403,6 +407,19 @@ const SIMPLE_SIMON = {
   create: () => dealt(new SimpleSimonGame()),
 } satisfies CatalogEntry<SimpleSimonGame>;
 
+/*
+ * Mrs. Mop plays by Simple Simon's rules on a grid of its own, so it is an
+ * entry of its own.
+ */
+const MRS_MOP = {
+  id: "mrsmop" as const,
+  name: "Mrs. Mop",
+  options: [],
+  layout: MRS_MOP_LAYOUT,
+  create: () =>
+    dealt(new SimpleSimonGame({ variant: SimpleSimonVariant.MRS_MOP })),
+} satisfies CatalogEntry<SimpleSimonGame>;
+
 const BAKERS_DOZEN = {
   id: "bakersdozen" as const,
   name: "Baker's Dozen",
@@ -516,6 +533,7 @@ export const CATALOG_ENTRIES = [
   EIGHT_OFF,
   SCORPION,
   SIMPLE_SIMON,
+  MRS_MOP,
   BAKERS_DOZEN,
   SEAHAVEN,
   SPIDERETTE,

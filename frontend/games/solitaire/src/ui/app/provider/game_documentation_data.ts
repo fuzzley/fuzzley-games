@@ -538,6 +538,46 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     },
     settingsAndVariants: [],
   },
+  mrsmop: {
+    title: "Mrs. Mop",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Mrs._Mop",
+    screenshot: {
+      url: "./docs/screenshots/mrsmop/overview.png",
+      caption:
+        "Mrs. Mop board showing thirteen face-up columns of eight cards and eight foundation slots.",
+      altText: "Mrs. Mop solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Build eight 13-card same-suit sequences from King down to Ace on the tableau.",
+      winCondition:
+        "All 8 runs, two per suit, assembled from King to Ace and cleared to the foundations.",
+      quickOverview:
+        "Mrs. Mop is Spider with nothing hidden: both decks are dealt face-up into thirteen columns of eight, and there is no stock at all. Columns build down by rank in any suit, but only a same-suit run can be picked up. Charles Jewell invented it.",
+    },
+    detailedRules: {
+      layout: [
+        "Tableau: 13 columns of 8 cards, all 104 cards face-up.",
+        "Foundations: 8 automated slots for completed King-to-Ace same-suit runs.",
+        "No Stock: every card is on the tableau from the first move.",
+      ],
+      cardMovement: [
+        "A card can be picked up only with an unbroken same-suit descending run resting on it.",
+        "Any card, or any run, can be moved into an empty column.",
+        "There is no limit on how many cards move at once: a run travels in one piece.",
+      ],
+      sequenceBuilding: [
+        "Tableau: Built DOWN by RANK in ANY SUIT.",
+        "Lifting: Only unbroken SAME SUIT descending runs can be moved.",
+        "Completion: Complete King-to-Ace same-suit runs clear to the foundations automatically.",
+      ],
+      specialRules: [
+        "Open Information: with both decks visible and no stock, every deal can be planned from the first move, as in Simple Simon.",
+        "Two of Everything: each card has a twin, so a run can often be finished from either of two places — and blocked in either of two.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
   bakersdozen: {
     title: "Baker's Dozen",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Baker's_Dozen_(solitaire)",

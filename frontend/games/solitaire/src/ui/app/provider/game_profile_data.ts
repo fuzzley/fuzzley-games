@@ -207,6 +207,13 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       decks: 1,
       allCardsVisible: true,
     },
+    mrsmop: {
+      family: "spider",
+      tagline: "Two decks dealt face-up across thirteen columns, no stock.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 2,
+      allCardsVisible: true,
+    },
     bakersdozen: {
       family: "other",
       tagline: "Thirteen open columns, Kings sunk, and spaces never refill.",
