@@ -1,6 +1,6 @@
 @use "../../styles" as *;
 
-// A labelled setting and its segmented control.
+// A labelled setting and its control: segmented, or one choice to a row.
 :host {
   display: block;
 }
@@ -60,4 +60,33 @@
     color: var(--text-bright);
     box-shadow: 0 2px 6px var(--accent-glow);
   }
+}
+
+// --- One choice to a row ---
+
+.choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.choice-row {
+  @include swatch-option;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-height: var(--tap-target-min);
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+}
+
+.choice-name {
+  font-size: var(--font-sm);
+  font-weight: 600;
+}
+
+// Muted whether or not its row is checked, so the name stays the loudest line.
+.choice-desc {
+  font-size: var(--font-xs);
+  line-height: var(--leading-tight);
+  color: var(--text-muted);
 }
