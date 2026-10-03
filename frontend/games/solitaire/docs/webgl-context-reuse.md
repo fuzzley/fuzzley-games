@@ -18,7 +18,7 @@ start at the first step not marked done. Each step is one commit.
 | ---- | -------------------------------- | ------- |
 | 0    | Baseline                         | done    |
 | 1    | End a board's subscriptions      | done    |
-| 2    | Release the context on destroy   | pending |
+| 2    | Release the context on destroy   | done    |
 | 3    | Let a board load its own deck    | pending |
 | 4    | Keep one game and swap boards    | pending |
 | 5    | Measure, then tick the checklist | pending |
@@ -47,6 +47,18 @@ start at the first step not marked done. Each step is one commit.
   sprites). The presentation's root effects were what kept every game alive.
   Switch time is unchanged (median 140 ms; the run-to-run spread is about
   20 ms). Each switch still creates a context, so steps 2–4 still stand.
+- 2026-10-02, step 2: `PhaserHost` takes a `CreateGame` factory (default
+  `new Phaser.Game`) and describes the slice of the game it drives as
+  `HostedGame`. `destroy` calls `loseContext()` from the game's `DESTROY` event.
+  - **Change from the plan:** the context is released on that event, not
+    straight after `game.destroy(true)`. Releasing it straight away worked, but
+    Phaser's renderer sometimes heard the loss before its deferred teardown
+    removed the listener, and logged "WebGL Context lost. Renderer disabled".
+    `DESTROY` fires just before the renderer removes that listener, and the
+    browser raises the loss asynchronously, so nothing is logged. The cost is
+    that a hidden tab, which runs no frames, keeps the context until it is shown.
+  - Measured: 1 live context after ten switches **without** a forced collection,
+    and a clean console. Switch time median 135 ms.
 
 ### Measuring
 
