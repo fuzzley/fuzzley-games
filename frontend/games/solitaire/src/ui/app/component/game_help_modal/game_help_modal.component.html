@@ -152,15 +152,15 @@
                 <div class="hero-screenshot-card">
                   <div
                     class="img-skeleton-container"
-                    [class.is-loaded]="heroImageLoaded()"
-                    [class.is-failed]="heroImageFailed()"
+                    [class.is-loaded]="heroImageStatus() === 'loaded'"
+                    [class.is-failed]="heroImageStatus() === 'failed'"
                   >
-                    @if (!heroImageFailed()) {
+                    @if (heroImageStatus() !== "failed") {
                       <img
                         [src]="screenshot.url"
                         [alt]="screenshot.altText"
                         class="screenshot-img"
-                        [class.loaded]="heroImageLoaded()"
+                        [class.loaded]="heroImageStatus() === 'loaded'"
                         loading="lazy"
                         width="800"
                         height="500"
@@ -169,7 +169,7 @@
                       />
                     }
                   </div>
-                  @if (heroImageFailed()) {
+                  @if (heroImageStatus() === "failed") {
                     <p class="screenshot-failed-text">Screenshot unavailable</p>
                   } @else {
                     <p class="screenshot-caption">

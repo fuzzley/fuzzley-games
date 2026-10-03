@@ -272,6 +272,26 @@ describe("GameHelpModalComponent", () => {
   });
 
   describe("the hero screenshot", () => {
+    /** Fires an image event on the screenshot and renders the result. */
+    function resolveImage(type: "load" | "error"): void {
+      queryRequired(fixture, ".screenshot-img").dispatchEvent(new Event(type));
+      fixture.detectChanges();
+    }
+
+    /** Closes the modal and renders it. */
+    function closeHelp(): void {
+      docService.closeHelp();
+      fixture.detectChanges();
+    }
+
+    /** Returns whether the screenshot shows as loaded. */
+    function isImageLoaded(): boolean {
+      return queryRequired(
+        fixture,
+        ".img-skeleton-container",
+      ).classList.contains("is-loaded");
+    }
+
     it("shows neither loaded nor failed before the image resolves", () => {
       openHelp();
 
@@ -283,29 +303,65 @@ describe("GameHelpModalComponent", () => {
     it("marks itself loaded once the image arrives", () => {
       openHelp();
 
-      queryRequired(fixture, ".screenshot-img").dispatchEvent(
-        new Event("load"),
-      );
-      fixture.detectChanges();
+      resolveImage("load");
 
-      expect(
-        queryRequired(fixture, ".img-skeleton-container").classList.contains(
-          "is-loaded",
-        ),
-      ).toBe(true);
+      expect(isImageLoaded()).toBe(true);
     });
 
     it("says so when the image cannot be loaded", () => {
       openHelp();
 
-      queryRequired(fixture, ".screenshot-img").dispatchEvent(
-        new Event("error"),
-      );
-      fixture.detectChanges();
+      resolveImage("error");
 
       expect(queryText(fixture, ".screenshot-failed-text")).toContain(
         "Screenshot unavailable",
       );
+    });
+
+    // The dialog keeps its <img> while closed, and an image that has loaded
+    // does not fire `load` again when it is shown.
+    it("stays loaded when the dialog is reopened", () => {
+      openHelp();
+      resolveImage("load");
+      closeHelp();
+
+      openHelp();
+
+      expect(isImageLoaded()).toBe(true);
+    });
+
+    it("shows a new game's screenshot that loaded while the dialog was closed", () => {
+      openHelp();
+      resolveImage("load");
+      closeHelp();
+      harness.catalog.catalog.select("freecell");
+      fixture.detectChanges();
+      resolveImage("load");
+
+      openHelp();
+
+      expect(isImageLoaded()).toBe(true);
+    });
+
+    it("waits for a new game's screenshot instead of showing the last one's", () => {
+      openHelp();
+      resolveImage("load");
+      closeHelp();
+      harness.catalog.catalog.select("freecell");
+
+      openHelp();
+
+      expect(isImageLoaded()).toBe(false);
+    });
+
+    it("tries a screenshot that failed again when the dialog is reopened", () => {
+      openHelp();
+      resolveImage("error");
+      closeHelp();
+
+      openHelp();
+
+      expect(query(fixture, ".screenshot-img")).not.toBeNull();
     });
   });
 

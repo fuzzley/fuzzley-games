@@ -43,6 +43,11 @@ const KLONDIKE_DOC: GameDocumentation = {
 
 const FREECELL_DOC: GameDocumentation = {
   title: "Test FreeCell",
+  screenshot: {
+    url: "./test/freecell.png",
+    caption: "Another test board.",
+    altText: "Another test board.",
+  },
   summary: {
     objective: "Move every card to the foundations.",
     winCondition: "All four foundations are complete.",
