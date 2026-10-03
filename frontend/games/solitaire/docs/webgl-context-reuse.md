@@ -20,7 +20,7 @@ start at the first step not marked done. Each step is one commit.
 | 1    | End a board's subscriptions      | done    |
 | 2    | Release the context on destroy   | done    |
 | 3    | Let a board load its own deck    | done    |
-| 4    | Keep one game and swap boards    | pending |
+| 4    | Keep one game and swap boards    | done    |
 | 5    | Measure, then tick the checklist | pending |
 
 ### Log
@@ -72,6 +72,47 @@ start at the first step not marked done. Each step is one commit.
   manifests; it now names `card_deck_atlas.ts`. Seven new specs. Checked in the
   browser: the board draws correctly and the console stays clean. Each switch
   still builds a new game, so nothing else changes yet (median 132 ms).
+- 2026-10-02, step 4: `PhaserHost.show(makeBoardScene)` replaces `start`. The
+  first call creates the game. A call before `READY` replaces the waiting board.
+  Later calls run `stop`, `remove` and then `add(key, board, true)`.
+  `BoardScene.key` is `board-scene-<n>`, numbered by a static counter.
+  `GameCanvasComponent` creates the host once and destroys it in
+  `DestroyRef.onDestroy`.
+  - **Change from the plan:** the component builds the board inside
+    `untracked`. A board swapped into a running game is created synchronously,
+    inside the deal effect, and that broke two things. Its presentation
+    subscriptions create effects, which Angular forbids inside an effect
+    (NG0602). And the deck and card-back signals it reads would have become
+    dependencies of the deal effect, so a new deck would have dealt again. The
+    canvas spec's board mock now reads and follows the settings the way a board
+    does, and its tests fail without `untracked`.
+  - Gotcha for whoever resumes: stopping the background `yarn start` task left
+    its Vite process running on port 9000, with a stale compile from between two
+    quick edits. That server served the old `super("board-scene")` and failed
+    with "duplicate key". Kill every `node ... vite.js` process before trusting
+    a restart.
+  - Measured with the probe: **2 contexts created for the whole session** (the
+    extra one appears once at startup in every run, the baseline included), 1
+    canvas, 1 live context. After a forced collection: 1 `Game`, 1
+    `BoardScene`, and in the texture cache only `cards:indexed` and
+    `card-shadow`. **Switch time median 17 ms (one frame), down from 124–140
+    ms.** Clean console.
+  - Hand checks (see the last section), all in the dev build:
+    - Context loss after ten swaps: the board and its shadows come back. Phaser
+      logs 6 "INVALID_OPERATION: delete: object does not belong to this
+      context" warnings, but it does the same on a fresh page with no swaps.
+    - A switch during the first boot, with atlas requests held back 3 s: each
+      abandoned board starts its own download, which wastes bandwidth but does
+      no harm. The last board runs with one deck and the console stays clean
+      as the abandoned downloads land.
+    - A switch during a deck change: the new board boots on the old deck and
+      the corner badge shows until the new deck arrives. Then only
+      `cards:classic` is left, and the badge clears.
+    - The cursor: it follows the new board, staying a hand only over a card and
+      resetting over bare table.
+    - A switch mid-drag: the new board has no drag in progress, and a drag
+      started on it afterwards works.
+    - The overlay: it peaks at 0.4% opacity per switch, so it needs no delay.
 
 ### Measuring
 

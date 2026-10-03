@@ -81,6 +81,17 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Transparency (alpha) level for pile background placeholders. */
   public static readonly PILE_BACKGROUND_ALPHA = 0.5;
 
+  /** How many boards have been built, which numbers each one's key. */
+  private static boardsBuilt = 0;
+
+  /**
+   * The key the scene is registered under, which no other board shares.
+   *
+   * Unique because a board is swapped into a running game, and Phaser throws on
+   * a key already in use, which an add queued ahead of a remove would hit.
+   */
+  public readonly key: string;
+
   /** Everything this scene was told about the game it draws. */
   private readonly options: BoardSceneOptions;
 
@@ -110,8 +121,10 @@ export class BoardScene extends Scene implements PhaserSprites {
 
   /** Creates a scene that draws the game `options` describes. */
   constructor(options: BoardSceneOptions) {
-    super("board-scene");
+    const key = `board-scene-${++BoardScene.boardsBuilt}`;
+    super(key);
 
+    this.key = key;
     this.options = options;
   }
 

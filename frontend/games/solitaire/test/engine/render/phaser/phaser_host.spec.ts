@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach } from "vitest";
+import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { HostedGame, PhaserHost } from "@/engine/render/phaser/phaser_host";
 import { FakeTableGame } from "@test/support/fake_table/game";
 import { makeFakeTableBoardScene } from "@test/support/fake_table/scene";
@@ -25,13 +26,37 @@ class FakeLoseContext {
   }
 }
 
+/** Stands in for a game's scene manager, recording what it was told to do. */
+class FakeSceneManager {
+  /** Every operation, in order, as `<op>:<key>`. */
+  readonly operations: string[] = [];
+  /** The keys of the scenes added and not yet removed. */
+  readonly mounted: string[] = [];
+
+  add(key: string, _scene: BoardScene, autoStart: boolean): void {
+    this.operations.push(`add:${key}`);
+    if (autoStart) this.mounted.push(key);
+  }
+
+  stop(key: string): void {
+    this.operations.push(`stop:${key}`);
+  }
+
+  remove(key: string): void {
+    this.operations.push(`remove:${key}`);
+    this.mounted.splice(this.mounted.indexOf(key), 1);
+  }
+}
+
 /**
- * Stands in for a `Phaser.Game`, which, like the real one, is only marked for
- * destruction until its next frame tears it down.
+ * Stands in for a `Phaser.Game`, which, like the real one, boots
+ * asynchronously and is only marked for destruction until its next frame tears
+ * it down.
  */
 class FakeGame implements HostedGame {
   readonly canvas = { style: { width: "", height: "" } };
   readonly scale = { setZoom: vi.fn(), resize: vi.fn() };
+  readonly scene = new FakeSceneManager();
   readonly loseContext = new FakeLoseContext();
   readonly renderer: HostedGame["renderer"];
   private readonly listeners = new Map<string, (() => void)[]>();
@@ -63,11 +88,19 @@ class FakeGame implements HostedGame {
     this.destroyed = true;
   }
 
+  /** Finishes booting, as the real game does once its textures are ready. */
+  boot(): void {
+    this.emit("ready");
+  }
+
   /** Runs the next frame, which tears down a game marked for destruction. */
   step(): void {
-    if (!this.destroyed) return;
-    const listeners = this.listeners.get("destroy") ?? [];
-    this.listeners.delete("destroy");
+    if (this.destroyed) this.emit("destroy");
+  }
+
+  private emit(event: string): void {
+    const listeners = this.listeners.get(event) ?? [];
+    this.listeners.delete(event);
     for (const listener of listeners) listener();
   }
 }
@@ -75,83 +108,160 @@ class FakeGame implements HostedGame {
 describe("PhaserHost", () => {
   let games: FakeGame[];
   let webgl: boolean;
+  let host: PhaserHost;
 
   beforeEach(() => {
     games = [];
     webgl = true;
+    host = new PhaserHost(window, document.createElement("div"), () => {
+      const created = new FakeGame(webgl);
+      games.push(created);
+      return created;
+    });
   });
 
-  /** Builds a host whose games are fakes this suite can inspect. */
-  function makeHost(): PhaserHost {
-    const presentation = new TestPresentation();
-    const game = new FakeTableGame();
-    game.startNewGame();
-    return new PhaserHost(
-      window,
-      document.createElement("div"),
-      () => makeFakeTableBoardScene(game, presentation),
-      () => {
-        const created = new FakeGame(webgl);
-        games.push(created);
-        return created;
-      },
-    );
+  /** Returns the one game the host has started. */
+  function game(): FakeGame {
+    const [only, ...others] = games;
+    if (!only || others.length > 0) {
+      throw new Error(`Expected one game, found ${games.length}`);
+    }
+    return only;
   }
+
+  /** Builds a board drawing a freshly dealt game. */
+  function makeBoard(): BoardScene {
+    const dealt = new FakeTableGame();
+    dealt.startNewGame();
+    return makeFakeTableBoardScene(dealt, new TestPresentation());
+  }
+
+  /** Shows a board and returns it, once it has been built. */
+  function show(): () => BoardScene | undefined {
+    let built: BoardScene | undefined;
+    host.show(() => {
+      built = makeBoard();
+      return built;
+    });
+    return () => built;
+  }
+
+  describe("show", () => {
+    it("starts one game however many boards it shows", () => {
+      show();
+      games[0]?.boot();
+
+      show();
+      show();
+
+      expect(games).toHaveLength(1);
+    });
+
+    it("mounts nothing until the game has booted", () => {
+      show();
+
+      expect(game().scene.mounted).toEqual([]);
+    });
+
+    it("mounts the board once the game has booted", () => {
+      const board = show();
+
+      game().boot();
+
+      expect(game().scene.mounted).toEqual([board()?.key]);
+    });
+
+    it("replaces the board on the table with the next one", () => {
+      show();
+      game().boot();
+
+      const next = show();
+
+      expect(game().scene.mounted).toEqual([next()?.key]);
+    });
+
+    it("stops the board it replaces before removing it", () => {
+      const first = show();
+      game().boot();
+      const key = first()?.key;
+
+      show();
+
+      // Phaser destroys a removed scene without shutting it down.
+      expect(
+        game().scene.operations.filter((op) => op.endsWith(`:${key}`)),
+      ).toEqual([`add:${key}`, `stop:${key}`, `remove:${key}`]);
+    });
+
+    it("builds only the latest board shown while the game boots", () => {
+      const first = show();
+      const second = show();
+
+      game().boot();
+
+      expect({
+        firstBuilt: first() !== undefined,
+        mounted: game().scene.mounted,
+      }).toEqual({ firstBuilt: false, mounted: [second()?.key] });
+    });
+
+    it("mounts nothing when the game finishes booting after it was destroyed", () => {
+      show();
+      host.destroy();
+
+      game().boot();
+
+      expect(game().scene.mounted).toEqual([]);
+    });
+  });
 
   describe("destroy", () => {
     it("destroys the game it started", () => {
-      const host = makeHost();
-      host.start();
+      show();
 
       host.destroy();
 
-      expect(games.map((game) => game.destroyed)).toEqual([true]);
+      expect(game().destroyed).toBe(true);
     });
 
     it("releases the game's WebGL context once Phaser tears the game down", () => {
-      const host = makeHost();
-      host.start();
+      show();
       host.destroy();
 
-      games[0]?.step();
+      game().step();
 
-      expect(games[0]?.loseContext.losses).toBe(1);
+      expect(game().loseContext.losses).toBe(1);
     });
 
     it("keeps the context until then, while the renderer still listens for its loss", () => {
-      const host = makeHost();
-      host.start();
+      show();
 
       host.destroy();
 
-      expect(games[0]?.loseContext.losses).toBe(0);
+      expect(game().loseContext.losses).toBe(0);
     });
 
     it("releases the context only once when destroyed twice", () => {
-      const host = makeHost();
-      host.start();
+      show();
       host.destroy();
       host.destroy();
 
-      games[0]?.step();
+      game().step();
 
-      expect(games[0]?.loseContext.losses).toBe(1);
+      expect(game().loseContext.losses).toBe(1);
     });
 
     it("tears down a game drawn without WebGL", () => {
       webgl = false;
-      const host = makeHost();
-      host.start();
+      show();
       host.destroy();
 
-      games[0]?.step();
+      game().step();
 
-      expect(games.map((game) => game.destroyed)).toEqual([true]);
+      expect(game().destroyed).toBe(true);
     });
 
-    it("does nothing for a host that never started", () => {
-      const host = makeHost();
-
+    it("does nothing for a host that never showed a board", () => {
       host.destroy();
 
       expect(games).toEqual([]);

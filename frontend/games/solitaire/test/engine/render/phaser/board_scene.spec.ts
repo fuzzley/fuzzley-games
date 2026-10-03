@@ -115,6 +115,14 @@ describe("BoardScene", () => {
   }
 
   describe("construction", () => {
+    it("registers under a key no other board shares", () => {
+      const next = makeBoardScene();
+
+      // Phaser throws on a key already in use, and the next board is added to
+      // the game before the last one is gone if the swap is queued.
+      expect(next.key).not.toBe(boardScene.key);
+    });
+
     it("draws a placeholder under each pile it is handed one for, and no others", () => {
       const withPlaceholder = fakeGame.piles
         .filter((pile) => boardScene.pileBackgroundSprite(pile.id))
