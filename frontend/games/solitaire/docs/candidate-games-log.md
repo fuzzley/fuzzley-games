@@ -63,7 +63,7 @@ need:
 - [x] 10. E2, then Canfield, Storehouse, Superior Canfield and Rainbow.
 - [x] 11. Penguin.
 - [x] 12. Black Hole and All in a Row.
-- [ ] 13. Grandfather's Clock.
+- [x] 13. Grandfather's Clock.
 - [ ] 14. E4, then Pyramid.
 - [ ] 15. TriPeaks.
 - [ ] 16. E5, then Beleaguered Castle, Streets and Alleys, Citadel and
@@ -338,7 +338,7 @@ descendingAnySuit)`, top-only. The stock deals a row onto the reserves
     a rules page, a profile (Medium), the README, the screenshot and
     thumbnails.
   - Tests: `test/games/penguin/penguin_game.spec.ts`.
-- Step 12: Black Hole and All in a Row.
+- Step 12 (`ea69728`): Black Hole and All in a Row.
   - `src/games/black_hole`: one class for both, a `BlackHoleVariant` picking
     the board. The foundation rule is the same for both:
     `byEmptiness(anyCard, buildsOn(isAdjacentRank(true)))`, one card at a
@@ -358,16 +358,40 @@ descendingAnySuit)`, top-only. The stock deals a row onto the reserves
     pages, profiles (Medium), the README, screenshots and thumbnails.
   - Tests: `test/games/black_hole/black_hole_game.spec.ts` and `playOnPress`
     cases in `table_gestures.spec.ts`.
+- Step 13: Grandfather's Clock.
+  - `src/games/grandfathers_clock`: `DIAL` lists the twelve foundations in
+    deal order, PySol's: the Two of Spades at five o'clock, each hour
+    clockwise one rank higher with the suits taken in turn, to the King of
+    Diamonds at four. Each foundation's `capacity` (4 from five to twelve
+    o'clock, 5 from one to four) is computed from its start and its hour and
+    closes it there; the rule is `ascendingSameSuitWrapping`, grab none. A
+    spec checks the capacities sum to 52.
+  - The dial is a true circle: `dialSlot(hour)` places each card on a radius
+    of 500 design units and converts to fractional grid columns and rows by
+    the column pitch (251) and row pitch (353), so the nine o'clock card
+    sits at column 0 and the twelve o'clock card at row 0. The foundations
+    are declared top-down, so where neighbours overlap the lower card draws
+    over the higher one's bottom and every index stays in view. Eight columns
+    of five sit to the right from column 5 (13 × 3.72, `designHeightPx`
+    1470, set by the dial). Columns: `byEmptiness(anyCard,
+descendingAnySuit)`, top-only.
+  - A "Grandfather's Clock" entry (`grandfathersclock`, alias Clock; no
+    Wikipedia article), `stocklessGestures`, a rules page, a profile in
+    "More games" (Easy), the README, the screenshot and thumbnails.
+  - Tests: `test/games/grandfathers_clock/grandfathers_clock_game.spec.ts`.
 
 ## Next
 
-Step 13: Grandfather's Clock. Twelve foundations in a ring at fractional
-slots (E3 is in), each pulled from the deck in PySol's order (the Two of
-Spades at five o'clock, then each position clockwise one rank higher, suits
-spades, hearts, clubs, diamonds, ending on the King of Diamonds at four
-o'clock), with `ascendingSameSuitWrapping` and a `capacity` of 4 or 5 so
-each closes on its clock rank. Eight columns of five beneath or beside,
-`byEmptiness(anyCard, descendingAnySuit)`, top-only.
+Step 14: E4, then Pyramid. E4 adds a grab kind
+`{ kind: "uncovered"; coveredBy: readonly string[] }` (top card, and only
+while every pile in `coveredBy` is empty); `canGrab` then needs the board,
+which touches `zone.ts`, `TableGame.resolveMove`, the
+`isCardInteractable…`/`isCardDraggable…` methods, and `stackFromCard` in
+`grabbable_stack.ts` (the `TableView` gains `board`). Consider the
+drop-target refinement in `resolveDragTarget` (prefer piles that accept the
+stack). Pyramid then pairs uncovered cards totalling 13 (move
+`totalsThirteen` from Monte Carlo into `pair_removal.ts`), Kings go alone,
+a hand pile holds the drawn card, and rows sit at half-row offsets.
 
 Screenshots: open each new entry in a fresh isolated browser context (a game
 left in progress raises the "switch games?" confirmation). In a development

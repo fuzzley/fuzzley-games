@@ -1768,4 +1768,42 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     },
     settingsAndVariants: [],
   },
+  grandfathersclock: {
+    title: "Grandfather's Clock",
+    screenshot: {
+      url: "./docs/screenshots/grandfathersclock/overview.png",
+      caption:
+        "Grandfather's Clock board showing twelve foundations laid round a dial at the left, from the Nine of Diamonds at twelve o'clock round to the Eight of Clubs at eleven, and eight face-up columns of five beside it.",
+      altText: "Grandfather's Clock solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Build each of the twelve foundations round the dial up in suit until its top card shows the hour it stands at.",
+      winCondition:
+        "All 52 cards are on the dial, every foundation ending on its hour — Jack at eleven, Queen at twelve.",
+      quickOverview:
+        "Grandfather's Clock lays twelve cards round a dial, the Two of Spades at five o'clock and each hour clockwise one rank higher, to the King of Diamonds at four. Each builds up in suit, turning the corner from King to Ace, until it reaches its hour. The other forty cards are dealt face-up into eight columns of five, which build down regardless of suit.",
+    },
+    detailedRules: {
+      layout: [
+        "Dial: 12 foundations in a circle at the left, started with the Two of Spades at five o'clock through to the King of Diamonds at four o'clock, the suits taken in turn: spades, hearts, clubs, diamonds.",
+        "Tableau: 8 columns of 5 face-up cards beside the dial.",
+      ],
+      cardMovement: [
+        "Only the top card of a column can be moved, one card at a time.",
+        "A card can go onto a column whose top card is exactly 1 rank higher, in any suit.",
+        "Any card can fill an empty column.",
+        "Double-press a card to send it to the foundation that takes it; each card fits only one.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from their starting card, from King round to Ace, until the top card's rank is the hour — so those from five to twelve o'clock take three more cards, and those from one to four o'clock take four.",
+        "Tableau: Built DOWN by RANK in ANY SUIT.",
+      ],
+      specialRules: [
+        "Telling the Time: Ace counts one, Jack eleven and Queen twelve; once a foundation shows its hour it is complete and takes nothing more.",
+        "One of the more forgiving patiences: with spaces open to any card, most deals come out.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
 };

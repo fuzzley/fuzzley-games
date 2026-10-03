@@ -573,5 +573,13 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       decks: 1,
       allCardsVisible: true,
     },
+    grandfathersclock: {
+      family: "other",
+      tagline: "Build twelve foundations round a dial, each to its hour.",
+      difficulty: Difficulty.EASY,
+      decks: 1,
+      allCardsVisible: true,
+      aliases: ["Clock"],
+    },
   },
 };

@@ -117,6 +117,8 @@ import {
   BLACK_HOLE_LAYOUT,
 } from "@/games/black_hole/black_hole_layout";
 import { BlackHoleVariant } from "@/games/black_hole/black_hole_rules";
+import { GrandfathersClockGame } from "@/games/grandfathers_clock/grandfathers_clock_game";
+import { GRANDFATHERS_CLOCK_LAYOUT } from "@/games/grandfathers_clock/grandfathers_clock_layout";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -857,6 +859,14 @@ const ALL_IN_A_ROW = {
     dealt(new BlackHoleGame({ variant: BlackHoleVariant.ALL_IN_A_ROW })),
 } satisfies CatalogEntry<BlackHoleGame>;
 
+const GRANDFATHERS_CLOCK = {
+  id: "grandfathersclock" as const,
+  name: "Grandfather's Clock",
+  options: [],
+  layout: GRANDFATHERS_CLOCK_LAYOUT,
+  create: () => dealt(new GrandfathersClockGame()),
+} satisfies CatalogEntry<GrandfathersClockGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -900,6 +910,7 @@ export const CATALOG_ENTRIES = [
   PENGUIN,
   BLACK_HOLE,
   ALL_IN_A_ROW,
+  GRANDFATHERS_CLOCK,
 ] as const;
 
 /** Every game the application can put on the table. */
