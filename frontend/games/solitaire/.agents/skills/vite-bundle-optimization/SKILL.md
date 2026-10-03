@@ -64,26 +64,43 @@ Break either one and the app 404s on the host while working perfectly on
 (`playing_card_assets_large.svg`, 52 faces plus two backs) and
 `card_placeholders.svg`.
 
-**Output:** `src/engine/render/assets/sprites/atlas/` — a Phaser **multi-atlas**
-manifest `card_assets_atlas.json` plus one or more PNG pages
-`card_assets-0.png`, `card_assets-1.png`, … Pages are PNG, not WebP, and there
-is more than one: frames are packed into as few pages as fit inside
-`MAX_PAGE_PX` (4096), which is the texture-size floor still found on older
-mobile GPUs.
+**Output:** `src/engine/render/assets/sprites/atlas/<deck>/<n>x/`, one directory
+per deck and density. Each holds a Phaser **multi-atlas** manifest
+`card_assets_atlas.json` plus PNG pages `card_assets-0.png`,
+`card_assets-1.png`, … Pages are PNG, not WebP. Frames are packed into as few
+pages as fit inside `MAX_PAGE_PX` (4096), which is the texture-size floor still
+found on older mobile GPUs.
+
+Every deck is built at each density in `ART_SCALES`, in texels per design unit:
+
+- **2×** is for boards that draw cards larger than their design size, such as
+  high-density screens and large windows. It takes two pages and about 62 MB of
+  GPU memory.
+- **1×** is for everything else, including phones. It takes one page and about
+  16 MB.
+
+The sheets are rasterized once, at the first density. Every other density is
+shrunk from those finished frames, so all of them are framed and edged alike.
 
 The atlas is checked in and loaded **through the bundler**, not from `public/`.
-`src/engine/render/phaser/card_deck_atlas.ts` imports each deck's manifest and
-resolves page filenames against an `import.meta.glob` of the PNGs, so the pages
-keep their content hashes in `dist/` while the manifest can go on naming them
-plainly.
+`src/engine/render/phaser/card_deck_atlas.ts` imports every deck's manifest at
+every density. It resolves page filenames against an `import.meta.glob` of the
+PNGs, so the pages keep their content hashes in `dist/` while the manifest can
+go on naming them plainly. Only the pages a board actually loads are
+downloaded.
 
 **Rules:**
 
 - Re-run `yarn build:atlas` whenever the card SVGs change. The atlas is a
   committed build artifact; a stale one ships.
-- `ART_SCALE` in the tool must stay equal to `CARD_ART_SCALE` in
-  `src/engine/render/layout/card_metrics.ts`. They are two halves of one number
-  — texels per design unit — and the cards render at the wrong size if they
-  drift.
+- `ART_SCALES` in the tool and `CARD_ART_SCALES` in
+  `src/engine/render/layout/card_metrics.ts` must list the same densities.
+  Every frame at density _n_ must be `CARD_RENDER_WIDTH_PX × n` by
+  `CARD_RENDER_HEIGHT_PX × n` texels. Otherwise cards render at the wrong size.
+  `test/engine/render/phaser/card_deck_atlas.spec.ts` checks both against the
+  built manifests.
+- Adding a density to `CARD_ART_SCALES` is a compile error until
+  `card_deck_atlas.ts` imports its manifests. `cardArtScaleFor`, next to it,
+  decides which boards it is used for.
 - The tool fails the build if any frame comes out without a stamped edge. That
   check is deliberate; do not weaken it to get a build through.
