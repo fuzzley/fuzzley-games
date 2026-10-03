@@ -69,7 +69,7 @@ need:
 - [x] 16. E5, then Beleaguered Castle, Streets and Alleys, Citadel and
       Fortress.
 - [x] 17. Poker Squares.
-- [ ] 18. The README, the survey's status, the skill, `yarn verify` and
+- [x] 18. The README, the survey's status, the skill, `yarn verify` and
       coverage.
 
 ## Progress
@@ -476,7 +476,7 @@ descendingAnySuit)`, top-only.
     "demon" (Canfield) keeps an alias case.
   - Tests: `test/games/beleaguered_castle/castle_game.spec.ts` and a
     sideways-fan case in `drop_geometry.spec.ts`.
-- Step 17: Poker Squares.
+- Step 17 (`6d7dc50`): Poker Squares.
   - `src/games/poker_squares/poker_hands.ts`: a pure `evaluateHand` naming
     the best poker hand a line's cards make. Pairs, threes, two pair, fours
     and full houses count as soon as they are there; straights (Ace low or
@@ -500,14 +500,45 @@ descendingAnySuit)`, top-only.
     synthetic drags, which also checks dragging end to end) and thumbnails.
   - Tests: `poker_hands.spec.ts` and `poker_squares_game.spec.ts` in
     `test/games/poker_squares`.
+- Step 18: wrap-up.
+  - The README gained each game as it landed.
+  - `candidate-games.md`: the top status line now says every item is built,
+    with E1 to E5, E7 and P1, and E6 is not; each of E1 to E6, P1 and items 10
+    to 26 has a status line naming where the build departed from the survey.
+  - The `add-solitaire-game` skill names the new entries that share a class
+    (Trefoil, All in a Row, Fortress) and the new variant options, and the new
+    shared pieces: the wrapping adjacencies and builds, `isAdjacentRank`,
+    `ascendingAnySuit`, `baseRankFoundation`/`baseRankOf`, the `uncovered`
+    grab and `isUncovered`, fractional slots, `pullCards`/`pullFirstCard`,
+    `sinkKings`, `pair_removal.ts`, and `playOnPress`. `yarn skills:check`
+    passes.
+  - Two coverage gaps closed: Bristol refusing to deal from an empty stock,
+    and Pyramid giving a pass back on undo and keeping its count in a
+    snapshot. The other uncovered lines in the new code are short-deck early
+    returns in the deals, as in the older games.
+  - `yarn verify` passes: lint, tsc, build, and 3215 tests in 127 files. The
+    build's "chunks larger than 500 kB" warning is not new: on `main` both
+    the Phaser chunk (1.37 MB) and the app chunk (527 kB, 141 kB gzip) were
+    already over it; this branch takes the app chunk to 617 kB (162 kB gzip),
+    for twenty new entries' code and rules pages. Measured by building `main`
+    in a temporary worktree.
+  - `yarn test:coverage` passes: 97.7% statements, 90.9% branches, 98.3%
+    functions, 99.0% lines (was 97.5 / 91.2 / 98.1 / 98.9), against a floor
+    of 95 / 88 / 96 / 96, which is left where it is.
 
 ## Next
 
-Step 18: wrap-up. The survey's status line and a status line under each of
-items 10 to 26 (with the departures logged here), the `add-solitaire-game`
-skill's examples and new shared pieces (`pair_removal.ts`, `playOnPress`,
-`pullFirstCard`, `sinkKings`, the `uncovered` grab, `baseRankFoundation`,
-`pileWidth`), `yarn verify`, and `yarn test:coverage` against the floor.
+Every step is done. What is left is review, then a merge into `main`, which
+deploys. Things a reviewer may want to weigh:
+
+- The drop-target preference (step 14, refined in step 15) changes every
+  game: a card that lies at least a quarter over a pile that would take it,
+  and more over one that would not, now lands on the one that takes it
+  instead of flying back.
+- Scores left out: Golf's strokes, Canfield's, and TriPeaks' streaks.
+- E6, the status readout, is not built; nothing here needed it.
+- Storehouse follows PySol (one card at a time, two redeals), not Wikipedia
+  (one pass).
 
 ## Picking it back up
 
@@ -517,4 +548,4 @@ git log --oneline main..
 yarn verify
 ```
 
-Then carry on from the first unchecked step in the plan.
+Every step in the plan is checked.

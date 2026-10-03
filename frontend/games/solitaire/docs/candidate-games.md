@@ -5,9 +5,9 @@ engine could play without a major rework. For each one it gives the rules,
 where they come from, whether it is a variant of a game already in the catalog,
 and what code it would take.
 
-**Status:** items 1 to 9 and E7 are built. Where the build departed from what
-is written here, the item's own status line says so. Nothing from item 10 on is
-built.
+**Status:** every item, 1 to 26, is built, with E1 to E5, E7 and P1. E6 is not.
+Where the build departed from what is written here, the item's own status line
+says so.
 
 When this survey was written, the catalog held Klondike (with Whitehead and
 Thumb and Pouch), FreeCell, Baker's Game, Eight Off, Seahaven Towers, Spider,
@@ -128,6 +128,8 @@ entries change shared code. **P** entries are patterns written once in
 
 ### E1. Wrap-around ranks and up-or-down adjacency
 
+**Status:** built, with Golf.
+
 `rankAbove` and `rankBelow` (`src/engine/core/card/playing_card.ts`) return
 `undefined` past King and Ace, and every adjacency in
 `src/engine/tableau/rules.ts` is one-directional. Several games need a King to
@@ -146,6 +148,9 @@ Clock, Putt Putt), and the Golf family needs "one rank up or down".
 
 ### E2. Foundations whose base rank is dealt
 
+**Status:** built, with Canfield, as `baseRankOf` and `baseRankFoundation` in
+`src/engine/tableau/rules.ts`.
+
 In Canfield and Penguin, the deal decides which rank starts every foundation.
 Zones are fixed for a game's life, but the base rank changes with every deal.
 So the rule must **read the base rank from the board**, not close over a value:
@@ -162,6 +167,9 @@ lookup gives Penguin's empty-column rule ("the rank below the beak").
 
 ### E3. Off-grid slots in the loading skeleton
 
+**Status:** built, with Flower Garden: `src/ui/app/model/skeleton_slots.ts`
+places each slot by percentage.
+
 The canvas draws fractional slots correctly. The loading skeleton in
 `src/ui/app/component/game_canvas/game_canvas.component.html` places slots with
 CSS `grid-column: slot.column + 1`, though, and a fractional value is invalid
@@ -174,6 +182,11 @@ overlapping bouquet) and any tighter row pitch all need it.
 the fix from regressing.
 
 ### E4. Grab rules that depend on other piles
+
+**Status:** built, with Pyramid, refinement included. A pile that would take the
+stack wins only if the dragged card overlaps it by at least a quarter of a card;
+without that floor, a card dropped squarely on one column jumped to a neighbour
+it barely touched.
 
 In Pyramid and TriPeaks, a card is free only when the cards overlapping it are
 gone. `GrabRule` is a closed union, and `canGrab(grab, card, pile)` sees only
@@ -203,6 +216,9 @@ prefer the piles that accept the stack before measuring overlap.
 
 ### E5. Horizontal fans that take drops along their length
 
+**Status:** built, with the Castle family. There is no `fan-left`: both wings
+fan right.
+
 The Beleaguered Castle family deals its rows sideways. `fan-right` exists, and
 a large `maxVisible` fans a whole pile, but:
 
@@ -220,6 +236,9 @@ a large `maxVisible` fans a whole pile, but:
 **Size:** M. The work is in `engine/render` and stays Phaser-free.
 
 ### E6. A status readout for game-specific counters
+
+**Status:** not built. None of items 10 to 26 needed it: Poker Squares shows its
+running total as the score, and the redeal and recycle counts are pips.
 
 `GameMetrics` holds only score, moves and undo depth. A count of two or three
 can be drawn on the board instead, as Montana's redeal marker does with pips
@@ -245,6 +264,9 @@ decides whether it has a floor.
 **Size:** S.
 
 ### P1. Pair removal
+
+**Status:** built, with Nestor, straight into
+`src/games/common/pair_removal.ts`.
 
 This pattern serves Pyramid, Nestor and Monte Carlo. The player drags card A
 onto card B. B's pile accepts A only if the two make a pair (same rank, or a
@@ -543,6 +565,8 @@ on Montana. **Effort:** M for the two Moons, S for Addiction.
 
 ### 10. Bisley
 
+**Status:** built, on Wikipedia's thirteen columns.
+
 **Relation:** new game. **Effort:** S. **Extensions:** none.
 
 **Rules.** One deck. The four Aces are laid out first as foundations. The rest
@@ -577,6 +601,8 @@ twelve columns of four instead; Wikipedia's thirteen columns are proposed here.
 
 ### 11. Aces Up
 
+**Status:** built. A double press tries the discard, then a space.
+
 **Relation:** new game. **Effort:** S. **Extensions:** none.
 
 **Rules.** Deal four cards face up in a row. Whenever two or more top cards
@@ -604,6 +630,9 @@ only the four Aces remain (48 discarded). Wikipedia puts typical play at about
   variant is an option with an `aceOnly` empty-column rule.
 
 ### 12. Golf (with Putt Putt)
+
+**Status:** built. One "Variant" option of Golf, Queens on Kings and Putt Putt,
+since Putt Putt makes the Kings rule moot. Golf's strokes scoring is left out.
 
 **Relation:** new game. It would start a Golf family alongside Black Hole, All
 in a Row and TriPeaks. **Effort:** S. **Extensions:** none for Golf; E1 for
@@ -642,6 +671,8 @@ adjacent.
   "Putt Putt".
 
 ### 13. Calculation (with Sir Tommy)
+
+**Status:** built.
 
 **Relation:** new game. Sir Tommy is a variant option on the same grid.
 **Effort:** S. **Extensions:** none.
@@ -691,6 +722,8 @@ Wikibooks and most sources say four.)
 
 ### 14. Flower Garden
 
+**Status:** built, after E3.
+
 **Relation:** new game. **Effort:** S. **Extensions:** E3.
 
 **Rules.** One deck. Thirty-six cards go into six **beds** of six, face up. The
@@ -718,6 +751,8 @@ different grid and so would be another entry.
   `OPEN_COLUMN_LAYOUT`. Foundations use `suitFoundation`.
 
 ### 15. Bristol (with Belvedere)
+
+**Status:** built. `sinkKings` moved to `src/games/common/sink_kings.ts`.
 
 **Relation:** new game. Belvedere is a variant option. **Effort:** S.
 **Extensions:** none.
@@ -747,6 +782,8 @@ foundation.
 
 ### 16. Nestor
 
+**Status:** built, after P1.
+
 **Relation:** new game. **Effort:** S. **Extensions:** P1.
 
 **Rules.** One deck. Eight columns of six cards are dealt face up, so that **no
@@ -771,6 +808,9 @@ ten-card reserve) and Doublets (twelve columns of four, four-card reserve).
   loop forever, and a fixed-`random` spec should pin that case.
 
 ### 17. Monte Carlo (with Monte Carlo Thirteens)
+
+**Status:** built. Consolidating is allowed whenever it would change something,
+which already means only after a pair has gone.
 
 **Relation:** new game. Thirteens is a variant option. **Effort:** M.
 **Extensions:** P1.
@@ -799,6 +839,9 @@ own.
 - `winsWhenAllCardsIn: DISCARD`.
 
 ### 18. La Belle Lucie (with The Fan, Shamrocks and Trefoil)
+
+**Status:** built. The two rows of fans sit 1.4 rows apart. The Fan and
+Shamrocks have no redeal, and the merci is left out.
 
 **Relation:** new game, starting a Fan family. The Fan and Shamrocks are
 variant options. Trefoil has a different number of fans, so it is an entry
@@ -848,6 +891,9 @@ Draw" adds one _merci_ after the last redeal: one buried card may be drawn out.
 ## Part C: new games that need a small engine extension
 
 ### 19. Canfield (with Storehouse, Superior Canfield and Rainbow)
+
+**Status:** built, after E2. Storehouse follows PySol: one card at a time, two
+redeals. Canfield's scoring is left out.
 
 **Relation:** new game, starting a Canfield family. The three variants share
 its grid and are options. **Effort:** M. **Extensions:** E1, E2.
@@ -905,6 +951,8 @@ Variants on the same grid:
 
 ### 20. Penguin
 
+**Status:** built.
+
 **Relation:** new game, in the FreeCell family. **Effort:** M.
 **Extensions:** E1, E2.
 
@@ -938,6 +986,8 @@ can be won.
   `stocklessGestures`.
 
 ### 21. Black Hole and All in a Row
+
+**Status:** built.
 
 **Relation:** new game in the Golf family. All in a Row has a different grid,
 so it is an entry sharing the class. **Effort:** S. **Extensions:** E1.
@@ -974,6 +1024,8 @@ so it is an entry sharing the class. **Effort:** S. **Extensions:** E1.
 
 ### 22. Grandfather's Clock
 
+**Status:** built. The dial is a true circle at the left of the columns.
+
 **Relation:** new game. **Effort:** S–M. **Extensions:** E1, E3.
 
 **Rules.** One deck. Twelve cards are laid in a **circle** as foundations. PySol
@@ -1004,6 +1056,8 @@ Wikipedia has no article.
 - Columns use `byEmptiness(anyCard, descendingAnySuit)` and top-only.
 
 ### 23. Pyramid
+
+**Status:** built, after E4, with "Goal" and "Passes" options.
 
 **Relation:** new game. **Effort:** M. **Extensions:** P1, E3, E4.
 
@@ -1042,6 +1096,9 @@ Tomb.
 
 ### 24. TriPeaks
 
+**Status:** built. King and Ace are always adjacent; the streak scoring is left
+out.
+
 **Relation:** new game in the Golf family. **Effort:** M.
 **Extensions:** E1, E3, E4.
 
@@ -1071,6 +1128,8 @@ rewards long streaks and cleared peaks, and is optional.
 - Layout (E3): ten columns wide, with half-column offsets for the upper rows.
 
 ### 25. Beleaguered Castle (with Streets and Alleys, Citadel and Fortress)
+
+**Status:** built, after E5.
 
 **Relation:** new game, starting a Castle family. Streets and Alleys and
 Citadel share its grid and are options. Fortress deals ten rows, so it is an
@@ -1112,6 +1171,9 @@ entry sharing the class. **Effort:** M for the first, then S each.
   be small.
 
 ### 26. Poker Squares
+
+**Status:** built. Lines score as they fill, so the header's score is a running
+total.
 
 **Relation:** new solitaire-adjacent game. **Effort:** M.
 **Extensions:** E6 (optional).
