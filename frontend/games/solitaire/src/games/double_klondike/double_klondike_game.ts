@@ -4,7 +4,11 @@ import { deckCardIds } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { KlondikeFamilyGame } from "@/games/klondike/klondike_family_game";
-import { ScoringPolicy, ScoringRoles } from "@/games/klondike/scoring_policy";
+import {
+  ScoringPolicy,
+  ScoringRoles,
+  StandardScoringPolicy,
+} from "@/games/klondike/scoring_policy";
 import { DeckOptions } from "@/games/common/deck_options";
 import {
   DOUBLE_KLONDIKE_TWO_DECKS,
@@ -45,7 +49,7 @@ export class DoubleKlondikeGame extends KlondikeFamilyGame {
   constructor({
     cardIds = deckCardIds(DOUBLE_KLONDIKE_TWO_DECKS),
     random = Math.random,
-    scoring = new ScoringPolicy(DOUBLE_KLONDIKE_SCORING_ROLES),
+    scoring = new StandardScoringPolicy(DOUBLE_KLONDIKE_SCORING_ROLES),
   }: DoubleKlondikeOptions = {}) {
     super({
       zones: doubleKlondikeZoneSpecs(),

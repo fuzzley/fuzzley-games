@@ -4,6 +4,7 @@ import {
   anyCard,
   byEmptiness,
   descendingAlternatingColor,
+  descendingDifferentSuit,
   descendingSameSuit,
   isOrderedPair,
   isSameSuitRun,
@@ -44,6 +45,12 @@ export const FortyThievesVariant = {
   MARIA: 3,
   /** Limited: twelve columns of three, built down in suit. */
   LIMITED: 4,
+  /** Indian: columns of three, one buried, built down in any other suit. */
+  INDIAN: 5,
+  /** Number Ten: two of every four buried, alternating colours, runs move. */
+  NUMBER_TEN: 6,
+  /** Lucas: thirteen columns of three in suit, the Aces already home. */
+  LUCAS: 7,
 } as const;
 
 /** Names one of the games in the Forty Thieves family. */
@@ -66,6 +73,8 @@ interface VariantRules {
   readonly tableauCount: number;
   /** How many cards each column is dealt. */
   readonly cardsPerColumn: number;
+  /** Whether the deal starts every foundation with its Ace. */
+  readonly acesStartOnFoundations: boolean;
 }
 
 /**
@@ -81,6 +90,7 @@ const VARIANT_RULES: Readonly<Record<FortyThievesVariant, VariantRules>> = {
     buriedPerColumn: 0,
     tableauCount: 10,
     cardsPerColumn: 4,
+    acesStartOnFoundations: false,
   },
   [FortyThievesVariant.JOSEPHINE]: {
     occupied: descendingSameSuit,
@@ -88,6 +98,7 @@ const VARIANT_RULES: Readonly<Record<FortyThievesVariant, VariantRules>> = {
     buriedPerColumn: 0,
     tableauCount: 10,
     cardsPerColumn: 4,
+    acesStartOnFoundations: false,
   },
   [FortyThievesVariant.RANK_AND_FILE]: {
     occupied: descendingAlternatingColor,
@@ -95,6 +106,7 @@ const VARIANT_RULES: Readonly<Record<FortyThievesVariant, VariantRules>> = {
     buriedPerColumn: 3,
     tableauCount: 10,
     cardsPerColumn: 4,
+    acesStartOnFoundations: false,
   },
   [FortyThievesVariant.MARIA]: {
     occupied: descendingAlternatingColor,
@@ -102,6 +114,7 @@ const VARIANT_RULES: Readonly<Record<FortyThievesVariant, VariantRules>> = {
     buriedPerColumn: 0,
     tableauCount: 9,
     cardsPerColumn: 4,
+    acesStartOnFoundations: false,
   },
   [FortyThievesVariant.LIMITED]: {
     occupied: descendingSameSuit,
@@ -109,6 +122,31 @@ const VARIANT_RULES: Readonly<Record<FortyThievesVariant, VariantRules>> = {
     buriedPerColumn: 0,
     tableauCount: 12,
     cardsPerColumn: 3,
+    acesStartOnFoundations: false,
+  },
+  [FortyThievesVariant.INDIAN]: {
+    occupied: descendingDifferentSuit,
+    grab: { kind: "top-only" },
+    buriedPerColumn: 1,
+    tableauCount: 10,
+    cardsPerColumn: 3,
+    acesStartOnFoundations: false,
+  },
+  [FortyThievesVariant.NUMBER_TEN]: {
+    occupied: descendingAlternatingColor,
+    grab: { kind: "run", adjacent: isOrderedPair },
+    buriedPerColumn: 2,
+    tableauCount: 10,
+    cardsPerColumn: 4,
+    acesStartOnFoundations: false,
+  },
+  [FortyThievesVariant.LUCAS]: {
+    occupied: descendingSameSuit,
+    grab: { kind: "run", adjacent: isSameSuitRun },
+    buriedPerColumn: 0,
+    tableauCount: 13,
+    cardsPerColumn: 3,
+    acesStartOnFoundations: true,
   },
 };
 
@@ -149,6 +187,13 @@ export function fortyThievesCardsPerColumn(
   variant: FortyThievesVariant,
 ): number {
   return VARIANT_RULES[variant].cardsPerColumn;
+}
+
+/** Returns whether `variant` deals the Aces onto the foundations first. */
+export function fortyThievesAcesStartOnFoundations(
+  variant: FortyThievesVariant,
+): boolean {
+  return VARIANT_RULES[variant].acesStartOnFoundations;
 }
 
 /**

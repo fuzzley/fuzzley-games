@@ -407,3 +407,173 @@ describe("FortyThievesGame win condition", () => {
     expect(won).toBe(true);
   });
 });
+
+/** Returns which side up each card of every column sits, bottom first. */
+function faceUpFlags(game: FortyThievesGame): boolean[][] {
+  return game.tableaus.map((pile) =>
+    pile.getCards().map((card) => card.faceUp),
+  );
+}
+
+describe("Indian", () => {
+  it("deals ten columns of three, the bottom card face down", () => {
+    const game = newGame(FortyThievesVariant.INDIAN);
+
+    expect(faceUpFlags(game)).toEqual(Array(10).fill([false, true, true]));
+  });
+
+  it("leaves seventy-four cards on the stock", () => {
+    const game = newGame(FortyThievesVariant.INDIAN);
+
+    expect(game.stock.size).toBe(74);
+  });
+
+  it("builds down on another suit of the same colour", () => {
+    const game = newGame(FortyThievesVariant.INDIAN);
+    emptyBoard(game);
+    relocate(game, "card-spades-9", game.tableaus[0]);
+    relocate(game, "card-clubs-8", game.tableaus[1]);
+
+    expect(game.moveCardToPile("card-clubs-8", game.tableaus[0].id)).toBe(true);
+  });
+
+  it("refuses a card of the same suit", () => {
+    const game = newGame(FortyThievesVariant.INDIAN);
+    emptyBoard(game);
+    relocate(game, "card-spades-9", game.tableaus[0]);
+    relocate(game, "card-spades-8", game.tableaus[1]);
+
+    expect(game.moveCardToPile("card-spades-8", game.tableaus[0].id)).toBe(
+      false,
+    );
+  });
+
+  it("moves one card at a time", () => {
+    const game = newGame(FortyThievesVariant.INDIAN);
+    emptyBoard(game);
+    relocate(game, "card-spades-9", game.tableaus[0]);
+    relocate(game, "card-hearts-8", game.tableaus[0]);
+    relocate(game, "card-hearts-10", game.tableaus[1]);
+
+    expect(game.moveCardToPile("card-spades-9", game.tableaus[1].id)).toBe(
+      false,
+    );
+  });
+});
+
+describe("Number Ten", () => {
+  it("deals ten columns of four, the bottom two face down", () => {
+    const game = newGame(FortyThievesVariant.NUMBER_TEN);
+
+    expect(faceUpFlags(game)).toEqual(
+      Array(10).fill([false, false, true, true]),
+    );
+  });
+
+  it("leaves sixty-four cards on the stock", () => {
+    const game = newGame(FortyThievesVariant.NUMBER_TEN);
+
+    expect(game.stock.size).toBe(64);
+  });
+
+  it("refuses the same colour in another suit", () => {
+    const game = newGame(FortyThievesVariant.NUMBER_TEN);
+    emptyBoard(game);
+    relocate(game, "card-spades-9", game.tableaus[0]);
+    relocate(game, "card-clubs-8", game.tableaus[1]);
+
+    expect(game.moveCardToPile("card-clubs-8", game.tableaus[0].id)).toBe(
+      false,
+    );
+  });
+
+  it("lifts an alternating-colour run as a unit", () => {
+    const game = newGame(FortyThievesVariant.NUMBER_TEN);
+    emptyBoard(game);
+    relocate(game, "card-spades-9", game.tableaus[0]);
+    relocate(game, "card-hearts-8", game.tableaus[0]);
+    relocate(game, "card-hearts-10", game.tableaus[1]);
+
+    expect(game.moveCardToPile("card-spades-9", game.tableaus[1].id)).toBe(
+      true,
+    );
+  });
+});
+
+describe("Lucas", () => {
+  it("starts every foundation with an Ace", () => {
+    const game = newGame(FortyThievesVariant.LUCAS);
+
+    const bases = game.foundations.map((pile) =>
+      pile.getCards().map((card) => card.rank),
+    );
+    expect(bases).toEqual(Array(FOUNDATION_COUNT).fill([Rank.ACE]));
+  });
+
+  it("deals thirteen columns of three, all face up", () => {
+    const game = newGame(FortyThievesVariant.LUCAS);
+
+    expect(faceUpFlags(game)).toEqual(Array(13).fill([true, true, true]));
+  });
+
+  it("leaves no Ace on the columns or in the stock", () => {
+    const game = newGame(FortyThievesVariant.LUCAS);
+
+    const aces = [...game.tableaus, game.stock]
+      .flatMap((pile) => pile.getCards())
+      .filter((card) => card.rank === Rank.ACE);
+    expect(aces).toEqual([]);
+  });
+
+  it("puts the other fifty-seven cards on the stock", () => {
+    const game = newGame(FortyThievesVariant.LUCAS);
+
+    expect(game.stock.size).toBe(57);
+  });
+
+  it("replays the same deal, Aces included, on a restart", () => {
+    const game = newGame(FortyThievesVariant.LUCAS);
+    const before = game.piles.map((pile) =>
+      pile.getCards().map((card) => card.id),
+    );
+
+    game.restartGame();
+
+    expect(
+      game.piles.map((pile) => pile.getCards().map((card) => card.id)),
+    ).toEqual(before);
+  });
+
+  it("lifts a same-suit run as a unit", () => {
+    const game = newGame(FortyThievesVariant.LUCAS);
+    emptyBoard(game);
+    relocate(game, "card-spades-9", game.tableaus[0]);
+    relocate(game, "card-spades-8", game.tableaus[0]);
+    relocate(game, "card-spades-10", game.tableaus[1]);
+
+    expect(game.moveCardToPile("card-spades-9", game.tableaus[1].id)).toBe(
+      true,
+    );
+  });
+
+  it("lets a Two go straight onto its Ace", () => {
+    const game = newGame(FortyThievesVariant.LUCAS);
+    const spadeAce = game.foundations.find(
+      (pile) => pile.topCard?.id === "card-spades-ace",
+    )!;
+    relocate(game, "card-spades-2", game.tableaus[0]);
+
+    expect(game.moveCardToPile("card-spades-2", spadeAce.id)).toBe(true);
+  });
+
+  it("deals no Aces home with a short deck that has none", () => {
+    const game = newGame(
+      FortyThievesVariant.LUCAS,
+      deckCardIds(FORTY_THIEVES_TWO_DECKS).filter(
+        (card) => card.rank === Rank.KING,
+      ),
+    );
+
+    expect(game.foundations.every((pile) => pile.isEmpty)).toBe(true);
+  });
+});

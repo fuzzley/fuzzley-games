@@ -2,6 +2,7 @@ import { PileRole } from "@/engine/core/card/card_pile";
 import { Rank } from "@/engine/core/card/playing_card";
 import {
   PlacementRule,
+  anyCard,
   byEmptiness,
   cardIs,
   descendingSameSuit,
@@ -22,22 +23,77 @@ export const ScorpionRole = {
 export type ScorpionRole = (typeof ScorpionRole)[keyof typeof ScorpionRole];
 
 /**
- * A Scorpion column: only a King starts an empty one, and anything after builds
- * down by rank in the same suit.
+ * Which of the Scorpion family is being played.
+ *
+ * Numbered because the settings panel stores an option as a number, which the
+ * catalog hands straight to the game.
  */
-export const SCORPION_TABLEAU_RULE: PlacementRule = byEmptiness(
-  cardIs(hasRank(Rank.KING)),
-  descendingSameSuit,
-);
+export const ScorpionVariant = {
+  /** The original: Kings into spaces, four columns hiding three cards each. */
+  SCORPION: 0,
+  /** Wasp: any card or run may fill a space. */
+  WASP: 1,
+  /** Scorpion II: only the first three columns hide cards. */
+  SCORPION_II: 2,
+} as const;
+
+/** Names one of the games in the Scorpion family. */
+export type ScorpionVariant =
+  (typeof ScorpionVariant)[keyof typeof ScorpionVariant];
+
+/** The variant dealt when nothing says otherwise. */
+export const DEFAULT_SCORPION_VARIANT: ScorpionVariant =
+  ScorpionVariant.SCORPION;
+
+/** Holds everything a variant decides. */
+interface VariantRules {
+  /** What an empty column accepts. */
+  readonly whenEmpty: PlacementRule;
+  /** How many columns, from the left, the deal buries cards in. */
+  readonly hiddenColumnCount: number;
+}
+
+/** What each variant changes. */
+const VARIANT_RULES: Readonly<Record<ScorpionVariant, VariantRules>> = {
+  [ScorpionVariant.SCORPION]: {
+    whenEmpty: cardIs(hasRank(Rank.KING)),
+    hiddenColumnCount: 4,
+  },
+  [ScorpionVariant.WASP]: {
+    whenEmpty: anyCard,
+    hiddenColumnCount: 4,
+  },
+  [ScorpionVariant.SCORPION_II]: {
+    whenEmpty: cardIs(hasRank(Rank.KING)),
+    hiddenColumnCount: 3,
+  },
+};
 
 /**
- * Returns what a pile of a role accepts, or null for the stock and the
- * foundations, where a player never puts a card.
+ * Returns the rule for a column under a variant: the variant decides what
+ * starts an empty one, and anything after builds down by rank in the same
+ * suit.
  */
-export function scorpionPlacementRule(role: string): PlacementRule | null {
+export function scorpionTableauRule(variant: ScorpionVariant): PlacementRule {
+  return byEmptiness(VARIANT_RULES[variant].whenEmpty, descendingSameSuit);
+}
+
+/** Returns how many columns, from the left, `variant` buries cards in. */
+export function scorpionHiddenColumnCount(variant: ScorpionVariant): number {
+  return VARIANT_RULES[variant].hiddenColumnCount;
+}
+
+/**
+ * Returns what a pile of a role accepts under a variant, or null for the stock
+ * and the foundations, where a player never puts a card.
+ */
+export function scorpionPlacementRule(
+  role: string,
+  variant: ScorpionVariant,
+): PlacementRule | null {
   switch (role) {
     case ScorpionRole.TABLEAU:
-      return SCORPION_TABLEAU_RULE;
+      return scorpionTableauRule(variant);
     default:
       return null;
   }

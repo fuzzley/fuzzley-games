@@ -1,6 +1,6 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
-import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
+import { deckCardIds } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
@@ -8,25 +8,44 @@ import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { collectCompletedRuns } from "@/games/common/completed_runs";
 import { DeckOptions } from "@/games/common/deck_options";
 import { dealSimpleSimonLayout } from "./simple_simon_deal";
-import { SimpleSimonRole, simpleSimonZoneSpecs } from "./simple_simon_zones";
+import {
+  DEFAULT_SIMPLE_SIMON_VARIANT,
+  simpleSimonCardsPerColumn,
+  simpleSimonDeck,
+} from "./simple_simon_rules";
+import {
+  SimpleSimonRole,
+  SimpleSimonVariant,
+  simpleSimonZoneSpecs,
+} from "./simple_simon_zones";
+
+/** Configures a game of Simple Simon or Mrs. Mop. */
+export interface SimpleSimonOptions extends DeckOptions {
+  /** Which board to play on. */
+  readonly variant?: SimpleSimonVariant;
+}
 
 /**
- * Plays Simple Simon: Spider's rules on one deck, dealt face up across ten
- * columns with no stock.
+ * Plays Simple Simon or Mrs. Mop: Spider's rules with every card dealt face up
+ * and no stock.
  */
 export class SimpleSimonGame extends DealtTableGame {
-  /** The four piles completed runs go to. */
+  /** The piles completed runs go to, one per suit of each deck. */
   public readonly foundations: readonly CardPile<PlayingCard>[];
-  /** The ten columns. */
+  /** The columns. */
   public readonly tableaus: readonly CardPile<PlayingCard>[];
+
+  /** Which board is being played on. */
+  public readonly variant: SimpleSimonVariant;
 
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
-    cardIds = ALL_PLAYING_CARD_IDS,
+    variant = DEFAULT_SIMPLE_SIMON_VARIANT,
+    cardIds = deckCardIds(simpleSimonDeck(variant)),
     random = Math.random,
-  }: DeckOptions = {}) {
+  }: SimpleSimonOptions = {}) {
     super({
-      zones: simpleSimonZoneSpecs(),
+      zones: simpleSimonZoneSpecs(variant),
       // Dealt face up: the whole position is visible from the first move.
       deck: new DeckSource(new CardRegistry(), cardIds, random, true),
       // Only a column will take a card; a foundation is never a destination a
@@ -35,13 +54,18 @@ export class SimpleSimonGame extends DealtTableGame {
       winsWhenAllCardsIn: SimpleSimonRole.FOUNDATION,
     });
 
+    this.variant = variant;
     this.foundations = this.pilesOfRole(SimpleSimonRole.FOUNDATION);
     this.tableaus = this.pilesOfRole(SimpleSimonRole.TABLEAU);
   }
 
   /** @inheritDoc */
   protected override dealBoard(deck: PlayingCard[]): void {
-    dealSimpleSimonLayout(deck, this.tableaus);
+    dealSimpleSimonLayout(
+      deck,
+      this.tableaus,
+      simpleSimonCardsPerColumn(this.variant),
+    );
   }
 
   // --- What a Simple Simon move does beyond moving its cards ---

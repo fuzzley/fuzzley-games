@@ -6,23 +6,27 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 
 ## Included Solitaire Games
 
-- **Klondike**: Classic solitaire supporting Draw 1 and Draw 3 modes, with Whitehead and Thumb and Pouch rule variants.
+- **Klondike**: Classic solitaire supporting Draw 1 and Draw 3 modes and standard or Vegas scoring, with Whitehead, Thumb and Pouch, and Saratoga rule variants.
 - **FreeCell**: The classic open-information solitaire puzzle game with four reserve cells.
 - **Spider**: Multi-suit spider solitaire with options for 1-Suit (Easy), 2-Suit (Medium), and 4-Suit (Hard) games.
-- **Yukon**: Playable in standard Yukon, Alaska, and Russian Solitaire variants.
+- **Yukon**: Playable in standard Yukon, Alaska, Russian Solitaire, and Moosehide variants.
 - **Baker's Game**: Predecessor to FreeCell with same-suit column building, with choices for Any Card or Kings Only empty columns.
+- **Challenge FreeCell**: FreeCell with the Aces and Twos dealt to the bottom of the columns, with Super Challenge FreeCell's Kings-only empty columns as an option.
 - **Eight Off**: FreeCell cousin featuring eight reserve cells, same-suit column building, and Kings-only empty columns.
-- **Scorpion**: Yukon-style unconstrained card group moves to build same-suit descending runs, with a 3-card reserve stock.
+- **Scorpion**: Yukon-style unconstrained card group moves to build same-suit descending runs, with a 3-card reserve stock; playable as Scorpion, Wasp, or Scorpion II.
 - **Simple Simon**: Spider-style building and completion on an open board of ten columns with all 52 cards dealt face-up and no stock.
+- **Mrs. Mop**: Simple Simon's rules with two decks dealt face-up across thirteen 8-card columns.
 - **Baker's Dozen**: Thirteen 4-card columns with Kings sunk to the bottom; columns build down by rank in any suit, and cleared columns cannot be refilled.
 - **Seahaven Towers**: Tight reserve-cell game with ten 5-card columns, four cells, same-suit building, and Kings-only empty columns.
 - **Spiderette**: Single-deck Spider on seven columns with row-dealing stock; playable in standard staircase deal or Will o' the Wisp (flat 3 cards per column).
 - **Easthaven**: Blends Klondike's alternating-colour building and foundations with Spider's row-dealing stock across seven columns.
-- **Forty Thieves**: Two-deck patience with 10 columns of 4 cards, eight foundations, single-card moves, and no stock recycling; supports standard Forty Thieves, Josephine, and Rank and File variants.
+- **Forty Thieves**: Two-deck patience with 10 columns of 4 cards, eight foundations, single-card moves, and no stock recycling; supports standard Forty Thieves, Josephine, Rank and File, Indian, and Number Ten variants.
 - **Maria**: Forty Thieves variant on a 9-column grid, building down in alternating colours with multi-card run moves.
 - **Limited**: Forty Thieves variant on a wide 12-column grid of 3-card columns with same-suit building and multi-card run moves.
+- **Lucas**: Forty Thieves variant with the eight Aces dealt to the foundations and thirteen 3-card columns, building in suit with same-suit runs.
 - **Double Klondike**: Two-deck Klondike dealt across nine columns with eight foundations and unlimited stock recycles.
-- **Montana**: Gaps-style solitaire played on a 4×13 grid without Aces; sort rows from Two to King in suit into spaces left by moved cards, featuring two redeals.
+- **Montana**: Gaps-style solitaire played on a 4×13 grid without Aces; sort rows from Two to King in suit into spaces left by moved cards, featuring two redeals, or three as Addiction.
+- **Blue Moon**: Montana with the Aces in play, fixed at the start of four 14-cell rows; Red Moon, which deals the gaps beside the Aces, is its deal option.
 
 ## Development
 

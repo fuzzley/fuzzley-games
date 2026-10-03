@@ -1,8 +1,12 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { MAX_REDEALS, MontanaGame } from "@/games/montana/montana_game";
+import { MontanaGame } from "@/games/montana/montana_game";
 import { montanaGestures } from "@/games/montana/montana_gestures";
-import { COLUMN_COUNT } from "@/games/montana/montana_rules";
+import {
+  DEFAULT_MAX_REDEALS,
+  MontanaVariant,
+  montanaColumnCount,
+} from "@/games/montana/montana_rules";
 import { REDEAL_PILE_ID } from "@/games/montana/montana_zones";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
@@ -17,23 +21,23 @@ describe("montanaGestures", () => {
   });
 
   const cell = (row: number, column: number) =>
-    game.cells[row * COLUMN_COUNT + column];
+    game.cells[row * montanaColumnCount(MontanaVariant.MONTANA) + column];
 
   describe("activate-pile", () => {
     it("redeals when the marker is pressed", () => {
       handle({ kind: "activate-pile", pileId: REDEAL_PILE_ID });
 
-      expect(game.redealsRemaining).toBe(MAX_REDEALS - 1);
+      expect(game.redealsRemaining).toBe(DEFAULT_MAX_REDEALS - 1);
     });
 
     it("does nothing for any other pile's slot", () => {
       handle({ kind: "activate-pile", pileId: cell(0, 0).id });
 
-      expect(game.redealsRemaining).toBe(MAX_REDEALS);
+      expect(game.redealsRemaining).toBe(DEFAULT_MAX_REDEALS);
     });
 
     it("stops redealing once they are spent", () => {
-      for (let used = 0; used < MAX_REDEALS + 1; used++) {
+      for (let used = 0; used < DEFAULT_MAX_REDEALS + 1; used++) {
         handle({ kind: "activate-pile", pileId: REDEAL_PILE_ID });
       }
 

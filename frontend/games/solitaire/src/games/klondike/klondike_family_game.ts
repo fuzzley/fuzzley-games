@@ -10,7 +10,10 @@ import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { flipExposedTopOfColumn } from "@/games/common/move_effects";
 import { STOCK_PILE_ID, WASTE_PILE_ID } from "@/games/common/pile_ids";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
-import { CLOSED_STOCK_PLACEHOLDER } from "@/games/common/zone_presets";
+import {
+  CLOSED_STOCK_PLACEHOLDER,
+  recyclePipsPlaceholder,
+} from "@/games/common/zone_presets";
 import { DrawCount } from "./klondike_rules";
 import { ScoringPolicy } from "./scoring_policy";
 
@@ -38,7 +41,7 @@ export interface KlondikeFamilyOptions extends DealtTableGameOptions {
 
 /**
  * Plays a game of the Klondike family: a stock drawn onto a waste and recycled
- * as often as the player likes, with each move, flip and recycle scored.
+ * as often as the scoring allows, with each move, flip and recycle scored.
  */
 export abstract class KlondikeFamilyGame extends DealtTableGame {
   /** The face-down stock pile from which cards are drawn. */
@@ -63,12 +66,14 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
   }
 
   /**
-   * Puts the recycle count back to zero, then lays out the opening position.
+   * Puts the recycle count back to zero and the score to where the scoring
+   * starts it, then lays out the opening position.
    *
    * @inheritDoc
    */
   protected override dealBoard(deck: PlayingCard[]): void {
     this.recycleCount = 0;
+    this.state.score = this.scoring.initialScore();
     this.dealLayout(deck);
   }
 
@@ -81,21 +86,25 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
 
   // --- The stock ---
 
+  /** How many more times the waste may be recycled, which may be Infinity. */
+  public get recyclesRemaining(): number {
+    return Math.max(
+      0,
+      this.scoring.maxRecycles(this.drawCount) - this.recycleCount,
+    );
+  }
+
   /**
    * Draws from the stock onto the waste, or recycles the waste once the stock
-   * is empty.
+   * is empty, if the scoring allows another pass.
    */
   public drawCardsFromStock(): void {
-    if (this.stock.isEmpty && this.waste.isEmpty) {
-      return;
-    }
-
     if (!this.stock.isEmpty) {
       this.commitAction(
         "draw",
         drawToWaste(this.stock, this.waste, this.drawCount),
       );
-    } else {
+    } else if (!this.waste.isEmpty && this.recyclesRemaining > 0) {
       this.recycleWaste();
     }
   }
@@ -111,7 +120,7 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
       this.drawCount,
       this.recycleCount,
     );
-    this.state.score = Math.max(0, this.state.score - penalty);
+    this.state.score = this.scoring.clampScore(this.state.score - penalty);
 
     this.commitAction("recycle", recycleWasteToStock(this.waste, this.stock), {
       scoreDelta: this.state.score - scoreBefore,
@@ -119,35 +128,44 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
   }
 
   /**
-   * Returns the plain closed outline for the empty stock once the waste is
-   * empty too, in place of the recycle arrow.
+   * Returns the plain closed outline for the empty stock once a press would do
+   * nothing, and a pip per recycle left when the recycles are counted.
    *
    * @inheritDoc
    */
   public override pileBackgroundKey(
     pile: CardPile<PlayingCard>,
   ): string | undefined {
-    return this.isSpentStock(pile)
-      ? CLOSED_STOCK_PLACEHOLDER
+    if (pile !== this.stock) {
+      return super.pileBackgroundKey(pile);
+    }
+    if (this.isSpentStock()) {
+      return CLOSED_STOCK_PLACEHOLDER;
+    }
+    const allowed = this.scoring.maxRecycles(this.drawCount);
+    return Number.isFinite(allowed)
+      ? recyclePipsPlaceholder(this.recyclesRemaining, allowed)
       : super.pileBackgroundKey(pile);
   }
 
   /**
-   * Returns false for the empty stock once the waste is empty too, since
-   * pressing it would recycle nothing.
+   * Returns false for the empty stock once a press would recycle nothing,
+   * because the waste is empty or the recycles are spent.
    *
    * @inheritDoc
    */
   public override isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
-    return !this.isSpentStock(pile) && super.isEmptySlotActionable(pile);
+    return (
+      !(pile === this.stock && this.isSpentStock()) &&
+      super.isEmptySlotActionable(pile)
+    );
   }
 
-  /**
-   * Returns whether the pile is the stock with nothing left to draw or to
-   * recycle.
-   */
-  private isSpentStock(pile: CardPile<PlayingCard>): boolean {
-    return pile === this.stock && this.stock.isEmpty && this.waste.isEmpty;
+  /** Returns whether the stock is empty with nothing left to recycle into it. */
+  private isSpentStock(): boolean {
+    return (
+      this.stock.isEmpty && (this.waste.isEmpty || this.recyclesRemaining === 0)
+    );
   }
 
   // --- What a move does beyond moving its cards ---
@@ -159,8 +177,7 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
    */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
     const scoreBefore = this.state.score;
-    this.state.score = Math.max(
-      0,
+    this.state.score = this.scoring.clampScore(
       this.state.score +
         this.scoring.moveScore(move.sourcePile.role, move.targetPile.role),
     );

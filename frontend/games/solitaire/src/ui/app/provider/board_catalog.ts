@@ -27,9 +27,11 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
   spider: spiderGestures,
   yukon: stocklessGestures,
   bakers: stocklessGestures,
+  challengefreecell: stocklessGestures,
   eightoff: stocklessGestures,
   scorpion: scorpionGestures,
   simplesimon: stocklessGestures,
+  mrsmop: stocklessGestures,
   bakersdozen: stocklessGestures,
   seahaven: stocklessGestures,
   spiderette: spideretteGestures,
@@ -37,8 +39,10 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
   fortythieves: fortyThievesGestures,
   maria: fortyThievesGestures,
   limited: fortyThievesGestures,
+  lucas: fortyThievesGestures,
   doubleklondike: klondikeGestures,
   montana: montanaGestures,
+  bluemoon: montanaGestures,
 };
 
 /**

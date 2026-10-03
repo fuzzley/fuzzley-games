@@ -8,6 +8,10 @@ import {
   KlondikeVariant,
 } from "@/games/klondike/klondike_rules";
 import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
+import {
+  KlondikeScoring,
+  klondikeScoringPolicy,
+} from "@/games/klondike/scoring_policy";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { FreeCellVariant } from "@/games/freecell/freecell_rules";
 import { FREECELL_LAYOUT } from "@/games/freecell/freecell_layout";
@@ -20,9 +24,14 @@ import { YUKON_LAYOUT } from "@/games/yukon/yukon_layout";
 import { EightOffGame } from "@/games/eight_off/eight_off_game";
 import { EIGHT_OFF_LAYOUT } from "@/games/eight_off/eight_off_layout";
 import { ScorpionGame } from "@/games/scorpion/scorpion_game";
+import { ScorpionVariant } from "@/games/scorpion/scorpion_rules";
 import { SCORPION_LAYOUT } from "@/games/scorpion/scorpion_layout";
 import { SimpleSimonGame } from "@/games/simple_simon/simple_simon_game";
-import { SIMPLE_SIMON_LAYOUT } from "@/games/simple_simon/simple_simon_layout";
+import { SimpleSimonVariant } from "@/games/simple_simon/simple_simon_rules";
+import {
+  MRS_MOP_LAYOUT,
+  SIMPLE_SIMON_LAYOUT,
+} from "@/games/simple_simon/simple_simon_layout";
 import { BakersDozenGame } from "@/games/bakers_dozen/bakers_dozen_game";
 import { BAKERS_DOZEN_LAYOUT } from "@/games/bakers_dozen/bakers_dozen_layout";
 import { SeahavenGame } from "@/games/seahaven/seahaven_game";
@@ -32,10 +41,19 @@ import { FortyThievesVariant } from "@/games/forty_thieves/forty_thieves_rules";
 import {
   FORTY_THIEVES_LAYOUT,
   LIMITED_LAYOUT,
+  LUCAS_LAYOUT,
   MARIA_LAYOUT,
 } from "@/games/forty_thieves/forty_thieves_layout";
 import { MontanaGame } from "@/games/montana/montana_game";
-import { MONTANA_LAYOUT } from "@/games/montana/montana_layout";
+import {
+  BLUE_MOON_LAYOUT,
+  MONTANA_LAYOUT,
+} from "@/games/montana/montana_layout";
+import {
+  DEFAULT_MAX_REDEALS,
+  MaxRedeals,
+  MontanaVariant,
+} from "@/games/montana/montana_rules";
 import { DoubleKlondikeGame } from "@/games/double_klondike/double_klondike_game";
 import { DOUBLE_KLONDIKE_LAYOUT } from "@/games/double_klondike/double_klondike_layout";
 import { EasthavenGame } from "@/games/easthaven/easthaven_game";
@@ -141,6 +159,18 @@ const KLONDIKE_DRAW_COUNT: GameOptionSpec<DrawCount> = {
   defaultValue: DEFAULT_DRAW_COUNT,
 };
 
+const KLONDIKE_SCORING: GameOptionSpec<KlondikeScoring> = {
+  id: "scoring",
+  label: "Scoring",
+  description:
+    "Vegas buys the deck for $52 and pays $5 for every card on a foundation, but allows only one pass through the stock in Draw 1 and three in Draw 3.",
+  choices: [
+    { value: KlondikeScoring.STANDARD, label: "Standard" },
+    { value: KlondikeScoring.VEGAS, label: "Vegas" },
+  ],
+  defaultValue: KlondikeScoring.STANDARD,
+};
+
 const KLONDIKE_ALMOST_WIN: GameOptionSpec = {
   id: "almostWin",
   label: "Almost Win Mode",
@@ -166,6 +196,18 @@ const BAKERS_EMPTY_COLUMNS: GameOptionSpec = {
   defaultValue: 0,
 };
 
+const CHALLENGE_EMPTY_COLUMNS: GameOptionSpec = {
+  id: "emptyColumns",
+  label: "Empty Columns",
+  description:
+    "Kings Only is Super Challenge FreeCell: it also caps how many cards move at once, because a run can no longer be staged in an empty column.",
+  choices: [
+    { value: 0, label: "Any Card" },
+    { value: 1, label: "Kings Only" },
+  ],
+  defaultValue: 0,
+};
+
 const SPIDER_SUIT_COUNT: GameOptionSpec<SpiderSuitCount> = {
   id: "suitCount",
   label: "Suits",
@@ -184,11 +226,12 @@ const YUKON_VARIANT: GameOptionSpec<YukonVariant> = {
   id: "variant",
   label: "Variant",
   description:
-    "Alaska and Russian Solitaire deal like Yukon but build the columns by suit rather than by alternating color.",
+    "Alaska and Russian Solitaire deal like Yukon but build the columns by suit rather than by alternating color; Moosehide lets a card land on any suit but its own.",
   choices: [
     { value: YukonVariant.YUKON, label: "Yukon" },
     { value: YukonVariant.ALASKA, label: "Alaska" },
     { value: YukonVariant.RUSSIAN, label: "Russian Solitaire" },
+    { value: YukonVariant.MOOSEHIDE, label: "Moosehide" },
   ],
   defaultValue: YukonVariant.YUKON,
 };
@@ -198,11 +241,12 @@ const KLONDIKE_VARIANT: GameOptionSpec<KlondikeVariant> = {
   id: "variant",
   label: "Variant",
   description:
-    "Whitehead deals every card face-up and builds in one colour; Thumb and Pouch lets a card land on any suit but its own. Both let any card fill an empty column.",
+    "Whitehead deals every card face-up and builds in one colour; Thumb and Pouch lets a card land on any suit but its own. Both let any card fill an empty column. Saratoga is Klondike with every column card dealt face-up.",
   choices: [
     { value: KlondikeVariant.KLONDIKE, label: "Klondike" },
     { value: KlondikeVariant.WHITEHEAD, label: "Whitehead" },
     { value: KlondikeVariant.THUMB_AND_POUCH, label: "Thumb and Pouch" },
+    { value: KlondikeVariant.SARATOGA, label: "Saratoga" },
   ],
   defaultValue: KlondikeVariant.KLONDIKE,
 };
@@ -212,13 +256,55 @@ const FORTY_THIEVES_VARIANT: GameOptionSpec<FortyThievesVariant> = {
   id: "variant",
   label: "Variant",
   description:
-    "Josephine lets same-suit runs move as a unit; Rank and File builds in alternating colours but buries three of every four cards.",
+    "Josephine lets same-suit runs move as a unit; Rank and File builds in alternating colours but buries three of every four cards. Indian deals three to a column and builds on any other suit; Number Ten buries two of four and builds in alternating colours.",
   choices: [
     { value: FortyThievesVariant.FORTY_THIEVES, label: "Forty Thieves" },
     { value: FortyThievesVariant.JOSEPHINE, label: "Josephine" },
     { value: FortyThievesVariant.RANK_AND_FILE, label: "Rank and File" },
+    { value: FortyThievesVariant.INDIAN, label: "Indian" },
+    { value: FortyThievesVariant.NUMBER_TEN, label: "Number Ten" },
   ],
   defaultValue: FortyThievesVariant.FORTY_THIEVES,
+};
+
+/** Which of the Scorpion family to deal. */
+const SCORPION_VARIANT: GameOptionSpec<ScorpionVariant> = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Wasp lets any card or run fill an empty column; Scorpion II buries cards in only the first three columns.",
+  choices: [
+    { value: ScorpionVariant.SCORPION, label: "Scorpion" },
+    { value: ScorpionVariant.WASP, label: "Wasp" },
+    { value: ScorpionVariant.SCORPION_II, label: "Scorpion II" },
+  ],
+  defaultValue: ScorpionVariant.SCORPION,
+};
+
+/** How many redeals a Montana game allows. */
+const MONTANA_REDEALS: GameOptionSpec<MaxRedeals> = {
+  id: "redeals",
+  label: "Redeals",
+  description:
+    "Three redeals is the game called Addiction: one more chance to shuffle the stuck cards back out.",
+  choices: [
+    { value: 2, label: "2 Redeals" },
+    { value: 3, label: "3 Redeals" },
+  ],
+  defaultValue: DEFAULT_MAX_REDEALS,
+};
+
+/** Which of the Moons to deal, which share a grid and differ in the deal. */
+const MOON_DEAL: GameOptionSpec<MontanaVariant> = {
+  id: "variant",
+  label: "Deal",
+  description:
+    "Red Moon deals the gaps right beside the Aces, so every row can start building at once; Blue Moon leaves them wherever the Aces fell.",
+  choices: [
+    { value: MontanaVariant.BLUE_MOON, label: "Blue Moon" },
+    { value: MontanaVariant.RED_MOON, label: "Red Moon" },
+  ],
+  defaultValue: MontanaVariant.BLUE_MOON,
 };
 
 /** Which of the Spiderette pair to deal. */
@@ -242,13 +328,19 @@ const SPIDERETTE_VARIANT: GameOptionSpec<SpideretteVariant> = {
 const KLONDIKE = {
   id: "klondike" as const,
   name: "Klondike",
-  options: [KLONDIKE_VARIANT, KLONDIKE_DRAW_COUNT, KLONDIKE_ALMOST_WIN],
+  options: [
+    KLONDIKE_VARIANT,
+    KLONDIKE_DRAW_COUNT,
+    KLONDIKE_SCORING,
+    KLONDIKE_ALMOST_WIN,
+  ],
   layout: KLONDIKE_LAYOUT,
   create: (values: GameOptionValues) =>
     dealt(
       new KlondikeGame({
         drawCount: optionValue(values, KLONDIKE_DRAW_COUNT),
         variant: optionValue(values, KLONDIKE_VARIANT),
+        scoring: klondikeScoringPolicy(optionValue(values, KLONDIKE_SCORING)),
         almostWin: optionValue(values, KLONDIKE_ALMOST_WIN) === 1,
       }),
     ),
@@ -303,6 +395,27 @@ const BAKERS = {
     ),
 } satisfies CatalogEntry<FreeCellGame>;
 
+/*
+ * Challenge FreeCell is an entry of its own, as Baker's Game is, so that
+ * FreeCell's entry can stay optionless.
+ */
+
+const CHALLENGE_FREECELL = {
+  id: "challengefreecell" as const,
+  name: "Challenge FreeCell",
+  options: [CHALLENGE_EMPTY_COLUMNS],
+  layout: FREECELL_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(
+      new FreeCellGame({
+        variant:
+          optionValue(values, CHALLENGE_EMPTY_COLUMNS) === 1
+            ? FreeCellVariant.SUPER_CHALLENGE
+            : FreeCellVariant.CHALLENGE,
+      }),
+    ),
+} satisfies CatalogEntry<FreeCellGame>;
+
 const EIGHT_OFF = {
   id: "eightoff" as const,
   name: "Eight Off",
@@ -314,9 +427,10 @@ const EIGHT_OFF = {
 const SCORPION = {
   id: "scorpion" as const,
   name: "Scorpion",
-  options: [],
+  options: [SCORPION_VARIANT],
   layout: SCORPION_LAYOUT,
-  create: () => dealt(new ScorpionGame()),
+  create: (values: GameOptionValues) =>
+    dealt(new ScorpionGame({ variant: optionValue(values, SCORPION_VARIANT) })),
 } satisfies CatalogEntry<ScorpionGame>;
 
 const SIMPLE_SIMON = {
@@ -325,6 +439,19 @@ const SIMPLE_SIMON = {
   options: [],
   layout: SIMPLE_SIMON_LAYOUT,
   create: () => dealt(new SimpleSimonGame()),
+} satisfies CatalogEntry<SimpleSimonGame>;
+
+/*
+ * Mrs. Mop plays by Simple Simon's rules on a grid of its own, so it is an
+ * entry of its own.
+ */
+const MRS_MOP = {
+  id: "mrsmop" as const,
+  name: "Mrs. Mop",
+  options: [],
+  layout: MRS_MOP_LAYOUT,
+  create: () =>
+    dealt(new SimpleSimonGame({ variant: SimpleSimonVariant.MRS_MOP })),
 } satisfies CatalogEntry<SimpleSimonGame>;
 
 const BAKERS_DOZEN = {
@@ -357,8 +484,8 @@ const FORTY_THIEVES = {
 } satisfies CatalogEntry<FortyThievesGame>;
 
 /*
- * Maria and Limited are entries of their own rather than Forty Thieves variants
- * because they change the grid, not just the rules on it.
+ * Maria, Limited and Lucas are entries of their own rather than Forty Thieves
+ * variants because they change the grid, not just the rules on it.
  */
 
 const MARIA = {
@@ -379,12 +506,38 @@ const LIMITED = {
     dealt(new FortyThievesGame({ variant: FortyThievesVariant.LIMITED })),
 } satisfies CatalogEntry<FortyThievesGame>;
 
+const LUCAS = {
+  id: "lucas" as const,
+  name: "Lucas",
+  options: [],
+  layout: LUCAS_LAYOUT,
+  create: () =>
+    dealt(new FortyThievesGame({ variant: FortyThievesVariant.LUCAS })),
+} satisfies CatalogEntry<FortyThievesGame>;
+
 const MONTANA = {
   id: "montana" as const,
   name: "Montana",
-  options: [],
+  options: [MONTANA_REDEALS],
   layout: MONTANA_LAYOUT,
-  create: () => dealt(new MontanaGame()),
+  create: (values: GameOptionValues) =>
+    dealt(
+      new MontanaGame({ maxRedeals: optionValue(values, MONTANA_REDEALS) }),
+    ),
+} satisfies CatalogEntry<MontanaGame>;
+
+/*
+ * Blue Moon is an entry of its own because its grid is fourteen wide, not
+ * Montana's thirteen. Red Moon shares its grid, so it is an option on it.
+ */
+
+const BLUE_MOON = {
+  id: "bluemoon" as const,
+  name: "Blue Moon",
+  options: [MOON_DEAL],
+  layout: BLUE_MOON_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(new MontanaGame({ variant: optionValue(values, MOON_DEAL) })),
 } satisfies CatalogEntry<MontanaGame>;
 
 const DOUBLE_KLONDIKE = {
@@ -427,9 +580,11 @@ export const CATALOG_ENTRIES = [
   SPIDER,
   YUKON,
   BAKERS,
+  CHALLENGE_FREECELL,
   EIGHT_OFF,
   SCORPION,
   SIMPLE_SIMON,
+  MRS_MOP,
   BAKERS_DOZEN,
   SEAHAVEN,
   SPIDERETTE,
@@ -437,8 +592,10 @@ export const CATALOG_ENTRIES = [
   FORTY_THIEVES,
   MARIA,
   LIMITED,
+  LUCAS,
   DOUBLE_KLONDIKE,
   MONTANA,
+  BLUE_MOON,
 ] as const;
 
 /** Every game the application can put on the table. */

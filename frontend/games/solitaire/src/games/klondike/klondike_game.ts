@@ -14,7 +14,7 @@ import {
   klondikeDealsFaceUp,
 } from "./klondike_rules";
 import { KlondikeRole, klondikeZoneSpecs } from "./klondike_zones";
-import { ScoringPolicy } from "./scoring_policy";
+import { ScoringPolicy, StandardScoringPolicy } from "./scoring_policy";
 
 /** Configures a game of Klondike or one of its variants. */
 export interface KlondikeOptions extends DeckOptions {
@@ -45,7 +45,7 @@ export class KlondikeGame extends KlondikeFamilyGame {
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
     random = Math.random,
-    scoring = new ScoringPolicy(),
+    scoring = new StandardScoringPolicy(),
     drawCount = DEFAULT_DRAW_COUNT,
     variant = DEFAULT_KLONDIKE_VARIANT,
     almostWin = false,

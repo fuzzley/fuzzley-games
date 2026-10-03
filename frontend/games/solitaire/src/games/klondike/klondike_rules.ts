@@ -10,6 +10,7 @@ import {
   descendingSameColor,
   hasRank,
   isDifferentSuitRun,
+  isOrderedPair,
   isSameColorRun,
   suitFoundation,
 } from "@/engine/tableau/rules";
@@ -43,9 +44,11 @@ export const KlondikeVariant = {
   WHITEHEAD: 1,
   /** Thumb and Pouch: build down in any other suit, any card into a space. */
   THUMB_AND_POUCH: 2,
+  /** Saratoga: the original, with every column card dealt face up. */
+  SARATOGA: 3,
 } as const;
 
-/** Names one of the three games in the Klondike family. */
+/** Names one of the games in the Klondike family. */
 export type KlondikeVariant =
   (typeof KlondikeVariant)[keyof typeof KlondikeVariant];
 
@@ -76,7 +79,9 @@ interface VariantRules {
  * grab rule it has to agree with.
  *
  * Klondike deliberately takes `any-face-up` rather than a run: a column gives
- * up a broken pile as long as its bottom card fits where it lands.
+ * up a broken pile as long as its bottom card fits where it lands. Saratoga
+ * cannot, because with every card face up that would lift unordered piles as
+ * Yukon does.
  */
 const VARIANT_RULES: Readonly<Record<KlondikeVariant, VariantRules>> = {
   [KlondikeVariant.KLONDIKE]: {
@@ -96,6 +101,12 @@ const VARIANT_RULES: Readonly<Record<KlondikeVariant, VariantRules>> = {
     occupied: descendingDifferentSuit,
     grab: { kind: "run", adjacent: isDifferentSuitRun },
     dealsFaceUp: false,
+  },
+  [KlondikeVariant.SARATOGA]: {
+    whenEmpty: cardIs(hasRank(Rank.KING)),
+    occupied: descendingAlternatingColor,
+    grab: { kind: "run", adjacent: isOrderedPair },
+    dealsFaceUp: true,
   },
 };
 

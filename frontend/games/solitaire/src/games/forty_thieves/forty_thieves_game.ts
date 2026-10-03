@@ -76,7 +76,13 @@ export class FortyThievesGame extends DealtTableGame {
 
   /** @inheritDoc */
   protected override dealBoard(deck: PlayingCard[]): void {
-    dealFortyThievesLayout(deck, this.tableaus, this.stock, this.variant);
+    dealFortyThievesLayout(
+      deck,
+      this.foundations,
+      this.tableaus,
+      this.stock,
+      this.variant,
+    );
   }
 
   // --- The stock ---

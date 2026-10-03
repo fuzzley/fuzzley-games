@@ -7,6 +7,7 @@ import {
   byEmptiness,
   cardIs,
   descendingAlternatingColor,
+  descendingDifferentSuit,
   descendingSameSuit,
   hasRank,
   suitFoundation,
@@ -36,9 +37,11 @@ export const YukonVariant = {
   ALASKA: 1,
   /** Columns build down in the same suit. */
   RUSSIAN: 2,
+  /** Moosehide: columns build down in any suit but the card's own. */
+  MOOSEHIDE: 3,
 } as const;
 
-/** Names one of the three games in the Yukon family. */
+/** Names one of the games in the Yukon family. */
 export type YukonVariant = (typeof YukonVariant)[keyof typeof YukonVariant];
 
 /** The variant dealt when nothing says otherwise. */
@@ -49,6 +52,7 @@ const OCCUPIED_COLUMN_RULES: Readonly<Record<YukonVariant, PlacementRule>> = {
   [YukonVariant.YUKON]: descendingAlternatingColor,
   [YukonVariant.ALASKA]: any(ascendingSameSuit, descendingSameSuit),
   [YukonVariant.RUSSIAN]: descendingSameSuit,
+  [YukonVariant.MOOSEHIDE]: descendingDifferentSuit,
 };
 
 /**

@@ -68,7 +68,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       ],
       specialRules: [
         "Draw Mode: Configurable between Draw 1 (draw one card at a time from stock) and Draw 3 (draw three cards at a time).",
-        "Stock Recycle: When the stock empties, clicking it recycles cards from the waste pile back into the stock.",
+        "Stock Recycle: When the stock empties, clicking it recycles cards from the waste pile back into the stock — as often as you like under standard scoring, and a limited number of times under Vegas scoring.",
       ],
     },
     settingsAndVariants: [
@@ -90,6 +90,11 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
             effect:
               "Thumb and Pouch: a card can land on any suit except its own, and any card can fill an empty column — a much looser build than the original, though the deal still hides most of the board.",
           },
+          {
+            value: 3,
+            effect:
+              "Saratoga: the original rules, but all 28 column cards are dealt face-up. Only proper alternating-colour runs can be lifted, and only a King can fill an empty column; the stock is the only thing left hidden.",
+          },
         ],
       },
       {
@@ -104,6 +109,21 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
             value: 3,
             effect:
               "Standard challenge. Flips 3 cards at a time; only the top card of the 3 is immediately playable.",
+          },
+        ],
+      },
+      {
+        optionId: "scoring",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "Standard scoring: 10 points for each card to a foundation, 5 for a waste card onto a column and for each card turned over, minus 15 for taking a card back off a foundation, and a penalty for recycling the stock past the free passes. The score never drops below zero, and the stock can be recycled as often as you like.",
+          },
+          {
+            value: 1,
+            effect:
+              "Las Vegas scoring: you start $52 down, having bought the deck at a dollar a card, and win $5 back for every card you put on a foundation (taking one back costs $5). The score can stay negative. The stock can be gone through only once in Draw 1, or three times in Draw 3; pips on the empty stock count the recycles left, and once they are spent it becomes a plain outline.",
           },
         ],
       },
@@ -239,6 +259,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Tableau (Yukon): Built DOWN in ALTERNATING COLORS.",
         "Tableau (Alaska): Built UP or DOWN in SAME SUIT.",
         "Tableau (Russian): Built DOWN in SAME SUIT.",
+        "Tableau (Moosehide): Built DOWN in ANY SUIT BUT THE CARD'S OWN.",
       ],
       specialRules: [
         "No Staging Penalty: Stacks being moved do not need to be in sequence; only the targeted card and destination card must match placement rules.",
@@ -262,6 +283,11 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
             value: YukonVariant.RUSSIAN,
             effect:
               "Hardest variant. Tableau columns build DOWN in the SAME SUIT.",
+          },
+          {
+            value: YukonVariant.MOOSEHIDE,
+            effect:
+              "Moosehide: tableau columns build DOWN in any suit except the card's own — Thumb and Pouch's rule on Yukon's deal, and looser than alternating colours.",
           },
         ],
       },
@@ -316,6 +342,60 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
             value: 1,
             effect:
               "Harder variant. Only Kings can enter empty columns, restricting supermoves to (Free Cells + 1).",
+          },
+        ],
+      },
+    ],
+  },
+  challengefreecell: {
+    title: "Challenge FreeCell",
+    screenshot: {
+      url: "./docs/screenshots/challengefreecell/overview.png",
+      caption:
+        "Challenge FreeCell board with 4 free cells, 4 foundations, and 8 face-up columns, each with an Ace or a Two at the bottom.",
+      altText: "Challenge FreeCell board overview",
+    },
+    summary: {
+      objective:
+        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      winCondition:
+        "All 52 cards are sorted into their suit foundations from Ace through King.",
+      quickOverview:
+        "Challenge FreeCell is FreeCell with the deal rigged against you: the four Aces and four Twos are dealt first, one to the bottom of each column, so every foundation starts at the very bottom of the board. Super Challenge FreeCell also lets only Kings fill an empty column.",
+    },
+    detailedRules: {
+      layout: [
+        "Free Cells: 4 single-card holding cells at top-left.",
+        "Foundations: 4 suit piles at top-right, initially empty.",
+        "Tableau: 8 columns with all 52 cards dealt face-up, an Ace or a Two at the bottom of each.",
+      ],
+      cardMovement: [
+        "Any single card can be placed into an empty free cell.",
+        "Any card can start an empty column, or only a King under Super Challenge.",
+        "Multi-card moves (supermoves) simulate moving cards through open free cells and empty columns.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in ALTERNATING COLORS.",
+      ],
+      specialRules: [
+        "Buried Foundations: no foundation can be started until a whole column has been dismantled down to its Ace, so the opening is spent clearing columns rather than playing up.",
+        "Supermove Capacity: (Free Cells + 1) * 2^(Empty Columns) with any card in a space; strictly (Free Cells + 1) when only Kings fill a space, because a moving run's only King is its bottom card.",
+      ],
+    },
+    settingsAndVariants: [
+      {
+        optionId: "emptyColumns",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "Challenge FreeCell. Any card can enter an empty column, giving full supermove staging capacity.",
+          },
+          {
+            value: 1,
+            effect:
+              "Super Challenge FreeCell. Only Kings can enter an empty column, restricting supermoves to (Free Cells + 1).",
           },
         ],
       },
@@ -395,7 +475,28 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Reserve Deal: Clicking the 3-card stock deals 1 card face-up onto each of the first 3 tableau columns.",
       ],
     },
-    settingsAndVariants: [],
+    settingsAndVariants: [
+      {
+        optionId: "variant",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "The original: only a King, or a run headed by one, can fill an empty column, and the first four columns each hide three cards.",
+          },
+          {
+            value: 1,
+            effect:
+              "Wasp: any card, with everything resting on it, can fill an empty column. Clearing a column becomes a real gain rather than a parking place for one King.",
+          },
+          {
+            value: 2,
+            effect:
+              "Scorpion II: only the first three columns hide cards, so 40 of the 49 dealt cards are visible from the start. Empty columns still take Kings only.",
+          },
+        ],
+      },
+    ],
   },
   simplesimon: {
     title: "Simple Simon",
@@ -433,6 +534,46 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       specialRules: [
         "No Recovery: with no stock and no face-down cards, a position played into a corner cannot be rescued — every deal is winnable or not from the opening move.",
         "The Staircase: the short columns on the right are the cheapest to clear, and opening a column early is usually worth more than any single run.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
+  mrsmop: {
+    title: "Mrs. Mop",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Mrs._Mop",
+    screenshot: {
+      url: "./docs/screenshots/mrsmop/overview.png",
+      caption:
+        "Mrs. Mop board showing thirteen face-up columns of eight cards and eight foundation slots.",
+      altText: "Mrs. Mop solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Build eight 13-card same-suit sequences from King down to Ace on the tableau.",
+      winCondition:
+        "All 8 runs, two per suit, assembled from King to Ace and cleared to the foundations.",
+      quickOverview:
+        "Mrs. Mop is Spider with nothing hidden: both decks are dealt face-up into thirteen columns of eight, and there is no stock at all. Columns build down by rank in any suit, but only a same-suit run can be picked up. Charles Jewell invented it.",
+    },
+    detailedRules: {
+      layout: [
+        "Tableau: 13 columns of 8 cards, all 104 cards face-up.",
+        "Foundations: 8 automated slots for completed King-to-Ace same-suit runs.",
+        "No Stock: every card is on the tableau from the first move.",
+      ],
+      cardMovement: [
+        "A card can be picked up only with an unbroken same-suit descending run resting on it.",
+        "Any card, or any run, can be moved into an empty column.",
+        "There is no limit on how many cards move at once: a run travels in one piece.",
+      ],
+      sequenceBuilding: [
+        "Tableau: Built DOWN by RANK in ANY SUIT.",
+        "Lifting: Only unbroken SAME SUIT descending runs can be moved.",
+        "Completion: Complete King-to-Ace same-suit runs clear to the foundations automatically.",
+      ],
+      specialRules: [
+        "Open Information: with both decks visible and no stock, every deal can be planned from the first move, as in Simple Simon.",
+        "Two of Everything: each card has a twin, so a run can often be finished from either of two places — and blocked in either of two.",
       ],
     },
     settingsAndVariants: [],
@@ -668,6 +809,16 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
             effect:
               "Rank and File: columns build down in alternating colours and runs move as a unit, but three of every four dealt cards start face-down.",
           },
+          {
+            value: 5,
+            effect:
+              "Indian: only three cards to a column, the bottom one face-down, leaving 74 in the stock. A card lands on any suit except its own, one card at a time.",
+          },
+          {
+            value: 6,
+            effect:
+              "Number Ten: four cards to a column with the bottom two face-down. Columns build down in alternating colours, and a run in sequence moves as a unit.",
+          },
         ],
       },
     ],
@@ -730,7 +881,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     },
     detailedRules: {
       layout: [
-        "Tableau: 12 columns of 3 cards, all face-up — the widest board in the family.",
+        "Tableau: 12 columns of 3 cards, all face-up.",
         "Foundations: 8 suit piles, two per suit.",
         "Stock: the remaining 68 cards, drawn one at a time onto a waste.",
       ],
@@ -746,6 +897,45 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       specialRules: [
         "No Recycle: the stock is dealt through exactly once, as in the rest of the Forty Thieves family.",
         "Shallow Columns: with only three cards per column, almost the whole tableau is reachable from the opening position.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
+  lucas: {
+    title: "Lucas",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Forty_Thieves_(card_game)",
+    screenshot: {
+      url: "./docs/screenshots/lucas/overview.png",
+      caption:
+        "Lucas board showing the eight Aces on the foundations and thirteen face-up columns of three beneath them.",
+      altText: "Lucas solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
+      winCondition:
+        "All 104 cards are sorted onto the eight foundations, two per suit.",
+      quickOverview:
+        "Lucas is Forty Thieves with a head start: the eight Aces begin on the foundations, and the rest is dealt into thirteen shallow columns of three. Columns build down in suit and a same-suit run moves as a unit, but the stock still goes through only once.",
+    },
+    detailedRules: {
+      layout: [
+        "Foundations: 8 suit piles, each dealt one of the eight Aces.",
+        "Tableau: 13 columns of 3 cards, all face-up — the widest board in the family.",
+        "Stock: the remaining 57 cards, drawn one at a time onto a waste.",
+      ],
+      cardMovement: [
+        "A card can be picked up with an unbroken same-suit descending run resting on it.",
+        "Any card can start an empty column.",
+        "The top card of a foundation can be taken back down onto a column.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from the Ace already there to King.",
+        "Tableau: Built DOWN in SAME SUIT.",
+      ],
+      specialRules: [
+        "Aces Home: with every foundation already started, any Two that turns up can go straight home.",
+        "No Recycle: the stock is dealt through exactly once, as in the rest of the Forty Thieves family. About one deal in three can be won.",
       ],
     },
     settingsAndVariants: [],
@@ -812,7 +1002,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       layout: [
         "Grid: 4 rows of 13 cells, each holding at most one card.",
         "Gaps: 4 empty cells, where the Aces would have fallen.",
-        "Redeal: a marker beside the grid, worth two uses per game. Its two pips count them: filled for each redeal left, hollow for each one spent.",
+        "Redeal: a marker beside the grid, worth two uses per game, or three in Addiction. Its pips count them: filled for each redeal left, hollow for each one spent.",
       ],
       cardMovement: [
         "A gap accepts the card one rank higher than the card immediately to its left, in the same suit.",
@@ -825,11 +1015,83 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "There are no foundations and no stacking — cards only ever move between cells.",
       ],
       specialRules: [
-        "Redeals: pressing the marker gathers every card that is not yet part of its row's run from the left, shuffles them, and lays them back out after each run — leaving one fresh gap per row. Two redeals per game; once both are spent, or nothing is left to gather, the marker becomes a plain outline and pressing it does nothing.",
+        "Redeals: pressing the marker gathers every card that is not yet part of its row's run from the left, shuffles them, and lays them back out after each run — leaving one fresh gap per row. Two redeals per game, or three in Addiction; once they are spent, or nothing is left to gather, the marker becomes a plain outline and pressing it does nothing.",
         "No Aces: the Aces are not in play at all, which is what creates the four gaps.",
         "Won by Arrangement: unlike every other game here, nothing is gathered onto a pile — the cards end where they started, in cells, just in the right order.",
       ],
     },
-    settingsAndVariants: [],
+    settingsAndVariants: [
+      {
+        optionId: "redeals",
+        choicesExplanation: [
+          {
+            value: 2,
+            effect: "Montana as it is usually played: two redeals per game.",
+          },
+          {
+            value: 3,
+            effect:
+              "Addiction: three redeals per game. The marker shows three pips, and the extra shuffle rescues many games that two would leave stuck.",
+          },
+        ],
+      },
+    ],
+  },
+  bluemoon: {
+    title: "Blue Moon",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Gaps",
+    screenshot: {
+      url: "./docs/screenshots/bluemoon/overview.png",
+      caption:
+        "Blue Moon board showing all 52 cards in four rows of fourteen, an Ace at the head of each row, four gaps, and the redeal marker beside the grid.",
+      altText: "Blue Moon solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Arrange each of the four rows into a single suit running from its Ace up to King.",
+      winCondition:
+        "Every row reads Ace through King in one suit, with the gap parked at the end.",
+      quickOverview:
+        "Blue Moon is Montana played with the whole deck. The 52 cards are dealt in four rows, then each Ace is moved to the head of a row of its own, leaving a gap where it was. A gap takes the card that continues the run to its left, and each Ace decides which suit its row is built in.",
+    },
+    detailedRules: {
+      layout: [
+        "Grid: 4 rows of 14 cells, each holding at most one card.",
+        "Aces: one at the start of every row, fixed there for the whole game.",
+        "Gaps: 4 empty cells, where the Aces were dealt.",
+        "Redeal: a marker beside the grid, worth two uses per game. Its pips count them: filled for each redeal left, hollow for each one spent.",
+      ],
+      cardMovement: [
+        "A gap accepts the card one rank higher than the card immediately to its left, in the same suit.",
+        "A gap beside an Ace accepts that Ace's Two.",
+        "A gap immediately to the right of a King accepts nothing until the King moves on.",
+        "The Aces never move, and nothing can be placed in front of them.",
+      ],
+      sequenceBuilding: [
+        "Rows: Built UP in SAME SUIT from the Ace to King, left to right.",
+        "There are no foundations and no stacking — cards only ever move between cells.",
+      ],
+      specialRules: [
+        "Redeals: pressing the marker gathers every card that is not yet part of its row's run from the Ace, shuffles them, and lays them back out after each run — leaving one fresh gap per row. Two redeals per game; once they are spent, or nothing is left to gather, the marker becomes a plain outline.",
+        "Won by Arrangement: as in Montana, nothing is gathered onto a pile — the cards end in cells, just in the right order.",
+      ],
+    },
+    settingsAndVariants: [
+      {
+        optionId: "variant",
+        choicesExplanation: [
+          {
+            value: 1,
+            effect:
+              "Blue Moon: the gaps are wherever the Aces happened to be dealt, so a row may have to wait for its first gap to open.",
+          },
+          {
+            value: 2,
+            effect:
+              "Red Moon: the Aces are dealt straight to the head of the rows and the gaps right beside them, so every row can start building with its Two from the first move. The easier of the two.",
+          },
+        ],
+      },
+    ],
   },
 };

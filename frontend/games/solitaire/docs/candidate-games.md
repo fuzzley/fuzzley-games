@@ -3,13 +3,17 @@
 This file surveys solitaire games, and a few solitaire-adjacent ones, that the
 engine could play without a major rework. For each one it gives the rules,
 where they come from, whether it is a variant of a game already in the catalog,
-and what code it would take. None of it is built yet.
+and what code it would take.
 
-The catalog today holds Klondike (with Whitehead and Thumb and Pouch), FreeCell,
-Baker's Game, Eight Off, Seahaven Towers, Spider, Spiderette (with Will o' the
-Wisp), Scorpion, Simple Simon, Yukon (with Alaska and Russian Solitaire),
-Easthaven, Double Klondike, Forty Thieves (with Josephine and Rank and File),
-Maria, Limited, Baker's Dozen and Montana.
+**Status:** items 1 to 9 and E7 are built. Where the build departed from what
+is written here, the item's own status line says so. Nothing from item 10 on is
+built.
+
+When this survey was written, the catalog held Klondike (with Whitehead and
+Thumb and Pouch), FreeCell, Baker's Game, Eight Off, Seahaven Towers, Spider,
+Spiderette (with Will o' the Wisp), Scorpion, Simple Simon, Yukon (with Alaska
+and Russian Solitaire), Easthaven, Double Klondike, Forty Thieves (with
+Josephine and Rank and File), Maria, Limited, Baker's Dozen and Montana.
 
 ## How to read this
 
@@ -229,6 +233,8 @@ evented like the metrics) would cover all of them, shown in
 
 ### E7. Scores below zero
 
+**Status:** built, with Vegas scoring.
+
 Scores are clamped at zero in `TableGame.undo`
 (`Math.max(0, this.state.score - last.scoreDelta)`), and twice more in
 `KlondikeFamilyGame`. Vegas scoring starts at −52. Each `scoreDelta` already
@@ -259,6 +265,9 @@ says.
 
 ### 1. Saratoga
 
+**Status:** built. It lifts only alternating-colour runs rather than
+`any-face-up`, which with every card face up would free unordered piles.
+
 **Relation:** variant option on Klondike. **Effort:** S. **Extensions:** none.
 
 **Rules.** This is Klondike in every respect except that all 28 tableau cards
@@ -284,6 +293,9 @@ is not proposed here.)
   entry, and a named variant in the Klondike profile (difficulty: easy).
 
 ### 2. Vegas scoring
+
+**Status:** built. A Vegas stock in Draw 3 also counts its recycles left in
+pips, reusing Montana's artwork.
 
 **Relation:** a rule option on Klondike. It is a way of scoring and limiting
 passes, not a different game. **Effort:** S–M. **Extensions:** E7 (and E6 for a
@@ -313,6 +325,8 @@ and three passes when drawing three. Play is otherwise Klondike.
 
 ### 3. Moosehide
 
+**Status:** built.
+
 **Relation:** variant option on Yukon. **Effort:** S. **Extensions:** none.
 
 **Rules.** The deal is Yukon's: seven columns, the first holding one card and
@@ -333,6 +347,8 @@ Thumb and Pouch's rule applied to Yukon.
 - A choice in `YUKON_VARIANT`, documentation, and a profile variant.
 
 ### 4. Wasp and Scorpion II
+
+**Status:** built.
 
 **Relation:** variant options on Scorpion. **Effort:** S. **Extensions:** none.
 
@@ -366,6 +382,8 @@ Completed King-to-Ace runs go to the foundations.
 
 ### 5. Challenge FreeCell and Super Challenge FreeCell
 
+**Status:** built.
+
 **Relation:** a new catalog entry on FreeCell's grid and class, following the
 Baker's Game precedent. **Effort:** S. **Extensions:** none.
 
@@ -394,6 +412,8 @@ Super Challenge FreeCell also lets **only Kings** fill an empty column.
 
 ### 6. Indian and Number Ten
 
+**Status:** built.
+
 **Relation:** variant options on Forty Thieves. **Effort:** S.
 **Extensions:** none.
 
@@ -421,6 +441,8 @@ exactly the fields these games change, `cardsPerColumn` and
 
 ### 7. Lucas
 
+**Status:** built.
+
 **Relation:** a new entry sharing `FortyThievesGame`, like Maria and Limited.
 Its thirteen columns are a different grid. **Effort:** S. **Extensions:** none.
 
@@ -443,6 +465,8 @@ one pass. Wikipedia gives odds of about 1 in 3.
   (`fortyThievesGestures`), documentation and a profile.
 
 ### 8. Mrs. Mop
+
+**Status:** built.
 
 **Relation:** a new entry sharing Simple Simon's rules. It uses two decks and
 thirteen columns. **Effort:** S–M. **Extensions:** none.
@@ -470,6 +494,10 @@ gives Spider's any-card rule for spaces. Charles Jewell invented it.
 - `stocklessGestures`, documentation, and a profile in the Spider family.
 
 ### 9. Blue Moon, Red Moon and Addiction
+
+**Status:** built. Blue Moon and Red Moon share a grid and differ only in the
+deal, so Red Moon became an option on a single Blue Moon entry rather than an
+entry of its own.
 
 **Relation:** Blue Moon and Red Moon are new entries sharing `MontanaGame`;
 their 4 × 14 grid differs from Montana's 4 × 13. Addiction is a variant option
