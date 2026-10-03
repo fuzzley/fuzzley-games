@@ -8,7 +8,9 @@ import {
   computed,
   effect,
   inject,
+  linkedSignal,
   signal,
+  untracked,
 } from "@angular/core";
 import { GameDocumentationService } from "../../service/game_documentation.service";
 import { GameCatalogService } from "../../service/game_catalog.service";
@@ -17,6 +19,9 @@ import { itemAt } from "@/engine/core/common/item_at";
 
 /** Names a tab of the documentation modal. */
 export type DocTab = "overview" | "rules" | "variants";
+
+/** Names how far the summary tab's screenshot has got. */
+type ImageStatus = "loading" | "loaded" | "failed";
 
 /** Describes a documented rule option, resolved against the catalog. */
 interface VariantCard {
@@ -102,20 +107,33 @@ export class GameHelpModalComponent {
     });
   });
 
-  /** Whether the hero screenshot image loaded successfully. */
-  protected readonly heroImageLoaded = signal(false);
+  /** The address of the summary tab's screenshot, if the game has one. */
+  private readonly screenshotUrl = computed(() => this.doc()?.screenshot?.url);
 
-  /** Whether the hero screenshot image failed to load. */
-  protected readonly heroImageFailed = signal(false);
+  /**
+   * How far the screenshot has got, starting over whenever its address does.
+   *
+   * It follows the address rather than the dialog opening because the dialog
+   * keeps its `<img>` while closed: a new game's screenshot can finish loading
+   * before the dialog opens, and the element never fires `load` again.
+   */
+  protected readonly heroImageStatus = linkedSignal<
+    string | undefined,
+    ImageStatus
+  >({
+    source: this.screenshotUrl,
+    computation: () => "loading",
+  });
 
   constructor() {
-    // Opening the modal shows it as it was first seen: on the summary tab,
-    // with the screenshot yet to load.
+    // Opening the modal shows the summary tab, and gives a screenshot that
+    // failed another try.
     effect(() => {
       if (this.docService.isOpen()) {
         this.selectedTab.set("overview");
-        this.heroImageLoaded.set(false);
-        this.heroImageFailed.set(false);
+        if (untracked(this.heroImageStatus) === "failed") {
+          this.heroImageStatus.set("loading");
+        }
       }
     });
   }
@@ -127,14 +145,12 @@ export class GameHelpModalComponent {
 
   /** Marks the hero screenshot image as successfully loaded. */
   protected onImageLoad(): void {
-    this.heroImageLoaded.set(true);
-    this.heroImageFailed.set(false);
+    this.heroImageStatus.set("loaded");
   }
 
   /** Marks the hero screenshot image as failed to load. */
   protected onImageError(): void {
-    this.heroImageFailed.set(true);
-    this.heroImageLoaded.set(false);
+    this.heroImageStatus.set("failed");
   }
 
   /** Moves between tabs with the left and right arrow keys. */
