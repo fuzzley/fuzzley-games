@@ -2011,4 +2011,60 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     },
     settingsAndVariants: [],
   },
+  pokersquares: {
+    title: "Poker Squares",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Poker_squares",
+    screenshot: {
+      url: "./docs/screenshots/pokersquares/overview.png",
+      caption:
+        "Poker Squares board showing the stock and the card to place at the left, and the empty five-by-five grid beside them.",
+      altText: "Poker Squares board overview",
+    },
+    summary: {
+      objective:
+        "Place twenty-five cards in a five-by-five grid so its five rows and five columns make the best poker hands you can.",
+      winCondition:
+        "The grid is full and scores at least 200 under American scoring, or 70 under English.",
+      quickOverview:
+        "Poker Squares turns up one card at a time. Drag each into any empty square of a five-by-five grid, where it stays for good. Every row and every column is scored as a poker hand, so each card counts twice — the score in the header keeps the running total as the lines fill.",
+    },
+    detailedRules: {
+      layout: [
+        "Stock: the face-down cards at the top-left.",
+        "Hand: the card to place next, beneath the stock.",
+        "Grid: 25 empty squares in five rows of five.",
+      ],
+      cardMovement: [
+        "Drag the card in the hand into any empty square; the next card turns up at once.",
+        "A placed card never moves.",
+        "Only 25 of the 52 cards are played: the game ends when the grid is full.",
+      ],
+      sequenceBuilding: [
+        "American scoring: royal flush 100, straight flush 75, four of a kind 50, full house 25, flush 20, straight 15, three of a kind 10, two pair 5, one pair 2.",
+        "English scoring: royal or straight flush 30, four of a kind 16, straight 12, full house 10, three of a kind 6, flush 5, two pair 3, one pair 1.",
+        "A straight can run from Ace to Five or from Ten to Ace, but not round the corner.",
+      ],
+      specialRules: [
+        "Running Score: a line counts the pairs, threes and fours it already holds, so the score rises as you go; straights and flushes count once all five cards are in.",
+        "Every Card Counts Twice: each square sits in one row and one column, so the art is to build flushes one way and pairs the other.",
+      ],
+    },
+    settingsAndVariants: [
+      {
+        optionId: "scoring",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "American: flushes outscore straights, and a score of 200 wins.",
+          },
+          {
+            value: 1,
+            effect:
+              "English: a straight is worth more than a flush or a full house, reflecting how hard straights are to build in the grid, and a score of 70 wins.",
+          },
+        ],
+      },
+    ],
+  },
 };

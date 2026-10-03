@@ -46,6 +46,7 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **TriPeaks**: Three overlapping peaks cleared onto a single waste one rank up or down with King and Ace adjacent, each face-down card turning up once nothing covers it.
 - **Beleaguered Castle**: Eight open rows fanned sideways around a column of Aces, built down regardless of suit one card at a time; Streets and Alleys and Citadel are its variant options.
 - **Fortress**: Ten open rows fanned sideways, built up or down in suit, with every Ace buried.
+- **Poker Squares**: Twenty-five cards placed one at a time in a five-by-five grid, every row and column scored as a poker hand, by American or English scoring.
 
 ## Development
 
