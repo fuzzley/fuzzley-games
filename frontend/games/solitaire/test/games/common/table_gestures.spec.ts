@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { stocklessGestures } from "@/games/common/table_gestures";
+import { playOnPress, stocklessGestures } from "@/games/common/table_gestures";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { FreeCellRole } from "@/games/freecell/freecell_zones";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
@@ -140,5 +140,35 @@ describe("stocklessGestures", () => {
 
       expect(game.tableaus[1].size).toBe(1);
     });
+  });
+});
+
+describe("playOnPress", () => {
+  let game: FreeCellGame;
+
+  beforeEach(() => {
+    game = new FreeCellGame({ random: sequenceRandom([]) });
+    game.startNewGame();
+    emptyBoard(game);
+    relocate(game, "card-hearts-ace", game.tableaus[0]);
+    relocate(game, "card-spades-ace", game.cells[0]);
+  });
+
+  it("plays a card from one of its roles to its best destination", () => {
+    const press = playOnPress(game, [FreeCellRole.TABLEAU]);
+
+    press("card-hearts-ace", game.tableaus[0]);
+
+    expect(game.getPileContainingCard("card-hearts-ace")?.role).toBe(
+      FreeCellRole.FOUNDATION,
+    );
+  });
+
+  it("leaves a card from any other role where it is", () => {
+    const press = playOnPress(game, [FreeCellRole.TABLEAU]);
+
+    press("card-spades-ace", game.cells[0]);
+
+    expect(game.cells[0].topCard?.id).toBe("card-spades-ace");
   });
 });

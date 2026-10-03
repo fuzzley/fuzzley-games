@@ -1700,4 +1700,72 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     },
     settingsAndVariants: [],
   },
+  blackhole: {
+    title: "Black Hole",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Black_Hole_(solitaire)",
+    screenshot: {
+      url: "./docs/screenshots/blackhole/overview.png",
+      caption:
+        "Black Hole board showing the Ace of Spades in the hole at the middle of the top row, and seventeen face-up fans of three around it.",
+      altText: "Black Hole solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Play every card into the black hole, one rank up or down at a time.",
+      winCondition: "All 52 cards are in the hole.",
+      quickOverview:
+        "Black Hole starts the hole with the Ace of Spades and deals the other 51 cards face-up into seventeen fans of three. The top card of any fan can go into the hole if it is one rank above or below the hole's top card, in any suit — and Ace and King count as neighbours. There is no stock: every card is in view from the start.",
+    },
+    detailedRules: {
+      layout: [
+        "Hole: a single foundation in the middle of the top row, started with the Ace of Spades.",
+        "Tableau: 17 fans of 3 face-up cards.",
+      ],
+      cardMovement: [
+        "Press a fan's top card to play it into the hole, or drag it there.",
+        "Nothing is ever placed on a fan: cards only leave them.",
+      ],
+      sequenceBuilding: [
+        "Hole: one rank HIGHER or LOWER than its top card, in ANY SUIT, with King and Ace adjacent — a run can climb, fall and turn the corner as it likes.",
+      ],
+      specialRules: [
+        "Plan Ahead: with every card in view and no stock to fall back on, the whole game can be worked out before the first move. David Parlett, who invented it, made it a game of foresight rather than luck; most deals can be won.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
+  allinarow: {
+    title: "All in a Row",
+    screenshot: {
+      url: "./docs/screenshots/allinarow/overview.png",
+      caption:
+        "All in a Row board showing the empty foundation in the middle of the top row and thirteen face-up columns of four beneath.",
+      altText: "All in a Row solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Play every card onto the single foundation, one rank up or down at a time.",
+      winCondition: "All 52 cards are on the foundation.",
+      quickOverview:
+        "All in a Row deals the whole deck face-up into thirteen columns of four. Any column's top card can start the foundation; after that, a top card can go onto it if it is one rank above or below the foundation's top card, in any suit, with Ace and King counting as neighbours.",
+    },
+    detailedRules: {
+      layout: [
+        "Foundation: a single pile in the middle of the top row, initially empty.",
+        "Tableau: 13 columns of 4 face-up cards.",
+      ],
+      cardMovement: [
+        "Press a column's top card to play it onto the foundation, or drag it there.",
+        "Any top card can start the foundation.",
+        "Nothing is ever placed on a column, and an emptied column stays empty.",
+      ],
+      sequenceBuilding: [
+        "Foundation: one rank HIGHER or LOWER than its top card, in ANY SUIT, with King and Ace adjacent.",
+      ],
+      specialRules: [
+        "The First Card: choosing which card starts the foundation is the most important decision of the game.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
 };

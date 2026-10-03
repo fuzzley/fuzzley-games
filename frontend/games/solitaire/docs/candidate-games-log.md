@@ -62,7 +62,7 @@ need:
 - [x] 9. La Belle Lucie, The Fan, Shamrocks and Trefoil.
 - [x] 10. E2, then Canfield, Storehouse, Superior Canfield and Rainbow.
 - [x] 11. Penguin.
-- [ ] 12. Black Hole and All in a Row.
+- [x] 12. Black Hole and All in a Row.
 - [ ] 13. Grandfather's Clock.
 - [ ] 14. E4, then Pyramid.
 - [ ] 15. TriPeaks.
@@ -322,7 +322,7 @@ descendingAnySuit)`, top-only. The stock deals a row onto the reserves
     waste) and thumbnails. Canfield's traditional scoring is left out.
   - Tests: `test/games/canfield/canfield_game.spec.ts` and E2 cases in
     `rules.spec.ts`.
-- Step 11: Penguin.
+- Step 11 (`39caa39`): Penguin.
   - `src/games/penguin`: seven cells (`cellRow`) and four foundations make
     an eleven-slot top row over seven columns centred at column 2 (11 × 2,
     `designHeightPx` 1400 for a thirteen-card column).
@@ -338,16 +338,36 @@ descendingAnySuit)`, top-only. The stock deals a row onto the reserves
     a rules page, a profile (Medium), the README, the screenshot and
     thumbnails.
   - Tests: `test/games/penguin/penguin_game.spec.ts`.
+- Step 12: Black Hole and All in a Row.
+  - `src/games/black_hole`: one class for both, a `BlackHoleVariant` picking
+    the board. The foundation rule is the same for both:
+    `byEmptiness(anyCard, buildsOn(isAdjacentRank(true)))`, one card at a
+    time. Black Hole's deal drops the Ace of Spades into the hole with
+    `pullFirstCard`, so its foundation is never empty; All in a Row's starts
+    empty.
+  - Boards, kept in a per-variant table beside the zones: Black Hole is two
+    rows of nine at a 1.3-row pitch (a fan of three never grows), the hole in
+    the middle of the top row and the seventeen fans around it (9 × 2.3,
+    `designHeightPx` 1030). All in a Row puts the foundation in the middle of
+    the top row over thirteen columns of four (13 × 2, `designHeightPx` 970).
+  - `playOnPress(game, roles)` joined `src/games/common/table_gestures.ts`:
+    a single press plays a card from those roles to its best destination.
+    Golf's gestures now use it too, and TriPeaks will.
+  - Entries "Black Hole" (`blackhole`) and "All in a Row" (`allinarow`, no
+    Wikipedia article), both `blackHoleGestures`, in the Golf family; rules
+    pages, profiles (Medium), the README, screenshots and thumbnails.
+  - Tests: `test/games/black_hole/black_hole_game.spec.ts` and `playOnPress`
+    cases in `table_gestures.spec.ts`.
 
 ## Next
 
-Step 12: Black Hole and All in a Row, in the Golf family. One foundation
-taking a card a rank either way with wrap (`isAdjacentRank(true)`); Black
-Hole's starts with the Ace of Spades (`DeckSource.find` or `pullFirstCard`)
-and seventeen fans of three, All in a Row's starts empty over thirteen columns
-of four, so they are two entries sharing one class. A single press plays a
-card, as in Golf (`golfGestures` shape). Seventeen fans and the hole fill an
-18-slot block, which can reuse La Belle Lucie's fractional row pitch.
+Step 13: Grandfather's Clock. Twelve foundations in a ring at fractional
+slots (E3 is in), each pulled from the deck in PySol's order (the Two of
+Spades at five o'clock, then each position clockwise one rank higher, suits
+spades, hearts, clubs, diamonds, ending on the King of Diamonds at four
+o'clock), with `ascendingSameSuitWrapping` and a `capacity` of 4 or 5 so
+each closes on its clock rank. Eight columns of five beneath or beside,
+`byEmptiness(anyCard, descendingAnySuit)`, top-only.
 
 Screenshots: open each new entry in a fresh isolated browser context (a game
 left in progress raises the "switch games?" confirmation). In a development

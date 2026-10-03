@@ -104,6 +104,24 @@ export function dealOnStockPress(
 }
 
 /**
+ * Returns a press handler that plays a card from a pile of one of `roles` to
+ * its best destination, as Golf plays a card by a single press.
+ *
+ * Pair it with an empty `autoMoveFrom`, so the second press of a double press
+ * does nothing more: it lands on the card already on its way.
+ */
+export function playOnPress(
+  game: MovableGame,
+  roles: readonly PileRole[],
+): NonNullable<TableGestureOptions["onCardPress"]> {
+  return (cardId, pile) => {
+    if (pile && roles.includes(pile.role)) {
+      game.autoMoveCard(cardId);
+    }
+  };
+}
+
+/**
  * Returns the intent handler for a game with no stock, where a single press
  * does nothing.
  */
