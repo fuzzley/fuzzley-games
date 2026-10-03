@@ -1,6 +1,7 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import * as Phaser from "phaser";
 import { PhaserCardFactory } from "@/engine/render/phaser/phaser_card_factory";
+import { CardArtScale } from "@/engine/render/layout/card_metrics";
 import {
   createMockMake,
   createMockSprite,
@@ -10,8 +11,11 @@ import {
   MockTextures,
 } from "@test/support/phaser_mocks";
 
-/** The texture of whichever deck is on the table. */
-const DECK_TEXTURE = "cards:indexed";
+/** The texture of whichever deck is on the table, at 2x. */
+const DECK_TEXTURE = "cards:indexed@2x";
+
+/** The same deck at 1x. */
+const DECK_TEXTURE_1X = "cards:indexed@1x";
 
 /** The key every card's shadow sprite draws from. */
 const SHADOW_TEXTURE = PhaserCardFactory.SHADOW_TEXTURE_KEY;
@@ -22,6 +26,8 @@ describe("PhaserCardFactory", () => {
   let textures: MockTextures;
   let scene: Phaser.Scene;
   let factory: PhaserCardFactory;
+  /** The density of the deck on the table, 2 unless a test says otherwise. */
+  let artScale: CardArtScale;
 
   beforeEach(() => {
     addSprite = vi.fn(
@@ -29,16 +35,18 @@ describe("PhaserCardFactory", () => {
         createMockSprite({ x, y, texture, frame }),
     );
     make = createMockMake();
-    textures = createMockTextures(DECK_TEXTURE);
+    textures = createMockTextures(DECK_TEXTURE, DECK_TEXTURE_1X);
     scene = {
       add: { sprite: addSprite },
       make,
       textures,
     } as unknown as Phaser.Scene;
+    artScale = 2;
     factory = new PhaserCardFactory(
       scene,
       () => "card-back-blue",
-      () => DECK_TEXTURE,
+      () => (artScale === 1 ? DECK_TEXTURE_1X : DECK_TEXTURE),
+      () => artScale,
     );
   });
 
@@ -72,6 +80,7 @@ describe("PhaserCardFactory", () => {
       scene,
       () => "card-back-red",
       () => DECK_TEXTURE,
+      () => 2,
     );
 
     redFactory.createCardSprite();
@@ -219,6 +228,65 @@ describe("PhaserCardFactory", () => {
       const sprite = factory.createCardShadow() as unknown as MockSprite;
 
       expect([sprite.displayOriginX, sprite.displayOriginY]).toEqual([32, 48]);
+    });
+
+    describe("from a 1x atlas", () => {
+      beforeEach(() => {
+        artScale = 1;
+      });
+
+      it("leaves the same room in design units, so half the texels", () => {
+        factory.bakeCardShadow();
+
+        const [cast] = shadowTexture().contents;
+        expect({
+          padding: cast.shadows[0].paddingOverride,
+          card: [cast.x, cast.y],
+        }).toEqual({ padding: [-16, -24, 16, 24], card: [16, 24] });
+      });
+
+      it("sizes the texture to the 1x card with that room on every side", () => {
+        factory.bakeCardShadow();
+
+        const texture = shadowTexture();
+        expect([texture.width, texture.height]).toEqual([220 + 32, 307 + 48]);
+      });
+
+      it("anchors a shadow sprite at the 1x card's corner", () => {
+        const sprite = factory.createCardShadow() as unknown as MockSprite;
+
+        expect([sprite.displayOriginX, sprite.displayOriginY]).toEqual([
+          16, 24,
+        ]);
+      });
+    });
+
+    describe("when the atlas changes density", () => {
+      it("resizes the texture the shadow sprites already use", () => {
+        factory.bakeCardShadow();
+        const texture = shadowTexture();
+        artScale = 1;
+
+        factory.bakeCardShadow();
+
+        expect({
+          same: shadowTexture() === texture,
+          size: [texture.width, texture.height],
+        }).toEqual({ same: true, size: [220 + 32, 307 + 48] });
+      });
+
+      it("refits a shadow sprite to the corner of the card at the new density", () => {
+        const sprite = factory.createCardShadow() as unknown as MockSprite;
+        artScale = 1;
+        factory.bakeCardShadow();
+
+        factory.fitCardShadow(sprite as unknown as Phaser.GameObjects.Sprite);
+
+        expect({
+          texture: sprite.texture.key,
+          origin: [sprite.displayOriginX, sprite.displayOriginY],
+        }).toEqual({ texture: SHADOW_TEXTURE, origin: [16, 24] });
+      });
     });
   });
 

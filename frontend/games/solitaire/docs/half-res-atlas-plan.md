@@ -243,3 +243,31 @@ from the plan above, and what comes next.
     moved to `phaser_table_renderer.spec.ts` (with a 1× twin), since the
     builder no longer knows about texels.
   - Next: step 3, choosing the density per board.
+- **Step 3 — choose the density per board.** (Step 2 landed as `916a0c4`.)
+  - `card_deck_atlas.ts` now names an atlas as deck × density (`CardAtlas`,
+    texture key `cards:<deck>@<n>x`). It adds `residentCardAtlases`,
+    `chooseCardAtlas`, `loadCardAtlas` and `cardAtlasSource`, with six manifest
+    imports.
+  - `card_metrics.ts` gains `CARD_ART_SCALES` and `cardArtScaleFor`.
+  - `BoardDeckLoader`:
+    - Boots on and loads at the density `host.wantedArtScale()` asks for.
+    - `refit()`, called on every resize, moves to 2× when the board outgrows
+      1× and never moves back.
+    - Calls `host.artScaleChanged()` when the density changes.
+    - Reports "drawn" only when the deck itself changed.
+  - `BoardScene` measures the wanted density with `measureTable`, the same way
+    the view does.
+  - `PhaserCardFactory` keeps the shadow padding in design units, resizes its
+    texture in place on a rebake, and refits shadow sprites with
+    `fitCardShadow`.
+  - **Pre-existing race fixed:** when two loads finished in one Phaser batch
+    (the player picks deck B, then deck C, before B arrives), B's stale
+    completion released every atlas but the current one, C included. C then
+    reported "unavailable". The release now spares the atlas on its way. The
+    test "draws the latest deck when two loads finish together" covers it; a
+    mutation check showed three specs fail without the fix.
+  - Deviation: `DynamicTexture.setSize` rounds odd sizes up to even (the 1×
+    shadow is 252×356), and Phaser leaves a same-size texture alone, so the
+    factory calls it unconditionally.
+  - Coverage holds at 97.4 / 90.8 / 98.0 / 98.8 (floor 95 / 88 / 96 / 96).
+  - Next: browser verification, then step 4 (docs and skills).
