@@ -6,7 +6,6 @@ import {
   Viewport,
 } from "@/engine/render/view/table_view_state";
 import {
-  CARD_ART_SCALE,
   CARD_RENDER_WIDTH_PX,
   CARD_RENDER_HEIGHT_PX,
 } from "@/engine/render/layout/card_metrics";
@@ -53,9 +52,8 @@ describe("board_view_state_builder", () => {
 
     const cardView = viewState.cards[0];
     expect(cardView.cardId).toBe(card.id);
-    // A full design viewport at 1x allows a layout scale of 1.0, which the
-    // sprite renders at by scaling its larger artwork down.
-    expect(cardView.scale).toBe(1.0 / CARD_ART_SCALE);
+    // A full design viewport at 1x allows a layout scale of 1.0.
+    expect(cardView.scale).toBe(1.0);
     expect(cardView.depth).toBe(depthFor(RenderLayer.RESTING_CARD, 0));
     expect(cardView.frame).toBe(card.id); // face-up card uses its id
     expect(cardView.cursor).toBe("pointer");
@@ -393,26 +391,7 @@ describe("board_view_state_builder", () => {
       retinaViewport,
     );
 
-    expect(viewState.cards[0].scale).toBe(2.0 / CARD_ART_SCALE);
-  });
-
-  it("draws 2x artwork texel for texel on a 2x display at full design size", () => {
-    emptyBoard(game);
-    relocate(game, "card-hearts-ace", game.tableaus[0], true);
-    const retinaViewport: Viewport = {
-      width: 1920 * 2,
-      height: 1080 * 2,
-      pixelRatio: 2,
-    };
-
-    const viewState = buildFakeTableViewState(game, presentation)(
-      interaction,
-      retinaViewport,
-    );
-
-    // The point of the exercise: at the pixel ratio the artwork was authored
-    // for, one atlas texel lands on exactly one device pixel.
-    expect(viewState.cards[0].scale).toBe(1.0);
+    expect(viewState.cards[0].scale).toBe(2.0);
   });
 
   it("keeps a card in the same place on screen at a higher pixel ratio", () => {
@@ -605,16 +584,15 @@ describe("board_view_state_builder", () => {
       viewport,
     );
 
-    // Compared against the card's on-screen size, derived from its sprite
-    // scale, so the highlight cannot drift from the card it outlines.
+    // Compared against the card's on-screen size, derived from its scale, so
+    // the highlight cannot drift from the card it outlines.
     const cardView = viewState.cards.find((c) => c.cardId === card.id)!;
-    const renderedScale = cardView.scale * CARD_ART_SCALE;
     expect([
       viewState.highlights[0].width,
       viewState.highlights[0].height,
     ]).toEqual([
-      CARD_RENDER_WIDTH_PX * renderedScale,
-      CARD_RENDER_HEIGHT_PX * renderedScale,
+      CARD_RENDER_WIDTH_PX * cardView.scale,
+      CARD_RENDER_HEIGHT_PX * cardView.scale,
     ]);
   });
 });

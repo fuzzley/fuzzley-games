@@ -1,13 +1,24 @@
 import type { Loader } from "phaser";
 
 import { CARD_DECKS, CardDeckId } from "../card_deck";
-import classicAtlas from "../assets/sprites/atlas/classic/card_assets_atlas.json";
-import indexedAtlas from "../assets/sprites/atlas/indexed/card_assets_atlas.json";
-import allCornerPipsAtlas from "../assets/sprites/atlas/all-corner-pips/card_assets_atlas.json";
+import { CARD_ART_SCALES, CardArtScale } from "../layout/card_metrics";
+import classicAtlas1x from "../assets/sprites/atlas/classic/1x/card_assets_atlas.json";
+import classicAtlas2x from "../assets/sprites/atlas/classic/2x/card_assets_atlas.json";
+import indexedAtlas1x from "../assets/sprites/atlas/indexed/1x/card_assets_atlas.json";
+import indexedAtlas2x from "../assets/sprites/atlas/indexed/2x/card_assets_atlas.json";
+import allCornerPipsAtlas1x from "../assets/sprites/atlas/all-corner-pips/1x/card_assets_atlas.json";
+import allCornerPipsAtlas2x from "../assets/sprites/atlas/all-corner-pips/2x/card_assets_atlas.json";
 
-/** Gives a Phaser loader what it needs to put a deck on the table. */
-export interface CardDeckAtlas {
-  /** The texture the deck's frames are registered under. */
+/** Names one built atlas: a deck's artwork at one density. */
+export interface CardAtlas {
+  readonly deckId: CardDeckId;
+  /** Texels per design unit. */
+  readonly artScale: CardArtScale;
+}
+
+/** Gives a Phaser loader what it needs to put an atlas on the table. */
+export interface CardAtlasSource {
+  /** The texture the atlas's frames are registered under. */
   readonly textureKey: string;
   /** The multi-atlas manifest, with page filenames resolved to bundled URLs. */
   readonly manifest: ResolvedAtlasManifest;
@@ -26,82 +37,113 @@ type ResolvedAtlasManifest = AtlasManifest;
 
 /** The bundled URL of every atlas page image, keyed by source path. */
 const atlasPageUrls = import.meta.glob<string>(
-  "@/engine/render/assets/sprites/atlas/*/card_assets-*.png",
+  "@/engine/render/assets/sprites/atlas/*/*/card_assets-*.png",
   { eager: true, query: "?url", import: "default" },
 );
 
 /**
- * The manifests, which are small enough to bundle for every deck at once.
+ * The manifests, which are small enough to bundle for every deck and density
+ * at once.
  *
  * A new deck also belongs in `CARD_DECKS` and in `DECKS` in
  * `tools/build-card-atlas.mjs`, which the compiler does not check.
  */
-const manifests: Record<CardDeckId, AtlasManifest> = {
-  classic: classicAtlas,
-  indexed: indexedAtlas,
-  "all-corner-pips": allCornerPipsAtlas,
+const manifests: Record<CardDeckId, Record<CardArtScale, AtlasManifest>> = {
+  classic: { 1: classicAtlas1x, 2: classicAtlas2x },
+  indexed: { 1: indexedAtlas1x, 2: indexedAtlas2x },
+  "all-corner-pips": { 1: allCornerPipsAtlas1x, 2: allCornerPipsAtlas2x },
 };
 
 /**
- * Every atlas page's URL, keyed by `<deck>/<file>` because every deck gives its
- * pages the same filenames.
+ * Every atlas page's URL, keyed by `<deck>/<density>/<file>` because every
+ * deck and density gives its pages the same filenames.
  */
 const atlasPagesByDeckFile: Record<string, string> = Object.fromEntries(
   Object.entries(atlasPageUrls).map(([path, url]) => [
-    path.split("/").slice(-2).join("/"),
+    path.split("/").slice(-3).join("/"),
     url,
   ]),
 );
 
 /** Resolves an atlas manifest page filename to its bundled URL. */
-function atlasPageUrl(deckId: CardDeckId, image: string): string {
-  const url = atlasPagesByDeckFile[`${deckId}/${image}`];
+function atlasPageUrl(atlas: CardAtlas, image: string): string {
+  const page = `${atlas.deckId}/${atlas.artScale}x/${image}`;
+  const url = atlasPagesByDeckFile[page];
   if (!url) {
-    throw new Error(`Atlas page not found: ${deckId}/${image}`);
+    throw new Error(`Atlas page not found: ${page}`);
   }
   return url;
 }
 
-/**
- * Returns the texture a deck's frames are registered under, which differs per
- * deck so a new deck can load while the old one is still drawn.
- */
-export function cardDeckTextureKey(deckId: CardDeckId): string {
-  return `cards:${deckId}`;
+/** Returns whether two atlases are the same deck at the same density. */
+export function sameCardAtlas(
+  a: CardAtlas | null,
+  b: CardAtlas | null,
+): boolean {
+  return a?.deckId === b?.deckId && a?.artScale === b?.artScale;
 }
 
-/** Returns every deck whose texture is loaded, in the order decks are offered. */
-export function residentCardDecks(textures: {
+/**
+ * Returns the texture an atlas's frames are registered under, which differs
+ * per deck and density so a new atlas can load while the old one is still
+ * drawn.
+ */
+export function cardAtlasTextureKey(atlas: CardAtlas): string {
+  return `cards:${atlas.deckId}@${atlas.artScale}x`;
+}
+
+/**
+ * Returns every atlas whose texture is loaded, in the order decks are offered
+ * and from least to most dense.
+ */
+export function residentCardAtlases(textures: {
   exists(key: string): boolean;
-}): CardDeckId[] {
-  return CARD_DECKS.map((deck) => deck.id).filter((deckId) =>
-    textures.exists(cardDeckTextureKey(deckId)),
+}): CardAtlas[] {
+  return CARD_DECKS.flatMap((deck) =>
+    CARD_ART_SCALES.map((artScale) => ({ deckId: deck.id, artScale })),
+  ).filter((atlas) => textures.exists(cardAtlasTextureKey(atlas)));
+}
+
+/**
+ * Returns the atlas to draw a deck from: a loaded one at least as dense as
+ * `wanted`, so a board that needs less detail keeps what it has, or else the
+ * deck at `wanted`.
+ */
+export function chooseCardAtlas(
+  deckId: CardDeckId,
+  wanted: CardArtScale,
+  resident: readonly CardAtlas[],
+): CardAtlas {
+  return (
+    resident.find(
+      (atlas) => atlas.deckId === deckId && atlas.artScale >= wanted,
+    ) ?? { deckId, artScale: wanted }
   );
 }
 
-/** Returns everything the loader needs for one deck. */
-export function cardDeckAtlas(deckId: CardDeckId): CardDeckAtlas {
-  const manifest = manifests[deckId];
+/** Returns everything the loader needs for one atlas. */
+export function cardAtlasSource(atlas: CardAtlas): CardAtlasSource {
+  const manifest = manifests[atlas.deckId][atlas.artScale];
   return {
-    textureKey: cardDeckTextureKey(deckId),
+    textureKey: cardAtlasTextureKey(atlas),
     manifest: {
       textures: manifest.textures.map((texture) => ({
         ...texture,
-        image: atlasPageUrl(deckId, texture.image),
+        image: atlasPageUrl(atlas, texture.image),
       })),
     },
   };
 }
 
 /**
- * Queues a deck's atlas on a loader and returns the texture key its frames will
- * be registered under.
+ * Queues an atlas on a loader and returns the texture key its frames will be
+ * registered under.
  */
-export function loadCardDeck(
+export function loadCardAtlas(
   loader: Loader.LoaderPlugin,
-  deckId: CardDeckId,
+  atlas: CardAtlas,
 ): string {
-  const { textureKey, manifest } = cardDeckAtlas(deckId);
+  const { textureKey, manifest } = cardAtlasSource(atlas);
   // `multiatlas` also accepts a parsed manifest, which its type does not say.
   loader.multiatlas(textureKey, manifest as unknown as string, undefined);
   return textureKey;

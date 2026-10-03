@@ -18,9 +18,11 @@ import {
   SHUTDOWN_EVENT,
 } from "@test/support/phaser_mocks";
 import { CardDeckId, DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
+import { CardArtScale } from "@/engine/render/layout/card_metrics";
 import {
-  cardDeckTextureKey,
-  residentCardDecks,
+  CardAtlas,
+  cardAtlasTextureKey,
+  residentCardAtlases,
 } from "@/engine/render/phaser/card_deck_atlas";
 import { PhaserCardFactory } from "@/engine/render/phaser/phaser_card_factory";
 import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
@@ -44,6 +46,26 @@ vi.mock("phaser", async () => {
 /** Views a Phaser sprite handle as the underlying recording mock sprite. */
 function asMock(sprite: unknown): MockSprite {
   return sprite as MockSprite;
+}
+
+/**
+ * Returns a deck's texture at a density, 1x unless said otherwise, since a
+ * mock scene lays its board out at a scale of 1.
+ */
+function deckTexture(deckId: CardDeckId, artScale: CardArtScale = 1): string {
+  return cardAtlasTextureKey({ deckId, artScale });
+}
+
+/**
+ * Sizes a scene's canvas so its board is laid out at a scale, as a display of
+ * that pixel ratio showing the whole design would.
+ */
+function sizeCanvasFor(scene: BoardScene, layoutScale: number): void {
+  const scale = scene.scale as unknown as MockScaleManager;
+  const design = designSize(FAKE_TABLE_LAYOUT);
+  scale.width = design.width * layoutScale;
+  scale.height = design.height * layoutScale;
+  scale.displayScale = { x: layoutScale, y: layoutScale };
 }
 
 /** The game the current scene draws, and the presentation it follows. */
@@ -154,7 +176,9 @@ describe("BoardScene", () => {
     });
 
     it("keeps the shadows on their own texture when the deck changes", () => {
-      (boardScene.textures as unknown as MockTextures).add("cards:classic");
+      (boardScene.textures as unknown as MockTextures).add(
+        deckTexture("classic"),
+      );
 
       presentation.setCardDeck("classic");
 
@@ -226,21 +250,26 @@ describe("BoardScene", () => {
       return [...new Set(allSprites().map((sprite) => sprite.texture.key))];
     }
 
+    /** Returns the texture of every atlas left loaded. */
+    function residentTextures(): string[] {
+      return residentCardAtlases(textures()).map(cardAtlasTextureKey);
+    }
+
     it("draws every sprite from the deck the player is using", () => {
-      expect(texturesInUse()).toEqual([`cards:${DEFAULT_CARD_DECK}`]);
+      expect(texturesInUse()).toEqual([deckTexture(DEFAULT_CARD_DECK)]);
     });
 
     it("redraws every card and placeholder from a deck already loaded", () => {
-      textures().add("cards:classic");
+      textures().add(deckTexture("classic"));
 
       presentation.setCardDeck("classic");
 
-      expect(texturesInUse()).toEqual(["cards:classic"]);
+      expect(texturesInUse()).toEqual([deckTexture("classic")]);
     });
 
     it("keeps each sprite on the frame it was showing", () => {
       const before = allSprites().map((sprite) => sprite.frame.name);
-      textures().add("cards:classic");
+      textures().add(deckTexture("classic"));
 
       presentation.setCardDeck("classic");
 
@@ -250,7 +279,7 @@ describe("BoardScene", () => {
     });
 
     it("keeps each sprite anchored at its top left corner", () => {
-      textures().add("cards:classic");
+      textures().add(deckTexture("classic"));
 
       presentation.setCardDeck("classic");
 
@@ -265,20 +294,20 @@ describe("BoardScene", () => {
     });
 
     it("releases the deck it leaves", () => {
-      textures().add("cards:classic");
+      textures().add(deckTexture("classic"));
 
       presentation.setCardDeck("classic");
 
       // An atlas page is sixty megabytes of texture memory once uploaded, and
       // a deck the board is no longer drawing is not worth holding it for.
-      expect(textures().exists(`cards:${DEFAULT_CARD_DECK}`)).toBe(false);
+      expect(textures().exists(deckTexture(DEFAULT_CARD_DECK))).toBe(false);
     });
 
     it("loads a deck it has never drawn before switching to it", () => {
       presentation.setCardDeck("classic");
 
-      expect(loader().requested).toEqual(["cards:classic"]);
-      expect(texturesInUse()).toEqual([`cards:${DEFAULT_CARD_DECK}`]);
+      expect(loader().requested).toEqual([deckTexture("classic")]);
+      expect(texturesInUse()).toEqual([deckTexture(DEFAULT_CARD_DECK)]);
     });
 
     it("switches once the load it was waiting on finishes", () => {
@@ -286,7 +315,7 @@ describe("BoardScene", () => {
 
       loader().complete(textures());
 
-      expect(texturesInUse()).toEqual(["cards:classic"]);
+      expect(texturesInUse()).toEqual([deckTexture("classic")]);
     });
 
     it("stays on the deck it has when the load fails", () => {
@@ -296,7 +325,7 @@ describe("BoardScene", () => {
 
       // Pointing sprites at a texture that never arrived would draw the whole
       // board as blank rectangles, which is worse than the deck being left.
-      expect(texturesInUse()).toEqual([`cards:${DEFAULT_CARD_DECK}`]);
+      expect(texturesInUse()).toEqual([deckTexture(DEFAULT_CARD_DECK)]);
     });
 
     it("ignores a load that finishes after the player changed their mind", () => {
@@ -305,7 +334,7 @@ describe("BoardScene", () => {
 
       loader().complete(textures());
 
-      expect(texturesInUse()).toEqual([`cards:${DEFAULT_CARD_DECK}`]);
+      expect(texturesInUse()).toEqual([deckTexture(DEFAULT_CARD_DECK)]);
     });
 
     it("releases a deck that finishes loading after the player changed their mind", () => {
@@ -314,21 +343,49 @@ describe("BoardScene", () => {
 
       loader().complete(textures());
 
-      expect(residentCardDecks(textures())).toEqual([DEFAULT_CARD_DECK]);
+      expect(residentTextures()).toEqual([deckTexture(DEFAULT_CARD_DECK)]);
+    });
+
+    it("draws the latest deck when two loads finish together", () => {
+      presentation.setCardDeck("classic");
+      presentation.setCardDeck("all-corner-pips");
+
+      // Phaser finishes every file queued while it was busy in one batch, so
+      // the stale load's turn comes while the wanted one is resident but not
+      // yet drawn, and must leave it alone.
+      loader().complete(textures());
+
+      expect({
+        inUse: texturesInUse(),
+        resident: residentTextures(),
+        status: presentation.cardDeckStatuses.at(-1),
+      }).toEqual({
+        inUse: [deckTexture("all-corner-pips")],
+        resident: [deckTexture("all-corner-pips")],
+        status: { kind: "drawn", deckId: "all-corner-pips" },
+      });
     });
 
     describe("on boot", () => {
       /**
        * Builds a board for a player who chose `chosen`, with only the given
-       * decks loaded, as an earlier board may have left them.
+       * atlases loaded, as an earlier board may have left them; a deck named
+       * alone is loaded at 1x.
        */
-      function bootScene(chosen: CardDeckId, ...loaded: CardDeckId[]): void {
+      function bootScene(
+        chosen: CardDeckId,
+        ...loaded: (CardDeckId | CardAtlas)[]
+      ): void {
         fakeGame = dealtGame();
         presentation = new TestPresentation(undefined, undefined, chosen);
         boardScene = makeFakeTableBoardScene(fakeGame, presentation);
         textures().remove(BOOT_TEXTURE_KEY);
-        for (const deckId of loaded) {
-          textures().add(cardDeckTextureKey(deckId));
+        for (const atlas of loaded) {
+          textures().add(
+            typeof atlas === "string"
+              ? deckTexture(atlas)
+              : cardAtlasTextureKey(atlas),
+          );
         }
       }
 
@@ -337,7 +394,7 @@ describe("BoardScene", () => {
 
         boardScene.preload();
 
-        expect(loader().requested).toEqual(["cards:classic"]);
+        expect(loader().requested).toEqual([deckTexture("classic")]);
       });
 
       it("loads nothing when the chosen deck is loaded", () => {
@@ -356,8 +413,11 @@ describe("BoardScene", () => {
 
         expect({
           inUse: texturesInUse(),
-          resident: residentCardDecks(textures()),
-        }).toEqual({ inUse: ["cards:classic"], resident: ["classic"] });
+          resident: residentTextures(),
+        }).toEqual({
+          inUse: [deckTexture("classic")],
+          resident: [deckTexture("classic")],
+        });
       });
 
       it("draws from another loaded deck while it fetches the chosen one", () => {
@@ -373,8 +433,8 @@ describe("BoardScene", () => {
           requested: loader().requested,
           status: presentation.cardDeckStatuses.at(-1),
         }).toEqual({
-          inUse: ["cards:indexed"],
-          requested: ["cards:classic"],
+          inUse: [deckTexture("indexed")],
+          requested: [deckTexture("classic")],
           status: { kind: "loading", deckId: "classic" },
         });
       });
@@ -388,8 +448,219 @@ describe("BoardScene", () => {
 
         expect({
           inUse: texturesInUse(),
-          resident: residentCardDecks(textures()),
-        }).toEqual({ inUse: ["cards:classic"], resident: ["classic"] });
+          resident: residentTextures(),
+        }).toEqual({
+          inUse: [deckTexture("classic")],
+          resident: [deckTexture("classic")],
+        });
+      });
+
+      it("preloads the 2x atlas for a board laid out larger than 1x", () => {
+        bootScene("classic");
+        sizeCanvasFor(boardScene, 2);
+
+        boardScene.preload();
+
+        expect(loader().requested).toEqual([deckTexture("classic", 2)]);
+      });
+
+      it("boots on a 2x atlas left loaded without fetching the 1x one", () => {
+        // An earlier board on a bigger canvas left it, and loading the cheaper
+        // copy would cost a fetch for no gain.
+        bootScene("classic", { deckId: "classic", artScale: 2 });
+        boardScene.preload();
+
+        boardScene.create();
+
+        expect({
+          inUse: texturesInUse(),
+          requested: loader().requested,
+        }).toEqual({ inUse: [deckTexture("classic", 2)], requested: [] });
+      });
+
+      it("boots on the chosen deck at 1x while it fetches the 2x copy", () => {
+        bootScene("classic", "classic");
+        sizeCanvasFor(boardScene, 2);
+        boardScene.preload();
+
+        boardScene.create();
+
+        // The deck the player chose is on the table, so the drawer is told so.
+        expect({
+          inUse: texturesInUse(),
+          requested: loader().requested,
+          status: presentation.cardDeckStatuses.at(-1),
+        }).toEqual({
+          inUse: [deckTexture("classic")],
+          requested: [deckTexture("classic", 2)],
+          status: { kind: "drawn", deckId: "classic" },
+        });
+      });
+    });
+
+    describe("atlas density", () => {
+      /** Resizes the canvas so the board is laid out at a scale. */
+      function resizeTo(layoutScale: number): void {
+        sizeCanvasFor(boardScene, layoutScale);
+        (boardScene.scale as unknown as MockScaleManager).emit("resize");
+      }
+
+      /** Returns the scene's shadow texture. */
+      function shadowTexture(): { width: number; height: number } {
+        const texture = textures().dynamicTexture(
+          PhaserCardFactory.SHADOW_TEXTURE_KEY,
+        );
+        if (!texture) throw new Error("No shadow texture was created");
+        return texture;
+      }
+
+      it("fetches the 2x atlas once the board grows past 1x", () => {
+        resizeTo(2);
+
+        expect({
+          requested: loader().requested,
+          inUse: texturesInUse(),
+        }).toEqual({
+          requested: [deckTexture(DEFAULT_CARD_DECK, 2)],
+          inUse: [deckTexture(DEFAULT_CARD_DECK)],
+        });
+      });
+
+      it("moves every sprite to the 2x atlas once it arrives, releasing 1x", () => {
+        resizeTo(2);
+
+        loader().complete(textures());
+
+        expect({
+          inUse: texturesInUse(),
+          resident: residentTextures(),
+        }).toEqual({
+          inUse: [deckTexture(DEFAULT_CARD_DECK, 2)],
+          resident: [deckTexture(DEFAULT_CARD_DECK, 2)],
+        });
+      });
+
+      it("draws the 2x artwork texel for texel at a layout scale of 2", () => {
+        resizeTo(2);
+        loader().complete(textures());
+
+        boardScene.update(0, 16);
+
+        const scales = new Set(allSprites().map((sprite) => sprite.scale));
+        expect([...scales]).toEqual([1]);
+      });
+
+      it("redraws the shadow at 2x, refitting every shadow sprite to it", () => {
+        resizeTo(2);
+
+        loader().complete(textures());
+
+        const origins = new Set(
+          [...boardScene.cardIds].map((cardId) => {
+            const shadow = asMock(boardScene.cardShadowSprite(cardId));
+            return `${shadow.displayOriginX},${shadow.displayOriginY}`;
+          }),
+        );
+        expect({
+          size: [shadowTexture().width, shadowTexture().height],
+          origins: [...origins],
+        }).toEqual({ size: [440 + 64, 614 + 96], origins: ["32,48"] });
+      });
+
+      it("says nothing about the deck, which has not changed", () => {
+        resizeTo(2);
+
+        loader().complete(textures());
+
+        expect(presentation.cardDeckStatuses).toEqual([
+          { kind: "drawn", deckId: DEFAULT_CARD_DECK },
+        ]);
+      });
+
+      it("fetches the 2x atlas once however often the board resizes", () => {
+        resizeTo(2);
+
+        resizeTo(2.5);
+
+        expect(loader().requested).toEqual([deckTexture(DEFAULT_CARD_DECK, 2)]);
+      });
+
+      it("keeps the 2x atlas when the board shrinks again", () => {
+        // Swapping back on every resize would reload the deck each time a
+        // window's edge is dragged across the line.
+        resizeTo(2);
+        loader().complete(textures());
+
+        resizeTo(1);
+
+        expect({
+          requested: loader().requested,
+          inUse: texturesInUse(),
+        }).toEqual({
+          requested: [deckTexture(DEFAULT_CARD_DECK, 2)],
+          inUse: [deckTexture(DEFAULT_CARD_DECK, 2)],
+        });
+      });
+
+      it("stays on 1x without a word when the 2x atlas fails to load", () => {
+        resizeTo(2);
+
+        loader().complete(false);
+
+        // The deck is still drawn, only less sharply, so there is nothing
+        // for the drawer to report.
+        expect({
+          inUse: texturesInUse(),
+          statuses: presentation.cardDeckStatuses,
+        }).toEqual({
+          inUse: [deckTexture(DEFAULT_CARD_DECK)],
+          statuses: [{ kind: "drawn", deckId: DEFAULT_CARD_DECK }],
+        });
+      });
+
+      it("loads a new deck at the density the board needs now", () => {
+        resizeTo(2);
+        loader().complete(textures());
+        resizeTo(1);
+
+        presentation.setCardDeck("classic");
+
+        expect(loader().requested.at(-1)).toBe(deckTexture("classic"));
+      });
+
+      it("lets a deck chosen during the 2x fetch win", () => {
+        resizeTo(2);
+        presentation.setCardDeck("classic");
+
+        loader().complete(textures());
+
+        expect({
+          inUse: texturesInUse(),
+          resident: residentTextures(),
+        }).toEqual({
+          inUse: [deckTexture("classic", 2)],
+          resident: [deckTexture("classic", 2)],
+        });
+      });
+
+      it("fetches the deck being loaded at 2x if the board grows meanwhile", () => {
+        presentation.setCardDeck("classic");
+
+        resizeTo(2);
+        loader().complete(textures());
+
+        expect({
+          inUse: texturesInUse(),
+          resident: residentTextures(),
+          statuses: presentation.cardDeckStatuses.slice(1),
+        }).toEqual({
+          inUse: [deckTexture("classic", 2)],
+          resident: [deckTexture("classic", 2)],
+          statuses: [
+            { kind: "loading", deckId: "classic" },
+            { kind: "drawn", deckId: "classic" },
+          ],
+        });
       });
     });
 
@@ -458,11 +729,11 @@ describe("BoardScene", () => {
     it("stops following the setting once the scene shuts down", () => {
       const events = boardScene.events as unknown as MockSceneEvents;
       events.emit(SHUTDOWN_EVENT);
-      textures().add("cards:classic");
+      textures().add(deckTexture("classic"));
 
       presentation.setCardDeck("classic");
 
-      expect(texturesInUse()).toEqual([`cards:${DEFAULT_CARD_DECK}`]);
+      expect(texturesInUse()).toEqual([deckTexture(DEFAULT_CARD_DECK)]);
     });
   });
 

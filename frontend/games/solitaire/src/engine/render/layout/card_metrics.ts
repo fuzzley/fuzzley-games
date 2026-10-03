@@ -15,13 +15,24 @@ export const CARD_RENDER_WIDTH_PX = 220;
 export const CARD_RENDER_HEIGHT_PX = 307;
 
 /**
- * Atlas texels per design unit in the card artwork, which is authored larger
- * than it is drawn so it stays sharp on a high density display.
+ * The densities the card atlas is built at, in texels per design unit, from
+ * least to most dense: 2 stays sharp on a high density display, and 1 costs a
+ * quarter of the memory where cards are drawn no larger than that.
  *
- * Mirrors `ART_SCALE` in `tools/build-card-atlas.mjs`; change both and run
- * `yarn build:atlas`.
+ * Mirrors `ART_SCALES` in `tools/build-card-atlas.mjs`.
  */
-export const CARD_ART_SCALE = 2;
+export const CARD_ART_SCALES = [1, 2] as const;
+
+/** One of the densities in {@link CARD_ART_SCALES}. */
+export type CardArtScale = (typeof CARD_ART_SCALES)[number];
+
+/**
+ * Returns the least dense atlas that draws cards at a layout scale without
+ * enlarging them.
+ */
+export function cardArtScaleFor(layoutScale: number): CardArtScale {
+  return layoutScale <= 1 ? 1 : 2;
+}
 
 /** The horizontal padding/margin at the edges of the board layout. */
 export const LAYOUT_PADDING_X = 40;
