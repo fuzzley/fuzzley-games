@@ -14,6 +14,7 @@ are never drawn larger than the art. That covers phones in both orientations and
 1080p desktops at pixel ratio 1. Retina screens and large windows keep the full set.
 
 **Expected outcome:**
+
 - 1× atlas memory: one page, ≈ 3420×1260 ≈ 17 MB, against 65 MB today.
 - A smaller download.
 - Phone cards that look the same or crisper.
@@ -22,6 +23,7 @@ are never drawn larger than the art. That covers phones in both orientations and
 ## Approach
 
 ### 1. Atlas build: produce 1× and 2× from one raster (`tools/build-card-atlas.mjs`)
+
 - Rasterize and cut at 2× exactly as today. Then derive the 1× frames by resizing each
   finished frame (stamped cards and placeholders) to 220×307 with
   `sharp().resize(w, h, { fit: "fill" })`. sharp resizes with premultiplied alpha. Use the
@@ -42,8 +44,10 @@ are never drawn larger than the art. That covers phones in both orientations and
   density. Update the comment that says it mirrors the TypeScript side.
 
 ### 2. View state stays in design units; the Phaser adapter owns texel density
+
 This removes the doc's main con: the layout maths never needed to know texel density, only
 the sprite scale did.
+
 - `src/engine/render/layout/card_metrics.ts`:
   - Replace `CARD_ART_SCALE` with `type CardArtScale = 1 | 2`.
   - Add `cardArtScaleFor(layoutScale): CardArtScale`, which returns `layoutScale <= 1 ? 1 : 2`.
@@ -57,6 +61,7 @@ the sprite scale did.
   `setScale(view.scale / this.sprites.cardArtScale)`.
 
 ### 3. An atlas is a deck at one density (`src/engine/render/phaser/card_deck_atlas.ts`)
+
 - Add `interface CardAtlas { deckId; artScale }`.
 - Key manifests as `Record<CardDeckId, Record<CardArtScale, AtlasManifest>>`, with six
   explicit JSON imports so a missing density fails to compile.
@@ -69,6 +74,7 @@ the sprite scale did.
   The board's boot and the loader share this rule.
 
 ### 4. Loader: choose density per board, upgrade on resize (`board_deck_loader.ts`)
+
 - `current` and `awaiting` become `CardAtlas`. Expose `atlas` (deck plus density) and keep
   `deckId`.
 - `DeckLoaderHost` gains two methods:
@@ -90,6 +96,7 @@ the sprite scale did.
   resident atlas other than the current one, including the same deck at the other density.
 
 ### 5. Board scene and shadow (`board_scene.ts`, `phaser_card_factory.ts`)
+
 - `BoardScene.wantedArtScale()` returns
   `cardArtScaleFor(measureTable(this.options.layout, this.viewport).scale)`. That is the
   same measurement the view builder uses. The scaler sizes the canvas before the first
@@ -111,6 +118,7 @@ the sprite scale did.
   - The shadow filter's reach is in UV space, so it scales with the texture.
 
 ### 6. Docs and skills
+
 - `docs/mobile-performance-options.md`:
   - Mark 5 **Done**, with the measured memory and download figures, as was done for 4.
   - Update "Where things stand" and "Suggested order".
@@ -122,6 +130,7 @@ the sprite scale did.
 - Run `yarn skills:check`.
 
 ## Working log
+
 - First, copy this plan to `docs/half-res-atlas-plan.md` and add a **Progress log** section.
 - After each step, append to the log what was done, the commit hash, any deviation from the
   plan and what is next, so the work can be picked up from the doc alone.
@@ -129,8 +138,11 @@ the sprite scale did.
 - When option 5 is marked done, retire the plan doc in the docs commit, as was done for
   option 4.
 
-## Commits (on a branch, `half-res-atlas`; commit after each step below, and more often
-## within step 3 if it grows)
+## Commits
+
+On the branch `half-res-atlas`. Commit after each step below, and more often
+within step 3 if it grows.
+
 1. Atlas tool builds both densities into `<n>x/`, and `card_deck_atlas.ts` reads the new
    paths. Behaviour is unchanged because the 2× set is still always chosen. Verify that git
    reports the 2× pages as 100% renames.
@@ -140,6 +152,7 @@ the sprite scale did.
 4. Docs and skills.
 
 ## Tests (keep `yarn test:coverage` above the floor; raise it if figures rise)
+
 - **`card_metrics`:** `cardArtScaleFor` at 0.48, at 1 and at 1.01.
 - **`card_deck_atlas.spec.ts`:**
   - Every deck is built at both densities.
@@ -175,6 +188,7 @@ the sprite scale did.
     the design size at ratio 1, which is scale 1.
 
 ## Verification
+
 1. **Atlas:** `yarn build:atlas` succeeds. The 2× pages are byte-identical to today's (git
    shows renames). Each deck's `1x/` holds one page of about 3420×1260.
 2. **Full pipeline:** `yarn verify` (lint, including `skills:check`, then tsc, build and
@@ -206,3 +220,17 @@ from the plan above, and what comes next.
 
 - **Step 0 — plan committed.** Branch `half-res-atlas` created from `main`
   (`1fa823f`). Next: step 1, the atlas tool.
+- **Step 1 — atlas tool builds both densities.** `tools/build-card-atlas.mjs`
+  now writes `atlas/<deck>/2x/` (byte-identical to the old flat files; git
+  records renames) and `atlas/<deck>/1x/` (one 3420×1260 page per deck).
+  `card_deck_atlas.ts` and its spec read from `2x/`; the page glob is now
+  `atlas/*/*/card_assets-*.png`, keyed by `<deck>/<density>/<file>`. NOTICE
+  lists the pages at both densities.
+  - **Finding:** the 1× page is about 1.6 MB as a PNG against 1.9 MB for the
+    2× pages, so the download saving is small. Filtered downsampling creates
+    in-between colours that PNG compresses poorly. Lanczos2 or cubic would save
+    about 200 KB more per deck; lanczos3 (sharp's default, kept) is the
+    crispest, and a 3× zoom of card corners showed no ringing with any of them.
+    GPU memory (65 → 17 MB) and decode time (4× fewer pixels) are the real
+    gains.
+  - Next: step 2, view state in design units.
