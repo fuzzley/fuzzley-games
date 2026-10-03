@@ -62,30 +62,6 @@
   gap: var(--space-4);
 }
 
-// A swatch a player picks between, shared by the card backs and the decks;
-// each selector lays out its own preview and label.
-@mixin swatch-option {
-  @include transition(background, border-color, color);
-  display: flex;
-  background: var(--wash-faint);
-  border: 2px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: var(--space-3);
-  cursor: pointer;
-  color: var(--text-muted);
-
-  &:hover {
-    background: var(--wash-subtle);
-    border-color: var(--border-strong);
-  }
-
-  &[aria-checked="true"] {
-    background: var(--accent-wash);
-    border-color: var(--accent);
-    color: var(--text-bright);
-  }
-}
-
 .card-back-option {
   @include swatch-option;
   flex: 1;

@@ -412,6 +412,12 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       allCardsVisible: false,
       variants: [
         {
+          name: "Queens on Kings",
+          values: { variant: GolfVariant.QUEENS_ON_KINGS },
+          tagline: "Golf where a Queen can be played onto a King.",
+          difficulty: Difficulty.HARD,
+        },
+        {
           name: "Putt Putt",
           values: { variant: GolfVariant.PUTT_PUTT },
           tagline: "Golf where the ranks turn the corner from King to Ace.",
