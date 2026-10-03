@@ -10,6 +10,7 @@ import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { flipExposedTopOfColumn } from "@/games/common/move_effects";
 import { STOCK_PILE_ID, WASTE_PILE_ID } from "@/games/common/pile_ids";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
+import { CLOSED_STOCK_PLACEHOLDER } from "@/games/common/zone_presets";
 import { DrawCount } from "./klondike_rules";
 import { ScoringPolicy } from "./scoring_policy";
 
@@ -115,6 +116,38 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
     this.commitAction("recycle", recycleWasteToStock(this.waste, this.stock), {
       scoreDelta: this.state.score - scoreBefore,
     });
+  }
+
+  /**
+   * Returns the plain closed outline for the empty stock once the waste is
+   * empty too, in place of the recycle arrow.
+   *
+   * @inheritDoc
+   */
+  public override pileBackgroundKey(
+    pile: CardPile<PlayingCard>,
+  ): string | undefined {
+    return this.isSpentStock(pile)
+      ? CLOSED_STOCK_PLACEHOLDER
+      : super.pileBackgroundKey(pile);
+  }
+
+  /**
+   * Returns false for the empty stock once the waste is empty too, since
+   * pressing it would recycle nothing.
+   *
+   * @inheritDoc
+   */
+  public override isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
+    return !this.isSpentStock(pile) && super.isEmptySlotActionable(pile);
+  }
+
+  /**
+   * Returns whether the pile is the stock with nothing left to draw or to
+   * recycle.
+   */
+  private isSpentStock(pile: CardPile<PlayingCard>): boolean {
+    return pile === this.stock && this.stock.isEmpty && this.waste.isEmpty;
   }
 
   // --- What a move does beyond moving its cards ---
