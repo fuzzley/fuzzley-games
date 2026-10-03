@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
-import { pullCards } from "@/games/common/pull_cards";
+import { pullCards, pullFirstCard } from "@/games/common/pull_cards";
 import { makePlayingCard } from "@test/support/card_builder";
 
 /** Returns a deck of the given ranks, bottom first, each named for its place. */
@@ -38,5 +38,29 @@ describe("pullCards", () => {
     const pulled = pullCards(deck, isAce);
 
     expect([pulled, deck.length]).toEqual([[], 2]);
+  });
+});
+
+describe("pullFirstCard", () => {
+  it("returns the first matching card the deal reaches", () => {
+    const deck = deckOf(Rank.ACE, Rank.FIVE, Rank.ACE, Rank.NINE);
+
+    const pulled = pullFirstCard(deck, isAce);
+
+    expect(pulled?.id).toBe("card-2");
+  });
+
+  it("leaves every other card in the deck, in its order", () => {
+    const deck = deckOf(Rank.ACE, Rank.FIVE, Rank.ACE, Rank.NINE);
+
+    pullFirstCard(deck, isAce);
+
+    expect(deck.map((card) => card.id)).toEqual(["card-0", "card-1", "card-3"]);
+  });
+
+  it("returns nothing when nothing matches", () => {
+    const deck = deckOf(Rank.FIVE, Rank.NINE);
+
+    expect(pullFirstCard(deck, isAce)).toBeUndefined();
   });
 });

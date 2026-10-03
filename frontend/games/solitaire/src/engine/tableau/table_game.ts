@@ -240,7 +240,10 @@ export abstract class TableGame<
     }
 
     const sourceZone = this.zoneFor(sourcePile.id);
-    if (!sourceZone || !canGrab(sourceZone.grab, card, sourcePile)) {
+    if (
+      !sourceZone ||
+      !canGrab(sourceZone.grab, card, sourcePile, this.board)
+    ) {
       return null;
     }
 
@@ -466,7 +469,7 @@ export abstract class TableGame<
     pile: CardPile<PlayingCard>,
   ): boolean {
     const zone = this.zoneFor(pile.id);
-    return zone ? canGrab(zone.grab, card, pile) : false;
+    return zone ? canGrab(zone.grab, card, pile, this.board) : false;
   }
 
   /** Returns whether the card can currently be dragged. */
@@ -484,7 +487,7 @@ export abstract class TableGame<
     pile: CardPile<PlayingCard>,
   ): boolean {
     const zone = this.zoneFor(pile.id);
-    return zone?.draggable ? canGrab(zone.grab, card, pile) : false;
+    return zone?.draggable ? canGrab(zone.grab, card, pile, this.board) : false;
   }
 
   /**

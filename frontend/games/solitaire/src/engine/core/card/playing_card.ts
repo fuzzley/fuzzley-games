@@ -117,6 +117,16 @@ export function rankBelow(rank: Rank): Rank | undefined {
   return rank === Rank.ACE ? undefined : rank - 1;
 }
 
+/** Returns the rank one step above `rank`, turning the corner from King to Ace. */
+export function rankAboveWrapping(rank: Rank): Rank {
+  return rank === Rank.KING ? Rank.ACE : rank + 1;
+}
+
+/** Returns the rank one step below `rank`, turning the corner from Ace to King. */
+export function rankBelowWrapping(rank: Rank): Rank {
+  return rank === Rank.ACE ? Rank.KING : rank - 1;
+}
+
 /**
  * Produces the artwork key for a card's face, e.g. `card-hearts-queen`.
  *

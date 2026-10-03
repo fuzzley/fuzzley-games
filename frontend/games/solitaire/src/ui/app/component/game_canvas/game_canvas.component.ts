@@ -15,6 +15,7 @@ import { PhaserHost } from "@/engine/render/phaser/phaser_host";
 import { PlayableGame } from "@/engine/tableau/playable_game";
 import { makeBoardScene } from "../../provider/board_catalog";
 import { GameId } from "../../provider/game_catalog";
+import { skeletonSlots } from "../../model/skeleton_slots";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { PresentationSettingsService } from "../../service/presentation_settings.service";
 
@@ -67,11 +68,11 @@ export class GameCanvasComponent {
   protected readonly gameName = computed(() => this.catalog.selectedEntry.name);
 
   /**
-   * The grid the current game lies on, which the skeleton mirrors so the
-   * placeholder has the shape of the board that is about to replace it.
+   * Where the skeleton draws each pile of the current game, so the placeholder
+   * has the shape of the board that is about to replace it.
    */
-  protected readonly layoutSpec = computed(
-    () => this.catalog.selectedEntry.layout,
+  protected readonly skeletonSlots = computed(() =>
+    skeletonSlots(this.catalog.selectedEntry.layout),
   );
 
   /**

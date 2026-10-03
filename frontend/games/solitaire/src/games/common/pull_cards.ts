@@ -23,3 +23,23 @@ export function pullCards(
   }
   return pulled;
 }
+
+/**
+ * Removes the first card matching `predicate` that the deal would reach, and
+ * returns it, or undefined when no card matches.
+ *
+ * @param deck The cards to deal, drained from the end, which this shortens.
+ */
+export function pullFirstCard(
+  deck: PlayingCard[],
+  predicate: (card: PlayingCard) => boolean,
+): PlayingCard | undefined {
+  for (let index = deck.length - 1; index >= 0; index--) {
+    const card = deck[index];
+    if (card && predicate(card)) {
+      deck.splice(index, 1);
+      return card;
+    }
+  }
+  return undefined;
+}

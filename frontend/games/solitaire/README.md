@@ -27,6 +27,26 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Double Klondike**: Two-deck Klondike dealt across nine columns with eight foundations and unlimited stock recycles.
 - **Montana**: Gaps-style solitaire played on a 4×13 grid without Aces; sort rows from Two to King in suit into spaces left by moved cards, featuring two redeals, or three as Addiction.
 - **Blue Moon**: Montana with the Aces in play, fixed at the start of four 14-cell rows; Red Moon, which deals the gaps beside the Aces, is its deal option.
+- **Bisley**: Thirteen open columns building up or down in suit, played onto foundations that climb from each Ace and descend from each King.
+- **Aces Up**: Four columns dealt a card at a time, discarding every card a higher card of its suit outranks until only the Aces remain; spaces can take any card, or only Aces.
+- **Golf**: Seven open columns cleared onto a single foundation one rank up or down at a time, with a one-pass stock; Golf, Queens on Kings, and Putt Putt, which turns the corner from King to Ace.
+- **Calculation**: Four foundations built regardless of suit by ones, twos, threes and fours, from a stock turned a card at a time onto four waste piles; Sir Tommy, which builds every foundation up from an Ace, is its variant option.
+- **Flower Garden**: Six open beds built down regardless of suit, and a sixteen-card bouquet whose every card is free to play.
+- **Bristol**: Eight fans of three built down regardless of suit, three reserves the stock deals onto, and foundations built up regardless of suit; Belvedere, which starts with one Ace on a foundation, is its variant option.
+- **Nestor**: Eight open columns and a four-card reserve, cleared by pairing free cards of the same rank.
+- **Monte Carlo**: A five-by-five grid cleared by pairing touching cards of the same rank, then closed up and refilled from the stock; Monte Carlo Thirteens, which pairs cards adding up to thirteen, is its variant option.
+- **La Belle Lucie**: Seventeen fans of three and one single card, built down in suit, with two redeals; The Fan and Shamrocks are its variant options.
+- **Trefoil**: La Belle Lucie with the Aces dealt to the foundations and the rest in sixteen fans of three.
+- **Canfield**: Four columns fed from a thirteen-card reserve onto foundations that start on a rank the deal chooses and turn the corner from King to Ace; Storehouse, Superior Canfield and Rainbow are its variant options.
+- **Penguin**: Seven open columns built down in suit round the corner, a seven-cell flipper, and foundations that start on the rank of the first card dealt.
+- **Black Hole**: Seventeen open fans of three played into a single foundation started with the Ace of Spades, one rank up or down with King and Ace adjacent.
+- **All in a Row**: Black Hole's rules on thirteen columns of four, with the foundation started by any card.
+- **Grandfather's Clock**: Twelve foundations laid round a dial, each built up in suit round the corner to the hour it stands at, from eight open columns.
+- **Pyramid**: A pyramid of twenty-eight cards taken apart by pairing free cards that total thirteen, with Kings going alone and a stock turned one card at a time; the goal can be every card or the pyramid alone (Relaxed Pyramid), with one pass or three.
+- **TriPeaks**: Three overlapping peaks cleared onto a single waste one rank up or down with King and Ace adjacent, each face-down card turning up once nothing covers it.
+- **Beleaguered Castle**: Eight open rows fanned sideways around a column of Aces, built down regardless of suit one card at a time; Streets and Alleys and Citadel are its variant options.
+- **Fortress**: Ten open rows fanned sideways, built up or down in suit, with every Ace buried.
+- **Poker Squares**: Twenty-five cards placed one at a time in a five-by-five grid, every row and column scored as a poker hand, by American or English scoring.
 
 ## Development
 
