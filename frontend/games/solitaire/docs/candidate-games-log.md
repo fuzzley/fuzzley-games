@@ -58,7 +58,7 @@ need:
 - [x] 5. E3, then Flower Garden.
 - [x] 6. Bristol and Belvedere.
 - [x] 7. P1, then Nestor.
-- [ ] 8. Monte Carlo and Thirteens.
+- [x] 8. Monte Carlo and Thirteens.
 - [ ] 9. La Belle Lucie, The Fan, Shamrocks and Trefoil.
 - [ ] 10. E2, then Canfield, Storehouse, Superior Canfield and Rainbow.
 - [ ] 11. Penguin.
@@ -210,7 +210,7 @@ descendingAnySuit)`, top-only. The stock deals a row onto the reserves
   - Tests: `test/games/bristol/bristol_game.spec.ts`,
     `test/games/common/sink_kings.spec.ts`, and `pullFirstCard` cases in
     `pull_cards.spec.ts`.
-- Step 7: P1, then Nestor.
+- Step 7 (`ae35067`): P1, then Nestor.
   - P1 in `src/games/common/pair_removal.ts`, written there at once since
     Monte Carlo follows: `pairsWithTop(isPair)` accepts a single card that
     pairs with the pile's top card, `sameRank` is Nestor's pair, and
@@ -233,16 +233,45 @@ descendingAnySuit)`, top-only. The stock deals a row onto the reserves
     give-up case on a hand-built deck.
   - Tooling: the scratchpad gate script now exits non-zero on a failure, so a
     commit chained after it cannot land on a red gate.
+- Step 8: Monte Carlo and Thirteens.
+  - `src/games/monte_carlo`: the stock at column 0, the 5 × 5 grid at
+    columns 1–5 (`cell-<row>-<column>`), the discard at column 6 (7 × 5,
+    no `designHeightPx`: nothing fans). Each cell's rule closes over the set
+    of its up to eight neighbours' ids and takes a partner only from one of
+    them (`monteCarloCellRule`), with no capacity (P1).
+  - `consolidate()` takes every card off the grid, lays them back in
+    reading order, then deals the stock face up into the cells left at the
+    end, committed as one `"consolidate"` action with a one-card transfer per
+    card that moved. `canConsolidate` is true when a gap has a card after it
+    or the stock can fill one, which also covers "only after a pair has been
+    removed": a full grid has no gap.
+  - The stock's slot keeps `emptyIsActionable`, so once the stock is out the
+    slot still consolidates. `pileBackgroundKey` shows the recycle arrow
+    while consolidating would do something, the plain outline otherwise, and
+    `isEmptySlotActionable` follows it.
+  - `MonteCarloVariant`: Thirteens pairs cards whose values (`pipValue`,
+    Ace 1 to King 13) total 13 (`totalsThirteen`), and its discard takes a
+    lone King from the grid. Pyramid will want `totalsThirteen` too; it moves
+    to `common` then.
+  - A "Monte Carlo" entry (`montecarlo`, alias Weddings) in the Pairing
+    games, a rules page, a profile (Medium) with Monte Carlo Thirteens as a
+    named variant, the README, the screenshot and thumbnails. Checked in the
+    browser: a double press paired two touching Kings, and a press of the
+    stock closed the gap and dealt two cards.
+  - Tests: `test/games/monte_carlo/monte_carlo_game.spec.ts`.
 
 ## Next
 
-Step 8: Monte Carlo and Thirteens. Twenty-five cell piles, each with a rule
-closing over its eight neighbours' ids (as Montana's cells close over their
-left neighbour), no capacity (P1). Consolidation is a press on the stock,
-committed as one action like Montana's redeal: one transfer per card that
-shifts, then the refill. Thirteens pairs ranks totalling 13 and removes Kings
-alone, which needs the discard to take a lone King (`discardPairEffects`
-already leaves a move onto the discard alone).
+Step 9: La Belle Lucie, The Fan, Shamrocks and Trefoil. Fans of three, built
+down in suit and never refilled; the redeal copies `MontanaGame.redeal`
+(gather fan by fan, shuffle with the game's `random`, deal in threes, one
+`"redeal"` action, `afterUndo`, `saveExtra`/`restoreExtra`) with a marker
+zone showing pips via `recyclePipsPlaceholder` (two redeals: two pips exist).
+Shamrocks: up or down regardless of suit, `capacity: 3`. The Fan: Kings to
+empty fans, no redeal. Trefoil (an entry of its own, sixteen fans with the
+Aces on the foundations) shares the class. A fan of three reaches 403 design
+units, more than the 353-unit row pitch, so either rows at a fractional pitch
+(E3 is in) or a tighter `faceUpGap`.
 
 Screenshots: open each new entry in a fresh isolated browser context (a game
 left in progress raises the "switch games?" confirmation). In a development

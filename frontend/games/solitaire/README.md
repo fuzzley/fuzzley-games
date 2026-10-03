@@ -34,6 +34,7 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Flower Garden**: Six open beds built down regardless of suit, and a sixteen-card bouquet whose every card is free to play.
 - **Bristol**: Eight fans of three built down regardless of suit, three reserves the stock deals onto, and foundations built up regardless of suit; Belvedere, which starts with one Ace on a foundation, is its variant option.
 - **Nestor**: Eight open columns and a four-card reserve, cleared by pairing free cards of the same rank.
+- **Monte Carlo**: A five-by-five grid cleared by pairing touching cards of the same rank, then closed up and refilled from the stock; Monte Carlo Thirteens, which pairs cards adding up to thirteen, is its variant option.
 
 ## Development
 

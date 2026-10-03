@@ -8,6 +8,7 @@ import { MontanaVariant } from "@/games/montana/montana_rules";
 import { GolfVariant } from "@/games/golf/golf_rules";
 import { CalculationVariant } from "@/games/calculation/calculation_rules";
 import { BristolVariant } from "@/games/bristol/bristol_rules";
+import { MonteCarloVariant } from "@/games/monte_carlo/monte_carlo_rules";
 import {
   Difficulty,
   GameFamilyProfile,
@@ -450,6 +451,22 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: true,
+    },
+    montecarlo: {
+      family: "pairing",
+      tagline: "Pair touching cards in a five-by-five grid, then close it up.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 1,
+      allCardsVisible: false,
+      aliases: ["Weddings"],
+      variants: [
+        {
+          name: "Monte Carlo Thirteens",
+          values: { variant: MonteCarloVariant.THIRTEENS },
+          tagline: "Monte Carlo pairing cards that add up to thirteen.",
+          difficulty: Difficulty.MEDIUM,
+        },
+      ],
     },
   },
 };

@@ -88,6 +88,12 @@ import {
 } from "@/games/bristol/bristol_rules";
 import { NestorGame } from "@/games/nestor/nestor_game";
 import { NESTOR_LAYOUT } from "@/games/nestor/nestor_layout";
+import { MonteCarloGame } from "@/games/monte_carlo/monte_carlo_game";
+import { MONTE_CARLO_LAYOUT } from "@/games/monte_carlo/monte_carlo_layout";
+import {
+  DEFAULT_MONTE_CARLO_VARIANT,
+  MonteCarloVariant,
+} from "@/games/monte_carlo/monte_carlo_rules";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -398,6 +404,19 @@ const BRISTOL_VARIANT: GameOptionSpec<BristolVariant> = {
     { value: BristolVariant.BELVEDERE, label: "Belvedere" },
   ],
   defaultValue: DEFAULT_BRISTOL_VARIANT,
+};
+
+/** Which of the games on Monte Carlo's grid to deal. */
+const MONTE_CARLO_VARIANT: GameOptionSpec<MonteCarloVariant> = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Thirteens pairs touching cards that add up to thirteen, and lets a King go on its own.",
+  choices: [
+    { value: MonteCarloVariant.MONTE_CARLO, label: "Monte Carlo" },
+    { value: MonteCarloVariant.THIRTEENS, label: "Thirteens" },
+  ],
+  defaultValue: DEFAULT_MONTE_CARLO_VARIANT,
 };
 
 /*
@@ -711,6 +730,17 @@ const NESTOR = {
   create: () => dealt(new NestorGame()),
 } satisfies CatalogEntry<NestorGame>;
 
+const MONTE_CARLO = {
+  id: "montecarlo" as const,
+  name: "Monte Carlo",
+  options: [MONTE_CARLO_VARIANT],
+  layout: MONTE_CARLO_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(
+      new MonteCarloGame({ variant: optionValue(values, MONTE_CARLO_VARIANT) }),
+    ),
+} satisfies CatalogEntry<MonteCarloGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -747,6 +777,7 @@ export const CATALOG_ENTRIES = [
   FLOWER_GARDEN,
   BRISTOL,
   NESTOR,
+  MONTE_CARLO,
 ] as const;
 
 /** Every game the application can put on the table. */
