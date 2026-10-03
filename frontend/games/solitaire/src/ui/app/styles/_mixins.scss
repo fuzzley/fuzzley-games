@@ -89,6 +89,30 @@
   margin-bottom: var(--space-3);
 }
 
+/// Styles a bordered radio a player picks between, such as a card back, a deck
+/// or a game's variant; the caller lays out what it holds.
+@mixin swatch-option {
+  @include transition(background, border-color, color);
+  display: flex;
+  background: var(--wash-faint);
+  border: 2px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  cursor: pointer;
+  color: var(--text-muted);
+
+  &:hover {
+    background: var(--wash-subtle);
+    border-color: var(--border-strong);
+  }
+
+  &[aria-checked="true"] {
+    background: var(--accent-wash);
+    border-color: var(--accent);
+    color: var(--text-bright);
+  }
+}
+
 /// Styles a borderless button whose whole content is an icon or a glyph.
 @mixin icon-button($radius: var(--radius-md)) {
   @include flex-center;

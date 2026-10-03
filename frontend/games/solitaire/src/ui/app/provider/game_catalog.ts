@@ -155,6 +155,8 @@ export interface GameOptionChoice<T extends number = number> {
   readonly value: T;
   /** What the choice is called. */
   readonly label: string;
+  /** What choosing it does, in a line, shown when the option is a list. */
+  readonly description?: string;
 }
 
 /**
@@ -172,6 +174,13 @@ export interface GameOptionSpec<T extends number = number> {
   readonly description?: string;
   /** The values on offer, in the order they are shown. */
   readonly choices: readonly GameOptionChoice<T>[];
+  /**
+   * How the choices are offered: side by side, or one to a row with each
+   * choice's description in place of the option's.
+   *
+   * A list is for choices too many or too long to share a 320px row.
+   */
+  readonly control?: "segmented" | "list";
   /** The value used when the player has expressed no preference. */
   readonly defaultValue: T;
   /** Whether this is a development aid rather than a rule a player picks. */
@@ -311,11 +320,28 @@ const YUKON_VARIANT: GameOptionSpec<YukonVariant> = {
   description:
     "Alaska and Russian Solitaire deal like Yukon but build the columns by suit rather than by alternating color; Moosehide lets a card land on any suit but its own.",
   choices: [
-    { value: YukonVariant.YUKON, label: "Yukon" },
-    { value: YukonVariant.ALASKA, label: "Alaska" },
-    { value: YukonVariant.RUSSIAN, label: "Russian Solitaire" },
-    { value: YukonVariant.MOOSEHIDE, label: "Moosehide" },
+    {
+      value: YukonVariant.YUKON,
+      label: "Yukon",
+      description: "Build down in alternating colours.",
+    },
+    {
+      value: YukonVariant.ALASKA,
+      label: "Alaska",
+      description: "Build up or down in suit.",
+    },
+    {
+      value: YukonVariant.RUSSIAN,
+      label: "Russian Solitaire",
+      description: "Build down in suit; the hardest of the four.",
+    },
+    {
+      value: YukonVariant.MOOSEHIDE,
+      label: "Moosehide",
+      description: "Build down on any suit but a card's own.",
+    },
   ],
+  control: "list",
   defaultValue: YukonVariant.YUKON,
 };
 
@@ -326,11 +352,31 @@ const KLONDIKE_VARIANT: GameOptionSpec<KlondikeVariant> = {
   description:
     "Whitehead deals every card face-up and builds in one colour; Thumb and Pouch lets a card land on any suit but its own. Both let any card fill an empty column. Saratoga is Klondike with every column card dealt face-up.",
   choices: [
-    { value: KlondikeVariant.KLONDIKE, label: "Klondike" },
-    { value: KlondikeVariant.WHITEHEAD, label: "Whitehead" },
-    { value: KlondikeVariant.THUMB_AND_POUCH, label: "Thumb and Pouch" },
-    { value: KlondikeVariant.SARATOGA, label: "Saratoga" },
+    {
+      value: KlondikeVariant.KLONDIKE,
+      label: "Klondike",
+      description:
+        "Build down in alternating colours; only a King fills an empty column.",
+    },
+    {
+      value: KlondikeVariant.WHITEHEAD,
+      label: "Whitehead",
+      description:
+        "Every card face-up, building down in one colour; any card fills an empty column.",
+    },
+    {
+      value: KlondikeVariant.THUMB_AND_POUCH,
+      label: "Thumb and Pouch",
+      description:
+        "Build on any suit but a card's own; any card fills an empty column.",
+    },
+    {
+      value: KlondikeVariant.SARATOGA,
+      label: "Saratoga",
+      description: "Klondike with every column card dealt face-up.",
+    },
   ],
+  control: "list",
   defaultValue: KlondikeVariant.KLONDIKE,
 };
 
@@ -341,12 +387,36 @@ const FORTY_THIEVES_VARIANT: GameOptionSpec<FortyThievesVariant> = {
   description:
     "Josephine lets same-suit runs move as a unit; Rank and File builds in alternating colours but buries three of every four cards. Indian deals three to a column and builds on any other suit; Number Ten buries two of four and builds in alternating colours.",
   choices: [
-    { value: FortyThievesVariant.FORTY_THIEVES, label: "Forty Thieves" },
-    { value: FortyThievesVariant.JOSEPHINE, label: "Josephine" },
-    { value: FortyThievesVariant.RANK_AND_FILE, label: "Rank and File" },
-    { value: FortyThievesVariant.INDIAN, label: "Indian" },
-    { value: FortyThievesVariant.NUMBER_TEN, label: "Number Ten" },
+    {
+      value: FortyThievesVariant.FORTY_THIEVES,
+      label: "Forty Thieves",
+      description: "Build down in suit, one card at a time.",
+    },
+    {
+      value: FortyThievesVariant.JOSEPHINE,
+      label: "Josephine",
+      description: "Build down in suit, and move a same-suit run as a unit.",
+    },
+    {
+      value: FortyThievesVariant.RANK_AND_FILE,
+      label: "Rank and File",
+      description:
+        "Alternating colours and runs, but three in four cards dealt face-down.",
+    },
+    {
+      value: FortyThievesVariant.INDIAN,
+      label: "Indian",
+      description:
+        "Three cards to a column, building on any suit but a card's own.",
+    },
+    {
+      value: FortyThievesVariant.NUMBER_TEN,
+      label: "Number Ten",
+      description:
+        "Alternating colours and runs, with half the deal face-down.",
+    },
   ],
+  control: "list",
   defaultValue: FortyThievesVariant.FORTY_THIEVES,
 };
 
@@ -357,10 +427,24 @@ const SCORPION_VARIANT: GameOptionSpec<ScorpionVariant> = {
   description:
     "Wasp lets any card or run fill an empty column; Scorpion II buries cards in only the first three columns.",
   choices: [
-    { value: ScorpionVariant.SCORPION, label: "Scorpion" },
-    { value: ScorpionVariant.WASP, label: "Wasp" },
-    { value: ScorpionVariant.SCORPION_II, label: "Scorpion II" },
+    {
+      value: ScorpionVariant.SCORPION,
+      label: "Scorpion",
+      description:
+        "Only a King fills an empty column; four columns hide three cards.",
+    },
+    {
+      value: ScorpionVariant.WASP,
+      label: "Wasp",
+      description: "Any card, with all it carries, fills an empty column.",
+    },
+    {
+      value: ScorpionVariant.SCORPION_II,
+      label: "Scorpion II",
+      description: "Only the first three columns hide cards.",
+    },
   ],
+  control: "list",
   defaultValue: ScorpionVariant.SCORPION,
 };
 
@@ -384,9 +468,19 @@ const MOON_DEAL: GameOptionSpec<MontanaVariant> = {
   description:
     "Red Moon deals the gaps right beside the Aces, so every row can start building at once; Blue Moon leaves them wherever the Aces fell.",
   choices: [
-    { value: MontanaVariant.BLUE_MOON, label: "Blue Moon" },
-    { value: MontanaVariant.RED_MOON, label: "Red Moon" },
+    {
+      value: MontanaVariant.BLUE_MOON,
+      label: "Blue Moon",
+      description: "The gaps lie wherever the Aces were dealt.",
+    },
+    {
+      value: MontanaVariant.RED_MOON,
+      label: "Red Moon",
+      description:
+        "The gaps are dealt beside the Aces, so every row starts at once.",
+    },
   ],
+  control: "list",
   defaultValue: MontanaVariant.BLUE_MOON,
 };
 
@@ -397,9 +491,20 @@ const SPIDERETTE_VARIANT: GameOptionSpec<SpideretteVariant> = {
   description:
     "Will o' the Wisp deals a flat three cards to every column instead of Klondike's staircase, burying fewer cards but leaving more in the stock.",
   choices: [
-    { value: SpideretteVariant.SPIDERETTE, label: "Spiderette" },
-    { value: SpideretteVariant.WILL_O_THE_WISP, label: "Will o' the Wisp" },
+    {
+      value: SpideretteVariant.SPIDERETTE,
+      label: "Spiderette",
+      description:
+        "Klondike's staircase of one to seven cards, with 24 in the stock.",
+    },
+    {
+      value: SpideretteVariant.WILL_O_THE_WISP,
+      label: "Will o' the Wisp",
+      description:
+        "Three cards to every column, burying fewer but leaving 31 in the stock.",
+    },
   ],
+  control: "list",
   defaultValue: SpideretteVariant.SPIDERETTE,
 };
 
@@ -423,10 +528,25 @@ const GOLF_VARIANT: GameOptionSpec<GolfVariant> = {
   description:
     "Golf lets nothing onto a King; one house rule lets a Queen go there. Putt Putt turns the corner, so a King and an Ace are a rank apart both ways.",
   choices: [
-    { value: GolfVariant.GOLF, label: "Golf" },
-    { value: GolfVariant.QUEENS_ON_KINGS, label: "Queens on Kings" },
-    { value: GolfVariant.PUTT_PUTT, label: "Putt Putt" },
+    {
+      value: GolfVariant.GOLF,
+      label: "Golf",
+      description:
+        "Nothing goes on a King, so a King blocks until the next stock card.",
+    },
+    {
+      value: GolfVariant.QUEENS_ON_KINGS,
+      label: "Queens on Kings",
+      description: "A Queen can go on a King, so a King no longer blocks.",
+    },
+    {
+      value: GolfVariant.PUTT_PUTT,
+      label: "Putt Putt",
+      description:
+        "The ranks turn the corner: a King takes an Ace, and an Ace a King.",
+    },
   ],
+  control: "list",
   defaultValue: DEFAULT_GOLF_VARIANT,
 };
 
@@ -437,9 +557,19 @@ const CALCULATION_VARIANT: GameOptionSpec<CalculationVariant> = {
   description:
     "Sir Tommy builds every foundation up by one from an Ace, which the player has to wait for, rather than by Calculation's four intervals.",
   choices: [
-    { value: CalculationVariant.CALCULATION, label: "Calculation" },
-    { value: CalculationVariant.SIR_TOMMY, label: "Sir Tommy" },
+    {
+      value: CalculationVariant.CALCULATION,
+      label: "Calculation",
+      description:
+        "Foundations start on A, 2, 3 and 4, and build by ones, twos, threes and fours.",
+    },
+    {
+      value: CalculationVariant.SIR_TOMMY,
+      label: "Sir Tommy",
+      description: "Each foundation starts on an Ace and builds up by one.",
+    },
   ],
+  control: "list",
   defaultValue: DEFAULT_CALCULATION_VARIANT,
 };
 
@@ -450,9 +580,19 @@ const BRISTOL_VARIANT: GameOptionSpec<BristolVariant> = {
   description:
     "Belvedere starts one foundation with an Ace, so there is somewhere to play from the first move.",
   choices: [
-    { value: BristolVariant.BRISTOL, label: "Bristol" },
-    { value: BristolVariant.BELVEDERE, label: "Belvedere" },
+    {
+      value: BristolVariant.BRISTOL,
+      label: "Bristol",
+      description: "Every foundation waits for an Ace to turn up.",
+    },
+    {
+      value: BristolVariant.BELVEDERE,
+      label: "Belvedere",
+      description:
+        "One Ace starts on a foundation, so there is a play from the first move.",
+    },
   ],
+  control: "list",
   defaultValue: DEFAULT_BRISTOL_VARIANT,
 };
 
@@ -463,9 +603,19 @@ const MONTE_CARLO_VARIANT: GameOptionSpec<MonteCarloVariant> = {
   description:
     "Thirteens pairs touching cards that add up to thirteen, and lets a King go on its own.",
   choices: [
-    { value: MonteCarloVariant.MONTE_CARLO, label: "Monte Carlo" },
-    { value: MonteCarloVariant.THIRTEENS, label: "Thirteens" },
+    {
+      value: MonteCarloVariant.MONTE_CARLO,
+      label: "Monte Carlo",
+      description: "Pair touching cards of the same rank.",
+    },
+    {
+      value: MonteCarloVariant.THIRTEENS,
+      label: "Thirteens",
+      description:
+        "Pair touching cards that add up to thirteen; a King goes alone.",
+    },
   ],
+  control: "list",
   defaultValue: DEFAULT_MONTE_CARLO_VARIANT,
 };
 
@@ -476,10 +626,25 @@ const LA_BELLE_LUCIE_VARIANT: GameOptionSpec<LaBelleLucieVariant> = {
   description:
     "The Fan lets a King fill an empty fan but allows no redeal; Shamrocks builds up or down in any suit, but never past three cards to a fan.",
   choices: [
-    { value: LaBelleLucieVariant.LA_BELLE_LUCIE, label: "La Belle Lucie" },
-    { value: LaBelleLucieVariant.THE_FAN, label: "The Fan" },
-    { value: LaBelleLucieVariant.SHAMROCKS, label: "Shamrocks" },
+    {
+      value: LaBelleLucieVariant.LA_BELLE_LUCIE,
+      label: "La Belle Lucie",
+      description:
+        "Build down in suit, with two redeals; empty fans stay empty.",
+    },
+    {
+      value: LaBelleLucieVariant.THE_FAN,
+      label: "The Fan",
+      description: "Only a King fills an empty fan, and there is no redeal.",
+    },
+    {
+      value: LaBelleLucieVariant.SHAMROCKS,
+      label: "Shamrocks",
+      description:
+        "Build up or down in any suit, never past three cards; no redeal.",
+    },
   ],
+  control: "list",
   defaultValue: DEFAULT_LA_BELLE_LUCIE_VARIANT,
 };
 
@@ -490,11 +655,32 @@ const CANFIELD_VARIANT: GameOptionSpec<CanfieldVariant> = {
   description:
     "Storehouse starts the foundations with the Twos and builds in suit; Superior Canfield deals the reserve face-up and leaves spaces for you to fill; Rainbow builds regardless of colour from a one-pass stock.",
   choices: [
-    { value: CanfieldVariant.CANFIELD, label: "Canfield" },
-    { value: CanfieldVariant.STOREHOUSE, label: "Storehouse" },
-    { value: CanfieldVariant.SUPERIOR, label: "Superior Canfield" },
-    { value: CanfieldVariant.RAINBOW, label: "Rainbow" },
+    {
+      value: CanfieldVariant.CANFIELD,
+      label: "Canfield",
+      description:
+        "Alternating colours, with the stock drawn in threes and redealt freely.",
+    },
+    {
+      value: CanfieldVariant.STOREHOUSE,
+      label: "Storehouse",
+      description:
+        "The Twos start the foundations; build in suit, one card at a time.",
+    },
+    {
+      value: CanfieldVariant.SUPERIOR,
+      label: "Superior Canfield",
+      description:
+        "The reserve is dealt face-up, and you fill spaces yourself.",
+    },
+    {
+      value: CanfieldVariant.RAINBOW,
+      label: "Rainbow",
+      description:
+        "Build regardless of colour, one card at a time, with no redeal.",
+    },
   ],
+  control: "list",
   defaultValue: DEFAULT_CANFIELD_VARIANT,
 };
 
@@ -534,13 +720,21 @@ const CASTLE_VARIANT: GameOptionSpec<CastleVariant> = {
     {
       value: CastleVariant.BELEAGUERED_CASTLE,
       label: "Beleaguered Castle",
+      description: "The Aces start on the foundations; six cards to a row.",
     },
     {
       value: CastleVariant.STREETS_AND_ALLEYS,
       label: "Streets and Alleys",
+      description: "The Aces are shuffled in, and have to be dug out.",
     },
-    { value: CastleVariant.CITADEL, label: "Citadel" },
+    {
+      value: CastleVariant.CITADEL,
+      label: "Citadel",
+      description:
+        "Cards go home as they are dealt, so the rows start shorter.",
+    },
   ],
+  control: "list",
   defaultValue: DEFAULT_CASTLE_VARIANT,
 };
 

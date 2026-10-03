@@ -55,7 +55,10 @@ the `GameOptionSpec` in `src/ui/app/provider/game_catalog.ts`. Use the variant
 enum members themselves as the option's `value`s, and type the spec as
 `GameOptionSpec<MyVariant>` — as `YUKON_VARIANT` and `SPIDERETTE_VARIANT` do —
 so `optionValue` hands back the variant without a cast, and the choices offered
-and the games selected cannot drift apart. Then document the new choice under
+and the games selected cannot drift apart. A variant option has the id
+`variant` and `control: "list"`, which offers one choice to a row, and every
+choice carries a one-line `description` of what sets it apart; the catalog spec
+fails a variant option without them. Then document the new choice under
 `settingsAndVariants` in
 `src/ui/app/provider/game_documentation_data.ts`.
 

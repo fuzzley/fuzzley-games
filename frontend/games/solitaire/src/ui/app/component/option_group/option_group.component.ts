@@ -11,7 +11,22 @@ import { RadioGroupDirective } from "../../directive/radio_group.directive";
 /** A running count, so every group's label has an id its control can name. */
 let nextGroupId = 0;
 
-/** Renders one rule of the running game as a segmented control of radios. */
+/** Describes one choice as the template draws it. */
+interface ChoiceView {
+  readonly value: number;
+  readonly label: string;
+  readonly description?: string;
+  readonly checked: boolean;
+  /** The id of the element holding the choice's name. */
+  readonly nameId: string;
+  /** The id of the element holding its description, when it has one. */
+  readonly descriptionId: string | null;
+}
+
+/**
+ * Renders one rule of the running game as a group of radios: a segmented
+ * control, or a list with a line about each choice.
+ */
 @Component({
   selector: "app-option-group",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,8 +50,22 @@ export class OptionGroupComponent {
   /** The id of the heading that names this radio group. */
   protected readonly labelId = `option-group-label-${nextGroupId++}`;
 
-  /** The chosen value, falling back to the rule's default. */
-  protected readonly selectedValue = computed(
-    () => this.value() ?? this.option().defaultValue,
-  );
+  /** Whether the choices are offered one to a row. */
+  protected readonly listed = computed(() => this.option().control === "list");
+
+  /** The choices on offer, with which one is checked. */
+  protected readonly choices = computed<readonly ChoiceView[]>(() => {
+    const option = this.option();
+    const selected = this.value() ?? option.defaultValue;
+    return option.choices.map((choice, index) => ({
+      value: choice.value,
+      label: choice.label,
+      description: choice.description,
+      checked: choice.value === selected,
+      nameId: `${this.labelId}-choice-${index}`,
+      descriptionId: choice.description
+        ? `${this.labelId}-choice-${index}-desc`
+        : null,
+    }));
+  });
 }

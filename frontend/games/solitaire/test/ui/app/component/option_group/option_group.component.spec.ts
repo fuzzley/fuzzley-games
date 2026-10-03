@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { OptionGroupComponent } from "@/ui/app/component/option_group/option_group.component";
 import { GameOptionSpec } from "@/ui/app/provider/game_catalog";
-import { query, queryAll, queryText } from "@test/support/dom";
+import { query, queryAll, queryText, rootElement } from "@test/support/dom";
 
 /**
  * A rule with three choices and a default in the middle, so a spec can tell
@@ -19,6 +19,17 @@ const DRAW_COUNT: GameOptionSpec = {
     { value: 3, label: "Draw 3" },
   ],
   defaultValue: 2,
+};
+
+/** The same rule offered one choice to a row, with a line about all but one. */
+const LISTED_DRAW_COUNT: GameOptionSpec = {
+  ...DRAW_COUNT,
+  control: "list",
+  choices: [
+    { value: 1, label: "Draw 1", description: "One card at a time." },
+    { value: 2, label: "Draw 2", description: "Two cards at a time." },
+    { value: 3, label: "Draw 3" },
+  ],
 };
 
 describe("OptionGroupComponent", () => {
@@ -160,5 +171,71 @@ describe("OptionGroupComponent", () => {
         "setting-label-compact",
       ),
     ).toBe(true);
+  });
+
+  describe("as a list", () => {
+    beforeEach(() => {
+      fixture.componentRef.setInput("option", LISTED_DRAW_COUNT);
+      fixture.detectChanges();
+    });
+
+    /** Returns the list's rows, in the order they are offered. */
+    function rows(): HTMLElement[] {
+      return queryAll(fixture, ".choice-row");
+    }
+
+    /** Returns the text of the element a row's ARIA reference points at. */
+    function referencedText(
+      row: HTMLElement,
+      attribute: "aria-labelledby" | "aria-describedby",
+    ): string | undefined {
+      const id = row.getAttribute(attribute);
+      return id
+        ? rootElement(fixture)
+            .querySelector(`[id="${id}"]`)
+            ?.textContent?.trim()
+        : undefined;
+    }
+
+    it("offers each choice on a row of its own, named by its label", () => {
+      expect(
+        rows().map((row) => referencedText(row, "aria-labelledby")),
+      ).toEqual(["Draw 1", "Draw 2", "Draw 3"]);
+    });
+
+    it("describes a choice by its line", () => {
+      expect(referencedText(rows()[0], "aria-describedby")).toBe(
+        "One card at a time.",
+      );
+    });
+
+    it("leaves a choice without a line undescribed", () => {
+      expect(rows()[2].hasAttribute("aria-describedby")).toBe(false);
+    });
+
+    it("marks the chosen row as checked", () => {
+      chooseValue(3);
+
+      const checked = rows().filter(
+        (row) => row.getAttribute("aria-checked") === "true",
+      );
+
+      expect(
+        checked.map((row) => referencedText(row, "aria-labelledby")),
+      ).toEqual(["Draw 3"]);
+    });
+
+    it("reports the value of the row the player picked", () => {
+      const chosen: number[] = [];
+      fixture.componentInstance.choose.subscribe((value) => chosen.push(value));
+
+      rows()[0].click();
+
+      expect(chosen).toEqual([1]);
+    });
+
+    it("leaves out the rule's description, which the rows' lines replace", () => {
+      expect(query(fixture, ".setting-desc")).toBeNull();
+    });
   });
 });

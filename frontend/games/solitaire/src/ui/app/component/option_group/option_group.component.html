@@ -6,22 +6,52 @@
     >{{ option().label }}</span
   >
 
-  <div class="segmented-control" appRadioGroup [attr.aria-labelledby]="labelId">
-    @for (choice of option().choices; track choice.value) {
-      <button
-        type="button"
-        class="segment-btn"
-        role="radio"
-        [attr.aria-checked]="selectedValue() === choice.value"
-        [class.active]="selectedValue() === choice.value"
-        (click)="choose.emit(choice.value)"
-      >
-        {{ choice.label }}
-      </button>
-    }
-  </div>
+  @if (listed()) {
+    <!-- Named by its name alone, so its line is read as a description. -->
+    <div class="choice-list" appRadioGroup [attr.aria-labelledby]="labelId">
+      @for (choice of choices(); track choice.value) {
+        <button
+          type="button"
+          class="choice-row"
+          role="radio"
+          [attr.aria-checked]="choice.checked"
+          [attr.aria-labelledby]="choice.nameId"
+          [attr.aria-describedby]="choice.descriptionId"
+          (click)="choose.emit(choice.value)"
+        >
+          <span class="choice-name" [id]="choice.nameId">{{
+            choice.label
+          }}</span>
+          @if (choice.descriptionId) {
+            <span class="choice-desc" [id]="choice.descriptionId">{{
+              choice.description
+            }}</span>
+          }
+        </button>
+      }
+    </div>
+  } @else {
+    <div
+      class="segmented-control"
+      appRadioGroup
+      [attr.aria-labelledby]="labelId"
+    >
+      @for (choice of choices(); track choice.value) {
+        <button
+          type="button"
+          class="segment-btn"
+          role="radio"
+          [attr.aria-checked]="choice.checked"
+          [class.active]="choice.checked"
+          (click)="choose.emit(choice.value)"
+        >
+          {{ choice.label }}
+        </button>
+      }
+    </div>
 
-  @if (option().description) {
-    <p class="setting-desc">{{ option().description }}</p>
+    @if (option().description) {
+      <p class="setting-desc">{{ option().description }}</p>
+    }
   }
 </div>
