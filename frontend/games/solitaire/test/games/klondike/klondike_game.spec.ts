@@ -230,6 +230,43 @@ describe("KlondikeGame", () => {
     });
   });
 
+  describe("the stock's placeholder", () => {
+    beforeEach(() => {
+      game.startNewGame();
+      emptyBoard(game);
+    });
+
+    it("shows the recycle arrow while the waste has cards to recycle", () => {
+      relocate(game, "card-clubs-ace", game.waste);
+
+      expect(game.pileBackgroundKey(game.stock)).toBe(
+        "card-placeholder-full-border-reset",
+      );
+    });
+
+    it("can be pressed while the waste has cards to recycle", () => {
+      relocate(game, "card-clubs-ace", game.waste);
+
+      expect(game.isEmptySlotActionable(game.stock)).toBe(true);
+    });
+
+    it("shows the plain outline once the waste is empty too", () => {
+      expect(game.pileBackgroundKey(game.stock)).toBe(
+        "card-placeholder-full-border",
+      );
+    });
+
+    it("cannot be pressed once the waste is empty too", () => {
+      expect(game.isEmptySlotActionable(game.stock)).toBe(false);
+    });
+
+    it("leaves the other piles' placeholders alone", () => {
+      expect(game.pileBackgroundKey(game.foundations[0])).toBe(
+        "card-placeholder-full-border-circle",
+      );
+    });
+  });
+
   describe("canMoveCardToPile", () => {
     it("accepts a move the rules allow", () => {
       game.startNewGame();
