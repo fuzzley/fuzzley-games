@@ -9,6 +9,7 @@ import { DeckSource } from "@/engine/tableau/deck_source";
 import { AppliedMove, CardTransfer } from "@/engine/tableau/move";
 
 import { DeckOptions } from "@/games/common/deck_options";
+import { CLOSED_STOCK_PLACEHOLDER } from "@/games/common/zone_presets";
 import {
   MONTANA_DECK,
   dealMontanaLayout,
@@ -20,7 +21,11 @@ import {
   isMontanaSolved,
   settledPrefixLength,
 } from "./montana_rules";
-import { montanaZoneSpecs } from "./montana_zones";
+import {
+  REDEAL_MARKER_PLACEHOLDERS,
+  REDEAL_PILE_ID,
+  montanaZoneSpecs,
+} from "./montana_zones";
 import { itemAt } from "@/engine/core/common/item_at";
 
 /** How many redeals a game allows. */
@@ -153,6 +158,34 @@ export class MontanaGame extends DealtTableGame {
 
     this.commitAction("redeal", transfers);
     return true;
+  }
+
+  /**
+   * Returns the redeal marker's pips while it can redeal, and the plain
+   * outline once a press would do nothing.
+   *
+   * @inheritDoc
+   */
+  public override pileBackgroundKey(
+    pile: CardPile<PlayingCard>,
+  ): string | undefined {
+    if (pile.id !== REDEAL_PILE_ID) {
+      return super.pileBackgroundKey(pile);
+    }
+    return this.canRedeal
+      ? itemAt(REDEAL_MARKER_PLACEHOLDERS, this.redealsUsed)
+      : CLOSED_STOCK_PLACEHOLDER;
+  }
+
+  /**
+   * Returns whether the redeal marker would redeal if pressed.
+   *
+   * @inheritDoc
+   */
+  public override isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
+    return pile.id === REDEAL_PILE_ID
+      ? this.canRedeal
+      : super.isEmptySlotActionable(pile);
   }
 
   /** @inheritDoc */

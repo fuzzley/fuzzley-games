@@ -484,4 +484,28 @@ export abstract class TableGame<
     const zone = this.zoneFor(pile.id);
     return zone?.draggable ? canGrab(zone.grab, card, pile) : false;
   }
+
+  /**
+   * Returns the artwork the pile's placeholder shows now, which by default is
+   * the one its zone declares.
+   *
+   * A game overrides this to show its state on the table, such as how many
+   * redeals are left. The artwork may change, but whether a pile has any may
+   * not: the board makes a placeholder only for the piles that have one when it
+   * is built.
+   */
+  public pileBackgroundKey(pile: CardPile<PlayingCard>): string | undefined {
+    return this.zoneFor(pile.id)?.backgroundKey;
+  }
+
+  /**
+   * Returns whether pressing the pile's empty slot does something now, which
+   * by default is whenever its zone says an empty slot is actionable.
+   *
+   * A game overrides this so a slot whose press would do nothing, such as a
+   * stock with nothing left to recycle, stops looking pressable.
+   */
+  public isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
+    return pile.isEmpty && (this.zoneFor(pile.id)?.emptyIsActionable ?? false);
+  }
 }

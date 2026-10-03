@@ -242,7 +242,15 @@ Otherwise call `tableGestures(game, options)` with:
   a row wherever it is pressed (Spider, Scorpion, Easthaven).
 - `onPilePress` — a press on an _empty_ slot: Klondike's recycle, Montana's
   redeal. Pair it with `emptyIsActionable` on the zone, which is what gives the
-  slot a pointer cursor.
+  slot a pointer cursor and a hover border.
+
+  If the slot can run out of things to do, override `isEmptySlotActionable`
+  and `pileBackgroundKey` on the game, as `KlondikeFamilyGame` and
+  `MontanaGame` do. The view asks both every frame, so the slot drops its
+  pointer and shows `CLOSED_STOCK_PLACEHOLDER` the moment a press would do
+  nothing. Montana also uses `pileBackgroundKey` to show the redeals left as
+  pips.
+
 - `autoMoveFrom` — which roles answer a double press. Omit it entirely for a
   stockless game: everything on the board is in play.
 

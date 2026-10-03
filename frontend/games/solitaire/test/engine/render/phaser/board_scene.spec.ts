@@ -2,7 +2,10 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { makeFakeTableBoardScene } from "@test/support/fake_table/scene";
 import { TestPresentation } from "@test/support/presentation";
-import { FakeTableGame } from "@test/support/fake_table/game";
+import {
+  FakeTableGame,
+  StockOverrideTableGame,
+} from "@test/support/fake_table/game";
 import {
   BOOT_TEXTURE_KEY,
   DESTROY_EVENT,
@@ -36,7 +39,7 @@ import { FAKE_TABLE_LAYOUT } from "@test/support/fake_table/board";
 const DESIGN_WIDTH_PX = designSize(FAKE_TABLE_LAYOUT).width;
 import { STOCK_PILE_ID } from "@test/support/fake_table/zones";
 import { pileBackgrounds } from "@/engine/tableau/view/pile_backgrounds";
-import { relocate } from "@test/support/game_scenarios";
+import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
 vi.mock("phaser", async () => {
   const mocks = await import("@test/support/phaser_mocks");
@@ -850,6 +853,44 @@ describe("BoardScene", () => {
       expect(
         boardScene.pileBackgroundSprite(fakeGame.waste.id),
       ).toBeUndefined();
+    });
+
+    describe("an empty slot that stops being pressable", () => {
+      let game: StockOverrideTableGame;
+
+      beforeEach(() => {
+        game = new StockOverrideTableGame();
+        game.startNewGame();
+        emptyBoard(game);
+        game.stockActionable = true;
+        boardScene = makeBoardScene(game);
+        boardScene.create();
+        boardScene.update(0, 16);
+      });
+
+      /** Returns the cursor the scene last put on the canvas. */
+      function canvasCursor(): string {
+        return (boardScene.input as unknown as MockInput).canvasCursor;
+      }
+
+      it("drops the pointer at once from under a pointer that has not moved", () => {
+        asMock(boardScene.pileBackgroundSprite(STOCK_PILE_ID)).emit(
+          "pointerover",
+        );
+        game.stockActionable = false;
+
+        boardScene.update(16, 16);
+
+        expect(canvasCursor()).toBe("default");
+      });
+
+      it("leaves the canvas cursor alone while the pointer is elsewhere", () => {
+        game.stockActionable = false;
+
+        boardScene.update(16, 16);
+
+        expect(canvasCursor()).toBe("");
+      });
     });
   });
 

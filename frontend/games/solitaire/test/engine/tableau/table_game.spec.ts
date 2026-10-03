@@ -443,6 +443,65 @@ describe("TableGame", () => {
     });
   });
 
+  describe("placeholders", () => {
+    const PRESSABLE = "pressable";
+    const PRESSABLE_ARTWORK = "card-placeholder-full-border-reset";
+
+    /** Returns a game with one slot that is pressable while empty. */
+    function gameWithPressableSlot(): TestGame {
+      return new TestGame([
+        ...defaultZones,
+        zone(PRESSABLE, {
+          backgroundKey: PRESSABLE_ARTWORK,
+          emptyIsActionable: true,
+        }),
+      ]);
+    }
+
+    it("shows the artwork the zone declares", () => {
+      const pressable = gameWithPressableSlot();
+
+      const artwork = pressable.pileBackgroundKey(
+        pressable.getPileById(PRESSABLE)!,
+      );
+
+      expect(artwork).toBe(PRESSABLE_ARTWORK);
+    });
+
+    it("shows no artwork for a pile over bare table", () => {
+      const artwork = game.pileBackgroundKey(game.getPileById(LEFT)!);
+
+      expect(artwork).toBeUndefined();
+    });
+
+    it("treats an empty slot its zone marks actionable as pressable", () => {
+      const pressable = gameWithPressableSlot();
+
+      const actionable = pressable.isEmptySlotActionable(
+        pressable.getPileById(PRESSABLE)!,
+      );
+
+      expect(actionable).toBe(true);
+    });
+
+    it("does not treat that slot as pressable while it holds cards", () => {
+      const pressable = gameWithPressableSlot();
+      pressable.place(PRESSABLE, Rank.FIVE);
+
+      const actionable = pressable.isEmptySlotActionable(
+        pressable.getPileById(PRESSABLE)!,
+      );
+
+      expect(actionable).toBe(false);
+    });
+
+    it("does not treat an empty slot as pressable unless its zone says so", () => {
+      const actionable = game.isEmptySlotActionable(game.getPileById(LEFT)!);
+
+      expect(actionable).toBe(false);
+    });
+  });
+
   describe("actions outside the move path", () => {
     it("counts one as a move", () => {
       game.place(LEFT, Rank.TWO);
