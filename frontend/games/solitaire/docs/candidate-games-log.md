@@ -33,7 +33,7 @@ Add every game in Part A of the survey:
 - [x] 1. Saratoga.
 - [x] 2. E7, then Vegas scoring.
 - [x] 3. Moosehide.
-- [ ] 4. Wasp and Scorpion II.
+- [x] 4. Wasp and Scorpion II.
 - [ ] 5. Challenge and Super Challenge FreeCell.
 - [ ] 6. Indian and Number Ten.
 - [ ] 7. Lucas.
@@ -87,7 +87,7 @@ Add every game in Part A of the survey:
     placeholder. New `vegas_scoring.spec.ts`; Vegas cases in
     `scoring_policy.spec.ts`.
   - The `add-solitaire-game` skill names the pip helper.
-- Step 3: Moosehide.
+- Step 3 (`923336c`): Moosehide.
   - `YukonVariant.MOOSEHIDE` (3) with `descendingDifferentSuit` in
     `OCCUPIED_COLUMN_RULES`. Yukon grabs `any-face-up`, so no run adjacency
     needed to change.
@@ -95,6 +95,17 @@ Add every game in Part A of the survey:
     README line, and a "Moosehide column" block in `yukon_game.spec.ts`.
   - `game_search.spec.ts` lists Yukon's variants from the real catalog, so
     it gained Moosehide too.
+- Step 4: Wasp and Scorpion II.
+  - `ScorpionVariant` and a `VARIANT_RULES` table in `scorpion_rules.ts`
+    pairing each variant's empty-column rule with how many columns it buries
+    cards in: Scorpion (Kings, 4), Wasp (any card, 4), Scorpion II (Kings, 3).
+  - `dealScorpionLayout` takes the hidden-column count instead of reading
+    the old `HIDDEN_COLUMN_COUNT` constant, which is gone.
+    `scorpionZoneSpecs(variant)` is built per variant, and `ScorpionGame`
+    takes a `variant` option.
+  - A "Variant" option on the Scorpion entry, its rules-page entry, named
+    variants (Wasp Easy, Scorpion II Medium), the README line, and Wasp and
+    Scorpion II blocks in `scorpion_game.spec.ts`.
 
 ## Picking it back up
 

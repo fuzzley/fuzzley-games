@@ -421,7 +421,28 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Reserve Deal: Clicking the 3-card stock deals 1 card face-up onto each of the first 3 tableau columns.",
       ],
     },
-    settingsAndVariants: [],
+    settingsAndVariants: [
+      {
+        optionId: "variant",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "The original: only a King, or a run headed by one, can fill an empty column, and the first four columns each hide three cards.",
+          },
+          {
+            value: 1,
+            effect:
+              "Wasp: any card, with everything resting on it, can fill an empty column. Clearing a column becomes a real gain rather than a parking place for one King.",
+          },
+          {
+            value: 2,
+            effect:
+              "Scorpion II: only the first three columns hide cards, so 40 of the 49 dealt cards are visible from the start. Empty columns still take Kings only.",
+          },
+        ],
+      },
+    ],
   },
   simplesimon: {
     title: "Simple Simon",

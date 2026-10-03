@@ -3,6 +3,7 @@ import { KlondikeVariant } from "@/games/klondike/klondike_rules";
 import { YukonVariant } from "@/games/yukon/yukon_rules";
 import { FortyThievesVariant } from "@/games/forty_thieves/forty_thieves_rules";
 import { SpideretteVariant } from "@/games/spiderette/spiderette_rules";
+import { ScorpionVariant } from "@/games/scorpion/scorpion_rules";
 import {
   Difficulty,
   GameFamilyProfile,
@@ -169,6 +170,20 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: false,
+      variants: [
+        {
+          name: "Wasp",
+          values: { variant: ScorpionVariant.WASP },
+          tagline: "Scorpion where any card can fill an empty column.",
+          difficulty: Difficulty.EASY,
+        },
+        {
+          name: "Scorpion II",
+          values: { variant: ScorpionVariant.SCORPION_II },
+          tagline: "Scorpion with cards hidden in only three columns.",
+          difficulty: Difficulty.MEDIUM,
+        },
+      ],
     },
     simplesimon: {
       family: "spider",
