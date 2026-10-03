@@ -5,17 +5,19 @@ import { GameCanvasComponent } from "@/ui/app/component/game_canvas/game_canvas.
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
+import type { TablePresentation } from "@/engine/render/presentation";
 import { query, queryAll, queryText } from "@test/support/dom";
 
 /** Records one Phaser host the component built, and what it was handed. */
 interface StartedHost {
   parent: HTMLElement;
   destroyed: boolean;
-  makeScene: () => void;
+  /** How many boards it has been shown. */
+  boardsShown: number;
 }
 
 /**
- * The hosts started so far, and the ready callback the board was given.
+ * The hosts built so far, and the ready callback the latest board was given.
  *
  * Module state, because `vi.mock` factories are hoisted above everything and
  * cannot close over anything declared per-test. Reset in `beforeEach`.
@@ -27,10 +29,17 @@ vi.mock("@/ui/app/provider/board_catalog", () => ({
   makeBoardScene: (
     _gameId: string,
     _game: unknown,
-    _presentation: unknown,
+    presentation: TablePresentation,
     onReady?: () => void,
   ) => {
     readyCallback = onReady;
+    // Reads and follows the settings, as a board does while it is created,
+    // which a board swapped into a running game is at once.
+    presentation.cardDeckId();
+    const stopFollowing = presentation.onCardDeck(() => {
+      /* nothing to redraw */
+    });
+    stopFollowing();
     return {};
   },
 }));
@@ -39,17 +48,14 @@ vi.mock("@/engine/render/phaser/phaser_host", () => ({
   PhaserHost: class {
     private readonly record: StartedHost;
 
-    constructor(
-      _window: Window,
-      parent: HTMLElement,
-      makeBoardScene: () => void,
-    ) {
-      this.record = { parent, destroyed: false, makeScene: makeBoardScene };
+    constructor(_window: Window, parent: HTMLElement) {
+      this.record = { parent, destroyed: false, boardsShown: 0 };
+      started.push(this.record);
     }
 
-    start() {
-      started.push(this.record);
-      this.record.makeScene();
+    show(makeBoardScene: () => void) {
+      this.record.boardsShown++;
+      makeBoardScene();
     }
 
     destroy() {
@@ -109,6 +115,30 @@ describe("GameCanvasComponent", () => {
       fixture.destroy();
 
       expect(started[0].destroyed).toBe(true);
+    });
+
+    it("shows the next game's board in the same game", () => {
+      catalog.select("spider");
+
+      fixture.detectChanges();
+
+      // One game for the component's life, so every deal reuses its WebGL
+      // context instead of leaving the old one for the garbage collector.
+      expect(
+        started.map(({ destroyed, boardsShown }) => ({
+          destroyed,
+          boardsShown,
+        })),
+      ).toEqual([{ destroyed: false, boardsShown: 2 }]);
+    });
+
+    it("keeps the board when the player chooses another deck", () => {
+      TestBed.inject(PresentationSettingsService).setCardDeck("classic");
+
+      fixture.detectChanges();
+
+      // The board swaps the deck in itself; a new board would deal again.
+      expect(started.map(({ boardsShown }) => boardsShown)).toEqual([1]);
     });
 
     it("exposes the running game for console debugging in development", () => {

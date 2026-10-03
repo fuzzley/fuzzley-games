@@ -16,34 +16,67 @@ export interface HostedGame extends ScalableGame {
     readonly type: number;
     readonly gl?: WebGLRenderingContext;
   };
+  /** The scene manager, which the host swaps boards in and out of. */
+  readonly scene: {
+    add(key: string, scene: BoardScene, autoStart: boolean): unknown;
+    stop(key: string): unknown;
+    remove(key: string): unknown;
+  };
   destroy(removeCanvas: boolean): void;
 }
 
 /** Builds the game a host runs from its configuration. */
 export type CreateGame = (config: Types.Core.GameConfig) => HostedGame;
 
-/** Hosts a Phaser canvas running whichever board it is given. */
+/**
+ * Hosts one Phaser game, and so one WebGL context, for as long as it lives,
+ * swapping in whichever board it is shown.
+ *
+ * Keeping the game means a new board reuses the context, its compiled shaders
+ * and the deck already uploaded, and a browser never has to drop an old
+ * context to make room for a new one.
+ */
 export class PhaserHost {
   private game?: HostedGame;
 
   /** Keeps the canvas sized to the display's true pixel resolution. */
   private scaler?: ViewportScaler;
 
-  /**
-   * Creates a host that mounts a canvas into `parent` when started.
-   *
-   * @param makeBoardScene Builds the board to show.
-   */
+  /** Whether the game has booted, after which a board is swapped in at once. */
+  private booted = false;
+
+  /** The board on the table. */
+  private board?: BoardScene;
+
+  /** Builds the board to mount once the game has booted. */
+  private pendingBoard?: () => BoardScene;
+
+  /** Creates a host that mounts a canvas into `parent` when first shown a board. */
   constructor(
     private readonly window: Window,
     private readonly parent: HTMLElement,
-    private readonly makeBoardScene: () => BoardScene,
     private readonly createGame: CreateGame = (config) =>
       new Phaser.Game(config),
   ) {}
 
-  /** Starts the game. */
-  public start(): void {
+  /**
+   * Replaces the board on the table with the one `makeBoardScene` builds,
+   * starting the game first if need be.
+   *
+   * A board shown before the game has booted replaces any other still waiting,
+   * so only the latest is ever built.
+   */
+  public show(makeBoardScene: () => BoardScene): void {
+    this.pendingBoard = makeBoardScene;
+    if (!this.game) {
+      this.start();
+    } else if (this.booted) {
+      this.mountPendingBoard();
+    }
+  }
+
+  /** Starts the game, which mounts the waiting board once it has booted. */
+  private start(): void {
     const gameConfig: Types.Core.GameConfig = {
       title: "fSolitaire",
       type: Phaser.AUTO,
@@ -61,18 +94,37 @@ export class PhaserHost {
       },
       canvasStyle: `display: block; width: 100%; height: 100%;`,
       autoFocus: true,
-      // An instance, because Phaser cannot pass a scene its constructor
-      // arguments.
-      scene: [this.makeBoardScene()],
     };
     const game = this.createGame(gameConfig);
     this.game = game;
 
     // The scale manager and canvas only exist once the game has booted.
     game.events.once(Phaser.Core.Events.READY, () => {
+      // A game destroyed while booting may still finish booting.
+      if (this.game !== game) return;
+      this.booted = true;
       this.scaler = new ViewportScaler(this.window, game, this.parent);
       this.scaler.start();
+      this.mountPendingBoard();
     });
+  }
+
+  /** Swaps the waiting board in for the one on the table. */
+  private mountPendingBoard(): void {
+    const scenes = this.game?.scene;
+    const makeBoardScene = this.pendingBoard;
+    if (!scenes || !makeBoardScene) return;
+    this.pendingBoard = undefined;
+
+    if (this.board) {
+      // Stopped before it is removed, because removing a scene destroys it
+      // without shutting it down.
+      scenes.stop(this.board.key);
+      scenes.remove(this.board.key);
+    }
+    const board = makeBoardScene();
+    this.board = board;
+    scenes.add(board.key, board, true);
   }
 
   /**
@@ -82,6 +134,9 @@ export class PhaserHost {
   public destroy(): void {
     this.scaler?.stop();
     this.scaler = undefined;
+    this.board = undefined;
+    this.pendingBoard = undefined;
+    this.booted = false;
     const game = this.game;
     if (!game) return;
     this.game = undefined;
