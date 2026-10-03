@@ -6,7 +6,7 @@ import { MONTANA_DECK, GAP_COUNT } from "@/games/montana/montana_deal";
 import {
   CARDS_PER_ROW,
   COLUMN_COUNT,
-  MAX_REDEALS,
+  DEFAULT_MAX_REDEALS,
   ROW_COUNT,
 } from "@/games/montana/montana_rules";
 import { REDEAL_PILE_ID } from "@/games/montana/montana_zones";
@@ -264,17 +264,17 @@ describe("MontanaGame redeal", () => {
   });
 
   it("offers two redeals on a fresh deal", () => {
-    expect(game.redealsRemaining).toBe(MAX_REDEALS);
+    expect(game.redealsRemaining).toBe(DEFAULT_MAX_REDEALS);
   });
 
   it("spends one when used", () => {
     game.redeal();
 
-    expect(game.redealsRemaining).toBe(MAX_REDEALS - 1);
+    expect(game.redealsRemaining).toBe(DEFAULT_MAX_REDEALS - 1);
   });
 
   it("refuses once they are spent", () => {
-    for (let used = 0; used < MAX_REDEALS; used++) {
+    for (let used = 0; used < DEFAULT_MAX_REDEALS; used++) {
       game.redeal();
     }
 
@@ -350,7 +350,7 @@ describe("MontanaGame redeal", () => {
 
     game.undo();
 
-    expect(game.redealsRemaining).toBe(MAX_REDEALS);
+    expect(game.redealsRemaining).toBe(DEFAULT_MAX_REDEALS);
   });
 });
 
@@ -373,7 +373,7 @@ describe("the Montana redeal marker", () => {
 
   /** Spends every redeal the game allows. */
   function spendEveryRedeal(): void {
-    for (let used = 0; used < MAX_REDEALS; used++) {
+    for (let used = 0; used < DEFAULT_MAX_REDEALS; used++) {
       game.redeal();
     }
   }
@@ -431,7 +431,7 @@ describe("the Montana redeal marker", () => {
   });
 
   it("has pip artwork for every redeal the game allows", () => {
-    expect(PIP_COUNTS).toContain(MAX_REDEALS);
+    expect(PIP_COUNTS).toContain(DEFAULT_MAX_REDEALS);
   });
 });
 
@@ -462,7 +462,7 @@ describe("MontanaGame snapshot", () => {
 
     copy.restore(original.snapshot());
 
-    expect(copy.redealsRemaining).toBe(MAX_REDEALS - 1);
+    expect(copy.redealsRemaining).toBe(DEFAULT_MAX_REDEALS - 1);
   });
 
   it("rejects a snapshot without the redeal count", () => {
@@ -471,5 +471,74 @@ describe("MontanaGame snapshot", () => {
     expect(() =>
       copy.restore({ ...newGame().snapshot(), extra: null }),
     ).toThrow(/extra is not an object/);
+  });
+});
+
+describe("Addiction", () => {
+  /** Returns a dealt game allowing three redeals. */
+  function addictionGame(): MontanaGame {
+    const game = new MontanaGame({
+      cardIds: deckCardIds(MONTANA_DECK),
+      random: sequenceRandom(SHUFFLE_VALUES),
+      maxRedeals: 3,
+    });
+    game.startNewGame();
+    return game;
+  }
+
+  /** Returns the artwork the game's marker shows now. */
+  function markerArtwork(game: MontanaGame): string | undefined {
+    return game.pileBackgroundKey(game.getPileById(REDEAL_PILE_ID)!);
+  }
+
+  it("offers three redeals on a fresh deal", () => {
+    const game = addictionGame();
+
+    expect(game.redealsRemaining).toBe(3);
+  });
+
+  it("redeals a third time, which Montana refuses", () => {
+    const game = addictionGame();
+    game.redeal();
+    game.redeal();
+
+    expect(game.redeal()).toBe(true);
+  });
+
+  it("refuses a fourth redeal", () => {
+    const game = addictionGame();
+    game.redeal();
+    game.redeal();
+    game.redeal();
+
+    expect(game.redeal()).toBe(false);
+  });
+
+  it("counts the redeals left in three pips", () => {
+    const game = addictionGame();
+    const shown = [markerArtwork(game)];
+    game.redeal();
+    shown.push(markerArtwork(game));
+    game.redeal();
+    shown.push(markerArtwork(game));
+    game.redeal();
+    shown.push(markerArtwork(game));
+
+    expect(shown).toEqual([
+      "card-placeholder-full-border-reset-3-of-3",
+      "card-placeholder-full-border-reset-2-of-3",
+      "card-placeholder-full-border-reset-1-of-3",
+      "card-placeholder-full-border",
+    ]);
+  });
+
+  it("restores the redeals spent from a snapshot", () => {
+    const original = addictionGame();
+    original.redeal();
+    const copy = addictionGame();
+
+    copy.restore(original.snapshot());
+
+    expect(copy.redealsRemaining).toBe(2);
   });
 });

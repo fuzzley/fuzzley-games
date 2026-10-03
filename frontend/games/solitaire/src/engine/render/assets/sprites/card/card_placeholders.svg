@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
-  Pile background placeholders, laid out as six 220x307 cells matching the
+  Pile background placeholders, laid out as nine 220x307 cells matching the
   card frame size. Vector so tools/build-card-atlas.mjs can rasterize them at
   the same multiplier as the card faces; the geometry is measured from the
   original hand-drawn bitmaps these replaced, in stroke-centreline coordinates.
@@ -11,12 +11,15 @@
   Cell 3: card-placeholder-full-border         (plain closed slot)
   Cell 4: card-placeholder-full-border-reset-2-of-2  (redeal, two of two left)
   Cell 5: card-placeholder-full-border-reset-1-of-2  (redeal, one of two left)
+  Cell 6: card-placeholder-full-border-reset-3-of-3  (redeal, three of three left)
+  Cell 7: card-placeholder-full-border-reset-2-of-3  (redeal, two of three left)
+  Cell 8: card-placeholder-full-border-reset-1-of-3  (redeal, one of three left)
 -->
 <svg
   xmlns="http://www.w3.org/2000/svg"
-  width="1320"
+  width="1980"
   height="307"
-  viewBox="0 0 1320 307"
+  viewBox="0 0 1980 307"
   version="1.1"
 >
   <g fill="none" stroke="#ffffff" stroke-linecap="butt" stroke-linejoin="round">
@@ -83,6 +86,50 @@
       <circle cx="84" cy="152.4" r="18" fill="#ffffff" stroke="none" />
       <!-- Stroked inside the filled pip's edge, so both are the same size. -->
       <circle cx="135" cy="152.4" r="14.5" stroke-width="7" />
+    </g>
+
+    <!--
+      Three pips in the same row, 16 units in radius and 44 apart, so the
+      outer two stay clear of the ring: filled for each redeal left, hollow
+      for each one spent, spent ones on the right as with two.
+    -->
+    <g id="card-placeholder-full-border-reset-3-of-3" transform="translate(1320,0)">
+      <rect x="13.5" y="12.5" width="193" height="283" rx="10.5" stroke-width="5" />
+      <path d="M 48.4,201.0 A 78,78 0 1 1 156.4,214.7" stroke-width="5" />
+      <path
+        d="M 71.7,187.5 L 110.5,228.5 L 56.0,241.5 Z"
+        fill="#ffffff"
+        stroke="none"
+      />
+      <circle cx="65.5" cy="152.4" r="16" fill="#ffffff" stroke="none" />
+      <circle cx="109.5" cy="152.4" r="16" fill="#ffffff" stroke="none" />
+      <circle cx="153.5" cy="152.4" r="16" fill="#ffffff" stroke="none" />
+    </g>
+
+    <g id="card-placeholder-full-border-reset-2-of-3" transform="translate(1540,0)">
+      <rect x="13.5" y="12.5" width="193" height="283" rx="10.5" stroke-width="5" />
+      <path d="M 48.4,201.0 A 78,78 0 1 1 156.4,214.7" stroke-width="5" />
+      <path
+        d="M 71.7,187.5 L 110.5,228.5 L 56.0,241.5 Z"
+        fill="#ffffff"
+        stroke="none"
+      />
+      <circle cx="65.5" cy="152.4" r="16" fill="#ffffff" stroke="none" />
+      <circle cx="109.5" cy="152.4" r="16" fill="#ffffff" stroke="none" />
+      <circle cx="153.5" cy="152.4" r="12.5" stroke-width="7" />
+    </g>
+
+    <g id="card-placeholder-full-border-reset-1-of-3" transform="translate(1760,0)">
+      <rect x="13.5" y="12.5" width="193" height="283" rx="10.5" stroke-width="5" />
+      <path d="M 48.4,201.0 A 78,78 0 1 1 156.4,214.7" stroke-width="5" />
+      <path
+        d="M 71.7,187.5 L 110.5,228.5 L 56.0,241.5 Z"
+        fill="#ffffff"
+        stroke="none"
+      />
+      <circle cx="65.5" cy="152.4" r="16" fill="#ffffff" stroke="none" />
+      <circle cx="109.5" cy="152.4" r="12.5" stroke-width="7" />
+      <circle cx="153.5" cy="152.4" r="12.5" stroke-width="7" />
     </g>
   </g>
 </svg>

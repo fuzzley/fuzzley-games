@@ -27,7 +27,7 @@ export const CLOSED_STOCK_PLACEHOLDER = "card-placeholder-full-border";
  * How many uses the pip artwork can count: a stock or marker allowing one of
  * these many recycles or redeals can show a pip for each.
  */
-export const PIP_COUNTS: readonly number[] = [2];
+export const PIP_COUNTS: readonly number[] = [2, 3];
 
 /**
  * Returns the recycle arrow with a pip for each of `allowed` uses, filled for

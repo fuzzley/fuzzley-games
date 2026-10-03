@@ -144,7 +144,7 @@ Add every game in Part A of the survey:
     the screenshot and thumbnails, captured as in step 5. Limited's rules page
     no longer calls it the widest board in the family.
   - Tests: a Lucas block in `forty_thieves_game.spec.ts`.
-- Step 8: Mrs. Mop.
+- Step 8 (`ff1ee39`): Mrs. Mop.
   - `SimpleSimonVariant` (`SIMPLE_SIMON`, `MRS_MOP`) with a `VARIANT_BOARDS`
     table in `simple_simon_rules.ts`: the deck count and the cards per column.
     The column count and foundation count are derived from it, so they cannot
@@ -160,6 +160,23 @@ cardsPerColumn)`, and `SimpleSimonGame` takes a `variant`, defaulting its
   - Tests: a Mrs. Mop block in `simple_simon_game.spec.ts`.
   - Tooling note: a very long Bash heredoc script failed to parse in this
     environment; writing whole files with the Write tool worked instead.
+- Step 9, part 1: Addiction.
+  - Three-pip artwork: cells 6 to 8 of `card_placeholders.svg`
+    (`…-reset-3-of-3`, `-2-of-3`, `-1-of-3`), three pips of radius 16, 44
+    apart, in the same row as the two-pip set. Named in
+    `tools/build-card-atlas.mjs`; `yarn build:atlas` rebuilt all three decks
+    with no new pages (each 1x page 3420 → 3648 px wide, +12 KB; each 2x
+    second page 2688 → 4032 px wide, +13 KB).
+  - `PIP_COUNTS` is now `[2, 3]`, so the shared atlas check in
+    `zone_presets.spec.ts` covers the new frames.
+  - `MAX_REDEALS` became `DEFAULT_MAX_REDEALS` with a `MaxRedeals` type
+    (`2 | 3`). `MontanaGame` takes a `maxRedeals` option and
+    `montanaZoneSpecs(maxRedeals)` starts the marker on the right artwork.
+  - A "Redeals: 2 / 3" option (`redeals`) on the Montana entry, its rules-page
+    entry, "Addiction" as a named variant (Medium), and the README.
+  - Checked in the browser: with `redeals: 3` stored, the marker draws three
+    filled pips.
+  - Tests: an Addiction block in `montana_game.spec.ts`.
 
 ## Picking it back up
 

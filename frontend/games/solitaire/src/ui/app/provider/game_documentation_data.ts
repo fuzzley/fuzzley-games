@@ -1002,7 +1002,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       layout: [
         "Grid: 4 rows of 13 cells, each holding at most one card.",
         "Gaps: 4 empty cells, where the Aces would have fallen.",
-        "Redeal: a marker beside the grid, worth two uses per game. Its two pips count them: filled for each redeal left, hollow for each one spent.",
+        "Redeal: a marker beside the grid, worth two uses per game, or three in Addiction. Its pips count them: filled for each redeal left, hollow for each one spent.",
       ],
       cardMovement: [
         "A gap accepts the card one rank higher than the card immediately to its left, in the same suit.",
@@ -1015,11 +1015,26 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "There are no foundations and no stacking — cards only ever move between cells.",
       ],
       specialRules: [
-        "Redeals: pressing the marker gathers every card that is not yet part of its row's run from the left, shuffles them, and lays them back out after each run — leaving one fresh gap per row. Two redeals per game; once both are spent, or nothing is left to gather, the marker becomes a plain outline and pressing it does nothing.",
+        "Redeals: pressing the marker gathers every card that is not yet part of its row's run from the left, shuffles them, and lays them back out after each run — leaving one fresh gap per row. Two redeals per game, or three in Addiction; once they are spent, or nothing is left to gather, the marker becomes a plain outline and pressing it does nothing.",
         "No Aces: the Aces are not in play at all, which is what creates the four gaps.",
         "Won by Arrangement: unlike every other game here, nothing is gathered onto a pile — the cards end where they started, in cells, just in the right order.",
       ],
     },
-    settingsAndVariants: [],
+    settingsAndVariants: [
+      {
+        optionId: "redeals",
+        choicesExplanation: [
+          {
+            value: 2,
+            effect: "Montana as it is usually played: two redeals per game.",
+          },
+          {
+            value: 3,
+            effect:
+              "Addiction: three redeals per game. The marker shows three pips, and the extra shuffle rescues many games that two would leave stuck.",
+          },
+        ],
+      },
+    ],
   },
 };
