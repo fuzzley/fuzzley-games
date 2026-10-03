@@ -14,14 +14,14 @@ Delete this file once the checklist item is ticked.
 **To resume:** check out `perf/webgl-context-reuse`, read the log below, and
 start at the first step not marked done. Each step is one commit.
 
-| Step | What                             | State   |
-| ---- | -------------------------------- | ------- |
-| 0    | Baseline                         | done    |
-| 1    | End a board's subscriptions      | done    |
-| 2    | Release the context on destroy   | done    |
-| 3    | Let a board load its own deck    | done    |
-| 4    | Keep one game and swap boards    | done    |
-| 5    | Measure, then tick the checklist | pending |
+| Step | What                             | State |
+| ---- | -------------------------------- | ----- |
+| 0    | Baseline                         | done  |
+| 1    | End a board's subscriptions      | done  |
+| 2    | Release the context on destroy   | done  |
+| 3    | Let a board load its own deck    | done  |
+| 4    | Keep one game and swap boards    | done  |
+| 5    | Measure, then tick the checklist | done  |
 
 ### Log
 
@@ -113,6 +113,10 @@ start at the first step not marked done. Each step is one commit.
     - A switch mid-drag: the new board has no drag in progress, and a drag
       started on it afterwards works.
     - The overlay: it peaks at 0.4% opacity per switch, so it needs no delay.
+- 2026-10-02, step 5: The step 4 measurements meet every expected result, so
+  they are not repeated. `yarn test:coverage` passes its floor. Checklist item
+  ticked. The mobile performance doc is untracked, so its option 4 is marked
+  done in the working copy only.
 
 ### Measuring
 

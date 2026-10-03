@@ -103,7 +103,14 @@ start at the first unticked item. Delete this file once every item is done.
 
 Found while working through the list above, and not yet part of it.
 
-- [ ] **WebGL contexts outlive their games.** Switching games quickly makes
+- [x] **WebGL contexts outlive their games.** Switching games quickly makes
       Chrome warn "Too many active WebGL contexts. Oldest context will be
       lost." `PhaserHost.destroy` does not release the context explicitly, so
-      each switch leaves one for the garbage collector.
+      each switch leaves one for the garbage collector. The collector was not
+      slow: it could not free them at all, because a destroyed board never
+      unsubscribed from the presentation's root effects (`a571377`). The
+      host now keeps one game, and so one context, for the canvas component's
+      whole life and swaps each board into it (`03472aa`). It loses the
+      context when it is destroyed (`abbe7a6`). Over ten switches the
+      session created 2 contexts instead of 12 and kept 1 `BoardScene` instead
+      of 11. The median switch fell from 124 ms to 17 ms.
