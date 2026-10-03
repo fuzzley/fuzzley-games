@@ -5,6 +5,7 @@
 .gemini
 .claude
 CLAUDE.local.md
+.mcp.json
 
 # Logs
 logs
