@@ -50,8 +50,8 @@ need:
 
 ## Plan
 
-- [ ] 0. Commit this log.
-- [ ] 1. Bisley.
+- [x] 0. Commit this log.
+- [x] 1. Bisley.
 - [ ] 2. Aces Up.
 - [ ] 3. E1, then Golf and Putt Putt.
 - [ ] 4. Calculation and Sir Tommy.
@@ -76,7 +76,25 @@ need:
 
 ### 2026-10-03
 
-- Step 0: wrote this log.
+- Step 0 (`06db3ff`): wrote this log.
+- Step 1: Bisley.
+  - `src/games/bisley`: the Ace foundations (`foundation-0` to `-3`) and
+    the King foundations (`king-foundation-0` to `-3`) both play the
+    `FOUNDATION` role, so `winsWhenAllCardsIn` covers the two kinds. Each
+    closes over a suit in `ALL_SUITS` order, which is the order the deal lays
+    the Aces in. An emptied Ace foundation takes only its own Ace back, so its
+    pairing with the King foundation cannot drift.
+  - Columns build up or down in suit (`any(ascendingSameSuit,
+descendingSameSuit)`), top-only, and never refill. The deal pulls the
+    Aces with `pullCards`, then deals the rest in rows: 3 to each of the
+    first four columns, 4 to each of the other nine (Wikipedia's 13
+    columns, not PySol's 12).
+  - Board: 13 × 2, Aces at columns 0–3 and Kings at 9–12 of the top row,
+    `designHeightPx` 1300 as Baker's Dozen.
+  - A "Bisley" entry (`bisley`), `stocklessGestures`, a rules page, a
+    profile in "More games" (Easy), the README, the screenshot and
+    thumbnails.
+  - Tests: `test/games/bisley/bisley_game.spec.ts`.
 
 ## Picking it back up
 

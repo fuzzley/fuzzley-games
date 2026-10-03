@@ -1094,4 +1094,46 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       },
     ],
   },
+  bisley: {
+    title: "Bisley",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Bisley_(card_game)",
+    screenshot: {
+      url: "./docs/screenshots/bisley/overview.png",
+      caption:
+        "Bisley board showing the four Aces at the left of the top row, four empty King foundations at its right, and thirteen face-up columns.",
+      altText: "Bisley solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Move all 52 cards onto the foundations, each suit climbing from its Ace and descending from its King until the two meet.",
+      winCondition:
+        "Every card is on a foundation, whichever of its suit's two piles it ended on.",
+      quickOverview:
+        "Bisley lays the four Aces out first and deals the rest face-up into thirteen columns. Each suit has two foundations: one building up from the Ace, and one building down from the King once a King is free. The columns build up or down in suit, one card at a time, and an emptied column stays empty.",
+    },
+    detailedRules: {
+      layout: [
+        "Ace Foundations: the four Aces, at the left of the top row, one per suit.",
+        "King Foundations: 4 empty slots at the right of the top row, in the same suit order as the Aces.",
+        "Tableau: 13 face-up columns — 3 cards in each of the first four, 4 cards in each of the other nine.",
+        "No Stock: all 52 cards are in view from the first move.",
+      ],
+      cardMovement: [
+        "Only the top card of a column can be moved, one card at a time.",
+        "A card can go onto a column whose top card is the same suit and exactly 1 rank higher or lower.",
+        "A free King can start the King foundation of its own suit.",
+        "Empty columns cannot be filled — once a column is cleared it stays empty.",
+      ],
+      sequenceBuilding: [
+        "Ace Foundations: Built UP in SAME SUIT from the Ace.",
+        "King Foundations: Built DOWN in SAME SUIT from the King.",
+        "Tableau: Built UP or DOWN in SAME SUIT, and a column may change direction.",
+      ],
+      specialRules: [
+        "Meeting Foundations: a suit's two foundations may meet at any rank. Once they hold all thirteen cards between them, that suit is done.",
+        "Two-Way Building: a column can climb and then fall, so the same suit can be gathered around a card from either side.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
 };
