@@ -194,6 +194,39 @@ describe("PyramidGame stock", () => {
   });
 });
 
+describe("PyramidGame recycles", () => {
+  /** A one-card deck, so a snapshot of the board fits a fresh game. */
+  const ONE_CARD = ALL_PLAYING_CARD_IDS.filter(
+    (card) => card.suit === Suit.HEART && card.rank === Rank.TWO,
+  );
+
+  /** Deals a three-pass game and turns the waste back over once. */
+  function recycledOnce(): PyramidGame {
+    const game = newGame({ cardIds: ONE_CARD, passes: 3 });
+    emptyBoard(game);
+    relocate(game, "card-hearts-2", game.waste);
+    game.drawCardsFromStock();
+    return game;
+  }
+
+  it("gives a pass back when the recycle is taken back", () => {
+    const game = recycledOnce();
+
+    game.undo();
+
+    expect(game.recyclesRemaining).toBe(2);
+  });
+
+  it("keeps the passes spent in a snapshot", () => {
+    const game = recycledOnce();
+    const copy = newGame({ cardIds: ONE_CARD, passes: 3 });
+
+    copy.restore(game.snapshot());
+
+    expect(copy.recyclesRemaining).toBe(1);
+  });
+});
+
 describe("PyramidGame win condition", () => {
   /** The Queen and Ace of clubs and hearts: two pairs. */
   const TWO_PAIRS = ALL_PLAYING_CARD_IDS.filter(

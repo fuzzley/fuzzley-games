@@ -76,6 +76,13 @@ describe("BristolGame deal", () => {
 });
 
 describe("BristolGame stock", () => {
+  it("refuses to deal once the stock is empty", () => {
+    const game = newGame();
+    emptyBoard(game);
+
+    expect(game.deal()).toBe(false);
+  });
+
   it("deals a card onto each reserve", () => {
     const game = newGame();
 
