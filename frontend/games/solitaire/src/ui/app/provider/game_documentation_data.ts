@@ -841,7 +841,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     },
     detailedRules: {
       layout: [
-        "Tableau: 12 columns of 3 cards, all face-up — the widest board in the family.",
+        "Tableau: 12 columns of 3 cards, all face-up.",
         "Foundations: 8 suit piles, two per suit.",
         "Stock: the remaining 68 cards, drawn one at a time onto a waste.",
       ],
@@ -857,6 +857,45 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       specialRules: [
         "No Recycle: the stock is dealt through exactly once, as in the rest of the Forty Thieves family.",
         "Shallow Columns: with only three cards per column, almost the whole tableau is reachable from the opening position.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
+  lucas: {
+    title: "Lucas",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Forty_Thieves_(card_game)",
+    screenshot: {
+      url: "./docs/screenshots/lucas/overview.png",
+      caption:
+        "Lucas board showing the eight Aces on the foundations and thirteen face-up columns of three beneath them.",
+      altText: "Lucas solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
+      winCondition:
+        "All 104 cards are sorted onto the eight foundations, two per suit.",
+      quickOverview:
+        "Lucas is Forty Thieves with a head start: the eight Aces begin on the foundations, and the rest is dealt into thirteen shallow columns of three. Columns build down in suit and a same-suit run moves as a unit, but the stock still goes through only once.",
+    },
+    detailedRules: {
+      layout: [
+        "Foundations: 8 suit piles, each dealt one of the eight Aces.",
+        "Tableau: 13 columns of 3 cards, all face-up — the widest board in the family.",
+        "Stock: the remaining 57 cards, drawn one at a time onto a waste.",
+      ],
+      cardMovement: [
+        "A card can be picked up with an unbroken same-suit descending run resting on it.",
+        "Any card can start an empty column.",
+        "The top card of a foundation can be taken back down onto a column.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from the Ace already there to King.",
+        "Tableau: Built DOWN in SAME SUIT.",
+      ],
+      specialRules: [
+        "Aces Home: with every foundation already started, any Two that turns up can go straight home.",
+        "No Recycle: the stock is dealt through exactly once, as in the rest of the Forty Thieves family. About one deal in three can be won.",
       ],
     },
     settingsAndVariants: [],

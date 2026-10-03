@@ -22,6 +22,7 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Forty Thieves**: Two-deck patience with 10 columns of 4 cards, eight foundations, single-card moves, and no stock recycling; supports standard Forty Thieves, Josephine, Rank and File, Indian, and Number Ten variants.
 - **Maria**: Forty Thieves variant on a 9-column grid, building down in alternating colours with multi-card run moves.
 - **Limited**: Forty Thieves variant on a wide 12-column grid of 3-card columns with same-suit building and multi-card run moves.
+- **Lucas**: Forty Thieves variant with the eight Aces dealt to the foundations and thirteen 3-card columns, building in suit with same-suit runs.
 - **Double Klondike**: Two-deck Klondike dealt across nine columns with eight foundations and unlimited stock recycles.
 - **Montana**: Gaps-style solitaire played on a 4×13 grid without Aces; sort rows from Two to King in suit into spaces left by moved cards, featuring two redeals.
 
