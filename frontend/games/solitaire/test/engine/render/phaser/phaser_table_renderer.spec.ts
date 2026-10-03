@@ -32,6 +32,8 @@ describe("PhaserTableRenderer", () => {
   let setDraggable: Mock;
   /** The card sprites the applier can find, keyed by card id. */
   let cardSprites: Map<string, MockSprite>;
+  /** The shadow sprites the applier can find, keyed by card id. */
+  let cardShadows: Map<string, MockSprite>;
   /** The pile background sprites the applier can find, keyed by pile id. */
   let pileBackgrounds: Map<string, MockSprite>;
 
@@ -39,13 +41,18 @@ describe("PhaserTableRenderer", () => {
     borders = [];
     setDraggable = vi.fn();
     cardSprites = new Map();
+    cardShadows = new Map();
     pileBackgrounds = new Map([[STOCK_PILE_ID, createMockSprite()]]);
 
     // The applier only needs to find sprites and add graphics, so the whole
-    // seam is satisfied by two maps — no Phaser scene stand-in required.
+    // seam is satisfied by maps — no Phaser scene stand-in required.
     const sprites: PhaserSprites = {
       cardSprite: (cardId) => {
         const sprite = cardSprites.get(cardId);
+        return sprite ? asSprite(sprite) : undefined;
+      },
+      cardShadowSprite: (cardId) => {
+        const sprite = cardShadows.get(cardId);
         return sprite ? asSprite(sprite) : undefined;
       },
       pileBackgroundSprite: (pileId) => {
@@ -67,6 +74,13 @@ describe("PhaserTableRenderer", () => {
   function registerCard(cardId: string, x = 0, y = 0): MockSprite {
     const sprite = createMockSprite({ x, y });
     cardSprites.set(cardId, sprite);
+    return sprite;
+  }
+
+  /** Registers a card's shadow sprite, and returns the mock. */
+  function registerShadow(cardId: string): MockSprite {
+    const sprite = createMockSprite();
+    cardShadows.set(cardId, sprite);
     return sprite;
   }
 
@@ -203,6 +217,56 @@ describe("PhaserTableRenderer", () => {
     // snap immediately on delta <= 0
     applier.apply(viewState, 0);
     expect(cardSprite.x).toBe(100);
+  });
+
+  describe("card shadows", () => {
+    it("keeps a shadow on its card while the card eases", () => {
+      const card = registerCard("card-1", 0, 0);
+      const shadow = registerShadow("card-1");
+      const viewState: TableViewState = {
+        backgrounds: [],
+        cards: [cardView({ cardId: "card-1", x: 400, y: 400, snap: false })],
+        highlights: [],
+      };
+
+      applier.apply(viewState, 16);
+
+      // Where the card is this frame, not where it is headed.
+      expect([shadow.x, shadow.y]).toEqual([card.x, card.y]);
+    });
+
+    it("scales a shadow with its card", () => {
+      registerCard("card-1");
+      const shadow = registerShadow("card-1");
+      const viewState: TableViewState = {
+        backgrounds: [],
+        cards: [cardView({ cardId: "card-1", scale: 0.25 })],
+        highlights: [],
+      };
+
+      applier.apply(viewState, 16);
+
+      expect(shadow.scale).toBe(0.25);
+    });
+
+    it("draws a shadow under its card but over the card beneath", () => {
+      registerCard("lower");
+      registerCard("upper");
+      const shadow = registerShadow("upper");
+      const viewState: TableViewState = {
+        backgrounds: [],
+        cards: [
+          cardView({ cardId: "lower", depth: 1010 }),
+          cardView({ cardId: "upper", depth: 1011 }),
+        ],
+        highlights: [],
+      };
+
+      applier.apply(viewState, 16);
+
+      expect(shadow.depth).toBeGreaterThan(1010);
+      expect(shadow.depth).toBeLessThan(1011);
+    });
   });
 
   describe("travelling cards", () => {

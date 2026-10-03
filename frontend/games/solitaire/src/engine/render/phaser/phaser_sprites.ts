@@ -9,6 +9,9 @@ export interface PhaserSprites {
   /** Returns the sprite for a card, or undefined if it has none. */
   cardSprite(cardId: string): GameObjects.Sprite | undefined;
 
+  /** Returns the sprite of a card's shadow, or undefined if it has none. */
+  cardShadowSprite(cardId: string): GameObjects.Sprite | undefined;
+
   /** Returns a pile's placeholder sprite, or undefined if it has none. */
   pileBackgroundSprite(pileId: string): GameObjects.Sprite | undefined;
 

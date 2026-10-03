@@ -1,4 +1,4 @@
-import { GameObjects, Scene, Scenes } from "phaser";
+import { GameObjects, Renderer, Scene, Scenes } from "phaser";
 
 import { BoardDeckLoader } from "./board_deck_loader";
 import { PhaserCardFactory } from "./phaser_card_factory";
@@ -80,6 +80,9 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Card sprites, keyed by the card id the model gave them. */
   private readonly cardSprites = new Map<string, GameObjects.Sprite>();
 
+  /** The shadow each card casts, keyed by the card id the model gave them. */
+  private readonly cardShadows = new Map<string, GameObjects.Sprite>();
+
   /** Placeholder sprites, keyed by pile id, for the piles that have one. */
   private readonly pileBackgrounds = new Map<string, GameObjects.Sprite>();
 
@@ -116,6 +119,7 @@ export class BoardScene extends Scene implements PhaserSprites {
     this.createPileBackgroundSprites();
     this.createCardSprites();
     this.followTheModel();
+    this.redrawShadowAfterContextLoss();
     this.wireInput();
 
     this.events.once(Scenes.Events.POST_UPDATE, () => {
@@ -173,6 +177,18 @@ export class BoardScene extends Scene implements PhaserSprites {
     });
   }
 
+  /**
+   * Redraws the card shadow whenever a lost WebGL context is restored, since
+   * Phaser restores loaded textures but not one drawn at runtime.
+   */
+  private redrawShadowAfterContextLoss(): void {
+    const redraw = () => this.visualFactory.bakeCardShadow();
+    this.renderer.on(Renderer.Events.RESTORE_WEBGL, redraw);
+    this.events.once(Scenes.Events.SHUTDOWN, () => {
+      this.renderer.off(Renderer.Events.RESTORE_WEBGL, redraw);
+    });
+  }
+
   /** Registers the pointer listeners and snaps cards into place on a resize. */
   private wireInput(): void {
     this.controller.snapAll = true;
@@ -192,9 +208,15 @@ export class BoardScene extends Scene implements PhaserSprites {
     return [...this.cardSprites.values(), ...this.pileBackgrounds.values()];
   }
 
-  /** Instantiates and registers a sprite for every playing card in the game. */
+  /**
+   * Instantiates and registers a sprite for every playing card in the game,
+   * and one for the shadow it casts.
+   */
   private createCardSprites(): void {
+    this.visualFactory.bakeCardShadow();
+
     for (const id of this.options.cardIds) {
+      this.cardShadows.set(id, this.visualFactory.createCardShadow());
       const sprite = this.visualFactory.createCardSprite();
       this.cardSprites.set(id, sprite);
 
@@ -230,6 +252,11 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** @inheritDoc */
   public cardSprite(cardId: string): GameObjects.Sprite | undefined {
     return this.cardSprites.get(cardId);
+  }
+
+  /** @inheritDoc */
+  public cardShadowSprite(cardId: string): GameObjects.Sprite | undefined {
+    return this.cardShadows.get(cardId);
   }
 
   /** @inheritDoc */

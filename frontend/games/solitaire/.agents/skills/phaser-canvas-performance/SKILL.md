@@ -28,6 +28,14 @@ build currently emits two (`card_assets-0.png`, `card_assets-1.png`). A frame
 touching both pages costs at least two draws — that is expected, not a
 regression. The goal is _few and stable_ texture bindings, not one.
 
+**Never give a per-card sprite a filter.** A filtered object is drawn through
+framebuffers of its own, at its texture's full size, every frame: a shadow
+filter on each card cost 156 framebuffer switches a frame in Klondike and 312
+in Spider, which is what made dragging crawl on phones. Draw an effect every
+card shares once into a `DynamicTexture` and give each card a plain sprite of
+it, as `PhaserCardFactory.bakeCardShadow` does in
+`src/engine/render/phaser/phaser_card_factory.ts`.
+
 ## 2. Zero-Allocation Render Loop
 
 Do not allocate objects, arrays, or closures inside `update()` or drag-move
