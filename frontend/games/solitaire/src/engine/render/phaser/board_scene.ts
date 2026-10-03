@@ -16,6 +16,7 @@ import {
   Viewport,
 } from "../view/table_view_state";
 import { TableLayoutSpec, designSize } from "../layout/table_layout";
+import { CardArtScale } from "../layout/card_metrics";
 import { CardDeckId } from "../card_deck";
 import { CardDeckStatus, Subscribe } from "../presentation";
 import {
@@ -313,6 +314,11 @@ export class BoardScene extends Scene implements PhaserSprites {
   }
 
   // --- PhaserSprites ---
+
+  /** @inheritDoc */
+  public get cardArtScale(): CardArtScale {
+    return 2;
+  }
 
   /** @inheritDoc */
   public cardSprite(cardId: string): GameObjects.Sprite | undefined {

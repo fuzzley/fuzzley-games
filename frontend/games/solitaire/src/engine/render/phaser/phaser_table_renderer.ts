@@ -153,7 +153,7 @@ export class PhaserTableRenderer implements TableRenderer {
     if (!sprite?.active) return;
 
     sprite.setPosition(backgroundView.x, backgroundView.y);
-    sprite.setScale(backgroundView.scale);
+    sprite.setScale(this.spriteScale(backgroundView.scale));
     sprite.setDepth(backgroundView.depth);
     if (backgroundView.cursor) {
       syncCursor(sprite, backgroundView.cursor);
@@ -165,7 +165,7 @@ export class PhaserTableRenderer implements TableRenderer {
    * its view.
    */
   private syncAppearance(sprite: GameObjects.Sprite, cardView: CardView): void {
-    sprite.setScale(cardView.scale);
+    sprite.setScale(this.spriteScale(cardView.scale));
     sprite.setDepth(cardView.depth);
 
     if (sprite.frame.name !== cardView.frame) {
@@ -187,8 +187,13 @@ export class PhaserTableRenderer implements TableRenderer {
     if (!shadow?.active) return;
 
     shadow.setPosition(card.x, card.y);
-    shadow.setScale(cardView.scale);
+    shadow.setScale(this.spriteScale(cardView.scale));
     shadow.setDepth(cardView.depth - SHADOW_DEPTH_BELOW_CARD);
+  }
+
+  /** Converts a layout scale to the sprite scale of the atlas drawn from. */
+  private spriteScale(layoutScale: number): number {
+    return layoutScale / this.sprites.cardArtScale;
   }
 
   /**

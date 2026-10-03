@@ -6,7 +6,10 @@ import {
   CardView,
   HighlightView,
 } from "@/engine/render/view/table_view_state";
-import { HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE } from "@/engine/render/layout/card_metrics";
+import {
+  CardArtScale,
+  HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE,
+} from "@/engine/render/layout/card_metrics";
 import { STOCK_PILE_ID } from "@test/support/fake_table/zones";
 import {
   asSprite,
@@ -36,6 +39,11 @@ describe("PhaserTableRenderer", () => {
   let cardShadows: Map<string, MockSprite>;
   /** The pile background sprites the applier can find, keyed by pile id. */
   let pileBackgrounds: Map<string, MockSprite>;
+  /**
+   * The density of the atlas the sprites are drawn from, 1 unless a test says
+   * otherwise, so a sprite's scale is its view's.
+   */
+  let artScale: CardArtScale;
 
   beforeEach(() => {
     borders = [];
@@ -43,10 +51,14 @@ describe("PhaserTableRenderer", () => {
     cardSprites = new Map();
     cardShadows = new Map();
     pileBackgrounds = new Map([[STOCK_PILE_ID, createMockSprite()]]);
+    artScale = 1;
 
     // The applier only needs to find sprites and add graphics, so the whole
     // seam is satisfied by maps — no Phaser scene stand-in required.
     const sprites: PhaserSprites = {
+      get cardArtScale() {
+        return artScale;
+      },
       cardSprite: (cardId) => {
         const sprite = cardSprites.get(cardId);
         return sprite ? asSprite(sprite) : undefined;
@@ -217,6 +229,49 @@ describe("PhaserTableRenderer", () => {
     // snap immediately on delta <= 0
     applier.apply(viewState, 0);
     expect(cardSprite.x).toBe(100);
+  });
+
+  describe("atlas density", () => {
+    /** Returns a view state holding one card and the stock's placeholder. */
+    function oneCardAt(scale: number): TableViewState {
+      return {
+        backgrounds: [{ pileId: STOCK_PILE_ID, x: 0, y: 0, scale, depth: 5 }],
+        cards: [cardView({ cardId: "card-1", scale })],
+        highlights: [],
+      };
+    }
+
+    it("draws 2x artwork texel for texel at a layout scale of 2", () => {
+      artScale = 2;
+      const card = registerCard("card-1");
+
+      applier.apply(oneCardAt(2), 16);
+
+      expect(card.scale).toBe(1);
+    });
+
+    it("draws 1x artwork texel for texel at a layout scale of 1", () => {
+      artScale = 1;
+      const card = registerCard("card-1");
+
+      applier.apply(oneCardAt(1), 16);
+
+      expect(card.scale).toBe(1);
+    });
+
+    it("scales a card, its shadow and the placeholders by the same density", () => {
+      artScale = 2;
+      const card = registerCard("card-1");
+      const shadow = registerShadow("card-1");
+
+      applier.apply(oneCardAt(0.5), 16);
+
+      expect([
+        card.scale,
+        shadow.scale,
+        pileBackgrounds.get(STOCK_PILE_ID)!.scale,
+      ]).toEqual([0.25, 0.25, 0.25]);
+    });
   });
 
   describe("card shadows", () => {
