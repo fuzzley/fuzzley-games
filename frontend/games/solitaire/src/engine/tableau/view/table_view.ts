@@ -36,6 +36,22 @@ export interface TableView {
 
   /** Returns whether the card and its stack may legally move to a pile. */
   canMoveCardToPile(cardId: string, targetPileId: string): boolean;
+
+  /**
+   * Returns the artwork the pile's placeholder shows now, or undefined for a
+   * pile drawn over bare table.
+   *
+   * The artwork may change during a game, but whether a pile has any may not:
+   * the board makes a placeholder only for the piles that have one when it is
+   * built.
+   */
+  pileBackgroundKey(pile: CardPile<PlayingCard>): string | undefined;
+
+  /**
+   * Returns whether pressing the pile's empty slot does something now, which
+   * it never does while the pile holds cards.
+   */
+  isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean;
 }
 
 /** Holds the look of the cards, a player's choice rather than a rule. */

@@ -155,3 +155,30 @@ export class FakeTableGame extends DealtTableGame {
     return { scoreDelta: 0, flippedCardIds: [exposed.id] };
   }
 }
+
+/**
+ * Plays the fake solitaire with the stock's placeholder artwork, and whether
+ * its empty slot is pressable, set by the test instead of by its zone.
+ */
+export class StockOverrideTableGame extends FakeTableGame {
+  /** The artwork the stock's placeholder shows. */
+  public stockBackgroundKey = "card-placeholder-full-border";
+  /** Whether pressing the empty stock does something. */
+  public stockActionable = false;
+
+  /** @inheritDoc */
+  public override pileBackgroundKey(
+    pile: CardPile<PlayingCard>,
+  ): string | undefined {
+    return pile.id === this.stock.id
+      ? this.stockBackgroundKey
+      : super.pileBackgroundKey(pile);
+  }
+
+  /** @inheritDoc */
+  public override isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
+    return pile.id === this.stock.id
+      ? this.stockActionable
+      : super.isEmptySlotActionable(pile);
+  }
+}

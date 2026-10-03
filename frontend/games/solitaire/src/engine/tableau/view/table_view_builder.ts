@@ -115,9 +115,9 @@ class TableViewStateBuilder {
     const backgrounds: PileBackgroundView[] = [];
 
     for (const pile of this.game.piles) {
-      const zone = this.game.zoneFor(pile.id);
+      const frame = this.game.pileBackgroundKey(pile);
       const origin = this.origins.get(pile.id);
-      if (!zone?.backgroundKey || !origin) continue;
+      if (!frame || !origin) continue;
 
       backgrounds.push({
         pileId: pile.id,
@@ -125,7 +125,8 @@ class TableViewStateBuilder {
         y: origin.y,
         scale: this.scale,
         depth: depthFor(RenderLayer.PILE_BACKGROUND),
-        cursor: zone.emptyIsActionable && pile.isEmpty ? "pointer" : "default",
+        frame,
+        cursor: this.game.isEmptySlotActionable(pile) ? "pointer" : "default",
       });
     }
 
@@ -378,9 +379,8 @@ class TableViewStateBuilder {
     if (!pileId) return null;
 
     const pile = this.game.getPileById(pileId);
-    const zone = this.game.zoneFor(pileId);
     const origin = this.origins.get(pileId);
-    if (!pile?.isEmpty || !zone?.emptyIsActionable || !origin) {
+    if (!pile || !this.game.isEmptySlotActionable(pile) || !origin) {
       return null;
     }
 
