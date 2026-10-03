@@ -259,6 +259,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Tableau (Yukon): Built DOWN in ALTERNATING COLORS.",
         "Tableau (Alaska): Built UP or DOWN in SAME SUIT.",
         "Tableau (Russian): Built DOWN in SAME SUIT.",
+        "Tableau (Moosehide): Built DOWN in ANY SUIT BUT THE CARD'S OWN.",
       ],
       specialRules: [
         "No Staging Penalty: Stacks being moved do not need to be in sequence; only the targeted card and destination card must match placement rules.",
@@ -282,6 +283,11 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
             value: YukonVariant.RUSSIAN,
             effect:
               "Hardest variant. Tableau columns build DOWN in the SAME SUIT.",
+          },
+          {
+            value: YukonVariant.MOOSEHIDE,
+            effect:
+              "Moosehide: tableau columns build DOWN in any suit except the card's own — Thumb and Pouch's rule on Yukon's deal, and looser than alternating colours.",
           },
         ],
       },

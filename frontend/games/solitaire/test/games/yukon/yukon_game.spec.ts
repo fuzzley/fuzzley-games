@@ -281,6 +281,64 @@ describe("YukonGame", () => {
     });
   });
 
+  describe("a Moosehide column", () => {
+    let moosehide: YukonGame;
+
+    beforeEach(() => {
+      moosehide = dealtGame(YukonVariant.MOOSEHIDE);
+      emptyBoard(moosehide);
+    });
+
+    it("refuses anything but a King onto an empty column", () => {
+      const queen = relocate(
+        moosehide,
+        "card-spades-queen",
+        moosehide.tableaus[1],
+      );
+
+      expect(moosehide.moveCardToPile(queen.id, moosehide.tableaus[0].id)).toBe(
+        false,
+      );
+    });
+
+    it("builds down in the same colour, which plain Yukon refuses", () => {
+      relocate(moosehide, "card-clubs-10", moosehide.tableaus[0]);
+      const nine = relocate(moosehide, "card-spades-9", moosehide.tableaus[1]);
+
+      expect(moosehide.moveCardToPile(nine.id, moosehide.tableaus[0].id)).toBe(
+        true,
+      );
+    });
+
+    it("builds down in the other colour", () => {
+      relocate(moosehide, "card-hearts-10", moosehide.tableaus[0]);
+      const nine = relocate(moosehide, "card-spades-9", moosehide.tableaus[1]);
+
+      expect(moosehide.moveCardToPile(nine.id, moosehide.tableaus[0].id)).toBe(
+        true,
+      );
+    });
+
+    it("refuses a card one lower in its own suit", () => {
+      relocate(moosehide, "card-spades-10", moosehide.tableaus[0]);
+      const nine = relocate(moosehide, "card-spades-9", moosehide.tableaus[1]);
+
+      expect(moosehide.moveCardToPile(nine.id, moosehide.tableaus[0].id)).toBe(
+        false,
+      );
+    });
+
+    it("still lifts a face-up card with everything resting on it", () => {
+      relocate(moosehide, "card-hearts-10", moosehide.tableaus[0]);
+      relocate(moosehide, "card-spades-9", moosehide.tableaus[1]);
+      relocate(moosehide, "card-diamonds-2", moosehide.tableaus[1]);
+
+      moosehide.moveCardToPile("card-spades-9", moosehide.tableaus[0].id);
+
+      expect(moosehide.tableaus[0].size).toBe(3);
+    });
+  });
+
   describe("turning over an exposed card", () => {
     /**
      * Buries a face-down Four under a Nine of Spades, with a Ten of Diamonds on

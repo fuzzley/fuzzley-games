@@ -141,6 +141,12 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           tagline: "Yukon building down in the same suit only.",
           difficulty: Difficulty.HARD,
         },
+        {
+          name: "Moosehide",
+          values: { variant: YukonVariant.MOOSEHIDE },
+          tagline: "Yukon where a card lands on any suit but its own.",
+          difficulty: Difficulty.EASY,
+        },
       ],
     },
     bakers: {

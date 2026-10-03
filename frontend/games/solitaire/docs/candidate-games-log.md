@@ -32,7 +32,7 @@ Add every game in Part A of the survey:
 - [x] 0. Commit this log.
 - [x] 1. Saratoga.
 - [x] 2. E7, then Vegas scoring.
-- [ ] 3. Moosehide.
+- [x] 3. Moosehide.
 - [ ] 4. Wasp and Scorpion II.
 - [ ] 5. Challenge and Super Challenge FreeCell.
 - [ ] 6. Indian and Number Ten.
@@ -59,7 +59,7 @@ Add every game in Part A of the survey:
     variant in the Klondike profile (Easy), and the README line.
   - Tests in `klondike_variants.spec.ts`: the face-up deal, the buried stock,
     the build, Kings-only spaces, and that a broken pile will not lift.
-- Step 2: E7 and Vegas scoring.
+- Step 2 (`348e641`): E7 and Vegas scoring.
   - E7: `TableGame.undo` no longer clamps at zero; it subtracts the recorded
     `scoreDelta`, which already holds whatever floor the game applied.
   - `ScoringPolicy` in `scoring_policy.ts` is now an interface with two
@@ -87,6 +87,14 @@ Add every game in Part A of the survey:
     placeholder. New `vegas_scoring.spec.ts`; Vegas cases in
     `scoring_policy.spec.ts`.
   - The `add-solitaire-game` skill names the pip helper.
+- Step 3: Moosehide.
+  - `YukonVariant.MOOSEHIDE` (3) with `descendingDifferentSuit` in
+    `OCCUPIED_COLUMN_RULES`. Yukon grabs `any-face-up`, so no run adjacency
+    needed to change.
+  - A choice in `YUKON_VARIANT`, the rules page, a named variant (Easy), the
+    README line, and a "Moosehide column" block in `yukon_game.spec.ts`.
+  - `game_search.spec.ts` lists Yukon's variants from the real catalog, so
+    it gained Moosehide too.
 
 ## Picking it back up
 
