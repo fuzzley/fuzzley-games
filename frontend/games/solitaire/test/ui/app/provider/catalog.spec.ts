@@ -63,6 +63,9 @@ const RULES: [name: string, option: GameOptionSpec][] = GAME_CATALOG.flatMap(
     ]),
 );
 
+/** Every rule that picks which of a game's family to deal. */
+const VARIANTS = RULES.filter(([, option]) => option.id === "variant");
+
 /** Returns the first card, in board order, that can legally move, and where. */
 function firstLegalMove(
   game: TableGame,
@@ -130,6 +133,21 @@ describe("the game catalog", () => {
       const offered = option.choices.map((choice) => choice.value);
 
       expect(offered).toContain(option.defaultValue);
+    },
+  );
+
+  it.each(VARIANTS)("%s offers its variants one to a row", (_name, option) => {
+    expect(option.control).toBe("list");
+  });
+
+  it.each(VARIANTS)(
+    "%s says in a line what each of its variants does",
+    (_name, option) => {
+      const undescribed = option.choices
+        .filter((choice) => !choice.description)
+        .map((choice) => choice.label);
+
+      expect(undescribed).toEqual([]);
     },
   );
 });
