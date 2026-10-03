@@ -80,6 +80,12 @@ import {
 } from "@/games/calculation/calculation_rules";
 import { FlowerGardenGame } from "@/games/flower_garden/flower_garden_game";
 import { FLOWER_GARDEN_LAYOUT } from "@/games/flower_garden/flower_garden_layout";
+import { BristolGame } from "@/games/bristol/bristol_game";
+import { BRISTOL_LAYOUT } from "@/games/bristol/bristol_layout";
+import {
+  BristolVariant,
+  DEFAULT_BRISTOL_VARIANT,
+} from "@/games/bristol/bristol_rules";
 
 /**
  * Describes a value a rule option can take, and its name for a player.
@@ -379,6 +385,19 @@ const CALCULATION_VARIANT: GameOptionSpec<CalculationVariant> = {
   defaultValue: DEFAULT_CALCULATION_VARIANT,
 };
 
+/** Which of the games on Bristol's board to deal. */
+const BRISTOL_VARIANT: GameOptionSpec<BristolVariant> = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Belvedere starts one foundation with an Ace, so there is somewhere to play from the first move.",
+  choices: [
+    { value: BristolVariant.BRISTOL, label: "Bristol" },
+    { value: BristolVariant.BELVEDERE, label: "Belvedere" },
+  ],
+  defaultValue: DEFAULT_BRISTOL_VARIANT,
+};
+
 /*
  * The entries, each declared with `satisfies` so it keeps the literal id and
  * game type the board registry is checked against.
@@ -673,6 +692,15 @@ const FLOWER_GARDEN = {
   create: () => dealt(new FlowerGardenGame()),
 } satisfies CatalogEntry<FlowerGardenGame>;
 
+const BRISTOL = {
+  id: "bristol" as const,
+  name: "Bristol",
+  options: [BRISTOL_VARIANT],
+  layout: BRISTOL_LAYOUT,
+  create: (values: GameOptionValues) =>
+    dealt(new BristolGame({ variant: optionValue(values, BRISTOL_VARIANT) })),
+} satisfies CatalogEntry<BristolGame>;
+
 /**
  * Every game the application can put on the table, in the order they are
  * offered, as a tuple so each entry keeps its id and game type.
@@ -707,6 +735,7 @@ export const CATALOG_ENTRIES = [
   GOLF,
   CALCULATION,
   FLOWER_GARDEN,
+  BRISTOL,
 ] as const;
 
 /** Every game the application can put on the table. */

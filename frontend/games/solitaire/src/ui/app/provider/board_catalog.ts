@@ -15,6 +15,7 @@ import { spideretteGestures } from "@/games/spiderette/spiderette_gestures";
 import { acesUpGestures } from "@/games/aces_up/aces_up_gestures";
 import { golfGestures } from "@/games/golf/golf_gestures";
 import { calculationGestures } from "@/games/calculation/calculation_gestures";
+import { bristolGestures } from "@/games/bristol/bristol_gestures";
 import { GameId, GameOf, catalogEntry } from "./game_catalog";
 
 /** Says what a press or a drop means in a particular game. */
@@ -51,6 +52,7 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
   golf: golfGestures,
   calculation: calculationGestures,
   flowergarden: stocklessGestures,
+  bristol: bristolGestures,
 };
 
 /**

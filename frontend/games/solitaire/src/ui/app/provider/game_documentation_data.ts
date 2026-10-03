@@ -1351,4 +1351,60 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     },
     settingsAndVariants: [],
   },
+  bristol: {
+    title: "Bristol",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Bristol_(solitaire)",
+    screenshot: {
+      url: "./docs/screenshots/bristol/overview.png",
+      caption:
+        "Bristol board showing the stock and three reserves at the top left, four empty foundations at the top right, and eight fans of three cards beneath.",
+      altText: "Bristol solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Build all 52 cards onto the four foundations, each from an Ace up to a King, regardless of suit.",
+      winCondition: "All 52 cards are on the foundations.",
+      quickOverview:
+        "Bristol deals eight fans of three cards face-up, with any King moved to the bottom of its fan, and three more cards to start three reserves. The stock deals three cards at a time, one onto each reserve, burying what was there. Fans build down regardless of suit and are never refilled once emptied.",
+    },
+    detailedRules: {
+      layout: [
+        "Stock: 25 face-down cards at the top-left, dealt three at a time.",
+        "Reserves: 3 piles beside the stock, one card each to start; only the top card of each is free.",
+        "Foundations: 4 piles at the top-right, initially empty.",
+        "Tableau: 8 fans of 3 face-up cards, with Kings sunk to the bottom.",
+      ],
+      cardMovement: [
+        "Only the top card of a fan or a reserve can be moved, one card at a time.",
+        "A card can go onto a fan whose top card is exactly 1 rank higher, in any suit.",
+        "Nothing can be placed on a reserve; only the stock adds to them.",
+        "An empty fan can never be filled again.",
+        "Pressing the stock deals one card face-up onto each reserve.",
+      ],
+      sequenceBuilding: [
+        "Foundations: any Ace starts one, then Built UP by RANK in ANY SUIT to the King.",
+        "Fans: Built DOWN by RANK in ANY SUIT.",
+      ],
+      specialRules: [
+        "Kings Sink: a King cannot move onto a fan, so the deal puts each one at the bottom of its fan, where it buries nothing.",
+        "One Pass: the stock is dealt only once, and each deal buries the reserve cards beneath it — play what you can before dealing.",
+      ],
+    },
+    settingsAndVariants: [
+      {
+        optionId: "variant",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect: "Bristol: every foundation waits for an Ace to turn up.",
+          },
+          {
+            value: 1,
+            effect:
+              "Belvedere: the deal puts one Ace straight onto a foundation, leaving 24 cards in the stock.",
+          },
+        ],
+      },
+    ],
+  },
 };
