@@ -77,6 +77,12 @@ const FAMILIES: readonly GameFamilyProfile[] = [
       "Short fans of cards played off one at a time, with no free cells to fall back on.",
   },
   {
+    id: "pairing",
+    name: "Pairing games",
+    description:
+      "Clear the board two cards at a time, pairing cards that match or add up.",
+  },
+  {
     id: "other",
     name: "More games",
     description: "Games that follow a pattern of their own.",
@@ -437,6 +443,13 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           difficulty: Difficulty.MEDIUM,
         },
       ],
+    },
+    nestor: {
+      family: "pairing",
+      tagline: "Pair free cards of the same rank until the board is clear.",
+      difficulty: Difficulty.MEDIUM,
+      decks: 1,
+      allCardsVisible: true,
     },
   },
 };

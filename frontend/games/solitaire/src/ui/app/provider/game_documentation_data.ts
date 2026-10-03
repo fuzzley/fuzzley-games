@@ -1407,4 +1407,41 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       },
     ],
   },
+  nestor: {
+    title: "Nestor",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Nestor_(solitaire)",
+    screenshot: {
+      url: "./docs/screenshots/nestor/overview.png",
+      caption:
+        "Nestor board showing the four reserve cards at the top left, the empty discard at the top right, and eight face-up columns of six cards beneath.",
+      altText: "Nestor solitaire board overview",
+    },
+    summary: {
+      objective: "Discard the whole deck in pairs of the same rank.",
+      winCondition: "All 52 cards are on the discard.",
+      quickOverview:
+        "Nestor deals eight columns of six cards face-up, with no two cards of the same rank in any one column, and leaves the last four as a reserve. Pair the free cards — the top of each column and every reserve card — two of the same rank at a time, until the board is clear.",
+    },
+    detailedRules: {
+      layout: [
+        "Reserve: 4 face-up cards at the top-left, every one of them free.",
+        "Discard: a single pile at the top-right, initially empty.",
+        "Tableau: 8 columns of 6 face-up cards, no column holding two cards of a rank.",
+      ],
+      cardMovement: [
+        "Drag a free card onto another free card of the same rank, in any suit, and both go to the discard.",
+        "Double-press a free card to pair it with the first free card of its rank.",
+        "Cards are never moved anywhere but onto their partner.",
+      ],
+      sequenceBuilding: [
+        "Nothing is built: cards only leave the board, two at a time.",
+        "A free card is the top card of a column, or any reserve card.",
+      ],
+      specialRules: [
+        "The Deal: a card that would repeat a rank already in its column goes to the bottom of the deck and the next card is dealt instead, so no column starts with a pair in it. If every card left would repeat a rank, the rule gives way.",
+        "Choosing Pairs: four cards of each rank make two pairs, and which two pair first can decide whether a column's buried cards ever come free.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
 };
