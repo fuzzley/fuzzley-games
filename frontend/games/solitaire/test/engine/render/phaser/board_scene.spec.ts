@@ -4,6 +4,7 @@ import { makeFakeTableBoardScene } from "@test/support/fake_table/scene";
 import { TestPresentation } from "@test/support/presentation";
 import { FakeTableGame } from "@test/support/fake_table/game";
 import {
+  BOOT_TEXTURE_KEY,
   DESTROY_EVENT,
   MockGraphics,
   MockInput,
@@ -16,7 +17,11 @@ import {
   RESTORE_WEBGL_EVENT,
   SHUTDOWN_EVENT,
 } from "@test/support/phaser_mocks";
-import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
+import { CardDeckId, DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
+import {
+  cardDeckTextureKey,
+  residentCardDecks,
+} from "@/engine/render/phaser/card_deck_atlas";
 import { PhaserCardFactory } from "@/engine/render/phaser/phaser_card_factory";
 import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
 import {
@@ -293,6 +298,91 @@ describe("BoardScene", () => {
       loader().complete(textures());
 
       expect(texturesInUse()).toEqual([`cards:${DEFAULT_CARD_DECK}`]);
+    });
+
+    it("releases a deck that finishes loading after the player changed their mind", () => {
+      presentation.setCardDeck("classic");
+      presentation.setCardDeck(DEFAULT_CARD_DECK);
+
+      loader().complete(textures());
+
+      expect(residentCardDecks(textures())).toEqual([DEFAULT_CARD_DECK]);
+    });
+
+    describe("on boot", () => {
+      /**
+       * Builds a board for a player who chose `chosen`, with only the given
+       * decks loaded, as an earlier board may have left them.
+       */
+      function bootScene(chosen: CardDeckId, ...loaded: CardDeckId[]): void {
+        fakeGame = dealtGame();
+        presentation = new TestPresentation(undefined, undefined, chosen);
+        boardScene = makeFakeTableBoardScene(fakeGame, presentation);
+        textures().remove(BOOT_TEXTURE_KEY);
+        for (const deckId of loaded) {
+          textures().add(cardDeckTextureKey(deckId));
+        }
+      }
+
+      it("loads the chosen deck first when no deck is loaded", () => {
+        bootScene("classic");
+
+        boardScene.preload();
+
+        expect(loader().requested).toEqual(["cards:classic"]);
+      });
+
+      it("loads nothing when the chosen deck is loaded", () => {
+        bootScene("classic", "classic");
+
+        boardScene.preload();
+
+        expect(loader().requested).toEqual([]);
+      });
+
+      it("draws from the chosen deck and releases any other left loaded", () => {
+        bootScene("classic", "indexed", "classic");
+        boardScene.preload();
+
+        boardScene.create();
+
+        expect({
+          inUse: texturesInUse(),
+          resident: residentCardDecks(textures()),
+        }).toEqual({ inUse: ["cards:classic"], resident: ["classic"] });
+      });
+
+      it("draws from another loaded deck while it fetches the chosen one", () => {
+        bootScene("classic", "indexed");
+        boardScene.preload();
+
+        boardScene.create();
+
+        // The board is playable at once, with the corner badge saying the
+        // chosen deck is on its way.
+        expect({
+          inUse: texturesInUse(),
+          requested: loader().requested,
+          status: presentation.cardDeckStatuses.at(-1),
+        }).toEqual({
+          inUse: ["cards:indexed"],
+          requested: ["cards:classic"],
+          status: { kind: "loading", deckId: "classic" },
+        });
+      });
+
+      it("moves to the chosen deck once it arrives, releasing the one it booted on", () => {
+        bootScene("classic", "indexed");
+        boardScene.preload();
+        boardScene.create();
+
+        loader().complete(textures());
+
+        expect({
+          inUse: texturesInUse(),
+          resident: residentCardDecks(textures()),
+        }).toEqual({ inUse: ["cards:classic"], resident: ["classic"] });
+      });
     });
 
     it("does not reload a deck it is already drawing", () => {

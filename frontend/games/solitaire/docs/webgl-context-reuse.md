@@ -19,7 +19,7 @@ start at the first step not marked done. Each step is one commit.
 | 0    | Baseline                         | done    |
 | 1    | End a board's subscriptions      | done    |
 | 2    | Release the context on destroy   | done    |
-| 3    | Let a board load its own deck    | pending |
+| 3    | Let a board load its own deck    | done    |
 | 4    | Keep one game and swap boards    | pending |
 | 5    | Measure, then tick the checklist | pending |
 
@@ -59,6 +59,19 @@ start at the first step not marked done. Each step is one commit.
     that a hidden tab, which runs no frames, keeps the context until it is shown.
   - Measured: 1 live context after ten switches **without** a forced collection,
     and a clean console. Switch time median 135 ms.
+- 2026-10-02, step 3: `BoardScene.preload` loads the chosen deck only when
+  `residentCardDecks` (new, in `card_deck_atlas.ts`) finds none loaded.
+  `BoardScene.bootDeck` picks the chosen deck if it is loaded, or else the first
+  that is. `BoardDeckLoader.releaseOtherDecks` releases every other `cards:*`
+  texture on the boot or revert path (`use` of the current deck), in `apply`,
+  and when a load lands that the player no longer wants. That last case is
+  **beyond the plan**: it fixes an existing leak, where choosing a deck and then
+  changing back before it arrived left the unwanted deck loaded until the next
+  switch. `LoadingScene` is deleted, and `PhaserHost` no longer takes the
+  presentation. The Vite skill wrongly said `loading_scene.ts` imported the atlas
+  manifests; it now names `card_deck_atlas.ts`. Seven new specs. Checked in the
+  browser: the board draws correctly and the console stays clean. Each switch
+  still builds a new game, so nothing else changes yet (median 132 ms).
 
 ### Measuring
 

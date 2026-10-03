@@ -100,7 +100,6 @@ export class GameCanvasComponent {
         window,
         this.canvasHostRef().nativeElement,
         () => makeBoardScene(gameId, game, this.presentation, onReady),
-        this.presentation,
       );
       host.start();
 

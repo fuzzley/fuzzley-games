@@ -90,7 +90,6 @@ describe("PhaserHost", () => {
       window,
       document.createElement("div"),
       () => makeFakeTableBoardScene(game, presentation),
-      presentation,
       () => {
         const created = new FakeGame(webgl);
         games.push(created);
