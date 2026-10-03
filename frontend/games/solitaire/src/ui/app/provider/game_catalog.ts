@@ -8,6 +8,10 @@ import {
   KlondikeVariant,
 } from "@/games/klondike/klondike_rules";
 import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
+import {
+  KlondikeScoring,
+  klondikeScoringPolicy,
+} from "@/games/klondike/scoring_policy";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { FreeCellVariant } from "@/games/freecell/freecell_rules";
 import { FREECELL_LAYOUT } from "@/games/freecell/freecell_layout";
@@ -141,6 +145,18 @@ const KLONDIKE_DRAW_COUNT: GameOptionSpec<DrawCount> = {
   defaultValue: DEFAULT_DRAW_COUNT,
 };
 
+const KLONDIKE_SCORING: GameOptionSpec<KlondikeScoring> = {
+  id: "scoring",
+  label: "Scoring",
+  description:
+    "Vegas buys the deck for $52 and pays $5 for every card on a foundation, but allows only one pass through the stock in Draw 1 and three in Draw 3.",
+  choices: [
+    { value: KlondikeScoring.STANDARD, label: "Standard" },
+    { value: KlondikeScoring.VEGAS, label: "Vegas" },
+  ],
+  defaultValue: KlondikeScoring.STANDARD,
+};
+
 const KLONDIKE_ALMOST_WIN: GameOptionSpec = {
   id: "almostWin",
   label: "Almost Win Mode",
@@ -243,13 +259,19 @@ const SPIDERETTE_VARIANT: GameOptionSpec<SpideretteVariant> = {
 const KLONDIKE = {
   id: "klondike" as const,
   name: "Klondike",
-  options: [KLONDIKE_VARIANT, KLONDIKE_DRAW_COUNT, KLONDIKE_ALMOST_WIN],
+  options: [
+    KLONDIKE_VARIANT,
+    KLONDIKE_DRAW_COUNT,
+    KLONDIKE_SCORING,
+    KLONDIKE_ALMOST_WIN,
+  ],
   layout: KLONDIKE_LAYOUT,
   create: (values: GameOptionValues) =>
     dealt(
       new KlondikeGame({
         drawCount: optionValue(values, KLONDIKE_DRAW_COUNT),
         variant: optionValue(values, KLONDIKE_VARIANT),
+        scoring: klondikeScoringPolicy(optionValue(values, KLONDIKE_SCORING)),
         almostWin: optionValue(values, KLONDIKE_ALMOST_WIN) === 1,
       }),
     ),

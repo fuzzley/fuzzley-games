@@ -25,6 +25,9 @@ export const COLUMN_COUNT = 13;
 /** How many rows the grid has: one per suit. */
 export const ROW_COUNT = 4;
 
+/** How many redeals a game allows. */
+export const MAX_REDEALS = 2;
+
 /**
  * How many cards a finished row holds: Two through King, with the gap at the
  * end.
