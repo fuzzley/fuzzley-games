@@ -12,7 +12,7 @@ The [latest version of the game](http://fuzzley.info/project/solitaire/) is host
 - **Yukon**: Playable in standard Yukon, Alaska, Russian Solitaire, and Moosehide variants.
 - **Baker's Game**: Predecessor to FreeCell with same-suit column building, with choices for Any Card or Kings Only empty columns.
 - **Eight Off**: FreeCell cousin featuring eight reserve cells, same-suit column building, and Kings-only empty columns.
-- **Scorpion**: Yukon-style unconstrained card group moves to build same-suit descending runs, with a 3-card reserve stock.
+- **Scorpion**: Yukon-style unconstrained card group moves to build same-suit descending runs, with a 3-card reserve stock; playable as Scorpion, Wasp, or Scorpion II.
 - **Simple Simon**: Spider-style building and completion on an open board of ten columns with all 52 cards dealt face-up and no stock.
 - **Baker's Dozen**: Thirteen 4-card columns with Kings sunk to the bottom; columns build down by rank in any suit, and cleared columns cannot be refilled.
 - **Seahaven Towers**: Tight reserve-cell game with ten 5-card columns, four cells, same-suit building, and Kings-only empty columns.

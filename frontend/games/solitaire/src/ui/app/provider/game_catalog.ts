@@ -24,6 +24,7 @@ import { YUKON_LAYOUT } from "@/games/yukon/yukon_layout";
 import { EightOffGame } from "@/games/eight_off/eight_off_game";
 import { EIGHT_OFF_LAYOUT } from "@/games/eight_off/eight_off_layout";
 import { ScorpionGame } from "@/games/scorpion/scorpion_game";
+import { ScorpionVariant } from "@/games/scorpion/scorpion_rules";
 import { SCORPION_LAYOUT } from "@/games/scorpion/scorpion_layout";
 import { SimpleSimonGame } from "@/games/simple_simon/simple_simon_game";
 import { SIMPLE_SIMON_LAYOUT } from "@/games/simple_simon/simple_simon_layout";
@@ -239,6 +240,20 @@ const FORTY_THIEVES_VARIANT: GameOptionSpec<FortyThievesVariant> = {
   defaultValue: FortyThievesVariant.FORTY_THIEVES,
 };
 
+/** Which of the Scorpion family to deal. */
+const SCORPION_VARIANT: GameOptionSpec<ScorpionVariant> = {
+  id: "variant",
+  label: "Variant",
+  description:
+    "Wasp lets any card or run fill an empty column; Scorpion II buries cards in only the first three columns.",
+  choices: [
+    { value: ScorpionVariant.SCORPION, label: "Scorpion" },
+    { value: ScorpionVariant.WASP, label: "Wasp" },
+    { value: ScorpionVariant.SCORPION_II, label: "Scorpion II" },
+  ],
+  defaultValue: ScorpionVariant.SCORPION,
+};
+
 /** Which of the Spiderette pair to deal. */
 const SPIDERETTE_VARIANT: GameOptionSpec<SpideretteVariant> = {
   id: "variant",
@@ -338,9 +353,10 @@ const EIGHT_OFF = {
 const SCORPION = {
   id: "scorpion" as const,
   name: "Scorpion",
-  options: [],
+  options: [SCORPION_VARIANT],
   layout: SCORPION_LAYOUT,
-  create: () => dealt(new ScorpionGame()),
+  create: (values: GameOptionValues) =>
+    dealt(new ScorpionGame({ variant: optionValue(values, SCORPION_VARIANT) })),
 } satisfies CatalogEntry<ScorpionGame>;
 
 const SIMPLE_SIMON = {
