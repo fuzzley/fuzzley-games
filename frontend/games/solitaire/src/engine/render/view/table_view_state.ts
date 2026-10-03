@@ -13,13 +13,20 @@ export interface Viewport {
   pixelRatio: number;
 }
 
-/** Describes the placeholder a pile is drawn over, fixed for a board's life. */
+/** Describes the placeholder a pile is drawn over, as the board is built. */
 export interface PileBackgroundSpec {
-  /** The pile it sits beneath. */
+  /**
+   * The pile it sits beneath, which keeps it for the board's life: a pile
+   * without one never gets one.
+   */
   readonly pileId: string;
-  /** The artwork key it is drawn from. */
+  /** The artwork key it is first drawn from, until a view says otherwise. */
   readonly frame: string;
-  /** Whether pressing the empty slot does something, making it clickable. */
+  /**
+   * Whether pressing the empty slot can ever do something, making it
+   * clickable. Each frame's {@link PileBackgroundView.cursor} says whether it
+   * does now.
+   */
   readonly actionable: boolean;
 }
 
@@ -74,6 +81,8 @@ export interface PileBackgroundView {
   scale: number;
   /** Render depth (backgrounds sit below their cards). */
   depth: number;
+  /** The atlas frame to display, which a game may change as it is played. */
+  frame: string;
   /** The hover cursor to show over the background, when meaningful. */
   cursor?: "pointer" | "default";
 }

@@ -204,6 +204,9 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
     },
     setFrame(frame: string): MockSprite {
       sprite.frame = { name: frame };
+      // Phaser moves the origin to the new frame's anchor, as setTexture does.
+      sprite.originX = FRAME_ANCHOR;
+      sprite.originY = FRAME_ANCHOR;
       return sprite;
     },
     setTexture(key: string, frame?: string): MockSprite {

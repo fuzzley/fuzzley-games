@@ -34,7 +34,7 @@ up again from here. Update it with every commit.
 ## Plan
 
 - [x] 1. Commit the options doc and this log.
-- [ ] 2. Engine: let a game choose a placeholder's artwork and whether its
+- [x] 2. Engine: let a game choose a placeholder's artwork and whether its
       empty slot is pressable, frame by frame.
 - [ ] 3. Art: add the pip placeholders and rebuild the atlases.
 - [ ] 4. Montana: draw the pips, and make the marker inactive when it cannot
@@ -47,7 +47,22 @@ up again from here. Update it with every commit.
 
 ### 2026-10-03
 
-- Step 1: wrote this log and committed it with the options doc.
+- Step 1 (`67d0b94`): wrote this log and committed it with the options doc.
+- Step 2: the engine hook.
+  - `TableView` and `TableGame` gained `pileBackgroundKey(pile)` and
+    `isEmptySlotActionable(pile)`. By default they read the zone's
+    `backgroundKey` and `emptyIsActionable`, and a game overrides them.
+  - `PileBackgroundView` gained `frame`. `PhaserTableRenderer.applyBackground`
+    swaps the sprite's frame when it changes, then resets the origin to the
+    top-left, as it does for cards.
+  - The builder's cursor and hover border ask `isEmptySlotActionable`.
+  - `pileBackgrounds` draws the first frame from `pileBackgroundKey`, and still
+    reads `actionable` (whether the sprite listens for presses at all) from the
+    zone.
+  - Tests: the mock sprite's `setFrame` now moves the origin to the frame's
+    anchor, as Phaser does. `StockOverrideTableGame` in
+    `test/support/fake_table/game.ts` lets a spec set the stock's artwork and
+    whether it is pressable.
 
 ## Picking it back up
 
