@@ -1916,4 +1916,99 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     },
     settingsAndVariants: [],
   },
+  beleagueredcastle: {
+    title: "Beleaguered Castle",
+    wikipediaUrl: "https://en.wikipedia.org/wiki/Beleaguered_Castle",
+    screenshot: {
+      url: "./docs/screenshots/beleagueredcastle/overview.png",
+      caption:
+        "Beleaguered Castle board showing the four Aces in a column down the middle, and eight rows of six cards fanned sideways, four on each side.",
+      altText: "Beleaguered Castle solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      winCondition: "All 52 cards are sorted into their suit foundations.",
+      quickOverview:
+        "Beleaguered Castle lays the four Aces out in a column and deals the other 48 cards face-up into eight rows of six, four on each side of the Aces. Only the card at the open end of a row can move, one at a time, onto a foundation or onto a card one rank higher in any suit — and an empty row takes any card.",
+    },
+    detailedRules: {
+      layout: [
+        "Foundations: 4 piles in a column down the middle, each started with an Ace.",
+        "Rows: 8 rows of 6 face-up cards, fanned sideways, four on each side of the foundations.",
+        "No Stock: every card is in view from the first move.",
+      ],
+      cardMovement: [
+        "Only the last card of a row — the one fully in view — can be moved, one card at a time.",
+        "A card can go onto a row whose last card is exactly 1 rank higher, in any suit.",
+        "Any card can fill an empty row.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Rows: Built DOWN by RANK in ANY SUIT.",
+      ],
+      specialRules: [
+        "Every row fans to the right, so the free card of a row in the left wing is the one nearest the foundations.",
+        "Empty Rows: with no cells, an empty row is the only place to park a card — they are worth more than any single move.",
+      ],
+    },
+    settingsAndVariants: [
+      {
+        optionId: "variant",
+        choicesExplanation: [
+          {
+            value: 0,
+            effect:
+              "Beleaguered Castle: the Aces start on the foundations and the rows are dealt six each.",
+          },
+          {
+            value: 1,
+            effect:
+              "Streets and Alleys: the Aces are shuffled in, so the left wing's rows are dealt seven cards and the right wing's six, and every foundation waits for its Ace to be dug out. Harder.",
+          },
+          {
+            value: 2,
+            effect:
+              "Citadel: as Beleaguered Castle, but while the cards are dealt, any card that can go onto a foundation goes there at once, so the rows start shorter. Easier.",
+          },
+        ],
+      },
+    ],
+  },
+  fortress: {
+    title: "Fortress",
+    screenshot: {
+      url: "./docs/screenshots/fortress/overview.png",
+      caption:
+        "Fortress board showing four empty foundations in a column down the middle and ten rows fanned sideways, five on each side.",
+      altText: "Fortress solitaire board overview",
+    },
+    summary: {
+      objective:
+        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      winCondition: "All 52 cards are sorted into their suit foundations.",
+      quickOverview:
+        "Fortress deals the whole deck face-up into ten rows, five on each side of a column of empty foundations. Only the card at the open end of a row can move, one at a time, onto a foundation or onto a card of its own suit one rank higher or lower.",
+    },
+    detailedRules: {
+      layout: [
+        "Foundations: 4 empty piles in a column down the middle.",
+        "Rows: 10 face-up rows fanned sideways, five on each side — the first two of six cards, the rest of five.",
+        "No Stock: every card is in view from the first move.",
+      ],
+      cardMovement: [
+        "Only the last card of a row can be moved, one card at a time.",
+        "A card can go onto a row whose last card is the same suit and exactly 1 rank higher or lower.",
+        "Any card can fill an empty row.",
+      ],
+      sequenceBuilding: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Rows: Built UP or DOWN in SAME SUIT, and a row may change direction.",
+      ],
+      specialRules: [
+        "A Very Hard Game: with the Aces buried and no cells, PySol calls it a very hard game; plan the order the suits come home in before the first move.",
+      ],
+    },
+    settingsAndVariants: [],
+  },
 };

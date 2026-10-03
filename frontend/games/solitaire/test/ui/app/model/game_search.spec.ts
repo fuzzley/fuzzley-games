@@ -241,12 +241,17 @@ describe("searching the real catalog", () => {
   it.each([
     ["russian", "Russian Solitaire"],
     ["gaps", "Montana"],
-    ["streets", "Josephine"],
+    ["streets", "Streets and Alleys"],
+    ["demon", "Canfield"],
     ["frecell", "FreeCell"],
     ["seahven", "Seahaven Towers"],
     ["will o the wisp", "Will o' the Wisp"],
   ])("finds %s first as %s", (query, name) => {
     expect(namesFound(items, query)[0]).toBe(name);
+  });
+
+  it("still finds Josephine by its alias Streets", () => {
+    expect(namesFound(items, "streets")).toContain("Josephine");
   });
 
   it("finds both of the Baker's games", () => {
