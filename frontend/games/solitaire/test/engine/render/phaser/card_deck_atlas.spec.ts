@@ -5,9 +5,9 @@ import {
   cardDeckTextureKey,
   residentCardDecks,
 } from "@/engine/render/phaser/card_deck_atlas";
-import classicAtlas from "@/engine/render/assets/sprites/atlas/classic/card_assets_atlas.json";
-import indexedAtlas from "@/engine/render/assets/sprites/atlas/indexed/card_assets_atlas.json";
-import allCornerPipsAtlas from "@/engine/render/assets/sprites/atlas/all-corner-pips/card_assets_atlas.json";
+import classicAtlas from "@/engine/render/assets/sprites/atlas/classic/2x/card_assets_atlas.json";
+import indexedAtlas from "@/engine/render/assets/sprites/atlas/indexed/2x/card_assets_atlas.json";
+import allCornerPipsAtlas from "@/engine/render/assets/sprites/atlas/all-corner-pips/2x/card_assets_atlas.json";
 
 /** Describes a manifest `yarn build:atlas` writes, for its frame names. */
 interface BuiltAtlas {

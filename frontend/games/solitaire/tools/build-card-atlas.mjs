@@ -3,9 +3,11 @@
  *
  *   yarn build:atlas
  *
- * Rasterizes the card sheet and the pile placeholders at ART_SCALE times the
- * design frame size, packs the frames into as few atlas pages as fit within
- * MAX_PAGE_PX, and writes the pages plus a Phaser multi-atlas manifest.
+ * Rasterizes the card sheet and the pile placeholders at RASTER_SCALE times the
+ * design frame size, shrinks the finished frames to every other density in
+ * ART_SCALES, and for each density packs the frames into as few atlas pages as
+ * fit within MAX_PAGE_PX and writes the pages plus a Phaser multi-atlas
+ * manifest.
  */
 import { Resvg } from "@resvg/resvg-js";
 import sharp from "sharp";
@@ -18,17 +20,23 @@ const CARD_DIR = join(ROOT, "src/engine/render/assets/sprites/card");
 const OUT_DIR = join(ROOT, "src/engine/render/assets/sprites/atlas");
 
 /**
- * Texels per design unit, which must match `CARD_ART_SCALE` in
- * `src/engine/render/layout/card_metrics.ts`.
+ * The densities each deck is built at, in texels per design unit, which must
+ * match `CardArtScale` in `src/engine/render/layout/card_metrics.ts`.
+ *
+ * The first is the one the sheets are rasterized at; the rest are shrunk from
+ * its finished frames, so every density is framed and edged alike.
  */
-const ART_SCALE = 2;
+const ART_SCALES = [2, 1];
+
+/** The density the sheets are rasterized at. */
+const RASTER_SCALE = ART_SCALES[0];
 
 /** The card frame size in design units, as the board layout measures it. */
 const DESIGN_FRAME_W = 220;
 const DESIGN_FRAME_H = 307;
 
-const FRAME_W = DESIGN_FRAME_W * ART_SCALE;
-const FRAME_H = DESIGN_FRAME_H * ART_SCALE;
+const FRAME_W = DESIGN_FRAME_W * RASTER_SCALE;
+const FRAME_H = DESIGN_FRAME_H * RASTER_SCALE;
 
 /**
  * Transparent pixels kept between frames, so bilinear sampling at a fractional
@@ -74,7 +82,7 @@ const DECKS = [
 ];
 
 /** Pixels per SVG user unit when rendering the sheet. */
-const SHEET_PPU = ART_SCALE;
+const SHEET_PPU = RASTER_SCALE;
 
 /** Suits in card sheet row order. */
 const SHEET_SUITS = ["clubs", "hearts", "spades", "diamonds"];
@@ -287,8 +295,9 @@ async function cutFrames(sheet, nameAt, rows, cols, originAt) {
 const EDGE_RING_PX = 10;
 
 /**
- * How much of each corner to ignore when inspecting an edge, in pixels, since
- * only there does a card's own outline fall inside the frame.
+ * How much of each corner to ignore when inspecting an edge, in pixels at
+ * RASTER_SCALE, since only there does a card's own outline fall inside the
+ * frame.
  */
 const EDGE_CORNER_PX = 48;
 
@@ -303,9 +312,10 @@ const EDGE_NAMES = ["left", "right", "top", "bottom"];
  * inked at a given depth, as a fraction of that edge's length.
  *
  * @param {Buffer} png The frame to measure.
+ * @param {number} cornerPx How much of each corner to ignore, in pixels.
  * @returns {Promise<(edge: string, depth: number) => number>} The scorer.
  */
-async function edgeScorer(png) {
+async function edgeScorer(png, cornerPx = EDGE_CORNER_PX) {
   const { data, info } = await sharp(png)
     .ensureAlpha()
     .raw()
@@ -318,9 +328,9 @@ async function edgeScorer(png) {
     return (data[i] + data[i + 1] + data[i + 2]) / 3 < 190 ? 1 : 0;
   };
 
-  const from = EDGE_CORNER_PX;
-  const toX = info.width - EDGE_CORNER_PX;
-  const toY = info.height - EDGE_CORNER_PX;
+  const from = cornerPx;
+  const toX = info.width - cornerPx;
+  const toY = info.height - cornerPx;
 
   const edges = {
     left: { span: toY - from, at: (i, depth) => isInk(depth, from + i) },
@@ -453,14 +463,17 @@ const EDGE_STAMP_DEPTH = 1;
 const EDGE_STAMP_COVERAGE = 0.9;
 
 /**
- * Fails the build if a frame came out of {@link stampCardEdge} without an edge.
+ * Fails the build if a frame came out of {@link stampCardEdge}, or out of
+ * shrinking a stamped frame, without an edge.
  *
  * @param {{name: string, png: Buffer}[]} frames The stamped frames.
+ * @param {number} artScale The density the frames are at.
  */
-async function assertEdgesAreStamped(frames) {
+async function assertEdgesAreStamped(frames, artScale) {
+  const cornerPx = (EDGE_CORNER_PX * artScale) / RASTER_SCALE;
   const missing = [];
   for (const frame of frames) {
-    const score = await edgeScorer(frame.png);
+    const score = await edgeScorer(frame.png, cornerPx);
 
     let worst = 1;
     let worstEdge = "";
@@ -481,55 +494,84 @@ async function assertEdgesAreStamped(frames) {
 
   if (missing.length > 0) {
     throw new Error(
-      `Frames did not come out of the edge stamp with an edge on every ` +
+      `Frames at ${artScale}x did not come out with an edge on every ` +
         `side:\n  ${missing.join("\n  ")}`,
     );
   }
 }
 
 /**
+ * Shrinks finished frames to another density.
+ *
+ * sharp resizes in premultiplied alpha, so the transparent corners do not
+ * darken the card's edge.
+ *
+ * @param {{name: string, png: Buffer}[]} frames Frames at RASTER_SCALE.
+ * @param {number} artScale The density to shrink them to.
+ * @returns {Promise<{name: string, png: Buffer}[]>} The shrunk frames.
+ */
+async function scaleFrames(frames, artScale) {
+  if (artScale === RASTER_SCALE) return frames;
+  return Promise.all(
+    frames.map(async (frame) => ({
+      name: frame.name,
+      png: await sharp(frame.png)
+        .resize(DESIGN_FRAME_W * artScale, DESIGN_FRAME_H * artScale, {
+          fit: "fill",
+        })
+        .png()
+        .toBuffer(),
+    })),
+  );
+}
+
+/**
  * Splits frames into pages and lays each page out as a grid.
  *
  * @param {{name: string, png: Buffer}[]} frames The frames to pack.
+ * @param {number} frameW Frame width in pixels.
+ * @param {number} frameH Frame height in pixels.
  * @returns {{frames: {name: string, png: Buffer, x: number, y: number}[], width: number, height: number}[]} The pages.
  */
-function packPages(frames) {
-  const columns = Math.floor(
-    (MAX_PAGE_PX - 2 * MARGIN + GUTTER) / (FRAME_W + GUTTER),
+function packPages(frames, frameW, frameH) {
+  const maxColumns = Math.floor(
+    (MAX_PAGE_PX - 2 * MARGIN + GUTTER) / (frameW + GUTTER),
   );
   const rows = Math.floor(
-    (MAX_PAGE_PX - 2 * MARGIN + GUTTER) / (FRAME_H + GUTTER),
+    (MAX_PAGE_PX - 2 * MARGIN + GUTTER) / (frameH + GUTTER),
   );
-  if (columns < 1 || rows < 1) {
+  if (maxColumns < 1 || rows < 1) {
     throw new Error(
-      `A ${FRAME_W}x${FRAME_H} frame does not fit a ${MAX_PAGE_PX}px page`,
+      `A ${frameW}x${frameH} frame does not fit a ${MAX_PAGE_PX}px page`,
     );
   }
 
-  const perPage = columns * rows;
+  const perPage = maxColumns * rows;
   const pages = [];
   for (let start = 0; start < frames.length; start += perPage) {
     const pageFrames = frames.slice(start, start + perPage);
+    // Size the page to its contents rather than the maximum, so a page holding
+    // a handful of leftover frames does not cost a full 4096 square of VRAM,
+    // and spread them over the fewest columns that keep the same rows, so the
+    // last row is not left mostly empty.
+    const usedRows = Math.ceil(pageFrames.length / maxColumns);
+    const columns = Math.ceil(pageFrames.length / usedRows);
     const placed = pageFrames.map((frame, index) => ({
       ...frame,
-      x: MARGIN + (index % columns) * (FRAME_W + GUTTER),
-      y: MARGIN + Math.floor(index / columns) * (FRAME_H + GUTTER),
+      x: MARGIN + (index % columns) * (frameW + GUTTER),
+      y: MARGIN + Math.floor(index / columns) * (frameH + GUTTER),
     }));
 
-    // Size the page to its contents rather than the maximum, so a page holding
-    // a handful of leftover frames does not cost a full 4096 square of VRAM.
-    const usedColumns = Math.min(columns, placed.length);
-    const usedRows = Math.ceil(placed.length / columns);
     pages.push({
       frames: placed,
-      width: 2 * MARGIN + usedColumns * FRAME_W + (usedColumns - 1) * GUTTER,
-      height: 2 * MARGIN + usedRows * FRAME_H + (usedRows - 1) * GUTTER,
+      width: 2 * MARGIN + columns * frameW + (columns - 1) * GUTTER,
+      height: 2 * MARGIN + usedRows * frameH + (usedRows - 1) * GUTTER,
     });
   }
   return pages;
 }
 
-/** Removes a deck's previous build, so stale pages cannot linger. */
+/** Removes a previous build, so stale pages cannot linger. */
 async function cleanOutput(outDir) {
   const existing = await readdir(outDir).catch(() => []);
   for (const file of existing) {
@@ -589,12 +631,31 @@ async function buildDeck(deck, placeholderFrames) {
   // Placeholders are outline art already, and are drawn under the cards rather
   // than overlapping them, so only the cards are stamped.
   const stampedCards = await stampCardEdge(cardFrames);
-  await assertEdgesAreStamped(stampedCards);
 
-  const frames = [...stampedCards, ...placeholderFrames];
-  const pages = packPages(frames);
+  for (const artScale of ART_SCALES) {
+    const scaledCards = await scaleFrames(stampedCards, artScale);
+    await assertEdgesAreStamped(scaledCards, artScale);
+    const placeholders = await scaleFrames(placeholderFrames, artScale);
+    await writeAtlas(
+      [...scaledCards, ...placeholders],
+      artScale,
+      join(OUT_DIR, deck.id, `${artScale}x`),
+    );
+  }
+}
 
-  const outDir = join(OUT_DIR, deck.id);
+/**
+ * Packs one density's frames into pages and writes them with their manifest.
+ *
+ * @param {{name: string, png: Buffer}[]} frames The frames, at `artScale`.
+ * @param {number} artScale The density the frames are at.
+ * @param {string} outDir The directory to write into.
+ */
+async function writeAtlas(frames, artScale, outDir) {
+  const frameW = DESIGN_FRAME_W * artScale;
+  const frameH = DESIGN_FRAME_H * artScale;
+  const pages = packPages(frames, frameW, frameH);
+
   await mkdir(outDir, { recursive: true });
   await cleanOutput(outDir);
 
@@ -626,13 +687,13 @@ async function buildDeck(deck, placeholderFrames) {
       scale: 1,
       frames: page.frames.map((frame) => ({
         filename: frame.name,
-        frame: { x: frame.x, y: frame.y, w: FRAME_W, h: FRAME_H },
+        frame: { x: frame.x, y: frame.y, w: frameW, h: frameH },
         anchor: { x: 0.5, y: 0.5 },
       })),
     });
 
     console.log(
-      `  ${image}  ${page.width}x${page.height}  ${page.frames.length} frames`,
+      `  ${artScale}x/${image}  ${page.width}x${page.height}  ${page.frames.length} frames`,
     );
   }
 
@@ -642,7 +703,7 @@ async function buildDeck(deck, placeholderFrames) {
   );
 
   console.log(
-    `  ${frames.length} frames at ${FRAME_W}x${FRAME_H} (${ART_SCALE}x) across ${pages.length} page(s)`,
+    `  ${frames.length} frames at ${frameW}x${frameH} (${artScale}x) across ${pages.length} page(s)`,
   );
 }
 

@@ -1,9 +1,9 @@
 import type { Loader } from "phaser";
 
 import { CARD_DECKS, CardDeckId } from "../card_deck";
-import classicAtlas from "../assets/sprites/atlas/classic/card_assets_atlas.json";
-import indexedAtlas from "../assets/sprites/atlas/indexed/card_assets_atlas.json";
-import allCornerPipsAtlas from "../assets/sprites/atlas/all-corner-pips/card_assets_atlas.json";
+import classicAtlas from "../assets/sprites/atlas/classic/2x/card_assets_atlas.json";
+import indexedAtlas from "../assets/sprites/atlas/indexed/2x/card_assets_atlas.json";
+import allCornerPipsAtlas from "../assets/sprites/atlas/all-corner-pips/2x/card_assets_atlas.json";
 
 /** Gives a Phaser loader what it needs to put a deck on the table. */
 export interface CardDeckAtlas {
@@ -26,7 +26,7 @@ type ResolvedAtlasManifest = AtlasManifest;
 
 /** The bundled URL of every atlas page image, keyed by source path. */
 const atlasPageUrls = import.meta.glob<string>(
-  "@/engine/render/assets/sprites/atlas/*/card_assets-*.png",
+  "@/engine/render/assets/sprites/atlas/*/*/card_assets-*.png",
   { eager: true, query: "?url", import: "default" },
 );
 
@@ -43,21 +43,22 @@ const manifests: Record<CardDeckId, AtlasManifest> = {
 };
 
 /**
- * Every atlas page's URL, keyed by `<deck>/<file>` because every deck gives its
- * pages the same filenames.
+ * Every atlas page's URL, keyed by `<deck>/<density>/<file>` because every
+ * deck and density gives its pages the same filenames.
  */
 const atlasPagesByDeckFile: Record<string, string> = Object.fromEntries(
   Object.entries(atlasPageUrls).map(([path, url]) => [
-    path.split("/").slice(-2).join("/"),
+    path.split("/").slice(-3).join("/"),
     url,
   ]),
 );
 
 /** Resolves an atlas manifest page filename to its bundled URL. */
 function atlasPageUrl(deckId: CardDeckId, image: string): string {
-  const url = atlasPagesByDeckFile[`${deckId}/${image}`];
+  const page = `${deckId}/2x/${image}`;
+  const url = atlasPagesByDeckFile[page];
   if (!url) {
-    throw new Error(`Atlas page not found: ${deckId}/${image}`);
+    throw new Error(`Atlas page not found: ${page}`);
   }
   return url;
 }
