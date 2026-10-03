@@ -1,12 +1,11 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { Suit } from "@/engine/core/card/playing_card";
-import { SimpleSimonGame } from "@/games/simple_simon/simple_simon_game";
-import { CARDS_PER_COLUMN } from "@/games/simple_simon/simple_simon_deal";
+import { ALL_PLAYING_CARD_IDS, deckCardIds } from "@/engine/core/card/deck";
+import { ALL_RANKS, Suit } from "@/engine/core/card/playing_card";
 import {
-  FOUNDATION_COUNT,
-  TABLEAU_COUNT,
-} from "@/games/simple_simon/simple_simon_zones";
+  SimpleSimonGame,
+  SimpleSimonOptions,
+} from "@/games/simple_simon/simple_simon_game";
+import { SimpleSimonVariant } from "@/games/simple_simon/simple_simon_rules";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
 
@@ -71,7 +70,7 @@ describe("SimpleSimonGame deal", () => {
   it("deals the staircase of column sizes the game is named for", () => {
     const sizes = game.tableaus.map((pile) => pile.size);
 
-    expect(sizes).toEqual([...CARDS_PER_COLUMN]);
+    expect(sizes).toEqual([8, 8, 8, 7, 6, 5, 4, 3, 2, 1]);
   });
 
   it("deals every card face up, since nothing is hidden", () => {
@@ -92,10 +91,7 @@ describe("SimpleSimonGame deal", () => {
   });
 
   it("lays out ten columns and four foundations", () => {
-    expect([game.tableaus.length, game.foundations.length]).toEqual([
-      TABLEAU_COUNT,
-      FOUNDATION_COUNT,
-    ]);
+    expect([game.tableaus.length, game.foundations.length]).toEqual([10, 4]);
   });
 });
 
@@ -231,5 +227,66 @@ describe("SimpleSimonGame win condition", () => {
     game.moveCardToPile("card-spades-ace", game.tableaus[0].id);
 
     expect(won).toBe(false);
+  });
+});
+
+/** Returns a dealt game of Mrs. Mop, from both decks unless told otherwise. */
+function mrsMopGame(cardIds?: SimpleSimonOptions["cardIds"]): SimpleSimonGame {
+  const game = new SimpleSimonGame({
+    variant: SimpleSimonVariant.MRS_MOP,
+    cardIds,
+    random: sequenceRandom(SHUFFLE_VALUES),
+  });
+  game.startNewGame();
+  return game;
+}
+
+describe("Mrs. Mop", () => {
+  it("deals thirteen columns of eight", () => {
+    const game = mrsMopGame();
+
+    expect(game.tableaus.map((pile) => pile.size)).toEqual(Array(13).fill(8));
+  });
+
+  it("deals both decks, every card face up", () => {
+    const game = mrsMopGame();
+
+    const dealt = game.tableaus.flatMap((pile) => pile.getCards());
+    expect([dealt.length, dealt.every((card) => card.faceUp)]).toEqual([
+      104,
+      true,
+    ]);
+  });
+
+  it("lays out eight foundations, one per run two decks make", () => {
+    const game = mrsMopGame();
+
+    expect(game.foundations.length).toBe(8);
+  });
+
+  it("sends a completed run to a foundation, as Simple Simon does", () => {
+    const game = mrsMopGame();
+    boardOneMoveFromARun(game);
+
+    game.moveCardToPile("card-spades-ace", game.tableaus[0].id);
+
+    expect(game.foundations[0].size).toBe(13);
+  });
+
+  it("is won once both decks' runs have been collected", () => {
+    const game = mrsMopGame(
+      deckCardIds({ suits: [Suit.SPADE], ranks: ALL_RANKS, copies: 2 }),
+    );
+    boardOneMoveFromARun(game);
+    relocate(game, "card-spades-ace#1", game.foundations[1]);
+    for (const cardId of KING_TO_TWO) {
+      relocate(game, `${cardId}#1`, game.foundations[1]);
+    }
+    let won = false;
+    game.on("game-won", () => (won = true));
+
+    game.moveCardToPile("card-spades-ace", game.tableaus[0].id);
+
+    expect(won).toBe(true);
   });
 });

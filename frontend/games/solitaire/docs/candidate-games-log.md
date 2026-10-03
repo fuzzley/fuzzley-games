@@ -37,7 +37,7 @@ Add every game in Part A of the survey:
 - [x] 5. Challenge and Super Challenge FreeCell.
 - [x] 6. Indian and Number Ten.
 - [x] 7. Lucas.
-- [ ] 8. Mrs. Mop.
+- [x] 8. Mrs. Mop.
 - [ ] 9. Addiction, Blue Moon and Red Moon.
 - [ ] 10. Screenshots and thumbnails for the new entries, the README, the
       survey's status, and `yarn verify`.
@@ -133,7 +133,7 @@ Add every game in Part A of the survey:
   - Choices in `FORTY_THIEVES_VARIANT`, rules-page entries, named variants
     (both Medium), the README line, and Indian and Number Ten blocks in
     `forty_thieves_game.spec.ts`.
-- Step 7: Lucas.
+- Step 7 (`0f2199a`): Lucas.
   - `FortyThievesVariant.LUCAS` (7): same-suit runs, 13 columns of 3, and a
     new `acesStartOnFoundations` field (false for every other row).
   - `dealFortyThievesLayout` now takes the foundations. For Lucas it pulls
@@ -144,6 +144,22 @@ Add every game in Part A of the survey:
     the screenshot and thumbnails, captured as in step 5. Limited's rules page
     no longer calls it the widest board in the family.
   - Tests: a Lucas block in `forty_thieves_game.spec.ts`.
+- Step 8: Mrs. Mop.
+  - `SimpleSimonVariant` (`SIMPLE_SIMON`, `MRS_MOP`) with a `VARIANT_BOARDS`
+    table in `simple_simon_rules.ts`: the deck count and the cards per column.
+    The column count and foundation count are derived from it, so they cannot
+    disagree. The module constants `TABLEAU_COUNT`, `FOUNDATION_COUNT`,
+    `FOUNDATION_COLUMN_OFFSET` and `CARDS_PER_COLUMN` are gone.
+  - `simpleSimonZoneSpecs(variant)`, `dealSimpleSimonLayout(deck, tableaus,
+cardsPerColumn)`, and `SimpleSimonGame` takes a `variant`, defaulting its
+    `cardIds` to that variant's deck.
+  - `MRS_MOP_LAYOUT`: 13 wide, `designHeightPx` 1800, which seats a
+    23-card column and on a 16:9 screen costs almost no card size.
+  - A "Mrs. Mop" entry (`mrsmop`), `stocklessGestures`, a rules page, a
+    Spider-family profile (Medium), the README, and the screenshot.
+  - Tests: a Mrs. Mop block in `simple_simon_game.spec.ts`.
+  - Tooling note: a very long Bash heredoc script failed to parse in this
+    environment; writing whole files with the Write tool worked instead.
 
 ## Picking it back up
 
