@@ -2,12 +2,30 @@ import * as Phaser from "phaser";
 import { Types } from "phaser";
 import { LoadingScene } from "./loading_scene";
 import { BoardScene } from "./board_scene";
-import { ViewportScaler } from "./viewport_scaler";
+import { ScalableGame, ViewportScaler } from "./viewport_scaler";
 import { DEFAULT_BACKGROUND_COLOR, TablePresentation } from "../presentation";
+
+/**
+ * Describes the slice of `Phaser.Game` the host drives, so a spec need not boot
+ * a real game.
+ */
+export interface HostedGame extends ScalableGame {
+  /** The game's lifecycle events, for knowing when it has booted. */
+  readonly events: { once(event: string, listener: () => void): unknown };
+  /** The renderer, whose context the host releases; a canvas one has none. */
+  readonly renderer: {
+    readonly type: number;
+    readonly gl?: WebGLRenderingContext;
+  };
+  destroy(removeCanvas: boolean): void;
+}
+
+/** Builds the game a host runs from its configuration. */
+export type CreateGame = (config: Types.Core.GameConfig) => HostedGame;
 
 /** Hosts a Phaser canvas running whichever board it is given. */
 export class PhaserHost {
-  private game?: Phaser.Game;
+  private game?: HostedGame;
 
   /** Keeps the canvas sized to the display's true pixel resolution. */
   private scaler?: ViewportScaler;
@@ -24,6 +42,8 @@ export class PhaserHost {
     private readonly parent: HTMLElement,
     private readonly makeBoardScene: () => BoardScene,
     private readonly presentation: TablePresentation,
+    private readonly createGame: CreateGame = (config) =>
+      new Phaser.Game(config),
   ) {}
 
   /** Starts the game. */
@@ -49,7 +69,7 @@ export class PhaserHost {
       // arguments.
       scene: [new LoadingScene(this.presentation), this.makeBoardScene()],
     };
-    const game = new Phaser.Game(gameConfig);
+    const game = this.createGame(gameConfig);
     this.game = game;
 
     // The scale manager and canvas only exist once the game has booted.
@@ -59,11 +79,24 @@ export class PhaserHost {
     });
   }
 
-  /** Tears the game down, releasing the scaler's listeners and the canvas. */
+  /**
+   * Tears the game down, releasing the scaler's listeners, the canvas and its
+   * WebGL context.
+   */
   public destroy(): void {
     this.scaler?.stop();
     this.scaler = undefined;
-    this.game?.destroy(true);
+    const game = this.game;
+    if (!game) return;
     this.game = undefined;
+
+    // Phaser leaves the context for the garbage collector, and a browser caps
+    // how many it keeps alive. Released from Phaser's own teardown, which runs
+    // on the next frame, because its renderer warns of a lost context until
+    // then.
+    game.events.once(Phaser.Core.Events.DESTROY, () => {
+      game.renderer?.gl?.getExtension("WEBGL_lose_context")?.loseContext();
+    });
+    game.destroy(true);
   }
 }
