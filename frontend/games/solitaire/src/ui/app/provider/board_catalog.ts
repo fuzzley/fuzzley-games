@@ -61,6 +61,7 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
   labellelucie: laBelleLucieGestures,
   trefoil: laBelleLucieGestures,
   canfield: canfieldGestures,
+  penguin: stocklessGestures,
 };
 
 /**
