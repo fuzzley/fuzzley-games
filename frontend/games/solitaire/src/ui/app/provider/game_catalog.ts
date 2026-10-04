@@ -148,11 +148,16 @@ import {
 /**
  * Describes a value a rule option can take, and its name for a player.
  *
- * @template T The values the option can take, such as a game's variants.
+ * @template T The rule the game is handed, such as one of its variants.
  */
-export interface GameOptionChoice<T extends number = number> {
-  /** The stored value, kept primitive so it round-trips through storage. */
-  readonly value: T;
+export interface GameOptionChoice<T = unknown> {
+  /**
+   * The number the choice is stored as, kept primitive so it round-trips
+   * through storage, and kept stable so a saved preference still finds it.
+   */
+  readonly value: number;
+  /** What the game is handed when this is chosen. */
+  readonly rule: T;
   /** What the choice is called. */
   readonly label: string;
   /** What choosing it does, in a line, shown when the option is a list. */
@@ -162,10 +167,10 @@ export interface GameOptionChoice<T extends number = number> {
 /**
  * Describes a rule a game lets the player choose.
  *
- * @template T The values the option can take, which {@link optionValue} hands
- *   back typed, so a game gets its own variant type rather than a number.
+ * @template T The rule the game is handed, which {@link optionRule} reads, so a
+ *   game gets its own variant type while storage keeps a number.
  */
-export interface GameOptionSpec<T extends number = number> {
+export interface GameOptionSpec<T = unknown> {
   /** Stable id, used for storage and for setting the value. */
   readonly id: string;
   /** What the option is called. */
@@ -181,8 +186,8 @@ export interface GameOptionSpec<T extends number = number> {
    * A list is for choices too many or too long to share a 320px row.
    */
   readonly control?: "segmented" | "list";
-  /** The value used when the player has expressed no preference. */
-  readonly defaultValue: T;
+  /** The stored value used when the player has expressed no preference. */
+  readonly defaultValue: number;
   /** Whether this is a development aid rather than a rule a player picks. */
   readonly debugOnly?: boolean;
 }
@@ -214,15 +219,43 @@ export interface CatalogSession<TGame extends PlayableGame = PlayableGame> {
   readonly game: TGame;
 }
 
-/** Reads an option's value, falling back to its default. */
-export function optionValue<T extends number>(
+/** Reads an option's stored value, falling back to its default. */
+export function optionValue(
   values: GameOptionValues,
-  spec: GameOptionSpec<T>,
-): T {
+  spec: GameOptionSpec,
+): number {
   const chosen = spec.choices.find(
     (choice) => choice.value === values[spec.id],
   );
   return chosen ? chosen.value : spec.defaultValue;
+}
+
+/** Reads the rule an option hands its game, falling back to its default. */
+export function optionRule<T>(
+  values: GameOptionValues,
+  spec: GameOptionSpec<T>,
+): T {
+  const value = optionValue(values, spec);
+  const chosen = spec.choices.find((choice) => choice.value === value);
+  if (!chosen) throw new Error(`The option "${spec.id}" has no default.`);
+  return chosen.rule;
+}
+
+/**
+ * Builds an option whose stored default is the choice handing the game its own
+ * default rule, so the two cannot disagree.
+ *
+ * @throws Error when no choice hands the game that rule.
+ */
+function gameOption<T>(
+  spec: Omit<GameOptionSpec<T>, "defaultValue"> & { readonly defaultRule: T },
+): GameOptionSpec<T> {
+  const { defaultRule, ...rest } = spec;
+  const fallback = spec.choices.find((choice) => choice.rule === defaultRule);
+  if (!fallback) {
+    throw new Error(`The option "${spec.id}" does not offer its default.`);
+  }
+  return { ...rest, defaultValue: fallback.value };
 }
 
 /** Returns whether two sets of rule values agree on every rule. */
@@ -240,516 +273,563 @@ function dealt<TGame extends PlayableGame>(game: TGame): CatalogSession<TGame> {
   return { game };
 }
 
-const KLONDIKE_DRAW_COUNT: GameOptionSpec<DrawCount> = {
+const KLONDIKE_DRAW_COUNT = gameOption<DrawCount>({
   id: "drawCount",
   label: "Draw Mode",
   description: "Draw 1 is easier; Draw 3 is the standard Solitaire challenge.",
   choices: [
-    { value: 1, label: "Draw 1" },
-    { value: 3, label: "Draw 3" },
+    { value: 1, rule: 1, label: "Draw 1" },
+    { value: 3, rule: 3, label: "Draw 3" },
   ],
-  defaultValue: DEFAULT_DRAW_COUNT,
-};
+  defaultRule: DEFAULT_DRAW_COUNT,
+});
 
-const KLONDIKE_SCORING: GameOptionSpec<KlondikeScoring> = {
+const KLONDIKE_SCORING = gameOption<KlondikeScoring>({
   id: "scoring",
   label: "Scoring",
   description:
     "Vegas buys the deck for $52 and pays $5 for every card on a foundation, but allows only one pass through the stock in Draw 1 and three in Draw 3.",
   choices: [
-    { value: KlondikeScoring.STANDARD, label: "Standard" },
-    { value: KlondikeScoring.VEGAS, label: "Vegas" },
+    { value: 0, rule: KlondikeScoring.STANDARD, label: "Standard" },
+    { value: 1, rule: KlondikeScoring.VEGAS, label: "Vegas" },
   ],
-  defaultValue: KlondikeScoring.STANDARD,
-};
+  defaultRule: KlondikeScoring.STANDARD,
+});
 
-const KLONDIKE_ALMOST_WIN: GameOptionSpec = {
+const KLONDIKE_ALMOST_WIN = gameOption<number>({
   id: "almostWin",
   label: "Almost Win Mode",
   description:
     "Pre-populates foundations so that dragging the remaining Kings will win the game.",
   choices: [
-    { value: 0, label: "Normal" },
-    { value: 1, label: "Almost Win" },
+    { value: 0, rule: 0, label: "Normal" },
+    { value: 1, rule: 1, label: "Almost Win" },
   ],
-  defaultValue: 0,
+  defaultRule: 0,
   debugOnly: true,
-};
+});
 
-const BAKERS_EMPTY_COLUMNS: GameOptionSpec = {
+const BAKERS_EMPTY_COLUMNS = gameOption<number>({
   id: "emptyColumns",
   label: "Empty Columns",
   description:
     "Kings Only is the harder variant: it also caps how many cards move at once, because a run can no longer be staged in an empty column.",
   choices: [
-    { value: 0, label: "Any Card" },
-    { value: 1, label: "Kings Only" },
+    { value: 0, rule: 0, label: "Any Card" },
+    { value: 1, rule: 1, label: "Kings Only" },
   ],
-  defaultValue: 0,
-};
+  defaultRule: 0,
+});
 
-const CHALLENGE_EMPTY_COLUMNS: GameOptionSpec = {
+const CHALLENGE_EMPTY_COLUMNS = gameOption<number>({
   id: "emptyColumns",
   label: "Empty Columns",
   description:
     "Kings Only is Super Challenge FreeCell: it also caps how many cards move at once, because a run can no longer be staged in an empty column.",
   choices: [
-    { value: 0, label: "Any Card" },
-    { value: 1, label: "Kings Only" },
+    { value: 0, rule: 0, label: "Any Card" },
+    { value: 1, rule: 1, label: "Kings Only" },
   ],
-  defaultValue: 0,
-};
+  defaultRule: 0,
+});
 
-const SPIDER_SUIT_COUNT: GameOptionSpec<SpiderSuitCount> = {
+const SPIDER_SUIT_COUNT = gameOption<SpiderSuitCount>({
   id: "suitCount",
   label: "Suits",
   description:
     "Always 104 cards — fewer suits means more copies of each, and a far gentler game.",
   choices: [
-    { value: 1, label: "1 Suit" },
-    { value: 2, label: "2 Suits" },
-    { value: 4, label: "4 Suits" },
+    { value: 1, rule: 1, label: "1 Suit" },
+    { value: 2, rule: 2, label: "2 Suits" },
+    { value: 4, rule: 4, label: "4 Suits" },
   ],
-  defaultValue: 4,
-};
+  defaultRule: 4,
+});
 
 /** Which of the Yukon family to deal. */
-const YUKON_VARIANT: GameOptionSpec<YukonVariant> = {
+const YUKON_VARIANT = gameOption<YukonVariant>({
   id: "variant",
   label: "Variant",
   description:
     "Alaska and Russian Solitaire deal like Yukon but build the columns by suit rather than by alternating color; Moosehide lets a card land on any suit but its own.",
   choices: [
     {
-      value: YukonVariant.YUKON,
+      value: 0,
+      rule: YukonVariant.YUKON,
       label: "Yukon",
       description: "Build down in alternating colours.",
     },
     {
-      value: YukonVariant.ALASKA,
+      value: 1,
+      rule: YukonVariant.ALASKA,
       label: "Alaska",
       description: "Build up or down in suit.",
     },
     {
-      value: YukonVariant.RUSSIAN,
+      value: 2,
+      rule: YukonVariant.RUSSIAN,
       label: "Russian Solitaire",
       description: "Build down in suit; the hardest of the four.",
     },
     {
-      value: YukonVariant.MOOSEHIDE,
+      value: 3,
+      rule: YukonVariant.MOOSEHIDE,
       label: "Moosehide",
       description: "Build down on any suit but a card's own.",
     },
   ],
   control: "list",
-  defaultValue: YukonVariant.YUKON,
-};
+  defaultRule: YukonVariant.YUKON,
+});
 
 /** Which of the Klondike family to deal. */
-const KLONDIKE_VARIANT: GameOptionSpec<KlondikeVariant> = {
+const KLONDIKE_VARIANT = gameOption<KlondikeVariant>({
   id: "variant",
   label: "Variant",
   description:
     "Whitehead deals every card face-up and builds in one colour; Thumb and Pouch lets a card land on any suit but its own. Both let any card fill an empty column. Saratoga is Klondike with every column card dealt face-up.",
   choices: [
     {
-      value: KlondikeVariant.KLONDIKE,
+      value: 0,
+      rule: KlondikeVariant.KLONDIKE,
       label: "Klondike",
       description:
         "Build down in alternating colours; only a King fills an empty column.",
     },
     {
-      value: KlondikeVariant.WHITEHEAD,
+      value: 1,
+      rule: KlondikeVariant.WHITEHEAD,
       label: "Whitehead",
       description:
         "Every card face-up, building down in one colour; any card fills an empty column.",
     },
     {
-      value: KlondikeVariant.THUMB_AND_POUCH,
+      value: 2,
+      rule: KlondikeVariant.THUMB_AND_POUCH,
       label: "Thumb and Pouch",
       description:
         "Build on any suit but a card's own; any card fills an empty column.",
     },
     {
-      value: KlondikeVariant.SARATOGA,
+      value: 3,
+      rule: KlondikeVariant.SARATOGA,
       label: "Saratoga",
       description: "Klondike with every column card dealt face-up.",
     },
   ],
   control: "list",
-  defaultValue: KlondikeVariant.KLONDIKE,
-};
+  defaultRule: KlondikeVariant.KLONDIKE,
+});
 
 /** Which of the Forty Thieves family to deal. */
-const FORTY_THIEVES_VARIANT: GameOptionSpec<FortyThievesVariant> = {
+const FORTY_THIEVES_VARIANT = gameOption<FortyThievesVariant>({
   id: "variant",
   label: "Variant",
   description:
     "Josephine lets same-suit runs move as a unit; Rank and File builds in alternating colours but buries three of every four cards. Indian deals three to a column and builds on any other suit; Number Ten buries two of four and builds in alternating colours.",
   choices: [
     {
-      value: FortyThievesVariant.FORTY_THIEVES,
+      value: 0,
+      rule: FortyThievesVariant.FORTY_THIEVES,
       label: "Forty Thieves",
       description: "Build down in suit, one card at a time.",
     },
     {
-      value: FortyThievesVariant.JOSEPHINE,
+      value: 1,
+      rule: FortyThievesVariant.JOSEPHINE,
       label: "Josephine",
       description: "Build down in suit, and move a same-suit run as a unit.",
     },
     {
-      value: FortyThievesVariant.RANK_AND_FILE,
+      value: 2,
+      rule: FortyThievesVariant.RANK_AND_FILE,
       label: "Rank and File",
       description:
         "Alternating colours and runs, but three in four cards dealt face-down.",
     },
     {
-      value: FortyThievesVariant.INDIAN,
+      value: 5,
+      rule: FortyThievesVariant.INDIAN,
       label: "Indian",
       description:
         "Three cards to a column, building on any suit but a card's own.",
     },
     {
-      value: FortyThievesVariant.NUMBER_TEN,
+      value: 6,
+      rule: FortyThievesVariant.NUMBER_TEN,
       label: "Number Ten",
       description:
         "Alternating colours and runs, with half the deal face-down.",
     },
   ],
   control: "list",
-  defaultValue: FortyThievesVariant.FORTY_THIEVES,
-};
+  defaultRule: FortyThievesVariant.FORTY_THIEVES,
+});
 
 /** Which of the Scorpion family to deal. */
-const SCORPION_VARIANT: GameOptionSpec<ScorpionVariant> = {
+const SCORPION_VARIANT = gameOption<ScorpionVariant>({
   id: "variant",
   label: "Variant",
   description:
     "Wasp lets any card or run fill an empty column; Scorpion II buries cards in only the first three columns.",
   choices: [
     {
-      value: ScorpionVariant.SCORPION,
+      value: 0,
+      rule: ScorpionVariant.SCORPION,
       label: "Scorpion",
       description:
         "Only a King fills an empty column; four columns hide three cards.",
     },
     {
-      value: ScorpionVariant.WASP,
+      value: 1,
+      rule: ScorpionVariant.WASP,
       label: "Wasp",
       description: "Any card, with all it carries, fills an empty column.",
     },
     {
-      value: ScorpionVariant.SCORPION_II,
+      value: 2,
+      rule: ScorpionVariant.SCORPION_II,
       label: "Scorpion II",
       description: "Only the first three columns hide cards.",
     },
   ],
   control: "list",
-  defaultValue: ScorpionVariant.SCORPION,
-};
+  defaultRule: ScorpionVariant.SCORPION,
+});
 
 /** How many redeals a Montana game allows. */
-const MONTANA_REDEALS: GameOptionSpec<MaxRedeals> = {
+const MONTANA_REDEALS = gameOption<MaxRedeals>({
   id: "redeals",
   label: "Redeals",
   description:
     "Three redeals is the game called Addiction: one more chance to shuffle the stuck cards back out.",
   choices: [
-    { value: 2, label: "2 Redeals" },
-    { value: 3, label: "3 Redeals" },
+    { value: 2, rule: 2, label: "2 Redeals" },
+    { value: 3, rule: 3, label: "3 Redeals" },
   ],
-  defaultValue: DEFAULT_MAX_REDEALS,
-};
+  defaultRule: DEFAULT_MAX_REDEALS,
+});
 
 /** Which of the Moons to deal, which share a grid and differ in the deal. */
-const MOON_DEAL: GameOptionSpec<MontanaVariant> = {
+const MOON_DEAL = gameOption<MontanaVariant>({
   id: "variant",
   label: "Deal",
   description:
     "Red Moon deals the gaps right beside the Aces, so every row can start building at once; Blue Moon leaves them wherever the Aces fell.",
   choices: [
     {
-      value: MontanaVariant.BLUE_MOON,
+      value: 1,
+      rule: MontanaVariant.BLUE_MOON,
       label: "Blue Moon",
       description: "The gaps lie wherever the Aces were dealt.",
     },
     {
-      value: MontanaVariant.RED_MOON,
+      value: 2,
+      rule: MontanaVariant.RED_MOON,
       label: "Red Moon",
       description:
         "The gaps are dealt beside the Aces, so every row starts at once.",
     },
   ],
   control: "list",
-  defaultValue: MontanaVariant.BLUE_MOON,
-};
+  defaultRule: MontanaVariant.BLUE_MOON,
+});
 
 /** Which of the Spiderette pair to deal. */
-const SPIDERETTE_VARIANT: GameOptionSpec<SpideretteVariant> = {
+const SPIDERETTE_VARIANT = gameOption<SpideretteVariant>({
   id: "variant",
   label: "Deal",
   description:
     "Will o' the Wisp deals a flat three cards to every column instead of Klondike's staircase, burying fewer cards but leaving more in the stock.",
   choices: [
     {
-      value: SpideretteVariant.SPIDERETTE,
+      value: 0,
+      rule: SpideretteVariant.SPIDERETTE,
       label: "Spiderette",
       description:
         "Klondike's staircase of one to seven cards, with 24 in the stock.",
     },
     {
-      value: SpideretteVariant.WILL_O_THE_WISP,
+      value: 1,
+      rule: SpideretteVariant.WILL_O_THE_WISP,
       label: "Will o' the Wisp",
       description:
         "Three cards to every column, burying fewer but leaving 31 in the stock.",
     },
   ],
   control: "list",
-  defaultValue: SpideretteVariant.SPIDERETTE,
-};
+  defaultRule: SpideretteVariant.SPIDERETTE,
+});
 
 /** What may fill an empty column in Aces Up. */
-const ACES_UP_SPACES: GameOptionSpec<AcesUpSpaces> = {
+const ACES_UP_SPACES = gameOption<AcesUpSpaces>({
   id: "emptyColumns",
   label: "Empty Columns",
   description:
     "Aces Only is the harder game: a space can only take an Ace, so every other card has to wait for the discard.",
   choices: [
-    { value: AcesUpSpaces.ANY_CARD, label: "Any Card" },
-    { value: AcesUpSpaces.ACES_ONLY, label: "Aces Only" },
+    { value: 0, rule: AcesUpSpaces.ANY_CARD, label: "Any Card" },
+    { value: 1, rule: AcesUpSpaces.ACES_ONLY, label: "Aces Only" },
   ],
-  defaultValue: DEFAULT_ACES_UP_SPACES,
-};
+  defaultRule: DEFAULT_ACES_UP_SPACES,
+});
 
 /** Which of the Golf family to deal. */
-const GOLF_VARIANT: GameOptionSpec<GolfVariant> = {
+const GOLF_VARIANT = gameOption<GolfVariant>({
   id: "variant",
   label: "Variant",
   description:
     "Golf lets nothing onto a King; one house rule lets a Queen go there. Putt Putt turns the corner, so a King and an Ace are a rank apart both ways.",
   choices: [
     {
-      value: GolfVariant.GOLF,
+      value: 0,
+      rule: GolfVariant.GOLF,
       label: "Golf",
       description:
         "Nothing goes on a King, so a King blocks until the next stock card.",
     },
     {
-      value: GolfVariant.QUEENS_ON_KINGS,
+      value: 1,
+      rule: GolfVariant.QUEENS_ON_KINGS,
       label: "Queens on Kings",
       description: "A Queen can go on a King, so a King no longer blocks.",
     },
     {
-      value: GolfVariant.PUTT_PUTT,
+      value: 2,
+      rule: GolfVariant.PUTT_PUTT,
       label: "Putt Putt",
       description:
         "The ranks turn the corner: a King takes an Ace, and an Ace a King.",
     },
   ],
   control: "list",
-  defaultValue: DEFAULT_GOLF_VARIANT,
-};
+  defaultRule: DEFAULT_GOLF_VARIANT,
+});
 
 /** Which of the games on Calculation's board to deal. */
-const CALCULATION_VARIANT: GameOptionSpec<CalculationVariant> = {
+const CALCULATION_VARIANT = gameOption<CalculationVariant>({
   id: "variant",
   label: "Variant",
   description:
     "Sir Tommy builds every foundation up by one from an Ace, which the player has to wait for, rather than by Calculation's four intervals.",
   choices: [
     {
-      value: CalculationVariant.CALCULATION,
+      value: 0,
+      rule: CalculationVariant.CALCULATION,
       label: "Calculation",
       description:
         "Foundations start on A, 2, 3 and 4, and build by ones, twos, threes and fours.",
     },
     {
-      value: CalculationVariant.SIR_TOMMY,
+      value: 1,
+      rule: CalculationVariant.SIR_TOMMY,
       label: "Sir Tommy",
       description: "Each foundation starts on an Ace and builds up by one.",
     },
   ],
   control: "list",
-  defaultValue: DEFAULT_CALCULATION_VARIANT,
-};
+  defaultRule: DEFAULT_CALCULATION_VARIANT,
+});
 
 /** Which of the games on Bristol's board to deal. */
-const BRISTOL_VARIANT: GameOptionSpec<BristolVariant> = {
+const BRISTOL_VARIANT = gameOption<BristolVariant>({
   id: "variant",
   label: "Variant",
   description:
     "Belvedere starts one foundation with an Ace, so there is somewhere to play from the first move.",
   choices: [
     {
-      value: BristolVariant.BRISTOL,
+      value: 0,
+      rule: BristolVariant.BRISTOL,
       label: "Bristol",
       description: "Every foundation waits for an Ace to turn up.",
     },
     {
-      value: BristolVariant.BELVEDERE,
+      value: 1,
+      rule: BristolVariant.BELVEDERE,
       label: "Belvedere",
       description:
         "One Ace starts on a foundation, so there is a play from the first move.",
     },
   ],
   control: "list",
-  defaultValue: DEFAULT_BRISTOL_VARIANT,
-};
+  defaultRule: DEFAULT_BRISTOL_VARIANT,
+});
 
 /** Which of the games on Monte Carlo's grid to deal. */
-const MONTE_CARLO_VARIANT: GameOptionSpec<MonteCarloVariant> = {
+const MONTE_CARLO_VARIANT = gameOption<MonteCarloVariant>({
   id: "variant",
   label: "Variant",
   description:
     "Thirteens pairs touching cards that add up to thirteen, and lets a King go on its own.",
   choices: [
     {
-      value: MonteCarloVariant.MONTE_CARLO,
+      value: 0,
+      rule: MonteCarloVariant.MONTE_CARLO,
       label: "Monte Carlo",
       description: "Pair touching cards of the same rank.",
     },
     {
-      value: MonteCarloVariant.THIRTEENS,
+      value: 1,
+      rule: MonteCarloVariant.THIRTEENS,
       label: "Thirteens",
       description:
         "Pair touching cards that add up to thirteen; a King goes alone.",
     },
   ],
   control: "list",
-  defaultValue: DEFAULT_MONTE_CARLO_VARIANT,
-};
+  defaultRule: DEFAULT_MONTE_CARLO_VARIANT,
+});
 
 /** Which of the games on La Belle Lucie's eighteen fans to deal. */
-const LA_BELLE_LUCIE_VARIANT: GameOptionSpec<LaBelleLucieVariant> = {
+const LA_BELLE_LUCIE_VARIANT = gameOption<LaBelleLucieVariant>({
   id: "variant",
   label: "Variant",
   description:
     "The Fan lets a King fill an empty fan but allows no redeal; Shamrocks builds up or down in any suit, but never past three cards to a fan.",
   choices: [
     {
-      value: LaBelleLucieVariant.LA_BELLE_LUCIE,
+      value: 0,
+      rule: LaBelleLucieVariant.LA_BELLE_LUCIE,
       label: "La Belle Lucie",
       description:
         "Build down in suit, with two redeals; empty fans stay empty.",
     },
     {
-      value: LaBelleLucieVariant.THE_FAN,
+      value: 1,
+      rule: LaBelleLucieVariant.THE_FAN,
       label: "The Fan",
       description: "Only a King fills an empty fan, and there is no redeal.",
     },
     {
-      value: LaBelleLucieVariant.SHAMROCKS,
+      value: 2,
+      rule: LaBelleLucieVariant.SHAMROCKS,
       label: "Shamrocks",
       description:
         "Build up or down in any suit, never past three cards; no redeal.",
     },
   ],
   control: "list",
-  defaultValue: DEFAULT_LA_BELLE_LUCIE_VARIANT,
-};
+  defaultRule: DEFAULT_LA_BELLE_LUCIE_VARIANT,
+});
 
 /** Which of the Canfield family to deal. */
-const CANFIELD_VARIANT: GameOptionSpec<CanfieldVariant> = {
+const CANFIELD_VARIANT = gameOption<CanfieldVariant>({
   id: "variant",
   label: "Variant",
   description:
     "Storehouse starts the foundations with the Twos and builds in suit; Superior Canfield deals the reserve face-up and leaves spaces for you to fill; Rainbow builds regardless of colour from a one-pass stock.",
   choices: [
     {
-      value: CanfieldVariant.CANFIELD,
+      value: 0,
+      rule: CanfieldVariant.CANFIELD,
       label: "Canfield",
       description:
         "Alternating colours, with the stock drawn in threes and redealt freely.",
     },
     {
-      value: CanfieldVariant.STOREHOUSE,
+      value: 1,
+      rule: CanfieldVariant.STOREHOUSE,
       label: "Storehouse",
       description:
         "The Twos start the foundations; build in suit, one card at a time.",
     },
     {
-      value: CanfieldVariant.SUPERIOR,
+      value: 2,
+      rule: CanfieldVariant.SUPERIOR,
       label: "Superior Canfield",
       description:
         "The reserve is dealt face-up, and you fill spaces yourself.",
     },
     {
-      value: CanfieldVariant.RAINBOW,
+      value: 3,
+      rule: CanfieldVariant.RAINBOW,
       label: "Rainbow",
       description:
         "Build regardless of colour, one card at a time, with no redeal.",
     },
   ],
   control: "list",
-  defaultValue: DEFAULT_CANFIELD_VARIANT,
-};
+  defaultRule: DEFAULT_CANFIELD_VARIANT,
+});
 
 /** When a game of Pyramid is won. */
-const PYRAMID_GOAL: GameOptionSpec<PyramidGoal> = {
+const PYRAMID_GOAL = gameOption<PyramidGoal>({
   id: "goal",
   label: "Goal",
   description:
     "Pyramid Only is Relaxed Pyramid: clearing the pyramid wins, whatever is left in the stock and waste.",
   choices: [
-    { value: PyramidGoal.ALL_CARDS, label: "All Cards" },
-    { value: PyramidGoal.PYRAMID_ONLY, label: "Pyramid Only" },
+    { value: 0, rule: PyramidGoal.ALL_CARDS, label: "All Cards" },
+    {
+      value: 1,
+      rule: PyramidGoal.PYRAMID_ONLY,
+      label: "Pyramid Only",
+    },
   ],
-  defaultValue: DEFAULT_PYRAMID_GOAL,
-};
+  defaultRule: DEFAULT_PYRAMID_GOAL,
+});
 
 /** How many times Pyramid's stock may be gone through. */
-const PYRAMID_PASSES: GameOptionSpec<PyramidPasses> = {
+const PYRAMID_PASSES = gameOption<PyramidPasses>({
   id: "passes",
   label: "Passes",
   description:
     "Three passes turns the waste back over twice, as Par Pyramid allows.",
   choices: [
-    { value: 1, label: "1 Pass" },
-    { value: 3, label: "3 Passes" },
+    { value: 1, rule: 1, label: "1 Pass" },
+    { value: 3, rule: 3, label: "3 Passes" },
   ],
-  defaultValue: DEFAULT_PYRAMID_PASSES,
-};
+  defaultRule: DEFAULT_PYRAMID_PASSES,
+});
 
 /** Which of the games on Beleaguered Castle's eight rows to deal. */
-const CASTLE_VARIANT: GameOptionSpec<CastleVariant> = {
+const CASTLE_VARIANT = gameOption<CastleVariant>({
   id: "variant",
   label: "Variant",
   description:
     "Streets and Alleys deals the Aces into the rows instead of the foundations; Citadel sends every card it can home while dealing.",
   choices: [
     {
-      value: CastleVariant.BELEAGUERED_CASTLE,
+      value: 0,
+      rule: CastleVariant.BELEAGUERED_CASTLE,
       label: "Beleaguered Castle",
       description: "The Aces start on the foundations; six cards to a row.",
     },
     {
-      value: CastleVariant.STREETS_AND_ALLEYS,
+      value: 1,
+      rule: CastleVariant.STREETS_AND_ALLEYS,
       label: "Streets and Alleys",
       description: "The Aces are shuffled in, and have to be dug out.",
     },
     {
-      value: CastleVariant.CITADEL,
+      value: 2,
+      rule: CastleVariant.CITADEL,
       label: "Citadel",
       description:
         "Cards go home as they are dealt, so the rows start shorter.",
     },
   ],
   control: "list",
-  defaultValue: DEFAULT_CASTLE_VARIANT,
-};
+  defaultRule: DEFAULT_CASTLE_VARIANT,
+});
 
 /** Which scoring Poker Squares counts its lines by. */
-const POKER_SQUARES_SCORING: GameOptionSpec<PokerSquaresScoring> = {
+const POKER_SQUARES_SCORING = gameOption<PokerSquaresScoring>({
   id: "scoring",
   label: "Scoring",
   description:
     "American scoring pays most for flushes and wins at 200; English scoring pays more for a straight than a flush and wins at 70.",
   choices: [
-    { value: PokerSquaresScoring.AMERICAN, label: "American" },
-    { value: PokerSquaresScoring.ENGLISH, label: "English" },
+    {
+      value: 0,
+      rule: PokerSquaresScoring.AMERICAN,
+      label: "American",
+    },
+    { value: 1, rule: PokerSquaresScoring.ENGLISH, label: "English" },
   ],
-  defaultValue: DEFAULT_POKER_SQUARES_SCORING,
-};
+  defaultRule: DEFAULT_POKER_SQUARES_SCORING,
+});
 
 /*
  * The entries, each declared with `satisfies` so it keeps the literal id and
@@ -769,10 +849,10 @@ const KLONDIKE = {
   create: (values: GameOptionValues) =>
     dealt(
       new KlondikeGame({
-        drawCount: optionValue(values, KLONDIKE_DRAW_COUNT),
-        variant: optionValue(values, KLONDIKE_VARIANT),
-        scoring: klondikeScoringPolicy(optionValue(values, KLONDIKE_SCORING)),
-        almostWin: optionValue(values, KLONDIKE_ALMOST_WIN) === 1,
+        drawCount: optionRule(values, KLONDIKE_DRAW_COUNT),
+        variant: optionRule(values, KLONDIKE_VARIANT),
+        scoring: klondikeScoringPolicy(optionRule(values, KLONDIKE_SCORING)),
+        almostWin: optionRule(values, KLONDIKE_ALMOST_WIN) === 1,
       }),
     ),
 } satisfies CatalogEntry<KlondikeGame>;
@@ -793,9 +873,7 @@ const SPIDER = {
   create: (values: GameOptionValues) =>
     dealt(
       new SpiderGame({
-        cardIds: deckCardIds(
-          spiderDeck(optionValue(values, SPIDER_SUIT_COUNT)),
-        ),
+        cardIds: deckCardIds(spiderDeck(optionRule(values, SPIDER_SUIT_COUNT))),
       }),
     ),
 } satisfies CatalogEntry<SpiderGame>;
@@ -806,7 +884,7 @@ const YUKON = {
   options: [YUKON_VARIANT],
   layout: YUKON_LAYOUT,
   create: (values: GameOptionValues) =>
-    dealt(new YukonGame({ variant: optionValue(values, YUKON_VARIANT) })),
+    dealt(new YukonGame({ variant: optionRule(values, YUKON_VARIANT) })),
 } satisfies CatalogEntry<YukonGame>;
 
 const BAKERS = {
@@ -819,7 +897,7 @@ const BAKERS = {
     dealt(
       new FreeCellGame({
         variant:
-          optionValue(values, BAKERS_EMPTY_COLUMNS) === 1
+          optionRule(values, BAKERS_EMPTY_COLUMNS) === 1
             ? FreeCellVariant.BAKERS_KINGS_ONLY
             : FreeCellVariant.BAKERS,
       }),
@@ -840,7 +918,7 @@ const CHALLENGE_FREECELL = {
     dealt(
       new FreeCellGame({
         variant:
-          optionValue(values, CHALLENGE_EMPTY_COLUMNS) === 1
+          optionRule(values, CHALLENGE_EMPTY_COLUMNS) === 1
             ? FreeCellVariant.SUPER_CHALLENGE
             : FreeCellVariant.CHALLENGE,
       }),
@@ -861,7 +939,7 @@ const SCORPION = {
   options: [SCORPION_VARIANT],
   layout: SCORPION_LAYOUT,
   create: (values: GameOptionValues) =>
-    dealt(new ScorpionGame({ variant: optionValue(values, SCORPION_VARIANT) })),
+    dealt(new ScorpionGame({ variant: optionRule(values, SCORPION_VARIANT) })),
 } satisfies CatalogEntry<ScorpionGame>;
 
 const SIMPLE_SIMON = {
@@ -909,7 +987,7 @@ const FORTY_THIEVES = {
   create: (values: GameOptionValues) =>
     dealt(
       new FortyThievesGame({
-        variant: optionValue(values, FORTY_THIEVES_VARIANT),
+        variant: optionRule(values, FORTY_THIEVES_VARIANT),
       }),
     ),
 } satisfies CatalogEntry<FortyThievesGame>;
@@ -952,9 +1030,7 @@ const MONTANA = {
   options: [MONTANA_REDEALS],
   layout: MONTANA_LAYOUT,
   create: (values: GameOptionValues) =>
-    dealt(
-      new MontanaGame({ maxRedeals: optionValue(values, MONTANA_REDEALS) }),
-    ),
+    dealt(new MontanaGame({ maxRedeals: optionRule(values, MONTANA_REDEALS) })),
 } satisfies CatalogEntry<MontanaGame>;
 
 /*
@@ -968,7 +1044,7 @@ const BLUE_MOON = {
   options: [MOON_DEAL],
   layout: BLUE_MOON_LAYOUT,
   create: (values: GameOptionValues) =>
-    dealt(new MontanaGame({ variant: optionValue(values, MOON_DEAL) })),
+    dealt(new MontanaGame({ variant: optionRule(values, MOON_DEAL) })),
 } satisfies CatalogEntry<MontanaGame>;
 
 const DOUBLE_KLONDIKE = {
@@ -994,7 +1070,7 @@ const SPIDERETTE = {
   layout: SPIDERETTE_LAYOUT,
   create: (values: GameOptionValues) =>
     dealt(
-      new SpideretteGame({ variant: optionValue(values, SPIDERETTE_VARIANT) }),
+      new SpideretteGame({ variant: optionRule(values, SPIDERETTE_VARIANT) }),
     ),
 } satisfies CatalogEntry<SpideretteGame>;
 
@@ -1012,7 +1088,7 @@ const ACES_UP = {
   options: [ACES_UP_SPACES],
   layout: ACES_UP_LAYOUT,
   create: (values: GameOptionValues) =>
-    dealt(new AcesUpGame({ spaces: optionValue(values, ACES_UP_SPACES) })),
+    dealt(new AcesUpGame({ spaces: optionRule(values, ACES_UP_SPACES) })),
 } satisfies CatalogEntry<AcesUpGame>;
 
 const GOLF = {
@@ -1021,7 +1097,7 @@ const GOLF = {
   options: [GOLF_VARIANT],
   layout: GOLF_LAYOUT,
   create: (values: GameOptionValues) =>
-    dealt(new GolfGame({ variant: optionValue(values, GOLF_VARIANT) })),
+    dealt(new GolfGame({ variant: optionRule(values, GOLF_VARIANT) })),
 } satisfies CatalogEntry<GolfGame>;
 
 const CALCULATION = {
@@ -1032,7 +1108,7 @@ const CALCULATION = {
   create: (values: GameOptionValues) =>
     dealt(
       new CalculationGame({
-        variant: optionValue(values, CALCULATION_VARIANT),
+        variant: optionRule(values, CALCULATION_VARIANT),
       }),
     ),
 } satisfies CatalogEntry<CalculationGame>;
@@ -1051,7 +1127,7 @@ const BRISTOL = {
   options: [BRISTOL_VARIANT],
   layout: BRISTOL_LAYOUT,
   create: (values: GameOptionValues) =>
-    dealt(new BristolGame({ variant: optionValue(values, BRISTOL_VARIANT) })),
+    dealt(new BristolGame({ variant: optionRule(values, BRISTOL_VARIANT) })),
 } satisfies CatalogEntry<BristolGame>;
 
 const NESTOR = {
@@ -1069,7 +1145,7 @@ const MONTE_CARLO = {
   layout: MONTE_CARLO_LAYOUT,
   create: (values: GameOptionValues) =>
     dealt(
-      new MonteCarloGame({ variant: optionValue(values, MONTE_CARLO_VARIANT) }),
+      new MonteCarloGame({ variant: optionRule(values, MONTE_CARLO_VARIANT) }),
     ),
 } satisfies CatalogEntry<MonteCarloGame>;
 
@@ -1081,7 +1157,7 @@ const LA_BELLE_LUCIE = {
   create: (values: GameOptionValues) =>
     dealt(
       new LaBelleLucieGame({
-        variant: optionValue(values, LA_BELLE_LUCIE_VARIANT),
+        variant: optionRule(values, LA_BELLE_LUCIE_VARIANT),
       }),
     ),
 } satisfies CatalogEntry<LaBelleLucieGame>;
@@ -1105,7 +1181,7 @@ const CANFIELD = {
   options: [CANFIELD_VARIANT],
   layout: CANFIELD_LAYOUT,
   create: (values: GameOptionValues) =>
-    dealt(new CanfieldGame({ variant: optionValue(values, CANFIELD_VARIANT) })),
+    dealt(new CanfieldGame({ variant: optionRule(values, CANFIELD_VARIANT) })),
 } satisfies CatalogEntry<CanfieldGame>;
 
 const PENGUIN = {
@@ -1153,8 +1229,8 @@ const PYRAMID = {
   create: (values: GameOptionValues) =>
     dealt(
       new PyramidGame({
-        goal: optionValue(values, PYRAMID_GOAL),
-        passes: optionValue(values, PYRAMID_PASSES),
+        goal: optionRule(values, PYRAMID_GOAL),
+        passes: optionRule(values, PYRAMID_PASSES),
       }),
     ),
 } satisfies CatalogEntry<PyramidGame>;
@@ -1173,7 +1249,7 @@ const BELEAGUERED_CASTLE = {
   options: [CASTLE_VARIANT],
   layout: BELEAGUERED_CASTLE_LAYOUT,
   create: (values: GameOptionValues) =>
-    dealt(new CastleGame({ variant: optionValue(values, CASTLE_VARIANT) })),
+    dealt(new CastleGame({ variant: optionRule(values, CASTLE_VARIANT) })),
 } satisfies CatalogEntry<CastleGame>;
 
 /*
@@ -1196,7 +1272,7 @@ const POKER_SQUARES = {
   create: (values: GameOptionValues) =>
     dealt(
       new PokerSquaresGame({
-        scoring: optionValue(values, POKER_SQUARES_SCORING),
+        scoring: optionRule(values, POKER_SQUARES_SCORING),
       }),
     ),
 } satisfies CatalogEntry<PokerSquaresGame>;
@@ -1265,6 +1341,45 @@ export type GameId = KnownCatalogEntry["id"];
 export type GameOf<Id extends GameId> = ReturnType<
   Extract<KnownCatalogEntry, { id: Id }>["create"]
 >["game"];
+
+/**
+ * Returns the stored value of the choice that hands a game a rule, for data
+ * written in the game's own terms, such as a rules page.
+ *
+ * @throws Error when the game offers no such option or rule.
+ */
+export function storedValue(
+  gameId: GameId,
+  optionId: string,
+  rule: unknown,
+): number {
+  const option = catalogEntry(gameId).options.find(
+    (candidate) => candidate.id === optionId,
+  );
+  const choice = option?.choices.find((candidate) => candidate.rule === rule);
+  if (!choice) {
+    throw new Error(`${gameId} offers no "${optionId}" of ${String(rule)}.`);
+  }
+  return choice.value;
+}
+
+/**
+ * Returns the stored values that hand a game the given rules, for data written
+ * in the game's own terms, such as a named variant's profile.
+ *
+ * @throws Error when the game offers no such option or rule.
+ */
+export function storedValues(
+  gameId: GameId,
+  rules: Readonly<Record<string, unknown>>,
+): GameOptionValues {
+  return Object.fromEntries(
+    Object.entries(rules).map(([optionId, rule]) => [
+      optionId,
+      storedValue(gameId, optionId, rule),
+    ]),
+  );
+}
 
 /** Returns the catalog entry with the given id, or the first one. */
 export function catalogEntry(id: string | null | undefined): CatalogEntry {

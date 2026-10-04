@@ -31,21 +31,16 @@ export const KlondikeRole = {
 /** Names one of the parts a Klondike pile can play. */
 export type KlondikeRole = (typeof KlondikeRole)[keyof typeof KlondikeRole];
 
-/**
- * Which set of column rules a Klondike board is played by.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which set of column rules a Klondike board is played by. */
 export const KlondikeVariant = {
   /** The original: build down in alternating colours, Kings into spaces. */
-  KLONDIKE: 0,
+  KLONDIKE: "klondike",
   /** Whitehead: build down in colour, all face up, any card into a space. */
-  WHITEHEAD: 1,
+  WHITEHEAD: "whitehead",
   /** Thumb and Pouch: build down in any other suit, any card into a space. */
-  THUMB_AND_POUCH: 2,
+  THUMB_AND_POUCH: "thumb-and-pouch",
   /** Saratoga: the original, with every column card dealt face up. */
-  SARATOGA: 3,
+  SARATOGA: "saratoga",
 } as const;
 
 /** Names one of the games in the Klondike family. */

@@ -26,19 +26,14 @@ export const MontanaRole = {
 /** Names one of the parts a Montana pile can play. */
 export type MontanaRole = (typeof MontanaRole)[keyof typeof MontanaRole];
 
-/**
- * Which of the Montana family is being played.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which of the Montana family is being played. */
 export const MontanaVariant = {
   /** Montana: the Aces left out, and every row sorted from Two up. */
-  MONTANA: 0,
+  MONTANA: "montana",
   /** Blue Moon: the Aces moved to the start of the rows, gaps where they were. */
-  BLUE_MOON: 1,
+  BLUE_MOON: "blue-moon",
   /** Red Moon: the Aces at the start of the rows, and the gaps beside them. */
-  RED_MOON: 2,
+  RED_MOON: "red-moon",
 } as const;
 
 /** Names one of the games in the Montana family. */

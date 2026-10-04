@@ -14,9 +14,9 @@ const DRAW_COUNT: GameOptionSpec = {
   label: "Draw Count",
   description: "How many cards come off the stock at a time.",
   choices: [
-    { value: 1, label: "Draw 1" },
-    { value: 2, label: "Draw 2" },
-    { value: 3, label: "Draw 3" },
+    { value: 1, rule: 1, label: "Draw 1" },
+    { value: 2, rule: 2, label: "Draw 2" },
+    { value: 3, rule: 3, label: "Draw 3" },
   ],
   defaultValue: 2,
 };
@@ -26,9 +26,9 @@ const LISTED_DRAW_COUNT: GameOptionSpec = {
   ...DRAW_COUNT,
   control: "list",
   choices: [
-    { value: 1, label: "Draw 1", description: "One card at a time." },
-    { value: 2, label: "Draw 2", description: "Two cards at a time." },
-    { value: 3, label: "Draw 3" },
+    { value: 1, rule: 1, label: "Draw 1", description: "One card at a time." },
+    { value: 2, rule: 2, label: "Draw 2", description: "Two cards at a time." },
+    { value: 3, rule: 3, label: "Draw 3" },
   ],
 };
 

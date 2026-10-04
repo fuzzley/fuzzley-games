@@ -18,17 +18,12 @@ export const KLONDIKE_SCORING_ROLES: ScoringRoles = {
   foundation: KlondikeRole.FOUNDATION,
 };
 
-/**
- * Which way a Klondike game is scored.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which way a Klondike game is scored. */
 export const KlondikeScoring = {
   /** Points for progress, with unlimited recycles. */
-  STANDARD: 0,
+  STANDARD: "standard",
   /** Dollars per card on the foundations, with limited passes. */
-  VEGAS: 1,
+  VEGAS: "vegas",
 } as const;
 
 /** Names one of the ways a Klondike game is scored. */

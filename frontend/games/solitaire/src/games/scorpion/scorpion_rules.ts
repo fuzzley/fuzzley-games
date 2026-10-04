@@ -22,19 +22,14 @@ export const ScorpionRole = {
 /** Names one of the parts a Scorpion pile can play. */
 export type ScorpionRole = (typeof ScorpionRole)[keyof typeof ScorpionRole];
 
-/**
- * Which of the Scorpion family is being played.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which of the Scorpion family is being played. */
 export const ScorpionVariant = {
   /** The original: Kings into spaces, four columns hiding three cards each. */
-  SCORPION: 0,
+  SCORPION: "scorpion",
   /** Wasp: any card or run may fill a space. */
-  WASP: 1,
+  WASP: "wasp",
   /** Scorpion II: only the first three columns hide cards. */
-  SCORPION_II: 2,
+  SCORPION_II: "scorpion-ii",
 } as const;
 
 /** Names one of the games in the Scorpion family. */
