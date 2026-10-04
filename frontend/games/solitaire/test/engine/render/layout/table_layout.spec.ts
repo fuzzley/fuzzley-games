@@ -4,6 +4,7 @@ import {
   TableLayoutSpec,
   compactFor,
   computePileOrigins,
+  computePileRooms,
   computeScale,
   designSize,
   measureTable,
@@ -221,6 +222,159 @@ describe("computePileOrigins", () => {
   function designViewport(): Viewport {
     return { ...designSize(layout()), pixelRatio: 1 };
   }
+});
+
+describe("computePileOrigins with anchored and offset slots", () => {
+  /** A viewport the width of the board and 100 pixels taller. */
+  function tall(overrides: Partial<Viewport> = {}): Viewport {
+    const design = designSize(layout());
+    return {
+      width: design.width,
+      height: design.height + 100,
+      pixelRatio: 1,
+      ...overrides,
+    };
+  }
+
+  it("puts row 0 of a bottom-anchored slot on the board's bottom edge", () => {
+    const spec = layout({
+      slots: [{ pileId: "floor", column: 0, row: 0, anchor: "bottom" }],
+    });
+    const viewport = tall();
+
+    const origin = computePileOrigins(spec, viewport, 1).get("floor")!;
+
+    expect(origin.y).toBe(viewport.height - spec.padding.y - 150);
+  });
+
+  it("counts a bottom-anchored row up from the bottom edge", () => {
+    const spec = layout({
+      slots: [{ pileId: "above", column: 0, row: 1, anchor: "bottom" }],
+    });
+    const viewport = tall();
+
+    const origin = computePileOrigins(spec, viewport, 1).get("above")!;
+
+    // One card and one gap above the floor row.
+    expect(origin.y).toBe(viewport.height - spec.padding.y - 150 - 170);
+  });
+
+  it("keeps a bottom-anchored slot above the bottom inset", () => {
+    const spec = layout({
+      slots: [{ pileId: "floor", column: 0, row: 0, anchor: "bottom" }],
+    });
+    const viewport = tall({ insets: { ...NO_INSETS, bottom: 40 } });
+
+    const origin = computePileOrigins(spec, viewport, 1).get("floor")!;
+
+    expect(origin.y).toBe(viewport.height - 40 - spec.padding.y - 150);
+  });
+
+  it("moves an offset slot by its offset, at the layout scale", () => {
+    const spec = layout({
+      slots: [
+        { pileId: "cell", column: 1, row: 0 },
+        { pileId: "nudged", column: 1, row: 0, offset: { x: 30, y: 60 } },
+      ],
+    });
+
+    const origins = computePileOrigins(spec, tall({ pixelRatio: 2 }), 2);
+
+    const cell = origins.get("cell")!;
+    const nudged = origins.get("nudged")!;
+    expect([nudged.x - cell.x, nudged.y - cell.y]).toEqual([60, 120]);
+  });
+});
+
+describe("computePileRooms", () => {
+  /** Measures the room below every pile of `spec` on a viewport its own size. */
+  function rooms(spec: TableLayoutSpec, extraHeight = 0) {
+    const design = designSize(spec);
+    const viewport: Viewport = {
+      width: design.width,
+      height: design.height + extraHeight,
+      pixelRatio: 1,
+    };
+    return computePileRooms(
+      spec,
+      viewport,
+      1,
+      computePileOrigins(spec, viewport, 1),
+    );
+  }
+
+  it("gives a pile with nothing below it the rest of the board", () => {
+    const spec = layout({ slots: [{ pileId: "top", column: 0, row: 0 }] });
+
+    // The board is 330 tall; the pile starts 5 down and stops 5 short.
+    expect(rooms(spec).get("top")).toBe(320);
+  });
+
+  it("stops a pile a gap above the pile below it in its column", () => {
+    const spec = layout({
+      slots: [
+        { pileId: "top", column: 0, row: 0 },
+        { pileId: "under", column: 0, row: 1 },
+      ],
+    });
+
+    // The next row starts a card and a gap below; the pile stops a gap short.
+    expect(rooms(spec).get("top")).toBe(150);
+  });
+
+  it("ignores a pile below it in another column", () => {
+    const spec = layout({
+      slots: [
+        { pileId: "top", column: 0, row: 0 },
+        { pileId: "aside", column: 1, row: 1 },
+      ],
+    });
+
+    expect(rooms(spec).get("top")).toBe(320);
+  });
+
+  it("stops every pile above a bottom-anchored row, whatever its column", () => {
+    const spec = layout({
+      slots: [
+        { pileId: "top", column: 0, row: 0 },
+        { pileId: "floor", column: 3, row: 0, anchor: "bottom" },
+      ],
+    });
+
+    // The floor row starts 150 + 5 above the bottom of a 430 tall board; the
+    // pile above stops a gap short of it.
+    expect(rooms(spec, 100).get("top")).toBe(430 - 5 - 150 - 20 - 5);
+  });
+
+  it("measures the room in design units, whatever the scale", () => {
+    const spec = layout({ slots: [{ pileId: "top", column: 0, row: 0 }] });
+    const design = designSize(spec);
+    const viewport: Viewport = {
+      width: design.width * 2,
+      height: design.height * 2,
+      pixelRatio: 2,
+    };
+
+    const measured = computePileRooms(
+      spec,
+      viewport,
+      2,
+      computePileOrigins(spec, viewport, 2),
+    );
+
+    expect(measured.get("top")).toBe(320);
+  });
+});
+
+describe("measureTable", () => {
+  it("measures the room below every pile it places", () => {
+    const spec = layout();
+    const design = designSize(spec);
+
+    const metrics = measureTable(spec, { ...design, pixelRatio: 1 });
+
+    expect([...metrics.rooms.keys()].sort()).toEqual(["a", "b"]);
+  });
 });
 
 describe("compactFor", () => {

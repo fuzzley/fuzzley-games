@@ -280,7 +280,7 @@ from the right.
 - [x] 0.1 Record the plan
 - [x] 1.1 Insets on every side
 - [x] 1.2 Spreads in any direction
-- [ ] 1.3 Anchored and offset slots
+- [x] 1.3 Anchored and offset slots
 - [ ] 1.4 Fitted fans
 - [ ] 1.5 Board layouts and the chooser
 - [ ] 2.1 Phone detection in the shell
@@ -343,3 +343,22 @@ over the cards it shows. Nothing on screen changes.
 There was no spec for `pile_layout.ts` of its own; the offsets were covered from
 `drop_geometry.spec.ts`. The new spreads and bounds have one,
 `test/engine/render/layout/pile_layout.spec.ts`, which step 1.4 extends.
+
+### 1.3 Anchored and offset slots
+
+`SlotPlacement` takes an optional `anchor` (`"bottom"` counts the row up from
+the board's bottom edge, above the bottom inset, however tall the screen is)
+and an optional `offset` in design units, for piles overlapping down a rail.
+`computePileOrigins` places both.
+
+`TableMetrics.rooms` holds how far each pile's cards may reach below its
+origin, in design units, from the new `computePileRooms`: down to the board's
+bottom edge less its padding, or to a gap above the nearest pile below. A pile
+below counts if it shares the column, or if it is bottom-anchored. A row along
+the bottom is a floor under the whole board, because a pile in it may spread
+beyond its own column; the waste spreading left under column 4 in K-P2 is the
+case that needs this.
+
+The loading skeleton counts a bottom-anchored row up from the last row and
+turns an offset into grid cells. Nothing on screen changes; no grid uses either
+yet.
