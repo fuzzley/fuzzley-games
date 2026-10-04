@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
-  Pile background placeholders, laid out as nine 220x307 cells matching the
+  Pile background placeholders, laid out as eleven 220x307 cells matching the
   card frame size. Vector so tools/build-card-atlas.mjs can rasterize them at
   the same multiplier as the card faces; the geometry is measured from the
   original hand-drawn bitmaps these replaced, in stroke-centreline coordinates.
@@ -14,12 +14,14 @@
   Cell 6: card-placeholder-full-border-reset-3-of-3  (redeal, three of three left)
   Cell 7: card-placeholder-full-border-reset-2-of-3  (redeal, two of three left)
   Cell 8: card-placeholder-full-border-reset-1-of-3  (redeal, one of three left)
+  Cell 9: card-placeholder-top-circle          (foundation overlapped down a rail)
+  Cell 10: card-placeholder-full-border-top-circle  (last foundation down a rail)
 -->
 <svg
   xmlns="http://www.w3.org/2000/svg"
-  width="1980"
+  width="2420"
   height="307"
-  viewBox="0 0 1980 307"
+  viewBox="0 0 2420 307"
   version="1.1"
 >
   <g fill="none" stroke="#ffffff" stroke-linecap="butt" stroke-linejoin="round">
@@ -130,6 +132,28 @@
       <circle cx="65.5" cy="152.4" r="16" fill="#ffffff" stroke="none" />
       <circle cx="109.5" cy="152.4" r="12.5" stroke-width="7" />
       <circle cx="153.5" cy="152.4" r="12.5" stroke-width="7" />
+    </g>
+
+    <!--
+      The foundation for a phone's rail, where each pile covers all but the top
+      of the one above it, at least 50 units of it. The ring shrinks and moves
+      into that strip, centred in the 45 units between this outline's top edge
+      and the next one's. The outline keeps the foundation's, so the sides of a
+      rail's piles fall on one line.
+    -->
+    <!-- card-placeholder-top-circle: open at the bottom, where the next pile's top edge closes it. -->
+    <g id="card-placeholder-top-circle" transform="translate(1980,0)">
+      <path
+        d="M 10.5,307 L 10.5,23 A 10.5,10.5 0 0 1 21,12.5 L 193,12.5 A 10.5,10.5 0 0 1 203.5,23 L 203.5,307"
+        stroke-width="5"
+      />
+      <circle cx="107" cy="37.5" r="14" stroke-width="5" />
+    </g>
+
+    <!-- card-placeholder-full-border-top-circle: the last pile down the rail. -->
+    <g id="card-placeholder-full-border-top-circle" transform="translate(2200,0)">
+      <rect x="10.5" y="12.5" width="193" height="283" rx="10.5" stroke-width="5" />
+      <circle cx="107" cy="37.5" r="14" stroke-width="5" />
     </g>
   </g>
 </svg>
