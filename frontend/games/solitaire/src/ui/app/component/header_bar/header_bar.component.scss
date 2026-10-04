@@ -1,5 +1,9 @@
 @use "../../styles" as *;
 
+:host {
+  display: block;
+}
+
 .header-bar {
   @include glass(12px);
   display: flex;
@@ -343,5 +347,72 @@
     .value {
       font-size: var(--font-sm);
     }
+  }
+}
+
+// On a phone on its side the header is a rail down the left edge, which leaves
+// the board the whole height of a short screen. The compact rules above still
+// apply; this turns the bar on its side.
+@include phone-landscape {
+  :host {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+  }
+
+  .header-bar {
+    flex-direction: column;
+    justify-content: space-between;
+    width: var(--rail-width);
+    height: 100%;
+    padding: var(--space-2) 0;
+    border-bottom: none;
+    border-right: 1px solid var(--border-default);
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  // One column of figures rather than a row of cards, labelled for a screen
+  // reader only, as on a narrow phone.
+  .metrics {
+    flex-direction: column;
+    flex: 0 0 auto;
+    gap: 0;
+    width: calc(var(--rail-width) - 2 * var(--space-1));
+    background: var(--wash-subtle);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+  }
+
+  .metric-card {
+    padding: var(--space-1) 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+
+    & + .metric-card {
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .label {
+      @include visually-hidden;
+    }
+
+    .value {
+      font-size: var(--font-xs);
+    }
+  }
+
+  // Beside the rail, rising from the button at its foot.
+  .overflow-menu {
+    top: auto;
+    right: auto;
+    bottom: var(--space-2);
+    left: calc(var(--rail-width) + var(--space-1));
+    transform-origin: bottom left;
   }
 }

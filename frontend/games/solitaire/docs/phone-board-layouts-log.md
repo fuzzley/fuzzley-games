@@ -284,7 +284,7 @@ from the right.
 - [x] 1.4 Fitted fans
 - [x] 1.5 Board layouts and the chooser
 - [x] 2.1 Phone detection in the shell
-- [ ] 2.2 Side rail
+- [x] 2.2 Side rail
 - [ ] 2.3 Bottom bar
 - [ ] 3.1 The phone grid builder
 - [ ] 3.2 Klondike grids
@@ -441,3 +441,24 @@ when its answer changes, as a browser does.
 `boardLayoutsOf(entry)` in `game_catalog.ts` assembles an entry's grids for the
 board and for the loading skeleton. The skeleton now draws the grid the screen
 and the arrangement call for.
+
+### 2.2 Side rail
+
+On a phone on its side (`phone-landscape`) the header bar turns into a column
+`--rail-width` (64px) wide, down the left edge, full height. From the top, the
+rail holds the game switcher, the score, time and moves stacked in one strip
+(labels for a screen reader only), then undo, new game and the overflow menu.
+The menu opens beside the rail, rising from its button at the foot. The header
+host is now `display: block`, and positioned against the overlay in this mode.
+
+The game canvas declares all four `--board-inset-*` on its host, so the
+loading overlay and the deck badge can read them as well as the board: the top
+is the header height, except on a sideways phone, where it is 0 and the left is
+the rail width. The overlay pads itself by all four insets, the loading badge
+centres on the space inside them, and the deck badge tucks into the top right
+corner inside them.
+
+Checked at 844 × 390 in Chrome's phone emulation on today's Klondike grid. The
+board now runs the full height beside the rail, with compact gaps and the
+mobile deck, and its cards come out about 76 CSS px wide (67 before). The
+overflow menu opened at the rail's foot, beside it.
