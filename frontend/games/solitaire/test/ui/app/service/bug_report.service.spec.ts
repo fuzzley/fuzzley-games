@@ -100,7 +100,6 @@ function longHistory(actions: number): GameSnapshot {
     score: 0,
     history,
     deal: [],
-    extra: null,
   };
 }
 

@@ -15,6 +15,7 @@ import {
   STOCK_PILE_ID,
   golfZoneSpecs,
 } from "./golf_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /** Configures a game of the Golf family. */
 export interface GolfOptions extends DeckOptions {
@@ -72,7 +73,10 @@ export class GolfGame extends DealtTableGame {
       return false;
     }
 
-    this.commitAction("draw", drawToWaste(this.stock, this.foundation, 1));
+    this.commitAction(
+      ActionKind.DRAW,
+      drawToWaste(this.stock, this.foundation, 1),
+    );
     return true;
   }
 

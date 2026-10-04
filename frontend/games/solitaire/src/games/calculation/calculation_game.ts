@@ -15,6 +15,7 @@ import {
   STOCK_PILE_ID,
   calculationZoneSpecs,
 } from "./calculation_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /** Configures a game played on Calculation's board. */
 export interface CalculationOptions extends DeckOptions {
@@ -79,7 +80,7 @@ export class CalculationGame extends DealtTableGame {
       return false;
     }
 
-    this.commitAction("draw", drawToWaste(this.stock, this.hand, 1));
+    this.commitAction(ActionKind.DRAW, drawToWaste(this.stock, this.hand, 1));
     return true;
   }
 }

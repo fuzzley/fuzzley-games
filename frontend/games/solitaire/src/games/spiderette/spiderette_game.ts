@@ -18,6 +18,7 @@ import {
   STOCK_PILE_ID,
   spideretteZoneSpecs,
 } from "./spiderette_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /** Configures a game of Spiderette or Will o' the Wisp. */
 export interface SpideretteOptions extends DeckOptions {
@@ -92,7 +93,7 @@ export class SpideretteGame extends DealtTableGame {
       this.tableaus,
       this.foundations,
     );
-    this.commitAction("deal", dealt.transfers, {
+    this.commitAction(ActionKind.DEAL, dealt.transfers, {
       flippedCardIds: dealt.flippedCardIds,
     });
     return true;

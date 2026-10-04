@@ -3,11 +3,11 @@ import { CardRegistry } from "@/engine/core/card/card_registry";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
-import { readNumber, readObject } from "@/engine/core/common/json_reader";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
-import { AppliedMove, CardTransfer } from "@/engine/tableau/move";
+import { CardTransfer } from "@/engine/tableau/move";
 
+import { ActionKind } from "@/games/common/action_kinds";
 import { DeckOptions } from "@/games/common/deck_options";
 import {
   CLOSED_STOCK_PLACEHOLDER,
@@ -36,18 +36,6 @@ import {
 } from "./montana_zones";
 import { itemAt } from "@/engine/core/common/item_at";
 
-/** Holds what Montana keeps outside its piles, for a snapshot. */
-interface MontanaExtra {
-  /** How many of the game's redeals have been spent. */
-  readonly redealsUsed: number;
-}
-
-/** Reads a snapshot's extra state as Montana's. */
-function readMontanaExtra(value: unknown): MontanaExtra {
-  const extra = readObject(value, "extra");
-  return { redealsUsed: readNumber(extra.redealsUsed, "extra.redealsUsed") };
-}
-
 /** Configures a game of the Montana family. */
 export interface MontanaOptions extends DeckOptions {
   /** Which game of the family to play. */
@@ -74,7 +62,6 @@ export class MontanaGame extends DealtTableGame {
   /** The rank every row starts with. */
   private readonly firstRank: Rank;
 
-  private redealsUsed = 0;
   private readonly random: () => number;
 
   /**
@@ -107,7 +94,6 @@ export class MontanaGame extends DealtTableGame {
 
   /** @inheritDoc */
   protected override dealBoard(deck: PlayingCard[]): void {
-    this.redealsUsed = 0;
     dealMontanaFamilyLayout(this.variant, deck, this.rows);
   }
 
@@ -130,7 +116,7 @@ export class MontanaGame extends DealtTableGame {
 
   /** How many redeals the player has left. */
   public get redealsRemaining(): number {
-    return Math.max(0, this.maxRedeals - this.redealsUsed);
+    return Math.max(0, this.maxRedeals - this.timesApplied(ActionKind.REDEAL));
   }
 
   /**
@@ -149,8 +135,6 @@ export class MontanaGame extends DealtTableGame {
     if (!this.canRedeal) {
       return false;
     }
-
-    this.redealsUsed++;
 
     const shuffled = this.gatherable();
     shuffle(shuffled, this.random);
@@ -184,7 +168,7 @@ export class MontanaGame extends DealtTableGame {
       });
     });
 
-    this.commitAction("redeal", transfers);
+    this.commitAction(ActionKind.REDEAL, transfers);
     return true;
   }
 
@@ -214,24 +198,6 @@ export class MontanaGame extends DealtTableGame {
     return pile.id === REDEAL_PILE_ID
       ? this.canRedeal
       : super.isEmptySlotActionable(pile);
-  }
-
-  /** @inheritDoc */
-  protected override afterUndo(move: AppliedMove): void {
-    if (move.kind === "redeal") {
-      // So the player gets the spent redeal back with the board.
-      this.redealsUsed--;
-    }
-  }
-
-  /** @inheritDoc */
-  protected override saveExtra(): MontanaExtra {
-    return { redealsUsed: this.redealsUsed };
-  }
-
-  /** @inheritDoc */
-  protected override restoreExtra(extra: unknown): void {
-    this.redealsUsed = readMontanaExtra(extra).redealsUsed;
   }
 
   /**

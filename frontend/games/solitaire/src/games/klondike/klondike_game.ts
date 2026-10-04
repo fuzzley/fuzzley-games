@@ -72,7 +72,7 @@ export class KlondikeGame extends KlondikeFamilyGame {
    *
    * @inheritDoc
    */
-  protected override dealLayout(deck: PlayingCard[]): void {
+  protected override dealBoard(deck: PlayingCard[]): void {
     if (this.almostWin) {
       dealKlondikeAlmostWin(this.deck, this.foundations, this.tableaus);
     } else {

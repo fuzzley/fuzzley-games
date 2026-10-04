@@ -2,11 +2,11 @@ import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { readNumber, readObject } from "@/engine/core/common/json_reader";
 import { shuffle } from "@/engine/core/random/shuffle";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
-import { AppliedMove, CardTransfer } from "@/engine/tableau/move";
+import { CardTransfer } from "@/engine/tableau/move";
+import { ActionKind } from "@/games/common/action_kinds";
 import { DeckOptions } from "@/games/common/deck_options";
 import {
   CLOSED_STOCK_PLACEHOLDER,
@@ -24,18 +24,6 @@ import {
   REDEAL_PILE_ID,
   laBelleLucieZoneSpecs,
 } from "./la_belle_lucie_zones";
-
-/** Holds what the game keeps outside its piles, for a snapshot. */
-interface LaBelleLucieExtra {
-  /** How many of the game's redeals have been spent. */
-  readonly redealsUsed: number;
-}
-
-/** Reads a snapshot's extra state as this game's. */
-function readLaBelleLucieExtra(value: unknown): LaBelleLucieExtra {
-  const extra = readObject(value, "extra");
-  return { redealsUsed: readNumber(extra.redealsUsed, "extra.redealsUsed") };
-}
 
 /** Configures a game of the La Belle Lucie family. */
 export interface LaBelleLucieOptions extends DeckOptions {
@@ -61,7 +49,6 @@ export class LaBelleLucieGame extends DealtTableGame {
 
   private readonly rules: LaBelleLucieVariantRules;
   private readonly random: () => number;
-  private redealsUsed = 0;
 
   /**
    * Creates a game whose piles are empty until the first deal.
@@ -92,7 +79,6 @@ export class LaBelleLucieGame extends DealtTableGame {
 
   /** @inheritDoc */
   protected override dealBoard(deck: PlayingCard[]): void {
-    this.redealsUsed = 0;
     dealLaBelleLucieLayout(
       deck,
       this.foundations,
@@ -110,7 +96,7 @@ export class LaBelleLucieGame extends DealtTableGame {
 
   /** How many redeals the player has left. */
   public get redealsRemaining(): number {
-    return Math.max(0, this.maxRedeals - this.redealsUsed);
+    return Math.max(0, this.maxRedeals - this.timesApplied(ActionKind.REDEAL));
   }
 
   /** Whether a redeal is available: one must be left, and a card to deal. */
@@ -127,8 +113,6 @@ export class LaBelleLucieGame extends DealtTableGame {
     if (!this.canRedeal) {
       return false;
     }
-
-    this.redealsUsed++;
 
     // Fan by fan, bottom first in each.
     const gathered: { card: PlayingCard; from: CardPile<PlayingCard> }[] = [];
@@ -163,7 +147,7 @@ export class LaBelleLucieGame extends DealtTableGame {
       });
     }
 
-    this.commitAction("redeal", transfers);
+    this.commitAction(ActionKind.REDEAL, transfers);
     return true;
   }
 
@@ -193,23 +177,5 @@ export class LaBelleLucieGame extends DealtTableGame {
     return pile === this.redealMarker
       ? this.canRedeal
       : super.isEmptySlotActionable(pile);
-  }
-
-  /** @inheritDoc */
-  protected override afterUndo(move: AppliedMove): void {
-    if (move.kind === "redeal") {
-      // So the player gets the spent redeal back with the board.
-      this.redealsUsed--;
-    }
-  }
-
-  /** @inheritDoc */
-  protected override saveExtra(): LaBelleLucieExtra {
-    return { redealsUsed: this.redealsUsed };
-  }
-
-  /** @inheritDoc */
-  protected override restoreExtra(extra: unknown): void {
-    this.redealsUsed = readLaBelleLucieExtra(extra).redealsUsed;
   }
 }

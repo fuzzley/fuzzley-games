@@ -58,7 +58,6 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
     snapshot: vi.fn((): GameSnapshot => ({
       piles: [],
       score: state.score,
-      extra: null,
       history: [],
       deal: [],
     })),
@@ -91,7 +90,6 @@ export function snapshotWithMoves(moves: number, score = 0): GameSnapshot {
       flippedCardIds: [],
     })),
     deal: [],
-    extra: null,
   };
 }
 

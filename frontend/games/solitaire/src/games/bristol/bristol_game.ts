@@ -9,6 +9,7 @@ import { dealRowFromStock } from "@/games/common/row_deal";
 import { dealBristolLayout } from "./bristol_deal";
 import { BristolVariant, DEFAULT_BRISTOL_VARIANT } from "./bristol_rules";
 import { BristolRole, STOCK_PILE_ID, bristolZoneSpecs } from "./bristol_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /** Configures a game played on Bristol's board. */
 export interface BristolOptions extends DeckOptions {
@@ -70,7 +71,10 @@ export class BristolGame extends DealtTableGame {
       return false;
     }
 
-    this.commitAction("deal", dealRowFromStock(this.stock, this.reserves));
+    this.commitAction(
+      ActionKind.DEAL,
+      dealRowFromStock(this.stock, this.reserves),
+    );
     return true;
   }
 }

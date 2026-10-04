@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { Rank } from "@/engine/core/card/playing_card";
-import { StandardScoringPolicy } from "@/games/klondike/scoring_policy";
+import {
+  StandardScoringPolicy,
+  VegasScoringPolicy,
+} from "@/games/klondike/scoring_policy";
 import { DoubleKlondikeGame } from "@/games/double_klondike/double_klondike_game";
 import { DOUBLE_KLONDIKE_TWO_DECKS } from "@/games/double_klondike/double_klondike_deal";
 import { DoubleKlondikeRole } from "@/games/double_klondike/double_klondike_rules";
@@ -297,9 +300,16 @@ describe("DoubleKlondikeGame win condition", () => {
 });
 
 describe("DoubleKlondikeGame snapshot", () => {
-  /** Returns a game that has drawn through its stock and recycled the waste. */
+  /** Returns a Vegas game, whose recycles are counted, not yet played. */
+  function vegasGame(): DoubleKlondikeGame {
+    const game = new DoubleKlondikeGame({ scoring: new VegasScoringPolicy() });
+    game.startNewGame();
+    return game;
+  }
+
+  /** Returns a Vegas game that has drawn through its stock and recycled. */
   function recycledOnce(): DoubleKlondikeGame {
-    const game = newGame();
+    const game = vegasGame();
     while (!game.stock.isEmpty) {
       game.drawCardsFromStock();
     }
@@ -307,25 +317,11 @@ describe("DoubleKlondikeGame snapshot", () => {
     return game;
   }
 
-  it("records how many times the waste has been recycled", () => {
-    const game = recycledOnce();
-
-    expect(game.snapshot().extra).toEqual({ recycleCount: 1 });
-  });
-
-  it("restores the recycle count", () => {
-    const copy = newGame();
+  it("counts the recycles spent from the history it restores", () => {
+    const copy = vegasGame();
 
     copy.restore(recycledOnce().snapshot());
 
-    expect(copy.snapshot().extra).toEqual({ recycleCount: 1 });
-  });
-
-  it("rejects a snapshot without the recycle count", () => {
-    const copy = newGame();
-
-    expect(() =>
-      copy.restore({ ...recycledOnce().snapshot(), extra: null }),
-    ).toThrow(/extra is not an object/);
+    expect(copy.recyclesRemaining).toBe(1);
   });
 });

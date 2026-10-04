@@ -19,6 +19,7 @@ import {
   ScorpionVariant,
   scorpionZoneSpecs,
 } from "./scorpion_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /** How many columns the stock deals onto: the first three, one card each. */
 export const STOCK_DEAL_COLUMN_COUNT = 3;
@@ -103,7 +104,7 @@ export class ScorpionGame extends DealtTableGame {
       this.tableaus,
       this.foundations,
     );
-    this.commitAction("deal", dealt.transfers, {
+    this.commitAction(ActionKind.DEAL, dealt.transfers, {
       flippedCardIds: dealt.flippedCardIds,
     });
     return true;

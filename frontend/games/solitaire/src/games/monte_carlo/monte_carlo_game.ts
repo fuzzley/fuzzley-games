@@ -20,6 +20,7 @@ import {
   STOCK_PILE_ID,
   monteCarloZoneSpecs,
 } from "./monte_carlo_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /** Configures a game played on Monte Carlo's grid. */
 export interface MonteCarloOptions extends DeckOptions {
@@ -140,7 +141,7 @@ export class MonteCarloGame extends DealtTableGame {
       transfers.push(transfer(dealt, this.stock, cell, false));
     }
 
-    this.commitAction("consolidate", transfers);
+    this.commitAction(ActionKind.CONSOLIDATE, transfers);
     return true;
   }
 

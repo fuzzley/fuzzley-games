@@ -52,7 +52,7 @@ export abstract class DealtTableGame<
 
   // --- Snapshots ---
 
-  /** Captures the board, score, history, deal and game's extra state. */
+  /** Captures the board, score, history and deal. */
   public snapshot(): GameSnapshot {
     return {
       piles: this.piles.map((pile) => ({
@@ -64,7 +64,6 @@ export abstract class DealtTableGame<
       score: this.state.score,
       history: this.appliedHistory,
       deal: this.initialDeck.map((card) => card.id),
-      extra: this.saveExtra(),
     };
   }
 
@@ -73,14 +72,12 @@ export abstract class DealtTableGame<
    * view redraws.
    *
    * @throws Error, leaving the game as it was, when the snapshot names a pile
-   *   or card this game lacks, does not hold every card exactly once, or
-   *   carries extra state the game rejects.
+   *   or card this game lacks, or does not hold every card exactly once.
    */
   public restore(snapshot: GameSnapshot): void {
     const board = this.resolveBoard(snapshot.piles);
     const deal = this.resolveDeal(snapshot.deal);
     this.checkHistory(snapshot.history);
-    this.restoreExtra(snapshot.extra);
 
     this.resetPiles();
     for (const { pile, cards } of board) {
@@ -97,21 +94,6 @@ export abstract class DealtTableGame<
   /** Returns the score a fresh deal starts at. */
   protected initialScore(): number {
     return 0;
-  }
-
-  /** Returns the state this game keeps outside its piles, for a snapshot. */
-  protected saveExtra(): unknown {
-    return null;
-  }
-
-  /**
-   * Restores what {@link saveExtra} saved.
-   *
-   * Runs before the board changes, so throwing rejects the snapshot and leaves
-   * the game as it was.
-   */
-  protected restoreExtra(extra: unknown): void {
-    void extra;
   }
 
   /** Returns the snapshot's piles as this game's, holding every card once. */

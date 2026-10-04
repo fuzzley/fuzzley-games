@@ -4,6 +4,9 @@
  */
 export type AppliedMoveKind = string;
 
+/** The kind of action a card dragged or sent to a pile records. */
+export const MOVE_KIND: AppliedMoveKind = "move";
+
 /** Records a run of cards moving from one pile to another. */
 export interface CardTransfer {
   /**

@@ -22,6 +22,7 @@ import {
   WASTE_PILE_ID,
   fortyThievesZoneSpecs,
 } from "./forty_thieves_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /** How many cards a draw turns over: one, in every game of the family. */
 export const DRAW_COUNT = 1;
@@ -98,7 +99,10 @@ export class FortyThievesGame extends DealtTableGame {
       return false;
     }
 
-    this.commitAction("draw", drawToWaste(this.stock, this.waste, DRAW_COUNT));
+    this.commitAction(
+      ActionKind.DRAW,
+      drawToWaste(this.stock, this.waste, DRAW_COUNT),
+    );
     return true;
   }
 
