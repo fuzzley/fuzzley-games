@@ -230,6 +230,16 @@ K) keep their 36 unit cap height, the round ones (8, 10) lose about 4%, and the
 Q, whose tail sets its size, about 8%. Every rank's ink is now 36 units tall,
 from 6 to 42. The pip is still 35 units, at 6 to 41.
 
+### R2 Every face drawn like a court card
+
+The owner liked the court cards' body, the rank over its pip on a panel tinted
+by suit colour, and asked for it on every face. Number cards and aces now draw
+it too, in place of one large pip; a face's body now differs between ranks
+only in its rank. The single pip's sizing (`PIP_FIELD`, `BODY_PIP_SCALE`) is
+gone, the ranks no longer carry a `court` flag, and the panel's colour is
+`COLORS.panel`, checked for contrast as before. The strips are unchanged. The
+1x page grew from 332 KB to 423 KB, still about a quarter of an artwork deck's.
+
 ## Follow-ups
 
 - Decide whether the compact layout should open the fans wider. The index now
