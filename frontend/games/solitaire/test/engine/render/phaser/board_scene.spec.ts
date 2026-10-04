@@ -35,11 +35,11 @@ import {
   designSize,
 } from "@/engine/render/layout/table_layout";
 import { FAKE_TABLE_LAYOUT } from "@test/support/fake_table/board";
-
-const DESIGN_WIDTH_PX = designSize(FAKE_TABLE_LAYOUT).width;
 import { STOCK_PILE_ID } from "@test/support/fake_table/zones";
 import { pileBackgrounds } from "@/engine/tableau/view/pile_backgrounds";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
+
+const DESIGN_WIDTH_PX = designSize(FAKE_TABLE_LAYOUT).width;
 
 vi.mock("phaser", async () => {
   const mocks = await import("@test/support/phaser_mocks");
@@ -71,20 +71,6 @@ function sizeCanvasFor(scene: BoardScene, layoutScale: number): void {
   scale.displayScale = { x: layoutScale, y: layoutScale };
 }
 
-/** The game the current scene draws, and the presentation it follows. */
-let fakeGame: FakeTableGame;
-let presentation: TestPresentation;
-
-/**
- * Builds a board scene drawing the given game, or a freshly dealt one, with a
- * presentation a test can drive.
- */
-function makeBoardScene(gameModel?: FakeTableGame): BoardScene {
-  fakeGame = gameModel ?? dealtGame();
-  presentation = new TestPresentation();
-  return makeFakeTableBoardScene(fakeGame, presentation);
-}
-
 function dealtGame(): FakeTableGame {
   const game = new FakeTableGame();
   game.startNewGame();
@@ -93,9 +79,23 @@ function dealtGame(): FakeTableGame {
 
 describe("BoardScene", () => {
   let boardScene: BoardScene;
+  /** The game the scene under test draws. */
+  let fakeGame: FakeTableGame;
+  /** The presentation the scene under test follows. */
+  let presentation: TestPresentation;
+
+  /**
+   * Makes the scene under test draw `game`, with a fresh presentation a test
+   * can drive, replacing whatever scene, game and presentation came before.
+   */
+  function drawBoardOf(game: FakeTableGame): void {
+    fakeGame = game;
+    presentation = new TestPresentation();
+    boardScene = makeFakeTableBoardScene(fakeGame, presentation);
+  }
 
   beforeEach(() => {
-    boardScene = makeBoardScene();
+    drawBoardOf(dealtGame());
     boardScene.create();
   });
 
@@ -141,7 +141,7 @@ describe("BoardScene", () => {
 
   describe("construction", () => {
     it("registers under a key no other board shares", () => {
-      const next = makeBoardScene();
+      const next = makeFakeTableBoardScene(dealtGame(), new TestPresentation());
 
       // Phaser throws on a key already in use, and the next board is added to
       // the game before the last one is gone if the swap is queued.
@@ -863,7 +863,7 @@ describe("BoardScene", () => {
         game.startNewGame();
         emptyBoard(game);
         game.stockActionable = true;
-        boardScene = makeBoardScene(game);
+        drawBoardOf(game);
         boardScene.create();
         boardScene.update(0, 16);
       });
