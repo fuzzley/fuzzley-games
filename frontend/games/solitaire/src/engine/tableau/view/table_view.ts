@@ -57,9 +57,3 @@ export interface TableView {
    */
   isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean;
 }
-
-/** Holds the look of the cards, a player's choice rather than a rule. */
-export interface TablePresentation {
-  /** The artwork key for the back of a card. */
-  readonly cardBackKey: string;
-}

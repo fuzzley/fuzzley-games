@@ -21,7 +21,7 @@ import {
   TableViewState,
 } from "@/engine/render/view/table_view_state";
 import { ZoneSpec, frameFor, showsFace } from "../zone";
-import { TablePresentation, TableView } from "./table_view";
+import { TableView } from "./table_view";
 import { itemAt } from "@/engine/core/common/item_at";
 
 /**
@@ -118,7 +118,8 @@ class TableViewStateBuilder {
     private readonly game: TableView,
     private readonly interaction: TableInteractionState,
     private readonly metrics: TableMetrics,
-    private readonly presentation: TablePresentation,
+    /** The artwork key for the back of a card, a player's choice. */
+    private readonly cardBackKey: string,
   ) {
     this.scale = metrics.scale;
     this.origins = metrics.origins;
@@ -200,7 +201,7 @@ class TableViewStateBuilder {
           depth: placement.depth,
           snap: placement.snap,
           scale: this.scale,
-          frame: frameFor(zone.face, card, this.presentation.cardBackKey),
+          frame: frameFor(zone.face, card, this.cardBackKey),
           cursor: this.game.isCardInteractableInPile(card, pile)
             ? "pointer"
             : "default",
@@ -420,17 +421,21 @@ class TableViewStateBuilder {
   }
 }
 
-/** Builds the complete desired appearance of a table for one frame. */
+/**
+ * Builds the complete desired appearance of a table for one frame.
+ *
+ * @param cardBackKey The artwork key for the back of a card.
+ */
 export function buildTableViewState(
   game: TableView,
   interaction: TableInteractionState,
   metrics: TableMetrics,
-  presentation: TablePresentation,
+  cardBackKey: string,
 ): TableViewState {
   return new TableViewStateBuilder(
     game,
     interaction,
     metrics,
-    presentation,
+    cardBackKey,
   ).build();
 }

@@ -40,9 +40,12 @@ export function makeTableBoardScene(options: TableBoardOptions): BoardScene {
     backgrounds: pileBackgrounds(game),
     layout,
     buildViewState: (interaction, viewport) =>
-      buildTableViewState(game, interaction, measure(viewport), {
-        cardBackKey: presentation.cardBackKey(),
-      }),
+      buildTableViewState(
+        game,
+        interaction,
+        measure(viewport),
+        presentation.cardBackKey(),
+      ),
     resolveDropTarget: (drag, viewport) =>
       resolveDragTarget(game, drag, measure(viewport)),
     handleIntent,
