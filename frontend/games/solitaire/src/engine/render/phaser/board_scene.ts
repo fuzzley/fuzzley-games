@@ -19,8 +19,8 @@ import {
 } from "../view/table_view_state";
 import {
   TableLayoutSpec,
+  TableMetrics,
   designSize,
-  measureTable,
 } from "../layout/table_layout";
 import { CardArtScale, cardArtScaleFor } from "../layout/card_metrics";
 import { Subscribe } from "@/engine/core/common/event_emitter";
@@ -52,8 +52,10 @@ export interface BoardSceneOptions {
   readonly cardIds: readonly string[];
   /** The placeholder drawn beneath each pile that has one. */
   readonly backgrounds: readonly PileBackgroundSpec[];
-  /** The board's grid, for sizing before the canvas has been measured. */
+  /** The board's roomy grid, for sizing before the canvas has been measured. */
   readonly layout: TableLayoutSpec;
+  /** Measures the board on whichever grid a viewport calls for. */
+  readonly measure: (viewport: Viewport) => TableMetrics;
   /** Produces the desired appearance of the board for one frame. */
   readonly buildViewState: BuildTableViewState;
   /** Resolves the pile a drag would land on. */
@@ -174,9 +176,7 @@ export class BoardScene extends Scene implements PhaserSprites {
    * view is, so the cards are never drawn larger than their artwork.
    */
   public wantedArtScale(): CardArtScale {
-    return cardArtScaleFor(
-      measureTable(this.options.layout, this.viewport).scale,
-    );
+    return cardArtScaleFor(this.options.measure(this.viewport).scale);
   }
 
   /**

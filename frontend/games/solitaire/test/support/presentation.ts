@@ -6,12 +6,17 @@ import {
   CardDeckId,
   DEFAULT_DESKTOP_CARD_DECK,
 } from "@/engine/render/card_deck";
+import {
+  BoardArrangement,
+  DEFAULT_BOARD_ARRANGEMENT,
+} from "@/engine/render/layout/board_layouts";
 
 /** Implements {@link TablePresentation} with plain values a test can set. */
 export class TestPresentation implements TablePresentation {
   private readonly listeners: ((color: string) => void)[] = [];
   private readonly deckListeners: ((deckId: CardDeckId) => void)[] = [];
   private readonly deckStatuses: CardDeckStatus[] = [];
+  private arrangement: BoardArrangement = DEFAULT_BOARD_ARRANGEMENT;
 
   constructor(
     private cardBack = "card-back-blue",
@@ -27,6 +32,16 @@ export class TestPresentation implements TablePresentation {
   /** @inheritDoc */
   cardDeckId(): CardDeckId {
     return this.deckId;
+  }
+
+  /** @inheritDoc */
+  boardArrangement(): BoardArrangement {
+    return this.arrangement;
+  }
+
+  /** Changes where the piles go on an upright phone and the hand. */
+  setBoardArrangement(arrangement: BoardArrangement): void {
+    this.arrangement = arrangement;
   }
 
   /** @inheritDoc */

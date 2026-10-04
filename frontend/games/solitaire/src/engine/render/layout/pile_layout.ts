@@ -169,10 +169,7 @@ const SPREAD_STEPS: { readonly [Direction in SpreadDirection]: Point } = {
  *
  * @param count The number of cards in the whole pile.
  */
-export function spreadOffsets(
-  count: number,
-  layout: SpreadLayout,
-): Point[] {
+export function spreadOffsets(count: number, layout: SpreadLayout): Point[] {
   const groupSize = layout.groupSize ?? 1;
   const groups = Math.ceil(count / groupSize);
   const firstSpread = groups - Math.min(groups, layout.maxVisible);

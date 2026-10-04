@@ -11,6 +11,10 @@ import {
   TablePresentation,
 } from "@/engine/render/presentation";
 import {
+  BoardArrangement,
+  DEFAULT_BOARD_ARRANGEMENT,
+} from "@/engine/render/layout/board_layouts";
+import {
   CARD_DECKS,
   CardDeckId,
   DEFAULT_DESKTOP_CARD_DECK,
@@ -218,6 +222,11 @@ export class PresentationSettingsService implements TablePresentation {
   /** @inheritDoc */
   cardDeckId(): CardDeckId {
     return this.cardDeck();
+  }
+
+  /** @inheritDoc */
+  boardArrangement(): BoardArrangement {
+    return DEFAULT_BOARD_ARRANGEMENT;
   }
 
   /**

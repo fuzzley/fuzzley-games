@@ -9,6 +9,7 @@ import {
   LAYOUT_PADDING_Y,
 } from "./card_metrics";
 import type { FanFit, PileLayoutOverride } from "./pile_layout";
+import { COMPACT_MAX_WIDTH_CSS_PX } from "./form_factor";
 
 /** Holds a width and height in design units. */
 export interface Size {
@@ -157,14 +158,6 @@ export function computeScale(
   return scale;
 }
 
-/**
- * The screen width, in CSS pixels, below which a board tightens its gaps to
- * give its cards more room, and the shell compacts its chrome.
- *
- * Mirrors the `tablet` breakpoint in `src/ui/app/styles/_breakpoints.scss`.
- */
-export const COMPACT_MAX_WIDTH_CSS_PX = 720;
-
 /** Space between piles on a small screen, in design units. */
 const COMPACT_GAP = { x: 8, y: 14 };
 
@@ -293,8 +286,7 @@ export function computePileRooms(
   origins: ReadonlyMap<string, Point>,
 ): Map<string, number> {
   const cardWidth = spec.cardSize.width * scale;
-  const floor =
-    boardBottomPx(spec, viewport, scale) - spec.padding.y * scale;
+  const floor = boardBottomPx(spec, viewport, scale) - spec.padding.y * scale;
 
   const rooms = new Map<string, number>();
   for (const slot of spec.slots) {

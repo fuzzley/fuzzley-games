@@ -1,8 +1,10 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
 import {
-  TableLayoutSpec,
-  measureTable,
-} from "@/engine/render/layout/table_layout";
+  BoardLayouts,
+  chooseTableLayout,
+} from "@/engine/render/layout/board_layouts";
+import { formFactorOf } from "@/engine/render/layout/form_factor";
+import { measureTable } from "@/engine/render/layout/table_layout";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { TablePresentation } from "@/engine/render/presentation";
 import { Insets, Viewport } from "@/engine/render/view/table_view_state";
@@ -18,8 +20,8 @@ import {
 export interface TableBoardOptions {
   /** The game to draw. */
   readonly game: TableGame;
-  /** Where its piles sit. */
-  readonly layout: TableLayoutSpec;
+  /** The grids its piles may sit on, one of which each frame is drawn on. */
+  readonly layouts: BoardLayouts;
   /** What a press or a drop means in it. */
   readonly handleIntent: IntentHandler;
   /** How the player has asked the table to look. */
@@ -35,15 +37,27 @@ export interface TableBoardOptions {
 
 /** Builds the board scene that draws a table game. */
 export function makeTableBoardScene(options: TableBoardOptions): BoardScene {
-  const { game, layout, handleIntent, presentation, onReady, insets } = options;
-  const measure = (viewport: Viewport) => measureTable(layout, viewport);
+  const { game, layouts, handleIntent, presentation, onReady, insets } =
+    options;
+  // Chosen afresh each frame, so turning the phone or changing the arrangement
+  // moves the cards to their new places the way any move does.
+  const measure = (viewport: Viewport) =>
+    measureTable(
+      chooseTableLayout(
+        layouts,
+        formFactorOf(viewport),
+        presentation.boardArrangement(),
+      ),
+      viewport,
+    );
 
   return new BoardScene({
     // Read from the game rather than from a deck specification, so a variant
     // that deals a different set of cards gets sprites for the ones it has.
     cardIds: game.cardIds,
     backgrounds: pileBackgrounds(game),
-    layout,
+    layout: layouts.roomy,
+    measure,
     buildViewState: (interaction, viewport) =>
       buildTableViewState(
         game,

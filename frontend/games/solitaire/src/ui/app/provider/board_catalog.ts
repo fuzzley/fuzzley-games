@@ -95,7 +95,7 @@ export type BoardSetting = Pick<
 >;
 
 /**
- * Builds the board that draws a dealt game, on the grid its catalog entry
+ * Builds the board that draws a dealt game, on the grids its catalog entry
  * declares.
  *
  * @param game The dealt game, which must be the one `gameId` deals; the cast
@@ -108,7 +108,10 @@ export function makeBoardScene(
 ): BoardScene {
   return makeTableBoardScene({
     game: game as GameOf<GameId>,
-    layout: catalogEntry(gameId).layout,
+    layouts: {
+      roomy: catalogEntry(gameId).layout,
+      phone: catalogEntry(gameId).phoneLayouts,
+    },
     handleIntent: gesturesFor(gameId, game),
     ...setting,
   });

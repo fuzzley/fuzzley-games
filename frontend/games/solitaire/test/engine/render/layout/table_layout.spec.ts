@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  COMPACT_MAX_WIDTH_CSS_PX,
   TableLayoutSpec,
   compactFor,
   computePileOrigins,
@@ -9,6 +8,7 @@ import {
   designSize,
   measureTable,
 } from "@/engine/render/layout/table_layout";
+import { COMPACT_MAX_WIDTH_CSS_PX } from "@/engine/render/layout/form_factor";
 import { NO_INSETS, Viewport } from "@/engine/render/view/table_view_state";
 
 /** Returns an unremarkable board with the given overrides. */

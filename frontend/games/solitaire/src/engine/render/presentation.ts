@@ -1,5 +1,6 @@
 import { Subscribe } from "@/engine/core/common/event_emitter";
 import { CardDeckId } from "./card_deck";
+import { BoardArrangement } from "./layout/board_layouts";
 
 /** Describes how far a board has got with drawing the deck it was asked for. */
 export type CardDeckStatus =
@@ -23,6 +24,12 @@ export interface TablePresentation {
 
   /** Returns the deck the cards are drawn from. */
   cardDeckId(): CardDeckId;
+
+  /**
+   * Returns where the piles go on an upright phone, and which hand the board
+   * is laid out for.
+   */
+  boardArrangement(): BoardArrangement;
 
   /** Follows the table colour. */
   readonly onBackgroundColor: Subscribe<string>;

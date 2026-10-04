@@ -1,5 +1,6 @@
 import { PlayableGame } from "@/engine/tableau/playable_game";
 import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import { PhoneLayouts } from "@/engine/render/layout/board_layouts";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
 import {
@@ -210,6 +211,11 @@ export interface CatalogEntry<TGame extends PlayableGame = PlayableGame> {
   readonly options: readonly GameOptionSpec[];
   /** The grid this game's board lies on, renderer-agnostic. */
   readonly layout: TableLayoutSpec;
+  /**
+   * The grids this game's board lies on on a phone, upright and on its side;
+   * a game without them lies on {@link layout} everywhere.
+   */
+  readonly phoneLayouts?: PhoneLayouts;
   /** Creates a dealt game playing by the given options. */
   create(values: GameOptionValues): CatalogSession<TGame>;
 }
