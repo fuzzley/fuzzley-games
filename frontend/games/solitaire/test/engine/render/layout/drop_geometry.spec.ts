@@ -39,7 +39,7 @@ import {
 } from "@test/support/fake_table/zones";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { FakeTableGame } from "@test/support/fake_table/game";
-import { Viewport } from "@/engine/render/view/table_view_state";
+import { NO_INSETS, Viewport } from "@/engine/render/view/table_view_state";
 import { makePlayingCard } from "@test/support/card_builder";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
@@ -59,7 +59,7 @@ function designViewport(overrides: Partial<Viewport> = {}): Viewport {
     width: DESIGN_WIDTH_PX,
     height: DESIGN_HEIGHT_PX + INSET_TOP,
     pixelRatio: 1,
-    insetTop: INSET_TOP,
+    insets: { ...NO_INSETS, top: INSET_TOP },
     ...overrides,
   };
 }
@@ -190,7 +190,7 @@ describe("computePileOrigins", () => {
         width: DESIGN_WIDTH_PX * 2,
         height: (DESIGN_HEIGHT_PX + INSET_TOP) * 2,
         pixelRatio: 2,
-        insetTop: INSET_TOP,
+        insets: { ...NO_INSETS, top: INSET_TOP },
       },
       2,
     );

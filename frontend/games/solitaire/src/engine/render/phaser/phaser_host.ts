@@ -3,6 +3,7 @@ import { Types } from "phaser";
 import { BoardScene } from "./board_scene";
 import { ScalableGame, ViewportScaler } from "./viewport_scaler";
 import { DEFAULT_BACKGROUND_COLOR } from "../presentation";
+import { Insets, NO_INSETS } from "../view/table_view_state";
 
 /**
  * Describes the slice of `Phaser.Game` the host drives, so a spec need not boot
@@ -31,10 +32,11 @@ export type CreateGame = (config: Types.Core.GameConfig) => HostedGame;
 /** Tells a board what the host knows of the page around its canvas. */
 export interface BoardSurroundings {
   /**
-   * Returns how far down the canvas the shell's chrome lies over it, in CSS
-   * pixels, as the canvas's parent declares it in `--board-inset-top`.
+   * Returns how far in from each edge the shell's chrome lies over the canvas,
+   * in CSS pixels, as the canvas's parent declares it in `--board-inset-top`,
+   * `-right`, `-bottom` and `-left`.
    */
-  readonly insetTop: () => number;
+  readonly insets: () => Insets;
 }
 
 /** Builds a board scene to run in a host. */
@@ -135,7 +137,7 @@ export class PhaserHost {
       scenes.remove(this.board.key);
     }
     const board = makeBoardScene({
-      insetTop: () => this.scaler?.insetTop ?? 0,
+      insets: () => this.scaler?.insets ?? NO_INSETS,
     });
     this.board = board;
     scenes.add(board.key, board, true);

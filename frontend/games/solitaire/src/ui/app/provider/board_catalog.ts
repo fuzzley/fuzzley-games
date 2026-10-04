@@ -91,7 +91,7 @@ export function gesturesFor(gameId: GameId, game: PlayableGame): IntentHandler {
 /** Says how a board should look and fit, and whom to tell once it is drawn. */
 export type BoardSetting = Pick<
   TableBoardOptions,
-  "presentation" | "onReady" | "insetTop"
+  "presentation" | "onReady" | "insets"
 >;
 
 /**

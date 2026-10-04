@@ -8,7 +8,7 @@ import {
   designSize,
   measureTable,
 } from "@/engine/render/layout/table_layout";
-import { Viewport } from "@/engine/render/view/table_view_state";
+import { NO_INSETS, Viewport } from "@/engine/render/view/table_view_state";
 
 /** Returns an unremarkable board with the given overrides. */
 function layout(overrides: Partial<TableLayoutSpec> = {}): TableLayoutSpec {
@@ -79,10 +79,36 @@ describe("computeScale", () => {
       width: design.width,
       height: design.height + 30,
       pixelRatio: 1,
-      insetTop: 30,
+      insets: { ...NO_INSETS, top: 30 },
     };
 
     expect(computeScale(spec, viewport)).toBe(1);
+  });
+
+  it("fits the board inside insets on every side", () => {
+    const spec = layout();
+    const design = designSize(spec);
+    const viewport: Viewport = {
+      width: design.width + 40 + 60,
+      height: design.height + 30 + 20,
+      pixelRatio: 1,
+      insets: { top: 30, right: 60, bottom: 20, left: 40 },
+    };
+
+    expect(computeScale(spec, viewport)).toBe(1);
+  });
+
+  it("shrinks the board when a side inset takes some of its width", () => {
+    const spec = layout();
+    const design = designSize(spec);
+    const viewport: Viewport = {
+      width: design.width,
+      height: design.height,
+      pixelRatio: 1,
+      insets: { ...NO_INSETS, left: design.width / 2 },
+    };
+
+    expect(computeScale(spec, viewport)).toBe(0.5);
   });
 
   it("measures the inset in CSS pixels, converting it by the pixel ratio", () => {
@@ -92,7 +118,7 @@ describe("computeScale", () => {
       width: design.width * 2,
       height: (design.height + 30) * 2,
       pixelRatio: 2,
-      insetTop: 30,
+      insets: { ...NO_INSETS, top: 30 },
     };
 
     expect(computeScale(spec, viewport)).toBe(2);
@@ -134,7 +160,10 @@ describe("computePileOrigins", () => {
   });
 
   it("starts the board below the inset, which the pixel ratio scales", () => {
-    const viewport: Viewport = { ...designViewport(), insetTop: 30 };
+    const viewport: Viewport = {
+      ...designViewport(),
+      insets: { ...NO_INSETS, top: 30 },
+    };
 
     const origins = computePileOrigins(
       layout(),
@@ -144,6 +173,35 @@ describe("computePileOrigins", () => {
 
     // The inset is the shell's, in CSS pixels; the padding is the board's.
     expect(origins.get("a")!.y).toBe(30 * 2 + layout().padding.y);
+  });
+
+  it("starts the board right of a left inset", () => {
+    const design = designSize(layout());
+    const viewport: Viewport = {
+      width: design.width + 50,
+      height: design.height,
+      pixelRatio: 1,
+      insets: { ...NO_INSETS, left: 50 },
+    };
+
+    const origins = computePileOrigins(layout(), viewport, 1);
+
+    expect(origins.get("a")!.x).toBe(50 + layout().padding.x);
+  });
+
+  it("centres a narrow board in the width the side insets leave", () => {
+    const design = designSize(layout());
+    const viewport: Viewport = {
+      width: design.width + 100 + 20,
+      height: design.height,
+      pixelRatio: 1,
+      insets: { ...NO_INSETS, left: 100 },
+    };
+
+    const origins = computePileOrigins(layout(), viewport, 1);
+
+    // Twenty spare pixels beside the inset, split either side of the board.
+    expect(origins.get("a")!.x).toBe(100 + layout().padding.x + 10);
   });
 
   it("keeps an eight-column board inside a viewport sized for it", () => {
