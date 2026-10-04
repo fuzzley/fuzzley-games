@@ -25,9 +25,21 @@ export const FRAME_W = DESIGN_FRAME_W * RASTER_SCALE;
 export const FRAME_H = DESIGN_FRAME_H * RASTER_SCALE;
 
 /**
- * The name of every card frame a deck must supply: a face for each suit and
+ * The card backs every deck is given, whatever its faces, which must match
+ * `CardBackStyle` in `src/engine/render/card_back.ts`: the plain backs the
+ * mobile deck draws, then the card artwork's own.
+ */
+export const BACK_FRAME_NAMES = [
+  "card-back-blue",
+  "card-back-red",
+  "card-back-classic-blue",
+  "card-back-classic-red",
+];
+
+/**
+ * The name of every card frame an atlas must hold: a face for each suit and
  * rank, as `playingCardFaceKey` in `src/engine/core/card/playing_card.ts`
- * names it, and the two backs the settings drawer offers.
+ * names it, and every back.
  */
 export const CARD_FRAME_NAMES = [
   ...["clubs", "diamonds", "hearts", "spades"].flatMap((suit) =>
@@ -47,8 +59,7 @@ export const CARD_FRAME_NAMES = [
       "king",
     ].map((rank) => `card-${suit}-${rank}`),
   ),
-  "card-back-blue",
-  "card-back-red",
+  ...BACK_FRAME_NAMES,
 ];
 
 /**

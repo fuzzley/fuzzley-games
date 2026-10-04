@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { CARD_DECKS } from "@/engine/render/card_deck";
+import { CARD_BACKS } from "@/engine/render/card_back";
 import {
   CARD_ART_SCALES,
   CARD_RENDER_HEIGHT_PX,
@@ -80,6 +81,18 @@ describe("card deck atlases", () => {
     const names = EVERY_ATLAS.map((atlas) => frameNames(built(atlas)!));
 
     expect(names).toEqual(names.map(() => names[0]));
+  });
+
+  it("draws every card back in every deck and density", () => {
+    // A back is chosen apart from the deck, so any deck may be asked for it.
+    const missing = EVERY_ATLAS.flatMap((atlas) => {
+      const names = frameNames(built(atlas)!);
+      return CARD_BACKS.filter((back) => !names.includes(back.style)).map(
+        (back) => `${atlas.deckId}@${atlas.artScale}x/${back.style}`,
+      );
+    });
+
+    expect(missing).toEqual([]);
   });
 
   it("builds every frame at its density's size", () => {

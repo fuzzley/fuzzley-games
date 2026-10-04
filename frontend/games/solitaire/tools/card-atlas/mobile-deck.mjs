@@ -1,6 +1,6 @@
 /**
- * Draws the mobile deck: flat faces whose rank and suit fill the strips a
- * fanned card leaves showing, and plain backs.
+ * Draws the mobile deck's flat faces, whose rank and suit fill the strips a
+ * fanned card leaves showing, and the plain backs every deck is given.
  *
  * Coordinates are design units on the 220 x 307 frame, origin top left.
  */
@@ -162,7 +162,10 @@ const BODY = {
 /** The large rank on the panel, the pip under it, and the gap between them. */
 const PANEL_ART = { rankCapH: 100, pipSize: 60, gap: 18 };
 
-/** The colours of the two backs, by frame name. */
+/**
+ * The colours of the two plain backs, by frame name, which
+ * `src/ui/app/styles/_palette.scss` mirrors for the settings drawer's preview.
+ */
 const BACKS = {
   "card-back-blue": { field: "#1d4f9f", lattice: "#2a62b8" },
   "card-back-red": { field: "#a3172b", lattice: "#b92a3f" },
@@ -504,12 +507,12 @@ async function renderFrame(name, svg) {
 }
 
 /**
- * Draws the mobile deck's faces and backs, after checking that its layout and
- * colours keep every index legible.
+ * Draws the mobile deck's faces, after checking that its layout and colours
+ * keep every index legible.
  *
  * @returns {Promise<{name: string, png: Buffer}[]>} The frames, at RASTER_SCALE.
  */
-export async function drawMobileDeck() {
+export async function drawMobileFaces() {
   assertIndicesAreClear();
   assertSuitColorsAreLegible();
 
@@ -524,6 +527,16 @@ export async function drawMobileDeck() {
       );
     }
   }
+  return frames;
+}
+
+/**
+ * Draws the plain backs.
+ *
+ * @returns {Promise<{name: string, png: Buffer}[]>} The frames, at RASTER_SCALE.
+ */
+export async function drawPlainBacks() {
+  const frames = [];
   for (const [name, colors] of Object.entries(BACKS)) {
     frames.push(await renderFrame(name, backSvg(colors)));
   }

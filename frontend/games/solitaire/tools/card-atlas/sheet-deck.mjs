@@ -55,7 +55,7 @@ const SHEET_RANKS = [
 ];
 
 /** The two card backs, on the sheet's fifth row. */
-const SHEET_BACKS = ["card-back-blue", "card-back-red"];
+const SHEET_BACKS = ["card-back-classic-blue", "card-back-classic-red"];
 
 /**
  * Marks every pixel the sheet has drawn something on.
@@ -204,7 +204,8 @@ async function assertEdgesAreClear(frames) {
  * Cuts the faces and backs out of a card sheet, a frame centred on each card.
  *
  * @param {string} source The sheet's SVG source.
- * @returns {Promise<{name: string, png: Buffer}[]>} The frames, at RASTER_SCALE.
+ * @returns {Promise<{faces: {name: string, png: Buffer}[], backs: {name: string, png: Buffer}[]}>}
+ *   The frames, at RASTER_SCALE.
  */
 export async function cutSheetDeck(source) {
   const sheet = await rasterize(
@@ -243,5 +244,9 @@ export async function cutSheetDeck(source) {
   );
 
   await assertEdgesAreClear(cardFrames);
-  return cardFrames;
+  const isBack = (frame) => SHEET_BACKS.includes(frame.name);
+  return {
+    faces: cardFrames.filter((frame) => !isBack(frame)),
+    backs: cardFrames.filter(isBack),
+  };
 }
