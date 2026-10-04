@@ -34,10 +34,14 @@ describe("spreadOffsets", () => {
     ]);
   });
 
-  it("runs a leftward spread to the left of the origin", () => {
+  it("ends a leftward spread at the origin, each card right of the one under it", () => {
     expect(spreadOffsets(3, spread("left")).map((o) => o.x)).toEqual([
-      0, -20, -40,
+      -40, -20, 0,
     ]);
+  });
+
+  it("keeps the top card of a leftward spread at the origin as it grows", () => {
+    expect(spreadOffsets(2, spread("left")).map((o) => o.x)).toEqual([-20, 0]);
   });
 
   it("runs a downward spread down from the origin", () => {
@@ -48,14 +52,10 @@ describe("spreadOffsets", () => {
     ]);
   });
 
-  it("keeps the cards under the spread at the origin, whichever way it runs", () => {
+  it("keeps the cards under a spread beneath its first card", () => {
     const offsets = spreadOffsets(5, spread("left"));
 
-    expect(offsets.slice(0, 3)).toEqual([
-      { x: 0, y: 0 },
-      { x: 0, y: 0 },
-      { x: 0, y: 0 },
-    ]);
+    expect(offsets.slice(0, 3).map((o) => o.x)).toEqual([-40, -40, -40]);
   });
 
   it("spreads a group of cards as one", () => {

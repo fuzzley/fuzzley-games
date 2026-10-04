@@ -11,7 +11,10 @@ import {
   DrawCount,
   KlondikeVariant,
 } from "@/games/klondike/klondike_rules";
-import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
+import {
+  KLONDIKE_LAYOUT,
+  KLONDIKE_PHONE_LAYOUTS,
+} from "@/games/klondike/klondike_layout";
 import {
   KlondikeScoring,
   klondikeScoringPolicy,
@@ -855,6 +858,7 @@ const KLONDIKE = {
     KLONDIKE_ALMOST_WIN,
   ],
   layout: KLONDIKE_LAYOUT,
+  phoneLayouts: KLONDIKE_PHONE_LAYOUTS,
   create: (values: GameOptionValues) =>
     dealt(
       new KlondikeGame({
