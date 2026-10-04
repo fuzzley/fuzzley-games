@@ -30,7 +30,8 @@
 }
 
 // A highlight travelling across a placeholder that is a fixed shape — the
-// board's pile slots, where the moving part is a child laid over the slot.
+// board's pile slots and the game browser's picture, where the moving part is a
+// child laid over the placeholder.
 @keyframes shimmerSweep {
   0% {
     transform: translateX(-100%);
