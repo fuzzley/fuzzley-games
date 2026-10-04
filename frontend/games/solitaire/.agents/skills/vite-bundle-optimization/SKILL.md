@@ -65,7 +65,9 @@ Break either one and the app 404s on the host while working perfectly on
 its two pip cuts, 52 faces plus two backs each) or generated: the `mobile` deck
 is drawn by `tools/card-atlas/mobile-deck.mjs`, its ranks set in the bundled
 `tools/card-atlas/fonts/BarlowCondensed-Bold.ttf` rather than any system font.
-Every deck shares the placeholders in `card_placeholders.svg`.
+Every deck shares the placeholders in `card_placeholders.svg`, one 220 × 307
+cell each in a row; a new one is a cell appended there and its name appended to
+`PLACEHOLDERS.names` in `tools/build-card-atlas.mjs`, in the same order.
 
 **Layout:** `tools/build-card-atlas.mjs` lists the decks and runs the build.
 `yarn build:atlas --deck <id>` builds just one, and `--preview` also writes a
