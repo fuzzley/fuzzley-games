@@ -8,6 +8,7 @@ import {
   LAYOUT_PADDING_X,
   LAYOUT_PADDING_Y,
 } from "./card_metrics";
+import type { FanFit, PileLayoutOverride } from "./pile_layout";
 
 /** Holds a width and height in design units. */
 export interface Size {
@@ -59,6 +60,24 @@ export interface TableLayoutSpec {
    * column runs off the bottom of the screen.
    */
   readonly designHeightPx?: number;
+
+  /**
+   * How far each downward fan may open or close to fit the room below its
+   * pile; fans keep their own gaps when omitted.
+   */
+  readonly fanFit?: FanFit;
+
+  /**
+   * How particular piles arrange their cards on this grid, keyed by pile id,
+   * each worked out from the arrangement its zone would otherwise use.
+   */
+  readonly pileLayouts?: Readonly<Record<string, PileLayoutOverride>>;
+
+  /**
+   * Whether this grid is another's mirror image, which turns every sideways
+   * spread around.
+   */
+  readonly mirrored?: boolean;
 }
 
 /** Describes what distinguishes one board's grid from another's. */
@@ -71,6 +90,14 @@ export interface TableGridSpec {
   readonly slots: readonly SlotPlacement[];
   /** The design height the board reserves; see {@link TableLayoutSpec}. */
   readonly designHeightPx?: number;
+  /** Space between columns and rows, if not the gap every board shares. */
+  readonly gap?: Point;
+  /** Space at the board's edges, if not the padding every board shares. */
+  readonly padding?: Point;
+  /** How fans fit their room; see {@link TableLayoutSpec}. */
+  readonly fanFit?: FanFit;
+  /** How particular piles arrange their cards; see {@link TableLayoutSpec}. */
+  readonly pileLayouts?: Readonly<Record<string, PileLayoutOverride>>;
 }
 
 /** Completes a board's grid with the measurements every board shares. */
@@ -80,9 +107,11 @@ export function tableLayout(grid: TableGridSpec): TableLayoutSpec {
     rows: grid.rows,
     slots: grid.slots,
     cardSize: { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX },
-    gap: { x: LAYOUT_GAP_X, y: LAYOUT_GAP_Y },
-    padding: { x: LAYOUT_PADDING_X, y: LAYOUT_PADDING_Y },
+    gap: grid.gap ?? { x: LAYOUT_GAP_X, y: LAYOUT_GAP_Y },
+    padding: grid.padding ?? { x: LAYOUT_PADDING_X, y: LAYOUT_PADDING_Y },
     designHeightPx: grid.designHeightPx,
+    fanFit: grid.fanFit,
+    pileLayouts: grid.pileLayouts,
   };
 }
 

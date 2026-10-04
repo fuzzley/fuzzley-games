@@ -281,7 +281,7 @@ from the right.
 - [x] 1.1 Insets on every side
 - [x] 1.2 Spreads in any direction
 - [x] 1.3 Anchored and offset slots
-- [ ] 1.4 Fitted fans
+- [x] 1.4 Fitted fans
 - [ ] 1.5 Board layouts and the chooser
 - [ ] 2.1 Phone detection in the shell
 - [ ] 2.2 Side rail
@@ -362,3 +362,26 @@ case that needs this.
 The loading skeleton counts a bottom-anchored row up from the last row and
 turns an offset into grid cells. Nothing on screen changes; no grid uses either
 yet.
+
+### 1.4 Fitted fans
+
+`pile_layout.ts` gains `FanFit` (face-up floor and cap, face-down floor),
+`fitFanDown` and `mirrorPileLayout`, plus the `FanDownLayout`, `SpreadLayout`
+and `PileLayoutOverride` names. `fitFanDown` first takes hidden cards' gaps
+down towards their floor while face-up gaps would fall below their own. It then
+spreads the face-up gaps over what is left, between the floor and the cap. It
+always keeps room for the hover expansion, so touching a card never pushes a
+column further down than it already reaches.
+
+`TableLayoutSpec` gains `fanFit`, `pileLayouts` (an override per pile id,
+worked out from the zone's own arrangement, so a waste keeps its draw count's
+`maxVisible` when a grid turns it downward) and `mirrored`. `TableGridSpec` and
+`tableLayout` also take `gap` and `padding`, which the phone grids tighten.
+`table_layout.ts` imports from `pile_layout.ts` with `import type`, since
+`pile_layout.ts` already imports `Size` from it.
+
+`engine/tableau/view/pile_arrangement.ts` has `pileArrangement`: the zone's
+arrangement, then the grid's override, then the mirror, then the fit to the
+pile's room. The view builder's card offsets, the held stack's gap and
+`resolveDragTarget`'s drop rectangles all go through it, so a drop lands where
+its highlight showed on a fitted column too. No grid sets any of this yet.
