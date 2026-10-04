@@ -59,6 +59,20 @@ Use predefined breakpoint mixins. Never hardcode raw pixel widths in media queri
 @include below("desktop"); // Desktop screens
 ```
 
+Anything that follows the compact chrome (and the compact board) uses the
+shape mixins instead, which also catch a phone on its side, wider than
+`tablet` but shorter than `$compact-max-height`:
+
+```scss
+@include compact; // Narrower than tablet, or shorter than $compact-max-height
+@include phone-portrait; // Compact and taller than wide: the header is a bottom bar
+@include phone-landscape; // Compact and wider than tall: the header is a side rail
+```
+
+They match `ViewportService.formFactor` in the shell and `formFactorOf` in
+`src/engine/render/layout/form_factor.ts`, so the chrome and the board change
+together.
+
 ### 5. Global Animations
 
 - All `@keyframes` declarations live in `styles/_animations.scss`.

@@ -2,8 +2,8 @@
 
 Klondike and Spider are hard to play on a phone. This plan measures why,
 collects what phone solitaire apps do, and sets out two new board arrangements
-per game and orientation beside today's, with the engine work each one needs. The
-owner's choices are under [Decisions](#decisions); the work is tracked in
+per game and orientation beside today's, with the engine work each one needs.
+The owner's choices are under [Decisions](#decisions); the work is tracked in
 [phone-board-layouts-log.md](phone-board-layouts-log.md).
 
 **Scope:** Klondike and Spider only. Klondike's variants (Whitehead, Thumb and
@@ -16,6 +16,30 @@ scale from the same layout math as the figures beside them. Dark bars are the
 app's own chrome (header, side rail, tool bar), and a red triangle on the bottom
 edge marks a column that runs off the screen. A strip is the face-up part of
 each card in a column, in CSS pixels.
+
+## What shipped
+
+Built on `feature/phone-board-layouts`, following the decisions below. Where it
+differs from the sketches:
+
+- **One bar at the bottom.** An upright phone docks the whole header at the
+  bottom rather than splitting a status strip from a tool bar (K-P2's sketch),
+  for every game.
+- **S-P2 draws whole foundations** in columns 0 to 7 rather than overlapped
+  runs, since the bottom row is one card tall either way; the stock shows one
+  sliver per deal.
+- **S-L2 uses one rail** at the right for the stock and the foundations, rather
+  than half-hidden piles at both edges. The cards come out the same size.
+- **A waste at the right spreads towards the stock**, each card right of the one
+  under it, so the covered cards keep their index in view.
+- **A left hand mirrors the piles but not the columns**, which stay in the order
+  they are dealt, as phone solitaire apps do.
+- **Fans fit only on the phone grids**, with a floor of 40 design units and a
+  cap of 110. The grids for larger screens are unchanged.
+
+The layout management is general: another game takes on phone grids by declaring
+its board to the builder in `src/games/common/phone_layouts.ts` and naming the
+result on its catalog entry.
 
 ## In short
 
