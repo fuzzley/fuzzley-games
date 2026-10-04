@@ -13,8 +13,9 @@ import {
   FortyThievesVariant,
   fortyThievesGrabRule,
   fortyThievesHidesCards,
-  fortyThievesPlacementRule,
   fortyThievesTableauCount,
+  FORTY_THIEVES_FOUNDATION_RULE,
+  fortyThievesTableauRule,
 } from "./forty_thieves_rules";
 
 /**
@@ -66,7 +67,7 @@ export function fortyThievesZoneSpecs(
       role: FortyThievesRole.STOCK,
       column: 0,
       row: 0,
-      accept: fortyThievesPlacementRule(FortyThievesRole.STOCK, variant),
+      accept: null,
       // No `emptyIsActionable`: the stock is never recycled.
       backgroundKey: CLOSED_STOCK_PLACEHOLDER,
     }),
@@ -75,7 +76,7 @@ export function fortyThievesZoneSpecs(
       role: FortyThievesRole.WASTE,
       column: 1,
       row: 0,
-      accept: fortyThievesPlacementRule(FortyThievesRole.WASTE, variant),
+      accept: null,
       layout: WASTE_PILE_LAYOUT,
     }),
     ...foundationRow({
@@ -83,19 +84,19 @@ export function fortyThievesZoneSpecs(
       column: FOUNDATION_COLUMN_OFFSET,
       row: 0,
       role: FortyThievesRole.FOUNDATION,
-      accept: fortyThievesPlacementRule(FortyThievesRole.FOUNDATION, variant),
+      accept: FORTY_THIEVES_FOUNDATION_RULE,
     }),
     ...columnRow({
       count: fortyThievesTableauCount(variant),
       column: tableauColumnOffset(variant),
       row: 1,
       role: FortyThievesRole.TABLEAU,
-      accept: fortyThievesPlacementRule(FortyThievesRole.TABLEAU, variant),
+      accept: fortyThievesTableauRule(variant),
       grab: fortyThievesGrabRule(variant),
       face: fortyThievesHidesCards(variant) ? "card" : "always-up",
     }),
   ];
 }
 
-/** Re-exported: the roles live with the rules that branch on them. */
+/** Re-exported: the roles live with the rules that use them. */
 export { FortyThievesRole };

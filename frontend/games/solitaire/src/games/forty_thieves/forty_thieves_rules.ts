@@ -202,21 +202,3 @@ export function fortyThievesAcesStartOnFoundations(
  * No foundation belongs to a suit: whichever Ace arrives first claims it.
  */
 export const FORTY_THIEVES_FOUNDATION_RULE: PlacementRule = suitFoundation;
-
-/**
- * Returns what a pile of a role accepts, or null for the stock and the waste,
- * which are never destinations.
- */
-export function fortyThievesPlacementRule(
-  role: string,
-  variant: FortyThievesVariant,
-): PlacementRule | null {
-  switch (role) {
-    case FortyThievesRole.TABLEAU:
-      return fortyThievesTableauRule(variant);
-    case FortyThievesRole.FOUNDATION:
-      return FORTY_THIEVES_FOUNDATION_RULE;
-    default:
-      return null;
-  }
-}

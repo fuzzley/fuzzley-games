@@ -36,20 +36,3 @@ export const DOUBLE_KLONDIKE_TABLEAU_RULE: PlacementRule = byEmptiness(
 
 /** A Double Klondike foundation: the standard Ace-up-by-suit pile. */
 export const DOUBLE_KLONDIKE_FOUNDATION_RULE: PlacementRule = suitFoundation;
-
-/**
- * Returns what a pile of the given role accepts, or null for the stock and the
- * waste, which are never destinations.
- */
-export function doubleKlondikePlacementRule(
-  role: string,
-): PlacementRule | null {
-  switch (role) {
-    case DoubleKlondikeRole.TABLEAU:
-      return DOUBLE_KLONDIKE_TABLEAU_RULE;
-    case DoubleKlondikeRole.FOUNDATION:
-      return DOUBLE_KLONDIKE_FOUNDATION_RULE;
-    default:
-      return null;
-  }
-}

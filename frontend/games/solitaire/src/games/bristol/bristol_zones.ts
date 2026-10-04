@@ -85,5 +85,5 @@ const ZONES: readonly ZoneSpec[] = [
   }),
 ];
 
-/** Re-exported: the roles live with the rules that branch on them. */
+/** Re-exported: the roles live with the rules that use them. */
 export { BristolRole };

@@ -1,6 +1,11 @@
 import { ZoneSpec } from "@/engine/tableau/zone";
 import { columnRow, foundationRow } from "../common/zone_presets";
-import { YukonRole, YukonVariant, yukonPlacementRule } from "./yukon_rules";
+import {
+  YukonRole,
+  YukonVariant,
+  YUKON_FOUNDATION_RULE,
+  yukonTableauRule,
+} from "./yukon_rules";
 
 /** The number of suit foundation piles. */
 export const FOUNDATION_COUNT = 4;
@@ -18,14 +23,14 @@ export function yukonZoneSpecs(variant: YukonVariant): readonly ZoneSpec[] {
       column: 3,
       row: 0,
       role: YukonRole.FOUNDATION,
-      accept: yukonPlacementRule(YukonRole.FOUNDATION, variant),
+      accept: YUKON_FOUNDATION_RULE,
     }),
     ...columnRow({
       count: TABLEAU_COUNT,
       column: 0,
       row: 1,
       role: YukonRole.TABLEAU,
-      accept: yukonPlacementRule(YukonRole.TABLEAU, variant),
+      accept: yukonTableauRule(variant),
       grab: { kind: "any-face-up" },
     }),
   ];

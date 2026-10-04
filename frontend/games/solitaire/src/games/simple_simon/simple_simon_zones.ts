@@ -7,8 +7,8 @@ import {
   SimpleSimonRole,
   SimpleSimonVariant,
   simpleSimonFoundationCount,
-  simpleSimonPlacementRule,
   simpleSimonTableauCount,
+  SIMPLE_SIMON_TABLEAU_RULE,
 } from "./simple_simon_rules";
 
 /**
@@ -28,7 +28,7 @@ export function simpleSimonZoneSpecs(
       role: SimpleSimonRole.FOUNDATION,
       // Never a drop target: a run arrives here by completing itself, not by
       // being put here, and taking one back apart is not a move.
-      accept: simpleSimonPlacementRule(SimpleSimonRole.FOUNDATION),
+      accept: null,
       grab: { kind: "none" },
       draggable: false,
     }),
@@ -37,7 +37,7 @@ export function simpleSimonZoneSpecs(
       column: 0,
       row: 1,
       role: SimpleSimonRole.TABLEAU,
-      accept: simpleSimonPlacementRule(SimpleSimonRole.TABLEAU),
+      accept: SIMPLE_SIMON_TABLEAU_RULE,
       grab: { kind: "run", adjacent: isSameSuitRun },
       layout: OPEN_COLUMN_LAYOUT,
       face: "always-up",

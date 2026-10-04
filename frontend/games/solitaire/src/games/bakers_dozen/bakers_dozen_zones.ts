@@ -3,7 +3,8 @@ import { OPEN_COLUMN_LAYOUT } from "../common/pile_layouts";
 import { columnRow, foundationRow } from "../common/zone_presets";
 import {
   BakersDozenRole,
-  bakersDozenPlacementRule,
+  BAKERS_DOZEN_FOUNDATION_RULE,
+  BAKERS_DOZEN_TABLEAU_RULE,
 } from "./bakers_dozen_rules";
 
 /** The number of tableau columns, which gives the game its name. */
@@ -26,14 +27,14 @@ const ZONES: readonly ZoneSpec[] = [
     column: FOUNDATION_COLUMN_OFFSET,
     row: 0,
     role: BakersDozenRole.FOUNDATION,
-    accept: bakersDozenPlacementRule(BakersDozenRole.FOUNDATION),
+    accept: BAKERS_DOZEN_FOUNDATION_RULE,
   }),
   ...columnRow({
     count: TABLEAU_COUNT,
     column: 0,
     row: 1,
     role: BakersDozenRole.TABLEAU,
-    accept: bakersDozenPlacementRule(BakersDozenRole.TABLEAU),
+    accept: BAKERS_DOZEN_TABLEAU_RULE,
     // One card at a time: with no cells and no refillable columns, nothing
     // could stage a run.
     grab: { kind: "top-only" },
@@ -42,5 +43,5 @@ const ZONES: readonly ZoneSpec[] = [
   }),
 ];
 
-/** Re-exported: the roles live with the rules that branch on them. */
+/** Re-exported: the roles live with the rules that use them. */
 export { BakersDozenRole };

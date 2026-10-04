@@ -71,21 +71,3 @@ export function yukonTableauRule(variant: YukonVariant): PlacementRule {
 
 /** A Yukon foundation: the standard Ace-up-by-suit pile. */
 export const YUKON_FOUNDATION_RULE: PlacementRule = suitFoundation;
-
-/**
- * Returns what a pile of a role accepts under a variant, or null for an
- * unknown role.
- */
-export function yukonPlacementRule(
-  role: string,
-  variant: YukonVariant,
-): PlacementRule | null {
-  switch (role) {
-    case YukonRole.TABLEAU:
-      return yukonTableauRule(variant);
-    case YukonRole.FOUNDATION:
-      return YUKON_FOUNDATION_RULE;
-    default:
-      return null;
-  }
-}

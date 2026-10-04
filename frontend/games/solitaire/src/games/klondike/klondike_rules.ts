@@ -132,21 +132,3 @@ export function klondikeDealsFaceUp(variant: KlondikeVariant): boolean {
 
 /** A Klondike foundation: the standard Ace-up-by-suit pile. */
 export const KLONDIKE_FOUNDATION_RULE: PlacementRule = suitFoundation;
-
-/**
- * Returns what a pile of the given role accepts, or null for the stock and the
- * waste, which are never destinations.
- */
-export function klondikePlacementRule(
-  role: string,
-  variant: KlondikeVariant = DEFAULT_KLONDIKE_VARIANT,
-): PlacementRule | null {
-  switch (role) {
-    case KlondikeRole.TABLEAU:
-      return klondikeTableauRule(variant);
-    case KlondikeRole.FOUNDATION:
-      return KLONDIKE_FOUNDATION_RULE;
-    default:
-      return null;
-  }
-}

@@ -116,7 +116,7 @@ The review's findings, grouped into phases. Each phase leaves the tree green.
 - [x] 2.2 Counts read from the history
 - [x] 2.3 `relocate` helper
 - [x] 3.1 Pile markers
-- [ ] 3.2 Rules attached directly; column rule helper
+- [x] 3.2 Rules attached directly; column rule helper
 - [ ] 3.3 Deck construction and dealing helpers
 - [ ] 4.1 `engine/board` tier and fixture copies deleted
 - [ ] 4.2 Read-only piles
@@ -284,3 +284,23 @@ Newest last. Each entry names its commit subject.
     empties, and Rainbow's closed outline.
   - `StockOverrideTableGame` in the fake table uses a marker too.
   - The `add-solitaire-game` skill now says to mark the pile.
+- **refactor: name each zone's rule directly, and derive run columns from
+  one adjacency.**
+  - The thirteen `xxxPlacementRule(role)` switches are gone (Baker's Dozen,
+    Double Klondike, Easthaven, Eight Off, Forty Thieves, FreeCell, Klondike,
+    Scorpion, Seahaven, Simple Simon, Spider, Spiderette, Yukon). Each zones
+    file names its rule constant, or `null` for a pile that takes nothing; a
+    script did the substitution from each switch's own cases. The fake
+    table's `fakePlacementRule` went the same way.
+  - `runColumn({ adjacent, whenEmpty, maxStack })` in `zone.ts` returns a
+    column's `accept` and `grab` together (`ColumnRules`). Eight Off,
+    Seahaven, Easthaven, Penguin and Canfield export a column constant or
+    function built with it in place of a tableau rule paired with a grab rule
+    declared in another file. FreeCell's variant table now holds
+    `runColumn` options and exports `freeCellColumn(variant)`;
+    `freeCellRunAdjacency` is gone. Spider-style games keep their build and
+    lift apart on purpose.
+  - `klondike_rules.spec.ts` reads each rule from `klondikeZoneSpecs` instead
+    of the deleted switch, so it tests the wiring a game is built from.
+  - The `add-solitaire-game` skill describes naming rules directly and
+    `runColumn`.

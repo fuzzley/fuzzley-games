@@ -1,4 +1,3 @@
-import { isOrderedPair } from "@/engine/tableau/rules";
 import { ZoneSpec } from "@/engine/tableau/zone";
 import { STOCK_PILE_ID } from "../common/pile_ids";
 import {
@@ -7,7 +6,11 @@ import {
   foundationRow,
   stockZone,
 } from "../common/zone_presets";
-import { EasthavenRole, easthavenPlacementRule } from "./easthaven_rules";
+import {
+  EasthavenRole,
+  EASTHAVEN_FOUNDATION_RULE,
+  EASTHAVEN_COLUMN,
+} from "./easthaven_rules";
 
 /** The number of tableau columns. */
 export const TABLEAU_COUNT = 7;
@@ -31,7 +34,7 @@ const ZONES: readonly ZoneSpec[] = [
     role: EasthavenRole.STOCK,
     column: 0,
     row: 0,
-    accept: easthavenPlacementRule(EasthavenRole.STOCK),
+    accept: null,
     backgroundKey: CLOSED_STOCK_PLACEHOLDER,
   }),
   ...foundationRow({
@@ -39,17 +42,16 @@ const ZONES: readonly ZoneSpec[] = [
     column: FOUNDATION_COLUMN_OFFSET,
     row: 0,
     role: EasthavenRole.FOUNDATION,
-    accept: easthavenPlacementRule(EasthavenRole.FOUNDATION),
+    accept: EASTHAVEN_FOUNDATION_RULE,
   }),
   ...columnRow({
     count: TABLEAU_COUNT,
     column: 0,
     row: 1,
     role: EasthavenRole.TABLEAU,
-    accept: easthavenPlacementRule(EasthavenRole.TABLEAU),
-    grab: { kind: "run", adjacent: isOrderedPair },
+    ...EASTHAVEN_COLUMN,
   }),
 ];
 
-/** Re-exported: the roles live with the rules that branch on them. */
+/** Re-exported: the roles live with the rules that use them. */
 export { EasthavenRole };

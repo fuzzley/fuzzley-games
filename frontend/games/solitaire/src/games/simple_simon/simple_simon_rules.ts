@@ -105,16 +105,3 @@ export const SIMPLE_SIMON_TABLEAU_RULE: PlacementRule = byEmptiness(
   anyCard,
   descendingAnySuit,
 );
-
-/**
- * Returns what a pile of a role accepts, or null for a foundation, where a
- * player never puts a card.
- */
-export function simpleSimonPlacementRule(role: string): PlacementRule | null {
-  switch (role) {
-    case SimpleSimonRole.TABLEAU:
-      return SIMPLE_SIMON_TABLEAU_RULE;
-    default:
-      return null;
-  }
-}

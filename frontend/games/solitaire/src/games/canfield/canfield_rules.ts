@@ -4,12 +4,11 @@ import {
   PlacementRule,
   anyCard,
   baseRankFoundation,
-  buildsOn,
-  byEmptiness,
   isAnySuitRunWrapping,
   isOrderedPairWrapping,
   isSameSuitRunWrapping,
 } from "@/engine/tableau/rules";
+import { ColumnRules, runColumn } from "@/engine/tableau/zone";
 
 /** The parts a pile can play in a game of the Canfield family. */
 export const CanfieldRole = {
@@ -133,11 +132,11 @@ const SPACE_FROM_RESERVE: PlacementRule = (context) => {
   );
 };
 
-/** Returns the rule for a column under a variant. */
-export function canfieldTableauRule(variant: CanfieldVariant): PlacementRule {
+/** Returns what a column accepts under a variant, and the runs lifted off it. */
+export function canfieldColumn(variant: CanfieldVariant): ColumnRules {
   const { adjacent, reserveFillsSpaces } = VARIANT_RULES[variant];
-  return byEmptiness(
-    reserveFillsSpaces ? SPACE_FROM_RESERVE : anyCard,
-    buildsOn(adjacent),
-  );
+  return runColumn({
+    adjacent,
+    whenEmpty: reserveFillsSpaces ? SPACE_FROM_RESERVE : anyCard,
+  });
 }
