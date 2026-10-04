@@ -287,7 +287,7 @@ the right.
 - [x] 3.3 Spider grids
 - [x] 3.4 Browser check
 - [x] 4.1 Settings service
-- [ ] 4.2 Settings drawer
+- [x] 4.2 Settings drawer
 - [ ] 4.3 Mirrored chrome
 - [ ] 5.1 Docs
 - [ ] 5.2 Verify
@@ -615,3 +615,27 @@ and `setHand` change them. `boardArrangement()` reads both through a `computed`,
 so the board, which asks every frame, and the loading skeleton follow a change
 at once. The two saving specs that compare the whole stored object now include
 both keys.
+
+### 4.2 Settings drawer
+
+The drawer offers two segmented option groups after the game's rules:
+
+- **Upright Phone Layout:** Piles Below (the default) or Piles Above. Shown only
+  on a compact screen, in a game whose catalog entry declares phone grids.
+- **Layout For:** Right Hand (the default) or Left Hand. Shown in a game whose
+  entry declares phone grids, on any screen, since the mirror applies to the
+  roomy grid too.
+
+Both are read from the entry's `phoneLayouts`, never from a game id, so another
+game that declares phone grids gets them without a change here. The rule option
+groups now carry a `rule` class, which the spec selects by, since the new groups
+would otherwise count as rules.
+
+The UI test doubles follow: the presentation mock holds `phonePiles` and `hand`
+with their setters and a `boardArrangement()`, and the catalog mock's Klondike
+declares Klondike's phone grids. Drawer specs cover both groups, including a 390
+× 844 fake viewport for the upright one and FreeCell, which offers neither.
+
+Checked at 390 × 844: the drawer lists both groups for Klondike, and picking
+Piles Above moved the board to K-P1, the classic top row with the columns
+fanning into the room below at the cap.

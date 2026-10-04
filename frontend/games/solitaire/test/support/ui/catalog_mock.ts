@@ -1,6 +1,9 @@
 import { vi } from "vitest";
 import { signal, computed } from "@angular/core";
-import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
+import {
+  KLONDIKE_LAYOUT,
+  KLONDIKE_PHONE_LAYOUTS,
+} from "@/games/klondike/klondike_layout";
 import { FREECELL_LAYOUT } from "@/games/freecell/freecell_layout";
 import type { GameOptionSpec } from "@/ui/app/provider/game_catalog";
 import type { GameCatalogService } from "@/ui/app/service/game_catalog.service";
@@ -74,6 +77,7 @@ export function createMockCatalog(model: MockGameModel): MockCatalogHarness {
       name: "Klondike",
       options: OPTIONS,
       layout: KLONDIKE_LAYOUT,
+      phoneLayouts: KLONDIKE_PHONE_LAYOUTS,
     },
     { id: "freecell", name: "FreeCell", options: [], layout: FREECELL_LAYOUT },
   ];
