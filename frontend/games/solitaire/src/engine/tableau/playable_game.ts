@@ -30,9 +30,8 @@ export interface PlayableGame {
   /** Puts the game back as a snapshot describes it. */
   restore(snapshot: GameSnapshot): void;
 
-  /** Subscribes to a lifecycle event. */
-  on(event: PlayableGameEvent, listener: () => void): void;
-
-  /** Unsubscribes from a lifecycle event. */
-  off(event: PlayableGameEvent, listener: () => void): void;
+  /**
+   * Subscribes to a lifecycle event and returns a function that unsubscribes.
+   */
+  on(event: PlayableGameEvent, listener: () => void): () => void;
 }

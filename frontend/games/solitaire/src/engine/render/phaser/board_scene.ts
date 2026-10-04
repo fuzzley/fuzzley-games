@@ -22,7 +22,8 @@ import {
 } from "../layout/table_layout";
 import { CardArtScale, cardArtScaleFor } from "../layout/card_metrics";
 import { CardDeckId } from "../card_deck";
-import { CardDeckStatus, Subscribe } from "../presentation";
+import { Subscribe } from "@/engine/core/common/event_emitter";
+import { CardDeckStatus } from "../presentation";
 import {
   CardAtlas,
   cardAtlasTextureKey,
