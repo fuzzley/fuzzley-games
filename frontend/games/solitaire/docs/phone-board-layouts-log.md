@@ -9,7 +9,8 @@ chose between are in [phone-board-layouts.md](phone-board-layouts.md).
 
 **Branch:** `feature/phone-board-layouts`, cut from `main` at `6fecaa4`.
 
-**Status:** in progress. See [Progress](#progress).
+**Status:** done on the branch, not merged. Open questions for the owner are at
+the end of [5.3](#53-last-look).
 
 ## How to pick this up
 
@@ -290,8 +291,8 @@ the right.
 - [x] 4.2 Settings drawer
 - [x] 4.3 Mirrored chrome
 - [x] 5.1 Docs
-- [ ] 5.2 Verify
-- [ ] 5.3 Last look
+- [x] 5.2 Verify
+- [x] 5.3 Last look
 
 ## Log
 
@@ -689,3 +690,31 @@ six phone sizes.
   differs from the sketches.
 
 `yarn skills:check` passes.
+
+### 5.2 Verify
+
+`yarn verify` passes: lint (with `skills:check`), `tsc`, the build and 139 test
+files, 4268 tests. The build's chunk-size warning is about the Phaser chunk
+(1.37 MB) and the main bundle, both over 500 kB on `main` too.
+
+Coverage, `main` against this branch (statements, branches, functions, lines):
+98.32, 92.13, 98.88, 99.34 against 98.39, 92.29, 98.95, 99.37. Every figure
+rose, by under 0.2 points, so the floor (95, 88, 96, 96) stays where it is.
+`main` was measured in a temporary worktree, since removed.
+
+### 5.3 Last look
+
+At 1440 × 900 Klondike draws as it does on `main`: the full header, the classic
+grid and desktop cards. FreeCell, which has no phone grids, keeps its own grid
+and fans on an upright phone, with the bar at the bottom and the empty space
+below its columns, which is its follow-up. Every DevTools page opened during the
+work is closed.
+
+**Done on the branch, not merged.** What is left for the owner:
+
+- The two open questions under 3.4: Spider's cap upright, and the empty
+  foundations overlapped down a rail.
+- Trying the layouts on a real phone, which emulation is not; the cap of 110
+  units is the number most likely to want tuning.
+- The follow-up for the other games, which `phoneLayouts` is built for.
+- Merging `feature/phone-board-layouts` into `main` once happy.
