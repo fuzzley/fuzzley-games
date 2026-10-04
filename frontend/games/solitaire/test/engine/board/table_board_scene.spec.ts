@@ -11,6 +11,7 @@ import { designSize, measureTable } from "@/engine/render/layout/table_layout";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { cardAtlasTextureKey } from "@/engine/render/phaser/card_deck_atlas";
 import { makeTableBoardScene } from "@/engine/board/table_board_scene";
+import { NO_INSETS } from "@/engine/render/view/table_view_state";
 import {
   FAKE_TABLE_LAYOUT,
   fakeTableGestures,
@@ -143,13 +144,13 @@ describe("makeTableBoardScene", () => {
         layout: FAKE_TABLE_LAYOUT,
         handleIntent: fakeTableGestures(game),
         presentation,
-        insetTop: () => 40,
+        insets: () => ({ ...NO_INSETS, top: 40 }),
       });
 
       // The unsized canvas falls back to the design size plus the inset, so
       // the board below it still lays out at a scale of 1.
       expect([
-        inset.viewport.insetTop,
+        inset.viewport.insets?.top,
         inset.viewport.height,
         measureTable(FAKE_TABLE_LAYOUT, inset.viewport).scale,
       ]).toEqual([40, designSize(FAKE_TABLE_LAYOUT).height + 40, 1]);

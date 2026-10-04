@@ -6,6 +6,7 @@ import {
   ScalerWindow,
 } from "@/engine/render/phaser/viewport_scaler";
 import { ViewportScaler } from "@/engine/render/phaser/viewport_scaler";
+import { NO_INSETS } from "@/engine/render/view/table_view_state";
 
 /** Stands in for a media query, recording listeners to fire a DPR change. */
 class FakePixelRatioQuery implements PixelRatioQuery {
@@ -121,31 +122,46 @@ function startScaler(
   return { window, game, parent, scaler };
 }
 
-describe("ViewportScaler's top inset", () => {
+describe("ViewportScaler's insets", () => {
+  const { top, right, bottom, left } = ViewportScaler.INSET_PROPERTIES;
+
   it("reads the inset its parent declares", () => {
     const { window, scaler } = startScaler(1);
-    window.parentStyle.set(ViewportScaler.INSET_TOP_PROPERTY, "73px");
+    window.parentStyle.set(top, "73px");
 
     scaler.apply();
 
-    expect(scaler.insetTop).toBe(73);
+    expect(scaler.insets.top).toBe(73);
+  });
+
+  it("reads an inset on every edge", () => {
+    const { window, scaler } = startScaler(1);
+    window.parentStyle.set(top, "1px");
+    window.parentStyle.set(right, "2px");
+    window.parentStyle.set(bottom, "3px");
+    window.parentStyle.set(left, "4px");
+
+    scaler.apply();
+
+    expect(scaler.insets).toEqual({ top: 1, right: 2, bottom: 3, left: 4 });
   });
 
   it("reads no inset when the parent declares none", () => {
     const { scaler } = startScaler(1);
 
-    expect(scaler.insetTop).toBe(0);
+    expect(scaler.insets).toEqual(NO_INSETS);
   });
 
   it("reads the inset afresh when the window changes size", () => {
     const { window, scaler } = startScaler(1);
-    window.parentStyle.set(ViewportScaler.INSET_TOP_PROPERTY, "73px");
+    window.parentStyle.set(top, "73px");
     scaler.apply();
-    window.parentStyle.set(ViewportScaler.INSET_TOP_PROPERTY, "60px");
+    window.parentStyle.set(top, "0px");
+    window.parentStyle.set(left, "60px");
 
     window.fireResize();
 
-    expect(scaler.insetTop).toBe(60);
+    expect([scaler.insets.top, scaler.insets.left]).toEqual([0, 60]);
   });
 
   it("reads no inset from a host that cannot read styles", () => {
@@ -160,7 +176,7 @@ describe("ViewportScaler's top inset", () => {
 
     scaler.start();
 
-    expect(scaler.insetTop).toBe(0);
+    expect(scaler.insets).toEqual(NO_INSETS);
   });
 });
 

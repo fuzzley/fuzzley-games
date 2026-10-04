@@ -1,5 +1,5 @@
 import { Point } from "@/engine/core/common/point";
-import { Viewport } from "../view/table_view_state";
+import { Insets, NO_INSETS, Viewport } from "../view/table_view_state";
 import {
   CARD_HEIGHT_PX,
   CARD_WIDTH_PX,
@@ -91,7 +91,7 @@ export function designSize(spec: TableLayoutSpec): Size {
 
 /**
  * Computes the scale, from design units to device pixels, that fits the board
- * below the viewport's top inset.
+ * inside the viewport's insets.
  *
  * It is capped at the pixel ratio rather than at 1, so a high density display
  * draws a design unit with more than one device pixel.
@@ -102,9 +102,12 @@ export function computeScale(
 ): number {
   const design = designSize(spec);
   const pixelRatio = viewport.pixelRatio;
-  const screenWidth = viewport.width || design.width * pixelRatio;
+  const insets = insetsPx(viewport);
+  const screenWidth = viewport.width
+    ? viewport.width - insets.left - insets.right
+    : design.width * pixelRatio;
   const screenHeight = viewport.height
-    ? viewport.height - insetTopPx(viewport)
+    ? viewport.height - insets.top - insets.bottom
     : design.height * pixelRatio;
 
   const scaleX = screenWidth / design.width;
@@ -195,32 +198,41 @@ export function computePileOrigins(
   const gapX = spec.gap.x * scale;
   const gapY = spec.gap.y * scale;
 
+  const insets = insetsPx(viewport);
   const totalLayoutWidth =
     spec.columns * cardWidth + Math.max(0, spec.columns - 1) * gapX;
-  const screenWidth = viewport.width || designSize(spec).width;
+  const screenWidth = viewport.width
+    ? viewport.width - insets.left - insets.right
+    : designSize(spec).width;
   const paddingX = Math.max(
     spec.padding.x * scale,
     (screenWidth - totalLayoutWidth) / 2,
   );
   const paddingY = spec.padding.y * scale;
-  const top = insetTopPx(viewport);
 
   const origins = new Map<string, Point>();
   for (const slot of spec.slots) {
     origins.set(slot.pileId, {
-      x: paddingX + slot.column * (cardWidth + gapX),
-      y: top + paddingY + slot.row * (cardHeight + gapY),
+      x: insets.left + paddingX + slot.column * (cardWidth + gapX),
+      y: insets.top + paddingY + slot.row * (cardHeight + gapY),
     });
   }
   return origins;
 }
 
 /**
- * Returns the viewport's top inset in device pixels.
+ * Returns the viewport's insets in device pixels.
  *
- * Converted by the pixel ratio rather than by the layout scale, because it is
- * a measurement of the DOM laid over the canvas, not of the board.
+ * Converted by the pixel ratio rather than by the layout scale, because they
+ * are a measurement of the DOM laid over the canvas, not of the board.
  */
-function insetTopPx(viewport: Viewport): number {
-  return (viewport.insetTop ?? 0) * viewport.pixelRatio;
+function insetsPx(viewport: Viewport): Insets {
+  const insets = viewport.insets ?? NO_INSETS;
+  const ratio = viewport.pixelRatio;
+  return {
+    top: insets.top * ratio,
+    right: insets.right * ratio,
+    bottom: insets.bottom * ratio,
+    left: insets.left * ratio,
+  };
 }

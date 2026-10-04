@@ -278,7 +278,7 @@ from the right.
 ## Progress
 
 - [x] 0.1 Record the plan
-- [ ] 1.1 Insets on every side
+- [x] 1.1 Insets on every side
 - [ ] 1.2 Spreads in any direction
 - [ ] 1.3 Anchored and offset slots
 - [ ] 1.4 Fitted fans
@@ -311,3 +311,17 @@ recorded in both. After planning, the owner asked for the layout management to
 be general enough for other games to take on later (decision 6). That replaced
 the hand-placed grids first planned for step 3 with a builder that derives
 them from a declaration.
+
+### 1.1 Insets on every side
+
+`Viewport.insetTop` is now `insets`, an `Insets` of top, right, bottom and left
+in CSS pixels, with `NO_INSETS` for none (both in
+`engine/render/view/table_view_state.ts`). `ViewportScaler.INSET_PROPERTIES`
+names the four custom properties it reads, `--board-inset-top`, `-right`,
+`-bottom` and `-left`; `PhaserHost` hands `insets()` to each board, and
+`BoardScene`, `makeTableBoardScene`, the board catalog's `BoardSetting` and the
+canvas component pass it through. `computeScale` fits the board inside all four
+and `computePileOrigins` starts it at the left inset, centring it in the width
+left between the side insets. The canvas still declares only the top, so
+nothing on screen moves. New specs cover side and bottom insets in the layout
+math and all four in the scaler.

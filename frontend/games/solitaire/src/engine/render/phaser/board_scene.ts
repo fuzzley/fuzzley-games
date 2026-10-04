@@ -9,6 +9,8 @@ import { DragController, StackFromCard } from "../input/drag_controller";
 import { IntentHandler } from "../input/table_intents";
 import {
   DragInteraction,
+  Insets,
+  NO_INSETS,
   PileBackgroundSpec,
   PileGeometry,
   TableInteractionState,
@@ -77,10 +79,10 @@ export interface BoardSceneOptions {
   /** Called once the scene has made its sprites and drawn its first frame. */
   readonly onReady?: () => void;
   /**
-   * Returns how far down the canvas whatever the shell lays over it reaches,
-   * such as its header, in CSS pixels; none when omitted.
+   * Returns how far in from each edge of the canvas whatever the shell lays
+   * over it reaches, such as its header, in CSS pixels; none when omitted.
    */
-  readonly insetTop?: () => number;
+  readonly insets?: () => Insets;
 }
 
 /** Draws a game's board with Phaser and turns pointer input into intents. */
@@ -417,12 +419,16 @@ export class BoardScene extends Scene implements PhaserSprites {
   public get viewport(): Viewport {
     const design = designSize(this.options.layout);
     const pixelRatio = this.pixelRatio;
-    const insetTop = this.options.insetTop?.() ?? 0;
+    const insets = this.options.insets?.() ?? NO_INSETS;
     return {
-      width: this.scale?.width || design.width,
-      height: this.scale?.height || design.height + insetTop * pixelRatio,
+      width:
+        this.scale?.width ||
+        design.width + (insets.left + insets.right) * pixelRatio,
+      height:
+        this.scale?.height ||
+        design.height + (insets.top + insets.bottom) * pixelRatio,
       pixelRatio,
-      insetTop,
+      insets,
     };
   }
 

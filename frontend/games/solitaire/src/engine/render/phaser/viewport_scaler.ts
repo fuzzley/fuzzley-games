@@ -1,3 +1,5 @@
+import { Insets, NO_INSETS } from "../view/table_view_state";
+
 /**
  * Describes the slice of `Phaser.Game` the scaler drives, so a test need not
  * boot a real game.
@@ -57,13 +59,20 @@ export class ViewportScaler {
   public static readonly MAX_PIXEL_RATIO = 2;
 
   /**
-   * The custom property the parent declares its top inset in: how far down it
-   * the shell's own chrome, such as a header, lies over the canvas.
+   * The custom properties the parent declares its insets in: how far in from
+   * each edge the shell's own chrome, such as a header, lies over the canvas.
    */
-  public static readonly INSET_TOP_PROPERTY = "--board-inset-top";
+  public static readonly INSET_PROPERTIES: {
+    readonly [Edge in keyof Insets]: string;
+  } = {
+    top: "--board-inset-top",
+    right: "--board-inset-right",
+    bottom: "--board-inset-bottom",
+    left: "--board-inset-left",
+  };
 
-  /** The top inset as last read, in CSS pixels. */
-  private insetTopValue = 0;
+  /** The insets as last read, in CSS pixels. */
+  private insetsValue: Insets = NO_INSETS;
 
   /** Media query tracking the current pixel ratio, re-armed after each change. */
   private pixelRatioQuery: PixelRatioQuery | null = null;
@@ -94,14 +103,14 @@ export class ViewportScaler {
   }
 
   /**
-   * How far down the canvas the shell's chrome lies over it, in CSS pixels,
-   * as the parent declared it when the canvas was last sized.
+   * How far in from each edge the shell's chrome lies over the canvas, in CSS
+   * pixels, as the parent declared it when the canvas was last sized.
    *
    * Read once per resize rather than per frame, since reading a computed style
    * can force the browser to lay the page out again.
    */
-  public get insetTop(): number {
-    return this.insetTopValue;
+  public get insets(): Insets {
+    return this.insetsValue;
   }
 
   /** Applies the current size and starts tracking viewport and DPR changes. */
@@ -151,16 +160,24 @@ export class ViewportScaler {
     this.game.canvas.style.width = `${cssWidth}px`;
     this.game.canvas.style.height = `${cssHeight}px`;
 
-    this.insetTopValue = this.readInsetTop();
+    this.insetsValue = this.readInsets();
     this.watchPixelRatio();
   }
 
-  /** Reads the top inset the parent declares, or zero if it declares none. */
-  private readInsetTop(): number {
+  /** Reads the insets the parent declares, zero for any it declares none for. */
+  private readInsets(): Insets {
     const style = this.window.getComputedStyle?.(this.parent);
-    const value = style?.getPropertyValue(ViewportScaler.INSET_TOP_PROPERTY);
-    const inset = Number.parseFloat(value ?? "");
-    return Number.isFinite(inset) ? inset : 0;
+    const read = (edge: keyof Insets): number => {
+      const property = ViewportScaler.INSET_PROPERTIES[edge];
+      const inset = Number.parseFloat(style?.getPropertyValue(property) ?? "");
+      return Number.isFinite(inset) ? inset : 0;
+    };
+    return {
+      top: read("top"),
+      right: read("right"),
+      bottom: read("bottom"),
+      left: read("left"),
+    };
   }
 
   /** The display's raw pixel ratio, floored at 1 for non-conforming hosts. */
