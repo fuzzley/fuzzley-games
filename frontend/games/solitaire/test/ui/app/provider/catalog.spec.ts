@@ -155,6 +155,27 @@ describe("every game in the catalog", () => {
     },
   );
 
+  it.each(DEALS)(
+    "%s places every pile on each of its phone grids",
+    (_name, entry, values) => {
+      const game = asTableGame(entry.create(values).game);
+      const piles = game.piles.map((pile) => pile.id).sort();
+      const phone = entry.phoneLayouts;
+      const grids = phone
+        ? { ...phone.portrait, landscape: phone.landscape }
+        : {};
+
+      const misplaced = Object.entries(grids)
+        .filter(([, grid]) => {
+          const placed = grid.slots.map((slot) => slot.pileId).sort();
+          return JSON.stringify(placed) !== JSON.stringify(piles);
+        })
+        .map(([name]) => name);
+
+      expect(misplaced).toEqual([]);
+    },
+  );
+
   it.each(DEALS)("%s deals again on restart", (_name, entry, values) => {
     const { game } = entry.create(values);
 

@@ -1,4 +1,4 @@
-import { PileLayout } from "@/engine/render/layout/pile_layout";
+import { FanFit, PileLayout } from "@/engine/render/layout/pile_layout";
 
 /** Defines the arrangements solitaire piles use and the gaps between cards. */
 
@@ -18,6 +18,17 @@ export const TABLEAU_FACE_DOWN_OFFSET = 18;
  * on top slide down and reveal more of it.
  */
 export const TABLEAU_HOVER_EXPANSION_OFFSET = 15;
+
+/**
+ * How far a column's fan opens and closes to fit the room below it on a phone
+ * grid: down to a strip that still shows the mobile deck's rank, drawn 6 to 42
+ * units down it, and up to about a third of a card.
+ */
+export const PHONE_FAN_FIT: FanFit = {
+  minFaceUpGap: 40,
+  maxFaceUpGap: 110,
+  minFaceDownGap: 10,
+};
 
 /** How a cell, a foundation or a stock arranges its cards: squarely. */
 export const STACKED_PILE_LAYOUT: PileLayout = { kind: "stacked" };

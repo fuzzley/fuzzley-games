@@ -282,7 +282,7 @@ the right.
 - [x] 2.1 Phone detection in the shell
 - [x] 2.2 Side rail
 - [x] 2.3 Bottom bar
-- [ ] 3.1 The phone grid builder
+- [x] 3.1 The phone grid builder
 - [ ] 3.2 Klondike grids
 - [ ] 3.3 Spider grids
 - [ ] 3.4 Browser check
@@ -475,3 +475,43 @@ The 2.2 entry first said the sideways cards came out 76 px wide; measured
 against the screenshot they are about 98 px (80 under the full header). This
 commit corrects it. The log is now wrapped with `prettier --prose-wrap always`,
 which reflowed earlier paragraphs.
+
+### 3.1 The phone grid builder
+
+`PHONE_FAN_FIT` in `games/common/pile_layouts.ts`: face-up floor 40, cap 110,
+face-down floor 10.
+
+`games/common/phone_layouts.ts` has `phoneLayouts(board)`, which takes a
+`PhoneBoard`:
+
+- `columns`: the column pile ids, left to right.
+- `row`: `RowPile`s, the other piles and their grid column on a larger screen.
+- `rails`: `left` and `right` lists of `RailPile`, top first. A rail pile may
+  give a `reach` (how far its cards hang below its top), `spreadsDown`, and
+  `overlapped` (the pile below may cover all but its index strip).
+- `longestColumn`: hidden and face-up counts the grids keep on screen with every
+  fan at its floor.
+- optional `pileLayouts` for every phone grid.
+
+It returns the three grids, with phone gaps (4 and 10), padding (6 and 8) and
+`PHONE_FAN_FIT`:
+
+- **piles above:** the row where a larger screen has it, the columns under it.
+- **piles below:** the columns along the top, and the row mirrored along the
+  bottom edge. Each row pile's arrangement is also mirrored, after the board's
+  own override, so a waste or a sliver stock spreads inwards.
+- **on its side:** the rails in the edge columns, the columns between them from
+  the top. A rail stacks its piles down, each a gap below the last. When that
+  does not fit, the `overlapped` ones share the room left, never showing less
+  than `RAIL_MIN_STEP` (50). A rail that still does not fit raises the grid's
+  design height, so the board scales down rather than running a rail off the
+  screen. A `spreadsDown` pile's spread is turned to run down.
+
+Each grid's design height keeps the longest column on screen at the floors, with
+the hover expansion: under the row upright, or beside the rails on its side. A
+row pile on no rail, or on both, throws when the module loads.
+
+`test/games/common/phone_layouts.spec.ts` tests the builder on a made-up board.
+The catalog spec now checks that each of an entry's phone grids places every
+pile its game deals; that holds vacuously until Klondike and Spider declare
+theirs.
