@@ -60,73 +60,87 @@
         </div>
       </div>
 
-      <!-- Card Deck -->
-      <div class="setting-group">
-        <span class="setting-label" id="card-deck-label">Card Deck</span>
-        <div
-          class="card-deck-selector"
-          appRadioGroup
-          aria-labelledby="card-deck-label"
-        >
-          @for (deck of deckChoices(); track deck.id) {
-            <button
-              type="button"
-              class="card-deck-option"
-              role="radio"
-              [attr.aria-checked]="deck.selected"
-              [attr.aria-busy]="deck.pending"
-              (click)="presentation.setCardDeck(deck.id)"
-            >
-              <!--
-                The tops of a King and a seven, as a fanned column shows them:
-                all that differs between the decks.
-              -->
-              <svg
-                class="card-deck-preview"
-                viewBox="0 0 138 30"
-                aria-hidden="true"
-              >
-                @for (card of deck.preview; track card.rank) {
-                  <g [attr.transform]="'translate(' + card.x + ' 0)'">
-                    <rect
-                      x="0.5"
-                      y="0.5"
-                      width="65"
-                      height="29"
-                      rx="3"
-                      class="card-deck-preview-card"
-                    />
-                    <text x="5" y="21" class="card-deck-preview-rank">
-                      {{ card.rank }}
-                    </text>
-                    @if (card.hasPip) {
-                      <path
-                        d="M6 20 a2.6 2.6 0 0 1 4.4 0 a2.6 2.6 0 0 1 4.4 0 c0 3-4.4 6.2-4.4 6.2 S6 23 6 20 z"
-                        class="card-deck-preview-pip"
-                        transform="translate(44 -11)"
-                      />
-                    }
-                  </g>
-                }
-              </svg>
-              <span class="card-deck-label">
-                <span class="card-deck-name">{{ deck.name }}</span>
-                <span class="card-deck-description">{{
-                  deck.description
-                }}</span>
-              </span>
-              <!-- A deck can take seconds to load, so say it is on its way. -->
-              @if (deck.pending) {
-                <span class="card-deck-spinner" aria-hidden="true"></span>
-              }
-            </button>
-          }
-        </div>
-        <!-- Always present, so a problem is announced when it arrives. -->
+      <!-- Card Style: mobile or desktop cards, or whichever suits the screen -->
+      <app-option-group
+        class="card-style"
+        [option]="cardStyleOption()"
+        [value]="cardStyleChoice().value"
+        (choose)="chooseCardStyle($event)"
+      >
+        <!--
+          Always present, so a problem is announced when it arrives; under the
+          style, since it may be about either kind of card.
+        -->
         <p class="card-deck-problem" role="status">
           {{ presentation.cardDeckProblem() }}
         </p>
-      </div>
+      </app-option-group>
+
+      <!-- The desktop decks, offered only while desktop cards are drawn -->
+      @if (presentation.drawsDesktopCards()) {
+        <div class="setting-group">
+          <span class="setting-label" id="card-deck-label">Desktop Cards</span>
+          <div
+            class="card-deck-selector"
+            appRadioGroup
+            aria-labelledby="card-deck-label"
+          >
+            @for (deck of deckChoices(); track deck.id) {
+              <button
+                type="button"
+                class="card-deck-option"
+                role="radio"
+                [attr.aria-checked]="deck.selected"
+                [attr.aria-busy]="deck.pending"
+                (click)="presentation.setDesktopCardDeck(deck.id)"
+              >
+                <!--
+                The tops of a King and a seven, as a fanned column shows them:
+                all that differs between the decks.
+              -->
+                <svg
+                  class="card-deck-preview"
+                  viewBox="0 0 138 30"
+                  aria-hidden="true"
+                >
+                  @for (card of deck.preview; track card.rank) {
+                    <g [attr.transform]="'translate(' + card.x + ' 0)'">
+                      <rect
+                        x="0.5"
+                        y="0.5"
+                        width="65"
+                        height="29"
+                        rx="3"
+                        class="card-deck-preview-card"
+                      />
+                      <text x="5" y="21" class="card-deck-preview-rank">
+                        {{ card.rank }}
+                      </text>
+                      @if (card.hasPip) {
+                        <path
+                          d="M6 20 a2.6 2.6 0 0 1 4.4 0 a2.6 2.6 0 0 1 4.4 0 c0 3-4.4 6.2-4.4 6.2 S6 23 6 20 z"
+                          class="card-deck-preview-pip"
+                          transform="translate(44 -11)"
+                        />
+                      }
+                    </g>
+                  }
+                </svg>
+                <span class="card-deck-label">
+                  <span class="card-deck-name">{{ deck.name }}</span>
+                  <span class="card-deck-description">{{
+                    deck.description
+                  }}</span>
+                </span>
+                <!-- A deck can take seconds to load, so say it is on its way. -->
+                @if (deck.pending) {
+                  <span class="card-deck-spinner" aria-hidden="true"></span>
+                }
+              </button>
+            }
+          </div>
+        </div>
+      }
 
       <!-- Table Themes -->
       <div class="setting-group">

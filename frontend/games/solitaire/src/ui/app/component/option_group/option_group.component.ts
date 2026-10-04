@@ -24,8 +24,10 @@ interface ChoiceView {
 }
 
 /**
- * Renders one rule of the running game as a group of radios: a segmented
- * control, or a list with a line about each choice.
+ * Renders one setting, such as a rule of the running game, as a group of
+ * radios: a segmented control, or a list with a line about each choice.
+ *
+ * Content placed inside it is shown under the choices and their description.
  */
 @Component({
   selector: "app-option-group",

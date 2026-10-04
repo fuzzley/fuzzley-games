@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { CARD_DECKS } from "@/engine/render/card_deck";
+import { CARD_ART_SCALES } from "@/engine/render/layout/card_metrics";
 import {
   CLOSED_STOCK_PLACEHOLDER,
   PIP_COUNTS,
@@ -61,7 +63,11 @@ describe("recyclePipsPlaceholder", () => {
       return artwork.filter((key) => !frames.has(key));
     });
 
-    expect([manifests.length, missing]).toEqual([6, []]);
+    // The count shows the glob found every deck at every density.
+    expect([manifests.length, missing]).toEqual([
+      CARD_DECKS.length * CARD_ART_SCALES.length,
+      [],
+    ]);
   });
 });
 

@@ -8,6 +8,8 @@ import indexedAtlas1x from "../assets/sprites/atlas/indexed/1x/card_assets_atlas
 import indexedAtlas2x from "../assets/sprites/atlas/indexed/2x/card_assets_atlas.json";
 import allCornerPipsAtlas1x from "../assets/sprites/atlas/all-corner-pips/1x/card_assets_atlas.json";
 import allCornerPipsAtlas2x from "../assets/sprites/atlas/all-corner-pips/2x/card_assets_atlas.json";
+import mobileAtlas1x from "../assets/sprites/atlas/mobile/1x/card_assets_atlas.json";
+import mobileAtlas2x from "../assets/sprites/atlas/mobile/2x/card_assets_atlas.json";
 
 /** Names one built atlas: a deck's artwork at one density. */
 export interface CardAtlas {
@@ -52,6 +54,7 @@ const manifests: Record<CardDeckId, Record<CardArtScale, AtlasManifest>> = {
   classic: { 1: classicAtlas1x, 2: classicAtlas2x },
   indexed: { 1: indexedAtlas1x, 2: indexedAtlas2x },
   "all-corner-pips": { 1: allCornerPipsAtlas1x, 2: allCornerPipsAtlas2x },
+  mobile: { 1: mobileAtlas1x, 2: mobileAtlas2x },
 };
 
 /**

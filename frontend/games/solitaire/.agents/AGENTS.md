@@ -164,7 +164,7 @@ This project uses **Yarn 4**. Always use Yarn commands instead of NPM (`yarn <co
 ### Development Commands
 
 - **Run Development Server:** `yarn start` or `yarn dev` (launches Vite dev server at `http://localhost:9000/`).
-- **Build Card Atlas:** `yarn build:atlas` (runs `tools/build-card-atlas.mjs` to convert SVG assets into texture atlas files).
+- **Build Card Atlas:** `yarn build:atlas` (runs `tools/build-card-atlas.mjs` to cut the SVG card sheets, and generate the `mobile` deck, into texture atlas files; `--deck <id>` builds one deck, `--preview` draws a contact sheet of every deck at phone scale).
 - **Build Screenshot Thumbnails:** `yarn build:thumbs` (runs `tools/build-screenshot-thumbs.mjs` to crop each game's rules-page screenshot into the game browser's `thumb.webp` and `preview.webp`).
 - **Production Build:** `yarn build` (generates bundled production assets in `dist/` with Phaser manual chunking).
 - **Run Unit Tests:** `yarn test` (runs Vitest once) or `yarn test:watch` / `yarn test:coverage`.

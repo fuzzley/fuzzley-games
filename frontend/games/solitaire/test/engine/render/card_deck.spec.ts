@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
   CARD_DECKS,
-  DEFAULT_CARD_DECK,
-  isCardDeckId,
+  DEFAULT_DESKTOP_CARD_DECK,
+  DESKTOP_CARD_DECKS,
+  MOBILE_CARD_DECK,
+  isDesktopCardDeckId,
 } from "@/engine/render/card_deck";
 
 describe("card decks", () => {
@@ -12,31 +14,43 @@ describe("card decks", () => {
     expect(ids).toEqual([...new Set(ids)]);
   });
 
-  it("offers the deck a new player is given", () => {
+  it("can draw every desktop deck and the mobile deck", () => {
+    expect(CARD_DECKS).toEqual([...DESKTOP_CARD_DECKS, MOBILE_CARD_DECK]);
+  });
+
+  it("offers the desktop deck a new player is given", () => {
     // Otherwise the drawer would check no deck and the loader would ask for an
     // atlas that is not built.
-    expect(isCardDeckId(DEFAULT_CARD_DECK)).toBe(true);
+    expect(isDesktopCardDeckId(DEFAULT_DESKTOP_CARD_DECK)).toBe(true);
   });
 
-  it("gives every deck something to show and something to read", () => {
-    const described = CARD_DECKS.filter(
-      (deck) => deck.name.length > 0 && deck.description.length > 0,
+  it("gives every deck a name", () => {
+    const named = CARD_DECKS.filter((deck) => deck.name.length > 0);
+
+    expect(named).toEqual(CARD_DECKS);
+  });
+
+  it("gives every desktop deck a line to read", () => {
+    const described = DESKTOP_CARD_DECKS.filter(
+      (deck) => deck.description.length > 0,
     );
 
-    expect(described).toEqual(CARD_DECKS);
+    expect(described).toEqual(DESKTOP_CARD_DECKS);
   });
 
-  it("gives every deck a pip coverage no other deck claims", () => {
-    // The drawer previews coverage, so two decks sharing one would look alike.
-    const coverages = CARD_DECKS.map((deck) => deck.pipCoverage);
+  it("gives every desktop deck pips no other deck draws alike", () => {
+    // The drawer previews the pips, so two decks sharing them would look
+    // alike.
+    const coverage = DESKTOP_CARD_DECKS.map((deck) => deck.pipCoverage);
 
-    expect(new Set(coverages).size).toBe(CARD_DECKS.length);
+    expect(new Set(coverage).size).toBe(DESKTOP_CARD_DECKS.length);
   });
 
-  it("rejects a value that names no deck", () => {
-    expect([isCardDeckId("art-deco"), isCardDeckId(undefined)]).toEqual([
-      false,
-      false,
-    ]);
+  it("rejects a value that names no desktop deck", () => {
+    expect([
+      isDesktopCardDeckId("art-deco"),
+      isDesktopCardDeckId(MOBILE_CARD_DECK.id),
+      isDesktopCardDeckId(undefined),
+    ]).toEqual([false, false, false]);
   });
 });

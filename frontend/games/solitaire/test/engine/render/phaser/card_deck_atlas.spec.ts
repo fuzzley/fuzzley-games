@@ -19,6 +19,8 @@ import indexedAtlas1x from "@/engine/render/assets/sprites/atlas/indexed/1x/card
 import indexedAtlas2x from "@/engine/render/assets/sprites/atlas/indexed/2x/card_assets_atlas.json";
 import allCornerPipsAtlas1x from "@/engine/render/assets/sprites/atlas/all-corner-pips/1x/card_assets_atlas.json";
 import allCornerPipsAtlas2x from "@/engine/render/assets/sprites/atlas/all-corner-pips/2x/card_assets_atlas.json";
+import mobileAtlas1x from "@/engine/render/assets/sprites/atlas/mobile/1x/card_assets_atlas.json";
+import mobileAtlas2x from "@/engine/render/assets/sprites/atlas/mobile/2x/card_assets_atlas.json";
 
 /** Describes a manifest `yarn build:atlas` writes, for its frames. */
 interface BuiltAtlas {
@@ -36,6 +38,7 @@ const BUILT_ATLASES: Record<
   classic: { 1: classicAtlas1x, 2: classicAtlas2x },
   indexed: { 1: indexedAtlas1x, 2: indexedAtlas2x },
   "all-corner-pips": { 1: allCornerPipsAtlas1x, 2: allCornerPipsAtlas2x },
+  mobile: { 1: mobileAtlas1x, 2: mobileAtlas2x },
 };
 
 /** Every deck at every density, in catalog order and least dense first. */

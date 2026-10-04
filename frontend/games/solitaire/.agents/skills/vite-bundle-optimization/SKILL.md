@@ -60,9 +60,21 @@ Break either one and the app 404s on the host while working perfectly on
 
 ## Texture Atlas Generation (`tools/build-card-atlas.mjs`)
 
-**Sources:** `src/engine/render/assets/sprites/card/` — a card sheet SVG
-(`playing_card_assets_large.svg`, 52 faces plus two backs) and
-`card_placeholders.svg`.
+**Sources:** A deck is either cut from a card sheet SVG in
+`src/engine/render/assets/sprites/card/` (`playing_card_assets_large.svg` and
+its two pip cuts, 52 faces plus two backs each) or generated: the `mobile` deck
+is drawn by `tools/card-atlas/mobile-deck.mjs`, its ranks set in the bundled
+`tools/card-atlas/fonts/BarlowCondensed-Bold.ttf` rather than any system font.
+Every deck shares the placeholders in `card_placeholders.svg`.
+
+**Layout:** `tools/build-card-atlas.mjs` lists the decks and runs the build.
+`yarn build:atlas --deck <id>` builds just one, and `--preview` also writes a
+contact sheet, `.preview/decks.png` under `tools/card-atlas/` and gitignored:
+every built deck as a fanned column and a fanned waste at phone scale, for
+reviewing a change to a deck's look. The shared parts live in `tools/card-atlas/`: `raster.mjs` holds
+the frame size, the densities and the frame names every deck must supply,
+`sheet-deck.mjs` cuts a deck out of a card sheet, and `atlas-writer.mjs` stamps
+the card edge and writes every density.
 
 **Output:** `src/engine/render/assets/sprites/atlas/<deck>/<n>x/`, one directory
 per deck and density. Each holds a Phaser **multi-atlas** manifest
@@ -79,7 +91,7 @@ Every deck is built at each density in `ART_SCALES`, in texels per design unit:
 - **1×** is for everything else, including phones. It takes one page and about
   16 MB.
 
-The sheets are rasterized once, at the first density. Every other density is
+Each deck is rasterized once, at the first density. Every other density is
 shrunk from those finished frames, so all of them are framed and edged alike.
 
 The atlas is checked in and loaded **through the bundler**, not from `public/`.
@@ -93,7 +105,7 @@ downloaded.
 
 - Re-run `yarn build:atlas` whenever the card SVGs change. The atlas is a
   committed build artifact; a stale one ships.
-- `ART_SCALES` in the tool and `CARD_ART_SCALES` in
+- `ART_SCALES` in `tools/card-atlas/raster.mjs` and `CARD_ART_SCALES` in
   `src/engine/render/layout/card_metrics.ts` must list the same densities.
   Every frame at density _n_ must be `CARD_RENDER_WIDTH_PX × n` by
   `CARD_RENDER_HEIGHT_PX × n` texels. Otherwise cards render at the wrong size.
@@ -102,5 +114,17 @@ downloaded.
 - Adding a density to `CARD_ART_SCALES` is a compile error until
   `card_deck_atlas.ts` imports its manifests. `cardArtScaleFor`, next to it,
   decides which boards it is used for.
-- The tool fails the build if any frame comes out without a stamped edge. That
-  check is deliberate; do not weaken it to get a build through.
+- The tool fails the build if any frame comes out without a stamped edge, or
+  if a deck's frames are not exactly the 52 faces and two backs. Those checks
+  are deliberate; do not weaken them to get a build through.
+- The `mobile` deck draws its index to fit the strip a fan leaves showing:
+  `COLUMN_STRIP_H` and `WASTE_STRIP_W` in `mobile-deck.mjs` mirror
+  `TABLEAU_FACE_UP_OFFSET` and `WASTE_FAN_OFFSET_X` in
+  `src/games/common/pile_layouts.ts`. Change a fan offset and you change them
+  too and rebuild the deck. The tool fails if an index leaves its strip, if
+  anything else enters one, or if a suit colour falls under 4.5:1 contrast.
+- A new deck goes in `DECKS` in the tool, in `DESKTOP_CARD_DECKS` in
+  `src/engine/render/card_deck.ts` (or beside `MOBILE_CARD_DECK`, which the
+  card style setting picks rather than the player), and in the manifests in
+  `card_deck_atlas.ts`. The compiler checks the last two against each other,
+  not against the tool.

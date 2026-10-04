@@ -19,7 +19,7 @@ export const CARD_RENDER_HEIGHT_PX = 307;
  * least to most dense: 2 stays sharp on a high density display, and 1 costs a
  * quarter of the memory where cards are drawn no larger than that.
  *
- * Mirrors `ART_SCALES` in `tools/build-card-atlas.mjs`.
+ * Mirrors `ART_SCALES` in `tools/card-atlas/raster.mjs`.
  */
 export const CARD_ART_SCALES = [1, 2] as const;
 
