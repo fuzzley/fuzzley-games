@@ -286,7 +286,7 @@ the right.
 - [x] 3.2 Klondike grids
 - [x] 3.3 Spider grids
 - [x] 3.4 Browser check
-- [ ] 4.1 Settings service
+- [x] 4.1 Settings service
 - [ ] 4.2 Settings drawer
 - [ ] 4.3 Mirrored chrome
 - [ ] 5.1 Docs
@@ -604,3 +604,14 @@ sizes, three arrangements, both games).
    rail, eight on Spider's right. It reads as a busy stack until runs fill them.
    Options: a plain outline for a rail's overlapped piles, or only the first
    empty one drawn.
+
+### 4.1 Settings service
+
+`PresentationSettingsService` stores `phonePiles` (`bottom` or `top`) and `hand`
+(`right` or `left`) with the other presentation settings, defaulting to
+`DEFAULT_BOARD_ARRANGEMENT`. A stored value it does not recognise falls back to
+the default. `phonePiles` and `hand` are readable signals, and `setPhonePiles`
+and `setHand` change them. `boardArrangement()` reads both through a `computed`,
+so the board, which asks every frame, and the loading skeleton follow a change
+at once. The two saving specs that compare the whole stored object now include
+both keys.

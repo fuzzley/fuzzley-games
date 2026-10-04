@@ -13,6 +13,8 @@ import {
 import {
   BoardArrangement,
   DEFAULT_BOARD_ARRANGEMENT,
+  Hand,
+  PhonePilePosition,
 } from "@/engine/render/layout/board_layouts";
 import {
   CARD_DECKS,
@@ -49,6 +51,8 @@ interface PersistedPresentation {
   theme: ThemeKey;
   cardStyle: CardStyle;
   desktopCardDeck: DesktopCardDeckId;
+  phonePiles: PhonePilePosition;
+  hand: Hand;
 }
 
 /**
@@ -66,6 +70,7 @@ const DEFAULTS: PersistedPresentation = {
   theme: DEFAULT_THEME,
   cardStyle: "auto",
   desktopCardDeck: DEFAULT_DESKTOP_CARD_DECK,
+  ...DEFAULT_BOARD_ARRANGEMENT,
 };
 
 function isCardBackStyle(value: unknown): value is CardBackStyle {
@@ -74,6 +79,14 @@ function isCardBackStyle(value: unknown): value is CardBackStyle {
 
 function isCardStyle(value: unknown): value is CardStyle {
   return value === "auto" || value === "mobile" || value === "desktop";
+}
+
+function isPhonePilePosition(value: unknown): value is PhonePilePosition {
+  return value === "bottom" || value === "top";
+}
+
+function isHand(value: unknown): value is Hand {
+  return value === "right" || value === "left";
 }
 
 /** Returns what a deck is called, for a sentence about it. */
@@ -101,6 +114,16 @@ export class PresentationSettingsService implements TablePresentation {
   private readonly desktopCardDeckSignal = signal<DesktopCardDeckId>(
     this.loaded.desktopCardDeck,
   );
+  private readonly phonePilesSignal = signal<PhonePilePosition>(
+    this.loaded.phonePiles,
+  );
+  private readonly handSignal = signal<Hand>(this.loaded.hand);
+
+  /** Where the piles go on an upright phone, and the hand, together. */
+  private readonly arrangement = computed<BoardArrangement>(() => ({
+    phonePiles: this.phonePilesSignal(),
+    hand: this.handSignal(),
+  }));
 
   /** The deck the player's choices and the viewport call for. */
   private readonly wantedCardDeck = computed<CardDeckId>(() => {
@@ -137,6 +160,18 @@ export class PresentationSettingsService implements TablePresentation {
 
   /** The deck the cards are drawn from whenever they are drawn for desktop. */
   readonly desktopCardDeck = this.desktopCardDeckSignal.asReadonly();
+
+  /**
+   * Where an upright phone puts the piles that are not columns, in a game with
+   * phone grids.
+   */
+  readonly phonePiles = this.phonePilesSignal.asReadonly();
+
+  /**
+   * Which hand the player plays with; a left one mirrors a game with phone
+   * grids, and moves the chrome on a phone to the other side.
+   */
+  readonly hand = this.handSignal.asReadonly();
 
   /**
    * Whether the cards are drawn for desktop: chosen, or picked by auto for a
@@ -197,6 +232,16 @@ export class PresentationSettingsService implements TablePresentation {
     this.desktopCardDeckSignal.set(deckId);
   }
 
+  /** Puts an upright phone's piles along the bottom or along the top. */
+  setPhonePiles(position: PhonePilePosition): void {
+    this.phonePilesSignal.set(position);
+  }
+
+  /** Lays the table out for a right hand or, mirrored, a left one. */
+  setHand(hand: Hand): void {
+    this.handSignal.set(hand);
+  }
+
   /** Records how the board is getting on with the deck it was asked for. */
   reportCardDeckStatus(status: CardDeckStatus): void {
     switch (status.kind) {
@@ -226,7 +271,7 @@ export class PresentationSettingsService implements TablePresentation {
 
   /** @inheritDoc */
   boardArrangement(): BoardArrangement {
-    return DEFAULT_BOARD_ARRANGEMENT;
+    return this.arrangement();
   }
 
   /**
@@ -257,6 +302,8 @@ export class PresentationSettingsService implements TablePresentation {
         theme: this.themeSignal(),
         cardStyle: this.cardStyleSignal(),
         desktopCardDeck: this.desktopCardDeckSignal(),
+        phonePiles: this.phonePilesSignal(),
+        hand: this.handSignal(),
       };
       this.storage.writeObject(STORAGE_KEY, data);
     });
@@ -282,6 +329,10 @@ export class PresentationSettingsService implements TablePresentation {
       desktopCardDeck: isDesktopCardDeckId(desktopCardDeck)
         ? desktopCardDeck
         : DEFAULTS.desktopCardDeck,
+      phonePiles: isPhonePilePosition(parsed.phonePiles)
+        ? parsed.phonePiles
+        : DEFAULTS.phonePiles,
+      hand: isHand(parsed.hand) ? parsed.hand : DEFAULTS.hand,
     };
   }
 }
