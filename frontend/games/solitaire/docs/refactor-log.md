@@ -104,12 +104,12 @@ The review's findings, grouped into phases. Each phase leaves the tree green.
 
 - [x] 0.1 Contract suite
 - [x] 0.2 Test position helpers
-- [ ] 1.1 Dead code
-- [ ] 1.2 `implements` declarations
-- [ ] 1.3 Vitest version in docs
-- [ ] 1.4 `TablePresentation` clash
-- [ ] 1.5 Subscription idiom
-- [ ] 1.6 Spec hygiene
+- [x] 1.1 Dead code
+- [x] 1.2 `implements` declarations
+- [x] 1.3 Vitest version in docs
+- [x] 1.4 `TablePresentation` clash
+- [x] 1.5 Subscription idiom
+- [x] 1.6 Spec hygiene
 - [ ] 2.1 One writer for the metrics
 - [ ] 2.2 Counts read from the history
 - [ ] 2.3 `relocate` helper
@@ -159,3 +159,26 @@ Newest last. Each entry names its commit subject.
   with `emptyBoard`; funnelling every change through `relocate` gives the
   same benefit for step 4.2, where `relocate` will be the one place that
   needs write access to a pile.
+- **refactor: delete dead Klondike exports and declare what table games
+  implement.** Removed `klondikePileLayout` and `KLONDIKE_TABLEAU_RULE`, the
+  only two exports nothing referenced (checked with a script over every
+  export in `src/engine`, `src/games` and `test/support`). `TableGame`
+  declares `implements TableView`; `DealtTableGame` declares
+  `implements PlayableGame`. The Vitest 4 → 5 fix in `.agents/AGENTS.md` and
+  the `vitest-testing` skill landed in the same commit by accident; the
+  separate docs commit came out empty.
+- **refactor: hand the view builder a card back key, not a second
+  TablePresentation.** `engine/tableau/view/table_view.ts` no longer declares
+  a `TablePresentation`; `buildTableViewState` takes `cardBackKey: string`.
+  The render tier's `TablePresentation` is now the only one.
+- **refactor: make subscribing return the unsubscribe everywhere.**
+  `PlayableGame.on` returns the unsubscribe function; `off` is gone from the
+  interface (the emitter keeps its own `off`). `Subscribe<T>` lives in
+  `src/engine/core/common/event_emitter.ts`. The shell's
+  `GameMetricsService` and `SavedGameService`, the board factory and the
+  UI game mock all keep a list of disposers.
+- **test: scope the board scene spec's state, and derive the boot texture
+  key.** `board_scene.spec.ts` declares its game and presentation inside its
+  `describe`, set only through `drawBoardOf`, and its imports come before
+  any code. `BOOT_TEXTURE_KEY` in `phaser_mocks.ts` calls
+  `cardAtlasTextureKey` instead of rebuilding the key format.
