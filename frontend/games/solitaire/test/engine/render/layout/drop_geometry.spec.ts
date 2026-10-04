@@ -24,7 +24,6 @@ import { computeDropGeometries } from "@/engine/render/layout/drop_geometry";
 import {
   CARD_HEIGHT_PX,
   CARD_WIDTH_PX,
-  HEADER_HEIGHT_PX,
   LAYOUT_GAP_X,
   LAYOUT_PADDING_X,
   LAYOUT_PADDING_Y,
@@ -48,12 +47,19 @@ const DESIGN_WIDTH_PX = designSize(FAKE_TABLE_LAYOUT).width;
 const DESIGN_HEIGHT_PX = designSize(FAKE_TABLE_LAYOUT).height;
 const CARD_SIZE = { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX };
 
-/** Returns a viewport at the design size, which lays out at a scale of 1. */
+/** A header laid over the top of the canvas, in CSS pixels, as the shell's is. */
+const INSET_TOP = 73;
+
+/**
+ * Returns a viewport at the design size below a header, which lays out at a
+ * scale of 1.
+ */
 function designViewport(overrides: Partial<Viewport> = {}): Viewport {
   return {
     width: DESIGN_WIDTH_PX,
-    height: DESIGN_HEIGHT_PX,
+    height: DESIGN_HEIGHT_PX + INSET_TOP,
     pixelRatio: 1,
+    insetTop: INSET_TOP,
     ...overrides,
   };
 }
@@ -73,7 +79,7 @@ describe("computeScale", () => {
     // Plenty of width, but only half the height the design needs.
     const viewport = designViewport({
       width: DESIGN_WIDTH_PX * 4,
-      height: (DESIGN_HEIGHT_PX - HEADER_HEIGHT_PX) / 2 + HEADER_HEIGHT_PX,
+      height: DESIGN_HEIGHT_PX / 2 + INSET_TOP,
     });
 
     expect(computeScale(FAKE_TABLE_LAYOUT, viewport)).toBeCloseTo(0.5, 5);
@@ -124,9 +130,7 @@ describe("computePileOrigins", () => {
   it("starts the top row below the header", () => {
     const origins = computePileOrigins(FAKE_TABLE_LAYOUT, designViewport(), 1);
 
-    expect(origins.get(STOCK_PILE_ID)!.y).toBe(
-      HEADER_HEIGHT_PX + LAYOUT_PADDING_Y,
-    );
+    expect(origins.get(STOCK_PILE_ID)!.y).toBe(INSET_TOP + LAYOUT_PADDING_Y);
   });
 
   it("puts the tableau row a card and a gap below the top row", () => {
@@ -184,14 +188,15 @@ describe("computePileOrigins", () => {
       FAKE_TABLE_LAYOUT,
       {
         width: DESIGN_WIDTH_PX * 2,
-        height: DESIGN_HEIGHT_PX * 2,
+        height: (DESIGN_HEIGHT_PX + INSET_TOP) * 2,
         pixelRatio: 2,
+        insetTop: INSET_TOP,
       },
       2,
     );
 
     expect(origins.get(STOCK_PILE_ID)!.y).toBe(
-      HEADER_HEIGHT_PX * 2 + LAYOUT_PADDING_Y * 2,
+      INSET_TOP * 2 + LAYOUT_PADDING_Y * 2,
     );
   });
 });

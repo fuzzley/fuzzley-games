@@ -22,18 +22,18 @@ function blackHoleLayout(
  * row and seventeen fans around it.
  *
  * The fans only shrink, so a lower fan of three, with a hovered card open,
- * is the deepest the board gets: about 1030 from its top.
+ * is the deepest the board gets: about 957 from its top.
  */
 export const BLACK_HOLE_LAYOUT = blackHoleLayout(
   BlackHoleVariant.BLACK_HOLE,
-  1030,
+  957,
 );
 
 /**
  * All in a Row's board: the foundation in the middle of the top row, and
- * thirteen columns beneath, whose four dealt cards end about 970 from the top.
+ * thirteen columns beneath, whose four dealt cards end about 897 from the top.
  */
 export const ALL_IN_A_ROW_LAYOUT = blackHoleLayout(
   BlackHoleVariant.ALL_IN_A_ROW,
-  970,
+  897,
 );

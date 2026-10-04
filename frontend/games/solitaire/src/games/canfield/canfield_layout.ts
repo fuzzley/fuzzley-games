@@ -15,6 +15,6 @@ export const CANFIELD_LAYOUT = boardLayout({
   rows: 2,
   zones: canfieldZoneSpecs(CanfieldVariant.CANFIELD),
   // A fourteen-card column, or Superior Canfield's fanned reserve, ends about
-  // 1420 from the top of the board, with a hovered card open.
-  designHeightPx: 1420,
+  // 1347 from the top of the board, with a hovered card open.
+  designHeightPx: 1347,
 });

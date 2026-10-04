@@ -33,6 +33,8 @@ class FakeWindow implements ScalerWindow {
   public devicePixelRatio: number;
   public readonly resizeListeners: (() => void)[] = [];
   public readonly queries: FakePixelRatioQuery[] = [];
+  /** The custom properties the parent declares, by name. */
+  public readonly parentStyle = new Map<string, string>();
 
   constructor(devicePixelRatio: number) {
     this.devicePixelRatio = devicePixelRatio;
@@ -51,6 +53,12 @@ class FakeWindow implements ScalerWindow {
     const created = new FakePixelRatioQuery(query);
     this.queries.push(created);
     return created;
+  }
+
+  getComputedStyle(): { getPropertyValue(property: string): string } {
+    return {
+      getPropertyValue: (property) => this.parentStyle.get(property) ?? "",
+    };
   }
 
   /** Fires the resize event, as the browser does when the window changes size. */
@@ -112,6 +120,49 @@ function startScaler(
   scaler.start();
   return { window, game, parent, scaler };
 }
+
+describe("ViewportScaler's top inset", () => {
+  it("reads the inset its parent declares", () => {
+    const { window, scaler } = startScaler(1);
+    window.parentStyle.set(ViewportScaler.INSET_TOP_PROPERTY, "73px");
+
+    scaler.apply();
+
+    expect(scaler.insetTop).toBe(73);
+  });
+
+  it("reads no inset when the parent declares none", () => {
+    const { scaler } = startScaler(1);
+
+    expect(scaler.insetTop).toBe(0);
+  });
+
+  it("reads the inset afresh when the window changes size", () => {
+    const { window, scaler } = startScaler(1);
+    window.parentStyle.set(ViewportScaler.INSET_TOP_PROPERTY, "73px");
+    scaler.apply();
+    window.parentStyle.set(ViewportScaler.INSET_TOP_PROPERTY, "60px");
+
+    window.fireResize();
+
+    expect(scaler.insetTop).toBe(60);
+  });
+
+  it("reads no inset from a host that cannot read styles", () => {
+    const window = Object.assign(new FakeWindow(1), {
+      getComputedStyle: undefined,
+    });
+    const scaler = new ViewportScaler(
+      window,
+      new FakeGame(),
+      new FakeParent(800, 600),
+    );
+
+    scaler.start();
+
+    expect(scaler.insetTop).toBe(0);
+  });
+});
 
 describe("ViewportScaler", () => {
   it("sizes the canvas backing store in device pixels", () => {

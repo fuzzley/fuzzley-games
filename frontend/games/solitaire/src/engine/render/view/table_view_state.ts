@@ -8,9 +8,15 @@ export interface Viewport {
   height: number;
   /**
    * Device pixels per CSS pixel, which converts a measurement taken from the
-   * DOM, such as the header's height, to match the canvas.
+   * DOM, such as {@link insetTop}, to match the canvas.
    */
   pixelRatio: number;
+  /**
+   * How far down the drawable area anything laid over it reaches, such as the
+   * shell's header, in CSS pixels; none when omitted. The board lays itself
+   * out below it.
+   */
+  insetTop?: number;
 }
 
 /** Describes the placeholder a pile is drawn over, as the board is built. */

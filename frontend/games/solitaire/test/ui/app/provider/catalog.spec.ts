@@ -132,7 +132,9 @@ describe("every game in the catalog", () => {
       const { game } = entry.create(values);
 
       expect(() =>
-        makeBoardScene(entry.id as GameId, game, new TestPresentation()),
+        makeBoardScene(entry.id as GameId, game, {
+          presentation: new TestPresentation(),
+        }),
       ).not.toThrow();
     },
   );

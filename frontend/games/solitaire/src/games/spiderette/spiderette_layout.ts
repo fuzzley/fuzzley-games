@@ -12,7 +12,7 @@ export const SPIDERETTE_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
   zones: spideretteZoneSpecs(),
-  // Six buried cards and eight showing reach about 1100 from the top of the
+  // Six buried cards and eight showing reach about 1027 from the top of the
   // board.
-  designHeightPx: 1150,
+  designHeightPx: 1077,
 });

@@ -3,8 +3,6 @@ import { Viewport } from "../view/table_view_state";
 import {
   CARD_HEIGHT_PX,
   CARD_WIDTH_PX,
-  HEADER_HEIGHT_COMPACT_PX,
-  HEADER_HEIGHT_PX,
   LAYOUT_GAP_X,
   LAYOUT_GAP_Y,
   LAYOUT_PADDING_X,
@@ -41,15 +39,11 @@ export interface TableLayoutSpec {
   readonly gap: Point;
   /** Space at the edges of the board, in design units. */
   readonly padding: Point;
-  /**
-   * Height of the header overlaying the top of the canvas, which the board lays
-   * itself out below, in CSS pixels.
-   */
-  readonly headerHeightPx: number;
 
   /**
    * The design height the board reserves, overriding the height its grid alone
-   * would need.
+   * would need. It is the board's own height, measured below anything laid
+   * over the top of the canvas.
    *
    * A game whose columns fan sets this, or the board scales up until a long
    * column runs off the bottom of the screen.
@@ -78,19 +72,17 @@ export function tableLayout(grid: TableGridSpec): TableLayoutSpec {
     cardSize: { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX },
     gap: { x: LAYOUT_GAP_X, y: LAYOUT_GAP_Y },
     padding: { x: LAYOUT_PADDING_X, y: LAYOUT_PADDING_Y },
-    headerHeightPx: HEADER_HEIGHT_PX,
     designHeightPx: grid.designHeightPx,
   };
 }
 
-/** Returns the size the board occupies at scale 1, header included. */
+/** Returns the size the board occupies at scale 1. */
 export function designSize(spec: TableLayoutSpec): Size {
   const width =
     spec.columns * spec.cardSize.width +
     Math.max(0, spec.columns - 1) * spec.gap.x +
     2 * spec.padding.x;
   const gridHeight =
-    spec.headerHeightPx +
     spec.rows * spec.cardSize.height +
     Math.max(0, spec.rows - 1) * spec.gap.y +
     2 * spec.padding.y;
@@ -99,7 +91,7 @@ export function designSize(spec: TableLayoutSpec): Size {
 
 /**
  * Computes the scale, from design units to device pixels, that fits the board
- * below the header.
+ * below the viewport's top inset.
  *
  * It is capped at the pixel ratio rather than at 1, so a high density display
  * draws a design unit with more than one device pixel.
@@ -111,12 +103,12 @@ export function computeScale(
   const design = designSize(spec);
   const pixelRatio = viewport.pixelRatio;
   const screenWidth = viewport.width || design.width * pixelRatio;
-  const screenHeight =
-    (viewport.height || design.height * pixelRatio) -
-    spec.headerHeightPx * pixelRatio;
+  const screenHeight = viewport.height
+    ? viewport.height - insetTopPx(viewport)
+    : design.height * pixelRatio;
 
   const scaleX = screenWidth / design.width;
-  const scaleY = screenHeight / (design.height - spec.headerHeightPx);
+  const scaleY = screenHeight / design.height;
   let scale = Math.min(scaleX, scaleY);
   if (scale > pixelRatio) scale = pixelRatio;
   if (scale <= 0) scale = pixelRatio;
@@ -124,8 +116,8 @@ export function computeScale(
 }
 
 /**
- * The widest screen, in CSS pixels, on which a board tightens its gaps to give
- * its cards more room.
+ * The screen width, in CSS pixels, below which a board tightens its gaps to
+ * give its cards more room, and the shell compacts its chrome.
  *
  * Mirrors the `tablet` breakpoint in `src/ui/app/styles/_breakpoints.scss`.
  */
@@ -138,15 +130,15 @@ const COMPACT_GAP = { x: 8, y: 14 };
 const COMPACT_PADDING = { x: 8, y: 14 };
 
 /**
- * Returns the board with its gaps, padding and header tightened for a small
- * screen, or unchanged on a larger one.
+ * Returns the board with its gaps and padding tightened for a small screen, or
+ * unchanged on a larger one.
  */
 export function compactFor(
   spec: TableLayoutSpec,
   viewport: Viewport,
 ): TableLayoutSpec {
   const cssWidth = viewport.width / (viewport.pixelRatio || 1);
-  if (cssWidth === 0 || cssWidth > COMPACT_MAX_WIDTH_CSS_PX) {
+  if (cssWidth === 0 || cssWidth >= COMPACT_MAX_WIDTH_CSS_PX) {
     return spec;
   }
   // Never loosen a board that is already tighter than this.
@@ -160,7 +152,6 @@ export function compactFor(
       x: Math.min(spec.padding.x, COMPACT_PADDING.x),
       y: Math.min(spec.padding.y, COMPACT_PADDING.y),
     },
-    headerHeightPx: Math.min(spec.headerHeightPx, HEADER_HEIGHT_COMPACT_PX),
   };
 }
 
@@ -212,17 +203,24 @@ export function computePileOrigins(
     (screenWidth - totalLayoutWidth) / 2,
   );
   const paddingY = spec.padding.y * scale;
-
-  // The header is a DOM overlay measured in CSS pixels, so it converts to
-  // device pixels by the pixel ratio rather than by the layout scale.
-  const headerHeight = spec.headerHeightPx * viewport.pixelRatio;
+  const top = insetTopPx(viewport);
 
   const origins = new Map<string, Point>();
   for (const slot of spec.slots) {
     origins.set(slot.pileId, {
       x: paddingX + slot.column * (cardWidth + gapX),
-      y: headerHeight + paddingY + slot.row * (cardHeight + gapY),
+      y: top + paddingY + slot.row * (cardHeight + gapY),
     });
   }
   return origins;
+}
+
+/**
+ * Returns the viewport's top inset in device pixels.
+ *
+ * Converted by the pixel ratio rather than by the layout scale, because it is
+ * a measurement of the DOM laid over the canvas, not of the board.
+ */
+function insetTopPx(viewport: Viewport): number {
+  return (viewport.insetTop ?? 0) * viewport.pixelRatio;
 }

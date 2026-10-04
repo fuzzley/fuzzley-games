@@ -1,8 +1,10 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
-import { TablePresentation } from "@/engine/render/presentation";
 import { PlayableGame } from "@/engine/tableau/playable_game";
-import { makeTableBoardScene } from "@/engine/board/table_board_scene";
+import {
+  TableBoardOptions,
+  makeTableBoardScene,
+} from "@/engine/board/table_board_scene";
 import { stocklessGestures } from "@/engine/tableau/table_gestures";
 
 import { easthavenGestures } from "@/games/easthaven/easthaven_gestures";
@@ -86,25 +88,28 @@ export function gesturesFor(gameId: GameId, game: PlayableGame): IntentHandler {
   return gestures(game as GameOf<GameId>);
 }
 
+/** Says how a board should look and fit, and whom to tell once it is drawn. */
+export type BoardSetting = Pick<
+  TableBoardOptions,
+  "presentation" | "onReady" | "insetTop"
+>;
+
 /**
  * Builds the board that draws a dealt game, on the grid its catalog entry
  * declares.
  *
  * @param game The dealt game, which must be the one `gameId` deals; the cast
  *   below trusts that, because the catalog holds sessions under an erased type.
- * @param onReady Called once the board has finished building itself.
  */
 export function makeBoardScene(
   gameId: GameId,
   game: PlayableGame,
-  presentation: TablePresentation,
-  onReady?: () => void,
+  setting: BoardSetting,
 ): BoardScene {
   return makeTableBoardScene({
     game: game as GameOf<GameId>,
     layout: catalogEntry(gameId).layout,
     handleIntent: gesturesFor(gameId, game),
-    presentation,
-    onReady,
+    ...setting,
   });
 }

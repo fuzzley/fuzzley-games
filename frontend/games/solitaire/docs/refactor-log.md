@@ -121,7 +121,7 @@ The review's findings, grouped into phases. Each phase leaves the tree green.
 - [x] 4.1 `engine/board` tier and fixture copies deleted
 - [x] 4.2 Read-only piles
 - [x] 5.1 `Tabletop` split out of `TableGame` (done before 2.3; see log)
-- [ ] 5.2 Header inset from the shell
+- [x] 5.2 Header inset from the shell
 - [ ] 5.3 Zone rules and looks separated
 - [ ] 5.4 Variants decoupled from numeric storage
 
@@ -368,3 +368,32 @@ dealsFaceUp? }`, in `deck_source.ts`) and builds the registry and the
   - `yarn build` passes (its chunk-size warning predates this work).
   - The `add-solitaire-game` and `typescript-strict-patterns` skills
     describe read-only piles.
+- **refactor: read the header's height from the page instead of copying it.**
+  - `HEADER_HEIGHT_PX` and `HEADER_HEIGHT_COMPACT_PX` (copies of the SCSS
+    `--header-height`) and `TableLayoutSpec.headerHeightPx` are gone.
+    `Viewport.insetTop` (CSS px, optional) says how far down the canvas the
+    shell's chrome lies; `computeScale` and `computePileOrigins` lay the
+    board out below it, and `designSize` is the board's own size.
+  - `.canvas-container` declares `--board-inset-top: var(--header-height)`.
+    `ViewportScaler` reads it whenever it re-measures the parent (start,
+    window resize, parent resize, pixel-ratio change) and caches it as
+    `insetTop`, so nothing reads a computed style per frame. `PhaserHost.show`
+    now passes the board factory `BoardSurroundings { insetTop }`, and the
+    reader flows through `makeBoardScene(gameId, game, setting)` (the
+    provider now takes a `BoardSetting` object), `makeTableBoardScene` and
+    `BoardSceneOptions.insetTop` into `BoardScene.viewport`.
+  - Every game's `designHeightPx` dropped by 73, the header it used to
+    include, and so did each position quoted in its comments. On desktop the
+    layout is identical. On a phone, a game with a declared design height
+    gets 13 design units less height than before (the old code subtracted the
+    compact 60px header from heights authored around 73), so its cards can be
+    about 1% taller. This was a quirk, not a choice. Games without a declared
+    height are unchanged.
+  - The shell's compact breakpoint (`COMPACT_MAX_WIDTH_PX` in
+    `viewport.service.ts`) now reuses the engine's
+    `COMPACT_MAX_WIDTH_CSS_PX`, and the engine compacts below 720 CSS px
+    rather than at 720 and below, matching the stylesheets' `below()`.
+  - Checked in the browser at 1280×800 (inset 73) and at a phone width
+    (inset 60, read after resize): the board sits right below the header. The
+    only console error is the browser's automatic `/favicon.ico` 404, which
+    predates this work.

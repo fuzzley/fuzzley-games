@@ -11,5 +11,5 @@ export const SCORPION_LAYOUT = boardLayout({
   zones: scorpionZoneSpecs(),
   // Room for the two or three deep stacks a board collects into before the
   // first run completes.
-  designHeightPx: 1150,
+  designHeightPx: 1077,
 });

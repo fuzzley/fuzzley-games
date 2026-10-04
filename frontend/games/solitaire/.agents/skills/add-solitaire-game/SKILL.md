@@ -289,15 +289,17 @@ export const MY_GAME_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
   zones: myGameZoneSpecs(),
-  designHeightPx: 1120,
+  designHeightPx: 1047,
 });
 ```
 
 `boardLayout` (`src/games/common/board_layout.ts`) reads the slots off the zones,
 so a pile cannot be declared in one place and positioned in another. The only
 judgement is `designHeightPx`: the grid's own height is not enough, because a
-column fans well below its row. Klondike authors 950, FreeCell 1120 for columns
-that can reach thirteen cards at 45px apart.
+column fans well below its row. Klondike authors 877, FreeCell 1047 for columns
+that can reach thirteen cards at 45px apart. It is the board's own height: the
+shell's header lies over the canvas above it, and the board reads how far down
+it reaches from `--board-inset-top` at run time rather than reserving it.
 
 The catalog entry carries this layout (step 8), and both the loading skeleton
 and the board are drawn on it. Every rule option of one entry must therefore

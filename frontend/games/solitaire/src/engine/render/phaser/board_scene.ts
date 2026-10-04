@@ -76,6 +76,11 @@ export interface BoardSceneOptions {
   readonly onCardsRelocated: Subscribe<readonly string[]>;
   /** Called once the scene has made its sprites and drawn its first frame. */
   readonly onReady?: () => void;
+  /**
+   * Returns how far down the canvas whatever the shell lays over it reaches,
+   * such as its header, in CSS pixels; none when omitted.
+   */
+  readonly insetTop?: () => number;
 }
 
 /** Draws a game's board with Phaser and turns pointer input into intents. */
@@ -411,10 +416,13 @@ export class BoardScene extends Scene implements PhaserSprites {
    */
   public get viewport(): Viewport {
     const design = designSize(this.options.layout);
+    const pixelRatio = this.pixelRatio;
+    const insetTop = this.options.insetTop?.() ?? 0;
     return {
       width: this.scale?.width || design.width,
-      height: this.scale?.height || design.height,
-      pixelRatio: this.pixelRatio,
+      height: this.scale?.height || design.height + insetTop * pixelRatio,
+      pixelRatio,
+      insetTop,
     };
   }
 

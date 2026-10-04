@@ -10,6 +10,6 @@ export const BISLEY_LAYOUT = boardLayout({
   rows: 2,
   zones: bisleyZoneSpecs(),
   // Columns build both ways, so one can grow well past its four cards; a
-  // twelve-card column ends about 1275 from the top of the board.
-  designHeightPx: 1300,
+  // twelve-card column ends about 1202 from the top of the board.
+  designHeightPx: 1227,
 });

@@ -9,7 +9,7 @@ export const SEAHAVEN_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
   zones: seahavenZoneSpecs(),
-  // A fourteen-card column reaches about 1364 from the top of the board, and
-  // reserving beyond about 1415 would start costing card size at 16:9.
-  designHeightPx: 1400,
+  // A fourteen-card column reaches about 1291 from the top of the board, and
+  // reserving beyond about 1342 would start costing card size at 16:9.
+  designHeightPx: 1327,
 });

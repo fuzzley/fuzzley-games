@@ -26,11 +26,17 @@ export interface TableBoardOptions {
   readonly presentation: TablePresentation;
   /** Called once the scene has made its sprites and drawn its first frame. */
   readonly onReady?: () => void;
+  /**
+   * Returns how far down the canvas whatever the shell lays over it reaches,
+   * in CSS pixels; none when omitted.
+   */
+  readonly insetTop?: () => number;
 }
 
 /** Builds the board scene that draws a table game. */
 export function makeTableBoardScene(options: TableBoardOptions): BoardScene {
-  const { game, layout, handleIntent, presentation, onReady } = options;
+  const { game, layout, handleIntent, presentation, onReady, insetTop } =
+    options;
   const measure = (viewport: Viewport) => measureTable(layout, viewport);
 
   return new BoardScene({
@@ -54,5 +60,6 @@ export function makeTableBoardScene(options: TableBoardOptions): BoardScene {
     onReset: (listener) => game.on("game-reset", () => listener()),
     onCardsRelocated: (listener) => game.onCardsRelocated(listener),
     onReady,
+    insetTop,
   });
 }
