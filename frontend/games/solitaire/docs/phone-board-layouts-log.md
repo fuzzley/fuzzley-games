@@ -289,7 +289,7 @@ the right.
 - [x] 4.1 Settings service
 - [x] 4.2 Settings drawer
 - [x] 4.3 Mirrored chrome
-- [ ] 5.1 Docs
+- [x] 5.1 Docs
 - [ ] 5.2 Verify
 - [ ] 5.3 Last look
 
@@ -672,3 +672,20 @@ chrome, and the columns run in order between them. New specs cover the hand on
 the document root, the ordered block in `mirrorTable`, the builder naming its
 columns, and Klondike's left-hand grids keeping their columns in order on all
 six phone sizes.
+
+### 5.1 Docs
+
+- `.agents/AGENTS.md`: `games/common` lists the phone grid builder; the
+  catalog's description mentions phone grids; a new "Phone layouts" item under
+  the shell's structure explains the form factor, the bar and the rail, the
+  insets, and how a game's phone grids are chosen; the styling rules point at
+  the `compact`, `phone-portrait` and `phone-landscape` mixins.
+- `add-solitaire-game` skill: the layout step says the board reads insets on
+  every edge, a new "Phone grids (optional)" part says how to declare a game's
+  board to `phoneLayouts` and what follows from it, and the register step names
+  the optional `phoneLayouts` and `boardLayoutsOf`.
+- `sass-design-system` skill: the shape mixins beside the three breakpoints.
+- `phone-board-layouts.md`: a "What shipped" section listing where the build
+  differs from the sketches.
+
+`yarn skills:check` passes.
