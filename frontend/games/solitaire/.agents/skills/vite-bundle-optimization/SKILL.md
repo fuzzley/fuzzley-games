@@ -64,6 +64,12 @@ Break either one and the app 404s on the host while working perfectly on
 (`playing_card_assets_large.svg`, 52 faces plus two backs) and
 `card_placeholders.svg`.
 
+**Layout:** `tools/build-card-atlas.mjs` lists the decks and runs the build;
+`yarn build:atlas --deck <id>` builds just one. The shared parts live in
+`tools/card-atlas/`: `raster.mjs` holds the frame size and densities,
+`sheet-deck.mjs` cuts a deck out of a card sheet, and `atlas-writer.mjs` stamps
+the card edge and writes every density.
+
 **Output:** `src/engine/render/assets/sprites/atlas/<deck>/<n>x/`, one directory
 per deck and density. Each holds a Phaser **multi-atlas** manifest
 `card_assets_atlas.json` plus PNG pages `card_assets-0.png`,
@@ -93,7 +99,7 @@ downloaded.
 
 - Re-run `yarn build:atlas` whenever the card SVGs change. The atlas is a
   committed build artifact; a stale one ships.
-- `ART_SCALES` in the tool and `CARD_ART_SCALES` in
+- `ART_SCALES` in `tools/card-atlas/raster.mjs` and `CARD_ART_SCALES` in
   `src/engine/render/layout/card_metrics.ts` must list the same densities.
   Every frame at density _n_ must be `CARD_RENDER_WIDTH_PX × n` by
   `CARD_RENDER_HEIGHT_PX × n` texels. Otherwise cards render at the wrong size.

@@ -53,7 +53,7 @@ Settled with the project owner before any code changed.
 
 - **2.1** A bundled open-licence font, so the output does not depend on the
   fonts of the machine that builds it.
-- **2.2** `tools/card-atlas/mobile_deck.mjs`: one SVG per frame, rendered at
+- **2.2** `tools/card-atlas/mobile-deck.mjs`: one SVG per frame, rendered at
   the raster density. Rank and suit in both strips, one large pip on a number
   card, a large letter on a tinted panel on a court card, flat backs. Frame
   names unchanged, so the engine needs nothing new to draw it.
@@ -81,7 +81,7 @@ Settled with the project owner before any code changed.
 
 ## Progress
 
-- [ ] 1.1 Shared atlas writer, `--deck`
+- [x] 1.1 Shared atlas writer, `--deck`
 - [ ] 2.1 Bundled font
 - [ ] 2.2 Mobile deck generator
 - [ ] 2.3 Build checks
@@ -100,3 +100,16 @@ Settled with the project owner before any code changed.
 The atlas build reproduces the committed pages and manifests byte for byte
 (about 17 s for the three decks), so a refactor of the tool can be checked by
 rebuilding and finding nothing changed.
+
+### 1.1 Shared atlas writer
+
+`tools/build-card-atlas.mjs` now only lists the decks, cuts the placeholders
+and runs the build. The rest moved into `tools/card-atlas/`: `raster.mjs` (the
+frame size, the densities, rasterizing, cutting, edge measuring),
+`sheet-deck.mjs` (finding and cutting the cards on a sheet) and
+`atlas-writer.mjs` (the card edge, shrinking, packing, the manifest). A deck is
+an id, a `source` for the log line and a `cards()` that returns its frames at
+the raster density. The code moved verbatim; a full rebuild leaves every page
+and manifest byte for byte as it was. `--deck <id>` builds one deck, and an
+unknown id fails with the list of ids. Files in `tools/card-atlas/` are
+kebab-case like the rest of `tools/`.
