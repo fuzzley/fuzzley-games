@@ -29,8 +29,10 @@ vi.mock("@/ui/app/provider/board_catalog", () => ({
   makeBoardScene: (
     _gameId: string,
     _game: unknown,
-    presentation: TablePresentation,
-    onReady?: () => void,
+    {
+      presentation,
+      onReady,
+    }: { presentation: TablePresentation; onReady?: () => void },
   ) => {
     readyCallback = onReady;
     // Reads and follows the settings, as a board does while it is created,
@@ -53,9 +55,9 @@ vi.mock("@/engine/render/phaser/phaser_host", () => ({
       started.push(this.record);
     }
 
-    show(makeBoardScene: () => void) {
+    show(makeBoardScene: (surroundings: { insetTop: () => number }) => void) {
       this.record.boardsShown++;
-      makeBoardScene();
+      makeBoardScene({ insetTop: () => 0 });
     }
 
     destroy() {

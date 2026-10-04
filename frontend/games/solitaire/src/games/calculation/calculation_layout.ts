@@ -14,6 +14,6 @@ export const CALCULATION_LAYOUT = boardLayout({
   rows: 2,
   zones: calculationZoneSpecs(CalculationVariant.CALCULATION),
   // A thirteen-card waste pile, as deep as a careful game lets one grow, ends
-  // about 1400 from the top of the board.
-  designHeightPx: 1400,
+  // about 1327 from the top of the board.
+  designHeightPx: 1327,
 });

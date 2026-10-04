@@ -29,6 +29,13 @@ export interface ScalerWindow {
    * unobserved.
    */
   matchMedia?(query: string): PixelRatioQuery;
+  /**
+   * Reads the parent's computed style; a host without it leaves the board no
+   * top inset.
+   */
+  getComputedStyle?(element: MeasurableParent): {
+    getPropertyValue(property: string): string;
+  };
 }
 
 /** Describes the element the canvas fills and is sized from. */
@@ -48,6 +55,15 @@ export class ViewportScaler {
    * stops visibly improving while the pixel count keeps growing.
    */
   public static readonly MAX_PIXEL_RATIO = 2;
+
+  /**
+   * The custom property the parent declares its top inset in: how far down it
+   * the shell's own chrome, such as a header, lies over the canvas.
+   */
+  public static readonly INSET_TOP_PROPERTY = "--board-inset-top";
+
+  /** The top inset as last read, in CSS pixels. */
+  private insetTopValue = 0;
 
   /** Media query tracking the current pixel ratio, re-armed after each change. */
   private pixelRatioQuery: PixelRatioQuery | null = null;
@@ -75,6 +91,17 @@ export class ViewportScaler {
    */
   public get pixelRatio(): number {
     return Math.min(this.devicePixelRatio, ViewportScaler.MAX_PIXEL_RATIO);
+  }
+
+  /**
+   * How far down the canvas the shell's chrome lies over it, in CSS pixels,
+   * as the parent declared it when the canvas was last sized.
+   *
+   * Read once per resize rather than per frame, since reading a computed style
+   * can force the browser to lay the page out again.
+   */
+  public get insetTop(): number {
+    return this.insetTopValue;
   }
 
   /** Applies the current size and starts tracking viewport and DPR changes. */
@@ -124,7 +151,16 @@ export class ViewportScaler {
     this.game.canvas.style.width = `${cssWidth}px`;
     this.game.canvas.style.height = `${cssHeight}px`;
 
+    this.insetTopValue = this.readInsetTop();
     this.watchPixelRatio();
+  }
+
+  /** Reads the top inset the parent declares, or zero if it declares none. */
+  private readInsetTop(): number {
+    const style = this.window.getComputedStyle?.(this.parent);
+    const value = style?.getPropertyValue(ViewportScaler.INSET_TOP_PROPERTY);
+    const inset = Number.parseFloat(value ?? "");
+    return Number.isFinite(inset) ? inset : 0;
   }
 
   /** The display's raw pixel ratio, floored at 1 for non-conforming hosts. */

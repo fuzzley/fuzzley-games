@@ -24,6 +24,9 @@
 }
 
 .canvas-container {
+  // How far down the canvas the translucent header lies; the board reads it
+  // (through `ViewportScaler`) and lays itself out below.
+  --board-inset-top: var(--header-height);
   position: absolute;
   inset: 0;
   width: 100%;
@@ -32,7 +35,7 @@
 
 // The loading state dims the table rather than covering it. The scrim runs
 // behind the translucent header, but its contents start below it, where the
-// board does (see `headerHeightPx` in `engine/render/layout/table_layout.ts`).
+// board does (see `--board-inset-top` above).
 .loading-overlay {
   @include glass(8px);
   @include transition(opacity, visibility);

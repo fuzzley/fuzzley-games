@@ -15,5 +15,5 @@ export const YUKON_LAYOUT = boardLayout({
   zones: yukonZoneSpecs(DEFAULT_YUKON_VARIANT),
   // The last column is dealt eleven deep, six buried under five face up, and
   // only grows from there.
-  designHeightPx: 1150,
+  designHeightPx: 1077,
 });

@@ -13,6 +13,6 @@ export const ACES_UP_LAYOUT = boardLayout({
   rows: 1,
   zones: acesUpZoneSpecs(AcesUpSpaces.ANY_CARD),
   // A column dealt all thirteen of its cards with nothing discarded ends about
-  // 1006 from the top of the board.
-  designHeightPx: 1050,
+  // 933 from the top of the board.
+  designHeightPx: 977,
 });

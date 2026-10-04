@@ -137,6 +137,24 @@ describe("makeTableBoardScene", () => {
       ]);
     });
 
+    it("lays the board out below the inset the shell reports", () => {
+      const inset = makeTableBoardScene({
+        game,
+        layout: FAKE_TABLE_LAYOUT,
+        handleIntent: fakeTableGestures(game),
+        presentation,
+        insetTop: () => 40,
+      });
+
+      // The unsized canvas falls back to the design size plus the inset, so
+      // the board below it still lays out at a scale of 1.
+      expect([
+        inset.viewport.insetTop,
+        inset.viewport.height,
+        measureTable(FAKE_TABLE_LAYOUT, inset.viewport).scale,
+      ]).toEqual([40, designSize(FAKE_TABLE_LAYOUT).height + 40, 1]);
+    });
+
     it("lands a released stack on the pile under it on that grid", () => {
       const ace = relocate(game, "card-spades-ace", game.tableaus[0]);
       const foundation = game.foundations[0];

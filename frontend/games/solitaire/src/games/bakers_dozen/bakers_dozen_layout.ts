@@ -9,7 +9,7 @@ export const BAKERS_DOZEN_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
   zones: bakersDozenZoneSpecs(),
-  // A twelve-card column, deeper than a real game reaches, ends about 1275
+  // A twelve-card column, deeper than a real game reaches, ends about 1202
   // from the top of the board.
-  designHeightPx: 1300,
+  designHeightPx: 1227,
 });

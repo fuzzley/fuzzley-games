@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  COMPACT_MAX_WIDTH_CSS_PX,
   TableLayoutSpec,
   compactFor,
   computePileOrigins,
@@ -7,10 +8,6 @@ import {
   designSize,
   measureTable,
 } from "@/engine/render/layout/table_layout";
-import {
-  HEADER_HEIGHT_COMPACT_PX,
-  HEADER_HEIGHT_PX,
-} from "@/engine/render/layout/card_metrics";
 import { Viewport } from "@/engine/render/view/table_view_state";
 
 /** Returns an unremarkable board with the given overrides. */
@@ -25,7 +22,6 @@ function layout(overrides: Partial<TableLayoutSpec> = {}): TableLayoutSpec {
     cardSize: { width: 100, height: 150 },
     gap: { x: 10, y: 20 },
     padding: { x: 5, y: 5 },
-    headerHeightPx: 30,
     ...overrides,
   };
 }
@@ -46,11 +42,11 @@ describe("designSize", () => {
     expect(after - before).toBe(110);
   });
 
-  it("spans the header, the rows, the gaps and the padding", () => {
+  it("spans the rows, the gaps and the padding", () => {
     const size = designSize(layout());
 
-    // 30 + 2 * 150 + 1 * 20 + 2 * 5
-    expect(size.height).toBe(360);
+    // 2 * 150 + 1 * 20 + 2 * 5
+    expect(size.height).toBe(330);
   });
 
   it("takes a declared design height over the one its grid needs", () => {
@@ -74,6 +70,32 @@ describe("computeScale", () => {
     const viewport: Viewport = { ...design, pixelRatio: 1 };
 
     expect(computeScale(spec, viewport)).toBe(1);
+  });
+
+  it("fits the board below the viewport's top inset", () => {
+    const spec = layout();
+    const design = designSize(spec);
+    const viewport: Viewport = {
+      width: design.width,
+      height: design.height + 30,
+      pixelRatio: 1,
+      insetTop: 30,
+    };
+
+    expect(computeScale(spec, viewport)).toBe(1);
+  });
+
+  it("measures the inset in CSS pixels, converting it by the pixel ratio", () => {
+    const spec = layout();
+    const design = designSize(spec);
+    const viewport: Viewport = {
+      width: design.width * 2,
+      height: (design.height + 30) * 2,
+      pixelRatio: 2,
+      insetTop: 30,
+    };
+
+    expect(computeScale(spec, viewport)).toBe(2);
   });
 
   it("shrinks a wider board to fit the same viewport", () => {
@@ -103,6 +125,25 @@ describe("computePileOrigins", () => {
     const origins = computePileOrigins(layout(), designViewport(), 1);
 
     expect(origins.get("b")!.y - origins.get("a")!.y).toBe(170);
+  });
+
+  it("starts the board at the top of a viewport with no inset", () => {
+    const origins = computePileOrigins(layout(), designViewport(), 1);
+
+    expect(origins.get("a")!.y).toBe(layout().padding.y);
+  });
+
+  it("starts the board below the inset, which the pixel ratio scales", () => {
+    const viewport: Viewport = { ...designViewport(), insetTop: 30 };
+
+    const origins = computePileOrigins(
+      layout(),
+      { ...viewport, pixelRatio: 2 },
+      1,
+    );
+
+    // The inset is the shell's, in CSS pixels; the padding is the board's.
+    expect(origins.get("a")!.y).toBe(30 * 2 + layout().padding.y);
   });
 
   it("keeps an eight-column board inside a viewport sized for it", () => {
@@ -150,26 +191,14 @@ describe("compactFor", () => {
     expect([compact.gap.x, compact.padding.x]).toEqual([2, 2]);
   });
 
-  it("reserves the compacted header the shell actually draws", () => {
-    const desktopHeader = layout({ headerHeightPx: HEADER_HEIGHT_PX });
+  it("leaves a board alone at the breakpoint itself, as the stylesheets do", () => {
+    const atBreakpoint: Viewport = {
+      width: COMPACT_MAX_WIDTH_CSS_PX,
+      height: 900,
+      pixelRatio: 1,
+    };
 
-    const compact = compactFor(desktopHeader, phone);
-
-    expect(compact.headerHeightPx).toBe(HEADER_HEIGHT_COMPACT_PX);
-  });
-
-  it("leaves the header alone when there is room for the full one", () => {
-    const desktopHeader = layout({ headerHeightPx: HEADER_HEIGHT_PX });
-
-    expect(compactFor(desktopHeader, wide).headerHeightPx).toBe(
-      HEADER_HEIGHT_PX,
-    );
-  });
-
-  it("never grows a header already shorter than the compact one", () => {
-    const shallow = layout({ headerHeightPx: 30 });
-
-    expect(compactFor(shallow, phone).headerHeightPx).toBe(30);
+    expect(compactFor(layout(), atBreakpoint).gap).toEqual(layout().gap);
   });
 
   it("judges width in CSS pixels, not device pixels", () => {

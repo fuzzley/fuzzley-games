@@ -9,7 +9,7 @@ export const SPIDER_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
   zones: spiderZoneSpecs(),
-  // An opening six plus five dealt rows reaches about 1310 from the top of the
+  // An opening six plus five dealt rows reaches about 1237 from the top of the
   // board.
-  designHeightPx: 1350,
+  designHeightPx: 1277,
 });

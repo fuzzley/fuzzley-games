@@ -28,6 +28,18 @@ export interface HostedGame extends ScalableGame {
 /** Builds the game a host runs from its configuration. */
 export type CreateGame = (config: Types.Core.GameConfig) => HostedGame;
 
+/** Tells a board what the host knows of the page around its canvas. */
+export interface BoardSurroundings {
+  /**
+   * Returns how far down the canvas the shell's chrome lies over it, in CSS
+   * pixels, as the canvas's parent declares it in `--board-inset-top`.
+   */
+  readonly insetTop: () => number;
+}
+
+/** Builds a board scene to run in a host. */
+export type MakeBoardScene = (surroundings: BoardSurroundings) => BoardScene;
+
 /**
  * Hosts one Phaser game, and so one WebGL context, for as long as it lives,
  * swapping in whichever board it is shown.
@@ -49,7 +61,7 @@ export class PhaserHost {
   private board?: BoardScene;
 
   /** Builds the board to mount once the game has booted. */
-  private pendingBoard?: () => BoardScene;
+  private pendingBoard?: MakeBoardScene;
 
   /** Creates a host that mounts a canvas into `parent` when first shown a board. */
   constructor(
@@ -66,7 +78,7 @@ export class PhaserHost {
    * A board shown before the game has booted replaces any other still waiting,
    * so only the latest is ever built.
    */
-  public show(makeBoardScene: () => BoardScene): void {
+  public show(makeBoardScene: MakeBoardScene): void {
     this.pendingBoard = makeBoardScene;
     if (!this.game) {
       this.start();
@@ -122,7 +134,9 @@ export class PhaserHost {
       scenes.stop(this.board.key);
       scenes.remove(this.board.key);
     }
-    const board = makeBoardScene();
+    const board = makeBoardScene({
+      insetTop: () => this.scaler?.insetTop ?? 0,
+    });
     this.board = board;
     scenes.add(board.key, board, true);
   }

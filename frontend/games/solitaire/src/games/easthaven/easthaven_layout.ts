@@ -12,7 +12,7 @@ export const EASTHAVEN_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
   zones: easthavenZoneSpecs(),
-  // Two buried cards under nine showing reach about 1000 from the top of the
+  // Two buried cards under nine showing reach about 927 from the top of the
   // board.
-  designHeightPx: 1100,
+  designHeightPx: 1027,
 });
