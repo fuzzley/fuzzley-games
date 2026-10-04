@@ -211,9 +211,9 @@
   --tap-target-min: 44px;
 }
 
-// Compact chrome on narrow screens. The header shrinks, and the canvas reads
+// Compact chrome on a compact screen. The header shrinks, and the canvas reads
 // the change from here.
-@include below("tablet") {
+@include compact {
   :root {
     --header-height: 60px;
   }

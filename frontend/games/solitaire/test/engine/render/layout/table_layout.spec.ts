@@ -413,6 +413,16 @@ describe("compactFor", () => {
     expect(compactFor(layout(), atBreakpoint).gap).toEqual(layout().gap);
   });
 
+  it("tightens a phone on its side, though it is wider than the breakpoint", () => {
+    const sideways: Viewport = {
+      width: 844 * 3,
+      height: 390 * 3,
+      pixelRatio: 3,
+    };
+
+    expect(compactFor(layout(), sideways).gap.x).toBeLessThan(layout().gap.x);
+  });
+
   it("judges width in CSS pixels, not device pixels", () => {
     // 780 device pixels at 2x is a 390px phone, not a 780px tablet.
     expect(compactFor(layout(), phone).gap.x).toBeLessThan(layout().gap.x);

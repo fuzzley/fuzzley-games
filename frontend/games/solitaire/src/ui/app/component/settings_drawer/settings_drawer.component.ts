@@ -66,7 +66,8 @@ const AUTO_CARD_STYLE: GameOptionChoice<CardStyle> = {
   value: 0,
   rule: "auto",
   label: "Auto",
-  description: "Mobile cards on a narrow screen, desktop cards on a wide one.",
+  description:
+    "Mobile cards on a phone, upright or on its side; desktop cards on a larger screen.",
 };
 
 /**

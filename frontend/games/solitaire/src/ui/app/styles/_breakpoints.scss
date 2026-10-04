@@ -5,10 +5,12 @@
 //
 //   phone    Below it a dialog card is most of the screen, so it gives up its
 //            generous padding rather than its content.
-//   tablet   Below it the chrome compacts: the header shrinks, and the game
-//            browser fills the screen, showing its list and a preview one at
-//            a time. The header height is re-declared at this width in
-//            `_tokens.scss`.
+//   tablet   Below it, or below `$compact-max-height`, the chrome compacts:
+//            the header shrinks, and the game browser fills the screen,
+//            showing its list and a preview one at a time. The header height
+//            is re-declared for a compact screen in `_tokens.scss`. Use the
+//            `compact`, `phone-portrait` and `phone-landscape` mixins
+//            below for anything that follows the compact chrome.
 //   desktop  Below it there is no room for the header's labelled actions
 //            beside a long game name, so they become icon buttons.
 $breakpoints: (
@@ -16,6 +18,12 @@ $breakpoints: (
   "tablet": 720px,
   "desktop": 1200px,
 );
+
+// The height below which a screen compacts however wide it is, which catches a
+// phone on its side: its chrome becomes a rail down the side, and the board
+// takes a grid made for a short screen. Mirrors `COMPACT_MAX_HEIGHT_CSS_PX` in
+// `src/engine/render/layout/form_factor.ts`.
+$compact-max-height: 500px;
 
 @function _width($name) {
   @if not map.has-key($breakpoints, $name) {
@@ -37,6 +45,34 @@ $breakpoints: (
 /// Applies its content at the named width and wider.
 @mixin from($name) {
   @media (min-width: #{_width($name)}) {
+    @content;
+  }
+}
+
+/// Applies its content on a compact screen: narrower than `tablet`, or shorter
+/// than `$compact-max-height`. The board and `ViewportService` apply the same
+/// test, so a compact screen gets compact chrome and a compact board together.
+@mixin compact {
+  @media (max-width: #{_width("tablet") - 0.02px}),
+    (max-height: #{$compact-max-height - 0.02px}) {
+    @content;
+  }
+}
+
+/// Applies its content on a compact screen taller than it is wide: a phone
+/// held upright.
+@mixin phone-portrait {
+  // A compact screen taller than it is wide is narrower than `tablet` too.
+  @media (max-width: #{_width("tablet") - 0.02px}) and (orientation: portrait) {
+    @content;
+  }
+}
+
+/// Applies its content on a compact screen wider than it is tall: a phone on
+/// its side.
+@mixin phone-landscape {
+  @media (max-width: #{_width("tablet") - 0.02px}) and (orientation: landscape),
+    (max-height: #{$compact-max-height - 0.02px}) and (orientation: landscape) {
     @content;
   }
 }

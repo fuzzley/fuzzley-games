@@ -24,7 +24,7 @@ import { canfieldGestures } from "@/games/canfield/canfield_gestures";
 import { blackHoleGestures } from "@/games/black_hole/black_hole_gestures";
 import { pyramidGestures } from "@/games/pyramid/pyramid_gestures";
 import { triPeaksGestures } from "@/games/tri_peaks/tri_peaks_gestures";
-import { GameId, GameOf, catalogEntry } from "./game_catalog";
+import { GameId, GameOf, boardLayoutsOf, catalogEntry } from "./game_catalog";
 
 /** Says what a press or a drop means in a particular game. */
 type GestureMap<Id extends GameId> = (game: GameOf<Id>) => IntentHandler;
@@ -108,10 +108,7 @@ export function makeBoardScene(
 ): BoardScene {
   return makeTableBoardScene({
     game: game as GameOf<GameId>,
-    layouts: {
-      roomy: catalogEntry(gameId).layout,
-      phone: catalogEntry(gameId).phoneLayouts,
-    },
+    layouts: boardLayoutsOf(catalogEntry(gameId)),
     handleIntent: gesturesFor(gameId, game),
     ...setting,
   });
