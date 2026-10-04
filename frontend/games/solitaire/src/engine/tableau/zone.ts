@@ -134,7 +134,9 @@ export interface ColumnRules {
 export function runColumn(options: RunColumnOptions): ColumnRules {
   const build = byEmptiness(options.whenEmpty, buildsOn(options.adjacent));
   return {
-    accept: options.maxStack ? all(build, maxStackSize(options.maxStack)) : build,
+    accept: options.maxStack
+      ? all(build, maxStackSize(options.maxStack))
+      : build,
     grab: { kind: "run", adjacent: options.adjacent },
   };
 }
