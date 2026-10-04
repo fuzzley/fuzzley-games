@@ -25,6 +25,11 @@ import {
   isDesktopCardDeckId,
 } from "@/engine/render/card_deck";
 import {
+  CardBackStyle,
+  DEFAULT_CARD_BACK,
+  isCardBackStyle,
+} from "@/engine/render/card_back";
+import {
   DEFAULT_THEME,
   TABLE_THEMES,
   ThemeKey,
@@ -33,9 +38,6 @@ import {
 } from "../model/table_theme";
 import { LocalStorageService } from "./local_storage.service";
 import { ViewportService } from "./viewport.service";
-
-/** Names the artwork on the back of the cards. */
-export type CardBackStyle = "card-back-blue" | "card-back-red";
 
 /**
  * Says whether the cards are drawn for a phone, for a larger screen, or for
@@ -66,16 +68,12 @@ interface StoredPresentation extends Partial<PersistedPresentation> {
 }
 
 const DEFAULTS: PersistedPresentation = {
-  cardBackStyle: "card-back-blue",
+  cardBackStyle: DEFAULT_CARD_BACK,
   theme: DEFAULT_THEME,
   cardStyle: "auto",
   desktopCardDeck: DEFAULT_DESKTOP_CARD_DECK,
   ...DEFAULT_BOARD_ARRANGEMENT,
 };
-
-function isCardBackStyle(value: unknown): value is CardBackStyle {
-  return value === "card-back-blue" || value === "card-back-red";
-}
 
 function isCardStyle(value: unknown): value is CardStyle {
   return value === "auto" || value === "mobile" || value === "desktop";

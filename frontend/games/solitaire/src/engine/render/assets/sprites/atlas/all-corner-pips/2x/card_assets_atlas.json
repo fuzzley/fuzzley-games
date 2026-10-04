@@ -717,15 +717,41 @@
       "image": "card_assets-1.png",
       "format": "RGBA8888",
       "size": {
-        "w": 2688,
+        "w": 3136,
         "h": 1244
       },
       "scale": 1,
       "frames": [
         {
-          "filename": "card-placeholder",
+          "filename": "card-back-classic-blue",
           "frame": {
             "x": 4,
+            "y": 4,
+            "w": 440,
+            "h": 614
+          },
+          "anchor": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "card-back-classic-red",
+          "frame": {
+            "x": 452,
+            "y": 4,
+            "w": 440,
+            "h": 614
+          },
+          "anchor": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "card-placeholder",
+          "frame": {
+            "x": 900,
             "y": 4,
             "w": 440,
             "h": 614
@@ -738,7 +764,7 @@
         {
           "filename": "card-placeholder-full-border-circle",
           "frame": {
-            "x": 452,
+            "x": 1348,
             "y": 4,
             "w": 440,
             "h": 614
@@ -751,7 +777,7 @@
         {
           "filename": "card-placeholder-full-border-reset",
           "frame": {
-            "x": 900,
+            "x": 1796,
             "y": 4,
             "w": 440,
             "h": 614
@@ -764,7 +790,7 @@
         {
           "filename": "card-placeholder-full-border",
           "frame": {
-            "x": 1348,
+            "x": 2244,
             "y": 4,
             "w": 440,
             "h": 614
@@ -777,7 +803,7 @@
         {
           "filename": "card-placeholder-full-border-reset-2-of-2",
           "frame": {
-            "x": 1796,
+            "x": 2692,
             "y": 4,
             "w": 440,
             "h": 614
@@ -790,19 +816,6 @@
         {
           "filename": "card-placeholder-full-border-reset-1-of-2",
           "frame": {
-            "x": 2244,
-            "y": 4,
-            "w": 440,
-            "h": 614
-          },
-          "anchor": {
-            "x": 0.5,
-            "y": 0.5
-          }
-        },
-        {
-          "filename": "card-placeholder-full-border-reset-3-of-3",
-          "frame": {
             "x": 4,
             "y": 626,
             "w": 440,
@@ -814,7 +827,7 @@
           }
         },
         {
-          "filename": "card-placeholder-full-border-reset-2-of-3",
+          "filename": "card-placeholder-full-border-reset-3-of-3",
           "frame": {
             "x": 452,
             "y": 626,
@@ -827,7 +840,7 @@
           }
         },
         {
-          "filename": "card-placeholder-full-border-reset-1-of-3",
+          "filename": "card-placeholder-full-border-reset-2-of-3",
           "frame": {
             "x": 900,
             "y": 626,
@@ -840,7 +853,7 @@
           }
         },
         {
-          "filename": "card-placeholder-top-circle",
+          "filename": "card-placeholder-full-border-reset-1-of-3",
           "frame": {
             "x": 1348,
             "y": 626,
@@ -853,9 +866,22 @@
           }
         },
         {
-          "filename": "card-placeholder-full-border-top-circle",
+          "filename": "card-placeholder-top-circle",
           "frame": {
             "x": 1796,
+            "y": 626,
+            "w": 440,
+            "h": 614
+          },
+          "anchor": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "card-placeholder-full-border-top-circle",
+          "frame": {
+            "x": 2244,
             "y": 626,
             "w": 440,
             "h": 614
