@@ -92,46 +92,18 @@ export class FakeTableGame extends DealtTableGame {
       return;
     }
 
-    const drawn: PlayingCard[] = [];
-    for (let i = 0; i < Math.min(this.drawCount, this.stock.size); i++) {
-      const top = this.stock.topCard;
-      if (!top) break;
-      this.stock.removeCard(top);
-      top.faceUp = true;
-      this.waste.addCard(top);
-      drawn.push(top);
-    }
-
+    // Top first, the order they are turned over in.
+    const drawn = this.stock.getCards().slice(-this.drawCount).reverse();
     this.commitAction("draw", [
-      {
-        // Reversed into the order they sat in the stock, which a transfer
-        // records.
-        cardIds: drawn.reverse().map((card) => card.id),
-        fromPileId: this.stock.id,
-        toPileId: this.waste.id,
-        faceUpBefore: false,
-      },
+      this.tabletop.relocate(drawn, this.waste, { faceUp: true }),
     ]);
   }
 
   /** Puts the whole waste back onto the stock, face down. */
   private recycleWaste(): void {
-    const recycled = [...this.waste.getCards()];
-    let card = this.waste.topCard;
-    while (card) {
-      this.waste.removeCard(card);
-      card.faceUp = false;
-      this.stock.addCard(card);
-      card = this.waste.topCard;
-    }
-
+    const recycled = [...this.waste.getCards()].reverse();
     this.commitAction("recycle", [
-      {
-        cardIds: recycled.map((recycledCard) => recycledCard.id),
-        fromPileId: this.waste.id,
-        toPileId: this.stock.id,
-        faceUpBefore: true,
-      },
+      this.tabletop.relocate(recycled, this.stock, { faceUp: false }),
     ]);
   }
 

@@ -5,14 +5,13 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
-import { CardTransfer } from "@/engine/tableau/move";
 import { ActionKind } from "@/games/common/action_kinds";
 import { DeckOptions } from "@/games/common/deck_options";
 import {
   CLOSED_STOCK_PLACEHOLDER,
   recyclePipsPlaceholder,
 } from "@/games/common/zone_presets";
-import { dealFans, dealLaBelleLucieLayout } from "./la_belle_lucie_deal";
+import { dealLaBelleLucieLayout, fanLayout } from "./la_belle_lucie_deal";
 import {
   DEFAULT_LA_BELLE_LUCIE_VARIANT,
   LaBelleLucieVariantRules,
@@ -115,39 +114,10 @@ export class LaBelleLucieGame extends DealtTableGame {
     }
 
     // Fan by fan, bottom first in each.
-    const gathered: { card: PlayingCard; from: CardPile<PlayingCard> }[] = [];
-    for (const fan of this.fans) {
-      for (const card of [...fan.getCards()]) {
-        gathered.push({ card, from: fan });
-        fan.removeCard(card);
-      }
-    }
+    const gathered = this.fans.flatMap((fan) => [...fan.getCards()]);
+    const layout = fanLayout(shuffle(gathered, this.random), this.fans);
 
-    dealFans(
-      shuffle(
-        gathered.map(({ card }) => card),
-        this.random,
-      ),
-      this.fans,
-    );
-
-    // Undo replays the transfers in reverse, appending each card to the fan it
-    // came from. Listing each fan's cards top first therefore lays them back
-    // bottom first, rebuilding every fan in its old order however the new
-    // deal mixed them.
-    const transfers: CardTransfer[] = [];
-    for (const { card, from } of gathered.reverse()) {
-      const to = this.getPileContainingCard(card.id);
-      if (!to) continue;
-      transfers.push({
-        cardIds: [card.id],
-        fromPileId: from.id,
-        toPileId: to.id,
-        faceUpBefore: true,
-      });
-    }
-
-    this.commitAction(ActionKind.REDEAL, transfers);
+    this.commitAction(ActionKind.REDEAL, this.tabletop.rearrange(layout));
     return true;
   }
 

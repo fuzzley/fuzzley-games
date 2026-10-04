@@ -88,6 +88,7 @@ export class SpideretteGame extends DealtTableGame {
     }
 
     const dealt = dealRowCollectingRuns(
+      this.tabletop,
       this.stock,
       this.tableaus,
       this.tableaus,
@@ -104,6 +105,7 @@ export class SpideretteGame extends DealtTableGame {
   /** @inheritDoc */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
     return runCollectingEffects(
+      this.tabletop,
       move,
       SpideretteRole.TABLEAU,
       this.tableaus,

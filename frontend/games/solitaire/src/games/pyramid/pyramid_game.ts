@@ -112,7 +112,7 @@ export class PyramidGame extends DealtTableGame {
    * @inheritDoc
    */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
-    return discardPairEffects(move, this.discard);
+    return discardPairEffects(this.tabletop, move, this.discard);
   }
 
   /**
@@ -144,12 +144,12 @@ export class PyramidGame extends DealtTableGame {
     if (!this.stock.isEmpty) {
       this.commitAction(ActionKind.DRAW, [
         ...this.discardHand(),
-        ...drawToWaste(this.stock, this.hand, 1),
+        ...drawToWaste(this.tabletop, this.stock, this.hand, 1),
       ]);
     } else if (this.canRecycle) {
       this.commitAction(ActionKind.RECYCLE, [
         ...this.discardHand(),
-        ...recycleWasteToStock(this.waste, this.stock),
+        ...recycleWasteToStock(this.tabletop, this.waste, this.stock),
       ]);
     }
   }
@@ -164,17 +164,7 @@ export class PyramidGame extends DealtTableGame {
   /** Moves the card in the hand, if any, onto the waste. */
   private discardHand(): CardTransfer[] {
     const held = this.hand.topCard;
-    if (!held) return [];
-    this.hand.removeCard(held);
-    this.waste.addCard(held);
-    return [
-      {
-        cardIds: [held.id],
-        fromPileId: this.hand.id,
-        toPileId: this.waste.id,
-        faceUpBefore: true,
-      },
-    ];
+    return held ? [this.tabletop.relocate([held], this.waste)] : [];
   }
 
   /**

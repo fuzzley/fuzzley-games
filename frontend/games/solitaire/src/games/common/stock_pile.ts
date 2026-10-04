@@ -1,6 +1,7 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { CardTransfer } from "@/engine/tableau/move";
+import { Tabletop } from "@/engine/tableau/tabletop";
 
 /**
  * Draws from a stock onto a waste and recycles the waste back, leaving the
@@ -12,33 +13,15 @@ import { CardTransfer } from "@/engine/tableau/move";
  * the transfer it made, if any.
  */
 export function drawToWaste(
+  tabletop: Tabletop,
   stock: CardPile<PlayingCard>,
   waste: CardPile<PlayingCard>,
   count: number,
 ): CardTransfer[] {
-  const drawCount = Math.min(count, stock.size);
-  const drawn: PlayingCard[] = [];
-  for (let index = 0; index < drawCount; index++) {
-    const topCard = stock.topCard;
-    if (!topCard) break;
-    stock.removeCard(topCard);
-    topCard.faceUp = true;
-    waste.addCard(topCard);
-    drawn.push(topCard);
-  }
-
-  if (drawn.length === 0) return [];
-
-  return [
-    {
-      // Reversed into the order they sat in the stock, which a transfer
-      // records.
-      cardIds: drawn.reverse().map((card) => card.id),
-      fromPileId: stock.id,
-      toPileId: waste.id,
-      faceUpBefore: false,
-    },
-  ];
+  // Top first, the order they are turned over in.
+  const drawn = stock.getCards().slice(-count).reverse();
+  if (count <= 0 || drawn.length === 0) return [];
+  return [tabletop.relocate(drawn, waste, { faceUp: true })];
 }
 
 /**
@@ -46,27 +29,12 @@ export function drawToWaste(
  * transfer it made, if any.
  */
 export function recycleWasteToStock(
+  tabletop: Tabletop,
   waste: CardPile<PlayingCard>,
   stock: CardPile<PlayingCard>,
 ): CardTransfer[] {
-  if (waste.isEmpty) return [];
-
-  // Captured bottom-first before draining, which is the order undo restores.
-  const recycled = [...waste.getCards()];
-  let card = waste.topCard;
-  while (card) {
-    waste.removeCard(card);
-    card.faceUp = false;
-    stock.addCard(card);
-    card = waste.topCard;
-  }
-
-  return [
-    {
-      cardIds: recycled.map((recycledCard) => recycledCard.id),
-      fromPileId: waste.id,
-      toPileId: stock.id,
-      faceUpBefore: true,
-    },
-  ];
+  // Top first, so the card turned first comes round first again.
+  const recycled = [...waste.getCards()].reverse();
+  if (recycled.length === 0) return [];
+  return [tabletop.relocate(recycled, stock, { faceUp: false })];
 }

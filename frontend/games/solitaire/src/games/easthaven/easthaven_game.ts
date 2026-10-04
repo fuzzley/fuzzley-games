@@ -78,7 +78,7 @@ export class EasthavenGame extends DealtTableGame {
 
     this.commitAction(
       ActionKind.DEAL,
-      dealRowFromStock(this.stock, this.tableaus),
+      dealRowFromStock(this.tabletop, this.stock, this.tableaus),
     );
     return true;
   }

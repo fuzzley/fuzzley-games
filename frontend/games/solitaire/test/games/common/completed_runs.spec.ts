@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { CardPile } from "@/engine/core/card/card_pile";
 import {
   ALL_RANKS,
@@ -14,6 +14,19 @@ import {
   flipExposedTop,
 } from "@/games/common/completed_runs";
 import { makePlayingCard } from "@test/support/card_builder";
+import { TestTabletop } from "@test/support/test_tabletop";
+
+/** The table each test's piles lie on, fresh for every test. */
+let table: TestTabletop;
+
+beforeEach(() => {
+  table = new TestTabletop([
+    "tableau-0",
+    "tableau-1",
+    "foundation-0",
+    "foundation-1",
+  ]);
+});
 
 /** Returns a card named as a single-deck game names it, face up by default. */
 function card(suit: Suit, rank: Rank, faceUp = true): PlayingCard {
@@ -35,9 +48,7 @@ function pileOf(
   id: string,
   cards: readonly PlayingCard[] = [],
 ): CardPile<PlayingCard> {
-  const pile = new CardPile<PlayingCard>(id);
-  for (const pileCard of cards) pile.addCard(pileCard);
-  return pile;
+  return table.fill(id, cards);
 }
 
 /** Returns the ids of a pile's cards, bottom first. */
@@ -147,7 +158,7 @@ describe("collectCompletedRuns", () => {
     const tableau = pileOf("tableau-0", run);
     const foundation = pileOf("foundation-0");
 
-    collectCompletedRuns([tableau], [foundation]);
+    collectCompletedRuns(table.tabletop, [tableau], [foundation]);
 
     expect([tableau.size, idsIn(foundation)]).toEqual([
       0,
@@ -160,7 +171,11 @@ describe("collectCompletedRuns", () => {
     const tableau = pileOf("tableau-0", run);
     const foundation = pileOf("foundation-0");
 
-    const { transfers } = collectCompletedRuns([tableau], [foundation]);
+    const { transfers } = collectCompletedRuns(
+      table.tabletop,
+      [tableau],
+      [foundation],
+    );
 
     expect(transfers).toEqual([
       {
@@ -176,7 +191,7 @@ describe("collectCompletedRuns", () => {
     const buried = card(Suit.HEART, Rank.FOUR);
     const tableau = pileOf("tableau-0", [buried, ...fullRun()]);
 
-    collectCompletedRuns([tableau], [pileOf("foundation-0")]);
+    collectCompletedRuns(table.tabletop, [tableau], [pileOf("foundation-0")]);
 
     expect(idsIn(tableau)).toEqual([buried.id]);
   });
@@ -186,6 +201,7 @@ describe("collectCompletedRuns", () => {
     const tableau = pileOf("tableau-0", [buried, ...fullRun()]);
 
     const { flippedCardIds } = collectCompletedRuns(
+      table.tabletop,
       [tableau],
       [pileOf("foundation-0")],
     );
@@ -197,6 +213,7 @@ describe("collectCompletedRuns", () => {
     const tableau = pileOf("tableau-0", fullRun());
 
     const { flippedCardIds } = collectCompletedRuns(
+      table.tabletop,
       [tableau],
       [pileOf("foundation-0")],
     );
@@ -209,7 +226,7 @@ describe("collectCompletedRuns", () => {
     const hearts = pileOf("tableau-1", fullRun(Suit.HEART));
     const foundations = [pileOf("foundation-0"), pileOf("foundation-1")];
 
-    collectCompletedRuns([spades, hearts], foundations);
+    collectCompletedRuns(table.tabletop, [spades, hearts], foundations);
 
     expect([spades.size, hearts.size, foundations[1].size]).toEqual([
       0,
@@ -222,7 +239,11 @@ describe("collectCompletedRuns", () => {
     const tableau = pileOf("tableau-0", fullRun(Suit.SPADE));
     const foundation = pileOf("foundation-0", fullRun(Suit.HEART));
 
-    const { transfers } = collectCompletedRuns([tableau], [foundation]);
+    const { transfers } = collectCompletedRuns(
+      table.tabletop,
+      [tableau],
+      [foundation],
+    );
 
     expect([tableau.size, transfers]).toEqual([RUN_LENGTH, []]);
   });
@@ -230,7 +251,11 @@ describe("collectCompletedRuns", () => {
   it("moves nothing when no column has finished a run", () => {
     const tableau = pileOf("tableau-0", fullRun().slice(1));
 
-    const result = collectCompletedRuns([tableau], [pileOf("foundation-0")]);
+    const result = collectCompletedRuns(
+      table.tabletop,
+      [tableau],
+      [pileOf("foundation-0")],
+    );
 
     expect(result).toEqual({ transfers: [], flippedCardIds: [] });
   });

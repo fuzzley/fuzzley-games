@@ -80,7 +80,10 @@ export class CalculationGame extends DealtTableGame {
       return false;
     }
 
-    this.commitAction(ActionKind.DRAW, drawToWaste(this.stock, this.hand, 1));
+    this.commitAction(
+      ActionKind.DRAW,
+      drawToWaste(this.tabletop, this.stock, this.hand, 1),
+    );
     return true;
   }
 }

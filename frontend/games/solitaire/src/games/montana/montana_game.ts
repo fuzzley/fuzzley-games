@@ -5,7 +5,6 @@ import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
-import { CardTransfer } from "@/engine/tableau/move";
 
 import { ActionKind } from "@/games/common/action_kinds";
 import { DeckOptions } from "@/games/common/deck_options";
@@ -34,7 +33,6 @@ import {
   REDEAL_PILE_ID,
   montanaZoneSpecs,
 } from "./montana_zones";
-import { itemAt } from "@/engine/core/common/item_at";
 
 /** Configures a game of the Montana family. */
 export interface MontanaOptions extends DeckOptions {
@@ -140,35 +138,15 @@ export class MontanaGame extends DealtTableGame {
     shuffle(shuffled, this.random);
     const arrangement = redealArrangement(this.rows, shuffled, this.firstRank);
 
-    // Every card comes off the board before any goes back, so a cell being
-    // vacated and filled in the same pass cannot collide.
-    const origin = new Map<string, CardPile<PlayingCard>>();
-    for (const cell of this.cells) {
-      const card = cell.topCard;
-      if (!card) continue;
-      origin.set(card.id, cell);
-      cell.removeCard(card);
-    }
+    // The arrangement runs in reading order, as the cells do.
+    const layout = new Map(
+      this.cells.map((cell, index) => {
+        const card = arrangement[index];
+        return [cell, card ? [card] : []];
+      }),
+    );
 
-    const transfers: CardTransfer[] = [];
-    arrangement.forEach((card, index) => {
-      if (!card) return;
-      const cell = itemAt(this.cells, index);
-      cell.addCard(card);
-
-      const from = origin.get(card.id);
-      // A card that came back to the cell it started in did not move, and
-      // recording it would only make undo do redundant work.
-      if (!from || from.id === cell.id) return;
-      transfers.push({
-        cardIds: [card.id],
-        fromPileId: from.id,
-        toPileId: cell.id,
-        faceUpBefore: true,
-      });
-    });
-
-    this.commitAction(ActionKind.REDEAL, transfers);
+    this.commitAction(ActionKind.REDEAL, this.tabletop.rearrange(layout));
     return true;
   }
 

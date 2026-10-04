@@ -75,7 +75,7 @@ export class GolfGame extends DealtTableGame {
 
     this.commitAction(
       ActionKind.DRAW,
-      drawToWaste(this.stock, this.foundation, 1),
+      drawToWaste(this.tabletop, this.stock, this.foundation, 1),
     );
     return true;
   }

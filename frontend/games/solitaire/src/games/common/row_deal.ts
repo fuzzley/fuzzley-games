@@ -1,6 +1,7 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { CardTransfer } from "@/engine/tableau/move";
+import { Tabletop } from "@/engine/tableau/tabletop";
 import { collectCompletedRuns } from "./completed_runs";
 import { itemAt } from "@/engine/core/common/item_at";
 
@@ -43,6 +44,7 @@ export function dealColumnsThenCells(
  * Whether the stock may deal at all is for each game to decide.
  */
 export function dealRowFromStock(
+  tabletop: Tabletop,
   stock: CardPile<PlayingCard>,
   columns: readonly CardPile<PlayingCard>[],
 ): CardTransfer[] {
@@ -52,15 +54,7 @@ export function dealRowFromStock(
     // A stock with fewer cards than columns deals as far as it reaches, which
     // is the last deal of a game whose stock does not divide evenly.
     if (!card) break;
-    stock.removeCard(card);
-    card.faceUp = true;
-    column.addCard(card);
-    transfers.push({
-      cardIds: [card.id],
-      fromPileId: stock.id,
-      toPileId: column.id,
-      faceUpBefore: false,
-    });
+    transfers.push(tabletop.relocate([card], column, { faceUp: true }));
   }
   return transfers;
 }
@@ -74,14 +68,15 @@ export function dealRowFromStock(
  *   only some of them, like Scorpion's, still has to scan.
  */
 export function dealRowCollectingRuns(
+  tabletop: Tabletop,
   stock: CardPile<PlayingCard>,
   dealTo: readonly CardPile<PlayingCard>[],
   columns: readonly CardPile<PlayingCard>[],
   foundations: readonly CardPile<PlayingCard>[],
 ): { transfers: CardTransfer[]; flippedCardIds: string[] } {
-  const dealt = dealRowFromStock(stock, dealTo);
+  const dealt = dealRowFromStock(tabletop, stock, dealTo);
   // A dealt card can complete a run, and more than one column at a time.
-  const collected = collectCompletedRuns(columns, foundations);
+  const collected = collectCompletedRuns(tabletop, columns, foundations);
   return {
     transfers: [...dealt, ...collected.transfers],
     flippedCardIds: collected.flippedCardIds,

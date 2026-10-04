@@ -4,7 +4,7 @@ import { deckCardIds } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
-import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
+import { MoveEffects } from "@/engine/tableau/table_game";
 import { collectCompletedRuns } from "@/games/common/completed_runs";
 import { DeckOptions } from "@/games/common/deck_options";
 import { dealSimpleSimonLayout } from "./simple_simon_deal";
@@ -75,9 +75,12 @@ export class SimpleSimonGame extends DealtTableGame {
    *
    * @inheritDoc
    */
-  protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
-    void move;
-    const collected = collectCompletedRuns(this.tableaus, this.foundations);
+  protected override applyMoveEffects(): MoveEffects {
+    const collected = collectCompletedRuns(
+      this.tabletop,
+      this.tableaus,
+      this.foundations,
+    );
     return {
       scoreDelta: 0,
       flippedCardIds: collected.flippedCardIds,

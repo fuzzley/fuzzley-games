@@ -101,7 +101,7 @@ export class FortyThievesGame extends DealtTableGame {
 
     this.commitAction(
       ActionKind.DRAW,
-      drawToWaste(this.stock, this.waste, DRAW_COUNT),
+      drawToWaste(this.tabletop, this.stock, this.waste, DRAW_COUNT),
     );
     return true;
   }
