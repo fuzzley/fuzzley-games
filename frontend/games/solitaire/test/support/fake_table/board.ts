@@ -47,9 +47,12 @@ export function buildFakeTableViewState(
   presentation: TablePresentation,
 ): (interaction: TableInteractionState, viewport: Viewport) => TableViewState {
   return (interaction, viewport) =>
-    buildTableViewState(game, interaction, measureFakeTable(viewport), {
-      cardBackKey: presentation.cardBackKey(),
-    });
+    buildTableViewState(
+      game,
+      interaction,
+      measureFakeTable(viewport),
+      presentation.cardBackKey(),
+    );
 }
 
 /** Resolves the pile a drag would land on, for the fake board. */

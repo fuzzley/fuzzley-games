@@ -68,9 +68,7 @@ describe("the Eight Off board", () => {
       flights: [],
       snapAll: false,
     };
-    return buildTableViewState(game, interaction, METRICS, {
-      cardBackKey: "card-back-blue",
-    });
+    return buildTableViewState(game, interaction, METRICS, "card-back-blue");
   }
 
   /** Returns the gap between the buried card and the one covering it. */
