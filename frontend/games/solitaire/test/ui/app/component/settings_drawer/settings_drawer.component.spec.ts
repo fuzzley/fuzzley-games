@@ -273,6 +273,34 @@ describe("SettingsDrawerComponent", () => {
         "Couldn't load Classic.",
       );
     });
+
+    it("are hidden while mobile cards are drawn", () => {
+      harness.presentation.cardStyle.set("mobile");
+      openDrawer();
+
+      expect(query(fixture, ".card-deck-selector")).toBeNull();
+    });
+
+    it("come back once desktop cards are chosen", () => {
+      harness.presentation.cardStyle.set("mobile");
+      openDrawer();
+
+      harness.presentation.cardStyle.set("desktop");
+      fixture.detectChanges();
+
+      expect(deckButtons().length).toBe(DESKTOP_CARD_DECKS.length);
+    });
+
+    it("leave the problem in view while they are hidden", () => {
+      // The mobile deck can fail to load too.
+      harness.presentation.cardStyle.set("mobile");
+      harness.presentation.cardDeckProblem.set("Couldn't load Mobile.");
+      openDrawer();
+
+      expect(queryText(fixture, ".card-deck-problem")).toBe(
+        "Couldn't load Mobile.",
+      );
+    });
   });
 
   describe("the table theme", () => {
