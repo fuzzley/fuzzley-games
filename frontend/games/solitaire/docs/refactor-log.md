@@ -306,7 +306,7 @@ Newest last. Each entry names its commit subject.
     `runColumn`.
 - **refactor: deal through a Deal that places cards on the tabletop.**
   - `DealtTableGame` takes `deck: DeckSourceOptions` (`{ cardIds, random?,
-    dealsFaceUp? }`, in `deck_source.ts`) and builds the registry and the
+dealsFaceUp? }`, in `deck_source.ts`) and builds the registry and the
     `DeckSource` itself; its `deck` field is now private. Every game passed
     the same `new DeckSource(new CardRegistry(), …)`, and most dropped their
     `random = Math.random` default. La Belle Lucie and Montana keep theirs,
