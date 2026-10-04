@@ -24,7 +24,10 @@ import { FreeCellVariant } from "@/games/freecell/freecell_rules";
 import { FREECELL_LAYOUT } from "@/games/freecell/freecell_layout";
 import { SpiderGame } from "@/games/spider/spider_game";
 import { SpiderSuitCount, spiderDeck } from "@/games/spider/spider_deal";
-import { SPIDER_LAYOUT } from "@/games/spider/spider_layout";
+import {
+  SPIDER_LAYOUT,
+  SPIDER_PHONE_LAYOUTS,
+} from "@/games/spider/spider_layout";
 import { YukonGame } from "@/games/yukon/yukon_game";
 import { YukonVariant } from "@/games/yukon/yukon_rules";
 import { YUKON_LAYOUT } from "@/games/yukon/yukon_layout";
@@ -883,6 +886,7 @@ const SPIDER = {
   name: "Spider",
   options: [SPIDER_SUIT_COUNT],
   layout: SPIDER_LAYOUT,
+  phoneLayouts: SPIDER_PHONE_LAYOUTS,
   create: (values: GameOptionValues) =>
     dealt(
       new SpiderGame({

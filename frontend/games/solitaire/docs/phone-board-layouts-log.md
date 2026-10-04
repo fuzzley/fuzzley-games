@@ -284,7 +284,7 @@ the right.
 - [x] 2.3 Bottom bar
 - [x] 3.1 The phone grid builder
 - [x] 3.2 Klondike grids
-- [ ] 3.3 Spider grids
+- [x] 3.3 Spider grids
 - [ ] 3.4 Browser check
 - [ ] 4.1 Settings service
 - [ ] 4.2 Settings drawer
@@ -550,3 +550,27 @@ the room below it on six phone sizes, from 360 × 640 upright to 932 × 380 on i
 side, under each arrangement. It also checks where the stock and foundations go,
 and that the waste spreads towards the stock upright and down on its side while
 keeping the draw's count.
+
+### 3.3 Spider grids
+
+`SPIDER_PHONE_LAYOUTS` in `spider_layout.ts`: the row and columns read off
+Spider's zones; no left rail. The right rail holds the stock, spreading down
+with a reach of five slivers, then the eight foundations, overlapped. The
+longest column is five hidden cards under fifteen face up. On every phone grid
+the stock is `SLIVER_STOCK`, a spread of groups of ten (one per deal still to
+come), 40 units apart, at most five. The roomy grid keeps the stacked stock. The
+catalog entry names the grids.
+
+Checked at 390 × 844 after two deals, with a column built to fifteen cards.
+Upright, the columns run along the top, the foundations bottom left, and the
+stock bottom right as slivers. Strips sit at the cap, about 19 px, which leaves
+most of an upright screen unused even by that column. On its side, the stock's
+slivers run down the top of the right rail with the foundations overlapped
+below. The fifteen-card column fits, and cards are about 69 px wide. The eight
+empty foundations overlapped down the rail draw a busy stack of outlines; see
+the open questions under 3.4.
+
+`test/games/spider/spider_layout.spec.ts` checks that the long column fits on
+the same six phone sizes under each arrangement, where the stock and foundations
+go, and that the stock shows one sliver per deal on every phone grid, spreading
+right, left or down to suit it.
