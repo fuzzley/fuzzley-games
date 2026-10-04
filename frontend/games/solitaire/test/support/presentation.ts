@@ -2,7 +2,10 @@ import {
   CardDeckStatus,
   TablePresentation,
 } from "@/engine/render/presentation";
-import { CardDeckId, DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
+import {
+  CardDeckId,
+  DEFAULT_DESKTOP_CARD_DECK,
+} from "@/engine/render/card_deck";
 
 /** Implements {@link TablePresentation} with plain values a test can set. */
 export class TestPresentation implements TablePresentation {
@@ -13,7 +16,7 @@ export class TestPresentation implements TablePresentation {
   constructor(
     private cardBack = "card-back-blue",
     private backgroundColor = "#0f4d0e",
-    private deckId: CardDeckId = DEFAULT_CARD_DECK,
+    private deckId: CardDeckId = DEFAULT_DESKTOP_CARD_DECK,
   ) {}
 
   /** @inheritDoc */

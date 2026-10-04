@@ -1,6 +1,6 @@
 import { vi, type Mock } from "vitest";
 import * as Phaser from "phaser";
-import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
+import { DEFAULT_DESKTOP_CARD_DECK } from "@/engine/render/card_deck";
 import { cardAtlasTextureKey } from "@/engine/render/phaser/card_deck_atlas";
 
 /**
@@ -827,6 +827,6 @@ export const RESTORE_WEBGL_EVENT = "restorewebgl";
  * at a pixel ratio of 1, which is a layout scale of 1.
  */
 export const BOOT_TEXTURE_KEY = cardAtlasTextureKey({
-  deckId: DEFAULT_CARD_DECK,
+  deckId: DEFAULT_DESKTOP_CARD_DECK,
   artScale: 1,
 });

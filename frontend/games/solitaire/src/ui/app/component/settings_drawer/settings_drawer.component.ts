@@ -14,12 +14,13 @@ import { GameDocumentationService } from "../../service/game_documentation.servi
 import { BugReportService } from "../../service/bug_report.service";
 import {
   CardBackStyle,
+  CardStyle,
   PresentationSettingsService,
 } from "../../service/presentation_settings.service";
+import { GameOptionChoice, GameOptionSpec } from "../../provider/game_catalog";
 import {
-  CARD_DECKS,
-  CardDeckSpec,
-  CardIndexSize,
+  DESKTOP_CARD_DECKS,
+  DesktopCardDeckSpec,
 } from "@/engine/render/card_deck";
 import { DebugPanelComponent } from "../debug_panel/debug_panel.component";
 import { OptionGroupComponent } from "../option_group/option_group.component";
@@ -41,16 +42,10 @@ interface CardDeckPreviewCard {
   readonly x: number;
   /** Whether this deck marks this card in its top right corner. */
   readonly hasPip: boolean;
-  /** Whether this deck draws the rank large. */
-  readonly largeIndex: boolean;
-  /** Where the rank's baseline sits in the strip. */
-  readonly rankY: number;
-  /** Places the pip, drawn about the strip's origin, in the top right corner. */
-  readonly pipTransform: string;
 }
 
-/** Describes one deck a player can choose, resolved for rendering. */
-interface CardDeckChoice extends CardDeckSpec {
+/** Describes one desktop deck a player can choose, resolved for rendering. */
+interface CardDeckChoice extends DesktopCardDeckSpec {
   readonly selected: boolean;
   /** Whether the board is still fetching this deck's artwork. */
   readonly pending: boolean;
@@ -59,22 +54,41 @@ interface CardDeckChoice extends CardDeckSpec {
 
 /**
  * The two cards every deck preview shows: a court and a spot card, which
- * together tell the decks apart.
+ * together tell the three decks apart.
  */
 const PREVIEW_CARDS: readonly { rank: string; x: number; court: boolean }[] = [
   { rank: "K", x: 0, court: true },
   { rank: "7", x: 72, court: false },
 ];
 
-/** Where a preview draws a card's index, by how large the deck draws it. */
-const PREVIEW_INDEX: Record<
-  CardIndexSize,
-  { readonly rankY: number; readonly pipTransform: string }
-> = {
-  regular: { rankY: 21, pipTransform: "translate(44 -11)" },
-  // Filling about as much of the strip as the deck's own index does.
-  large: { rankY: 25, pipTransform: "translate(32.4 -28.5) scale(2)" },
+/** The card style a player starts on. */
+const AUTO_CARD_STYLE: GameOptionChoice<CardStyle> = {
+  value: 0,
+  rule: "auto",
+  label: "Auto",
+  description: "Mobile cards on a narrow screen, desktop cards on a wide one.",
 };
+
+/**
+ * The card styles on offer, in the order they are shown, each known to the
+ * option group by its number.
+ */
+const CARD_STYLE_CHOICES: readonly GameOptionChoice<CardStyle>[] = [
+  AUTO_CARD_STYLE,
+  {
+    value: 1,
+    rule: "mobile",
+    label: "Mobile",
+    description: "A big rank and suit and no artwork, on every screen.",
+  },
+  {
+    value: 2,
+    rule: "desktop",
+    label: "Desktop",
+    description:
+      "The card artwork, with the pips chosen below, on every screen.",
+  },
+];
 
 /** Describes one table felt swatch, resolved for rendering. */
 interface ThemeSwatch {
@@ -85,8 +99,8 @@ interface ThemeSwatch {
 }
 
 /**
- * Offers the running game's rules, the card back, deck and felt, and links to
- * the rules page and a bug report.
+ * Offers the running game's rules, the card back, style, deck and felt, and
+ * links to the rules page and a bug report.
  */
 @Component({
   selector: "app-settings-drawer",
@@ -130,11 +144,33 @@ export class SettingsDrawerComponent {
     },
   ];
 
-  /** The decks on offer, with the chosen one marked and its preview resolved. */
+  /** The card style that is checked. */
+  protected readonly cardStyleChoice = computed(
+    () =>
+      CARD_STYLE_CHOICES.find(
+        (choice) => choice.rule === this.presentation.cardStyle(),
+      ) ?? AUTO_CARD_STYLE,
+  );
+
+  /** The card style, offered like a rule, described by the style checked. */
+  protected readonly cardStyleOption = computed<GameOptionSpec<CardStyle>>(
+    () => ({
+      id: "cardStyle",
+      label: "Card Style",
+      description: this.cardStyleChoice().description,
+      choices: CARD_STYLE_CHOICES,
+      defaultValue: AUTO_CARD_STYLE.value,
+    }),
+  );
+
+  /**
+   * The desktop decks on offer, with the chosen one marked and its preview
+   * resolved.
+   */
   protected readonly deckChoices = computed<readonly CardDeckChoice[]>(() => {
-    const selected = this.presentation.cardDeck();
+    const selected = this.presentation.desktopCardDeck();
     const pending = this.presentation.pendingCardDeck();
-    return CARD_DECKS.map((deck) => ({
+    return DESKTOP_CARD_DECKS.map((deck) => ({
       ...deck,
       selected: deck.id === selected,
       pending: deck.id === pending,
@@ -144,8 +180,6 @@ export class SettingsDrawerComponent {
         hasPip:
           deck.pipCoverage === "all" ||
           (deck.pipCoverage === "courts" && card.court),
-        largeIndex: deck.indexSize === "large",
-        ...PREVIEW_INDEX[deck.indexSize],
       })),
     }));
   });
@@ -200,5 +234,11 @@ export class SettingsDrawerComponent {
    */
   protected chooseRule(optionId: string, value: number): void {
     void this.lifecycle.setRuleOption(optionId, value);
+  }
+
+  /** Draws the cards in the style the option group handed back. */
+  protected chooseCardStyle(value: number): void {
+    const choice = CARD_STYLE_CHOICES.find((style) => style.value === value);
+    if (choice) this.presentation.setCardStyle(choice.rule);
   }
 }

@@ -16,7 +16,7 @@ import {
 } from "@test/support/dom";
 import { flushMicrotasks } from "@test/support/async";
 import { clickBackdrop, isDialogOpen, pressEscape } from "@test/support/dialog";
-import { CARD_DECKS } from "@/engine/render/card_deck";
+import { DESKTOP_CARD_DECKS } from "@/engine/render/card_deck";
 
 describe("SettingsDrawerComponent", () => {
   let fixture: ComponentFixture<SettingsDrawerComponent>;
@@ -44,7 +44,10 @@ describe("SettingsDrawerComponent", () => {
 
   /** Returns the drawer's own rule buttons, excluding the debug panel's. */
   function ruleButtons(): HTMLElement[] {
-    return queryAll(fixture, ".drawer-content > app-option-group .segment-btn");
+    return queryAll(
+      fixture,
+      ".drawer-content > app-option-group:not(.card-style) .segment-btn",
+    );
   }
 
   describe("showing and hiding", () => {
@@ -134,16 +137,63 @@ describe("SettingsDrawerComponent", () => {
     });
   });
 
-  describe("the card deck", () => {
-    /** Returns the deck buttons, in the order the catalog offers them. */
+  describe("the card style", () => {
+    /** Returns the style buttons, in the order they are offered. */
+    function styleButtons(): HTMLElement[] {
+      return queryAll(fixture, "app-option-group.card-style .segment-btn");
+    }
+
+    /** Returns the line describing the style that is checked. */
+    function styleDescription(): string {
+      return queryText(fixture, "app-option-group.card-style .setting-desc");
+    }
+
+    it("offers auto, mobile and desktop cards", () => {
+      openDrawer();
+
+      expect(
+        styleButtons().map((button) => button.textContent?.trim()),
+      ).toEqual(["Auto", "Mobile", "Desktop"]);
+    });
+
+    it("checks the style the player has", () => {
+      harness.presentation.cardStyle.set("desktop");
+      openDrawer();
+
+      expect(
+        styleButtons().map((button) => button.getAttribute("aria-checked")),
+      ).toEqual(["false", "false", "true"]);
+    });
+
+    it("changes when one is picked", () => {
+      openDrawer();
+
+      styleButtons()[1].click();
+
+      expect(harness.presentation.cardStyle()).toBe("mobile");
+    });
+
+    it("describes the style that is checked", () => {
+      openDrawer();
+      const autoDescription = styleDescription();
+
+      harness.presentation.cardStyle.set("mobile");
+      fixture.detectChanges();
+
+      expect(styleDescription()).not.toBe(autoDescription);
+    });
+  });
+
+  describe("the desktop decks", () => {
+    /** Returns the deck buttons, in the order they are offered. */
     function deckButtons(): Element[] {
       return queryAll(fixture, ".card-deck-selector button");
     }
 
-    it("offers every deck in the catalog", () => {
+    it("offers every desktop deck", () => {
       openDrawer();
 
-      expect(deckButtons().length).toBe(CARD_DECKS.length);
+      expect(deckButtons().length).toBe(DESKTOP_CARD_DECKS.length);
     });
 
     it("changes when one is picked", () => {
@@ -151,7 +201,9 @@ describe("SettingsDrawerComponent", () => {
 
       clickElement(fixture, ".card-deck-selector button:nth-child(1)");
 
-      expect(harness.presentation.cardDeck()).toBe(CARD_DECKS[0].id);
+      expect(harness.presentation.desktopCardDeck()).toBe(
+        DESKTOP_CARD_DECKS[0].id,
+      );
     });
 
     it("marks the chosen one as checked", () => {
@@ -162,7 +214,7 @@ describe("SettingsDrawerComponent", () => {
 
       expect(
         deckButtons().map((button) => button.getAttribute("aria-checked")),
-      ).toEqual(["true", "false", "false", "false"]);
+      ).toEqual(["true", "false", "false"]);
     });
 
     it("draws a preview no two decks share", () => {
@@ -183,19 +235,8 @@ describe("SettingsDrawerComponent", () => {
         (button) => button.querySelectorAll(".card-deck-preview-pip").length,
       );
 
-      // None, the court alone, then both cards in the preview, twice.
-      expect(pipCounts).toEqual([0, 1, 2, 2]);
-    });
-
-    it("draws the ranks large only for the deck that draws them large", () => {
-      openDrawer();
-
-      const largeRanks = deckButtons().map(
-        (button) =>
-          button.querySelectorAll(".card-deck-preview-rank-large").length,
-      );
-
-      expect(largeRanks).toEqual([0, 0, 0, 2]);
+      // None, the court alone, then both cards in the preview.
+      expect(pipCounts).toEqual([0, 1, 2]);
     });
 
     it("marks the deck being fetched as busy", () => {
@@ -205,7 +246,7 @@ describe("SettingsDrawerComponent", () => {
       // A deck can take seconds to load, so the drawer says it is on its way.
       expect(
         deckButtons().map((button) => button.getAttribute("aria-busy")),
-      ).toEqual(["true", "false", "false", "false"]);
+      ).toEqual(["true", "false", "false"]);
     });
 
     it("shows a spinner beside the deck being fetched, and no other", () => {
@@ -215,7 +256,7 @@ describe("SettingsDrawerComponent", () => {
       const spinners = deckButtons().map(
         (button) => button.querySelectorAll(".card-deck-spinner").length,
       );
-      expect(spinners).toEqual([1, 0, 0, 0]);
+      expect(spinners).toEqual([1, 0, 0]);
     });
 
     it("waits on nothing when the table is up to date", () => {
