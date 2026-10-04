@@ -1,9 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { flipOnlyEffects } from "@/games/common/move_effects";
 import { dealRowFromStock } from "@/games/common/row_deal";
@@ -29,13 +28,10 @@ export class EasthavenGame extends DealtTableGame {
   public readonly tableaus: readonly CardPile<PlayingCard>[];
 
   /** Creates a game whose piles are empty until the first deal. */
-  constructor({
-    cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
-  }: DeckOptions = {}) {
+  constructor({ cardIds = ALL_PLAYING_CARD_IDS, random }: DeckOptions = {}) {
     super({
       zones: easthavenZoneSpecs(),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // Foundations only: sending a stack to whichever column is declared
       // first is never what was meant.
       autoMoveRoles: [EasthavenRole.FOUNDATION],
@@ -48,8 +44,8 @@ export class EasthavenGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealEasthavenLayout(deck, this.tableaus, this.stock);
+  protected override dealBoard(deal: Deal): void {
+    dealEasthavenLayout(deal, this.tableaus, this.stock);
   }
 
   // --- The stock ---

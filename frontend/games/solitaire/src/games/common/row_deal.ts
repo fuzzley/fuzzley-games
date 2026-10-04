@@ -1,3 +1,4 @@
+import { Deal } from "@/engine/tableau/deal";
 import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { CardTransfer } from "@/engine/tableau/move";
@@ -8,33 +9,23 @@ import { itemAt } from "@/engine/core/common/item_at";
 /**
  * Deals a fixed number of cards face up to each column, round-robin, then one
  * to each cell.
- *
- * @param deck The cards to deal, which this drains.
  */
 export function dealColumnsThenCells(
-  deck: PlayingCard[],
+  deal: Deal,
   tableaus: readonly CardPile<PlayingCard>[],
   cells: readonly CardPile<PlayingCard>[],
   cardsPerColumn: number,
 ): void {
   if (tableaus.length === 0) return;
 
-  const toColumns = Math.min(deck.length, tableaus.length * cardsPerColumn);
+  const toColumns = Math.min(deal.remaining, tableaus.length * cardsPerColumn);
   for (let dealt = 0; dealt < toColumns; dealt++) {
-    const card = deck.pop();
-    if (!card) break;
-    card.faceUp = true;
-    itemAt(tableaus, dealt % tableaus.length).addCard(card);
+    deal.dealTo(itemAt(tableaus, dealt % tableaus.length), true);
   }
 
   // One card per cell: dealing straight into a pile bypasses the zone's
   // capacity.
-  for (const cell of cells) {
-    const card = deck.pop();
-    if (!card) break;
-    card.faceUp = true;
-    cell.addCard(card);
-  }
+  deal.dealEach(cells, true);
 }
 
 /**

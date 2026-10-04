@@ -162,9 +162,18 @@ skeleton places fractional slots too.
 
 ## 4. `<game>_deal.ts` — the opening position
 
-A plain function taking the deck and the piles, draining the deck. Reuse first:
+A plain function taking the `Deal` (`src/engine/tableau/deal.ts`) and the
+piles. The deal hands out the shuffled deck, last card first, and places cards
+through the tabletop: `dealTo(pile, faceUp)` deals the next card,
+`dealEach(piles, faceUp)` one to each pile, `dealRest(pile, faceUp)` all
+that is left, `pull(predicate)` and `pullFirst(predicate)` take out cards the
+deal places before the rest (Aces that start on the foundations), and
+`place(card, pile, faceUp)` puts a card you drew or pulled. `peek`,
+`putBack`, `putUnder` and `drawAll` cover the odd deal (Penguin's beak,
+FreeCell's buried Aces, Nestor's rank rule, La Belle Lucie's fans). Never call
+a pile's `addCard`. Reuse first:
 
-- `dealColumnsThenCells(deck, tableaus, cells, cardsPerColumn)` —
+- `dealColumnsThenCells(deal, tableaus, cells, cardsPerColumn)` —
   `src/games/common/row_deal.ts`, the opening of every all-face-up cell game.
 - `dealRowFromStock(tabletop, stock, columns)` — same file, for a Spider-style
   stock that
@@ -173,14 +182,11 @@ A plain function taking the deck and the piles, draining the deck. Reuse first:
   same file, for
   a stock deal that can finish a run: it deals, sends every completed run to a
   foundation, and returns the transfers and flipped cards to commit together.
-- `pullCards(deck, predicate)` and `pullFirstCard(deck, predicate)` —
-  `src/games/common/pull_cards.ts`, for cards the deal places before the rest,
-  such as Aces that start on the foundations.
 - `sinkKings(column)` — `src/games/common/sink_kings.ts`, for a game whose
   columns never take a King (Baker's Dozen, Bristol).
 
-Set `card.faceUp` explicitly for every card you place. Dealing puts cards into
-piles directly and so **bypasses the placement rules entirely** — a cell's
+Say which side every card shows as you place it. Dealing puts cards into piles
+directly and so **bypasses the placement rules entirely** — a cell's
 `capacity: 1` is declared on its zone and enforced on moves, but the deal has to
 honour it itself.
 
@@ -195,7 +201,7 @@ replays the same game.
 ```ts
 super({
   zones: myGameZoneSpecs(variant),
-  deck: new DeckSource(new CardRegistry(), cardIds, random, /* faceUp */ true),
+  deck: { cardIds, random, dealsFaceUp: true },
   autoMoveRoles: [MyRole.FOUNDATION, MyRole.TABLEAU, MyRole.CELL],
   winsWhenAllCardsIn: MyRole.FOUNDATION,
 });
@@ -205,13 +211,15 @@ Then grab your piles with `this.pilesOfRole(role)` / `this.requirePile(id)`.
 
 Constructor shape, followed by every game: one options object extending
 `DeckOptions` (`src/games/common/deck_options.ts`), destructured with its
-defaults — `constructor({ cardIds = ALL_PLAYING_CARD_IDS, random = Math.random,
+defaults — `constructor({ cardIds = ALL_PLAYING_CARD_IDS, random,
 variant = DEFAULT_MY_VARIANT }: MyGameOptions = {})`. `cardIds` and `random` are
-there so a test can supply a short deck and a fixed shuffle. A variant is an
+there so a test can supply a short deck and a fixed shuffle; `DealtTableGame`
+builds the deck from them, shuffling with `Math.random` when `random` is left
+out. A variant is an
 option rather than a field set later because the zones are built from it during
 `super`.
 
-The only required override is `dealBoard(deck)`. Optionally:
+The only required override is `dealBoard(deal)`. Optionally:
 
 - `applyMoveEffects(move)` — what a move does beyond relocating cards. Two shapes
   are already written in `src/games/common/move_effects.ts`: `flipOnlyEffects`
@@ -219,7 +227,7 @@ The only required override is `dealBoard(deck)`. Optionally:
   Spiderette, Scorpion). The Klondike family scores its flip, so
   `KlondikeFamilyGame` (`src/games/klondike/klondike_family_game.ts`) calls
   `flipExposedTopOfColumn` directly. A game played with Klondike's stock and
-  scoring extends that class and writes only `dealLayout`, as Double Klondike
+  scoring extends that class and writes only `dealBoard`, as Double Klondike
   does. A pairing game (Nestor, Monte Carlo, Pyramid) takes `pairsWithTop`,
   `sameRank` or `totalsThirteen` and `discardPairEffects` from
   `src/games/common/pair_removal.ts`: the partner's pile takes the card, then

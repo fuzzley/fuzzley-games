@@ -1,10 +1,9 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { ActionKind } from "@/games/common/action_kinds";
 import { DeckOptions } from "@/games/common/deck_options";
 import { recycleMarker } from "@/games/common/zone_presets";
@@ -59,7 +58,7 @@ export class LaBelleLucieGame extends DealtTableGame {
     super({
       zones: laBelleLucieZoneSpecs(variant),
       // Dealt face up: the whole position is visible from the first move.
-      deck: new DeckSource(new CardRegistry(), cardIds, random, true),
+      deck: { cardIds, random, dealsFaceUp: true },
       // Foundations only: which fan a card goes to is the player's decision.
       autoMoveRoles: [LaBelleLucieRole.FOUNDATION],
       winsWhenAllCardsIn: LaBelleLucieRole.FOUNDATION,
@@ -81,9 +80,9 @@ export class LaBelleLucieGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
+  protected override dealBoard(deal: Deal): void {
     dealLaBelleLucieLayout(
-      deck,
+      deal,
       this.foundations,
       this.fans,
       this.rules.acesStartOnFoundations,

@@ -1,6 +1,6 @@
+import { Deal } from "@/engine/tableau/deal";
 import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
-import { pullCards } from "../common/pull_cards";
 import { CanfieldVariantRules } from "./canfield_rules";
 
 /** How many cards the reserve is dealt. */
@@ -22,50 +22,32 @@ export interface CanfieldPiles {
  * all four start on. Then thirteen cards go to the reserve, face down but for
  * the top (or all face up in Superior Canfield), one face up to each column,
  * and the rest face down to the stock.
- *
- * @param deck The cards to deal, which this drains.
  */
 export function dealCanfieldLayout(
   rules: CanfieldVariantRules,
-  deck: PlayingCard[],
+  deal: Deal,
   piles: CanfieldPiles,
 ): void {
   if (rules.twosStartFoundations) {
-    const twos = pullCards(deck, (card) => card.rank === Rank.TWO);
+    const twos = deal.pull((card) => card.rank === Rank.TWO);
     for (const [index, two] of twos.entries()) {
-      two.faceUp = true;
-      piles.foundations[index]?.addCard(two);
+      const foundation = piles.foundations[index];
+      if (foundation) deal.place(two, foundation, true);
     }
   }
 
   for (let dealt = 0; dealt < RESERVE_SIZE; dealt++) {
-    const card = deck.pop();
-    if (!card) break;
-    card.faceUp = rules.reserveFaceUp;
-    piles.reserve.addCard(card);
+    if (!deal.dealTo(piles.reserve, rules.reserveFaceUp)) break;
   }
   const top = piles.reserve.topCard;
   if (top) top.faceUp = true;
 
   if (!rules.twosStartFoundations) {
-    const base = deck.pop();
-    if (base) {
-      base.faceUp = true;
-      piles.foundations[0]?.addCard(base);
-    }
+    const base = deal.draw();
+    const foundation = piles.foundations[0];
+    if (base && foundation) deal.place(base, foundation, true);
   }
 
-  for (const tableau of piles.tableaus) {
-    const card = deck.pop();
-    if (!card) break;
-    card.faceUp = true;
-    tableau.addCard(card);
-  }
-
-  let card = deck.pop();
-  while (card) {
-    card.faceUp = false;
-    piles.stock.addCard(card);
-    card = deck.pop();
-  }
+  deal.dealEach(piles.tableaus, true);
+  deal.dealRest(piles.stock, false);
 }

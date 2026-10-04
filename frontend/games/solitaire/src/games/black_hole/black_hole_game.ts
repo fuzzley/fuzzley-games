@@ -1,9 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { DeckOptions } from "@/games/common/deck_options";
 import { dealBlackHoleLayout } from "./black_hole_deal";
 import {
@@ -35,13 +34,13 @@ export class BlackHoleGame extends DealtTableGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     variant = BlackHoleVariant.BLACK_HOLE,
   }: BlackHoleOptions = {}) {
     super({
       zones: blackHoleZoneSpecs(variant),
       // Dealt face up: the whole position is visible from the first move.
-      deck: new DeckSource(new CardRegistry(), cardIds, random, true),
+      deck: { cardIds, random, dealsFaceUp: true },
       autoMoveRoles: [BlackHoleRole.FOUNDATION],
       winsWhenAllCardsIn: BlackHoleRole.FOUNDATION,
     });
@@ -52,7 +51,7 @@ export class BlackHoleGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealBlackHoleLayout(this.variant, deck, this.foundation, this.tableaus);
+  protected override dealBoard(deal: Deal): void {
+    dealBlackHoleLayout(this.variant, deal, this.foundation, this.tableaus);
   }
 }

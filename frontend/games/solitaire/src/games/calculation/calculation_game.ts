@@ -1,9 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { DeckOptions } from "@/games/common/deck_options";
 import { drawToWaste } from "@/games/common/stock_pile";
 import { dealCalculationLayout } from "./calculation_deal";
@@ -43,12 +42,12 @@ export class CalculationGame extends DealtTableGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     variant = DEFAULT_CALCULATION_VARIANT,
   }: CalculationOptions = {}) {
     super({
       zones: calculationZoneSpecs(variant),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // Foundations only: which waste pile a card is parked on is the game.
       autoMoveRoles: [CalculationRole.FOUNDATION],
       winsWhenAllCardsIn: CalculationRole.FOUNDATION,
@@ -62,8 +61,8 @@ export class CalculationGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealCalculationLayout(this.variant, deck, this.foundations, this.stock);
+  protected override dealBoard(deal: Deal): void {
+    dealCalculationLayout(this.variant, deal, this.foundations, this.stock);
   }
 
   /**

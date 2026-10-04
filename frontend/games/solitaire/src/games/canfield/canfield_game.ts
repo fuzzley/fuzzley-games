@@ -1,9 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { CardTransfer } from "@/engine/tableau/move";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { flipExposedTop } from "@/games/common/completed_runs";
@@ -57,12 +56,12 @@ export class CanfieldGame extends DealtTableGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     variant = DEFAULT_CANFIELD_VARIANT,
   }: CanfieldOptions = {}) {
     super({
       zones: canfieldZoneSpecs(variant),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       autoMoveRoles: [CanfieldRole.FOUNDATION, CanfieldRole.TABLEAU],
       winsWhenAllCardsIn: CanfieldRole.FOUNDATION,
     });
@@ -84,8 +83,8 @@ export class CanfieldGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealCanfieldLayout(this.rules, deck, this);
+  protected override dealBoard(deal: Deal): void {
+    dealCanfieldLayout(this.rules, deal, this);
   }
 
   // --- The stock ---

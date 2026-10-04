@@ -1,9 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { DeckOptions } from "@/games/common/deck_options";
 import { dealFreeCellAlmostWin, dealFreeCellLayout } from "./freecell_deal";
 import { freeCellBuriesAcesAndTwos } from "./freecell_rules";
@@ -42,14 +41,14 @@ export class FreeCellGame extends DealtTableGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     variant = FreeCellVariant.FREECELL,
     almostWin = false,
   }: FreeCellOptions = {}) {
     super({
       zones: freeCellZoneSpecs(variant),
       // Dealt face up: FreeCell hides nothing.
-      deck: new DeckSource(new CardRegistry(), cardIds, random, true),
+      deck: { cardIds, random, dealsFaceUp: true },
       // A foundation is always best; a cell is a last resort, since parking a
       // card there is what a player is trying to avoid.
       autoMoveRoles: [
@@ -68,12 +67,12 @@ export class FreeCellGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
+  protected override dealBoard(deal: Deal): void {
     if (this.almostWin) {
-      dealFreeCellAlmostWin(this.deck, this.foundations, this.tableaus);
+      dealFreeCellAlmostWin(deal, this.foundations, this.tableaus);
     } else {
       dealFreeCellLayout(
-        deck,
+        deal,
         this.tableaus,
         freeCellBuriesAcesAndTwos(this.variant),
       );

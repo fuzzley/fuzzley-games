@@ -1,6 +1,6 @@
+import { Deal } from "@/engine/tableau/deal";
 import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
-import { pullFirstCard } from "../common/pull_cards";
 import { sinkKings } from "../common/sink_kings";
 import { BristolVariant } from "./bristol_rules";
 
@@ -20,46 +20,30 @@ export interface BristolPiles {
  * reaches on a foundation. Then three cards face up to each fan, with its
  * Kings sunk to the bottom, one to each reserve, and the rest face down to the
  * stock.
- *
- * @param deck The cards to deal, which this drains.
  */
 export function dealBristolLayout(
   variant: BristolVariant,
-  deck: PlayingCard[],
+  deal: Deal,
   piles: BristolPiles,
 ): void {
   if (variant === BristolVariant.BELVEDERE) {
-    const ace = pullFirstCard(deck, (card) => card.rank === Rank.ACE);
-    if (ace) {
-      ace.faceUp = true;
-      piles.foundations[0]?.addCard(ace);
-    }
+    const ace = deal.pullFirst((card) => card.rank === Rank.ACE);
+    const foundation = piles.foundations[0];
+    if (ace && foundation) deal.place(ace, foundation, true);
   }
 
   for (const tableau of piles.tableaus) {
     const fan: PlayingCard[] = [];
     for (let dealt = 0; dealt < CARDS_PER_FAN; dealt++) {
-      const card = deck.pop();
+      const card = deal.draw();
       if (!card) break;
-      card.faceUp = true;
       fan.push(card);
     }
     for (const card of sinkKings(fan)) {
-      tableau.addCard(card);
+      deal.place(card, tableau, true);
     }
   }
 
-  for (const reserve of piles.reserves) {
-    const card = deck.pop();
-    if (!card) return;
-    card.faceUp = true;
-    reserve.addCard(card);
-  }
-
-  let card = deck.pop();
-  while (card) {
-    card.faceUp = false;
-    piles.stock.addCard(card);
-    card = deck.pop();
-  }
+  deal.dealEach(piles.reserves, true);
+  deal.dealRest(piles.stock, false);
 }

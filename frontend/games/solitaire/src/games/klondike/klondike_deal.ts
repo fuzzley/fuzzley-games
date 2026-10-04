@@ -1,11 +1,12 @@
+import { Deal } from "@/engine/tableau/deal";
 import { CardPile } from "@/engine/core/card/card_pile";
 import {
   ALL_RANKS,
   ALL_SUITS,
   PlayingCard,
   Rank,
+  Suit,
 } from "@/engine/core/card/playing_card";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { itemAt } from "@/engine/core/common/item_at";
 
 /**
@@ -20,57 +21,38 @@ const BELOW_KING: readonly Rank[] = ALL_RANKS.filter(
  * Deals the Klondike opening: column i receives i + 1 cards with only its top
  * card face up, and the rest go face down onto the stock.
  *
- * @param deck The cards to deal, which this drains from the end.
  * @param allFaceUp Whether every card in the columns is face up, as in
  *   Whitehead; the stock is face down either way.
  */
 export function dealKlondikeLayout(
-  deck: PlayingCard[],
+  deal: Deal,
   tableaus: readonly CardPile<PlayingCard>[],
   stock: CardPile<PlayingCard>,
   allFaceUp = false,
 ): void {
   for (const [tableauIndex, tableau] of tableaus.entries()) {
     for (let cardIndex = 0; cardIndex <= tableauIndex; cardIndex++) {
-      const card = deck.pop();
-      if (card) {
-        card.faceUp = allFaceUp || cardIndex === tableauIndex;
-        tableau.addCard(card);
-      }
+      deal.dealTo(tableau, allFaceUp || cardIndex === tableauIndex);
     }
   }
-  while (deck.length > 0) {
-    const card = deck.pop();
-    if (card) {
-      card.faceUp = false;
-      stock.addCard(card);
-    }
-  }
+  deal.dealRest(stock, false);
 }
 
 /**
  * Deals an almost-won board for verification: Ace to Queen of each suit on the
  * foundations, and each King face up on a column of its own.
- *
- * @param deck The cards to deal from, which this registers rather than drains.
  */
 export function dealKlondikeAlmostWin(
-  deck: DeckSource,
+  deal: Deal,
   foundations: readonly CardPile<PlayingCard>[],
   tableaus: readonly CardPile<PlayingCard>[],
 ): void {
-  deck.register();
-
-  const placeFaceUp = (
-    suit: (typeof ALL_SUITS)[number],
-    rank: Rank,
-    pile: CardPile<PlayingCard>,
-  ) => {
-    const card = deck.find({ suit, rank });
-    if (card) {
-      card.faceUp = true;
-      pile.addCard(card);
-    }
+  const cards = deal.drawAll();
+  const placeFaceUp = (suit: Suit, rank: Rank, pile: CardPile<PlayingCard>) => {
+    const card = cards.find(
+      (candidate) => candidate.suit === suit && candidate.rank === rank,
+    );
+    if (card) deal.place(card, pile, true);
   };
 
   // Foundations and tableaus are both seeded in suit order, so each suit's King

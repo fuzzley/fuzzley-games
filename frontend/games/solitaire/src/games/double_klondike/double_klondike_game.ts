@@ -1,8 +1,7 @@
+import { Deal } from "@/engine/tableau/deal";
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { KlondikeFamilyGame } from "@/games/klondike/klondike_family_game";
 import {
   ScoringPolicy,
@@ -48,12 +47,12 @@ export class DoubleKlondikeGame extends KlondikeFamilyGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = deckCardIds(DOUBLE_KLONDIKE_TWO_DECKS),
-    random = Math.random,
+    random,
     scoring = new StandardScoringPolicy(DOUBLE_KLONDIKE_SCORING_ROLES),
   }: DoubleKlondikeOptions = {}) {
     super({
       zones: doubleKlondikeZoneSpecs(),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // A foundation is always preferred over a column.
       autoMoveRoles: [
         DoubleKlondikeRole.FOUNDATION,
@@ -70,7 +69,7 @@ export class DoubleKlondikeGame extends KlondikeFamilyGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealDoubleKlondikeLayout(deck, this.tableaus, this.stock);
+  protected override dealBoard(deal: Deal): void {
+    dealDoubleKlondikeLayout(deal, this.tableaus, this.stock);
   }
 }

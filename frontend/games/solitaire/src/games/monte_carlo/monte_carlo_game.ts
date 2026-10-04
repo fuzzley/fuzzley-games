@@ -1,9 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { DeckOptions } from "@/games/common/deck_options";
 import { discardPairEffects } from "@/games/common/pair_removal";
@@ -40,12 +39,12 @@ export class MonteCarloGame extends DealtTableGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     variant = DEFAULT_MONTE_CARLO_VARIANT,
   }: MonteCarloOptions = {}) {
     super({
       zones: monteCarloZoneSpecs(variant),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // A double press pairs a card with the first touching partner, or in
       // Thirteens sends a King away on its own.
       autoMoveRoles: [MonteCarloRole.CELL, MonteCarloRole.DISCARD],
@@ -66,20 +65,9 @@ export class MonteCarloGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    for (const cell of this.cells) {
-      const card = deck.pop();
-      if (!card) return;
-      card.faceUp = true;
-      cell.addCard(card);
-    }
-
-    let card = deck.pop();
-    while (card) {
-      card.faceUp = false;
-      this.stock.addCard(card);
-      card = deck.pop();
-    }
+  protected override dealBoard(deal: Deal): void {
+    if (!deal.dealEach(this.cells, true)) return;
+    deal.dealRest(this.stock, false);
   }
 
   /**

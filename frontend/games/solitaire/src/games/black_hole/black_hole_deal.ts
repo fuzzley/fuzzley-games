@@ -1,6 +1,6 @@
+import { Deal } from "@/engine/tableau/deal";
 import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
-import { pullFirstCard } from "../common/pull_cards";
 import { BlackHoleVariant } from "./black_hole_rules";
 
 /** How many cards each fan or column is dealt, per variant. */
@@ -12,32 +12,23 @@ export const CARDS_PER_PILE: Readonly<Record<BlackHoleVariant, number>> = {
 /**
  * Deals a board for a variant: Black Hole first drops the Ace of Spades into
  * the hole. Then the cards go face up, fan by fan.
- *
- * @param deck The cards to deal, which this drains.
  */
 export function dealBlackHoleLayout(
   variant: BlackHoleVariant,
-  deck: PlayingCard[],
+  deal: Deal,
   foundation: CardPile<PlayingCard>,
   tableaus: readonly CardPile<PlayingCard>[],
 ): void {
   if (variant === BlackHoleVariant.BLACK_HOLE) {
-    const ace = pullFirstCard(
-      deck,
+    const ace = deal.pullFirst(
       (card) => card.suit === Suit.SPADE && card.rank === Rank.ACE,
     );
-    if (ace) {
-      ace.faceUp = true;
-      foundation.addCard(ace);
-    }
+    if (ace) deal.place(ace, foundation, true);
   }
 
   for (const tableau of tableaus) {
     for (let dealt = 0; dealt < CARDS_PER_PILE[variant]; dealt++) {
-      const card = deck.pop();
-      if (!card) return;
-      card.faceUp = true;
-      tableau.addCard(card);
+      if (!deal.dealTo(tableau, true)) return;
     }
   }
 }

@@ -1,3 +1,4 @@
+import { Deal } from "@/engine/tableau/deal";
 import { CardPile } from "@/engine/core/card/card_pile";
 import { DeckSpec } from "@/engine/core/card/deck";
 import {
@@ -47,33 +48,21 @@ export const OPENING_CARD_COUNT = 54;
 /**
  * Deals the Spider opening layout: 54 cards across the columns, only the top of
  * each face up, and everything left over face-down onto the stock.
- *
- * @param deck The cards to deal, which this drains.
  */
 export function dealSpiderLayout(
-  deck: PlayingCard[],
+  deal: Deal,
   tableaus: readonly CardPile<PlayingCard>[],
   stock: CardPile<PlayingCard>,
 ): void {
   if (tableaus.length === 0) return;
 
-  const toDeal = Math.min(OPENING_CARD_COUNT, deck.length);
+  const toDeal = Math.min(OPENING_CARD_COUNT, deal.remaining);
   for (let dealt = 0; dealt < toDeal; dealt++) {
-    const card = deck.pop();
-    if (!card) break;
-    card.faceUp = false;
-    itemAt(tableaus, dealt % tableaus.length).addCard(card);
+    deal.dealTo(itemAt(tableaus, dealt % tableaus.length), false);
   }
-
   for (const tableau of tableaus) {
     const top = tableau.topCard;
     if (top) top.faceUp = true;
   }
-
-  while (deck.length > 0) {
-    const card = deck.pop();
-    if (!card) break;
-    card.faceUp = false;
-    stock.addCard(card);
-  }
+  deal.dealRest(stock, false);
 }

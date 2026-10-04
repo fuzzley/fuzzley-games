@@ -1,6 +1,7 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { anyCard } from "@/engine/tableau/rules";
 import { Tabletop } from "@/engine/tableau/tabletop";
 import { ZoneSpec } from "@/engine/tableau/zone";
@@ -37,6 +38,11 @@ export class TestTabletop {
   /** Returns the pile with the given id. */
   pile(pileId: string): CardPile<PlayingCard> {
     return this.tabletop.requirePile(pileId);
+  }
+
+  /** Returns a deal of the given cards onto this table, the last dealt first. */
+  deal(cards: readonly PlayingCard[]): Deal {
+    return new Deal([...cards], this.tabletop);
   }
 
   /**
