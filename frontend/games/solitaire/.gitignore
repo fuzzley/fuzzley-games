@@ -76,3 +76,5 @@ dist
 # VSCode
 
 .vscode
+# Contact sheet `yarn build:atlas --preview` draws for review
+tools/card-atlas/.preview

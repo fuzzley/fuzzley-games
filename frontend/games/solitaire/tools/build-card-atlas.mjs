@@ -3,6 +3,7 @@
  *
  *   yarn build:atlas                 every deck
  *   yarn build:atlas --deck <id>     one deck
+ *   yarn build:atlas --preview       and a contact sheet of every deck
  *
  * Draws each deck's cards at the raster density in `card-atlas/raster.mjs`,
  * cutting them from a card sheet or generating them, adds the shared pile
@@ -15,6 +16,8 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
 import { writeDeckAtlases } from "./card-atlas/atlas-writer.mjs";
+import { drawMobileDeck } from "./card-atlas/mobile-deck.mjs";
+import { writePreview } from "./card-atlas/preview.mjs";
 import {
   DESIGN_FRAME_H,
   DESIGN_FRAME_W,
@@ -28,6 +31,7 @@ import { cutSheetDeck } from "./card-atlas/sheet-deck.mjs";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const CARD_DIR = join(ROOT, "src/engine/render/assets/sprites/card");
 const OUT_DIR = join(ROOT, "src/engine/render/assets/sprites/atlas");
+const PREVIEW_FILE = join(ROOT, "tools/card-atlas/.preview/decks.png");
 
 /** Returns a deck's cards cut from the named sheet in CARD_DIR. */
 function fromSheet(file) {
@@ -51,6 +55,7 @@ const DECKS = [
     id: "all-corner-pips",
     ...fromSheet("playing_card_assets_all_corner_pips.svg"),
   },
+  { id: "mobile", source: "card-atlas/mobile-deck.mjs", cards: drawMobileDeck },
 ];
 
 /** The placeholder sheet: one cell of the design frame size per name, in a row. */
@@ -97,12 +102,13 @@ async function cutPlaceholders() {
   );
 }
 
-/** Returns the decks the command line asks for, or every deck. */
-function chosenDecks() {
+/** Returns the decks the command line asks for, and whether to preview them. */
+function parseCommandLine() {
   const { values } = parseArgs({
-    options: { deck: { type: "string" } },
+    options: { deck: { type: "string" }, preview: { type: "boolean" } },
   });
-  if (values.deck === undefined) return DECKS;
+  const preview = values.preview ?? false;
+  if (values.deck === undefined) return { decks: DECKS, preview };
 
   const deck = DECKS.find((candidate) => candidate.id === values.deck);
   if (!deck) {
@@ -111,11 +117,11 @@ function chosenDecks() {
         DECKS.map((candidate) => candidate.id).join(", "),
     );
   }
-  return [deck];
+  return { decks: [deck], preview };
 }
 
 async function main() {
-  const decks = chosenDecks();
+  const { decks, preview } = parseCommandLine();
   const placeholderFrames = await cutPlaceholders();
 
   for (const deck of decks) {
@@ -126,8 +132,15 @@ async function main() {
       join(OUT_DIR, deck.id),
     );
   }
-
   console.log(`Built ${decks.length} deck(s).`);
+
+  if (preview) {
+    await writePreview(
+      OUT_DIR,
+      DECKS.map((deck) => deck.id),
+      PREVIEW_FILE,
+    );
+  }
 }
 
 await main();

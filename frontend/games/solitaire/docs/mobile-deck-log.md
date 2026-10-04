@@ -82,10 +82,10 @@ Settled with the project owner before any code changed.
 ## Progress
 
 - [x] 1.1 Shared atlas writer, `--deck`
-- [ ] 2.1 Bundled font
-- [ ] 2.2 Mobile deck generator
-- [ ] 2.3 Build checks
-- [ ] 2.4 Preview contact sheet
+- [x] 2.1 Bundled font
+- [x] 2.2 Mobile deck generator
+- [x] 2.3 Build checks
+- [x] 2.4 Preview contact sheet
 - [ ] 3.1 Register the deck
 - [ ] 3.2 Compact default
 - [ ] 3.3 Docs
@@ -113,3 +113,46 @@ the raster density. The code moved verbatim; a full rebuild leaves every page
 and manifest byte for byte as it was. `--deck <id>` builds one deck, and an
 unknown id fails with the list of ids. Files in `tools/card-atlas/` are
 kebab-case like the rest of `tools/`.
+
+### 2.1 Bundled font
+
+Barlow Condensed Bold, from the Google Fonts repository, with its OFL licence
+beside it in `tools/card-atlas/fonts/` and an entry in `NOTICE`. Compared with
+Barlow Condensed ExtraBold, Fira Sans Condensed Bold and Roboto Condensed at
+phone size: Barlow Bold kept its counters open and drew the narrowest 10. Its
+cap height is 70% of the em, and the Q's tail drops a further 10%, which is
+what limits the index (below). Roboto Condensed is a variable font, which
+resvg drew at its default weight only; a static file is needed.
+
+### 2.2 to 2.4 The generator, its checks and the preview
+
+The deck's id is `mobile`. `tools/card-atlas/mobile-deck.mjs` draws one SVG
+per frame and renders it with the bundled font only:
+
+- **Index.** The rank at the top left, a pip under it and a pip at the top
+  right. The rank's cap height is 36 units; the Q comes out at about 34,
+  because its tail has to stay inside the 45 unit strip. Every rank and pip is
+  rendered alone first and its ink measured, so the fitting and the checks
+  work from what is actually drawn rather than from the boxes.
+- **Body.** Everything else sits right of the waste's strip and below the
+  column's, so the strips show nothing but the index: one large pip on a
+  number card (a larger one on an ace), and on a court card the letter over a
+  pip on a panel tinted by suit colour.
+- **Backs.** A flat field, a white inset border and a quiet lattice; the 18
+  units a face-down card shows are the border.
+- **Checks.** The index stays inside both strips, nothing else enters them,
+  no ink touches the frame's edge, and each suit colour has 4.5:1 contrast on
+  the paper and on its court panel. Both checks were made to fail on purpose
+  before being trusted. A check shared with the sheet decks fails any deck
+  whose frames are not exactly the 52 faces and two backs.
+- **Preview.** `yarn build:atlas --preview` writes
+  `tools/card-atlas/.preview/decks.png` (gitignored): every deck's fanned
+  column and draw-three waste at the size a seven-column and a ten-column board
+  draw them on a 390 CSS px phone at 3x.
+
+The 1x page is 334 KB against about 1.6 MB for the artwork decks, because flat
+art compresses so well; GPU memory per page is unchanged.
+
+Left as is: the diamond still reads a little lighter than the other suits at
+index size, because a rhombus fills half its box. Growing it would cost the
+clearance around the strip pip.
