@@ -60,12 +60,19 @@ Break either one and the app 404s on the host while working perfectly on
 
 ## Texture Atlas Generation (`tools/build-card-atlas.mjs`)
 
-**Sources:** A deck is either cut from a card sheet SVG in
+**Sources:** A deck's faces are either cut from a card sheet SVG in
 `src/engine/render/assets/sprites/card/` (`playing_card_assets_large.svg` and
-its two pip cuts, 52 faces plus two backs each) or generated: the `mobile` deck
-is drawn by `tools/card-atlas/mobile-deck.mjs`, its ranks set in the bundled
-`tools/card-atlas/fonts/BarlowCondensed-Bold.ttf` rather than any system font.
-Every deck shares the placeholders in `card_placeholders.svg`, one 220 × 307
+its two pip cuts, 52 faces plus two backs each) or generated: the `mobile`
+deck's are drawn by `tools/card-atlas/mobile-deck.mjs`, its ranks set in the
+bundled `tools/card-atlas/fonts/BarlowCondensed-Bold.ttf` rather than any system
+font. Every deck is given the same four backs, so a player chooses the back
+apart from the deck: the two plain ones `mobile-deck.mjs` draws, and the card
+artwork's two, cut from `playing_card_assets_large.svg` (every sheet draws the
+same pair). Their names, `BACK_FRAME_NAMES` in `tools/card-atlas/raster.mjs`,
+must match `CardBackStyle` in `src/engine/render/card_back.ts`; a new back goes
+in both, and in `CARD_BACK_PATTERNS` in
+`src/ui/app/component/settings_drawer/settings_drawer.component.ts` for its
+preview. Every deck shares the placeholders in `card_placeholders.svg`, one 220 × 307
 cell each in a row; a new one is a cell appended there and its name appended to
 `PLACEHOLDERS.names` in `tools/build-card-atlas.mjs`, in the same order.
 
@@ -74,7 +81,7 @@ cell each in a row; a new one is a cell appended there and its name appended to
 contact sheet, `.preview/decks.png` under `tools/card-atlas/` and gitignored:
 every built deck as a fanned column and a fanned waste at phone scale, for
 reviewing a change to a deck's look. The shared parts live in `tools/card-atlas/`: `raster.mjs` holds
-the frame size, the densities and the frame names every deck must supply,
+the frame size, the densities and the frame names every atlas must hold,
 `sheet-deck.mjs` cuts a deck out of a card sheet, and `atlas-writer.mjs` stamps
 the card edge and writes every density.
 
@@ -117,7 +124,7 @@ downloaded.
   `card_deck_atlas.ts` imports its manifests. `cardArtScaleFor`, next to it,
   decides which boards it is used for.
 - The tool fails the build if any frame comes out without a stamped edge, or
-  if a deck's frames are not exactly the 52 faces and two backs. Those checks
+  if a deck's frames are not exactly the 52 faces and every back. Those checks
   are deliberate; do not weaken them to get a build through.
 - The `mobile` deck draws its index to fit the strip a fan leaves showing:
   `COLUMN_STRIP_H` and `WASTE_STRIP_W` in `mobile-deck.mjs` mirror

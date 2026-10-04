@@ -1,10 +1,10 @@
 import { vi } from "vitest";
 import { computed, signal } from "@angular/core";
 import type {
-  CardBackStyle,
   CardStyle,
   PresentationSettingsService,
 } from "@/ui/app/service/presentation_settings.service";
+import { CardBackStyle, DEFAULT_CARD_BACK } from "@/engine/render/card_back";
 import {
   CardDeckId,
   DEFAULT_DESKTOP_CARD_DECK,
@@ -38,7 +38,7 @@ export function createMockPresentation(
   } = {},
 ) {
   const cardBackStyle = signal<CardBackStyle>(
-    overrides.cardBackStyle ?? "card-back-blue",
+    overrides.cardBackStyle ?? DEFAULT_CARD_BACK,
   );
   const theme = signal<ThemeKey>(overrides.theme ?? DEFAULT_THEME);
   const cardStyle = signal<CardStyle>(overrides.cardStyle ?? "auto");

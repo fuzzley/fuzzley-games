@@ -42,6 +42,13 @@ $amber-600: #d97706;
 $felt: #0f4d0e;
 $felt-shade: #0c2d19;
 
+// The plain card backs' field and lattice, which mirror `BACKS` in
+// `tools/card-atlas/mobile-deck.mjs`.
+$card-back-blue: #1d4f9f;
+$card-back-blue-lattice: #2a62b8;
+$card-back-red: #a3172b;
+$card-back-red-lattice: #b92a3f;
+
 /// Returns a source colour at a given opacity.
 ///
 /// Not named `alpha`, which would shadow Sass's own `alpha()`.

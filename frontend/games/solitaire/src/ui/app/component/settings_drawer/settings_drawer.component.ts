@@ -13,7 +13,6 @@ import { TABLE_THEMES, THEME_KEYS, ThemeKey } from "../../model/table_theme";
 import { GameDocumentationService } from "../../service/game_documentation.service";
 import { BugReportService } from "../../service/bug_report.service";
 import {
-  CardBackStyle,
   CardStyle,
   PresentationSettingsService,
 } from "../../service/presentation_settings.service";
@@ -24,17 +23,30 @@ import {
   DESKTOP_CARD_DECKS,
   DesktopCardDeckSpec,
 } from "@/engine/render/card_deck";
+import {
+  CARD_BACKS,
+  CardBackSpec,
+  CardBackStyle,
+} from "@/engine/render/card_back";
 import { DebugPanelComponent } from "../debug_panel/debug_panel.component";
 import { OptionGroupComponent } from "../option_group/option_group.component";
 import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
 import { RadioGroupDirective } from "../../directive/radio_group.directive";
 
-/** Describes one card back a player can choose, and how to preview it. */
-interface CardBackDesign {
-  readonly style: CardBackStyle;
-  readonly label: string;
+/** Describes one card back a player can choose, resolved for rendering. */
+interface CardBackChoice extends CardBackSpec {
+  readonly selected: boolean;
+  /** The class that draws its preview. */
   readonly patternClass: string;
 }
+
+/** The class that draws each card back's preview. */
+const CARD_BACK_PATTERNS: Record<CardBackStyle, string> = {
+  "card-back-blue": "lattice-blue",
+  "card-back-red": "lattice-red",
+  "card-back-classic-blue": "weave-blue",
+  "card-back-classic-red": "weave-red",
+};
 
 /** Describes one card in a deck's preview, as a fan would leave it showing. */
 interface CardDeckPreviewCard {
@@ -173,19 +185,17 @@ export class SettingsDrawerComponent {
     () => this.docService.activeGameDoc()?.title ?? "Solitaire",
   );
 
-  /** The card backs on offer. */
-  protected readonly cardBackDesigns: readonly CardBackDesign[] = [
-    {
-      style: "card-back-blue",
-      label: "Classic Blue",
-      patternClass: "blue-pattern",
+  /** The card backs on offer, with the chosen one marked. */
+  protected readonly cardBackChoices = computed<readonly CardBackChoice[]>(
+    () => {
+      const selected = this.presentation.cardBackStyle();
+      return CARD_BACKS.map((back) => ({
+        ...back,
+        selected: back.style === selected,
+        patternClass: CARD_BACK_PATTERNS[back.style],
+      }));
     },
-    {
-      style: "card-back-red",
-      label: "Royal Red",
-      patternClass: "red-pattern",
-    },
-  ];
+  );
 
   /** Whether the game on the table has grids of its own for a phone. */
   protected readonly hasPhoneGrids = computed(

@@ -17,6 +17,7 @@ import {
 import { flushMicrotasks } from "@test/support/async";
 import { clickBackdrop, isDialogOpen, pressEscape } from "@test/support/dialog";
 import { DESKTOP_CARD_DECKS } from "@/engine/render/card_deck";
+import { CARD_BACKS } from "@/engine/render/card_back";
 import {
   installFakeViewport,
   type FakeViewport,
@@ -135,6 +136,27 @@ describe("SettingsDrawerComponent", () => {
           "aria-checked",
         ),
       ).toBe("true");
+    });
+
+    it("offers every back, by name, whatever cards are drawn", () => {
+      harness.presentation.cardStyle.set("mobile");
+      openDrawer();
+
+      const names = queryAll(fixture, ".card-back-selector button").map(
+        (button) => button.textContent?.trim(),
+      );
+
+      expect(names).toEqual(CARD_BACKS.map((back) => back.name));
+    });
+
+    it("lets the card artwork's back be picked on its own", () => {
+      openDrawer();
+
+      clickElement(fixture, ".card-back-selector button:nth-child(3)");
+
+      expect(harness.presentation.cardBackStyle()).toBe(
+        "card-back-classic-blue",
+      );
     });
   });
 
