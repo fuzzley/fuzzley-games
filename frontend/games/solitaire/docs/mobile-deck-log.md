@@ -7,9 +7,9 @@ and restart at any commit.
 
 **Branch:** `feature/mobile-card-deck`, cut from `main` at `3edd791`.
 
-**Status:** done. Every planned step is committed. Open: whether the compact
-layout should open the fans wider (decision 3), now that the deck can be
-judged on a phone.
+**Status:** done, with revisions to the art as the owner reviews it (see
+[Revisions](#revisions)). Open: whether the compact layout should open the
+fans wider (decision 3), now that the deck can be judged on a phone.
 
 ## How to pick this up
 
@@ -215,6 +215,20 @@ and a later visit in a wider window.
   stays above its floor (98.3% statements). The build emits nine atlas pages:
   two per deck, plus the placeholders page that every deck's 2x set shares,
   which Vite emits once because its content is identical.
+
+## Revisions
+
+Changes the owner asked for after reviewing the finished deck.
+
+### R1 Margin above the index
+
+The rank and the top right pip started 3 and 4 units below the frame's top,
+about one unit inside the stamped edge, which looked cramped. Both now start
+at `INDEX_TOP` (6 units). The column strip is still 45 units with 3 kept clear
+at the bottom, so the rank's box is 3 units shorter: the flat-topped ranks (A,
+K) keep their 36 unit cap height, the round ones (8, 10) lose about 4%, and the
+Q, whose tail sets its size, about 8%. Every rank's ink is now 36 units tall,
+from 6 to 42. The pip is still 35 units, at 6 to 41.
 
 ## Follow-ups
 
