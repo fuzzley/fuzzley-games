@@ -76,6 +76,17 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
 };
 
 /**
+ * Returns what a press or a drop means in a dealt game.
+ *
+ * @param game The dealt game, which must be the one `gameId` deals; the cast
+ *   below trusts that, because the catalog holds sessions under an erased type.
+ */
+export function gesturesFor(gameId: GameId, game: PlayableGame): IntentHandler {
+  const gestures = GESTURES[gameId] as GestureMap<GameId>;
+  return gestures(game as GameOf<GameId>);
+}
+
+/**
  * Builds the board that draws a dealt game, on the grid its catalog entry
  * declares.
  *
@@ -89,12 +100,10 @@ export function makeBoardScene(
   presentation: TablePresentation,
   onReady?: () => void,
 ): BoardScene {
-  const tableGame = game as GameOf<GameId>;
-  const gestures = GESTURES[gameId] as GestureMap<GameId>;
   return makeTableBoardScene({
-    game: tableGame,
+    game: game as GameOf<GameId>,
     layout: catalogEntry(gameId).layout,
-    handleIntent: gestures(tableGame),
+    handleIntent: gesturesFor(gameId, game),
     presentation,
     onReady,
   });
