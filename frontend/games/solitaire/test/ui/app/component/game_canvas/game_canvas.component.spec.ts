@@ -135,7 +135,7 @@ describe("GameCanvasComponent", () => {
     });
 
     it("keeps the board when the player chooses another deck", () => {
-      TestBed.inject(PresentationSettingsService).setCardDeck("classic");
+      TestBed.inject(PresentationSettingsService).setDesktopCardDeck("classic");
 
       fixture.detectChanges();
 

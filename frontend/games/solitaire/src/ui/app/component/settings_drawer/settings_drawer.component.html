@@ -60,9 +60,17 @@
         </div>
       </div>
 
-      <!-- Card Deck -->
+      <!-- Card Style: mobile or desktop cards, or whichever suits the screen -->
+      <app-option-group
+        class="card-style"
+        [option]="cardStyleOption()"
+        [value]="cardStyleChoice().value"
+        (choose)="chooseCardStyle($event)"
+      />
+
+      <!-- The desktop decks, which differ in their corner pips -->
       <div class="setting-group">
-        <span class="setting-label" id="card-deck-label">Card Deck</span>
+        <span class="setting-label" id="card-deck-label">Desktop Cards</span>
         <div
           class="card-deck-selector"
           appRadioGroup
@@ -75,7 +83,7 @@
               role="radio"
               [attr.aria-checked]="deck.selected"
               [attr.aria-busy]="deck.pending"
-              (click)="presentation.setCardDeck(deck.id)"
+              (click)="presentation.setDesktopCardDeck(deck.id)"
             >
               <!--
                 The tops of a King and a seven, as a fanned column shows them:
@@ -96,19 +104,14 @@
                       rx="3"
                       class="card-deck-preview-card"
                     />
-                    <text
-                      x="5"
-                      [attr.y]="card.rankY"
-                      class="card-deck-preview-rank"
-                      [class.card-deck-preview-rank-large]="card.largeIndex"
-                    >
+                    <text x="5" y="21" class="card-deck-preview-rank">
                       {{ card.rank }}
                     </text>
                     @if (card.hasPip) {
                       <path
                         d="M6 20 a2.6 2.6 0 0 1 4.4 0 a2.6 2.6 0 0 1 4.4 0 c0 3-4.4 6.2-4.4 6.2 S6 23 6 20 z"
                         class="card-deck-preview-pip"
-                        [attr.transform]="card.pipTransform"
+                        transform="translate(44 -11)"
                       />
                     }
                   </g>

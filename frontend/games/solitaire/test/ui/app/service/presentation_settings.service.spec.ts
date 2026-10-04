@@ -4,14 +4,21 @@ import { TestBed } from "@angular/core/testing";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/presentation";
 import {
-  DEFAULT_CARD_DECK,
-  DEFAULT_COMPACT_CARD_DECK,
+  CardDeckId,
+  DEFAULT_DESKTOP_CARD_DECK,
+  MOBILE_CARD_DECK,
 } from "@/engine/render/card_deck";
 import { COMPACT_MAX_WIDTH_PX } from "@/ui/app/service/viewport.service";
 import {
   installFakeViewport,
   type FakeViewport,
 } from "@test/support/ui/viewport";
+
+/** A window narrow enough that the board compacts, as on a phone. */
+const PHONE_WIDTH = COMPACT_MAX_WIDTH_PX - 200;
+
+/** A window wide enough that it does not. */
+const WIDE_WIDTH = COMPACT_MAX_WIDTH_PX + 200;
 
 /**
  * Returns a service built through the injector, which its field initializer
@@ -28,6 +35,11 @@ function stored(): Record<string, unknown> | null {
   return raw ? (JSON.parse(raw) as Record<string, unknown>) : null;
 }
 
+/** Stores settings as a build would have saved them. */
+function store(settings: Record<string, unknown>): void {
+  localStorage.setItem("fsolitaire-presentation", JSON.stringify(settings));
+}
+
 describe("PresentationSettingsService", () => {
   let viewport: FakeViewport | null = null;
 
@@ -40,9 +52,10 @@ describe("PresentationSettingsService", () => {
     viewport = null;
   });
 
-  /** Makes the window narrow enough that the board compacts. */
-  function onAPhone(): void {
-    viewport = installFakeViewport(COMPACT_MAX_WIDTH_PX - 200);
+  /** Sets the window to a width, which the service follows as it changes. */
+  function windowAt(width: number): FakeViewport {
+    viewport = installFakeViewport(width);
+    return viewport;
   }
 
   describe("loading", () => {
@@ -54,10 +67,7 @@ describe("PresentationSettingsService", () => {
     });
 
     it("loads what it stored", () => {
-      localStorage.setItem(
-        "fsolitaire-presentation",
-        JSON.stringify({ cardBackStyle: "card-back-red", theme: "blue" }),
-      );
+      store({ cardBackStyle: "card-back-red", theme: "blue" });
 
       const settings = buildSettings();
 
@@ -66,37 +76,25 @@ describe("PresentationSettingsService", () => {
     });
 
     it("paints the table in the chosen felt's colour", () => {
-      localStorage.setItem(
-        "fsolitaire-presentation",
-        JSON.stringify({ theme: "purple" }),
-      );
+      store({ theme: "purple" });
 
       expect(buildSettings().backgroundColor()).toBe("#3c096c");
     });
 
     it("keeps a felt an earlier build stored only as its colour", () => {
-      localStorage.setItem(
-        "fsolitaire-presentation",
-        JSON.stringify({ backgroundColor: "#3c096c" }),
-      );
+      store({ backgroundColor: "#3c096c" });
 
       expect(buildSettings().theme()).toBe("purple");
     });
 
     it("falls back to the default felt for a colour no felt has", () => {
-      localStorage.setItem(
-        "fsolitaire-presentation",
-        JSON.stringify({ backgroundColor: "#123456" }),
-      );
+      store({ backgroundColor: "#123456" });
 
       expect(buildSettings().theme()).toBe("green");
     });
 
     it("falls back to the default felt for one this build does not have", () => {
-      localStorage.setItem(
-        "fsolitaire-presentation",
-        JSON.stringify({ theme: "tartan" }),
-      );
+      store({ theme: "tartan" });
 
       expect(buildSettings().theme()).toBe("green");
     });
@@ -108,84 +106,140 @@ describe("PresentationSettingsService", () => {
     });
 
     it("falls back to defaults for an unknown card back", () => {
-      localStorage.setItem(
-        "fsolitaire-presentation",
-        JSON.stringify({ cardBackStyle: "card-back-yellow" }),
-      );
+      store({ cardBackStyle: "card-back-yellow" });
 
       expect(buildSettings().cardBackStyle()).toBe("card-back-blue");
     });
 
-    it("starts on the default deck when nothing is stored", () => {
-      expect(buildSettings().cardDeck()).toBe(DEFAULT_CARD_DECK);
+    it("starts on auto and the default desktop deck when nothing is stored", () => {
+      const settings = buildSettings();
+
+      expect([settings.cardStyle(), settings.desktopCardDeck()]).toEqual([
+        "auto",
+        DEFAULT_DESKTOP_CARD_DECK,
+      ]);
     });
 
-    it("loads the deck it stored", () => {
-      localStorage.setItem(
-        "fsolitaire-presentation",
-        JSON.stringify({ cardDeck: "classic" }),
-      );
+    it("loads the card style and desktop deck it stored", () => {
+      store({ cardStyle: "mobile", desktopCardDeck: "classic" });
 
-      expect(buildSettings().cardDeck()).toBe("classic");
+      const settings = buildSettings();
+
+      expect([settings.cardStyle(), settings.desktopCardDeck()]).toEqual([
+        "mobile",
+        "classic",
+      ]);
     });
 
-    it("falls back to the default deck for settings written before it existed", () => {
-      // A player who chose a felt colour before decks were offered has no deck
-      // recorded, and should get the one everyone else starts on.
-      localStorage.setItem(
-        "fsolitaire-presentation",
-        JSON.stringify({ backgroundColor: "#1b4353" }),
-      );
+    it("keeps the deck an earlier build stored as the desktop deck", () => {
+      // Before the card style, the one deck setting held a desktop deck.
+      store({ cardDeck: "classic" });
 
-      expect(buildSettings().cardDeck()).toBe(DEFAULT_CARD_DECK);
+      const settings = buildSettings();
+
+      expect([settings.cardStyle(), settings.desktopCardDeck()]).toEqual([
+        "auto",
+        "classic",
+      ]);
     });
 
-    it("falls back to the default deck for one this build does not have", () => {
-      localStorage.setItem(
-        "fsolitaire-presentation",
-        JSON.stringify({ cardDeck: "art-deco" }),
-      );
+    it("falls back to the default desktop deck for settings written before decks existed", () => {
+      store({ backgroundColor: "#1b4353" });
 
-      expect(buildSettings().cardDeck()).toBe(DEFAULT_CARD_DECK);
+      expect(buildSettings().desktopCardDeck()).toBe(DEFAULT_DESKTOP_CARD_DECK);
     });
 
-    it("starts a phone on the phone's deck when nothing is stored", () => {
-      onAPhone();
+    it("falls back to the defaults for a style or deck this build does not have", () => {
+      store({ cardStyle: "sideways", desktopCardDeck: "art-deco" });
 
-      expect(buildSettings().cardDeck()).toBe(DEFAULT_COMPACT_CARD_DECK);
+      const settings = buildSettings();
+
+      expect([settings.cardStyle(), settings.desktopCardDeck()]).toEqual([
+        "auto",
+        DEFAULT_DESKTOP_CARD_DECK,
+      ]);
     });
 
-    it("starts a phone on the phone's deck when no deck was ever chosen", () => {
-      onAPhone();
-      localStorage.setItem(
-        "fsolitaire-presentation",
-        JSON.stringify({ theme: "blue" }),
-      );
+    it("does not take the mobile deck for a desktop deck", () => {
+      store({ cardDeck: MOBILE_CARD_DECK.id });
 
-      expect(buildSettings().cardDeck()).toBe(DEFAULT_COMPACT_CARD_DECK);
+      expect(buildSettings().desktopCardDeck()).toBe(DEFAULT_DESKTOP_CARD_DECK);
+    });
+  });
+
+  describe("the deck the cards are drawn from", () => {
+    it("is the desktop deck on a wide screen, in auto", () => {
+      windowAt(WIDE_WIDTH);
+
+      expect(buildSettings().cardDeck()).toBe(DEFAULT_DESKTOP_CARD_DECK);
     });
 
-    it("keeps the deck a player chose, even on a phone", () => {
-      onAPhone();
-      localStorage.setItem(
-        "fsolitaire-presentation",
-        JSON.stringify({ cardDeck: "classic" }),
-      );
+    it("is the mobile deck on a phone, in auto", () => {
+      windowAt(PHONE_WIDTH);
 
-      expect(buildSettings().cardDeck()).toBe("classic");
+      expect(buildSettings().cardDeck()).toBe(MOBILE_CARD_DECK.id);
     });
 
-    it("keeps the phone's deck on a later visit in a wider window", () => {
-      onAPhone();
-      buildSettings();
+    it("follows the window across the breakpoint, in auto", () => {
+      const view = windowAt(PHONE_WIDTH);
+      const settings = buildSettings();
+
+      view.setWidth(WIDE_WIDTH);
+
+      expect(settings.cardDeck()).toBe(DEFAULT_DESKTOP_CARD_DECK);
+    });
+
+    it("tells the board each time the window crosses the breakpoint", () => {
+      const view = windowAt(WIDE_WIDTH);
+      const settings = buildSettings();
+      const seen: CardDeckId[] = [];
+      settings.onCardDeck((deckId) => seen.push(deckId));
       TestBed.flushEffects();
 
-      viewport?.setWidth(COMPACT_MAX_WIDTH_PX + 200);
-      TestBed.resetTestingModule();
-      const later = buildSettings();
+      view.setWidth(PHONE_WIDTH);
+      TestBed.flushEffects();
+      view.setWidth(WIDE_WIDTH);
+      TestBed.flushEffects();
 
-      // The first visit stored the default like a choice.
-      expect(later.cardDeck()).toBe(DEFAULT_COMPACT_CARD_DECK);
+      expect(seen).toEqual([
+        DEFAULT_DESKTOP_CARD_DECK,
+        MOBILE_CARD_DECK.id,
+        DEFAULT_DESKTOP_CARD_DECK,
+      ]);
+    });
+
+    it("is the mobile deck on a wide screen once mobile cards are chosen", () => {
+      windowAt(WIDE_WIDTH);
+      const settings = buildSettings();
+
+      settings.setCardStyle("mobile");
+
+      expect(settings.cardDeck()).toBe(MOBILE_CARD_DECK.id);
+    });
+
+    it("is the desktop deck on a phone once desktop cards are chosen", () => {
+      windowAt(PHONE_WIDTH);
+      const settings = buildSettings();
+
+      settings.setCardStyle("desktop");
+
+      expect(settings.cardDeck()).toBe(DEFAULT_DESKTOP_CARD_DECK);
+    });
+
+    it("is the desktop deck chosen, whenever desktop cards are drawn", () => {
+      const settings = buildSettings();
+
+      settings.setDesktopCardDeck("classic");
+
+      expect(settings.cardDeck()).toBe("classic");
+    });
+
+    it("is what the board is asked to draw", () => {
+      const settings = buildSettings();
+
+      settings.setCardStyle("mobile");
+
+      expect(settings.cardDeckId()).toBe(MOBILE_CARD_DECK.id);
     });
   });
 
@@ -195,13 +249,28 @@ describe("PresentationSettingsService", () => {
 
       settings.setCardBackStyle("card-back-red");
       settings.setTheme("purple");
-      settings.setCardDeck("classic");
+      settings.setCardStyle("mobile");
+      settings.setDesktopCardDeck("classic");
       TestBed.flushEffects();
 
       expect(stored()).toEqual({
         cardBackStyle: "card-back-red",
         theme: "purple",
-        cardDeck: "classic",
+        cardStyle: "mobile",
+        desktopCardDeck: "classic",
+      });
+    });
+
+    it("stores auto rather than the deck auto chose", () => {
+      windowAt(PHONE_WIDTH);
+      buildSettings();
+
+      TestBed.flushEffects();
+
+      // So a later visit in a wider window gets desktop cards.
+      expect(stored()).toMatchObject({
+        cardStyle: "auto",
+        desktopCardDeck: DEFAULT_DESKTOP_CARD_DECK,
       });
     });
   });
@@ -250,10 +319,25 @@ describe("PresentationSettingsService", () => {
   });
 
   describe("what the board says about the deck", () => {
+    /**
+     * Returns settings whose board has drawn the default desktop deck and
+     * failed to fetch Classic once the player chose it.
+     */
+    function afterClassicFailed(): PresentationSettingsService {
+      const settings = buildSettings();
+      settings.reportCardDeckStatus({
+        kind: "drawn",
+        deckId: DEFAULT_DESKTOP_CARD_DECK,
+      });
+      settings.setDesktopCardDeck("classic");
+      settings.reportCardDeckStatus({ kind: "unavailable", deckId: "classic" });
+      return settings;
+    }
+
     it("holds the deck being fetched while it is on its way", () => {
       const settings = buildSettings();
 
-      settings.setCardDeck("classic");
+      settings.setDesktopCardDeck("classic");
       settings.reportCardDeckStatus({ kind: "loading", deckId: "classic" });
 
       expect(settings.pendingCardDeck()).toBe("classic");
@@ -268,31 +352,25 @@ describe("PresentationSettingsService", () => {
       expect(settings.pendingCardDeck()).toBe(null);
     });
 
-    it("puts the choice back when a deck cannot be fetched", () => {
-      const settings = buildSettings();
-      settings.reportCardDeckStatus({
-        kind: "drawn",
-        deckId: DEFAULT_CARD_DECK,
-      });
-      settings.setCardDeck("classic");
+    it("keeps the board on the deck it is drawing when another cannot be fetched", () => {
+      expect(afterClassicFailed().cardDeck()).toBe(DEFAULT_DESKTOP_CARD_DECK);
+    });
 
-      settings.reportCardDeckStatus({ kind: "unavailable", deckId: "classic" });
+    it("keeps the player's choice when it cannot be fetched", () => {
+      // Auto has no choice to put back, so no choice is put back.
+      expect(afterClassicFailed().desktopCardDeck()).toBe("classic");
+    });
 
-      // Otherwise the drawer goes on showing a deck the board never drew — and
-      // persists it, so the next visit starts by failing to load it again.
-      expect(settings.cardDeck()).toBe(DEFAULT_CARD_DECK);
+    it("tries the deck again when it is chosen again", () => {
+      const settings = afterClassicFailed();
+
+      settings.setDesktopCardDeck("classic");
+
+      expect(settings.cardDeck()).toBe("classic");
     });
 
     it("says which deck could not be fetched and what is on the table", () => {
-      const settings = buildSettings();
-      settings.reportCardDeckStatus({
-        kind: "drawn",
-        deckId: DEFAULT_CARD_DECK,
-      });
-
-      settings.reportCardDeckStatus({ kind: "unavailable", deckId: "classic" });
-
-      expect(settings.cardDeckProblem()).toBe(
+      expect(afterClassicFailed().cardDeckProblem()).toBe(
         "Couldn't load Classic — still using Corner Pips.",
       );
     });
@@ -302,12 +380,44 @@ describe("PresentationSettingsService", () => {
     });
 
     it("drops the complaint when another deck is chosen", () => {
-      const settings = buildSettings();
-      settings.reportCardDeckStatus({ kind: "unavailable", deckId: "classic" });
+      const settings = afterClassicFailed();
 
-      settings.setCardDeck("all-corner-pips");
+      settings.setDesktopCardDeck("all-corner-pips");
 
       // Yesterday's failure has nothing to say about today's choice.
+      expect(settings.cardDeckProblem()).toBe(null);
+    });
+
+    it("keeps desktop cards when the mobile deck cannot be fetched on a phone", () => {
+      const view = windowAt(WIDE_WIDTH);
+      const settings = buildSettings();
+      settings.reportCardDeckStatus({
+        kind: "drawn",
+        deckId: DEFAULT_DESKTOP_CARD_DECK,
+      });
+      view.setWidth(PHONE_WIDTH);
+
+      settings.reportCardDeckStatus({
+        kind: "unavailable",
+        deckId: MOBILE_CARD_DECK.id,
+      });
+
+      expect([settings.cardDeck(), settings.cardDeckProblem()]).toEqual([
+        DEFAULT_DESKTOP_CARD_DECK,
+        "Couldn't load Mobile — still using Corner Pips.",
+      ]);
+    });
+
+    it("drops the complaint once auto no longer wants the deck that failed", () => {
+      const view = windowAt(PHONE_WIDTH);
+      const settings = buildSettings();
+      settings.reportCardDeckStatus({
+        kind: "unavailable",
+        deckId: MOBILE_CARD_DECK.id,
+      });
+
+      view.setWidth(WIDE_WIDTH);
+
       expect(settings.cardDeckProblem()).toBe(null);
     });
   });

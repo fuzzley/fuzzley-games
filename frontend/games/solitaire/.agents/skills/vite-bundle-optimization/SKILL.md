@@ -123,6 +123,8 @@ downloaded.
   `src/games/common/pile_layouts.ts`. Change a fan offset and you change them
   too and rebuild the deck. The tool fails if an index leaves its strip, if
   anything else enters one, or if a suit colour falls under 4.5:1 contrast.
-- A new deck goes in `DECKS` in the tool, `CARD_DECKS` in
-  `src/engine/render/card_deck.ts` and the manifests in `card_deck_atlas.ts`.
-  The compiler checks the last two against each other, not against the tool.
+- A new deck goes in `DECKS` in the tool, in `DESKTOP_CARD_DECKS` in
+  `src/engine/render/card_deck.ts` (or beside `MOBILE_CARD_DECK`, which the
+  card style setting picks rather than the player), and in the manifests in
+  `card_deck_atlas.ts`. The compiler checks the last two against each other,
+  not against the tool.
