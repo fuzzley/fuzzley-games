@@ -47,10 +47,12 @@
   height: 20px;
 }
 
-// The skeleton colour shows until the picture arrives, and stays if it never
-// does, holding the space either way. Its width is capped by the screen's
-// height, so on a short screen the picture leaves room for the rest.
+// The skeleton colour shows until the picture arrives, with a shimmer across it
+// while it is on its way, and stays if it never does, holding the space either
+// way. Its width is capped by the screen's height, so on a short screen the
+// picture leaves room for the rest.
 .shot {
+  position: relative;
   width: min(100%, calc(32dvh * 16 / 9));
   aspect-ratio: 16 / 9;
   border: 1px solid var(--border-default);
@@ -60,11 +62,32 @@
   flex: 0 0 auto;
 }
 
+// Only the arrival fades: the transition belongs to the loaded state, so the
+// last game's picture vanishes at once rather than fading over the shimmer.
 .shot-image {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0;
+
+  &.loaded {
+    @include transition(opacity);
+    opacity: 1;
+  }
+}
+
+.skeleton-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--surface-skeleton-highlight) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmerSweep 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }
 
 .title {

@@ -13,15 +13,21 @@
     </button>
   }
 
-  <div class="shot">
+  <div class="shot" [attr.aria-busy]="imageStatus() === 'loading'">
     <img
       class="shot-image"
-      [src]="item().previewUrl"
+      [class.loaded]="imageStatus() === 'loaded'"
+      [src]="imageUrl()"
       [alt]="imageAlt()"
       width="1280"
       height="720"
       decoding="async"
+      (load)="onImageLoad()"
+      (error)="onImageError()"
     />
+    @if (imageStatus() === "loading") {
+      <div class="skeleton-shimmer" aria-hidden="true"></div>
+    }
   </div>
 
   <!-- Focusable from script only, so a narrow screen can land here. -->
