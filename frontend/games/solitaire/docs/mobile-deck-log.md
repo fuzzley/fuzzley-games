@@ -7,7 +7,9 @@ and restart at any commit.
 
 **Branch:** `feature/mobile-card-deck`, cut from `main` at `3edd791`.
 
-**Status:** in progress.
+**Status:** done. Every planned step is committed. Open: whether the compact
+layout should open the fans wider (decision 3), now that the deck can be
+judged on a phone.
 
 ## How to pick this up
 
@@ -89,9 +91,9 @@ Settled with the project owner before any code changed.
 - [x] 3.1 Register the deck
 - [x] 3.2 Compact default
 - [x] 3.3 Docs
-- [ ] 4.1 Specs
-- [ ] 4.2 Browser check
-- [ ] 4.3 `yarn verify`
+- [x] 4.1 Specs
+- [x] 4.2 Browser check
+- [x] 4.3 `yarn verify`
 
 ## Log
 
@@ -192,3 +194,31 @@ and a later visit in a wider window.
   constants that mirror them.
 - `NOTICE`: the mobile deck's pages are this project's own work under GPL-3.0,
   not derived from the LGPL artwork.
+
+### 4.1 to 4.3 Checks
+
+- **Specs.** Added alongside each step: the deck list, the compact default,
+  the drawer's preview, and the atlas spec, which loops over `CARD_DECKS` and
+  so checks the new manifests' frame names and sizes. `zone_presets.spec.ts`
+  pinned the number of built manifests at six; it now derives it from
+  `CARD_DECKS` and `CARD_ART_SCALES`, so the next deck does not trip it.
+- **Browser.** Chrome DevTools MCP at 390 x 844, 3x, touch, each game in a
+  fresh isolated context. A first visit stored `cardDeck: "mobile"`. Klondike:
+  face-down strips show the back's border, the waste fan shows each covered
+  card's rank and pip, and the 10 fits its strip. FreeCell, beside the same
+  deal in `indexed`: every strip shows rank and suit at both ends, where
+  `indexed` shows the rank among the tops of pip patterns and court art. The
+  settings drawer lists Large Index with its larger preview. Spider was not
+  opened, since its opening deal has no face-up runs; the contact sheet covers
+  a ten-column board's scale.
+- **`yarn verify`** passes (132 files, 3943 tests), and `yarn test:coverage`
+  stays above its floor (98.3% statements). The build emits nine atlas pages:
+  two per deck, plus the placeholders page that every deck's 2x set shares,
+  which Vite emits once because its content is identical.
+
+## Follow-ups
+
+- Decide whether the compact layout should open the fans wider. The index now
+  fills the 45 unit strip; on a seven-column board on a 390 CSS px phone its
+  rank is about 8.7 CSS px tall, and about 6 px on a ten-column board.
+- The diamond reads lighter than the other suits at index size (see 2.2).
