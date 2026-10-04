@@ -1,45 +1,77 @@
 /**
- * Stands in for `window.matchMedia`, which jsdom lacks, answering `max-width`
- * queries against a width a spec sets.
+ * Stands in for `window.matchMedia`, which jsdom lacks, answering width,
+ * height and orientation queries against a size a spec sets.
  */
 export interface FakeViewport {
   /** Sets the viewport width and tells every live query about it. */
   setWidth(px: number): void;
+  /** Sets the viewport width and height and tells every live query. */
+  setSize(width: number, height: number): void;
   /** Takes the fake back off the window. */
   restore(): void;
 }
 
-/** Records one `max-width` query the code under test holds. */
+/** Holds the viewport size a fake answers against, in CSS pixels. */
+interface Size {
+  width: number;
+  height: number;
+}
+
+/** Records one query the code under test holds. */
 interface FakeQuery {
-  readonly maxWidth: number;
+  readonly query: string;
   readonly state: { matches: boolean };
   readonly listeners: Set<() => void>;
 }
 
-const MAX_WIDTH = /max-width:\s*([\d.]+)px/;
+const CONDITION =
+  /^\(\s*(max-width|max-height|orientation)\s*:\s*([\w.]+?)(px)?\s*\)$/;
 
 /**
- * Installs the fake at a starting width.
+ * Returns whether a media query holds at a size: any of its comma-separated
+ * alternatives, each true when all of its `and`-joined conditions are.
+ *
+ * @throws Error for a condition the fake does not understand.
+ */
+function evaluate(query: string, size: Size): boolean {
+  return query.split(",").some((alternative) =>
+    alternative.split(/\s+and\s+/).every((condition) => {
+      const parsed = CONDITION.exec(condition.trim());
+      if (!parsed) {
+        throw new Error(`Fake viewport cannot answer: ${condition}`);
+      }
+      const [, feature, value] = parsed;
+      switch (feature) {
+        case "max-width":
+          return size.width <= Number(value);
+        case "max-height":
+          return size.height <= Number(value);
+        default:
+          // As CSS reads it: a square viewport is portrait.
+          return size.height >= size.width === (value === "portrait");
+      }
+    }),
+  );
+}
+
+/**
+ * Installs the fake at a starting size.
  *
  * Call {@link FakeViewport.restore} in an `afterEach`, so a spec that never
  * asked for one still sees a host without `matchMedia`.
  *
  * @param width The viewport width to start at, in CSS pixels.
+ * @param height The viewport height to start at, in CSS pixels; tall enough
+ *   by default that only the width decides whether the viewport is compact.
  */
-export function installFakeViewport(width: number): FakeViewport {
+export function installFakeViewport(width: number, height = 900): FakeViewport {
   const queries: FakeQuery[] = [];
-  let current = width;
+  const current: Size = { width, height };
 
   window.matchMedia = (query: string) => {
-    const parsed = MAX_WIDTH.exec(query);
-    if (!parsed) {
-      throw new Error(`Fake viewport answers max-width queries only: ${query}`);
-    }
-
-    const maxWidth = Number(parsed[1]);
-    const state = { matches: current <= maxWidth };
+    const state = { matches: evaluate(query, current) };
     const listeners = new Set<() => void>();
-    queries.push({ maxWidth, state, listeners });
+    queries.push({ query, state, listeners });
 
     return {
       media: query,
@@ -57,13 +89,23 @@ export function installFakeViewport(width: number): FakeViewport {
     } as unknown as MediaQueryList;
   };
 
+  const resize = (next: Size) => {
+    current.width = next.width;
+    current.height = next.height;
+    for (const query of queries) {
+      const matches = evaluate(query.query, current);
+      if (matches === query.state.matches) continue;
+      query.state.matches = matches;
+      for (const listener of query.listeners) listener();
+    }
+  };
+
   return {
     setWidth(px: number): void {
-      current = px;
-      for (const query of queries) {
-        query.state.matches = px <= query.maxWidth;
-        for (const listener of query.listeners) listener();
-      }
+      resize({ width: px, height: current.height });
+    },
+    setSize(nextWidth: number, nextHeight: number): void {
+      resize({ width: nextWidth, height: nextHeight });
     },
     restore(): void {
       Reflect.deleteProperty(window, "matchMedia");

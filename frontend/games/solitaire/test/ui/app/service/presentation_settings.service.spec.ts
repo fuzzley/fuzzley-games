@@ -180,6 +180,12 @@ describe("PresentationSettingsService", () => {
       expect(buildSettings().cardDeck()).toBe(MOBILE_CARD_DECK.id);
     });
 
+    it("is the mobile deck on a phone on its side, in auto", () => {
+      viewport = installFakeViewport(844, 390);
+
+      expect(buildSettings().cardDeck()).toBe(MOBILE_CARD_DECK.id);
+    });
+
     it("follows the window across the breakpoint, in auto", () => {
       const view = windowAt(PHONE_WIDTH);
       const settings = buildSettings();

@@ -283,7 +283,7 @@ from the right.
 - [x] 1.3 Anchored and offset slots
 - [x] 1.4 Fitted fans
 - [x] 1.5 Board layouts and the chooser
-- [ ] 2.1 Phone detection in the shell
+- [x] 2.1 Phone detection in the shell
 - [ ] 2.2 Side rail
 - [ ] 2.3 Bottom bar
 - [ ] 3.1 The phone grid builder
@@ -414,3 +414,30 @@ sizing before the canvas is measured. `CatalogEntry.phoneLayouts` is optional,
 and `makeBoardScene` passes it on. Scene specs show a game with phone grids
 lands a drop on its phone grid's foundation, and on the mirrored one for a left
 hand. Still no game has phone grids, so nothing on screen changes.
+
+### 2.1 Phone detection in the shell
+
+`ViewportService` follows two media queries, compact (narrower than 720 or
+shorter than 500) and `(orientation: portrait)`, and exposes `formFactor`, the
+same three shapes `formFactorOf` gives the board. `isCompact` is now derived
+from it. `compactFor` asks `formFactorOf` too, so the board and the chrome
+compact together. A sideways phone therefore gets the compact header (the
+overflow menu, the icon-only switcher), the board's compact gaps, the
+full-screen game browser and, under the Auto card style, the mobile deck. That
+answers the mobile deck's open question about Auto on sideways phones. The Auto
+description in the drawer now says "on a phone, upright or on its side".
+
+`_breakpoints.scss` gains `$compact-max-height` and three mixins: `compact`,
+`phone-portrait` and `phone-landscape`. The compact header height in
+`_tokens.scss`, the header's compact rules, the game browser's and the game
+preview's full-screen rules move from `below("tablet")` to `compact`, because
+their TypeScript halves read `isCompact` and the two must agree.
+
+The fake `matchMedia` in `test/support/ui/viewport.ts` now evaluates
+comma-separated queries of `max-width`, `max-height` and `orientation`
+conditions, with `setSize` beside `setWidth`. It calls a query's listeners only
+when its answer changes, as a browser does.
+
+`boardLayoutsOf(entry)` in `game_catalog.ts` assembles an entry's grids for the
+board and for the loading skeleton. The skeleton now draws the grid the screen
+and the arrangement call for.

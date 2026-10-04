@@ -1,6 +1,9 @@
 import { PlayableGame } from "@/engine/tableau/playable_game";
 import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
-import { PhoneLayouts } from "@/engine/render/layout/board_layouts";
+import {
+  BoardLayouts,
+  PhoneLayouts,
+} from "@/engine/render/layout/board_layouts";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
 import {
@@ -1388,6 +1391,11 @@ export function storedValues(
 }
 
 /** Returns the catalog entry with the given id, or the first one. */
+/** Returns every grid a catalog entry's board may lie on. */
+export function boardLayoutsOf(entry: CatalogEntry): BoardLayouts {
+  return { roomy: entry.layout, phone: entry.phoneLayouts };
+}
+
 export function catalogEntry(id: string | null | undefined): CatalogEntry {
   return GAME_CATALOG.find((entry) => entry.id === id) ?? CATALOG_ENTRIES[0];
 }

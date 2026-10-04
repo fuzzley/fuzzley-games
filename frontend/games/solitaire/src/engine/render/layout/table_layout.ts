@@ -9,7 +9,7 @@ import {
   LAYOUT_PADDING_Y,
 } from "./card_metrics";
 import type { FanFit, PileLayoutOverride } from "./pile_layout";
-import { COMPACT_MAX_WIDTH_CSS_PX } from "./form_factor";
+import { formFactorOf } from "./form_factor";
 
 /** Holds a width and height in design units. */
 export interface Size {
@@ -165,17 +165,14 @@ const COMPACT_GAP = { x: 8, y: 14 };
 const COMPACT_PADDING = { x: 8, y: 14 };
 
 /**
- * Returns the board with its gaps and padding tightened for a small screen, or
- * unchanged on a larger one.
+ * Returns the board with its gaps and padding tightened for a compact screen,
+ * a phone upright or on its side, or unchanged on a roomy one.
  */
 export function compactFor(
   spec: TableLayoutSpec,
   viewport: Viewport,
 ): TableLayoutSpec {
-  const cssWidth = viewport.width / (viewport.pixelRatio || 1);
-  if (cssWidth === 0 || cssWidth >= COMPACT_MAX_WIDTH_CSS_PX) {
-    return spec;
-  }
+  if (formFactorOf(viewport) === "roomy") return spec;
   // Never loosen a board that is already tighter than this.
   return {
     ...spec,
