@@ -105,6 +105,12 @@ describe("PresentationSettingsService", () => {
       expect(buildSettings().backgroundColor()).toBe(DEFAULT_BACKGROUND_COLOR);
     });
 
+    it("loads a card artwork's back it stored", () => {
+      store({ cardBackStyle: "card-back-classic-red" });
+
+      expect(buildSettings().cardBackStyle()).toBe("card-back-classic-red");
+    });
+
     it("falls back to defaults for an unknown card back", () => {
       store({ cardBackStyle: "card-back-yellow" });
 
@@ -364,6 +370,18 @@ describe("PresentationSettingsService", () => {
       settings.setCardBackStyle("card-back-red");
 
       expect(settings.cardBackKey()).toBe("card-back-red");
+    });
+
+    it("reports the chosen back whichever deck the viewport calls for", () => {
+      windowAt(PHONE_WIDTH);
+      const settings = buildSettings();
+
+      settings.setCardBackStyle("card-back-classic-blue");
+
+      expect([settings.cardDeckId(), settings.cardBackKey()]).toEqual([
+        MOBILE_CARD_DECK.id,
+        "card-back-classic-blue",
+      ]);
     });
 
     it("publishes the colour to whoever is following it", () => {
