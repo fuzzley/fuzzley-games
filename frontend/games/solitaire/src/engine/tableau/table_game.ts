@@ -7,7 +7,7 @@ import { MoveHistory, RelocationListener } from "./move_history";
 import { GameState, ReadableGameState } from "./game_state";
 import { BoardQuery } from "./rules";
 import { Tabletop } from "./tabletop";
-import { ZoneSpec, canGrab, hasRoomFor } from "./zone";
+import { ZoneRules, ZoneSpec, canGrab, hasRoomFor } from "./zone";
 import { TableView } from "./view/table_view";
 
 /** Describes a move that has passed the rules: its cards and where they go. */
@@ -183,6 +183,11 @@ export abstract class TableGame<
     return this.tabletop.zoneFor(pileId);
   }
 
+  /** Returns how the given pile plays, or undefined for an unknown pile. */
+  private rulesFor(pileId: string): ZoneRules | undefined {
+    return this.tabletop.zoneFor(pileId);
+  }
+
   /** Empties every pile, keeping the registry so sprites keep their cards. */
   protected resetPiles(): void {
     this.tabletop.clear();
@@ -209,13 +214,13 @@ export abstract class TableGame<
     const card = this.getCardById(cardId);
     const targetPile = this.getPileById(targetPileId);
     const sourcePile = this.getPileContainingCard(cardId);
-    const targetZone = this.zoneFor(targetPileId);
+    const targetRules = this.rulesFor(targetPileId);
 
     if (
       !card ||
       !targetPile ||
       !sourcePile ||
-      !targetZone?.accept ||
+      !targetRules?.accept ||
       sourcePile.id === targetPileId
     ) {
       return null;
@@ -227,10 +232,10 @@ export abstract class TableGame<
       return null;
     }
 
-    const sourceZone = this.zoneFor(sourcePile.id);
+    const sourceRules = this.rulesFor(sourcePile.id);
     if (
-      !sourceZone ||
-      !canGrab(sourceZone.grab, card, sourcePile, this.board)
+      !sourceRules ||
+      !canGrab(sourceRules.grab, card, sourcePile, this.board)
     ) {
       return null;
     }
@@ -240,11 +245,11 @@ export abstract class TableGame<
     const sourceCards = sourcePile.getCards();
     const movingStack = sourceCards.slice(sourceCards.indexOf(card));
 
-    if (!hasRoomFor(targetZone, targetPile, movingStack.length)) {
+    if (!hasRoomFor(targetRules, targetPile, movingStack.length)) {
       return null;
     }
 
-    const accepted = targetZone.accept({
+    const accepted = targetRules.accept({
       card,
       movingStack,
       sourcePile,
@@ -447,8 +452,8 @@ export abstract class TableGame<
     card: PlayingCard,
     pile: ReadonlyCardPile<PlayingCard>,
   ): boolean {
-    const zone = this.zoneFor(pile.id);
-    return zone ? canGrab(zone.grab, card, pile, this.board) : false;
+    const rules = this.rulesFor(pile.id);
+    return rules ? canGrab(rules.grab, card, pile, this.board) : false;
   }
 
   /** Returns whether the card can currently be dragged. */
@@ -465,8 +470,10 @@ export abstract class TableGame<
     card: PlayingCard,
     pile: ReadonlyCardPile<PlayingCard>,
   ): boolean {
-    const zone = this.zoneFor(pile.id);
-    return zone?.draggable ? canGrab(zone.grab, card, pile, this.board) : false;
+    const rules = this.rulesFor(pile.id);
+    return rules?.draggable
+      ? canGrab(rules.grab, card, pile, this.board)
+      : false;
   }
 
   /**
