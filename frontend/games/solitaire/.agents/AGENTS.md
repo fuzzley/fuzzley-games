@@ -59,7 +59,7 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
    - The only tier that may import both `engine/tableau` and `engine/render/phaser`. There is no separate scene-bridge tier above it: `PhaserHost` swaps in whatever board it is handed.
 6. **`src/games/*`** _(Top of Engine Tier)_
    - Game-specific deal rules, scoring mechanics, layout setup, and gesture handling — one directory per game (`games/klondike`, `games/freecell`, `games/montana`, …).
-   - Code shared between games lives in `games/common`: collecting completed runs, drawing and recycling a stock, dealing a card to every column, pairing, zone presets and pile markers.
+   - Code shared between games lives in `games/common`: collecting completed runs, drawing and recycling a stock, dealing a card to every column, pairing, zone presets, pile markers, and `phone_layouts.ts`, which derives a game's phone grids from a short account of its board.
    - A different board grid means a different catalog entry; the same grid under different rules means a variant option on an existing one. See the `add-solitaire-game` skill.
    - Sits above the engine's runtime but beside `engine/board`: a game knows nothing of the renderer, and the shell's provider folder joins a game to its board.
 7. **`src/ui/*`** _(Application Shell)_
@@ -69,7 +69,7 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
 
 - **`src/ui/app/provider`** — the data the shell is built around, and the only
   place a game is named. `game_catalog.ts` declares every game (id, name, rules,
-  layout, how to deal one) and is Phaser-free; `board_catalog.ts` maps those ids
+  layout and, optionally, phone grids, how to deal one) and is Phaser-free; `board_catalog.ts` maps those ids
   to each game's gestures through a mapped type, so a game without them is a
   compile error, and draws every game on the grid its entry declares.
   `game_documentation_data.ts` supplies the rules pages behind
@@ -89,6 +89,17 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
 - **`src/ui/app/styles`** — the Sass design system. `global.scss` is loaded once
   from `main.ts` and is the only stylesheet outside a component; `_index.scss`
   is the toolkit every component `@use`s, and deliberately emits no CSS.
+- **Phone layouts** — the shell and the board agree on a form factor: roomy,
+  a phone held upright, or one on its side, where compact means narrower than
+  720 or shorter than 500 CSS px (`src/engine/render/layout/form_factor.ts`,
+  `ViewportService.formFactor`). Upright, the header docks at the bottom; on
+  its side it is a rail down one edge; the canvas declares `--board-inset-*`
+  for whichever edge the chrome covers. A game whose catalog entry names
+  `phoneLayouts` lies on its own grids on a phone, chosen each frame by
+  `chooseTableLayout` (`src/engine/render/layout/board_layouts.ts`) from the
+  player's arrangement (piles below or above, right or left hand), with its
+  columns fanned to fit the room below them. The `add-solitaire-game` skill
+  says how to give a game phone grids.
 - **Routing** — which game is on the table is a `:gameId` route
   (`src/ui/app/routes.ts`), using hash location because the built application is
   copied into a subdirectory of a static host that will not rewrite paths.
@@ -115,7 +126,9 @@ brings in the mixins and breakpoints and nothing else:
   declaration is a token, not a mixin.
 - **Three breakpoints, by name.** `@include below("phone" | "tablet" |
 "desktop")`; never a raw pixel width. Adding a fourth means adding it to
-  `$breakpoints` and saying what it protects.
+  `$breakpoints` and saying what it protects. Anything that follows the compact
+  chrome uses `@include compact`, `phone-portrait` or `phone-landscape`
+  instead, which also catch a phone on its side.
 - **`@keyframes` are global — declare them in `_animations.scss`.** Angular's
   emulated encapsulation rewrites selectors, not at-rule names, so two
   components defining the same animation name silently overwrite each other.

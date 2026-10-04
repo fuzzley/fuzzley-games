@@ -12,7 +12,7 @@ export function makeFakeTableBoardScene(
 ): BoardScene {
   return makeTableBoardScene({
     game,
-    layout: FAKE_TABLE_LAYOUT,
+    layouts: { roomy: FAKE_TABLE_LAYOUT },
     handleIntent: fakeTableGestures(game),
     presentation,
     onReady,

@@ -39,7 +39,7 @@ import {
 } from "@test/support/fake_table/zones";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { FakeTableGame } from "@test/support/fake_table/game";
-import { Viewport } from "@/engine/render/view/table_view_state";
+import { NO_INSETS, Viewport } from "@/engine/render/view/table_view_state";
 import { makePlayingCard } from "@test/support/card_builder";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
@@ -59,7 +59,7 @@ function designViewport(overrides: Partial<Viewport> = {}): Viewport {
     width: DESIGN_WIDTH_PX,
     height: DESIGN_HEIGHT_PX + INSET_TOP,
     pixelRatio: 1,
-    insetTop: INSET_TOP,
+    insets: { ...NO_INSETS, top: INSET_TOP },
     ...overrides,
   };
 }
@@ -190,7 +190,7 @@ describe("computePileOrigins", () => {
         width: DESIGN_WIDTH_PX * 2,
         height: (DESIGN_HEIGHT_PX + INSET_TOP) * 2,
         pixelRatio: 2,
-        insetTop: INSET_TOP,
+        insets: { ...NO_INSETS, top: INSET_TOP },
       },
       2,
     );
@@ -455,7 +455,12 @@ describe("computeDropGeometries", () => {
     const row = new CardPile<PlayingCard>("row");
     row.addCard(makePlayingCard({ id: "first" }));
     row.addCard(makePlayingCard({ id: "second" }));
-    const fanned = { kind: "fan-right", gap: 55, maxVisible: 52 } as const;
+    const fanned = {
+      kind: "spread",
+      direction: "right",
+      gap: 55,
+      maxVisible: 52,
+    } as const;
 
     const [geometry] = computeDropGeometries(
       [{ pile: row, layout: fanned }],
@@ -468,6 +473,27 @@ describe("computeDropGeometries", () => {
       CARD_WIDTH_PX + 55,
       CARD_HEIGHT_PX,
     ]);
+  });
+
+  it("starts a leftward spread's target left of its origin", () => {
+    const row = new CardPile<PlayingCard>("row");
+    row.addCard(makePlayingCard({ id: "first" }));
+    row.addCard(makePlayingCard({ id: "second" }));
+    const spread = {
+      kind: "spread",
+      direction: "left",
+      gap: 55,
+      maxVisible: 52,
+    } as const;
+
+    const [geometry] = computeDropGeometries(
+      [{ pile: row, layout: spread }],
+      new Map([["row", { x: 200, y: 0 }]]),
+      CARD_SIZE,
+      1,
+    );
+
+    expect([geometry?.x, geometry?.width]).toEqual([145, CARD_WIDTH_PX + 55]);
   });
 
   it("leaves a foundation at a single card however many it holds", () => {

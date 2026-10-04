@@ -40,7 +40,8 @@ describe("klondikeZoneSpecs", () => {
     const [waste] = zonesOfRole(KlondikeRole.WASTE, 3);
 
     expect(waste.layout).toEqual({
-      kind: "fan-right",
+      kind: "spread",
+      direction: "right",
       gap: 55,
       maxVisible: 3,
     });
@@ -50,7 +51,8 @@ describe("klondikeZoneSpecs", () => {
     const [waste] = zonesOfRole(KlondikeRole.WASTE, 1);
 
     expect(waste.layout).toEqual({
-      kind: "fan-right",
+      kind: "spread",
+      direction: "right",
       gap: 55,
       maxVisible: 1,
     });

@@ -2,6 +2,7 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { HostedGame, PhaserHost } from "@/engine/render/phaser/phaser_host";
+import { Insets } from "@/engine/render/view/table_view_state";
 import { FakeTableGame } from "@test/support/fake_table/game";
 import { makeFakeTableBoardScene } from "@test/support/fake_table/scene";
 import { TestPresentation } from "@test/support/presentation";
@@ -154,15 +155,41 @@ describe("PhaserHost", () => {
       games.push(created);
       return created;
     });
-    let insetTop: (() => number) | undefined;
+    let insets: (() => Insets) | undefined;
     inset.show((surroundings) => {
-      insetTop = surroundings.insetTop;
+      insets = surroundings.insets;
       return makeBoard();
     });
 
     game().boot();
 
-    expect(insetTop?.()).toBe(40);
+    expect(insets?.().top).toBe(40);
+  });
+
+  it("reads the insets again when asked, without the window resizing", () => {
+    const parent = document.createElement("div");
+    // In the document, since jsdom keeps a detached element's computed style.
+    document.body.append(parent);
+    parent.style.setProperty("--board-inset-left", "64px");
+    const railed = new PhaserHost(window, parent, () => {
+      const created = new FakeGame(webgl);
+      games.push(created);
+      return created;
+    });
+    let insets: (() => Insets) | undefined;
+    railed.show((surroundings) => {
+      insets = surroundings.insets;
+      return makeBoard();
+    });
+    game().boot();
+    // The rail moves to the other edge, as a change of hand moves it.
+    parent.style.setProperty("--board-inset-left", "0px");
+    parent.style.setProperty("--board-inset-right", "64px");
+
+    railed.refreshInsets();
+    parent.remove();
+
+    expect([insets?.().left, insets?.().right]).toEqual([0, 64]);
   });
 
   describe("show", () => {

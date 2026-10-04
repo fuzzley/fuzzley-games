@@ -180,6 +180,12 @@ describe("PresentationSettingsService", () => {
       expect(buildSettings().cardDeck()).toBe(MOBILE_CARD_DECK.id);
     });
 
+    it("is the mobile deck on a phone on its side, in auto", () => {
+      viewport = installFakeViewport(844, 390);
+
+      expect(buildSettings().cardDeck()).toBe(MOBILE_CARD_DECK.id);
+    });
+
     it("follows the window across the breakpoint, in auto", () => {
       const view = windowAt(PHONE_WIDTH);
       const settings = buildSettings();
@@ -290,6 +296,8 @@ describe("PresentationSettingsService", () => {
         theme: "purple",
         cardStyle: "mobile",
         desktopCardDeck: "classic",
+        phonePiles: "bottom",
+        hand: "right",
       });
     });
 
@@ -324,6 +332,8 @@ describe("PresentationSettingsService", () => {
         theme: "blue",
         cardStyle: "auto",
         desktopCardDeck: "classic",
+        phonePiles: "bottom",
+        hand: "right",
       });
     });
 
@@ -491,6 +501,60 @@ describe("PresentationSettingsService", () => {
       view.setWidth(WIDE_WIDTH);
 
       expect(settings.cardDeckProblem()).toBe(null);
+    });
+  });
+
+  describe("the board's arrangement", () => {
+    it("puts an upright phone's piles at the bottom, for a right hand, by default", () => {
+      expect(buildSettings().boardArrangement()).toEqual({
+        phonePiles: "bottom",
+        hand: "right",
+      });
+    });
+
+    it("tells the board where the piles go once the player moves them", () => {
+      const settings = buildSettings();
+
+      settings.setPhonePiles("top");
+
+      expect(settings.boardArrangement().phonePiles).toBe("top");
+    });
+
+    it("tells the board the hand once the player changes it", () => {
+      const settings = buildSettings();
+
+      settings.setHand("left");
+
+      expect(settings.boardArrangement().hand).toBe("left");
+    });
+
+    it("saves both", () => {
+      const settings = buildSettings();
+
+      settings.setPhonePiles("top");
+      settings.setHand("left");
+      TestBed.flushEffects();
+
+      expect(stored()).toMatchObject({ phonePiles: "top", hand: "left" });
+    });
+
+    it("loads what it saved", () => {
+      store({ phonePiles: "top", hand: "left" });
+
+      const settings = buildSettings();
+
+      expect([settings.phonePiles(), settings.hand()]).toEqual(["top", "left"]);
+    });
+
+    it("falls back to the defaults for values it does not know", () => {
+      store({ phonePiles: "sideways", hand: 3 });
+
+      const settings = buildSettings();
+
+      expect([settings.phonePiles(), settings.hand()]).toEqual([
+        "bottom",
+        "right",
+      ]);
     });
   });
 });

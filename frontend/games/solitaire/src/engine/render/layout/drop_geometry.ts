@@ -2,7 +2,7 @@ import { Card } from "@/engine/core/card/card";
 import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { Point } from "@/engine/core/common/point";
 import { PileGeometry, Rect } from "../view/table_view_state";
-import { PileLayout, pileHeight, pileWidth } from "./pile_layout";
+import { PileLayout, pileBounds } from "./pile_layout";
 import { Size } from "./table_layout";
 
 /** Describes a pile a dragged stack may be dropped onto. */
@@ -15,7 +15,8 @@ export interface DropCandidate {
 
 /**
  * Computes the screen rectangle each candidate pile accepts a drop within,
- * which for a fanned pile grows with its cards, down or across.
+ * which for a fanned or spread pile grows with its cards, whichever way they
+ * run.
  *
  * @param origins Pile origins from the table layout, in screen pixels.
  * @param cardSize The size of one card, in design units.
@@ -32,12 +33,13 @@ export function computeDropGeometries(
     const origin = origins.get(pile.id);
     if (!origin) continue;
 
+    const bounds = pileBounds(layout, pile.getCards(), cardSize);
     geometries.push({
       pileId: pile.id,
-      x: origin.x,
-      y: origin.y,
-      width: pileWidth(layout, pile.getCards(), cardSize.width) * scale,
-      height: pileHeight(layout, pile.getCards(), cardSize.height) * scale,
+      x: origin.x + bounds.x * scale,
+      y: origin.y + bounds.y * scale,
+      width: bounds.width * scale,
+      height: bounds.height * scale,
     });
   }
   return geometries;

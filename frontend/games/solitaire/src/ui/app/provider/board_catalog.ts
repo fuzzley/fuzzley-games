@@ -24,7 +24,7 @@ import { canfieldGestures } from "@/games/canfield/canfield_gestures";
 import { blackHoleGestures } from "@/games/black_hole/black_hole_gestures";
 import { pyramidGestures } from "@/games/pyramid/pyramid_gestures";
 import { triPeaksGestures } from "@/games/tri_peaks/tri_peaks_gestures";
-import { GameId, GameOf, catalogEntry } from "./game_catalog";
+import { GameId, GameOf, boardLayoutsOf, catalogEntry } from "./game_catalog";
 
 /** Says what a press or a drop means in a particular game. */
 type GestureMap<Id extends GameId> = (game: GameOf<Id>) => IntentHandler;
@@ -91,11 +91,11 @@ export function gesturesFor(gameId: GameId, game: PlayableGame): IntentHandler {
 /** Says how a board should look and fit, and whom to tell once it is drawn. */
 export type BoardSetting = Pick<
   TableBoardOptions,
-  "presentation" | "onReady" | "insetTop"
+  "presentation" | "onReady" | "insets"
 >;
 
 /**
- * Builds the board that draws a dealt game, on the grid its catalog entry
+ * Builds the board that draws a dealt game, on the grids its catalog entry
  * declares.
  *
  * @param game The dealt game, which must be the one `gameId` deals; the cast
@@ -108,7 +108,7 @@ export function makeBoardScene(
 ): BoardScene {
   return makeTableBoardScene({
     game: game as GameOf<GameId>,
-    layout: catalogEntry(gameId).layout,
+    layouts: boardLayoutsOf(catalogEntry(gameId)),
     handleIntent: gesturesFor(gameId, game),
     ...setting,
   });

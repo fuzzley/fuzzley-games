@@ -17,6 +17,8 @@ import {
   CardStyle,
   PresentationSettingsService,
 } from "../../service/presentation_settings.service";
+import { ViewportService } from "../../service/viewport.service";
+import { Hand, PhonePilePosition } from "@/engine/render/layout/board_layouts";
 import { GameOptionChoice, GameOptionSpec } from "../../provider/game_catalog";
 import {
   DESKTOP_CARD_DECKS,
@@ -66,7 +68,8 @@ const AUTO_CARD_STYLE: GameOptionChoice<CardStyle> = {
   value: 0,
   rule: "auto",
   label: "Auto",
-  description: "Mobile cards on a narrow screen, desktop cards on a wide one.",
+  description:
+    "Mobile cards on a phone, upright or on its side; desktop cards on a larger screen.",
 };
 
 /**
@@ -87,6 +90,45 @@ const CARD_STYLE_CHOICES: readonly GameOptionChoice<CardStyle>[] = [
     label: "Desktop",
     description:
       "The card artwork, with the pips chosen below, on every screen.",
+  },
+];
+
+/** Where an upright phone puts the piles that are not columns, first. */
+const PILES_BELOW: GameOptionChoice<PhonePilePosition> = {
+  value: 0,
+  rule: "bottom",
+  label: "Piles Below",
+  description: "The stock and foundations along the bottom, under your thumb.",
+};
+
+/** The places an upright phone can put the piles, in the order shown. */
+const PHONE_PILE_CHOICES: readonly GameOptionChoice<PhonePilePosition>[] = [
+  PILES_BELOW,
+  {
+    value: 1,
+    rule: "top",
+    label: "Piles Above",
+    description:
+      "The stock and foundations above the columns, as on a larger screen.",
+  },
+];
+
+/** The hand a player starts with. */
+const RIGHT_HAND: GameOptionChoice<Hand> = {
+  value: 0,
+  rule: "right",
+  label: "Right Hand",
+  description: "The table as it is usually laid out.",
+};
+
+/** The hands on offer, in the order shown. */
+const HAND_CHOICES: readonly GameOptionChoice<Hand>[] = [
+  RIGHT_HAND,
+  {
+    value: 1,
+    rule: "left",
+    label: "Left Hand",
+    description: "The table mirrored, with the stock on the other side.",
   },
 ];
 
@@ -119,6 +161,7 @@ export class SettingsDrawerComponent {
   private readonly lifecycle = inject(GameLifecycleService);
 
   protected readonly presentation = inject(PresentationSettingsService);
+  private readonly viewport = inject(ViewportService);
   private readonly docService = inject(GameDocumentationService);
   private readonly bugReport = inject(BugReportService);
 
@@ -143,6 +186,55 @@ export class SettingsDrawerComponent {
       patternClass: "red-pattern",
     },
   ];
+
+  /** Whether the game on the table has grids of its own for a phone. */
+  protected readonly hasPhoneGrids = computed(
+    () => this.catalog.selectedEntry.phoneLayouts !== undefined,
+  );
+
+  /**
+   * Whether to offer where an upright phone puts the piles: on an upright
+   * phone, the only screen it changes, in a game with phone grids.
+   */
+  protected readonly offersPhonePiles = computed(
+    () =>
+      this.hasPhoneGrids() && this.viewport.formFactor() === "phone-portrait",
+  );
+
+  /** Where an upright phone puts the piles, as checked. */
+  protected readonly phonePilesChoice = computed(
+    () =>
+      PHONE_PILE_CHOICES.find(
+        (choice) => choice.rule === this.presentation.phonePiles(),
+      ) ?? PILES_BELOW,
+  );
+
+  /** Where an upright phone puts the piles, offered like a rule. */
+  protected readonly phonePilesOption = computed<
+    GameOptionSpec<PhonePilePosition>
+  >(() => ({
+    id: "phonePiles",
+    label: "Upright Phone Layout",
+    description: this.phonePilesChoice().description,
+    choices: PHONE_PILE_CHOICES,
+    defaultValue: PILES_BELOW.value,
+  }));
+
+  /** The hand the table is laid out for, as checked. */
+  protected readonly handChoice = computed(
+    () =>
+      HAND_CHOICES.find((choice) => choice.rule === this.presentation.hand()) ??
+      RIGHT_HAND,
+  );
+
+  /** The hand the table is laid out for, offered like a rule. */
+  protected readonly handOption = computed<GameOptionSpec<Hand>>(() => ({
+    id: "hand",
+    label: "Layout For",
+    description: this.handChoice().description,
+    choices: HAND_CHOICES,
+    defaultValue: RIGHT_HAND.value,
+  }));
 
   /** The card style that is checked. */
   protected readonly cardStyleChoice = computed(
@@ -234,6 +326,18 @@ export class SettingsDrawerComponent {
    */
   protected chooseRule(optionId: string, value: number): void {
     void this.lifecycle.setRuleOption(optionId, value);
+  }
+
+  /** Puts an upright phone's piles where the option group handed back. */
+  protected choosePhonePiles(value: number): void {
+    const choice = PHONE_PILE_CHOICES.find((pile) => pile.value === value);
+    if (choice) this.presentation.setPhonePiles(choice.rule);
+  }
+
+  /** Lays the table out for the hand the option group handed back. */
+  protected chooseHand(value: number): void {
+    const choice = HAND_CHOICES.find((hand) => hand.value === value);
+    if (choice) this.presentation.setHand(choice.rule);
   }
 
   /** Draws the cards in the style the option group handed back. */

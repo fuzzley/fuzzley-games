@@ -1,5 +1,9 @@
 @use "../../styles" as *;
 
+:host {
+  display: block;
+}
+
 .header-bar {
   @include glass(12px);
   display: flex;
@@ -267,7 +271,7 @@
   }
 }
 
-@include below("tablet") {
+@include compact {
   .header-bar {
     gap: var(--space-2);
     padding: var(--space-2) var(--space-4);
@@ -342,6 +346,130 @@
 
     .value {
       font-size: var(--font-sm);
+    }
+  }
+}
+
+// On a phone held upright the header docks at the bottom, where every action
+// is under the thumb, and the board starts at the top of the screen.
+@include phone-portrait {
+  :host {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
+
+  .header-bar {
+    border-top: 1px solid var(--border-default);
+    border-bottom: none;
+  }
+
+  // Above the bar, rising from the button at its right end.
+  .overflow-menu {
+    top: auto;
+    bottom: calc(var(--header-height) + var(--space-1));
+    transform-origin: bottom right;
+  }
+}
+
+// On a phone on its side the header is a rail down the left edge, which leaves
+// the board the whole height of a short screen. The compact rules above still
+// apply; this turns the bar on its side.
+@include phone-landscape {
+  :host {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+  }
+
+  .header-bar {
+    flex-direction: column;
+    justify-content: space-between;
+    width: var(--rail-width);
+    height: 100%;
+    padding: var(--space-2) 0;
+    border-bottom: none;
+    border-right: 1px solid var(--border-default);
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  // One column of figures rather than a row of cards, labelled for a screen
+  // reader only, as on a narrow phone.
+  .metrics {
+    flex-direction: column;
+    flex: 0 0 auto;
+    gap: 0;
+    width: calc(var(--rail-width) - 2 * var(--space-1));
+    background: var(--wash-subtle);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+  }
+
+  .metric-card {
+    padding: var(--space-1) 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+
+    & + .metric-card {
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .label {
+      @include visually-hidden;
+    }
+
+    .value {
+      font-size: var(--font-xs);
+    }
+  }
+
+  // Beside the rail, rising from the button at its foot.
+  .overflow-menu {
+    top: auto;
+    right: auto;
+    bottom: var(--space-2);
+    left: calc(var(--rail-width) + var(--space-1));
+    transform-origin: bottom left;
+  }
+}
+
+// For a left hand the chrome swaps sides with the stock: the bar on an upright
+// phone runs right to left, and the rail on a sideways one stands at the right.
+@include phone-portrait {
+  :host-context([data-hand="left"]) {
+    .header-bar {
+      flex-direction: row-reverse;
+    }
+
+    .overflow-menu {
+      right: auto;
+      left: var(--space-2);
+      transform-origin: bottom left;
+    }
+  }
+}
+
+@include phone-landscape {
+  :host-context([data-hand="left"]) {
+    right: 0;
+    left: auto;
+
+    .header-bar {
+      border-right: none;
+      border-left: 1px solid var(--border-default);
+    }
+
+    .overflow-menu {
+      right: calc(var(--rail-width) + var(--space-1));
+      left: auto;
+      transform-origin: bottom right;
     }
   }
 }

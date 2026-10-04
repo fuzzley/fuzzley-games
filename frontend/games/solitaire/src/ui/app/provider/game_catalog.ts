@@ -1,5 +1,9 @@
 import { PlayableGame } from "@/engine/tableau/playable_game";
 import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import {
+  BoardLayouts,
+  PhoneLayouts,
+} from "@/engine/render/layout/board_layouts";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
 import {
@@ -7,7 +11,10 @@ import {
   DrawCount,
   KlondikeVariant,
 } from "@/games/klondike/klondike_rules";
-import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
+import {
+  KLONDIKE_LAYOUT,
+  KLONDIKE_PHONE_LAYOUTS,
+} from "@/games/klondike/klondike_layout";
 import {
   KlondikeScoring,
   klondikeScoringPolicy,
@@ -17,7 +24,10 @@ import { FreeCellVariant } from "@/games/freecell/freecell_rules";
 import { FREECELL_LAYOUT } from "@/games/freecell/freecell_layout";
 import { SpiderGame } from "@/games/spider/spider_game";
 import { SpiderSuitCount, spiderDeck } from "@/games/spider/spider_deal";
-import { SPIDER_LAYOUT } from "@/games/spider/spider_layout";
+import {
+  SPIDER_LAYOUT,
+  SPIDER_PHONE_LAYOUTS,
+} from "@/games/spider/spider_layout";
 import { YukonGame } from "@/games/yukon/yukon_game";
 import { YukonVariant } from "@/games/yukon/yukon_rules";
 import { YUKON_LAYOUT } from "@/games/yukon/yukon_layout";
@@ -210,6 +220,11 @@ export interface CatalogEntry<TGame extends PlayableGame = PlayableGame> {
   readonly options: readonly GameOptionSpec[];
   /** The grid this game's board lies on, renderer-agnostic. */
   readonly layout: TableLayoutSpec;
+  /**
+   * The grids this game's board lies on on a phone, upright and on its side;
+   * a game without them lies on {@link layout} everywhere.
+   */
+  readonly phoneLayouts?: PhoneLayouts;
   /** Creates a dealt game playing by the given options. */
   create(values: GameOptionValues): CatalogSession<TGame>;
 }
@@ -846,6 +861,7 @@ const KLONDIKE = {
     KLONDIKE_ALMOST_WIN,
   ],
   layout: KLONDIKE_LAYOUT,
+  phoneLayouts: KLONDIKE_PHONE_LAYOUTS,
   create: (values: GameOptionValues) =>
     dealt(
       new KlondikeGame({
@@ -870,6 +886,7 @@ const SPIDER = {
   name: "Spider",
   options: [SPIDER_SUIT_COUNT],
   layout: SPIDER_LAYOUT,
+  phoneLayouts: SPIDER_PHONE_LAYOUTS,
   create: (values: GameOptionValues) =>
     dealt(
       new SpiderGame({
@@ -1382,6 +1399,11 @@ export function storedValues(
 }
 
 /** Returns the catalog entry with the given id, or the first one. */
+/** Returns every grid a catalog entry's board may lie on. */
+export function boardLayoutsOf(entry: CatalogEntry): BoardLayouts {
+  return { roomy: entry.layout, phone: entry.phoneLayouts };
+}
+
 export function catalogEntry(id: string | null | undefined): CatalogEntry {
   return GAME_CATALOG.find((entry) => entry.id === id) ?? CATALOG_ENTRIES[0];
 }

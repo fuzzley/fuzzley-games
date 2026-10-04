@@ -19,15 +19,24 @@ export interface SkeletonSlot {
  *
  * Positioned rather than laid out on a CSS grid, because a slot may sit at a
  * fractional column or row, as a pyramid's half-offset rows do, and a grid
- * line cannot be fractional.
+ * line cannot be fractional. A row anchored to the bottom is counted up from
+ * the last.
  */
 export function skeletonSlots(layout: TableLayoutSpec): SkeletonSlot[] {
   const share = (value: number, of: number) => `${(value / of) * 100}%`;
-  return layout.slots.map((slot) => ({
-    pileId: slot.pileId,
-    left: share(slot.column, layout.columns),
-    top: share(slot.row, layout.rows),
-    width: share(1, layout.columns),
-    height: share(1, layout.rows),
-  }));
+  const { cardSize, gap } = layout;
+  return layout.slots.map((slot) => {
+    // An offset is in design units; the skeleton counts in grid cells.
+    const offsetColumns = (slot.offset?.x ?? 0) / (cardSize.width + gap.x);
+    const offsetRows = (slot.offset?.y ?? 0) / (cardSize.height + gap.y);
+    const row =
+      slot.anchor === "bottom" ? layout.rows - 1 - slot.row : slot.row;
+    return {
+      pileId: slot.pileId,
+      left: share(slot.column + offsetColumns, layout.columns),
+      top: share(row + offsetRows, layout.rows),
+      width: share(1, layout.columns),
+      height: share(1, layout.rows),
+    };
+  });
 }

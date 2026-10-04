@@ -80,7 +80,8 @@ export const STACKED_PILE_LAYOUT: PileLayout = { kind: "stacked" };
  */
 export function wastePileLayout(drawCount: number): PileLayout {
   return {
-    kind: "fan-right",
+    kind: "spread",
+    direction: "right",
     gap: WASTE_FAN_OFFSET_X,
     maxVisible: drawCount === 1 ? 1 : WASTE_MAX_FAN_CARDS,
   };

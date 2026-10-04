@@ -150,7 +150,7 @@
 
 // A phone shows the preview as a page of its own: a full-width picture, and
 // buttons that share the footer, clear of the home indicator.
-@include below("tablet") {
+@include compact {
   .preview {
     padding: var(--space-4) var(--space-4) 0;
   }

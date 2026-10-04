@@ -1,5 +1,5 @@
 import { Point } from "@/engine/core/common/point";
-import { Viewport } from "../view/table_view_state";
+import { Insets, NO_INSETS, Viewport } from "../view/table_view_state";
 import {
   CARD_HEIGHT_PX,
   CARD_WIDTH_PX,
@@ -8,6 +8,8 @@ import {
   LAYOUT_PADDING_X,
   LAYOUT_PADDING_Y,
 } from "./card_metrics";
+import type { FanFit, PileLayoutOverride } from "./pile_layout";
+import { formFactorOf } from "./form_factor";
 
 /** Holds a width and height in design units. */
 export interface Size {
@@ -21,8 +23,18 @@ export interface SlotPlacement {
   readonly pileId: string;
   /** Zero-based column, counting from the left. */
   readonly column: number;
-  /** Zero-based row, counting from the top. */
+  /** Zero-based row, counting from the edge the slot is anchored to. */
   readonly row: number;
+  /**
+   * The edge the row counts from: the top by default, or the bottom, where row
+   * 0 sits on the board's bottom edge however tall the screen is.
+   */
+  readonly anchor?: "top" | "bottom";
+  /**
+   * How far the pile sits from its grid cell, in design units, for piles that
+   * overlap their neighbours down a rail or along a row.
+   */
+  readonly offset?: Point;
 }
 
 /** Describes a board as a grid of card-sized slots for a game's piles. */
@@ -49,6 +61,24 @@ export interface TableLayoutSpec {
    * column runs off the bottom of the screen.
    */
   readonly designHeightPx?: number;
+
+  /**
+   * How far each downward fan may open or close to fit the room below its
+   * pile; fans keep their own gaps when omitted.
+   */
+  readonly fanFit?: FanFit;
+
+  /**
+   * How particular piles arrange their cards on this grid, keyed by pile id,
+   * each worked out from the arrangement its zone would otherwise use.
+   */
+  readonly pileLayouts?: Readonly<Record<string, PileLayoutOverride>>;
+
+  /**
+   * Whether this grid is another's mirror image, which turns every sideways
+   * spread around.
+   */
+  readonly mirrored?: boolean;
 }
 
 /** Describes what distinguishes one board's grid from another's. */
@@ -61,6 +91,14 @@ export interface TableGridSpec {
   readonly slots: readonly SlotPlacement[];
   /** The design height the board reserves; see {@link TableLayoutSpec}. */
   readonly designHeightPx?: number;
+  /** Space between columns and rows, if not the gap every board shares. */
+  readonly gap?: Point;
+  /** Space at the board's edges, if not the padding every board shares. */
+  readonly padding?: Point;
+  /** How fans fit their room; see {@link TableLayoutSpec}. */
+  readonly fanFit?: FanFit;
+  /** How particular piles arrange their cards; see {@link TableLayoutSpec}. */
+  readonly pileLayouts?: Readonly<Record<string, PileLayoutOverride>>;
 }
 
 /** Completes a board's grid with the measurements every board shares. */
@@ -70,9 +108,11 @@ export function tableLayout(grid: TableGridSpec): TableLayoutSpec {
     rows: grid.rows,
     slots: grid.slots,
     cardSize: { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX },
-    gap: { x: LAYOUT_GAP_X, y: LAYOUT_GAP_Y },
-    padding: { x: LAYOUT_PADDING_X, y: LAYOUT_PADDING_Y },
+    gap: grid.gap ?? { x: LAYOUT_GAP_X, y: LAYOUT_GAP_Y },
+    padding: grid.padding ?? { x: LAYOUT_PADDING_X, y: LAYOUT_PADDING_Y },
     designHeightPx: grid.designHeightPx,
+    fanFit: grid.fanFit,
+    pileLayouts: grid.pileLayouts,
   };
 }
 
@@ -91,7 +131,7 @@ export function designSize(spec: TableLayoutSpec): Size {
 
 /**
  * Computes the scale, from design units to device pixels, that fits the board
- * below the viewport's top inset.
+ * inside the viewport's insets.
  *
  * It is capped at the pixel ratio rather than at 1, so a high density display
  * draws a design unit with more than one device pixel.
@@ -102,9 +142,12 @@ export function computeScale(
 ): number {
   const design = designSize(spec);
   const pixelRatio = viewport.pixelRatio;
-  const screenWidth = viewport.width || design.width * pixelRatio;
+  const insets = insetsPx(viewport);
+  const screenWidth = viewport.width
+    ? viewport.width - insets.left - insets.right
+    : design.width * pixelRatio;
   const screenHeight = viewport.height
-    ? viewport.height - insetTopPx(viewport)
+    ? viewport.height - insets.top - insets.bottom
     : design.height * pixelRatio;
 
   const scaleX = screenWidth / design.width;
@@ -115,14 +158,6 @@ export function computeScale(
   return scale;
 }
 
-/**
- * The screen width, in CSS pixels, below which a board tightens its gaps to
- * give its cards more room, and the shell compacts its chrome.
- *
- * Mirrors the `tablet` breakpoint in `src/ui/app/styles/_breakpoints.scss`.
- */
-export const COMPACT_MAX_WIDTH_CSS_PX = 720;
-
 /** Space between piles on a small screen, in design units. */
 const COMPACT_GAP = { x: 8, y: 14 };
 
@@ -130,17 +165,14 @@ const COMPACT_GAP = { x: 8, y: 14 };
 const COMPACT_PADDING = { x: 8, y: 14 };
 
 /**
- * Returns the board with its gaps and padding tightened for a small screen, or
- * unchanged on a larger one.
+ * Returns the board with its gaps and padding tightened for a compact screen,
+ * a phone upright or on its side, or unchanged on a roomy one.
  */
 export function compactFor(
   spec: TableLayoutSpec,
   viewport: Viewport,
 ): TableLayoutSpec {
-  const cssWidth = viewport.width / (viewport.pixelRatio || 1);
-  if (cssWidth === 0 || cssWidth >= COMPACT_MAX_WIDTH_CSS_PX) {
-    return spec;
-  }
+  if (formFactorOf(viewport) === "roomy") return spec;
   // Never loosen a board that is already tighter than this.
   return {
     ...spec,
@@ -163,6 +195,11 @@ export interface TableMetrics {
   readonly scale: number;
   /** Where each pile's top-left corner sits, in screen pixels. */
   readonly origins: ReadonlyMap<string, Point>;
+  /**
+   * How far each pile's cards may reach below its origin, in design units,
+   * before they meet the board's bottom edge or the pile below.
+   */
+  readonly rooms: ReadonlyMap<string, number>;
 }
 
 /** Measures a board for a viewport, compacting it first on a small screen. */
@@ -172,10 +209,12 @@ export function measureTable(
 ): TableMetrics {
   const layout = compactFor(rawLayout, viewport);
   const scale = computeScale(layout, viewport);
+  const origins = computePileOrigins(layout, viewport, scale);
   return {
     layout,
     scale,
-    origins: computePileOrigins(layout, viewport, scale),
+    origins,
+    rooms: computePileRooms(layout, viewport, scale, origins),
   };
 }
 
@@ -195,32 +234,104 @@ export function computePileOrigins(
   const gapX = spec.gap.x * scale;
   const gapY = spec.gap.y * scale;
 
+  const insets = insetsPx(viewport);
   const totalLayoutWidth =
     spec.columns * cardWidth + Math.max(0, spec.columns - 1) * gapX;
-  const screenWidth = viewport.width || designSize(spec).width;
+  const screenWidth = viewport.width
+    ? viewport.width - insets.left - insets.right
+    : designSize(spec).width;
   const paddingX = Math.max(
     spec.padding.x * scale,
     (screenWidth - totalLayoutWidth) / 2,
   );
   const paddingY = spec.padding.y * scale;
-  const top = insetTopPx(viewport);
+  const bottom = boardBottomPx(spec, viewport, scale);
 
   const origins = new Map<string, Point>();
   for (const slot of spec.slots) {
+    const rowOffset = slot.row * (cardHeight + gapY);
     origins.set(slot.pileId, {
-      x: paddingX + slot.column * (cardWidth + gapX),
-      y: top + paddingY + slot.row * (cardHeight + gapY),
+      x:
+        insets.left +
+        paddingX +
+        slot.column * (cardWidth + gapX) +
+        (slot.offset?.x ?? 0) * scale,
+      y:
+        (slot.anchor === "bottom"
+          ? bottom - paddingY - cardHeight - rowOffset
+          : insets.top + paddingY + rowOffset) +
+        (slot.offset?.y ?? 0) * scale,
     });
   }
   return origins;
 }
 
 /**
- * Returns the viewport's top inset in device pixels.
+ * Computes how far each pile's cards may reach below its origin, in design
+ * units: to the board's bottom edge, less its padding, or to a gap above the
+ * nearest pile below it.
  *
- * Converted by the pixel ratio rather than by the layout scale, because it is
- * a measurement of the DOM laid over the canvas, not of the board.
+ * A pile below counts if it shares the column, or if it is anchored to the
+ * bottom edge, since a pile there may spread beyond its own column.
+ *
+ * @param origins The origins from {@link computePileOrigins}.
  */
-function insetTopPx(viewport: Viewport): number {
-  return (viewport.insetTop ?? 0) * viewport.pixelRatio;
+export function computePileRooms(
+  spec: TableLayoutSpec,
+  viewport: Viewport,
+  scale: number,
+  origins: ReadonlyMap<string, Point>,
+): Map<string, number> {
+  const cardWidth = spec.cardSize.width * scale;
+  const floor = boardBottomPx(spec, viewport, scale) - spec.padding.y * scale;
+
+  const rooms = new Map<string, number>();
+  for (const slot of spec.slots) {
+    const origin = origins.get(slot.pileId);
+    if (!origin) continue;
+
+    let limit = floor;
+    for (const other of spec.slots) {
+      const below = origins.get(other.pileId);
+      if (!below || other === slot || below.y <= origin.y) continue;
+      const shares =
+        other.anchor === "bottom" || Math.abs(below.x - origin.x) < cardWidth;
+      if (shares) limit = Math.min(limit, below.y - spec.gap.y * scale);
+    }
+    rooms.set(slot.pileId, Math.max(0, (limit - origin.y) / scale));
+  }
+  return rooms;
+}
+
+/**
+ * Returns where the board's bottom edge is, in device pixels: above the bottom
+ * inset, or the board's design height below the top inset before the canvas
+ * has been measured.
+ */
+function boardBottomPx(
+  spec: TableLayoutSpec,
+  viewport: Viewport,
+  scale: number,
+): number {
+  const insets = insetsPx(viewport);
+  return viewport.height
+    ? viewport.height - insets.bottom
+    : insets.top + designSize(spec).height * scale;
+}
+
+/**
+ * Returns the viewport's insets in device pixels.
+ *
+ * Converted by the pixel ratio rather than by the layout scale, because they
+ * are a measurement of the DOM laid over the canvas, not of the board.
+ */
+function insetsPx(viewport: Viewport): Insets {
+  const insets = viewport.insets ?? NO_INSETS;
+  const ratio = viewport.pixelRatio;
+  return {
+    top: insets.top * ratio,
+    right: insets.right * ratio,
+    bottom: insets.bottom * ratio,
+    left: insets.left * ratio,
+  };
 }

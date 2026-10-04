@@ -14,6 +14,8 @@ interface StartedHost {
   destroyed: boolean;
   /** How many boards it has been shown. */
   boardsShown: number;
+  /** How many times it has been asked to read the chrome's insets again. */
+  insetsRefreshed: number;
 }
 
 /**
@@ -51,13 +53,22 @@ vi.mock("@/engine/render/phaser/phaser_host", () => ({
     private readonly record: StartedHost;
 
     constructor(_window: Window, parent: HTMLElement) {
-      this.record = { parent, destroyed: false, boardsShown: 0 };
+      this.record = {
+        parent,
+        destroyed: false,
+        boardsShown: 0,
+        insetsRefreshed: 0,
+      };
       started.push(this.record);
     }
 
-    show(makeBoardScene: (surroundings: { insetTop: () => number }) => void) {
+    show(makeBoardScene: (surroundings: { insets: () => unknown }) => void) {
       this.record.boardsShown++;
-      makeBoardScene({ insetTop: () => 0 });
+      makeBoardScene({ insets: () => undefined });
+    }
+
+    refreshInsets() {
+      this.record.insetsRefreshed++;
     }
 
     destroy() {
@@ -132,6 +143,17 @@ describe("GameCanvasComponent", () => {
           boardsShown,
         })),
       ).toEqual([{ destroyed: false, boardsShown: 2 }]);
+    });
+
+    it("reads the chrome's insets again when the player changes hand", async () => {
+      const before = started[0].insetsRefreshed;
+
+      TestBed.inject(PresentationSettingsService).setHand("left");
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      // The rail on a sideways phone moves to the other edge without a resize.
+      expect(started[0].insetsRefreshed).toBeGreaterThan(before);
     });
 
     it("keeps the board when the player chooses another deck", () => {
