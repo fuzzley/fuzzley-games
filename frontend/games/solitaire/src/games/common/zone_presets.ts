@@ -19,6 +19,19 @@ export const PLAIN_PLACEHOLDER = "card-placeholder";
 /** The circled placeholder that marks a foundation. */
 export const FOUNDATION_PLACEHOLDER = "card-placeholder-full-border-circle";
 
+/**
+ * The foundation's mark at its top edge, with the outline open at the bottom,
+ * for a foundation down a phone's rail that the next pile starts within.
+ */
+export const COVERED_FOUNDATION_PLACEHOLDER = "card-placeholder-top-circle";
+
+/**
+ * The foundation's mark at its top edge, for a foundation down a phone's rail
+ * that no pile below it covers.
+ */
+export const RAIL_FOUNDATION_PLACEHOLDER =
+  "card-placeholder-full-border-top-circle";
+
 /** The placeholder with a recycle arrow, for a stock that comes round again. */
 export const RECYCLING_STOCK_PLACEHOLDER = "card-placeholder-full-border-reset";
 

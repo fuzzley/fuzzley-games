@@ -278,7 +278,9 @@ the right.
 ### Not in this work
 
 - **A foundation placeholder made for phone grids** (the owner asked for this
-  follow-up after review). The circled foundation placeholder,
+  follow-up after review; planned and done in
+  [rail-foundation-placeholder.md](rail-foundation-placeholder.md)). The
+  circled foundation placeholder,
   `card-placeholder-full-border-circle` (`FOUNDATION_PLACEHOLDER` in
   `src/games/common/zone_presets.ts`), draws a large ring across the middle of
   the card. On the phone grids foundations sit close together: overlapped down a

@@ -1,16 +1,26 @@
+import { itemAt } from "@/engine/core/common/item_at";
 import { PhoneLayouts } from "@/engine/render/layout/board_layouts";
-import { CARD_HEIGHT_PX } from "@/engine/render/layout/card_metrics";
+import {
+  CARD_HEIGHT_PX,
+  CARD_RENDER_HEIGHT_PX,
+} from "@/engine/render/layout/card_metrics";
 import {
   PileLayoutOverride,
   mirrorPileLayout,
 } from "@/engine/render/layout/pile_layout";
 import {
+  PileBackgroundOverride,
   SlotPlacement,
   TableLayoutSpec,
   tableLayout,
 } from "@/engine/render/layout/table_layout";
 import { ZoneSpec } from "@/engine/tableau/zone";
 import { PHONE_FAN_FIT, TABLEAU_HOVER_EXPANSION_OFFSET } from "./pile_layouts";
+import {
+  COVERED_FOUNDATION_PLACEHOLDER,
+  FOUNDATION_PLACEHOLDER,
+  RAIL_FOUNDATION_PLACEHOLDER,
+} from "./zone_presets";
 
 /**
  * Builds the grids a game's board lies on on a phone from a short account of
@@ -39,7 +49,8 @@ export interface RailPile {
   readonly spreadsDown?: boolean;
   /**
    * Whether the pile below may cover all but this pile's index strip when the
-   * rail is short of room, as it may a foundation's.
+   * rail is short of room, as it may a foundation's. A foundation's ring then
+   * moves to the top edge, the part of it that shows.
    */
   readonly overlapped?: boolean;
 }
@@ -194,18 +205,20 @@ function pilesBeside(board: PhoneBoard, columnHeight: number): TableLayoutSpec {
       .filter((pile) => pile.spreadsDown)
       .map((pile) => pile.pileId),
   );
+  const leftSlots = railSlots(left, 0, innerHeight);
+  const rightSlots = railSlots(right, columns - 1, innerHeight);
   return phoneGrid({
     columns,
     rows: 1,
-    slots: [
-      ...railSlots(left, 0, innerHeight),
-      ...columnSlots(board, first, 0),
-      ...railSlots(right, columns - 1, innerHeight),
-    ],
+    slots: [...leftSlots, ...columnSlots(board, first, 0), ...rightSlots],
     innerHeight,
     pileLayouts: withOverrides(board.pileLayouts, downward, (own) =>
       own.kind === "spread" ? { ...own, direction: "down" } : own,
     ),
+    pileBackgrounds: {
+      ...railBackgrounds(left, leftSlots),
+      ...railBackgrounds(right, rightSlots),
+    },
   });
 }
 
@@ -217,6 +230,7 @@ interface PhoneGridSpec {
   /** The height the grid keeps on screen inside its padding, in design units. */
   readonly innerHeight: number;
   readonly pileLayouts?: Readonly<Record<string, PileLayoutOverride>>;
+  readonly pileBackgrounds?: Readonly<Record<string, PileBackgroundOverride>>;
 }
 
 /** Completes a phone grid with the gaps, padding and fans every one shares. */
@@ -230,6 +244,7 @@ function phoneGrid(grid: PhoneGridSpec): TableLayoutSpec {
     designHeightPx: grid.innerHeight + 2 * PHONE_PADDING.y,
     fanFit: PHONE_FAN_FIT,
     pileLayouts: grid.pileLayouts,
+    pileBackgrounds: grid.pileBackgrounds,
   });
 }
 
@@ -307,6 +322,39 @@ function railSlots(
     y += pile.overlapped ? Math.min(full, overlapStep) : full;
     return slot;
   });
+}
+
+/**
+ * Returns the placeholders a rail's overlapped piles show instead of a
+ * foundation's centred ring, which would run across the piles below: the ring
+ * at the top edge, and the outline open at the bottom when the next pile
+ * starts within the card, so that pile's top edge closes it.
+ */
+function railBackgrounds(
+  rail: readonly RailPile[],
+  slots: readonly SlotPlacement[],
+): Record<string, PileBackgroundOverride> {
+  const backgrounds: Record<string, PileBackgroundOverride> = {};
+  for (const [index, slot] of slots.entries()) {
+    if (!itemAt(rail, index).overlapped) continue;
+    const next = slots[index + 1];
+    const covered =
+      next !== undefined && topOf(next) - topOf(slot) < CARD_RENDER_HEIGHT_PX;
+    backgrounds[slot.pileId] = foundationAs(
+      covered ? COVERED_FOUNDATION_PLACEHOLDER : RAIL_FOUNDATION_PLACEHOLDER,
+    );
+  }
+  return backgrounds;
+}
+
+/** Returns how far down its rail a slot starts, in design units. */
+function topOf(slot: SlotPlacement): number {
+  return slot.offset?.y ?? 0;
+}
+
+/** Returns an override that draws a foundation's ring as `artwork`. */
+function foundationAs(artwork: string): PileBackgroundOverride {
+  return (own) => (own === FOUNDATION_PLACEHOLDER ? artwork : own);
 }
 
 /**

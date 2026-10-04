@@ -37,6 +37,12 @@ export interface SlotPlacement {
   readonly offset?: Point;
 }
 
+/**
+ * Returns the artwork a pile's placeholder shows on a grid, given the artwork
+ * its game asks for.
+ */
+export type PileBackgroundOverride = (artwork: string) => string;
+
 /** Describes a board as a grid of card-sized slots for a game's piles. */
 export interface TableLayoutSpec {
   /** How many card-widths across the grid is. */
@@ -75,6 +81,12 @@ export interface TableLayoutSpec {
   readonly pileLayouts?: Readonly<Record<string, PileLayoutOverride>>;
 
   /**
+   * Which artwork particular piles' placeholders show on this grid, keyed by
+   * pile id, each worked out from the artwork the game asks for.
+   */
+  readonly pileBackgrounds?: Readonly<Record<string, PileBackgroundOverride>>;
+
+  /**
    * Whether this grid is another's mirror image, which turns every sideways
    * spread around.
    */
@@ -99,6 +111,8 @@ export interface TableGridSpec {
   readonly fanFit?: FanFit;
   /** How particular piles arrange their cards; see {@link TableLayoutSpec}. */
   readonly pileLayouts?: Readonly<Record<string, PileLayoutOverride>>;
+  /** Which artwork particular piles' placeholders show; see {@link TableLayoutSpec}. */
+  readonly pileBackgrounds?: Readonly<Record<string, PileBackgroundOverride>>;
 }
 
 /** Completes a board's grid with the measurements every board shares. */
@@ -113,6 +127,7 @@ export function tableLayout(grid: TableGridSpec): TableLayoutSpec {
     designHeightPx: grid.designHeightPx,
     fanFit: grid.fanFit,
     pileLayouts: grid.pileLayouts,
+    pileBackgrounds: grid.pileBackgrounds,
   };
 }
 
