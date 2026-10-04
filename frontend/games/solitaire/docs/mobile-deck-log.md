@@ -240,6 +240,40 @@ gone, the ranks no longer carry a `court` flag, and the panel's colour is
 `COLORS.panel`, checked for contrast as before. The strips are unchanged. The
 1x page grew from 332 KB to 423 KB, still about a quarter of an artwork deck's.
 
+### R3 Card style: auto, mobile or desktop
+
+The owner asked to stop offering the mobile deck as a fourth deck. Instead:
+a card style, **Auto**, **Mobile** or **Desktop**, and below it the desktop
+decks (Classic, Corner Pips, All Corner Pips) as the choice of pips for desktop
+cards. Auto is the default and follows the screen as it changes. This replaces
+decision 1: a phone no longer stores the mobile deck as a first visit's
+choice, and Auto swaps decks under the player by design.
+
+Decided while planning:
+
+- **Auto follows the compact breakpoint**, the 720 CSS px width below which
+  the layout compacts (`ViewportService.isCompact`), so it switches live as a
+  window is resized or a phone turned.
+- **What is stored:** `cardStyle` and `desktopCardDeck`. A `cardDeck` stored
+  by an earlier build becomes the desktop deck when it names one; a stored
+  `mobile`, which only this branch ever wrote, is dropped.
+- **A deck that fails to load** leaves the board on the deck it is drawing for
+  as long as the failed one is wanted, and says so under the decks. The
+  player's choices stay as they made them, and choosing again retries. Until
+  now a failure put the choice back, which Auto cannot do.
+- **The mobile deck is called "Mobile"** where it is still named: the loading
+  badge and that failure line.
+
+Steps:
+
+- [ ] R3.1 `card_deck.ts` tells desktop decks from the mobile deck; the
+      service holds the style and the desktop deck, and works out the deck the
+      board draws.
+- [ ] R3.2 The drawer: a segmented Auto / Mobile / Desktop control, then the
+      desktop decks.
+- [ ] R3.3 Specs, a phone-sized and a desktop-sized check in Chrome, and
+      `yarn verify`.
+
 ## Follow-ups
 
 - Decide whether the compact layout should open the fans wider. The index now
