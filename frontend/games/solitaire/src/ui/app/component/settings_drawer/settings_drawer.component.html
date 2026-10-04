@@ -25,9 +25,30 @@
       <!-- Whatever rules the game on the table lets a player choose -->
       @for (option of catalog.ruleOptions(); track option.id) {
         <app-option-group
+          class="rule"
           [option]="option"
           [value]="catalog.optionValues()[option.id]"
           (choose)="chooseRule(option.id, $event)"
+        />
+      }
+
+      <!-- Where an upright phone puts the piles, in a game laid out for one -->
+      @if (offersPhonePiles()) {
+        <app-option-group
+          class="phone-piles"
+          [option]="phonePilesOption()"
+          [value]="phonePilesChoice().value"
+          (choose)="choosePhonePiles($event)"
+        />
+      }
+
+      <!-- The hand, in a game laid out for a phone, which can be mirrored -->
+      @if (hasPhoneGrids()) {
+        <app-option-group
+          class="hand"
+          [option]="handOption()"
+          [value]="handChoice().value"
+          (choose)="chooseHand($event)"
         />
       }
 
