@@ -21,9 +21,8 @@ import {
   measureTable,
 } from "../layout/table_layout";
 import { CardArtScale, cardArtScaleFor } from "../layout/card_metrics";
-import { CardDeckId } from "../card_deck";
 import { Subscribe } from "@/engine/core/common/event_emitter";
-import { CardDeckStatus } from "../presentation";
+import { CardDeckStatus, TablePresentation } from "../presentation";
 import {
   CardAtlas,
   cardAtlasTextureKey,
@@ -61,19 +60,13 @@ export interface BoardSceneOptions {
   readonly handleIntent: IntentHandler;
   /** The cards that travel with the one being dragged. */
   readonly stackFromCard: StackFromCard;
-  /** The artwork key for the back of a card, read when a sprite is made. */
-  readonly cardBackKey: () => string;
   /**
-   * The deck the player has chosen, which the scene boots on if it is loaded
-   * and loads first if no deck is.
+   * How the player has asked the table to look: the card back, read when a
+   * sprite is made; the deck, which the scene boots on if it is loaded and
+   * loads first if no deck is; and the table colour. The scene reports back
+   * which deck it is drawing.
    */
-  readonly cardDeckId: () => CardDeckId;
-  /** Follows the table colour. */
-  readonly onBackgroundColor: Subscribe<string>;
-  /** Follows the deck the player has chosen. */
-  readonly onCardDeck: Subscribe<CardDeckId>;
-  /** Reports which deck the board is drawing, or that it cannot draw one. */
-  readonly reportCardDeckStatus: (status: CardDeckStatus) => void;
+  readonly presentation: TablePresentation;
   /** Follows new deals, so stale interaction state does not survive one. */
   readonly onReset: Subscribe<void>;
   /**
@@ -147,7 +140,7 @@ export class BoardScene extends Scene implements PhaserSprites {
   /** Returns the chosen deck at the density the board's size calls for. */
   private wantedAtlas(): CardAtlas {
     return {
-      deckId: this.options.cardDeckId(),
+      deckId: this.options.presentation.cardDeckId(),
       artScale: this.wantedArtScale(),
     };
   }
@@ -223,7 +216,7 @@ export class BoardScene extends Scene implements PhaserSprites {
     this.viewApplier = new PhaserTableRenderer(this);
     this.visualFactory = new PhaserCardFactory(
       this,
-      this.options.cardBackKey,
+      () => this.options.presentation.cardBackKey(),
       () => cardAtlasTextureKey(this.deckLoader.atlas),
       () => this.deckLoader.atlas.artScale,
     );
@@ -252,7 +245,7 @@ export class BoardScene extends Scene implements PhaserSprites {
    */
   private followTheModel(): void {
     const stopFollowing = [
-      this.options.onBackgroundColor((color) => {
+      this.options.presentation.onBackgroundColor((color) => {
         this.cameras?.main?.setBackgroundColor(color);
       }),
       this.options.onReset(() => {
@@ -261,7 +254,7 @@ export class BoardScene extends Scene implements PhaserSprites {
       this.options.onCardsRelocated((cardIds) => {
         this.controller.beginFlight(cardIds);
       }),
-      this.options.onCardDeck((deckId) => {
+      this.options.presentation.onCardDeck((deckId) => {
         this.deckLoader.use(deckId);
       }),
     ];
@@ -347,7 +340,7 @@ export class BoardScene extends Scene implements PhaserSprites {
 
   /** Says how the deck the player asked for is getting on. */
   public reportCardDeckStatus(status: CardDeckStatus): void {
-    this.options.reportCardDeckStatus(status);
+    this.options.presentation.reportCardDeckStatus(status);
   }
 
   /** Redraws the shadow at the density the cards are now drawn at. */

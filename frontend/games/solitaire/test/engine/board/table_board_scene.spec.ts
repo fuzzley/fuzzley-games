@@ -10,7 +10,7 @@ import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
 import { designSize, measureTable } from "@/engine/render/layout/table_layout";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { cardAtlasTextureKey } from "@/engine/render/phaser/card_deck_atlas";
-import { makeTableBoardScene } from "@/games/common/board_scene_factory";
+import { makeTableBoardScene } from "@/engine/board/table_board_scene";
 import {
   FAKE_TABLE_LAYOUT,
   fakeTableGestures,

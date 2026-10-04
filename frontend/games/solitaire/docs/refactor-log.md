@@ -118,7 +118,7 @@ The review's findings, grouped into phases. Each phase leaves the tree green.
 - [x] 3.1 Pile markers
 - [x] 3.2 Rules attached directly; column rule helper
 - [x] 3.3 Deck construction and dealing helpers
-- [ ] 4.1 `engine/board` tier and fixture copies deleted
+- [x] 4.1 `engine/board` tier and fixture copies deleted
 - [ ] 4.2 Read-only piles
 - [x] 5.1 `Tabletop` split out of `TableGame` (done before 2.3; see log)
 - [ ] 5.2 Header inset from the shell
@@ -330,3 +330,22 @@ dealsFaceUp? }`, in `deck_source.ts`) and builds the registry and the
   - Specs that call a deal function directly deal onto `TestTabletop`, which
     gained `deal(cards)`.
   - The `add-solitaire-game` skill documents `Deal` and the deck options.
+- **refactor: give the board factory a tier of its own, engine/board.**
+  - `src/games/common/board_scene_factory.ts` →
+    `src/engine/board/table_board_scene.ts` (`makeTableBoardScene`), and its
+    spec → `test/engine/board/table_board_scene.spec.ts`.
+  - `src/games/common/table_gestures.ts` → `src/engine/tableau/table_gestures.ts`.
+    Its spec moved to `test/engine/tableau` and now plays on the fake table
+    instead of FreeCell, since engine specs may not name a game.
+  - `BoardSceneOptions` takes `presentation: TablePresentation` whole instead
+    of five callbacks copied from it.
+  - The fake table's duplicates are gone: `makeFakeTableBoardScene` calls
+    `makeTableBoardScene`, and `fakeTableGestures` is built from
+    `tableGestures` and `drawOnStockTop`.
+  - `eslint.config.cjs`: `engine/board` may import every engine tier and
+    Phaser, nothing above; no lower tier may import it. Games may no longer
+    import Phaser, the Phaser adapter or `engine/board` (nothing in
+    `src/games` did after the move). A probe file confirmed both new rules
+    fire.
+  - `AGENTS.md` (tier diagram, layer list, lint table) and the
+    `add-solitaire-game` and `phaser-core` skills describe the new tier.

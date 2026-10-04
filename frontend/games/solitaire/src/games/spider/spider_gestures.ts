@@ -1,5 +1,8 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { dealOnStockPress, tableGestures } from "@/games/common/table_gestures";
+import {
+  dealOnStockPress,
+  tableGestures,
+} from "@/engine/tableau/table_gestures";
 import { SpiderGame } from "./spider_game";
 import { SpiderRole } from "./spider_zones";
 

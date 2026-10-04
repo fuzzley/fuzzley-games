@@ -12,6 +12,7 @@ import {
   TableViewState,
   Viewport,
 } from "@/engine/render/view/table_view_state";
+import { drawOnStockTop, tableGestures } from "@/engine/tableau/table_gestures";
 import { stackFromCard } from "@/engine/tableau/view/grabbable_stack";
 import {
   buildTableViewState,
@@ -68,46 +69,17 @@ export function resolveFakeTableDropTarget(
  * stock draws and pressing it empty recycles.
  */
 export function fakeTableGestures(game: FakeTableGame): IntentHandler {
-  return (intent) => {
-    switch (intent.kind) {
-      case "activate": {
-        const pile = game.getPileContainingCard(intent.cardId);
-        if (!pile) {
-          throw new Error(`Card ${intent.cardId} is not in a pile`);
-        }
-        if (
-          pile.role === FakeRole.STOCK &&
-          pile.topCard?.id === intent.cardId
-        ) {
-          game.drawCardsFromStock();
-        }
-        return;
+  return tableGestures(game, {
+    onCardPress: drawOnStockTop(FakeRole.STOCK, () =>
+      game.drawCardsFromStock(),
+    ),
+    onPilePress: (pileId) => {
+      if (pileId === game.stock.id && game.stock.isEmpty) {
+        game.drawCardsFromStock();
       }
-
-      case "activate-secondary": {
-        const pile = game.getPileContainingCard(intent.cardId);
-        if (pile?.role === FakeRole.TABLEAU || pile?.role === FakeRole.WASTE) {
-          game.autoMoveCard(intent.cardId);
-        }
-        return;
-      }
-
-      case "activate-pile": {
-        if (intent.pileId === game.stock.id && game.stock.isEmpty) {
-          game.drawCardsFromStock();
-        }
-        return;
-      }
-
-      case "drop": {
-        const [primaryCardId] = intent.cardIds;
-        if (intent.targetPileId && primaryCardId) {
-          game.moveCardToPile(primaryCardId, intent.targetPileId);
-        }
-        return;
-      }
-    }
-  };
+    },
+    autoMoveFrom: [FakeRole.TABLEAU, FakeRole.WASTE],
+  });
 }
 
 /** Returns the cards a drag of the given card picks up. */
