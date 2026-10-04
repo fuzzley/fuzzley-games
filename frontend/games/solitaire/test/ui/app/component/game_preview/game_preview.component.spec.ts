@@ -4,7 +4,7 @@ import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { GamePreviewComponent } from "@/ui/app/component/game_preview/game_preview.component";
 import type { GameBrowserItem } from "@/ui/app/model/game_browser_item";
 import { Difficulty } from "@/ui/app/model/game_profile.model";
-import { queryAll, queryRequired } from "@test/support/dom";
+import { query, queryAll, queryRequired } from "@test/support/dom";
 
 /** Spider, whose number of suits decides its difficulty. */
 const SPIDER: GameBrowserItem = {
@@ -83,5 +83,95 @@ describe("GamePreviewComponent", () => {
     expect(queryRequired(fixture, ".btn-play").textContent?.trim()).toBe(
       "Play Spider",
     );
+  });
+
+  describe("the board's picture", () => {
+    /** Fires an image event on the board's picture and renders the result. */
+    function resolveImage(
+      fixture: ComponentFixture<GamePreviewComponent>,
+      type: "load" | "error",
+    ): void {
+      queryRequired(fixture, ".shot-image").dispatchEvent(new Event(type));
+      fixture.detectChanges();
+    }
+
+    /** Shows another game in the same preview. */
+    function show(
+      fixture: ComponentFixture<GamePreviewComponent>,
+      item: GameBrowserItem,
+    ): void {
+      fixture.componentRef.setInput("item", item);
+      fixture.detectChanges();
+    }
+
+    /** Returns whether the picture is showing. */
+    function isShown(fixture: ComponentFixture<GamePreviewComponent>): boolean {
+      return queryRequired(fixture, ".shot-image").classList.contains("loaded");
+    }
+
+    /** Returns whether a shimmer says the picture is on its way. */
+    function isShimmering(
+      fixture: ComponentFixture<GamePreviewComponent>,
+    ): boolean {
+      return query(fixture, ".skeleton-shimmer") !== null;
+    }
+
+    it("shimmers in its place until it arrives", () => {
+      const fixture = preview(SPIDER);
+
+      expect(isShimmering(fixture)).toBe(true);
+      expect(isShown(fixture)).toBe(false);
+    });
+
+    it("tells a screen reader it is loading", () => {
+      const fixture = preview(SPIDER);
+
+      expect(queryRequired(fixture, ".shot").getAttribute("aria-busy")).toBe(
+        "true",
+      );
+    });
+
+    it("shows once it arrives", () => {
+      const fixture = preview(SPIDER);
+
+      resolveImage(fixture, "load");
+
+      expect(isShown(fixture)).toBe(true);
+      expect(isShimmering(fixture)).toBe(false);
+    });
+
+    it("hides the last game's picture while the next one loads", () => {
+      const fixture = preview(SPIDER);
+      resolveImage(fixture, "load");
+
+      show(fixture, {
+        ...SPIDER,
+        key: "klondike",
+        name: "Klondike",
+        previewUrl: "./test/klondike.webp",
+      });
+
+      expect(isShown(fixture)).toBe(false);
+      expect(isShimmering(fixture)).toBe(true);
+    });
+
+    // The address is unchanged, so the element fires no `load` to wait for.
+    it("stays shown for a game that shares the picture", () => {
+      const fixture = preview(SPIDER);
+      resolveImage(fixture, "load");
+
+      show(fixture, { ...SPIDER, key: "alaska", name: "Alaska" });
+
+      expect(isShown(fixture)).toBe(true);
+    });
+
+    it("stops shimmering when it cannot be loaded", () => {
+      const fixture = preview(SPIDER);
+
+      resolveImage(fixture, "error");
+
+      expect(isShimmering(fixture)).toBe(false);
+      expect(isShown(fixture)).toBe(false);
+    });
   });
 });
