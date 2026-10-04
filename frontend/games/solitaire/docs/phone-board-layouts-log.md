@@ -277,6 +277,23 @@ the right.
 
 ### Not in this work
 
+- **A foundation placeholder made for phone grids** (the owner asked for this
+  follow-up after review). The circled foundation placeholder,
+  `card-placeholder-full-border-circle` (`FOUNDATION_PLACEHOLDER` in
+  `src/games/common/zone_presets.ts`), draws a large ring across the middle of
+  the card. On the phone grids foundations sit close together: overlapped down a
+  rail on a sideways phone (Klondike's left rail, Spider's right one), and a
+  phone gap apart along the bottom of an upright one. So each ring runs under
+  the next placeholder, and the empty piles read as a tangle of outlines (open
+  question 2 under 3.4). Refine the art so an empty foundation does not overlap
+  its neighbours as much there, and reads from the strip of it that shows: for
+  example, a smaller mark near the top edge instead of a centred ring. The
+  placeholders are cut from
+  `src/engine/render/assets/sprites/card/card_placeholders.svg` by
+  `yarn build:atlas`. About twenty games and every larger screen use the current
+  frame, so the refined one is best added as a new frame that a phone grid asks
+  for, with a per-pile placeholder override on the grid beside `pileLayouts`,
+  rather than by redrawing the shared one.
 - Phone grids for the other games (the follow-up the owner asked for).
 - Fitted fans on the grids for larger screens, where long columns can also run
   off the bottom.
@@ -725,7 +742,8 @@ work is closed.
 **Done on the branch, not merged.** What is left for the owner:
 
 - The two open questions under 3.4: Spider's cap upright, and the empty
-  foundations overlapped down a rail.
+  foundations overlapped down a rail, now a planned follow-up (see
+  [Not in this work](#not-in-this-work)).
 - Trying the layouts on a real phone, which emulation is not; the cap of 110
   units is the number most likely to want tuning.
 - The follow-up for the other games, which `phoneLayouts` is built for.
