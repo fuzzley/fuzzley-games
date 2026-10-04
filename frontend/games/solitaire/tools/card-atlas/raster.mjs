@@ -25,6 +25,33 @@ export const FRAME_W = DESIGN_FRAME_W * RASTER_SCALE;
 export const FRAME_H = DESIGN_FRAME_H * RASTER_SCALE;
 
 /**
+ * The name of every card frame a deck must supply: a face for each suit and
+ * rank, as `playingCardFaceKey` in `src/engine/core/card/playing_card.ts`
+ * names it, and the two backs the settings drawer offers.
+ */
+export const CARD_FRAME_NAMES = [
+  ...["clubs", "diamonds", "hearts", "spades"].flatMap((suit) =>
+    [
+      "ace",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "jack",
+      "queen",
+      "king",
+    ].map((rank) => `card-${suit}-${rank}`),
+  ),
+  "card-back-blue",
+  "card-back-red",
+];
+
+/**
  * Rasterizes an SVG region to exactly `width` x `height` pixels.
  *
  * Each axis stretches independently, so grid cells that are not square in user
