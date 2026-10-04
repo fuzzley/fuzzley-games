@@ -41,7 +41,8 @@ export const WASTE_MAX_FAN_CARDS = 3;
  */
 export function wasteFanLayout(drawCount: number): PileLayout {
   return {
-    kind: "fan-right",
+    kind: "spread",
+    direction: "right",
     gap: WASTE_FAN_OFFSET_X,
     maxVisible: drawCount === 1 ? 1 : WASTE_MAX_FAN_CARDS,
   };

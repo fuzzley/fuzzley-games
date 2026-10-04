@@ -1,5 +1,10 @@
 import { Point } from "@/engine/core/common/point";
 import { Card } from "@/engine/core/card/card";
+import { Rect } from "../view/table_view_state";
+import { Size } from "./table_layout";
+
+/** Says which way a spread runs from its pile's origin. */
+export type SpreadDirection = "right" | "left" | "down";
 
 /** Describes how a pile arranges its cards relative to the pile's origin. */
 export type PileLayout =
@@ -16,15 +21,25 @@ export type PileLayout =
       readonly hoverExpansion: number;
     }
   /**
-   * The last few cards fanned rightwards, revealing the leading edge of each,
-   * with everything below them stacked squarely out of sight.
+   * The last few cards spread out from the origin, revealing the leading edge
+   * of each, with everything below them stacked squarely out of sight.
    */
   | {
-      readonly kind: "fan-right";
-      /** Gap to the right of a card before the next one. */
+      readonly kind: "spread";
+      /** Which way the cards spread from the origin. */
+      readonly direction: SpreadDirection;
+      /** Gap between one card, or group, and the next. */
       readonly gap: number;
-      /** How many top cards to fan; the rest sit squarely at the origin. */
+      /**
+       * How many top cards, or groups, to spread; the rest sit squarely at the
+       * origin.
+       */
       readonly maxVisible: number;
+      /**
+       * How many cards spread as one, so a stock dealt ten at a time shows one
+       * sliver for each deal; one when omitted.
+       */
+      readonly groupSize?: number;
     };
 
 /** Returns the offsets of cards stacked directly on top of each other. */
@@ -56,25 +71,34 @@ export function fanDownOffsets(
   return offsets;
 }
 
+/** The unit step each way a spread can run. */
+const SPREAD_STEPS: { readonly [Direction in SpreadDirection]: Point } = {
+  right: { x: 1, y: 0 },
+  left: { x: -1, y: 0 },
+  down: { x: 0, y: 1 },
+};
+
 /**
- * Returns the offsets of a rightward fan of a pile's topmost cards.
+ * Returns the offsets of a spread of a pile's topmost cards, or of its topmost
+ * groups of cards.
  *
  * @param count The number of cards in the whole pile.
  */
-export function fanRightOffsets(
+export function spreadOffsets(
   count: number,
-  layout: Extract<PileLayout, { kind: "fan-right" }>,
+  layout: Extract<PileLayout, { kind: "spread" }>,
 ): Point[] {
-  const fanCount = Math.min(count, layout.maxVisible);
-  const fanStartIndex = count - fanCount;
+  const groupSize = layout.groupSize ?? 1;
+  const groups = Math.ceil(count / groupSize);
+  const firstSpread = groups - Math.min(groups, layout.maxVisible);
+  const step = SPREAD_STEPS[layout.direction];
 
   const offsets: Point[] = [];
   for (let cardIndex = 0; cardIndex < count; cardIndex++) {
-    offsets.push(
-      cardIndex < fanStartIndex
-        ? { x: 0, y: 0 }
-        : { x: (cardIndex - fanStartIndex) * layout.gap, y: 0 },
-    );
+    const group = Math.floor(cardIndex / groupSize);
+    const distance = Math.max(0, group - firstSpread) * layout.gap;
+    // Adding zero keeps a zero offset positive, so offsets compare equal.
+    offsets.push({ x: step.x * distance + 0, y: step.y * distance + 0 });
   }
   return offsets;
 }
@@ -94,41 +118,33 @@ export function pileCardOffsets(
   switch (layout.kind) {
     case "fan-down":
       return fanDownOffsets(cards, layout, expansionCardId);
-    case "fan-right":
-      return fanRightOffsets(cards.length, layout);
+    case "spread":
+      return spreadOffsets(cards.length, layout);
     default:
       return stackedCardOffsets(cards.length);
   }
 }
 
 /**
- * Returns how far a pile's cards reach below its origin, in design units.
+ * Returns the rectangle a pile's cards cover, relative to its origin, in design
+ * units, which a fanned or spread pile grows as it gains cards.
  *
  * @param cards The pile's cards, bottom first.
  */
-export function pileHeight(
+export function pileBounds(
   layout: PileLayout,
   cards: ReadonlyArray<Card>,
-  cardHeight: number,
-): number {
-  const last = pileCardOffsets(layout, cards).at(-1);
-  return (last?.y ?? 0) + cardHeight;
-}
-
-/**
- * Returns how far a pile's cards reach right of its origin, in design units,
- * which a pile fanned sideways grows as it gains cards.
- *
- * @param cards The pile's cards, bottom first.
- */
-export function pileWidth(
-  layout: PileLayout,
-  cards: ReadonlyArray<Card>,
-  cardWidth: number,
-): number {
-  const widest = Math.max(
-    0,
-    ...pileCardOffsets(layout, cards).map((offset) => offset.x),
-  );
-  return widest + cardWidth;
+  cardSize: Size,
+): Rect {
+  const offsets = pileCardOffsets(layout, cards);
+  const xs = [0, ...offsets.map((offset) => offset.x)];
+  const ys = [0, ...offsets.map((offset) => offset.y)];
+  const left = Math.min(...xs);
+  const top = Math.min(...ys);
+  return {
+    x: left,
+    y: top,
+    width: Math.max(...xs) - left + cardSize.width,
+    height: Math.max(...ys) - top + cardSize.height,
+  };
 }

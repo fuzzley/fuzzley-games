@@ -26,7 +26,8 @@ import {
  * foundations rather than the edge of the table, as a real castle's would.
  */
 export const ROW_LAYOUT: PileLayout = {
-  kind: "fan-right",
+  kind: "spread",
+  direction: "right",
   gap: WASTE_FAN_OFFSET_X,
   maxVisible: Number.POSITIVE_INFINITY,
 };
