@@ -23,6 +23,7 @@ import {
 import { ZoneLook, frameFor, showsFace } from "./zone_look";
 import { TableView } from "./table_view";
 import { pileArrangement } from "./pile_arrangement";
+import { pileBackgroundFrame } from "./pile_backgrounds";
 import { itemAt } from "@/engine/core/common/item_at";
 
 /**
@@ -142,7 +143,7 @@ class TableViewStateBuilder {
     const backgrounds: PileBackgroundView[] = [];
 
     for (const pile of this.game.piles) {
-      const frame = this.game.pileBackgroundKey(pile);
+      const frame = pileBackgroundFrame(this.game, pile, this.metrics.layout);
       const origin = this.origins.get(pile.id);
       if (!frame || !origin) continue;
 
