@@ -10,10 +10,7 @@ import { flipExposedTop } from "@/games/common/completed_runs";
 import { ActionKind } from "@/games/common/action_kinds";
 import { DeckOptions } from "@/games/common/deck_options";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
-import {
-  CLOSED_STOCK_PLACEHOLDER,
-  recyclePipsPlaceholder,
-} from "@/games/common/zone_presets";
+import { recycleMarker } from "@/games/common/zone_presets";
 import { dealCanfieldLayout } from "./canfield_deal";
 import {
   CanfieldVariantRules,
@@ -77,6 +74,13 @@ export class CanfieldGame extends DealtTableGame {
     this.reserve = this.requirePile(RESERVE_PILE_ID);
     this.foundations = this.pilesOfRole(CanfieldRole.FOUNDATION);
     this.tableaus = this.pilesOfRole(CanfieldRole.TABLEAU);
+    this.markPile(this.stock, () =>
+      recycleMarker({
+        usable: this.rules.maxRecycles > 0 && !this.isSpentStock(),
+        remaining: this.recyclesRemaining,
+        allowed: this.rules.maxRecycles,
+      }),
+    );
   }
 
   /** @inheritDoc */
@@ -115,39 +119,6 @@ export class CanfieldGame extends DealtTableGame {
         recycleWasteToStock(this.tabletop, this.waste, this.stock),
       );
     }
-  }
-
-  /**
-   * Returns the plain outline for the empty stock once a press would do
-   * nothing, and a pip per recycle left when the recycles are counted.
-   *
-   * @inheritDoc
-   */
-  public override pileBackgroundKey(
-    pile: CardPile<PlayingCard>,
-  ): string | undefined {
-    if (pile !== this.stock) {
-      return super.pileBackgroundKey(pile);
-    }
-    if (this.isSpentStock()) {
-      return CLOSED_STOCK_PLACEHOLDER;
-    }
-    const allowed = this.rules.maxRecycles;
-    return Number.isFinite(allowed) && allowed > 0
-      ? recyclePipsPlaceholder(this.recyclesRemaining, allowed)
-      : super.pileBackgroundKey(pile);
-  }
-
-  /**
-   * Returns false for the empty stock once a press would recycle nothing.
-   *
-   * @inheritDoc
-   */
-  public override isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
-    return (
-      !(pile === this.stock && this.isSpentStock()) &&
-      super.isEmptySlotActionable(pile)
-    );
   }
 
   /** Returns whether the stock is empty with nothing left to recycle into it. */

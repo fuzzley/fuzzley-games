@@ -9,10 +9,7 @@ import { ActionKind } from "@/games/common/action_kinds";
 import { flipExposedTopOfColumn } from "@/games/common/move_effects";
 import { STOCK_PILE_ID, WASTE_PILE_ID } from "@/games/common/pile_ids";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
-import {
-  CLOSED_STOCK_PLACEHOLDER,
-  recyclePipsPlaceholder,
-} from "@/games/common/zone_presets";
+import { recycleMarker } from "@/games/common/zone_presets";
 import { DrawCount } from "./klondike_rules";
 import { ScoringPolicy } from "./scoring_policy";
 
@@ -49,6 +46,13 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
     this.columnRole = options.columnRole;
     this.stock = this.requirePile(STOCK_PILE_ID);
     this.waste = this.requirePile(WASTE_PILE_ID);
+    this.markPile(this.stock, () =>
+      recycleMarker({
+        usable: !this.isSpentStock(),
+        remaining: this.recyclesRemaining,
+        allowed: this.scoring.maxRecycles(this.drawCount),
+      }),
+    );
   }
 
   /** @inheritDoc */
@@ -99,40 +103,6 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
       {
         scoreDelta: this.scoring.clampScore(score - penalty) - score,
       },
-    );
-  }
-
-  /**
-   * Returns the plain closed outline for the empty stock once a press would do
-   * nothing, and a pip per recycle left when the recycles are counted.
-   *
-   * @inheritDoc
-   */
-  public override pileBackgroundKey(
-    pile: CardPile<PlayingCard>,
-  ): string | undefined {
-    if (pile !== this.stock) {
-      return super.pileBackgroundKey(pile);
-    }
-    if (this.isSpentStock()) {
-      return CLOSED_STOCK_PLACEHOLDER;
-    }
-    const allowed = this.scoring.maxRecycles(this.drawCount);
-    return Number.isFinite(allowed)
-      ? recyclePipsPlaceholder(this.recyclesRemaining, allowed)
-      : super.pileBackgroundKey(pile);
-  }
-
-  /**
-   * Returns false for the empty stock once a press would recycle nothing,
-   * because the waste is empty or the recycles are spent.
-   *
-   * @inheritDoc
-   */
-  public override isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
-    return (
-      !(pile === this.stock && this.isSpentStock()) &&
-      super.isEmptySlotActionable(pile)
     );
   }
 

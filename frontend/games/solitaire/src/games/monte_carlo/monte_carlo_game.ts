@@ -7,10 +7,7 @@ import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { DeckOptions } from "@/games/common/deck_options";
 import { discardPairEffects } from "@/games/common/pair_removal";
-import {
-  CLOSED_STOCK_PLACEHOLDER,
-  RECYCLING_STOCK_PLACEHOLDER,
-} from "@/games/common/zone_presets";
+import { recycleMarker } from "@/games/common/zone_presets";
 import { DEFAULT_MONTE_CARLO_VARIANT } from "./monte_carlo_rules";
 import {
   DISCARD_PILE_ID,
@@ -58,6 +55,14 @@ export class MonteCarloGame extends DealtTableGame {
     this.stock = this.requirePile(STOCK_PILE_ID);
     this.cells = this.pilesOfRole(MonteCarloRole.CELL);
     this.discard = this.requirePile(DISCARD_PILE_ID);
+    // Consolidating is never counted, only possible or not.
+    this.markPile(this.stock, () =>
+      recycleMarker({
+        usable: this.canConsolidate,
+        remaining: Infinity,
+        allowed: Infinity,
+      }),
+    );
   }
 
   /** @inheritDoc */
@@ -130,31 +135,5 @@ export class MonteCarloGame extends DealtTableGame {
 
     this.commitAction(ActionKind.CONSOLIDATE, transfers);
     return true;
-  }
-
-  /**
-   * Returns the recycle arrow on the stock's slot while consolidating would do
-   * something, and the plain outline otherwise.
-   *
-   * @inheritDoc
-   */
-  public override pileBackgroundKey(
-    pile: CardPile<PlayingCard>,
-  ): string | undefined {
-    if (pile !== this.stock) return super.pileBackgroundKey(pile);
-    return this.canConsolidate
-      ? RECYCLING_STOCK_PLACEHOLDER
-      : CLOSED_STOCK_PLACEHOLDER;
-  }
-
-  /**
-   * Returns whether the empty stock's slot would consolidate if pressed.
-   *
-   * @inheritDoc
-   */
-  public override isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
-    return pile === this.stock
-      ? pile.isEmpty && this.canConsolidate
-      : super.isEmptySlotActionable(pile);
   }
 }
