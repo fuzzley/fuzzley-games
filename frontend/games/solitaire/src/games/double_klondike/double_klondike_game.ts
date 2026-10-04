@@ -70,7 +70,7 @@ export class DoubleKlondikeGame extends KlondikeFamilyGame {
   }
 
   /** @inheritDoc */
-  protected override dealLayout(deck: PlayingCard[]): void {
+  protected override dealBoard(deck: PlayingCard[]): void {
     dealDoubleKlondikeLayout(deck, this.tableaus, this.stock);
   }
 }

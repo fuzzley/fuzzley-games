@@ -216,6 +216,11 @@ The only required override is `dealBoard(deck)`. Optionally:
   the cards and return transfers. The game commits them with
   `commitAction(kind, transfers, options)`, because whether a recycle costs
   points is the game's business, not the stock's.
+  Name the action with `ActionKind` from `src/games/common/action_kinds.ts`.
+  A game that limits an action, such as Klondike's recycles or Montana's
+  redeals, reads `timesApplied(kind)` rather than keeping a count of its own:
+  the count comes from the history, so undo, restart and restore keep it right
+  with nothing to save or take back.
 - `isWon()` — only for a game won by the order of its cards rather than by
   gathering them into one role. Montana overrides it and leaves
   `winsWhenAllCardsIn` unset.

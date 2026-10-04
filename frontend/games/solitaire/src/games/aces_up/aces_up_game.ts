@@ -14,6 +14,7 @@ import {
   STOCK_PILE_ID,
   acesUpZoneSpecs,
 } from "./aces_up_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /** Configures an Aces Up game. */
 export interface AcesUpOptions extends DeckOptions {
@@ -69,7 +70,10 @@ export class AcesUpGame extends DealtTableGame {
       return false;
     }
 
-    this.commitAction("deal", dealRowFromStock(this.stock, this.tableaus));
+    this.commitAction(
+      ActionKind.DEAL,
+      dealRowFromStock(this.stock, this.tableaus),
+    );
     return true;
   }
 

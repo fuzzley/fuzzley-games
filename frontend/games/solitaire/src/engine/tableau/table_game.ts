@@ -6,7 +6,7 @@ import {
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { EventEmitter } from "@/engine/core/common/event_emitter";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { AppliedMove, AppliedMoveKind, CardTransfer } from "./move";
+import { AppliedMove, AppliedMoveKind, CardTransfer, MOVE_KIND } from "./move";
 import { MoveHistory, RelocationListener } from "./move_history";
 import { GameState, ReadableGameState } from "./game_state";
 import { BoardQuery } from "./rules";
@@ -290,7 +290,7 @@ export abstract class TableGame<
 
     const effects = this.applyMoveEffects(move);
     this.commit({
-      kind: "move",
+      kind: MOVE_KIND,
       transfers: [
         {
           cardIds: move.movingStack.map((card) => card.id),
@@ -373,20 +373,18 @@ export abstract class TableGame<
     // Not clamped: the delta is what the action applied, after any floor the
     // game keeps, and some games' scores run below zero.
     this.syncMetrics(this.state.score - last.scoreDelta);
-    this.afterUndo(last);
-    // Announced after the hook, so the game has finished adjusting before a
-    // view hears the cards moved.
-    this.history.announce(last);
-
     return true;
   }
 
   /**
-   * Reverses side effects the game keeps outside the history, such as
-   * Klondike's recycle count, once an action is taken back.
+   * Returns how many actions of a kind the history holds, such as the recycles
+   * a game has spent.
+   *
+   * Read from the history rather than counted alongside it, so undo, a restart
+   * and a restore all keep it right with nothing to save or take back.
    */
-  protected afterUndo(move: AppliedMove): void {
-    void move;
+  protected timesApplied(kind: AppliedMoveKind): number {
+    return this.history.count(kind);
   }
 
   /** Whether there is an action {@link undo} can take back. */

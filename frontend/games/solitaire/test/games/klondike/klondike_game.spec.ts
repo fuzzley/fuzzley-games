@@ -1,6 +1,7 @@
 import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { DrawCount } from "@/games/klondike/klondike_rules";
 import { KlondikeRole } from "@/games/klondike/klondike_zones";
+import { VegasScoringPolicy } from "@/games/klondike/scoring_policy";
 import { playingCardFaceKey } from "@/engine/core/card/playing_card";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { makePlayingCard } from "@test/support/card_builder";
@@ -951,10 +952,16 @@ describe("KlondikeGame card location tracking", () => {
 });
 
 describe("KlondikeGame snapshot", () => {
-  /** Returns a game that has drawn through its stock and recycled the waste. */
-  function recycledOnce(): KlondikeGame {
-    const game = new KlondikeGame();
+  /** Returns a Vegas game, whose recycles are counted, not yet played. */
+  function vegasGame(): KlondikeGame {
+    const game = new KlondikeGame({ scoring: new VegasScoringPolicy() });
     game.startNewGame();
+    return game;
+  }
+
+  /** Returns a Vegas game that has drawn through its stock and recycled. */
+  function recycledOnce(): KlondikeGame {
+    const game = vegasGame();
     while (!game.stock.isEmpty) {
       game.drawCardsFromStock();
     }
@@ -962,27 +969,11 @@ describe("KlondikeGame snapshot", () => {
     return game;
   }
 
-  it("records how many times the waste has been recycled", () => {
-    const game = recycledOnce();
-
-    expect(game.snapshot().extra).toEqual({ recycleCount: 1 });
-  });
-
-  it("restores the recycle count", () => {
-    const copy = new KlondikeGame();
-    copy.startNewGame();
+  it("counts the recycles spent from the history it restores", () => {
+    const copy = vegasGame();
 
     copy.restore(recycledOnce().snapshot());
 
-    expect(copy.snapshot().extra).toEqual({ recycleCount: 1 });
-  });
-
-  it("rejects a snapshot without the recycle count", () => {
-    const copy = new KlondikeGame();
-    copy.startNewGame();
-
-    expect(() =>
-      copy.restore({ ...recycledOnce().snapshot(), extra: null }),
-    ).toThrow(/extra is not an object/);
+    expect(copy.recyclesRemaining).toBe(1);
   });
 });

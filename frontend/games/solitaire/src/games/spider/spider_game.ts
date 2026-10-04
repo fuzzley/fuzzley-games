@@ -10,6 +10,7 @@ import { dealRowCollectingRuns } from "@/games/common/row_deal";
 import { DeckOptions } from "@/games/common/deck_options";
 import { SPIDER_TWO_DECKS, dealSpiderLayout } from "./spider_deal";
 import { SpiderRole, STOCK_PILE_ID, spiderZoneSpecs } from "./spider_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /**
  * Plays Spider: two decks on ten columns, a stock that deals a card to every
@@ -74,7 +75,7 @@ export class SpiderGame extends DealtTableGame {
       this.tableaus,
       this.foundations,
     );
-    this.commitAction("deal", dealt.transfers, {
+    this.commitAction(ActionKind.DEAL, dealt.transfers, {
       flippedCardIds: dealt.flippedCardIds,
     });
     return true;

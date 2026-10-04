@@ -17,6 +17,7 @@ import {
   peakPileId,
   triPeaksZoneSpecs,
 } from "./tri_peaks_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /**
  * Plays TriPeaks: three overlapping peaks cleared onto one waste, a rank up or
@@ -84,7 +85,7 @@ export class TriPeaksGame extends DealtTableGame {
       return false;
     }
 
-    this.commitAction("draw", drawToWaste(this.stock, this.waste, 1));
+    this.commitAction(ActionKind.DRAW, drawToWaste(this.stock, this.waste, 1));
     return true;
   }
 

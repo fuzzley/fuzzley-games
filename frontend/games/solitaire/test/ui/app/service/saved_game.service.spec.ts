@@ -24,7 +24,6 @@ const SNAPSHOT: GameSnapshot = {
   score: 250,
   history: [],
   deal: [],
-  extra: null,
 };
 
 /** A saved Klondike game played by the mock catalog's rules. */

@@ -14,6 +14,7 @@ import {
   STOCK_PILE_ID,
   easthavenZoneSpecs,
 } from "./easthaven_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /**
  * Plays Easthaven: Klondike's columns and foundations with a stock that deals a
@@ -75,7 +76,10 @@ export class EasthavenGame extends DealtTableGame {
       return false;
     }
 
-    this.commitAction("deal", dealRowFromStock(this.stock, this.tableaus));
+    this.commitAction(
+      ActionKind.DEAL,
+      dealRowFromStock(this.stock, this.tableaus),
+    );
     return true;
   }
 

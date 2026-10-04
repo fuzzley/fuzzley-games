@@ -2,12 +2,12 @@ import { CardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { readNumber, readObject } from "@/engine/core/common/json_reader";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
-import { AppliedMove, CardTransfer } from "@/engine/tableau/move";
+import { CardTransfer } from "@/engine/tableau/move";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { flipExposedTop } from "@/games/common/completed_runs";
+import { ActionKind } from "@/games/common/action_kinds";
 import { DeckOptions } from "@/games/common/deck_options";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
 import {
@@ -28,18 +28,6 @@ import {
   WASTE_PILE_ID,
   canfieldZoneSpecs,
 } from "./canfield_zones";
-
-/** Holds what the game keeps outside its piles, for a snapshot. */
-interface CanfieldExtra {
-  /** How many times the waste has been turned back onto the stock. */
-  readonly recycleCount: number;
-}
-
-/** Reads a snapshot's extra state as Canfield's. */
-function readCanfieldExtra(value: unknown): CanfieldExtra {
-  const extra = readObject(value, "extra");
-  return { recycleCount: readNumber(extra.recycleCount, "extra.recycleCount") };
-}
 
 /** Configures a game of the Canfield family. */
 export interface CanfieldOptions extends DeckOptions {
@@ -68,7 +56,6 @@ export class CanfieldGame extends DealtTableGame {
   public readonly variant: CanfieldVariant;
 
   private readonly rules: CanfieldVariantRules;
-  private recycleCount = 0;
 
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
@@ -94,7 +81,6 @@ export class CanfieldGame extends DealtTableGame {
 
   /** @inheritDoc */
   protected override dealBoard(deck: PlayingCard[]): void {
-    this.recycleCount = 0;
     dealCanfieldLayout(this.rules, deck, this);
   }
 
@@ -102,7 +88,10 @@ export class CanfieldGame extends DealtTableGame {
 
   /** How many more times the waste may be recycled, which may be Infinity. */
   public get recyclesRemaining(): number {
-    return Math.max(0, this.rules.maxRecycles - this.recycleCount);
+    return Math.max(
+      0,
+      this.rules.maxRecycles - this.timesApplied(ActionKind.RECYCLE),
+    );
   }
 
   /**
@@ -112,12 +101,14 @@ export class CanfieldGame extends DealtTableGame {
   public drawCardsFromStock(): void {
     if (!this.stock.isEmpty) {
       this.commitAction(
-        "draw",
+        ActionKind.DRAW,
         drawToWaste(this.stock, this.waste, this.rules.drawCount),
       );
     } else if (!this.waste.isEmpty && this.recyclesRemaining > 0) {
-      this.recycleCount++;
-      this.commitAction("recycle", recycleWasteToStock(this.waste, this.stock));
+      this.commitAction(
+        ActionKind.RECYCLE,
+        recycleWasteToStock(this.waste, this.stock),
+      );
     }
   }
 
@@ -198,23 +189,5 @@ export class CanfieldGame extends DealtTableGame {
     }
 
     return { scoreDelta: 0, flippedCardIds, followUpTransfers };
-  }
-
-  /** @inheritDoc */
-  protected override afterUndo(move: AppliedMove): void {
-    if (move.kind === "recycle") {
-      // So the player gets the spent recycle back with the board.
-      this.recycleCount--;
-    }
-  }
-
-  /** @inheritDoc */
-  protected override saveExtra(): CanfieldExtra {
-    return { recycleCount: this.recycleCount };
-  }
-
-  /** @inheritDoc */
-  protected override restoreExtra(extra: unknown): void {
-    this.recycleCount = readCanfieldExtra(extra).recycleCount;
   }
 }

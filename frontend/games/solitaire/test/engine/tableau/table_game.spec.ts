@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
-import { AppliedMove } from "@/engine/tableau/move";
 import {
   MoveEffects,
   ResolvedMove,
@@ -36,7 +35,6 @@ class TestGame extends TableGame {
   /** Effects the next move should report, for the scoring and flip paths. */
   public nextEffects: MoveEffects | null = null;
   public movesSeen: ResolvedMove[] = [];
-  public undosSeen: AppliedMove[] = [];
 
   private readonly cards: CardRegistry;
 
@@ -49,10 +47,6 @@ class TestGame extends TableGame {
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
     this.movesSeen.push(move);
     return this.nextEffects ?? super.applyMoveEffects(move);
-  }
-
-  protected override afterUndo(move: AppliedMove): void {
-    this.undosSeen.push(move);
   }
 
   /** Puts a freshly made card into a pile, for building an exact position. */
@@ -83,6 +77,11 @@ class TestGame extends TableGame {
     this.commitAction("turn-over", [
       { cardIds, fromPileId, toPileId, faceUpBefore: true },
     ]);
+  }
+
+  /** How many turn-overs the history holds, exposing `timesApplied`. */
+  public get turnOvers(): number {
+    return this.timesApplied("turn-over");
   }
 
   /** Empties the board, exposing `resetPiles` for a test that needs it. */
@@ -320,13 +319,22 @@ describe("TableGame", () => {
       expect(game.state.undoDepth).toBe(1);
     });
 
-    it("tells the game what was taken back", () => {
-      const card = game.place(LEFT, Rank.FIVE);
-      game.moveCardToPile(card.id, RIGHT);
+    it("counts each action of a kind it holds", () => {
+      game.place(LEFT, Rank.FIVE);
+      game.turnOver(LEFT, RIGHT);
+      game.turnOver(RIGHT, LEFT);
+
+      expect(game.turnOvers).toBe(2);
+    });
+
+    it("stops counting an action once undo takes it back", () => {
+      game.place(LEFT, Rank.FIVE);
+      game.turnOver(LEFT, RIGHT);
+      game.turnOver(RIGHT, LEFT);
 
       game.undo();
 
-      expect(game.undosSeen[0].kind).toBe("move");
+      expect(game.turnOvers).toBe(1);
     });
   });
 

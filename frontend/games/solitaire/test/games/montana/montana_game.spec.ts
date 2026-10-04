@@ -449,13 +449,6 @@ describe("the Montana board", () => {
 });
 
 describe("MontanaGame snapshot", () => {
-  it("records how many redeals have been used", () => {
-    const game = newGame();
-    game.redeal();
-
-    expect(game.snapshot().extra).toEqual({ redealsUsed: 1 });
-  });
-
   it("restores the redeals left", () => {
     const original = newGame();
     original.redeal();
@@ -464,14 +457,6 @@ describe("MontanaGame snapshot", () => {
     copy.restore(original.snapshot());
 
     expect(copy.redealsRemaining).toBe(DEFAULT_MAX_REDEALS - 1);
-  });
-
-  it("rejects a snapshot without the redeal count", () => {
-    const copy = newGame();
-
-    expect(() =>
-      copy.restore({ ...newGame().snapshot(), extra: null }),
-    ).toThrow(/extra is not an object/);
   });
 });
 

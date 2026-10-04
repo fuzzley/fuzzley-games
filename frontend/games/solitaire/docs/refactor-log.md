@@ -111,7 +111,7 @@ The review's findings, grouped into phases. Each phase leaves the tree green.
 - [x] 1.5 Subscription idiom
 - [x] 1.6 Spec hygiene
 - [x] 2.1 One writer for the metrics
-- [ ] 2.2 Counts read from the history
+- [x] 2.2 Counts read from the history
 - [ ] 2.3 `relocate` helper
 - [ ] 3.1 Pile markers
 - [ ] 3.2 Rules attached directly; column rule helper
@@ -207,3 +207,22 @@ Newest last. Each entry names its commit subject.
     snapshot carrying a move count.
   - The `add-solitaire-game` skill says games report score deltas and never
     write metrics.
+- **refactor: read recycle and redeal counts from the history.**
+  - `MoveHistory.count(kind)` keeps a tally per kind, updated on record,
+    take-back and load; `TableGame.timesApplied(kind)` exposes it to games.
+  - Klondike family, Canfield, Pyramid, La Belle Lucie and Montana dropped
+    their counter fields and their `afterUndo`, `saveExtra` and
+    `restoreExtra` overrides. With no users left, those three hooks are gone
+    from the engine, and so is `GameSnapshot.extra`; the reader ignores an old
+    save's `extra`.
+  - `KlondikeFamilyGame` lost its `dealLayout` indirection: Klondike and
+    Double Klondike override `dealBoard` directly.
+  - `MoveHistory.takeBack` now announces the cards it put back itself, as
+    `record` does, since the hook it used to wait for is gone; `announce` is
+    private.
+  - Action names live in `ActionKind` (`src/games/common/action_kinds.ts`);
+    the engine's own is `MOVE_KIND` in `move.ts`. Every game uses them.
+  - Tests that checked `snapshot().extra` now check the observable count
+    (`recyclesRemaining` under Vegas scoring, `redealsRemaining`); the tests
+    that rejected a snapshot missing a counter went, per decision 3, as did the
+    engine's `ModalGame` extra-state tests.

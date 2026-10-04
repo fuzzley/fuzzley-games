@@ -31,8 +31,6 @@ export interface GameSnapshot {
   readonly history: readonly AppliedMove[];
   /** The card ids a restart deals, in dealt order. */
   readonly deal: readonly string[];
-  /** What the game keeps outside its piles, in a shape of its own. */
-  readonly extra: unknown;
 }
 
 /**
@@ -52,7 +50,6 @@ export function readGameSnapshot(
     score: readNumber(snapshot.score, `${path}.score`),
     history: readList(snapshot.history, `${path}.history`, readAppliedMove),
     deal: readList(snapshot.deal, `${path}.deal`, readString),
-    extra: snapshot.extra,
   };
 }
 

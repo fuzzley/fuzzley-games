@@ -153,6 +153,34 @@ describe("MoveHistory", () => {
     expect(history.takeBack()).toBeNull();
   });
 
+  it("counts the actions of each kind it holds", () => {
+    const card = board.deal(Rank.KING);
+    history.record(moved(card.id, { kind: "draw" }));
+    history.record(moved(card.id, { kind: "draw" }));
+    history.record(moved(card.id, { kind: "recycle" }));
+
+    expect([history.count("draw"), history.count("recycle")]).toEqual([2, 1]);
+  });
+
+  it("takes an action out of its count when it is taken back", () => {
+    const card = board.deal(Rank.KING);
+    board.relocate(card);
+    history.record(moved(card.id, { kind: "recycle" }));
+
+    history.takeBack();
+
+    expect(history.count("recycle")).toBe(0);
+  });
+
+  it("counts a loaded history afresh", () => {
+    const card = board.deal(Rank.KING);
+    history.record(moved(card.id, { kind: "draw" }));
+
+    history.load([moved(card.id, { kind: "recycle" })]);
+
+    expect([history.count("draw"), history.count("recycle")]).toEqual([0, 1]);
+  });
+
   it("drops everything when loaded with nothing", () => {
     const card = board.deal(Rank.KING);
     board.relocate(card);
