@@ -17,6 +17,11 @@ import {
 } from "@/engine/render/view/table_view_state";
 import { PHONE_FAN_FIT } from "@/games/common/pile_layouts";
 import {
+  COVERED_FOUNDATION_PLACEHOLDER,
+  FOUNDATION_PLACEHOLDER,
+  RAIL_FOUNDATION_PLACEHOLDER,
+} from "@/games/common/zone_presets";
+import {
   SPIDER_LAYOUT,
   SPIDER_PHONE_LAYOUTS,
 } from "@/games/spider/spider_layout";
@@ -128,6 +133,19 @@ describe("Spider's phone grids", () => {
         (slot) => slot.column === 10 && (slot.offset?.y ?? 0) > 0,
       ),
     ).toBe(true);
+  });
+
+  it("marks each foundation at its top edge down the rail, the last one closed", () => {
+    const artwork = Array.from({ length: 8 }, (_, index) =>
+      SPIDER_PHONE_LAYOUTS.landscape.pileBackgrounds?.[`foundation-${index}`]?.(
+        FOUNDATION_PLACEHOLDER,
+      ),
+    );
+
+    expect(artwork).toEqual([
+      ...Array<string>(7).fill(COVERED_FOUNDATION_PLACEHOLDER),
+      RAIL_FOUNDATION_PLACEHOLDER,
+    ]);
   });
 
   it("shows the stock as one sliver for each deal on every grid", () => {

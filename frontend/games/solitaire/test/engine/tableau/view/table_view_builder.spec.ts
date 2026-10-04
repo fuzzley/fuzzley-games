@@ -318,6 +318,23 @@ describe("board_view_state_builder", () => {
       expect(stockBackground()?.frame).toBe("card-placeholder-full-border");
     });
 
+    it("draws a placeholder in the artwork its grid swaps in", () => {
+      const grid = {
+        ...FAKE_TABLE_LAYOUT,
+        pileBackgrounds: { stock: () => "card-placeholder-full-border-circle" },
+      };
+      const metrics = measureTable(grid, viewport);
+
+      const background = buildTableViewState(
+        overridden,
+        interaction,
+        metrics,
+        "back",
+      ).backgrounds.find((view) => view.pileId === "stock");
+
+      expect(background?.frame).toBe("card-placeholder-full-border-circle");
+    });
+
     it("gives a pressable empty slot a pointer", () => {
       overridden.stockActionable = true;
 

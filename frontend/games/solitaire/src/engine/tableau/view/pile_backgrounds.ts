@@ -1,3 +1,6 @@
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import { PlayingCard } from "@/engine/core/card/playing_card";
+import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { PileBackgroundSpec } from "@/engine/render/view/table_view_state";
 import { TableView } from "./table_view";
 
@@ -15,4 +18,18 @@ export function pileBackgrounds(view: TableView): PileBackgroundSpec[] {
         ]
       : [];
   });
+}
+
+/**
+ * Returns the artwork a pile's placeholder shows this frame: what its game
+ * asks for, swapped for the grid's own if the grid has one for the pile.
+ */
+export function pileBackgroundFrame(
+  view: TableView,
+  pile: ReadonlyCardPile<PlayingCard>,
+  grid: TableLayoutSpec,
+): string | undefined {
+  const artwork = view.pileBackgroundKey(pile);
+  if (artwork === undefined) return undefined;
+  return grid.pileBackgrounds?.[pile.id]?.(artwork) ?? artwork;
 }

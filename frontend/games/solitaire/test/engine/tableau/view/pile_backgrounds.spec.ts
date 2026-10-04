@@ -1,10 +1,26 @@
 import { describe, it, expect } from "vitest";
-import { pileBackgrounds } from "@/engine/tableau/view/pile_backgrounds";
+import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import {
+  pileBackgroundFrame,
+  pileBackgrounds,
+} from "@/engine/tableau/view/pile_backgrounds";
+import { FAKE_TABLE_LAYOUT } from "@test/support/fake_table/board";
 import {
   FakeTableGame,
   StockOverrideTableGame,
 } from "@test/support/fake_table/game";
 import { STOCK_PILE_ID, WASTE_PILE_ID } from "@test/support/fake_table/zones";
+
+/** The fake board's grid, drawing the stock's closed outline as a ring. */
+const SWAPPING_GRID: TableLayoutSpec = {
+  ...FAKE_TABLE_LAYOUT,
+  pileBackgrounds: {
+    [STOCK_PILE_ID]: (artwork) =>
+      artwork === "card-placeholder-full-border"
+        ? "card-placeholder-full-border-circle"
+        : artwork,
+  },
+};
 
 describe("pileBackgrounds", () => {
   it("lists every pile whose zone declares a placeholder", () => {
@@ -67,5 +83,62 @@ describe("pileBackgrounds", () => {
       .map((background) => background.pileId);
 
     expect(actionable).toEqual([STOCK_PILE_ID]);
+  });
+});
+
+describe("pileBackgroundFrame", () => {
+  /** Returns the pile with an id in a game. */
+  function pileOf(game: FakeTableGame, pileId: string) {
+    return game.piles.find((pile) => pile.id === pileId)!;
+  }
+
+  it("draws the artwork the game asks for on a grid that swaps none", () => {
+    const game = new FakeTableGame();
+
+    const frame = pileBackgroundFrame(
+      game,
+      pileOf(game, STOCK_PILE_ID),
+      FAKE_TABLE_LAYOUT,
+    );
+
+    expect(frame).toBe(game.zoneFor(STOCK_PILE_ID)?.backgroundKey);
+  });
+
+  it("draws the grid's artwork in place of the game's", () => {
+    const game = new StockOverrideTableGame();
+    game.stockBackgroundKey = "card-placeholder-full-border";
+
+    const frame = pileBackgroundFrame(
+      game,
+      pileOf(game, STOCK_PILE_ID),
+      SWAPPING_GRID,
+    );
+
+    expect(frame).toBe("card-placeholder-full-border-circle");
+  });
+
+  it("leaves artwork the grid does not swap alone", () => {
+    const game = new StockOverrideTableGame();
+    game.stockBackgroundKey = "card-placeholder-full-border-reset";
+
+    const frame = pileBackgroundFrame(
+      game,
+      pileOf(game, STOCK_PILE_ID),
+      SWAPPING_GRID,
+    );
+
+    expect(frame).toBe("card-placeholder-full-border-reset");
+  });
+
+  it("gives a pile drawn over bare table no placeholder on any grid", () => {
+    const game = new FakeTableGame();
+
+    const frame = pileBackgroundFrame(
+      game,
+      pileOf(game, WASTE_PILE_ID),
+      SWAPPING_GRID,
+    );
+
+    expect(frame).toBeUndefined();
   });
 });

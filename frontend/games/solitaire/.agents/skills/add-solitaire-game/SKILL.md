@@ -338,7 +338,10 @@ export const MY_GAME_PHONE_LAYOUTS = phoneLayouts({
 - **rails** say which row piles stack down which edge of a sideways phone. Every
   row pile goes on exactly one rail. Mark foundations `overlapped`; give a
   pile that spreads down the rail `spreadsDown` and the `reach` its cards
-  need.
+  need. An overlapped pile showing `FOUNDATION_PLACEHOLDER` shows its ring at
+  the top edge there instead, the strip the pile below leaves showing
+  (`COVERED_FOUNDATION_PLACEHOLDER`, or `RAIL_FOUNDATION_PLACEHOLDER` for the
+  last), through the grid's `pileBackgrounds`. Nothing to declare.
 - **longestColumn** is the column every grid keeps on screen with fans at
   their floor; the builder sets each grid's design height from it.
 - **pileLayouts** (optional) changes how a pile arranges its cards on every
