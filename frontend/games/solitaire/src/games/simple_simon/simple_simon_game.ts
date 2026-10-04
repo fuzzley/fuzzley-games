@@ -1,9 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects } from "@/engine/tableau/table_game";
 import { collectCompletedRuns } from "@/games/common/completed_runs";
 import { DeckOptions } from "@/games/common/deck_options";
@@ -42,12 +41,12 @@ export class SimpleSimonGame extends DealtTableGame {
   constructor({
     variant = DEFAULT_SIMPLE_SIMON_VARIANT,
     cardIds = deckCardIds(simpleSimonDeck(variant)),
-    random = Math.random,
+    random,
   }: SimpleSimonOptions = {}) {
     super({
       zones: simpleSimonZoneSpecs(variant),
       // Dealt face up: the whole position is visible from the first move.
-      deck: new DeckSource(new CardRegistry(), cardIds, random, true),
+      deck: { cardIds, random, dealsFaceUp: true },
       // Only a column will take a card; a foundation is never a destination a
       // player can choose.
       autoMoveRoles: [SimpleSimonRole.TABLEAU],
@@ -60,9 +59,9 @@ export class SimpleSimonGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
+  protected override dealBoard(deal: Deal): void {
     dealSimpleSimonLayout(
-      deck,
+      deal,
       this.tableaus,
       simpleSimonCardsPerColumn(this.variant),
     );

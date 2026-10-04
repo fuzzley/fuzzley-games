@@ -1,9 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects } from "@/engine/tableau/table_game";
 import { isUncovered } from "@/engine/tableau/zone";
 import { DeckOptions } from "@/games/common/deck_options";
@@ -33,13 +32,10 @@ export class TriPeaksGame extends DealtTableGame {
   public readonly places: readonly CardPile<PlayingCard>[];
 
   /** Creates a game whose piles are empty until the first deal. */
-  constructor({
-    cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
-  }: DeckOptions = {}) {
+  constructor({ cardIds = ALL_PLAYING_CARD_IDS, random }: DeckOptions = {}) {
     super({
       zones: triPeaksZoneSpecs(),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       autoMoveRoles: [TriPeaksRole.WASTE],
       // Deliberately absent: the game is won by clearing the peaks, with
       // cards still in the stock. See `isWon`.
@@ -53,25 +49,13 @@ export class TriPeaksGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
+  protected override dealBoard(deal: Deal): void {
     for (const [index, place] of this.places.entries()) {
-      const card = deck.pop();
-      if (!card) return;
-      card.faceUp = (PEAK_PLACES[index]?.row ?? 0) >= BURIED_ROWS;
-      place.addCard(card);
+      const buried = (PEAK_PLACES[index]?.row ?? 0) < BURIED_ROWS;
+      if (!deal.dealTo(place, !buried)) return;
     }
-
-    const first = deck.pop();
-    if (!first) return;
-    first.faceUp = true;
-    this.waste.addCard(first);
-
-    let card = deck.pop();
-    while (card) {
-      card.faceUp = false;
-      this.stock.addCard(card);
-      card = deck.pop();
-    }
+    if (!deal.dealTo(this.waste, true)) return;
+    deal.dealRest(this.stock, false);
   }
 
   /** Whether the stock has a card left to turn, as it is never recycled. */

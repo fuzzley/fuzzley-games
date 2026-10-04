@@ -1,9 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { DeckOptions } from "@/games/common/deck_options";
 import { drawToWaste } from "@/games/common/stock_pile";
 import { dealGolfLayout } from "./golf_deal";
@@ -38,12 +37,12 @@ export class GolfGame extends DealtTableGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     variant = DEFAULT_GOLF_VARIANT,
   }: GolfOptions = {}) {
     super({
       zones: golfZoneSpecs(variant),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       autoMoveRoles: [GolfRole.FOUNDATION],
       // Deliberately absent: the game is won by clearing the columns, with
       // cards still in the stock. See `isWon`.
@@ -55,8 +54,8 @@ export class GolfGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealGolfLayout(deck, this.tableaus, this.foundation, this.stock);
+  protected override dealBoard(deal: Deal): void {
+    dealGolfLayout(deal, this.tableaus, this.foundation, this.stock);
   }
 
   /** Whether the stock has a card left to turn, as it is never recycled. */

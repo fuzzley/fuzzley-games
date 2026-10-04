@@ -1,9 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { CardTransfer } from "@/engine/tableau/move";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { ActionKind } from "@/games/common/action_kinds";
@@ -58,13 +57,13 @@ export class PyramidGame extends DealtTableGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     goal = DEFAULT_PYRAMID_GOAL,
     passes = DEFAULT_PYRAMID_PASSES,
   }: PyramidOptions = {}) {
     super({
       zones: pyramidZoneSpecs(passes),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // A double press sends a King away, or pairs a card with the first free
       // partner.
       autoMoveRoles: [
@@ -96,20 +95,9 @@ export class PyramidGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    for (const place of this.places) {
-      const card = deck.pop();
-      if (!card) return;
-      card.faceUp = true;
-      place.addCard(card);
-    }
-
-    let card = deck.pop();
-    while (card) {
-      card.faceUp = false;
-      this.stock.addCard(card);
-      card = deck.pop();
-    }
+  protected override dealBoard(deal: Deal): void {
+    if (!deal.dealEach(this.places, true)) return;
+    deal.dealRest(this.stock, false);
   }
 
   /**

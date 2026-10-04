@@ -1,9 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { DeckOptions } from "@/games/common/deck_options";
 import { dealCastleLayout } from "./castle_deal";
 import {
@@ -38,13 +37,13 @@ export class CastleGame extends DealtTableGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     variant = DEFAULT_CASTLE_VARIANT,
   }: CastleOptions = {}) {
     super({
       zones: castleZoneSpecs(variant),
       // Dealt face up: the whole position is visible from the first move.
-      deck: new DeckSource(new CardRegistry(), cardIds, random, true),
+      deck: { cardIds, random, dealsFaceUp: true },
       // Foundations only: which row a card goes to is the player's decision.
       autoMoveRoles: [CastleRole.FOUNDATION],
       winsWhenAllCardsIn: CastleRole.FOUNDATION,
@@ -57,7 +56,7 @@ export class CastleGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealCastleLayout(this.rules, deck, this.foundations, this.rows);
+  protected override dealBoard(deal: Deal): void {
+    dealCastleLayout(this.rules, deal, this.foundations, this.rows);
   }
 }

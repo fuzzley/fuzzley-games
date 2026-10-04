@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { anyCard } from "@/engine/tableau/rules";
 import { ZoneSpec } from "@/engine/tableau/zone";
 
@@ -35,7 +33,7 @@ class TestDealtGame extends DealtTableGame {
   constructor(cardIds = ALL_PLAYING_CARD_IDS.slice(0, 5)) {
     super({
       zones: [zone(HAND), zone(HOME)],
-      deck: new DeckSource(new CardRegistry(), cardIds),
+      deck: { cardIds },
       autoMoveRoles: [HOME],
       winsWhenAllCardsIn: HOME,
     });
@@ -45,14 +43,9 @@ class TestDealtGame extends DealtTableGame {
    * Drains the deck, as a real game's deal does, so the tests see whether a
    * restart replays from a copy.
    */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    this.deals.push(deck.map((card) => card.id));
-    while (deck.length > 0) {
-      const card = deck.pop();
-      if (!card) break;
-      card.faceUp = true;
-      this.requirePile(HAND).addCard(card);
-    }
+  protected override dealBoard(deal: Deal): void {
+    this.deals.push(deal.undealt.map((card) => card.id));
+    deal.dealRest(this.requirePile(HAND), true);
   }
 
   /** Sends every card home, which is how this game is won. */
@@ -64,19 +57,9 @@ class TestDealtGame extends DealtTableGame {
 
   /** Sweeps every card home at once, as an action outside the move path. */
   public sweepHome(): void {
-    const hand = this.requirePile(HAND);
-    const cards = [...hand.getCards()];
-    for (const card of cards) {
-      hand.removeCard(card);
-      this.requirePile(HOME).addCard(card);
-    }
+    const cards = this.requirePile(HAND).getCards();
     this.commitAction("sweep", [
-      {
-        cardIds: cards.map((card) => card.id),
-        fromPileId: HAND,
-        toPileId: HOME,
-        faceUpBefore: true,
-      },
+      this.tabletop.relocate([...cards], this.requirePile(HOME)),
     ]);
   }
 }

@@ -1,9 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { DeckOptions } from "@/games/common/deck_options";
 import { dealRowFromStock } from "@/games/common/row_deal";
 import { dealAcesUpLayout } from "./aces_up_deal";
@@ -37,12 +36,12 @@ export class AcesUpGame extends DealtTableGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     spaces = DEFAULT_ACES_UP_SPACES,
   }: AcesUpOptions = {}) {
     super({
       zones: acesUpZoneSpecs(spaces),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // The discard first; a card it will not take can only go to a space.
       autoMoveRoles: [AcesUpRole.DISCARD, AcesUpRole.TABLEAU],
       // Deliberately absent: the Aces stay behind, so the game is won by what
@@ -55,8 +54,8 @@ export class AcesUpGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealAcesUpLayout(deck, this.tableaus, this.stock);
+  protected override dealBoard(deal: Deal): void {
+    dealAcesUpLayout(deal, this.tableaus, this.stock);
   }
 
   /** Whether the stock has cards left to deal. */

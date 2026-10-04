@@ -1,9 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { DeckOptions } from "@/games/common/deck_options";
 import { dealRowFromStock } from "@/games/common/row_deal";
 import { dealBristolLayout } from "./bristol_deal";
@@ -37,12 +36,12 @@ export class BristolGame extends DealtTableGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     variant = DEFAULT_BRISTOL_VARIANT,
   }: BristolOptions = {}) {
     super({
       zones: bristolZoneSpecs(),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // Foundations only: which fan a card goes to is the player's decision.
       autoMoveRoles: [BristolRole.FOUNDATION],
       winsWhenAllCardsIn: BristolRole.FOUNDATION,
@@ -56,8 +55,8 @@ export class BristolGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealBristolLayout(this.variant, deck, this);
+  protected override dealBoard(deal: Deal): void {
+    dealBristolLayout(this.variant, deal, this);
   }
 
   /** Whether the stock has cards left to deal. */

@@ -1,9 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { runCollectingEffects } from "@/games/common/move_effects";
 import { dealRowCollectingRuns } from "@/games/common/row_deal";
@@ -32,11 +31,11 @@ export class SpiderGame extends DealtTableGame {
    */
   constructor({
     cardIds = deckCardIds(SPIDER_TWO_DECKS),
-    random = Math.random,
+    random,
   }: DeckOptions = {}) {
     super({
       zones: spiderZoneSpecs(),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // Only a column will take a card; a foundation is never a destination a
       // player can choose.
       autoMoveRoles: [SpiderRole.TABLEAU],
@@ -49,8 +48,8 @@ export class SpiderGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealSpiderLayout(deck, this.tableaus, this.stock);
+  protected override dealBoard(deal: Deal): void {
+    dealSpiderLayout(deal, this.tableaus, this.stock);
   }
 
   // --- The stock ---

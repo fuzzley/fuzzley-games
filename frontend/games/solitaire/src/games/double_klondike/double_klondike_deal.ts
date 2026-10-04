@@ -1,3 +1,4 @@
+import { Deal } from "@/engine/tableau/deal";
 import { CardPile } from "@/engine/core/card/card_pile";
 import { DeckSpec } from "@/engine/core/card/deck";
 import {
@@ -16,29 +17,18 @@ export const DOUBLE_KLONDIKE_TWO_DECKS: DeckSpec = {
 /**
  * Deals the Double Klondike opening: column i receives i + 1 cards with only
  * its top card face up, and the rest go face down onto the stock.
- *
- * @param deck The cards to deal, which this drains from the end.
  */
 export function dealDoubleKlondikeLayout(
-  deck: PlayingCard[],
+  deal: Deal,
   tableaus: readonly CardPile<PlayingCard>[],
   stock: CardPile<PlayingCard>,
 ): void {
   for (const [column, tableau] of tableaus.entries()) {
     for (let dealt = 0; dealt <= column; dealt++) {
-      const card = deck.pop();
       // A short injected deck simply runs out; the columns already dealt stand
       // as they are rather than the deal failing.
-      if (!card) return;
-      card.faceUp = dealt === column;
-      tableau.addCard(card);
+      if (!deal.dealTo(tableau, dealt === column)) return;
     }
   }
-
-  while (deck.length > 0) {
-    const card = deck.pop();
-    if (!card) break;
-    card.faceUp = false;
-    stock.addCard(card);
-  }
+  deal.dealRest(stock, false);
 }

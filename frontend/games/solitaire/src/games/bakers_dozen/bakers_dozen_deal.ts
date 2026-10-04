@@ -1,3 +1,4 @@
+import { Deal } from "@/engine/tableau/deal";
 import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { sinkKings } from "../common/sink_kings";
@@ -11,24 +12,20 @@ export const CARDS_PER_COLUMN = 4;
  *
  * A King can never move, so one dealt on top would bury the cards beneath it
  * for the whole game.
- *
- * @param deck The cards to deal, which this drains.
  */
 export function dealBakersDozenLayout(
-  deck: PlayingCard[],
+  deal: Deal,
   tableaus: readonly CardPile<PlayingCard>[],
 ): void {
   for (const tableau of tableaus) {
     const column: PlayingCard[] = [];
     for (let dealt = 0; dealt < CARDS_PER_COLUMN; dealt++) {
-      const card = deck.pop();
+      const card = deal.draw();
       if (!card) break;
-      card.faceUp = true;
       column.push(card);
     }
-
     for (const card of sinkKings(column)) {
-      tableau.addCard(card);
+      deal.place(card, tableau, true);
     }
   }
 }

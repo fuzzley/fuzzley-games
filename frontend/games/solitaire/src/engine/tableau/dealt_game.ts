@@ -1,6 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { DeckSource } from "./deck_source";
+import { CardRegistry } from "@/engine/core/card/card_registry";
+import { Deal } from "./deal";
+import { DeckSource, DeckSourceOptions } from "./deck_source";
 import { GameSnapshot, PileSnapshot } from "./game_snapshot";
 import { AppliedMove } from "./move";
 import { PlayableGame } from "./playable_game";
@@ -11,8 +13,8 @@ export interface DealtTableGameOptions extends Omit<
   TableGameOptions,
   "registry"
 > {
-  /** The cards to deal, and the state they arrive in. */
-  readonly deck: DeckSource;
+  /** The cards to deal, how they are shuffled, and how they lie. */
+  readonly deck: DeckSourceOptions;
 }
 
 /**
@@ -26,14 +28,16 @@ export abstract class DealtTableGame<
   implements PlayableGame
 {
   /** The cards this game deals from. */
-  protected readonly deck: DeckSource;
+  private readonly deck: DeckSource;
 
   /** The deal a restart replays, in dealt order. */
   private initialDeck: PlayingCard[] = [];
 
   constructor(options: DealtTableGameOptions) {
-    super({ ...options, registry: options.deck.registry });
-    this.deck = options.deck;
+    const { cardIds, random, dealsFaceUp } = options.deck;
+    const registry = new CardRegistry();
+    super({ ...options, registry });
+    this.deck = new DeckSource(registry, cardIds, random, dealsFaceUp);
   }
 
   /** Shuffles the deck and deals a fresh board. */
@@ -157,7 +161,7 @@ export abstract class DealtTableGame<
   private beginGame(createDeck: () => PlayingCard[]): void {
     this.resetHistory([], this.initialScore());
     this.resetPiles();
-    this.dealBoard(createDeck());
+    this.dealBoard(new Deal(createDeck(), this.tabletop));
     this.emit("game-reset", undefined);
   }
 
@@ -175,10 +179,7 @@ export abstract class DealtTableGame<
   /**
    * Lays the deck out into the opening position for this game.
    *
-   * The piles and history are already empty; anything else a fresh board needs
-   * reset, such as a recycle count, belongs here too.
-   *
-   * @param deck The cards to deal, which an implementation is free to drain.
+   * The piles and history are already empty when it runs.
    */
-  protected abstract dealBoard(deck: PlayingCard[]): void;
+  protected abstract dealBoard(deal: Deal): void;
 }

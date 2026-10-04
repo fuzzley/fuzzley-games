@@ -1,10 +1,9 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 
 import { ActionKind } from "@/games/common/action_kinds";
 import { DeckOptions } from "@/games/common/deck_options";
@@ -73,7 +72,7 @@ export class MontanaGame extends DealtTableGame {
     super({
       zones: montanaZoneSpecs(variant, maxRedeals),
       // Dealt face up: the whole position is visible from the first move.
-      deck: new DeckSource(new CardRegistry(), cardIds, random, true),
+      deck: { cardIds, random, dealsFaceUp: true },
       // A card fits at most one gap, so auto-moving it guesses nothing.
       autoMoveRoles: [MontanaRole.CELL],
       // Deliberately absent: this game is won by arrangement, not by gathering
@@ -95,8 +94,8 @@ export class MontanaGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealMontanaFamilyLayout(this.variant, deck, this.rows);
+  protected override dealBoard(deal: Deal): void {
+    dealMontanaFamilyLayout(this.variant, deal, this.rows);
   }
 
   /** The grid as rows, left to right within each. */

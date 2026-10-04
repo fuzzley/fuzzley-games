@@ -117,7 +117,7 @@ The review's findings, grouped into phases. Each phase leaves the tree green.
 - [x] 2.3 `relocate` helper
 - [x] 3.1 Pile markers
 - [x] 3.2 Rules attached directly; column rule helper
-- [ ] 3.3 Deck construction and dealing helpers
+- [x] 3.3 Deck construction and dealing helpers
 - [ ] 4.1 `engine/board` tier and fixture copies deleted
 - [ ] 4.2 Read-only piles
 - [x] 5.1 `Tabletop` split out of `TableGame` (done before 2.3; see log)
@@ -304,3 +304,29 @@ Newest last. Each entry names its commit subject.
     of the deleted switch, so it tests the wiring a game is built from.
   - The `add-solitaire-game` skill describes naming rules directly and
     `runColumn`.
+- **refactor: deal through a Deal that places cards on the tabletop.**
+  - `DealtTableGame` takes `deck: DeckSourceOptions` (`{ cardIds, random?,
+    dealsFaceUp? }`, in `deck_source.ts`) and builds the registry and the
+    `DeckSource` itself; its `deck` field is now private. Every game passed
+    the same `new DeckSource(new CardRegistry(), …)`, and most dropped their
+    `random = Math.random` default. La Belle Lucie and Montana keep theirs,
+    because their redeals shuffle with it.
+  - `dealBoard(deal: Deal)`. `Deal` (`src/engine/tableau/deal.ts`) hands out
+    the shuffled cards last first and places them through `tabletop.place`:
+    `draw`, `peek`, `dealTo`, `dealEach`, `dealRest`, `pull`,
+    `pullFirst`, `putBack`, `putUnder`, `drawAll`, `place`.
+  - Every `*_deal.ts` and the four inline deals (Pyramid, Monte Carlo, Poker
+    Squares, TriPeaks) were rewritten onto it by hand, keeping each deal's
+    exact order, including the odd cases where a card that has nowhere to go
+    is dropped. The fixed-shuffle game specs pass unchanged, which pins the
+    layouts.
+  - `src/games/common/pull_cards.ts` and its spec are gone; `Deal.pull` and
+    `pullFirst` replace them. The Klondike and FreeCell almost-win deals take
+    their cards from the deal instead of `DeckSource.register`/`find`, so
+    `DeckSource.find` and `size` went, and `registry` is private.
+  - No game calls `addCard` or `removeCard` any more; outside `engine/core`
+    only `Tabletop` does. The remaining direct writes in games are card
+    flips (`faceUp = true`), which undo records through `flippedCardIds`.
+  - Specs that call a deal function directly deal onto `TestTabletop`, which
+    gained `deal(cards)`.
+  - The `add-solitaire-game` skill documents `Deal` and the deck options.

@@ -1,9 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { flipOnlyEffects } from "@/games/common/move_effects";
 import { drawToWaste } from "@/games/common/stock_pile";
@@ -56,12 +55,12 @@ export class FortyThievesGame extends DealtTableGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = deckCardIds(FORTY_THIEVES_TWO_DECKS),
-    random = Math.random,
+    random,
     variant = DEFAULT_FORTY_THIEVES_VARIANT,
   }: FortyThievesOptions = {}) {
     super({
       zones: fortyThievesZoneSpecs(variant),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // Foundations only: which column a card goes to is most of the player's
       // decision.
       autoMoveRoles: [FortyThievesRole.FOUNDATION],
@@ -76,9 +75,9 @@ export class FortyThievesGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
+  protected override dealBoard(deal: Deal): void {
     dealFortyThievesLayout(
-      deck,
+      deal,
       this.foundations,
       this.tableaus,
       this.stock,

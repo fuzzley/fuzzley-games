@@ -1,9 +1,8 @@
 import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { FakeRole, STOCK_PILE_ID, WASTE_PILE_ID, fakeZoneSpecs } from "./zones";
 
@@ -43,7 +42,7 @@ export class FakeTableGame extends DealtTableGame {
   ) {
     super({
       zones: fakeZoneSpecs(drawCount),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       autoMoveRoles: [FakeRole.FOUNDATION, FakeRole.TABLEAU],
       winsWhenAllCardsIn: FakeRole.FOUNDATION,
     });
@@ -61,21 +60,13 @@ export class FakeTableGame extends DealtTableGame {
    *
    * @inheritDoc
    */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    for (let column = 0; column < this.tableaus.length; column++) {
+  protected override dealBoard(deal: Deal): void {
+    for (const [column, tableau] of this.tableaus.entries()) {
       for (let depth = 0; depth <= column; depth++) {
-        const card = deck.pop();
-        if (!card) return;
-        card.faceUp = depth === column;
-        this.tableaus[column].addCard(card);
+        if (!deal.dealTo(tableau, depth === column)) return;
       }
     }
-    while (deck.length > 0) {
-      const card = deck.pop();
-      if (!card) break;
-      card.faceUp = false;
-      this.stock.addCard(card);
-    }
+    deal.dealRest(this.stock, false);
   }
 
   /**
