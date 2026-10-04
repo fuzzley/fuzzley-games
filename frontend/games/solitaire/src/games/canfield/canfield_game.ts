@@ -102,12 +102,17 @@ export class CanfieldGame extends DealtTableGame {
     if (!this.stock.isEmpty) {
       this.commitAction(
         ActionKind.DRAW,
-        drawToWaste(this.stock, this.waste, this.rules.drawCount),
+        drawToWaste(
+          this.tabletop,
+          this.stock,
+          this.waste,
+          this.rules.drawCount,
+        ),
       );
     } else if (!this.waste.isEmpty && this.recyclesRemaining > 0) {
       this.commitAction(
         ActionKind.RECYCLE,
-        recycleWasteToStock(this.waste, this.stock),
+        recycleWasteToStock(this.tabletop, this.waste, this.stock),
       );
     }
   }
@@ -176,14 +181,7 @@ export class CanfieldGame extends DealtTableGame {
       move.sourcePile.isEmpty &&
       filler
     ) {
-      this.reserve.removeCard(filler);
-      move.sourcePile.addCard(filler);
-      followUpTransfers.push({
-        cardIds: [filler.id],
-        fromPileId: this.reserve.id,
-        toPileId: move.sourcePile.id,
-        faceUpBefore: true,
-      });
+      followUpTransfers.push(this.tabletop.relocate([filler], move.sourcePile));
       const flipped = flipExposedTop(this.reserve);
       if (flipped) flippedCardIds.push(flipped.id);
     }

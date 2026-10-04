@@ -102,7 +102,7 @@ export class PokerSquaresGame extends DealtTableGame {
     return {
       scoreDelta: scoreGrid(this.lines, this.scoring) - this.state.score,
       flippedCardIds: [],
-      followUpTransfers: drawToWaste(this.stock, this.hand, 1),
+      followUpTransfers: drawToWaste(this.tabletop, this.stock, this.hand, 1),
     };
   }
 

@@ -154,9 +154,11 @@ A plain function taking the deck and the piles, draining the deck. Reuse first:
 
 - `dealColumnsThenCells(deck, tableaus, cells, cardsPerColumn)` —
   `src/games/common/row_deal.ts`, the opening of every all-face-up cell game.
-- `dealRowFromStock(stock, columns)` — same file, for a Spider-style stock that
+- `dealRowFromStock(tabletop, stock, columns)` — same file, for a Spider-style
+  stock that
   pushes a card onto every column and returns one transfer per card.
-- `dealRowCollectingRuns(stock, dealTo, columns, foundations)` — same file, for
+- `dealRowCollectingRuns(tabletop, stock, dealTo, columns, foundations)` —
+  same file, for
   a stock deal that can finish a run: it deals, sends every completed run to a
   foundation, and returns the transfers and flipped cards to commit together.
 - `pullCards(deck, predicate)` and `pullFirstCard(deck, predicate)` —
@@ -211,8 +213,9 @@ The only required override is `dealBoard(deck)`. Optionally:
   `src/games/common/pair_removal.ts`: the partner's pile takes the card, then
   the effect sends both to the discard. Such a pile must have no `capacity`,
   which is checked before the accept rule.
-- A stock action. `drawToWaste(stock, waste, count)` and
-  `recycleWasteToStock(waste, stock)` from `src/games/common/stock_pile.ts` move
+- A stock action. `drawToWaste(tabletop, stock, waste, count)` and
+  `recycleWasteToStock(tabletop, waste, stock)` from
+  `src/games/common/stock_pile.ts` move
   the cards and return transfers. The game commits them with
   `commitAction(kind, transfers, options)`, because whether a recycle costs
   points is the game's business, not the stock's.
@@ -224,6 +227,16 @@ The only required override is `dealBoard(deck)`. Optionally:
 - `isWon()` — only for a game won by the order of its cards rather than by
   gathering them into one role. Montana overrides it and leaves
   `winsWhenAllCardsIn` unset.
+
+**Every recorded change of pile goes through `this.tabletop`**
+(`src/engine/tableau/tabletop.ts`). `relocate(cards, to, { faceUp })` moves
+cards from the one pile holding them and returns the `CardTransfer` that undo
+needs; `rearrange(layout)` lays out several piles at once, as a redeal does
+(La Belle Lucie, Montana, Monte Carlo), and returns transfers that restore them
+all. Never build a `CardTransfer` by hand or call a pile's `addCard` or
+`removeCard` in an action: the transfer would be a second description of the
+change, free to disagree with it. The shared helpers above take the tabletop
+as their first argument for the same reason.
 
 **Everything you do not write:** the piles and where every card is, move
 legality, `moveCardToPile` / `autoMoveCard`, undo and the move history, the win
@@ -416,7 +429,8 @@ Reading it as a decision, when you are unsure where a new piece belongs:
 - **Dealing past a capacity** — deals bypass placement rules.
 - **A consequence recorded as its own action** — undo then takes it back in two
   presses instead of one.
-- **A transfer recorded in the wrong order** — a transfer records where cards
-  came _from_, so `drawToWaste` reverses the drawn cards before recording; that
-  is what lets undo re-append them and get the original pile back.
+- **A transfer written by hand** — undo re-appends a transfer's cards in the
+  order they sat in the pile they came from, which is easy to get backwards
+  when cards land turned over, as a draw's do. `tabletop.relocate` records
+  that order itself, whatever order the cards land in; use it.
 - **`designHeightPx` left at the grid height** — long columns fall off the board.

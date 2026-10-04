@@ -15,14 +15,30 @@ export function dealFans(
   cards: PlayingCard[],
   fans: readonly CardPile<PlayingCard>[],
 ): void {
-  for (const fan of fans) {
-    for (let dealt = 0; dealt < CARDS_PER_FAN; dealt++) {
-      const card = cards.pop();
-      if (!card) return;
+  for (const [fan, fanCards] of fanLayout(cards, fans)) {
+    for (const card of fanCards) {
       card.faceUp = true;
       fan.addCard(card);
     }
+    cards.length -= fanCards.length;
   }
+}
+
+/**
+ * Returns what each fan holds once the cards are dealt in threes, fan by fan,
+ * from the end of the list, with an entry for every fan, empty or not.
+ */
+export function fanLayout(
+  cards: readonly PlayingCard[],
+  fans: readonly CardPile<PlayingCard>[],
+): Map<CardPile<PlayingCard>, PlayingCard[]> {
+  const remaining = [...cards];
+  return new Map(
+    fans.map((fan) => [
+      fan,
+      remaining.splice(Math.max(0, remaining.length - CARDS_PER_FAN)).reverse(),
+    ]),
+  );
 }
 
 /**

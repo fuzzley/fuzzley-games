@@ -4,7 +4,6 @@ import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { DeckSource } from "@/engine/tableau/deck_source";
-import { CardTransfer } from "@/engine/tableau/move";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { DeckOptions } from "@/games/common/deck_options";
 import { discardPairEffects } from "@/games/common/pair_removal";
@@ -84,7 +83,7 @@ export class MonteCarloGame extends DealtTableGame {
    * @inheritDoc
    */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
-    return discardPairEffects(move, this.discard);
+    return discardPairEffects(this.tabletop, move, this.discard);
   }
 
   // --- Consolidating ---
@@ -112,33 +111,21 @@ export class MonteCarloGame extends DealtTableGame {
       return false;
     }
 
-    // Every card comes off the grid before any goes back, so a cell being
-    // vacated and filled in the same pass cannot collide.
-    const remaining: { card: PlayingCard; from: CardPile<PlayingCard> }[] = [];
-    for (const cell of this.cells) {
-      const card = cell.topCard;
-      if (!card) continue;
-      remaining.push({ card, from: cell });
-      cell.removeCard(card);
-    }
+    // In reading order, each cell holding at most one card.
+    const remaining = this.cells.flatMap((cell) => [...cell.getCards()]);
+    const transfers = this.tabletop.rearrange(
+      new Map(
+        this.cells.map((cell, index) => {
+          const card = remaining[index];
+          return [cell, card ? [card] : []];
+        }),
+      ),
+    );
 
-    const transfers: CardTransfer[] = [];
-    for (const [index, cell] of this.cells.entries()) {
-      const slid = remaining[index];
-      if (slid) {
-        cell.addCard(slid.card);
-        if (slid.from !== cell) {
-          transfers.push(transfer(slid.card, slid.from, cell, true));
-        }
-        continue;
-      }
-
+    for (const cell of this.cells.slice(remaining.length)) {
       const dealt = this.stock.topCard;
-      if (!dealt) continue;
-      this.stock.removeCard(dealt);
-      dealt.faceUp = true;
-      cell.addCard(dealt);
-      transfers.push(transfer(dealt, this.stock, cell, false));
+      if (!dealt) break;
+      transfers.push(this.tabletop.relocate([dealt], cell, { faceUp: true }));
     }
 
     this.commitAction(ActionKind.CONSOLIDATE, transfers);
@@ -170,19 +157,4 @@ export class MonteCarloGame extends DealtTableGame {
       ? pile.isEmpty && this.canConsolidate
       : super.isEmptySlotActionable(pile);
   }
-}
-
-/** Returns a one-card transfer. */
-function transfer(
-  card: PlayingCard,
-  from: CardPile<PlayingCard>,
-  to: CardPile<PlayingCard>,
-  faceUpBefore: boolean,
-): CardTransfer {
-  return {
-    cardIds: [card.id],
-    fromPileId: from.id,
-    toPileId: to.id,
-    faceUpBefore,
-  };
 }

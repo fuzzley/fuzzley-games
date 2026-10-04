@@ -114,7 +114,7 @@ The review's findings, grouped into phases. Each phase leaves the tree green.
 - [x] 1.6 Spec hygiene
 - [x] 2.1 One writer for the metrics
 - [x] 2.2 Counts read from the history
-- [ ] 2.3 `relocate` helper
+- [x] 2.3 `relocate` helper
 - [ ] 3.1 Pile markers
 - [ ] 3.2 Rules attached directly; column rule helper
 - [ ] 3.3 Deck construction and dealing helpers
@@ -246,3 +246,26 @@ Newest last. Each entry names its commit subject.
     `HistoryBoard.reverse` instead of moving cards itself.
   - `move_history.spec.ts` runs on a real `Tabletop` instead of a
     hand-written board.
+- **refactor: make every recorded change of pile through the tabletop.**
+  - No `CardTransfer` is written by hand any more outside `Tabletop`. A move
+    (`TableGame.moveCardToPile`), every helper in `games/common`
+    (`drawToWaste`, `recycleWasteToStock`, `dealRowFromStock`,
+    `dealRowCollectingRuns`, `collectCompletedRuns`, `runCollectingEffects`,
+    `discardPairEffects`), Canfield's reserve fill and Pyramid's hand
+    discard all call `tabletop.relocate`. The helpers take the tabletop as
+    their first argument.
+  - La Belle Lucie, Montana and Monte Carlo redeal through
+    `tabletop.rearrange`. La Belle Lucie gained a pure `fanLayout` that both
+    its deal and its redeal use. The transfers these record differ from the
+    old hand-built ones (cards that keep their place are no longer listed),
+    but undo restores the same table, which the contract suite checks.
+  - `relocate` throws if its cards are not in one pile or not turned the same
+    way. Nothing in the contract sweep trips it.
+  - `FakeTableGame` draws and recycles through `relocate` too. The helper
+    specs run on `TestTabletop` (`test/support/test_tabletop.ts`), a real
+    `Tabletop` whose piles take any card.
+  - Deal-time placement (`dealBoard` and the `*_deal.ts` files) still calls
+    `addCard` directly; step 3.3 moves it onto the tabletop.
+  - The `add-solitaire-game` and `typescript-strict-patterns` skills
+    describe `tabletop.relocate` and `rearrange` and the new helper
+    signatures.

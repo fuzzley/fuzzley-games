@@ -75,7 +75,7 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
     if (!this.stock.isEmpty) {
       this.commitAction(
         ActionKind.DRAW,
-        drawToWaste(this.stock, this.waste, this.drawCount),
+        drawToWaste(this.tabletop, this.stock, this.waste, this.drawCount),
       );
     } else if (!this.waste.isEmpty && this.recyclesRemaining > 0) {
       this.recycleWaste();
@@ -95,7 +95,7 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
 
     this.commitAction(
       ActionKind.RECYCLE,
-      recycleWasteToStock(this.waste, this.stock),
+      recycleWasteToStock(this.tabletop, this.waste, this.stock),
       {
         scoreDelta: this.scoring.clampScore(score - penalty) - score,
       },

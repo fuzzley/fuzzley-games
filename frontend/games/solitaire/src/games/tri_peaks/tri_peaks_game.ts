@@ -85,7 +85,10 @@ export class TriPeaksGame extends DealtTableGame {
       return false;
     }
 
-    this.commitAction(ActionKind.DRAW, drawToWaste(this.stock, this.waste, 1));
+    this.commitAction(
+      ActionKind.DRAW,
+      drawToWaste(this.tabletop, this.stock, this.waste, 1),
+    );
     return true;
   }
 

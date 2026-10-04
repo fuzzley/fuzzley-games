@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { CardPile } from "@/engine/core/card/card_pile";
 import { ALL_RANKS, PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import {
@@ -6,24 +6,39 @@ import {
   dealRowFromStock,
 } from "@/games/common/row_deal";
 import { makePlayingCard } from "@test/support/card_builder";
+import { TestTabletop } from "@test/support/test_tabletop";
+
+/** The table each test's piles lie on, fresh for every test. */
+let table: TestTabletop;
+
+beforeEach(() => {
+  table = new TestTabletop([
+    "stock",
+    "tableau-0",
+    "tableau-1",
+    "tableau-2",
+    "tableau-3",
+    "foundation-0",
+  ]);
+});
 
 /**
  * Returns a face-down stock of `count` cards named `stock-0` upwards, bottom
  * first, so the highest-numbered card deals first.
  */
 function stockOf(count: number): CardPile<PlayingCard> {
-  const stock = new CardPile<PlayingCard>("stock");
-  for (let index = 0; index < count; index++) {
-    stock.addCard(makePlayingCard({ id: `stock-${index}` }));
-  }
-  return stock;
+  return table.fill(
+    "stock",
+    Array.from({ length: count }, (_, index) =>
+      makePlayingCard({ id: `stock-${index}` }),
+    ),
+  );
 }
 
 /** Returns empty columns named `tableau-0` upwards. */
 function columnsOf(count: number): CardPile<PlayingCard>[] {
-  return Array.from(
-    { length: count },
-    (_, index) => new CardPile<PlayingCard>(`tableau-${index}`),
+  return Array.from({ length: count }, (_, index) =>
+    table.pile(`tableau-${index}`),
   );
 }
 
@@ -42,9 +57,7 @@ function pileOf(
   id: string,
   cards: readonly PlayingCard[] = [],
 ): CardPile<PlayingCard> {
-  const pile = new CardPile<PlayingCard>(id);
-  for (const card of cards) pile.addCard(card);
-  return pile;
+  return table.fill(id, cards);
 }
 
 /** Returns King down to Two of spades, bottom first: a run the Ace finishes. */
@@ -60,7 +73,7 @@ describe("dealRowFromStock", () => {
     const stock = stockOf(10);
     const columns = columnsOf(3);
 
-    dealRowFromStock(stock, columns);
+    dealRowFromStock(table.tabletop, stock, columns);
 
     expect(columns.map((column) => column.size)).toEqual([1, 1, 1]);
   });
@@ -69,7 +82,7 @@ describe("dealRowFromStock", () => {
     const stock = stockOf(3);
     const columns = columnsOf(3);
 
-    dealRowFromStock(stock, columns);
+    dealRowFromStock(table.tabletop, stock, columns);
 
     expect(columns.map(idsIn)).toEqual([["stock-2"], ["stock-1"], ["stock-0"]]);
   });
@@ -78,7 +91,7 @@ describe("dealRowFromStock", () => {
     const stock = stockOf(3);
     const columns = columnsOf(3);
 
-    dealRowFromStock(stock, columns);
+    dealRowFromStock(table.tabletop, stock, columns);
 
     const dealt = columns.map((column) => column.topCard!.faceUp);
     expect(dealt).toEqual([true, true, true]);
@@ -89,7 +102,7 @@ describe("dealRowFromStock", () => {
     const columns = columnsOf(1);
     columns[0].addCard(makePlayingCard({ id: "already-there" }));
 
-    dealRowFromStock(stock, columns);
+    dealRowFromStock(table.tabletop, stock, columns);
 
     expect(idsIn(columns[0])).toEqual(["already-there", "stock-0"]);
   });
@@ -97,7 +110,7 @@ describe("dealRowFromStock", () => {
   it("takes the dealt cards out of the stock", () => {
     const stock = stockOf(10);
 
-    dealRowFromStock(stock, columnsOf(4));
+    dealRowFromStock(table.tabletop, stock, columnsOf(4));
 
     expect(stock.size).toBe(6);
   });
@@ -106,7 +119,7 @@ describe("dealRowFromStock", () => {
     const stock = stockOf(2);
     const columns = columnsOf(4);
 
-    dealRowFromStock(stock, columns);
+    dealRowFromStock(table.tabletop, stock, columns);
 
     // Spiderette's stock does not divide by its columns, so its last deal is
     // always a short one.
@@ -116,7 +129,7 @@ describe("dealRowFromStock", () => {
   it("deals nothing from an empty stock", () => {
     const columns = columnsOf(3);
 
-    const transfers = dealRowFromStock(stockOf(0), columns);
+    const transfers = dealRowFromStock(table.tabletop, stockOf(0), columns);
 
     expect([transfers, columns.map((column) => column.size)]).toEqual([
       [],
@@ -128,7 +141,7 @@ describe("dealRowFromStock", () => {
     const stock = stockOf(5);
     const [dealtTo, untouched] = columnsOf(2);
 
-    dealRowFromStock(stock, [dealtTo]);
+    dealRowFromStock(table.tabletop, stock, [dealtTo]);
 
     // Scorpion empties its stock onto its first three columns only, which is
     // why the columns are a parameter rather than "all of them".
@@ -139,7 +152,7 @@ describe("dealRowFromStock", () => {
     const stock = stockOf(2);
     const columns = columnsOf(2);
 
-    const transfers = dealRowFromStock(stock, columns);
+    const transfers = dealRowFromStock(table.tabletop, stock, columns);
 
     expect(transfers).toEqual([
       {
@@ -164,6 +177,7 @@ describe("dealRowCollectingRuns", () => {
     const foundation = pileOf("foundation-0");
 
     dealRowCollectingRuns(
+      table.tabletop,
       pileOf("stock", [spade(Rank.ACE, false)]),
       [column],
       [column],
@@ -177,6 +191,7 @@ describe("dealRowCollectingRuns", () => {
     const column = pileOf("tableau-0", runAwaitingAce());
 
     const { transfers } = dealRowCollectingRuns(
+      table.tabletop,
       pileOf("stock", [spade(Rank.ACE, false)]),
       [column],
       [column],
@@ -198,6 +213,7 @@ describe("dealRowCollectingRuns", () => {
     const foundation = pileOf("foundation-0");
 
     dealRowCollectingRuns(
+      table.tabletop,
       stockOf(1),
       [dealtTo],
       [dealtTo, finished],
@@ -212,6 +228,7 @@ describe("dealRowCollectingRuns", () => {
     const column = pileOf("tableau-0", [buried, ...runAwaitingAce()]);
 
     const { flippedCardIds } = dealRowCollectingRuns(
+      table.tabletop,
       pileOf("stock", [spade(Rank.ACE, false)]),
       [column],
       [column],

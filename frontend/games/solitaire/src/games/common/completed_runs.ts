@@ -1,6 +1,7 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { CardTransfer } from "@/engine/tableau/move";
+import { Tabletop } from "@/engine/tableau/tabletop";
 import { isSameSuitRun } from "@/engine/tableau/rules";
 import { itemAt } from "@/engine/core/common/item_at";
 
@@ -55,6 +56,7 @@ export function flipExposedTop(
  * left covered earlier becomes collectable once anything uncovers it.
  */
 export function collectCompletedRuns(
+  tabletop: Tabletop,
   tableaus: readonly CardPile<PlayingCard>[],
   foundations: readonly CardPile<PlayingCard>[],
 ): { transfers: CardTransfer[]; flippedCardIds: string[] } {
@@ -69,16 +71,7 @@ export function collectCompletedRuns(
     if (!foundation) continue;
 
     const run = tableau.getCards().slice(start, start + RUN_LENGTH);
-    for (const card of run) {
-      tableau.removeCard(card);
-      foundation.addCard(card);
-    }
-    transfers.push({
-      cardIds: run.map((card) => card.id),
-      fromPileId: tableau.id,
-      toPileId: foundation.id,
-      faceUpBefore: true,
-    });
+    transfers.push(tabletop.relocate(run, foundation));
 
     // Taking a run off can expose a face-down card underneath it.
     const flipped = flipExposedTop(tableau);

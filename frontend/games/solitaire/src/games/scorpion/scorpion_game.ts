@@ -99,6 +99,7 @@ export class ScorpionGame extends DealtTableGame {
     }
 
     const dealt = dealRowCollectingRuns(
+      this.tabletop,
       this.stock,
       this.tableaus.slice(0, STOCK_DEAL_COLUMN_COUNT),
       this.tableaus,
@@ -115,6 +116,7 @@ export class ScorpionGame extends DealtTableGame {
   /** @inheritDoc */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
     return runCollectingEffects(
+      this.tabletop,
       move,
       ScorpionRole.TABLEAU,
       this.tableaus,

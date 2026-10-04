@@ -52,6 +52,6 @@ export class NestorGame extends DealtTableGame {
    * @inheritDoc
    */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
-    return discardPairEffects(move, this.discard);
+    return discardPairEffects(this.tabletop, move, this.discard);
   }
 }

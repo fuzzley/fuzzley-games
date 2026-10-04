@@ -73,7 +73,7 @@ export class BristolGame extends DealtTableGame {
 
     this.commitAction(
       ActionKind.DEAL,
-      dealRowFromStock(this.stock, this.reserves),
+      dealRowFromStock(this.tabletop, this.stock, this.reserves),
     );
     return true;
   }

@@ -248,23 +248,11 @@ export abstract class TableGame<
       return false;
     }
 
-    for (const movingCard of move.movingStack) {
-      move.sourcePile.removeCard(movingCard);
-      move.targetPile.addCard(movingCard);
-    }
-
+    const moved = this.tabletop.relocate(move.movingStack, move.targetPile);
     const effects = this.applyMoveEffects(move);
     this.commit({
       kind: MOVE_KIND,
-      transfers: [
-        {
-          cardIds: move.movingStack.map((card) => card.id),
-          fromPileId: move.sourcePile.id,
-          toPileId: move.targetPile.id,
-          faceUpBefore: true,
-        },
-        ...(effects.followUpTransfers ?? []),
-      ],
+      transfers: [moved, ...(effects.followUpTransfers ?? [])],
       scoreDelta: effects.scoreDelta,
       flippedCardIds: effects.flippedCardIds,
     });
