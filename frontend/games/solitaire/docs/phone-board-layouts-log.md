@@ -279,7 +279,7 @@ from the right.
 
 - [x] 0.1 Record the plan
 - [x] 1.1 Insets on every side
-- [ ] 1.2 Spreads in any direction
+- [x] 1.2 Spreads in any direction
 - [ ] 1.3 Anchored and offset slots
 - [ ] 1.4 Fitted fans
 - [ ] 1.5 Board layouts and the chooser
@@ -325,3 +325,21 @@ and `computePileOrigins` starts it at the left inset, centring it in the width
 left between the side insets. The canvas still declares only the top, so
 nothing on screen moves. New specs cover side and bottom insets in the layout
 math and all four in the scaler.
+
+### 1.2 Spreads in any direction
+
+The `fan-right` arrangement is now `spread`, with a `direction` of `right`,
+`left` or `down` and an optional `groupSize`. `spreadOffsets` replaces
+`fanRightOffsets`: with a group size, a run of cards moves as one, so fifty
+cards in groups of ten show as five slivers and `maxVisible` counts groups. The
+Klondike waste, the Forty Thieves waste, the Beleaguered Castle rows and the
+fake table's waste all spread right, as they fanned right before.
+
+`pileHeight` and `pileWidth` gave way to `pileBounds`, the rectangle a pile's
+cards cover relative to its origin, which reaches left of the origin for a
+leftward spread. Drop rectangles use it, so a pile spreading left takes a drop
+over the cards it shows. Nothing on screen changes.
+
+There was no spec for `pile_layout.ts` of its own; the offsets were covered from
+`drop_geometry.spec.ts`. The new spreads and bounds have one,
+`test/engine/render/layout/pile_layout.spec.ts`, which step 1.4 extends.
