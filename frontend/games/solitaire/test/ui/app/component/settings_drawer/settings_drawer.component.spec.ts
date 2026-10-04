@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
@@ -17,6 +17,10 @@ import {
 import { flushMicrotasks } from "@test/support/async";
 import { clickBackdrop, isDialogOpen, pressEscape } from "@test/support/dialog";
 import { DESKTOP_CARD_DECKS } from "@/engine/render/card_deck";
+import {
+  installFakeViewport,
+  type FakeViewport,
+} from "@test/support/ui/viewport";
 
 describe("SettingsDrawerComponent", () => {
   let fixture: ComponentFixture<SettingsDrawerComponent>;
@@ -44,10 +48,7 @@ describe("SettingsDrawerComponent", () => {
 
   /** Returns the drawer's own rule buttons, excluding the debug panel's. */
   function ruleButtons(): HTMLElement[] {
-    return queryAll(
-      fixture,
-      ".drawer-content > app-option-group:not(.card-style) .segment-btn",
-    );
+    return queryAll(fixture, "app-option-group.rule .segment-btn");
   }
 
   describe("showing and hiding", () => {
@@ -134,6 +135,96 @@ describe("SettingsDrawerComponent", () => {
           "aria-checked",
         ),
       ).toBe("true");
+    });
+  });
+
+  describe("the table's arrangement", () => {
+    /** Returns the labels of a group's buttons, in the order offered. */
+    function labels(group: string): (string | undefined)[] {
+      return queryAll(fixture, `app-option-group.${group} .segment-btn`).map(
+        (button) => button.textContent?.trim(),
+      );
+    }
+
+    it("offers a hand in a game laid out for a phone", () => {
+      openDrawer();
+
+      expect(labels("hand")).toEqual(["Right Hand", "Left Hand"]);
+    });
+
+    it("lays the table out for a left hand when it is picked", () => {
+      openDrawer();
+
+      queryAll(fixture, "app-option-group.hand .segment-btn")[1].click();
+
+      expect(harness.presentation.hand()).toBe("left");
+    });
+
+    it("offers no hand in a game without phone grids", () => {
+      harness.catalog.select("freecell");
+      openDrawer();
+
+      expect(query(fixture, "app-option-group.hand")).toBeNull();
+    });
+
+    it("keeps the upright phone layout to a phone", () => {
+      openDrawer();
+
+      expect(query(fixture, "app-option-group.phone-piles")).toBeNull();
+    });
+
+    describe("on a phone", () => {
+      let viewport: FakeViewport;
+
+      beforeEach(async () => {
+        TestBed.resetTestingModule();
+        viewport = installFakeViewport(390, 844);
+        harness = await configureUiTestBed(SettingsDrawerComponent);
+        fixture = TestBed.createComponent(SettingsDrawerComponent);
+        fixture.detectChanges();
+      });
+
+      afterEach(() => {
+        viewport.restore();
+      });
+
+      it("offers the piles below or above the columns", () => {
+        openDrawer();
+
+        expect(labels("phone-piles")).toEqual(["Piles Below", "Piles Above"]);
+      });
+
+      it("moves the piles above the columns when that is picked", () => {
+        openDrawer();
+
+        queryAll(
+          fixture,
+          "app-option-group.phone-piles .segment-btn",
+        )[1].click();
+
+        expect(harness.presentation.phonePiles()).toBe("top");
+      });
+
+      it("offers no upright layout once the phone is on its side", () => {
+        viewport.setSize(844, 390);
+        openDrawer();
+
+        expect(query(fixture, "app-option-group.phone-piles")).toBeNull();
+      });
+
+      it("still offers the hand on a phone on its side", () => {
+        viewport.setSize(844, 390);
+        openDrawer();
+
+        expect(query(fixture, "app-option-group.hand")).not.toBeNull();
+      });
+
+      it("offers no upright layout in a game without phone grids", () => {
+        harness.catalog.select("freecell");
+        openDrawer();
+
+        expect(query(fixture, "app-option-group.phone-piles")).toBeNull();
+      });
     });
   });
 

@@ -76,3 +76,58 @@ describe("ViewportService", () => {
     expect(service.isCompact()).toBe(true);
   });
 });
+
+describe("ViewportService's form factor", () => {
+  let viewport: FakeViewport | null = null;
+
+  function buildViewport(): ViewportService {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({});
+    return TestBed.inject(ViewportService);
+  }
+
+  afterEach(() => {
+    viewport?.restore();
+    viewport = null;
+  });
+
+  it("reads a desktop window as roomy", () => {
+    viewport = installFakeViewport(1440, 900);
+
+    expect(buildViewport().formFactor()).toBe("roomy");
+  });
+
+  it("reads a phone held upright as a phone in portrait", () => {
+    viewport = installFakeViewport(390, 844);
+
+    expect(buildViewport().formFactor()).toBe("phone-portrait");
+  });
+
+  it("reads a phone on its side as compact, though wider than the breakpoint", () => {
+    viewport = installFakeViewport(844, 390);
+    const service = buildViewport();
+
+    expect([service.formFactor(), service.isCompact()]).toEqual([
+      "phone-landscape",
+      true,
+    ]);
+  });
+
+  it("follows a phone as it turns", () => {
+    viewport = installFakeViewport(390, 844);
+    const service = buildViewport();
+
+    viewport.setSize(844, 390);
+
+    expect(service.formFactor()).toBe("phone-landscape");
+  });
+
+  it("reads a short window as roomy again once it is tall enough", () => {
+    viewport = installFakeViewport(1280, 450);
+    const service = buildViewport();
+
+    viewport.setSize(1280, 800);
+
+    expect(service.formFactor()).toBe("roomy");
+  });
+});

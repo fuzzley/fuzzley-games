@@ -13,6 +13,7 @@ import {
 import { KlondikeVariant } from "@/games/klondike/klondike_rules";
 import type { PlayableGame } from "@/engine/tableau/playable_game";
 import { TableGame } from "@/engine/tableau/table_game";
+import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { TestPresentation } from "@test/support/presentation";
 import { CATALOG_DEALS as DEALS } from "@test/support/ui/catalog_deals";
 
@@ -152,6 +153,27 @@ describe("every game in the catalog", () => {
       const slots = game.piles.map((pile) => game.zoneFor(pile.id)?.slot);
 
       expect(slots).toEqual(entry.layout.slots);
+    },
+  );
+
+  it.each(DEALS)(
+    "%s places every pile on each of its phone grids",
+    (_name, entry, values) => {
+      const game = asTableGame(entry.create(values).game);
+      const piles = game.piles.map((pile) => pile.id).sort();
+      const phone = entry.phoneLayouts;
+      const grids: Record<string, TableLayoutSpec> = phone
+        ? { ...phone.portrait, landscape: phone.landscape }
+        : {};
+
+      const misplaced = Object.entries(grids)
+        .filter(([, grid]) => {
+          const placed = grid.slots.map((slot) => slot.pileId).sort();
+          return JSON.stringify(placed) !== JSON.stringify(piles);
+        })
+        .map(([name]) => name);
+
+      expect(misplaced).toEqual([]);
     },
   );
 

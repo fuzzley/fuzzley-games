@@ -11,6 +11,8 @@ import { designSize, measureTable } from "@/engine/render/layout/table_layout";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { cardAtlasTextureKey } from "@/engine/render/phaser/card_deck_atlas";
 import { makeTableBoardScene } from "@/engine/board/table_board_scene";
+import { NO_INSETS } from "@/engine/render/view/table_view_state";
+import { mirrorTable } from "@/engine/render/layout/board_layouts";
 import {
   FAKE_TABLE_LAYOUT,
   fakeTableGestures,
@@ -20,6 +22,7 @@ import { relocate } from "@test/support/game_scenarios";
 import {
   MockGraphics,
   MockInput,
+  MockScaleManager,
   MockSceneEvents,
   MockSprite,
   MockTextures,
@@ -67,7 +70,7 @@ describe("makeTableBoardScene", () => {
     presentation = new TestPresentation("card-back-red");
     const built = makeTableBoardScene({
       game,
-      layout: FAKE_TABLE_LAYOUT,
+      layouts: { roomy: FAKE_TABLE_LAYOUT },
       handleIntent: fakeTableGestures(game),
       presentation,
       onReady,
@@ -140,16 +143,16 @@ describe("makeTableBoardScene", () => {
     it("lays the board out below the inset the shell reports", () => {
       const inset = makeTableBoardScene({
         game,
-        layout: FAKE_TABLE_LAYOUT,
+        layouts: { roomy: FAKE_TABLE_LAYOUT },
         handleIntent: fakeTableGestures(game),
         presentation,
-        insetTop: () => 40,
+        insets: () => ({ ...NO_INSETS, top: 40 }),
       });
 
       // The unsized canvas falls back to the design size plus the inset, so
       // the board below it still lays out at a scale of 1.
       expect([
-        inset.viewport.insetTop,
+        inset.viewport.insets?.top,
         inset.viewport.height,
         measureTable(FAKE_TABLE_LAYOUT, inset.viewport).scale,
       ]).toEqual([40, designSize(FAKE_TABLE_LAYOUT).height + 40, 1]);
@@ -322,5 +325,87 @@ describe("makeTableBoardScene", () => {
       // it yet.
       expect(ready).toBe(false);
     });
+  });
+});
+
+describe("makeTableBoardScene on a game with phone grids", () => {
+  /**
+   * The fake board with its foundations moved down a row, so a stack dropped
+   * where the roomy grid puts them misses.
+   */
+  const PHONE_GRID = {
+    ...FAKE_TABLE_LAYOUT,
+    rows: 3,
+    slots: FAKE_TABLE_LAYOUT.slots.map((slot) =>
+      slot.pileId.startsWith("foundation") ? { ...slot, row: 2 } : slot,
+    ),
+  };
+
+  /** The fake board's columns, left to right. */
+  const COLUMNS = PHONE_GRID.slots
+    .map((slot) => slot.pileId)
+    .filter((pileId) => pileId.startsWith("tableau"));
+
+  let game: FakeTableGame;
+  let presentation: TestPresentation;
+  let scene: BoardScene;
+
+  beforeEach(() => {
+    game = new FakeTableGame();
+    game.startNewGame();
+    presentation = new TestPresentation();
+    scene = makeTableBoardScene({
+      game,
+      layouts: {
+        roomy: FAKE_TABLE_LAYOUT,
+        phone: {
+          portrait: { bottom: PHONE_GRID, top: PHONE_GRID },
+          landscape: PHONE_GRID,
+          columns: COLUMNS,
+        },
+      },
+      handleIntent: fakeTableGestures(game),
+      presentation,
+    });
+    scene.create();
+    // A phone held upright.
+    const scale = scene.scale as unknown as MockScaleManager;
+    scale.width = 390 * 3;
+    scale.height = 844 * 3;
+    scale.displayScale = { x: 3, y: 3 };
+  });
+
+  /** Drags the ace of spades from a column to a point and lets go. */
+  function dropAceAt(point: { x: number; y: number }) {
+    const ace = relocate(game, "card-spades-ace", game.tableaus[0]);
+    const sprite = scene.cardSprite(ace.id);
+    inputOf(scene).emit("dragstart", {}, sprite);
+    inputOf(scene).emit("drag", {}, sprite, point.x, point.y);
+    inputOf(scene).emit("dragend", {}, sprite);
+    return ace;
+  }
+
+  it("lays the board out on its phone grid on a phone", () => {
+    const foundation = game.foundations[0];
+    const origin = measureTable(PHONE_GRID, scene.viewport).origins.get(
+      foundation.id,
+    )!;
+
+    const ace = dropAceAt(origin);
+
+    expect(game.getPileContainingCard(ace.id)).toBe(foundation);
+  });
+
+  it("mirrors its phone grid for a left hand", () => {
+    presentation.setBoardArrangement({ phonePiles: "bottom", hand: "left" });
+    const foundation = game.foundations[0];
+    const origin = measureTable(
+      mirrorTable(PHONE_GRID, COLUMNS),
+      scene.viewport,
+    ).origins.get(foundation.id)!;
+
+    const ace = dropAceAt(origin);
+
+    expect(game.getPileContainingCard(ace.id)).toBe(foundation);
   });
 });

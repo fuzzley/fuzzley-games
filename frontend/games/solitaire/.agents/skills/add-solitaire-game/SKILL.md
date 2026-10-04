@@ -304,13 +304,55 @@ so a pile cannot be declared in one place and positioned in another. The only
 judgement is `designHeightPx`: the grid's own height is not enough, because a
 column fans well below its row. Klondike authors 877, FreeCell 1047 for columns
 that can reach thirteen cards at 45px apart. It is the board's own height: the
-shell's header lies over the canvas above it, and the board reads how far down
-it reaches from `--board-inset-top` at run time rather than reserving it.
+shell's chrome lies over the canvas, and the board reads how far in it reaches
+from each edge (`--board-inset-top`, `-right`, `-bottom`, `-left`) at run
+time rather than reserving it.
 
 The catalog entry carries this layout (step 8), and both the loading skeleton
 and the board are drawn on it. Every rule option of one entry must therefore
 deal onto the same grid, which `test/ui/app/provider/catalog.spec.ts` checks for
 every game.
+
+### Phone grids (optional)
+
+Without phone grids a game lies on this one grid everywhere, compacted on a
+phone. To lay it out for a phone, declare its board to `phoneLayouts`
+(`src/games/common/phone_layouts.ts`) beside the grid, as Klondike and Spider
+do in `src/games/klondike/klondike_layout.ts` and
+`src/games/spider/spider_layout.ts`:
+
+```ts
+export const MY_GAME_PHONE_LAYOUTS = phoneLayouts({
+  columns: pileIdsInRow(ZONES, 1),
+  row: pilesInRow(ZONES, 0),
+  rails: {
+    left: FOUNDATIONS.map((pileId) => ({ pileId, overlapped: true })),
+    right: [{ pileId: STOCK_PILE_ID }],
+  },
+  longestColumn: { faceDown: 6, faceUp: 12 },
+});
+```
+
+- **columns** fan down and take the height; **row** is the other piles, read
+  off the zones with `pilesInRow`, so a pile is still placed in one place.
+- **rails** say which row piles stack down which edge of a sideways phone. Every
+  row pile goes on exactly one rail. Mark foundations `overlapped`; give a
+  pile that spreads down the rail `spreadsDown` and the `reach` its cards
+  need.
+- **longestColumn** is the column every grid keeps on screen with fans at
+  their floor; the builder sets each grid's design height from it.
+- **pileLayouts** (optional) changes how a pile arranges its cards on every
+  phone grid, as Spider's stock shows one sliver per deal.
+
+The builder gives three grids: upright with the row above the columns, upright
+with the row mirrored along the bottom (the default), and sideways with the
+rail piles at the edges. All three fit each column's fan to the room below it.
+Name them as `phoneLayouts` on the catalog entry (step 8). The settings drawer
+then offers the upright layout and the hand for the game, the board mirrors
+it for a left hand (keeping the columns in order), and the catalog spec checks
+every grid places every pile. Add a `<game>_layout.spec.ts` that the longest
+column fits the room below it on a few phone sizes, as
+`test/games/klondike/klondike_layout.spec.ts` does.
 
 ---
 
@@ -351,7 +393,7 @@ Otherwise call `tableGestures(game, options)` with:
 ## 8. Register it — four provider edits
 
 1. **`src/ui/app/provider/game_catalog.ts`** — declare the entry (`id`, `name`,
-   `options`, `layout`, `create`) with `satisfies
+   `options`, `layout`, optional `phoneLayouts`, `create`) with `satisfies
 CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
    preserves the literal id and concrete game type that the board registry is
    checked against. Add it to `CATALOG_ENTRIES`. `create` returns
@@ -360,7 +402,7 @@ CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
    `GESTURES`. The mapped type means a missing or mismatched entry is a compile
    error, not a runtime throw. There is no per-game board file:
    `makeTableBoardScene` (`src/engine/board/table_board_scene.ts`) draws every
-   game from its gestures and its entry's `layout`, and `PhaserHost`
+   game from its gestures and its entry's grids (`boardLayoutsOf`), and `PhaserHost`
    (`src/engine/render/phaser/phaser_host.ts`) swaps in whatever board it is
    handed, so the shell never imports a game in order to host one.
 3. **`src/ui/app/provider/game_documentation_data.ts`** — add the rules page.

@@ -52,7 +52,8 @@ export function tableauColumnOffset(variant: FortyThievesVariant): number {
 
 /** How the waste arranges its cards: only the top one shows. */
 export const WASTE_PILE_LAYOUT: PileLayout = {
-  kind: "fan-right",
+  kind: "spread",
+  direction: "right",
   gap: 0,
   maxVisible: 1,
 };

@@ -41,3 +41,40 @@ describe("skeletonSlots", () => {
     expect(piles).toEqual(["corner", "between", "last"]);
   });
 });
+
+describe("skeletonSlots on a grid with anchored and offset slots", () => {
+  const anchored = tableLayout({
+    columns: 4,
+    rows: 3,
+    slots: [
+      { pileId: "floor", column: 1, row: 0, anchor: "bottom" },
+      { pileId: "above", column: 2, row: 1, anchor: "bottom" },
+    ],
+  });
+
+  it("puts row 0 of a bottom-anchored slot in the last row", () => {
+    const [floor] = skeletonSlots(anchored);
+
+    expect(floor?.top).toBe(`${(2 / 3) * 100}%`);
+  });
+
+  it("counts a bottom-anchored row up from the last", () => {
+    const [, above] = skeletonSlots(anchored);
+
+    expect(above?.top).toBe(`${(1 / 3) * 100}%`);
+  });
+
+  it("moves an offset slot by its offset, in grid cells", () => {
+    const { cardSize, gap } = anchored;
+    const offset = {
+      x: (cardSize.width + gap.x) / 2,
+      y: cardSize.height + gap.y,
+    };
+    const [slot] = skeletonSlots({
+      ...anchored,
+      slots: [{ pileId: "nudged", column: 0, row: 0, offset }],
+    });
+
+    expect([slot?.left, slot?.top]).toEqual(["12.5%", `${(1 / 3) * 100}%`]);
+  });
+});

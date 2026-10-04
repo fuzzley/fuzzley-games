@@ -9,6 +9,8 @@ import { DragController, StackFromCard } from "../input/drag_controller";
 import { IntentHandler } from "../input/table_intents";
 import {
   DragInteraction,
+  Insets,
+  NO_INSETS,
   PileBackgroundSpec,
   PileGeometry,
   TableInteractionState,
@@ -17,8 +19,8 @@ import {
 } from "../view/table_view_state";
 import {
   TableLayoutSpec,
+  TableMetrics,
   designSize,
-  measureTable,
 } from "../layout/table_layout";
 import { CardArtScale, cardArtScaleFor } from "../layout/card_metrics";
 import { Subscribe } from "@/engine/core/common/event_emitter";
@@ -50,8 +52,10 @@ export interface BoardSceneOptions {
   readonly cardIds: readonly string[];
   /** The placeholder drawn beneath each pile that has one. */
   readonly backgrounds: readonly PileBackgroundSpec[];
-  /** The board's grid, for sizing before the canvas has been measured. */
+  /** The board's roomy grid, for sizing before the canvas has been measured. */
   readonly layout: TableLayoutSpec;
+  /** Measures the board on whichever grid a viewport calls for. */
+  readonly measure: (viewport: Viewport) => TableMetrics;
   /** Produces the desired appearance of the board for one frame. */
   readonly buildViewState: BuildTableViewState;
   /** Resolves the pile a drag would land on. */
@@ -77,10 +81,10 @@ export interface BoardSceneOptions {
   /** Called once the scene has made its sprites and drawn its first frame. */
   readonly onReady?: () => void;
   /**
-   * Returns how far down the canvas whatever the shell lays over it reaches,
-   * such as its header, in CSS pixels; none when omitted.
+   * Returns how far in from each edge of the canvas whatever the shell lays
+   * over it reaches, such as its header, in CSS pixels; none when omitted.
    */
-  readonly insetTop?: () => number;
+  readonly insets?: () => Insets;
 }
 
 /** Draws a game's board with Phaser and turns pointer input into intents. */
@@ -172,9 +176,7 @@ export class BoardScene extends Scene implements PhaserSprites {
    * view is, so the cards are never drawn larger than their artwork.
    */
   public wantedArtScale(): CardArtScale {
-    return cardArtScaleFor(
-      measureTable(this.options.layout, this.viewport).scale,
-    );
+    return cardArtScaleFor(this.options.measure(this.viewport).scale);
   }
 
   /**
@@ -417,12 +419,16 @@ export class BoardScene extends Scene implements PhaserSprites {
   public get viewport(): Viewport {
     const design = designSize(this.options.layout);
     const pixelRatio = this.pixelRatio;
-    const insetTop = this.options.insetTop?.() ?? 0;
+    const insets = this.options.insets?.() ?? NO_INSETS;
     return {
-      width: this.scale?.width || design.width,
-      height: this.scale?.height || design.height + insetTop * pixelRatio,
+      width:
+        this.scale?.width ||
+        design.width + (insets.left + insets.right) * pixelRatio,
+      height:
+        this.scale?.height ||
+        design.height + (insets.top + insets.bottom) * pixelRatio,
       pixelRatio,
-      insetTop,
+      insets,
     };
   }
 

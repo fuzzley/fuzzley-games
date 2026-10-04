@@ -16,6 +16,10 @@ import {
   TABLE_THEMES,
   ThemeKey,
 } from "@/ui/app/model/table_theme";
+import type {
+  Hand,
+  PhonePilePosition,
+} from "@/engine/render/layout/board_layouts";
 
 /**
  * Creates a mock of the presentation settings whose setters hold real state
@@ -53,6 +57,8 @@ export function createMockPresentation(
   const cardDeckProblem = signal<string | null>(
     overrides.cardDeckProblem ?? null,
   );
+  const phonePiles = signal<PhonePilePosition>("bottom");
+  const hand = signal<Hand>("right");
 
   return {
     cardBackStyle,
@@ -64,6 +70,9 @@ export function createMockPresentation(
     cardDeck,
     pendingCardDeck,
     cardDeckProblem,
+    phonePiles,
+    hand,
+    boardArrangement: () => ({ phonePiles: phonePiles(), hand: hand() }),
     cardBackKey: () => cardBackStyle(),
     cardDeckId: () => cardDeck(),
     onBackgroundColor: vi.fn(() => () => undefined),
@@ -80,6 +89,12 @@ export function createMockPresentation(
     }),
     setDesktopCardDeck: vi.fn((deckId: DesktopCardDeckId) => {
       desktopCardDeck.set(deckId);
+    }),
+    setPhonePiles: vi.fn((position: PhonePilePosition) => {
+      phonePiles.set(position);
+    }),
+    setHand: vi.fn((chosen: Hand) => {
+      hand.set(chosen);
     }),
   };
 }
