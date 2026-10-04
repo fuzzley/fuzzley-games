@@ -1,7 +1,8 @@
 @use "../../styles" as *;
 
 // How far the shell's chrome reaches in over each edge of the board: the
-// header across the top, or on a phone on its side a rail down the left. The
+// header across the top, along the bottom of a phone held upright, or down the
+// left of a phone on its side. The
 // board reads them through `ViewportScaler` and lays itself out inside; the
 // loading overlay and the deck badge keep inside them too.
 :host {
@@ -14,6 +15,13 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+}
+
+@include phone-portrait {
+  :host {
+    --board-inset-top: 0px;
+    --board-inset-bottom: var(--header-height);
+  }
 }
 
 @include phone-landscape {

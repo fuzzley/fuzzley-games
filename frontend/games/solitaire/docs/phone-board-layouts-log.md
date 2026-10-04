@@ -1,11 +1,11 @@
 # Phone board layouts: work log
 
-This file tracks the work on phone layouts for Klondike and Spider: a grid for
-a phone held upright, another for a phone on its side, columns that fan to fit
-the room below them, chrome that moves out of the board's way, and a mirrored
-layout for a left hand. It records what was decided, what is done and what is
-next, so the work can stop and restart at any commit. The research and the
-options it chose between are in [phone-board-layouts.md](phone-board-layouts.md).
+This file tracks the work on phone layouts for Klondike and Spider: a grid for a
+phone held upright, another for a phone on its side, columns that fan to fit the
+room below them, chrome that moves out of the board's way, and a mirrored layout
+for a left hand. It records what was decided, what is done and what is next, so
+the work can stop and restart at any commit. The research and the options it
+chose between are in [phone-board-layouts.md](phone-board-layouts.md).
 
 **Branch:** `feature/phone-board-layouts`, cut from `main` at `6fecaa4`.
 
@@ -17,9 +17,9 @@ options it chose between are in [phone-board-layouts.md](phone-board-layouts.md)
 2. Run `yarn tsc && yarn test` to confirm the tree is green before going on.
 3. Take the first unchecked step. Each step is one commit, or a few, and adds an
    entry to [Log](#log) saying what changed and anything surprising.
-4. Check a visible change in Chrome's phone emulation against `yarn start`
-   (port 9000): 390 × 844 upright and 844 × 390 on its side, plus 360 and 430
-   wide. Close every page the DevTools MCP opened when done.
+4. Check a visible change in Chrome's phone emulation against `yarn start` (port
+   9000): 390 × 844 upright and 844 × 390 on its side, plus 360 and 430 wide.
+   Close every page the DevTools MCP opened when done.
 
 ## Decisions
 
@@ -37,11 +37,11 @@ Settled with the project owner on 2026-10-04, after reviewing the options.
    Saratoga; one, two or four suits) share their grids and come along. Every
    other game keeps its grid and fans, and gets a follow-up once these two are
    settled.
-6. **Built to be reused.** The layout management is general, so another game
-   can take on phone grids easily later. A game declares its columns, the row
-   of piles beside them and what goes on each rail. A shared builder derives
-   its grids from that, and everything else (the chooser, fitted fans, the
-   mirror, the settings) works for any game that declares phone grids.
+6. **Built to be reused.** The layout management is general, so another game can
+   take on phone grids easily later. A game declares its columns, the row of
+   piles beside them and what goes on each rail. A shared builder derives its
+   grids from that, and everything else (the chooser, fitted fans, the mirror,
+   the settings) works for any game that declares phone grids.
 
 ### Implementation choices
 
@@ -52,47 +52,47 @@ Made while planning, within the decisions above. Each is easy to revisit.
   as one bar, which puts every action in thumb reach and gives the board the
   most height. Chrome is shared, so this applies to every game on an upright
   phone, as the rail does on its side.
-- **Phone detection by shape.** A window is compact when it is narrower than
-  720 CSS px or shorter than 500; compact and taller than wide is an upright
-  phone, compact and wider than tall is a phone on its side. So a sideways
-  phone gets compact chrome and gaps and, under the Auto card style, the mobile
-  deck, in every game.
+- **Phone detection by shape.** A window is compact when it is narrower than 720
+  CSS px or shorter than 500; compact and taller than wide is an upright phone,
+  compact and wider than tall is a phone on its side. So a sideways phone gets
+  compact chrome and gaps and, under the Auto card style, the mobile deck, in
+  every game.
 - **Fitted fans only on the phone grids.** The grids used on larger screens are
   unchanged. Long columns can run off the bottom there too; that is noted as a
   follow-up, not fixed here.
 - **The cap is 110 design units,** about a third of a card. It is one constant,
   to be tuned once the layouts have been tried on a phone.
 - **The floor is 40 design units,** enough to keep the mobile deck's rank (drawn
-  6 to 42 units down the strip) readable. Hidden cards tighten first, from 18
-  to 10 units.
-- **The bottom row is the top row, mirrored.** An upright grid with the piles
-  at the bottom moves the row of piles from above the columns to the bottom
-  edge and mirrors it. Whatever sat at the left on a larger screen, the stock in
-  both games, ends up under a right thumb, and a spread such as the waste fans
-  the other way. This gives K-P2 exactly. For Spider it gives the foundations in
+  6 to 42 units down the strip) readable. Hidden cards tighten first, from 18 to
+  10 units.
+- **The bottom row is the top row, mirrored.** An upright grid with the piles at
+  the bottom moves the row of piles from above the columns to the bottom edge
+  and mirrors it. Whatever sat at the left on a larger screen, the stock in both
+  games, ends up under a right thumb, and a spread such as the waste fans the
+  other way. This gives K-P2 exactly. For Spider it gives the foundations in
   columns 0 to 7 and the stock in column 9, whole cards rather than the
   overlapped runs the S-P2 sketch drew; the room is the same either way, since
   the row is one card tall.
 - **Whole cards, not half-hidden ones.** S-L2 puts the stock and the runs
-  together on one rail on the right rather than half-hidden piles on both
-  edges, so nothing relies on the edge of the canvas to hide half a card. The
-  cards come out the same size as in the sketch.
+  together on one rail on the right rather than half-hidden piles on both edges,
+  so nothing relies on the edge of the canvas to hide half a card. The cards
+  come out the same size as in the sketch.
 - **Rails fit themselves.** A rail stacks its piles down a column, overlapping
   them evenly when they do not fit, but never so far that less than an index
   strip of each shows. When even that does not fit, the grid asks for more
   height, which scales the board down instead.
-- **The Spider stock shows one sliver per deal** on the phone grids, so a
-  player can see how many deals are left.
+- **The Spider stock shows one sliver per deal** on the phone grids, so a player
+  can see how many deals are left.
 - **The mirror flips grids only for games that declare phone grids,** on every
-  screen size. The chrome follows the hand for every game: the rail moves to
-  the right and the bottom bar reverses.
+  screen size. The chrome follows the hand for every game: the rail moves to the
+  right and the bottom bar reverses.
 - **No `viewport-fit=cover`.** Without it the browser keeps the page inside the
   safe area, so a notch never covers a column and nothing needs safe-area
   insets.
 - **Settings appear where they apply.** "Upright phone layout" shows only on a
-  phone and only for a game with phone grids; "Hand" shows for a game with
-  phone grids. Both are read from what the game's catalog entry declares, never
-  from its id.
+  phone and only for a game with phone grids; "Hand" shows for a game with phone
+  grids. Both are read from what the game's catalog entry declares, never from
+  its id.
 
 ## Design
 
@@ -116,8 +116,7 @@ Made while planning, within the decisions above. Each is easy to revisit.
 
 ### How a frame finds its grid
 
-1. `formFactorOf(viewport)` says `roomy`, `phone-portrait` or
-   `phone-landscape`.
+1. `formFactorOf(viewport)` says `roomy`, `phone-portrait` or `phone-landscape`.
 2. `chooseTableLayout(layouts, formFactor, arrangement)` picks the roomy grid,
    the upright grid for the chosen pile position, or the sideways grid, and
    mirrors it for a left hand when the game allows.
@@ -125,9 +124,9 @@ Made while planning, within the decisions above. Each is easy to revisit.
    every slot (bottom-anchored rows from the bottom edge, offsets added), and
    measures the room below each pile.
 4. For each pile, `pileArrangement` takes the zone's own arrangement, applies
-   the grid's override for that pile, flips it if mirrored, and fits a
-   downward fan to its room. The drawn cards, the drop rectangles and the stack
-   in hand all read this one result.
+   the grid's override for that pile, flips it if mirrored, and fits a downward
+   fan to its room. The drawn cards, the drop rectangles and the stack in hand
+   all read this one result.
 
 The chooser runs every frame, so turning the phone or changing a setting moves
 the cards to their new places the way any move does.
@@ -139,11 +138,10 @@ and the builder derives the three grids from them:
 
 - **columns:** the tableau piles, left to right. They fan down and take the
   height.
-- **row:** the other piles and the grid column each sits in on a larger
-  screen, as the row above the columns.
+- **row:** the other piles and the grid column each sits in on a larger screen,
+  as the row above the columns.
 - **rails:** for a phone on its side, which of those piles stack down a rail at
-  the left and which at the right, and whether a spread pile spreads down
-  there.
+  the left and which at the right, and whether a spread pile spreads down there.
 - **pileLayouts** (optional): an arrangement a pile takes on every phone grid,
   such as the Spider stock's slivers.
 
@@ -162,20 +160,19 @@ pile, and the settings appear by themselves.
 
 ### The grids for these two games
 
-Columns are counted from the left for a right hand; the mirror counts them
-from the right.
+Columns are counted from the left for a right hand; the mirror counts them from
+the right.
 
 - **K-P2 (Klondike upright, default):** the seven columns at the top; at the
   bottom, the four foundations in columns 0 to 3, the waste in column 5
   spreading left, the stock in column 6.
 - **K-P1 (Klondike upright, setting):** today's grid with fitted fans.
-- **K-L2 (Klondike on its side):** nine columns. The foundations stack down
-  the left rail, each overlapping the next; the seven columns fill the middle
-  from the top; the stock tops the right rail with the waste spreading down
-  below it.
-- **S-P2 (Spider upright, default):** the ten columns at the top; at the
-  bottom, the eight foundations in columns 0 to 7 and the stock in column 9,
-  one sliver per deal still to come.
+- **K-L2 (Klondike on its side):** nine columns. The foundations stack down the
+  left rail, each overlapping the next; the seven columns fill the middle from
+  the top; the stock tops the right rail with the waste spreading down below it.
+- **S-P2 (Spider upright, default):** the ten columns at the top; at the bottom,
+  the eight foundations in columns 0 to 7 and the stock in column 9, one sliver
+  per deal still to come.
 - **S-P1 (Spider upright, setting):** today's grid with fitted fans.
 - **S-L2 (Spider on its side):** eleven columns. The ten columns fill the left
   from the top; the right rail holds the stock, one sliver per deal, with the
@@ -190,32 +187,31 @@ from the right.
 ### Phase 1: engine foundations, nothing visible yet
 
 - **1.1 Insets on every side.** `Viewport.insetTop` becomes `insets` (top,
-  right, bottom, left, in CSS px). `ViewportScaler` reads
-  `--board-inset-top`, `-right`, `-bottom` and `-left`; `PhaserHost`,
-  `BoardScene`, `makeTableBoardScene` and the board catalog pass them through;
-  `computeScale` and `computePileOrigins` lay the board out inside all four.
-  The canvas still declares only the top.
-- **1.2 Spreads in any direction.** The `fan-right` arrangement becomes
-  `spread` with a `direction` (right, left or down) and an optional
-  `groupSize`, so a stock dealt ten at a time shows one sliver per deal.
-  `pileWidth` becomes an extent that knows a leftward spread reaches left of
-  its origin, and drop rectangles use it. The waste, Forty Thieves and
-  Beleaguered Castle move over unchanged.
+  right, bottom, left, in CSS px). `ViewportScaler` reads `--board-inset-top`,
+  `-right`, `-bottom` and `-left`; `PhaserHost`, `BoardScene`,
+  `makeTableBoardScene` and the board catalog pass them through; `computeScale`
+  and `computePileOrigins` lay the board out inside all four. The canvas still
+  declares only the top.
+- **1.2 Spreads in any direction.** The `fan-right` arrangement becomes `spread`
+  with a `direction` (right, left or down) and an optional `groupSize`, so a
+  stock dealt ten at a time shows one sliver per deal. `pileWidth` becomes an
+  extent that knows a leftward spread reaches left of its origin, and drop
+  rectangles use it. The waste, Forty Thieves and Beleaguered Castle move over
+  unchanged.
 - **1.3 Anchored and offset slots.** A slot may be anchored to the board's
-  bottom edge and may carry an offset in design units. `TableMetrics` gains
-  the room below each pile: down to the board's bottom, or to the top of the
-  nearest slot below it. The loading skeleton places bottom-anchored slots at
-  the bottom.
-- **1.4 Fitted fans.** `FanFit` (floor, cap, face-down floor) and
-  `fitFanDown`. A grid may carry a `fanFit`, per-pile arrangement overrides and
-  a `mirrored` flag. `pileArrangement` resolves a pile's arrangement for a
-  frame, and the view builder, the held stack's gap and the drop target all
-  use it.
+  bottom edge and may carry an offset in design units. `TableMetrics` gains the
+  room below each pile: down to the board's bottom, or to the top of the nearest
+  slot below it. The loading skeleton places bottom-anchored slots at the
+  bottom.
+- **1.4 Fitted fans.** `FanFit` (floor, cap, face-down floor) and `fitFanDown`.
+  A grid may carry a `fanFit`, per-pile arrangement overrides and a `mirrored`
+  flag. `pileArrangement` resolves a pile's arrangement for a frame, and the
+  view builder, the held stack's gap and the drop target all use it.
 - **1.5 Board layouts and the chooser.** `formFactorOf`, `BoardLayouts`,
   `BoardArrangement`, `mirrorTable`, `chooseTableLayout`.
   `TablePresentation.boardArrangement()`; the board scene measures through the
-  chooser; catalog entries may name `phoneLayouts`. The settings service
-  answers with the defaults until phase 4.
+  chooser; catalog entries may name `phoneLayouts`. The settings service answers
+  with the defaults until phase 4.
 
 ### Phase 2: chrome
 
@@ -223,12 +219,12 @@ from the right.
   `formFactorOf`; `isCompact` follows it, so the card style's Auto follows it
   too. `_breakpoints.scss` gains `compact`, `phone-portrait` and
   `phone-landscape` mixins, and the compact header and header height switch to
-  `compact`. Visible: a sideways phone gets the compact header and gaps, and
-  the mobile deck under Auto.
+  `compact`. Visible: a sideways phone gets the compact header and gaps, and the
+  mobile deck under Auto.
 - **2.2 Side rail.** On a phone on its side the header becomes a rail down the
-  left; the canvas declares `--board-inset-left`; the overflow menu opens
-  beside the rail; the loading overlay and the deck badge read the insets
-  rather than the header height.
+  left; the canvas declares `--board-inset-left`; the overflow menu opens beside
+  the rail; the loading overlay and the deck badge read the insets rather than
+  the header height.
 - **2.3 Bottom bar.** On an upright phone the header docks at the bottom; the
   canvas declares `--board-inset-bottom`; the overflow menu opens upward.
 
@@ -236,34 +232,34 @@ from the right.
 
 - **3.1 The phone grid builder.** `PHONE_FAN_FIT` in
   `games/common/pile_layouts.ts`; `phoneLayouts` in
-  `games/common/phone_layouts.ts`, with its rail fitting and the overrides for
-  a mirrored row and a pile spreading down a rail. Specs against a made-up
-  board, so the builder is tested apart from any game. The catalog spec checks
-  that every grid of every entry places every pile.
+  `games/common/phone_layouts.ts`, with its rail fitting and the overrides for a
+  mirrored row and a pile spreading down a rail. Specs against a made-up board,
+  so the builder is tested apart from any game. The catalog spec checks that
+  every grid of every entry places every pile.
 - **3.2 Klondike.** Its declaration in `klondike_layout.ts`, named by the
-  catalog entry. Specs: the waste keeps the draw count's fan, a long column
-  fits on the reference screens.
-- **3.3 Spider.** Its declaration in `spider_layout.ts`, the same way, with
-  the sliver stock.
-- **3.4 Browser check.** Both games, both orientations, 360, 390 and 430 wide;
-  a long column, a drag onto a squeezed column, a rotation mid-game. Tune.
+  catalog entry. Specs: the waste keeps the draw count's fan, a long column fits
+  on the reference screens.
+- **3.3 Spider.** Its declaration in `spider_layout.ts`, the same way, with the
+  sliver stock.
+- **3.4 Browser check.** Both games, both orientations, 360, 390 and 430 wide; a
+  long column, a drag onto a squeezed column, a rotation mid-game. Tune.
 
 ### Phase 4: settings and the mirror
 
 - **4.1 Settings service.** `phonePiles` (`bottom` by default) and `hand`
   (`right` by default), stored and validated with the rest, and
   `boardArrangement()`.
-- **4.2 Settings drawer.** "Upright phone layout" (piles at the bottom, piles
-  at the top) on a phone, and "Hand" (right, left), each for a game with phone
+- **4.2 Settings drawer.** "Upright phone layout" (piles at the bottom, piles at
+  the top) on a phone, and "Hand" (right, left), each for a game with phone
   grids.
-- **4.3 Mirrored chrome.** The hand is set on the document root; the rail
-  moves to the right and the bottom bar reverses for a left hand. Browser check
-  of every grid mirrored.
+- **4.3 Mirrored chrome.** The hand is set on the document root; the rail moves
+  to the right and the bottom bar reverses for a left hand. Browser check of
+  every grid mirrored.
 
 ### Phase 5: finish
 
-- **5.1 Docs.** `.agents/AGENTS.md`; the `add-solitaire-game` skill gains how
-  to give a game phone grids; any other skill that describes the layout code;
+- **5.1 Docs.** `.agents/AGENTS.md`; the `add-solitaire-game` skill gains how to
+  give a game phone grids; any other skill that describes the layout code;
   `phone-board-layouts.md` updated to say what shipped.
 - **5.2 Verify.** `yarn verify`; raise the coverage floor if the figures rose.
 - **5.3 Last look** on the phone sizes; close the log.
@@ -285,7 +281,7 @@ from the right.
 - [x] 1.5 Board layouts and the chooser
 - [x] 2.1 Phone detection in the shell
 - [x] 2.2 Side rail
-- [ ] 2.3 Bottom bar
+- [x] 2.3 Bottom bar
 - [ ] 3.1 The phone grid builder
 - [ ] 3.2 Klondike grids
 - [ ] 3.3 Spider grids
@@ -301,16 +297,16 @@ from the right.
 
 ### Setup
 
-Branch cut from `main` at `6fecaa4`. Baseline: `yarn tsc` clean, `yarn test`
-132 files and 3974 tests passing in about 45 s.
+Branch cut from `main` at `6fecaa4`. Baseline: `yarn tsc` clean, `yarn test` 132
+files and 3974 tests passing in about 45 s.
 
 ### 0.1 Record the plan
 
 The options doc, its twelve sketches and this log. The owner's decisions are
 recorded in both. After planning, the owner asked for the layout management to
 be general enough for other games to take on later (decision 6). That replaced
-the hand-placed grids first planned for step 3 with a builder that derives
-them from a declaration.
+the hand-placed grids first planned for step 3 with a builder that derives them
+from a declaration.
 
 ### 1.1 Insets on every side
 
@@ -322,9 +318,9 @@ names the four custom properties it reads, `--board-inset-top`, `-right`,
 `BoardScene`, `makeTableBoardScene`, the board catalog's `BoardSetting` and the
 canvas component pass it through. `computeScale` fits the board inside all four
 and `computePileOrigins` starts it at the left inset, centring it in the width
-left between the side insets. The canvas still declares only the top, so
-nothing on screen moves. New specs cover side and bottom insets in the layout
-math and all four in the scaler.
+left between the side insets. The canvas still declares only the top, so nothing
+on screen moves. New specs cover side and bottom insets in the layout math and
+all four in the scaler.
 
 ### 1.2 Spreads in any direction
 
@@ -347,34 +343,33 @@ There was no spec for `pile_layout.ts` of its own; the offsets were covered from
 ### 1.3 Anchored and offset slots
 
 `SlotPlacement` takes an optional `anchor` (`"bottom"` counts the row up from
-the board's bottom edge, above the bottom inset, however tall the screen is)
-and an optional `offset` in design units, for piles overlapping down a rail.
+the board's bottom edge, above the bottom inset, however tall the screen is) and
+an optional `offset` in design units, for piles overlapping down a rail.
 `computePileOrigins` places both.
 
-`TableMetrics.rooms` holds how far each pile's cards may reach below its
-origin, in design units, from the new `computePileRooms`: down to the board's
-bottom edge less its padding, or to a gap above the nearest pile below. A pile
-below counts if it shares the column, or if it is bottom-anchored. A row along
-the bottom is a floor under the whole board, because a pile in it may spread
-beyond its own column; the waste spreading left under column 4 in K-P2 is the
-case that needs this.
+`TableMetrics.rooms` holds how far each pile's cards may reach below its origin,
+in design units, from the new `computePileRooms`: down to the board's bottom
+edge less its padding, or to a gap above the nearest pile below. A pile below
+counts if it shares the column, or if it is bottom-anchored. A row along the
+bottom is a floor under the whole board, because a pile in it may spread beyond
+its own column; the waste spreading left under column 4 in K-P2 is the case that
+needs this.
 
-The loading skeleton counts a bottom-anchored row up from the last row and
-turns an offset into grid cells. Nothing on screen changes; no grid uses either
-yet.
+The loading skeleton counts a bottom-anchored row up from the last row and turns
+an offset into grid cells. Nothing on screen changes; no grid uses either yet.
 
 ### 1.4 Fitted fans
 
 `pile_layout.ts` gains `FanFit` (face-up floor and cap, face-down floor),
 `fitFanDown` and `mirrorPileLayout`, plus the `FanDownLayout`, `SpreadLayout`
-and `PileLayoutOverride` names. `fitFanDown` first takes hidden cards' gaps
-down towards their floor while face-up gaps would fall below their own. It then
+and `PileLayoutOverride` names. `fitFanDown` first takes hidden cards' gaps down
+towards their floor while face-up gaps would fall below their own. It then
 spreads the face-up gaps over what is left, between the floor and the cap. It
 always keeps room for the hover expansion, so touching a card never pushes a
 column further down than it already reaches.
 
-`TableLayoutSpec` gains `fanFit`, `pileLayouts` (an override per pile id,
-worked out from the zone's own arrangement, so a waste keeps its draw count's
+`TableLayoutSpec` gains `fanFit`, `pileLayouts` (an override per pile id, worked
+out from the zone's own arrangement, so a waste keeps its draw count's
 `maxVisible` when a grid turns it downward) and `mirrored`. `TableGridSpec` and
 `tableLayout` also take `gap` and `padding`, which the phone grids tighten.
 `table_layout.ts` imports from `pile_layout.ts` with `import type`, since
@@ -405,15 +400,15 @@ frame. `chooseTableLayout` returns the roomy grid for a game without phone
 grids, whatever the hand. Otherwise it picks by form factor and pile position
 and mirrors for a left hand.
 
-`TablePresentation.boardArrangement()` is new. The settings service answers
-the default until step 4.1, and `TestPresentation` has
-`setBoardArrangement`. `makeTableBoardScene` takes `layouts` instead of
-`layout` and measures each frame on the chosen grid. `BoardScene` takes a
-`measure` for its art density and keeps `layout` (the roomy grid) only for
-sizing before the canvas is measured. `CatalogEntry.phoneLayouts` is optional,
-and `makeBoardScene` passes it on. Scene specs show a game with phone grids
-lands a drop on its phone grid's foundation, and on the mirrored one for a left
-hand. Still no game has phone grids, so nothing on screen changes.
+`TablePresentation.boardArrangement()` is new. The settings service answers the
+default until step 4.1, and `TestPresentation` has `setBoardArrangement`.
+`makeTableBoardScene` takes `layouts` instead of `layout` and measures each
+frame on the chosen grid. `BoardScene` takes a `measure` for its art density and
+keeps `layout` (the roomy grid) only for sizing before the canvas is measured.
+`CatalogEntry.phoneLayouts` is optional, and `makeBoardScene` passes it on.
+Scene specs show a game with phone grids lands a drop on its phone grid's
+foundation, and on the mirrored one for a left hand. Still no game has phone
+grids, so nothing on screen changes.
 
 ### 2.1 Phone detection in the shell
 
@@ -451,14 +446,32 @@ rail holds the game switcher, the score, time and moves stacked in one strip
 The menu opens beside the rail, rising from its button at the foot. The header
 host is now `display: block`, and positioned against the overlay in this mode.
 
-The game canvas declares all four `--board-inset-*` on its host, so the
-loading overlay and the deck badge can read them as well as the board: the top
-is the header height, except on a sideways phone, where it is 0 and the left is
-the rail width. The overlay pads itself by all four insets, the loading badge
+The game canvas declares all four `--board-inset-*` on its host, so the loading
+overlay and the deck badge can read them as well as the board: the top is the
+header height, except on a sideways phone, where it is 0 and the left is the
+rail width. The overlay pads itself by all four insets, the loading badge
 centres on the space inside them, and the deck badge tucks into the top right
 corner inside them.
 
 Checked at 844 × 390 in Chrome's phone emulation on today's Klondike grid. The
-board now runs the full height beside the rail, with compact gaps and the
-mobile deck, and its cards come out about 76 CSS px wide (67 before). The
-overflow menu opened at the rail's foot, beside it.
+board now runs the full height beside the rail, with compact gaps and the mobile
+deck, and its cards come out about 98 CSS px wide (80 before, under the full
+header). The overflow menu opened at the rail's foot, beside it.
+
+### 2.3 Bottom bar
+
+On a phone held upright (`phone-portrait`) the header docks at the bottom of the
+screen, keeping its compact contents, with its border on top. The overflow menu
+rises from its button at the bar's right end. The canvas declares a bottom inset
+of the header height there, and no top inset, so the board starts at the top of
+the screen.
+
+Checked at 390 × 844: the bar sits at 784 to 844, the canvas reads insets of 0,
+0, 60 and 0, and the menu opens above the bar at the right. Today's Klondike
+grid is still drawn, so the empty space now sits between the board and the bar,
+until step 3 gives the board its phone grids.
+
+The 2.2 entry first said the sideways cards came out 76 px wide; measured
+against the screenshot they are about 98 px (80 under the full header). This
+commit corrects it. The log is now wrapped with `prettier --prose-wrap always`,
+which reflowed earlier paragraphs.
