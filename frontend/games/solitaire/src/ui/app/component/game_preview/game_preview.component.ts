@@ -23,6 +23,8 @@ import { OptionGroupComponent } from "../option_group/option_group.component";
 /** A running count, so each preview's heading has an id of its own. */
 let nextPreviewId = 0;
 
+type ImageStatus = "loading" | "loaded" | "failed";
+
 /**
  * Shows one of the browser's games at size: its board, what it is like, the
  * rules it can be dealt by, and the button that deals it.
@@ -87,6 +89,24 @@ export class GamePreviewComponent {
     () => `The ${this.item().name} board, as dealt`,
   );
 
+  /**
+   * The address of the board's picture, which games that share one keep across
+   * a change of game.
+   */
+  protected readonly imageUrl = computed(() => this.item().previewUrl);
+
+  /**
+   * How far the board's picture has got, starting over with each new picture.
+   *
+   * Showing another game changes the `<img>`'s address rather than replacing
+   * it, and a browser keeps drawing the old picture until the new one arrives,
+   * so the picture stays hidden until then.
+   */
+  protected readonly imageStatus = linkedSignal<string, ImageStatus>({
+    source: this.imageUrl,
+    computation: () => "loading",
+  });
+
   /** The game's family or parent, difficulty, decks, and visibility. */
   protected readonly facts = computed<readonly string[]>(() => {
     const item = this.item();
@@ -109,6 +129,16 @@ export class GamePreviewComponent {
   /** Moves focus to the game's name, as showing it on a narrow screen should. */
   focusTitle(): void {
     this.title().nativeElement.focus();
+  }
+
+  /** Shows the board's picture now that it has arrived. */
+  protected onImageLoad(): void {
+    this.imageStatus.set("loaded");
+  }
+
+  /** Stops waiting for a picture that will not arrive. */
+  protected onImageError(): void {
+    this.imageStatus.set("failed");
   }
 
   /** Changes a rule the game would be dealt by. */
