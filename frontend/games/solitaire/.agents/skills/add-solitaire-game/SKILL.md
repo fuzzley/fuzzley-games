@@ -124,9 +124,10 @@ grab rule there, so a reader can check them at a glance.
 
 ## 3. `<game>_zones.ts` — the board as data
 
-A `ZoneSpec` per pile (`src/engine/tableau/zone.ts`): its id, role, grid slot,
-`layout`, `accept`, `grab`, `draggable`, `face`, and optionally `capacity`,
-`backgroundKey`, `emptyIsActionable`. This replaces switching on a pile's role
+A `ZoneSpec` per pile (`src/engine/tableau/zone.ts`): how it plays, its
+`ZoneRules` (id, role, `accept`, `grab`, `draggable`, optionally `capacity`),
+and how it looks, its `ZoneLook` (`src/engine/tableau/view/zone_look.ts`: grid
+slot, `layout`, `face`, optionally `backgroundKey`, `emptyIsActionable`). This replaces switching on a pile's role
 anywhere else.
 
 Build the rows from `src/games/common/zone_presets.ts` — `foundationRow`,

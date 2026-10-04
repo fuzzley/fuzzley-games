@@ -20,7 +20,7 @@ import {
   TableInteractionState,
   TableViewState,
 } from "@/engine/render/view/table_view_state";
-import { ZoneSpec, frameFor, showsFace } from "../zone";
+import { ZoneLook, frameFor, showsFace } from "./zone_look";
 import { TableView } from "./table_view";
 import { itemAt } from "@/engine/core/common/item_at";
 
@@ -295,7 +295,7 @@ class TableViewStateBuilder {
    * a buried card is the one a player most needs to read.
    */
   private expansionCardId(
-    zone: ZoneSpec,
+    zone: ZoneLook,
     pileCards: readonly PlayingCard[],
   ): string | null {
     if (!this.interaction.hoveredCardId || this.interaction.drag) {

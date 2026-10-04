@@ -122,7 +122,7 @@ The review's findings, grouped into phases. Each phase leaves the tree green.
 - [x] 4.2 Read-only piles
 - [x] 5.1 `Tabletop` split out of `TableGame` (done before 2.3; see log)
 - [x] 5.2 Header inset from the shell
-- [ ] 5.3 Zone rules and looks separated
+- [x] 5.3 Zone rules and looks separated
 - [ ] 5.4 Variants decoupled from numeric storage
 
 ## Log
@@ -397,3 +397,16 @@ dealsFaceUp? }`, in `deck_source.ts`) and builds the registry and the
     (inset 60, read after resize): the board sits right below the header. The
     only console error is the browser's automatic `/favicon.ico` 404, which
     predates this work.
+- **refactor: separate how a zone plays from how it looks.**
+  - `ZoneSpec` is now `ZoneRules` (id, role, accept, grab, draggable,
+    capacity) plus `ZoneLook` (slot, layout, face, backgroundKey,
+    emptyIsActionable). `ZoneLook`, `FaceVisibility`, `showsFace` and
+    `frameFor` moved to `src/engine/tableau/view/zone_look.ts`, so `zone.ts`
+    no longer imports the render tier's layout types; its spec moved with it
+    to `test/engine/tableau/view/zone_look.spec.ts`.
+  - `TableGame` reads rules through a private `rulesFor(pileId): ZoneRules`,
+    and `hasRoomFor` takes `ZoneRules`. Variables holding rules are named
+    `rules`, `sourceRules` and `targetRules` rather than `zone` (caught in
+    review by the project owner). The view builder's hover expansion takes a
+    `ZoneLook`.
+  - Game zone files are unchanged: they still build whole `ZoneSpec`s.

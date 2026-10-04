@@ -1,7 +1,5 @@
 import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { PileLayout } from "@/engine/render/layout/pile_layout";
-import { SlotPlacement } from "@/engine/render/layout/table_layout";
 import {
   BoardQuery,
   PlacementContext,
@@ -12,6 +10,7 @@ import {
   maxStackSize,
 } from "./rules";
 import { itemAt } from "@/engine/core/common/item_at";
+import { ZoneLook } from "./view/zone_look";
 
 /** Says which cards in a zone a player may pick up. */
 export type GrabRule =
@@ -41,33 +40,17 @@ export type GrabRule =
     };
 
 /**
- * Says which side of its cards a zone shows, which may override the cards' own
- * {@link PlayingCard.faceUp}.
+ * Describes how a pile plays: what it accepts, what may be taken from it and
+ * how much it holds.
+ *
+ * Nothing here says how the pile looks, which is its {@link ZoneLook}.
  */
-export type FaceVisibility =
-  /** Show whichever side the card itself says. */
-  | "card"
-  /** Always show the face, whatever the card says. */
-  | "always-up"
-  /** Always show the back, whatever the card says. */
-  | "always-down";
-
-/**
- * Describes one pile of a game's board and everything that distinguishes it
- * from the others.
- */
-export interface ZoneSpec {
+export interface ZoneRules {
   /** The unique id of the pile this describes. */
   readonly id: string;
 
   /** The part it plays, for scoring, grouping and gestures. */
   readonly role: PileRole;
-
-  /** Where it sits in the table grid. */
-  readonly slot: SlotPlacement;
-
-  /** How it arranges the cards stacked in it. */
-  readonly layout: PileLayout;
 
   /** How many cards it may hold, or undefined for no limit. */
   readonly capacity?: number;
@@ -88,22 +71,13 @@ export interface ZoneSpec {
    * like the top of the Klondike stock.
    */
   readonly draggable: boolean;
-
-  /** Which side of its cards it shows. */
-  readonly face: FaceVisibility;
-
-  /**
-   * The artwork key for the placeholder drawn beneath the pile, or undefined
-   * for a pile drawn over bare table.
-   */
-  readonly backgroundKey?: string;
-
-  /**
-   * Whether clicking this pile's empty slot does something, and so earns a
-   * pointer cursor and a hover border.
-   */
-  readonly emptyIsActionable?: boolean;
 }
+
+/**
+ * Describes one pile of a game's board and everything that distinguishes it
+ * from the others: how it plays, and how it looks.
+ */
+export interface ZoneSpec extends ZoneRules, ZoneLook {}
 
 /** Describes a column whose cards build, and lift, in runs. */
 export interface RunColumnOptions {
@@ -196,32 +170,11 @@ export function isUncovered(
   return coveredBy.every((pileId) => board.pile(pileId)?.isEmpty ?? true);
 }
 
-/** Returns whether a zone draws the given card face up. */
-export function showsFace(face: FaceVisibility, card: PlayingCard): boolean {
-  switch (face) {
-    case "always-down":
-      return false;
-    case "always-up":
-      return true;
-    case "card":
-      return card.faceUp;
-  }
-}
-
-/** Returns the artwork key a zone shows for one of its cards. */
-export function frameFor(
-  face: FaceVisibility,
-  card: PlayingCard,
-  cardBackKey: string,
-): string {
-  return showsFace(face, card) ? card.faceKey : cardBackKey;
-}
-
 /** Returns whether the pile has room for `count` more cards. */
 export function hasRoomFor(
-  spec: ZoneSpec,
+  rules: ZoneRules,
   pile: ReadonlyCardPile<PlayingCard>,
   count: number,
 ): boolean {
-  return spec.capacity === undefined || pile.size + count <= spec.capacity;
+  return rules.capacity === undefined || pile.size + count <= rules.capacity;
 }
