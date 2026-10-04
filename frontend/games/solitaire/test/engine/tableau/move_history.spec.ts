@@ -1,46 +1,54 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { CardPile } from "@/engine/core/card/card_pile";
+import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
 import { AppliedMove } from "@/engine/tableau/move";
-import { HistoryBoard, MoveHistory } from "@/engine/tableau/move_history";
-import { makePlayingCard } from "@test/support/card_builder";
+import { MoveHistory } from "@/engine/tableau/move_history";
+import { anyCard } from "@/engine/tableau/rules";
+import { Tabletop } from "@/engine/tableau/tabletop";
+import { ZoneSpec } from "@/engine/tableau/zone";
 
-/** Gives a history two piles to move cards between, without any game. */
-class TestBoard implements HistoryBoard {
-  readonly from = new CardPile<PlayingCard>("from", "column");
-  readonly to = new CardPile<PlayingCard>("to", "column");
+/** Returns a pile's zone: any card goes, and nothing is drawn. */
+function zone(id: string): ZoneSpec {
+  return {
+    id,
+    role: "column",
+    slot: { pileId: id, column: 0, row: 0 },
+    layout: { kind: "stacked" },
+    accept: anyCard,
+    grab: { kind: "any-face-up" },
+    draggable: true,
+    face: "card",
+  };
+}
 
-  get piles(): readonly CardPile<PlayingCard>[] {
-    return [this.from, this.to];
+/** Gives a history two real piles to move cards between, without any game. */
+class TestBoard {
+  private readonly registry = new CardRegistry();
+
+  /** The table the history puts actions back on. */
+  readonly tabletop = new Tabletop([zone("from"), zone("to")], this.registry);
+
+  /** The pile cards start in. */
+  get from(): CardPile<PlayingCard> {
+    return this.tabletop.requirePile("from");
   }
 
-  private readonly cards = new Map<string, PlayingCard>();
+  /** The pile cards are relocated to. */
+  get to(): CardPile<PlayingCard> {
+    return this.tabletop.requirePile("to");
+  }
 
   /** Adds a face-up card to the source pile and returns it. */
   deal(rank: Rank): PlayingCard {
-    const card = makePlayingCard({
-      suit: Suit.SPADE,
-      rank,
-      faceUp: true,
-      id: `card-${rank}`,
-    });
-    this.cards.set(card.id, card);
-    this.from.addCard(card);
+    const card = this.registry.getOrCreate({ suit: Suit.SPADE, rank });
+    this.tabletop.place(card, this.from, true);
     return card;
-  }
-
-  getPileById(pileId: string): CardPile<PlayingCard> | undefined {
-    return this.piles.find((pile) => pile.id === pileId);
-  }
-
-  getCardById(cardId: string): PlayingCard | undefined {
-    return this.cards.get(cardId);
   }
 
   /** Moves a card across, as a game's own move path would. */
   relocate(card: PlayingCard): void {
-    this.from.removeCard(card);
-    this.to.addCard(card);
+    this.tabletop.relocate([card], this.to);
   }
 }
 
@@ -68,7 +76,7 @@ describe("MoveHistory", () => {
 
   beforeEach(() => {
     board = new TestBoard();
-    history = new MoveHistory(board);
+    history = new MoveHistory(board.tabletop);
   });
 
   it("has nothing to take back to begin with", () => {

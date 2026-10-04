@@ -9,12 +9,12 @@ import {
 
 /** Gives a history what it needs of the board to put an action back. */
 export interface HistoryBoard {
-  /** Returns the pile with the given id, or undefined. */
-  getPileById(pileId: string): CardPile<PlayingCard> | undefined;
   /** Returns the card with the given id, or undefined. */
   getCardById(cardId: string): PlayingCard | undefined;
   /** Every pile on the board, in declaration order. */
   readonly piles: readonly CardPile<PlayingCard>[];
+  /** Puts back what a transfer moved, as it lay before. */
+  reverse(transfer: CardTransfer): void;
 }
 
 /**
@@ -89,7 +89,7 @@ export class MoveHistory {
     // Reverse order, so a consequence is undone before its cause: a run that
     // left for a foundation comes back before the move that completed it.
     for (const transfer of [...last.transfers].reverse()) {
-      this.reverseTransfer(transfer);
+      this.board.reverse(transfer);
     }
 
     this.announce(last);
@@ -136,23 +136,6 @@ export class MoveHistory {
   /** Adds `change` to the count of actions of a kind. */
   private tally(kind: AppliedMoveKind, change: number): void {
     this.counts.set(kind, this.count(kind) + change);
-  }
-
-  /** Puts one transfer's cards back where they came from. */
-  private reverseTransfer(transfer: CardTransfer): void {
-    const fromPile = this.board.getPileById(transfer.fromPileId);
-    const toPile = this.board.getPileById(transfer.toPileId);
-    if (!fromPile || !toPile) return;
-
-    // cardIds are in source order, so re-appending in that order restores the
-    // pile exactly, whichever way the action itself moved them.
-    for (const cardId of transfer.cardIds) {
-      const card = this.board.getCardById(cardId);
-      if (!card) continue;
-      toPile.removeCard(card);
-      card.faceUp = transfer.faceUpBefore;
-      fromPile.addCard(card);
-    }
   }
 
   /**
