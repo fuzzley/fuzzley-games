@@ -9,8 +9,9 @@ chose between are in [phone-board-layouts.md](phone-board-layouts.md).
 
 **Branch:** `feature/phone-board-layouts`, cut from `main` at `6fecaa4`.
 
-**Status:** done on the branch, not merged. Open questions for the owner are at
-the end of [5.3](#53-last-look).
+**Status:** fixing what the owner found in review (phase 6), then done on the
+branch, not merged. Open questions for the owner are at the end of
+[5.3](#53-last-look).
 
 ## How to pick this up
 
@@ -90,10 +91,10 @@ Made while planning, within the decisions above. Each is easy to revisit.
 - **No `viewport-fit=cover`.** Without it the browser keeps the page inside the
   safe area, so a notch never covers a column and nothing needs safe-area
   insets.
-- **Settings appear where they apply.** "Upright phone layout" shows only on a
-  phone and only for a game with phone grids; "Hand" shows for a game with phone
-  grids. Both are read from what the game's catalog entry declares, never from
-  its id.
+- **Settings appear where they apply.** "Upright phone layout" shows only on an
+  upright phone and only for a game with phone grids; "Hand" shows for a game
+  with phone grids. Both are read from what the game's catalog entry declares,
+  never from its id.
 
 ## Design
 
@@ -265,6 +266,16 @@ the right.
 - **5.2 Verify.** `yarn verify`; raise the coverage floor if the figures rose.
 - **5.3 Last look** on the phone sizes; close the log.
 
+### Phase 6: the owner's review
+
+- **6.1 Changing hand on a sideways phone.** Part of the board stayed behind the
+  rail until the window was resized: the board reads the chrome's insets only on
+  a resize, and moving the rail to the other edge is not one. Read them again
+  whenever the hand changes.
+- **6.2 The upright layout on a sideways phone.** "Upright Phone Layout" showed
+  on a phone on its side, where it changes nothing. Show it only on an upright
+  phone.
+
 ### Not in this work
 
 - Phone grids for the other games (the follow-up the owner asked for).
@@ -293,6 +304,8 @@ the right.
 - [x] 5.1 Docs
 - [x] 5.2 Verify
 - [x] 5.3 Last look
+- [x] 6.1 Changing hand on a sideways phone
+- [ ] 6.2 The upright layout on a sideways phone
 
 ## Log
 
@@ -718,3 +731,26 @@ work is closed.
   units is the number most likely to want tuning.
 - The follow-up for the other games, which `phoneLayouts` is built for.
 - Merging `feature/phone-board-layouts` into `main` once happy.
+
+### 6.1 Changing hand on a sideways phone
+
+Found by the owner: on a phone on its side, switching between right and left
+hand left part of the board behind the rail until the window was resized.
+`ViewportScaler` reads the chrome's insets on a resize only, because reading a
+computed style can force a layout, and moving the rail to the other edge changes
+the insets without resizing anything. So the board kept laying itself out beside
+the rail's old side.
+
+`ViewportScaler.refreshInsets()` reads the insets again without resizing the
+canvas, and `apply()` now calls it. `PhaserHost.refreshInsets()` passes it on.
+The game canvas component runs an `afterRenderEffect` read phase on the hand
+that asks the host to refresh, once the chrome has been drawn on its new side.
+The board picks up the new insets on its next frame and its cards ease over,
+with no snap and no deck refit.
+
+Checked at 844 × 390: switching right to left and back in the drawer, with no
+resize, lays the board out clear of the rail on either side. Specs cover the
+scaler's and the host's refresh, and the canvas asking for one when the hand
+changes. The host spec attaches its parent to the document, because jsdom keeps
+a detached element's computed style after a custom property changes, which a
+browser does not.

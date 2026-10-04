@@ -160,8 +160,16 @@ export class ViewportScaler {
     this.game.canvas.style.width = `${cssWidth}px`;
     this.game.canvas.style.height = `${cssHeight}px`;
 
-    this.insetsValue = this.readInsets();
+    this.refreshInsets();
     this.watchPixelRatio();
+  }
+
+  /**
+   * Reads the insets the parent declares again, for chrome that moved without
+   * the canvas changing size, such as a rail changing sides.
+   */
+  public refreshInsets(): void {
+    this.insetsValue = this.readInsets();
   }
 
   /** Reads the insets the parent declares, zero for any it declares none for. */
