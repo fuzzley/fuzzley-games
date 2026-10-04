@@ -13,6 +13,7 @@ import { REDEAL_PILE_ID } from "@/games/montana/montana_zones";
 import { PIP_COUNTS } from "@/games/common/zone_presets";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
+import { seededRandom } from "@/engine/core/random/seeded_random";
 
 /** How many columns Montana's grid has. */
 const COLUMN_COUNT = montanaColumnCount(MontanaVariant.MONTANA);
@@ -149,6 +150,20 @@ describe("MontanaGame deal", () => {
     const overfull = game.cells.filter((pile) => pile.size > 1);
 
     expect(overfull).toEqual([]);
+  });
+
+  it("leaves the same gaps when the deal is restarted", () => {
+    // A source that keeps varying, unlike the fixed shuffle, which would leave
+    // the same gaps whether or not the deal replays them.
+    const shuffledGame = new MontanaGame({ random: seededRandom(1) });
+    shuffledGame.startNewGame();
+    const gapsDealt = shuffledGame.cells.filter((pile) => pile.isEmpty);
+
+    shuffledGame.restartGame();
+
+    expect(shuffledGame.cells.filter((pile) => pile.isEmpty)).toEqual(
+      gapsDealt,
+    );
   });
 });
 

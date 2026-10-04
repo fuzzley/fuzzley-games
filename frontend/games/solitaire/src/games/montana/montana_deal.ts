@@ -1,6 +1,7 @@
 import { CardPile } from "@/engine/core/card/card_pile";
 import { DeckSpec } from "@/engine/core/card/deck";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import { seedFrom, seededRandom } from "@/engine/core/random/seeded_random";
 import { shuffle } from "@/engine/core/random/shuffle";
 import { itemAt } from "@/engine/core/common/item_at";
 import { pullCards } from "@/games/common/pull_cards";
@@ -22,17 +23,15 @@ export const GAP_COUNT = ROW_COUNT;
  *
  * @param deck The cards to deal, which this drains.
  * @param rows The grid, row by row.
- * @param random Places Montana's gaps.
  */
 export function dealMontanaFamilyLayout(
   variant: MontanaVariant,
   deck: PlayingCard[],
   rows: readonly (readonly CardPile<PlayingCard>[])[],
-  random: () => number = Math.random,
 ): void {
   switch (variant) {
     case MontanaVariant.MONTANA:
-      dealMontanaLayout(deck, rows.flat(), random);
+      dealMontanaLayout(deck, rows.flat());
       return;
     case MontanaVariant.BLUE_MOON:
       dealBlueMoonLayout(deck, rows);
@@ -46,14 +45,17 @@ export function dealMontanaFamilyLayout(
 /**
  * Deals `deck` across the grid, leaving four cells empty at random.
  *
+ * The gaps are drawn from the order of the deck rather than a fresh source, so
+ * a restart, which deals the same order again, leaves the same gaps.
+ *
  * @param deck The cards to deal, which this drains.
  * @param cells The grid, row-major.
  */
 export function dealMontanaLayout(
   deck: PlayingCard[],
   cells: readonly CardPile<PlayingCard>[],
-  random: () => number = Math.random,
 ): void {
+  const random = seededRandom(seedFrom(deck.map((card) => card.id)));
   const gaps = chooseGaps(cells.length, GAP_COUNT, random);
 
   for (const [index, cell] of cells.entries()) {

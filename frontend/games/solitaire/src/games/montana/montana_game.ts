@@ -80,7 +80,7 @@ export class MontanaGame extends DealtTableGame {
   /**
    * Creates a game whose piles are empty until the first deal.
    *
-   * Its `random` places the gaps and shuffles redeals as well as the deck.
+   * Its `random` shuffles redeals as well as the deck.
    */
   constructor({
     variant = DEFAULT_MONTANA_VARIANT,
@@ -108,7 +108,7 @@ export class MontanaGame extends DealtTableGame {
   /** @inheritDoc */
   protected override dealBoard(deck: PlayingCard[]): void {
     this.redealsUsed = 0;
-    dealMontanaFamilyLayout(this.variant, deck, this.rows, this.random);
+    dealMontanaFamilyLayout(this.variant, deck, this.rows);
   }
 
   /** The grid as rows, left to right within each. */
