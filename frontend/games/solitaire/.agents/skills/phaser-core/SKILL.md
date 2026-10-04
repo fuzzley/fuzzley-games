@@ -16,7 +16,8 @@ This skill governs Phaser 4 canvas integration within fSolitaire. Phaser 4 is is
      or more PNG pages) by `tools/build-card-atlas.mjs`, written to
      `src/engine/render/assets/sprites/atlas/`.
    - Run `yarn build:atlas` whenever the card SVGs in
-     `src/engine/render/assets/sprites/card/` change. The atlas is a committed
+     `src/engine/render/assets/sprites/card/`, or the generated deck in
+     `tools/card-atlas/mobile-deck.mjs`, change. The atlas is a committed
      build artifact, so a stale one ships.
    - See the `vite-bundle-optimization` skill for the toolchain in full.
 

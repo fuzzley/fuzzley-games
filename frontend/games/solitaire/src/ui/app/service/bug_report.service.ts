@@ -152,7 +152,7 @@ export class BugReportService {
     return [
       `- Build: ${this.config.commit ?? "local build"}`,
       ...browser,
-      `- Cards: ${this.presentation.cardDeck()} deck, ${this.presentation.cardBackStyle()} back, ${this.presentation.theme()} felt`,
+      `- Cards: ${this.presentation.cardDeck()} deck (${this.presentation.cardStyle()} style), ${this.presentation.cardBackStyle()} back, ${this.presentation.theme()} felt`,
     ].join("\n");
   }
 }

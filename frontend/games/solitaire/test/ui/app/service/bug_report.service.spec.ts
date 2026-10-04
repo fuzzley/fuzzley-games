@@ -12,7 +12,7 @@ import {
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import { decodePosition } from "@/ui/app/model/game_position";
-import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
+import { DEFAULT_DESKTOP_CARD_DECK } from "@/engine/render/card_deck";
 import type { GameSnapshot } from "@/engine/tableau/game_snapshot";
 import type { AppliedMove } from "@/engine/tableau/move";
 import {
@@ -199,7 +199,7 @@ describe("BugReportService", () => {
       const { service } = buildService();
 
       expect(await prefilled(service, BUG_REPORT_FIELDS.environment)).toContain(
-        `- Cards: ${DEFAULT_CARD_DECK} deck, card-back-blue back, green felt`,
+        `- Cards: ${DEFAULT_DESKTOP_CARD_DECK} deck (auto style), card-back-blue back, green felt`,
       );
     });
   });

@@ -5,7 +5,7 @@ import {
   Suit,
   playingCardInstanceId,
 } from "@/engine/core/card/playing_card";
-import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
+import { DEFAULT_DESKTOP_CARD_DECK } from "@/engine/render/card_deck";
 import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
 import { designSize, measureTable } from "@/engine/render/layout/table_layout";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
@@ -204,7 +204,7 @@ describe("makeTableBoardScene", () => {
 
     it("says which deck it is drawing", () => {
       expect(presentation.cardDeckStatuses).toEqual([
-        { kind: "drawn", deckId: DEFAULT_CARD_DECK },
+        { kind: "drawn", deckId: DEFAULT_DESKTOP_CARD_DECK },
       ]);
     });
 

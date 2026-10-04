@@ -20,7 +20,10 @@ import {
   RESTORE_WEBGL_EVENT,
   SHUTDOWN_EVENT,
 } from "@test/support/phaser_mocks";
-import { CardDeckId, DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
+import {
+  CardDeckId,
+  DEFAULT_DESKTOP_CARD_DECK,
+} from "@/engine/render/card_deck";
 import { CardArtScale } from "@/engine/render/layout/card_metrics";
 import {
   CardAtlas,
@@ -259,7 +262,7 @@ describe("BoardScene", () => {
     }
 
     it("draws every sprite from the deck the player is using", () => {
-      expect(texturesInUse()).toEqual([deckTexture(DEFAULT_CARD_DECK)]);
+      expect(texturesInUse()).toEqual([deckTexture(DEFAULT_DESKTOP_CARD_DECK)]);
     });
 
     it("redraws every card and placeholder from a deck already loaded", () => {
@@ -303,14 +306,16 @@ describe("BoardScene", () => {
 
       // An atlas page is sixty megabytes of texture memory once uploaded, and
       // a deck the board is no longer drawing is not worth holding it for.
-      expect(textures().exists(deckTexture(DEFAULT_CARD_DECK))).toBe(false);
+      expect(textures().exists(deckTexture(DEFAULT_DESKTOP_CARD_DECK))).toBe(
+        false,
+      );
     });
 
     it("loads a deck it has never drawn before switching to it", () => {
       presentation.setCardDeck("classic");
 
       expect(loader().requested).toEqual([deckTexture("classic")]);
-      expect(texturesInUse()).toEqual([deckTexture(DEFAULT_CARD_DECK)]);
+      expect(texturesInUse()).toEqual([deckTexture(DEFAULT_DESKTOP_CARD_DECK)]);
     });
 
     it("switches once the load it was waiting on finishes", () => {
@@ -328,25 +333,27 @@ describe("BoardScene", () => {
 
       // Pointing sprites at a texture that never arrived would draw the whole
       // board as blank rectangles, which is worse than the deck being left.
-      expect(texturesInUse()).toEqual([deckTexture(DEFAULT_CARD_DECK)]);
+      expect(texturesInUse()).toEqual([deckTexture(DEFAULT_DESKTOP_CARD_DECK)]);
     });
 
     it("ignores a load that finishes after the player changed their mind", () => {
       presentation.setCardDeck("classic");
-      presentation.setCardDeck(DEFAULT_CARD_DECK);
+      presentation.setCardDeck(DEFAULT_DESKTOP_CARD_DECK);
 
       loader().complete(textures());
 
-      expect(texturesInUse()).toEqual([deckTexture(DEFAULT_CARD_DECK)]);
+      expect(texturesInUse()).toEqual([deckTexture(DEFAULT_DESKTOP_CARD_DECK)]);
     });
 
     it("releases a deck that finishes loading after the player changed their mind", () => {
       presentation.setCardDeck("classic");
-      presentation.setCardDeck(DEFAULT_CARD_DECK);
+      presentation.setCardDeck(DEFAULT_DESKTOP_CARD_DECK);
 
       loader().complete(textures());
 
-      expect(residentTextures()).toEqual([deckTexture(DEFAULT_CARD_DECK)]);
+      expect(residentTextures()).toEqual([
+        deckTexture(DEFAULT_DESKTOP_CARD_DECK),
+      ]);
     });
 
     it("draws the latest deck when two loads finish together", () => {
@@ -524,8 +531,8 @@ describe("BoardScene", () => {
           requested: loader().requested,
           inUse: texturesInUse(),
         }).toEqual({
-          requested: [deckTexture(DEFAULT_CARD_DECK, 2)],
-          inUse: [deckTexture(DEFAULT_CARD_DECK)],
+          requested: [deckTexture(DEFAULT_DESKTOP_CARD_DECK, 2)],
+          inUse: [deckTexture(DEFAULT_DESKTOP_CARD_DECK)],
         });
       });
 
@@ -538,8 +545,8 @@ describe("BoardScene", () => {
           inUse: texturesInUse(),
           resident: residentTextures(),
         }).toEqual({
-          inUse: [deckTexture(DEFAULT_CARD_DECK, 2)],
-          resident: [deckTexture(DEFAULT_CARD_DECK, 2)],
+          inUse: [deckTexture(DEFAULT_DESKTOP_CARD_DECK, 2)],
+          resident: [deckTexture(DEFAULT_DESKTOP_CARD_DECK, 2)],
         });
       });
 
@@ -576,7 +583,7 @@ describe("BoardScene", () => {
         loader().complete(textures());
 
         expect(presentation.cardDeckStatuses).toEqual([
-          { kind: "drawn", deckId: DEFAULT_CARD_DECK },
+          { kind: "drawn", deckId: DEFAULT_DESKTOP_CARD_DECK },
         ]);
       });
 
@@ -585,7 +592,9 @@ describe("BoardScene", () => {
 
         resizeTo(2.5);
 
-        expect(loader().requested).toEqual([deckTexture(DEFAULT_CARD_DECK, 2)]);
+        expect(loader().requested).toEqual([
+          deckTexture(DEFAULT_DESKTOP_CARD_DECK, 2),
+        ]);
       });
 
       it("keeps the 2x atlas when the board shrinks again", () => {
@@ -600,8 +609,8 @@ describe("BoardScene", () => {
           requested: loader().requested,
           inUse: texturesInUse(),
         }).toEqual({
-          requested: [deckTexture(DEFAULT_CARD_DECK, 2)],
-          inUse: [deckTexture(DEFAULT_CARD_DECK, 2)],
+          requested: [deckTexture(DEFAULT_DESKTOP_CARD_DECK, 2)],
+          inUse: [deckTexture(DEFAULT_DESKTOP_CARD_DECK, 2)],
         });
       });
 
@@ -616,8 +625,8 @@ describe("BoardScene", () => {
           inUse: texturesInUse(),
           statuses: presentation.cardDeckStatuses,
         }).toEqual({
-          inUse: [deckTexture(DEFAULT_CARD_DECK)],
-          statuses: [{ kind: "drawn", deckId: DEFAULT_CARD_DECK }],
+          inUse: [deckTexture(DEFAULT_DESKTOP_CARD_DECK)],
+          statuses: [{ kind: "drawn", deckId: DEFAULT_DESKTOP_CARD_DECK }],
         });
       });
 
@@ -668,7 +677,7 @@ describe("BoardScene", () => {
     });
 
     it("does not reload a deck it is already drawing", () => {
-      presentation.setCardDeck(DEFAULT_CARD_DECK);
+      presentation.setCardDeck(DEFAULT_DESKTOP_CARD_DECK);
 
       expect(loader().requested).toEqual([]);
     });
@@ -683,7 +692,9 @@ describe("BoardScene", () => {
     it("says which deck it booted on", () => {
       // The drawer has to start from something, and only the board knows what
       // is actually on the table.
-      expect(statusesReported()).toEqual([`drawn:${DEFAULT_CARD_DECK}`]);
+      expect(statusesReported()).toEqual([
+        `drawn:${DEFAULT_DESKTOP_CARD_DECK}`,
+      ]);
     });
 
     it("says a deck is on its way before it arrives", () => {
@@ -698,7 +709,7 @@ describe("BoardScene", () => {
       loader().complete(textures());
 
       expect(statusesReported()).toEqual([
-        `drawn:${DEFAULT_CARD_DECK}`,
+        `drawn:${DEFAULT_DESKTOP_CARD_DECK}`,
         "loading:classic",
         "drawn:classic",
       ]);
@@ -716,16 +727,16 @@ describe("BoardScene", () => {
 
     it("answers for a deck that is still wanted and no other", () => {
       presentation.setCardDeck("classic");
-      presentation.setCardDeck(DEFAULT_CARD_DECK);
+      presentation.setCardDeck(DEFAULT_DESKTOP_CARD_DECK);
 
       loader().complete(textures());
 
       // The switch back is answered at once, and the load that arrives after it
       // is nobody's question by then.
       expect(statusesReported()).toEqual([
-        `drawn:${DEFAULT_CARD_DECK}`,
+        `drawn:${DEFAULT_DESKTOP_CARD_DECK}`,
         "loading:classic",
-        `drawn:${DEFAULT_CARD_DECK}`,
+        `drawn:${DEFAULT_DESKTOP_CARD_DECK}`,
       ]);
     });
 
@@ -736,7 +747,7 @@ describe("BoardScene", () => {
 
       presentation.setCardDeck("classic");
 
-      expect(texturesInUse()).toEqual([deckTexture(DEFAULT_CARD_DECK)]);
+      expect(texturesInUse()).toEqual([deckTexture(DEFAULT_DESKTOP_CARD_DECK)]);
     });
   });
 

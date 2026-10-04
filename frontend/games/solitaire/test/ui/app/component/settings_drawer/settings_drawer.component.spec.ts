@@ -16,7 +16,7 @@ import {
 } from "@test/support/dom";
 import { flushMicrotasks } from "@test/support/async";
 import { clickBackdrop, isDialogOpen, pressEscape } from "@test/support/dialog";
-import { CARD_DECKS } from "@/engine/render/card_deck";
+import { DESKTOP_CARD_DECKS } from "@/engine/render/card_deck";
 
 describe("SettingsDrawerComponent", () => {
   let fixture: ComponentFixture<SettingsDrawerComponent>;
@@ -44,7 +44,10 @@ describe("SettingsDrawerComponent", () => {
 
   /** Returns the drawer's own rule buttons, excluding the debug panel's. */
   function ruleButtons(): HTMLElement[] {
-    return queryAll(fixture, ".drawer-content > app-option-group .segment-btn");
+    return queryAll(
+      fixture,
+      ".drawer-content > app-option-group:not(.card-style) .segment-btn",
+    );
   }
 
   describe("showing and hiding", () => {
@@ -134,16 +137,63 @@ describe("SettingsDrawerComponent", () => {
     });
   });
 
-  describe("the card deck", () => {
-    /** Returns the deck buttons, in the order the catalog offers them. */
+  describe("the card style", () => {
+    /** Returns the style buttons, in the order they are offered. */
+    function styleButtons(): HTMLElement[] {
+      return queryAll(fixture, "app-option-group.card-style .segment-btn");
+    }
+
+    /** Returns the line describing the style that is checked. */
+    function styleDescription(): string {
+      return queryText(fixture, "app-option-group.card-style .setting-desc");
+    }
+
+    it("offers auto, mobile and desktop cards", () => {
+      openDrawer();
+
+      expect(
+        styleButtons().map((button) => button.textContent?.trim()),
+      ).toEqual(["Auto", "Mobile", "Desktop"]);
+    });
+
+    it("checks the style the player has", () => {
+      harness.presentation.cardStyle.set("desktop");
+      openDrawer();
+
+      expect(
+        styleButtons().map((button) => button.getAttribute("aria-checked")),
+      ).toEqual(["false", "false", "true"]);
+    });
+
+    it("changes when one is picked", () => {
+      openDrawer();
+
+      styleButtons()[1].click();
+
+      expect(harness.presentation.cardStyle()).toBe("mobile");
+    });
+
+    it("describes the style that is checked", () => {
+      openDrawer();
+      const autoDescription = styleDescription();
+
+      harness.presentation.cardStyle.set("mobile");
+      fixture.detectChanges();
+
+      expect(styleDescription()).not.toBe(autoDescription);
+    });
+  });
+
+  describe("the desktop decks", () => {
+    /** Returns the deck buttons, in the order they are offered. */
     function deckButtons(): Element[] {
       return queryAll(fixture, ".card-deck-selector button");
     }
 
-    it("offers every deck in the catalog", () => {
+    it("offers every desktop deck", () => {
       openDrawer();
 
-      expect(deckButtons().length).toBe(CARD_DECKS.length);
+      expect(deckButtons().length).toBe(DESKTOP_CARD_DECKS.length);
     });
 
     it("changes when one is picked", () => {
@@ -151,7 +201,9 @@ describe("SettingsDrawerComponent", () => {
 
       clickElement(fixture, ".card-deck-selector button:nth-child(1)");
 
-      expect(harness.presentation.cardDeck()).toBe(CARD_DECKS[0].id);
+      expect(harness.presentation.desktopCardDeck()).toBe(
+        DESKTOP_CARD_DECKS[0].id,
+      );
     });
 
     it("marks the chosen one as checked", () => {
@@ -219,6 +271,34 @@ describe("SettingsDrawerComponent", () => {
 
       expect(queryText(fixture, ".card-deck-problem")).toBe(
         "Couldn't load Classic.",
+      );
+    });
+
+    it("are hidden while mobile cards are drawn", () => {
+      harness.presentation.cardStyle.set("mobile");
+      openDrawer();
+
+      expect(query(fixture, ".card-deck-selector")).toBeNull();
+    });
+
+    it("come back once desktop cards are chosen", () => {
+      harness.presentation.cardStyle.set("mobile");
+      openDrawer();
+
+      harness.presentation.cardStyle.set("desktop");
+      fixture.detectChanges();
+
+      expect(deckButtons().length).toBe(DESKTOP_CARD_DECKS.length);
+    });
+
+    it("leave the problem in view while they are hidden", () => {
+      // The mobile deck can fail to load too.
+      harness.presentation.cardStyle.set("mobile");
+      harness.presentation.cardDeckProblem.set("Couldn't load Mobile.");
+      openDrawer();
+
+      expect(queryText(fixture, ".card-deck-problem")).toBe(
+        "Couldn't load Mobile.",
       );
     });
   });
