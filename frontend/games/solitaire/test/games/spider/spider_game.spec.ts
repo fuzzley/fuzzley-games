@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { relocate } from "@test/support/game_scenarios";
 import { SpiderGame } from "@/games/spider/spider_game";
 import {
   SPIDER_ONE_SUIT,
@@ -13,7 +14,6 @@ import {
 import { deckCardIds } from "@/engine/core/card/deck";
 import {
   ALL_RANKS,
-  PlayingCard,
   Rank,
   Suit,
   playingCardFaceKey,
@@ -24,20 +24,6 @@ function clearBoard(game: SpiderGame): void {
   for (const pile of game.piles) {
     pile.clear();
   }
-}
-
-/** Moves the card with the given id onto `pile`, face up unless stated. */
-function place(
-  game: SpiderGame,
-  cardId: string,
-  pile: { addCard(card: PlayingCard): void },
-  faceUp = true,
-): PlayingCard {
-  const card = game.getCardById(cardId)!;
-  game.getPileContainingCard(cardId)?.removeCard(card);
-  card.faceUp = faceUp;
-  pile.addCard(card);
-  return card;
 }
 
 /** Returns the instance id of a card from the named one of the two decks. */
@@ -53,7 +39,7 @@ function buildCompleteRun(
   suit = Suit.SPADE,
 ): void {
   for (const rank of [...ALL_RANKS].reverse()) {
-    place(game, id(suit, rank), game.tableaus[column]);
+    relocate(game, id(suit, rank), game.tableaus[column]);
   }
 }
 
@@ -150,12 +136,12 @@ describe("SpiderGame", () => {
 
     it("keeps the two copies in separate piles when they are", () => {
       clearBoard(game);
-      const first = place(
+      const first = relocate(
         game,
         id(Suit.HEART, Rank.QUEEN, 0),
         game.tableaus[0],
       );
-      const second = place(
+      const second = relocate(
         game,
         id(Suit.HEART, Rank.QUEEN, 1),
         game.tableaus[1],
@@ -217,8 +203,8 @@ describe("SpiderGame", () => {
   describe("building a column", () => {
     it("accepts a descending card of a different suit", () => {
       clearBoard(game);
-      place(game, id(Suit.SPADE, Rank.EIGHT), game.tableaus[0]);
-      const heartSeven = place(
+      relocate(game, id(Suit.SPADE, Rank.EIGHT), game.tableaus[0]);
+      const heartSeven = relocate(
         game,
         id(Suit.HEART, Rank.SEVEN),
         game.tableaus[1],
@@ -231,15 +217,15 @@ describe("SpiderGame", () => {
 
     it("refuses a card that does not descend", () => {
       clearBoard(game);
-      place(game, id(Suit.SPADE, Rank.EIGHT), game.tableaus[0]);
-      const two = place(game, id(Suit.HEART, Rank.TWO), game.tableaus[1]);
+      relocate(game, id(Suit.SPADE, Rank.EIGHT), game.tableaus[0]);
+      const two = relocate(game, id(Suit.HEART, Rank.TWO), game.tableaus[1]);
 
       expect(game.moveCardToPile(two.id, game.tableaus[0].id)).toBe(false);
     });
 
     it("accepts any card onto an empty column", () => {
       clearBoard(game);
-      const two = place(game, id(Suit.HEART, Rank.TWO), game.tableaus[1]);
+      const two = relocate(game, id(Suit.HEART, Rank.TWO), game.tableaus[1]);
 
       expect(game.moveCardToPile(two.id, game.tableaus[0].id)).toBe(true);
     });
@@ -248,29 +234,41 @@ describe("SpiderGame", () => {
   describe("lifting a run", () => {
     it("lifts a same-suit descending run", () => {
       clearBoard(game);
-      const eight = place(game, id(Suit.SPADE, Rank.EIGHT), game.tableaus[0]);
-      place(game, id(Suit.SPADE, Rank.SEVEN), game.tableaus[0]);
-      place(game, id(Suit.HEART, Rank.NINE), game.tableaus[1]);
+      const eight = relocate(
+        game,
+        id(Suit.SPADE, Rank.EIGHT),
+        game.tableaus[0],
+      );
+      relocate(game, id(Suit.SPADE, Rank.SEVEN), game.tableaus[0]);
+      relocate(game, id(Suit.HEART, Rank.NINE), game.tableaus[1]);
 
       expect(game.moveCardToPile(eight.id, game.tableaus[1].id)).toBe(true);
     });
 
     it("refuses a mixed-suit run, even though the column accepted it", () => {
       clearBoard(game);
-      const eight = place(game, id(Suit.SPADE, Rank.EIGHT), game.tableaus[0]);
+      const eight = relocate(
+        game,
+        id(Suit.SPADE, Rank.EIGHT),
+        game.tableaus[0],
+      );
       // A heart seven sits legally on a spade eight, and still cannot be
       // carried with it. That is the whole difficulty of Spider.
-      place(game, id(Suit.HEART, Rank.SEVEN), game.tableaus[0]);
-      place(game, id(Suit.HEART, Rank.NINE), game.tableaus[1]);
+      relocate(game, id(Suit.HEART, Rank.SEVEN), game.tableaus[0]);
+      relocate(game, id(Suit.HEART, Rank.NINE), game.tableaus[1]);
 
       expect(game.moveCardToPile(eight.id, game.tableaus[1].id)).toBe(false);
     });
 
     it("still lifts the top card of a mixed column, which leads a run of one", () => {
       clearBoard(game);
-      place(game, id(Suit.SPADE, Rank.EIGHT), game.tableaus[0]);
-      const seven = place(game, id(Suit.HEART, Rank.SEVEN), game.tableaus[0]);
-      place(game, id(Suit.HEART, Rank.EIGHT), game.tableaus[1]);
+      relocate(game, id(Suit.SPADE, Rank.EIGHT), game.tableaus[0]);
+      const seven = relocate(
+        game,
+        id(Suit.HEART, Rank.SEVEN),
+        game.tableaus[0],
+      );
+      relocate(game, id(Suit.HEART, Rank.EIGHT), game.tableaus[1]);
 
       expect(game.moveCardToPile(seven.id, game.tableaus[1].id)).toBe(true);
     });
@@ -378,9 +376,9 @@ describe("SpiderGame", () => {
       clearBoard(game);
       // Everything but the Ace, with the Ace waiting on another column.
       for (const rank of [...ALL_RANKS].reverse().slice(0, 12)) {
-        place(game, id(Suit.SPADE, rank), game.tableaus[0]);
+        relocate(game, id(Suit.SPADE, rank), game.tableaus[0]);
       }
-      const ace = place(game, id(Suit.SPADE, Rank.ACE), game.tableaus[1]);
+      const ace = relocate(game, id(Suit.SPADE, Rank.ACE), game.tableaus[1]);
 
       game.moveCardToPile(ace.id, game.tableaus[0].id);
 
@@ -390,9 +388,9 @@ describe("SpiderGame", () => {
     it("clears the column it came from", () => {
       clearBoard(game);
       for (const rank of [...ALL_RANKS].reverse().slice(0, 12)) {
-        place(game, id(Suit.SPADE, rank), game.tableaus[0]);
+        relocate(game, id(Suit.SPADE, rank), game.tableaus[0]);
       }
-      const ace = place(game, id(Suit.SPADE, Rank.ACE), game.tableaus[1]);
+      const ace = relocate(game, id(Suit.SPADE, Rank.ACE), game.tableaus[1]);
 
       game.moveCardToPile(ace.id, game.tableaus[0].id);
 
@@ -402,10 +400,10 @@ describe("SpiderGame", () => {
     it("leaves a mixed-suit sequence alone", () => {
       clearBoard(game);
       for (const rank of [...ALL_RANKS].reverse().slice(0, 12)) {
-        place(game, id(Suit.SPADE, rank), game.tableaus[0]);
+        relocate(game, id(Suit.SPADE, rank), game.tableaus[0]);
       }
       // A heart Ace completes the sequence by rank but not by suit.
-      const ace = place(game, id(Suit.HEART, Rank.ACE), game.tableaus[1]);
+      const ace = relocate(game, id(Suit.HEART, Rank.ACE), game.tableaus[1]);
 
       game.moveCardToPile(ace.id, game.tableaus[0].id);
 
@@ -415,9 +413,9 @@ describe("SpiderGame", () => {
     it("is taken back with the move that completed it, by one undo", () => {
       clearBoard(game);
       for (const rank of [...ALL_RANKS].reverse().slice(0, 12)) {
-        place(game, id(Suit.SPADE, rank), game.tableaus[0]);
+        relocate(game, id(Suit.SPADE, rank), game.tableaus[0]);
       }
-      const ace = place(game, id(Suit.SPADE, Rank.ACE), game.tableaus[1]);
+      const ace = relocate(game, id(Suit.SPADE, Rank.ACE), game.tableaus[1]);
       game.moveCardToPile(ace.id, game.tableaus[0].id);
 
       game.undo();
@@ -431,16 +429,16 @@ describe("SpiderGame", () => {
 
     it("turns a card the collection exposed back down on undo", () => {
       clearBoard(game);
-      const buried = place(
+      const buried = relocate(
         game,
         id(Suit.CLUB, Rank.FOUR),
         game.tableaus[0],
         false,
       );
       for (const rank of [...ALL_RANKS].reverse().slice(0, 12)) {
-        place(game, id(Suit.SPADE, rank), game.tableaus[0]);
+        relocate(game, id(Suit.SPADE, rank), game.tableaus[0]);
       }
-      const ace = place(game, id(Suit.SPADE, Rank.ACE), game.tableaus[1]);
+      const ace = relocate(game, id(Suit.SPADE, Rank.ACE), game.tableaus[1]);
       game.moveCardToPile(ace.id, game.tableaus[0].id);
       expect(buried.faceUp).toBe(true);
 
@@ -453,14 +451,18 @@ describe("SpiderGame", () => {
   describe("turning over an exposed card", () => {
     it("turns up the card a move uncovered", () => {
       clearBoard(game);
-      const buried = place(
+      const buried = relocate(
         game,
         id(Suit.CLUB, Rank.FOUR),
         game.tableaus[0],
         false,
       );
-      const eight = place(game, id(Suit.SPADE, Rank.EIGHT), game.tableaus[0]);
-      place(game, id(Suit.HEART, Rank.NINE), game.tableaus[1]);
+      const eight = relocate(
+        game,
+        id(Suit.SPADE, Rank.EIGHT),
+        game.tableaus[0],
+      );
+      relocate(game, id(Suit.HEART, Rank.NINE), game.tableaus[1]);
 
       game.moveCardToPile(eight.id, game.tableaus[1].id);
 
@@ -469,14 +471,18 @@ describe("SpiderGame", () => {
 
     it("turns it back down on undo", () => {
       clearBoard(game);
-      const buried = place(
+      const buried = relocate(
         game,
         id(Suit.CLUB, Rank.FOUR),
         game.tableaus[0],
         false,
       );
-      const eight = place(game, id(Suit.SPADE, Rank.EIGHT), game.tableaus[0]);
-      place(game, id(Suit.HEART, Rank.NINE), game.tableaus[1]);
+      const eight = relocate(
+        game,
+        id(Suit.SPADE, Rank.EIGHT),
+        game.tableaus[0],
+      );
+      relocate(game, id(Suit.HEART, Rank.NINE), game.tableaus[1]);
       game.moveCardToPile(eight.id, game.tableaus[1].id);
 
       game.undo();
@@ -542,8 +548,8 @@ describe("SpiderGame", () => {
   describe("auto-move", () => {
     it("never sends a card to a foundation, which is not a destination", () => {
       clearBoard(game);
-      const ace = place(game, id(Suit.SPADE, Rank.ACE), game.tableaus[0]);
-      place(game, id(Suit.HEART, Rank.TWO), game.tableaus[1]);
+      const ace = relocate(game, id(Suit.SPADE, Rank.ACE), game.tableaus[0]);
+      relocate(game, id(Suit.HEART, Rank.TWO), game.tableaus[1]);
 
       game.autoMoveCard(ace.id);
 

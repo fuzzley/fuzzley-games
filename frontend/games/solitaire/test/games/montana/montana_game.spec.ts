@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
+import {
+  PlayingCard,
+  Rank,
+  Suit,
+  playingCardInstanceId,
+} from "@/engine/core/card/playing_card";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { MontanaGame } from "@/games/montana/montana_game";
 import { MONTANA_DECK, GAP_COUNT } from "@/games/montana/montana_deal";
@@ -24,31 +29,9 @@ const COLUMN_COUNT = montanaColumnCount(MontanaVariant.MONTANA);
  */
 const SHUFFLE_VALUES = [0.37, 0.11, 0.83, 0.5, 0.06];
 
-const SUIT_NAMES: Record<Suit, string> = {
-  [Suit.SPADE]: "spades",
-  [Suit.HEART]: "hearts",
-  [Suit.DIAMOND]: "diamonds",
-  [Suit.CLUB]: "clubs",
-};
-
-const RANK_NAMES: Record<number, string> = {
-  [Rank.TWO]: "2",
-  [Rank.THREE]: "3",
-  [Rank.FOUR]: "4",
-  [Rank.FIVE]: "5",
-  [Rank.SIX]: "6",
-  [Rank.SEVEN]: "7",
-  [Rank.EIGHT]: "8",
-  [Rank.NINE]: "9",
-  [Rank.TEN]: "10",
-  [Rank.JACK]: "jack",
-  [Rank.QUEEN]: "queen",
-  [Rank.KING]: "king",
-};
-
 /** Returns the card id for a suit and rank, as the registry names it. */
 function cardId(suit: Suit, rank: Rank): string {
-  return `card-${SUIT_NAMES[suit]}-${RANK_NAMES[rank]}`;
+  return playingCardInstanceId({ suit, rank });
 }
 
 /** Every rank a Montana row holds, Two up to King. */

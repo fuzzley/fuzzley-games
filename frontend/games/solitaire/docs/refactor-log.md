@@ -102,8 +102,8 @@ The review's findings, grouped into phases. Each phase leaves the tree green.
 
 ## Progress
 
-- [ ] 0.1 Contract suite
-- [ ] 0.2 Test position helpers
+- [x] 0.1 Contract suite
+- [x] 0.2 Test position helpers
 - [ ] 1.1 Dead code
 - [ ] 1.2 `implements` declarations
 - [ ] 1.3 Vitest version in docs
@@ -129,3 +129,33 @@ Newest last. Each entry names its commit subject.
 
 - **docs: start the engine health refactor log.** Recorded the decisions and
   the plan. Baseline: 127 spec files, 3309 tests, all passing.
+- **fix: replay Montana's gaps on a restart.** Found by the contract suite
+  before it was committed: a restart replayed the deck order but drew
+  Montana's four gaps afresh. The gaps now come from a generator seeded by the
+  deck order (`seededRandom` and `seedFrom` in
+  `src/engine/core/random/seeded_random.ts`), so the snapshot format did not
+  change. Note for later specs: `sequenceRandom` yields zeros once its values
+  run out, which hides this kind of bug; use `seededRandom` when a test needs
+  a source that keeps varying.
+- **test: hold every game in the catalog to one contract.**
+  `test/ui/app/provider/game_contract.spec.ts` sweeps all 41 games and every
+  setting of their rules (`CATALOG_DEALS`, now shared from
+  `test/support/ui/catalog_deals.ts`). It plays each through
+  `gesturesFor`, newly exported from `board_catalog.ts`, and after every
+  action that changes the game it checks: one more history step, each card
+  once, `moves` equal to the history length, undo restores the previous
+  snapshot exactly, and restore reproduces the post-action snapshot. It also
+  unwinds everything by undo and checks restart replays the deal. About 530
+  tests; it adds roughly four seconds to `yarn test`. This is the net for
+  every later step, so run it after any engine change:
+  `npx vitest run test/ui/app/provider/game_contract.spec.ts`.
+- **test: give specs one way to arrange a position.**
+  `test/support/game_scenarios.ts` is now the only place a spec changes a
+  pile: `emptyBoard`, `relocate` (which now also takes a pile id), and
+  `cardId("QH")` for short card codes. The FreeCell and Spider specs' copied
+  `place` helpers and Montana's hand-built id table are gone. Deviation from
+  the plan: no restore-based `arrange` builder. A restore needs every card on
+  the board exactly once, and many specs deliberately build partial positions
+  with `emptyBoard`; funnelling every change through `relocate` gives the
+  same benefit for step 4.2, where `relocate` will be the one place that
+  needs write access to a pile.
