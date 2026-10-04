@@ -1,22 +1,31 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { playOnPress, stocklessGestures } from "@/games/common/table_gestures";
-import { FreeCellGame } from "@/games/freecell/freecell_game";
-import { FreeCellRole } from "@/games/freecell/freecell_zones";
+import {
+  playOnPress,
+  stocklessGestures,
+} from "@/engine/tableau/table_gestures";
+import { FakeTableGame } from "@test/support/fake_table/game";
+import { FakeRole } from "@test/support/fake_table/zones";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
 
+/** Returns a fake game dealt with a fixed shuffle. */
+function dealtGame(): FakeTableGame {
+  const game = new FakeTableGame(undefined, sequenceRandom([]));
+  game.startNewGame();
+  return game;
+}
+
 /*
- * Driven through FreeCell, a real game, so what a gesture did is read off the
- * board rather than a call count.
+ * Driven through the fake table, a real game, so what a gesture did is read
+ * off the board rather than a call count.
  */
 describe("stocklessGestures", () => {
-  let game: FreeCellGame;
+  let game: FakeTableGame;
   let handle: IntentHandler;
 
   beforeEach(() => {
-    game = new FreeCellGame({ random: sequenceRandom([]) });
-    game.startNewGame();
+    game = dealtGame();
     handle = stocklessGestures(game);
   });
 
@@ -31,8 +40,7 @@ describe("stocklessGestures", () => {
 
       handle({ kind: "activate", cardId: card.id });
 
-      // There is no stock to draw and nothing to recycle, so a single press
-      // has nothing to do.
+      // Nothing tells a single press what to do, so it does nothing.
       expect(pileOf(card.id)).toBe(game.tableaus[0].id);
     });
 
@@ -45,13 +53,13 @@ describe("stocklessGestures", () => {
 
   describe("activate-pile", () => {
     it("leaves an empty slot empty when it is pressed", () => {
-      handle({ kind: "activate-pile", pileId: game.cells[0].id });
+      handle({ kind: "activate-pile", pileId: game.foundations[0].id });
 
-      expect(game.cells[0].isEmpty).toBe(true);
+      expect(game.foundations[0].isEmpty).toBe(true);
     });
 
     it("records no move for a press on an empty slot", () => {
-      handle({ kind: "activate-pile", pileId: game.cells[0].id });
+      handle({ kind: "activate-pile", pileId: game.foundations[0].id });
 
       expect(game.state.moves).toBe(0);
     });
@@ -65,7 +73,7 @@ describe("stocklessGestures", () => {
       handle({ kind: "activate-secondary", cardId: ace.id });
 
       expect(game.getPileContainingCard(ace.id)?.role).toBe(
-        FreeCellRole.FOUNDATION,
+        FakeRole.FOUNDATION,
       );
     });
   });
@@ -144,31 +152,30 @@ describe("stocklessGestures", () => {
 });
 
 describe("playOnPress", () => {
-  let game: FreeCellGame;
+  let game: FakeTableGame;
 
   beforeEach(() => {
-    game = new FreeCellGame({ random: sequenceRandom([]) });
-    game.startNewGame();
+    game = dealtGame();
     emptyBoard(game);
     relocate(game, "card-hearts-ace", game.tableaus[0]);
-    relocate(game, "card-spades-ace", game.cells[0]);
+    relocate(game, "card-spades-ace", game.waste);
   });
 
   it("plays a card from one of its roles to its best destination", () => {
-    const press = playOnPress(game, [FreeCellRole.TABLEAU]);
+    const press = playOnPress(game, [FakeRole.TABLEAU]);
 
     press("card-hearts-ace", game.tableaus[0]);
 
     expect(game.getPileContainingCard("card-hearts-ace")?.role).toBe(
-      FreeCellRole.FOUNDATION,
+      FakeRole.FOUNDATION,
     );
   });
 
   it("leaves a card from any other role where it is", () => {
-    const press = playOnPress(game, [FreeCellRole.TABLEAU]);
+    const press = playOnPress(game, [FakeRole.TABLEAU]);
 
-    press("card-spades-ace", game.cells[0]);
+    press("card-spades-ace", game.waste);
 
-    expect(game.cells[0].topCard?.id).toBe("card-spades-ace");
+    expect(game.waste.topCard?.id).toBe("card-spades-ace");
   });
 });

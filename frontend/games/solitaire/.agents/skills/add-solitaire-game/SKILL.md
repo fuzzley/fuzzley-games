@@ -306,7 +306,7 @@ every game.
 ## 7. `<game>_gestures.ts` — only if a press means something
 
 A game with no stock does not need this file at all: map it to
-`stocklessGestures` from `src/games/common/table_gestures.ts` in step 8, as
+`stocklessGestures` from `src/engine/tableau/table_gestures.ts` in step 8, as
 FreeCell does.
 
 Otherwise call `tableGestures(game, options)` with:
@@ -348,7 +348,7 @@ CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
 2. **`src/ui/app/provider/board_catalog.ts`** — map the id to its gestures in
    `GESTURES`. The mapped type means a missing or mismatched entry is a compile
    error, not a runtime throw. There is no per-game board file:
-   `makeTableBoardScene` (`src/games/common/board_scene_factory.ts`) draws every
+   `makeTableBoardScene` (`src/engine/board/table_board_scene.ts`) draws every
    game from its gestures and its entry's `layout`, and `PhaserHost`
    (`src/engine/render/phaser/phaser_host.ts`) swaps in whatever board it is
    handed, so the shell never imports a game in order to host one.

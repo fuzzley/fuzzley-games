@@ -1,5 +1,5 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { playOnPress, tableGestures } from "@/games/common/table_gestures";
+import { playOnPress, tableGestures } from "@/engine/tableau/table_gestures";
 import { GolfGame } from "./golf_game";
 import { GolfRole } from "./golf_zones";
 
