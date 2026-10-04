@@ -27,21 +27,16 @@ export const CanfieldRole = {
 /** Names one of the parts a Canfield pile can play. */
 export type CanfieldRole = (typeof CanfieldRole)[keyof typeof CanfieldRole];
 
-/**
- * Which of the family is being played.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which of the family is being played. */
 export const CanfieldVariant = {
   /** Canfield: the original. */
-  CANFIELD: 0,
+  CANFIELD: "canfield",
   /** Storehouse: Twos start the foundations, and columns build in suit. */
-  STOREHOUSE: 1,
+  STOREHOUSE: "storehouse",
   /** Superior Canfield: the reserve is dealt face up, and spaces wait. */
-  SUPERIOR: 2,
+  SUPERIOR: "superior",
   /** Rainbow: columns build regardless of colour, from a one-pass stock. */
-  RAINBOW: 3,
+  RAINBOW: "rainbow",
 } as const;
 
 /** Names one of the games in the Canfield family. */

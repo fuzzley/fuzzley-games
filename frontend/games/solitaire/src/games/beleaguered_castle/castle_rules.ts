@@ -20,21 +20,16 @@ export const CastleRole = {
 /** Names one of the parts a Castle pile can play. */
 export type CastleRole = (typeof CastleRole)[keyof typeof CastleRole];
 
-/**
- * Which of the family is being played.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which of the family is being played. */
 export const CastleVariant = {
   /** Beleaguered Castle: the Aces start on the foundations. */
-  BELEAGUERED_CASTLE: 0,
+  BELEAGUERED_CASTLE: "beleaguered-castle",
   /** Streets and Alleys: the Aces are dealt into the rows. */
-  STREETS_AND_ALLEYS: 1,
+  STREETS_AND_ALLEYS: "streets-and-alleys",
   /** Citadel: every card that can go home during the deal does. */
-  CITADEL: 2,
+  CITADEL: "citadel",
   /** Fortress: ten rows, built up or down in suit. */
-  FORTRESS: 3,
+  FORTRESS: "fortress",
 } as const;
 
 /** Names one of the games in the Castle family. */

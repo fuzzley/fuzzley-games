@@ -28,17 +28,12 @@ export const MonteCarloRole = {
 export type MonteCarloRole =
   (typeof MonteCarloRole)[keyof typeof MonteCarloRole];
 
-/**
- * Which of the pair is being played.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which of the pair is being played. */
 export const MonteCarloVariant = {
   /** Monte Carlo: pairs of the same rank. */
-  MONTE_CARLO: 0,
+  MONTE_CARLO: "monte-carlo",
   /** Monte Carlo Thirteens: pairs totalling thirteen, and Kings alone. */
-  THIRTEENS: 1,
+  THIRTEENS: "thirteens",
 } as const;
 
 /** Names one of the games played on Monte Carlo's grid. */

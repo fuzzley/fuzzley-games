@@ -51,11 +51,16 @@ These are three independent decisions, and it is worth keeping them apart:
 
 No new directory, no new board. Add a member to the game's variant union in
 `<game>_rules.ts`, add its row to that file's variant table, and add a choice to
-the `GameOptionSpec` in `src/ui/app/provider/game_catalog.ts`. Use the variant
-enum members themselves as the option's `value`s, and type the spec as
-`GameOptionSpec<MyVariant>` — as `YUKON_VARIANT` and `SPIDERETTE_VARIANT` do —
-so `optionValue` hands back the variant without a cast, and the choices offered
-and the games selected cannot drift apart. A variant option has the id
+the option in `src/ui/app/provider/game_catalog.ts`. Each choice carries two
+things: its `rule`, the variant member the game is handed, and its `value`, the
+number the settings panel stores. Give a new choice the next unused `value` and
+never renumber an old one, or a saved preference picks a different game. Build
+the option with `gameOption<MyVariant>({ …, defaultRule })` — as `YUKON_VARIANT`
+and `SPIDERETTE_VARIANT` do — so `optionRule` hands back the variant without a
+cast and the default cannot name a choice that is not offered. Data written in
+the game's own terms, such as a profile's `values`, converts through
+`storedValue` or `storedValues` rather than spelling out a number. A variant
+option has the id
 `variant` and `control: "list"`, which offers one choice to a row, and every
 choice carries a one-line `description` of what sets it apart; the catalog spec
 fails a variant option without them. Then document the new choice under

@@ -23,19 +23,14 @@ export const GolfRole = {
 /** Names one of the parts a Golf pile can play. */
 export type GolfRole = (typeof GolfRole)[keyof typeof GolfRole];
 
-/**
- * Which of the Golf family is being played.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which of the Golf family is being played. */
 export const GolfVariant = {
   /** The original: nothing may be played on a King. */
-  GOLF: 0,
+  GOLF: "golf",
   /** A Queen may be played on a King, but still not an Ace. */
-  QUEENS_ON_KINGS: 1,
+  QUEENS_ON_KINGS: "queens-on-kings",
   /** Putt Putt: the ranks turn the corner, so Ace and King are adjacent. */
-  PUTT_PUTT: 2,
+  PUTT_PUTT: "putt-putt",
 } as const;
 
 /** Names one of the games in the Golf family. */

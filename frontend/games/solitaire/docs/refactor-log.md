@@ -6,7 +6,8 @@ what is next, so the work can stop and restart at any commit.
 
 **Branch:** `refactor/engine-health`, cut from `main` at `2d4c80b`.
 
-**Status:** in progress. See [Progress](#progress) for the step under way.
+**Status:** done. Every planned step is committed; journal-based undo was
+left out by decision (undo stays record-based, through `relocate`).
 
 ## How to pick this up
 
@@ -123,7 +124,7 @@ The review's findings, grouped into phases. Each phase leaves the tree green.
 - [x] 5.1 `Tabletop` split out of `TableGame` (done before 2.3; see log)
 - [x] 5.2 Header inset from the shell
 - [x] 5.3 Zone rules and looks separated
-- [ ] 5.4 Variants decoupled from numeric storage
+- [x] 5.4 Variants decoupled from numeric storage
 
 ## Log
 
@@ -410,3 +411,28 @@ dealsFaceUp? }`, in `deck_source.ts`) and builds the registry and the
     review by the project owner). The view builder's hover expansion takes a
     `ZoneLook`.
   - Game zone files are unchanged: they still build whole `ZoneSpec`s.
+- **refactor: let the catalog map stored choices to the rules games are handed.**
+  - A `GameOptionChoice` now carries two things: `value`, the number the
+    settings panel stores, and `rule`, what the game is handed. Every variant
+    enum in `src/games` (19 of them, including `KlondikeScoring`,
+    `PokerSquaresScoring`, `PyramidGoal` and `AcesUpSpaces`) is now a
+    kebab-case string, and the "Numbered because the settings panel stores an
+    option as a number" notes are gone.
+  - Each choice kept the number its enum member used to have, so saved
+    preferences and saved games, which store only those numbers, load
+    unchanged. A spec pins Whitehead at 1 to guard this.
+  - Options are built with `gameOption<T>({ …, defaultRule })`, which derives
+    `defaultValue` from the choice handing the game its default rule and
+    throws if none does. Games read options with `optionRule(values, spec)`;
+    `optionValue` still returns the stored number for the shell.
+  - Data written in a game's terms converts through `storedValue(gameId,
+optionId, rule)` and `storedValues(gameId, rules)`: the profile data's
+    named variants, the Yukon documentation and the game browser spec. Both
+    throw for a rule the game does not offer.
+  - `GameOptionSpec`/`GameOptionChoice` default their type parameter to
+    `unknown`, so the shell can hold any game's options.
+  - New catalog specs: stored values and rules are distinct within each
+    option, `storedValue`/`storedValues` convert and refuse, and
+    `optionRule` falls back to the default rule for a value no choice has.
+  - The add-solitaire-game skill now says how to add a choice: the next unused
+    `value`, never renumber, `gameOption` with `defaultRule`.

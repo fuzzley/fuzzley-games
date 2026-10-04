@@ -5,7 +5,12 @@ import {
   GAME_CATALOG,
   GameId,
   GameOptionSpec,
+  optionRule,
+  storedValue,
+  storedValues,
+  catalogEntry,
 } from "@/ui/app/provider/game_catalog";
+import { KlondikeVariant } from "@/games/klondike/klondike_rules";
 import type { PlayableGame } from "@/engine/tableau/playable_game";
 import { TableGame } from "@/engine/tableau/table_game";
 import { TestPresentation } from "@test/support/presentation";
@@ -183,4 +188,52 @@ describe("every game in the catalog", () => {
       expect(copy.snapshot()).toEqual(original.snapshot());
     },
   );
+});
+
+describe("a rule's stored values", () => {
+  it.each(RULES)(
+    "%s stores each choice under a number of its own",
+    (_name, option) => {
+      const values = option.choices.map((choice) => choice.value);
+
+      expect(new Set(values).size).toBe(values.length);
+    },
+  );
+
+  it.each(RULES)(
+    "%s hands its game a different rule for each choice",
+    (_name, option) => {
+      const rules = option.choices.map((choice) => choice.rule);
+
+      expect(new Set(rules).size).toBe(rules.length);
+    },
+  );
+
+  it("keeps the numbers saved preferences already hold", () => {
+    // Stored before variants had names of their own; a preference saved then
+    // must still choose the same game.
+    expect(storedValue("klondike", "variant", KlondikeVariant.WHITEHEAD)).toBe(
+      1,
+    );
+  });
+
+  it("finds the stored values for rules given in the game's own terms", () => {
+    expect(
+      storedValues("klondike", { variant: KlondikeVariant.SARATOGA }),
+    ).toEqual({ variant: 3 });
+  });
+
+  it("refuses a rule the game does not offer", () => {
+    expect(() => storedValue("klondike", "variant", "spider")).toThrow(
+      /offers no "variant" of spider/,
+    );
+  });
+
+  it("hands the game its default rule for a stored value no choice has", () => {
+    const variant = catalogEntry("klondike").options.find(
+      (option) => option.id === "variant",
+    )!;
+
+    expect(optionRule({ variant: 99 }, variant)).toBe(KlondikeVariant.KLONDIKE);
+  });
 });
