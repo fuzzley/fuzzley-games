@@ -282,7 +282,7 @@ from the right.
 - [x] 1.2 Spreads in any direction
 - [x] 1.3 Anchored and offset slots
 - [x] 1.4 Fitted fans
-- [ ] 1.5 Board layouts and the chooser
+- [x] 1.5 Board layouts and the chooser
 - [ ] 2.1 Phone detection in the shell
 - [ ] 2.2 Side rail
 - [ ] 2.3 Bottom bar
@@ -385,3 +385,32 @@ arrangement, then the grid's override, then the mirror, then the fit to the
 pile's room. The view builder's card offsets, the held stack's gap and
 `resolveDragTarget`'s drop rectangles all go through it, so a drop lands where
 its highlight showed on a fitted column too. No grid sets any of this yet.
+
+### 1.5 Board layouts and the chooser
+
+`engine/render/layout/form_factor.ts` has `FormFactor` (`roomy`,
+`phone-portrait`, `phone-landscape`) and `formFactorOf(viewport)`, and is now
+where `COMPACT_MAX_WIDTH_CSS_PX` lives, beside the new
+`COMPACT_MAX_HEIGHT_CSS_PX` (500). A square compact screen reads as upright, as
+CSS's `orientation` does. `compactFor` still tests width alone until step 2.1
+switches the engine and the shell together.
+
+`engine/render/layout/board_layouts.ts` has `PhonePilePosition`, `Hand`,
+`BoardArrangement` and `DEFAULT_BOARD_ARRANGEMENT` (piles at the bottom, right
+hand), plus `PhoneLayouts` (`portrait.bottom`, `portrait.top`, `landscape`) and
+`BoardLayouts` (`roomy` and optional `phone`). `mirrorTable` mirrors each slot's
+column (fractional ones too), turns its offset around and flips `mirrored`.
+Mirrors are cached per grid in a `WeakMap`, because the chooser runs every
+frame. `chooseTableLayout` returns the roomy grid for a game without phone
+grids, whatever the hand. Otherwise it picks by form factor and pile position
+and mirrors for a left hand.
+
+`TablePresentation.boardArrangement()` is new. The settings service answers
+the default until step 4.1, and `TestPresentation` has
+`setBoardArrangement`. `makeTableBoardScene` takes `layouts` instead of
+`layout` and measures each frame on the chosen grid. `BoardScene` takes a
+`measure` for its art density and keeps `layout` (the roomy grid) only for
+sizing before the canvas is measured. `CatalogEntry.phoneLayouts` is optional,
+and `makeBoardScene` passes it on. Scene specs show a game with phone grids
+lands a drop on its phone grid's foundation, and on the mirrored one for a left
+hand. Still no game has phone grids, so nothing on screen changes.

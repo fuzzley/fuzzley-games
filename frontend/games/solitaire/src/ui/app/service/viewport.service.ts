@@ -1,5 +1,5 @@
 import { DestroyRef, Injectable, inject, signal } from "@angular/core";
-import { COMPACT_MAX_WIDTH_CSS_PX } from "@/engine/render/layout/table_layout";
+import { COMPACT_MAX_WIDTH_CSS_PX } from "@/engine/render/layout/form_factor";
 
 /**
  * The width below which the chrome compacts: the same width below which the
