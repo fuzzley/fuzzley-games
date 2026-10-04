@@ -7,7 +7,7 @@ Browser-based Solitaire engine supporting many solitaire variants — Klondike, 
 - **Rendering Engine:** [PhaserJS](https://phaser.io/) (v4)
 - **UI Shell:** [Angular](https://angular.dev/) (v22)
 - **Build Toolchain:** [Vite](https://vitejs.dev/) (v8) + [AnalogJS Vite Angular Plugin](https://analogjs.org/)
-- **Test Framework:** [Vitest](https://vitest.dev/) (v4) + AnalogJS Vitest Angular runner
+- **Test Framework:** [Vitest](https://vitest.dev/) (v5) + AnalogJS Vitest Angular runner
 - **Language & Runtime:** TypeScript (v6) / HTML / Sass (ES2022 output target)
 - **Package Manager:** Yarn 4 (`yarn@4.17.1` via Corepack)
 

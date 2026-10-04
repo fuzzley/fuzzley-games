@@ -118,14 +118,6 @@ export function klondikeTableauRule(
   return byEmptiness(rules.whenEmpty, rules.occupied);
 }
 
-/**
- * A Klondike tableau column: a King starts an empty one, and anything after
- * builds down in alternating colors.
- */
-export const KLONDIKE_TABLEAU_RULE: PlacementRule = klondikeTableauRule(
-  KlondikeVariant.KLONDIKE,
-);
-
 /** Returns what may be taken from a column under `variant`. */
 export function klondikeGrabRule(
   variant: KlondikeVariant = DEFAULT_KLONDIKE_VARIANT,

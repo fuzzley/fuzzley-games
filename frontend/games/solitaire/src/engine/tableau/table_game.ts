@@ -11,6 +11,7 @@ import { MoveHistory, RelocationListener } from "./move_history";
 import { GameState } from "./game_state";
 import { BoardQuery } from "./rules";
 import { ZoneSpec, canGrab, hasRoomFor } from "./zone";
+import { TableView } from "./view/table_view";
 
 /** Describes a move that has passed the rules: its cards and where they go. */
 export interface ResolvedMove {
@@ -79,7 +80,10 @@ export interface TableGameOptions {
  */
 export abstract class TableGame<
   EventMap extends Record<string, unknown> & TableGameEvents = TableGameEvents,
-> extends EventEmitter<EventMap> {
+>
+  extends EventEmitter<EventMap>
+  implements TableView
+{
   /** Observable live game metrics (score, moves, undo depth). */
   public readonly state = new GameState();
 
