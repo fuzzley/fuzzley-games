@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { Rank, Suit } from "@/engine/core/card/playing_card";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
+import { StandardScoringFrom } from "./scenarios";
 
 describe("KlondikeGame undo", () => {
   let game: KlondikeGame;
@@ -67,6 +68,12 @@ describe("KlondikeGame undo", () => {
 
   describe("a waste recycle", () => {
     beforeEach(() => {
+      // A score the penalties can come off.
+      game = new KlondikeGame({
+        drawCount: 3,
+        scoring: new StandardScoringFrom(500),
+      });
+      game.startNewGame();
       // Drain the stock into the waste so the next draw recycles.
       while (!game.stock.isEmpty) {
         game.drawCardsFromStock();
@@ -105,7 +112,6 @@ describe("KlondikeGame undo", () => {
     const DRAW_THREE_PENALTY = 20;
 
     it("restores the score the recycle penalty took", () => {
-      game.state.score = 500;
       for (let i = 0; i < 3; i++) recycleAndDrain(); // the free recycles
       const scoreBefore = game.state.score;
       game.drawCardsFromStock(); // the fourth recycle, the first that costs
@@ -120,7 +126,6 @@ describe("KlondikeGame undo", () => {
     });
 
     it("charges a redone recycle the same penalty as the undone one", () => {
-      game.state.score = 500;
       for (let i = 0; i < 3; i++) recycleAndDrain();
       game.drawCardsFromStock(); // the fourth recycle
       const afterFourth = game.state.score;
@@ -213,7 +218,6 @@ describe("KlondikeGame undo", () => {
       emptyBoard(game);
       const ace = relocate(game, "card-hearts-ace", game.foundations[0]);
       relocate(game, "card-spades-king", game.tableaus[0]);
-      game.state.score = 0;
 
       // Pulling a card off a foundation costs 15, which clamps at zero.
       game.moveCardToPile(ace.id, game.tableaus[1].id);

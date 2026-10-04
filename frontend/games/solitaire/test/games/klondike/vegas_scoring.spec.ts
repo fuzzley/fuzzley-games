@@ -37,7 +37,9 @@ describe("Vegas scoring in a Klondike game", () => {
 
   it("starts a restarted deal $52 down again", () => {
     const game = vegasGame();
-    game.state.score = 10;
+    // Paid back $5, so the restart has something to undo.
+    const ace = relocate(game, "card-clubs-ace", game.tableaus[0]);
+    game.moveCardToPile(ace.id, game.foundations[0].id);
 
     game.restartGame();
 

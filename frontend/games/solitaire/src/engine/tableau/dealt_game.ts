@@ -62,7 +62,6 @@ export abstract class DealtTableGame<
           .map((card) => ({ id: card.id, faceUp: card.faceUp })),
       })),
       score: this.state.score,
-      moves: this.state.moves,
       history: this.appliedHistory,
       deal: this.initialDeck.map((card) => card.id),
       extra: this.saveExtra(),
@@ -90,11 +89,14 @@ export abstract class DealtTableGame<
         pile.addCard(card);
       }
     }
-    this.state.score = snapshot.score;
-    this.state.moves = snapshot.moves;
-    this.replaceHistory(snapshot.history);
+    this.resetHistory(snapshot.history, snapshot.score);
     this.initialDeck = deal;
     this.emit("game-reset", undefined);
+  }
+
+  /** Returns the score a fresh deal starts at. */
+  protected initialScore(): number {
+    return 0;
   }
 
   /** Returns the state this game keeps outside its piles, for a snapshot. */
@@ -172,9 +174,7 @@ export abstract class DealtTableGame<
 
   /** Clears the board, score, move count and history, then deals again. */
   private beginGame(createDeck: () => PlayingCard[]): void {
-    this.state.score = 0;
-    this.state.moves = 0;
-    this.clearHistory();
+    this.resetHistory([], this.initialScore());
     this.resetPiles();
     this.dealBoard(createDeck());
     this.emit("game-reset", undefined);

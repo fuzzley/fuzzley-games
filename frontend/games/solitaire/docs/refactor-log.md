@@ -110,7 +110,7 @@ The review's findings, grouped into phases. Each phase leaves the tree green.
 - [x] 1.4 `TablePresentation` clash
 - [x] 1.5 Subscription idiom
 - [x] 1.6 Spec hygiene
-- [ ] 2.1 One writer for the metrics
+- [x] 2.1 One writer for the metrics
 - [ ] 2.2 Counts read from the history
 - [ ] 2.3 `relocate` helper
 - [ ] 3.1 Pile markers
@@ -182,3 +182,28 @@ Newest last. Each entry names its commit subject.
   `describe`, set only through `drawBoardOf`, and its imports come before
   any code. `BOOT_TEXTURE_KEY` in `phaser_mocks.ts` calls
   `cardAtlasTextureKey` instead of rebuilding the key format.
+- **refactor: let the engine alone write a game's metrics.**
+  - `GameState` has no setters; `update(changes)` changes any metrics and
+    publishes once. `ReadableGameState` (now in `game_state.ts`, with a
+    `snapshot()`) is what `TableGame.state` is typed as, so nothing outside
+    the engine can write the score or the move count.
+  - `TableGame.syncMetrics(score)` is the only writer. It sets `moves` and
+    `undoDepth` both to the history length (decision 1) and is called by
+    commit, undo and `resetHistory(moves, score)`, which replaces the old
+    `clearHistory` and `replaceHistory`. `MoveHistory.clear` went with
+    them.
+  - The engine now applies the `scoreDelta` that `applyMoveEffects` and
+    `commitAction` report. Klondike and Poker Squares compute a delta
+    instead of writing the score; Klondike's starting score moved to a new
+    `DealtTableGame.initialScore()` hook.
+  - `GameSnapshot` has no `moves`; the reader ignores one in an old save. The
+    bug report summary counts moves from the history. That summary trims the
+    history to fit a URL, so a restored bug-report position now shows the
+    trimmed count rather than the original total.
+  - Specs that wrote `game.state.score` now reach the same states through
+    public API: Klondike's use a `StandardScoringFrom(score)` test policy in
+    `test/games/klondike/scenarios.ts`; the UI game mock calls
+    `state.update`, and `snapshotWithMoves(n)` in `game_mock.ts` builds a
+    snapshot carrying a move count.
+  - The `add-solitaire-game` skill says games report score deltas and never
+    write metrics.

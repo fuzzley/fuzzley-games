@@ -116,7 +116,7 @@ class ContractPlayer {
     expect(this.cardsOnBoard(), `${action} keeps every card once`).toEqual(
       this.cardsInPlay(),
     );
-    expect(after.moves, `${action} counts one move per step`).toBe(
+    expect(this.game.state.moves, `${action} counts one move per step`).toBe(
       after.history.length,
     );
 
@@ -198,9 +198,7 @@ describe.each(CATALOG_DEALS)("%s", (_name, entry, values) => {
   it("keeps the contract while every pile is pressed through", () => {
     player.pressEveryPileThrough();
 
-    expect(player.game.snapshot().moves).toBe(
-      player.game.snapshot().history.length,
-    );
+    expect(player.game.state.moves).toBe(player.game.snapshot().history.length);
   });
 
   it("unwinds to the deal by undoing every step", () => {

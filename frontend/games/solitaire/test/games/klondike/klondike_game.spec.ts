@@ -5,7 +5,12 @@ import { playingCardFaceKey } from "@/engine/core/card/playing_card";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { makePlayingCard } from "@test/support/card_builder";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
-import { almostWon, CLUB_KING_ID, forceWasteRecycle } from "./scenarios";
+import {
+  almostWon,
+  CLUB_KING_ID,
+  forceWasteRecycle,
+  StandardScoringFrom,
+} from "./scenarios";
 
 describe("KlondikeGame", () => {
   let game: KlondikeGame;
@@ -734,12 +739,12 @@ describe("KlondikeGame", () => {
     });
 
     it("scores -15 when moving from foundation to tableau", () => {
+      game = new KlondikeGame({ scoring: new StandardScoringFrom(20) });
       game.startNewGame();
       game.foundations[0].clear();
       const ace = relocate(game, "card-clubs-ace", game.foundations[0]);
       game.tableaus[0].clear();
       relocate(game, "card-diamonds-2", game.tableaus[0]);
-      game.state.score = 20;
 
       const moved = game.moveCardToPile(ace.id, "tableau-0");
 
@@ -762,9 +767,15 @@ describe("KlondikeGame", () => {
   });
 
   describe("recycle penalties", () => {
-    /** Returns a freshly dealt game in the given draw mode. */
+    /**
+     * Returns a freshly dealt game in the given draw mode, starting at a score
+     * a penalty can come off.
+     */
     function dealtFor(drawCount: DrawCount): KlondikeGame {
-      const dealt = new KlondikeGame({ drawCount });
+      const dealt = new KlondikeGame({
+        drawCount,
+        scoring: new StandardScoringFrom(200),
+      });
       dealt.startNewGame();
       return dealt;
     }
@@ -772,7 +783,6 @@ describe("KlondikeGame", () => {
     it("does not penalize the first waste recycle in Draw 1 mode", () => {
       const game = dealtFor(1);
       const king = game.getCardById(CLUB_KING_ID)!;
-      game.state.score = 200;
 
       forceWasteRecycle(game, king);
 
@@ -783,7 +793,6 @@ describe("KlondikeGame", () => {
       const game = dealtFor(1);
       const king = game.getCardById(CLUB_KING_ID)!;
       forceWasteRecycle(game, king);
-      game.state.score = 200;
 
       forceWasteRecycle(game, king);
 
@@ -793,7 +802,6 @@ describe("KlondikeGame", () => {
     it("does not penalize the first three waste recycles in Draw 3 mode", () => {
       const game = dealtFor(3);
       const king = game.getCardById(CLUB_KING_ID)!;
-      game.state.score = 200;
 
       forceWasteRecycle(game, king);
       forceWasteRecycle(game, king);
@@ -808,7 +816,6 @@ describe("KlondikeGame", () => {
       forceWasteRecycle(game, king);
       forceWasteRecycle(game, king);
       forceWasteRecycle(game, king);
-      game.state.score = 200;
 
       forceWasteRecycle(game, king);
 

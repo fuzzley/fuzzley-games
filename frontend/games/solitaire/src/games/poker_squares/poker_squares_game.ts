@@ -99,10 +99,8 @@ export class PokerSquaresGame extends DealtTableGame {
    * @inheritDoc
    */
   protected override applyMoveEffects(): MoveEffects {
-    const scoreBefore = this.state.score;
-    this.state.score = scoreGrid(this.lines, this.scoring);
     return {
-      scoreDelta: this.state.score - scoreBefore,
+      scoreDelta: scoreGrid(this.lines, this.scoring) - this.state.score,
       flippedCardIds: [],
       followUpTransfers: drawToWaste(this.stock, this.hand, 1),
     };

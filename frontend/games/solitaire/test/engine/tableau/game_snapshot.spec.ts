@@ -9,13 +9,12 @@ import {
 import type { AppliedMove } from "@/engine/tableau/move";
 import { FakeTableGame } from "@test/support/fake_table/game";
 
-/** Returns a game dealt in deck order, then played: two draws and a score. */
+/** Returns a game dealt in deck order, then played: two draws. */
 function playedGame(): FakeTableGame {
   const game = new FakeTableGame(ALL_PLAYING_CARD_IDS, () => 0.999);
   game.startNewGame();
   game.drawCardsFromStock();
   game.drawCardsFromStock();
-  game.state.score = 120;
   return game;
 }
 
@@ -152,7 +151,7 @@ describe("DealtTableGame snapshots", () => {
   it("puts the score, move count and undo depth back", () => {
     const fresh = freshGame();
 
-    fresh.restore(playedGame().snapshot());
+    fresh.restore({ ...playedGame().snapshot(), score: 120 });
 
     expect(fresh.state.snapshot()).toEqual({
       score: 120,

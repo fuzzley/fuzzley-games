@@ -114,7 +114,7 @@ export class BugReportService {
     };
     const encoded = await encodePosition({ ...position, snapshot });
     return [
-      `Score ${snapshot.score} · ${snapshot.moves} moves · ${kept} of ${history.length} undo steps`,
+      `Score ${snapshot.score} · ${history.length} moves · ${kept} of ${history.length} undo steps`,
       "",
       "```",
       encoded,

@@ -77,11 +77,6 @@ export class MoveHistory {
     return last;
   }
 
-  /** Drops the whole history, for a new deal that nothing before it precedes. */
-  clear(): void {
-    this.applied.length = 0;
-  }
-
   /** Returns the applied actions, oldest first. */
   entries(): readonly AppliedMove[] {
     return [...this.applied];

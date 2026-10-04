@@ -66,15 +66,18 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
   }
 
   /**
-   * Puts the recycle count back to zero and the score to where the scoring
-   * starts it, then lays out the opening position.
+   * Puts the recycle count back to zero, then lays out the opening position.
    *
    * @inheritDoc
    */
   protected override dealBoard(deck: PlayingCard[]): void {
     this.recycleCount = 0;
-    this.state.score = this.scoring.initialScore();
     this.dealLayout(deck);
+  }
+
+  /** @inheritDoc */
+  protected override initialScore(): number {
+    return this.scoring.initialScore();
   }
 
   /**
@@ -114,16 +117,15 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
    * the penalty for doing so.
    */
   private recycleWaste(): void {
-    const scoreBefore = this.state.score;
     this.recycleCount++;
     const penalty = this.scoring.recyclePenalty(
       this.drawCount,
       this.recycleCount,
     );
-    this.state.score = this.scoring.clampScore(this.state.score - penalty);
+    const score = this.state.score;
 
     this.commitAction("recycle", recycleWasteToStock(this.waste, this.stock), {
-      scoreDelta: this.state.score - scoreBefore,
+      scoreDelta: this.scoring.clampScore(score - penalty) - score,
     });
   }
 
@@ -176,17 +178,17 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
    * @inheritDoc
    */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
-    const scoreBefore = this.state.score;
-    this.state.score = this.scoring.clampScore(
-      this.state.score +
+    const score = this.state.score;
+    const afterMove = this.scoring.clampScore(
+      score +
         this.scoring.moveScore(move.sourcePile.role, move.targetPile.role),
     );
-
-    const flipped = this.autoFlipExposedCard(move.sourcePile);
+    const flipped = flipExposedTopOfColumn(move.sourcePile, this.columnRole);
+    // The flip bonus comes on top of the floor, so undo takes it back too.
+    const flipBonus = flipped ? this.scoring.tableauFlipBonus() : 0;
 
     return {
-      // Measured after the flip, so undo takes back its bonus too.
-      scoreDelta: this.state.score - scoreBefore,
+      scoreDelta: afterMove + flipBonus - score,
       flippedCardIds: flipped ? [flipped.id] : [],
     };
   }
@@ -207,19 +209,5 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
   /** @inheritDoc */
   protected override restoreExtra(extra: unknown): void {
     this.recycleCount = readKlondikeFamilyExtra(extra).recycleCount;
-  }
-
-  /**
-   * Turns face up the card a move exposed in a column, awarding the flip bonus,
-   * and returns it if there was one.
-   */
-  private autoFlipExposedCard(
-    sourcePile: CardPile<PlayingCard>,
-  ): PlayingCard | undefined {
-    const flipped = flipExposedTopOfColumn(sourcePile, this.columnRole);
-    if (flipped) {
-      this.state.score += this.scoring.tableauFlipBonus();
-    }
-    return flipped;
   }
 }
