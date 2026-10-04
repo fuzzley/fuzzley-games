@@ -184,8 +184,11 @@
   --focus-ring-offset: 2px;
 
   // --- Layout ---
-  // Read by the header and the game canvas, which must agree on it.
+  // Read by the header and the game canvas, which must agree on them: the
+  // header's height across the top, and its width as a rail down the side of a
+  // phone on its side.
   --header-height: 73px;
+  --rail-width: 64px;
 
   // The game browser: the most room it takes, the width of its list, and a
   // row's picture of a board, which `yarn build:thumbs` draws at twice this.
