@@ -41,8 +41,9 @@ export function createMockPresentation(
   const desktopCardDeck = signal<DesktopCardDeckId>(
     overrides.desktopCardDeck ?? DEFAULT_DESKTOP_CARD_DECK,
   );
+  const drawsDesktopCards = computed(() => cardStyle() !== "mobile");
   const cardDeck = computed<CardDeckId>(() =>
-    cardStyle() === "mobile" ? MOBILE_CARD_DECK.id : desktopCardDeck(),
+    drawsDesktopCards() ? desktopCardDeck() : MOBILE_CARD_DECK.id,
   );
   // Held as signals like the rest, so a spec can put the drawer into a
   // mid-swap or failed state and read what it drew.
@@ -59,6 +60,7 @@ export function createMockPresentation(
     backgroundColor: computed(() => TABLE_THEMES[theme()].color),
     cardStyle,
     desktopCardDeck,
+    drawsDesktopCards,
     cardDeck,
     pendingCardDeck,
     cardDeckProblem,

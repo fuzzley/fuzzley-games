@@ -135,6 +135,14 @@ export class PresentationSettingsService implements TablePresentation {
   readonly desktopCardDeck = this.desktopCardDeckSignal.asReadonly();
 
   /**
+   * Whether the cards are drawn for desktop: chosen, or picked by auto for a
+   * screen too wide to compact.
+   */
+  readonly drawsDesktopCards = computed(
+    () => this.wantedCardDeck() !== MOBILE_CARD_DECK.id,
+  );
+
+  /**
    * The deck the cards are drawn from: the one the choices and the viewport
    * call for, unless it could not be fetched, which leaves the board on the
    * deck it is drawing.

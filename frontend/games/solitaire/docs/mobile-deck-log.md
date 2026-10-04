@@ -266,13 +266,43 @@ Decided while planning:
 
 Steps:
 
-- [ ] R3.1 `card_deck.ts` tells desktop decks from the mobile deck; the
+- [x] R3.1 `card_deck.ts` tells desktop decks from the mobile deck; the
       service holds the style and the desktop deck, and works out the deck the
       board draws.
-- [ ] R3.2 The drawer: a segmented Auto / Mobile / Desktop control, then the
+- [x] R3.2 The drawer: a segmented Auto / Mobile / Desktop control, then the
       desktop decks.
-- [ ] R3.3 Specs, a phone-sized and a desktop-sized check in Chrome, and
+- [x] R3.3 Specs, a phone-sized and a desktop-sized check in Chrome, and
       `yarn verify`.
+
+What was built:
+
+- `card_deck.ts`: `DesktopCardDeckId`, `DESKTOP_CARD_DECKS` and
+  `MOBILE_CARD_DECK`, with `CARD_DECKS` still every deck the board can draw.
+  `DEFAULT_CARD_DECK` is now `DEFAULT_DESKTOP_CARD_DECK`. The drawer's large
+  index preview and `indexSize` went with the mobile deck's place in the list.
+- `PresentationSettingsService`: `cardStyle`, `desktopCardDeck` and their
+  setters; `cardDeck` is worked out from them and `ViewportService.isCompact`,
+  so the board's existing deck subscription swaps decks live.
+  `drawsDesktopCards` says whether the desktop decks apply. The bug report
+  names the style beside the deck.
+- The drawer: Card Style is an `app-option-group`, the shared settings
+  control, which now shows whatever is placed inside it under its choices.
+  The failure line sits there, since it may be about either kind of card.
+  **Desktop Cards** is shown only while `drawsDesktopCards` holds, as the
+  owner asked once it was up: in Auto on a narrow screen, or in Mobile, it is
+  hidden.
+- **Saving and loading**, which the owner asked to have checked. Specs cover
+  a save read back by a later visit, settings from the current live build
+  (`cardDeck` only) loading as Auto plus that desktop deck and being rewritten
+  in the new shape, the new key winning over the old, and unknown values
+  falling back. In Chrome, each choice made through the drawer survived a
+  reload, and settings planted in the live build's shape loaded as Auto and
+  Classic and were rewritten.
+- **Chrome**, FreeCell at 1200 x 800: Auto drew Corner Pips; narrowing the
+  window to 600 swapped the same deal to the mobile deck and widening swapped
+  it back; Mobile drew the mobile deck wide; Desktop with Classic held at 600.
+  No console errors.
+- `yarn verify` passes (132 files, 3968 tests); coverage 98.3% statements.
 
 ## Follow-ups
 
@@ -280,3 +310,6 @@ Steps:
   fills the 45 unit strip; on a seven-column board on a 390 CSS px phone its
   rank is about 8.7 CSS px tall, and about 6 px on a ten-column board.
 - The diamond reads lighter than the other suits at index size (see 2.2).
+- Auto goes by window width alone, so a phone turned sideways (about 844 CSS
+  px wide) gets desktop cards. Whether it should also look at the height, or
+  at how large the board draws a card, is open.

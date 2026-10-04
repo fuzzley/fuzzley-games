@@ -243,6 +243,38 @@ describe("PresentationSettingsService", () => {
     });
   });
 
+  describe("whether desktop cards are drawn", () => {
+    it("says so on a wide screen, in auto", () => {
+      windowAt(WIDE_WIDTH);
+
+      expect(buildSettings().drawsDesktopCards()).toBe(true);
+    });
+
+    it("says not on a phone, in auto", () => {
+      windowAt(PHONE_WIDTH);
+
+      expect(buildSettings().drawsDesktopCards()).toBe(false);
+    });
+
+    it("says so on a phone once desktop cards are chosen", () => {
+      windowAt(PHONE_WIDTH);
+      const settings = buildSettings();
+
+      settings.setCardStyle("desktop");
+
+      expect(settings.drawsDesktopCards()).toBe(true);
+    });
+
+    it("says not on a wide screen once mobile cards are chosen", () => {
+      windowAt(WIDE_WIDTH);
+      const settings = buildSettings();
+
+      settings.setCardStyle("mobile");
+
+      expect(settings.drawsDesktopCards()).toBe(false);
+    });
+  });
+
   describe("saving", () => {
     it("saves a change to its own storage key", () => {
       const settings = buildSettings();
@@ -259,6 +291,46 @@ describe("PresentationSettingsService", () => {
         cardStyle: "mobile",
         desktopCardDeck: "classic",
       });
+    });
+
+    it("gives a later visit back the choices it saved", () => {
+      const settings = buildSettings();
+      settings.setCardStyle("desktop");
+      settings.setDesktopCardDeck("all-corner-pips");
+      TestBed.flushEffects();
+      TestBed.resetTestingModule();
+
+      const later = buildSettings();
+
+      expect([later.cardStyle(), later.desktopCardDeck()]).toEqual([
+        "desktop",
+        "all-corner-pips",
+      ]);
+    });
+
+    it("rewrites what an earlier build stored in the new shape", () => {
+      store({
+        cardBackStyle: "card-back-red",
+        theme: "blue",
+        cardDeck: "classic",
+      });
+      buildSettings();
+
+      TestBed.flushEffects();
+
+      // The old key goes, so the deck is read from one place from now on.
+      expect(stored()).toEqual({
+        cardBackStyle: "card-back-red",
+        theme: "blue",
+        cardStyle: "auto",
+        desktopCardDeck: "classic",
+      });
+    });
+
+    it("prefers the desktop deck it stored to an earlier build's deck", () => {
+      store({ cardDeck: "classic", desktopCardDeck: "all-corner-pips" });
+
+      expect(buildSettings().desktopCardDeck()).toBe("all-corner-pips");
     });
 
     it("stores auto rather than the deck auto chose", () => {
