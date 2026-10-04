@@ -66,6 +66,16 @@ describe("mirrorTable", () => {
   it("builds a grid's mirror once", () => {
     expect(mirrorTable(GRID)).toBe(mirrorTable(GRID));
   });
+
+  it("keeps the artwork the grid's placeholders show", () => {
+    const ring = () => "card-placeholder-full-border-circle";
+    const grid = tableLayout({
+      ...GRID,
+      pileBackgrounds: { corner: ring },
+    });
+
+    expect(mirrorTable(grid).pileBackgrounds).toEqual({ corner: ring });
+  });
 });
 
 describe("mirrorTable keeping columns in order", () => {
