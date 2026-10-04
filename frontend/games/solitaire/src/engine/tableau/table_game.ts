@@ -1,8 +1,4 @@
-import {
-  CardLocations,
-  CardPile,
-  PileRole,
-} from "@/engine/core/card/card_pile";
+import { CardPile, PileRole } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { EventEmitter } from "@/engine/core/common/event_emitter";
 import { PlayingCard } from "@/engine/core/card/playing_card";
@@ -10,6 +6,7 @@ import { AppliedMove, AppliedMoveKind, CardTransfer, MOVE_KIND } from "./move";
 import { MoveHistory, RelocationListener } from "./move_history";
 import { GameState, ReadableGameState } from "./game_state";
 import { BoardQuery } from "./rules";
+import { Tabletop } from "./tabletop";
 import { ZoneSpec, canGrab, hasRoomFor } from "./zone";
 import { TableView } from "./view/table_view";
 
@@ -90,22 +87,16 @@ export abstract class TableGame<
   /** Live game metrics (score, moves, undo depth), for reading and following. */
   public readonly state: ReadableGameState = this.metrics;
 
-  /** Where each card currently is, kept up to date by the piles themselves. */
-  private readonly locations = new CardLocations<PlayingCard>();
-
-  private readonly pilesMap = new Map<string, CardPile<PlayingCard>>();
-  private readonly pilesByRoleMap = new Map<
-    PileRole,
-    CardPile<PlayingCard>[]
-  >();
-
-  /** Each pile's zone, by pile id. */
-  private readonly zonesById: ReadonlyMap<string, ZoneSpec>;
+  /**
+   * The piles and where every card is, and the only way a game changes them:
+   * through `relocate` and `rearrange` for what undo takes back, and
+   * `place` for a deal.
+   */
+  protected readonly tabletop: Tabletop;
 
   /** The applied actions {@link undo} unwinds, and who is following them. */
-  private readonly history: MoveHistory = new MoveHistory(this);
+  private readonly history: MoveHistory;
 
-  private readonly registry: CardRegistry;
   private readonly autoMoveRoles: readonly PileRole[];
   private readonly winningRole?: PileRole;
 
@@ -115,61 +106,45 @@ export abstract class TableGame<
   /** Every pile a dragged stack may be dropped onto, in declaration order. */
   public readonly dropTargetPiles: readonly CardPile<PlayingCard>[];
 
+  /** The read-only view of the board handed to placement rules. */
+  public readonly board: BoardQuery;
+
   constructor(options: TableGameOptions) {
     super();
-    this.registry = options.registry;
     this.autoMoveRoles = options.autoMoveRoles;
     this.winningRole = options.winsWhenAllCardsIn;
-
-    const { zones } = options;
-    for (const zone of zones) {
-      const pile = new CardPile<PlayingCard>(
-        zone.id,
-        zone.role,
-        this.locations,
-      );
-      this.pilesMap.set(pile.id, pile);
-      const byRole = this.pilesByRoleMap.get(zone.role) ?? [];
-      byRole.push(pile);
-      this.pilesByRoleMap.set(zone.role, byRole);
-    }
-
-    this.zonesById = new Map(zones.map((zone) => [zone.id, zone]));
-    this.piles = [...this.pilesMap.values()];
-    this.dropTargetPiles = zones
-      .filter((zone) => zone.accept !== null)
-      .map((zone) => this.requirePile(zone.id));
+    this.tabletop = new Tabletop(options.zones, options.registry);
+    this.history = new MoveHistory(this.tabletop);
+    this.piles = this.tabletop.piles;
+    this.dropTargetPiles = this.tabletop.dropTargetPiles;
+    this.board = this.tabletop;
   }
 
   // --- The board ---
 
   /** Returns every pile playing the given part, in declaration order. */
   public pilesOfRole(role: PileRole): readonly CardPile<PlayingCard>[] {
-    return this.pilesByRoleMap.get(role) ?? [];
+    return this.tabletop.pilesByRole(role);
   }
 
   /** Returns the pile with the given id, or undefined. */
   public getPileById(pileId: string): CardPile<PlayingCard> | undefined {
-    return this.pilesMap.get(pileId);
+    return this.tabletop.pile(pileId);
   }
 
   /** Returns the pile with the given id, throwing if no zone declares it. */
   protected requirePile(pileId: string): CardPile<PlayingCard> {
-    const pile = this.pilesMap.get(pileId);
-    if (!pile) {
-      throw new Error(`No zone declares a pile with id: ${pileId}`);
-    }
-    return pile;
+    return this.tabletop.requirePile(pileId);
   }
 
   /** Returns the card with the given id, or undefined if never registered. */
   public getCardById(cardId: string): PlayingCard | undefined {
-    return this.registry.get(cardId);
+    return this.tabletop.getCardById(cardId);
   }
 
   /** The id of every card in play, which a renderer should make sprites for. */
   public get cardIds(): readonly string[] {
-    return this.registry.ids();
+    return this.tabletop.cardIds;
   }
 
   /**
@@ -177,34 +152,24 @@ export abstract class TableGame<
    * against rather than 52.
    */
   public get cardsInPlay(): number {
-    return this.registry.size;
+    return this.tabletop.cardsInPlay;
   }
 
   /** Finds which pile contains a given card. */
   public getPileContainingCard(
     cardId: string,
   ): CardPile<PlayingCard> | undefined {
-    return this.locations.get(cardId);
+    return this.tabletop.pileHolding(cardId);
   }
 
   /** Returns the zone describing the given pile, or undefined if unknown. */
   public zoneFor(pileId: string): ZoneSpec | undefined {
-    return this.zonesById.get(pileId);
+    return this.tabletop.zoneFor(pileId);
   }
-
-  /** The read-only view of the board handed to placement rules. */
-  public readonly board: BoardQuery = {
-    pile: (pileId) => this.getPileById(pileId),
-    pilesByRole: (role) => this.pilesOfRole(role),
-    emptyCount: (role) =>
-      this.pilesOfRole(role).filter((pile) => pile.isEmpty).length,
-  };
 
   /** Empties every pile, keeping the registry so sprites keep their cards. */
   protected resetPiles(): void {
-    for (const pile of this.pilesMap.values()) {
-      pile.clear();
-    }
+    this.tabletop.clear();
   }
 
   // --- Moves ---

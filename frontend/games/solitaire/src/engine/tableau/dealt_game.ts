@@ -82,8 +82,7 @@ export abstract class DealtTableGame<
     this.resetPiles();
     for (const { pile, cards } of board) {
       for (const { card, faceUp } of cards) {
-        card.faceUp = faceUp;
-        pile.addCard(card);
+        this.tabletop.place(card, pile, faceUp);
       }
     }
     this.resetHistory(snapshot.history, snapshot.score);

@@ -93,8 +93,10 @@ The review's findings, grouped into phases. Each phase leaves the tree green.
 
 ### Phase 5: deeper structure
 
-- **5.1** Split `TableGame`: a `Board` class owns the piles, zones and every
-  pile change; `TableGame` keeps rules, history and lifecycle.
+- **5.1** Split `TableGame`: a `Tabletop` class owns the piles, zones and
+  every pile change; `TableGame` keeps rules, history and lifecycle. (Named
+  `Tabletop` rather than `Board` so it is not confused with the
+  `engine/board` tier.)
 - **5.2** The header inset measured by the shell instead of copied from SCSS
   into `card_metrics.ts`.
 - **5.3** Zone rules separated from zone looks at the type level.
@@ -118,7 +120,7 @@ The review's findings, grouped into phases. Each phase leaves the tree green.
 - [ ] 3.3 Deck construction and dealing helpers
 - [ ] 4.1 `engine/board` tier and fixture copies deleted
 - [ ] 4.2 Read-only piles
-- [ ] 5.1 `Board` split out of `TableGame`
+- [x] 5.1 `Tabletop` split out of `TableGame` (done before 2.3; see log)
 - [ ] 5.2 Header inset from the shell
 - [ ] 5.3 Zone rules and looks separated
 - [ ] 5.4 Variants decoupled from numeric storage
@@ -226,3 +228,21 @@ Newest last. Each entry names its commit subject.
     (`recyclesRemaining` under Vegas scoring, `redealsRemaining`); the tests
     that rejected a snapshot missing a counter went, per decision 3, as did the
     engine's `ModalGame` extra-state tests.
+- **refactor: give the piles and every change to them a class of their own.**
+  Done ahead of 2.3, out of plan order, because `relocate` belongs on it and
+  would otherwise have been written on `TableGame` and moved later.
+  - `src/engine/tableau/tabletop.ts`: `Tabletop` holds the piles, the role
+    index, the zones and the card locations, and implements `BoardQuery`
+    (so `TableGame.board` is simply the tabletop). It makes every change of
+    pile: `relocate(cards, to, { faceUp })` and `rearrange(layout)`, which
+    return the transfers undo needs; `reverse(transfer)` for undo; `place`
+    and `clear` for deals and restores.
+  - `rearrange` is for redeals that lay several piles out at once. It skips
+    cards that keep their place at the bottom of their pile, and lists the
+    rest last pile first, top card first, so undo's backwards append rebuilds
+    every pile. The spec checks undo restores the table exactly.
+  - `TableGame` composes it as the protected `tabletop` and delegates its
+    public board queries to it. `MoveHistory` reverses transfers through
+    `HistoryBoard.reverse` instead of moving cards itself.
+  - `move_history.spec.ts` runs on a real `Tabletop` instead of a
+    hand-written board.
