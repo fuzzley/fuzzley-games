@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
@@ -17,7 +17,7 @@ import {
  */
 export class GrandfathersClockGame extends DealtTableGame {
   /** The eight columns. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Creates a game whose piles are empty until the first deal. */
   constructor({ cardIds = ALL_PLAYING_CARD_IDS, random }: DeckOptions = {}) {
@@ -34,7 +34,7 @@ export class GrandfathersClockGame extends DealtTableGame {
   }
 
   /** Returns the foundation standing at an hour, one to twelve. */
-  public foundationAt(hour: number): CardPile<PlayingCard> {
+  public foundationAt(hour: number): ReadonlyCardPile<PlayingCard> {
     return this.requirePile(hourPileId(hour));
   }
 

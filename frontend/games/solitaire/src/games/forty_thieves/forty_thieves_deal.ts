@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { DeckSpec } from "@/engine/core/card/deck";
 import {
   ALL_RANKS,
@@ -29,9 +29,9 @@ export const FORTY_THIEVES_TWO_DECKS: DeckSpec = {
  */
 export function dealFortyThievesLayout(
   deal: Deal,
-  foundations: readonly CardPile<PlayingCard>[],
-  tableaus: readonly CardPile<PlayingCard>[],
-  stock: CardPile<PlayingCard>,
+  foundations: readonly ReadonlyCardPile<PlayingCard>[],
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
+  stock: ReadonlyCardPile<PlayingCard>,
   variant: FortyThievesVariant,
 ): void {
   if (tableaus.length === 0) return;
@@ -56,7 +56,7 @@ export function dealFortyThievesLayout(
  */
 function dealAcesToFoundations(
   deal: Deal,
-  foundations: readonly CardPile<PlayingCard>[],
+  foundations: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
   const aces = deal.pull((card) => card.rank === Rank.ACE);
   aces.slice(0, foundations.length).forEach((ace, index) => {

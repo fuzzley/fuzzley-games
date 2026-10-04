@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { Deal } from "./deal";
@@ -145,7 +145,7 @@ export abstract class DealtTableGame<
     }
   }
 
-  private resolvePile(pileId: string): CardPile<PlayingCard> {
+  private resolvePile(pileId: string): ReadonlyCardPile<PlayingCard> {
     const pile = this.getPileById(pileId);
     if (!pile) throw new Error(`This game has no pile "${pileId}".`);
     return pile;

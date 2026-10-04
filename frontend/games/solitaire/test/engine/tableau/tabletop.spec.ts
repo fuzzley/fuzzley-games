@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
 import { CardTransfer } from "@/engine/tableau/move";
@@ -24,9 +24,9 @@ function zone(id: string, role = "column", accepts = true): ZoneSpec {
 describe("Tabletop", () => {
   let registry: CardRegistry;
   let tabletop: Tabletop;
-  let left: CardPile<PlayingCard>;
-  let right: CardPile<PlayingCard>;
-  let stock: CardPile<PlayingCard>;
+  let left: ReadonlyCardPile<PlayingCard>;
+  let right: ReadonlyCardPile<PlayingCard>;
+  let stock: ReadonlyCardPile<PlayingCard>;
 
   beforeEach(() => {
     registry = new CardRegistry();
@@ -41,7 +41,7 @@ describe("Tabletop", () => {
 
   /** Puts cards of the given ranks on a pile, bottom first, and returns them. */
   function lay(
-    pile: CardPile<PlayingCard>,
+    pile: ReadonlyCardPile<PlayingCard>,
     ranks: readonly Rank[],
     faceUp = true,
   ): PlayingCard[] {
@@ -172,6 +172,17 @@ describe("Tabletop", () => {
 
       expect(() => tabletop.relocate([ace, two], right)).toThrow(
         /turned the same way/,
+      );
+    });
+
+    it("refuses a pile from another table, even one with the same id", () => {
+      const [ace] = lay(left, [Rank.ACE]);
+      const elsewhere = new Tabletop([zone("right")], registry).requirePile(
+        "right",
+      );
+
+      expect(() => tabletop.relocate([ace], elsewhere)).toThrow(
+        /not on this table/,
       );
     });
 

@@ -1,4 +1,4 @@
-import { CardPile, PileRole } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import {
   DealtTableGame,
@@ -29,9 +29,9 @@ export interface KlondikeFamilyOptions extends DealtTableGameOptions {
  */
 export abstract class KlondikeFamilyGame extends DealtTableGame {
   /** The face-down stock pile from which cards are drawn. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The face-up waste pile containing drawn cards. */
-  public readonly waste: CardPile<PlayingCard>;
+  public readonly waste: ReadonlyCardPile<PlayingCard>;
   /** How many cards a draw turns over. */
   public readonly drawCount: DrawCount;
 

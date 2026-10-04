@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_SUITS, PlayingCard, Rank } from "@/engine/core/card/playing_card";
 
 /** How many columns sit under the Aces and are dealt one card short. */
@@ -19,8 +19,8 @@ export const LONG_COLUMN_SIZE = 4;
  */
 export function dealBisleyLayout(
   deal: Deal,
-  aceFoundations: readonly CardPile<PlayingCard>[],
-  tableaus: readonly CardPile<PlayingCard>[],
+  aceFoundations: readonly ReadonlyCardPile<PlayingCard>[],
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
   for (const ace of deal.pull((card) => card.rank === Rank.ACE)) {
     const foundation = aceFoundations[ALL_SUITS.indexOf(ace.suit)];

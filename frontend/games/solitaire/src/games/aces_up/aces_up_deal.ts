@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 
 /**
@@ -8,8 +8,8 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
  */
 export function dealAcesUpLayout(
   deal: Deal,
-  tableaus: readonly CardPile<PlayingCard>[],
-  stock: CardPile<PlayingCard>,
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
+  stock: ReadonlyCardPile<PlayingCard>,
 ): void {
   deal.dealEach(tableaus, true);
   deal.dealRest(stock, false);

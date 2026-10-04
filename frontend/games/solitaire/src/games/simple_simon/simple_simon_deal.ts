@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 
 /**
@@ -10,7 +10,7 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
  */
 export function dealSimpleSimonLayout(
   deal: Deal,
-  tableaus: readonly CardPile<PlayingCard>[],
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
   cardsPerColumn: readonly number[],
 ): void {
   for (const [column, tableau] of tableaus.entries()) {

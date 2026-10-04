@@ -31,8 +31,32 @@ export class CardLocations<T extends Card = Card> {
   }
 }
 
-/** Represents a pile of cards on the board. */
-export class CardPile<T extends Card = Card> {
+/**
+ * Exposes a pile of cards for reading only, as a game hands its piles to
+ * anything outside it: a rule, a view, a gesture map or a shell.
+ */
+export interface ReadonlyCardPile<T extends Card = Card> {
+  /** A unique identifier for the card pile (e.g., "stock", "tableau-0"). */
+  readonly id: string;
+  /** The part this pile plays, used by rule and scoring logic. */
+  readonly role: PileRole;
+  /** The card on top of the pile, the last one added, or undefined if empty. */
+  readonly topCard: T | undefined;
+  /** Whether the pile holds no cards. */
+  readonly isEmpty: boolean;
+  /** The number of cards in the pile. */
+  readonly size: number;
+  /** Returns the cards in this pile, from the bottom up. */
+  getCards(): ReadonlyArray<T>;
+  /** Returns whether the given card is contained in this pile. */
+  contains(card: T): boolean;
+}
+
+/**
+ * Represents a pile of cards on the board, which only the table that owns it
+ * changes.
+ */
+export class CardPile<T extends Card = Card> implements ReadonlyCardPile<T> {
   /** A unique identifier for the card pile (e.g., "stock", "tableau-0"). */
   public readonly id: string;
 

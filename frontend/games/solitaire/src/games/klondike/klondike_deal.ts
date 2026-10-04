@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import {
   ALL_RANKS,
   ALL_SUITS,
@@ -26,8 +26,8 @@ const BELOW_KING: readonly Rank[] = ALL_RANKS.filter(
  */
 export function dealKlondikeLayout(
   deal: Deal,
-  tableaus: readonly CardPile<PlayingCard>[],
-  stock: CardPile<PlayingCard>,
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
+  stock: ReadonlyCardPile<PlayingCard>,
   allFaceUp = false,
 ): void {
   for (const [tableauIndex, tableau] of tableaus.entries()) {
@@ -44,11 +44,15 @@ export function dealKlondikeLayout(
  */
 export function dealKlondikeAlmostWin(
   deal: Deal,
-  foundations: readonly CardPile<PlayingCard>[],
-  tableaus: readonly CardPile<PlayingCard>[],
+  foundations: readonly ReadonlyCardPile<PlayingCard>[],
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
   const cards = deal.drawAll();
-  const placeFaceUp = (suit: Suit, rank: Rank, pile: CardPile<PlayingCard>) => {
+  const placeFaceUp = (
+    suit: Suit,
+    rank: Rank,
+    pile: ReadonlyCardPile<PlayingCard>,
+  ) => {
     const card = cards.find(
       (candidate) => candidate.suit === suit && candidate.rank === rank,
     );

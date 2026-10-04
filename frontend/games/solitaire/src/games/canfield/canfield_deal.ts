@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { CanfieldVariantRules } from "./canfield_rules";
 
@@ -8,10 +8,10 @@ export const RESERVE_SIZE = 13;
 
 /** Holds the piles a Canfield deal fills. */
 export interface CanfieldPiles {
-  readonly stock: CardPile<PlayingCard>;
-  readonly reserve: CardPile<PlayingCard>;
-  readonly foundations: readonly CardPile<PlayingCard>[];
-  readonly tableaus: readonly CardPile<PlayingCard>[];
+  readonly stock: ReadonlyCardPile<PlayingCard>;
+  readonly reserve: ReadonlyCardPile<PlayingCard>;
+  readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
+  readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 }
 
 /**

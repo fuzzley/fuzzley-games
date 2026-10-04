@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { CardPile, ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import {
   PlayingCard,
   Rank,
@@ -8,9 +8,9 @@ import {
 
 /*
  * The one sanctioned way for a spec to arrange a position: empty the board,
- * then relocate the cards it needs. A spec should not call a pile's own
- * `addCard` or `removeCard`, so a change to how the engine moves cards only
- * has to reach these helpers.
+ * then relocate the cards it needs. A game hands its piles out read-only, and
+ * these helpers are the only code outside the engine that reaches past that,
+ * so a change to how the engine moves cards only has to reach them.
  */
 
 /**
@@ -19,15 +19,42 @@ import {
  * Helpers that need a particular game belong beside that game's specs.
  */
 export interface DealtBoard {
-  readonly piles: readonly CardPile<PlayingCard>[];
+  readonly piles: readonly ReadonlyCardPile<PlayingCard>[];
   getCardById(cardId: string): PlayingCard | undefined;
-  getPileById(pileId: string): CardPile<PlayingCard> | undefined;
-  getPileContainingCard(cardId: string): CardPile<PlayingCard> | undefined;
+  getPileById(pileId: string): ReadonlyCardPile<PlayingCard> | undefined;
+  getPileContainingCard(
+    cardId: string,
+  ): ReadonlyCardPile<PlayingCard> | undefined;
+}
+
+/** Returns the changeable pile behind one a game handed out read-only. */
+function writable(pile: ReadonlyCardPile<PlayingCard>): CardPile<PlayingCard> {
+  if (!(pile instanceof CardPile)) {
+    throw new Error(`The pile "${pile.id}" cannot be arranged.`);
+  }
+  // instanceof narrows a generic class to CardPile<any>; the pile came from a
+  // game of PlayingCards.
+  return pile as CardPile<PlayingCard>;
 }
 
 /** Empties every pile on the board so a test can build an exact position. */
 export function emptyBoard(game: DealtBoard): void {
-  game.piles.forEach((pile) => pile.clear());
+  game.piles.forEach((pile) => writable(pile).clear());
+}
+
+/**
+ * Empties one pile, leaving its cards off the board, so a test can build an
+ * exact position there.
+ */
+export function clearPile(pile: ReadonlyCardPile<PlayingCard>): void {
+  writable(pile).clear();
+}
+
+/** Takes a card off whatever pile holds it, leaving it on no pile at all. */
+export function takeOffBoard(game: DealtBoard, cardId: string): void {
+  const card = game.getCardById(cardId);
+  const pile = game.getPileContainingCard(cardId);
+  if (card && pile) writable(pile).removeCard(card);
 }
 
 /**
@@ -39,7 +66,7 @@ export function emptyBoard(game: DealtBoard): void {
 export function relocate(
   game: DealtBoard,
   cardId: string,
-  target: CardPile<PlayingCard> | string,
+  target: ReadonlyCardPile<PlayingCard> | string,
   faceUp = true,
 ): PlayingCard {
   const card = game.getCardById(cardId);
@@ -50,9 +77,10 @@ export function relocate(
     throw new Error(`The game has no pile "${target as string}".`);
   }
 
-  game.getPileContainingCard(cardId)?.removeCard(card);
+  const source = game.getPileContainingCard(cardId);
+  if (source) writable(source).removeCard(card);
   card.faceUp = faceUp;
-  targetPile.addCard(card);
+  writable(targetPile).addCard(card);
   return card;
 }
 

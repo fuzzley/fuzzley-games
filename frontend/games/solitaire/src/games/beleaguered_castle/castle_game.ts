@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
@@ -25,9 +25,9 @@ export interface CastleOptions extends DeckOptions {
  */
 export class CastleGame extends DealtTableGame {
   /** The four suit foundations, top to bottom. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The rows, the left wing's from the top, then the right wing's. */
-  public readonly rows: readonly CardPile<PlayingCard>[];
+  public readonly rows: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Which of the family is being played. */
   public readonly variant: CastleVariant;

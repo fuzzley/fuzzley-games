@@ -7,7 +7,7 @@ import {
   FOUNDATION_COUNT,
   TABLEAU_COUNT,
 } from "@/games/easthaven/easthaven_zones";
-import { emptyBoard, relocate } from "@test/support/game_scenarios";
+import { emptyBoard, relocate, clearPile } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
 
 /**
@@ -162,14 +162,14 @@ describe("EasthavenGame stock", () => {
 
   it("refuses to deal while a column is empty", () => {
     const game = newGame();
-    game.tableaus[0].clear();
+    clearPile(game.tableaus[0]);
 
     expect(game.dealRow()).toBe(false);
   });
 
   it("deals again once the empty column is filled", () => {
     const game = newGame();
-    game.tableaus[0].clear();
+    clearPile(game.tableaus[0]);
     relocate(game, "card-spades-king", game.tableaus[0]);
 
     expect(game.dealRow()).toBe(true);

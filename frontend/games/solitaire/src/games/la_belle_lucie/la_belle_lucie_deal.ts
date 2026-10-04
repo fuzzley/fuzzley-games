@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 
 /** How many cards each fan is dealt. */
@@ -12,7 +12,7 @@ export const CARDS_PER_FAN = 3;
  */
 export function dealFans(
   deal: Deal,
-  fans: readonly CardPile<PlayingCard>[],
+  fans: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
   for (const [fan, cards] of fanLayout(deal.drawAll(), fans)) {
     for (const card of cards) deal.place(card, fan, true);
@@ -25,8 +25,8 @@ export function dealFans(
  */
 export function fanLayout(
   cards: readonly PlayingCard[],
-  fans: readonly CardPile<PlayingCard>[],
-): Map<CardPile<PlayingCard>, PlayingCard[]> {
+  fans: readonly ReadonlyCardPile<PlayingCard>[],
+): Map<ReadonlyCardPile<PlayingCard>, PlayingCard[]> {
   const remaining = [...cards];
   return new Map(
     fans.map((fan) => [
@@ -42,8 +42,8 @@ export function fanLayout(
  */
 export function dealLaBelleLucieLayout(
   deal: Deal,
-  foundations: readonly CardPile<PlayingCard>[],
-  fans: readonly CardPile<PlayingCard>[],
+  foundations: readonly ReadonlyCardPile<PlayingCard>[],
+  fans: readonly ReadonlyCardPile<PlayingCard>[],
   acesStartOnFoundations: boolean,
 ): void {
   if (acesStartOnFoundations) {

@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { DeckOptions } from "@/games/common/deck_options";
@@ -30,9 +30,9 @@ export interface KlondikeOptions extends DeckOptions {
 /** Plays Klondike or one of its variants. */
 export class KlondikeGame extends KlondikeFamilyGame {
   /** The four suit foundation piles. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The seven tableau piles arranged on the board. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Whether to deal a nearly finished board, for verification. */
   public readonly almostWin: boolean;

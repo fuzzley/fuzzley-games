@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
 import { BlackHoleVariant } from "./black_hole_rules";
 
@@ -16,8 +16,8 @@ export const CARDS_PER_PILE: Readonly<Record<BlackHoleVariant, number>> = {
 export function dealBlackHoleLayout(
   variant: BlackHoleVariant,
   deal: Deal,
-  foundation: CardPile<PlayingCard>,
-  tableaus: readonly CardPile<PlayingCard>[],
+  foundation: ReadonlyCardPile<PlayingCard>,
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
   if (variant === BlackHoleVariant.BLACK_HOLE) {
     const ace = deal.pullFirst(

@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Tabletop } from "./tabletop";
 
@@ -45,7 +45,11 @@ export class Deal {
   }
 
   /** Puts a card on a pile, showing the side given. */
-  place(card: PlayingCard, pile: CardPile<PlayingCard>, faceUp: boolean): void {
+  place(
+    card: PlayingCard,
+    pile: ReadonlyCardPile<PlayingCard>,
+    faceUp: boolean,
+  ): void {
     this.tabletop.place(card, pile, faceUp);
   }
 
@@ -54,7 +58,7 @@ export class Deal {
    * has run out.
    */
   dealTo(
-    pile: CardPile<PlayingCard>,
+    pile: ReadonlyCardPile<PlayingCard>,
     faceUp: boolean,
   ): PlayingCard | undefined {
     const card = this.draw();
@@ -66,12 +70,15 @@ export class Deal {
    * Deals one card onto each pile in turn, as far as the deck reaches, and
    * returns whether it reached them all.
    */
-  dealEach(piles: readonly CardPile<PlayingCard>[], faceUp: boolean): boolean {
+  dealEach(
+    piles: readonly ReadonlyCardPile<PlayingCard>[],
+    faceUp: boolean,
+  ): boolean {
     return piles.every((pile) => this.dealTo(pile, faceUp) !== undefined);
   }
 
   /** Deals every card left onto one pile. */
-  dealRest(pile: CardPile<PlayingCard>, faceUp: boolean): void {
+  dealRest(pile: ReadonlyCardPile<PlayingCard>, faceUp: boolean): void {
     while (this.dealTo(pile, faceUp));
   }
 

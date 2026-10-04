@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
@@ -26,11 +26,11 @@ export interface FreeCellOptions extends DeckOptions {
  */
 export class FreeCellGame extends DealtTableGame {
   /** The four single-card holding cells. */
-  public readonly cells: readonly CardPile<PlayingCard>[];
+  public readonly cells: readonly ReadonlyCardPile<PlayingCard>[];
   /** The four suit foundation piles. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The eight columns. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Whether to deal a nearly finished board, for verification. */
   public readonly almostWin: boolean;

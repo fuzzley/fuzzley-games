@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
@@ -15,11 +15,11 @@ import { DISCARD_PILE_ID, NestorRole, nestorZoneSpecs } from "./nestor_zones";
  */
 export class NestorGame extends DealtTableGame {
   /** The eight columns. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
   /** The four reserve cards. */
-  public readonly reserves: readonly CardPile<PlayingCard>[];
+  public readonly reserves: readonly ReadonlyCardPile<PlayingCard>[];
   /** Where the pairs go. */
-  public readonly discard: CardPile<PlayingCard>;
+  public readonly discard: ReadonlyCardPile<PlayingCard>;
 
   /** Creates a game whose piles are empty until the first deal. */
   constructor({ cardIds = ALL_PLAYING_CARD_IDS, random }: DeckOptions = {}) {

@@ -1,6 +1,6 @@
 import { itemAt } from "@/engine/core/common/item_at";
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import {
   ALL_SUITS,
   PlayingCard,
@@ -22,8 +22,8 @@ import { CastleVariantRules } from "./castle_rules";
 export function dealCastleLayout(
   rules: CastleVariantRules,
   deal: Deal,
-  foundations: readonly CardPile<PlayingCard>[],
-  rows: readonly CardPile<PlayingCard>[],
+  foundations: readonly ReadonlyCardPile<PlayingCard>[],
+  rows: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
   /** Returns the foundation of the card's suit, if it would take the card. */
   const homeFor = (card: PlayingCard) => {

@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DIAL } from "./grandfathers_clock_rules";
 
@@ -14,8 +14,8 @@ export const CARDS_PER_COLUMN = 5;
  */
 export function dealGrandfathersClockLayout(
   deal: Deal,
-  foundationAt: (hour: number) => CardPile<PlayingCard>,
-  tableaus: readonly CardPile<PlayingCard>[],
+  foundationAt: (hour: number) => ReadonlyCardPile<PlayingCard>,
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
   for (const { hour, start } of DIAL) {
     const card = deal.pullFirst(

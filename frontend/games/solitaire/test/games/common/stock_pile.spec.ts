@@ -1,24 +1,27 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
 import { makePlayingCard } from "@test/support/card_builder";
 import { TestTabletop } from "@test/support/test_tabletop";
 
 /** Returns the ids of a pile's cards, bottom first. */
-function idsIn(pile: CardPile<PlayingCard>): string[] {
+function idsIn(pile: ReadonlyCardPile<PlayingCard>): string[] {
   return pile.getCards().map((card) => card.id);
 }
 
 /** Returns whether every card in a pile lies the given way up. */
-function allFaceUp(pile: CardPile<PlayingCard>, faceUp: boolean): boolean {
+function allFaceUp(
+  pile: ReadonlyCardPile<PlayingCard>,
+  faceUp: boolean,
+): boolean {
   return pile.getCards().every((card) => card.faceUp === faceUp);
 }
 
 describe("stock and waste", () => {
   let table: TestTabletop;
-  let stock: CardPile<PlayingCard>;
-  let waste: CardPile<PlayingCard>;
+  let stock: ReadonlyCardPile<PlayingCard>;
+  let waste: ReadonlyCardPile<PlayingCard>;
 
   beforeEach(() => {
     table = new TestTabletop(["stock", "waste"]);

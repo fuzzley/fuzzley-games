@@ -1,4 +1,4 @@
-import { CardPile, PileRole } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
 import { DeckSpec } from "@/engine/core/card/deck";
 import {
   ALL_RANKS,
@@ -129,7 +129,7 @@ export function montanaCellRule(
  * run up from `firstRank`, in one suit.
  */
 export function settledPrefixLength(
-  row: readonly CardPile<PlayingCard>[],
+  row: readonly ReadonlyCardPile<PlayingCard>[],
   firstRank: Rank,
 ): number {
   const first = row[0]?.topCard;
@@ -152,7 +152,7 @@ export function settledPrefixLength(
  * suit, which leaves only its last cell empty.
  */
 export function isMontanaSolved(
-  rows: readonly (readonly CardPile<PlayingCard>[])[],
+  rows: readonly (readonly ReadonlyCardPile<PlayingCard>[])[],
   firstRank: Rank,
 ): boolean {
   return rows.every(

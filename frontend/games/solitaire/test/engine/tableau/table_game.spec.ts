@@ -53,8 +53,7 @@ class TestGame extends TableGame {
   /** Puts a freshly made card into a pile, for building an exact position. */
   public place(pileId: string, rank: Rank, faceUp = true): PlayingCard {
     const card = this.cards.getOrCreate({ suit: Suit.SPADE, rank });
-    card.faceUp = faceUp;
-    this.requirePile(pileId).addCard(card);
+    this.tabletop.place(card, this.requirePile(pileId), faceUp);
     return card;
   }
 
@@ -68,15 +67,8 @@ class TestGame extends TableGame {
   public turnOver(fromPileId: string, toPileId: string): void {
     const from = this.requirePile(fromPileId);
     const to = this.requirePile(toPileId);
-    const cardIds = from.getCards().map((card) => card.id);
-
-    for (const card of [...from.getCards()].reverse()) {
-      from.removeCard(card);
-      to.addCard(card);
-    }
-
     this.commitAction("turn-over", [
-      { cardIds, fromPileId, toPileId, faceUpBefore: true },
+      this.tabletop.relocate([...from.getCards()].reverse(), to),
     ]);
   }
 

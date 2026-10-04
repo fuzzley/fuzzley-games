@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { CardTransfer } from "@/engine/tableau/move";
 import { Tabletop } from "@/engine/tableau/tabletop";
@@ -14,8 +14,8 @@ import { Tabletop } from "@/engine/tableau/tabletop";
  */
 export function drawToWaste(
   tabletop: Tabletop,
-  stock: CardPile<PlayingCard>,
-  waste: CardPile<PlayingCard>,
+  stock: ReadonlyCardPile<PlayingCard>,
+  waste: ReadonlyCardPile<PlayingCard>,
   count: number,
 ): CardTransfer[] {
   // Top first, the order they are turned over in.
@@ -30,8 +30,8 @@ export function drawToWaste(
  */
 export function recycleWasteToStock(
   tabletop: Tabletop,
-  waste: CardPile<PlayingCard>,
-  stock: CardPile<PlayingCard>,
+  waste: ReadonlyCardPile<PlayingCard>,
+  stock: ReadonlyCardPile<PlayingCard>,
 ): CardTransfer[] {
   // Top first, so the card turned first comes round first again.
   const recycled = [...waste.getCards()].reverse();

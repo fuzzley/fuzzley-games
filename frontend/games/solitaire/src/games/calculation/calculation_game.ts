@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
@@ -28,13 +28,13 @@ export interface CalculationOptions extends DeckOptions {
  */
 export class CalculationGame extends DealtTableGame {
   /** The face-down stock, turned one card at a time. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The card turned and not yet placed. */
-  public readonly hand: CardPile<PlayingCard>;
+  public readonly hand: ReadonlyCardPile<PlayingCard>;
   /** The four foundations, in order of their interval. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The four waste piles. */
-  public readonly wastes: readonly CardPile<PlayingCard>[];
+  public readonly wastes: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Which of the pair is being played. */
   public readonly variant: CalculationVariant;

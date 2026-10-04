@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
@@ -24,8 +24,8 @@ function zone(id: string): ZoneSpec {
 describe("Deal", () => {
   let registry: CardRegistry;
   let tabletop: Tabletop;
-  let left: CardPile<PlayingCard>;
-  let right: CardPile<PlayingCard>;
+  let left: ReadonlyCardPile<PlayingCard>;
+  let right: ReadonlyCardPile<PlayingCard>;
 
   beforeEach(() => {
     registry = new CardRegistry();

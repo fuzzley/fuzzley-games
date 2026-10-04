@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
@@ -45,7 +45,7 @@ export interface MontanaOptions extends DeckOptions {
  */
 export class MontanaGame extends DealtTableGame {
   /** The grid positions, row-major. */
-  public readonly cells: readonly CardPile<PlayingCard>[];
+  public readonly cells: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Which of the family is being played. */
   public readonly variant: MontanaVariant;
@@ -99,7 +99,7 @@ export class MontanaGame extends DealtTableGame {
   }
 
   /** The grid as rows, left to right within each. */
-  public get rows(): readonly (readonly CardPile<PlayingCard>[])[] {
+  public get rows(): readonly (readonly ReadonlyCardPile<PlayingCard>[])[] {
     return rowsOf(this.cells, montanaColumnCount(this.variant));
   }
 

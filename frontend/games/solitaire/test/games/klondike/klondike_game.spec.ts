@@ -5,7 +5,7 @@ import { VegasScoringPolicy } from "@/games/klondike/scoring_policy";
 import { playingCardFaceKey } from "@/engine/core/card/playing_card";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { makePlayingCard } from "@test/support/card_builder";
-import { emptyBoard, relocate } from "@test/support/game_scenarios";
+import { emptyBoard, relocate, clearPile } from "@test/support/game_scenarios";
 import {
   almostWon,
   CLUB_KING_ID,
@@ -195,9 +195,9 @@ describe("KlondikeGame", () => {
       game.startNewGame();
       relocate(game, "card-clubs-ace", game.waste);
       relocate(game, "card-clubs-2", game.waste);
-      game.stock.clear();
-      game.tableaus.forEach((t) => t.clear());
-      game.foundations.forEach((f) => f.clear());
+      clearPile(game.stock);
+      game.tableaus.forEach(clearPile);
+      game.foundations.forEach(clearPile);
 
       game.drawCardsFromStock();
 
@@ -224,7 +224,7 @@ describe("KlondikeGame", () => {
         relocate(game, "card-clubs-ace", game.waste).id,
         relocate(game, "card-clubs-2", game.waste).id,
       ];
-      game.stock.clear();
+      clearPile(game.stock);
       const announced: string[][] = [];
       game.onCardsRelocated((cardIds) => announced.push([...cardIds]));
 
@@ -313,7 +313,7 @@ describe("KlondikeGame", () => {
   describe("move validation", () => {
     it("does not move a non-King card onto an empty tableau", () => {
       game.startNewGame();
-      game.tableaus[0].clear();
+      clearPile(game.tableaus[0]);
       const queen = relocate(game, "card-hearts-queen", game.tableaus[1]);
 
       const moved = game.moveCardToPile(queen.id, "tableau-0");
@@ -323,7 +323,7 @@ describe("KlondikeGame", () => {
 
     it("moves a King onto an empty tableau", () => {
       game.startNewGame();
-      game.tableaus[0].clear();
+      clearPile(game.tableaus[0]);
       const king = relocate(game, "card-spades-king", game.tableaus[1]);
 
       const moved = game.moveCardToPile(king.id, "tableau-0");
@@ -344,8 +344,8 @@ describe("KlondikeGame", () => {
 
     it("moves a card onto a tableau card of descending rank and alternating color", () => {
       game.startNewGame();
-      game.tableaus[0].clear();
-      game.tableaus[1].clear();
+      clearPile(game.tableaus[0]);
+      clearPile(game.tableaus[1]);
       relocate(game, "card-diamonds-8", game.tableaus[0]);
       const blackSeven = relocate(game, "card-spades-7", game.tableaus[1]);
       const redSeven = relocate(game, "card-hearts-7", game.tableaus[1]);
@@ -390,7 +390,7 @@ describe("KlondikeGame", () => {
 
     it("does not move a stack of more than one card onto a foundation", () => {
       game.startNewGame();
-      game.tableaus[0].clear();
+      clearPile(game.tableaus[0]);
       const ace = relocate(game, "card-clubs-ace", game.tableaus[0]);
       relocate(game, "card-clubs-2", game.tableaus[0]);
 
@@ -463,9 +463,9 @@ describe("KlondikeGame", () => {
   describe("moving stacks", () => {
     it("auto-flips the newly exposed tableau card after a move", () => {
       game.startNewGame();
-      game.tableaus[0].clear();
+      clearPile(game.tableaus[0]);
       relocate(game, "card-spades-king", game.tableaus[0]);
-      game.tableaus[1].clear();
+      clearPile(game.tableaus[1]);
       const bottomCard = relocate(
         game,
         "card-clubs-jack",
@@ -482,9 +482,9 @@ describe("KlondikeGame", () => {
 
     it("does not award a flip bonus when the exposed tableau card is already face up", () => {
       game.startNewGame();
-      game.tableaus[0].clear();
+      clearPile(game.tableaus[0]);
       relocate(game, "card-clubs-king", game.tableaus[0]);
-      game.tableaus[1].clear();
+      clearPile(game.tableaus[1]);
       relocate(game, "card-spades-king", game.tableaus[1]);
       const movingQueen = relocate(game, "card-hearts-queen", game.tableaus[1]);
 
@@ -570,7 +570,7 @@ describe("KlondikeGame", () => {
       almostWon(game);
       const kingOfClubs = game.getCardById(CLUB_KING_ID)!;
       kingOfClubs.faceUp = true;
-      game.tableaus[0].addCard(kingOfClubs);
+      relocate(game, kingOfClubs.id, game.tableaus[0]);
       let wonCount = 0;
       game.on("game-won", () => wonCount++);
 
@@ -707,7 +707,7 @@ describe("KlondikeGame", () => {
 
     it("scores +5 and counts a move when moving from waste to tableau", () => {
       game.startNewGame();
-      game.tableaus[0].clear();
+      clearPile(game.tableaus[0]);
       relocate(game, "card-spades-king", game.tableaus[0]);
       const queen = relocate(game, "card-hearts-queen", game.waste);
 
@@ -730,7 +730,7 @@ describe("KlondikeGame", () => {
 
     it("scores +10 when moving from tableau to foundation", () => {
       game.startNewGame();
-      game.tableaus[0].clear();
+      clearPile(game.tableaus[0]);
       const ace = relocate(game, "card-hearts-ace", game.tableaus[0]);
 
       const moved = game.moveCardToPile(ace.id, "foundation-1");
@@ -742,9 +742,9 @@ describe("KlondikeGame", () => {
     it("scores -15 when moving from foundation to tableau", () => {
       game = new KlondikeGame({ scoring: new StandardScoringFrom(20) });
       game.startNewGame();
-      game.foundations[0].clear();
+      clearPile(game.foundations[0]);
       const ace = relocate(game, "card-clubs-ace", game.foundations[0]);
-      game.tableaus[0].clear();
+      clearPile(game.tableaus[0]);
       relocate(game, "card-diamonds-2", game.tableaus[0]);
 
       const moved = game.moveCardToPile(ace.id, "tableau-0");
@@ -755,10 +755,10 @@ describe("KlondikeGame", () => {
 
     it("adds a +5 flip bonus on top of the move score when a tableau card is exposed", () => {
       game.startNewGame();
-      game.tableaus[0].clear();
+      clearPile(game.tableaus[0]);
       relocate(game, "card-spades-10", game.tableaus[0], false);
       const ace = relocate(game, "card-hearts-ace", game.tableaus[0]);
-      game.foundations[0].clear();
+      clearPile(game.foundations[0]);
 
       const moved = game.moveCardToPile(ace.id, "foundation-0");
 

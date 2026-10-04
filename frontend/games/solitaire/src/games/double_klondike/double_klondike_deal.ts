@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { DeckSpec } from "@/engine/core/card/deck";
 import {
   ALL_RANKS,
@@ -20,8 +20,8 @@ export const DOUBLE_KLONDIKE_TWO_DECKS: DeckSpec = {
  */
 export function dealDoubleKlondikeLayout(
   deal: Deal,
-  tableaus: readonly CardPile<PlayingCard>[],
-  stock: CardPile<PlayingCard>,
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
+  stock: ReadonlyCardPile<PlayingCard>,
 ): void {
   for (const [column, tableau] of tableaus.entries()) {
     for (let dealt = 0; dealt <= column; dealt++) {

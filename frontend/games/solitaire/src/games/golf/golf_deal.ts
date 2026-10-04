@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 
 /** How many cards each column is dealt. */
@@ -11,9 +11,9 @@ export const CARDS_PER_COLUMN = 5;
  */
 export function dealGolfLayout(
   deal: Deal,
-  tableaus: readonly CardPile<PlayingCard>[],
-  foundation: CardPile<PlayingCard>,
-  stock: CardPile<PlayingCard>,
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
+  foundation: ReadonlyCardPile<PlayingCard>,
+  stock: ReadonlyCardPile<PlayingCard>,
 ): void {
   for (let row = 0; row < CARDS_PER_COLUMN; row++) {
     if (!deal.dealEach(tableaus, true)) return;

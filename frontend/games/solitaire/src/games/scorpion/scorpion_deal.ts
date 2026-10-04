@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 
 /** How many cards each column is dealt. */
@@ -15,8 +15,8 @@ export const HIDDEN_PER_COLUMN = 3;
  */
 export function dealScorpionLayout(
   deal: Deal,
-  tableaus: readonly CardPile<PlayingCard>[],
-  stock: CardPile<PlayingCard>,
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
+  stock: ReadonlyCardPile<PlayingCard>,
   hiddenColumnCount: number,
 ): void {
   for (const [column, tableau] of tableaus.entries()) {

@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import {
   AppliedMove,
@@ -12,7 +12,7 @@ export interface HistoryBoard {
   /** Returns the card with the given id, or undefined. */
   getCardById(cardId: string): PlayingCard | undefined;
   /** Every pile on the board, in declaration order. */
-  readonly piles: readonly CardPile<PlayingCard>[];
+  readonly piles: readonly ReadonlyCardPile<PlayingCard>[];
   /** Puts back what a transfer moved, as it lay before. */
   reverse(transfer: CardTransfer): void;
 }

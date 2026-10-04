@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
@@ -33,11 +33,11 @@ export interface LaBelleLucieOptions extends DeckOptions {
  */
 export class LaBelleLucieGame extends DealtTableGame {
   /** The four suit foundations. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The fans, in the order they are dealt. */
-  public readonly fans: readonly CardPile<PlayingCard>[];
+  public readonly fans: readonly ReadonlyCardPile<PlayingCard>[];
   /** The marker pressed to redeal. */
-  public readonly redealMarker: CardPile<PlayingCard>;
+  public readonly redealMarker: ReadonlyCardPile<PlayingCard>;
 
   /** Which of the family is being played. */
   public readonly variant: LaBelleLucieVariant;

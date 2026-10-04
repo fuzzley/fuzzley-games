@@ -1,4 +1,4 @@
-import { CardPile, PileRole } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { Tabletop } from "@/engine/tableau/tabletop";
@@ -36,8 +36,8 @@ export function runCollectingEffects(
   tabletop: Tabletop,
   move: ResolvedMove,
   columnRole: PileRole,
-  columns: readonly CardPile<PlayingCard>[],
-  foundations: readonly CardPile<PlayingCard>[],
+  columns: readonly ReadonlyCardPile<PlayingCard>[],
+  foundations: readonly ReadonlyCardPile<PlayingCard>[],
 ): MoveEffects {
   const flipped = flipExposedTopOfColumn(move.sourcePile, columnRole);
   // Collected after the flip, because taking a run off can expose another card,
@@ -61,7 +61,7 @@ export function runCollectingEffects(
  * @param columnRole The role of the piles that bury cards.
  */
 export function flipExposedTopOfColumn(
-  pile: CardPile<PlayingCard>,
+  pile: ReadonlyCardPile<PlayingCard>,
   columnRole: PileRole,
 ): PlayingCard | undefined {
   return pile.role === columnRole ? flipExposedTop(pile) : undefined;

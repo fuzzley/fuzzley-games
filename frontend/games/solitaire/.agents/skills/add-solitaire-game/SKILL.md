@@ -208,6 +208,9 @@ super({
 ```
 
 Then grab your piles with `this.pilesOfRole(role)` / `this.requirePile(id)`.
+They come back as `ReadonlyCardPile`s (`src/engine/core/card/card_pile.ts`),
+which is also how the game hands them to anyone else: a game changes a pile
+only through `this.tabletop` or, while dealing, the `Deal`.
 
 Constructor shape, followed by every game: one options object extending
 `DeckOptions` (`src/games/common/deck_options.ts`), destructured with its

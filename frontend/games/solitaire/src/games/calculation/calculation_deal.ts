@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_RANKS, PlayingCard } from "@/engine/core/card/playing_card";
 import { CalculationVariant } from "./calculation_rules";
 
@@ -13,8 +13,8 @@ import { CalculationVariant } from "./calculation_rules";
 export function dealCalculationLayout(
   variant: CalculationVariant,
   deal: Deal,
-  foundations: readonly CardPile<PlayingCard>[],
-  stock: CardPile<PlayingCard>,
+  foundations: readonly ReadonlyCardPile<PlayingCard>[],
+  stock: ReadonlyCardPile<PlayingCard>,
 ): void {
   if (variant === CalculationVariant.CALCULATION) {
     // The foundation at index `i` starts on the rank `i` above the Ace.

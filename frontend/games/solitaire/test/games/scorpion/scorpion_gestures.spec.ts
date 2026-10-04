@@ -7,7 +7,7 @@ import {
 import { IntentHandler } from "@/engine/render/input/table_intents";
 import { ScorpionGame } from "@/games/scorpion/scorpion_game";
 import { scorpionGestures } from "@/games/scorpion/scorpion_gestures";
-import { emptyBoard, relocate } from "@test/support/game_scenarios";
+import { emptyBoard, relocate, clearPile } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
 
 /** Returns the instance id of a card in this single-deck game. */
@@ -45,7 +45,7 @@ describe("scorpionGestures", () => {
 
   describe("activate-pile", () => {
     it("does nothing for the spent stock's slot, which never refills", () => {
-      game.stock.clear();
+      clearPile(game.stock);
 
       handle({ kind: "activate-pile", pileId: game.stock.id });
 

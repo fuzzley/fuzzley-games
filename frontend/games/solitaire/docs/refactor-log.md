@@ -119,7 +119,7 @@ The review's findings, grouped into phases. Each phase leaves the tree green.
 - [x] 3.2 Rules attached directly; column rule helper
 - [x] 3.3 Deck construction and dealing helpers
 - [x] 4.1 `engine/board` tier and fixture copies deleted
-- [ ] 4.2 Read-only piles
+- [x] 4.2 Read-only piles
 - [x] 5.1 `Tabletop` split out of `TableGame` (done before 2.3; see log)
 - [ ] 5.2 Header inset from the shell
 - [ ] 5.3 Zone rules and looks separated
@@ -349,3 +349,22 @@ dealsFaceUp? }`, in `deck_source.ts`) and builds the registry and the
     fire.
   - `AGENTS.md` (tier diagram, layer list, lint table) and the
     `add-solitaire-game` and `phaser-core` skills describe the new tier.
+- **refactor: hand piles out read-only everywhere but the tabletop.**
+  - `ReadonlyCardPile<T>` in `card_pile.ts` (id, role, topCard, isEmpty,
+    size, getCards, contains); `CardPile` implements it.
+  - Every use of `CardPile` in `src` outside core and `Tabletop` is now
+    `ReadonlyCardPile` (74 files, by a word-boundary rename): `BoardQuery`,
+    `PlacementContext`, `TableView`, `ResolvedMove`, every game's pile
+    fields, every helper and deal. `Tabletop` keeps the changeable piles
+    private; `relocate`, `rearrange` and `place` take a read-only pile and
+    resolve their own, throwing for a pile from any other table (`own`).
+  - Card faces stay writable (`PlayingCard.faceUp`), as the flips games make
+    are recorded through `flippedCardIds`. Making cards read-only too would be
+    a further step, not taken.
+  - Specs change piles only through `test/support/game_scenarios.ts`, which
+    narrows with `instanceof CardPile` and gained `clearPile(pile)` and
+    `takeOffBoard(game, cardId)`. The engine spec's test game uses its
+    tabletop for `place` and `turnOver`.
+  - `yarn build` passes (its chunk-size warning predates this work).
+  - The `add-solitaire-game` and `typescript-strict-patterns` skills
+    describe read-only piles.

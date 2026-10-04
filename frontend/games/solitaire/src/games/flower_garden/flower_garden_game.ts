@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
@@ -13,11 +13,11 @@ import { FlowerGardenRole, flowerGardenZoneSpecs } from "./flower_garden_zones";
  */
 export class FlowerGardenGame extends DealtTableGame {
   /** The four suit foundations. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The six beds. */
-  public readonly beds: readonly CardPile<PlayingCard>[];
+  public readonly beds: readonly ReadonlyCardPile<PlayingCard>[];
   /** The bouquet, one pile per card. */
-  public readonly bouquet: readonly CardPile<PlayingCard>[];
+  public readonly bouquet: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Creates a game whose piles are empty until the first deal. */
   constructor({ cardIds = ALL_PLAYING_CARD_IDS, random }: DeckOptions = {}) {

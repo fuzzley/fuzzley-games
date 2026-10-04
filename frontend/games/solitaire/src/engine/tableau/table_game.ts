@@ -1,4 +1,4 @@
-import { CardPile, PileRole } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { EventEmitter } from "@/engine/core/common/event_emitter";
 import { PlayingCard } from "@/engine/core/card/playing_card";
@@ -15,9 +15,9 @@ export interface ResolvedMove {
   /** The card being moved plus everything stacked on it, bottom-first. */
   readonly movingStack: readonly PlayingCard[];
   /** The pile the stack is leaving. */
-  readonly sourcePile: CardPile<PlayingCard>;
+  readonly sourcePile: ReadonlyCardPile<PlayingCard>;
   /** The pile the stack is joining. */
-  readonly targetPile: CardPile<PlayingCard>;
+  readonly targetPile: ReadonlyCardPile<PlayingCard>;
 }
 
 /**
@@ -115,10 +115,10 @@ export abstract class TableGame<
   private readonly winningRole?: PileRole;
 
   /** Every pile on the board, in the order the zones declared them. */
-  public readonly piles: readonly CardPile<PlayingCard>[];
+  public readonly piles: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Every pile a dragged stack may be dropped onto, in declaration order. */
-  public readonly dropTargetPiles: readonly CardPile<PlayingCard>[];
+  public readonly dropTargetPiles: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** The read-only view of the board handed to placement rules. */
   public readonly board: BoardQuery;
@@ -137,17 +137,19 @@ export abstract class TableGame<
   // --- The board ---
 
   /** Returns every pile playing the given part, in declaration order. */
-  public pilesOfRole(role: PileRole): readonly CardPile<PlayingCard>[] {
+  public pilesOfRole(role: PileRole): readonly ReadonlyCardPile<PlayingCard>[] {
     return this.tabletop.pilesByRole(role);
   }
 
   /** Returns the pile with the given id, or undefined. */
-  public getPileById(pileId: string): CardPile<PlayingCard> | undefined {
+  public getPileById(
+    pileId: string,
+  ): ReadonlyCardPile<PlayingCard> | undefined {
     return this.tabletop.pile(pileId);
   }
 
   /** Returns the pile with the given id, throwing if no zone declares it. */
-  protected requirePile(pileId: string): CardPile<PlayingCard> {
+  protected requirePile(pileId: string): ReadonlyCardPile<PlayingCard> {
     return this.tabletop.requirePile(pileId);
   }
 
@@ -172,7 +174,7 @@ export abstract class TableGame<
   /** Finds which pile contains a given card. */
   public getPileContainingCard(
     cardId: string,
-  ): CardPile<PlayingCard> | undefined {
+  ): ReadonlyCardPile<PlayingCard> | undefined {
     return this.tabletop.pileHolding(cardId);
   }
 
@@ -443,7 +445,7 @@ export abstract class TableGame<
    */
   public isCardInteractableInPile(
     card: PlayingCard,
-    pile: CardPile<PlayingCard>,
+    pile: ReadonlyCardPile<PlayingCard>,
   ): boolean {
     const zone = this.zoneFor(pile.id);
     return zone ? canGrab(zone.grab, card, pile, this.board) : false;
@@ -461,7 +463,7 @@ export abstract class TableGame<
    */
   public isCardDraggableInPile(
     card: PlayingCard,
-    pile: CardPile<PlayingCard>,
+    pile: ReadonlyCardPile<PlayingCard>,
   ): boolean {
     const zone = this.zoneFor(pile.id);
     return zone?.draggable ? canGrab(zone.grab, card, pile, this.board) : false;
@@ -477,7 +479,7 @@ export abstract class TableGame<
    * a pressable one, only for the piles whose zones have them when it is built.
    */
   protected markPile(
-    pile: CardPile<PlayingCard>,
+    pile: ReadonlyCardPile<PlayingCard>,
     marker: () => PileMarker,
   ): void {
     this.markers.set(pile.id, marker);
@@ -487,7 +489,9 @@ export abstract class TableGame<
    * Returns the artwork the pile's placeholder shows now: its marker's, or
    * else the one its zone declares.
    */
-  public pileBackgroundKey(pile: CardPile<PlayingCard>): string | undefined {
+  public pileBackgroundKey(
+    pile: ReadonlyCardPile<PlayingCard>,
+  ): string | undefined {
     return (
       this.markers.get(pile.id)?.().artwork ??
       this.zoneFor(pile.id)?.backgroundKey
@@ -498,7 +502,7 @@ export abstract class TableGame<
    * Returns whether pressing the pile's empty slot does something now, as its
    * marker says, or else as its zone does.
    */
-  public isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
+  public isEmptySlotActionable(pile: ReadonlyCardPile<PlayingCard>): boolean {
     if (!pile.isEmpty) return false;
     const marker = this.markers.get(pile.id);
     return marker
