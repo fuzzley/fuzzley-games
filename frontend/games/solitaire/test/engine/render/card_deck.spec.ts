@@ -26,11 +26,14 @@ describe("card decks", () => {
     expect(described).toEqual(CARD_DECKS);
   });
 
-  it("gives every deck a pip coverage no other deck claims", () => {
-    // The drawer previews coverage, so two decks sharing one would look alike.
-    const coverages = CARD_DECKS.map((deck) => deck.pipCoverage);
+  it("gives every deck a corner no other deck draws alike", () => {
+    // The drawer previews the corner, so two decks sharing one would look
+    // alike.
+    const corners = CARD_DECKS.map(
+      (deck) => `${deck.pipCoverage} ${deck.indexSize}`,
+    );
 
-    expect(new Set(coverages).size).toBe(CARD_DECKS.length);
+    expect(new Set(corners).size).toBe(CARD_DECKS.length);
   });
 
   it("rejects a value that names no deck", () => {

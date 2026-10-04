@@ -16,7 +16,11 @@ import {
   CardBackStyle,
   PresentationSettingsService,
 } from "../../service/presentation_settings.service";
-import { CARD_DECKS, CardDeckSpec } from "@/engine/render/card_deck";
+import {
+  CARD_DECKS,
+  CardDeckSpec,
+  CardIndexSize,
+} from "@/engine/render/card_deck";
 import { DebugPanelComponent } from "../debug_panel/debug_panel.component";
 import { OptionGroupComponent } from "../option_group/option_group.component";
 import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
@@ -37,6 +41,12 @@ interface CardDeckPreviewCard {
   readonly x: number;
   /** Whether this deck marks this card in its top right corner. */
   readonly hasPip: boolean;
+  /** Whether this deck draws the rank large. */
+  readonly largeIndex: boolean;
+  /** Where the rank's baseline sits in the strip. */
+  readonly rankY: number;
+  /** Places the pip, drawn about the strip's origin, in the top right corner. */
+  readonly pipTransform: string;
 }
 
 /** Describes one deck a player can choose, resolved for rendering. */
@@ -49,12 +59,22 @@ interface CardDeckChoice extends CardDeckSpec {
 
 /**
  * The two cards every deck preview shows: a court and a spot card, which
- * together tell the three decks apart.
+ * together tell the decks apart.
  */
 const PREVIEW_CARDS: readonly { rank: string; x: number; court: boolean }[] = [
   { rank: "K", x: 0, court: true },
   { rank: "7", x: 72, court: false },
 ];
+
+/** Where a preview draws a card's index, by how large the deck draws it. */
+const PREVIEW_INDEX: Record<
+  CardIndexSize,
+  { readonly rankY: number; readonly pipTransform: string }
+> = {
+  regular: { rankY: 21, pipTransform: "translate(44 -11)" },
+  // Filling about as much of the strip as the deck's own index does.
+  large: { rankY: 25, pipTransform: "translate(32.4 -28.5) scale(2)" },
+};
 
 /** Describes one table felt swatch, resolved for rendering. */
 interface ThemeSwatch {
@@ -124,6 +144,8 @@ export class SettingsDrawerComponent {
         hasPip:
           deck.pipCoverage === "all" ||
           (deck.pipCoverage === "courts" && card.court),
+        largeIndex: deck.indexSize === "large",
+        ...PREVIEW_INDEX[deck.indexSize],
       })),
     }));
   });
