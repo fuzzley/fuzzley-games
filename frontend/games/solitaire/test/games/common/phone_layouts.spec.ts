@@ -11,6 +11,12 @@ import {
   RAIL_MIN_STEP,
   phoneLayouts,
 } from "@/games/common/phone_layouts";
+import {
+  COVERED_FOUNDATION_PLACEHOLDER,
+  FOUNDATION_PLACEHOLDER,
+  PLAIN_PLACEHOLDER,
+  RAIL_FOUNDATION_PLACEHOLDER,
+} from "@/games/common/zone_presets";
 
 const COLUMNS = ["col-0", "col-1", "col-2", "col-3", "col-4"];
 
@@ -51,6 +57,18 @@ function slotOf(grid: TableLayoutSpec, pileId: string) {
 /** Returns how a pile arranges its cards on a grid, given its own spread. */
 function arrangementOn(grid: TableLayoutSpec, pileId: string): PileLayout {
   return grid.pileLayouts?.[pileId]?.(SPREAD) ?? SPREAD;
+}
+
+/**
+ * Returns the artwork a pile's placeholder shows on a grid, given what its
+ * game asks for: a foundation's ring unless told otherwise.
+ */
+function artworkOn(
+  grid: TableLayoutSpec,
+  pileId: string,
+  own: string = FOUNDATION_PLACEHOLDER,
+): string {
+  return grid.pileBackgrounds?.[pileId]?.(own) ?? own;
 }
 
 /** Returns how tall the longest column stands with every fan at its floor. */
@@ -223,6 +241,53 @@ describe("phoneLayouts", () => {
       const grid = crowded(12);
 
       expect(Math.min(...steps(grid))).toBe(RAIL_MIN_STEP);
+    });
+
+    it("opens a covered foundation at the bottom, with its ring at the top", () => {
+      const grid = crowded(4);
+
+      expect(
+        ["found-0", "found-1", "found-2"].map((pileId) =>
+          artworkOn(grid, pileId),
+        ),
+      ).toEqual([
+        COVERED_FOUNDATION_PLACEHOLDER,
+        COVERED_FOUNDATION_PLACEHOLDER,
+        COVERED_FOUNDATION_PLACEHOLDER,
+      ]);
+    });
+
+    it("closes the last foundation down the rail, with its ring at the top", () => {
+      expect(artworkOn(crowded(4), "found-3")).toBe(
+        RAIL_FOUNDATION_PLACEHOLDER,
+      );
+    });
+
+    it("leaves any other artwork an overlapped pile shows alone", () => {
+      expect(artworkOn(crowded(4), "found-0", PLAIN_PLACEHOLDER)).toBe(
+        PLAIN_PLACEHOLDER,
+      );
+    });
+  });
+
+  describe("placeholders", () => {
+    it("closes a foundation the next pile down the rail clears", () => {
+      expect(artworkOn(layouts.landscape, "found-0")).toBe(
+        RAIL_FOUNDATION_PLACEHOLDER,
+      );
+    });
+
+    it("leaves a rail pile that may not be overlapped alone", () => {
+      expect(artworkOn(layouts.landscape, "stock")).toBe(
+        FOUNDATION_PLACEHOLDER,
+      );
+    });
+
+    it.each([
+      ["piles above", layouts.portrait.top],
+      ["piles below", layouts.portrait.bottom],
+    ])("keeps the foundation's ring upright, with the %s", (_name, grid) => {
+      expect(artworkOn(grid, "found-0")).toBe(FOUNDATION_PLACEHOLDER);
     });
   });
 

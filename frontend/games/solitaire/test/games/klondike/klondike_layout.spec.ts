@@ -17,6 +17,11 @@ import {
 } from "@/engine/render/view/table_view_state";
 import { PHONE_FAN_FIT } from "@/games/common/pile_layouts";
 import {
+  COVERED_FOUNDATION_PLACEHOLDER,
+  FOUNDATION_PLACEHOLDER,
+  RAIL_FOUNDATION_PLACEHOLDER,
+} from "@/games/common/zone_presets";
+import {
   KLONDIKE_LAYOUT,
   KLONDIKE_PHONE_LAYOUTS,
 } from "@/games/klondike/klondike_layout";
@@ -161,6 +166,26 @@ describe("Klondike's phone grids", () => {
     expect(
       slotOf(KLONDIKE_PHONE_LAYOUTS.landscape, STOCK_PILE_ID),
     ).toMatchObject({ column: 8, offset: { x: 0, y: 0 } });
+  });
+
+  it("marks each foundation at its top edge down the rail, the last one closed", () => {
+    const artwork = [
+      "foundation-0",
+      "foundation-1",
+      "foundation-2",
+      "foundation-3",
+    ].map((pileId) =>
+      KLONDIKE_PHONE_LAYOUTS.landscape.pileBackgrounds?.[pileId]?.(
+        FOUNDATION_PLACEHOLDER,
+      ),
+    );
+
+    expect(artwork).toEqual([
+      COVERED_FOUNDATION_PLACEHOLDER,
+      COVERED_FOUNDATION_PLACEHOLDER,
+      COVERED_FOUNDATION_PLACEHOLDER,
+      RAIL_FOUNDATION_PLACEHOLDER,
+    ]);
   });
 
   describe.each([1, 3] as const)("the waste of a draw %i", (drawCount) => {
