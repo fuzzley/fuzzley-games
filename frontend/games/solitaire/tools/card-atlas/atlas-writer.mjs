@@ -9,6 +9,7 @@ import { join } from "node:path";
 
 import {
   ART_SCALES,
+  CARD_FRAME_NAMES,
   DESIGN_FRAME_H,
   DESIGN_FRAME_W,
   EDGE_CORNER_PX,
@@ -283,6 +284,28 @@ async function writeAtlas(frames, artScale, outDir) {
 }
 
 /**
+ * Fails the build if a deck's cards are not exactly the frames the engine
+ * draws from.
+ *
+ * @param {{name: string}[]} frames The deck's faces and backs.
+ */
+function assertEveryCardFrame(frames) {
+  const names = frames.map((frame) => frame.name);
+  const missing = CARD_FRAME_NAMES.filter((name) => !names.includes(name));
+  const extra = names.filter(
+    (name, index) =>
+      !CARD_FRAME_NAMES.includes(name) || names.indexOf(name) !== index,
+  );
+  if (missing.length > 0 || extra.length > 0) {
+    throw new Error(
+      `The deck's frames are not the cards the engine draws: ` +
+        `missing ${missing.join(", ") || "none"}; ` +
+        `unexpected or repeated ${extra.join(", ") || "none"}`,
+    );
+  }
+}
+
+/**
  * Edges a deck's cards and writes them, with the placeholders, as one atlas
  * per density under `deckDir`.
  *
@@ -291,6 +314,8 @@ async function writeAtlas(frames, artScale, outDir) {
  * @param {string} deckDir The deck's directory; each density gets its own inside it.
  */
 export async function writeDeckAtlases(cardFrames, placeholderFrames, deckDir) {
+  assertEveryCardFrame(cardFrames);
+
   // Placeholders are outline art already, and are drawn under the cards rather
   // than overlapping them, so only the cards are stamped.
   const stampedCards = await stampCardEdge(cardFrames);
