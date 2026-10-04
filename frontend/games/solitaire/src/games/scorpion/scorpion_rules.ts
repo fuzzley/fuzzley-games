@@ -82,19 +82,3 @@ export function scorpionTableauRule(variant: ScorpionVariant): PlacementRule {
 export function scorpionHiddenColumnCount(variant: ScorpionVariant): number {
   return VARIANT_RULES[variant].hiddenColumnCount;
 }
-
-/**
- * Returns what a pile of a role accepts under a variant, or null for the stock
- * and the foundations, where a player never puts a card.
- */
-export function scorpionPlacementRule(
-  role: string,
-  variant: ScorpionVariant,
-): PlacementRule | null {
-  switch (role) {
-    case ScorpionRole.TABLEAU:
-      return scorpionTableauRule(variant);
-    default:
-      return null;
-  }
-}

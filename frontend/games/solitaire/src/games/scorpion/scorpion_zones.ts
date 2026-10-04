@@ -10,7 +10,7 @@ import {
   DEFAULT_SCORPION_VARIANT,
   ScorpionRole,
   ScorpionVariant,
-  scorpionPlacementRule,
+  scorpionTableauRule,
 } from "./scorpion_rules";
 
 /** The number of tableau columns. */
@@ -31,7 +31,7 @@ export function scorpionZoneSpecs(
       role: ScorpionRole.STOCK,
       column: 0,
       row: 0,
-      accept: scorpionPlacementRule(ScorpionRole.STOCK, variant),
+      accept: null,
       backgroundKey: CLOSED_STOCK_PLACEHOLDER,
     }),
     ...foundationRow({
@@ -42,7 +42,7 @@ export function scorpionZoneSpecs(
       role: ScorpionRole.FOUNDATION,
       // Never a drop target: a run arrives here by completing itself, not by
       // being put here.
-      accept: scorpionPlacementRule(ScorpionRole.FOUNDATION, variant),
+      accept: null,
       grab: { kind: "none" },
       draggable: false,
     }),
@@ -51,12 +51,12 @@ export function scorpionZoneSpecs(
       column: 0,
       row: 1,
       role: ScorpionRole.TABLEAU,
-      accept: scorpionPlacementRule(ScorpionRole.TABLEAU, variant),
+      accept: scorpionTableauRule(variant),
       // Any face-up card lifts with everything on it, as in Yukon.
       grab: { kind: "any-face-up" },
     }),
   ];
 }
 
-/** Re-exported: the roles and variants live with the rules that branch on them. */
+/** Re-exported: the roles and variants live with the rules that use them. */
 export { ScorpionRole, ScorpionVariant };

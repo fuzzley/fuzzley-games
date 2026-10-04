@@ -2,12 +2,12 @@ import { PileRole } from "@/engine/core/card/card_pile";
 import { Rank } from "@/engine/core/card/playing_card";
 import {
   PlacementRule,
-  byEmptiness,
   cardIs,
-  descendingAlternatingColor,
   hasRank,
   suitFoundation,
+  isOrderedPair,
 } from "@/engine/tableau/rules";
+import { ColumnRules, runColumn } from "@/engine/tableau/zone";
 
 /** The parts a pile can play in an Easthaven game. */
 export const EasthavenRole = {
@@ -29,25 +29,10 @@ export type EasthavenRole = (typeof EasthavenRole)[keyof typeof EasthavenRole];
  * No stack limit applies, since a run moves in one piece rather than through
  * spare cells.
  */
-export const EASTHAVEN_TABLEAU_RULE: PlacementRule = byEmptiness(
-  cardIs(hasRank(Rank.KING)),
-  descendingAlternatingColor,
-);
+export const EASTHAVEN_COLUMN: ColumnRules = runColumn({
+  adjacent: isOrderedPair,
+  whenEmpty: cardIs(hasRank(Rank.KING)),
+});
 
 /** An Easthaven foundation: the standard Ace-up-by-suit pile, one at a time. */
 export const EASTHAVEN_FOUNDATION_RULE: PlacementRule = suitFoundation;
-
-/**
- * Returns what a pile of a role accepts, or null for the stock, which is never
- * a destination.
- */
-export function easthavenPlacementRule(role: string): PlacementRule | null {
-  switch (role) {
-    case EasthavenRole.TABLEAU:
-      return EASTHAVEN_TABLEAU_RULE;
-    case EasthavenRole.FOUNDATION:
-      return EASTHAVEN_FOUNDATION_RULE;
-    default:
-      return null;
-  }
-}

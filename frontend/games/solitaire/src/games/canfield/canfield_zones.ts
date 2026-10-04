@@ -21,7 +21,7 @@ import {
   CanfieldRole,
   CanfieldVariant,
   canfieldRules,
-  canfieldTableauRule,
+  canfieldColumn,
 } from "./canfield_rules";
 
 /** The number of columns. */
@@ -54,8 +54,7 @@ export function freshStockPlaceholder(maxRecycles: number): string {
 export function canfieldZoneSpecs(
   variant: CanfieldVariant,
 ): readonly ZoneSpec[] {
-  const { adjacent, drawCount, maxRecycles, reserveFaceUp } =
-    canfieldRules(variant);
+  const { drawCount, maxRecycles, reserveFaceUp } = canfieldRules(variant);
 
   return [
     stockZone({
@@ -102,8 +101,7 @@ export function canfieldZoneSpecs(
       column: PILE_COLUMN_OFFSET,
       row: 1,
       role: CanfieldRole.TABLEAU,
-      accept: canfieldTableauRule(variant),
-      grab: { kind: "run", adjacent },
+      ...canfieldColumn(variant),
       layout: OPEN_COLUMN_LAYOUT,
       face: "always-up",
     }),

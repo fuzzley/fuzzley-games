@@ -72,10 +72,14 @@ does, stays a rule: rate it with a `DifficultyByRule` instead.
 
 ## 2. `<game>_rules.ts` — roles and what each pile accepts
 
-Two things: a `Role` const object naming the parts a pile can play, and a
-function mapping a role to a `PlacementRule` (or `null` for a pile that is never
-a destination — which is a different statement from "always refuses", and stops a
-drag offering the stock as a target).
+Two things: a `Role` const object naming the parts a pile can play, and the
+`PlacementRule` each destination pile plays by, as named constants or functions
+of the variant (`KLONDIKE_FOUNDATION_RULE`, `klondikeTableauRule(variant)`).
+The zones in step 3 name them directly. A pile that is never a destination
+gets `accept: null` there, which is a different statement from "always
+refuses", and stops a drag offering the stock as a target. Do not write a
+function mapping a role back to its rule: the zone already knows which rule it
+wants.
 
 Compose the rule from the vocabulary in `src/engine/tableau/rules.ts` rather than
 writing predicates by hand:
@@ -102,11 +106,19 @@ A rule that needs to see the rest of the board gets `context.board`
 (`BoardQuery`: `pile`, `pilesByRole`, `emptyCount`) — that is what FreeCell's
 `supermoveLimit` counts empty cells and columns with.
 
-**If the game has variants, put them in one table.** `freecell_rules.ts` and
-`forty_thieves_rules.ts` pair each variant's build rule with its grab adjacency
-in a single `Record`, deliberately: a run that can be lifted under one and not
-landed under the other is a bug that only appears mid-drag, and the pairing is
-what a reader has to be able to check at a glance.
+**Derive a column's build and lift from one adjacency.** When the runs a
+player may lift are the runs they may build, use `runColumn({ adjacent,
+whenEmpty, maxStack })` from `src/engine/tableau/zone.ts`, which returns the
+`accept` and `grab` together, and spread it into `columnRow` (Eight Off,
+Seahaven, Easthaven, Penguin, Canfield, FreeCell). A run that can be lifted
+under one rule and not landed under the other is a bug that only appears
+mid-drag. Spider, Spiderette and Simple Simon build on any suit but lift only
+same-suit runs, deliberately, so they name the two apart.
+
+**If the game has variants, put them in one table.** `freecell_rules.ts` keeps
+each variant's `runColumn` options in a single `Record`, and
+`forty_thieves_rules.ts` and `klondike_rules.ts` pair each build rule with its
+grab rule there, so a reader can check them at a glance.
 
 ---
 

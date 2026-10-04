@@ -132,5 +132,5 @@ export function pyramidZoneSpecs(passes: PyramidPasses): readonly ZoneSpec[] {
   return zones;
 }
 
-/** Re-exported: the roles live with the rules that branch on them. */
+/** Re-exported: the roles live with the rules that use them. */
 export { PyramidRole };

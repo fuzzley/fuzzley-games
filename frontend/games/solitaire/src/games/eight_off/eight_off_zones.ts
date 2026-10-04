@@ -1,8 +1,12 @@
-import { isSameSuitRun } from "@/engine/tableau/rules";
 import { ZoneSpec } from "@/engine/tableau/zone";
 import { OPEN_COLUMN_LAYOUT } from "../common/pile_layouts";
 import { cellRow, columnRow, foundationRow } from "../common/zone_presets";
-import { EightOffRole, eightOffPlacementRule } from "./eight_off_rules";
+import {
+  EightOffRole,
+  EIGHT_OFF_CELL_RULE,
+  EIGHT_OFF_FOUNDATION_RULE,
+  EIGHT_OFF_COLUMN,
+} from "./eight_off_rules";
 
 /** The number of free cells, which gives the game its name. */
 export const CELL_COUNT = 8;
@@ -38,26 +42,25 @@ const ZONES: readonly ZoneSpec[] = [
     column: 0,
     row: 0,
     role: EightOffRole.CELL,
-    accept: eightOffPlacementRule(EightOffRole.CELL),
+    accept: EIGHT_OFF_CELL_RULE,
   }),
   ...foundationRow({
     count: FOUNDATION_COUNT,
     column: CELL_COUNT,
     row: 0,
     role: EightOffRole.FOUNDATION,
-    accept: eightOffPlacementRule(EightOffRole.FOUNDATION),
+    accept: EIGHT_OFF_FOUNDATION_RULE,
   }),
   ...columnRow({
     count: TABLEAU_COUNT,
     column: TABLEAU_COLUMN_OFFSET,
     row: 1,
     role: EightOffRole.TABLEAU,
-    accept: eightOffPlacementRule(EightOffRole.TABLEAU),
-    grab: { kind: "run", adjacent: isSameSuitRun },
+    ...EIGHT_OFF_COLUMN,
     layout: OPEN_COLUMN_LAYOUT,
     face: "always-up",
   }),
 ];
 
-/** Re-exported: the roles live with the rules that branch on them. */
+/** Re-exported: the roles live with the rules that use them. */
 export { EightOffRole };

@@ -4,9 +4,9 @@ import {
   PlacementRule,
   baseRankFoundation,
   baseRankOf,
-  byEmptiness,
-  descendingSameSuitWrapping,
+  isSameSuitRunWrapping,
 } from "@/engine/tableau/rules";
+import { ColumnRules, runColumn } from "@/engine/tableau/zone";
 
 /** The parts a pile can play in a Penguin game. */
 export const PenguinRole = {
@@ -36,7 +36,7 @@ const PENGUIN_SPACE_RULE: PlacementRule = (context) => {
 };
 
 /** A column: builds down in suit, an Ace taking a King. */
-export const PENGUIN_TABLEAU_RULE: PlacementRule = byEmptiness(
-  PENGUIN_SPACE_RULE,
-  descendingSameSuitWrapping,
-);
+export const PENGUIN_COLUMN: ColumnRules = runColumn({
+  adjacent: isSameSuitRunWrapping,
+  whenEmpty: PENGUIN_SPACE_RULE,
+});

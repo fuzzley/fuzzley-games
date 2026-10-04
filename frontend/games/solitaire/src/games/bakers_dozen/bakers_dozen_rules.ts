@@ -33,15 +33,3 @@ export const BAKERS_DOZEN_TABLEAU_RULE: PlacementRule = byEmptiness(
 
 /** A Baker's Dozen foundation: the standard Ace-up-by-suit pile. */
 export const BAKERS_DOZEN_FOUNDATION_RULE: PlacementRule = suitFoundation;
-
-/** Returns what a pile of a role accepts, or null for an unknown role. */
-export function bakersDozenPlacementRule(role: string): PlacementRule | null {
-  switch (role) {
-    case BakersDozenRole.TABLEAU:
-      return BAKERS_DOZEN_TABLEAU_RULE;
-    case BakersDozenRole.FOUNDATION:
-      return BAKERS_DOZEN_FOUNDATION_RULE;
-    default:
-      return null;
-  }
-}

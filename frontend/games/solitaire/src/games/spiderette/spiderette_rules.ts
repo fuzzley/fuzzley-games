@@ -51,16 +51,3 @@ export const SPIDERETTE_TABLEAU_RULE: PlacementRule = byEmptiness(
   anyCard,
   descendingAnySuit,
 );
-
-/**
- * Returns what a pile of a role accepts, or null for the stock and the
- * foundations, where a player never puts a card.
- */
-export function spiderettePlacementRule(role: string): PlacementRule | null {
-  switch (role) {
-    case SpideretteRole.TABLEAU:
-      return SPIDERETTE_TABLEAU_RULE;
-    default:
-      return null;
-  }
-}
