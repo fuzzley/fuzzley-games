@@ -1,7 +1,7 @@
 import { InjectionToken } from "@angular/core";
 import { YukonVariant } from "@/games/yukon/yukon_rules";
 import { GameDocumentation } from "../model/game_documentation.model";
-import { GameId } from "./game_catalog";
+import { GameId, storedValue } from "./game_catalog";
 
 /**
  * Maps a game id to its documentation, as a consumer receives it.
@@ -270,22 +270,22 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         optionId: "variant",
         choicesExplanation: [
           {
-            value: YukonVariant.YUKON,
+            value: storedValue("yukon", "variant", YukonVariant.YUKON),
             effect:
               "Standard game. Tableau columns build down in alternating colors.",
           },
           {
-            value: YukonVariant.ALASKA,
+            value: storedValue("yukon", "variant", YukonVariant.ALASKA),
             effect:
               "Gentler suit variant. Tableau columns build either UP or DOWN in the SAME SUIT.",
           },
           {
-            value: YukonVariant.RUSSIAN,
+            value: storedValue("yukon", "variant", YukonVariant.RUSSIAN),
             effect:
               "Hardest variant. Tableau columns build DOWN in the SAME SUIT.",
           },
           {
-            value: YukonVariant.MOOSEHIDE,
+            value: storedValue("yukon", "variant", YukonVariant.MOOSEHIDE),
             effect:
               "Moosehide: tableau columns build DOWN in any suit except the card's own — Thumb and Pouch's rule on Yukon's deal, and looser than alternating colours.",
           },

@@ -1,15 +1,20 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { AppliedMove, CardTransfer, relocatedCardIds } from "./move";
+import {
+  AppliedMove,
+  AppliedMoveKind,
+  CardTransfer,
+  relocatedCardIds,
+} from "./move";
 
 /** Gives a history what it needs of the board to put an action back. */
 export interface HistoryBoard {
-  /** Returns the pile with the given id, or undefined. */
-  getPileById(pileId: string): CardPile<PlayingCard> | undefined;
   /** Returns the card with the given id, or undefined. */
   getCardById(cardId: string): PlayingCard | undefined;
   /** Every pile on the board, in declaration order. */
-  readonly piles: readonly CardPile<PlayingCard>[];
+  readonly piles: readonly ReadonlyCardPile<PlayingCard>[];
+  /** Puts back what a transfer moved, as it lay before. */
+  reverse(transfer: CardTransfer): void;
 }
 
 /**
@@ -26,6 +31,9 @@ export class MoveHistory {
   /** The applied actions, oldest first, that {@link takeBack} unwinds. */
   private readonly applied: AppliedMove[] = [];
 
+  /** How many of the applied actions are of each kind. */
+  private readonly counts = new Map<AppliedMoveKind, number>();
+
   /** Followers of the cards each action relocates. */
   private readonly listeners = new Set<RelocationListener>();
 
@@ -41,23 +49,33 @@ export class MoveHistory {
     return this.applied.length > 0;
   }
 
+  /**
+   * Returns how many of the actions that can still be taken back are of a
+   * kind, such as how many recycles a game has spent.
+   */
+  count(kind: AppliedMoveKind): number {
+    return this.counts.get(kind) ?? 0;
+  }
+
   /** Appends an applied action and announces the cards it relocated. */
   record(move: AppliedMove): void {
     this.applied.push(move);
+    this.tally(move.kind, 1);
     this.announce(move);
   }
 
   /**
-   * Reverses the most recent action's piles and face-up states, and returns
-   * the action, or null if there is none.
+   * Reverses the most recent action's piles and face-up states, announces the
+   * cards it put back, and returns the action, or null if there is none.
    *
-   * Leaves the score, the move count and {@link announce} to the caller.
+   * Leaves the score to the caller.
    */
   takeBack(): AppliedMove | null {
     const last = this.applied.pop();
     if (!last) {
       return null;
     }
+    this.tally(last.kind, -1);
 
     // Turn exposed cards back down first: they are still in the piles the cards
     // are about to be put back on top of.
@@ -71,15 +89,11 @@ export class MoveHistory {
     // Reverse order, so a consequence is undone before its cause: a run that
     // left for a foundation comes back before the move that completed it.
     for (const transfer of [...last.transfers].reverse()) {
-      this.reverseTransfer(transfer);
+      this.board.reverse(transfer);
     }
 
+    this.announce(last);
     return last;
-  }
-
-  /** Drops the whole history, for a new deal that nothing before it precedes. */
-  clear(): void {
-    this.applied.length = 0;
   }
 
   /** Returns the applied actions, oldest first. */
@@ -90,7 +104,11 @@ export class MoveHistory {
   /** Replaces the history with the given actions, oldest first. */
   load(moves: readonly AppliedMove[]): void {
     this.applied.length = 0;
-    this.applied.push(...moves);
+    this.counts.clear();
+    for (const move of moves) {
+      this.applied.push(move);
+      this.tally(move.kind, 1);
+    }
   }
 
   /**
@@ -103,7 +121,7 @@ export class MoveHistory {
   }
 
   /** Tells the listeners which cards an action relocated, if it relocated any. */
-  announce(move: AppliedMove): void {
+  private announce(move: AppliedMove): void {
     const order = this.boardOrder();
     const cardIds = relocatedCardIds(move, (cardId) => order.get(cardId) ?? -1);
     if (cardIds.length === 0) return;
@@ -115,21 +133,9 @@ export class MoveHistory {
     }
   }
 
-  /** Puts one transfer's cards back where they came from. */
-  private reverseTransfer(transfer: CardTransfer): void {
-    const fromPile = this.board.getPileById(transfer.fromPileId);
-    const toPile = this.board.getPileById(transfer.toPileId);
-    if (!fromPile || !toPile) return;
-
-    // cardIds are in source order, so re-appending in that order restores the
-    // pile exactly, whichever way the action itself moved them.
-    for (const cardId of transfer.cardIds) {
-      const card = this.board.getCardById(cardId);
-      if (!card) continue;
-      toPile.removeCard(card);
-      card.faceUp = transfer.faceUpBefore;
-      fromPile.addCard(card);
-    }
+  /** Adds `change` to the count of actions of a kind. */
+  private tally(kind: AppliedMoveKind, change: number): void {
+    this.counts.set(kind, this.count(kind) + change);
   }
 
   /**

@@ -20,17 +20,12 @@ export const SimpleSimonRole = {
 export type SimpleSimonRole =
   (typeof SimpleSimonRole)[keyof typeof SimpleSimonRole];
 
-/**
- * Which board Simple Simon's rules are played on.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which board Simple Simon's rules are played on. */
 export const SimpleSimonVariant = {
   /** Simple Simon: one deck in a staircase of ten columns. */
-  SIMPLE_SIMON: 0,
+  SIMPLE_SIMON: "simple-simon",
   /** Mrs. Mop: two decks in thirteen columns of eight. */
-  MRS_MOP: 1,
+  MRS_MOP: "mrs-mop",
 } as const;
 
 /** Names one of the boards Simple Simon's rules are played on. */
@@ -105,16 +100,3 @@ export const SIMPLE_SIMON_TABLEAU_RULE: PlacementRule = byEmptiness(
   anyCard,
   descendingAnySuit,
 );
-
-/**
- * Returns what a pile of a role accepts, or null for a foundation, where a
- * player never puts a card.
- */
-export function simpleSimonPlacementRule(role: string): PlacementRule | null {
-  switch (role) {
-    case SimpleSimonRole.TABLEAU:
-      return SIMPLE_SIMON_TABLEAU_RULE;
-    default:
-      return null;
-  }
-}

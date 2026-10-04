@@ -10,7 +10,8 @@ import {
 } from "../common/zone_presets";
 import {
   DoubleKlondikeRole,
-  doubleKlondikePlacementRule,
+  DOUBLE_KLONDIKE_FOUNDATION_RULE,
+  DOUBLE_KLONDIKE_TABLEAU_RULE,
 } from "./double_klondike_rules";
 
 /** The number of tableau columns. */
@@ -55,7 +56,7 @@ const ZONES: readonly ZoneSpec[] = [
     role: DoubleKlondikeRole.STOCK,
     column: 0,
     row: 0,
-    accept: doubleKlondikePlacementRule(DoubleKlondikeRole.STOCK),
+    accept: null,
     backgroundKey: RECYCLING_STOCK_PLACEHOLDER,
     // Clicking the empty slot recycles the waste, as in Klondike.
     emptyIsActionable: true,
@@ -65,7 +66,7 @@ const ZONES: readonly ZoneSpec[] = [
     role: DoubleKlondikeRole.WASTE,
     column: 1,
     row: 0,
-    accept: doubleKlondikePlacementRule(DoubleKlondikeRole.WASTE),
+    accept: null,
     layout: wasteFanLayout(3),
   }),
   ...foundationRow({
@@ -73,18 +74,18 @@ const ZONES: readonly ZoneSpec[] = [
     column: FOUNDATION_COLUMN_OFFSET,
     row: 0,
     role: DoubleKlondikeRole.FOUNDATION,
-    accept: doubleKlondikePlacementRule(DoubleKlondikeRole.FOUNDATION),
+    accept: DOUBLE_KLONDIKE_FOUNDATION_RULE,
   }),
   ...columnRow({
     count: TABLEAU_COUNT,
     column: TABLEAU_COLUMN_OFFSET,
     row: 1,
     role: DoubleKlondikeRole.TABLEAU,
-    accept: doubleKlondikePlacementRule(DoubleKlondikeRole.TABLEAU),
+    accept: DOUBLE_KLONDIKE_TABLEAU_RULE,
     // Klondike's deliberately lax rule, so the two play alike.
     grab: { kind: "any-face-up" },
   }),
 ];
 
-/** Re-exported: the roles live with the rules that branch on them. */
+/** Re-exported: the roles live with the rules that use them. */
 export { DoubleKlondikeRole };

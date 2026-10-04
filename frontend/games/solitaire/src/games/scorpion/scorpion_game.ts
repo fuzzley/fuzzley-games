@@ -1,9 +1,8 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { runCollectingEffects } from "@/games/common/move_effects";
 import { dealRowCollectingRuns } from "@/games/common/row_deal";
@@ -19,6 +18,7 @@ import {
   ScorpionVariant,
   scorpionZoneSpecs,
 } from "./scorpion_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /** How many columns the stock deals onto: the first three, one card each. */
 export const STOCK_DEAL_COLUMN_COUNT = 3;
@@ -36,11 +36,11 @@ export interface ScorpionOptions extends DeckOptions {
  */
 export class ScorpionGame extends DealtTableGame {
   /** The three-card pile that deals itself out in one press. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The four piles completed runs go to. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The seven columns. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Which of the family is being played. */
   public readonly variant: ScorpionVariant;
@@ -48,12 +48,12 @@ export class ScorpionGame extends DealtTableGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     variant = DEFAULT_SCORPION_VARIANT,
   }: ScorpionOptions = {}) {
     super({
       zones: scorpionZoneSpecs(variant),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // Only a column will take a card; a foundation is never a destination a
       // player can choose.
       autoMoveRoles: [ScorpionRole.TABLEAU],
@@ -67,9 +67,9 @@ export class ScorpionGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
+  protected override dealBoard(deal: Deal): void {
     dealScorpionLayout(
-      deck,
+      deal,
       this.tableaus,
       this.stock,
       scorpionHiddenColumnCount(this.variant),
@@ -98,12 +98,13 @@ export class ScorpionGame extends DealtTableGame {
     }
 
     const dealt = dealRowCollectingRuns(
+      this.tabletop,
       this.stock,
       this.tableaus.slice(0, STOCK_DEAL_COLUMN_COUNT),
       this.tableaus,
       this.foundations,
     );
-    this.commitAction("deal", dealt.transfers, {
+    this.commitAction(ActionKind.DEAL, dealt.transfers, {
       flippedCardIds: dealt.flippedCardIds,
     });
     return true;
@@ -114,6 +115,7 @@ export class ScorpionGame extends DealtTableGame {
   /** @inheritDoc */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
     return runCollectingEffects(
+      this.tabletop,
       move,
       ScorpionRole.TABLEAU,
       this.tableaus,

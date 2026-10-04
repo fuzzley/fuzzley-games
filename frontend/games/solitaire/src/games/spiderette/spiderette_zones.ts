@@ -7,7 +7,7 @@ import {
   foundationRow,
   stockZone,
 } from "../common/zone_presets";
-import { SpideretteRole, spiderettePlacementRule } from "./spiderette_rules";
+import { SpideretteRole, SPIDERETTE_TABLEAU_RULE } from "./spiderette_rules";
 
 /** The number of tableau columns. */
 export const TABLEAU_COUNT = 7;
@@ -31,7 +31,7 @@ const ZONES: readonly ZoneSpec[] = [
     role: SpideretteRole.STOCK,
     column: 0,
     row: 0,
-    accept: spiderettePlacementRule(SpideretteRole.STOCK),
+    accept: null,
     backgroundKey: CLOSED_STOCK_PLACEHOLDER,
   }),
   ...foundationRow({
@@ -40,7 +40,7 @@ const ZONES: readonly ZoneSpec[] = [
     row: 0,
     role: SpideretteRole.FOUNDATION,
     // Never a drop target: a run arrives here by completing itself.
-    accept: spiderettePlacementRule(SpideretteRole.FOUNDATION),
+    accept: null,
     grab: { kind: "none" },
     draggable: false,
   }),
@@ -49,10 +49,10 @@ const ZONES: readonly ZoneSpec[] = [
     column: 0,
     row: 1,
     role: SpideretteRole.TABLEAU,
-    accept: spiderettePlacementRule(SpideretteRole.TABLEAU),
+    accept: SPIDERETTE_TABLEAU_RULE,
     grab: { kind: "run", adjacent: isSameSuitRun },
   }),
 ];
 
-/** Re-exported: the roles live with the rules that branch on them. */
+/** Re-exported: the roles live with the rules that use them. */
 export { SpideretteRole };

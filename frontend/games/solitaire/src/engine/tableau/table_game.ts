@@ -1,25 +1,23 @@
-import {
-  CardLocations,
-  CardPile,
-  PileRole,
-} from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { EventEmitter } from "@/engine/core/common/event_emitter";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { AppliedMove, AppliedMoveKind, CardTransfer } from "./move";
+import { AppliedMove, AppliedMoveKind, CardTransfer, MOVE_KIND } from "./move";
 import { MoveHistory, RelocationListener } from "./move_history";
-import { GameState } from "./game_state";
+import { GameState, ReadableGameState } from "./game_state";
 import { BoardQuery } from "./rules";
-import { ZoneSpec, canGrab, hasRoomFor } from "./zone";
+import { Tabletop } from "./tabletop";
+import { ZoneRules, ZoneSpec, canGrab, hasRoomFor } from "./zone";
+import { TableView } from "./view/table_view";
 
 /** Describes a move that has passed the rules: its cards and where they go. */
 export interface ResolvedMove {
   /** The card being moved plus everything stacked on it, bottom-first. */
   readonly movingStack: readonly PlayingCard[];
   /** The pile the stack is leaving. */
-  readonly sourcePile: CardPile<PlayingCard>;
+  readonly sourcePile: ReadonlyCardPile<PlayingCard>;
   /** The pile the stack is joining. */
-  readonly targetPile: CardPile<PlayingCard>;
+  readonly targetPile: ReadonlyCardPile<PlayingCard>;
 }
 
 /**
@@ -36,6 +34,17 @@ export interface MoveEffects {
    * Spider run, so one undo takes them back with it.
    */
   readonly followUpTransfers?: readonly CardTransfer[];
+}
+
+/**
+ * Describes what a marked pile's slot shows now, and whether pressing it while
+ * empty does anything, such as a stock that counts its recycles.
+ */
+export interface PileMarker {
+  /** The artwork the pile's placeholder shows. */
+  readonly artwork: string;
+  /** Whether pressing the empty slot does something now. */
+  readonly actionable: boolean;
 }
 
 /** A move that changed nothing but the position of its cards. */
@@ -79,90 +88,79 @@ export interface TableGameOptions {
  */
 export abstract class TableGame<
   EventMap extends Record<string, unknown> & TableGameEvents = TableGameEvents,
-> extends EventEmitter<EventMap> {
-  /** Observable live game metrics (score, moves, undo depth). */
-  public readonly state = new GameState();
+>
+  extends EventEmitter<EventMap>
+  implements TableView
+{
+  /** The live metrics, which only {@link syncMetrics} writes. */
+  private readonly metrics = new GameState();
 
-  /** Where each card currently is, kept up to date by the piles themselves. */
-  private readonly locations = new CardLocations<PlayingCard>();
+  /** Live game metrics (score, moves, undo depth), for reading and following. */
+  public readonly state: ReadableGameState = this.metrics;
 
-  private readonly pilesMap = new Map<string, CardPile<PlayingCard>>();
-  private readonly pilesByRoleMap = new Map<
-    PileRole,
-    CardPile<PlayingCard>[]
-  >();
-
-  /** Each pile's zone, by pile id. */
-  private readonly zonesById: ReadonlyMap<string, ZoneSpec>;
+  /**
+   * The piles and where every card is, and the only way a game changes them:
+   * through `relocate` and `rearrange` for what undo takes back, and
+   * `place` for a deal.
+   */
+  protected readonly tabletop: Tabletop;
 
   /** The applied actions {@link undo} unwinds, and who is following them. */
-  private readonly history: MoveHistory = new MoveHistory(this);
+  private readonly history: MoveHistory;
 
-  private readonly registry: CardRegistry;
+  /** What each marked pile's slot shows, by pile id. */
+  private readonly markers = new Map<string, () => PileMarker>();
+
   private readonly autoMoveRoles: readonly PileRole[];
   private readonly winningRole?: PileRole;
 
   /** Every pile on the board, in the order the zones declared them. */
-  public readonly piles: readonly CardPile<PlayingCard>[];
+  public readonly piles: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Every pile a dragged stack may be dropped onto, in declaration order. */
-  public readonly dropTargetPiles: readonly CardPile<PlayingCard>[];
+  public readonly dropTargetPiles: readonly ReadonlyCardPile<PlayingCard>[];
+
+  /** The read-only view of the board handed to placement rules. */
+  public readonly board: BoardQuery;
 
   constructor(options: TableGameOptions) {
     super();
-    this.registry = options.registry;
     this.autoMoveRoles = options.autoMoveRoles;
     this.winningRole = options.winsWhenAllCardsIn;
-
-    const { zones } = options;
-    for (const zone of zones) {
-      const pile = new CardPile<PlayingCard>(
-        zone.id,
-        zone.role,
-        this.locations,
-      );
-      this.pilesMap.set(pile.id, pile);
-      const byRole = this.pilesByRoleMap.get(zone.role) ?? [];
-      byRole.push(pile);
-      this.pilesByRoleMap.set(zone.role, byRole);
-    }
-
-    this.zonesById = new Map(zones.map((zone) => [zone.id, zone]));
-    this.piles = [...this.pilesMap.values()];
-    this.dropTargetPiles = zones
-      .filter((zone) => zone.accept !== null)
-      .map((zone) => this.requirePile(zone.id));
+    this.tabletop = new Tabletop(options.zones, options.registry);
+    this.history = new MoveHistory(this.tabletop);
+    this.piles = this.tabletop.piles;
+    this.dropTargetPiles = this.tabletop.dropTargetPiles;
+    this.board = this.tabletop;
   }
 
   // --- The board ---
 
   /** Returns every pile playing the given part, in declaration order. */
-  public pilesOfRole(role: PileRole): readonly CardPile<PlayingCard>[] {
-    return this.pilesByRoleMap.get(role) ?? [];
+  public pilesOfRole(role: PileRole): readonly ReadonlyCardPile<PlayingCard>[] {
+    return this.tabletop.pilesByRole(role);
   }
 
   /** Returns the pile with the given id, or undefined. */
-  public getPileById(pileId: string): CardPile<PlayingCard> | undefined {
-    return this.pilesMap.get(pileId);
+  public getPileById(
+    pileId: string,
+  ): ReadonlyCardPile<PlayingCard> | undefined {
+    return this.tabletop.pile(pileId);
   }
 
   /** Returns the pile with the given id, throwing if no zone declares it. */
-  protected requirePile(pileId: string): CardPile<PlayingCard> {
-    const pile = this.pilesMap.get(pileId);
-    if (!pile) {
-      throw new Error(`No zone declares a pile with id: ${pileId}`);
-    }
-    return pile;
+  protected requirePile(pileId: string): ReadonlyCardPile<PlayingCard> {
+    return this.tabletop.requirePile(pileId);
   }
 
   /** Returns the card with the given id, or undefined if never registered. */
   public getCardById(cardId: string): PlayingCard | undefined {
-    return this.registry.get(cardId);
+    return this.tabletop.getCardById(cardId);
   }
 
   /** The id of every card in play, which a renderer should make sprites for. */
   public get cardIds(): readonly string[] {
-    return this.registry.ids();
+    return this.tabletop.cardIds;
   }
 
   /**
@@ -170,34 +168,29 @@ export abstract class TableGame<
    * against rather than 52.
    */
   public get cardsInPlay(): number {
-    return this.registry.size;
+    return this.tabletop.cardsInPlay;
   }
 
   /** Finds which pile contains a given card. */
   public getPileContainingCard(
     cardId: string,
-  ): CardPile<PlayingCard> | undefined {
-    return this.locations.get(cardId);
+  ): ReadonlyCardPile<PlayingCard> | undefined {
+    return this.tabletop.pileHolding(cardId);
   }
 
   /** Returns the zone describing the given pile, or undefined if unknown. */
   public zoneFor(pileId: string): ZoneSpec | undefined {
-    return this.zonesById.get(pileId);
+    return this.tabletop.zoneFor(pileId);
   }
 
-  /** The read-only view of the board handed to placement rules. */
-  public readonly board: BoardQuery = {
-    pile: (pileId) => this.getPileById(pileId),
-    pilesByRole: (role) => this.pilesOfRole(role),
-    emptyCount: (role) =>
-      this.pilesOfRole(role).filter((pile) => pile.isEmpty).length,
-  };
+  /** Returns how the given pile plays, or undefined for an unknown pile. */
+  private rulesFor(pileId: string): ZoneRules | undefined {
+    return this.tabletop.zoneFor(pileId);
+  }
 
   /** Empties every pile, keeping the registry so sprites keep their cards. */
   protected resetPiles(): void {
-    for (const pile of this.pilesMap.values()) {
-      pile.clear();
-    }
+    this.tabletop.clear();
   }
 
   // --- Moves ---
@@ -221,13 +214,13 @@ export abstract class TableGame<
     const card = this.getCardById(cardId);
     const targetPile = this.getPileById(targetPileId);
     const sourcePile = this.getPileContainingCard(cardId);
-    const targetZone = this.zoneFor(targetPileId);
+    const targetRules = this.rulesFor(targetPileId);
 
     if (
       !card ||
       !targetPile ||
       !sourcePile ||
-      !targetZone?.accept ||
+      !targetRules?.accept ||
       sourcePile.id === targetPileId
     ) {
       return null;
@@ -239,10 +232,10 @@ export abstract class TableGame<
       return null;
     }
 
-    const sourceZone = this.zoneFor(sourcePile.id);
+    const sourceRules = this.rulesFor(sourcePile.id);
     if (
-      !sourceZone ||
-      !canGrab(sourceZone.grab, card, sourcePile, this.board)
+      !sourceRules ||
+      !canGrab(sourceRules.grab, card, sourcePile, this.board)
     ) {
       return null;
     }
@@ -252,11 +245,11 @@ export abstract class TableGame<
     const sourceCards = sourcePile.getCards();
     const movingStack = sourceCards.slice(sourceCards.indexOf(card));
 
-    if (!hasRoomFor(targetZone, targetPile, movingStack.length)) {
+    if (!hasRoomFor(targetRules, targetPile, movingStack.length)) {
       return null;
     }
 
-    const accepted = targetZone.accept({
+    const accepted = targetRules.accept({
       card,
       movingStack,
       sourcePile,
@@ -276,23 +269,11 @@ export abstract class TableGame<
       return false;
     }
 
-    for (const movingCard of move.movingStack) {
-      move.sourcePile.removeCard(movingCard);
-      move.targetPile.addCard(movingCard);
-    }
-
+    const moved = this.tabletop.relocate(move.movingStack, move.targetPile);
     const effects = this.applyMoveEffects(move);
     this.commit({
-      kind: "move",
-      transfers: [
-        {
-          cardIds: move.movingStack.map((card) => card.id),
-          fromPileId: move.sourcePile.id,
-          toPileId: move.targetPile.id,
-          faceUpBefore: true,
-        },
-        ...(effects.followUpTransfers ?? []),
-      ],
+      kind: MOVE_KIND,
+      transfers: [moved, ...(effects.followUpTransfers ?? [])],
       scoreDelta: effects.scoreDelta,
       flippedCardIds: effects.flippedCardIds,
     });
@@ -359,29 +340,25 @@ export abstract class TableGame<
    */
   public undo(): boolean {
     const last = this.history.takeBack();
-    this.state.undoDepth = this.history.depth;
     if (!last) {
       return false;
     }
 
     // Not clamped: the delta is what the action applied, after any floor the
     // game keeps, and some games' scores run below zero.
-    this.state.score -= last.scoreDelta;
-    this.state.moves--;
-    this.afterUndo(last);
-    // Announced after the hook, so the game has finished adjusting before a
-    // view hears the cards moved.
-    this.history.announce(last);
-
+    this.syncMetrics(this.state.score - last.scoreDelta);
     return true;
   }
 
   /**
-   * Reverses side effects the game keeps outside the history, such as
-   * Klondike's recycle count, once an action is taken back.
+   * Returns how many actions of a kind the history holds, such as the recycles
+   * a game has spent.
+   *
+   * Read from the history rather than counted alongside it, so undo, a restart
+   * and a restore all keep it right with nothing to save or take back.
    */
-  protected afterUndo(move: AppliedMove): void {
-    void move;
+  protected timesApplied(kind: AppliedMoveKind): number {
+    return this.history.count(kind);
   }
 
   /** Whether there is an action {@link undo} can take back. */
@@ -390,13 +367,13 @@ export abstract class TableGame<
   }
 
   /**
-   * Counts an applied action as one move, records it for undo, announces the
-   * cards it relocated, and announces the win if it brought one about.
+   * Records an applied action for undo, which also counts it as a move,
+   * announces the cards it relocated, applies its score change, and announces
+   * the win if it brought one about.
    */
   private commit(move: AppliedMove): void {
-    this.state.moves++;
     this.history.record(move);
-    this.state.undoDepth = this.history.depth;
+    this.syncMetrics(this.state.score + move.scoreDelta);
     if (this.isWon()) {
       this.emit("game-won", undefined);
     }
@@ -415,7 +392,8 @@ export abstract class TableGame<
    * draw, a recycle or a dealt row, as one move that undo can take back.
    *
    * Fold anything the action caused, such as a run it completed, into the same
-   * call, so one undo takes the whole action back.
+   * call, so one undo takes the whole action back. The engine applies the
+   * score change; a game reports it here rather than writing the score.
    *
    * @param transfers The runs relocated, in the order they were relocated.
    */
@@ -435,21 +413,27 @@ export abstract class TableGame<
     });
   }
 
-  /** Drops the whole history, for a new deal that nothing before it precedes. */
-  protected clearHistory(): void {
-    this.history.clear();
-    this.state.undoDepth = 0;
-  }
-
   /** The actions {@link undo} can take back, oldest first. */
   protected get appliedHistory(): readonly AppliedMove[] {
     return this.history.entries();
   }
 
-  /** Replaces the actions {@link undo} can take back, oldest first. */
-  protected replaceHistory(moves: readonly AppliedMove[]): void {
+  /**
+   * Replaces the actions {@link undo} can take back, oldest first, and the
+   * score they leave, as a new deal or a restore does.
+   */
+  protected resetHistory(moves: readonly AppliedMove[], score: number): void {
     this.history.load(moves);
-    this.state.undoDepth = this.history.depth;
+    this.syncMetrics(score);
+  }
+
+  /**
+   * Publishes the score, and the move count and undo depth, both of which are
+   * the length of the history.
+   */
+  private syncMetrics(score: number): void {
+    const depth = this.history.depth;
+    this.metrics.update({ score, moves: depth, undoDepth: depth });
   }
 
   // --- Interaction ---
@@ -466,10 +450,10 @@ export abstract class TableGame<
    */
   public isCardInteractableInPile(
     card: PlayingCard,
-    pile: CardPile<PlayingCard>,
+    pile: ReadonlyCardPile<PlayingCard>,
   ): boolean {
-    const zone = this.zoneFor(pile.id);
-    return zone ? canGrab(zone.grab, card, pile, this.board) : false;
+    const rules = this.rulesFor(pile.id);
+    return rules ? canGrab(rules.grab, card, pile, this.board) : false;
   }
 
   /** Returns whether the card can currently be dragged. */
@@ -484,33 +468,52 @@ export abstract class TableGame<
    */
   public isCardDraggableInPile(
     card: PlayingCard,
-    pile: CardPile<PlayingCard>,
+    pile: ReadonlyCardPile<PlayingCard>,
   ): boolean {
-    const zone = this.zoneFor(pile.id);
-    return zone?.draggable ? canGrab(zone.grab, card, pile, this.board) : false;
+    const rules = this.rulesFor(pile.id);
+    return rules?.draggable
+      ? canGrab(rules.grab, card, pile, this.board)
+      : false;
   }
 
   /**
-   * Returns the artwork the pile's placeholder shows now, which by default is
-   * the one its zone declares.
+   * Makes a pile's slot show the game's state, such as how many recycles or
+   * redeals are left, and stop looking pressable once a press would do nothing.
    *
-   * A game overrides this to show its state on the table, such as how many
-   * redeals are left. The artwork may change, but whether a pile has any may
-   * not: the board makes a placeholder only for the piles that have one when it
-   * is built.
+   * The view asks `marker` every frame, for both the artwork and whether the
+   * empty slot is pressable. Give the pile's zone a `backgroundKey` and
+   * `emptyIsActionable` for how it starts: the board makes a placeholder, and
+   * a pressable one, only for the piles whose zones have them when it is built.
    */
-  public pileBackgroundKey(pile: CardPile<PlayingCard>): string | undefined {
-    return this.zoneFor(pile.id)?.backgroundKey;
+  protected markPile(
+    pile: ReadonlyCardPile<PlayingCard>,
+    marker: () => PileMarker,
+  ): void {
+    this.markers.set(pile.id, marker);
   }
 
   /**
-   * Returns whether pressing the pile's empty slot does something now, which
-   * by default is whenever its zone says an empty slot is actionable.
-   *
-   * A game overrides this so a slot whose press would do nothing, such as a
-   * stock with nothing left to recycle, stops looking pressable.
+   * Returns the artwork the pile's placeholder shows now: its marker's, or
+   * else the one its zone declares.
    */
-  public isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
-    return pile.isEmpty && (this.zoneFor(pile.id)?.emptyIsActionable ?? false);
+  public pileBackgroundKey(
+    pile: ReadonlyCardPile<PlayingCard>,
+  ): string | undefined {
+    return (
+      this.markers.get(pile.id)?.().artwork ??
+      this.zoneFor(pile.id)?.backgroundKey
+    );
+  }
+
+  /**
+   * Returns whether pressing the pile's empty slot does something now, as its
+   * marker says, or else as its zone does.
+   */
+  public isEmptySlotActionable(pile: ReadonlyCardPile<PlayingCard>): boolean {
+    if (!pile.isEmpty) return false;
+    const marker = this.markers.get(pile.id);
+    return marker
+      ? marker().actionable
+      : (this.zoneFor(pile.id)?.emptyIsActionable ?? false);
   }
 }

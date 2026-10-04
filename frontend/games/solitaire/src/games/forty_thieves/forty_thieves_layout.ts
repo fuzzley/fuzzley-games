@@ -12,9 +12,9 @@ function fortyThievesLayout(variant: FortyThievesVariant): TableLayoutSpec {
     columns: boardColumnCount(variant),
     rows: 2,
     zones: fortyThievesZoneSpecs(variant),
-    // A fourteen-card column reaches about 1364 from the top of the board, and
+    // A fourteen-card column reaches about 1291 from the top of the board, and
     // at ten columns or wider this height costs no card size.
-    designHeightPx: 1400,
+    designHeightPx: 1327,
   });
 }
 

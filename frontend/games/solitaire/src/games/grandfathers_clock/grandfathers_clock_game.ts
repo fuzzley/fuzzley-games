@@ -1,9 +1,8 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { DeckOptions } from "@/games/common/deck_options";
 import { dealGrandfathersClockLayout } from "./grandfathers_clock_deal";
 import {
@@ -18,17 +17,14 @@ import {
  */
 export class GrandfathersClockGame extends DealtTableGame {
   /** The eight columns. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Creates a game whose piles are empty until the first deal. */
-  constructor({
-    cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
-  }: DeckOptions = {}) {
+  constructor({ cardIds = ALL_PLAYING_CARD_IDS, random }: DeckOptions = {}) {
     super({
       zones: grandfathersClockZoneSpecs(),
       // Dealt face up: the whole position is visible from the first move.
-      deck: new DeckSource(new CardRegistry(), cardIds, random, true),
+      deck: { cardIds, random, dealsFaceUp: true },
       // A card fits at most one foundation, so auto-moving it guesses nothing.
       autoMoveRoles: [ClockRole.FOUNDATION],
       winsWhenAllCardsIn: ClockRole.FOUNDATION,
@@ -38,14 +34,14 @@ export class GrandfathersClockGame extends DealtTableGame {
   }
 
   /** Returns the foundation standing at an hour, one to twelve. */
-  public foundationAt(hour: number): CardPile<PlayingCard> {
+  public foundationAt(hour: number): ReadonlyCardPile<PlayingCard> {
     return this.requirePile(hourPileId(hour));
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
+  protected override dealBoard(deal: Deal): void {
     dealGrandfathersClockLayout(
-      deck,
+      deal,
       (hour) => this.foundationAt(hour),
       this.tableaus,
     );

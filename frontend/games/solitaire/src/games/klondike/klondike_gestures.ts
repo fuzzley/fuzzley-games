@@ -1,5 +1,5 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { drawOnStockTop, tableGestures } from "@/games/common/table_gestures";
+import { drawOnStockTop, tableGestures } from "@/engine/tableau/table_gestures";
 import { KlondikeRole } from "./klondike_zones";
 import { KlondikeFamilyGame } from "./klondike_family_game";
 

@@ -146,6 +146,25 @@ describe("PhaserHost", () => {
     return () => built;
   }
 
+  it("tells a board the inset its parent declares", () => {
+    const parent = document.createElement("div");
+    parent.style.setProperty("--board-inset-top", "40px");
+    const inset = new PhaserHost(window, parent, () => {
+      const created = new FakeGame(webgl);
+      games.push(created);
+      return created;
+    });
+    let insetTop: (() => number) | undefined;
+    inset.show((surroundings) => {
+      insetTop = surroundings.insetTop;
+      return makeBoard();
+    });
+
+    game().boot();
+
+    expect(insetTop?.()).toBe(40);
+  });
+
   describe("show", () => {
     it("starts one game however many boards it shows", () => {
       show();

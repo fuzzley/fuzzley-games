@@ -1,9 +1,8 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { DeckOptions } from "@/games/common/deck_options";
 import { discardPairEffects } from "@/games/common/pair_removal";
@@ -16,21 +15,18 @@ import { DISCARD_PILE_ID, NestorRole, nestorZoneSpecs } from "./nestor_zones";
  */
 export class NestorGame extends DealtTableGame {
   /** The eight columns. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
   /** The four reserve cards. */
-  public readonly reserves: readonly CardPile<PlayingCard>[];
+  public readonly reserves: readonly ReadonlyCardPile<PlayingCard>[];
   /** Where the pairs go. */
-  public readonly discard: CardPile<PlayingCard>;
+  public readonly discard: ReadonlyCardPile<PlayingCard>;
 
   /** Creates a game whose piles are empty until the first deal. */
-  constructor({
-    cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
-  }: DeckOptions = {}) {
+  constructor({ cardIds = ALL_PLAYING_CARD_IDS, random }: DeckOptions = {}) {
     super({
       zones: nestorZoneSpecs(),
       // Dealt face up: the whole position is visible from the first move.
-      deck: new DeckSource(new CardRegistry(), cardIds, random, true),
+      deck: { cardIds, random, dealsFaceUp: true },
       // A double press pairs a card with the first partner showing.
       autoMoveRoles: [NestorRole.TABLEAU, NestorRole.RESERVE],
       winsWhenAllCardsIn: NestorRole.DISCARD,
@@ -42,8 +38,8 @@ export class NestorGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealNestorLayout(deck, this.tableaus, this.reserves);
+  protected override dealBoard(deal: Deal): void {
+    dealNestorLayout(deal, this.tableaus, this.reserves);
   }
 
   /**
@@ -52,6 +48,6 @@ export class NestorGame extends DealtTableGame {
    * @inheritDoc
    */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
-    return discardPairEffects(move, this.discard);
+    return discardPairEffects(this.tabletop, move, this.discard);
   }
 }

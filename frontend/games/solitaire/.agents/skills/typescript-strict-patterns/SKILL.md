@@ -53,8 +53,8 @@ On `PlayingCard`, identity is fixed at construction (`id`, `suit`, `rank`,
 ## Moves Are Applied, Not Reduced
 
 The engine is **not** a reducer over an action union. `TableGame`
-(`src/engine/tableau/table_game.ts`) is an abstract class that mutates piles and
-records history:
+(`src/engine/tableau/table_game.ts`) is an abstract class that changes piles
+through its `Tabletop` (`src/engine/tableau/tabletop.ts`) and records history:
 
 - `canMoveCardToPile(cardId, targetPileId): boolean` — ask the rules.
 - `resolveMove(...)` → `ResolvedMove` (`movingStack`, `sourcePile`, `targetPile`).
@@ -64,6 +64,13 @@ records history:
   sending a completed run to a foundation). Recording those here rather than as
   a separate action is what makes one `undo()` take the whole thing back.
 - `undo()` reverses an `AppliedMove` off the history.
+- `tabletop.relocate(...)` and `tabletop.rearrange(...)` make every recorded
+  change of pile and return the `CardTransfer`s describing it, so the record
+  is produced by the change rather than written beside it.
+
+Piles are handed out as `ReadonlyCardPile` (`src/engine/core/card/card_pile.ts`)
+everywhere but inside `Tabletop`, the one owner of the changeable `CardPile`s,
+so nothing outside the engine can move a card without the history knowing.
 
 Where immutability lives here is in the **shape of these records** —
 `ResolvedMove` and `MoveEffects` are fully `readonly`, with `readonly

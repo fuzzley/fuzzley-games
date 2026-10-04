@@ -7,7 +7,7 @@ import {
   FOUNDATION_COUNT,
   TABLEAU_COUNT,
 } from "@/games/spiderette/spiderette_zones";
-import { emptyBoard, relocate } from "@test/support/game_scenarios";
+import { emptyBoard, relocate, clearPile } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
 
 /**
@@ -166,7 +166,7 @@ describe("SpideretteGame stock", () => {
 
   it("deals even when a column is empty, unlike Spider", () => {
     const game = newGame();
-    game.tableaus[0].clear();
+    clearPile(game.tableaus[0]);
 
     expect(game.dealRow()).toBe(true);
   });

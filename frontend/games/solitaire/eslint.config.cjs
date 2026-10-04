@@ -28,9 +28,13 @@ module.exports = tseslint.config(
   // Each tier may depend only on the ones below it:
   //
   //   games/*             rules, scoring, deal, layout, zones, gestures
+  //   engine/board        joins a table game to the Phaser board scene
   //     -> engine/tableau   solitaire-family runtime: zones, moves, undo, view
   //     -> engine/render    view contract, layout maths, input, Phaser adapter
   //     -> engine/core      cards, piles, decks, RNG
+  //
+  // Games and engine/board sit side by side: neither names the other, and the
+  // shell's provider folder is where a game meets its board.
   {
     // The bottom tier: card and pile mechanics, free of any framework.
     files: ["src/engine/core/**/*.ts"],
@@ -41,6 +45,7 @@ module.exports = tseslint.config(
           patterns: [
             {
               group: [
+                "@/engine/board/*",
                 "@/engine/render/*",
                 "@/engine/tableau/*",
                 "@/games/*",
@@ -71,6 +76,7 @@ module.exports = tseslint.config(
             {
               group: [
                 "phaser",
+                "@/engine/board/*",
                 "@/engine/render/phaser/*",
                 "@/engine/tableau/*",
                 "@/games/*",
@@ -99,6 +105,7 @@ module.exports = tseslint.config(
           patterns: [
             {
               group: [
+                "@/engine/board/*",
                 "@/engine/tableau/*",
                 "@/games/*",
                 "@/ui/*",
@@ -126,6 +133,7 @@ module.exports = tseslint.config(
             {
               group: [
                 "phaser",
+                "@/engine/board/*",
                 "@/engine/render/phaser/*",
                 "@/games/*",
                 "@/ui/*",
@@ -142,7 +150,28 @@ module.exports = tseslint.config(
     },
   },
   {
-    // Games sit at the top of the engine, but below the application shell.
+    // Joins the tableau runtime to the Phaser adapter, which no tier below may
+    // do, to build the board scene any table game is drawn on.
+    files: ["src/engine/board/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/games/*", "@/ui/*", "@angular/*", "rxjs", "rxjs/*"],
+              message:
+                "engine/board draws any table game: no game, no UI, no reactive library.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Games sit at the top of the engine, but below the application shell,
+    // and know nothing of the renderer: the board that draws them is built in
+    // engine/board.
     files: ["src/games/**/*.ts"],
     rules: {
       "@typescript-eslint/no-restricted-imports": [
@@ -153,6 +182,11 @@ module.exports = tseslint.config(
               group: ["@/ui/*", "@angular/*", "rxjs", "rxjs/*"],
               message:
                 "A game must not depend on the Angular shell that happens to host it, nor on a reactive library: a game publishes with the engine's own event emitter, and the shell adapts at its own boundary.",
+            },
+            {
+              group: ["phaser", "@/engine/render/phaser/*", "@/engine/board/*"],
+              message:
+                "A game is drawn by whatever board it is handed: engine/board builds the Phaser one, and the shell's provider joins the two.",
             },
           ],
         },

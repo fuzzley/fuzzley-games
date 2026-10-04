@@ -115,8 +115,12 @@ export class GameCanvasComponent {
       // effect's: a new deck would deal the game again.
       untracked(() => {
         this.host ??= new PhaserHost(window, parent);
-        this.host.show(() =>
-          makeBoardScene(gameId, game, this.presentation, onReady),
+        this.host.show(({ insetTop }) =>
+          makeBoardScene(gameId, game, {
+            presentation: this.presentation,
+            onReady,
+            insetTop,
+          }),
         );
       });
 

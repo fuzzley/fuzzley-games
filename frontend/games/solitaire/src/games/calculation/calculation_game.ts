@@ -1,9 +1,8 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { DeckOptions } from "@/games/common/deck_options";
 import { drawToWaste } from "@/games/common/stock_pile";
 import { dealCalculationLayout } from "./calculation_deal";
@@ -15,6 +14,7 @@ import {
   STOCK_PILE_ID,
   calculationZoneSpecs,
 } from "./calculation_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /** Configures a game played on Calculation's board. */
 export interface CalculationOptions extends DeckOptions {
@@ -28,13 +28,13 @@ export interface CalculationOptions extends DeckOptions {
  */
 export class CalculationGame extends DealtTableGame {
   /** The face-down stock, turned one card at a time. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The card turned and not yet placed. */
-  public readonly hand: CardPile<PlayingCard>;
+  public readonly hand: ReadonlyCardPile<PlayingCard>;
   /** The four foundations, in order of their interval. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The four waste piles. */
-  public readonly wastes: readonly CardPile<PlayingCard>[];
+  public readonly wastes: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Which of the pair is being played. */
   public readonly variant: CalculationVariant;
@@ -42,12 +42,12 @@ export class CalculationGame extends DealtTableGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     variant = DEFAULT_CALCULATION_VARIANT,
   }: CalculationOptions = {}) {
     super({
       zones: calculationZoneSpecs(variant),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // Foundations only: which waste pile a card is parked on is the game.
       autoMoveRoles: [CalculationRole.FOUNDATION],
       winsWhenAllCardsIn: CalculationRole.FOUNDATION,
@@ -61,8 +61,8 @@ export class CalculationGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealCalculationLayout(this.variant, deck, this.foundations, this.stock);
+  protected override dealBoard(deal: Deal): void {
+    dealCalculationLayout(this.variant, deal, this.foundations, this.stock);
   }
 
   /**
@@ -79,7 +79,10 @@ export class CalculationGame extends DealtTableGame {
       return false;
     }
 
-    this.commitAction("draw", drawToWaste(this.stock, this.hand, 1));
+    this.commitAction(
+      ActionKind.DRAW,
+      drawToWaste(this.tabletop, this.stock, this.hand, 1),
+    );
     return true;
   }
 }

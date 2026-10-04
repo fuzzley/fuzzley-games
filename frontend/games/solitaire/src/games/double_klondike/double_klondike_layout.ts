@@ -13,7 +13,7 @@ export const DOUBLE_KLONDIKE_LAYOUT = boardLayout({
   columns: BOARD_COLUMN_COUNT,
   rows: 2,
   zones: doubleKlondikeZoneSpecs(),
-  // A long column reaches about 1050 from the top of the board; this leaves
+  // A long column reaches about 977 from the top of the board; this leaves
   // room past that.
-  designHeightPx: 1250,
+  designHeightPx: 1177,
 });

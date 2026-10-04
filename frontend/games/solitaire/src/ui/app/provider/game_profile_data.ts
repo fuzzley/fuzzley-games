@@ -19,7 +19,7 @@ import {
   GameProfile,
   GameProfileRegistry,
 } from "../model/game_profile.model";
-import { GameId } from "./game_catalog";
+import { GameId, storedValues } from "./game_catalog";
 
 /**
  * Holds a profile for every game in the catalog, so a game without one does
@@ -123,19 +123,25 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       variants: [
         {
           name: "Whitehead",
-          values: { variant: KlondikeVariant.WHITEHEAD },
+          values: storedValues("klondike", {
+            variant: KlondikeVariant.WHITEHEAD,
+          }),
           tagline: "Klondike dealt face-up, building down in one colour.",
           difficulty: Difficulty.MEDIUM,
         },
         {
           name: "Thumb and Pouch",
-          values: { variant: KlondikeVariant.THUMB_AND_POUCH },
+          values: storedValues("klondike", {
+            variant: KlondikeVariant.THUMB_AND_POUCH,
+          }),
           tagline: "Klondike where a card lands on any suit but its own.",
           difficulty: Difficulty.EASY,
         },
         {
           name: "Saratoga",
-          values: { variant: KlondikeVariant.SARATOGA },
+          values: storedValues("klondike", {
+            variant: KlondikeVariant.SARATOGA,
+          }),
           tagline: "Klondike with every column card dealt face-up.",
           difficulty: Difficulty.EASY,
         },
@@ -171,19 +177,19 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       variants: [
         {
           name: "Alaska",
-          values: { variant: YukonVariant.ALASKA },
+          values: storedValues("yukon", { variant: YukonVariant.ALASKA }),
           tagline: "Yukon building up or down in the same suit.",
           difficulty: Difficulty.MEDIUM,
         },
         {
           name: "Russian Solitaire",
-          values: { variant: YukonVariant.RUSSIAN },
+          values: storedValues("yukon", { variant: YukonVariant.RUSSIAN }),
           tagline: "Yukon building down in the same suit only.",
           difficulty: Difficulty.HARD,
         },
         {
           name: "Moosehide",
-          values: { variant: YukonVariant.MOOSEHIDE },
+          values: storedValues("yukon", { variant: YukonVariant.MOOSEHIDE }),
           tagline: "Yukon where a card lands on any suit but its own.",
           difficulty: Difficulty.EASY,
         },
@@ -227,13 +233,15 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       variants: [
         {
           name: "Wasp",
-          values: { variant: ScorpionVariant.WASP },
+          values: storedValues("scorpion", { variant: ScorpionVariant.WASP }),
           tagline: "Scorpion where any card can fill an empty column.",
           difficulty: Difficulty.EASY,
         },
         {
           name: "Scorpion II",
-          values: { variant: ScorpionVariant.SCORPION_II },
+          values: storedValues("scorpion", {
+            variant: ScorpionVariant.SCORPION_II,
+          }),
           tagline: "Scorpion with cards hidden in only three columns.",
           difficulty: Difficulty.MEDIUM,
         },
@@ -276,7 +284,9 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       variants: [
         {
           name: "Will o' the Wisp",
-          values: { variant: SpideretteVariant.WILL_O_THE_WISP },
+          values: storedValues("spiderette", {
+            variant: SpideretteVariant.WILL_O_THE_WISP,
+          }),
           tagline: "Spiderette dealt three cards to every column.",
           difficulty: Difficulty.MEDIUM,
         },
@@ -298,26 +308,34 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       variants: [
         {
           name: "Josephine",
-          values: { variant: FortyThievesVariant.JOSEPHINE },
+          values: storedValues("fortythieves", {
+            variant: FortyThievesVariant.JOSEPHINE,
+          }),
           tagline: "Forty Thieves where same-suit runs move as a unit.",
           difficulty: Difficulty.MEDIUM,
           aliases: ["Streets"],
         },
         {
           name: "Rank and File",
-          values: { variant: FortyThievesVariant.RANK_AND_FILE },
+          values: storedValues("fortythieves", {
+            variant: FortyThievesVariant.RANK_AND_FILE,
+          }),
           tagline: "Alternating colours, but most of the deal face-down.",
           difficulty: Difficulty.HARD,
         },
         {
           name: "Indian",
-          values: { variant: FortyThievesVariant.INDIAN },
+          values: storedValues("fortythieves", {
+            variant: FortyThievesVariant.INDIAN,
+          }),
           tagline: "Columns of three, building on any suit but a card's own.",
           difficulty: Difficulty.MEDIUM,
         },
         {
           name: "Number Ten",
-          values: { variant: FortyThievesVariant.NUMBER_TEN },
+          values: storedValues("fortythieves", {
+            variant: FortyThievesVariant.NUMBER_TEN,
+          }),
           tagline: "Alternating colours with runs, half the deal face-down.",
           difficulty: Difficulty.MEDIUM,
         },
@@ -376,7 +394,9 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       variants: [
         {
           name: "Red Moon",
-          values: { variant: MontanaVariant.RED_MOON },
+          values: storedValues("bluemoon", {
+            variant: MontanaVariant.RED_MOON,
+          }),
           tagline: "Blue Moon with every gap dealt beside its Ace.",
           difficulty: Difficulty.EASY,
         },
@@ -406,13 +426,15 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       variants: [
         {
           name: "Queens on Kings",
-          values: { variant: GolfVariant.QUEENS_ON_KINGS },
+          values: storedValues("golf", {
+            variant: GolfVariant.QUEENS_ON_KINGS,
+          }),
           tagline: "Golf where a Queen can be played onto a King.",
           difficulty: Difficulty.HARD,
         },
         {
           name: "Putt Putt",
-          values: { variant: GolfVariant.PUTT_PUTT },
+          values: storedValues("golf", { variant: GolfVariant.PUTT_PUTT }),
           tagline: "Golf where the ranks turn the corner from King to Ace.",
           difficulty: Difficulty.MEDIUM,
         },
@@ -428,7 +450,9 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       variants: [
         {
           name: "Sir Tommy",
-          values: { variant: CalculationVariant.SIR_TOMMY },
+          values: storedValues("calculation", {
+            variant: CalculationVariant.SIR_TOMMY,
+          }),
           tagline:
             "Four foundations from Ace to King, any suit, four waste piles.",
           difficulty: Difficulty.MEDIUM,
@@ -454,7 +478,9 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       variants: [
         {
           name: "Belvedere",
-          values: { variant: BristolVariant.BELVEDERE },
+          values: storedValues("bristol", {
+            variant: BristolVariant.BELVEDERE,
+          }),
           tagline: "Bristol with one Ace already on a foundation.",
           difficulty: Difficulty.MEDIUM,
         },
@@ -477,7 +503,9 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       variants: [
         {
           name: "Monte Carlo Thirteens",
-          values: { variant: MonteCarloVariant.THIRTEENS },
+          values: storedValues("montecarlo", {
+            variant: MonteCarloVariant.THIRTEENS,
+          }),
           tagline: "Monte Carlo pairing cards that add up to thirteen.",
           difficulty: Difficulty.MEDIUM,
         },
@@ -493,14 +521,18 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       variants: [
         {
           name: "The Fan",
-          values: { variant: LaBelleLucieVariant.THE_FAN },
+          values: storedValues("labellelucie", {
+            variant: LaBelleLucieVariant.THE_FAN,
+          }),
           tagline:
             "La Belle Lucie where Kings fill empty fans, with no redeal.",
           difficulty: Difficulty.HARD,
         },
         {
           name: "Shamrocks",
-          values: { variant: LaBelleLucieVariant.SHAMROCKS },
+          values: storedValues("labellelucie", {
+            variant: LaBelleLucieVariant.SHAMROCKS,
+          }),
           tagline: "Fans of at most three, built up or down in any suit.",
           difficulty: Difficulty.MEDIUM,
         },
@@ -524,20 +556,26 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       variants: [
         {
           name: "Storehouse",
-          values: { variant: CanfieldVariant.STOREHOUSE },
+          values: storedValues("canfield", {
+            variant: CanfieldVariant.STOREHOUSE,
+          }),
           tagline: "Canfield from the Twos, building in suit.",
           difficulty: Difficulty.MEDIUM,
           aliases: ["Thirteen Up", "Reserve"],
         },
         {
           name: "Superior Canfield",
-          values: { variant: CanfieldVariant.SUPERIOR },
+          values: storedValues("canfield", {
+            variant: CanfieldVariant.SUPERIOR,
+          }),
           tagline: "Canfield with the reserve face-up and spaces left open.",
           difficulty: Difficulty.MEDIUM,
         },
         {
           name: "Rainbow",
-          values: { variant: CanfieldVariant.RAINBOW },
+          values: storedValues("canfield", {
+            variant: CanfieldVariant.RAINBOW,
+          }),
           tagline: "Canfield building regardless of colour, one pass.",
           difficulty: Difficulty.HARD,
         },
@@ -582,7 +620,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       variants: [
         {
           name: "Relaxed Pyramid",
-          values: { goal: PyramidGoal.PYRAMID_ONLY },
+          values: storedValues("pyramid", { goal: PyramidGoal.PYRAMID_ONLY }),
           tagline: "Pyramid won once the pyramid itself is cleared.",
           difficulty: Difficulty.MEDIUM,
         },
@@ -605,13 +643,17 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
       variants: [
         {
           name: "Streets and Alleys",
-          values: { variant: CastleVariant.STREETS_AND_ALLEYS },
+          values: storedValues("beleagueredcastle", {
+            variant: CastleVariant.STREETS_AND_ALLEYS,
+          }),
           tagline: "Beleaguered Castle with the Aces dealt into the rows.",
           difficulty: Difficulty.HARD,
         },
         {
           name: "Citadel",
-          values: { variant: CastleVariant.CITADEL },
+          values: storedValues("beleagueredcastle", {
+            variant: CastleVariant.CITADEL,
+          }),
           tagline: "Beleaguered Castle sending cards home as they are dealt.",
           difficulty: Difficulty.EASY,
         },

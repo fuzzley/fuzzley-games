@@ -26,21 +26,16 @@ export const LaBelleLucieRole = {
 export type LaBelleLucieRole =
   (typeof LaBelleLucieRole)[keyof typeof LaBelleLucieRole];
 
-/**
- * Which of the family is being played.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which of the family is being played. */
 export const LaBelleLucieVariant = {
   /** La Belle Lucie: fans build down in suit, with two redeals. */
-  LA_BELLE_LUCIE: 0,
+  LA_BELLE_LUCIE: "la-belle-lucie",
   /** The Fan: a King may fill an empty fan, and there is no redeal. */
-  THE_FAN: 1,
+  THE_FAN: "the-fan",
   /** Shamrocks: fans of at most three build up or down in any suit. */
-  SHAMROCKS: 2,
+  SHAMROCKS: "shamrocks",
   /** Trefoil: La Belle Lucie with the Aces dealt to the foundations. */
-  TREFOIL: 3,
+  TREFOIL: "trefoil",
 } as const;
 
 /** Names one of the games in the La Belle Lucie family. */

@@ -14,6 +14,6 @@ export const GOLF_LAYOUT = boardLayout({
   rows: 2,
   zones: golfZoneSpecs(GolfVariant.GOLF),
   // The columns only shrink, so the five dealt cards are the deepest one gets:
-  // about 1000 from the top of the board, with a hovered card open.
-  designHeightPx: 1020,
+  // about 927 from the top of the board, with a hovered card open.
+  designHeightPx: 947,
 });

@@ -27,17 +27,12 @@ export const CalculationRole = {
 export type CalculationRole =
   (typeof CalculationRole)[keyof typeof CalculationRole];
 
-/**
- * Which of the pair is being played.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which of the pair is being played. */
 export const CalculationVariant = {
   /** Calculation: four foundations, each built by its own interval. */
-  CALCULATION: 0,
+  CALCULATION: "calculation",
   /** Sir Tommy: four foundations, each built up from an Ace by one. */
-  SIR_TOMMY: 1,
+  SIR_TOMMY: "sir-tommy",
 } as const;
 
 /** Names one of the games played on Calculation's board. */

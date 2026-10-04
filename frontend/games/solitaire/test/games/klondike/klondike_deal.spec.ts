@@ -4,7 +4,6 @@ import {
   dealKlondikeLayout,
 } from "@/games/klondike/klondike_deal";
 import { CardRegistry } from "@/engine/core/card/card_registry";
-import { CardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import {
@@ -13,34 +12,44 @@ import {
   TABLEAU_COUNT,
 } from "@/games/klondike/klondike_zones";
 import { foundationPileId, tableauPileId } from "@/games/common/pile_ids";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import { TestTabletop } from "@test/support/test_tabletop";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 
 describe("the Klondike deal", () => {
   let registry: CardRegistry;
+  let table: TestTabletop;
   let deck: DeckSource;
-  let stock: CardPile<PlayingCard>;
-  let tableaus: CardPile<PlayingCard>[];
-  let foundations: CardPile<PlayingCard>[];
+  let stock: ReadonlyCardPile<PlayingCard>;
+  let tableaus: ReadonlyCardPile<PlayingCard>[];
+  let foundations: ReadonlyCardPile<PlayingCard>[];
 
   beforeEach(() => {
     registry = new CardRegistry();
     deck = new DeckSource(registry, ALL_PLAYING_CARD_IDS);
-    stock = new CardPile<PlayingCard>("stock", KlondikeRole.STOCK);
-    tableaus = Array.from(
-      { length: TABLEAU_COUNT },
-      (_, i) =>
-        new CardPile<PlayingCard>(tableauPileId(i), KlondikeRole.TABLEAU),
+    const tableauIds = Array.from({ length: TABLEAU_COUNT }, (_, i) =>
+      tableauPileId(i),
     );
-    foundations = Array.from(
-      { length: FOUNDATION_COUNT },
-      (_, i) =>
-        new CardPile<PlayingCard>(foundationPileId(i), KlondikeRole.FOUNDATION),
+    const foundationIds = Array.from({ length: FOUNDATION_COUNT }, (_, i) =>
+      foundationPileId(i),
     );
+    table = new TestTabletop([
+      KlondikeRole.STOCK,
+      ...tableauIds,
+      ...foundationIds,
+    ]);
+    stock = table.pile(KlondikeRole.STOCK);
+    tableaus = tableauIds.map((id) => table.pile(id));
+    foundations = foundationIds.map((id) => table.pile(id));
   });
 
   describe("dealKlondikeLayout", () => {
     it("deals an increasing number of cards to each tableau", () => {
-      dealKlondikeLayout(deck.createShuffledDeck(), tableaus, stock);
+      dealKlondikeLayout(
+        table.deal(deck.createShuffledDeck()),
+        tableaus,
+        stock,
+      );
 
       expect(tableaus.map((t) => t.getCards().length)).toEqual([
         1, 2, 3, 4, 5, 6, 7,
@@ -48,7 +57,11 @@ describe("the Klondike deal", () => {
     });
 
     it("leaves only the top card of each tableau face up", () => {
-      dealKlondikeLayout(deck.createShuffledDeck(), tableaus, stock);
+      dealKlondikeLayout(
+        table.deal(deck.createShuffledDeck()),
+        tableaus,
+        stock,
+      );
 
       const layout = tableaus.map((t) => t.getCards().map((c) => c.faceUp));
       expect(layout).toEqual([
@@ -63,7 +76,11 @@ describe("the Klondike deal", () => {
     });
 
     it("puts the remaining cards face down on the stock", () => {
-      dealKlondikeLayout(deck.createShuffledDeck(), tableaus, stock);
+      dealKlondikeLayout(
+        table.deal(deck.createShuffledDeck()),
+        tableaus,
+        stock,
+      );
 
       expect(stock.getCards().length).toBe(24);
       expect(stock.getCards().every((c) => !c.faceUp)).toBe(true);
@@ -72,7 +89,11 @@ describe("the Klondike deal", () => {
     it("deals nothing at all from an empty deck", () => {
       const empty = new DeckSource(registry, []);
 
-      dealKlondikeLayout(empty.createShuffledDeck(), tableaus, stock);
+      dealKlondikeLayout(
+        table.deal(empty.createShuffledDeck()),
+        tableaus,
+        stock,
+      );
 
       expect(tableaus.every((t) => t.isEmpty)).toBe(true);
       expect(stock.isEmpty).toBe(true);
@@ -81,7 +102,7 @@ describe("the Klondike deal", () => {
 
   describe("dealKlondikeAlmostWin", () => {
     it("fills every foundation with Ace through Queen, face up", () => {
-      dealKlondikeAlmostWin(deck, foundations, tableaus);
+      dealKlondikeAlmostWin(table.deal(deck.register()), foundations, tableaus);
 
       expect(foundations.map((f) => f.getCards().length)).toEqual([
         12, 12, 12, 12,
@@ -93,7 +114,7 @@ describe("the Klondike deal", () => {
     });
 
     it("seeds only the first four tableaus with a single King", () => {
-      dealKlondikeAlmostWin(deck, foundations, tableaus);
+      dealKlondikeAlmostWin(table.deal(deck.register()), foundations, tableaus);
 
       expect(tableaus.map((t) => t.getCards().length)).toEqual([
         1, 1, 1, 1, 0, 0, 0,
@@ -103,7 +124,11 @@ describe("the Klondike deal", () => {
     it("places only the cards a short deck actually holds", () => {
       const short = new DeckSource(registry, ALL_PLAYING_CARD_IDS.slice(0, 13));
 
-      dealKlondikeAlmostWin(short, foundations, tableaus);
+      dealKlondikeAlmostWin(
+        table.deal(short.register()),
+        foundations,
+        tableaus,
+      );
 
       const placed =
         foundations.reduce((total, pile) => total + pile.size, 0) +

@@ -1,8 +1,7 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import { Deal } from "@/engine/tableau/deal";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { DeckOptions } from "@/games/common/deck_options";
 import { dealKlondikeAlmostWin, dealKlondikeLayout } from "./klondike_deal";
 import { KlondikeFamilyGame } from "./klondike_family_game";
@@ -31,9 +30,9 @@ export interface KlondikeOptions extends DeckOptions {
 /** Plays Klondike or one of its variants. */
 export class KlondikeGame extends KlondikeFamilyGame {
   /** The four suit foundation piles. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The seven tableau piles arranged on the board. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Whether to deal a nearly finished board, for verification. */
   public readonly almostWin: boolean;
@@ -44,7 +43,7 @@ export class KlondikeGame extends KlondikeFamilyGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     scoring = new StandardScoringPolicy(),
     drawCount = DEFAULT_DRAW_COUNT,
     variant = DEFAULT_KLONDIKE_VARIANT,
@@ -52,7 +51,7 @@ export class KlondikeGame extends KlondikeFamilyGame {
   }: KlondikeOptions = {}) {
     super({
       zones: klondikeZoneSpecs(drawCount, variant),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // A foundation is always preferred over a column.
       autoMoveRoles: [KlondikeRole.FOUNDATION, KlondikeRole.TABLEAU],
       winsWhenAllCardsIn: KlondikeRole.FOUNDATION,
@@ -72,12 +71,12 @@ export class KlondikeGame extends KlondikeFamilyGame {
    *
    * @inheritDoc
    */
-  protected override dealLayout(deck: PlayingCard[]): void {
+  protected override dealBoard(deal: Deal): void {
     if (this.almostWin) {
-      dealKlondikeAlmostWin(this.deck, this.foundations, this.tableaus);
+      dealKlondikeAlmostWin(deal, this.foundations, this.tableaus);
     } else {
       dealKlondikeLayout(
-        deck,
+        deal,
         this.tableaus,
         this.stock,
         klondikeDealsFaceUp(this.variant),

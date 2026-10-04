@@ -9,7 +9,7 @@ export const PENGUIN_LAYOUT = boardLayout({
   columns: BOARD_COLUMN_COUNT,
   rows: 2,
   zones: penguinZoneSpecs(),
-  // A thirteen-card column, a whole suit, ends about 1375 from the top of the
+  // A thirteen-card column, a whole suit, ends about 1302 from the top of the
   // board with a hovered card open.
-  designHeightPx: 1400,
+  designHeightPx: 1327,
 });

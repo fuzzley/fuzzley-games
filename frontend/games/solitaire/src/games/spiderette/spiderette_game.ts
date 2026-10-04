@@ -1,9 +1,8 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { runCollectingEffects } from "@/games/common/move_effects";
 import { dealRowCollectingRuns } from "@/games/common/row_deal";
@@ -18,6 +17,7 @@ import {
   STOCK_PILE_ID,
   spideretteZoneSpecs,
 } from "./spiderette_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /** Configures a game of Spiderette or Will o' the Wisp. */
 export interface SpideretteOptions extends DeckOptions {
@@ -31,23 +31,23 @@ export interface SpideretteOptions extends DeckOptions {
  */
 export class SpideretteGame extends DealtTableGame {
   /** The face-down pile that deals a row at a time. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The four piles completed runs go to. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The seven columns. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   private readonly variant: SpideretteVariant;
 
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     variant = DEFAULT_SPIDERETTE_VARIANT,
   }: SpideretteOptions = {}) {
     super({
       zones: spideretteZoneSpecs(),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // Only a column will take a card; a foundation is never a destination a
       // player can choose.
       autoMoveRoles: [SpideretteRole.TABLEAU],
@@ -61,8 +61,8 @@ export class SpideretteGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealSpideretteLayout(deck, this.tableaus, this.stock, this.variant);
+  protected override dealBoard(deal: Deal): void {
+    dealSpideretteLayout(deal, this.tableaus, this.stock, this.variant);
   }
 
   // --- The stock ---
@@ -87,12 +87,13 @@ export class SpideretteGame extends DealtTableGame {
     }
 
     const dealt = dealRowCollectingRuns(
+      this.tabletop,
       this.stock,
       this.tableaus,
       this.tableaus,
       this.foundations,
     );
-    this.commitAction("deal", dealt.transfers, {
+    this.commitAction(ActionKind.DEAL, dealt.transfers, {
       flippedCardIds: dealt.flippedCardIds,
     });
     return true;
@@ -103,6 +104,7 @@ export class SpideretteGame extends DealtTableGame {
   /** @inheritDoc */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
     return runCollectingEffects(
+      this.tabletop,
       move,
       SpideretteRole.TABLEAU,
       this.tableaus,

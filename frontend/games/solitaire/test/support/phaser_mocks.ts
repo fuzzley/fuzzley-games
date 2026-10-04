@@ -1,6 +1,7 @@
 import { vi, type Mock } from "vitest";
 import * as Phaser from "phaser";
 import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
+import { cardAtlasTextureKey } from "@/engine/render/phaser/card_deck_atlas";
 
 /**
  * Where a card frame is anchored, as every deck's manifest records it, and so
@@ -825,4 +826,7 @@ export const RESTORE_WEBGL_EVENT = "restorewebgl";
  * At 1x, because a mock scene's viewport falls back to the board's design size
  * at a pixel ratio of 1, which is a layout scale of 1.
  */
-export const BOOT_TEXTURE_KEY = `cards:${DEFAULT_CARD_DECK}@1x`;
+export const BOOT_TEXTURE_KEY = cardAtlasTextureKey({
+  deckId: DEFAULT_CARD_DECK,
+  artScale: 1,
+});

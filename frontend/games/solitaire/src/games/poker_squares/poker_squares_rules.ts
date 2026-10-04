@@ -17,17 +17,12 @@ export const PokerSquaresRole = {
 export type PokerSquaresRole =
   (typeof PokerSquaresRole)[keyof typeof PokerSquaresRole];
 
-/**
- * Which scoring the lines are counted by.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which scoring the lines are counted by. */
 export const PokerSquaresScoring = {
   /** The American system, where a royal flush scores 100. */
-  AMERICAN: 0,
+  AMERICAN: "american",
   /** The English system, which rewards a straight above a flush. */
-  ENGLISH: 1,
+  ENGLISH: "english",
 } as const;
 
 /** Names one of the scoring systems. */

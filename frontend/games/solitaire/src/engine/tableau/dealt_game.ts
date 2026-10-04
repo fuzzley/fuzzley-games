@@ -1,8 +1,11 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { DeckSource } from "./deck_source";
+import { CardRegistry } from "@/engine/core/card/card_registry";
+import { Deal } from "./deal";
+import { DeckSource, DeckSourceOptions } from "./deck_source";
 import { GameSnapshot, PileSnapshot } from "./game_snapshot";
 import { AppliedMove } from "./move";
+import { PlayableGame } from "./playable_game";
 import { TableGame, TableGameEvents, TableGameOptions } from "./table_game";
 
 /** Configures a game that deals itself from a deck. */
@@ -10,8 +13,8 @@ export interface DealtTableGameOptions extends Omit<
   TableGameOptions,
   "registry"
 > {
-  /** The cards to deal, and the state they arrive in. */
-  readonly deck: DeckSource;
+  /** The cards to deal, how they are shuffled, and how they lie. */
+  readonly deck: DeckSourceOptions;
 }
 
 /**
@@ -20,16 +23,21 @@ export interface DealtTableGameOptions extends Omit<
  */
 export abstract class DealtTableGame<
   EventMap extends Record<string, unknown> & TableGameEvents = TableGameEvents,
-> extends TableGame<EventMap> {
+>
+  extends TableGame<EventMap>
+  implements PlayableGame
+{
   /** The cards this game deals from. */
-  protected readonly deck: DeckSource;
+  private readonly deck: DeckSource;
 
   /** The deal a restart replays, in dealt order. */
   private initialDeck: PlayingCard[] = [];
 
   constructor(options: DealtTableGameOptions) {
-    super({ ...options, registry: options.deck.registry });
-    this.deck = options.deck;
+    const { cardIds, random, dealsFaceUp } = options.deck;
+    const registry = new CardRegistry();
+    super({ ...options, registry });
+    this.deck = new DeckSource(registry, cardIds, random, dealsFaceUp);
   }
 
   /** Shuffles the deck and deals a fresh board. */
@@ -48,7 +56,7 @@ export abstract class DealtTableGame<
 
   // --- Snapshots ---
 
-  /** Captures the board, score, history, deal and game's extra state. */
+  /** Captures the board, score, history and deal. */
   public snapshot(): GameSnapshot {
     return {
       piles: this.piles.map((pile) => ({
@@ -58,10 +66,8 @@ export abstract class DealtTableGame<
           .map((card) => ({ id: card.id, faceUp: card.faceUp })),
       })),
       score: this.state.score,
-      moves: this.state.moves,
       history: this.appliedHistory,
       deal: this.initialDeck.map((card) => card.id),
-      extra: this.saveExtra(),
     };
   }
 
@@ -70,42 +76,27 @@ export abstract class DealtTableGame<
    * view redraws.
    *
    * @throws Error, leaving the game as it was, when the snapshot names a pile
-   *   or card this game lacks, does not hold every card exactly once, or
-   *   carries extra state the game rejects.
+   *   or card this game lacks, or does not hold every card exactly once.
    */
   public restore(snapshot: GameSnapshot): void {
     const board = this.resolveBoard(snapshot.piles);
     const deal = this.resolveDeal(snapshot.deal);
     this.checkHistory(snapshot.history);
-    this.restoreExtra(snapshot.extra);
 
     this.resetPiles();
     for (const { pile, cards } of board) {
       for (const { card, faceUp } of cards) {
-        card.faceUp = faceUp;
-        pile.addCard(card);
+        this.tabletop.place(card, pile, faceUp);
       }
     }
-    this.state.score = snapshot.score;
-    this.state.moves = snapshot.moves;
-    this.replaceHistory(snapshot.history);
+    this.resetHistory(snapshot.history, snapshot.score);
     this.initialDeck = deal;
     this.emit("game-reset", undefined);
   }
 
-  /** Returns the state this game keeps outside its piles, for a snapshot. */
-  protected saveExtra(): unknown {
-    return null;
-  }
-
-  /**
-   * Restores what {@link saveExtra} saved.
-   *
-   * Runs before the board changes, so throwing rejects the snapshot and leaves
-   * the game as it was.
-   */
-  protected restoreExtra(extra: unknown): void {
-    void extra;
+  /** Returns the score a fresh deal starts at. */
+  protected initialScore(): number {
+    return 0;
   }
 
   /** Returns the snapshot's piles as this game's, holding every card once. */
@@ -154,7 +145,7 @@ export abstract class DealtTableGame<
     }
   }
 
-  private resolvePile(pileId: string): CardPile<PlayingCard> {
+  private resolvePile(pileId: string): ReadonlyCardPile<PlayingCard> {
     const pile = this.getPileById(pileId);
     if (!pile) throw new Error(`This game has no pile "${pileId}".`);
     return pile;
@@ -168,11 +159,9 @@ export abstract class DealtTableGame<
 
   /** Clears the board, score, move count and history, then deals again. */
   private beginGame(createDeck: () => PlayingCard[]): void {
-    this.state.score = 0;
-    this.state.moves = 0;
-    this.clearHistory();
+    this.resetHistory([], this.initialScore());
     this.resetPiles();
-    this.dealBoard(createDeck());
+    this.dealBoard(new Deal(createDeck(), this.tabletop));
     this.emit("game-reset", undefined);
   }
 
@@ -190,10 +179,7 @@ export abstract class DealtTableGame<
   /**
    * Lays the deck out into the opening position for this game.
    *
-   * The piles and history are already empty; anything else a fresh board needs
-   * reset, such as a recycle count, belongs here too.
-   *
-   * @param deck The cards to deal, which an implementation is free to drain.
+   * The piles and history are already empty when it runs.
    */
-  protected abstract dealBoard(deck: PlayingCard[]): void;
+  protected abstract dealBoard(deal: Deal): void;
 }

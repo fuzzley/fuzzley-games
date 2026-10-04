@@ -1,9 +1,11 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
-import { TablePresentation } from "@/engine/render/presentation";
 import { PlayableGame } from "@/engine/tableau/playable_game";
-import { makeTableBoardScene } from "@/games/common/board_scene_factory";
-import { stocklessGestures } from "@/games/common/table_gestures";
+import {
+  TableBoardOptions,
+  makeTableBoardScene,
+} from "@/engine/board/table_board_scene";
+import { stocklessGestures } from "@/engine/tableau/table_gestures";
 
 import { easthavenGestures } from "@/games/easthaven/easthaven_gestures";
 import { fortyThievesGestures } from "@/games/forty_thieves/forty_thieves_gestures";
@@ -76,26 +78,38 @@ const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
 };
 
 /**
+ * Returns what a press or a drop means in a dealt game.
+ *
+ * @param game The dealt game, which must be the one `gameId` deals; the cast
+ *   below trusts that, because the catalog holds sessions under an erased type.
+ */
+export function gesturesFor(gameId: GameId, game: PlayableGame): IntentHandler {
+  const gestures = GESTURES[gameId] as GestureMap<GameId>;
+  return gestures(game as GameOf<GameId>);
+}
+
+/** Says how a board should look and fit, and whom to tell once it is drawn. */
+export type BoardSetting = Pick<
+  TableBoardOptions,
+  "presentation" | "onReady" | "insetTop"
+>;
+
+/**
  * Builds the board that draws a dealt game, on the grid its catalog entry
  * declares.
  *
  * @param game The dealt game, which must be the one `gameId` deals; the cast
  *   below trusts that, because the catalog holds sessions under an erased type.
- * @param onReady Called once the board has finished building itself.
  */
 export function makeBoardScene(
   gameId: GameId,
   game: PlayableGame,
-  presentation: TablePresentation,
-  onReady?: () => void,
+  setting: BoardSetting,
 ): BoardScene {
-  const tableGame = game as GameOf<GameId>;
-  const gestures = GESTURES[gameId] as GestureMap<GameId>;
   return makeTableBoardScene({
-    game: tableGame,
+    game: game as GameOf<GameId>,
     layout: catalogEntry(gameId).layout,
-    handleIntent: gestures(tableGame),
-    presentation,
-    onReady,
+    handleIntent: gesturesFor(gameId, game),
+    ...setting,
   });
 }

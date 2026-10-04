@@ -1,10 +1,9 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
-import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
+import { MoveEffects } from "@/engine/tableau/table_game";
 import { collectCompletedRuns } from "@/games/common/completed_runs";
 import { DeckOptions } from "@/games/common/deck_options";
 import { dealSimpleSimonLayout } from "./simple_simon_deal";
@@ -31,9 +30,9 @@ export interface SimpleSimonOptions extends DeckOptions {
  */
 export class SimpleSimonGame extends DealtTableGame {
   /** The piles completed runs go to, one per suit of each deck. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The columns. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Which board is being played on. */
   public readonly variant: SimpleSimonVariant;
@@ -42,12 +41,12 @@ export class SimpleSimonGame extends DealtTableGame {
   constructor({
     variant = DEFAULT_SIMPLE_SIMON_VARIANT,
     cardIds = deckCardIds(simpleSimonDeck(variant)),
-    random = Math.random,
+    random,
   }: SimpleSimonOptions = {}) {
     super({
       zones: simpleSimonZoneSpecs(variant),
       // Dealt face up: the whole position is visible from the first move.
-      deck: new DeckSource(new CardRegistry(), cardIds, random, true),
+      deck: { cardIds, random, dealsFaceUp: true },
       // Only a column will take a card; a foundation is never a destination a
       // player can choose.
       autoMoveRoles: [SimpleSimonRole.TABLEAU],
@@ -60,9 +59,9 @@ export class SimpleSimonGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
+  protected override dealBoard(deal: Deal): void {
     dealSimpleSimonLayout(
-      deck,
+      deal,
       this.tableaus,
       simpleSimonCardsPerColumn(this.variant),
     );
@@ -75,9 +74,12 @@ export class SimpleSimonGame extends DealtTableGame {
    *
    * @inheritDoc
    */
-  protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
-    void move;
-    const collected = collectCompletedRuns(this.tableaus, this.foundations);
+  protected override applyMoveEffects(): MoveEffects {
+    const collected = collectCompletedRuns(
+      this.tabletop,
+      this.tableaus,
+      this.foundations,
+    );
     return {
       scoreDelta: 0,
       flippedCardIds: collected.flippedCardIds,

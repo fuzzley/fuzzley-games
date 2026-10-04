@@ -4,8 +4,9 @@ import { cellRow, columnRow, foundationRow } from "../common/zone_presets";
 import {
   FreeCellRole,
   FreeCellVariant,
-  freeCellPlacementRule,
-  freeCellRunAdjacency,
+  freeCellColumn,
+  FREECELL_CELL_RULE,
+  FREECELL_FOUNDATION_RULE,
 } from "./freecell_rules";
 
 /** The number of free cells. */
@@ -30,27 +31,26 @@ export function freeCellZoneSpecs(
       column: 0,
       row: 0,
       role: FreeCellRole.CELL,
-      accept: freeCellPlacementRule(FreeCellRole.CELL, variant),
+      accept: FREECELL_CELL_RULE,
     }),
     ...foundationRow({
       count: FOUNDATION_COUNT,
       column: CELL_COUNT,
       row: 0,
       role: FreeCellRole.FOUNDATION,
-      accept: freeCellPlacementRule(FreeCellRole.FOUNDATION, variant),
+      accept: FREECELL_FOUNDATION_RULE,
     }),
     ...columnRow({
       count: TABLEAU_COUNT,
       column: 0,
       row: 1,
       role: FreeCellRole.TABLEAU,
-      accept: freeCellPlacementRule(FreeCellRole.TABLEAU, variant),
-      grab: { kind: "run", adjacent: freeCellRunAdjacency(variant) },
+      ...freeCellColumn(variant),
       layout: OPEN_COLUMN_LAYOUT,
       face: "always-up",
     }),
   ];
 }
 
-/** Re-exported: the roles and variants live with the rules that branch on them. */
+/** Re-exported: the roles and variants live with the rules that use them. */
 export { FreeCellRole, FreeCellVariant };

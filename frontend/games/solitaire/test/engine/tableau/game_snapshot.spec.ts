@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { readObject, readString } from "@/engine/core/common/json_reader";
 import {
   type CardSnapshot,
   type GameSnapshot,
@@ -9,13 +8,12 @@ import {
 import type { AppliedMove } from "@/engine/tableau/move";
 import { FakeTableGame } from "@test/support/fake_table/game";
 
-/** Returns a game dealt in deck order, then played: two draws and a score. */
+/** Returns a game dealt in deck order, then played: two draws. */
 function playedGame(): FakeTableGame {
   const game = new FakeTableGame(ALL_PLAYING_CARD_IDS, () => 0.999);
   game.startNewGame();
   game.drawCardsFromStock();
   game.drawCardsFromStock();
-  game.state.score = 120;
   return game;
 }
 
@@ -23,32 +21,6 @@ function playedGame(): FakeTableGame {
 function freshGame(): FakeTableGame {
   const game = new FakeTableGame(ALL_PLAYING_CARD_IDS, () => 0);
   game.startNewGame();
-  return game;
-}
-
-/** Holds what {@link ModalGame} keeps outside its piles. */
-interface ModalExtra {
-  readonly mode: string;
-}
-
-/** Plays a game keeping a mode outside its piles, and rejects a missing one. */
-class ModalGame extends FakeTableGame {
-  public mode = "classic";
-
-  protected override saveExtra(): ModalExtra {
-    return { mode: this.mode };
-  }
-
-  protected override restoreExtra(extra: unknown): void {
-    this.mode = readString(readObject(extra, "extra").mode, "extra.mode");
-  }
-}
-
-/** Returns a {@link ModalGame} dealt and switched out of its default mode. */
-function modalGame(): ModalGame {
-  const game = new ModalGame(ALL_PLAYING_CARD_IDS, () => 0.999);
-  game.startNewGame();
-  game.mode = "tournament";
   return game;
 }
 
@@ -152,7 +124,7 @@ describe("DealtTableGame snapshots", () => {
   it("puts the score, move count and undo depth back", () => {
     const fresh = freshGame();
 
-    fresh.restore(playedGame().snapshot());
+    fresh.restore({ ...playedGame().snapshot(), score: 120 });
 
     expect(fresh.state.snapshot()).toEqual({
       score: 120,
@@ -190,25 +162,6 @@ describe("DealtTableGame snapshots", () => {
     fresh.restore({ ...played.snapshot(), deal: [] });
 
     expect(fresh.snapshot().piles).toEqual(played.snapshot().piles);
-  });
-
-  it("carries the extra state a game keeps outside its piles", () => {
-    const copy = new ModalGame();
-    copy.startNewGame();
-
-    copy.restore(modalGame().snapshot());
-
-    expect(copy.mode).toBe("tournament");
-  });
-
-  it("is left as it was when the game rejects its extra state", () => {
-    const copy = new ModalGame();
-    copy.startNewGame();
-    const before = copy.snapshot();
-
-    attemptRestore(copy, { ...modalGame().snapshot(), extra: {} });
-
-    expect(copy.snapshot()).toEqual(before);
   });
 
   it("announces a reset, so a view redraws", () => {

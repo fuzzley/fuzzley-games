@@ -4,12 +4,11 @@ import {
   PlacementRule,
   anyCard,
   baseRankFoundation,
-  buildsOn,
-  byEmptiness,
   isAnySuitRunWrapping,
   isOrderedPairWrapping,
   isSameSuitRunWrapping,
 } from "@/engine/tableau/rules";
+import { ColumnRules, runColumn } from "@/engine/tableau/zone";
 
 /** The parts a pile can play in a game of the Canfield family. */
 export const CanfieldRole = {
@@ -28,21 +27,16 @@ export const CanfieldRole = {
 /** Names one of the parts a Canfield pile can play. */
 export type CanfieldRole = (typeof CanfieldRole)[keyof typeof CanfieldRole];
 
-/**
- * Which of the family is being played.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which of the family is being played. */
 export const CanfieldVariant = {
   /** Canfield: the original. */
-  CANFIELD: 0,
+  CANFIELD: "canfield",
   /** Storehouse: Twos start the foundations, and columns build in suit. */
-  STOREHOUSE: 1,
+  STOREHOUSE: "storehouse",
   /** Superior Canfield: the reserve is dealt face up, and spaces wait. */
-  SUPERIOR: 2,
+  SUPERIOR: "superior",
   /** Rainbow: columns build regardless of colour, from a one-pass stock. */
-  RAINBOW: 3,
+  RAINBOW: "rainbow",
 } as const;
 
 /** Names one of the games in the Canfield family. */
@@ -133,11 +127,11 @@ const SPACE_FROM_RESERVE: PlacementRule = (context) => {
   );
 };
 
-/** Returns the rule for a column under a variant. */
-export function canfieldTableauRule(variant: CanfieldVariant): PlacementRule {
+/** Returns what a column accepts under a variant, and the runs lifted off it. */
+export function canfieldColumn(variant: CanfieldVariant): ColumnRules {
   const { adjacent, reserveFillsSpaces } = VARIANT_RULES[variant];
-  return byEmptiness(
-    reserveFillsSpaces ? SPACE_FROM_RESERVE : anyCard,
-    buildsOn(adjacent),
-  );
+  return runColumn({
+    adjacent,
+    whenEmpty: reserveFillsSpaces ? SPACE_FROM_RESERVE : anyCard,
+  });
 }

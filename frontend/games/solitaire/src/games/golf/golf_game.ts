@@ -1,9 +1,8 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { DeckOptions } from "@/games/common/deck_options";
 import { drawToWaste } from "@/games/common/stock_pile";
 import { dealGolfLayout } from "./golf_deal";
@@ -15,6 +14,7 @@ import {
   STOCK_PILE_ID,
   golfZoneSpecs,
 } from "./golf_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /** Configures a game of the Golf family. */
 export interface GolfOptions extends DeckOptions {
@@ -28,21 +28,21 @@ export interface GolfOptions extends DeckOptions {
  */
 export class GolfGame extends DealtTableGame {
   /** The face-down stock, turned onto the foundation one card at a time. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The single foundation, which is also the waste. */
-  public readonly foundation: CardPile<PlayingCard>;
+  public readonly foundation: ReadonlyCardPile<PlayingCard>;
   /** The seven columns. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     variant = DEFAULT_GOLF_VARIANT,
   }: GolfOptions = {}) {
     super({
       zones: golfZoneSpecs(variant),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       autoMoveRoles: [GolfRole.FOUNDATION],
       // Deliberately absent: the game is won by clearing the columns, with
       // cards still in the stock. See `isWon`.
@@ -54,8 +54,8 @@ export class GolfGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealGolfLayout(deck, this.tableaus, this.foundation, this.stock);
+  protected override dealBoard(deal: Deal): void {
+    dealGolfLayout(deal, this.tableaus, this.foundation, this.stock);
   }
 
   /** Whether the stock has a card left to turn, as it is never recycled. */
@@ -72,7 +72,10 @@ export class GolfGame extends DealtTableGame {
       return false;
     }
 
-    this.commitAction("draw", drawToWaste(this.stock, this.foundation, 1));
+    this.commitAction(
+      ActionKind.DRAW,
+      drawToWaste(this.tabletop, this.stock, this.foundation, 1),
+    );
     return true;
   }
 

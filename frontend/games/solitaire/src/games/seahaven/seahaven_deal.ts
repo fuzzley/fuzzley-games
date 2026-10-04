@@ -1,4 +1,5 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { Deal } from "@/engine/tableau/deal";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { dealColumnsThenCells } from "@/games/common/row_deal";
 
@@ -7,13 +8,11 @@ export const CARDS_PER_COLUMN = 5;
 
 /**
  * Deals `deck` face up, five to a column and the rest one to a cell.
- *
- * @param deck The cards to deal, which this drains.
  */
 export function dealSeahavenLayout(
-  deck: PlayingCard[],
-  tableaus: readonly CardPile<PlayingCard>[],
-  cells: readonly CardPile<PlayingCard>[],
+  deal: Deal,
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
+  cells: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
-  dealColumnsThenCells(deck, tableaus, cells, CARDS_PER_COLUMN);
+  dealColumnsThenCells(deal, tableaus, cells, CARDS_PER_COLUMN);
 }

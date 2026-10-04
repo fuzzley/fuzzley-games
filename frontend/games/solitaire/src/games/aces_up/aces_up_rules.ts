@@ -24,17 +24,12 @@ export const AcesUpRole = {
 /** Names one of the parts an Aces Up pile can play. */
 export type AcesUpRole = (typeof AcesUpRole)[keyof typeof AcesUpRole];
 
-/**
- * What may fill an empty column.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** What may fill an empty column. */
 export const AcesUpSpaces = {
   /** The usual game: the top card of any other column. */
-  ANY_CARD: 0,
+  ANY_CARD: "any-card",
   /** The harder game: only an Ace. */
-  ACES_ONLY: 1,
+  ACES_ONLY: "aces-only",
 } as const;
 
 /** Names one of the rules for filling an empty column. */

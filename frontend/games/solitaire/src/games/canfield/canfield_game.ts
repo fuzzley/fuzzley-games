@@ -1,19 +1,15 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { readNumber, readObject } from "@/engine/core/common/json_reader";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
-import { AppliedMove, CardTransfer } from "@/engine/tableau/move";
+import { CardTransfer } from "@/engine/tableau/move";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { flipExposedTop } from "@/games/common/completed_runs";
+import { ActionKind } from "@/games/common/action_kinds";
 import { DeckOptions } from "@/games/common/deck_options";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
-import {
-  CLOSED_STOCK_PLACEHOLDER,
-  recyclePipsPlaceholder,
-} from "@/games/common/zone_presets";
+import { recycleMarker } from "@/games/common/zone_presets";
 import { dealCanfieldLayout } from "./canfield_deal";
 import {
   CanfieldVariantRules,
@@ -29,18 +25,6 @@ import {
   canfieldZoneSpecs,
 } from "./canfield_zones";
 
-/** Holds what the game keeps outside its piles, for a snapshot. */
-interface CanfieldExtra {
-  /** How many times the waste has been turned back onto the stock. */
-  readonly recycleCount: number;
-}
-
-/** Reads a snapshot's extra state as Canfield's. */
-function readCanfieldExtra(value: unknown): CanfieldExtra {
-  const extra = readObject(value, "extra");
-  return { recycleCount: readNumber(extra.recycleCount, "extra.recycleCount") };
-}
-
 /** Configures a game of the Canfield family. */
 export interface CanfieldOptions extends DeckOptions {
   /** Which game of the family to play. */
@@ -54,31 +38,30 @@ export interface CanfieldOptions extends DeckOptions {
  */
 export class CanfieldGame extends DealtTableGame {
   /** The face-down stock. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The face-up waste. */
-  public readonly waste: CardPile<PlayingCard>;
+  public readonly waste: ReadonlyCardPile<PlayingCard>;
   /** The thirteen cards dealt aside. */
-  public readonly reserve: CardPile<PlayingCard>;
+  public readonly reserve: ReadonlyCardPile<PlayingCard>;
   /** The four suit foundations. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The four columns. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Which of the family is being played. */
   public readonly variant: CanfieldVariant;
 
   private readonly rules: CanfieldVariantRules;
-  private recycleCount = 0;
 
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     variant = DEFAULT_CANFIELD_VARIANT,
   }: CanfieldOptions = {}) {
     super({
       zones: canfieldZoneSpecs(variant),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       autoMoveRoles: [CanfieldRole.FOUNDATION, CanfieldRole.TABLEAU],
       winsWhenAllCardsIn: CanfieldRole.FOUNDATION,
     });
@@ -90,19 +73,28 @@ export class CanfieldGame extends DealtTableGame {
     this.reserve = this.requirePile(RESERVE_PILE_ID);
     this.foundations = this.pilesOfRole(CanfieldRole.FOUNDATION);
     this.tableaus = this.pilesOfRole(CanfieldRole.TABLEAU);
+    this.markPile(this.stock, () =>
+      recycleMarker({
+        usable: this.rules.maxRecycles > 0 && !this.isSpentStock(),
+        remaining: this.recyclesRemaining,
+        allowed: this.rules.maxRecycles,
+      }),
+    );
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    this.recycleCount = 0;
-    dealCanfieldLayout(this.rules, deck, this);
+  protected override dealBoard(deal: Deal): void {
+    dealCanfieldLayout(this.rules, deal, this);
   }
 
   // --- The stock ---
 
   /** How many more times the waste may be recycled, which may be Infinity. */
   public get recyclesRemaining(): number {
-    return Math.max(0, this.rules.maxRecycles - this.recycleCount);
+    return Math.max(
+      0,
+      this.rules.maxRecycles - this.timesApplied(ActionKind.RECYCLE),
+    );
   }
 
   /**
@@ -112,46 +104,20 @@ export class CanfieldGame extends DealtTableGame {
   public drawCardsFromStock(): void {
     if (!this.stock.isEmpty) {
       this.commitAction(
-        "draw",
-        drawToWaste(this.stock, this.waste, this.rules.drawCount),
+        ActionKind.DRAW,
+        drawToWaste(
+          this.tabletop,
+          this.stock,
+          this.waste,
+          this.rules.drawCount,
+        ),
       );
     } else if (!this.waste.isEmpty && this.recyclesRemaining > 0) {
-      this.recycleCount++;
-      this.commitAction("recycle", recycleWasteToStock(this.waste, this.stock));
+      this.commitAction(
+        ActionKind.RECYCLE,
+        recycleWasteToStock(this.tabletop, this.waste, this.stock),
+      );
     }
-  }
-
-  /**
-   * Returns the plain outline for the empty stock once a press would do
-   * nothing, and a pip per recycle left when the recycles are counted.
-   *
-   * @inheritDoc
-   */
-  public override pileBackgroundKey(
-    pile: CardPile<PlayingCard>,
-  ): string | undefined {
-    if (pile !== this.stock) {
-      return super.pileBackgroundKey(pile);
-    }
-    if (this.isSpentStock()) {
-      return CLOSED_STOCK_PLACEHOLDER;
-    }
-    const allowed = this.rules.maxRecycles;
-    return Number.isFinite(allowed) && allowed > 0
-      ? recyclePipsPlaceholder(this.recyclesRemaining, allowed)
-      : super.pileBackgroundKey(pile);
-  }
-
-  /**
-   * Returns false for the empty stock once a press would recycle nothing.
-   *
-   * @inheritDoc
-   */
-  public override isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
-    return (
-      !(pile === this.stock && this.isSpentStock()) &&
-      super.isEmptySlotActionable(pile)
-    );
   }
 
   /** Returns whether the stock is empty with nothing left to recycle into it. */
@@ -185,36 +151,11 @@ export class CanfieldGame extends DealtTableGame {
       move.sourcePile.isEmpty &&
       filler
     ) {
-      this.reserve.removeCard(filler);
-      move.sourcePile.addCard(filler);
-      followUpTransfers.push({
-        cardIds: [filler.id],
-        fromPileId: this.reserve.id,
-        toPileId: move.sourcePile.id,
-        faceUpBefore: true,
-      });
+      followUpTransfers.push(this.tabletop.relocate([filler], move.sourcePile));
       const flipped = flipExposedTop(this.reserve);
       if (flipped) flippedCardIds.push(flipped.id);
     }
 
     return { scoreDelta: 0, flippedCardIds, followUpTransfers };
-  }
-
-  /** @inheritDoc */
-  protected override afterUndo(move: AppliedMove): void {
-    if (move.kind === "recycle") {
-      // So the player gets the spent recycle back with the board.
-      this.recycleCount--;
-    }
-  }
-
-  /** @inheritDoc */
-  protected override saveExtra(): CanfieldExtra {
-    return { recycleCount: this.recycleCount };
-  }
-
-  /** @inheritDoc */
-  protected override restoreExtra(extra: unknown): void {
-    this.recycleCount = readCanfieldExtra(extra).recycleCount;
   }
 }

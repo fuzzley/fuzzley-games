@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
 import { NestorGame } from "@/games/nestor/nestor_game";
 import { CARDS_PER_COLUMN, dealNestorLayout } from "@/games/nestor/nestor_deal";
@@ -8,6 +7,7 @@ import { TABLEAU_COUNT } from "@/games/nestor/nestor_zones";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
 import { makePlayingCard } from "@test/support/card_builder";
+import { TestTabletop } from "@test/support/test_tabletop";
 
 /** A fixed shuffle, so the deal is the same on every run. */
 const SHUFFLE_VALUES = [0.37, 0.11, 0.83, 0.5, 0.06];
@@ -59,7 +59,8 @@ describe("dealNestorLayout", () => {
   }
 
   it("passes over a card that repeats a rank in its column", () => {
-    const column = new CardPile<PlayingCard>("column");
+    const table = new TestTabletop(["column"]);
+    const column = table.pile("column");
     // Dealt from the end: the Ace of hearts, then the other Ace, then the Two.
     const deck = [
       card(Suit.CLUB, Rank.TWO),
@@ -67,7 +68,7 @@ describe("dealNestorLayout", () => {
       card(Suit.HEART, Rank.ACE),
     ];
 
-    dealNestorLayout(deck, [column], []);
+    dealNestorLayout(table.deal(deck), [column], []);
 
     expect(column.getCards().map((dealt) => dealt.rank)).toEqual([
       Rank.ACE,
@@ -77,10 +78,11 @@ describe("dealNestorLayout", () => {
   });
 
   it("gives the rule up when every card left repeats a rank", () => {
-    const column = new CardPile<PlayingCard>("column");
+    const table = new TestTabletop(["column"]);
+    const column = table.pile("column");
     const deck = [card(Suit.SPADE, Rank.ACE), card(Suit.HEART, Rank.ACE)];
 
-    dealNestorLayout(deck, [column], []);
+    dealNestorLayout(table.deal(deck), [column], []);
 
     expect(column.size).toBe(2);
   });

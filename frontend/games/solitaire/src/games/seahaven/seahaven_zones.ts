@@ -1,8 +1,12 @@
-import { isSameSuitRun } from "@/engine/tableau/rules";
 import { ZoneSpec } from "@/engine/tableau/zone";
 import { OPEN_COLUMN_LAYOUT } from "../common/pile_layouts";
 import { cellRow, columnRow, foundationRow } from "../common/zone_presets";
-import { SeahavenRole, seahavenPlacementRule } from "./seahaven_rules";
+import {
+  SeahavenRole,
+  SEAHAVEN_CELL_RULE,
+  SEAHAVEN_FOUNDATION_RULE,
+  SEAHAVEN_COLUMN,
+} from "./seahaven_rules";
 
 /** The number of holding cells. */
 export const CELL_COUNT = 4;
@@ -27,26 +31,25 @@ const ZONES: readonly ZoneSpec[] = [
     column: 0,
     row: 0,
     role: SeahavenRole.CELL,
-    accept: seahavenPlacementRule(SeahavenRole.CELL),
+    accept: SEAHAVEN_CELL_RULE,
   }),
   ...foundationRow({
     count: FOUNDATION_COUNT,
     column: FOUNDATION_COLUMN_OFFSET,
     row: 0,
     role: SeahavenRole.FOUNDATION,
-    accept: seahavenPlacementRule(SeahavenRole.FOUNDATION),
+    accept: SEAHAVEN_FOUNDATION_RULE,
   }),
   ...columnRow({
     count: TABLEAU_COUNT,
     column: 0,
     row: 1,
     role: SeahavenRole.TABLEAU,
-    accept: seahavenPlacementRule(SeahavenRole.TABLEAU),
-    grab: { kind: "run", adjacent: isSameSuitRun },
+    ...SEAHAVEN_COLUMN,
     layout: OPEN_COLUMN_LAYOUT,
     face: "always-up",
   }),
 ];
 
-/** Re-exported: the roles live with the rules that branch on them. */
+/** Re-exported: the roles live with the rules that use them. */
 export { SeahavenRole };

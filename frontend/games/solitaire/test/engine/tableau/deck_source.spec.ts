@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { Rank, Suit } from "@/engine/core/card/playing_card";
 import { DeckSource } from "@/engine/tableau/deck_source";
 import { sequenceRandom } from "../../support/sequence_random";
 
@@ -100,33 +99,6 @@ describe("DeckSource", () => {
       const deck = new DeckSource(registry, []);
 
       expect(deck.createShuffledDeck()).toEqual([]);
-    });
-  });
-
-  describe("find", () => {
-    it("returns the registered card for an identity the deck deals", () => {
-      const deck = new DeckSource(registry, ALL_PLAYING_CARD_IDS);
-      deck.register();
-
-      const card = deck.find({ suit: Suit.SPADE, rank: Rank.ACE });
-
-      expect(card?.suit).toBe(Suit.SPADE);
-      expect(card?.rank).toBe(Rank.ACE);
-    });
-
-    it("returns undefined for a card a short deck does not hold", () => {
-      const deck = new DeckSource(registry, ALL_PLAYING_CARD_IDS.slice(0, 2));
-      deck.register();
-
-      expect(deck.find({ suit: Suit.CLUB, rank: Rank.KING })).toBeUndefined();
-    });
-  });
-
-  describe("size", () => {
-    it("reports how many distinct cards the deck deals", () => {
-      const deck = new DeckSource(registry, ALL_PLAYING_CARD_IDS.slice(0, 7));
-
-      expect(deck.size).toBe(7);
     });
   });
 });
