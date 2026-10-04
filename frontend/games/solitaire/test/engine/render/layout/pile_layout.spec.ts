@@ -1,7 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
+  FanDownLayout,
+  FanFit,
   PileLayout,
   SpreadDirection,
+  fitFanDown,
+  mirrorPileLayout,
   pileBounds,
   spreadOffsets,
 } from "@/engine/render/layout/pile_layout";
@@ -20,7 +24,7 @@ function spread(
 
 /** Returns `count` face-up cards. */
 function cards(count: number) {
-  return Array.from({ length: count }, () => makePlayingCard());
+  return Array.from({ length: count }, () => makePlayingCard({ faceUp: true }));
 }
 
 describe("spreadOffsets", () => {
@@ -121,5 +125,121 @@ describe("pileBounds", () => {
       width: 100,
       height: 190,
     });
+  });
+});
+
+describe("fitFanDown", () => {
+  const FAN: FanDownLayout = {
+    kind: "fan-down",
+    faceUpGap: 45,
+    faceDownGap: 18,
+    hoverExpansion: 15,
+  };
+  const FIT: FanFit = {
+    minFaceUpGap: 40,
+    maxFaceUpGap: 110,
+    minFaceDownGap: 10,
+  };
+
+  /** Returns a column of `down` hidden cards under `up` face-up ones. */
+  function column(down: number, up: number) {
+    return [
+      ...Array.from({ length: down }, () => makePlayingCard()),
+      ...cards(up),
+    ];
+  }
+
+  /** Returns how tall a column stands under a fan, in design units. */
+  function standing(layout: FanDownLayout, down: number, up: number) {
+    return down * layout.faceDownGap + (up - 1) * layout.faceUpGap + 150;
+  }
+
+  it("opens a short column's face-up gaps to the cap", () => {
+    const fitted = fitFanDown(FAN, column(2, 3), 2000, 150, FIT);
+
+    expect(fitted.faceUpGap).toBe(110);
+  });
+
+  it("leaves hidden cards their own gap when there is room", () => {
+    const fitted = fitFanDown(FAN, column(2, 3), 2000, 150, FIT);
+
+    expect(fitted.faceDownGap).toBe(18);
+  });
+
+  it("spreads face-up cards over the room when it is less than the cap", () => {
+    // Room for the card, the hover, two hidden gaps and two gaps of 80.
+    const room = 150 + 15 + 2 * 18 + 2 * 80;
+
+    const fitted = fitFanDown(FAN, column(2, 3), room, 150, FIT);
+
+    expect(fitted.faceUpGap).toBe(80);
+  });
+
+  it("closes hidden cards' gaps before face-up ones go below their own", () => {
+    // Room for every face-up gap at 45 and the hidden ones at 14.
+    const room = 150 + 15 + 6 * 14 + 5 * 45;
+
+    const fitted = fitFanDown(FAN, column(6, 6), room, 150, FIT);
+
+    expect([fitted.faceDownGap, fitted.faceUpGap]).toEqual([14, 45]);
+  });
+
+  it("closes face-up gaps once hidden cards are at their floor", () => {
+    const room = 150 + 15 + 6 * 10 + 5 * 42;
+
+    const fitted = fitFanDown(FAN, column(6, 6), room, 150, FIT);
+
+    expect([fitted.faceDownGap, fitted.faceUpGap]).toEqual([10, 42]);
+  });
+
+  it("never closes past the floors, letting a long column run long", () => {
+    const fitted = fitFanDown(FAN, column(6, 12), 400, 150, FIT);
+
+    expect([fitted.faceDownGap, fitted.faceUpGap]).toEqual([10, 40]);
+  });
+
+  it("keeps room for the hovered card's expansion", () => {
+    const room = 1000;
+
+    const fitted = fitFanDown(FAN, column(6, 12), room, 150, FIT);
+
+    expect(standing(fitted, 6, 12) + FAN.hoverExpansion).toBeLessThanOrEqual(
+      room,
+    );
+  });
+
+  it("keeps a column of hidden cards under one face-up card at its gaps", () => {
+    const fitted = fitFanDown(FAN, column(4, 1), 2000, 150, FIT);
+
+    expect([fitted.faceDownGap, fitted.faceUpGap]).toEqual([18, 45]);
+  });
+
+  it("keeps a single card's fan as it was", () => {
+    expect(fitFanDown(FAN, cards(1), 50, 150, FIT)).toEqual(FAN);
+  });
+});
+
+describe("mirrorPileLayout", () => {
+  it("turns a rightward spread to the left", () => {
+    expect(mirrorPileLayout(spread("right"))).toEqual(spread("left"));
+  });
+
+  it("turns a leftward spread to the right", () => {
+    expect(mirrorPileLayout(spread("left"))).toEqual(spread("right"));
+  });
+
+  it("leaves a downward spread running down", () => {
+    expect(mirrorPileLayout(spread("down"))).toEqual(spread("down"));
+  });
+
+  it("leaves a downward fan as it is", () => {
+    const fan: PileLayout = {
+      kind: "fan-down",
+      faceUpGap: 45,
+      faceDownGap: 18,
+      hoverExpansion: 15,
+    };
+
+    expect(mirrorPileLayout(fan)).toBe(fan);
   });
 });

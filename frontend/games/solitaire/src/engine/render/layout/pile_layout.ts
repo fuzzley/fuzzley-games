@@ -1,7 +1,7 @@
 import { Point } from "@/engine/core/common/point";
 import { Card } from "@/engine/core/card/card";
 import { Rect } from "../view/table_view_state";
-import { Size } from "./table_layout";
+import type { Size } from "./table_layout";
 
 /** Says which way a spread runs from its pile's origin. */
 export type SpreadDirection = "right" | "left" | "down";
@@ -42,6 +42,91 @@ export type PileLayout =
       readonly groupSize?: number;
     };
 
+/**
+ * Works out how a pile arranges its cards on a particular grid from how it
+ * would arrange them otherwise.
+ */
+export type PileLayoutOverride = (own: PileLayout) => PileLayout;
+
+/** A pile's cards fanned downwards. */
+export type FanDownLayout = Extract<PileLayout, { kind: "fan-down" }>;
+
+/** A pile's top cards spread out one way. */
+export type SpreadLayout = Extract<PileLayout, { kind: "spread" }>;
+
+/**
+ * Says how far a downward fan may open or close to fit the room below its
+ * pile, in design units.
+ */
+export interface FanFit {
+  /** The gap below a face-up card that a fan never closes past. */
+  readonly minFaceUpGap: number;
+  /** The gap below a face-up card that a fan never opens past. */
+  readonly maxFaceUpGap: number;
+  /** The gap below a face-down card that a fan never closes past. */
+  readonly minFaceDownGap: number;
+}
+
+/**
+ * Returns a downward fan with its gaps fitted to the room below its pile:
+ * opened towards the cap when there is room to spare, and closed when there is
+ * not, hidden cards first.
+ *
+ * Room is kept for the hovered card's expansion, so touching a card never
+ * pushes the column further than it already reaches. A column that does not
+ * fit even at the floors keeps them and runs past the room.
+ *
+ * @param cards The pile's cards, bottom first.
+ * @param room How far the cards may reach below the origin, in design units.
+ * @param cardHeight How tall one card is, in design units.
+ */
+export function fitFanDown(
+  layout: FanDownLayout,
+  cards: ReadonlyArray<Card>,
+  room: number,
+  cardHeight: number,
+  fit: FanFit,
+): FanDownLayout {
+  // The last card leaves no gap below it.
+  const above = cards.slice(0, -1);
+  const upGaps = above.filter((card) => card.faceUp).length;
+  const downGaps = above.length - upGaps;
+  const spare = room - cardHeight - layout.hoverExpansion;
+  const clamp = (value: number, low: number, high: number) =>
+    Math.min(high, Math.max(low, value));
+
+  // Hidden cards give up their gap before face-up ones go below their own.
+  const faceDownGap =
+    downGaps === 0
+      ? layout.faceDownGap
+      : clamp(
+          (spare - upGaps * layout.faceUpGap) / downGaps,
+          fit.minFaceDownGap,
+          layout.faceDownGap,
+        );
+  const faceUpGap =
+    upGaps === 0
+      ? layout.faceUpGap
+      : clamp(
+          (spare - downGaps * faceDownGap) / upGaps,
+          fit.minFaceUpGap,
+          fit.maxFaceUpGap,
+        );
+  return { ...layout, faceUpGap, faceDownGap };
+}
+
+/**
+ * Returns an arrangement as it looks in a mirror: a sideways spread runs the
+ * other way, and anything else is unchanged.
+ */
+export function mirrorPileLayout(layout: PileLayout): PileLayout {
+  if (layout.kind !== "spread" || layout.direction === "down") return layout;
+  return {
+    ...layout,
+    direction: layout.direction === "right" ? "left" : "right",
+  };
+}
+
 /** Returns the offsets of cards stacked directly on top of each other. */
 export function stackedCardOffsets(count: number): Point[] {
   return Array.from({ length: count }, () => ({ x: 0, y: 0 }));
@@ -56,7 +141,7 @@ export function stackedCardOffsets(count: number): Point[] {
  */
 export function fanDownOffsets(
   cards: ReadonlyArray<Card>,
-  layout: Extract<PileLayout, { kind: "fan-down" }>,
+  layout: FanDownLayout,
   expansionCardId: string | null,
 ): Point[] {
   const offsets: Point[] = [];
@@ -86,7 +171,7 @@ const SPREAD_STEPS: { readonly [Direction in SpreadDirection]: Point } = {
  */
 export function spreadOffsets(
   count: number,
-  layout: Extract<PileLayout, { kind: "spread" }>,
+  layout: SpreadLayout,
 ): Point[] {
   const groupSize = layout.groupSize ?? 1;
   const groups = Math.ceil(count / groupSize);

@@ -3,7 +3,15 @@ import {
   FakeTableGame,
   StockOverrideTableGame,
 } from "@test/support/fake_table/game";
-import { buildFakeTableViewState } from "@test/support/fake_table/board";
+import {
+  FAKE_TABLE_LAYOUT,
+  buildFakeTableViewState,
+} from "@test/support/fake_table/board";
+import { measureTable } from "@/engine/render/layout/table_layout";
+import {
+  buildTableViewState,
+  resolveDragTarget,
+} from "@/engine/tableau/view/table_view_builder";
 import {
   PileBackgroundView,
   TableInteractionState,
@@ -655,5 +663,79 @@ describe("board_view_state_builder", () => {
       CARD_RENDER_WIDTH_PX * cardView.scale,
       CARD_RENDER_HEIGHT_PX * cardView.scale,
     ]);
+  });
+});
+
+describe("board_view_state_builder on a grid whose fans fit their room", () => {
+  const viewport: Viewport = { width: 1920, height: 1080, pixelRatio: 1 };
+  const FITTED = {
+    ...FAKE_TABLE_LAYOUT,
+    fanFit: { minFaceUpGap: 40, maxFaceUpGap: 110, minFaceDownGap: 10 },
+  };
+  let game: FakeTableGame;
+  let interaction: TableInteractionState;
+
+  beforeEach(() => {
+    game = new FakeTableGame();
+    game.startNewGame();
+    emptyBoard(game);
+    interaction = {
+      hoveredCardId: null,
+      hoveredBackgroundPileId: null,
+      drag: null,
+      flights: [],
+      snapAll: false,
+    };
+  });
+
+  /** Lays a king and a queen in the first column and returns them. */
+  function twoCards() {
+    const king = relocate(game, "card-spades-king", game.tableaus[0]);
+    const queen = relocate(game, "card-hearts-queen", game.tableaus[0]);
+    return { king, queen };
+  }
+
+  it("draws a column's cards the fitted gap apart", () => {
+    const { king, queen } = twoCards();
+    const metrics = measureTable(FITTED, viewport);
+
+    const cards = buildTableViewState(game, interaction, metrics, "back").cards;
+
+    const y = (id: string) => cards.find((card) => card.cardId === id)!.y;
+    expect(y(queen.id) - y(king.id)).toBe(110 * metrics.scale);
+  });
+
+  it("carries a stack from a fitted column the fitted gap apart", () => {
+    const { king, queen } = twoCards();
+    interaction.drag = {
+      cardIds: [king.id, queen.id],
+      primary: { x: 100, y: 100 },
+    };
+    const metrics = measureTable(FITTED, viewport);
+
+    const cards = buildTableViewState(game, interaction, metrics, "back").cards;
+
+    const held = cards.find((card) => card.cardId === queen.id)!;
+    expect(held.y).toBe(100 + 110 * metrics.scale);
+  });
+
+  it("takes a drop over the part of a fitted column past its own gaps", () => {
+    twoCards();
+    const jack = relocate(game, "card-spades-jack", game.tableaus[1]);
+    const metrics = measureTable(FITTED, viewport);
+    const origin = metrics.origins.get(game.tableaus[0].id)!;
+    const queenTop = origin.y + 110 * metrics.scale;
+
+    // Lower than the queen would reach at the zone's own gap of 45.
+    const target = resolveDragTarget(
+      game,
+      {
+        cardIds: [jack.id],
+        primary: { x: origin.x, y: queenTop + 0.8 * 313 * metrics.scale },
+      },
+      metrics,
+    );
+
+    expect(target?.pileId).toBe(game.tableaus[0].id);
   });
 });

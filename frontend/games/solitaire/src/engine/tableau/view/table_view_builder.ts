@@ -22,6 +22,7 @@ import {
 } from "@/engine/render/view/table_view_state";
 import { ZoneLook, frameFor, showsFace } from "./zone_look";
 import { TableView } from "./table_view";
+import { pileArrangement } from "./pile_arrangement";
 import { itemAt } from "@/engine/core/common/item_at";
 
 /**
@@ -52,7 +53,7 @@ export function resolveDragTarget(
   const geometries = computeDropGeometries(
     game.dropTargetPiles.map((pile) => ({
       pile,
-      layout: game.zoneFor(pile.id)?.layout ?? { kind: "stacked" },
+      layout: pileArrangement(game, pile, metrics),
     })),
     metrics.origins,
     cardSize,
@@ -176,7 +177,7 @@ class TableViewStateBuilder {
 
       const pileCards = pile.getCards();
       const offsets = pileCardOffsets(
-        zone.layout,
+        pileArrangement(this.game, pile, this.metrics),
         pileCards,
         this.expansionCardId(zone, pileCards),
       );
@@ -225,7 +226,7 @@ class TableViewStateBuilder {
         ? null
         : this.game.getPileContainingCard(primaryCardId);
     const sourceLayout = sourcePile
-      ? this.game.zoneFor(sourcePile.id)?.layout
+      ? pileArrangement(this.game, sourcePile, this.metrics)
       : undefined;
 
     return {
