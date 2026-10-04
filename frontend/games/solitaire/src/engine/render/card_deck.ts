@@ -80,6 +80,13 @@ export const CARD_DECKS: readonly CardDeckSpec[] = [
  */
 export const DEFAULT_CARD_DECK: CardDeckId = "indexed";
 
+/**
+ * The deck a player gets before they have chosen one, on a screen narrow
+ * enough that the board compacts, where an artwork deck's index is too small
+ * to read down a fanned column.
+ */
+export const DEFAULT_COMPACT_CARD_DECK: CardDeckId = "mobile";
+
 /** Returns whether a value names a deck this build offers. */
 export function isCardDeckId(value: unknown): value is CardDeckId {
   return CARD_DECKS.some((deck) => deck.id === value);

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   CARD_DECKS,
   DEFAULT_CARD_DECK,
+  DEFAULT_COMPACT_CARD_DECK,
   isCardDeckId,
 } from "@/engine/render/card_deck";
 
@@ -16,6 +17,10 @@ describe("card decks", () => {
     // Otherwise the drawer would check no deck and the loader would ask for an
     // atlas that is not built.
     expect(isCardDeckId(DEFAULT_CARD_DECK)).toBe(true);
+  });
+
+  it("offers the deck a new player on a phone is given", () => {
+    expect(isCardDeckId(DEFAULT_COMPACT_CARD_DECK)).toBe(true);
   });
 
   it("gives every deck something to show and something to read", () => {

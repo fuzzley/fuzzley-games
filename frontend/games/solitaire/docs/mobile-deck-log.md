@@ -87,7 +87,7 @@ Settled with the project owner before any code changed.
 - [x] 2.3 Build checks
 - [x] 2.4 Preview contact sheet
 - [x] 3.1 Register the deck
-- [ ] 3.2 Compact default
+- [x] 3.2 Compact default
 - [ ] 3.3 Docs
 - [ ] 4.1 Specs
 - [ ] 4.2 Browser check
@@ -167,3 +167,14 @@ pip, and the drawer's preview draws the large index at about the share of the
 strip the deck's own index fills. The spec that kept previews apart compares
 pip coverage and index size together, since `mobile` shares its coverage with
 `all-corner-pips`. The drawer specs that counted three decks count four.
+
+### 3.2 Compact default
+
+`DEFAULT_COMPACT_CARD_DECK` (`mobile`) sits beside `DEFAULT_CARD_DECK`
+(`indexed`). `PresentationSettingsService` asks `ViewportService` which one a
+player gets when no valid deck is stored, which also covers settings saved
+before decks could be chosen. The service already saves on its first run, so
+the default is stored like a choice: turning a phone past the breakpoint, or a
+later visit in a wider window, keeps the deck. Specs cover a phone with
+nothing stored, a phone with settings but no deck, a phone with a chosen deck,
+and a later visit in a wider window.
