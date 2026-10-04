@@ -13,6 +13,7 @@ import {
 import { KlondikeVariant } from "@/games/klondike/klondike_rules";
 import type { PlayableGame } from "@/engine/tableau/playable_game";
 import { TableGame } from "@/engine/tableau/table_game";
+import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { TestPresentation } from "@test/support/presentation";
 import { CATALOG_DEALS as DEALS } from "@test/support/ui/catalog_deals";
 
@@ -161,7 +162,7 @@ describe("every game in the catalog", () => {
       const game = asTableGame(entry.create(values).game);
       const piles = game.piles.map((pile) => pile.id).sort();
       const phone = entry.phoneLayouts;
-      const grids = phone
+      const grids: Record<string, TableLayoutSpec> = phone
         ? { ...phone.portrait, landscape: phone.landscape }
         : {};
 
