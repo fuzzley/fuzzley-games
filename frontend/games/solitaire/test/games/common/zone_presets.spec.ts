@@ -3,7 +3,11 @@ import { CARD_DECKS } from "@/engine/render/card_deck";
 import { CARD_ART_SCALES } from "@/engine/render/layout/card_metrics";
 import {
   CLOSED_STOCK_PLACEHOLDER,
+  COVERED_FOUNDATION_PLACEHOLDER,
+  FOUNDATION_PLACEHOLDER,
   PIP_COUNTS,
+  PLAIN_PLACEHOLDER,
+  RAIL_FOUNDATION_PLACEHOLDER,
   RECYCLING_STOCK_PLACEHOLDER,
   recycleMarker,
   recyclePipsPlaceholder,
@@ -38,7 +42,9 @@ describe("recyclePipsPlaceholder", () => {
   it("falls back to the plain arrow once nothing is left", () => {
     expect(recyclePipsPlaceholder(0, 2)).toBe(RECYCLING_STOCK_PLACEHOLDER);
   });
+});
 
+describe("placeholder artwork", () => {
   it("names only artwork every deck's atlas holds", () => {
     const manifests = Object.values(
       import.meta.glob<{
@@ -49,9 +55,13 @@ describe("recyclePipsPlaceholder", () => {
       }),
     );
     const artwork = [
-      ...everyPipPlaceholder(),
+      PLAIN_PLACEHOLDER,
+      FOUNDATION_PLACEHOLDER,
+      COVERED_FOUNDATION_PLACEHOLDER,
+      RAIL_FOUNDATION_PLACEHOLDER,
       RECYCLING_STOCK_PLACEHOLDER,
       CLOSED_STOCK_PLACEHOLDER,
+      ...everyPipPlaceholder(),
     ];
 
     const missing = manifests.flatMap((manifest) => {

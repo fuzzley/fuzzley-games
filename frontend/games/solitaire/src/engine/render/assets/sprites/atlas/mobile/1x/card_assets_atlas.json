@@ -4,7 +4,7 @@
       "image": "card_assets-0.png",
       "format": "RGBA8888",
       "size": {
-        "w": 3648,
+        "w": 3876,
         "h": 1260
       },
       "scale": 1,
@@ -220,8 +220,8 @@
         {
           "filename": "card-diamonds-4",
           "frame": {
-            "x": 4,
-            "y": 319,
+            "x": 3652,
+            "y": 4,
             "w": 220,
             "h": 307
           },
@@ -233,7 +233,7 @@
         {
           "filename": "card-diamonds-5",
           "frame": {
-            "x": 232,
+            "x": 4,
             "y": 319,
             "w": 220,
             "h": 307
@@ -246,7 +246,7 @@
         {
           "filename": "card-diamonds-6",
           "frame": {
-            "x": 460,
+            "x": 232,
             "y": 319,
             "w": 220,
             "h": 307
@@ -259,7 +259,7 @@
         {
           "filename": "card-diamonds-7",
           "frame": {
-            "x": 688,
+            "x": 460,
             "y": 319,
             "w": 220,
             "h": 307
@@ -272,7 +272,7 @@
         {
           "filename": "card-diamonds-8",
           "frame": {
-            "x": 916,
+            "x": 688,
             "y": 319,
             "w": 220,
             "h": 307
@@ -285,7 +285,7 @@
         {
           "filename": "card-diamonds-9",
           "frame": {
-            "x": 1144,
+            "x": 916,
             "y": 319,
             "w": 220,
             "h": 307
@@ -298,7 +298,7 @@
         {
           "filename": "card-diamonds-10",
           "frame": {
-            "x": 1372,
+            "x": 1144,
             "y": 319,
             "w": 220,
             "h": 307
@@ -311,7 +311,7 @@
         {
           "filename": "card-diamonds-jack",
           "frame": {
-            "x": 1600,
+            "x": 1372,
             "y": 319,
             "w": 220,
             "h": 307
@@ -324,7 +324,7 @@
         {
           "filename": "card-diamonds-queen",
           "frame": {
-            "x": 1828,
+            "x": 1600,
             "y": 319,
             "w": 220,
             "h": 307
@@ -337,7 +337,7 @@
         {
           "filename": "card-diamonds-king",
           "frame": {
-            "x": 2056,
+            "x": 1828,
             "y": 319,
             "w": 220,
             "h": 307
@@ -350,7 +350,7 @@
         {
           "filename": "card-hearts-ace",
           "frame": {
-            "x": 2284,
+            "x": 2056,
             "y": 319,
             "w": 220,
             "h": 307
@@ -363,7 +363,7 @@
         {
           "filename": "card-hearts-2",
           "frame": {
-            "x": 2512,
+            "x": 2284,
             "y": 319,
             "w": 220,
             "h": 307
@@ -376,7 +376,7 @@
         {
           "filename": "card-hearts-3",
           "frame": {
-            "x": 2740,
+            "x": 2512,
             "y": 319,
             "w": 220,
             "h": 307
@@ -389,7 +389,7 @@
         {
           "filename": "card-hearts-4",
           "frame": {
-            "x": 2968,
+            "x": 2740,
             "y": 319,
             "w": 220,
             "h": 307
@@ -402,7 +402,7 @@
         {
           "filename": "card-hearts-5",
           "frame": {
-            "x": 3196,
+            "x": 2968,
             "y": 319,
             "w": 220,
             "h": 307
@@ -415,7 +415,7 @@
         {
           "filename": "card-hearts-6",
           "frame": {
-            "x": 3424,
+            "x": 3196,
             "y": 319,
             "w": 220,
             "h": 307
@@ -428,8 +428,8 @@
         {
           "filename": "card-hearts-7",
           "frame": {
-            "x": 4,
-            "y": 634,
+            "x": 3424,
+            "y": 319,
             "w": 220,
             "h": 307
           },
@@ -441,8 +441,8 @@
         {
           "filename": "card-hearts-8",
           "frame": {
-            "x": 232,
-            "y": 634,
+            "x": 3652,
+            "y": 319,
             "w": 220,
             "h": 307
           },
@@ -454,7 +454,7 @@
         {
           "filename": "card-hearts-9",
           "frame": {
-            "x": 460,
+            "x": 4,
             "y": 634,
             "w": 220,
             "h": 307
@@ -467,7 +467,7 @@
         {
           "filename": "card-hearts-10",
           "frame": {
-            "x": 688,
+            "x": 232,
             "y": 634,
             "w": 220,
             "h": 307
@@ -480,7 +480,7 @@
         {
           "filename": "card-hearts-jack",
           "frame": {
-            "x": 916,
+            "x": 460,
             "y": 634,
             "w": 220,
             "h": 307
@@ -493,7 +493,7 @@
         {
           "filename": "card-hearts-queen",
           "frame": {
-            "x": 1144,
+            "x": 688,
             "y": 634,
             "w": 220,
             "h": 307
@@ -506,7 +506,7 @@
         {
           "filename": "card-hearts-king",
           "frame": {
-            "x": 1372,
+            "x": 916,
             "y": 634,
             "w": 220,
             "h": 307
@@ -519,7 +519,7 @@
         {
           "filename": "card-spades-ace",
           "frame": {
-            "x": 1600,
+            "x": 1144,
             "y": 634,
             "w": 220,
             "h": 307
@@ -532,7 +532,7 @@
         {
           "filename": "card-spades-2",
           "frame": {
-            "x": 1828,
+            "x": 1372,
             "y": 634,
             "w": 220,
             "h": 307
@@ -545,7 +545,7 @@
         {
           "filename": "card-spades-3",
           "frame": {
-            "x": 2056,
+            "x": 1600,
             "y": 634,
             "w": 220,
             "h": 307
@@ -558,7 +558,7 @@
         {
           "filename": "card-spades-4",
           "frame": {
-            "x": 2284,
+            "x": 1828,
             "y": 634,
             "w": 220,
             "h": 307
@@ -571,7 +571,7 @@
         {
           "filename": "card-spades-5",
           "frame": {
-            "x": 2512,
+            "x": 2056,
             "y": 634,
             "w": 220,
             "h": 307
@@ -584,7 +584,7 @@
         {
           "filename": "card-spades-6",
           "frame": {
-            "x": 2740,
+            "x": 2284,
             "y": 634,
             "w": 220,
             "h": 307
@@ -597,7 +597,7 @@
         {
           "filename": "card-spades-7",
           "frame": {
-            "x": 2968,
+            "x": 2512,
             "y": 634,
             "w": 220,
             "h": 307
@@ -610,7 +610,7 @@
         {
           "filename": "card-spades-8",
           "frame": {
-            "x": 3196,
+            "x": 2740,
             "y": 634,
             "w": 220,
             "h": 307
@@ -623,7 +623,7 @@
         {
           "filename": "card-spades-9",
           "frame": {
-            "x": 3424,
+            "x": 2968,
             "y": 634,
             "w": 220,
             "h": 307
@@ -636,8 +636,8 @@
         {
           "filename": "card-spades-10",
           "frame": {
-            "x": 4,
-            "y": 949,
+            "x": 3196,
+            "y": 634,
             "w": 220,
             "h": 307
           },
@@ -649,8 +649,8 @@
         {
           "filename": "card-spades-jack",
           "frame": {
-            "x": 232,
-            "y": 949,
+            "x": 3424,
+            "y": 634,
             "w": 220,
             "h": 307
           },
@@ -662,8 +662,8 @@
         {
           "filename": "card-spades-queen",
           "frame": {
-            "x": 460,
-            "y": 949,
+            "x": 3652,
+            "y": 634,
             "w": 220,
             "h": 307
           },
@@ -675,7 +675,7 @@
         {
           "filename": "card-spades-king",
           "frame": {
-            "x": 688,
+            "x": 4,
             "y": 949,
             "w": 220,
             "h": 307
@@ -688,7 +688,7 @@
         {
           "filename": "card-back-blue",
           "frame": {
-            "x": 916,
+            "x": 232,
             "y": 949,
             "w": 220,
             "h": 307
@@ -701,7 +701,7 @@
         {
           "filename": "card-back-red",
           "frame": {
-            "x": 1144,
+            "x": 460,
             "y": 949,
             "w": 220,
             "h": 307
@@ -714,7 +714,7 @@
         {
           "filename": "card-placeholder",
           "frame": {
-            "x": 1372,
+            "x": 688,
             "y": 949,
             "w": 220,
             "h": 307
@@ -727,7 +727,7 @@
         {
           "filename": "card-placeholder-full-border-circle",
           "frame": {
-            "x": 1600,
+            "x": 916,
             "y": 949,
             "w": 220,
             "h": 307
@@ -740,7 +740,7 @@
         {
           "filename": "card-placeholder-full-border-reset",
           "frame": {
-            "x": 1828,
+            "x": 1144,
             "y": 949,
             "w": 220,
             "h": 307
@@ -753,7 +753,7 @@
         {
           "filename": "card-placeholder-full-border",
           "frame": {
-            "x": 2056,
+            "x": 1372,
             "y": 949,
             "w": 220,
             "h": 307
@@ -766,7 +766,7 @@
         {
           "filename": "card-placeholder-full-border-reset-2-of-2",
           "frame": {
-            "x": 2284,
+            "x": 1600,
             "y": 949,
             "w": 220,
             "h": 307
@@ -779,7 +779,7 @@
         {
           "filename": "card-placeholder-full-border-reset-1-of-2",
           "frame": {
-            "x": 2512,
+            "x": 1828,
             "y": 949,
             "w": 220,
             "h": 307
@@ -792,7 +792,7 @@
         {
           "filename": "card-placeholder-full-border-reset-3-of-3",
           "frame": {
-            "x": 2740,
+            "x": 2056,
             "y": 949,
             "w": 220,
             "h": 307
@@ -805,7 +805,7 @@
         {
           "filename": "card-placeholder-full-border-reset-2-of-3",
           "frame": {
-            "x": 2968,
+            "x": 2284,
             "y": 949,
             "w": 220,
             "h": 307
@@ -818,7 +818,33 @@
         {
           "filename": "card-placeholder-full-border-reset-1-of-3",
           "frame": {
-            "x": 3196,
+            "x": 2512,
+            "y": 949,
+            "w": 220,
+            "h": 307
+          },
+          "anchor": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "card-placeholder-top-circle",
+          "frame": {
+            "x": 2740,
+            "y": 949,
+            "w": 220,
+            "h": 307
+          },
+          "anchor": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        },
+        {
+          "filename": "card-placeholder-full-border-top-circle",
+          "frame": {
+            "x": 2968,
             "y": 949,
             "w": 220,
             "h": 307
