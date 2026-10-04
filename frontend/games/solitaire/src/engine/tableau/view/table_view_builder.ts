@@ -295,7 +295,7 @@ class TableViewStateBuilder {
    * a buried card is the one a player most needs to read.
    */
   private expansionCardId(
-    zone: ZoneLook,
+    look: ZoneLook,
     pileCards: readonly PlayingCard[],
   ): string | null {
     if (!this.interaction.hoveredCardId || this.interaction.drag) {
@@ -304,7 +304,7 @@ class TableViewStateBuilder {
     const hovered = pileCards.find(
       (card) => card.id === this.interaction.hoveredCardId,
     );
-    return hovered && showsFace(zone.face, hovered) ? hovered.id : null;
+    return hovered && showsFace(look.face, hovered) ? hovered.id : null;
   }
 
   /**
