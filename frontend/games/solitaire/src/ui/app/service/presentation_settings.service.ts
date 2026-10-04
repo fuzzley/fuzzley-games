@@ -14,6 +14,7 @@ import {
   CARD_DECKS,
   CardDeckId,
   DEFAULT_CARD_DECK,
+  DEFAULT_COMPACT_CARD_DECK,
   isCardDeckId,
 } from "@/engine/render/card_deck";
 import {
@@ -24,6 +25,7 @@ import {
   themeWithColor,
 } from "../model/table_theme";
 import { LocalStorageService } from "./local_storage.service";
+import { ViewportService } from "./viewport.service";
 
 /** Names the artwork on the back of the cards. */
 export type CardBackStyle = "card-back-blue" | "card-back-red";
@@ -45,10 +47,10 @@ interface StoredPresentation extends Partial<PersistedPresentation> {
   backgroundColor?: unknown;
 }
 
-const DEFAULTS: PersistedPresentation = {
+/** The defaults every screen shares; the deck depends on the screen. */
+const DEFAULTS: Omit<PersistedPresentation, "cardDeck"> = {
   cardBackStyle: "card-back-blue",
   theme: DEFAULT_THEME,
-  cardDeck: DEFAULT_CARD_DECK,
 };
 
 function isCardBackStyle(value: unknown): value is CardBackStyle {
@@ -68,6 +70,7 @@ function deckName(deckId: CardDeckId): string {
 export class PresentationSettingsService implements TablePresentation {
   private readonly storage = inject(LocalStorageService);
   private readonly injector = inject(Injector);
+  private readonly viewport = inject(ViewportService);
 
   private readonly loaded = this.loadPersisted();
 
@@ -199,20 +202,34 @@ export class PresentationSettingsService implements TablePresentation {
 
   /** Reads stored settings, filling gaps with defaults. */
   private loadPersisted(): PersistedPresentation {
+    const defaults = { ...DEFAULTS, cardDeck: this.defaultCardDeck() };
     const parsed = this.storage.readObject<StoredPresentation>(STORAGE_KEY);
-    if (!parsed) return { ...DEFAULTS };
+    if (!parsed) return defaults;
 
     return {
       cardBackStyle: isCardBackStyle(parsed.cardBackStyle)
         ? parsed.cardBackStyle
-        : DEFAULTS.cardBackStyle,
+        : defaults.cardBackStyle,
       theme: isThemeKey(parsed.theme)
         ? parsed.theme
-        : (themeWithColor(parsed.backgroundColor) ?? DEFAULTS.theme),
+        : (themeWithColor(parsed.backgroundColor) ?? defaults.theme),
       // Absent from settings saved before the deck could be chosen.
       cardDeck: isCardDeckId(parsed.cardDeck)
         ? parsed.cardDeck
-        : DEFAULTS.cardDeck,
+        : defaults.cardDeck,
     };
+  }
+
+  /**
+   * Returns the deck a player who has not chosen one starts on: the phone's
+   * deck on a compact screen.
+   *
+   * The first save stores it like a choice, so turning a phone sideways past
+   * the breakpoint does not swap the deck under the player.
+   */
+  private defaultCardDeck(): CardDeckId {
+    return this.viewport.isCompact()
+      ? DEFAULT_COMPACT_CARD_DECK
+      : DEFAULT_CARD_DECK;
   }
 }

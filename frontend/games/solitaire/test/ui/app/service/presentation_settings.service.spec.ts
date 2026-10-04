@@ -1,9 +1,17 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed } from "@angular/core/testing";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/presentation";
-import { DEFAULT_CARD_DECK } from "@/engine/render/card_deck";
+import {
+  DEFAULT_CARD_DECK,
+  DEFAULT_COMPACT_CARD_DECK,
+} from "@/engine/render/card_deck";
+import { COMPACT_MAX_WIDTH_PX } from "@/ui/app/service/viewport.service";
+import {
+  installFakeViewport,
+  type FakeViewport,
+} from "@test/support/ui/viewport";
 
 /**
  * Returns a service built through the injector, which its field initializer
@@ -21,9 +29,21 @@ function stored(): Record<string, unknown> | null {
 }
 
 describe("PresentationSettingsService", () => {
+  let viewport: FakeViewport | null = null;
+
   beforeEach(() => {
     localStorage.clear();
   });
+
+  afterEach(() => {
+    viewport?.restore();
+    viewport = null;
+  });
+
+  /** Makes the window narrow enough that the board compacts. */
+  function onAPhone(): void {
+    viewport = installFakeViewport(COMPACT_MAX_WIDTH_PX - 200);
+  }
 
   describe("loading", () => {
     it("starts on the defaults when nothing is stored", () => {
@@ -127,6 +147,45 @@ describe("PresentationSettingsService", () => {
       );
 
       expect(buildSettings().cardDeck()).toBe(DEFAULT_CARD_DECK);
+    });
+
+    it("starts a phone on the phone's deck when nothing is stored", () => {
+      onAPhone();
+
+      expect(buildSettings().cardDeck()).toBe(DEFAULT_COMPACT_CARD_DECK);
+    });
+
+    it("starts a phone on the phone's deck when no deck was ever chosen", () => {
+      onAPhone();
+      localStorage.setItem(
+        "fsolitaire-presentation",
+        JSON.stringify({ theme: "blue" }),
+      );
+
+      expect(buildSettings().cardDeck()).toBe(DEFAULT_COMPACT_CARD_DECK);
+    });
+
+    it("keeps the deck a player chose, even on a phone", () => {
+      onAPhone();
+      localStorage.setItem(
+        "fsolitaire-presentation",
+        JSON.stringify({ cardDeck: "classic" }),
+      );
+
+      expect(buildSettings().cardDeck()).toBe("classic");
+    });
+
+    it("keeps the phone's deck on a later visit in a wider window", () => {
+      onAPhone();
+      buildSettings();
+      TestBed.flushEffects();
+
+      viewport?.setWidth(COMPACT_MAX_WIDTH_PX + 200);
+      TestBed.resetTestingModule();
+      const later = buildSettings();
+
+      // The first visit stored the default like a choice.
+      expect(later.cardDeck()).toBe(DEFAULT_COMPACT_CARD_DECK);
     });
   });
 
