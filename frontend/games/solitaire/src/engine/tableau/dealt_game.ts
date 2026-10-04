@@ -3,6 +3,7 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DeckSource } from "./deck_source";
 import { GameSnapshot, PileSnapshot } from "./game_snapshot";
 import { AppliedMove } from "./move";
+import { PlayableGame } from "./playable_game";
 import { TableGame, TableGameEvents, TableGameOptions } from "./table_game";
 
 /** Configures a game that deals itself from a deck. */
@@ -20,7 +21,10 @@ export interface DealtTableGameOptions extends Omit<
  */
 export abstract class DealtTableGame<
   EventMap extends Record<string, unknown> & TableGameEvents = TableGameEvents,
-> extends TableGame<EventMap> {
+>
+  extends TableGame<EventMap>
+  implements PlayableGame
+{
   /** The cards this game deals from. */
   protected readonly deck: DeckSource;
 

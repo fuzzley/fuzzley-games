@@ -1,11 +1,6 @@
-import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { ZoneSpec } from "@/engine/tableau/zone";
 import { STOCK_PILE_ID, WASTE_PILE_ID } from "../common/pile_ids";
-import {
-  BURIED_COLUMN_LAYOUT,
-  STACKED_PILE_LAYOUT,
-  wasteFanLayout,
-} from "../common/pile_layouts";
+import { wasteFanLayout } from "../common/pile_layouts";
 import {
   RECYCLING_STOCK_PLACEHOLDER,
   columnRow,
@@ -36,21 +31,6 @@ export { STOCK_PILE_ID, WASTE_PILE_ID };
  * the waste fan.
  */
 export const FOUNDATION_COLUMN_OFFSET = 3;
-
-/** Returns a Klondike pile's layout for its role and the draw count. */
-export function klondikePileLayout(
-  role: string,
-  drawCount: number,
-): PileLayout {
-  switch (role) {
-    case KlondikeRole.TABLEAU:
-      return BURIED_COLUMN_LAYOUT;
-    case KlondikeRole.WASTE:
-      return wasteFanLayout(drawCount);
-    default:
-      return STACKED_PILE_LAYOUT;
-  }
-}
 
 /** Returns the thirteen zones of a Klondike board. */
 export function klondikeZoneSpecs(

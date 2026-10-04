@@ -1,11 +1,11 @@
 ---
 name: vitest-testing
-description: Unit testing guidelines, AAA structure, Vitest v4 runner patterns, Angular TestBed doubles (configureUiTestBed), and coverage floor enforcement for fSolitaire.
+description: Unit testing guidelines, AAA structure, Vitest v5 runner patterns, Angular TestBed doubles (configureUiTestBed), and coverage floor enforcement for fSolitaire.
 ---
 
 # Vitest & Unit Testing Best Practices Skill
 
-This skill defines the testing standard for fSolitaire using Vitest (v4) and AnalogJS Vitest Angular runner.
+This skill defines the testing standard for fSolitaire using Vitest (v5) and AnalogJS Vitest Angular runner.
 
 ## Coverage Floors & Commands
 
