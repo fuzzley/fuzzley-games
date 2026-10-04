@@ -78,6 +78,17 @@ describe("AppComponent Composition", () => {
     expect(TestBed.inject(Title).getTitle()).toBe("FreeCell · fSolitaire");
   });
 
+  it("tells the chrome on the document root which hand the player uses", () => {
+    expect(document.documentElement.dataset["hand"]).toBe("right");
+  });
+
+  it("tells the chrome when the player changes hand", () => {
+    harness.presentation.hand.set("left");
+    TestBed.flushEffects();
+
+    expect(document.documentElement.dataset["hand"]).toBe("left");
+  });
+
   it("keeps the settings drawer closed to begin with", () => {
     expect(drawerIsOpen()).toBe(false);
   });

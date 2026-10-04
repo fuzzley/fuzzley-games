@@ -29,6 +29,12 @@
     --board-inset-top: 0px;
     --board-inset-left: var(--rail-width);
   }
+
+  // A left hand stands the rail at the right.
+  :host-context([data-hand="left"]) {
+    --board-inset-left: 0px;
+    --board-inset-right: var(--rail-width);
+  }
 }
 
 // A light falling on the felt from above, laid over the canvas so the camera

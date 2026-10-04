@@ -341,6 +341,11 @@ describe("makeTableBoardScene on a game with phone grids", () => {
     ),
   };
 
+  /** The fake board's columns, left to right. */
+  const COLUMNS = PHONE_GRID.slots
+    .map((slot) => slot.pileId)
+    .filter((pileId) => pileId.startsWith("tableau"));
+
   let game: FakeTableGame;
   let presentation: TestPresentation;
   let scene: BoardScene;
@@ -356,6 +361,7 @@ describe("makeTableBoardScene on a game with phone grids", () => {
         phone: {
           portrait: { bottom: PHONE_GRID, top: PHONE_GRID },
           landscape: PHONE_GRID,
+          columns: COLUMNS,
         },
       },
       handleIntent: fakeTableGestures(game),
@@ -394,7 +400,7 @@ describe("makeTableBoardScene on a game with phone grids", () => {
     presentation.setBoardArrangement({ phonePiles: "bottom", hand: "left" });
     const foundation = game.foundations[0];
     const origin = measureTable(
-      mirrorTable(PHONE_GRID),
+      mirrorTable(PHONE_GRID, COLUMNS),
       scene.viewport,
     ).origins.get(foundation.id)!;
 

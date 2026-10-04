@@ -61,6 +61,13 @@ export class AppComponent {
       );
     });
 
+    // Say which hand the player plays with on the document root, where the
+    // chrome's stylesheets can read it: a left hand moves the rail on a
+    // sideways phone to the right, and reverses the bar on an upright one.
+    effect(() => {
+      this.document.documentElement.dataset["hand"] = this.presentation.hand();
+    });
+
     // Name the game in the tab title, first because a tab strip crops from the
     // right.
     effect(() => {

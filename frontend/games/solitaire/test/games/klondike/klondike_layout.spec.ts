@@ -100,6 +100,31 @@ describe("Klondike's phone grids", () => {
     },
   );
 
+  it.each(SCREENS)(
+    "keeps the columns in order for a left hand at %s",
+    (_name, viewport) => {
+      const grid = gridFor(viewport, {
+        ...DEFAULT_BOARD_ARRANGEMENT,
+        hand: "left",
+      });
+
+      const columns = [0, 1, 2, 3, 4, 5, 6].map(
+        (index) => slotOf(grid, `tableau-${index}`)!.column,
+      );
+
+      expect(columns).toEqual([...columns].sort((a, b) => a - b));
+    },
+  );
+
+  it("puts the stock at the bottom left of an upright phone for a left hand", () => {
+    const grid = gridFor(phone(390, 700, BAR), {
+      ...DEFAULT_BOARD_ARRANGEMENT,
+      hand: "left",
+    });
+
+    expect(slotOf(grid, STOCK_PILE_ID)?.column).toBe(0);
+  });
+
   it("puts the stock at the bottom right of an upright phone", () => {
     expect(
       slotOf(KLONDIKE_PHONE_LAYOUTS.portrait.bottom, STOCK_PILE_ID),

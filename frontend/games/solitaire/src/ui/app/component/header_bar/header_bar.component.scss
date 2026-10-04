@@ -439,3 +439,37 @@
     transform-origin: bottom left;
   }
 }
+
+// For a left hand the chrome swaps sides with the stock: the bar on an upright
+// phone runs right to left, and the rail on a sideways one stands at the right.
+@include phone-portrait {
+  :host-context([data-hand="left"]) {
+    .header-bar {
+      flex-direction: row-reverse;
+    }
+
+    .overflow-menu {
+      right: auto;
+      left: var(--space-2);
+      transform-origin: bottom left;
+    }
+  }
+}
+
+@include phone-landscape {
+  :host-context([data-hand="left"]) {
+    right: 0;
+    left: auto;
+
+    .header-bar {
+      border-right: none;
+      border-left: 1px solid var(--border-default);
+    }
+
+    .overflow-menu {
+      right: calc(var(--rail-width) + var(--space-1));
+      left: auto;
+      transform-origin: bottom right;
+    }
+  }
+}
