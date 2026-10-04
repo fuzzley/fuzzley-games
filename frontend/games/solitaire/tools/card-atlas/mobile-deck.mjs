@@ -65,8 +65,8 @@ const COLORS = {
   paper: "#ffffff",
   red: "#c8102e",
   black: "#141414",
-  /** The panel behind a court card's letter, by suit colour. */
-  courtPanel: { red: "#fbe4e8", black: "#e6e8ee" },
+  /** The panel behind a face's large rank, by suit colour. */
+  panel: { red: "#fbe4e8", black: "#e6e8ee" },
 };
 
 /** The least contrast a suit colour may have against what it is drawn on. */
@@ -92,9 +92,9 @@ const RANKS = [
   { name: "8", label: "8" },
   { name: "9", label: "9" },
   { name: "10", label: "10" },
-  { name: "jack", label: "J", court: true },
-  { name: "queen", label: "Q", court: true },
-  { name: "king", label: "K", court: true },
+  { name: "jack", label: "J" },
+  { name: "queen", label: "Q" },
+  { name: "king", label: "K" },
 ];
 
 /**
@@ -150,7 +150,7 @@ const RANK_CAP_H = 36;
 
 /**
  * The face right of the waste's strip and below the column's, which carries
- * the court cards' panel, so the strips show nothing but the index.
+ * the panel, so the strips show nothing but the index.
  */
 const BODY = {
   x: WASTE_STRIP_W + STRIP_CLEARANCE,
@@ -159,22 +159,8 @@ const BODY = {
   h: DESIGN_FRAME_H - COLUMN_STRIP_H - STRIP_CLEARANCE - FRAME_CLEARANCE,
 };
 
-/**
- * The part of the body below the index's column, which a number card's pip is
- * centred in.
- */
-const PIP_FIELD = {
-  ...BODY,
-  y: INDEX.columnPip.y + INDEX.columnPip.h + STRIP_CLEARANCE,
-  h:
-    BODY.y + BODY.h - (INDEX.columnPip.y + INDEX.columnPip.h + STRIP_CLEARANCE),
-};
-
-/** How much of the body's width a number card's pip spans, and an ace's. */
-const BODY_PIP_SCALE = { number: 0.8, ace: 0.92 };
-
-/** A court card's letter, the pip under it, and the gap between them. */
-const COURT = { letterCapH: 100, pipSize: 60, gap: 18 };
+/** The large rank on the panel, the pip under it, and the gap between them. */
+const PANEL_ART = { rankCapH: 100, pipSize: 60, gap: 18 };
 
 /** The colours of the two backs, by frame name. */
 const BACKS = {
@@ -303,43 +289,35 @@ function centredIn(box, w, h) {
 }
 
 /**
- * Returns the art outside the strips: one large pip on a number card, a larger
- * one on an ace, and the rank's letter over a pip on a tinted panel on a court
- * card.
+ * Returns the art outside the strips: the rank over its suit's pip, on a panel
+ * tinted by suit colour.
  *
  * @returns {{svg: string, ink: Box}} The elements, and the box they cover.
  */
 function bodyArt(suit, rank) {
   const color = COLORS[suit.color];
-  if (!rank.court) {
-    const span =
-      BODY.w *
-      (rank.name === "ace" ? BODY_PIP_SCALE.ace : BODY_PIP_SCALE.number);
-    return fittedPip(suit.name, centredIn(PIP_FIELD, span, span), color);
-  }
-
-  // The letter and the pip under it, as one group centred in the panel.
+  // The rank and the pip under it, as one group centred in the panel.
   const group = centredIn(
     BODY,
     BODY.w,
-    COURT.letterCapH + COURT.gap + COURT.pipSize,
+    PANEL_ART.rankCapH + PANEL_ART.gap + PANEL_ART.pipSize,
   );
   // Room below the cap line for the Q's tail, so it is not shrunk to fit.
-  const letterBox = { ...group, h: COURT.letterCapH * 1.2 };
+  const rankBox = { ...group, h: PANEL_ART.rankCapH * 1.2 };
   const pipBox = centredIn(
     {
       ...group,
-      y: group.y + COURT.letterCapH + COURT.gap,
-      h: COURT.pipSize,
+      y: group.y + PANEL_ART.rankCapH + PANEL_ART.gap,
+      h: PANEL_ART.pipSize,
     },
-    COURT.pipSize,
-    COURT.pipSize,
+    PANEL_ART.pipSize,
+    PANEL_ART.pipSize,
   );
   return {
     svg:
       `<rect x="${BODY.x}" y="${BODY.y}" width="${BODY.w}" height="${BODY.h}"` +
-      ` rx="10" fill="${COLORS.courtPanel[suit.color]}"/>` +
-      fittedRank(rank.label, letterBox, color, COURT.letterCapH).svg +
+      ` rx="10" fill="${COLORS.panel[suit.color]}"/>` +
+      fittedRank(rank.label, rankBox, color, PANEL_ART.rankCapH).svg +
       fittedPip(suit.name, pipBox, color).svg,
     ink: BODY,
   };
@@ -444,14 +422,14 @@ function contrast(first, second) {
 
 /**
  * Fails the build if a suit colour is too faint against the paper, or against
- * the panel a court card draws it on.
+ * the panel the large rank is drawn on.
  */
 function assertSuitColorsAreLegible() {
   const problems = [];
   for (const color of ["red", "black"]) {
     for (const [ground, hex] of [
       ["paper", COLORS.paper],
-      ["court panel", COLORS.courtPanel[color]],
+      ["panel", COLORS.panel[color]],
     ]) {
       const ratio = contrast(COLORS[color], hex);
       if (ratio < MIN_CONTRAST) {
