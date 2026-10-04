@@ -22,7 +22,6 @@ const STORAGE_KEY = "fsolitaire-saved-game";
 const SNAPSHOT: GameSnapshot = {
   piles: [],
   score: 250,
-  moves: 7,
   history: [],
   deal: [],
   extra: null,
@@ -108,7 +107,7 @@ describe("SavedGameService", () => {
     it("saves the game on the table once it changes", async () => {
       const { model } = start();
 
-      model.state.moves = 1;
+      model.state.update({ moves: 1 });
       await flushMicrotasks();
 
       expect(stored()).toEqual({
@@ -121,7 +120,7 @@ describe("SavedGameService", () => {
     it("saves the game as the action left it, not partway through", async () => {
       const { model } = start();
 
-      model.state.moves = 1;
+      model.state.update({ moves: 1 });
       model.snapshot.mockReturnValue(SNAPSHOT);
       await flushMicrotasks();
 
@@ -145,10 +144,10 @@ describe("SavedGameService", () => {
       catalog.deal(dealt);
       TestBed.flushEffects();
 
-      dealt.state.moves = 2;
+      dealt.state.update({ score: 2 });
       await flushMicrotasks();
 
-      expect(stored()?.snapshot.moves).toBe(2);
+      expect(stored()?.snapshot.score).toBe(2);
     });
   });
 
@@ -167,7 +166,7 @@ describe("SavedGameService", () => {
       await flushMicrotasks();
       model.emit("game-won");
 
-      model.state.score = 100;
+      model.state.update({ score: 100 });
       await flushMicrotasks();
 
       expect(stored()).toBeNull();

@@ -218,6 +218,29 @@ describe("TableGame", () => {
       expect(game.state.score).toBe(0);
     });
 
+    it("applies the score change the game reports", () => {
+      const card = game.place(LEFT, Rank.FIVE);
+      game.nextEffects = { scoreDelta: 10, flippedCardIds: [] };
+
+      game.moveCardToPile(card.id, RIGHT);
+
+      expect(game.state.score).toBe(10);
+    });
+
+    it("announces the metrics once per move, all of them in step", () => {
+      const card = game.place(LEFT, Rank.FIVE);
+      game.nextEffects = { scoreDelta: 10, flippedCardIds: [] };
+      const published: unknown[] = [];
+      game.state.onChange((metrics) => published.push(metrics));
+
+      game.moveCardToPile(card.id, RIGHT);
+
+      expect(published).toEqual([
+        { score: 0, moves: 0, undoDepth: 0 },
+        { score: 10, moves: 1, undoDepth: 1 },
+      ]);
+    });
+
     it("hands the resolved move to the game", () => {
       const card = game.place(LEFT, Rank.FIVE);
 
@@ -271,7 +294,6 @@ describe("TableGame", () => {
       const card = game.place(LEFT, Rank.FIVE);
       game.nextEffects = { scoreDelta: 10, flippedCardIds: [] };
       game.moveCardToPile(card.id, RIGHT);
-      game.state.score = 10;
 
       game.undo();
 

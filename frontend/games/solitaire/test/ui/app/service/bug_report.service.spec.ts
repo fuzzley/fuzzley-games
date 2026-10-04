@@ -19,6 +19,7 @@ import {
   createMockGameModel,
   type MockGameModel,
   type MockGameModelOverrides,
+  snapshotWithMoves,
 } from "@test/support/ui/game_mock";
 import {
   asCatalog,
@@ -97,7 +98,6 @@ function longHistory(actions: number): GameSnapshot {
   return {
     piles: [],
     score: 0,
-    moves: actions,
     history,
     deal: [],
     extra: null,
@@ -219,10 +219,11 @@ describe("BugReportService", () => {
     });
 
     it("sums up what it attaches", async () => {
-      const { service } = buildService({}, { score: 35, moves: 12 });
+      const { service, model } = buildService();
+      model.snapshot.mockReturnValue(snapshotWithMoves(12, 35));
 
       expect(await prefilled(service, BUG_REPORT_FIELDS.gameState)).toContain(
-        "Score 35 · 12 moves · 0 of 0 undo steps",
+        "Score 35 · 12 moves · 12 of 12 undo steps",
       );
     });
 

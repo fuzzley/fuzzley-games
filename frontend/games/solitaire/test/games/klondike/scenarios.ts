@@ -4,6 +4,7 @@ import {
   playingCardInstanceId,
 } from "@/engine/core/card/playing_card";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
+import { StandardScoringPolicy } from "@/games/klondike/scoring_policy";
 import { emptyBoard } from "@test/support/game_scenarios";
 
 /** Id of the only card left out of the foundations by {@link almostWon}. */
@@ -36,5 +37,20 @@ export function almostWon(game: KlondikeGame): void {
     const card = game.getCardById(id)!;
     card.faceUp = true;
     game.foundations[cardId.suit].addCard(card);
+  }
+}
+
+/**
+ * Scores by the standard rules, but starts each deal at a given score, so a
+ * penalty or a floor has a score to work on.
+ */
+export class StandardScoringFrom extends StandardScoringPolicy {
+  constructor(private readonly startingScore: number) {
+    super();
+  }
+
+  /** @inheritDoc */
+  override initialScore(): number {
+    return this.startingScore;
   }
 }

@@ -230,9 +230,14 @@ Two things to get right when the game acts outside the normal move path:
    a move goes in that move's `followUpTransfers` / `flippedCardIds`, so one undo
    takes the whole thing back. Commit a dealt row and the runs it completed with
    a single `commitAction` call, which `dealRowCollectingRuns` sets up.
-2. **Commit through `commitAction`, and nothing else.** It counts the move,
-   makes it undoable and checks for a win, as `moveCardToPile` does. Never
-   change `state.moves` by hand: undo takes back one move per committed action.
+2. **Commit through `commitAction`, and nothing else.** It records the action,
+   which is what counts it as a move, makes it undoable, applies the
+   `scoreDelta` you pass and checks for a win, as `moveCardToPile` does. A
+   game never writes its metrics: `state` is read-only, the move count is the
+   length of the history, and the score changes only by the deltas a game
+   reports, from `applyMoveEffects` or `commitAction`. A game whose deal
+   starts at a score other than zero overrides `initialScore()`, as Vegas
+   Klondike does.
 
 ---
 

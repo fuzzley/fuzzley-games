@@ -153,12 +153,12 @@ describe("MoveHistory", () => {
     expect(history.takeBack()).toBeNull();
   });
 
-  it("drops everything when cleared", () => {
+  it("drops everything when loaded with nothing", () => {
     const card = board.deal(Rank.KING);
     board.relocate(card);
     history.record(moved(card.id));
 
-    history.clear();
+    history.load([]);
 
     expect([history.canUndo, history.depth]).toEqual([false, 0]);
   });

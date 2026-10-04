@@ -8,7 +8,7 @@ import { EventEmitter } from "@/engine/core/common/event_emitter";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { AppliedMove, AppliedMoveKind, CardTransfer } from "./move";
 import { MoveHistory, RelocationListener } from "./move_history";
-import { GameState } from "./game_state";
+import { GameState, ReadableGameState } from "./game_state";
 import { BoardQuery } from "./rules";
 import { ZoneSpec, canGrab, hasRoomFor } from "./zone";
 import { TableView } from "./view/table_view";
@@ -84,8 +84,11 @@ export abstract class TableGame<
   extends EventEmitter<EventMap>
   implements TableView
 {
-  /** Observable live game metrics (score, moves, undo depth). */
-  public readonly state = new GameState();
+  /** The live metrics, which only {@link syncMetrics} writes. */
+  private readonly metrics = new GameState();
+
+  /** Live game metrics (score, moves, undo depth), for reading and following. */
+  public readonly state: ReadableGameState = this.metrics;
 
   /** Where each card currently is, kept up to date by the piles themselves. */
   private readonly locations = new CardLocations<PlayingCard>();
@@ -363,15 +366,13 @@ export abstract class TableGame<
    */
   public undo(): boolean {
     const last = this.history.takeBack();
-    this.state.undoDepth = this.history.depth;
     if (!last) {
       return false;
     }
 
     // Not clamped: the delta is what the action applied, after any floor the
     // game keeps, and some games' scores run below zero.
-    this.state.score -= last.scoreDelta;
-    this.state.moves--;
+    this.syncMetrics(this.state.score - last.scoreDelta);
     this.afterUndo(last);
     // Announced after the hook, so the game has finished adjusting before a
     // view hears the cards moved.
@@ -394,13 +395,13 @@ export abstract class TableGame<
   }
 
   /**
-   * Counts an applied action as one move, records it for undo, announces the
-   * cards it relocated, and announces the win if it brought one about.
+   * Records an applied action for undo, which also counts it as a move,
+   * announces the cards it relocated, applies its score change, and announces
+   * the win if it brought one about.
    */
   private commit(move: AppliedMove): void {
-    this.state.moves++;
     this.history.record(move);
-    this.state.undoDepth = this.history.depth;
+    this.syncMetrics(this.state.score + move.scoreDelta);
     if (this.isWon()) {
       this.emit("game-won", undefined);
     }
@@ -419,7 +420,8 @@ export abstract class TableGame<
    * draw, a recycle or a dealt row, as one move that undo can take back.
    *
    * Fold anything the action caused, such as a run it completed, into the same
-   * call, so one undo takes the whole action back.
+   * call, so one undo takes the whole action back. The engine applies the
+   * score change; a game reports it here rather than writing the score.
    *
    * @param transfers The runs relocated, in the order they were relocated.
    */
@@ -439,21 +441,27 @@ export abstract class TableGame<
     });
   }
 
-  /** Drops the whole history, for a new deal that nothing before it precedes. */
-  protected clearHistory(): void {
-    this.history.clear();
-    this.state.undoDepth = 0;
-  }
-
   /** The actions {@link undo} can take back, oldest first. */
   protected get appliedHistory(): readonly AppliedMove[] {
     return this.history.entries();
   }
 
-  /** Replaces the actions {@link undo} can take back, oldest first. */
-  protected replaceHistory(moves: readonly AppliedMove[]): void {
+  /**
+   * Replaces the actions {@link undo} can take back, oldest first, and the
+   * score they leave, as a new deal or a restore does.
+   */
+  protected resetHistory(moves: readonly AppliedMove[], score: number): void {
     this.history.load(moves);
-    this.state.undoDepth = this.history.depth;
+    this.syncMetrics(score);
+  }
+
+  /**
+   * Publishes the score, and the move count and undo depth, both of which are
+   * the length of the history.
+   */
+  private syncMetrics(score: number): void {
+    const depth = this.history.depth;
+    this.metrics.update({ score, moves: depth, undoDepth: depth });
   }
 
   // --- Interaction ---

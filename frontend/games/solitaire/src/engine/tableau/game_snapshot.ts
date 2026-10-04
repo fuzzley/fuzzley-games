@@ -24,8 +24,10 @@ export interface GameSnapshot {
   /** Every pile, in the order the game declares them. */
   readonly piles: readonly PileSnapshot[];
   readonly score: number;
-  readonly moves: number;
-  /** The actions undo can take back, oldest first. */
+  /**
+   * The actions undo can take back, oldest first, whose length is the move
+   * count.
+   */
   readonly history: readonly AppliedMove[];
   /** The card ids a restart deals, in dealt order. */
   readonly deal: readonly string[];
@@ -48,7 +50,6 @@ export function readGameSnapshot(
   return {
     piles: readList(snapshot.piles, `${path}.piles`, readPile),
     score: readNumber(snapshot.score, `${path}.score`),
-    moves: readNumber(snapshot.moves, `${path}.moves`),
     history: readList(snapshot.history, `${path}.history`, readAppliedMove),
     deal: readList(snapshot.deal, `${path}.deal`, readString),
     extra: snapshot.extra,
