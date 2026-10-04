@@ -43,10 +43,9 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
       const set = listeners.get(event) ?? new Set<() => void>();
       set.add(callback);
       listeners.set(event, set);
-    },
-
-    off(event: string, callback: () => void) {
-      listeners.get(event)?.delete(callback);
+      return () => {
+        set.delete(callback);
+      };
     },
 
     emit,

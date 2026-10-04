@@ -46,14 +46,14 @@ export class SavedGameService {
         this.storage.remove(STORAGE_KEY);
       };
 
-      const unsubscribe = game.state.onChange(queueSave);
-      game.on("game-reset", onReset);
-      game.on("game-won", onWon);
+      const stopFollowing = [
+        game.state.onChange(queueSave),
+        game.on("game-reset", onReset),
+        game.on("game-won", onWon),
+      ];
       onCleanup(() => {
         following = false;
-        unsubscribe();
-        game.off("game-reset", onReset);
-        game.off("game-won", onWon);
+        for (const stop of stopFollowing) stop();
       });
     });
   }

@@ -1,13 +1,5 @@
+import { Subscribe } from "@/engine/core/common/event_emitter";
 import { CardDeckId } from "./card_deck";
-
-/**
- * Subscribes to a value the board follows, returning a function that stops
- * following it.
- *
- * A plain callback rather than an observable because the render tier may not
- * depend on RxJS.
- */
-export type Subscribe<T> = (listener: (value: T) => void) => () => void;
 
 /** Describes how far a board has got with drawing the deck it was asked for. */
 export type CardDeckStatus =
