@@ -255,8 +255,8 @@ This document records the step-by-step execution of the QA testing suite for **f
 ### Non-Defect Note: `/favicon.ico` HTTP 404
 
 - **Severity:** Informational
-- **Status:** Expected in dev mode / Non-blocking per user guideline.
-- **Explanation:** The Vite development server does not host a dedicated `/favicon.ico` route, resulting in an expected 404 response on initial browser request.
+- **Status:** Resolved in dev server middleware (HTTP 204 No Content).
+- **Explanation:** The Vite development server config now intercepts `/favicon.ico` requests via dev middleware to respond with 204 No Content, eliminating 404 network warnings on initial browser requests.
 
 ---
 
