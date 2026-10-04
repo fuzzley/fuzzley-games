@@ -164,6 +164,12 @@
   font-weight: 700;
 }
 
+// The mobile deck's index, in a condensed face like the deck's own.
+.card-deck-preview-rank-large {
+  font-size: 24px;
+  font-stretch: condensed;
+}
+
 .card-deck-preview-pip {
   fill: var(--card-ink-red);
 }

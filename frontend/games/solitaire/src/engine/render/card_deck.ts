@@ -1,17 +1,24 @@
 /**
  * Names the drawing of the 52 cards the table is dealt from.
  *
- * The decks differ only in their corner pips: a fanned column shows just the
- * top of each card, which hides the artwork's own pip, so `indexed` adds one to
- * aces and courts and `all-corner-pips` adds one to every card.
+ * A fanned column shows just the top of each card, which hides the artwork's
+ * own pip, so `indexed` adds one to aces and courts and `all-corner-pips` adds
+ * one to every card. `mobile` is drawn for a phone instead: no artwork, and a
+ * rank and suit as large as the strip a fan leaves showing.
  */
-export type CardDeckId = "classic" | "indexed" | "all-corner-pips";
+export type CardDeckId = "classic" | "indexed" | "all-corner-pips" | "mobile";
 
 /**
  * Says which cards a deck marks with a corner pip, so the settings drawer can
  * preview the difference.
  */
 export type CardPipCoverage = "none" | "courts" | "all";
+
+/**
+ * Says how large a deck draws the rank in its corner, so the settings drawer
+ * can preview the difference.
+ */
+export type CardIndexSize = "regular" | "large";
 
 /** Describes one deck, as the settings drawer offers it. */
 export interface CardDeckSpec {
@@ -23,6 +30,8 @@ export interface CardDeckSpec {
   readonly description: string;
   /** Which cards carry a corner pip. */
   readonly pipCoverage: CardPipCoverage;
+  /** How large the rank in the corner is. */
+  readonly indexSize: CardIndexSize;
 }
 
 /**
@@ -38,18 +47,28 @@ export const CARD_DECKS: readonly CardDeckSpec[] = [
     name: "Classic",
     description: "Card artwork unchanged.",
     pipCoverage: "none",
+    indexSize: "regular",
   },
   {
     id: "indexed",
     name: "Corner Pips",
     description: "Marks every ace, king, queen, and jack with suit pips.",
     pipCoverage: "courts",
+    indexSize: "regular",
   },
   {
     id: "all-corner-pips",
     name: "All Corner Pips",
     description: "Marks every card with suit pips.",
     pipCoverage: "all",
+    indexSize: "regular",
+  },
+  {
+    id: "mobile",
+    name: "Large Index",
+    description: "Big rank and suit, no artwork. Made for phones.",
+    pipCoverage: "all",
+    indexSize: "large",
   },
 ];
 

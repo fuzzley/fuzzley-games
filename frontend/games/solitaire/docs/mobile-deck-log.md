@@ -86,7 +86,7 @@ Settled with the project owner before any code changed.
 - [x] 2.2 Mobile deck generator
 - [x] 2.3 Build checks
 - [x] 2.4 Preview contact sheet
-- [ ] 3.1 Register the deck
+- [x] 3.1 Register the deck
 - [ ] 3.2 Compact default
 - [ ] 3.3 Docs
 - [ ] 4.1 Specs
@@ -156,3 +156,14 @@ art compresses so well; GPU memory per page is unchanged.
 Left as is: the diamond still reads a little lighter than the other suits at
 index size, because a rhombus fills half its box. Growing it would cost the
 clearance around the strip pip.
+
+### 3.1 Register the deck
+
+`mobile` is in `CardDeckId` and `CARD_DECKS`, listed last as "Large Index"
+(the id is what is stored; the name is only shown). `card_deck_atlas.ts`
+imports its two manifests; the page glob already found the pages. A deck spec
+now says how large it draws its rank (`indexSize`), beside which cards carry a
+pip, and the drawer's preview draws the large index at about the share of the
+strip the deck's own index fills. The spec that kept previews apart compares
+pip coverage and index size together, since `mobile` shares its coverage with
+`all-corner-pips`. The drawer specs that counted three decks count four.
