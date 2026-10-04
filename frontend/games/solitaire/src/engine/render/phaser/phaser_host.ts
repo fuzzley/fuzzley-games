@@ -144,6 +144,16 @@ export class PhaserHost {
   }
 
   /**
+   * Reads again how far in the chrome lies over each edge of the canvas, for
+   * chrome that moved without the window changing size, such as a rail that
+   * changed sides. The board lays itself out inside the new insets on its next
+   * frame, its cards easing there as after any move.
+   */
+  public refreshInsets(): void {
+    this.scaler?.refreshInsets();
+  }
+
+  /**
    * Tears the game down, releasing the scaler's listeners, the canvas and its
    * WebGL context.
    */

@@ -3,6 +3,7 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  afterRenderEffect,
   computed,
   effect,
   inject,
@@ -98,6 +99,16 @@ export class GameCanvasComponent {
   constructor() {
     inject(DestroyRef).onDestroy(() => {
       this.host?.destroy();
+    });
+
+    // A change of hand moves the rail on a sideways phone to the other edge
+    // without resizing anything, so the board would not otherwise hear of it.
+    // Read once the chrome has been drawn on its new side.
+    afterRenderEffect({
+      read: () => {
+        this.presentation.hand();
+        untracked(() => this.host?.refreshInsets());
+      },
     });
 
     effect((onCleanup) => {

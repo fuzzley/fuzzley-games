@@ -164,6 +164,18 @@ describe("ViewportScaler's insets", () => {
     expect([scaler.insets.top, scaler.insets.left]).toEqual([0, 60]);
   });
 
+  it("reads the insets again when asked, without the window resizing", () => {
+    const { window, scaler } = startScaler(1);
+    window.parentStyle.set(left, "64px");
+    scaler.apply();
+    window.parentStyle.set(left, "0px");
+    window.parentStyle.set(right, "64px");
+
+    scaler.refreshInsets();
+
+    expect([scaler.insets.left, scaler.insets.right]).toEqual([0, 64]);
+  });
+
   it("reads no inset from a host that cannot read styles", () => {
     const window = Object.assign(new FakeWindow(1), {
       getComputedStyle: undefined,
