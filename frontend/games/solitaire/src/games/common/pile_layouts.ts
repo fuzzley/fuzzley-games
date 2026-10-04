@@ -2,7 +2,12 @@ import { PileLayout } from "@/engine/render/layout/pile_layout";
 
 /** Defines the arrangements solitaire piles use and the gaps between cards. */
 
-/** Downward gap below a face-up tableau card before the next card. */
+/**
+ * Downward gap below a face-up tableau card before the next card.
+ *
+ * The mobile deck sizes its index to this strip; see `COLUMN_STRIP_H` in
+ * `tools/card-atlas/mobile-deck.mjs`.
+ */
 export const TABLEAU_FACE_UP_OFFSET = 45;
 
 /** Downward gap below a face-down tableau card before the next card. */
@@ -22,7 +27,8 @@ export const STACKED_PILE_LAYOUT: PileLayout = { kind: "stacked" };
  * index corner.
  *
  * A three card fan stays clear of the first foundation up to a gap of about
- * 125.
+ * 125. The mobile deck sizes its index to this strip; see `WASTE_STRIP_W` in
+ * `tools/card-atlas/mobile-deck.mjs`.
  */
 export const WASTE_FAN_OFFSET_X = 55;
 
