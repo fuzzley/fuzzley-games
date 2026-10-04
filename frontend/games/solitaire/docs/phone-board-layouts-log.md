@@ -285,7 +285,7 @@ the right.
 - [x] 3.1 The phone grid builder
 - [x] 3.2 Klondike grids
 - [x] 3.3 Spider grids
-- [ ] 3.4 Browser check
+- [x] 3.4 Browser check
 - [ ] 4.1 Settings service
 - [ ] 4.2 Settings drawer
 - [ ] 4.3 Mirrored chrome
@@ -574,3 +574,33 @@ the open questions under 3.4.
 the same six phone sizes under each arrangement, where the stock and foundations
 go, and that the stock shows one sliver per deal on every phone grid, spreading
 right, left or down to suit it.
+
+### 3.4 Browser check
+
+In Chrome's phone emulation against `yarn start`:
+
+- **Sizes:** Klondike at 390 × 844 and 844 × 390; Spider at 390 × 844, 844 ×
+  390, 360 × 640 and 640 × 300. Every grid drew as designed, each with a long
+  column built in the dev console (Klondike 6 + 12, Spider up to 15 face up). At
+  640 × 300 the rail's five controls and the board both fit.
+- **Drag:** on Spider on its side, a real mouse drag of 5♠ onto 6♠, across the
+  board beside the rail, landed on the 6♠. Input maps through the left inset.
+- **Turning the phone:** Spider turned from on its side to upright mid-game kept
+  every card, its three moves and its undo, with no console errors or warnings.
+  The cards eased to their new places.
+
+The phone sizes that cannot be emulated by eye are covered by the specs (six
+sizes, three arrangements, both games).
+
+**Open questions for the owner, nothing changed for them:**
+
+1. **Spider's strips upright.** At the cap of 110 units a Spider strip is about
+   19 px on a 390 px phone (17 px at 360), and even a fifteen-card column leaves
+   most of the screen below it empty. Klondike's is about 27 px. The cap could
+   be set per game, for example 160 units for Spider (about 27 px), which
+   `PhoneBoard` could take as an optional `fanFit`.
+2. **Empty foundations on a rail.** Overlapped down a rail, empty foundations
+   draw their circled placeholders over one another: four on Klondike's left
+   rail, eight on Spider's right. It reads as a busy stack until runs fill them.
+   Options: a plain outline for a rail's overlapped piles, or only the first
+   empty one drawn.
