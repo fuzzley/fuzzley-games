@@ -21,8 +21,18 @@ export interface SlotPlacement {
   readonly pileId: string;
   /** Zero-based column, counting from the left. */
   readonly column: number;
-  /** Zero-based row, counting from the top. */
+  /** Zero-based row, counting from the edge the slot is anchored to. */
   readonly row: number;
+  /**
+   * The edge the row counts from: the top by default, or the bottom, where row
+   * 0 sits on the board's bottom edge however tall the screen is.
+   */
+  readonly anchor?: "top" | "bottom";
+  /**
+   * How far the pile sits from its grid cell, in design units, for piles that
+   * overlap their neighbours down a rail or along a row.
+   */
+  readonly offset?: Point;
 }
 
 /** Describes a board as a grid of card-sized slots for a game's piles. */
@@ -166,6 +176,11 @@ export interface TableMetrics {
   readonly scale: number;
   /** Where each pile's top-left corner sits, in screen pixels. */
   readonly origins: ReadonlyMap<string, Point>;
+  /**
+   * How far each pile's cards may reach below its origin, in design units,
+   * before they meet the board's bottom edge or the pile below.
+   */
+  readonly rooms: ReadonlyMap<string, number>;
 }
 
 /** Measures a board for a viewport, compacting it first on a small screen. */
@@ -175,10 +190,12 @@ export function measureTable(
 ): TableMetrics {
   const layout = compactFor(rawLayout, viewport);
   const scale = computeScale(layout, viewport);
+  const origins = computePileOrigins(layout, viewport, scale);
   return {
     layout,
     scale,
-    origins: computePileOrigins(layout, viewport, scale),
+    origins,
+    rooms: computePileRooms(layout, viewport, scale, origins),
   };
 }
 
@@ -209,15 +226,79 @@ export function computePileOrigins(
     (screenWidth - totalLayoutWidth) / 2,
   );
   const paddingY = spec.padding.y * scale;
+  const bottom = boardBottomPx(spec, viewport, scale);
 
   const origins = new Map<string, Point>();
   for (const slot of spec.slots) {
+    const rowOffset = slot.row * (cardHeight + gapY);
     origins.set(slot.pileId, {
-      x: insets.left + paddingX + slot.column * (cardWidth + gapX),
-      y: insets.top + paddingY + slot.row * (cardHeight + gapY),
+      x:
+        insets.left +
+        paddingX +
+        slot.column * (cardWidth + gapX) +
+        (slot.offset?.x ?? 0) * scale,
+      y:
+        (slot.anchor === "bottom"
+          ? bottom - paddingY - cardHeight - rowOffset
+          : insets.top + paddingY + rowOffset) +
+        (slot.offset?.y ?? 0) * scale,
     });
   }
   return origins;
+}
+
+/**
+ * Computes how far each pile's cards may reach below its origin, in design
+ * units: to the board's bottom edge, less its padding, or to a gap above the
+ * nearest pile below it.
+ *
+ * A pile below counts if it shares the column, or if it is anchored to the
+ * bottom edge, since a pile there may spread beyond its own column.
+ *
+ * @param origins The origins from {@link computePileOrigins}.
+ */
+export function computePileRooms(
+  spec: TableLayoutSpec,
+  viewport: Viewport,
+  scale: number,
+  origins: ReadonlyMap<string, Point>,
+): Map<string, number> {
+  const cardWidth = spec.cardSize.width * scale;
+  const floor =
+    boardBottomPx(spec, viewport, scale) - spec.padding.y * scale;
+
+  const rooms = new Map<string, number>();
+  for (const slot of spec.slots) {
+    const origin = origins.get(slot.pileId);
+    if (!origin) continue;
+
+    let limit = floor;
+    for (const other of spec.slots) {
+      const below = origins.get(other.pileId);
+      if (!below || other === slot || below.y <= origin.y) continue;
+      const shares =
+        other.anchor === "bottom" || Math.abs(below.x - origin.x) < cardWidth;
+      if (shares) limit = Math.min(limit, below.y - spec.gap.y * scale);
+    }
+    rooms.set(slot.pileId, Math.max(0, (limit - origin.y) / scale));
+  }
+  return rooms;
+}
+
+/**
+ * Returns where the board's bottom edge is, in device pixels: above the bottom
+ * inset, or the board's design height below the top inset before the canvas
+ * has been measured.
+ */
+function boardBottomPx(
+  spec: TableLayoutSpec,
+  viewport: Viewport,
+  scale: number,
+): number {
+  const insets = insetsPx(viewport);
+  return viewport.height
+    ? viewport.height - insets.bottom
+    : insets.top + designSize(spec).height * scale;
 }
 
 /**
