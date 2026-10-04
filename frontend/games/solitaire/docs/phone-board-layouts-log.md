@@ -9,9 +9,8 @@ chose between are in [phone-board-layouts.md](phone-board-layouts.md).
 
 **Branch:** `feature/phone-board-layouts`, cut from `main` at `6fecaa4`.
 
-**Status:** fixing what the owner found in review (phase 6), then done on the
-branch, not merged. Open questions for the owner are at the end of
-[5.3](#53-last-look).
+**Status:** done on the branch, with the owner's review fixed (phase 6), not
+merged. Open questions for the owner are at the end of [5.3](#53-last-look).
 
 ## How to pick this up
 
@@ -305,7 +304,7 @@ the right.
 - [x] 5.2 Verify
 - [x] 5.3 Last look
 - [x] 6.1 Changing hand on a sideways phone
-- [ ] 6.2 The upright layout on a sideways phone
+- [x] 6.2 The upright layout on a sideways phone
 
 ## Log
 
@@ -754,3 +753,15 @@ scaler's and the host's refresh, and the canvas asking for one when the hand
 changes. The host spec attaches its parent to the document, because jsdom keeps
 a detached element's computed style after a custom property changes, which a
 browser does not.
+
+### 6.2 The upright layout on a sideways phone
+
+Found by the owner: "Upright Phone Layout" showed on a phone on its side, where
+Piles Below and Piles Above change nothing. Step 4.2 offered it on any compact
+screen. The drawer now offers it only when `ViewportService.formFactor()` is
+`phone-portrait`. "Layout For" is still offered on a sideways phone, where the
+hand moves the rails.
+
+Checked at 844 × 390: the drawer lists the rules, Layout For and Card Style, and
+no upright layout. New drawer specs turn the fake viewport on its side and find
+the upright layout gone and the hand still there.

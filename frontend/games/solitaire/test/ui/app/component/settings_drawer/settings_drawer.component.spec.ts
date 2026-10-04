@@ -205,6 +205,20 @@ describe("SettingsDrawerComponent", () => {
         expect(harness.presentation.phonePiles()).toBe("top");
       });
 
+      it("offers no upright layout once the phone is on its side", () => {
+        viewport.setSize(844, 390);
+        openDrawer();
+
+        expect(query(fixture, "app-option-group.phone-piles")).toBeNull();
+      });
+
+      it("still offers the hand on a phone on its side", () => {
+        viewport.setSize(844, 390);
+        openDrawer();
+
+        expect(query(fixture, "app-option-group.hand")).not.toBeNull();
+      });
+
       it("offers no upright layout in a game without phone grids", () => {
         harness.catalog.select("freecell");
         openDrawer();

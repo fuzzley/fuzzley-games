@@ -193,11 +193,12 @@ export class SettingsDrawerComponent {
   );
 
   /**
-   * Whether to offer where an upright phone puts the piles: on a phone, in a
-   * game with phone grids.
+   * Whether to offer where an upright phone puts the piles: on an upright
+   * phone, the only screen it changes, in a game with phone grids.
    */
   protected readonly offersPhonePiles = computed(
-    () => this.hasPhoneGrids() && this.viewport.isCompact(),
+    () =>
+      this.hasPhoneGrids() && this.viewport.formFactor() === "phone-portrait",
   );
 
   /** Where an upright phone puts the piles, as checked. */
