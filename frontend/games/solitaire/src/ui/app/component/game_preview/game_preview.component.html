@@ -28,7 +28,7 @@
   <h3 #title class="title" [id]="titleId" tabindex="-1">{{ item().name }}</h3>
 
   <ul class="facts" aria-label="At a glance">
-    @for (fact of facts(); track fact) {
+    @for (fact of facts(); track $index) {
       <li class="fact">{{ fact }}</li>
     }
   </ul>
