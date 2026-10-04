@@ -57,14 +57,15 @@
 
 // --- Card back selector ---
 
+// Two to a row, since four side by side leave no room for their names.
 .card-back-selector {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--space-4);
 }
 
 .card-back-option {
   @include swatch-option;
-  flex: 1;
   flex-direction: column;
   align-items: center;
 }
@@ -77,8 +78,35 @@
   box-shadow: var(--shadow-swatch);
 }
 
-// The two previews are the same weave in two colourways, so the pattern is
-// described once and handed the pair of tokens it should draw with.
+// Each kind of back comes in two colourways, so its pattern is described once
+// and handed the pair of tokens it should draw with.
+
+// The plain backs: a diamond lattice inside a light inset border.
+@mixin lattice($field, $lattice) {
+  background-color: $field;
+  background-image: repeating-conic-gradient(
+    from 45deg,
+    $lattice 0 25%,
+    $field 0 50%
+  );
+  background-size: 6px 6px;
+  // In the field's colour, so it is the same size as the other previews.
+  border: 1px solid $field;
+  box-shadow:
+    inset 0 0 0 1px $field,
+    inset 0 0 0 2px var(--card-face),
+    var(--shadow-swatch);
+}
+
+.lattice-blue {
+  @include lattice(var(--card-back-blue-field), var(--card-back-blue-lattice));
+}
+
+.lattice-red {
+  @include lattice(var(--card-back-red-field), var(--card-back-red-lattice));
+}
+
+// The card artwork's backs.
 @mixin dot-weave($base, $dot) {
   background-color: $base;
   background-image:
@@ -91,12 +119,18 @@
   border: 1px solid var(--border-vivid);
 }
 
-.blue-pattern {
-  @include dot-weave(var(--card-back-blue-base), var(--card-back-blue-dot));
+.weave-blue {
+  @include dot-weave(
+    var(--card-back-classic-blue-base),
+    var(--card-back-classic-blue-dot)
+  );
 }
 
-.red-pattern {
-  @include dot-weave(var(--card-back-red-base), var(--card-back-red-dot));
+.weave-red {
+  @include dot-weave(
+    var(--card-back-classic-red-base),
+    var(--card-back-classic-red-dot)
+  );
 }
 
 // --- Card deck selector ---

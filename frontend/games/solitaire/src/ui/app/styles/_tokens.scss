@@ -99,10 +99,14 @@
   --warning-glow: #{with-alpha($amber-500, 0.15)};
 
   // --- Card swatches (the settings drawer previews) ---
-  --card-back-blue-base: #{$blue-900};
-  --card-back-blue-dot: #{$blue-600};
-  --card-back-red-base: #{$red-900};
-  --card-back-red-dot: #{$red-600};
+  --card-back-blue-field: #{$card-back-blue};
+  --card-back-blue-lattice: #{$card-back-blue-lattice};
+  --card-back-red-field: #{$card-back-red};
+  --card-back-red-lattice: #{$card-back-red-lattice};
+  --card-back-classic-blue-base: #{$blue-900};
+  --card-back-classic-blue-dot: #{$blue-600};
+  --card-back-classic-red-base: #{$red-900};
+  --card-back-classic-red-dot: #{$red-600};
   // The face of a card, for the deck preview. Paper and a red pip, because the
   // preview is a drawing of a real card rather than a piece of the interface.
   --card-face: #{$white};
