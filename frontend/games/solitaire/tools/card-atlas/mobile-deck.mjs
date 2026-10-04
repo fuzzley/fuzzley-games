@@ -57,6 +57,9 @@ const STRIP_CLEARANCE = 3;
 /** How far any ink keeps from the frame's edge, clear of the stamped edge. */
 const FRAME_CLEARANCE = 3;
 
+/** How far below the frame's top edge the rank and the top right pip start. */
+const INDEX_TOP = 6;
+
 /** The colours the faces are drawn in. */
 const COLORS = {
   paper: "#ffffff",
@@ -127,16 +130,16 @@ const INDEX = {
   /** Where the rank's ink may go, descenders included. */
   rank: {
     x: FRAME_CLEARANCE + 1,
-    y: FRAME_CLEARANCE,
+    y: INDEX_TOP,
     w: WASTE_STRIP_W - STRIP_CLEARANCE - FRAME_CLEARANCE - 1,
-    h: COLUMN_STRIP_H - STRIP_CLEARANCE - FRAME_CLEARANCE,
+    h: COLUMN_STRIP_H - STRIP_CLEARANCE - INDEX_TOP,
   },
   /** The pip under the rank. */
   columnPip: { x: 10, y: 46, w: 34, h: 34 },
   /** The pip at the top right. */
   stripPip: {
     x: DESIGN_FRAME_W - FRAME_CLEARANCE - 1 - 35,
-    y: FRAME_CLEARANCE + 1,
+    y: INDEX_TOP,
     w: 35,
     h: 35,
   },
