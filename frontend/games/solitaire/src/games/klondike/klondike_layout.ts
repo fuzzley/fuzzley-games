@@ -1,18 +1,66 @@
+import { CARD_HEIGHT_PX } from "@/engine/render/layout/card_metrics";
 import { boardLayout } from "../common/board_layout";
-import { TABLEAU_COUNT, klondikeZoneSpecs } from "./klondike_zones";
+import {
+  WASTE_FAN_OFFSET_X,
+  WASTE_MAX_FAN_CARDS,
+} from "../common/pile_layouts";
+import {
+  phoneLayouts,
+  pileIdsInRow,
+  pilesInRow,
+} from "../common/phone_layouts";
+import {
+  STOCK_PILE_ID,
+  TABLEAU_COUNT,
+  WASTE_PILE_ID,
+  klondikeZoneSpecs,
+} from "./klondike_zones";
 import { DEFAULT_DRAW_COUNT } from "./klondike_rules";
+
+/**
+ * The zones the grids are read from. Any draw mode would do: it changes the
+ * waste fan, not where the piles sit.
+ */
+const ZONES = klondikeZoneSpecs(DEFAULT_DRAW_COUNT);
+
+/** The foundations, left to right. */
+const FOUNDATIONS = pileIdsInRow(ZONES, 0).filter(
+  (pileId) => pileId !== STOCK_PILE_ID && pileId !== WASTE_PILE_ID,
+);
 
 /**
  * The Klondike board: stock and waste at the left of the top row, foundations
  * at the right of it, and the tableau columns filling the bottom row.
- *
- * Any draw mode would do for reading the zones: it changes the waste fan, not
- * the grid.
  */
 export const KLONDIKE_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
-  zones: klondikeZoneSpecs(DEFAULT_DRAW_COUNT),
+  zones: ZONES,
   // The grid alone needs 746; the rest is room for a column to fan into.
   designHeightPx: 877,
+});
+
+/**
+ * The Klondike board on a phone. Upright, the stock and waste come to the
+ * bottom right and the foundations to the bottom left, or stay above the
+ * columns. On its side, the foundations stack down the left rail and the stock
+ * tops the right one, with the waste spreading down under it.
+ */
+export const KLONDIKE_PHONE_LAYOUTS = phoneLayouts({
+  columns: pileIdsInRow(ZONES, 1),
+  row: pilesInRow(ZONES, 0),
+  rails: {
+    left: FOUNDATIONS.map((pileId) => ({ pileId, overlapped: true })),
+    right: [
+      { pileId: STOCK_PILE_ID },
+      {
+        pileId: WASTE_PILE_ID,
+        spreadsDown: true,
+        // Room for a draw of three, whichever the player chose.
+        reach: CARD_HEIGHT_PX + (WASTE_MAX_FAN_CARDS - 1) * WASTE_FAN_OFFSET_X,
+      },
+    ],
+  },
+  // Six hidden cards under a run from king to two.
+  longestColumn: { faceDown: TABLEAU_COUNT - 1, faceUp: 12 },
 });

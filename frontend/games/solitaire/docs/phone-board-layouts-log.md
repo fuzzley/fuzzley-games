@@ -283,7 +283,7 @@ the right.
 - [x] 2.2 Side rail
 - [x] 2.3 Bottom bar
 - [x] 3.1 The phone grid builder
-- [ ] 3.2 Klondike grids
+- [x] 3.2 Klondike grids
 - [ ] 3.3 Spider grids
 - [ ] 3.4 Browser check
 - [ ] 4.1 Settings service
@@ -515,3 +515,38 @@ row pile on no rail, or on both, throws when the module loads.
 The catalog spec now checks that each of an entry's phone grids places every
 pile its game deals; that holds vacuously until Klondike and Spider declare
 theirs.
+
+### 3.2 Klondike grids
+
+`KLONDIKE_PHONE_LAYOUTS` in `klondike_layout.ts` is a declaration for the
+builder. The row and the columns are read off Klondike's own zones with two new
+helpers in `phone_layouts.ts`, `pilesInRow` and `pileIdsInRow`, so a pile's
+position is still declared once. The foundations go on the left rail,
+overlapped, and the stock on the right, with the waste spreading down under it.
+The waste's reach allows for a draw of three, whichever the player chose. The
+longest column is six hidden cards under twelve face-up ones. The catalog entry
+names the grids.
+
+**A leftward spread now ends at its origin.** In the first browser check of
+K-P2, the mirrored waste spread left with its top card leftmost. That left each
+card under it showing its right edge, where the mobile deck has a suit pip but
+no rank. `"left"` now means each card still lies right of the one under it, as
+in a rightward spread, but the spread ends at the origin and reaches left of it.
+The covered cards show their indices, and the playable card sits in the waste's
+own slot, beside the stock. Cards under the spread sit beneath its first card.
+
+Checked at 390 × 844 and 844 × 390. Upright, the columns run along the top, the
+foundations sit bottom left, and the waste and stock bottom right, just above
+the bar. A column of six hidden and twelve face-up cards, built in the dev
+console, fans at the cap (about 27 px a card) with every index readable. On its
+side, the foundations stack down the left rail, the stock tops the right rail
+with the waste below it, and the same column fits the height at about 46 units a
+card. Cards are about 83 px wide. The four empty foundations, overlapped down
+the rail, draw their placeholder outlines over one another; filled ones show
+each top card's index.
+
+`test/games/klondike/klondike_layout.spec.ts` checks that the long column fits
+the room below it on six phone sizes, from 360 × 640 upright to 932 × 380 on its
+side, under each arrangement. It also checks where the stock and foundations go,
+and that the waste spreads towards the stock upright and down on its side while
+keeping the draw's count.

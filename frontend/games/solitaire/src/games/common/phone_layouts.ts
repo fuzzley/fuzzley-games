@@ -9,6 +9,7 @@ import {
   TableLayoutSpec,
   tableLayout,
 } from "@/engine/render/layout/table_layout";
+import { ZoneSpec } from "@/engine/tableau/zone";
 import { PHONE_FAN_FIT, TABLEAU_HOVER_EXPANSION_OFFSET } from "./pile_layouts";
 
 /**
@@ -67,6 +68,26 @@ export interface PhoneBoard {
   };
   /** How particular piles arrange their cards on every phone grid, by pile id. */
   readonly pileLayouts?: Readonly<Record<string, PileLayoutOverride>>;
+}
+
+/**
+ * Returns the piles a larger screen's grid puts in one row, left to right,
+ * with the column each sits in: the row of a {@link PhoneBoard}, read off the
+ * zones so a pile is placed in one place only.
+ */
+export function pilesInRow(zones: readonly ZoneSpec[], row: number): RowPile[] {
+  return zones
+    .filter((zone) => zone.slot.row === row)
+    .map((zone) => ({ pileId: zone.id, column: zone.slot.column }))
+    .sort((a, b) => a.column - b.column);
+}
+
+/** Returns the ids of the piles in one row of a grid, left to right. */
+export function pileIdsInRow(
+  zones: readonly ZoneSpec[],
+  row: number,
+): string[] {
+  return pilesInRow(zones, row).map((pile) => pile.pileId);
 }
 
 /** Space between a phone grid's columns and rows, in design units. */

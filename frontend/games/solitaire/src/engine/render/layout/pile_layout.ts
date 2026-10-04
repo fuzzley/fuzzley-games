@@ -4,7 +4,17 @@ import { Rect } from "../view/table_view_state";
 import type { Size } from "./table_layout";
 
 /** Says which way a spread runs from its pile's origin. */
-export type SpreadDirection = "right" | "left" | "down";
+export type SpreadDirection =
+  /** Each card right of the one under it, from the origin. */
+  | "right"
+  /**
+   * Each card right of the one under it, as in a rightward spread, but ending
+   * at the origin, so the spread reaches left of it. Every covered card keeps
+   * its left edge, where its index is, in view.
+   */
+  | "left"
+  /** Each card below the one under it, from the origin. */
+  | "down";
 
 /** Describes how a pile arranges its cards relative to the pile's origin. */
 export type PileLayout =
@@ -156,13 +166,6 @@ export function fanDownOffsets(
   return offsets;
 }
 
-/** The unit step each way a spread can run. */
-const SPREAD_STEPS: { readonly [Direction in SpreadDirection]: Point } = {
-  right: { x: 1, y: 0 },
-  left: { x: -1, y: 0 },
-  down: { x: 0, y: 1 },
-};
-
 /**
  * Returns the offsets of a spread of a pile's topmost cards, or of its topmost
  * groups of cards.
@@ -172,15 +175,25 @@ const SPREAD_STEPS: { readonly [Direction in SpreadDirection]: Point } = {
 export function spreadOffsets(count: number, layout: SpreadLayout): Point[] {
   const groupSize = layout.groupSize ?? 1;
   const groups = Math.ceil(count / groupSize);
-  const firstSpread = groups - Math.min(groups, layout.maxVisible);
-  const step = SPREAD_STEPS[layout.direction];
+  const shown = Math.min(groups, layout.maxVisible);
+  const firstSpread = groups - shown;
 
   const offsets: Point[] = [];
   for (let cardIndex = 0; cardIndex < count; cardIndex++) {
-    const group = Math.floor(cardIndex / groupSize);
-    const distance = Math.max(0, group - firstSpread) * layout.gap;
-    // Adding zero keeps a zero offset positive, so offsets compare equal.
-    offsets.push({ x: step.x * distance + 0, y: step.y * distance + 0 });
+    // Cards under the spread share the first place in it.
+    const place = Math.max(0, Math.floor(cardIndex / groupSize) - firstSpread);
+    switch (layout.direction) {
+      case "right":
+        offsets.push({ x: place * layout.gap, y: 0 });
+        break;
+      case "left":
+        // Subtracted from zero so the top card's offset stays positive zero.
+        offsets.push({ x: 0 - (shown - 1 - place) * layout.gap, y: 0 });
+        break;
+      case "down":
+        offsets.push({ x: 0, y: place * layout.gap });
+        break;
+    }
   }
   return offsets;
 }
