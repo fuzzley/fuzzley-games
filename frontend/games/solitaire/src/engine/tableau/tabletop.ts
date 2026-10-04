@@ -2,6 +2,7 @@ import {
   CardLocations,
   CardPile,
   PileRole,
+  ReadonlyCardPile,
 } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard } from "@/engine/core/card/playing_card";
@@ -22,16 +23,20 @@ export interface RelocateOptions {
  * Holds a game's piles and where every card is, and makes every change to
  * which pile a card is in.
  *
+ * It hands its piles out as {@link ReadonlyCardPile}s and is the only code that
+ * holds them as piles it can change; a method that changes one takes the
+ * read-only pile and finds its own.
+ *
  * Every change a player can take back goes through {@link relocate} or
  * {@link rearrange}, which hand back the transfers that let undo put it back,
  * so the record of a change cannot drift from the change itself.
  */
 export class Tabletop implements BoardQuery {
   /** Every pile, in the order the zones declared them. */
-  readonly piles: readonly CardPile<PlayingCard>[];
+  readonly piles: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Every pile a dragged stack may be dropped onto, in declaration order. */
-  readonly dropTargetPiles: readonly CardPile<PlayingCard>[];
+  readonly dropTargetPiles: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Where each card currently is, kept up to date by the piles themselves. */
   private readonly locations = new CardLocations<PlayingCard>();
@@ -71,12 +76,12 @@ export class Tabletop implements BoardQuery {
   // --- Reading the table ---
 
   /** @inheritDoc */
-  pile(pileId: string): CardPile<PlayingCard> | undefined {
+  pile(pileId: string): ReadonlyCardPile<PlayingCard> | undefined {
     return this.pilesById.get(pileId);
   }
 
   /** @inheritDoc */
-  pilesByRole(role: PileRole): readonly CardPile<PlayingCard>[] {
+  pilesByRole(role: PileRole): readonly ReadonlyCardPile<PlayingCard>[] {
     return this.pilesOfRole.get(role) ?? [];
   }
 
@@ -86,12 +91,8 @@ export class Tabletop implements BoardQuery {
   }
 
   /** Returns the pile with the given id, throwing if no zone declares it. */
-  requirePile(pileId: string): CardPile<PlayingCard> {
-    const pile = this.pilesById.get(pileId);
-    if (!pile) {
-      throw new Error(`No zone declares a pile with id: ${pileId}`);
-    }
-    return pile;
+  requirePile(pileId: string): ReadonlyCardPile<PlayingCard> {
+    return this.writable(pileId);
   }
 
   /** Returns the zone describing the given pile, or undefined if unknown. */
@@ -105,7 +106,7 @@ export class Tabletop implements BoardQuery {
   }
 
   /** Returns the pile holding the given card, or undefined. */
-  pileHolding(cardId: string): CardPile<PlayingCard> | undefined {
+  pileHolding(cardId: string): ReadonlyCardPile<PlayingCard> | undefined {
     return this.locations.get(cardId);
   }
 
@@ -130,11 +131,12 @@ export class Tabletop implements BoardQuery {
    */
   relocate(
     cards: readonly PlayingCard[],
-    to: CardPile<PlayingCard>,
+    destination: ReadonlyCardPile<PlayingCard>,
     options: RelocateOptions = {},
   ): CardTransfer {
+    const to = this.own(destination);
     const [first] = cards;
-    const from = first ? this.pileHolding(first.id) : undefined;
+    const from = first ? this.locations.get(first.id) : undefined;
     if (!first || !from) {
       throw new Error("Only cards on the table can be relocated.");
     }
@@ -178,9 +180,9 @@ export class Tabletop implements BoardQuery {
    * @throws Error if the layout gains or loses a card.
    */
   rearrange(
-    layout: ReadonlyMap<CardPile<PlayingCard>, readonly PlayingCard[]>,
+    layout: ReadonlyMap<ReadonlyCardPile<PlayingCard>, readonly PlayingCard[]>,
   ): CardTransfer[] {
-    const piles = [...layout.keys()];
+    const piles = [...layout.keys()].map((pile) => this.own(pile));
     const before = piles.flatMap((pile) => pile.getCards());
     const after = [...layout.values()].flat();
     if (
@@ -190,16 +192,17 @@ export class Tabletop implements BoardQuery {
       throw new Error("A rearrangement must keep the same cards.");
     }
 
-    const destination = new Map<PlayingCard, CardPile<PlayingCard>>();
+    const destination = new Map<PlayingCard, ReadonlyCardPile<PlayingCard>>();
     for (const [pile, cards] of layout) {
       for (const card of cards) destination.set(card, pile);
     }
+    const contentsOf = (pile: CardPile<PlayingCard>) => layout.get(pile) ?? [];
 
     // Each pile keeps the cards its new contents share with its old ones from
     // the bottom up; everything above them is lifted.
     const lifted = piles.map((pile) => {
       const old = pile.getCards();
-      const next = layout.get(pile) ?? [];
+      const next = contentsOf(pile);
       let kept = 0;
       while (kept < old.length && old[kept] === next[kept]) kept++;
       return { pile, kept, cards: old.slice(kept) };
@@ -226,7 +229,7 @@ export class Tabletop implements BoardQuery {
       for (const card of cards) pile.removeCard(card);
     }
     for (const { pile, kept } of lifted) {
-      for (const card of (layout.get(pile) ?? []).slice(kept)) {
+      for (const card of contentsOf(pile).slice(kept)) {
         pile.addCard(card);
       }
     }
@@ -258,16 +261,43 @@ export class Tabletop implements BoardQuery {
    *
    * Takes it off any pile it is on first.
    */
-  place(card: PlayingCard, pile: CardPile<PlayingCard>, faceUp: boolean): void {
-    this.pileHolding(card.id)?.removeCard(card);
+  place(
+    card: PlayingCard,
+    pile: ReadonlyCardPile<PlayingCard>,
+    faceUp: boolean,
+  ): void {
+    const to = this.own(pile);
+    this.locations.get(card.id)?.removeCard(card);
     card.faceUp = faceUp;
-    pile.addCard(card);
+    to.addCard(card);
   }
 
   /** Empties every pile, keeping the registry so sprites keep their cards. */
   clear(): void {
-    for (const pile of this.piles) {
+    for (const pile of this.pilesById.values()) {
       pile.clear();
     }
+  }
+
+  /**
+   * Returns the changeable pile behind one this table handed out.
+   *
+   * @throws Error for a pile from anywhere else, even one with a matching id.
+   */
+  private own(pile: ReadonlyCardPile<PlayingCard>): CardPile<PlayingCard> {
+    const owned = this.writable(pile.id);
+    if (owned !== pile) {
+      throw new Error(`The pile "${pile.id}" is not on this table.`);
+    }
+    return owned;
+  }
+
+  /** Returns this table's own pile with the given id, which it may change. */
+  private writable(pileId: string): CardPile<PlayingCard> {
+    const pile = this.pilesById.get(pileId);
+    if (!pile) {
+      throw new Error(`No zone declares a pile with id: ${pileId}`);
+    }
+    return pile;
   }
 }

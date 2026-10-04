@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
@@ -32,11 +32,11 @@ export interface PokerSquaresOptions extends DeckOptions {
  */
 export class PokerSquaresGame extends DealtTableGame {
   /** The face-down cards still to come. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The card to place next. */
-  public readonly hand: CardPile<PlayingCard>;
+  public readonly hand: ReadonlyCardPile<PlayingCard>;
   /** The grid's squares, row by row. */
-  public readonly squares: readonly CardPile<PlayingCard>[];
+  public readonly squares: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Which scoring the lines are counted by. */
   public readonly scoring: PokerSquaresScoring;

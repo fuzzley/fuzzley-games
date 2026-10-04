@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
@@ -38,13 +38,13 @@ export interface FortyThievesOptions extends DeckOptions {
  */
 export class FortyThievesGame extends DealtTableGame {
   /** The face-down stock, drawn one card at a time and never recycled. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The face-up waste holding drawn cards. */
-  public readonly waste: CardPile<PlayingCard>;
+  public readonly waste: ReadonlyCardPile<PlayingCard>;
   /** The eight foundation piles, two per suit. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The columns, however many this variant lays out. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /**
    * Which of the family is being played, public because the board factory

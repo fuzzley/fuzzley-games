@@ -1,4 +1,4 @@
-import { CardPile, PileRole } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { SlotPlacement } from "@/engine/render/layout/table_layout";
@@ -149,7 +149,7 @@ export function runColumn(options: RunColumnOptions): ColumnRules {
 export function canGrab(
   grab: GrabRule,
   card: PlayingCard,
-  pile: CardPile<PlayingCard>,
+  pile: ReadonlyCardPile<PlayingCard>,
   board: BoardQuery,
 ): boolean {
   switch (grab.kind) {
@@ -171,7 +171,7 @@ export function canGrab(
  * unbroken run.
  */
 function isRunFrom(
-  pile: CardPile<PlayingCard>,
+  pile: ReadonlyCardPile<PlayingCard>,
   card: PlayingCard,
   adjacent: (lower: PlayingCard, upper: PlayingCard) => boolean,
 ): boolean {
@@ -220,7 +220,7 @@ export function frameFor(
 /** Returns whether the pile has room for `count` more cards. */
 export function hasRoomFor(
   spec: ZoneSpec,
-  pile: CardPile<PlayingCard>,
+  pile: ReadonlyCardPile<PlayingCard>,
   count: number,
 ): boolean {
   return spec.capacity === undefined || pile.size + count <= spec.capacity;

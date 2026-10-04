@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { relocate } from "@test/support/game_scenarios";
+import { relocate, clearPile } from "@test/support/game_scenarios";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import {
   CELL_COUNT,
@@ -12,7 +12,7 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
 /** Empties the whole board so a test can build an exact position. */
 function clearBoard(game: FreeCellGame): void {
   for (const pile of game.piles) {
-    pile.clear();
+    clearPile(pile);
   }
 }
 

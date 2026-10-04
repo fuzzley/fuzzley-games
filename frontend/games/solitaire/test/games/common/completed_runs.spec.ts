@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import {
   ALL_RANKS,
   PlayingCard,
@@ -47,12 +47,12 @@ function fullRun(suit: Suit = Suit.SPADE): PlayingCard[] {
 function pileOf(
   id: string,
   cards: readonly PlayingCard[] = [],
-): CardPile<PlayingCard> {
+): ReadonlyCardPile<PlayingCard> {
   return table.fill(id, cards);
 }
 
 /** Returns the ids of a pile's cards, bottom first. */
-function idsIn(pile: CardPile<PlayingCard>): string[] {
+function idsIn(pile: ReadonlyCardPile<PlayingCard>): string[] {
   return pile.getCards().map((pileCard) => pileCard.id);
 }
 

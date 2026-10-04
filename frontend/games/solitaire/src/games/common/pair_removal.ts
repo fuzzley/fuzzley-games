@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { PlacementRule, all, singleCardOnly } from "@/engine/tableau/rules";
 import {
@@ -62,7 +62,7 @@ export function pairsWithTop(isPair: PairTest): PlacementRule {
 export function discardPairEffects(
   tabletop: Tabletop,
   move: ResolvedMove,
-  discard: CardPile<PlayingCard>,
+  discard: ReadonlyCardPile<PlayingCard>,
 ): MoveEffects {
   const pile = move.targetPile;
   if (pile === discard) return NO_MOVE_EFFECTS;

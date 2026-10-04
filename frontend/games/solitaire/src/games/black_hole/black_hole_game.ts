@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
@@ -24,9 +24,9 @@ export interface BlackHoleOptions extends DeckOptions {
  */
 export class BlackHoleGame extends DealtTableGame {
   /** The single foundation. */
-  public readonly foundation: CardPile<PlayingCard>;
+  public readonly foundation: ReadonlyCardPile<PlayingCard>;
   /** The fans or columns. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Which of the pair is being played. */
   public readonly variant: BlackHoleVariant;

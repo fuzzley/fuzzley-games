@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_RANKS, PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import {
   dealRowCollectingRuns,
@@ -26,7 +26,7 @@ beforeEach(() => {
  * Returns a face-down stock of `count` cards named `stock-0` upwards, bottom
  * first, so the highest-numbered card deals first.
  */
-function stockOf(count: number): CardPile<PlayingCard> {
+function stockOf(count: number): ReadonlyCardPile<PlayingCard> {
   return table.fill(
     "stock",
     Array.from({ length: count }, (_, index) =>
@@ -36,14 +36,14 @@ function stockOf(count: number): CardPile<PlayingCard> {
 }
 
 /** Returns empty columns named `tableau-0` upwards. */
-function columnsOf(count: number): CardPile<PlayingCard>[] {
+function columnsOf(count: number): ReadonlyCardPile<PlayingCard>[] {
   return Array.from({ length: count }, (_, index) =>
     table.pile(`tableau-${index}`),
   );
 }
 
 /** Returns the ids of a pile's cards, bottom first. */
-function idsIn(pile: CardPile<PlayingCard>): string[] {
+function idsIn(pile: ReadonlyCardPile<PlayingCard>): string[] {
   return pile.getCards().map((card) => card.id);
 }
 
@@ -56,7 +56,7 @@ function spade(rank: Rank, faceUp = true): PlayingCard {
 function pileOf(
   id: string,
   cards: readonly PlayingCard[] = [],
-): CardPile<PlayingCard> {
+): ReadonlyCardPile<PlayingCard> {
   return table.fill(id, cards);
 }
 
@@ -100,7 +100,7 @@ describe("dealRowFromStock", () => {
   it("adds to a column that already holds cards", () => {
     const stock = stockOf(1);
     const columns = columnsOf(1);
-    columns[0].addCard(makePlayingCard({ id: "already-there" }));
+    table.fill("tableau-0", [makePlayingCard({ id: "already-there" })]);
 
     dealRowFromStock(table.tabletop, stock, columns);
 

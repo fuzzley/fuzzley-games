@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
@@ -36,7 +36,7 @@ export class TestTabletop {
   }
 
   /** Returns the pile with the given id. */
-  pile(pileId: string): CardPile<PlayingCard> {
+  pile(pileId: string): ReadonlyCardPile<PlayingCard> {
     return this.tabletop.requirePile(pileId);
   }
 
@@ -49,7 +49,10 @@ export class TestTabletop {
    * Puts cards on a pile, bottom first, each showing the side it already
    * shows, and returns the pile.
    */
-  fill(pileId: string, cards: readonly PlayingCard[]): CardPile<PlayingCard> {
+  fill(
+    pileId: string,
+    cards: readonly PlayingCard[],
+  ): ReadonlyCardPile<PlayingCard> {
     const pile = this.pile(pileId);
     for (const card of cards) this.tabletop.place(card, pile, card.faceUp);
     return pile;

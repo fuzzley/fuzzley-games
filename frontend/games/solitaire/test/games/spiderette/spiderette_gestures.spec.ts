@@ -2,7 +2,11 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { IntentHandler } from "@/engine/render/input/table_intents";
 import { SpideretteGame } from "@/games/spiderette/spiderette_game";
 import { spideretteGestures } from "@/games/spiderette/spiderette_gestures";
-import { emptyBoard, relocate } from "@test/support/game_scenarios";
+import {
+  emptyBoard,
+  relocate,
+  takeOffBoard,
+} from "@test/support/game_scenarios";
 
 describe("spideretteGestures", () => {
   let game: SpideretteGame;
@@ -33,7 +37,7 @@ describe("spideretteGestures", () => {
 
     it("does nothing for a card that is in no pile", () => {
       const card = game.tableaus[0].topCard!;
-      game.tableaus[0].removeCard(card);
+      takeOffBoard(game, card.id);
 
       handle({ kind: "activate", cardId: card.id });
 

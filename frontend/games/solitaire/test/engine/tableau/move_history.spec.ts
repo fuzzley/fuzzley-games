@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
 import { AppliedMove } from "@/engine/tableau/move";
@@ -30,12 +30,12 @@ class TestBoard {
   readonly tabletop = new Tabletop([zone("from"), zone("to")], this.registry);
 
   /** The pile cards start in. */
-  get from(): CardPile<PlayingCard> {
+  get from(): ReadonlyCardPile<PlayingCard> {
     return this.tabletop.requirePile("from");
   }
 
   /** The pile cards are relocated to. */
-  get to(): CardPile<PlayingCard> {
+  get to(): ReadonlyCardPile<PlayingCard> {
     return this.tabletop.requirePile("to");
   }
 

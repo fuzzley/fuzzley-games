@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { sinkKings } from "../common/sink_kings";
 import { BristolVariant } from "./bristol_rules";
@@ -9,10 +9,10 @@ export const CARDS_PER_FAN = 3;
 
 /** Holds the piles a Bristol deal fills. */
 export interface BristolPiles {
-  readonly foundations: readonly CardPile<PlayingCard>[];
-  readonly tableaus: readonly CardPile<PlayingCard>[];
-  readonly reserves: readonly CardPile<PlayingCard>[];
-  readonly stock: CardPile<PlayingCard>;
+  readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
+  readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
+  readonly reserves: readonly ReadonlyCardPile<PlayingCard>[];
+  readonly stock: ReadonlyCardPile<PlayingCard>;
 }
 
 /**

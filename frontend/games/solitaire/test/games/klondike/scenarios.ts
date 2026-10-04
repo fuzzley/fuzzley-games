@@ -5,7 +5,7 @@ import {
 } from "@/engine/core/card/playing_card";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { StandardScoringPolicy } from "@/games/klondike/scoring_policy";
-import { emptyBoard } from "@test/support/game_scenarios";
+import { emptyBoard, clearPile, relocate } from "@test/support/game_scenarios";
 
 /** Id of the only card left out of the foundations by {@link almostWon}. */
 export const CLUB_KING_ID = "card-clubs-king";
@@ -15,9 +15,9 @@ export const CLUB_KING_ID = "card-clubs-king";
  * the waste, and draws so the game recycles the waste back into the stock.
  */
 export function forceWasteRecycle(game: KlondikeGame, card: PlayingCard): void {
-  game.stock.clear();
-  game.waste.clear();
-  game.waste.addCard(card);
+  clearPile(game.stock);
+  clearPile(game.waste);
+  relocate(game, card.id, game.waste, card.faceUp);
   game.drawCardsFromStock();
 }
 
@@ -34,9 +34,7 @@ export function almostWon(game: KlondikeGame): void {
     if (id === CLUB_KING_ID) {
       continue;
     }
-    const card = game.getCardById(id)!;
-    card.faceUp = true;
-    game.foundations[cardId.suit].addCard(card);
+    relocate(game, id, game.foundations[cardId.suit]);
   }
 }
 

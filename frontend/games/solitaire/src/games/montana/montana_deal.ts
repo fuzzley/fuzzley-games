@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { DeckSpec } from "@/engine/core/card/deck";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { seedFrom, seededRandom } from "@/engine/core/random/seeded_random";
@@ -26,7 +26,7 @@ export const GAP_COUNT = ROW_COUNT;
 export function dealMontanaFamilyLayout(
   variant: MontanaVariant,
   deal: Deal,
-  rows: readonly (readonly CardPile<PlayingCard>[])[],
+  rows: readonly (readonly ReadonlyCardPile<PlayingCard>[])[],
 ): void {
   switch (variant) {
     case MontanaVariant.MONTANA:
@@ -51,7 +51,7 @@ export function dealMontanaFamilyLayout(
  */
 export function dealMontanaLayout(
   deal: Deal,
-  cells: readonly CardPile<PlayingCard>[],
+  cells: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
   const random = seededRandom(seedFrom(deal.undealt.map((card) => card.id)));
   const gaps = chooseGaps(cells.length, GAP_COUNT, random);
@@ -70,7 +70,7 @@ export function dealMontanaLayout(
  */
 export function dealBlueMoonLayout(
   deal: Deal,
-  rows: readonly (readonly CardPile<PlayingCard>[])[],
+  rows: readonly (readonly ReadonlyCardPile<PlayingCard>[])[],
 ): void {
   deal.dealEach(
     rows.flatMap((row) => row.slice(1)),
@@ -92,7 +92,7 @@ export function dealBlueMoonLayout(
  */
 export function dealRedMoonLayout(
   deal: Deal,
-  rows: readonly (readonly CardPile<PlayingCard>[])[],
+  rows: readonly (readonly ReadonlyCardPile<PlayingCard>[])[],
 ): void {
   const aces = deal.pull((card) => card.rank === Rank.ACE);
   aces.slice(0, rows.length).forEach((ace, index) => {
@@ -124,9 +124,9 @@ function chooseGaps(
 
 /** Returns the grid as rows of `columnCount` cells, in order. */
 export function rowsOf(
-  cells: readonly CardPile<PlayingCard>[],
+  cells: readonly ReadonlyCardPile<PlayingCard>[],
   columnCount: number,
-): readonly (readonly CardPile<PlayingCard>[])[] {
+): readonly (readonly ReadonlyCardPile<PlayingCard>[])[] {
   return Array.from({ length: ROW_COUNT }, (_, row) =>
     cells.slice(row * columnCount, (row + 1) * columnCount),
   );
@@ -138,7 +138,7 @@ export function rowsOf(
  * `shuffled` fills the rest.
  */
 export function redealArrangement(
-  rows: readonly (readonly CardPile<PlayingCard>[])[],
+  rows: readonly (readonly ReadonlyCardPile<PlayingCard>[])[],
   shuffled: readonly PlayingCard[],
   firstRank: Rank,
 ): readonly (PlayingCard | null)[] {

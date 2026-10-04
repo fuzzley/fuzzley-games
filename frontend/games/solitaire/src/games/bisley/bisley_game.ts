@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
@@ -18,11 +18,11 @@ import {
  */
 export class BisleyGame extends DealtTableGame {
   /** The four foundations the Aces start, one per suit. */
-  public readonly aceFoundations: readonly CardPile<PlayingCard>[];
+  public readonly aceFoundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The four foundations a King starts, one per suit. */
-  public readonly kingFoundations: readonly CardPile<PlayingCard>[];
+  public readonly kingFoundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The thirteen columns. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Creates a game whose piles are empty until the first deal. */
   constructor({ cardIds = ALL_PLAYING_CARD_IDS, random }: DeckOptions = {}) {

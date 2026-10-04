@@ -2,7 +2,12 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { IntentHandler } from "@/engine/render/input/table_intents";
 import { EasthavenGame } from "@/games/easthaven/easthaven_game";
 import { easthavenGestures } from "@/games/easthaven/easthaven_gestures";
-import { emptyBoard, relocate } from "@test/support/game_scenarios";
+import {
+  emptyBoard,
+  relocate,
+  clearPile,
+  takeOffBoard,
+} from "@test/support/game_scenarios";
 
 describe("easthavenGestures", () => {
   let game: EasthavenGame;
@@ -24,7 +29,7 @@ describe("easthavenGestures", () => {
     });
 
     it("refuses to deal while a column is empty", () => {
-      game.tableaus[0].clear();
+      clearPile(game.tableaus[0]);
       const top = game.stock.topCard!;
 
       handle({ kind: "activate", cardId: top.id });
@@ -42,7 +47,7 @@ describe("easthavenGestures", () => {
 
     it("does nothing for a card that is in no pile", () => {
       const card = game.tableaus[0].topCard!;
-      game.tableaus[0].removeCard(card);
+      takeOffBoard(game, card.id);
 
       handle({ kind: "activate", cardId: card.id });
 

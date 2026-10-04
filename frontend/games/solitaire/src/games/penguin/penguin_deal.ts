@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 
 /** How many cards a full deck deals to each column. */
@@ -16,8 +16,8 @@ export const CARDS_PER_COLUMN = 7;
  */
 export function dealPenguinLayout(
   deal: Deal,
-  foundations: readonly CardPile<PlayingCard>[],
-  tableaus: readonly CardPile<PlayingCard>[],
+  foundations: readonly ReadonlyCardPile<PlayingCard>[],
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
   const beak = deal.peek();
   let nextFoundation = 0;

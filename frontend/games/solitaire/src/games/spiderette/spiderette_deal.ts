@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { SpideretteVariant } from "./spiderette_rules";
 
@@ -15,8 +15,8 @@ export const WISP_CARDS_PER_COLUMN = 3;
  */
 export function dealSpideretteLayout(
   deal: Deal,
-  tableaus: readonly CardPile<PlayingCard>[],
-  stock: CardPile<PlayingCard>,
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
+  stock: ReadonlyCardPile<PlayingCard>,
   variant: SpideretteVariant,
 ): void {
   if (tableaus.length === 0) return;

@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
@@ -18,13 +18,13 @@ export const DEFAULT_DRAW_COUNT = 3;
  */
 export class FakeTableGame extends DealtTableGame {
   /** The face-down pile a press draws from. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The face-up pile drawn cards land on. */
-  public readonly waste: CardPile<PlayingCard>;
+  public readonly waste: ReadonlyCardPile<PlayingCard>;
   /** The four piles built up by suit. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The seven columns. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** How many cards a draw turns over. */
   public readonly drawCount: number;

@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
@@ -30,11 +30,11 @@ export interface MonteCarloOptions extends DeckOptions {
  */
 export class MonteCarloGame extends DealtTableGame {
   /** The face-down cards that refill the grid. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The grid, row by row. */
-  public readonly cells: readonly CardPile<PlayingCard>[];
+  public readonly cells: readonly ReadonlyCardPile<PlayingCard>[];
   /** Where the pairs go. */
-  public readonly discard: CardPile<PlayingCard>;
+  public readonly discard: ReadonlyCardPile<PlayingCard>;
 
   /** Creates a game whose piles are empty until the first deal. */
   constructor({

@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { CardTransfer } from "@/engine/tableau/move";
 import { Tabletop } from "@/engine/tableau/tabletop";
@@ -12,8 +12,8 @@ import { itemAt } from "@/engine/core/common/item_at";
  */
 export function dealColumnsThenCells(
   deal: Deal,
-  tableaus: readonly CardPile<PlayingCard>[],
-  cells: readonly CardPile<PlayingCard>[],
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
+  cells: readonly ReadonlyCardPile<PlayingCard>[],
   cardsPerColumn: number,
 ): void {
   if (tableaus.length === 0) return;
@@ -36,8 +36,8 @@ export function dealColumnsThenCells(
  */
 export function dealRowFromStock(
   tabletop: Tabletop,
-  stock: CardPile<PlayingCard>,
-  columns: readonly CardPile<PlayingCard>[],
+  stock: ReadonlyCardPile<PlayingCard>,
+  columns: readonly ReadonlyCardPile<PlayingCard>[],
 ): CardTransfer[] {
   const transfers: CardTransfer[] = [];
   for (const column of columns) {
@@ -60,10 +60,10 @@ export function dealRowFromStock(
  */
 export function dealRowCollectingRuns(
   tabletop: Tabletop,
-  stock: CardPile<PlayingCard>,
-  dealTo: readonly CardPile<PlayingCard>[],
-  columns: readonly CardPile<PlayingCard>[],
-  foundations: readonly CardPile<PlayingCard>[],
+  stock: ReadonlyCardPile<PlayingCard>,
+  dealTo: readonly ReadonlyCardPile<PlayingCard>[],
+  columns: readonly ReadonlyCardPile<PlayingCard>[],
+  foundations: readonly ReadonlyCardPile<PlayingCard>[],
 ): { transfers: CardTransfer[]; flippedCardIds: string[] } {
   const dealt = dealRowFromStock(tabletop, stock, dealTo);
   // A dealt card can complete a run, and more than one column at a time.

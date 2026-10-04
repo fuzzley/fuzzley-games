@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import {
   ALL_RANKS,
   PlayingCard,
@@ -42,7 +42,7 @@ function cell(
   game: MontanaGame,
   row: number,
   column: number,
-): CardPile<PlayingCard> {
+): ReadonlyCardPile<PlayingCard> {
   return game.cells[row * COLUMN_COUNT + column];
 }
 

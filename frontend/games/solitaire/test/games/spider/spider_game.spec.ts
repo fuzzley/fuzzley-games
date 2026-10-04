@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { relocate } from "@test/support/game_scenarios";
+import { relocate, clearPile } from "@test/support/game_scenarios";
 import { SpiderGame } from "@/games/spider/spider_game";
 import {
   SPIDER_ONE_SUIT,
@@ -22,7 +22,7 @@ import {
 /** Empties the whole board so a test can build an exact position. */
 function clearBoard(game: SpiderGame): void {
   for (const pile of game.piles) {
-    pile.clear();
+    clearPile(pile);
   }
 }
 
@@ -315,22 +315,21 @@ describe("SpiderGame", () => {
     });
 
     it("refuses to deal onto an empty column", () => {
-      game.tableaus[0].clear();
+      clearPile(game.tableaus[0]);
 
       expect(game.dealRow()).toBe(false);
     });
 
     it("refuses to deal from an empty stock", () => {
-      game.stock.clear();
+      clearPile(game.stock);
 
       expect(game.dealRow()).toBe(false);
     });
 
     it("deals what is left when the stock cannot fill a whole row", () => {
-      game.stock.clear();
+      clearPile(game.stock);
       const spare = game.tableaus[0].topCard!;
-      game.tableaus[0].removeCard(spare);
-      game.stock.addCard(spare);
+      relocate(game, spare.id, game.stock, spare.faceUp);
 
       const dealt = game.dealRow();
 
@@ -509,22 +508,19 @@ describe("SpiderGame", () => {
               ? playingCardFaceKey({ suit: Suit.SPADE, rank })
               : `${playingCardFaceKey({ suit: Suit.SPADE, rank })}#${deck}`,
           )!;
-          card.faceUp = true;
-          oneSuit.foundations[deck].addCard(card);
+          relocate(oneSuit, card.id, oneSuit.foundations[deck]);
         }
       }
       for (const rank of [...ALL_RANKS].reverse().slice(0, 12)) {
         const card = oneSuit.getCardById(
           `${playingCardFaceKey({ suit: Suit.SPADE, rank })}#7`,
         )!;
-        card.faceUp = true;
-        oneSuit.tableaus[0].addCard(card);
+        relocate(oneSuit, card.id, oneSuit.tableaus[0]);
       }
       const lastAce = oneSuit.getCardById(
         `${playingCardFaceKey({ suit: Suit.SPADE, rank: Rank.ACE })}#7`,
       )!;
-      lastAce.faceUp = true;
-      oneSuit.tableaus[1].addCard(lastAce);
+      relocate(oneSuit, lastAce.id, oneSuit.tableaus[1]);
 
       oneSuit.moveCardToPile(lastAce.id, oneSuit.tableaus[0].id);
 

@@ -68,6 +68,10 @@ through its `Tabletop` (`src/engine/tableau/tabletop.ts`) and records history:
   change of pile and return the `CardTransfer`s describing it, so the record
   is produced by the change rather than written beside it.
 
+Piles are handed out as `ReadonlyCardPile` (`src/engine/core/card/card_pile.ts`)
+everywhere but inside `Tabletop`, the one owner of the changeable `CardPile`s,
+so nothing outside the engine can move a card without the history knowing.
+
 Where immutability lives here is in the **shape of these records** —
 `ResolvedMove` and `MoveEffects` are fully `readonly`, with `readonly
 PlayingCard[]` and `readonly string[]` members — not in replacing the board on

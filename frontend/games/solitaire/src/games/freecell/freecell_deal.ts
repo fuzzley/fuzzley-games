@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { itemAt } from "@/engine/core/common/item_at";
 
@@ -17,7 +17,7 @@ function isAceOrTwo(card: PlayingCard): boolean {
  */
 export function dealFreeCellLayout(
   deal: Deal,
-  tableaus: readonly CardPile<PlayingCard>[],
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
   buryAcesAndTwos = false,
 ): void {
   if (tableaus.length === 0) return;
@@ -40,8 +40,8 @@ export function dealFreeCellLayout(
  */
 export function dealFreeCellAlmostWin(
   deal: Deal,
-  foundations: readonly CardPile<PlayingCard>[],
-  tableaus: readonly CardPile<PlayingCard>[],
+  foundations: readonly ReadonlyCardPile<PlayingCard>[],
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
   const bySuit = new Map<number, PlayingCard[]>();
   for (const card of deal.drawAll()) {

@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { DeckSpec } from "@/engine/core/card/deck";
 import {
   ALL_RANKS,
@@ -51,8 +51,8 @@ export const OPENING_CARD_COUNT = 54;
  */
 export function dealSpiderLayout(
   deal: Deal,
-  tableaus: readonly CardPile<PlayingCard>[],
-  stock: CardPile<PlayingCard>,
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
+  stock: ReadonlyCardPile<PlayingCard>,
 ): void {
   if (tableaus.length === 0) return;
 

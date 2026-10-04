@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 
 /** How many face-up cards every column but the first receives. */
@@ -11,7 +11,7 @@ export const FACE_UP_PER_COLUMN = 5;
  */
 export function dealYukonLayout(
   deal: Deal,
-  tableaus: readonly CardPile<PlayingCard>[],
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
   for (const [column, tableau] of tableaus.entries()) {
     // The first column is the exception in both directions: no cards buried

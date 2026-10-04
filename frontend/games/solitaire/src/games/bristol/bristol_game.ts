@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
@@ -22,13 +22,13 @@ export interface BristolOptions extends DeckOptions {
  */
 export class BristolGame extends DealtTableGame {
   /** The face-down stock, dealt three at a time onto the reserves. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The three reserves. */
-  public readonly reserves: readonly CardPile<PlayingCard>[];
+  public readonly reserves: readonly ReadonlyCardPile<PlayingCard>[];
   /** The four foundations. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The eight fans. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Which of the pair is being played. */
   public readonly variant: BristolVariant;

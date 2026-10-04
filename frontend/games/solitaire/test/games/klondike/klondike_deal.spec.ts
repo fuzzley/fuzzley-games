@@ -12,7 +12,7 @@ import {
   TABLEAU_COUNT,
 } from "@/games/klondike/klondike_zones";
 import { foundationPileId, tableauPileId } from "@/games/common/pile_ids";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { TestTabletop } from "@test/support/test_tabletop";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 
@@ -20,9 +20,9 @@ describe("the Klondike deal", () => {
   let registry: CardRegistry;
   let table: TestTabletop;
   let deck: DeckSource;
-  let stock: CardPile<PlayingCard>;
-  let tableaus: CardPile<PlayingCard>[];
-  let foundations: CardPile<PlayingCard>[];
+  let stock: ReadonlyCardPile<PlayingCard>;
+  let tableaus: ReadonlyCardPile<PlayingCard>[];
+  let foundations: ReadonlyCardPile<PlayingCard>[];
 
   beforeEach(() => {
     registry = new CardRegistry();

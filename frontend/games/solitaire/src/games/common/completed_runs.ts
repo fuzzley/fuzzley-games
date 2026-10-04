@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { CardTransfer } from "@/engine/tableau/move";
 import { Tabletop } from "@/engine/tableau/tabletop";
@@ -40,7 +40,7 @@ export function completedRunStart(cards: readonly PlayingCard[]): number {
  * Checking that the pile is a column is the caller's job.
  */
 export function flipExposedTop(
-  pile: CardPile<PlayingCard>,
+  pile: ReadonlyCardPile<PlayingCard>,
 ): PlayingCard | undefined {
   const top = pile.topCard;
   if (!top || top.faceUp) return undefined;
@@ -57,8 +57,8 @@ export function flipExposedTop(
  */
 export function collectCompletedRuns(
   tabletop: Tabletop,
-  tableaus: readonly CardPile<PlayingCard>[],
-  foundations: readonly CardPile<PlayingCard>[],
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
+  foundations: readonly ReadonlyCardPile<PlayingCard>[],
 ): { transfers: CardTransfer[]; flippedCardIds: string[] } {
   const transfers: CardTransfer[] = [];
   const flippedCardIds: string[] = [];

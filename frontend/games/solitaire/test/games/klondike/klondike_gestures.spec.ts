@@ -4,7 +4,11 @@ import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { klondikeGestures } from "@/games/klondike/klondike_gestures";
 import { stackFromCard } from "@/engine/tableau/view/grabbable_stack";
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { emptyBoard, relocate } from "@test/support/game_scenarios";
+import {
+  emptyBoard,
+  relocate,
+  takeOffBoard,
+} from "@test/support/game_scenarios";
 
 describe("klondikeGestures", () => {
   let game: KlondikeGame;
@@ -55,7 +59,7 @@ describe("klondikeGestures", () => {
 
     it("throws for a card that is in no pile, which should never happen", () => {
       const card = game.tableaus[0].topCard!;
-      game.tableaus[0].removeCard(card);
+      takeOffBoard(game, card.id);
 
       expect(() => handle({ kind: "activate", cardId: card.id })).toThrow(
         "is not in a pile",
@@ -198,7 +202,7 @@ describe("the stack a Klondike drag picks up", () => {
 
   it("takes nothing for a card that is in no pile", () => {
     const card = game.tableaus[0].topCard!;
-    game.tableaus[0].removeCard(card);
+    takeOffBoard(game, card.id);
 
     expect(stackFromCard(game)(card.id)).toEqual([]);
   });

@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { sinkKings } from "../common/sink_kings";
 
@@ -15,7 +15,7 @@ export const CARDS_PER_COLUMN = 4;
  */
 export function dealBakersDozenLayout(
   deal: Deal,
-  tableaus: readonly CardPile<PlayingCard>[],
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
   for (const tableau of tableaus) {
     const column: PlayingCard[] = [];

@@ -1,5 +1,5 @@
 import { Deal } from "@/engine/tableau/deal";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 
 /** How many cards each column is dealt. */
@@ -11,8 +11,8 @@ export const CARDS_PER_COLUMN = 6;
  */
 export function dealNestorLayout(
   deal: Deal,
-  tableaus: readonly CardPile<PlayingCard>[],
-  reserves: readonly CardPile<PlayingCard>[],
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
+  reserves: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
   for (let row = 0; row < CARDS_PER_COLUMN; row++) {
     for (const tableau of tableaus) {
@@ -34,7 +34,7 @@ export function dealNestorLayout(
  */
 function nextCardFor(
   deal: Deal,
-  column: CardPile<PlayingCard>,
+  column: ReadonlyCardPile<PlayingCard>,
 ): PlayingCard | undefined {
   const ranks = new Set(column.getCards().map((card) => card.rank));
   // Each pass moves one card from the top to the bottom, so after as many

@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
@@ -39,15 +39,15 @@ export interface PyramidOptions extends DeckOptions {
  */
 export class PyramidGame extends DealtTableGame {
   /** The face-down stock. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The card just turned. */
-  public readonly hand: CardPile<PlayingCard>;
+  public readonly hand: ReadonlyCardPile<PlayingCard>;
   /** The turned cards that found no pair. */
-  public readonly waste: CardPile<PlayingCard>;
+  public readonly waste: ReadonlyCardPile<PlayingCard>;
   /** Where pairs and Kings go. */
-  public readonly discard: CardPile<PlayingCard>;
+  public readonly discard: ReadonlyCardPile<PlayingCard>;
   /** The pyramid's places, row by row from the top. */
-  public readonly places: readonly CardPile<PlayingCard>[];
+  public readonly places: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** When the game is won. */
   public readonly goal: PyramidGoal;
