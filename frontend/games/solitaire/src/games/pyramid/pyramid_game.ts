@@ -10,10 +10,7 @@ import { ActionKind } from "@/games/common/action_kinds";
 import { DeckOptions } from "@/games/common/deck_options";
 import { discardPairEffects } from "@/games/common/pair_removal";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
-import {
-  CLOSED_STOCK_PLACEHOLDER,
-  recyclePipsPlaceholder,
-} from "@/games/common/zone_presets";
+import { recycleMarker } from "@/games/common/zone_presets";
 import {
   DEFAULT_PYRAMID_GOAL,
   DEFAULT_PYRAMID_PASSES,
@@ -87,6 +84,15 @@ export class PyramidGame extends DealtTableGame {
     this.waste = this.requirePile(WASTE_PILE_ID);
     this.discard = this.requirePile(DISCARD_PILE_ID);
     this.places = this.pilesOfRole(PyramidRole.PYRAMID);
+    this.markPile(this.stock, () =>
+      recycleMarker({
+        usable:
+          this.recyclesRemaining > 0 &&
+          !(this.stock.isEmpty && !this.canRecycle),
+        remaining: this.recyclesRemaining,
+        allowed: this.passes - 1,
+      }),
+    );
   }
 
   /** @inheritDoc */
@@ -165,33 +171,5 @@ export class PyramidGame extends DealtTableGame {
   private discardHand(): CardTransfer[] {
     const held = this.hand.topCard;
     return held ? [this.tabletop.relocate([held], this.waste)] : [];
-  }
-
-  /**
-   * Returns the plain outline for the empty stock once a press would do
-   * nothing, and a pip per pass left otherwise.
-   *
-   * @inheritDoc
-   */
-  public override pileBackgroundKey(
-    pile: CardPile<PlayingCard>,
-  ): string | undefined {
-    if (pile !== this.stock) return super.pileBackgroundKey(pile);
-    const spent =
-      this.recyclesRemaining === 0 || (pile.isEmpty && !this.canRecycle);
-    return spent
-      ? CLOSED_STOCK_PLACEHOLDER
-      : recyclePipsPlaceholder(this.recyclesRemaining, this.passes - 1);
-  }
-
-  /**
-   * Returns whether the empty stock would turn the waste over if pressed.
-   *
-   * @inheritDoc
-   */
-  public override isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
-    return pile === this.stock
-      ? pile.isEmpty && this.canRecycle
-      : super.isEmptySlotActionable(pile);
   }
 }

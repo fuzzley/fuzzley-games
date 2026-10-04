@@ -3,6 +3,7 @@ import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
 import {
   MoveEffects,
+  PileMarker,
   ResolvedMove,
   TableGame,
 } from "@/engine/tableau/table_game";
@@ -77,6 +78,11 @@ class TestGame extends TableGame {
     this.commitAction("turn-over", [
       { cardIds, fromPileId, toPileId, faceUpBefore: true },
     ]);
+  }
+
+  /** Marks a pile's slot, exposing `markPile`. */
+  public mark(pileId: string, marker: () => PileMarker): void {
+    this.markPile(this.requirePile(pileId), marker);
   }
 
   /** How many turn-overs the history holds, exposing `timesApplied`. */
@@ -527,6 +533,64 @@ describe("TableGame", () => {
 
     it("does not treat an empty slot as pressable unless its zone says so", () => {
       const actionable = game.isEmptySlotActionable(game.getPileById(LEFT)!);
+
+      expect(actionable).toBe(false);
+    });
+
+    it("shows a marked pile's artwork in place of its zone's", () => {
+      const pressable = gameWithPressableSlot();
+      pressable.mark(PRESSABLE, () => ({
+        artwork: "marked",
+        actionable: true,
+      }));
+
+      const artwork = pressable.pileBackgroundKey(
+        pressable.getPileById(PRESSABLE)!,
+      );
+
+      expect(artwork).toBe("marked");
+    });
+
+    it("lets a marker say an empty slot does nothing, whatever its zone says", () => {
+      const pressable = gameWithPressableSlot();
+      pressable.mark(PRESSABLE, () => ({
+        artwork: "spent",
+        actionable: false,
+      }));
+
+      const actionable = pressable.isEmptySlotActionable(
+        pressable.getPileById(PRESSABLE)!,
+      );
+
+      expect(actionable).toBe(false);
+    });
+
+    it("asks a marker afresh each time, so the slot follows the game", () => {
+      const pressable = gameWithPressableSlot();
+      let spent = false;
+      pressable.mark(PRESSABLE, () => ({
+        artwork: spent ? "spent" : "fresh",
+        actionable: !spent,
+      }));
+
+      spent = true;
+
+      expect(
+        pressable.pileBackgroundKey(pressable.getPileById(PRESSABLE)!),
+      ).toBe("spent");
+    });
+
+    it("never treats a marked slot as pressable while it holds cards", () => {
+      const pressable = gameWithPressableSlot();
+      pressable.mark(PRESSABLE, () => ({
+        artwork: "marked",
+        actionable: true,
+      }));
+      pressable.place(PRESSABLE, Rank.FIVE);
+
+      const actionable = pressable.isEmptySlotActionable(
+        pressable.getPileById(PRESSABLE)!,
+      );
 
       expect(actionable).toBe(false);
     });

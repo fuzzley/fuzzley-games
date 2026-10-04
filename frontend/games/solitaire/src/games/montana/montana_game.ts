@@ -8,10 +8,7 @@ import { DeckSource } from "@/engine/tableau/deck_source";
 
 import { ActionKind } from "@/games/common/action_kinds";
 import { DeckOptions } from "@/games/common/deck_options";
-import {
-  CLOSED_STOCK_PLACEHOLDER,
-  recyclePipsPlaceholder,
-} from "@/games/common/zone_presets";
+import { recycleMarker } from "@/games/common/zone_presets";
 import {
   dealMontanaFamilyLayout,
   redealArrangement,
@@ -88,6 +85,13 @@ export class MontanaGame extends DealtTableGame {
     this.maxRedeals = maxRedeals;
     this.firstRank = montanaFirstRank(variant);
     this.cells = this.pilesOfRole(MontanaRole.CELL);
+    this.markPile(this.requirePile(REDEAL_PILE_ID), () =>
+      recycleMarker({
+        usable: this.canRedeal,
+        remaining: this.redealsRemaining,
+        allowed: this.maxRedeals,
+      }),
+    );
   }
 
   /** @inheritDoc */
@@ -148,34 +152,6 @@ export class MontanaGame extends DealtTableGame {
 
     this.commitAction(ActionKind.REDEAL, this.tabletop.rearrange(layout));
     return true;
-  }
-
-  /**
-   * Returns the redeal marker's pips while it can redeal, and the plain
-   * outline once a press would do nothing.
-   *
-   * @inheritDoc
-   */
-  public override pileBackgroundKey(
-    pile: CardPile<PlayingCard>,
-  ): string | undefined {
-    if (pile.id !== REDEAL_PILE_ID) {
-      return super.pileBackgroundKey(pile);
-    }
-    return this.canRedeal
-      ? recyclePipsPlaceholder(this.redealsRemaining, this.maxRedeals)
-      : CLOSED_STOCK_PLACEHOLDER;
-  }
-
-  /**
-   * Returns whether the redeal marker would redeal if pressed.
-   *
-   * @inheritDoc
-   */
-  public override isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
-    return pile.id === REDEAL_PILE_ID
-      ? this.canRedeal
-      : super.isEmptySlotActionable(pile);
   }
 
   /**

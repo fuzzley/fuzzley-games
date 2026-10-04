@@ -36,6 +36,17 @@ export interface MoveEffects {
   readonly followUpTransfers?: readonly CardTransfer[];
 }
 
+/**
+ * Describes what a marked pile's slot shows now, and whether pressing it while
+ * empty does anything, such as a stock that counts its recycles.
+ */
+export interface PileMarker {
+  /** The artwork the pile's placeholder shows. */
+  readonly artwork: string;
+  /** Whether pressing the empty slot does something now. */
+  readonly actionable: boolean;
+}
+
 /** A move that changed nothing but the position of its cards. */
 export const NO_MOVE_EFFECTS: MoveEffects = {
   scoreDelta: 0,
@@ -96,6 +107,9 @@ export abstract class TableGame<
 
   /** The applied actions {@link undo} unwinds, and who is following them. */
   private readonly history: MoveHistory;
+
+  /** What each marked pile's slot shows, by pile id. */
+  private readonly markers = new Map<string, () => PileMarker>();
 
   private readonly autoMoveRoles: readonly PileRole[];
   private readonly winningRole?: PileRole;
@@ -454,26 +468,41 @@ export abstract class TableGame<
   }
 
   /**
-   * Returns the artwork the pile's placeholder shows now, which by default is
-   * the one its zone declares.
+   * Makes a pile's slot show the game's state, such as how many recycles or
+   * redeals are left, and stop looking pressable once a press would do nothing.
    *
-   * A game overrides this to show its state on the table, such as how many
-   * redeals are left. The artwork may change, but whether a pile has any may
-   * not: the board makes a placeholder only for the piles that have one when it
-   * is built.
+   * The view asks `marker` every frame, for both the artwork and whether the
+   * empty slot is pressable. Give the pile's zone a `backgroundKey` and
+   * `emptyIsActionable` for how it starts: the board makes a placeholder, and
+   * a pressable one, only for the piles whose zones have them when it is built.
    */
-  public pileBackgroundKey(pile: CardPile<PlayingCard>): string | undefined {
-    return this.zoneFor(pile.id)?.backgroundKey;
+  protected markPile(
+    pile: CardPile<PlayingCard>,
+    marker: () => PileMarker,
+  ): void {
+    this.markers.set(pile.id, marker);
   }
 
   /**
-   * Returns whether pressing the pile's empty slot does something now, which
-   * by default is whenever its zone says an empty slot is actionable.
-   *
-   * A game overrides this so a slot whose press would do nothing, such as a
-   * stock with nothing left to recycle, stops looking pressable.
+   * Returns the artwork the pile's placeholder shows now: its marker's, or
+   * else the one its zone declares.
+   */
+  public pileBackgroundKey(pile: CardPile<PlayingCard>): string | undefined {
+    return (
+      this.markers.get(pile.id)?.().artwork ??
+      this.zoneFor(pile.id)?.backgroundKey
+    );
+  }
+
+  /**
+   * Returns whether pressing the pile's empty slot does something now, as its
+   * marker says, or else as its zone does.
    */
   public isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
-    return pile.isEmpty && (this.zoneFor(pile.id)?.emptyIsActionable ?? false);
+    if (!pile.isEmpty) return false;
+    const marker = this.markers.get(pile.id);
+    return marker
+      ? marker().actionable
+      : (this.zoneFor(pile.id)?.emptyIsActionable ?? false);
   }
 }

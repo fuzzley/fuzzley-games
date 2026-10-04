@@ -115,7 +115,7 @@ The review's findings, grouped into phases. Each phase leaves the tree green.
 - [x] 2.1 One writer for the metrics
 - [x] 2.2 Counts read from the history
 - [x] 2.3 `relocate` helper
-- [ ] 3.1 Pile markers
+- [x] 3.1 Pile markers
 - [ ] 3.2 Rules attached directly; column rule helper
 - [ ] 3.3 Deck construction and dealing helpers
 - [ ] 4.1 `engine/board` tier and fixture copies deleted
@@ -269,3 +269,18 @@ Newest last. Each entry names its commit subject.
   - The `add-solitaire-game` and `typescript-strict-patterns` skills
     describe `tabletop.relocate` and `rearrange` and the new helper
     signatures.
+- **refactor: let a game mark a pile's slot instead of overriding the
+  view.**
+  - `TableGame.markPile(pile, () => PileMarker)` registers a marker giving
+    `{ artwork, actionable }`. `pileBackgroundKey` and `isEmptySlotActionable`
+    consult it (then the zone) and are no longer meant to be overridden;
+    nothing overrides them now.
+  - `recycleMarker({ usable, remaining, allowed })` in
+    `src/games/common/zone_presets.ts` builds the closed / pips / recycle-arrow
+    marker. Klondike family, Canfield, Pyramid, La Belle Lucie, Montana and
+    Monte Carlo each register one in the constructor in place of their two
+    overrides. Each game's `usable` keeps its old behaviour exactly,
+    including Vegas draw-1 Klondike showing the recycle arrow until its stock
+    empties, and Rainbow's closed outline.
+  - `StockOverrideTableGame` in the fake table uses a marker too.
+  - The `add-solitaire-game` skill now says to mark the pile.
