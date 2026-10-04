@@ -88,7 +88,7 @@ Settled with the project owner before any code changed.
 - [x] 2.4 Preview contact sheet
 - [x] 3.1 Register the deck
 - [x] 3.2 Compact default
-- [ ] 3.3 Docs
+- [x] 3.3 Docs
 - [ ] 4.1 Specs
 - [ ] 4.2 Browser check
 - [ ] 4.3 `yarn verify`
@@ -178,3 +178,17 @@ the default is stored like a choice: turning a phone past the breakpoint, or a
 later visit in a wider window, keeps the deck. Specs cover a phone with
 nothing stored, a phone with settings but no deck, a phone with a chosen deck,
 and a later visit in a wider window.
+
+### 3.3 Docs
+
+- `vite-bundle-optimization` skill: generated decks, the bundled font,
+  `--deck` and `--preview`, the frame-name check, the strip constants the
+  mobile deck mirrors, and the three places a new deck is registered. The
+  preview's path is written so `yarn skills:check` does not look for it,
+  since it is gitignored and absent on CI.
+- `phaser-core` skill and `.agents/AGENTS.md`: the generated deck is a source
+  of the atlas too.
+- `src/games/common/pile_layouts.ts`: the two fan offsets point at the strip
+  constants that mirror them.
+- `NOTICE`: the mobile deck's pages are this project's own work under GPL-3.0,
+  not derived from the LGPL artwork.

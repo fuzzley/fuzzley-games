@@ -159,3 +159,10 @@ Files covered
 
 The OFL covers the font software, not the pictures drawn with it, so the atlas
 pages rendered with it carry no obligation from it.
+
+The `mobile` deck's atlas pages, under
+`src/engine/render/assets/sprites/atlas/mobile/`, are drawn by this project's
+own code in `tools/card-atlas/mobile-deck.mjs` with that font. They are not
+cut from the playing card artwork above, so its LGPL-3.0 terms do not reach
+them, and they are covered by this project's GPL-3.0 license like the rest of
+its source.
