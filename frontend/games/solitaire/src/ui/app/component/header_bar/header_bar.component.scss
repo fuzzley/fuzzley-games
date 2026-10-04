@@ -350,6 +350,29 @@
   }
 }
 
+// On a phone held upright the header docks at the bottom, where every action
+// is under the thumb, and the board starts at the top of the screen.
+@include phone-portrait {
+  :host {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
+
+  .header-bar {
+    border-top: 1px solid var(--border-default);
+    border-bottom: none;
+  }
+
+  // Above the bar, rising from the button at its right end.
+  .overflow-menu {
+    top: auto;
+    bottom: calc(var(--header-height) + var(--space-1));
+    transform-origin: bottom right;
+  }
+}
+
 // On a phone on its side the header is a rail down the left edge, which leaves
 // the board the whole height of a short screen. The compact rules above still
 // apply; this turns the bar on its side.
