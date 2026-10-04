@@ -1,5 +1,5 @@
 import { Card } from "@/engine/core/card/card";
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { Point } from "@/engine/core/common/point";
 import { PileGeometry, Rect } from "../view/table_view_state";
 import { PileLayout, pileHeight, pileWidth } from "./pile_layout";
@@ -8,7 +8,7 @@ import { Size } from "./table_layout";
 /** Describes a pile a dragged stack may be dropped onto. */
 export interface DropCandidate {
   /** The pile itself, whose cards set how far its target area reaches. */
-  readonly pile: CardPile<Card>;
+  readonly pile: ReadonlyCardPile<Card>;
   /** How that pile arranges its cards. */
   readonly layout: PileLayout;
 }

@@ -1,4 +1,4 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { PlacementRule, all, singleCardOnly } from "@/engine/tableau/rules";
 import {
@@ -6,6 +6,7 @@ import {
   NO_MOVE_EFFECTS,
   ResolvedMove,
 } from "@/engine/tableau/table_game";
+import { Tabletop } from "@/engine/tableau/tabletop";
 
 /**
  * Plays a pairing game, where a card dropped on its partner takes both to the
@@ -59,27 +60,16 @@ export function pairsWithTop(isPair: PairTest): PlacementRule {
  * @param move The move, already applied to the piles.
  */
 export function discardPairEffects(
+  tabletop: Tabletop,
   move: ResolvedMove,
-  discard: CardPile<PlayingCard>,
+  discard: ReadonlyCardPile<PlayingCard>,
 ): MoveEffects {
   const pile = move.targetPile;
   if (pile === discard) return NO_MOVE_EFFECTS;
 
-  const pair = pile.getCards().slice(-2);
-  for (const card of pair) {
-    pile.removeCard(card);
-    discard.addCard(card);
-  }
   return {
     scoreDelta: 0,
     flippedCardIds: [],
-    followUpTransfers: [
-      {
-        cardIds: pair.map((card) => card.id),
-        fromPileId: pile.id,
-        toPileId: discard.id,
-        faceUpBefore: true,
-      },
-    ],
+    followUpTransfers: [tabletop.relocate(pile.getCards().slice(-2), discard)],
   };
 }

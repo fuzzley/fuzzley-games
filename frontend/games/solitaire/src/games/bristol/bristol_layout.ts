@@ -10,6 +10,6 @@ export const BRISTOL_LAYOUT = boardLayout({
   rows: 2,
   zones: bristolZoneSpecs(),
   // A fan can grow from its three cards to a dozen; one that long ends about
-  // 1275 from the top of the board.
-  designHeightPx: 1300,
+  // 1202 from the top of the board.
+  designHeightPx: 1227,
 });

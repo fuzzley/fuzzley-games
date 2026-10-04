@@ -1,9 +1,8 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects } from "@/engine/tableau/table_game";
 import { DeckOptions } from "@/games/common/deck_options";
 import { drawToWaste } from "@/games/common/stock_pile";
@@ -33,11 +32,11 @@ export interface PokerSquaresOptions extends DeckOptions {
  */
 export class PokerSquaresGame extends DealtTableGame {
   /** The face-down cards still to come. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The card to place next. */
-  public readonly hand: CardPile<PlayingCard>;
+  public readonly hand: ReadonlyCardPile<PlayingCard>;
   /** The grid's squares, row by row. */
-  public readonly squares: readonly CardPile<PlayingCard>[];
+  public readonly squares: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Which scoring the lines are counted by. */
   public readonly scoring: PokerSquaresScoring;
@@ -45,12 +44,12 @@ export class PokerSquaresGame extends DealtTableGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     scoring = DEFAULT_POKER_SQUARES_SCORING,
   }: PokerSquaresOptions = {}) {
     super({
       zones: pokerSquaresZoneSpecs(),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // Where each card goes is the whole game, so nothing is placed for the
       // player.
       autoMoveRoles: [],
@@ -64,19 +63,10 @@ export class PokerSquaresGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    let card = deck.pop();
-    while (card) {
-      card.faceUp = false;
-      this.stock.addCard(card);
-      card = deck.pop();
-    }
+  protected override dealBoard(deal: Deal): void {
+    deal.dealRest(this.stock, false);
     const first = this.stock.topCard;
-    if (first) {
-      this.stock.removeCard(first);
-      first.faceUp = true;
-      this.hand.addCard(first);
-    }
+    if (first) deal.place(first, this.hand, true);
   }
 
   /** The grid's rows and then its columns, each as the cards in it. */
@@ -99,12 +89,10 @@ export class PokerSquaresGame extends DealtTableGame {
    * @inheritDoc
    */
   protected override applyMoveEffects(): MoveEffects {
-    const scoreBefore = this.state.score;
-    this.state.score = scoreGrid(this.lines, this.scoring);
     return {
-      scoreDelta: this.state.score - scoreBefore,
+      scoreDelta: scoreGrid(this.lines, this.scoring) - this.state.score,
       flippedCardIds: [],
-      followUpTransfers: drawToWaste(this.stock, this.hand, 1),
+      followUpTransfers: drawToWaste(this.tabletop, this.stock, this.hand, 1),
     };
   }
 

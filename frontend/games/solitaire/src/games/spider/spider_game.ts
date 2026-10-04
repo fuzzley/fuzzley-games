@@ -1,15 +1,15 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { runCollectingEffects } from "@/games/common/move_effects";
 import { dealRowCollectingRuns } from "@/games/common/row_deal";
 import { DeckOptions } from "@/games/common/deck_options";
 import { SPIDER_TWO_DECKS, dealSpiderLayout } from "./spider_deal";
 import { SpiderRole, STOCK_PILE_ID, spiderZoneSpecs } from "./spider_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /**
  * Plays Spider: two decks on ten columns, a stock that deals a card to every
@@ -17,11 +17,11 @@ import { SpiderRole, STOCK_PILE_ID, spiderZoneSpecs } from "./spider_zones";
  */
 export class SpiderGame extends DealtTableGame {
   /** The face-down pile that deals a row at a time. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The eight piles completed runs go to. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The ten columns. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /**
    * Creates a game whose piles are empty until the first deal.
@@ -31,11 +31,11 @@ export class SpiderGame extends DealtTableGame {
    */
   constructor({
     cardIds = deckCardIds(SPIDER_TWO_DECKS),
-    random = Math.random,
+    random,
   }: DeckOptions = {}) {
     super({
       zones: spiderZoneSpecs(),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // Only a column will take a card; a foundation is never a destination a
       // player can choose.
       autoMoveRoles: [SpiderRole.TABLEAU],
@@ -48,8 +48,8 @@ export class SpiderGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealSpiderLayout(deck, this.tableaus, this.stock);
+  protected override dealBoard(deal: Deal): void {
+    dealSpiderLayout(deal, this.tableaus, this.stock);
   }
 
   // --- The stock ---
@@ -69,12 +69,13 @@ export class SpiderGame extends DealtTableGame {
     }
 
     const dealt = dealRowCollectingRuns(
+      this.tabletop,
       this.stock,
       this.tableaus,
       this.tableaus,
       this.foundations,
     );
-    this.commitAction("deal", dealt.transfers, {
+    this.commitAction(ActionKind.DEAL, dealt.transfers, {
       flippedCardIds: dealt.flippedCardIds,
     });
     return true;
@@ -85,6 +86,7 @@ export class SpiderGame extends DealtTableGame {
   /** @inheritDoc */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
     return runCollectingEffects(
+      this.tabletop,
       move,
       SpiderRole.TABLEAU,
       this.tableaus,

@@ -7,7 +7,7 @@ Browser-based Solitaire engine supporting many solitaire variants — Klondike, 
 - **Rendering Engine:** [PhaserJS](https://phaser.io/) (v4)
 - **UI Shell:** [Angular](https://angular.dev/) (v22)
 - **Build Toolchain:** [Vite](https://vitejs.dev/) (v8) + [AnalogJS Vite Angular Plugin](https://analogjs.org/)
-- **Test Framework:** [Vitest](https://vitest.dev/) (v4) + AnalogJS Vitest Angular runner
+- **Test Framework:** [Vitest](https://vitest.dev/) (v5) + AnalogJS Vitest Angular runner
 - **Language & Runtime:** TypeScript (v6) / HTML / Sass (ES2022 output target)
 - **Package Manager:** Yarn 4 (`yarn@4.17.1` via Corepack)
 
@@ -18,22 +18,23 @@ Browser-based Solitaire engine supporting many solitaire variants — Klondike, 
 The application enforces a decoupled **`engine -> game`** architecture where game logic, solitaire engine rules, view layout math, canvas rendering, and UI shell components are strictly isolated.
 
 ```
-       [ src/ui ]              Angular Application Shell (Header, Navigation, UI Controls)
-           |
-      [ src/games ]            Game Rules & Variants (one directory per game)
-           |
-  +--------+--------+
-  |                 |
-  v                 v
-[ engine/tableau ] [ engine/render/phaser ]   Solitaire Runtime & Phaser Canvas Adapter
-  |                 |
-  +--------+--------+
-           |
-           v
-   [ engine/render ]           Layout Math, View Contracts, Drag Mathematics (Phaser-free)
-           |
-           v
-    [ engine/core ]            Cards, Piles, Decks, Suits, Ranks, RNG (Framework-free)
+                [ src/ui ]                      Angular Application Shell (Header, Navigation, UI Controls)
+                    |
+       +------------+------------+
+       |                         |
+       v                         v
+ [ src/games ]            [ engine/board ]        Game Rules & Variants | Board Scene for any Table Game
+       |                    |         |
+       v                    v         v
+[ engine/tableau ] <--------+   [ engine/render/phaser ]   Solitaire Runtime & Phaser Canvas Adapter
+       |                              |
+       +---------------+--------------+
+                       |
+                       v
+               [ engine/render ]       Layout Math, View Contracts, Drag Mathematics (Phaser-free)
+                       |
+                       v
+                [ engine/core ]        Cards, Piles, Decks, Suits, Ranks, RNG (Framework-free)
 ```
 
 ### Layer Breakdown
@@ -50,15 +51,18 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
    - Phaser 4 adapter implementing the view contracts defined in `src/engine/render`.
    - Draws card textures, scenes, and canvas elements. Stays unaware of specific game rules or UI components.
 4. **`src/engine/tableau`**
-   - Solitaire-family generic runtime engine (tableau layout rules, zones, moves, undo/redo stack, table view builder).
+   - Solitaire-family generic runtime engine (zones, rules, moves, undo history, dealing, gesture maps, table view builder).
+   - `Tabletop` holds the piles and makes every change to them: `relocate` and `rearrange` for changes undo takes back, `Deal` for laying a game out.
    - Serves as the generic execution engine for every game in `src/games` without depending on a specific renderer backend or game variant.
-5. **`src/games/*`** _(Top of Engine Tier)_
+5. **`src/engine/board`**
+   - Joins a table game to the Phaser adapter: `makeTableBoardScene` (`src/engine/board/table_board_scene.ts`) turns any `TableGame` plus its layout and gesture map into a `BoardScene`.
+   - The only tier that may import both `engine/tableau` and `engine/render/phaser`. There is no separate scene-bridge tier above it: `PhaserHost` swaps in whatever board it is handed.
+6. **`src/games/*`** _(Top of Engine Tier)_
    - Game-specific deal rules, scoring mechanics, layout setup, and gesture handling — one directory per game (`games/klondike`, `games/freecell`, `games/montana`, …).
-   - Code shared between games lives in `games/common`: collecting completed runs, drawing and recycling a stock, dealing a card to every column, and the gesture map for a game with no stock.
+   - Code shared between games lives in `games/common`: collecting completed runs, drawing and recycling a stock, dealing a card to every column, pairing, zone presets and pile markers.
    - A different board grid means a different catalog entry; the same grid under different rules means a variant option on an existing one. See the `add-solitaire-game` skill.
-   - Sits above `engine/*` layers, but below the Angular UI application shell.
-   - A game reaches the canvas through `src/games/common/board_scene_factory.ts`, which turns a game plus its layout and gesture map into a `BoardScene`. There is no separate scene-bridge tier: `PhaserHost` swaps in whatever board factory it is handed.
-6. **`src/ui/*`** _(Application Shell)_
+   - Sits above the engine's runtime but beside `engine/board`: a game knows nothing of the renderer, and the shell's provider folder joins a game to its board.
+7. **`src/ui/*`** _(Application Shell)_
    - Angular application shell hosting the game canvas viewport, control overlays, and variant selection UI.
 
 ### UI Shell Structure
@@ -132,14 +136,15 @@ brings in the mixins and breakpoints and nothing else:
 
 Architecture guidelines are enforced as hard build errors rather than conventions via ESLint (`eslint.config.cjs`) using `@typescript-eslint/no-restricted-imports`. Each tier may depend only on the tiers below it:
 
-| Tier / Directory                      | Allowed Dependencies                     | Explicitly Restricted Imports (`@typescript-eslint/no-restricted-imports`)                              |
-| :------------------------------------ | :--------------------------------------- | :------------------------------------------------------------------------------------------------------ |
-| `src/engine/core`                     | Standard TS primitives                   | `@/engine/render/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `phaser`, `@angular/*`, `rxjs`        |
-| `src/engine/render` _(excl. phaser/)_ | `engine/core`                            | `phaser`, `@/engine/render/phaser/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs` |
-| `src/engine/render/phaser`            | Phaser 4, `engine/core`, `engine/render` | `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                                       |
-| `src/engine/tableau`                  | `engine/core`, `engine/render`           | `phaser`, `@/engine/render/phaser/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                       |
-| `src/games/*`                         | `engine/*`                               | `@/ui/*`, `@angular/*`, `rxjs`                                                                          |
-| `src/ui` _(excl. app/provider/)_      | everything but games                     | `@/games/*`                                                                                             |
+| Tier / Directory                      | Allowed Dependencies                             | Explicitly Restricted Imports (`@typescript-eslint/no-restricted-imports`)                                                  |
+| :------------------------------------ | :----------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------- |
+| `src/engine/core`                     | Standard TS primitives                           | `@/engine/board/*`, `@/engine/render/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `phaser`, `@angular/*`, `rxjs`        |
+| `src/engine/render` _(excl. phaser/)_ | `engine/core`                                    | `phaser`, `@/engine/board/*`, `@/engine/render/phaser/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs` |
+| `src/engine/render/phaser`            | Phaser 4, `engine/core`, `engine/render`         | `@/engine/board/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                                       |
+| `src/engine/tableau`                  | `engine/core`, `engine/render`                   | `phaser`, `@/engine/board/*`, `@/engine/render/phaser/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                       |
+| `src/engine/board`                    | every `engine/*` tier, Phaser 4                  | `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                                                                                 |
+| `src/games/*`                         | `engine/core`, `engine/render`, `engine/tableau` | `phaser`, `@/engine/render/phaser/*`, `@/engine/board/*`, `@/ui/*`, `@angular/*`, `rxjs`                                    |
+| `src/ui` _(excl. app/provider/)_      | everything but games                             | `@/games/*`                                                                                                                 |
 
 Note that the generic Phaser canvas host is `engine/render/phaser/phaser_host.ts`
 (`PhaserHost`). It is handed a board to run, so the shell never imports a game

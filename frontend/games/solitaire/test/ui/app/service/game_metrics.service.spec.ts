@@ -7,6 +7,7 @@ import {
   createMockGameModel,
   type MockGameModel,
   type MockGameModelOverrides,
+  snapshotWithMoves,
 } from "@test/support/ui/game_mock";
 import { asCatalog, createMockCatalog } from "@test/support/ui/catalog_mock";
 
@@ -46,7 +47,7 @@ describe("GameMetricsService", () => {
     it("reports the score the game publishes", () => {
       const { metrics, model } = buildMetrics();
 
-      model.state.score = 100;
+      model.state.update({ score: 100 });
 
       expect(metrics.score()).toBe(100);
     });
@@ -54,7 +55,7 @@ describe("GameMetricsService", () => {
     it("reports the moves the game publishes", () => {
       const { metrics, model } = buildMetrics();
 
-      model.state.moves = 12;
+      model.state.update({ moves: 12 });
 
       expect(metrics.moves()).toBe(12);
     });
@@ -73,7 +74,7 @@ describe("GameMetricsService", () => {
       catalog.deal(createMockGameModel({ score: 99 }));
       TestBed.flushEffects();
 
-      model.state.score = 555;
+      model.state.update({ score: 555 });
 
       expect(metrics.score()).toBe(99);
     });
@@ -91,7 +92,7 @@ describe("GameMetricsService", () => {
     it("starts once the first move is made", () => {
       const { metrics, model } = buildMetrics();
 
-      model.state.moves = 1;
+      model.state.update({ moves: 1 });
       TestBed.flushEffects();
       vi.advanceTimersByTime(5000);
 
@@ -100,7 +101,7 @@ describe("GameMetricsService", () => {
 
     it("freezes once the game is won", () => {
       const { metrics, model } = buildMetrics();
-      model.state.moves = 1;
+      model.state.update({ moves: 1 });
       TestBed.flushEffects();
       vi.advanceTimersByTime(1000);
 
@@ -113,7 +114,7 @@ describe("GameMetricsService", () => {
 
     it("clears when the game is dealt again", () => {
       const { metrics, model } = buildMetrics();
-      model.state.moves = 1;
+      model.state.update({ moves: 1 });
       TestBed.flushEffects();
       vi.advanceTimersByTime(3000);
 
@@ -125,7 +126,7 @@ describe("GameMetricsService", () => {
 
     it("clears and waits for a first move when another game replaces it", () => {
       const { metrics, model, catalog } = buildMetrics();
-      model.state.moves = 1;
+      model.state.update({ moves: 1 });
       TestBed.flushEffects();
       vi.advanceTimersByTime(3000);
 
@@ -140,7 +141,7 @@ describe("GameMetricsService", () => {
       const { metrics, model } = buildMetrics({ moves: 4 });
       vi.advanceTimersByTime(3000);
 
-      model.restore({ ...model.snapshot(), moves: 9 });
+      model.restore(snapshotWithMoves(9));
       TestBed.flushEffects();
       vi.advanceTimersByTime(2000);
 
@@ -208,7 +209,7 @@ describe("GameMetricsService", () => {
     it("can once the game has history", () => {
       const { metrics, model } = buildMetrics({ undoDepth: 0 });
 
-      model.state.undoDepth = 1;
+      model.state.update({ undoDepth: 1 });
 
       expect(metrics.canUndo()).toBe(true);
     });

@@ -1,5 +1,5 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { tableGestures } from "@/games/common/table_gestures";
+import { tableGestures } from "@/engine/tableau/table_gestures";
 import { LaBelleLucieGame } from "./la_belle_lucie_game";
 import { REDEAL_PILE_ID } from "./la_belle_lucie_zones";
 

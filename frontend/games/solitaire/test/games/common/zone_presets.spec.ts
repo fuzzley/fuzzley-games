@@ -3,6 +3,7 @@ import {
   CLOSED_STOCK_PLACEHOLDER,
   PIP_COUNTS,
   RECYCLING_STOCK_PLACEHOLDER,
+  recycleMarker,
   recyclePipsPlaceholder,
 } from "@/games/common/zone_presets";
 
@@ -61,5 +62,27 @@ describe("recyclePipsPlaceholder", () => {
     });
 
     expect([manifests.length, missing]).toEqual([6, []]);
+  });
+});
+
+describe("recycleMarker", () => {
+  it("shows the closed outline, and does nothing, once it is not usable", () => {
+    expect(recycleMarker({ usable: false, remaining: 1, allowed: 2 })).toEqual({
+      artwork: CLOSED_STOCK_PLACEHOLDER,
+      actionable: false,
+    });
+  });
+
+  it("shows a pip for each use left when the uses are counted", () => {
+    expect(recycleMarker({ usable: true, remaining: 1, allowed: 2 })).toEqual({
+      artwork: recyclePipsPlaceholder(1, 2),
+      actionable: true,
+    });
+  });
+
+  it("shows the recycle arrow when the uses are not counted", () => {
+    expect(
+      recycleMarker({ usable: true, remaining: Infinity, allowed: Infinity }),
+    ).toEqual({ artwork: RECYCLING_STOCK_PLACEHOLDER, actionable: true });
   });
 });

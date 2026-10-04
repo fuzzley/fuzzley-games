@@ -1,11 +1,12 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { itemAt } from "@/engine/core/common/item_at";
+import { Deal } from "@/engine/tableau/deal";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import {
   ALL_SUITS,
   PlayingCard,
   Rank,
   rankAbove,
 } from "@/engine/core/card/playing_card";
-import { pullCards } from "../common/pull_cards";
 import { CastleVariantRules } from "./castle_rules";
 
 /**
@@ -16,14 +17,13 @@ import { CastleVariantRules } from "./castle_rules";
  * Citadel sends a card the foundations would take straight there instead, and
  * the next card goes to that row.
  *
- * @param deck The cards to deal, which this drains.
  * @param foundations One per suit, in {@link ALL_SUITS} order.
  */
 export function dealCastleLayout(
   rules: CastleVariantRules,
-  deck: PlayingCard[],
-  foundations: readonly CardPile<PlayingCard>[],
-  rows: readonly CardPile<PlayingCard>[],
+  deal: Deal,
+  foundations: readonly ReadonlyCardPile<PlayingCard>[],
+  rows: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
   /** Returns the foundation of the card's suit, if it would take the card. */
   const homeFor = (card: PlayingCard) => {
@@ -36,23 +36,20 @@ export function dealCastleLayout(
   };
 
   if (rules.acesStartOnFoundations) {
-    for (const ace of pullCards(deck, (card) => card.rank === Rank.ACE)) {
-      ace.faceUp = true;
-      homeFor(ace)?.addCard(ace);
+    for (const ace of deal.pull((card) => card.rank === Rank.ACE)) {
+      const home = homeFor(ace);
+      if (home) deal.place(ace, home, true);
     }
   }
 
   let next = 0;
-  let card = deck.pop();
-  while (card) {
-    card.faceUp = true;
+  for (let card = deal.draw(); card; card = deal.draw()) {
     const home = rules.sendsHomeWhileDealing ? homeFor(card) : undefined;
     if (home) {
-      home.addCard(card);
+      deal.place(card, home, true);
     } else if (rows.length > 0) {
-      rows[next % rows.length]?.addCard(card);
+      deal.place(card, itemAt(rows, next % rows.length), true);
       next++;
     }
-    card = deck.pop();
   }
 }

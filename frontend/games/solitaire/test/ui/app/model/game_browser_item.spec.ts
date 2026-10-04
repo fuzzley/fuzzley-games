@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { browserItems, isPlayedBy } from "@/ui/app/model/game_browser_item";
 import { Difficulty } from "@/ui/app/model/game_profile.model";
-import { GAME_CATALOG } from "@/ui/app/provider/game_catalog";
+import { GAME_CATALOG, storedValue } from "@/ui/app/provider/game_catalog";
 import { GAME_PROFILE_REGISTRY } from "@/ui/app/provider/game_profile_data";
 import { KlondikeVariant } from "@/games/klondike/klondike_rules";
 
@@ -74,13 +74,13 @@ describe("browserItems", () => {
 
   it("pins the rules a variant fixes", () => {
     expect(named("Whitehead").pinned).toEqual({
-      variant: KlondikeVariant.WHITEHEAD,
+      variant: storedValue("klondike", "variant", KlondikeVariant.WHITEHEAD),
     });
   });
 
   it("pins a game with variants to its default rule", () => {
     expect(named("Klondike").pinned).toEqual({
-      variant: KlondikeVariant.KLONDIKE,
+      variant: storedValue("klondike", "variant", KlondikeVariant.KLONDIKE),
     });
   });
 
@@ -140,7 +140,7 @@ describe("isPlayedBy", () => {
     const whitehead = named("Whitehead");
 
     const played = isPlayedBy(whitehead, "klondike", {
-      variant: KlondikeVariant.WHITEHEAD,
+      variant: storedValue("klondike", "variant", KlondikeVariant.WHITEHEAD),
       drawCount: 1,
     });
 
@@ -149,7 +149,7 @@ describe("isPlayedBy", () => {
 
   it("is false for the game when one of its variants is on the table", () => {
     const played = isPlayedBy(named("Klondike"), "klondike", {
-      variant: KlondikeVariant.WHITEHEAD,
+      variant: storedValue("klondike", "variant", KlondikeVariant.WHITEHEAD),
     });
 
     expect(played).toBe(false);

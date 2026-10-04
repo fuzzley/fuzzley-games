@@ -1,12 +1,26 @@
 import { describe, it, expect } from "vitest";
-import { klondikePlacementRule } from "@/games/klondike/klondike_rules";
+import { DEFAULT_DRAW_COUNT } from "@/games/klondike/klondike_rules";
 import { CardPile } from "@/engine/core/card/card_pile";
-import { KlondikeRole } from "@/games/klondike/klondike_zones";
+import {
+  KlondikeRole,
+  klondikeZoneSpecs,
+} from "@/games/klondike/klondike_zones";
 import { PlayingCard, Suit, Rank } from "@/engine/core/card/playing_card";
-import { BoardQuery } from "@/engine/tableau/rules";
+import { BoardQuery, PlacementRule } from "@/engine/tableau/rules";
 import { makePlayingCard } from "@test/support/card_builder";
 
-describe("klondikePlacementRule", () => {
+/**
+ * Returns what a Klondike pile of a role accepts, read off the zones a game is
+ * built from, or null for a pile that is never a destination.
+ */
+function ruleFor(role: string): PlacementRule | null {
+  return (
+    klondikeZoneSpecs(DEFAULT_DRAW_COUNT).find((zone) => zone.role === role)
+      ?.accept ?? null
+  );
+}
+
+describe("what a Klondike pile accepts", () => {
   function pileWith(
     type: KlondikeRole,
     ...cards: PlayingCard[]
@@ -40,7 +54,7 @@ describe("klondikePlacementRule", () => {
       card,
       ...Array.from({ length: movingStackSize - 1 }, () => makePlayingCard()),
     ];
-    const rule = klondikePlacementRule(targetPile.role);
+    const rule = ruleFor(targetPile.role);
     if (!rule) return false;
     return rule({
       card,

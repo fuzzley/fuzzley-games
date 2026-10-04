@@ -14,7 +14,7 @@ import {
   ScorpionVariant,
   TABLEAU_COUNT,
 } from "@/games/scorpion/scorpion_zones";
-import { emptyBoard, relocate } from "@test/support/game_scenarios";
+import { emptyBoard, relocate, clearPile } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
 
 /** One suit of thirteen cards: a short deck, and one run from being won. */
@@ -319,7 +319,7 @@ describe("ScorpionGame", () => {
     });
 
     it("deals happily while a column is empty", () => {
-      game.tableaus[6].clear();
+      clearPile(game.tableaus[6]);
 
       expect(game.dealStock()).toBe(true);
     });

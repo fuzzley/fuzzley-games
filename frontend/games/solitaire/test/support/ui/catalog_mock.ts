@@ -13,8 +13,8 @@ const OPTIONS: readonly GameOptionSpec[] = [
     label: "Draw Mode",
     description: "Draw 1 is easier.",
     choices: [
-      { value: 1, label: "Draw 1" },
-      { value: 3, label: "Draw 3" },
+      { value: 1, rule: 1, label: "Draw 1" },
+      { value: 3, rule: 3, label: "Draw 3" },
     ],
     defaultValue: 3,
   },
@@ -22,8 +22,8 @@ const OPTIONS: readonly GameOptionSpec[] = [
     id: "almostWin",
     label: "Almost Win Mode",
     choices: [
-      { value: 0, label: "Normal" },
-      { value: 1, label: "Almost Win" },
+      { value: 0, rule: 0, label: "Normal" },
+      { value: 1, rule: 1, label: "Almost Win" },
     ],
     defaultValue: 0,
     debugOnly: true,

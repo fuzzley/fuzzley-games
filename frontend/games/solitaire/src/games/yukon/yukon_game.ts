@@ -1,9 +1,8 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { flipOnlyEffects } from "@/games/common/move_effects";
 import { DeckOptions } from "@/games/common/deck_options";
@@ -22,19 +21,19 @@ export interface YukonOptions extends DeckOptions {
  */
 export class YukonGame extends DealtTableGame {
   /** The four suit foundation piles. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The seven columns. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     variant = YukonVariant.YUKON,
   }: YukonOptions = {}) {
     super({
       zones: yukonZoneSpecs(variant),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // Foundations only: sending a stack to whichever column is declared
       // first is never what was meant.
       autoMoveRoles: [YukonRole.FOUNDATION],
@@ -46,8 +45,8 @@ export class YukonGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealYukonLayout(deck, this.tableaus);
+  protected override dealBoard(deal: Deal): void {
+    dealYukonLayout(deal, this.tableaus);
   }
 
   // --- What a Yukon move does beyond moving its cards ---

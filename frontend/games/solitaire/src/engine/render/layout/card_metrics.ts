@@ -44,22 +44,6 @@ export const LAYOUT_GAP_X = 30;
 export const LAYOUT_GAP_Y = 40;
 
 /**
- * The height of the header bar overlaying the board, in CSS pixels.
- *
- * Mirrors `--header-height` in `src/ui/app/styles/_tokens.scss`, which the
- * canvas cannot read.
- */
-export const HEADER_HEIGHT_PX = 73;
-
-/**
- * The height of the header on a screen no wider than
- * `COMPACT_MAX_WIDTH_CSS_PX`, in CSS pixels.
- *
- * Mirrors the compact `--header-height` in `src/ui/app/styles/_tokens.scss`.
- */
-export const HEADER_HEIGHT_COMPACT_PX = 60;
-
-/**
  * How far a card may still be from its slot while a highlight border stays on
  * it, in design units.
  *

@@ -13,6 +13,6 @@ export const KLONDIKE_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
   zones: klondikeZoneSpecs(DEFAULT_DRAW_COUNT),
-  // The grid alone needs 819; the rest is room for a column to fan into.
-  designHeightPx: 950,
+  // The grid alone needs 746; the rest is room for a column to fan into.
+  designHeightPx: 877,
 });

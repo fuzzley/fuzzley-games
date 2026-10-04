@@ -28,29 +28,24 @@ export const FortyThievesRole = {
 export type FortyThievesRole =
   (typeof FortyThievesRole)[keyof typeof FortyThievesRole];
 
-/**
- * Which of the Forty Thieves family is being played.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which of the Forty Thieves family is being played. */
 export const FortyThievesVariant = {
   /** The original: build down in suit, and move one card at a time. */
-  FORTY_THIEVES: 0,
+  FORTY_THIEVES: "forty-thieves",
   /** Josephine, also called Streets: the same build, but runs may be moved. */
-  JOSEPHINE: 1,
+  JOSEPHINE: "josephine",
   /** Rank and File: alternating colours, with three cards buried per column. */
-  RANK_AND_FILE: 2,
+  RANK_AND_FILE: "rank-and-file",
   /** Maria: nine columns of four, built down in alternating colours. */
-  MARIA: 3,
+  MARIA: "maria",
   /** Limited: twelve columns of three, built down in suit. */
-  LIMITED: 4,
+  LIMITED: "limited",
   /** Indian: columns of three, one buried, built down in any other suit. */
-  INDIAN: 5,
+  INDIAN: "indian",
   /** Number Ten: two of every four buried, alternating colours, runs move. */
-  NUMBER_TEN: 6,
+  NUMBER_TEN: "number-ten",
   /** Lucas: thirteen columns of three in suit, the Aces already home. */
-  LUCAS: 7,
+  LUCAS: "lucas",
 } as const;
 
 /** Names one of the games in the Forty Thieves family. */
@@ -202,21 +197,3 @@ export function fortyThievesAcesStartOnFoundations(
  * No foundation belongs to a suit: whichever Ace arrives first claims it.
  */
 export const FORTY_THIEVES_FOUNDATION_RULE: PlacementRule = suitFoundation;
-
-/**
- * Returns what a pile of a role accepts, or null for the stock and the waste,
- * which are never destinations.
- */
-export function fortyThievesPlacementRule(
-  role: string,
-  variant: FortyThievesVariant,
-): PlacementRule | null {
-  switch (role) {
-    case FortyThievesRole.TABLEAU:
-      return fortyThievesTableauRule(variant);
-    case FortyThievesRole.FOUNDATION:
-      return FORTY_THIEVES_FOUNDATION_RULE;
-    default:
-      return null;
-  }
-}

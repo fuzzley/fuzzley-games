@@ -13,7 +13,7 @@ export const GRANDFATHERS_CLOCK_LAYOUT = boardLayout({
   columns: BOARD_COLUMN_COUNT,
   rows: DIAL_ROWS,
   zones: grandfathersClockZoneSpecs(),
-  // The dial is the tallest thing on the board, ending about 1466 from its
+  // The dial is the tallest thing on the board, ending about 1393 from its
   // top; a column has room for twenty cards in that height.
-  designHeightPx: 1470,
+  designHeightPx: 1397,
 });

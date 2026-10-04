@@ -29,16 +29,3 @@ export const SPIDER_TABLEAU_RULE: PlacementRule = byEmptiness(
   anyCard,
   descendingAnySuit,
 );
-
-/**
- * Returns what a pile of a role accepts, or null for the stock and the
- * foundations, where a player never puts a card.
- */
-export function spiderPlacementRule(role: string): PlacementRule | null {
-  switch (role) {
-    case SpiderRole.TABLEAU:
-      return SPIDER_TABLEAU_RULE;
-    default:
-      return null;
-  }
-}

@@ -2,6 +2,15 @@
 type Listener<T> = (data: T) => void;
 
 /**
+ * Subscribes to a value or an event, returning a function that stops following
+ * it.
+ *
+ * The one subscription idiom across the engine: a plain callback rather than an
+ * observable, because the engine may not depend on RxJS.
+ */
+export type Subscribe<T> = (listener: (value: T) => void) => () => void;
+
+/**
  * Lets listeners subscribe to the typed events a subclass emits.
  *
  * @template EventMap Maps each event name to the type of its payload.

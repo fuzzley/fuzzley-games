@@ -5,49 +5,21 @@ import {
   GAME_CATALOG,
   GameId,
   GameOptionSpec,
-  GameOptionValues,
+  optionRule,
+  storedValue,
+  storedValues,
+  catalogEntry,
 } from "@/ui/app/provider/game_catalog";
+import { KlondikeVariant } from "@/games/klondike/klondike_rules";
 import type { PlayableGame } from "@/engine/tableau/playable_game";
 import { TableGame } from "@/engine/tableau/table_game";
 import { TestPresentation } from "@test/support/presentation";
+import { CATALOG_DEALS as DEALS } from "@test/support/ui/catalog_deals";
 
 vi.mock("phaser", async () => {
   const mocks = await import("@test/support/phaser_mocks");
   return mocks.boardScenePhaserMock();
 });
-
-/**
- * Returns every combination of the rules a game offers.
- *
- * A sweep, since a game is wired up twice, to be dealt and to be drawn, and a
- * rule can reach one and be forgotten in the other.
- */
-function ruleCombinations(
-  options: readonly GameOptionSpec[],
-): GameOptionValues[] {
-  return options.reduce<GameOptionValues[]>(
-    (combinations, option) =>
-      combinations.flatMap((values) =>
-        option.choices.map((choice) => ({
-          ...values,
-          [option.id]: choice.value,
-        })),
-      ),
-    [{}],
-  );
-}
-
-/** Pairs a game with one setting of its rules, named for failure messages. */
-type Deal = [name: string, entry: CatalogEntry, values: GameOptionValues];
-
-/** Every game paired with every setting of the rules it offers. */
-const DEALS: Deal[] = GAME_CATALOG.flatMap((entry) =>
-  ruleCombinations(entry.options).map((values): Deal => [
-    `${entry.name} ${JSON.stringify(values)}`,
-    entry,
-    values,
-  ]),
-);
 
 /** Every game, named for the failure message. */
 const GAMES: [name: string, entry: CatalogEntry][] = GAME_CATALOG.map(
@@ -165,7 +137,9 @@ describe("every game in the catalog", () => {
       const { game } = entry.create(values);
 
       expect(() =>
-        makeBoardScene(entry.id as GameId, game, new TestPresentation()),
+        makeBoardScene(entry.id as GameId, game, {
+          presentation: new TestPresentation(),
+        }),
       ).not.toThrow();
     },
   );
@@ -214,4 +188,52 @@ describe("every game in the catalog", () => {
       expect(copy.snapshot()).toEqual(original.snapshot());
     },
   );
+});
+
+describe("a rule's stored values", () => {
+  it.each(RULES)(
+    "%s stores each choice under a number of its own",
+    (_name, option) => {
+      const values = option.choices.map((choice) => choice.value);
+
+      expect(new Set(values).size).toBe(values.length);
+    },
+  );
+
+  it.each(RULES)(
+    "%s hands its game a different rule for each choice",
+    (_name, option) => {
+      const rules = option.choices.map((choice) => choice.rule);
+
+      expect(new Set(rules).size).toBe(rules.length);
+    },
+  );
+
+  it("keeps the numbers saved preferences already hold", () => {
+    // Stored before variants had names of their own; a preference saved then
+    // must still choose the same game.
+    expect(storedValue("klondike", "variant", KlondikeVariant.WHITEHEAD)).toBe(
+      1,
+    );
+  });
+
+  it("finds the stored values for rules given in the game's own terms", () => {
+    expect(
+      storedValues("klondike", { variant: KlondikeVariant.SARATOGA }),
+    ).toEqual({ variant: 3 });
+  });
+
+  it("refuses a rule the game does not offer", () => {
+    expect(() => storedValue("klondike", "variant", "spider")).toThrow(
+      /offers no "variant" of spider/,
+    );
+  });
+
+  it("hands the game its default rule for a stored value no choice has", () => {
+    const variant = catalogEntry("klondike").options.find(
+      (option) => option.id === "variant",
+    )!;
+
+    expect(optionRule({ variant: 99 }, variant)).toBe(KlondikeVariant.KLONDIKE);
+  });
 });

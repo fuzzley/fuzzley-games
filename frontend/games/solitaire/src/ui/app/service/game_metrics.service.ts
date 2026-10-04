@@ -66,13 +66,14 @@ export class GameMetricsService {
         this.timer.stop();
       };
       const gameResetHandler = () => this.reset();
-      game.on("game-won", gameWonHandler);
-      game.on("game-reset", gameResetHandler);
+      const stopFollowing = [
+        unsubscribe,
+        game.on("game-won", gameWonHandler),
+        game.on("game-reset", gameResetHandler),
+      ];
 
       onCleanup(() => {
-        unsubscribe();
-        game.off("game-won", gameWonHandler);
-        game.off("game-reset", gameResetHandler);
+        for (const stop of stopFollowing) stop();
       });
     });
 

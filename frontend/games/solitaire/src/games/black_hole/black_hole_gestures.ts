@@ -1,5 +1,5 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { playOnPress, tableGestures } from "@/games/common/table_gestures";
+import { playOnPress, tableGestures } from "@/engine/tableau/table_gestures";
 import { BlackHoleGame } from "./black_hole_game";
 import { BlackHoleRole } from "./black_hole_zones";
 

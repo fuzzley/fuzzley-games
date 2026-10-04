@@ -13,6 +13,6 @@ export const FLOWER_GARDEN_LAYOUT = boardLayout({
   rows: 2,
   zones: flowerGardenZoneSpecs(),
   // Beds take the whole bouquet between them, so one can grow well past its
-  // six cards; a fifteen-card bed ends about 1450 from the top of the board.
-  designHeightPx: 1450,
+  // six cards; a fifteen-card bed ends about 1377 from the top of the board.
+  designHeightPx: 1377,
 });

@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { relocate, clearPile } from "@test/support/game_scenarios";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import {
   CELL_COUNT,
@@ -11,21 +12,8 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
 /** Empties the whole board so a test can build an exact position. */
 function clearBoard(game: FreeCellGame): void {
   for (const pile of game.piles) {
-    pile.clear();
+    clearPile(pile);
   }
-}
-
-/** Moves a card out of wherever it is and onto `pile`. */
-function place(
-  game: FreeCellGame,
-  cardId: string,
-  pile: { addCard(card: PlayingCard): void },
-): PlayingCard {
-  const card = game.getCardById(cardId)!;
-  game.getPileContainingCard(cardId)?.removeCard(card);
-  card.faceUp = true;
-  pile.addCard(card);
-  return card;
 }
 
 describe("FreeCellGame", () => {
@@ -93,30 +81,30 @@ describe("FreeCellGame", () => {
   describe("free cells", () => {
     it("accepts any card into an empty cell", () => {
       clearBoard(game);
-      const card = place(game, "card-hearts-7", game.tableaus[0]);
+      const card = relocate(game, "card-hearts-7", game.tableaus[0]);
 
       expect(game.moveCardToPile(card.id, game.cells[0].id)).toBe(true);
     });
 
     it("refuses a second card, because a cell holds exactly one", () => {
       clearBoard(game);
-      place(game, "card-hearts-7", game.cells[0]);
-      const other = place(game, "card-spades-3", game.tableaus[0]);
+      relocate(game, "card-hearts-7", game.cells[0]);
+      const other = relocate(game, "card-spades-3", game.tableaus[0]);
 
       expect(game.moveCardToPile(other.id, game.cells[0].id)).toBe(false);
     });
 
     it("refuses a stack of two even into an empty cell", () => {
       clearBoard(game);
-      const king = place(game, "card-spades-king", game.tableaus[0]);
-      place(game, "card-hearts-queen", game.tableaus[0]);
+      const king = relocate(game, "card-spades-king", game.tableaus[0]);
+      relocate(game, "card-hearts-queen", game.tableaus[0]);
 
       expect(game.moveCardToPile(king.id, game.cells[0].id)).toBe(false);
     });
 
     it("gives the card back once it leaves", () => {
       clearBoard(game);
-      const card = place(game, "card-hearts-7", game.cells[0]);
+      const card = relocate(game, "card-hearts-7", game.cells[0]);
 
       game.moveCardToPile(card.id, game.tableaus[0].id);
 
@@ -127,23 +115,23 @@ describe("FreeCellGame", () => {
   describe("columns", () => {
     it("accepts any card onto an empty column, unlike Klondike", () => {
       clearBoard(game);
-      const two = place(game, "card-spades-2", game.cells[0]);
+      const two = relocate(game, "card-spades-2", game.cells[0]);
 
       expect(game.moveCardToPile(two.id, game.tableaus[0].id)).toBe(true);
     });
 
     it("builds down in alternating colors", () => {
       clearBoard(game);
-      place(game, "card-spades-8", game.tableaus[0]);
-      const redSeven = place(game, "card-hearts-7", game.tableaus[1]);
+      relocate(game, "card-spades-8", game.tableaus[0]);
+      const redSeven = relocate(game, "card-hearts-7", game.tableaus[1]);
 
       expect(game.moveCardToPile(redSeven.id, game.tableaus[0].id)).toBe(true);
     });
 
     it("refuses a same-color card", () => {
       clearBoard(game);
-      place(game, "card-spades-8", game.tableaus[0]);
-      const blackSeven = place(game, "card-clubs-7", game.tableaus[1]);
+      relocate(game, "card-spades-8", game.tableaus[0]);
+      const blackSeven = relocate(game, "card-clubs-7", game.tableaus[1]);
 
       expect(game.moveCardToPile(blackSeven.id, game.tableaus[0].id)).toBe(
         false,
@@ -154,28 +142,28 @@ describe("FreeCellGame", () => {
   describe("lifting a run", () => {
     it("lifts a properly ordered run", () => {
       clearBoard(game);
-      const eight = place(game, "card-spades-8", game.tableaus[0]);
-      place(game, "card-hearts-7", game.tableaus[0]);
-      place(game, "card-clubs-6", game.tableaus[0]);
-      place(game, "card-diamonds-9", game.tableaus[1]);
+      const eight = relocate(game, "card-spades-8", game.tableaus[0]);
+      relocate(game, "card-hearts-7", game.tableaus[0]);
+      relocate(game, "card-clubs-6", game.tableaus[0]);
+      relocate(game, "card-diamonds-9", game.tableaus[1]);
 
       expect(game.moveCardToPile(eight.id, game.tableaus[1].id)).toBe(true);
     });
 
     it("refuses a card buried under a broken run", () => {
       clearBoard(game);
-      const eight = place(game, "card-spades-8", game.tableaus[0]);
+      const eight = relocate(game, "card-spades-8", game.tableaus[0]);
       // A two on an eight is not a run, so the eight cannot be lifted at all.
-      place(game, "card-hearts-2", game.tableaus[0]);
-      place(game, "card-diamonds-9", game.tableaus[1]);
+      relocate(game, "card-hearts-2", game.tableaus[0]);
+      relocate(game, "card-diamonds-9", game.tableaus[1]);
 
       expect(game.moveCardToPile(eight.id, game.tableaus[1].id)).toBe(false);
     });
 
     it("still lifts the top card of a broken column", () => {
       clearBoard(game);
-      place(game, "card-spades-8", game.tableaus[0]);
-      const two = place(game, "card-hearts-2", game.tableaus[0]);
+      relocate(game, "card-spades-8", game.tableaus[0]);
+      const two = relocate(game, "card-hearts-2", game.tableaus[0]);
 
       expect(game.moveCardToPile(two.id, game.cells[0].id)).toBe(true);
     });
@@ -209,21 +197,21 @@ describe("FreeCellGame", () => {
       let next = 0;
       game.tableaus.forEach((tableau, index) => {
         if (keepEmpty.has(index) || !tableau.isEmpty) return;
-        place(game, filler[next++], tableau);
+        relocate(game, filler[next++], tableau);
       });
       game.cells.forEach((cell, index) => {
         if (index < freeCells || !cell.isEmpty) return;
-        place(game, filler[next++], cell);
+        relocate(game, filler[next++], cell);
       });
     }
 
     /** Builds a three-card run on column 0 with a nine waiting on column 1. */
     function runOfThree(): PlayingCard {
       clearBoard(game);
-      const eight = place(game, "card-spades-8", game.tableaus[0]);
-      place(game, "card-hearts-7", game.tableaus[0]);
-      place(game, "card-clubs-6", game.tableaus[0]);
-      place(game, "card-diamonds-9", game.tableaus[1]);
+      const eight = relocate(game, "card-spades-8", game.tableaus[0]);
+      relocate(game, "card-hearts-7", game.tableaus[0]);
+      relocate(game, "card-clubs-6", game.tableaus[0]);
+      relocate(game, "card-diamonds-9", game.tableaus[1]);
       return eight;
     }
 
@@ -243,9 +231,9 @@ describe("FreeCellGame", () => {
 
     it("allows a run of two with one cell free", () => {
       clearBoard(game);
-      const seven = place(game, "card-hearts-7", game.tableaus[0]);
-      place(game, "card-clubs-6", game.tableaus[0]);
-      place(game, "card-spades-8", game.tableaus[1]);
+      const seven = relocate(game, "card-hearts-7", game.tableaus[0]);
+      relocate(game, "card-clubs-6", game.tableaus[0]);
+      relocate(game, "card-spades-8", game.tableaus[1]);
       block({ freeCells: 1 });
 
       expect(game.canMoveCardToPile(seven.id, game.tableaus[1].id)).toBe(true);
@@ -261,9 +249,9 @@ describe("FreeCellGame", () => {
 
     it("allows a run of two using one empty column and no free cells", () => {
       clearBoard(game);
-      const seven = place(game, "card-hearts-7", game.tableaus[0]);
-      place(game, "card-clubs-6", game.tableaus[0]);
-      place(game, "card-spades-8", game.tableaus[1]);
+      const seven = relocate(game, "card-hearts-7", game.tableaus[0]);
+      relocate(game, "card-clubs-6", game.tableaus[0]);
+      relocate(game, "card-spades-8", game.tableaus[1]);
       block({ freeCells: 0, keepColumnsEmpty: [2] });
 
       expect(game.canMoveCardToPile(seven.id, game.tableaus[1].id)).toBe(true);
@@ -271,8 +259,8 @@ describe("FreeCellGame", () => {
 
     it("does not let an empty destination column count towards its own capacity", () => {
       clearBoard(game);
-      const seven = place(game, "card-hearts-7", game.tableaus[0]);
-      place(game, "card-clubs-6", game.tableaus[0]);
+      const seven = relocate(game, "card-hearts-7", game.tableaus[0]);
+      relocate(game, "card-clubs-6", game.tableaus[0]);
       // Moving into column 1, which is the only empty one. Naively
       // (0+1) x 2^1 = 2 would allow the pair; the destination cannot stage part
       // of the run it is receiving, so the real limit is one.
@@ -285,7 +273,7 @@ describe("FreeCellGame", () => {
   describe("moves and undo", () => {
     it("counts a move", () => {
       clearBoard(game);
-      const card = place(game, "card-hearts-7", game.tableaus[0]);
+      const card = relocate(game, "card-hearts-7", game.tableaus[0]);
 
       game.moveCardToPile(card.id, game.cells[0].id);
 
@@ -294,7 +282,7 @@ describe("FreeCellGame", () => {
 
     it("keeps the score at zero, because FreeCell does not score", () => {
       clearBoard(game);
-      const ace = place(game, "card-spades-ace", game.tableaus[0]);
+      const ace = relocate(game, "card-spades-ace", game.tableaus[0]);
 
       game.moveCardToPile(ace.id, game.foundations[0].id);
 
@@ -303,7 +291,7 @@ describe("FreeCellGame", () => {
 
     it("takes a move back", () => {
       clearBoard(game);
-      const card = place(game, "card-hearts-7", game.tableaus[0]);
+      const card = relocate(game, "card-hearts-7", game.tableaus[0]);
       game.moveCardToPile(card.id, game.cells[0].id);
 
       game.undo();
@@ -313,9 +301,9 @@ describe("FreeCellGame", () => {
 
     it("takes back a whole run together", () => {
       clearBoard(game);
-      const eight = place(game, "card-spades-8", game.tableaus[0]);
-      const seven = place(game, "card-hearts-7", game.tableaus[0]);
-      place(game, "card-diamonds-9", game.tableaus[1]);
+      const eight = relocate(game, "card-spades-8", game.tableaus[0]);
+      const seven = relocate(game, "card-hearts-7", game.tableaus[0]);
+      relocate(game, "card-diamonds-9", game.tableaus[1]);
       game.moveCardToPile(eight.id, game.tableaus[1].id);
 
       game.undo();
@@ -327,7 +315,7 @@ describe("FreeCellGame", () => {
   describe("auto-move", () => {
     it("prefers a foundation", () => {
       clearBoard(game);
-      const ace = place(game, "card-spades-ace", game.tableaus[0]);
+      const ace = relocate(game, "card-spades-ace", game.tableaus[0]);
 
       game.autoMoveCard(ace.id);
 
@@ -340,7 +328,7 @@ describe("FreeCellGame", () => {
       clearBoard(game);
       // A two with no Ace on a foundation to build on, and every column both
       // occupied and unable to accept it.
-      const two = place(game, "card-hearts-2", game.tableaus[0]);
+      const two = relocate(game, "card-hearts-2", game.tableaus[0]);
       const blockers = [
         "card-hearts-4",
         "card-hearts-5",
@@ -351,7 +339,7 @@ describe("FreeCellGame", () => {
         "card-hearts-10",
       ];
       game.tableaus.slice(1).forEach((tableau, index) => {
-        place(game, blockers[index], tableau);
+        relocate(game, blockers[index], tableau);
       });
 
       game.autoMoveCard(two.id);
@@ -382,7 +370,7 @@ describe("FreeCellGame", () => {
         won = true;
       });
       clearBoard(game);
-      const ace = place(game, "card-spades-ace", game.tableaus[0]);
+      const ace = relocate(game, "card-spades-ace", game.tableaus[0]);
 
       game.moveCardToPile(ace.id, game.foundations[0].id);
 

@@ -51,11 +51,16 @@ These are three independent decisions, and it is worth keeping them apart:
 
 No new directory, no new board. Add a member to the game's variant union in
 `<game>_rules.ts`, add its row to that file's variant table, and add a choice to
-the `GameOptionSpec` in `src/ui/app/provider/game_catalog.ts`. Use the variant
-enum members themselves as the option's `value`s, and type the spec as
-`GameOptionSpec<MyVariant>` — as `YUKON_VARIANT` and `SPIDERETTE_VARIANT` do —
-so `optionValue` hands back the variant without a cast, and the choices offered
-and the games selected cannot drift apart. A variant option has the id
+the option in `src/ui/app/provider/game_catalog.ts`. Each choice carries two
+things: its `rule`, the variant member the game is handed, and its `value`, the
+number the settings panel stores. Give a new choice the next unused `value` and
+never renumber an old one, or a saved preference picks a different game. Build
+the option with `gameOption<MyVariant>({ …, defaultRule })` — as `YUKON_VARIANT`
+and `SPIDERETTE_VARIANT` do — so `optionRule` hands back the variant without a
+cast and the default cannot name a choice that is not offered. Data written in
+the game's own terms, such as a profile's `values`, converts through
+`storedValue` or `storedValues` rather than spelling out a number. A variant
+option has the id
 `variant` and `control: "list"`, which offers one choice to a row, and every
 choice carries a one-line `description` of what sets it apart; the catalog spec
 fails a variant option without them. Then document the new choice under
@@ -72,10 +77,14 @@ does, stays a rule: rate it with a `DifficultyByRule` instead.
 
 ## 2. `<game>_rules.ts` — roles and what each pile accepts
 
-Two things: a `Role` const object naming the parts a pile can play, and a
-function mapping a role to a `PlacementRule` (or `null` for a pile that is never
-a destination — which is a different statement from "always refuses", and stops a
-drag offering the stock as a target).
+Two things: a `Role` const object naming the parts a pile can play, and the
+`PlacementRule` each destination pile plays by, as named constants or functions
+of the variant (`KLONDIKE_FOUNDATION_RULE`, `klondikeTableauRule(variant)`).
+The zones in step 3 name them directly. A pile that is never a destination
+gets `accept: null` there, which is a different statement from "always
+refuses", and stops a drag offering the stock as a target. Do not write a
+function mapping a role back to its rule: the zone already knows which rule it
+wants.
 
 Compose the rule from the vocabulary in `src/engine/tableau/rules.ts` rather than
 writing predicates by hand:
@@ -102,19 +111,28 @@ A rule that needs to see the rest of the board gets `context.board`
 (`BoardQuery`: `pile`, `pilesByRole`, `emptyCount`) — that is what FreeCell's
 `supermoveLimit` counts empty cells and columns with.
 
-**If the game has variants, put them in one table.** `freecell_rules.ts` and
-`forty_thieves_rules.ts` pair each variant's build rule with its grab adjacency
-in a single `Record`, deliberately: a run that can be lifted under one and not
-landed under the other is a bug that only appears mid-drag, and the pairing is
-what a reader has to be able to check at a glance.
+**Derive a column's build and lift from one adjacency.** When the runs a
+player may lift are the runs they may build, use `runColumn({ adjacent,
+whenEmpty, maxStack })` from `src/engine/tableau/zone.ts`, which returns the
+`accept` and `grab` together, and spread it into `columnRow` (Eight Off,
+Seahaven, Easthaven, Penguin, Canfield, FreeCell). A run that can be lifted
+under one rule and not landed under the other is a bug that only appears
+mid-drag. Spider, Spiderette and Simple Simon build on any suit but lift only
+same-suit runs, deliberately, so they name the two apart.
+
+**If the game has variants, put them in one table.** `freecell_rules.ts` keeps
+each variant's `runColumn` options in a single `Record`, and
+`forty_thieves_rules.ts` and `klondike_rules.ts` pair each build rule with its
+grab rule there, so a reader can check them at a glance.
 
 ---
 
 ## 3. `<game>_zones.ts` — the board as data
 
-A `ZoneSpec` per pile (`src/engine/tableau/zone.ts`): its id, role, grid slot,
-`layout`, `accept`, `grab`, `draggable`, `face`, and optionally `capacity`,
-`backgroundKey`, `emptyIsActionable`. This replaces switching on a pile's role
+A `ZoneSpec` per pile (`src/engine/tableau/zone.ts`): how it plays, its
+`ZoneRules` (id, role, `accept`, `grab`, `draggable`, optionally `capacity`),
+and how it looks, its `ZoneLook` (`src/engine/tableau/view/zone_look.ts`: grid
+slot, `layout`, `face`, optionally `backgroundKey`, `emptyIsActionable`). This replaces switching on a pile's role
 anywhere else.
 
 Build the rows from `src/games/common/zone_presets.ts` — `foundationRow`,
@@ -150,23 +168,31 @@ skeleton places fractional slots too.
 
 ## 4. `<game>_deal.ts` — the opening position
 
-A plain function taking the deck and the piles, draining the deck. Reuse first:
+A plain function taking the `Deal` (`src/engine/tableau/deal.ts`) and the
+piles. The deal hands out the shuffled deck, last card first, and places cards
+through the tabletop: `dealTo(pile, faceUp)` deals the next card,
+`dealEach(piles, faceUp)` one to each pile, `dealRest(pile, faceUp)` all
+that is left, `pull(predicate)` and `pullFirst(predicate)` take out cards the
+deal places before the rest (Aces that start on the foundations), and
+`place(card, pile, faceUp)` puts a card you drew or pulled. `peek`,
+`putBack`, `putUnder` and `drawAll` cover the odd deal (Penguin's beak,
+FreeCell's buried Aces, Nestor's rank rule, La Belle Lucie's fans). Never call
+a pile's `addCard`. Reuse first:
 
-- `dealColumnsThenCells(deck, tableaus, cells, cardsPerColumn)` —
+- `dealColumnsThenCells(deal, tableaus, cells, cardsPerColumn)` —
   `src/games/common/row_deal.ts`, the opening of every all-face-up cell game.
-- `dealRowFromStock(stock, columns)` — same file, for a Spider-style stock that
+- `dealRowFromStock(tabletop, stock, columns)` — same file, for a Spider-style
+  stock that
   pushes a card onto every column and returns one transfer per card.
-- `dealRowCollectingRuns(stock, dealTo, columns, foundations)` — same file, for
+- `dealRowCollectingRuns(tabletop, stock, dealTo, columns, foundations)` —
+  same file, for
   a stock deal that can finish a run: it deals, sends every completed run to a
   foundation, and returns the transfers and flipped cards to commit together.
-- `pullCards(deck, predicate)` and `pullFirstCard(deck, predicate)` —
-  `src/games/common/pull_cards.ts`, for cards the deal places before the rest,
-  such as Aces that start on the foundations.
 - `sinkKings(column)` — `src/games/common/sink_kings.ts`, for a game whose
   columns never take a King (Baker's Dozen, Bristol).
 
-Set `card.faceUp` explicitly for every card you place. Dealing puts cards into
-piles directly and so **bypasses the placement rules entirely** — a cell's
+Say which side every card shows as you place it. Dealing puts cards into piles
+directly and so **bypasses the placement rules entirely** — a cell's
 `capacity: 1` is declared on its zone and enforced on moves, but the deal has to
 honour it itself.
 
@@ -181,23 +207,28 @@ replays the same game.
 ```ts
 super({
   zones: myGameZoneSpecs(variant),
-  deck: new DeckSource(new CardRegistry(), cardIds, random, /* faceUp */ true),
+  deck: { cardIds, random, dealsFaceUp: true },
   autoMoveRoles: [MyRole.FOUNDATION, MyRole.TABLEAU, MyRole.CELL],
   winsWhenAllCardsIn: MyRole.FOUNDATION,
 });
 ```
 
 Then grab your piles with `this.pilesOfRole(role)` / `this.requirePile(id)`.
+They come back as `ReadonlyCardPile`s (`src/engine/core/card/card_pile.ts`),
+which is also how the game hands them to anyone else: a game changes a pile
+only through `this.tabletop` or, while dealing, the `Deal`.
 
 Constructor shape, followed by every game: one options object extending
 `DeckOptions` (`src/games/common/deck_options.ts`), destructured with its
-defaults — `constructor({ cardIds = ALL_PLAYING_CARD_IDS, random = Math.random,
+defaults — `constructor({ cardIds = ALL_PLAYING_CARD_IDS, random,
 variant = DEFAULT_MY_VARIANT }: MyGameOptions = {})`. `cardIds` and `random` are
-there so a test can supply a short deck and a fixed shuffle. A variant is an
+there so a test can supply a short deck and a fixed shuffle; `DealtTableGame`
+builds the deck from them, shuffling with `Math.random` when `random` is left
+out. A variant is an
 option rather than a field set later because the zones are built from it during
 `super`.
 
-The only required override is `dealBoard(deck)`. Optionally:
+The only required override is `dealBoard(deal)`. Optionally:
 
 - `applyMoveEffects(move)` — what a move does beyond relocating cards. Two shapes
   are already written in `src/games/common/move_effects.ts`: `flipOnlyEffects`
@@ -205,20 +236,36 @@ The only required override is `dealBoard(deck)`. Optionally:
   Spiderette, Scorpion). The Klondike family scores its flip, so
   `KlondikeFamilyGame` (`src/games/klondike/klondike_family_game.ts`) calls
   `flipExposedTopOfColumn` directly. A game played with Klondike's stock and
-  scoring extends that class and writes only `dealLayout`, as Double Klondike
+  scoring extends that class and writes only `dealBoard`, as Double Klondike
   does. A pairing game (Nestor, Monte Carlo, Pyramid) takes `pairsWithTop`,
   `sameRank` or `totalsThirteen` and `discardPairEffects` from
   `src/games/common/pair_removal.ts`: the partner's pile takes the card, then
   the effect sends both to the discard. Such a pile must have no `capacity`,
   which is checked before the accept rule.
-- A stock action. `drawToWaste(stock, waste, count)` and
-  `recycleWasteToStock(waste, stock)` from `src/games/common/stock_pile.ts` move
+- A stock action. `drawToWaste(tabletop, stock, waste, count)` and
+  `recycleWasteToStock(tabletop, waste, stock)` from
+  `src/games/common/stock_pile.ts` move
   the cards and return transfers. The game commits them with
   `commitAction(kind, transfers, options)`, because whether a recycle costs
   points is the game's business, not the stock's.
+  Name the action with `ActionKind` from `src/games/common/action_kinds.ts`.
+  A game that limits an action, such as Klondike's recycles or Montana's
+  redeals, reads `timesApplied(kind)` rather than keeping a count of its own:
+  the count comes from the history, so undo, restart and restore keep it right
+  with nothing to save or take back.
 - `isWon()` — only for a game won by the order of its cards rather than by
   gathering them into one role. Montana overrides it and leaves
   `winsWhenAllCardsIn` unset.
+
+**Every recorded change of pile goes through `this.tabletop`**
+(`src/engine/tableau/tabletop.ts`). `relocate(cards, to, { faceUp })` moves
+cards from the one pile holding them and returns the `CardTransfer` that undo
+needs; `rearrange(layout)` lays out several piles at once, as a redeal does
+(La Belle Lucie, Montana, Monte Carlo), and returns transfers that restore them
+all. Never build a `CardTransfer` by hand or call a pile's `addCard` or
+`removeCard` in an action: the transfer would be a second description of the
+change, free to disagree with it. The shared helpers above take the tabletop
+as their first argument for the same reason.
 
 **Everything you do not write:** the piles and where every card is, move
 legality, `moveCardToPile` / `autoMoveCard`, undo and the move history, the win
@@ -230,9 +277,14 @@ Two things to get right when the game acts outside the normal move path:
    a move goes in that move's `followUpTransfers` / `flippedCardIds`, so one undo
    takes the whole thing back. Commit a dealt row and the runs it completed with
    a single `commitAction` call, which `dealRowCollectingRuns` sets up.
-2. **Commit through `commitAction`, and nothing else.** It counts the move,
-   makes it undoable and checks for a win, as `moveCardToPile` does. Never
-   change `state.moves` by hand: undo takes back one move per committed action.
+2. **Commit through `commitAction`, and nothing else.** It records the action,
+   which is what counts it as a move, makes it undoable, applies the
+   `scoreDelta` you pass and checks for a win, as `moveCardToPile` does. A
+   game never writes its metrics: `state` is read-only, the move count is the
+   length of the history, and the score changes only by the deltas a game
+   reports, from `applyMoveEffects` or `commitAction`. A game whose deal
+   starts at a score other than zero overrides `initialScore()`, as Vegas
+   Klondike does.
 
 ---
 
@@ -243,15 +295,17 @@ export const MY_GAME_LAYOUT = boardLayout({
   columns: TABLEAU_COUNT,
   rows: 2,
   zones: myGameZoneSpecs(),
-  designHeightPx: 1120,
+  designHeightPx: 1047,
 });
 ```
 
 `boardLayout` (`src/games/common/board_layout.ts`) reads the slots off the zones,
 so a pile cannot be declared in one place and positioned in another. The only
 judgement is `designHeightPx`: the grid's own height is not enough, because a
-column fans well below its row. Klondike authors 950, FreeCell 1120 for columns
-that can reach thirteen cards at 45px apart.
+column fans well below its row. Klondike authors 877, FreeCell 1047 for columns
+that can reach thirteen cards at 45px apart. It is the board's own height: the
+shell's header lies over the canvas above it, and the board reads how far down
+it reaches from `--board-inset-top` at run time rather than reserving it.
 
 The catalog entry carries this layout (step 8), and both the loading skeleton
 and the board are drawn on it. Every rule option of one entry must therefore
@@ -263,7 +317,7 @@ every game.
 ## 7. `<game>_gestures.ts` — only if a press means something
 
 A game with no stock does not need this file at all: map it to
-`stocklessGestures` from `src/games/common/table_gestures.ts` in step 8, as
+`stocklessGestures` from `src/engine/tableau/table_gestures.ts` in step 8, as
 FreeCell does.
 
 Otherwise call `tableGestures(game, options)` with:
@@ -278,14 +332,16 @@ Otherwise call `tableGestures(game, options)` with:
   redeal. Pair it with `emptyIsActionable` on the zone, which is what gives the
   slot a pointer cursor and a hover border.
 
-  If the slot can run out of things to do, override `isEmptySlotActionable`
-  and `pileBackgroundKey` on the game, as `KlondikeFamilyGame` and
-  `MontanaGame` do. The view asks both every frame, so the slot drops its
-  pointer and shows `CLOSED_STOCK_PLACEHOLDER` the moment a press would do
-  nothing. Montana and Vegas-scored Klondike also use `pileBackgroundKey` to
-  show the redeals or recycles left as pips, naming the artwork with
-  `recyclePipsPlaceholder` from `src/games/common/zone_presets.ts`. Pip
-  artwork exists only for the counts in its `PIP_COUNTS`.
+  If the slot can run out of things to do, mark it in the game's constructor
+  with `markPile(pile, marker)`, as `KlondikeFamilyGame` and `MontanaGame` do.
+  The view asks the marker every frame for the artwork and whether the empty
+  slot is pressable, so the slot drops its pointer and shows
+  `CLOSED_STOCK_PLACEHOLDER` the moment a press would do nothing. Build the
+  marker with `recycleMarker({ usable, remaining, allowed })` from
+  `src/games/common/zone_presets.ts`, which also shows the recycles or redeals
+  left as pips when they are counted. Pip artwork exists only for the counts
+  in its `PIP_COUNTS`. Do not override `pileBackgroundKey` or
+  `isEmptySlotActionable`.
 
 - `autoMoveFrom` — which roles answer a double press. Omit it entirely for a
   stockless game: everything on the board is in play.
@@ -303,7 +359,7 @@ CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
 2. **`src/ui/app/provider/board_catalog.ts`** — map the id to its gestures in
    `GESTURES`. The mapped type means a missing or mismatched entry is a compile
    error, not a runtime throw. There is no per-game board file:
-   `makeTableBoardScene` (`src/games/common/board_scene_factory.ts`) draws every
+   `makeTableBoardScene` (`src/engine/board/table_board_scene.ts`) draws every
    game from its gestures and its entry's `layout`, and `PhaserHost`
    (`src/engine/render/phaser/phaser_host.ts`) swaps in whatever board it is
    handed, so the shell never imports a game in order to host one.
@@ -406,7 +462,8 @@ Reading it as a decision, when you are unsure where a new piece belongs:
 - **Dealing past a capacity** — deals bypass placement rules.
 - **A consequence recorded as its own action** — undo then takes it back in two
   presses instead of one.
-- **A transfer recorded in the wrong order** — a transfer records where cards
-  came _from_, so `drawToWaste` reverses the drawn cards before recording; that
-  is what lets undo re-append them and get the original pile back.
+- **A transfer written by hand** — undo re-appends a transfer's cards in the
+  order they sat in the pile they came from, which is easy to get backwards
+  when cards land turned over, as a draw's do. `tabletop.relocate` records
+  that order itself, whatever order the cards land in; use it.
 - **`designHeightPx` left at the grid height** — long columns fall off the board.

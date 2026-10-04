@@ -1,9 +1,8 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { DeckOptions } from "@/games/common/deck_options";
 import { dealRowFromStock } from "@/games/common/row_deal";
 import { dealAcesUpLayout } from "./aces_up_deal";
@@ -14,6 +13,7 @@ import {
   STOCK_PILE_ID,
   acesUpZoneSpecs,
 } from "./aces_up_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /** Configures an Aces Up game. */
 export interface AcesUpOptions extends DeckOptions {
@@ -27,21 +27,21 @@ export interface AcesUpOptions extends DeckOptions {
  */
 export class AcesUpGame extends DealtTableGame {
   /** The face-down cards still to deal. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The four columns. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
   /** Where beaten cards go. */
-  public readonly discard: CardPile<PlayingCard>;
+  public readonly discard: ReadonlyCardPile<PlayingCard>;
 
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     spaces = DEFAULT_ACES_UP_SPACES,
   }: AcesUpOptions = {}) {
     super({
       zones: acesUpZoneSpecs(spaces),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // The discard first; a card it will not take can only go to a space.
       autoMoveRoles: [AcesUpRole.DISCARD, AcesUpRole.TABLEAU],
       // Deliberately absent: the Aces stay behind, so the game is won by what
@@ -54,8 +54,8 @@ export class AcesUpGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealAcesUpLayout(deck, this.tableaus, this.stock);
+  protected override dealBoard(deal: Deal): void {
+    dealAcesUpLayout(deal, this.tableaus, this.stock);
   }
 
   /** Whether the stock has cards left to deal. */
@@ -69,7 +69,10 @@ export class AcesUpGame extends DealtTableGame {
       return false;
     }
 
-    this.commitAction("deal", dealRowFromStock(this.stock, this.tableaus));
+    this.commitAction(
+      ActionKind.DEAL,
+      dealRowFromStock(this.tabletop, this.stock, this.tableaus),
+    );
     return true;
   }
 

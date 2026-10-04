@@ -3,7 +3,11 @@ import { IntentHandler } from "@/engine/render/input/table_intents";
 import { FortyThievesGame } from "@/games/forty_thieves/forty_thieves_game";
 import { fortyThievesGestures } from "@/games/forty_thieves/forty_thieves_gestures";
 import { FortyThievesVariant } from "@/games/forty_thieves/forty_thieves_rules";
-import { emptyBoard, relocate } from "@test/support/game_scenarios";
+import {
+  emptyBoard,
+  relocate,
+  takeOffBoard,
+} from "@test/support/game_scenarios";
 
 describe("fortyThievesGestures", () => {
   let game: FortyThievesGame;
@@ -42,7 +46,7 @@ describe("fortyThievesGestures", () => {
 
     it("throws for a card that is in no pile, which should never happen", () => {
       const card = game.tableaus[0].topCard!;
-      game.tableaus[0].removeCard(card);
+      takeOffBoard(game, card.id);
 
       expect(() => handle({ kind: "activate", cardId: card.id })).toThrow(
         "is not in a pile",

@@ -18,5 +18,5 @@ export const FREECELL_LAYOUT = boardLayout({
   zones: freeCellZoneSpecs(FreeCellVariant.FREECELL),
   // A column can reach thirteen cards deep at 45 units apart, so the board
   // reserves rather more below its grid than Klondike does.
-  designHeightPx: 1120,
+  designHeightPx: 1047,
 });

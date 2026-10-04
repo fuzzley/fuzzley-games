@@ -1,5 +1,8 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { dealOnStockPress, tableGestures } from "@/games/common/table_gestures";
+import {
+  dealOnStockPress,
+  tableGestures,
+} from "@/engine/tableau/table_gestures";
 import { EasthavenGame } from "./easthaven_game";
 import { EasthavenRole } from "./easthaven_zones";
 

@@ -1,5 +1,8 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { dealOnStockPress, tableGestures } from "@/games/common/table_gestures";
+import {
+  dealOnStockPress,
+  tableGestures,
+} from "@/engine/tableau/table_gestures";
 import { AcesUpGame } from "./aces_up_game";
 import { AcesUpRole } from "./aces_up_zones";
 

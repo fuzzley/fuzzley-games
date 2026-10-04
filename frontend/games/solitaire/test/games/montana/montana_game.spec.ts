@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
+import {
+  PlayingCard,
+  Rank,
+  Suit,
+  playingCardInstanceId,
+} from "@/engine/core/card/playing_card";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { MontanaGame } from "@/games/montana/montana_game";
 import { MONTANA_DECK, GAP_COUNT } from "@/games/montana/montana_deal";
@@ -13,6 +18,7 @@ import { REDEAL_PILE_ID } from "@/games/montana/montana_zones";
 import { PIP_COUNTS } from "@/games/common/zone_presets";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { sequenceRandom } from "@test/support/sequence_random";
+import { seededRandom } from "@/engine/core/random/seeded_random";
 
 /** How many columns Montana's grid has. */
 const COLUMN_COUNT = montanaColumnCount(MontanaVariant.MONTANA);
@@ -23,31 +29,9 @@ const COLUMN_COUNT = montanaColumnCount(MontanaVariant.MONTANA);
  */
 const SHUFFLE_VALUES = [0.37, 0.11, 0.83, 0.5, 0.06];
 
-const SUIT_NAMES: Record<Suit, string> = {
-  [Suit.SPADE]: "spades",
-  [Suit.HEART]: "hearts",
-  [Suit.DIAMOND]: "diamonds",
-  [Suit.CLUB]: "clubs",
-};
-
-const RANK_NAMES: Record<number, string> = {
-  [Rank.TWO]: "2",
-  [Rank.THREE]: "3",
-  [Rank.FOUR]: "4",
-  [Rank.FIVE]: "5",
-  [Rank.SIX]: "6",
-  [Rank.SEVEN]: "7",
-  [Rank.EIGHT]: "8",
-  [Rank.NINE]: "9",
-  [Rank.TEN]: "10",
-  [Rank.JACK]: "jack",
-  [Rank.QUEEN]: "queen",
-  [Rank.KING]: "king",
-};
-
 /** Returns the card id for a suit and rank, as the registry names it. */
 function cardId(suit: Suit, rank: Rank): string {
-  return `card-${SUIT_NAMES[suit]}-${RANK_NAMES[rank]}`;
+  return playingCardInstanceId({ suit, rank });
 }
 
 /** Every rank a Montana row holds, Two up to King. */
@@ -149,6 +133,20 @@ describe("MontanaGame deal", () => {
     const overfull = game.cells.filter((pile) => pile.size > 1);
 
     expect(overfull).toEqual([]);
+  });
+
+  it("leaves the same gaps when the deal is restarted", () => {
+    // A source that keeps varying, unlike the fixed shuffle, which would leave
+    // the same gaps whether or not the deal replays them.
+    const shuffledGame = new MontanaGame({ random: seededRandom(1) });
+    shuffledGame.startNewGame();
+    const gapsDealt = shuffledGame.cells.filter((pile) => pile.isEmpty);
+
+    shuffledGame.restartGame();
+
+    expect(shuffledGame.cells.filter((pile) => pile.isEmpty)).toEqual(
+      gapsDealt,
+    );
   });
 });
 
@@ -451,13 +449,6 @@ describe("the Montana board", () => {
 });
 
 describe("MontanaGame snapshot", () => {
-  it("records how many redeals have been used", () => {
-    const game = newGame();
-    game.redeal();
-
-    expect(game.snapshot().extra).toEqual({ redealsUsed: 1 });
-  });
-
   it("restores the redeals left", () => {
     const original = newGame();
     original.redeal();
@@ -466,14 +457,6 @@ describe("MontanaGame snapshot", () => {
     copy.restore(original.snapshot());
 
     expect(copy.redealsRemaining).toBe(DEFAULT_MAX_REDEALS - 1);
-  });
-
-  it("rejects a snapshot without the redeal count", () => {
-    const copy = newGame();
-
-    expect(() =>
-      copy.restore({ ...newGame().snapshot(), extra: null }),
-    ).toThrow(/extra is not an object/);
   });
 });
 

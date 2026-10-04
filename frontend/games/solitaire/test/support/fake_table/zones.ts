@@ -104,21 +104,6 @@ export const FAKE_TABLEAU_RULE: PlacementRule = byEmptiness(
   descendingAlternatingColor,
 );
 
-/**
- * Returns what a pile of a role accepts, or null for the stock and waste,
- * which are never destinations.
- */
-export function fakePlacementRule(role: string): PlacementRule | null {
-  switch (role) {
-    case FakeRole.TABLEAU:
-      return FAKE_TABLEAU_RULE;
-    case FakeRole.FOUNDATION:
-      return suitFoundation;
-    default:
-      return null;
-  }
-}
-
 /** Returns the thirteen zones of the fake board. */
 export function fakeZoneSpecs(drawCount: number): readonly ZoneSpec[] {
   const zones: ZoneSpec[] = [
@@ -127,7 +112,8 @@ export function fakeZoneSpecs(drawCount: number): readonly ZoneSpec[] {
       role: FakeRole.STOCK,
       slot: { pileId: STOCK_PILE_ID, column: 0, row: 0 },
       layout: STACKED_PILE_LAYOUT,
-      accept: fakePlacementRule(FakeRole.STOCK),
+      // Pressed to draw, never a destination.
+      accept: null,
       // Clickable, because that is what draws, but never picked up.
       grab: { kind: "top-only" },
       draggable: false,
@@ -141,7 +127,7 @@ export function fakeZoneSpecs(drawCount: number): readonly ZoneSpec[] {
       role: FakeRole.WASTE,
       slot: { pileId: WASTE_PILE_ID, column: 1, row: 0 },
       layout: wastePileLayout(drawCount),
-      accept: fakePlacementRule(FakeRole.WASTE),
+      accept: null,
       grab: { kind: "top-only" },
       draggable: true,
       face: "always-up",
@@ -159,7 +145,7 @@ export function fakeZoneSpecs(drawCount: number): readonly ZoneSpec[] {
       // Column 2 is left clear for the waste fan to grow into.
       slot: { pileId: id, column: 3 + index, row: 0 },
       layout: STACKED_PILE_LAYOUT,
-      accept: fakePlacementRule(FakeRole.FOUNDATION),
+      accept: suitFoundation,
       grab: { kind: "top-only" },
       draggable: true,
       face: "always-up",
@@ -174,7 +160,7 @@ export function fakeZoneSpecs(drawCount: number): readonly ZoneSpec[] {
       role: FakeRole.TABLEAU,
       slot: { pileId: id, column: index, row: 1 },
       layout: TABLEAU_PILE_LAYOUT,
-      accept: fakePlacementRule(FakeRole.TABLEAU),
+      accept: FAKE_TABLEAU_RULE,
       // Any face-up card and whatever rests on it, ordered or not: the laxest
       // of the grab rules, and the one that lets a test lift an arbitrary run.
       grab: { kind: "any-face-up" },

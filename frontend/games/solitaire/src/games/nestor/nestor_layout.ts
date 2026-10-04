@@ -10,6 +10,6 @@ export const NESTOR_LAYOUT = boardLayout({
   rows: 2,
   zones: nestorZoneSpecs(),
   // The columns only shrink, so the six dealt cards are the deepest one gets:
-  // about 1060 from the top of the board, with a hovered card open.
-  designHeightPx: 1060,
+  // about 987 from the top of the board, with a hovered card open.
+  designHeightPx: 987,
 });

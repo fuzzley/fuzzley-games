@@ -27,17 +27,12 @@ export const BristolRole = {
 /** Names one of the parts a Bristol pile can play. */
 export type BristolRole = (typeof BristolRole)[keyof typeof BristolRole];
 
-/**
- * Which of the pair is being played.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which of the pair is being played. */
 export const BristolVariant = {
   /** Bristol: every foundation waits for its Ace. */
-  BRISTOL: 0,
+  BRISTOL: "bristol",
   /** Belvedere: the deal starts one foundation with an Ace. */
-  BELVEDERE: 1,
+  BELVEDERE: "belvedere",
 } as const;
 
 /** Names one of the games played on Bristol's board. */

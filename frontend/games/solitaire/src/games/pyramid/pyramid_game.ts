@@ -1,19 +1,15 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { readNumber, readObject } from "@/engine/core/common/json_reader";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
-import { AppliedMove, CardTransfer } from "@/engine/tableau/move";
+import { CardTransfer } from "@/engine/tableau/move";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
+import { ActionKind } from "@/games/common/action_kinds";
 import { DeckOptions } from "@/games/common/deck_options";
 import { discardPairEffects } from "@/games/common/pair_removal";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
-import {
-  CLOSED_STOCK_PLACEHOLDER,
-  recyclePipsPlaceholder,
-} from "@/games/common/zone_presets";
+import { recycleMarker } from "@/games/common/zone_presets";
 import {
   DEFAULT_PYRAMID_GOAL,
   DEFAULT_PYRAMID_PASSES,
@@ -29,18 +25,6 @@ import {
   pyramidZoneSpecs,
 } from "./pyramid_zones";
 
-/** Holds what Pyramid keeps outside its piles, for a snapshot. */
-interface PyramidExtra {
-  /** How many times the stock has been turned back over. */
-  readonly recycleCount: number;
-}
-
-/** Reads a snapshot's extra state as Pyramid's. */
-function readPyramidExtra(value: unknown): PyramidExtra {
-  const extra = readObject(value, "extra");
-  return { recycleCount: readNumber(extra.recycleCount, "extra.recycleCount") };
-}
-
 /** Configures a Pyramid game. */
 export interface PyramidOptions extends DeckOptions {
   /** When the game is won. */
@@ -55,33 +39,31 @@ export interface PyramidOptions extends DeckOptions {
  */
 export class PyramidGame extends DealtTableGame {
   /** The face-down stock. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The card just turned. */
-  public readonly hand: CardPile<PlayingCard>;
+  public readonly hand: ReadonlyCardPile<PlayingCard>;
   /** The turned cards that found no pair. */
-  public readonly waste: CardPile<PlayingCard>;
+  public readonly waste: ReadonlyCardPile<PlayingCard>;
   /** Where pairs and Kings go. */
-  public readonly discard: CardPile<PlayingCard>;
+  public readonly discard: ReadonlyCardPile<PlayingCard>;
   /** The pyramid's places, row by row from the top. */
-  public readonly places: readonly CardPile<PlayingCard>[];
+  public readonly places: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** When the game is won. */
   public readonly goal: PyramidGoal;
   /** How many times the stock may be gone through. */
   public readonly passes: PyramidPasses;
 
-  private recycleCount = 0;
-
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     goal = DEFAULT_PYRAMID_GOAL,
     passes = DEFAULT_PYRAMID_PASSES,
   }: PyramidOptions = {}) {
     super({
       zones: pyramidZoneSpecs(passes),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // A double press sends a King away, or pairs a card with the first free
       // partner.
       autoMoveRoles: [
@@ -101,24 +83,21 @@ export class PyramidGame extends DealtTableGame {
     this.waste = this.requirePile(WASTE_PILE_ID);
     this.discard = this.requirePile(DISCARD_PILE_ID);
     this.places = this.pilesOfRole(PyramidRole.PYRAMID);
+    this.markPile(this.stock, () =>
+      recycleMarker({
+        usable:
+          this.recyclesRemaining > 0 &&
+          !(this.stock.isEmpty && !this.canRecycle),
+        remaining: this.recyclesRemaining,
+        allowed: this.passes - 1,
+      }),
+    );
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    this.recycleCount = 0;
-    for (const place of this.places) {
-      const card = deck.pop();
-      if (!card) return;
-      card.faceUp = true;
-      place.addCard(card);
-    }
-
-    let card = deck.pop();
-    while (card) {
-      card.faceUp = false;
-      this.stock.addCard(card);
-      card = deck.pop();
-    }
+  protected override dealBoard(deal: Deal): void {
+    if (!deal.dealEach(this.places, true)) return;
+    deal.dealRest(this.stock, false);
   }
 
   /**
@@ -127,7 +106,7 @@ export class PyramidGame extends DealtTableGame {
    * @inheritDoc
    */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
-    return discardPairEffects(move, this.discard);
+    return discardPairEffects(this.tabletop, move, this.discard);
   }
 
   /**
@@ -147,7 +126,7 @@ export class PyramidGame extends DealtTableGame {
 
   /** How many more times the stock may be turned back over. */
   public get recyclesRemaining(): number {
-    return Math.max(0, this.passes - 1 - this.recycleCount);
+    return Math.max(0, this.passes - 1 - this.timesApplied(ActionKind.RECYCLE));
   }
 
   /**
@@ -157,15 +136,14 @@ export class PyramidGame extends DealtTableGame {
    */
   public drawCardsFromStock(): void {
     if (!this.stock.isEmpty) {
-      this.commitAction("draw", [
+      this.commitAction(ActionKind.DRAW, [
         ...this.discardHand(),
-        ...drawToWaste(this.stock, this.hand, 1),
+        ...drawToWaste(this.tabletop, this.stock, this.hand, 1),
       ]);
     } else if (this.canRecycle) {
-      this.recycleCount++;
-      this.commitAction("recycle", [
+      this.commitAction(ActionKind.RECYCLE, [
         ...this.discardHand(),
-        ...recycleWasteToStock(this.waste, this.stock),
+        ...recycleWasteToStock(this.tabletop, this.waste, this.stock),
       ]);
     }
   }
@@ -180,61 +158,6 @@ export class PyramidGame extends DealtTableGame {
   /** Moves the card in the hand, if any, onto the waste. */
   private discardHand(): CardTransfer[] {
     const held = this.hand.topCard;
-    if (!held) return [];
-    this.hand.removeCard(held);
-    this.waste.addCard(held);
-    return [
-      {
-        cardIds: [held.id],
-        fromPileId: this.hand.id,
-        toPileId: this.waste.id,
-        faceUpBefore: true,
-      },
-    ];
-  }
-
-  /**
-   * Returns the plain outline for the empty stock once a press would do
-   * nothing, and a pip per pass left otherwise.
-   *
-   * @inheritDoc
-   */
-  public override pileBackgroundKey(
-    pile: CardPile<PlayingCard>,
-  ): string | undefined {
-    if (pile !== this.stock) return super.pileBackgroundKey(pile);
-    const spent =
-      this.recyclesRemaining === 0 || (pile.isEmpty && !this.canRecycle);
-    return spent
-      ? CLOSED_STOCK_PLACEHOLDER
-      : recyclePipsPlaceholder(this.recyclesRemaining, this.passes - 1);
-  }
-
-  /**
-   * Returns whether the empty stock would turn the waste over if pressed.
-   *
-   * @inheritDoc
-   */
-  public override isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
-    return pile === this.stock
-      ? pile.isEmpty && this.canRecycle
-      : super.isEmptySlotActionable(pile);
-  }
-
-  /** @inheritDoc */
-  protected override afterUndo(move: AppliedMove): void {
-    if (move.kind === "recycle") {
-      this.recycleCount--;
-    }
-  }
-
-  /** @inheritDoc */
-  protected override saveExtra(): PyramidExtra {
-    return { recycleCount: this.recycleCount };
-  }
-
-  /** @inheritDoc */
-  protected override restoreExtra(extra: unknown): void {
-    this.recycleCount = readPyramidExtra(extra).recycleCount;
+    return held ? [this.tabletop.relocate([held], this.waste)] : [];
   }
 }

@@ -1,9 +1,10 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { Deal } from "@/engine/tableau/deal";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { DeckSpec } from "@/engine/core/card/deck";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import { seedFrom, seededRandom } from "@/engine/core/random/seeded_random";
 import { shuffle } from "@/engine/core/random/shuffle";
 import { itemAt } from "@/engine/core/common/item_at";
-import { pullCards } from "@/games/common/pull_cards";
 import {
   MontanaVariant,
   ROW_COUNT,
@@ -20,25 +21,22 @@ export const GAP_COUNT = ROW_COUNT;
 /**
  * Deals the opening position of `variant` across the grid.
  *
- * @param deck The cards to deal, which this drains.
  * @param rows The grid, row by row.
- * @param random Places Montana's gaps.
  */
 export function dealMontanaFamilyLayout(
   variant: MontanaVariant,
-  deck: PlayingCard[],
-  rows: readonly (readonly CardPile<PlayingCard>[])[],
-  random: () => number = Math.random,
+  deal: Deal,
+  rows: readonly (readonly ReadonlyCardPile<PlayingCard>[])[],
 ): void {
   switch (variant) {
     case MontanaVariant.MONTANA:
-      dealMontanaLayout(deck, rows.flat(), random);
+      dealMontanaLayout(deal, rows.flat());
       return;
     case MontanaVariant.BLUE_MOON:
-      dealBlueMoonLayout(deck, rows);
+      dealBlueMoonLayout(deal, rows);
       return;
     case MontanaVariant.RED_MOON:
-      dealRedMoonLayout(deck, rows);
+      dealRedMoonLayout(deal, rows);
       return;
   }
 }
@@ -46,23 +44,22 @@ export function dealMontanaFamilyLayout(
 /**
  * Deals `deck` across the grid, leaving four cells empty at random.
  *
- * @param deck The cards to deal, which this drains.
+ * The gaps are drawn from the order of the deck rather than a fresh source, so
+ * a restart, which deals the same order again, leaves the same gaps.
+ *
  * @param cells The grid, row-major.
  */
 export function dealMontanaLayout(
-  deck: PlayingCard[],
-  cells: readonly CardPile<PlayingCard>[],
-  random: () => number = Math.random,
+  deal: Deal,
+  cells: readonly ReadonlyCardPile<PlayingCard>[],
 ): void {
+  const random = seededRandom(seedFrom(deal.undealt.map((card) => card.id)));
   const gaps = chooseGaps(cells.length, GAP_COUNT, random);
 
   for (const [index, cell] of cells.entries()) {
     if (gaps.has(index)) continue;
-    const card = deck.pop();
     // A short injected deck simply leaves the later cells empty.
-    if (!card) return;
-    card.faceUp = true;
-    cell.addCard(card);
+    if (!deal.dealTo(cell, true)) return;
   }
 }
 
@@ -70,16 +67,14 @@ export function dealMontanaLayout(
  * Deals Blue Moon's opening: the whole deck across every column but the first,
  * then each Ace, in reading order, to the start of the next row, leaving a gap
  * where it was.
- *
- * @param deck The cards to deal, which this drains.
  */
 export function dealBlueMoonLayout(
-  deck: PlayingCard[],
-  rows: readonly (readonly CardPile<PlayingCard>[])[],
+  deal: Deal,
+  rows: readonly (readonly ReadonlyCardPile<PlayingCard>[])[],
 ): void {
-  dealFaceUp(
-    deck,
+  deal.dealEach(
     rows.flatMap((row) => row.slice(1)),
+    true,
   );
 
   const aceCells = rows
@@ -87,50 +82,27 @@ export function dealBlueMoonLayout(
     .filter((cell) => cell.topCard?.rank === Rank.ACE);
   aceCells.slice(0, rows.length).forEach((cell, index) => {
     const ace = cell.topCard;
-    if (!ace) return;
-    cell.removeCard(ace);
-    itemAt(itemAt(rows, index), 0).addCard(ace);
+    if (ace) deal.place(ace, itemAt(itemAt(rows, index), 0), true);
   });
 }
 
 /**
  * Deals Red Moon's opening: an Ace to the start of every row, a gap beside
  * each, and the rest of the deck across the remaining columns.
- *
- * @param deck The cards to deal, which this drains.
  */
 export function dealRedMoonLayout(
-  deck: PlayingCard[],
-  rows: readonly (readonly CardPile<PlayingCard>[])[],
+  deal: Deal,
+  rows: readonly (readonly ReadonlyCardPile<PlayingCard>[])[],
 ): void {
-  const aces = pullCards(deck, (card) => card.rank === Rank.ACE);
+  const aces = deal.pull((card) => card.rank === Rank.ACE);
   aces.slice(0, rows.length).forEach((ace, index) => {
-    ace.faceUp = true;
-    itemAt(itemAt(rows, index), 0).addCard(ace);
+    deal.place(ace, itemAt(itemAt(rows, index), 0), true);
   });
 
-  dealFaceUp(
-    deck,
+  deal.dealEach(
     rows.flatMap((row) => row.slice(2)),
+    true,
   );
-}
-
-/**
- * Deals one card face up into each cell in turn, until the deck or the cells
- * run out.
- *
- * @param deck The cards to deal, which this drains.
- */
-function dealFaceUp(
-  deck: PlayingCard[],
-  cells: readonly CardPile<PlayingCard>[],
-): void {
-  for (const cell of cells) {
-    const card = deck.pop();
-    if (!card) return;
-    card.faceUp = true;
-    cell.addCard(card);
-  }
 }
 
 /**
@@ -152,9 +124,9 @@ function chooseGaps(
 
 /** Returns the grid as rows of `columnCount` cells, in order. */
 export function rowsOf(
-  cells: readonly CardPile<PlayingCard>[],
+  cells: readonly ReadonlyCardPile<PlayingCard>[],
   columnCount: number,
-): readonly (readonly CardPile<PlayingCard>[])[] {
+): readonly (readonly ReadonlyCardPile<PlayingCard>[])[] {
   return Array.from({ length: ROW_COUNT }, (_, row) =>
     cells.slice(row * columnCount, (row + 1) * columnCount),
   );
@@ -166,7 +138,7 @@ export function rowsOf(
  * `shuffled` fills the rest.
  */
 export function redealArrangement(
-  rows: readonly (readonly CardPile<PlayingCard>[])[],
+  rows: readonly (readonly ReadonlyCardPile<PlayingCard>[])[],
   shuffled: readonly PlayingCard[],
   firstRank: Rank,
 ): readonly (PlayingCard | null)[] {

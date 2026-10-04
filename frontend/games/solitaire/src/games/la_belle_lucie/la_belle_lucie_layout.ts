@@ -17,8 +17,8 @@ function laBelleLucieLayout(variant: LaBelleLucieVariant): TableLayoutSpec {
     rows: 2 + FAN_ROW_PITCH,
     zones: laBelleLucieZoneSpecs(variant),
     // A fan of four in the lower row, with a hovered card open, ends about
-    // 1465 from the top of the board.
-    designHeightPx: 1470,
+    // 1392 from the top of the board.
+    designHeightPx: 1397,
   });
 }
 

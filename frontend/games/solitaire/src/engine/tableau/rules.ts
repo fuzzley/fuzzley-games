@@ -1,4 +1,4 @@
-import { CardPile, PileRole } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
 import {
   PlayingCard,
   Rank,
@@ -15,10 +15,10 @@ import {
  */
 export interface BoardQuery {
   /** Returns the pile with the given id, or undefined. */
-  pile(pileId: string): CardPile<PlayingCard> | undefined;
+  pile(pileId: string): ReadonlyCardPile<PlayingCard> | undefined;
 
   /** Returns every pile playing a part, in declaration order. */
-  pilesByRole(role: PileRole): readonly CardPile<PlayingCard>[];
+  pilesByRole(role: PileRole): readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Returns how many piles playing the given part are empty. */
   emptyCount(role: PileRole): number;
@@ -33,10 +33,10 @@ export interface PlacementContext {
   readonly movingStack: readonly PlayingCard[];
 
   /** The pile the stack is leaving. */
-  readonly sourcePile: CardPile<PlayingCard>;
+  readonly sourcePile: ReadonlyCardPile<PlayingCard>;
 
   /** The pile the stack would join. */
-  readonly targetPile: CardPile<PlayingCard>;
+  readonly targetPile: ReadonlyCardPile<PlayingCard>;
 
   /** The rest of the board, for rules that depend on it. */
   readonly board: BoardQuery;

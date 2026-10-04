@@ -1,5 +1,8 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { dealOnStockPress, tableGestures } from "@/games/common/table_gestures";
+import {
+  dealOnStockPress,
+  tableGestures,
+} from "@/engine/tableau/table_gestures";
 import { BristolGame } from "./bristol_game";
 import { BristolRole } from "./bristol_zones";
 

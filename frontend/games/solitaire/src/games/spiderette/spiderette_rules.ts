@@ -20,17 +20,12 @@ export const SpideretteRole = {
 export type SpideretteRole =
   (typeof SpideretteRole)[keyof typeof SpideretteRole];
 
-/**
- * Which of the two deals is being played.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which of the two deals is being played. */
 export const SpideretteVariant = {
   /** Klondike's triangular deal: columns of one through seven. */
-  SPIDERETTE: 0,
+  SPIDERETTE: "spiderette",
   /** Will o' the Wisp: seven columns of three, two of them buried. */
-  WILL_O_THE_WISP: 1,
+  WILL_O_THE_WISP: "will-o-the-wisp",
 } as const;
 
 /** Names one of the two games in the Spiderette family. */
@@ -51,16 +46,3 @@ export const SPIDERETTE_TABLEAU_RULE: PlacementRule = byEmptiness(
   anyCard,
   descendingAnySuit,
 );
-
-/**
- * Returns what a pile of a role accepts, or null for the stock and the
- * foundations, where a player never puts a card.
- */
-export function spiderettePlacementRule(role: string): PlacementRule | null {
-  switch (role) {
-    case SpideretteRole.TABLEAU:
-      return SPIDERETTE_TABLEAU_RULE;
-    default:
-      return null;
-  }
-}

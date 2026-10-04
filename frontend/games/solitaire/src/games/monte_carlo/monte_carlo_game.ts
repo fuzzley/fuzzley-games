@@ -1,17 +1,12 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
-import { CardTransfer } from "@/engine/tableau/move";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
 import { DeckOptions } from "@/games/common/deck_options";
 import { discardPairEffects } from "@/games/common/pair_removal";
-import {
-  CLOSED_STOCK_PLACEHOLDER,
-  RECYCLING_STOCK_PLACEHOLDER,
-} from "@/games/common/zone_presets";
+import { recycleMarker } from "@/games/common/zone_presets";
 import { DEFAULT_MONTE_CARLO_VARIANT } from "./monte_carlo_rules";
 import {
   DISCARD_PILE_ID,
@@ -20,6 +15,7 @@ import {
   STOCK_PILE_ID,
   monteCarloZoneSpecs,
 } from "./monte_carlo_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /** Configures a game played on Monte Carlo's grid. */
 export interface MonteCarloOptions extends DeckOptions {
@@ -34,21 +30,21 @@ export interface MonteCarloOptions extends DeckOptions {
  */
 export class MonteCarloGame extends DealtTableGame {
   /** The face-down cards that refill the grid. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The grid, row by row. */
-  public readonly cells: readonly CardPile<PlayingCard>[];
+  public readonly cells: readonly ReadonlyCardPile<PlayingCard>[];
   /** Where the pairs go. */
-  public readonly discard: CardPile<PlayingCard>;
+  public readonly discard: ReadonlyCardPile<PlayingCard>;
 
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     variant = DEFAULT_MONTE_CARLO_VARIANT,
   }: MonteCarloOptions = {}) {
     super({
       zones: monteCarloZoneSpecs(variant),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // A double press pairs a card with the first touching partner, or in
       // Thirteens sends a King away on its own.
       autoMoveRoles: [MonteCarloRole.CELL, MonteCarloRole.DISCARD],
@@ -58,23 +54,20 @@ export class MonteCarloGame extends DealtTableGame {
     this.stock = this.requirePile(STOCK_PILE_ID);
     this.cells = this.pilesOfRole(MonteCarloRole.CELL);
     this.discard = this.requirePile(DISCARD_PILE_ID);
+    // Consolidating is never counted, only possible or not.
+    this.markPile(this.stock, () =>
+      recycleMarker({
+        usable: this.canConsolidate,
+        remaining: Infinity,
+        allowed: Infinity,
+      }),
+    );
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    for (const cell of this.cells) {
-      const card = deck.pop();
-      if (!card) return;
-      card.faceUp = true;
-      cell.addCard(card);
-    }
-
-    let card = deck.pop();
-    while (card) {
-      card.faceUp = false;
-      this.stock.addCard(card);
-      card = deck.pop();
-    }
+  protected override dealBoard(deal: Deal): void {
+    if (!deal.dealEach(this.cells, true)) return;
+    deal.dealRest(this.stock, false);
   }
 
   /**
@@ -83,7 +76,7 @@ export class MonteCarloGame extends DealtTableGame {
    * @inheritDoc
    */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
-    return discardPairEffects(move, this.discard);
+    return discardPairEffects(this.tabletop, move, this.discard);
   }
 
   // --- Consolidating ---
@@ -111,77 +104,24 @@ export class MonteCarloGame extends DealtTableGame {
       return false;
     }
 
-    // Every card comes off the grid before any goes back, so a cell being
-    // vacated and filled in the same pass cannot collide.
-    const remaining: { card: PlayingCard; from: CardPile<PlayingCard> }[] = [];
-    for (const cell of this.cells) {
-      const card = cell.topCard;
-      if (!card) continue;
-      remaining.push({ card, from: cell });
-      cell.removeCard(card);
-    }
+    // In reading order, each cell holding at most one card.
+    const remaining = this.cells.flatMap((cell) => [...cell.getCards()]);
+    const transfers = this.tabletop.rearrange(
+      new Map(
+        this.cells.map((cell, index) => {
+          const card = remaining[index];
+          return [cell, card ? [card] : []];
+        }),
+      ),
+    );
 
-    const transfers: CardTransfer[] = [];
-    for (const [index, cell] of this.cells.entries()) {
-      const slid = remaining[index];
-      if (slid) {
-        cell.addCard(slid.card);
-        if (slid.from !== cell) {
-          transfers.push(transfer(slid.card, slid.from, cell, true));
-        }
-        continue;
-      }
-
+    for (const cell of this.cells.slice(remaining.length)) {
       const dealt = this.stock.topCard;
-      if (!dealt) continue;
-      this.stock.removeCard(dealt);
-      dealt.faceUp = true;
-      cell.addCard(dealt);
-      transfers.push(transfer(dealt, this.stock, cell, false));
+      if (!dealt) break;
+      transfers.push(this.tabletop.relocate([dealt], cell, { faceUp: true }));
     }
 
-    this.commitAction("consolidate", transfers);
+    this.commitAction(ActionKind.CONSOLIDATE, transfers);
     return true;
   }
-
-  /**
-   * Returns the recycle arrow on the stock's slot while consolidating would do
-   * something, and the plain outline otherwise.
-   *
-   * @inheritDoc
-   */
-  public override pileBackgroundKey(
-    pile: CardPile<PlayingCard>,
-  ): string | undefined {
-    if (pile !== this.stock) return super.pileBackgroundKey(pile);
-    return this.canConsolidate
-      ? RECYCLING_STOCK_PLACEHOLDER
-      : CLOSED_STOCK_PLACEHOLDER;
-  }
-
-  /**
-   * Returns whether the empty stock's slot would consolidate if pressed.
-   *
-   * @inheritDoc
-   */
-  public override isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
-    return pile === this.stock
-      ? pile.isEmpty && this.canConsolidate
-      : super.isEmptySlotActionable(pile);
-  }
-}
-
-/** Returns a one-card transfer. */
-function transfer(
-  card: PlayingCard,
-  from: CardPile<PlayingCard>,
-  to: CardPile<PlayingCard>,
-  faceUpBefore: boolean,
-): CardTransfer {
-  return {
-    cardIds: [card.id],
-    fromPileId: from.id,
-    toPileId: to.id,
-    faceUpBefore,
-  };
 }

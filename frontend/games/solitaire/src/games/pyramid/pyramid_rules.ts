@@ -27,17 +27,12 @@ export const PyramidRole = {
 /** Names one of the parts a Pyramid pile can play. */
 export type PyramidRole = (typeof PyramidRole)[keyof typeof PyramidRole];
 
-/**
- * When a game of Pyramid is won.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** When a game of Pyramid is won. */
 export const PyramidGoal = {
   /** Every card discarded, stock and waste included. */
-  ALL_CARDS: 0,
+  ALL_CARDS: "all-cards",
   /** Relaxed Pyramid: the pyramid cleared, whatever is left elsewhere. */
-  PYRAMID_ONLY: 1,
+  PYRAMID_ONLY: "pyramid-only",
 } as const;
 
 /** Names one of the ways a game of Pyramid can be won. */

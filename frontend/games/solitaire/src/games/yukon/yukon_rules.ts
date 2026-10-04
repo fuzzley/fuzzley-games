@@ -24,21 +24,16 @@ export const YukonRole = {
 /** Names one of the parts a Yukon pile can play. */
 export type YukonRole = (typeof YukonRole)[keyof typeof YukonRole];
 
-/**
- * Which of the Yukon family is being played.
- *
- * Numbered because the settings panel stores an option as a number, which the
- * catalog hands straight to the game.
- */
+/** Which of the Yukon family is being played. */
 export const YukonVariant = {
   /** The original: columns build down in alternating colors. */
-  YUKON: 0,
+  YUKON: "yukon",
   /** Columns build up *or* down in the same suit. */
-  ALASKA: 1,
+  ALASKA: "alaska",
   /** Columns build down in the same suit. */
-  RUSSIAN: 2,
+  RUSSIAN: "russian",
   /** Moosehide: columns build down in any suit but the card's own. */
-  MOOSEHIDE: 3,
+  MOOSEHIDE: "moosehide",
 } as const;
 
 /** Names one of the games in the Yukon family. */
@@ -71,21 +66,3 @@ export function yukonTableauRule(variant: YukonVariant): PlacementRule {
 
 /** A Yukon foundation: the standard Ace-up-by-suit pile. */
 export const YUKON_FOUNDATION_RULE: PlacementRule = suitFoundation;
-
-/**
- * Returns what a pile of a role accepts under a variant, or null for an
- * unknown role.
- */
-export function yukonPlacementRule(
-  role: string,
-  variant: YukonVariant,
-): PlacementRule | null {
-  switch (role) {
-    case YukonRole.TABLEAU:
-      return yukonTableauRule(variant);
-    case YukonRole.FOUNDATION:
-      return YUKON_FOUNDATION_RULE;
-    default:
-      return null;
-  }
-}

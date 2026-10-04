@@ -1,4 +1,5 @@
-import { CardPile } from "@/engine/core/card/card_pile";
+import { Deal } from "@/engine/tableau/deal";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { SpideretteVariant } from "./spiderette_rules";
 
@@ -11,13 +12,11 @@ export const WISP_CARDS_PER_COLUMN = 3;
 /**
  * Deals Spiderette's staircase or Will o' the Wisp's columns of three, with
  * only each column's top card face up, and the rest face down on the stock.
- *
- * @param deck The cards to deal, which this drains.
  */
 export function dealSpideretteLayout(
-  deck: PlayingCard[],
-  tableaus: readonly CardPile<PlayingCard>[],
-  stock: CardPile<PlayingCard>,
+  deal: Deal,
+  tableaus: readonly ReadonlyCardPile<PlayingCard>[],
+  stock: ReadonlyCardPile<PlayingCard>,
   variant: SpideretteVariant,
 ): void {
   if (tableaus.length === 0) return;
@@ -28,19 +27,10 @@ export function dealSpideretteLayout(
         ? WISP_CARDS_PER_COLUMN
         : column + 1;
     for (let dealt = 0; dealt < count; dealt++) {
-      const card = deck.pop();
       // A short injected deck simply runs out; the columns already dealt stand
       // as they are rather than the deal failing.
-      if (!card) return;
-      card.faceUp = dealt === count - 1;
-      tableau.addCard(card);
+      if (!deal.dealTo(tableau, dealt === count - 1)) return;
     }
   }
-
-  while (deck.length > 0) {
-    const card = deck.pop();
-    if (!card) break;
-    card.faceUp = false;
-    stock.addCard(card);
-  }
+  deal.dealRest(stock, false);
 }

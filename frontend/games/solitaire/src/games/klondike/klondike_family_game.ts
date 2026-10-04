@@ -1,33 +1,17 @@
-import { CardPile, PileRole } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { readNumber, readObject } from "@/engine/core/common/json_reader";
 import {
   DealtTableGame,
   DealtTableGameOptions,
 } from "@/engine/tableau/dealt_game";
-import { AppliedMove } from "@/engine/tableau/move";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
+import { ActionKind } from "@/games/common/action_kinds";
 import { flipExposedTopOfColumn } from "@/games/common/move_effects";
 import { STOCK_PILE_ID, WASTE_PILE_ID } from "@/games/common/pile_ids";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
-import {
-  CLOSED_STOCK_PLACEHOLDER,
-  recyclePipsPlaceholder,
-} from "@/games/common/zone_presets";
+import { recycleMarker } from "@/games/common/zone_presets";
 import { DrawCount } from "./klondike_rules";
 import { ScoringPolicy } from "./scoring_policy";
-
-/** Holds what a Klondike-family game keeps outside its piles, for a snapshot. */
-interface KlondikeFamilyExtra {
-  /** How many times the waste has been recycled. */
-  readonly recycleCount: number;
-}
-
-/** Reads a snapshot's extra state as a Klondike-family game's. */
-function readKlondikeFamilyExtra(value: unknown): KlondikeFamilyExtra {
-  const extra = readObject(value, "extra");
-  return { recycleCount: readNumber(extra.recycleCount, "extra.recycleCount") };
-}
 
 /** Configures a game played with Klondike's stock and scoring. */
 export interface KlondikeFamilyOptions extends DealtTableGameOptions {
@@ -45,16 +29,15 @@ export interface KlondikeFamilyOptions extends DealtTableGameOptions {
  */
 export abstract class KlondikeFamilyGame extends DealtTableGame {
   /** The face-down stock pile from which cards are drawn. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The face-up waste pile containing drawn cards. */
-  public readonly waste: CardPile<PlayingCard>;
+  public readonly waste: ReadonlyCardPile<PlayingCard>;
   /** How many cards a draw turns over. */
   public readonly drawCount: DrawCount;
 
   /** The rules used to score moves, flips, and recycles. */
   private readonly scoring: ScoringPolicy;
   private readonly columnRole: PileRole;
-  private recycleCount = 0;
 
   constructor(options: KlondikeFamilyOptions) {
     super(options);
@@ -63,26 +46,19 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
     this.columnRole = options.columnRole;
     this.stock = this.requirePile(STOCK_PILE_ID);
     this.waste = this.requirePile(WASTE_PILE_ID);
+    this.markPile(this.stock, () =>
+      recycleMarker({
+        usable: !this.isSpentStock(),
+        remaining: this.recyclesRemaining,
+        allowed: this.scoring.maxRecycles(this.drawCount),
+      }),
+    );
   }
 
-  /**
-   * Puts the recycle count back to zero and the score to where the scoring
-   * starts it, then lays out the opening position.
-   *
-   * @inheritDoc
-   */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    this.recycleCount = 0;
-    this.state.score = this.scoring.initialScore();
-    this.dealLayout(deck);
+  /** @inheritDoc */
+  protected override initialScore(): number {
+    return this.scoring.initialScore();
   }
-
-  /**
-   * Lays the deck out into this game's opening position.
-   *
-   * @param deck The cards to deal, which an implementation is free to drain.
-   */
-  protected abstract dealLayout(deck: PlayingCard[]): void;
 
   // --- The stock ---
 
@@ -90,7 +66,8 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
   public get recyclesRemaining(): number {
     return Math.max(
       0,
-      this.scoring.maxRecycles(this.drawCount) - this.recycleCount,
+      this.scoring.maxRecycles(this.drawCount) -
+        this.timesApplied(ActionKind.RECYCLE),
     );
   }
 
@@ -101,8 +78,8 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
   public drawCardsFromStock(): void {
     if (!this.stock.isEmpty) {
       this.commitAction(
-        "draw",
-        drawToWaste(this.stock, this.waste, this.drawCount),
+        ActionKind.DRAW,
+        drawToWaste(this.tabletop, this.stock, this.waste, this.drawCount),
       );
     } else if (!this.waste.isEmpty && this.recyclesRemaining > 0) {
       this.recycleWaste();
@@ -114,50 +91,18 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
    * the penalty for doing so.
    */
   private recycleWaste(): void {
-    const scoreBefore = this.state.score;
-    this.recycleCount++;
     const penalty = this.scoring.recyclePenalty(
       this.drawCount,
-      this.recycleCount,
+      this.timesApplied(ActionKind.RECYCLE) + 1,
     );
-    this.state.score = this.scoring.clampScore(this.state.score - penalty);
+    const score = this.state.score;
 
-    this.commitAction("recycle", recycleWasteToStock(this.waste, this.stock), {
-      scoreDelta: this.state.score - scoreBefore,
-    });
-  }
-
-  /**
-   * Returns the plain closed outline for the empty stock once a press would do
-   * nothing, and a pip per recycle left when the recycles are counted.
-   *
-   * @inheritDoc
-   */
-  public override pileBackgroundKey(
-    pile: CardPile<PlayingCard>,
-  ): string | undefined {
-    if (pile !== this.stock) {
-      return super.pileBackgroundKey(pile);
-    }
-    if (this.isSpentStock()) {
-      return CLOSED_STOCK_PLACEHOLDER;
-    }
-    const allowed = this.scoring.maxRecycles(this.drawCount);
-    return Number.isFinite(allowed)
-      ? recyclePipsPlaceholder(this.recyclesRemaining, allowed)
-      : super.pileBackgroundKey(pile);
-  }
-
-  /**
-   * Returns false for the empty stock once a press would recycle nothing,
-   * because the waste is empty or the recycles are spent.
-   *
-   * @inheritDoc
-   */
-  public override isEmptySlotActionable(pile: CardPile<PlayingCard>): boolean {
-    return (
-      !(pile === this.stock && this.isSpentStock()) &&
-      super.isEmptySlotActionable(pile)
+    this.commitAction(
+      ActionKind.RECYCLE,
+      recycleWasteToStock(this.tabletop, this.waste, this.stock),
+      {
+        scoreDelta: this.scoring.clampScore(score - penalty) - score,
+      },
     );
   }
 
@@ -176,50 +121,18 @@ export abstract class KlondikeFamilyGame extends DealtTableGame {
    * @inheritDoc
    */
   protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
-    const scoreBefore = this.state.score;
-    this.state.score = this.scoring.clampScore(
-      this.state.score +
+    const score = this.state.score;
+    const afterMove = this.scoring.clampScore(
+      score +
         this.scoring.moveScore(move.sourcePile.role, move.targetPile.role),
     );
-
-    const flipped = this.autoFlipExposedCard(move.sourcePile);
+    const flipped = flipExposedTopOfColumn(move.sourcePile, this.columnRole);
+    // The flip bonus comes on top of the floor, so undo takes it back too.
+    const flipBonus = flipped ? this.scoring.tableauFlipBonus() : 0;
 
     return {
-      // Measured after the flip, so undo takes back its bonus too.
-      scoreDelta: this.state.score - scoreBefore,
+      scoreDelta: afterMove + flipBonus - score,
       flippedCardIds: flipped ? [flipped.id] : [],
     };
-  }
-
-  /** @inheritDoc */
-  protected override afterUndo(move: AppliedMove): void {
-    if (move.kind === "recycle") {
-      // So the next recycle is charged the same penalty this one was.
-      this.recycleCount--;
-    }
-  }
-
-  /** @inheritDoc */
-  protected override saveExtra(): KlondikeFamilyExtra {
-    return { recycleCount: this.recycleCount };
-  }
-
-  /** @inheritDoc */
-  protected override restoreExtra(extra: unknown): void {
-    this.recycleCount = readKlondikeFamilyExtra(extra).recycleCount;
-  }
-
-  /**
-   * Turns face up the card a move exposed in a column, awarding the flip bonus,
-   * and returns it if there was one.
-   */
-  private autoFlipExposedCard(
-    sourcePile: CardPile<PlayingCard>,
-  ): PlayingCard | undefined {
-    const flipped = flipExposedTopOfColumn(sourcePile, this.columnRole);
-    if (flipped) {
-      this.state.score += this.scoring.tableauFlipBonus();
-    }
-    return flipped;
   }
 }

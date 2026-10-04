@@ -19,9 +19,11 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
   const listeners = new Map<string, Set<() => void>>();
 
   const state = new GameState();
-  state.score = overrides.score ?? 0;
-  state.moves = overrides.moves ?? 0;
-  state.undoDepth = overrides.undoDepth ?? 0;
+  state.update({
+    score: overrides.score ?? 0,
+    moves: overrides.moves ?? 0,
+    undoDepth: overrides.undoDepth ?? 0,
+  });
 
   /** Raises an event as the real game would. */
   const emit = (event: string) => {
@@ -30,9 +32,7 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
 
   /** Clears the readings and announces the new deal, as a real deal does. */
   const deal = () => {
-    state.score = 0;
-    state.moves = 0;
-    state.undoDepth = 0;
+    state.update({ score: 0, moves: 0, undoDepth: 0 });
     emit("game-reset");
   };
 
@@ -43,10 +43,9 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
       const set = listeners.get(event) ?? new Set<() => void>();
       set.add(callback);
       listeners.set(event, set);
-    },
-
-    off(event: string, callback: () => void) {
-      listeners.get(event)?.delete(callback);
+      return () => {
+        set.delete(callback);
+      };
     },
 
     emit,
@@ -55,26 +54,44 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
     restartGame: vi.fn(deal),
     undo: vi.fn(),
 
-    /** Returns an empty board carrying the mock's score and moves. */
+    /** Returns an empty board carrying the mock's score. */
     snapshot: vi.fn((): GameSnapshot => ({
       piles: [],
       score: state.score,
-      moves: state.moves,
-      extra: null,
       history: [],
       deal: [],
     })),
     /** Takes the snapshot's readings and announces them, as a restore does. */
     restore: vi.fn((snapshot: GameSnapshot) => {
-      state.score = snapshot.score;
-      state.moves = snapshot.moves;
-      state.undoDepth = snapshot.history.length;
+      state.update({
+        score: snapshot.score,
+        moves: snapshot.history.length,
+        undoDepth: snapshot.history.length,
+      });
       emit("game-reset");
     }),
   };
 }
 
 export type MockGameModel = ReturnType<typeof createMockGameModel>;
+
+/**
+ * Returns an empty board whose history holds `moves` actions, which is how a
+ * snapshot carries its move count.
+ */
+export function snapshotWithMoves(moves: number, score = 0): GameSnapshot {
+  return {
+    piles: [],
+    score,
+    history: Array.from({ length: moves }, () => ({
+      kind: "move",
+      transfers: [],
+      scoreDelta: 0,
+      flippedCardIds: [],
+    })),
+    deal: [],
+  };
+}
 
 /**
  * Returns the mock as the game type the catalog session holds, which checks at

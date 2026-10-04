@@ -1,4 +1,5 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import { clearPile, takeOffBoard } from "@test/support/game_scenarios";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { DragController } from "@/engine/render/input/drag_controller";
 import { designSize } from "@/engine/render/layout/table_layout";
@@ -177,7 +178,7 @@ describe("BoardInputManager", () => {
 
     it("throws when the clicked card is in no pile", () => {
       const card = gameModel.tableaus[0].getCards()[0];
-      gameModel.tableaus[0].removeCard(card);
+      takeOffBoard(gameModel, card.id);
       const { sprite } = listenTo(card);
 
       expect(() => sprite.emit("pointerdown")).toThrow("is not in a pile");
@@ -335,7 +336,7 @@ describe("BoardInputManager", () => {
     });
 
     it("recycles the waste when the empty stock background is clicked", () => {
-      gameModel.stock.clear();
+      clearPile(gameModel.stock);
       const drawSpy = vi.spyOn(gameModel, "drawCardsFromStock");
 
       stockBackground.emit("pointerdown");
@@ -401,7 +402,7 @@ describe("BoardInputManager", () => {
     });
 
     it("does not start a drag when the card is in no model pile", () => {
-      gameModel.tableaus[0].removeCard(card);
+      takeOffBoard(gameModel, card.id);
 
       input.emit("dragstart", {}, asSprite(sprite));
 

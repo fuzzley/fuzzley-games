@@ -10,7 +10,7 @@ import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
 import { designSize, measureTable } from "@/engine/render/layout/table_layout";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { cardAtlasTextureKey } from "@/engine/render/phaser/card_deck_atlas";
-import { makeTableBoardScene } from "@/games/common/board_scene_factory";
+import { makeTableBoardScene } from "@/engine/board/table_board_scene";
 import {
   FAKE_TABLE_LAYOUT,
   fakeTableGestures,
@@ -135,6 +135,24 @@ describe("makeTableBoardScene", () => {
         design.width,
         design.height,
       ]);
+    });
+
+    it("lays the board out below the inset the shell reports", () => {
+      const inset = makeTableBoardScene({
+        game,
+        layout: FAKE_TABLE_LAYOUT,
+        handleIntent: fakeTableGestures(game),
+        presentation,
+        insetTop: () => 40,
+      });
+
+      // The unsized canvas falls back to the design size plus the inset, so
+      // the board below it still lays out at a scale of 1.
+      expect([
+        inset.viewport.insetTop,
+        inset.viewport.height,
+        measureTable(FAKE_TABLE_LAYOUT, inset.viewport).scale,
+      ]).toEqual([40, designSize(FAKE_TABLE_LAYOUT).height + 40, 1]);
     });
 
     it("lands a released stack on the pile under it on that grid", () => {

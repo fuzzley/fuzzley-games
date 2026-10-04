@@ -15,5 +15,5 @@ export const EIGHT_OFF_LAYOUT = boardLayout({
   zones: eightOffZoneSpecs(),
   // Room for a column much deeper than the six it is dealt, which costs no card
   // size here.
-  designHeightPx: 1200,
+  designHeightPx: 1127,
 });

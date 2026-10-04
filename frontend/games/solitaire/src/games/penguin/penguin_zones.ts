@@ -1,10 +1,10 @@
-import { isSameSuitRunWrapping, singleCardCell } from "@/engine/tableau/rules";
+import { singleCardCell } from "@/engine/tableau/rules";
 import { ZoneSpec } from "@/engine/tableau/zone";
 import { OPEN_COLUMN_LAYOUT } from "../common/pile_layouts";
 import { cellRow, columnRow, foundationRow } from "../common/zone_presets";
 import {
   PENGUIN_FOUNDATION_RULE,
-  PENGUIN_TABLEAU_RULE,
+  PENGUIN_COLUMN,
   PenguinRole,
 } from "./penguin_rules";
 
@@ -48,14 +48,13 @@ const ZONES: readonly ZoneSpec[] = [
     column: TABLEAU_COLUMN_OFFSET,
     row: 1,
     role: PenguinRole.TABLEAU,
-    accept: PENGUIN_TABLEAU_RULE,
     // However long, and however few cells are free: Penguin moves a run as a
     // unit.
-    grab: { kind: "run", adjacent: isSameSuitRunWrapping },
+    ...PENGUIN_COLUMN,
     layout: OPEN_COLUMN_LAYOUT,
     face: "always-up",
   }),
 ];
 
-/** Re-exported: the roles live with the rules that branch on them. */
+/** Re-exported: the roles live with the rules that use them. */
 export { PenguinRole };

@@ -1,14 +1,14 @@
-import { CardPile } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { DeckSource } from "@/engine/tableau/deck_source";
 import { DeckOptions } from "@/games/common/deck_options";
 import { dealRowFromStock } from "@/games/common/row_deal";
 import { dealBristolLayout } from "./bristol_deal";
 import { BristolVariant, DEFAULT_BRISTOL_VARIANT } from "./bristol_rules";
 import { BristolRole, STOCK_PILE_ID, bristolZoneSpecs } from "./bristol_zones";
+import { ActionKind } from "@/games/common/action_kinds";
 
 /** Configures a game played on Bristol's board. */
 export interface BristolOptions extends DeckOptions {
@@ -22,13 +22,13 @@ export interface BristolOptions extends DeckOptions {
  */
 export class BristolGame extends DealtTableGame {
   /** The face-down stock, dealt three at a time onto the reserves. */
-  public readonly stock: CardPile<PlayingCard>;
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
   /** The three reserves. */
-  public readonly reserves: readonly CardPile<PlayingCard>[];
+  public readonly reserves: readonly ReadonlyCardPile<PlayingCard>[];
   /** The four foundations. */
-  public readonly foundations: readonly CardPile<PlayingCard>[];
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
   /** The eight fans. */
-  public readonly tableaus: readonly CardPile<PlayingCard>[];
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
 
   /** Which of the pair is being played. */
   public readonly variant: BristolVariant;
@@ -36,12 +36,12 @@ export class BristolGame extends DealtTableGame {
   /** Creates a game whose piles are empty until the first deal. */
   constructor({
     cardIds = ALL_PLAYING_CARD_IDS,
-    random = Math.random,
+    random,
     variant = DEFAULT_BRISTOL_VARIANT,
   }: BristolOptions = {}) {
     super({
       zones: bristolZoneSpecs(),
-      deck: new DeckSource(new CardRegistry(), cardIds, random),
+      deck: { cardIds, random },
       // Foundations only: which fan a card goes to is the player's decision.
       autoMoveRoles: [BristolRole.FOUNDATION],
       winsWhenAllCardsIn: BristolRole.FOUNDATION,
@@ -55,8 +55,8 @@ export class BristolGame extends DealtTableGame {
   }
 
   /** @inheritDoc */
-  protected override dealBoard(deck: PlayingCard[]): void {
-    dealBristolLayout(this.variant, deck, this);
+  protected override dealBoard(deal: Deal): void {
+    dealBristolLayout(this.variant, deal, this);
   }
 
   /** Whether the stock has cards left to deal. */
@@ -70,7 +70,10 @@ export class BristolGame extends DealtTableGame {
       return false;
     }
 
-    this.commitAction("deal", dealRowFromStock(this.stock, this.reserves));
+    this.commitAction(
+      ActionKind.DEAL,
+      dealRowFromStock(this.tabletop, this.stock, this.reserves),
+    );
     return true;
   }
 }

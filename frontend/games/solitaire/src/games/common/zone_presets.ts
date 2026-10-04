@@ -1,7 +1,9 @@
 import { PileRole } from "@/engine/core/card/card_pile";
 import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { PlacementRule } from "@/engine/tableau/rules";
-import { FaceVisibility, GrabRule, ZoneSpec } from "@/engine/tableau/zone";
+import { PileMarker } from "@/engine/tableau/table_game";
+import { FaceVisibility } from "@/engine/tableau/view/zone_look";
+import { GrabRule, ZoneSpec } from "@/engine/tableau/zone";
 import { zoneAt, zoneRow } from "@/engine/tableau/zone_builder";
 import { cellPileId, foundationPileId, tableauPileId } from "./pile_ids";
 import { BURIED_COLUMN_LAYOUT, STACKED_PILE_LAYOUT } from "./pile_layouts";
@@ -42,6 +44,32 @@ export function recyclePipsPlaceholder(
     return RECYCLING_STOCK_PLACEHOLDER;
   }
   return `${RECYCLING_STOCK_PLACEHOLDER}-${remaining}-of-${allowed}`;
+}
+
+/** Describes a marker that counts the uses left of something limited. */
+export interface RecycleMarkerOptions {
+  /** Whether pressing the slot does, or will once it is empty, do anything. */
+  readonly usable: boolean;
+  /** How many uses are left. */
+  readonly remaining: number;
+  /** How many uses the game allows, which may be Infinity. */
+  readonly allowed: number;
+}
+
+/**
+ * Returns the marker for a stock or a redeal slot: the closed outline once it
+ * has nothing left to do, a pip for each use left when the uses are counted,
+ * and the recycle arrow when they are not.
+ */
+export function recycleMarker(options: RecycleMarkerOptions): PileMarker {
+  const { usable, remaining, allowed } = options;
+  if (!usable) return { artwork: CLOSED_STOCK_PLACEHOLDER, actionable: false };
+  return {
+    artwork: Number.isFinite(allowed)
+      ? recyclePipsPlaceholder(remaining, allowed)
+      : RECYCLING_STOCK_PLACEHOLDER,
+    actionable: true,
+  };
 }
 
 /** Places a row of piles and says how many there are. */

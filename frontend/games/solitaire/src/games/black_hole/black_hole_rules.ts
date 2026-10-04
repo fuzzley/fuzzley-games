@@ -28,9 +28,9 @@ export type BlackHoleRole = (typeof BlackHoleRole)[keyof typeof BlackHoleRole];
  */
 export const BlackHoleVariant = {
   /** Black Hole: seventeen fans of three around a hole holding the Ace. */
-  BLACK_HOLE: 0,
+  BLACK_HOLE: "black-hole",
   /** All in a Row: thirteen columns of four, and the foundation starts empty. */
-  ALL_IN_A_ROW: 1,
+  ALL_IN_A_ROW: "all-in-a-row",
 } as const;
 
 /** Names one of the pair. */

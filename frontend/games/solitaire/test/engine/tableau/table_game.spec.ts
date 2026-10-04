@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
-import { AppliedMove } from "@/engine/tableau/move";
 import {
   MoveEffects,
+  PileMarker,
   ResolvedMove,
   TableGame,
 } from "@/engine/tableau/table_game";
@@ -36,7 +36,6 @@ class TestGame extends TableGame {
   /** Effects the next move should report, for the scoring and flip paths. */
   public nextEffects: MoveEffects | null = null;
   public movesSeen: ResolvedMove[] = [];
-  public undosSeen: AppliedMove[] = [];
 
   private readonly cards: CardRegistry;
 
@@ -51,15 +50,10 @@ class TestGame extends TableGame {
     return this.nextEffects ?? super.applyMoveEffects(move);
   }
 
-  protected override afterUndo(move: AppliedMove): void {
-    this.undosSeen.push(move);
-  }
-
   /** Puts a freshly made card into a pile, for building an exact position. */
   public place(pileId: string, rank: Rank, faceUp = true): PlayingCard {
     const card = this.cards.getOrCreate({ suit: Suit.SPADE, rank });
-    card.faceUp = faceUp;
-    this.requirePile(pileId).addCard(card);
+    this.tabletop.place(card, this.requirePile(pileId), faceUp);
     return card;
   }
 
@@ -73,16 +67,19 @@ class TestGame extends TableGame {
   public turnOver(fromPileId: string, toPileId: string): void {
     const from = this.requirePile(fromPileId);
     const to = this.requirePile(toPileId);
-    const cardIds = from.getCards().map((card) => card.id);
-
-    for (const card of [...from.getCards()].reverse()) {
-      from.removeCard(card);
-      to.addCard(card);
-    }
-
     this.commitAction("turn-over", [
-      { cardIds, fromPileId, toPileId, faceUpBefore: true },
+      this.tabletop.relocate([...from.getCards()].reverse(), to),
     ]);
+  }
+
+  /** Marks a pile's slot, exposing `markPile`. */
+  public mark(pileId: string, marker: () => PileMarker): void {
+    this.markPile(this.requirePile(pileId), marker);
+  }
+
+  /** How many turn-overs the history holds, exposing `timesApplied`. */
+  public get turnOvers(): number {
+    return this.timesApplied("turn-over");
   }
 
   /** Empties the board, exposing `resetPiles` for a test that needs it. */
@@ -218,6 +215,29 @@ describe("TableGame", () => {
       expect(game.state.score).toBe(0);
     });
 
+    it("applies the score change the game reports", () => {
+      const card = game.place(LEFT, Rank.FIVE);
+      game.nextEffects = { scoreDelta: 10, flippedCardIds: [] };
+
+      game.moveCardToPile(card.id, RIGHT);
+
+      expect(game.state.score).toBe(10);
+    });
+
+    it("announces the metrics once per move, all of them in step", () => {
+      const card = game.place(LEFT, Rank.FIVE);
+      game.nextEffects = { scoreDelta: 10, flippedCardIds: [] };
+      const published: unknown[] = [];
+      game.state.onChange((metrics) => published.push(metrics));
+
+      game.moveCardToPile(card.id, RIGHT);
+
+      expect(published).toEqual([
+        { score: 0, moves: 0, undoDepth: 0 },
+        { score: 10, moves: 1, undoDepth: 1 },
+      ]);
+    });
+
     it("hands the resolved move to the game", () => {
       const card = game.place(LEFT, Rank.FIVE);
 
@@ -271,7 +291,6 @@ describe("TableGame", () => {
       const card = game.place(LEFT, Rank.FIVE);
       game.nextEffects = { scoreDelta: 10, flippedCardIds: [] };
       game.moveCardToPile(card.id, RIGHT);
-      game.state.score = 10;
 
       game.undo();
 
@@ -298,13 +317,22 @@ describe("TableGame", () => {
       expect(game.state.undoDepth).toBe(1);
     });
 
-    it("tells the game what was taken back", () => {
-      const card = game.place(LEFT, Rank.FIVE);
-      game.moveCardToPile(card.id, RIGHT);
+    it("counts each action of a kind it holds", () => {
+      game.place(LEFT, Rank.FIVE);
+      game.turnOver(LEFT, RIGHT);
+      game.turnOver(RIGHT, LEFT);
+
+      expect(game.turnOvers).toBe(2);
+    });
+
+    it("stops counting an action once undo takes it back", () => {
+      game.place(LEFT, Rank.FIVE);
+      game.turnOver(LEFT, RIGHT);
+      game.turnOver(RIGHT, LEFT);
 
       game.undo();
 
-      expect(game.undosSeen[0].kind).toBe("move");
+      expect(game.turnOvers).toBe(1);
     });
   });
 
@@ -497,6 +525,64 @@ describe("TableGame", () => {
 
     it("does not treat an empty slot as pressable unless its zone says so", () => {
       const actionable = game.isEmptySlotActionable(game.getPileById(LEFT)!);
+
+      expect(actionable).toBe(false);
+    });
+
+    it("shows a marked pile's artwork in place of its zone's", () => {
+      const pressable = gameWithPressableSlot();
+      pressable.mark(PRESSABLE, () => ({
+        artwork: "marked",
+        actionable: true,
+      }));
+
+      const artwork = pressable.pileBackgroundKey(
+        pressable.getPileById(PRESSABLE)!,
+      );
+
+      expect(artwork).toBe("marked");
+    });
+
+    it("lets a marker say an empty slot does nothing, whatever its zone says", () => {
+      const pressable = gameWithPressableSlot();
+      pressable.mark(PRESSABLE, () => ({
+        artwork: "spent",
+        actionable: false,
+      }));
+
+      const actionable = pressable.isEmptySlotActionable(
+        pressable.getPileById(PRESSABLE)!,
+      );
+
+      expect(actionable).toBe(false);
+    });
+
+    it("asks a marker afresh each time, so the slot follows the game", () => {
+      const pressable = gameWithPressableSlot();
+      let spent = false;
+      pressable.mark(PRESSABLE, () => ({
+        artwork: spent ? "spent" : "fresh",
+        actionable: !spent,
+      }));
+
+      spent = true;
+
+      expect(
+        pressable.pileBackgroundKey(pressable.getPileById(PRESSABLE)!),
+      ).toBe("spent");
+    });
+
+    it("never treats a marked slot as pressable while it holds cards", () => {
+      const pressable = gameWithPressableSlot();
+      pressable.mark(PRESSABLE, () => ({
+        artwork: "marked",
+        actionable: true,
+      }));
+      pressable.place(PRESSABLE, Rank.FIVE);
+
+      const actionable = pressable.isEmptySlotActionable(
+        pressable.getPileById(PRESSABLE)!,
+      );
 
       expect(actionable).toBe(false);
     });

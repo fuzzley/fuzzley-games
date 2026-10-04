@@ -10,11 +10,17 @@ import {
   GrabRule,
   ZoneSpec,
   canGrab,
-  frameFor,
   hasRoomFor,
-  showsFace,
+  runColumn,
 } from "@/engine/tableau/zone";
-import { BoardQuery, never } from "@/engine/tableau/rules";
+import {
+  BoardQuery,
+  PlacementRule,
+  cardIs,
+  hasRank,
+  isSameSuitRun,
+  never,
+} from "@/engine/tableau/rules";
 import { makePlayingCard } from "@test/support/card_builder";
 
 /** A board with no other piles on it, for the rules that never read one. */
@@ -203,48 +209,6 @@ describe("canGrab uncovered", () => {
   });
 });
 
-describe("showsFace", () => {
-  const faceUp = card(Suit.HEART, Rank.QUEEN);
-  const faceDown = card(Suit.HEART, Rank.QUEEN, false);
-
-  it("hides the face in an always-down zone even when the card is face up", () => {
-    expect(showsFace("always-down", faceUp)).toBe(false);
-  });
-
-  it("shows the face in an always-up zone even when the card is face down", () => {
-    expect(showsFace("always-up", faceDown)).toBe(true);
-  });
-
-  it("defers to a face-up card in a card-driven zone", () => {
-    expect(showsFace("card", faceUp)).toBe(true);
-  });
-
-  it("defers to a face-down card in a card-driven zone", () => {
-    expect(showsFace("card", faceDown)).toBe(false);
-  });
-});
-
-describe("frameFor", () => {
-  const faceUp = card(Suit.HEART, Rank.QUEEN);
-  const faceDown = card(Suit.HEART, Rank.QUEEN, false);
-
-  it("shows the back for an always-down zone even when the card is face up", () => {
-    expect(frameFor("always-down", faceUp, "back")).toBe("back");
-  });
-
-  it("shows the face for an always-up zone even when the card is face down", () => {
-    expect(frameFor("always-up", faceDown, "back")).toBe(faceDown.faceKey);
-  });
-
-  it("defers to a face-up card in a card-driven zone", () => {
-    expect(frameFor("card", faceUp, "back")).toBe(faceUp.faceKey);
-  });
-
-  it("defers to a face-down card in a card-driven zone", () => {
-    expect(frameFor("card", faceDown, "back")).toBe("back");
-  });
-});
-
 describe("hasRoomFor", () => {
   function zone(capacity?: number): ZoneSpec {
     return {
@@ -282,5 +246,70 @@ describe("hasRoomFor", () => {
     );
 
     expect(hasRoomFor(zone(), long, 10)).toBe(true);
+  });
+});
+
+describe("runColumn", () => {
+  /** A column built down in suit, taking only a King when empty. */
+  const column = runColumn({
+    adjacent: isSameSuitRun,
+    whenEmpty: cardIs(hasRank(Rank.KING)),
+  });
+
+  /** Asks whether `rule` lets `movingStack` land on `target`. */
+  function lands(
+    rule: PlacementRule,
+    target: CardPile<PlayingCard>,
+    movingStack: PlayingCard[],
+  ): boolean {
+    return rule({
+      card: movingStack[0],
+      movingStack,
+      sourcePile: pileWith(),
+      targetPile: target,
+      board: EMPTY_BOARD,
+    });
+  }
+
+  it("lands a card that sits on the top card by the adjacency", () => {
+    const target = pileWith(card(Suit.SPADE, Rank.NINE));
+
+    expect(lands(column.accept, target, [card(Suit.SPADE, Rank.EIGHT)])).toBe(
+      true,
+    );
+  });
+
+  it("refuses a card the adjacency does not allow", () => {
+    const target = pileWith(card(Suit.SPADE, Rank.NINE));
+
+    expect(lands(column.accept, target, [card(Suit.HEART, Rank.EIGHT)])).toBe(
+      false,
+    );
+  });
+
+  it("asks the empty-column rule of an empty column", () => {
+    expect(
+      lands(column.accept, pileWith(), [card(Suit.SPADE, Rank.QUEEN)]),
+    ).toBe(false);
+  });
+
+  it("lifts runs by the same adjacency it lands them by", () => {
+    expect(column.grab).toEqual({ kind: "run", adjacent: isSameSuitRun });
+  });
+
+  it("refuses a stack longer than the limit allows", () => {
+    const capped = runColumn({
+      adjacent: isSameSuitRun,
+      whenEmpty: never,
+      maxStack: () => 1,
+    });
+    const target = pileWith(card(Suit.SPADE, Rank.TEN));
+
+    expect(
+      lands(capped.accept, target, [
+        card(Suit.SPADE, Rank.NINE),
+        card(Suit.SPADE, Rank.EIGHT),
+      ]),
+    ).toBe(false);
   });
 });

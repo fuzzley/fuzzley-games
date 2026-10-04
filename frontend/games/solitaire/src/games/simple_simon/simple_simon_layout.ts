@@ -13,9 +13,9 @@ export const SIMPLE_SIMON_LAYOUT = boardLayout({
   columns: simpleSimonTableauCount(SimpleSimonVariant.SIMPLE_SIMON),
   rows: 2,
   zones: simpleSimonZoneSpecs(SimpleSimonVariant.SIMPLE_SIMON),
-  // A fifteen-card column reaches about 1500 from the top of the board, and at
+  // A fifteen-card column reaches about 1427 from the top of the board, and at
   // ten columns wide the height costs no card size.
-  designHeightPx: 1500,
+  designHeightPx: 1427,
 });
 
 /**
@@ -26,7 +26,7 @@ export const MRS_MOP_LAYOUT = boardLayout({
   columns: simpleSimonTableauCount(SimpleSimonVariant.MRS_MOP),
   rows: 2,
   zones: simpleSimonZoneSpecs(SimpleSimonVariant.MRS_MOP),
-  // A twenty-three-card column reaches about 1770 from the top of the board,
+  // A twenty-three-card column reaches about 1697 from the top of the board,
   // and at thirteen columns wide the height costs no card size.
-  designHeightPx: 1800,
+  designHeightPx: 1727,
 });

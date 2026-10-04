@@ -1,4 +1,4 @@
-import { CardPile, PileRole } from "@/engine/core/card/card_pile";
+import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { IntentHandler } from "@/engine/render/input/table_intents";
 
@@ -13,7 +13,9 @@ export interface MovableGame {
 /** Extends a {@link MovableGame} with a way to ask where a card is. */
 export interface GestureGame extends MovableGame {
   /** Returns the pile holding the given card, or undefined. */
-  getPileContainingCard(cardId: string): CardPile<PlayingCard> | undefined;
+  getPileContainingCard(
+    cardId: string,
+  ): ReadonlyCardPile<PlayingCard> | undefined;
 }
 
 /** Says what a game does with the presses only it understands. */
@@ -21,7 +23,7 @@ export interface TableGestureOptions {
   /** Handles a single press on a card, such as a Klondike draw. */
   readonly onCardPress?: (
     cardId: string,
-    pile: CardPile<PlayingCard> | undefined,
+    pile: ReadonlyCardPile<PlayingCard> | undefined,
   ) => void;
 
   /** Handles a press on an empty pile slot, such as Klondike's recycle. */
