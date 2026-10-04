@@ -288,7 +288,7 @@ the right.
 - [x] 3.4 Browser check
 - [x] 4.1 Settings service
 - [x] 4.2 Settings drawer
-- [ ] 4.3 Mirrored chrome
+- [x] 4.3 Mirrored chrome
 - [ ] 5.1 Docs
 - [ ] 5.2 Verify
 - [ ] 5.3 Last look
@@ -639,3 +639,36 @@ declares Klondike's phone grids. Drawer specs cover both groups, including a 390
 Checked at 390 × 844: the drawer lists both groups for Klondike, and picking
 Piles Above moved the board to K-P1, the classic top row with the columns
 fanning into the room below at the cap.
+
+### 4.3 Mirrored chrome
+
+The app root writes the hand to `document.documentElement.dataset.hand`, as it
+writes the felt colour, and the chrome reads it with `:host-context`. For a left
+hand:
+
+- on an upright phone the bottom bar runs right to left (undo, new game and the
+  menu at the left, the switcher at the right), and the menu opens from the
+  left;
+- on a sideways phone the rail stands at the right edge, the canvas declares
+  `--board-inset-right` instead of `-left`, and the menu opens to the rail's
+  left.
+
+**The mirror keeps the columns in order.** The first browser check of a left
+hand reversed the tableau as well, so the deal's staircase ran right to left.
+The mobile apps researched mirror the piles beside the columns and leave the
+columns as dealt; HonestSolitaire's layout says so outright. `PhoneLayouts` now
+names its `columns`, which the builder fills from the declaration.
+`mirrorTable(spec, columns)` moves them as one block into the mirror image of
+the span they cover but keeps their order within it. On K-L2 they stay put
+between the swapped rails; on S-L2 they shift one column right as the rail moves
+to the left. `chooseTableLayout` passes the game's columns for every grid, the
+roomy one too. Mirrors are cached per grid and per set of columns kept.
+
+Checked at 390 × 844 and 844 × 390 with Left Hand chosen in the drawer. Upright:
+the stock sits bottom left, the foundations bottom right, the bar is reversed,
+and the columns run in deal order. Sideways: the chrome rail stands at the
+right, the stock and waste top the left rail, the foundations stack beside the
+chrome, and the columns run in order between them. New specs cover the hand on
+the document root, the ordered block in `mirrorTable`, the builder naming its
+columns, and Klondike's left-hand grids keeping their columns in order on all
+six phone sizes.

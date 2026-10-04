@@ -68,6 +68,37 @@ describe("mirrorTable", () => {
   });
 });
 
+describe("mirrorTable keeping columns in order", () => {
+  /** Three columns at the left of a five-column grid, a pile at the right. */
+  const BOARD = tableLayout({
+    columns: 5,
+    rows: 1,
+    slots: [
+      { pileId: "col-0", column: 0, row: 0 },
+      { pileId: "col-1", column: 1, row: 0 },
+      { pileId: "col-2", column: 2, row: 0 },
+      { pileId: "rail", column: 4, row: 0 },
+    ],
+  });
+  const COLUMNS = ["col-0", "col-1", "col-2"];
+
+  it("moves the columns as one block to the mirrored span, in order", () => {
+    const mirrored = mirrorTable(BOARD, COLUMNS);
+
+    expect(COLUMNS.map((pileId) => slotOf(mirrored, pileId).column)).toEqual([
+      2, 3, 4,
+    ]);
+  });
+
+  it("mirrors every other pile as usual", () => {
+    expect(slotOf(mirrorTable(BOARD, COLUMNS), "rail").column).toBe(0);
+  });
+
+  it("keeps a separate mirror for each set of columns kept", () => {
+    expect(mirrorTable(BOARD, COLUMNS)).not.toBe(mirrorTable(BOARD));
+  });
+});
+
 describe("chooseTableLayout", () => {
   const roomy = tableLayout({ columns: 1, rows: 1, slots: [] });
   const bottom = tableLayout({ columns: 2, rows: 1, slots: [] });
@@ -75,7 +106,7 @@ describe("chooseTableLayout", () => {
   const landscape = tableLayout({ columns: 4, rows: 1, slots: [] });
   const LAYOUTS: BoardLayouts = {
     roomy,
-    phone: { portrait: { bottom, top }, landscape },
+    phone: { portrait: { bottom, top }, landscape, columns: [] },
   };
   const LEFT: BoardArrangement = { ...DEFAULT_BOARD_ARRANGEMENT, hand: "left" };
 
@@ -108,12 +139,14 @@ describe("chooseTableLayout", () => {
 
   it("mirrors the chosen grid for a left hand", () => {
     expect(chooseTableLayout(LAYOUTS, "phone-landscape", LEFT)).toBe(
-      mirrorTable(landscape),
+      mirrorTable(landscape, LAYOUTS.phone!.columns),
     );
   });
 
   it("mirrors the roomy grid for a left hand too", () => {
-    expect(chooseTableLayout(LAYOUTS, "roomy", LEFT)).toBe(mirrorTable(roomy));
+    expect(chooseTableLayout(LAYOUTS, "roomy", LEFT)).toBe(
+      mirrorTable(roomy, LAYOUTS.phone!.columns),
+    );
   });
 
   it("lays a game without phone grids out on its roomy grid everywhere", () => {

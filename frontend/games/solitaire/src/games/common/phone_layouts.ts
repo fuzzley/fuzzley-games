@@ -121,6 +121,7 @@ export function phoneLayouts(board: PhoneBoard): PhoneLayouts {
       bottom: pilesBelow(board, columns, columnHeight),
     },
     landscape: pilesBeside(board, columnHeight),
+    columns: board.columns,
   };
 }
 

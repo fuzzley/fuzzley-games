@@ -243,6 +243,10 @@ describe("phoneLayouts", () => {
     ).toEqual([slivers(), { ...slivers(), direction: "left" }, slivers()]);
   });
 
+  it("names the columns, which a mirror keeps in order", () => {
+    expect(layouts.columns).toEqual(COLUMNS);
+  });
+
   it("lays a board with no row out in one grid row", () => {
     const bare = phoneLayouts({
       columns: COLUMNS,
