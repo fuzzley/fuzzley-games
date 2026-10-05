@@ -68,14 +68,18 @@ describe("AppComponent Composition", () => {
   });
 
   it("names the game on the table in the page title", () => {
-    expect(TestBed.inject(Title).getTitle()).toBe("Klondike · fSolitaire");
+    expect(TestBed.inject(Title).getTitle()).toBe(
+      "Klondike · Solitaire Collection",
+    );
   });
 
   it("retitles the page when a different game is put on the table", () => {
     harness.catalog.select("freecell");
     fixture.detectChanges();
 
-    expect(TestBed.inject(Title).getTitle()).toBe("FreeCell · fSolitaire");
+    expect(TestBed.inject(Title).getTitle()).toBe(
+      "FreeCell · Solitaire Collection",
+    );
   });
 
   it("tells the chrome on the document root which side the stock is on", () => {

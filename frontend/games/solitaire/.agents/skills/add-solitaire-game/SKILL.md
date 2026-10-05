@@ -437,6 +437,9 @@ CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
 
 **Routes and the game browser need no other edit** — the routes are derived
 from the catalog, and the browser lists a game from its entry and its profile.
+`index.html` does: name the game and its named variants in its `<noscript>`
+list, in the browser's order, and them and their aliases in its keywords, for
+search engines; `test/ui/index_html.spec.ts` fails until you do.
 
 ---
 
