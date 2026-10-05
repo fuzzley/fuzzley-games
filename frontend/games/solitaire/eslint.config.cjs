@@ -1,6 +1,7 @@
 const eslint = require("@eslint/js");
 const tseslint = require("typescript-eslint");
 const angular = require("angular-eslint");
+const jsdoc = require("eslint-plugin-jsdoc");
 
 module.exports = tseslint.config(
   {
@@ -252,6 +253,34 @@ module.exports = tseslint.config(
       // A test's `!` states a precondition, and should fail loudly if it is
       // ever wrong.
       "@typescript-eslint/no-non-null-assertion": "off",
+    },
+  },
+  // --- Node scripts ---
+  //
+  // The scripts are plain JavaScript, so JSDoc is the only place a type can
+  // go: every parameter and every returned value carries one, and
+  // tsconfig.scripts.json checks them.
+  {
+    files: ["tools/**/*.mjs", ".agents/*.mjs"],
+    extends: [
+      eslint.configs.recommended,
+      jsdoc.configs["flat/recommended-typescript-flavor-error"],
+    ],
+    rules: {
+      // tsc reports an undefined name, and knows Node's globals.
+      "no-undef": "off",
+      // A function that takes and returns nothing may go without a comment;
+      // any other needs one to carry its types.
+      "jsdoc/require-jsdoc": ["error", { exemptEmptyFunctions: true }],
+      // A tag is described only when the description adds something.
+      "jsdoc/require-param-description": "off",
+      "jsdoc/require-property-description": "off",
+      "jsdoc/require-returns-description": "off",
+      // TypeScript types a generator from `@returns {Generator<T>}`, and
+      // ignores `@yields`.
+      "jsdoc/require-yields": "off",
+      // One blank line after the summary, none between the tags.
+      "jsdoc/tag-lines": ["error", "never", { startLines: 1 }],
     },
   },
 );

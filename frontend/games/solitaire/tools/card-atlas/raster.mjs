@@ -5,6 +5,33 @@
 import { Resvg } from "@resvg/resvg-js";
 import sharp from "sharp";
 
+/** @import { ResvgRenderOptions } from "@resvg/resvg-js" */
+/** @import { OutputInfo } from "sharp" */
+
+/**
+ * A card frame, by the name an atlas lists it under.
+ *
+ * @typedef {{name: string, png: Buffer}} Frame
+ */
+
+/**
+ * Raw RGBA pixels, with their size.
+ *
+ * @typedef {{data: Buffer, info: OutputInfo}} Raster
+ */
+
+/**
+ * A box, by its top left corner and its size.
+ *
+ * @typedef {{x: number, y: number, w: number, h: number}} Box
+ */
+
+/**
+ * A side of a frame.
+ *
+ * @typedef {"left" | "right" | "top" | "bottom"} EdgeName
+ */
+
 /**
  * The densities each deck is built at, in texels per design unit, which must
  * match `CardArtScale` in `src/engine/render/layout/card_metrics.ts`.
@@ -69,12 +96,11 @@ export const CARD_FRAME_NAMES = [
  * units still land on whole pixels.
  *
  * @param {string} svg The SVG document source.
- * @param {{x: number, y: number, w: number, h: number}} box The user-unit region to render.
+ * @param {Box} box The user-unit region to render.
  * @param {number} width Output width in pixels.
  * @param {number} height Output height in pixels.
- * @param {import("@resvg/resvg-js").ResvgRenderOptions["font"]} [font] Fonts
- *   for any text the SVG draws.
- * @returns {Promise<{data: Buffer, info: sharp.OutputInfo}>} Raw RGBA pixels.
+ * @param {ResvgRenderOptions["font"]} [font] Fonts for any text the SVG draws.
+ * @returns {Promise<Raster>}
  */
 export async function rasterize(svg, box, width, height, font) {
   const sized = svg.replace(/<svg\b[^>]*?>/, (root) => {
@@ -108,12 +134,12 @@ export async function rasterize(svg, box, width, height, font) {
  * Cuts a grid of exactly FRAME_W x FRAME_H frames out of a rendered sheet,
  * copying pixels without resampling.
  *
- * @param {{data: Buffer, info: sharp.OutputInfo}} sheet The rendered sheet.
+ * @param {Raster} sheet The rendered sheet.
  * @param {(row: number, col: number) => string | null} nameAt Frame name for a cell, or null to skip it.
  * @param {number} rows Grid rows.
  * @param {number} cols Grid columns.
  * @param {(row: number, col: number) => {left: number, top: number}} originAt Crop origin for a cell.
- * @returns {Promise<{name: string, png: Buffer}[]>} The cut frames.
+ * @returns {Promise<Frame[]>} The cut frames.
  */
 export async function cutFrames(sheet, nameAt, rows, cols, originAt) {
   const frames = [];
@@ -147,7 +173,11 @@ export async function cutFrames(sheet, nameAt, rows, cols, originAt) {
  */
 export const EDGE_CORNER_PX = 48;
 
-/** The sides of a frame, in the order they are reported. */
+/**
+ * The sides of a frame, in the order they are reported.
+ *
+ * @type {EdgeName[]}
+ */
 export const EDGE_NAMES = ["left", "right", "top", "bottom"];
 
 /**
@@ -156,7 +186,7 @@ export const EDGE_NAMES = ["left", "right", "top", "bottom"];
  *
  * @param {Buffer} png The frame to measure.
  * @param {number} cornerPx How much of each corner to ignore, in pixels.
- * @returns {Promise<(edge: string, depth: number) => number>} The scorer.
+ * @returns {Promise<(edge: EdgeName, depth: number) => number>} The scorer.
  */
 export async function edgeScorer(png, cornerPx = EDGE_CORNER_PX) {
   const { data, info } = await sharp(png)
@@ -164,7 +194,14 @@ export async function edgeScorer(png, cornerPx = EDGE_CORNER_PX) {
     .raw()
     .toBuffer({ resolveWithObject: true });
 
-  /** Returns whether a pixel is ink, not paper or an antialiased edge. */
+  /**
+   * Returns 1 if a pixel is ink, not paper or an antialiased edge, and 0 if
+   * not, so a run of pixels can be summed.
+   *
+   * @param {number} x
+   * @param {number} y
+   * @returns {number}
+   */
   const isInk = (x, y) => {
     const i = (y * info.width + x) * 4;
     if (data[i + 3] <= 250) return 0;
@@ -175,6 +212,12 @@ export async function edgeScorer(png, cornerPx = EDGE_CORNER_PX) {
   const toX = info.width - cornerPx;
   const toY = info.height - cornerPx;
 
+  /**
+   * Each edge's length, and whether the pixel a distance along it and a depth
+   * in from it is ink.
+   *
+   * @type {Record<EdgeName, {span: number, at: (i: number, depth: number) => number}>}
+   */
   const edges = {
     left: { span: toY - from, at: (i, depth) => isInk(depth, from + i) },
     right: {

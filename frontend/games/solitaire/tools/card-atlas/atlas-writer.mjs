@@ -20,6 +20,20 @@ import {
   edgeScorer,
 } from "./raster.mjs";
 
+/** @import { Box, Frame } from "./raster.mjs" */
+
+/**
+ * One atlas page, with where each of its frames sits on it.
+ *
+ * @typedef {{frames: (Frame & {x: number, y: number})[], width: number, height: number}} Page
+ */
+
+/**
+ * A page as the atlas manifest lists it, in the multi-atlas form Phaser loads.
+ *
+ * @typedef {{image: string, format: string, size: {w: number, h: number}, scale: number, frames: {filename: string, frame: Box, anchor: {x: number, y: number}}[]}} AtlasTexture
+ */
+
 /**
  * Transparent pixels kept between frames, so bilinear sampling at a fractional
  * scale cannot pull in the neighbouring card.
@@ -76,8 +90,8 @@ function renderCardEdge() {
  * Composited `atop`, so the stroke stays inside the card's silhouette rather
  * than in the transparent corners, where sampling would fringe it back in.
  *
- * @param {{name: string, png: Buffer}[]} frames The cut frames.
- * @returns {Promise<{name: string, png: Buffer}[]>} The stamped frames.
+ * @param {Frame[]} frames The cut frames.
+ * @returns {Promise<Frame[]>} The stamped frames.
  */
 async function stampCardEdge(frames) {
   const edge = renderCardEdge();
@@ -105,7 +119,7 @@ const EDGE_STAMP_COVERAGE = 0.9;
  * Fails the build if a frame came out of {@link stampCardEdge}, or out of
  * shrinking a stamped frame, without an edge.
  *
- * @param {{name: string, png: Buffer}[]} frames The stamped frames.
+ * @param {Frame[]} frames The stamped frames.
  * @param {number} artScale The density the frames are at.
  */
 async function assertEdgesAreStamped(frames, artScale) {
@@ -145,9 +159,9 @@ async function assertEdgesAreStamped(frames, artScale) {
  * sharp resizes in premultiplied alpha, so the transparent corners do not
  * darken the card's edge.
  *
- * @param {{name: string, png: Buffer}[]} frames Frames at RASTER_SCALE.
+ * @param {Frame[]} frames Frames at RASTER_SCALE.
  * @param {number} artScale The density to shrink them to.
- * @returns {Promise<{name: string, png: Buffer}[]>} The shrunk frames.
+ * @returns {Promise<Frame[]>} The shrunk frames.
  */
 export async function scaleFrames(frames, artScale) {
   if (artScale === RASTER_SCALE) return frames;
@@ -167,10 +181,10 @@ export async function scaleFrames(frames, artScale) {
 /**
  * Splits frames into pages and lays each page out as a grid.
  *
- * @param {{name: string, png: Buffer}[]} frames The frames to pack.
+ * @param {Frame[]} frames The frames to pack.
  * @param {number} frameW Frame width in pixels.
  * @param {number} frameH Frame height in pixels.
- * @returns {{frames: {name: string, png: Buffer, x: number, y: number}[], width: number, height: number}[]} The pages.
+ * @returns {Page[]}
  */
 function packPages(frames, frameW, frameH) {
   const maxColumns = Math.floor(
@@ -186,6 +200,7 @@ function packPages(frames, frameW, frameH) {
   }
 
   const perPage = maxColumns * rows;
+  /** @type {Page[]} */
   const pages = [];
   for (let start = 0; start < frames.length; start += perPage) {
     const pageFrames = frames.slice(start, start + perPage);
@@ -210,7 +225,11 @@ function packPages(frames, frameW, frameH) {
   return pages;
 }
 
-/** Removes a previous build, so stale pages cannot linger. */
+/**
+ * Removes a previous build, so stale pages cannot linger.
+ *
+ * @param {string} outDir
+ */
 async function cleanOutput(outDir) {
   const existing = await readdir(outDir).catch(() => []);
   for (const file of existing) {
@@ -223,7 +242,7 @@ async function cleanOutput(outDir) {
 /**
  * Packs one density's frames into pages and writes them with their manifest.
  *
- * @param {{name: string, png: Buffer}[]} frames The frames, at `artScale`.
+ * @param {Frame[]} frames The frames, at `artScale`.
  * @param {number} artScale The density the frames are at.
  * @param {string} outDir The directory to write into.
  */
@@ -235,6 +254,7 @@ async function writeAtlas(frames, artScale, outDir) {
   await mkdir(outDir, { recursive: true });
   await cleanOutput(outDir);
 
+  /** @type {AtlasTexture[]} */
   const textures = [];
   for (const [index, page] of pages.entries()) {
     const image = `card_assets-${index}.png`;
@@ -309,8 +329,8 @@ function assertEveryCardFrame(frames) {
  * Edges a deck's cards and writes them, with the placeholders, as one atlas
  * per density under `deckDir`.
  *
- * @param {{name: string, png: Buffer}[]} cardFrames The faces and backs, at RASTER_SCALE.
- * @param {{name: string, png: Buffer}[]} placeholderFrames The shared placeholders, at RASTER_SCALE.
+ * @param {Frame[]} cardFrames The faces and backs, at RASTER_SCALE.
+ * @param {Frame[]} placeholderFrames The shared placeholders, at RASTER_SCALE.
  * @param {string} deckDir The deck's directory; each density gets its own inside it.
  */
 export async function writeDeckAtlases(cardFrames, placeholderFrames, deckDir) {

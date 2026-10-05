@@ -52,11 +52,18 @@ const ROOT_FILES = new Set([
   "eslint.config.cjs",
   "tsconfig.json",
   "tsconfig.spec.json",
+  "tsconfig.scripts.json",
   "index.html",
   "skills-lock.json",
   ".prettierignore",
 ]);
 
+/**
+ * Returns every markdown file under a directory.
+ *
+ * @param {string} dir
+ * @returns {string[]}
+ */
 function markdownFilesIn(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const full = path.join(dir, entry.name);
@@ -65,7 +72,13 @@ function markdownFilesIn(dir) {
   });
 }
 
-// Resolves a path that may end in a `*` glob, as the atlas page imports do.
+/**
+ * Returns whether a path exists, where its last part may be a `*` glob, as in
+ * the atlas page imports.
+ *
+ * @param {string} candidate
+ * @returns {boolean}
+ */
 function pathExists(candidate) {
   if (!candidate.includes("*")) return fs.existsSync(candidate);
 
@@ -80,6 +93,13 @@ function pathExists(candidate) {
   return fs.readdirSync(dir).some((name) => pattern.test(name));
 }
 
+/**
+ * Adds a problem for each relative markdown link in a file that leads nowhere.
+ *
+ * @param {string} file
+ * @param {string} text The file's contents.
+ * @param {string[]} problems
+ */
 function checkRelativeLinks(file, text, problems) {
   const dir = path.dirname(file);
   for (const [, link] of text.matchAll(/(\.\.?\/[A-Za-z0-9_./-]+\.md)/g)) {
@@ -91,6 +111,14 @@ function checkRelativeLinks(file, text, problems) {
   }
 }
 
+/**
+ * Adds a problem for each backticked repository path in a file that does not
+ * exist.
+ *
+ * @param {string} file
+ * @param {string} text The file's contents.
+ * @param {string[]} problems
+ */
 function checkRepoPaths(file, text, problems) {
   for (const [, token] of text.matchAll(/`([^`\n]+)`/g)) {
     const candidate = token.trim().replace(/[.,;:)]+$/, "");
@@ -110,6 +138,7 @@ function checkRepoPaths(file, text, problems) {
   }
 }
 
+/** @type {string[]} */
 const problems = [];
 for (const entry of fs.readdirSync(SKILLS_DIR, { withFileTypes: true })) {
   if (!entry.isDirectory()) continue;

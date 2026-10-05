@@ -14,6 +14,8 @@ import { readdir, stat } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+/** @import { Region } from "sharp" */
+
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SCREENSHOT_DIR = join(ROOT, "public/docs/screenshots");
 const SOURCE = "overview.png";
@@ -42,6 +44,11 @@ const MAX_CHROME_FRACTION = 0.2;
  *
  * The header's translucent tint over the felt leans towards blue, which is
  * what tells it apart.
+ *
+ * @param {number} r
+ * @param {number} g
+ * @param {number} b
+ * @returns {boolean}
  */
 function isFelt(r, g, b) {
   return g > r + 30 && g > b + 30;
@@ -52,11 +59,21 @@ function isFelt(r, g, b) {
  * bottom edge.
  *
  * The board starts at the first row of felt down a column near the middle.
+ *
+ * @param {string} source The screenshot.
+ * @returns {Promise<{region: Region, felt: {r: number, g: number, b: number}}>}
  */
 async function findBoard(source) {
   const { data, info } = await sharp(source)
     .raw()
     .toBuffer({ resolveWithObject: true });
+  /**
+   * Returns whether the screenshot's pixel at a point is felt.
+   *
+   * @param {number} x
+   * @param {number} y
+   * @returns {boolean}
+   */
   const feltAt = (x, y) => {
     const i = (y * info.width + x) * info.channels;
     return isFelt(data[i], data[i + 1], data[i + 2]);
@@ -80,7 +97,12 @@ async function findBoard(source) {
   };
 }
 
-/** Writes every output of one game's screenshot, returning their sizes. */
+/**
+ * Writes every output of one game's screenshot, returning their sizes.
+ *
+ * @param {string} dir The game's screenshot directory.
+ * @returns {Promise<string[]>}
+ */
 async function shrink(dir) {
   const source = join(dir, SOURCE);
   const { region, felt } = await findBoard(source);

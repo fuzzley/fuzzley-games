@@ -1,0 +1,20 @@
+{
+  // The Node scripts under tools/ and .agents/, type-checked from their JSDoc.
+  // Node 22 is the oldest runtime package.json allows, so its types are the
+  // ones installed.
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "es2024",
+    "lib": ["es2024"],
+    "types": ["node"],
+    "skipLibCheck": true
+  },
+  "include": ["tools/**/*.mjs", ".agents/*.mjs"]
+}
