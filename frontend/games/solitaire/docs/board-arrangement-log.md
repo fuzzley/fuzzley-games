@@ -9,7 +9,7 @@ layouts, whose record is [phone-board-layouts-log.md](phone-board-layouts-log.md
 
 **Branch:** `feature/board-arrangement-auto`, cut from `main` at `cdbe0a3`.
 
-**Status:** in progress.
+**Status:** done on the branch, not merged. Waiting on the owner's review.
 
 ## How to pick this up
 
@@ -127,9 +127,9 @@ Settled with the project owner on 2026-10-05.
 - [x] 2.1 Settings service
 - [x] 2.2 Settings drawer
 - [x] 2.3 Chrome and skeleton
-- [ ] 3.1 Docs
-- [ ] 3.2 Verify
-- [ ] 3.3 Browser check
+- [x] 3.1 Docs
+- [x] 3.2 Verify
+- [x] 3.3 Browser check
 
 ## Log
 
@@ -215,3 +215,45 @@ cells are a row of the real board tall and a bottom-anchored slot sits on its
 bottom edge. A grid without a design height comes out as before; a larger
 screen's Klondike skeleton has its columns a little higher, where the board
 puts them.
+
+### 3.1 Docs
+
+`.agents/AGENTS.md` and the `add-solitaire-game` skill moved with 1.2. The phone
+layout docs now point here: the options doc's "What shipped" names the renamed
+builder, and the phone layout log's status says it merged and what replaced its
+settings.
+
+### 3.2 Verify
+
+`yarn verify` passes: lint, type check, build, and 4427 tests. Coverage is
+98.39% of statements, 92.23% of branches, 98.97% of functions and 99.38% of
+lines, well above the floor, which was left as it is.
+
+### 3.3 Browser check
+
+Checked against `yarn start` in isolated contexts.
+
+- **1280 × 800, Klondike.** Auto lays out the classic grid, and the drawer
+  describes Auto as "Top here" and "Left here". Bottom and Right put the columns
+  along the top, the foundations at the bottom left and the stock at the bottom
+  right, the waste fanning towards the foundations with its top card beside the
+  stock. The cards are smaller, as 1.2 expected. A column of six hidden cards
+  under thirteen face up fits above the row at the 36-unit floor, every rank
+  readable. Top and Right is the classic grid mirrored, the columns in deal
+  order.
+- **390 × 844 upright, Klondike.** Auto gives the grid that shipped: stock at
+  the bottom right, the bar in its usual order. Top with the side on Auto puts
+  the stock at the top right. Bottom and Left puts it at the bottom left and
+  reverses the bar.
+- **844 × 390 on its side, Klondike.** Auto stands both rails on the bottom
+  edge: the foundations on the left, the stock above the waste on the right, the
+  chrome rail at the left, and the columns hanging from the top. The board is
+  held to the width here, so the rails leave room above them. Top and Left puts
+  the stock at the top of the left rail and the chrome rail at the right, the
+  board clear of it.
+- **Spider.** At 1280 × 800 Bottom with the side on Auto puts the stock at the
+  bottom left and the foundations along the bottom. On its side, Auto's rail
+  fills the height, so it is where it was. The loading skeleton's rail landed
+  inside the board.
+- **FreeCell** on an upright phone offers neither setting and keeps its grid,
+  and the presentation settings were stored under the new keys.
