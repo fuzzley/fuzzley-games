@@ -87,6 +87,14 @@ export class GameCanvasComponent {
   );
 
   /**
+   * Which side the stock is on, on the screen as it is now, which is the side
+   * the chrome on a phone stands opposite.
+   */
+  private readonly stockSide = computed(
+    () => this.presentation.resolvedArrangement().stockSide,
+  );
+
+  /**
    * What the deck being fetched is called, or null when the table is up to
    * date.
    */
@@ -101,12 +109,12 @@ export class GameCanvasComponent {
       this.host?.destroy();
     });
 
-    // A change of hand moves the rail on a sideways phone to the other edge
-    // without resizing anything, so the board would not otherwise hear of it.
-    // Read once the chrome has been drawn on its new side.
+    // A change of the stock's side moves the rail on a sideways phone to the
+    // other edge without resizing anything, so the board would not otherwise
+    // hear of it. Read once the chrome has been drawn on its new side.
     afterRenderEffect({
       read: () => {
-        this.presentation.hand();
+        this.stockSide();
         untracked(() => this.host?.refreshInsets());
       },
     });

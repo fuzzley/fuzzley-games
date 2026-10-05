@@ -39,7 +39,7 @@ export class TestPresentation implements TablePresentation {
     return this.arrangement;
   }
 
-  /** Changes where the piles go on an upright phone and the hand. */
+  /** Changes where the piles go and the stock's side. */
   setBoardArrangement(arrangement: BoardArrangement): void {
     this.arrangement = arrangement;
   }

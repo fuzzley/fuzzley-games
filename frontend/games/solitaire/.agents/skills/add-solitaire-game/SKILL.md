@@ -313,18 +313,21 @@ and the board are drawn on it. Every rule option of one entry must therefore
 deal onto the same grid, which `test/ui/app/provider/catalog.spec.ts` checks for
 every game.
 
-### Phone grids (optional)
+### Arranged grids (optional)
 
-Without phone grids a game lies on this one grid everywhere, compacted on a
-phone. To lay it out for a phone, declare its board to `phoneLayouts`
-(`src/games/common/phone_layouts.ts`) beside the grid, as Klondike and Spider
-do in `src/games/klondike/klondike_layout.ts` and
+Without arranged grids a game lies on this one grid everywhere, compacted on a
+phone. To lay it out for a phone, and let a player put its piles at the top or
+the bottom and its stock at the left or the right, declare its board to
+`arrangedLayouts` (`src/games/common/arranged_layouts.ts`) beside the grid, as
+Klondike and Spider do in `src/games/klondike/klondike_layout.ts` and
 `src/games/spider/spider_layout.ts`:
 
 ```ts
-export const MY_GAME_PHONE_LAYOUTS = phoneLayouts({
+export const MY_GAME_ARRANGED_LAYOUTS = arrangedLayouts({
+  roomy: MY_GAME_LAYOUT,
   columns: pileIdsInRow(ZONES, 1),
   row: pilesInRow(ZONES, 0),
+  stock: STOCK_PILE_ID,
   rails: {
     left: FOUNDATIONS.map((pileId) => ({ pileId, overlapped: true })),
     right: [{ pileId: STOCK_PILE_ID }],
@@ -333,8 +336,12 @@ export const MY_GAME_PHONE_LAYOUTS = phoneLayouts({
 });
 ```
 
+- **roomy** is the grid above, with the row over the columns; the larger
+  screen's grid with the row below them takes its gaps and padding.
 - **columns** fan down and take the height; **row** is the other piles, read
   off the zones with `pilesInRow`, so a pile is still placed in one place.
+- **stock** is the row pile the Stock Side setting places. A grid that has it
+  in the other half from the side chosen is mirrored.
 - **rails** say which row piles stack down which edge of a sideways phone. Every
   row pile goes on exactly one rail. Mark foundations `overlapped`; give a
   pile that spreads down the rail `spreadsDown` and the `reach` its cards
@@ -343,19 +350,25 @@ export const MY_GAME_PHONE_LAYOUTS = phoneLayouts({
   (`COVERED_FOUNDATION_PLACEHOLDER`, or `RAIL_FOUNDATION_PLACEHOLDER` for the
   last), through the grid's `pileBackgrounds`. Nothing to declare.
 - **longestColumn** is the column every grid keeps on screen with fans at
-  their floor; the builder sets each grid's design height from it.
+  their floor; the builder sets each phone grid's design height from it, and
+  grows the larger screen's grid with the row below the columns to fit it.
 - **pileLayouts** (optional) changes how a pile arranges its cards on every
   phone grid, as Spider's stock shows one sliver per deal.
 
-The builder gives three grids: upright with the row above the columns, upright
-with the row mirrored along the bottom (the default), and sideways with the
-rail piles at the edges. All three fit each column's fan to the room below it.
-Name them as `phoneLayouts` on the catalog entry (step 8). The settings drawer
-then offers the upright layout and the hand for the game, the board mirrors
-it for a left hand (keeping the columns in order), and the catalog spec checks
-every grid places every pile. Add a `<game>_layout.spec.ts` that the longest
-column fits the room below it on a few phone sizes, as
-`test/games/klondike/klondike_layout.spec.ts` does.
+The builder gives two grids for each shape of screen, the row at the top or
+the bottom: on a larger screen, the grid above and that grid with its rows the
+other way up; upright, the same with phone gaps; sideways, the rail piles at
+the edges, hung from the top or stood on the bottom. Every grid keeps the row
+in the order the larger screen has it and fits each column's fan to the room
+below it. Name them as `arrangedLayouts` on the catalog entry (step 8). The
+settings drawer then offers Piles and Stock Side for the game, each with an
+Auto that puts the piles at the bottom and the stock at the right on a phone
+and keeps the grid above on a larger screen; the board mirrors a grid to put
+the stock where it was asked for (keeping the columns in order), and the
+catalog spec checks every grid places every pile. Add a `<game>_layout.spec.ts`
+that the longest column fits the room below it on a few phone sizes, and that
+the stock goes where it is asked, as `test/games/klondike/klondike_layout.spec.ts`
+does.
 
 ---
 
@@ -396,7 +409,7 @@ Otherwise call `tableGestures(game, options)` with:
 ## 8. Register it — four provider edits
 
 1. **`src/ui/app/provider/game_catalog.ts`** — declare the entry (`id`, `name`,
-   `options`, `layout`, optional `phoneLayouts`, `create`) with `satisfies
+   `options`, `layout`, optional `arrangedLayouts`, `create`) with `satisfies
 CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
    preserves the literal id and concrete game type that the board registry is
    checked against. Add it to `CATALOG_ENTRIES`. `create` returns

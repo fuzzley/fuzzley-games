@@ -16,16 +16,21 @@ import {
   TABLE_THEMES,
   ThemeKey,
 } from "@/ui/app/model/table_theme";
-import type {
-  Hand,
-  PhonePilePosition,
+import {
+  OrAuto,
+  PilePosition,
+  StockSide,
+  resolveArrangement,
 } from "@/engine/render/layout/board_layouts";
+import type { FormFactor } from "@/engine/render/layout/form_factor";
 
 /**
  * Creates a mock of the presentation settings whose setters hold real state
  * behind their spies.
  *
- * Its viewport is never compact, so `auto` draws the desktop deck.
+ * Its viewport is never compact, so `auto` draws the desktop deck. Where the
+ * piles go and the stock's side are decided for its `formFactor`, which is
+ * roomy unless a spec sets it.
  */
 export function createMockPresentation(
   overrides: {
@@ -57,8 +62,13 @@ export function createMockPresentation(
   const cardDeckProblem = signal<string | null>(
     overrides.cardDeckProblem ?? null,
   );
-  const phonePiles = signal<PhonePilePosition>("bottom");
-  const hand = signal<Hand>("right");
+  const piles = signal<OrAuto<PilePosition>>("auto");
+  const stockSide = signal<OrAuto<StockSide>>("auto");
+  const formFactor = signal<FormFactor>("roomy");
+  const arrangement = computed(() => ({
+    piles: piles(),
+    stockSide: stockSide(),
+  }));
 
   return {
     cardBackStyle,
@@ -70,9 +80,13 @@ export function createMockPresentation(
     cardDeck,
     pendingCardDeck,
     cardDeckProblem,
-    phonePiles,
-    hand,
-    boardArrangement: () => ({ phonePiles: phonePiles(), hand: hand() }),
+    piles,
+    stockSide,
+    formFactor,
+    resolvedArrangement: computed(() =>
+      resolveArrangement(arrangement(), formFactor()),
+    ),
+    boardArrangement: () => arrangement(),
     cardBackKey: () => cardBackStyle(),
     cardDeckId: () => cardDeck(),
     onBackgroundColor: vi.fn(() => () => undefined),
@@ -90,11 +104,11 @@ export function createMockPresentation(
     setDesktopCardDeck: vi.fn((deckId: DesktopCardDeckId) => {
       desktopCardDeck.set(deckId);
     }),
-    setPhonePiles: vi.fn((position: PhonePilePosition) => {
-      phonePiles.set(position);
+    setPiles: vi.fn((position: OrAuto<PilePosition>) => {
+      piles.set(position);
     }),
-    setHand: vi.fn((chosen: Hand) => {
-      hand.set(chosen);
+    setStockSide: vi.fn((side: OrAuto<StockSide>) => {
+      stockSide.set(side);
     }),
   };
 }

@@ -157,13 +157,20 @@ describe("every game in the catalog", () => {
   );
 
   it.each(DEALS)(
-    "%s places every pile on each of its phone grids",
+    "%s places every pile on each of its arranged grids",
     (_name, entry, values) => {
       const game = asTableGame(entry.create(values).game);
       const piles = game.piles.map((pile) => pile.id).sort();
-      const phone = entry.phoneLayouts;
-      const grids: Record<string, TableLayoutSpec> = phone
-        ? { ...phone.portrait, landscape: phone.landscape }
+      const arranged = entry.arrangedLayouts;
+      const grids: Record<string, TableLayoutSpec> = arranged
+        ? {
+            "roomy-top": arranged.roomy.top,
+            "roomy-bottom": arranged.roomy.bottom,
+            "portrait-top": arranged.portrait.top,
+            "portrait-bottom": arranged.portrait.bottom,
+            "landscape-top": arranged.landscape.top,
+            "landscape-bottom": arranged.landscape.bottom,
+          }
         : {};
 
       const misplaced = Object.entries(grids)

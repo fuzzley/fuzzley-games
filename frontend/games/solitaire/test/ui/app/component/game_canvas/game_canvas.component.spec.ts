@@ -145,10 +145,10 @@ describe("GameCanvasComponent", () => {
       ).toEqual([{ destroyed: false, boardsShown: 2 }]);
     });
 
-    it("reads the chrome's insets again when the player changes hand", async () => {
+    it("reads the chrome's insets again when the stock changes side", async () => {
       const before = started[0].insetsRefreshed;
 
-      TestBed.inject(PresentationSettingsService).setHand("left");
+      TestBed.inject(PresentationSettingsService).setStockSide("right");
       fixture.detectChanges();
       await fixture.whenStable();
 
