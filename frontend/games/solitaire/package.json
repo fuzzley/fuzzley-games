@@ -16,6 +16,7 @@
     "build:prod": "vite build --mode production",
     "build:atlas": "node tools/build-card-atlas.mjs",
     "build:thumbs": "node tools/build-screenshot-thumbs.mjs",
+    "capture:screenshots": "node tools/capture-screenshots.mjs",
     "stop": "node tools/stop-dev-servers.mjs",
     "skills:link": "node .agents/link-claude-skills.mjs",
     "skills:check": "node .agents/check-skill-references.mjs",
