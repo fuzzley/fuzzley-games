@@ -1,16 +1,20 @@
 import { describe, it, expect } from "vitest";
 import { CARD_HEIGHT_PX } from "@/engine/render/layout/card_metrics";
 import { PileLayout } from "@/engine/render/layout/pile_layout";
-import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import {
+  TableLayoutSpec,
+  tableLayout,
+} from "@/engine/render/layout/table_layout";
 import {
   PHONE_FAN_FIT,
+  ROOMY_FAN_FIT,
   TABLEAU_HOVER_EXPANSION_OFFSET,
 } from "@/games/common/pile_layouts";
 import {
-  PhoneBoard,
+  ArrangedBoard,
   RAIL_MIN_STEP,
-  phoneLayouts,
-} from "@/games/common/phone_layouts";
+  arrangedLayouts,
+} from "@/games/common/arranged_layouts";
 import {
   COVERED_FOUNDATION_PLACEHOLDER,
   FOUNDATION_PLACEHOLDER,
@@ -20,15 +24,31 @@ import {
 
 const COLUMNS = ["col-0", "col-1", "col-2", "col-3", "col-4"];
 
-/** A made-up board: five columns, a stock and waste, and two foundations. */
-const BOARD: PhoneBoard = {
-  columns: COLUMNS,
-  row: [
-    { pileId: "stock", column: 0 },
-    { pileId: "waste", column: 1 },
-    { pileId: "found-0", column: 3 },
-    { pileId: "found-1", column: 4 },
+/** The row of piles above the columns on a larger screen. */
+const ROW = [
+  { pileId: "stock", column: 0 },
+  { pileId: "waste", column: 1 },
+  { pileId: "found-0", column: 3 },
+  { pileId: "found-1", column: 4 },
+];
+
+/** The made-up board's grid for a larger screen, the row above the columns. */
+const ROOMY = tableLayout({
+  columns: 5,
+  rows: 2,
+  slots: [
+    ...ROW.map(({ pileId, column }) => ({ pileId, column, row: 0 })),
+    ...COLUMNS.map((pileId, column) => ({ pileId, column, row: 1 })),
   ],
+  designHeightPx: 900,
+});
+
+/** A made-up board: five columns, a stock and waste, and two foundations. */
+const BOARD: ArrangedBoard = {
+  roomy: ROOMY,
+  columns: COLUMNS,
+  row: ROW,
+  stock: "stock",
   rails: {
     left: [
       { pileId: "found-0", overlapped: true },
@@ -52,6 +72,11 @@ const SPREAD: PileLayout = {
 /** Returns the slot a grid gives a pile. */
 function slotOf(grid: TableLayoutSpec, pileId: string) {
   return grid.slots.find((slot) => slot.pileId === pileId);
+}
+
+/** Returns how far down its grid cell a pile sits. */
+function topOf(grid: TableLayoutSpec, pileId: string): number {
+  return slotOf(grid, pileId)?.offset?.y ?? 0;
 }
 
 /** Returns how a pile arranges its cards on a grid, given its own spread. */
@@ -78,12 +103,17 @@ const LONGEST =
   7 * PHONE_FAN_FIT.minFaceUpGap +
   TABLEAU_HOVER_EXPANSION_OFFSET;
 
-describe("phoneLayouts", () => {
-  const layouts = phoneLayouts(BOARD);
-  const grids: [string, TableLayoutSpec][] = [
+describe("arrangedLayouts", () => {
+  const layouts = arrangedLayouts(BOARD);
+  const phoneGrids: [string, TableLayoutSpec][] = [
     ["piles above", layouts.portrait.top],
     ["piles below", layouts.portrait.bottom],
-    ["on its side", layouts.landscape],
+    ["rails from the top", layouts.landscape.top],
+    ["rails on the bottom", layouts.landscape.bottom],
+  ];
+  const grids: [string, TableLayoutSpec][] = [
+    ["larger screen's piles below", layouts.roomy.bottom],
+    ...phoneGrids,
   ];
 
   it.each(grids)("places every pile once with the %s", (_name, grid) => {
@@ -94,20 +124,85 @@ describe("phoneLayouts", () => {
     );
   });
 
-  it.each(grids)("fits the fans with the %s", (_name, grid) => {
+  it.each(phoneGrids)("fits the fans with the %s", (_name, grid) => {
     expect(grid.fanFit).toEqual(PHONE_FAN_FIT);
   });
 
-  it.each(grids)(
+  it.each(phoneGrids)(
     "keeps the longest column on screen with the %s",
     (_name, grid) => {
-      const below = grid === layouts.portrait.top ? CARD_HEIGHT_PX + 10 : 0;
+      const above = grid === layouts.portrait.top ? CARD_HEIGHT_PX + 10 : 0;
+      const below = grid === layouts.portrait.bottom ? CARD_HEIGHT_PX + 10 : 0;
 
       expect(grid.designHeightPx! - 2 * grid.padding.y).toBeGreaterThanOrEqual(
-        below + LONGEST,
+        above + LONGEST + below,
       );
     },
   );
+
+  it("names the columns, which a mirror keeps in order", () => {
+    expect(layouts.columns).toEqual(COLUMNS);
+  });
+
+  it("names the stock, whose side decides the mirror", () => {
+    expect(layouts.stock).toBe("stock");
+  });
+
+  describe("a larger screen, piles above", () => {
+    it("is the board's own grid", () => {
+      expect(layouts.roomy.top).toBe(ROOMY);
+    });
+  });
+
+  describe("a larger screen, piles below", () => {
+    const grid = layouts.roomy.bottom;
+
+    it("keeps the larger screen's gaps and padding", () => {
+      expect([grid.gap, grid.padding]).toEqual([ROOMY.gap, ROOMY.padding]);
+    });
+
+    it("keeps the larger screen's height when the longest column fits", () => {
+      const roomy = tableLayout({ ...ROOMY, designHeightPx: 2000 });
+
+      expect(
+        arrangedLayouts({ ...BOARD, roomy }).roomy.bottom.designHeightPx,
+      ).toBe(2000);
+    });
+
+    it("grows tall enough to keep the longest column clear of the row", () => {
+      const longest =
+        CARD_HEIGHT_PX +
+        3 * ROOMY_FAN_FIT.minFaceDownGap +
+        7 * ROOMY_FAN_FIT.minFaceUpGap +
+        TABLEAU_HOVER_EXPANSION_OFFSET;
+
+      expect(grid.designHeightPx! - 2 * grid.padding.y).toBe(
+        longest + grid.gap.y + CARD_HEIGHT_PX,
+      );
+    });
+
+    it("lays the columns out along the top", () => {
+      expect(slotOf(grid, "col-2")).toEqual({
+        pileId: "col-2",
+        column: 2,
+        row: 0,
+      });
+    });
+
+    it("puts the row along the bottom edge, in its own columns", () => {
+      expect(
+        ["stock", "waste", "found-0"].map((pileId) => slotOf(grid, pileId)),
+      ).toEqual([
+        { pileId: "stock", column: 0, row: 0, anchor: "bottom" },
+        { pileId: "waste", column: 1, row: 0, anchor: "bottom" },
+        { pileId: "found-0", column: 3, row: 0, anchor: "bottom" },
+      ]);
+    });
+
+    it("fits the fans to the room above the row, never wider than their own gaps", () => {
+      expect(grid.fanFit).toEqual(ROOMY_FAN_FIT);
+    });
+  });
 
   describe("upright, piles above", () => {
     const grid = layouts.portrait.top;
@@ -144,29 +239,23 @@ describe("phoneLayouts", () => {
       });
     });
 
-    it("mirrors the row along the bottom edge", () => {
+    it("puts the row along the bottom edge, in its own columns", () => {
       expect(
         ["stock", "waste", "found-0"].map((pileId) => slotOf(grid, pileId)),
       ).toEqual([
-        { pileId: "stock", column: 4, row: 0, anchor: "bottom" },
-        { pileId: "waste", column: 3, row: 0, anchor: "bottom" },
-        { pileId: "found-0", column: 1, row: 0, anchor: "bottom" },
+        { pileId: "stock", column: 0, row: 0, anchor: "bottom" },
+        { pileId: "waste", column: 1, row: 0, anchor: "bottom" },
+        { pileId: "found-0", column: 3, row: 0, anchor: "bottom" },
       ]);
     });
 
-    it("turns the row's spreads around", () => {
-      expect(arrangementOn(grid, "waste")).toMatchObject({
-        direction: "left",
-      });
-    });
-
-    it("leaves the columns' arrangements alone", () => {
-      expect(grid.pileLayouts?.["col-0"]).toBeUndefined();
+    it("leaves the piles' arrangements alone", () => {
+      expect(arrangementOn(grid, "waste")).toBe(SPREAD);
     });
   });
 
-  describe("on its side", () => {
-    const grid = layouts.landscape;
+  describe("on its side, rails from the top", () => {
+    const grid = layouts.landscape.top;
 
     it("puts the columns between the rails, from the top", () => {
       expect([grid.columns, slotOf(grid, "col-0")]).toEqual([
@@ -184,17 +273,68 @@ describe("phoneLayouts", () => {
     });
 
     it("stacks a rail's piles down it, each below the last when they fit", () => {
-      expect(
-        [slotOf(grid, "stock"), slotOf(grid, "waste")].map(
-          (slot) => slot?.offset?.y,
-        ),
-      ).toEqual([0, CARD_HEIGHT_PX + 10]);
+      expect([topOf(grid, "stock"), topOf(grid, "waste")]).toEqual([
+        0,
+        CARD_HEIGHT_PX + 10,
+      ]);
     });
 
     it("turns a pile's spread down the rail", () => {
       expect(arrangementOn(grid, "waste")).toMatchObject({
         direction: "down",
       });
+    });
+  });
+
+  describe("on its side, rails on the bottom", () => {
+    const grid = layouts.landscape.bottom;
+
+    it("puts the columns and the rails where the rails from the top do", () => {
+      const columnsOf = (spec: TableLayoutSpec) =>
+        spec.slots.map((slot) => [slot.pileId, slot.column]);
+
+      expect(columnsOf(grid)).toEqual(columnsOf(layouts.landscape.top));
+    });
+
+    it("leaves the columns hanging from the top", () => {
+      expect(slotOf(grid, "col-0")).toEqual({
+        pileId: "col-0",
+        column: 1,
+        row: 0,
+      });
+    });
+
+    it("stands each rail on the bottom edge", () => {
+      expect(
+        ["found-0", "stock"].map((pileId) => slotOf(grid, pileId)?.anchor),
+      ).toEqual(["bottom", "bottom"]);
+    });
+
+    it("keeps a rail's piles in their order, as far apart as from the top", () => {
+      expect(topOf(grid, "waste") - topOf(grid, "stock")).toBe(
+        CARD_HEIGHT_PX + 10,
+      );
+    });
+
+    it("ends the stack's last pile, spread and all, at the bottom edge", () => {
+      // The waste reaches 110 below its own card.
+      expect(topOf(grid, "waste")).toBe(-110);
+    });
+
+    it("turns a pile's spread down the rail", () => {
+      expect(arrangementOn(grid, "waste")).toMatchObject({
+        direction: "down",
+      });
+    });
+
+    it("marks the foundations as the rails from the top do", () => {
+      expect(
+        ["found-0", "found-1"].map((pileId) => artworkOn(grid, pileId)),
+      ).toEqual(
+        ["found-0", "found-1"].map((pileId) =>
+          artworkOn(layouts.landscape.top, pileId),
+        ),
+      );
     });
   });
 
@@ -205,15 +345,17 @@ describe("phoneLayouts", () => {
         { length: foundations },
         (_, index) => `found-${index}`,
       );
-      return phoneLayouts({
+      return arrangedLayouts({
+        roomy: ROOMY,
         columns: COLUMNS,
         row: ids.map((pileId, column) => ({ pileId, column })),
+        stock: "found-0",
         rails: {
           left: ids.map((pileId) => ({ pileId, overlapped: true })),
           right: [],
         },
         longestColumn: { faceDown: 0, faceUp: 4 },
-      }).landscape;
+      }).landscape.top;
     }
 
     /** Returns the gap between successive foundations down the rail. */
@@ -272,13 +414,13 @@ describe("phoneLayouts", () => {
 
   describe("placeholders", () => {
     it("closes a foundation the next pile down the rail clears", () => {
-      expect(artworkOn(layouts.landscape, "found-0")).toBe(
+      expect(artworkOn(layouts.landscape.top, "found-0")).toBe(
         RAIL_FOUNDATION_PLACEHOLDER,
       );
     });
 
     it("leaves a rail pile that may not be overlapped alone", () => {
-      expect(artworkOn(layouts.landscape, "stock")).toBe(
+      expect(artworkOn(layouts.landscape.top, "stock")).toBe(
         FOUNDATION_PLACEHOLDER,
       );
     });
@@ -299,37 +441,27 @@ describe("phoneLayouts", () => {
       maxVisible: Number.POSITIVE_INFINITY,
       groupSize: 10,
     });
-    const own = phoneLayouts({ ...BOARD, pileLayouts: { stock: slivers } });
+    const own = arrangedLayouts({ ...BOARD, pileLayouts: { stock: slivers } });
 
     expect(
-      [own.portrait.top, own.portrait.bottom, own.landscape].map((grid) =>
+      [own.portrait.top, own.portrait.bottom, own.landscape.top].map((grid) =>
         arrangementOn(grid, "stock"),
       ),
-    ).toEqual([slivers(), { ...slivers(), direction: "left" }, slivers()]);
+    ).toEqual([slivers(), slivers(), slivers()]);
   });
 
-  it("names the columns, which a mirror keeps in order", () => {
-    expect(layouts.columns).toEqual(COLUMNS);
-  });
-
-  it("lays a board with no row out in one grid row", () => {
-    const bare = phoneLayouts({
-      columns: COLUMNS,
-      row: [],
-      rails: { left: [], right: [] },
-      longestColumn: { faceDown: 0, faceUp: 13 },
+  it("leaves the larger screen's piles to arrange themselves", () => {
+    const own = arrangedLayouts({
+      ...BOARD,
+      pileLayouts: { stock: () => SPREAD },
     });
 
-    expect(
-      [bare.portrait.top, bare.portrait.bottom, bare.landscape].map(
-        (grid) => grid.rows,
-      ),
-    ).toEqual([1, 1, 1]);
+    expect(own.roomy.bottom.pileLayouts).toBeUndefined();
   });
 
   it("refuses a pile in the row that is on no rail", () => {
     expect(() =>
-      phoneLayouts({
+      arrangedLayouts({
         ...BOARD,
         rails: { ...BOARD.rails, left: BOARD.rails.left.slice(1) },
       }),
@@ -338,7 +470,7 @@ describe("phoneLayouts", () => {
 
   it("refuses a pile that is on both rails", () => {
     expect(() =>
-      phoneLayouts({
+      arrangedLayouts({
         ...BOARD,
         rails: {
           left: BOARD.rails.left,
@@ -346,5 +478,11 @@ describe("phoneLayouts", () => {
         },
       }),
     ).toThrow(/found-0/);
+  });
+
+  it("refuses a stock that is not in the row", () => {
+    expect(() => arrangedLayouts({ ...BOARD, stock: "col-0" })).toThrow(
+      /col-0/,
+    );
   });
 });

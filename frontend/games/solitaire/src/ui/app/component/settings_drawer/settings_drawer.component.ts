@@ -16,8 +16,13 @@ import {
   CardStyle,
   PresentationSettingsService,
 } from "../../service/presentation_settings.service";
-import { ViewportService } from "../../service/viewport.service";
-import { Hand, PhonePilePosition } from "@/engine/render/layout/board_layouts";
+import {
+  AUTO_ARRANGEMENTS,
+  OrAuto,
+  PilePosition,
+  StockSide,
+} from "@/engine/render/layout/board_layouts";
+import { FormFactor } from "@/engine/render/layout/form_factor";
 import { GameOptionChoice, GameOptionSpec } from "../../provider/game_catalog";
 import {
   DESKTOP_CARD_DECKS,
@@ -105,44 +110,80 @@ const CARD_STYLE_CHOICES: readonly GameOptionChoice<CardStyle>[] = [
   },
 ];
 
-/** Where an upright phone puts the piles that are not columns, first. */
-const PILES_BELOW: GameOptionChoice<PhonePilePosition> = {
+/**
+ * Leaving where the piles go to the screen, which a player starts with. It is
+ * described by what it picks, which depends on the screen.
+ */
+const AUTO_PILES: GameOptionChoice<OrAuto<PilePosition>> = {
   value: 0,
-  rule: "bottom",
-  label: "Piles Below",
-  description: "The stock and foundations along the bottom, under your thumb.",
+  rule: "auto",
+  label: "Auto",
 };
 
-/** The places an upright phone can put the piles, in the order shown. */
-const PHONE_PILE_CHOICES: readonly GameOptionChoice<PhonePilePosition>[] = [
-  PILES_BELOW,
+/** The places the piles can go, in the order shown. */
+const PILES_CHOICES: readonly GameOptionChoice<OrAuto<PilePosition>>[] = [
+  AUTO_PILES,
   {
     value: 1,
     rule: "top",
-    label: "Piles Above",
+    label: "Top",
     description:
-      "The stock and foundations above the columns, as on a larger screen.",
+      "The stock and foundations above the columns, or at the top of a sideways phone's rails.",
+  },
+  {
+    value: 2,
+    rule: "bottom",
+    label: "Bottom",
+    description:
+      "The stock and foundations along the bottom, under your thumb, or at the foot of a sideways phone's rails.",
   },
 ];
 
-/** The hand a player starts with. */
-const RIGHT_HAND: GameOptionChoice<Hand> = {
+/**
+ * Leaving the stock's side to the screen, which a player starts with,
+ * described like {@link AUTO_PILES}.
+ */
+const AUTO_STOCK_SIDE: GameOptionChoice<OrAuto<StockSide>> = {
   value: 0,
-  rule: "right",
-  label: "Right Hand",
-  description: "The table as it is usually laid out.",
+  rule: "auto",
+  label: "Auto",
 };
 
-/** The hands on offer, in the order shown. */
-const HAND_CHOICES: readonly GameOptionChoice<Hand>[] = [
-  RIGHT_HAND,
+/** The sides the stock can go on, in the order shown. */
+const STOCK_SIDE_CHOICES: readonly GameOptionChoice<OrAuto<StockSide>>[] = [
+  AUTO_STOCK_SIDE,
   {
     value: 1,
     rule: "left",
-    label: "Left Hand",
-    description: "The table mirrored, with the stock on the other side.",
+    label: "Left",
+    description: "The stock at the left of the table.",
+  },
+  {
+    value: 2,
+    rule: "right",
+    label: "Right",
+    description: "The stock at the right of the table.",
   },
 ];
+
+/**
+ * Returns what Auto does with a part of the board's arrangement: what it picks
+ * on a phone and on a larger screen, and so what it picks on this screen.
+ *
+ * @param picks What Auto picks on a shape of screen.
+ */
+function autoDescription<T>(
+  choices: readonly GameOptionChoice<T>[],
+  picks: (formFactor: FormFactor) => T,
+  here: T,
+): string {
+  const label = (rule: T) =>
+    choices.find((choice) => choice.rule === rule)?.label ?? String(rule);
+  return (
+    `${label(picks("phone-portrait"))} on a phone, upright or on its side, ` +
+    `and ${label(picks("roomy"))} on a larger screen: ${label(here)} here.`
+  );
+}
 
 /** Describes one table felt swatch, resolved for rendering. */
 interface ThemeSwatch {
@@ -173,7 +214,6 @@ export class SettingsDrawerComponent {
   private readonly lifecycle = inject(GameLifecycleService);
 
   protected readonly presentation = inject(PresentationSettingsService);
-  private readonly viewport = inject(ViewportService);
   private readonly docService = inject(GameDocumentationService);
   private readonly bugReport = inject(BugReportService);
 
@@ -197,53 +237,62 @@ export class SettingsDrawerComponent {
     },
   );
 
-  /** Whether the game on the table has grids of its own for a phone. */
-  protected readonly hasPhoneGrids = computed(
-    () => this.catalog.selectedEntry.phoneLayouts !== undefined,
-  );
-
   /**
-   * Whether to offer where an upright phone puts the piles: on an upright
-   * phone, the only screen it changes, in a game with phone grids.
+   * Whether the game on the table has grids for every arrangement, which is
+   * when where its piles go and the stock's side are offered, on every screen.
    */
-  protected readonly offersPhonePiles = computed(
-    () =>
-      this.hasPhoneGrids() && this.viewport.formFactor() === "phone-portrait",
+  protected readonly hasArrangedGrids = computed(
+    () => this.catalog.selectedEntry.arrangedLayouts !== undefined,
   );
 
-  /** Where an upright phone puts the piles, as checked. */
-  protected readonly phonePilesChoice = computed(
+  /** Where the piles go, as checked. */
+  protected readonly pilesChoice = computed(
     () =>
-      PHONE_PILE_CHOICES.find(
-        (choice) => choice.rule === this.presentation.phonePiles(),
-      ) ?? PILES_BELOW,
+      PILES_CHOICES.find(
+        (choice) => choice.rule === this.presentation.piles(),
+      ) ?? AUTO_PILES,
   );
 
-  /** Where an upright phone puts the piles, offered like a rule. */
-  protected readonly phonePilesOption = computed<
-    GameOptionSpec<PhonePilePosition>
+  /** Where the piles go, offered like a rule, described by the choice checked. */
+  protected readonly pilesOption = computed<
+    GameOptionSpec<OrAuto<PilePosition>>
   >(() => ({
-    id: "phonePiles",
-    label: "Upright Phone Layout",
-    description: this.phonePilesChoice().description,
-    choices: PHONE_PILE_CHOICES,
-    defaultValue: PILES_BELOW.value,
+    id: "piles",
+    label: "Piles",
+    description:
+      this.pilesChoice().description ??
+      autoDescription(
+        PILES_CHOICES,
+        (formFactor) => AUTO_ARRANGEMENTS[formFactor].piles,
+        this.presentation.resolvedArrangement().piles,
+      ),
+    choices: PILES_CHOICES,
+    defaultValue: AUTO_PILES.value,
   }));
 
-  /** The hand the table is laid out for, as checked. */
-  protected readonly handChoice = computed(
+  /** The stock's side, as checked. */
+  protected readonly stockSideChoice = computed(
     () =>
-      HAND_CHOICES.find((choice) => choice.rule === this.presentation.hand()) ??
-      RIGHT_HAND,
+      STOCK_SIDE_CHOICES.find(
+        (choice) => choice.rule === this.presentation.stockSide(),
+      ) ?? AUTO_STOCK_SIDE,
   );
 
-  /** The hand the table is laid out for, offered like a rule. */
-  protected readonly handOption = computed<GameOptionSpec<Hand>>(() => ({
-    id: "hand",
-    label: "Layout For",
-    description: this.handChoice().description,
-    choices: HAND_CHOICES,
-    defaultValue: RIGHT_HAND.value,
+  /** The stock's side, offered like a rule, described by the choice checked. */
+  protected readonly stockSideOption = computed<
+    GameOptionSpec<OrAuto<StockSide>>
+  >(() => ({
+    id: "stockSide",
+    label: "Stock Side",
+    description:
+      this.stockSideChoice().description ??
+      autoDescription(
+        STOCK_SIDE_CHOICES,
+        (formFactor) => AUTO_ARRANGEMENTS[formFactor].stockSide,
+        this.presentation.resolvedArrangement().stockSide,
+      ),
+    choices: STOCK_SIDE_CHOICES,
+    defaultValue: AUTO_STOCK_SIDE.value,
   }));
 
   /** The card style that is checked. */
@@ -338,16 +387,16 @@ export class SettingsDrawerComponent {
     void this.lifecycle.setRuleOption(optionId, value);
   }
 
-  /** Puts an upright phone's piles where the option group handed back. */
-  protected choosePhonePiles(value: number): void {
-    const choice = PHONE_PILE_CHOICES.find((pile) => pile.value === value);
-    if (choice) this.presentation.setPhonePiles(choice.rule);
+  /** Puts the piles where the option group handed back. */
+  protected choosePiles(value: number): void {
+    const choice = PILES_CHOICES.find((piles) => piles.value === value);
+    if (choice) this.presentation.setPiles(choice.rule);
   }
 
-  /** Lays the table out for the hand the option group handed back. */
-  protected chooseHand(value: number): void {
-    const choice = HAND_CHOICES.find((hand) => hand.value === value);
-    if (choice) this.presentation.setHand(choice.rule);
+  /** Puts the stock on the side the option group handed back. */
+  protected chooseStockSide(value: number): void {
+    const choice = STOCK_SIDE_CHOICES.find((side) => side.value === value);
+    if (choice) this.presentation.setStockSide(choice.rule);
   }
 
   /** Draws the cards in the style the option group handed back. */

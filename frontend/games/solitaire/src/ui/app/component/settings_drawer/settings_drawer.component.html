@@ -32,23 +32,19 @@
         />
       }
 
-      <!-- Where the piles go, on an upright phone, in a game laid out for one -->
-      @if (offersPhonePiles()) {
+      <!-- Where the piles go and the stock's side, in a game laid out for both -->
+      @if (hasArrangedGrids()) {
         <app-option-group
-          class="phone-piles"
-          [option]="phonePilesOption()"
-          [value]="phonePilesChoice().value"
-          (choose)="choosePhonePiles($event)"
+          class="piles"
+          [option]="pilesOption()"
+          [value]="pilesChoice().value"
+          (choose)="choosePiles($event)"
         />
-      }
-
-      <!-- The hand, in a game laid out for a phone, which can be mirrored -->
-      @if (hasPhoneGrids()) {
         <app-option-group
-          class="hand"
-          [option]="handOption()"
-          [value]="handChoice().value"
-          (choose)="chooseHand($event)"
+          class="stock-side"
+          [option]="stockSideOption()"
+          [value]="stockSideChoice().value"
+          (choose)="chooseStockSide($event)"
         />
       }
 

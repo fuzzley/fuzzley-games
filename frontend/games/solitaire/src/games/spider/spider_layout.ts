@@ -2,10 +2,10 @@ import { CARD_HEIGHT_PX } from "@/engine/render/layout/card_metrics";
 import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { boardLayout } from "../common/board_layout";
 import {
-  phoneLayouts,
+  arrangedLayouts,
   pileIdsInRow,
   pilesInRow,
-} from "../common/phone_layouts";
+} from "../common/arranged_layouts";
 import { STOCK_PILE_ID, TABLEAU_COUNT, spiderZoneSpecs } from "./spider_zones";
 
 /** The zones the grids are read from. */
@@ -48,13 +48,16 @@ export const SPIDER_LAYOUT = boardLayout({
 });
 
 /**
- * The Spider board on a phone. Upright, the stock comes to the bottom right and
- * the foundations to the bottom left, or stay above the columns. On its side,
- * the stock and then the foundations stack down a rail at the right.
+ * The Spider board in every arrangement. The stock goes with the foundations
+ * above the columns or along the bottom, at whichever side the player asks
+ * for. On a phone on its side, the stock and then the foundations stack down
+ * one rail.
  */
-export const SPIDER_PHONE_LAYOUTS = phoneLayouts({
+export const SPIDER_ARRANGED_LAYOUTS = arrangedLayouts({
+  roomy: SPIDER_LAYOUT,
   columns: pileIdsInRow(ZONES, 1),
   row: pilesInRow(ZONES, 0),
+  stock: STOCK_PILE_ID,
   rails: {
     left: [],
     right: [

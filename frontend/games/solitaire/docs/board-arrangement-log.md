@@ -123,9 +123,9 @@ Settled with the project owner on 2026-10-05.
 
 - [x] 0.1 Record the plan
 - [x] 1.1 Room beside a bottom rail
-- [ ] 1.2 Arrangement, chooser and grids
-- [ ] 2.1 Settings service
-- [ ] 2.2 Settings drawer
+- [x] 1.2 Arrangement, chooser and grids
+- [x] 2.1 Settings service
+- [x] 2.2 Settings drawer
 - [ ] 2.3 Chrome and skeleton
 - [ ] 3.1 Docs
 - [ ] 3.2 Verify
@@ -146,3 +146,60 @@ lower grid row than the pile it limits, read from the top through
 `rowFromTop`. An upright phone's bottom row still stops every column; a rail in
 the columns' own row stops only the piles above it on the rail. Two specs cover
 the rail.
+
+### 1.2 Arrangement, chooser and grids; 2.1 and 2.2 with it
+
+These landed together, since the shell could not compile against the new
+arrangement without its settings and drawer moving too.
+
+- **Engine.** `board_layouts.ts` has `PilePosition`, `StockSide`, `OrAuto`,
+  `BoardArrangement` (`piles`, `stockSide`, both `"auto"` by default),
+  `ResolvedArrangement`, `AUTO_ARRANGEMENTS` and `resolveArrangement`.
+  `PhoneLayouts` became `ArrangedLayouts`: a `top` and a `bottom` grid for
+  `roomy`, `portrait` and `landscape`, plus `columns` and `stock`.
+  `BoardLayouts.phone` became `arranged`. `chooseTableLayout` resolves the
+  arrangement, picks the grid, and mirrors it (columns kept in order) when the
+  stock's column is in the other half; a stock in the middle column, or absent,
+  is left alone.
+- **Builder.** `games/common/phone_layouts.ts` is now `arranged_layouts.ts`, with
+  `arrangedLayouts(board)` and `ArrangedBoard`, which gains `roomy` and `stock`
+  (checked to be in the row). The upright grid with the piles below no longer
+  mirrors the row; the chooser's mirror gives the same grid as before for a
+  stock at the right. New grids: the larger screen's with the row along the
+  bottom, and the sideways one with each rail stood on the bottom edge, in the
+  same order. Since every board now has a row, the no-row branches went.
+- **The larger screen's bottom grid is taller when it must be.** On a 16:9
+  desktop the columns get only about 520 design units above the row, so a long
+  Klondike run would spill over the stock and foundations. That grid reserves
+  room for the longest column at `ROOMY_FAN_FIT`'s floors (36 face up, 10 face
+  down, never wider than the usual 45), which makes Klondike's 1217 units tall
+  rather than 877. The cards are smaller when a player picks Bottom on a
+  desktop; Auto keeps the grid above there.
+- **Games and catalog.** `KLONDIKE_ARRANGED_LAYOUTS` and
+  `SPIDER_ARRANGED_LAYOUTS`; the catalog entry field is `arrangedLayouts`, and
+  `boardLayoutsOf` hands it on. A stray doc comment above `boardLayoutsOf` that
+  belonged to `catalogEntry` moved back.
+- **Settings service (2.1).** `piles` and `stockSide` signals, `setPiles`,
+  `setStockSide`, and `resolvedArrangement`, computed from the viewport's form
+  factor. Stored under `piles` and `stockSide`; `phonePiles: "top"` and
+  `hand: "left"` from the last build are read once, and the old keys go with
+  the next save.
+- **Drawer (2.2).** "Piles" (Auto, Top, Bottom) and "Stock Side" (Auto, Left,
+  Right), shown for any game with arranged grids on every screen. Auto has no
+  fixed description: the drawer builds one from `AUTO_ARRANGEMENTS` and the
+  resolved arrangement, such as "Bottom on a phone, upright or on its side, and
+  Top on a larger screen: Top here." The drawer no longer needs the viewport.
+- **Chrome (part of 2.3).** The app root writes the resolved side to
+  `data-stock-side`, which the header and canvas stylesheets read where they
+  read `data-hand`; the canvas refreshes the chrome's insets when the resolved
+  side changes.
+- **Docs (part of 3.1).** `.agents/AGENTS.md` and the `add-solitaire-game`
+  skill describe the arranged grids.
+- **Specs.** The chooser over every screen and choice, Auto, the builder's new
+  grids, Klondike's and Spider's grids under Auto and all four choices on six
+  phone sizes and a desktop, the stock landing on the side asked for, the
+  settings' storage and migration, the drawer's groups and Auto descriptions,
+  and the document root's side. The presentation double gained a `formFactor`
+  signal so a spec can decide Auto for a phone.
+- **Environment.** `yarn tsc` failed on `@types/node` because this checkout's
+  `node_modules` predated `9ec136f`; `yarn install --immutable` fixed it.

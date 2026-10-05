@@ -5,10 +5,10 @@ import {
   WASTE_MAX_FAN_CARDS,
 } from "../common/pile_layouts";
 import {
-  phoneLayouts,
+  arrangedLayouts,
   pileIdsInRow,
   pilesInRow,
-} from "../common/phone_layouts";
+} from "../common/arranged_layouts";
 import {
   STOCK_PILE_ID,
   TABLEAU_COUNT,
@@ -41,14 +41,16 @@ export const KLONDIKE_LAYOUT = boardLayout({
 });
 
 /**
- * The Klondike board on a phone. Upright, the stock and waste come to the
- * bottom right and the foundations to the bottom left, or stay above the
- * columns. On its side, the foundations stack down the left rail and the stock
- * tops the right one, with the waste spreading down under it.
+ * The Klondike board in every arrangement. The stock and waste go with the
+ * foundations above the columns or along the bottom, at whichever side the
+ * player asks for. On a phone on its side, the foundations stack down one rail
+ * and the stock tops the other, with the waste spreading down under it.
  */
-export const KLONDIKE_PHONE_LAYOUTS = phoneLayouts({
+export const KLONDIKE_ARRANGED_LAYOUTS = arrangedLayouts({
+  roomy: KLONDIKE_LAYOUT,
   columns: pileIdsInRow(ZONES, 1),
   row: pilesInRow(ZONES, 0),
+  stock: STOCK_PILE_ID,
   rails: {
     left: FOUNDATIONS.map((pileId) => ({ pileId, overlapped: true })),
     right: [
