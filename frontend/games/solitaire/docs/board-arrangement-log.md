@@ -126,7 +126,7 @@ Settled with the project owner on 2026-10-05.
 - [x] 1.2 Arrangement, chooser and grids
 - [x] 2.1 Settings service
 - [x] 2.2 Settings drawer
-- [ ] 2.3 Chrome and skeleton
+- [x] 2.3 Chrome and skeleton
 - [ ] 3.1 Docs
 - [ ] 3.2 Verify
 - [ ] 3.3 Browser check
@@ -203,3 +203,15 @@ arrangement without its settings and drawer moving too.
   signal so a spec can decide Auto for a phone.
 - **Environment.** `yarn tsc` failed on `@types/node` because this checkout's
   `node_modules` predated `9ec136f`; `yarn install --immutable` fixed it.
+
+### 2.3 Chrome and skeleton
+
+The chrome moved with 1.2. The loading skeleton counted a grid's height in its
+rows alone, so on a board taller than its grid, as every phone grid is, an
+offset rail pile already landed below the board, and a rail stood on the
+bottom edge would have landed above it. `skeletonSlots` now counts the extra
+design height as rows, measured as the board measures it, so the skeleton's
+cells are a row of the real board tall and a bottom-anchored slot sits on its
+bottom edge. A grid without a design height comes out as before; a larger
+screen's Klondike skeleton has its columns a little higher, where the board
+puts them.
