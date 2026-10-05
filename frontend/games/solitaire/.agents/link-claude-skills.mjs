@@ -16,8 +16,19 @@ const REPO_ROOT = path.dirname(AGENTS_DIR);
 const SOURCE_DIR = path.join(AGENTS_DIR, "skills");
 const TARGET_DIR = path.join(REPO_ROOT, ".claude", "skills");
 
-// Returns the skills in `sourceDir`: each directory directly under it that
-// holds a `SKILL.md`.
+/**
+ * The skills a run linked, left alone or skipped, by what happened to each.
+ *
+ * @typedef {{created: string[], repaired: string[], current: string[], pruned: string[], conflicts: string[], foreign: string[]}} LinkResults
+ */
+
+/**
+ * Returns the skills in `sourceDir`: each directory directly under it that
+ * holds a `SKILL.md`.
+ *
+ * @param {string} sourceDir
+ * @returns {string[]}
+ */
 function discoverSkills(sourceDir) {
   return fs
     .readdirSync(sourceDir, { withFileTypes: true })
@@ -27,17 +38,30 @@ function discoverSkills(sourceDir) {
     .sort();
 }
 
-// Windows junctions report as directories, so unlink fails on them; rmdir
-// removes the link without touching what it points at.
+/**
+ * Removes a link without touching what it points at.
+ *
+ * Windows junctions report as directories, so unlink fails on them, and rmdir
+ * removes them instead.
+ *
+ * @param {string} linkPath
+ */
 function removeLink(linkPath) {
   try {
     fs.unlinkSync(linkPath);
   } catch (error) {
-    if (error.code !== "EPERM" && error.code !== "EISDIR") throw error;
+    const { code } = /** @type {NodeJS.ErrnoException} */ (error);
+    if (code !== "EPERM" && code !== "EISDIR") throw error;
     fs.rmdirSync(linkPath);
   }
 }
 
+/**
+ * Returns where a link points, or null if the path is not a link.
+ *
+ * @param {string} linkPath
+ * @returns {string | null}
+ */
 function readLinkTarget(linkPath) {
   try {
     return fs.readlinkSync(linkPath);
@@ -46,6 +70,12 @@ function readLinkTarget(linkPath) {
   }
 }
 
+/**
+ * Returns whether a path is a link.
+ *
+ * @param {string} linkPath
+ * @returns {boolean}
+ */
 function isLink(linkPath) {
   try {
     return fs.lstatSync(linkPath).isSymbolicLink();
@@ -54,6 +84,12 @@ function isLink(linkPath) {
   }
 }
 
+/**
+ * Links a skill into `.claude/skills`, or repairs its link, and records which.
+ *
+ * @param {string} name
+ * @param {LinkResults} results
+ */
 function linkSkill(name, results) {
   const target = path.join(SOURCE_DIR, name);
   const linkPath = path.join(TARGET_DIR, name);
@@ -77,9 +113,15 @@ function linkSkill(name, results) {
   results.created.push(name);
 }
 
-// Removes the links this script owns, including dangling ones from an earlier
-// repository path, that no longer match a skill. Real directories are never
-// touched.
+/**
+ * Removes the links this script owns, including dangling ones from an earlier
+ * repository path, that no longer match a skill.
+ *
+ * Real directories are never touched.
+ *
+ * @param {string[]} skills
+ * @param {LinkResults} results
+ */
 function pruneStaleLinks(skills, results) {
   for (const entry of fs.readdirSync(TARGET_DIR, { withFileTypes: true })) {
     const linkPath = path.join(TARGET_DIR, entry.name);
@@ -105,6 +147,7 @@ if (!fs.existsSync(SOURCE_DIR)) {
 fs.mkdirSync(TARGET_DIR, { recursive: true });
 
 const skills = discoverSkills(SOURCE_DIR);
+/** @type {LinkResults} */
 const results = {
   created: [],
   repaired: [],
@@ -117,6 +160,7 @@ const results = {
 for (const name of skills) linkSkill(name, results);
 pruneStaleLinks(skills, results);
 
+/** @type {[string, string[]][]} */
 const report = [
   ["linked", results.created],
   ["repaired", results.repaired],

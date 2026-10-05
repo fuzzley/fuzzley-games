@@ -12,6 +12,20 @@ import {
   rasterize,
 } from "./raster.mjs";
 
+/** @import { Frame, Raster } from "./raster.mjs" */
+
+/**
+ * A run of painted lines, from its first to its last inclusive, in pixels.
+ *
+ * @typedef {{start: number, end: number}} Run
+ */
+
+/**
+ * The frames a card sheet holds.
+ *
+ * @typedef {{faces: Frame[], backs: Frame[]}} SheetDeck
+ */
+
 /**
  * The shape every deck's card sheet shares: the 52 faces in four rows of
  * thirteen, and the two backs alone on a fifth.
@@ -63,7 +77,7 @@ const SHEET_BACKS = ["card-back-classic-blue", "card-back-classic-red"];
  * Anything but full transparency counts, so the only clear lines on the sheet
  * are the gutters.
  *
- * @param {{data: Buffer, info: sharp.OutputInfo}} sheet The rendered sheet.
+ * @param {Raster} sheet The rendered sheet.
  * @returns {Uint8Array} One byte per pixel, row major.
  */
 function paintedMask(sheet) {
@@ -79,7 +93,7 @@ function paintedMask(sheet) {
  * Splits a line profile into the runs that carry paint.
  *
  * @param {number[]} painted How many painted pixels each line holds.
- * @returns {{start: number, end: number}[]} Inclusive runs, ascending.
+ * @returns {Run[]} The runs, ascending.
  */
 function paintedRuns(painted) {
   const runs = [];
@@ -99,7 +113,7 @@ function paintedRuns(painted) {
  * Checks a set of runs is the row or column of cards it should be, in count and
  * in size.
  *
- * @param {{start: number, end: number}[]} runs The runs found.
+ * @param {Run[]} runs The runs found.
  * @param {number} count How many cards the axis holds.
  * @param {number} size A card's size along the axis, in pixels.
  * @param {string} axis Axis name, for error messages.
@@ -130,8 +144,8 @@ function assertCardRuns(runs, count, size, axis) {
  * Columns are found over the whole sheet, since the row of backs holds only two
  * cards.
  *
- * @param {{data: Buffer, info: sharp.OutputInfo}} sheet The rendered sheet.
- * @returns {{columns: {start: number, end: number}[], rows: {start: number, end: number}[]}} Card spans in pixels.
+ * @param {Raster} sheet The rendered sheet.
+ * @returns {{columns: Run[], rows: Run[]}} Card spans in pixels.
  */
 function findCards(sheet) {
   const { width, height } = sheet.info;
@@ -166,7 +180,7 @@ const EDGE_BLEED_COVERAGE = 0.5;
  *
  * Run it before the card edge is stamped, which it would read as bled.
  *
- * @param {{name: string, png: Buffer}[]} frames The cut frames.
+ * @param {Frame[]} frames The cut frames.
  */
 async function assertEdgesAreClear(frames) {
   const dirty = [];
@@ -204,8 +218,7 @@ async function assertEdgesAreClear(frames) {
  * Cuts the faces and backs out of a card sheet, a frame centred on each card.
  *
  * @param {string} source The sheet's SVG source.
- * @returns {Promise<{faces: {name: string, png: Buffer}[], backs: {name: string, png: Buffer}[]}>}
- *   The frames, at RASTER_SCALE.
+ * @returns {Promise<SheetDeck>} The frames, at RASTER_SCALE.
  */
 export async function cutSheetDeck(source) {
   const sheet = await rasterize(
@@ -244,9 +257,9 @@ export async function cutSheetDeck(source) {
   );
 
   await assertEdgesAreClear(cardFrames);
-  const isBack = (frame) => SHEET_BACKS.includes(frame.name);
+  const backs = cardFrames.filter((frame) => SHEET_BACKS.includes(frame.name));
   return {
-    faces: cardFrames.filter((frame) => !isBack(frame)),
-    backs: cardFrames.filter(isBack),
+    faces: cardFrames.filter((frame) => !backs.includes(frame)),
+    backs,
   };
 }

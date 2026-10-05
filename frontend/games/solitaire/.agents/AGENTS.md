@@ -182,8 +182,8 @@ This project uses **Yarn 4**. Always use Yarn commands instead of NPM (`yarn <co
 - **Build Screenshot Thumbnails:** `yarn build:thumbs` (runs `tools/build-screenshot-thumbs.mjs` to crop each game's rules-page screenshot into the game browser's `thumb.webp` and `preview.webp`).
 - **Production Build:** `yarn build` (generates bundled production assets in `dist/` with Phaser manual chunking).
 - **Run Unit Tests:** `yarn test` (runs Vitest once) or `yarn test:watch` / `yarn test:coverage`.
-- **Linting:** `yarn lint` (checks the skills' references, runs ESLint over `src` and `test`, then checks formatting with `yarn prettier:check`).
-- **Type Checking:** `yarn tsc` (runs TypeScript compiler checks for both app and test configs, emitting nothing).
+- **Linting:** `yarn lint` (checks the skills' references, runs ESLint over `src`, `test`, `tools` and `.agents`, then checks formatting with `yarn prettier:check`).
+- **Type Checking:** `yarn tsc` (runs TypeScript compiler checks for the app, the tests, and the Node scripts in `tools/` and `.agents/` through `tsconfig.scripts.json`, emitting nothing).
 - **Full Verification Pipeline:** `yarn verify` (runs `yarn lint && yarn tsc && yarn build && yarn test`).
 - **Format Codebase:** `yarn prettier` (runs Prettier auto-formatting across the repository).
 
@@ -263,7 +263,8 @@ These rules cover every doc comment: classes, interfaces, functions, HTML, SCSS,
 - **Classes and interfaces:** Write the sentence as if "This class", "This interface", or "An instance of this class" came before it, e.g. `Records the moves a game has applied so they can be taken back.`, not `This class records…` or `A class that records…`.
 - **Functions and methods:** Write in the third person, always starting with a verb phrase, as if "This function" came before it, e.g. `Returns the pile under a point.` or `Moves the top card to its foundation.`
 - **Further paragraphs are rare.** Add additional paragraphs only when it stops a caller from misusing the code, or when it answers a "why" that a reader is very likely to ask and cannot answer from the name or the code itself. Don't use one to restate the implementation, list alternatives you rejected, or tell the history of the code.
-- **`@param` and `@returns` only when they add something.** Leave them out when they only repeat the name and type or when they are already described sufficiently in the description.
+- **`@param` and `@returns` only when they add something.** In TypeScript, leave them out when they only repeat the name and type or when they are already described sufficiently in the description.
+- **A script writes down every type.** The `.mjs` scripts under `tools/` and `.agents/` are plain JavaScript, so a JSDoc tag is the only place a type can go. Every parameter has an `@param {Type} name`, and every function that returns a value has an `@returns {Type}`, described only when the description adds something. A shape used more than once is a `@typedef`, which another script takes with `@import` rather than spelling it out again. `yarn lint` requires the tags (`eslint-plugin-jsdoc`), and `yarn tsc` checks the types under `strict` (`tsconfig.scripts.json`).
 - **Inline comments follow the same rules:** Only write implementation comments for what the code cannot say for itself (e.g. disambiguate a "why" that a user is very likely to ask after reading the code).
 
 ```ts

@@ -17,7 +17,25 @@ import {
   rasterize,
 } from "./raster.mjs";
 
-/** @typedef {{x: number, y: number, w: number, h: number}} Box A box in design units. */
+/** @import { Box, Frame } from "./raster.mjs" */
+
+/**
+ * A suit, by frame name, with the colour it is drawn in.
+ *
+ * @typedef {{name: "clubs" | "diamonds" | "hearts" | "spades", color: "red" | "black"}} Suit
+ */
+
+/**
+ * A rank, by frame name, with the index it shows.
+ *
+ * @typedef {{name: string, label: string}} Rank
+ */
+
+/**
+ * An SVG element, and where its ink lands.
+ *
+ * @typedef {{svg: string, ink: Box}} Mark
+ */
 
 /** The face the ranks are drawn in, loaded from the tool rather than the system. */
 const FONT = {
@@ -72,7 +90,11 @@ const COLORS = {
 /** The least contrast a suit colour may have against what it is drawn on. */
 const MIN_CONTRAST = 4.5;
 
-/** The suits, with the colour each is drawn in. */
+/**
+ * The suits, with the colour each is drawn in.
+ *
+ * @type {Suit[]}
+ */
 const SUITS = [
   { name: "clubs", color: "black" },
   { name: "diamonds", color: "red" },
@@ -210,7 +232,12 @@ function measureInk(fragment) {
   };
 }
 
-/** Returns a rank set at 100 units with its baseline on the origin. */
+/**
+ * Returns a rank set at 100 units with its baseline on the origin.
+ *
+ * @param {string} label
+ * @returns {string}
+ */
 function rankText(label) {
   return (
     `<text x="0" y="0" font-family="${FONT_FAMILY}"` +
@@ -243,10 +270,11 @@ const PIP_INK = new Map(
  * @param {Box} box Where its ink must stay.
  * @param {string} color The fill.
  * @param {number} capH The cap height to draw it at.
- * @returns {{svg: string, ink: Box}} The element, and where its ink lands.
+ * @returns {Mark}
  */
 function fittedRank(label, box, color, capH) {
   const ink = RANK_INK.get(label);
+  if (!ink) throw new Error(`No rank "${label}"`);
   // The ink's top is the cap line, give or take an overshoot, so scaling the
   // cap to capH scales the whole glyph to match.
   const scaleY = Math.min(capH / CAP_H, box.h / ink.h);
@@ -268,13 +296,14 @@ function fittedRank(label, box, color, capH) {
 /**
  * Returns a suit's pip fitted into a box, as large as it fits and centred.
  *
- * @param {string} suit The suit's name.
+ * @param {Suit["name"]} suit
  * @param {Box} box Where the pip goes.
  * @param {string} color The fill.
- * @returns {{svg: string, ink: Box}} The element, and where its ink lands.
+ * @returns {Mark}
  */
 function fittedPip(suit, box, color) {
   const ink = PIP_INK.get(suit);
+  if (!ink) throw new Error(`No suit "${suit}"`);
   const scale = Math.min(box.w / ink.w, box.h / ink.h);
   const landed = centredIn(box, ink.w * scale, ink.h * scale);
   return {
@@ -286,7 +315,14 @@ function fittedPip(suit, box, color) {
   };
 }
 
-/** Returns a box of a given size centred in another. */
+/**
+ * Returns a box of a given size centred in another.
+ *
+ * @param {Box} box
+ * @param {number} w
+ * @param {number} h
+ * @returns {Box}
+ */
 function centredIn(box, w, h) {
   return { x: box.x + (box.w - w) / 2, y: box.y + (box.h - h) / 2, w, h };
 }
@@ -295,7 +331,9 @@ function centredIn(box, w, h) {
  * Returns the art outside the strips: the rank over its suit's pip, on a panel
  * tinted by suit colour.
  *
- * @returns {{svg: string, ink: Box}} The elements, and the box they cover.
+ * @param {Suit} suit
+ * @param {Rank} rank
+ * @returns {Mark} The elements, and the box they cover.
  */
 function bodyArt(suit, rank) {
   const color = COLORS[suit.color];
@@ -326,7 +364,13 @@ function bodyArt(suit, rank) {
   };
 }
 
-/** Returns the marks that make up one card's index. */
+/**
+ * Returns the marks that make up one card's index.
+ *
+ * @param {Suit} suit
+ * @param {Rank} rank
+ * @returns {{rank: Mark, columnPip: Mark, stripPip: Mark}}
+ */
 function indexOf(suit, rank) {
   const color = COLORS[suit.color];
   return {
@@ -336,7 +380,12 @@ function indexOf(suit, rank) {
   };
 }
 
-/** Returns a box's right and bottom edges. */
+/**
+ * Returns a box's right and bottom edges.
+ *
+ * @param {Box} box
+ * @returns {{right: number, bottom: number}}
+ */
 function farEdges(box) {
   return { right: box.x + box.w, bottom: box.y + box.h };
 }
@@ -378,12 +427,14 @@ function assertIndicesAreClear() {
         problems.push(`${card}: body art shows in a strip`);
       }
 
-      for (const [mark, ink] of [
+      /** @type {[string, Box][]} */
+      const marks = [
         ["rank", index.rank.ink],
         ["pip under the rank", index.columnPip.ink],
         ["top right pip", index.stripPip.ink],
         ["body art", body],
-      ]) {
+      ];
+      for (const [mark, ink] of marks) {
         const { right, bottom } = farEdges(ink);
         if (
           ink.x < FRAME_CLEARANCE ||
@@ -404,7 +455,12 @@ function assertIndicesAreClear() {
   }
 }
 
-/** Returns a colour's relative luminance, as WCAG defines it. */
+/**
+ * Returns a colour's relative luminance, as WCAG defines it.
+ *
+ * @param {string} hex The colour, as `#rrggbb`.
+ * @returns {number}
+ */
 function luminance(hex) {
   const [r, g, b] = [1, 3, 5].map((start) => {
     const channel = parseInt(hex.slice(start, start + 2), 16) / 255;
@@ -415,7 +471,13 @@ function luminance(hex) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-/** Returns the WCAG contrast ratio between two colours. */
+/**
+ * Returns the WCAG contrast ratio between two colours.
+ *
+ * @param {string} first
+ * @param {string} second
+ * @returns {number}
+ */
 function contrast(first, second) {
   const [light, dark] = [luminance(first), luminance(second)].sort(
     (a, b) => b - a,
@@ -429,7 +491,7 @@ function contrast(first, second) {
  */
 function assertSuitColorsAreLegible() {
   const problems = [];
-  for (const color of ["red", "black"]) {
+  for (const color of new Set(SUITS.map((suit) => suit.color))) {
     for (const [ground, hex] of [
       ["paper", COLORS.paper],
       ["panel", COLORS.panel[color]],
@@ -447,7 +509,12 @@ function assertSuitColorsAreLegible() {
   }
 }
 
-/** Wraps a frame's elements in an SVG document of the design frame size. */
+/**
+ * Wraps a frame's elements in an SVG document of the design frame size.
+ *
+ * @param {string} content
+ * @returns {string}
+ */
 function frameSvg(content) {
   return (
     `<svg xmlns="http://www.w3.org/2000/svg"` +
@@ -456,7 +523,13 @@ function frameSvg(content) {
   );
 }
 
-/** Returns the SVG of one card face. */
+/**
+ * Returns the SVG of one card face.
+ *
+ * @param {Suit} suit
+ * @param {Rank} rank
+ * @returns {string}
+ */
 function faceSvg(suit, rank) {
   const index = indexOf(suit, rank);
   return frameSvg(
@@ -472,6 +545,9 @@ function faceSvg(suit, rank) {
 /**
  * Returns the SVG of a back: a flat field with a light inset border, which is
  * all a face-down card in a column shows, and a quiet lattice inside it.
+ *
+ * @param {{field: string, lattice: string}} colors
+ * @returns {string}
  */
 function backSvg(colors) {
   const inset = 7;
@@ -489,7 +565,13 @@ function backSvg(colors) {
   );
 }
 
-/** Renders a frame's SVG at the raster density. */
+/**
+ * Renders a frame's SVG at the raster density.
+ *
+ * @param {string} name
+ * @param {string} svg
+ * @returns {Promise<Frame>}
+ */
 async function renderFrame(name, svg) {
   const { data, info } = await rasterize(
     svg,
@@ -510,7 +592,7 @@ async function renderFrame(name, svg) {
  * Draws the mobile deck's faces, after checking that its layout and colours
  * keep every index legible.
  *
- * @returns {Promise<{name: string, png: Buffer}[]>} The frames, at RASTER_SCALE.
+ * @returns {Promise<Frame[]>} The frames, at RASTER_SCALE.
  */
 export async function drawMobileFaces() {
   assertIndicesAreClear();
@@ -533,7 +615,7 @@ export async function drawMobileFaces() {
 /**
  * Draws the plain backs.
  *
- * @returns {Promise<{name: string, png: Buffer}[]>} The frames, at RASTER_SCALE.
+ * @returns {Promise<Frame[]>} The frames, at RASTER_SCALE.
  */
 export async function drawPlainBacks() {
   const frames = [];

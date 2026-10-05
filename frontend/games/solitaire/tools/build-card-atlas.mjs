@@ -28,26 +28,48 @@ import {
 } from "./card-atlas/raster.mjs";
 import { cutSheetDeck } from "./card-atlas/sheet-deck.mjs";
 
+/** @import { Frame } from "./card-atlas/raster.mjs" */
+/** @import { SheetDeck } from "./card-atlas/sheet-deck.mjs" */
+
+/**
+ * A deck on offer: its id, what its faces are drawn from, and how to draw them.
+ *
+ * @typedef {{id: string, source: string, faces: () => Promise<Frame[]>}} Deck
+ */
+
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const CARD_DIR = join(ROOT, "src/engine/render/assets/sprites/card");
 const OUT_DIR = join(ROOT, "src/engine/render/assets/sprites/atlas");
 const PREVIEW_FILE = join(ROOT, "tools/card-atlas/.preview/decks.png");
 
-/** Each sheet's cut, kept so one sheet a build reads twice is cut once. */
+/**
+ * Each sheet's cut, kept so one sheet a build reads twice is cut once.
+ *
+ * @type {Map<string, Promise<SheetDeck>>}
+ */
 const cutSheets = new Map();
 
-/** Returns the faces and backs cut from the named sheet in CARD_DIR. */
+/**
+ * Returns the faces and backs cut from the named sheet in CARD_DIR.
+ *
+ * @param {string} file
+ * @returns {Promise<SheetDeck>}
+ */
 function cutSheet(file) {
-  if (!cutSheets.has(file)) {
-    cutSheets.set(
-      file,
-      readFile(join(CARD_DIR, file), "utf8").then(cutSheetDeck),
-    );
+  let cut = cutSheets.get(file);
+  if (!cut) {
+    cut = readFile(join(CARD_DIR, file), "utf8").then(cutSheetDeck);
+    cutSheets.set(file, cut);
   }
-  return cutSheets.get(file);
+  return cut;
 }
 
-/** Returns a deck whose faces are cut from the named sheet in CARD_DIR. */
+/**
+ * Returns a deck whose faces are cut from the named sheet in CARD_DIR.
+ *
+ * @param {string} file
+ * @returns {Omit<Deck, "id">}
+ */
 function fromSheet(file) {
   return {
     source: file,
@@ -61,6 +83,8 @@ function fromSheet(file) {
  * The decks on offer, each written to its own directory under OUT_DIR.
  *
  * Ids must match `CardDeckId` in `src/engine/render/card_deck.ts`.
+ *
+ * @type {Deck[]}
  */
 const DECKS = [
   { id: "classic", ...fromSheet("playing_card_assets_large.svg") },
@@ -86,7 +110,7 @@ const BACK_SHEET = "playing_card_assets_large.svg";
  * Draws the backs every deck is given, so a player can choose a back apart
  * from the deck: the plain ones, then the card artwork's.
  *
- * @returns {Promise<{name: string, png: Buffer}[]>} The frames, at RASTER_SCALE.
+ * @returns {Promise<Frame[]>} The frames, at RASTER_SCALE.
  */
 async function drawBacks() {
   return [...(await drawPlainBacks()), ...(await cutSheet(BACK_SHEET)).backs];
@@ -114,7 +138,7 @@ const PLACEHOLDERS = {
  * Cuts the pile placeholders, which every deck shares: they mark an empty pile
  * rather than being cards, so no deck draws them differently.
  *
- * @returns {Promise<{name: string, png: Buffer}[]>} The frames, at RASTER_SCALE.
+ * @returns {Promise<Frame[]>} The frames, at RASTER_SCALE.
  */
 async function cutPlaceholders() {
   const svg = await readFile(join(CARD_DIR, PLACEHOLDERS.file), "utf8");
@@ -138,7 +162,11 @@ async function cutPlaceholders() {
   );
 }
 
-/** Returns the decks the command line asks for, and whether to preview them. */
+/**
+ * Returns the decks the command line asks for, and whether to preview them.
+ *
+ * @returns {{decks: Deck[], preview: boolean}}
+ */
 function parseCommandLine() {
   const { values } = parseArgs({
     options: { deck: { type: "string" }, preview: { type: "boolean" } },

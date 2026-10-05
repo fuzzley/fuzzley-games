@@ -66,9 +66,12 @@ workflow's test step if the gate is wanted for real.
 
 - **Lint failures.** Reproduce with `yarn lint`. The usual cause is an
   architectural boundary violation from `@typescript-eslint/no-restricted-imports`
-  — see `add-solitaire-game`.
-- **Typecheck failures.** `yarn tsc` already runs both passes: `tsc` over the
-  app, then `yarn tsc:test` over the specs. A failure naming a `test/` file
-  comes from the second.
+  — see `add-solitaire-game`. In a script under `tools/` or `.agents/`, it is
+  a JSDoc type tag gone missing; AGENTS.md's "Writing Documentation" says which.
+- **Typecheck failures.** `yarn tsc` already runs all three passes: `tsc` over
+  the app, `yarn tsc:test` over the specs, then `yarn tsc:scripts` over the Node
+  scripts, from their JSDoc, by `tsconfig.scripts.json`. A failure naming a
+  `test/` file comes from the second, and one naming a `.mjs` file from the
+  third.
 - **Sync step failures.** Almost always the PAT — expired, or missing push
   rights on `fuzzley/fuzzley`. The clone is the first thing to fail.

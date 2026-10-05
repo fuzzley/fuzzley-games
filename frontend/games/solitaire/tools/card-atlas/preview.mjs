@@ -11,6 +11,15 @@ import { dirname, join } from "node:path";
 import { DESIGN_FRAME_H, DESIGN_FRAME_W } from "./raster.mjs";
 import { COLUMN_STRIP_H, WASTE_STRIP_W } from "./mobile-deck.mjs";
 
+/** @import { OverlayOptions } from "sharp" */
+/** @import { AtlasTexture } from "./atlas-writer.mjs" */
+
+/**
+ * Returns the pixels of a deck's frame, by its name.
+ *
+ * @typedef {(name: string) => Promise<Buffer>} FrameReader
+ */
+
 /**
  * Device pixels per design unit on a 390 CSS px phone at 3x, for a board of
  * seven columns and of ten, with the compact layout's 8 unit gaps.
@@ -53,9 +62,14 @@ const LABEL_W = 170;
 /**
  * Returns a lookup from frame name to that frame's pixels, read from a deck's
  * built 1x atlas.
+ *
+ * @param {string} atlasDir
+ * @param {string} deckId
+ * @returns {Promise<FrameReader>}
  */
 async function readFrames(atlasDir, deckId) {
   const dir = join(atlasDir, deckId, "1x");
+  /** @type {{textures: AtlasTexture[]}} */
   const manifest = JSON.parse(
     await readFile(join(dir, "card_assets_atlas.json"), "utf8"),
   );
@@ -73,7 +87,13 @@ async function readFrames(atlasDir, deckId) {
   };
 }
 
-/** Returns a frame shrunk to a board's scale. */
+/**
+ * Returns a frame shrunk to a board's scale.
+ *
+ * @param {Buffer} png
+ * @param {number} scale Device pixels per design unit.
+ * @returns {Promise<Buffer>}
+ */
 function shrink(png, scale) {
   return sharp(png)
     .resize(
@@ -85,7 +105,12 @@ function shrink(png, scale) {
     .toBuffer();
 }
 
-/** Returns a line of text as a PNG, for labelling a row. */
+/**
+ * Returns a line of text as a PNG, for labelling a row.
+ *
+ * @param {string} text
+ * @returns {Buffer}
+ */
 function label(text) {
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" width="${LABEL_W}" height="40">` +
@@ -97,7 +122,10 @@ function label(text) {
 /**
  * Lays out one deck's row: for each board, its column and its waste.
  *
- * @returns {Promise<{layers: sharp.OverlayOptions[], width: number, height: number}>}
+ * @param {FrameReader} frameOf
+ * @param {string} deckId
+ * @param {number} top Where the row starts, in pixels down the sheet.
+ * @returns {Promise<{layers: OverlayOptions[], width: number, height: number}>}
  */
 async function deckRow(frameOf, deckId, top) {
   const layers = [{ input: label(deckId), left: GAP, top }];
