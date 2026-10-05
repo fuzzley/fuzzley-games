@@ -38,8 +38,13 @@ differs from the sketches:
   cap of 110. The grids for larger screens are unchanged.
 
 The layout management is general: another game takes on phone grids by declaring
-its board to the builder in `src/games/common/phone_layouts.ts` and naming the
+its board to the builder in `src/games/common/arranged_layouts.ts` and naming the
 result on its catalog entry.
+
+**Since then** the upright pile setting and the hand became Piles (Auto, Top,
+Bottom) and Stock Side (Auto, Left, Right), offered on every screen, with a
+larger screen's grid for the piles below and a sideways one for the rails on
+the bottom; see [board-arrangement-log.md](board-arrangement-log.md).
 
 ## In short
 

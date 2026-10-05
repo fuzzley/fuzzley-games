@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
@@ -18,10 +18,6 @@ import { flushMicrotasks } from "@test/support/async";
 import { clickBackdrop, isDialogOpen, pressEscape } from "@test/support/dialog";
 import { DESKTOP_CARD_DECKS } from "@/engine/render/card_deck";
 import { CARD_BACKS } from "@/engine/render/card_back";
-import {
-  installFakeViewport,
-  type FakeViewport,
-} from "@test/support/ui/viewport";
 
 describe("SettingsDrawerComponent", () => {
   let fixture: ComponentFixture<SettingsDrawerComponent>;
@@ -163,90 +159,104 @@ describe("SettingsDrawerComponent", () => {
   describe("the table's arrangement", () => {
     /** Returns the labels of a group's buttons, in the order offered. */
     function labels(group: string): (string | undefined)[] {
-      return queryAll(fixture, `app-option-group.${group} .segment-btn`).map(
-        (button) => button.textContent?.trim(),
-      );
+      return buttons(group).map((button) => button.textContent?.trim());
     }
 
-    it("offers a hand in a game laid out for a phone", () => {
+    /** Returns a group's buttons, in the order offered. */
+    function buttons(group: string): HTMLElement[] {
+      return queryAll(fixture, `app-option-group.${group} .segment-btn`);
+    }
+
+    /** Returns the line describing a group's checked choice. */
+    function description(group: string): string {
+      return queryText(fixture, `app-option-group.${group} .setting-desc`);
+    }
+
+    it("offers Auto, Top and Bottom for the piles", () => {
       openDrawer();
 
-      expect(labels("hand")).toEqual(["Right Hand", "Left Hand"]);
+      expect(labels("piles")).toEqual(["Auto", "Top", "Bottom"]);
     });
 
-    it("lays the table out for a left hand when it is picked", () => {
+    it("offers Auto, Left and Right for the stock's side", () => {
       openDrawer();
 
-      queryAll(fixture, "app-option-group.hand .segment-btn")[1].click();
-
-      expect(harness.presentation.hand()).toBe("left");
+      expect(labels("stock-side")).toEqual(["Auto", "Left", "Right"]);
     });
 
-    it("offers no hand in a game without phone grids", () => {
+    it("checks Auto for both until the player picks", () => {
+      openDrawer();
+
+      expect(
+        ["piles", "stock-side"].map((group) =>
+          buttons(group)[0].getAttribute("aria-checked"),
+        ),
+      ).toEqual(["true", "true"]);
+    });
+
+    it("moves the piles when a place is picked", () => {
+      openDrawer();
+
+      buttons("piles")[2].click();
+
+      expect(harness.presentation.piles()).toBe("bottom");
+    });
+
+    it("moves the stock when a side is picked", () => {
+      openDrawer();
+
+      buttons("stock-side")[1].click();
+
+      expect(harness.presentation.stockSide()).toBe("left");
+    });
+
+    it("describes Auto by what it picks on a larger screen", () => {
+      openDrawer();
+
+      expect(description("piles")).toBe(
+        "Bottom on a phone, upright or on its side, and Top on a larger screen: Top here.",
+      );
+    });
+
+    it("describes Auto by what it picks on a phone", () => {
+      harness.presentation.formFactor.set("phone-landscape");
+      openDrawer();
+
+      expect(description("stock-side")).toBe(
+        "Right on a phone, upright or on its side, and Left on a larger screen: Right here.",
+      );
+    });
+
+    it("describes a place the player picked by itself", () => {
+      harness.presentation.piles.set("top");
+      openDrawer();
+
+      expect(description("piles")).toMatch(/^The stock and foundations above/);
+    });
+
+    it.each(["phone-portrait", "phone-landscape"] as const)(
+      "offers both on a %s screen too",
+      (formFactor) => {
+        harness.presentation.formFactor.set(formFactor);
+        openDrawer();
+
+        expect(
+          ["piles", "stock-side"].map(
+            (group) => query(fixture, `app-option-group.${group}`) !== null,
+          ),
+        ).toEqual([true, true]);
+      },
+    );
+
+    it("offers neither in a game without arranged grids", () => {
       harness.catalog.select("freecell");
       openDrawer();
 
-      expect(query(fixture, "app-option-group.hand")).toBeNull();
-    });
-
-    it("keeps the upright phone layout to a phone", () => {
-      openDrawer();
-
-      expect(query(fixture, "app-option-group.phone-piles")).toBeNull();
-    });
-
-    describe("on a phone", () => {
-      let viewport: FakeViewport;
-
-      beforeEach(async () => {
-        TestBed.resetTestingModule();
-        viewport = installFakeViewport(390, 844);
-        harness = await configureUiTestBed(SettingsDrawerComponent);
-        fixture = TestBed.createComponent(SettingsDrawerComponent);
-        fixture.detectChanges();
-      });
-
-      afterEach(() => {
-        viewport.restore();
-      });
-
-      it("offers the piles below or above the columns", () => {
-        openDrawer();
-
-        expect(labels("phone-piles")).toEqual(["Piles Below", "Piles Above"]);
-      });
-
-      it("moves the piles above the columns when that is picked", () => {
-        openDrawer();
-
-        queryAll(
-          fixture,
-          "app-option-group.phone-piles .segment-btn",
-        )[1].click();
-
-        expect(harness.presentation.phonePiles()).toBe("top");
-      });
-
-      it("offers no upright layout once the phone is on its side", () => {
-        viewport.setSize(844, 390);
-        openDrawer();
-
-        expect(query(fixture, "app-option-group.phone-piles")).toBeNull();
-      });
-
-      it("still offers the hand on a phone on its side", () => {
-        viewport.setSize(844, 390);
-        openDrawer();
-
-        expect(query(fixture, "app-option-group.hand")).not.toBeNull();
-      });
-
-      it("offers no upright layout in a game without phone grids", () => {
-        harness.catalog.select("freecell");
-        openDrawer();
-
-        expect(query(fixture, "app-option-group.phone-piles")).toBeNull();
-      });
+      expect(
+        ["piles", "stock-side"].map((group) =>
+          query(fixture, `app-option-group.${group}`),
+        ),
+      ).toEqual([null, null]);
     });
   });
 

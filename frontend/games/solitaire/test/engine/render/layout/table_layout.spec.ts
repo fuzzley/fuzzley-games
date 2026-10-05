@@ -346,6 +346,38 @@ describe("computePileRooms", () => {
     expect(rooms(spec, 100).get("top")).toBe(430 - 5 - 150 - 20 - 5);
   });
 
+  it("ignores a bottom-anchored pile in its own row in another column", () => {
+    const spec = layout({
+      rows: 1,
+      slots: [
+        { pileId: "column", column: 0, row: 0 },
+        { pileId: "rail", column: 3, row: 0, anchor: "bottom" },
+      ],
+    });
+
+    // The board is 160 tall plus 100; the column runs to its bottom padding.
+    expect(rooms(spec, 100).get("column")).toBe(260 - 5 - 5);
+  });
+
+  it("stops a pile a gap above the next pile down a bottom-anchored rail", () => {
+    const spec = layout({
+      rows: 1,
+      slots: [
+        {
+          pileId: "stock",
+          column: 3,
+          row: 0,
+          anchor: "bottom",
+          offset: { x: 0, y: -170 },
+        },
+        { pileId: "waste", column: 3, row: 0, anchor: "bottom" },
+      ],
+    });
+
+    // The stock starts 170 above the waste and stops a gap short of it.
+    expect(rooms(spec, 300).get("stock")).toBe(170 - 20);
+  });
+
   it("measures the room in design units, whatever the scale", () => {
     const spec = layout({ slots: [{ pileId: "top", column: 0, row: 0 }] });
     const design = designSize(spec);

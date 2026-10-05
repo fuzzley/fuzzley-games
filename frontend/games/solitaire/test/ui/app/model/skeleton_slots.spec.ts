@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { tableLayout } from "@/engine/render/layout/table_layout";
+import {
+  TableLayoutSpec,
+  tableLayout,
+} from "@/engine/render/layout/table_layout";
 import { skeletonSlots } from "@/ui/app/model/skeleton_slots";
 
 /** A board four columns by two rows, with one slot between grid lines. */
@@ -76,5 +79,54 @@ describe("skeletonSlots on a grid with anchored and offset slots", () => {
     });
 
     expect([slot?.left, slot?.top]).toEqual(["12.5%", `${(1 / 3) * 100}%`]);
+  });
+});
+
+describe("skeletonSlots on a board taller than its grid", () => {
+  /** Returns a one-row grid as tall as `rows` rows, with the given slots. */
+  function tall(rows: number, slots: TableLayoutSpec["slots"]) {
+    const grid = tableLayout({ columns: 4, rows: 1, slots });
+    const { cardSize, gap, padding } = grid;
+    return tableLayout({
+      columns: 4,
+      rows: 1,
+      slots,
+      designHeightPx: rows * (cardSize.height + gap.y) - gap.y + 2 * padding.y,
+    });
+  }
+
+  it("counts the extra height as rows", () => {
+    const [slot] = skeletonSlots(
+      tall(4, [{ pileId: "column", column: 0, row: 0 }]),
+    );
+
+    expect(slot?.height).toBe("25%");
+  });
+
+  it("stands a bottom-anchored slot on the board's bottom edge", () => {
+    const [slot] = skeletonSlots(
+      tall(4, [{ pileId: "rail", column: 3, row: 0, anchor: "bottom" }]),
+    );
+
+    expect(slot?.top).toBe("75%");
+  });
+
+  it("raises a bottom-anchored slot by its offset", () => {
+    const layout = tall(4, []);
+    const rowHeight = layout.cardSize.height + layout.gap.y;
+    const [slot] = skeletonSlots({
+      ...layout,
+      slots: [
+        {
+          pileId: "rail",
+          column: 3,
+          row: 0,
+          anchor: "bottom",
+          offset: { x: 0, y: -2 * rowHeight },
+        },
+      ],
+    });
+
+    expect(slot?.top).toBe("25%");
   });
 });

@@ -9,8 +9,10 @@ chose between are in [phone-board-layouts.md](phone-board-layouts.md).
 
 **Branch:** `feature/phone-board-layouts`, cut from `main` at `6fecaa4`.
 
-**Status:** done on the branch, with the owner's review fixed (phase 6), not
-merged. Open questions for the owner are at the end of [5.3](#53-last-look).
+**Status:** merged to `main` as `f00d3a5`. Open questions for the owner are at
+the end of [5.3](#53-last-look). The settings this work added, Piles Below or
+Above on an upright phone and the hand, were later replaced by Piles and Stock
+Side on every screen; see [board-arrangement-log.md](board-arrangement-log.md).
 
 ## How to pick this up
 

@@ -1,10 +1,12 @@
 import { describe, it, expect } from "vitest";
 import {
+  ArrangedLayouts,
   BoardArrangement,
   BoardLayouts,
   DEFAULT_BOARD_ARRANGEMENT,
   chooseTableLayout,
   mirrorTable,
+  resolveArrangement,
 } from "@/engine/render/layout/board_layouts";
 import {
   TableLayoutSpec,
@@ -109,57 +111,141 @@ describe("mirrorTable keeping columns in order", () => {
   });
 });
 
-describe("chooseTableLayout", () => {
-  const roomy = tableLayout({ columns: 1, rows: 1, slots: [] });
-  const bottom = tableLayout({ columns: 2, rows: 1, slots: [] });
-  const top = tableLayout({ columns: 3, rows: 1, slots: [] });
-  const landscape = tableLayout({ columns: 4, rows: 1, slots: [] });
-  const LAYOUTS: BoardLayouts = {
-    roomy,
-    phone: { portrait: { bottom, top }, landscape, columns: [] },
-  };
-  const LEFT: BoardArrangement = { ...DEFAULT_BOARD_ARRANGEMENT, hand: "left" };
-
-  it("lays a roomy screen out on the roomy grid", () => {
-    expect(chooseTableLayout(LAYOUTS, "roomy", DEFAULT_BOARD_ARRANGEMENT)).toBe(
-      roomy,
+describe("resolveArrangement", () => {
+  it.each([
+    ["roomy", { piles: "top", stockSide: "left" }],
+    ["phone-portrait", { piles: "bottom", stockSide: "right" }],
+    ["phone-landscape", { piles: "bottom", stockSide: "right" }],
+  ] as const)("decides Auto on a %s screen", (formFactor, resolved) => {
+    expect(resolveArrangement(DEFAULT_BOARD_ARRANGEMENT, formFactor)).toEqual(
+      resolved,
     );
   });
 
-  it("puts an upright phone's piles at the bottom by default", () => {
+  it("keeps what the player chose, whatever the screen", () => {
+    const chosen: BoardArrangement = { piles: "bottom", stockSide: "left" };
+
+    expect(resolveArrangement(chosen, "roomy")).toEqual(chosen);
+  });
+
+  it("decides only what was left to Auto", () => {
+    expect(
+      resolveArrangement({ piles: "top", stockSide: "auto" }, "phone-portrait"),
+    ).toEqual({ piles: "top", stockSide: "right" });
+  });
+});
+
+describe("chooseTableLayout", () => {
+  /** Returns a one-row grid with the stock in a column of its own. */
+  function grid(columns: number, stockColumn: number): TableLayoutSpec {
+    return tableLayout({
+      columns,
+      rows: 1,
+      slots: [
+        { pileId: "stock", column: stockColumn, row: 0 },
+        { pileId: "col-0", column: stockColumn === 0 ? 1 : 0, row: 0 },
+      ],
+    });
+  }
+
+  // Every grid but the sideways ones has the stock at the left, as a game's
+  // row does; a game's rails may put it at the right.
+  const ARRANGED: ArrangedLayouts = {
+    roomy: { top: grid(3, 0), bottom: grid(3, 0) },
+    portrait: { top: grid(4, 0), bottom: grid(4, 0) },
+    landscape: { top: grid(5, 4), bottom: grid(5, 4) },
+    columns: ["col-0"],
+    stock: "stock",
+  };
+  const LAYOUTS: BoardLayouts = {
+    roomy: ARRANGED.roomy.top,
+    arranged: ARRANGED,
+  };
+
+  /** Returns a grid as the chooser mirrors it. */
+  const mirrored = (spec: TableLayoutSpec) =>
+    mirrorTable(spec, ARRANGED.columns);
+
+  it("lays a larger screen out with the piles at the top and the stock at the left by default", () => {
+    expect(chooseTableLayout(LAYOUTS, "roomy", DEFAULT_BOARD_ARRANGEMENT)).toBe(
+      ARRANGED.roomy.top,
+    );
+  });
+
+  it("puts an upright phone's piles at the bottom with the stock at the right by default", () => {
     expect(
       chooseTableLayout(LAYOUTS, "phone-portrait", DEFAULT_BOARD_ARRANGEMENT),
-    ).toBe(bottom);
+    ).toBe(mirrored(ARRANGED.portrait.bottom));
   });
 
-  it("puts an upright phone's piles at the top when asked", () => {
-    expect(
-      chooseTableLayout(LAYOUTS, "phone-portrait", {
-        ...DEFAULT_BOARD_ARRANGEMENT,
-        phonePiles: "top",
-      }),
-    ).toBe(top);
-  });
-
-  it("lays a phone on its side out on the landscape grid", () => {
+  it("stands a sideways phone's rails on the bottom, the stock at the right, by default", () => {
     expect(
       chooseTableLayout(LAYOUTS, "phone-landscape", DEFAULT_BOARD_ARRANGEMENT),
-    ).toBe(landscape);
+    ).toBe(ARRANGED.landscape.bottom);
   });
 
-  it("mirrors the chosen grid for a left hand", () => {
-    expect(chooseTableLayout(LAYOUTS, "phone-landscape", LEFT)).toBe(
-      mirrorTable(landscape, LAYOUTS.phone!.columns),
-    );
+  it.each([
+    ["roomy", ARRANGED.roomy],
+    ["phone-portrait", ARRANGED.portrait],
+    ["phone-landscape", ARRANGED.landscape],
+  ] as const)(
+    "puts the piles where asked on a %s screen",
+    (formFactor, grids) => {
+      const chosen = (["top", "bottom"] as const).map((piles) =>
+        chooseTableLayout(LAYOUTS, formFactor, { piles, stockSide: "auto" }),
+      );
+
+      expect(chosen.map((spec) => spec.columns)).toEqual([
+        grids.top.columns,
+        grids.bottom.columns,
+      ]);
+    },
+  );
+
+  it("mirrors a grid that has the stock on the other side", () => {
+    expect(
+      chooseTableLayout(LAYOUTS, "roomy", { piles: "top", stockSide: "right" }),
+    ).toBe(mirrored(ARRANGED.roomy.top));
   });
 
-  it("mirrors the roomy grid for a left hand too", () => {
-    expect(chooseTableLayout(LAYOUTS, "roomy", LEFT)).toBe(
-      mirrorTable(roomy, LAYOUTS.phone!.columns),
-    );
+  it("leaves a grid alone when the stock is on the side asked for", () => {
+    expect(
+      chooseTableLayout(LAYOUTS, "phone-portrait", {
+        piles: "top",
+        stockSide: "left",
+      }),
+    ).toBe(ARRANGED.portrait.top);
   });
 
-  it("lays a game without phone grids out on its roomy grid everywhere", () => {
-    expect(chooseTableLayout({ roomy }, "phone-portrait", LEFT)).toBe(roomy);
+  it("mirrors a sideways grid for a stock at the left", () => {
+    expect(
+      chooseTableLayout(LAYOUTS, "phone-landscape", {
+        piles: "top",
+        stockSide: "left",
+      }),
+    ).toBe(mirrored(ARRANGED.landscape.top));
+  });
+
+  it("leaves a grid alone when the stock sits in its middle column", () => {
+    const middle = grid(3, 1);
+    const layouts: BoardLayouts = {
+      roomy: middle,
+      arranged: { ...ARRANGED, roomy: { top: middle, bottom: middle } },
+    };
+
+    expect(
+      chooseTableLayout(layouts, "roomy", { piles: "top", stockSide: "right" }),
+    ).toBe(middle);
+  });
+
+  it("lays a game without arranged grids out on its roomy grid everywhere", () => {
+    const roomy = grid(3, 0);
+
+    expect(
+      chooseTableLayout({ roomy }, "phone-portrait", {
+        piles: "top",
+        stockSide: "right",
+      }),
+    ).toBe(roomy);
   });
 });

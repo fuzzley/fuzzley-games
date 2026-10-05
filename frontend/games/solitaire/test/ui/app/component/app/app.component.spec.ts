@@ -78,15 +78,24 @@ describe("AppComponent Composition", () => {
     expect(TestBed.inject(Title).getTitle()).toBe("FreeCell · fSolitaire");
   });
 
-  it("tells the chrome on the document root which hand the player uses", () => {
-    expect(document.documentElement.dataset["hand"]).toBe("right");
+  it("tells the chrome on the document root which side the stock is on", () => {
+    // Auto, on a screen that is not a phone.
+    expect(document.documentElement.dataset["stockSide"]).toBe("left");
   });
 
-  it("tells the chrome when the player changes hand", () => {
-    harness.presentation.hand.set("left");
+  it("tells the chrome when Auto moves the stock for a phone", () => {
+    harness.presentation.formFactor.set("phone-landscape");
     TestBed.flushEffects();
 
-    expect(document.documentElement.dataset["hand"]).toBe("left");
+    expect(document.documentElement.dataset["stockSide"]).toBe("right");
+  });
+
+  it("tells the chrome when the player moves the stock", () => {
+    harness.presentation.formFactor.set("phone-portrait");
+    harness.presentation.stockSide.set("left");
+    TestBed.flushEffects();
+
+    expect(document.documentElement.dataset["stockSide"]).toBe("left");
   });
 
   it("keeps the settings drawer closed to begin with", () => {
