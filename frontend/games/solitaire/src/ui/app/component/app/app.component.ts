@@ -73,7 +73,9 @@ export class AppComponent {
     // Name the game in the tab title, first because a tab strip crops from the
     // right.
     effect(() => {
-      this.title.setTitle(`${this.catalog.selectedEntry.name} · fSolitaire`);
+      this.title.setTitle(
+        `${this.catalog.selectedEntry.name} · Solitaire Collection`,
+      );
     });
   }
 
