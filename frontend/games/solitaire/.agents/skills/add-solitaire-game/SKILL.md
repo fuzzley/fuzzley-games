@@ -423,11 +423,13 @@ CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
    handed, so the shell never imports a game in order to host one.
 3. **`src/ui/app/provider/game_documentation_data.ts`** — add the rules page.
    `CompleteGameDocumentation` is `Record<GameId, …>`, so shipping a game with no
-   page is also a compile error. Capture its hero screenshot, on the default
-   green table, to `public/docs/screenshots/<id>/overview.png`, then run
-   `yarn build:thumbs`: it crops the chrome away and writes the game browser's
-   `thumb.webp` and `preview.webp` beside the screenshot, and a spec fails while
-   either is missing.
+   page is also a compile error. Capture its hero screenshot of the whole page,
+   header included, on a fresh deal in a fresh browser profile so every setting
+   is its default, at 1440 × 810 CSS px and 2×, to
+   `public/docs/screenshots/<id>/overview.png`. Then run `yarn build:thumbs`:
+   it writes the game browser's `thumb.webp`, cropped to the board, and
+   `preview.webp`, the whole page, beside the screenshot, and a spec fails
+   while either is missing.
 4. **`src/ui/app/provider/game_profile_data.ts`** — add the profile the game
    browser lists it by: its family, tagline, difficulty, decks, whether every
    card is dealt in view, and any variants with names of their own.
