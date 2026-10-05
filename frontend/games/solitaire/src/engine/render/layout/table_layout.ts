@@ -286,8 +286,10 @@ export function computePileOrigins(
  * units: to the board's bottom edge, less its padding, or to a gap above the
  * nearest pile below it.
  *
- * A pile below counts if it shares the column, or if it is anchored to the
- * bottom edge, since a pile there may spread beyond its own column.
+ * A pile below counts if it shares the column, or if it is in a row anchored
+ * to the bottom edge below the pile's own row, since a pile there may spread
+ * beyond its own column. A pile anchored to the bottom in the pile's own row,
+ * as on a rail beside the columns, counts only in its own column.
  *
  * @param origins The origins from {@link computePileOrigins}.
  */
@@ -310,12 +312,19 @@ export function computePileRooms(
       const below = origins.get(other.pileId);
       if (!below || other === slot || below.y <= origin.y) continue;
       const shares =
-        other.anchor === "bottom" || Math.abs(below.x - origin.x) < cardWidth;
+        (other.anchor === "bottom" &&
+          rowFromTop(spec, other) > rowFromTop(spec, slot)) ||
+        Math.abs(below.x - origin.x) < cardWidth;
       if (shares) limit = Math.min(limit, below.y - spec.gap.y * scale);
     }
     rooms.set(slot.pileId, Math.max(0, (limit - origin.y) / scale));
   }
   return rooms;
+}
+
+/** Returns which grid row a slot sits in, counting from the top. */
+function rowFromTop(spec: TableLayoutSpec, slot: SlotPlacement): number {
+  return slot.anchor === "bottom" ? spec.rows - 1 - slot.row : slot.row;
 }
 
 /**
