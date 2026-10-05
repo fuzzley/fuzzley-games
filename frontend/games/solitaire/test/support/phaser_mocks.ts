@@ -379,6 +379,27 @@ export function geomPhaserMock(): {
   };
 }
 
+/** Stands in for the parts of a Phaser pointer that say where it was pressed. */
+export interface MockPointer {
+  readonly downElement: object;
+  readonly manager: { readonly canvas: object };
+}
+
+/** The canvas every mock pointer belongs to. */
+const MOCK_CANVAS = {};
+
+/** A pointer pressed on the board's canvas. */
+export const PRESS_ON_CANVAS: MockPointer = {
+  downElement: MOCK_CANVAS,
+  manager: { canvas: MOCK_CANVAS },
+};
+
+/** A pointer pressed on the page over the canvas, such as a dialog's button. */
+export const PRESS_OVER_CANVAS: MockPointer = {
+  downElement: {},
+  manager: { canvas: MOCK_CANVAS },
+};
+
 /** Stands in for a Phaser input system, recording and dispatching listeners. */
 export interface MockInput {
   on: Mock;

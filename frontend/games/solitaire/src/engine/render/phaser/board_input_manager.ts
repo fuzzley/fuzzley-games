@@ -8,6 +8,17 @@ function cardIdOf(gameObject: Phaser.GameObjects.Sprite): string | null {
   return typeof cardId === "string" ? cardId : null;
 }
 
+/**
+ * Returns whether a press landed on the canvas itself.
+ *
+ * Phaser hit-tests the board for a press anywhere on the page, so without this
+ * a press on a dialog or toolbar lying over the canvas would also press the
+ * card beneath it.
+ */
+function pressedCanvas(pointer: Phaser.Input.Pointer): boolean {
+  return pointer.downElement === pointer.manager.canvas;
+}
+
 /** Gives an input binder what it needs of the scene it listens to. */
 export interface InputHost {
   /** The scene's input plugin, which raises the pointer and drag events. */
@@ -43,8 +54,8 @@ export class BoardInputManager {
     // rather than from the pointer.
     this.host.input.on(
       "dragstart",
-      (_pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Sprite) =>
-        this.onDragStart(gameObject),
+      (pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Sprite) =>
+        this.onDragStart(pointer, gameObject),
     );
     this.host.input.on(
       "drag",
@@ -72,7 +83,9 @@ export class BoardInputManager {
     sprite.on("pointerout", (pointer: Phaser.Input.Pointer) =>
       this.controller.cardOut(cardId, pointer.wasTouch),
     );
-    sprite.on("pointerdown", () => this.controller.cardPressed(cardId));
+    sprite.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+      if (pressedCanvas(pointer)) this.controller.cardPressed(cardId);
+    });
   }
 
   /** Registers pointer listeners on a pile's placeholder sprite. */
@@ -80,15 +93,20 @@ export class BoardInputManager {
     sprite: Phaser.GameObjects.Sprite,
     pileId: string,
   ): void {
-    sprite.on("pointerdown", () => this.controller.backgroundPressed(pileId));
+    sprite.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+      if (pressedCanvas(pointer)) this.controller.backgroundPressed(pileId);
+    });
     sprite.on("pointerover", () => this.controller.backgroundOver(pileId));
     sprite.on("pointerout", () => this.controller.backgroundOut(pileId));
   }
 
   /** Picks up the card the drag started on, along with the stack above it. */
-  private onDragStart(gameObject: Phaser.GameObjects.Sprite): void {
+  private onDragStart(
+    pointer: Phaser.Input.Pointer,
+    gameObject: Phaser.GameObjects.Sprite,
+  ): void {
     const cardId = cardIdOf(gameObject);
-    if (!cardId) return;
+    if (!cardId || !pressedCanvas(pointer)) return;
 
     this.controller.dragStarted(cardId, { x: gameObject.x, y: gameObject.y });
   }

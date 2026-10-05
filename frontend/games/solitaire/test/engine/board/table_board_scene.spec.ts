@@ -27,6 +27,7 @@ import {
   MockSprite,
   MockTextures,
   POST_UPDATE_EVENT,
+  PRESS_ON_CANVAS,
   SHUTDOWN_EVENT,
 } from "@test/support/phaser_mocks";
 import { TestPresentation } from "@test/support/presentation";
@@ -117,7 +118,11 @@ describe("makeTableBoardScene", () => {
       const lower = relocate(game, "card-spades-9", game.tableaus[0]);
       const upper = relocate(game, "card-hearts-8", game.tableaus[0]);
 
-      inputOf(scene).emit("dragstart", {}, scene.cardSprite(lower.id));
+      inputOf(scene).emit(
+        "dragstart",
+        PRESS_ON_CANVAS,
+        scene.cardSprite(lower.id),
+      );
       scene.update(0, 16);
 
       const held = depthFor(RenderLayer.HELD_CARD);
@@ -167,7 +172,7 @@ describe("makeTableBoardScene", () => {
       ).origins.get(foundation.id)!;
       const sprite = scene.cardSprite(ace.id);
 
-      inputOf(scene).emit("dragstart", {}, sprite);
+      inputOf(scene).emit("dragstart", PRESS_ON_CANVAS, sprite);
       inputOf(scene).emit("drag", {}, sprite, origin.x, origin.y);
       inputOf(scene).emit("dragend", {}, sprite);
 
@@ -179,7 +184,7 @@ describe("makeTableBoardScene", () => {
     it("carries them out", () => {
       const top = game.stock.topCard!;
 
-      asMock(scene.cardSprite(top.id)).emit("pointerdown");
+      asMock(scene.cardSprite(top.id)).emit("pointerdown", PRESS_ON_CANVAS);
 
       // Pressing the top of the stock is what draws on the fake board.
       expect(game.waste.size).toBe(3);
@@ -279,7 +284,7 @@ describe("makeTableBoardScene", () => {
       scene.update(0, 16);
       const top = game.stock.topCard!;
 
-      asMock(scene.cardSprite(top.id)).emit("pointerdown");
+      asMock(scene.cardSprite(top.id)).emit("pointerdown", PRESS_ON_CANVAS);
       scene.update(16, 16);
 
       // A draw moves cards without any gesture reporting which, so only the
@@ -381,7 +386,7 @@ describe("makeTableBoardScene on a game with arranged grids", () => {
   function dropAceAt(point: { x: number; y: number }) {
     const ace = relocate(game, "card-spades-ace", game.tableaus[0]);
     const sprite = scene.cardSprite(ace.id);
-    inputOf(scene).emit("dragstart", {}, sprite);
+    inputOf(scene).emit("dragstart", PRESS_ON_CANVAS, sprite);
     inputOf(scene).emit("drag", {}, sprite, point.x, point.y);
     inputOf(scene).emit("dragend", {}, sprite);
     return ace;

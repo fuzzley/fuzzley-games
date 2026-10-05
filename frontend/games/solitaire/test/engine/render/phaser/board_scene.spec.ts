@@ -17,6 +17,7 @@ import {
   MockSceneEvents,
   MockSprite,
   MockTextures,
+  PRESS_ON_CANVAS,
   RESTORE_WEBGL_EVENT,
   SHUTDOWN_EVENT,
 } from "@test/support/phaser_mocks";
@@ -963,8 +964,8 @@ describe("BoardScene", () => {
       const sprite = asMock(boardScene.cardSprite(ace.id));
       boardScene.update(0, 16); // the first frame snaps the board into place
 
-      sprite.emit("pointerdown");
-      sprite.emit("pointerdown");
+      sprite.emit("pointerdown", PRESS_ON_CANVAS);
+      sprite.emit("pointerdown", PRESS_ON_CANVAS);
 
       return sprite;
     }
@@ -996,7 +997,10 @@ describe("BoardScene", () => {
       const top = fakeGame.stock.topCard!;
       boardScene.update(0, 16); // the first frame snaps the board into place
 
-      asMock(boardScene.cardSprite(top.id)).emit("pointerdown");
+      asMock(boardScene.cardSprite(top.id)).emit(
+        "pointerdown",
+        PRESS_ON_CANVAS,
+      );
 
       return fakeGame.waste
         .getCards()
@@ -1017,8 +1021,8 @@ describe("BoardScene", () => {
       const ace = relocate(fakeGame, "card-hearts-ace", fakeGame.tableaus[0]);
       const sprite = asMock(boardScene.cardSprite(ace.id));
       boardScene.update(0, 16);
-      sprite.emit("pointerdown");
-      sprite.emit("pointerdown"); // to a foundation
+      sprite.emit("pointerdown", PRESS_ON_CANVAS);
+      sprite.emit("pointerdown", PRESS_ON_CANVAS); // to a foundation
       boardScene.update(16, 0); // land it there
 
       fakeGame.undo();
@@ -1039,11 +1043,11 @@ describe("BoardScene", () => {
       const secondSprite = asMock(boardScene.cardSprite(second.id));
       boardScene.update(0, 16);
 
-      firstSprite.emit("pointerdown");
-      firstSprite.emit("pointerdown");
+      firstSprite.emit("pointerdown", PRESS_ON_CANVAS);
+      firstSprite.emit("pointerdown", PRESS_ON_CANVAS);
       boardScene.update(16, 16); // still crossing
-      secondSprite.emit("pointerdown");
-      secondSprite.emit("pointerdown");
+      secondSprite.emit("pointerdown", PRESS_ON_CANVAS);
+      secondSprite.emit("pointerdown", PRESS_ON_CANVAS);
       boardScene.update(32, 16);
 
       const restingDepth = deepestCardExcept(firstSprite, secondSprite);
