@@ -11,7 +11,7 @@
  * same port.
  */
 import { execFileSync } from "node:child_process";
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, readlink } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
@@ -35,9 +35,9 @@ const MAX_LISTING_BYTES = 64 * 1024 * 1024;
 
 /**
  * A running process; `started`, in milliseconds since the epoch, is only
- * known on Windows.
+ * known on Windows, and its working directory `cwd` only on Linux.
  *
- * @typedef {{pid: number, ppid: number, name: string, cmdline: string, started?: number}} ProcessInfo
+ * @typedef {{pid: number, ppid: number, name: string, cmdline: string, started?: number, cwd?: string}} ProcessInfo
  */
 
 /**
@@ -63,29 +63,40 @@ function escapeRegExp(text) {
 const ROOT = normalize(join(dirname(fileURLToPath(import.meta.url)), ".."));
 
 /**
- * Matches a command line that runs this checkout's Vite, through
- * `node_modules/vite/bin/vite.js` or `node_modules/.bin/vite` but not Vitest.
+ * The end of a path to Vite: `node_modules/vite/bin/vite.js` or
+ * `node_modules/.bin/vite`, but not Vitest.
  */
-const PROJECT_VITE = new RegExp(
-  String.raw`${escapeRegExp(ROOT)}/node_modules/(?:vite/|\.bin/vite(?![\w-]))`,
-);
+const VITE_BIN = String.raw`node_modules/(?:vite/|\.bin/vite(?![\w-]))`;
+
+/** Matches a command line that runs this checkout's Vite by its full path. */
+const PROJECT_VITE = new RegExp(`${escapeRegExp(ROOT)}/${VITE_BIN}`);
+
+/**
+ * Matches a command line that runs Vite by a relative path, as
+ * `./node_modules/.bin/vite` does, which only the working directory places.
+ */
+const RELATIVE_VITE = new RegExp(String.raw`(?:^|\s)(?:\./)?${VITE_BIN}`);
 
 /** Matches the command lines of the processes that launch a dev server. */
 const LAUNCHERS = [
   // yarn start, npm run dev, yarn preview, and the like.
   /\b(?:yarn|npm)\S*\s+(?:run\s+)?(?:start|dev|preview)(?=["'\s]|$)/,
-  // cmd /c vite, which Yarn runs a script through on Windows.
-  /\bcmd\.exe\b.*\/c\s+"?vite\b/,
+  // cmd /c vite or sh -c vite, the shell a package manager runs a script in.
+  /\b(?:cmd\.exe\b.*\/c|sh\s+-c)\s+"?vite\b/,
 ];
 
 /**
- * Returns whether a process is running this checkout's Vite.
+ * Returns whether a process is running this checkout's Vite, by its full path
+ * or by a relative one from the checkout's root.
  *
  * @param {ProcessInfo} p
  * @returns {boolean}
  */
 function isDevServer(p) {
-  return PROJECT_VITE.test(normalize(p.cmdline));
+  const cmdline = normalize(p.cmdline);
+  if (PROJECT_VITE.test(cmdline)) return true;
+  const inRoot = p.cwd !== undefined && normalize(p.cwd) === ROOT;
+  return inRoot && RELATIVE_VITE.test(cmdline);
 }
 
 /**
@@ -157,10 +168,13 @@ async function listLinuxProcesses() {
  */
 async function readLinuxProcess(pid) {
   try {
-    const [stat, cmdline] = await Promise.all([
+    const [stat, cmdline, cwd] = await Promise.all([
       readFile(`/proc/${pid}/stat`, "utf8"),
       readFile(`/proc/${pid}/cmdline`, "utf8"),
+      // Another user's process keeps its working directory to itself.
+      readlink(`/proc/${pid}/cwd`).catch(() => undefined),
     ]);
+    const argv = cmdline.split("\0").filter(Boolean);
     // stat reads "pid (name) state ppid ...", where the name may itself hold
     // spaces or parentheses.
     const nameEnd = stat.lastIndexOf(")");
@@ -168,8 +182,13 @@ async function readLinuxProcess(pid) {
     return {
       pid: Number(pid),
       ppid: Number(ppid),
-      name: stat.slice(stat.indexOf("(") + 1, nameEnd),
-      cmdline: cmdline.replaceAll("\0", " ").trim(),
+      // stat's name is the main thread's, which Node renames MainThread, so it
+      // stands in only for a kernel thread, which has no command line.
+      name: argv[0]
+        ? basename(argv[0].split(" ")[0])
+        : stat.slice(stat.indexOf("(") + 1, nameEnd),
+      cmdline: argv.join(" "),
+      cwd,
     };
   } catch {
     return undefined;
