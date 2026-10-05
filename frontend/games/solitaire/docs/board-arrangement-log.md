@@ -122,7 +122,7 @@ Settled with the project owner on 2026-10-05.
 ## Progress
 
 - [x] 0.1 Record the plan
-- [ ] 1.1 Room beside a bottom rail
+- [x] 1.1 Room beside a bottom rail
 - [ ] 1.2 Arrangement, chooser and grids
 - [ ] 2.1 Settings service
 - [ ] 2.2 Settings drawer
@@ -136,3 +136,13 @@ Settled with the project owner on 2026-10-05.
 ### 0.1 Record the plan
 
 This log, from the plan agreed with the owner.
+
+### 1.1 Room beside a bottom rail
+
+`computePileRooms` counted every bottom-anchored pile as blocking every column
+above it, which a rail stood on the bottom edge would do to every column beside
+it. It now counts a bottom-anchored pile across columns only when it sits in a
+lower grid row than the pile it limits, read from the top through
+`rowFromTop`. An upright phone's bottom row still stops every column; a rail in
+the columns' own row stops only the piles above it on the rail. Two specs cover
+the rail.
