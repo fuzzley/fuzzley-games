@@ -2,10 +2,15 @@ import { describe, it, expect } from "vitest";
 import {
   BoardArrangement,
   DEFAULT_BOARD_ARRANGEMENT,
+  StockSide,
   chooseTableLayout,
 } from "@/engine/render/layout/board_layouts";
 import { CARD_HEIGHT_PX } from "@/engine/render/layout/card_metrics";
 import { formFactorOf } from "@/engine/render/layout/form_factor";
+import {
+  PileLayout,
+  mirrorPileLayout,
+} from "@/engine/render/layout/pile_layout";
 import {
   TableLayoutSpec,
   measureTable,
@@ -15,15 +20,15 @@ import {
   NO_INSETS,
   Viewport,
 } from "@/engine/render/view/table_view_state";
-import { PHONE_FAN_FIT } from "@/games/common/pile_layouts";
+import { PHONE_FAN_FIT, ROOMY_FAN_FIT } from "@/games/common/pile_layouts";
 import {
   COVERED_FOUNDATION_PLACEHOLDER,
   FOUNDATION_PLACEHOLDER,
   RAIL_FOUNDATION_PLACEHOLDER,
 } from "@/games/common/zone_presets";
 import {
+  KLONDIKE_ARRANGED_LAYOUTS,
   KLONDIKE_LAYOUT,
-  KLONDIKE_PHONE_LAYOUTS,
 } from "@/games/klondike/klondike_layout";
 import {
   STOCK_PILE_ID,
@@ -40,6 +45,14 @@ function phone(width: number, height: number, insets: Insets): Viewport {
 const BAR = { ...NO_INSETS, bottom: 60 };
 const RAIL = { ...NO_INSETS, left: 64 };
 
+/** A larger screen under the header. */
+const DESKTOP: Viewport = {
+  width: 1280,
+  height: 800,
+  pixelRatio: 1,
+  insets: { ...NO_INSETS, top: 64 },
+};
+
 /**
  * Phone screens from small to large, as the browser leaves them: upright with
  * the bottom bar, and on their side with the rail.
@@ -53,10 +66,13 @@ const SCREENS: [name: string, viewport: Viewport][] = [
   ["932 Ã— 380 on its side", phone(932, 380, RAIL)],
 ];
 
+/** Auto and every arrangement a player may choose. */
 const ARRANGEMENTS: [name: string, arrangement: BoardArrangement][] = [
-  ["piles below", DEFAULT_BOARD_ARRANGEMENT],
-  ["piles above", { ...DEFAULT_BOARD_ARRANGEMENT, phonePiles: "top" }],
-  ["mirrored", { ...DEFAULT_BOARD_ARRANGEMENT, hand: "left" }],
+  ["Auto", DEFAULT_BOARD_ARRANGEMENT],
+  ["top, left", { piles: "top", stockSide: "left" }],
+  ["top, right", { piles: "top", stockSide: "right" }],
+  ["bottom, left", { piles: "bottom", stockSide: "left" }],
+  ["bottom, right", { piles: "bottom", stockSide: "right" }],
 ];
 
 /** Every screen under every arrangement, named for the failure message. */
@@ -79,10 +95,10 @@ const LONGEST_COLUMN =
 /** Returns the grid a viewport and arrangement call for. */
 function gridFor(
   viewport: Viewport,
-  arrangement: BoardArrangement,
+  arrangement: BoardArrangement = DEFAULT_BOARD_ARRANGEMENT,
 ): TableLayoutSpec {
   return chooseTableLayout(
-    { roomy: KLONDIKE_LAYOUT, phone: KLONDIKE_PHONE_LAYOUTS },
+    { roomy: KLONDIKE_LAYOUT, arranged: KLONDIKE_ARRANGED_LAYOUTS },
     formFactorOf(viewport),
     arrangement,
   );
@@ -93,7 +109,19 @@ function slotOf(grid: TableLayoutSpec, pileId: string) {
   return grid.slots.find((slot) => slot.pileId === pileId);
 }
 
-describe("Klondike's phone grids", () => {
+/** Returns which half of a grid a pile sits in. */
+function sideOf(grid: TableLayoutSpec, pileId: string): StockSide {
+  return slotOf(grid, pileId)!.column < grid.columns / 2 ? "left" : "right";
+}
+
+const FOUNDATIONS = [
+  "foundation-0",
+  "foundation-1",
+  "foundation-2",
+  "foundation-3",
+];
+
+describe("Klondike's arranged grids", () => {
   it.each(CASES)(
     "keeps the longest column on screen at %s",
     (_name, viewport, arrangement) => {
@@ -105,13 +133,10 @@ describe("Klondike's phone grids", () => {
     },
   );
 
-  it.each(SCREENS)(
-    "keeps the columns in order for a left hand at %s",
-    (_name, viewport) => {
-      const grid = gridFor(viewport, {
-        ...DEFAULT_BOARD_ARRANGEMENT,
-        hand: "left",
-      });
+  it.each(CASES)(
+    "keeps the columns in order at %s",
+    (_name, viewport, arrangement) => {
+      const grid = gridFor(viewport, arrangement);
 
       const columns = [0, 1, 2, 3, 4, 5, 6].map(
         (index) => slotOf(grid, `tableau-${index}`)!.column,
@@ -121,71 +146,124 @@ describe("Klondike's phone grids", () => {
     },
   );
 
-  it("puts the stock at the bottom left of an upright phone for a left hand", () => {
-    const grid = gridFor(phone(390, 700, BAR), {
-      ...DEFAULT_BOARD_ARRANGEMENT,
-      hand: "left",
+  it.each(
+    [DESKTOP, ...SCREENS.map(([, viewport]) => viewport)].flatMap((viewport) =>
+      (["left", "right"] as const).map(
+        (side): [string, StockSide, Viewport] => [
+          `${viewport.width / viewport.pixelRatio} × ${viewport.height / viewport.pixelRatio}`,
+          side,
+          viewport,
+        ],
+      ),
+    ),
+  )("puts the stock where asked at %s: %s", (_name, side, viewport) => {
+    const grid = gridFor(viewport, { piles: "auto", stockSide: side });
+
+    expect(sideOf(grid, STOCK_PILE_ID)).toBe(side);
+  });
+
+  it("lays a larger screen out as it always has by default", () => {
+    expect(gridFor(DESKTOP)).toBe(KLONDIKE_LAYOUT);
+  });
+
+  it("puts the stock at the bottom right of an upright phone by default", () => {
+    expect(slotOf(gridFor(phone(390, 700, BAR)), STOCK_PILE_ID)).toEqual({
+      pileId: STOCK_PILE_ID,
+      column: 6,
+      row: 0,
+      anchor: "bottom",
     });
-
-    expect(slotOf(grid, STOCK_PILE_ID)?.column).toBe(0);
   });
 
-  it("puts the stock at the bottom right of an upright phone", () => {
-    expect(
-      slotOf(KLONDIKE_PHONE_LAYOUTS.portrait.bottom, STOCK_PILE_ID),
-    ).toEqual({ pileId: STOCK_PILE_ID, column: 6, row: 0, anchor: "bottom" });
-  });
+  it("puts the foundations along the bottom left of an upright phone by default", () => {
+    const grid = gridFor(phone(390, 700, BAR));
 
-  it("puts the foundations along the bottom left of an upright phone", () => {
-    const columns = [
-      "foundation-0",
-      "foundation-1",
-      "foundation-2",
-      "foundation-3",
-    ]
-      .map(
-        (pileId) =>
-          slotOf(KLONDIKE_PHONE_LAYOUTS.portrait.bottom, pileId)?.column,
-      )
-      .sort();
+    const columns = FOUNDATIONS.map(
+      (pileId) => slotOf(grid, pileId)?.column,
+    ).sort();
 
     expect(columns).toEqual([0, 1, 2, 3]);
   });
 
-  it("stacks the foundations down the left rail on its side", () => {
-    const columns = new Set(
-      ["foundation-0", "foundation-1", "foundation-2", "foundation-3"].map(
-        (pileId) => slotOf(KLONDIKE_PHONE_LAYOUTS.landscape, pileId)?.column,
-      ),
-    );
+  it("puts the piles along the bottom of a larger screen when asked", () => {
+    const grid = gridFor(DESKTOP, { piles: "bottom", stockSide: "auto" });
 
-    expect([...columns]).toEqual([0]);
+    expect(slotOf(grid, STOCK_PILE_ID)).toEqual({
+      pileId: STOCK_PILE_ID,
+      column: 0,
+      row: 0,
+      anchor: "bottom",
+    });
   });
 
-  it("tops the right rail with the stock on its side", () => {
+  it("keeps the longest column clear of the piles along the bottom of a larger screen", () => {
+    const grid = gridFor(DESKTOP, { piles: "bottom", stockSide: "auto" });
+    const longest =
+      CARD_HEIGHT_PX +
+      6 * ROOMY_FAN_FIT.minFaceDownGap +
+      11 * ROOMY_FAN_FIT.minFaceUpGap;
+
     expect(
-      slotOf(KLONDIKE_PHONE_LAYOUTS.landscape, STOCK_PILE_ID),
-    ).toMatchObject({ column: 8, offset: { x: 0, y: 0 } });
+      measureTable(grid, DESKTOP).rooms.get("tableau-6"),
+    ).toBeGreaterThanOrEqual(longest);
   });
 
-  it("marks each foundation at its top edge down the rail, the last one closed", () => {
-    const artwork = [
-      "foundation-0",
-      "foundation-1",
-      "foundation-2",
-      "foundation-3",
-    ].map((pileId) =>
-      KLONDIKE_PHONE_LAYOUTS.landscape.pileBackgrounds?.[pileId]?.(
-        FOUNDATION_PLACEHOLDER,
-      ),
-    );
+  describe("on its side", () => {
+    const { top, bottom } = KLONDIKE_ARRANGED_LAYOUTS.landscape;
 
-    expect(artwork).toEqual([
-      COVERED_FOUNDATION_PLACEHOLDER,
-      COVERED_FOUNDATION_PLACEHOLDER,
-      COVERED_FOUNDATION_PLACEHOLDER,
-      RAIL_FOUNDATION_PLACEHOLDER,
-    ]);
+    it.each([
+      ["from the top", top],
+      ["on the bottom", bottom],
+    ])("stacks the foundations down the left rail, %s", (_name, grid) => {
+      const columns = new Set(
+        FOUNDATIONS.map((pileId) => slotOf(grid, pileId)?.column),
+      );
+
+      expect([...columns]).toEqual([0]);
+    });
+
+    it("tops the right rail with the stock, from the top", () => {
+      expect(slotOf(top, STOCK_PILE_ID)).toMatchObject({
+        column: 8,
+        offset: { x: 0, y: 0 },
+      });
+    });
+
+    it("stands the stock and waste on the foot of the right rail by default", () => {
+      const grid = gridFor(phone(780, 340, RAIL));
+
+      expect(
+        [STOCK_PILE_ID, WASTE_PILE_ID].map((pileId) => slotOf(grid, pileId)),
+      ).toEqual([
+        expect.objectContaining({ column: 8, anchor: "bottom" }),
+        expect.objectContaining({ column: 8, anchor: "bottom" }),
+      ]);
+    });
+
+    it("keeps the stock above the waste on the bottom", () => {
+      expect(slotOf(bottom, STOCK_PILE_ID)!.offset!.y).toBeLessThan(
+        slotOf(bottom, WASTE_PILE_ID)!.offset!.y,
+      );
+    });
+
+    it.each([
+      ["from the top", top],
+      ["on the bottom", bottom],
+    ])(
+      "marks each foundation at its top edge down the rail, the last one closed, %s",
+      (_name, grid) => {
+        const artwork = FOUNDATIONS.map((pileId) =>
+          grid.pileBackgrounds?.[pileId]?.(FOUNDATION_PLACEHOLDER),
+        );
+
+        expect(artwork).toEqual([
+          COVERED_FOUNDATION_PLACEHOLDER,
+          COVERED_FOUNDATION_PLACEHOLDER,
+          COVERED_FOUNDATION_PLACEHOLDER,
+          RAIL_FOUNDATION_PLACEHOLDER,
+        ]);
+      },
+    );
   });
 
   describe.each([1, 3] as const)("the waste of a draw %i", (drawCount) => {
@@ -193,28 +271,42 @@ describe("Klondike's phone grids", () => {
       (zone) => zone.id === WASTE_PILE_ID,
     )!.layout;
 
-    /** Returns how the waste arranges its cards on a grid. */
-    function wasteOn(grid: TableLayoutSpec) {
-      return grid.pileLayouts?.[WASTE_PILE_ID]?.(own) ?? own;
+    /** Returns how the waste arranges its cards on a grid, mirror and all. */
+    function wasteOn(grid: TableLayoutSpec): PileLayout {
+      const chosen = grid.pileLayouts?.[WASTE_PILE_ID]?.(own) ?? own;
+      return grid.mirrored ? mirrorPileLayout(chosen) : chosen;
     }
 
-    it("spreads towards the stock beside it, upright", () => {
-      expect(wasteOn(KLONDIKE_PHONE_LAYOUTS.portrait.bottom)).toMatchObject({
+    it("spreads towards the stock beside it, upright, by default", () => {
+      expect(wasteOn(gridFor(phone(390, 700, BAR)))).toMatchObject({
         direction: "left",
       });
     });
 
-    it("spreads down under the stock, on its side", () => {
-      expect(wasteOn(KLONDIKE_PHONE_LAYOUTS.landscape)).toMatchObject({
-        direction: "down",
+    it("spreads away from a stock at the left, upright", () => {
+      const grid = gridFor(phone(390, 700, BAR), {
+        piles: "auto",
+        stockSide: "left",
       });
+
+      expect(wasteOn(grid)).toMatchObject({ direction: "right" });
+    });
+
+    it.each([
+      ["from the top", KLONDIKE_ARRANGED_LAYOUTS.landscape.top],
+      ["on the bottom", KLONDIKE_ARRANGED_LAYOUTS.landscape.bottom],
+    ])("spreads down under the stock on its side, %s", (_name, grid) => {
+      expect(wasteOn(grid)).toMatchObject({ direction: "down" });
     });
 
     it("keeps the draw's count of spread cards on every grid", () => {
+      const { roomy, portrait, landscape } = KLONDIKE_ARRANGED_LAYOUTS;
       const grids = [
-        KLONDIKE_PHONE_LAYOUTS.portrait.bottom,
-        KLONDIKE_PHONE_LAYOUTS.portrait.top,
-        KLONDIKE_PHONE_LAYOUTS.landscape,
+        roomy.bottom,
+        portrait.bottom,
+        portrait.top,
+        landscape.top,
+        landscape.bottom,
       ];
 
       const shown = grids.map((grid) => {
@@ -222,7 +314,7 @@ describe("Klondike's phone grids", () => {
         return waste.kind === "spread" ? waste.maxVisible : null;
       });
 
-      expect(shown).toEqual(Array(3).fill(drawCount === 1 ? 1 : 3));
+      expect(shown).toEqual(Array(5).fill(drawCount === 1 ? 1 : 3));
     });
   });
 });

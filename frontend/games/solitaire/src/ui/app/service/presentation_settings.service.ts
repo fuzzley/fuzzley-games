@@ -13,8 +13,11 @@ import {
 import {
   BoardArrangement,
   DEFAULT_BOARD_ARRANGEMENT,
-  Hand,
-  PhonePilePosition,
+  OrAuto,
+  PilePosition,
+  ResolvedArrangement,
+  StockSide,
+  resolveArrangement,
 } from "@/engine/render/layout/board_layouts";
 import {
   CARD_DECKS,
@@ -53,18 +56,22 @@ interface PersistedPresentation {
   theme: ThemeKey;
   cardStyle: CardStyle;
   desktopCardDeck: DesktopCardDeckId;
-  phonePiles: PhonePilePosition;
-  hand: Hand;
+  piles: OrAuto<PilePosition>;
+  stockSide: OrAuto<StockSide>;
 }
 
 /**
  * Holds the presentation settings as a build before this one may have stored
- * them, which kept the felt's colour rather than the felt, and one deck rather
- * than a card style and a desktop deck.
+ * them, which kept the felt's colour rather than the felt, one deck rather
+ * than a card style and a desktop deck, and where an upright phone put its
+ * piles and the player's hand rather than where every screen puts them and the
+ * stock's side.
  */
 interface StoredPresentation extends Partial<PersistedPresentation> {
   backgroundColor?: unknown;
   cardDeck?: unknown;
+  phonePiles?: unknown;
+  hand?: unknown;
 }
 
 const DEFAULTS: PersistedPresentation = {
@@ -79,12 +86,12 @@ function isCardStyle(value: unknown): value is CardStyle {
   return value === "auto" || value === "mobile" || value === "desktop";
 }
 
-function isPhonePilePosition(value: unknown): value is PhonePilePosition {
-  return value === "bottom" || value === "top";
+function isPilesChoice(value: unknown): value is OrAuto<PilePosition> {
+  return value === "auto" || value === "top" || value === "bottom";
 }
 
-function isHand(value: unknown): value is Hand {
-  return value === "right" || value === "left";
+function isStockSideChoice(value: unknown): value is OrAuto<StockSide> {
+  return value === "auto" || value === "left" || value === "right";
 }
 
 /** Returns what a deck is called, for a sentence about it. */
@@ -112,15 +119,17 @@ export class PresentationSettingsService implements TablePresentation {
   private readonly desktopCardDeckSignal = signal<DesktopCardDeckId>(
     this.loaded.desktopCardDeck,
   );
-  private readonly phonePilesSignal = signal<PhonePilePosition>(
-    this.loaded.phonePiles,
+  private readonly pilesSignal = signal<OrAuto<PilePosition>>(
+    this.loaded.piles,
   );
-  private readonly handSignal = signal<Hand>(this.loaded.hand);
+  private readonly stockSideSignal = signal<OrAuto<StockSide>>(
+    this.loaded.stockSide,
+  );
 
-  /** Where the piles go on an upright phone, and the hand, together. */
+  /** Where the piles go and the stock's side, together. */
   private readonly arrangement = computed<BoardArrangement>(() => ({
-    phonePiles: this.phonePilesSignal(),
-    hand: this.handSignal(),
+    piles: this.pilesSignal(),
+    stockSide: this.stockSideSignal(),
   }));
 
   /** The deck the player's choices and the viewport call for. */
@@ -160,16 +169,21 @@ export class PresentationSettingsService implements TablePresentation {
   readonly desktopCardDeck = this.desktopCardDeckSignal.asReadonly();
 
   /**
-   * Where an upright phone puts the piles that are not columns, in a game with
-   * phone grids.
+   * Where a game with arranged grids puts the piles that are not columns, or
+   * Auto.
    */
-  readonly phonePiles = this.phonePilesSignal.asReadonly();
+  readonly piles = this.pilesSignal.asReadonly();
+
+  /** Which side a game with arranged grids puts the stock on, or Auto. */
+  readonly stockSide = this.stockSideSignal.asReadonly();
 
   /**
-   * Which hand the player plays with; a left one mirrors a game with phone
-   * grids, and moves the chrome on a phone to the other side.
+   * Where the piles go and the stock's side on the screen as it is now, with
+   * Auto decided as the board decides it.
    */
-  readonly hand = this.handSignal.asReadonly();
+  readonly resolvedArrangement = computed<ResolvedArrangement>(() =>
+    resolveArrangement(this.arrangement(), this.viewport.formFactor()),
+  );
 
   /**
    * Whether the cards are drawn for desktop: chosen, or picked by auto for a
@@ -230,14 +244,14 @@ export class PresentationSettingsService implements TablePresentation {
     this.desktopCardDeckSignal.set(deckId);
   }
 
-  /** Puts an upright phone's piles along the bottom or along the top. */
-  setPhonePiles(position: PhonePilePosition): void {
-    this.phonePilesSignal.set(position);
+  /** Puts the piles at the top or the bottom, or wherever the screen suits. */
+  setPiles(position: OrAuto<PilePosition>): void {
+    this.pilesSignal.set(position);
   }
 
-  /** Lays the table out for a right hand or, mirrored, a left one. */
-  setHand(hand: Hand): void {
-    this.handSignal.set(hand);
+  /** Puts the stock at the left or the right, or wherever the screen suits. */
+  setStockSide(side: OrAuto<StockSide>): void {
+    this.stockSideSignal.set(side);
   }
 
   /** Records how the board is getting on with the deck it was asked for. */
@@ -300,8 +314,8 @@ export class PresentationSettingsService implements TablePresentation {
         theme: this.themeSignal(),
         cardStyle: this.cardStyleSignal(),
         desktopCardDeck: this.desktopCardDeckSignal(),
-        phonePiles: this.phonePilesSignal(),
-        hand: this.handSignal(),
+        piles: this.pilesSignal(),
+        stockSide: this.stockSideSignal(),
       };
       this.storage.writeObject(STORAGE_KEY, data);
     });
@@ -327,10 +341,18 @@ export class PresentationSettingsService implements TablePresentation {
       desktopCardDeck: isDesktopCardDeckId(desktopCardDeck)
         ? desktopCardDeck
         : DEFAULTS.desktopCardDeck,
-      phonePiles: isPhonePilePosition(parsed.phonePiles)
-        ? parsed.phonePiles
-        : DEFAULTS.phonePiles,
-      hand: isHand(parsed.hand) ? parsed.hand : DEFAULTS.hand,
+      // An earlier build's piles at the top and left hand mean what they did
+      // on the phones they were offered on; anything else becomes Auto.
+      piles: isPilesChoice(parsed.piles)
+        ? parsed.piles
+        : parsed.phonePiles === "top"
+          ? "top"
+          : DEFAULTS.piles,
+      stockSide: isStockSideChoice(parsed.stockSide)
+        ? parsed.stockSide
+        : parsed.hand === "left"
+          ? "left"
+          : DEFAULTS.stockSide,
     };
   }
 }

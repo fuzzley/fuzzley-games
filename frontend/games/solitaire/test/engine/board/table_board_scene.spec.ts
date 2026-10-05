@@ -328,7 +328,7 @@ describe("makeTableBoardScene", () => {
   });
 });
 
-describe("makeTableBoardScene on a game with phone grids", () => {
+describe("makeTableBoardScene on a game with arranged grids", () => {
   /**
    * The fake board with its foundations moved down a row, so a stack dropped
    * where the roomy grid puts them misses.
@@ -358,10 +358,12 @@ describe("makeTableBoardScene on a game with phone grids", () => {
       game,
       layouts: {
         roomy: FAKE_TABLE_LAYOUT,
-        phone: {
-          portrait: { bottom: PHONE_GRID, top: PHONE_GRID },
-          landscape: PHONE_GRID,
+        arranged: {
+          roomy: { top: FAKE_TABLE_LAYOUT, bottom: FAKE_TABLE_LAYOUT },
+          portrait: { top: PHONE_GRID, bottom: PHONE_GRID },
+          landscape: { top: PHONE_GRID, bottom: PHONE_GRID },
           columns: COLUMNS,
+          stock: game.stock.id,
         },
       },
       handleIntent: fakeTableGestures(game),
@@ -386,6 +388,7 @@ describe("makeTableBoardScene on a game with phone grids", () => {
   }
 
   it("lays the board out on its phone grid on a phone", () => {
+    presentation.setBoardArrangement({ piles: "auto", stockSide: "left" });
     const foundation = game.foundations[0];
     const origin = measureTable(PHONE_GRID, scene.viewport).origins.get(
       foundation.id,
@@ -396,8 +399,8 @@ describe("makeTableBoardScene on a game with phone grids", () => {
     expect(game.getPileContainingCard(ace.id)).toBe(foundation);
   });
 
-  it("mirrors its phone grid for a left hand", () => {
-    presentation.setBoardArrangement({ phonePiles: "bottom", hand: "left" });
+  it("mirrors its phone grid to put the stock at the right", () => {
+    presentation.setBoardArrangement({ piles: "auto", stockSide: "right" });
     const foundation = game.foundations[0];
     const origin = measureTable(
       mirrorTable(PHONE_GRID, COLUMNS),

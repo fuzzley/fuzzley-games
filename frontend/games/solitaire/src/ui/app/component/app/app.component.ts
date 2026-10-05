@@ -61,11 +61,13 @@ export class AppComponent {
       );
     });
 
-    // Say which hand the player plays with on the document root, where the
-    // chrome's stylesheets can read it: a left hand moves the rail on a
-    // sideways phone to the right, and reverses the bar on an upright one.
+    // Say which side the stock is on, on the screen as it is now, on the
+    // document root, where the chrome's stylesheets can read it: a stock at the
+    // left moves the rail on a sideways phone to the right, and reverses the
+    // bar on an upright one.
     effect(() => {
-      this.document.documentElement.dataset["hand"] = this.presentation.hand();
+      this.document.documentElement.dataset["stockSide"] =
+        this.presentation.resolvedArrangement().stockSide;
     });
 
     // Name the game in the tab title, first because a tab strip crops from the

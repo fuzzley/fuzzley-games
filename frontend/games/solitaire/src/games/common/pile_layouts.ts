@@ -30,6 +30,17 @@ export const PHONE_FAN_FIT: FanFit = {
   minFaceDownGap: 10,
 };
 
+/**
+ * How far a column's fan closes to fit the room above a row of piles along the
+ * bottom of a larger screen: never wider than its own gaps, and down to a strip
+ * that still shows a desktop deck's rank.
+ */
+export const ROOMY_FAN_FIT: FanFit = {
+  minFaceUpGap: 36,
+  maxFaceUpGap: TABLEAU_FACE_UP_OFFSET,
+  minFaceDownGap: 10,
+};
+
 /** How a cell, a foundation or a stock arranges its cards: squarely. */
 export const STACKED_PILE_LAYOUT: PileLayout = { kind: "stacked" };
 

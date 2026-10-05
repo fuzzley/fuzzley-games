@@ -1,55 +1,113 @@
 import { FormFactor } from "./form_factor";
 import { TableLayoutSpec } from "./table_layout";
 
-/** Says where an upright phone puts the piles that are not columns. */
-export type PhonePilePosition =
-  /** Along the bottom, under the player's thumb. */
-  | "bottom"
-  /** Along the top, as on a larger screen. */
-  | "top";
+/** Says where a board puts the piles that are not columns. */
+export type PilePosition =
+  /** Above the columns, as on a larger screen. */
+  | "top"
+  /** Along the bottom edge, under the player's thumb. */
+  | "bottom";
 
-/** Says which hand the player plays with; a left one mirrors the board. */
-export type Hand = "right" | "left";
+/** Says which side of the board the stock sits on. */
+export type StockSide = "left" | "right";
+
+/**
+ * Stands for a choice, or for Auto, which leaves it to the shape of the
+ * screen.
+ */
+export type OrAuto<Choice extends string> = Choice | "auto";
 
 /** Holds the player's choices about how a board is arranged. */
 export interface BoardArrangement {
-  /** Where an upright phone puts the piles that are not columns. */
-  readonly phonePiles: PhonePilePosition;
-  /** Which hand the player plays with. */
-  readonly hand: Hand;
+  /** Where the piles that are not columns go. */
+  readonly piles: OrAuto<PilePosition>;
+  /** Which side of the board the stock sits on. */
+  readonly stockSide: OrAuto<StockSide>;
 }
 
-/** How a board is arranged until the player says otherwise. */
+/** Holds the arrangement a board is laid out in, with Auto decided. */
+export interface ResolvedArrangement {
+  /** Where the piles that are not columns go. */
+  readonly piles: PilePosition;
+  /** Which side of the board the stock sits on. */
+  readonly stockSide: StockSide;
+}
+
+/** How a board is arranged until the player says otherwise: left to Auto. */
 export const DEFAULT_BOARD_ARRANGEMENT: BoardArrangement = {
-  phonePiles: "bottom",
-  hand: "right",
+  piles: "auto",
+  stockSide: "auto",
 };
 
-/** Holds the grids a game lays its board out on on a phone. */
-export interface PhoneLayouts {
-  /** For a phone held upright, with the piles at the bottom or the top. */
-  readonly portrait: {
-    readonly [Position in PhonePilePosition]: TableLayoutSpec;
+/**
+ * What Auto picks on each shape of screen: the piles and the stock under a
+ * right thumb on a phone, and where they have always been on a larger screen.
+ */
+export const AUTO_ARRANGEMENTS: Readonly<
+  Record<FormFactor, ResolvedArrangement>
+> = {
+  roomy: { piles: "top", stockSide: "left" },
+  "phone-portrait": { piles: "bottom", stockSide: "right" },
+  "phone-landscape": { piles: "bottom", stockSide: "right" },
+};
+
+/**
+ * Returns the arrangement a board is laid out in on a shape of screen, with
+ * whatever the player left to Auto decided by it.
+ */
+export function resolveArrangement(
+  arrangement: BoardArrangement,
+  formFactor: FormFactor,
+): ResolvedArrangement {
+  const auto = AUTO_ARRANGEMENTS[formFactor];
+  return {
+    piles: arrangement.piles === "auto" ? auto.piles : arrangement.piles,
+    stockSide:
+      arrangement.stockSide === "auto" ? auto.stockSide : arrangement.stockSide,
   };
+}
+
+/** Holds a grid for each place the piles that are not columns may go. */
+export type GridsByPilePosition = {
+  readonly [Position in PilePosition]: TableLayoutSpec;
+};
+
+/**
+ * Holds the grids a game's board lies on in every arrangement a player may
+ * choose, on every shape of screen.
+ */
+export interface ArrangedLayouts {
+  /** For a screen with room to spare. */
+  readonly roomy: GridsByPilePosition;
+  /** For a phone held upright. */
+  readonly portrait: GridsByPilePosition;
   /** For a phone on its side. */
-  readonly landscape: TableLayoutSpec;
+  readonly landscape: GridsByPilePosition;
   /**
    * The columns, left to right, which a mirror moves as one block but keeps
    * in order on every grid, since a player reads them left to right whichever
-   * hand they play with.
+   * side the stock is on.
    */
   readonly columns: readonly string[];
+  /**
+   * The pile the stock side places. A grid that has it in the other half from
+   * the side chosen is mirrored.
+   */
+  readonly stock: string;
 }
 
 /** Holds every grid a game's board may lie on. */
 export interface BoardLayouts {
-  /** The grid for a screen with room to spare, and wherever no other applies. */
+  /**
+   * The grid for a screen with room to spare, and wherever no other applies.
+   * It is the arranged roomy grid with the piles at the top, when there is one.
+   */
   readonly roomy: TableLayoutSpec;
   /**
-   * The grids for a phone. A game without them lies on its roomy grid
-   * everywhere, and is never mirrored.
+   * The grids for every arrangement. A game without them lies on its roomy
+   * grid everywhere, and is never mirrored.
    */
-  readonly phone?: PhoneLayouts;
+  readonly arranged?: ArrangedLayouts;
 }
 
 /** Stands for no columns kept in order, as a key into the mirror cache. */
@@ -105,22 +163,50 @@ export function mirrorTable(
 
 /**
  * Returns the grid a board lies on for a shape of screen and the player's
- * arrangement, mirrored for a left hand when the game has phone grids, with
- * its columns kept in order.
+ * arrangement: the one with the piles where they were asked for, mirrored
+ * when that leaves the stock on the other side, with the columns kept in
+ * order.
  */
 export function chooseTableLayout(
   layouts: BoardLayouts,
   formFactor: FormFactor,
   arrangement: BoardArrangement,
 ): TableLayoutSpec {
-  const phone = layouts.phone;
-  if (!phone) return layouts.roomy;
+  const arranged = layouts.arranged;
+  if (!arranged) return layouts.roomy;
 
-  const grid =
-    formFactor === "phone-portrait"
-      ? phone.portrait[arrangement.phonePiles]
-      : formFactor === "phone-landscape"
-        ? phone.landscape
-        : layouts.roomy;
-  return arrangement.hand === "left" ? mirrorTable(grid, phone.columns) : grid;
+  const { piles, stockSide } = resolveArrangement(arrangement, formFactor);
+  const grid = gridsFor(arranged, formFactor)[piles];
+  const side = sideOf(grid, arranged.stock);
+  return side === null || side === stockSide
+    ? grid
+    : mirrorTable(grid, arranged.columns);
+}
+
+/** Returns a game's grids for a shape of screen. */
+function gridsFor(
+  arranged: ArrangedLayouts,
+  formFactor: FormFactor,
+): GridsByPilePosition {
+  switch (formFactor) {
+    case "roomy":
+      return arranged.roomy;
+    case "phone-portrait":
+      return arranged.portrait;
+    case "phone-landscape":
+      return arranged.landscape;
+  }
+}
+
+/**
+ * Returns which half of a grid a pile sits in, or null when it straddles the
+ * middle or is not on the grid.
+ */
+function sideOf(grid: TableLayoutSpec, pileId: string): StockSide | null {
+  const slot = grid.slots.find((placed) => placed.pileId === pileId);
+  if (!slot) return null;
+  // Twice the distance from the left edge to the middle of the pile's column.
+  const middle = 2 * slot.column + 1;
+  if (middle === grid.columns) return null;
+  return middle < grid.columns ? "left" : "right";
 }

@@ -302,8 +302,8 @@ describe("PresentationSettingsService", () => {
         theme: "purple",
         cardStyle: "mobile",
         desktopCardDeck: "classic",
-        phonePiles: "bottom",
-        hand: "right",
+        piles: "auto",
+        stockSide: "auto",
       });
     });
 
@@ -338,8 +338,8 @@ describe("PresentationSettingsService", () => {
         theme: "blue",
         cardStyle: "auto",
         desktopCardDeck: "classic",
-        phonePiles: "bottom",
-        hand: "right",
+        piles: "auto",
+        stockSide: "auto",
       });
     });
 
@@ -523,56 +523,123 @@ describe("PresentationSettingsService", () => {
   });
 
   describe("the board's arrangement", () => {
-    it("puts an upright phone's piles at the bottom, for a right hand, by default", () => {
+    it("leaves where the piles go and the stock's side to Auto by default", () => {
       expect(buildSettings().boardArrangement()).toEqual({
-        phonePiles: "bottom",
-        hand: "right",
+        piles: "auto",
+        stockSide: "auto",
       });
     });
 
     it("tells the board where the piles go once the player moves them", () => {
       const settings = buildSettings();
 
-      settings.setPhonePiles("top");
+      settings.setPiles("top");
 
-      expect(settings.boardArrangement().phonePiles).toBe("top");
+      expect(settings.boardArrangement().piles).toBe("top");
     });
 
-    it("tells the board the hand once the player changes it", () => {
+    it("tells the board the stock's side once the player changes it", () => {
       const settings = buildSettings();
 
-      settings.setHand("left");
+      settings.setStockSide("left");
 
-      expect(settings.boardArrangement().hand).toBe("left");
+      expect(settings.boardArrangement().stockSide).toBe("left");
     });
 
     it("saves both", () => {
       const settings = buildSettings();
 
-      settings.setPhonePiles("top");
-      settings.setHand("left");
+      settings.setPiles("top");
+      settings.setStockSide("left");
       TestBed.flushEffects();
 
-      expect(stored()).toMatchObject({ phonePiles: "top", hand: "left" });
+      expect(stored()).toMatchObject({ piles: "top", stockSide: "left" });
     });
 
     it("loads what it saved", () => {
+      store({ piles: "bottom", stockSide: "right" });
+
+      const settings = buildSettings();
+
+      expect([settings.piles(), settings.stockSide()]).toEqual([
+        "bottom",
+        "right",
+      ]);
+    });
+
+    it("falls back to Auto for values it does not know", () => {
+      store({ piles: "sideways", stockSide: 3 });
+
+      const settings = buildSettings();
+
+      expect([settings.piles(), settings.stockSide()]).toEqual([
+        "auto",
+        "auto",
+      ]);
+    });
+
+    it("keeps an earlier build's piles at the top and left hand", () => {
       store({ phonePiles: "top", hand: "left" });
 
       const settings = buildSettings();
 
-      expect([settings.phonePiles(), settings.hand()]).toEqual(["top", "left"]);
+      expect([settings.piles(), settings.stockSide()]).toEqual(["top", "left"]);
     });
 
-    it("falls back to the defaults for values it does not know", () => {
-      store({ phonePiles: "sideways", hand: 3 });
+    it("leaves an earlier build's defaults to Auto", () => {
+      store({ phonePiles: "bottom", hand: "right" });
 
       const settings = buildSettings();
 
-      expect([settings.phonePiles(), settings.hand()]).toEqual([
-        "bottom",
-        "right",
+      expect([settings.piles(), settings.stockSide()]).toEqual([
+        "auto",
+        "auto",
       ]);
+    });
+
+    it("drops an earlier build's keys once it saves", () => {
+      store({ phonePiles: "top", hand: "left" });
+      buildSettings();
+
+      TestBed.flushEffects();
+
+      expect(Object.keys(stored()!)).not.toContain("phonePiles");
+    });
+
+    it("decides Auto as a larger screen wants it", () => {
+      windowAt(WIDE_WIDTH);
+
+      expect(buildSettings().resolvedArrangement()).toEqual({
+        piles: "top",
+        stockSide: "left",
+      });
+    });
+
+    it("decides Auto as a phone wants it", () => {
+      windowAt(PHONE_WIDTH);
+
+      expect(buildSettings().resolvedArrangement()).toEqual({
+        piles: "bottom",
+        stockSide: "right",
+      });
+    });
+
+    it("decides Auto again when the window changes shape", () => {
+      const view = windowAt(WIDE_WIDTH);
+      const settings = buildSettings();
+
+      view.setSize(844, 390);
+
+      expect(settings.resolvedArrangement().stockSide).toBe("right");
+    });
+
+    it("keeps what the player chose, whatever the screen", () => {
+      windowAt(PHONE_WIDTH);
+      const settings = buildSettings();
+
+      settings.setStockSide("left");
+
+      expect(settings.resolvedArrangement().stockSide).toBe("left");
     });
   });
 });
