@@ -182,7 +182,7 @@ This project uses **Yarn 4**. Always use Yarn commands instead of NPM (`yarn <co
 - **Run Development Server:** `yarn start` or `yarn dev` (launches Vite dev server at `http://localhost:9000/`).
 - **Stop Development Servers:** `yarn stop` (runs `tools/stop-dev-servers.mjs` to force stop every Vite dev server running from this checkout, with the yarn processes that launched it, on Windows and Linux; `--dry-run` lists them without stopping them).
 - **Build Card Atlas:** `yarn build:atlas` (runs `tools/build-card-atlas.mjs` to cut the SVG card sheets, and generate the `mobile` deck, into texture atlas files; `--deck <id>` builds one deck, `--preview` draws a contact sheet of every deck at phone scale).
-- **Build Screenshot Thumbnails:** `yarn build:thumbs` (runs `tools/build-screenshot-thumbs.mjs` to crop each game's rules-page screenshot into the game browser's `thumb.webp` and `preview.webp`).
+- **Build Screenshot Thumbnails:** `yarn build:thumbs` (runs `tools/build-screenshot-thumbs.mjs` to shrink each game's rules-page screenshot into the game browser's `thumb.webp`, cropped to the board, and `preview.webp`, the whole page; Klondike's is also the link preview image in `index.html`).
 - **Production Build:** `yarn build` (generates bundled production assets in `dist/` with Phaser manual chunking).
 - **Run Unit Tests:** `yarn test` (runs Vitest once) or `yarn test:watch` / `yarn test:coverage`.
 - **Linting:** `yarn lint` (checks the skills' references, runs ESLint over `src`, `test`, `tools` and `.agents`, then checks formatting with `yarn prettier:check`).

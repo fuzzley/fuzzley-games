@@ -4,10 +4,10 @@
  *
  *   yarn build:thumbs
  *
- * Reads `public/docs/screenshots/<id>/overview.png`, crops away the header
- * above the board, and writes a `thumb.webp` for a row of the list and a
- * `preview.webp` for the preview pane beside it. The full screenshots run to
- * a megabyte apiece, too heavy to list.
+ * Reads `public/docs/screenshots/<id>/overview.png` and writes a `thumb.webp`
+ * of the board alone for a row of the list, and a `preview.webp` of the whole
+ * page for the preview pane beside it and for link previews. The full
+ * screenshots run to a megabyte apiece, too heavy to list.
  */
 import sharp from "sharp";
 import { readdir, stat } from "node:fs/promises";
@@ -23,10 +23,13 @@ const SOURCE = "overview.png";
 /**
  * The images to write, each twice the CSS size it is shown at so that it
  * stays sharp on a high density display.
+ *
+ * The thumbnail is cropped to the board, since the header would be an
+ * illegible strip at its size.
  */
 const OUTPUTS = [
-  { file: "thumb.webp", width: 192, height: 108 },
-  { file: "preview.webp", width: 1280, height: 720 },
+  { file: "thumb.webp", width: 192, height: 108, boardOnly: true },
+  { file: "preview.webp", width: 1280, height: 720, boardOnly: false },
 ];
 
 /** WebP quality, which keeps card faces legible at a fraction of the PNG. */
@@ -109,8 +112,8 @@ async function shrink(dir) {
   const sizes = [];
   for (const output of OUTPUTS) {
     const target = join(dir, output.file);
-    await sharp(source)
-      .extract(region)
+    const image = sharp(source);
+    await (output.boardOnly ? image.extract(region) : image)
       // Contained rather than cropped, since a wide board runs edge to edge;
       // any strip left over goes below it, as more felt.
       .resize(output.width, output.height, {
