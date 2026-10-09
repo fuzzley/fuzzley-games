@@ -132,6 +132,21 @@ export function sideOf(grid: TableLayoutSpec, pileId: string): StockSide {
   return slotOf(grid, pileId)!.column < grid.columns / 2 ? "left" : "right";
 }
 
+/**
+ * Returns, for every pair of the named piles, which of them a grid puts
+ * further left, so a grid of cards or a pyramid can be held to its order as a
+ * row of columns is.
+ */
+function leftToRight(
+  grid: TableLayoutSpec,
+  pileIds: readonly string[],
+): number[] {
+  const placed = pileIds.map((pileId) => slotOf(grid, pileId)!.column);
+  return placed.flatMap((column, index) =>
+    placed.slice(index + 1).map((later) => Math.sign(later - column)),
+  );
+}
+
 /** Returns the least room any of the named piles has on a screen. */
 export function leastRoom(
   grid: TableLayoutSpec,
@@ -180,20 +195,21 @@ export function itLaysOutArrangedGrids(game: ArrangedGridsUnderTest): void {
   it.each(CASES)(
     "keeps the longest column on screen at %s",
     (_name, viewport, arrangement) => {
+      // Within a rounding error of the room exactly a card fills.
       expect(
         leastRoom(gridFor(viewport, arrangement), viewport, columns),
-      ).toBeGreaterThanOrEqual(columnHeightAtFloors(game.longestColumn));
+      ).toBeGreaterThanOrEqual(columnHeightAtFloors(game.longestColumn) - 1e-6);
     },
   );
 
   it.each(CASES)(
-    "keeps the columns in order at %s",
+    "keeps the columns in the larger screen's order at %s",
     (_name, viewport, arrangement) => {
       const grid = gridFor(viewport, arrangement);
 
-      const placed = columns.map((pileId) => slotOf(grid, pileId)!.column);
-
-      expect(placed).toEqual([...placed].sort((a, b) => a - b));
+      expect(leftToRight(grid, columns)).toEqual(
+        leftToRight(game.roomy, columns),
+      );
     },
   );
 

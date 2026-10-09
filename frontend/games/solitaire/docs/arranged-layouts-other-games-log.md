@@ -204,7 +204,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 4.5 Penguin
 - [x] 4.6 Flower Garden
 - [x] 4.7 Browser check
-- [ ] 5.1 Poker Squares
+- [x] 5.1 Poker Squares
 - [ ] 5.2 Monte Carlo
 - [ ] 5.3 Aces Up
 - [ ] 5.4 Pyramid
@@ -634,3 +634,24 @@ foundation that always holds a card, and Bristol's reserves, which only the
 stock fills, are all fine. A filled foundation still hides the ring of an empty
 one below it down a foundation rail, as in Klondike on `main`; the outline below
 the card still marks it. The page was closed afterwards.
+
+### 5.1 Poker Squares
+
+**Builder and helpers.** A board laid out by hand still wants the phone grids'
+gaps, padding and fans, so `arranged_layouts.ts` now exports `phoneLayout` (a
+`HandLaidPhoneGrid` of columns, rows and slots, as tall as its rows unless an
+`innerHeight` is given) and `fannedColumnHeight(column, fit)`, which the
+builder's own `longestColumnHeight` now calls. The shared spec's column check
+became "keeps the columns in the larger screen's order": for every pair of the
+named piles it compares which is further left with the larger screen's grid,
+so a grid of squares or a pyramid is held to its order as a row of columns is.
+Its room check allows a rounding error of a millionth of a unit, since a grid
+of single cards has exactly a card's room.
+
+**Poker Squares.** `POKER_SQUARES_ARRANGED_LAYOUTS` is written out: on a larger
+screen and a sideways phone the stock above the card to place stands beside
+the grid, in its first two rows (Top) or its last two (Bottom); upright they
+sit side by side in a row above the grid or along the bottom edge, so the grid
+is five cards wide instead of six and the cards are bigger. The stock is the
+side pile; the mirror keeps the twenty-five squares in their order. The drawer
+says "stock and the card to place", the rules page's words.

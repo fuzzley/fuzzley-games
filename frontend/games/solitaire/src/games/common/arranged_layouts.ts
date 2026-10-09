@@ -339,6 +339,32 @@ interface PhoneGridSpec {
   readonly pileBackgrounds?: Readonly<Record<string, PileBackgroundOverride>>;
 }
 
+/** Describes a phone grid laid out by hand, for {@link phoneLayout}. */
+export interface HandLaidPhoneGrid {
+  readonly columns: number;
+  readonly rows: number;
+  readonly slots: readonly SlotPlacement[];
+  /**
+   * The height the grid keeps on screen inside its padding, in design units;
+   * its rows' own height when omitted.
+   */
+  readonly innerHeight?: number;
+}
+
+/**
+ * Returns a phone grid for a board laid out by hand rather than built from an
+ * {@link ArrangedBoard}, as a board without columns to fan is, with the gaps,
+ * padding and fans every phone grid shares.
+ */
+export function phoneLayout(grid: HandLaidPhoneGrid): TableLayoutSpec {
+  return phoneGrid({
+    ...grid,
+    innerHeight:
+      grid.innerHeight ??
+      grid.rows * CARD_HEIGHT_PX + Math.max(0, grid.rows - 1) * PHONE_GAP.y,
+  });
+}
+
 /** Completes a phone grid with the gaps, padding and fans every one shares. */
 function phoneGrid(grid: PhoneGridSpec): TableLayoutSpec {
   return tableLayout({
@@ -394,11 +420,21 @@ function roomyColumnOf(board: ArrangedBoard, pileId: string): number {
 
 /** Returns how tall the longest column stands with every fan at its floor. */
 function longestColumnHeight(board: ArrangedBoard, fit: FanFit): number {
-  const { faceDown, faceUp } = board.longestColumn;
+  return fannedColumnHeight(board.longestColumn, fit);
+}
+
+/**
+ * Returns how tall a column of hidden and face-up cards stands with every fan
+ * at its floor, with room for a hovered card to open.
+ */
+export function fannedColumnHeight(
+  column: { readonly faceDown: number; readonly faceUp: number },
+  fit: FanFit,
+): number {
   return (
     CARD_HEIGHT_PX +
-    faceDown * fit.minFaceDownGap +
-    Math.max(0, faceUp - 1) * fit.minFaceUpGap +
+    column.faceDown * fit.minFaceDownGap +
+    Math.max(0, column.faceUp - 1) * fit.minFaceUpGap +
     TABLEAU_HOVER_EXPANSION_OFFSET
   );
 }
