@@ -119,7 +119,10 @@ import {
   DEFAULT_BRISTOL_VARIANT,
 } from "@/games/bristol/bristol_rules";
 import { NestorGame } from "@/games/nestor/nestor_game";
-import { NESTOR_LAYOUT } from "@/games/nestor/nestor_layout";
+import {
+  NESTOR_ARRANGED_LAYOUTS,
+  NESTOR_LAYOUT,
+} from "@/games/nestor/nestor_layout";
 import { MonteCarloGame } from "@/games/monte_carlo/monte_carlo_game";
 import { MONTE_CARLO_LAYOUT } from "@/games/monte_carlo/monte_carlo_layout";
 import {
@@ -1261,6 +1264,11 @@ const NESTOR = {
   name: "Nestor",
   options: [],
   layout: NESTOR_LAYOUT,
+  arrangement: {
+    layouts: NESTOR_ARRANGED_LAYOUTS,
+    pilesName: "reserve and discard",
+    sideName: "reserve",
+  },
   create: () => dealt(new NestorGame()),
 } satisfies CatalogEntry<NestorGame>;
 

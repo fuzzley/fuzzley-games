@@ -187,7 +187,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 2.6 Browser check
 - [x] 3.1 FreeCell family
 - [x] 3.2 Seahaven Towers
-- [ ] 3.3 Nestor
+- [x] 3.3 Nestor
 - [ ] 3.4 Yukon, Simple Simon
 - [ ] 3.5 Mrs. Mop, Baker's Dozen
 - [ ] 3.6 Browser check
@@ -437,3 +437,15 @@ columns 0 and 11 of 12). Its rules page says "cells", so the drawer does too:
 "cells and foundations" and "Cells Side". The phone grids keep fourteen cards
 on screen; the grid with the piles below needs 1229 of the grid above's 1327,
 so it neither grows nor takes a cap.
+
+### 3.3 Nestor
+
+The reserve is the side pile, so Auto puts its four cards at the bottom right
+of a phone and the discard at the bottom left. The drawer says "reserve and
+discard" and "Reserve Side", as the rules page does. Columns only shrink from
+six, so the grids need room for six. On a sideways phone everything shares one
+rail at the right: the four reserve cards overlapped, each showing about 54
+units, above the whole discard; the rail (513 at the floor) fits beside a
+column of six (528), so the grid is no taller than the columns, and one rail
+rather than two leaves the width-bound board a grid column narrower. The grid
+with the piles below needs 941 of the grid above's 987.
