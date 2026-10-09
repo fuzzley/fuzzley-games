@@ -93,7 +93,7 @@ import {
   DEFAULT_ACES_UP_SPACES,
 } from "@/games/aces_up/aces_up_rules";
 import { GolfGame } from "@/games/golf/golf_game";
-import { GOLF_LAYOUT } from "@/games/golf/golf_layout";
+import { GOLF_ARRANGED_LAYOUTS, GOLF_LAYOUT } from "@/games/golf/golf_layout";
 import { DEFAULT_GOLF_VARIANT, GolfVariant } from "@/games/golf/golf_rules";
 import { CalculationGame } from "@/games/calculation/calculation_game";
 import { CALCULATION_LAYOUT } from "@/games/calculation/calculation_layout";
@@ -1191,6 +1191,11 @@ const GOLF = {
   name: "Golf",
   options: [GOLF_VARIANT],
   layout: GOLF_LAYOUT,
+  arrangement: {
+    layouts: GOLF_ARRANGED_LAYOUTS,
+    pilesName: "stock and foundation",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(new GolfGame({ variant: optionRule(values, GOLF_VARIANT) })),
 } satisfies CatalogEntry<GolfGame>;
