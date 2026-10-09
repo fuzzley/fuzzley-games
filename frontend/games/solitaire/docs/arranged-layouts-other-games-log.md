@@ -206,7 +206,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 4.7 Browser check
 - [x] 5.1 Poker Squares
 - [x] 5.2 Monte Carlo
-- [ ] 5.3 Aces Up
+- [x] 5.3 Aces Up
 - [ ] 5.4 Pyramid
 - [ ] 5.5 Browser check
 - [ ] 6.1 Docs
@@ -667,3 +667,16 @@ bigger. The stock is the side pile, so Auto puts it at the bottom right of a
 phone and the discard at the bottom left; the grid keeps its order in a mirror,
 which matters here since pairs are found by neighbouring cards. The drawer says
 "stock and discard".
+
+### 5.3 Aces Up
+
+Written out by hand, since its stock and discard share one row with the
+columns. On a larger screen and a sideways phone they stand at either side of
+the four columns, at the top or on the bottom edge; a pile on the bottom edge in
+the columns' own row blocks only its own grid column, so the columns keep their
+full height either way. Upright they move to either end of a row above the
+columns or along the bottom edge, so the columns take the whole width, four
+cards across instead of six. The phone grids fan the columns to fit, keeping
+all thirteen cards a column can be dealt on screen; the builder's `PHONE_GAP`
+is now exported for the upright grids' height. The drawer says "stock and
+discard".

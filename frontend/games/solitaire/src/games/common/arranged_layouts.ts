@@ -144,7 +144,7 @@ export function pileIdsInRow(
 }
 
 /** Space between a phone grid's columns and rows, in design units. */
-const PHONE_GAP = { x: 4, y: 10 };
+export const PHONE_GAP = { x: 4, y: 10 };
 
 /** Space at a phone grid's edges, in design units. */
 const PHONE_PADDING = { x: 6, y: 8 };
