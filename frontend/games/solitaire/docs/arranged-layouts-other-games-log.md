@@ -188,7 +188,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 3.1 FreeCell family
 - [x] 3.2 Seahaven Towers
 - [x] 3.3 Nestor
-- [ ] 3.4 Yukon, Simple Simon
+- [x] 3.4 Yukon, Simple Simon
 - [ ] 3.5 Mrs. Mop, Baker's Dozen
 - [ ] 3.6 Browser check
 - [ ] 4.1 Double Klondike
@@ -449,3 +449,17 @@ units, above the whole discard; the rail (513 at the floor) fits beside a
 column of six (528), so the grid is no taller than the columns, and one rail
 rather than two leaves the width-bound board a grid column narrower. The grid
 with the piles below needs 941 of the grid above's 987.
+
+### 3.4 Yukon, Simple Simon
+
+The first boards without a side pile: their rows hold only foundations, so the
+drawer offers Piles alone ("The foundations along the top, ..."), and no grid
+is ever mirrored, which the shared spec checks under every arrangement. The
+foundations keep the right of the row on every grid, upright at the bottom
+right by default, and stack down a rail at the right on a sideways phone, where
+the chrome stands opposite under Auto. Yukon (and Russian Solitaire) keeps six
+hidden cards under thirteen face up on a phone; its grid with the piles below
+needs 1253 (cards 86% the size) and takes no cap. Simple Simon keeps fifteen
+face up; at ten columns the grid with the piles below needs 1265 of the 1427 it
+has. The catalog mock's Yukon now uses Yukon's own grids instead of
+Klondike's.

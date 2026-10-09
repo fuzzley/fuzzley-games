@@ -5,7 +5,10 @@ import {
   KLONDIKE_ARRANGED_LAYOUTS,
 } from "@/games/klondike/klondike_layout";
 import { FREECELL_LAYOUT } from "@/games/freecell/freecell_layout";
-import { YUKON_LAYOUT } from "@/games/yukon/yukon_layout";
+import {
+  YUKON_ARRANGED_LAYOUTS,
+  YUKON_LAYOUT,
+} from "@/games/yukon/yukon_layout";
 import type { GameOptionSpec } from "@/ui/app/provider/game_catalog";
 import type { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { asGameModel, type MockGameModel } from "./game_mock";
@@ -92,9 +95,8 @@ export function createMockCatalog(model: MockGameModel): MockCatalogHarness {
       name: "Yukon",
       options: [],
       layout: YUKON_LAYOUT,
-      // Klondike's grids stand in, without the side pile Yukon lacks.
       arrangement: {
-        layouts: { ...KLONDIKE_ARRANGED_LAYOUTS, side: undefined },
+        layouts: YUKON_ARRANGED_LAYOUTS,
         pilesName: "foundations",
       },
     },

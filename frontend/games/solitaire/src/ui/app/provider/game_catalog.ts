@@ -33,7 +33,10 @@ import {
 } from "@/games/spider/spider_layout";
 import { YukonGame } from "@/games/yukon/yukon_game";
 import { YukonVariant } from "@/games/yukon/yukon_rules";
-import { YUKON_LAYOUT } from "@/games/yukon/yukon_layout";
+import {
+  YUKON_ARRANGED_LAYOUTS,
+  YUKON_LAYOUT,
+} from "@/games/yukon/yukon_layout";
 import { EightOffGame } from "@/games/eight_off/eight_off_game";
 import { EIGHT_OFF_LAYOUT } from "@/games/eight_off/eight_off_layout";
 import { ScorpionGame } from "@/games/scorpion/scorpion_game";
@@ -46,6 +49,7 @@ import { SimpleSimonGame } from "@/games/simple_simon/simple_simon_game";
 import { SimpleSimonVariant } from "@/games/simple_simon/simple_simon_rules";
 import {
   MRS_MOP_LAYOUT,
+  SIMPLE_SIMON_ARRANGED_LAYOUTS,
   SIMPLE_SIMON_LAYOUT,
 } from "@/games/simple_simon/simple_simon_layout";
 import { BakersDozenGame } from "@/games/bakers_dozen/bakers_dozen_game";
@@ -960,6 +964,7 @@ const YUKON = {
   name: "Yukon",
   options: [YUKON_VARIANT],
   layout: YUKON_LAYOUT,
+  arrangement: { layouts: YUKON_ARRANGED_LAYOUTS, pilesName: "foundations" },
   create: (values: GameOptionValues) =>
     dealt(new YukonGame({ variant: optionRule(values, YUKON_VARIANT) })),
 } satisfies CatalogEntry<YukonGame>;
@@ -1031,6 +1036,10 @@ const SIMPLE_SIMON = {
   name: "Simple Simon",
   options: [],
   layout: SIMPLE_SIMON_LAYOUT,
+  arrangement: {
+    layouts: SIMPLE_SIMON_ARRANGED_LAYOUTS,
+    pilesName: "foundations",
+  },
   create: () => dealt(new SimpleSimonGame()),
 } satisfies CatalogEntry<SimpleSimonGame>;
 
