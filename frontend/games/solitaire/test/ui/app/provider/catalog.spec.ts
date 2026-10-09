@@ -161,7 +161,7 @@ describe("every game in the catalog", () => {
     (_name, entry, values) => {
       const game = asTableGame(entry.create(values).game);
       const piles = game.piles.map((pile) => pile.id).sort();
-      const arranged = entry.arrangedLayouts;
+      const arranged = entry.arrangement?.layouts;
       const grids: Record<string, TableLayoutSpec> = arranged
         ? {
             "roomy-top": arranged.roomy.top,
@@ -181,6 +181,17 @@ describe("every game in the catalog", () => {
         .map(([name]) => name);
 
       expect(misplaced).toEqual([]);
+    },
+  );
+
+  it.each(DEALS)(
+    "%s names its side pile exactly when its grids have one",
+    (_name, entry) => {
+      const arrangement = entry.arrangement;
+
+      expect(arrangement?.sideName === undefined).toBe(
+        arrangement?.layouts.side === undefined,
+      );
     },
   );
 

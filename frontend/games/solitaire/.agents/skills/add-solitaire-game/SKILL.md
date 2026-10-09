@@ -327,7 +327,7 @@ export const MY_GAME_ARRANGED_LAYOUTS = arrangedLayouts({
   roomy: MY_GAME_LAYOUT,
   columns: pileIdsInRow(ZONES, 1),
   row: pilesInRow(ZONES, 0),
-  stock: STOCK_PILE_ID,
+  side: STOCK_PILE_ID,
   rails: {
     left: FOUNDATIONS.map((pileId) => ({ pileId, overlapped: true })),
     right: [{ pileId: STOCK_PILE_ID }],
@@ -340,8 +340,11 @@ export const MY_GAME_ARRANGED_LAYOUTS = arrangedLayouts({
   screen's grid with the row below them takes its gaps and padding.
 - **columns** fan down and take the height; **row** is the other piles, read
   off the zones with `pilesInRow`, so a pile is still placed in one place.
-- **stock** is the row pile the Stock Side setting places. A grid that has it
-  in the other half from the side chosen is mirrored.
+- **side** (optional) is the row pile the side setting places: the stock, or
+  in a game without one the pile a player plays from most, such as the free
+  cells. A grid that has it in the other half from the side chosen is
+  mirrored. Leave it out where the row holds only foundations: the board is
+  then never mirrored, and the drawer offers Piles alone.
 - **rails** say which row piles stack down which edge of a sideways phone. Every
   row pile goes on exactly one rail. Mark foundations `overlapped`; give a
   pile that spreads down the rail `spreadsDown` and the `reach` its cards
@@ -360,11 +363,13 @@ the bottom: on a larger screen, the grid above and that grid with its rows the
 other way up; upright, the same with phone gaps; sideways, the rail piles at
 the edges, hung from the top or stood on the bottom. Every grid keeps the row
 in the order the larger screen has it and fits each column's fan to the room
-below it. Name them as `arrangedLayouts` on the catalog entry (step 8). The
-settings drawer then offers Piles and Stock Side for the game, each with an
-Auto that puts the piles at the bottom and the stock at the right on a phone
-and keeps the grid above on a larger screen; the board mirrors a grid to put
-the stock where it was asked for (keeping the columns in order), and the
+below it. Name them on the catalog entry (step 8) as `arrangement`, with
+`pilesName` and `sideName`, what the drawer calls the row's piles and the side
+pile ("stock and foundations", "stock"). The settings drawer then offers Piles
+and the side setting, each with an Auto that puts the piles at the bottom and
+the stock at the right on a phone and keeps the grid above on a larger screen;
+the board mirrors a grid to put the stock where it was asked for (keeping the
+columns in order), and the
 catalog spec checks every grid places every pile. Add a `<game>_layout.spec.ts`
 that the longest column fits the room below it on a few phone sizes, and that
 the stock goes where it is asked, as `test/games/klondike/klondike_layout.spec.ts`
@@ -409,7 +414,7 @@ Otherwise call `tableGestures(game, options)` with:
 ## 8. Register it — four provider edits
 
 1. **`src/ui/app/provider/game_catalog.ts`** — declare the entry (`id`, `name`,
-   `options`, `layout`, optional `arrangedLayouts`, `create`) with `satisfies
+   `options`, `layout`, optional `arrangement`, `create`) with `satisfies
 CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
    preserves the literal id and concrete game type that the board registry is
    checked against. Add it to `CATALOG_ENTRIES`. `create` returns

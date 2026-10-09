@@ -95,7 +95,7 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
   `ViewportService.formFactor`). Upright, the header docks at the bottom; on
   its side it is a rail down one edge; the canvas declares `--board-inset-*`
   for whichever edge the chrome covers. A game whose catalog entry names
-  `arrangedLayouts` lies on a grid chosen each frame by `chooseTableLayout`
+  `arrangement` lies on a grid chosen each frame by `chooseTableLayout`
   (`src/engine/render/layout/board_layouts.ts`) from the form factor and the
   player's arrangement: the piles at the top or the bottom and the stock at
   the left or the right, each with an Auto that `resolveArrangement` decides

@@ -5,6 +5,7 @@ import {
   KLONDIKE_ARRANGED_LAYOUTS,
 } from "@/games/klondike/klondike_layout";
 import { FREECELL_LAYOUT } from "@/games/freecell/freecell_layout";
+import { YUKON_LAYOUT } from "@/games/yukon/yukon_layout";
 import type { GameOptionSpec } from "@/ui/app/provider/game_catalog";
 import type { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { asGameModel, type MockGameModel } from "./game_mock";
@@ -34,8 +35,9 @@ const OPTIONS: readonly GameOptionSpec[] = [
 ];
 
 /**
- * Stands in for the catalog service with two games, typed as a `Pick` of it so
- * the mock cannot drift from the real shape.
+ * Stands in for the catalog service with three games, typed as a `Pick` of it
+ * so the mock cannot drift from the real shape: Klondike, arranged with a side
+ * pile; Yukon, arranged without one; and FreeCell, not arranged.
  */
 export type MockCatalog = Pick<
   GameCatalogService,
@@ -77,9 +79,24 @@ export function createMockCatalog(model: MockGameModel): MockCatalogHarness {
       name: "Klondike",
       options: OPTIONS,
       layout: KLONDIKE_LAYOUT,
-      arrangedLayouts: KLONDIKE_ARRANGED_LAYOUTS,
+      arrangement: {
+        layouts: KLONDIKE_ARRANGED_LAYOUTS,
+        pilesName: "stock and foundations",
+        sideName: "stock",
+      },
     },
     { id: "freecell", name: "FreeCell", options: [], layout: FREECELL_LAYOUT },
+    {
+      id: "yukon",
+      name: "Yukon",
+      options: [],
+      layout: YUKON_LAYOUT,
+      // Klondike's grids stand in, without the side pile Yukon lacks.
+      arrangement: {
+        layouts: { ...KLONDIKE_ARRANGED_LAYOUTS, side: undefined },
+        pilesName: "foundations",
+      },
+    },
   ];
 
   const selectedId = signal("klondike");

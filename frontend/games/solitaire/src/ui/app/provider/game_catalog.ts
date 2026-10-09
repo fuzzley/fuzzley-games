@@ -221,13 +221,31 @@ export interface CatalogEntry<TGame extends PlayableGame = PlayableGame> {
   /** The grid this game's board lies on, renderer-agnostic. */
   readonly layout: TableLayoutSpec;
   /**
-   * The grids this game's board lies on in every arrangement a player may
-   * choose, on every shape of screen; a game without them lies on
-   * {@link layout} everywhere.
+   * How a player may arrange this game's board, on every shape of screen; a
+   * game without it lies on {@link layout} everywhere.
    */
-  readonly arrangedLayouts?: ArrangedLayouts;
+  readonly arrangement?: CatalogArrangement;
   /** Creates a dealt game playing by the given options. */
   create(values: GameOptionValues): CatalogSession<TGame>;
+}
+
+/**
+ * Describes the grids a game's board lies on in every arrangement, and what the
+ * settings drawer calls the piles the arrangement moves.
+ */
+export interface CatalogArrangement {
+  /** The grids, on every shape of screen. */
+  readonly layouts: ArrangedLayouts;
+  /**
+   * The piles that go at the top or the bottom, as a player calls them after
+   * "the", such as "stock and foundations".
+   */
+  readonly pilesName: string;
+  /**
+   * The pile the side setting places, as a player calls it after "the", such
+   * as "stock" or "free cells"; given exactly when the grids name a side pile.
+   */
+  readonly sideName?: string;
 }
 
 /** Holds a dealt game. */
@@ -862,7 +880,11 @@ const KLONDIKE = {
     KLONDIKE_ALMOST_WIN,
   ],
   layout: KLONDIKE_LAYOUT,
-  arrangedLayouts: KLONDIKE_ARRANGED_LAYOUTS,
+  arrangement: {
+    layouts: KLONDIKE_ARRANGED_LAYOUTS,
+    pilesName: "stock and foundations",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(
       new KlondikeGame({
@@ -887,7 +909,11 @@ const SPIDER = {
   name: "Spider",
   options: [SPIDER_SUIT_COUNT],
   layout: SPIDER_LAYOUT,
-  arrangedLayouts: SPIDER_ARRANGED_LAYOUTS,
+  arrangement: {
+    layouts: SPIDER_ARRANGED_LAYOUTS,
+    pilesName: "stock and foundations",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(
       new SpiderGame({
@@ -1401,7 +1427,7 @@ export function storedValues(
 
 /** Returns every grid a catalog entry's board may lie on. */
 export function boardLayoutsOf(entry: CatalogEntry): BoardLayouts {
-  return { roomy: entry.layout, arranged: entry.arrangedLayouts };
+  return { roomy: entry.layout, arranged: entry.arrangement?.layouts };
 }
 
 /** Returns the catalog entry with the given id, or the first one. */
