@@ -597,6 +597,140 @@ describe("arrangedLayouts", () => {
     });
   });
 
+  describe("two lines upright", () => {
+    const CELLS = ["cell-0", "cell-1", "cell-2", "cell-3"];
+    const FOUNDATIONS = ["found-0", "found-1", "found-2"];
+    // Four cells and three foundations over five columns, which an upright
+    // phone gives two lines: the foundations next to the columns, and the
+    // cells beyond them, on the edge.
+    const ROW_OF_SEVEN = [...CELLS, ...FOUNDATIONS].map((pileId, column) => ({
+      pileId,
+      column,
+    }));
+    const BOARD_OF_SEVEN: ArrangedBoard = {
+      roomy: tableLayout({
+        columns: 7,
+        rows: 2,
+        slots: [
+          ...ROW_OF_SEVEN.map(({ pileId, column }) => ({
+            pileId,
+            column,
+            row: 0,
+          })),
+          ...COLUMNS.map((pileId, index) => ({
+            pileId,
+            column: index + 1,
+            row: 1,
+          })),
+        ],
+      }),
+      columns: COLUMNS,
+      row: ROW_OF_SEVEN,
+      side: "cell-0",
+      uprightLines: [
+        FOUNDATIONS.map((pileId, index) => ({ pileId, column: index + 1 })),
+        CELLS.map((pileId, column) => ({ pileId, column })),
+      ],
+      rails: {
+        left: CELLS.map((pileId) => ({ pileId, overlapped: true })),
+        right: FOUNDATIONS.map((pileId) => ({ pileId, overlapped: true })),
+      },
+      longestColumn: { faceDown: 3, faceUp: 8 },
+    };
+    const lined = arrangedLayouts(BOARD_OF_SEVEN);
+
+    /** Returns where a grid puts a pile: its column, row and edge. */
+    function placeOf(grid: TableLayoutSpec, pileId: string) {
+      const slot = slotOf(grid, pileId)!;
+      return [slot.column, slot.row, slot.anchor ?? "top"];
+    }
+
+    it.each([
+      ["piles above", lined.portrait.top],
+      ["piles below", lined.portrait.bottom],
+    ])("is only as wide as the columns, %s", (_name, grid) => {
+      expect(grid.columns).toBe(5);
+    });
+
+    it.each([
+      ["piles above", lined.portrait.top],
+      ["piles below", lined.portrait.bottom],
+    ])(
+      "puts the columns side by side from the left edge, %s",
+      (_name, grid) => {
+        expect(COLUMNS.map((pileId) => slotOf(grid, pileId)?.column)).toEqual([
+          0, 1, 2, 3, 4,
+        ]);
+      },
+    );
+
+    it("puts the outer line on the top edge above the inner one, piles above", () => {
+      expect(
+        ["cell-0", "found-0", "col-0"].map((pileId) =>
+          placeOf(lined.portrait.top, pileId),
+        ),
+      ).toEqual([
+        [0, 0, "top"],
+        [1, 1, "top"],
+        [0, 2, "top"],
+      ]);
+    });
+
+    it("puts the outer line on the bottom edge below the inner one, piles below", () => {
+      expect(
+        ["col-0", "found-0", "cell-0"].map((pileId) =>
+          placeOf(lined.portrait.bottom, pileId),
+        ),
+      ).toEqual([
+        [0, 0, "top"],
+        [1, 1, "bottom"],
+        [0, 0, "bottom"],
+      ]);
+    });
+
+    it("keeps the longest column on screen beside both lines", () => {
+      const grid = lined.portrait.bottom;
+
+      expect(grid.designHeightPx! - 2 * grid.padding.y).toBeGreaterThanOrEqual(
+        LONGEST + 2 * (CARD_HEIGHT_PX + 10),
+      );
+    });
+
+    it("leaves the larger screen's row in one line", () => {
+      expect(
+        ["cell-0", "found-0"].map((pileId) =>
+          placeOf(lined.roomy.bottom, pileId),
+        ),
+      ).toEqual([
+        [0, 0, "bottom"],
+        [4, 0, "bottom"],
+      ]);
+    });
+
+    it("refuses a pile in the row that is in no line", () => {
+      expect(() =>
+        arrangedLayouts({
+          ...BOARD_OF_SEVEN,
+          uprightLines: [BOARD_OF_SEVEN.uprightLines![1]],
+        }),
+      ).toThrow(/found-0/);
+    });
+
+    it("refuses a pile that is in both lines", () => {
+      const [foundations, cells] = BOARD_OF_SEVEN.uprightLines!;
+
+      expect(() =>
+        arrangedLayouts({
+          ...BOARD_OF_SEVEN,
+          uprightLines: [
+            [...foundations, { pileId: "cell-0", column: 4 }],
+            cells,
+          ],
+        }),
+      ).toThrow(/cell-0/);
+    });
+  });
+
   it("refuses a column the larger screen's grid does not place", () => {
     expect(() =>
       arrangedLayouts({ ...BOARD, columns: [...COLUMNS, "col-9"] }),

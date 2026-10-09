@@ -177,7 +177,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 1.2 Catalog and drawer
 - [x] 1.3 Cap
 - [x] 1.4 Columns where the larger screen has them
-- [ ] 1.5 Two lines on an upright phone
+- [x] 1.5 Two lines on an upright phone
 - [ ] 1.6 Spec helpers
 - [ ] 2.1 Spiderette, Easthaven
 - [ ] 2.2 Scorpion
@@ -277,3 +277,19 @@ out, so a mirror moves them on their own and they follow the stock across.
 Specs cover a board whose columns start at grid column 1, a reserve beside the
 columns upright, on its side and in a mirror, and a column `roomy` does not
 place, which now throws.
+
+### 1.5 Two lines on an upright phone
+
+`ArrangedBoard.uprightLines` gives an upright phone the row in lines, listed
+from the columns outward, each pile in the grid column it takes there.
+`pilesAbove` and `pilesBelow` became one `upright(board, columnHeight,
+position)`: line k sits k lines out from the columns, counted from the edge
+it is anchored to, so the outermost line is on the edge either way, and the
+grid is as tall as its lines plus the longest column. With lines, the columns
+sit side by side from the left edge and the grid is only as wide as the columns
+or the widest line (fractional columns round up); without them nothing
+changes, which Klondike's and Spider's specs confirm. `checkLines` throws
+unless every row pile is in exactly one line. The larger screen's grids keep
+the row in one line. Specs cover a made-up board of four cells and three
+foundations over five columns: its width, where each line and the columns go
+above and below, its height, and both refusals.
