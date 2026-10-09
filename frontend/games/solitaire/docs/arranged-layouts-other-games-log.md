@@ -190,7 +190,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 3.3 Nestor
 - [x] 3.4 Yukon, Simple Simon
 - [x] 3.5 Mrs. Mop, Baker's Dozen
-- [ ] 3.6 Browser check
+- [x] 3.6 Browser check
 - [ ] 4.1 Double Klondike
 - [ ] 4.2 Calculation
 - [ ] 4.3 Canfield
@@ -475,3 +475,25 @@ size: twenty-three cards in Mrs. Mop, twelve in Baker's Dozen. Neither grid with
 the piles below grows (1553 of 1727, and 1157 of 1227). Upright, the cards are
 small, as thirteen columns make them; the gain is the bottom row and the rail.
 Mrs. Mop's spec sits beside Simple Simon's in `test/games/simple_simon`.
+
+### 3.6 Browser check
+
+Checked against `yarn start` in an isolated context.
+
+- **FreeCell, 390 × 844 upright.** The columns along the top; the foundations
+  at the bottom left and the free cells at the bottom right. The cells' outline
+  is open at the bottom, as `card-placeholder` always draws a pile that is not
+  a foundation; that is not new.
+- **FreeCell, 844 × 390 on its side.** The chrome rail at the left; the
+  foundations down the rail beside it and the cells down the right rail, each
+  showing about half its height.
+- **Yukon, 844 × 390 on its side.** The seven columns from the top, the
+  foundations overlapped down the right rail.
+- **Drawers.** Yukon offers "Piles" alone; FreeCell offers "Piles" and "Free
+  Cells Side", each describing Auto by what it picks.
+
+**Seen in passing, not from this work:** while a board loads on an upright
+phone, the loading skeleton draws its slots on a box of the board's design
+size, so a row anchored to the bottom shows partway down the screen rather than
+on its bottom edge, until the board replaces it. Klondike and Spider do the
+same on `main`; it lasts a moment and is left for the owner to judge.
