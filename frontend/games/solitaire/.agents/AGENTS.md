@@ -59,7 +59,7 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
    - The only tier that may import both `engine/tableau` and `engine/render/phaser`. There is no separate scene-bridge tier above it: `PhaserHost` swaps in whatever board it is handed.
 6. **`src/games/*`** _(Top of Engine Tier)_
    - Game-specific deal rules, scoring mechanics, layout setup, and gesture handling — one directory per game (`games/klondike`, `games/freecell`, `games/montana`, …).
-   - Code shared between games lives in `games/common`: collecting completed runs, drawing and recycling a stock, dealing a card to every column, pairing, zone presets, pile markers, and `arranged_layouts.ts`, which derives a game's grids for every arrangement and screen from a short account of its board.
+   - Code shared between games lives in `games/common`: collecting completed runs, drawing and recycling a stock, dealing a card to every column, pairing, zone presets, pile markers, and `arranged_layouts.ts`, which derives a game's grids for every arrangement and screen from a short account of its board (or completes the phone grids of a board laid out by hand).
    - A different board grid means a different catalog entry; the same grid under different rules means a variant option on an existing one. See the `add-solitaire-game` skill.
    - Sits above the engine's runtime but beside `engine/board`: a game knows nothing of the renderer, and the shell's provider folder joins a game to its board.
 7. **`src/ui/*`** _(Application Shell)_
@@ -95,14 +95,16 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
   `ViewportService.formFactor`). Upright, the header docks at the bottom; on
   its side it is a rail down one edge; the canvas declares `--board-inset-*`
   for whichever edge the chrome covers. A game whose catalog entry names
-  `arrangement` lies on a grid chosen each frame by `chooseTableLayout`
-  (`src/engine/render/layout/board_layouts.ts`) from the form factor and the
-  player's arrangement: the piles at the top or the bottom and the stock at
-  the left or the right, each with an Auto that `resolveArrangement` decides
-  (bottom and right on a phone, top and left on a roomy screen). Its columns
-  fan to fit the room below them, and the chrome on a phone stands opposite
-  the stock. The `add-solitaire-game` skill says how to give a game these
-  grids.
+  `arrangement` (most of them) lies on a grid chosen each frame by
+  `chooseTableLayout` (`src/engine/render/layout/board_layouts.ts`) from the
+  form factor and the player's arrangement: the piles at the top or the
+  bottom and, where the game names a side pile, that pile (the stock, or such
+  as FreeCell's free cells) at the left or the right, each with an Auto that
+  `resolveArrangement` decides (bottom and right on a phone, top and left on a
+  roomy screen). The choices are stored once for every game, and the drawer
+  names them in each game's words. Its columns fan to fit the room below
+  them, and the chrome on a phone stands opposite the side the player chose.
+  The `add-solitaire-game` skill says how to give a game these grids.
 - **Routing** — which game is on the table is a `:gameId` route
   (`src/ui/app/routes.ts`), using hash location because the built application is
   copied into a subdirectory of a static host that will not rewrite paths.

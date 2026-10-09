@@ -9,7 +9,9 @@ layouts, whose record is [phone-board-layouts-log.md](phone-board-layouts-log.md
 
 **Branch:** `feature/board-arrangement-auto`, cut from `main` at `cdbe0a3`.
 
-**Status:** merged to `main` on 2026-10-05 after the owner's review.
+**Status:** merged to `main` on 2026-10-05 after the owner's review. Since
+extended to most of the catalog, with a side pile that need not be the stock;
+see [arranged-layouts-other-games-log.md](arranged-layouts-other-games-log.md).
 
 ## How to pick this up
 
