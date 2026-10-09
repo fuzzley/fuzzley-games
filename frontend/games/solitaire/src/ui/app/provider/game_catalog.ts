@@ -125,7 +125,10 @@ import {
   DEFAULT_CALCULATION_VARIANT,
 } from "@/games/calculation/calculation_rules";
 import { FlowerGardenGame } from "@/games/flower_garden/flower_garden_game";
-import { FLOWER_GARDEN_LAYOUT } from "@/games/flower_garden/flower_garden_layout";
+import {
+  FLOWER_GARDEN_ARRANGED_LAYOUTS,
+  FLOWER_GARDEN_LAYOUT,
+} from "@/games/flower_garden/flower_garden_layout";
 import { BristolGame } from "@/games/bristol/bristol_game";
 import {
   BRISTOL_ARRANGED_LAYOUTS,
@@ -1290,6 +1293,10 @@ const FLOWER_GARDEN = {
   name: "Flower Garden",
   options: [],
   layout: FLOWER_GARDEN_LAYOUT,
+  arrangement: {
+    layouts: FLOWER_GARDEN_ARRANGED_LAYOUTS,
+    pilesName: "bouquet and foundations",
+  },
   create: () => dealt(new FlowerGardenGame()),
 } satisfies CatalogEntry<FlowerGardenGame>;
 
