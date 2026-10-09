@@ -185,7 +185,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 2.4 Bristol
 - [x] 2.5 Golf
 - [x] 2.6 Browser check
-- [ ] 3.1 FreeCell family
+- [x] 3.1 FreeCell family
 - [ ] 3.2 Seahaven Towers
 - [ ] 3.3 Nestor
 - [ ] 3.4 Yukon, Simple Simon
@@ -412,3 +412,19 @@ Checked against `yarn start` in an isolated context, emulating each screen.
 The page was closed afterwards. Setting a presentation choice through
 `localStorage` (`fsolitaire-presentation`) needs a reload, not a hash change,
 since the service reads it once at start.
+
+### 3.1 FreeCell family
+
+FreeCell, Baker's Game and Challenge FreeCell share `FREECELL_LAYOUT`, so one
+`FREECELL_ARRANGED_LAYOUTS` and one `FREECELL_ARRANGEMENT` in the catalog
+serve all three. The side pile is the first free cell, so Auto puts the cells at
+the bottom right of a phone, under the thumb, and the foundations at the bottom
+left; on a larger screen it keeps the cells at the left, as they always were.
+The drawer calls the row "free cells and foundations" and the side setting
+"Free Cells Side". On a sideways phone the cells stack down the left rail and
+the foundations the right, both overlapped; the rail has the columns' height
+to share, so each cell shows 165 of its 313 units. The phone grids keep a
+column of thirteen on screen; the grid with the piles below needs 1193 (cards
+90% the size), so it takes no cap. `RailPile.overlapped`'s doc now names
+cells and reserves beside foundations. The catalog mock's FreeCell stays
+unarranged, now described as standing in for a game that is not.

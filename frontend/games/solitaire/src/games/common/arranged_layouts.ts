@@ -54,7 +54,8 @@ export interface RailPile {
   readonly spreadsDown?: boolean;
   /**
    * Whether the pile below may cover all but this pile's index strip when the
-   * rail is short of room, as it may a foundation's. A foundation's ring then
+   * rail is short of room, as it may a foundation's, a cell's or a reserve's,
+   * whose top card is all a player needs to read. A foundation's ring then
    * moves to the top edge, the part of it that shows.
    */
   readonly overlapped?: boolean;
