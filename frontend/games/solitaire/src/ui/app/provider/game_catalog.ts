@@ -200,7 +200,10 @@ import {
   DEFAULT_CASTLE_VARIANT,
 } from "@/games/beleaguered_castle/castle_rules";
 import { PokerSquaresGame } from "@/games/poker_squares/poker_squares_game";
-import { POKER_SQUARES_LAYOUT } from "@/games/poker_squares/poker_squares_layout";
+import {
+  POKER_SQUARES_ARRANGED_LAYOUTS,
+  POKER_SQUARES_LAYOUT,
+} from "@/games/poker_squares/poker_squares_layout";
 import {
   DEFAULT_POKER_SQUARES_SCORING,
   PokerSquaresScoring,
@@ -1468,6 +1471,11 @@ const POKER_SQUARES = {
   name: "Poker Squares",
   options: [POKER_SQUARES_SCORING],
   layout: POKER_SQUARES_LAYOUT,
+  arrangement: {
+    layouts: POKER_SQUARES_ARRANGED_LAYOUTS,
+    pilesName: "stock and the card to place",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(
       new PokerSquaresGame({
