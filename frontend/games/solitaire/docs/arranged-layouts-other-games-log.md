@@ -10,7 +10,8 @@ restart at any commit. It builds on the board arrangement work, whose record is
 **Branch:** `feature/arranged-layouts-other-games`, cut from `main` at
 `3a2bf9f`.
 
-**Status:** in progress; see [Progress](#progress).
+**Status:** every step done on the branch and verified; not merged. What is
+left for the owner is at the end of [6.2](#62-verify).
 
 ## How to pick this up
 
@@ -210,7 +211,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 5.4 Pyramid
 - [x] 5.5 Browser check
 - [x] 6.1 Docs
-- [ ] 6.2 Verify
+- [x] 6.2 Verify
 
 ## Log
 
@@ -736,3 +737,30 @@ discard at the far end of the row. The page was closed afterwards.
   boards' phone grids.
 - **Pointers:** the board arrangement log's status and the phone layouts
   options doc's "Since then" now point here.
+
+### 6.2 Verify
+
+`yarn verify` passes: lint, type check, build, and 6810 tests in 163 files.
+Coverage is 98.39% of statements, 92.29% of branches, 99.03% of functions and
+99.34% of lines (the board arrangement work left 98.39, 92.23, 98.97 and
+99.38), so the floor (95, 88, 96, 96) stays where it is.
+
+**Done on the branch, not merged.** For the owner:
+
+- **Klondike's cap** changes merged behaviour: with the piles below on a larger
+  screen its cards are now 85% of the grid above's at 1920 × 1080 rather than
+  83%, and only six hidden cards under twelve face up reach the row.
+- **Flower Garden** has no side setting, unlike the plan: a mirror would show
+  each bouquet card's suit edge rather than its rank. On a sideways phone its
+  cards are about a sixth smaller, since the foundations need a rail of their
+  own.
+- **Overlapped empty piles.** A filled pile hides the ring of an empty one
+  below it down a rail. That was already so for Klondike's foundations, and it
+  now applies to FreeCell's, Seahaven's, Eight Off's and Penguin's cells as
+  well. The outline below the card still marks the empty pile.
+- **The loading skeleton** shows a bottom row partway down an upright phone for
+  a moment, on `main` too (see 3.6).
+- **Left as they were:** Montana, Blue Moon, Black Hole, Beleaguered Castle,
+  Fortress, Grandfather's Clock, TriPeaks, All in a Row, Bisley, La Belle Lucie
+  and Trefoil.
+- Nobody has tried these on a real phone yet.
