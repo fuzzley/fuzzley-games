@@ -83,6 +83,14 @@ export interface ArrangedBoard {
   /** The other piles, in the row above the columns on a larger screen. */
   readonly row: readonly RowPile[];
   /**
+   * The row on an upright phone, in lines from the columns outward, each pile
+   * in the grid column it takes there; the row as the larger screen has it,
+   * in one line, when omitted. A board whose row is wider than its columns
+   * gives it in two, so the upright grid is only as wide as it must be; the
+   * columns then sit side by side from its left edge.
+   */
+  readonly uprightLines?: readonly (readonly RowPile[])[];
+  /**
    * The pile in the row the side setting places, such as the stock; a board
    * without one is never mirrored, and the setting is not offered.
    */
@@ -156,20 +164,21 @@ export const RAIL_MIN_STEP = 50;
  * as declared; the chooser mirrors a grid that leaves the side pile on the
  * other side from the one the player asked for.
  *
- * @throws Error when a pile in the row is on no rail, or on both, when the
- *   side pile is not in the row, or when a column or a pile beside them is
- *   not on the larger screen's grid.
+ * @throws Error when a pile in the row is on no rail, or on both, or in
+ *   none of the upright lines, or in more than one, when the side pile is not
+ *   in the row, or when a column or a pile beside them is not on the larger
+ *   screen's grid.
  */
 export function arrangedLayouts(board: ArrangedBoard): ArrangedLayouts {
   checkRails(board);
+  checkLines(board);
   checkSide(board);
-  const columns = board.roomy.columns;
   const columnHeight = longestColumnHeight(board, PHONE_FAN_FIT);
   return {
     roomy: { top: board.roomy, bottom: roomyPilesBelow(board) },
     portrait: {
-      top: pilesAbove(board, columns, columnHeight),
-      bottom: pilesBelow(board, columns, columnHeight),
+      top: upright(board, columnHeight, "top"),
+      bottom: upright(board, columnHeight, "bottom"),
     },
     landscape: {
       top: pilesBeside(board, columnHeight, "top"),
@@ -215,40 +224,46 @@ function roomyPilesBelow(board: ArrangedBoard): TableLayoutSpec {
 }
 
 /**
- * Returns the larger screen's grid with phone gaps: the row of piles along the
- * top and the columns under it.
+ * Returns an upright phone's grid: the row of piles in its lines along the top
+ * with the columns under them, or the columns along the top with the lines
+ * along the bottom edge, the outermost line on the edge.
  */
-function pilesAbove(
+function upright(
   board: ArrangedBoard,
-  columns: number,
   columnHeight: number,
+  position: PilePosition,
 ): TableLayoutSpec {
+  const lines = board.uprightLines ?? [board.row];
+  const columnSlots = board.uprightLines
+    ? columnRow(board).map((pileId, column) => ({ pileId, column, row: 0 }))
+    : columnSlotsAsRoomy(board, 0);
+  const width = board.uprightLines
+    ? Math.max(
+        columnSlots.length,
+        ...lines.flat().map((pile) => Math.ceil(pile.column + 1)),
+      )
+    : board.roomy.columns;
+  // Line k sits k lines out from the columns, counting from the edge it is
+  // anchored to.
+  const lineSlots = lines.flatMap((line, index) =>
+    line.map(({ pileId, column }): SlotPlacement => ({
+      pileId,
+      column,
+      row: lines.length - 1 - index,
+      ...(position === "bottom" ? { anchor: "bottom" } : {}),
+    })),
+  );
   return phoneGrid({
-    columns,
-    rows: 2,
-    slots: [
-      ...board.row.map(({ pileId, column }) => ({ pileId, column, row: 0 })),
-      ...columnSlotsAsRoomy(board, 1),
-    ],
-    innerHeight: CARD_HEIGHT_PX + PHONE_GAP.y + columnHeight,
-    pileLayouts: board.pileLayouts,
-  });
-}
-
-/**
- * Returns a grid with the columns along the top and the row of piles along the
- * bottom edge.
- */
-function pilesBelow(
-  board: ArrangedBoard,
-  columns: number,
-  columnHeight: number,
-): TableLayoutSpec {
-  return phoneGrid({
-    columns,
-    rows: 2,
-    slots: [...columnSlotsAsRoomy(board, 0), ...rowAlongBottom(board)],
-    innerHeight: columnHeight + PHONE_GAP.y + CARD_HEIGHT_PX,
+    columns: width,
+    rows: lines.length + 1,
+    slots:
+      position === "top"
+        ? [
+            ...lineSlots,
+            ...columnSlots.map((slot) => ({ ...slot, row: lines.length })),
+          ]
+        : [...columnSlots, ...lineSlots],
+    innerHeight: lines.length * (CARD_HEIGHT_PX + PHONE_GAP.y) + columnHeight,
     pileLayouts: board.pileLayouts,
   });
 }
@@ -517,6 +532,22 @@ function checkRails(board: ArrangedBoard): void {
   if (misplaced.length > 0 || strays.length > 0) {
     throw new Error(
       `Every pile in the row goes on exactly one rail: ${[...misplaced, ...strays].join(", ")}`,
+    );
+  }
+}
+
+/** Throws unless every pile in the row is in exactly one upright line, if any. */
+function checkLines(board: ArrangedBoard): void {
+  if (!board.uprightLines) return;
+  const inLines = board.uprightLines.flat().map((pile) => pile.pileId);
+  const inRow = board.row.map((pile) => pile.pileId);
+  const misplaced = inRow.filter(
+    (pileId) => inLines.filter((lined) => lined === pileId).length !== 1,
+  );
+  const strays = inLines.filter((pileId) => !inRow.includes(pileId));
+  if (misplaced.length > 0 || strays.length > 0) {
+    throw new Error(
+      `Every pile in the row goes in exactly one upright line: ${[...misplaced, ...strays].join(", ")}`,
     );
   }
 }
