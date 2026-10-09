@@ -194,7 +194,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 4.1 Double Klondike
 - [x] 4.2 Calculation
 - [x] 4.3 Canfield
-- [ ] 4.4 Eight Off
+- [x] 4.4 Eight Off
 - [ ] 4.5 Penguin
 - [ ] 4.6 Flower Garden
 - [ ] 4.7 Browser check
@@ -541,3 +541,19 @@ gives: foundations rail, columns, reserve, stock rail. The reserve gets the
 columns' room, which Superior Canfield's fanned reserve needs. The phone grids
 keep fourteen cards on screen; the grid with the piles below needs 1229 of the
 1347 it has. The drawer says "stock, waste and foundations".
+
+### 4.4 Eight Off
+
+The first board to use `uprightLines`. A larger screen keeps its one row of
+eight cells and four foundations over the eight columns centred beneath (twelve
+grid columns). An upright phone is only as wide as the columns: the columns
+from its left edge, the four foundations centred in the line next to them
+(grid columns 2 to 5), and the eight cells on the edge beyond, under the thumb
+with the piles at the bottom. The cells are the side pile; upright they fill
+the width, so the side setting there only turns their order around, while on a
+larger screen it swaps the cells and the foundations. A sideways phone stacks
+the eight cells down the left rail and the foundations down the right. The
+phone grids keep fourteen cards on screen; upright the grid is held to the
+phone's width, so the two lines cost no card size. The grid with the piles
+below grows to 1229, which costs nothing at twelve columns. The drawer says
+"cells and foundations" and "Cells Side".
