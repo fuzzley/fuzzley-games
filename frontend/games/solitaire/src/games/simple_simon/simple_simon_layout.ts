@@ -1,9 +1,19 @@
 import { boardLayout } from "../common/board_layout";
 import {
+  arrangedLayouts,
+  pileIdsInRow,
+  pilesInRow,
+} from "../common/arranged_layouts";
+import {
   SimpleSimonVariant,
   simpleSimonTableauCount,
 } from "./simple_simon_rules";
 import { simpleSimonZoneSpecs } from "./simple_simon_zones";
+
+/** The zones Simple Simon's grids are read from. */
+const SIMPLE_SIMON_ZONES = simpleSimonZoneSpecs(
+  SimpleSimonVariant.SIMPLE_SIMON,
+);
 
 /**
  * The Simple Simon board: ten columns wide, with the four foundations at the
@@ -12,10 +22,33 @@ import { simpleSimonZoneSpecs } from "./simple_simon_zones";
 export const SIMPLE_SIMON_LAYOUT = boardLayout({
   columns: simpleSimonTableauCount(SimpleSimonVariant.SIMPLE_SIMON),
   rows: 2,
-  zones: simpleSimonZoneSpecs(SimpleSimonVariant.SIMPLE_SIMON),
+  zones: SIMPLE_SIMON_ZONES,
   // A fifteen-card column reaches about 1427 from the top of the board, and at
   // ten columns wide the height costs no card size.
   designHeightPx: 1427,
+});
+
+/**
+ * The Simple Simon board in every arrangement. The foundations go above the
+ * columns or along the bottom, always at the right, since a row of foundations
+ * alone has no side worth choosing. On a phone on its side, they stack down
+ * one rail.
+ */
+export const SIMPLE_SIMON_ARRANGED_LAYOUTS = arrangedLayouts({
+  roomy: SIMPLE_SIMON_LAYOUT,
+  columns: pileIdsInRow(SIMPLE_SIMON_ZONES, 1),
+  row: pilesInRow(SIMPLE_SIMON_ZONES, 0),
+  rails: {
+    left: [],
+    right: pileIdsInRow(SIMPLE_SIMON_ZONES, 0).map((pileId) => ({
+      pileId,
+      overlapped: true,
+    })),
+  },
+  // Fifteen cards: the eight dealt to the first columns, and a run built on
+  // them. The grid with the piles below needs no more height than the grid
+  // above has.
+  longestColumn: { faceDown: 0, faceUp: 15 },
 });
 
 /**
