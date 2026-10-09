@@ -184,7 +184,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 2.3 Forty Thieves family
 - [x] 2.4 Bristol
 - [x] 2.5 Golf
-- [ ] 2.6 Browser check
+- [x] 2.6 Browser check
 - [ ] 3.1 FreeCell family
 - [ ] 3.2 Seahaven Towers
 - [ ] 3.3 Nestor
@@ -386,3 +386,29 @@ uncovered below, and the stock tucks under it as far as it must, so the rail is
 no taller than a column of five and the cards are as big as the columns allow.
 The grid with the piles below needs 905 of the grid above's 947. The drawer
 calls the row "stock and foundation".
+
+### 2.6 Browser check
+
+Checked against `yarn start` in an isolated context, emulating each screen.
+
+- **Spiderette, 390 × 844 upright.** The columns along the top in the mobile
+  deck, the foundations along the bottom left and the stock at the bottom
+  right showing four slivers, one per deal left.
+- **Spiderette, 844 × 390 on its side.** The chrome rail at the left; the stock
+  tops the right rail with its slivers running down and the foundations
+  overlapped below it, the rail filling the height as Spider's does.
+- **Golf, 844 × 390 on its side.** Big cards, the columns fanned open; the stock
+  tucked behind the foundation at the foot of the right rail, the
+  foundation's card whole.
+- **Forty Thieves, 390 × 844 upright.** Ten columns along the top; the eight
+  foundations and the stock along the bottom, the stock at the right.
+- **Easthaven, 1280 × 800, Piles set to Bottom.** The columns along the top,
+  the stock at the bottom left and the foundations at the bottom right,
+  desktop cards.
+- **The drawer** for Golf reads "The stock and foundation along the bottom,
+  under your thumb, or at the foot of a sideways phone's rails." and "Stock
+  Side".
+
+The page was closed afterwards. Setting a presentation choice through
+`localStorage` (`fsolitaire-presentation`) needs a reload, not a hash change,
+since the service reads it once at start.
