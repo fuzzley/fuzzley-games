@@ -86,7 +86,10 @@ import {
   MontanaVariant,
 } from "@/games/montana/montana_rules";
 import { DoubleKlondikeGame } from "@/games/double_klondike/double_klondike_game";
-import { DOUBLE_KLONDIKE_LAYOUT } from "@/games/double_klondike/double_klondike_layout";
+import {
+  DOUBLE_KLONDIKE_ARRANGED_LAYOUTS,
+  DOUBLE_KLONDIKE_LAYOUT,
+} from "@/games/double_klondike/double_klondike_layout";
 import { EasthavenGame } from "@/games/easthaven/easthaven_game";
 import {
   EASTHAVEN_ARRANGED_LAYOUTS,
@@ -1179,6 +1182,11 @@ const DOUBLE_KLONDIKE = {
   name: "Double Klondike",
   options: [],
   layout: DOUBLE_KLONDIKE_LAYOUT,
+  arrangement: {
+    layouts: DOUBLE_KLONDIKE_ARRANGED_LAYOUTS,
+    pilesName: "stock, waste and foundations",
+    sideName: "stock",
+  },
   create: () => dealt(new DoubleKlondikeGame()),
 } satisfies CatalogEntry<DoubleKlondikeGame>;
 

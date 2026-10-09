@@ -191,7 +191,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 3.4 Yukon, Simple Simon
 - [x] 3.5 Mrs. Mop, Baker's Dozen
 - [x] 3.6 Browser check
-- [ ] 4.1 Double Klondike
+- [x] 4.1 Double Klondike
 - [ ] 4.2 Calculation
 - [ ] 4.3 Canfield
 - [ ] 4.4 Eight Off
@@ -498,3 +498,16 @@ wide, so on an upright phone a row anchored to the bottom shows partway down the
 screen until the board replaces it. The skeleton is the same code for every
 game, so Klondike and Spider do this on `main` too; it lasts a moment and is
 left for the owner to judge.
+
+### 4.1 Double Klondike
+
+The first board to need 1.4: its nine columns sit from grid column 1 under an
+eleven-wide row (stock, waste, a clear column for the waste's fan, eight
+foundations), and every grid with a row above or below keeps them there, in
+grid columns 1 to 9 whichever side the stock is on. A sideways phone puts them
+side by side between the rails, the eight foundations overlapped down the left
+and the stock above the waste, spreading down, on the right, as in Klondike.
+The phone grids keep eight hidden cards under a run from king to two on the
+deepest column. The grid with the piles below grows from 1177 to 1237, which at
+eleven columns costs no card size on the reference window, so it takes no cap.
+The drawer says "stock, waste and foundations".
