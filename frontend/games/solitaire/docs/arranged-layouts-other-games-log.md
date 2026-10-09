@@ -492,8 +492,9 @@ Checked against `yarn start` in an isolated context.
 - **Drawers.** Yukon offers "Piles" alone; FreeCell offers "Piles" and "Free
   Cells Side", each describing Auto by what it picks.
 
-**Seen in passing, not from this work:** while a board loads on an upright
-phone, the loading skeleton draws its slots on a box of the board's design
-size, so a row anchored to the bottom shows partway down the screen rather than
-on its bottom edge, until the board replaces it. Klondike and Spider do the
-same on `main`; it lasts a moment and is left for the owner to judge.
+**Seen in passing, not from this work:** while a board loads, the skeleton draws
+its slots in a box 92% wide and 82% tall of the canvas, each slot at most 84 px
+wide, so on an upright phone a row anchored to the bottom shows partway down the
+screen until the board replaces it. The skeleton is the same code for every
+game, so Klondike and Spider do this on `main` too; it lasts a moment and is
+left for the owner to judge.
