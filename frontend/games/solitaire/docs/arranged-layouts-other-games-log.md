@@ -209,7 +209,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 5.3 Aces Up
 - [x] 5.4 Pyramid
 - [x] 5.5 Browser check
-- [ ] 6.1 Docs
+- [x] 6.1 Docs
 - [ ] 6.2 Verify
 
 ## Log
@@ -720,3 +720,19 @@ Checked against `yarn start` in an isolated context, all under Auto.
 
 Monte Carlo was left to its specs, being Poker Squares' arrangement with the
 discard at the far end of the row. The page was closed afterwards.
+
+### 6.1 Docs
+
+- **The `add-solitaire-game` skill**'s "Arranged grids" section was rewritten:
+  columns kept where the larger screen has them, `beside`, an optional `side`
+  and when to leave it out, `uprightLines`, overlapped rails for cells and
+  reserves, the rule that an empty pile never tucks under another kind's card,
+  `roomyBottomMaxHeightPx` with the formula for the 85% cap, the sliver stock
+  helpers, hand-laid boards through `phoneLayout`, the catalog's `arrangement`
+  with `pilesName` and `sideName`, and `itLaysOutArrangedGrids` for the spec.
+- **`.agents/AGENTS.md`** says most games name an `arrangement`, that the side
+  pile need not be the stock, that the choices are stored once and named in
+  each game's words, and that `arranged_layouts.ts` also completes hand-laid
+  boards' phone grids.
+- **Pointers:** the board arrangement log's status and the phone layouts
+  options doc's "Since then" now point here.

@@ -316,11 +316,11 @@ every game.
 ### Arranged grids (optional)
 
 Without arranged grids a game lies on this one grid everywhere, compacted on a
-phone. To lay it out for a phone, and let a player put its piles at the top or
-the bottom and its stock at the left or the right, declare its board to
-`arrangedLayouts` (`src/games/common/arranged_layouts.ts`) beside the grid, as
-Klondike and Spider do in `src/games/klondike/klondike_layout.ts` and
-`src/games/spider/spider_layout.ts`:
+phone. To lay it out for a phone, with columns that fan to fit, and let a
+player put its piles at the top or the bottom and its side pile at the left or
+the right, declare its board to `arrangedLayouts`
+(`src/games/common/arranged_layouts.ts`) beside the grid. Most games in the
+catalog do; `src/games/klondike/klondike_layout.ts` is the plainest:
 
 ```ts
 export const MY_GAME_ARRANGED_LAYOUTS = arrangedLayouts({
@@ -333,47 +333,84 @@ export const MY_GAME_ARRANGED_LAYOUTS = arrangedLayouts({
     right: [{ pileId: STOCK_PILE_ID }],
   },
   longestColumn: { faceDown: 6, faceUp: 12 },
+  roomyBottomMaxHeightPx: 1184,
 });
 ```
 
 - **roomy** is the grid above, with the row over the columns; the larger
   screen's grid with the row below them takes its gaps and padding.
-- **columns** fan down and take the height; **row** is the other piles, read
-  off the zones with `pilesInRow`, so a pile is still placed in one place.
+- **columns** fan down and take the height, left to right; every grid keeps
+  them in the grid columns `roomy` gives them (so columns centred under a wider
+  row stay centred), and a sideways phone puts them side by side between its
+  rails. A mirror moves them as one block, in order. **row** is the other
+  piles, read off the zones with `pilesInRow`, so a pile is still placed in one
+  place.
+- **beside** (optional) names piles in the columns' row that are not columns,
+  laid out with them but mirrored on their own, as Canfield's reserve follows
+  its stock (`src/games/canfield/canfield_layout.ts`).
 - **side** (optional) is the row pile the side setting places: the stock, or
-  in a game without one the pile a player plays from most, such as the free
-  cells. A grid that has it in the other half from the side chosen is
-  mirrored. Leave it out where the row holds only foundations: the board is
-  then never mirrored, and the drawer offers Piles alone.
+  in a game without one the pile a player plays from most, such as FreeCell's
+  free cells. A grid that has it in the other half from the side chosen is
+  mirrored. Leave it out where the row holds only foundations, or where a
+  mirror would hurt (Flower Garden's bouquet would show each card's suit edge
+  rather than its rank): the board is then never mirrored, and the drawer
+  offers Piles alone.
+- **uprightLines** (optional) gives an upright phone the row in lines, from the
+  columns outward, when the row is wider than the columns (Eight Off,
+  Penguin, Flower Garden); the upright grid is then only as wide as the
+  columns, which sit from its left edge.
 - **rails** say which row piles stack down which edge of a sideways phone. Every
-  row pile goes on exactly one rail. Mark foundations `overlapped`; give a
-  pile that spreads down the rail `spreadsDown` and the `reach` its cards
-  need. An overlapped pile showing `FOUNDATION_PLACEHOLDER` shows its ring at
-  the top edge there instead, the strip the pile below leaves showing
-  (`COVERED_FOUNDATION_PLACEHOLDER`, or `RAIL_FOUNDATION_PLACEHOLDER` for the
-  last), through the grid's `pileBackgrounds`. Nothing to declare.
+  row pile goes on exactly one rail. Mark a pile `overlapped` when the pile
+  below may cover all but its index strip, as foundations, cells and reserves
+  may; give a pile that spreads down the rail `spreadsDown` and the `reach` its
+  cards need. An overlapped pile showing `FOUNDATION_PLACEHOLDER` shows its
+  ring at the top edge there instead (`COVERED_FOUNDATION_PLACEHOLDER`, or
+  `RAIL_FOUNDATION_PLACEHOLDER` for the last), through the grid's
+  `pileBackgrounds`; nothing to declare. **Never put a pile that can sit empty
+  under an overlapped pile of cards of another kind:** every pile's outline is
+  drawn beneath all the cards, so the card above would hide it. Give such a
+  pile a rail of its own, or show the pile above it whole (Flower Garden's
+  foundations, Nestor's discard). Cards stack in the order the zones are
+  declared, so list a rail's piles in that order too.
 - **longestColumn** is the column every grid keeps on screen with fans at
   their floor; the builder sets each phone grid's design height from it, and
   grows the larger screen's grid with the row below the columns to fit it.
+- **roomyBottomMaxHeightPx** (optional) caps that growth. The catalog spec
+  holds every arranged game's cards with the piles below to at least 85% of
+  their size with the piles above on a 1920 × 1080 window, so set it to
+  `floor(1007 / (0.85 × s))`, where `s` is the grid above's scale there
+  (`min(1920 / width, 1007 / height, 1)`), when the column would need more.
 - **pileLayouts** (optional) changes how a pile arranges its cards on every
-  phone grid, as Spider's stock shows one sliver per deal.
+  phone grid, as Spider's stock shows one sliver per deal
+  (`sliverStockLayout` in `src/games/common/pile_layouts.ts`).
 
 The builder gives two grids for each shape of screen, the row at the top or
 the bottom: on a larger screen, the grid above and that grid with its rows the
 other way up; upright, the same with phone gaps; sideways, the rail piles at
 the edges, hung from the top or stood on the bottom. Every grid keeps the row
 in the order the larger screen has it and fits each column's fan to the room
-below it. Name them on the catalog entry (step 8) as `arrangement`, with
-`pilesName` and `sideName`, what the drawer calls the row's piles and the side
-pile ("stock and foundations", "stock"). The settings drawer then offers Piles
-and the side setting, each with an Auto that puts the piles at the bottom and
-the stock at the right on a phone and keeps the grid above on a larger screen;
-the board mirrors a grid to put the stock where it was asked for (keeping the
-columns in order), and the
-catalog spec checks every grid places every pile. Add a `<game>_layout.spec.ts`
-that the longest column fits the room below it on a few phone sizes, and that
-the stock goes where it is asked, as `test/games/klondike/klondike_layout.spec.ts`
-does.
+below it.
+
+A board with no columns to fan, such as a grid of cards or a pyramid, writes
+its `ArrangedLayouts` out by hand, with `phoneLayout` for the phone grids'
+gaps and padding, `PHONE_GAP` and `fannedColumnHeight` for any column it does
+have, and `columns` naming the piles a mirror keeps in order, as
+`src/games/poker_squares/poker_squares_layout.ts` and
+`src/games/pyramid/pyramid_layout.ts` do. The grid with the piles at the top
+on a larger screen must be the catalog's own grid.
+
+Name the grids on the catalog entry (step 8) as `arrangement`, with
+`pilesName` and `sideName`: what the drawer calls the row's piles and the side
+pile, in the rules page's words ("stock and foundations", "stock"), the second
+given exactly when the grids name a side pile. The settings drawer then offers
+Piles, and the side setting labelled after the side pile, each with an Auto
+that puts the piles at the bottom and the side pile at the right on a phone and
+keeps the grid above on a larger screen; the catalog spec checks every grid
+places every pile. Add a `<game>_layout.spec.ts` that calls
+`itLaysOutArrangedGrids` from `test/support/arranged_grids.ts`, which checks
+the longest column on six phone sizes under every arrangement, the columns'
+order, the side pile and the larger screen's default, and add the game's own
+checks beside it, as `test/games/klondike/klondike_layout.spec.ts` does.
 
 ---
 

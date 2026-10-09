@@ -44,7 +44,9 @@ result on its catalog entry.
 **Since then** the upright pile setting and the hand became Piles (Auto, Top,
 Bottom) and Stock Side (Auto, Left, Right), offered on every screen, with a
 larger screen's grid for the piles below and a sideways one for the rails on
-the bottom; see [board-arrangement-log.md](board-arrangement-log.md).
+the bottom; see [board-arrangement-log.md](board-arrangement-log.md). Most of
+the other games took the same grids afterwards; see
+[arranged-layouts-other-games-log.md](arranged-layouts-other-games-log.md).
 
 ## In short
 
