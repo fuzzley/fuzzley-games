@@ -21,7 +21,10 @@ import {
 } from "@/games/klondike/scoring_policy";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { FreeCellVariant } from "@/games/freecell/freecell_rules";
-import { FREECELL_LAYOUT } from "@/games/freecell/freecell_layout";
+import {
+  FREECELL_ARRANGED_LAYOUTS,
+  FREECELL_LAYOUT,
+} from "@/games/freecell/freecell_layout";
 import { SpiderGame } from "@/games/spider/spider_game";
 import { SpiderSuitCount, spiderDeck } from "@/games/spider/spider_deal";
 import {
@@ -881,6 +884,13 @@ const POKER_SQUARES_SCORING = gameOption<PokerSquaresScoring>({
   defaultRule: DEFAULT_POKER_SQUARES_SCORING,
 });
 
+/** How FreeCell, Baker's Game and Challenge FreeCell may be arranged. */
+const FREECELL_ARRANGEMENT: CatalogArrangement = {
+  layouts: FREECELL_ARRANGED_LAYOUTS,
+  pilesName: "free cells and foundations",
+  sideName: "free cells",
+};
+
 /*
  * The entries, each declared with `satisfies` so it keeps the literal id and
  * game type the board registry is checked against.
@@ -917,6 +927,7 @@ const FREECELL = {
   name: "FreeCell",
   options: [],
   layout: FREECELL_LAYOUT,
+  arrangement: FREECELL_ARRANGEMENT,
   create: () => dealt(new FreeCellGame()),
 } satisfies CatalogEntry<FreeCellGame>;
 
@@ -952,6 +963,7 @@ const BAKERS = {
   name: "Baker's Game",
   options: [BAKERS_EMPTY_COLUMNS],
   layout: FREECELL_LAYOUT,
+  arrangement: FREECELL_ARRANGEMENT,
   // FreeCell's class, playing by Baker's Game's column rules.
   create: (values: GameOptionValues) =>
     dealt(
@@ -974,6 +986,7 @@ const CHALLENGE_FREECELL = {
   name: "Challenge FreeCell",
   options: [CHALLENGE_EMPTY_COLUMNS],
   layout: FREECELL_LAYOUT,
+  arrangement: FREECELL_ARRANGEMENT,
   create: (values: GameOptionValues) =>
     dealt(
       new FreeCellGame({

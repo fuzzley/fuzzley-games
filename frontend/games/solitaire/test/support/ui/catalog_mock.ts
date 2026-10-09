@@ -37,7 +37,8 @@ const OPTIONS: readonly GameOptionSpec[] = [
 /**
  * Stands in for the catalog service with three games, typed as a `Pick` of it
  * so the mock cannot drift from the real shape: Klondike, arranged with a side
- * pile; Yukon, arranged without one; and FreeCell, not arranged.
+ * pile; Yukon, arranged without one; and FreeCell, standing in for a game that
+ * is not arranged.
  */
 export type MockCatalog = Pick<
   GameCatalogService,
