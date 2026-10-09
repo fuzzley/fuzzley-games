@@ -205,7 +205,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 4.6 Flower Garden
 - [x] 4.7 Browser check
 - [x] 5.1 Poker Squares
-- [ ] 5.2 Monte Carlo
+- [x] 5.2 Monte Carlo
 - [ ] 5.3 Aces Up
 - [ ] 5.4 Pyramid
 - [ ] 5.5 Browser check
@@ -655,3 +655,15 @@ sit side by side in a row above the grid or along the bottom edge, so the grid
 is five cards wide instead of six and the cards are bigger. The stock is the
 side pile; the mirror keeps the twenty-five squares in their order. The drawer
 says "stock and the card to place", the rules page's words.
+
+### 5.2 Monte Carlo
+
+Written out as Poker Squares is, for Monte Carlo and Thirteens: on a larger
+screen and a sideways phone the stock and the discard stand at either side of
+the five-by-five grid, beside its first row (Top) or its last (Bottom); upright
+they sit at either end of a row above the grid or along the bottom edge, so the
+grid is five cards wide rather than seven and its cards about two-fifths
+bigger. The stock is the side pile, so Auto puts it at the bottom right of a
+phone and the discard at the bottom left; the grid keeps its order in a mirror,
+which matters here since pairs are found by neighbouring cards. The drawer says
+"stock and discard".
