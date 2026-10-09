@@ -193,7 +193,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 3.6 Browser check
 - [x] 4.1 Double Klondike
 - [x] 4.2 Calculation
-- [ ] 4.3 Canfield
+- [x] 4.3 Canfield
 - [ ] 4.4 Eight Off
 - [ ] 4.5 Penguin
 - [ ] 4.6 Flower Garden
@@ -526,3 +526,18 @@ to their index, which is the part that says what each needs next, and the
 stock above the hand on the right. The phone grids keep a thirteen-card waste
 pile on screen; the grid with the piles below needs 1193 of the 1327 it has.
 The drawer says "stock, hand and foundations", as the rules page calls them.
+
+### 4.3 Canfield
+
+The first board to use `beside`: the reserve shares the columns' row (grid
+column 0, under the stock) but is not one of the four columns (grid columns 3
+to 6, under the foundations). Upright and on a larger screen the reserve stays
+under the stock on either side, and the columns under the foundations. On a
+sideways phone the reserve stands between the stock's rail and the columns;
+that needed the stock and waste declared on the left rail and the foundations
+on the right, the reverse of Klondike, since the builder lays the reserve out
+first, where the larger screen has it. With the stock at the right the mirror
+gives: foundations rail, columns, reserve, stock rail. The reserve gets the
+columns' room, which Superior Canfield's fanned reserve needs. The phone grids
+keep fourteen cards on screen; the grid with the piles below needs 1229 of the
+1347 it has. The drawer says "stock, waste and foundations".
