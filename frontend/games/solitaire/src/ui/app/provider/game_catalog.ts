@@ -144,7 +144,10 @@ import {
   NESTOR_LAYOUT,
 } from "@/games/nestor/nestor_layout";
 import { MonteCarloGame } from "@/games/monte_carlo/monte_carlo_game";
-import { MONTE_CARLO_LAYOUT } from "@/games/monte_carlo/monte_carlo_layout";
+import {
+  MONTE_CARLO_ARRANGED_LAYOUTS,
+  MONTE_CARLO_LAYOUT,
+} from "@/games/monte_carlo/monte_carlo_layout";
 import {
   DEFAULT_MONTE_CARLO_VARIANT,
   MonteCarloVariant,
@@ -1335,6 +1338,11 @@ const MONTE_CARLO = {
   name: "Monte Carlo",
   options: [MONTE_CARLO_VARIANT],
   layout: MONTE_CARLO_LAYOUT,
+  arrangement: {
+    layouts: MONTE_CARLO_ARRANGED_LAYOUTS,
+    pilesName: "stock and discard",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(
       new MonteCarloGame({ variant: optionRule(values, MONTE_CARLO_VARIANT) }),
