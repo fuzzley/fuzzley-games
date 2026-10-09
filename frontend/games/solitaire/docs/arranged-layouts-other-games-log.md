@@ -196,7 +196,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 4.3 Canfield
 - [x] 4.4 Eight Off
 - [x] 4.5 Penguin
-- [ ] 4.6 Flower Garden
+- [x] 4.6 Flower Garden
 - [ ] 4.7 Browser check
 - [ ] 5.1 Poker Squares
 - [ ] 5.2 Monte Carlo
@@ -568,3 +568,31 @@ left rail and the foundations down the right. The rules page calls the cells
 the flipper, so the drawer says "flipper and foundations" and "Flipper Side".
 The phone grids keep a whole suit of thirteen on screen; the grid with the
 piles below needs 1193 of the 1327 it has.
+
+### 4.6 Flower Garden
+
+**A change from the plan:** Flower Garden has no side pile, so the drawer
+offers Piles alone. The bouquet is sixteen piles of one card at fractional
+columns, each drawn over the one before it, so each card shows its left edge,
+where its rank is printed. A mirror moves the piles but not the order they are
+drawn in, which would leave each card's right edge showing, where the cards
+print only the suit. With nothing else in the row worth a side, it is never
+mirrored.
+
+A larger screen keeps its row (the bouquet across grid columns 0 to 4, the
+foundations at 5 to 8) over six beds at half-columns 1.5 to 6.5; the beds stay
+there with the piles below. An upright phone is six wide: the beds from its
+left edge, the foundations centred next to them (columns 1 to 4), and the
+bouquet fanned across the whole width on the edge, a third of a column apart,
+which shows more of each card than a larger screen does. On a sideways phone
+the bouquet's first eight cards stack down the left rail and the other eight,
+then the foundations, down the right, all overlapped to their index: one rail
+of sixteen would need 1063 design units against the beds' 888 and shrink the
+cards by about a sixth, where two stay under the beds' height. The phone grids
+keep a fifteen-card bed on screen; the grid with the piles below needs 1265 of
+the 1377 it has. The drawer says "bouquet and foundations".
+
+Every overlapped rail so far relies on a pile below being drawn over the pile
+above it, which holds because each game declares its zones in the order its
+rails stack them (bouquet before foundations, stock before reserves, cells
+before foundations).
