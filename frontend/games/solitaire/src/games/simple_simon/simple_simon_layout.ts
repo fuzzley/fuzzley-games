@@ -51,6 +51,9 @@ export const SIMPLE_SIMON_ARRANGED_LAYOUTS = arrangedLayouts({
   longestColumn: { faceDown: 0, faceUp: 15 },
 });
 
+/** The zones Mrs. Mop's grids are read from. */
+const MRS_MOP_ZONES = simpleSimonZoneSpecs(SimpleSimonVariant.MRS_MOP);
+
 /**
  * The Mrs. Mop board: thirteen columns wide, with the eight foundations at the
  * right of the top row.
@@ -58,8 +61,29 @@ export const SIMPLE_SIMON_ARRANGED_LAYOUTS = arrangedLayouts({
 export const MRS_MOP_LAYOUT = boardLayout({
   columns: simpleSimonTableauCount(SimpleSimonVariant.MRS_MOP),
   rows: 2,
-  zones: simpleSimonZoneSpecs(SimpleSimonVariant.MRS_MOP),
+  zones: MRS_MOP_ZONES,
   // A twenty-three-card column reaches about 1697 from the top of the board,
   // and at thirteen columns wide the height costs no card size.
   designHeightPx: 1727,
+});
+
+/**
+ * The Mrs. Mop board in every arrangement, as Simple Simon's. At thirteen
+ * columns every phone grid is held to the screen's width, so making room for
+ * the longest column costs no card size.
+ */
+export const MRS_MOP_ARRANGED_LAYOUTS = arrangedLayouts({
+  roomy: MRS_MOP_LAYOUT,
+  columns: pileIdsInRow(MRS_MOP_ZONES, 1),
+  row: pilesInRow(MRS_MOP_ZONES, 0),
+  rails: {
+    left: [],
+    right: pileIdsInRow(MRS_MOP_ZONES, 0).map((pileId) => ({
+      pileId,
+      overlapped: true,
+    })),
+  },
+  // Twenty-three cards, as the grid above makes room for. The grid with the
+  // piles below needs no more height than the grid above has.
+  longestColumn: { faceDown: 0, faceUp: 23 },
 });

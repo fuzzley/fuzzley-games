@@ -48,12 +48,16 @@ import {
 import { SimpleSimonGame } from "@/games/simple_simon/simple_simon_game";
 import { SimpleSimonVariant } from "@/games/simple_simon/simple_simon_rules";
 import {
+  MRS_MOP_ARRANGED_LAYOUTS,
   MRS_MOP_LAYOUT,
   SIMPLE_SIMON_ARRANGED_LAYOUTS,
   SIMPLE_SIMON_LAYOUT,
 } from "@/games/simple_simon/simple_simon_layout";
 import { BakersDozenGame } from "@/games/bakers_dozen/bakers_dozen_game";
-import { BAKERS_DOZEN_LAYOUT } from "@/games/bakers_dozen/bakers_dozen_layout";
+import {
+  BAKERS_DOZEN_ARRANGED_LAYOUTS,
+  BAKERS_DOZEN_LAYOUT,
+} from "@/games/bakers_dozen/bakers_dozen_layout";
 import { SeahavenGame } from "@/games/seahaven/seahaven_game";
 import {
   SEAHAVEN_ARRANGED_LAYOUTS,
@@ -1052,6 +1056,7 @@ const MRS_MOP = {
   name: "Mrs. Mop",
   options: [],
   layout: MRS_MOP_LAYOUT,
+  arrangement: { layouts: MRS_MOP_ARRANGED_LAYOUTS, pilesName: "foundations" },
   create: () =>
     dealt(new SimpleSimonGame({ variant: SimpleSimonVariant.MRS_MOP })),
 } satisfies CatalogEntry<SimpleSimonGame>;
@@ -1061,6 +1066,10 @@ const BAKERS_DOZEN = {
   name: "Baker's Dozen",
   options: [],
   layout: BAKERS_DOZEN_LAYOUT,
+  arrangement: {
+    layouts: BAKERS_DOZEN_ARRANGED_LAYOUTS,
+    pilesName: "foundations",
+  },
   create: () => dealt(new BakersDozenGame()),
 } satisfies CatalogEntry<BakersDozenGame>;
 

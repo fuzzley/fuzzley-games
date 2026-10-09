@@ -189,7 +189,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 3.2 Seahaven Towers
 - [x] 3.3 Nestor
 - [x] 3.4 Yukon, Simple Simon
-- [ ] 3.5 Mrs. Mop, Baker's Dozen
+- [x] 3.5 Mrs. Mop, Baker's Dozen
 - [ ] 3.6 Browser check
 - [ ] 4.1 Double Klondike
 - [ ] 4.2 Calculation
@@ -463,3 +463,15 @@ needs 1253 (cards 86% the size) and takes no cap. Simple Simon keeps fifteen
 face up; at ten columns the grid with the piles below needs 1265 of the 1427 it
 has. The catalog mock's Yukon now uses Yukon's own grids instead of
 Klondike's.
+
+### 3.5 Mrs. Mop, Baker's Dozen
+
+Both take Simple Simon's foundations-only arrangement: Piles alone, never
+mirrored, the foundations at the right and down the right rail on a sideways
+phone (grid column 13 of 14). At thirteen columns every phone grid is held to
+the screen's width on all six phone sizes, so the phone grids keep the same
+longest column the larger screen's grid makes room for at no cost in card
+size: twenty-three cards in Mrs. Mop, twelve in Baker's Dozen. Neither grid with
+the piles below grows (1553 of 1727, and 1157 of 1227). Upright, the cards are
+small, as thirteen columns make them; the gain is the bottom row and the rail.
+Mrs. Mop's spec sits beside Simple Simon's in `test/games/simple_simon`.
