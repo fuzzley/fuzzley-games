@@ -192,7 +192,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 3.5 Mrs. Mop, Baker's Dozen
 - [x] 3.6 Browser check
 - [x] 4.1 Double Klondike
-- [ ] 4.2 Calculation
+- [x] 4.2 Calculation
 - [ ] 4.3 Canfield
 - [ ] 4.4 Eight Off
 - [ ] 4.5 Penguin
@@ -511,3 +511,18 @@ The phone grids keep eight hidden cards under a run from king to two on the
 deepest column. The grid with the piles below grows from 1177 to 1237, which at
 eleven columns costs no card size on the reference window, so it takes no cap.
 The drawer says "stock, waste and foundations".
+
+### 4.2 Calculation
+
+Calculation and Sir Tommy share a six-wide board: stock, hand and four
+foundations along the top, and a waste pile under each foundation, in grid
+columns 2 to 5. The waste piles are the board's columns, so with 1.4 they stay
+under the foundations upright and on a larger screen; with the stock at the
+right, the mirror moves the foundations to columns 0 to 3 and the waste piles
+with them as one block, in their own order, so each still sits under a
+foundation though no longer the same one (as Klondike's foundations reverse in
+a mirror). A sideways phone puts the foundations down the left rail, overlapped
+to their index, which is the part that says what each needs next, and the
+stock above the hand on the right. The phone grids keep a thirteen-card waste
+pile on screen; the grid with the piles below needs 1193 of the 1327 it has.
+The drawer says "stock, hand and foundations", as the rules page calls them.

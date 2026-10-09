@@ -113,7 +113,10 @@ import { GolfGame } from "@/games/golf/golf_game";
 import { GOLF_ARRANGED_LAYOUTS, GOLF_LAYOUT } from "@/games/golf/golf_layout";
 import { DEFAULT_GOLF_VARIANT, GolfVariant } from "@/games/golf/golf_rules";
 import { CalculationGame } from "@/games/calculation/calculation_game";
-import { CALCULATION_LAYOUT } from "@/games/calculation/calculation_layout";
+import {
+  CALCULATION_ARRANGED_LAYOUTS,
+  CALCULATION_LAYOUT,
+} from "@/games/calculation/calculation_layout";
 import {
   CalculationVariant,
   DEFAULT_CALCULATION_VARIANT,
@@ -1255,6 +1258,11 @@ const CALCULATION = {
   name: "Calculation",
   options: [CALCULATION_VARIANT],
   layout: CALCULATION_LAYOUT,
+  arrangement: {
+    layouts: CALCULATION_ARRANGED_LAYOUTS,
+    pilesName: "stock, hand and foundations",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(
       new CalculationGame({
