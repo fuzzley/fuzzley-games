@@ -35,7 +35,10 @@ import { EightOffGame } from "@/games/eight_off/eight_off_game";
 import { EIGHT_OFF_LAYOUT } from "@/games/eight_off/eight_off_layout";
 import { ScorpionGame } from "@/games/scorpion/scorpion_game";
 import { ScorpionVariant } from "@/games/scorpion/scorpion_rules";
-import { SCORPION_LAYOUT } from "@/games/scorpion/scorpion_layout";
+import {
+  SCORPION_ARRANGED_LAYOUTS,
+  SCORPION_LAYOUT,
+} from "@/games/scorpion/scorpion_layout";
 import { SimpleSimonGame } from "@/games/simple_simon/simple_simon_game";
 import { SimpleSimonVariant } from "@/games/simple_simon/simple_simon_rules";
 import {
@@ -988,6 +991,11 @@ const SCORPION = {
   name: "Scorpion",
   options: [SCORPION_VARIANT],
   layout: SCORPION_LAYOUT,
+  arrangement: {
+    layouts: SCORPION_ARRANGED_LAYOUTS,
+    pilesName: "stock and foundations",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(new ScorpionGame({ variant: optionRule(values, SCORPION_VARIANT) })),
 } satisfies CatalogEntry<ScorpionGame>;

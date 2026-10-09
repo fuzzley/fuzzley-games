@@ -180,7 +180,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 1.5 Two lines on an upright phone
 - [x] 1.6 Spec helpers
 - [x] 2.1 Spiderette, Easthaven
-- [ ] 2.2 Scorpion
+- [x] 2.2 Scorpion
 - [ ] 2.3 Forty Thieves family
 - [ ] 2.4 Bristol
 - [ ] 2.5 Golf
@@ -330,6 +330,18 @@ Spider now uses too; `STOCK_SLIVER_GAP` went with them.
 Under Easthaven's cap two hidden cards under twelve face up clear the row on a
 larger screen. Both games name their piles "stock and foundations" and their
 side pile "stock". The spec helper gained `layoutOn`, a pile's arrangement on
-a grid with the mirror applied, for the sliver checks. A cap calculator lives
-in the session scratchpad (`cap.mjs`: grid columns, the grid above's height,
-and the longest column), reproducing Klondike's 1217 and 1184.
+a grid with the mirror applied, for the sliver checks. To work a cap out by hand: the grid above is `w = 251c + 50` wide for `c` grid
+columns; its scale on the reference window is `s = min(1920 / w, 1007 / h, 1)`
+for its height `h`; the cap is `floor(1007 / (0.85 s))`; and the grid with the
+piles below needs `433 + 313 + 10d + 36(u - 1) + 15` for a longest column of
+`d` hidden and `u` face-up cards. This reproduces Klondike's 1217 and 1184.
+
+### 2.2 Scorpion
+
+The same arrangement as Spiderette's, for all three variants (the variant
+changes only what a column accepts), except that the stock stays stacked on
+every grid: it holds three cards and deals once. The phone grids keep three
+hidden cards under fifteen face up on screen, a king-to-ace run with what a
+move carried onto it. The grid with the piles below would need 1295 (cards 83%
+the size); its cap is 1267 (85%), under which three hidden cards under fourteen
+face up clear the row.
