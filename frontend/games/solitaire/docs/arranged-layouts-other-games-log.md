@@ -176,7 +176,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 1.1 Side pile
 - [x] 1.2 Catalog and drawer
 - [x] 1.3 Cap
-- [ ] 1.4 Columns where the larger screen has them
+- [x] 1.4 Columns where the larger screen has them
 - [ ] 1.5 Two lines on an upright phone
 - [ ] 1.6 Spec helpers
 - [ ] 2.1 Spiderette, Easthaven
@@ -259,3 +259,21 @@ catalog spec checks the 85% rule for every arranged game, so a game added later
 cannot forget its cap. Measured on other screens, Klondike's uncapped grid cost
 about 15% at 1280 × 800 and 1440 × 900 at a pixel ratio of 2 as well, so the
 reference screen does not flatter the rule.
+
+### 1.4 Columns where the larger screen has them
+
+The builder used to lay the columns out from grid column 0 on every grid, which
+only suits a board whose columns start at the left edge. Now the grids with a
+row above or below (the larger screen's with the piles below, and both upright)
+put each column in the grid column `roomy` gives it, read by
+`roomyColumnOf`, and are as wide as `roomy`. A sideways phone still puts them
+side by side from the first rail, in the larger screen's order. Klondike's and
+Spider's grids come out exactly as before.
+
+`ArrangedBoard.beside` names piles in the columns' row that are not columns,
+for Canfield's reserve. They are laid out with the columns (`columnRow` sorts
+both by their larger-screen column), but `ArrangedLayouts.columns` leaves them
+out, so a mirror moves them on their own and they follow the stock across.
+Specs cover a board whose columns start at grid column 1, a reserve beside the
+columns upright, on its side and in a mirror, and a column `roomy` does not
+place, which now throws.
