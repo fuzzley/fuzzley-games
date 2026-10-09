@@ -54,7 +54,8 @@ export interface RailPile {
   readonly spreadsDown?: boolean;
   /**
    * Whether the pile below may cover all but this pile's index strip when the
-   * rail is short of room, as it may a foundation's. A foundation's ring then
+   * rail is short of room, as it may a foundation's, a cell's or a reserve's,
+   * whose top card is all a player needs to read. A foundation's ring then
    * moves to the top edge, the part of it that shows.
    */
   readonly overlapped?: boolean;
@@ -67,12 +68,34 @@ export interface ArrangedBoard {
    * with the row below them takes its gaps, padding and height.
    */
   readonly roomy: TableLayoutSpec;
-  /** The columns, left to right: the piles that fan down and take the height. */
+  /**
+   * The columns, left to right: the piles that fan down and take the height.
+   * Every grid keeps them in this order, in the grid columns the larger
+   * screen's grid gives them, or side by side between a sideways phone's
+   * rails.
+   */
   readonly columns: readonly string[];
+  /**
+   * Piles in the columns' row that are not columns, such as Canfield's
+   * reserve: laid out with the columns, but mirrored on their own, so they
+   * follow the side pile to the other side.
+   */
+  readonly beside?: readonly string[];
   /** The other piles, in the row above the columns on a larger screen. */
   readonly row: readonly RowPile[];
-  /** The pile in the row the stock side places. */
-  readonly stock: string;
+  /**
+   * The row on an upright phone, in lines from the columns outward, each pile
+   * in the grid column it takes there; the row as the larger screen has it,
+   * in one line, when omitted. A board whose row is wider than its columns
+   * gives it in two, so the upright grid is only as wide as it must be; the
+   * columns then sit side by side from its left edge.
+   */
+  readonly uprightLines?: readonly (readonly RowPile[])[];
+  /**
+   * The pile in the row the side setting places, such as the stock; a board
+   * without one is never mirrored, and the setting is not offered.
+   */
+  readonly side?: string;
   /**
    * Which of the row's piles stack down each rail on a phone on its side, top
    * first. Every pile in the row goes on exactly one.
@@ -89,6 +112,13 @@ export interface ArrangedBoard {
     readonly faceDown: number;
     readonly faceUp: number;
   };
+  /**
+   * The tallest the larger screen's grid with the row below the columns may
+   * grow to keep the longest column clear of the row, in design units; as tall
+   * as the column needs when omitted. A taller grid draws smaller cards, and
+   * past the cap only the longest columns reach the row, at their floors.
+   */
+  readonly roomyBottomMaxHeightPx?: number;
   /** How particular piles arrange their cards on every phone grid, by pile id. */
   readonly pileLayouts?: Readonly<Record<string, PileLayoutOverride>>;
 }
@@ -114,7 +144,7 @@ export function pileIdsInRow(
 }
 
 /** Space between a phone grid's columns and rows, in design units. */
-const PHONE_GAP = { x: 4, y: 10 };
+export const PHONE_GAP = { x: 4, y: 10 };
 
 /** Space at a phone grid's edges, in design units. */
 const PHONE_PADDING = { x: 6, y: 8 };
@@ -132,32 +162,31 @@ export const RAIL_MIN_STEP = 50;
  * its side.
  *
  * Every grid keeps the row in the order a larger screen has it, and the rails
- * as declared; the chooser mirrors a grid that leaves the stock on the other
- * side from the one the player asked for.
+ * as declared; the chooser mirrors a grid that leaves the side pile on the
+ * other side from the one the player asked for.
  *
- * @throws Error when a pile in the row is on no rail, or on both, or when the
- *   stock is not in the row.
+ * @throws Error when a pile in the row is on no rail, or on both, or in
+ *   none of the upright lines, or in more than one, when the side pile is not
+ *   in the row, or when a column or a pile beside them is not on the larger
+ *   screen's grid.
  */
 export function arrangedLayouts(board: ArrangedBoard): ArrangedLayouts {
   checkRails(board);
-  checkStock(board);
-  const columns = Math.max(
-    board.columns.length,
-    ...board.row.map((pile) => pile.column + 1),
-  );
+  checkLines(board);
+  checkSide(board);
   const columnHeight = longestColumnHeight(board, PHONE_FAN_FIT);
   return {
     roomy: { top: board.roomy, bottom: roomyPilesBelow(board) },
     portrait: {
-      top: pilesAbove(board, columns, columnHeight),
-      bottom: pilesBelow(board, columns, columnHeight),
+      top: upright(board, columnHeight, "top"),
+      bottom: upright(board, columnHeight, "bottom"),
     },
     landscape: {
       top: pilesBeside(board, columnHeight, "top"),
       bottom: pilesBeside(board, columnHeight, "bottom"),
     },
     columns: board.columns,
-    stock: board.stock,
+    side: board.side,
   };
 }
 
@@ -168,7 +197,9 @@ export function arrangedLayouts(board: ArrangedBoard): ArrangedLayouts {
  *
  * It is taller than the grid with the piles above when the longest column
  * would not otherwise fit above them at its floors, since a column running
- * over the row would hide it, where above the row it only runs off the screen.
+ * over the row would hide it, where above the row it only runs off the screen;
+ * but no taller than the board's cap, which keeps its cards from shrinking
+ * further for a column that is rarely dealt.
  */
 function roomyPilesBelow(board: ArrangedBoard): TableLayoutSpec {
   const { roomy } = board;
@@ -180,10 +211,13 @@ function roomyPilesBelow(board: ArrangedBoard): TableLayoutSpec {
   return tableLayout({
     columns: roomy.columns,
     rows: 2,
-    slots: [...columnSlots(board, 0, 0), ...rowAlongBottom(board)],
+    slots: [...columnSlotsAsRoomy(board, 0), ...rowAlongBottom(board)],
     gap: roomy.gap,
     padding: roomy.padding,
-    designHeightPx: Math.max(designSize(roomy).height, needed),
+    designHeightPx: Math.max(
+      designSize(roomy).height,
+      Math.min(needed, board.roomyBottomMaxHeightPx ?? needed),
+    ),
     fanFit: ROOMY_FAN_FIT,
     pileLayouts: roomy.pileLayouts,
     pileBackgrounds: roomy.pileBackgrounds,
@@ -191,40 +225,46 @@ function roomyPilesBelow(board: ArrangedBoard): TableLayoutSpec {
 }
 
 /**
- * Returns the larger screen's grid with phone gaps: the row of piles along the
- * top and the columns under it.
+ * Returns an upright phone's grid: the row of piles in its lines along the top
+ * with the columns under them, or the columns along the top with the lines
+ * along the bottom edge, the outermost line on the edge.
  */
-function pilesAbove(
+function upright(
   board: ArrangedBoard,
-  columns: number,
   columnHeight: number,
+  position: PilePosition,
 ): TableLayoutSpec {
+  const lines = board.uprightLines ?? [board.row];
+  const columnSlots = board.uprightLines
+    ? columnRow(board).map((pileId, column) => ({ pileId, column, row: 0 }))
+    : columnSlotsAsRoomy(board, 0);
+  const width = board.uprightLines
+    ? Math.max(
+        columnSlots.length,
+        ...lines.flat().map((pile) => Math.ceil(pile.column + 1)),
+      )
+    : board.roomy.columns;
+  // Line k sits k lines out from the columns, counting from the edge it is
+  // anchored to.
+  const lineSlots = lines.flatMap((line, index) =>
+    line.map(({ pileId, column }): SlotPlacement => ({
+      pileId,
+      column,
+      row: lines.length - 1 - index,
+      ...(position === "bottom" ? { anchor: "bottom" } : {}),
+    })),
+  );
   return phoneGrid({
-    columns,
-    rows: 2,
-    slots: [
-      ...board.row.map(({ pileId, column }) => ({ pileId, column, row: 0 })),
-      ...columnSlots(board, 0, 1),
-    ],
-    innerHeight: CARD_HEIGHT_PX + PHONE_GAP.y + columnHeight,
-    pileLayouts: board.pileLayouts,
-  });
-}
-
-/**
- * Returns a grid with the columns along the top and the row of piles along the
- * bottom edge.
- */
-function pilesBelow(
-  board: ArrangedBoard,
-  columns: number,
-  columnHeight: number,
-): TableLayoutSpec {
-  return phoneGrid({
-    columns,
-    rows: 2,
-    slots: [...columnSlots(board, 0, 0), ...rowAlongBottom(board)],
-    innerHeight: columnHeight + PHONE_GAP.y + CARD_HEIGHT_PX,
+    columns: width,
+    rows: lines.length + 1,
+    slots:
+      position === "top"
+        ? [
+            ...lineSlots,
+            ...columnSlots.map((slot) => ({ ...slot, row: lines.length })),
+          ]
+        : [...columnSlots, ...lineSlots],
+    innerHeight: lines.length * (CARD_HEIGHT_PX + PHONE_GAP.y) + columnHeight,
     pileLayouts: board.pileLayouts,
   });
 }
@@ -251,7 +291,8 @@ function pilesBeside(
 ): TableLayoutSpec {
   const { left, right } = board.rails;
   const first = left.length > 0 ? 1 : 0;
-  const columns = board.columns.length + first + (right.length > 0 ? 1 : 0);
+  const between = columnRow(board);
+  const columns = between.length + first + (right.length > 0 ? 1 : 0);
   const innerHeight = Math.max(
     columnHeight,
     railHeight(left),
@@ -267,7 +308,15 @@ function pilesBeside(
   return phoneGrid({
     columns,
     rows: 1,
-    slots: [...leftSlots, ...columnSlots(board, first, 0), ...rightSlots],
+    slots: [
+      ...leftSlots,
+      ...between.map((pileId, index) => ({
+        pileId,
+        column: first + index,
+        row: 0,
+      })),
+      ...rightSlots,
+    ],
     innerHeight,
     pileLayouts: withOverrides(board.pileLayouts, downward, (own) =>
       own.kind === "spread" ? { ...own, direction: "down" } : own,
@@ -290,6 +339,32 @@ interface PhoneGridSpec {
   readonly pileBackgrounds?: Readonly<Record<string, PileBackgroundOverride>>;
 }
 
+/** Describes a phone grid laid out by hand, for {@link phoneLayout}. */
+export interface HandLaidPhoneGrid {
+  readonly columns: number;
+  readonly rows: number;
+  readonly slots: readonly SlotPlacement[];
+  /**
+   * The height the grid keeps on screen inside its padding, in design units;
+   * its rows' own height when omitted.
+   */
+  readonly innerHeight?: number;
+}
+
+/**
+ * Returns a phone grid for a board laid out by hand rather than built from an
+ * {@link ArrangedBoard}, as a board without columns to fan is, with the gaps,
+ * padding and fans every phone grid shares.
+ */
+export function phoneLayout(grid: HandLaidPhoneGrid): TableLayoutSpec {
+  return phoneGrid({
+    ...grid,
+    innerHeight:
+      grid.innerHeight ??
+      grid.rows * CARD_HEIGHT_PX + Math.max(0, grid.rows - 1) * PHONE_GAP.y,
+  });
+}
+
 /** Completes a phone grid with the gaps, padding and fans every one shares. */
 function phoneGrid(grid: PhoneGridSpec): TableLayoutSpec {
   return tableLayout({
@@ -305,26 +380,61 @@ function phoneGrid(grid: PhoneGridSpec): TableLayoutSpec {
   });
 }
 
-/** Places the columns side by side from `first`, in one grid row. */
-function columnSlots(
+/**
+ * Places the columns, and the piles beside them, in one grid row, each in the
+ * grid column the larger screen's grid gives it.
+ */
+function columnSlotsAsRoomy(
   board: ArrangedBoard,
-  first: number,
   row: number,
 ): SlotPlacement[] {
-  return board.columns.map((pileId, index) => ({
+  return columnRow(board).map((pileId) => ({
     pileId,
-    column: first + index,
+    column: roomyColumnOf(board, pileId),
     row,
   }));
 }
 
+/**
+ * Returns the columns and the piles beside them, left to right as the larger
+ * screen's grid has them.
+ */
+function columnRow(board: ArrangedBoard): string[] {
+  return [...board.columns, ...(board.beside ?? [])].sort(
+    (a, b) => roomyColumnOf(board, a) - roomyColumnOf(board, b),
+  );
+}
+
+/**
+ * Returns the grid column the larger screen's grid puts a pile in.
+ *
+ * @throws Error when that grid does not place the pile.
+ */
+function roomyColumnOf(board: ArrangedBoard, pileId: string): number {
+  const slot = board.roomy.slots.find((placed) => placed.pileId === pileId);
+  if (!slot) {
+    throw new Error(`The larger screen's grid does not place ${pileId}`);
+  }
+  return slot.column;
+}
+
 /** Returns how tall the longest column stands with every fan at its floor. */
 function longestColumnHeight(board: ArrangedBoard, fit: FanFit): number {
-  const { faceDown, faceUp } = board.longestColumn;
+  return fannedColumnHeight(board.longestColumn, fit);
+}
+
+/**
+ * Returns how tall a column of hidden and face-up cards stands with every fan
+ * at its floor, with room for a hovered card to open.
+ */
+export function fannedColumnHeight(
+  column: { readonly faceDown: number; readonly faceUp: number },
+  fit: FanFit,
+): number {
   return (
     CARD_HEIGHT_PX +
-    faceDown * fit.minFaceDownGap +
-    Math.max(0, faceUp - 1) * fit.minFaceUpGap +
+    column.faceDown * fit.minFaceDownGap +
+    Math.max(0, column.faceUp - 1) * fit.minFaceUpGap +
     TABLEAU_HOVER_EXPANSION_OFFSET
   );
 }
@@ -463,9 +573,26 @@ function checkRails(board: ArrangedBoard): void {
   }
 }
 
-/** Throws unless the stock is a pile in the row. */
-function checkStock(board: ArrangedBoard): void {
-  if (!board.row.some((pile) => pile.pileId === board.stock)) {
-    throw new Error(`The stock is not a pile in the row: ${board.stock}`);
+/** Throws unless every pile in the row is in exactly one upright line, if any. */
+function checkLines(board: ArrangedBoard): void {
+  if (!board.uprightLines) return;
+  const inLines = board.uprightLines.flat().map((pile) => pile.pileId);
+  const inRow = board.row.map((pile) => pile.pileId);
+  const misplaced = inRow.filter(
+    (pileId) => inLines.filter((lined) => lined === pileId).length !== 1,
+  );
+  const strays = inLines.filter((pileId) => !inRow.includes(pileId));
+  if (misplaced.length > 0 || strays.length > 0) {
+    throw new Error(
+      `Every pile in the row goes in exactly one upright line: ${[...misplaced, ...strays].join(", ")}`,
+    );
+  }
+}
+
+/** Throws unless the side pile, if there is one, is a pile in the row. */
+function checkSide(board: ArrangedBoard): void {
+  const { side } = board;
+  if (side !== undefined && !board.row.some((pile) => pile.pileId === side)) {
+    throw new Error(`The side pile is not a pile in the row: ${side}`);
   }
 }

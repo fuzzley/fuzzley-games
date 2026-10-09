@@ -155,7 +155,7 @@ describe("chooseTableLayout", () => {
     portrait: { top: grid(4, 0), bottom: grid(4, 0) },
     landscape: { top: grid(5, 4), bottom: grid(5, 4) },
     columns: ["col-0"],
-    stock: "stock",
+    side: "stock",
   };
   const LAYOUTS: BoardLayouts = {
     roomy: ARRANGED.roomy.top,
@@ -236,6 +236,17 @@ describe("chooseTableLayout", () => {
     expect(
       chooseTableLayout(layouts, "roomy", { piles: "top", stockSide: "right" }),
     ).toBe(middle);
+  });
+
+  it("never mirrors a board without a side pile", () => {
+    const layouts: BoardLayouts = {
+      ...LAYOUTS,
+      arranged: { ...ARRANGED, side: undefined },
+    };
+
+    expect(
+      chooseTableLayout(layouts, "roomy", { piles: "top", stockSide: "right" }),
+    ).toBe(ARRANGED.roomy.top);
   });
 
   it("lays a game without arranged grids out on its roomy grid everywhere", () => {

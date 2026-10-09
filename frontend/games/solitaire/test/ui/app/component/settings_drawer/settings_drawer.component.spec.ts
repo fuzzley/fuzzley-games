@@ -227,11 +227,49 @@ describe("SettingsDrawerComponent", () => {
       );
     });
 
-    it("describes a place the player picked by itself", () => {
+    it("describes a place the player picked in the game's words", () => {
       harness.presentation.piles.set("top");
       openDrawer();
 
-      expect(description("piles")).toMatch(/^The stock and foundations above/);
+      expect(description("piles")).toBe(
+        "The stock and foundations along the top, or at the top of a sideways phone's rails.",
+      );
+    });
+
+    it("describes a side the player picked in the game's words", () => {
+      harness.presentation.stockSide.set("left");
+      openDrawer();
+
+      expect(description("stock-side")).toBe(
+        "The stock at the left of the table.",
+      );
+    });
+
+    it("names the side setting after the game's side pile", () => {
+      openDrawer();
+
+      expect(
+        queryText(fixture, "app-option-group.stock-side .setting-label"),
+      ).toBe("Stock Side");
+    });
+
+    it("offers only the piles in a game without a side pile", () => {
+      harness.catalog.select("yukon");
+      openDrawer();
+
+      expect(
+        ["piles", "stock-side"].map(
+          (group) => query(fixture, `app-option-group.${group}`) !== null,
+        ),
+      ).toEqual([true, false]);
+    });
+
+    it("names the piles of a game without a side pile in its words", () => {
+      harness.presentation.piles.set("bottom");
+      harness.catalog.select("yukon");
+      openDrawer();
+
+      expect(description("piles")).toMatch(/^The foundations along the bottom/);
     });
 
     it.each(["phone-portrait", "phone-landscape"] as const)(

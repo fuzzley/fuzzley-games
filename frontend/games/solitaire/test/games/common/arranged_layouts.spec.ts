@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
+import { mirrorTable } from "@/engine/render/layout/board_layouts";
 import { CARD_HEIGHT_PX } from "@/engine/render/layout/card_metrics";
 import { PileLayout } from "@/engine/render/layout/pile_layout";
 import {
   TableLayoutSpec,
+  designSize,
   tableLayout,
 } from "@/engine/render/layout/table_layout";
 import {
@@ -48,7 +50,7 @@ const BOARD: ArrangedBoard = {
   roomy: ROOMY,
   columns: COLUMNS,
   row: ROW,
-  stock: "stock",
+  side: "stock",
   rails: {
     left: [
       { pileId: "found-0", overlapped: true },
@@ -144,8 +146,8 @@ describe("arrangedLayouts", () => {
     expect(layouts.columns).toEqual(COLUMNS);
   });
 
-  it("names the stock, whose side decides the mirror", () => {
-    expect(layouts.stock).toBe("stock");
+  it("names the side pile, whose side decides the mirror", () => {
+    expect(layouts.side).toBe("stock");
   });
 
   describe("a larger screen, piles above", () => {
@@ -179,6 +181,32 @@ describe("arrangedLayouts", () => {
       expect(grid.designHeightPx! - 2 * grid.padding.y).toBe(
         longest + grid.gap.y + CARD_HEIGHT_PX,
       );
+    });
+
+    it("grows no taller than the board's cap", () => {
+      const capped = arrangedLayouts({
+        ...BOARD,
+        roomyBottomMaxHeightPx: designSize(ROOMY).height + 10,
+      });
+
+      expect(capped.roomy.bottom.designHeightPx).toBe(
+        designSize(ROOMY).height + 10,
+      );
+    });
+
+    it("grows only as far as the longest column needs under a higher cap", () => {
+      const capped = arrangedLayouts({
+        ...BOARD,
+        roomyBottomMaxHeightPx: 5000,
+      });
+
+      expect(capped.roomy.bottom.designHeightPx).toBe(grid.designHeightPx);
+    });
+
+    it("keeps the larger screen's height under a cap below it", () => {
+      const capped = arrangedLayouts({ ...BOARD, roomyBottomMaxHeightPx: 100 });
+
+      expect(capped.roomy.bottom.designHeightPx).toBe(designSize(ROOMY).height);
     });
 
     it("lays the columns out along the top", () => {
@@ -349,7 +377,7 @@ describe("arrangedLayouts", () => {
         roomy: ROOMY,
         columns: COLUMNS,
         row: ids.map((pileId, column) => ({ pileId, column })),
-        stock: "found-0",
+        side: "found-0",
         rails: {
           left: ids.map((pileId) => ({ pileId, overlapped: true })),
           right: [],
@@ -459,6 +487,256 @@ describe("arrangedLayouts", () => {
     expect(own.roomy.bottom.pileLayouts).toBeUndefined();
   });
 
+  describe("columns that start further in", () => {
+    // Seven grid columns: the stock and waste at the left, the foundations at
+    // the right, and the five columns centred under them.
+    const offset = arrangedLayouts({
+      ...BOARD,
+      roomy: tableLayout({
+        columns: 7,
+        rows: 2,
+        slots: [
+          { pileId: "stock", column: 0, row: 0 },
+          { pileId: "waste", column: 1, row: 0 },
+          { pileId: "found-0", column: 5, row: 0 },
+          { pileId: "found-1", column: 6, row: 0 },
+          ...COLUMNS.map((pileId, index) => ({
+            pileId,
+            column: index + 1,
+            row: 1,
+          })),
+        ],
+      }),
+      row: [
+        { pileId: "stock", column: 0 },
+        { pileId: "waste", column: 1 },
+        { pileId: "found-0", column: 5 },
+        { pileId: "found-1", column: 6 },
+      ],
+    });
+
+    it.each([
+      ["larger screen's piles below", offset.roomy.bottom],
+      ["piles above", offset.portrait.top],
+      ["piles below", offset.portrait.bottom],
+    ])("keeps them where the larger screen has them, %s", (_name, grid) => {
+      expect(COLUMNS.map((pileId) => slotOf(grid, pileId)?.column)).toEqual([
+        1, 2, 3, 4, 5,
+      ]);
+    });
+
+    it("keeps the larger screen's width upright", () => {
+      expect(offset.portrait.top.columns).toBe(7);
+    });
+
+    it("puts them side by side between the rails on its side", () => {
+      expect(
+        COLUMNS.map((pileId) => slotOf(offset.landscape.top, pileId)?.column),
+      ).toEqual([1, 2, 3, 4, 5]);
+    });
+  });
+
+  describe("a pile beside the columns", () => {
+    // A reserve at the left of the columns' row, under the stock.
+    const beside = arrangedLayouts({
+      ...BOARD,
+      roomy: tableLayout({
+        columns: 6,
+        rows: 2,
+        slots: [
+          { pileId: "stock", column: 0, row: 0 },
+          { pileId: "waste", column: 1, row: 0 },
+          { pileId: "found-0", column: 4, row: 0 },
+          { pileId: "found-1", column: 5, row: 0 },
+          { pileId: "reserve", column: 0, row: 1 },
+          ...COLUMNS.slice(0, 4).map((pileId, index) => ({
+            pileId,
+            column: index + 2,
+            row: 1,
+          })),
+        ],
+      }),
+      columns: COLUMNS.slice(0, 4),
+      beside: ["reserve"],
+      row: [
+        { pileId: "stock", column: 0 },
+        { pileId: "waste", column: 1 },
+        { pileId: "found-0", column: 4 },
+        { pileId: "found-1", column: 5 },
+      ],
+    });
+
+    it("lies in the columns' row where the larger screen has it, upright", () => {
+      expect(slotOf(beside.portrait.bottom, "reserve")).toEqual({
+        pileId: "reserve",
+        column: 0,
+        row: 0,
+      });
+    });
+
+    it("stands beside the columns in the larger screen's order on its side", () => {
+      expect(
+        ["reserve", "col-0", "col-3"].map(
+          (pileId) => slotOf(beside.landscape.top, pileId)?.column,
+        ),
+      ).toEqual([1, 2, 5]);
+    });
+
+    it("is not one of the columns a mirror keeps in order", () => {
+      expect(beside.columns).toEqual(COLUMNS.slice(0, 4));
+    });
+
+    it("follows the stock to the other side in a mirror", () => {
+      const mirrored = mirrorTable(beside.portrait.top, beside.columns);
+
+      expect(
+        ["stock", "reserve", "col-0"].map(
+          (pileId) => slotOf(mirrored, pileId)?.column,
+        ),
+      ).toEqual([5, 5, 0]);
+    });
+  });
+
+  describe("two lines upright", () => {
+    const CELLS = ["cell-0", "cell-1", "cell-2", "cell-3"];
+    const FOUNDATIONS = ["found-0", "found-1", "found-2"];
+    // Four cells and three foundations over five columns, which an upright
+    // phone gives two lines: the foundations next to the columns, and the
+    // cells beyond them, on the edge.
+    const ROW_OF_SEVEN = [...CELLS, ...FOUNDATIONS].map((pileId, column) => ({
+      pileId,
+      column,
+    }));
+    const BOARD_OF_SEVEN: ArrangedBoard = {
+      roomy: tableLayout({
+        columns: 7,
+        rows: 2,
+        slots: [
+          ...ROW_OF_SEVEN.map(({ pileId, column }) => ({
+            pileId,
+            column,
+            row: 0,
+          })),
+          ...COLUMNS.map((pileId, index) => ({
+            pileId,
+            column: index + 1,
+            row: 1,
+          })),
+        ],
+      }),
+      columns: COLUMNS,
+      row: ROW_OF_SEVEN,
+      side: "cell-0",
+      uprightLines: [
+        FOUNDATIONS.map((pileId, index) => ({ pileId, column: index + 1 })),
+        CELLS.map((pileId, column) => ({ pileId, column })),
+      ],
+      rails: {
+        left: CELLS.map((pileId) => ({ pileId, overlapped: true })),
+        right: FOUNDATIONS.map((pileId) => ({ pileId, overlapped: true })),
+      },
+      longestColumn: { faceDown: 3, faceUp: 8 },
+    };
+    const lined = arrangedLayouts(BOARD_OF_SEVEN);
+
+    /** Returns where a grid puts a pile: its column, row and edge. */
+    function placeOf(grid: TableLayoutSpec, pileId: string) {
+      const slot = slotOf(grid, pileId)!;
+      return [slot.column, slot.row, slot.anchor ?? "top"];
+    }
+
+    it.each([
+      ["piles above", lined.portrait.top],
+      ["piles below", lined.portrait.bottom],
+    ])("is only as wide as the columns, %s", (_name, grid) => {
+      expect(grid.columns).toBe(5);
+    });
+
+    it.each([
+      ["piles above", lined.portrait.top],
+      ["piles below", lined.portrait.bottom],
+    ])(
+      "puts the columns side by side from the left edge, %s",
+      (_name, grid) => {
+        expect(COLUMNS.map((pileId) => slotOf(grid, pileId)?.column)).toEqual([
+          0, 1, 2, 3, 4,
+        ]);
+      },
+    );
+
+    it("puts the outer line on the top edge above the inner one, piles above", () => {
+      expect(
+        ["cell-0", "found-0", "col-0"].map((pileId) =>
+          placeOf(lined.portrait.top, pileId),
+        ),
+      ).toEqual([
+        [0, 0, "top"],
+        [1, 1, "top"],
+        [0, 2, "top"],
+      ]);
+    });
+
+    it("puts the outer line on the bottom edge below the inner one, piles below", () => {
+      expect(
+        ["col-0", "found-0", "cell-0"].map((pileId) =>
+          placeOf(lined.portrait.bottom, pileId),
+        ),
+      ).toEqual([
+        [0, 0, "top"],
+        [1, 1, "bottom"],
+        [0, 0, "bottom"],
+      ]);
+    });
+
+    it("keeps the longest column on screen beside both lines", () => {
+      const grid = lined.portrait.bottom;
+
+      expect(grid.designHeightPx! - 2 * grid.padding.y).toBeGreaterThanOrEqual(
+        LONGEST + 2 * (CARD_HEIGHT_PX + 10),
+      );
+    });
+
+    it("leaves the larger screen's row in one line", () => {
+      expect(
+        ["cell-0", "found-0"].map((pileId) =>
+          placeOf(lined.roomy.bottom, pileId),
+        ),
+      ).toEqual([
+        [0, 0, "bottom"],
+        [4, 0, "bottom"],
+      ]);
+    });
+
+    it("refuses a pile in the row that is in no line", () => {
+      expect(() =>
+        arrangedLayouts({
+          ...BOARD_OF_SEVEN,
+          uprightLines: [BOARD_OF_SEVEN.uprightLines![1]],
+        }),
+      ).toThrow(/found-0/);
+    });
+
+    it("refuses a pile that is in both lines", () => {
+      const [foundations, cells] = BOARD_OF_SEVEN.uprightLines!;
+
+      expect(() =>
+        arrangedLayouts({
+          ...BOARD_OF_SEVEN,
+          uprightLines: [
+            [...foundations, { pileId: "cell-0", column: 4 }],
+            cells,
+          ],
+        }),
+      ).toThrow(/cell-0/);
+    });
+  });
+
+  it("refuses a column the larger screen's grid does not place", () => {
+    expect(() =>
+      arrangedLayouts({ ...BOARD, columns: [...COLUMNS, "col-9"] }),
+    ).toThrow(/col-9/);
+  });
+
   it("refuses a pile in the row that is on no rail", () => {
     expect(() =>
       arrangedLayouts({
@@ -480,9 +758,13 @@ describe("arrangedLayouts", () => {
     ).toThrow(/found-0/);
   });
 
-  it("refuses a stock that is not in the row", () => {
-    expect(() => arrangedLayouts({ ...BOARD, stock: "col-0" })).toThrow(
-      /col-0/,
-    );
+  it("refuses a side pile that is not in the row", () => {
+    expect(() => arrangedLayouts({ ...BOARD, side: "col-0" })).toThrow(/col-0/);
+  });
+
+  it("leaves a board without a side pile without one", () => {
+    const layouts = arrangedLayouts({ ...BOARD, side: undefined });
+
+    expect(layouts.side).toBeUndefined();
   });
 });

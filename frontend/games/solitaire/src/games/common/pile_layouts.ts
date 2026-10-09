@@ -1,3 +1,4 @@
+import { CARD_HEIGHT_PX } from "@/engine/render/layout/card_metrics";
 import { FanFit, PileLayout } from "@/engine/render/layout/pile_layout";
 
 /** Defines the arrangements solitaire piles use and the gaps between cards. */
@@ -68,6 +69,29 @@ export function wasteFanLayout(drawCount: number): PileLayout {
     gap: WASTE_FAN_OFFSET_X,
     maxVisible: drawCount === 1 ? 1 : WASTE_MAX_FAN_CARDS,
   };
+}
+
+/** The gap between a stock's slivers on a phone, in design units. */
+export const STOCK_SLIVER_GAP = 40;
+
+/**
+ * Returns how a stock that deals a card to each of `columns` columns at a time
+ * shows on a phone: one sliver for each deal still to come, up to `deals`, so
+ * a player can see how many are left.
+ */
+export function sliverStockLayout(deals: number, columns: number): PileLayout {
+  return {
+    kind: "spread",
+    direction: "right",
+    gap: STOCK_SLIVER_GAP,
+    maxVisible: deals,
+    groupSize: columns,
+  };
+}
+
+/** Returns how far a sliver stock's cards reach down a rail, in design units. */
+export function sliverStockReach(deals: number): number {
+  return CARD_HEIGHT_PX + (deals - 1) * STOCK_SLIVER_GAP;
 }
 
 /** How a column arranges its cards when some of them are dealt face down. */

@@ -8,7 +8,10 @@ export type PilePosition =
   /** Along the bottom edge, under the player's thumb. */
   | "bottom";
 
-/** Says which side of the board the stock sits on. */
+/**
+ * Says which side of the board the stock sits on, or in a game without one
+ * the pile that stands in for it, such as the free cells.
+ */
 export type StockSide = "left" | "right";
 
 /**
@@ -90,10 +93,11 @@ export interface ArrangedLayouts {
    */
   readonly columns: readonly string[];
   /**
-   * The pile the stock side places. A grid that has it in the other half from
-   * the side chosen is mirrored.
+   * The pile the side setting places: the stock, or whatever pile the player
+   * plays from most in a game without one. A grid that has it in the other
+   * half from the side chosen is mirrored; a board without one never is.
    */
-  readonly stock: string;
+  readonly side?: string;
 }
 
 /** Holds every grid a game's board may lie on. */
@@ -164,7 +168,7 @@ export function mirrorTable(
 /**
  * Returns the grid a board lies on for a shape of screen and the player's
  * arrangement: the one with the piles where they were asked for, mirrored
- * when that leaves the stock on the other side, with the columns kept in
+ * when that leaves the side pile on the other side, with the columns kept in
  * order.
  */
 export function chooseTableLayout(
@@ -177,7 +181,7 @@ export function chooseTableLayout(
 
   const { piles, stockSide } = resolveArrangement(arrangement, formFactor);
   const grid = gridsFor(arranged, formFactor)[piles];
-  const side = sideOf(grid, arranged.stock);
+  const side = arranged.side === undefined ? null : sideOf(grid, arranged.side);
   return side === null || side === stockSide
     ? grid
     : mirrorTable(grid, arranged.columns);

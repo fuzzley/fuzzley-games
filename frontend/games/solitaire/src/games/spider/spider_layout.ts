@@ -1,6 +1,5 @@
-import { CARD_HEIGHT_PX } from "@/engine/render/layout/card_metrics";
-import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { boardLayout } from "../common/board_layout";
+import { sliverStockLayout, sliverStockReach } from "../common/pile_layouts";
 import {
   arrangedLayouts,
   pileIdsInRow,
@@ -18,21 +17,6 @@ const FOUNDATIONS = pileIdsInRow(ZONES, 0).filter(
 
 /** How many deals the stock holds: fifty cards, one to each column a deal. */
 const STOCK_DEALS = 5;
-
-/** The gap between the stock's slivers on a phone, in design units. */
-const STOCK_SLIVER_GAP = 40;
-
-/**
- * How the stock arranges its cards on a phone: one sliver for each deal still
- * to come, so a player can see how many are left.
- */
-const SLIVER_STOCK: PileLayout = {
-  kind: "spread",
-  direction: "right",
-  gap: STOCK_SLIVER_GAP,
-  maxVisible: STOCK_DEALS,
-  groupSize: TABLEAU_COUNT,
-};
 
 /**
  * The Spider board: ten columns wide, with the stock alone at the left of the
@@ -57,14 +41,14 @@ export const SPIDER_ARRANGED_LAYOUTS = arrangedLayouts({
   roomy: SPIDER_LAYOUT,
   columns: pileIdsInRow(ZONES, 1),
   row: pilesInRow(ZONES, 0),
-  stock: STOCK_PILE_ID,
+  side: STOCK_PILE_ID,
   rails: {
     left: [],
     right: [
       {
         pileId: STOCK_PILE_ID,
         spreadsDown: true,
-        reach: CARD_HEIGHT_PX + (STOCK_DEALS - 1) * STOCK_SLIVER_GAP,
+        reach: sliverStockReach(STOCK_DEALS),
       },
       ...FOUNDATIONS.map((pileId) => ({ pileId, overlapped: true })),
     ],
@@ -72,5 +56,7 @@ export const SPIDER_ARRANGED_LAYOUTS = arrangedLayouts({
   // Five hidden cards under fifteen face up, most of the way to a king's run
   // and the deals stacked on it.
   longestColumn: { faceDown: 5, faceUp: 15 },
-  pileLayouts: { [STOCK_PILE_ID]: () => SLIVER_STOCK },
+  pileLayouts: {
+    [STOCK_PILE_ID]: () => sliverStockLayout(STOCK_DEALS, TABLEAU_COUNT),
+  },
 });

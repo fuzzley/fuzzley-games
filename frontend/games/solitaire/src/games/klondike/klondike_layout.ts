@@ -50,7 +50,7 @@ export const KLONDIKE_ARRANGED_LAYOUTS = arrangedLayouts({
   roomy: KLONDIKE_LAYOUT,
   columns: pileIdsInRow(ZONES, 1),
   row: pilesInRow(ZONES, 0),
-  stock: STOCK_PILE_ID,
+  side: STOCK_PILE_ID,
   rails: {
     left: FOUNDATIONS.map((pileId) => ({ pileId, overlapped: true })),
     right: [
@@ -65,4 +65,7 @@ export const KLONDIKE_ARRANGED_LAYOUTS = arrangedLayouts({
   },
   // Six hidden cards under a run from king to two.
   longestColumn: { faceDown: TABLEAU_COUNT - 1, faceUp: 12 },
+  // Cards 85% the size of the grid above's on a 1920 × 1080 window; six
+  // hidden cards under eleven face up still clear the row.
+  roomyBottomMaxHeightPx: 1184,
 });
