@@ -21,7 +21,10 @@ import {
 } from "@/games/klondike/scoring_policy";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { FreeCellVariant } from "@/games/freecell/freecell_rules";
-import { FREECELL_LAYOUT } from "@/games/freecell/freecell_layout";
+import {
+  FREECELL_ARRANGED_LAYOUTS,
+  FREECELL_LAYOUT,
+} from "@/games/freecell/freecell_layout";
 import { SpiderGame } from "@/games/spider/spider_game";
 import { SpiderSuitCount, spiderDeck } from "@/games/spider/spider_deal";
 import {
@@ -30,28 +33,49 @@ import {
 } from "@/games/spider/spider_layout";
 import { YukonGame } from "@/games/yukon/yukon_game";
 import { YukonVariant } from "@/games/yukon/yukon_rules";
-import { YUKON_LAYOUT } from "@/games/yukon/yukon_layout";
+import {
+  YUKON_ARRANGED_LAYOUTS,
+  YUKON_LAYOUT,
+} from "@/games/yukon/yukon_layout";
 import { EightOffGame } from "@/games/eight_off/eight_off_game";
-import { EIGHT_OFF_LAYOUT } from "@/games/eight_off/eight_off_layout";
+import {
+  EIGHT_OFF_ARRANGED_LAYOUTS,
+  EIGHT_OFF_LAYOUT,
+} from "@/games/eight_off/eight_off_layout";
 import { ScorpionGame } from "@/games/scorpion/scorpion_game";
 import { ScorpionVariant } from "@/games/scorpion/scorpion_rules";
-import { SCORPION_LAYOUT } from "@/games/scorpion/scorpion_layout";
+import {
+  SCORPION_ARRANGED_LAYOUTS,
+  SCORPION_LAYOUT,
+} from "@/games/scorpion/scorpion_layout";
 import { SimpleSimonGame } from "@/games/simple_simon/simple_simon_game";
 import { SimpleSimonVariant } from "@/games/simple_simon/simple_simon_rules";
 import {
+  MRS_MOP_ARRANGED_LAYOUTS,
   MRS_MOP_LAYOUT,
+  SIMPLE_SIMON_ARRANGED_LAYOUTS,
   SIMPLE_SIMON_LAYOUT,
 } from "@/games/simple_simon/simple_simon_layout";
 import { BakersDozenGame } from "@/games/bakers_dozen/bakers_dozen_game";
-import { BAKERS_DOZEN_LAYOUT } from "@/games/bakers_dozen/bakers_dozen_layout";
+import {
+  BAKERS_DOZEN_ARRANGED_LAYOUTS,
+  BAKERS_DOZEN_LAYOUT,
+} from "@/games/bakers_dozen/bakers_dozen_layout";
 import { SeahavenGame } from "@/games/seahaven/seahaven_game";
-import { SEAHAVEN_LAYOUT } from "@/games/seahaven/seahaven_layout";
+import {
+  SEAHAVEN_ARRANGED_LAYOUTS,
+  SEAHAVEN_LAYOUT,
+} from "@/games/seahaven/seahaven_layout";
 import { FortyThievesGame } from "@/games/forty_thieves/forty_thieves_game";
 import { FortyThievesVariant } from "@/games/forty_thieves/forty_thieves_rules";
 import {
+  FORTY_THIEVES_ARRANGED_LAYOUTS,
   FORTY_THIEVES_LAYOUT,
+  LIMITED_ARRANGED_LAYOUTS,
   LIMITED_LAYOUT,
+  LUCAS_ARRANGED_LAYOUTS,
   LUCAS_LAYOUT,
+  MARIA_ARRANGED_LAYOUTS,
   MARIA_LAYOUT,
 } from "@/games/forty_thieves/forty_thieves_layout";
 import { MontanaGame } from "@/games/montana/montana_game";
@@ -65,41 +89,68 @@ import {
   MontanaVariant,
 } from "@/games/montana/montana_rules";
 import { DoubleKlondikeGame } from "@/games/double_klondike/double_klondike_game";
-import { DOUBLE_KLONDIKE_LAYOUT } from "@/games/double_klondike/double_klondike_layout";
+import {
+  DOUBLE_KLONDIKE_ARRANGED_LAYOUTS,
+  DOUBLE_KLONDIKE_LAYOUT,
+} from "@/games/double_klondike/double_klondike_layout";
 import { EasthavenGame } from "@/games/easthaven/easthaven_game";
-import { EASTHAVEN_LAYOUT } from "@/games/easthaven/easthaven_layout";
+import {
+  EASTHAVEN_ARRANGED_LAYOUTS,
+  EASTHAVEN_LAYOUT,
+} from "@/games/easthaven/easthaven_layout";
 import { SpideretteGame } from "@/games/spiderette/spiderette_game";
 import { SpideretteVariant } from "@/games/spiderette/spiderette_rules";
-import { SPIDERETTE_LAYOUT } from "@/games/spiderette/spiderette_layout";
+import {
+  SPIDERETTE_ARRANGED_LAYOUTS,
+  SPIDERETTE_LAYOUT,
+} from "@/games/spiderette/spiderette_layout";
 import { BisleyGame } from "@/games/bisley/bisley_game";
 import { BISLEY_LAYOUT } from "@/games/bisley/bisley_layout";
 import { AcesUpGame } from "@/games/aces_up/aces_up_game";
-import { ACES_UP_LAYOUT } from "@/games/aces_up/aces_up_layout";
+import {
+  ACES_UP_ARRANGED_LAYOUTS,
+  ACES_UP_LAYOUT,
+} from "@/games/aces_up/aces_up_layout";
 import {
   AcesUpSpaces,
   DEFAULT_ACES_UP_SPACES,
 } from "@/games/aces_up/aces_up_rules";
 import { GolfGame } from "@/games/golf/golf_game";
-import { GOLF_LAYOUT } from "@/games/golf/golf_layout";
+import { GOLF_ARRANGED_LAYOUTS, GOLF_LAYOUT } from "@/games/golf/golf_layout";
 import { DEFAULT_GOLF_VARIANT, GolfVariant } from "@/games/golf/golf_rules";
 import { CalculationGame } from "@/games/calculation/calculation_game";
-import { CALCULATION_LAYOUT } from "@/games/calculation/calculation_layout";
+import {
+  CALCULATION_ARRANGED_LAYOUTS,
+  CALCULATION_LAYOUT,
+} from "@/games/calculation/calculation_layout";
 import {
   CalculationVariant,
   DEFAULT_CALCULATION_VARIANT,
 } from "@/games/calculation/calculation_rules";
 import { FlowerGardenGame } from "@/games/flower_garden/flower_garden_game";
-import { FLOWER_GARDEN_LAYOUT } from "@/games/flower_garden/flower_garden_layout";
+import {
+  FLOWER_GARDEN_ARRANGED_LAYOUTS,
+  FLOWER_GARDEN_LAYOUT,
+} from "@/games/flower_garden/flower_garden_layout";
 import { BristolGame } from "@/games/bristol/bristol_game";
-import { BRISTOL_LAYOUT } from "@/games/bristol/bristol_layout";
+import {
+  BRISTOL_ARRANGED_LAYOUTS,
+  BRISTOL_LAYOUT,
+} from "@/games/bristol/bristol_layout";
 import {
   BristolVariant,
   DEFAULT_BRISTOL_VARIANT,
 } from "@/games/bristol/bristol_rules";
 import { NestorGame } from "@/games/nestor/nestor_game";
-import { NESTOR_LAYOUT } from "@/games/nestor/nestor_layout";
+import {
+  NESTOR_ARRANGED_LAYOUTS,
+  NESTOR_LAYOUT,
+} from "@/games/nestor/nestor_layout";
 import { MonteCarloGame } from "@/games/monte_carlo/monte_carlo_game";
-import { MONTE_CARLO_LAYOUT } from "@/games/monte_carlo/monte_carlo_layout";
+import {
+  MONTE_CARLO_ARRANGED_LAYOUTS,
+  MONTE_CARLO_LAYOUT,
+} from "@/games/monte_carlo/monte_carlo_layout";
 import {
   DEFAULT_MONTE_CARLO_VARIANT,
   MonteCarloVariant,
@@ -114,13 +165,19 @@ import {
   LaBelleLucieVariant,
 } from "@/games/la_belle_lucie/la_belle_lucie_rules";
 import { CanfieldGame } from "@/games/canfield/canfield_game";
-import { CANFIELD_LAYOUT } from "@/games/canfield/canfield_layout";
+import {
+  CANFIELD_ARRANGED_LAYOUTS,
+  CANFIELD_LAYOUT,
+} from "@/games/canfield/canfield_layout";
 import {
   CanfieldVariant,
   DEFAULT_CANFIELD_VARIANT,
 } from "@/games/canfield/canfield_rules";
 import { PenguinGame } from "@/games/penguin/penguin_game";
-import { PENGUIN_LAYOUT } from "@/games/penguin/penguin_layout";
+import {
+  PENGUIN_ARRANGED_LAYOUTS,
+  PENGUIN_LAYOUT,
+} from "@/games/penguin/penguin_layout";
 import { BlackHoleGame } from "@/games/black_hole/black_hole_game";
 import {
   ALL_IN_A_ROW_LAYOUT,
@@ -130,7 +187,10 @@ import { BlackHoleVariant } from "@/games/black_hole/black_hole_rules";
 import { GrandfathersClockGame } from "@/games/grandfathers_clock/grandfathers_clock_game";
 import { GRANDFATHERS_CLOCK_LAYOUT } from "@/games/grandfathers_clock/grandfathers_clock_layout";
 import { PyramidGame } from "@/games/pyramid/pyramid_game";
-import { PYRAMID_LAYOUT } from "@/games/pyramid/pyramid_layout";
+import {
+  PYRAMID_ARRANGED_LAYOUTS,
+  PYRAMID_LAYOUT,
+} from "@/games/pyramid/pyramid_layout";
 import {
   DEFAULT_PYRAMID_GOAL,
   DEFAULT_PYRAMID_PASSES,
@@ -149,7 +209,10 @@ import {
   DEFAULT_CASTLE_VARIANT,
 } from "@/games/beleaguered_castle/castle_rules";
 import { PokerSquaresGame } from "@/games/poker_squares/poker_squares_game";
-import { POKER_SQUARES_LAYOUT } from "@/games/poker_squares/poker_squares_layout";
+import {
+  POKER_SQUARES_ARRANGED_LAYOUTS,
+  POKER_SQUARES_LAYOUT,
+} from "@/games/poker_squares/poker_squares_layout";
 import {
   DEFAULT_POKER_SQUARES_SCORING,
   PokerSquaresScoring,
@@ -221,13 +284,31 @@ export interface CatalogEntry<TGame extends PlayableGame = PlayableGame> {
   /** The grid this game's board lies on, renderer-agnostic. */
   readonly layout: TableLayoutSpec;
   /**
-   * The grids this game's board lies on in every arrangement a player may
-   * choose, on every shape of screen; a game without them lies on
-   * {@link layout} everywhere.
+   * How a player may arrange this game's board, on every shape of screen; a
+   * game without it lies on {@link layout} everywhere.
    */
-  readonly arrangedLayouts?: ArrangedLayouts;
+  readonly arrangement?: CatalogArrangement;
   /** Creates a dealt game playing by the given options. */
   create(values: GameOptionValues): CatalogSession<TGame>;
+}
+
+/**
+ * Describes the grids a game's board lies on in every arrangement, and what the
+ * settings drawer calls the piles the arrangement moves.
+ */
+export interface CatalogArrangement {
+  /** The grids, on every shape of screen. */
+  readonly layouts: ArrangedLayouts;
+  /**
+   * The piles that go at the top or the bottom, as a player calls them after
+   * "the", such as "stock and foundations".
+   */
+  readonly pilesName: string;
+  /**
+   * The pile the side setting places, as a player calls it after "the", such
+   * as "stock" or "free cells"; given exactly when the grids name a side pile.
+   */
+  readonly sideName?: string;
 }
 
 /** Holds a dealt game. */
@@ -847,6 +928,13 @@ const POKER_SQUARES_SCORING = gameOption<PokerSquaresScoring>({
   defaultRule: DEFAULT_POKER_SQUARES_SCORING,
 });
 
+/** How FreeCell, Baker's Game and Challenge FreeCell may be arranged. */
+const FREECELL_ARRANGEMENT: CatalogArrangement = {
+  layouts: FREECELL_ARRANGED_LAYOUTS,
+  pilesName: "free cells and foundations",
+  sideName: "free cells",
+};
+
 /*
  * The entries, each declared with `satisfies` so it keeps the literal id and
  * game type the board registry is checked against.
@@ -862,7 +950,11 @@ const KLONDIKE = {
     KLONDIKE_ALMOST_WIN,
   ],
   layout: KLONDIKE_LAYOUT,
-  arrangedLayouts: KLONDIKE_ARRANGED_LAYOUTS,
+  arrangement: {
+    layouts: KLONDIKE_ARRANGED_LAYOUTS,
+    pilesName: "stock and foundations",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(
       new KlondikeGame({
@@ -879,6 +971,7 @@ const FREECELL = {
   name: "FreeCell",
   options: [],
   layout: FREECELL_LAYOUT,
+  arrangement: FREECELL_ARRANGEMENT,
   create: () => dealt(new FreeCellGame()),
 } satisfies CatalogEntry<FreeCellGame>;
 
@@ -887,7 +980,11 @@ const SPIDER = {
   name: "Spider",
   options: [SPIDER_SUIT_COUNT],
   layout: SPIDER_LAYOUT,
-  arrangedLayouts: SPIDER_ARRANGED_LAYOUTS,
+  arrangement: {
+    layouts: SPIDER_ARRANGED_LAYOUTS,
+    pilesName: "stock and foundations",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(
       new SpiderGame({
@@ -901,6 +998,7 @@ const YUKON = {
   name: "Yukon",
   options: [YUKON_VARIANT],
   layout: YUKON_LAYOUT,
+  arrangement: { layouts: YUKON_ARRANGED_LAYOUTS, pilesName: "foundations" },
   create: (values: GameOptionValues) =>
     dealt(new YukonGame({ variant: optionRule(values, YUKON_VARIANT) })),
 } satisfies CatalogEntry<YukonGame>;
@@ -910,6 +1008,7 @@ const BAKERS = {
   name: "Baker's Game",
   options: [BAKERS_EMPTY_COLUMNS],
   layout: FREECELL_LAYOUT,
+  arrangement: FREECELL_ARRANGEMENT,
   // FreeCell's class, playing by Baker's Game's column rules.
   create: (values: GameOptionValues) =>
     dealt(
@@ -932,6 +1031,7 @@ const CHALLENGE_FREECELL = {
   name: "Challenge FreeCell",
   options: [CHALLENGE_EMPTY_COLUMNS],
   layout: FREECELL_LAYOUT,
+  arrangement: FREECELL_ARRANGEMENT,
   create: (values: GameOptionValues) =>
     dealt(
       new FreeCellGame({
@@ -948,6 +1048,11 @@ const EIGHT_OFF = {
   name: "Eight Off",
   options: [],
   layout: EIGHT_OFF_LAYOUT,
+  arrangement: {
+    layouts: EIGHT_OFF_ARRANGED_LAYOUTS,
+    pilesName: "cells and foundations",
+    sideName: "cells",
+  },
   create: () => dealt(new EightOffGame()),
 } satisfies CatalogEntry<EightOffGame>;
 
@@ -956,6 +1061,11 @@ const SCORPION = {
   name: "Scorpion",
   options: [SCORPION_VARIANT],
   layout: SCORPION_LAYOUT,
+  arrangement: {
+    layouts: SCORPION_ARRANGED_LAYOUTS,
+    pilesName: "stock and foundations",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(new ScorpionGame({ variant: optionRule(values, SCORPION_VARIANT) })),
 } satisfies CatalogEntry<ScorpionGame>;
@@ -965,6 +1075,10 @@ const SIMPLE_SIMON = {
   name: "Simple Simon",
   options: [],
   layout: SIMPLE_SIMON_LAYOUT,
+  arrangement: {
+    layouts: SIMPLE_SIMON_ARRANGED_LAYOUTS,
+    pilesName: "foundations",
+  },
   create: () => dealt(new SimpleSimonGame()),
 } satisfies CatalogEntry<SimpleSimonGame>;
 
@@ -977,6 +1091,7 @@ const MRS_MOP = {
   name: "Mrs. Mop",
   options: [],
   layout: MRS_MOP_LAYOUT,
+  arrangement: { layouts: MRS_MOP_ARRANGED_LAYOUTS, pilesName: "foundations" },
   create: () =>
     dealt(new SimpleSimonGame({ variant: SimpleSimonVariant.MRS_MOP })),
 } satisfies CatalogEntry<SimpleSimonGame>;
@@ -986,6 +1101,10 @@ const BAKERS_DOZEN = {
   name: "Baker's Dozen",
   options: [],
   layout: BAKERS_DOZEN_LAYOUT,
+  arrangement: {
+    layouts: BAKERS_DOZEN_ARRANGED_LAYOUTS,
+    pilesName: "foundations",
+  },
   create: () => dealt(new BakersDozenGame()),
 } satisfies CatalogEntry<BakersDozenGame>;
 
@@ -994,6 +1113,11 @@ const SEAHAVEN = {
   name: "Seahaven Towers",
   options: [],
   layout: SEAHAVEN_LAYOUT,
+  arrangement: {
+    layouts: SEAHAVEN_ARRANGED_LAYOUTS,
+    pilesName: "cells and foundations",
+    sideName: "cells",
+  },
   create: () => dealt(new SeahavenGame()),
 } satisfies CatalogEntry<SeahavenGame>;
 
@@ -1002,6 +1126,11 @@ const FORTY_THIEVES = {
   name: "Forty Thieves",
   options: [FORTY_THIEVES_VARIANT],
   layout: FORTY_THIEVES_LAYOUT,
+  arrangement: {
+    layouts: FORTY_THIEVES_ARRANGED_LAYOUTS,
+    pilesName: "stock, waste and foundations",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(
       new FortyThievesGame({
@@ -1020,6 +1149,11 @@ const MARIA = {
   name: "Maria",
   options: [],
   layout: MARIA_LAYOUT,
+  arrangement: {
+    layouts: MARIA_ARRANGED_LAYOUTS,
+    pilesName: "stock, waste and foundations",
+    sideName: "stock",
+  },
   create: () =>
     dealt(new FortyThievesGame({ variant: FortyThievesVariant.MARIA })),
 } satisfies CatalogEntry<FortyThievesGame>;
@@ -1029,6 +1163,11 @@ const LIMITED = {
   name: "Limited",
   options: [],
   layout: LIMITED_LAYOUT,
+  arrangement: {
+    layouts: LIMITED_ARRANGED_LAYOUTS,
+    pilesName: "stock, waste and foundations",
+    sideName: "stock",
+  },
   create: () =>
     dealt(new FortyThievesGame({ variant: FortyThievesVariant.LIMITED })),
 } satisfies CatalogEntry<FortyThievesGame>;
@@ -1038,6 +1177,11 @@ const LUCAS = {
   name: "Lucas",
   options: [],
   layout: LUCAS_LAYOUT,
+  arrangement: {
+    layouts: LUCAS_ARRANGED_LAYOUTS,
+    pilesName: "stock, waste and foundations",
+    sideName: "stock",
+  },
   create: () =>
     dealt(new FortyThievesGame({ variant: FortyThievesVariant.LUCAS })),
 } satisfies CatalogEntry<FortyThievesGame>;
@@ -1070,6 +1214,11 @@ const DOUBLE_KLONDIKE = {
   name: "Double Klondike",
   options: [],
   layout: DOUBLE_KLONDIKE_LAYOUT,
+  arrangement: {
+    layouts: DOUBLE_KLONDIKE_ARRANGED_LAYOUTS,
+    pilesName: "stock, waste and foundations",
+    sideName: "stock",
+  },
   create: () => dealt(new DoubleKlondikeGame()),
 } satisfies CatalogEntry<DoubleKlondikeGame>;
 
@@ -1078,6 +1227,11 @@ const EASTHAVEN = {
   name: "Easthaven",
   options: [],
   layout: EASTHAVEN_LAYOUT,
+  arrangement: {
+    layouts: EASTHAVEN_ARRANGED_LAYOUTS,
+    pilesName: "stock and foundations",
+    sideName: "stock",
+  },
   create: () => dealt(new EasthavenGame()),
 } satisfies CatalogEntry<EasthavenGame>;
 
@@ -1086,6 +1240,11 @@ const SPIDERETTE = {
   name: "Spiderette",
   options: [SPIDERETTE_VARIANT],
   layout: SPIDERETTE_LAYOUT,
+  arrangement: {
+    layouts: SPIDERETTE_ARRANGED_LAYOUTS,
+    pilesName: "stock and foundations",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(
       new SpideretteGame({ variant: optionRule(values, SPIDERETTE_VARIANT) }),
@@ -1105,6 +1264,11 @@ const ACES_UP = {
   name: "Aces Up",
   options: [ACES_UP_SPACES],
   layout: ACES_UP_LAYOUT,
+  arrangement: {
+    layouts: ACES_UP_ARRANGED_LAYOUTS,
+    pilesName: "stock and discard",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(new AcesUpGame({ spaces: optionRule(values, ACES_UP_SPACES) })),
 } satisfies CatalogEntry<AcesUpGame>;
@@ -1114,6 +1278,11 @@ const GOLF = {
   name: "Golf",
   options: [GOLF_VARIANT],
   layout: GOLF_LAYOUT,
+  arrangement: {
+    layouts: GOLF_ARRANGED_LAYOUTS,
+    pilesName: "stock and foundation",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(new GolfGame({ variant: optionRule(values, GOLF_VARIANT) })),
 } satisfies CatalogEntry<GolfGame>;
@@ -1123,6 +1292,11 @@ const CALCULATION = {
   name: "Calculation",
   options: [CALCULATION_VARIANT],
   layout: CALCULATION_LAYOUT,
+  arrangement: {
+    layouts: CALCULATION_ARRANGED_LAYOUTS,
+    pilesName: "stock, hand and foundations",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(
       new CalculationGame({
@@ -1136,6 +1310,10 @@ const FLOWER_GARDEN = {
   name: "Flower Garden",
   options: [],
   layout: FLOWER_GARDEN_LAYOUT,
+  arrangement: {
+    layouts: FLOWER_GARDEN_ARRANGED_LAYOUTS,
+    pilesName: "bouquet and foundations",
+  },
   create: () => dealt(new FlowerGardenGame()),
 } satisfies CatalogEntry<FlowerGardenGame>;
 
@@ -1144,6 +1322,11 @@ const BRISTOL = {
   name: "Bristol",
   options: [BRISTOL_VARIANT],
   layout: BRISTOL_LAYOUT,
+  arrangement: {
+    layouts: BRISTOL_ARRANGED_LAYOUTS,
+    pilesName: "stock, reserves and foundations",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(new BristolGame({ variant: optionRule(values, BRISTOL_VARIANT) })),
 } satisfies CatalogEntry<BristolGame>;
@@ -1153,6 +1336,11 @@ const NESTOR = {
   name: "Nestor",
   options: [],
   layout: NESTOR_LAYOUT,
+  arrangement: {
+    layouts: NESTOR_ARRANGED_LAYOUTS,
+    pilesName: "reserve and discard",
+    sideName: "reserve",
+  },
   create: () => dealt(new NestorGame()),
 } satisfies CatalogEntry<NestorGame>;
 
@@ -1161,6 +1349,11 @@ const MONTE_CARLO = {
   name: "Monte Carlo",
   options: [MONTE_CARLO_VARIANT],
   layout: MONTE_CARLO_LAYOUT,
+  arrangement: {
+    layouts: MONTE_CARLO_ARRANGED_LAYOUTS,
+    pilesName: "stock and discard",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(
       new MonteCarloGame({ variant: optionRule(values, MONTE_CARLO_VARIANT) }),
@@ -1198,6 +1391,11 @@ const CANFIELD = {
   name: "Canfield",
   options: [CANFIELD_VARIANT],
   layout: CANFIELD_LAYOUT,
+  arrangement: {
+    layouts: CANFIELD_ARRANGED_LAYOUTS,
+    pilesName: "stock, waste and foundations",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(new CanfieldGame({ variant: optionRule(values, CANFIELD_VARIANT) })),
 } satisfies CatalogEntry<CanfieldGame>;
@@ -1207,6 +1405,11 @@ const PENGUIN = {
   name: "Penguin",
   options: [],
   layout: PENGUIN_LAYOUT,
+  arrangement: {
+    layouts: PENGUIN_ARRANGED_LAYOUTS,
+    pilesName: "flipper and foundations",
+    sideName: "flipper",
+  },
   create: () => dealt(new PenguinGame()),
 } satisfies CatalogEntry<PenguinGame>;
 
@@ -1244,6 +1447,11 @@ const PYRAMID = {
   name: "Pyramid",
   options: [PYRAMID_GOAL, PYRAMID_PASSES],
   layout: PYRAMID_LAYOUT,
+  arrangement: {
+    layouts: PYRAMID_ARRANGED_LAYOUTS,
+    pilesName: "stock, hand, waste and discard",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(
       new PyramidGame({
@@ -1287,6 +1495,11 @@ const POKER_SQUARES = {
   name: "Poker Squares",
   options: [POKER_SQUARES_SCORING],
   layout: POKER_SQUARES_LAYOUT,
+  arrangement: {
+    layouts: POKER_SQUARES_ARRANGED_LAYOUTS,
+    pilesName: "stock and the card to place",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(
       new PokerSquaresGame({
@@ -1401,7 +1614,7 @@ export function storedValues(
 
 /** Returns every grid a catalog entry's board may lie on. */
 export function boardLayoutsOf(entry: CatalogEntry): BoardLayouts {
-  return { roomy: entry.layout, arranged: entry.arrangedLayouts };
+  return { roomy: entry.layout, arranged: entry.arrangement?.layouts };
 }
 
 /** Returns the catalog entry with the given id, or the first one. */

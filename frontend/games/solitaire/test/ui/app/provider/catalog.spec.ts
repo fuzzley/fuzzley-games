@@ -13,7 +13,11 @@ import {
 import { KlondikeVariant } from "@/games/klondike/klondike_rules";
 import type { PlayableGame } from "@/engine/tableau/playable_game";
 import { TableGame } from "@/engine/tableau/table_game";
-import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import {
+  TableLayoutSpec,
+  computeScale,
+} from "@/engine/render/layout/table_layout";
+import { NO_INSETS, Viewport } from "@/engine/render/view/table_view_state";
 import { TestPresentation } from "@test/support/presentation";
 import { CATALOG_DEALS as DEALS } from "@test/support/ui/catalog_deals";
 
@@ -26,6 +30,17 @@ vi.mock("phaser", async () => {
 const GAMES: [name: string, entry: CatalogEntry][] = GAME_CATALOG.map(
   (entry) => [entry.name, entry],
 );
+
+/** Every game a player may arrange, named for the failure message. */
+const ARRANGED = GAMES.filter(([, entry]) => entry.arrangement !== undefined);
+
+/** A 1920 × 1080 window under the larger screen's 73 px header. */
+const FULL_HD: Viewport = {
+  width: 1920,
+  height: 1080,
+  pixelRatio: 1,
+  insets: { ...NO_INSETS, top: 73 },
+};
 
 /** Every rule any game offers, named for the failure message. */
 const RULES: [name: string, option: GameOptionSpec][] = GAME_CATALOG.flatMap(
@@ -161,7 +176,7 @@ describe("every game in the catalog", () => {
     (_name, entry, values) => {
       const game = asTableGame(entry.create(values).game);
       const piles = game.piles.map((pile) => pile.id).sort();
-      const arranged = entry.arrangedLayouts;
+      const arranged = entry.arrangement?.layouts;
       const grids: Record<string, TableLayoutSpec> = arranged
         ? {
             "roomy-top": arranged.roomy.top,
@@ -181,6 +196,28 @@ describe("every game in the catalog", () => {
         .map(([name]) => name);
 
       expect(misplaced).toEqual([]);
+    },
+  );
+
+  it.each(DEALS)(
+    "%s names its side pile exactly when its grids have one",
+    (_name, entry) => {
+      const arrangement = entry.arrangement;
+
+      expect(arrangement?.sideName === undefined).toBe(
+        arrangement?.layouts.side === undefined,
+      );
+    },
+  );
+
+  it.each(ARRANGED)(
+    "%s keeps its cards at least 85%% as big with the piles below on a 1920 × 1080 window",
+    (_name, entry) => {
+      const { top, bottom } = entry.arrangement!.layouts.roomy;
+
+      expect(
+        computeScale(bottom, FULL_HD) / computeScale(top, FULL_HD),
+      ).toBeGreaterThanOrEqual(0.85);
     },
   );
 
