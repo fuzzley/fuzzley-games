@@ -754,10 +754,10 @@ Coverage is 98.39% of statements, 92.29% of branches, 99.03% of functions and
   each bouquet card's suit edge rather than its rank. On a sideways phone its
   cards are about a sixth smaller, since the foundations need a rail of their
   own.
-- **Overlapped empty piles.** A filled pile hides the ring of an empty one
-  below it down a rail. That was already so for Klondike's foundations, and it
-  now applies to FreeCell's, Seahaven's, Eight Off's and Penguin's cells as
-  well. The outline below the card still marks the empty pile.
+- **Overlapped empty piles.** A filled pile hides the top of an empty one below
+  it down a rail: a foundation's ring, as for Klondike already, and now the top
+  of an empty cell in FreeCell, Seahaven, Eight Off and Penguin. The outline
+  below the card still marks the empty pile.
 - **The loading skeleton** shows a bottom row partway down an upright phone for
   a moment, on `main` too (see 3.6).
 - **Left as they were:** Montana, Blue Moon, Black Hole, Beleaguered Castle,
