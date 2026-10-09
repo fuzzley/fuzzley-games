@@ -178,7 +178,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 1.3 Cap
 - [x] 1.4 Columns where the larger screen has them
 - [x] 1.5 Two lines on an upright phone
-- [ ] 1.6 Spec helpers
+- [x] 1.6 Spec helpers
 - [ ] 2.1 Spiderette, Easthaven
 - [ ] 2.2 Scorpion
 - [ ] 2.3 Forty Thieves family
@@ -293,3 +293,22 @@ unless every row pile is in exactly one line. The larger screen's grids keep
 the row in one line. Specs cover a made-up board of four cells and three
 foundations over five columns: its width, where each line and the columns go
 above and below, its height, and both refusals.
+
+### 1.6 Spec helpers
+
+`test/support/arranged_grids.ts` holds the screens (`SCREENS`, `UPRIGHT`,
+`SIDEWAYS`, `DESKTOP`), the arrangements and their `CASES`, `gridChooser`,
+`slotOf`, `sideOf`, `leastRoom` and `columnHeightAtFloors`, and
+`itLaysOutArrangedGrids`, which declares what every arranged game shares: on
+six phone sizes under Auto and the four choices, every column has room for the
+longest column at the floors and the columns keep their order; a larger screen
+keeps the catalog's grid under Auto; and the side pile lands on the side asked
+for on every screen, or, for a game without one, no grid is ever mirrored.
+Klondike's and Spider's specs now call it and keep only their own checks (257
+lines fewer). Checking every column's room rather than the last one's is a
+little stronger than before; both games pass.
+
+Every later step runs `check.sh` from the session scratchpad before
+committing: Prettier on the changed files, ESLint on them, and `yarn tsc`,
+stopping at the first failure. (Step 1.5's first commit went in unformatted
+because a `| tail` hid Prettier's exit status; it was amended.)
