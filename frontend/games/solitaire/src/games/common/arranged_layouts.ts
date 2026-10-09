@@ -67,8 +67,19 @@ export interface ArrangedBoard {
    * with the row below them takes its gaps, padding and height.
    */
   readonly roomy: TableLayoutSpec;
-  /** The columns, left to right: the piles that fan down and take the height. */
+  /**
+   * The columns, left to right: the piles that fan down and take the height.
+   * Every grid keeps them in this order, in the grid columns the larger
+   * screen's grid gives them, or side by side between a sideways phone's
+   * rails.
+   */
   readonly columns: readonly string[];
+  /**
+   * Piles in the columns' row that are not columns, such as Canfield's
+   * reserve: laid out with the columns, but mirrored on their own, so they
+   * follow the side pile to the other side.
+   */
+  readonly beside?: readonly string[];
   /** The other piles, in the row above the columns on a larger screen. */
   readonly row: readonly RowPile[];
   /**
@@ -145,16 +156,14 @@ export const RAIL_MIN_STEP = 50;
  * as declared; the chooser mirrors a grid that leaves the side pile on the
  * other side from the one the player asked for.
  *
- * @throws Error when a pile in the row is on no rail, or on both, or when the
- *   side pile is not in the row.
+ * @throws Error when a pile in the row is on no rail, or on both, when the
+ *   side pile is not in the row, or when a column or a pile beside them is
+ *   not on the larger screen's grid.
  */
 export function arrangedLayouts(board: ArrangedBoard): ArrangedLayouts {
   checkRails(board);
   checkSide(board);
-  const columns = Math.max(
-    board.columns.length,
-    ...board.row.map((pile) => pile.column + 1),
-  );
+  const columns = board.roomy.columns;
   const columnHeight = longestColumnHeight(board, PHONE_FAN_FIT);
   return {
     roomy: { top: board.roomy, bottom: roomyPilesBelow(board) },
@@ -192,7 +201,7 @@ function roomyPilesBelow(board: ArrangedBoard): TableLayoutSpec {
   return tableLayout({
     columns: roomy.columns,
     rows: 2,
-    slots: [...columnSlots(board, 0, 0), ...rowAlongBottom(board)],
+    slots: [...columnSlotsAsRoomy(board, 0), ...rowAlongBottom(board)],
     gap: roomy.gap,
     padding: roomy.padding,
     designHeightPx: Math.max(
@@ -219,7 +228,7 @@ function pilesAbove(
     rows: 2,
     slots: [
       ...board.row.map(({ pileId, column }) => ({ pileId, column, row: 0 })),
-      ...columnSlots(board, 0, 1),
+      ...columnSlotsAsRoomy(board, 1),
     ],
     innerHeight: CARD_HEIGHT_PX + PHONE_GAP.y + columnHeight,
     pileLayouts: board.pileLayouts,
@@ -238,7 +247,7 @@ function pilesBelow(
   return phoneGrid({
     columns,
     rows: 2,
-    slots: [...columnSlots(board, 0, 0), ...rowAlongBottom(board)],
+    slots: [...columnSlotsAsRoomy(board, 0), ...rowAlongBottom(board)],
     innerHeight: columnHeight + PHONE_GAP.y + CARD_HEIGHT_PX,
     pileLayouts: board.pileLayouts,
   });
@@ -266,7 +275,8 @@ function pilesBeside(
 ): TableLayoutSpec {
   const { left, right } = board.rails;
   const first = left.length > 0 ? 1 : 0;
-  const columns = board.columns.length + first + (right.length > 0 ? 1 : 0);
+  const between = columnRow(board);
+  const columns = between.length + first + (right.length > 0 ? 1 : 0);
   const innerHeight = Math.max(
     columnHeight,
     railHeight(left),
@@ -282,7 +292,15 @@ function pilesBeside(
   return phoneGrid({
     columns,
     rows: 1,
-    slots: [...leftSlots, ...columnSlots(board, first, 0), ...rightSlots],
+    slots: [
+      ...leftSlots,
+      ...between.map((pileId, index) => ({
+        pileId,
+        column: first + index,
+        row: 0,
+      })),
+      ...rightSlots,
+    ],
     innerHeight,
     pileLayouts: withOverrides(board.pileLayouts, downward, (own) =>
       own.kind === "spread" ? { ...own, direction: "down" } : own,
@@ -320,17 +338,42 @@ function phoneGrid(grid: PhoneGridSpec): TableLayoutSpec {
   });
 }
 
-/** Places the columns side by side from `first`, in one grid row. */
-function columnSlots(
+/**
+ * Places the columns, and the piles beside them, in one grid row, each in the
+ * grid column the larger screen's grid gives it.
+ */
+function columnSlotsAsRoomy(
   board: ArrangedBoard,
-  first: number,
   row: number,
 ): SlotPlacement[] {
-  return board.columns.map((pileId, index) => ({
+  return columnRow(board).map((pileId) => ({
     pileId,
-    column: first + index,
+    column: roomyColumnOf(board, pileId),
     row,
   }));
+}
+
+/**
+ * Returns the columns and the piles beside them, left to right as the larger
+ * screen's grid has them.
+ */
+function columnRow(board: ArrangedBoard): string[] {
+  return [...board.columns, ...(board.beside ?? [])].sort(
+    (a, b) => roomyColumnOf(board, a) - roomyColumnOf(board, b),
+  );
+}
+
+/**
+ * Returns the grid column the larger screen's grid puts a pile in.
+ *
+ * @throws Error when that grid does not place the pile.
+ */
+function roomyColumnOf(board: ArrangedBoard, pileId: string): number {
+  const slot = board.roomy.slots.find((placed) => placed.pileId === pileId);
+  if (!slot) {
+    throw new Error(`The larger screen's grid does not place ${pileId}`);
+  }
+  return slot.column;
 }
 
 /** Returns how tall the longest column stands with every fan at its floor. */
