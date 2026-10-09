@@ -150,7 +150,7 @@ describe("Klondike's arranged grids", () => {
     [DESKTOP, ...SCREENS.map(([, viewport]) => viewport)].flatMap((viewport) =>
       (["left", "right"] as const).map(
         (side): [string, StockSide, Viewport] => [
-          `${viewport.width / viewport.pixelRatio} × ${viewport.height / viewport.pixelRatio}`,
+          `${viewport.width / viewport.pixelRatio} ï¿½ ${viewport.height / viewport.pixelRatio}`,
           side,
           viewport,
         ],
@@ -196,12 +196,12 @@ describe("Klondike's arranged grids", () => {
     });
   });
 
-  it("keeps the longest column clear of the piles along the bottom of a larger screen", () => {
+  it("keeps six hidden cards under eleven face up clear of the piles along the bottom of a larger screen", () => {
     const grid = gridFor(DESKTOP, { piles: "bottom", stockSide: "auto" });
     const longest =
       CARD_HEIGHT_PX +
       6 * ROOMY_FAN_FIT.minFaceDownGap +
-      11 * ROOMY_FAN_FIT.minFaceUpGap;
+      10 * ROOMY_FAN_FIT.minFaceUpGap;
 
     expect(
       measureTable(grid, DESKTOP).rooms.get("tableau-6"),

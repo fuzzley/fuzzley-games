@@ -44,13 +44,14 @@ Settled with the project owner on 2026-10-09.
 ### Implementation choices
 
 - **The cap's rule.** Each game sets its cap so that, on a 1920 × 1080 window
-  (a board of 1920 × 1007 under the 73 px header), the cards with the piles
-  below are at least 85% the size of the cards with the piles above. Where the
-  longest column fits below that height the cap changes nothing. This applies
-  to Klondike too: its grid with the piles below shrinks from 1217 design units
-  to the cap, so its cards are bigger, and the very longest columns (six hidden
-  under ten or more face up) reach the row. Spider's needed height already
-  costs nothing at that size, so it is unchanged.
+  at a pixel ratio of 1 (a board of 1920 × 1007 under the 73 px header), the
+  cards with the piles below are at least 85% the size of the cards with the
+  piles above: the cap is 1007 / (0.85 × the grid above's scale there), and the
+  board never draws above a scale of 1. Where the longest column fits below that
+  height the cap changes nothing. This applies to Klondike too: its grid with
+  the piles below drops from 1217 design units to 1184, and only six hidden
+  cards under twelve face up reach the row. Spider's needed height already
+  costs under 15%, so it takes no cap.
 - **The side pile moves to the catalog's words.** `ArrangedLayouts.stock`
   becomes an optional `side`, the pile the side setting places. The catalog
   entry's `arrangedLayouts` becomes `arrangement`, holding the grids and what
@@ -174,7 +175,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 0.1 Record the plan
 - [x] 1.1 Side pile
 - [x] 1.2 Catalog and drawer
-- [ ] 1.3 Cap
+- [x] 1.3 Cap
 - [ ] 1.4 Columns where the larger screen has them
 - [ ] 1.5 Two lines on an upright phone
 - [ ] 1.6 Spec helpers
@@ -245,3 +246,16 @@ absence.
 - **Lesson.** A regular expression written through a Node heredoc inside a
   template literal lost its backslashes (`` became a backspace). Edit such
   lines with the Edit tool.
+
+### 1.3 Cap
+
+`ArrangedBoard.roomyBottomMaxHeightPx` bounds the height `roomyPilesBelow`
+grows to; it never goes below the larger screen's own height, and a cap above
+what the column needs changes nothing. Three builder specs cover those cases.
+Klondike's cap is 1184, so its cards with the piles below come out at 85.05% of
+the grid above's at 1920 × 1080 rather than 82.7%; its spec now promises six
+hidden cards under eleven face up clear of the row instead of twelve. A new
+catalog spec checks the 85% rule for every arranged game, so a game added later
+cannot forget its cap. Measured on other screens, Klondike's uncapped grid cost
+about 15% at 1280 × 800 and 1440 × 900 at a pixel ratio of 2 as well, so the
+reference screen does not flatter the rule.
