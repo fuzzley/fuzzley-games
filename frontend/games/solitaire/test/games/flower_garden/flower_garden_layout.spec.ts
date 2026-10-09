@@ -3,14 +3,13 @@ import {
   FLOWER_GARDEN_ARRANGED_LAYOUTS,
   FLOWER_GARDEN_LAYOUT,
 } from "@/games/flower_garden/flower_garden_layout";
+import { RAIL_MIN_STEP } from "@/games/common/arranged_layouts";
 import {
   UPRIGHT,
-  columnHeightAtFloors,
   gridChooser,
   itLaysOutArrangedGrids,
   slotOf,
 } from "@test/support/arranged_grids";
-import { TABLEAU_HOVER_EXPANSION_OFFSET } from "@/games/common/pile_layouts";
 
 /** Returns the grid a viewport and arrangement call for. */
 const gridFor = gridChooser({
@@ -82,23 +81,24 @@ describe("Flower Garden's arranged grids", () => {
       ["from the top", top],
       ["on the bottom", bottom],
     ])(
-      "stacks half the bouquet down each rail, the foundations under the second, %s",
+      "stacks the foundations down one rail and the bouquet the other, %s",
       (_name, grid) => {
         const columnsOf = (piles: string[]) => [
           ...new Set(piles.map((pileId) => slotOf(grid, pileId)!.column)),
         ];
 
-        expect([
-          columnsOf(BOUQUET.slice(0, 8)),
-          columnsOf([...BOUQUET.slice(8), ...FOUNDATIONS]),
-        ]).toEqual([[0], [7]]);
+        expect([columnsOf(FOUNDATIONS), columnsOf(BOUQUET)]).toEqual([
+          [0],
+          [7],
+        ]);
       },
     );
 
-    it("is no taller than the beds need", () => {
-      expect(top.designHeightPx! - 2 * top.padding.y).toBe(
-        columnHeightAtFloors(LONGEST) + TABLEAU_HOVER_EXPANSION_OFFSET,
-      );
+    it("shows the index of every bouquet card down the rail", () => {
+      const tops = BOUQUET.map((pileId) => slotOf(top, pileId)!.offset!.y);
+      const steps = tops.slice(1).map((y, index) => y - tops[index]);
+
+      expect(Math.min(...steps)).toBeGreaterThanOrEqual(RAIL_MIN_STEP);
     });
   });
 });

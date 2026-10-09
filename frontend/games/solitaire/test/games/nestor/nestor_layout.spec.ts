@@ -5,9 +5,13 @@ import {
 } from "@/games/nestor/nestor_layout";
 import { DISCARD_PILE_ID } from "@/games/nestor/nestor_zones";
 import { TABLEAU_HOVER_EXPANSION_OFFSET } from "@/games/common/pile_layouts";
+import { computeScale } from "@/engine/render/layout/table_layout";
 import {
+  RAIL,
+  SIDEWAYS,
   UPRIGHT,
   columnHeightAtFloors,
+  phone,
   gridChooser,
   itLaysOutArrangedGrids,
   slotOf,
@@ -62,10 +66,34 @@ describe("Nestor's arranged grids", () => {
       },
     );
 
-    it("is no taller than the columns need", () => {
-      expect(top.designHeightPx! - 2 * top.padding.y).toBe(
-        columnHeightAtFloors(DEALT) + TABLEAU_HOVER_EXPANSION_OFFSET,
-      );
+    it("leaves the discard clear of the last reserve card", () => {
+      const lastReserve = slotOf(top, "reserve-3")!.offset!.y;
+      const discard = slotOf(top, DISCARD_PILE_ID)!.offset!.y;
+
+      expect(discard - lastReserve).toBeGreaterThan(top.cardSize.height);
     });
+
+    it.each([
+      ["640 × 300", phone(640, 300, RAIL)],
+      ["780 × 340", SIDEWAYS],
+      ["932 × 380", phone(932, 380, RAIL)],
+    ])(
+      "draws the cards no smaller than the columns alone would at %s",
+      (_name, viewport) => {
+        // The same grid, only as tall as a column of six needs.
+        const alone = computeScale(
+          {
+            ...top,
+            designHeightPx:
+              columnHeightAtFloors(DEALT) +
+              TABLEAU_HOVER_EXPANSION_OFFSET +
+              2 * top.padding.y,
+          },
+          viewport,
+        );
+
+        expect(computeScale(top, viewport)).toBe(alone);
+      },
+    );
   });
 });

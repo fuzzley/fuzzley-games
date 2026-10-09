@@ -32,7 +32,12 @@ export const NESTOR_LAYOUT = boardLayout({
  * The Nestor board in every arrangement. The reserve and the discard go above
  * the columns or along the bottom, the reserve at whichever side the player
  * asks for. On a phone on its side, the reserve cards stack down one rail,
- * each showing its index, above the discard.
+ * each showing its index but the last, which shows whole above the discard.
+ *
+ * The discard starts empty, and an empty pile's outline is drawn beneath every
+ * card, so it cannot tuck under the last reserve card. The rail is then taller
+ * than the columns, which costs no card size: the board is held to a sideways
+ * phone's width.
  */
 export const NESTOR_ARRANGED_LAYOUTS = arrangedLayouts({
   roomy: NESTOR_LAYOUT,
@@ -44,7 +49,7 @@ export const NESTOR_ARRANGED_LAYOUTS = arrangedLayouts({
     right: [
       ...Array.from({ length: RESERVE_COUNT }, (_, index) => ({
         pileId: reservePileId(index),
-        overlapped: true,
+        overlapped: index < RESERVE_COUNT - 1,
       })),
       { pileId: DISCARD_PILE_ID },
     ],
