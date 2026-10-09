@@ -3,6 +3,7 @@ import { CARD_HEIGHT_PX } from "@/engine/render/layout/card_metrics";
 import { PileLayout } from "@/engine/render/layout/pile_layout";
 import {
   TableLayoutSpec,
+  designSize,
   tableLayout,
 } from "@/engine/render/layout/table_layout";
 import {
@@ -179,6 +180,32 @@ describe("arrangedLayouts", () => {
       expect(grid.designHeightPx! - 2 * grid.padding.y).toBe(
         longest + grid.gap.y + CARD_HEIGHT_PX,
       );
+    });
+
+    it("grows no taller than the board's cap", () => {
+      const capped = arrangedLayouts({
+        ...BOARD,
+        roomyBottomMaxHeightPx: designSize(ROOMY).height + 10,
+      });
+
+      expect(capped.roomy.bottom.designHeightPx).toBe(
+        designSize(ROOMY).height + 10,
+      );
+    });
+
+    it("grows only as far as the longest column needs under a higher cap", () => {
+      const capped = arrangedLayouts({
+        ...BOARD,
+        roomyBottomMaxHeightPx: 5000,
+      });
+
+      expect(capped.roomy.bottom.designHeightPx).toBe(grid.designHeightPx);
+    });
+
+    it("keeps the larger screen's height under a cap below it", () => {
+      const capped = arrangedLayouts({ ...BOARD, roomyBottomMaxHeightPx: 100 });
+
+      expect(capped.roomy.bottom.designHeightPx).toBe(designSize(ROOMY).height);
     });
 
     it("lays the columns out along the top", () => {

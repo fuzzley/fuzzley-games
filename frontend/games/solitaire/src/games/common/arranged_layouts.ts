@@ -92,6 +92,13 @@ export interface ArrangedBoard {
     readonly faceDown: number;
     readonly faceUp: number;
   };
+  /**
+   * The tallest the larger screen's grid with the row below the columns may
+   * grow to keep the longest column clear of the row, in design units; as tall
+   * as the column needs when omitted. A taller grid draws smaller cards, and
+   * past the cap only the longest columns reach the row, at their floors.
+   */
+  readonly roomyBottomMaxHeightPx?: number;
   /** How particular piles arrange their cards on every phone grid, by pile id. */
   readonly pileLayouts?: Readonly<Record<string, PileLayoutOverride>>;
 }
@@ -171,7 +178,9 @@ export function arrangedLayouts(board: ArrangedBoard): ArrangedLayouts {
  *
  * It is taller than the grid with the piles above when the longest column
  * would not otherwise fit above them at its floors, since a column running
- * over the row would hide it, where above the row it only runs off the screen.
+ * over the row would hide it, where above the row it only runs off the screen;
+ * but no taller than the board's cap, which keeps its cards from shrinking
+ * further for a column that is rarely dealt.
  */
 function roomyPilesBelow(board: ArrangedBoard): TableLayoutSpec {
   const { roomy } = board;
@@ -186,7 +195,10 @@ function roomyPilesBelow(board: ArrangedBoard): TableLayoutSpec {
     slots: [...columnSlots(board, 0, 0), ...rowAlongBottom(board)],
     gap: roomy.gap,
     padding: roomy.padding,
-    designHeightPx: Math.max(designSize(roomy).height, needed),
+    designHeightPx: Math.max(
+      designSize(roomy).height,
+      Math.min(needed, board.roomyBottomMaxHeightPx ?? needed),
+    ),
     fanFit: ROOMY_FAN_FIT,
     pileLayouts: roomy.pileLayouts,
     pileBackgrounds: roomy.pileBackgrounds,

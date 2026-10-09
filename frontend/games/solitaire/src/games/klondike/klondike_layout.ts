@@ -65,4 +65,7 @@ export const KLONDIKE_ARRANGED_LAYOUTS = arrangedLayouts({
   },
   // Six hidden cards under a run from king to two.
   longestColumn: { faceDown: TABLEAU_COUNT - 1, faceUp: 12 },
+  // Cards 85% the size of the grid above's on a 1920 × 1080 window; six
+  // hidden cards under eleven face up still clear the row.
+  roomyBottomMaxHeightPx: 1184,
 });
