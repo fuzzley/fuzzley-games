@@ -208,7 +208,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 5.2 Monte Carlo
 - [x] 5.3 Aces Up
 - [x] 5.4 Pyramid
-- [ ] 5.5 Browser check
+- [x] 5.5 Browser check
 - [ ] 6.1 Docs
 - [ ] 6.2 Verify
 
@@ -703,3 +703,20 @@ drawing order changes. The shared spec gained `roomFor`, the piles that need
 the longest column's room: a pyramid names its base, since every card above it
 lies half under the next by design. The drawer says "stock, hand, waste and
 discard".
+
+### 5.5 Browser check
+
+Checked against `yarn start` in an isolated context, all under Auto.
+
+- **Poker Squares, 390 × 844 upright.** The five-by-five grid across the full
+  width; the card to place and the stock at the bottom right.
+- **Pyramid, 390 × 844 upright.** The pyramid across the top; the stock and
+  hand at the bottom right, the waste and discard at the bottom left.
+- **Pyramid, 844 × 390 on its side.** The stock above the hand at the right of
+  the base, the waste above the discard at its left, the cards as big as the
+  height allows.
+- **Aces Up, 390 × 844 upright.** The four columns across the full width with
+  big cards; the stock at the bottom right and the discard at the bottom left.
+
+Monte Carlo was left to its specs, being Poker Squares' arrangement with the
+discard at the far end of the row. The page was closed afterwards.
