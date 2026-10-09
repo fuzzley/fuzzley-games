@@ -207,7 +207,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 5.1 Poker Squares
 - [x] 5.2 Monte Carlo
 - [x] 5.3 Aces Up
-- [ ] 5.4 Pyramid
+- [x] 5.4 Pyramid
 - [ ] 5.5 Browser check
 - [ ] 6.1 Docs
 - [ ] 6.2 Verify
@@ -679,4 +679,27 @@ columns or along the bottom edge, so the columns take the whole width, four
 cards across instead of six. The phone grids fan the columns to fit, keeping
 all thirteen cards a column can be dealt on screen; the builder's `PHONE_GAP`
 is now exported for the upright grids' height. The drawer says "stock and
+discard".
+
+### 5.4 Pyramid
+
+With the piles at the top, every screen keeps the board as it has always been:
+the stock and hand in the corner beside the pyramid's peak, the waste and
+discard in the other. With the piles at the bottom there is no room in the
+corners beside the pyramid's base, which spans the board, so:
+
+- a larger screen and a sideways phone stand the piles in pairs beside the
+  base, the stock above the hand at one side and the waste above the discard
+  at the other, in a grid a column wider at each side. Those screens are held
+  by the board's height, so the cards come out the same size (a spec checks
+  1280 × 800 and 780 × 340);
+- an upright phone puts them in a row of their own along the bottom edge, in
+  the columns they have at the top, using the phone's spare height.
+
+The stock is the side pile, so Auto puts the stock and hand at the right of a
+phone and the waste and discard at the left; the pyramid keeps its order in a
+mirror, and since its cards overlap only the row below, nothing about the
+drawing order changes. The shared spec gained `roomFor`, the piles that need
+the longest column's room: a pyramid names its base, since every card above it
+lies half under the next by design. The drawer says "stock, hand, waste and
 discard".

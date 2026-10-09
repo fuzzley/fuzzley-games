@@ -168,6 +168,12 @@ export interface ArrangedGridsUnderTest {
    * column, under Auto and every choice.
    */
   readonly longestColumn: ColumnShape;
+  /**
+   * The piles that need the longest column's room: every column when
+   * omitted. A pyramid names its bottom row, since each card above it is
+   * meant to lie half under the next.
+   */
+  readonly roomFor?: readonly string[];
 }
 
 /** Returns a function giving the grid a screen and arrangement call for. */
@@ -197,7 +203,11 @@ export function itLaysOutArrangedGrids(game: ArrangedGridsUnderTest): void {
     (_name, viewport, arrangement) => {
       // Within a rounding error of the room exactly a card fills.
       expect(
-        leastRoom(gridFor(viewport, arrangement), viewport, columns),
+        leastRoom(
+          gridFor(viewport, arrangement),
+          viewport,
+          game.roomFor ?? columns,
+        ),
       ).toBeGreaterThanOrEqual(columnHeightAtFloors(game.longestColumn) - 1e-6);
     },
   );

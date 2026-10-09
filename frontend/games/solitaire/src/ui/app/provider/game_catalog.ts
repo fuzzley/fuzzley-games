@@ -187,7 +187,10 @@ import { BlackHoleVariant } from "@/games/black_hole/black_hole_rules";
 import { GrandfathersClockGame } from "@/games/grandfathers_clock/grandfathers_clock_game";
 import { GRANDFATHERS_CLOCK_LAYOUT } from "@/games/grandfathers_clock/grandfathers_clock_layout";
 import { PyramidGame } from "@/games/pyramid/pyramid_game";
-import { PYRAMID_LAYOUT } from "@/games/pyramid/pyramid_layout";
+import {
+  PYRAMID_ARRANGED_LAYOUTS,
+  PYRAMID_LAYOUT,
+} from "@/games/pyramid/pyramid_layout";
 import {
   DEFAULT_PYRAMID_GOAL,
   DEFAULT_PYRAMID_PASSES,
@@ -1444,6 +1447,11 @@ const PYRAMID = {
   name: "Pyramid",
   options: [PYRAMID_GOAL, PYRAMID_PASSES],
   layout: PYRAMID_LAYOUT,
+  arrangement: {
+    layouts: PYRAMID_ARRANGED_LAYOUTS,
+    pilesName: "stock, hand, waste and discard",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(
       new PyramidGame({
