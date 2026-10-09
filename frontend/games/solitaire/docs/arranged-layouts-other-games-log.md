@@ -182,7 +182,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 2.1 Spiderette, Easthaven
 - [x] 2.2 Scorpion
 - [x] 2.3 Forty Thieves family
-- [ ] 2.4 Bristol
+- [x] 2.4 Bristol
 - [ ] 2.5 Golf
 - [ ] 2.6 Browser check
 - [ ] 3.1 FreeCell family
@@ -360,3 +360,16 @@ below needs only 1229 of the 1327 the grid above already has, so no board
 grows or takes a cap. The drawer calls the row "stock, waste and foundations".
 Lucas and Limited stay narrow upright (thirteen and twelve columns); their gain
 is the bottom row and the rails.
+
+### 2.4 Bristol
+
+Bristol and Belvedere share one board: the stock, three reserves and four
+foundations above eight fans. Upright, the row keeps the larger screen's order,
+so with the stock at the right the reserves stand between it and the
+foundations. On a sideways phone the foundations stack down the left rail and
+the stock and then the reserves down the right, the reserves overlapped to
+their index strip as foundations are, which is all a player needs to see of a
+pile only its top card leaves. The phone grids keep a fan of thirteen on screen;
+the grid with the piles below needs 1193 of the grid above's 1227, so it does
+not grow and takes no cap. The drawer calls the row "stock, reserves and
+foundations".

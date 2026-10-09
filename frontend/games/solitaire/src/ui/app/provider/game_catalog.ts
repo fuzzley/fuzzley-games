@@ -104,7 +104,10 @@ import {
 import { FlowerGardenGame } from "@/games/flower_garden/flower_garden_game";
 import { FLOWER_GARDEN_LAYOUT } from "@/games/flower_garden/flower_garden_layout";
 import { BristolGame } from "@/games/bristol/bristol_game";
-import { BRISTOL_LAYOUT } from "@/games/bristol/bristol_layout";
+import {
+  BRISTOL_ARRANGED_LAYOUTS,
+  BRISTOL_LAYOUT,
+} from "@/games/bristol/bristol_layout";
 import {
   BristolVariant,
   DEFAULT_BRISTOL_VARIANT,
@@ -1218,6 +1221,11 @@ const BRISTOL = {
   name: "Bristol",
   options: [BRISTOL_VARIANT],
   layout: BRISTOL_LAYOUT,
+  arrangement: {
+    layouts: BRISTOL_ARRANGED_LAYOUTS,
+    pilesName: "stock, reserves and foundations",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(new BristolGame({ variant: optionRule(values, BRISTOL_VARIANT) })),
 } satisfies CatalogEntry<BristolGame>;
