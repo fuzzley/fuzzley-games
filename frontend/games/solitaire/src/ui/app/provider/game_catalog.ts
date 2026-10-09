@@ -165,7 +165,10 @@ import {
   DEFAULT_CANFIELD_VARIANT,
 } from "@/games/canfield/canfield_rules";
 import { PenguinGame } from "@/games/penguin/penguin_game";
-import { PENGUIN_LAYOUT } from "@/games/penguin/penguin_layout";
+import {
+  PENGUIN_ARRANGED_LAYOUTS,
+  PENGUIN_LAYOUT,
+} from "@/games/penguin/penguin_layout";
 import { BlackHoleGame } from "@/games/black_hole/black_hole_game";
 import {
   ALL_IN_A_ROW_LAYOUT,
@@ -1373,6 +1376,11 @@ const PENGUIN = {
   name: "Penguin",
   options: [],
   layout: PENGUIN_LAYOUT,
+  arrangement: {
+    layouts: PENGUIN_ARRANGED_LAYOUTS,
+    pilesName: "flipper and foundations",
+    sideName: "flipper",
+  },
   create: () => dealt(new PenguinGame()),
 } satisfies CatalogEntry<PenguinGame>;
 

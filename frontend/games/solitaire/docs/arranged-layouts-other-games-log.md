@@ -195,7 +195,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 4.2 Calculation
 - [x] 4.3 Canfield
 - [x] 4.4 Eight Off
-- [ ] 4.5 Penguin
+- [x] 4.5 Penguin
 - [ ] 4.6 Flower Garden
 - [ ] 4.7 Browser check
 - [ ] 5.1 Poker Squares
@@ -557,3 +557,14 @@ phone grids keep fourteen cards on screen; upright the grid is held to the
 phone's width, so the two lines cost no card size. The grid with the piles
 below grows to 1229, which costs nothing at twelve columns. The drawer says
 "cells and foundations" and "Cells Side".
+
+### 4.5 Penguin
+
+Eight Off's arrangement with seven cells (the flipper) and seven columns: a
+larger screen keeps its eleven-wide row; an upright phone is seven wide, with
+the four foundations centred at half-columns (1.5 to 4.5) next to the columns
+and the seven cells on the edge; a sideways phone stacks the cells down the
+left rail and the foundations down the right. The rules page calls the cells
+the flipper, so the drawer says "flipper and foundations" and "Flipper Side".
+The phone grids keep a whole suit of thirteen on screen; the grid with the
+piles below needs 1193 of the 1327 it has.
