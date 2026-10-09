@@ -8,7 +8,11 @@ import {
 } from "@/engine/render/layout/board_layouts";
 import { CARD_HEIGHT_PX } from "@/engine/render/layout/card_metrics";
 import { formFactorOf } from "@/engine/render/layout/form_factor";
-import { FanFit } from "@/engine/render/layout/pile_layout";
+import {
+  FanFit,
+  PileLayout,
+  mirrorPileLayout,
+} from "@/engine/render/layout/pile_layout";
 import {
   SlotPlacement,
   TableLayoutSpec,
@@ -108,6 +112,19 @@ export function slotOf(
   pileId: string,
 ): SlotPlacement | undefined {
   return grid.slots.find((slot) => slot.pileId === pileId);
+}
+
+/**
+ * Returns how a pile arranges its cards on a grid, given its zone's own
+ * arrangement: the grid's override, turned around on a mirrored grid.
+ */
+export function layoutOn(
+  grid: TableLayoutSpec,
+  pileId: string,
+  own: PileLayout,
+): PileLayout {
+  const chosen = grid.pileLayouts?.[pileId]?.(own) ?? own;
+  return grid.mirrored ? mirrorPileLayout(chosen) : chosen;
 }
 
 /** Returns which half of a grid a pile sits in. */

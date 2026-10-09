@@ -179,7 +179,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 1.4 Columns where the larger screen has them
 - [x] 1.5 Two lines on an upright phone
 - [x] 1.6 Spec helpers
-- [ ] 2.1 Spiderette, Easthaven
+- [x] 2.1 Spiderette, Easthaven
 - [ ] 2.2 Scorpion
 - [ ] 2.3 Forty Thieves family
 - [ ] 2.4 Bristol
@@ -312,3 +312,24 @@ Every later step runs `check.sh` from the session scratchpad before
 committing: Prettier on the changed files, ESLint on them, and `yarn tsc`,
 stopping at the first failure. (Step 1.5's first commit went in unformatted
 because a `| tail` hid Prettier's exit status; it was amended.)
+
+### 2.1 Spiderette, Easthaven
+
+Both take Spider's arrangement: the stock with the four foundations above or
+below the seven columns, and on a sideways phone the stock and then the
+foundations down one rail at the right (grid column 7 of 8), the stock showing
+one sliver per deal. Spider's sliver stock moved to `games/common/pile_layouts.ts`
+as `sliverStockLayout(deals, columns)` and `sliverStockReach(deals)`, which
+Spider now uses too; `STOCK_SLIVER_GAP` went with them.
+
+| Game       | Stock deals                 | Longest column (phone) | Bottom grid needs | Cap  | Bottom cards at 1920 × 1080 |
+| ---------- | --------------------------- | ---------------------- | ----------------- | ---- | --------------------------- |
+| Spiderette | 4, or 5 in Will o' the Wisp | 6 hidden, 13 up        | 1253              | none | 86%                         |
+| Easthaven  | 5                           | 2 hidden, 14 up        | 1249              | 1208 | 85% (82% uncapped)          |
+
+Under Easthaven's cap two hidden cards under twelve face up clear the row on a
+larger screen. Both games name their piles "stock and foundations" and their
+side pile "stock". The spec helper gained `layoutOn`, a pile's arrangement on
+a grid with the mirror applied, for the sliver checks. A cap calculator lives
+in the session scratchpad (`cap.mjs`: grid columns, the grid above's height,
+and the longest column), reproducing Klondike's 1217 and 1184.
