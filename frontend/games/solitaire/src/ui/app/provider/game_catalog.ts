@@ -107,7 +107,10 @@ import {
 import { BisleyGame } from "@/games/bisley/bisley_game";
 import { BISLEY_LAYOUT } from "@/games/bisley/bisley_layout";
 import { AcesUpGame } from "@/games/aces_up/aces_up_game";
-import { ACES_UP_LAYOUT } from "@/games/aces_up/aces_up_layout";
+import {
+  ACES_UP_ARRANGED_LAYOUTS,
+  ACES_UP_LAYOUT,
+} from "@/games/aces_up/aces_up_layout";
 import {
   AcesUpSpaces,
   DEFAULT_ACES_UP_SPACES,
@@ -1258,6 +1261,11 @@ const ACES_UP = {
   name: "Aces Up",
   options: [ACES_UP_SPACES],
   layout: ACES_UP_LAYOUT,
+  arrangement: {
+    layouts: ACES_UP_ARRANGED_LAYOUTS,
+    pilesName: "stock and discard",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(new AcesUpGame({ spaces: optionRule(values, ACES_UP_SPACES) })),
 } satisfies CatalogEntry<AcesUpGame>;
