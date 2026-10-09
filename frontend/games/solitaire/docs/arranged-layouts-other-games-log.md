@@ -173,7 +173,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 
 - [x] 0.1 Record the plan
 - [x] 1.1 Side pile
-- [ ] 1.2 Catalog and drawer
+- [x] 1.2 Catalog and drawer
 - [ ] 1.3 Cap
 - [ ] 1.4 Columns where the larger screen has them
 - [ ] 1.5 Two lines on an upright phone
@@ -220,3 +220,28 @@ be in the row only when given (`checkSide`). Klondike and Spider name their
 stock as `side`; the board scene's spec moved with them. New specs: the
 chooser never mirrors a board without a side pile, and the builder hands on its
 absence.
+
+### 1.2 Catalog and drawer
+
+- **Catalog.** `CatalogEntry.arrangedLayouts` became `arrangement`, a
+  `CatalogArrangement` holding `layouts`, `pilesName` and `sideName?`.
+  Klondike and Spider call theirs "stock and foundations" and "stock".
+  `boardLayoutsOf` reads `arrangement?.layouts`. The catalog spec checks
+  that every game gives `sideName` exactly when its grids name a side pile.
+- **Drawer.** Top, Bottom, Left and Right lost their fixed descriptions;
+  `pilesDescription` and `describeSide` build them from the game's names
+  ("The stock and foundations along the top, or at the top of a sideways
+  phone's rails."; "The stock at the left of the table."). The side group's
+  label is the side name in title case plus "Side", and the group shows only
+  for a game whose arrangement names a side pile. The Piles description no
+  longer says "above the columns", so it reads right for a board with a grid
+  of cards instead.
+- **Mock.** The catalog mock gained Yukon, arranged without a side pile on
+  Klondike's grids as a stand-in until Yukon has its own (step 3.4). The
+  drawer spec covers the label, both descriptions in the game's words, and
+  Piles alone for Yukon.
+- **Docs.** The skill and `.agents/AGENTS.md` name the new field; the skill's
+  full rewrite waits for 6.1.
+- **Lesson.** A regular expression written through a Node heredoc inside a
+  template literal lost its backslashes (`` became a backspace). Edit such
+  lines with the Edit tool.

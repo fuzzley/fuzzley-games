@@ -120,24 +120,22 @@ const AUTO_PILES: GameOptionChoice<OrAuto<PilePosition>> = {
   label: "Auto",
 };
 
-/** The places the piles can go, in the order shown. */
+/**
+ * The places the piles can go, in the order shown, each described in the
+ * game's own words by {@link pilesDescription}.
+ */
 const PILES_CHOICES: readonly GameOptionChoice<OrAuto<PilePosition>>[] = [
   AUTO_PILES,
-  {
-    value: 1,
-    rule: "top",
-    label: "Top",
-    description:
-      "The stock and foundations above the columns, or at the top of a sideways phone's rails.",
-  },
-  {
-    value: 2,
-    rule: "bottom",
-    label: "Bottom",
-    description:
-      "The stock and foundations along the bottom, under your thumb, or at the foot of a sideways phone's rails.",
-  },
+  { value: 1, rule: "top", label: "Top" },
+  { value: 2, rule: "bottom", label: "Bottom" },
 ];
+
+/** Returns what putting a game's piles at the top or the bottom does. */
+function pilesDescription(position: PilePosition, pilesName: string): string {
+  return position === "top"
+    ? `The ${pilesName} along the top, or at the top of a sideways phone's rails.`
+    : `The ${pilesName} along the bottom, under your thumb, or at the foot of a sideways phone's rails.`;
+}
 
 /**
  * Leaving the stock's side to the screen, which a player starts with,
@@ -149,22 +147,20 @@ const AUTO_STOCK_SIDE: GameOptionChoice<OrAuto<StockSide>> = {
   label: "Auto",
 };
 
-/** The sides the stock can go on, in the order shown. */
+/**
+ * The sides the stock, or the pile standing in for it, can go on, in the order
+ * shown.
+ */
 const STOCK_SIDE_CHOICES: readonly GameOptionChoice<OrAuto<StockSide>>[] = [
   AUTO_STOCK_SIDE,
-  {
-    value: 1,
-    rule: "left",
-    label: "Left",
-    description: "The stock at the left of the table.",
-  },
-  {
-    value: 2,
-    rule: "right",
-    label: "Right",
-    description: "The stock at the right of the table.",
-  },
+  { value: 1, rule: "left", label: "Left" },
+  { value: 2, rule: "right", label: "Right" },
 ];
+
+/** Returns a name as a label, each word starting with a capital. */
+function titleCase(name: string): string {
+  return name.replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
 
 /**
  * Returns what Auto does with a part of the board's arrangement: what it picks
@@ -238,12 +234,23 @@ export class SettingsDrawerComponent {
   );
 
   /**
-   * Whether the game on the table has grids for every arrangement, which is
-   * when where its piles go and the stock's side are offered, on every screen.
+   * How the game on the table may be arranged: where its piles go is offered
+   * for a game with arranged grids, on every screen.
    */
-  protected readonly hasArrangedGrids = computed(
-    () => this.catalog.selectedEntry.arrangedLayouts !== undefined,
+  private readonly arrangement = computed(
+    () => this.catalog.selectedEntry.arrangement,
   );
+
+  /** Whether the game on the table has grids for every arrangement. */
+  protected readonly hasArrangedGrids = computed(
+    () => this.arrangement() !== undefined,
+  );
+
+  /**
+   * What the game on the table calls its side pile, when it has one, which is
+   * when the side setting is offered.
+   */
+  protected readonly sideName = computed(() => this.arrangement()?.sideName);
 
   /** Where the piles go, as checked. */
   protected readonly pilesChoice = computed(
@@ -259,13 +266,7 @@ export class SettingsDrawerComponent {
   >(() => ({
     id: "piles",
     label: "Piles",
-    description:
-      this.pilesChoice().description ??
-      autoDescription(
-        PILES_CHOICES,
-        (formFactor) => AUTO_ARRANGEMENTS[formFactor].piles,
-        this.presentation.resolvedArrangement().piles,
-      ),
+    description: this.describePiles(this.pilesChoice().rule),
     choices: PILES_CHOICES,
     defaultValue: AUTO_PILES.value,
   }));
@@ -283,14 +284,8 @@ export class SettingsDrawerComponent {
     GameOptionSpec<OrAuto<StockSide>>
   >(() => ({
     id: "stockSide",
-    label: "Stock Side",
-    description:
-      this.stockSideChoice().description ??
-      autoDescription(
-        STOCK_SIDE_CHOICES,
-        (formFactor) => AUTO_ARRANGEMENTS[formFactor].stockSide,
-        this.presentation.resolvedArrangement().stockSide,
-      ),
+    label: `${titleCase(this.sideName() ?? "stock")} Side`,
+    description: this.describeSide(this.stockSideChoice().rule),
     choices: STOCK_SIDE_CHOICES,
     defaultValue: AUTO_STOCK_SIDE.value,
   }));
@@ -387,13 +382,35 @@ export class SettingsDrawerComponent {
     void this.lifecycle.setRuleOption(optionId, value);
   }
 
+  /** Returns what a choice of where the piles go does, in the game's words. */
+  private describePiles(rule: OrAuto<PilePosition>): string {
+    return rule === "auto"
+      ? autoDescription(
+          PILES_CHOICES,
+          (formFactor) => AUTO_ARRANGEMENTS[formFactor].piles,
+          this.presentation.resolvedArrangement().piles,
+        )
+      : pilesDescription(rule, this.arrangement()?.pilesName ?? "piles");
+  }
+
+  /** Returns what a choice of the side pile's side does, in the game's words. */
+  private describeSide(rule: OrAuto<StockSide>): string {
+    return rule === "auto"
+      ? autoDescription(
+          STOCK_SIDE_CHOICES,
+          (formFactor) => AUTO_ARRANGEMENTS[formFactor].stockSide,
+          this.presentation.resolvedArrangement().stockSide,
+        )
+      : `The ${this.sideName() ?? "stock"} at the ${rule} of the table.`;
+  }
+
   /** Puts the piles where the option group handed back. */
   protected choosePiles(value: number): void {
     const choice = PILES_CHOICES.find((piles) => piles.value === value);
     if (choice) this.presentation.setPiles(choice.rule);
   }
 
-  /** Puts the stock on the side the option group handed back. */
+  /** Puts the side pile on the side the option group handed back. */
   protected chooseStockSide(value: number): void {
     const choice = STOCK_SIDE_CHOICES.find((side) => side.value === value);
     if (choice) this.presentation.setStockSide(choice.rule);

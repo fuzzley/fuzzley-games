@@ -32,7 +32,7 @@
         />
       }
 
-      <!-- Where the piles go and the stock's side, in a game laid out for both -->
+      <!-- Where the piles go, and the side pile's side in a game with one -->
       @if (hasArrangedGrids()) {
         <app-option-group
           class="piles"
@@ -40,12 +40,14 @@
           [value]="pilesChoice().value"
           (choose)="choosePiles($event)"
         />
-        <app-option-group
-          class="stock-side"
-          [option]="stockSideOption()"
-          [value]="stockSideChoice().value"
-          (choose)="chooseStockSide($event)"
-        />
+        @if (sideName()) {
+          <app-option-group
+            class="stock-side"
+            [option]="stockSideOption()"
+            [value]="stockSideChoice().value"
+            (choose)="chooseStockSide($event)"
+          />
+        }
       }
 
       <!-- Card Back Style -->

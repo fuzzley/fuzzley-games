@@ -481,9 +481,7 @@ describe("arrangedLayouts", () => {
   });
 
   it("refuses a side pile that is not in the row", () => {
-    expect(() => arrangedLayouts({ ...BOARD, side: "col-0" })).toThrow(
-      /col-0/,
-    );
+    expect(() => arrangedLayouts({ ...BOARD, side: "col-0" })).toThrow(/col-0/);
   });
 
   it("leaves a board without a side pile without one", () => {
