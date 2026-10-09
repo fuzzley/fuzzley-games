@@ -82,6 +82,12 @@ Settled with the project owner on 2026-10-09.
   wider games split the piles over two rails, as Klondike does. A pile the
   player picks from, such as a cell or a reserve, may be overlapped down a rail
   as a foundation is, showing its index.
+- **No empty pile under a card on a rail.** Every pile's outline is drawn on one
+  layer beneath all the cards (`RenderLayer.PILE_BACKGROUND`), and cards stack
+  in the order the zones are declared. So a pile that can sit empty, such as a
+  foundation or a discard, may only follow an overlapped pile on a rail when
+  that pile is empty too or of its own kind; otherwise the card above hides it.
+  Found in 4.7.
 - **Shared spec helpers.** Every game gets a `<game>_layout.spec.ts`. The checks
   every arranged game shares (the longest column fits on six phone sizes under
   Auto and the four choices, the columns keep their order, the side pile lands
@@ -197,7 +203,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 4.4 Eight Off
 - [x] 4.5 Penguin
 - [x] 4.6 Flower Garden
-- [ ] 4.7 Browser check
+- [x] 4.7 Browser check
 - [ ] 5.1 Poker Squares
 - [ ] 5.2 Monte Carlo
 - [ ] 5.3 Aces Up
@@ -444,11 +450,11 @@ The reserve is the side pile, so Auto puts its four cards at the bottom right
 of a phone and the discard at the bottom left. The drawer says "reserve and
 discard" and "Reserve Side", as the rules page does. Columns only shrink from
 six, so the grids need room for six. On a sideways phone everything shares one
-rail at the right: the four reserve cards overlapped, each showing about 54
-units, above the whole discard; the rail (513 at the floor) fits beside a
-column of six (528), so the grid is no taller than the columns, and one rail
-rather than two leaves the width-bound board a grid column narrower. The grid
-with the piles below needs 941 of the grid above's 987.
+rail at the right, which leaves the width-bound board a grid column narrower
+than two rails would: the reserve cards, then the discard. (This commit
+overlapped all four reserve cards to keep the rail beside a column of six; 4.7
+found the empty discard hidden under the last one and shows that one whole.)
+The grid with the piles below needs 941 of the grid above's 987.
 
 ### 3.4 Yukon, Simple Simon
 
@@ -585,14 +591,46 @@ there with the piles below. An upright phone is six wide: the beds from its
 left edge, the foundations centred next to them (columns 1 to 4), and the
 bouquet fanned across the whole width on the edge, a third of a column apart,
 which shows more of each card than a larger screen does. On a sideways phone
-the bouquet's first eight cards stack down the left rail and the other eight,
-then the foundations, down the right, all overlapped to their index: one rail
-of sixteen would need 1063 design units against the beds' 888 and shrink the
-cards by about a sixth, where two stay under the beds' height. The phone grids
-keep a fifteen-card bed on screen; the grid with the piles below needs 1265 of
-the 1377 it has. The drawer says "bouquet and foundations".
+the foundations stack down the left rail and all sixteen bouquet cards down the
+right, each overlapped to its index. (This commit first split the bouquet over
+both rails with the foundations under its second half, to keep the rails under
+the beds' 888; 4.7 found the empty foundations hidden that way and changed it.
+The single bouquet rail needs 1063, so the cards on a sideways phone are about
+a sixth smaller.) The phone grids keep a fifteen-card bed on screen; the grid
+with the piles below needs 1265 of the 1377 it has. The drawer says "bouquet
+and foundations".
 
-Every overlapped rail so far relies on a pile below being drawn over the pile
-above it, which holds because each game declares its zones in the order its
-rails stack them (bouquet before foundations, stock before reserves, cells
-before foundations).
+### 4.7 Browser check, and two rails fixed
+
+Checked against `yarn start` in an isolated context.
+
+- **Eight Off, 390 × 844 upright.** Eight columns across the full width; the
+  four foundations centred in the line above the cells, the eight cells along
+  the bottom edge, the four dealt to cells at the right with the side on Auto.
+- **Flower Garden, 390 × 844 upright.** Six beds; the foundations centred
+  above the bouquet, which fans across the whole bottom edge with every rank
+  readable.
+- **Flower Garden, 844 × 390 on its side: broken, then fixed.** With the
+  bouquet split over both rails, the four empty foundations under the second
+  half were hidden behind the last bouquet card; only the bottom of one
+  outline showed. Every pile's outline is drawn on one layer beneath all cards
+  (`depthFor(RenderLayer.PILE_BACKGROUND)` in
+  `src/engine/tableau/view/table_view_builder.ts`), so an empty pile cannot
+  tuck under a card. The foundations now have the left rail to themselves and
+  the bouquet the right; the cards are about a sixth smaller there, and every
+  rank and every foundation shows.
+- **Nestor, 844 × 390 on its side: the same, then fixed.** The empty discard
+  showed as a sliver under the fourth reserve card. That card now shows whole,
+  with the discard below it; the rail grows to 786, which costs no card size
+  because the board is held to a sideways phone's width (a new spec checks the
+  scale at three sideways sizes).
+- **Canfield, 844 × 390 on its side.** With the side on Auto: the foundations
+  down the left rail, the four columns, the reserve, and the stock on the right
+  rail, the reserve beside the stock as intended.
+
+The other rails were checked against the same rule by reading them: the
+foundations-only rails (as Klondike's), the cell rails, Golf's stock over a
+foundation that always holds a card, and Bristol's reserves, which only the
+stock fills, are all fine. A filled foundation still hides the ring of an empty
+one below it down a foundation rail, as in Klondike on `main`; the outline below
+the card still marks it. The page was closed afterwards.

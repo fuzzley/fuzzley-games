@@ -50,8 +50,12 @@ export const FLOWER_GARDEN_LAYOUT = boardLayout({
  * above the beds or along the bottom; an upright phone, as wide as the beds,
  * takes them in two lines, the foundations centred next to the beds and the
  * bouquet fanned across the whole width on the edge. On a phone on its side,
- * the bouquet's cards stack down both rails, each showing its index, with the
- * foundations under the second half, so neither rail is taller than the beds.
+ * the foundations stack down one rail and the bouquet's cards the other, each
+ * showing its index.
+ *
+ * The foundations never share a rail with the bouquet: an empty pile's outline
+ * is drawn beneath every card, so the bouquet card above one would hide it.
+ * Sixteen cards make that rail taller than the beds, and the cards smaller.
  *
  * It has no side pile: a mirror would turn the bouquet's fan around, leaving
  * each card's right edge in view rather than the corner its rank is printed
@@ -72,13 +76,8 @@ export const FLOWER_GARDEN_ARRANGED_LAYOUTS = arrangedLayouts({
     })),
   ],
   rails: {
-    left: BOUQUET.slice(0, BOUQUET_SIZE / 2).map((pileId) => ({
-      pileId,
-      overlapped: true,
-    })),
-    right: [...BOUQUET.slice(BOUQUET_SIZE / 2), ...FOUNDATIONS].map(
-      (pileId) => ({ pileId, overlapped: true }),
-    ),
+    left: FOUNDATIONS.map((pileId) => ({ pileId, overlapped: true })),
+    right: BOUQUET.map((pileId) => ({ pileId, overlapped: true })),
   },
   // A fifteen-card bed. The grid with the piles below needs no more height
   // than the grid above has.
