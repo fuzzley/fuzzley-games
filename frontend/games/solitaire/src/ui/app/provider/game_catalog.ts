@@ -51,7 +51,10 @@ import {
 import { BakersDozenGame } from "@/games/bakers_dozen/bakers_dozen_game";
 import { BAKERS_DOZEN_LAYOUT } from "@/games/bakers_dozen/bakers_dozen_layout";
 import { SeahavenGame } from "@/games/seahaven/seahaven_game";
-import { SEAHAVEN_LAYOUT } from "@/games/seahaven/seahaven_layout";
+import {
+  SEAHAVEN_ARRANGED_LAYOUTS,
+  SEAHAVEN_LAYOUT,
+} from "@/games/seahaven/seahaven_layout";
 import { FortyThievesGame } from "@/games/forty_thieves/forty_thieves_game";
 import { FortyThievesVariant } from "@/games/forty_thieves/forty_thieves_rules";
 import {
@@ -1054,6 +1057,11 @@ const SEAHAVEN = {
   name: "Seahaven Towers",
   options: [],
   layout: SEAHAVEN_LAYOUT,
+  arrangement: {
+    layouts: SEAHAVEN_ARRANGED_LAYOUTS,
+    pilesName: "cells and foundations",
+    sideName: "cells",
+  },
   create: () => dealt(new SeahavenGame()),
 } satisfies CatalogEntry<SeahavenGame>;
 

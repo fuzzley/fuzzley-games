@@ -186,7 +186,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 2.5 Golf
 - [x] 2.6 Browser check
 - [x] 3.1 FreeCell family
-- [ ] 3.2 Seahaven Towers
+- [x] 3.2 Seahaven Towers
 - [ ] 3.3 Nestor
 - [ ] 3.4 Yukon, Simple Simon
 - [ ] 3.5 Mrs. Mop, Baker's Dozen
@@ -428,3 +428,12 @@ column of thirteen on screen; the grid with the piles below needs 1193 (cards
 90% the size), so it takes no cap. `RailPile.overlapped`'s doc now names
 cells and reserves beside foundations. The catalog mock's FreeCell stays
 unarranged, now described as standing in for a game that is not.
+
+### 3.2 Seahaven Towers
+
+FreeCell's arrangement over ten columns: the cells as the side pile, the cells
+down the left rail and the foundations down the right on a sideways phone (grid
+columns 0 and 11 of 12). Its rules page says "cells", so the drawer does too:
+"cells and foundations" and "Cells Side". The phone grids keep fourteen cards
+on screen; the grid with the piles below needs 1229 of the grid above's 1327,
+so it neither grows nor takes a cap.
