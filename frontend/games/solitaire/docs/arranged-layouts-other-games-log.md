@@ -172,7 +172,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 ## Progress
 
 - [x] 0.1 Record the plan
-- [ ] 1.1 Side pile
+- [x] 1.1 Side pile
 - [ ] 1.2 Catalog and drawer
 - [ ] 1.3 Cap
 - [ ] 1.4 Columns where the larger screen has them
@@ -210,3 +210,13 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 ### 0.1 Record the plan
 
 This log, from the survey of the catalog and the owner's four decisions.
+
+### 1.1 Side pile
+
+`ArrangedLayouts.stock` is now `side?`, documented as the stock or the pile
+that stands in for it, and `chooseTableLayout` leaves a grid alone when there
+is none. The builder's `ArrangedBoard.stock` became `side?` too, checked to
+be in the row only when given (`checkSide`). Klondike and Spider name their
+stock as `side`; the board scene's spec moved with them. New specs: the
+chooser never mirrors a board without a side pile, and the builder hands on its
+absence.
