@@ -183,7 +183,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 2.2 Scorpion
 - [x] 2.3 Forty Thieves family
 - [x] 2.4 Bristol
-- [ ] 2.5 Golf
+- [x] 2.5 Golf
 - [ ] 2.6 Browser check
 - [ ] 3.1 FreeCell family
 - [ ] 3.2 Seahaven Towers
@@ -373,3 +373,16 @@ pile only its top card leaves. The phone grids keep a fan of thirteen on screen;
 the grid with the piles below needs 1193 of the grid above's 1227, so it does
 not grow and takes no cap. The drawer calls the row "stock, reserves and
 foundations".
+
+### 2.5 Golf
+
+Golf and its variants take the stock and the foundation above or below the
+seven columns; upright with the stock at the right, the foundation sits beside
+it towards the columns. Columns only shrink from their five dealt cards, so the
+phone grids need room for five, and their fans open towards the cap. On a
+sideways phone both piles share the right rail with the stock marked
+`overlapped`: the foundation, whose card a player must read whole, sits
+uncovered below, and the stock tucks under it as far as it must, so the rail is
+no taller than a column of five and the cards are as big as the columns allow.
+The grid with the piles below needs 905 of the grid above's 947. The drawer
+calls the row "stock and foundation".
