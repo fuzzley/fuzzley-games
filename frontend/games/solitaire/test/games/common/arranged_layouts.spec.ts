@@ -48,7 +48,7 @@ const BOARD: ArrangedBoard = {
   roomy: ROOMY,
   columns: COLUMNS,
   row: ROW,
-  stock: "stock",
+  side: "stock",
   rails: {
     left: [
       { pileId: "found-0", overlapped: true },
@@ -144,8 +144,8 @@ describe("arrangedLayouts", () => {
     expect(layouts.columns).toEqual(COLUMNS);
   });
 
-  it("names the stock, whose side decides the mirror", () => {
-    expect(layouts.stock).toBe("stock");
+  it("names the side pile, whose side decides the mirror", () => {
+    expect(layouts.side).toBe("stock");
   });
 
   describe("a larger screen, piles above", () => {
@@ -349,7 +349,7 @@ describe("arrangedLayouts", () => {
         roomy: ROOMY,
         columns: COLUMNS,
         row: ids.map((pileId, column) => ({ pileId, column })),
-        stock: "found-0",
+        side: "found-0",
         rails: {
           left: ids.map((pileId) => ({ pileId, overlapped: true })),
           right: [],
@@ -480,9 +480,15 @@ describe("arrangedLayouts", () => {
     ).toThrow(/found-0/);
   });
 
-  it("refuses a stock that is not in the row", () => {
-    expect(() => arrangedLayouts({ ...BOARD, stock: "col-0" })).toThrow(
+  it("refuses a side pile that is not in the row", () => {
+    expect(() => arrangedLayouts({ ...BOARD, side: "col-0" })).toThrow(
       /col-0/,
     );
+  });
+
+  it("leaves a board without a side pile without one", () => {
+    const layouts = arrangedLayouts({ ...BOARD, side: undefined });
+
+    expect(layouts.side).toBeUndefined();
   });
 });

@@ -50,7 +50,7 @@ export const KLONDIKE_ARRANGED_LAYOUTS = arrangedLayouts({
   roomy: KLONDIKE_LAYOUT,
   columns: pileIdsInRow(ZONES, 1),
   row: pilesInRow(ZONES, 0),
-  stock: STOCK_PILE_ID,
+  side: STOCK_PILE_ID,
   rails: {
     left: FOUNDATIONS.map((pileId) => ({ pileId, overlapped: true })),
     right: [

@@ -71,8 +71,11 @@ export interface ArrangedBoard {
   readonly columns: readonly string[];
   /** The other piles, in the row above the columns on a larger screen. */
   readonly row: readonly RowPile[];
-  /** The pile in the row the stock side places. */
-  readonly stock: string;
+  /**
+   * The pile in the row the side setting places, such as the stock; a board
+   * without one is never mirrored, and the setting is not offered.
+   */
+  readonly side?: string;
   /**
    * Which of the row's piles stack down each rail on a phone on its side, top
    * first. Every pile in the row goes on exactly one.
@@ -132,15 +135,15 @@ export const RAIL_MIN_STEP = 50;
  * its side.
  *
  * Every grid keeps the row in the order a larger screen has it, and the rails
- * as declared; the chooser mirrors a grid that leaves the stock on the other
- * side from the one the player asked for.
+ * as declared; the chooser mirrors a grid that leaves the side pile on the
+ * other side from the one the player asked for.
  *
  * @throws Error when a pile in the row is on no rail, or on both, or when the
- *   stock is not in the row.
+ *   side pile is not in the row.
  */
 export function arrangedLayouts(board: ArrangedBoard): ArrangedLayouts {
   checkRails(board);
-  checkStock(board);
+  checkSide(board);
   const columns = Math.max(
     board.columns.length,
     ...board.row.map((pile) => pile.column + 1),
@@ -157,7 +160,7 @@ export function arrangedLayouts(board: ArrangedBoard): ArrangedLayouts {
       bottom: pilesBeside(board, columnHeight, "bottom"),
     },
     columns: board.columns,
-    stock: board.stock,
+    side: board.side,
   };
 }
 
@@ -463,9 +466,10 @@ function checkRails(board: ArrangedBoard): void {
   }
 }
 
-/** Throws unless the stock is a pile in the row. */
-function checkStock(board: ArrangedBoard): void {
-  if (!board.row.some((pile) => pile.pileId === board.stock)) {
-    throw new Error(`The stock is not a pile in the row: ${board.stock}`);
+/** Throws unless the side pile, if there is one, is a pile in the row. */
+function checkSide(board: ArrangedBoard): void {
+  const { side } = board;
+  if (side !== undefined && !board.row.some((pile) => pile.pileId === side)) {
+    throw new Error(`The side pile is not a pile in the row: ${side}`);
   }
 }

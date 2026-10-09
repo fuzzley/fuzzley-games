@@ -368,7 +368,7 @@ describe("makeTableBoardScene on a game with arranged grids", () => {
           portrait: { top: PHONE_GRID, bottom: PHONE_GRID },
           landscape: { top: PHONE_GRID, bottom: PHONE_GRID },
           columns: COLUMNS,
-          stock: game.stock.id,
+          side: game.stock.id,
         },
       },
       handleIntent: fakeTableGestures(game),
