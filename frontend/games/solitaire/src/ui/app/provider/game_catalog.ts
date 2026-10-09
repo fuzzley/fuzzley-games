@@ -153,7 +153,10 @@ import {
   LaBelleLucieVariant,
 } from "@/games/la_belle_lucie/la_belle_lucie_rules";
 import { CanfieldGame } from "@/games/canfield/canfield_game";
-import { CANFIELD_LAYOUT } from "@/games/canfield/canfield_layout";
+import {
+  CANFIELD_ARRANGED_LAYOUTS,
+  CANFIELD_LAYOUT,
+} from "@/games/canfield/canfield_layout";
 import {
   CanfieldVariant,
   DEFAULT_CANFIELD_VARIANT,
@@ -1348,6 +1351,11 @@ const CANFIELD = {
   name: "Canfield",
   options: [CANFIELD_VARIANT],
   layout: CANFIELD_LAYOUT,
+  arrangement: {
+    layouts: CANFIELD_ARRANGED_LAYOUTS,
+    pilesName: "stock, waste and foundations",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(new CanfieldGame({ variant: optionRule(values, CANFIELD_VARIANT) })),
 } satisfies CatalogEntry<CanfieldGame>;
