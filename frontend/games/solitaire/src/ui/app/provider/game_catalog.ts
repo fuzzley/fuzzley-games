@@ -52,9 +52,13 @@ import { SEAHAVEN_LAYOUT } from "@/games/seahaven/seahaven_layout";
 import { FortyThievesGame } from "@/games/forty_thieves/forty_thieves_game";
 import { FortyThievesVariant } from "@/games/forty_thieves/forty_thieves_rules";
 import {
+  FORTY_THIEVES_ARRANGED_LAYOUTS,
   FORTY_THIEVES_LAYOUT,
+  LIMITED_ARRANGED_LAYOUTS,
   LIMITED_LAYOUT,
+  LUCAS_ARRANGED_LAYOUTS,
   LUCAS_LAYOUT,
+  MARIA_ARRANGED_LAYOUTS,
   MARIA_LAYOUT,
 } from "@/games/forty_thieves/forty_thieves_layout";
 import { MontanaGame } from "@/games/montana/montana_game";
@@ -1042,6 +1046,11 @@ const FORTY_THIEVES = {
   name: "Forty Thieves",
   options: [FORTY_THIEVES_VARIANT],
   layout: FORTY_THIEVES_LAYOUT,
+  arrangement: {
+    layouts: FORTY_THIEVES_ARRANGED_LAYOUTS,
+    pilesName: "stock, waste and foundations",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(
       new FortyThievesGame({
@@ -1060,6 +1069,11 @@ const MARIA = {
   name: "Maria",
   options: [],
   layout: MARIA_LAYOUT,
+  arrangement: {
+    layouts: MARIA_ARRANGED_LAYOUTS,
+    pilesName: "stock, waste and foundations",
+    sideName: "stock",
+  },
   create: () =>
     dealt(new FortyThievesGame({ variant: FortyThievesVariant.MARIA })),
 } satisfies CatalogEntry<FortyThievesGame>;
@@ -1069,6 +1083,11 @@ const LIMITED = {
   name: "Limited",
   options: [],
   layout: LIMITED_LAYOUT,
+  arrangement: {
+    layouts: LIMITED_ARRANGED_LAYOUTS,
+    pilesName: "stock, waste and foundations",
+    sideName: "stock",
+  },
   create: () =>
     dealt(new FortyThievesGame({ variant: FortyThievesVariant.LIMITED })),
 } satisfies CatalogEntry<FortyThievesGame>;
@@ -1078,6 +1097,11 @@ const LUCAS = {
   name: "Lucas",
   options: [],
   layout: LUCAS_LAYOUT,
+  arrangement: {
+    layouts: LUCAS_ARRANGED_LAYOUTS,
+    pilesName: "stock, waste and foundations",
+    sideName: "stock",
+  },
   create: () =>
     dealt(new FortyThievesGame({ variant: FortyThievesVariant.LUCAS })),
 } satisfies CatalogEntry<FortyThievesGame>;

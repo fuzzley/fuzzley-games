@@ -181,7 +181,7 @@ Trefoil (two rows of fans, little gained by moving their few piles).
 - [x] 1.6 Spec helpers
 - [x] 2.1 Spiderette, Easthaven
 - [x] 2.2 Scorpion
-- [ ] 2.3 Forty Thieves family
+- [x] 2.3 Forty Thieves family
 - [ ] 2.4 Bristol
 - [ ] 2.5 Golf
 - [ ] 2.6 Browser check
@@ -345,3 +345,18 @@ hidden cards under fifteen face up on screen, a king-to-ace run with what a
 move carried onto it. The grid with the piles below would need 1295 (cards 83%
 the size); its cap is 1267 (85%), under which three hidden cards under fourteen
 face up clear the row.
+
+### 2.3 Forty Thieves family
+
+`fortyThievesArrangedLayouts(roomy, variant)` builds the four boards' grids:
+Forty Thieves (shared by Josephine, Rank and File, Indian and Number Ten),
+Maria, Limited and Lucas. On a sideways phone the eight foundations stack down
+the left rail, overlapped, and the stock stands above the waste on the right,
+as in Klondike; one rail of ten piles would have been taller than the columns
+(1309 against 848), costing more than the second rail's width. The phone grids
+keep fourteen face-up cards on screen, which also covers Rank and File's three
+hidden cards under a full run. At ten columns or wider the grid with the piles
+below needs only 1229 of the 1327 the grid above already has, so no board
+grows or takes a cap. The drawer calls the row "stock, waste and foundations".
+Lucas and Limited stay narrow upright (thirteen and twelve columns); their gain
+is the bottom row and the rails.
