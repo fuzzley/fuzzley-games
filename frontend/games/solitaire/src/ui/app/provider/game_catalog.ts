@@ -67,10 +67,16 @@ import {
 import { DoubleKlondikeGame } from "@/games/double_klondike/double_klondike_game";
 import { DOUBLE_KLONDIKE_LAYOUT } from "@/games/double_klondike/double_klondike_layout";
 import { EasthavenGame } from "@/games/easthaven/easthaven_game";
-import { EASTHAVEN_LAYOUT } from "@/games/easthaven/easthaven_layout";
+import {
+  EASTHAVEN_ARRANGED_LAYOUTS,
+  EASTHAVEN_LAYOUT,
+} from "@/games/easthaven/easthaven_layout";
 import { SpideretteGame } from "@/games/spiderette/spiderette_game";
 import { SpideretteVariant } from "@/games/spiderette/spiderette_rules";
-import { SPIDERETTE_LAYOUT } from "@/games/spiderette/spiderette_layout";
+import {
+  SPIDERETTE_ARRANGED_LAYOUTS,
+  SPIDERETTE_LAYOUT,
+} from "@/games/spiderette/spiderette_layout";
 import { BisleyGame } from "@/games/bisley/bisley_game";
 import { BISLEY_LAYOUT } from "@/games/bisley/bisley_layout";
 import { AcesUpGame } from "@/games/aces_up/aces_up_game";
@@ -1104,6 +1110,11 @@ const EASTHAVEN = {
   name: "Easthaven",
   options: [],
   layout: EASTHAVEN_LAYOUT,
+  arrangement: {
+    layouts: EASTHAVEN_ARRANGED_LAYOUTS,
+    pilesName: "stock and foundations",
+    sideName: "stock",
+  },
   create: () => dealt(new EasthavenGame()),
 } satisfies CatalogEntry<EasthavenGame>;
 
@@ -1112,6 +1123,11 @@ const SPIDERETTE = {
   name: "Spiderette",
   options: [SPIDERETTE_VARIANT],
   layout: SPIDERETTE_LAYOUT,
+  arrangement: {
+    layouts: SPIDERETTE_ARRANGED_LAYOUTS,
+    pilesName: "stock and foundations",
+    sideName: "stock",
+  },
   create: (values: GameOptionValues) =>
     dealt(
       new SpideretteGame({ variant: optionRule(values, SPIDERETTE_VARIANT) }),
