@@ -38,7 +38,10 @@ import {
   YUKON_LAYOUT,
 } from "@/games/yukon/yukon_layout";
 import { EightOffGame } from "@/games/eight_off/eight_off_game";
-import { EIGHT_OFF_LAYOUT } from "@/games/eight_off/eight_off_layout";
+import {
+  EIGHT_OFF_ARRANGED_LAYOUTS,
+  EIGHT_OFF_LAYOUT,
+} from "@/games/eight_off/eight_off_layout";
 import { ScorpionGame } from "@/games/scorpion/scorpion_game";
 import { ScorpionVariant } from "@/games/scorpion/scorpion_rules";
 import {
@@ -1027,6 +1030,11 @@ const EIGHT_OFF = {
   name: "Eight Off",
   options: [],
   layout: EIGHT_OFF_LAYOUT,
+  arrangement: {
+    layouts: EIGHT_OFF_ARRANGED_LAYOUTS,
+    pilesName: "cells and foundations",
+    sideName: "cells",
+  },
   create: () => dealt(new EightOffGame()),
 } satisfies CatalogEntry<EightOffGame>;
 
