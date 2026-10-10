@@ -1,12 +1,15 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { computeDropGeometries } from "@/engine/render/layout/drop_geometry";
+import {
+  computeDropGeometries,
+  PileGeometry,
+} from "@/engine/render/layout/drop_geometry";
 import { measureFakeTable } from "@test/support/fake_table/board";
 import { resolveDragTarget, stackFromCard } from "@/engine/tableau/view/drag";
 import {
   CARD_HEIGHT_PX,
   CARD_WIDTH_PX,
 } from "@/engine/render/layout/card_metrics";
-import { PileGeometry, Viewport } from "@/engine/render/view/table_view_state";
+import { Viewport } from "@/engine/render/layout/viewport";
 import { FakeTableGame } from "@test/support/fake_table/game";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 

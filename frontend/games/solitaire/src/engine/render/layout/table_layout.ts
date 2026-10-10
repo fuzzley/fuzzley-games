@@ -1,5 +1,5 @@
-import { Point } from "@/engine/core/common/point";
-import { Insets, NO_INSETS, Viewport } from "../view/table_view_state";
+import { Point, Size } from "../geometry";
+import { Insets, NO_INSETS, Viewport } from "./viewport";
 import {
   CARD_HEIGHT_PX,
   CARD_WIDTH_PX,
@@ -10,12 +10,6 @@ import {
 } from "./card_metrics";
 import type { FanFit, PileLayoutOverride } from "./pile_layout";
 import { formFactorOf } from "./form_factor";
-
-/** Holds a width and height in design units. */
-export interface Size {
-  width: number;
-  height: number;
-}
 
 /** Places one pile in the table's grid. */
 export interface SlotPlacement {

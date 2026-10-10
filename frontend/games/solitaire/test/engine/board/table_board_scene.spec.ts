@@ -6,12 +6,12 @@ import {
   playingCardInstanceId,
 } from "@/engine/core/card/playing_card";
 import { DEFAULT_DESKTOP_CARD_DECK } from "@/engine/render/card_deck";
-import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
+import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
 import { designSize, measureTable } from "@/engine/render/layout/table_layout";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { cardAtlasTextureKey } from "@/engine/render/phaser/card_deck_atlas";
 import { makeTableBoardScene } from "@/engine/board/table_board_scene";
-import { NO_INSETS } from "@/engine/render/view/table_view_state";
+import { NO_INSETS } from "@/engine/render/layout/viewport";
 import { mirrorTable } from "@/engine/render/layout/board_layouts";
 import {
   FAKE_TABLE_LAYOUT,

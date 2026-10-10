@@ -2,7 +2,7 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { HostedGame, PhaserHost } from "@/engine/render/phaser/phaser_host";
-import { Insets } from "@/engine/render/view/table_view_state";
+import { Insets } from "@/engine/render/layout/viewport";
 import { FakeTableGame } from "@test/support/fake_table/game";
 import { makeFakeTableBoardScene } from "@test/support/fake_table/scene";
 import { TestPresentation } from "@test/support/presentation";

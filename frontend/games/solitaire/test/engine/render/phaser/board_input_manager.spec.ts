@@ -7,7 +7,7 @@ import {
   BoardInputManager,
   InputHost,
 } from "@/engine/render/phaser/board_input_manager";
-import { Viewport } from "@/engine/render/view/table_view_state";
+import { Viewport } from "@/engine/render/layout/viewport";
 import {
   FAKE_TABLE_LAYOUT,
   fakeTableGestures,

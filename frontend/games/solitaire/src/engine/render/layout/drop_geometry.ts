@@ -1,9 +1,13 @@
 import { Card } from "@/engine/core/card/card";
 import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { Point } from "@/engine/core/common/point";
-import { PileGeometry, Rect } from "../view/table_view_state";
+import { Point, Rect, Size } from "../geometry";
 import { PileLayout, pileBounds } from "./pile_layout";
-import { Size } from "./table_layout";
+
+/** Describes the screen rectangle a pile occupies. */
+export interface PileGeometry extends Rect {
+  /** The unique id of the pile this geometry belongs to. */
+  pileId: string;
+}
 
 /** Describes a pile a dragged stack may be dropped onto. */
 export interface DropCandidate {

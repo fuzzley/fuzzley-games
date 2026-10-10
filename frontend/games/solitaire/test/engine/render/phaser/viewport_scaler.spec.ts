@@ -4,9 +4,9 @@ import {
   PixelRatioQuery,
   ScalableGame,
   ScalerWindow,
+  ViewportScaler,
 } from "@/engine/render/phaser/viewport_scaler";
-import { ViewportScaler } from "@/engine/render/phaser/viewport_scaler";
-import { NO_INSETS } from "@/engine/render/view/table_view_state";
+import { NO_INSETS } from "@/engine/render/layout/viewport";
 
 /** Stands in for a media query, recording listeners to fire a DPR change. */
 class FakePixelRatioQuery implements PixelRatioQuery {

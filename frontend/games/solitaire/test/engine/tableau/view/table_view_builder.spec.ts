@@ -11,16 +11,14 @@ import {
 import { measureTable } from "@/engine/render/layout/table_layout";
 import { buildTableViewState } from "@/engine/tableau/view/table_view_builder";
 import { resolveDragTarget } from "@/engine/tableau/view/drag";
-import {
-  PileBackgroundView,
-  TableInteractionState,
-  Viewport,
-} from "@/engine/render/view/table_view_state";
+import { PileBackgroundView } from "@/engine/render/view/table_view_state";
+import { TableInteractionState } from "@/engine/render/input/interaction_state";
+import { Viewport } from "@/engine/render/layout/viewport";
 import {
   CARD_RENDER_WIDTH_PX,
   CARD_RENDER_HEIGHT_PX,
 } from "@/engine/render/layout/card_metrics";
-import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
+import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
 import {
   TABLEAU_FACE_UP_OFFSET,
   TABLEAU_FACE_DOWN_OFFSET,

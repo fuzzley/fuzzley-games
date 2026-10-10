@@ -1,6 +1,6 @@
 import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
+import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
 import {
   TableLayoutSpec,
   TableMetrics,

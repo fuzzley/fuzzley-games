@@ -18,11 +18,7 @@ import {
   TableLayoutSpec,
   measureTable,
 } from "@/engine/render/layout/table_layout";
-import {
-  Insets,
-  NO_INSETS,
-  Viewport,
-} from "@/engine/render/view/table_view_state";
+import { Insets, NO_INSETS, Viewport } from "@/engine/render/layout/viewport";
 import { PHONE_FAN_FIT } from "@/games/common/pile_layouts";
 
 /**

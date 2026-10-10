@@ -32,7 +32,7 @@ import {
   residentCardAtlases,
 } from "@/engine/render/phaser/card_deck_atlas";
 import { PhaserCardFactory } from "@/engine/render/phaser/phaser_card_factory";
-import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
+import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
 import {
   computePileOrigins,
   computeScale,

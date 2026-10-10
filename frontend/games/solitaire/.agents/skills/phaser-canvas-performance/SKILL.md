@@ -97,7 +97,7 @@ if (cardSprite) {
 
 Order sprites with depth, never by removing and re-adding children to
 containers. **Take the value from `depthFor(RenderLayer.X)`
-(`src/engine/render/layout/render_layers.ts`) rather than inventing a number.**
+(`src/engine/render/view/render_layers.ts`) rather than inventing a number.**
 That enum is the board's whole z-order, back to front, and each layer owns a
 band 1000 wide — which is what lets a card be ordered within its pile with no
 risk of overtaking the layer above.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
+import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
 
 /** The layers in the order they are meant to be drawn, back to front. */
 const LAYERS_BACK_TO_FRONT: readonly RenderLayer[] = [

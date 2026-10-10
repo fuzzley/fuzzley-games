@@ -1,13 +1,13 @@
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { Point } from "@/engine/core/common/point";
+import { Point } from "@/engine/render/geometry";
 import { pileCardOffsets } from "@/engine/render/layout/pile_layout";
-import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
+import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
 import { TableMetrics } from "@/engine/render/layout/table_layout";
 import {
   CardView,
-  TableInteractionState,
   TableViewState,
 } from "@/engine/render/view/table_view_state";
+import { TableInteractionState } from "@/engine/render/input/interaction_state";
 import { itemAt } from "@/engine/core/common/item_at";
 import { ZoneLook, frameFor, showsFace } from "../zones/zone_look";
 import { highlightViews } from "./highlight_views";

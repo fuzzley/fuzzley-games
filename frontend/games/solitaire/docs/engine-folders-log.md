@@ -58,6 +58,14 @@ A second script, `split-spec.mjs <config.json>`, splits a spec file's top-level
 its blocks use (it can over-keep a helper whose name is also a property name;
 `yarn tsc` reports it as unused).
 
+A third, `move-decls.mjs <from.ts> <to.ts> <name...> [--before <name>]`,
+moves named top-level declarations with their doc comments, carries the
+imports they use (re-relativised), prunes the source's unused imports, and
+imports a moved name back into the source if it still uses it.
+
+The rewrite script emits a relative path for any same-tier target, whatever
+the original specifier, since engine files never alias their own tier.
+
 Run the rewrite right after the `git mv`s and before hand edits to the moved
 files: then every relative path in a moved file is still written from its old
 place. If the script is
@@ -150,7 +158,7 @@ engine/render/
 - [x] **Phase 2:** tableau `moves/`, `dealing/`, `session/`, `gestures/`;
       slim `TableGame` and `DealtTableGame`.
 - [x] **Phase 3:** tableau `view/` split; move the `resolveDragTarget` spec.
-- [ ] **Phase 4:** render `geometry.ts`, `layout/viewport.ts`,
+- [x] **Phase 4:** render `geometry.ts`, `layout/viewport.ts`,
       `input/interaction_state.ts`, `view/render_layers.ts`.
 - [ ] **Phase 5:** render `table_metrics.ts`, `board_arrangement.ts`, `deck/`.
 - [ ] **Phase 6:** phaser `host/`, `deck/`, `scene/`; `bootCardAtlas`.
@@ -218,3 +226,13 @@ Each phase also fixes the skill, tool-comment and doc paths it breaks, since
 - Noted for phase 5: `drop_geometry.spec.ts` also tests `computeScale`,
   `computePileOrigins` and the pile offsets on the fake table, beside the
   dedicated specs for those modules.
+- **Phase 4 done.** `core/common/point.ts` became `render/geometry.ts`
+  (nothing in core used `Point`), joined by `Size` from
+  `layout/table_layout.ts` and `Rect` from `view/table_view_state.ts`.
+  `Viewport`/`Insets`/`NO_INSETS` moved to `layout/viewport.ts`,
+  `PileGeometry` to `layout/drop_geometry.ts`, the drag, flight and
+  interaction state to `input/interaction_state.ts`, and
+  `layout/render_layers.ts` to `view/render_layers.ts` (spec too).
+  `layout/` no longer imports from `view/`, and the
+  `pile_layout` ↔ `table_layout` type cycle is gone. Skills
+  `phaser-core` and `phaser-canvas-performance` re-pointed. 6846 tests.
