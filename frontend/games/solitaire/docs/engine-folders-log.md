@@ -166,7 +166,7 @@ engine/render/
       `input/interaction_state.ts`, `view/render_layers.ts`.
 - [x] **Phase 5:** render `table_metrics.ts`, `board_arrangement.ts`, `deck/`.
 - [x] **Phase 6:** phaser `host/`, `deck/`, `scene/`; `bootCardAtlas`.
-- [ ] **Docs:** AGENTS.md architecture section describes the new folders.
+- [x] **Docs:** AGENTS.md architecture section describes the new folders.
 - [ ] **Merge** to `main`, then delete this log.
 
 Each phase also fixes the skill, tool-comment and doc paths it breaks, since
@@ -269,3 +269,11 @@ Each phase also fixes the skill, tool-comment and doc paths it breaks, since
   its renderer as `TableRenderer`, so that interface has a consumer. The
   ESLint globs needed no change. AGENTS.md, four skills and
   `docs/phone-board-layouts.md` re-pointed. 6850 tests.
+- **Docs done.** AGENTS.md's layer breakdown now names the folders of
+  `render`, `render/phaser` and `tableau`.
+- **Smoke test** on `yarn start` in an isolated DevTools page: Klondike drew
+  from the atlas; a double press sent the Ace of Hearts to a foundation and
+  flipped the card under it; a stock press drew three; a drag put 7♥ on 8♣;
+  the hover border showed; at 390 × 844 the board switched to the mobile deck
+  and the phone grid with the game kept. No console errors or warnings. Page
+  closed and dev server stopped.
