@@ -3,7 +3,7 @@
 Cards look soft on a phone. This note follows a card from the atlas to the
 screen, measures where it loses sharpness, and sets out the options, from the
 atlas tool through Phaser to the canvas itself. The owner chose options 1 to 3
-on 2026-10-10; the work is tracked in
+on 2026-10-10, and options 4 to 6 the same day; the work is tracked in
 [card-sharpness-log.md](card-sharpness-log.md).
 
 The images in [`card-sharpness/`](card-sharpness/) are crops of Chrome
@@ -29,8 +29,23 @@ Built on `feature/card-sharpness`, options 1 to 3 as planned:
 DPR 3 on `main`, after options 1 and 2, and after all three. Which atlas each
 screen loads, and the costs, are in the [log](card-sharpness-log.md#log).
 
-One more thing dims the cards, found while checking this work and left for the
-owner: see [option 6](#6-lift-the-vignette-off-the-cards).
+Then on `feature/card-sharpness-4-6`, options 4 to 6:
+
+- **The canvas is sized in the device pixels the browser counts** (a
+  `ResizeObserver` on the `device-pixel-content-box`), where it counts them and
+  the canvas renders at the display's own ratio, so a fractional ratio such as
+  2.625 no longer leaves the canvas stretched by a fraction of a pixel. Phaser
+  measures the canvas for pointer input again once its size is pinned.
+- **The mobile deck is drawn at exactly the size the board shows it,** once the
+  layout scale has held for 250 ms, and its cards are drawn texel for texel.
+  Any change of size or deck puts the built atlas back until it is drawn again.
+  The desktop decks keep their built atlases, for the reasons under
+  [option 5](#5-draw-the-cards-at-their-exact-size-at-runtime-built-mobile-deck).
+- **The felt's light is painted under the cards,** inside the canvas, rather
+  than laid over them, so the cards near the board's edges keep their white.
+
+[mobile-drawn.png](card-sharpness/mobile-drawn.png) shows the mobile deck at DPR
+3 from the built 0.75× atlas and drawn at its exact size.
 
 ## How a card reached the screen
 
@@ -140,7 +155,7 @@ than Mitchell.
   - The card sheets are 1.7 MB SVGs, about 140 ms to draw one frame, so frames
     are drawn in parallel with resvg's `renderAsync`.
 
-### 4. Size the canvas in exact device pixels
+### 4. Size the canvas in exact device pixels (built)
 
 A `ResizeObserver` reading `devicePixelContentBoxSize` gives the canvas box in
 whole device pixels, so the backing store matches the screen exactly at any
@@ -149,7 +164,7 @@ stays as the fallback.
 
 - **Where:** `src/engine/render/phaser/host/viewport_scaler.ts`.
 
-### 5. Draw the cards at their exact size at runtime
+### 5. Draw the cards at their exact size at runtime (built, mobile deck)
 
 Every card on a board is drawn at one scale (`metrics.scale`). When that scale
 changes, the 56 card SVGs could be rasterized at exactly `round(220 × scale)` px
@@ -168,7 +183,13 @@ It needs:
 After options 1 to 3 the remaining gain is modest: compare panels 2 and 3 of
 [klondike-dpr3.png](card-sharpness/klondike-dpr3.png).
 
-### 6. Lift the vignette off the cards
+Built for the mobile deck only. Its faces and plain backs are generated SVG, a
+few kilobytes each once their ranks are paths. The desktop decks' cards live in
+three 1.7 MB Inkscape sheets with shared patterns, which would have to be split
+by hand and downloaded again at runtime, for cards the built densities already
+draw within two thirds of their size on screens where they are larger anyway.
+
+### 6. Lift the vignette off the cards (built, under the cards)
 
 Found while checking options 1 to 3. The grey wash on some face-up cards is the
 vignette `game_canvas.component.scss` lays over the whole canvas
@@ -183,7 +204,8 @@ the whole bottom row of piles. Their white turns grey and their contrast drops.
 - **Or soften it on a phone,** where the board fills the screen, through the
   `compact` mixin and a weaker token.
 
-A design choice, so not made here.
+Built the first way, with options 4 and 5: a Phaser `Gradient` beneath every
+layer, with the CSS vignette's geometry.
 
 ### Not recommended
 
