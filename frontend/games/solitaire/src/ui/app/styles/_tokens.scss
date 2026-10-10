@@ -10,9 +10,6 @@
   // so the page behind the chrome matches the board.
   --table-felt: #{$felt};
 
-  // How dark the table gets at its edges. See the vignette in the game canvas.
-  --table-vignette: #{with-alpha($black, 0.38)};
-
   // --- Surfaces ---
   // Layered darks. `panel` is the chrome around the board, `raised` a card
   // sitting on it, `sunken` a well cut into one, `card` a bordered block

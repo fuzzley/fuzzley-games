@@ -276,6 +276,85 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
   return sprite;
 }
 
+/**
+ * Stands in for a Phaser Gradient, recording the config it was made with and
+ * where it was put.
+ */
+export interface MockGradient {
+  config: unknown;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  originX: number;
+  originY: number;
+  /**
+   * The origin in pixels, which Phaser works out when the origin is set and
+   * leaves alone on a resize.
+   */
+  displayOriginX: number;
+  displayOriginY: number;
+  depth: number;
+  destroyed: boolean;
+  setPosition(x: number, y: number): MockGradient;
+  setSize(width: number, height: number): MockGradient;
+  setOrigin(x: number, y: number): MockGradient;
+  updateDisplayOrigin(): MockGradient;
+  setDepth(depth: number): MockGradient;
+  destroy(): void;
+}
+
+/** Builds a {@link MockGradient} with recording setters. */
+export function createMockGradient(
+  config: unknown,
+  x = 0,
+  y = 0,
+  width = 128,
+  height = 128,
+): MockGradient {
+  const gradient: MockGradient = {
+    config,
+    x,
+    y,
+    width,
+    height,
+    originX: 0.5,
+    originY: 0.5,
+    displayOriginX: width / 2,
+    displayOriginY: height / 2,
+    depth: 0,
+    destroyed: false,
+    setPosition(newX, newY) {
+      gradient.x = newX;
+      gradient.y = newY;
+      return gradient;
+    },
+    setSize(newWidth, newHeight) {
+      gradient.width = newWidth;
+      gradient.height = newHeight;
+      return gradient;
+    },
+    setOrigin(newX, newY) {
+      gradient.originX = newX;
+      gradient.originY = newY;
+      return gradient.updateDisplayOrigin();
+    },
+    updateDisplayOrigin() {
+      gradient.displayOriginX = gradient.originX * gradient.width;
+      gradient.displayOriginY = gradient.originY * gradient.height;
+      return gradient;
+    },
+    setDepth(newDepth) {
+      gradient.depth = newDepth;
+      return gradient;
+    },
+    destroy() {
+      gradient.destroyed = true;
+    },
+  };
+  return gradient;
+}
+
 /** Casts a {@link MockSprite} to the Phaser sprite type expected by sources. */
 export function asSprite(sprite: MockSprite): Phaser.GameObjects.Sprite {
   return sprite as unknown as Phaser.GameObjects.Sprite;
@@ -776,7 +855,7 @@ export function createMockScaleManager(): MockScaleManager {
  */
 export function boardScenePhaserMock(): {
   Scene: new (...args: unknown[]) => {
-    add: { graphics: () => MockGraphics; sprite: Mock };
+    add: { graphics: () => MockGraphics; sprite: Mock; gradient: Mock };
     make: { sprite: Mock };
     scale: MockScaleManager;
     input: MockInput;
@@ -800,6 +879,15 @@ export function boardScenePhaserMock(): {
         sprite: vi.fn(
           (x?: number, y?: number, texture?: string, frame?: string) =>
             createMockSprite({ x, y, texture, frame }),
+        ),
+        gradient: vi.fn(
+          (
+            config: unknown,
+            x?: number,
+            y?: number,
+            width?: number,
+            height?: number,
+          ) => createMockGradient(config, x, y, width, height),
         ),
       };
       make = createMockMake();

@@ -35,13 +35,15 @@ export function cardArtScaleFor(layoutScale: number): CardArtScale {
 }
 
 /**
- * Returns the size of a card frame at a density: the card's design size
- * scaled and rounded to whole texels, since 307 units at 0.5x would otherwise
- * be 153.5.
+ * Returns the size of a card frame at a density, built or drawn at runtime:
+ * the card's design size scaled and rounded to whole texels, since 307 units at
+ * 0.5x would otherwise be 153.5.
  *
  * Mirrors `frameSize` in `tools/card-atlas/raster.mjs`.
+ *
+ * @param artScale Texels per design unit.
  */
-export function cardFrameTexels(artScale: CardArtScale): Size {
+export function cardFrameTexels(artScale: number): Size {
   return {
     width: Math.round(CARD_RENDER_WIDTH_PX * artScale),
     height: Math.round(CARD_RENDER_HEIGHT_PX * artScale),
@@ -52,11 +54,18 @@ export function cardFrameTexels(artScale: CardArtScale): Size {
  * Returns the scale on each axis that draws a frame of an atlas at a layout
  * scale, so a card is drawn at exactly its design size times the layout scale
  * whatever its frame was rounded to.
+ *
+ * A frame drawn for the very layout scale it is shown at is drawn texel for
+ * texel instead, a fraction of a pixel off its design size, since stretching
+ * it to fit would blur every texel across two pixels.
+ *
+ * @param artScale Texels per design unit of the frame.
  */
 export function cardSpriteScale(
   layoutScale: number,
-  artScale: CardArtScale,
+  artScale: number,
 ): { readonly x: number; readonly y: number } {
+  if (layoutScale === artScale) return { x: 1, y: 1 };
   const texels = cardFrameTexels(artScale);
   return {
     x: layoutScale * (CARD_RENDER_WIDTH_PX / texels.width),

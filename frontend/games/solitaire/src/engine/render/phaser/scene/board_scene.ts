@@ -1,10 +1,16 @@
-import { GameObjects, Renderer, Scene, Scenes } from "phaser";
+import { GameObjects, Renderer, Scene, Scenes, Textures } from "phaser";
 
 import { BoardDeckLoader } from "../deck/board_deck_loader";
+import {
+  DrawnDeckPainter,
+  DrawnDeckServices,
+  browserDrawnDeckServices,
+} from "../deck/drawn_deck_painter";
 import { PhaserCardFactory } from "./phaser_card_factory";
 import { BoardInputManager } from "./board_input_manager";
 import { PhaserTableRenderer } from "./phaser_table_renderer";
 import { PhaserSprites } from "./phaser_sprites";
+import { TableLight } from "./table_light";
 import { DragController, StackFromCard } from "../../input/drag_controller";
 import { IntentHandler } from "../../input/table_intents";
 import {
@@ -82,6 +88,13 @@ export interface BoardSceneOptions {
    * over it reaches, such as its header, in CSS pixels; none when omitted.
    */
   readonly insets?: () => Insets;
+  /**
+   * Returns what the board draws its deck at its exact size with: the
+   * browser's canvas and images when omitted, which a spec stands in for.
+   */
+  readonly drawnDeckServices?: (
+    textures: Textures.TextureManager,
+  ) => DrawnDeckServices;
 }
 
 /** Draws a game's board with Phaser and turns pointer input into intents. */
@@ -114,6 +127,15 @@ export class BoardScene extends Scene implements PhaserSprites {
 
   /** The loader for the deck the board is drawn from. */
   private deckLoader!: BoardDeckLoader;
+
+  /** Draws the deck at the board's exact size, where that helps. */
+  private drawnDeck!: DrawnDeckPainter;
+
+  /**
+   * The texture the cards, their shadows and the placeholders draw from: the
+   * loader's built atlas, or the deck drawn at the board's exact size.
+   */
+  private cardArt!: { readonly textureKey: string; readonly artScale: number };
 
   /** What the pointer is doing to the table, which each frame is drawn from. */
   private controller!: DragController;
@@ -179,6 +201,7 @@ export class BoardScene extends Scene implements PhaserSprites {
    */
   create() {
     this.createCollaborators();
+    this.lightTheTable();
     this.createPileBackgroundSprites();
     this.createCardSprites();
     this.followTheModel();
@@ -198,6 +221,20 @@ export class BoardScene extends Scene implements PhaserSprites {
       // a deck when there is none to draw.
       this.bootAtlas() ?? this.wantedAtlas(),
     );
+    this.cardArt = {
+      textureKey: cardAtlasTextureKey(this.deckLoader.atlas),
+      artScale: this.deckLoader.atlas.artScale,
+    };
+    const drawnDeckServices =
+      this.options.drawnDeckServices ?? browserDrawnDeckServices;
+    this.drawnDeck = new DrawnDeckPainter(
+      this,
+      drawnDeckServices(this.textures),
+    );
+    const drawnDeck = this.drawnDeck;
+    this.whenSceneEnds(() => {
+      drawnDeck.dispose();
+    });
     this.controller = new DragController(
       this.options.handleIntent,
       this.options.stackFromCard,
@@ -216,9 +253,28 @@ export class BoardScene extends Scene implements PhaserSprites {
     this.visualFactory = new PhaserCardFactory(
       this,
       () => this.options.presentation.cardBackKey(),
-      () => cardAtlasTextureKey(this.deckLoader.atlas),
-      () => this.deckLoader.atlas.artScale,
+      () => this.cardArt.textureKey,
+      () => this.cardArt.artScale,
     );
+  }
+
+  /**
+   * Lights the felt beneath the board, spreading the light over the canvas
+   * again whenever it changes size.
+   */
+  private lightTheTable(): void {
+    const light = new TableLight(this);
+    const fit = () => {
+      const { width, height } = this.viewport;
+      light.fit(width, height);
+    };
+    fit();
+    // The scale manager belongs to the game, which outlives the scene.
+    this.scale.on("resize", fit);
+    this.whenSceneEnds(() => {
+      this.scale.off("resize", fit);
+      light.destroy();
+    });
   }
 
   /**
@@ -299,7 +355,7 @@ export class BoardScene extends Scene implements PhaserSprites {
   }
 
   /** Returns every card and placeholder sprite drawn from the deck texture. */
-  public texturedSprites(): Iterable<GameObjects.Sprite> {
+  private texturedSprites(): Iterable<GameObjects.Sprite> {
     return [...this.cardSprites.values(), ...this.pileBackgrounds.values()];
   }
 
@@ -342,19 +398,37 @@ export class BoardScene extends Scene implements PhaserSprites {
     this.options.presentation.reportCardDeckStatus(status);
   }
 
-  /** Redraws the shadow at the density the cards are now drawn at. */
-  public artScaleChanged(): void {
-    this.visualFactory.bakeCardShadow();
-    for (const shadow of this.cardShadows.values()) {
-      this.visualFactory.fitCardShadow(shadow);
+  /**
+   * Points every card and placeholder sprite at a texture, each keeping its
+   * frame, and redraws the shadow if the texture's texel scale differs.
+   */
+  public drawCardsFrom(textureKey: string, artScale: number): void {
+    const previous = this.cardArt;
+    this.cardArt = { textureKey, artScale };
+    for (const sprite of this.texturedSprites()) {
+      sprite.setTexture(textureKey, sprite.frame.name);
+      // setTexture moves the origin to the frame's centred pivot, but the board
+      // places cards by their top left corner.
+      sprite.setOrigin(0, 0);
     }
+    if (artScale !== previous.artScale) {
+      this.visualFactory.bakeCardShadow();
+      for (const shadow of this.cardShadows.values()) {
+        this.visualFactory.fitCardShadow(shadow);
+      }
+    }
+  }
+
+  /** The texture the cards, their shadows and the placeholders draw from. */
+  public get cardTextureKey(): string {
+    return this.cardArt.textureKey;
   }
 
   // --- PhaserSprites ---
 
   /** @inheritDoc */
-  public get cardArtScale(): CardArtScale {
-    return this.deckLoader.atlas.artScale;
+  public get cardArtScale(): number {
+    return this.cardArt.artScale;
   }
 
   /** @inheritDoc */
@@ -425,7 +499,7 @@ export class BoardScene extends Scene implements PhaserSprites {
   }
 
   /** Applies this frame's view state, then lands every flight that arrived. */
-  override update(_timeMs: number, deltaMs: number): void {
+  override update(timeMs: number, deltaMs: number): void {
     if (!this.controller || !this.viewApplier) return;
 
     const state = this.options.buildViewState(
@@ -433,6 +507,12 @@ export class BoardScene extends Scene implements PhaserSprites {
       this.viewport,
     );
     this.viewApplier.apply(state, deltaMs);
+
+    // Every card and placeholder in a frame shares its layout scale.
+    const layoutScale = state.cards[0]?.scale ?? state.backgrounds[0]?.scale;
+    if (layoutScale !== undefined) {
+      this.drawnDeck.follow(this.deckLoader.atlas, layoutScale, timeMs);
+    }
 
     // A copy, since landing a flight removes it from the list.
     for (const flight of [...this.controller.flights]) {

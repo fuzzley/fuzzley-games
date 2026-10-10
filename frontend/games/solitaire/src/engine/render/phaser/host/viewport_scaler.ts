@@ -11,6 +11,8 @@ export interface ScalableGame {
   readonly scale: {
     setZoom(zoom: number): unknown;
     resize(width: number, height: number): unknown;
+    /** Measures the canvas again, for converting pointer positions. */
+    refresh(): unknown;
   };
 }
 
@@ -40,10 +42,58 @@ export interface ScalerWindow {
   };
 }
 
-/** Describes the element the canvas fills and is sized from. */
+/**
+ * Describes the element the canvas fills and is sized from, which has no border
+ * or padding of its own.
+ */
 export interface MeasurableParent {
   getBoundingClientRect(): { width: number; height: number };
 }
+
+/** Describes a size in whole device pixels. */
+export interface DevicePixelSize {
+  readonly width: number;
+  readonly height: number;
+}
+
+/**
+ * Starts reporting an element's size whenever it changes: in device pixels, or
+ * null where the host cannot count them. Returns a function that stops it, or
+ * null where the host cannot watch the element at all.
+ */
+export type WatchDevicePixels = (
+  target: MeasurableParent,
+  onResize: (size: DevicePixelSize | null) => void,
+) => (() => void) | null;
+
+/**
+ * Watches an element with a `ResizeObserver`, counting its content box in device
+ * pixels where the browser can.
+ */
+export const watchDevicePixels: WatchDevicePixels = (target, onResize) => {
+  if (
+    typeof ResizeObserver === "undefined" ||
+    typeof Element === "undefined" ||
+    !(target instanceof Element)
+  ) {
+    return null;
+  }
+  const observer = new ResizeObserver((entries) => {
+    // Optional because a browser without the box leaves it out.
+    const latest = entries[entries.length - 1] as
+      | Partial<Pick<ResizeObserverEntry, "devicePixelContentBoxSize">>
+      | undefined;
+    const box = latest?.devicePixelContentBoxSize?.[0];
+    onResize(box ? { width: box.inlineSize, height: box.blockSize } : null);
+  });
+  try {
+    observer.observe(target, { box: "device-pixel-content-box" });
+  } catch {
+    // A browser without the box, such as Safari, still reports the resize.
+    observer.observe(target);
+  }
+  return () => observer.disconnect();
+};
 
 /**
  * Sizes the game canvas so it rasterizes at the display's true resolution.
@@ -95,21 +145,29 @@ export class ViewportScaler {
   /** Media query tracking the current pixel ratio, re-armed after each change. */
   private pixelRatioQuery: PixelRatioQuery | null = null;
 
+  /** The parent's size in device pixels, as the browser last counted it. */
+  private devicePixelSize: DevicePixelSize | null = null;
+
   /**
-   * Watches the parent for size changes the window never hears about, such as
-   * a side panel opening.
+   * Stops watching the parent for size changes the window never hears about,
+   * such as a side panel opening.
    */
-  private parentObserver: ResizeObserver | null = null;
+  private stopWatchingParent: (() => void) | null = null;
 
   private readonly onViewportChange = (): void => {
     this.apply();
   };
 
-  /** Creates a scaler that sizes the game's canvas to fill `parent`. */
+  /**
+   * Creates a scaler that sizes the game's canvas to fill `parent`.
+   *
+   * @param watchParent Reports the parent's size as it changes.
+   */
   constructor(
     private readonly window: ScalerWindow,
     private readonly game: ScalableGame,
     private readonly parent: MeasurableParent,
+    private readonly watchParent: WatchDevicePixels = watchDevicePixels,
   ) {}
 
   /**
@@ -135,20 +193,10 @@ export class ViewportScaler {
   public start(): void {
     this.apply();
     this.window.addEventListener("resize", this.onViewportChange);
-    this.observeParent();
-  }
-
-  /** Watches the parent box, if it is a real element and the host allows it. */
-  private observeParent(): void {
-    if (
-      typeof ResizeObserver === "undefined" ||
-      typeof Element === "undefined" ||
-      !(this.parent instanceof Element)
-    ) {
-      return;
-    }
-    this.parentObserver = new ResizeObserver(this.onViewportChange);
-    this.parentObserver.observe(this.parent);
+    this.stopWatchingParent = this.watchParent(this.parent, (size) => {
+      this.devicePixelSize = size;
+      this.apply();
+    });
   }
 
   /** Stops tracking changes, releasing every listener the scaler registered. */
@@ -156,8 +204,8 @@ export class ViewportScaler {
     this.window.removeEventListener("resize", this.onViewportChange);
     this.pixelRatioQuery?.removeEventListener("change", this.onViewportChange);
     this.pixelRatioQuery = null;
-    this.parentObserver?.disconnect();
-    this.parentObserver = null;
+    this.stopWatchingParent?.();
+    this.stopWatchingParent = null;
   }
 
   /** Resizes the canvas to the parent's current size at the current DPR. */
@@ -167,17 +215,29 @@ export class ViewportScaler {
     const cssHeight = Math.max(1, Math.floor(bounds.height));
     const pixelRatio = this.pixelRatioFor(cssWidth, cssHeight);
     this.pixelRatioValue = pixelRatio;
+    const exact = this.exactDevicePixelSize(bounds, pixelRatio);
 
     // Makes Phaser's displayScale the pixel ratio, so pointer input maps from
     // CSS pixels into the device-pixel game space.
     this.game.scale.setZoom(1 / pixelRatio);
-    this.game.scale.resize(cssWidth * pixelRatio, cssHeight * pixelRatio);
-
-    // Phaser only rewrites the canvas CSS size when zoom is not 1, so a resize
-    // taken at a pixel ratio of 1 would otherwise leave behind the pixel values
-    // written while an earlier, higher ratio was in effect.
-    this.game.canvas.style.width = `${cssWidth}px`;
-    this.game.canvas.style.height = `${cssHeight}px`;
+    const style = this.game.canvas.style;
+    if (exact) {
+      this.game.scale.resize(exact.width, exact.height);
+      // The size the browser counted the device pixels of, unrounded, so each
+      // pixel of the canvas lands on one of the screen's.
+      style.width = `${bounds.width}px`;
+      style.height = `${bounds.height}px`;
+    } else {
+      this.game.scale.resize(cssWidth * pixelRatio, cssHeight * pixelRatio);
+      // Phaser only rewrites the canvas CSS size when zoom is not 1, so a resize
+      // taken at a pixel ratio of 1 would otherwise leave behind the pixel
+      // values written while an earlier, higher ratio was in effect.
+      style.width = `${cssWidth}px`;
+      style.height = `${cssHeight}px`;
+    }
+    // Phaser measured the canvas, to convert pointer positions, before its CSS
+    // size was pinned.
+    this.game.scale.refresh();
 
     this.refreshInsets();
     this.watchPixelRatio();
@@ -227,6 +287,26 @@ export class ViewportScaler {
       ViewportScaler.UNBUDGETED_PIXEL_RATIO,
       Math.min(wanted, affordable),
     );
+  }
+
+  /**
+   * Returns the parent's size in device pixels, to size the canvas from, when
+   * the browser has counted it and the canvas renders at the display's own
+   * ratio; or null to size it from CSS pixels.
+   *
+   * A count that disagrees with the parent's CSS size predates a resize the
+   * browser has yet to report, so it is ignored.
+   */
+  private exactDevicePixelSize(
+    bounds: { width: number; height: number },
+    pixelRatio: number,
+  ): DevicePixelSize | null {
+    const size = this.devicePixelSize;
+    if (!size || pixelRatio !== this.window.devicePixelRatio) return null;
+    const agrees =
+      Math.abs(size.width - bounds.width * pixelRatio) <= 1 &&
+      Math.abs(size.height - bounds.height * pixelRatio) <= 1;
+    return agrees ? size : null;
   }
 
   /** The display's raw pixel ratio, floored at 1 for non-conforming hosts. */
