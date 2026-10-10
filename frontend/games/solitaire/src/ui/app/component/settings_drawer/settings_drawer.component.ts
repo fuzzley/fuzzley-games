@@ -21,18 +21,18 @@ import {
   OrAuto,
   PilePosition,
   StockSide,
-} from "@/engine/render/layout/board_layouts";
+} from "@/engine/render/layout/board_arrangement";
 import { FormFactor } from "@/engine/render/layout/form_factor";
 import { GameOptionChoice, GameOptionSpec } from "../../provider/game_catalog";
 import {
   DESKTOP_CARD_DECKS,
   DesktopCardDeckSpec,
-} from "@/engine/render/card_deck";
+} from "@/engine/render/deck/card_deck";
 import {
   CARD_BACKS,
   CardBackSpec,
   CardBackStyle,
-} from "@/engine/render/card_back";
+} from "@/engine/render/deck/card_back";
 import { DebugPanelComponent } from "../debug_panel/debug_panel.component";
 import { OptionGroupComponent } from "../option_group/option_group.component";
 import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";

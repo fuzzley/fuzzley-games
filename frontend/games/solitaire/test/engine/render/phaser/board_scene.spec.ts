@@ -24,8 +24,8 @@ import {
 import {
   CardDeckId,
   DEFAULT_DESKTOP_CARD_DECK,
-} from "@/engine/render/card_deck";
-import { CardArtScale } from "@/engine/render/layout/card_metrics";
+} from "@/engine/render/deck/card_deck";
+import { CardArtScale } from "@/engine/render/deck/card_art_scale";
 import {
   CardAtlas,
   cardAtlasTextureKey,
@@ -36,8 +36,8 @@ import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
 import {
   computePileOrigins,
   computeScale,
-  designSize,
-} from "@/engine/render/layout/table_layout";
+} from "@/engine/render/layout/table_metrics";
+import { designSize } from "@/engine/render/layout/table_layout";
 import { FAKE_TABLE_LAYOUT } from "@test/support/fake_table/board";
 import { STOCK_PILE_ID } from "@test/support/fake_table/zones";
 import { pileBackgrounds } from "@/engine/tableau/view/pile_backgrounds";

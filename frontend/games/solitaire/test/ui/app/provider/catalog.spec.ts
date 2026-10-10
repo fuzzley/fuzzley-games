@@ -13,10 +13,8 @@ import {
 import { KlondikeVariant } from "@/games/klondike/klondike_rules";
 import type { PlayableGame } from "@/engine/tableau/session/playable_game";
 import { TableGame } from "@/engine/tableau/table_game";
-import {
-  TableLayoutSpec,
-  computeScale,
-} from "@/engine/render/layout/table_layout";
+import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import { computeScale } from "@/engine/render/layout/table_metrics";
 import { NO_INSETS, Viewport } from "@/engine/render/layout/viewport";
 import { TestPresentation } from "@test/support/presentation";
 import { CATALOG_DEALS as DEALS } from "@test/support/ui/catalog_deals";

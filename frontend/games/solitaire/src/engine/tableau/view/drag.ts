@@ -3,7 +3,7 @@ import {
   resolveDropTarget,
   PileGeometry,
 } from "@/engine/render/layout/drop_geometry";
-import { TableMetrics } from "@/engine/render/layout/table_layout";
+import { TableMetrics } from "@/engine/render/layout/table_metrics";
 import { DragInteraction } from "@/engine/render/input/interaction_state";
 import { grabbedStack } from "../rules/grab";
 import { pileArrangement } from "./pile_arrangement";

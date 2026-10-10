@@ -8,7 +8,7 @@ import {
   buildFakeTableViewState,
   measureFakeTable,
 } from "@test/support/fake_table/board";
-import { measureTable } from "@/engine/render/layout/table_layout";
+import { measureTable } from "@/engine/render/layout/table_metrics";
 import { buildTableViewState } from "@/engine/tableau/view/table_view_builder";
 import { resolveDragTarget } from "@/engine/tableau/view/drag";
 import { PileBackgroundView } from "@/engine/render/view/table_view_state";

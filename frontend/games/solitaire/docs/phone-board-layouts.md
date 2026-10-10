@@ -434,7 +434,7 @@ landscape or roomy, decided by the shorter side of the window (for example under
 500 CSS px) rather than its width.
 
 - **Where:** `ViewportService` in `src/ui/app/service/viewport.service.ts`;
-  `compactFor` in `src/engine/render/layout/table_layout.ts`; the card style's
+  `compactFor` in `src/engine/render/layout/table_metrics.ts`; the card style's
   Auto rule in `src/ui/app/service/presentation_settings.service.ts`.
 - **Unlocks:** compact chrome, tight gaps and the mobile deck on a sideways
   phone; choosing a grid by orientation.
@@ -464,8 +464,9 @@ fanning down or left, a stock drawn as slivers. Turning the phone already
 re-measures the board and snaps every card.
 
 - **Where:** `CatalogEntry.layout` in `src/ui/app/provider/game_catalog.ts`;
-  `SlotPlacement` and `measureTable` in
-  `src/engine/render/layout/table_layout.ts`; `ZoneLook.layout` in
+  `SlotPlacement` in `src/engine/render/layout/table_layout.ts` and
+  `measureTable` in `src/engine/render/layout/table_metrics.ts`;
+  `ZoneLook.layout` in
   `src/engine/tableau/zones/zone_look.ts`; new `PileLayout` kinds in
   `src/engine/render/layout/pile_layout.ts`.
 - **Unlocks:** K-P2, K-L2, S-P2, S-L2.

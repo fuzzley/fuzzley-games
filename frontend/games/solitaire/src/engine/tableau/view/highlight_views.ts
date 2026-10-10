@@ -3,7 +3,7 @@ import {
   CARD_RENDER_WIDTH_PX,
 } from "@/engine/render/layout/card_metrics";
 import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
-import { TableMetrics } from "@/engine/render/layout/table_layout";
+import { TableMetrics } from "@/engine/render/layout/table_metrics";
 import {
   DragInteraction,
   TableInteractionState,

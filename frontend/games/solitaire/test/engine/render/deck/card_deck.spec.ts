@@ -5,7 +5,7 @@ import {
   DESKTOP_CARD_DECKS,
   MOBILE_CARD_DECK,
   isDesktopCardDeckId,
-} from "@/engine/render/card_deck";
+} from "@/engine/render/deck/card_deck";
 
 describe("card decks", () => {
   it("names every deck once", () => {

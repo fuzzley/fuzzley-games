@@ -1,11 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { CARD_DECKS } from "@/engine/render/card_deck";
-import { CARD_BACKS } from "@/engine/render/card_back";
+import { CARD_DECKS } from "@/engine/render/deck/card_deck";
+import { CARD_BACKS } from "@/engine/render/deck/card_back";
 import {
   CARD_ART_SCALES,
+  CardArtScale,
+} from "@/engine/render/deck/card_art_scale";
+import {
   CARD_RENDER_HEIGHT_PX,
   CARD_RENDER_WIDTH_PX,
-  CardArtScale,
 } from "@/engine/render/layout/card_metrics";
 import {
   CardAtlas,

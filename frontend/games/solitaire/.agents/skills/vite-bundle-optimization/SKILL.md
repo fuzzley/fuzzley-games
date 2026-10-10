@@ -69,7 +69,7 @@ font. Every deck is given the same four backs, so a player chooses the back
 apart from the deck: the two plain ones `mobile-deck.mjs` draws, and the card
 artwork's two, cut from `playing_card_assets_large.svg` (every sheet draws the
 same pair). Their names, `BACK_FRAME_NAMES` in `tools/card-atlas/raster.mjs`,
-must match `CardBackStyle` in `src/engine/render/card_back.ts`; a new back goes
+must match `CardBackStyle` in `src/engine/render/deck/card_back.ts`; a new back goes
 in both, and in `CARD_BACK_PATTERNS` in
 `src/ui/app/component/settings_drawer/settings_drawer.component.ts` for its
 preview. Every deck shares the placeholders in `card_placeholders.svg`, one 220 × 307
@@ -115,7 +115,7 @@ downloaded.
 - Re-run `yarn build:atlas` whenever the card SVGs change. The atlas is a
   committed build artifact; a stale one ships.
 - `ART_SCALES` in `tools/card-atlas/raster.mjs` and `CARD_ART_SCALES` in
-  `src/engine/render/layout/card_metrics.ts` must list the same densities.
+  `src/engine/render/deck/card_art_scale.ts` must list the same densities.
   Every frame at density _n_ must be `CARD_RENDER_WIDTH_PX × n` by
   `CARD_RENDER_HEIGHT_PX × n` texels. Otherwise cards render at the wrong size.
   `test/engine/render/phaser/card_deck_atlas.spec.ts` checks both against the
@@ -133,7 +133,7 @@ downloaded.
   too and rebuild the deck. The tool fails if an index leaves its strip, if
   anything else enters one, or if a suit colour falls under 4.5:1 contrast.
 - A new deck goes in `DECKS` in the tool, in `DESKTOP_CARD_DECKS` in
-  `src/engine/render/card_deck.ts` (or beside `MOBILE_CARD_DECK`, which the
+  `src/engine/render/deck/card_deck.ts` (or beside `MOBILE_CARD_DECK`, which the
   card style setting picks rather than the player), and in the manifests in
   `card_deck_atlas.ts`. The compiler checks the last two against each other,
   not against the tool.

@@ -34,7 +34,7 @@ import sharp from "sharp";
 
 /**
  * The densities each deck is built at, in texels per design unit, which must
- * match `CardArtScale` in `src/engine/render/layout/card_metrics.ts`.
+ * match `CardArtScale` in `src/engine/render/deck/card_art_scale.ts`.
  *
  * The first is the one the artwork is rasterized at; the rest are shrunk from
  * its finished frames, so every density is framed and edged alike.
@@ -53,7 +53,7 @@ export const FRAME_H = DESIGN_FRAME_H * RASTER_SCALE;
 
 /**
  * The card backs every deck is given, whatever its faces, which must match
- * `CardBackStyle` in `src/engine/render/card_back.ts`: the plain backs the
+ * `CardBackStyle` in `src/engine/render/deck/card_back.ts`: the plain backs the
  * mobile deck draws, then the card artwork's own.
  */
 export const BACK_FRAME_NAMES = [

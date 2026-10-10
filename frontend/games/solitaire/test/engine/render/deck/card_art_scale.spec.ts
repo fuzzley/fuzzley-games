@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cardArtScaleFor } from "@/engine/render/layout/card_metrics";
+import { cardArtScaleFor } from "@/engine/render/deck/card_art_scale";
 
 describe("cardArtScaleFor", () => {
   it("draws a phone's cards from the 1x atlas", () => {
