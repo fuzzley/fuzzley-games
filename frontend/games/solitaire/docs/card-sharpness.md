@@ -10,21 +10,45 @@ The images in [`card-sharpness/`](card-sharpness/) are crops of Chrome
 screenshots taken under phone emulation, enlarged with nearest-neighbour scaling
 so each screen pixel shows as a block.
 
-## How a card reaches the screen
+## What shipped
 
-1. `yarn build:atlas` rasterizes every deck at 2 texels per design unit (2×)
-   and shrinks those frames with Lanczos to 1×. A card is 220 × 307 design
-   units, so a 1× frame is 220 × 307 texels.
-2. The board picks the least dense atlas that draws cards without enlarging
-   them (`cardArtScaleFor`): 1× whenever the layout scale is 1 or less, which is
+Built on `feature/card-sharpness`, options 1 to 3 as planned:
+
+- **The canvas renders at a phone's own pixel ratio,** up to 3, as long as it
+  holds no more than 4.5 million device pixels; any canvas may still render
+  at 2. A 3× phone's canvas is no longer stretched, and desktops render as
+  before.
+- **Cards, shadows and placeholders round their corners to whole pixels**
+  (`vertexRoundMode` `fullAuto`), so `roundPixels` finally applies to them.
+- **Every deck is built at 0.5×, 0.75×, 1×, 1.5× and 2×,** each drawn from the
+  SVG. A board loads the least dense that need not enlarge its cards, so none is
+  shrunk below two thirds. A frame at a fractional density is rounded to whole
+  texels, and the renderer scales each axis on its own.
+
+[klondike-shipped.png](card-sharpness/klondike-shipped.png) shows Klondike at
+DPR 3 on `main`, after options 1 and 2, and after all three. Which atlas each
+screen loads, and the costs, are in the [log](card-sharpness-log.md#log).
+
+One more thing dims the cards, found while checking this work and left for the
+owner: see [option 6](#6-lift-the-vignette-off-the-cards).
+
+## How a card reached the screen
+
+Before this work, on `main` at `393d9e0`:
+
+1. `yarn build:atlas` rasterizes every deck at 2 texels per design unit (2×) and
+   shrinks those frames with Lanczos to 1×. A card is 220 × 307 design units, so
+   a 1× frame is 220 × 307 texels.
+2. The board picks the least dense atlas that draws cards without enlarging them
+   (`cardArtScaleFor`): 1× whenever the layout scale is 1 or less, which is
    every phone.
 3. Phaser draws each card as a quad scaled by `layoutScale / artScale`, sampled
    with bilinear filtering and no mipmaps, at wherever the layout puts it.
 4. `ViewportScaler` sizes the canvas at the display's pixel ratio, capped at 2,
    and the browser scales the canvas to fill its box on the screen.
 
-Each step can resample the card: once when shrinking to 1×, once in the GPU,
-and once more in the browser.
+Each step can resample the card: once when shrinking to 1×, once in the GPU, and
+once more in the browser.
 
 ## Measurements
 
@@ -41,14 +65,14 @@ stretch) and its cards are ~160 px, shrunk 0.73 from the 1× atlas.
 
 ## What blurs the cards
 
-1. **The pixel ratio cap.** `ViewportScaler.MAX_PIXEL_RATIO` was 2. Most
-   iPhones and many Androids are 3 (others 2.625, 2.75), so the browser
-   stretched the canvas 1.3 to 1.5 times, softening every edge.
+1. **The pixel ratio cap.** `ViewportScaler.MAX_PIXEL_RATIO` was 2. Most iPhones
+   and many Androids are 3 (others 2.625, 2.75), so the browser stretched the
+   canvas 1.3 to 1.5 times, softening every edge.
    [klondike-dpr3.png](card-sharpness/klondike-dpr3.png), panel 1 against
    panel 2.
-2. **`roundPixels` never applied to cards.** The game config sets it, but
-   Phaser 4 rounds a sprite's vertices only under its `vertexRoundMode`, whose
-   default `safeAuto` skips any sprite that is scaled or rotated
+2. **`roundPixels` never applied to cards.** The game config sets it, but Phaser
+   4 rounds a sprite's vertices only under its `vertexRoundMode`, whose default
+   `safeAuto` skips any sprite that is scaled or rotated
    (`GameObject.willRoundVertices`, `TransformerImage.js`). Cards are always
    scaled, so they sat at fractional positions with fractional sizes, and
    bilinear sampling smeared each edge over two pixels.
@@ -111,8 +135,8 @@ than Mitchell.
   - 307 × 0.5 is 153.5, so a frame at a fractional density is rounded to whole
     texels and the renderer scales each axis on its own.
   - The stamped card edge is 2 design units: 4 texels at 2× but 1 at 0.5×. It
-    has to be drawn per density, and the check that it is present has to
-    measure at a depth that suits its width.
+    has to be drawn per density, and the check that it is present has to measure
+    at a depth that suits its width.
   - The card sheets are 1.7 MB SVGs, about 140 ms to draw one frame, so frames
     are drawn in parallel with resvg's `renderAsync`.
 
@@ -128,9 +152,9 @@ stays as the fallback.
 ### 5. Draw the cards at their exact size at runtime
 
 Every card on a board is drawn at one scale (`metrics.scale`). When that scale
-changes, the 56 card SVGs could be rasterized at exactly
-`round(220 × scale)` px into one canvas texture and drawn unscaled, so one texel
-is one screen pixel and the default `roundPixels` handling applies by itself.
+changes, the 56 card SVGs could be rasterized at exactly `round(220 × scale)` px
+into one canvas texture and drawn unscaled, so one texel is one screen pixel and
+the default `roundPixels` handling applies by itself.
 
 It needs:
 
@@ -143,6 +167,23 @@ It needs:
 
 After options 1 to 3 the remaining gain is modest: compare panels 2 and 3 of
 [klondike-dpr3.png](card-sharpness/klondike-dpr3.png).
+
+### 6. Lift the vignette off the cards
+
+Found while checking options 1 to 3. The grey wash on some face-up cards is the
+vignette `game_canvas.component.scss` lays over the whole canvas
+(`:host::after`), which darkens towards `--table-vignette`, 38% black, at the
+edges. It is meant to light the felt, but it falls on the cards too, and on a
+phone most cards sit near an edge: Klondike's first column, Spider's first two,
+the whole bottom row of piles. Their white turns grey and their contrast drops.
+
+- **Draw it under the cards.** Paint the same gradient inside the canvas as the
+  board's background, beneath every sprite. The felt keeps its light and the
+  cards keep their white.
+- **Or soften it on a phone,** where the board fills the screen, through the
+  `compact` mixin and a weaker token.
+
+A design choice, so not made here.
 
 ### Not recommended
 
@@ -159,5 +200,5 @@ After options 1 to 3 the remaining gain is modest: compare panels 2 and 3 of
 
 Once the cards are sharp, the physical size of the index decides how well they
 read. The open questions from the mobile deck still apply: whether a phone
-should open the fans wider, so the index can be larger, and whether ranks
-should be set in a wider, heavier face than Barlow Condensed.
+should open the fans wider, so the index can be larger, and whether ranks should
+be set in a wider, heavier face than Barlow Condensed.
