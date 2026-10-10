@@ -20,7 +20,10 @@ import {
   WASTE_MAX_FAN_CARDS,
 } from "@test/support/fake_table/zones";
 import { measureFakeTable } from "@test/support/fake_table/board";
-import { computeDropGeometries } from "@/engine/render/layout/drop_geometry";
+import {
+  computeDropGeometries,
+  resolveDropTarget,
+} from "@/engine/render/layout/drop_geometry";
 import {
   CARD_HEIGHT_PX,
   CARD_WIDTH_PX,
@@ -39,7 +42,12 @@ import {
 } from "@test/support/fake_table/zones";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { FakeTableGame } from "@test/support/fake_table/game";
-import { NO_INSETS, Viewport } from "@/engine/render/view/table_view_state";
+import {
+  NO_INSETS,
+  PileGeometry,
+  Rect,
+  Viewport,
+} from "@/engine/render/view/table_view_state";
 import { makePlayingCard } from "@test/support/card_builder";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
@@ -531,5 +539,33 @@ describe("computeDropGeometries", () => {
       CARD_WIDTH_PX * computeScale(FAKE_TABLE_LAYOUT, half),
       5,
     );
+  });
+});
+
+describe("resolveDropTarget", () => {
+  const geometries: PileGeometry[] = [
+    { pileId: "tableau-0", x: 100, y: 300, width: 200, height: 300 },
+    { pileId: "tableau-1", x: 400, y: 300, width: 200, height: 300 },
+    { pileId: "foundation-0", x: 400, y: 50, width: 200, height: 300 },
+  ];
+
+  it("returns the pile ID with the maximum overlap area", () => {
+    // Overlaps tableau-0 partially
+    const dragRect: Rect = { x: 150, y: 350, width: 200, height: 300 };
+    const target = resolveDropTarget(dragRect, geometries);
+    expect(target?.pileId).toBe("tableau-0");
+  });
+
+  it("returns null if there is no overlap at all", () => {
+    const dragRect: Rect = { x: 800, y: 800, width: 200, height: 300 };
+    const target = resolveDropTarget(dragRect, geometries);
+    expect(target).toBeNull();
+  });
+
+  it("resolves overlap correctly when overlapping multiple piles", () => {
+    // Positioned right between tableau-0 and tableau-1 but mostly on tableau-1
+    const dragRect: Rect = { x: 350, y: 300, width: 200, height: 300 };
+    const target = resolveDropTarget(dragRect, geometries);
+    expect(target?.pileId).toBe("tableau-1");
   });
 });

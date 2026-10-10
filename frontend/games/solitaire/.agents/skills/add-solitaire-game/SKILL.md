@@ -529,13 +529,14 @@ Each tier may depend only on the tiers below it, enforced as build errors by
     [ engine/core ]            Cards, piles, decks, suits, ranks, RNG
 ```
 
-| Tier                                  | May import                               | Must not import                                                                                         |
-| :------------------------------------ | :--------------------------------------- | :------------------------------------------------------------------------------------------------------ |
-| `src/engine/core`                     | Standard TS only                         | `@/engine/render/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `phaser`, `@angular/*`, `rxjs`        |
-| `src/engine/render` _(excl. phaser/)_ | `engine/core`                            | `phaser`, `@/engine/render/phaser/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs` |
-| `src/engine/render/phaser`            | Phaser 4, `engine/core`, `engine/render` | `@/engine/tableau/view/table_view_builder`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                 |
-| `src/engine/tableau`                  | `engine/core`, `engine/render`           | `phaser`, `@/engine/render/phaser/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                       |
-| `src/games/*`                         | `engine/*`                               | `@/ui/*`, `@angular/*`, `rxjs`                                                                          |
+| Tier                                  | May import                                       | Must not import                                                                                         |
+| :------------------------------------ | :----------------------------------------------- | :------------------------------------------------------------------------------------------------------ |
+| `src/engine/core`                     | Standard TS only                                 | `@/engine/render/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `phaser`, `@angular/*`, `rxjs`        |
+| `src/engine/render` _(excl. phaser/)_ | `engine/core`                                    | `phaser`, `@/engine/render/phaser/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs` |
+| `src/engine/render/phaser`            | Phaser 4, `engine/core`, `engine/render`         | `@/engine/board/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                   |
+| `src/engine/tableau`                  | `engine/core`, `engine/render`                   | `phaser`, `@/engine/render/phaser/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                       |
+| `src/engine/board`                    | every `engine/*` tier, Phaser 4                  | `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                                                             |
+| `src/games/*`                         | `engine/core`, `engine/render`, `engine/tableau` | `phaser`, `@/engine/render/phaser/*`, `@/engine/board/*`, `@/ui/*`, `@angular/*`, `rxjs`                |
 
 Reading it as a decision, when you are unsure where a new piece belongs:
 

@@ -1,88 +1,19 @@
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Point } from "@/engine/core/common/point";
-import {
-  CARD_RENDER_HEIGHT_PX,
-  CARD_RENDER_WIDTH_PX,
-} from "@/engine/render/layout/card_metrics";
-import {
-  computeDropGeometries,
-  resolveDropTarget,
-} from "@/engine/render/layout/drop_geometry";
 import { pileCardOffsets } from "@/engine/render/layout/pile_layout";
 import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
 import { TableMetrics } from "@/engine/render/layout/table_layout";
 import {
   CardView,
-  DragInteraction,
-  HighlightView,
-  PileBackgroundView,
-  PileGeometry,
   TableInteractionState,
   TableViewState,
 } from "@/engine/render/view/table_view_state";
-import { ZoneLook, frameFor, showsFace } from "../zones/zone_look";
-import { TableView } from "./table_view";
-import { pileArrangement } from "./pile_arrangement";
-import { pileBackgroundFrame } from "./pile_backgrounds";
 import { itemAt } from "@/engine/core/common/item_at";
-
-/**
- * How much of the dragged card must lie over a pile that would take it for
- * that pile to win over one the card overlaps more, as a share of the card.
- *
- * Enough that a card dropped squarely on one column does not jump to the
- * neighbour it barely touches.
- */
-const PREFERRED_TARGET_MIN_OVERLAP = 0.25;
-
-/**
- * Resolves the pile a drag would land on, as its drop rectangle, or null if it
- * is over none.
- *
- * Prefers a pile that would take the stack, if the card lies well over one,
- * and only then the one the drag overlaps most. So where piles overlap, as a
- * pyramid's do, a card held over a free card and the covered one above it
- * lands where it can. Both the hover preview and the drop itself ask this, so
- * the two agree.
- */
-export function resolveDragTarget(
-  game: TableView,
-  drag: DragInteraction,
-  metrics: TableMetrics,
-): PileGeometry | null {
-  const cardSize = metrics.layout.cardSize;
-  const geometries = computeDropGeometries(
-    game.dropTargetPiles.map((pile) => ({
-      pile,
-      layout: pileArrangement(game, pile, metrics),
-    })),
-    metrics.origins,
-    cardSize,
-    metrics.scale,
-  );
-
-  const dragRect = {
-    x: drag.primary.x,
-    y: drag.primary.y,
-    width: cardSize.width * metrics.scale,
-    height: cardSize.height * metrics.scale,
-  };
-  const [primaryCardId] = drag.cardIds;
-  const accepting =
-    primaryCardId === undefined
-      ? []
-      : geometries.filter((geometry) =>
-          game.canMoveCardToPile(primaryCardId, geometry.pileId),
-        );
-
-  return (
-    resolveDropTarget(
-      dragRect,
-      accepting,
-      dragRect.width * dragRect.height * PREFERRED_TARGET_MIN_OVERLAP,
-    ) ?? resolveDropTarget(dragRect, geometries)
-  );
-}
+import { ZoneLook, frameFor, showsFace } from "../zones/zone_look";
+import { highlightViews } from "./highlight_views";
+import { pileArrangement } from "./pile_arrangement";
+import { pileBackgroundViews } from "./pile_backgrounds";
+import { TableView } from "./table_view";
 
 /** Places one card for this frame and says whether it eases there. */
 interface CardPlacement {
@@ -113,8 +44,6 @@ class TableViewStateBuilder {
   /** Layout scale: design units to device pixels. */
   private readonly scale: number;
   private readonly origins: ReadonlyMap<string, Point>;
-  private readonly cardWidth: number;
-  private readonly cardHeight: number;
 
   constructor(
     private readonly game: TableView,
@@ -125,40 +54,14 @@ class TableViewStateBuilder {
   ) {
     this.scale = metrics.scale;
     this.origins = metrics.origins;
-    // The drawn size rather than the grid cell, so a highlight hugs the card.
-    this.cardWidth = CARD_RENDER_WIDTH_PX * this.scale;
-    this.cardHeight = CARD_RENDER_HEIGHT_PX * this.scale;
   }
 
   public build(): TableViewState {
     return {
-      backgrounds: this.buildBackgrounds(),
+      backgrounds: pileBackgroundViews(this.game, this.metrics),
       cards: this.buildCards(),
-      highlights: this.buildHighlights(),
+      highlights: highlightViews(this.game, this.interaction, this.metrics),
     };
-  }
-
-  /** Returns a placeholder for every zone that declares one. */
-  private buildBackgrounds(): PileBackgroundView[] {
-    const backgrounds: PileBackgroundView[] = [];
-
-    for (const pile of this.game.piles) {
-      const frame = pileBackgroundFrame(this.game, pile, this.metrics.layout);
-      const origin = this.origins.get(pile.id);
-      if (!frame || !origin) continue;
-
-      backgrounds.push({
-        pileId: pile.id,
-        x: origin.x,
-        y: origin.y,
-        scale: this.scale,
-        depth: depthFor(RenderLayer.PILE_BACKGROUND),
-        frame,
-        cursor: this.game.isEmptySlotActionable(pile) ? "pointer" : "default",
-      });
-    }
-
-    return backgrounds;
   }
 
   /** Returns the position, frame and interactivity of every card in play. */
@@ -307,119 +210,6 @@ class TableViewStateBuilder {
       (card) => card.id === this.interaction.hoveredCardId,
     );
     return hovered && showsFace(look.face, hovered) ? hovered.id : null;
-  }
-
-  /**
-   * Returns the highlight borders to draw: drag feedback while a stack is in
-   * hand, and the hover border otherwise.
-   */
-  private buildHighlights(): HighlightView[] {
-    const drag = this.interaction.drag;
-    if (drag && drag.cardIds.length > 0) {
-      const dropTarget = this.buildDropTargetHighlight(drag);
-      return dropTarget ? [dropTarget] : [];
-    }
-
-    const hoverHighlight = this.buildHoverHighlight();
-    return hoverHighlight ? [hoverHighlight] : [];
-  }
-
-  /**
-   * Returns the border marking where the dragged stack would land if released
-   * now, or null if it would not be accepted there.
-   */
-  private buildDropTargetHighlight(
-    drag: DragInteraction,
-  ): HighlightView | null {
-    const target = resolveDragTarget(this.game, drag, this.metrics);
-    if (!target) {
-      return null;
-    }
-
-    const targetPile = this.game.getPileById(target.pileId);
-    const [primaryCardId] = drag.cardIds;
-    if (
-      !targetPile ||
-      primaryCardId === undefined ||
-      !this.game.canMoveCardToPile(primaryCardId, target.pileId)
-    ) {
-      return null;
-    }
-
-    // Outline the card the stack would land on, or the empty slot, rather than
-    // the whole column.
-    const topCard = targetPile.topCard;
-
-    return {
-      anchor: topCard
-        ? { kind: "card", cardId: topCard.id }
-        : { kind: "point", x: target.x, y: target.y },
-      width: this.cardWidth,
-      height: this.cardHeight,
-      scale: this.scale,
-      depth: depthFor(RenderLayer.DROP_TARGET_HINT),
-      openBottom: false,
-    };
-  }
-
-  /**
-   * Returns the hover border for the card or empty slot under the pointer, or
-   * null when nothing hovered can be interacted with.
-   */
-  private buildHoverHighlight(): HighlightView | null {
-    const backgroundHighlight = this.buildBackgroundHoverHighlight();
-    if (backgroundHighlight) {
-      return backgroundHighlight;
-    }
-
-    if (!this.interaction.hoveredCardId) {
-      return null;
-    }
-
-    const hoveredCard = this.game.getCardById(this.interaction.hoveredCardId);
-    const hoveredPile = hoveredCard
-      ? this.game.getPileContainingCard(hoveredCard.id)
-      : undefined;
-    if (
-      !hoveredCard ||
-      !hoveredPile ||
-      !this.game.isCardInteractableInPile(hoveredCard, hoveredPile)
-    ) {
-      return null;
-    }
-
-    const pileCards = hoveredPile.getCards();
-    const cardIndex = pileCards.indexOf(hoveredCard);
-
-    return {
-      anchor: { kind: "card", cardId: hoveredCard.id },
-      width: this.cardWidth,
-      height: this.cardHeight,
-      scale: this.scale,
-      depth: depthFor(RenderLayer.HOVER_HINT),
-      openBottom: cardIndex !== -1 && cardIndex < pileCards.length - 1,
-    };
-  }
-
-  /** Returns the border for a hovered empty slot that does something. */
-  private buildBackgroundHoverHighlight(): HighlightView | null {
-    const pileId = this.interaction.hoveredBackgroundPileId;
-    if (!pileId) return null;
-
-    const pile = this.game.getPileById(pileId);
-    const origin = this.origins.get(pileId);
-    if (!pile || !this.game.isEmptySlotActionable(pile) || !origin) {
-      return null;
-    }
-
-    return {
-      anchor: { kind: "point", x: origin.x, y: origin.y },
-      width: this.cardWidth,
-      height: this.cardHeight,
-      scale: this.scale,
-      depth: depthFor(RenderLayer.HOVER_HINT),
-      openBottom: false,
-    };
   }
 }
 
