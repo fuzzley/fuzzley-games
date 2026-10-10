@@ -5,9 +5,10 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
 import { AppliedMove, AppliedMoveKind, CardTransfer, MOVE_KIND } from "./move";
 import { MoveHistory, RelocationListener } from "./move_history";
 import { GameState, ReadableGameState } from "./game_state";
-import { BoardQuery } from "./rules";
+import { BoardQuery } from "./rules/board_query";
 import { Tabletop } from "./tabletop";
-import { ZoneRules, ZoneSpec, canGrab, hasRoomFor } from "./zone";
+import { ZoneRules, ZoneSpec, hasRoomFor } from "./zones/zone";
+import { canGrab } from "./rules/grab";
 import { TableView } from "./view/table_view";
 
 /** Describes a move that has passed the rules: its cards and where they go. */

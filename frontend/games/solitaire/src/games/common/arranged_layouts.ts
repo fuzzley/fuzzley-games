@@ -15,7 +15,7 @@ import {
   designSize,
   tableLayout,
 } from "@/engine/render/layout/table_layout";
-import { ZoneSpec } from "@/engine/tableau/zone";
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
 import {
   PHONE_FAN_FIT,
   ROOMY_FAN_FIT,

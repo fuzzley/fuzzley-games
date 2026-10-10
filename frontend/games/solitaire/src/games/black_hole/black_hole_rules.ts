@@ -3,11 +3,11 @@ import {
   PlacementRule,
   all,
   anyCard,
-  buildsOn,
   byEmptiness,
-  isAdjacentRank,
   singleCardOnly,
-} from "@/engine/tableau/rules";
+} from "@/engine/tableau/rules/placement";
+import { buildsOn } from "@/engine/tableau/rules/builds";
+import { isAdjacentRank } from "@/engine/tableau/rules/adjacency";
 
 /** The parts a pile can play in Black Hole or All in a Row. */
 export const BlackHoleRole = {

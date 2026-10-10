@@ -4,8 +4,8 @@ import {
   LAYOUT_GAP_X,
   LAYOUT_GAP_Y,
 } from "@/engine/render/layout/card_metrics";
-import { ZoneSpec } from "@/engine/tableau/zone";
-import { zoneAt } from "@/engine/tableau/zone_builder";
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import { zoneAt } from "@/engine/tableau/zones/zone_builder";
 import { foundationPileId } from "../common/pile_ids";
 import {
   OPEN_COLUMN_LAYOUT,

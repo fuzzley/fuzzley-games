@@ -5,11 +5,13 @@ import {
   PlacementRule,
   byEmptiness,
   cardIs,
-  descendingAlternatingColor,
   hasRank,
+} from "@/engine/tableau/rules/placement";
+import {
+  descendingAlternatingColor,
   suitFoundation,
-} from "@/engine/tableau/rules";
-import { ZoneSpec } from "@/engine/tableau/zone";
+} from "@/engine/tableau/rules/builds";
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
 
 /** The parts a pile plays on the fake board. */
 export const FakeRole = {

@@ -1,6 +1,10 @@
 import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
-import { PlacementRule, all, singleCardOnly } from "@/engine/tableau/rules";
+import {
+  PlacementRule,
+  all,
+  singleCardOnly,
+} from "@/engine/tableau/rules/placement";
 import {
   MoveEffects,
   NO_MOVE_EFFECTS,

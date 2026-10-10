@@ -3,14 +3,16 @@ import { Rank } from "@/engine/core/card/playing_card";
 import {
   PlacementRule,
   all,
-  ascendingAnySuit,
   byEmptiness,
   cardIs,
-  descendingAnySuit,
   hasRank,
   never,
   singleCardOnly,
-} from "@/engine/tableau/rules";
+} from "@/engine/tableau/rules/placement";
+import {
+  ascendingAnySuit,
+  descendingAnySuit,
+} from "@/engine/tableau/rules/builds";
 
 /** The parts a pile can play in a Bristol game. */
 export const BristolRole = {

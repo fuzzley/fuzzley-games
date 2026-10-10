@@ -4,10 +4,10 @@ import {
   PlacementRule,
   cardIs,
   hasRank,
-  suitFoundation,
-  isOrderedPair,
-} from "@/engine/tableau/rules";
-import { ColumnRules, runColumn } from "@/engine/tableau/zone";
+} from "@/engine/tableau/rules/placement";
+import { suitFoundation } from "@/engine/tableau/rules/builds";
+import { isOrderedPair } from "@/engine/tableau/rules/adjacency";
+import { ColumnRules, runColumn } from "@/engine/tableau/rules/run_column";
 
 /** The parts a pile can play in an Easthaven game. */
 export const EasthavenRole = {

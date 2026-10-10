@@ -1,6 +1,6 @@
-import { suitFoundation } from "@/engine/tableau/rules";
-import { ZoneSpec } from "@/engine/tableau/zone";
-import { zoneRow } from "@/engine/tableau/zone_builder";
+import { suitFoundation } from "@/engine/tableau/rules/builds";
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import { zoneRow } from "@/engine/tableau/zones/zone_builder";
 import {
   OPEN_COLUMN_LAYOUT,
   STACKED_PILE_LAYOUT,

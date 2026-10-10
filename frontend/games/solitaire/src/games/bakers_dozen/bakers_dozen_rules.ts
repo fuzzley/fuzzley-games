@@ -2,10 +2,12 @@ import { PileRole } from "@/engine/core/card/card_pile";
 import {
   PlacementRule,
   byEmptiness,
-  descendingAnySuit,
   never,
+} from "@/engine/tableau/rules/placement";
+import {
+  descendingAnySuit,
   suitFoundation,
-} from "@/engine/tableau/rules";
+} from "@/engine/tableau/rules/builds";
 
 /** The parts a pile can play in a Baker's Dozen game. */
 export const BakersDozenRole = {

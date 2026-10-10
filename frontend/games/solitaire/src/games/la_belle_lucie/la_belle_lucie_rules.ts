@@ -3,14 +3,16 @@ import { Rank } from "@/engine/core/card/playing_card";
 import {
   PlacementRule,
   any,
-  ascendingAnySuit,
   byEmptiness,
   cardIs,
-  descendingAnySuit,
-  descendingSameSuit,
   hasRank,
   never,
-} from "@/engine/tableau/rules";
+} from "@/engine/tableau/rules/placement";
+import {
+  ascendingAnySuit,
+  descendingAnySuit,
+  descendingSameSuit,
+} from "@/engine/tableau/rules/builds";
 
 /** The parts a pile can play in a game of the La Belle Lucie family. */
 export const LaBelleLucieRole = {

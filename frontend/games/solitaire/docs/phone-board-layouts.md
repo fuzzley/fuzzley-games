@@ -466,7 +466,7 @@ re-measures the board and snaps every card.
 - **Where:** `CatalogEntry.layout` in `src/ui/app/provider/game_catalog.ts`;
   `SlotPlacement` and `measureTable` in
   `src/engine/render/layout/table_layout.ts`; `ZoneLook.layout` in
-  `src/engine/tableau/view/zone_look.ts`; new `PileLayout` kinds in
+  `src/engine/tableau/zones/zone_look.ts`; new `PileLayout` kinds in
   `src/engine/render/layout/pile_layout.ts`.
 - **Unlocks:** K-P2, K-L2, S-P2, S-L2.
 

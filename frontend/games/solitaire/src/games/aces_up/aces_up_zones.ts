@@ -1,5 +1,5 @@
-import { ZoneSpec } from "@/engine/tableau/zone";
-import { zoneAt } from "@/engine/tableau/zone_builder";
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import { zoneAt } from "@/engine/tableau/zones/zone_builder";
 import { DISCARD_PILE_ID, STOCK_PILE_ID } from "../common/pile_ids";
 import {
   OPEN_COLUMN_LAYOUT,

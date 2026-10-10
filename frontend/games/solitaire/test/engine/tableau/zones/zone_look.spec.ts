@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
-import { frameFor, showsFace } from "@/engine/tableau/view/zone_look";
+import { frameFor, showsFace } from "@/engine/tableau/zones/zone_look";
 import { makePlayingCard } from "@test/support/card_builder";
 
 /** Returns a card of the given suit and rank, face up unless stated. */

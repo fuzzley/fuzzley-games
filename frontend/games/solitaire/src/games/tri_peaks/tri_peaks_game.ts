@@ -4,7 +4,7 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
 import { MoveEffects } from "@/engine/tableau/table_game";
-import { isUncovered } from "@/engine/tableau/zone";
+import { isUncovered } from "@/engine/tableau/rules/grab";
 import { DeckOptions } from "@/games/common/deck_options";
 import { drawToWaste } from "@/games/common/stock_pile";
 import { TriPeaksRole } from "./tri_peaks_rules";

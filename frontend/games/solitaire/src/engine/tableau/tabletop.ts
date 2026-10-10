@@ -7,8 +7,8 @@ import {
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { CardTransfer } from "./move";
-import { BoardQuery } from "./rules";
-import { ZoneSpec } from "./zone";
+import { BoardQuery } from "./rules/board_query";
+import { ZoneSpec } from "./zones/zone";
 
 /** Says how cards land when they are relocated. */
 export interface RelocateOptions {

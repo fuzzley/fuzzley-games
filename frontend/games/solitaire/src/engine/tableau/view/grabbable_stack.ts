@@ -1,4 +1,4 @@
-import { canGrab } from "../zone";
+import { canGrab } from "../rules/grab";
 import { TableView } from "./table_view";
 
 /**
