@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { DoubleKlondikeGame } from "@/games/double_klondike/double_klondike_game";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { klondikeGestures } from "@/games/klondike/klondike_gestures";
-import { stackFromCard } from "@/engine/tableau/view/grabbable_stack";
+import { stackFromCard } from "@/engine/tableau/view/drag";
 import { IntentHandler } from "@/engine/render/input/table_intents";
 import {
   emptyBoard,

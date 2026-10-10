@@ -9,7 +9,10 @@ import {
   readRecord,
   readString,
 } from "@/engine/core/common/json_reader";
-import { GameSnapshot, readGameSnapshot } from "@/engine/tableau/game_snapshot";
+import {
+  GameSnapshot,
+  readGameSnapshot,
+} from "@/engine/tableau/session/game_snapshot";
 import { GameOptionValues } from "../provider/game_catalog";
 
 /** Records a game as a bug report carries it: which, by what rules, where. */

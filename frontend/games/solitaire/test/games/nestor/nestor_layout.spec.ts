@@ -5,7 +5,7 @@ import {
 } from "@/games/nestor/nestor_layout";
 import { DISCARD_PILE_ID } from "@/games/nestor/nestor_zones";
 import { TABLEAU_HOVER_EXPANSION_OFFSET } from "@/games/common/pile_layouts";
-import { computeScale } from "@/engine/render/layout/table_layout";
+import { computeScale } from "@/engine/render/layout/table_metrics";
 import {
   RAIL,
   SIDEWAYS,

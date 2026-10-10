@@ -1,11 +1,11 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { BoardScene } from "@/engine/render/phaser/board_scene";
-import { PlayableGame } from "@/engine/tableau/playable_game";
+import { BoardScene } from "@/engine/render/phaser/scene/board_scene";
+import { PlayableGame } from "@/engine/tableau/session/playable_game";
 import {
   TableBoardOptions,
   makeTableBoardScene,
 } from "@/engine/board/table_board_scene";
-import { stocklessGestures } from "@/engine/tableau/table_gestures";
+import { stocklessGestures } from "@/engine/tableau/gestures/table_gestures";
 
 import { easthavenGestures } from "@/games/easthaven/easthaven_gestures";
 import { fortyThievesGestures } from "@/games/forty_thieves/forty_thieves_gestures";

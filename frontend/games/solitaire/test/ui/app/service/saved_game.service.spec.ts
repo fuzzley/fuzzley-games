@@ -4,7 +4,7 @@ import { TestBed } from "@angular/core/testing";
 import { SavedGameService } from "@/ui/app/service/saved_game.service";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import type { GamePosition } from "@/ui/app/model/game_position";
-import type { GameSnapshot } from "@/engine/tableau/game_snapshot";
+import type { GameSnapshot } from "@/engine/tableau/session/game_snapshot";
 import {
   createMockGameModel,
   type MockGameModel,

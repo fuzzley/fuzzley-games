@@ -4,13 +4,16 @@ import type {
   CardStyle,
   PresentationSettingsService,
 } from "@/ui/app/service/presentation_settings.service";
-import { CardBackStyle, DEFAULT_CARD_BACK } from "@/engine/render/card_back";
+import {
+  CardBackStyle,
+  DEFAULT_CARD_BACK,
+} from "@/engine/render/deck/card_back";
 import {
   CardDeckId,
   DEFAULT_DESKTOP_CARD_DECK,
   DesktopCardDeckId,
   MOBILE_CARD_DECK,
-} from "@/engine/render/card_deck";
+} from "@/engine/render/deck/card_deck";
 import {
   DEFAULT_THEME,
   TABLE_THEMES,
@@ -21,7 +24,7 @@ import {
   PilePosition,
   StockSide,
   resolveArrangement,
-} from "@/engine/render/layout/board_layouts";
+} from "@/engine/render/layout/board_arrangement";
 import type { FormFactor } from "@/engine/render/layout/form_factor";
 
 /**

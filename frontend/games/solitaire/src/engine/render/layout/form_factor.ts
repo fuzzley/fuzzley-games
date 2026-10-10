@@ -1,4 +1,4 @@
-import { Viewport } from "../view/table_view_state";
+import { Viewport } from "./viewport";
 
 /** Says what shape of screen a board is drawn on. */
 export type FormFactor =

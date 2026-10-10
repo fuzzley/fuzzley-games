@@ -1,10 +1,13 @@
 import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { Deal } from "@/engine/tableau/deal";
-import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { CardTransfer } from "@/engine/tableau/move";
-import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
+import { Deal } from "@/engine/tableau/dealing/deal";
+import { DealtTableGame } from "@/engine/tableau/dealt_table_game";
+import {
+  CardTransfer,
+  MoveEffects,
+  ResolvedMove,
+} from "@/engine/tableau/moves/move";
 import { ActionKind } from "@/games/common/action_kinds";
 import { DeckOptions } from "@/games/common/deck_options";
 import { discardPairEffects } from "@/games/common/pair_removal";

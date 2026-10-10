@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ZoneSpec } from "@/engine/tableau/zone";
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
 import { eightOffZoneSpecs } from "@/games/eight_off/eight_off_zones";
 import { seahavenZoneSpecs } from "@/games/seahaven/seahaven_zones";
 

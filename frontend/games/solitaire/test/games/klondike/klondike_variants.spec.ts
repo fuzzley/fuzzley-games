@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
-import { ZoneSpec } from "@/engine/tableau/zone";
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
 import { KlondikeVariant } from "@/games/klondike/klondike_rules";
 import {
   KlondikeRole,

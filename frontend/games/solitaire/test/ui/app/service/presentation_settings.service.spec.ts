@@ -7,7 +7,7 @@ import {
   CardDeckId,
   DEFAULT_DESKTOP_CARD_DECK,
   MOBILE_CARD_DECK,
-} from "@/engine/render/card_deck";
+} from "@/engine/render/deck/card_deck";
 import { COMPACT_MAX_WIDTH_PX } from "@/ui/app/service/viewport.service";
 import {
   installFakeViewport,

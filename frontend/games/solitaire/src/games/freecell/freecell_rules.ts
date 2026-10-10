@@ -5,18 +5,19 @@ import {
   PlacementRule,
   anyCard,
   cardIs,
-  cellStagingLimit,
   hasRank,
-  isOrderedPair,
-  isSameSuitRun,
+} from "@/engine/tableau/rules/placement";
+import {
+  cellStagingLimit,
   singleCardCell,
   suitFoundation,
-} from "@/engine/tableau/rules";
+} from "@/engine/tableau/rules/builds";
+import { isOrderedPair, isSameSuitRun } from "@/engine/tableau/rules/adjacency";
 import {
   ColumnRules,
   RunColumnOptions,
   runColumn,
-} from "@/engine/tableau/zone";
+} from "@/engine/tableau/rules/run_column";
 
 /** The parts a pile can play in a FreeCell game. */
 export const FreeCellRole = {

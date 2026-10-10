@@ -1,14 +1,13 @@
 import { PileRole } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
+import { PlacementRule, anyCard } from "@/engine/tableau/rules/placement";
+import { baseRankFoundation } from "@/engine/tableau/rules/builds";
 import {
-  PlacementRule,
-  anyCard,
-  baseRankFoundation,
   isAnySuitRunWrapping,
   isOrderedPairWrapping,
   isSameSuitRunWrapping,
-} from "@/engine/tableau/rules";
-import { ColumnRules, runColumn } from "@/engine/tableau/zone";
+} from "@/engine/tableau/rules/adjacency";
+import { ColumnRules, runColumn } from "@/engine/tableau/rules/run_column";
 
 /** The parts a pile can play in a game of the Canfield family. */
 export const CanfieldRole = {

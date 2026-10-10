@@ -1,8 +1,6 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import {
-  dealOnStockPress,
-  tableGestures,
-} from "@/engine/tableau/table_gestures";
+import { dealOnStockPress } from "@/engine/tableau/gestures/press_handlers";
+import { tableGestures } from "@/engine/tableau/gestures/table_gestures";
 import { SpideretteGame } from "./spiderette_game";
 import { SpideretteRole } from "./spiderette_zones";
 

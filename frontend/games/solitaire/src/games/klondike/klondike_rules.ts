@@ -5,16 +5,20 @@ import {
   anyCard,
   byEmptiness,
   cardIs,
+  hasRank,
+} from "@/engine/tableau/rules/placement";
+import {
   descendingAlternatingColor,
   descendingDifferentSuit,
   descendingSameColor,
-  hasRank,
+  suitFoundation,
+} from "@/engine/tableau/rules/builds";
+import {
   isDifferentSuitRun,
   isOrderedPair,
   isSameColorRun,
-  suitFoundation,
-} from "@/engine/tableau/rules";
-import { GrabRule } from "@/engine/tableau/zone";
+} from "@/engine/tableau/rules/adjacency";
+import { GrabRule } from "@/engine/tableau/rules/grab";
 
 /** The parts a pile can play in a Klondike game. */
 export const KlondikeRole = {

@@ -1,7 +1,7 @@
 import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { BoardQuery } from "../rules";
-import { ZoneSpec } from "../zone";
+import { BoardQuery } from "../rules/board_query";
+import { ZoneSpec } from "../zones/zone";
 
 /** Exposes the read-only parts of a table game that drawing it requires. */
 export interface TableView {

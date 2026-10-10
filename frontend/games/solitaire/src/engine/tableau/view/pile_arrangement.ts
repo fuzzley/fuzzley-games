@@ -5,7 +5,7 @@ import {
   fitFanDown,
   mirrorPileLayout,
 } from "@/engine/render/layout/pile_layout";
-import { TableMetrics } from "@/engine/render/layout/table_layout";
+import { TableMetrics } from "@/engine/render/layout/table_metrics";
 import { TableView } from "./table_view";
 
 /** How a pile with no zone arranges its cards. */

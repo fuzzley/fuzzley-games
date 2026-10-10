@@ -1,9 +1,9 @@
-import { Point } from "@/engine/core/common/point";
+import { Point } from "../geometry";
 import {
   DragInteraction,
   FlightInteraction,
   TableInteractionState,
-} from "../view/table_view_state";
+} from "./interaction_state";
 import { IntentHandler } from "./table_intents";
 import { itemAt } from "@/engine/core/common/item_at";
 

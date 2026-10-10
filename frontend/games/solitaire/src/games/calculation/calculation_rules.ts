@@ -3,13 +3,12 @@ import { ALL_RANKS, Rank } from "@/engine/core/card/playing_card";
 import {
   PlacementRule,
   all,
-  ascendingAnySuit,
-  buildsOn,
   byEmptiness,
   cardIs,
   hasRank,
   singleCardOnly,
-} from "@/engine/tableau/rules";
+} from "@/engine/tableau/rules/placement";
+import { ascendingAnySuit, buildsOn } from "@/engine/tableau/rules/builds";
 
 /** The parts a pile can play in a Calculation game. */
 export const CalculationRole = {

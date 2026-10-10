@@ -5,7 +5,7 @@ import {
 } from "@/games/klondike/klondike_deal";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { DeckSource } from "@/engine/tableau/deck_source";
+import { DeckSource } from "@/engine/tableau/dealing/deck_source";
 import {
   KlondikeRole,
   FOUNDATION_COUNT,

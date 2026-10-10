@@ -1,7 +1,5 @@
-import { Point } from "@/engine/core/common/point";
+import { Point, Rect, Size } from "../geometry";
 import { Card } from "@/engine/core/card/card";
-import { Rect } from "../view/table_view_state";
-import type { Size } from "./table_layout";
 
 /** Says which way a spread runs from its pile's origin. */
 export type SpreadDirection =

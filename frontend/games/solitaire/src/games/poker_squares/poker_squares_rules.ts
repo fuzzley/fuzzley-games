@@ -1,6 +1,10 @@
 import { PileRole } from "@/engine/core/card/card_pile";
 import { PlayingCardId } from "@/engine/core/card/playing_card";
-import { PlacementRule, all, singleCardOnly } from "@/engine/tableau/rules";
+import {
+  PlacementRule,
+  all,
+  singleCardOnly,
+} from "@/engine/tableau/rules/placement";
 import { PokerHand, evaluateHand } from "./poker_hands";
 
 /** The parts a pile can play in a game of Poker Squares. */

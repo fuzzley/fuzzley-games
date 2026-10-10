@@ -1,8 +1,6 @@
 import { describe, it, expect } from "vitest";
-import {
-  TableLayoutSpec,
-  computeScale,
-} from "@/engine/render/layout/table_layout";
+import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import { computeScale } from "@/engine/render/layout/table_metrics";
 import {
   PYRAMID_ARRANGED_LAYOUTS,
   PYRAMID_LAYOUT,

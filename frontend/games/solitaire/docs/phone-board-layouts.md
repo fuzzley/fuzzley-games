@@ -434,7 +434,7 @@ landscape or roomy, decided by the shorter side of the window (for example under
 500 CSS px) rather than its width.
 
 - **Where:** `ViewportService` in `src/ui/app/service/viewport.service.ts`;
-  `compactFor` in `src/engine/render/layout/table_layout.ts`; the card style's
+  `compactFor` in `src/engine/render/layout/table_metrics.ts`; the card style's
   Auto rule in `src/ui/app/service/presentation_settings.service.ts`.
 - **Unlocks:** compact chrome, tight gaps and the mobile deck on a sideways
   phone; choosing a grid by orientation.
@@ -464,9 +464,10 @@ fanning down or left, a stock drawn as slivers. Turning the phone already
 re-measures the board and snaps every card.
 
 - **Where:** `CatalogEntry.layout` in `src/ui/app/provider/game_catalog.ts`;
-  `SlotPlacement` and `measureTable` in
-  `src/engine/render/layout/table_layout.ts`; `ZoneLook.layout` in
-  `src/engine/tableau/view/zone_look.ts`; new `PileLayout` kinds in
+  `SlotPlacement` in `src/engine/render/layout/table_layout.ts` and
+  `measureTable` in `src/engine/render/layout/table_metrics.ts`;
+  `ZoneLook.layout` in
+  `src/engine/tableau/zones/zone_look.ts`; new `PileLayout` kinds in
   `src/engine/render/layout/pile_layout.ts`.
 - **Unlocks:** K-P2, K-L2, S-P2, S-L2.
 
@@ -478,7 +479,7 @@ board learns insets on all four sides, not just the top, and the page opts into
 
 - **Where:** the `header_bar` component; `--board-inset-top` in
   `src/ui/app/component/game_canvas/game_canvas.component.scss` and
-  `ViewportScaler` in `src/engine/render/phaser/viewport_scaler.ts`; the
+  `ViewportScaler` in `src/engine/render/phaser/host/viewport_scaler.ts`; the
   viewport meta in `index.html`.
 - **Unlocks:** the 73 px header back for cards in landscape; thumb-reach actions
   in K-P2.
@@ -500,7 +501,7 @@ sends a card to its best move, offered as a setting on touch screens, matters as
 much as any layout.
 
 - **Where:** `tools/card-atlas/mobile-deck.mjs`; `tableGestures` in
-  `src/engine/tableau/table_gestures.ts`.
+  `src/engine/tableau/gestures/table_gestures.ts`.
 - **Unlocks:** legible Spider indices in portrait; play without dragging.
 
 ## Phases

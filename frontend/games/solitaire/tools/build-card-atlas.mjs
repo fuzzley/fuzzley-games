@@ -82,7 +82,7 @@ function fromSheet(file) {
 /**
  * The decks on offer, each written to its own directory under OUT_DIR.
  *
- * Ids must match `CardDeckId` in `src/engine/render/card_deck.ts`.
+ * Ids must match `CardDeckId` in `src/engine/render/deck/card_deck.ts`.
  *
  * @type {Deck[]}
  */

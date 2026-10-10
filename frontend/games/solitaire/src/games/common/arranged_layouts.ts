@@ -1,8 +1,6 @@
 import { itemAt } from "@/engine/core/common/item_at";
-import {
-  ArrangedLayouts,
-  PilePosition,
-} from "@/engine/render/layout/board_layouts";
+import { ArrangedLayouts } from "@/engine/render/layout/board_layouts";
+import { PilePosition } from "@/engine/render/layout/board_arrangement";
 import {
   CARD_HEIGHT_PX,
   CARD_RENDER_HEIGHT_PX,
@@ -15,7 +13,7 @@ import {
   designSize,
   tableLayout,
 } from "@/engine/render/layout/table_layout";
-import { ZoneSpec } from "@/engine/tableau/zone";
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
 import {
   PHONE_FAN_FIT,
   ROOMY_FAN_FIT,

@@ -86,18 +86,18 @@ refuses", and stops a drag offering the stock as a target. Do not write a
 function mapping a role back to its rule: the zone already knows which rule it
 wants.
 
-Compose the rule from the vocabulary in `src/engine/tableau/rules.ts` rather than
+Compose the rule from the vocabulary in `src/engine/tableau/rules/` rather than
 writing predicates by hand:
 
-- **Combinators** — `all`, `any`, `byEmptiness(whenEmpty, whenOccupied)`,
+- **Combinators** (`placement.ts`) — `all`, `any`, `byEmptiness(whenEmpty, whenOccupied)`,
   `cardIs(predicate)`, `hasRank`, `never`, `anyCard`, `singleCardOnly`,
   `maxStackSize(limit)`.
-- **Adjacency** (what may sit directly on what) — `isOrderedPair`,
+- **Adjacency** (`adjacency.ts`: what may sit directly on what, an `Adjacency`) — `isOrderedPair`,
   `isSameSuitRun`, `isSameColorRun`, `isDifferentSuitRun`, `isAnySuitRun`,
   the wrapping forms where an Ace takes a King (`isOrderedPairWrapping`,
   `isSameSuitRunWrapping`, `isAnySuitRunWrapping`), and `isAdjacentRank(wraps)`
   for the Golf family's one rank up or down.
-- **Builds**, each derived from an adjacency via `buildsOn` —
+- **Builds** (`builds.ts`), each derived from an adjacency via `buildsOn` —
   `descendingAlternatingColor`, `descendingSameSuit`, `descendingSameColor`,
   `descendingDifferentSuit`, `descendingAnySuit`, their `…Wrapping` forms,
   `ascendingSameSuit`, `ascendingSameSuitWrapping` and `ascendingAnySuit`.
@@ -113,7 +113,7 @@ A rule that needs to see the rest of the board gets `context.board`
 
 **Derive a column's build and lift from one adjacency.** When the runs a
 player may lift are the runs they may build, use `runColumn({ adjacent,
-whenEmpty, maxStack })` from `src/engine/tableau/zone.ts`, which returns the
+whenEmpty, maxStack })` from `src/engine/tableau/rules/run_column.ts`, which returns the
 `accept` and `grab` together, and spread it into `columnRow` (Eight Off,
 Seahaven, Easthaven, Penguin, Canfield, FreeCell). A run that can be lifted
 under one rule and not landed under the other is a bug that only appears
@@ -129,9 +129,9 @@ grab rule there, so a reader can check them at a glance.
 
 ## 3. `<game>_zones.ts` — the board as data
 
-A `ZoneSpec` per pile (`src/engine/tableau/zone.ts`): how it plays, its
+A `ZoneSpec` per pile (`src/engine/tableau/zones/zone.ts`): how it plays, its
 `ZoneRules` (id, role, `accept`, `grab`, `draggable`, optionally `capacity`),
-and how it looks, its `ZoneLook` (`src/engine/tableau/view/zone_look.ts`: grid
+and how it looks, its `ZoneLook` (`src/engine/tableau/zones/zone_look.ts`: grid
 slot, `layout`, `face`, optionally `backgroundKey`, `emptyIsActionable`). This replaces switching on a pile's role
 anywhere else.
 
@@ -145,11 +145,11 @@ from `src/games/common/pile_layouts.ts` — `STACKED_PILE_LAYOUT`,
 `BURIED_COLUMN_LAYOUT` (any card dealt face down), `OPEN_COLUMN_LAYOUT` (all face
 up), `wasteFanLayout(drawCount)`.
 
-`GrabRule` is the interesting choice: `"none"`, `"top-only"`, `"any-face-up"`
+`GrabRule` (`src/engine/tableau/rules/grab.ts`) is the interesting choice: `"none"`, `"top-only"`, `"any-face-up"`
 (Klondike columns — deliberately lax), `{ kind: "run", adjacent }` (FreeCell,
 Spider), or `{ kind: "uncovered", coveredBy }` for a card free only once the
 piles lying over it are empty (Pyramid, TriPeaks; `isUncovered` in
-`src/engine/tableau/zone.ts` asks the same of an accept rule). It must agree
+`src/engine/tableau/rules/grab.ts` asks the same of an accept rule). It must agree
 with the build rule from step 2.
 
 **Write it as a plain function of the choices that shape the board**, such as
@@ -158,6 +158,7 @@ the variant or the draw count. The game hands the result to `super` once and
 a rule deals a new game rather than reshaping this one.
 
 For a slot that is not a plain consecutive row — Montana's grid — `zoneRow`
+(`src/engine/tableau/zones/zone_builder.ts`)
 accepts a function for `column`. Slots may be fractional: Flower Garden's
 bouquet overlaps at fractional columns, Pyramid's rows sit half a row apart and
 Grandfather's Clock lays its foundations on a circle. Piles are drawn in
@@ -168,7 +169,7 @@ skeleton places fractional slots too.
 
 ## 4. `<game>_deal.ts` — the opening position
 
-A plain function taking the `Deal` (`src/engine/tableau/deal.ts`) and the
+A plain function taking the `Deal` (`src/engine/tableau/dealing/deal.ts`) and the
 piles. The deal hands out the shuffled deck, last card first, and places cards
 through the tabletop: `dealTo(pile, faceUp)` deals the next card,
 `dealEach(piles, faceUp)` one to each pile, `dealRest(pile, faceUp)` all
@@ -200,7 +201,7 @@ honour it itself.
 
 ## 5. `<game>_game.ts` — the class
 
-Extend `DealtTableGame` (`src/engine/tableau/dealt_game.ts`). It already owns the
+Extend `DealtTableGame` (`src/engine/tableau/dealt_table_game.ts`). It already owns the
 new-game and restart cycle, including keeping the dealt order aside so a restart
 replays the same game.
 
@@ -417,12 +418,13 @@ checks beside it, as `test/games/klondike/klondike_layout.spec.ts` does.
 ## 7. `<game>_gestures.ts` — only if a press means something
 
 A game with no stock does not need this file at all: map it to
-`stocklessGestures` from `src/engine/tableau/table_gestures.ts` in step 8, as
+`stocklessGestures` from `src/engine/tableau/gestures/table_gestures.ts` in step 8, as
 FreeCell does.
 
 Otherwise call `tableGestures(game, options)` with:
 
-- `onCardPress` — `drawOnStockTop(role, draw)` for a stock whose top card draws
+- `onCardPress` — from `src/engine/tableau/gestures/press_handlers.ts`,
+  `drawOnStockTop(role, draw)` for a stock whose top card draws
   (Klondike, Forty Thieves), `dealOnStockPress(role, deal)` for one that deals
   a row wherever it is pressed (Spider, Scorpion, Easthaven), or
   `playOnPress(game, roles)` where a single press plays a card (Golf, Black
@@ -461,7 +463,7 @@ CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
    error, not a runtime throw. There is no per-game board file:
    `makeTableBoardScene` (`src/engine/board/table_board_scene.ts`) draws every
    game from its gestures and its entry's grids (`boardLayoutsOf`), and `PhaserHost`
-   (`src/engine/render/phaser/phaser_host.ts`) swaps in whatever board it is
+   (`src/engine/render/phaser/host/phaser_host.ts`) swaps in whatever board it is
    handed, so the shell never imports a game in order to host one.
 3. **`src/ui/app/provider/game_documentation_data.ts`** — add the rules page.
    `CompleteGameDocumentation` is `Record<GameId, …>`, so shipping a game with no
@@ -527,13 +529,14 @@ Each tier may depend only on the tiers below it, enforced as build errors by
     [ engine/core ]            Cards, piles, decks, suits, ranks, RNG
 ```
 
-| Tier                                  | May import                               | Must not import                                                                                         |
-| :------------------------------------ | :--------------------------------------- | :------------------------------------------------------------------------------------------------------ |
-| `src/engine/core`                     | Standard TS only                         | `@/engine/render/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `phaser`, `@angular/*`, `rxjs`        |
-| `src/engine/render` _(excl. phaser/)_ | `engine/core`                            | `phaser`, `@/engine/render/phaser/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs` |
-| `src/engine/render/phaser`            | Phaser 4, `engine/core`, `engine/render` | `@/engine/tableau/view/table_view_builder`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                 |
-| `src/engine/tableau`                  | `engine/core`, `engine/render`           | `phaser`, `@/engine/render/phaser/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                       |
-| `src/games/*`                         | `engine/*`                               | `@/ui/*`, `@angular/*`, `rxjs`                                                                          |
+| Tier                                  | May import                                       | Must not import                                                                                         |
+| :------------------------------------ | :----------------------------------------------- | :------------------------------------------------------------------------------------------------------ |
+| `src/engine/core`                     | Standard TS only                                 | `@/engine/render/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `phaser`, `@angular/*`, `rxjs`        |
+| `src/engine/render` _(excl. phaser/)_ | `engine/core`                                    | `phaser`, `@/engine/render/phaser/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs` |
+| `src/engine/render/phaser`            | Phaser 4, `engine/core`, `engine/render`         | `@/engine/board/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                   |
+| `src/engine/tableau`                  | `engine/core`, `engine/render`                   | `phaser`, `@/engine/render/phaser/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                       |
+| `src/engine/board`                    | every `engine/*` tier, Phaser 4                  | `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                                                             |
+| `src/games/*`                         | `engine/core`, `engine/render`, `engine/tableau` | `phaser`, `@/engine/render/phaser/*`, `@/engine/board/*`, `@/ui/*`, `@angular/*`, `rxjs`                |
 
 Reading it as a decision, when you are unsure where a new piece belongs:
 

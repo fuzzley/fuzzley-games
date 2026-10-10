@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { CARD_DECKS } from "@/engine/render/card_deck";
-import { CARD_ART_SCALES } from "@/engine/render/layout/card_metrics";
+import { CARD_DECKS } from "@/engine/render/deck/card_deck";
+import { CARD_ART_SCALES } from "@/engine/render/deck/card_art_scale";
 import {
   CLOSED_STOCK_PLACEHOLDER,
   COVERED_FOUNDATION_PLACEHOLDER,
