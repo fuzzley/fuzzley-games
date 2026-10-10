@@ -37,21 +37,6 @@
   }
 }
 
-// A light falling on the felt from above, laid over the canvas so the camera
-// can keep filling with the plain colour the player chose. It centres above
-// the middle, where the cards are, and must never take a press meant for one.
-:host::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse 125% 105% at 50% 32%,
-    transparent 38%,
-    var(--table-vignette) 100%
-  );
-}
-
 .canvas-container {
   position: absolute;
   inset: 0;

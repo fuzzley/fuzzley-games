@@ -3,6 +3,12 @@
  * {@link depthFor} hands out.
  */
 export enum RenderLayer {
+  /**
+   * The light on the felt, below everything on the table so it never darkens
+   * a card.
+   */
+  TABLE_LIGHT = -1,
+
   /** A pile's empty placeholder, below everything that can sit in it. */
   PILE_BACKGROUND,
 

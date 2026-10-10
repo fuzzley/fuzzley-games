@@ -3,6 +3,7 @@ import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
 
 /** The layers in the order they are meant to be drawn, back to front. */
 const LAYERS_BACK_TO_FRONT: readonly RenderLayer[] = [
+  RenderLayer.TABLE_LIGHT,
   RenderLayer.PILE_BACKGROUND,
   RenderLayer.RESTING_CARD,
   RenderLayer.HOVER_HINT,
