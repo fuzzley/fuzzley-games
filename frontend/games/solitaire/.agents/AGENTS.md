@@ -226,7 +226,7 @@ Deployments are automated via GitHub Actions on every push to `main` (or manual 
    - Runs `yarn build` to produce production assets in `dist/`, with
      `VITE_COMMIT_SHA` set so a bug report filed from the site names its build.
    - Clones the target host website repository (`fuzzley/fuzzley`).
-   - Copies `dist/*` assets to `main-website/frontend/public/project/solitaire`.
+   - Copies `dist/*` assets to `main-website/frontend/public/projects/solitaire/play`.
    - Automatically commits and pushes asset updates to `fuzzley/fuzzley`.
 
 ---

@@ -24,7 +24,7 @@ Two jobs, on push to `main`, a pull request into `main`, or a manual
    repeat. This is the only job a pull request runs.
 2. **`build-and-sync`** — `needs: verify`, and skipped for a pull request.
    Builds, clones `fuzzley/fuzzley` with a PAT, replaces
-   `main-website/frontend/public/project/solitaire` with `dist/*`, and commits
+   `main-website/frontend/public/projects/solitaire/play` with `dist/*`, and commits
    only if something changed. Its concurrency group runs one deploy at a time:
    a later push waits, and a deploy under way is never cancelled.
 
