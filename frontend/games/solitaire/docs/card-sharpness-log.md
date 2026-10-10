@@ -1,21 +1,25 @@
 # Card sharpness: work log
 
-This file tracks the work on making cards sharper on phones: a pixel budget in
-place of the fixed pixel ratio cap, card vertices rounded to whole pixels, and
-more atlas densities drawn straight from the SVG. It records what was decided,
-what is done and what is next, so the work can stop and restart at any commit.
-The research and every option considered are in
+This file tracks the work on making cards sharper on phones. Options 1 to 3: a
+pixel budget in place of the fixed pixel ratio cap, card vertices rounded to
+whole pixels, and more atlas densities drawn straight from the SVG. Then options
+4 to 6: the canvas sized in exact device pixels, the mobile deck drawn at its
+exact size at runtime, and the felt's vignette moved under the cards. It records
+what was decided, what is done and what is next, so the work can stop and
+restart at any commit. The research and every option considered are in
 [card-sharpness.md](card-sharpness.md).
 
-**Branch:** `feature/card-sharpness`, cut from `main` at `393d9e0`.
+**Branches:** options 1 to 3 on `feature/card-sharpness`, cut from `main` at
+`393d9e0` and merged as `8e03d47`. Options 4 to 6 on
+`feature/card-sharpness-4-6`, cut from `main` at `22cbcd4`.
 
-**Status:** merged to `main` as `8e03d47`. What is left for the owner is under
-[Open questions](#open-questions).
+**Status:** options 1 to 3 merged; options 4 to 6 in progress. What is left for
+the owner is under [Open questions](#open-questions).
 
 ## How to pick this up
 
-1. The branch is merged and deleted, so start from `main` and read
-   [Progress](#progress) and [Open questions](#open-questions).
+1. `git checkout feature/card-sharpness-4-6` (or `main`, once it is merged)
+   and read [Progress](#progress) and [Open questions](#open-questions).
 2. Run `yarn tsc && yarn test` to confirm the tree is green before going on.
 3. Take the first unchecked step. Each step is one commit, or a few, and adds an
    entry to [Log](#log) saying what changed and anything surprising.
@@ -56,6 +60,49 @@ Made while planning, within that decision. Each is easy to revisit.
   sheet, and check the crops there; every density cuts the same boxes in design
   units.
 
+### Options 4 to 6
+
+The owner asked on 2026-10-10 for options 4 to 6 as well ("phase 4-6 from the
+original plan"), again with regular commits and this log kept up to date.
+Choices made while planning:
+
+- **Option 4: the browser's own count of device pixels.** A `ResizeObserver`
+  watching the canvas's parent with `box: "device-pixel-content-box"` reports
+  its size in whole device pixels. The scaler uses it only while the canvas
+  renders at the display's own ratio (not one held down by the budget), and only
+  when it agrees with the parent's CSS size to within a pixel, so a report from
+  before a resize never sizes the canvas. The canvas's CSS size is then the
+  parent's own, unrounded. Where the browser has no such box (Safari), the
+  canvas is sized as before.
+- **Option 4 also refreshes Phaser's scale manager after sizing.** Phaser
+  measures the canvas, to convert pointer positions, before the scaler pins its
+  CSS size; on a DPR 2.625 phone that left input about a pixel off at the far
+  edge. A refresh after pinning measures the final size.
+- **Option 6: draw the light under the cards.** The first of the two ways
+  option 6 offered. A Phaser 4 `Gradient` (radial, dithered) fills the canvas
+  beneath every layer, at a new `RenderLayer.TABLE_LIGHT`, with the CSS
+  vignette's geometry: an ellipse 125% × 105% of the board, centred at 50% and
+  32%, clear to 38% of the way out and 38% black at the rim. The CSS overlay and
+  its `--table-vignette` token go.
+- **Option 5: the mobile deck only.** Its faces and plain backs are generated
+  SVG, a few kilobytes each once resvg has turned the ranks into paths, so the
+  browser can draw them at any size. The desktop decks' cards live in three
+  1.7 MB Inkscape sheets with shared patterns; drawing them at runtime would mean
+  splitting the sheets by hand and downloading about 1.7 MB more per deck, for
+  cards the built densities already draw within two thirds of their size on
+  screens where they are larger anyway.
+- **Option 5: what the drawn deck holds.** Every frame the atlas has, so a
+  sprite keeps its frame name across the swap. Faces and plain backs are drawn
+  from SVG at `round(220s)` × `round(307s)` texels for layout scale _s_, and
+  given the card edge as the tool stamps it. The artwork's two backs and the
+  placeholders are copied from the built atlas on the table, with the browser's
+  best smoothing.
+- **Option 5: when it is drawn.** Once the layout scale has held for 250 ms,
+  when it is not already a built density, and when every frame fits one 4096
+  page. Sprites then draw from it at a scale of exactly 1. Any change of scale
+  switches them back to the built atlas until it is drawn again, so a resize
+  never enlarges it; a change of deck or the scene ending releases it.
+
 ## Progress
 
 ### 1. Pixel budget
@@ -80,6 +127,30 @@ Made while planning, within that decision. Each is easy to revisit.
       and after screenshots.
 - [x] 4.2 [card-sharpness.md](card-sharpness.md) says what shipped; open
       questions listed for the owner.
+
+### 5. Exact canvas size (option 4)
+
+- [ ] 5.1 `ViewportScaler` sizes the canvas from the device pixel box where the
+      browser reports one, and refreshes Phaser's scale after sizing; specs.
+
+### 6. The light under the cards (option 6)
+
+- [ ] 6.1 The board paints the felt's light inside the canvas, beneath every
+      layer; the CSS overlay and its token go; specs.
+
+### 7. The mobile deck drawn at its exact size (option 5)
+
+- [ ] 7.1 `yarn build:atlas` writes the mobile deck's faces and plain backs as
+      SVG, ranks as paths.
+- [ ] 7.2 Planning and painting a drawn deck: frame layout, SVG sizing, copied
+      frames, the card edge; specs.
+- [ ] 7.3 The board draws from a drawn deck once its scale settles, sharing one
+      way of repointing sprites with the deck loader; specs.
+
+### 8. Verify options 4 to 6
+
+- [ ] 8.1 `yarn verify`, then the phone and desktop checks above.
+- [ ] 8.2 [card-sharpness.md](card-sharpness.md) and the skills say what shipped.
 
 ## Open questions
 
