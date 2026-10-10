@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import { BoardScene } from "@/engine/render/phaser/board_scene";
+import { BoardScene } from "@/engine/render/phaser/scene/board_scene";
 import { makeFakeTableBoardScene } from "@test/support/fake_table/scene";
 import { TestPresentation } from "@test/support/presentation";
 import {
@@ -30,8 +30,8 @@ import {
   CardAtlas,
   cardAtlasTextureKey,
   residentCardAtlases,
-} from "@/engine/render/phaser/card_deck_atlas";
-import { PhaserCardFactory } from "@/engine/render/phaser/phaser_card_factory";
+} from "@/engine/render/phaser/deck/card_deck_atlas";
+import { PhaserCardFactory } from "@/engine/render/phaser/scene/phaser_card_factory";
 import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
 import {
   computePileOrigins,

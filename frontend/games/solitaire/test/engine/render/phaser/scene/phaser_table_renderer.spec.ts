@@ -2,8 +2,8 @@ import { vi, describe, it, expect, beforeEach, type Mock } from "vitest";
 import {
   PhaserTableRenderer,
   HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE,
-} from "@/engine/render/phaser/phaser_table_renderer";
-import { PhaserSprites } from "@/engine/render/phaser/phaser_sprites";
+} from "@/engine/render/phaser/scene/phaser_table_renderer";
+import { PhaserSprites } from "@/engine/render/phaser/scene/phaser_sprites";
 import {
   TableViewState,
   CardView,

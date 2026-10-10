@@ -479,7 +479,7 @@ board learns insets on all four sides, not just the top, and the page opts into
 
 - **Where:** the `header_bar` component; `--board-inset-top` in
   `src/ui/app/component/game_canvas/game_canvas.component.scss` and
-  `ViewportScaler` in `src/engine/render/phaser/viewport_scaler.ts`; the
+  `ViewportScaler` in `src/engine/render/phaser/host/viewport_scaler.ts`; the
   viewport meta in `index.html`.
 - **Unlocks:** the 73 px header back for cards in landscape; thumb-reach actions
   in K-P2.

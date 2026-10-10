@@ -1,32 +1,35 @@
 import { GameObjects, Renderer, Scene, Scenes } from "phaser";
 
-import { BoardDeckLoader } from "./board_deck_loader";
+import { BoardDeckLoader } from "../deck/board_deck_loader";
 import { PhaserCardFactory } from "./phaser_card_factory";
 import { BoardInputManager } from "./board_input_manager";
 import { PhaserTableRenderer } from "./phaser_table_renderer";
 import { PhaserSprites } from "./phaser_sprites";
-import { DragController, StackFromCard } from "../input/drag_controller";
-import { IntentHandler } from "../input/table_intents";
+import { DragController, StackFromCard } from "../../input/drag_controller";
+import { IntentHandler } from "../../input/table_intents";
 import {
   DragInteraction,
   TableInteractionState,
-} from "../input/interaction_state";
-import { Insets, NO_INSETS, Viewport } from "../layout/viewport";
-import { PileBackgroundSpec, TableViewState } from "../view/table_view_state";
-import { PileGeometry } from "../layout/drop_geometry";
-import { TableLayoutSpec, designSize } from "../layout/table_layout";
-import { TableMetrics } from "../layout/table_metrics";
-import { CardArtScale, cardArtScaleFor } from "../deck/card_art_scale";
+} from "../../input/interaction_state";
+import { Insets, NO_INSETS, Viewport } from "../../layout/viewport";
+import { TableRenderer } from "../../view/table_renderer";
+import {
+  PileBackgroundSpec,
+  TableViewState,
+} from "../../view/table_view_state";
+import { PileGeometry } from "../../layout/drop_geometry";
+import { TableLayoutSpec, designSize } from "../../layout/table_layout";
+import { TableMetrics } from "../../layout/table_metrics";
+import { CardArtScale, cardArtScaleFor } from "../../deck/card_art_scale";
 import { Subscribe } from "@/engine/core/common/event_emitter";
-import { CardDeckStatus, TablePresentation } from "../presentation";
+import { CardDeckStatus, TablePresentation } from "../../presentation";
 import {
   CardAtlas,
+  bootCardAtlas,
   cardAtlasTextureKey,
-  chooseCardAtlas,
   loadCardAtlas,
   residentCardAtlases,
-  sameCardAtlas,
-} from "./card_deck_atlas";
+} from "../deck/card_deck_atlas";
 
 /** Produces the desired appearance of a board for one frame. */
 export type BuildTableViewState = (
@@ -122,7 +125,7 @@ export class BoardScene extends Scene implements PhaserSprites {
   private visualFactory!: PhaserCardFactory;
 
   /** Applies each frame's view state to the sprites. */
-  private viewApplier!: PhaserTableRenderer;
+  private viewApplier!: TableRenderer;
 
   /** Creates a scene that draws the game `options` describes. */
   constructor(options: BoardSceneOptions) {
@@ -154,14 +157,9 @@ export class BoardScene extends Scene implements PhaserSprites {
    * chosen deck, which the board leaves as soon as the one it wants arrives.
    */
   private bootAtlas(): CardAtlas | null {
-    const wanted = this.wantedAtlas();
-    const resident = residentCardAtlases(this.textures);
-    const chosen = chooseCardAtlas(wanted.deckId, wanted.artScale, resident);
-    return (
-      resident.find((atlas) => sameCardAtlas(atlas, chosen)) ??
-      resident.find((atlas) => atlas.deckId === wanted.deckId) ??
-      resident[0] ??
-      null
+    return bootCardAtlas(
+      this.wantedAtlas(),
+      residentCardAtlases(this.textures),
     );
   }
 

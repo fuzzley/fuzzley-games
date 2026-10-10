@@ -1,14 +1,14 @@
 import * as Phaser from "phaser";
 import { GameObjects } from "phaser";
-import { Point } from "../geometry";
+import { Point } from "../../geometry";
 import { PhaserSprites } from "./phaser_sprites";
-import { TableRenderer } from "../view/table_renderer";
+import { TableRenderer } from "../../view/table_renderer";
 import {
   CardView,
   HighlightView,
   PileBackgroundView,
   TableViewState,
-} from "../view/table_view_state";
+} from "../../view/table_view_state";
 
 /**
  * Gives a sprite the cursor its view asks for, skipping the costly assignment

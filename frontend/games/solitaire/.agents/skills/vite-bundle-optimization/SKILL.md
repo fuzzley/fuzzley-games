@@ -104,7 +104,7 @@ Each deck is rasterized once, at the first density. Every other density is
 shrunk from those finished frames, so all of them are framed and edged alike.
 
 The atlas is checked in and loaded **through the bundler**, not from `public/`.
-`src/engine/render/phaser/card_deck_atlas.ts` imports every deck's manifest at
+`src/engine/render/phaser/deck/card_deck_atlas.ts` imports every deck's manifest at
 every density. It resolves page filenames against an `import.meta.glob` of the
 PNGs, so the pages keep their content hashes in `dist/` while the manifest can
 go on naming them plainly. Only the pages a board actually loads are
@@ -118,7 +118,7 @@ downloaded.
   `src/engine/render/deck/card_art_scale.ts` must list the same densities.
   Every frame at density _n_ must be `CARD_RENDER_WIDTH_PX × n` by
   `CARD_RENDER_HEIGHT_PX × n` texels. Otherwise cards render at the wrong size.
-  `test/engine/render/phaser/card_deck_atlas.spec.ts` checks both against the
+  `test/engine/render/phaser/deck/card_deck_atlas.spec.ts` checks both against the
   built manifests.
 - Adding a density to `CARD_ART_SCALES` is a compile error until
   `card_deck_atlas.ts` imports its manifests. `cardArtScaleFor`, next to it,

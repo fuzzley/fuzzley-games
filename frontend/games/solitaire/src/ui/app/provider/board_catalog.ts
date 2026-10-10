@@ -1,5 +1,5 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { BoardScene } from "@/engine/render/phaser/board_scene";
+import { BoardScene } from "@/engine/render/phaser/scene/board_scene";
 import { PlayableGame } from "@/engine/tableau/session/playable_game";
 import {
   TableBoardOptions,

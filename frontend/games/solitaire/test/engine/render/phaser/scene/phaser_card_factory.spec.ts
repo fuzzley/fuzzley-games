@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import * as Phaser from "phaser";
-import { PhaserCardFactory } from "@/engine/render/phaser/phaser_card_factory";
+import { PhaserCardFactory } from "@/engine/render/phaser/scene/phaser_card_factory";
 import { CardArtScale } from "@/engine/render/deck/card_art_scale";
 import {
   createMockMake,
