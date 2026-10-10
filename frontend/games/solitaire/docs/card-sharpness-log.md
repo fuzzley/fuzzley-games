@@ -142,7 +142,7 @@ Choices made while planning:
 
 - [x] 7.1 `yarn build:atlas` writes the mobile deck's faces and plain backs as
       SVG, ranks as paths.
-- [ ] 7.2 Planning and painting a drawn deck: frame layout, SVG sizing, copied
+- [x] 7.2 Planning and painting a drawn deck: frame layout, SVG sizing, copied
       frames, the card edge; specs.
 - [ ] 7.3 The board draws from a drawn deck once its scale settles, sharing one
       way of repointing sprites with the deck loader; specs.
@@ -275,3 +275,15 @@ Choices made while planning:
   resvg's `toString()`, which writes the ranks out as paths. They land in
   `atlas/mobile/vectors.json`: 177 KB, 18 KB gzipped, 1 to 4.5 KB a frame. The
   mobile atlases rebuilt byte for byte.
+- 7.2: `phaser/deck/card_deck_vectors.ts` loads a deck's `vectors.json` by a
+  dynamic import, so only a board that draws the deck downloads it.
+  `phaser/deck/drawn_card_deck.ts` plans a drawn deck (frames
+  `cardFrameTexels(s)` in rows 2 px apart, at most 4096 on a side; null past
+  that, which a 2× deck is), paints it through a narrow 2D context (SVG frames
+  drawn at their exact size and stamped with the card edge, `source-atop`;
+  the rest copied from the built atlas with `imageSmoothingQuality` "high"),
+  and loads an SVG as an image through a blob URL, revoked once decoded. The
+  canvas, texture and timing come in 7.3.
+- `cardFrameTexels` and `cardSpriteScale` now take any texel scale, and the
+  sprite scale is exactly 1 when a frame was drawn for the layout scale it is
+  shown at, rather than stretched by up to half a pixel to the design size.
