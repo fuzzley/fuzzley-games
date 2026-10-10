@@ -577,15 +577,49 @@ export async function drawMobileFaces(artScale) {
   assertIndicesAreClear();
   assertSuitColorsAreLegible();
 
-  const faces = SUITS.flatMap((suit) => RANKS.map((rank) => ({ suit, rank })));
-  return drawEach(faces, ({ suit, rank }) =>
-    drawFrame(
-      `card-${suit.name}-${rank.name}`,
-      faceSvg(suit, rank),
-      FRAME_BOX,
-      artScale,
-      FONT,
-    ),
+  return drawEach(mobileFaces(), ({ name, svg }) =>
+    drawFrame(name, svg, FRAME_BOX, artScale, FONT),
+  );
+}
+
+/**
+ * Returns every face of the mobile deck, by frame name, as an SVG document.
+ *
+ * @returns {{name: string, svg: string}[]}
+ */
+function mobileFaces() {
+  return SUITS.flatMap((suit) =>
+    RANKS.map((rank) => ({
+      name: `card-${suit.name}-${rank.name}`,
+      svg: faceSvg(suit, rank),
+    })),
+  );
+}
+
+/**
+ * Returns the faces and plain backs, by frame name, as SVG documents a browser
+ * can draw at any size on its own: each rank set as paths, since an SVG drawn
+ * as an image cannot load a font.
+ *
+ * @returns {Record<string, string>}
+ */
+export function mobileFrameVectors() {
+  assertIndicesAreClear();
+  assertSuitColorsAreLegible();
+
+  const frames = [
+    ...mobileFaces(),
+    ...Object.entries(BACKS).map(([name, colors]) => ({
+      name,
+      svg: backSvg(colors),
+    })),
+  ];
+  return Object.fromEntries(
+    frames.map(({ name, svg }) => [
+      name,
+      // resvg writes the document back out with its text turned to outlines.
+      new Resvg(svg, { font: FONT }).toString(),
+    ]),
   );
 }
 

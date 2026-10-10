@@ -140,7 +140,7 @@ Choices made while planning:
 
 ### 7. The mobile deck drawn at its exact size (option 5)
 
-- [ ] 7.1 `yarn build:atlas` writes the mobile deck's faces and plain backs as
+- [x] 7.1 `yarn build:atlas` writes the mobile deck's faces and plain backs as
       SVG, ranks as paths.
 - [ ] 7.2 Planning and painting a drawn deck: frame layout, SVG sizing, copied
       frames, the card edge; specs.
@@ -270,3 +270,8 @@ Choices made while planning:
   the CSS vignette left it at 243, and the felt reads exactly as before at the
   centre (15, 77, 14) and the bottom left corner (13, 67, 12). The CSS overlay
   and `--table-vignette` are gone. 6893 tests pass.
+- 7.1: a deck in `build-card-atlas.mjs` may list `vectors`; the mobile deck's
+  are `mobileFrameVectors()`, its 52 faces and 2 plain backs passed through
+  resvg's `toString()`, which writes the ranks out as paths. They land in
+  `atlas/mobile/vectors.json`: 177 KB, 18 KB gzipped, 1 to 4.5 KB a frame. The
+  mobile atlases rebuilt byte for byte.
