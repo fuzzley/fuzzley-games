@@ -47,12 +47,13 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
 2. **`src/engine/render`**
    - Renderer-agnostic layout mathematics, view contracts, drag calculations, and input bounds.
    - Contains pure data structures and layout algorithms; free of Phaser imports.
-   - `geometry.ts` holds `Point`, `Size` and `Rect`. `layout/` places a
-     board: the viewport and form factor, a grid (`table_layout.ts`) and its
+   - `layout/` places a board: `Point`, `Size` and `Rect` (`geometry.ts`),
+     the viewport and form factor, a grid (`table_layout.ts`) and its
      measurement for a screen (`table_metrics.ts`), the player's arrangement
      and the grids for it, pile arrangements and drop geometry. `input/` turns
      the pointer into intents and interaction state, `view/` is the per-frame
-     contract a renderer draws, and `deck/` names the card backs, decks and
+     contract a renderer draws and the player's choices of how the table
+     looks (`presentation.ts`), and `deck/` names the card backs, decks and
      atlas densities the atlas tool builds.
 3. **`src/engine/render/phaser`**
    - Phaser 4 adapter implementing the view contracts defined in `src/engine/render`.
@@ -64,12 +65,13 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
    - Solitaire-family generic runtime engine (zones, rules, moves, undo history, dealing, gesture maps, table view builder).
    - `Tabletop` holds the piles and makes every change to them: `relocate` and `rearrange` for changes undo takes back, `Deal` for laying a game out.
    - Serves as the generic execution engine for every game in `src/games` without depending on a specific renderer backend or game variant.
-   - The root holds the spine: `TableGame`, `DealtTableGame`, `Tabletop` and
-     `move_legality.ts`. `rules/` is the rule vocabulary (placement
-     combinators, adjacency, builds, grab rules, `runColumn`) and depends on
-     core alone; `zones/` declares a game's piles (`ZoneSpec`, its look, the
-     zone builders, pile markers); `moves/` holds the move records and
-     history; `dealing/` the deal; `session/` what the shell runs, saves and
+   - `game/` holds the spine: `TableGame`, `DealtTableGame` and the
+     `Tabletop` they keep their piles on. `rules/` is the rule vocabulary
+     (placement combinators, adjacency, builds, grab rules, `runColumn`) and
+     depends on core alone; `zones/` declares a game's piles (`ZoneSpec`, its
+     look, the zone builders, pile markers); `moves/` holds the move records,
+     the history, and `resolveMove` (`move_legality.ts`), which turns a
+     requested move into the stack and piles it acts on; `dealing/` the deal; `session/` what the shell runs, saves and
      restores a game through; `gestures/` maps intents to moves; and `view/`
      builds each frame's view state from a game.
 5. **`src/engine/board`**

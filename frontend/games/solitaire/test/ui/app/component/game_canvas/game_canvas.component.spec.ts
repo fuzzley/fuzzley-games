@@ -5,7 +5,7 @@ import { GameCanvasComponent } from "@/ui/app/component/game_canvas/game_canvas.
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
-import type { TablePresentation } from "@/engine/render/presentation";
+import type { TablePresentation } from "@/engine/render/view/presentation";
 import { query, queryAll, queryText } from "@test/support/dom";
 
 /** Records one Phaser host the component built, and what it was handed. */

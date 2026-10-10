@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
-import { resolveMove } from "@/engine/tableau/move_legality";
+import { resolveMove } from "@/engine/tableau/moves/move_legality";
 import {
   PlacementContext,
   anyCard,
   never,
 } from "@/engine/tableau/rules/placement";
-import { Tabletop } from "@/engine/tableau/tabletop";
+import { Tabletop } from "@/engine/tableau/game/tabletop";
 import { ZoneSpec } from "@/engine/tableau/zones/zone";
 
 /** Returns a pile's zone: lifting any face-up card and taking any card. */

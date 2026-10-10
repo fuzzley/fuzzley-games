@@ -2,7 +2,7 @@ import { GameObjects, Loader, Textures } from "phaser";
 
 import { CardDeckId } from "../../deck/card_deck";
 import { CardArtScale } from "../../deck/card_art_scale";
-import { CardDeckStatus } from "../../presentation";
+import { CardDeckStatus } from "../../view/presentation";
 import {
   CardAtlas,
   cardAtlasTextureKey,

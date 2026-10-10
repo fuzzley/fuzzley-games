@@ -3,7 +3,7 @@ import { deckCardIds } from "@/engine/core/card/deck";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
 import { Deal } from "@/engine/tableau/dealing/deal";
-import { DealtTableGame } from "@/engine/tableau/dealt_table_game";
+import { DealtTableGame } from "@/engine/tableau/game/dealt_table_game";
 
 import { ActionKind } from "@/games/common/action_kinds";
 import { DeckOptions } from "@/games/common/deck_options";

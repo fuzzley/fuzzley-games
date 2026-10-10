@@ -2,7 +2,7 @@ import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/dealing/deal";
-import { DealtTableGame } from "@/engine/tableau/dealt_table_game";
+import { DealtTableGame } from "@/engine/tableau/game/dealt_table_game";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
 import { FakeRole, STOCK_PILE_ID, WASTE_PILE_ID, fakeZoneSpecs } from "./zones";
 

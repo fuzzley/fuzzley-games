@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { Deal } from "@/engine/tableau/dealing/deal";
-import { DealtTableGame } from "@/engine/tableau/dealt_table_game";
+import { DealtTableGame } from "@/engine/tableau/game/dealt_table_game";
 import { anyCard } from "@/engine/tableau/rules/placement";
 import { ZoneSpec } from "@/engine/tableau/zones/zone";
 

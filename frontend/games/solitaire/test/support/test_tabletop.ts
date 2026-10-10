@@ -3,7 +3,7 @@ import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Deal } from "@/engine/tableau/dealing/deal";
 import { anyCard } from "@/engine/tableau/rules/placement";
-import { Tabletop } from "@/engine/tableau/tabletop";
+import { Tabletop } from "@/engine/tableau/game/tabletop";
 import { ZoneSpec } from "@/engine/tableau/zones/zone";
 
 /** Returns a zone that takes any card, for a pile a helper moves cards on. */

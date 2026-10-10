@@ -201,7 +201,7 @@ honour it itself.
 
 ## 5. `<game>_game.ts` — the class
 
-Extend `DealtTableGame` (`src/engine/tableau/dealt_table_game.ts`). It already owns the
+Extend `DealtTableGame` (`src/engine/tableau/game/dealt_table_game.ts`). It already owns the
 new-game and restart cycle, including keeping the dealt order aside so a restart
 replays the same game.
 
@@ -259,7 +259,7 @@ The only required override is `dealBoard(deal)`. Optionally:
   `winsWhenAllCardsIn` unset.
 
 **Every recorded change of pile goes through `this.tabletop`**
-(`src/engine/tableau/tabletop.ts`). `relocate(cards, to, { faceUp })` moves
+(`src/engine/tableau/game/tabletop.ts`). `relocate(cards, to, { faceUp })` moves
 cards from the one pile holding them and returns the `CardTransfer` that undo
 needs; `rearrange(layout)` lays out several piles at once, as a redeal does
 (La Belle Lucie, Montana, Monte Carlo), and returns transfers that restore them

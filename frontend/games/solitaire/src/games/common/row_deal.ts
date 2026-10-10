@@ -2,7 +2,7 @@ import { Deal } from "@/engine/tableau/dealing/deal";
 import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { CardTransfer } from "@/engine/tableau/moves/move";
-import { Tabletop } from "@/engine/tableau/tabletop";
+import { Tabletop } from "@/engine/tableau/game/tabletop";
 import { collectCompletedRuns } from "./completed_runs";
 import { itemAt } from "@/engine/core/common/item_at";
 

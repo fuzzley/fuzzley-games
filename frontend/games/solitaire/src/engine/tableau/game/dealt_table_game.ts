@@ -1,10 +1,10 @@
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { CardRegistry } from "@/engine/core/card/card_registry";
-import { Deal } from "./dealing/deal";
-import { DeckSource, DeckSourceOptions } from "./dealing/deck_source";
-import { GameSnapshot } from "./session/game_snapshot";
-import { PlayableGame } from "./session/playable_game";
-import { resolveSnapshot } from "./session/snapshot_resolution";
+import { Deal } from "../dealing/deal";
+import { DeckSource, DeckSourceOptions } from "../dealing/deck_source";
+import { GameSnapshot } from "../session/game_snapshot";
+import { PlayableGame } from "../session/playable_game";
+import { resolveSnapshot } from "../session/snapshot_resolution";
 import { TableGame, TableGameEvents, TableGameOptions } from "./table_game";
 
 /** Configures a game that deals itself from a deck. */

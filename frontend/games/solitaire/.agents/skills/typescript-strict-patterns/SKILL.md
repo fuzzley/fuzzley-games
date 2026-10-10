@@ -53,11 +53,11 @@ On `PlayingCard`, identity is fixed at construction (`id`, `suit`, `rank`,
 ## Moves Are Applied, Not Reduced
 
 The engine is **not** a reducer over an action union. `TableGame`
-(`src/engine/tableau/table_game.ts`) is an abstract class that changes piles
-through its `Tabletop` (`src/engine/tableau/tabletop.ts`) and records history:
+(`src/engine/tableau/game/table_game.ts`) is an abstract class that changes piles
+through its `Tabletop` (`src/engine/tableau/game/tabletop.ts`) and records history:
 
 - `canMoveCardToPile(cardId, targetPileId): boolean` — ask the rules.
-- `resolveMove(tabletop, cardId, targetPileId)` (`src/engine/tableau/move_legality.ts`)
+- `resolveMove(tabletop, cardId, targetPileId)` (`src/engine/tableau/moves/move_legality.ts`)
   → `ResolvedMove` (`movingStack`, `sourcePile`, `targetPile`), which
   `canMoveCardToPile` and `moveCardToPile` both ask.
 - `moveCardToPile(cardId, targetPileId): boolean` — perform it.

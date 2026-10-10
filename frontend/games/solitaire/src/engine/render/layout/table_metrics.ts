@@ -1,4 +1,4 @@
-import { Point } from "../geometry";
+import { Point } from "./geometry";
 import { Insets, NO_INSETS, Viewport } from "./viewport";
 import { formFactorOf } from "./form_factor";
 import { SlotPlacement, TableLayoutSpec, designSize } from "./table_layout";

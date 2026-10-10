@@ -1,5 +1,5 @@
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { Point } from "@/engine/render/geometry";
+import { Point } from "@/engine/render/layout/geometry";
 import { pileCardOffsets } from "@/engine/render/layout/pile_layout";
 import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
 import { TableMetrics } from "@/engine/render/layout/table_metrics";

@@ -2,7 +2,7 @@ import * as Phaser from "phaser";
 import { Types } from "phaser";
 import { BoardScene } from "../scene/board_scene";
 import { ScalableGame, ViewportScaler } from "./viewport_scaler";
-import { DEFAULT_BACKGROUND_COLOR } from "../../presentation";
+import { DEFAULT_BACKGROUND_COLOR } from "../../view/presentation";
 import { Insets, NO_INSETS } from "../../layout/viewport";
 
 /**

@@ -1,4 +1,4 @@
-import { Point } from "../geometry";
+import { Point } from "../layout/geometry";
 import {
   DragInteraction,
   FlightInteraction,

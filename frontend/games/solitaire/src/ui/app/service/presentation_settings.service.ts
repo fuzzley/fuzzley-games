@@ -9,7 +9,7 @@ import {
 import {
   CardDeckStatus,
   TablePresentation,
-} from "@/engine/render/presentation";
+} from "@/engine/render/view/presentation";
 import {
   BoardArrangement,
   DEFAULT_BOARD_ARRANGEMENT,

@@ -1,4 +1,4 @@
-import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/presentation";
+import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/view/presentation";
 
 /** Describes a table felt a player can choose: its name and board colour. */
 export interface TableTheme {

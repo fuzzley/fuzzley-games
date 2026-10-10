@@ -1,4 +1,4 @@
-import { Point, Rect, Size } from "../geometry";
+import { Point, Rect, Size } from "./geometry";
 import { Card } from "@/engine/core/card/card";
 
 /** Says which way a spread runs from its pile's origin. */
