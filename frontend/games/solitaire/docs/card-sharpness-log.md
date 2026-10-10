@@ -13,8 +13,9 @@ restart at any commit. The research and every option considered are in
 `393d9e0` and merged as `8e03d47`. Options 4 to 6 on
 `feature/card-sharpness-4-6`, cut from `main` at `5b87934`.
 
-**Status:** options 1 to 3 merged; options 4 to 6 in progress. What is left for
-the owner is under [Open questions](#open-questions).
+**Status:** options 1 to 3 merged; options 4 to 6 done on their branch and
+verified, not merged. What is left for the owner is under
+[Open questions](#open-questions).
 
 ## How to pick this up
 
@@ -149,20 +150,21 @@ Choices made while planning:
 
 ### 8. Verify options 4 to 6
 
-- [ ] 8.1 `yarn verify`, then the phone and desktop checks above.
-- [ ] 8.2 [card-sharpness.md](card-sharpness.md) and the skills say what shipped.
+- [x] 8.1 `yarn verify`, then the phone and desktop checks above.
+- [x] 8.2 [card-sharpness.md](card-sharpness.md) and the skills say what shipped.
 
 ## Open questions
 
-- **The vignette dims the cards at the board's edges.** The grey wash on some
-  face-up cards, on `main` too, is the CSS vignette that
-  `game_canvas.component.scss` lays over the canvas (`:host::after`, up to
-  `--table-vignette`, 38% black, at the edges). It is meant to light the felt
-  but falls on the cards as well, which on a phone sit near the edges:
-  Klondike's column 1, Spider's columns 1 and 2, the bottom row of piles.
-  Drawing it under the cards, inside the canvas, or weakening it on a phone
-  would give the cards back their contrast. A design choice, so left for the
-  owner; written up as option 6 in [card-sharpness.md](card-sharpness.md).
+- **The rules-page screenshots predate the light under the cards.** They were
+  taken with the vignette over the canvas, so their cards near the board's
+  edges are a little grey. `yarn capture:screenshots` and `yarn build:thumbs`
+  would bring them up to date, at the cost of rewriting every game's images.
+- **The desktop decks are not drawn at runtime.** Option 5 covers the mobile
+  deck only; see [card-sharpness.md](card-sharpness.md). Drawing the desktop
+  decks would mean splitting their sheets into per-card SVG.
+- **Memory for the drawn deck.** While the mobile deck is drawn, its canvas
+  texture sits beside the built atlas it fell back to: about 10 MB at a 390 px
+  phone's 3× scale, about 5 MB at 2×.
 - **Memory on a phone on its side.** At 3× it now loads 1.5× (about 46 MB of
   texture) where it loaded 1× (about 20 MB). Worth watching on an older phone;
   lowering `MAX_BUDGETED_DEVICE_PIXELS` or `MAX_PIXEL_RATIO` would trade it
@@ -321,3 +323,16 @@ artScale)` that repoints the sprites and rebakes the shadow when the scale
   without a reload, it redrew at the new scale. Switching the card style to
   Desktop and back to Auto swapped the decks cleanly, the drawn deck coming
   back. No warnings in the console.
+- 8.1: `yarn verify` passes (lint, types, build, 6939 tests). The build splits
+  the mobile deck's vectors into their own chunk, 177 KB and 18 KB gzipped,
+  fetched only by a board that draws the deck. Checked in Chrome: Klondike on a
+  phone on its side at 3× draws correctly with the mobile deck; a 1440 × 810
+  window at 1× draws the desktop deck from its built atlas, its lower cards now
+  white where the vignette greyed them. No console warnings anywhere.
+- 8.2: [card-sharpness.md](card-sharpness.md) says what shipped for options 4
+  to 6 and marks them built, with `docs/card-sharpness/mobile-drawn.png`. The
+  `phaser-core`, `phaser-canvas-performance` and `vite-bundle-optimization`
+  skills and the agent instructions describe the device pixel sizing, the drawn
+  mobile deck and the light under the cards. The vignette question is resolved;
+  the screenshots, the desktop decks and the drawn deck's memory are listed for
+  the owner.

@@ -59,8 +59,9 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
    - Phaser 4 adapter implementing the view contracts defined in `src/engine/render`.
    - Draws card textures, scenes, and canvas elements. Stays unaware of specific game rules or UI components.
    - `host/` keeps the one Phaser game and its canvas for the app's life,
-     `deck/` loads the card atlases, and `scene/` is each board: the scene,
-     its sprites, input and renderer.
+     `deck/` loads the card atlases and draws the mobile deck at a board's
+     exact size, and `scene/` is each board: the scene, its sprites, input,
+     renderer and the light on the felt.
 4. **`src/engine/tableau`**
    - Solitaire-family generic runtime engine (zones, rules, moves, undo history, dealing, gesture maps, table view builder).
    - `Tabletop` holds the piles and makes every change to them: `relocate` and `rearrange` for changes undo takes back, `Deal` for laying a game out.

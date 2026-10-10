@@ -86,7 +86,11 @@ drawing every deck shares, `sheet-deck.mjs` finds a deck's cards on a card sheet
 and draws them, and `atlas-writer.mjs` stamps the card edge and writes a density.
 
 **Output:** `src/engine/render/assets/sprites/atlas/<deck>/<n>x/`, one directory
-per deck and density. Each holds a Phaser **multi-atlas** manifest
+per deck and density. A deck that lists `vectors` in `DECKS`, as `mobile`
+does, also gets `vectors.json` beside them: the SVG of each frame it generates,
+ranks turned to paths by resvg, which `card_deck_vectors.ts` in
+`src/engine/render/phaser/deck/` loads by a dynamic import, so the bundler
+splits it into a chunk only a board drawing the deck at runtime fetches. Each holds a Phaser **multi-atlas** manifest
 `card_assets_atlas.json` plus PNG pages `card_assets-0.png`,
 `card_assets-1.png`, … Pages are PNG, not WebP. Frames are packed into as few
 pages as fit inside `MAX_PAGE_PX` (4096), which is the texture-size floor still
