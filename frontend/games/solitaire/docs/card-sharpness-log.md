@@ -96,8 +96,6 @@ Made while planning, within that decision. Each is easy to revisit.
   texture) where it loaded 1× (about 20 MB). Worth watching on an older phone;
   lowering `MAX_BUDGETED_DEVICE_PIXELS` or `MAX_PIXEL_RATIO` would trade it
   back.
-- **Merge and deploy.** Deploys are blocked until the deploy token is renewed,
-  so merging to `main` would not reach the site yet.
 
 ## Log
 
