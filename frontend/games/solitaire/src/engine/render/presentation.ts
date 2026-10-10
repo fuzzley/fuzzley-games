@@ -1,6 +1,6 @@
 import { Subscribe } from "@/engine/core/common/event_emitter";
-import { CardDeckId } from "./card_deck";
-import { BoardArrangement } from "./layout/board_layouts";
+import { CardDeckId } from "./deck/card_deck";
+import { BoardArrangement } from "./layout/board_arrangement";
 
 /** Describes how far a board has got with drawing the deck it was asked for. */
 export type CardDeckStatus =

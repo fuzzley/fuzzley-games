@@ -3,8 +3,8 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
 import {
   DealtTableGame,
   DealtTableGameOptions,
-} from "@/engine/tableau/dealt_game";
-import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
+} from "@/engine/tableau/dealt_table_game";
+import { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
 import { ActionKind } from "@/games/common/action_kinds";
 import { flipExposedTopOfColumn } from "@/games/common/move_effects";
 import { STOCK_PILE_ID, WASTE_PILE_ID } from "@/games/common/pile_ids";

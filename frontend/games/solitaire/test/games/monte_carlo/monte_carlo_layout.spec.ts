@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeScale } from "@/engine/render/layout/table_layout";
+import { computeScale } from "@/engine/render/layout/table_metrics";
 import {
   MONTE_CARLO_ARRANGED_LAYOUTS,
   MONTE_CARLO_LAYOUT,

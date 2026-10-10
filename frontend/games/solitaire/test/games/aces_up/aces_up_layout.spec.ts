@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeScale } from "@/engine/render/layout/table_layout";
+import { computeScale } from "@/engine/render/layout/table_metrics";
 import {
   ACES_UP_ARRANGED_LAYOUTS,
   ACES_UP_LAYOUT,

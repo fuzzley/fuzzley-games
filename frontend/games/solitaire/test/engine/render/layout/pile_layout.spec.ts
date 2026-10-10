@@ -8,8 +8,27 @@ import {
   mirrorPileLayout,
   pileBounds,
   spreadOffsets,
+  pileCardOffsets,
+  stackedCardOffsets,
 } from "@/engine/render/layout/pile_layout";
 import { makePlayingCard } from "@test/support/card_builder";
+import {
+  TABLEAU_PILE_LAYOUT,
+  fakePileLayout,
+  wastePileLayout,
+  TABLEAU_FACE_DOWN_OFFSET,
+  TABLEAU_FACE_UP_OFFSET,
+  TABLEAU_HOVER_EXPANSION_OFFSET,
+  WASTE_FAN_OFFSET_X,
+  WASTE_MAX_FAN_CARDS,
+  FakeRole,
+  STOCK_PILE_ID,
+  WASTE_PILE_ID,
+  foundationPileId,
+  tableauPileId,
+} from "@test/support/fake_table/zones";
+import { CardPile } from "@/engine/core/card/card_pile";
+import { PlayingCard } from "@/engine/core/card/playing_card";
 
 const CARD = { width: 100, height: 150 };
 
@@ -241,5 +260,197 @@ describe("mirrorPileLayout", () => {
     };
 
     expect(mirrorPileLayout(fan)).toBe(fan);
+  });
+});
+
+describe("stackedCardOffsets", () => {
+  it("stacks every card at the pile origin", () => {
+    expect(stackedCardOffsets(3)).toEqual([
+      { x: 0, y: 0 },
+      { x: 0, y: 0 },
+      { x: 0, y: 0 },
+    ]);
+  });
+
+  it("is empty for an empty pile", () => {
+    expect(stackedCardOffsets(0)).toEqual([]);
+  });
+});
+
+describe("tableauCardOffsets", () => {
+  /** Returns a column of face-down cards with `faceUpCount` face up on top. */
+  function column(faceDownCount: number, faceUpCount: number): PlayingCard[] {
+    return [
+      ...Array.from({ length: faceDownCount }, (_, i) =>
+        makePlayingCard({ id: `down-${i}`, faceUp: false }),
+      ),
+      ...Array.from({ length: faceUpCount }, (_, i) =>
+        makePlayingCard({ id: `up-${i}`, faceUp: true }),
+      ),
+    ];
+  }
+
+  it("gives a face-down card the tighter gap", () => {
+    const offsets = pileCardOffsets(TABLEAU_PILE_LAYOUT, column(2, 0), null);
+
+    expect(offsets[1].y).toBe(TABLEAU_FACE_DOWN_OFFSET);
+  });
+
+  it("gives a face-up card the wider gap", () => {
+    const offsets = pileCardOffsets(TABLEAU_PILE_LAYOUT, column(0, 2), null);
+
+    expect(offsets[1].y).toBe(TABLEAU_FACE_UP_OFFSET);
+  });
+
+  it("starts the column at its origin", () => {
+    const offsets = pileCardOffsets(TABLEAU_PILE_LAYOUT, column(1, 2), null);
+
+    expect(offsets[0]).toEqual({ x: 0, y: 0 });
+  });
+
+  it("opens an extra gap below the hovered card", () => {
+    const cards = column(0, 3);
+    const plain = pileCardOffsets(TABLEAU_PILE_LAYOUT, cards, null);
+
+    const expanded = pileCardOffsets(TABLEAU_PILE_LAYOUT, cards, cards[1].id);
+
+    expect(expanded[2].y - plain[2].y).toBe(TABLEAU_HOVER_EXPANSION_OFFSET);
+  });
+
+  it("leaves cards above the hovered one where they were", () => {
+    const cards = column(0, 3);
+    const plain = pileCardOffsets(TABLEAU_PILE_LAYOUT, cards, null);
+
+    const expanded = pileCardOffsets(TABLEAU_PILE_LAYOUT, cards, cards[1].id);
+
+    expect(expanded.slice(0, 2)).toEqual(plain.slice(0, 2));
+  });
+
+  it("fans straight down, never sideways", () => {
+    const offsets = pileCardOffsets(TABLEAU_PILE_LAYOUT, column(2, 2), null);
+
+    expect(offsets.every((offset) => offset.x === 0)).toBe(true);
+  });
+});
+
+describe("wasteCardOffsets", () => {
+  it("shows only the top card in Draw 1", () => {
+    const offsets = pileCardOffsets(
+      wastePileLayout(1),
+      Array.from({ length: 4 }, () => makePlayingCard()),
+    );
+
+    expect(offsets).toEqual([
+      { x: 0, y: 0 },
+      { x: 0, y: 0 },
+      { x: 0, y: 0 },
+      { x: 0, y: 0 },
+    ]);
+  });
+
+  it("fans the top three in Draw 3", () => {
+    const offsets = pileCardOffsets(
+      wastePileLayout(3),
+      Array.from({ length: 3 }, () => makePlayingCard()),
+    );
+
+    expect(offsets.map((offset) => offset.x)).toEqual([
+      0,
+      WASTE_FAN_OFFSET_X,
+      2 * WASTE_FAN_OFFSET_X,
+    ]);
+  });
+
+  it("keeps the buried cards stacked under the fan", () => {
+    const offsets = pileCardOffsets(
+      wastePileLayout(3),
+      Array.from({ length: 5 }, () => makePlayingCard()),
+    );
+
+    // Only the last three fan; the two beneath sit at the origin.
+    expect(offsets.slice(0, 2).map((offset) => offset.x)).toEqual([0, 0]);
+  });
+
+  it("never fans more than the maximum", () => {
+    const offsets = pileCardOffsets(
+      wastePileLayout(3),
+      Array.from({ length: 10 }, () => makePlayingCard()),
+    );
+
+    const fanned = offsets.filter((offset) => offset.x > 0).length;
+    expect(fanned).toBe(WASTE_MAX_FAN_CARDS - 1);
+  });
+
+  it("keeps the fan on one row", () => {
+    const offsets = pileCardOffsets(
+      wastePileLayout(3),
+      Array.from({ length: 3 }, () => makePlayingCard()),
+    );
+
+    expect(offsets.every((offset) => offset.y === 0)).toBe(true);
+  });
+});
+
+describe("offsetsForPile", () => {
+  it("fans a waste pile horizontally", () => {
+    const pile = new CardPile<PlayingCard>(WASTE_PILE_ID, FakeRole.WASTE);
+    pile.addCard(makePlayingCard({ id: "a", faceUp: true }));
+    pile.addCard(makePlayingCard({ id: "b", faceUp: true }));
+
+    const offsets = pileCardOffsets(
+      fakePileLayout(pile.role, 3),
+      pile.getCards(),
+      null,
+    );
+
+    expect(offsets[1].x).toBe(WASTE_FAN_OFFSET_X);
+  });
+
+  it("fans a tableau pile downwards", () => {
+    const pile = new CardPile<PlayingCard>(tableauPileId(0), FakeRole.TABLEAU);
+    pile.addCard(makePlayingCard({ id: "a", faceUp: true }));
+    pile.addCard(makePlayingCard({ id: "b", faceUp: true }));
+
+    const offsets = pileCardOffsets(
+      fakePileLayout(pile.role, 3),
+      pile.getCards(),
+      null,
+    );
+
+    expect(offsets[1]).toEqual({ x: 0, y: TABLEAU_FACE_UP_OFFSET });
+  });
+
+  it("stacks a stock pile", () => {
+    const pile = new CardPile<PlayingCard>(STOCK_PILE_ID, FakeRole.STOCK);
+    pile.addCard(makePlayingCard({ id: "a" }));
+    pile.addCard(makePlayingCard({ id: "b" }));
+
+    const offsets = pileCardOffsets(
+      fakePileLayout(pile.role, 3),
+      pile.getCards(),
+      null,
+    );
+
+    expect(offsets).toEqual([
+      { x: 0, y: 0 },
+      { x: 0, y: 0 },
+    ]);
+  });
+
+  it("stacks a foundation pile", () => {
+    const pile = new CardPile<PlayingCard>(
+      foundationPileId(0),
+      FakeRole.FOUNDATION,
+    );
+    pile.addCard(makePlayingCard({ id: "a", faceUp: true }));
+    pile.addCard(makePlayingCard({ id: "b", faceUp: true }));
+
+    const offsets = pileCardOffsets(
+      fakePileLayout(pile.role, 3),
+      pile.getCards(),
+      null,
+    );
+
+    expect(offsets[1]).toEqual({ x: 0, y: 0 });
   });
 });

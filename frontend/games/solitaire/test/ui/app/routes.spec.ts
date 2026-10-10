@@ -11,7 +11,7 @@ import { GameLifecycleService } from "@/ui/app/service/game_lifecycle.service";
 
 // The routed component hosts a Phaser canvas, whose module init does not
 // survive jsdom.
-vi.mock("@/engine/render/phaser/phaser_host", () => ({
+vi.mock("@/engine/render/phaser/host/phaser_host", () => ({
   PhaserHost: class {
     show() {
       /* no-op */

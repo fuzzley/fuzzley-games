@@ -57,9 +57,12 @@ The engine is **not** a reducer over an action union. `TableGame`
 through its `Tabletop` (`src/engine/tableau/tabletop.ts`) and records history:
 
 - `canMoveCardToPile(cardId, targetPileId): boolean` — ask the rules.
-- `resolveMove(...)` → `ResolvedMove` (`movingStack`, `sourcePile`, `targetPile`).
+- `resolveMove(tabletop, cardId, targetPileId)` (`src/engine/tableau/move_legality.ts`)
+  → `ResolvedMove` (`movingStack`, `sourcePile`, `targetPile`), which
+  `canMoveCardToPile` and `moveCardToPile` both ask.
 - `moveCardToPile(cardId, targetPileId): boolean` — perform it.
-- `applyMoveEffects(move): MoveEffects` — the variant's hook for score changes,
+- `applyMoveEffects(move): MoveEffects` (both records in
+  `src/engine/tableau/moves/move.ts`) — the variant's hook for score changes,
   cards it flipped, and `followUpTransfers` for consequences of the move (Spider
   sending a completed run to a foundation). Recording those here rather than as
   a separate action is what makes one `undo()` take the whole thing back.

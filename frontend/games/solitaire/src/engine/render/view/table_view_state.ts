@@ -1,38 +1,3 @@
-import { Point } from "@/engine/core/common/point";
-
-/**
- * Says how far whatever the shell lays over the drawable area reaches in from
- * each of its edges, in CSS pixels.
- */
-export interface Insets {
-  readonly top: number;
-  readonly right: number;
-  readonly bottom: number;
-  readonly left: number;
-}
-
-/** Nothing laid over any edge. */
-export const NO_INSETS: Insets = { top: 0, right: 0, bottom: 0, left: 0 };
-
-/** Describes the area the board is laid out within, in device pixels. */
-export interface Viewport {
-  /** Available width in device pixels. */
-  width: number;
-  /** Available height in device pixels. */
-  height: number;
-  /**
-   * Device pixels per CSS pixel, which converts a measurement taken from the
-   * DOM, such as {@link insets}, to match the canvas.
-   */
-  pixelRatio: number;
-  /**
-   * How far in from each edge anything laid over the drawable area reaches,
-   * such as the shell's header, in CSS pixels; none when omitted. The board
-   * lays itself out inside them.
-   */
-  insets?: Insets;
-}
-
 /** Describes the placeholder a pile is drawn over, as the board is built. */
 export interface PileBackgroundSpec {
   /**
@@ -48,20 +13,6 @@ export interface PileBackgroundSpec {
    * does now.
    */
   readonly actionable: boolean;
-}
-
-/** Describes a rectangle in screen coordinates. */
-export interface Rect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-/** Describes the screen rectangle a pile occupies. */
-export interface PileGeometry extends Rect {
-  /** The unique id of the pile this geometry belongs to. */
-  pileId: string;
 }
 
 /** Describes how one card should look for one frame. */
@@ -141,41 +92,4 @@ export interface TableViewState {
   cards: CardView[];
   /** The highlight borders to draw, back to front. */
   highlights: HighlightView[];
-}
-
-/** Describes the stack being dragged and where the grabbed card is. */
-export interface DragInteraction {
-  /** The dragged card ids, primary (grabbed) card first, then those above it. */
-  cardIds: string[];
-  /** The current absolute position of the primary dragged card. */
-  primary: Point;
-}
-
-/**
- * Names a stack easing across the board to the pile it was just moved to, so
- * it is drawn above the board until it lands.
- */
-export interface FlightInteraction {
-  /** The flying card ids, bottom card of the moved stack first. */
-  cardIds: string[];
-}
-
-/**
- * Holds the pointer-driven state that, with the model, decides the
- * {@link TableViewState}.
- */
-export interface TableInteractionState {
-  /** The card under the mouse or last touched by a finger, or null. */
-  hoveredCardId: string | null;
-  /** The pile whose background placeholder is hovered, or null. */
-  hoveredBackgroundPileId: string | null;
-  /** The active drag, or null when nothing is being dragged. */
-  drag: DragInteraction | null;
-  /** The stacks still crossing the board, oldest first. */
-  flights: readonly FlightInteraction[];
-  /**
-   * Whether every card snaps to its target this frame instead of easing, as
-   * after a reset or resize.
-   */
-  snapAll: boolean;
 }

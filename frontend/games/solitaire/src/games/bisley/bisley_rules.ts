@@ -4,13 +4,15 @@ import {
   PlacementRule,
   all,
   any,
-  ascendingSameSuit,
   byEmptiness,
   cardIs,
-  descendingSameSuit,
   never,
   singleCardOnly,
-} from "@/engine/tableau/rules";
+} from "@/engine/tableau/rules/placement";
+import {
+  ascendingSameSuit,
+  descendingSameSuit,
+} from "@/engine/tableau/rules/builds";
 
 /** The parts a pile can play in a Bisley game. */
 export const BisleyRole = {

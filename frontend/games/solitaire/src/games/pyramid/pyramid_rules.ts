@@ -6,8 +6,8 @@ import {
   cardIs,
   hasRank,
   singleCardOnly,
-} from "@/engine/tableau/rules";
-import { isUncovered } from "@/engine/tableau/zone";
+} from "@/engine/tableau/rules/placement";
+import { isUncovered } from "@/engine/tableau/rules/grab";
 import { pairsWithTop, totalsThirteen } from "../common/pair_removal";
 
 /** The parts a pile can play in a Pyramid game. */

@@ -1,12 +1,9 @@
 import { PileRole } from "@/engine/core/card/card_pile";
 import { rankBelowWrapping } from "@/engine/core/card/playing_card";
-import {
-  PlacementRule,
-  baseRankFoundation,
-  baseRankOf,
-  isSameSuitRunWrapping,
-} from "@/engine/tableau/rules";
-import { ColumnRules, runColumn } from "@/engine/tableau/zone";
+import { PlacementRule } from "@/engine/tableau/rules/placement";
+import { baseRankFoundation, baseRankOf } from "@/engine/tableau/rules/builds";
+import { isSameSuitRunWrapping } from "@/engine/tableau/rules/adjacency";
+import { ColumnRules, runColumn } from "@/engine/tableau/rules/run_column";
 
 /** The parts a pile can play in a Penguin game. */
 export const PenguinRole = {

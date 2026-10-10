@@ -1,7 +1,7 @@
 import { vi } from "vitest";
-import type { GameSnapshot } from "@/engine/tableau/game_snapshot";
-import { GameState } from "@/engine/tableau/game_state";
-import type { PlayableGame } from "@/engine/tableau/playable_game";
+import type { GameSnapshot } from "@/engine/tableau/session/game_snapshot";
+import { GameState } from "@/engine/tableau/session/game_state";
+import type { PlayableGame } from "@/engine/tableau/session/playable_game";
 
 /** Sets the starting readings of a mock game. */
 export interface MockGameModelOverrides {

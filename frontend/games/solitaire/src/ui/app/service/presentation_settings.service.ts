@@ -18,7 +18,7 @@ import {
   ResolvedArrangement,
   StockSide,
   resolveArrangement,
-} from "@/engine/render/layout/board_layouts";
+} from "@/engine/render/layout/board_arrangement";
 import {
   CARD_DECKS,
   CardDeckId,
@@ -26,12 +26,12 @@ import {
   DesktopCardDeckId,
   MOBILE_CARD_DECK,
   isDesktopCardDeckId,
-} from "@/engine/render/card_deck";
+} from "@/engine/render/deck/card_deck";
 import {
   CardBackStyle,
   DEFAULT_CARD_BACK,
   isCardBackStyle,
-} from "@/engine/render/card_back";
+} from "@/engine/render/deck/card_back";
 import {
   DEFAULT_THEME,
   TABLE_THEMES,

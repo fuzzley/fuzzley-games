@@ -1,8 +1,8 @@
 import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
-import { CardTransfer } from "@/engine/tableau/move";
+import { CardTransfer } from "@/engine/tableau/moves/move";
 import { Tabletop } from "@/engine/tableau/tabletop";
-import { isSameSuitRun } from "@/engine/tableau/rules";
+import { isSameSuitRun } from "@/engine/tableau/rules/adjacency";
 import { itemAt } from "@/engine/core/common/item_at";
 
 /** How many cards a complete run holds: King down to Ace. */

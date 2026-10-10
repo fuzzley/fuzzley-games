@@ -1,5 +1,5 @@
 import { PileRole } from "@/engine/core/card/card_pile";
-import { PlacementRule } from "@/engine/tableau/rules";
+import { PlacementRule } from "@/engine/tableau/rules/placement";
 import { pairsWithTop, sameRank } from "../common/pair_removal";
 
 /** The parts a pile can play in a Nestor game. */

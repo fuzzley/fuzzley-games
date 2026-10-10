@@ -4,17 +4,14 @@ import {
   chooseTableLayout,
 } from "@/engine/render/layout/board_layouts";
 import { formFactorOf } from "@/engine/render/layout/form_factor";
-import { measureTable } from "@/engine/render/layout/table_layout";
-import { BoardScene } from "@/engine/render/phaser/board_scene";
+import { measureTable } from "@/engine/render/layout/table_metrics";
+import { BoardScene } from "@/engine/render/phaser/scene/board_scene";
 import { TablePresentation } from "@/engine/render/presentation";
-import { Insets, Viewport } from "@/engine/render/view/table_view_state";
+import { Insets, Viewport } from "@/engine/render/layout/viewport";
 import { TableGame } from "@/engine/tableau/table_game";
-import { stackFromCard } from "@/engine/tableau/view/grabbable_stack";
+import { stackFromCard, resolveDragTarget } from "@/engine/tableau/view/drag";
 import { pileBackgrounds } from "@/engine/tableau/view/pile_backgrounds";
-import {
-  buildTableViewState,
-  resolveDragTarget,
-} from "@/engine/tableau/view/table_view_builder";
+import { buildTableViewState } from "@/engine/tableau/view/table_view_builder";
 
 /** Gives a board what it needs of the game it draws. */
 export interface TableBoardOptions {

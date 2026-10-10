@@ -1,4 +1,4 @@
-import { ZoneSpec } from "@/engine/tableau/zone";
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
 import { columnRow, foundationRow } from "../common/zone_presets";
 import {
   YukonRole,

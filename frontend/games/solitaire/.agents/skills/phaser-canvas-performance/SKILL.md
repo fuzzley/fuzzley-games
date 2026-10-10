@@ -33,7 +33,7 @@ one.
 built at 1× and 2× (see
 [vite-bundle-optimization](../vite-bundle-optimization/SKILL.md)). 2× costs
 four times the GPU memory, about 62 MB against 16 MB. `BoardDeckLoader`
-(`src/engine/render/phaser/board_deck_loader.ts`) works like this:
+(`src/engine/render/phaser/deck/board_deck_loader.ts`) works like this:
 
 - It loads 1× while the board's layout scale is at most 1. That covers phones in
   both orientations and most 1080p desktops.
@@ -53,7 +53,7 @@ filter on each card cost 156 framebuffer switches a frame in Klondike and 312
 in Spider, which is what made dragging crawl on phones. Draw an effect every
 card shares once into a `DynamicTexture` and give each card a plain sprite of
 it, as `PhaserCardFactory.bakeCardShadow` does in
-`src/engine/render/phaser/phaser_card_factory.ts`.
+`src/engine/render/phaser/scene/phaser_card_factory.ts`.
 
 ## 2. Zero-Allocation Render Loop
 
@@ -97,7 +97,7 @@ if (cardSprite) {
 
 Order sprites with depth, never by removing and re-adding children to
 containers. **Take the value from `depthFor(RenderLayer.X)`
-(`src/engine/render/layout/render_layers.ts`) rather than inventing a number.**
+(`src/engine/render/view/render_layers.ts`) rather than inventing a number.**
 That enum is the board's whole z-order, back to front, and each layer owns a
 band 1000 wide — which is what lets a card be ordered within its pile with no
 risk of overtaking the layer above.

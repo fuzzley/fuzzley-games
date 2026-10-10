@@ -16,8 +16,8 @@ import {
 } from "@test/support/dom";
 import { flushMicrotasks } from "@test/support/async";
 import { clickBackdrop, isDialogOpen, pressEscape } from "@test/support/dialog";
-import { DESKTOP_CARD_DECKS } from "@/engine/render/card_deck";
-import { CARD_BACKS } from "@/engine/render/card_back";
+import { DESKTOP_CARD_DECKS } from "@/engine/render/deck/card_deck";
+import { CARD_BACKS } from "@/engine/render/deck/card_back";
 
 describe("SettingsDrawerComponent", () => {
   let fixture: ComponentFixture<SettingsDrawerComponent>;

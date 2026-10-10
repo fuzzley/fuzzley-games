@@ -2,59 +2,24 @@ import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { EventEmitter } from "@/engine/core/common/event_emitter";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { AppliedMove, AppliedMoveKind, CardTransfer, MOVE_KIND } from "./move";
-import { MoveHistory, RelocationListener } from "./move_history";
-import { GameState, ReadableGameState } from "./game_state";
-import { BoardQuery } from "./rules";
+import { resolveMove } from "./move_legality";
+import {
+  AppliedMove,
+  AppliedMoveKind,
+  CardTransfer,
+  MOVE_KIND,
+  MoveEffects,
+  NO_MOVE_EFFECTS,
+  ResolvedMove,
+} from "./moves/move";
+import { MoveHistory, RelocationListener } from "./moves/move_history";
+import { GameState, ReadableGameState } from "./session/game_state";
+import { BoardQuery } from "./rules/board_query";
+import { canGrab } from "./rules/grab";
 import { Tabletop } from "./tabletop";
-import { ZoneRules, ZoneSpec, canGrab, hasRoomFor } from "./zone";
+import { PileMarker, PileMarkers } from "./zones/pile_marker";
+import { ZoneRules, ZoneSpec } from "./zones/zone";
 import { TableView } from "./view/table_view";
-
-/** Describes a move that has passed the rules: its cards and where they go. */
-export interface ResolvedMove {
-  /** The card being moved plus everything stacked on it, bottom-first. */
-  readonly movingStack: readonly PlayingCard[];
-  /** The pile the stack is leaving. */
-  readonly sourcePile: ReadonlyCardPile<PlayingCard>;
-  /** The pile the stack is joining. */
-  readonly targetPile: ReadonlyCardPile<PlayingCard>;
-}
-
-/**
- * Records what a move did beyond relocating its cards, so undo can take that
- * back too.
- */
-export interface MoveEffects {
-  /** The score change the move actually applied. */
-  readonly scoreDelta: number;
-  /** Cards the move turned face up by exposing them. */
-  readonly flippedCardIds: readonly string[];
-  /**
-   * Further runs the move relocated as a consequence, such as a completed
-   * Spider run, so one undo takes them back with it.
-   */
-  readonly followUpTransfers?: readonly CardTransfer[];
-}
-
-/**
- * Describes what a marked pile's slot shows now, and whether pressing it while
- * empty does anything, such as a stock that counts its recycles.
- */
-export interface PileMarker {
-  /** The artwork the pile's placeholder shows. */
-  readonly artwork: string;
-  /** Whether pressing the empty slot does something now. */
-  readonly actionable: boolean;
-}
-
-/** A move that changed nothing but the position of its cards. */
-export const NO_MOVE_EFFECTS: MoveEffects = {
-  scoreDelta: 0,
-  flippedCardIds: [],
-};
-
-/** Re-exported for callers of {@link TableGame.onCardsRelocated}. */
-export type { RelocationListener };
 
 /** Maps the lifecycle events every table game publishes to their payloads. */
 export type TableGameEvents = {
@@ -108,8 +73,8 @@ export abstract class TableGame<
   /** The applied actions {@link undo} unwinds, and who is following them. */
   private readonly history: MoveHistory;
 
-  /** What each marked pile's slot shows, by pile id. */
-  private readonly markers = new Map<string, () => PileMarker>();
+  /** What each marked pile's slot shows. */
+  private readonly markers: PileMarkers;
 
   private readonly autoMoveRoles: readonly PileRole[];
   private readonly winningRole?: PileRole;
@@ -129,6 +94,7 @@ export abstract class TableGame<
     this.winningRole = options.winsWhenAllCardsIn;
     this.tabletop = new Tabletop(options.zones, options.registry);
     this.history = new MoveHistory(this.tabletop);
+    this.markers = new PileMarkers(this.tabletop);
     this.piles = this.tabletop.piles;
     this.dropTargetPiles = this.tabletop.dropTargetPiles;
     this.board = this.tabletop;
@@ -200,63 +166,7 @@ export abstract class TableGame<
    * would be legal.
    */
   public canMoveCardToPile(cardId: string, targetPileId: string): boolean {
-    return this.resolveMove(cardId, targetPileId) !== null;
-  }
-
-  /**
-   * Resolves a requested move into the stack and piles it would act on, or null
-   * when the rules reject it.
-   */
-  public resolveMove(
-    cardId: string,
-    targetPileId: string,
-  ): ResolvedMove | null {
-    const card = this.getCardById(cardId);
-    const targetPile = this.getPileById(targetPileId);
-    const sourcePile = this.getPileContainingCard(cardId);
-    const targetRules = this.rulesFor(targetPileId);
-
-    if (
-      !card ||
-      !targetPile ||
-      !sourcePile ||
-      !targetRules?.accept ||
-      sourcePile.id === targetPileId
-    ) {
-      return null;
-    }
-
-    // Checked apart from the grab rule, which lets the face-down top of the
-    // Klondike stock be clicked to draw.
-    if (!card.faceUp) {
-      return null;
-    }
-
-    const sourceRules = this.rulesFor(sourcePile.id);
-    if (
-      !sourceRules ||
-      !canGrab(sourceRules.grab, card, sourcePile, this.board)
-    ) {
-      return null;
-    }
-
-    // indexOf cannot miss: getPileContainingCard only returns a pile holding
-    // the card.
-    const sourceCards = sourcePile.getCards();
-    const movingStack = sourceCards.slice(sourceCards.indexOf(card));
-
-    if (!hasRoomFor(targetRules, targetPile, movingStack.length)) {
-      return null;
-    }
-
-    const accepted = targetRules.accept({
-      card,
-      movingStack,
-      sourcePile,
-      targetPile,
-      board: this.board,
-    });
-    return accepted ? { movingStack, sourcePile, targetPile } : null;
+    return resolveMove(this.tabletop, cardId, targetPileId) !== null;
   }
 
   /**
@@ -264,7 +174,7 @@ export abstract class TableGame<
    * rules allowed it.
    */
   public moveCardToPile(cardId: string, targetPileId: string): boolean {
-    const move = this.resolveMove(cardId, targetPileId);
+    const move = resolveMove(this.tabletop, cardId, targetPileId);
     if (!move) {
       return false;
     }
@@ -489,7 +399,7 @@ export abstract class TableGame<
     pile: ReadonlyCardPile<PlayingCard>,
     marker: () => PileMarker,
   ): void {
-    this.markers.set(pile.id, marker);
+    this.markers.mark(pile.id, marker);
   }
 
   /**
@@ -499,10 +409,7 @@ export abstract class TableGame<
   public pileBackgroundKey(
     pile: ReadonlyCardPile<PlayingCard>,
   ): string | undefined {
-    return (
-      this.markers.get(pile.id)?.().artwork ??
-      this.zoneFor(pile.id)?.backgroundKey
-    );
+    return this.markers.backgroundKey(pile);
   }
 
   /**
@@ -510,10 +417,6 @@ export abstract class TableGame<
    * marker says, or else as its zone does.
    */
   public isEmptySlotActionable(pile: ReadonlyCardPile<PlayingCard>): boolean {
-    if (!pile.isEmpty) return false;
-    const marker = this.markers.get(pile.id);
-    return marker
-      ? marker().actionable
-      : (this.zoneFor(pile.id)?.emptyIsActionable ?? false);
+    return this.markers.isEmptySlotActionable(pile);
   }
 }

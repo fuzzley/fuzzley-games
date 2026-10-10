@@ -3,8 +3,8 @@ import {
   PlacementRule,
   anyCard,
   byEmptiness,
-  descendingAnySuit,
-} from "@/engine/tableau/rules";
+} from "@/engine/tableau/rules/placement";
+import { descendingAnySuit } from "@/engine/tableau/rules/builds";
 
 /** The parts a pile can play in a Spider game. */
 export const SpiderRole = {

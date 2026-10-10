@@ -5,11 +5,11 @@ import {
 import {
   CardDeckId,
   DEFAULT_DESKTOP_CARD_DECK,
-} from "@/engine/render/card_deck";
+} from "@/engine/render/deck/card_deck";
 import {
   BoardArrangement,
   DEFAULT_BOARD_ARRANGEMENT,
-} from "@/engine/render/layout/board_layouts";
+} from "@/engine/render/layout/board_arrangement";
 
 /** Implements {@link TablePresentation} with plain values a test can set. */
 export class TestPresentation implements TablePresentation {

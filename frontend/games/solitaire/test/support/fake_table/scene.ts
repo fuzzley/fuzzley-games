@@ -1,5 +1,5 @@
 import { makeTableBoardScene } from "@/engine/board/table_board_scene";
-import { BoardScene } from "@/engine/render/phaser/board_scene";
+import { BoardScene } from "@/engine/render/phaser/scene/board_scene";
 import { TablePresentation } from "@/engine/render/presentation";
 import { FAKE_TABLE_LAYOUT, fakeTableGestures } from "./board";
 import { FakeTableGame } from "./game";

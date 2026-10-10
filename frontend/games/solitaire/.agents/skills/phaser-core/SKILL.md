@@ -10,7 +10,7 @@ This skill governs Phaser 4 canvas integration within fSolitaire. Phaser 4 is is
 ## Key Architectural Principles
 
 1. **Decoupled Renderer**: Phaser 4 code MUST live under `src/engine/render/phaser`. Core card logic (`src/engine/core`), layout math (`src/engine/render`), and the rules runtime (`src/engine/tableau`) must NEVER import Phaser — ESLint enforces this. Games never name Phaser at all: `src/engine/board/table_board_scene.ts` builds the board scene for any table game, and the shell's provider joins a game to it.
-2. **Phaser Canvas Host**: `PhaserHost` (`src/engine/render/phaser/phaser_host.ts`) keeps one Phaser game, and so one WebGL context, for the life of the canvas, and swaps each board scene into it with `show`. The Angular application shell hands a board factory to `PhaserHost` without importing Phaser modules directly into UI components. Because the game outlives every board, a `BoardScene` releases what it subscribed to on `SHUTDOWN` or `DESTROY`, whichever comes first (Phaser destroys a removed scene without shutting it down), and loads a deck in `preload` only when none is resident.
+2. **Phaser Canvas Host**: `PhaserHost` (`src/engine/render/phaser/host/phaser_host.ts`) keeps one Phaser game, and so one WebGL context, for the life of the canvas, and swaps each board scene into it with `show`. The Angular application shell hands a board factory to `PhaserHost` without importing Phaser modules directly into UI components. Because the game outlives every board, a `BoardScene` releases what it subscribed to on `SHUTDOWN` or `DESTROY`, whichever comes first (Phaser destroys a removed scene without shutting it down), and loads a deck in `preload` only when none is resident.
 3. **Texture Atlas Management**:
    - Card graphics are packed into a Phaser **multi-atlas** (a manifest plus one
      or more PNG pages) by `tools/build-card-atlas.mjs`, written to
@@ -42,7 +42,7 @@ maps.
 
 ## Phaser 4 Best Practices for Solitaire
 
-- **Card Sprites & Depth**: Every depth comes from `depthFor(RenderLayer.X)` in `src/engine/render/layout/render_layers.ts` — that enum is the board's z-order, back to front. Never invent a raw depth number.
+- **Card Sprites & Depth**: Every depth comes from `depthFor(RenderLayer.X)` in `src/engine/render/view/render_layers.ts` — that enum is the board's z-order, back to front. Never invent a raw depth number.
 - **Input Boundaries**: Derive card touch/click bounds from the `engine/render` layout bounds rather than hardcoding canvas positions.
 - **Clean Scene Teardown**: Clean up scene listeners, tweens and any textures the scene created on destruction or variant change.
 - **Performance**: See the `phaser-canvas-performance` skill for batching, allocation and teardown detail — and measure before optimizing.

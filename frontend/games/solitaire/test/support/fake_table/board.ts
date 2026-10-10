@@ -1,23 +1,21 @@
 import {
   TableMetrics,
   measureTable,
-  tableLayout,
-} from "@/engine/render/layout/table_layout";
+} from "@/engine/render/layout/table_metrics";
+import { tableLayout } from "@/engine/render/layout/table_layout";
 import { IntentHandler } from "@/engine/render/input/table_intents";
 import { TablePresentation } from "@/engine/render/presentation";
 import {
   DragInteraction,
-  PileGeometry,
   TableInteractionState,
-  TableViewState,
-  Viewport,
-} from "@/engine/render/view/table_view_state";
-import { drawOnStockTop, tableGestures } from "@/engine/tableau/table_gestures";
-import { stackFromCard } from "@/engine/tableau/view/grabbable_stack";
-import {
-  buildTableViewState,
-  resolveDragTarget,
-} from "@/engine/tableau/view/table_view_builder";
+} from "@/engine/render/input/interaction_state";
+import { PileGeometry } from "@/engine/render/layout/drop_geometry";
+import { TableViewState } from "@/engine/render/view/table_view_state";
+import { Viewport } from "@/engine/render/layout/viewport";
+import { drawOnStockTop } from "@/engine/tableau/gestures/press_handlers";
+import { tableGestures } from "@/engine/tableau/gestures/table_gestures";
+import { stackFromCard, resolveDragTarget } from "@/engine/tableau/view/drag";
+import { buildTableViewState } from "@/engine/tableau/view/table_view_builder";
 import { FakeTableGame, DEFAULT_DRAW_COUNT } from "./game";
 import { FakeRole, TABLEAU_COUNT, fakeZoneSpecs } from "./zones";
 

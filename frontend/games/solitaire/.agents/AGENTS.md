@@ -47,13 +47,31 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
 2. **`src/engine/render`**
    - Renderer-agnostic layout mathematics, view contracts, drag calculations, and input bounds.
    - Contains pure data structures and layout algorithms; free of Phaser imports.
+   - `geometry.ts` holds `Point`, `Size` and `Rect`. `layout/` places a
+     board: the viewport and form factor, a grid (`table_layout.ts`) and its
+     measurement for a screen (`table_metrics.ts`), the player's arrangement
+     and the grids for it, pile arrangements and drop geometry. `input/` turns
+     the pointer into intents and interaction state, `view/` is the per-frame
+     contract a renderer draws, and `deck/` names the card backs, decks and
+     atlas densities the atlas tool builds.
 3. **`src/engine/render/phaser`**
    - Phaser 4 adapter implementing the view contracts defined in `src/engine/render`.
    - Draws card textures, scenes, and canvas elements. Stays unaware of specific game rules or UI components.
+   - `host/` keeps the one Phaser game and its canvas for the app's life,
+     `deck/` loads the card atlases, and `scene/` is each board: the scene,
+     its sprites, input and renderer.
 4. **`src/engine/tableau`**
    - Solitaire-family generic runtime engine (zones, rules, moves, undo history, dealing, gesture maps, table view builder).
    - `Tabletop` holds the piles and makes every change to them: `relocate` and `rearrange` for changes undo takes back, `Deal` for laying a game out.
    - Serves as the generic execution engine for every game in `src/games` without depending on a specific renderer backend or game variant.
+   - The root holds the spine: `TableGame`, `DealtTableGame`, `Tabletop` and
+     `move_legality.ts`. `rules/` is the rule vocabulary (placement
+     combinators, adjacency, builds, grab rules, `runColumn`) and depends on
+     core alone; `zones/` declares a game's piles (`ZoneSpec`, its look, the
+     zone builders, pile markers); `moves/` holds the move records and
+     history; `dealing/` the deal; `session/` what the shell runs, saves and
+     restores a game through; `gestures/` maps intents to moves; and `view/`
+     builds each frame's view state from a game.
 5. **`src/engine/board`**
    - Joins a table game to the Phaser adapter: `makeTableBoardScene` (`src/engine/board/table_board_scene.ts`) turns any `TableGame` plus its layout and gesture map into a `BoardScene`.
    - The only tier that may import both `engine/tableau` and `engine/render/phaser`. There is no separate scene-bridge tier above it: `PhaserHost` swaps in whatever board it is handed.
@@ -164,7 +182,7 @@ Architecture guidelines are enforced as hard build errors rather than convention
 | `src/games/*`                         | `engine/core`, `engine/render`, `engine/tableau` | `phaser`, `@/engine/render/phaser/*`, `@/engine/board/*`, `@/ui/*`, `@angular/*`, `rxjs`                                    |
 | `src/ui` _(excl. app/provider/)_      | everything but games                             | `@/games/*`                                                                                                                 |
 
-Note that the generic Phaser canvas host is `engine/render/phaser/phaser_host.ts`
+Note that the generic Phaser canvas host is `engine/render/phaser/host/phaser_host.ts`
 (`PhaserHost`). It is handed a board to run, so the shell never imports a game
 module in order to host one. It keeps one Phaser game, and so one WebGL context,
 for the canvas component's whole life, and swaps each new board scene into it.
