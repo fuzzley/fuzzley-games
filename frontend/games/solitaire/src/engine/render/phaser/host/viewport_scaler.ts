@@ -56,7 +56,22 @@ export class ViewportScaler {
    * The highest pixel ratio the canvas is rendered at, beyond which sharpness
    * stops visibly improving while the pixel count keeps growing.
    */
-  public static readonly MAX_PIXEL_RATIO = 2;
+  public static readonly MAX_PIXEL_RATIO = 3;
+
+  /**
+   * The pixel ratio a canvas of any size may render at. Above it, the canvas
+   * must also hold no more than
+   * {@link ViewportScaler.MAX_BUDGETED_DEVICE_PIXELS}.
+   */
+  public static readonly UNBUDGETED_PIXEL_RATIO = 2;
+
+  /**
+   * The most device pixels a canvas rendered above
+   * {@link ViewportScaler.UNBUDGETED_PIXEL_RATIO} may hold: room for a large
+   * phone at 3x, whose canvas a browser would otherwise stretch, but not for a
+   * laptop, which keeps to 2x.
+   */
+  public static readonly MAX_BUDGETED_DEVICE_PIXELS = 4_500_000;
 
   /**
    * The custom properties the parent declares its insets in: how far in from
@@ -73,6 +88,9 @@ export class ViewportScaler {
 
   /** The insets as last read, in CSS pixels. */
   private insetsValue: Insets = NO_INSETS;
+
+  /** The pixel ratio the canvas was last sized at. */
+  private pixelRatioValue = 1;
 
   /** Media query tracking the current pixel ratio, re-armed after each change. */
   private pixelRatioQuery: PixelRatioQuery | null = null;
@@ -95,11 +113,11 @@ export class ViewportScaler {
   ) {}
 
   /**
-   * The pixel ratio the canvas is currently rendered at: the display's ratio,
-   * clamped to at least 1 and at most {@link ViewportScaler.MAX_PIXEL_RATIO}.
+   * The pixel ratio the canvas is currently rendered at, or 1 before it has
+   * been sized; see {@link ViewportScaler.pixelRatioFor}.
    */
   public get pixelRatio(): number {
-    return Math.min(this.devicePixelRatio, ViewportScaler.MAX_PIXEL_RATIO);
+    return this.pixelRatioValue;
   }
 
   /**
@@ -144,10 +162,11 @@ export class ViewportScaler {
 
   /** Resizes the canvas to the parent's current size at the current DPR. */
   public apply(): void {
-    const pixelRatio = this.pixelRatio;
     const bounds = this.parent.getBoundingClientRect();
     const cssWidth = Math.max(1, Math.floor(bounds.width));
     const cssHeight = Math.max(1, Math.floor(bounds.height));
+    const pixelRatio = this.pixelRatioFor(cssWidth, cssHeight);
+    this.pixelRatioValue = pixelRatio;
 
     // Makes Phaser's displayScale the pixel ratio, so pointer input maps from
     // CSS pixels into the device-pixel game space.
@@ -186,6 +205,28 @@ export class ViewportScaler {
       bottom: read("bottom"),
       left: read("left"),
     };
+  }
+
+  /**
+   * Returns the pixel ratio to render a canvas of a CSS size at: the display's,
+   * up to {@link ViewportScaler.MAX_PIXEL_RATIO}, but above
+   * {@link ViewportScaler.UNBUDGETED_PIXEL_RATIO} only as far as the canvas
+   * stays within {@link ViewportScaler.MAX_BUDGETED_DEVICE_PIXELS}.
+   */
+  private pixelRatioFor(cssWidth: number, cssHeight: number): number {
+    const wanted = Math.min(
+      this.devicePixelRatio,
+      ViewportScaler.MAX_PIXEL_RATIO,
+    );
+    if (wanted <= ViewportScaler.UNBUDGETED_PIXEL_RATIO) return wanted;
+
+    const affordable = Math.sqrt(
+      ViewportScaler.MAX_BUDGETED_DEVICE_PIXELS / (cssWidth * cssHeight),
+    );
+    return Math.max(
+      ViewportScaler.UNBUDGETED_PIXEL_RATIO,
+      Math.min(wanted, affordable),
+    );
   }
 
   /** The display's raw pixel ratio, floored at 1 for non-conforming hosts. */

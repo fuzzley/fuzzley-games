@@ -4,11 +4,8 @@ import { CARD_BACKS } from "@/engine/render/deck/card_back";
 import {
   CARD_ART_SCALES,
   CardArtScale,
+  cardFrameTexels,
 } from "@/engine/render/deck/card_art_scale";
-import {
-  CARD_RENDER_HEIGHT_PX,
-  CARD_RENDER_WIDTH_PX,
-} from "@/engine/render/layout/card_metrics";
 import {
   CardAtlas,
   bootCardAtlas,
@@ -17,13 +14,25 @@ import {
   chooseCardAtlas,
   residentCardAtlases,
 } from "@/engine/render/phaser/deck/card_deck_atlas";
+import classicAtlas0_5x from "@/engine/render/assets/sprites/atlas/classic/0.5x/card_assets_atlas.json";
+import classicAtlas0_75x from "@/engine/render/assets/sprites/atlas/classic/0.75x/card_assets_atlas.json";
 import classicAtlas1x from "@/engine/render/assets/sprites/atlas/classic/1x/card_assets_atlas.json";
+import classicAtlas1_5x from "@/engine/render/assets/sprites/atlas/classic/1.5x/card_assets_atlas.json";
 import classicAtlas2x from "@/engine/render/assets/sprites/atlas/classic/2x/card_assets_atlas.json";
+import indexedAtlas0_5x from "@/engine/render/assets/sprites/atlas/indexed/0.5x/card_assets_atlas.json";
+import indexedAtlas0_75x from "@/engine/render/assets/sprites/atlas/indexed/0.75x/card_assets_atlas.json";
 import indexedAtlas1x from "@/engine/render/assets/sprites/atlas/indexed/1x/card_assets_atlas.json";
+import indexedAtlas1_5x from "@/engine/render/assets/sprites/atlas/indexed/1.5x/card_assets_atlas.json";
 import indexedAtlas2x from "@/engine/render/assets/sprites/atlas/indexed/2x/card_assets_atlas.json";
+import allCornerPipsAtlas0_5x from "@/engine/render/assets/sprites/atlas/all-corner-pips/0.5x/card_assets_atlas.json";
+import allCornerPipsAtlas0_75x from "@/engine/render/assets/sprites/atlas/all-corner-pips/0.75x/card_assets_atlas.json";
 import allCornerPipsAtlas1x from "@/engine/render/assets/sprites/atlas/all-corner-pips/1x/card_assets_atlas.json";
+import allCornerPipsAtlas1_5x from "@/engine/render/assets/sprites/atlas/all-corner-pips/1.5x/card_assets_atlas.json";
 import allCornerPipsAtlas2x from "@/engine/render/assets/sprites/atlas/all-corner-pips/2x/card_assets_atlas.json";
+import mobileAtlas0_5x from "@/engine/render/assets/sprites/atlas/mobile/0.5x/card_assets_atlas.json";
+import mobileAtlas0_75x from "@/engine/render/assets/sprites/atlas/mobile/0.75x/card_assets_atlas.json";
 import mobileAtlas1x from "@/engine/render/assets/sprites/atlas/mobile/1x/card_assets_atlas.json";
+import mobileAtlas1_5x from "@/engine/render/assets/sprites/atlas/mobile/1.5x/card_assets_atlas.json";
 import mobileAtlas2x from "@/engine/render/assets/sprites/atlas/mobile/2x/card_assets_atlas.json";
 
 /** Describes a manifest `yarn build:atlas` writes, for its frames. */
@@ -39,10 +48,34 @@ const BUILT_ATLASES: Record<
   string,
   Partial<Record<CardArtScale, BuiltAtlas>>
 > = {
-  classic: { 1: classicAtlas1x, 2: classicAtlas2x },
-  indexed: { 1: indexedAtlas1x, 2: indexedAtlas2x },
-  "all-corner-pips": { 1: allCornerPipsAtlas1x, 2: allCornerPipsAtlas2x },
-  mobile: { 1: mobileAtlas1x, 2: mobileAtlas2x },
+  classic: {
+    0.5: classicAtlas0_5x,
+    0.75: classicAtlas0_75x,
+    1: classicAtlas1x,
+    1.5: classicAtlas1_5x,
+    2: classicAtlas2x,
+  },
+  indexed: {
+    0.5: indexedAtlas0_5x,
+    0.75: indexedAtlas0_75x,
+    1: indexedAtlas1x,
+    1.5: indexedAtlas1_5x,
+    2: indexedAtlas2x,
+  },
+  "all-corner-pips": {
+    0.5: allCornerPipsAtlas0_5x,
+    0.75: allCornerPipsAtlas0_75x,
+    1: allCornerPipsAtlas1x,
+    1.5: allCornerPipsAtlas1_5x,
+    2: allCornerPipsAtlas2x,
+  },
+  mobile: {
+    0.5: mobileAtlas0_5x,
+    0.75: mobileAtlas0_75x,
+    1: mobileAtlas1x,
+    1.5: mobileAtlas1_5x,
+    2: mobileAtlas2x,
+  },
 };
 
 /** Every deck at every density, in catalog order and least dense first. */
@@ -99,17 +132,16 @@ describe("card deck atlases", () => {
   });
 
   it("builds every frame at its density's size", () => {
-    // The tool and the renderer share the density: the renderer divides the
-    // layout scale by it, so a frame built at any other size would draw the
-    // cards at the wrong size.
+    // The tool and the renderer share the frame size: the renderer scales each
+    // axis by the design size over it, so a frame built at any other size
+    // would draw the cards at the wrong size.
     const wrongSize = EVERY_ATLAS.flatMap((atlas) =>
       built(atlas)!
         .textures.flatMap((texture) => texture.frames)
-        .filter(
-          ({ frame }) =>
-            frame.w !== CARD_RENDER_WIDTH_PX * atlas.artScale ||
-            frame.h !== CARD_RENDER_HEIGHT_PX * atlas.artScale,
-        )
+        .filter(({ frame }) => {
+          const texels = cardFrameTexels(atlas.artScale);
+          return frame.w !== texels.width || frame.h !== texels.height;
+        })
         .map(
           ({ filename }) => `${atlas.deckId}@${atlas.artScale}x/${filename}`,
         ),

@@ -8,7 +8,7 @@ import sharp from "sharp";
 import { mkdir, readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
-import { DESIGN_FRAME_H, DESIGN_FRAME_W } from "./raster.mjs";
+import { ART_SCALES, DESIGN_FRAME_H, DESIGN_FRAME_W } from "./raster.mjs";
 import { COLUMN_STRIP_H, WASTE_STRIP_W } from "./mobile-deck.mjs";
 
 /** @import { OverlayOptions } from "sharp" */
@@ -60,15 +60,31 @@ const GAP = 24;
 const LABEL_W = 170;
 
 /**
+ * Returns the density a board draws its cards from at a scale: the least dense
+ * that need not enlarge them, as `cardArtScaleFor` in
+ * `src/engine/render/deck/card_art_scale.ts` chooses.
+ *
+ * @param {number} scale Device pixels per design unit.
+ * @returns {number}
+ */
+function artScaleFor(scale) {
+  return (
+    ART_SCALES.find((artScale) => artScale >= scale) ??
+    ART_SCALES[ART_SCALES.length - 1]
+  );
+}
+
+/**
  * Returns a lookup from frame name to that frame's pixels, read from a deck's
- * built 1x atlas.
+ * built atlas at one density.
  *
  * @param {string} atlasDir
  * @param {string} deckId
+ * @param {number} artScale
  * @returns {Promise<FrameReader>}
  */
-async function readFrames(atlasDir, deckId) {
-  const dir = join(atlasDir, deckId, "1x");
+async function readFrames(atlasDir, deckId, artScale) {
+  const dir = join(atlasDir, deckId, `${artScale}x`);
   /** @type {{textures: AtlasTexture[]}} */
   const manifest = JSON.parse(
     await readFile(join(dir, "card_assets_atlas.json"), "utf8"),
@@ -120,19 +136,21 @@ function label(text) {
 }
 
 /**
- * Lays out one deck's row: for each board, its column and its waste.
+ * Lays out one deck's row: for each board, its column and its waste, drawn
+ * from the density that board would load.
  *
- * @param {FrameReader} frameOf
+ * @param {string} atlasDir
  * @param {string} deckId
  * @param {number} top Where the row starts, in pixels down the sheet.
  * @returns {Promise<{layers: OverlayOptions[], width: number, height: number}>}
  */
-async function deckRow(frameOf, deckId, top) {
+async function deckRow(atlasDir, deckId, top) {
   const layers = [{ input: label(deckId), left: GAP, top }];
   let left = GAP + LABEL_W;
   let height = 0;
 
   for (const { scale } of BOARDS) {
+    const frameOf = await readFrames(atlasDir, deckId, artScaleFor(scale));
     let y = 0;
     for (const name of COLUMN) {
       layers.push({
@@ -175,7 +193,7 @@ export async function writePreview(atlasDir, deckIds, outFile) {
   let width = 0;
   let top = GAP;
   for (const deckId of deckIds) {
-    const row = await deckRow(await readFrames(atlasDir, deckId), deckId, top);
+    const row = await deckRow(atlasDir, deckId, top);
     layers.push(...row.layers);
     width = Math.max(width, row.width);
     top += row.height + GAP;
@@ -190,7 +208,8 @@ export async function writePreview(atlasDir, deckIds, outFile) {
     .toFile(outFile);
 
   const boards = BOARDS.map(
-    ({ columns, scale }) => `${columns} columns at ${scale.toFixed(3)}`,
+    ({ columns, scale }) =>
+      `${columns} columns at ${scale.toFixed(3)} (${artScaleFor(scale)}x)`,
   ).join(", ");
   console.log(`Preview (device px per design unit: ${boards}): ${outFile}`);
 }
