@@ -287,3 +287,18 @@ Choices made while planning:
 - `cardFrameTexels` and `cardSpriteScale` now take any texel scale, and the
   sprite scale is exactly 1 when a frame was drawn for the layout scale it is
   shown at, rather than stretched by up to half a pixel to the design size.
+- 7.3, in progress: `phaser/deck/drawn_deck_painter.ts` holds
+  `DrawnDeckPainter` (`follow(builtAtlas, layoutScale, nowMs)` each frame;
+  draws after `SETTLE_MS` of a steady scale; withdraws to the built atlas on any
+  change; `dispose()` on scene end), the Phaser texture adapter and the
+  browser services. It type-checks and lints but is not wired in and has no
+  specs yet. **Next:** give `BoardScene` a single `drawCardsFrom(textureKey,
+artScale)` that repoints the sprites and rebakes the shadow when the scale
+  changes, and have `BoardDeckLoader.apply` call it in place of its own
+  repointing and `artScaleChanged`; make `PhaserSprites.cardArtScale` and the
+  factory's `artScale` plain numbers, with `Math.round` on the shadow padding;
+  call `painter.follow` from `update()` with the frame's layout scale (the view
+  state's card scale) and `dispose` it when the scene ends; let
+  `BoardSceneOptions` take the painter's services for specs. Then specs for the
+  painter and the scene, a browser check of the mobile deck at DPR 3 and 2, and
+  phase 8.
