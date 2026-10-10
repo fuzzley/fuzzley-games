@@ -24,28 +24,39 @@ separately-textured ones in z-order, since each switch breaks the WebGL batch.
 
 **The atlas can be multi-page, so "one draw call per frame" is not the target.**
 Frames are packed into as few pages as fit inside `MAX_PAGE_PX` (4096). Each
-deck's 2× set takes two pages (`card_assets-0.png`, `card_assets-1.png`) and its
-1× set takes one. A frame touching both pages costs at least two draws. That is
-expected, not a regression. The goal is _few and stable_ texture bindings, not
-one.
+deck's 2× set takes two pages (`card_assets-0.png`, `card_assets-1.png`) and
+every less dense set takes one. A frame touching both pages costs at least two
+draws. That is expected, not a regression. The goal is _few and stable_ texture
+bindings, not one.
 
 **Draw from the cheapest atlas that does not enlarge the cards.** Each deck is
-built at 1× and 2× (see
-[vite-bundle-optimization](../vite-bundle-optimization/SKILL.md)). 2× costs
-four times the GPU memory, about 62 MB against 16 MB. `BoardDeckLoader`
+built at 0.5×, 0.75×, 1×, 1.5× and 2× (see
+[vite-bundle-optimization](../vite-bundle-optimization/SKILL.md)). GPU memory
+grows with the square of the density, from about 5 MB at 0.5× and 20 MB at 1×
+to 76 MB at 2×. `cardArtScaleFor`
+(`src/engine/render/deck/card_art_scale.ts`) picks the least dense atlas at
+least as dense as the board's layout scale, and `BoardDeckLoader`
 (`src/engine/render/phaser/deck/board_deck_loader.ts`) works like this:
 
-- It loads 1× while the board's layout scale is at most 1. That covers phones in
-  both orientations and most 1080p desktops.
-- It moves to 2× once a resize enlarges the board past that.
+- It loads that atlas for the board's size when the board is made. Klondike
+  loads 0.5× on a 2× phone held upright, 0.75× on a 3× one, 1.5× on a 3× phone
+  on its side, and 1× or 2× in a 1440 × 810 window at 1× or 2×.
+- It moves to a denser atlas once a resize enlarges the board past its own.
 - It never moves back down on a resize, so a board does not reload its atlas
   back and forth.
 
+Each density is at most half as dense again as the one below, so no card is
+shrunk below two thirds of its atlas's size. The board samples without mipmaps,
+which Phaser's WebGL1 context allows only for power-of-two textures, and below
+about a half bilinear sampling skips texels and glyph edges step. Keep that
+spacing if a density is added or removed.
+
 View state therefore carries the layout scale, and only
-`PhaserTableRenderer` divides it by `PhaserSprites.cardArtScale`. Anything
-measured in texels, such as the baked shadow's padding, must be multiplied by
-the density. It must also be redrawn from `BoardScene.artScaleChanged` when the
-density changes.
+`PhaserTableRenderer` turns it into a sprite scale, through `cardSpriteScale`.
+That scales each axis on its own, since a frame at a fractional density is
+rounded to whole texels (`cardFrameTexels`). Anything measured in texels, such
+as the baked shadow's padding, must be multiplied by the density. It must also
+be redrawn from `BoardScene.artScaleChanged` when the density changes.
 
 **Never give a per-card sprite a filter.** A filtered object is drawn through
 framebuffers of its own, at its texture's full size, every frame: a shadow

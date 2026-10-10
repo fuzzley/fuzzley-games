@@ -44,5 +44,9 @@ maps.
 
 - **Card Sprites & Depth**: Every depth comes from `depthFor(RenderLayer.X)` in `src/engine/render/view/render_layers.ts` — that enum is the board's z-order, back to front. Never invent a raw depth number.
 - **Input Boundaries**: Derive card touch/click bounds from the `engine/render` layout bounds rather than hardcoding canvas positions.
+- **Sharp Cards**: Three things keep a card sharp on a phone; keep all three when changing how cards are drawn.
+  - `ViewportScaler` (`src/engine/render/phaser/host/viewport_scaler.ts`) sizes the canvas in device pixels at the display's pixel ratio, up to 3. Above 2 it keeps the canvas within `MAX_BUDGETED_DEVICE_PIXELS`, which suits a phone but not a laptop, so the browser never has to stretch a phone's canvas.
+  - Phaser 4 rounds a sprite's corners to whole pixels only while it is unscaled (`vertexRoundMode` `safeAuto`), and a card is always scaled. So every sprite drawn from the card atlas takes `PhaserCardFactory.VERTEX_ROUND_MODE` (`fullAuto`), which rounds whenever the game config's `roundPixels` is on. A new kind of atlas sprite should too.
+  - The board draws from the least dense atlas that need not enlarge its cards, and the densities are close enough that none is shrunk below two thirds (see `phaser-canvas-performance`).
 - **Clean Scene Teardown**: Clean up scene listeners, tweens and any textures the scene created on destruction or variant change.
 - **Performance**: See the `phaser-canvas-performance` skill for batching, allocation and teardown detail — and measure before optimizing.

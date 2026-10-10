@@ -70,7 +70,7 @@ Made while planning, within that decision. Each is easy to revisit.
       atlases rebuilt and compared.
 - [x] 3.2 0.5×, 0.75× and 1.5× added to the tool and the runtime, with the
       renderer scaling each axis; atlases rebuilt; specs.
-- [ ] 3.3 Skills and agent instructions describe the densities and the budget.
+- [x] 3.3 Skills and agent instructions describe the densities and the budget.
 
 ### 4. Verify
 
@@ -81,10 +81,14 @@ Made while planning, within that decision. Each is easy to revisit.
 
 ## Open questions
 
-- Some face-up cards show a light grey wash over their left side, on `main`
-  too: in Klondike on column 1's top card, in Spider on columns 1 and 2. It
-  looks like a card's shadow falling on a neighbour or itself. Not
-  investigated.
+- **The vignette dims the cards at the board's edges.** The grey wash on some
+  face-up cards, on `main` too, is the CSS vignette that
+  `game_canvas.component.scss` lays over the canvas (`:host::after`, up to
+  `--table-vignette`, 38% black, at the edges). It is meant to light the felt
+  but falls on the cards as well, which on a phone sit near the edges: Klondike's
+  column 1, Spider's columns 1 and 2, the bottom row of piles. Drawing it under
+  the cards, inside the canvas, or weakening it on a phone would give the cards
+  back their contrast. A design choice, so left for the owner.
 
 ## Log
 
@@ -129,3 +133,23 @@ Made while planning, within that decision. Each is easy to revisit.
   1170 × 2532 canvas; Spider at DPR 2 loads `mobile/0.5x`. Both draw cleanly.
   A grey wash on the left of some top cards shows in every run, `main`
   included, so it predates this work (see [Open questions](#open-questions)).
+- 3.3: `phaser-core` gained a "Sharp Cards" practice (budget, vertex rounding,
+  density spacing); `phaser-canvas-performance` and `vite-bundle-optimization`
+  describe five densities, rounded frames and per-axis scaling. Fixed
+  `BoardDeckLoader`'s note on 2× memory (76 MB, not sixty).
+- Measured which atlas each screen loads (Klondike, reload in each state):
+
+  | Screen             | DPR   | Canvas    | Atlas loaded |
+  | ------------------ | ----- | --------- | ------------ |
+  | 390 × 844 upright  | 3     | 1170×2532 | 0.75×        |
+  | 390 × 844 (Spider) | 2     | 780×1688  | 0.5×         |
+  | 412 × 915 upright  | 2.625 | 1081×2401 | 0.75×        |
+  | 844 × 390 on side  | 3     | 2532×1170 | 1.5×         |
+  | 1440 × 810 window  | 1     | 1440×810  | 1×           |
+  | 1440 × 810 window  | 2     | 2880×1620 | 2×           |
+
+  A phone on its side at 3× now loads 1.5× (about 46 MB) where it loaded 1×
+  (about 20 MB) at a ratio of 2; without 1.5× it would have taken 2× (76 MB).
+
+- Found the grey wash's cause: the vignette over the canvas; see
+  [Open questions](#open-questions).
