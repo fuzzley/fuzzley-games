@@ -46,14 +46,18 @@ import sharp from "sharp";
  * another, which keeps thin strokes as sharp without the light halo a shrink
  * leaves around them.
  */
-export const ART_SCALES = [1, 2];
+export const ART_SCALES = [0.5, 0.75, 1, 1.5, 2];
 
 /** The card frame size in design units, as the board layout measures it. */
 export const DESIGN_FRAME_W = 220;
 export const DESIGN_FRAME_H = 307;
 
 /**
- * Returns the size of a frame at a density.
+ * Returns the size of a frame at a density: the design size scaled and rounded
+ * to whole texels, the artwork stretched to fill it, since 307 units at 0.5x
+ * would otherwise be 153.5.
+ *
+ * Mirrors `cardFrameTexels` in `src/engine/render/deck/card_art_scale.ts`.
  *
  * @param {number} artScale Texels per design unit.
  * @returns {Size}

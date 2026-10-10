@@ -261,6 +261,14 @@ describe("PhaserCardFactory", () => {
       });
     });
 
+    it("leaves whole texels of room at a fractional density", () => {
+      artScale = 0.75;
+
+      const sprite = factory.createCardShadow() as unknown as MockSprite;
+
+      expect([sprite.displayOriginX, sprite.displayOriginY]).toEqual([12, 18]);
+    });
+
     describe("when the atlas changes density", () => {
       it("resizes the texture the shadow sprites already use", () => {
         factory.bakeCardShadow();

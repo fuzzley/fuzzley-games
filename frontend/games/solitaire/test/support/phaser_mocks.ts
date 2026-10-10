@@ -58,7 +58,10 @@ export interface MockSprite {
   displayOriginX: number;
   displayOriginY: number;
   depth: number;
+  /** The mean of the two axes' scales, as Phaser's `scale` reads. */
   scale: number;
+  scaleX: number;
+  scaleY: number;
   /** The frame's own size, in texels. */
   width: number;
   height: number;
@@ -90,7 +93,7 @@ export interface MockSprite {
   setFrame(frame: string): MockSprite;
   setTexture(key: string, frame?: string): MockSprite;
   setPosition(x: number, y: number): MockSprite;
-  setScale(scale: number): MockSprite;
+  setScale(x: number, y?: number): MockSprite;
   setDepth(depth: number): MockSprite;
   setData(key: string, value: unknown): MockSprite;
   getData(key: string): unknown;
@@ -167,6 +170,8 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
     displayOriginY: 0,
     depth: 0,
     scale: 1,
+    scaleX: 1,
+    scaleY: 1,
     width: options.width ?? frameSize.width,
     height: options.height ?? frameSize.height,
     destroyed: false,
@@ -235,8 +240,10 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
       sprite.y = y;
       return sprite;
     },
-    setScale(scale: number): MockSprite {
-      sprite.scale = scale;
+    setScale(x: number, y = x): MockSprite {
+      sprite.scaleX = x;
+      sprite.scaleY = y;
+      sprite.scale = (x + y) / 2;
       return sprite;
     },
     setDepth(depth: number): MockSprite {
