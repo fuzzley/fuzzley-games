@@ -81,9 +81,9 @@ cell each in a row; a new one is a cell appended there and its name appended to
 contact sheet, `.preview/decks.png` under `tools/card-atlas/` and gitignored:
 every built deck as a fanned column and a fanned waste at phone scale, for
 reviewing a change to a deck's look. The shared parts live in `tools/card-atlas/`: `raster.mjs` holds
-the frame size, the densities and the frame names every atlas must hold,
-`sheet-deck.mjs` cuts a deck out of a card sheet, and `atlas-writer.mjs` stamps
-the card edge and writes every density.
+the frame size, the densities, the frame names every atlas must hold and the
+drawing every deck shares, `sheet-deck.mjs` finds a deck's cards on a card sheet
+and draws them, and `atlas-writer.mjs` stamps the card edge and writes a density.
 
 **Output:** `src/engine/render/assets/sprites/atlas/<deck>/<n>x/`, one directory
 per deck and density. Each holds a Phaser **multi-atlas** manifest
@@ -93,15 +93,26 @@ pages as fit inside `MAX_PAGE_PX` (4096), which is the texture-size floor still
 found on older mobile GPUs.
 
 Every deck is built at each density in `ART_SCALES`, in texels per design unit:
+0.5×, 0.75×, 1×, 1.5× and 2×. A board draws from the least dense one that need
+not enlarge its cards, so a phone held upright loads 0.5× or 0.75× and a
+high-density desktop window 2×. Each is at most half as dense again as the one below,
+so the GPU never shrinks a card below two thirds; see
+[phaser-canvas-performance](../phaser-canvas-performance/SKILL.md). 2× takes two
+pages and about 76 MB of GPU memory; every other density takes one, about 5 MB
+at 0.5× and 20 MB at 1×.
 
-- **2×** is for boards that draw cards larger than their design size, such as
-  high-density screens and large windows. It takes two pages and about 62 MB of
-  GPU memory.
-- **1×** is for everything else, including phones. It takes one page and about
-  16 MB.
+A frame at density _n_ is `CARD_RENDER_WIDTH_PX × n` by
+`CARD_RENDER_HEIGHT_PX × n` texels, each rounded to a whole number
+(`frameSize` in `raster.mjs`, `cardFrameTexels` at runtime): 307 units at 0.5×
+would otherwise be 153.5. The artwork is stretched to fill the rounded frame,
+and the renderer scales each axis on its own so the card still comes out at its
+design size.
 
-Each deck is rasterized once, at the first density. Every other density is
-shrunk from those finished frames, so all of them are framed and edged alike.
+Every density is drawn from the SVG itself, not shrunk from another, which
+keeps thin strokes as sharp without the halo a shrink leaves around them. A card
+sheet is rendered whole once, at 2×, to find its cards and check their crops;
+each density then draws the same regions of it, several frames at once through
+resvg's `renderAsync`, and the card edge is stamped at each density's own width.
 
 The atlas is checked in and loaded **through the bundler**, not from `public/`.
 `src/engine/render/phaser/deck/card_deck_atlas.ts` imports every deck's manifest at
@@ -115,9 +126,9 @@ downloaded.
 - Re-run `yarn build:atlas` whenever the card SVGs change. The atlas is a
   committed build artifact; a stale one ships.
 - `ART_SCALES` in `tools/card-atlas/raster.mjs` and `CARD_ART_SCALES` in
-  `src/engine/render/deck/card_art_scale.ts` must list the same densities.
-  Every frame at density _n_ must be `CARD_RENDER_WIDTH_PX × n` by
-  `CARD_RENDER_HEIGHT_PX × n` texels. Otherwise cards render at the wrong size.
+  `src/engine/render/deck/card_art_scale.ts` must list the same densities, and
+  `frameSize` and `cardFrameTexels` must round alike. Otherwise cards render at
+  the wrong size.
   `test/engine/render/phaser/deck/card_deck_atlas.spec.ts` checks both against the
   built manifests.
 - Adding a density to `CARD_ART_SCALES` is a compile error until

@@ -5,26 +5,24 @@
  *   yarn build:atlas --deck <id>     one deck
  *   yarn build:atlas --preview       and a contact sheet of every deck
  *
- * Draws each deck's faces at the raster density in `card-atlas/raster.mjs`,
- * cutting them from a card sheet or generating them, adds the shared card
- * backs and pile placeholders, and writes the deck at every density as atlas
- * pages plus a Phaser multi-atlas manifest.
+ * Draws each deck's faces at every density in `card-atlas/raster.mjs`, from a
+ * card sheet or generated, adds the shared card backs and pile placeholders,
+ * and writes each density as atlas pages plus a Phaser multi-atlas manifest.
  */
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
-import { writeDeckAtlases } from "./card-atlas/atlas-writer.mjs";
+import { writeDeckAtlas } from "./card-atlas/atlas-writer.mjs";
 import { drawMobileFaces, drawPlainBacks } from "./card-atlas/mobile-deck.mjs";
 import { writePreview } from "./card-atlas/preview.mjs";
 import {
+  ART_SCALES,
   DESIGN_FRAME_H,
   DESIGN_FRAME_W,
-  FRAME_H,
-  FRAME_W,
-  cutFrames,
-  rasterize,
+  drawEach,
+  drawFrame,
 } from "./card-atlas/raster.mjs";
 import { cutSheetDeck } from "./card-atlas/sheet-deck.mjs";
 
@@ -34,7 +32,13 @@ import { cutSheetDeck } from "./card-atlas/sheet-deck.mjs";
 /**
  * A deck on offer: its id, what its faces are drawn from, and how to draw them.
  *
- * @typedef {{id: string, source: string, faces: () => Promise<Frame[]>}} Deck
+ * @typedef {{id: string, source: string, faces: (artScale: number) => Promise<Frame[]>}} Deck
+ */
+
+/**
+ * Draws frames at a density.
+ *
+ * @typedef {(artScale: number) => Promise<Frame[]>} FrameDrawer
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -43,14 +47,14 @@ const OUT_DIR = join(ROOT, "src/engine/render/assets/sprites/atlas");
 const PREVIEW_FILE = join(ROOT, "tools/card-atlas/.preview/decks.png");
 
 /**
- * Each sheet's cut, kept so one sheet a build reads twice is cut once.
+ * Each sheet's cut, kept so one sheet a build reads twice is surveyed once.
  *
  * @type {Map<string, Promise<SheetDeck>>}
  */
 const cutSheets = new Map();
 
 /**
- * Returns the faces and backs cut from the named sheet in CARD_DIR.
+ * Returns the faces and backs drawn from the named sheet in CARD_DIR.
  *
  * @param {string} file
  * @returns {Promise<SheetDeck>}
@@ -65,7 +69,7 @@ function cutSheet(file) {
 }
 
 /**
- * Returns a deck whose faces are cut from the named sheet in CARD_DIR.
+ * Returns a deck whose faces are drawn from the named sheet in CARD_DIR.
  *
  * @param {string} file
  * @returns {Omit<Deck, "id">}
@@ -73,9 +77,29 @@ function cutSheet(file) {
 function fromSheet(file) {
   return {
     source: file,
-    async faces() {
-      return (await cutSheet(file)).faces;
+    async faces(artScale) {
+      return (await cutSheet(file)).faces(artScale);
     },
+  };
+}
+
+/**
+ * Returns a drawer that draws each density once, handing back the same frames
+ * whenever that density is asked for again.
+ *
+ * @param {FrameDrawer} draw
+ * @returns {FrameDrawer}
+ */
+function oncePerDensity(draw) {
+  /** @type {Map<number, Promise<Frame[]>>} */
+  const drawn = new Map();
+  return (artScale) => {
+    let frames = drawn.get(artScale);
+    if (!frames) {
+      frames = draw(artScale);
+      drawn.set(artScale, frames);
+    }
+    return frames;
   };
 }
 
@@ -109,12 +133,11 @@ const BACK_SHEET = "playing_card_assets_large.svg";
 /**
  * Draws the backs every deck is given, so a player can choose a back apart
  * from the deck: the plain ones, then the card artwork's.
- *
- * @returns {Promise<Frame[]>} The frames, at RASTER_SCALE.
  */
-async function drawBacks() {
-  return [...(await drawPlainBacks()), ...(await cutSheet(BACK_SHEET)).backs];
-}
+const drawBacks = oncePerDensity(async (artScale) => [
+  ...(await drawPlainBacks(artScale)),
+  ...(await (await cutSheet(BACK_SHEET)).backs(artScale)),
+]);
 
 /** The placeholder sheet: one cell of the design frame size per name, in a row. */
 const PLACEHOLDERS = {
@@ -135,32 +158,20 @@ const PLACEHOLDERS = {
 };
 
 /**
- * Cuts the pile placeholders, which every deck shares: they mark an empty pile
- * rather than being cards, so no deck draws them differently.
- *
- * @returns {Promise<Frame[]>} The frames, at RASTER_SCALE.
+ * Draws the pile placeholders, which every deck shares: they mark an empty
+ * pile rather than being cards, so no deck draws them differently.
  */
-async function cutPlaceholders() {
+const drawPlaceholders = oncePerDensity(async (artScale) => {
   const svg = await readFile(join(CARD_DIR, PLACEHOLDERS.file), "utf8");
-  const sheet = await rasterize(
-    svg,
-    {
-      x: 0,
-      y: 0,
-      w: PLACEHOLDERS.names.length * DESIGN_FRAME_W,
-      h: DESIGN_FRAME_H,
-    },
-    PLACEHOLDERS.names.length * FRAME_W,
-    FRAME_H,
+  return drawEach([...PLACEHOLDERS.names.entries()], ([cell, name]) =>
+    drawFrame(
+      name,
+      svg,
+      { x: cell * DESIGN_FRAME_W, y: 0, w: DESIGN_FRAME_W, h: DESIGN_FRAME_H },
+      artScale,
+    ),
   );
-  return cutFrames(
-    sheet,
-    (_row, col) => PLACEHOLDERS.names[col] ?? null,
-    1,
-    PLACEHOLDERS.names.length,
-    (_row, col) => ({ left: col * FRAME_W, top: 0 }),
-  );
-}
+});
 
 /**
  * Returns the decks the command line asks for, and whether to preview them.
@@ -186,16 +197,17 @@ function parseCommandLine() {
 
 async function main() {
   const { decks, preview } = parseCommandLine();
-  const placeholderFrames = await cutPlaceholders();
-  const backFrames = await drawBacks();
 
   for (const deck of decks) {
     console.log(`${deck.id}  (${deck.source}):`);
-    await writeDeckAtlases(
-      [...(await deck.faces()), ...backFrames],
-      placeholderFrames,
-      join(OUT_DIR, deck.id),
-    );
+    for (const artScale of ART_SCALES) {
+      await writeDeckAtlas(
+        [...(await deck.faces(artScale)), ...(await drawBacks(artScale))],
+        await drawPlaceholders(artScale),
+        artScale,
+        join(OUT_DIR, deck.id),
+      );
+    }
   }
   console.log(`Built ${decks.length} deck(s).`);
 

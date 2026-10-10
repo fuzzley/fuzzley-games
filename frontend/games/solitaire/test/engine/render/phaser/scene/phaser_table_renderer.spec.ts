@@ -347,6 +347,20 @@ describe("PhaserTableRenderer", () => {
       expect(card.scale).toBe(1);
     });
 
+    it("draws a 0.5x frame, rounded to whole texels, at the card's own size", () => {
+      // 307 units at 0.5x is 153.5 texels, so the frame is 154 tall and each
+      // axis is scaled on its own.
+      artScale = 0.5;
+      const card = registerCard("card-1");
+
+      applier.apply(oneCardAt(0.49), 16);
+
+      expect([card.scaleX * 110, card.scaleY * 154]).toEqual([
+        expect.closeTo(220 * 0.49, 9),
+        expect.closeTo(307 * 0.49, 9),
+      ]);
+    });
+
     it("scales a card, its shadow and the placeholders by the same density", () => {
       artScale = 2;
       const card = registerCard("card-1");

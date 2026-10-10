@@ -5,16 +5,14 @@
  * Coordinates are design units on the 220 x 307 frame, origin top left.
  */
 import { Resvg } from "@resvg/resvg-js";
-import sharp from "sharp";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
   DESIGN_FRAME_H,
   DESIGN_FRAME_W,
-  FRAME_H,
-  FRAME_W,
-  rasterize,
+  drawEach,
+  drawFrame,
 } from "./raster.mjs";
 
 /** @import { Box, Frame } from "./raster.mjs" */
@@ -565,62 +563,40 @@ function backSvg(colors) {
   );
 }
 
-/**
- * Renders a frame's SVG at the raster density.
- *
- * @param {string} name
- * @param {string} svg
- * @returns {Promise<Frame>}
- */
-async function renderFrame(name, svg) {
-  const { data, info } = await rasterize(
-    svg,
-    { x: 0, y: 0, w: DESIGN_FRAME_W, h: DESIGN_FRAME_H },
-    FRAME_W,
-    FRAME_H,
-    FONT,
-  );
-  const png = await sharp(data, {
-    raw: { width: info.width, height: info.height, channels: 4 },
-  })
-    .png()
-    .toBuffer();
-  return { name, png };
-}
+/** The whole design frame, which every face and back fills. */
+const FRAME_BOX = { x: 0, y: 0, w: DESIGN_FRAME_W, h: DESIGN_FRAME_H };
 
 /**
- * Draws the mobile deck's faces, after checking that its layout and colours
- * keep every index legible.
+ * Draws the mobile deck's faces at a density, after checking that its layout
+ * and colours keep every index legible.
  *
- * @returns {Promise<Frame[]>} The frames, at RASTER_SCALE.
+ * @param {number} artScale Texels per design unit.
+ * @returns {Promise<Frame[]>}
  */
-export async function drawMobileFaces() {
+export async function drawMobileFaces(artScale) {
   assertIndicesAreClear();
   assertSuitColorsAreLegible();
 
-  const frames = [];
-  for (const suit of SUITS) {
-    for (const rank of RANKS) {
-      frames.push(
-        await renderFrame(
-          `card-${suit.name}-${rank.name}`,
-          faceSvg(suit, rank),
-        ),
-      );
-    }
-  }
-  return frames;
+  const faces = SUITS.flatMap((suit) => RANKS.map((rank) => ({ suit, rank })));
+  return drawEach(faces, ({ suit, rank }) =>
+    drawFrame(
+      `card-${suit.name}-${rank.name}`,
+      faceSvg(suit, rank),
+      FRAME_BOX,
+      artScale,
+      FONT,
+    ),
+  );
 }
 
 /**
- * Draws the plain backs.
+ * Draws the plain backs at a density.
  *
- * @returns {Promise<Frame[]>} The frames, at RASTER_SCALE.
+ * @param {number} artScale Texels per design unit.
+ * @returns {Promise<Frame[]>}
  */
-export async function drawPlainBacks() {
-  const frames = [];
-  for (const [name, colors] of Object.entries(BACKS)) {
-    frames.push(await renderFrame(name, backSvg(colors)));
-  }
-  return frames;
+export async function drawPlainBacks(artScale) {
+  return drawEach(Object.entries(BACKS), ([name, colors]) =>
+    drawFrame(name, backSvg(colors), FRAME_BOX, artScale),
+  );
 }

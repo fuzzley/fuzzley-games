@@ -1,18 +1,21 @@
 /**
- * Cuts a deck's cards out of a card sheet: one SVG holding the 52 faces and the
+ * Draws a deck's cards from a card sheet: one SVG holding the 52 faces and the
  * two backs, separated by gutters.
  */
 import {
+  DESIGN_FRAME_H,
+  DESIGN_FRAME_W,
+  EDGE_CORNER_UNITS,
   EDGE_NAMES,
-  FRAME_H,
-  FRAME_W,
-  RASTER_SCALE,
   cutFrames,
+  drawEach,
+  drawFrame,
   edgeScorer,
+  frameSize,
   rasterize,
 } from "./raster.mjs";
 
-/** @import { Frame, Raster } from "./raster.mjs" */
+/** @import { Box, Frame, Raster } from "./raster.mjs" */
 
 /**
  * A run of painted lines, from its first to its last inclusive, in pixels.
@@ -21,9 +24,16 @@ import {
  */
 
 /**
- * The frames a card sheet holds.
+ * A frame, by its name and the region of the sheet it is drawn from, in user
+ * units.
  *
- * @typedef {{faces: Frame[], backs: Frame[]}} SheetDeck
+ * @typedef {{name: string, box: Box}} FrameBox
+ */
+
+/**
+ * The frames a card sheet holds, drawn at whichever density is asked for.
+ *
+ * @typedef {{faces: (artScale: number) => Promise<Frame[]>, backs: (artScale: number) => Promise<Frame[]>}} SheetDeck
  */
 
 /**
@@ -45,8 +55,11 @@ const SHEET = {
 /** A card's own size on the sheet, in user units, and how far it may vary. */
 const SHEET_CARD = { width: 224, height: 313, tolerance: 3 };
 
-/** Pixels per SVG user unit when rendering the sheet. */
-const SHEET_PPU = RASTER_SCALE;
+/**
+ * Pixels per SVG user unit when rendering the whole sheet to find its cards
+ * and check where they are cut.
+ */
+const SHEET_PPU = 2;
 
 /** Suits in card sheet row order. */
 const SHEET_SUITS = ["clubs", "hearts", "spades", "diamonds"];
@@ -168,7 +181,7 @@ function findCards(sheet) {
   return { columns, rows };
 }
 
-/** How far into a frame to look for a bled rule, in pixels. */
+/** How far into a frame to look for a bled rule, in pixels at SHEET_PPU. */
 const EDGE_RING_PX = 10;
 
 /** Fraction of an edge that must be inked before it counts as a bled rule. */
@@ -185,7 +198,7 @@ const EDGE_BLEED_COVERAGE = 0.5;
 async function assertEdgesAreClear(frames) {
   const dirty = [];
   for (const frame of frames) {
-    const score = await edgeScorer(frame.png);
+    const score = await edgeScorer(frame.png, EDGE_CORNER_UNITS * SHEET_PPU);
 
     let worst = 0;
     let worstEdge = "";
@@ -215,10 +228,14 @@ async function assertEdgesAreClear(frames) {
 }
 
 /**
- * Cuts the faces and backs out of a card sheet, a frame centred on each card.
+ * Finds the cards on a card sheet and returns a deck that draws them, a frame
+ * centred on each card.
+ *
+ * The cards are found, and their crops checked, once on a render of the whole
+ * sheet; every density then draws the same regions of the SVG.
  *
  * @param {string} source The sheet's SVG source.
- * @returns {Promise<SheetDeck>} The frames, at RASTER_SCALE.
+ * @returns {Promise<SheetDeck>}
  */
 export async function cutSheetDeck(source) {
   const sheet = await rasterize(
@@ -234,32 +251,60 @@ export async function cutSheetDeck(source) {
       `${cards.rows.length} rows`,
   );
 
-  const cardFrames = await cutFrames(
-    sheet,
-    (row, col) => {
-      if (row < SHEET_SUITS.length) {
-        return `card-${SHEET_SUITS[row]}-${SHEET_RANKS[col]}`;
-      }
-      return SHEET_BACKS[col] ?? null;
-    },
-    SHEET.rows,
-    SHEET.cols,
-    (row, col) => {
-      // Centre the frame on the card, trimming an even sliver off each side and
-      // keeping the gutter out of the crop.
+  // Centre the frame on the card, trimming an even sliver off each side and
+  // keeping the gutter out of the crop.
+  const survey = frameSize(SHEET_PPU);
+  const cuts = [];
+  for (let row = 0; row < SHEET.rows; row++) {
+    for (let col = 0; col < SHEET.cols; col++) {
+      const name =
+        row < SHEET_SUITS.length
+          ? `card-${SHEET_SUITS[row]}-${SHEET_RANKS[col]}`
+          : SHEET_BACKS[col];
+      if (!name) continue;
       const column = cards.columns[col];
       const line = cards.rows[row];
-      return {
-        left: Math.round((column.start + column.end + 1) / 2 - FRAME_W / 2),
-        top: Math.round((line.start + line.end + 1) / 2 - FRAME_H / 2),
-      };
-    },
-  );
+      cuts.push({
+        name,
+        left: Math.round(
+          (column.start + column.end + 1) / 2 - survey.width / 2,
+        ),
+        top: Math.round((line.start + line.end + 1) / 2 - survey.height / 2),
+      });
+    }
+  }
+  const surveyed = await cutFrames(sheet, cuts, survey);
+  await assertEdgesAreClear(surveyed);
 
-  await assertEdgesAreClear(cardFrames);
-  const backs = cardFrames.filter((frame) => SHEET_BACKS.includes(frame.name));
+  /** @type {FrameBox[]} */
+  const boxes = cuts.map(({ name, left, top }) => ({
+    name,
+    box: {
+      x: left / SHEET_PPU,
+      y: top / SHEET_PPU,
+      w: DESIGN_FRAME_W,
+      h: DESIGN_FRAME_H,
+    },
+  }));
+
+  /**
+   * Returns a drawer for some of the frames.
+   *
+   * @param {(name: string) => boolean} wanted
+   * @returns {(artScale: number) => Promise<Frame[]>}
+   */
+  const drawer = (wanted) => (artScale) =>
+    artScale === SHEET_PPU
+      ? // Drawn already, on the same pixel grid.
+        Promise.resolve(surveyed.filter((frame) => wanted(frame.name)))
+      : drawEach(
+          boxes.filter((frame) => wanted(frame.name)),
+          ({ name, box }) => drawFrame(name, source, box, artScale),
+        );
+
+  const isBack = (/** @type {string} */ name) => SHEET_BACKS.includes(name);
   return {
-    faces: cardFrames.filter((frame) => !backs.includes(frame)),
-    backs,
+    faces: drawer((name) => !isBack(name)),
+    backs: drawer(isBack),
   };
 }
