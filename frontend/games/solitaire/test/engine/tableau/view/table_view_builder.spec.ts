@@ -6,12 +6,11 @@ import {
 import {
   FAKE_TABLE_LAYOUT,
   buildFakeTableViewState,
+  measureFakeTable,
 } from "@test/support/fake_table/board";
 import { measureTable } from "@/engine/render/layout/table_layout";
-import {
-  buildTableViewState,
-  resolveDragTarget,
-} from "@/engine/tableau/view/table_view_builder";
+import { buildTableViewState } from "@/engine/tableau/view/table_view_builder";
+import { resolveDragTarget } from "@/engine/tableau/view/drag";
 import {
   PileBackgroundView,
   TableInteractionState,
@@ -27,7 +26,6 @@ import {
   TABLEAU_FACE_DOWN_OFFSET,
   TABLEAU_HOVER_EXPANSION_OFFSET,
 } from "@test/support/fake_table/zones";
-import { measureFakeTable } from "@test/support/fake_table/board";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 import { TestPresentation } from "@test/support/presentation";
 

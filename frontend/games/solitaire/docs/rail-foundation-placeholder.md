@@ -77,7 +77,7 @@ artwork is the foundation ring:
 | ----------------------------------------------------- | ---------------- | ----------------------------------------------- |
 | `PileBackgroundOverride`, `pileBackgrounds` on a grid | `engine/render`  | `layout/table_layout.ts`                        |
 | Resolving a placeholder's frame for a frame           | `engine/tableau` | `view/pile_backgrounds.ts`                      |
-| Drawing it                                            | `engine/tableau` | `view/table_view_builder.ts`                    |
+| Drawing it                                            | `engine/tableau` | `view/pile_backgrounds.ts`                      |
 | The two frame names                                   | `games/common`   | `zone_presets.ts`                               |
 | Setting the override down a rail                      | `games/common`   | `phone_layouts.ts`                              |
 | The art and the tool                                  | assets, tools    | `card_placeholders.svg`, `build-card-atlas.mjs` |

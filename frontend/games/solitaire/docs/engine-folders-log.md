@@ -149,7 +149,7 @@ engine/render/
 - [x] **Phase 1:** tableau `rules/` and `zones/`.
 - [x] **Phase 2:** tableau `moves/`, `dealing/`, `session/`, `gestures/`;
       slim `TableGame` and `DealtTableGame`.
-- [ ] **Phase 3:** tableau `view/` split; move the `resolveDragTarget` spec.
+- [x] **Phase 3:** tableau `view/` split; move the `resolveDragTarget` spec.
 - [ ] **Phase 4:** render `geometry.ts`, `layout/viewport.ts`,
       `input/interaction_state.ts`, `view/render_layers.ts`.
 - [ ] **Phase 5:** render `table_metrics.ts`, `board_arrangement.ts`, `deck/`.
@@ -202,3 +202,19 @@ Each phase also fixes the skill, tool-comment and doc paths it breaks, since
     covering the two stock handlers), and `grabbedStack` in `rules/grab`.
     Skills `add-solitaire-game` and `typescript-strict-patterns` and
     `docs/phone-board-layouts.md` re-pointed. 171 spec files, 6843 tests.
+- **Phase 3 done.** `view/grabbable_stack.ts` became `view/drag.ts`, which
+  also takes `resolveDragTarget` from the builder. The builder's highlight
+  methods became `view/highlight_views.ts` (`highlightViews`, one
+  `border` helper for the four shapes it built by hand), and its placeholder
+  views became `pileBackgroundViews` in `view/pile_backgrounds.ts`;
+  `table_view_builder.ts` is down to the cards (443 → 233 lines). The
+  misplaced `test/engine/render/layout/drop_geometry_resolve.spec.ts` became
+  `test/engine/tableau/view/drag.spec.ts` (plus new `stackFromCard` tests),
+  its `resolveDropTarget` tests joining `drop_geometry.spec.ts`. The builder
+  spec still covers highlights and placeholders through
+  `buildTableViewState`, its nested describes not worth splitting. The
+  add-solitaire-game skill's tier table also gained the missing
+  `engine/board` row and the games row's real limits. 6846 tests.
+- Noted for phase 5: `drop_geometry.spec.ts` also tests `computeScale`,
+  `computePileOrigins` and the pile offsets on the fake table, beside the
+  dedicated specs for those modules.

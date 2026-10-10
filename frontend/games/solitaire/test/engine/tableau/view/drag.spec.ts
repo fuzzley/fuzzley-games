@@ -1,17 +1,12 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { resolveDropTarget } from "@/engine/render/layout/drop_geometry";
+import { computeDropGeometries } from "@/engine/render/layout/drop_geometry";
 import { measureFakeTable } from "@test/support/fake_table/board";
-import { resolveDragTarget } from "@/engine/tableau/view/table_view_builder";
+import { resolveDragTarget, stackFromCard } from "@/engine/tableau/view/drag";
 import {
   CARD_HEIGHT_PX,
   CARD_WIDTH_PX,
 } from "@/engine/render/layout/card_metrics";
-import {
-  PileGeometry,
-  Rect,
-  Viewport,
-} from "@/engine/render/view/table_view_state";
-import { computeDropGeometries } from "@/engine/render/layout/drop_geometry";
+import { PileGeometry, Viewport } from "@/engine/render/view/table_view_state";
 import { FakeTableGame } from "@test/support/fake_table/game";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
@@ -128,30 +123,35 @@ describe("resolveDragTarget", () => {
   });
 });
 
-describe("resolveDropTarget", () => {
-  const geometries: PileGeometry[] = [
-    { pileId: "tableau-0", x: 100, y: 300, width: 200, height: 300 },
-    { pileId: "tableau-1", x: 400, y: 300, width: 200, height: 300 },
-    { pileId: "foundation-0", x: 400, y: 50, width: 200, height: 300 },
-  ];
+describe("stackFromCard", () => {
+  let game: FakeTableGame;
 
-  it("returns the pile ID with the maximum overlap area", () => {
-    // Overlaps tableau-0 partially
-    const dragRect: Rect = { x: 150, y: 350, width: 200, height: 300 };
-    const target = resolveDropTarget(dragRect, geometries);
-    expect(target?.pileId).toBe("tableau-0");
+  beforeEach(() => {
+    game = new FakeTableGame();
+    game.startNewGame();
+    emptyBoard(game);
   });
 
-  it("returns null if there is no overlap at all", () => {
-    const dragRect: Rect = { x: 800, y: 800, width: 200, height: 300 };
-    const target = resolveDropTarget(dragRect, geometries);
-    expect(target).toBeNull();
+  it("picks up a card and everything resting on it, bottom first", () => {
+    const column = game.tableaus[0];
+    relocate(game, "card-spades-9", column);
+    relocate(game, "card-hearts-8", column);
+    relocate(game, "card-clubs-7", column);
+
+    expect(stackFromCard(game)("card-hearts-8")).toEqual([
+      "card-hearts-8",
+      "card-clubs-7",
+    ]);
   });
 
-  it("resolves overlap correctly when overlapping multiple piles", () => {
-    // Positioned right between tableau-0 and tableau-1 but mostly on tableau-1
-    const dragRect: Rect = { x: 350, y: 300, width: 200, height: 300 };
-    const target = resolveDropTarget(dragRect, geometries);
-    expect(target?.pileId).toBe("tableau-1");
+  it("picks up nothing its zone will not let go of", () => {
+    relocate(game, "card-spades-9", game.waste);
+    relocate(game, "card-hearts-8", game.waste);
+
+    expect(stackFromCard(game)("card-spades-9")).toEqual([]);
+  });
+
+  it("picks up nothing for a card on no pile", () => {
+    expect(stackFromCard(game)("card-spades-9")).toEqual([]);
   });
 });
