@@ -74,6 +74,8 @@ export interface MockSprite {
   input: { cursor: string } | null;
   interactiveConfig: { useHandCursor: boolean } | null;
   filtersEnabled: boolean;
+  /** How the renderer rounds the sprite's corners, `safeAuto` as Phaser starts it. */
+  vertexRoundMode: string;
   shadowsAdded: ShadowConfig[];
   filters: {
     internal: { addShadow: (...args: number[]) => MockShadowFilter };
@@ -84,6 +86,7 @@ export interface MockSprite {
   setAlpha(alpha: number): MockSprite;
   setInteractive(config?: { useHandCursor: boolean }): MockSprite;
   enableFilters(): MockSprite;
+  setVertexRoundMode(mode: string): MockSprite;
   setFrame(frame: string): MockSprite;
   setTexture(key: string, frame?: string): MockSprite;
   setPosition(x: number, y: number): MockSprite;
@@ -175,6 +178,7 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
     input: null,
     interactiveConfig: null,
     filtersEnabled: false,
+    vertexRoundMode: "safeAuto",
     shadowsAdded: [],
     filters: {
       internal: { addShadow: (...args) => addShadow("internal", args) },
@@ -201,6 +205,10 @@ export function createMockSprite(options: MockSpriteOptions = {}): MockSprite {
     },
     enableFilters(): MockSprite {
       sprite.filtersEnabled = true;
+      return sprite;
+    },
+    setVertexRoundMode(mode: string): MockSprite {
+      sprite.vertexRoundMode = mode;
       return sprite;
     },
     setFrame(frame: string): MockSprite {
