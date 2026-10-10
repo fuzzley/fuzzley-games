@@ -1,8 +1,8 @@
 import {
   TableMetrics,
   measureTable,
-  tableLayout,
-} from "@/engine/render/layout/table_layout";
+} from "@/engine/render/layout/table_metrics";
+import { tableLayout } from "@/engine/render/layout/table_layout";
 import { IntentHandler } from "@/engine/render/input/table_intents";
 import { TablePresentation } from "@/engine/render/presentation";
 import {

@@ -4,10 +4,8 @@ import {
   PileLayout,
   mirrorPileLayout,
 } from "@/engine/render/layout/pile_layout";
-import {
-  TableLayoutSpec,
-  measureTable,
-} from "@/engine/render/layout/table_layout";
+import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import { measureTable } from "@/engine/render/layout/table_metrics";
 import { ROOMY_FAN_FIT } from "@/games/common/pile_layouts";
 import {
   COVERED_FOUNDATION_PLACEHOLDER,

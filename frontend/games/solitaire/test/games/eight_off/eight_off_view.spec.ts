@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { measureTable } from "@/engine/render/layout/table_layout";
+import { measureTable } from "@/engine/render/layout/table_metrics";
 import { TableInteractionState } from "@/engine/render/input/interaction_state";
 import { Viewport } from "@/engine/render/layout/viewport";
 import { buildTableViewState } from "@/engine/tableau/view/table_view_builder";

@@ -2,7 +2,7 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
 import { Point } from "@/engine/render/geometry";
 import { pileCardOffsets } from "@/engine/render/layout/pile_layout";
 import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
-import { TableMetrics } from "@/engine/render/layout/table_layout";
+import { TableMetrics } from "@/engine/render/layout/table_metrics";
 import {
   CardView,
   TableViewState,

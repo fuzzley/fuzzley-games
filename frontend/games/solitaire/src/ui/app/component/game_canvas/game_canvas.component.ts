@@ -11,7 +11,7 @@ import {
   untracked,
   viewChild,
 } from "@angular/core";
-import { CARD_DECKS } from "@/engine/render/card_deck";
+import { CARD_DECKS } from "@/engine/render/deck/card_deck";
 import { chooseTableLayout } from "@/engine/render/layout/board_layouts";
 import { PhaserHost } from "@/engine/render/phaser/phaser_host";
 import { PlayableGame } from "@/engine/tableau/session/playable_game";

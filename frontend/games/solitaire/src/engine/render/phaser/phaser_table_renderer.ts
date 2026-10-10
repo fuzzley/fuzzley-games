@@ -9,7 +9,6 @@ import {
   PileBackgroundView,
   TableViewState,
 } from "../view/table_view_state";
-import { HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE } from "../layout/card_metrics";
 
 /**
  * Gives a sprite the cursor its view asks for, skipping the costly assignment
@@ -80,6 +79,15 @@ const HIGHLIGHT_COLOR = 0xebef9b;
 
 /** Highlight border opacity. */
 const HIGHLIGHT_ALPHA = 0.9;
+
+/**
+ * How far a card may still be from its slot while a highlight border stays on
+ * it, in design units.
+ *
+ * About one hover expansion, so the border follows a card nudged by a
+ * neighbour's hover but waits for one crossing the board to land.
+ */
+export const HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE = 15;
 
 /**
  * Pairs a pooled highlight border with the shape and depth last set on it, so

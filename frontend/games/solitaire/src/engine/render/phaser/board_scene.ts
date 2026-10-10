@@ -14,12 +14,9 @@ import {
 import { Insets, NO_INSETS, Viewport } from "../layout/viewport";
 import { PileBackgroundSpec, TableViewState } from "../view/table_view_state";
 import { PileGeometry } from "../layout/drop_geometry";
-import {
-  TableLayoutSpec,
-  TableMetrics,
-  designSize,
-} from "../layout/table_layout";
-import { CardArtScale, cardArtScaleFor } from "../layout/card_metrics";
+import { TableLayoutSpec, designSize } from "../layout/table_layout";
+import { TableMetrics } from "../layout/table_metrics";
+import { CardArtScale, cardArtScaleFor } from "../deck/card_art_scale";
 import { Subscribe } from "@/engine/core/common/event_emitter";
 import { CardDeckStatus, TablePresentation } from "../presentation";
 import {

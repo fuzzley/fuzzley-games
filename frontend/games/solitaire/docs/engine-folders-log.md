@@ -58,6 +58,10 @@ A second script, `split-spec.mjs <config.json>`, splits a spec file's top-level
 its blocks use (it can over-keep a helper whose name is also a property name;
 `yarn tsc` reports it as unused).
 
+A fourth, `merge-spec.mjs <from> <into> ["old=new" ...]`, merges one spec
+into another: imports unioned, helpers added unless already there word for
+word (it throws on a clash), describes appended and optionally renamed.
+
 A third, `move-decls.mjs <from.ts> <to.ts> <name...> [--before <name>]`,
 moves named top-level declarations with their doc comments, carries the
 imports they use (re-relativised), prunes the source's unused imports, and
@@ -160,7 +164,7 @@ engine/render/
 - [x] **Phase 3:** tableau `view/` split; move the `resolveDragTarget` spec.
 - [x] **Phase 4:** render `geometry.ts`, `layout/viewport.ts`,
       `input/interaction_state.ts`, `view/render_layers.ts`.
-- [ ] **Phase 5:** render `table_metrics.ts`, `board_arrangement.ts`, `deck/`.
+- [x] **Phase 5:** render `table_metrics.ts`, `board_arrangement.ts`, `deck/`.
 - [ ] **Phase 6:** phaser `host/`, `deck/`, `scene/`; `bootCardAtlas`.
 - [ ] **Docs:** AGENTS.md architecture section describes the new folders.
 - [ ] **Merge** to `main`, then delete this log.
@@ -236,3 +240,22 @@ Each phase also fixes the skill, tool-comment and doc paths it breaks, since
   `layout/` no longer imports from `view/`, and the
   `pile_layout` ↔ `table_layout` type cycle is gone. Skills
   `phaser-core` and `phaser-canvas-performance` re-pointed. 6846 tests.
+- **Phase 5 done.** Measuring a grid for a viewport (`TableMetrics`,
+  `measureTable`, `computeScale`, `compactFor`, `computePileOrigins`,
+  `computePileRooms` and their helpers) moved from `layout/table_layout.ts`
+  to `layout/table_metrics.ts`; `table_layout.ts` keeps describing a grid.
+  The player's arrangement choice (`PilePosition`, `StockSide`, `OrAuto`,
+  `BoardArrangement`, `ResolvedArrangement`, the defaults,
+  `resolveArrangement`) moved from `board_layouts.ts` to
+  `layout/board_arrangement.ts`. `card_back.ts` and `card_deck.ts` moved
+  into `render/deck/`, joined by `deck/card_art_scale.ts` (the atlas
+  densities from `card_metrics.ts`). `HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE`
+  joined the other highlight constants in `phaser_table_renderer.ts` (done
+  here rather than in phase 6, since it left `card_metrics.ts` with the
+  rest). Specs follow their modules: `table_metrics.spec.ts`,
+  `board_arrangement.spec.ts`, `deck/card_art_scale.spec.ts`; and the
+  fake-table parts of `drop_geometry.spec.ts` went to `table_metrics.spec.ts`
+  (as "… on the fake table's board") and `pile_layout.spec.ts`. Skill
+  `vite-bundle-optimization`, `tools/build-card-atlas.mjs`,
+  `tools/card-atlas/raster.mjs` and `docs/phone-board-layouts.md`
+  re-pointed. 173 spec files, 6846 tests.

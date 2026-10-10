@@ -5,9 +5,10 @@ import {
   Suit,
   playingCardInstanceId,
 } from "@/engine/core/card/playing_card";
-import { DEFAULT_DESKTOP_CARD_DECK } from "@/engine/render/card_deck";
+import { DEFAULT_DESKTOP_CARD_DECK } from "@/engine/render/deck/card_deck";
 import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
-import { designSize, measureTable } from "@/engine/render/layout/table_layout";
+import { designSize } from "@/engine/render/layout/table_layout";
+import { measureTable } from "@/engine/render/layout/table_metrics";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { cardAtlasTextureKey } from "@/engine/render/phaser/card_deck_atlas";
 import { makeTableBoardScene } from "@/engine/board/table_board_scene";

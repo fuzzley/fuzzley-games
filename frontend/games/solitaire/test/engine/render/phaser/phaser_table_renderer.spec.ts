@@ -1,15 +1,15 @@
 import { vi, describe, it, expect, beforeEach, type Mock } from "vitest";
-import { PhaserTableRenderer } from "@/engine/render/phaser/phaser_table_renderer";
+import {
+  PhaserTableRenderer,
+  HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE,
+} from "@/engine/render/phaser/phaser_table_renderer";
 import { PhaserSprites } from "@/engine/render/phaser/phaser_sprites";
 import {
   TableViewState,
   CardView,
   HighlightView,
 } from "@/engine/render/view/table_view_state";
-import {
-  CardArtScale,
-  HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE,
-} from "@/engine/render/layout/card_metrics";
+import { CardArtScale } from "@/engine/render/deck/card_art_scale";
 import { STOCK_PILE_ID } from "@test/support/fake_table/zones";
 import {
   asSprite,

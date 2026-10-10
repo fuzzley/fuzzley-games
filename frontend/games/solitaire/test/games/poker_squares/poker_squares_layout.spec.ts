@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeScale } from "@/engine/render/layout/table_layout";
+import { computeScale } from "@/engine/render/layout/table_metrics";
 import {
   POKER_SQUARES_ARRANGED_LAYOUTS,
   POKER_SQUARES_LAYOUT,
