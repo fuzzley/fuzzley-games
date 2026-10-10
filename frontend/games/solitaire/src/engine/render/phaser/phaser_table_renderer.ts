@@ -1,6 +1,6 @@
 import * as Phaser from "phaser";
 import { GameObjects } from "phaser";
-import { Point } from "@/engine/core/common/point";
+import { Point } from "../geometry";
 import { PhaserSprites } from "./phaser_sprites";
 import { TableRenderer } from "../view/table_renderer";
 import {

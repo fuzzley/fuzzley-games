@@ -9,14 +9,11 @@ import { DragController, StackFromCard } from "../input/drag_controller";
 import { IntentHandler } from "../input/table_intents";
 import {
   DragInteraction,
-  Insets,
-  NO_INSETS,
-  PileBackgroundSpec,
-  PileGeometry,
   TableInteractionState,
-  TableViewState,
-  Viewport,
-} from "../view/table_view_state";
+} from "../input/interaction_state";
+import { Insets, NO_INSETS, Viewport } from "../layout/viewport";
+import { PileBackgroundSpec, TableViewState } from "../view/table_view_state";
+import { PileGeometry } from "../layout/drop_geometry";
 import {
   TableLayoutSpec,
   TableMetrics,

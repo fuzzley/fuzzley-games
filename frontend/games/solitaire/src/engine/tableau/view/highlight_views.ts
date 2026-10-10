@@ -2,13 +2,15 @@ import {
   CARD_RENDER_HEIGHT_PX,
   CARD_RENDER_WIDTH_PX,
 } from "@/engine/render/layout/card_metrics";
-import { RenderLayer, depthFor } from "@/engine/render/layout/render_layers";
+import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
 import { TableMetrics } from "@/engine/render/layout/table_layout";
 import {
   DragInteraction,
+  TableInteractionState,
+} from "@/engine/render/input/interaction_state";
+import {
   HighlightAnchor,
   HighlightView,
-  TableInteractionState,
 } from "@/engine/render/view/table_view_state";
 import { resolveDragTarget } from "./drag";
 import { TableView } from "./table_view";

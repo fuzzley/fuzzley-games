@@ -4,7 +4,7 @@ import {
   measureTable,
 } from "@/engine/render/layout/table_layout";
 import { FanFit, PileLayout } from "@/engine/render/layout/pile_layout";
-import { Viewport } from "@/engine/render/view/table_view_state";
+import { Viewport } from "@/engine/render/layout/viewport";
 import { pileArrangement } from "@/engine/tableau/view/pile_arrangement";
 import { FAKE_TABLE_LAYOUT } from "@test/support/fake_table/board";
 import { FakeTableGame } from "@test/support/fake_table/game";

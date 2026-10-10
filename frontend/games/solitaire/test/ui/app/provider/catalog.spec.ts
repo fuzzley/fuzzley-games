@@ -17,7 +17,7 @@ import {
   TableLayoutSpec,
   computeScale,
 } from "@/engine/render/layout/table_layout";
-import { NO_INSETS, Viewport } from "@/engine/render/view/table_view_state";
+import { NO_INSETS, Viewport } from "@/engine/render/layout/viewport";
 import { TestPresentation } from "@test/support/presentation";
 import { CATALOG_DEALS as DEALS } from "@test/support/ui/catalog_deals";
 

@@ -1,12 +1,10 @@
 import {
   computeDropGeometries,
   resolveDropTarget,
+  PileGeometry,
 } from "@/engine/render/layout/drop_geometry";
 import { TableMetrics } from "@/engine/render/layout/table_layout";
-import {
-  DragInteraction,
-  PileGeometry,
-} from "@/engine/render/view/table_view_state";
+import { DragInteraction } from "@/engine/render/input/interaction_state";
 import { grabbedStack } from "../rules/grab";
 import { pileArrangement } from "./pile_arrangement";
 import { TableView } from "./table_view";

@@ -1,4 +1,4 @@
-import { Insets, NO_INSETS } from "../view/table_view_state";
+import { Insets, NO_INSETS } from "../layout/viewport";
 
 /**
  * Describes the slice of `Phaser.Game` the scaler drives, so a test need not

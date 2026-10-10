@@ -8,7 +8,10 @@ import {
   pileCardOffsets,
   stackedCardOffsets,
 } from "@/engine/render/layout/pile_layout";
-import { FAKE_TABLE_LAYOUT } from "@test/support/fake_table/board";
+import {
+  FAKE_TABLE_LAYOUT,
+  measureFakeTable,
+} from "@test/support/fake_table/board";
 import {
   TABLEAU_PILE_LAYOUT,
   fakePileLayout,
@@ -18,11 +21,17 @@ import {
   TABLEAU_HOVER_EXPANSION_OFFSET,
   WASTE_FAN_OFFSET_X,
   WASTE_MAX_FAN_CARDS,
+  FakeRole,
+  STOCK_PILE_ID,
+  TABLEAU_COUNT,
+  WASTE_PILE_ID,
+  foundationPileId,
+  tableauPileId,
 } from "@test/support/fake_table/zones";
-import { measureFakeTable } from "@test/support/fake_table/board";
 import {
   computeDropGeometries,
   resolveDropTarget,
+  PileGeometry,
 } from "@/engine/render/layout/drop_geometry";
 import {
   CARD_HEIGHT_PX,
@@ -32,22 +41,10 @@ import {
   LAYOUT_PADDING_Y,
 } from "@/engine/render/layout/card_metrics";
 import { CardPile } from "@/engine/core/card/card_pile";
-import {
-  FakeRole,
-  STOCK_PILE_ID,
-  TABLEAU_COUNT,
-  WASTE_PILE_ID,
-  foundationPileId,
-  tableauPileId,
-} from "@test/support/fake_table/zones";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { FakeTableGame } from "@test/support/fake_table/game";
-import {
-  NO_INSETS,
-  PileGeometry,
-  Rect,
-  Viewport,
-} from "@/engine/render/view/table_view_state";
+import { NO_INSETS, Viewport } from "@/engine/render/layout/viewport";
+import { Rect } from "@/engine/render/geometry";
 import { makePlayingCard } from "@test/support/card_builder";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 

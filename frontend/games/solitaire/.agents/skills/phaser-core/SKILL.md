@@ -42,7 +42,7 @@ maps.
 
 ## Phaser 4 Best Practices for Solitaire
 
-- **Card Sprites & Depth**: Every depth comes from `depthFor(RenderLayer.X)` in `src/engine/render/layout/render_layers.ts` — that enum is the board's z-order, back to front. Never invent a raw depth number.
+- **Card Sprites & Depth**: Every depth comes from `depthFor(RenderLayer.X)` in `src/engine/render/view/render_layers.ts` — that enum is the board's z-order, back to front. Never invent a raw depth number.
 - **Input Boundaries**: Derive card touch/click bounds from the `engine/render` layout bounds rather than hardcoding canvas positions.
 - **Clean Scene Teardown**: Clean up scene listeners, tweens and any textures the scene created on destruction or variant change.
 - **Performance**: See the `phaser-canvas-performance` skill for batching, allocation and teardown detail — and measure before optimizing.

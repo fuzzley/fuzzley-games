@@ -7,7 +7,7 @@ import { formFactorOf } from "@/engine/render/layout/form_factor";
 import { measureTable } from "@/engine/render/layout/table_layout";
 import { BoardScene } from "@/engine/render/phaser/board_scene";
 import { TablePresentation } from "@/engine/render/presentation";
-import { Insets, Viewport } from "@/engine/render/view/table_view_state";
+import { Insets, Viewport } from "@/engine/render/layout/viewport";
 import { TableGame } from "@/engine/tableau/table_game";
 import { stackFromCard, resolveDragTarget } from "@/engine/tableau/view/drag";
 import { pileBackgrounds } from "@/engine/tableau/view/pile_backgrounds";

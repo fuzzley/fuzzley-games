@@ -3,7 +3,7 @@ import { Types } from "phaser";
 import { BoardScene } from "./board_scene";
 import { ScalableGame, ViewportScaler } from "./viewport_scaler";
 import { DEFAULT_BACKGROUND_COLOR } from "../presentation";
-import { Insets, NO_INSETS } from "../view/table_view_state";
+import { Insets, NO_INSETS } from "../layout/viewport";
 
 /**
  * Describes the slice of `Phaser.Game` the host drives, so a spec need not boot

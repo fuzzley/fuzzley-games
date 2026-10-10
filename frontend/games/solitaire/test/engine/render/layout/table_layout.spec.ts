@@ -9,7 +9,7 @@ import {
   measureTable,
 } from "@/engine/render/layout/table_layout";
 import { COMPACT_MAX_WIDTH_CSS_PX } from "@/engine/render/layout/form_factor";
-import { NO_INSETS, Viewport } from "@/engine/render/view/table_view_state";
+import { NO_INSETS, Viewport } from "@/engine/render/layout/viewport";
 
 /** Returns an unremarkable board with the given overrides. */
 function layout(overrides: Partial<TableLayoutSpec> = {}): TableLayoutSpec {
