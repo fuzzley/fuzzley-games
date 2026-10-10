@@ -3,8 +3,8 @@ import {
   IntentHandler,
   TableIntent,
 } from "@/engine/render/input/table_intents";
-import { GameSnapshot } from "@/engine/tableau/game_snapshot";
-import { PlayableGame } from "@/engine/tableau/playable_game";
+import { GameSnapshot } from "@/engine/tableau/session/game_snapshot";
+import { PlayableGame } from "@/engine/tableau/session/playable_game";
 import { TableGame } from "@/engine/tableau/table_game";
 import { gesturesFor } from "@/ui/app/provider/board_catalog";
 import { GameId } from "@/ui/app/provider/game_catalog";

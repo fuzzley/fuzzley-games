@@ -1,9 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import {
-  playOnPress,
-  stocklessGestures,
-} from "@/engine/tableau/table_gestures";
+import { stocklessGestures } from "@/engine/tableau/gestures/table_gestures";
 import { FakeTableGame } from "@test/support/fake_table/game";
 import { FakeRole } from "@test/support/fake_table/zones";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
@@ -148,34 +145,5 @@ describe("stocklessGestures", () => {
 
       expect(game.tableaus[1].size).toBe(1);
     });
-  });
-});
-
-describe("playOnPress", () => {
-  let game: FakeTableGame;
-
-  beforeEach(() => {
-    game = dealtGame();
-    emptyBoard(game);
-    relocate(game, "card-hearts-ace", game.tableaus[0]);
-    relocate(game, "card-spades-ace", game.waste);
-  });
-
-  it("plays a card from one of its roles to its best destination", () => {
-    const press = playOnPress(game, [FakeRole.TABLEAU]);
-
-    press("card-hearts-ace", game.tableaus[0]);
-
-    expect(game.getPileContainingCard("card-hearts-ace")?.role).toBe(
-      FakeRole.FOUNDATION,
-    );
-  });
-
-  it("leaves a card from any other role where it is", () => {
-    const press = playOnPress(game, [FakeRole.TABLEAU]);
-
-    press("card-spades-ace", game.waste);
-
-    expect(game.waste.topCard?.id).toBe("card-spades-ace");
   });
 });

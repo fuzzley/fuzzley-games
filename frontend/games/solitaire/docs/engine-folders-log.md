@@ -147,7 +147,7 @@ engine/render/
 ## Progress
 
 - [x] **Phase 1:** tableau `rules/` and `zones/`.
-- [ ] **Phase 2:** tableau `moves/`, `dealing/`, `session/`, `gestures/`;
+- [x] **Phase 2:** tableau `moves/`, `dealing/`, `session/`, `gestures/`;
       slim `TableGame` and `DealtTableGame`.
 - [ ] **Phase 3:** tableau `view/` split; move the `resolveDragTarget` spec.
 - [ ] **Phase 4:** render `geometry.ts`, `layout/viewport.ts`,
@@ -179,3 +179,26 @@ Each phase also fixes the skill, tool-comment and doc paths it breaks, since
   tests; fixed by restricting it to affected imports (see Tooling). Restore a
   bad run with `git diff --name-only --diff-filter=M | xargs git checkout --`,
   which keeps staged renames and deletions.
+- **Phase 2 done.** Moved `move.ts`/`move_history.ts` into `moves/`,
+  `deal.ts`/`deck_source.ts` into `dealing/`, `playable_game.ts`,
+  `game_state.ts` and `game_snapshot.ts` into `session/`,
+  `table_gestures.ts` into `gestures/`, and renamed `dealt_game.ts` to
+  `dealt_table_game.ts`. Extracted:
+  - `ResolvedMove`, `MoveEffects`, `NO_MOVE_EFFECTS` from `table_game.ts`
+    into `moves/move.ts`; the unused `RelocationListener` re-export dropped.
+  - `TableGame.resolveMove` (public, no callers) into
+    `move_legality.ts` as `resolveMove(tabletop, cardId, targetPileId)`.
+  - `grabbedStack` in `rules/grab.ts`, now the one definition of what a
+    grab lifts, used by `resolveMove` and `view/grabbable_stack.ts`.
+    `resolveMove` keeps its own face-up check.
+  - `PileMarker` and a `PileMarkers` class into `zones/pile_marker.ts`;
+    `TableGame` keeps `markPile` and its two readers, delegating.
+  - DealtTableGame's snapshot checks into `session/snapshot_resolution.ts`
+    (`resolveSnapshot`), same errors, same order.
+  - `drawOnStockTop`, `dealOnStockPress`, `playOnPress` into
+    `gestures/press_handlers.ts`, typed by a new `CardPressHandler`.
+    New specs: `move_legality`, `zones/pile_marker`,
+    `session/snapshot_resolution`, `gestures/press_handlers` (now also
+    covering the two stock handlers), and `grabbedStack` in `rules/grab`.
+    Skills `add-solitaire-game` and `typescript-strict-patterns` and
+    `docs/phone-board-layouts.md` re-pointed. 171 spec files, 6843 tests.

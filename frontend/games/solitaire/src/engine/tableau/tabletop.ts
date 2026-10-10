@@ -6,7 +6,7 @@ import {
 } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { CardTransfer } from "./move";
+import { CardTransfer } from "./moves/move";
 import { BoardQuery } from "./rules/board_query";
 import { ZoneSpec } from "./zones/zone";
 

@@ -4,8 +4,8 @@ import {
   type CardSnapshot,
   type GameSnapshot,
   readGameSnapshot,
-} from "@/engine/tableau/game_snapshot";
-import type { AppliedMove } from "@/engine/tableau/move";
+} from "@/engine/tableau/session/game_snapshot";
+import type { AppliedMove } from "@/engine/tableau/moves/move";
 import { FakeTableGame } from "@test/support/fake_table/game";
 
 /** Returns a game dealt in deck order, then played: two draws. */

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { GameMetrics, GameState } from "@/engine/tableau/game_state";
+import { GameMetrics, GameState } from "@/engine/tableau/session/game_state";
 
 /** Records every set of metrics a state publishes to one follower. */
 function follow(state: GameState): GameMetrics[] {

@@ -5,7 +5,7 @@ import {
   readObject,
   readString,
 } from "@/engine/core/common/json_reader";
-import { AppliedMove, CardTransfer } from "./move";
+import { AppliedMove, CardTransfer } from "../moves/move";
 
 /** Records a card as it lies in a pile. */
 export interface CardSnapshot {

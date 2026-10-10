@@ -13,8 +13,8 @@ import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import { decodePosition } from "@/ui/app/model/game_position";
 import { DEFAULT_DESKTOP_CARD_DECK } from "@/engine/render/card_deck";
-import type { GameSnapshot } from "@/engine/tableau/game_snapshot";
-import type { AppliedMove } from "@/engine/tableau/move";
+import type { GameSnapshot } from "@/engine/tableau/session/game_snapshot";
+import type { AppliedMove } from "@/engine/tableau/moves/move";
 import {
   createMockGameModel,
   type MockGameModel,

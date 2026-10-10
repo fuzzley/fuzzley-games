@@ -1,5 +1,5 @@
 import { Injectable, effect, inject } from "@angular/core";
-import type { PlayableGame } from "@/engine/tableau/playable_game";
+import type { PlayableGame } from "@/engine/tableau/session/playable_game";
 import { GamePosition, readGamePosition } from "../model/game_position";
 import { sameOptionValues } from "../provider/game_catalog";
 import { GameCatalogService } from "./game_catalog.service";

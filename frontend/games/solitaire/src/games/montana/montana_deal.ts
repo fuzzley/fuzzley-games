@@ -1,4 +1,4 @@
-import { Deal } from "@/engine/tableau/deal";
+import { Deal } from "@/engine/tableau/dealing/deal";
 import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { DeckSpec } from "@/engine/core/card/deck";
 import { PlayingCard, Rank } from "@/engine/core/card/playing_card";

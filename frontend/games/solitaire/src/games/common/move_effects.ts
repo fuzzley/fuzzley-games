@@ -1,6 +1,6 @@
 import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { MoveEffects, ResolvedMove } from "@/engine/tableau/table_game";
+import { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
 import { Tabletop } from "@/engine/tableau/tabletop";
 import { collectCompletedRuns, flipExposedTop } from "./completed_runs";
 

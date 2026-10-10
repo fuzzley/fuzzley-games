@@ -1,5 +1,5 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { tableGestures } from "@/engine/tableau/table_gestures";
+import { tableGestures } from "@/engine/tableau/gestures/table_gestures";
 import { MonteCarloGame } from "./monte_carlo_game";
 import { MonteCarloRole, STOCK_PILE_ID } from "./monte_carlo_zones";
 

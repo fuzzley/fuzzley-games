@@ -500,7 +500,7 @@ sends a card to its best move, offered as a setting on touch screens, matters as
 much as any layout.
 
 - **Where:** `tools/card-atlas/mobile-deck.mjs`; `tableGestures` in
-  `src/engine/tableau/table_gestures.ts`.
+  `src/engine/tableau/gestures/table_gestures.ts`.
 - **Unlocks:** legible Spider indices in portrait; play without dragging.
 
 ## Phases

@@ -169,7 +169,7 @@ skeleton places fractional slots too.
 
 ## 4. `<game>_deal.ts` — the opening position
 
-A plain function taking the `Deal` (`src/engine/tableau/deal.ts`) and the
+A plain function taking the `Deal` (`src/engine/tableau/dealing/deal.ts`) and the
 piles. The deal hands out the shuffled deck, last card first, and places cards
 through the tabletop: `dealTo(pile, faceUp)` deals the next card,
 `dealEach(piles, faceUp)` one to each pile, `dealRest(pile, faceUp)` all
@@ -201,7 +201,7 @@ honour it itself.
 
 ## 5. `<game>_game.ts` — the class
 
-Extend `DealtTableGame` (`src/engine/tableau/dealt_game.ts`). It already owns the
+Extend `DealtTableGame` (`src/engine/tableau/dealt_table_game.ts`). It already owns the
 new-game and restart cycle, including keeping the dealt order aside so a restart
 replays the same game.
 
@@ -418,12 +418,13 @@ checks beside it, as `test/games/klondike/klondike_layout.spec.ts` does.
 ## 7. `<game>_gestures.ts` — only if a press means something
 
 A game with no stock does not need this file at all: map it to
-`stocklessGestures` from `src/engine/tableau/table_gestures.ts` in step 8, as
+`stocklessGestures` from `src/engine/tableau/gestures/table_gestures.ts` in step 8, as
 FreeCell does.
 
 Otherwise call `tableGestures(game, options)` with:
 
-- `onCardPress` — `drawOnStockTop(role, draw)` for a stock whose top card draws
+- `onCardPress` — from `src/engine/tableau/gestures/press_handlers.ts`,
+  `drawOnStockTop(role, draw)` for a stock whose top card draws
   (Klondike, Forty Thieves), `dealOnStockPress(role, deal)` for one that deals
   a row wherever it is pressed (Spider, Scorpion, Easthaven), or
   `playOnPress(game, roles)` where a single press plays a card (Golf, Black

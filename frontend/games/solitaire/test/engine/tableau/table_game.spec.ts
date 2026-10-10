@@ -1,12 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
-import {
-  MoveEffects,
-  PileMarker,
-  ResolvedMove,
-  TableGame,
-} from "@/engine/tableau/table_game";
+import { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
+import { PileMarker } from "@/engine/tableau/zones/pile_marker";
+import { TableGame } from "@/engine/tableau/table_game";
 import { anyCard, never } from "@/engine/tableau/rules/placement";
 import { ZoneSpec } from "@/engine/tableau/zones/zone";
 

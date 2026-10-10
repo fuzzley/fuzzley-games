@@ -57,6 +57,24 @@ export function canGrab(
 }
 
 /**
+ * Returns the cards a grab of `card` lifts out of `pile`, it and everything
+ * stacked on it, bottom first, or null when the grab rule will not let go.
+ *
+ * @param board The rest of the board, which an `uncovered` rule reads.
+ */
+export function grabbedStack(
+  grab: GrabRule,
+  card: PlayingCard,
+  pile: ReadonlyCardPile<PlayingCard>,
+  board: BoardQuery,
+): readonly PlayingCard[] | null {
+  if (!canGrab(grab, card, pile, board)) return null;
+  const cards = pile.getCards();
+  const index = cards.indexOf(card);
+  return index === -1 ? null : cards.slice(index);
+}
+
+/**
  * Returns whether the cards from `card` upwards are all face up and form an
  * unbroken run.
  */
