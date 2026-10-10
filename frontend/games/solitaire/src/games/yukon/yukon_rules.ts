@@ -3,15 +3,17 @@ import { Rank } from "@/engine/core/card/playing_card";
 import {
   PlacementRule,
   any,
-  ascendingSameSuit,
   byEmptiness,
   cardIs,
+  hasRank,
+} from "@/engine/tableau/rules/placement";
+import {
+  ascendingSameSuit,
   descendingAlternatingColor,
   descendingDifferentSuit,
   descendingSameSuit,
-  hasRank,
   suitFoundation,
-} from "@/engine/tableau/rules";
+} from "@/engine/tableau/rules/builds";
 
 /** The parts a pile can play in a Yukon game. */
 export const YukonRole = {

@@ -4,9 +4,9 @@ import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
 import { AppliedMove } from "@/engine/tableau/move";
 import { MoveHistory } from "@/engine/tableau/move_history";
-import { anyCard } from "@/engine/tableau/rules";
+import { anyCard } from "@/engine/tableau/rules/placement";
 import { Tabletop } from "@/engine/tableau/tabletop";
-import { ZoneSpec } from "@/engine/tableau/zone";
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
 
 /** Returns a pile's zone: any card goes, and nothing is drawn. */
 function zone(id: string): ZoneSpec {

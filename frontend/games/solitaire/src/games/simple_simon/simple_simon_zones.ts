@@ -1,5 +1,5 @@
-import { isSameSuitRun } from "@/engine/tableau/rules";
-import { ZoneSpec } from "@/engine/tableau/zone";
+import { isSameSuitRun } from "@/engine/tableau/rules/adjacency";
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
 import { OPEN_COLUMN_LAYOUT } from "../common/pile_layouts";
 import { columnRow, foundationRow } from "../common/zone_presets";
 import {

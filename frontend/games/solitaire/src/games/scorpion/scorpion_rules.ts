@@ -5,9 +5,9 @@ import {
   anyCard,
   byEmptiness,
   cardIs,
-  descendingSameSuit,
   hasRank,
-} from "@/engine/tableau/rules";
+} from "@/engine/tableau/rules/placement";
+import { descendingSameSuit } from "@/engine/tableau/rules/builds";
 
 /** The parts a pile can play in a Scorpion game. */
 export const ScorpionRole = {

@@ -1,4 +1,4 @@
-import { ZoneSpec } from "@/engine/tableau/zone";
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
 import { STOCK_PILE_ID, WASTE_PILE_ID } from "../common/pile_ids";
 import { wasteFanLayout } from "../common/pile_layouts";
 import {

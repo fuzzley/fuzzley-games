@@ -4,10 +4,12 @@ import {
   PlacementRule,
   byEmptiness,
   cardIs,
-  descendingAlternatingColor,
   hasRank,
+} from "@/engine/tableau/rules/placement";
+import {
+  descendingAlternatingColor,
   suitFoundation,
-} from "@/engine/tableau/rules";
+} from "@/engine/tableau/rules/builds";
 
 /** The parts a pile can play in a Double Klondike game. */
 export const DoubleKlondikeRole = {

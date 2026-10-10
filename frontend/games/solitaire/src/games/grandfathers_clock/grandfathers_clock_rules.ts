@@ -10,11 +10,13 @@ import {
   PlacementRule,
   all,
   anyCard,
-  ascendingSameSuitWrapping,
   byEmptiness,
-  descendingAnySuit,
   singleCardOnly,
-} from "@/engine/tableau/rules";
+} from "@/engine/tableau/rules/placement";
+import {
+  ascendingSameSuitWrapping,
+  descendingAnySuit,
+} from "@/engine/tableau/rules/builds";
 
 /** The parts a pile can play in a game of Grandfather's Clock. */
 export const ClockRole = {

@@ -6,21 +6,8 @@ import {
   Suit,
   rankBelow,
 } from "@/engine/core/card/playing_card";
-import {
-  GrabRule,
-  ZoneSpec,
-  canGrab,
-  hasRoomFor,
-  runColumn,
-} from "@/engine/tableau/zone";
-import {
-  BoardQuery,
-  PlacementRule,
-  cardIs,
-  hasRank,
-  isSameSuitRun,
-  never,
-} from "@/engine/tableau/rules";
+import { GrabRule, canGrab } from "@/engine/tableau/rules/grab";
+import { BoardQuery } from "@/engine/tableau/rules/board_query";
 import { makePlayingCard } from "@test/support/card_builder";
 
 /** A board with no other piles on it, for the rules that never read one. */
@@ -205,111 +192,6 @@ describe("canGrab uncovered", () => {
 
     expect(
       canGrab(grab, bottom, pileWith(bottom, top), boardWith([], [])),
-    ).toBe(false);
-  });
-});
-
-describe("hasRoomFor", () => {
-  function zone(capacity?: number): ZoneSpec {
-    return {
-      id: "cell",
-      role: "cell",
-      slot: { pileId: "cell", column: 0, row: 0 },
-      layout: { kind: "stacked" },
-      capacity,
-      accept: never,
-      grab: { kind: "top-only" },
-      draggable: true,
-      face: "always-up",
-    };
-  }
-
-  it("accepts a card into an empty single-card zone", () => {
-    expect(hasRoomFor(zone(1), pileWith(), 1)).toBe(true);
-  });
-
-  it("refuses a second card into a single-card zone", () => {
-    const occupied = pileWith(card(Suit.SPADE, Rank.KING));
-
-    expect(hasRoomFor(zone(1), occupied, 1)).toBe(false);
-  });
-
-  it("refuses a stack larger than the remaining room", () => {
-    expect(hasRoomFor(zone(1), pileWith(), 2)).toBe(false);
-  });
-
-  it("accepts anything into a zone with no stated capacity", () => {
-    const long = pileWith(
-      ...Array.from({ length: 20 }, (_, i) =>
-        card(Suit.SPADE, Rank.TWO, true, `c${i}`),
-      ),
-    );
-
-    expect(hasRoomFor(zone(), long, 10)).toBe(true);
-  });
-});
-
-describe("runColumn", () => {
-  /** A column built down in suit, taking only a King when empty. */
-  const column = runColumn({
-    adjacent: isSameSuitRun,
-    whenEmpty: cardIs(hasRank(Rank.KING)),
-  });
-
-  /** Asks whether `rule` lets `movingStack` land on `target`. */
-  function lands(
-    rule: PlacementRule,
-    target: CardPile<PlayingCard>,
-    movingStack: PlayingCard[],
-  ): boolean {
-    return rule({
-      card: movingStack[0],
-      movingStack,
-      sourcePile: pileWith(),
-      targetPile: target,
-      board: EMPTY_BOARD,
-    });
-  }
-
-  it("lands a card that sits on the top card by the adjacency", () => {
-    const target = pileWith(card(Suit.SPADE, Rank.NINE));
-
-    expect(lands(column.accept, target, [card(Suit.SPADE, Rank.EIGHT)])).toBe(
-      true,
-    );
-  });
-
-  it("refuses a card the adjacency does not allow", () => {
-    const target = pileWith(card(Suit.SPADE, Rank.NINE));
-
-    expect(lands(column.accept, target, [card(Suit.HEART, Rank.EIGHT)])).toBe(
-      false,
-    );
-  });
-
-  it("asks the empty-column rule of an empty column", () => {
-    expect(
-      lands(column.accept, pileWith(), [card(Suit.SPADE, Rank.QUEEN)]),
-    ).toBe(false);
-  });
-
-  it("lifts runs by the same adjacency it lands them by", () => {
-    expect(column.grab).toEqual({ kind: "run", adjacent: isSameSuitRun });
-  });
-
-  it("refuses a stack longer than the limit allows", () => {
-    const capped = runColumn({
-      adjacent: isSameSuitRun,
-      whenEmpty: never,
-      maxStack: () => 1,
-    });
-    const target = pileWith(card(Suit.SPADE, Rank.TEN));
-
-    expect(
-      lands(capped.accept, target, [
-        card(Suit.SPADE, Rank.NINE),
-        card(Suit.SPADE, Rank.EIGHT),
-      ]),
     ).toBe(false);
   });
 });

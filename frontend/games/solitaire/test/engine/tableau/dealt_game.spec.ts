@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { Deal } from "@/engine/tableau/deal";
 import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { anyCard } from "@/engine/tableau/rules";
-import { ZoneSpec } from "@/engine/tableau/zone";
+import { anyCard } from "@/engine/tableau/rules/placement";
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
 
 const HAND = "hand";
 const HOME = "home";

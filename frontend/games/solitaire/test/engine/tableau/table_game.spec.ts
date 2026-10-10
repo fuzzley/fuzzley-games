@@ -7,8 +7,8 @@ import {
   ResolvedMove,
   TableGame,
 } from "@/engine/tableau/table_game";
-import { anyCard, never } from "@/engine/tableau/rules";
-import { ZoneSpec } from "@/engine/tableau/zone";
+import { anyCard, never } from "@/engine/tableau/rules/placement";
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
 
 const LEFT = "left";
 const RIGHT = "right";

@@ -9,7 +9,7 @@ import {
   hasRank,
   never,
   singleCardOnly,
-} from "@/engine/tableau/rules";
+} from "@/engine/tableau/rules/placement";
 
 /** The parts a pile can play in an Aces Up game. */
 export const AcesUpRole = {

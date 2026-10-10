@@ -3,11 +3,13 @@ import {
   PlacementRule,
   any,
   anyCard,
-  ascendingSameSuit,
   byEmptiness,
+} from "@/engine/tableau/rules/placement";
+import {
+  ascendingSameSuit,
   descendingAnySuit,
   descendingSameSuit,
-} from "@/engine/tableau/rules";
+} from "@/engine/tableau/rules/builds";
 
 /** The parts a pile can play in a game of the Beleaguered Castle family. */
 export const CastleRole = {

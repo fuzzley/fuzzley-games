@@ -1,5 +1,5 @@
-import { singleCardCell } from "@/engine/tableau/rules";
-import { ZoneSpec } from "@/engine/tableau/zone";
+import { singleCardCell } from "@/engine/tableau/rules/builds";
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
 import { OPEN_COLUMN_LAYOUT } from "../common/pile_layouts";
 import { cellRow, columnRow, foundationRow } from "../common/zone_presets";
 import {

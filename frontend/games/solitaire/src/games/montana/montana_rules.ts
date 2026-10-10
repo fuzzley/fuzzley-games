@@ -13,7 +13,7 @@ import {
   cardIs,
   hasRank,
   singleCardOnly,
-} from "@/engine/tableau/rules";
+} from "@/engine/tableau/rules/placement";
 
 /** The parts a pile can play in a Montana game. */
 export const MontanaRole = {

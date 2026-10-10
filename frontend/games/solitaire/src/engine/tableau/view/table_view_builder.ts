@@ -20,7 +20,7 @@ import {
   TableInteractionState,
   TableViewState,
 } from "@/engine/render/view/table_view_state";
-import { ZoneLook, frameFor, showsFace } from "./zone_look";
+import { ZoneLook, frameFor, showsFace } from "../zones/zone_look";
 import { TableView } from "./table_view";
 import { pileArrangement } from "./pile_arrangement";
 import { pileBackgroundFrame } from "./pile_backgrounds";

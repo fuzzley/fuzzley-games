@@ -3,13 +3,15 @@ import { Rank } from "@/engine/core/card/playing_card";
 import {
   PlacementRule,
   cardIs,
-  cellStagingLimit,
   hasRank,
+} from "@/engine/tableau/rules/placement";
+import {
+  cellStagingLimit,
   singleCardCell,
   suitFoundation,
-  isSameSuitRun,
-} from "@/engine/tableau/rules";
-import { ColumnRules, runColumn } from "@/engine/tableau/zone";
+} from "@/engine/tableau/rules/builds";
+import { isSameSuitRun } from "@/engine/tableau/rules/adjacency";
+import { ColumnRules, runColumn } from "@/engine/tableau/rules/run_column";
 
 /** The parts a pile can play in an Eight Off game. */
 export const EightOffRole = {

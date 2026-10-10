@@ -6,7 +6,7 @@ import {
   cardIs,
   hasRank,
   singleCardOnly,
-} from "@/engine/tableau/rules";
+} from "@/engine/tableau/rules/placement";
 import {
   PairTest,
   pairsWithTop,
