@@ -135,7 +135,7 @@ Choices made while planning:
 
 ### 6. The light under the cards (option 6)
 
-- [ ] 6.1 The board paints the felt's light inside the canvas, beneath every
+- [x] 6.1 The board paints the felt's light inside the canvas, beneath every
       layer; the CSS overlay and its token go; specs.
 
 ### 7. The mobile deck drawn at its exact size (option 5)
@@ -256,3 +256,17 @@ Choices made while planning:
   would have drawn a 412 pixel canvas. Checked the exact path natively instead:
   at DPR 1 with the parent made 1000.5 px wide, Chrome counts 1001 device px,
   and the canvas backs onto 1001 with its CSS width pinned at 1000.5 px.
+- 6.1: `TableLight` (`phaser/scene/table_light.ts`) is a radial, dithered
+  Phaser `Gradient` at `RenderLayer.TABLE_LIGHT` (-1, so depth -1000), refitted
+  on every canvas resize and destroyed when the scene ends. The gradient is a
+  circle in its quad's own coordinates, so the quad is 2.5 × 2.1 times the board
+  and centred at (50%, 32%), which makes it the CSS ellipse.
+- Surprise: Phaser works out a game object's origin in pixels when the origin is
+  set and leaves it alone on `setSize`, so the first try hung the gradient from
+  its top-left corner and drew a dark block over a quarter of the board. The
+  light calls `updateDisplayOrigin()` after resizing, and the mock gradient now
+  keeps its display origin the way Phaser does, so a spec covers it.
+- Checked at 390 × 844 and DPR 3: column 1's top card is pure white (255) where
+  the CSS vignette left it at 243, and the felt reads exactly as before at the
+  centre (15, 77, 14) and the bottom left corner (13, 67, 12). The CSS overlay
+  and `--table-vignette` are gone. 6893 tests pass.

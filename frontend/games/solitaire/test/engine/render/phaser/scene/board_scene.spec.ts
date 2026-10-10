@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, type Mock } from "vitest";
 import { BoardScene } from "@/engine/render/phaser/scene/board_scene";
 import { makeFakeTableBoardScene } from "@test/support/fake_table/scene";
 import { TestPresentation } from "@test/support/presentation";
@@ -9,6 +9,7 @@ import {
 import {
   BOOT_TEXTURE_KEY,
   DESTROY_EVENT,
+  MockGradient,
   MockGraphics,
   MockInput,
   MockLoader,
@@ -53,6 +54,12 @@ vi.mock("phaser", async () => {
 /** Views a Phaser sprite handle as the underlying recording mock sprite. */
 function asMock(sprite: unknown): MockSprite {
   return sprite as MockSprite;
+}
+
+/** Returns the gradient a scene lit its felt with. */
+function tableLightOf(scene: BoardScene): MockGradient {
+  const added = (scene.add.gradient as unknown as Mock).mock.results;
+  return added[0]?.value as MockGradient;
 }
 
 /**
@@ -803,6 +810,12 @@ describe("BoardScene", () => {
         expect(scale.listenerCount("resize")).toBe(0);
       });
 
+      it("takes the light off the felt", () => {
+        endScene();
+
+        expect(tableLightOf(boardScene).destroyed).toBe(true);
+      });
+
       it("stops redrawing the shadow when a lost WebGL context is restored", () => {
         endScene();
         const before = shadowRenders();
@@ -913,6 +926,27 @@ describe("BoardScene", () => {
       // Phaser's default only re-tests when the pointer itself moves, which
       // leaves the hover attached to a card that has since slid away.
       expect(input.pollRate).toBe(0);
+    });
+  });
+
+  describe("the light on the felt", () => {
+    it("lies beneath every placeholder and card", () => {
+      expect(tableLightOf(boardScene).depth).toBeLessThan(
+        depthFor(RenderLayer.PILE_BACKGROUND),
+      );
+    });
+
+    it("spreads over the canvas again when it resizes", () => {
+      const scale = boardScene.scale as unknown as MockScaleManager;
+      scale.width = 1000;
+      scale.height = 800;
+
+      scale.emit("resize");
+
+      const light = tableLightOf(boardScene);
+      expect([light.x, light.y, light.width, light.height]).toEqual([
+        500, 256, 2500, 1680,
+      ]);
     });
   });
 

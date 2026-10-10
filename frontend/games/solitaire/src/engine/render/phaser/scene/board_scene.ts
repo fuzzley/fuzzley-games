@@ -5,6 +5,7 @@ import { PhaserCardFactory } from "./phaser_card_factory";
 import { BoardInputManager } from "./board_input_manager";
 import { PhaserTableRenderer } from "./phaser_table_renderer";
 import { PhaserSprites } from "./phaser_sprites";
+import { TableLight } from "./table_light";
 import { DragController, StackFromCard } from "../../input/drag_controller";
 import { IntentHandler } from "../../input/table_intents";
 import {
@@ -179,6 +180,7 @@ export class BoardScene extends Scene implements PhaserSprites {
    */
   create() {
     this.createCollaborators();
+    this.lightTheTable();
     this.createPileBackgroundSprites();
     this.createCardSprites();
     this.followTheModel();
@@ -219,6 +221,25 @@ export class BoardScene extends Scene implements PhaserSprites {
       () => cardAtlasTextureKey(this.deckLoader.atlas),
       () => this.deckLoader.atlas.artScale,
     );
+  }
+
+  /**
+   * Lights the felt beneath the board, spreading the light over the canvas
+   * again whenever it changes size.
+   */
+  private lightTheTable(): void {
+    const light = new TableLight(this);
+    const fit = () => {
+      const { width, height } = this.viewport;
+      light.fit(width, height);
+    };
+    fit();
+    // The scale manager belongs to the game, which outlives the scene.
+    this.scale.on("resize", fit);
+    this.whenSceneEnds(() => {
+      this.scale.off("resize", fit);
+      light.destroy();
+    });
   }
 
   /**
