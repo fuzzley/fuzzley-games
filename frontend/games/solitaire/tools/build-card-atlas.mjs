@@ -9,13 +9,17 @@
  * card sheet or generated, adds the shared card backs and pile placeholders,
  * and writes each density as atlas pages plus a Phaser multi-atlas manifest.
  */
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
 import { writeDeckAtlas } from "./card-atlas/atlas-writer.mjs";
-import { drawMobileFaces, drawPlainBacks } from "./card-atlas/mobile-deck.mjs";
+import {
+  drawMobileFaces,
+  drawPlainBacks,
+  mobileFrameVectors,
+} from "./card-atlas/mobile-deck.mjs";
 import { writePreview } from "./card-atlas/preview.mjs";
 import {
   ART_SCALES,
@@ -30,9 +34,10 @@ import { cutSheetDeck } from "./card-atlas/sheet-deck.mjs";
 /** @import { SheetDeck } from "./card-atlas/sheet-deck.mjs" */
 
 /**
- * A deck on offer: its id, what its faces are drawn from, and how to draw them.
+ * A deck on offer: its id, what its faces are drawn from, how to draw them, and
+ * for a deck the board can draw at any size, the SVG of every frame it can.
  *
- * @typedef {{id: string, source: string, faces: (artScale: number) => Promise<Frame[]>}} Deck
+ * @typedef {{id: string, source: string, faces: (artScale: number) => Promise<Frame[]>, vectors?: () => Record<string, string>}} Deck
  */
 
 /**
@@ -121,8 +126,16 @@ const DECKS = [
     id: "mobile",
     source: "card-atlas/mobile-deck.mjs",
     faces: drawMobileFaces,
+    vectors: mobileFrameVectors,
   },
 ];
+
+/**
+ * The file in a deck's directory holding the SVG of the frames the board can
+ * draw at any size, which `card_deck_vectors.ts` in
+ * `src/engine/render/phaser/deck/` loads.
+ */
+const VECTORS_FILE = "vectors.json";
 
 /**
  * The sheet the card artwork's backs are cut from; every sheet draws the same
@@ -206,6 +219,15 @@ async function main() {
         await drawPlaceholders(artScale),
         artScale,
         join(OUT_DIR, deck.id),
+      );
+    }
+    if (deck.vectors) {
+      const vectors = deck.vectors();
+      const json = `${JSON.stringify(vectors, null, 2)}\n`;
+      await writeFile(join(OUT_DIR, deck.id, VECTORS_FILE), json);
+      console.log(
+        `  ${VECTORS_FILE}  ${Object.keys(vectors).length} frames, ` +
+          `${Math.round(json.length / 1024)} KB`,
       );
     }
   }
