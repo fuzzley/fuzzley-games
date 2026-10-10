@@ -231,6 +231,58 @@ describe("ViewportScaler", () => {
     ]);
   });
 
+  it("renders a phone at its own ratio of 3, so the browser need not stretch it", () => {
+    const { game } = startScaler(3, 390, 844);
+
+    expect([game.backingWidth, game.backingHeight]).toEqual([1170, 2532]);
+  });
+
+  it("renders a fractional ratio above 2 as it is", () => {
+    const { scaler } = startScaler(2.625, 412, 915);
+
+    expect(scaler.pixelRatio).toBe(2.625);
+  });
+
+  it("holds a canvas above 2x to the budget of device pixels", () => {
+    const { scaler } = startScaler(3, 1280, 720);
+
+    expect(scaler.pixelRatio).toBeCloseTo(
+      Math.sqrt(ViewportScaler.MAX_BUDGETED_DEVICE_PIXELS / (1280 * 720)),
+    );
+  });
+
+  it("never holds a canvas below 2x, however large", () => {
+    const { scaler } = startScaler(3, 2560, 1440);
+
+    expect(scaler.pixelRatio).toBe(ViewportScaler.UNBUDGETED_PIXEL_RATIO);
+  });
+
+  it("renders at 2x whatever the canvas size, as before the budget", () => {
+    const { scaler } = startScaler(2, 2560, 1440);
+
+    expect(scaler.pixelRatio).toBe(2);
+  });
+
+  it("lowers the ratio when the canvas grows past the budget", () => {
+    const { window, parent, scaler } = startScaler(3, 390, 844);
+    parent.width = 2560;
+    parent.height = 1440;
+
+    window.fireResize();
+
+    expect(scaler.pixelRatio).toBe(ViewportScaler.UNBUDGETED_PIXEL_RATIO);
+  });
+
+  it("reports a ratio of 1 before the canvas has been sized", () => {
+    const scaler = new ViewportScaler(
+      new FakeWindow(3),
+      new FakeGame(),
+      new FakeParent(390, 844),
+    );
+
+    expect(scaler.pixelRatio).toBe(1);
+  });
+
   it("treats a non-conforming pixel ratio as 1", () => {
     const { scaler } = startScaler(0);
 

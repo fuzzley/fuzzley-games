@@ -58,7 +58,7 @@ Made while planning, within that decision. Each is easy to revisit.
 
 ### 1. Pixel budget
 
-- [ ] 1.1 `ViewportScaler` picks the ratio from the budget; specs.
+- [x] 1.1 `ViewportScaler` picks the ratio from the budget; specs.
 
 ### 2. Whole-pixel cards
 
@@ -88,3 +88,7 @@ Made while planning, within that decision. Each is easy to revisit.
 - Confirmed by experiment, since reverted, that a ratio of 3 with vertices
   rounded sharpens Klondike at DPR 3, and that drawing a 0.5× frame from the SVG
   matches a Lanczos shrink without its halos.
+- 1.1: `ViewportScaler` renders up to 3x, above 2x only within
+  `MAX_BUDGETED_DEVICE_PIXELS` (4.5 million). `pixelRatio` now reports the
+  ratio the canvas was last sized at, since the ratio depends on the size; only
+  the specs read it.
