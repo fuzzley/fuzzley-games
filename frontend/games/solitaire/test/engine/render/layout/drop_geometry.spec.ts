@@ -28,7 +28,7 @@ import { CardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { FakeTableGame } from "@test/support/fake_table/game";
 import { NO_INSETS, Viewport } from "@/engine/render/layout/viewport";
-import { Rect } from "@/engine/render/geometry";
+import { Rect } from "@/engine/render/layout/geometry";
 import { makePlayingCard } from "@test/support/card_builder";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 

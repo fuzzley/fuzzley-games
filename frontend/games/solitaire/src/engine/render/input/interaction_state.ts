@@ -1,4 +1,4 @@
-import { Point } from "../geometry";
+import { Point } from "../layout/geometry";
 
 /** Describes the stack being dragged and where the grabbed card is. */
 export interface DragInteraction {

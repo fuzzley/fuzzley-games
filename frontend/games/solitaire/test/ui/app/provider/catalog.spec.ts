@@ -12,7 +12,7 @@ import {
 } from "@/ui/app/provider/game_catalog";
 import { KlondikeVariant } from "@/games/klondike/klondike_rules";
 import type { PlayableGame } from "@/engine/tableau/session/playable_game";
-import { TableGame } from "@/engine/tableau/table_game";
+import { TableGame } from "@/engine/tableau/game/table_game";
 import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { computeScale } from "@/engine/render/layout/table_metrics";
 import { NO_INSETS, Viewport } from "@/engine/render/layout/viewport";

@@ -1,6 +1,6 @@
 import { Card } from "@/engine/core/card/card";
 import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { Point, Rect, Size } from "../geometry";
+import { Point, Rect, Size } from "./geometry";
 import { PileLayout, pileBounds } from "./pile_layout";
 
 /** Describes the screen rectangle a pile occupies. */

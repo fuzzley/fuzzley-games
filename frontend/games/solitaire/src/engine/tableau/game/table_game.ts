@@ -2,7 +2,7 @@ import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { EventEmitter } from "@/engine/core/common/event_emitter";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { resolveMove } from "./move_legality";
+import { resolveMove } from "../moves/move_legality";
 import {
   AppliedMove,
   AppliedMoveKind,
@@ -11,15 +11,15 @@ import {
   MoveEffects,
   NO_MOVE_EFFECTS,
   ResolvedMove,
-} from "./moves/move";
-import { MoveHistory, RelocationListener } from "./moves/move_history";
-import { GameState, ReadableGameState } from "./session/game_state";
-import { BoardQuery } from "./rules/board_query";
-import { canGrab } from "./rules/grab";
+} from "../moves/move";
+import { MoveHistory, RelocationListener } from "../moves/move_history";
+import { GameState, ReadableGameState } from "../session/game_state";
+import { BoardQuery } from "../rules/board_query";
+import { canGrab } from "../rules/grab";
 import { Tabletop } from "./tabletop";
-import { PileMarker, PileMarkers } from "./zones/pile_marker";
-import { ZoneRules, ZoneSpec } from "./zones/zone";
-import { TableView } from "./view/table_view";
+import { PileMarker, PileMarkers } from "../zones/pile_marker";
+import { ZoneRules, ZoneSpec } from "../zones/zone";
+import { TableView } from "../view/table_view";
 
 /** Maps the lifecycle events every table game publishes to their payloads. */
 export type TableGameEvents = {

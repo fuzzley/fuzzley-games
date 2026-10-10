@@ -12,7 +12,7 @@ import type {
   DifficultyRating,
   GameProfile,
 } from "@/ui/app/model/game_profile.model";
-import { TableGame } from "@/engine/tableau/table_game";
+import { TableGame } from "@/engine/tableau/game/table_game";
 
 /** Returns the profile of a catalog entry. */
 function profileOf(entry: CatalogEntry): GameProfile {

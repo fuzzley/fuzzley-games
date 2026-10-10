@@ -22,7 +22,7 @@ import { TableLayoutSpec, designSize } from "../../layout/table_layout";
 import { TableMetrics } from "../../layout/table_metrics";
 import { CardArtScale, cardArtScaleFor } from "../../deck/card_art_scale";
 import { Subscribe } from "@/engine/core/common/event_emitter";
-import { CardDeckStatus, TablePresentation } from "../../presentation";
+import { CardDeckStatus, TablePresentation } from "../../view/presentation";
 import {
   CardAtlas,
   bootCardAtlas,

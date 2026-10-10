@@ -10,7 +10,7 @@ import {
   NO_MOVE_EFFECTS,
   ResolvedMove,
 } from "@/engine/tableau/moves/move";
-import { Tabletop } from "@/engine/tableau/tabletop";
+import { Tabletop } from "@/engine/tableau/game/tabletop";
 
 /**
  * Plays a pairing game, where a card dropped on its partner takes both to the

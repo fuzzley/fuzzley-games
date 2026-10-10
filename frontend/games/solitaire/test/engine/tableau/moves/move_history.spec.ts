@@ -5,7 +5,7 @@ import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
 import { AppliedMove } from "@/engine/tableau/moves/move";
 import { MoveHistory } from "@/engine/tableau/moves/move_history";
 import { anyCard } from "@/engine/tableau/rules/placement";
-import { Tabletop } from "@/engine/tableau/tabletop";
+import { Tabletop } from "@/engine/tableau/game/tabletop";
 import { ZoneSpec } from "@/engine/tableau/zones/zone";
 
 /** Returns a pile's zone: any card goes, and nothing is drawn. */

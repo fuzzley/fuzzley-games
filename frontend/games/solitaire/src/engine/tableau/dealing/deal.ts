@@ -1,6 +1,6 @@
 import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { Tabletop } from "../tabletop";
+import { Tabletop } from "../game/tabletop";
 
 /**
  * Lays a shuffled deck out on the table as a game begins: hands out the cards

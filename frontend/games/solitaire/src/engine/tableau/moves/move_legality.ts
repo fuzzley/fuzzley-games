@@ -1,7 +1,7 @@
-import { ResolvedMove } from "./moves/move";
-import { grabbedStack } from "./rules/grab";
-import { Tabletop } from "./tabletop";
-import { hasRoomFor } from "./zones/zone";
+import { ResolvedMove } from "./move";
+import { grabbedStack } from "../rules/grab";
+import { Tabletop } from "../game/tabletop";
+import { hasRoomFor } from "../zones/zone";
 
 /**
  * Resolves a requested move into the stack and piles it would act on, or null

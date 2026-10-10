@@ -1,7 +1,7 @@
 import {
   CardDeckStatus,
   TablePresentation,
-} from "@/engine/render/presentation";
+} from "@/engine/render/view/presentation";
 import {
   CardDeckId,
   DEFAULT_DESKTOP_CARD_DECK,

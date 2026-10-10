@@ -3,7 +3,7 @@ import { PlayingCard } from "@/engine/core/card/playing_card";
 import {
   DealtTableGame,
   DealtTableGameOptions,
-} from "@/engine/tableau/dealt_table_game";
+} from "@/engine/tableau/game/dealt_table_game";
 import { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
 import { ActionKind } from "@/games/common/action_kinds";
 import { flipExposedTopOfColumn } from "@/games/common/move_effects";

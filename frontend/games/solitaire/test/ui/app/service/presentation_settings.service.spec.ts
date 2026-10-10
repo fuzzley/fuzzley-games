@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed } from "@angular/core/testing";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
-import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/presentation";
+import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/view/presentation";
 import {
   CardDeckId,
   DEFAULT_DESKTOP_CARD_DECK,
