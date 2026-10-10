@@ -36,6 +36,15 @@ export class PhaserCardFactory {
    */
   private static readonly CARD_SHADOW_PADDING = { x: 16, y: 24 };
 
+  /**
+   * How every sprite the factory makes rounds its corners to whole pixels:
+   * whenever the camera has `roundPixels` on, as the game config asks.
+   *
+   * Phaser's default rounds only a sprite drawn at its texture's own size, and
+   * a card is always scaled, so it would sit between pixels and blur.
+   */
+  public static readonly VERTEX_ROUND_MODE = "fullAuto";
+
   /** The texture the card shadow was drawn into, once it has been. */
   private shadowTexture: Phaser.Textures.DynamicTexture | null = null;
 
@@ -69,6 +78,7 @@ export class PhaserCardFactory {
       this.cardBackStyle(),
     );
     sprite.setOrigin(0, 0);
+    sprite.setVertexRoundMode(PhaserCardFactory.VERTEX_ROUND_MODE);
     sprite.setInteractive({ useHandCursor: true });
 
     return sprite;
@@ -123,6 +133,8 @@ export class PhaserCardFactory {
       0,
       PhaserCardFactory.SHADOW_TEXTURE_KEY,
     );
+    // Rounded as its card is, so the edge cut out of it stays under the card's.
+    sprite.setVertexRoundMode(PhaserCardFactory.VERTEX_ROUND_MODE);
     this.fitCardShadow(sprite);
     return sprite;
   }
@@ -193,6 +205,7 @@ export class PhaserCardFactory {
   ): Phaser.GameObjects.Sprite {
     const sprite = this.scene.add.sprite(0, 0, this.textureKey(), frame);
     sprite.setOrigin(0, 0);
+    sprite.setVertexRoundMode(PhaserCardFactory.VERTEX_ROUND_MODE);
     sprite.setAlpha(alpha);
     if (interactive) {
       sprite.setInteractive({ useHandCursor: true });

@@ -62,7 +62,7 @@ Made while planning, within that decision. Each is easy to revisit.
 
 ### 2. Whole-pixel cards
 
-- [ ] 2.1 Card, shadow and placeholder sprites round their vertices; specs.
+- [x] 2.1 Card, shadow and placeholder sprites round their vertices; specs.
 
 ### 3. Atlas densities
 
@@ -92,3 +92,7 @@ Made while planning, within that decision. Each is easy to revisit.
   `MAX_BUDGETED_DEVICE_PIXELS` (4.5 million). `pixelRatio` now reports the
   ratio the canvas was last sized at, since the ratio depends on the size; only
   the specs read it.
+- 2.1: `PhaserCardFactory.VERTEX_ROUND_MODE` (`fullAuto`) on card, shadow
+  and placeholder sprites. Phaser's camera takes `roundPixels` from the game
+  config (`CameraManager`), so the existing setting switches it on. The mock
+  sprite gained `vertexRoundMode`. 6860 tests pass.

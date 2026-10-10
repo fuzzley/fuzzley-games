@@ -326,6 +326,34 @@ describe("PhaserCardFactory", () => {
     expect(sprite.interactiveConfig).toBeNull();
   });
 
+  describe("rounding to whole pixels", () => {
+    // Phaser's default rounds only unscaled sprites, and these are always
+    // scaled, so without it they sit between pixels and blur.
+    const ROUND_WITH_THE_CAMERA = "fullAuto";
+
+    it("rounds a card's corners whenever the camera rounds pixels", () => {
+      const sprite = factory.createCardSprite() as unknown as MockSprite;
+
+      expect(sprite.vertexRoundMode).toBe(ROUND_WITH_THE_CAMERA);
+    });
+
+    it("rounds a shadow's corners as its card's are", () => {
+      const sprite = factory.createCardShadow() as unknown as MockSprite;
+
+      expect(sprite.vertexRoundMode).toBe(ROUND_WITH_THE_CAMERA);
+    });
+
+    it("rounds a placeholder's corners as a card's are", () => {
+      const sprite = factory.createPileBackground(
+        "card-placeholder",
+        0.5,
+        false,
+      ) as unknown as MockSprite;
+
+      expect(sprite.vertexRoundMode).toBe(ROUND_WITH_THE_CAMERA);
+    });
+  });
+
   it("draws whatever frame the zone asked for", () => {
     const sprite = factory.createPileBackground(
       "card-placeholder-full-border-circle",
