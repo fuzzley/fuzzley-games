@@ -1,6 +1,6 @@
 import type { GameObjects } from "phaser";
 
-import { CardArtScale } from "../deck/card_art_scale";
+import { CardArtScale } from "../../deck/card_art_scale";
 
 /**
  * Gives the view applier the sprites and scene services it writes through.

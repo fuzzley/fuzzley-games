@@ -6,7 +6,7 @@ import { designSize } from "@/engine/render/layout/table_layout";
 import {
   BoardInputManager,
   InputHost,
-} from "@/engine/render/phaser/board_input_manager";
+} from "@/engine/render/phaser/scene/board_input_manager";
 import { Viewport } from "@/engine/render/layout/viewport";
 import {
   FAKE_TABLE_LAYOUT,

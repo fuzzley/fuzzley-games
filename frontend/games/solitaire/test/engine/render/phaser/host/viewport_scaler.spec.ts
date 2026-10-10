@@ -5,7 +5,7 @@ import {
   ScalableGame,
   ScalerWindow,
   ViewportScaler,
-} from "@/engine/render/phaser/viewport_scaler";
+} from "@/engine/render/phaser/host/viewport_scaler";
 import { NO_INSETS } from "@/engine/render/layout/viewport";
 
 /** Stands in for a media query, recording listeners to fire a DPR change. */

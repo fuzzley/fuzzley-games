@@ -1,6 +1,6 @@
 import * as Phaser from "phaser";
-import { DragController } from "../input/drag_controller";
-import { DragInteraction } from "../input/interaction_state";
+import { DragController } from "../../input/drag_controller";
+import { DragInteraction } from "../../input/interaction_state";
 
 /** Returns the id of the card a sprite draws, or null if it is not a card. */
 function cardIdOf(gameObject: Phaser.GameObjects.Sprite): string | null {

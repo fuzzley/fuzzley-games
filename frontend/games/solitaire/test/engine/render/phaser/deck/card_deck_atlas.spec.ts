@@ -11,11 +11,12 @@ import {
 } from "@/engine/render/layout/card_metrics";
 import {
   CardAtlas,
+  bootCardAtlas,
   cardAtlasSource,
   cardAtlasTextureKey,
   chooseCardAtlas,
   residentCardAtlases,
-} from "@/engine/render/phaser/card_deck_atlas";
+} from "@/engine/render/phaser/deck/card_deck_atlas";
 import classicAtlas1x from "@/engine/render/assets/sprites/atlas/classic/1x/card_assets_atlas.json";
 import classicAtlas2x from "@/engine/render/assets/sprites/atlas/classic/2x/card_assets_atlas.json";
 import indexedAtlas1x from "@/engine/render/assets/sprites/atlas/indexed/1x/card_assets_atlas.json";
@@ -194,6 +195,42 @@ describe("card deck atlases", () => {
       const chosen = chooseCardAtlas("classic", 1, resident);
 
       expect(chosen).toEqual({ deckId: "classic", artScale: 1 });
+    });
+  });
+
+  describe("booting on an atlas", () => {
+    it("boots on the wanted deck when it is loaded dense enough", () => {
+      const resident: CardAtlas[] = [
+        { deckId: "indexed", artScale: 2 },
+        { deckId: "classic", artScale: 2 },
+      ];
+
+      const atlas = bootCardAtlas({ deckId: "classic", artScale: 1 }, resident);
+
+      expect(atlas).toEqual({ deckId: "classic", artScale: 2 });
+    });
+
+    it("boots on the wanted deck too sparse rather than another deck", () => {
+      const resident: CardAtlas[] = [
+        { deckId: "indexed", artScale: 2 },
+        { deckId: "classic", artScale: 1 },
+      ];
+
+      const atlas = bootCardAtlas({ deckId: "classic", artScale: 2 }, resident);
+
+      expect(atlas).toEqual({ deckId: "classic", artScale: 1 });
+    });
+
+    it("boots on whatever is loaded when the wanted deck is not", () => {
+      const resident: CardAtlas[] = [{ deckId: "indexed", artScale: 1 }];
+
+      const atlas = bootCardAtlas({ deckId: "classic", artScale: 1 }, resident);
+
+      expect(atlas).toEqual({ deckId: "indexed", artScale: 1 });
+    });
+
+    it("has nothing to boot on when no atlas is loaded", () => {
+      expect(bootCardAtlas({ deckId: "classic", artScale: 1 }, [])).toBeNull();
     });
   });
 });

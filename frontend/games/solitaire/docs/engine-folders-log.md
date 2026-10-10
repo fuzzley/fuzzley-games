@@ -165,7 +165,7 @@ engine/render/
 - [x] **Phase 4:** render `geometry.ts`, `layout/viewport.ts`,
       `input/interaction_state.ts`, `view/render_layers.ts`.
 - [x] **Phase 5:** render `table_metrics.ts`, `board_arrangement.ts`, `deck/`.
-- [ ] **Phase 6:** phaser `host/`, `deck/`, `scene/`; `bootCardAtlas`.
+- [x] **Phase 6:** phaser `host/`, `deck/`, `scene/`; `bootCardAtlas`.
 - [ ] **Docs:** AGENTS.md architecture section describes the new folders.
 - [ ] **Merge** to `main`, then delete this log.
 
@@ -259,3 +259,13 @@ Each phase also fixes the skill, tool-comment and doc paths it breaks, since
   `vite-bundle-optimization`, `tools/build-card-atlas.mjs`,
   `tools/card-atlas/raster.mjs` and `docs/phone-board-layouts.md`
   re-pointed. 173 spec files, 6846 tests.
+- **Phase 6 done.** `render/phaser/` split into `host/` (`phaser_host`,
+  `viewport_scaler`), `deck/` (`card_deck_atlas`, `board_deck_loader`) and
+  `scene/` (`board_scene`, `board_input_manager`, `phaser_card_factory`,
+  `phaser_table_renderer`, `phaser_sprites`), specs mirrored; the atlas JSON
+  imports re-relativised and the app spec's `vi.mock` path re-pointed.
+  `BoardScene.bootAtlas`'s choice became `bootCardAtlas(wanted, resident)`
+  in `card_deck_atlas.ts`, with its own tests, and `BoardScene` now types
+  its renderer as `TableRenderer`, so that interface has a consumer. The
+  ESLint globs needed no change. AGENTS.md, four skills and
+  `docs/phone-board-layouts.md` re-pointed. 6850 tests.

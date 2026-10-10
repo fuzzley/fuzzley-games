@@ -1,6 +1,6 @@
 import * as Phaser from "phaser";
 
-import { CardArtScale } from "../deck/card_art_scale";
+import { CardArtScale } from "../../deck/card_art_scale";
 
 /** Makes the sprites for cards, the shadows they cast, and pile placeholders. */
 export class PhaserCardFactory {

@@ -164,7 +164,7 @@ Architecture guidelines are enforced as hard build errors rather than convention
 | `src/games/*`                         | `engine/core`, `engine/render`, `engine/tableau` | `phaser`, `@/engine/render/phaser/*`, `@/engine/board/*`, `@/ui/*`, `@angular/*`, `rxjs`                                    |
 | `src/ui` _(excl. app/provider/)_      | everything but games                             | `@/games/*`                                                                                                                 |
 
-Note that the generic Phaser canvas host is `engine/render/phaser/phaser_host.ts`
+Note that the generic Phaser canvas host is `engine/render/phaser/host/phaser_host.ts`
 (`PhaserHost`). It is handed a board to run, so the shell never imports a game
 module in order to host one. It keeps one Phaser game, and so one WebGL context,
 for the canvas component's whole life, and swaps each new board scene into it.

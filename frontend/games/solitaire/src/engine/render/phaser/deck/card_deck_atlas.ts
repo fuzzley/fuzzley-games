@@ -1,15 +1,15 @@
 import type { Loader } from "phaser";
 
-import { CARD_DECKS, CardDeckId } from "../deck/card_deck";
-import { CARD_ART_SCALES, CardArtScale } from "../deck/card_art_scale";
-import classicAtlas1x from "../assets/sprites/atlas/classic/1x/card_assets_atlas.json";
-import classicAtlas2x from "../assets/sprites/atlas/classic/2x/card_assets_atlas.json";
-import indexedAtlas1x from "../assets/sprites/atlas/indexed/1x/card_assets_atlas.json";
-import indexedAtlas2x from "../assets/sprites/atlas/indexed/2x/card_assets_atlas.json";
-import allCornerPipsAtlas1x from "../assets/sprites/atlas/all-corner-pips/1x/card_assets_atlas.json";
-import allCornerPipsAtlas2x from "../assets/sprites/atlas/all-corner-pips/2x/card_assets_atlas.json";
-import mobileAtlas1x from "../assets/sprites/atlas/mobile/1x/card_assets_atlas.json";
-import mobileAtlas2x from "../assets/sprites/atlas/mobile/2x/card_assets_atlas.json";
+import { CARD_DECKS, CardDeckId } from "../../deck/card_deck";
+import { CARD_ART_SCALES, CardArtScale } from "../../deck/card_art_scale";
+import classicAtlas1x from "../../assets/sprites/atlas/classic/1x/card_assets_atlas.json";
+import classicAtlas2x from "../../assets/sprites/atlas/classic/2x/card_assets_atlas.json";
+import indexedAtlas1x from "../../assets/sprites/atlas/indexed/1x/card_assets_atlas.json";
+import indexedAtlas2x from "../../assets/sprites/atlas/indexed/2x/card_assets_atlas.json";
+import allCornerPipsAtlas1x from "../../assets/sprites/atlas/all-corner-pips/1x/card_assets_atlas.json";
+import allCornerPipsAtlas2x from "../../assets/sprites/atlas/all-corner-pips/2x/card_assets_atlas.json";
+import mobileAtlas1x from "../../assets/sprites/atlas/mobile/1x/card_assets_atlas.json";
+import mobileAtlas2x from "../../assets/sprites/atlas/mobile/2x/card_assets_atlas.json";
 
 /** Names one built atlas: a deck's artwork at one density. */
 export interface CardAtlas {
@@ -121,6 +121,24 @@ export function chooseCardAtlas(
     resident.find(
       (atlas) => atlas.deckId === deckId && atlas.artScale >= wanted,
     ) ?? { deckId, artScale: wanted }
+  );
+}
+
+/**
+ * Returns the atlas a board draws from at first: the wanted deck if it is
+ * resident dense enough, or else any resident atlas, preferring the wanted
+ * deck, or null when none is resident.
+ */
+export function bootCardAtlas(
+  wanted: CardAtlas,
+  resident: readonly CardAtlas[],
+): CardAtlas | null {
+  const chosen = chooseCardAtlas(wanted.deckId, wanted.artScale, resident);
+  return (
+    resident.find((atlas) => sameCardAtlas(atlas, chosen)) ??
+    resident.find((atlas) => atlas.deckId === wanted.deckId) ??
+    resident[0] ??
+    null
   );
 }
 

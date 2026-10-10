@@ -5,7 +5,7 @@ import {
 } from "@/engine/render/layout/board_layouts";
 import { formFactorOf } from "@/engine/render/layout/form_factor";
 import { measureTable } from "@/engine/render/layout/table_metrics";
-import { BoardScene } from "@/engine/render/phaser/board_scene";
+import { BoardScene } from "@/engine/render/phaser/scene/board_scene";
 import { TablePresentation } from "@/engine/render/presentation";
 import { Insets, Viewport } from "@/engine/render/layout/viewport";
 import { TableGame } from "@/engine/tableau/table_game";

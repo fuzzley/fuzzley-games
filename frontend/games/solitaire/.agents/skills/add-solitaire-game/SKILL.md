@@ -463,7 +463,7 @@ CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
    error, not a runtime throw. There is no per-game board file:
    `makeTableBoardScene` (`src/engine/board/table_board_scene.ts`) draws every
    game from its gestures and its entry's grids (`boardLayoutsOf`), and `PhaserHost`
-   (`src/engine/render/phaser/phaser_host.ts`) swaps in whatever board it is
+   (`src/engine/render/phaser/host/phaser_host.ts`) swaps in whatever board it is
    handed, so the shell never imports a game in order to host one.
 3. **`src/ui/app/provider/game_documentation_data.ts`** — add the rules page.
    `CompleteGameDocumentation` is `Record<GameId, …>`, so shipping a game with no
