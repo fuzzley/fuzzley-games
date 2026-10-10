@@ -1,4 +1,4 @@
-import { Deal } from "@/engine/tableau/deal";
+import { Deal } from "@/engine/tableau/dealing/deal";
 import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_RANKS, PlayingCard } from "@/engine/core/card/playing_card";
 import { CalculationVariant } from "./calculation_rules";

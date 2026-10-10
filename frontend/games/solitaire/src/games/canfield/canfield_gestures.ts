@@ -1,5 +1,6 @@
 import { IntentHandler } from "@/engine/render/input/table_intents";
-import { drawOnStockTop, tableGestures } from "@/engine/tableau/table_gestures";
+import { drawOnStockTop } from "@/engine/tableau/gestures/press_handlers";
+import { tableGestures } from "@/engine/tableau/gestures/table_gestures";
 import { CanfieldGame } from "./canfield_game";
 import { CanfieldRole } from "./canfield_zones";
 

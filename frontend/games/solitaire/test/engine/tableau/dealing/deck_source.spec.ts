@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { DeckSource } from "@/engine/tableau/deck_source";
-import { sequenceRandom } from "../../support/sequence_random";
+import { DeckSource } from "@/engine/tableau/dealing/deck_source";
+import { sequenceRandom } from "@test/support/sequence_random";
 
 describe("DeckSource", () => {
   let registry: CardRegistry;

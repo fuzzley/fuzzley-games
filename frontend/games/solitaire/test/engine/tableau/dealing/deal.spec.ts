@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
-import { Deal } from "@/engine/tableau/deal";
+import { Deal } from "@/engine/tableau/dealing/deal";
 import { anyCard } from "@/engine/tableau/rules/placement";
 import { Tabletop } from "@/engine/tableau/tabletop";
 import { ZoneSpec } from "@/engine/tableau/zones/zone";

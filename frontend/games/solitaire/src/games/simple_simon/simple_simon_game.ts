@@ -1,9 +1,9 @@
 import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { deckCardIds } from "@/engine/core/card/deck";
 import { PlayingCard } from "@/engine/core/card/playing_card";
-import { Deal } from "@/engine/tableau/deal";
-import { DealtTableGame } from "@/engine/tableau/dealt_game";
-import { MoveEffects } from "@/engine/tableau/table_game";
+import { Deal } from "@/engine/tableau/dealing/deal";
+import { DealtTableGame } from "@/engine/tableau/dealt_table_game";
+import { MoveEffects } from "@/engine/tableau/moves/move";
 import { collectCompletedRuns } from "@/games/common/completed_runs";
 import { DeckOptions } from "@/games/common/deck_options";
 import { dealSimpleSimonLayout } from "./simple_simon_deal";

@@ -6,7 +6,7 @@ import {
   Suit,
   rankBelow,
 } from "@/engine/core/card/playing_card";
-import { GrabRule, canGrab } from "@/engine/tableau/rules/grab";
+import { GrabRule, canGrab, grabbedStack } from "@/engine/tableau/rules/grab";
 import { BoardQuery } from "@/engine/tableau/rules/board_query";
 import { makePlayingCard } from "@test/support/card_builder";
 
@@ -193,5 +193,38 @@ describe("canGrab uncovered", () => {
     expect(
       canGrab(grab, bottom, pileWith(bottom, top), boardWith([], [])),
     ).toBe(false);
+  });
+});
+
+describe("grabbedStack", () => {
+  it("lifts the card and everything stacked on it, bottom first", () => {
+    const bottom = card(Suit.SPADE, Rank.NINE);
+    const middle = card(Suit.HEART, Rank.FIVE);
+    const top = card(Suit.CLUB, Rank.KING);
+
+    expect(
+      grabbedStack(
+        { kind: "any-face-up" },
+        middle,
+        pileWith(bottom, middle, top),
+        EMPTY_BOARD,
+      ),
+    ).toEqual([middle, top]);
+  });
+
+  it("lifts nothing when the grab rule will not let go", () => {
+    const only = card(Suit.SPADE, Rank.NINE);
+
+    expect(
+      grabbedStack({ kind: "none" }, only, pileWith(only), EMPTY_BOARD),
+    ).toBeNull();
+  });
+
+  it("lifts nothing for a card the pile does not hold", () => {
+    const stray = card(Suit.SPADE, Rank.NINE);
+
+    expect(
+      grabbedStack({ kind: "any-face-up" }, stray, pileWith(), EMPTY_BOARD),
+    ).toBeNull();
   });
 });

@@ -12,7 +12,8 @@ import {
   TableViewState,
   Viewport,
 } from "@/engine/render/view/table_view_state";
-import { drawOnStockTop, tableGestures } from "@/engine/tableau/table_gestures";
+import { drawOnStockTop } from "@/engine/tableau/gestures/press_handlers";
+import { tableGestures } from "@/engine/tableau/gestures/table_gestures";
 import { stackFromCard } from "@/engine/tableau/view/grabbable_stack";
 import {
   buildTableViewState,

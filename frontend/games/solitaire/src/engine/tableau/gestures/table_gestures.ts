@@ -18,13 +18,16 @@ export interface GestureGame extends MovableGame {
   ): ReadonlyCardPile<PlayingCard> | undefined;
 }
 
+/** Handles a single press on a card, given the pile holding it, if any. */
+export type CardPressHandler = (
+  cardId: string,
+  pile: ReadonlyCardPile<PlayingCard> | undefined,
+) => void;
+
 /** Says what a game does with the presses only it understands. */
 export interface TableGestureOptions {
   /** Handles a single press on a card, such as a Klondike draw. */
-  readonly onCardPress?: (
-    cardId: string,
-    pile: ReadonlyCardPile<PlayingCard> | undefined,
-  ) => void;
+  readonly onCardPress?: CardPressHandler;
 
   /** Handles a press on an empty pile slot, such as Klondike's recycle. */
   readonly onPilePress?: (pileId: string) => void;
@@ -71,54 +74,6 @@ export function tableGestures(
         }
         return;
       }
-    }
-  };
-}
-
-/**
- * Returns a press handler that calls `draw` when the stock's top card is
- * pressed, and throws for a card in no pile.
- */
-export function drawOnStockTop(
-  stockRole: PileRole,
-  draw: () => void,
-): NonNullable<TableGestureOptions["onCardPress"]> {
-  return (cardId, pile) => {
-    if (!pile) {
-      throw new Error(`Card ${cardId} is not in a pile`);
-    }
-    if (pile.role === stockRole && pile.topCard?.id === cardId) {
-      draw();
-    }
-  };
-}
-
-/** Returns a press handler that calls `deal` when any stock card is pressed. */
-export function dealOnStockPress(
-  stockRole: PileRole,
-  deal: () => void,
-): NonNullable<TableGestureOptions["onCardPress"]> {
-  return (_cardId, pile) => {
-    if (pile?.role === stockRole) {
-      deal();
-    }
-  };
-}
-
-/**
- * Returns a press handler that plays a card from a pile of one of `roles` to
- * its best destination, as Golf plays a card by a single press.
- *
- * Pair it with an empty `autoMoveFrom`, so the second press of a double press
- * does nothing more: it lands on the card already on its way.
- */
-export function playOnPress(
-  game: MovableGame,
-  roles: readonly PileRole[],
-): NonNullable<TableGestureOptions["onCardPress"]> {
-  return (cardId, pile) => {
-    if (pile && roles.includes(pile.role)) {
-      game.autoMoveCard(cardId);
     }
   };
 }

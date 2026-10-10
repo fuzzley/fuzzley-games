@@ -1,4 +1,4 @@
-import { canGrab } from "../rules/grab";
+import { grabbedStack } from "../rules/grab";
 import { TableView } from "./table_view";
 
 /**
@@ -12,17 +12,9 @@ export function stackFromCard(
     const pile = view.getPileContainingCard(cardId);
     const card = view.getCardById(cardId);
     const zone = pile ? view.zoneFor(pile.id) : undefined;
-    if (
-      !pile ||
-      !card ||
-      !zone ||
-      !canGrab(zone.grab, card, pile, view.board)
-    ) {
-      return [];
-    }
+    if (!pile || !card || !zone) return [];
 
-    const cards = pile.getCards();
-    const index = cards.indexOf(card);
-    return index === -1 ? [] : cards.slice(index).map((held) => held.id);
+    const stack = grabbedStack(zone.grab, card, pile, view.board);
+    return stack ? stack.map((held) => held.id) : [];
   };
 }

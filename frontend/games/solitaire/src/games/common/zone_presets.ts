@@ -1,7 +1,7 @@
 import { PileRole } from "@/engine/core/card/card_pile";
 import { PileLayout } from "@/engine/render/layout/pile_layout";
 import { PlacementRule } from "@/engine/tableau/rules/placement";
-import { PileMarker } from "@/engine/tableau/table_game";
+import { PileMarker } from "@/engine/tableau/zones/pile_marker";
 import { FaceVisibility } from "@/engine/tableau/zones/zone_look";
 import { GrabRule } from "@/engine/tableau/rules/grab";
 import { ZoneSpec } from "@/engine/tableau/zones/zone";

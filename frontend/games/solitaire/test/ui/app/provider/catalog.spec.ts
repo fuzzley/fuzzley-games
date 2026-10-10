@@ -11,7 +11,7 @@ import {
   catalogEntry,
 } from "@/ui/app/provider/game_catalog";
 import { KlondikeVariant } from "@/games/klondike/klondike_rules";
-import type { PlayableGame } from "@/engine/tableau/playable_game";
+import type { PlayableGame } from "@/engine/tableau/session/playable_game";
 import { TableGame } from "@/engine/tableau/table_game";
 import {
   TableLayoutSpec,

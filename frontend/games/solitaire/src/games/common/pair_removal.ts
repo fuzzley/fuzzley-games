@@ -9,7 +9,7 @@ import {
   MoveEffects,
   NO_MOVE_EFFECTS,
   ResolvedMove,
-} from "@/engine/tableau/table_game";
+} from "@/engine/tableau/moves/move";
 import { Tabletop } from "@/engine/tableau/tabletop";
 
 /**

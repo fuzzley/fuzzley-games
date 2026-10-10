@@ -1,11 +1,10 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { PlayingCard } from "@/engine/core/card/playing_card";
 import { CardRegistry } from "@/engine/core/card/card_registry";
-import { Deal } from "./deal";
-import { DeckSource, DeckSourceOptions } from "./deck_source";
-import { GameSnapshot, PileSnapshot } from "./game_snapshot";
-import { AppliedMove } from "./move";
-import { PlayableGame } from "./playable_game";
+import { Deal } from "./dealing/deal";
+import { DeckSource, DeckSourceOptions } from "./dealing/deck_source";
+import { GameSnapshot } from "./session/game_snapshot";
+import { PlayableGame } from "./session/playable_game";
+import { resolveSnapshot } from "./session/snapshot_resolution";
 import { TableGame, TableGameEvents, TableGameOptions } from "./table_game";
 
 /** Configures a game that deals itself from a deck. */
@@ -79,9 +78,7 @@ export abstract class DealtTableGame<
    *   or card this game lacks, or does not hold every card exactly once.
    */
   public restore(snapshot: GameSnapshot): void {
-    const board = this.resolveBoard(snapshot.piles);
-    const deal = this.resolveDeal(snapshot.deal);
-    this.checkHistory(snapshot.history);
+    const { board, deal } = resolveSnapshot(snapshot, this);
 
     this.resetPiles();
     for (const { pile, cards } of board) {
@@ -97,64 +94,6 @@ export abstract class DealtTableGame<
   /** Returns the score a fresh deal starts at. */
   protected initialScore(): number {
     return 0;
-  }
-
-  /** Returns the snapshot's piles as this game's, holding every card once. */
-  private resolveBoard(piles: readonly PileSnapshot[]) {
-    this.checkEveryCardOnce(
-      piles.flatMap((pile) => pile.cards.map((card) => card.id)),
-      "board",
-    );
-    return piles.map((pile) => ({
-      pile: this.resolvePile(pile.id),
-      cards: pile.cards.map(({ id, faceUp }) => ({
-        card: this.resolveCard(id),
-        faceUp,
-      })),
-    }));
-  }
-
-  /** Returns the snapshot's deal as this game's cards; empty if it has none. */
-  private resolveDeal(cardIds: readonly string[]): PlayingCard[] {
-    if (cardIds.length > 0) this.checkEveryCardOnce(cardIds, "deal");
-    return cardIds.map((id) => this.resolveCard(id));
-  }
-
-  /** Throws unless every pile and card the history names is this game's. */
-  private checkHistory(history: readonly AppliedMove[]): void {
-    for (const move of history) {
-      for (const transfer of move.transfers) {
-        this.resolvePile(transfer.fromPileId);
-        this.resolvePile(transfer.toPileId);
-        transfer.cardIds.forEach((id) => this.resolveCard(id));
-      }
-      move.flippedCardIds.forEach((id) => this.resolveCard(id));
-    }
-  }
-
-  /** Throws unless the ids are distinct and as many as the cards in play. */
-  private checkEveryCardOnce(cardIds: readonly string[], part: string): void {
-    const distinct = new Set(cardIds).size;
-    if (distinct !== cardIds.length) {
-      throw new Error(`The snapshot's ${part} lists a card twice.`);
-    }
-    if (distinct !== this.cardsInPlay) {
-      throw new Error(
-        `The snapshot's ${part} holds ${distinct} cards; this game has ${this.cardsInPlay}.`,
-      );
-    }
-  }
-
-  private resolvePile(pileId: string): ReadonlyCardPile<PlayingCard> {
-    const pile = this.getPileById(pileId);
-    if (!pile) throw new Error(`This game has no pile "${pileId}".`);
-    return pile;
-  }
-
-  private resolveCard(cardId: string): PlayingCard {
-    const card = this.getCardById(cardId);
-    if (!card) throw new Error(`This game has no card "${cardId}".`);
-    return card;
   }
 
   /** Clears the board, score, move count and history, then deals again. */

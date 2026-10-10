@@ -1,4 +1,4 @@
-import { PlayableGame } from "@/engine/tableau/playable_game";
+import { PlayableGame } from "@/engine/tableau/session/playable_game";
 import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import {
   ArrangedLayouts,
