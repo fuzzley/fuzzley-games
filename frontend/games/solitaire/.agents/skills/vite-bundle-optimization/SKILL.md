@@ -81,9 +81,9 @@ cell each in a row; a new one is a cell appended there and its name appended to
 contact sheet, `.preview/decks.png` under `tools/card-atlas/` and gitignored:
 every built deck as a fanned column and a fanned waste at phone scale, for
 reviewing a change to a deck's look. The shared parts live in `tools/card-atlas/`: `raster.mjs` holds
-the frame size, the densities and the frame names every atlas must hold,
-`sheet-deck.mjs` cuts a deck out of a card sheet, and `atlas-writer.mjs` stamps
-the card edge and writes every density.
+the frame size, the densities, the frame names every atlas must hold and the
+drawing every deck shares, `sheet-deck.mjs` finds a deck's cards on a card sheet
+and draws them, and `atlas-writer.mjs` stamps the card edge and writes a density.
 
 **Output:** `src/engine/render/assets/sprites/atlas/<deck>/<n>x/`, one directory
 per deck and density. Each holds a Phaser **multi-atlas** manifest
@@ -100,8 +100,11 @@ Every deck is built at each density in `ART_SCALES`, in texels per design unit:
 - **1×** is for everything else, including phones. It takes one page and about
   16 MB.
 
-Each deck is rasterized once, at the first density. Every other density is
-shrunk from those finished frames, so all of them are framed and edged alike.
+Every density is drawn from the SVG itself, not shrunk from another, which
+keeps thin strokes as sharp without the halo a shrink leaves around them. A card
+sheet is rendered whole once, at 2×, to find its cards and check their crops;
+each density then draws the same regions of it, several frames at once through
+resvg's `renderAsync`, and the card edge is stamped at each density's own width.
 
 The atlas is checked in and loaded **through the bundler**, not from `public/`.
 `src/engine/render/phaser/deck/card_deck_atlas.ts` imports every deck's manifest at

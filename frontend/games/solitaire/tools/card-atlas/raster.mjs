@@ -2,7 +2,7 @@
  * The frame every deck is cut to, and the rasterizing, cutting and edge
  * measuring every deck shares, however its artwork is drawn.
  */
-import { Resvg } from "@resvg/resvg-js";
+import { renderAsync } from "@resvg/resvg-js";
 import sharp from "sharp";
 
 /** @import { ResvgRenderOptions } from "@resvg/resvg-js" */
@@ -27,6 +27,12 @@ import sharp from "sharp";
  */
 
 /**
+ * A size in texels.
+ *
+ * @typedef {{width: number, height: number}} Size
+ */
+
+/**
  * A side of a frame.
  *
  * @typedef {"left" | "right" | "top" | "bottom"} EdgeName
@@ -36,20 +42,28 @@ import sharp from "sharp";
  * The densities each deck is built at, in texels per design unit, which must
  * match `CardArtScale` in `src/engine/render/deck/card_art_scale.ts`.
  *
- * The first is the one the artwork is rasterized at; the rest are shrunk from
- * its finished frames, so every density is framed and edged alike.
+ * Every density is drawn from the artwork itself rather than shrunk from
+ * another, which keeps thin strokes as sharp without the light halo a shrink
+ * leaves around them.
  */
-export const ART_SCALES = [2, 1];
-
-/** The density the artwork is rasterized at. */
-export const RASTER_SCALE = ART_SCALES[0];
+export const ART_SCALES = [1, 2];
 
 /** The card frame size in design units, as the board layout measures it. */
 export const DESIGN_FRAME_W = 220;
 export const DESIGN_FRAME_H = 307;
 
-export const FRAME_W = DESIGN_FRAME_W * RASTER_SCALE;
-export const FRAME_H = DESIGN_FRAME_H * RASTER_SCALE;
+/**
+ * Returns the size of a frame at a density.
+ *
+ * @param {number} artScale Texels per design unit.
+ * @returns {Size}
+ */
+export function frameSize(artScale) {
+  return {
+    width: Math.round(DESIGN_FRAME_W * artScale),
+    height: Math.round(DESIGN_FRAME_H * artScale),
+  };
+}
 
 /**
  * The card backs every deck is given, whatever its faces, which must match
@@ -114,10 +128,12 @@ export async function rasterize(svg, box, width, height, font) {
     );
   });
 
-  const png = new Resvg(sized, { fitTo: { mode: "original" }, font })
-    .render()
-    .asPng();
-  const { data, info } = await sharp(png)
+  // Drawn on one of libuv's worker threads, so several frames draw at once.
+  const rendered = await renderAsync(sized, {
+    fitTo: { mode: "original" },
+    font,
+  });
+  const { data, info } = await sharp(rendered.asPng())
     .ensureAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });
@@ -131,47 +147,92 @@ export async function rasterize(svg, box, width, height, font) {
 }
 
 /**
- * Cuts a grid of exactly FRAME_W x FRAME_H frames out of a rendered sheet,
- * copying pixels without resampling.
+ * Draws one frame at a density from the region of an SVG that holds it.
+ *
+ * @param {string} name The frame's name.
+ * @param {string} svg The SVG document source.
+ * @param {Box} box The frame's region, DESIGN_FRAME_W x DESIGN_FRAME_H user units.
+ * @param {number} artScale Texels per design unit.
+ * @param {ResvgRenderOptions["font"]} [font] Fonts for any text the SVG draws.
+ * @returns {Promise<Frame>}
+ */
+export async function drawFrame(name, svg, box, artScale, font) {
+  const { width, height } = frameSize(artScale);
+  const { data, info } = await rasterize(svg, box, width, height, font);
+  const png = await sharp(data, {
+    raw: { width: info.width, height: info.height, channels: 4 },
+  })
+    .png()
+    .toBuffer();
+  return { name, png };
+}
+
+/**
+ * How many frames draw at once: enough to keep libuv's worker threads busy
+ * without holding a copy of a large card sheet for every frame of a deck.
+ */
+const FRAMES_DRAWN_AT_ONCE = 8;
+
+/**
+ * Draws a frame for each item, several at once, and returns them in order.
+ *
+ * @template T
+ * @param {T[]} items
+ * @param {(item: T) => Promise<Frame>} draw
+ * @returns {Promise<Frame[]>}
+ */
+export async function drawEach(items, draw) {
+  /** @type {Frame[]} */
+  const frames = new Array(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const index = next++;
+      frames[index] = await draw(items[index]);
+    }
+  };
+  await Promise.all(
+    Array.from(
+      { length: Math.min(FRAMES_DRAWN_AT_ONCE, items.length) },
+      worker,
+    ),
+  );
+  return frames;
+}
+
+/**
+ * Cuts frames of one size out of a rendered sheet, copying pixels without
+ * resampling.
  *
  * @param {Raster} sheet The rendered sheet.
- * @param {(row: number, col: number) => string | null} nameAt Frame name for a cell, or null to skip it.
- * @param {number} rows Grid rows.
- * @param {number} cols Grid columns.
- * @param {(row: number, col: number) => {left: number, top: number}} originAt Crop origin for a cell.
+ * @param {{name: string, left: number, top: number}[]} cuts Each frame's name and top left corner, in pixels.
+ * @param {Size} size The frames' size, in pixels.
  * @returns {Promise<Frame[]>} The cut frames.
  */
-export async function cutFrames(sheet, nameAt, rows, cols, originAt) {
+export async function cutFrames(sheet, cuts, size) {
   const frames = [];
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      const name = nameAt(row, col);
-      if (!name) continue;
+  for (const { name, left, top } of cuts) {
+    const png = await sharp(sheet.data, {
+      raw: {
+        width: sheet.info.width,
+        height: sheet.info.height,
+        channels: 4,
+      },
+    })
+      .extract({ left, top, width: size.width, height: size.height })
+      .png()
+      .toBuffer();
 
-      const { left, top } = originAt(row, col);
-      const png = await sharp(sheet.data, {
-        raw: {
-          width: sheet.info.width,
-          height: sheet.info.height,
-          channels: 4,
-        },
-      })
-        .extract({ left, top, width: FRAME_W, height: FRAME_H })
-        .png()
-        .toBuffer();
-
-      frames.push({ name, png });
-    }
+    frames.push({ name, png });
   }
   return frames;
 }
 
 /**
- * How much of each corner to ignore when inspecting an edge, in pixels at
- * RASTER_SCALE, since only there does a card's own outline fall inside the
- * frame.
+ * How much of each corner to ignore when inspecting an edge, in design units,
+ * since only there does a card's own outline fall inside the frame.
  */
-export const EDGE_CORNER_PX = 48;
+export const EDGE_CORNER_UNITS = 24;
 
 /**
  * The sides of a frame, in the order they are reported.
@@ -188,7 +249,7 @@ export const EDGE_NAMES = ["left", "right", "top", "bottom"];
  * @param {number} cornerPx How much of each corner to ignore, in pixels.
  * @returns {Promise<(edge: EdgeName, depth: number) => number>} The scorer.
  */
-export async function edgeScorer(png, cornerPx = EDGE_CORNER_PX) {
+export async function edgeScorer(png, cornerPx) {
   const { data, info } = await sharp(png)
     .ensureAlpha()
     .raw()

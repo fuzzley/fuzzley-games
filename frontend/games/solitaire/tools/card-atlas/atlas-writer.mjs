@@ -1,6 +1,6 @@
 /**
- * Finishes a deck's frames and writes them out as a Phaser multi-atlas at
- * every density, whatever the frames were drawn from.
+ * Finishes a deck's frames and writes them out as a Phaser multi-atlas, one
+ * density at a time, whatever the frames were drawn from.
  */
 import { Resvg } from "@resvg/resvg-js";
 import sharp from "sharp";
@@ -8,16 +8,11 @@ import { mkdir, readdir, unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import {
-  ART_SCALES,
   CARD_FRAME_NAMES,
-  DESIGN_FRAME_H,
-  DESIGN_FRAME_W,
-  EDGE_CORNER_PX,
+  EDGE_CORNER_UNITS,
   EDGE_NAMES,
-  FRAME_H,
-  FRAME_W,
-  RASTER_SCALE,
   edgeScorer,
+  frameSize,
 } from "./raster.mjs";
 
 /** @import { Box, Frame } from "./raster.mjs" */
@@ -47,39 +42,54 @@ const MARGIN = 4;
 const MAX_PAGE_PX = 4096;
 
 /**
- * The hairline edge stamped onto every card frame, in texels.
+ * The hairline edge stamped onto every card frame, in design units.
  *
  * The frame is cut a little inside the card, losing its outline, so without
  * this two overlapping face-up cards read as one white shape. The drop shadow
  * cannot stand in for it, since it falls away from the seams the fans make.
  */
 const CARD_EDGE = {
-  width: 4,
+  widthUnits: 2,
   color: "#000000",
   opacity: 0.55,
   /**
    * Corner radius of the stroke's centreline, kept tight because the frames'
    * chamfered corners vary; the composite clips whatever overhangs.
    */
-  radius: 2,
+  radiusUnits: 1,
 };
 
 /**
- * Renders the card edge once, for compositing onto every frame.
+ * Returns how wide the card edge is at a density, in texels: a whole number,
+ * so it lands on the texel grid rather than blurring across it, and at least
+ * one.
  *
+ * @param {number} artScale
+ * @returns {number}
+ */
+function cardEdgeTexels(artScale) {
+  return Math.max(1, Math.round(CARD_EDGE.widthUnits * artScale));
+}
+
+/**
+ * Renders the card edge at a density, for compositing onto every frame.
+ *
+ * @param {number} artScale
  * @returns {Buffer} The edge as a frame-sized PNG.
  */
-function renderCardEdge() {
-  const inset = CARD_EDGE.width / 2;
+function renderCardEdge(artScale) {
+  const { width, height } = frameSize(artScale);
+  const stroke = cardEdgeTexels(artScale);
+  const inset = stroke / 2;
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" ` +
-    `width="${FRAME_W}" height="${FRAME_H}">` +
+    `width="${width}" height="${height}">` +
     `<rect x="${inset}" y="${inset}"` +
-    ` width="${FRAME_W - CARD_EDGE.width}"` +
-    ` height="${FRAME_H - CARD_EDGE.width}"` +
-    ` rx="${CARD_EDGE.radius}" fill="none"` +
+    ` width="${width - stroke}"` +
+    ` height="${height - stroke}"` +
+    ` rx="${CARD_EDGE.radiusUnits * artScale}" fill="none"` +
     ` stroke="${CARD_EDGE.color}" stroke-opacity="${CARD_EDGE.opacity}"` +
-    ` stroke-width="${CARD_EDGE.width}"/>` +
+    ` stroke-width="${stroke}"/>` +
     `</svg>`;
   return new Resvg(svg, { fitTo: { mode: "original" } }).render().asPng();
 }
@@ -90,11 +100,12 @@ function renderCardEdge() {
  * Composited `atop`, so the stroke stays inside the card's silhouette rather
  * than in the transparent corners, where sampling would fringe it back in.
  *
- * @param {Frame[]} frames The cut frames.
+ * @param {Frame[]} frames The drawn frames.
+ * @param {number} artScale The density the frames are at.
  * @returns {Promise<Frame[]>} The stamped frames.
  */
-async function stampCardEdge(frames) {
-  const edge = renderCardEdge();
+async function stampCardEdge(frames, artScale) {
+  const edge = renderCardEdge(artScale);
   return Promise.all(
     frames.map(async (frame) => ({
       name: frame.name,
@@ -108,7 +119,7 @@ async function stampCardEdge(frames) {
 
 /**
  * Depth the stamped edge is measured at: one texel in, clear of the outermost
- * row's antialiasing.
+ * row's antialiasing, unless the edge is only one texel wide.
  */
 const EDGE_STAMP_DEPTH = 1;
 
@@ -116,14 +127,15 @@ const EDGE_STAMP_DEPTH = 1;
 const EDGE_STAMP_COVERAGE = 0.9;
 
 /**
- * Fails the build if a frame came out of {@link stampCardEdge}, or out of
- * shrinking a stamped frame, without an edge.
+ * Fails the build if a frame came out of {@link stampCardEdge} without an
+ * edge.
  *
  * @param {Frame[]} frames The stamped frames.
  * @param {number} artScale The density the frames are at.
  */
 async function assertEdgesAreStamped(frames, artScale) {
-  const cornerPx = (EDGE_CORNER_PX * artScale) / RASTER_SCALE;
+  const cornerPx = EDGE_CORNER_UNITS * artScale;
+  const depth = Math.min(EDGE_STAMP_DEPTH, cardEdgeTexels(artScale) - 1);
   const missing = [];
   for (const frame of frames) {
     const score = await edgeScorer(frame.png, cornerPx);
@@ -131,7 +143,7 @@ async function assertEdgesAreStamped(frames, artScale) {
     let worst = 1;
     let worstEdge = "";
     for (const edge of EDGE_NAMES) {
-      const coverage = score(edge, EDGE_STAMP_DEPTH);
+      const coverage = score(edge, depth);
       if (coverage < worst) {
         worst = coverage;
         worstEdge = edge;
@@ -151,31 +163,6 @@ async function assertEdgesAreStamped(frames, artScale) {
         `side:\n  ${missing.join("\n  ")}`,
     );
   }
-}
-
-/**
- * Shrinks finished frames to another density.
- *
- * sharp resizes in premultiplied alpha, so the transparent corners do not
- * darken the card's edge.
- *
- * @param {Frame[]} frames Frames at RASTER_SCALE.
- * @param {number} artScale The density to shrink them to.
- * @returns {Promise<Frame[]>} The shrunk frames.
- */
-export async function scaleFrames(frames, artScale) {
-  if (artScale === RASTER_SCALE) return frames;
-  return Promise.all(
-    frames.map(async (frame) => ({
-      name: frame.name,
-      png: await sharp(frame.png)
-        .resize(DESIGN_FRAME_W * artScale, DESIGN_FRAME_H * artScale, {
-          fit: "fill",
-        })
-        .png()
-        .toBuffer(),
-    })),
-  );
 }
 
 /**
@@ -247,8 +234,7 @@ async function cleanOutput(outDir) {
  * @param {string} outDir The directory to write into.
  */
 async function writeAtlas(frames, artScale, outDir) {
-  const frameW = DESIGN_FRAME_W * artScale;
-  const frameH = DESIGN_FRAME_H * artScale;
+  const { width: frameW, height: frameH } = frameSize(artScale);
   const pages = packPages(frames, frameW, frameH);
 
   await mkdir(outDir, { recursive: true });
@@ -326,28 +312,29 @@ function assertEveryCardFrame(frames) {
 }
 
 /**
- * Edges a deck's cards and writes them, with the placeholders, as one atlas
- * per density under `deckDir`.
+ * Edges a deck's cards at one density and writes them, with the placeholders,
+ * as that density's atlas under `deckDir`.
  *
- * @param {Frame[]} cardFrames The faces and backs, at RASTER_SCALE.
- * @param {Frame[]} placeholderFrames The shared placeholders, at RASTER_SCALE.
+ * @param {Frame[]} cardFrames The faces and backs, at `artScale`.
+ * @param {Frame[]} placeholderFrames The shared placeholders, at `artScale`.
+ * @param {number} artScale The density the frames are drawn at.
  * @param {string} deckDir The deck's directory; each density gets its own inside it.
  */
-export async function writeDeckAtlases(cardFrames, placeholderFrames, deckDir) {
+export async function writeDeckAtlas(
+  cardFrames,
+  placeholderFrames,
+  artScale,
+  deckDir,
+) {
   assertEveryCardFrame(cardFrames);
 
   // Placeholders are outline art already, and are drawn under the cards rather
   // than overlapping them, so only the cards are stamped.
-  const stampedCards = await stampCardEdge(cardFrames);
-
-  for (const artScale of ART_SCALES) {
-    const scaledCards = await scaleFrames(stampedCards, artScale);
-    await assertEdgesAreStamped(scaledCards, artScale);
-    const placeholders = await scaleFrames(placeholderFrames, artScale);
-    await writeAtlas(
-      [...scaledCards, ...placeholders],
-      artScale,
-      join(deckDir, `${artScale}x`),
-    );
-  }
+  const stampedCards = await stampCardEdge(cardFrames, artScale);
+  await assertEdgesAreStamped(stampedCards, artScale);
+  await writeAtlas(
+    [...stampedCards, ...placeholderFrames],
+    artScale,
+    join(deckDir, `${artScale}x`),
+  );
 }
