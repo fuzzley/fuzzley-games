@@ -59,7 +59,7 @@ class FakeSceneManager {
  */
 class FakeGame implements HostedGame {
   readonly canvas = { style: { width: "", height: "" } };
-  readonly scale = { setZoom: vi.fn(), resize: vi.fn() };
+  readonly scale = { setZoom: vi.fn(), resize: vi.fn(), refresh: vi.fn() };
   readonly scene = new FakeSceneManager();
   readonly loseContext = new FakeLoseContext();
   readonly renderer: HostedGame["renderer"];

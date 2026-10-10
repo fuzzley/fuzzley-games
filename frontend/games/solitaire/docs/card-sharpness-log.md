@@ -11,7 +11,7 @@ restart at any commit. The research and every option considered are in
 
 **Branches:** options 1 to 3 on `feature/card-sharpness`, cut from `main` at
 `393d9e0` and merged as `8e03d47`. Options 4 to 6 on
-`feature/card-sharpness-4-6`, cut from `main` at `22cbcd4`.
+`feature/card-sharpness-4-6`, cut from `main` at `5b87934`.
 
 **Status:** options 1 to 3 merged; options 4 to 6 in progress. What is left for
 the owner is under [Open questions](#open-questions).
@@ -130,7 +130,7 @@ Choices made while planning:
 
 ### 5. Exact canvas size (option 4)
 
-- [ ] 5.1 `ViewportScaler` sizes the canvas from the device pixel box where the
+- [x] 5.1 `ViewportScaler` sizes the canvas from the device pixel box where the
       browser reports one, and refreshes Phaser's scale after sizing; specs.
 
 ### 6. The light under the cards (option 6)
@@ -240,3 +240,19 @@ Choices made while planning:
 - 4.2: [card-sharpness.md](card-sharpness.md) has a "What shipped" section,
   `docs/card-sharpness/klondike-shipped.png` (main, options 1 and 2, all three),
   and option 6, the vignette.
+
+### 2026-10-10, options 4 to 6
+
+- Planned options 4 to 6 (see [Options 4 to 6](#options-4-to-6)).
+- 5.1: `watchDevicePixels` replaces the scaler's bare `ResizeObserver` and is
+  injected, so the specs report sizes. It asks for
+  `device-pixel-content-box` and falls back to a plain observe where that
+  throws. The scaler sizes the canvas from the count while the ratio is the
+  display's own and the count agrees with the CSS size to a pixel, pins the CSS
+  size unrounded, and then calls `scale.refresh()`.
+- Chrome's device emulation reports the device pixel box in CSS pixels, ignoring
+  the emulated ratio (412 × 915 at an emulated 2.625), so the agreement check
+  rejects it and an emulated phone is sized as before. Without the check it
+  would have drawn a 412 pixel canvas. Checked the exact path natively instead:
+  at DPR 1 with the parent made 1000.5 px wide, Chrome counts 1001 device px,
+  and the canvas backs onto 1001 with its CSS width pinned at 1000.5 px.
