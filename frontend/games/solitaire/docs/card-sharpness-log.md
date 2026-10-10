@@ -66,7 +66,7 @@ Made while planning, within that decision. Each is easy to revisit.
 
 ### 3. Atlas densities
 
-- [ ] 3.1 The atlas tool draws every density from the SVG, still at 1× and 2×;
+- [x] 3.1 The atlas tool draws every density from the SVG, still at 1× and 2×;
       atlases rebuilt and compared.
 - [ ] 3.2 0.5×, 0.75× and 1.5× added to the tool and the runtime, with the
       renderer scaling each axis; atlases rebuilt; specs.
@@ -96,3 +96,15 @@ Made while planning, within that decision. Each is easy to revisit.
   and placeholder sprites. Phaser's camera takes `roundPixels` from the game
   config (`CameraManager`), so the existing setting switches it on. The mock
   sprite gained `vertexRoundMode`. 6860 tests pass.
+- 3.1: `raster.mjs` draws through `renderAsync`, eight frames at a time
+  (`drawEach`); `frameSize(artScale)` replaces `FRAME_W`/`FRAME_H`.
+  `sheet-deck.mjs` still finds the cards and checks the crops on a whole 2×
+  render, then draws every other density from the same boxes in user units; at
+  2× it reuses the cuts, which are the same pixels. Placeholders draw per cell.
+  The card edge is stamped per density, `max(1, round(2d))` texels, and checked
+  at depth `min(1, width - 1)`. A full build takes 28 s.
+- Rebuilt: 2× page 0 is byte-identical; 2× page 1 differs by at most 16 levels
+  in the placeholders (drawn per cell rather than as one strip). 1× changed as
+  intended: the edge is now two clean texels (114, 114, then white) where the
+  Lanczos shrink gave 112, 122, 247, and glyphs lose their halos. The contact
+  sheet looks right for all four decks.
