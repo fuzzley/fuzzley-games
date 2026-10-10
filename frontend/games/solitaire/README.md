@@ -2,7 +2,7 @@
 
 A browser-based Solitaire game engine supporting multiple solitaire variants, built with [Phaser 4](https://phaser.io/) canvas rendering, an [Angular 22](https://angular.dev/) application shell, and [Sass](https://sass-lang.com/) for UI styling.
 
-The [latest version of the game](http://fuzzley.info/project/solitaire/) is hosted at http://fuzzley.info/project/solitaire/.
+The [latest version of the game](https://fuzzley.info/projects/solitaire/play/) is hosted at https://fuzzley.info/projects/solitaire/play/.
 
 ## Included Solitaire Games
 

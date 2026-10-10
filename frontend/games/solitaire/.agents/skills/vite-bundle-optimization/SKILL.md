@@ -46,7 +46,7 @@ no `build.target` of its own.
 ## The Subdirectory Deploy
 
 Two settings exist solely because the built app is copied into
-`/project/solitaire/` on another static host:
+`/projects/solitaire/play/` on another static host:
 
 - **`base: "./"`** in `vite.config.ts`, so emitted asset URLs are relative and
   do not assume the site root.
