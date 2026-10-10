@@ -1,7 +1,5 @@
 import * as Phaser from "phaser";
 
-import { CardArtScale } from "../../deck/card_art_scale";
-
 /** Makes the sprites for cards, the shadows they cast, and pile placeholders. */
 export class PhaserCardFactory {
   /** The texture every card's shadow sprite is drawn from. */
@@ -53,20 +51,26 @@ export class PhaserCardFactory {
    *
    * @param cardBackStyle Returns the card-back frame for a new card sprite.
    * @param textureKey Returns the texture of the deck currently on the table.
-   * @param artScale Returns the density of that texture.
+   * @param artScale Returns that texture's texels per design unit.
    */
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly cardBackStyle: () => string,
     private readonly textureKey: () => string,
-    private readonly artScale: () => CardArtScale,
+    private readonly artScale: () => number,
   ) {}
 
-  /** Returns the room left around the card for its shadow, in texels. */
+  /**
+   * Returns the room left around the card for its shadow, in whole texels,
+   * which a deck drawn at any scale would otherwise make fractional.
+   */
   private shadowPadding(): { x: number; y: number } {
     const padding = PhaserCardFactory.CARD_SHADOW_PADDING;
     const artScale = this.artScale();
-    return { x: padding.x * artScale, y: padding.y * artScale };
+    return {
+      x: Math.round(padding.x * artScale),
+      y: Math.round(padding.y * artScale),
+    };
   }
 
   /** Creates an interactive card sprite. */

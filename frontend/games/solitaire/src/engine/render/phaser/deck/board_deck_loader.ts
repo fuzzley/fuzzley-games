@@ -1,4 +1,4 @@
-import { GameObjects, Loader, Textures } from "phaser";
+import { Loader, Textures } from "phaser";
 
 import { CardDeckId } from "../../deck/card_deck";
 import { CardArtScale } from "../../deck/card_art_scale";
@@ -18,15 +18,13 @@ export interface DeckLoaderHost {
   readonly textures: Textures.TextureManager;
   /** The loader, for fetching an atlas that is not resident. */
   readonly load: Loader.LoaderPlugin;
-  /** Returns every card and placeholder sprite drawn from the deck texture. */
-  texturedSprites(): Iterable<GameObjects.Sprite>;
   /** Returns the density the board's current size calls for. */
   wantedArtScale(): CardArtScale;
   /**
-   * Redraws whatever was drawn from the atlas at its old density, once every
-   * sprite has been repointed at the new one.
+   * Points every sprite at a texture whose frames are at a texel scale,
+   * redrawing whatever was drawn at the old one.
    */
-  artScaleChanged(): void;
+  drawCardsFrom(textureKey: string, artScale: number): void;
   /** Says how the deck the player asked for is getting on. */
   reportCardDeckStatus(status: CardDeckStatus): void;
 }
@@ -152,17 +150,7 @@ export class BoardDeckLoader {
   private apply(target: CardAtlas): void {
     const previous = this.current;
     this.current = target;
-    const textureKey = cardAtlasTextureKey(target);
-
-    for (const sprite of this.host.texturedSprites()) {
-      sprite.setTexture(textureKey, sprite.frame.name);
-      // setTexture moves the origin to the frame's centred pivot, but the board
-      // places cards by their top left corner.
-      sprite.setOrigin(0, 0);
-    }
-    if (target.artScale !== previous.artScale) {
-      this.host.artScaleChanged();
-    }
+    this.host.drawCardsFrom(cardAtlasTextureKey(target), target.artScale);
 
     // After the sprites, never before: releasing a texture still being drawn
     // from would blank the board for a frame.

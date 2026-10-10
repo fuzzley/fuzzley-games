@@ -273,6 +273,51 @@ describe("BoardScene", () => {
       expect(texturesInUse()).toEqual([deckTexture(DEFAULT_DESKTOP_CARD_DECK)]);
     });
 
+    describe("drawn from another texture", () => {
+      /** A texture as the deck drawn at a 390 px phone's layout scale is. */
+      const DRAWN = "cards:mobile@0.75x-drawn-1";
+
+      it("points every card and placeholder at it", () => {
+        boardScene.drawCardsFrom(DRAWN, 0.73);
+
+        expect(texturesInUse()).toEqual([DRAWN]);
+      });
+
+      it("keeps every sprite on its frame", () => {
+        const frames = allSprites().map((sprite) => sprite.frame.name);
+
+        boardScene.drawCardsFrom(DRAWN, 0.73);
+
+        expect(allSprites().map((sprite) => sprite.frame.name)).toEqual(frames);
+      });
+
+      it("redraws the shadow at the texture's texel scale", () => {
+        const before = shadowRenders();
+
+        boardScene.drawCardsFrom(DRAWN, 0.73);
+
+        expect(shadowRenders()).toBe(before + 1);
+      });
+
+      it("leaves the shadow be when only the texture changes", () => {
+        // The board boots on 1x.
+        const before = shadowRenders();
+
+        boardScene.drawCardsFrom(DRAWN, 1);
+
+        expect(shadowRenders()).toBe(before);
+      });
+
+      it("says which texture the cards draw from", () => {
+        boardScene.drawCardsFrom(DRAWN, 0.73);
+
+        expect([boardScene.cardTextureKey, boardScene.cardArtScale]).toEqual([
+          DRAWN,
+          0.73,
+        ]);
+      });
+    });
+
     it("redraws every card and placeholder from a deck already loaded", () => {
       textures().add(deckTexture("classic"));
 

@@ -144,7 +144,7 @@ Choices made while planning:
       SVG, ranks as paths.
 - [x] 7.2 Planning and painting a drawn deck: frame layout, SVG sizing, copied
       frames, the card edge; specs.
-- [ ] 7.3 The board draws from a drawn deck once its scale settles, sharing one
+- [x] 7.3 The board draws from a drawn deck once its scale settles, sharing one
       way of repointing sprites with the deck loader; specs.
 
 ### 8. Verify options 4 to 6
@@ -302,3 +302,22 @@ artScale)` that repoints the sprites and rebakes the shadow when the scale
   `BoardSceneOptions` take the painter's services for specs. Then specs for the
   painter and the scene, a browser check of the mobile deck at DPR 3 and 2, and
   phase 8.
+- 7.3, done: `BoardScene.drawCardsFrom(textureKey, artScale)` is now the one
+  place sprites are repointed, rebaking the shadow when the texel scale
+  changes; `BoardDeckLoader.apply` calls it in place of its own loop and
+  `artScaleChanged`. The scene keeps `cardArt` (texture and texel scale),
+  which the factory and `cardArtScale` read, so both now take any number; the
+  shadow's padding is rounded to whole texels. `update()` hands the painter the
+  frame's layout scale (the first card's, or placeholder's, view scale) and the
+  scene time; the painter is disposed when the scene ends. `BoardSceneOptions`
+  may supply the painter's services; the browser's are the default.
+- Specs: 19 for the painter (settling, withdrawing, stale and failed drawings,
+  disposal, the Phaser adapter) and 5 for `drawCardsFrom`. 6938 tests pass;
+  coverage 98.4% of statements, 99.3% of lines.
+- Checked in Chrome on Klondike with the mobile deck: at 390 × 844, DPR 3, the
+  cards switch to the drawn deck, the card edge one pixel (115, then white)
+  where the 0.75× atlas gave two (114, 117), glyph edges visibly cleaner
+  (`docs/card-sharpness/mobile-drawn.png`). Resized to 412 × 915 at 2.625
+  without a reload, it redrew at the new scale. Switching the card style to
+  Desktop and back to Auto swapped the decks cleanly, the drawn deck coming
+  back. No warnings in the console.
