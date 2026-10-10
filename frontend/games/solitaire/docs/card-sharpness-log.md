@@ -9,12 +9,13 @@ The research and every option considered are in
 
 **Branch:** `feature/card-sharpness`, cut from `main` at `393d9e0`.
 
-**Status:** done on the branch; not merged. Waiting on the owner's review, and
-on [Open questions](#open-questions).
+**Status:** merged to `main` as `8e03d47`. What is left for the owner is under
+[Open questions](#open-questions).
 
 ## How to pick this up
 
-1. `git checkout feature/card-sharpness` and read [Progress](#progress).
+1. The branch is merged and deleted, so start from `main` and read
+   [Progress](#progress) and [Open questions](#open-questions).
 2. Run `yarn tsc && yarn test` to confirm the tree is green before going on.
 3. Take the first unchecked step. Each step is one commit, or a few, and adds an
    entry to [Log](#log) saying what changed and anything surprising.
