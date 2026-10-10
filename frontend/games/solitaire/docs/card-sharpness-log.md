@@ -68,7 +68,7 @@ Made while planning, within that decision. Each is easy to revisit.
 
 - [x] 3.1 The atlas tool draws every density from the SVG, still at 1× and 2×;
       atlases rebuilt and compared.
-- [ ] 3.2 0.5×, 0.75× and 1.5× added to the tool and the runtime, with the
+- [x] 3.2 0.5×, 0.75× and 1.5× added to the tool and the runtime, with the
       renderer scaling each axis; atlases rebuilt; specs.
 - [ ] 3.3 Skills and agent instructions describe the densities and the budget.
 
@@ -78,6 +78,13 @@ Made while planning, within that decision. Each is easy to revisit.
       and after screenshots.
 - [ ] 4.2 [card-sharpness.md](card-sharpness.md) says what shipped; open
       questions listed for the owner.
+
+## Open questions
+
+- Some face-up cards show a light grey wash over their left side, on `main`
+  too: in Klondike on column 1's top card, in Spider on columns 1 and 2. It
+  looks like a card's shadow falling on a neighbour or itself. Not
+  investigated.
 
 ## Log
 
@@ -108,3 +115,17 @@ Made while planning, within that decision. Each is easy to revisit.
   intended: the edge is now two clean texels (114, 114, then white) where the
   Lanczos shrink gave 112, 122, 247, and glyphs lose their halos. The contact
   sheet looks right for all four decks.
+- 3.2: `CARD_ART_SCALES` and `ART_SCALES` are `[0.5, 0.75, 1, 1.5, 2]`.
+  `cardFrameTexels` (mirrored by `frameSize` in the tool) rounds a frame to
+  whole texels: 110 × 154 at 0.5×, 165 × 230 at 0.75×, 330 × 461 at 1.5×.
+  `cardSpriteScale` scales each axis by the design size over the frame's, and
+  the renderer keeps the last result, since every sprite in a frame shares it
+  and working it out per sprite would allocate. Shadow padding stays whole at
+  every density (8 × 12 up to 32 × 48 texels). The preview reads the density
+  each board would load. Atlases on disk went from about 13 MB to 19 MB; the new
+  1× pages are half their old size, as the directly drawn frames compress
+  better. A full build takes 58 s.
+- Checked in Chrome: Klondike at 390 × 844 and DPR 3 loads `mobile/0.75x` on a
+  1170 × 2532 canvas; Spider at DPR 2 loads `mobile/0.5x`. Both draw cleanly.
+  A grey wash on the left of some top cards shows in every run, `main`
+  included, so it predates this work (see [Open questions](#open-questions)).

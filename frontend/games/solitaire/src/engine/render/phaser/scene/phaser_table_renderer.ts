@@ -1,6 +1,7 @@
 import * as Phaser from "phaser";
 import { GameObjects } from "phaser";
 import { Point } from "../../layout/geometry";
+import { cardSpriteScale } from "../../deck/card_art_scale";
 import { PhaserSprites } from "./phaser_sprites";
 import { TableRenderer } from "../../view/table_renderer";
 import {
@@ -114,6 +115,17 @@ export class PhaserTableRenderer implements TableRenderer {
    */
   private travelDistances = new Map<string, number>();
 
+  /**
+   * The sprite scale last worked out, and what from, kept because every sprite
+   * in a frame shares it and working it out anew would allocate for each.
+   */
+  private lastSpriteScale: {
+    readonly layoutScale: number;
+    readonly artScale: number;
+    readonly x: number;
+    readonly y: number;
+  } = { layoutScale: Number.NaN, artScale: Number.NaN, x: 1, y: 1 };
+
   constructor(private readonly sprites: PhaserSprites) {}
 
   /**
@@ -170,7 +182,7 @@ export class PhaserTableRenderer implements TableRenderer {
       sprite.setOrigin(0, 0);
     }
     sprite.setPosition(backgroundView.x, backgroundView.y);
-    sprite.setScale(this.spriteScale(backgroundView.scale));
+    this.scaleToLayout(sprite, backgroundView.scale);
     sprite.setDepth(backgroundView.depth);
     if (backgroundView.cursor && syncCursor(sprite, backgroundView.cursor)) {
       // A slot can stop being pressable under a pointer that has not moved,
@@ -184,7 +196,7 @@ export class PhaserTableRenderer implements TableRenderer {
    * its view.
    */
   private syncAppearance(sprite: GameObjects.Sprite, cardView: CardView): void {
-    sprite.setScale(this.spriteScale(cardView.scale));
+    this.scaleToLayout(sprite, cardView.scale);
     sprite.setDepth(cardView.depth);
 
     if (sprite.frame.name !== cardView.frame) {
@@ -206,13 +218,25 @@ export class PhaserTableRenderer implements TableRenderer {
     if (!shadow?.active) return;
 
     shadow.setPosition(card.x, card.y);
-    shadow.setScale(this.spriteScale(cardView.scale));
+    this.scaleToLayout(shadow, cardView.scale);
     shadow.setDepth(cardView.depth - SHADOW_DEPTH_BELOW_CARD);
   }
 
-  /** Converts a layout scale to the sprite scale of the atlas drawn from. */
-  private spriteScale(layoutScale: number): number {
-    return layoutScale / this.sprites.cardArtScale;
+  /**
+   * Scales a sprite drawn from the atlas, or the shadow baked from it, to a
+   * layout scale.
+   */
+  private scaleToLayout(sprite: GameObjects.Sprite, layoutScale: number): void {
+    const artScale = this.sprites.cardArtScale;
+    const last = this.lastSpriteScale;
+    if (last.layoutScale !== layoutScale || last.artScale !== artScale) {
+      this.lastSpriteScale = {
+        layoutScale,
+        artScale,
+        ...cardSpriteScale(layoutScale, artScale),
+      };
+    }
+    sprite.setScale(this.lastSpriteScale.x, this.lastSpriteScale.y);
   }
 
   /**

@@ -2,13 +2,25 @@ import type { Loader } from "phaser";
 
 import { CARD_DECKS, CardDeckId } from "../../deck/card_deck";
 import { CARD_ART_SCALES, CardArtScale } from "../../deck/card_art_scale";
+import classicAtlas0_5x from "../../assets/sprites/atlas/classic/0.5x/card_assets_atlas.json";
+import classicAtlas0_75x from "../../assets/sprites/atlas/classic/0.75x/card_assets_atlas.json";
 import classicAtlas1x from "../../assets/sprites/atlas/classic/1x/card_assets_atlas.json";
+import classicAtlas1_5x from "../../assets/sprites/atlas/classic/1.5x/card_assets_atlas.json";
 import classicAtlas2x from "../../assets/sprites/atlas/classic/2x/card_assets_atlas.json";
+import indexedAtlas0_5x from "../../assets/sprites/atlas/indexed/0.5x/card_assets_atlas.json";
+import indexedAtlas0_75x from "../../assets/sprites/atlas/indexed/0.75x/card_assets_atlas.json";
 import indexedAtlas1x from "../../assets/sprites/atlas/indexed/1x/card_assets_atlas.json";
+import indexedAtlas1_5x from "../../assets/sprites/atlas/indexed/1.5x/card_assets_atlas.json";
 import indexedAtlas2x from "../../assets/sprites/atlas/indexed/2x/card_assets_atlas.json";
+import allCornerPipsAtlas0_5x from "../../assets/sprites/atlas/all-corner-pips/0.5x/card_assets_atlas.json";
+import allCornerPipsAtlas0_75x from "../../assets/sprites/atlas/all-corner-pips/0.75x/card_assets_atlas.json";
 import allCornerPipsAtlas1x from "../../assets/sprites/atlas/all-corner-pips/1x/card_assets_atlas.json";
+import allCornerPipsAtlas1_5x from "../../assets/sprites/atlas/all-corner-pips/1.5x/card_assets_atlas.json";
 import allCornerPipsAtlas2x from "../../assets/sprites/atlas/all-corner-pips/2x/card_assets_atlas.json";
+import mobileAtlas0_5x from "../../assets/sprites/atlas/mobile/0.5x/card_assets_atlas.json";
+import mobileAtlas0_75x from "../../assets/sprites/atlas/mobile/0.75x/card_assets_atlas.json";
 import mobileAtlas1x from "../../assets/sprites/atlas/mobile/1x/card_assets_atlas.json";
+import mobileAtlas1_5x from "../../assets/sprites/atlas/mobile/1.5x/card_assets_atlas.json";
 import mobileAtlas2x from "../../assets/sprites/atlas/mobile/2x/card_assets_atlas.json";
 
 /** Names one built atlas: a deck's artwork at one density. */
@@ -51,10 +63,34 @@ const atlasPageUrls = import.meta.glob<string>(
  * `tools/build-card-atlas.mjs`, which the compiler does not check.
  */
 const manifests: Record<CardDeckId, Record<CardArtScale, AtlasManifest>> = {
-  classic: { 1: classicAtlas1x, 2: classicAtlas2x },
-  indexed: { 1: indexedAtlas1x, 2: indexedAtlas2x },
-  "all-corner-pips": { 1: allCornerPipsAtlas1x, 2: allCornerPipsAtlas2x },
-  mobile: { 1: mobileAtlas1x, 2: mobileAtlas2x },
+  classic: {
+    0.5: classicAtlas0_5x,
+    0.75: classicAtlas0_75x,
+    1: classicAtlas1x,
+    1.5: classicAtlas1_5x,
+    2: classicAtlas2x,
+  },
+  indexed: {
+    0.5: indexedAtlas0_5x,
+    0.75: indexedAtlas0_75x,
+    1: indexedAtlas1x,
+    1.5: indexedAtlas1_5x,
+    2: indexedAtlas2x,
+  },
+  "all-corner-pips": {
+    0.5: allCornerPipsAtlas0_5x,
+    0.75: allCornerPipsAtlas0_75x,
+    1: allCornerPipsAtlas1x,
+    1.5: allCornerPipsAtlas1_5x,
+    2: allCornerPipsAtlas2x,
+  },
+  mobile: {
+    0.5: mobileAtlas0_5x,
+    0.75: mobileAtlas0_75x,
+    1: mobileAtlas1x,
+    1.5: mobileAtlas1_5x,
+    2: mobileAtlas2x,
+  },
 };
 
 /**
