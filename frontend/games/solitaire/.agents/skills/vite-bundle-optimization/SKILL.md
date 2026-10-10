@@ -93,12 +93,20 @@ pages as fit inside `MAX_PAGE_PX` (4096), which is the texture-size floor still
 found on older mobile GPUs.
 
 Every deck is built at each density in `ART_SCALES`, in texels per design unit:
+0.5×, 0.75×, 1×, 1.5× and 2×. A board draws from the least dense one that need
+not enlarge its cards, so a phone held upright loads 0.5× or 0.75× and a
+high-density desktop window 2×. Each is at most half as dense again as the one below,
+so the GPU never shrinks a card below two thirds; see
+[phaser-canvas-performance](../phaser-canvas-performance/SKILL.md). 2× takes two
+pages and about 76 MB of GPU memory; every other density takes one, about 5 MB
+at 0.5× and 20 MB at 1×.
 
-- **2×** is for boards that draw cards larger than their design size, such as
-  high-density screens and large windows. It takes two pages and about 62 MB of
-  GPU memory.
-- **1×** is for everything else, including phones. It takes one page and about
-  16 MB.
+A frame at density _n_ is `CARD_RENDER_WIDTH_PX × n` by
+`CARD_RENDER_HEIGHT_PX × n` texels, each rounded to a whole number
+(`frameSize` in `raster.mjs`, `cardFrameTexels` at runtime): 307 units at 0.5×
+would otherwise be 153.5. The artwork is stretched to fill the rounded frame,
+and the renderer scales each axis on its own so the card still comes out at its
+design size.
 
 Every density is drawn from the SVG itself, not shrunk from another, which
 keeps thin strokes as sharp without the halo a shrink leaves around them. A card
@@ -118,9 +126,9 @@ downloaded.
 - Re-run `yarn build:atlas` whenever the card SVGs change. The atlas is a
   committed build artifact; a stale one ships.
 - `ART_SCALES` in `tools/card-atlas/raster.mjs` and `CARD_ART_SCALES` in
-  `src/engine/render/deck/card_art_scale.ts` must list the same densities.
-  Every frame at density _n_ must be `CARD_RENDER_WIDTH_PX × n` by
-  `CARD_RENDER_HEIGHT_PX × n` texels. Otherwise cards render at the wrong size.
+  `src/engine/render/deck/card_art_scale.ts` must list the same densities, and
+  `frameSize` and `cardFrameTexels` must round alike. Otherwise cards render at
+  the wrong size.
   `test/engine/render/phaser/deck/card_deck_atlas.spec.ts` checks both against the
   built manifests.
 - Adding a density to `CARD_ART_SCALES` is a compile error until

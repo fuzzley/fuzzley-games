@@ -177,9 +177,9 @@ export class BoardDeckLoader {
    * Releases every loaded atlas but the one the board is drawn from and the one
    * on its way.
    *
-   * None is kept for a quick return because a deck takes about sixty
-   * megabytes of texture memory at 2x, and a mobile GPU should not have to
-   * hold several.
+   * None is kept for a quick return because a deck takes up to 76 megabytes
+   * of texture memory, at 2x, and a mobile GPU should not have to hold
+   * several.
    */
   private releaseOtherAtlases(): void {
     for (const atlas of residentCardAtlases(this.host.textures)) {
