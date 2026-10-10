@@ -1,7 +1,5 @@
 import type { GameObjects } from "phaser";
 
-import { CardArtScale } from "../../deck/card_art_scale";
-
 /**
  * Gives the view applier the sprites and scene services it writes through.
  *
@@ -9,10 +7,11 @@ import { CardArtScale } from "../../deck/card_art_scale";
  */
 export interface PhaserSprites {
   /**
-   * The density of the atlas the cards, their shadows and the placeholders are
-   * drawn from, which turns a layout scale into a sprite scale.
+   * Texels per design unit of the texture the cards, their shadows and the
+   * placeholders are drawn from, built or drawn at runtime, which turns a
+   * layout scale into a sprite scale.
    */
-  readonly cardArtScale: CardArtScale;
+  readonly cardArtScale: number;
 
   /** Returns the sprite for a card, or undefined if it has none. */
   cardSprite(cardId: string): GameObjects.Sprite | undefined;

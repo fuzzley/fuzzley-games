@@ -65,6 +65,10 @@ describe("cardSpriteScale", () => {
     expect(cardSpriteScale(0.5, 2)).toEqual({ x: 0.25, y: 0.25 });
   });
 
+  it("draws a frame drawn for its very layout scale texel for texel", () => {
+    expect(cardSpriteScale(0.73, 0.73)).toEqual({ x: 1, y: 1 });
+  });
+
   it("draws a rounded frame at exactly the card's design size", () => {
     const layoutScale = 0.49;
     const texels = cardFrameTexels(0.5);

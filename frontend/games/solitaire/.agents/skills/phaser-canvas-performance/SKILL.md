@@ -51,8 +51,18 @@ which Phaser's WebGL1 context allows only for power-of-two textures, and below
 about a half bilinear sampling skips texels and glyph edges step. Keep that
 spacing if a density is added or removed.
 
-View state therefore carries the layout scale, and only
-`PhaserTableRenderer` turns it into a sprite scale, through `cardSpriteScale`.
+**The mobile deck can also be drawn at runtime.** `DrawnDeckPainter` paints it
+on one canvas texture at exactly the layout scale, once the scale has held for
+`SETTLE_MS`, and only at a scale no built atlas matches. It sits beside the
+built atlas it falls back to, about 10 MB more on a 3× phone, and is released
+on any change of size or deck and when the scene ends. Painting takes a few
+dozen SVG decodes on the main thread, which is why it waits for the size to
+settle rather than following a resize step by step.
+
+`BoardScene.drawCardsFrom` is the one place sprites change texture; it rebakes
+the shadow only when the texel scale changes. View state carries the layout
+scale, and only `PhaserTableRenderer` turns it into a sprite scale, through
+`cardSpriteScale`, which is exactly 1 for a deck drawn at that very scale.
 That scales each axis on its own, since a frame at a fractional density is
 rounded to whole texels (`cardFrameTexels`). Anything measured in texels, such
 as the baked shadow's padding, must be multiplied by the density. It must also
