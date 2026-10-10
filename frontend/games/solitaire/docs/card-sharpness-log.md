@@ -9,7 +9,8 @@ The research and every option considered are in
 
 **Branch:** `feature/card-sharpness`, cut from `main` at `393d9e0`.
 
-**Status:** in progress.
+**Status:** done on the branch; not merged. Waiting on the owner's review, and
+on [Open questions](#open-questions).
 
 ## How to pick this up
 
@@ -74,9 +75,9 @@ Made while planning, within that decision. Each is easy to revisit.
 
 ### 4. Verify
 
-- [ ] 4.1 `yarn verify`, then the phone and desktop checks above, with before
+- [x] 4.1 `yarn verify`, then the phone and desktop checks above, with before
       and after screenshots.
-- [ ] 4.2 [card-sharpness.md](card-sharpness.md) says what shipped; open
+- [x] 4.2 [card-sharpness.md](card-sharpness.md) says what shipped; open
       questions listed for the owner.
 
 ## Open questions
@@ -85,10 +86,17 @@ Made while planning, within that decision. Each is easy to revisit.
   face-up cards, on `main` too, is the CSS vignette that
   `game_canvas.component.scss` lays over the canvas (`:host::after`, up to
   `--table-vignette`, 38% black, at the edges). It is meant to light the felt
-  but falls on the cards as well, which on a phone sit near the edges: Klondike's
-  column 1, Spider's columns 1 and 2, the bottom row of piles. Drawing it under
-  the cards, inside the canvas, or weakening it on a phone would give the cards
-  back their contrast. A design choice, so left for the owner.
+  but falls on the cards as well, which on a phone sit near the edges:
+  Klondike's column 1, Spider's columns 1 and 2, the bottom row of piles.
+  Drawing it under the cards, inside the canvas, or weakening it on a phone
+  would give the cards back their contrast. A design choice, so left for the
+  owner; written up as option 6 in [card-sharpness.md](card-sharpness.md).
+- **Memory on a phone on its side.** At 3× it now loads 1.5× (about 46 MB of
+  texture) where it loaded 1× (about 20 MB). Worth watching on an older phone;
+  lowering `MAX_BUDGETED_DEVICE_PIXELS` or `MAX_PIXEL_RATIO` would trade it
+  back.
+- **Merge and deploy.** Deploys are blocked until the deploy token is renewed,
+  so merging to `main` would not reach the site yet.
 
 ## Log
 
@@ -100,13 +108,13 @@ Made while planning, within that decision. Each is easy to revisit.
   rounded sharpens Klondike at DPR 3, and that drawing a 0.5× frame from the SVG
   matches a Lanczos shrink without its halos.
 - 1.1: `ViewportScaler` renders up to 3x, above 2x only within
-  `MAX_BUDGETED_DEVICE_PIXELS` (4.5 million). `pixelRatio` now reports the
-  ratio the canvas was last sized at, since the ratio depends on the size; only
-  the specs read it.
-- 2.1: `PhaserCardFactory.VERTEX_ROUND_MODE` (`fullAuto`) on card, shadow
-  and placeholder sprites. Phaser's camera takes `roundPixels` from the game
-  config (`CameraManager`), so the existing setting switches it on. The mock
-  sprite gained `vertexRoundMode`. 6860 tests pass.
+  `MAX_BUDGETED_DEVICE_PIXELS` (4.5 million). `pixelRatio` now reports the ratio
+  the canvas was last sized at, since the ratio depends on the size; only the
+  specs read it.
+- 2.1: `PhaserCardFactory.VERTEX_ROUND_MODE` (`fullAuto`) on card, shadow and
+  placeholder sprites. Phaser's camera takes `roundPixels` from the game config
+  (`CameraManager`), so the existing setting switches it on. The mock sprite
+  gained `vertexRoundMode`. 6860 tests pass.
 - 3.1: `raster.mjs` draws through `renderAsync`, eight frames at a time
   (`drawEach`); `frameSize(artScale)` replaces `FRAME_W`/`FRAME_H`.
   `sheet-deck.mjs` still finds the cards and checks the crops on a whole 2×
@@ -130,9 +138,9 @@ Made while planning, within that decision. Each is easy to revisit.
   1× pages are half their old size, as the directly drawn frames compress
   better. A full build takes 58 s.
 - Checked in Chrome: Klondike at 390 × 844 and DPR 3 loads `mobile/0.75x` on a
-  1170 × 2532 canvas; Spider at DPR 2 loads `mobile/0.5x`. Both draw cleanly.
-  A grey wash on the left of some top cards shows in every run, `main`
-  included, so it predates this work (see [Open questions](#open-questions)).
+  1170 × 2532 canvas; Spider at DPR 2 loads `mobile/0.5x`. Both draw cleanly. A
+  grey wash on the left of some top cards shows in every run, `main` included,
+  so it predates this work (see [Open questions](#open-questions)).
 - 3.3: `phaser-core` gained a "Sharp Cards" practice (budget, vertex rounding,
   density spacing); `phaser-canvas-performance` and `vite-bundle-optimization`
   describe five densities, rounded frames and per-axis scaling. Fixed
@@ -153,3 +161,12 @@ Made while planning, within that decision. Each is easy to revisit.
 
 - Found the grey wash's cause: the vignette over the canvas; see
   [Open questions](#open-questions).
+- 4.1: `yarn verify` passes (lint, types, build, 6870 tests); coverage stays
+  above the floor (98.5% of lines). The build emits 21 atlas pages, not 24,
+  because every deck's second 2× page (two classic backs and the placeholders)
+  is identical and Vite stores it once. In Chrome at 390 × 844 and DPR 3, a tap
+  on the stock at CSS coordinates draws three, so input still maps through the
+  new ratio; the waste fan and a 1440 × 810 desktop at DPR 2 draw correctly.
+- 4.2: [card-sharpness.md](card-sharpness.md) has a "What shipped" section,
+  `docs/card-sharpness/klondike-shipped.png` (main, options 1 and 2, all three),
+  and option 6, the vignette.
