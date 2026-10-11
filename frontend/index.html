@@ -19,6 +19,9 @@
         document.documentElement.dataset.theme = themes.indexOf(saved) >= 0 ? saved : dark ? 'casino' : 'classic';
       })();
     </script>
+    <!-- Runtime config, then Google Analytics; see public/analytics.js. Plain tags so they run in order. -->
+    <script src="/env.js"></script>
+    <script src="/analytics.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&display=swap" rel="stylesheet" />
