@@ -1,0 +1,34 @@
+<main class="page">
+  @if (game(); as game) {
+    @if (category(); as category) {
+      <a class="back" [routerLink]="['/category', category.id]">{{ category.name }}</a>
+    }
+    <div class="about">
+      <app-game-thumb class="thumb" [class.soon]="game.comingSoon" [slug]="game.slug" />
+      <div>
+        <h1>
+          {{ game.name }}
+          @if (game.comingSoon) {
+            <span class="badge">Coming soon</span>
+          }
+        </h1>
+        <p class="blurb">{{ game.blurb }}</p>
+        <p class="meta">{{ game.players }}, about {{ game.time }} a game</p>
+      </div>
+    </div>
+
+    <section class="stage" [class.plain]="game.category === 'classics'" aria-label="Game">
+      <p class="stage-note">
+        @if (game.comingSoon) {
+          {{ game.name }} is coming soon. It will be playable here once it’s finished.
+        } @else {
+          {{ game.name }} loads here.
+        }
+      </p>
+    </section>
+  } @else {
+    <h1>There’s no game at this address.</h1>
+    <p class="blurb">It may have been renamed or taken down.</p>
+    <a class="button" routerLink="/">See all games</a>
+  }
+</main>
