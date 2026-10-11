@@ -50,6 +50,6 @@ describe("ThemeMenuComponent", () => {
 
     expect(el.querySelector<HTMLElement>(".panel")!.hidden).toBe(true);
     expect(document.activeElement).toBe(trigger);
-    fixture.nativeElement.remove();
+    el.remove();
   });
 });

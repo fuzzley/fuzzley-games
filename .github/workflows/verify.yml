@@ -1,7 +1,7 @@
 name: Verify
 
-# Every push and pull request is type-checked, tested and built, and its
-# Docker image is built and served.
+# Every push and pull request is linted, type-checked, tested and built, and
+# its Docker image is built and served.
 #
 # fuzzley.games is served by Cloud Run, which builds the Dockerfile from main
 # on its own (a Cloud Build trigger) and doesn't depend on this workflow.
@@ -37,7 +37,7 @@ jobs:
         working-directory: frontend
         run: yarn install --immutable
 
-      - name: Type-check, test and build
+      - name: Lint, type-check, test and build
         working-directory: frontend
         run: yarn verify
 
