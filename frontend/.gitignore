@@ -1,37 +1,69 @@
-# Dependencies
+# Dependencies & Package Managers
 node_modules/
+jspm_packages/
+bower_components/
+.npm
+*.tgz
+
+# Yarn
 .pnp
 .pnp.js
 .pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
+.yarn/
+.yarn-integrity
 
-# Build artifacts
+# Build Artifacts & Test Coverage
 dist/
 dist-ssr/
 out-tsc/
 *.tsbuildinfo
+build/Release
+.next/
+.grunt
+.lock-wscript
+lib-cov
+coverage/
+.nyc_output
 
-# Logs
+# Logs & Runtime Data
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pids
+*.pid
+*.seed
+*.pid.lock
+.node_repl_history
 
-# Editor directories and files
+# Environment & Local Config
+.env
+
+# Caches & Typings
+.eslintcache
+typings/
+
+# Editor Directories & OS Files
 .idea/
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
+.vscode/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-
-# OS files
 .DS_Store
 Thumbs.db
+
+# Agents
+# `.agents/` is committed: it holds the shared instructions and skills. The
+# per-tool directories are machine-local -- `.claude/skills` is rebuilt from
+# `.agents/skills` by `yarn skills:link`.
+.gemini
+.claude
+CLAUDE.local.md
+.mcp.json
+
+# Project-specific
+# Contact sheet `yarn build:atlas --preview` draws for review
+tools/card-atlas/.preview
