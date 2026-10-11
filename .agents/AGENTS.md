@@ -1,0 +1,174 @@
+# Fuzzley Games
+
+The Fuzzley Games portal and gallery (https://fuzzley.games): an Angular
+single-page app built with Vite, served by nginx from a Docker image on Google
+Cloud Run.
+
+## Technology Stack
+
+- **UI:** [Angular](https://angular.dev/) (standalone components, Signals)
+- **Build Toolchain:** [Vite](https://vitejs.dev/) + [AnalogJS Vite Angular Plugin](https://analogjs.org/)
+- **Test Framework:** [Vitest](https://vitest.dev/) with jsdom
+- **Language:** TypeScript (ES2022 output target) / HTML / CSS
+- **Package Manager:** Yarn 4 via Corepack, pinned in `frontend/package.json`
+- **Serving:** nginx in a Docker image, on Google Cloud Run
+
+---
+
+## Repository Layout
+
+- **`frontend/`** — the Angular app, and its own Yarn project. Run every `yarn`
+  command from here.
+  - `src/app/` holds one folder per component or feature, with its template,
+    stylesheet and spec beside it.
+  - `src/styles.css` is the one global stylesheet: the colour palettes, as
+    custom properties under `[data-theme]`, and the few shared classes.
+  - `public/` is copied into the build as is, including the runtime config
+    placeholder `env.js`.
+- **`Dockerfile`, `nginx.conf.template`, `docker-entrypoint.d/`** — the image
+  that serves the build, its nginx config, and the startup script that writes
+  `env.js` from the container's environment. `README.md` explains each.
+
+### Angular & Styling
+
+- **Templates bind, they do not compute.** Expose a `computed()` view model
+  instead of calling a method from a template, which re-runs on every change
+  detection pass.
+- **Colours come from the palette.** Anything that should follow the theme
+  reads a palette variable with `var()`, and a new variable is added to every
+  palette in `src/styles.css`.
+- **`@keyframes` are global.** Angular's emulated encapsulation rewrites
+  selectors, not at-rule names, so two components defining the same animation
+  name silently overwrite each other. Declare them once in `src/styles.css`.
+- **Visible state is announced state.** A control that looks selected carries
+  `aria-checked`/`aria-current`/`aria-pressed`. See the
+  `web-game-accessibility` skill.
+
+---
+
+## Build & Deploy System
+
+### Package Manager
+
+This project uses **Yarn 4**. Always use Yarn commands instead of NPM (`yarn <command>`).
+
+### Development Commands
+
+Run from `frontend/`:
+
+- **Run Development Server:** `yarn start` or `yarn dev` (launches the Vite dev server at `http://localhost:4200/`).
+- **Production Build:** `yarn build` (bundles into `frontend/dist/` and writes `version.json` with the commit it was built from).
+- **Preview Build:** `yarn preview` (serves the production build locally).
+- **Run Unit Tests:** `yarn test` (runs Vitest once).
+- **Type Checking:** `yarn typecheck` (runs the Angular compiler's checks, emitting nothing).
+- **Full Verification Pipeline:** `yarn verify` (runs `yarn typecheck && yarn test && yarn build`).
+
+To test the image itself, build and run it with Docker as `README.md` shows.
+
+### Deployment
+
+Cloud Run builds and deploys the `Dockerfile` from every push to `main` on its
+own. `.github/workflows/verify.yml` checks the same commits, but nothing waits
+for it, so run `yarn verify` before pushing to `main`. `README.md` covers the
+deployment and runtime configuration; the `github-actions-ci-cd` skill covers
+the workflow.
+
+---
+
+## Running & Debugging
+
+- **Local Testing:** Start the server with `yarn start` and navigate to `http://localhost:4200/`.
+- **Browser Tools:** Close any browser instance you start for debugging when
+  you are done with it, so none are left running.
+
+---
+
+## Agent Configuration (`.agents/`)
+
+`.agents/` is the committed, tool-neutral home for everything agents read. The
+per-tool directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
+
+- **Instructions:** this file. The root `AGENTS.md` and `CLAUDE.md` are thin
+  pointers to it, because those are the filenames agents actually look for —
+  `AGENTS.md` for Codex, Cursor, Copilot, and Amp; `CLAUDE.md` for Claude Code,
+  which does not read `AGENTS.md`. Edit this file, not the pointers.
+- **Skills:** `.agents/skills/<name>/SKILL.md`. Gemini CLI reads this path
+  directly. Claude Code only discovers `.claude/skills/<name>/SKILL.md`, so
+  **`node .agents/link-claude-skills.mjs`** links each skill across (a junction
+  on Windows). The links hold absolute paths inside gitignored `.claude/`, so
+  re-run it after a fresh clone or a move — a dangling link silently drops the
+  skill. Restart Claude Code if `.claude/skills` did not exist when the session
+  started.
+- **Flat skills directory.** Every skill lives directly under
+  `.agents/skills/<name>/SKILL.md`. Adding a skill means a new top-level
+  directory plus a re-run of the link script.
+- **A skill describes code that exists.** Skills are read as authoritative, so
+  an agent follows an invented path into a compile error rather than looking.
+  A design for something not yet built belongs in a doc or an issue, not in a
+  skill. `node .agents/check-skill-references.mjs` enforces the checkable half
+  of this: every relative markdown link between skills must resolve, and every
+  backticked repo path must exist. Run it after changing a skill. Skills quoting
+  another project's source tree are listed as upstream exceptions in
+  `.agents/check-skill-references.mjs`; a skill about this repository is checked
+  by default.
+- **Vendored skills:** `angular-developer` and `angular-new-app` come from
+  upstream and are hash-locked in `skills-lock.json`. Do not hand-edit them.
+
+---
+
+## Coding Best Practices
+
+- **Dependency Injection:** Avoid hardcoded dependencies. Prefer taking dependencies in the constructor or function parameters.
+- **TypeScript Style:** Follow Google's TypeScript style guide (https://google.github.io/styleguide/tsguide.html).
+- **No `as any`.** Use generics, or `unknown` plus a type guard. `instance as unknown as Target` is a last resort worth a comment explaining why.
+- **Explicit return types** on exported functions and public methods.
+- **`readonly` collections** for data that is not meant to change, such as the game catalog.
+
+---
+
+## Writing Documentation
+
+These rules cover every doc comment: classes, interfaces, functions, HTML, CSS, workflows and scripts.
+
+- **Open with one sentence.** The first paragraph is a single sentence that briefly says what the thing does or what it is for.
+- **Classes and interfaces:** Write the sentence as if "This class", "This interface", or "An instance of this class" came before it, e.g. `Remembers the palette the player chose.`, not `This class remembers…` or `A class that remembers…`.
+- **Functions and methods:** Write in the third person, always starting with a verb phrase, as if "This function" came before it, e.g. `Returns the game a slug names.` or `Applies a palette to the page.`
+- **Further paragraphs are rare.** Add additional paragraphs only when it stops a caller from misusing the code, or when it answers a "why" that a reader is very likely to ask and cannot answer from the name or the code itself. Don't use one to restate the implementation, list alternatives you rejected, or tell the history of the code.
+- **`@param` and `@returns` only when they add something.** In TypeScript, leave them out when they only repeat the name and type or when they are already described sufficiently in the description.
+- **A script writes down every type.** The `.mjs` scripts under `.agents/` are plain JavaScript, so a JSDoc tag is the only place a type can go. Every parameter has an `@param {Type} name`, and every function that returns a value has an `@returns {Type}`, described only when the description adds something. A shape used more than once is a `@typedef`.
+- **Inline comments follow the same rules:** Only write implementation comments for what the code cannot say for itself (e.g. disambiguate a "why" that a user is very likely to ask after reading the code).
+
+```ts
+// Too much
+/**
+ * Subscribes a listener to a specific event.
+ *
+ * Subscriptions are managed using a registry that maps event names to arrays of
+ * listener functions. This allows for efficient registration and unregistration
+ * of listeners without the need for manual cleanup.
+ *
+ * @param event The name of the event to listen for.
+ * @param listener The callback function to invoke when the event is emitted.
+ * @returns Unsubscribes the listener. Handing back a disposer means a caller
+ *   that subscribes an inline closure can still let go of it, without having
+ *   to keep a reference around to pass to {@link off}.
+ */
+
+// Enough
+/** Subscribes a listener to an event and returns a function that unsubscribes it. */
+```
+
+---
+
+## Writing Unit Tests
+
+See the `vitest-testing` skill for the runner setup and Angular TestBed patterns.
+
+- **Test Coverage:** Cover new and changed code with specs, beside the file they test.
+- **Arrange, Act, Assert:** Structure each test case cleanly: arrange block, act block, assert block. Avoid multiple AAA cycles per test case; create focused test cases instead.
+- **Simple Test Logic:** Avoid complex conditional logic in unit tests. Keep tests readable and explicit.
+- **Test Helpers:** Abstract verbose setup into helper functions, ensuring test intent remains clear.
+- **Test via Public API:** Avoid accessing private fields or methods (and avoid using `as any` or bracket property accessors to bypass visibility).
+- **Verifying State > Verifying Interaction:** Prefer asserting resulting state over checking call counts/interactions, reserving interaction mocks only for when state cannot be inspected directly.
+- **Real Objects > Mocks:** Use real object instances instead of mocks whenever feasible.
+- **Avoid Any Casts:** Avoid `as any`. Use proper typing or `instance as unknown as TargetType` as a last resort.
