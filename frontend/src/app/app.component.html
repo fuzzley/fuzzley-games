@@ -1,0 +1,129 @@
+<div class="app-container">
+  <!-- Top Navigation Header -->
+  <header class="header">
+    <div class="brand">
+      <div class="brand-logo">
+        <span class="logo-icon">🎮</span>
+      </div>
+      <div>
+        <h1 class="brand-title">Fuzzley Games</h1>
+        <p class="brand-subtitle">Angular Skeleton Workspace</p>
+      </div>
+    </div>
+
+    <div class="status-indicator">
+      <span class="status-dot"></span>
+      <span class="status-text">Vite + Angular Live</span>
+    </div>
+  </header>
+
+  <!-- Main Content Hero -->
+  <main class="main-content">
+    <section class="hero-section">
+      <div class="hero-badge">
+        <span class="badge-sparkle">✨</span> Modern Frontend Foundation Ready
+      </div>
+      <h2 class="hero-headline">
+        Powered by <span class="gradient-text">Angular</span> &amp; <span class="gradient-text-alt">Vite</span>
+      </h2>
+      <p class="hero-description">
+        Lightning-fast ESM hot module reloading, strict TypeScript type-checking, and Yarn package management tailored for responsive web games.
+      </p>
+    </section>
+
+    <!-- Tech Stack Grid -->
+    <section class="section-container">
+      <h3 class="section-title">Verified Architecture Stack</h3>
+      <div class="tech-grid">
+        <div *ngFor="let item of techStack" class="tech-card">
+          <div class="tech-card-header">
+            <span class="tech-icon">{{ item.icon }}</span>
+            <span class="tech-version" [style.borderColor]="item.badgeColor" [style.color]="item.badgeColor">
+              {{ item.version }}
+            </span>
+          </div>
+          <h4 class="tech-name">{{ item.name }}</h4>
+          <p class="tech-role">{{ item.role }}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Signal Demonstration Card -->
+    <section class="section-container">
+      <div class="interactive-card">
+        <div class="interactive-header">
+          <div>
+            <h3 class="interactive-title">Angular Signals Reactive Sandbox</h3>
+            <p class="interactive-desc">Test client-side reactivity and Vite Hot Module Replacement (HMR).</p>
+          </div>
+          <div class="metric-pill">
+            <span class="metric-label">Computed 2x:</span>
+            <span id="computed-count" class="metric-val">{{ doubleCount() }}</span>
+          </div>
+        </div>
+
+        <div class="interactive-actions">
+          <button id="btn-increment" (click)="incrementCounter()" class="btn btn-primary">
+            <span>⚡ Click Counter</span>
+            <span id="click-count-badge" class="count-badge">{{ clickCount() }}</span>
+          </button>
+
+          <button id="btn-reset" (click)="resetCounter()" class="btn btn-secondary">
+            Reset State
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skeleton Game Modules Preview -->
+    <section class="section-container">
+      <div class="section-header-row">
+        <h3 class="section-title">Games Pipeline (Skeleton Modules)</h3>
+        <span class="pill-badge">Upcoming Games</span>
+      </div>
+      <div class="games-grid">
+        <div *ngFor="let game of gameSkeletons" class="game-card">
+          <div class="game-card-body">
+            <div class="game-status-tag">{{ game.status }}</div>
+            <h4 class="game-title">{{ game.title }}</h4>
+            <p class="game-category">{{ game.category }}</p>
+          </div>
+          <div class="game-card-footer">
+            <span class="tech-tag">{{ game.tag }}</span>
+            <span class="arrow-glyph">→</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Commands Cheat Sheet -->
+    <section class="section-container">
+      <div class="commands-card">
+        <h3 class="section-title">Development Commands</h3>
+        <div class="commands-list">
+          <div class="command-row">
+            <code class="cmd-badge">yarn dev</code>
+            <span class="cmd-desc">Starts the Vite dev server with instant HMR on port 4200</span>
+          </div>
+          <div class="command-row">
+            <code class="cmd-badge">yarn build</code>
+            <span class="cmd-desc">Compiles production-ready bundle via Vite</span>
+          </div>
+          <div class="command-row">
+            <code class="cmd-badge">yarn test</code>
+            <span class="cmd-desc">Executes fast unit tests with Vitest</span>
+          </div>
+          <div class="command-row">
+            <code class="cmd-badge">yarn typecheck</code>
+            <span class="cmd-desc">Runs Angular template and TypeScript strict validation</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>Fuzzley Games &bull; Angular + Vite + TypeScript + Yarn</p>
+  </footer>
+</div>
