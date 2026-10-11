@@ -1,0 +1,40 @@
+<main class="page" [class.searching]="searching()">
+  @if (searching()) {
+    <div class="results-head">
+      <h1>Results for “{{ query() }}”</h1>
+      <p class="count" aria-live="polite">
+        @if (matchCount()) {
+          {{ matchCount() }} of {{ total }} games
+        }
+      </p>
+    </div>
+  } @else {
+    <h1 class="visually-hidden">All games</h1>
+  }
+
+  @for (section of sections(); track section.category.id) {
+    <section [attr.aria-labelledby]="'section-' + section.category.id">
+      <div class="head">
+        <h2 [id]="'section-' + section.category.id">{{ section.category.name }}</h2>
+        <span class="count">{{ section.games.length }} {{ section.games.length === 1 ? 'game' : 'games' }}</span>
+        @if (!searching()) {
+          <a class="see-all" [routerLink]="['/category', section.category.id]">See all {{ section.total }}</a>
+        }
+      </div>
+      @if (!searching()) {
+        <p class="description">{{ section.category.description }}</p>
+      }
+      <ul class="row">
+        @for (game of section.games; track game.slug) {
+          <li><app-game-tile [game]="game" /></li>
+        }
+      </ul>
+    </section>
+  } @empty {
+    <div class="empty">
+      <p class="empty-title">No games match “{{ query() }}”.</p>
+      <p class="empty-hint">Try a game’s name, or a kind of game like “solitaire”.</p>
+      <a class="button" routerLink="/">Show all games</a>
+    </div>
+  }
+</main>

@@ -1,0 +1,29 @@
+<button
+  class="trigger"
+  type="button"
+  aria-controls="theme-options"
+  [attr.aria-expanded]="open()"
+  (click)="toggle()"
+>
+  <span class="swatch" [attr.data-theme]="current()" aria-hidden="true"></span>
+  <span class="label">Colours</span>
+  <span class="visually-hidden">: {{ currentName() }}</span>
+</button>
+
+<div id="theme-options" class="panel" [hidden]="!open()">
+  <p class="panel-title">Colours</p>
+  <ul>
+    @for (theme of themes; track theme.id) {
+      <li>
+        <button class="option" type="button" [attr.aria-pressed]="theme.id === current()" (click)="choose(theme.id)">
+          <span class="swatch large" [attr.data-theme]="theme.id" aria-hidden="true"></span>
+          <span class="name">{{ theme.name }}</span>
+          <span class="mode">{{ theme.mode === 'dark' ? 'Dark' : 'Light' }}</span>
+          @if (theme.id === current()) {
+            <svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7.5" /></svg>
+          }
+        </button>
+      </li>
+    }
+  </ul>
+</div>

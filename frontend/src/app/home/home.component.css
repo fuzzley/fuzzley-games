@@ -1,0 +1,148 @@
+:host {
+  display: block;
+}
+
+.page {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 0.5rem var(--gutter) 3rem;
+}
+
+.results-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  padding-top: 1.75rem;
+}
+
+.results-head h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+}
+
+section {
+  padding: 1.75rem 0 0.5rem;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+h2 {
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.count {
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.see-all {
+  margin-left: auto;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  white-space: nowrap;
+}
+
+.see-all:hover {
+  text-decoration: underline;
+}
+
+.description {
+  margin: 0.15rem 0 1rem;
+  color: var(--muted);
+}
+
+.searching .head {
+  margin-bottom: 1rem;
+}
+
+.row {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1.25rem 1rem;
+}
+
+/* One row per category on the home page; the rest is behind See all. */
+.page:not(.searching) .row li:nth-child(n + 7) {
+  display: none;
+}
+
+.empty {
+  padding: 3rem 0;
+}
+
+.empty-title {
+  font-size: 1.375rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.empty-hint {
+  margin: 0.35rem 0 1.25rem;
+  color: var(--muted);
+}
+
+@media (max-width: 64rem) {
+  .row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .page:not(.searching) .row li:nth-child(n + 5) {
+    display: none;
+  }
+}
+
+@media (max-width: 36rem) {
+  .page {
+    padding: 0 0 2rem;
+  }
+
+  .results-head,
+  .head,
+  .description,
+  .empty {
+    padding-inline: var(--gutter);
+  }
+
+  section {
+    padding-top: 1.25rem;
+  }
+
+  h2 {
+    font-size: 1.1875rem;
+  }
+
+  /* Each category scrolls sideways on a phone, so every game is in reach. */
+  .page:not(.searching) .row {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0 var(--gutter) 0.5rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+  }
+
+  .page:not(.searching) .row li:nth-child(n) {
+    display: block;
+    flex: none;
+    width: 42vw;
+    scroll-snap-align: start;
+  }
+
+  .searching .row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem 0.75rem;
+    padding-inline: var(--gutter);
+  }
+}

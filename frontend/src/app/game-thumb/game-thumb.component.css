@@ -1,0 +1,66 @@
+:host {
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--felt);
+}
+
+svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.table {
+  fill: var(--felt);
+}
+
+.face {
+  fill: #ffffff;
+  stroke: rgb(0 0 0 / 0.3);
+  stroke-width: 0.5;
+}
+
+.rank,
+.suit {
+  fill: #1b1f24;
+}
+
+.rank {
+  font-weight: 700;
+}
+
+.suit {
+  text-anchor: middle;
+}
+
+.red .rank,
+.red .suit {
+  fill: #c62828;
+}
+
+.back {
+  fill: var(--card-back);
+  stroke: #ffffff;
+  stroke-width: 0.7;
+}
+
+.back-inset {
+  fill: none;
+  stroke: rgb(255 255 255 / 0.4);
+  stroke-width: 0.5;
+}
+
+.slot {
+  fill: none;
+  stroke: rgb(255 255 255 / 0.4);
+  stroke-width: 0.6;
+  stroke-dasharray: 2 1.5;
+}
+
+.chip {
+  stroke: #ffffff;
+  stroke-width: 1.2;
+  stroke-dasharray: 2 2;
+}

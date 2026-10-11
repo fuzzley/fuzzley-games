@@ -1,0 +1,104 @@
+:host {
+  display: block;
+}
+
+.page {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 1.5rem var(--gutter) 3rem;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.back::before {
+  content: '‹ ';
+}
+
+.back:hover {
+  text-decoration: underline;
+}
+
+.about {
+  display: grid;
+  grid-template-columns: minmax(8rem, 16rem) minmax(0, 36rem);
+  align-items: center;
+  gap: 1.5rem 2rem;
+}
+
+.thumb.soon {
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+
+h1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.blurb {
+  margin: 0.5rem 0 0.75rem;
+  font-size: 1.125rem;
+}
+
+.meta {
+  color: var(--muted);
+}
+
+/* The space the game itself will fill. */
+.stage {
+  display: grid;
+  place-items: center;
+  min-height: min(68vh, 40rem);
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border-radius: calc(var(--radius) + 6px);
+  background: var(--felt);
+}
+
+.stage-note {
+  max-width: 34ch;
+  color: #ffffff;
+  text-align: center;
+  opacity: 0.85;
+}
+
+/* Games that aren't played on a card table. */
+.stage.plain {
+  background: var(--panel);
+}
+
+.stage.plain .stage-note {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.button {
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 36rem) {
+  .about {
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  .blurb {
+    font-size: 1rem;
+  }
+
+  .stage {
+    min-height: 60vh;
+  }
+}
