@@ -28,6 +28,9 @@ module.exports = tseslint.config(
       },
     },
     rules: {
+      // Angular marks what it is replacing with @deprecated, so an upgrade
+      // shows up here rather than when the API is finally removed.
+      "@typescript-eslint/no-deprecated": "error",
       // A component's class can be empty: its decorator is what it declares.
       "@typescript-eslint/no-extraneous-class": [
         "error",
