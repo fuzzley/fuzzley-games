@@ -1,11 +1,16 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { CATEGORIES, findCategory, gamesIn } from '../../provider/game_catalog';
-import { GameTileComponent } from '../game_tile/game_tile.component';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+} from "@angular/core";
+import { RouterLink } from "@angular/router";
+import { CATEGORIES, findCategory, gamesIn } from "../../provider/game_catalog";
+import { GameTileComponent } from "../game_tile/game_tile.component";
 
 /** Every game in one category, as a plain grid. */
 @Component({
-  selector: 'app-category',
+  selector: "app-category",
   imports: [RouterLink, GameTileComponent],
   template: `
     <main class="page">
@@ -26,13 +31,15 @@ import { GameTileComponent } from '../game_tile/game_tile.component';
         <p class="description">Try one of these instead:</p>
         <ul class="others">
           @for (other of categories; track other.id) {
-            <li><a [routerLink]="['/category', other.id]">{{ other.name }}</a></li>
+            <li>
+              <a [routerLink]="['/category', other.id]">{{ other.name }}</a>
+            </li>
           }
         </ul>
       }
     </main>
   `,
-  styleUrl: './category.component.css',
+  styleUrl: "./category.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryComponent {

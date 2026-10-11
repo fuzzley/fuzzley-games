@@ -1,15 +1,22 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal } from '@angular/core';
-import { THEMES, ThemeId, ThemeService } from '../../service/theme.service';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  inject,
+  signal,
+} from "@angular/core";
+import { THEMES, ThemeId, ThemeService } from "../../service/theme.service";
 
 /** A "Colours" button that opens a short list of palettes to choose from. */
 @Component({
-  selector: 'app-theme-menu',
-  templateUrl: './theme_menu.component.html',
-  styleUrl: './theme_menu.component.css',
+  selector: "app-theme-menu",
+  templateUrl: "./theme_menu.component.html",
+  styleUrl: "./theme_menu.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '(document:click)': 'closeIfOutside($event)',
-    '(keydown.escape)': 'close(true)',
+    "(document:click)": "closeIfOutside($event)",
+    "(keydown.escape)": "close(true)",
   },
 })
 export class ThemeMenuComponent {
@@ -18,7 +25,9 @@ export class ThemeMenuComponent {
 
   protected readonly themes = THEMES;
   protected readonly current = this.theme.current;
-  protected readonly currentName = computed(() => THEMES.find((t) => t.id === this.current())?.name);
+  protected readonly currentName = computed(
+    () => THEMES.find((t) => t.id === this.current())?.name,
+  );
   protected readonly open = signal(false);
 
   toggle(): void {
@@ -33,7 +42,10 @@ export class ThemeMenuComponent {
   close(refocus = false): void {
     if (!this.open()) return;
     this.open.set(false);
-    if (refocus) this.host.nativeElement.querySelector<HTMLButtonElement>('.trigger')?.focus();
+    if (refocus)
+      this.host.nativeElement
+        .querySelector<HTMLButtonElement>(".trigger")
+        ?.focus();
   }
 
   closeIfOutside(event: Event): void {

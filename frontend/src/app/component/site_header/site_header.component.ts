@@ -1,16 +1,27 @@
-import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { filter, map } from 'rxjs';
-import { CATEGORIES } from '../../provider/game_catalog';
-import { ThemeMenuComponent } from '../theme_menu/theme_menu.component';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  linkedSignal,
+} from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
+import {
+  NavigationEnd,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+} from "@angular/router";
+import { filter, map } from "rxjs";
+import { CATEGORIES } from "../../provider/game_catalog";
+import { ThemeMenuComponent } from "../theme_menu/theme_menu.component";
 
 /** Name, category links, search and the palette menu, on every page. */
 @Component({
-  selector: 'app-site-header',
+  selector: "app-site-header",
   imports: [RouterLink, RouterLinkActive, ThemeMenuComponent],
-  templateUrl: './site_header.component.html',
-  styleUrl: './site_header.component.css',
+  templateUrl: "./site_header.component.html",
+  styleUrl: "./site_header.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SiteHeaderComponent {
@@ -27,13 +38,21 @@ export class SiteHeaderComponent {
   );
 
   /** The search box follows `?q=` in the address, and writes back to it. */
-  protected readonly query = linkedSignal(() => this.router.parseUrl(this.url()).queryParams['q'] ?? '');
-  private readonly onHome = computed(() => this.router.parseUrl(this.url()).root.children['primary'] === undefined);
+  protected readonly query = linkedSignal(
+    () => this.router.parseUrl(this.url()).queryParams["q"] ?? "",
+  );
+  private readonly onHome = computed(
+    () =>
+      this.router.parseUrl(this.url()).root.children["primary"] === undefined,
+  );
 
   search(query: string): void {
     this.query.set(query);
     // Typing on the home page refines the results in place; from anywhere
     // else it starts a new search, which Back can undo.
-    this.router.navigate(['/'], { queryParams: { q: query || null }, replaceUrl: this.onHome() });
+    this.router.navigate(["/"], {
+      queryParams: { q: query || null },
+      replaceUrl: this.onHome(),
+    });
   }
 }

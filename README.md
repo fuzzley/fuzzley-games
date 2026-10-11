@@ -15,11 +15,13 @@ Fuzzley Games portal and gallery built with Angular and Vite, containerized with
 From the repository root:
 
 1. **Build the Docker Image**:
+
    ```sh
    docker build -t fuzzley-games .
    ```
 
 2. **Run the Container Locally**:
+
    ```sh
    docker run -d --name games-container -p 8080:8080 -e PORT=8080 fuzzley-games
    ```
@@ -39,10 +41,10 @@ fuzzley.games is the site. Cloud Run serves it from the Docker image above,
 and rebuilds and deploys that image on every push to `main` by itself, without
 waiting for the checks that follow.
 
-| Piece             | Where                                                                                                       |
-| ----------------- | ----------------------------------------------------------------------------------------------------------- |
-| Cloud Run service | `fuzzley-games-git` in `us-central1` (project `agavel-personal`)                                            |
-| Build trigger     | Cloud Build, `europe-west1`, through the Developer Connect GitHub connection `connection-bvfiiae`           |
+| Piece             | Where                                                                                                        |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ |
+| Cloud Run service | `fuzzley-games-git` in `us-central1` (project `agavel-personal`)                                             |
+| Build trigger     | Cloud Build, `europe-west1`, through the Developer Connect GitHub connection `connection-bvfiiae`            |
 | Images            | Artifact Registry `us-central1-docker.pkg.dev/agavel-personal/cloud-run-source-deploy/fuzzley-fuzzley-games` |
 
 The trigger pulls the previous `:latest` image as a layer cache, builds the
@@ -75,6 +77,7 @@ curl https://fuzzley.games/version.json
 ### Domain Mapping
 
 Map a custom domain using either:
+
 - **Cloud Run Console**: [Manage Custom Domains](https://console.cloud.google.com/run/domains?project=agavel-personal)
 - **gcloud CLI**:
   ```sh

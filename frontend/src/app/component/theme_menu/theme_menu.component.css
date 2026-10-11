@@ -34,7 +34,7 @@
 }
 
 .swatch::after {
-  content: '';
+  content: "";
   position: absolute;
   right: -1px;
   bottom: -1px;
@@ -95,7 +95,7 @@ ul {
   background: var(--panel);
 }
 
-.option[aria-pressed='true'] .name {
+.option[aria-pressed="true"] .name {
   font-weight: 700;
 }
 

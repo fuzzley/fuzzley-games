@@ -1,10 +1,16 @@
 <main class="page">
   @if (game(); as game) {
     @if (category(); as category) {
-      <a class="back" [routerLink]="['/category', category.id]">{{ category.name }}</a>
+      <a class="back" [routerLink]="['/category', category.id]">{{
+        category.name
+      }}</a>
     }
     <div class="about">
-      <app-game-thumb class="thumb" [class.soon]="game.comingSoon" [slug]="game.slug" />
+      <app-game-thumb
+        class="thumb"
+        [class.soon]="game.comingSoon"
+        [slug]="game.slug"
+      />
       <div>
         <h1>
           {{ game.name }}
@@ -17,10 +23,15 @@
       </div>
     </div>
 
-    <section class="stage" [class.plain]="game.category === 'classics'" aria-label="Game">
+    <section
+      class="stage"
+      [class.plain]="game.category === 'classics'"
+      aria-label="Game"
+    >
       <p class="stage-note">
         @if (game.comingSoon) {
-          {{ game.name }} is coming soon. It will be playable here once it’s finished.
+          {{ game.name }} is coming soon. It will be playable here once it’s
+          finished.
         } @else {
           {{ game.name }} loads here.
         }
