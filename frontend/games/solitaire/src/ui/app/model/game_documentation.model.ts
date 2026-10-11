@@ -2,7 +2,7 @@
 export interface DocScreenshot {
   /**
    * The image's relative URL, such as
-   * `./docs/screenshots/klondike/overview.png`.
+   * `./docs/screenshots/klondike/overview.webp`.
    */
   readonly url: string;
   /** Human-readable caption explaining what the screenshot demonstrates. */

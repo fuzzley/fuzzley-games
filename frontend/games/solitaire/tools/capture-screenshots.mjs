@@ -6,10 +6,12 @@
  *   yarn capture:screenshots [game id ...]
  *   yarn build:thumbs
  *
- * Writes `public/docs/screenshots/<id>/overview.png` for every game that has
- * one, or only the games named. Each game opens on a fresh deal in a browser
- * context of its own, so it shows the whole page with every setting at its
- * default, rather than whatever the last game left in storage.
+ * Writes `docs/screenshots/<id>/overview.png` for every game that has one, or
+ * only the games named. Each game opens on a fresh deal in a browser context
+ * of its own, so it shows the whole page with every setting at its default,
+ * rather than whatever the last game left in storage. These lossless
+ * originals stay out of `public/`: `yarn build:thumbs` makes the WebP images
+ * the site serves from them.
  */
 import { spawn } from "node:child_process";
 import {
@@ -40,7 +42,7 @@ only the games named. Run yarn build:thumbs afterwards.
   -h, --help       Show this message`;
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const SCREENSHOT_DIR = join(ROOT, "public/docs/screenshots");
+const SCREENSHOT_DIR = join(ROOT, "docs/screenshots");
 const TARGET = "overview.png";
 
 /** The page size every screenshot is taken at, in CSS pixels. */
@@ -394,7 +396,7 @@ async function main() {
     console.error(`Not captured: ${failed.join(", ")}`);
     process.exitCode = 1;
   } else {
-    console.log("Run yarn build:thumbs to shrink them for the game browser.");
+    console.log("Run yarn build:thumbs to make the images the site serves.");
   }
 }
 
