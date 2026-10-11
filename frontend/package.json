@@ -10,7 +10,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "ngc -p tsconfig.app.json --noEmit"
+    "typecheck": "ngc -p tsconfig.app.json --noEmit",
+    "verify": "yarn typecheck && yarn test && yarn build"
   },
   "dependencies": {
     "@angular/common": "^22.2.0",

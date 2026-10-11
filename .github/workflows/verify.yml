@@ -1,0 +1,108 @@
+name: Verify
+
+# Every push and pull request is type-checked, tested and built, and its
+# Docker image is built and served.
+#
+# fuzzley.games is served by Cloud Run, which builds the Dockerfile from main
+# on its own (a Cloud Build trigger) and doesn't depend on this workflow.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout fuzzley-games
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 26
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: yarn install --immutable
+
+      - name: Type-check, test and build
+        working-directory: frontend
+        run: yarn verify
+
+  # Cloud Run builds the same Dockerfile from main without waiting for these
+  # checks, so build the image here too, serve it, and request a few pages.
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout fuzzley-games
+        uses: actions/checkout@v7
+
+      - name: Build the image
+        run: docker build --build-arg COMMIT_SHA=${{ github.sha }} -t fuzzley-games .
+
+      - name: Serve the image and check its pages
+        run: |
+          docker run -d --name games -p 8080:8080 -e PORT=8080 \
+            -e GA_AG_MEASUREMENT_ID=G-CHECK00000 fuzzley-games
+          for attempt in $(seq 1 30); do
+            curl -fs -o /dev/null http://localhost:8080/ && break
+            sleep 1
+          done
+
+          failed=0
+          fail() {
+            echo "::error::$1"
+            failed=1
+          }
+          expect() {
+            status=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:8080$2")
+            echo "$status $2"
+            [ "$status" = "$1" ] || fail "Expected $1 for $2, got $status."
+          }
+          expect_cache() {
+            value=$(curl -s -o /dev/null -D - "http://localhost:8080$1" |
+              tr -d '\r' | sed -n 's/^cache-control: //Ip')
+            echo "Cache-Control: $value  $1"
+            [ "$value" = "$2" ] || fail "Expected Cache-Control: $2 for $1, got '$value'."
+          }
+
+          # Routes are Angular's, so nginx answers them with index.html.
+          expect 200 /
+          expect 200 /category/solitaire
+          expect 200 /games/klondike
+          expect 200 /env.js
+          expect 200 /analytics.js
+          expect 200 /version.json
+          # A missing build file must not fall back to index.html.
+          expect 404 /assets/no-such-file.js
+
+          asset=$(curl -s http://localhost:8080/ | grep -o '/assets/[^"]*\.js' | head -1)
+          [ -n "$asset" ] || fail "index.html links no script under /assets/."
+          expect 200 "$asset"
+          expect_cache "$asset" "public, max-age=31536000, immutable"
+          expect_cache / "no-cache"
+          expect_cache /env.js "no-store"
+          expect_cache /version.json "no-store"
+
+          # env.js is written from the container's environment at startup.
+          curl -s http://localhost:8080/env.js | grep -q '"G-CHECK00000"' ||
+            fail "env.js doesn't carry GA_AG_MEASUREMENT_ID."
+          # The image says which commit it was built from.
+          curl -s http://localhost:8080/version.json | grep -q "\"commit\": \"${GITHUB_SHA::7}\"" ||
+            fail "version.json doesn't name commit ${GITHUB_SHA::7}."
+
+          [ "$failed" = 0 ] || docker logs games
+          exit $failed
