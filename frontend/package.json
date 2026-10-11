@@ -5,6 +5,7 @@
   "type": "module",
   "packageManager": "yarn@4.17.1",
   "scripts": {
+    "start": "vite",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",

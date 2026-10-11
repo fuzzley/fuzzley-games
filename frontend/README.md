@@ -20,6 +20,8 @@ yarn install
 ### 2. Development Server
 Start Vite development server with instant Hot Module Replacement (HMR):
 ```bash
+yarn start
+# or
 yarn dev
 ```
 Navigate to `http://localhost:4200`.
