@@ -1,3 +1,7 @@
+# Store and check out every text file with LF endings, which Prettier also
+# writes, so formatting a file never rewrites its line endings on Windows.
+* text=auto eol=lf
+
 # Shell scripts must keep LF endings; the nginx image's /bin/sh chokes on a
 # CRLF shebang, so never let Windows checkouts convert these to CRLF.
 *.sh text eol=lf

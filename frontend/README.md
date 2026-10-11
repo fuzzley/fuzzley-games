@@ -13,38 +13,49 @@ This is the frontend skeleton for **Fuzzley Games**, built with **Angular (Stand
 ## Getting Started
 
 ### 1. Install Dependencies
+
 ```bash
 yarn install
 ```
 
 ### 2. Development Server
+
 Start Vite development server with instant Hot Module Replacement (HMR):
+
 ```bash
 yarn start
 # or
 yarn dev
 ```
+
 Navigate to `http://localhost:4200`.
 
 ### 3. Production Build
+
 Build for production into `dist/`:
+
 ```bash
 yarn build
 ```
 
 Preview the production build locally:
+
 ```bash
 yarn preview
 ```
 
 ### 4. Run Unit Tests
+
 Run unit tests with Vitest:
+
 ```bash
 yarn test
 ```
 
 ### 5. Type Checking
+
 Run Angular and TypeScript strict type checking:
+
 ```bash
 yarn typecheck
 ```

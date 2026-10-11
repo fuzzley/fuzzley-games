@@ -4,7 +4,7 @@
  * element (the theme menu does this for its swatches).
  */
 :root,
-[data-theme='classic'] {
+[data-theme="classic"] {
   color-scheme: light;
   --page: #ffffff;
   --bar: #ffffff;
@@ -25,7 +25,7 @@
   --card-back: #2b579a;
 }
 
-[data-theme='pastel'] {
+[data-theme="pastel"] {
   color-scheme: light;
   --page: #f4f1fb;
   --bar: #f4f1fb;
@@ -46,7 +46,7 @@
   --card-back: #e8739e;
 }
 
-[data-theme='casino'] {
+[data-theme="casino"] {
   color-scheme: dark;
   --page: #101418;
   --bar: #101418;
@@ -67,7 +67,7 @@
   --card-back: #8b1e2d;
 }
 
-[data-theme='midnight'] {
+[data-theme="midnight"] {
   color-scheme: dark;
   --page: #0e1a2b;
   --bar: #0e1a2b;
@@ -89,7 +89,7 @@
 }
 
 :root {
-  --font: 'Figtree', system-ui, sans-serif;
+  --font: "Figtree", system-ui, sans-serif;
   --page-width: 78rem;
   --gutter: 1.5rem;
   --radius: 10px;

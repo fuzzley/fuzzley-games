@@ -4,13 +4,21 @@
 
     <nav class="categories" aria-label="Categories">
       @for (category of categories; track category.id) {
-        <a [routerLink]="['/category', category.id]" routerLinkActive="active" ariaCurrentWhenActive="page">{{ category.name }}</a>
+        <a
+          [routerLink]="['/category', category.id]"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          >{{ category.name }}</a
+        >
       }
     </nav>
 
     <div class="tools">
       <label class="search">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5 21 21" /></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="10.5" cy="10.5" r="6.5" />
+          <path d="M15.5 15.5 21 21" />
+        </svg>
         <span class="visually-hidden">Search games</span>
         <input
           #box

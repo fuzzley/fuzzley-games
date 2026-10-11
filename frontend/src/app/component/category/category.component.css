@@ -17,7 +17,7 @@
 }
 
 .back::before {
-  content: '‹ ';
+  content: "‹ ";
 }
 
 .back:hover {

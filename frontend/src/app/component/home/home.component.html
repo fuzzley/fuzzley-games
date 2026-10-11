@@ -15,10 +15,17 @@
   @for (section of sections(); track section.category.id) {
     <section [attr.aria-labelledby]="'section-' + section.category.id">
       <div class="head">
-        <h2 [id]="'section-' + section.category.id">{{ section.category.name }}</h2>
-        <span class="count">{{ section.games.length }} {{ section.games.length === 1 ? 'game' : 'games' }}</span>
+        <h2 [id]="'section-' + section.category.id">
+          {{ section.category.name }}
+        </h2>
+        <span class="count"
+          >{{ section.games.length }}
+          {{ section.games.length === 1 ? "game" : "games" }}</span
+        >
         @if (!searching()) {
-          <a class="see-all" [routerLink]="['/category', section.category.id]">See all {{ section.total }}</a>
+          <a class="see-all" [routerLink]="['/category', section.category.id]"
+            >See all {{ section.total }}</a
+          >
         }
       </div>
       @if (!searching()) {
@@ -33,7 +40,9 @@
   } @empty {
     <div class="empty">
       <p class="empty-title">No games match “{{ query() }}”.</p>
-      <p class="empty-hint">Try a game’s name, or a kind of game like “solitaire”.</p>
+      <p class="empty-hint">
+        Try a game’s name, or a kind of game like “solitaire”.
+      </p>
       <a class="button" routerLink="/">Show all games</a>
     </div>
   }

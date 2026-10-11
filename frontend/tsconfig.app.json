@@ -4,10 +4,6 @@
     "outDir": "./dist/out-tsc",
     "types": []
   },
-  "files": [
-    "src/app/main.ts"
-  ],
-  "include": [
-    "src/**/*.d.ts"
-  ]
+  "files": ["src/app/main.ts"],
+  "include": ["src/**/*.d.ts"]
 }

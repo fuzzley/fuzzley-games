@@ -1,10 +1,10 @@
-import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
-import { describe, it, expect, beforeEach } from 'vitest';
-import { AppComponent } from './app.component';
-import { routes } from '../../routes';
+import { TestBed } from "@angular/core/testing";
+import { provideRouter } from "@angular/router";
+import { describe, it, expect, beforeEach } from "vitest";
+import { AppComponent } from "./app.component";
+import { routes } from "../../routes";
 
-describe('AppComponent', () => {
+describe("AppComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
@@ -12,7 +12,7 @@ describe('AppComponent', () => {
     }).compileComponents();
   });
 
-  it('should create the app', () => {
+  it("should create the app", () => {
     const fixture = TestBed.createComponent(AppComponent);
     expect(fixture.componentInstance).toBeTruthy();
   });

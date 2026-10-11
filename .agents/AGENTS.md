@@ -71,6 +71,8 @@ Run from `frontend/`:
 - **Run Unit Tests:** `yarn test` (runs Vitest once).
 - **Type Checking:** `yarn typecheck` (runs the Angular compiler's checks, emitting nothing).
 - **Full Verification Pipeline:** `yarn verify` (runs `yarn typecheck && yarn test && yarn build`).
+- **Format Codebase:** `yarn prettier` (formats the whole repository with
+  Prettier); `yarn prettier:check` only reports what it would change.
 
 To test the image itself, build and run it with Docker as `README.md` shows.
 
@@ -121,7 +123,8 @@ per-tool directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   `.agents/check-skill-references.mjs`; a skill about this repository is checked
   by default.
 - **Vendored skills:** `angular-developer` and `angular-new-app` come from
-  upstream and are hash-locked in `skills-lock.json`. Do not hand-edit them.
+  upstream and are hash-locked in `skills-lock.json`, so `.prettierignore`
+  leaves them unformatted. Do not hand-edit them.
 
 ---
 
