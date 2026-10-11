@@ -1,0 +1,51 @@
+server {
+    listen ${PORT};
+    server_name localhost;
+
+    # Ensure redirects (such as adding a trailing slash)
+    # are relative so that the internal container port (e.g. :8080) and HTTP scheme are not leaked
+    # when running behind a TLS-terminating reverse proxy (Cloud Run).
+    absolute_redirect off;
+    port_in_redirect off;
+
+    # The nginx image ships with compression off. HTML is always included once
+    # it is on; these are the other text types the site serves.
+    gzip on;
+    gzip_min_length 1024;
+    gzip_types text/css application/javascript application/json image/svg+xml application/manifest+json;
+
+    # The site's build fingerprints every file in /assets/, so these files never
+    # change in place and browsers can keep them for a year.
+    location /assets/ {
+        root /usr/share/nginx/html;
+        try_files $uri =404;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    # Runtime config is regenerated per-deploy; never cache it.
+    location = /env.js {
+        root /usr/share/nginx/html;
+        add_header Cache-Control "no-store";
+    }
+
+    # Version info should never be cached.
+    location = /version.json {
+        root /usr/share/nginx/html;
+        add_header Cache-Control "no-store";
+    }
+
+    # Angular client-side routing: fall back to index.html for SPA routes.
+    # Browsers must check back before reusing index.html: a stale copy would
+    # ask for /assets/ files that the next deploy no longer has.
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-cache";
+    }
+
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
+    }
+}
