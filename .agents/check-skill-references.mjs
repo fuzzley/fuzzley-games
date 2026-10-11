@@ -104,8 +104,8 @@ function checkRepoPaths(file, text, problems) {
       REPO_PREFIXES.some((prefix) => candidate.startsWith(prefix)) ||
       ROOT_FILES.has(candidate);
     if (!looksLikeRepoPath) continue;
-    // Skip prose and placeholder paths -- `frontend/src/app/<feature>/` names a
-    // shape, not a file, and is meant to stand for any of them.
+    // Skip prose and placeholder paths -- `frontend/src/app/component/<name>/`
+    // names a shape, not a file, and is meant to stand for any of them.
     if (/[\s<>]/.test(candidate)) continue;
 
     if (!pathExists(path.join(REPO_ROOT, candidate))) {

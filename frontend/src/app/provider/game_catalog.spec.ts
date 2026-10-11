@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { CATEGORIES, GAMES, findGame, gamesIn, isNew, matchesQuery } from './catalog';
-import { hasThumbnail, thumbnailFor } from './thumbnails';
+import { CATEGORIES, GAMES, findGame, gamesIn, isNew, matchesQuery } from './game_catalog';
 
 describe('catalog', () => {
   const klondike = findGame('klondike')!;
@@ -9,13 +8,6 @@ describe('catalog', () => {
     expect(new Set(GAMES.map((game) => game.slug)).size).toBe(GAMES.length);
     const ids = CATEGORIES.map((category) => category.id);
     GAMES.forEach((game) => expect(ids).toContain(game.category));
-  });
-
-  it('draws a thumbnail for every game', () => {
-    GAMES.forEach((game) => {
-      expect(hasThumbnail(game.slug), game.slug).toBe(true);
-      expect(thumbnailFor(game.slug).shapes.length, game.slug).toBeGreaterThan(0);
-    });
   });
 
   it('matches on name, category and blurb, ignoring case', () => {

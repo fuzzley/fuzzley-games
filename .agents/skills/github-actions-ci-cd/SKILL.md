@@ -42,7 +42,7 @@ request.
    with `actions/cache` rather than `setup-node`'s `cache: yarn`, which looks
    up Yarn's cache folder before Corepack runs.
 3. **The Docker checks follow the server.** A new route in
-   `frontend/src/app/app.routes.ts`, a changed header in `nginx.conf.template`
+   `frontend/src/app/routes.ts`, a changed header in `nginx.conf.template`
    or a new variable in `docker-entrypoint.d/40-generate-env-config.sh` gets a
    matching expectation in the `docker` job.
 4. **No secrets in CI.** The workflow uses a made-up measurement ID; the real

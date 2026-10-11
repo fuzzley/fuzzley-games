@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal } from '@angular/core';
-import { THEMES, ThemeId, ThemeService } from './theme.service';
+import { THEMES, ThemeId, ThemeService } from '../../service/theme.service';
 
 /** A "Colours" button that opens a short list of palettes to choose from. */
 @Component({
   selector: 'app-theme-menu',
-  templateUrl: './theme-menu.component.html',
-  styleUrl: './theme-menu.component.css',
+  templateUrl: './theme_menu.component.html',
+  styleUrl: './theme_menu.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(document:click)': 'closeIfOutside($event)',

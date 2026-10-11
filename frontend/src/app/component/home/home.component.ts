@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CATEGORIES, GAMES, gamesIn, matchesQuery } from '../games/catalog';
-import { GameTileComponent } from '../game-tile/game-tile.component';
+import { CATEGORIES, GAMES, gamesIn, matchesQuery } from '../../provider/game_catalog';
+import { GameTileComponent } from '../game_tile/game_tile.component';
 
 /**
  * The home page: one short row per category, each linking to its full list.

@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { findCategory, findGame } from '../games/catalog';
-import { GameThumbComponent } from '../game-thumb/game-thumb.component';
+import { findCategory, findGame } from '../../provider/game_catalog';
+import { GameThumbComponent } from '../game_thumb/game_thumb.component';
 
 /** Where a single game is played. The game itself mounts in the stage. */
 @Component({
   selector: 'app-game-page',
   imports: [RouterLink, GameThumbComponent],
-  templateUrl: './game-page.component.html',
-  styleUrl: './game-page.component.css',
+  templateUrl: './game_page.component.html',
+  styleUrl: './game_page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GamePageComponent {
