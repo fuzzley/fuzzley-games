@@ -17,7 +17,7 @@ Two independent jobs, on push to `main`, any pull request, or a manual
 `workflow_dispatch`. A newer push to the same ref cancels a run in progress.
 
 1. **`verify`** — checkout, Node 26, Corepack, an immutable install in
-   `frontend/`, then `yarn verify` (type-check, test, build).
+   `frontend/`, then `yarn verify` (lint, type-check, test, build).
 2. **`docker`** — builds the `Dockerfile` with `COMMIT_SHA`, runs the image
    with a placeholder analytics ID, and requests its pages: the Angular routes
    answer with `index.html`, a missing file under `/assets/` is a 404, the
@@ -52,7 +52,9 @@ request.
 ## Troubleshooting
 
 - **`verify` failures.** Reproduce with `yarn verify` in `frontend/`.
-  `yarn typecheck` runs `ngc` over `frontend/tsconfig.app.json`.
+  `yarn typecheck` runs `ngc` over `frontend/tsconfig.app.json`, then `tsc`
+  over `frontend/tsconfig.scripts.json`. A formatting failure in `yarn lint`
+  is fixed by `yarn prettier`.
 - **Install failures.** Usually a stale `frontend/yarn.lock`: run
   `yarn install` in `frontend/` and commit the lockfile.
 - **`docker` failures.** The job prints the container's logs when a check

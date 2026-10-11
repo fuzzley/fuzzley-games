@@ -39,7 +39,7 @@ export class SiteHeaderComponent {
 
   /** The search box follows `?q=` in the address, and writes back to it. */
   protected readonly query = linkedSignal(
-    () => this.router.parseUrl(this.url()).queryParams["q"] ?? "",
+    () => this.router.parseUrl(this.url()).queryParamMap.get("q") ?? "",
   );
   private readonly onHome = computed(
     () =>
@@ -50,7 +50,7 @@ export class SiteHeaderComponent {
     this.query.set(query);
     // Typing on the home page refines the results in place; from anywhere
     // else it starts a new search, which Back can undo.
-    this.router.navigate(["/"], {
+    void this.router.navigate(["/"], {
       queryParams: { q: query || null },
       replaceUrl: this.onHome(),
     });

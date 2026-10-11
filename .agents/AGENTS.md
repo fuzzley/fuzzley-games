@@ -69,8 +69,9 @@ Run from `frontend/`:
 - **Production Build:** `yarn build` (bundles into `frontend/dist/` and writes `version.json` with the commit it was built from).
 - **Preview Build:** `yarn preview` (serves the production build locally).
 - **Run Unit Tests:** `yarn test` (runs Vitest once).
-- **Type Checking:** `yarn typecheck` (runs the Angular compiler's checks, emitting nothing).
-- **Full Verification Pipeline:** `yarn verify` (runs `yarn typecheck && yarn test && yarn build`).
+- **Type Checking:** `yarn typecheck` (runs the Angular compiler's checks, emitting nothing, then type-checks the `.agents` scripts from their JSDoc with `tsconfig.scripts.json`).
+- **Linting:** `yarn lint` (checks the skills' references, runs ESLint over `src` and `.agents`, then checks formatting with `yarn prettier:check`). ESLint's config is `frontend/eslint.config.cjs`: type-aware TypeScript rules, Angular's recommended and template accessibility rules, and JSDoc types on every script.
+- **Full Verification Pipeline:** `yarn verify` (runs `yarn lint && yarn typecheck && yarn test && yarn build`).
 - **Format Codebase:** `yarn prettier` (formats the whole repository with
   Prettier); `yarn prettier:check` only reports what it would change.
 
