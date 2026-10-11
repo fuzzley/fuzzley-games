@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CATEGORIES, findCategory, gamesIn } from '../games/catalog';
-import { GameTileComponent } from '../game-tile/game-tile.component';
+import { CATEGORIES, findCategory, gamesIn } from '../../provider/game_catalog';
+import { GameTileComponent } from '../game_tile/game_tile.component';
 
 /** Every game in one category, as a plain grid. */
 @Component({

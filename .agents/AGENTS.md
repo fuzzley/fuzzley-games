@@ -19,10 +19,18 @@ Cloud Run.
 
 - **`frontend/`** — the Angular app, and its own Yarn project. Run every `yarn`
   command from here.
-  - `src/app/` holds one folder per component or feature, with its template,
-    stylesheet and spec beside it.
-  - `src/styles.css` is the one global stylesheet: the colour palettes, as
-    custom properties under `[data-theme]`, and the few shared classes.
+  - `src/app/` is the application, laid out like fSolitaire's shell.
+    `main.ts` bootstraps it and `routes.ts` declares the pages and provides
+    the router.
+  - `src/app/component/` holds one folder per component, named in snake_case
+    (`game_tile/game_tile.component.ts`), with its template and stylesheet.
+  - `src/app/service/` holds the injectable services, such as `ThemeService`.
+  - `src/app/provider/` holds the data the site is built around: the game
+    catalog and each game's thumbnail drawing.
+  - `src/app/styles/global.css` is the one global stylesheet: the colour
+    palettes, as custom properties under `[data-theme]`, and the few shared
+    classes.
+  - Every spec sits beside the file it tests, named after it.
   - `public/` is copied into the build as is, including the runtime config
     placeholder `env.js`.
 - **`Dockerfile`, `nginx.conf.template`, `docker-entrypoint.d/`** — the image
@@ -36,10 +44,11 @@ Cloud Run.
   detection pass.
 - **Colours come from the palette.** Anything that should follow the theme
   reads a palette variable with `var()`, and a new variable is added to every
-  palette in `src/styles.css`.
+  palette in `src/app/styles/global.css`.
 - **`@keyframes` are global.** Angular's emulated encapsulation rewrites
   selectors, not at-rule names, so two components defining the same animation
-  name silently overwrite each other. Declare them once in `src/styles.css`.
+  name silently overwrite each other. Declare them once in
+  `src/app/styles/global.css`.
 - **Visible state is announced state.** A control that looks selected carries
   `aria-checked`/`aria-current`/`aria-pressed`. See the
   `web-game-accessibility` skill.

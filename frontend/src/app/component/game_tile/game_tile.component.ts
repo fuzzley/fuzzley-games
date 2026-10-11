@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Game, isNew } from '../games/catalog';
-import { GameThumbComponent } from '../game-thumb/game-thumb.component';
+import { Game, isNew } from '../../provider/game_catalog';
+import { GameThumbComponent } from '../game_thumb/game_thumb.component';
 
 @Component({
   selector: 'app-game-tile',
@@ -29,7 +29,7 @@ import { GameThumbComponent } from '../game-thumb/game-thumb.component';
       </span>
     </a>
   `,
-  styleUrl: './game-tile.component.css',
+  styleUrl: './game_tile.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameTileComponent {

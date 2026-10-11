@@ -9,7 +9,7 @@ export interface Theme {
   mode: 'light' | 'dark';
 }
 
-/** The colours themselves live in styles.css under [data-theme='…']. */
+/** The colours themselves live in styles/global.css under [data-theme='…']. */
 export const THEMES: readonly Theme[] = [
   { id: 'classic', name: 'Classic felt', mode: 'light' },
   { id: 'pastel', name: 'Soft pastel', mode: 'light' },

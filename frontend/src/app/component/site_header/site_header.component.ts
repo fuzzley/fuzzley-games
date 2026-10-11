@@ -2,15 +2,15 @@ import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal } fr
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, map } from 'rxjs';
-import { CATEGORIES } from '../games/catalog';
-import { ThemeMenuComponent } from '../theme/theme-menu.component';
+import { CATEGORIES } from '../../provider/game_catalog';
+import { ThemeMenuComponent } from '../theme_menu/theme_menu.component';
 
 /** Name, category links, search and the palette menu, on every page. */
 @Component({
   selector: 'app-site-header',
   imports: [RouterLink, RouterLinkActive, ThemeMenuComponent],
-  templateUrl: './site-header.component.html',
-  styleUrl: './site-header.component.css',
+  templateUrl: './site_header.component.html',
+  styleUrl: './site_header.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SiteHeaderComponent {
