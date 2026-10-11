@@ -49,7 +49,11 @@ The trigger pulls the previous `:latest` image as a layer cache, builds the
 Dockerfile with `COMMIT_SHA`, pushes `:<commit>` and `:latest`, then runs
 `gcloud run services update --image`, which changes only the image and keeps
 the service's other settings and secrets. The repository's cleanup policy
-keeps the ten newest images and deletes any other once it is a week old.
+keeps the 30 newest versions, about ten builds since each build also stores
+two small provenance records, and deletes any other once it is a week old.
+fuzzley's repository in `northamerica-northeast2` has the same policy. Cloud
+Run keeps its own copy of the image a serving revision runs, so the policy
+never takes the live site down; it only limits how far back a rollback can go.
 
 Pushes to `main` and pull requests also run `.github/workflows/verify.yml`,
 which type-checks, tests and builds, then builds the Docker image, serves it
