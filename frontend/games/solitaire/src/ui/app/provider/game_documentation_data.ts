@@ -37,7 +37,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Klondike Solitaire",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Klondike_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/klondike/overview.png",
+      url: "./docs/screenshots/klondike/overview.webp",
       caption:
         "Klondike initial deal showing seven tableau columns, stock, waste, and four foundation piles.",
       altText: "Klondike solitaire board overview",
@@ -133,7 +133,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "FreeCell",
     wikipediaUrl: "https://en.wikipedia.org/wiki/FreeCell",
     screenshot: {
-      url: "./docs/screenshots/freecell/overview.png",
+      url: "./docs/screenshots/freecell/overview.webp",
       caption:
         "FreeCell board with 4 free cells top-left, 4 foundations top-right, and 8 fully face-up tableau columns.",
       altText: "FreeCell board overview",
@@ -172,7 +172,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Spider Solitaire",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Spider_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/spider/overview.png",
+      url: "./docs/screenshots/spider/overview.webp",
       caption:
         "Spider board featuring 10 tableau columns and stock deals at bottom-left.",
       altText: "Spider solitaire board overview",
@@ -232,7 +232,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Yukon Solitaire",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Yukon_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/yukon/overview.png",
+      url: "./docs/screenshots/yukon/overview.webp",
       caption:
         "Yukon board featuring 7 tableau columns with face-down and face-up card groups, and 4 foundations.",
       altText: "Yukon solitaire board overview",
@@ -297,7 +297,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Baker's Game",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Baker%27s_Game",
     screenshot: {
-      url: "./docs/screenshots/bakers/overview.png",
+      url: "./docs/screenshots/bakers/overview.webp",
       caption:
         "Baker's Game board with 4 free cells, 4 foundations, and 8 same-suit building tableau columns.",
       altText: "Baker's Game board overview",
@@ -350,7 +350,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
   challengefreecell: {
     title: "Challenge FreeCell",
     screenshot: {
-      url: "./docs/screenshots/challengefreecell/overview.png",
+      url: "./docs/screenshots/challengefreecell/overview.webp",
       caption:
         "Challenge FreeCell board with 4 free cells, 4 foundations, and 8 face-up columns, each with an Ace or a Two at the bottom.",
       altText: "Challenge FreeCell board overview",
@@ -405,7 +405,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Eight Off",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Eight_Off",
     screenshot: {
-      url: "./docs/screenshots/eightoff/overview.png",
+      url: "./docs/screenshots/eightoff/overview.webp",
       caption:
         "Eight Off board featuring 8 free cells, 4 foundations, and 8 tableau columns.",
       altText: "Eight Off board overview",
@@ -443,7 +443,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Scorpion Solitaire",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Scorpion_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/scorpion/overview.png",
+      url: "./docs/screenshots/scorpion/overview.webp",
       caption:
         "Scorpion board featuring 7 tableau columns, stock reserve, and foundation area.",
       altText: "Scorpion solitaire board overview",
@@ -502,7 +502,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Simple Simon",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Simple_Simon_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/simplesimon/overview.png",
+      url: "./docs/screenshots/simplesimon/overview.webp",
       caption:
         "Simple Simon board showing ten fully face-up tableau columns and four foundation slots.",
       altText: "Simple Simon solitaire board overview",
@@ -542,7 +542,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Mrs. Mop",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Mrs._Mop",
     screenshot: {
-      url: "./docs/screenshots/mrsmop/overview.png",
+      url: "./docs/screenshots/mrsmop/overview.webp",
       caption:
         "Mrs. Mop board showing thirteen face-up columns of eight cards and eight foundation slots.",
       altText: "Mrs. Mop solitaire board overview",
@@ -582,7 +582,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Baker's Dozen",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Baker's_Dozen_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/bakersdozen/overview.png",
+      url: "./docs/screenshots/bakersdozen/overview.webp",
       caption:
         "Baker's Dozen board showing thirteen face-up columns of four cards and four foundation slots.",
       altText: "Baker's Dozen solitaire board overview",
@@ -622,7 +622,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Seahaven Towers",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Seahaven_Towers",
     screenshot: {
-      url: "./docs/screenshots/seahaven/overview.png",
+      url: "./docs/screenshots/seahaven/overview.webp",
       caption:
         "Seahaven Towers board with 4 cells top-left, 4 foundations top-right, and 10 face-up columns of five.",
       altText: "Seahaven Towers solitaire board overview",
@@ -661,7 +661,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Spiderette",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Spiderette",
     screenshot: {
-      url: "./docs/screenshots/spiderette/overview.png",
+      url: "./docs/screenshots/spiderette/overview.webp",
       caption:
         "Spiderette board showing seven columns dealt in a staircase, the row-dealing stock, and four foundation slots.",
       altText: "Spiderette solitaire board overview",
@@ -717,7 +717,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Easthaven",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Easthaven_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/easthaven/overview.png",
+      url: "./docs/screenshots/easthaven/overview.webp",
       caption:
         "Easthaven board showing seven columns of three, the row-dealing stock, and four foundation piles.",
       altText: "Easthaven solitaire board overview",
@@ -756,7 +756,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Forty Thieves",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Forty_Thieves_(card_game)",
     screenshot: {
-      url: "./docs/screenshots/fortythieves/overview.png",
+      url: "./docs/screenshots/fortythieves/overview.webp",
       caption:
         "Forty Thieves board with stock and waste top-left, eight foundations across the top, and ten columns of four.",
       altText: "Forty Thieves solitaire board overview",
@@ -827,7 +827,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Maria",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Forty_Thieves_(card_game)",
     screenshot: {
-      url: "./docs/screenshots/maria/overview.png",
+      url: "./docs/screenshots/maria/overview.webp",
       caption:
         "Maria board showing nine face-up columns of four centred beneath the stock, waste and eight foundations.",
       altText: "Maria solitaire board overview",
@@ -866,7 +866,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Limited",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Forty_Thieves_(card_game)",
     screenshot: {
-      url: "./docs/screenshots/limited/overview.png",
+      url: "./docs/screenshots/limited/overview.webp",
       caption:
         "Limited board showing twelve shallow face-up columns of three beneath the stock, waste and eight foundations.",
       altText: "Limited solitaire board overview",
@@ -905,7 +905,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Lucas",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Forty_Thieves_(card_game)",
     screenshot: {
-      url: "./docs/screenshots/lucas/overview.png",
+      url: "./docs/screenshots/lucas/overview.webp",
       caption:
         "Lucas board showing the eight Aces on the foundations and thirteen face-up columns of three beneath them.",
       altText: "Lucas solitaire board overview",
@@ -944,7 +944,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Double Klondike",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Klondike_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/doubleklondike/overview.png",
+      url: "./docs/screenshots/doubleklondike/overview.webp",
       caption:
         "Double Klondike board showing nine tableau columns, stock and waste, and eight foundation piles.",
       altText: "Double Klondike solitaire board overview",
@@ -985,7 +985,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Montana",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Montana_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/montana/overview.png",
+      url: "./docs/screenshots/montana/overview.webp",
       caption:
         "Montana board showing 48 cards laid in a grid of four rows by thirteen, with four gaps and the redeal marker beside it.",
       altText: "Montana solitaire board overview",
@@ -1041,7 +1041,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Blue Moon",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Gaps",
     screenshot: {
-      url: "./docs/screenshots/bluemoon/overview.png",
+      url: "./docs/screenshots/bluemoon/overview.webp",
       caption:
         "Blue Moon board showing all 52 cards in four rows of fourteen, an Ace at the head of each row, four gaps, and the redeal marker beside the grid.",
       altText: "Blue Moon solitaire board overview",
@@ -1098,7 +1098,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Bisley",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Bisley_(card_game)",
     screenshot: {
-      url: "./docs/screenshots/bisley/overview.png",
+      url: "./docs/screenshots/bisley/overview.webp",
       caption:
         "Bisley board showing the four Aces at the left of the top row, four empty King foundations at its right, and thirteen face-up columns.",
       altText: "Bisley solitaire board overview",
@@ -1140,7 +1140,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Aces Up",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Aces_Up",
     screenshot: {
-      url: "./docs/screenshots/acesup/overview.png",
+      url: "./docs/screenshots/acesup/overview.webp",
       caption:
         "Aces Up board showing the stock at the left, four columns of one card each, and the empty discard at the right.",
       altText: "Aces Up solitaire board overview",
@@ -1196,7 +1196,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Golf",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Golf_(patience)",
     screenshot: {
-      url: "./docs/screenshots/golf/overview.png",
+      url: "./docs/screenshots/golf/overview.webp",
       caption:
         "Golf board showing the stock and the foundation along the top, and seven face-up columns of five cards beneath.",
       altText: "Golf solitaire board overview",
@@ -1256,7 +1256,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Calculation",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Calculation_(card_game)",
     screenshot: {
-      url: "./docs/screenshots/calculation/overview.png",
+      url: "./docs/screenshots/calculation/overview.webp",
       caption:
         "Calculation board showing the stock and the hand at the left, the four foundations started with an Ace, a Two, a Three and a Four, and four empty waste piles beneath them.",
       altText: "Calculation solitaire board overview",
@@ -1316,7 +1316,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Flower Garden",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Flower_Garden_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/flowergarden/overview.png",
+      url: "./docs/screenshots/flowergarden/overview.webp",
       caption:
         "Flower Garden board showing the sixteen-card bouquet fanned across the top left, four empty foundations at the top right, and six face-up beds of six cards beneath.",
       altText: "Flower Garden solitaire board overview",
@@ -1355,7 +1355,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Bristol",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Bristol_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/bristol/overview.png",
+      url: "./docs/screenshots/bristol/overview.webp",
       caption:
         "Bristol board showing the stock and three reserves at the top left, four empty foundations at the top right, and eight fans of three cards beneath.",
       altText: "Bristol solitaire board overview",
@@ -1411,7 +1411,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Nestor",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Nestor_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/nestor/overview.png",
+      url: "./docs/screenshots/nestor/overview.webp",
       caption:
         "Nestor board showing the four reserve cards at the top left, the empty discard at the top right, and eight face-up columns of six cards beneath.",
       altText: "Nestor solitaire board overview",
@@ -1448,7 +1448,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Monte Carlo",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Monte_Carlo_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/montecarlo/overview.png",
+      url: "./docs/screenshots/montecarlo/overview.webp",
       caption:
         "Monte Carlo board showing the stock at the left, twenty-five face-up cards in a five-by-five grid, and the empty discard at the right.",
       altText: "Monte Carlo solitaire board overview",
@@ -1501,7 +1501,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "La Belle Lucie",
     wikipediaUrl: "https://en.wikipedia.org/wiki/La_Belle_Lucie",
     screenshot: {
-      url: "./docs/screenshots/labellelucie/overview.png",
+      url: "./docs/screenshots/labellelucie/overview.webp",
       caption:
         "La Belle Lucie board showing the redeal marker and four empty foundations along the top, and eighteen face-up fans in two rows of nine.",
       altText: "La Belle Lucie solitaire board overview",
@@ -1561,7 +1561,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Trefoil",
     wikipediaUrl: "https://en.wikipedia.org/wiki/La_Belle_Lucie",
     screenshot: {
-      url: "./docs/screenshots/trefoil/overview.png",
+      url: "./docs/screenshots/trefoil/overview.webp",
       caption:
         "Trefoil board showing the redeal marker at the top-left, the four Aces on their foundations, and sixteen face-up fans of three in two rows of eight.",
       altText: "Trefoil solitaire board overview",
@@ -1600,7 +1600,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Canfield",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Canfield_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/canfield/overview.png",
+      url: "./docs/screenshots/canfield/overview.webp",
       caption:
         "Canfield board showing the stock and waste at the top-left, the first foundation started by the deal, the thirteen-card reserve under the stock, and four columns of one card each.",
       altText: "Canfield solitaire board overview",
@@ -1666,7 +1666,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Penguin",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Penguin_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/penguin/overview.png",
+      url: "./docs/screenshots/penguin/overview.webp",
       caption:
         "Penguin board showing the seven cells of the flipper and four foundations along the top, three of them started with the beak's rank, and seven face-up columns of seven beneath.",
       altText: "Penguin solitaire board overview",
@@ -1704,7 +1704,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Black Hole",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Black_Hole_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/blackhole/overview.png",
+      url: "./docs/screenshots/blackhole/overview.webp",
       caption:
         "Black Hole board showing the Ace of Spades in the hole at the middle of the top row, and seventeen face-up fans of three around it.",
       altText: "Black Hole solitaire board overview",
@@ -1737,7 +1737,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
   allinarow: {
     title: "All in a Row",
     screenshot: {
-      url: "./docs/screenshots/allinarow/overview.png",
+      url: "./docs/screenshots/allinarow/overview.webp",
       caption:
         "All in a Row board showing the empty foundation in the middle of the top row and thirteen face-up columns of four beneath.",
       altText: "All in a Row solitaire board overview",
@@ -1771,7 +1771,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
   grandfathersclock: {
     title: "Grandfather's Clock",
     screenshot: {
-      url: "./docs/screenshots/grandfathersclock/overview.png",
+      url: "./docs/screenshots/grandfathersclock/overview.webp",
       caption:
         "Grandfather's Clock board showing twelve foundations laid round a dial at the left, from the Nine of Diamonds at twelve o'clock round to the Eight of Clubs at eleven, and eight face-up columns of five beside it.",
       altText: "Grandfather's Clock solitaire board overview",
@@ -1810,7 +1810,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Pyramid",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Pyramid_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/pyramid/overview.png",
+      url: "./docs/screenshots/pyramid/overview.webp",
       caption:
         "Pyramid board showing twenty-eight face-up cards in a pyramid of seven rows, the stock and hand at the top-left and the waste and discard at the top-right.",
       altText: "Pyramid solitaire board overview",
@@ -1882,7 +1882,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "TriPeaks",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Tri_Peaks_(game)",
     screenshot: {
-      url: "./docs/screenshots/tripeaks/overview.png",
+      url: "./docs/screenshots/tripeaks/overview.webp",
       caption:
         "TriPeaks board showing three overlapping peaks of face-down cards over a base of ten face-up cards, with the stock and the waste centred beneath.",
       altText: "TriPeaks solitaire board overview",
@@ -1920,7 +1920,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Beleaguered Castle",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Beleaguered_Castle",
     screenshot: {
-      url: "./docs/screenshots/beleagueredcastle/overview.png",
+      url: "./docs/screenshots/beleagueredcastle/overview.webp",
       caption:
         "Beleaguered Castle board showing the four Aces in a column down the middle, and eight rows of six cards fanned sideways, four on each side.",
       altText: "Beleaguered Castle solitaire board overview",
@@ -1978,7 +1978,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
   fortress: {
     title: "Fortress",
     screenshot: {
-      url: "./docs/screenshots/fortress/overview.png",
+      url: "./docs/screenshots/fortress/overview.webp",
       caption:
         "Fortress board showing four empty foundations in a column down the middle and ten rows fanned sideways, five on each side.",
       altText: "Fortress solitaire board overview",
@@ -2015,7 +2015,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Poker Squares",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Poker_squares",
     screenshot: {
-      url: "./docs/screenshots/pokersquares/overview.png",
+      url: "./docs/screenshots/pokersquares/overview.webp",
       caption:
         "Poker Squares board showing the stock and the card to place at the left, and the empty five-by-five grid beside them.",
       altText: "Poker Squares board overview",

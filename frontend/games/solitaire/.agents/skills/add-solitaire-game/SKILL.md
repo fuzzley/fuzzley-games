@@ -468,13 +468,14 @@ CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
 3. **`src/ui/app/provider/game_documentation_data.ts`** — add the rules page.
    `CompleteGameDocumentation` is `Record<GameId, …>`, so shipping a game with no
    page is also a compile error. With the dev server running,
-   `yarn capture:screenshots <id>` captures its hero screenshot to
-   `public/docs/screenshots/<id>/overview.png`: the whole page, header
-   included, on a fresh deal with every setting at its default, at 1440 × 810
-   CSS px and 2×. Then run `yarn build:thumbs`:
-   it writes the game browser's `thumb.webp`, cropped to the board, and
-   `preview.webp`, the whole page, beside the screenshot, and a spec fails
-   while either is missing.
+   `yarn capture:screenshots <id>` captures its hero screenshot, losslessly,
+   to `docs/screenshots/<id>/overview.png`: the whole page, header included,
+   on a fresh deal with every setting at its default, at 1440 × 810 CSS px and
+   2×. Then run `yarn build:thumbs`: it writes the images the site serves to
+   `public/docs/screenshots/<id>/`, the rules page's `overview.webp` (point
+   the rules page's `screenshot.url` at it), the game browser's
+   `thumb.webp`, cropped to the board, and `preview.webp`, the whole page.
+   Specs fail while any of them is missing.
 4. **`src/ui/app/provider/game_profile_data.ts`** — add the profile the game
    browser lists it by: its family, tagline, difficulty, decks, whether every
    card is dealt in view, and any variants with names of their own.
