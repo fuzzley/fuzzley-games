@@ -14,17 +14,26 @@ describe("GamePageComponent", () => {
   it("opens a hosted game full-page, at its build's address", async () => {
     await renderPage("bakers-game");
 
-    const links = screen.getAllByRole("link", { name: "Play Baker’s Game" });
-    expect(links.map((link) => link.getAttribute("href"))).toEqual([
-      "/play/solitaire/#/bakers",
-      "/play/solitaire/#/bakers",
-    ]);
+    expect(
+      screen.getByRole("link", { name: "Play Baker’s Game" }),
+    ).toHaveAttribute("href", "/play/solitaire/#/bakers");
+  });
+
+  it("opens it from its screenshot too, for the pointer only", async () => {
+    await renderPage("bakers-game");
+
+    const stage = screen
+      .getByRole("presentation", { hidden: true })
+      .closest("a");
+    expect(stage).toHaveAttribute("href", "/play/solitaire/#/bakers");
+    expect(stage).toHaveAttribute("tabindex", "-1");
+    expect(stage).toHaveAttribute("aria-hidden", "true");
   });
 
   it("shows a hosted game's screenshot", async () => {
     await renderPage("bakers-game");
 
-    expect(screen.getByRole("presentation")).toHaveAttribute(
+    expect(screen.getByRole("presentation", { hidden: true })).toHaveAttribute(
       "src",
       "/play/solitaire/docs/screenshots/bakers/preview.webp",
     );

@@ -54,6 +54,13 @@
   gap: 0.625rem;
   flex: 0 1 30rem;
   margin-left: auto;
+
+  // The search landmark takes the room the box needs.
+  search {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 .search {
