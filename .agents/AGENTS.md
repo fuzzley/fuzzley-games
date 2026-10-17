@@ -81,9 +81,12 @@ Collection and Minesweeper) and served as static pages under
   need `@angular/localize` at runtime (`$localize`), which the site doesn't
   load.
 - **Colors come from the palette.** Anything that should follow the theme
-  reads a palette variable with `var()`. A new role is added to every palette
-  in `src/app/styles/_palettes.scss` at once; the build fails if a palette
-  lacks a role the default has, or has one it lacks.
+  reads a palette variable with `var()`; stylelint rejects a color written
+  anywhere else. A new role is added to every palette in
+  `src/app/styles/_palettes.scss` at once: the build fails if a palette lacks
+  a role the default has, or has one it lacks, and
+  `src/app/styles/palettes.spec.ts` fails if the palettes and `THEMES`
+  disagree.
 - **`@keyframes` are global.** Angular's emulated encapsulation rewrites
   selectors, not at-rule names, so two components defining the same animation
   name silently overwrite each other. Declare them once, in a partial that
@@ -132,7 +135,7 @@ Run from `frontend/`:
 - **Preview Build:** `yarn preview` (serves the production build locally).
 - **Run Unit Tests:** `yarn test` (runs Vitest once).
 - **Type Checking:** `yarn typecheck` (runs the Angular compiler's checks over the app, emitting nothing, then `tsc` over the specs (`tsconfig.spec.json`), over `vite.config.ts` (`tsconfig.node.json`), and over the `tools` and `.agents` scripts from their JSDoc (`tsconfig.scripts.json`)). Vitest strips types without checking them, so this is the only check a spec's types get.
-- **Linting:** `yarn lint` (checks the skills' references, runs ESLint over `src`, `tools`, `vite.config.ts` and `.agents`, then checks formatting with `yarn prettier:check`). ESLint's config is `frontend/eslint.config.js`: typescript-eslint's strict and stylistic type-checked rules, explicit return types on exported functions and public methods, `import type` for type-only imports, Angular's recommended and template accessibility rules, and JSDoc types on every script. Each file is type-checked with the tsconfig that includes it, found through the solution in `frontend/tsconfig.json`.
+- **Linting:** `yarn lint` (checks the skills' references, runs ESLint over `src`, `tools`, `vite.config.ts` and `.agents`, then checks formatting with `yarn prettier:check`). ESLint's config is `frontend/eslint.config.js`: typescript-eslint's strict and stylistic type-checked rules, explicit return types on exported functions and public methods, `import type` for type-only imports, Angular's recommended and template accessibility rules, and JSDoc types on every script. Each file is type-checked with the tsconfig that includes it, found through the solution in `frontend/tsconfig.json`. `yarn lint:styles` runs stylelint (`frontend/stylelint.config.js`, the standard SCSS rules) over every stylesheet: no hex, named or functional color outside `_palettes.scss` and `_shadows.scss`, no `@import`, nesting at most three deep.
 - **Full Verification Pipeline:** `yarn verify` (runs `yarn lint && yarn typecheck && yarn test && yarn build`).
 - **Format Codebase:** `yarn prettier` (formats the whole repository with
   Prettier); `yarn prettier:check` only reports what it would change.

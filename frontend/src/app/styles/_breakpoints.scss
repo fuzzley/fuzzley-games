@@ -1,7 +1,5 @@
 // The widths the layout changes at. A stylesheet uses them through `below`:
-//
-//   @use "../../styles/breakpoints" as bp;
-//   @include bp.below(sm) { … }
+// `@use "../../styles/breakpoints" as bp;`, then `@include bp.below(sm)`.
 
 @use "sass:map";
 

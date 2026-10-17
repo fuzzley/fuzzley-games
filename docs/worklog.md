@@ -308,3 +308,23 @@ defined`: ICU needs `@angular/localize`, too much for one plural.
 - AGENTS.md has a Sass section (modules not `@import`, custom properties
   for runtime values and Sass for build-time ones, named breakpoints,
   nesting depth, `//` comments).
+
+#### 4b. The palette and color rules, enforced
+
+- `styles/palettes.spec.ts` compiles `_palettes.scss` and checks it against
+  `THEMES`: a palette for every theme and no other, in order; each with its
+  theme's mode as `color-scheme`; the light default on `:root`. It also
+  configures broken palettes (`@use … with`) to prove the Sass guard
+  fires, for a missing role and for an extra one. (`fileURLToPath` takes
+  `import.meta.url` as a string: under jsdom, `new URL()` is jsdom's, which
+  Node's `fileURLToPath` refuses. And `?raw` doesn't help: Vitest hands
+  stylesheets to specs as empty strings.)
+- stylelint (`stylelint-config-standard-scss`) runs in `yarn lint` as
+  `yarn lint:styles`. Beyond the standard rules: no hex, named or functional
+  colors except in `_palettes.scss` and `_shadows.scss`, no `@import`,
+  nesting at most three deep.
+- It found the one hard-coded color, the coming-soon stage's white text
+  on the felt: now `--on-felt`, a new role in every palette (still white).
+  Everything else was mechanical (`#fff` shorthand, `currentcolor`, comment
+  spacing).
+- Screenshots still pixel-identical to before the Sass move. 130 tests.
