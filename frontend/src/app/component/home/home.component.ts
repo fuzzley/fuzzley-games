@@ -48,8 +48,18 @@ export class HomeComponent {
       .filter((section) => section.tiles.length > 0);
   });
 
-  protected readonly matchCount = computed(() =>
-    this.sections().reduce((sum, section) => sum + section.tiles.length, 0),
+  protected readonly heading = computed(() =>
+    this.searching() ? `Results for “${this.query()}”` : "All games",
   );
-  protected readonly total = this.catalog.games.length;
+  /** What a search found, which screen readers announce as it changes. */
+  protected readonly status = computed(() => {
+    if (!this.searching()) return "";
+    const found = this.sections().reduce(
+      (sum, section) => sum + section.tiles.length,
+      0,
+    );
+    return found > 0
+      ? `${found} of ${this.catalog.games.length} games`
+      : "No games match.";
+  });
 }
