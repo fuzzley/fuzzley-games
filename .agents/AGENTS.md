@@ -66,10 +66,10 @@ Collection and Minesweeper) and served as static pages under
     file Node was started with (`if (import.meta.main)`), so
     `tools/*.spec.ts` can import and test it. A dependency a test needs to
     replace, such as `fetch`, is a parameter with the real one as default.
-- **`Dockerfile`, `nginx.conf.template`, `docker-entrypoint.d/`** — the image
-  that serves the build, its nginx config, and the startup script that writes
-  `env.js` from the container's environment. `docs/operations.md` explains
-  each.
+- **`Dockerfile`, `nginx.conf.template`, `nginx/`, `docker-entrypoint.d/`** —
+  the image that serves the build, its nginx config, the security header
+  snippets it includes, and the startup script that writes `env.js` from the
+  container's environment. `docs/operations.md` explains each.
 - **`docs/operations.md`** — how the site is built, served, deployed and
   configured, and how the games are pinned and updated. `README.md` is only a
   short summary for GitHub.

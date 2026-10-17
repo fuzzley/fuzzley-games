@@ -490,3 +490,30 @@ the storage fallbacks and `theme-color` (item 11). The last one:
 - Noted: on this machine Yarn runs Node 22.22.3 from nvm, while `node` in a
   shell is 26.4.0, and CI's `setup-node` takes the newest 26 (26.12.0).
   Everything passes on both, but `nvm use 26` would match CI.
+
+#### 19b. Security headers
+
+- `nginx/security-headers.conf` (nosniff, `Referrer-Policy`,
+  `X-Frame-Options: DENY`, `Permissions-Policy`, HSTS without
+  `includeSubDomains`), all `always`, is included at the server level and
+  again in every location that sets `Cache-Control`: nginx drops inherited
+  `add_header` lines as soon as a location has its own.
+- `nginx/content-security-policy.conf`, on the site's own pages only:
+  `script-src 'self' https://*.googletagmanager.com` (possible because the
+  page has no inline script since item 4c), `style-src 'self'
+'unsafe-inline'` plus Google Fonts (Angular inlines component styles; a
+  nonce would need nginx to make one per request), Google Analytics'
+  endpoints as Google lists them, `object-src 'none'`, `base-uri` and
+  `form-action 'self'`, `frame-ancestors 'none'`. The games get the common
+  headers only, since their builds come from other repositories.
+- The Dockerfile copies `nginx/` to `/etc/nginx/snippets/`.
+- `check-image.sh` checks the headers on `/`, a game page, an asset,
+  `theme.js`, `env.js`, `version.json` and a 404; the policy on the site's
+  pages; and no policy on the games.
+- Checked locally: the image built, and `check-image.sh` passed (with a
+  stand-in for `jq`, which this machine lacks, covering its three calls). In
+  the running container under the policy, with a placeholder analytics ID,
+  the smoke run passed with a clean console, and the pages requested Google
+  Fonts' stylesheet, `gtag.js` and the measurement beacon. Font files don't
+  show up in headless Chrome's resource timing with or without the policy,
+  but the face is loaded either way.

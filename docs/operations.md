@@ -85,6 +85,28 @@ is enabled under Actions.
 fuzzley.info pins and fetches its own games the same way; these scripts
 started as its own.
 
+## Security headers
+
+`nginx/security-headers.conf` gives every response, errors included,
+`X-Content-Type-Options: nosniff`, a `Referrer-Policy`, `X-Frame-Options:
+DENY`, a `Permissions-Policy` that turns off what the site never uses, and
+HSTS. nginx drops inherited `add_header` lines in any location that adds its
+own, so each location in `nginx.conf.template` that sets `Cache-Control`
+includes the file again.
+
+The site's own pages (`location /`) also carry
+`nginx/content-security-policy.conf`: scripts from the site and Google
+Analytics only (the page has no inline script; `theme.js`, `env.js` and
+`analytics.js` are files), styles from the site with `'unsafe-inline'`
+(Angular adds each component's styles as a `<style>` element) and Google
+Fonts, Google Analytics' measurement endpoints, and no framing. The games
+under `/play/` are other repositories' builds, so they get the common headers
+but no policy.
+
+A new third-party script, font or endpoint needs adding to the policy, or the
+browser blocks it and says so in the console. `check-image.sh` checks the
+headers on the site's pages, its files, an error, and each game.
+
 ## Deployment
 
 https://fuzzley.games is the site. Cloud Run serves it from the Docker image above,

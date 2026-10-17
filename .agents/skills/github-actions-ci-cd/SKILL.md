@@ -26,9 +26,10 @@ Two independent jobs, on push to `main`, any pull request, or a manual
 2. **`docker`** — builds the `Dockerfile` with `COMMIT_SHA` and runs
    `check-image.sh` on it, which serves the image with a placeholder analytics
    ID and requests its pages: the Angular routes answer with `index.html`, a
-   missing file under `/assets/` is a 404, the `Cache-Control` headers match
-   `nginx.conf.template`, `env.js` carries the ID, and `version.json` names
-   the commit. For each pinned game it checks `/play/<slug>/` is the game's
+   missing file under `/assets/` is a 404, the `Cache-Control` and security
+   headers match `nginx.conf.template` and `nginx/`, the site's pages carry
+   the Content Security Policy and the games don't, `theme.js` sets the
+   palette, `env.js` carries the ID, and `version.json` names the commit. For each pinned game it checks `/play/<slug>/` is the game's
    own page with the analytics tags, never the site's `index.html`, with its
    own fingerprinted assets, and that `version.json` names the pinned build.
 

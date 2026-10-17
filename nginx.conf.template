@@ -14,12 +14,17 @@ server {
     gzip_min_length 1024;
     gzip_types text/css application/javascript application/json image/svg+xml application/manifest+json;
 
+    # Security headers (see nginx/security-headers.conf). Every location below
+    # that sets a header of its own has to include them again.
+    include /etc/nginx/snippets/security-headers.conf;
+
     # The site's build fingerprints every file in /assets/, so these files never
     # change in place and browsers can keep them for a year.
     location /assets/ {
         root /usr/share/nginx/html;
         try_files $uri =404;
         add_header Cache-Control "public, max-age=31536000, immutable";
+        include /etc/nginx/snippets/security-headers.conf;
     }
 
     # The games, each a build fetched from its own repository's release (see
@@ -32,10 +37,12 @@ server {
         index index.html;
         try_files $uri $uri/ =404;
         add_header Cache-Control "no-cache";
+        include /etc/nginx/snippets/security-headers.conf;
 
         location ~ ^/play/[^/]+/assets/ {
             try_files $uri =404;
             add_header Cache-Control "public, max-age=31536000, immutable";
+            include /etc/nginx/snippets/security-headers.conf;
         }
     }
 
@@ -43,22 +50,27 @@ server {
     location = /env.js {
         root /usr/share/nginx/html;
         add_header Cache-Control "no-store";
+        include /etc/nginx/snippets/security-headers.conf;
     }
 
     # Version info should never be cached.
     location = /version.json {
         root /usr/share/nginx/html;
         add_header Cache-Control "no-store";
+        include /etc/nginx/snippets/security-headers.conf;
     }
 
     # Angular client-side routing: fall back to index.html for SPA routes.
     # Browsers must check back before reusing index.html: a stale copy would
-    # ask for /assets/ files that the next deploy no longer has.
+    # ask for /assets/ files that the next deploy no longer has. The site's
+    # pages carry its Content Security Policy.
     location / {
         root /usr/share/nginx/html;
         index index.html;
         try_files $uri $uri/ /index.html;
         add_header Cache-Control "no-cache";
+        include /etc/nginx/snippets/security-headers.conf;
+        include /etc/nginx/snippets/content-security-policy.conf;
     }
 
     error_page 500 502 503 504 /50x.html;
