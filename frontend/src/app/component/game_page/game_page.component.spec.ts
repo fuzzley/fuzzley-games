@@ -20,11 +20,18 @@ describe("GamePageComponent", () => {
 
   it("opens a game the site hosts full-page, at its build's address", () => {
     const el = render("bakers-dozen");
-    const play = el.querySelector<HTMLAnchorElement>("a.stage.play");
+    const introPlay = el.querySelector<HTMLAnchorElement>("a.play-cta");
+    const stagePlay = el.querySelector<HTMLAnchorElement>("a.stage.play");
 
-    expect(play?.getAttribute("href")).toBe("/play/solitaire/#/bakersdozen");
-    expect(play?.textContent?.trim()).toBe("Play Baker’s Dozen");
-    expect(play?.querySelector("img")?.getAttribute("src")).toBe(
+    expect(introPlay?.getAttribute("href")).toBe(
+      "/play/solitaire/#/bakersdozen",
+    );
+    expect(introPlay?.textContent?.trim()).toBe("Play Baker’s Dozen");
+    expect(stagePlay?.getAttribute("href")).toBe(
+      "/play/solitaire/#/bakersdozen",
+    );
+    expect(stagePlay?.textContent?.trim()).toBe("Play Baker’s Dozen");
+    expect(stagePlay?.querySelector("img")?.getAttribute("src")).toBe(
       "/play/solitaire/docs/screenshots/bakersdozen/preview.webp",
     );
   });

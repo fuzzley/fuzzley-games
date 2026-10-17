@@ -10,12 +10,23 @@
         <h1>{{ game.name }}</h1>
         <p class="blurb">{{ game.blurb }}</p>
         <p class="meta">{{ game.players }}, about {{ game.time }} a game</p>
+        <a class="button play-cta" [href]="play.href">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 5.5v13l11-6.5z" />
+          </svg>
+          Play {{ game.name }}
+        </a>
       </div>
 
       <!-- A plain link, not a routerLink: the game is a page of its own. -->
       <a class="stage play" [href]="play.href">
         <img [src]="play.preview" alt="" width="1280" height="720" />
-        <span class="button">Play {{ game.name }}</span>
+        <span class="button stage-cta">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 5.5v13l11-6.5z" />
+          </svg>
+          Play {{ game.name }}
+        </span>
       </a>
     } @else {
       <div class="about">

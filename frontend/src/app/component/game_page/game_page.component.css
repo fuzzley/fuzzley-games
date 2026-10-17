@@ -115,11 +115,39 @@ h1 {
   filter: brightness(0.85);
 }
 
+.play-cta,
+.stage-cta {
+  gap: 0.55rem;
+  height: 3.25rem;
+  padding: 0 1.6rem;
+  font-size: 1.125rem;
+  transition: transform 150ms ease-out;
+}
+
+.play-cta:hover {
+  transform: translateY(-1px);
+}
+
+.play-cta svg,
+.stage-cta svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
 /* Positioned, or the filtered screenshot would paint over it. */
 .stage.play .button {
   position: relative;
+  height: 3.5rem;
   margin: 0;
-  box-shadow: 0 4px 16px rgb(0 0 0 / 0.35);
+  padding: 0 1.85rem;
+  border: 2px solid var(--on-accent);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.45);
+}
+
+.stage.play:hover .button,
+.stage.play:focus-visible .button {
+  transform: scale(1.04);
 }
 
 .button {
