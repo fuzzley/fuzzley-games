@@ -108,6 +108,8 @@ configuration; the `github-actions-ci-cd` skill covers the workflows.
 ## Running & Debugging
 
 - **Local Testing:** Start the server with `yarn start` and navigate to `http://localhost:4200/`.
+- **Chrome DevTools MCP:** Use the `chrome-devtools-mcp` server to inspect and
+  verify the local running site when making UI or behavioral changes.
 - **Browser Tools:** Close any browser instance you start for debugging when
   you are done with it, so none are left running.
 

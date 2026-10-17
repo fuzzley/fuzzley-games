@@ -19,12 +19,15 @@ describe("GameTileComponent", () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it("links a game the site hosts to its page", () => {
+  it("links a game the site hosts to its page and to play it directly", () => {
     const el = render("klondike");
+    const play = el.querySelector<HTMLAnchorElement>("a.play");
 
-    expect(el.querySelector("a.tile")?.getAttribute("href")).toBe(
+    expect(el.querySelector("a.tile-link")?.getAttribute("href")).toBe(
       "/games/klondike",
     );
+    expect(play?.getAttribute("href")).toBe("/play/solitaire/#/klondike");
+    expect(play?.getAttribute("aria-label")).toBe("Play Klondike");
     expect(el.querySelector(".badge")).toBeNull();
   });
 

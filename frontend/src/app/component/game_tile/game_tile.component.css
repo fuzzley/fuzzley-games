@@ -7,11 +7,16 @@
   border-radius: calc(var(--radius) + 4px);
 }
 
+.tile-link {
+  display: block;
+  border-radius: calc(var(--radius) + 4px);
+}
+
 .thumb {
   transition: transform 150ms ease-out;
 }
 
-a.tile:hover .thumb {
+.tile-link:hover .thumb {
   transform: translateY(-2px);
 }
 
@@ -51,4 +56,29 @@ a.tile:hover .thumb {
   stroke: currentColor;
   stroke-width: 2;
   stroke-linecap: round;
+}
+
+.play {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.45rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.4;
+  transition: transform 150ms ease-out;
+}
+
+.play:hover {
+  transform: translateY(-1px);
+}
+
+.play svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
 }

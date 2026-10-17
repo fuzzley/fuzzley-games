@@ -6,12 +6,12 @@ import {
 } from "@angular/core";
 import { NgTemplateOutlet } from "@angular/common";
 import { RouterLink } from "@angular/router";
-import { Game, isNew } from "../../provider/game_catalog";
+import { Game, isNew, playUrl } from "../../provider/game_catalog";
 import { GameThumbComponent } from "../game_thumb/game_thumb.component";
 
 /**
- * A game in a row or grid: a link to its page, or no link at all for a game
- * still to come.
+ * A game in a row or grid: a link to its page and a direct play link, or no
+ * link at all for a game still to come.
  */
 @Component({
   selector: "app-game-tile",
@@ -23,6 +23,9 @@ import { GameThumbComponent } from "../game_thumb/game_thumb.component";
 export class GameTileComponent {
   readonly game = input.required<Game>();
 
-  protected readonly playable = computed(() => this.game().play !== undefined);
+  protected readonly playHref = computed(() => {
+    const play = this.game().play;
+    return play ? playUrl(play) : null;
+  });
   protected readonly isNew = computed(() => isNew(this.game()));
 }

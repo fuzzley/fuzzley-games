@@ -1,7 +1,15 @@
-@if (playable()) {
-  <a class="tile" [routerLink]="['/games', game().slug]">
-    <ng-container *ngTemplateOutlet="content" />
-  </a>
+@if (playHref(); as playHref) {
+  <div class="tile">
+    <a class="tile-link" [routerLink]="['/games', game().slug]">
+      <ng-container *ngTemplateOutlet="content" />
+    </a>
+    <a class="play" [href]="playHref" [attr.aria-label]="'Play ' + game().name">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M8 5.5v13l11-6.5z" />
+      </svg>
+      Play
+    </a>
+  </div>
 } @else {
   <div class="tile soon">
     <ng-container *ngTemplateOutlet="content" />
@@ -12,7 +20,7 @@
   <app-game-thumb class="thumb" [game]="game()" />
   <span class="name">
     {{ game().name }}
-    @if (!playable()) {
+    @if (!playHref()) {
       <span class="badge">Coming soon</span>
     } @else if (isNew()) {
       <span class="badge new">New</span>
