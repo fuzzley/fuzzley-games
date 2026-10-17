@@ -1,8 +1,8 @@
 {
   "solitaire": {
     "repo": "fuzzley/fSolitaire",
-    "commit": "a4d78082731e5088d6a3be069f83933a2ae3cfb3",
-    "asset": "solitaire-a4d7808.tar.gz",
-    "sha256": "2aba8c13bbc6b4b32ae762a21f0a76d2b50f97151baade0178cf048eed98f1e7"
+    "commit": "549c93afb5d1592257262ceb42ed2e91dcb165d6",
+    "asset": "solitaire-549c93a.tar.gz",
+    "sha256": "187b7432935ee1b926d81e6c60e2fbfdc65f59fbce217632da462e1271a6f19b"
   }
 }
