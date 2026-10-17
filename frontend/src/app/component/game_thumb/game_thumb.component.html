@@ -1,67 +1,8 @@
-@if (screenshot(); as screenshot) {
-  <img
-    [src]="screenshot"
-    alt=""
-    width="192"
-    height="108"
-    loading="lazy"
-    decoding="async"
-  />
-} @else {
-  <svg
-    viewBox="0 0 160 100"
-    preserveAspectRatio="xMidYMid slice"
-    aria-hidden="true"
-  >
-    <rect
-      class="table"
-      width="160"
-      height="100"
-      [style.fill]="thumbnail().board ?? null"
-    />
-    @for (shape of thumbnail().shapes; track $index) {
-      @switch (shape.kind) {
-        @case ("rect") {
-          <rect
-            [attr.x]="shape.x"
-            [attr.y]="shape.y"
-            [attr.width]="shape.w"
-            [attr.height]="shape.h"
-            [attr.rx]="shape.rx"
-            [attr.fill]="shape.fill"
-          />
-        }
-        @case ("circle") {
-          <circle
-            [attr.cx]="shape.cx"
-            [attr.cy]="shape.cy"
-            [attr.r]="shape.r"
-            [attr.fill]="shape.fill"
-          />
-        }
-        @case ("line") {
-          <line
-            [attr.x1]="shape.x1"
-            [attr.y1]="shape.y1"
-            [attr.x2]="shape.x2"
-            [attr.y2]="shape.y2"
-            [attr.stroke]="shape.stroke"
-            [attr.stroke-width]="shape.width"
-          />
-        }
-        @case ("text") {
-          <text
-            [attr.x]="shape.x"
-            [attr.y]="shape.y"
-            [attr.font-size]="shape.size"
-            [attr.font-weight]="shape.weight ?? null"
-            [attr.text-anchor]="shape.middle ? 'middle' : null"
-            [attr.fill]="shape.fill"
-          >
-            {{ shape.text }}
-          </text>
-        }
-      }
-    }
-  </svg>
-}
+<img
+  [src]="src()"
+  alt=""
+  width="192"
+  height="108"
+  [attr.loading]="loading()"
+  decoding="async"
+/>

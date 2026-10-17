@@ -20,7 +20,13 @@
 
       <!-- A plain link, not a routerLink: the game is a page of its own. -->
       <a class="stage play" [href]="play.href">
-        <img [src]="play.preview" alt="" width="1280" height="720" />
+        <img
+          [src]="play.preview"
+          alt=""
+          width="1280"
+          height="720"
+          fetchpriority="high"
+        />
         <span class="button stage-cta">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M8 5.5v13l11-6.5z" />
@@ -30,7 +36,7 @@
       </a>
     } @else {
       <div class="about">
-        <app-game-thumb class="thumb soon" [game]="game" />
+        <app-game-thumb class="thumb soon" [game]="game" [eager]="true" />
         <div>
           <h1>
             {{ game.name }}

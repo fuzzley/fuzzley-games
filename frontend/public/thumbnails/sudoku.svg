@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice">
+  <rect width="160" height="100" fill="#e9ecef"/>
+  <rect x="35" y="5" width="90" height="90" fill="#fff"/>
+  <g stroke="#1b1f24">
+    <line x1="35" y1="5" x2="35" y2="95" stroke-width="0.9"/>
+    <line x1="35" y1="5" x2="125" y2="5" stroke-width="0.9"/>
+    <line x1="45" y1="5" x2="45" y2="95" stroke-width="0.3"/>
+    <line x1="35" y1="15" x2="125" y2="15" stroke-width="0.3"/>
+    <line x1="55" y1="5" x2="55" y2="95" stroke-width="0.3"/>
+    <line x1="35" y1="25" x2="125" y2="25" stroke-width="0.3"/>
+    <line x1="65" y1="5" x2="65" y2="95" stroke-width="0.9"/>
+    <line x1="35" y1="35" x2="125" y2="35" stroke-width="0.9"/>
+    <line x1="75" y1="5" x2="75" y2="95" stroke-width="0.3"/>
+    <line x1="35" y1="45" x2="125" y2="45" stroke-width="0.3"/>
+    <line x1="85" y1="5" x2="85" y2="95" stroke-width="0.3"/>
+    <line x1="35" y1="55" x2="125" y2="55" stroke-width="0.3"/>
+    <line x1="95" y1="5" x2="95" y2="95" stroke-width="0.9"/>
+    <line x1="35" y1="65" x2="125" y2="65" stroke-width="0.9"/>
+    <line x1="105" y1="5" x2="105" y2="95" stroke-width="0.3"/>
+    <line x1="35" y1="75" x2="125" y2="75" stroke-width="0.3"/>
+    <line x1="115" y1="5" x2="115" y2="95" stroke-width="0.3"/>
+    <line x1="35" y1="85" x2="125" y2="85" stroke-width="0.3"/>
+    <line x1="125" y1="5" x2="125" y2="95" stroke-width="0.9"/>
+    <line x1="35" y1="95" x2="125" y2="95" stroke-width="0.9"/>
+  </g>
+  <g fill="#1b1f24" font-family="system-ui, sans-serif" font-size="7" text-anchor="middle">
+    <text x="40" y="12.5">5</text>
+    <text x="50" y="12.5">3</text>
+    <text x="80" y="12.5">7</text>
+    <text x="40" y="22.5">6</text>
+    <text x="70" y="22.5">1</text>
+    <text x="80" y="22.5">9</text>
+    <text x="90" y="22.5">5</text>
+    <text x="50" y="32.5">9</text>
+    <text x="60" y="32.5">8</text>
+    <text x="110" y="32.5">6</text>
+    <text x="40" y="42.5">8</text>
+    <text x="80" y="42.5">6</text>
+    <text x="120" y="42.5">3</text>
+    <text x="40" y="52.5">4</text>
+    <text x="70" y="52.5">8</text>
+    <text x="90" y="52.5">3</text>
+    <text x="120" y="52.5">1</text>
+    <text x="40" y="62.5">7</text>
+    <text x="80" y="62.5">2</text>
+    <text x="120" y="62.5">6</text>
+    <text x="50" y="72.5">6</text>
+    <text x="100" y="72.5">2</text>
+    <text x="110" y="72.5">8</text>
+    <text x="70" y="82.5">4</text>
+    <text x="80" y="82.5">1</text>
+    <text x="90" y="82.5">9</text>
+    <text x="120" y="82.5">5</text>
+    <text x="80" y="92.5">8</text>
+    <text x="110" y="92.5">7</text>
+    <text x="120" y="92.5">9</text>
+  </g>
+</svg>

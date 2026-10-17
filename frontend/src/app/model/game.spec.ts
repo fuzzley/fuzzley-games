@@ -1,11 +1,26 @@
 import {
+  type Game,
   describeLength,
   describePlayers,
   playUrl,
   screenshotUrl,
+  thumbnailUrl,
 } from "./game";
 
 describe("game", () => {
+  function game(fields: Partial<Game>): Game {
+    return {
+      slug: "minesweeper",
+      name: "Minesweeper",
+      category: "classics",
+      blurb: "Clear the field.",
+      players: { min: 1, max: 1 },
+      minutes: 5,
+      added: "2026-10-17",
+      ...fields,
+    };
+  }
+
   it("plays a game from a build of several at its hash route", () => {
     expect(playUrl({ build: "solitaire", id: "bakersdozen" })).toBe(
       "/play/solitaire/#/bakersdozen",
@@ -25,6 +40,18 @@ describe("game", () => {
   it("names a build of one game's screenshots after the build", () => {
     expect(screenshotUrl({ build: "minesweeper" }, "preview")).toBe(
       "/play/minesweeper/docs/screenshots/minesweeper/preview.webp",
+    );
+  });
+
+  it("pictures a hosted game with its build's screenshot", () => {
+    expect(thumbnailUrl(game({ play: { build: "minesweeper" } }))).toBe(
+      "/play/minesweeper/docs/screenshots/minesweeper/thumb.webp",
+    );
+  });
+
+  it("pictures a game still to come with its drawing", () => {
+    expect(thumbnailUrl(game({ slug: "reversi" }))).toBe(
+      "/thumbnails/reversi.svg",
     );
   });
 

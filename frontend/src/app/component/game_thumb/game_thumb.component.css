@@ -7,13 +7,9 @@
   background: var(--felt);
 }
 
-img,
-svg {
+img {
   display: block;
   width: 100%;
   height: 100%;
-}
-
-.table {
-  fill: var(--felt);
+  object-fit: cover;
 }
