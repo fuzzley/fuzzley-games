@@ -48,4 +48,16 @@ describe("routes", () => {
 
     expect(document.title).toBe("Category not found – Fuzzley Games");
   });
+
+  it("says there's no page at any other address", async () => {
+    await open("/no/such/page");
+
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: "There’s no page at this address.",
+      }),
+    ).toBeInTheDocument();
+    expect(document.title).toBe("Page not found – Fuzzley Games");
+  });
 });

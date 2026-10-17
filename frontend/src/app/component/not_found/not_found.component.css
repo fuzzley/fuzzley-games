@@ -1,0 +1,39 @@
+:host {
+  display: block;
+}
+
+.page {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 1.5rem var(--gutter) 3rem;
+}
+
+h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+.hint {
+  margin: 0.25rem 0 1rem;
+  color: var(--muted);
+}
+
+.others {
+  list-style: none;
+  display: flex;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.others a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 36rem) {
+  h1 {
+    font-size: 1.375rem;
+  }
+}

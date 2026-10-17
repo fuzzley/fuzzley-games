@@ -229,3 +229,23 @@ start.
   the commit message for one pin and for several, the tags placed before
   `</head>` in any case, the dev server's redirect and rewrite. 107 tests
   in all.
+
+#### 6. One not-found page
+
+- `NotFoundComponent` replaces the catch-all redirect home (`**` now shows
+  it, titled "Page not found") and the two hand-built not-found states of
+  the game and category pages, which render `<app-not-found kind="game">`
+  or `kind="category"` in place of their own `<main>`. It names what was
+  missing and offers every category and the home page.
+- nginx answers every unknown path with the app and a 200, so the page sets
+  `<meta name="robots" content="noindex">` while it is shown, to keep soft
+  404s out of search results, and removes it when it goes.
+- The routes spec caught a bug before it shipped: as a routed component,
+  `withComponentInputBinding()` sets an input with no route value to
+  `undefined`, overriding its default, so the page read "There's no at
+  this address." `kind` now has a transform that turns `undefined` into
+  "page".
+- `category.component.spec.ts` is new (item 13): name, description, games
+  in order, count, back link, unknown id.
+- While at it: Yarn runs the scripts on Node 22.22.3 from nvm on this
+  machine, while `node` in a shell, CI and Docker are 26. For item 19.

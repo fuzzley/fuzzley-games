@@ -14,6 +14,7 @@ import {
 } from "../../model/game";
 import { GameCatalog } from "../../service/game_catalog.service";
 import { GameThumbComponent } from "../game_thumb/game_thumb.component";
+import { NotFoundComponent } from "../not_found/not_found.component";
 
 /**
  * A single game's page, which opens the game itself full-page, or says it is
@@ -21,7 +22,7 @@ import { GameThumbComponent } from "../game_thumb/game_thumb.component";
  */
 @Component({
   selector: "app-game-page",
-  imports: [RouterLink, GameThumbComponent],
+  imports: [RouterLink, GameThumbComponent, NotFoundComponent],
   templateUrl: "./game_page.component.html",
   styleUrl: "./game_page.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
