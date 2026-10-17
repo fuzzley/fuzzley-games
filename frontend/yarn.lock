@@ -386,22 +386,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/forms@npm:^22.2.0":
-  version: 22.2.2
-  resolution: "@angular/forms@npm:22.2.2"
-  dependencies:
-    "@standard-schema/spec": "npm:^1.0.0"
-    tslib: "npm:^2.3.0"
-    zod: "npm:^4.0.10"
-  peerDependencies:
-    "@angular/common": 22.2.2
-    "@angular/core": 22.2.2
-    "@angular/platform-browser": 22.2.2
-    rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/e4d162e6da2273a958b26afbdb49c470aa347867f7c14aea91c93fbe5e73ba58ad16cfffe358477e7004edf74c0d789d8d740f4cfc8d3384394db7646c60b759
-  languageName: node
-  linkType: hard
-
 "@angular/platform-browser@npm:^22.2.0":
   version: 22.2.2
   resolution: "@angular/platform-browser@npm:22.2.2"
@@ -2484,13 +2468,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@standard-schema/spec@npm:^1.0.0":
-  version: 1.1.0
-  resolution: "@standard-schema/spec@npm:1.1.0"
-  checksum: 10c0/d90f55acde4b2deb983529c87e8025fa693de1a5e8b49ecc6eb84d1fd96328add0e03d7d551442156c7432fd78165b2c26ff561b970a9a881f046abb78d6a526
-  languageName: node
-  linkType: hard
-
 "@testing-library/angular@npm:^19.5.0":
   version: 19.5.0
   resolution: "@testing-library/angular@npm:19.5.0"
@@ -2617,16 +2594,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^22.13.0":
-  version: 22.20.5
-  resolution: "@types/node@npm:22.20.5"
-  dependencies:
-    undici-types: "npm:~6.21.0"
-  checksum: 10c0/0cf61a89c6a69917ab49f976a6bb11a29e3b348a6ae19f5827ceb91d3ade781faab58dcf3b8fa625f975f5d7536b9166ff94e8250c29272c667164f77c28fa88
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^26.4.0":
+"@types/node@npm:^26.4.0, @types/node@npm:^26.6.0":
   version: 26.6.5
   resolution: "@types/node@npm:26.6.5"
   dependencies:
@@ -3926,7 +3894,6 @@ __metadata:
     "@angular/compiler": "npm:^22.2.0"
     "@angular/compiler-cli": "npm:^22.2.0"
     "@angular/core": "npm:^22.2.0"
-    "@angular/forms": "npm:^22.2.0"
     "@angular/platform-browser": "npm:^22.2.0"
     "@angular/router": "npm:^22.2.0"
     "@eslint/js": "npm:^10.0.1"
@@ -3934,7 +3901,7 @@ __metadata:
     "@testing-library/dom": "npm:^10.4.2"
     "@testing-library/jest-dom": "npm:^7.0.1"
     "@testing-library/user-event": "npm:^14.6.8"
-    "@types/node": "npm:^22.13.0"
+    "@types/node": "npm:^26.6.0"
     angular-eslint: "npm:^22.5.0"
     eslint: "npm:^10.11.0"
     eslint-plugin-jsdoc: "npm:^65.1.0"
@@ -6449,13 +6416,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~6.21.0":
-  version: 6.21.0
-  resolution: "undici-types@npm:6.21.0"
-  checksum: 10c0/c01ed51829b10aa72fc3ce64b747f8e74ae9b60eafa19a7b46ef624403508a54c526ffab06a14a26b3120d055e1104d7abe7c9017e83ced038ea5cf52f8d5e04
-  languageName: node
-  linkType: hard
-
 "undici-types@npm:~8.9.0":
   version: 8.9.0
   resolution: "undici-types@npm:8.9.0"
@@ -6914,7 +6874,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:4.6.5, zod@npm:^4.0.10, zod@npm:^4.2.0":
+"zod@npm:4.6.5, zod@npm:^4.2.0":
   version: 4.6.5
   resolution: "zod@npm:4.6.5"
   checksum: 10c0/32eb6c5e98becbe045675b2141c3611451c16ba567f9779231d79af41c4d651ca1c22f154aef7e6c6e77b929f23e43f1154ca05b82e119e922353725d6776af5

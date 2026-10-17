@@ -466,3 +466,27 @@ the storage fallbacks and `theme-color` (item 11). The last one:
   `<search>` yet, and some screen readers don't either, so the element also
   carries `role="search"`, with a comment saying why.
 - 163 tests (121 app, 42 tools).
+
+#### 19a. One Node version, pinned images, Dependabot
+
+- `.node-version` (26) feeds both workflows (`node-version-file`). The
+  `Dockerfile` has to name its own image, so `verify.yml` now checks the two
+  have the same major version (run locally, and against a Dockerfile edited
+  to Node 24, which it caught). `frontend/package.json` has `engines`.
+- Base images are pinned by version and digest, to what the floating tags
+  pointed at on 2026-10-17 (from Docker Hub's API):
+  `node:26.12.0-alpine3.24@sha256:6f08…` and
+  `nginx:1.31.7-alpine3.24@sha256:892b…`. The global `corepack` the build
+  installs (Node 26 doesn't bundle it) is pinned to 0.36.0.
+- `.github/dependabot.yml`: npm (Angular's packages grouped, since they must
+  move together, and the lint and test tools grouped), GitHub Actions and
+  the Dockerfile's images, weekly, each with a one-day cooldown.
+- `frontend/.yarnrc.yml` carries the one-day `npmMinimalAgeGate` that was
+  only in the user's global Yarn config, so every machine gets it.
+- `@angular/forms` removed (nothing imported it). `@types/node` moved from
+  22 to 26, the Node the project runs.
+- The image builds (`docker build`, 30 s with the games fetched) on the
+  pinned images. Docker Desktop had to be started for it.
+- Noted: on this machine Yarn runs Node 22.22.3 from nvm, while `node` in a
+  shell is 26.4.0, and CI's `setup-node` takes the newest 26 (26.12.0).
+  Everything passes on both, but `nvm use 26` would match CI.

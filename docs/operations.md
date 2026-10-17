@@ -6,7 +6,8 @@ it hosts are pinned and updated. The live site is https://fuzzley.games.
 ## Architecture
 
 - **Frontend**: Angular standalone components, Signals, Vite bundler (`@analogjs/vite-plugin-angular`), Yarn Berry (v4). See [frontend/README.md](../frontend/README.md) for development commands.
-- **Container Build**: Multi-stage Docker image using `node:26-alpine` for the build stage and `nginx:alpine` for serving.
+- **Container Build**: Multi-stage Docker image, Node on Alpine for the build stage and nginx on Alpine for serving, both pinned by version and digest in the `Dockerfile`. Dependabot (`.github/dependabot.yml`) proposes new ones, and the npm packages and GitHub Actions, weekly, a day after their release.
+- **Node version**: `.node-version` names the major version the workflows run (26). The `Dockerfile` names its own image, and `verify.yml` fails if their major versions differ.
 - **Serving & SPA Routing**: Nginx automatically reads the Cloud Run `$PORT` variable via `/etc/nginx/templates/default.conf.template`. SPA client-side routes fall back to `index.html`, which browsers must revalidate (`no-cache`). Long-lived caching is applied to the fingerprinted files in `/assets/`.
 - **Games**: each game is built in its own repository and served as static files under `/play/<slug>/`, with no fallback to the site's `index.html`. See [Games](#games).
 - **Build info**: the build writes `version.json` (package version, short commit, build time, and the build of each game), served with `Cache-Control: no-store`, so the live site says which commit it is running.
