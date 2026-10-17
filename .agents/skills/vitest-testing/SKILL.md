@@ -13,15 +13,21 @@ with Vitest through the AnalogJS Vite plugin.
 Run from `frontend/`:
 
 - **Run Tests**: `yarn test` (a single pass).
-- **Full Check**: `yarn verify` (type-check, test, then build), which is what
-  CI runs.
+- **Full Check**: `yarn verify` (lint, type-check, test, then build), which is
+  what CI runs. Vitest strips types without checking them; `yarn typecheck`
+  is what type-checks the specs.
 
 ## Setup
 
 Vitest is configured in the `test` block of `frontend/vite.config.ts`: globals
 on, a `jsdom` environment, `frontend/src/test-setup.ts` to start Angular's test
-environment, and every `*.spec.ts` or `*.test.ts` under `src/` picked up. A
-spec sits beside the file it tests, named after it.
+environment and load jest-dom's matchers, and every `*.spec.ts` or `*.test.ts`
+under `src/` picked up. A spec sits beside the file it tests, named after it.
+
+Specs use Vitest's globals (`describe`, `it`, `expect`, `vi`) without
+importing them. The globals are not optional: Angular's TestBed and Testing
+Library register their teardown on the global `afterEach`, so with globals
+off TestBed would never reset between tests.
 
 ## Test Architecture & Rules
 
@@ -46,11 +52,20 @@ it("hides the items that do not match a search", () => {
 
 ### 2. Angular Components & Services
 
-- Get a service with `TestBed.inject(...)` and render a component with
-  `TestBed.createComponent(...)`, setting its inputs through
-  `fixture.componentRef.setInput(...)`.
-- Let a change settle before asserting on it: `fixture.detectChanges()` for a
-  template, `TestBed.tick()` for an effect.
+- Render a component with Testing Library's `render(Component, { inputs,
+providers })` from `@testing-library/angular`, and find what it shows through
+  `screen` by role, label or text:
+  `screen.getByRole("link", { name: "Play Klondike" })`. Never query by a CSS
+  class: a role query also checks what assistive technology is told, and a
+  restyle can't break it.
+- Drive it as a person would, with `@testing-library/user-event`:
+  `const user = userEvent.setup()`, then `await user.click(...)` or
+  `await user.keyboard("{Escape}")`.
+- Assert with jest-dom's matchers (`toHaveAttribute`, `toHaveFocus`,
+  `toBeInTheDocument`, `toHaveTextContent`).
+- Get a service with `TestBed.inject(...)`.
+- Change detection is zoneless. `render` and user-event's actions leave the
+  template up to date; an effect in a service runs on `TestBed.tick()`.
 - jsdom keeps one document for a whole spec file, so reset any browser state a
   test touches (`localStorage`, attributes on `document.documentElement`) in a
   `beforeEach`.

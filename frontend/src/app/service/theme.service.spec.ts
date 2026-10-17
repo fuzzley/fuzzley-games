@@ -1,5 +1,4 @@
 import { TestBed } from "@angular/core/testing";
-import { describe, it, expect, beforeEach } from "vitest";
 import { THEME_STORAGE_KEY, ThemeService } from "./theme.service";
 
 describe("ThemeService", () => {

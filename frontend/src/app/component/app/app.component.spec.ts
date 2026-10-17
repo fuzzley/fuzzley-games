@@ -1,18 +1,18 @@
-import { TestBed } from "@angular/core/testing";
-import { describe, it, expect, beforeEach } from "vitest";
-import { AppComponent } from "./app.component";
+import { render, screen } from "@testing-library/angular";
 import { appConfig } from "../../app.config";
+import { AppComponent } from "./app.component";
 
 describe("AppComponent", () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [AppComponent],
+  it("shows the site header above the routed page", async () => {
+    const { navigate } = await render(AppComponent, {
       providers: appConfig.providers,
-    }).compileComponents();
-  });
+    });
 
-  it("should create the app", () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    expect(fixture.componentInstance).toBeTruthy();
+    await navigate("/");
+
+    expect(screen.getByRole("banner")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "All games" }),
+    ).toBeInTheDocument();
   });
 });

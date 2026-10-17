@@ -109,3 +109,27 @@ Done ahead of the rest so every later change is held to it.
   `textContent` (never null on an element), an untyped `JSON.parse` in the
   Vite config. `ThemeService`'s `matchMedia?.` stays, with a comment: jsdom
   has no `matchMedia`. Item 11 replaces it.
+
+#### 14. Test style
+
+Done before the new specs (item 13), so they are written this way from the
+start.
+
+- Added `@testing-library/angular`, `@testing-library/dom`,
+  `@testing-library/user-event` and `@testing-library/jest-dom` (its
+  matchers load in `test-setup.ts`). The specs render with `render()`, find
+  elements by role, label or text through `screen`, act through user-event,
+  and assert with jest-dom's matchers.
+- Yarn's one-day minimum release age (`npmMinimalAgeGate: 1440`, from the
+  user's Yarn config) refused `@testing-library/angular@19.6.0`, published
+  today. Kept the gate and took 19.5.0, which supports Angular 21 and up.
+- The theme menu's three act-and-assert rounds became five tests. Its manual
+  `el.remove()`, skipped whenever an assertion failed, is gone: Testing
+  Library cleans up after each test.
+- Vitest globals: kept on, and the specs no longer import `describe`, `it`
+  and `expect`. They aren't optional: TestBed
+  (`globalThis.afterEach?.(getCleanupHook(true))`) and Testing Library
+  register their teardown on the global `afterEach`, so with globals off
+  TestBed would never reset between tests. The `vitest-testing` skill says
+  so.
+- 37 tests now (several old tests asserted two things; split).

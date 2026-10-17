@@ -1,55 +1,60 @@
-import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { describe, it, expect, beforeEach } from "vitest";
+import { render, screen, within } from "@testing-library/angular";
 import { HomeComponent } from "./home.component";
 
 describe("HomeComponent", () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [HomeComponent],
+  async function renderHome(q?: string): Promise<void> {
+    await render(HomeComponent, {
+      inputs: q === undefined ? {} : { q },
       providers: [provideRouter([])],
-    }).compileComponents();
-  });
-
-  function render(q?: string) {
-    const fixture = TestBed.createComponent(HomeComponent);
-    if (q !== undefined) fixture.componentRef.setInput("q", q);
-    fixture.detectChanges();
-    const el = fixture.nativeElement as HTMLElement;
-    const headings = () =>
-      Array.from(el.querySelectorAll("h2")).map((h) => h.textContent.trim());
-    const names = () =>
-      Array.from(el.querySelectorAll(".tile .name")).map((n) =>
-        n.firstChild?.textContent?.trim(),
-      );
-    return { el, headings, names };
+    });
   }
 
-  it("shows every category with a link to see all of it", () => {
-    const { el, headings } = render();
-    expect(headings()).toEqual(["Solitaire", "Classics"]);
+  function sectionNames(): string[] {
+    return screen
+      .queryAllByRole("heading", { level: 2 })
+      .map((heading) => heading.textContent.trim());
+  }
+
+  it("shows every category", async () => {
+    await renderHome();
+
+    expect(sectionNames()).toEqual(["Solitaire", "Classics"]);
+  });
+
+  it("links each category to its full list", async () => {
+    await renderHome();
+
     expect(
-      Array.from(el.querySelectorAll(".see-all")).map((a) =>
-        a.getAttribute("href"),
-      ),
+      screen
+        .getAllByRole("link", { name: /^See all/ })
+        .map((link) => link.getAttribute("href")),
     ).toEqual(["/category/solitaire", "/category/classics"]);
   });
 
-  it("keeps only the sections with matches when searching", () => {
-    const { el, headings, names } = render("whitehead");
-    expect(headings()).toEqual(["Solitaire"]);
-    expect(names()).toEqual(["Klondike"]);
-    expect(el.querySelector(".count")?.textContent.trim()).toBe(
-      "1 of 44 games",
-    );
+  it("keeps only the sections with matches when searching", async () => {
+    await renderHome("whitehead");
+
+    expect(sectionNames()).toEqual(["Solitaire"]);
+    const solitaire = screen.getByRole("region", { name: "Solitaire" });
+    expect(
+      within(solitaire).getByRole("link", { name: /^Klondike/ }),
+    ).toBeInTheDocument();
   });
 
-  it("offers a way back when nothing matches", () => {
-    const { el, headings } = render("chess");
-    expect(headings()).toEqual([]);
-    expect(el.querySelector(".empty-title")?.textContent).toContain(
-      "No games match “chess”",
-    );
-    expect(el.querySelector(".empty a")?.getAttribute("href")).toBe("/");
+  it("counts the matches out of every game", async () => {
+    await renderHome("whitehead");
+
+    expect(screen.getByText("1 of 44 games")).toBeInTheDocument();
+  });
+
+  it("offers a way back when nothing matches", async () => {
+    await renderHome("chess");
+
+    expect(sectionNames()).toEqual([]);
+    expect(screen.getByText("No games match “chess”.")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Show all games" }),
+    ).toHaveAttribute("href", "/");
   });
 });
