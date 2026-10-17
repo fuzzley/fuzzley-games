@@ -4,6 +4,7 @@ import { InjectionToken, inject } from "@angular/core";
 /**
  * The browser's localStorage, or null where there is none: some private
  * windows, and browsers set to block site data, throw on the mere access.
+ *
  * Writing can still fail where it exists (a full or read-only store), so
  * a caller catches that too.
  */

@@ -7,11 +7,11 @@ import {
 } from "../provider/categories";
 import { GAMES, LAUNCHED } from "../provider/games";
 
-/** The games and categories a catalog answers for. */
+/** Holds the games and categories a catalog answers for. */
 export interface CatalogData {
   readonly categories: readonly Category[];
   readonly games: readonly Game[];
-  /** The ISO date the site opened. Its first games aren't badged as new. */
+  /** The ISO date the site opened, whose first games aren't badged as new. */
   readonly launched: string;
 }
 

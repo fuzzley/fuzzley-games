@@ -8,7 +8,7 @@ import {
 } from "../game_tile/game_tile.component";
 import { NotFoundComponent } from "../not_found/not_found.component";
 
-/** Every game in one category, as a plain grid. */
+/** Lists every game in one category, as a plain grid. */
 @Component({
   selector: "app-category",
   imports: [RouterLink, GameTileComponent, NotFoundComponent],

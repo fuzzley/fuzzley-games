@@ -8,9 +8,8 @@ import {
 } from "../game_tile/game_tile.component";
 
 /**
- * The home page: one short row per category, each linking to its full list.
- * With a search, the same sections list every match instead, and empty
- * sections drop out.
+ * Shows the home page: one short row per category linking to its full list, or
+ * every match in each non-empty category when searching.
  */
 @Component({
   selector: "app-home",

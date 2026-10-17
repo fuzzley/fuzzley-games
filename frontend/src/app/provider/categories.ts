@@ -25,7 +25,7 @@ export const CATEGORIES = [
 /** A category's id, such as "solitaire". */
 export type CategoryId = (typeof CATEGORIES)[number]["id"];
 
-/** A group of games the site shows together. */
+/** Describes a group of games the site shows together. */
 export interface Category {
   readonly id: CategoryId;
   readonly name: string;

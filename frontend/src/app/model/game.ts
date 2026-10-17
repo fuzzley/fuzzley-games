@@ -11,13 +11,13 @@ export interface PlayLocation {
   readonly id?: string;
 }
 
-/** How many people play a game at once. */
+/** Describes how many people play a game at once. */
 export interface PlayerCount {
   readonly min: number;
   readonly max: number;
 }
 
-/** A game the site lists, hosted or still to come. */
+/** Describes a game the site lists, hosted or still to come. */
 export interface Game {
   /** Its page is /games/<slug>. */
   readonly slug: string;
@@ -32,7 +32,7 @@ export interface Game {
   readonly minutes: number;
   /** The ISO date the game went up on the site. */
   readonly added: string;
-  /** Where the game is played. A game without one is coming soon. */
+  /** Where the game is played, or omitted for one still to come. */
   readonly play?: PlayLocation;
 }
 

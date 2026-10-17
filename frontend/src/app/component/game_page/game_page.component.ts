@@ -12,8 +12,8 @@ import { IconComponent } from "../icon/icon.component";
 import { NotFoundComponent } from "../not_found/not_found.component";
 
 /**
- * A single game's page, which opens the game itself full-page, or says it is
- * still to come.
+ * Shows a single game's page, which opens the game itself full-page, or says it
+ * is still to come.
  */
 @Component({
   selector: "app-game-page",

@@ -5,7 +5,9 @@ import { ThemeService } from "../../service/theme.service";
 import { IconComponent } from "../icon/icon.component";
 
 /**
- * A "Theme" button that opens a menu of the palettes, one of them checked.
+ * Shows a "Theme" button that opens a menu of the palettes, one of them
+ * checked.
+ *
  * Angular Aria's menu supplies the keyboard (arrows, Home and End, typing a
  * name, Enter, Escape), the roles, and focus going back to the button.
  */

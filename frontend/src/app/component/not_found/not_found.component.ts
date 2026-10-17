@@ -5,8 +5,10 @@ import { GameCatalog } from "../../service/game_catalog.service";
 
 /**
  * Says there's nothing at an address, and offers the categories and every
- * game instead. The server answers every address with the app, so the page
- * also asks search engines not to index it.
+ * game instead.
+ *
+ * The server answers every address with the app, so the page also asks search
+ * engines not to index it.
  */
 @Component({
   selector: "app-not-found",
@@ -16,8 +18,10 @@ import { GameCatalog } from "../../service/game_catalog.service";
 })
 export class NotFoundComponent {
   /**
-   * What the address was meant to show. As the router's catch-all, the router
-   * binds it to undefined, which means a page.
+   * What the address was meant to show.
+   *
+   * As the router's catch-all, the router binds it to undefined, which means a
+   * page.
    */
   readonly kind = input("page", {
     transform: (kind: "page" | "game" | "category" | undefined) =>

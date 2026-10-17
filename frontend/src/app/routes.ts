@@ -15,8 +15,10 @@ const categoryTitle: ResolveFn<string> = (route) =>
   "Category not found";
 
 /**
- * The site's pages. Their parameters bind to the components' inputs, and
- * `SiteTitleStrategy` adds the site's name to their titles.
+ * The site's pages.
+ *
+ * Their parameters bind to the components' inputs, and `SiteTitleStrategy`
+ * adds the site's name to their titles.
  */
 export const routes: Routes = [
   { path: "", component: HomeComponent },

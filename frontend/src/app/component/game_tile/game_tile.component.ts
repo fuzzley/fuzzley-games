@@ -27,8 +27,8 @@ function badgeFor(
 }
 
 /**
- * A game in a row or grid: a link to its page and a direct play link, or no
- * link at all for a game still to come.
+ * Shows a game in a row or grid: a link to its page and a direct play link, or
+ * no link at all for a game still to come.
  */
 @Component({
   selector: "app-game-tile",
@@ -39,6 +39,7 @@ function badgeFor(
 export class GameTileComponent {
   private readonly catalog = inject(GameCatalog);
 
+  /** The game the tile shows. */
   readonly game = input.required<Game>();
   /** Loads the game's picture at once, for a tile in view as the page opens. */
   readonly eager = input(false);
