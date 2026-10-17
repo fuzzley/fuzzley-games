@@ -386,4 +386,23 @@ defined`: ICU needs `@angular/localize`, too much for one plural.
   write and when there is none; `theme-color` follows the palette's
   `--bar` (jsdom resolves custom properties from a `<style>`); the storage
   token is `localStorage`, or null when access throws or there is no
-  window. 150 tests.
+  window. 147 tests.
+
+#### 16. Search results announced
+
+- The results count was an `aria-live` region inside `@if (searching())`,
+  so it arrived with its text already in it, which screen readers generally
+  don't announce. And with no matches it was empty, while "No games match"
+  sat outside it, so a failed search said nothing.
+- The home page now always renders its heading row: the `<h1>` ("All
+  games", visually hidden, or "Results for “…”") and a `role="status"`
+  line, empty until a search, then "1 of 44 games" or "No games match."
+  The empty state keeps its hint and button and drops its title, which
+  would have repeated the status. (A visible change, on the no-match page
+  only: the message moves up beside the heading, as a count does. Home and
+  results screenshots are pixel-identical.)
+- Specs: the heading names the search; the status counts the matches or
+  says none match; and, the point of the change, the status element that
+  was there before a search is the one whose text changes.
+- The `web-game-accessibility` skill now says a live region must be in the
+  page before its text changes, with every outcome in it.

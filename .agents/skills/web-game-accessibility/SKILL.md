@@ -36,8 +36,13 @@ than from a separate class, so the look and the announcement cannot disagree.
 
 - A change the page makes without a navigation, such as a search narrowing the
   list or a game reporting its status, is announced through an
-  `aria-live="polite"` region (`aria-live="assertive"` only for something that
-  must interrupt).
+  `aria-live="polite"` region, or `role="status"`, which is one
+  (`aria-live="assertive"` only for something that must interrupt).
+- The region has to be in the page before its text changes: screen readers
+  announce changes to a live region, not one that arrives with its text
+  already in it. Render it unconditionally and change only what it says, as
+  the home page's search status does, and put every outcome in it, the
+  empty one ("No games match.") included.
 - Give icon-only buttons a screen-reader-only label with the global
   `.visually-hidden` class in `frontend/src/app/styles/_shared.scss`, or,
   to hide it only at some widths, the `visually-hidden` mixin in

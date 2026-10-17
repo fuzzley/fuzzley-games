@@ -1,12 +1,12 @@
 import { provideRouter } from "@angular/router";
-import { render, screen } from "@testing-library/angular";
+import { type RenderResult, render, screen } from "@testing-library/angular";
 import { provideTestCatalog } from "../../testing/catalog";
 import { NotFoundComponent } from "./not_found.component";
 
 describe("NotFoundComponent", () => {
   function renderPage(
     kind?: "page" | "game" | "category",
-  ): ReturnType<typeof render<NotFoundComponent>> {
+  ): Promise<RenderResult<NotFoundComponent>> {
     return render(NotFoundComponent, {
       inputs: kind ? { kind } : {},
       providers: [provideRouter([]), provideTestCatalog()],

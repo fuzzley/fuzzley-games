@@ -1,11 +1,16 @@
 import { provideRouter } from "@angular/router";
-import { render, screen, within } from "@testing-library/angular";
+import {
+  type RenderResult,
+  render,
+  screen,
+  within,
+} from "@testing-library/angular";
 import { provideTestCatalog } from "../../testing/catalog";
 import { HomeComponent } from "./home.component";
 
 describe("HomeComponent", () => {
-  async function renderHome(q?: string): Promise<void> {
-    await render(HomeComponent, {
+  function renderHome(q?: string): Promise<RenderResult<HomeComponent>> {
+    return render(HomeComponent, {
       inputs: q === undefined ? {} : { q },
       providers: [provideRouter([]), provideTestCatalog()],
     });
@@ -55,19 +60,46 @@ describe("HomeComponent", () => {
     expect(screen.getByText("1 game")).toBeInTheDocument();
   });
 
+  it("names the search it shows results for", async () => {
+    await renderHome("whitehead");
+
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: "Results for “whitehead”",
+      }),
+    ).toBeInTheDocument();
+  });
+
   it("counts the matches out of every game", async () => {
     await renderHome("whitehead");
 
-    expect(screen.getByText("1 of 4 games")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("1 of 4 games");
+  });
+
+  it("says when nothing matches", async () => {
+    await renderHome("chess");
+
+    expect(sectionNames()).toEqual([]);
+    expect(screen.getByRole("status")).toHaveTextContent("No games match.");
   });
 
   it("offers a way back when nothing matches", async () => {
     await renderHome("chess");
 
-    expect(sectionNames()).toEqual([]);
-    expect(screen.getByText("No games match “chess”.")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Show all games" }),
     ).toHaveAttribute("href", "/");
+  });
+
+  it("announces a search from a status already in the page", async () => {
+    const { fixture } = await renderHome();
+    const status = screen.getByRole("status");
+
+    fixture.componentRef.setInput("q", "whitehead");
+    await fixture.whenStable();
+
+    expect(screen.getByRole("status")).toBe(status);
+    expect(status).toHaveTextContent("1 of 4 games");
   });
 });

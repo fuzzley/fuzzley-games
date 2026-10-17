@@ -1,16 +1,9 @@
 <main class="page" [class.searching]="searching()">
-  @if (searching()) {
-    <div class="results-head">
-      <h1>Results for “{{ query() }}”</h1>
-      <p class="count" aria-live="polite">
-        @if (matchCount()) {
-          {{ matchCount() }} of {{ total }} games
-        }
-      </p>
-    </div>
-  } @else {
-    <h1 class="visually-hidden">All games</h1>
-  }
+  <div class="results-head">
+    <h1 [class.visually-hidden]="!searching()">{{ heading() }}</h1>
+    <!-- Always in the page, so screen readers announce each change to it. -->
+    <p class="count" role="status">{{ status() }}</p>
+  </div>
 
   @for (section of sections(); track section.category.id) {
     <section [attr.aria-labelledby]="section.headingId">
@@ -36,7 +29,6 @@
     </section>
   } @empty {
     <div class="empty">
-      <p class="empty-title">No games match “{{ query() }}”.</p>
       <p class="empty-hint">
         Try a game’s name, or a kind of game like “solitaire”.
       </p>
