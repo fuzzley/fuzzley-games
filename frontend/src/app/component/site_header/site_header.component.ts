@@ -11,7 +11,7 @@ import { GameCatalog } from "../../service/game_catalog.service";
 import { IconComponent } from "../icon/icon.component";
 import { ThemeMenuComponent } from "../theme_menu/theme_menu.component";
 
-/** Name, category links, search and the palette menu, on every page. */
+/** Shows the site's name, category links, search and palette menu on every page. */
 @Component({
   selector: "app-site-header",
   imports: [RouterLink, RouterLinkActive, IconComponent, ThemeMenuComponent],

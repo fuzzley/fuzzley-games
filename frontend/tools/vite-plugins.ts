@@ -10,15 +10,17 @@ import type * as Themes from "../src/app/provider/themes.ts";
 import { readManifest } from "./games.mjs";
 import { FRONTEND_DIR } from "./script.mjs";
 
-/** The games, and what pictures of each the site shows. */
+/** Lists the site's games and what pictures of each the site shows. */
 export interface Catalog {
   readonly games: readonly GameModel.Game[];
   readonly imagesOf: (game: GameModel.Game) => string[];
 }
 
 /**
- * Returns the short commit a build comes from. COMMIT_SHA comes first: the
- * Docker build passes it in, and the image has no .git to ask.
+ * Returns the short commit a build comes from.
+ *
+ * COMMIT_SHA comes first: the Docker build passes it in, and the image has no
+ * .git to ask.
  */
 export function commitHash(
   env: NodeJS.ProcessEnv = process.env,
@@ -69,9 +71,11 @@ export function versionJson(): Plugin {
 }
 
 /**
- * Returns how to answer a request for a game's page, as nginx does: a game's
- * folder serves its index.html, and the folder without its slash redirects
- * to it. Returns null for anything else, which Vite answers.
+ * Returns how to answer a request for a game's page, as nginx does, or null
+ * for anything else, which Vite answers.
+ *
+ * A game's folder serves its index.html, and the folder without its slash
+ * redirects to it.
  */
 export function playPageRoute(
   url: string,
@@ -86,7 +90,8 @@ export function playPageRoute(
 
 /**
  * Serves each game's index.html at its folder, /play/<slug>/, in the dev and
- * preview servers. Vite would otherwise answer with the site's own index.html.
+ * preview servers, where Vite would otherwise answer with the site's own
+ * index.html.
  */
 export function servePlayPages(): Plugin {
   const handle: Connect.NextHandleFunction = (req, res, next) => {
@@ -113,6 +118,7 @@ export function servePlayPages(): Plugin {
 
 /**
  * Loads one of the app's modules, by its path in the frontend, through Vite.
+ *
  * The app's modules resolve as the app's bundler does (no file extensions),
  * so Node can't import them itself, and importing them into this config
  * would bind it to how the app is written. `runnerImport` is experimental;
@@ -136,7 +142,7 @@ export async function loadCatalog(): Promise<Catalog> {
   return { games: data.GAMES, imagesOf: model.imagesOf };
 }
 
-/** What the page needs to pick a palette before it paints. */
+/** Holds what the page needs to pick a palette before it paints. */
 export interface ThemeChoice {
   readonly ids: readonly string[];
   readonly storageKey: string;
@@ -156,6 +162,7 @@ export async function loadThemeChoice(): Promise<ThemeChoice> {
 /**
  * Returns /theme.js, which picks the palette before anything paints: the
  * player's saved choice, else the default for the system's color scheme.
+ *
  * It is plain ES5, since it runs before anything else on the page.
  */
 export function themeBootstrapScript({
@@ -184,6 +191,7 @@ export function themeBootstrapScript({
 /**
  * Serves /theme.js from the dev server and writes it into the build, made
  * from the app's own list of palettes, so index.html can't drift from it.
+ *
  * The dev server reads the list once, when it starts.
  */
 export function themeBootstrap(): Plugin {
@@ -222,11 +230,13 @@ export function missingImages(catalog: Catalog, publicDir: string): string[] {
 }
 
 /**
- * Fails the build when a game's picture is missing. For a hosted game that
- * means the catalog links a game the fetched builds don't have, such as one
- * renamed in its own repository, which would otherwise open whatever game was
- * played last: a build ships screenshots of every game it has. A game still
- * to come needs its drawing in public/thumbnails/.
+ * Fails the build when a game's picture is missing.
+ *
+ * For a hosted game that means the catalog links a game the fetched builds
+ * don't have, such as one renamed in its own repository, which would
+ * otherwise open whatever game was played last: a build ships screenshots of
+ * every game it has. A game still to come needs its drawing in
+ * public/thumbnails/.
  */
 export function checkGameImages(): Plugin {
   return {

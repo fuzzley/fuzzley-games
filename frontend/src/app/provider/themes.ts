@@ -2,8 +2,8 @@
 export type ColorMode = "light" | "dark";
 
 /**
- * The palettes a player can choose between. Their colors are in
- * styles/_palettes.scss, under [data-theme="<id>"].
+ * The palettes a player can choose between, with colors in
+ * styles/_palettes.scss under [data-theme="<id>"].
  */
 export const THEMES = [
   { id: "classic", name: "Classic felt", mode: "light" },
@@ -15,7 +15,7 @@ export const THEMES = [
 /** A palette's id, such as "classic". */
 export type ThemeId = (typeof THEMES)[number]["id"];
 
-/** A palette a player can choose. */
+/** Describes a palette a player can choose. */
 export interface Theme {
   readonly id: ThemeId;
   readonly name: string;

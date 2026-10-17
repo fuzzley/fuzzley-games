@@ -2,8 +2,8 @@ import { Component, computed, input } from "@angular/core";
 import { type Game, thumbnailUrl } from "../../model/game";
 
 /**
- * A game's picture: the screenshot its build ships, or a drawing of its layout
- * for a game still to come.
+ * Shows a game's picture: the screenshot its build ships, or a drawing of its
+ * layout for a game still to come.
  */
 @Component({
   selector: "app-game-thumb",
@@ -11,6 +11,7 @@ import { type Game, thumbnailUrl } from "../../model/game";
   styleUrl: "./game_thumb.component.scss",
 })
 export class GameThumbComponent {
+  /** The game whose picture to show. */
   readonly game = input.required<Game>();
   /** Loads the picture at once, for one in view as the page opens. */
   readonly eager = input(false);
