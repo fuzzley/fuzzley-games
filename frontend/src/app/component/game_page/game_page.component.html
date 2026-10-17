@@ -1,20 +1,18 @@
-@if (game(); as game) {
+@if (view(); as view) {
   <main class="page">
-    @if (category(); as category) {
-      <a class="back" [routerLink]="['/category', category.id]">{{
-        category.name
-      }}</a>
-    }
-    @if (play(); as play) {
+    <a class="back" [routerLink]="['/category', view.category.id]">{{
+      view.category.name
+    }}</a>
+    @if (view.play; as play) {
       <div class="intro">
-        <h1>{{ game.name }}</h1>
-        <p class="blurb">{{ game.blurb }}</p>
-        <p class="meta">{{ meta() }}</p>
+        <h1>{{ view.game.name }}</h1>
+        <p class="blurb">{{ view.game.blurb }}</p>
+        <p class="meta">{{ view.meta }}</p>
         <a class="button play-cta" [href]="play.href">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M8 5.5v13l11-6.5z" />
           </svg>
-          Play {{ game.name }}
+          Play {{ view.game.name }}
         </a>
       </div>
 
@@ -31,30 +29,26 @@
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M8 5.5v13l11-6.5z" />
           </svg>
-          Play {{ game.name }}
+          Play {{ view.game.name }}
         </span>
       </a>
     } @else {
       <div class="about">
-        <app-game-thumb class="thumb soon" [game]="game" [eager]="true" />
+        <app-game-thumb class="thumb soon" [game]="view.game" [eager]="true" />
         <div>
           <h1>
-            {{ game.name }}
+            {{ view.game.name }}
             <span class="badge">Coming soon</span>
           </h1>
-          <p class="blurb">{{ game.blurb }}</p>
-          <p class="meta">{{ meta() }}</p>
+          <p class="blurb">{{ view.game.blurb }}</p>
+          <p class="meta">{{ view.meta }}</p>
         </div>
       </div>
 
-      <section
-        class="stage"
-        [class.plain]="game.category === 'classics'"
-        aria-label="Game"
-      >
+      <section class="stage" [class.plain]="view.plain" aria-label="Game">
         <p class="stage-note">
-          {{ game.name }} is coming soon. It will be playable here once it’s
-          finished.
+          {{ view.game.name }} is coming soon. It will be playable here once
+          it’s finished.
         </p>
       </section>
     }

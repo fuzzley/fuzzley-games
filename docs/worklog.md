@@ -249,3 +249,21 @@ start.
   in order, count, back link, unknown id.
 - While at it: Yarn runs the scripts on Node 22.22.3 from nvm on this
   machine, while `node` in a shell, CI and Docker are 26. For item 19.
+
+#### 7. View models instead of template logic
+
+- The game page has one `view` (game, category, meta line, play address and
+  preview, and `plain` from the category's `surface`, which replaces the
+  template's `game.category === 'classics'`). The tile has one `view`
+  (play address and label, badge, players, length), with the badge's
+  choice in a named `badgeFor()` rather than a nested ternary. The home
+  page's sections carry their heading id and count.
+- Counts: the home page pluralized inline and the category page always said
+  "games" (so "1 games"). Both now use `describeGameCount()`. The ICU plural
+  I tried first compiled, but failed at runtime with `$localize is not
+defined`: ICU needs `@angular/localize`, too much for one plural.
+  AGENTS.md says so.
+- The theme menu's template logic goes with its rebuild in item 17.
+- New specs: section counts in the singular and plural, the "New" badge on
+  a game added lately (with only `Date` faked, so Angular's scheduling is
+  untouched) and none on a launch game. 125 tests.

@@ -1,15 +1,31 @@
 import { provideRouter } from "@angular/router";
 import { render, screen } from "@testing-library/angular";
-import { provideTestCatalog, testGame } from "../../testing/catalog";
+import type { Game } from "../../model/game";
+import {
+  TEST_CATALOG,
+  provideTestCatalog,
+  testGame,
+} from "../../testing/catalog";
 import { GameTileComponent } from "./game_tile.component";
 
 describe("GameTileComponent", () => {
   async function renderTile(slug: string): Promise<void> {
+    await renderGame(testGame(slug));
+  }
+
+  async function renderGame(game: Game): Promise<void> {
     await render(GameTileComponent, {
-      inputs: { game: testGame(slug) },
-      providers: [provideRouter([]), provideTestCatalog()],
+      inputs: { game },
+      providers: [
+        provideRouter([]),
+        provideTestCatalog({ ...TEST_CATALOG, games: [game] }),
+      ],
     });
   }
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
 
   it("links a hosted game to its page", async () => {
     await renderTile("klondike");
@@ -41,5 +57,20 @@ describe("GameTileComponent", () => {
 
     expect(screen.queryAllByRole("link")).toEqual([]);
     expect(screen.getByText("Coming soon")).toBeInTheDocument();
+  });
+
+  it("badges a game added lately as new", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-05"));
+
+    await renderGame({ ...testGame("klondike"), added: "2026-11-02" });
+
+    expect(screen.getByText("New")).toBeInTheDocument();
+  });
+
+  it("gives a game the site opened with no badge", async () => {
+    await renderTile("klondike");
+
+    expect(screen.queryByText("New")).toBeNull();
   });
 });

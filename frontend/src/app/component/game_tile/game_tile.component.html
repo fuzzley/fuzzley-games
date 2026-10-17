@@ -1,9 +1,9 @@
-@if (playHref(); as playHref) {
+@if (view().play; as play) {
   <div class="tile">
     <a class="tile-link" [routerLink]="['/games', game().slug]">
       <ng-container *ngTemplateOutlet="content" />
     </a>
-    <a class="play" [href]="playHref" [attr.aria-label]="`Play ${game().name}`">
+    <a class="play" [href]="play.href" [attr.aria-label]="play.label">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M8 5.5v13l11-6.5z" />
       </svg>
@@ -20,10 +20,8 @@
   <app-game-thumb class="thumb" [game]="game()" [eager]="eager()" />
   <span class="name">
     {{ game().name }}
-    @if (!playHref()) {
-      <span class="badge">Coming soon</span>
-    } @else if (isNew()) {
-      <span class="badge new">New</span>
+    @if (view().badge; as badge) {
+      <span class="badge" [class.new]="badge.new">{{ badge.text }}</span>
     }
   </span>
   <span class="meta">
@@ -32,14 +30,14 @@
         <circle cx="12" cy="8" r="3.6" />
         <path d="M5 20c0-4 3.2-6.5 7-6.5s7 2.5 7 6.5" />
       </svg>
-      {{ players() }}
+      {{ view().players }}
     </span>
     <span>
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="12" cy="12" r="8.5" />
         <path d="M12 7.5V12l3 2" />
       </svg>
-      {{ length() }}
+      {{ view().length }}
     </span>
   </span>
 </ng-template>

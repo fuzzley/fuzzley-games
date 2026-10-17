@@ -43,6 +43,18 @@ describe("HomeComponent", () => {
     ).toBeInTheDocument();
   });
 
+  it("counts each section's games", async () => {
+    await renderHome();
+
+    expect(screen.getAllByText("2 games")).toHaveLength(2);
+  });
+
+  it("counts a section of one game as one game", async () => {
+    await renderHome("whitehead");
+
+    expect(screen.getByText("1 game")).toBeInTheDocument();
+  });
+
   it("counts the matches out of every game", async () => {
     await renderHome("whitehead");
 

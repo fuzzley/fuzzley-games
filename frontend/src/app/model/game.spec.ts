@@ -1,5 +1,6 @@
 import {
   type Game,
+  describeGameCount,
   describeLength,
   describePlayers,
   imagesOf,
@@ -79,6 +80,14 @@ describe("game", () => {
 
   it("gives the range of players a game allows", () => {
     expect(describePlayers({ min: 2, max: 4 })).toBe("2–4 players");
+  });
+
+  it("counts one game in the singular", () => {
+    expect(describeGameCount(1)).toBe("1 game");
+  });
+
+  it("counts any other number of games in the plural", () => {
+    expect(describeGameCount(41)).toBe("41 games");
   });
 
   it("gives a game's length in minutes", () => {
