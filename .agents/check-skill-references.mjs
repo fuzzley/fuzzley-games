@@ -27,6 +27,7 @@ const REPO_PREFIXES = [
   "docker-entrypoint.d/",
   ".agents/",
   ".github/",
+  "docs/",
 ];
 
 // Root files worth checking by name, since they are the ones skills cite.
