@@ -3548,6 +3548,7 @@ __metadata:
     jsdom: "npm:^30.0.0"
     prettier: "npm:^3.9.9"
     rxjs: "npm:~7.8.0"
+    tar: "npm:^7.5.22"
     tslib: "npm:^2.3.0"
     typescript: "npm:~6.0.2"
     typescript-eslint: "npm:^8.70.1"
@@ -5319,7 +5320,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tar@npm:^7.5.7":
+"tar@npm:^7.5.22, tar@npm:^7.5.7":
   version: 7.5.22
   resolution: "tar@npm:7.5.22"
   dependencies:
