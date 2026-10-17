@@ -16,45 +16,7 @@ import { GameThumbComponent } from "../game_thumb/game_thumb.component";
 @Component({
   selector: "app-game-tile",
   imports: [NgTemplateOutlet, RouterLink, GameThumbComponent],
-  template: `
-    @if (playable()) {
-      <a class="tile" [routerLink]="['/games', game().slug]">
-        <ng-container *ngTemplateOutlet="content" />
-      </a>
-    } @else {
-      <div class="tile soon">
-        <ng-container *ngTemplateOutlet="content" />
-      </div>
-    }
-
-    <ng-template #content>
-      <app-game-thumb class="thumb" [game]="game()" />
-      <span class="name">
-        {{ game().name }}
-        @if (!playable()) {
-          <span class="badge">Coming soon</span>
-        } @else if (isNew()) {
-          <span class="badge new">New</span>
-        }
-      </span>
-      <span class="meta">
-        <span>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="12" cy="8" r="3.6" />
-            <path d="M5 20c0-4 3.2-6.5 7-6.5s7 2.5 7 6.5" />
-          </svg>
-          {{ game().players }}
-        </span>
-        <span>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="12" cy="12" r="8.5" />
-            <path d="M12 7.5V12l3 2" />
-          </svg>
-          {{ game().time }}
-        </span>
-      </span>
-    </ng-template>
-  `,
+  templateUrl: "./game_tile.component.html",
   styleUrl: "./game_tile.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

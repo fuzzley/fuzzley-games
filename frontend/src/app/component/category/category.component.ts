@@ -12,33 +12,7 @@ import { GameTileComponent } from "../game_tile/game_tile.component";
 @Component({
   selector: "app-category",
   imports: [RouterLink, GameTileComponent],
-  template: `
-    <main class="page">
-      <a class="back" routerLink="/">All games</a>
-      @if (category(); as category) {
-        <div class="head">
-          <h1>{{ category.name }}</h1>
-          <span class="count">{{ games().length }} games</span>
-        </div>
-        <p class="description">{{ category.description }}</p>
-        <ul class="grid">
-          @for (game of games(); track game.slug) {
-            <li><app-game-tile [game]="game" /></li>
-          }
-        </ul>
-      } @else {
-        <h1>There’s no category at this address.</h1>
-        <p class="description">Try one of these instead:</p>
-        <ul class="others">
-          @for (other of categories; track other.id) {
-            <li>
-              <a [routerLink]="['/category', other.id]">{{ other.name }}</a>
-            </li>
-          }
-        </ul>
-      }
-    </main>
-  `,
+  templateUrl: "./category.component.html",
   styleUrl: "./category.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
