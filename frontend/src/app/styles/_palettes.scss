@@ -2,7 +2,7 @@
 // [data-theme="<name>"], which index.html and ThemeService set on <html>, and
 // which any single element can carry too (the theme menu's swatches do). The
 // default palette also styles :root, for a page with no data-theme yet.
-//
+
 // Every palette sets the same roles: a palette missing one, or setting one
 // the default doesn't, fails the build. Add a role to every palette at once.
 // The names and modes here match src/app/provider/themes.ts, which a spec
@@ -15,22 +15,23 @@
 $palettes: (
   classic: (
     mode: light,
-    page: #ffffff,
-    bar: #ffffff,
+    page: #fff,
+    bar: #fff,
     bar-text: #1b1f24,
     bar-line: #e2e5e9,
     text: #1b1f24,
     muted: #5d6672,
     line: #e2e5e9,
     panel: #f1f3f5,
-    panel-raised: #ffffff,
-    search: #ffffff,
+    panel-raised: #fff,
+    search: #fff,
     search-line: #e2e5e9,
     search-text: #1b1f24,
     search-muted: #5d6672,
     accent: #2f7d4f,
-    on-accent: #ffffff,
+    on-accent: #fff,
     felt: #2f7d4f,
+    on-felt: #fff,
     card-back: #2b579a,
   ),
   pastel: (
@@ -43,14 +44,15 @@ $palettes: (
     muted: #6a6080,
     line: #e2dcf0,
     panel: #e9e3f7,
-    panel-raised: #ffffff,
-    search: #ffffff,
+    panel-raised: #fff,
+    search: #fff,
     search-line: #e2dcf0,
     search-text: #2b2240,
     search-muted: #6a6080,
     accent: #6d3fc8,
-    on-accent: #ffffff,
+    on-accent: #fff,
     felt: #3f9e8f,
+    on-felt: #fff,
     card-back: #e8739e,
   ),
   casino: (
@@ -71,6 +73,7 @@ $palettes: (
     accent: #e0b13a,
     on-accent: #1a1300,
     felt: #1e6b43,
+    on-felt: #fff,
     card-back: #8b1e2d,
   ),
   midnight: (
@@ -91,13 +94,13 @@ $palettes: (
     accent: #4cc3ff,
     on-accent: #062033,
     felt: #17605a,
+    on-felt: #fff,
     card-back: #3b5bdb,
   ),
 ) !default;
 
 /// The palette a page shows before it has chosen one.
 $default: classic !default;
-
 $-reference: map.get($palettes, $default);
 
 @if not $-reference {

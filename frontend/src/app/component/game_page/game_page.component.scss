@@ -72,7 +72,7 @@ h1 {
 
 .stage-note {
   max-width: 34ch;
-  color: #ffffff;
+  color: var(--on-felt);
   text-align: center;
   opacity: 0.85;
 }
@@ -144,7 +144,7 @@ h1 {
   svg {
     width: 18px;
     height: 18px;
-    fill: currentColor;
+    fill: currentcolor;
   }
 }
 
