@@ -517,3 +517,12 @@ the storage fallbacks and `theme-color` (item 11). The last one:
   Fonts' stylesheet, `gtag.js` and the measurement beacon. Font files don't
   show up in headless Chrome's resource timing with or without the policy,
   but the face is loaded either way.
+
+#### 19c. One README, no game count
+
+- `frontend/README.md` (the scaffold's, with a third copy of the command
+  list) is gone. The one thing only it said, that the dev server fetches the
+  games first and where each is played locally, is in the root README;
+  `docs/operations.md` links there.
+- "Forty-one" is gone from `index.html`'s description and the README, which
+  would have gone stale with the next game.
