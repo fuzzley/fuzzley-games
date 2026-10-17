@@ -1,33 +1,54 @@
 ---
 name: github-actions-ci-cd
-description: The verify workflow (.github/workflows/verify.yml), what it checks in the frontend and the Docker image, and how it relates to the Cloud Run deploy that does not wait for it. Triggers on: github actions, workflow, ci/cd, quality gate, verify.yml, docker check.
+description: The verify and update-games workflows (.github/workflows/verify.yml, update-games.yml), what they check in the frontend and the Docker image, how the games' pins move, and how both relate to the Cloud Run deploy that does not wait for them. Triggers on: github actions, workflow, ci/cd, quality gate, verify.yml, update-games.yml, docker check, games.json, game update failed.
 ---
 
 # GitHub Actions CI
 
-> What the workflow checks, and what it does not stand between.
+> What the workflows check, and what they do not stand between.
 
-The workflow is `.github/workflows/verify.yml` ("Verify"). **Read it before
-changing it** — it is one short file, and the summary below is a guide to its
-intent, not a substitute for its contents.
+There are two workflows: `.github/workflows/verify.yml` ("Verify") and
+`.github/workflows/update-games.yml` ("Update games"). Both run the same image
+checks, `.github/scripts/check-image.sh`. **Read the files before changing
+them** — each is short, and the summary below is a guide to their intent, not
+a substitute for their contents.
 
-## Shape of the Pipeline
+## Verify
 
 Two independent jobs, on push to `main`, any pull request, or a manual
 `workflow_dispatch`. A newer push to the same ref cancels a run in progress.
 
 1. **`verify`** — checkout, Node 26, Corepack, an immutable install in
-   `frontend/`, then `yarn verify` (lint, type-check, test, build).
-2. **`docker`** — builds the `Dockerfile` with `COMMIT_SHA`, runs the image
-   with a placeholder analytics ID, and requests its pages: the Angular routes
-   answer with `index.html`, a missing file under `/assets/` is a 404, the
-   `Cache-Control` headers match `nginx.conf.template`, `env.js` carries the
-   ID, and `version.json` names the commit.
+   `frontend/`, then `yarn verify` (lint, type-check, test, build). The build
+   fetches the games pinned in `frontend/games.json` from their releases.
+2. **`docker`** — builds the `Dockerfile` with `COMMIT_SHA` and runs
+   `check-image.sh` on it, which serves the image with a placeholder analytics
+   ID and requests its pages: the Angular routes answer with `index.html`, a
+   missing file under `/assets/` is a 404, the `Cache-Control` headers match
+   `nginx.conf.template`, `env.js` carries the ID, and `version.json` names
+   the commit. For each pinned game it checks `/play/<slug>/` is the game's
+   own page with the analytics tags, never the site's `index.html`, with its
+   own fingerprinted assets, and that `version.json` names the pinned build.
 
-## Deployment Does Not Wait for It
+## Update games
+
+Every 15 minutes, `frontend/tools/update-games.mjs` moves each pin in
+`frontend/games.json` to the newest build its game's release names in
+`latest.json`. When a pin moves, the job commits, builds the image, runs
+`check-image.sh`, and pushes to `main` only if both pass; Cloud Run deploys the
+push. A failure opens a "Game update failed: <archive>" issue and pushes
+nothing, and later runs skip that archive while the issue is open. Pushes made
+with `GITHUB_TOKEN` start no other workflow, so `verify.yml` doesn't run on
+them.
+
+The build fails when the catalogue links a game the fetched build lacks (the
+`checkPlayLinks` plugin in `frontend/vite.config.ts`), so a game renamed or
+removed upstream shows up as one of these issues, not as a broken link.
+
+## Deployment Does Not Wait for Them
 
 Cloud Run builds and deploys the `Dockerfile` from every push to `main` through
-its own Cloud Build trigger (see `README.md`). Nothing in this workflow gates
+its own Cloud Build trigger (see `README.md`). Nothing in `verify.yml` gates
 that, so **a red run on `main` means the broken commit is already live**. Run
 `yarn verify` in `frontend/` before pushing to `main`, or go through a pull
 request.
@@ -41,13 +62,14 @@ request.
    `frontend/package.json` pins. If you add dependency caching, restore it
    with `actions/cache` rather than `setup-node`'s `cache: yarn`, which looks
    up Yarn's cache folder before Corepack runs.
-3. **The Docker checks follow the server.** A new route in
+3. **The image checks follow the server.** A new route in
    `frontend/src/app/routes.ts`, a changed header in `nginx.conf.template`
    or a new variable in `docker-entrypoint.d/40-generate-env-config.sh` gets a
-   matching expectation in the `docker` job.
-4. **No secrets in CI.** The workflow uses a made-up measurement ID; the real
-   one lives in Secret Manager and reaches only Cloud Run. Never echo a secret,
-   and never `set -x` a step that handles one.
+   matching expectation in `check-image.sh`.
+4. **No secrets in CI.** The workflows use a made-up measurement ID; the real
+   one lives in Secret Manager and reaches only Cloud Run. Neither needs a
+   token beyond its own `GITHUB_TOKEN`. Never echo a secret, and never
+   `set -x` a step that handles one.
 
 ## Troubleshooting
 
@@ -57,6 +79,12 @@ request.
   is fixed by `yarn prettier`.
 - **Install failures.** Usually a stale `frontend/yarn.lock`: run
   `yarn install` in `frontend/` and commit the lockfile.
-- **`docker` failures.** The job prints the container's logs when a check
+- **`docker` failures.** The script prints the container's logs when a check
   fails. Reproduce with the build and run steps in `README.md`, then request
-  the failing path with `curl -i`.
+  the failing path with `curl -i`. The script itself needs `curl` and `jq`.
+- **"Game update failed" issues.** Pin that archive locally in
+  `frontend/games.json` (its name, commit and SHA-256 are in the release's
+  `latest.json`) and run `yarn build` to see the failure.
+- **A game's update never arrives.** GitHub turns scheduled workflows off
+  after 60 days without activity; check that Update games is enabled under
+  Actions.

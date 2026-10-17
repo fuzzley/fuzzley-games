@@ -116,3 +116,15 @@ in this order:
   screenshots load), search, a game page, a coming-soon page and the game
   itself at `/play/solitaire/#/canfield`, at 1280 px and at 390 px with
   phone emulation. No page is wider than its viewport.
+- Committed: `feat(frontend): list the Solitaire Collection's 41 games`.
+
+#### fuzzley-games: the update workflow and docs
+
+- `.github/workflows/update-games.yml`, ported from fuzzley's. Rather than a
+  separate `yarn build`, it commits the new pin locally, builds the Docker
+  image (whose build fetches and checks the games) with that commit, runs
+  `check-image.sh`, and pushes only if both pass. A failure opens a
+  "Game update failed" issue, as fuzzley's does.
+- Docs: README gains a Games section (how the pins move, rolling back, adding
+  a game); AGENTS.md, `frontend/README.md` and the `github-actions-ci-cd`
+  skill describe the games, the scripts and the new workflow.

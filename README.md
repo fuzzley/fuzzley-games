@@ -7,7 +7,8 @@ Fuzzley Games portal and gallery built with Angular and Vite, containerized with
 - **Frontend**: Angular standalone components, Signals, Vite bundler (`@analogjs/vite-plugin-angular`), Yarn Berry (v4). See [frontend/README.md](frontend/README.md) for development commands.
 - **Container Build**: Multi-stage Docker image using `node:26-alpine` for the build stage and `nginx:alpine` for serving.
 - **Serving & SPA Routing**: Nginx automatically reads the Cloud Run `$PORT` variable via `/etc/nginx/templates/default.conf.template`. SPA client-side routes fall back to `index.html`, which browsers must revalidate (`no-cache`). Long-lived caching is applied to the fingerprinted files in `/assets/`.
-- **Build info**: the build writes `version.json` (package version, short commit, build time), served with `Cache-Control: no-store`, so the live site says which commit it is running.
+- **Games**: each game is built in its own repository and served as static files under `/play/<slug>/`, with no fallback to the site's `index.html`. See [Games](#games).
+- **Build info**: the build writes `version.json` (package version, short commit, build time, and the build of each game), served with `Cache-Control: no-store`, so the live site says which commit it is running.
 - **Runtime Configuration**: Environment variables such as `GA_AG_MEASUREMENT_ID` are injected at container startup into `/usr/share/nginx/html/env.js` via `/docker-entrypoint.d/40-generate-env-config.sh`, with `Cache-Control: no-store`. See [Runtime Configuration](#runtime-configuration).
 
 ## Docker Build & Run (Local Testing)
@@ -35,6 +36,51 @@ From the repository root:
    docker rm games-container
    ```
 
+## Games
+
+The games are built in their own repositories. Today that is the Solitaire
+Collection, [fuzzley/fSolitaire](https://github.com/fuzzley/fSolitaire),
+played at `/play/solitaire/`, which picks a game by hash route
+(`/play/solitaire/#/klondike`). Every push to a game's `main` builds it and
+uploads the build to that repository's `site-build` release as
+`<slug>-<short sha>.tar.gz`, then replaces `latest.json` there, which names
+the newest archive.
+
+`frontend/games.json` pins one archive per game, by name and SHA-256.
+`frontend/tools/fetch-games.mjs` downloads each pinned archive (cached in
+`node_modules/.cache/games/`), checks its SHA-256 and unpacks it into
+`frontend/public/play/<slug>/`, which git ignores. `yarn start` and
+`yarn build` run it first, so the Docker build fetches the games too.
+`frontend/tools/inject-analytics.mjs` then adds the site's `env.js` and
+`analytics.js` tags to each game's `index.html` in `dist/`, since the games
+carry no analytics code of their own.
+
+The dashboard's catalog (`frontend/src/app/provider/game_catalog.ts`) names
+each hosted game's build and id, and shows the screenshots the build ships in
+`docs/screenshots/<id>/`. The build fails if the catalog links a game the
+fetched build doesn't have, such as one renamed upstream.
+
+Every 15 minutes, `.github/workflows/update-games.yml` moves each pin to the
+newest build, builds the image and checks it, and pushes the change to `main`
+if both pass; Cloud Run then deploys it. It uses only its own `GITHUB_TOKEN`,
+and no game repository can push here. If the image fails, it opens a
+"Game update failed" issue and skips that archive until the issue is closed or
+a newer build appears. GitHub turns scheduled workflows off after 60 days
+without activity, so if a game's update never arrives, check that Update games
+is enabled under Actions.
+
+- **Roll a game back:** set its entry in `games.json` to an older archive from
+  its release (`gh release view site-build --repo fuzzley/<repo>`), with that
+  archive's SHA-256 and commit, and push. The next scheduled run moves it
+  forward again once the game has a newer build than that. A game's release
+  keeps its ten newest archives and the one pinned here.
+- **Add a game:** give its repository a deploy job like fSolitaire's, push once
+  so its release exists, add its entry to `games.json` from its
+  `latest.json`, and list its games in the catalog.
+
+fuzzley.info pins and fetches its own games the same way; these scripts
+started as its own.
+
 ## Deployment
 
 fuzzley.games is the site. Cloud Run serves it from the Docker image above,
@@ -59,7 +105,8 @@ never takes the live site down; it only limits how far back a rollback can go.
 
 Pushes to `main` and pull requests also run `.github/workflows/verify.yml`,
 which type-checks, tests and builds, then builds the Docker image, serves it
-and checks its pages, cache headers, `env.js` and `version.json`. Cloud Run
+and checks its pages, games, cache headers, `env.js` and `version.json`
+(`.github/scripts/check-image.sh`). Cloud Run
 doesn't wait for it, so a failed run there means `main` is already live.
 
 To deploy `main` again without a push:
