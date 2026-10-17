@@ -2,15 +2,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
-import {
-  CATEGORIES,
-  GAMES,
-  gamesIn,
-  matchesQuery,
-} from "../../provider/game_catalog";
+import { GameCatalog } from "../../service/game_catalog.service";
 import { GameTileComponent } from "../game_tile/game_tile.component";
 
 /**
@@ -26,24 +22,27 @@ import { GameTileComponent } from "../game_tile/game_tile.component";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent {
+  private readonly catalog = inject(GameCatalog);
+
   /** The `?q=` query parameter, written by the header's search box. */
   readonly q = input<string>();
 
   protected readonly query = computed(() => (this.q() ?? "").trim());
   protected readonly searching = computed(() => this.query() !== "");
 
-  protected readonly sections = computed(() =>
-    CATEGORIES.map((category) => {
-      const all = gamesIn(category.id);
-      const games = this.searching()
-        ? all.filter((game) => matchesQuery(game, this.query()))
-        : all;
-      return { category, games, total: all.length };
-    }).filter((section) => section.games.length > 0),
-  );
+  protected readonly sections = computed(() => {
+    const matches = this.catalog.matcher(this.query());
+    return this.catalog.categories
+      .map((category) => {
+        const all = this.catalog.gamesIn(category.id);
+        const games = this.searching() ? all.filter(matches) : all;
+        return { category, games, total: all.length };
+      })
+      .filter((section) => section.games.length > 0);
+  });
 
   protected readonly matchCount = computed(() =>
     this.sections().reduce((sum, section) => sum + section.games.length, 0),
   );
-  protected readonly total = GAMES.length;
+  protected readonly total = this.catalog.games.length;
 }

@@ -9,7 +9,7 @@
       <div class="intro">
         <h1>{{ game.name }}</h1>
         <p class="blurb">{{ game.blurb }}</p>
-        <p class="meta">{{ game.players }}, about {{ game.time }} a game</p>
+        <p class="meta">{{ meta() }}</p>
         <a class="button play-cta" [href]="play.href">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M8 5.5v13l11-6.5z" />
@@ -37,7 +37,7 @@
             <span class="badge">Coming soon</span>
           </h1>
           <p class="blurb">{{ game.blurb }}</p>
-          <p class="meta">{{ game.players }}, about {{ game.time }} a game</p>
+          <p class="meta">{{ meta() }}</p>
         </div>
       </div>
 

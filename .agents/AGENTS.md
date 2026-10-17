@@ -27,11 +27,21 @@ Collection and Minesweeper) and served as static pages under
     `routes.ts` declares the pages.
   - `src/app/component/` holds one folder per component, named in snake_case
     (`game_tile/game_tile.component.ts`), with its template and stylesheet.
-  - `src/app/service/` holds the injectable services, such as `ThemeService`.
-  - `src/app/provider/` holds the data the site is built around: the game
-    catalog, which says where each hosted game is played, and the drawings of
-    the games still to come. A hosted game's thumbnail is its build's own
-    screenshot.
+  - `src/app/model/` holds the types the site is built around, such as
+    `Game`, with the pure functions over them (a game's play address, its
+    screenshot, how its players and length read).
+  - `src/app/provider/` holds data and nothing else: the games
+    (`games.ts`), the categories and the palettes, and the drawings of the
+    games still to come. A hosted game's thumbnail is its build's own
+    screenshot. A union of ids, such as `CategoryId`, is derived from its
+    list (`as const satisfies`), so the two can't disagree.
+  - `src/app/service/` holds the injectable services. `GameCatalog` answers
+    every question about the games (find, group, search, which are new);
+    components ask it rather than importing the data, and specs give it a
+    small catalog of their own through `CATALOG_DATA`. `ThemeService`
+    applies and remembers the palette.
+  - `src/app/testing/` holds what specs share, such as `TEST_CATALOG` and
+    `provideTestCatalog()`. The app's tsconfig leaves it out.
   - `src/app/styles/global.css` is the one global stylesheet: the color
     palettes, as custom properties under `[data-theme]`, and the few shared
     classes.

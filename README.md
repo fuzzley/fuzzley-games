@@ -36,8 +36,8 @@ yarn games       # fetch the pinned game builds into public/play/
 
 The portal application code lives in `frontend/src/app/` (bootstrapped by
 `frontend/src/app/main.ts`), with theme palettes and shared styles in
-`frontend/src/app/styles/global.css`. The game catalog and metadata are defined
-in `frontend/src/app/provider/game_catalog.ts`. Pinned game builds are tracked in
+`frontend/src/app/styles/global.css`. The games the site lists are defined
+in `frontend/src/app/provider/games.ts`. Pinned game builds are tracked in
 `frontend/games.json` and unpacked into `frontend/public/play/<slug>/`.
 
 Detailed operations, local Docker execution, game pinning, and Cloud Run

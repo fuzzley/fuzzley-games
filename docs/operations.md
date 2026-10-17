@@ -58,8 +58,8 @@ the newest archive.
 `analytics.js` tags to each game's `index.html` in `dist/`, since the games
 carry no analytics code of their own.
 
-The dashboard's catalog (`frontend/src/app/provider/game_catalog.ts`) names
-each hosted game's build and id, and shows the screenshots the build ships in
+The site's catalog (`frontend/src/app/provider/games.ts`) names each hosted
+game's build and id, and shows the screenshots the build ships in
 `docs/screenshots/<id>/`. The build fails if the catalog links a game the
 fetched build doesn't have, such as one renamed upstream.
 

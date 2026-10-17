@@ -1,13 +1,13 @@
 import { provideRouter } from "@angular/router";
 import { render, screen } from "@testing-library/angular";
-import { findGame } from "../../provider/game_catalog";
+import { provideTestCatalog, testGame } from "../../testing/catalog";
 import { GameTileComponent } from "./game_tile.component";
 
 describe("GameTileComponent", () => {
   async function renderTile(slug: string): Promise<void> {
     await render(GameTileComponent, {
-      inputs: { game: findGame(slug)! },
-      providers: [provideRouter([])],
+      inputs: { game: testGame(slug) },
+      providers: [provideRouter([]), provideTestCatalog()],
     });
   }
 
@@ -29,8 +29,15 @@ describe("GameTileComponent", () => {
     );
   });
 
+  it("says who plays a game and for how long", async () => {
+    await renderTile("reversi");
+
+    expect(screen.getByText("2 players")).toBeInTheDocument();
+    expect(screen.getByText("10 min")).toBeInTheDocument();
+  });
+
   it("shows a game still to come with no link, and says so", async () => {
-    await renderTile("sudoku");
+    await renderTile("reversi");
 
     expect(screen.queryAllByRole("link")).toEqual([]);
     expect(screen.getByText("Coming soon")).toBeInTheDocument();
