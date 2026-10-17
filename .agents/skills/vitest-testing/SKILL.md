@@ -19,10 +19,17 @@ Run from `frontend/`:
 
 ## Setup
 
-Vitest is configured in the `test` block of `frontend/vite.config.ts`: globals
-on, a `jsdom` environment, `frontend/src/test-setup.ts` to start Angular's test
-environment and load jest-dom's matchers, and every `*.spec.ts` or `*.test.ts`
-under `src/` picked up. A spec sits beside the file it tests, named after it.
+Vitest is configured in the `test` block of `frontend/vite.config.ts`, as two
+projects:
+
+- **`app`**: every `*.spec.ts` under `src/`, in `jsdom`, with the Angular
+  plugin and `frontend/src/test-setup.ts`, which starts Angular's test
+  environment and loads jest-dom's matchers.
+- **`tools`**: every `*.spec.ts` under `tools/`, in Node, for the build
+  scripts and Vite plugins. `yarn vitest run --project tools` runs only
+  these.
+
+A spec sits beside the file it tests, named after it.
 
 Specs use Vitest's globals (`describe`, `it`, `expect`, `vi`) without
 importing them. The globals are not optional: Angular's TestBed and Testing

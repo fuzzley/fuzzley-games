@@ -11,7 +11,7 @@ export default defineConfig(
   {
     // Scoped to TypeScript: the type-aware configs below need the TS parser,
     // and Angular templates are parsed by angular-eslint instead.
-    files: ["**/src/**/*.ts", "**/vite.config.ts"],
+    files: ["**/src/**/*.ts", "**/vite.config.ts", "**/tools/**/*.ts"],
     extends: [
       eslint.configs.recommended,
       tseslint.configs.strictTypeChecked,
@@ -44,6 +44,11 @@ export default defineConfig(
         { fixStyle: "inline-type-imports" },
       ],
       "@typescript-eslint/no-import-type-side-effects": "error",
+      // `const { omitted, ...rest } = value` is how a key is left out.
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { ignoreRestSiblings: true },
+      ],
       // Numbers and booleans read naturally in a message.
       "@typescript-eslint/restrict-template-expressions": [
         "error",

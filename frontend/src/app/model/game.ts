@@ -63,6 +63,13 @@ export function thumbnailUrl(game: Game): string {
     : `/thumbnails/${game.slug}.svg`;
 }
 
+/** Returns every picture the site shows of a game: its thumbnail and preview. */
+export function imagesOf(game: Game): string[] {
+  return game.play
+    ? [thumbnailUrl(game), screenshotUrl(game.play, "preview")]
+    : [thumbnailUrl(game)];
+}
+
 /** Returns how many play a game: "Solo", "2 players" or "2–4 players". */
 export function describePlayers({ min, max }: PlayerCount): string {
   if (max === 1) return "Solo";

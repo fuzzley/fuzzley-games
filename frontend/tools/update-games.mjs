@@ -21,6 +21,7 @@ import {
   releaseUrl,
   writeManifest,
 } from "./games.mjs";
+import { errorMessage, logger } from "./script.mjs";
 
 /** @import { GameBuild } from "./games.mjs" */
 
@@ -36,35 +37,42 @@ import {
  * @property {GameBuild} to
  */
 
-const skip = new Set(
-  (process.env["SKIP_ASSETS"] ?? "")
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean),
-);
+/**
+ * @typedef {{move: GameBuild} | {stay: string}} Plan
+ *   What to do with a pin: move it to a build, or leave it, and why.
+ */
 
 // A release's files can answer 404 for a little while after they are
 // uploaded, so a build is left for the next run until it is this old.
 const SETTLE_MS = 2 * 60 * 1000;
 
+const log = logger("update-games");
+
 /**
- * Prints a line of progress.
+ * Returns the archives not to move to, from SKIP_ASSETS' lines.
  *
- * @param {string} message
+ * @param {string} text
+ * @returns {Set<string>}
  */
-function log(message) {
-  console.log(`update-games: ${message}`);
+export function parseSkipList(text) {
+  return new Set(
+    text
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean),
+  );
 }
 
 /**
  * Returns the newest build on a repository's release, or null if it has none.
  *
  * @param {string} repo
+ * @param {typeof fetch} [fetchFile]
  * @returns {Promise<LatestBuild | null>}
  */
-async function latestBuild(repo) {
+export async function latestBuild(repo, fetchFile = fetch) {
   const url = releaseUrl(repo, "latest.json");
-  const response = await fetch(url);
+  const response = await fetchFile(url);
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
   // Not trusted yet: checkGame and the check below vouch for the fields.
@@ -79,12 +87,63 @@ async function latestBuild(repo) {
 }
 
 /**
+ * Returns what to do with a game's pin, given the newest build on its
+ * release.
+ *
+ * @param {GameBuild} pinned
+ * @param {LatestBuild | null} latest
+ * @param {ReadonlySet<string>} skip Archives whose update already failed.
+ * @param {number} now Milliseconds since the epoch.
+ * @returns {Plan}
+ */
+export function planUpdate(pinned, latest, skip, now) {
+  if (!latest) return { stay: `${pinned.repo} has no latest.json yet` };
+  if (latest.asset === pinned.asset) {
+    return { stay: `up to date (${pinned.asset})` };
+  }
+  if (skip.has(latest.asset)) {
+    return { stay: `skipping ${latest.asset}, whose update already failed` };
+  }
+  if (now - Date.parse(latest.built) < SETTLE_MS) {
+    return { stay: `${latest.asset} is under two minutes old; next run` };
+  }
+  const { repo, commit, asset, sha256 } = latest;
+  return { move: { repo, commit, asset, sha256 } };
+}
+
+/**
  * Returns a commit's short form.
  *
  * @param {string} commit
  * @returns {string}
  */
 const short = (commit) => commit.slice(0, 7);
+
+/**
+ * Returns the commit message for moving some pins.
+ *
+ * @param {Change[]} changes At least one.
+ * @returns {string}
+ */
+export function commitMessage(changes) {
+  const [first] = changes;
+  const subject =
+    changes.length === 1 && first
+      ? `chore(games): update ${first.slug} to ${first.to.repo}@${short(first.to.commit)}`
+      : `chore(games): update ${changes.map((c) => c.slug).join(", ")}`;
+  const lines = changes.map(
+    ({ slug, from, to }) =>
+      `- ${slug}: ${to.asset}, ` +
+      `https://github.com/${to.repo}/compare/${short(from.commit)}...${short(to.commit)}`,
+  );
+  return [
+    subject,
+    "",
+    ...lines,
+    "",
+    "Pinned by .github/workflows/update-games.yml after the site built.",
+  ].join("\n");
+}
 
 /**
  * Writes a GitHub Actions step output, allowing several lines.
@@ -99,64 +158,36 @@ function output(name, value) {
   fs.appendFileSync(file, `${name}<<${delimiter}\n${value}\n${delimiter}\n`);
 }
 
-const manifest = readManifest();
-/** @type {Change[]} */
-const changes = [];
+async function main() {
+  const skip = parseSkipList(process.env["SKIP_ASSETS"] ?? "");
+  const manifest = readManifest();
+  /** @type {Change[]} */
+  const changes = [];
 
-for (const [slug, game] of Object.entries(manifest)) {
-  let latest;
-  try {
-    latest = await latestBuild(game.repo);
-  } catch (error) {
-    // The next run tries again; the other games needn't wait.
-    const message = error instanceof Error ? error.message : String(error);
-    console.log(`::warning::update-games: ${slug}: ${message}`);
-    continue;
+  for (const [slug, game] of Object.entries(manifest)) {
+    let latest;
+    try {
+      latest = await latestBuild(game.repo);
+    } catch (error) {
+      // The next run tries again; the other games needn't wait.
+      console.log(`::warning::update-games: ${slug}: ${errorMessage(error)}`);
+      continue;
+    }
+    const plan = planUpdate(game, latest, skip, Date.now());
+    if ("stay" in plan) {
+      log(`${slug}: ${plan.stay}`);
+      continue;
+    }
+    log(`${slug}: ${game.asset} -> ${plan.move.asset}`);
+    changes.push({ slug, from: game, to: plan.move });
+    manifest[slug] = plan.move;
   }
-  if (!latest) {
-    log(`${slug}: ${game.repo} has no latest.json yet`);
-  } else if (latest.asset === game.asset) {
-    log(`${slug}: up to date (${game.asset})`);
-  } else if (skip.has(latest.asset)) {
-    log(`${slug}: skipping ${latest.asset}, whose update already failed`);
-  } else if (Date.now() - Date.parse(latest.built) < SETTLE_MS) {
-    log(`${slug}: ${latest.asset} is under two minutes old; next run`);
-  } else {
-    log(`${slug}: ${game.asset} -> ${latest.asset}`);
-    const to = {
-      repo: latest.repo,
-      commit: latest.commit,
-      asset: latest.asset,
-      sha256: latest.sha256,
-    };
-    changes.push({ slug, from: game, to });
-    manifest[slug] = to;
-  }
-}
 
-output("changed", String(changes.length > 0));
-if (changes.length > 0) {
+  output("changed", String(changes.length > 0));
+  if (changes.length === 0) return;
   writeManifest(manifest);
-
-  const [first] = changes;
-  const subject =
-    changes.length === 1 && first
-      ? `chore(games): update ${first.slug} to ${first.to.repo}@${short(first.to.commit)}`
-      : `chore(games): update ${changes.map((c) => c.slug).join(", ")}`;
-  const lines = changes.map(
-    ({ slug, from, to }) =>
-      `- ${slug}: ${to.asset}, ` +
-      `https://github.com/${to.repo}/compare/${short(from.commit)}...${short(to.commit)}`,
-  );
-  output(
-    "message",
-    [
-      subject,
-      "",
-      ...lines,
-      "",
-      "Pinned by .github/workflows/update-games.yml after the site built.",
-    ].join("\n"),
-  );
+  output("message", commitMessage(changes));
   output("assets", changes.map(({ to }) => to.asset).join("\n"));
 }
+
+if (import.meta.main) await main();

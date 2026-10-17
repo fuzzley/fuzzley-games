@@ -41,9 +41,10 @@ nothing, and later runs skip that archive while the issue is open. Pushes made
 with `GITHUB_TOKEN` start no other workflow, so `verify.yml` doesn't run on
 them.
 
-The build fails when the catalogue links a game the fetched build lacks (the
-`checkPlayLinks` plugin in `frontend/vite.config.ts`), so a game renamed or
-removed upstream shows up as one of these issues, not as a broken link.
+The build fails when the catalog links a game the fetched build lacks (the
+`checkGameImages` plugin in `frontend/tools/vite-plugins.ts`), so a game
+renamed or removed upstream shows up as one of these issues, not as a broken
+link.
 
 ## Deployment Does Not Wait for Them
 
