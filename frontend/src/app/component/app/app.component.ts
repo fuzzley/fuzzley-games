@@ -5,7 +5,7 @@ import { SiteHeaderComponent } from "../site_header/site_header.component";
 @Component({
   selector: "app-root",
   imports: [RouterOutlet, SiteHeaderComponent],
-  template: "<app-site-header /><router-outlet />",
+  templateUrl: "./app.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {}
