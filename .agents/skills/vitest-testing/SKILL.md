@@ -52,9 +52,9 @@ it("hides the items that do not match a search", () => {
 
 ### 2. Angular Components & Services
 
-- Render a component with Testing Library's `render(Component, { inputs,
-providers })` from `@testing-library/angular`, and find what it shows through
-  `screen` by role, label or text:
+- Render a component with `render()` from `@testing-library/angular`, passing
+  its `inputs` and `providers`, and find what it shows through `screen` by
+  role, label or text:
   `screen.getByRole("link", { name: "Play Klondike" })`. Never query by a CSS
   class: a role query also checks what assistive technology is told, and a
   restyle can't break it.
