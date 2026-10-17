@@ -28,7 +28,9 @@ yarn start
 yarn dev
 ```
 
-Navigate to `http://localhost:4200`.
+Navigate to `http://localhost:4200`. It first fetches the games pinned in
+`games.json` into `public/play/`, and starts without them when offline; the
+Solitaire Collection is then at `http://localhost:4200/play/solitaire/`.
 
 ### 3. Production Build
 

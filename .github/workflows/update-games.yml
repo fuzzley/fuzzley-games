@@ -1,0 +1,113 @@
+name: Update games
+
+# Every 15 minutes, moves each game's pin in frontend/games.json to the newest
+# build on that game's site-build release, which its own deploy job publishes
+# (fSolitaire's .github/workflows/deploy.yml, for one).
+#
+# It needs no token beyond its own GITHUB_TOKEN. It builds the Docker image
+# with the new pins and checks it as verify.yml does, and pushes to main only
+# if both pass, which is the check that stands in for review: Cloud Run then
+# deploys the push. (A pull request opened with GITHUB_TOKEN would get no CI
+# runs, so it could never auto-merge on passing checks.) Pushes made with
+# GITHUB_TOKEN don't start other workflows, so verify.yml doesn't run for
+# them; this run has already checked the same image.
+#
+# When the image fails to build or to pass its checks, nothing is pushed and
+# the job opens an issue titled "Game update failed: <archive>". Later runs
+# skip that archive, so a broken build doesn't fail every 15 minutes; closing
+# the issue, or a newer build, makes them try again.
+#
+# GitHub turns scheduled workflows off after 60 days without activity in a
+# public repository. If a game's update never arrives, check that this
+# workflow is enabled under Actions.
+
+on:
+  schedule:
+    # Every 15 minutes, off the hour: GitHub delays, and sometimes drops,
+    # scheduled runs at busy times, the start of each hour most of all.
+    - cron: "4,19,34,49 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: update-games
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout fuzzley-games
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 26
+
+      - name: List archives whose update already failed
+        id: failed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "assets<<EOF"
+            gh issue list --state open --limit 100 --json title --jq \
+              '.[].title | select(startswith("Game update failed: ")) | ltrimstr("Game update failed: ")'
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Move the pins to the newest builds
+        id: update
+        env:
+          SKIP_ASSETS: ${{ steps.failed.outputs.assets }}
+        run: node frontend/tools/update-games.mjs
+
+      # Committed before the image is built, so the image's version.json
+      # names the commit it will be deployed from.
+      - name: Commit the new pins
+        if: steps.update.outputs.changed == 'true'
+        env:
+          MESSAGE: ${{ steps.update.outputs.message }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/games.json
+          git commit -m "$MESSAGE"
+
+      - name: Build the image with the new pins
+        id: build
+        if: steps.update.outputs.changed == 'true'
+        run: docker build --build-arg COMMIT_SHA="$(git rev-parse HEAD)" -t fuzzley-games .
+
+      - name: Serve the image and check its pages
+        id: check
+        if: steps.update.outputs.changed == 'true'
+        run: .github/scripts/check-image.sh fuzzley-games "$(git rev-parse HEAD)"
+
+      - name: Push the new pins
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          # main may have moved while the image was building.
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - name: Open an issue for each archive that failed
+        if: failure() && (steps.build.outcome == 'failure' || steps.check.outcome == 'failure')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ASSETS: ${{ steps.update.outputs.assets }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          while read -r asset; do
+            if [ -z "$asset" ]; then continue; fi
+            printf -v body '%s\n\n%s' \
+              "The site's image didn't build or pass its checks with \`$asset\` pinned in \`frontend/games.json\`, so nothing was pushed: $RUN_URL" \
+              "Update games skips this archive while this issue is open. Close it to try again; a newer build of the game is tried either way."
+            gh issue create --title "Game update failed: $asset" --body "$body"
+          done <<< "$ASSETS"

@@ -2,7 +2,9 @@
 
 The Fuzzley Games portal and gallery (https://fuzzley.games): an Angular
 single-page app built with Vite, served by nginx from a Docker image on Google
-Cloud Run.
+Cloud Run. The games themselves are built in their own repositories (today
+fSolitaire's Solitaire Collection) and served as static pages under
+`/play/<slug>/`.
 
 ## Technology Stack
 
@@ -26,13 +28,20 @@ Cloud Run.
     (`game_tile/game_tile.component.ts`), with its template and stylesheet.
   - `src/app/service/` holds the injectable services, such as `ThemeService`.
   - `src/app/provider/` holds the data the site is built around: the game
-    catalog and each game's thumbnail drawing.
+    catalog, which says where each hosted game is played, and the drawings of
+    the games still to come. A hosted game's thumbnail is its build's own
+    screenshot.
   - `src/app/styles/global.css` is the one global stylesheet: the colour
     palettes, as custom properties under `[data-theme]`, and the few shared
     classes.
   - Every spec sits beside the file it tests, named after it.
   - `public/` is copied into the build as is, including the runtime config
-    placeholder `env.js`.
+    placeholder `env.js`. The games are fetched into `public/play/`, which
+    git ignores.
+  - `games.json` pins one build of each game, from its repository's
+    `site-build` release. `tools/` holds the scripts that fetch the pinned
+    builds before every build, move the pins (`update-games.mjs`), and add
+    the analytics tags to each game's page. `README.md` covers the details.
 - **`Dockerfile`, `nginx.conf.template`, `docker-entrypoint.d/`** — the image
   that serves the build, its nginx config, and the startup script that writes
   `env.js` from the container's environment. `README.md` explains each.
@@ -66,11 +75,12 @@ This project uses **Yarn 4**. Always use Yarn commands instead of NPM (`yarn <co
 Run from `frontend/`:
 
 - **Run Development Server:** `yarn start` or `yarn dev` (launches the Vite dev server at `http://localhost:4200/`).
-- **Production Build:** `yarn build` (bundles into `frontend/dist/` and writes `version.json` with the commit it was built from).
+- **Production Build:** `yarn build` (fetches the games pinned in `games.json`, bundles into `frontend/dist/`, writes `version.json` with the commit it was built from and the games' builds, then adds the analytics tags to each game). It fails if the catalog links a game the fetched builds don't have.
+- **Fetch the Games:** `yarn games` (fetches the pinned builds into `public/play/`; `yarn start` and `yarn build` do it first).
 - **Preview Build:** `yarn preview` (serves the production build locally).
 - **Run Unit Tests:** `yarn test` (runs Vitest once).
-- **Type Checking:** `yarn typecheck` (runs the Angular compiler's checks, emitting nothing, then type-checks the `.agents` scripts from their JSDoc with `tsconfig.scripts.json`).
-- **Linting:** `yarn lint` (checks the skills' references, runs ESLint over `src` and `.agents`, then checks formatting with `yarn prettier:check`). ESLint's config is `frontend/eslint.config.cjs`: type-aware TypeScript rules, Angular's recommended and template accessibility rules, and JSDoc types on every script.
+- **Type Checking:** `yarn typecheck` (runs the Angular compiler's checks, emitting nothing, then type-checks the `tools` and `.agents` scripts from their JSDoc with `tsconfig.scripts.json`).
+- **Linting:** `yarn lint` (checks the skills' references, runs ESLint over `src`, `tools` and `.agents`, then checks formatting with `yarn prettier:check`). ESLint's config is `frontend/eslint.config.cjs`: type-aware TypeScript rules, Angular's recommended and template accessibility rules, and JSDoc types on every script.
 - **Full Verification Pipeline:** `yarn verify` (runs `yarn lint && yarn typecheck && yarn test && yarn build`).
 - **Format Codebase:** `yarn prettier` (formats the whole repository with
   Prettier); `yarn prettier:check` only reports what it would change.
@@ -81,9 +91,11 @@ To test the image itself, build and run it with Docker as `README.md` shows.
 
 Cloud Run builds and deploys the `Dockerfile` from every push to `main` on its
 own. `.github/workflows/verify.yml` checks the same commits, but nothing waits
-for it, so run `yarn verify` before pushing to `main`. `README.md` covers the
-deployment and runtime configuration; the `github-actions-ci-cd` skill covers
-the workflow.
+for it, so run `yarn verify` before pushing to `main`. Every 15 minutes,
+`.github/workflows/update-games.yml` moves the games' pins to their newest
+builds and pushes to `main` once the image builds and passes its checks.
+`README.md` covers the deployment, the games and runtime configuration; the
+`github-actions-ci-cd` skill covers the workflows.
 
 ---
 
