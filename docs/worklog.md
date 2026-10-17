@@ -190,3 +190,35 @@ fuzzley.games`.
   corrected stand-in: every check passes.
 
 ### Cut-over
+
+- Checked that no repository's `main` had moved upstream.
+- fuzzley-games made public through the API (`gh repo edit` here lacks the
+  confirmation flag). `raw.githubusercontent.com` then served its files.
+- fuzzley-games pushed (`c6d4a2b`). Verify passed, both jobs, so the image
+  checks also ran with the real `jq`. Cloud Run deployed it: fuzzley.games
+  served `/play/solitaire/` with `solitaire-a4d7808.tar.gz`, and
+  `version.json` named the build.
+- fSolitaire pushed (`549c93a`). The push printed "Cannot update this
+  protected ref", but `main` updated and a dry run shows nothing pending.
+  Its deploy published `solitaire-549c93a.tar.gz`; the clean-up kept
+  `a4d7808`, the archive fuzzley-games pinned.
+- Ran Update games by hand. The first two runs left the new build alone
+  because it was under two minutes old, as designed; the third moved the pin,
+  built and checked the image, and pushed `9e3650e` as github-actions[bot].
+  Cloud Run deployed it.
+- fuzzley pushed (`9fe418a`). Verify, the image checks and the GitHub Pages
+  deploy passed, and Cloud Run deployed fuzzley.info.
+- fuzzley.github.io pushed (`acfcf5f`, docs only).
+- Updated the notes on fSolitaire's existing `site-build` release to name
+  fuzzley.games.
+- Checked live:
+  - fuzzley.info: `/projects/solitaire/play/` (with or without the slash),
+    `/project/solitaire/` and files under them answer one 301 to the same
+    path on fuzzley.games. The other games are unchanged. The home page and
+    project page link to fuzzley.games, and the sitemap no longer lists the
+    old play address.
+  - fuzzley.github.io: the old solitaire addresses forward to fuzzley.games,
+    and the other games still go to fuzzley.info.
+  - fuzzley.games: the dashboard, the game pages and
+    `/play/solitaire/#/spider` all work. `version.json` names
+    `solitaire-549c93a`, and the game's canonical URL is on fuzzley.games.
