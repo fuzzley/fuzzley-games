@@ -41,10 +41,15 @@ fSolitaire's Solitaire Collection) and served as static pages under
   - `games.json` pins one build of each game, from its repository's
     `site-build` release. `tools/` holds the scripts that fetch the pinned
     builds before every build, move the pins (`update-games.mjs`), and add
-    the analytics tags to each game's page. `README.md` covers the details.
+    the analytics tags to each game's page. `docs/operations.md` covers the
+    details.
 - **`Dockerfile`, `nginx.conf.template`, `docker-entrypoint.d/`** — the image
   that serves the build, its nginx config, and the startup script that writes
-  `env.js` from the container's environment. `README.md` explains each.
+  `env.js` from the container's environment. `docs/operations.md` explains
+  each.
+- **`docs/operations.md`** — how the site is built, served, deployed and
+  configured, and how the games are pinned and updated. `README.md` is only a
+  short summary for GitHub.
 
 ### Angular & Styling
 
@@ -85,7 +90,8 @@ Run from `frontend/`:
 - **Format Codebase:** `yarn prettier` (formats the whole repository with
   Prettier); `yarn prettier:check` only reports what it would change.
 
-To test the image itself, build and run it with Docker as `README.md` shows.
+To test the image itself, build and run it with Docker as `docs/operations.md`
+shows.
 
 ### Deployment
 
@@ -94,8 +100,8 @@ own. `.github/workflows/verify.yml` checks the same commits, but nothing waits
 for it, so run `yarn verify` before pushing to `main`. Every 15 minutes,
 `.github/workflows/update-games.yml` moves the games' pins to their newest
 builds and pushes to `main` once the image builds and passes its checks.
-`README.md` covers the deployment, the games and runtime configuration; the
-`github-actions-ci-cd` skill covers the workflows.
+`docs/operations.md` covers the deployment, the games and runtime
+configuration; the `github-actions-ci-cd` skill covers the workflows.
 
 ---
 

@@ -48,8 +48,9 @@ removed upstream shows up as one of these issues, not as a broken link.
 ## Deployment Does Not Wait for Them
 
 Cloud Run builds and deploys the `Dockerfile` from every push to `main` through
-its own Cloud Build trigger (see `README.md`). Nothing in `verify.yml` gates
-that, so **a red run on `main` means the broken commit is already live**. Run
+its own Cloud Build trigger (see `docs/operations.md`). Nothing in
+`verify.yml` gates that, so **a red run on `main` means the broken commit is
+already live**. Run
 `yarn verify` in `frontend/` before pushing to `main`, or go through a pull
 request.
 
@@ -80,8 +81,9 @@ request.
 - **Install failures.** Usually a stale `frontend/yarn.lock`: run
   `yarn install` in `frontend/` and commit the lockfile.
 - **`docker` failures.** The script prints the container's logs when a check
-  fails. Reproduce with the build and run steps in `README.md`, then request
-  the failing path with `curl -i`. The script itself needs `curl` and `jq`.
+  fails. Reproduce with the build and run steps in `docs/operations.md`, then
+  request the failing path with `curl -i`. The script itself needs `curl` and
+  `jq`.
 - **"Game update failed" issues.** Pin that archive locally in
   `frontend/games.json` (its name, commit and SHA-256 are in the release's
   `latest.json`) and run `yarn build` to see the failure.
