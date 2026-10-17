@@ -52,7 +52,7 @@ than from a separate class, so the look and the announcement cannot disagree.
 
 ### 4. High-Contrast & Theme Support
 
-- Never carry meaning by colour alone; pair it with a symbol, a label or a
-  shape, so colourblind players can tell states (or card suits) apart.
+- Never carry meaning by color alone; pair it with a symbol, a label or a
+  shape, so colorblind players can tell states (or card suits) apart.
 - Maintain a minimum WCAG AA contrast ratio (4.5:1) between text/symbols and
   surface backgrounds in every palette, not just the default one.

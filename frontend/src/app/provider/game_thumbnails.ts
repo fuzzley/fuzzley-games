@@ -53,7 +53,7 @@ const DRAW: Record<string, () => Thumbnail> = {
       "1100000011",
       "00000000xx",
     ];
-    const colours: Record<string, string> = {
+    const colors: Record<string, string> = {
       "1": "#1e5bd8",
       "2": "#2e7d32",
       "3": "#c62828",
@@ -72,7 +72,7 @@ const DRAW: Record<string, () => Thumbnail> = {
           rx: 1,
           fill: cell === "x" ? "#9aa4b0" : "#eef1f4",
         });
-        if (colours[cell]) {
+        if (colors[cell]) {
           shapes.push({
             kind: "text",
             x: x + 6.5,
@@ -80,7 +80,7 @@ const DRAW: Record<string, () => Thumbnail> = {
             size: 8,
             weight: 800,
             text: cell,
-            fill: colours[cell],
+            fill: colors[cell],
             middle: true,
           });
         }

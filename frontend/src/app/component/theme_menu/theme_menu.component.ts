@@ -8,7 +8,7 @@ import {
 } from "@angular/core";
 import { THEMES, ThemeId, ThemeService } from "../../service/theme.service";
 
-/** A "Colours" button that opens a short list of palettes to choose from. */
+/** A "Colors" button that opens a short list of palettes to choose from. */
 @Component({
   selector: "app-theme-menu",
   templateUrl: "./theme_menu.component.html",

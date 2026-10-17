@@ -9,7 +9,7 @@ export interface Theme {
   mode: "light" | "dark";
 }
 
-/** The colours themselves live in styles/global.css under [data-theme='…']. */
+/** The colors themselves live in styles/global.css under [data-theme='…']. */
 export const THEMES: readonly Theme[] = [
   { id: "classic", name: "Classic felt", mode: "light" },
   { id: "pastel", name: "Soft pastel", mode: "light" },
@@ -27,7 +27,7 @@ export function isThemeId(value: unknown): value is ThemeId {
 /**
  * The palette in use. index.html picks one before Angular starts (saved choice,
  * else Classic felt or Casino night by system setting) so the page never
- * flashes the wrong colours; this service takes it from there.
+ * flashes the wrong colors; this service takes it from there.
  */
 @Injectable({ providedIn: "root" })
 export class ThemeService {
