@@ -445,3 +445,24 @@ defined`: ICU needs `@angular/localize`, too much for one plural.
   landmark (Angular's DOM schema knows it; `ngc` takes it under
   `strictTemplates`). The landmark takes the box's place in the flex row,
   so the header is pixel-identical.
+
+#### 13. The missing specs
+
+Most came with the items they belong to: the routes and titles (item 5,
+`routes.spec.ts`), the category page (item 6), the "New" badge (item 7),
+the storage fallbacks and `theme-color` (item 11). The last one:
+
+- `site_header.component.spec.ts`, for the header's search, the most
+  behavior in the app with no spec until now: it is a landmark; it shows the
+  `?q=` in the address; typing searches; on the home page each keystroke
+  replaces the history entry, so Back leaves the search; from any other page
+  a search is a new entry, so Back returns to the page; Escape clears it;
+  the category links, and `aria-current="page"` on the one in view.
+  History runs on `provideLocationMocks()`, and the specs assert where Back
+  lands rather than how the router was called.
+- Checked that the history specs can fail: with `replaceUrl` forced off,
+  the home-page test fails and the others pass.
+- Testing Library's role table (aria-query) has no implicit role for
+  `<search>` yet, and some screen readers don't either, so the element also
+  carries `role="search"`, with a comment saying why.
+- 163 tests (121 app, 42 tools).
