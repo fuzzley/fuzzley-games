@@ -351,3 +351,17 @@ defined`: ICU needs `@angular/localize`, too much for one plural.
 - Checked in headless Chrome: the scripts load in order (`theme.js`,
   `env.js`, `analytics.js`), the palette is set before Angular starts, and
   the smoke run passes with a clean console.
+
+#### 8. Shared icons and layout classes
+
+- `IconComponent` (`<app-icon name="play">`) draws the five icons the
+  templates had inline (play, three times; players; time; search; tick).
+  Filled or outlined comes from the icon; size and color from the parent;
+  outline weight from `--icon-stroke`. It is `aria-hidden`. AGENTS.md says
+  new icons go there.
+- `.page` and `.back` move to `_shared.scss`, out of three and two
+  component stylesheets. The home page keeps only its own top padding, and
+  the game page only its larger gap under the back link.
+- The visually-hidden copy went with the Sass move (item 20): the theme
+  menu includes the mixin.
+- Screenshots pixel-identical to before. 140 tests.

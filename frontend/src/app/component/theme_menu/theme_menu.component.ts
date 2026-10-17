@@ -7,11 +7,13 @@ import {
   signal,
 } from "@angular/core";
 import { THEMES, type ThemeId } from "../../provider/themes";
+import { IconComponent } from "../icon/icon.component";
 import { ThemeService } from "../../service/theme.service";
 
 /** A "Theme" button that opens a short list of palettes to choose from. */
 @Component({
   selector: "app-theme-menu",
+  imports: [IconComponent],
   templateUrl: "./theme_menu.component.html",
   styleUrl: "./theme_menu.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,

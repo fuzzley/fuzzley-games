@@ -14,12 +14,13 @@ import {
 } from "@angular/router";
 import { filter, map } from "rxjs";
 import { GameCatalog } from "../../service/game_catalog.service";
+import { IconComponent } from "../icon/icon.component";
 import { ThemeMenuComponent } from "../theme_menu/theme_menu.component";
 
 /** Name, category links, search and the palette menu, on every page. */
 @Component({
   selector: "app-site-header",
-  imports: [RouterLink, RouterLinkActive, ThemeMenuComponent],
+  imports: [RouterLink, RouterLinkActive, IconComponent, ThemeMenuComponent],
   templateUrl: "./site_header.component.html",
   styleUrl: "./site_header.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,

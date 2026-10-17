@@ -4,28 +4,6 @@
   display: block;
 }
 
-.page {
-  max-width: var(--page-width);
-  margin: 0 auto;
-  padding: 1.5rem var(--gutter) 3rem;
-}
-
-.back {
-  display: inline-block;
-  margin-bottom: 1rem;
-  color: var(--accent);
-  font-weight: 700;
-  font-size: 0.9375rem;
-
-  &::before {
-    content: "‹ ";
-  }
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 .head {
   display: flex;
   align-items: baseline;

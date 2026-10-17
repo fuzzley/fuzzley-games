@@ -74,14 +74,12 @@
     outline-offset: 2px;
   }
 
-  svg {
-    flex: none;
+  app-icon {
     width: 18px;
     height: 18px;
-    fill: none;
-    stroke: var(--search-muted);
-    stroke-width: 2.2;
-    stroke-linecap: round;
+    color: var(--search-muted);
+
+    --icon-stroke: 2.2;
   }
 
   input {

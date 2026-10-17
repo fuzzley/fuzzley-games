@@ -5,26 +5,8 @@
   display: block;
 }
 
-.page {
-  max-width: var(--page-width);
-  margin: 0 auto;
-  padding: 1.5rem var(--gutter) 3rem;
-}
-
 .back {
-  display: inline-block;
   margin-bottom: 1.25rem;
-  color: var(--accent);
-  font-weight: 700;
-  font-size: 0.9375rem;
-
-  &::before {
-    content: "‹ ";
-  }
-
-  &:hover {
-    text-decoration: underline;
-  }
 }
 
 .about {
@@ -141,10 +123,9 @@ h1 {
   font-size: 1.125rem;
   transition: transform 150ms ease-out;
 
-  svg {
+  app-icon {
     width: 18px;
     height: 18px;
-    fill: currentcolor;
   }
 }
 

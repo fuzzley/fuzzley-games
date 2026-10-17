@@ -9,9 +9,7 @@
         <p class="blurb">{{ view.game.blurb }}</p>
         <p class="meta">{{ view.meta }}</p>
         <a class="button play-cta" [href]="play.href">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M8 5.5v13l11-6.5z" />
-          </svg>
+          <app-icon name="play" />
           Play {{ view.game.name }}
         </a>
       </div>
@@ -26,9 +24,7 @@
           fetchpriority="high"
         />
         <span class="button stage-cta">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M8 5.5v13l11-6.5z" />
-          </svg>
+          <app-icon name="play" />
           Play {{ view.game.name }}
         </span>
       </a>

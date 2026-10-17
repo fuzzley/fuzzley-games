@@ -7,6 +7,30 @@
   @include a11y.visually-hidden;
 }
 
+// A page's main column, within the site's width.
+.page {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 1.5rem var(--gutter) 3rem;
+}
+
+// A link back up, to the list a page belongs to.
+.back {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.9375rem;
+
+  &::before {
+    content: "‹ ";
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 // Small labels beside a game's name.
 .badge {
   display: inline-block;

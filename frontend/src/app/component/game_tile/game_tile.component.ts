@@ -15,6 +15,7 @@ import {
 } from "../../model/game";
 import { GameCatalog } from "../../service/game_catalog.service";
 import { GameThumbComponent } from "../game_thumb/game_thumb.component";
+import { IconComponent } from "../icon/icon.component";
 
 /**
  * How many tiles at the top of a list load their pictures at once: about a
@@ -37,7 +38,7 @@ function badgeFor(
  */
 @Component({
   selector: "app-game-tile",
-  imports: [NgTemplateOutlet, RouterLink, GameThumbComponent],
+  imports: [NgTemplateOutlet, RouterLink, GameThumbComponent, IconComponent],
   templateUrl: "./game_tile.component.html",
   styleUrl: "./game_tile.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
