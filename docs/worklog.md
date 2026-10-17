@@ -133,3 +133,37 @@ start.
   TestBed would never reset between tests. The `vitest-testing` skill says
   so.
 - 37 tests now (several old tests asserted two things; split).
+
+#### 3, 10, 12. An injectable catalog over plain data
+
+- `provider/game_catalog.ts` (types, 44 entries, search, dates and URLs in
+  one file) is now:
+  - `model/game.ts`: `Game`, `PlayLocation`, `PlayerCount`, `BuildName`, and
+    the pure functions `playUrl`, `screenshotUrl`, `describePlayers` and
+    `describeLength`.
+  - `provider/games.ts`, `provider/categories.ts`, `provider/themes.ts`:
+    data only. `CategoryId` and `ThemeId` are derived from their lists
+    (`as const satisfies`), and `BuildName` from `games.json`'s keys
+    (a type-only import; `resolveJsonModule` is on).
+  - `service/game_catalog.service.ts`: `GameCatalog`, which components and
+    the title resolvers `inject()`. It finds games and categories, lists a
+    category's games, builds a search matcher (each game's searchable text
+    is folded once, not on every keystroke), and says which games are new.
+- The data reaches it through `CATALOG_DATA`, an `InjectionToken` whose
+  default factory is the site's catalog. A first draft took the data in the
+  constructor with `useFactory`; angular-eslint's `prefer-inject` objected,
+  and the token is Angular's idiom anyway.
+- Specs provide `provideTestCatalog()` (`testing/catalog.ts`, four games)
+  and assert on its games. Adding a game to the site can no longer break a
+  component spec ("1 of 44 games" is now "1 of 4"). `provider/games.spec.ts`
+  checks what every real entry must keep without counting anything: unique
+  kebab-case slugs, unique play locations, real ISO dates, at least one
+  player and minute.
+- Data is `readonly` throughout, and `gamesIn` returns `readonly Game[]`.
+  `players: "Solo"` and `time: "5 min"` became `players: { min, max }` and
+  `minutes: 5`, formatted by the model's functions (so "2–4 players" is
+  ready for card games).
+- Categories gained `surface: "felt" | "plain"`, for item 7.
+- `DEFAULT_THEMES` names the light and dark defaults once (they were spelled
+  out in `ThemeService`), and a spec checks each is a palette of its mode.
+- 61 tests. `yarn build` passes, play-link check included.

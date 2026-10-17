@@ -2,15 +2,17 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import {
-  findCategory,
-  findGame,
+  describeLength,
+  describePlayers,
   playUrl,
   screenshotUrl,
-} from "../../provider/game_catalog";
+} from "../../model/game";
+import { GameCatalog } from "../../service/game_catalog.service";
 import { GameThumbComponent } from "../game_thumb/game_thumb.component";
 
 /**
@@ -25,13 +27,22 @@ import { GameThumbComponent } from "../game_thumb/game_thumb.component";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GamePageComponent {
+  private readonly catalog = inject(GameCatalog);
+
   /** The `:slug` route parameter. */
   readonly slug = input.required<string>();
 
-  readonly game = computed(() => findGame(this.slug()));
+  protected readonly game = computed(() => this.catalog.findGame(this.slug()));
   protected readonly category = computed(() => {
     const game = this.game();
-    return game ? findCategory(game.category) : undefined;
+    return game ? this.catalog.categoryOf(game) : undefined;
+  });
+  /** Who plays it and for how long, as one line. */
+  protected readonly meta = computed(() => {
+    const game = this.game();
+    return game
+      ? `${describePlayers(game.players)}, about ${describeLength(game.minutes)} a game`
+      : "";
   });
   /** Where the game is played, and its screenshot; null for one to come. */
   protected readonly play = computed(() => {

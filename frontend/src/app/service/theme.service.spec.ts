@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
-import { THEME_STORAGE_KEY, ThemeService } from "./theme.service";
+import { THEME_STORAGE_KEY } from "../provider/themes";
+import { ThemeService } from "./theme.service";
 
 describe("ThemeService", () => {
   beforeEach(() => {

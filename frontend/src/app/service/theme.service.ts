@@ -1,28 +1,11 @@
 import { DOCUMENT } from "@angular/common";
 import { Injectable, effect, inject, signal } from "@angular/core";
-
-export type ThemeId = "classic" | "pastel" | "casino" | "midnight";
-
-export interface Theme {
-  id: ThemeId;
-  name: string;
-  mode: "light" | "dark";
-}
-
-/** The colors themselves live in styles/global.css under [data-theme='…']. */
-export const THEMES: readonly Theme[] = [
-  { id: "classic", name: "Classic felt", mode: "light" },
-  { id: "pastel", name: "Soft pastel", mode: "light" },
-  { id: "casino", name: "Casino night", mode: "dark" },
-  { id: "midnight", name: "Midnight blue", mode: "dark" },
-];
-
-/** Must match the key read by the inline script in index.html. */
-export const THEME_STORAGE_KEY = "fuzzley-theme";
-
-export function isThemeId(value: unknown): value is ThemeId {
-  return THEMES.some((theme) => theme.id === value);
-}
+import {
+  DEFAULT_THEMES,
+  THEME_STORAGE_KEY,
+  type ThemeId,
+  isThemeId,
+} from "../provider/themes";
 
 /**
  * The palette in use. index.html picks one before Angular starts (saved choice,
@@ -65,6 +48,6 @@ export class ThemeService {
     const prefersDark = this.document.defaultView?.matchMedia?.(
       "(prefers-color-scheme: dark)",
     ).matches;
-    return prefersDark ? "casino" : "classic";
+    return DEFAULT_THEMES[prefersDark ? "dark" : "light"];
   }
 }

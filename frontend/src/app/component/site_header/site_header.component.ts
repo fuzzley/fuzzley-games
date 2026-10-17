@@ -13,7 +13,7 @@ import {
   RouterLinkActive,
 } from "@angular/router";
 import { filter, map } from "rxjs";
-import { CATEGORIES } from "../../provider/game_catalog";
+import { GameCatalog } from "../../service/game_catalog.service";
 import { ThemeMenuComponent } from "../theme_menu/theme_menu.component";
 
 /** Name, category links, search and the palette menu, on every page. */
@@ -27,7 +27,7 @@ import { ThemeMenuComponent } from "../theme_menu/theme_menu.component";
 export class SiteHeaderComponent {
   private readonly router = inject(Router);
 
-  protected readonly categories = CATEGORIES;
+  protected readonly categories = inject(GameCatalog).categories;
 
   private readonly url = toSignal(
     this.router.events.pipe(

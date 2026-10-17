@@ -64,6 +64,11 @@ it("hides the items that do not match a search", () => {
 - Assert with jest-dom's matchers (`toHaveAttribute`, `toHaveFocus`,
   `toBeInTheDocument`, `toHaveTextContent`).
 - Get a service with `TestBed.inject(...)`.
+- A spec that touches the games provides `provideTestCatalog()` from
+  `frontend/src/app/testing/catalog.ts` and asserts on `TEST_CATALOG`'s
+  games, never the site's own list, so adding a game breaks no spec. Rules
+  every real entry must keep (unique slugs, real dates) are checked in
+  `frontend/src/app/provider/games.spec.ts`, without counting anything.
 - Change detection is zoneless. `render` and user-event's actions leave the
   template up to date; an effect in a service runs on `TestBed.tick()`.
 - jsdom keeps one document for a whole spec file, so reset any browser state a

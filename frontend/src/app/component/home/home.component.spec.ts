@@ -1,12 +1,13 @@
 import { provideRouter } from "@angular/router";
 import { render, screen, within } from "@testing-library/angular";
+import { provideTestCatalog } from "../../testing/catalog";
 import { HomeComponent } from "./home.component";
 
 describe("HomeComponent", () => {
   async function renderHome(q?: string): Promise<void> {
     await render(HomeComponent, {
       inputs: q === undefined ? {} : { q },
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideTestCatalog()],
     });
   }
 
@@ -45,7 +46,7 @@ describe("HomeComponent", () => {
   it("counts the matches out of every game", async () => {
     await renderHome("whitehead");
 
-    expect(screen.getByText("1 of 44 games")).toBeInTheDocument();
+    expect(screen.getByText("1 of 4 games")).toBeInTheDocument();
   });
 
   it("offers a way back when nothing matches", async () => {

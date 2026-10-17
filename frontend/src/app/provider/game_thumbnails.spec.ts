@@ -1,4 +1,4 @@
-import { GAMES } from "./game_catalog";
+import { GAMES } from "./games";
 import { hasThumbnail, thumbnailFor } from "./game_thumbnails";
 
 describe("thumbnails", () => {

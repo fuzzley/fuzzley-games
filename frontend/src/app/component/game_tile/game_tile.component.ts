@@ -2,11 +2,18 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
 } from "@angular/core";
 import { NgTemplateOutlet } from "@angular/common";
 import { RouterLink } from "@angular/router";
-import { type Game, isNew, playUrl } from "../../provider/game_catalog";
+import {
+  describeLength,
+  describePlayers,
+  type Game,
+  playUrl,
+} from "../../model/game";
+import { GameCatalog } from "../../service/game_catalog.service";
 import { GameThumbComponent } from "../game_thumb/game_thumb.component";
 
 /**
@@ -21,11 +28,19 @@ import { GameThumbComponent } from "../game_thumb/game_thumb.component";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameTileComponent {
+  private readonly catalog = inject(GameCatalog);
+
   readonly game = input.required<Game>();
 
   protected readonly playHref = computed(() => {
     const play = this.game().play;
     return play ? playUrl(play) : null;
   });
-  protected readonly isNew = computed(() => isNew(this.game()));
+  protected readonly isNew = computed(() => this.catalog.isNew(this.game()));
+  protected readonly players = computed(() =>
+    describePlayers(this.game().players),
+  );
+  protected readonly length = computed(() =>
+    describeLength(this.game().minutes),
+  );
 }

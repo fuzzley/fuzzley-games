@@ -3,7 +3,8 @@ import { existsSync, readFileSync } from "node:fs";
 import type { Connect, Plugin } from "vite";
 import { defineConfig } from "vitest/config";
 import angular from "@analogjs/vite-plugin-angular";
-import { GAMES, screenshotUrl } from "./src/app/provider/game_catalog.ts";
+import { screenshotUrl } from "./src/app/model/game.ts";
+import { GAMES } from "./src/app/provider/games.ts";
 import { readManifest } from "./tools/games.mjs";
 
 // COMMIT_SHA comes first: the Docker build passes it in, and the image has no

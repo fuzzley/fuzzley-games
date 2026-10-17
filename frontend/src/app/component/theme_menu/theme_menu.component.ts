@@ -6,11 +6,8 @@ import {
   inject,
   signal,
 } from "@angular/core";
-import {
-  THEMES,
-  type ThemeId,
-  ThemeService,
-} from "../../service/theme.service";
+import { THEMES, type ThemeId } from "../../provider/themes";
+import { ThemeService } from "../../service/theme.service";
 
 /** A "Theme" button that opens a short list of palettes to choose from. */
 @Component({
