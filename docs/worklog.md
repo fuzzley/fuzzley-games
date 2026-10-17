@@ -185,3 +185,17 @@ start.
   category page load their pictures at once. The game page's preview is
   `fetchpriority="high"`. The smoke run's console is now clean.
 - Checked in headless Chrome: the drawings look as before.
+
+#### 5. A `TitleStrategy`
+
+- `SiteTitleStrategy` titles each page "<route's title> – Fuzzley Games",
+  or just "Fuzzley Games" for a route without one, so the routes name only
+  themselves.
+- `routes.spec.ts` navigates with `RouterTestingHarness` over the real
+  `appConfig` (plus the test catalog), so each test covers the route, its
+  input binding and its title together. (Item 13's titles.)
+- Found while running it: since item 3, `vite.config.ts` imports
+  `model/game.ts`, which has imports of its own (type-only, but Vite's check
+  doesn't tell), and Vite warns that its future native config loader won't
+  take an extensionless import or a JSON import without attributes. Fixed in
+  item 15, which takes the app's modules out of the config.

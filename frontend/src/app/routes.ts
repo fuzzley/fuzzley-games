@@ -6,14 +6,19 @@ import { HomeComponent } from "./component/home/home.component";
 import { GameCatalog } from "./service/game_catalog.service";
 
 const gameTitle: ResolveFn<string> = (route) =>
-  `${inject(GameCatalog).findGame(route.paramMap.get("slug") ?? "")?.name ?? "Game not found"} – Fuzzley Games`;
+  inject(GameCatalog).findGame(route.paramMap.get("slug") ?? "")?.name ??
+  "Game not found";
 
 const categoryTitle: ResolveFn<string> = (route) =>
-  `${inject(GameCatalog).findCategory(route.paramMap.get("id") ?? "")?.name ?? "Category not found"} – Fuzzley Games`;
+  inject(GameCatalog).findCategory(route.paramMap.get("id") ?? "")?.name ??
+  "Category not found";
 
-/** The site's pages. Their parameters bind to the components' inputs. */
+/**
+ * The site's pages. Their parameters bind to the components' inputs, and
+ * `SiteTitleStrategy` adds the site's name to their titles.
+ */
 export const routes: Routes = [
-  { path: "", component: HomeComponent, title: "Fuzzley Games" },
+  { path: "", component: HomeComponent },
   { path: "category/:id", component: CategoryComponent, title: categoryTitle },
   { path: "games/:slug", component: GamePageComponent, title: gameTitle },
   { path: "**", redirectTo: "" },
