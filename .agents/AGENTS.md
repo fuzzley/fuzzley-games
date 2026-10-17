@@ -116,6 +116,12 @@ Every stylesheet is SCSS, compiled by Dart Sass (`sass`).
   order.
 - **`//` comments.** Sass drops them from the output; a `/* */` comment
   ships, and inside a nested rule it even leaves an empty rule behind.
+- **Icons are `<app-icon name="…">`.** A new icon is a new `IconName` and
+  a case in `IconComponent`'s template, never an `<svg>` pasted into
+  another template. The parent sizes it (`width`/`height` on `app-icon`)
+  and colors it (`color`); `--icon-stroke` sets an outline's weight. Icons
+  are hidden from assistive technology, so the text beside one, or the
+  control's label, says what it means.
 - **Visible state is announced state.** A control that looks selected carries
   `aria-checked`/`aria-current`/`aria-pressed`. See the
   `web-game-accessibility` skill.

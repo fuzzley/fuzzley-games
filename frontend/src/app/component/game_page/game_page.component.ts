@@ -14,6 +14,7 @@ import {
 } from "../../model/game";
 import { GameCatalog } from "../../service/game_catalog.service";
 import { GameThumbComponent } from "../game_thumb/game_thumb.component";
+import { IconComponent } from "../icon/icon.component";
 import { NotFoundComponent } from "../not_found/not_found.component";
 
 /**
@@ -22,7 +23,7 @@ import { NotFoundComponent } from "../not_found/not_found.component";
  */
 @Component({
   selector: "app-game-page",
-  imports: [RouterLink, GameThumbComponent, NotFoundComponent],
+  imports: [RouterLink, GameThumbComponent, IconComponent, NotFoundComponent],
   templateUrl: "./game_page.component.html",
   styleUrl: "./game_page.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,

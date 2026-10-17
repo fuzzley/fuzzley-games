@@ -48,13 +48,9 @@
     gap: 0.3rem;
   }
 
-  svg {
+  app-icon {
     width: 15px;
     height: 15px;
-    fill: none;
-    stroke: currentcolor;
-    stroke-width: 2;
-    stroke-linecap: round;
   }
 }
 
@@ -76,9 +72,8 @@
     transform: translateY(-1px);
   }
 
-  svg {
+  app-icon {
     width: 13px;
     height: 13px;
-    fill: currentcolor;
   }
 }

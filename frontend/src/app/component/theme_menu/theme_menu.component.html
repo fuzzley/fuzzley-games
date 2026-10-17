@@ -31,9 +31,7 @@
             theme.mode === "dark" ? "Dark" : "Light"
           }}</span>
           @if (theme.id === current()) {
-            <svg class="tick" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M5 12.5 10 17.5 19 7.5" />
-            </svg>
+            <app-icon class="tick" name="tick" />
           }
         </button>
       </li>
