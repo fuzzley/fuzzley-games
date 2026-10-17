@@ -8,7 +8,8 @@ Collection and Minesweeper) and served as static pages under
 
 ## Technology Stack
 
-- **UI:** [Angular](https://angular.dev/) (standalone components, Signals)
+- **UI:** [Angular](https://angular.dev/) (standalone components, Signals,
+  zoneless change detection)
 - **Build Toolchain:** [Vite](https://vitejs.dev/) + [AnalogJS Vite Angular Plugin](https://analogjs.org/)
 - **Test Framework:** [Vitest](https://vitest.dev/) with jsdom
 - **Language:** TypeScript (ES2022 output target) / HTML / CSS
@@ -22,8 +23,8 @@ Collection and Minesweeper) and served as static pages under
 - **`frontend/`** — the Angular app, and its own Yarn project. Run every `yarn`
   command from here.
   - `src/app/` is the application, laid out like fSolitaire's shell.
-    `main.ts` bootstraps it and `routes.ts` declares the pages and provides
-    the router.
+    `main.ts` bootstraps it with the providers in `app.config.ts`, and
+    `routes.ts` declares the pages.
   - `src/app/component/` holds one folder per component, named in snake_case
     (`game_tile/game_tile.component.ts`), with its template and stylesheet.
   - `src/app/service/` holds the injectable services, such as `ThemeService`.
