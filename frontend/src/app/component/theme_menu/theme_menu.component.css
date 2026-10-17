@@ -121,7 +121,7 @@ ul {
 }
 
 @media (max-width: 40rem) {
-  /* Hidden from sight only, so the button is still announced as "Colors". */
+  /* Hidden from sight only, so the button is still announced as "Theme". */
   .label {
     position: absolute;
     width: 1px;
