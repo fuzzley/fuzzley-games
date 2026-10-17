@@ -49,3 +49,14 @@ Each item lands as its own commit on `code-health`, with `yarn verify` green.
 
 - Baseline on `main` at `44adc61`: `yarn lint`, `yarn typecheck` and
   `yarn test` (30 tests) pass.
+
+#### 1. Type-check the specs and the Vite config
+
+- `tsconfig.app.json` starts at `main.ts`, so `ngc` never saw a spec, and
+  `vite.config.ts` was in no tsconfig at all. Confirmed with a deliberate
+  type error in a spec: `yarn test` and the old `yarn typecheck` both passed.
+- `yarn typecheck` now also runs `tsc` over `tsconfig.spec.json` and a new
+  `tsconfig.node.json` (for `vite.config.ts`).
+- That found a real error at once: the `test` block isn't part of Vite's
+  `UserConfig`, and `/// <reference types="vitest" />` no longer adds it.
+  `defineConfig` now comes from `vitest/config`.

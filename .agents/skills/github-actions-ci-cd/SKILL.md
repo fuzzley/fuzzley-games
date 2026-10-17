@@ -76,8 +76,9 @@ request.
 
 - **`verify` failures.** Reproduce with `yarn verify` in `frontend/`.
   `yarn typecheck` runs `ngc` over `frontend/tsconfig.app.json`, then `tsc`
-  over `frontend/tsconfig.scripts.json`. A formatting failure in `yarn lint`
-  is fixed by `yarn prettier`.
+  over `frontend/tsconfig.spec.json`, `frontend/tsconfig.node.json` and
+  `frontend/tsconfig.scripts.json`. A formatting failure in `yarn lint` is
+  fixed by `yarn prettier`.
 - **Install failures.** Usually a stale `frontend/yarn.lock`: run
   `yarn install` in `frontend/` and commit the lockfile.
 - **`docker` failures.** The script prints the container's logs when a check

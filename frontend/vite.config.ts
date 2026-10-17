@@ -1,7 +1,7 @@
-/// <reference types="vitest" />
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
-import { defineConfig, type Connect, type Plugin } from "vite";
+import type { Connect, Plugin } from "vite";
+import { defineConfig } from "vitest/config";
 import angular from "@analogjs/vite-plugin-angular";
 import { GAMES, screenshotUrl } from "./src/app/provider/game_catalog.ts";
 import { readManifest } from "./tools/games.mjs";

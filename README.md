@@ -28,7 +28,7 @@ yarn build       # fetch pinned games and build production assets into dist/
 yarn preview     # serve the production build locally
 yarn test        # run unit tests with Vitest
 yarn lint        # check skill references, run ESLint, and check formatting
-yarn typecheck   # type-check the Angular app and tooling scripts
+yarn typecheck   # type-check the app, its specs, the Vite config and the scripts
 yarn verify      # lint, type-check, test, and build in one go
 yarn prettier    # format the repository with Prettier
 yarn games       # fetch the pinned game builds into public/play/
