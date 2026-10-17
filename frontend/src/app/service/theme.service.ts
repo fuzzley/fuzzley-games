@@ -8,9 +8,10 @@ import {
 } from "../provider/themes";
 
 /**
- * The palette in use. index.html picks one before Angular starts (saved choice,
- * else Classic felt or Casino night by system setting) so the page never
- * flashes the wrong colors; this service takes it from there.
+ * Applies and remembers the palette in use. theme.js picks one before Angular
+ * starts (the saved choice, else the default for the system's color scheme),
+ * so the page never flashes the wrong colors; this service takes it from
+ * there.
  */
 @Injectable({ providedIn: "root" })
 export class ThemeService {

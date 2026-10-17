@@ -10,22 +10,13 @@
     />
     <meta name="theme-color" content="#ffffff" />
     <title>Fuzzley Games</title>
-    <script>
-      // Pick the palette before anything paints. Keep in step with ThemeService.
-      (function () {
-        var themes = ["classic", "pastel", "casino", "midnight"];
-        var saved;
-        try {
-          saved = localStorage.getItem("fuzzley-theme");
-        } catch (e) {}
-        var dark =
-          window.matchMedia &&
-          matchMedia("(prefers-color-scheme: dark)").matches;
-        document.documentElement.dataset.theme =
-          themes.indexOf(saved) >= 0 ? saved : dark ? "casino" : "classic";
-      })();
-    </script>
-    <!-- Runtime config, then Google Analytics; see public/analytics.js. Plain tags so they run in order. -->
+    <!--
+      Plain tags, so they run in order before anything paints: the palette
+      (theme.js, which tools/vite-plugins.ts makes from the app's list of
+      palettes; vite-ignore tells Vite it isn't for bundling), the runtime
+      config, then Google Analytics (see public/analytics.js).
+    -->
+    <script src="/theme.js" vite-ignore></script>
     <script src="/env.js"></script>
     <script src="/analytics.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
