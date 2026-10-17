@@ -1,55 +1,70 @@
 import { TestBed } from "@angular/core/testing";
-import { describe, it, expect, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/angular";
+import { userEvent, type UserEvent } from "@testing-library/user-event";
 import { ThemeService } from "../../service/theme.service";
 import { ThemeMenuComponent } from "./theme_menu.component";
 
 describe("ThemeMenuComponent", () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     localStorage.clear();
     document.documentElement.dataset["theme"] = "classic";
-    await TestBed.configureTestingModule({
-      imports: [ThemeMenuComponent],
-    }).compileComponents();
   });
 
-  it("opens the list, switches palette and closes again", () => {
-    const fixture = TestBed.createComponent(ThemeMenuComponent);
-    fixture.detectChanges();
-    const el = fixture.nativeElement as HTMLElement;
-    const panel = el.querySelector<HTMLElement>(".panel")!;
-    expect(panel.hidden).toBe(true);
+  async function renderMenu(): Promise<UserEvent> {
+    await render(ThemeMenuComponent);
+    return userEvent.setup();
+  }
 
-    el.querySelector<HTMLButtonElement>(".trigger")!.click();
-    fixture.detectChanges();
-    expect(panel.hidden).toBe(false);
+  function trigger(): HTMLElement {
+    return screen.getByRole("button", { name: /^Theme/ });
+  }
 
-    const casino = Array.from(
-      el.querySelectorAll<HTMLButtonElement>(".option"),
-    ).find((option) => option.textContent.includes("Casino night"))!;
-    casino.click();
-    fixture.detectChanges();
+  it("starts closed", async () => {
+    await renderMenu();
+
+    expect(trigger()).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: /^Casino night/ })).toBeNull();
+  });
+
+  it("opens the list of palettes", async () => {
+    const user = await renderMenu();
+
+    await user.click(trigger());
+
+    expect(trigger()).toHaveAttribute("aria-expanded", "true");
+    expect(
+      screen.getByRole("button", { name: /^Casino night/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("applies the palette chosen and closes", async () => {
+    const user = await renderMenu();
+    await user.click(trigger());
+
+    await user.click(screen.getByRole("button", { name: /^Casino night/ }));
+
     expect(TestBed.inject(ThemeService).current()).toBe("casino");
-    expect(casino.getAttribute("aria-pressed")).toBe("true");
-    expect(panel.hidden).toBe(true);
+    expect(trigger()).toHaveAttribute("aria-expanded", "false");
   });
 
-  it("closes on Escape and hands focus back to its button", () => {
-    const fixture = TestBed.createComponent(ThemeMenuComponent);
-    document.body.appendChild(fixture.nativeElement);
-    fixture.detectChanges();
-    const el = fixture.nativeElement as HTMLElement;
-    const trigger = el.querySelector<HTMLButtonElement>(".trigger")!;
+  it("marks the palette in use", async () => {
+    const user = await renderMenu();
 
-    trigger.click();
-    fixture.detectChanges();
-    el.querySelector<HTMLButtonElement>(".option")!.focus();
-    el.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
-    );
-    fixture.detectChanges();
+    await user.click(trigger());
 
-    expect(el.querySelector<HTMLElement>(".panel")!.hidden).toBe(true);
-    expect(document.activeElement).toBe(trigger);
-    el.remove();
+    expect(
+      screen.getByRole("button", { name: /^Classic felt/ }),
+    ).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("closes on Escape and hands focus back to its button", async () => {
+    const user = await renderMenu();
+    await user.click(trigger());
+    screen.getByRole("button", { name: /^Casino night/ }).focus();
+
+    await user.keyboard("{Escape}");
+
+    expect(trigger()).toHaveAttribute("aria-expanded", "false");
+    expect(trigger()).toHaveFocus();
   });
 });

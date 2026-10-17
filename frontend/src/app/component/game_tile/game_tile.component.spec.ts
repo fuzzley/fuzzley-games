@@ -1,42 +1,38 @@
-import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { describe, it, expect, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/angular";
 import { findGame } from "../../provider/game_catalog";
 import { GameTileComponent } from "./game_tile.component";
 
 describe("GameTileComponent", () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [GameTileComponent],
+  async function renderTile(slug: string): Promise<void> {
+    await render(GameTileComponent, {
+      inputs: { game: findGame(slug)! },
       providers: [provideRouter([])],
-    }).compileComponents();
-  });
-
-  function render(slug: string): HTMLElement {
-    const fixture = TestBed.createComponent(GameTileComponent);
-    fixture.componentRef.setInput("game", findGame(slug)!);
-    fixture.detectChanges();
-    return fixture.nativeElement as HTMLElement;
+    });
   }
 
-  it("links a game the site hosts to its page and to play it directly", () => {
-    const el = render("klondike");
-    const play = el.querySelector<HTMLAnchorElement>("a.play");
+  it("links a hosted game to its page", async () => {
+    await renderTile("klondike");
 
-    expect(el.querySelector("a.tile-link")?.getAttribute("href")).toBe(
+    expect(screen.getByRole("link", { name: /^Klondike/ })).toHaveAttribute(
+      "href",
       "/games/klondike",
     );
-    expect(play?.getAttribute("href")).toBe("/play/solitaire/#/klondike");
-    expect(play?.getAttribute("aria-label")).toBe("Play Klondike");
-    expect(el.querySelector(".badge")).toBeNull();
   });
 
-  it("shows a game still to come with no link, and says so", () => {
-    const el = render("sudoku");
+  it("links a hosted game straight to its build", async () => {
+    await renderTile("klondike");
 
-    expect(el.querySelector("a")).toBeNull();
-    expect(el.querySelector(".tile.soon .badge")?.textContent.trim()).toBe(
-      "Coming soon",
+    expect(screen.getByRole("link", { name: "Play Klondike" })).toHaveAttribute(
+      "href",
+      "/play/solitaire/#/klondike",
     );
+  });
+
+  it("shows a game still to come with no link, and says so", async () => {
+    await renderTile("sudoku");
+
+    expect(screen.queryAllByRole("link")).toEqual([]);
+    expect(screen.getByText("Coming soon")).toBeInTheDocument();
   });
 });

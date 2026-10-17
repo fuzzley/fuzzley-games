@@ -1,4 +1,3 @@
-import { describe, it, expect } from "vitest";
 import { GAMES } from "./game_catalog";
 import { hasThumbnail, thumbnailFor } from "./game_thumbnails";
 
