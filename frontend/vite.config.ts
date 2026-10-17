@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import type { Connect, Plugin } from "vite";
 import { defineConfig } from "vitest/config";
 import angular from "@analogjs/vite-plugin-angular";
-import { screenshotUrl } from "./src/app/model/game.ts";
+import { screenshotUrl, thumbnailUrl } from "./src/app/model/game.ts";
 import { GAMES } from "./src/app/provider/games.ts";
 import { readManifest } from "./tools/games.mjs";
 
@@ -83,27 +83,26 @@ function servePlayPages(): Plugin {
   };
 }
 
-// Fails the build when the catalogue links a game the fetched builds don't
-// have, such as one renamed in its own repository, which would otherwise open
-// whatever game was played last. A build ships screenshots of every game it
-// has, and the tiles and game pages show them, so they are what is checked.
-function checkPlayLinks(): Plugin {
+// Fails the build when a game's picture is missing. For a hosted game that
+// means the catalog links a game the fetched builds don't have, such as one
+// renamed in its own repository, which would otherwise open whatever game was
+// played last: a build ships screenshots of every game it has. A game still
+// to come needs its drawing in public/thumbnails/.
+function checkGameImages(): Plugin {
   return {
-    name: "check-play-links",
+    name: "check-game-images",
     apply: "build",
     buildStart() {
       const missing = GAMES.flatMap((game) =>
         game.play
-          ? [
-              screenshotUrl(game.play, "thumb"),
-              screenshotUrl(game.play, "preview"),
-            ]
-          : [],
+          ? [thumbnailUrl(game), screenshotUrl(game.play, "preview")]
+          : [thumbnailUrl(game)],
       ).filter((url) => !existsSync(new URL(`public${url}`, import.meta.url)));
       if (missing.length > 0) {
         this.error(
-          "The catalogue links games the builds in public/play/ don't have " +
-            `(see games.json). Missing:\n  ${missing.join("\n  ")}`,
+          "These games' pictures are missing: a hosted game's come from its " +
+            "build in public/play/ (see games.json), and a game still to " +
+            `come needs one in public/thumbnails/.\n  ${missing.join("\n  ")}`,
         );
       }
     },
@@ -111,7 +110,7 @@ function checkPlayLinks(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [angular(), versionJson(), servePlayPages(), checkPlayLinks()],
+  plugins: [angular(), versionJson(), servePlayPages(), checkGameImages()],
   server: {
     port: 4200,
     host: true,

@@ -17,7 +17,7 @@
 }
 
 <ng-template #content>
-  <app-game-thumb class="thumb" [game]="game()" />
+  <app-game-thumb class="thumb" [game]="game()" [eager]="eager()" />
   <span class="name">
     {{ game().name }}
     @if (!playHref()) {

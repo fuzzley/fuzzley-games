@@ -7,7 +7,10 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { GameCatalog } from "../../service/game_catalog.service";
-import { GameTileComponent } from "../game_tile/game_tile.component";
+import {
+  EAGER_TILES,
+  GameTileComponent,
+} from "../game_tile/game_tile.component";
 
 /**
  * The home page: one short row per category, each linking to its full list.
@@ -36,13 +39,17 @@ export class HomeComponent {
       .map((category) => {
         const all = this.catalog.gamesIn(category.id);
         const games = this.searching() ? all.filter(matches) : all;
-        return { category, games, total: all.length };
+        const tiles = games.map((game, index) => ({
+          game,
+          eager: index < EAGER_TILES,
+        }));
+        return { category, tiles, total: all.length };
       })
-      .filter((section) => section.games.length > 0);
+      .filter((section) => section.tiles.length > 0);
   });
 
   protected readonly matchCount = computed(() =>
-    this.sections().reduce((sum, section) => sum + section.games.length, 0),
+    this.sections().reduce((sum, section) => sum + section.tiles.length, 0),
   );
   protected readonly total = this.catalog.games.length;
 }

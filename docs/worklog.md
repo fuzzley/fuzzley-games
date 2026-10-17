@@ -167,3 +167,21 @@ start.
 - `DEFAULT_THEMES` names the light and dark defaults once (they were spelled
   out in `ThemeService`), and a spec checks each is a palette of its mode.
 - 61 tests. `yarn build` passes, play-link check included.
+
+#### 9. Coming-soon thumbnails as SVG files
+
+- `public/thumbnails/sudoku.svg` and `reversi.svg` were generated from the
+  old drawing code (a scratch script imported `game_thumbnails.ts` and wrote
+  each shape out, grouped by paint), so they match it shape for shape. Text
+  uses `system-ui, sans-serif`: an `<img>` can't reach the page's web font.
+- `game_thumbnails.ts` (the `Shape` union, the drawing code, a module-level
+  cache) and the 60-line SVG renderer in `game_thumb.component.html` are
+  gone. Every thumbnail is now an `<img>` whose address `thumbnailUrl()`
+  gives.
+- The build's `checkPlayLinks` became `checkGameImages`: it also fails when a
+  game still to come has no drawing (tried by moving `reversi.svg` away).
+- NG0913, found in item 2: tiles take an `eager` input, and the first
+  `EAGER_TILES` (6, about a row) of the home page's sections and of a
+  category page load their pictures at once. The game page's preview is
+  `fetchpriority="high"`. The smoke run's console is now clean.
+- Checked in headless Chrome: the drawings look as before.

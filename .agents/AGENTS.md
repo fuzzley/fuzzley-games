@@ -31,9 +31,7 @@ Collection and Minesweeper) and served as static pages under
     `Game`, with the pure functions over them (a game's play address, its
     screenshot, how its players and length read).
   - `src/app/provider/` holds data and nothing else: the games
-    (`games.ts`), the categories and the palettes, and the drawings of the
-    games still to come. A hosted game's thumbnail is its build's own
-    screenshot. A union of ids, such as `CategoryId`, is derived from its
+    (`games.ts`), the categories and the palettes. A union of ids, such as `CategoryId`, is derived from its
     list (`as const satisfies`), so the two can't disagree.
   - `src/app/service/` holds the injectable services. `GameCatalog` answers
     every question about the games (find, group, search, which are new);
@@ -47,7 +45,9 @@ Collection and Minesweeper) and served as static pages under
     classes.
   - Every spec sits beside the file it tests, named after it.
   - `public/` is copied into the build as is, including the runtime config
-    placeholder `env.js`. The games are fetched into `public/play/`, which
+    placeholder `env.js` and `thumbnails/<slug>.svg`, the drawing of each
+    game still to come. A hosted game's thumbnail is its build's own
+    screenshot. The build fails if either is missing. The games are fetched into `public/play/`, which
     git ignores.
   - `games.json` pins one build of each game, from its repository's
     `site-build` release. `tools/` holds the scripts that fetch the pinned

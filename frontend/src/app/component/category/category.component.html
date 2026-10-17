@@ -3,12 +3,12 @@
   @if (category(); as category) {
     <div class="head">
       <h1>{{ category.name }}</h1>
-      <span class="count">{{ games().length }} games</span>
+      <span class="count">{{ tiles().length }} games</span>
     </div>
     <p class="description">{{ category.description }}</p>
     <ul class="grid">
-      @for (game of games(); track game.slug) {
-        <li><app-game-tile [game]="game" /></li>
+      @for (tile of tiles(); track tile.game.slug) {
+        <li><app-game-tile [game]="tile.game" [eager]="tile.eager" /></li>
       }
     </ul>
   } @else {

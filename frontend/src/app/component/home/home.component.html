@@ -19,8 +19,8 @@
           {{ section.category.name }}
         </h2>
         <span class="count"
-          >{{ section.games.length }}
-          {{ section.games.length === 1 ? "game" : "games" }}</span
+          >{{ section.tiles.length }}
+          {{ section.tiles.length === 1 ? "game" : "games" }}</span
         >
         @if (!searching()) {
           <a class="see-all" [routerLink]="['/category', section.category.id]"
@@ -32,8 +32,8 @@
         <p class="description">{{ section.category.description }}</p>
       }
       <ul class="row">
-        @for (game of section.games; track game.slug) {
-          <li><app-game-tile [game]="game" /></li>
+        @for (tile of section.tiles; track tile.game.slug) {
+          <li><app-game-tile [game]="tile.game" [eager]="tile.eager" /></li>
         }
       </ul>
     </section>

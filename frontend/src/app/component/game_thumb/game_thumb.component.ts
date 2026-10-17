@@ -4,8 +4,7 @@ import {
   computed,
   input,
 } from "@angular/core";
-import { type Game, screenshotUrl } from "../../model/game";
-import { thumbnailFor } from "../../provider/game_thumbnails";
+import { type Game, thumbnailUrl } from "../../model/game";
 
 /**
  * A game's picture: the screenshot its build ships, or a drawing of its layout
@@ -19,10 +18,11 @@ import { thumbnailFor } from "../../provider/game_thumbnails";
 })
 export class GameThumbComponent {
   readonly game = input.required<Game>();
+  /** Loads the picture at once, for one in view as the page opens. */
+  readonly eager = input(false);
 
-  protected readonly screenshot = computed(() => {
-    const play = this.game().play;
-    return play ? screenshotUrl(play, "thumb") : null;
-  });
-  protected readonly thumbnail = computed(() => thumbnailFor(this.game().slug));
+  protected readonly src = computed(() => thumbnailUrl(this.game()));
+  protected readonly loading = computed(() =>
+    this.eager() ? "eager" : "lazy",
+  );
 }

@@ -7,7 +7,10 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { GameCatalog } from "../../service/game_catalog.service";
-import { GameTileComponent } from "../game_tile/game_tile.component";
+import {
+  EAGER_TILES,
+  GameTileComponent,
+} from "../game_tile/game_tile.component";
 
 /** Every game in one category, as a plain grid. */
 @Component({
@@ -26,9 +29,10 @@ export class CategoryComponent {
   protected readonly category = computed(() =>
     this.catalog.findCategory(this.id()),
   );
-  protected readonly games = computed(() => {
+  protected readonly tiles = computed(() => {
     const category = this.category();
-    return category ? this.catalog.gamesIn(category.id) : [];
+    const games = category ? this.catalog.gamesIn(category.id) : [];
+    return games.map((game, index) => ({ game, eager: index < EAGER_TILES }));
   });
   protected readonly categories = this.catalog.categories;
 }
