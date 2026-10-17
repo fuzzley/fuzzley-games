@@ -4,9 +4,13 @@ import {
   computed,
   input,
 } from "@angular/core";
-import { RED_SUITS, thumbnailFor } from "../../provider/game_thumbnails";
+import { Game, screenshotUrl } from "../../provider/game_catalog";
+import { thumbnailFor } from "../../provider/game_thumbnails";
 
-/** A game's layout drawing. Felt and card backs follow the current palette. */
+/**
+ * A game's picture: the screenshot its build ships, or a drawing of its layout
+ * for a game still to come.
+ */
 @Component({
   selector: "app-game-thumb",
   templateUrl: "./game_thumb.component.html",
@@ -14,8 +18,11 @@ import { RED_SUITS, thumbnailFor } from "../../provider/game_thumbnails";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameThumbComponent {
-  readonly slug = input.required<string>();
+  readonly game = input.required<Game>();
 
-  protected readonly thumbnail = computed(() => thumbnailFor(this.slug()));
-  protected readonly isRed = (suit: string) => RED_SUITS.has(suit);
+  protected readonly screenshot = computed(() => {
+    const play = this.game().play;
+    return play ? screenshotUrl(play, "thumb") : null;
+  });
+  protected readonly thumbnail = computed(() => thumbnailFor(this.game().slug));
 }

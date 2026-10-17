@@ -4,23 +4,34 @@ import {
   computed,
   input,
 } from "@angular/core";
+import { NgTemplateOutlet } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { Game, isNew } from "../../provider/game_catalog";
 import { GameThumbComponent } from "../game_thumb/game_thumb.component";
 
+/**
+ * A game in a row or grid: a link to its page, or no link at all for a game
+ * still to come.
+ */
 @Component({
   selector: "app-game-tile",
-  imports: [RouterLink, GameThumbComponent],
+  imports: [NgTemplateOutlet, RouterLink, GameThumbComponent],
   template: `
-    <a
-      class="tile"
-      [class.soon]="game().comingSoon"
-      [routerLink]="['/games', game().slug]"
-    >
-      <app-game-thumb class="thumb" [slug]="game().slug" />
+    @if (playable()) {
+      <a class="tile" [routerLink]="['/games', game().slug]">
+        <ng-container *ngTemplateOutlet="content" />
+      </a>
+    } @else {
+      <div class="tile soon">
+        <ng-container *ngTemplateOutlet="content" />
+      </div>
+    }
+
+    <ng-template #content>
+      <app-game-thumb class="thumb" [game]="game()" />
       <span class="name">
         {{ game().name }}
-        @if (game().comingSoon) {
+        @if (!playable()) {
           <span class="badge">Coming soon</span>
         } @else if (isNew()) {
           <span class="badge new">New</span>
@@ -42,7 +53,7 @@ import { GameThumbComponent } from "../game_thumb/game_thumb.component";
           {{ game().time }}
         </span>
       </span>
-    </a>
+    </ng-template>
   `,
   styleUrl: "./game_tile.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,5 +61,6 @@ import { GameThumbComponent } from "../game_thumb/game_thumb.component";
 export class GameTileComponent {
   readonly game = input.required<Game>();
 
+  protected readonly playable = computed(() => this.game().play !== undefined);
   protected readonly isNew = computed(() => isNew(this.game()));
 }

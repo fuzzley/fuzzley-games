@@ -11,7 +11,7 @@
   transition: transform 150ms ease-out;
 }
 
-.tile:hover .thumb {
+a.tile:hover .thumb {
   transform: translateY(-2px);
 }
 

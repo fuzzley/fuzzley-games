@@ -27,24 +27,20 @@ describe("HomeComponent", () => {
 
   it("shows every category with a link to see all of it", () => {
     const { el, headings } = render();
-    expect(headings()).toEqual(["Solitaire", "Card games", "Classics"]);
+    expect(headings()).toEqual(["Solitaire", "Classics"]);
     expect(
       Array.from(el.querySelectorAll(".see-all")).map((a) =>
         a.getAttribute("href"),
       ),
-    ).toEqual([
-      "/category/solitaire",
-      "/category/card-games",
-      "/category/classics",
-    ]);
+    ).toEqual(["/category/solitaire", "/category/classics"]);
   });
 
   it("keeps only the sections with matches when searching", () => {
-    const { el, headings, names } = render("rummy");
-    expect(headings()).toEqual(["Card games"]);
-    expect(names()).toEqual(["Gin Rummy"]);
+    const { el, headings, names } = render("whitehead");
+    expect(headings()).toEqual(["Solitaire"]);
+    expect(names()).toEqual(["Klondike"]);
     expect(el.querySelector(".count")?.textContent?.trim()).toBe(
-      "1 of 18 games",
+      "1 of 44 games",
     );
   });
 

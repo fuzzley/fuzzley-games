@@ -5,10 +5,18 @@ import {
   input,
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
-import { findCategory, findGame } from "../../provider/game_catalog";
+import {
+  findCategory,
+  findGame,
+  playUrl,
+  screenshotUrl,
+} from "../../provider/game_catalog";
 import { GameThumbComponent } from "../game_thumb/game_thumb.component";
 
-/** Where a single game is played. The game itself mounts in the stage. */
+/**
+ * A single game's page, which opens the game itself full-page, or says it is
+ * still to come.
+ */
 @Component({
   selector: "app-game-page",
   imports: [RouterLink, GameThumbComponent],
@@ -24,5 +32,12 @@ export class GamePageComponent {
   protected readonly category = computed(() => {
     const game = this.game();
     return game ? findCategory(game.category) : undefined;
+  });
+  /** Where the game is played, and its screenshot; null for one to come. */
+  protected readonly play = computed(() => {
+    const play = this.game()?.play;
+    return play
+      ? { href: playUrl(play), preview: screenshotUrl(play, "preview") }
+      : null;
   });
 }
