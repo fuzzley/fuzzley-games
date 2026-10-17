@@ -26,11 +26,11 @@ describe("GamePageComponent", () => {
     expect(introPlay?.getAttribute("href")).toBe(
       "/play/solitaire/#/bakersdozen",
     );
-    expect(introPlay?.textContent?.trim()).toBe("Play Baker’s Dozen");
+    expect(introPlay?.textContent.trim()).toBe("Play Baker’s Dozen");
     expect(stagePlay?.getAttribute("href")).toBe(
       "/play/solitaire/#/bakersdozen",
     );
-    expect(stagePlay?.textContent?.trim()).toBe("Play Baker’s Dozen");
+    expect(stagePlay?.textContent.trim()).toBe("Play Baker’s Dozen");
     expect(stagePlay?.querySelector("img")?.getAttribute("src")).toBe(
       "/play/solitaire/docs/screenshots/bakersdozen/preview.webp",
     );
@@ -39,7 +39,7 @@ describe("GamePageComponent", () => {
   it("says a game is coming soon, with no way to play it", () => {
     const el = render("reversi");
 
-    expect(el.querySelector("h1 .badge")?.textContent?.trim()).toBe(
+    expect(el.querySelector("h1 .badge")?.textContent.trim()).toBe(
       "Coming soon",
     );
     expect(el.querySelector("a.play")).toBeNull();

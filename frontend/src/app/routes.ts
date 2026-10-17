@@ -1,4 +1,4 @@
-import { ResolveFn, Routes } from "@angular/router";
+import type { ResolveFn, Routes } from "@angular/router";
 import { CategoryComponent } from "./component/category/category.component";
 import { GamePageComponent } from "./component/game_page/game_page.component";
 import { HomeComponent } from "./component/home/home.component";

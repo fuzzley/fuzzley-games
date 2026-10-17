@@ -30,11 +30,11 @@ function versionJson(): Plugin {
     name: "version-json",
     apply: "build",
     generateBundle() {
-      const pkg = JSON.parse(
+      const { version } = JSON.parse(
         readFileSync(new URL("package.json", import.meta.url), "utf8"),
-      );
+      ) as { version: string };
       const buildInfo = {
-        version: pkg.version,
+        version,
         commit: commitHash(),
         buildTime: new Date().toISOString(),
         games: Object.fromEntries(
@@ -58,7 +58,10 @@ function versionJson(): Plugin {
 function servePlayPages(): Plugin {
   const handle: Connect.NextHandleFunction = (req, res, next) => {
     const match = /^\/play\/([\w-]+)(\/?)(?:\?|$)/.exec(req.url ?? "");
-    if (!match) return next();
+    if (!match) {
+      next();
+      return;
+    }
     if (!match[2]) {
       res.statusCode = 301;
       res.setHeader("Location", `/play/${match[1]}/`);

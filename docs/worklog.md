@@ -76,8 +76,36 @@ Each item lands as its own commit on `code-health`, with `yarn verify` green.
   opens, applies, saves, sets `theme-color` and closes on a choice or an
   outside click, a tile's link routes to its game, and the titles are right,
   on desktop and phone widths.
-- Found on the way, and true on `main` too: Angular warns (NG0913) that the
-  home page's largest image, a thumbnail, is `loading="lazy"`. Fixed with
-  item 9.
+- Found on the way, and not caused by this change (every thumbnail is
+  `loading="lazy"` on `main`): Angular warns (NG0913) that the home page's
+  largest image, a thumbnail, is lazy. Fixed with item 9.
 - Angular 22's `RouterLink` writes absolute hrefs in a browser
   (`http://…/games/klondike`), while jsdom gets relative ones.
+
+#### 4a. Stricter ESLint
+
+Done ahead of the rest so every later change is held to it.
+
+- `eslint.config.cjs` became `eslint.config.js` (ESM, `defineConfig` from
+  `eslint/config`; `tseslint.config()` is deprecated), with `projectService`
+  in place of a list of tsconfigs.
+- `tsconfig.json` is now a solution referencing the app, spec and node
+  configs, as the Angular CLI lays it out, so the project service checks
+  each file with the config that includes it. `tsconfig.app.json` includes
+  every non-spec file under `src/` rather than only what `main.ts` reaches.
+- Presets: `strictTypeChecked` and `stylisticTypeChecked`. Added
+  `explicit-module-boundary-types` (AGENTS.md's return-type rule),
+  `consistent-type-imports`, and the template rules `button-has-type`,
+  `prefer-control-flow`, `prefer-self-closing-tags` and
+  `prefer-template-literal`. `vite.config.ts` is linted too.
+- `template/no-call-expression` would have enforced "templates bind, they do
+  not compute", but it can't tell a signal read from a method call, so it
+  isn't used.
+- The new rules found two lookups whose `undefined` case TypeScript said was
+  impossible (`root.children["primary"]` in the header, `DRAW[slug]` in the
+  thumbnails). The check was right and the type wrong, so `tsconfig.json`
+  turns on `noUncheckedIndexedAccess`.
+- The rest were mechanical: type-only imports, optional chains on
+  `textContent` (never null on an element), an untyped `JSON.parse` in the
+  Vite config. `ThemeService`'s `matchMedia?.` stays, with a comment: jsdom
+  has no `matchMedia`. Item 11 replaces it.

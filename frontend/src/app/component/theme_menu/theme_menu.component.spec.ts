@@ -25,7 +25,7 @@ describe("ThemeMenuComponent", () => {
 
     const casino = Array.from(
       el.querySelectorAll<HTMLButtonElement>(".option"),
-    ).find((option) => option.textContent?.includes("Casino night"))!;
+    ).find((option) => option.textContent.includes("Casino night"))!;
     casino.click();
     fixture.detectChanges();
     expect(TestBed.inject(ThemeService).current()).toBe("casino");

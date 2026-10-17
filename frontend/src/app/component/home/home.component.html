@@ -13,9 +13,9 @@
   }
 
   @for (section of sections(); track section.category.id) {
-    <section [attr.aria-labelledby]="'section-' + section.category.id">
+    <section [attr.aria-labelledby]="`section-${section.category.id}`">
       <div class="head">
-        <h2 [id]="'section-' + section.category.id">
+        <h2 [id]="`section-${section.category.id}`">
           {{ section.category.name }}
         </h2>
         <span class="count"

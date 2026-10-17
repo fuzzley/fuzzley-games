@@ -86,7 +86,7 @@ Run from `frontend/`:
 - **Preview Build:** `yarn preview` (serves the production build locally).
 - **Run Unit Tests:** `yarn test` (runs Vitest once).
 - **Type Checking:** `yarn typecheck` (runs the Angular compiler's checks over the app, emitting nothing, then `tsc` over the specs (`tsconfig.spec.json`), over `vite.config.ts` (`tsconfig.node.json`), and over the `tools` and `.agents` scripts from their JSDoc (`tsconfig.scripts.json`)). Vitest strips types without checking them, so this is the only check a spec's types get.
-- **Linting:** `yarn lint` (checks the skills' references, runs ESLint over `src`, `tools` and `.agents`, then checks formatting with `yarn prettier:check`). ESLint's config is `frontend/eslint.config.cjs`: type-aware TypeScript rules, Angular's recommended and template accessibility rules, and JSDoc types on every script.
+- **Linting:** `yarn lint` (checks the skills' references, runs ESLint over `src`, `tools`, `vite.config.ts` and `.agents`, then checks formatting with `yarn prettier:check`). ESLint's config is `frontend/eslint.config.js`: typescript-eslint's strict and stylistic type-checked rules, explicit return types on exported functions and public methods, `import type` for type-only imports, Angular's recommended and template accessibility rules, and JSDoc types on every script. Each file is type-checked with the tsconfig that includes it, found through the solution in `frontend/tsconfig.json`.
 - **Full Verification Pipeline:** `yarn verify` (runs `yarn lint && yarn typecheck && yarn test && yarn build`).
 - **Format Codebase:** `yarn prettier` (formats the whole repository with
   Prettier); `yarn prettier:check` only reports what it would change.

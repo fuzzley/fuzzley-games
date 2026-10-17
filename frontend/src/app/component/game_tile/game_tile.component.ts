@@ -6,7 +6,7 @@ import {
 } from "@angular/core";
 import { NgTemplateOutlet } from "@angular/common";
 import { RouterLink } from "@angular/router";
-import { Game, isNew, playUrl } from "../../provider/game_catalog";
+import { type Game, isNew, playUrl } from "../../provider/game_catalog";
 import { GameThumbComponent } from "../game_thumb/game_thumb.component";
 
 /**
