@@ -33,8 +33,10 @@ FROM nginx:1.31.7-alpine3.24@sha256:892bb2152464f0c5d8972593a5f5afaf8054552580b6
 # Copy the build output to Nginx's default public directory
 COPY --from=build /app/frontend/dist /usr/share/nginx/html
 
-# Copy our custom Nginx template that uses the PORT environment variable
+# Copy our custom Nginx template that uses the PORT environment variable, and
+# the header snippets it includes.
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY nginx/ /etc/nginx/snippets/
 
 # Generate runtime config (e.g. GA_AG_MEASUREMENT_ID) into env.js at container
 # startup. The nginx image runs every /docker-entrypoint.d/*.sh before starting;

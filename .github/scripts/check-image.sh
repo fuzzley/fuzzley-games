@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Serves a built image and checks its pages, cache headers, env.js,
-# version.json and games.
+# Serves a built image and checks its pages, cache and security headers,
+# theme.js, env.js, version.json and games.
 #
 # Cloud Run builds and deploys the Dockerfile from main without waiting for
 # any check, so both verify.yml and update-games.yml run this on the image
@@ -35,11 +35,24 @@ expect() {
   echo "$status $2"
   [ "$status" = "$1" ] || fail "Expected $1 for $2, got $status."
 }
+# Prints a response header's value, or nothing if the response has none.
+header() {
+  curl -s -o /dev/null -D - "$base$1" |
+    tr -d '\r' | sed -n "s/^$2: //Ip"
+}
 expect_cache() {
-  value=$(curl -s -o /dev/null -D - "$base$1" |
-    tr -d '\r' | sed -n 's/^cache-control: //Ip')
+  value=$(header "$1" cache-control)
   echo "Cache-Control: $value  $1"
   [ "$value" = "$2" ] || fail "Expected Cache-Control: $2 for $1, got '$value'."
+}
+# Checks the headers nginx/security-headers.conf sets, on any response.
+expect_security_headers() {
+  for name in x-content-type-options referrer-policy x-frame-options \
+    permissions-policy strict-transport-security; do
+    [ -n "$(header "$1" "$name")" ] || fail "$1 has no $name header."
+  done
+  [ "$(header "$1" x-content-type-options)" = "nosniff" ] ||
+    fail "$1 isn't served with X-Content-Type-Options: nosniff."
 }
 
 # Routes are Angular's, so nginx answers them with index.html.
@@ -62,6 +75,19 @@ expect_cache /theme.js "no-cache"
 expect_cache /env.js "no-store"
 expect_cache /version.json "no-store"
 
+# Every response carries the security headers, errors included, and the site's
+# pages (not the games') carry its Content Security Policy.
+for path in / /games/klondike "$asset" /theme.js /env.js /version.json \
+  /assets/no-such-file.js; do
+  expect_security_headers "$path"
+done
+csp=$(header / content-security-policy)
+echo "Content-Security-Policy: $csp"
+grep -q "default-src 'self'" <<< "$csp" ||
+  fail "The site's pages have no Content Security Policy."
+grep -q "frame-ancestors 'none'" <<< "$csp" ||
+  fail "The site's Content Security Policy lets other sites frame it."
+
 # theme.js is made at build time from the app's list of palettes.
 curl -s "$base/theme.js" | grep -q 'document.documentElement.dataset.theme' ||
   fail "theme.js doesn't set the page's palette."
@@ -80,6 +106,9 @@ for slug in $(jq -r 'keys[]' frontend/games.json); do
   expect 301 "/play/$slug"
   expect 404 "/play/$slug/no-such-file.js"
   expect_cache "/play/$slug/" "no-cache"
+  expect_security_headers "/play/$slug/"
+  [ -z "$(header "/play/$slug/" content-security-policy)" ] ||
+    fail "/play/$slug/ carries the site's Content Security Policy, which can't vouch for a game."
 
   page=$(curl -s "$base/play/$slug/")
   grep -q '<title>Fuzzley Games</title>' <<< "$page" &&
@@ -93,6 +122,7 @@ for slug in $(jq -r 'keys[]' frontend/games.json); do
   else
     expect 200 "/play/$slug/$game_asset"
     expect_cache "/play/$slug/$game_asset" "public, max-age=31536000, immutable"
+    expect_security_headers "/play/$slug/$game_asset"
   fi
 
   pinned=$(jq -r --arg slug "$slug" '.[$slug].asset' frontend/games.json)
