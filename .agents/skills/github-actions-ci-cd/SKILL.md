@@ -18,8 +18,10 @@ a substitute for their contents.
 Two independent jobs, on push to `main`, any pull request, or a manual
 `workflow_dispatch`. A newer push to the same ref cancels a run in progress.
 
-1. **`verify`** — checkout, Node 26, Corepack, an immutable install in
-   `frontend/`, then `yarn verify` (lint, type-check, test, build). The build
+1. **`verify`** — checkout, Node from `.node-version`, a check that the
+   `Dockerfile` builds on the same major version, Corepack, an immutable
+   install in `frontend/`, then `yarn verify` (lint, type-check, test,
+   build). The build
    fetches the games pinned in `frontend/games.json` from their releases.
 2. **`docker`** — builds the `Dockerfile` with `COMMIT_SHA` and runs
    `check-image.sh` on it, which serves the image with a placeholder analytics
@@ -68,7 +70,14 @@ request.
    `frontend/src/app/routes.ts`, a changed header in `nginx.conf.template`
    or a new variable in `docker-entrypoint.d/40-generate-env-config.sh` gets a
    matching expectation in `check-image.sh`.
-4. **No secrets in CI.** The workflows use a made-up measurement ID; the real
+4. **One Node version.** Both workflows take Node from `.node-version`. The
+   `Dockerfile` pins its own image, by version and digest, so `verify` checks
+   that its major version is the same; move both together.
+5. **Updates come as pull requests.** Dependabot (`.github/dependabot.yml`)
+   proposes npm, GitHub Actions and Docker image updates weekly, a day after
+   their release, and `verify.yml` checks each pull request. A merge to
+   `main` deploys, so none merges on its own.
+6. **No secrets in CI.** The workflows use a made-up measurement ID; the real
    one lives in Secret Manager and reaches only Cloud Run. Neither needs a
    token beyond its own `GITHUB_TOKEN`. Never echo a secret, and never
    `set -x` a step that handles one.

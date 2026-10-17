@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "packageManager": "yarn@4.17.1",
+  "engines": {
+    "node": ">=26"
+  },
   "scripts": {
     "start": "node tools/fetch-games.mjs --optional && vite",
     "dev": "node tools/fetch-games.mjs --optional && vite",
@@ -26,7 +29,6 @@
     "@angular/common": "^22.2.0",
     "@angular/compiler": "^22.2.0",
     "@angular/core": "^22.2.0",
-    "@angular/forms": "^22.2.0",
     "@angular/platform-browser": "^22.2.0",
     "@angular/router": "^22.2.0",
     "rxjs": "~7.8.0",
@@ -42,7 +44,7 @@
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/user-event": "^14.6.8",
-    "@types/node": "^22.13.0",
+    "@types/node": "^26.6.0",
     "angular-eslint": "^22.5.0",
     "eslint": "^10.11.0",
     "eslint-plugin-jsdoc": "^65.1.0",

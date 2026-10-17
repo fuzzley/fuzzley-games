@@ -1,5 +1,9 @@
 # Stage 1: Build the Vite application
-FROM node:26-alpine AS build
+#
+# Both base images are pinned by version and digest, so a rebuild of the same
+# commit gets the same image; Dependabot proposes the updates. The Node major
+# version here matches .node-version, which verify.yml checks.
+FROM node:26.12.0-alpine3.24@sha256:6f08a523443ddedf52941874c203475b0ad503e859ad70cb26ab8be9a517dbd5 AS build
 
 ARG COMMIT_SHA
 ARG GITHUB_SHA
@@ -10,9 +14,10 @@ WORKDIR /app
 # Copy package files, lock files, and yarnrc
 COPY frontend/package.json frontend/yarn.lock* frontend/.yarnrc.yml* ./frontend/
 
-# Install dependencies (using Yarn 4 via Corepack)
+# Install dependencies with Yarn 4 through Corepack, which Node 26 no longer
+# bundles.
 WORKDIR /app/frontend
-RUN npm install -g corepack && corepack enable && yarn install --immutable
+RUN npm install -g corepack@0.36.0 && corepack enable && yarn install --immutable
 
 # Copy the rest of the frontend source code
 WORKDIR /app
@@ -23,7 +28,7 @@ WORKDIR /app/frontend
 RUN yarn build
 
 # Stage 2: Serve the application using Nginx
-FROM nginx:alpine
+FROM nginx:1.31.7-alpine3.24@sha256:892bb2152464f0c5d8972593a5f5afaf8054552580b699d95f8ff4af08c2d33d
 
 # Copy the build output to Nginx's default public directory
 COPY --from=build /app/frontend/dist /usr/share/nginx/html

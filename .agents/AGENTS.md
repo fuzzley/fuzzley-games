@@ -134,6 +134,14 @@ Every stylesheet is SCSS, compiled by Dart Sass (`sass`).
 
 This project uses **Yarn 4**. Always use Yarn commands instead of NPM (`yarn <command>`).
 
+`frontend/.yarnrc.yml` sets `npmMinimalAgeGate` to a day: Yarn won't install a
+version published less than a day ago (it says the versions are
+"quarantined"). Take the newest version past the gate rather than lifting
+it. Dependabot waits the same day before proposing an update.
+
+Node is version 26, as `.node-version` says; `frontend/package.json`'s
+`engines` says so too.
+
 ### Development Commands
 
 Run from `frontend/`:
