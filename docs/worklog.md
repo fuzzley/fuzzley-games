@@ -526,3 +526,32 @@ the storage fallbacks and `theme-color` (item 11). The last one:
   `docs/operations.md` links there.
 - "Forty-one" is gone from `index.html`'s description and the README, which
   would have gone stale with the next game.
+
+### Where it stands
+
+- Every item of the review, and the move to Sass, is done, each in its own
+  commit on `code-health` (not pushed). At the last commit: `yarn verify`
+  passes (lint with stylelint, the four type-checks, 163 tests, the build),
+  and the Docker image builds and passes `check-image.sh`.
+- Screenshots of nine views were pixel-identical before and after every
+  change meant to leave the page alone. Two changes show on purpose: the
+  no-match search page (the message sits beside the heading), and the theme
+  menu's focused item (highlighted, as Angular Aria moves focus into it).
+
+### Left for a decision
+
+1. Merging: a push to `main` deploys. Opening a pull request from
+   `code-health` would run `verify.yml`, both jobs, on GitHub first.
+2. The theme menu's Angular Aria costs about 10 kB gzipped (84.2 to
+   94.3 kB). `@defer (on idle)` with a look-alike placeholder button would
+   take it out of the first load, at the price of a placeholder to keep in
+   step.
+3. HSTS is on for a year, without `includeSubDomains`. Once on, the site
+   stays HTTPS-only in visitors' browsers for that long.
+4. The CSP allows Google Analytics and Google Fonts. Anything new from
+   another origin (a script, a font, an embed) needs adding to
+   `nginx/content-security-policy.conf`, or browsers block it.
+5. Locally, Yarn runs Node 22 (nvm) while CI and Docker run 26.
+   `nvm use 26` would match them.
+6. This log: kept for now; delete it once the branch is merged, as the
+   last one was.
