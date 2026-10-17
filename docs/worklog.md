@@ -74,3 +74,45 @@ in this order:
 - Local image built and checked: every check passes. (`jq` isn't installed
   on this machine, so the local run used a stand-in for its three calls;
   GitHub's runners have `jq`.)
+- Committed: `build: serve the Solitaire Collection at /play/solitaire/`.
+
+#### fuzzley-games: the dashboard lists the real games
+
+- Catalogue: the 41 games of fSolitaire's catalogue, the seven best known
+  first (Klondike, Spider, FreeCell, Pyramid, TriPeaks, Golf, Yukon) and the
+  rest in fSolitaire's order. Blurbs are fSolitaire's own taglines; aliases
+  are its variant and other names, from its `index.html` keywords. Slugs are
+  readable (`bakers-dozen`); `play` names the build and the game's id
+  (`bakersdozen`).
+- **Play times are my estimates**, since decision 5 kept the time chip and
+  fSolitaire records none: the seven that had one keep it, and the rest are
+  judged from the size of the deal.
+- A game without `play` is coming soon, which replaced `comingSoon`. The
+  eight placeholder card games and the Card games category are gone;
+  Minesweeper is now coming soon like Sudoku and Reversi, and the Classics
+  description says so.
+- "New" badge: the 41 go up on the launch date, 2026-10-17, and `isNew`
+  skips anything added on or before it, so only later games get the badge.
+- Search ignores apostrophes ("bakers" finds Baker’s Game) and matches
+  aliases ("streets" finds Forty Thieves and Beleaguered Castle).
+- Thumbnails: a hosted game shows its build's `thumb.webp`; the box is now
+  16:9, the screenshots' shape, so none is cropped. Only the three classics
+  are drawn, so the card-drawing code (`Sketch`, the face, back and slot
+  shapes) went; it is in git history should drawn thumbnails come back.
+- Tiles: a hosted game links to its page; a coming-soon game is a plain
+  `div`, not focusable, with its badge.
+- Game page: a hosted game shows its title, blurb and a dimmed screenshot
+  (`preview.webp`) with a "Play <name>" button, all one plain link to
+  `/play/solitaire/#/<id>`. A coming-soon game keeps its old page.
+- Bug found while checking: the filter on the screenshot gave it its own
+  stacking context, which painted it over the button; the button is now
+  `position: relative`.
+- `vite.config.ts` fails the build if a linked game's screenshots aren't in
+  the fetched build, which catches a game renamed or removed upstream.
+  Tested by hiding Montana's: the build failed and named both files.
+- Specs: catalogue, thumbnails and home updated; new specs for the tile, the
+  thumbnail and the game page. 30 tests pass; `yarn verify` passes.
+- Checked in headless Chrome against `yarn preview`: home, category (all 41
+  screenshots load), search, a game page, a coming-soon page and the game
+  itself at `/play/solitaire/#/canfield`, at 1280 px and at 390 px with
+  phone emulation. No page is wider than its viewport.

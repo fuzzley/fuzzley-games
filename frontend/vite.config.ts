@@ -1,8 +1,9 @@
 /// <reference types="vitest" />
 import { execSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { defineConfig, type Connect, type Plugin } from "vite";
 import angular from "@analogjs/vite-plugin-angular";
+import { GAMES, screenshotUrl } from "./src/app/provider/game_catalog.ts";
 import { readManifest } from "./tools/games.mjs";
 
 // COMMIT_SHA comes first: the Docker build passes it in, and the image has no
@@ -78,8 +79,35 @@ function servePlayPages(): Plugin {
   };
 }
 
+// Fails the build when the catalogue links a game the fetched builds don't
+// have, such as one renamed in its own repository, which would otherwise open
+// whatever game was played last. A build ships screenshots of every game it
+// has, and the tiles and game pages show them, so they are what is checked.
+function checkPlayLinks(): Plugin {
+  return {
+    name: "check-play-links",
+    apply: "build",
+    buildStart() {
+      const missing = GAMES.flatMap((game) =>
+        game.play
+          ? [
+              screenshotUrl(game.play, "thumb"),
+              screenshotUrl(game.play, "preview"),
+            ]
+          : [],
+      ).filter((url) => !existsSync(new URL(`public${url}`, import.meta.url)));
+      if (missing.length > 0) {
+        this.error(
+          "The catalogue links games the builds in public/play/ don't have " +
+            `(see games.json). Missing:\n  ${missing.join("\n  ")}`,
+        );
+      }
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [angular(), versionJson(), servePlayPages()],
+  plugins: [angular(), versionJson(), servePlayPages(), checkPlayLinks()],
   server: {
     port: 4200,
     host: true,

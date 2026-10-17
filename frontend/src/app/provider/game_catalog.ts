@@ -1,4 +1,4 @@
-export type CategoryId = "solitaire" | "card-games" | "classics";
+export type CategoryId = "solitaire" | "classics";
 
 export interface Category {
   id: CategoryId;
@@ -6,18 +6,35 @@ export interface Category {
   description: string;
 }
 
+/**
+ * Names a game in one of the builds served under /play/, which
+ * frontend/games.json pins.
+ */
+export interface PlayLocation {
+  /** The build, by its name in games.json. */
+  build: "solitaire";
+  /** The game's id in that build, which picks it by hash route. */
+  id: string;
+}
+
 export interface Game {
   slug: string;
   name: string;
   category: CategoryId;
   blurb: string;
+  /** Other names to find it by, such as its rule variants. */
+  aliases?: readonly string[];
   players: string;
   /** Typical length of one game, e.g. "5 min". */
   time: string;
   /** ISO date the game went up on the site. */
   added: string;
-  comingSoon?: boolean;
+  /** Where the game is played. A game without one is coming soon. */
+  play?: PlayLocation;
 }
+
+/** The day the site opened with its first games, which aren't badged as new. */
+const LAUNCHED = "2026-10-17";
 
 export const CATEGORIES: readonly Category[] = [
   {
@@ -26,153 +43,300 @@ export const CATEGORIES: readonly Category[] = [
     description: "Patience games for one player.",
   },
   {
-    id: "card-games",
-    name: "Card games",
-    description: "Play against computer opponents.",
-  },
-  {
     id: "classics",
     name: "Classics",
-    description: "Puzzles and board games beyond cards.",
+    description: "Coming soon: puzzles and board games beyond cards.",
   },
 ];
 
+/** Returns a game from the Solitaire Collection, served at /play/solitaire/. */
+function solitaire(
+  id: string,
+  game: Pick<Game, "slug" | "name" | "blurb" | "aliases" | "time">,
+): Game {
+  return {
+    ...game,
+    category: "solitaire",
+    players: "Solo",
+    added: LAUNCHED,
+    play: { build: "solitaire", id },
+  };
+}
+
 export const GAMES: readonly Game[] = [
-  {
+  solitaire("klondike", {
     slug: "klondike",
     name: "Klondike",
-    category: "solitaire",
-    blurb: "The classic. Build each suit up from the ace.",
-    players: "Solo",
+    blurb: "The classic: turn the stock, build down in alternating colours.",
+    aliases: ["Whitehead", "Thumb and Pouch", "Saratoga"],
     time: "5 min",
-    added: "2026-01-10",
-  },
-  {
+  }),
+  solitaire("spider", {
     slug: "spider",
     name: "Spider",
-    category: "solitaire",
-    blurb: "Build runs from king to ace to clear the table.",
-    players: "Solo",
+    blurb: "Build King-to-Ace runs by suit across ten columns.",
     time: "15 min",
-    added: "2026-01-24",
-  },
-  {
+  }),
+  solitaire("freecell", {
     slug: "freecell",
     name: "FreeCell",
-    category: "solitaire",
-    blurb: "Four free cells, and almost every deal can be won.",
-    players: "Solo",
+    blurb: "Every card face-up, with four cells to park cards in.",
     time: "8 min",
-    added: "2026-02-07",
-  },
-  {
+  }),
+  solitaire("pyramid", {
     slug: "pyramid",
     name: "Pyramid",
-    category: "solitaire",
-    blurb: "Pair cards that add up to 13 to take the pyramid apart.",
-    players: "Solo",
+    blurb: "Pair free cards totalling thirteen to take the pyramid apart.",
+    aliases: ["Relaxed Pyramid"],
     time: "4 min",
-    added: "2026-03-02",
-  },
-  {
+  }),
+  solitaire("tripeaks", {
     slug: "tripeaks",
     name: "TriPeaks",
-    category: "solitaire",
-    blurb: "Play one rank up or down to clear three peaks.",
-    players: "Solo",
+    blurb: "Clear three peaks onto the waste, a rank up or down at a time.",
+    aliases: ["Three Peaks", "Tri Towers"],
     time: "3 min",
-    added: "2026-04-18",
-  },
-  {
+  }),
+  solitaire("golf", {
     slug: "golf",
     name: "Golf",
-    category: "solitaire",
-    blurb: "Clear seven columns onto one pile, a rank at a time.",
-    players: "Solo",
+    blurb: "Play cards a rank up or down onto one pile to clear seven columns.",
+    aliases: ["Queens on Kings", "Putt Putt"],
     time: "3 min",
-    added: "2026-06-05",
-  },
-  {
+  }),
+  solitaire("yukon", {
     slug: "yukon",
     name: "Yukon",
-    category: "solitaire",
-    blurb: "Like Klondike, but you can move any face-up group.",
-    players: "Solo",
+    blurb: "No stock: move any face-up card with everything on it.",
+    aliases: ["Alaska", "Russian Solitaire", "Moosehide"],
     time: "8 min",
-    added: "2026-10-02",
-  },
-  {
-    slug: "hearts",
-    name: "Hearts",
-    category: "card-games",
-    blurb: "Avoid hearts and the queen of spades, or take them all.",
-    players: "4 players",
+  }),
+  solitaire("bakers", {
+    slug: "bakers-game",
+    name: "Baker’s Game",
+    blurb: "FreeCell’s ancestor: columns build in a single suit.",
+    time: "8 min",
+  }),
+  solitaire("challengefreecell", {
+    slug: "challenge-freecell",
+    name: "Challenge FreeCell",
+    blurb: "FreeCell with every Ace and Two dealt to the bottom.",
+    aliases: ["Super Challenge FreeCell"],
+    time: "10 min",
+  }),
+  solitaire("eightoff", {
+    slug: "eight-off",
+    name: "Eight Off",
+    blurb: "Eight cells, half of them filled, and same-suit columns.",
+    time: "8 min",
+  }),
+  solitaire("scorpion", {
+    slug: "scorpion",
+    name: "Scorpion",
+    blurb: "Drag any face-up card to build Spider’s same-suit runs.",
+    aliases: ["Wasp", "Scorpion II"],
+    time: "10 min",
+  }),
+  solitaire("simplesimon", {
+    slug: "simple-simon",
+    name: "Simple Simon",
+    blurb: "Spider on an open board: every card face-up, no stock.",
+    time: "10 min",
+  }),
+  solitaire("mrsmop", {
+    slug: "mrs-mop",
+    name: "Mrs. Mop",
+    blurb: "Two decks dealt face-up across thirteen columns, no stock.",
     time: "20 min",
-    added: "2026-02-21",
-  },
-  {
-    slug: "spades",
-    name: "Spades",
-    category: "card-games",
-    blurb: "Bid your tricks with a partner, then make the contract.",
-    players: "4 players",
-    time: "25 min",
-    added: "2026-03-16",
-  },
-  {
-    slug: "crazy-eights",
-    name: "Crazy Eights",
-    category: "card-games",
-    blurb: "Match the suit or the rank. Eights are wild.",
-    players: "2–4 players",
-    time: "5 min",
-    added: "2026-04-04",
-  },
-  {
-    slug: "gin-rummy",
-    name: "Gin Rummy",
-    category: "card-games",
-    blurb: "Make sets and runs, then knock before your opponent does.",
-    players: "2 players",
+  }),
+  solitaire("bakersdozen", {
+    slug: "bakers-dozen",
+    name: "Baker’s Dozen",
+    blurb: "Thirteen open columns, Kings sunk, and spaces never refill.",
+    time: "8 min",
+  }),
+  solitaire("seahaven", {
+    slug: "seahaven-towers",
+    name: "Seahaven Towers",
+    blurb: "Ten columns and four cells, building in suit, Kings to spaces.",
+    time: "8 min",
+  }),
+  solitaire("fortythieves", {
+    slug: "forty-thieves",
+    name: "Forty Thieves",
+    blurb: "One card at a time, from a waste that never recycles.",
+    aliases: ["Josephine", "Streets", "Rank and File", "Indian", "Number Ten"],
     time: "15 min",
-    added: "2026-05-09",
-  },
-  {
-    slug: "cribbage",
-    name: "Cribbage",
-    category: "card-games",
-    blurb: "Count fifteens and runs, and peg your way to 121.",
-    players: "2 players",
-    time: "20 min",
-    added: "2026-06-27",
-  },
-  {
-    slug: "blackjack",
-    name: "Blackjack",
-    category: "card-games",
-    blurb: "Get closer to 21 than the dealer without going over.",
-    players: "Solo",
-    time: "2 min",
-    added: "2026-07-18",
-  },
-  {
-    slug: "war",
-    name: "War",
-    category: "card-games",
-    blurb: "Flip the top card. The higher card takes both.",
-    players: "2 players",
+  }),
+  solitaire("maria", {
+    slug: "maria",
+    name: "Maria",
+    blurb: "Forty Thieves on nine columns, in alternating colours.",
+    time: "15 min",
+  }),
+  solitaire("limited", {
+    slug: "limited",
+    name: "Limited",
+    blurb: "Forty Thieves spread over twelve shallow columns.",
+    time: "15 min",
+  }),
+  solitaire("lucas", {
+    slug: "lucas",
+    name: "Lucas",
+    blurb: "Thirteen columns of three, with the Aces already home.",
+    time: "15 min",
+  }),
+  solitaire("montana", {
+    slug: "montana",
+    name: "Montana",
+    blurb: "Move cards into the gaps to sort four rows of thirteen.",
+    aliases: ["Gaps", "Addiction"],
+    time: "10 min",
+  }),
+  solitaire("bluemoon", {
+    slug: "blue-moon",
+    name: "Blue Moon",
+    blurb: "Montana with the Aces in play, fixed at the head of each row.",
+    aliases: ["Red Moon"],
+    time: "10 min",
+  }),
+  solitaire("doubleklondike", {
+    slug: "double-klondike",
+    name: "Double Klondike",
+    blurb: "Klondike from two decks, on nine columns.",
+    time: "15 min",
+  }),
+  solitaire("easthaven", {
+    slug: "easthaven",
+    name: "Easthaven",
+    blurb: "Klondike’s building with Spider’s row-dealing stock.",
+    time: "8 min",
+  }),
+  solitaire("spiderette", {
+    slug: "spiderette",
+    name: "Spiderette",
+    blurb: "One-deck Spider on seven columns.",
+    aliases: ["Will o’ the Wisp"],
+    time: "8 min",
+  }),
+  solitaire("bisley", {
+    slug: "bisley",
+    name: "Bisley",
+    blurb: "Build each suit up from its Ace and down from its King.",
+    time: "8 min",
+  }),
+  solitaire("acesup", {
+    slug: "aces-up",
+    name: "Aces Up",
+    blurb: "Discard every card a higher card of its suit outranks.",
+    time: "3 min",
+  }),
+  solitaire("calculation", {
+    slug: "calculation",
+    name: "Calculation",
+    blurb: "Build four foundations by ones, twos, threes and fours.",
+    aliases: ["Broken Intervals", "Sir Tommy", "Old Patience"],
+    time: "10 min",
+  }),
+  solitaire("flowergarden", {
+    slug: "flower-garden",
+    name: "Flower Garden",
+    blurb: "Six beds and a sixteen-card bouquet, every bouquet card in play.",
+    aliases: ["The Garden", "Bouquet"],
+    time: "8 min",
+  }),
+  solitaire("bristol", {
+    slug: "bristol",
+    name: "Bristol",
+    blurb: "Eight fans and three reserves the stock deals onto.",
+    aliases: ["Belvedere"],
+    time: "8 min",
+  }),
+  solitaire("nestor", {
+    slug: "nestor",
+    name: "Nestor",
+    blurb: "Pair free cards of the same rank until the board is clear.",
+    time: "4 min",
+  }),
+  solitaire("montecarlo", {
+    slug: "monte-carlo",
+    name: "Monte Carlo",
+    blurb: "Pair touching cards in a five-by-five grid, then close it up.",
+    aliases: ["Weddings", "Monte Carlo Thirteens"],
+    time: "4 min",
+  }),
+  solitaire("labellelucie", {
+    slug: "la-belle-lucie",
+    name: "La Belle Lucie",
+    blurb: "Eighteen fans built down in suit, with two redeals.",
+    aliases: ["Fair Lucy", "Midnight Oil", "The Fan", "Shamrocks"],
+    time: "8 min",
+  }),
+  solitaire("trefoil", {
+    slug: "trefoil",
+    name: "Trefoil",
+    blurb: "La Belle Lucie with the Aces already on the foundations.",
+    time: "8 min",
+  }),
+  solitaire("canfield", {
+    slug: "canfield",
+    name: "Canfield",
+    blurb: "Work through a thirteen-card reserve onto foundations of any rank.",
+    aliases: [
+      "Demon",
+      "Fascination",
+      "Storehouse",
+      "Thirteen Up",
+      "Superior Canfield",
+      "Rainbow",
+    ],
+    time: "6 min",
+  }),
+  solitaire("penguin", {
+    slug: "penguin",
+    name: "Penguin",
+    blurb: "Seven columns in suit, a seven-cell flipper, and a dealt beak.",
+    time: "8 min",
+  }),
+  solitaire("blackhole", {
+    slug: "black-hole",
+    name: "Black Hole",
+    blurb: "Play every card into the hole, a rank up or down round the corner.",
+    time: "4 min",
+  }),
+  solitaire("allinarow", {
+    slug: "all-in-a-row",
+    name: "All in a Row",
+    blurb: "Thirteen columns of four, played onto one pile from any start.",
+    time: "4 min",
+  }),
+  solitaire("grandfathersclock", {
+    slug: "grandfathers-clock",
+    name: "Grandfather’s Clock",
+    blurb: "Build twelve foundations round a dial, each to its hour.",
+    aliases: ["Clock"],
     time: "5 min",
-    added: "2026-08-08",
-  },
-  {
-    slug: "go-fish",
-    name: "Go Fish",
-    category: "card-games",
-    blurb: "Ask for ranks to collect sets of four.",
-    players: "2–4 players",
+  }),
+  solitaire("beleagueredcastle", {
+    slug: "beleaguered-castle",
+    name: "Beleaguered Castle",
+    blurb: "Eight open rows around the Aces, one card at a time.",
+    aliases: ["Streets and Alleys", "Citadel"],
+    time: "8 min",
+  }),
+  solitaire("fortress", {
+    slug: "fortress",
+    name: "Fortress",
+    blurb: "Ten open rows built up or down in suit, Aces buried.",
+    time: "8 min",
+  }),
+  solitaire("pokersquares", {
+    slug: "poker-squares",
+    name: "Poker Squares",
+    blurb: "Place 25 cards in a grid to make ten poker hands.",
+    aliases: ["Poker Solitaire"],
     time: "5 min",
-    added: "2026-08-29",
-  },
+  }),
   {
     slug: "minesweeper",
     name: "Minesweeper",
@@ -190,7 +354,6 @@ export const GAMES: readonly Game[] = [
     players: "Solo",
     time: "10 min",
     added: "2026-10-11",
-    comingSoon: true,
   },
   {
     slug: "reversi",
@@ -200,29 +363,34 @@ export const GAMES: readonly Game[] = [
     players: "2 players",
     time: "10 min",
     added: "2026-10-11",
-    comingSoon: true,
   },
 ];
 
 /** How long a game keeps its "New" badge. */
 const NEW_FOR_DAYS = 30;
 
+/** Returns whether a game went up recently, after the site opened. */
 export function isNew(game: Game, now = new Date()): boolean {
-  if (game.comingSoon) return false;
+  if (!game.play || game.added <= LAUNCHED) return false;
   const ageMs = now.getTime() - new Date(game.added).getTime();
   return ageMs >= 0 && ageMs < NEW_FOR_DAYS * 24 * 60 * 60 * 1000;
 }
 
-/** Every word in the query has to appear in the name, category or blurb. */
+/**
+ * Every word in the query has to appear in the name, category, blurb or an
+ * alias. Apostrophes don't count, so "bakers" finds Baker’s Game.
+ */
 export function matchesQuery(game: Game, query: string): boolean {
-  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-  const haystack = [
-    game.name,
-    findCategory(game.category)?.name ?? "",
-    game.blurb,
-  ]
-    .join(" ")
-    .toLowerCase();
+  const fold = (text: string) => text.toLowerCase().replace(/['’]/g, "");
+  const words = fold(query).split(/\s+/).filter(Boolean);
+  const haystack = fold(
+    [
+      game.name,
+      findCategory(game.category)?.name ?? "",
+      game.blurb,
+      ...(game.aliases ?? []),
+    ].join(" "),
+  );
   return words.every((word) => haystack.includes(word));
 }
 
@@ -236,4 +404,20 @@ export function findCategory(id: string): Category | undefined {
 
 export function gamesIn(category: CategoryId): Game[] {
   return GAMES.filter((game) => game.category === category);
+}
+
+/** Returns the address a game is played at. */
+export function playUrl(play: PlayLocation): string {
+  return `/play/${play.build}/#/${play.id}`;
+}
+
+/**
+ * Returns a screenshot of a new deal, as the build ships it: `thumb` is the
+ * board alone, `preview` the whole screen.
+ */
+export function screenshotUrl(
+  play: PlayLocation,
+  kind: "thumb" | "preview",
+): string {
+  return `/play/${play.build}/docs/screenshots/${play.id}/${kind}.webp`;
 }

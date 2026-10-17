@@ -5,38 +5,42 @@
         category.name
       }}</a>
     }
-    <div class="about">
-      <app-game-thumb
-        class="thumb"
-        [class.soon]="game.comingSoon"
-        [slug]="game.slug"
-      />
-      <div>
-        <h1>
-          {{ game.name }}
-          @if (game.comingSoon) {
-            <span class="badge">Coming soon</span>
-          }
-        </h1>
+    @if (play(); as play) {
+      <div class="intro">
+        <h1>{{ game.name }}</h1>
         <p class="blurb">{{ game.blurb }}</p>
         <p class="meta">{{ game.players }}, about {{ game.time }} a game</p>
       </div>
-    </div>
 
-    <section
-      class="stage"
-      [class.plain]="game.category === 'classics'"
-      aria-label="Game"
-    >
-      <p class="stage-note">
-        @if (game.comingSoon) {
+      <!-- A plain link, not a routerLink: the game is a page of its own. -->
+      <a class="stage play" [href]="play.href">
+        <img [src]="play.preview" alt="" width="1280" height="720" />
+        <span class="button">Play {{ game.name }}</span>
+      </a>
+    } @else {
+      <div class="about">
+        <app-game-thumb class="thumb soon" [game]="game" />
+        <div>
+          <h1>
+            {{ game.name }}
+            <span class="badge">Coming soon</span>
+          </h1>
+          <p class="blurb">{{ game.blurb }}</p>
+          <p class="meta">{{ game.players }}, about {{ game.time }} a game</p>
+        </div>
+      </div>
+
+      <section
+        class="stage"
+        [class.plain]="game.category === 'classics'"
+        aria-label="Game"
+      >
+        <p class="stage-note">
           {{ game.name }} is coming soon. It will be playable here once it’s
           finished.
-        } @else {
-          {{ game.name }} loads here.
-        }
-      </p>
-    </section>
+        </p>
+      </section>
+    }
   } @else {
     <h1>There’s no game at this address.</h1>
     <p class="blurb">It may have been renamed or taken down.</p>

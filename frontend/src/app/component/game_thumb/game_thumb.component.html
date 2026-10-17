@@ -1,135 +1,75 @@
-<svg
-  viewBox="0 0 160 100"
-  preserveAspectRatio="xMidYMid slice"
-  aria-hidden="true"
->
-  <rect
-    class="table"
-    width="160"
-    height="100"
-    [style.fill]="thumbnail().board ?? null"
+@if (screenshot(); as screenshot) {
+  <img
+    [src]="screenshot"
+    alt=""
+    width="192"
+    height="108"
+    loading="lazy"
+    decoding="async"
   />
-  @for (shape of thumbnail().shapes; track $index) {
-    @switch (shape.kind) {
-      @case ("face") {
-        <g [class.red]="isRed(shape.suit)">
+} @else {
+  <svg
+    viewBox="0 0 160 100"
+    preserveAspectRatio="xMidYMid slice"
+    aria-hidden="true"
+  >
+    <rect
+      class="table"
+      width="160"
+      height="100"
+      [style.fill]="thumbnail().board ?? null"
+    />
+    @for (shape of thumbnail().shapes; track $index) {
+      @switch (shape.kind) {
+        @case ("rect") {
           <rect
-            class="face"
             [attr.x]="shape.x"
             [attr.y]="shape.y"
             [attr.width]="shape.w"
             [attr.height]="shape.h"
-            rx="1.6"
+            [attr.rx]="shape.rx"
+            [attr.fill]="shape.fill"
           />
+        }
+        @case ("circle") {
+          <circle
+            [attr.cx]="shape.cx"
+            [attr.cy]="shape.cy"
+            [attr.r]="shape.r"
+            [attr.fill]="shape.fill"
+          />
+        }
+        @case ("line") {
+          <line
+            [attr.x1]="shape.x1"
+            [attr.y1]="shape.y1"
+            [attr.x2]="shape.x2"
+            [attr.y2]="shape.y2"
+            [attr.stroke]="shape.stroke"
+            [attr.stroke-width]="shape.width"
+          />
+        }
+        @case ("text") {
           <text
-            class="rank"
-            [attr.x]="shape.x + 1.6"
-            [attr.y]="shape.y + shape.h * 0.3"
-            [attr.font-size]="shape.h * 0.27"
-          >
-            {{ shape.rank }}
-          </text>
-          <text
-            class="suit"
-            [attr.x]="shape.x + shape.w / 2"
-            [attr.y]="shape.y + shape.h * 0.82"
-            [attr.font-size]="shape.h * 0.42"
-          >
-            {{ shape.suit }}
-          </text>
-        </g>
-      }
-      @case ("back") {
-        <g
-          [attr.transform]="
-            shape.rotate
-              ? 'rotate(' +
-                shape.rotate +
-                ' ' +
-                (shape.x + shape.w / 2) +
-                ' ' +
-                (shape.y + shape.h / 2) +
-                ')'
-              : null
-          "
-        >
-          <rect
-            class="back"
             [attr.x]="shape.x"
             [attr.y]="shape.y"
-            [attr.width]="shape.w"
-            [attr.height]="shape.h"
-            rx="1.6"
+            [attr.font-size]="shape.size"
+            [attr.font-weight]="shape.weight ?? null"
+            [attr.text-anchor]="shape.middle ? 'middle' : null"
+            [attr.fill]="shape.fill"
+          >
+            {{ shape.text }}
+          </text>
+        }
+        @case ("path") {
+          <path
+            [attr.d]="shape.d"
+            [attr.stroke]="shape.stroke"
+            [attr.fill]="shape.fill"
+            [attr.stroke-width]="shape.width"
           />
-          <rect
-            class="back-inset"
-            [attr.x]="shape.x + 1.8"
-            [attr.y]="shape.y + 1.8"
-            [attr.width]="shape.w - 3.6"
-            [attr.height]="shape.h - 3.6"
-            rx="0.8"
-          />
-        </g>
-      }
-      @case ("slot") {
-        <rect
-          class="slot"
-          [attr.x]="shape.x"
-          [attr.y]="shape.y"
-          [attr.width]="shape.w"
-          [attr.height]="shape.h"
-          rx="1.6"
-        />
-      }
-      @case ("rect") {
-        <rect
-          [attr.x]="shape.x"
-          [attr.y]="shape.y"
-          [attr.width]="shape.w"
-          [attr.height]="shape.h"
-          [attr.rx]="shape.rx"
-          [attr.fill]="shape.fill"
-        />
-      }
-      @case ("circle") {
-        <circle
-          [class.chip]="shape.ring"
-          [attr.cx]="shape.cx"
-          [attr.cy]="shape.cy"
-          [attr.r]="shape.r"
-          [attr.fill]="shape.fill"
-        />
-      }
-      @case ("line") {
-        <line
-          [attr.x1]="shape.x1"
-          [attr.y1]="shape.y1"
-          [attr.x2]="shape.x2"
-          [attr.y2]="shape.y2"
-          [attr.stroke]="shape.stroke"
-          [attr.stroke-width]="shape.width"
-        />
-      }
-      @case ("text") {
-        <text
-          [attr.x]="shape.x"
-          [attr.y]="shape.y"
-          [attr.font-size]="shape.size"
-          [attr.font-weight]="shape.weight ?? null"
-          [attr.text-anchor]="shape.middle ? 'middle' : null"
-          [attr.fill]="shape.fill"
-        >
-          {{ shape.text }}
-        </text>
-      }
-      @case ("path") {
-        <path
-          [attr.d]="shape.d"
-          [attr.stroke]="shape.stroke"
-          [attr.fill]="shape.fill"
-          [attr.stroke-width]="shape.width"
-        />
+        }
       }
     }
-  }
-</svg>
+  </svg>
+}

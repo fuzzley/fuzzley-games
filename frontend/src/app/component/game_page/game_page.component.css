@@ -84,6 +84,44 @@ h1 {
   opacity: 1;
 }
 
+.intro {
+  max-width: 36rem;
+}
+
+/* A game that is played here: a screenshot of a new deal that opens it. */
+.stage.play {
+  min-height: 0;
+  margin-top: 1.5rem;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* The screenshot and the button share one cell, the button centred on it. */
+.stage.play > * {
+  grid-area: 1 / 1;
+}
+
+/* Dimmed, so it reads as a picture of the game rather than the game. */
+.stage.play img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: brightness(0.7);
+  transition: filter 150ms ease-out;
+}
+
+.stage.play:hover img,
+.stage.play:focus-visible img {
+  filter: brightness(0.85);
+}
+
+/* Positioned, or the filtered screenshot would paint over it. */
+.stage.play .button {
+  position: relative;
+  margin: 0;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.35);
+}
+
 .button {
   margin-top: 1.25rem;
 }
