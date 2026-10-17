@@ -13,7 +13,7 @@ import { ThemeService } from "../../service/theme.service";
 @Component({
   selector: "app-theme-menu",
   templateUrl: "./theme_menu.component.html",
-  styleUrl: "./theme_menu.component.css",
+  styleUrl: "./theme_menu.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     "(document:click)": "closeIfOutside($event)",

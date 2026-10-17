@@ -3,7 +3,7 @@ export type ColorMode = "light" | "dark";
 
 /**
  * The palettes a player can choose between. Their colors are in
- * styles/global.css, under [data-theme="<id>"].
+ * styles/_palettes.scss, under [data-theme="<id>"].
  */
 export const THEMES = [
   { id: "classic", name: "Classic felt", mode: "light" },

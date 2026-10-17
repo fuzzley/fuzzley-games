@@ -19,7 +19,7 @@ import { NotFoundComponent } from "../not_found/not_found.component";
   selector: "app-category",
   imports: [RouterLink, GameTileComponent, NotFoundComponent],
   templateUrl: "./category.component.html",
-  styleUrl: "./category.component.css",
+  styleUrl: "./category.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryComponent {

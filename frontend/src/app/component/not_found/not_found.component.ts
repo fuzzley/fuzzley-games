@@ -18,7 +18,7 @@ import { GameCatalog } from "../../service/game_catalog.service";
   selector: "app-not-found",
   imports: [RouterLink],
   templateUrl: "./not_found.component.html",
-  styleUrl: "./not_found.component.css",
+  styleUrl: "./not_found.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotFoundComponent {

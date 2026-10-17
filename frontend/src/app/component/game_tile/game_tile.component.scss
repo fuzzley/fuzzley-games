@@ -41,21 +41,21 @@
   margin-top: 0.1rem;
   color: var(--muted);
   font-size: 0.8125rem;
-}
 
-.meta > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-}
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
 
-.meta svg {
-  width: 15px;
-  height: 15px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
+  svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
 }
 
 .play {
@@ -71,14 +71,14 @@
   font-weight: 700;
   line-height: 1.4;
   transition: transform 150ms ease-out;
-}
 
-.play:hover {
-  transform: translateY(-1px);
-}
+  &:hover {
+    transform: translateY(-1px);
+  }
 
-.play svg {
-  width: 13px;
-  height: 13px;
-  fill: currentColor;
+  svg {
+    width: 13px;
+    height: 13px;
+    fill: currentColor;
+  }
 }
