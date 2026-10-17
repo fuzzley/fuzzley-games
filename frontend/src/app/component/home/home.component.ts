@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-} from "@angular/core";
+import { Component, computed, inject, input } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { describeGameCount } from "../../model/game";
 import { GameCatalog } from "../../service/game_catalog.service";
@@ -23,7 +17,6 @@ import {
   imports: [RouterLink, GameTileComponent],
   templateUrl: "./home.component.html",
   styleUrl: "./home.component.scss",
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent {
   private readonly catalog = inject(GameCatalog);

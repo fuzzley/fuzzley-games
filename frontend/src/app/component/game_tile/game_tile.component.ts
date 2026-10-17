@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-} from "@angular/core";
+import { Component, computed, inject, input } from "@angular/core";
 import { NgTemplateOutlet } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import {
@@ -41,7 +35,6 @@ function badgeFor(
   imports: [NgTemplateOutlet, RouterLink, GameThumbComponent, IconComponent],
   templateUrl: "./game_tile.component.html",
   styleUrl: "./game_tile.component.scss",
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameTileComponent {
   private readonly catalog = inject(GameCatalog);

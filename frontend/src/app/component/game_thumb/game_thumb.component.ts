@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-} from "@angular/core";
+import { Component, computed, input } from "@angular/core";
 import { type Game, thumbnailUrl } from "../../model/game";
 
 /**
@@ -14,7 +9,6 @@ import { type Game, thumbnailUrl } from "../../model/game";
   selector: "app-game-thumb",
   templateUrl: "./game_thumb.component.html",
   styleUrl: "./game_thumb.component.scss",
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameThumbComponent {
   readonly game = input.required<Game>();

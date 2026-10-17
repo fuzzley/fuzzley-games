@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  linkedSignal,
-} from "@angular/core";
+import { Component, computed, inject, linkedSignal } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import {
   NavigationEnd,
@@ -23,31 +17,31 @@ import { ThemeMenuComponent } from "../theme_menu/theme_menu.component";
   imports: [RouterLink, RouterLinkActive, IconComponent, ThemeMenuComponent],
   templateUrl: "./site_header.component.html",
   styleUrl: "./site_header.component.scss",
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SiteHeaderComponent {
   private readonly router = inject(Router);
 
   protected readonly categories = inject(GameCatalog).categories;
 
+  /** The address after each navigation, parsed once. */
   private readonly url = toSignal(
     this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),
-      map(() => this.router.url),
+      map(() => this.router.parseUrl(this.router.url)),
     ),
-    { initialValue: this.router.url },
+    { initialValue: this.router.parseUrl(this.router.url) },
   );
 
   /** The search box follows `?q=` in the address, and writes back to it. */
   protected readonly query = linkedSignal(
-    () => this.router.parseUrl(this.url()).queryParamMap.get("q") ?? "",
+    () => this.url().queryParamMap.get("q") ?? "",
   );
   private readonly onHome = computed(
-    () =>
-      this.router.parseUrl(this.url()).root.children["primary"] === undefined,
+    () => this.url().root.children["primary"] === undefined,
   );
 
-  search(query: string): void {
+  /** Searches the games for what the box holds, from any page. */
+  protected search(query: string): void {
     this.query.set(query);
     // Typing on the home page refines the results in place; from anywhere
     // else it starts a new search, which Back can undo.

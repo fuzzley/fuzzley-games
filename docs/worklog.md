@@ -365,3 +365,25 @@ defined`: ICU needs `@angular/localize`, too much for one plural.
 - The visually-hidden copy went with the Sass move (item 20): the theme
   menu includes the mixin.
 - Screenshots pixel-identical to before. 140 tests.
+
+#### 11. Consistency
+
+- `changeDetection: ChangeDetectionStrategy.OnPush` is gone from all ten
+  components. Angular 22's `ɵɵdefineComponent` sets
+  `onPush: changeDetection !== ChangeDetectionStrategy.Eager`, so OnPush is
+  what a component gets unless it asks for `Eager`.
+- `SiteHeaderComponent` parses the address once per navigation (the signal
+  holds the `UrlTree`), not once for the query and again for the page.
+  `search()` is `protected`, like everything else only its template uses.
+  The theme menu's handlers and its `querySelector` follow in item 17,
+  which rebuilds it.
+- `ThemeService` reaches the browser only through the injected document:
+  `getComputedStyle` and `matchMedia` through `defaultView`, and storage
+  through `BROWSER_STORAGE`, a token that is the window's `localStorage`, or
+  null where touching it throws (site data blocked). A failed write is
+  still caught (a full store).
+- New specs (item 13): the palette still applies when storage refuses the
+  write and when there is none; `theme-color` follows the palette's
+  `--bar` (jsdom resolves custom properties from a `<style>`); the storage
+  token is `localStorage`, or null when access throws or there is no
+  window. 150 tests.
