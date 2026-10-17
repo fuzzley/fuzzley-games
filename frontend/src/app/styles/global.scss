@@ -1,0 +1,6 @@
+// The one global stylesheet, which main.ts loads. Components style
+// themselves; what they share lives in the partials beside this file.
+
+@use "palettes";
+@use "base";
+@use "shared";

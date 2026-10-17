@@ -22,7 +22,7 @@ import {
   selector: "app-home",
   imports: [RouterLink, GameTileComponent],
   templateUrl: "./home.component.html",
-  styleUrl: "./home.component.css",
+  styleUrl: "./home.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent {

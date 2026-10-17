@@ -39,7 +39,9 @@ than from a separate class, so the look and the announcement cannot disagree.
   `aria-live="polite"` region (`aria-live="assertive"` only for something that
   must interrupt).
 - Give icon-only buttons a screen-reader-only label with the global
-  `.visually-hidden` class in `frontend/src/app/styles/global.css`.
+  `.visually-hidden` class in `frontend/src/app/styles/_shared.scss`, or,
+  to hide it only at some widths, the `visually-hidden` mixin in
+  `frontend/src/app/styles/_a11y.scss`.
 
 ### 3. Focus Management & Modals
 

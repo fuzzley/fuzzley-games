@@ -13,7 +13,7 @@ import { type Game, thumbnailUrl } from "../../model/game";
 @Component({
   selector: "app-game-thumb",
   templateUrl: "./game_thumb.component.html",
-  styleUrl: "./game_thumb.component.css",
+  styleUrl: "./game_thumb.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameThumbComponent {

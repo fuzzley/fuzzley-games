@@ -267,3 +267,44 @@ defined`: ICU needs `@angular/localize`, too much for one plural.
 - New specs: section counts in the singular and plural, the "New" badge on
   a game added lately (with only `Date` faked, so Angular's scheduling is
   untouched) and none on a launch game. 125 tests.
+
+#### 20. Sass
+
+- Added `sass` (Dart Sass, pure JS, so no native binary for Docker's
+  Alpine) and declared `postcss`, which `@angular/build` and three others
+  expect as a peer but nothing provided. Vite compiles the SCSS, for the
+  components too.
+- `styles/global.css` became `global.scss`, which only `@use`s partials:
+  - `_palettes.scss`: each palette is a Sass map, and the `[data-theme]`
+    blocks are generated from the maps. The compile fails with an `@error`
+    naming the palette and the role when a palette lacks a role the default
+    has or sets one it lacks. `$palettes` is `!default`, so a spec can
+    configure a broken one.
+  - `_breakpoints.scss`: the four widths in use (36, 40, 52 and 64rem) as
+    `sm`, `md`, `lg`, `xl`, and `below($name)`, which fails on an unknown
+    name.
+  - `_a11y.scss` (`visually-hidden` mixin; the theme menu's copy of those
+    rules now includes it), `_shadows.scss` (the three shadows), `_base.scss`
+    (layout tokens, reset, element defaults) and `_shared.scss`.
+- Every component stylesheet is `.scss`, using `@use` and the breakpoint
+  mixin. Pseudo-classes and parts are nested; the home page's media queries,
+  which override each other, stay flat and in order, with a comment saying
+  why. Comments are `//`: a `/* */` comment inside a nested rule made Sass
+  emit an empty rule.
+- Proof the output is the same:
+  - A scratch comparator compiled each new file, parsed it and the old CSS
+    with postcss, and compared the flattened rules in order. Identical
+    except: Sass drops the quotes in `[data-theme="classic"]` and writes
+    `rgb(0 0 0 / 45%)` as `rgba(0,0,0,45%)` (the same values); the
+    reduced-motion block comes before the shared classes (its declarations
+    are `!important`, so order can't matter); in the game page,
+    `.stage.play .button` moved ahead of `.play-cta` (it outranks it on
+    specificity); and the theme menu's hidden label gained `margin: -1px`
+    from the shared mixin (harmless on an absolutely positioned element).
+  - The headless smoke run passed, and headless Chrome diffed its nine
+    screenshots against the ones taken before the change, pixel for pixel:
+    all nine identical (home, search, open menu, Midnight blue, game
+    pages, category page, phone width).
+- AGENTS.md has a Sass section (modules not `@import`, custom properties
+  for runtime values and Sass for build-time ones, named breakpoints,
+  nesting depth, `//` comments).

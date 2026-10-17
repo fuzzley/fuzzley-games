@@ -11,10 +11,11 @@ Play at https://fuzzley.games.
 ## Development
 
 The portal is an [Angular](https://angular.dev/) single-page app (standalone
-components and Signals) built with [Vite](https://vite.dev/)
-(`@analogjs/vite-plugin-angular`), styled with vanilla CSS palettes, and served
-by nginx in a Docker container on Google Cloud Run. The hosted games are built in
-their own repositories and served as static pages under `/play/<slug>/`.
+components, Signals, zoneless) built with [Vite](https://vite.dev/)
+(`@analogjs/vite-plugin-angular`), styled with [Sass](https://sass-lang.com/)
+and palettes of CSS custom properties, and served by nginx in a Docker
+container on Google Cloud Run. The hosted games are built in their own
+repositories and served as static pages under `/play/<slug>/`.
 
 Dependency management and development scripts use [Yarn](https://yarnpkg.com/)
 (Berry v4). Run all `yarn` commands from `frontend/`:
@@ -36,7 +37,7 @@ yarn games       # fetch the pinned game builds into public/play/
 
 The portal application code lives in `frontend/src/app/` (bootstrapped by
 `frontend/src/app/main.ts`), with theme palettes and shared styles in
-`frontend/src/app/styles/global.css`. The games the site lists are defined
+`frontend/src/app/styles/`, in Sass. The games the site lists are defined
 in `frontend/src/app/provider/games.ts`. Pinned game builds are tracked in
 `frontend/games.json` and unpacked into `frontend/public/play/<slug>/`.
 

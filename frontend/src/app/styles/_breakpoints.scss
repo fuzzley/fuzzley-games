@@ -1,0 +1,26 @@
+// The widths the layout changes at. A stylesheet uses them through `below`:
+//
+//   @use "../../styles/breakpoints" as bp;
+//   @include bp.below(sm) { … }
+
+@use "sass:map";
+
+/// Each breakpoint's width: a style `below` it applies up to that width.
+$widths: (
+  sm: 36rem,
+  md: 40rem,
+  lg: 52rem,
+  xl: 64rem,
+);
+
+/// Applies its content to viewports no wider than a breakpoint.
+/// @param {String} $name - One of `$widths`' keys.
+@mixin below($name) {
+  @if not map.has-key($widths, $name) {
+    @error "There's no breakpoint #{$name}; there are #{map.keys($widths)}.";
+  }
+
+  @media (max-width: map.get($widths, $name)) {
+    @content;
+  }
+}

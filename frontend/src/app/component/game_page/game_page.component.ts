@@ -24,7 +24,7 @@ import { NotFoundComponent } from "../not_found/not_found.component";
   selector: "app-game-page",
   imports: [RouterLink, GameThumbComponent, NotFoundComponent],
   templateUrl: "./game_page.component.html",
-  styleUrl: "./game_page.component.css",
+  styleUrl: "./game_page.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GamePageComponent {

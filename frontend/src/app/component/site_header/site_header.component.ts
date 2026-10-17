@@ -21,7 +21,7 @@ import { ThemeMenuComponent } from "../theme_menu/theme_menu.component";
   selector: "app-site-header",
   imports: [RouterLink, RouterLinkActive, ThemeMenuComponent],
   templateUrl: "./site_header.component.html",
-  styleUrl: "./site_header.component.css",
+  styleUrl: "./site_header.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SiteHeaderComponent {

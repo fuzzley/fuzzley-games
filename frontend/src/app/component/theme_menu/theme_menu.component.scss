@@ -1,3 +1,7 @@
+@use "../../styles/a11y";
+@use "../../styles/breakpoints" as bp;
+@use "../../styles/shadows";
+
 :host {
   position: relative;
   display: block;
@@ -15,14 +19,13 @@
   color: var(--search-text);
   font-weight: 600;
   font-size: 0.9375rem;
-  /* Resolved here, outside the swatch's own palette. */
+
+  // Resolved here, outside the swatch's own palette.
   --ring: var(--search);
 }
 
-/*
- * A swatch carries its own data-theme, so it shows that palette's colors:
- * page on the left, felt on the right, accent as the dot.
- */
+// A swatch carries its own data-theme, so it shows that palette's colors:
+// page on the left, felt on the right, accent as the dot.
 .swatch {
   position: relative;
   flex: none;
@@ -30,29 +33,29 @@
   height: 22px;
   border-radius: 50%;
   background: linear-gradient(90deg, var(--page) 50%, var(--felt) 50%);
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.18);
-}
+  box-shadow: shadows.$hairline;
 
-.swatch::after {
-  content: "";
-  position: absolute;
-  right: -1px;
-  bottom: -1px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 2px var(--ring);
-}
+  &::after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 2px var(--ring);
+  }
 
-.swatch.large {
-  width: 28px;
-  height: 28px;
-}
+  &.large {
+    width: 28px;
+    height: 28px;
 
-.swatch.large::after {
-  width: 11px;
-  height: 11px;
+    &::after {
+      width: 11px;
+      height: 11px;
+    }
+  }
 }
 
 .panel {
@@ -66,7 +69,7 @@
   border-radius: 14px;
   background: var(--panel-raised);
   color: var(--text);
-  box-shadow: 0 12px 32px -8px rgb(0 0 0 / 0.3);
+  box-shadow: shadows.$raised;
 }
 
 .panel-title {
@@ -88,15 +91,16 @@ ul {
   padding: 0.5rem 0.625rem;
   border-radius: 10px;
   text-align: left;
+
   --ring: var(--panel-raised);
-}
 
-.option:hover {
-  background: var(--panel);
-}
+  &:hover {
+    background: var(--panel);
+  }
 
-.option[aria-pressed="true"] .name {
-  font-weight: 700;
+  &[aria-pressed="true"] .name {
+    font-weight: 700;
+  }
 }
 
 .name {
@@ -120,15 +124,10 @@ ul {
   stroke-linejoin: round;
 }
 
-@media (max-width: 40rem) {
-  /* Hidden from sight only, so the button is still announced as "Theme". */
+@include bp.below(md) {
+  // Hidden from sight only, so the button is still announced as "Theme".
   .label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+    @include a11y.visually-hidden;
   }
 
   .trigger {

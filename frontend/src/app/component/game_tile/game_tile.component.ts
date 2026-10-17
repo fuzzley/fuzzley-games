@@ -39,7 +39,7 @@ function badgeFor(
   selector: "app-game-tile",
   imports: [NgTemplateOutlet, RouterLink, GameThumbComponent],
   templateUrl: "./game_tile.component.html",
-  styleUrl: "./game_tile.component.css",
+  styleUrl: "./game_tile.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameTileComponent {

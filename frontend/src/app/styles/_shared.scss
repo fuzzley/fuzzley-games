@@ -1,0 +1,38 @@
+// The few classes components share. A class goes here only when two or more
+// components use it; anything else stays in its component's stylesheet.
+
+@use "a11y";
+
+.visually-hidden {
+  @include a11y.visually-hidden;
+}
+
+// Small labels beside a game's name.
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0;
+
+  &.new {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 1.2rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}
