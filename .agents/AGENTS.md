@@ -84,7 +84,7 @@ Run from `frontend/`:
 - **Fetch the Games:** `yarn games` (fetches the pinned builds into `public/play/`; `yarn start` and `yarn build` do it first).
 - **Preview Build:** `yarn preview` (serves the production build locally).
 - **Run Unit Tests:** `yarn test` (runs Vitest once).
-- **Type Checking:** `yarn typecheck` (runs the Angular compiler's checks, emitting nothing, then type-checks the `tools` and `.agents` scripts from their JSDoc with `tsconfig.scripts.json`).
+- **Type Checking:** `yarn typecheck` (runs the Angular compiler's checks over the app, emitting nothing, then `tsc` over the specs (`tsconfig.spec.json`), over `vite.config.ts` (`tsconfig.node.json`), and over the `tools` and `.agents` scripts from their JSDoc (`tsconfig.scripts.json`)). Vitest strips types without checking them, so this is the only check a spec's types get.
 - **Linting:** `yarn lint` (checks the skills' references, runs ESLint over `src`, `tools` and `.agents`, then checks formatting with `yarn prettier:check`). ESLint's config is `frontend/eslint.config.cjs`: type-aware TypeScript rules, Angular's recommended and template accessibility rules, and JSDoc types on every script.
 - **Full Verification Pipeline:** `yarn verify` (runs `yarn lint && yarn typecheck && yarn test && yarn build`).
 - **Format Codebase:** `yarn prettier` (formats the whole repository with
