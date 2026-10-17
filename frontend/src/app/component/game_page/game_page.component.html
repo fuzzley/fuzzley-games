@@ -1,5 +1,5 @@
-<main class="page">
-  @if (game(); as game) {
+@if (game(); as game) {
+  <main class="page">
     @if (category(); as category) {
       <a class="back" [routerLink]="['/category', category.id]">{{
         category.name
@@ -58,9 +58,7 @@
         </p>
       </section>
     }
-  } @else {
-    <h1>There’s no game at this address.</h1>
-    <p class="blurb">It may have been renamed or taken down.</p>
-    <a class="button" routerLink="/">See all games</a>
-  }
-</main>
+  </main>
+} @else {
+  <app-not-found kind="game" />
+}

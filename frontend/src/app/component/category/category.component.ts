@@ -11,11 +11,12 @@ import {
   EAGER_TILES,
   GameTileComponent,
 } from "../game_tile/game_tile.component";
+import { NotFoundComponent } from "../not_found/not_found.component";
 
 /** Every game in one category, as a plain grid. */
 @Component({
   selector: "app-category",
-  imports: [RouterLink, GameTileComponent],
+  imports: [RouterLink, GameTileComponent, NotFoundComponent],
   templateUrl: "./category.component.html",
   styleUrl: "./category.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,5 +35,4 @@ export class CategoryComponent {
     const games = category ? this.catalog.gamesIn(category.id) : [];
     return games.map((game, index) => ({ game, eager: index < EAGER_TILES }));
   });
-  protected readonly categories = this.catalog.categories;
 }

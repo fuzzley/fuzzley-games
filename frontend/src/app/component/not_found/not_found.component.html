@@ -1,0 +1,14 @@
+<main class="page">
+  <h1>There’s no {{ kind() }} at this address.</h1>
+  <p class="hint">
+    It may have been renamed or taken down. Try one of these instead:
+  </p>
+  <ul class="others">
+    @for (category of categories; track category.id) {
+      <li>
+        <a [routerLink]="['/category', category.id]">{{ category.name }}</a>
+      </li>
+    }
+  </ul>
+  <a class="button" routerLink="/">See all games</a>
+</main>

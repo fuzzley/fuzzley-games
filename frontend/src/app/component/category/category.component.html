@@ -1,6 +1,6 @@
-<main class="page">
-  <a class="back" routerLink="/">All games</a>
-  @if (category(); as category) {
+@if (category(); as category) {
+  <main class="page">
+    <a class="back" routerLink="/">All games</a>
     <div class="head">
       <h1>{{ category.name }}</h1>
       <span class="count">{{ tiles().length }} games</span>
@@ -11,15 +11,7 @@
         <li><app-game-tile [game]="tile.game" [eager]="tile.eager" /></li>
       }
     </ul>
-  } @else {
-    <h1>There’s no category at this address.</h1>
-    <p class="description">Try one of these instead:</p>
-    <ul class="others">
-      @for (other of categories; track other.id) {
-        <li>
-          <a [routerLink]="['/category', other.id]">{{ other.name }}</a>
-        </li>
-      }
-    </ul>
-  }
-</main>
+  </main>
+} @else {
+  <app-not-found kind="category" />
+}
