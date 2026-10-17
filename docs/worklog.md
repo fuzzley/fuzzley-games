@@ -406,3 +406,30 @@ defined`: ICU needs `@angular/localize`, too much for one plural.
   was there before a search is the one whose text changes.
 - The `web-game-accessibility` skill now says a live region must be in the
   page before its text changes, with every outcome in it.
+
+#### 17. The theme menu, as a menu
+
+- Rebuilt on Angular Aria (`@angular/aria/menu`, 22.2.3, which needs
+  `@angular/cdk` at the same version): the button is an `ngMenuTrigger`
+  (it sets `aria-haspopup`, `aria-expanded`, `aria-controls`), the panel an
+  `ngMenu` (`role="menu"`, shown while `data-visible="true"`), and each
+  palette an `ngMenuItem` with `role="menuitemradio"` and `aria-checked`.
+  The four `aria-pressed` toggles are gone, and with them the component's
+  document click listener, its Escape handler, its `querySelector` for
+  refocusing and its `open` signal: Angular Aria does all of that.
+- Two things the types don't say, found by driving it: Angular Aria sets an
+  item's role but not `aria-checked`, so the template binds it; and an
+  item's `searchTerm` defaults to empty, so typing a palette's name found
+  nothing until each item got `[searchTerm]="option.name"`.
+- Template logic moved into an `options` view model (name, "Light" or
+  "Dark", checked) and a `label` ("Theme: Classic felt"), item 7's rule.
+- Checked in headless Chrome by mouse and keyboard: opening by click or
+  Enter focuses an item; arrows move; typing "s" jumps to Soft pastel;
+  Enter, Space or a click applies and closes; Escape and an outside click
+  close; focus returns to the button each time. The open-menu screenshot
+  differs only where the focused item is highlighted; the rest are
+  pixel-identical. The spec covers the same in jsdom (9 tests; 154 in all).
+- Cost: the bundle grows from 279.5 kB (84.2 kB gzipped; measured by
+  building with this change stashed) to 316.7 kB (94.3 kB), all of it
+  Angular Aria and the CDK parts it uses. If that matters, the menu can be
+  deferred (`@defer (on idle)`) with a placeholder button.

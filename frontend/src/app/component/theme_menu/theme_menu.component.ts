@@ -1,49 +1,38 @@
-import { Component, ElementRef, computed, inject, signal } from "@angular/core";
+import { Component, computed, inject } from "@angular/core";
+import { Menu, MenuContent, MenuItem, MenuTrigger } from "@angular/aria/menu";
 import { THEMES, type ThemeId } from "../../provider/themes";
-import { IconComponent } from "../icon/icon.component";
 import { ThemeService } from "../../service/theme.service";
+import { IconComponent } from "../icon/icon.component";
 
-/** A "Theme" button that opens a short list of palettes to choose from. */
+/**
+ * A "Theme" button that opens a menu of the palettes, one of them checked.
+ * Angular Aria's menu supplies the keyboard (arrows, Home and End, typing a
+ * name, Enter, Escape), the roles, and focus going back to the button.
+ */
 @Component({
   selector: "app-theme-menu",
-  imports: [IconComponent],
+  imports: [IconComponent, Menu, MenuContent, MenuItem, MenuTrigger],
   templateUrl: "./theme_menu.component.html",
   styleUrl: "./theme_menu.component.scss",
-  host: {
-    "(document:click)": "closeIfOutside($event)",
-    "(keydown.escape)": "close(true)",
-  },
 })
 export class ThemeMenuComponent {
-  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly theme = inject(ThemeService);
 
-  protected readonly themes = THEMES;
   protected readonly current = this.theme.current;
-  protected readonly currentName = computed(
-    () => THEMES.find((t) => t.id === this.current())?.name,
+  protected readonly options = computed(() =>
+    THEMES.map((theme) => ({
+      ...theme,
+      modeName: theme.mode === "dark" ? "Dark" : "Light",
+      checked: theme.id === this.current(),
+    })),
   );
-  protected readonly open = signal(false);
+  /** The button's name: what it is for, and the palette in use. */
+  protected readonly label = computed(
+    () =>
+      `Theme: ${THEMES.find((theme) => theme.id === this.current())?.name ?? ""}`,
+  );
 
-  toggle(): void {
-    this.open.update((open) => !open);
-  }
-
-  choose(id: ThemeId): void {
-    this.theme.select(id);
-    this.close(true);
-  }
-
-  close(refocus = false): void {
-    if (!this.open()) return;
-    this.open.set(false);
-    if (refocus)
-      this.host.nativeElement
-        .querySelector<HTMLButtonElement>(".trigger")
-        ?.focus();
-  }
-
-  closeIfOutside(event: Event): void {
-    if (!this.host.nativeElement.contains(event.target as Node)) this.close();
+  protected choose(id: ThemeId | undefined): void {
+    if (id) this.theme.select(id);
   }
 }

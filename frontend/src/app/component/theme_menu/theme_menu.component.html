@@ -1,40 +1,39 @@
 <button
   class="trigger"
   type="button"
-  aria-controls="theme-options"
-  [attr.aria-expanded]="open()"
-  (click)="toggle()"
+  ngMenuTrigger
+  [menu]="menu"
+  [attr.aria-label]="label()"
 >
-  <span class="swatch" [attr.data-theme]="current()" aria-hidden="true"></span>
-  <span class="label">Theme</span>
-  <span class="visually-hidden">: {{ currentName() }}</span>
+  <span class="swatch" [attr.data-theme]="current()"></span>
+  <span class="label" aria-hidden="true">Theme</span>
 </button>
 
-<div id="theme-options" class="panel" [hidden]="!open()">
-  <p class="panel-title">Theme</p>
-  <ul>
-    @for (theme of themes; track theme.id) {
-      <li>
-        <button
-          class="option"
-          type="button"
-          [attr.aria-pressed]="theme.id === current()"
-          (click)="choose(theme.id)"
-        >
-          <span
-            class="swatch large"
-            [attr.data-theme]="theme.id"
-            aria-hidden="true"
-          ></span>
-          <span class="name">{{ theme.name }}</span>
-          <span class="mode">{{
-            theme.mode === "dark" ? "Dark" : "Light"
-          }}</span>
-          @if (theme.id === current()) {
-            <app-icon class="tick" name="tick" />
-          }
-        </button>
-      </li>
+<div
+  ngMenu
+  #menu="ngMenu"
+  class="panel"
+  aria-label="Theme"
+  (itemSelected)="choose($event)"
+>
+  <ng-template ngMenuContent>
+    <p class="panel-title" aria-hidden="true">Theme</p>
+    @for (option of options(); track option.id) {
+      <div
+        ngMenuItem
+        class="option"
+        role="menuitemradio"
+        [value]="option.id"
+        [searchTerm]="option.name"
+        [attr.aria-checked]="option.checked"
+      >
+        <span class="swatch large" [attr.data-theme]="option.id"></span>
+        <span class="name">{{ option.name }}</span>
+        <span class="mode">{{ option.modeName }}</span>
+        @if (option.checked) {
+          <app-icon class="tick" name="tick" />
+        }
+      </div>
     }
-  </ul>
+  </ng-template>
 </div>

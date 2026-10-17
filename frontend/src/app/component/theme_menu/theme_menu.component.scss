@@ -70,6 +70,11 @@
   background: var(--panel-raised);
   color: var(--text);
   box-shadow: shadows.$raised;
+
+  // Angular Aria marks the menu visible while it is open.
+  &:not([data-visible="true"]) {
+    display: none;
+  }
 }
 
 .panel-title {
@@ -79,10 +84,6 @@
   font-weight: 700;
 }
 
-ul {
-  list-style: none;
-}
-
 .option {
   display: flex;
   align-items: center;
@@ -90,15 +91,17 @@ ul {
   width: 100%;
   padding: 0.5rem 0.625rem;
   border-radius: 10px;
-  text-align: left;
+  cursor: pointer;
 
   --ring: var(--panel-raised);
 
-  &:hover {
+  // The item the arrow keys or the pointer are on.
+  &:hover,
+  &[data-active="true"] {
     background: var(--panel);
   }
 
-  &[aria-pressed="true"] .name {
+  &[aria-checked="true"] .name {
     font-weight: 700;
   }
 }
