@@ -2,6 +2,7 @@ import {
   type Game,
   describeLength,
   describePlayers,
+  imagesOf,
   playUrl,
   screenshotUrl,
   thumbnailUrl,
@@ -53,6 +54,19 @@ describe("game", () => {
     expect(thumbnailUrl(game({ slug: "reversi" }))).toBe(
       "/thumbnails/reversi.svg",
     );
+  });
+
+  it("shows a hosted game's thumbnail and preview", () => {
+    expect(imagesOf(game({ play: { build: "minesweeper" } }))).toEqual([
+      "/play/minesweeper/docs/screenshots/minesweeper/thumb.webp",
+      "/play/minesweeper/docs/screenshots/minesweeper/preview.webp",
+    ]);
+  });
+
+  it("shows only the drawing of a game still to come", () => {
+    expect(imagesOf(game({ slug: "reversi" }))).toEqual([
+      "/thumbnails/reversi.svg",
+    ]);
   });
 
   it("calls a game for one player solo", () => {

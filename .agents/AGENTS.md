@@ -47,13 +47,18 @@ Collection and Minesweeper) and served as static pages under
   - `public/` is copied into the build as is, including the runtime config
     placeholder `env.js` and `thumbnails/<slug>.svg`, the drawing of each
     game still to come. A hosted game's thumbnail is its build's own
-    screenshot. The build fails if either is missing. The games are fetched into `public/play/`, which
-    git ignores.
+    screenshot. The build fails if either is missing. The games are fetched
+    into `public/play/`, which git ignores.
   - `games.json` pins one build of each game, from its repository's
     `site-build` release. `tools/` holds the scripts that fetch the pinned
     builds before every build, move the pins (`update-games.mjs`), and add
-    the analytics tags to each game's page. `docs/operations.md` covers the
-    details.
+    the analytics tags to each game's page, with what they share in
+    `script.mjs`, and the site's Vite plugins in `vite-plugins.ts`.
+    `docs/operations.md` covers the details.
+  - A script exports its logic as functions and runs only when it is the
+    file Node was started with (`if (import.meta.main)`), so
+    `tools/*.spec.ts` can import and test it. A dependency a test needs to
+    replace, such as `fetch`, is a parameter with the real one as default.
 - **`Dockerfile`, `nginx.conf.template`, `docker-entrypoint.d/`** — the image
   that serves the build, its nginx config, and the startup script that writes
   `env.js` from the container's environment. `docs/operations.md` explains

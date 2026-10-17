@@ -199,3 +199,33 @@ start.
   doesn't tell), and Vite warns that its future native config loader won't
   take an extensionless import or a JSON import without attributes. Fixed in
   item 15, which takes the app's modules out of the config.
+
+#### 15. Testable tools
+
+- Every script under `tools/` now exports its logic and runs only under
+  `if (import.meta.main)`. `update-games.mjs`, which pushes to `main`
+  unattended, splits into `parseSkipList`, `latestBuild` (with `fetch` as a
+  parameter), `planUpdate` (move or stay, and why) and `commitMessage`.
+  `inject-analytics.mjs` has `withAnalytics(html)`; `fetch-games.mjs` takes
+  its fetch and retry delays as parameters, and its folder in
+  `removeUnpinned`.
+- `tools/script.mjs` holds what the scripts repeated: `FRONTEND_DIR`,
+  `logger(name)` and `errorMessage(error)` (written out four times before).
+- The Vite plugins moved to `tools/vite-plugins.ts`, with their logic
+  exported: `commitHash` (environment and git as parameters),
+  `playPageRoute`, `missingImages`.
+- This also fixes the warning found in item 5. `checkGameImages` loads the
+  catalog at build time through Vite's `runnerImport`, so `vite.config.ts`
+  imports nothing from the app. `runnerImport` is experimental, so
+  `vite-plugins.spec.ts` loads the real catalog through it on every test run.
+  Importing the app's TypeScript straight into Node wasn't an option: the
+  app imports without file extensions, as its bundler allows.
+- Vitest runs two projects: `app` (jsdom, Angular) and `tools` (Node).
+  `tsconfig.node.json` and the TypeScript lint rules cover `tools/**/*.ts`.
+  ESLint's `no-unused-vars` now allows `const { omitted, ...rest }`.
+- 36 tools tests: retries on 404 but not 403, giving up after the last
+  delay, an unpinned folder deleted and forgotten, a malformed or undated
+  `latest.json` refused, a fresh build left to settle, a skipped archive,
+  the commit message for one pin and for several, the tags placed before
+  `</head>` in any case, the dev server's redirect and rewrite. 107 tests
+  in all.

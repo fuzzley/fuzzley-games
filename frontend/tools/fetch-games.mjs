@@ -21,19 +21,15 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
-import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import * as tar from "tar";
 import { readManifest, releaseUrl } from "./games.mjs";
+import { FRONTEND_DIR, errorMessage, logger } from "./script.mjs";
 
 /** @import { GameBuild } from "./games.mjs" */
 
-const frontendDir = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-);
-const playDir = path.join(frontendDir, "public", "play");
-const cacheDir = path.join(frontendDir, "node_modules", ".cache", "games");
+const playDir = path.join(FRONTEND_DIR, "public", "play");
+const cacheDir = path.join(FRONTEND_DIR, "node_modules", ".cache", "games");
 // Which archive is unpacked in each game's folder, by slug.
 const installedFile = path.join(cacheDir, "installed.json");
 
@@ -42,21 +38,7 @@ const installedFile = path.join(cacheDir, "installed.json");
 // for about half a minute in all.
 const RETRY_DELAYS_MS = [1000, 2000, 4000, 8000, 16000];
 
-const { values: options } = parseArgs({
-  options: {
-    optional: { type: "boolean" },
-    force: { type: "boolean" },
-  },
-});
-
-/**
- * Prints a line of progress.
- *
- * @param {string} message
- */
-function log(message) {
-  console.log(`fetch-games: ${message}`);
-}
+const log = logger("fetch-games");
 
 /**
  * Returns the SHA-256 of each archive installed, by slug.
@@ -83,23 +65,31 @@ const sha256 = (data) => createHash("sha256").update(data).digest("hex");
  * Downloads a file, trying again when that might help.
  *
  * @param {string} url
+ * @param {object} [options]
+ * @param {typeof fetch} [options.fetchFile]
+ * @param {readonly number[]} [options.delays] How long to wait before each
+ *   retry, in milliseconds.
  * @returns {Promise<Buffer>}
  */
-async function download(url) {
+export async function download(
+  url,
+  { fetchFile = fetch, delays = RETRY_DELAYS_MS } = {},
+) {
   for (let attempt = 0; ; attempt++) {
     let failure;
     let retry = true;
     try {
-      const response = await fetch(url);
+      const response = await fetchFile(url);
       if (response.ok) return Buffer.from(await response.arrayBuffer());
       failure = `HTTP ${response.status}`;
       // Any other 4xx won't change by asking again.
       retry = response.status === 404 || response.status >= 500;
     } catch (error) {
-      failure = error instanceof Error ? error.message : String(error);
+      failure = errorMessage(error);
     }
-    if (!retry || attempt === RETRY_DELAYS_MS.length) throw new Error(failure);
-    await sleep(RETRY_DELAYS_MS[attempt]);
+    const delay = delays[attempt];
+    if (!retry || delay === undefined) throw new Error(failure);
+    await sleep(delay);
   }
 }
 
@@ -119,10 +109,9 @@ async function archiveFor(game) {
   try {
     data = await download(url);
   } catch (error) {
-    throw new Error(
-      `couldn't download ${url}: ${error instanceof Error ? error.message : String(error)}`,
-      { cause: error },
-    );
+    throw new Error(`couldn't download ${url}: ${errorMessage(error)}`, {
+      cause: error,
+    });
   }
   const actual = sha256(data);
   if (actual !== game.sha256) {
@@ -153,28 +142,36 @@ async function install(slug, game) {
 }
 
 /**
- * Deletes the folders under public/play/ that games.json doesn't pin.
+ * Deletes the folders in a games directory, such as public/play/, that
+ * games.json doesn't pin.
  *
+ * @param {string} dir
  * @param {Record<string, GameBuild>} manifest
  * @param {Record<string, string>} installed Forgets each game it deletes.
  */
-function removeUnpinned(manifest, installed) {
-  if (!fs.existsSync(playDir)) return;
-  for (const entry of fs.readdirSync(playDir, { withFileTypes: true })) {
+export function removeUnpinned(dir, manifest, installed) {
+  if (!fs.existsSync(dir)) return;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.name in manifest) continue;
-    fs.rmSync(path.join(playDir, entry.name), { recursive: true, force: true });
+    fs.rmSync(path.join(dir, entry.name), { recursive: true, force: true });
     delete installed[entry.name];
     log(`removed ${entry.name}, which games.json no longer pins`);
   }
 }
 
 async function main() {
+  const { values: options } = parseArgs({
+    options: {
+      optional: { type: "boolean" },
+      force: { type: "boolean" },
+    },
+  });
   const manifest = readManifest();
   const installed = options.force ? {} : readInstalled();
   /** @type {string[]} */
   const failures = [];
 
-  removeUnpinned(manifest, installed);
+  removeUnpinned(playDir, manifest, installed);
 
   for (const [slug, game] of Object.entries(manifest)) {
     const name = `${slug} (${game.asset})`;
@@ -191,9 +188,7 @@ async function main() {
       log(`installed ${name}`);
     } catch (error) {
       delete installed[slug];
-      failures.push(
-        `${slug}: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      failures.push(`${slug}: ${errorMessage(error)}`);
     }
   }
 
@@ -210,4 +205,4 @@ async function main() {
   process.exitCode = 1;
 }
 
-await main();
+if (import.meta.main) await main();

@@ -1,12 +1,13 @@
 {
-  // The build's own TypeScript, which runs in Node: vite.config.ts.
+  // The build's own TypeScript, which runs in Node: vite.config.ts, the
+  // plugins and specs under tools/.
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": true,
     "allowImportingTsExtensions": true,
     // tools/*.mjs carry their types in JSDoc; tsconfig.scripts.json checks them.
     "allowJs": true,
-    "types": ["node"]
+    "types": ["node", "vitest/globals"]
   },
-  "files": ["vite.config.ts"]
+  "include": ["vite.config.ts", "tools/**/*.ts"]
 }
