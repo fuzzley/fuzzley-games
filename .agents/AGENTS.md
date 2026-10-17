@@ -31,7 +31,7 @@ fSolitaire's Solitaire Collection) and served as static pages under
     catalog, which says where each hosted game is played, and the drawings of
     the games still to come. A hosted game's thumbnail is its build's own
     screenshot.
-  - `src/app/styles/global.css` is the one global stylesheet: the colour
+  - `src/app/styles/global.css` is the one global stylesheet: the color
     palettes, as custom properties under `[data-theme]`, and the few shared
     classes.
   - Every spec sits beside the file it tests, named after it.
@@ -56,7 +56,7 @@ fSolitaire's Solitaire Collection) and served as static pages under
 - **Templates bind, they do not compute.** Expose a `computed()` view model
   instead of calling a method from a template, which re-runs on every change
   detection pass.
-- **Colours come from the palette.** Anything that should follow the theme
+- **Colors come from the palette.** Anything that should follow the theme
   reads a palette variable with `var()`, and a new variable is added to every
   palette in `src/app/styles/global.css`.
 - **`@keyframes` are global.** Angular's emulated encapsulation rewrites

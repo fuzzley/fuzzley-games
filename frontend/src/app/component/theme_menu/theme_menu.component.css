@@ -20,7 +20,7 @@
 }
 
 /*
- * A swatch carries its own data-theme, so it shows that palette's colours:
+ * A swatch carries its own data-theme, so it shows that palette's colors:
  * page on the left, felt on the right, accent as the dot.
  */
 .swatch {
@@ -121,7 +121,7 @@ ul {
 }
 
 @media (max-width: 40rem) {
-  /* Hidden from sight only, so the button is still announced as "Colours". */
+  /* Hidden from sight only, so the button is still announced as "Colors". */
   .label {
     position: absolute;
     width: 1px;

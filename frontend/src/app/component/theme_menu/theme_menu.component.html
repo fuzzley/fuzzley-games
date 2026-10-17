@@ -6,12 +6,12 @@
   (click)="toggle()"
 >
   <span class="swatch" [attr.data-theme]="current()" aria-hidden="true"></span>
-  <span class="label">Colours</span>
+  <span class="label">Colors</span>
   <span class="visually-hidden">: {{ currentName() }}</span>
 </button>
 
 <div id="theme-options" class="panel" [hidden]="!open()">
-  <p class="panel-title">Colours</p>
+  <p class="panel-title">Colors</p>
   <ul>
     @for (theme of themes; track theme.id) {
       <li>

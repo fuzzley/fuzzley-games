@@ -67,7 +67,7 @@ export const GAMES: readonly Game[] = [
   solitaire("klondike", {
     slug: "klondike",
     name: "Klondike",
-    blurb: "The classic: turn the stock, build down in alternating colours.",
+    blurb: "The classic: turn the stock, build down in alternating colors.",
     aliases: ["Whitehead", "Thumb and Pouch", "Saratoga"],
     time: "5 min",
   }),
@@ -171,7 +171,7 @@ export const GAMES: readonly Game[] = [
   solitaire("maria", {
     slug: "maria",
     name: "Maria",
-    blurb: "Forty Thieves on nine columns, in alternating colours.",
+    blurb: "Forty Thieves on nine columns, in alternating colors.",
     time: "15 min",
   }),
   solitaire("limited", {
@@ -359,7 +359,7 @@ export const GAMES: readonly Game[] = [
     slug: "reversi",
     name: "Reversi",
     category: "classics",
-    blurb: "Flank your opponent’s discs to flip them to your colour.",
+    blurb: "Flank your opponent’s discs to flip them to your color.",
     players: "2 players",
     time: "10 min",
     added: "2026-10-11",
