@@ -14,8 +14,12 @@
         </a>
       </div>
 
-      <!-- A plain link, not a routerLink: the game is a page of its own. -->
-      <a class="stage play" [href]="play.href">
+      <!--
+        A plain link, not a routerLink: the game is a page of its own. It is
+        for the pointer only; the button above offers the same to the keyboard
+        and to screen readers, which would otherwise meet it twice.
+      -->
+      <a class="stage play" [href]="play.href" tabindex="-1" aria-hidden="true">
         <img
           [src]="play.preview"
           alt=""

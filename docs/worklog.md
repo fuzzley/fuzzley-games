@@ -433,3 +433,15 @@ defined`: ICU needs `@angular/localize`, too much for one plural.
   building with this change stashed) to 316.7 kB (94.3 kB), all of it
   Angular Aria and the CDK parts it uses. If that matters, the menu can be
   deferred (`@defer (on idle)`) with a placeholder button.
+
+#### 18. One play link per destination; a search landmark
+
+- The game page's screenshot link (the same address and name as the "Play"
+  button above it) is now `tabindex="-1"` and `aria-hidden="true"`: still
+  there for the pointer, no longer a second tab stop and a second
+  announcement. The spec finds it through its screenshot, since an
+  `aria-hidden` link has no accessible name to query by.
+- The header's search box is inside a `<search>` element, the search
+  landmark (Angular's DOM schema knows it; `ngc` takes it under
+  `strictTemplates`). The landmark takes the box's place in the flex row,
+  so the header is pixel-identical.

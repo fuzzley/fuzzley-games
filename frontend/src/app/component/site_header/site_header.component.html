@@ -14,19 +14,21 @@
     </nav>
 
     <div class="tools">
-      <label class="search">
-        <app-icon name="search" />
-        <span class="visually-hidden">Search games</span>
-        <input
-          #box
-          type="search"
-          placeholder="Search games"
-          autocomplete="off"
-          [value]="query()"
-          (input)="search(box.value)"
-          (keydown.escape)="search('')"
-        />
-      </label>
+      <search>
+        <label class="search">
+          <app-icon name="search" />
+          <span class="visually-hidden">Search games</span>
+          <input
+            #box
+            type="search"
+            placeholder="Search games"
+            autocomplete="off"
+            [value]="query()"
+            (input)="search(box.value)"
+            (keydown.escape)="search('')"
+          />
+        </label>
+      </search>
       <app-theme-menu />
     </div>
   </div>
