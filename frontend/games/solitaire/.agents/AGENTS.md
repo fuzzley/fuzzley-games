@@ -228,12 +228,16 @@ Deployments are automated via GitHub Actions on every push to `main` (or manual 
    - Packs `dist/` as `solitaire-<short sha>.tar.gz` and uploads it to the
      rolling `site-build` release, then replaces `latest.json` there (the
      archive's name, SHA-256 and commit) and moves the `site-build` tag to the
-     commit. It keeps the ten newest archives and the one fuzzley.info pins.
-   - fuzzley.info (`fuzzley/fuzzley`) pins one archive in its
-     `frontend/games.json` and fetches it when it builds. A scheduled workflow
-     there moves the pin to the newest build within about 15 minutes, after
-     building the site with it. This repository holds no token for
-     `fuzzley/fuzzley`.
+     commit. It keeps the ten newest archives and the one fuzzley.games pins.
+   - fuzzley.games (`fuzzley/fuzzley-games`) pins one archive in its
+     `frontend/games.json`, fetches it when it builds, and serves it at
+     https://fuzzley.games/play/solitaire/, where its dashboard links each
+     game by its `#/<id>` route and shows the screenshots under
+     `public/docs/screenshots/<id>/`. A scheduled workflow there moves the pin
+     to the newest build within about 15 minutes, after building and checking
+     the site with it; a build that drops or renames a game the dashboard
+     links fails there and opens an issue. This repository holds no token for
+     `fuzzley/fuzzley-games`.
 
 ---
 
