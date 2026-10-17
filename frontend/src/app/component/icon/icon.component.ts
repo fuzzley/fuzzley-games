@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-} from "@angular/core";
+import { Component, computed, input } from "@angular/core";
 
 /** The icons the site draws. */
 export type IconName = "play" | "players" | "time" | "search" | "tick";
@@ -21,7 +16,6 @@ const FILLED: ReadonlySet<IconName> = new Set(["play"]);
   selector: "app-icon",
   templateUrl: "./icon.component.html",
   styleUrl: "./icon.component.scss",
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { "aria-hidden": "true" },
 })
 export class IconComponent {

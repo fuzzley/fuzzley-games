@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  inject,
-  input,
-} from "@angular/core";
+import { Component, DestroyRef, inject, input } from "@angular/core";
 import { Meta } from "@angular/platform-browser";
 import { RouterLink } from "@angular/router";
 import { GameCatalog } from "../../service/game_catalog.service";
@@ -19,7 +13,6 @@ import { GameCatalog } from "../../service/game_catalog.service";
   imports: [RouterLink],
   templateUrl: "./not_found.component.html",
   styleUrl: "./not_found.component.scss",
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotFoundComponent {
   /**

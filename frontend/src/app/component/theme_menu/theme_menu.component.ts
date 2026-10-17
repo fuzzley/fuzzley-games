@@ -1,11 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  computed,
-  inject,
-  signal,
-} from "@angular/core";
+import { Component, ElementRef, computed, inject, signal } from "@angular/core";
 import { THEMES, type ThemeId } from "../../provider/themes";
 import { IconComponent } from "../icon/icon.component";
 import { ThemeService } from "../../service/theme.service";
@@ -16,7 +9,6 @@ import { ThemeService } from "../../service/theme.service";
   imports: [IconComponent],
   templateUrl: "./theme_menu.component.html",
   styleUrl: "./theme_menu.component.scss",
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     "(document:click)": "closeIfOutside($event)",
     "(keydown.escape)": "close(true)",

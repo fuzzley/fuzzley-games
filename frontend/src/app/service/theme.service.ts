@@ -6,6 +6,7 @@ import {
   type ThemeId,
   isThemeId,
 } from "../provider/themes";
+import { BROWSER_STORAGE } from "./browser_storage";
 
 /**
  * Applies and remembers the palette in use. theme.js picks one before Angular
@@ -16,28 +17,34 @@ import {
 @Injectable({ providedIn: "root" })
 export class ThemeService {
   private readonly document = inject(DOCUMENT);
+  private readonly storage = inject(BROWSER_STORAGE);
   private readonly root = this.document.documentElement;
 
   readonly current = signal<ThemeId>(this.initial());
 
   constructor() {
     effect(() => {
-      const id = this.current();
-      this.root.dataset["theme"] = id;
+      this.root.dataset["theme"] = this.current();
       // Match the browser's own UI (address bar on phones) to the header.
-      const bar = getComputedStyle(this.root).getPropertyValue("--bar").trim();
-      this.document
-        .querySelector('meta[name="theme-color"]')
-        ?.setAttribute("content", bar);
+      const bar = this.document.defaultView
+        ?.getComputedStyle(this.root)
+        .getPropertyValue("--bar")
+        .trim();
+      if (bar) {
+        this.document
+          .querySelector('meta[name="theme-color"]')
+          ?.setAttribute("content", bar);
+      }
     });
   }
 
+  /** Applies a palette, and remembers it where the browser allows. */
   select(id: ThemeId): void {
     this.current.set(id);
     try {
-      localStorage.setItem(THEME_STORAGE_KEY, id);
+      this.storage?.setItem(THEME_STORAGE_KEY, id);
     } catch {
-      // Storage can be unavailable (private windows); the choice still applies.
+      // A full or read-only store; the choice still applies to this visit.
     }
   }
 
