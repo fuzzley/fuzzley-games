@@ -76,6 +76,11 @@ export function describePlayers({ min, max }: PlayerCount): string {
   return min === max ? `${max} players` : `${min}–${max} players`;
 }
 
+/** Returns a number of games: "1 game" or "41 games". */
+export function describeGameCount(count: number): string {
+  return count === 1 ? "1 game" : `${count} games`;
+}
+
 /** Returns how long a game takes, such as "5 min". */
 export function describeLength(minutes: number): string {
   return `${minutes} min`;

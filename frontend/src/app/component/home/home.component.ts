@@ -6,6 +6,7 @@ import {
   input,
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
+import { describeGameCount } from "../../model/game";
 import { GameCatalog } from "../../service/game_catalog.service";
 import {
   EAGER_TILES,
@@ -43,7 +44,13 @@ export class HomeComponent {
           game,
           eager: index < EAGER_TILES,
         }));
-        return { category, tiles, total: all.length };
+        return {
+          category,
+          headingId: `section-${category.id}`,
+          count: describeGameCount(tiles.length),
+          tiles,
+          total: all.length,
+        };
       })
       .filter((section) => section.tiles.length > 0);
   });

@@ -13,15 +13,12 @@
   }
 
   @for (section of sections(); track section.category.id) {
-    <section [attr.aria-labelledby]="`section-${section.category.id}`">
+    <section [attr.aria-labelledby]="section.headingId">
       <div class="head">
-        <h2 [id]="`section-${section.category.id}`">
+        <h2 [id]="section.headingId">
           {{ section.category.name }}
         </h2>
-        <span class="count"
-          >{{ section.tiles.length }}
-          {{ section.tiles.length === 1 ? "game" : "games" }}</span
-        >
+        <span class="count">{{ section.count }}</span>
         @if (!searching()) {
           <a class="see-all" [routerLink]="['/category', section.category.id]"
             >See all {{ section.total }}</a

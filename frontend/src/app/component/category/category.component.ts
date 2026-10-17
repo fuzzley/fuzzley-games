@@ -6,6 +6,7 @@ import {
   input,
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
+import { describeGameCount } from "../../model/game";
 import { GameCatalog } from "../../service/game_catalog.service";
 import {
   EAGER_TILES,
@@ -35,4 +36,7 @@ export class CategoryComponent {
     const games = category ? this.catalog.gamesIn(category.id) : [];
     return games.map((game, index) => ({ game, eager: index < EAGER_TILES }));
   });
+  protected readonly count = computed(() =>
+    describeGameCount(this.tiles().length),
+  );
 }

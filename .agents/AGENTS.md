@@ -71,7 +71,11 @@ Collection and Minesweeper) and served as static pages under
 
 - **Templates bind, they do not compute.** Expose a `computed()` view model
   instead of calling a method from a template, which re-runs on every change
-  detection pass.
+  detection pass, or working out a label, a comparison or a plural there.
+  Wording that depends on data ("1 game", "2–4 players") comes from the
+  `describe*` functions in `src/app/model/game.ts`. An ICU plural would
+  need `@angular/localize` at runtime (`$localize`), which the site doesn't
+  load.
 - **Colors come from the palette.** Anything that should follow the theme
   reads a palette variable with `var()`, and a new variable is added to every
   palette in `src/app/styles/global.css`.
