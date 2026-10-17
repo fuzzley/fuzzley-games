@@ -128,3 +128,65 @@ in this order:
 - Docs: README gains a Games section (how the pins move, rolling back, adding
   a game); AGENTS.md, `frontend/README.md` and the `github-actions-ci-cd`
   skill describe the games, the scripts and the new workflow.
+- Committed: `ci: move each game's pin to its newest build every 15 minutes`.
+
+#### fSolitaire
+
+- `deploy.yml`: renamed "Build and publish to fuzzley.games"; the release
+  clean-up keeps the archive fuzzley-games' `frontend/games.json` pins,
+  read from `raw.githubusercontent.com`, which needs fuzzley-games public.
+  The existing release keeps its old notes, which the workflow only sets
+  when it creates the release.
+- `index.html`: canonical, `og:url`, `og:image` and JSON-LD `url` point at
+  `https://fuzzley.games/play/solitaire/`; README likewise.
+- AGENTS.md's CI/CD section and the `github-actions-ci-cd` skill, which still
+  described the old cross-repository sync with a token, now describe the
+  release and fuzzley-games' part.
+- No "back to Fuzzley Games" link in the game's header: the game opens
+  full-page and Back returns to the dashboard; a link would change
+  fSolitaire's phone layouts, so it's left as a follow-up.
+- `yarn verify` passes (6,940 tests). Committed:
+  `ci(deploy): publish the game for fuzzley.games`,
+  `docs: give fuzzley.games as the game's address`.
+
+#### fuzzley (fuzzley.info)
+
+- `solitaire` left `frontend/games.json`. The content schema gained
+  `playUrl`; `solitaire.md` sets it to `https://fuzzley.games/play/solitaire/`
+  with the label "Play on fuzzley.games", and `playPath()` returns it, so the
+  home page's featured tile, `/projects/`, the project page and its JSON-LD,
+  and the `/project/solitaire/` page all lead there.
+- GitHub Pages can't send a 301, so a new page at
+  `/projects/<slug>/play/` forwards each project with a `playUrl`, sharing a
+  new `Moved.astro` with the old `/project/<slug>/` page. `omitGames`,
+  `inject-analytics.mjs` and the sitemap now act on the fetched games only;
+  without that, the Pages build deleted the new page and the sitemap listed
+  it. `fetch-games.mjs` deletes a game no longer pinned.
+- The `play_game` click event also matches `fuzzley.games/play/<slug>/`.
+- nginx: `^~ /projects/solitaire/play` and `^~ /project/solitaire` rewrite to
+  `https://fuzzley.games/play/solitaire/$1` with one 301, files included.
+- CI's image check: project pages for every content file, play pages for
+  the games in `games.json`, and the solitaire 301s with their `Location`.
+- Checked: `astro check`, ESLint and Prettier pass (this checkout has
+  `core.autocrlf=true`, so Prettier needs `--end-of-line auto` here; git
+  stores LF). Built with and without `PLAY_ORIGIN`: the Pages copy keeps the
+  forwarding pages and still links the other games to fuzzley.info. Local
+  image: every check passes. (The first run failed on a CRLF quirk of my
+  local `jq` stand-in, not the site.)
+- Committed: `feat: link the Solitaire Collection on fuzzley.games`,
+  `build(nginx): redirect the old solitaire addresses to fuzzley.games`,
+  `docs: describe a game played on another site`.
+
+#### fuzzley.github.io
+
+- README and the `PLAY_ORIGIN` comment in `pages.yml` say the solitaire
+  links go to fuzzley.games. Its workflow needs no change: it builds
+  fuzzley's source. Committed: `docs: send the Solitaire Collection to
+fuzzley.games`.
+
+#### fuzzley-games again
+
+- Rebuilt the image from the final tree and re-ran `check-image.sh` with the
+  corrected stand-in: every check passes.
+
+### Cut-over
