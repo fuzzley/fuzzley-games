@@ -2,8 +2,8 @@
 
 The Fuzzley Games portal and gallery (https://fuzzley.games): an Angular
 single-page app built with Vite, served by nginx from a Docker image on Google
-Cloud Run. The games themselves are built in their own repositories (today
-fSolitaire's Solitaire Collection) and served as static pages under
+Cloud Run. The games themselves are built in their own repositories (the Solitaire
+Collection and Minesweeper) and served as static pages under
 `/play/<slug>/`.
 
 ## Technology Stack

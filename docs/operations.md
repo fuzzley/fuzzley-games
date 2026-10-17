@@ -39,10 +39,12 @@ From the repository root:
 
 ## Games
 
-The games are built in their own repositories. Today that is the Solitaire
-Collection, [fuzzley/fSolitaire](https://github.com/fuzzley/fSolitaire),
-played at `/play/solitaire/`, which picks a game by hash route
-(`/play/solitaire/#/klondike`). Every push to a game's `main` builds it and
+The games are built in their own repositories: the Solitaire Collection,
+[fuzzley/fSolitaire](https://github.com/fuzzley/fSolitaire), played at
+`/play/solitaire/`, which picks a game by hash route
+(`/play/solitaire/#/klondike`), and Minesweeper,
+[fuzzley/fMinesweeper](https://github.com/fuzzley/fMinesweeper), played at
+`/play/minesweeper/`. Every push to a game's `main` builds it and
 uploads the build to that repository's `site-build` release as
 `<slug>-<short sha>.tar.gz`, then replaces `latest.json` there, which names
 the newest archive.
