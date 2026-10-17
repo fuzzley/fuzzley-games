@@ -183,6 +183,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@angular/aria@npm:~22.2.0":
+  version: 22.2.3
+  resolution: "@angular/aria@npm:22.2.3"
+  dependencies:
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    "@angular/cdk": 22.2.3
+    "@angular/core": ^22.0.0 || ^23.0.0
+  checksum: 10c0/4e15203d6cd33d5ad94021906e121634af2581b3cfda3b7808f424953e219be3fc55b4c18e770ed1b32d0b192bac71bb4ece9a21b5f7d2d49a68dd8bae274337
+  languageName: node
+  linkType: hard
+
 "@angular/build@npm:^22.2.2":
   version: 22.2.2
   resolution: "@angular/build@npm:22.2.2"
@@ -267,6 +279,22 @@ __metadata:
     vitest:
       optional: true
   checksum: 10c0/90d4f0a5cecebf282e3984fb15ec615f0b702fccb42437621462bb54084a640bd06254cc3de30bf9771ae678743313245e76e4c3739816ba0acc66ae76b7582c
+  languageName: node
+  linkType: hard
+
+"@angular/cdk@npm:~22.2.0":
+  version: 22.2.3
+  resolution: "@angular/cdk@npm:22.2.3"
+  dependencies:
+    parse5: "npm:^8.0.0"
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    "@angular/common": ^22.0.0 || ^23.0.0
+    "@angular/core": ^22.0.0 || ^23.0.0
+    "@angular/forms": ^22.0.0 || ^23.0.0
+    "@angular/platform-browser": ^22.0.0 || ^23.0.0
+    rxjs: ^6.5.3 || ^7.4.0
+  checksum: 10c0/0e934f6669ab01aa621fb048e0fa50f91f6bc78430efc82707a6609705b628cc3b10983f75b32e62c3438ca792d1348ceea4e22db3f1b2f550b6e2c04b992e7c
   languageName: node
   linkType: hard
 
@@ -3890,7 +3918,9 @@ __metadata:
   resolution: "frontend@workspace:."
   dependencies:
     "@analogjs/vite-plugin-angular": "npm:^2.8.0"
+    "@angular/aria": "npm:~22.2.0"
     "@angular/build": "npm:^22.2.2"
+    "@angular/cdk": "npm:~22.2.0"
     "@angular/cli": "npm:^22.2.2"
     "@angular/common": "npm:^22.2.0"
     "@angular/compiler": "npm:^22.2.0"

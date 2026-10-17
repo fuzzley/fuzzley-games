@@ -55,7 +55,12 @@ than from a separate class, so the look and the announcement cannot disagree.
   it closes. Do not hand-roll a focus trap, an Escape handler or a z-index.
 - Menus and pickers keep a logical tab order, support arrow key / Enter
   navigation, and hand focus back to the control that opened them when they
-  close.
+  close. Build them on Angular Aria (`@angular/aria`) rather than by hand:
+  the theme menu (`frontend/src/app/component/theme_menu/`) is an
+  `ngMenuTrigger` button opening an `ngMenu` of `menuitemradio` items. Bind
+  `aria-checked` yourself (Angular Aria sets the role, not the checked
+  state), and give each item a `searchTerm`, or typing a name finds
+  nothing.
 
 ### 4. High-Contrast & Theme Support
 
