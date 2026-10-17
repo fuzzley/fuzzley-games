@@ -170,6 +170,28 @@ builds and pushes to `main` once the image builds and passes its checks.
 `docs/operations.md` covers the deployment, the games and runtime
 configuration; the `github-actions-ci-cd` skill covers the workflows.
 
+### Content Security Policy
+
+nginx sends security headers on every response, and the site's own pages (not
+the games under `/play/`) carry a Content Security Policy, from
+`nginx/content-security-policy.conf`. It allows scripts from the site itself
+and Google Analytics, styles from the site (inline too, which Angular needs)
+and Google Fonts, fonts from Google Fonts, images and requests to Google
+Analytics' endpoints, and nothing else.
+
+- **A new origin goes into the policy in the same change.** Anything the site
+  starts loading from another origin (a script, stylesheet, font, image, API
+  call, iframe or embed) is added to `nginx/content-security-policy.conf`
+  with it. Otherwise browsers block it in production, and only there:
+  `yarn start` and `yarn preview` send no policy, so it works locally.
+- **No inline scripts.** The policy doesn't allow them, which is why
+  `theme.js`, `env.js` and `analytics.js` are files. Don't add a `<script>`
+  with a body to `index.html`, or an `on…=` attribute anywhere.
+- **Check it in the image.** Build and serve the image (`docs/operations.md`),
+  open the page, and look for "Refused to load" in the console.
+  `.github/scripts/check-image.sh` checks the policy is there, not that what
+  the page loads fits it.
+
 ---
 
 ## Running & Debugging
