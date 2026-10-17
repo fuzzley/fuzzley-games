@@ -1,14 +1,13 @@
 import { TestBed } from "@angular/core/testing";
-import { provideRouter } from "@angular/router";
 import { describe, it, expect, beforeEach } from "vitest";
 import { AppComponent } from "./app.component";
-import { routes } from "../../routes";
+import { appConfig } from "../../app.config";
 
 describe("AppComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [provideRouter(routes)],
+      providers: appConfig.providers,
     }).compileComponents();
   });
 

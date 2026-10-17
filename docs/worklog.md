@@ -53,10 +53,31 @@ Each item lands as its own commit on `code-health`, with `yarn verify` green.
 #### 1. Type-check the specs and the Vite config
 
 - `tsconfig.app.json` starts at `main.ts`, so `ngc` never saw a spec, and
-  `vite.config.ts` was in no tsconfig at all. Confirmed with a deliberate
-  type error in a spec: `yarn test` and the old `yarn typecheck` both passed.
+  `vite.config.ts` was in no tsconfig at all (`tsc --listFilesOnly` over
+  `tsconfig.app.json` lists no spec). A deliberate type error in a spec now
+  fails `yarn typecheck`.
 - `yarn typecheck` now also runs `tsc` over `tsconfig.spec.json` and a new
   `tsconfig.node.json` (for `vite.config.ts`).
 - That found a real error at once: the `test` block isn't part of Vite's
   `UserConfig`, and `/// <reference types="vitest" />` no longer adds it.
   `defineConfig` now comes from `vitest/config`.
+
+#### 2. Zoneless, `app.config.ts`, global error listeners
+
+- Angular 22 runs zoneless by default; `main.ts` had opted back into zone.js.
+  Removed zone.js from `main.ts`, `test-setup.ts` and the dependencies.
+- The providers moved into `app.config.ts` (with
+  `provideBrowserGlobalErrorListeners()`), and `routes.ts` now only declares
+  the pages. `app.component.spec.ts` renders with `appConfig.providers`, the
+  router the app ships, instead of a `provideRouter(routes)` of its own.
+- The Chrome extension wasn't connected, so the app was checked in headless
+  Chrome over the DevTools protocol, driven by a scratch script (not
+  committed): search refines in place and Escape clears it, the theme menu
+  opens, applies, saves, sets `theme-color` and closes on a choice or an
+  outside click, a tile's link routes to its game, and the titles are right,
+  on desktop and phone widths.
+- Found on the way, and true on `main` too: Angular warns (NG0913) that the
+  home page's largest image, a thumbnail, is `loading="lazy"`. Fixed with
+  item 9.
+- Angular 22's `RouterLink` writes absolute hrefs in a browser
+  (`http://…/games/klondike`), while jsdom gets relative ones.
