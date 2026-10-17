@@ -116,7 +116,8 @@ anywhere with different configuration.
 2. On startup, `docker-entrypoint.d/40-generate-env-config.sh` (run
    automatically by the nginx base image) overwrites the served `env.js` from
    the container's environment variables.
-3. `frontend/index.html` loads `env.js` and then `analytics.js`, the Google
+3. `frontend/index.html` loads `theme.js` (which picks the palette; the
+   build makes it), then `env.js`, then `analytics.js`, the Google
    Analytics bootstrap, which initializes only when a measurement ID is
    present. With nothing set, the feature stays off — so local dev and
    unconfigured containers run with analytics disabled.

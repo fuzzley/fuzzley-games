@@ -57,7 +57,10 @@ Collection and Minesweeper) and served as static pages under
     `site-build` release. `tools/` holds the scripts that fetch the pinned
     builds before every build, move the pins (`update-games.mjs`), and add
     the analytics tags to each game's page, with what they share in
-    `script.mjs`, and the site's Vite plugins in `vite-plugins.ts`.
+    `script.mjs`, and the site's Vite plugins in `vite-plugins.ts`. One of
+    them makes `/theme.js`, the first script `index.html` loads, which picks
+    the palette before the page paints, from `src/app/provider/themes.ts`,
+    so the page's list of palettes can't drift from the app's.
     `docs/operations.md` covers the details.
   - A script exports its logic as functions and runs only when it is the
     file Node was started with (`if (import.meta.main)`), so

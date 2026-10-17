@@ -3,11 +3,18 @@ import { defineConfig } from "vitest/config";
 import {
   checkGameImages,
   servePlayPages,
+  themeBootstrap,
   versionJson,
 } from "./tools/vite-plugins.ts";
 
 export default defineConfig({
-  plugins: [angular(), versionJson(), servePlayPages(), checkGameImages()],
+  plugins: [
+    angular(),
+    themeBootstrap(),
+    versionJson(),
+    servePlayPages(),
+    checkGameImages(),
+  ],
   server: {
     port: 4200,
     host: true,

@@ -46,6 +46,7 @@ expect_cache() {
 expect 200 /
 expect 200 /category/solitaire
 expect 200 /games/klondike
+expect 200 /theme.js
 expect 200 /env.js
 expect 200 /analytics.js
 expect 200 /version.json
@@ -57,9 +58,13 @@ asset=$(curl -s "$base/" | grep -o '/assets/[^"]*\.js' | head -1)
 expect 200 "$asset"
 expect_cache "$asset" "public, max-age=31536000, immutable"
 expect_cache / "no-cache"
+expect_cache /theme.js "no-cache"
 expect_cache /env.js "no-store"
 expect_cache /version.json "no-store"
 
+# theme.js is made at build time from the app's list of palettes.
+curl -s "$base/theme.js" | grep -q 'document.documentElement.dataset.theme' ||
+  fail "theme.js doesn't set the page's palette."
 # env.js is written from the container's environment at startup.
 curl -s "$base/env.js" | grep -q '"G-CHECK00000"' ||
   fail "env.js doesn't carry GA_AG_MEASUREMENT_ID."

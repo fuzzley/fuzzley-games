@@ -328,3 +328,26 @@ defined`: ICU needs `@angular/localize`, too much for one plural.
   Everything else was mechanical (`#fff` shorthand, `currentcolor`, comment
   spacing).
 - Screenshots still pixel-identical to before the Sass move. 130 tests.
+
+#### 4c. The palette bootstrap, made from the app's list
+
+- `index.html`'s inline script carried its own copy of the palette ids, the
+  storage key and both defaults. It is now `/theme.js`, made by the
+  `themeBootstrap` plugin from `provider/themes.ts` (loaded through
+  `runnerImport`, like the catalog): served by the dev server, written into
+  the build. `themeBootstrapScript()` is a pure function, and
+  `vite-plugins.spec.ts` runs its output in a `node:vm` page: a saved
+  choice is kept, a saved non-palette ignored, light and dark defaults
+  picked, and storage that throws survived.
+- Why a file rather than inline: it's one more tiny blocking script beside
+  `env.js` and `analytics.js`, and it leaves the page with no inline script,
+  so item 19's Content Security Policy needs no hash that would change with
+  every palette.
+- Vite warned that it can't bundle a classic script that isn't in
+  `public/`. The tag carries `vite-ignore`, which Vite supports for exactly
+  this and strips from the output.
+- `check-image.sh` expects `/theme.js`: 200, `no-cache`, and the code that
+  sets the palette.
+- Checked in headless Chrome: the scripts load in order (`theme.js`,
+  `env.js`, `analytics.js`), the palette is set before Angular starts, and
+  the smoke run passes with a clean console.

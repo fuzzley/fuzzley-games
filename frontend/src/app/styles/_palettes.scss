@@ -1,5 +1,5 @@
 // The color palettes. Each becomes a set of custom properties under
-// [data-theme="<name>"], which index.html and ThemeService set on <html>, and
+// [data-theme="<name>"], which theme.js and ThemeService set on <html>, and
 // which any single element can carry too (the theme menu's swatches do). The
 // default palette also styles :root, for a page with no data-theme yet.
 
