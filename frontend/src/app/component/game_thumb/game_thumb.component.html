@@ -61,14 +61,6 @@
             {{ shape.text }}
           </text>
         }
-        @case ("path") {
-          <path
-            [attr.d]="shape.d"
-            [attr.stroke]="shape.stroke"
-            [attr.fill]="shape.fill"
-            [attr.stroke-width]="shape.width"
-          />
-        }
       }
     }
   </svg>

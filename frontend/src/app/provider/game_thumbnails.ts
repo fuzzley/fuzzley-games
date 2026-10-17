@@ -1,6 +1,6 @@
 /**
- * Each thumbnail drawn here is a game's real starting layout (a Minesweeper
- * grid, a Sudoku), described as shapes in a 160 × 100 box. Only games not yet
+ * Each thumbnail drawn here is a game's real starting layout (a Sudoku, a
+ * Reversi board), described as shapes in a 160 × 100 box. Only games not yet
  * playable are drawn: a game the site hosts shows its build's own screenshot
  * instead (see `screenshotUrl`).
  */
@@ -33,8 +33,7 @@ export type Shape =
       fill: string;
       weight?: number;
       middle?: boolean;
-    }
-  | { kind: "path"; d: string; stroke: string; fill: string; width: number };
+    };
 
 export interface Thumbnail {
   /** A fixed background, for games not played on a card table. */
@@ -43,58 +42,6 @@ export interface Thumbnail {
 }
 
 const DRAW: Record<string, () => Thumbnail> = {
-  minesweeper() {
-    const grid = [
-      "0001xx1000",
-      "0001221000",
-      "1110001110",
-      "xx10001x10",
-      "x210001110",
-      "1100000011",
-      "00000000xx",
-    ];
-    const colors: Record<string, string> = {
-      "1": "#1e5bd8",
-      "2": "#2e7d32",
-      "3": "#c62828",
-    };
-    const shapes: Shape[] = [];
-    grid.forEach((row, r) =>
-      [...row].forEach((cell, c) => {
-        const x = 10 + c * 14;
-        const y = 4 + r * 13;
-        shapes.push({
-          kind: "rect",
-          x,
-          y,
-          w: 13,
-          h: 12,
-          rx: 1,
-          fill: cell === "x" ? "#9aa4b0" : "#eef1f4",
-        });
-        if (colors[cell]) {
-          shapes.push({
-            kind: "text",
-            x: x + 6.5,
-            y: y + 9,
-            size: 8,
-            weight: 800,
-            text: cell,
-            fill: colors[cell],
-            middle: true,
-          });
-        }
-      }),
-    );
-    shapes.push({
-      kind: "path",
-      d: "M28 43 v7 M28 43 l5 2 -5 2",
-      stroke: "#c62828",
-      fill: "#c62828",
-      width: 1.4,
-    });
-    return { board: "#c9cfd6", shapes };
-  },
   sudoku() {
     const shapes: Shape[] = [
       { kind: "rect", x: 35, y: 5, w: 90, h: 90, rx: 0, fill: "#fff" },

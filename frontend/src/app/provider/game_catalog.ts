@@ -12,9 +12,9 @@ export interface Category {
  */
 export interface PlayLocation {
   /** The build, by its name in games.json. */
-  build: "solitaire";
-  /** The game's id in that build, which picks it by hash route. */
-  id: string;
+  build: "solitaire" | "minesweeper";
+  /** The game's id in that build, when it holds several games. */
+  id?: string;
 }
 
 export interface Game {
@@ -45,7 +45,7 @@ export const CATEGORIES: readonly Category[] = [
   {
     id: "classics",
     name: "Classics",
-    description: "Coming soon: puzzles and board games beyond cards.",
+    description: "Puzzles and board games beyond cards.",
   },
 ];
 
@@ -344,7 +344,8 @@ export const GAMES: readonly Game[] = [
     blurb: "Clear the field using the numbers. Don’t hit a mine.",
     players: "Solo",
     time: "5 min",
-    added: "2026-09-12",
+    added: LAUNCHED,
+    play: { build: "minesweeper" },
   },
   {
     slug: "sudoku",
@@ -408,7 +409,7 @@ export function gamesIn(category: CategoryId): Game[] {
 
 /** Returns the address a game is played at. */
 export function playUrl(play: PlayLocation): string {
-  return `/play/${play.build}/#/${play.id}`;
+  return play.id ? `/play/${play.build}/#/${play.id}` : `/play/${play.build}/`;
 }
 
 /**
@@ -419,5 +420,6 @@ export function screenshotUrl(
   play: PlayLocation,
   kind: "thumb" | "preview",
 ): string {
-  return `/play/${play.build}/docs/screenshots/${play.id}/${kind}.webp`;
+  const id = play.id ?? play.build;
+  return `/play/${play.build}/docs/screenshots/${id}/${kind}.webp`;
 }

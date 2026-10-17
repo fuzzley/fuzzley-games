@@ -30,7 +30,8 @@ yarn dev
 
 Navigate to `http://localhost:4200`. It first fetches the games pinned in
 `games.json` into `public/play/`, and starts without them when offline; the
-Solitaire Collection is then at `http://localhost:4200/play/solitaire/`.
+Solitaire Collection is then at `http://localhost:4200/play/solitaire/` and
+Minesweeper at `http://localhost:4200/play/minesweeper/`.
 
 ### 3. Production Build
 

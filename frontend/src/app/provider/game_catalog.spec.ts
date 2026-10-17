@@ -29,13 +29,15 @@ describe("catalog", () => {
     expect(new Set(builds)).toEqual(new Set(["solitaire"]));
   });
 
-  it("gives each game in a build its own id", () => {
-    const ids = GAMES.flatMap((game) => (game.play ? [game.play.id] : []));
+  it("gives each hosted game its own play location", () => {
+    const locations = GAMES.flatMap((game) =>
+      game.play ? [`${game.play.build}:${game.play.id ?? ""}`] : [],
+    );
 
-    expect(new Set(ids).size).toBe(ids.length);
+    expect(new Set(locations).size).toBe(locations.length);
   });
 
-  it("has no way yet to play the classics", () => {
+  it("plays Minesweeper from its build and leaves the other classics to come", () => {
     const classics = gamesIn("classics");
 
     expect(classics.map((game) => game.slug)).toEqual([
@@ -43,7 +45,9 @@ describe("catalog", () => {
       "sudoku",
       "reversi",
     ]);
-    expect(classics.filter((game) => game.play)).toEqual([]);
+    expect(
+      classics.filter((game) => game.play).map((game) => game.slug),
+    ).toEqual(["minesweeper"]);
   });
 
   it("matches on name, category and blurb, ignoring case", () => {
@@ -87,7 +91,8 @@ describe("catalog", () => {
     expect(isNew(sudoku, new Date(sudoku.added))).toBe(false);
   });
 
-  it("plays a game at its build's hash route", () => {
+  it("plays a game at its build's address or hash route", () => {
+    expect(playUrl(findGame("minesweeper")!.play!)).toBe("/play/minesweeper/");
     expect(playUrl(findGame("bakers-dozen")!.play!)).toBe(
       "/play/solitaire/#/bakersdozen",
     );
@@ -96,6 +101,9 @@ describe("catalog", () => {
   it("shows the screenshots its build ships", () => {
     expect(screenshotUrl(klondike.play!, "thumb")).toBe(
       "/play/solitaire/docs/screenshots/klondike/thumb.webp",
+    );
+    expect(screenshotUrl(findGame("minesweeper")!.play!, "preview")).toBe(
+      "/play/minesweeper/docs/screenshots/minesweeper/preview.webp",
     );
   });
 });

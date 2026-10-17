@@ -32,7 +32,7 @@ describe("GameTileComponent", () => {
   });
 
   it("shows a game still to come with no link, and says so", () => {
-    const el = render("minesweeper");
+    const el = render("sudoku");
 
     expect(el.querySelector("a")).toBeNull();
     expect(el.querySelector(".tile.soon .badge")?.textContent?.trim()).toBe(
