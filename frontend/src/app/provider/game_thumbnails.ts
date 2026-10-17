@@ -69,7 +69,7 @@ const DRAW: Record<string, () => Thumbnail> = {
         },
       );
     }
-    const given = [
+    const given: [col: number, row: number, digit: number][] = [
       [0, 0, 5],
       [1, 0, 3],
       [4, 0, 7],

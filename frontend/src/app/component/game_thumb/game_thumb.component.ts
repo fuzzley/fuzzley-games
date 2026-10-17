@@ -4,7 +4,7 @@ import {
   computed,
   input,
 } from "@angular/core";
-import { Game, screenshotUrl } from "../../provider/game_catalog";
+import { type Game, screenshotUrl } from "../../provider/game_catalog";
 import { thumbnailFor } from "../../provider/game_thumbnails";
 
 /**

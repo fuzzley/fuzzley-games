@@ -17,7 +17,7 @@ describe("HomeComponent", () => {
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
     const headings = () =>
-      Array.from(el.querySelectorAll("h2")).map((h) => h.textContent?.trim());
+      Array.from(el.querySelectorAll("h2")).map((h) => h.textContent.trim());
     const names = () =>
       Array.from(el.querySelectorAll(".tile .name")).map((n) =>
         n.firstChild?.textContent?.trim(),
@@ -39,7 +39,7 @@ describe("HomeComponent", () => {
     const { el, headings, names } = render("whitehead");
     expect(headings()).toEqual(["Solitaire"]);
     expect(names()).toEqual(["Klondike"]);
-    expect(el.querySelector(".count")?.textContent?.trim()).toBe(
+    expect(el.querySelector(".count")?.textContent.trim()).toBe(
       "1 of 44 games",
     );
   });

@@ -1,30 +1,30 @@
-const eslint = require("@eslint/js");
-const tseslint = require("typescript-eslint");
-const angular = require("angular-eslint");
-const jsdoc = require("eslint-plugin-jsdoc");
+import eslint from "@eslint/js";
+import angular from "angular-eslint";
+import { defineConfig } from "eslint/config";
+import jsdoc from "eslint-plugin-jsdoc";
+import tseslint from "typescript-eslint";
 
 // `yarn lint` runs ESLint from the repository root, so it can reach .agents/,
-// while an editor finds this file from frontend/. The app's patterns start
-// with `**/` so they match from either.
-module.exports = tseslint.config(
+// while an editor finds this file from frontend/. The patterns start with
+// `**/` so they match from either.
+export default defineConfig(
   {
     // Scoped to TypeScript: the type-aware configs below need the TS parser,
     // and Angular templates are parsed by angular-eslint instead.
-    files: ["**/src/**/*.ts"],
+    files: ["**/src/**/*.ts", "**/vite.config.ts"],
     extends: [
       eslint.configs.recommended,
-      ...tseslint.configs.recommended,
-      ...tseslint.configs.recommendedTypeChecked,
-      ...tseslint.configs.strict,
-      ...angular.configs.tsRecommended,
+      tseslint.configs.strictTypeChecked,
+      tseslint.configs.stylisticTypeChecked,
+      angular.configs.tsRecommended,
     ],
     processor: angular.processInlineTemplates,
     languageOptions: {
       parserOptions: {
-        // tsconfig.app.json reaches the app from main.ts and leaves out the
-        // specs, which tsconfig.spec.json covers.
-        project: ["./tsconfig.app.json", "./tsconfig.spec.json"],
-        tsconfigRootDir: __dirname,
+        // Each file is checked with the tsconfig that includes it, through
+        // the solution in tsconfig.json.
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
     rules: {
@@ -36,6 +36,19 @@ module.exports = tseslint.config(
         "error",
         { allowWithDecorator: true },
       ],
+      // Exported functions and public methods state what they return.
+      "@typescript-eslint/explicit-module-boundary-types": "error",
+      // A type-only import says so, and disappears from the bundle.
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        { fixStyle: "inline-type-imports" },
+      ],
+      "@typescript-eslint/no-import-type-side-effects": "error",
+      // Numbers and booleans read naturally in a message.
+      "@typescript-eslint/restrict-template-expressions": [
+        "error",
+        { allowNumber: true, allowBoolean: true },
+      ],
     },
   },
   {
@@ -43,9 +56,15 @@ module.exports = tseslint.config(
     // with no announced state to match it.
     files: ["**/src/**/*.html"],
     extends: [
-      ...angular.configs.templateRecommended,
-      ...angular.configs.templateAccessibility,
+      angular.configs.templateRecommended,
+      angular.configs.templateAccessibility,
     ],
+    rules: {
+      "@angular-eslint/template/button-has-type": "error",
+      "@angular-eslint/template/prefer-control-flow": "error",
+      "@angular-eslint/template/prefer-self-closing-tags": "error",
+      "@angular-eslint/template/prefer-template-literal": "error",
+    },
   },
   {
     files: ["**/src/**/*.spec.ts"],

@@ -60,6 +60,8 @@ export class ThemeService {
   private initial(): ThemeId {
     const fromPage = this.root.dataset["theme"];
     if (isThemeId(fromPage)) return fromPage;
+    // jsdom, which the specs run in, has no matchMedia.
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const prefersDark = this.document.defaultView?.matchMedia?.(
       "(prefers-color-scheme: dark)",
     ).matches;

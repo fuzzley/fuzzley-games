@@ -35,7 +35,7 @@ describe("GameTileComponent", () => {
     const el = render("sudoku");
 
     expect(el.querySelector("a")).toBeNull();
-    expect(el.querySelector(".tile.soon .badge")?.textContent?.trim()).toBe(
+    expect(el.querySelector(".tile.soon .badge")?.textContent.trim()).toBe(
       "Coming soon",
     );
   });

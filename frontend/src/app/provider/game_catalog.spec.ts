@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   CATEGORIES,
   GAMES,
-  Game,
+  type Game,
   findGame,
   gamesIn,
   isNew,
@@ -19,7 +19,9 @@ describe("catalog", () => {
   it("gives every game a unique slug and a known category", () => {
     expect(new Set(GAMES.map((game) => game.slug)).size).toBe(GAMES.length);
     const ids = CATEGORIES.map((category) => category.id);
-    GAMES.forEach((game) => expect(ids).toContain(game.category));
+    GAMES.forEach((game) => {
+      expect(ids).toContain(game.category);
+    });
   });
 
   it("plays every solitaire game from the Solitaire Collection", () => {
