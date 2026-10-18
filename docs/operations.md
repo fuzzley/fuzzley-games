@@ -40,24 +40,35 @@ From the repository root:
 
 ## Games
 
-The games are built in their own repositories: the Solitaire Collection,
-[fuzzley/fSolitaire](https://github.com/fuzzley/fSolitaire), played at
+A game is built either here or in its own repository. Minesweeper is built
+here, in `frontend/apps/minesweeper/`, and played at `/play/minesweeper/`. The
+Solitaire Collection is built in
+[fuzzley/fSolitaire](https://github.com/fuzzley/fSolitaire) and played at
 `/play/solitaire/`, which picks a game by hash route
-(`/play/solitaire/#/klondike`), and Minesweeper,
-[fuzzley/fMinesweeper](https://github.com/fuzzley/fMinesweeper), played at
-`/play/minesweeper/`. Every push to a game's `main` builds it and
-uploads the build to that repository's `site-build` release as
-`<slug>-<short sha>.tar.gz`, then replaces `latest.json` there, which names
-the newest archive.
+(`/play/solitaire/#/klondike`).
 
-`frontend/games.json` pins one archive per game, by name and SHA-256.
-`frontend/tools/fetch-games.mjs` downloads each pinned archive (cached in
-`node_modules/.cache/games/`), checks its SHA-256 and unpacks it into
-`frontend/public/play/<slug>/`, which git ignores. `yarn start` and
-`yarn build` run it first, so the Docker build fetches the games too.
-`frontend/tools/inject-analytics.mjs` then adds the site's `env.js` and
-`analytics.js` tags to each game's `index.html` in `dist/`, since the games
-carry no analytics code of their own.
+`frontend/games.json` lists each game's build:
+
+- **A game built here** is a Yarn workspace under `frontend/apps/`, named by
+  its folder (`{ "workspace": "apps/minesweeper" }`). `yarn build:apps` runs
+  every workspace's `build`, and `frontend/tools/fetch-games.mjs` copies each
+  one's `dist/` into `frontend/public/play/<slug>/`. It goes live with the
+  push to `main` that changes it, like the site itself.
+- **A game built in its own repository** is pinned to one archive, by name
+  and SHA-256. Every push to that repository's `main` builds the game and
+  uploads the build to its `site-build` release as
+  `<slug>-<short sha>.tar.gz`, then replaces `latest.json` there, which names
+  the newest archive. `fetch-games.mjs` downloads each pinned archive (cached
+  in `node_modules/.cache/games/`), checks its SHA-256 and unpacks it into
+  `frontend/public/play/<slug>/`.
+
+git ignores `frontend/public/play/`. `yarn start` and `yarn build` build the
+workspaces and run `fetch-games.mjs` first, so the Docker build makes and
+fetches the games too. `frontend/tools/inject-analytics.mjs` then adds the
+site's `env.js` and `analytics.js` tags to each game's `index.html` in
+`dist/`, since the games carry no analytics code of their own.
+`version.json` names each game's build: a pinned game's archive and commit,
+or a game built here by its workspace and the site's own commit.
 
 The site's catalog (`frontend/src/app/provider/games.ts`) names each hosted
 game's build and id, and shows the screenshots the build ships in
@@ -73,14 +84,26 @@ a newer build appears. GitHub turns scheduled workflows off after 60 days
 without activity, so if a game's update never arrives, check that Update games
 is enabled under Actions.
 
-- **Roll a game back:** set its entry in `games.json` to an older archive from
-  its release (`gh release view site-build --repo fuzzley/<repo>`), with that
+- **Roll a game back:** for a game built here, revert the change. For a
+  pinned one, set its entry in `games.json` to an older archive from its
+  release (`gh release view site-build --repo fuzzley/<repo>`), with that
   archive's SHA-256 and commit, and push. The next scheduled run moves it
   forward again once the game has a newer build than that. A game's release
   keeps its ten newest archives and the one pinned here.
-- **Add a game:** give its repository a deploy job like fSolitaire's, push once
-  so its release exists, add its entry to `games.json` from its
-  `latest.json`, and list its games in the catalog.
+- **Add a game built here:** give it a folder under `frontend/apps/` with a
+  `package.json` whose `build` script writes `dist/`, with `index.html` at its
+  top level and its screenshots in `docs/screenshots/<id>/`. Copy that
+  `package.json` in the `Dockerfile` before the install, run `yarn install`,
+  add `{ "workspace": "apps/<folder>" }` to `games.json`, and list its games
+  in the catalog.
+- **Add a game built in its own repository:** give its repository a deploy job
+  like fSolitaire's, push once so its release exists, add its entry to
+  `games.json` from its `latest.json`, and list its games in the catalog.
+
+Minesweeper came from
+[fuzzley/fMinesweeper](https://github.com/fuzzley/fMinesweeper), with its
+history; its `site-build` release still holds the build the site served
+before it moved here.
 
 fuzzley.info pins and fetches its own games the same way; these scripts
 started as its own.

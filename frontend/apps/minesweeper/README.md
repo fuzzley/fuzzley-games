@@ -1,21 +1,25 @@
-Just a simple Minesweeper clone, written in TypeScript and Angular.
-The project utilizes [Phaser](https://phaser.io/) for the game rendering/canvas and [Angular](https://angular.dev/) for the user interface.
+# Minesweeper
 
-The [latest version of the game](https://fuzzley.games/play/minesweeper/) is hosted on https://fuzzley.games/play/minesweeper/.
+Minesweeper with lives: stepping on a mine costs one instead of ending the
+game. Play it at https://fuzzley.games/play/minesweeper/.
 
-Have fun!
+Written in 2016 with jQuery, [Knockout](https://knockoutjs.com/) and Bootstrap
+3, which load as classic scripts from `public/vendor/`.
+[Vite](https://vite.dev/) bundles `src/main.js` and copies the rest.
 
 ## Development
 
-This project uses [yarn](https://yarnpkg.com/) for dependency management and
-[Vite](https://vite.dev/) for the dev server and production build.
+Minesweeper is a Yarn workspace of the Fuzzley Games frontend. Run these from
+`frontend/`:
 
 ```sh
-yarn install     # install dev dependencies
-yarn dev         # start the dev server on http://localhost:9000
-yarn build       # produce a production build in dist/
-yarn preview     # serve the production build locally
-yarn test        # run tests with Vitest
-yarn lint        # run ESLint
-yarn prettier    # format the code with Prettier
+yarn install                         # install dependencies, once per clone
+yarn workspace minesweeper dev       # dev server on http://localhost:9000
+yarn workspace minesweeper build     # production build in dist/
+yarn workspace minesweeper lint      # ESLint
 ```
+
+The site's `yarn build` builds it, copies `dist/` to `/play/minesweeper/`, and
+adds the site's analytics tags. It moved here, with its history, from
+[fuzzley/fMinesweeper](https://github.com/fuzzley/fMinesweeper), which keeps
+the original commit ids.
