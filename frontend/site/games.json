@@ -3,9 +3,6 @@
     "workspace": "games/minesweeper"
   },
   "solitaire": {
-    "repo": "fuzzley/fSolitaire",
-    "commit": "4fed502d20de3883092cc98e269ac46a0d4e3dd1",
-    "asset": "solitaire-4fed502.tar.gz",
-    "sha256": "afb4b056f90a01c54beda154edb110cfe7ecda5d771d5aef29517cda3646e7e1"
+    "workspace": "games/solitaire"
   }
 }

@@ -1,10 +1,11 @@
-# The form behind the application's "Report a Bug" link.
+# The form behind the Solitaire Collection's "Report a Bug" link.
 #
-# The application prefills fields by `id`, so renaming one silently stops it
-# being filled in; `test/ui/app/service/bug_report.service.spec.ts` checks them.
-name: Bug report
-description: Something in fSolitaire doesn't work the way it should.
-title: "[Bug] "
+# The game prefills fields by `id`, so renaming one silently stops it being
+# filled in. The game's test/ui/app/service/bug_report.service.spec.ts checks
+# them.
+name: Solitaire Collection bug
+description: Something in the Solitaire Collection doesn't work the way it should.
+title: "[Solitaire] "
 labels: [bug]
 body:
   - type: markdown
@@ -37,7 +38,7 @@ body:
     id: environment
     attributes:
       label: Environment
-      description: Which build of fSolitaire, and the browser and settings it was running with.
+      description: Which build of the game, and the browser and settings it was running with.
   - type: textarea
     id: game-state
     attributes:

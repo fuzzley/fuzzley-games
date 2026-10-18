@@ -21,8 +21,8 @@ export const BUG_REPORT_CONFIG = new InjectionToken<BugReportConfig>(
   {
     providedIn: "root",
     factory: () => ({
-      newIssueUrl: "https://github.com/fuzzley/fSolitaire/issues/new",
-      template: "bug_report.yml",
+      newIssueUrl: "https://github.com/fuzzley/fuzzley-games/issues/new",
+      template: "solitaire_bug_report.yml",
       commit: import.meta.env.VITE_COMMIT_SHA ?? null,
       maxUrlChars: 6000,
     }),

@@ -30,11 +30,11 @@ import {
   asPresentation,
   createMockPresentation,
 } from "@test/support/ui/presentation_mock";
-import issueForm from "../../../../.github/ISSUE_TEMPLATE/bug_report.yml?raw";
+import issueForm from "../../../../../../../.github/ISSUE_TEMPLATE/solitaire_bug_report.yml?raw";
 
 const CONFIG: BugReportConfig = {
   newIssueUrl: "https://github.com/example/solitaire/issues/new",
-  template: "bug_report.yml",
+  template: "solitaire_bug_report.yml",
   commit: "0123abc",
   maxUrlChars: 6000,
 };
