@@ -23,14 +23,14 @@ Two independent jobs, on push to `main`, any pull request, or a manual
    install in `frontend/`, then `yarn verify` (lint, type-check, test,
    build). The build
    builds the games in `frontend/apps/` and fetches the ones pinned in
-   `frontend/games.json` from their releases.
+   `frontend/site/games.json` from their releases.
 2. **`docker`** — builds the `Dockerfile` with `COMMIT_SHA` and runs
    `check-image.sh` on it, which serves the image with a placeholder analytics
    ID and requests its pages: the Angular routes answer with `index.html`, a
    missing file under `/assets/` is a 404, the `Cache-Control` and security
    headers match `nginx.conf.template` and `nginx/`, the site's pages carry
    the Content Security Policy and the games don't, `theme.js` sets the
-   palette, `env.js` carries the ID, and `version.json` names the commit. For each game in `frontend/games.json` it checks `/play/<slug>/` is
+   palette, `env.js` carries the ID, and `version.json` names the commit. For each game in `frontend/site/games.json` it checks `/play/<slug>/` is
    the game's own page with the analytics tags, never the site's
    `index.html`, with its own fingerprinted assets, and that `version.json`
    names its build: the pinned archive, or for a game built here, its
@@ -38,8 +38,8 @@ Two independent jobs, on push to `main`, any pull request, or a manual
 
 ## Update games
 
-Every 15 minutes, `frontend/tools/update-games.mjs` moves each pin in
-`frontend/games.json` to the newest build its game's release names in
+Every 15 minutes, `frontend/site/tools/update-games.mjs` moves each pin in
+`frontend/site/games.json` to the newest build its game's release names in
 `latest.json`. A game built here, under `frontend/apps/`, has no pin and is
 skipped: every push to `main` builds it. When a pin moves, the job commits, builds the image, runs
 `check-image.sh`, and pushes to `main` only if both pass; Cloud Run deploys the
@@ -49,7 +49,7 @@ with `GITHUB_TOKEN` start no other workflow, so `verify.yml` doesn't run on
 them.
 
 The build fails when the catalog links a game the fetched build lacks (the
-`checkGameImages` plugin in `frontend/tools/vite-plugins.ts`), so a game
+`checkGameImages` plugin in `frontend/site/tools/vite-plugins.ts`), so a game
 renamed or removed upstream shows up as one of these issues, not as a broken
 link.
 
@@ -72,7 +72,7 @@ request.
    with `actions/cache` rather than `setup-node`'s `cache: yarn`, which looks
    up Yarn's cache folder before Corepack runs.
 3. **The image checks follow the server.** A new route in
-   `frontend/src/app/routes.ts`, a changed header in `nginx.conf.template`
+   `frontend/site/src/app/routes.ts`, a changed header in `nginx.conf.template`
    or a new variable in `docker-entrypoint.d/40-generate-env-config.sh` gets a
    matching expectation in `check-image.sh`.
 4. **One Node version.** Both workflows take Node from `.node-version`. The
@@ -90,10 +90,12 @@ request.
 ## Troubleshooting
 
 - **`verify` failures.** Reproduce with `yarn verify` in `frontend/`.
-  `yarn typecheck` runs `ngc` over `frontend/tsconfig.app.json`, then `tsc`
-  over `frontend/tsconfig.spec.json`, `frontend/tsconfig.node.json` and
-  `frontend/tsconfig.scripts.json`. A formatting failure in `yarn lint` is
-  fixed by `yarn prettier`.
+  `yarn typecheck` runs `tsc` over `frontend/tsconfig.scripts.json` (the
+  `.agents` scripts), then the site's checks: `ngc` over
+  `frontend/site/tsconfig.app.json`, then `tsc` over
+  `frontend/site/tsconfig.spec.json`, `frontend/site/tsconfig.node.json` and
+  `frontend/site/tsconfig.scripts.json`. A formatting failure in `yarn lint`
+  is fixed by `yarn prettier`.
 - **Install failures.** Usually a stale `frontend/yarn.lock`: run
   `yarn install` in `frontend/` and commit the lockfile.
 - **`docker` failures.** The script prints the container's logs when a check
@@ -101,7 +103,7 @@ request.
   request the failing path with `curl -i`. The script itself needs `curl` and
   `jq`.
 - **"Game update failed" issues.** Pin that archive locally in
-  `frontend/games.json` (its name, commit and SHA-256 are in the release's
+  `frontend/site/games.json` (its name, commit and SHA-256 are in the release's
   `latest.json`) and run `yarn build` to see the failure.
 - **A game's update never arrives.** GitHub turns scheduled workflows off
   after 60 days without activity; check that Update games is enabled under

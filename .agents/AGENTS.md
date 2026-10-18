@@ -20,10 +20,27 @@ in its own repository.
 
 ## Repository Layout
 
-- **`frontend/`** — the Angular app, and the Yarn workspace root for all
-  client code. Run every `yarn` command from here;
-  `yarn workspace <name> <script>` runs a script of one workspace. A backend,
-  when there is one, goes in a folder of its own beside it.
+- **`frontend/`** — the Yarn workspace root for all client code, and nothing
+  else. Run every `yarn` command from here; `yarn workspace <name> <script>`
+  runs a script of one workspace. A backend, when there is one, goes in a
+  folder of its own beside it.
+  - The root's `package.json` declares the workspaces and pins Yarn and
+    Node. Its scripts run the workspaces' own (`yarn build`, `yarn verify`),
+    picking them by path (`--include "apps/*"`), and its dependencies are
+    only the tools that run from here: Prettier, and ESLint and TypeScript
+    for the `.agents/` scripts, with the `eslint.config.js` and
+    `tsconfig.scripts.json` beside it. `yarn.lock` and `.yarnrc.yml` exist
+    only here.
+  - Each workspace is self-contained: its `package.json` lists everything
+    it imports or runs, and its configs sit in its folder and cover only it.
+    No workspace imports another's code; the site takes a game's built
+    `dist/`, through `games.json`, and nothing else.
+  - `apps/` holds the games built here, one workspace each, named after its
+    folder (see [Minesweeper](#minesweeper)). A game knows nothing of the
+    site: it builds into its own `dist/`, with `index.html` at its top
+    level and its screenshots in `docs/screenshots/<slug>/`.
+- **`frontend/site/`** — the site, the Angular app (workspace `site`). Paths
+  below are relative to it.
   - `src/app/` is the application, laid out like fSolitaire's shell.
     `main.ts` bootstraps it with the providers in `app.config.ts`, and
     `routes.ts` declares the pages.
@@ -55,10 +72,9 @@ in its own repository.
     game still to come. A hosted game's thumbnail is its build's own
     screenshot. The build fails if either is missing. The games are put
     into `public/play/`, which git ignores.
-  - `apps/` holds the games built here, one Yarn workspace each (see
-    [Minesweeper](#minesweeper)). Each builds into its own `dist/`.
-  - `games.json` lists each game's build: a workspace under `apps/`, or one
-    build pinned from its repository's `site-build` release. `tools/` holds
+  - `games.json` lists each game's build: a workspace, by its folder in
+    `frontend/` (`apps/minesweeper`), or one build pinned from its
+    repository's `site-build` release. `tools/` holds
     the scripts that put the games in `public/play/` before every build
     (`fetch-games.mjs`), move the pins (`update-games.mjs`), and add
     the analytics tags to each game's page, with what they share in
@@ -71,6 +87,8 @@ in its own repository.
     file Node was started with (`if (import.meta.main)`), so
     `tools/*.spec.ts` can import and test it. A dependency a test needs to
     replace, such as `fetch`, is a parameter with the real one as default.
+  - `dist/` is the build the image serves: the site, with the games under
+    `play/`.
 - **`Dockerfile`, `nginx.conf.template`, `nginx/`, `docker-entrypoint.d/`** —
   the image that serves the build, its nginx config, the security header
   snippets it includes, and the startup script that writes `env.js` from the
@@ -170,15 +188,16 @@ Node is version 26, as `.node-version` says; `frontend/package.json`'s
 
 ### Development Commands
 
-Run from `frontend/`:
+Run from `frontend/`. Each of these builds or checks every workspace; the
+site's own scripts, such as `yarn workspace site lint:styles`, run one step.
 
-- **Run Development Server:** `yarn start` or `yarn dev` (builds the workspaces under `apps/`, puts the games in `public/play/`, and launches the Vite dev server at `http://localhost:4200/`).
-- **Production Build:** `yarn build` (builds the workspaces under `apps/` with `yarn build:apps`, puts every game `games.json` lists into `public/play/`, bundles into `frontend/dist/`, writes `version.json` with the commit it was built from and the games' builds, then adds the analytics tags to each game). It fails if the catalog links a game the games' builds don't have.
-- **Fetch the Games:** `yarn games` (builds the workspaces and puts every game into `public/play/`; `yarn start` and `yarn build` do it first).
-- **Preview Build:** `yarn preview` (serves the production build locally).
-- **Run Unit Tests:** `yarn test` (runs Vitest once).
-- **Type Checking:** `yarn typecheck` (runs the Angular compiler's checks over the app, emitting nothing, then `tsc` over the specs (`tsconfig.spec.json`), over `vite.config.ts` (`tsconfig.node.json`), and over the `tools` and `.agents` scripts from their JSDoc (`tsconfig.scripts.json`)). Vitest strips types without checking them, so this is the only check a spec's types get.
-- **Linting:** `yarn lint` (checks the skills' references, runs ESLint over `src`, `tools`, `vite.config.ts` and `.agents`, lints each workspace under `apps/` with its own config (`yarn lint:apps`), runs stylelint, then checks formatting with `yarn prettier:check`). ESLint's config is `frontend/eslint.config.js`: typescript-eslint's strict and stylistic type-checked rules, explicit return types on exported functions and public methods, `import type` for type-only imports, Angular's recommended and template accessibility rules, and JSDoc types on every script. Each file is type-checked with the tsconfig that includes it, found through the solution in `frontend/tsconfig.json`. `yarn lint:styles` runs stylelint (`frontend/stylelint.config.js`, the standard SCSS rules) over every stylesheet: no hex, named or functional color outside `_palettes.scss` and `_shadows.scss`, no `@import`, nesting at most three deep.
+- **Run Development Server:** `yarn start` or `yarn dev` (builds the workspaces under `apps/`, then the site puts the games in `site/public/play/` and launches the Vite dev server at `http://localhost:4200/`).
+- **Production Build:** `yarn build` (builds the workspaces under `apps/` with `yarn build:apps`, then the site's `build` puts every game `games.json` lists into `site/public/play/`, bundles into `site/dist/`, writes `version.json` with the commit it was built from and the games' builds, then adds the analytics tags to each game). It fails if the catalog links a game the games' builds don't have.
+- **Fetch the Games:** `yarn games` (builds the workspaces and puts every game into `site/public/play/`; `yarn start` and `yarn build` do it first).
+- **Preview Build:** `yarn preview` (serves the site's production build locally).
+- **Run Unit Tests:** `yarn test` (runs each workspace's `test`: the site's runs Vitest once).
+- **Type Checking:** `yarn typecheck` (runs `tsc` over the `.agents` scripts from their JSDoc (`frontend/tsconfig.scripts.json`), then each workspace's `typecheck`. The site's runs the Angular compiler's checks over the app, emitting nothing, then `tsc` over the specs (`tsconfig.spec.json`), over `vite.config.ts` (`tsconfig.node.json`), and over the `tools` scripts from their JSDoc (`tsconfig.scripts.json`)). Vitest strips types without checking them, so this is the only check a spec's types get.
+- **Linting:** `yarn lint` (checks the skills' references, runs ESLint over `.agents` with `frontend/eslint.config.js`, runs each workspace's `lint` with its own config, then checks formatting with `yarn prettier:check`). The site's `lint` runs ESLint over `src`, `tools` and `vite.config.ts`, then stylelint. Its ESLint config, `frontend/site/eslint.config.js`, has typescript-eslint's strict and stylistic type-checked rules, explicit return types on exported functions and public methods, `import type` for type-only imports, Angular's recommended and template accessibility rules, and JSDoc types on every script. Each file is type-checked with the tsconfig that includes it, found through the solution in `frontend/site/tsconfig.json`. `yarn workspace site lint:styles` runs stylelint (`frontend/site/stylelint.config.js`, the standard SCSS rules) over every stylesheet: no hex, named or functional color outside `_palettes.scss` and `_shadows.scss`, no `@import`, nesting at most three deep.
 - **Full Verification Pipeline:** `yarn verify` (runs `yarn lint && yarn typecheck && yarn test && yarn build`).
 - **Format Codebase:** `yarn prettier` (formats the whole repository with
   Prettier); `yarn prettier:check` only reports what it would change.

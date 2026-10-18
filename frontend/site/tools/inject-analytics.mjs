@@ -12,9 +12,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { readManifest } from "./games.mjs";
-import { FRONTEND_DIR, errorMessage, logger } from "./script.mjs";
+import { SITE_DIR, errorMessage, logger } from "./script.mjs";
 
-const distDir = path.join(FRONTEND_DIR, "dist");
+const distDir = path.join(SITE_DIR, "dist");
 
 // The same tags, in the same order, as the site's own index.html.
 export const TAGS =

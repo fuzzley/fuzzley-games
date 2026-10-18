@@ -15,6 +15,7 @@ WORKDIR /app
 # has to be here before the install, or `--immutable` finds the lockfile out
 # of date.
 COPY frontend/package.json frontend/yarn.lock* frontend/.yarnrc.yml* ./frontend/
+COPY frontend/site/package.json ./frontend/site/
 COPY frontend/apps/minesweeper/package.json ./frontend/apps/minesweeper/
 
 # Install dependencies with Yarn 4 through Corepack, which Node 26 no longer
@@ -26,7 +27,7 @@ RUN npm install -g corepack@0.36.0 && corepack enable && yarn install --immutabl
 WORKDIR /app
 COPY frontend/ ./frontend/
 
-# Build the application
+# Build the games, then the site
 WORKDIR /app/frontend
 RUN yarn build
 
@@ -34,7 +35,7 @@ RUN yarn build
 FROM nginx:1.31.7-alpine3.24@sha256:892bb2152464f0c5d8972593a5f5afaf8054552580b699d95f8ff4af08c2d33d
 
 # Copy the build output to Nginx's default public directory
-COPY --from=build /app/frontend/dist /usr/share/nginx/html
+COPY --from=build /app/frontend/site/dist /usr/share/nginx/html
 
 # Copy our custom Nginx template that uses the PORT environment variable, and
 # the header snippets it includes.

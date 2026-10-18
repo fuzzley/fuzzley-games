@@ -1,7 +1,7 @@
 // Puts the games games.json lists into public/play/<slug>/, which Vite copies
 // into the build and nginx serves at /play/<slug>/.
 //
-// A game built here is copied from its workspace's dist/, which
+// A game built here is copied from its workspace's dist/, which the root's
 // `yarn build:apps` makes, every time. A game released by its own repository
 // (see games.mjs) is fetched: this downloads each pinned archive once, keeps
 // it in node_modules/.cache/games/, checks its SHA-256, and unpacks it in
@@ -15,8 +15,9 @@
 //               copied, so `yarn start` still starts offline.
 //   --force     Download and unpack every pinned game again.
 //
-// `yarn start` and `yarn build` build the workspaces and run it first, so the
-// Docker build fetches the games too.
+// The site's `start` and `build` run it first. Run from frontend/, `yarn start`
+// and `yarn build` build the workspaces before that, so the Docker build makes
+// and fetches the games too.
 
 import { createHash } from "node:crypto";
 import fs from "node:fs";
@@ -25,12 +26,12 @@ import { setTimeout as sleep } from "node:timers/promises";
 import { parseArgs } from "node:util";
 import * as tar from "tar";
 import { isPinned, readManifest, releaseUrl } from "./games.mjs";
-import { FRONTEND_DIR, errorMessage, logger } from "./script.mjs";
+import { SITE_DIR, WORKSPACE_ROOT, errorMessage, logger } from "./script.mjs";
 
 /** @import { GameBuild, PinnedBuild } from "./games.mjs" */
 
-const playDir = path.join(FRONTEND_DIR, "public", "play");
-const cacheDir = path.join(FRONTEND_DIR, "node_modules", ".cache", "games");
+const playDir = path.join(SITE_DIR, "public", "play");
+const cacheDir = path.join(SITE_DIR, "node_modules", ".cache", "games");
 // Which archive is unpacked in each game's folder, by slug.
 const installedFile = path.join(cacheDir, "installed.json");
 
@@ -151,7 +152,7 @@ async function install(slug, game) {
 export function copyBuild(build, gameDir) {
   if (!fs.existsSync(path.join(build, "index.html"))) {
     throw new Error(
-      `${build} has no index.html. Run \`yarn build:apps\` to build it.`,
+      `${build} has no index.html. Run \`yarn build:apps\` in frontend/ to build it.`,
     );
   }
   fs.rmSync(gameDir, { recursive: true, force: true });
@@ -197,7 +198,7 @@ async function main() {
       delete installed[slug];
       try {
         copyBuild(
-          path.join(FRONTEND_DIR, game.workspace, "dist"),
+          path.join(WORKSPACE_ROOT, game.workspace, "dist"),
           path.join(playDir, slug),
         );
         log(`copied ${slug} from ${game.workspace}`);

@@ -1,9 +1,9 @@
 name: Update games
 
-# Every 15 minutes, moves each game's pin in frontend/games.json to the newest
-# build on that game's site-build release, which its own deploy job publishes
-# (fSolitaire's .github/workflows/deploy.yml, for one). A game built here,
-# under frontend/apps/, has no pin: each push to main builds it.
+# Every 15 minutes, moves each game's pin in frontend/site/games.json to the
+# newest build on that game's site-build release, which its own deploy job
+# publishes (fSolitaire's .github/workflows/deploy.yml, for one). A game built
+# here, under frontend/apps/, has no pin: each push to main builds it.
 #
 # It needs no token beyond its own GITHUB_TOKEN. It builds the Docker image
 # with the new pins and checks it as verify.yml does, and pushes to main only
@@ -67,7 +67,7 @@ jobs:
         id: update
         env:
           SKIP_ASSETS: ${{ steps.failed.outputs.assets }}
-        run: node frontend/tools/update-games.mjs
+        run: node frontend/site/tools/update-games.mjs
 
       # Committed before the image is built, so the image's version.json
       # names the commit it will be deployed from.
@@ -78,7 +78,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add frontend/games.json
+          git add frontend/site/games.json
           git commit -m "$MESSAGE"
 
       - name: Build the image with the new pins
@@ -108,7 +108,7 @@ jobs:
           while read -r asset; do
             if [ -z "$asset" ]; then continue; fi
             printf -v body '%s\n\n%s' \
-              "The site's image didn't build or pass its checks with \`$asset\` pinned in \`frontend/games.json\`, so nothing was pushed: $RUN_URL" \
+              "The site's image didn't build or pass its checks with \`$asset\` pinned in \`frontend/site/games.json\`, so nothing was pushed: $RUN_URL" \
               "Update games skips this archive while this issue is open. Close it to try again; a newer build of the game is tried either way."
             gh issue create --title "Game update failed: $asset" --body "$body"
           done <<< "$ASSETS"

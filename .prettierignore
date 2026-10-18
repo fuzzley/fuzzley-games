@@ -1,7 +1,6 @@
 # Build output, the fetched games, and Yarn's own files.
-frontend/dist
-frontend/apps/*/dist
-frontend/public/play
+frontend/**/dist
+frontend/site/public/play
 frontend/.yarn
 coverage
 
