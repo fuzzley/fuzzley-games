@@ -44,7 +44,9 @@ a run in progress.
 
 ## Update games
 
-Every 15 minutes, `frontend/site/tools/update-games.mjs` moves each pin in
+Both games are built here now, so no game is pinned and the workflow is
+turned off under Actions; it matters again only if a game built elsewhere is
+pinned. Every 15 minutes, `frontend/site/tools/update-games.mjs` moves each pin in
 `frontend/site/games.json` to the newest build its game's release names in
 `latest.json`. A game built here, under `frontend/games/`, has no pin and is
 skipped: every push to `main` builds it. When a pin moves, the job commits,

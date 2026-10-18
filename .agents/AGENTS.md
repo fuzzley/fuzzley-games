@@ -2,16 +2,18 @@
 
 The Fuzzley Games portal and gallery (https://fuzzley.games): an Angular
 single-page app built with Vite, served by nginx from a Docker image on Google
-Cloud Run. The games are served as static pages under `/play/<slug>/`:
-Minesweeper is built here, under `frontend/games/`, and the Solitaire
-Collection in its own repository.
+Cloud Run. The games are built here too, under `frontend/games/`, and
+served as static pages under `/play/<slug>/`: the Solitaire Collection and
+Minesweeper.
 
 ## Technology Stack
 
 - **Site:** Angular, Vite and Vitest, in TypeScript and SCSS; see
   `frontend/site/AGENTS.md`.
-- **Games built here:** each keeps its own stack; Minesweeper's is jQuery,
-  Knockout and Bootstrap 3, bundled by Vite.
+- **Games built here:** each keeps its own stack. The Solitaire Collection's
+  is Phaser 4 for the table and Angular for its shell, with Vite and Vitest
+  like the site; see `frontend/games/solitaire/AGENTS.md`. Minesweeper's is
+  jQuery, Knockout and Bootstrap 3, bundled by Vite.
 - **Package Manager:** Yarn 4 via Corepack, pinned in `frontend/package.json`
 - **Serving:** nginx in a Docker image, on Google Cloud Run
 
@@ -42,7 +44,8 @@ Collection in its own repository.
   - `games/` holds the games built here, one workspace each, named after its
     folder. A game knows nothing of the site: it builds into its own
     `dist/`, with `index.html` at its top level and its screenshots in
-    `docs/screenshots/<slug>/`. Minesweeper's rules are in
+    `docs/screenshots/<slug>/`. Each keeps its own rules in an `AGENTS.md`
+    in its folder: `frontend/games/solitaire/AGENTS.md` and
     `frontend/games/minesweeper/AGENTS.md`.
 - **`frontend/site/`** — the site, the Angular app (workspace `site`), and
   the build the image serves, with the games under `/play/`. Its layout,
@@ -139,38 +142,51 @@ Analytics' endpoints, and nothing else.
 
 ## Agent Configuration (`.agents/`)
 
-`.agents/` is the committed, tool-neutral home for everything agents read,
-except the workspaces' own instructions, which sit with them. The per-tool
+`.agents/` is the committed, tool-neutral home for what agents read about the
+whole repository. What concerns one workspace sits with it instead: its
+`AGENTS.md`, and its skills in its own `.agents/skills/`. The per-tool
 directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
 
 - **Instructions:** this file. The root `AGENTS.md` and `CLAUDE.md` are thin
   pointers to it, because those are the filenames agents actually look for —
   `AGENTS.md` for Codex, Cursor, Copilot, and Amp; `CLAUDE.md` for Claude Code,
   which does not read `AGENTS.md`. Edit this file, not the pointers.
-- **A workspace's instructions** sit in its folder: `frontend/site/AGENTS.md`
-  and `frontend/games/minesweeper/AGENTS.md`, each with a `CLAUDE.md` beside
-  it that imports it (`@AGENTS.md`). Agents read them when they work in that
+- **A workspace's instructions** sit in its folder:
+  `frontend/site/AGENTS.md`, `frontend/games/solitaire/AGENTS.md` and
+  `frontend/games/minesweeper/AGENTS.md`, each with a `CLAUDE.md` beside it
+  that imports it (`@AGENTS.md`). Agents read them when they work in that
   folder, so the site's rules never reach a game. A rule for the whole
-  repository belongs here instead.
-- **Skills:** `.agents/skills/<name>/SKILL.md`. Gemini CLI reads this path
-  directly. Claude Code only discovers `.claude/skills/<name>/SKILL.md`, so
-  **`node .agents/link-claude-skills.mjs`** links each skill across (a junction
-  on Windows). The links hold absolute paths inside gitignored `.claude/`, so
-  re-run it after a fresh clone or a move — a dangling link silently drops the
-  skill. Restart Claude Code if `.claude/skills` did not exist when the session
-  started.
-- **Flat skills directory.** Every skill lives directly under
-  `.agents/skills/<name>/SKILL.md`. Adding a skill means a new top-level
-  directory plus a re-run of the link script.
+  repository, such as how code, comments and tests are written, belongs here
+  instead, once.
+- **Skills:** a skill every workspace can use lives in
+  `.agents/skills/<name>/SKILL.md`; a skill about one workspace lives in that
+  workspace's `.agents/skills/<name>/SKILL.md` (`frontend/site/.agents/skills/`,
+  `frontend/games/solitaire/.agents/skills/`), and cites paths from its
+  folder. Gemini CLI reads the repository's directly. Claude Code only
+  discovers `.claude/skills/<name>/SKILL.md`, so
+  **`node .agents/link-claude-skills.mjs`** links each skill into the
+  `.claude/skills/` beside its `.agents/skills/` (a junction on Windows). It
+  loads the repository's at startup and a workspace's once it reads or edits a
+  file in that workspace; two skills of one name, such as the site's and the
+  Solitaire Collection's `vitest-testing`, both load, and the one whose folder
+  holds the files at hand applies. The links hold absolute paths inside
+  gitignored `.claude/`, so re-run the script after a fresh clone or a move —
+  a dangling link silently drops the skill. Restart Claude Code if
+  `.claude/skills` did not exist when the session started.
+- **Flat skills directories.** Every skill lives directly under an
+  `.agents/skills/` folder, as `<name>/SKILL.md`, including the Solitaire
+  Collection's namespaced `phaser-*` ones. Adding a skill means a new
+  top-level directory there plus a re-run of the link script.
 - **A skill describes code that exists.** Skills are read as authoritative, so
   an agent follows an invented path into a compile error rather than looking.
   A design for something not yet built belongs in a doc or an issue, not in a
-  skill. `node .agents/check-skill-references.mjs` enforces the checkable half
-  of this: every relative markdown link between skills must resolve, and every
-  backticked repo path must exist. Run it after changing a skill. Skills quoting
-  another project's source tree are listed as upstream exceptions in
-  `.agents/check-skill-references.mjs`; a skill about this repository is checked
-  by default.
+  skill. `node .agents/check-skill-references.mjs` (part of `yarn lint`)
+  enforces the checkable half of this, for every folder of skills: every
+  relative markdown link between skills must resolve, and every backticked
+  path must exist. Run it after changing a skill. Skills quoting another
+  project's source tree, the vendored Angular ones and the Phaser ones
+  generated from Phaser's documentation, are listed as upstream exceptions
+  there; a skill about this repository is checked by default.
 - **Vendored skills:** `angular-developer` and `angular-new-app` come from
   upstream and are hash-locked in `skills-lock.json`, so `.prettierignore`
   leaves them unformatted. Do not hand-edit them.
@@ -196,7 +212,7 @@ These rules cover every doc comment: classes, interfaces, functions, HTML, CSS, 
 - **Functions and methods:** Write in the third person, always starting with a verb phrase, as if "This function" came before it, e.g. `Returns the game a slug names.` or `Applies a palette to the page.`
 - **Further paragraphs are rare.** Add additional paragraphs only when it stops a caller from misusing the code, or when it answers a "why" that a reader is very likely to ask and cannot answer from the name or the code itself. Don't use one to restate the implementation, list alternatives you rejected, or tell the history of the code.
 - **`@param` and `@returns` only when they add something.** In TypeScript, leave them out when they only repeat the name and type or when they are already described sufficiently in the description.
-- **A script writes down every type.** The `.mjs` scripts under `.agents/` are plain JavaScript, so a JSDoc tag is the only place a type can go. Every parameter has an `@param {Type} name`, and every function that returns a value has an `@returns {Type}`, described only when the description adds something. A shape used more than once is a `@typedef`.
+- **A script writes down every type.** The `.mjs` scripts, under `.agents/` and each workspace's `tools/`, are plain JavaScript, so a JSDoc tag is the only place a type can go. Every parameter has an `@param {Type} name`, and every function that returns a value has an `@returns {Type}`, described only when the description adds something. A shape used more than once is a `@typedef`, which another script takes with `@import` rather than spelling it out again. `yarn lint` requires the tags (`eslint-plugin-jsdoc`), and `yarn typecheck` checks the types under `strict`.
 - **Inline comments follow the same rules:** Only write implementation comments for what the code cannot say for itself (e.g. disambiguate a "why" that a user is very likely to ask after reading the code).
 
 ```ts
@@ -223,9 +239,11 @@ These rules cover every doc comment: classes, interfaces, functions, HTML, CSS, 
 
 ## Writing Unit Tests
 
-See the `vitest-testing` skill for the runner setup and Angular TestBed patterns.
+These rules hold for every workspace's specs. A workspace with specs has a
+`vitest-testing` skill of its own for its runner setup and patterns, and its
+`AGENTS.md` says where its specs go.
 
-- **Test Coverage:** Cover new and changed code with specs, beside the file they test.
+- **Test Coverage:** Cover new and changed code with specs.
 - **Arrange, Act, Assert:** Structure each test case cleanly: arrange block, act block, assert block. Avoid multiple AAA cycles per test case; create focused test cases instead.
 - **Simple Test Logic:** Avoid complex conditional logic in unit tests. Keep tests readable and explicit.
 - **Test Helpers:** Abstract verbose setup into helper functions, ensuring test intent remains clear.

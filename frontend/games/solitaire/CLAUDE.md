@@ -1,5 +1,6 @@
-# fSolitaire Project Instructions
+# Solitaire Collection
 
-See [.agents/AGENTS.md](.agents/AGENTS.md) for detailed project guidelines, architecture, development workflow, and coding standards.
+See [AGENTS.md](AGENTS.md) for the rules the Solitaire Collection keeps: its
+layers, their boundaries, its Sass and its tests.
 
-@.agents/AGENTS.md
+@AGENTS.md

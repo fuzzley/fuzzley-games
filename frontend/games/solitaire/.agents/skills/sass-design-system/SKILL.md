@@ -1,11 +1,11 @@
 ---
 name: sass-design-system
-description: SCSS design system guidelines, custom property token usage, mixins, keyframe animations, native dialog modal overlays, and responsive design for fSolitaire.
+description: SCSS design system guidelines, custom property token usage, mixins, keyframe animations, native dialog modal overlays, and responsive design for the Solitaire Collection.
 ---
 
 # Sass Design System Skill
 
-This skill defines the styling guidelines and design system architecture for fSolitaire using SCSS and CSS Custom Properties.
+This skill defines the styling guidelines and design system architecture for the Solitaire Collection using SCSS and CSS Custom Properties.
 
 ## SCSS File Structure & Rules
 

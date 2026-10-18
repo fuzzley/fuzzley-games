@@ -9,7 +9,7 @@ it hosts are pinned and updated. The live site is https://fuzzley.games.
 - **Container Build**: Multi-stage Docker image, Node on Alpine for the build stage and nginx on Alpine for serving, both pinned by version and digest in the `Dockerfile`. Dependabot (`.github/dependabot.yml`) proposes new ones, and the npm packages and GitHub Actions, weekly, a day after their release.
 - **Node version**: `.node-version` names the major version the workflows run (26). The `Dockerfile` names its own image, and `verify.yml` fails if their major versions differ.
 - **Serving & SPA Routing**: Nginx automatically reads the Cloud Run `$PORT` variable via `/etc/nginx/templates/default.conf.template`. SPA client-side routes fall back to `index.html`, which browsers must revalidate (`no-cache`). Long-lived caching is applied to the fingerprinted files in `/assets/`.
-- **Games**: each game is built here, in a workspace of its own, or in its own repository, and served as static files under `/play/<slug>/`, with no fallback to the site's `index.html`. See [Games](#games).
+- **Games**: each game is built here, in a workspace of its own (or, as the Solitaire Collection once was, in its own repository), and served as static files under `/play/<slug>/`, with no fallback to the site's `index.html`. See [Games](#games).
 - **Build info**: the build writes `version.json` (package version, short commit, build time, and the build of each game), served with `Cache-Control: no-store`, so the live site says which commit it is running.
 - **Runtime Configuration**: Environment variables such as `GA_AG_MEASUREMENT_ID` are injected at container startup into `/usr/share/nginx/html/env.js` via `/docker-entrypoint.d/40-generate-env-config.sh`, with `Cache-Control: no-store`. See [Runtime Configuration](#runtime-configuration).
 
@@ -40,12 +40,12 @@ From the repository root:
 
 ## Games
 
-A game is built either here or in its own repository. Minesweeper is built
-here, in `frontend/games/minesweeper/`, and played at `/play/minesweeper/`.
-The Solitaire Collection is built in
-[fuzzley/fSolitaire](https://github.com/fuzzley/fSolitaire) and played at
-`/play/solitaire/`, which picks a game by hash route
-(`/play/solitaire/#/klondike`).
+Both games are built here. The Solitaire Collection is built in
+`frontend/games/solitaire/` and played at `/play/solitaire/`, which picks a
+game by hash route (`/play/solitaire/#/klondike`). Minesweeper is built in
+`frontend/games/minesweeper/` and played at `/play/minesweeper/`. A game can
+also be built in a repository of its own and pinned here, as the Solitaire
+Collection was until it moved; none is now.
 
 `frontend/site/games.json` lists each game's build:
 
@@ -85,7 +85,8 @@ and no game repository can push here. If the image fails, it opens a
 "Game update failed" issue and skips that archive until the issue is closed or
 a newer build appears. GitHub turns scheduled workflows off after 60 days
 without activity, so if a game's update never arrives, check that Update games
-is enabled under Actions.
+is enabled under Actions. With no game pinned, it has nothing to do and is
+turned off.
 
 - **Roll a game back:** for a game built here, revert the change. For a
   pinned one, set its entry in `games.json` to an older archive from its
@@ -101,13 +102,14 @@ is enabled under Actions.
   the catalog. The `Dockerfile` copies all of `frontend/`, so it needs no
   change.
 - **Add a game built in its own repository:** give its repository a deploy job
-  like fSolitaire's, push once so its release exists, add its entry to
+  like fSolitaire's was, push once so its release exists, add its entry to
   `games.json` from its `latest.json`, and list its games in the catalog.
 
-Minesweeper came from
-[fuzzley/fMinesweeper](https://github.com/fuzzley/fMinesweeper), with its
-history; its `site-build` release still holds the build the site served
-before it moved here.
+The Solitaire Collection came from
+[fuzzley/fSolitaire](https://github.com/fuzzley/fSolitaire), and Minesweeper
+from [fuzzley/fMinesweeper](https://github.com/fuzzley/fMinesweeper), each
+with its history; each one's `site-build` release still holds the build the
+site served before it moved here.
 
 fuzzley.info pins and fetches its own games the same way; these scripts
 started as its own.
@@ -126,9 +128,11 @@ The site's own pages (`location /`) also carry
 Analytics only (the page has no inline script; `theme.js`, `env.js` and
 `analytics.js` are files), styles from the site with `'unsafe-inline'`
 (Angular adds each component's styles as a `<style>` element) and Google
-Fonts, Google Analytics' measurement endpoints, and no framing. The games
-under `/play/` are other repositories' builds, so they get the common headers
-but no policy.
+Fonts, Google Analytics' measurement endpoints, and no framing. The policy
+is written for the site's pages, and the games under `/play/` load what their
+engines need (the Solitaire Collection's Phaser draws from `blob:` URLs, and
+Minesweeper loads classic scripts), so they get the common headers but no
+policy.
 
 A new third-party script, font or endpoint needs adding to the policy, or the
 browser blocks it and says so in the console. `check-image.sh` checks the

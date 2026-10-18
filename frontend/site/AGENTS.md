@@ -16,7 +16,8 @@ are relative to `frontend/site/`.
 
 ## Layout
 
-- `src/app/` is the application, laid out like fSolitaire's shell.
+- `src/app/` is the application, laid out like the Solitaire Collection's
+  shell (`frontend/games/solitaire/src/ui/app/`).
   `main.ts` bootstraps it with the providers in `app.config.ts`, and
   `routes.ts` declares the pages.
 - `src/app/component/` holds one folder per component, named in snake_case
@@ -84,7 +85,8 @@ own, which `yarn workspace site <script>` runs alone.
   nothing, then `tsc` over the specs (`tsconfig.spec.json`), over
   `vite.config.ts` (`tsconfig.node.json`), and over the `tools` scripts from
   their JSDoc (`tsconfig.scripts.json`).
-- **`test`** runs Vitest once. See the `vitest-testing` skill.
+- **`test`** runs Vitest once. The site's `vitest-testing` skill, in
+  `.agents/skills/`, covers its setup and its specs' patterns.
 
 ## Angular & Styling
 
@@ -106,6 +108,20 @@ own, which `yarn workspace site <script>` runs alone.
   selectors, not at-rule names, so two components defining the same animation
   name silently overwrite each other. Declare them once, in a partial that
   `src/app/styles/global.scss` uses.
+- **Accessibility helpers.** The rules are the `web-game-accessibility`
+  skill's; these are the site's means to them.
+  - An icon-only button gets a label only screen readers read from the
+    global `.visually-hidden` class in `src/app/styles/_shared.scss`, or, to
+    hide it only at some widths, the `visually-hidden` mixin in
+    `src/app/styles/_a11y.scss`.
+  - A live region is in the page from the start, as the home page's search
+    status is, and only its text changes.
+  - Menus and pickers are built on Angular Aria (`@angular/aria`), not by
+    hand: the theme menu (`src/app/component/theme_menu/`) is an
+    `ngMenuTrigger` button opening an `ngMenu` of `menuitemradio` items.
+    Bind `aria-checked` yourself (Angular Aria sets the role, not the checked
+    state), and give each item a `searchTerm`, or typing a name finds
+    nothing.
 
 ## Sass
 

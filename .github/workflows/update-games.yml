@@ -2,8 +2,9 @@ name: Update games
 
 # Every 15 minutes, moves each game's pin in frontend/site/games.json to the
 # newest build on that game's site-build release, which its own deploy job
-# publishes (fSolitaire's .github/workflows/deploy.yml, for one). A game built
-# here, under frontend/games/, has no pin: each push to main builds it.
+# publishes. A game built here, under frontend/games/, has no pin: each push to
+# main builds it. Both games are built here now, so no game is pinned, and the
+# workflow is turned off under Actions until one is.
 #
 # It needs no token beyond its own GITHUB_TOKEN. It builds the Docker image
 # with the new pins and checks it as verify.yml does, and pushes to main only

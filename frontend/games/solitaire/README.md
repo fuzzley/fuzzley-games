@@ -1,8 +1,8 @@
-# fSolitaire
+# Solitaire Collection
 
 A browser-based Solitaire game engine supporting multiple solitaire variants, built with [Phaser 4](https://phaser.io/) canvas rendering, an [Angular 22](https://angular.dev/) application shell, and [Sass](https://sass-lang.com/) for UI styling.
 
-The [latest version of the game](https://fuzzley.games/play/solitaire/) is hosted at https://fuzzley.games/play/solitaire/.
+Play it at https://fuzzley.games/play/solitaire/.
 
 ## Included Solitaire Games
 
@@ -50,24 +50,25 @@ The [latest version of the game](https://fuzzley.games/play/solitaire/) is hoste
 
 ## Development
 
-This project uses [Yarn](https://yarnpkg.com/) for dependency management and [Vite](https://vite.dev/) for the dev server and production build.
+The Solitaire Collection is a Yarn workspace of the Fuzzley Games frontend.
+Run these from `frontend/`:
 
 ```sh
-yarn install     # install dev dependencies
-yarn dev         # start the dev server on http://localhost:9000
-yarn build       # produce a production build in dist/
-yarn preview     # serve the production build locally
-yarn test        # run tests with Vitest
-yarn lint        # check the skills' references, run ESLint, and check formatting
-yarn tsc         # type-check the app and the tests
-yarn verify      # lint, type-check, build and test in one go
-yarn prettier    # format the code with Prettier
-yarn skills:link # link agent skills from .agents/skills to .claude/skills
+yarn install                           # install dependencies, once per clone
+yarn workspace solitaire dev           # dev server on http://localhost:9000
+yarn workspace solitaire build         # production build in dist/
+yarn workspace solitaire test          # run the tests with Vitest
+yarn workspace solitaire lint          # ESLint
+yarn workspace solitaire typecheck     # type-check the app, the tests and the tools
+yarn verify                            # lint, type-check, test and build every workspace
 ```
 
-The game code lives in `src/` (bundled by Vite via `src/ui/app/main.ts`). The Angular UI components and Sass design system (`src/ui/app/styles/`) are located in `src/ui/`, while the Phaser game logic, rendering, and solitaire runtime reside in `src/engine/` and `src/games/`.
+The game code lives in `src/` (bundled by Vite via `src/ui/app/main.ts`). The Angular UI components and Sass design system (`src/ui/app/styles/`) are located in `src/ui/`, while the Phaser game logic, rendering, and solitaire runtime reside in `src/engine/` and `src/games/`. [AGENTS.md](AGENTS.md) describes its layers and the rest of its scripts.
 
-Agent configuration and reusable skills live in `.agents/skills/`. Run `yarn skills:link` to link skills across for Claude Code discovery.
+The site's `yarn build` builds it, copies `dist/` to `/play/solitaire/`, and
+adds the site's analytics tags. It moved here, with its history, from
+[fuzzley/fSolitaire](https://github.com/fuzzley/fSolitaire), which keeps the
+original commit ids.
 
 ## License
 
