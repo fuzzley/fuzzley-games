@@ -7,7 +7,7 @@ import { PresentationSettingsService } from "./presentation_settings.service";
 
 /**
  * The issue form fields the application fills in, by the `id` each has in
- * `.github/ISSUE_TEMPLATE/bug_report.yml`.
+ * the repository's `.github/ISSUE_TEMPLATE/solitaire_bug_report.yml`.
  */
 export const BUG_REPORT_FIELDS = {
   game: "game",
