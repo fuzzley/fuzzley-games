@@ -1,14 +1,14 @@
 // The games' builds, as games.json lists them. Shared by fetch-games.mjs,
 // update-games.mjs, inject-analytics.mjs and vite.config.ts.
 //
-// A game is either built here, in a workspace under apps/, or built and
+// A game is either built here, in a workspace under games/, or built and
 // released by its own repository. Such a repository uploads every production
 // build to its site-build release as <slug>-<short sha>.tar.gz, and replaces
 // latest.json there, which names the newest archive. games.json names each
 // game's workspace, or pins one archive, and the build is served at
 // /play/<slug>/:
 //
-//   "minesweeper": { "workspace": "apps/minesweeper" },
+//   "minesweeper": { "workspace": "games/minesweeper" },
 //   "solitaire": {
 //     "repo": "fuzzley/fSolitaire",
 //     "commit": "<the commit it was built from>",
@@ -36,7 +36,7 @@ const manifestFile = new URL("../games.json", import.meta.url);
 /**
  * @typedef {object} WorkspaceBuild A build of a game in this repository.
  * @property {string} workspace Its folder in frontend/, such as
- *   "apps/minesweeper".
+ *   "games/minesweeper".
  */
 
 /** @typedef {PinnedBuild | WorkspaceBuild} GameBuild */
@@ -49,9 +49,9 @@ const patterns = {
   sha256: /^[0-9a-f]{64}$/,
 };
 
-// frontend/package.json, the workspace root's, makes every folder under apps/
+// frontend/package.json, the workspace root's, makes every folder under games/
 // a workspace.
-const workspacePattern = /^apps\/[\w-]+$/;
+const workspacePattern = /^games\/[\w-]+$/;
 
 /**
  * Returns a pinned build, such as a games.json entry or a latest.json, after
@@ -87,7 +87,7 @@ export function checkGame(name, game) {
   }
   const { workspace, ...rest } = /** @type {Record<string, unknown>} */ (game);
   if (typeof workspace !== "string" || !workspacePattern.test(workspace)) {
-    throw new Error(`${name}: "workspace" isn't a folder under apps/.`);
+    throw new Error(`${name}: "workspace" isn't a folder under games/.`);
   }
   if (Object.keys(rest).length > 0) {
     throw new Error(`${name}: a game built here pins no release as well.`);

@@ -51,10 +51,10 @@ describe("servedBuilds", () => {
   });
 
   it("names a game built here by its workspace and the site's commit", () => {
-    const minesweeper = { workspace: "apps/minesweeper" };
+    const minesweeper = { workspace: "games/minesweeper" };
 
     expect(servedBuilds({ minesweeper }, "e72f5a7")).toEqual({
-      minesweeper: { workspace: "apps/minesweeper", commit: "e72f5a7" },
+      minesweeper: { workspace: "games/minesweeper", commit: "e72f5a7" },
     });
   });
 });

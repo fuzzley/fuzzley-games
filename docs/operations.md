@@ -41,17 +41,17 @@ From the repository root:
 ## Games
 
 A game is built either here or in its own repository. Minesweeper is built
-here, in `frontend/apps/minesweeper/`, and played at `/play/minesweeper/`. The
-Solitaire Collection is built in
+here, in `frontend/games/minesweeper/`, and played at `/play/minesweeper/`.
+The Solitaire Collection is built in
 [fuzzley/fSolitaire](https://github.com/fuzzley/fSolitaire) and played at
 `/play/solitaire/`, which picks a game by hash route
 (`/play/solitaire/#/klondike`).
 
 `frontend/site/games.json` lists each game's build:
 
-- **A game built here** is a Yarn workspace under `frontend/apps/`, named by
-  its folder in `frontend/` (`{ "workspace": "apps/minesweeper" }`).
-  `yarn build:apps` runs every one's `build`, and
+- **A game built here** is a Yarn workspace under `frontend/games/`, named by
+  its folder in `frontend/` (`{ "workspace": "games/minesweeper" }`).
+  `yarn build:games` runs every one's `build`, and
   `frontend/site/tools/fetch-games.mjs` copies each one's `dist/` into
   `frontend/site/public/play/<slug>/`. It goes live with the push to `main`
   that changes it, like the site itself.
@@ -92,11 +92,11 @@ is enabled under Actions.
   archive's SHA-256 and commit, and push. The next scheduled run moves it
   forward again once the game has a newer build than that. A game's release
   keeps its ten newest archives and the one pinned here.
-- **Add a game built here:** give it a folder under `frontend/apps/` with a
+- **Add a game built here:** give it a folder under `frontend/games/` with a
   `package.json` whose `build` script writes `dist/`, with `index.html` at its
   top level and its screenshots in `docs/screenshots/<id>/`. Copy that
   `package.json` in the `Dockerfile` before the install, run `yarn install`,
-  add `{ "workspace": "apps/<folder>" }` to `games.json`, and list its games
+  add `{ "workspace": "games/<folder>" }` to `games.json`, and list its games
   in the catalog.
 - **Add a game built in its own repository:** give its repository a deploy job
   like fSolitaire's, push once so its release exists, add its entry to

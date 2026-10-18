@@ -3,7 +3,7 @@
 A gallery of card and puzzle games to play in your browser, starting with the
 games of the [Solitaire Collection](https://github.com/fuzzley/fSolitaire),
 from Klondike and Spider to Pyramid and TriPeaks, and
-[Minesweeper](frontend/apps/minesweeper/).
+[Minesweeper](frontend/games/minesweeper/).
 
 Play at https://fuzzley.games.
 
@@ -14,13 +14,13 @@ components, Signals, zoneless) built with [Vite](https://vite.dev/)
 (`@analogjs/vite-plugin-angular`), styled with [Sass](https://sass-lang.com/)
 and palettes of CSS custom properties, and served by nginx in a Docker
 container on Google Cloud Run. Minesweeper is built here, in
-`frontend/apps/minesweeper/`, and the Solitaire Collection in its own
+`frontend/games/minesweeper/`, and the Solitaire Collection in its own
 repository; both are served as static pages under `/play/<slug>/`.
 
 Dependency management and development scripts use [Yarn](https://yarnpkg.com/)
 (Berry v4) on Node 26 (`.node-version`). `frontend/` is the workspace root for
 all client code: the site is the `site` workspace, in `frontend/site/`, and
-each game built here is a workspace under `frontend/apps/`. Run all `yarn`
+each game built here is a workspace under `frontend/games/`. Run all `yarn`
 commands from `frontend/`:
 
 ```sh
@@ -40,7 +40,7 @@ yarn games       # build and fetch the games into site/public/play/
 yarn workspace minesweeper dev   # work on Minesweeper alone, on http://localhost:9000
 ```
 
-`yarn dev` and `yarn build` first build the games in `frontend/apps/` and
+`yarn dev` and `yarn build` first build the games in `frontend/games/` and
 fetch the ones pinned in `frontend/site/games.json`; the dev server starts
 without the pinned ones when offline. The Solitaire Collection is then at
 http://localhost:4200/play/solitaire/ and Minesweeper at

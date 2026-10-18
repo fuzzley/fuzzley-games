@@ -4736,9 +4736,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minesweeper@workspace:apps/minesweeper":
+"minesweeper@workspace:games/minesweeper":
   version: 0.0.0-use.local
-  resolution: "minesweeper@workspace:apps/minesweeper"
+  resolution: "minesweeper@workspace:games/minesweeper"
   dependencies:
     "@eslint/js": "npm:^10.0.1"
     eslint: "npm:^10.11.0"

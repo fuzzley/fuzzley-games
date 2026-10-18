@@ -8,18 +8,18 @@
   },
   "workspaces": [
     "site",
-    "apps/*"
+    "games/*"
   ],
   "scripts": {
-    "start": "yarn build:apps && yarn workspace site start",
-    "dev": "yarn build:apps && yarn workspace site dev",
-    "build": "yarn build:apps && yarn workspace site build",
-    "build:apps": "yarn workspaces foreach --all --include \"apps/*\" run build",
-    "games": "yarn build:apps && yarn workspace site games",
+    "start": "yarn build:games && yarn workspace site start",
+    "dev": "yarn build:games && yarn workspace site dev",
+    "build": "yarn build:games && yarn workspace site build",
+    "build:games": "yarn workspaces foreach --all --include \"games/*\" run build",
+    "games": "yarn build:games && yarn workspace site games",
     "preview": "yarn workspace site preview",
-    "test": "yarn workspaces foreach --all --include site --include \"apps/*\" run test",
-    "typecheck": "tsc -p tsconfig.scripts.json && yarn workspaces foreach --all --include site --include \"apps/*\" run typecheck",
-    "lint": "yarn skills:check && (cd .. && eslint -c frontend/eslint.config.js .agents) && yarn workspaces foreach --all --include site --include \"apps/*\" run lint && yarn prettier:check",
+    "test": "yarn workspaces foreach --all --include site --include \"games/*\" run test",
+    "typecheck": "tsc -p tsconfig.scripts.json && yarn workspaces foreach --all --include site --include \"games/*\" run typecheck",
+    "lint": "yarn skills:check && (cd .. && eslint -c frontend/eslint.config.js .agents) && yarn workspaces foreach --all --include site --include \"games/*\" run lint && yarn prettier:check",
     "skills:check": "node ../.agents/check-skill-references.mjs",
     "verify": "yarn lint && yarn typecheck && yarn test && yarn build",
     "prettier": "cd .. && prettier . --write",

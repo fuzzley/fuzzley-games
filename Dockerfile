@@ -16,7 +16,7 @@ WORKDIR /app
 # of date.
 COPY frontend/package.json frontend/yarn.lock* frontend/.yarnrc.yml* ./frontend/
 COPY frontend/site/package.json ./frontend/site/
-COPY frontend/apps/minesweeper/package.json ./frontend/apps/minesweeper/
+COPY frontend/games/minesweeper/package.json ./frontend/games/minesweeper/
 
 # Install dependencies with Yarn 4 through Corepack, which Node 26 no longer
 # bundles.

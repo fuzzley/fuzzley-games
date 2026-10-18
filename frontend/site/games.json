@@ -1,6 +1,6 @@
 {
   "minesweeper": {
-    "workspace": "apps/minesweeper"
+    "workspace": "games/minesweeper"
   },
   "solitaire": {
     "repo": "fuzzley/fSolitaire",
