@@ -1,0 +1,90 @@
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
+import { PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/dealing/deal";
+import { DealtTableGame } from "@/engine/tableau/game/dealt_table_game";
+import { DeckOptions } from "@/games/common/deck_options";
+import { drawToWaste } from "@/games/common/stock_pile";
+import { dealGolfLayout } from "./golf_deal";
+import { DEFAULT_GOLF_VARIANT } from "./golf_rules";
+import {
+  FOUNDATION_PILE_ID,
+  GolfRole,
+  GolfVariant,
+  STOCK_PILE_ID,
+  golfZoneSpecs,
+} from "./golf_zones";
+import { ActionKind } from "@/games/common/action_kinds";
+
+/** Configures a game of the Golf family. */
+export interface GolfOptions extends DeckOptions {
+  /** Which game of the family to play. */
+  readonly variant?: GolfVariant;
+}
+
+/**
+ * Plays Golf or Putt Putt: seven open columns cleared onto one foundation, a
+ * rank up or down at a time, with a stock turned onto it when play is stuck.
+ */
+export class GolfGame extends DealtTableGame {
+  /** The face-down stock, turned onto the foundation one card at a time. */
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
+  /** The single foundation, which is also the waste. */
+  public readonly foundation: ReadonlyCardPile<PlayingCard>;
+  /** The seven columns. */
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
+
+  /** Creates a game whose piles are empty until the first deal. */
+  constructor({
+    cardIds = ALL_PLAYING_CARD_IDS,
+    random,
+    variant = DEFAULT_GOLF_VARIANT,
+  }: GolfOptions = {}) {
+    super({
+      zones: golfZoneSpecs(variant),
+      deck: { cardIds, random },
+      autoMoveRoles: [GolfRole.FOUNDATION],
+      // Deliberately absent: the game is won by clearing the columns, with
+      // cards still in the stock. See `isWon`.
+    });
+
+    this.stock = this.requirePile(STOCK_PILE_ID);
+    this.foundation = this.requirePile(FOUNDATION_PILE_ID);
+    this.tableaus = this.pilesOfRole(GolfRole.TABLEAU);
+  }
+
+  /** @inheritDoc */
+  protected override dealBoard(deal: Deal): void {
+    dealGolfLayout(deal, this.tableaus, this.foundation, this.stock);
+  }
+
+  /** Whether the stock has a card left to turn, as it is never recycled. */
+  public get canDraw(): boolean {
+    return !this.stock.isEmpty;
+  }
+
+  /**
+   * Turns a card from the stock onto the foundation, returning whether it
+   * could.
+   */
+  public drawCard(): boolean {
+    if (!this.canDraw) {
+      return false;
+    }
+
+    this.commitAction(
+      ActionKind.DRAW,
+      drawToWaste(this.tabletop, this.stock, this.foundation, 1),
+    );
+    return true;
+  }
+
+  /**
+   * Returns whether every column has been cleared.
+   *
+   * @inheritDoc
+   */
+  protected override isWon(): boolean {
+    return this.cardsInPlay > 0 && this.tableaus.every((pile) => pile.isEmpty);
+  }
+}

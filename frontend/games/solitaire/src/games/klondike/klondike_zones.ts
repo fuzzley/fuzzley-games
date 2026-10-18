@@ -1,0 +1,81 @@
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import { STOCK_PILE_ID, WASTE_PILE_ID } from "../common/pile_ids";
+import { wasteFanLayout } from "../common/pile_layouts";
+import {
+  RECYCLING_STOCK_PLACEHOLDER,
+  columnRow,
+  foundationRow,
+  stockZone,
+  wasteZone,
+} from "../common/zone_presets";
+import {
+  DEFAULT_KLONDIKE_VARIANT,
+  DrawCount,
+  KlondikeRole,
+  KlondikeVariant,
+  klondikeDealsFaceUp,
+  klondikeGrabRule,
+  KLONDIKE_FOUNDATION_RULE,
+  klondikeTableauRule,
+} from "./klondike_rules";
+
+/** The number of suit foundation piles in a standard Klondike game. */
+export const FOUNDATION_COUNT = 4;
+
+/** The number of tableau columns in a standard Klondike game. */
+export const TABLEAU_COUNT = 7;
+
+export { STOCK_PILE_ID, WASTE_PILE_ID };
+
+/**
+ * The grid column the leftmost foundation sits in, leaving column 2 clear for
+ * the waste fan.
+ */
+export const FOUNDATION_COLUMN_OFFSET = 3;
+
+/** Returns the thirteen zones of a Klondike board. */
+export function klondikeZoneSpecs(
+  drawCount: DrawCount,
+  variant: KlondikeVariant = DEFAULT_KLONDIKE_VARIANT,
+): readonly ZoneSpec[] {
+  return [
+    stockZone({
+      id: STOCK_PILE_ID,
+      role: KlondikeRole.STOCK,
+      column: 0,
+      row: 0,
+      accept: null,
+      backgroundKey: RECYCLING_STOCK_PLACEHOLDER,
+      // Clicking the empty slot recycles the waste.
+      emptyIsActionable: true,
+    }),
+    wasteZone({
+      id: WASTE_PILE_ID,
+      role: KlondikeRole.WASTE,
+      column: 1,
+      row: 0,
+      accept: null,
+      layout: wasteFanLayout(drawCount),
+    }),
+    ...foundationRow({
+      count: FOUNDATION_COUNT,
+      column: FOUNDATION_COLUMN_OFFSET,
+      row: 0,
+      role: KlondikeRole.FOUNDATION,
+      accept: KLONDIKE_FOUNDATION_RULE,
+    }),
+    ...columnRow({
+      count: TABLEAU_COUNT,
+      column: 0,
+      row: 1,
+      role: KlondikeRole.TABLEAU,
+      accept: klondikeTableauRule(variant),
+      grab: klondikeGrabRule(variant),
+      // Read from the same flag as the deal, so the two agree by construction.
+      face: klondikeDealsFaceUp(variant) ? "always-up" : "card",
+    }),
+  ];
+}
+
+/** Re-exported: the roles and variants live with the rules that use them. */
+export { KlondikeRole, KlondikeVariant };

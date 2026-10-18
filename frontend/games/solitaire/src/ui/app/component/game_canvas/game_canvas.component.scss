@@ -1,0 +1,198 @@
+@use "../../styles" as *;
+
+// How far the shell's chrome reaches in over each edge of the board: the
+// header across the top, along the bottom of a phone held upright, or down the
+// left of a phone on its side. The
+// board reads them through `ViewportScaler` and lays itself out inside; the
+// loading overlay and the deck badge keep inside them too.
+:host {
+  --board-inset-top: var(--header-height);
+  --board-inset-right: 0px;
+  --board-inset-bottom: 0px;
+  --board-inset-left: 0px;
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+@include phone-portrait {
+  :host {
+    --board-inset-top: 0px;
+    --board-inset-bottom: var(--header-height);
+  }
+}
+
+@include phone-landscape {
+  :host {
+    --board-inset-top: 0px;
+    --board-inset-left: var(--rail-width);
+  }
+
+  // A stock at the left stands the rail at the right.
+  :host-context([data-stock-side="left"]) {
+    --board-inset-left: 0px;
+    --board-inset-right: var(--rail-width);
+  }
+}
+
+.canvas-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+// The loading state dims the table rather than covering it. The scrim runs
+// behind the translucent chrome, but its contents keep inside the insets, where
+// the board does.
+.loading-overlay {
+  @include glass(8px);
+  @include transition(opacity, visibility);
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-loading);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--board-inset-top) var(--board-inset-right)
+    var(--board-inset-bottom) var(--board-inset-left);
+  box-sizing: border-box;
+  background: var(--surface-felt-scrim);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  user-select: none;
+
+  &.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+// The pile slots, drawn where the board is about to put them.
+.skeleton-grid {
+  width: 92%;
+  max-width: 1150px;
+  height: 82%;
+  padding: var(--space-6);
+  box-sizing: border-box;
+}
+
+// The padding box of the grid, which the cells are placed in by percentage.
+.skeleton-board {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+// One grid cell; half the gap on each side keeps a whole gap between two.
+.skeleton-cell {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  // Not stretched, which would override the placeholder's aspect ratio.
+  align-items: flex-start;
+  padding: calc(var(--space-4) / 2);
+  box-sizing: border-box;
+}
+
+.skeleton-slot {
+  position: relative;
+  width: 100%;
+  max-width: 84px;
+  aspect-ratio: 71 / 96;
+  border-radius: var(--radius-md);
+  background: var(--wash-subtle);
+  border: 1.5px dashed var(--wash-medium);
+  box-shadow: var(--shadow-subtle);
+  overflow: hidden;
+}
+
+.skeleton-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--wash-soft) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmerSweep 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+// Centred on the board inside the chrome rather than on the whole overlay.
+.loading-badge {
+  @include glass(12px);
+  position: absolute;
+  top: calc(50% + (var(--board-inset-top) - var(--board-inset-bottom)) / 2);
+  left: calc(50% + (var(--board-inset-left) - var(--board-inset-right)) / 2);
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-pill);
+  background: var(--surface-scrim-heavy);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--font-md);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  z-index: var(--z-loading-badge);
+  // The glow is the animation's own first frame; see `pulseGlow`.
+  animation: pulseGlow 2.5s infinite ease-in-out;
+}
+
+// The spinner, with a micro suit glyph counter-rotating inside it so that it
+// stays the right way up.
+.spinner-ring {
+  @include spinner-ring(24px);
+}
+
+.mini-card-icon {
+  font-size: var(--font-2xs);
+  color: var(--accent-light);
+  animation: spinReverse 1s linear infinite;
+}
+
+.loading-text {
+  @include gradient-text(var(--text-bright), var(--text-secondary));
+  white-space: nowrap;
+}
+
+// The deck swap's badge, tucked into a corner inside the chrome because the
+// board stays playable while a deck loads.
+.deck-badge {
+  @include glass(12px);
+  @include transition(opacity, visibility);
+  position: absolute;
+  top: calc(var(--board-inset-top) + var(--space-4));
+  right: calc(var(--board-inset-right) + var(--space-4));
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--surface-scrim-heavy);
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  z-index: var(--z-loading-badge);
+
+  &.hidden {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.deck-badge-spinner {
+  @include spinner-ring(14px, 2px);
+  flex: none;
+}

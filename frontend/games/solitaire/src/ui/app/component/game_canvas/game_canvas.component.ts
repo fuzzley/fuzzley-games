@@ -1,0 +1,169 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  afterRenderEffect,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+} from "@angular/core";
+import { CARD_DECKS } from "@/engine/render/deck/card_deck";
+import { chooseTableLayout } from "@/engine/render/layout/board_layouts";
+import { PhaserHost } from "@/engine/render/phaser/host/phaser_host";
+import { PlayableGame } from "@/engine/tableau/session/playable_game";
+import { makeBoardScene } from "../../provider/board_catalog";
+import { GameId, boardLayoutsOf } from "../../provider/game_catalog";
+import { skeletonSlots } from "../../model/skeleton_slots";
+import { GameCatalogService } from "../../service/game_catalog.service";
+import { PresentationSettingsService } from "../../service/presentation_settings.service";
+import { ViewportService } from "../../service/viewport.service";
+
+declare global {
+  interface Window {
+    /** The running game, exposed to the console in development builds. */
+    fsolitaire?: PlayableGame;
+  }
+}
+
+/**
+ * How long to wait, generously, for a board to report itself ready before
+ * saying it failed.
+ */
+const BOARD_READY_TIMEOUT_MS = 8_000;
+
+/**
+ * Hosts the Phaser game canvas, with a skeleton of the board's own layout
+ * shown while it builds.
+ *
+ * Phaser gets a child element of its own, so it never fights Angular over the
+ * loading overlay beside it.
+ */
+@Component({
+  selector: "app-game-canvas",
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: "./game_canvas.component.html",
+  styleUrl: "./game_canvas.component.scss",
+})
+export class GameCanvasComponent {
+  private readonly catalog = inject(GameCatalogService);
+  private readonly presentation = inject(PresentationSettingsService);
+  private readonly viewport = inject(ViewportService);
+
+  private readonly canvasHostRef =
+    viewChild.required<ElementRef<HTMLElement>>("canvasHost");
+
+  /**
+   * The Phaser game, kept for the component's whole life so every deal reuses
+   * its WebGL context, and made on the first deal, once the canvas host exists.
+   */
+  private host?: PhaserHost;
+
+  /** Whether the current game is still building its scene. */
+  protected readonly isInitializing = signal(true);
+
+  /** Whether the board gave up before reporting itself ready. */
+  protected readonly hasInitializationFailed = signal(false);
+
+  /** Name of the game currently on the table. */
+  protected readonly gameName = computed(() => this.catalog.selectedEntry.name);
+
+  /**
+   * Where the skeleton draws each pile of the current game, on the grid the
+   * screen calls for, so the placeholder has the shape of the board that is
+   * about to replace it.
+   */
+  protected readonly skeletonSlots = computed(() =>
+    skeletonSlots(
+      chooseTableLayout(
+        boardLayoutsOf(this.catalog.selectedEntry),
+        this.viewport.formFactor(),
+        this.presentation.boardArrangement(),
+      ),
+    ),
+  );
+
+  /**
+   * Which side the stock is on, on the screen as it is now, which is the side
+   * the chrome on a phone stands opposite.
+   */
+  private readonly stockSide = computed(
+    () => this.presentation.resolvedArrangement().stockSide,
+  );
+
+  /**
+   * What the deck being fetched is called, or null when the table is up to
+   * date.
+   */
+  protected readonly pendingDeckName = computed(() => {
+    const pending = this.presentation.pendingCardDeck();
+    if (!pending) return null;
+    return CARD_DECKS.find((deck) => deck.id === pending)?.name ?? null;
+  });
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => {
+      this.host?.destroy();
+    });
+
+    // A change of the stock's side moves the rail on a sideways phone to the
+    // other edge without resizing anything, so the board would not otherwise
+    // hear of it. Read once the chrome has been drawn on its new side.
+    afterRenderEffect({
+      read: () => {
+        this.stockSide();
+        untracked(() => this.host?.refreshInsets());
+      },
+    });
+
+    effect((onCleanup) => {
+      const { game } = this.catalog.session();
+      const gameId = this.catalog.selectedId() as GameId;
+      this.isInitializing.set(true);
+      this.hasInitializationFailed.set(false);
+
+      let readyFired = false;
+      const onReady = () => {
+        readyFired = true;
+        this.isInitializing.set(false);
+      };
+
+      const timeoutId = setTimeout(() => {
+        if (!readyFired) {
+          this.hasInitializationFailed.set(true);
+          this.isInitializing.set(false);
+        }
+      }, BOARD_READY_TIMEOUT_MS);
+
+      const parent = this.canvasHostRef().nativeElement;
+      // Untracked, because a board swapped into a running game is built at
+      // once, and the settings it reads and follows must not become this
+      // effect's: a new deck would deal the game again.
+      untracked(() => {
+        this.host ??= new PhaserHost(window, parent);
+        this.host.show(({ insets }) =>
+          makeBoardScene(gameId, game, {
+            presentation: this.presentation,
+            onReady,
+            insets,
+          }),
+        );
+      });
+
+      // Development only: a production global would pin the game in memory.
+      if (import.meta.env.DEV) {
+        window.fsolitaire = game;
+      }
+
+      onCleanup(() => {
+        clearTimeout(timeoutId);
+        if (window.fsolitaire === game) {
+          delete window.fsolitaire;
+        }
+      });
+    });
+  }
+}

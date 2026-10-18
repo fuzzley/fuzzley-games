@@ -1,0 +1,60 @@
+<!--
+  `role="img"` rather than `application`, which would hand every key to a
+  board with no keyboard interface. Revisit it if the board becomes playable
+  from the keyboard.
+-->
+<div
+  #canvasHost
+  class="canvas-container"
+  role="img"
+  [attr.aria-label]="gameName() + ' board'"
+  [attr.aria-busy]="isInitializing()"
+></div>
+
+<div class="loading-overlay" [class.hidden]="!isInitializing()">
+  <div class="skeleton-grid" aria-hidden="true">
+    <div class="skeleton-board">
+      @for (slot of skeletonSlots(); track slot.pileId) {
+        <div
+          class="skeleton-cell"
+          [style.left]="slot.left"
+          [style.top]="slot.top"
+          [style.width]="slot.width"
+          [style.height]="slot.height"
+        >
+          <div class="skeleton-slot">
+            <div class="skeleton-shimmer"></div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="loading-badge">
+    <div class="spinner-ring" aria-hidden="true">
+      <div class="mini-card-icon">♠</div>
+    </div>
+    <!-- Always present, so the status is announced when it arrives. -->
+    <p class="loading-text" role="status">
+      @if (hasInitializationFailed()) {
+        Board initialization timed out
+      } @else if (isInitializing()) {
+        Loading {{ gameName() }}...
+      }
+    </p>
+  </div>
+</div>
+
+<!--
+  A corner badge rather than the overlay, because the board stays playable
+  while a deck loads. Always present, so its status is announced when it
+  arrives.
+-->
+<div class="deck-badge" [class.hidden]="!pendingDeckName()">
+  <span class="deck-badge-spinner" aria-hidden="true"></span>
+  <span role="status">
+    @if (pendingDeckName(); as deckName) {
+      Loading {{ deckName }} cards...
+    }
+  </span>
+</div>

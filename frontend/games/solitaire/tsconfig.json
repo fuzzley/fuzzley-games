@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@test/*": ["test/*"]
+    },
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "removeComments": true,
+    "sourceMap": true,
+    "target": "ES2022",
+    "outDir": "./dist/",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "types": ["vitest/globals", "vite/client"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "ignoreDeprecations": "6.0"
+  },
+  "angularCompilerOptions": {
+    "strictTemplates": true,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictStandalone": true,
+    "extendedDiagnostics": {
+      "defaultCategory": "warning",
+      "checks": {
+        "invalidBananaInBox": "error",
+        "unusedStandaloneImports": "warning",
+        "missingRequiredInput": "error"
+      }
+    }
+  },
+  "exclude": ["node_modules", "**/*.spec.ts"],
+  "include": ["src"]
+}

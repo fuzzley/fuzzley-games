@@ -1,0 +1,266 @@
+<app-modal-dialog [open]="open()" label="Game options" (closed)="closed.emit()">
+  <div class="drawer">
+    <div class="drawer-header">
+      <h2>Game Options</h2>
+      <button
+        type="button"
+        class="btn-close"
+        (click)="closed.emit()"
+        aria-label="Close game options"
+      >
+        <svg
+          class="close-icon"
+          fill="currentColor"
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <div class="drawer-content">
+      <!-- Whatever rules the game on the table lets a player choose -->
+      @for (option of catalog.ruleOptions(); track option.id) {
+        <app-option-group
+          class="rule"
+          [option]="option"
+          [value]="catalog.optionValues()[option.id]"
+          (choose)="chooseRule(option.id, $event)"
+        />
+      }
+
+      <!-- Where the piles go, and the side pile's side in a game with one -->
+      @if (hasArrangedGrids()) {
+        <app-option-group
+          class="piles"
+          [option]="pilesOption()"
+          [value]="pilesChoice().value"
+          (choose)="choosePiles($event)"
+        />
+        @if (sideName()) {
+          <app-option-group
+            class="stock-side"
+            [option]="stockSideOption()"
+            [value]="stockSideChoice().value"
+            (choose)="chooseStockSide($event)"
+          />
+        }
+      }
+
+      <!-- Card Back Style -->
+      <div class="setting-group">
+        <span class="setting-label" id="card-back-label">Card Back Design</span>
+        <div
+          class="card-back-selector"
+          appRadioGroup
+          aria-labelledby="card-back-label"
+        >
+          @for (back of cardBackChoices(); track back.style) {
+            <button
+              type="button"
+              class="card-back-option"
+              role="radio"
+              [attr.aria-checked]="back.selected"
+              (click)="presentation.setCardBackStyle(back.style)"
+            >
+              <span
+                class="card-back-preview"
+                [class]="back.patternClass"
+                aria-hidden="true"
+              ></span>
+              <span>{{ back.name }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Card Style: mobile or desktop cards, or whichever suits the screen -->
+      <app-option-group
+        class="card-style"
+        [option]="cardStyleOption()"
+        [value]="cardStyleChoice().value"
+        (choose)="chooseCardStyle($event)"
+      >
+        <!--
+          Always present, so a problem is announced when it arrives; under the
+          style, since it may be about either kind of card.
+        -->
+        <p class="card-deck-problem" role="status">
+          {{ presentation.cardDeckProblem() }}
+        </p>
+      </app-option-group>
+
+      <!-- The desktop decks, offered only while desktop cards are drawn -->
+      @if (presentation.drawsDesktopCards()) {
+        <div class="setting-group">
+          <span class="setting-label" id="card-deck-label">Desktop Cards</span>
+          <div
+            class="card-deck-selector"
+            appRadioGroup
+            aria-labelledby="card-deck-label"
+          >
+            @for (deck of deckChoices(); track deck.id) {
+              <button
+                type="button"
+                class="card-deck-option"
+                role="radio"
+                [attr.aria-checked]="deck.selected"
+                [attr.aria-busy]="deck.pending"
+                (click)="presentation.setDesktopCardDeck(deck.id)"
+              >
+                <!--
+                The tops of a King and a seven, as a fanned column shows them:
+                all that differs between the decks.
+              -->
+                <svg
+                  class="card-deck-preview"
+                  viewBox="0 0 138 30"
+                  aria-hidden="true"
+                >
+                  @for (card of deck.preview; track card.rank) {
+                    <g [attr.transform]="'translate(' + card.x + ' 0)'">
+                      <rect
+                        x="0.5"
+                        y="0.5"
+                        width="65"
+                        height="29"
+                        rx="3"
+                        class="card-deck-preview-card"
+                      />
+                      <text x="5" y="21" class="card-deck-preview-rank">
+                        {{ card.rank }}
+                      </text>
+                      @if (card.hasPip) {
+                        <path
+                          d="M6 20 a2.6 2.6 0 0 1 4.4 0 a2.6 2.6 0 0 1 4.4 0 c0 3-4.4 6.2-4.4 6.2 S6 23 6 20 z"
+                          class="card-deck-preview-pip"
+                          transform="translate(44 -11)"
+                        />
+                      }
+                    </g>
+                  }
+                </svg>
+                <span class="card-deck-label">
+                  <span class="card-deck-name">{{ deck.name }}</span>
+                  <span class="card-deck-description">{{
+                    deck.description
+                  }}</span>
+                </span>
+                <!-- A deck can take seconds to load, so say it is on its way. -->
+                @if (deck.pending) {
+                  <span class="card-deck-spinner" aria-hidden="true"></span>
+                }
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Table Themes -->
+      <div class="setting-group">
+        <span class="setting-label" id="table-theme-label">Table Theme</span>
+        <div
+          class="theme-selector"
+          appRadioGroup
+          aria-labelledby="table-theme-label"
+        >
+          @for (swatch of themeSwatches(); track swatch.key) {
+            <button
+              type="button"
+              class="theme-option"
+              role="radio"
+              [attr.aria-checked]="swatch.selected"
+              [attr.aria-label]="swatch.name"
+              (click)="presentation.setTheme(swatch.key)"
+              [style.backgroundColor]="swatch.color"
+            >
+              @if (swatch.selected) {
+                <span class="theme-indicator" aria-hidden="true"></span>
+              }
+            </button>
+          }
+        </div>
+        <p class="theme-name">Theme: {{ selectedThemeName() }}</p>
+      </div>
+
+      <!-- Game Rules & Documentation -->
+      <div class="setting-group">
+        <span class="setting-label">Game Rules & Documentation</span>
+        <button
+          type="button"
+          class="btn btn-secondary btn-block"
+          (click)="openRules()"
+        >
+          <svg
+            class="btn-icon"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          How to Play {{ activeGameTitle() }}
+        </button>
+      </div>
+
+      <!-- Report a Bug, in a new tab so the board being reported is kept -->
+      <div class="setting-group">
+        <span class="setting-label">Found a Problem?</span>
+        <a
+          class="btn btn-secondary btn-block btn-report"
+          [attr.href]="bugReportUrl()"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <svg
+            class="btn-icon"
+            fill="currentColor"
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M20 8h-2.81a5.985 5.985 0 0 0-1.82-1.96L17 4.41L15.59 3l-2.17 2.17a6.002 6.002 0 0 0-2.83 0L8.41 3L7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"
+            />
+          </svg>
+          Report a Bug
+          <svg
+            class="btn-icon"
+            fill="currentColor"
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83l1.41 1.41L19 6.41V10h2V3h-7z"
+            />
+          </svg>
+          <span class="new-tab-hint">(opens GitHub in a new tab)</span>
+        </a>
+      </div>
+
+      <!-- Debug Settings (dev mode); closes once a reported game is loaded -->
+      @if (isDevMode) {
+        <app-debug-panel (loaded)="closed.emit()" />
+      }
+    </div>
+
+    <!-- "Done", not "Apply": every control here applies as it is touched. -->
+    <div class="drawer-footer">
+      <button
+        type="button"
+        class="btn btn-primary btn-block"
+        (click)="closed.emit()"
+      >
+        Done
+      </button>
+    </div>
+  </div>
+</app-modal-dialog>

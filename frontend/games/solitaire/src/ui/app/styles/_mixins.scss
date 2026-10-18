@@ -1,0 +1,150 @@
+@use "sass:list";
+@use "sass:map";
+@use "sass:meta";
+
+// Patterns that repeat across components, which view encapsulation stops them
+// sharing as classes. A single value belongs in `_tokens.scss` instead.
+
+/// Applies the frosted-glass treatment to chrome floating over the board.
+///
+/// The prefixed property is for Safari, which ships `backdrop-filter` only
+/// behind it.
+@mixin glass($blur) {
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+}
+
+/// Paints text with a gradient.
+///
+/// The prefixed `-webkit-text-fill-color` is no fallback: no engine reveals the
+/// background through glyphs any other way.
+@mixin gradient-text($from, $to, $angle: 135deg) {
+  background: linear-gradient($angle, $from 0%, $to 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/// Transitions the named properties at the shared duration and easing.
+///
+///     @include transition(background, transform);
+///     @include transition(width, $duration: var(--duration-fast));
+///
+/// Name the properties rather than using `all`, which also animates layout.
+@mixin transition($properties...) {
+  $options: meta.keywords($properties);
+  $duration: var(--duration-base);
+  $easing: var(--ease-standard);
+
+  @if map.has-key($options, duration) {
+    $duration: map.get($options, duration);
+  }
+  @if map.has-key($options, easing) {
+    $easing: map.get($options, easing);
+  }
+
+  $value: ();
+  @each $property in $properties {
+    $value: list.append($value, #{$property} $duration $easing, comma);
+  }
+
+  transition: $value;
+}
+
+/// Centres a box's children on both axes.
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/// Guarantees the minimum hit target, leaving a larger control its own size.
+@mixin tap-target {
+  min-width: var(--tap-target-min);
+  min-height: var(--tap-target-min);
+}
+
+/// Hides an element from the eye while keeping it in the accessibility tree,
+/// which `display: none` and `visibility: hidden` would not.
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/// Styles the heading over a group of settings controls.
+@mixin field-label {
+  display: block;
+  font-size: var(--font-sm);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-3);
+}
+
+/// Styles a bordered radio a player picks between, such as a card back, a deck
+/// or a game's variant; the caller lays out what it holds.
+@mixin swatch-option {
+  @include transition(background, border-color, color);
+  display: flex;
+  background: var(--wash-faint);
+  border: 2px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  cursor: pointer;
+  color: var(--text-muted);
+
+  &:hover {
+    background: var(--wash-subtle);
+    border-color: var(--border-strong);
+  }
+
+  &[aria-checked="true"] {
+    background: var(--accent-wash);
+    border-color: var(--accent);
+    color: var(--text-bright);
+  }
+}
+
+/// Styles a borderless button whose whole content is an icon or a glyph.
+@mixin icon-button($radius: var(--radius-md)) {
+  @include flex-center;
+  @include tap-target;
+  @include transition(color, background);
+  background: transparent;
+  border: none;
+  border-radius: $radius;
+  color: var(--text-muted);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--wash-soft);
+    color: var(--text-bright);
+  }
+}
+
+/// Draws a turning ring to say something is on its way.
+@mixin spinner-ring($size, $thickness: 2.5px) {
+  @include flex-center;
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+  border: $thickness solid var(--wash-medium);
+  border-top-color: var(--accent-light);
+  animation: spin 1s linear infinite;
+}
+
+/// Styles a bordered panel sitting on a modal's surface.
+@mixin panel-card($padding: var(--space-5)) {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: $padding;
+}

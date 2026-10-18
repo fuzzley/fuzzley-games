@@ -1,0 +1,7 @@
+// The only stylesheet loaded outside a component, holding what cannot be
+// scoped to one: the tokens, the document reset, the focus ring, the buttons
+// and every `@keyframes`. A rule matching one component's markup belongs there.
+@use "tokens";
+@use "base";
+@use "buttons";
+@use "animations";

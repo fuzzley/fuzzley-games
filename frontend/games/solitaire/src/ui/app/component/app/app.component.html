@@ -1,0 +1,15 @@
+<!--
+  A <main> landmark, so a screen reader can jump to the board rather than only
+  to the chrome around it.
+-->
+<main class="board-area">
+  <router-outlet />
+</main>
+<div class="ui-overlay">
+  <app-header-bar (openSettings)="openSettings()" />
+  <app-game-browser />
+  <app-settings-drawer [open]="showSettings()" (closed)="closeSettings()" />
+  <app-game-help-modal />
+  <app-victory-overlay />
+  <app-confirmation-dialog />
+</div>
