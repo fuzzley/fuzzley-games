@@ -99,7 +99,7 @@ describe("copyBuild", () => {
   it("refuses a workspace that hasn't been built", () => {
     expect(() => {
       copyBuild(build, gameDir);
-    }).toThrow("Run `yarn build:apps` to build it.");
+    }).toThrow("Run `yarn build:apps` in frontend/ to build it.");
   });
 
   it("leaves the game's folder alone when there is nothing to copy", () => {

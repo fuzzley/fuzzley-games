@@ -44,9 +44,9 @@ than from a separate class, so the look and the announcement cannot disagree.
   the home page's search status does, and put every outcome in it, the
   empty one ("No games match.") included.
 - Give icon-only buttons a screen-reader-only label with the global
-  `.visually-hidden` class in `frontend/src/app/styles/_shared.scss`, or,
+  `.visually-hidden` class in `frontend/site/src/app/styles/_shared.scss`, or,
   to hide it only at some widths, the `visually-hidden` mixin in
-  `frontend/src/app/styles/_a11y.scss`.
+  `frontend/site/src/app/styles/_a11y.scss`.
 
 ### 3. Focus Management & Modals
 
@@ -56,7 +56,7 @@ than from a separate class, so the look and the announcement cannot disagree.
 - Menus and pickers keep a logical tab order, support arrow key / Enter
   navigation, and hand focus back to the control that opened them when they
   close. Build them on Angular Aria (`@angular/aria`) rather than by hand:
-  the theme menu (`frontend/src/app/component/theme_menu/`) is an
+  the theme menu (`frontend/site/src/app/component/theme_menu/`) is an
   `ngMenuTrigger` button opening an `ngMenu` of `menuitemradio` items. Bind
   `aria-checked` yourself (Angular Aria sets the role, not the checked
   state), and give each item a `searchTerm`, or typing a name finds

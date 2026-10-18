@@ -8,7 +8,7 @@ import type * as GameModel from "../src/app/model/game.ts";
 import type * as GameData from "../src/app/provider/games.ts";
 import type * as Themes from "../src/app/provider/themes.ts";
 import { type GameBuild, isPinned, readManifest } from "./games.mjs";
-import { FRONTEND_DIR } from "./script.mjs";
+import { SITE_DIR } from "./script.mjs";
 
 /** Lists the site's games and what pictures of each the site shows. */
 export interface Catalog {
@@ -72,7 +72,7 @@ export function versionJson(): Plugin {
     apply: "build",
     generateBundle() {
       const { version } = JSON.parse(
-        readFileSync(path.join(FRONTEND_DIR, "package.json"), "utf8"),
+        readFileSync(path.join(SITE_DIR, "package.json"), "utf8"),
       ) as { version: string };
       const commit = commitHash();
       const buildInfo = {
@@ -145,9 +145,9 @@ export function servePlayPages(): Plugin {
  * the specs of `loadCatalog` and `loadThemeChoice` run it on every test.
  */
 async function importApp<T>(file: string): Promise<T> {
-  const { module } = await runnerImport<T>(path.join(FRONTEND_DIR, file), {
+  const { module } = await runnerImport<T>(path.join(SITE_DIR, file), {
     configFile: false,
-    root: FRONTEND_DIR,
+    root: SITE_DIR,
     logLevel: "silent",
   });
   return module;
@@ -265,7 +265,7 @@ export function checkGameImages(): Plugin {
     async buildStart() {
       const missing = missingImages(
         await loadCatalog(),
-        path.join(FRONTEND_DIR, "public"),
+        path.join(SITE_DIR, "public"),
       );
       if (missing.length > 0) {
         this.error(

@@ -9,7 +9,7 @@ it hosts are pinned and updated. The live site is https://fuzzley.games.
 - **Container Build**: Multi-stage Docker image, Node on Alpine for the build stage and nginx on Alpine for serving, both pinned by version and digest in the `Dockerfile`. Dependabot (`.github/dependabot.yml`) proposes new ones, and the npm packages and GitHub Actions, weekly, a day after their release.
 - **Node version**: `.node-version` names the major version the workflows run (26). The `Dockerfile` names its own image, and `verify.yml` fails if their major versions differ.
 - **Serving & SPA Routing**: Nginx automatically reads the Cloud Run `$PORT` variable via `/etc/nginx/templates/default.conf.template`. SPA client-side routes fall back to `index.html`, which browsers must revalidate (`no-cache`). Long-lived caching is applied to the fingerprinted files in `/assets/`.
-- **Games**: each game is built in its own repository and served as static files under `/play/<slug>/`, with no fallback to the site's `index.html`. See [Games](#games).
+- **Games**: each game is built here, in a workspace of its own, or in its own repository, and served as static files under `/play/<slug>/`, with no fallback to the site's `index.html`. See [Games](#games).
 - **Build info**: the build writes `version.json` (package version, short commit, build time, and the build of each game), served with `Cache-Control: no-store`, so the live site says which commit it is running.
 - **Runtime Configuration**: Environment variables such as `GA_AG_MEASUREMENT_ID` are injected at container startup into `/usr/share/nginx/html/env.js` via `/docker-entrypoint.d/40-generate-env-config.sh`, with `Cache-Control: no-store`. See [Runtime Configuration](#runtime-configuration).
 
@@ -47,31 +47,33 @@ Solitaire Collection is built in
 `/play/solitaire/`, which picks a game by hash route
 (`/play/solitaire/#/klondike`).
 
-`frontend/games.json` lists each game's build:
+`frontend/site/games.json` lists each game's build:
 
 - **A game built here** is a Yarn workspace under `frontend/apps/`, named by
-  its folder (`{ "workspace": "apps/minesweeper" }`). `yarn build:apps` runs
-  every workspace's `build`, and `frontend/tools/fetch-games.mjs` copies each
-  one's `dist/` into `frontend/public/play/<slug>/`. It goes live with the
-  push to `main` that changes it, like the site itself.
+  its folder in `frontend/` (`{ "workspace": "apps/minesweeper" }`).
+  `yarn build:apps` runs every one's `build`, and
+  `frontend/site/tools/fetch-games.mjs` copies each one's `dist/` into
+  `frontend/site/public/play/<slug>/`. It goes live with the push to `main`
+  that changes it, like the site itself.
 - **A game built in its own repository** is pinned to one archive, by name
   and SHA-256. Every push to that repository's `main` builds the game and
   uploads the build to its `site-build` release as
   `<slug>-<short sha>.tar.gz`, then replaces `latest.json` there, which names
   the newest archive. `fetch-games.mjs` downloads each pinned archive (cached
-  in `node_modules/.cache/games/`), checks its SHA-256 and unpacks it into
-  `frontend/public/play/<slug>/`.
+  in `frontend/site/node_modules/.cache/games/`), checks its SHA-256 and
+  unpacks it into `frontend/site/public/play/<slug>/`.
 
-git ignores `frontend/public/play/`. `yarn start` and `yarn build` build the
-workspaces and run `fetch-games.mjs` first, so the Docker build makes and
-fetches the games too. `frontend/tools/inject-analytics.mjs` then adds the
-site's `env.js` and `analytics.js` tags to each game's `index.html` in
-`dist/`, since the games carry no analytics code of their own.
+git ignores `frontend/site/public/play/`. `yarn start` and `yarn build`, run
+from `frontend/`, build the workspaces, and the site's own `start` and
+`build` run `fetch-games.mjs` before Vite, so the Docker build makes and
+fetches the games too. `frontend/site/tools/inject-analytics.mjs` then adds
+the site's `env.js` and `analytics.js` tags to each game's `index.html` in
+`frontend/site/dist/`, since the games carry no analytics code of their own.
 `version.json` names each game's build: a pinned game's archive and commit,
 or a game built here by its workspace and the site's own commit.
 
-The site's catalog (`frontend/src/app/provider/games.ts`) names each hosted
-game's build and id, and shows the screenshots the build ships in
+The site's catalog (`frontend/site/src/app/provider/games.ts`) names each
+hosted game's build and id, and shows the screenshots the build ships in
 `docs/screenshots/<id>/`. The build fails if the catalog links a game the
 fetched build doesn't have, such as one renamed upstream.
 
@@ -157,12 +159,13 @@ anywhere with different configuration.
 
 ### How it works
 
-1. `frontend/public/env.js` ships a placeholder `window.__ENV = { GA_ID: "" }`
-   with no real values, which Vite copies into the build.
+1. `frontend/site/public/env.js` ships a placeholder
+   `window.__ENV = { GA_ID: "" }` with no real values, which Vite copies into
+   the build.
 2. On startup, `docker-entrypoint.d/40-generate-env-config.sh` (run
    automatically by the nginx base image) overwrites the served `env.js` from
    the container's environment variables.
-3. `frontend/index.html` loads `theme.js` (which picks the palette; the
+3. `frontend/site/index.html` loads `theme.js` (which picks the palette; the
    build makes it), then `env.js`, then `analytics.js`, the Google
    Analytics bootstrap, which initializes only when a measurement ID is
    present. With nothing set, the feature stays off — so local dev and

@@ -101,7 +101,7 @@ curl -s "$base/version.json" | grep -q "\"commit\": \"${commit::7}\"" ||
 # Each game in games.json is a static page of its own under /play/, never the
 # site's index.html, with its own fingerprinted assets/ folder.
 expect 404 /play/no-such-game/
-for slug in $(jq -r 'keys[]' frontend/games.json); do
+for slug in $(jq -r 'keys[]' frontend/site/games.json); do
   expect 200 "/play/$slug/"
   expect 301 "/play/$slug"
   expect 404 "/play/$slug/no-such-file.js"
@@ -127,7 +127,7 @@ for slug in $(jq -r 'keys[]' frontend/games.json); do
 
   # version.json names the build: a pinned game's archive, or for a game built
   # here, its workspace and the image's own commit.
-  build=$(jq -c --arg slug "$slug" '.[$slug]' frontend/games.json)
+  build=$(jq -c --arg slug "$slug" '.[$slug]' frontend/site/games.json)
   curl -s "$base/version.json" |
     jq -e --arg slug "$slug" --argjson build "$build" --arg commit "${commit::7}" \
       '.games[$slug] | if $build.asset then .asset == $build.asset

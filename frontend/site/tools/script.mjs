@@ -1,13 +1,19 @@
-// What the tools share: where the frontend is, and how they report.
+// What the tools share: where the site is, and how they report.
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-/** The frontend's folder, which every tool works in. */
-export const FRONTEND_DIR = path.resolve(
+/** The site's folder, which every tool works in. */
+export const SITE_DIR = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
+
+/**
+ * The workspace root, frontend/, which games.json's workspace paths are
+ * relative to, as `yarn workspaces list` prints them.
+ */
+export const WORKSPACE_ROOT = path.resolve(SITE_DIR, "..");
 
 /**
  * Returns a function that prints a line of progress under a script's name.

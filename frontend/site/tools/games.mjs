@@ -35,7 +35,7 @@ const manifestFile = new URL("../games.json", import.meta.url);
 
 /**
  * @typedef {object} WorkspaceBuild A build of a game in this repository.
- * @property {string} workspace Its folder in the frontend, such as
+ * @property {string} workspace Its folder in frontend/, such as
  *   "apps/minesweeper".
  */
 
@@ -49,7 +49,8 @@ const patterns = {
   sha256: /^[0-9a-f]{64}$/,
 };
 
-// The frontend's package.json makes every folder under apps/ a workspace.
+// frontend/package.json, the workspace root's, makes every folder under apps/
+// a workspace.
 const workspacePattern = /^apps\/[\w-]+$/;
 
 /**

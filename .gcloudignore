@@ -4,10 +4,8 @@
 
 # Node dependencies and build output
 node_modules/
-frontend/node_modules/
+frontend/**/node_modules/
 frontend/.yarn/
-frontend/dist/
-frontend/apps/*/node_modules/
-frontend/apps/*/dist/
-frontend/public/play/
+frontend/**/dist/
+frontend/site/public/play/
 backend/

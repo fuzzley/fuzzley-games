@@ -12,22 +12,23 @@ with Vitest through the AnalogJS Vite plugin.
 
 Run from `frontend/`:
 
-- **Run Tests**: `yarn test` (a single pass).
+- **Run Tests**: `yarn test` (a single pass, of every workspace's specs);
+  `yarn workspace site test` runs only the site's.
 - **Full Check**: `yarn verify` (lint, type-check, test, then build), which is
   what CI runs. Vitest strips types without checking them; `yarn typecheck`
   is what type-checks the specs.
 
 ## Setup
 
-Vitest is configured in the `test` block of `frontend/vite.config.ts`, as two
-projects:
+Vitest is configured in the `test` block of `frontend/site/vite.config.ts`, as
+two projects:
 
 - **`app`**: every `*.spec.ts` under `src/`, in `jsdom`, with the Angular
-  plugin and `frontend/src/test-setup.ts`, which starts Angular's test
+  plugin and `frontend/site/src/test-setup.ts`, which starts Angular's test
   environment and loads jest-dom's matchers.
 - **`tools`**: every `*.spec.ts` under `tools/`, in Node, for the build
-  scripts and Vite plugins. `yarn vitest run --project tools` runs only
-  these.
+  scripts and Vite plugins. `yarn workspace site vitest run --project tools`
+  runs only these.
 
 A spec sits beside the file it tests, named after it.
 
@@ -72,10 +73,10 @@ it("hides the items that do not match a search", () => {
   `toBeInTheDocument`, `toHaveTextContent`).
 - Get a service with `TestBed.inject(...)`.
 - A spec that touches the games provides `provideTestCatalog()` from
-  `frontend/src/app/testing/catalog.ts` and asserts on `TEST_CATALOG`'s
+  `frontend/site/src/app/testing/catalog.ts` and asserts on `TEST_CATALOG`'s
   games, never the site's own list, so adding a game breaks no spec. Rules
   every real entry must keep (unique slugs, real dates) are checked in
-  `frontend/src/app/provider/games.spec.ts`, without counting anything.
+  `frontend/site/src/app/provider/games.spec.ts`, without counting anything.
 - Change detection is zoneless. `render` and user-event's actions leave the
   template up to date; an effect in a service runs on `TestBed.tick()`.
 - jsdom keeps one document for a whole spec file, so reset any browser state a
