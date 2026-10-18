@@ -1,21 +1,22 @@
-// Fetches the games pinned in games.json into public/play/<slug>/, which Vite
-// copies into the build and nginx serves at /play/<slug>/.
+// Puts the games games.json lists into public/play/<slug>/, which Vite copies
+// into the build and nginx serves at /play/<slug>/.
 //
-// Each game is built and released by its own repository (see games.mjs). This
-// downloads each pinned archive once, keeps it in node_modules/.cache/games/,
-// checks its SHA-256, and unpacks it in place of whatever was in the game's
-// folder. A game whose installed copy already matches its pin is left alone,
-// so running this again is quick, and a folder under public/play/ that
-// games.json no longer pins is deleted.
+// A game built here is copied from its workspace's dist/, which
+// `yarn build:apps` makes, every time. A game released by its own repository
+// (see games.mjs) is fetched: this downloads each pinned archive once, keeps
+// it in node_modules/.cache/games/, checks its SHA-256, and unpacks it in
+// place of whatever was in the game's folder. A game whose installed copy
+// already matches its pin is left alone, so running this again is quick. A
+// folder under public/play/ that games.json no longer lists is deleted.
 //
 //   node tools/fetch-games.mjs [--optional] [--force]
 //
-//   --optional  Warn instead of failing when a game can't be fetched, so
-//               `yarn start` still starts offline.
-//   --force     Download and unpack every game again.
+//   --optional  Warn instead of failing when a game can't be fetched or
+//               copied, so `yarn start` still starts offline.
+//   --force     Download and unpack every pinned game again.
 //
-// `yarn start` and `yarn build` run it first, so the Docker build fetches the
-// games too.
+// `yarn start` and `yarn build` build the workspaces and run it first, so the
+// Docker build fetches the games too.
 
 import { createHash } from "node:crypto";
 import fs from "node:fs";
@@ -23,10 +24,10 @@ import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { parseArgs } from "node:util";
 import * as tar from "tar";
-import { readManifest, releaseUrl } from "./games.mjs";
+import { isPinned, readManifest, releaseUrl } from "./games.mjs";
 import { FRONTEND_DIR, errorMessage, logger } from "./script.mjs";
 
-/** @import { GameBuild } from "./games.mjs" */
+/** @import { GameBuild, PinnedBuild } from "./games.mjs" */
 
 const playDir = path.join(FRONTEND_DIR, "public", "play");
 const cacheDir = path.join(FRONTEND_DIR, "node_modules", ".cache", "games");
@@ -96,7 +97,7 @@ export async function download(
 /**
  * Returns the path of the pinned archive, downloading it if needed.
  *
- * @param {GameBuild} game
+ * @param {PinnedBuild} game
  * @returns {Promise<string>}
  */
 async function archiveFor(game) {
@@ -128,7 +129,7 @@ async function archiveFor(game) {
  * Unpacks a game's pinned archive into its folder, replacing what was there.
  *
  * @param {string} slug
- * @param {GameBuild} game
+ * @param {PinnedBuild} game
  */
 async function install(slug, game) {
   const gameDir = path.join(playDir, slug);
@@ -142,8 +143,24 @@ async function install(slug, game) {
 }
 
 /**
+ * Copies a workspace's build into a game's folder, replacing what was there.
+ *
+ * @param {string} build The workspace's dist/.
+ * @param {string} gameDir
+ */
+export function copyBuild(build, gameDir) {
+  if (!fs.existsSync(path.join(build, "index.html"))) {
+    throw new Error(
+      `${build} has no index.html. Run \`yarn build:apps\` to build it.`,
+    );
+  }
+  fs.rmSync(gameDir, { recursive: true, force: true });
+  fs.cpSync(build, gameDir, { recursive: true });
+}
+
+/**
  * Deletes the folders in a games directory, such as public/play/, that
- * games.json doesn't pin.
+ * games.json doesn't list.
  *
  * @param {string} dir
  * @param {Record<string, GameBuild>} manifest
@@ -155,7 +172,7 @@ export function removeUnpinned(dir, manifest, installed) {
     if (entry.name in manifest) continue;
     fs.rmSync(path.join(dir, entry.name), { recursive: true, force: true });
     delete installed[entry.name];
-    log(`removed ${entry.name}, which games.json no longer pins`);
+    log(`removed ${entry.name}, which games.json no longer lists`);
   }
 }
 
@@ -174,6 +191,22 @@ async function main() {
   removeUnpinned(playDir, manifest, installed);
 
   for (const [slug, game] of Object.entries(manifest)) {
+    if (!isPinned(game)) {
+      // Its build changes without its entry changing, so there is no
+      // installed copy to trust.
+      delete installed[slug];
+      try {
+        copyBuild(
+          path.join(FRONTEND_DIR, game.workspace, "dist"),
+          path.join(playDir, slug),
+        );
+        log(`copied ${slug} from ${game.workspace}`);
+      } catch (error) {
+        failures.push(`${slug}: ${errorMessage(error)}`);
+      }
+      continue;
+    }
+
     const name = `${slug} (${game.asset})`;
     if (
       installed[slug] === game.sha256 &&

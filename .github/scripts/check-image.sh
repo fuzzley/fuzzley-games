@@ -98,8 +98,8 @@ curl -s "$base/env.js" | grep -q '"G-CHECK00000"' ||
 curl -s "$base/version.json" | grep -q "\"commit\": \"${commit::7}\"" ||
   fail "version.json doesn't name commit ${commit::7}."
 
-# Each game pinned in games.json is a static page of its own under /play/,
-# never the site's index.html, with its own fingerprinted assets/ folder.
+# Each game in games.json is a static page of its own under /play/, never the
+# site's index.html, with its own fingerprinted assets/ folder.
 expect 404 /play/no-such-game/
 for slug in $(jq -r 'keys[]' frontend/games.json); do
   expect 200 "/play/$slug/"
@@ -125,11 +125,15 @@ for slug in $(jq -r 'keys[]' frontend/games.json); do
     expect_security_headers "/play/$slug/$game_asset"
   fi
 
-  pinned=$(jq -r --arg slug "$slug" '.[$slug].asset' frontend/games.json)
+  # version.json names the build: a pinned game's archive, or for a game built
+  # here, its workspace and the image's own commit.
+  build=$(jq -c --arg slug "$slug" '.[$slug]' frontend/games.json)
   curl -s "$base/version.json" |
-    jq -e --arg slug "$slug" --arg asset "$pinned" \
-      '.games[$slug].asset == $asset' > /dev/null ||
-    fail "version.json doesn't name $pinned for $slug."
+    jq -e --arg slug "$slug" --argjson build "$build" --arg commit "${commit::7}" \
+      '.games[$slug] | if $build.asset then .asset == $build.asset
+        else .workspace == $build.workspace and .commit == $commit end' \
+      > /dev/null ||
+    fail "version.json doesn't name the build of $slug that games.json lists: $build."
 done
 
 [ "$failed" = 0 ] || docker logs games

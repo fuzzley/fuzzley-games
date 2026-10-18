@@ -1,9 +1,9 @@
 // Adds the site's analytics tags to the games in the build output.
 //
-// The pages under public/play/<slug>/ are production builds of the games'
-// own repositories, fetched from their releases by fetch-games.mjs. Those
-// repositories carry no analytics code, so the tags are added here instead,
-// after `vite build`, to the copies in dist/, never to the fetched files in
+// The pages under public/play/<slug>/ are production builds of the games, put
+// there by fetch-games.mjs from their workspaces or their repositories'
+// releases. The games carry no analytics code, so the tags are added here
+// instead, after `vite build`, to the copies in dist/, never to the files in
 // public/.
 //
 // Run as part of `yarn build`. Safe to re-run: a page that already has the

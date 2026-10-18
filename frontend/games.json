@@ -1,9 +1,6 @@
 {
   "minesweeper": {
-    "repo": "fuzzley/fMinesweeper",
-    "commit": "46ebfa93543efc05776ffcdc1bbc9990c4669c90",
-    "asset": "minesweeper-46ebfa9.tar.gz",
-    "sha256": "0c89d05e627c0da3e2c41a393c97108bbc7d488f3907cedfcc676a72854c0103"
+    "workspace": "apps/minesweeper"
   },
   "solitaire": {
     "repo": "fuzzley/fSolitaire",
