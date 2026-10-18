@@ -1,6 +1,6 @@
 ---
 name: phaser-canvas-performance
-description: Canvas profiling, texture memory management, garbage collection reduction, frame-budgeting (60 FPS), object pooling, and WebGL batching in Phaser 4 for fSolitaire. Triggers on: canvas performance, 60fps, frame rate, profiling, garbage collection, memory leak, texture atlas, draw calls, object pool.
+description: Canvas profiling, texture memory management, garbage collection reduction, frame-budgeting (60 FPS), object pooling, and WebGL batching in Phaser 4 for the Solitaire Collection. Triggers on: canvas performance, 60fps, frame rate, profiling, garbage collection, memory leak, texture atlas, draw calls, object pool.
 ---
 
 # Phaser 4 Canvas Performance & Profiling

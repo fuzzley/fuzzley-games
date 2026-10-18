@@ -1,6 +1,6 @@
 ---
 name: add-solitaire-game
-description: Add a solitaire game or a rule variant to fSolitaire — deciding between a new catalog entry and a variant option, the files to write and register, the shared pieces to build a board out of instead of hand-rolling, and which layer new code is allowed to live in.
+description: Add a solitaire game or a rule variant to the Solitaire Collection — deciding between a new catalog entry and a variant option, the files to write and register, the shared pieces to build a board out of instead of hand-rolling, and which layer new code is allowed to live in.
 ---
 
 # Adding a solitaire game
@@ -500,9 +500,9 @@ card at a time. Pass a fixed `random` and, where it sharpens the test, a short
 through the public API rather than counting calls. See the `vitest-testing`
 skill; UI-side specs use `configureUiTestBed` from `test/support/ui`.
 
-Then `yarn verify` (lint → tsc → build → test). `yarn lint` runs
-`yarn skills:check` first, so a skill naming a path you have moved fails here
-too.
+Then `yarn verify` from `frontend/` (lint → typecheck → test → build, for
+every workspace). `yarn lint` runs `yarn skills:check` first, so a skill
+naming a path you have moved fails here too.
 
 ---
 

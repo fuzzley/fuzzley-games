@@ -1,17 +1,15 @@
 #!/usr/bin/env node
-// Checks that the skills under `.agents/skills` still describe the repository
-// as it is: every relative markdown link resolves, and every backticked repo
-// path exists.
+// Checks that the skills, the repository's under `.agents/skills` and each
+// workspace's under its own, still describe the code as it is: every relative
+// markdown link resolves, and every backticked path exists.
 //
 // Usage: node .agents/check-skill-references.mjs
 
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { REPO_ROOT, skillRoots } from "./skill-roots.mjs";
 
-const AGENTS_DIR = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.dirname(AGENTS_DIR);
-const SKILLS_DIR = path.join(AGENTS_DIR, "skills");
+/** @import { SkillRoot } from "./skill-roots.mjs" */
 
 // Skills whose backticked paths point into another project's source tree: the
 // vendored Angular ones.
@@ -19,8 +17,17 @@ const SKILLS_DIR = path.join(AGENTS_DIR, "skills");
 // A skill about this repository needs no entry here, so it is checked.
 const UPSTREAM_SKILLS = new Set(["angular-developer", "angular-new-app"]);
 
-// A backticked token is treated as a repo path when it starts with one of
-// these. Anything else in backticks is prose, an identifier, or a command.
+// The Solitaire Collection's Phaser skills are generated from Phaser's
+// documentation and cite its source tree, all but these two, which were
+// written for the game and cite its own.
+const PHASER_SKILLS_WRITTEN_HERE = new Set([
+  "phaser-core",
+  "phaser-canvas-performance",
+]);
+
+// In the repository's skills, a backticked token is treated as a path when it
+// starts with one of these. Anything else in backticks is prose, an
+// identifier, or a command.
 const REPO_PREFIXES = [
   "frontend/",
   "backend/",
@@ -39,6 +46,18 @@ const ROOT_FILES = new Set([
 ]);
 
 /**
+ * Returns whether a skill cites another project's source tree, so its paths
+ * aren't checked.
+ *
+ * @param {string} name
+ * @returns {boolean}
+ */
+function isUpstream(name) {
+  if (UPSTREAM_SKILLS.has(name)) return true;
+  return name.startsWith("phaser-") && !PHASER_SKILLS_WRITTEN_HERE.has(name);
+}
+
+/**
  * Returns every markdown file under a directory.
  *
  * @param {string} dir
@@ -53,7 +72,8 @@ function markdownFilesIn(dir) {
 }
 
 /**
- * Returns whether a path exists, where its last part may be a `*` glob.
+ * Returns whether a path exists, where its last part may be a `*` glob, as in
+ * the Solitaire Collection's atlas page imports.
  *
  * @param {string} candidate
  * @returns {boolean}
@@ -70,6 +90,34 @@ function pathExists(candidate) {
       .replace(/\*/g, ".*")}$`,
   );
   return fs.readdirSync(dir).some((name) => pattern.test(name));
+}
+
+/**
+ * Returns the folders a backticked token may be a path in, none if it is
+ * prose, an identifier or a command.
+ *
+ * The repository's skills cite paths from its root. A workspace's cite paths
+ * from the workspace's folder, when the first part names something at its top
+ * level (`src/`, `vite.config.ts`), or from the repository's root. Where both
+ * readings fit, as `.agents/` and `docs/` can, either folder may hold it.
+ *
+ * @param {string} candidate
+ * @param {SkillRoot} root
+ * @param {Set<string>} topLevel The names at the top of the root's base.
+ * @returns {string[]}
+ */
+function foldersOfPath(candidate, root, topLevel) {
+  const folders = [];
+  if (root.base !== REPO_ROOT && topLevel.has(candidate.split("/")[0] ?? "")) {
+    folders.push(root.base);
+  }
+  if (
+    REPO_PREFIXES.some((prefix) => candidate.startsWith(prefix)) ||
+    ROOT_FILES.has(candidate)
+  ) {
+    folders.push(REPO_ROOT);
+  }
+  return folders;
 }
 
 /**
@@ -91,25 +139,24 @@ function checkRelativeLinks(file, text, problems) {
 }
 
 /**
- * Adds a problem for each backticked repository path in a file that does not
- * exist.
+ * Adds a problem for each backticked path in a file that does not exist.
  *
  * @param {string} file
  * @param {string} text The file's contents.
+ * @param {SkillRoot} root
+ * @param {Set<string>} topLevel The names at the top of the root's base.
  * @param {string[]} problems
  */
-function checkRepoPaths(file, text, problems) {
+function checkPaths(file, text, root, topLevel, problems) {
   for (const [, token] of text.matchAll(/`([^`\n]+)`/g)) {
     const candidate = token.trim().replace(/[.,;:)]+$/, "");
-    const looksLikeRepoPath =
-      REPO_PREFIXES.some((prefix) => candidate.startsWith(prefix)) ||
-      ROOT_FILES.has(candidate);
-    if (!looksLikeRepoPath) continue;
-    // Skip prose and placeholder paths -- `frontend/src/app/component/<name>/`
-    // names a shape, not a file, and is meant to stand for any of them.
+    // Skip prose and placeholder paths -- `src/games/<variant>/` names a
+    // shape, not a file, and is meant to stand for any of them.
     if (/[\s<>]/.test(candidate)) continue;
+    const folders = foldersOfPath(candidate, root, topLevel);
+    if (folders.length === 0) continue;
 
-    if (!pathExists(path.join(REPO_ROOT, candidate))) {
+    if (!folders.some((folder) => pathExists(path.join(folder, candidate)))) {
       problems.push(
         `${path.relative(REPO_ROOT, file)}: no such path -> ${candidate}`,
       );
@@ -119,15 +166,18 @@ function checkRepoPaths(file, text, problems) {
 
 /** @type {string[]} */
 const problems = [];
-for (const entry of fs.readdirSync(SKILLS_DIR, { withFileTypes: true })) {
-  if (!entry.isDirectory()) continue;
-  const skillDir = path.join(SKILLS_DIR, entry.name);
+for (const root of skillRoots()) {
+  const topLevel = new Set(fs.readdirSync(root.base));
+  for (const entry of fs.readdirSync(root.skills, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const skillDir = path.join(root.skills, entry.name);
 
-  for (const file of markdownFilesIn(skillDir)) {
-    const text = fs.readFileSync(file, "utf8");
-    checkRelativeLinks(file, text, problems);
-    if (!UPSTREAM_SKILLS.has(entry.name)) {
-      checkRepoPaths(file, text, problems);
+    for (const file of markdownFilesIn(skillDir)) {
+      const text = fs.readFileSync(file, "utf8");
+      checkRelativeLinks(file, text, problems);
+      if (!isUpstream(entry.name)) {
+        checkPaths(file, text, root, topLevel, problems);
+      }
     }
   }
 }

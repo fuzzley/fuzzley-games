@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-// Links each skill in `.agents/skills` into `.claude/skills`, where Claude Code
-// discovers skills, using a junction on Windows.
+// Links each skill in `.agents/skills` into `.claude/skills` beside it, where
+// Claude Code discovers skills, using a junction on Windows: the repository's
+// own, and each workspace's, which Claude Code loads once it works on a file
+// in that workspace.
 //
 // The links hold absolute paths, so re-run this script after the repository
 // moves or is cloned.
@@ -9,12 +11,9 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { REPO_ROOT, skillRoots } from "./skill-roots.mjs";
 
-const AGENTS_DIR = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.dirname(AGENTS_DIR);
-const SOURCE_DIR = path.join(AGENTS_DIR, "skills");
-const TARGET_DIR = path.join(REPO_ROOT, ".claude", "skills");
+/** @import { SkillRoot } from "./skill-roots.mjs" */
 
 /**
  * The skills a run linked, left alone or skipped, by what happened to each.
@@ -85,14 +84,16 @@ function isLink(linkPath) {
 }
 
 /**
- * Links a skill into `.claude/skills`, or repairs its link, and records which.
+ * Links a skill into its `.claude/skills`, or repairs its link, and records
+ * which.
  *
+ * @param {SkillRoot} root
  * @param {string} name
  * @param {LinkResults} results
  */
-function linkSkill(name, results) {
-  const target = path.join(SOURCE_DIR, name);
-  const linkPath = path.join(TARGET_DIR, name);
+function linkSkill(root, name, results) {
+  const target = path.join(root.skills, name);
+  const linkPath = path.join(claudeSkillsOf(root), name);
 
   if (fs.existsSync(linkPath) || isLink(linkPath)) {
     if (!isLink(linkPath)) {
@@ -119,12 +120,14 @@ function linkSkill(name, results) {
  *
  * Real directories are never touched.
  *
+ * @param {SkillRoot} root
  * @param {string[]} skills
  * @param {LinkResults} results
  */
-function pruneStaleLinks(skills, results) {
-  for (const entry of fs.readdirSync(TARGET_DIR, { withFileTypes: true })) {
-    const linkPath = path.join(TARGET_DIR, entry.name);
+function pruneStaleLinks(root, skills, results) {
+  const dir = claudeSkillsOf(root);
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const linkPath = path.join(dir, entry.name);
     if (skills.includes(entry.name) || !isLink(linkPath)) continue;
 
     const target = readLinkTarget(linkPath) ?? "";
@@ -137,54 +140,71 @@ function pruneStaleLinks(skills, results) {
   }
 }
 
+/**
+ * Returns the `.claude/skills` folder a folder of skills is linked into.
+ *
+ * @param {SkillRoot} root
+ * @returns {string}
+ */
+function claudeSkillsOf(root) {
+  return path.join(root.base, ".claude", "skills");
+}
+
+/**
+ * Links one folder of skills, and reports what it did.
+ *
+ * @param {SkillRoot} root
+ * @returns {number} How many skills the folder has.
+ */
+function linkRoot(root) {
+  fs.mkdirSync(claudeSkillsOf(root), { recursive: true });
+
+  const skills = discoverSkills(root.skills);
+  /** @type {LinkResults} */
+  const results = {
+    created: [],
+    repaired: [],
+    current: [],
+    pruned: [],
+    conflicts: [],
+    foreign: [],
+  };
+
+  for (const name of skills) linkSkill(root, name, results);
+  pruneStaleLinks(root, skills, results);
+
+  console.log(`${path.relative(REPO_ROOT, claudeSkillsOf(root))}:`);
+  /** @type {[string, string[]][]} */
+  const report = [
+    ["linked", results.created],
+    ["repaired", results.repaired],
+    ["already current", results.current],
+    ["pruned stale", results.pruned],
+  ];
+  for (const [label, names] of report) {
+    if (names.length)
+      console.log(`  ${label} (${names.length}): ${names.join(", ")}`);
+  }
+  for (const name of results.conflicts) {
+    console.warn(
+      `  skipped ${name}: a real directory, not a link -- remove it to link the skill`,
+    );
+  }
+  for (const name of results.foreign) {
+    console.warn(
+      `  left ${name}: links outside .agents, so this script does not own it`,
+    );
+  }
+  return skills.length;
+}
+
 const LINK_TYPE = process.platform === "win32" ? "junction" : "dir";
 
-if (!fs.existsSync(SOURCE_DIR)) {
-  console.error(`No skills directory at ${SOURCE_DIR}`);
-  process.exit(1);
-}
+let total = 0;
+for (const root of skillRoots()) total += linkRoot(root);
 
-fs.mkdirSync(TARGET_DIR, { recursive: true });
-
-const skills = discoverSkills(SOURCE_DIR);
-/** @type {LinkResults} */
-const results = {
-  created: [],
-  repaired: [],
-  current: [],
-  pruned: [],
-  conflicts: [],
-  foreign: [],
-};
-
-for (const name of skills) linkSkill(name, results);
-pruneStaleLinks(skills, results);
-
-/** @type {[string, string[]][]} */
-const report = [
-  ["linked", results.created],
-  ["repaired", results.repaired],
-  ["already current", results.current],
-  ["pruned stale", results.pruned],
-];
-for (const [label, names] of report) {
-  if (names.length)
-    console.log(`${label} (${names.length}): ${names.join(", ")}`);
-}
-for (const name of results.conflicts) {
-  console.warn(
-    `skipped ${name}: a real directory, not a link -- remove it to link the skill`,
-  );
-}
-for (const name of results.foreign) {
-  console.warn(
-    `left ${name}: links outside .agents, so this script does not own it`,
-  );
-}
-
+console.log(`
+${total} skill(s) available to Claude Code`);
 console.log(
-  `\n${skills.length} skill(s) available to Claude Code at .claude/skills`,
-);
-console.log(
-  "Restart Claude Code if .claude/skills did not exist when the session started.",
+  "Restart Claude Code if the repository's .claude/skills did not exist when the session started.",
 );

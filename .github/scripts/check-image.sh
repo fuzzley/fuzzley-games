@@ -107,7 +107,7 @@ for slug in $(jq -r 'keys[]' frontend/site/games.json); do
   expect_cache "/play/$slug/" "no-cache"
   expect_security_headers "/play/$slug/"
   [ -z "$(header "/play/$slug/" content-security-policy)" ] ||
-    fail "/play/$slug/ carries the site's Content Security Policy, which can't vouch for a game."
+    fail "/play/$slug/ carries the site's Content Security Policy, which isn't written for a game."
 
   page=$(curl -s "$base/play/$slug/")
   grep -q '<title>Fuzzley Games</title>' <<< "$page" &&

@@ -1,11 +1,11 @@
 ---
 name: phaser-core
-description: Master skill for Phaser 4 canvas rendering, scene lifecycles, texture atlas creation, card drag mathematics, and canvas performance optimization in fSolitaire. Overview of all phaser-* skills.
+description: Master skill for Phaser 4 canvas rendering, scene lifecycles, texture atlas creation, card drag mathematics, and canvas performance optimization in the Solitaire Collection. Overview of all phaser-* skills.
 ---
 
 # Phaser 4 Rendering & Scene Master Skill
 
-This skill governs Phaser 4 canvas integration within fSolitaire. Phaser 4 is isolated in `src/engine/render/phaser` so that game logic stays framework-agnostic.
+This skill governs Phaser 4 canvas integration within the Solitaire Collection. Phaser 4 is isolated in `src/engine/render/phaser` so that game logic stays framework-agnostic.
 
 ## Key Architectural Principles
 

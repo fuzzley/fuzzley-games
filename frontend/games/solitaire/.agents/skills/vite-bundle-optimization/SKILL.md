@@ -1,11 +1,11 @@
 ---
 name: vite-bundle-optimization
-description: Vite configuration, the Phaser manual chunk, the card texture atlas toolchain (build-card-atlas.mjs), and what makes the subdirectory deploy work for fSolitaire. Triggers on: vite, bundle, chunk, vite.config, build:atlas, atlas generation, rollup, manualChunks, base href.
+description: Vite configuration, the Phaser manual chunk, the card texture atlas toolchain (build-card-atlas.mjs), and what makes the subdirectory deploy work for the Solitaire Collection. Triggers on: vite, bundle, chunk, vite.config, build:atlas, atlas generation, rollup, manualChunks, base href.
 ---
 
 # Vite Build System & Texture Atlas Toolchain
 
-> Build setup, chunking, and card atlas generation for fSolitaire.
+> Build setup, chunking, and card atlas generation for the Solitaire Collection.
 
 ## Commands
 
@@ -45,8 +45,9 @@ no `build.target` of its own.
 
 ## The Subdirectory Deploy
 
-Two settings exist solely because the built app is copied into
-`/projects/solitaire/play/` on another static host:
+Two settings exist solely because the site copies the built app into
+`/play/solitaire/`, a static folder that nginx serves as it is, without
+rewriting paths:
 
 - **`base: "./"`** in `vite.config.ts`, so emitted asset URLs are relative and
   do not assume the site root.

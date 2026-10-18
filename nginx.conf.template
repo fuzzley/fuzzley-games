@@ -28,7 +28,7 @@ server {
     }
 
     # The games, each built here or fetched from its own repository's release
-    # (see frontend/site/games.json). They are static pages, not Angular
+    # (see frontend/site/games.json), as the site's build put them. They are static pages, not Angular
     # routes, so a missing file is a 404 rather than the site's index.html.
     # Like the site, each fingerprints its assets/ folder, and browsers check
     # back before reusing anything else.
