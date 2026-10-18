@@ -95,10 +95,10 @@ is enabled under Actions.
 - **Add a game built here:** give it a folder under `frontend/games/` with a
   `package.json`, named after the folder, whose `build` script writes
   `dist/`, with `index.html` at its top level and its screenshots in
-  `docs/screenshots/<id>/`. Copy that `package.json` in the `Dockerfile`
-  before the install, run `yarn install`,
-  add `{ "workspace": "games/<folder>" }` to `games.json`, and list its games
-  in the catalog.
+  `docs/screenshots/<id>/`. Run `yarn install`, add
+  `{ "workspace": "games/<folder>" }` to `games.json`, and list its games in
+  the catalog. The `Dockerfile` copies all of `frontend/`, so it needs no
+  change.
 - **Add a game built in its own repository:** give its repository a deploy job
   like fSolitaire's, push once so its release exists, add its entry to
   `games.json` from its `latest.json`, and list its games in the catalog.

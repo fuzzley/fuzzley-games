@@ -9,26 +9,18 @@ ARG COMMIT_SHA
 ARG GITHUB_SHA
 ENV COMMIT_SHA=${COMMIT_SHA:-$GITHUB_SHA}
 
-WORKDIR /app
+WORKDIR /app/frontend
 
-# Copy package files, lock files, and yarnrc. Every workspace's package.json
-# has to be here before the install, or `--immutable` finds the lockfile out
-# of date.
-COPY frontend/package.json frontend/yarn.lock* frontend/.yarnrc.yml* ./frontend/
-COPY frontend/site/package.json ./frontend/site/
-COPY frontend/games/minesweeper/package.json ./frontend/games/minesweeper/
+# The whole frontend, so every workspace's package.json is here for the
+# install and a new workspace needs no line of its own. Copying the
+# package.json files first would let the install's layer outlive a change to
+# the code, but no build keeps this stage's layers: the workflows start
+# empty, and Cloud Build's --cache-from pulls only the final nginx image.
+COPY frontend/ ./
 
 # Install dependencies with Yarn 4 through Corepack, which Node 26 no longer
-# bundles.
-WORKDIR /app/frontend
+# bundles, then build the games and the site.
 RUN npm install -g corepack@0.36.0 && corepack enable && yarn install --immutable
-
-# Copy the rest of the frontend source code
-WORKDIR /app
-COPY frontend/ ./frontend/
-
-# Build the games, then the site
-WORKDIR /app/frontend
 RUN yarn build
 
 # Stage 2: Serve the application using Nginx
