@@ -230,7 +230,7 @@ Deployments are automated via GitHub Actions on every push to `main` (or manual 
      archive's name, SHA-256 and commit) and moves the `site-build` tag to the
      commit. It keeps the ten newest archives and the one fuzzley.games pins.
    - fuzzley.games (`fuzzley/fuzzley-games`) pins one archive in its
-     `frontend/games.json`, fetches it when it builds, and serves it at
+     `frontend/site/games.json`, fetches it when it builds, and serves it at
      https://fuzzley.games/play/solitaire/, where its dashboard links each
      game by its `#/<id>` route and shows the screenshots under
      `public/docs/screenshots/<id>/`. A scheduled workflow there moves the pin

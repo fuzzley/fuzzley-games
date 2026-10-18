@@ -106,7 +106,7 @@ jobs:
 
       # fuzzley.games fetches the game from here. The site-build release keeps
       # recent builds, each named after its commit; latest.json names the
-      # newest, and fuzzley/fuzzley-games pins one in frontend/games.json,
+      # newest, and fuzzley/fuzzley-games pins one in frontend/site/games.json,
       # which a scheduled workflow there moves to the newest every 15 minutes.
       - name: Publish the build to the site-build release
         env:
@@ -131,7 +131,7 @@ jobs:
           git push -f origin "refs/tags/$TAG"
           if ! gh release view "$TAG" > /dev/null 2>&1; then
             gh release create "$TAG" --latest=false --title "Site build" \
-              --notes "Production builds of the game for fuzzley.games, uploaded by the deploy workflow. Each archive is named after the commit it was built from, and latest.json names the newest. fuzzley/fuzzley-games pins one in frontend/games.json. The ten newest archives and the pinned one are kept."
+              --notes "Production builds of the game for fuzzley.games, uploaded by the deploy workflow. Each archive is named after the commit it was built from, and latest.json names the newest. fuzzley/fuzzley-games pins one in frontend/site/games.json. The ten newest archives and the pinned one are kept."
           fi
 
           # The archive goes up first, so latest.json never names a missing file.
@@ -141,7 +141,7 @@ jobs:
           # Keep the newest archives and the one fuzzley.games pins. If the pin
           # can't be read, keep everything rather than risk deleting it.
           status=$(curl -sS -o pinned.json -w '%{http_code}' \
-            https://raw.githubusercontent.com/fuzzley/fuzzley-games/main/frontend/games.json || echo 000)
+            https://raw.githubusercontent.com/fuzzley/fuzzley-games/main/frontend/site/games.json || echo 000)
           case "$status" in
             200) pinned=$(jq -r --arg slug "$SLUG" '.[$slug].asset // empty' pinned.json) ;;
             404) pinned="" ;;

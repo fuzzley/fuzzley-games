@@ -1,6 +1,6 @@
 {
   // The Node scripts under tools/ and .agents/, type-checked from their JSDoc.
-  // Node 22 is the oldest runtime package.json allows, so its types are the
+  // Node 26 is the oldest runtime package.json allows, so its types are the
   // ones installed.
   "compilerOptions": {
     "allowJs": true,
