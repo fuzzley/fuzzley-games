@@ -1,6 +1,6 @@
 {
-  // The Node scripts under tools/ and .agents/, type-checked from their JSDoc.
-  // Node 26 is the oldest runtime package.json allows, so its types are the
+  // The Node scripts under tools/, type-checked from their JSDoc. Node 26 is
+  // the oldest runtime frontend/package.json allows, so its types are the
   // ones installed.
   "compilerOptions": {
     "allowJs": true,
@@ -16,5 +16,5 @@
     "types": ["node"],
     "skipLibCheck": true
   },
-  "include": ["tools/**/*.mjs", ".agents/*.mjs"]
+  "include": ["tools/**/*.mjs"]
 }

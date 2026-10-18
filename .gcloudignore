@@ -9,3 +9,7 @@ frontend/.yarn/
 frontend/**/dist/
 frontend/site/public/play/
 backend/
+
+# The Solitaire Collection's lossless screenshots and design notes, which its
+# build doesn't read.
+frontend/games/solitaire/docs/

@@ -28,6 +28,8 @@ updates:
           - "stylelint*"
           - "prettier"
           - "vitest"
+          # The coverage provider has to stay on Vitest's own version.
+          - "@vitest/*"
           - "jsdom"
           - "@testing-library/*"
   - package-ecosystem: github-actions

@@ -8,3 +8,4 @@ backend
 *.md
 .gitignore
 frontend/.yarn
+frontend/games/solitaire/docs
