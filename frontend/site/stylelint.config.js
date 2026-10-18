@@ -4,7 +4,7 @@
 export default {
   extends: ["stylelint-config-standard-scss"],
   rules: {
-    // Colors come from the palette, read with var() (see .agents/AGENTS.md):
+    // Colors come from the palette, read with var() (see AGENTS.md):
     // a stylesheet spells out no color of its own.
     "color-no-hex": true,
     "color-named": "never",

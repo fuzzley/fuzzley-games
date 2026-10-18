@@ -8,11 +8,10 @@ Collection in its own repository.
 
 ## Technology Stack
 
-- **UI:** [Angular](https://angular.dev/) (standalone components, Signals,
-  zoneless change detection)
-- **Build Toolchain:** [Vite](https://vitejs.dev/) + [AnalogJS Vite Angular Plugin](https://analogjs.org/)
-- **Test Framework:** [Vitest](https://vitest.dev/) with jsdom
-- **Language:** TypeScript (ES2022 output target) / HTML / SCSS (Dart Sass)
+- **Site:** Angular, Vite and Vitest, in TypeScript and SCSS; see
+  `frontend/site/AGENTS.md`.
+- **Games built here:** each keeps its own stack; Minesweeper's is jQuery,
+  Knockout and Bootstrap 3, bundled by Vite.
 - **Package Manager:** Yarn 4 via Corepack, pinned in `frontend/package.json`
 - **Serving:** nginx in a Docker image, on Google Cloud Run
 
@@ -41,59 +40,13 @@ Collection in its own repository.
     No workspace imports another's code; the site takes a game's built
     `dist/`, through `games.json`, and nothing else.
   - `games/` holds the games built here, one workspace each, named after its
-    folder (see [Minesweeper](#minesweeper)). A game knows nothing of the
-    site: it builds into its own `dist/`, with `index.html` at its top
-    level and its screenshots in `docs/screenshots/<slug>/`.
-- **`frontend/site/`** — the site, the Angular app (workspace `site`). Paths
-  below are relative to it.
-  - `src/app/` is the application, laid out like fSolitaire's shell.
-    `main.ts` bootstraps it with the providers in `app.config.ts`, and
-    `routes.ts` declares the pages.
-  - `src/app/component/` holds one folder per component, named in snake_case
-    (`game_tile/game_tile.component.ts`), with its template and stylesheet.
-  - `src/app/model/` holds the types the site is built around, such as
-    `Game`, with the pure functions over them (a game's play address, its
-    screenshot, how its players and length read).
-  - `src/app/provider/` holds data and nothing else: the games
-    (`games.ts`), the categories and the palettes. A union of ids, such as `CategoryId`, is derived from its
-    list (`as const satisfies`), so the two can't disagree.
-  - `src/app/service/` holds the injectable services. `GameCatalog` answers
-    every question about the games (find, group, search, which are new);
-    components ask it rather than importing the data, and specs give it a
-    small catalog of their own through `CATALOG_DATA`. `ThemeService`
-    applies and remembers the palette.
-  - `src/app/testing/` holds what specs share, such as `TEST_CATALOG` and
-    `provideTestCatalog()`. The app's tsconfig leaves it out.
-  - `src/app/styles/` holds the one global stylesheet, `global.scss`, and
-    the Sass partials it and the components `@use`: `_palettes.scss` (the
-    color palettes as Sass maps, emitted as custom properties under
-    `[data-theme]`), `_breakpoints.scss` (`below(sm | md | lg | xl)`),
-    `_a11y.scss` (the `visually-hidden` mixin), `_shadows.scss`, `_base.scss`
-    (the reset and element defaults) and `_shared.scss` (the few classes
-    components share).
-  - Every spec sits beside the file it tests, named after it.
-  - `public/` is copied into the build as is, including the runtime config
-    placeholder `env.js` and `thumbnails/<slug>.svg`, the drawing of each
-    game still to come. A hosted game's thumbnail is its build's own
-    screenshot. The build fails if either is missing. The games are put
-    into `public/play/`, which git ignores.
-  - `games.json` lists each game's build: a workspace, by its folder in
-    `frontend/` (`games/minesweeper`), or one build pinned from its
-    repository's `site-build` release. `tools/` holds
-    the scripts that put the games in `public/play/` before every build
-    (`fetch-games.mjs`), move the pins (`update-games.mjs`), and add
-    the analytics tags to each game's page, with what they share in
-    `script.mjs`, and the site's Vite plugins in `vite-plugins.ts`. One of
-    them makes `/theme.js`, the first script `index.html` loads, which picks
-    the palette before the page paints, from `src/app/provider/themes.ts`,
-    so the page's list of palettes can't drift from the app's.
-    `docs/operations.md` covers the details.
-  - A script exports its logic as functions and runs only when it is the
-    file Node was started with (`if (import.meta.main)`), so
-    `tools/*.spec.ts` can import and test it. A dependency a test needs to
-    replace, such as `fetch`, is a parameter with the real one as default.
-  - `dist/` is the build the image serves: the site, with the games under
-    `play/`.
+    folder. A game knows nothing of the site: it builds into its own
+    `dist/`, with `index.html` at its top level and its screenshots in
+    `docs/screenshots/<slug>/`. Minesweeper's rules are in
+    `frontend/games/minesweeper/AGENTS.md`.
+- **`frontend/site/`** — the site, the Angular app (workspace `site`), and
+  the build the image serves, with the games under `/play/`. Its layout,
+  checks and rules are in `frontend/site/AGENTS.md`.
 - **`Dockerfile`, `nginx.conf.template`, `nginx/`, `docker-entrypoint.d/`** —
   the image that serves the build, its nginx config, the security header
   snippets it includes, and the startup script that writes `env.js` from the
@@ -101,79 +54,6 @@ Collection in its own repository.
 - **`docs/operations.md`** — how the site is built, served, deployed and
   configured, and how the games are pinned and updated. `README.md` is only a
   short summary for GitHub.
-
-### Angular & Styling
-
-- **Templates bind, they do not compute.** Expose a `computed()` view model
-  instead of calling a method from a template, which re-runs on every change
-  detection pass, or working out a label, a comparison or a plural there.
-  Wording that depends on data ("1 game", "2–4 players") comes from the
-  `describe*` functions in `src/app/model/game.ts`. An ICU plural would
-  need `@angular/localize` at runtime (`$localize`), which the site doesn't
-  load.
-- **Colors come from the palette.** Anything that should follow the theme
-  reads a palette variable with `var()`; stylelint rejects a color written
-  anywhere else. A new role is added to every palette in
-  `src/app/styles/_palettes.scss` at once: the build fails if a palette lacks
-  a role the default has, or has one it lacks, and
-  `src/app/styles/palettes.spec.ts` fails if the palettes and `THEMES`
-  disagree.
-- **`@keyframes` are global.** Angular's emulated encapsulation rewrites
-  selectors, not at-rule names, so two components defining the same animation
-  name silently overwrite each other. Declare them once, in a partial that
-  `src/app/styles/global.scss` uses.
-
-### Sass
-
-Every stylesheet is SCSS, compiled by Dart Sass (`sass`).
-
-- **Modules, never `@import`.** A stylesheet loads a partial with `@use`
-  and reaches its members through the namespace:
-  `@use "../../styles/breakpoints" as bp;` then `@include bp.below(sm)`.
-  `@import` is deprecated in Dart Sass. A partial's private members start
-  with `-`.
-- **Runtime values are custom properties; build-time values are Sass.**
-  Palette colors and `--gutter` change while the page runs, so they are CSS
-  custom properties read with `var()`. Sass variables and mixins hold what
-  is fixed at build time: breakpoints, shadows, the visually-hidden rules.
-- **Breakpoints by name.** `@include bp.below(sm) { … }`, never a bare
-  `max-width`; the widths live in `_breakpoints.scss`.
-- **Nest for states and parts** (`&:hover`, `&::before`, `> span`), no more
-  than three levels deep. Rules whose order decides the cascade, such as
-  media queries that override one another, stay flat and together, in
-  order.
-- **`//` comments.** Sass drops them from the output; a `/* */` comment
-  ships, and inside a nested rule it even leaves an empty rule behind.
-- **Icons are `<app-icon name="…">`.** A new icon is a new `IconName` and
-  a case in `IconComponent`'s template, never an `<svg>` pasted into
-  another template. The parent sizes it (`width`/`height` on `app-icon`)
-  and colors it (`color`); `--icon-stroke` sets an outline's weight. Icons
-  are hidden from assistive technology, so the text beside one, or the
-  control's label, says what it means.
-- **Visible state is announced state.** A control that looks selected carries
-  `aria-checked`/`aria-current`/`aria-pressed`. See the
-  `web-game-accessibility` skill.
-
-### Minesweeper
-
-`frontend/games/minesweeper/` is Minesweeper, written in 2016 and moved here
-from fuzzley/fMinesweeper with its history. The rules above are the site's;
-this workspace keeps its own.
-
-- **Classic scripts and a namespace.** jQuery 1.10, Knockout 3.4 and
-  Bootstrap 3 load as classic scripts from `public/vendor/`, which the build
-  copies and minifies. Vite bundles `src/main.js`, and the game's modules hang
-  off the `fMinesweeper` object it exports.
-- **Left as written.** Prettier skips its `index.html`, `src/` and `public/`
-  (see `.prettierignore`), and its own ESLint config, `eslint.config.cjs`,
-  skips `src/fMinesweeper/` and `public/`.
-- **Saved games outlive the code.** Players' settings and statistics are in
-  `localStorage` under `fMinesweeper.Settings` and `fMinesweeper.Statistics`.
-  Renaming those keys loses them.
-- **Its screenshots are the site's.** `public/docs/screenshots/minesweeper/`
-  holds the thumbnail and preview the catalog shows.
-- **Work on it alone** with `yarn workspace minesweeper dev`, on port 9000.
-  The site's dev server serves the build `yarn start` made when it started.
 
 ---
 
@@ -193,16 +73,17 @@ Node is version 26, as `.node-version` says; `frontend/package.json`'s
 
 ### Development Commands
 
-Run from `frontend/`. Each of these builds or checks every workspace; the
-site's own scripts, such as `yarn workspace site lint:styles`, run one step.
+Run from `frontend/`. Each of these builds or checks every workspace; a
+workspace's own scripts, such as `yarn workspace site lint:styles`, run one
+step, and its `AGENTS.md` says what they do.
 
 - **Run Development Server:** `yarn start` or `yarn dev` (builds the workspaces under `games/`, then the site puts the games in `site/public/play/` and launches the Vite dev server at `http://localhost:4200/`).
 - **Production Build:** `yarn build` (builds the workspaces under `games/` with `yarn build:games`, then the site's `build` puts every game `games.json` lists into `site/public/play/`, bundles into `site/dist/`, writes `version.json` with the commit it was built from and the games' builds, then adds the analytics tags to each game). It fails if the catalog links a game the games' builds don't have.
 - **Fetch the Games:** `yarn games` (builds the workspaces and puts every game into `site/public/play/`; `yarn start` and `yarn build` do it first).
 - **Preview Build:** `yarn preview` (serves the site's production build locally).
 - **Run Unit Tests:** `yarn test` (runs each workspace's `test`: the site's runs Vitest once).
-- **Type Checking:** `yarn typecheck` (runs `tsc` over the `.agents` scripts from their JSDoc (`frontend/tsconfig.scripts.json`), then each workspace's `typecheck`. The site's runs the Angular compiler's checks over the app, emitting nothing, then `tsc` over the specs (`tsconfig.spec.json`), over `vite.config.ts` (`tsconfig.node.json`), and over the `tools` scripts from their JSDoc (`tsconfig.scripts.json`)). Vitest strips types without checking them, so this is the only check a spec's types get.
-- **Linting:** `yarn lint` (checks the skills' references, checks every `package.json` against the constraints in `frontend/yarn.config.cjs` (`yarn constraints`), runs ESLint over `.agents` and those constraints with `frontend/eslint.config.js`, runs each workspace's `lint` with its own config, then checks formatting with `yarn prettier:check`). The site's `lint` runs ESLint over `src`, `tools` and `vite.config.ts`, then stylelint. Its ESLint config, `frontend/site/eslint.config.js`, has typescript-eslint's strict and stylistic type-checked rules, explicit return types on exported functions and public methods, `import type` for type-only imports, Angular's recommended and template accessibility rules, and JSDoc types on every script. Each file is type-checked with the tsconfig that includes it, found through the solution in `frontend/site/tsconfig.json`. `yarn workspace site lint:styles` runs stylelint (`frontend/site/stylelint.config.js`, the standard SCSS rules) over every stylesheet: no hex, named or functional color outside `_palettes.scss` and `_shadows.scss`, no `@import`, nesting at most three deep.
+- **Type Checking:** `yarn typecheck` (runs `tsc` over the `.agents` scripts and the constraints from their JSDoc (`frontend/tsconfig.scripts.json`), then each workspace's `typecheck`). Vitest strips types without checking them, so this is the only check a spec's types get.
+- **Linting:** `yarn lint` (checks the skills' references, checks every `package.json` against the constraints in `frontend/yarn.config.cjs` (`yarn constraints`), runs ESLint over `.agents` and those constraints with `frontend/eslint.config.js`, runs each workspace's `lint` with its own config, then checks formatting with `yarn prettier:check`).
 - **Full Verification Pipeline:** `yarn verify` (runs `yarn lint && yarn typecheck && yarn test && yarn build`).
 - **Format Codebase:** `yarn prettier` (formats the whole repository with
   Prettier); `yarn prettier:check` only reports what it would change.
@@ -256,13 +137,19 @@ Analytics' endpoints, and nothing else.
 
 ## Agent Configuration (`.agents/`)
 
-`.agents/` is the committed, tool-neutral home for everything agents read. The
-per-tool directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
+`.agents/` is the committed, tool-neutral home for everything agents read,
+except the workspaces' own instructions, which sit with them. The per-tool
+directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
 
 - **Instructions:** this file. The root `AGENTS.md` and `CLAUDE.md` are thin
   pointers to it, because those are the filenames agents actually look for —
   `AGENTS.md` for Codex, Cursor, Copilot, and Amp; `CLAUDE.md` for Claude Code,
   which does not read `AGENTS.md`. Edit this file, not the pointers.
+- **A workspace's instructions** sit in its folder: `frontend/site/AGENTS.md`
+  and `frontend/games/minesweeper/AGENTS.md`, each with a `CLAUDE.md` beside
+  it that imports it (`@AGENTS.md`). Agents read them when they work in that
+  folder, so the site's rules never reach a game. A rule for the whole
+  repository belongs here instead.
 - **Skills:** `.agents/skills/<name>/SKILL.md`. Gemini CLI reads this path
   directly. Claude Code only discovers `.claude/skills/<name>/SKILL.md`, so
   **`node .agents/link-claude-skills.mjs`** links each skill across (a junction
