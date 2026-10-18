@@ -93,9 +93,10 @@ is enabled under Actions.
   forward again once the game has a newer build than that. A game's release
   keeps its ten newest archives and the one pinned here.
 - **Add a game built here:** give it a folder under `frontend/games/` with a
-  `package.json` whose `build` script writes `dist/`, with `index.html` at its
-  top level and its screenshots in `docs/screenshots/<id>/`. Copy that
-  `package.json` in the `Dockerfile` before the install, run `yarn install`,
+  `package.json`, named after the folder, whose `build` script writes
+  `dist/`, with `index.html` at its top level and its screenshots in
+  `docs/screenshots/<id>/`. Copy that `package.json` in the `Dockerfile`
+  before the install, run `yarn install`,
   add `{ "workspace": "games/<folder>" }` to `games.json`, and list its games
   in the catalog.
 - **Add a game built in its own repository:** give its repository a deploy job
