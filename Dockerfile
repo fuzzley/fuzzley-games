@@ -11,8 +11,11 @@ ENV COMMIT_SHA=${COMMIT_SHA:-$GITHUB_SHA}
 
 WORKDIR /app
 
-# Copy package files, lock files, and yarnrc
+# Copy package files, lock files, and yarnrc. Every workspace's package.json
+# has to be here before the install, or `--immutable` finds the lockfile out
+# of date.
 COPY frontend/package.json frontend/yarn.lock* frontend/.yarnrc.yml* ./frontend/
+COPY frontend/apps/minesweeper/package.json ./frontend/apps/minesweeper/
 
 # Install dependencies with Yarn 4 through Corepack, which Node 26 no longer
 # bundles.

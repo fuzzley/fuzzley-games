@@ -3999,6 +3999,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"globals@npm:^17.12.0":
+  version: 17.13.0
+  resolution: "globals@npm:17.13.0"
+  checksum: 10c0/8371d9e4e5581640141b5cce70a098edd765d2e3ab063b14998e590698071e0afb4a4a6739ccfbdcbdeb2565c5553697ba07d95703c51039912cf341a7dba7a7
+  languageName: node
+  linkType: hard
+
 "globby@npm:^16.2.4":
   version: 16.2.4
   resolution: "globby@npm:16.2.4"
@@ -4755,6 +4762,17 @@ __metadata:
   checksum: 10c0/7e207bd5c20401b292de291f02913230cb1163abca162044f7db1d951fa245b174dc00869d40dd9a9f32a885ad6a5f3e767ee104cf278f399cb4e92d3f582d5c
   languageName: node
   linkType: hard
+
+"minesweeper@workspace:apps/minesweeper":
+  version: 0.0.0-use.local
+  resolution: "minesweeper@workspace:apps/minesweeper"
+  dependencies:
+    "@eslint/js": "npm:^10.0.1"
+    eslint: "npm:^10.11.0"
+    globals: "npm:^17.12.0"
+    vite: "npm:^8.3.4"
+  languageName: unknown
+  linkType: soft
 
 "minimatch@npm:^10.2.2, minimatch@npm:^10.2.4, minimatch@npm:^10.2.5":
   version: 10.2.6
