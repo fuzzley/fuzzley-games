@@ -84,10 +84,14 @@ jobs:
       cancel-in-progress: false
 
     steps:
+      # Every commit, to compare live with this one, but only the files this
+      # commit has: the history holds the Solitaire Collection's old card
+      # atlases and screenshots, which comparing doesn't need.
       - name: Checkout fuzzley-games
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          filter: blob:none
 
       # Only ever forward: a run that finishes after a newer one leaves live
       # where it is. If live has commits main doesn't, it was moved by hand,
