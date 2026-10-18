@@ -1,4 +1,4 @@
-import type { GameBuild } from "./games.mjs";
+import type { PinnedBuild } from "./games.mjs";
 import {
   commitMessage,
   latestBuild,
@@ -6,7 +6,7 @@ import {
   planUpdate,
 } from "./update-games.mjs";
 
-const pinned: GameBuild = {
+const pinned: PinnedBuild = {
   repo: "fuzzley/fSolitaire",
   commit: "549c93afb5d1592257262ceb42ed2e91dcb165d6",
   asset: "solitaire-549c93a.tar.gz",

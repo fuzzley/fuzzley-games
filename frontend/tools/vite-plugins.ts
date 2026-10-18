@@ -7,7 +7,7 @@ import { type Connect, type Plugin, runnerImport } from "vite";
 import type * as GameModel from "../src/app/model/game.ts";
 import type * as GameData from "../src/app/provider/games.ts";
 import type * as Themes from "../src/app/provider/themes.ts";
-import { readManifest } from "./games.mjs";
+import { type GameBuild, isPinned, readManifest } from "./games.mjs";
 import { FRONTEND_DIR } from "./script.mjs";
 
 /** Lists the site's games and what pictures of each the site shows. */
@@ -38,6 +38,30 @@ export function commitHash(
   }
 }
 
+/** Names the build of a game that version.json says the site serves. */
+export type ServedBuild =
+  | { readonly asset: string; readonly commit: string }
+  | { readonly workspace: string; readonly commit: string };
+
+/**
+ * Returns which build of each game the site serves: a pinned game's archive
+ * and the commit it was built from, or a game built here, from the site's own
+ * commit.
+ */
+export function servedBuilds(
+  manifest: Readonly<Record<string, GameBuild>>,
+  commit: string,
+): Record<string, ServedBuild> {
+  return Object.fromEntries(
+    Object.entries(manifest).map(([slug, game]) => [
+      slug,
+      isPinned(game)
+        ? { asset: game.asset, commit: game.commit }
+        : { workspace: game.workspace, commit },
+    ]),
+  );
+}
+
 /**
  * Writes dist/version.json, which nginx serves uncached, so the live site says
  * which commit it was built from, and which build of each game it serves.
@@ -50,16 +74,12 @@ export function versionJson(): Plugin {
       const { version } = JSON.parse(
         readFileSync(path.join(FRONTEND_DIR, "package.json"), "utf8"),
       ) as { version: string };
+      const commit = commitHash();
       const buildInfo = {
         version,
-        commit: commitHash(),
+        commit,
         buildTime: new Date().toISOString(),
-        games: Object.fromEntries(
-          Object.entries(readManifest()).map(([slug, game]) => [
-            slug,
-            { asset: game.asset, commit: game.commit },
-          ]),
-        ),
+        games: servedBuilds(readManifest(), commit),
       };
       this.emitFile({
         type: "asset",

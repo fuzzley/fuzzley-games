@@ -1,8 +1,33 @@
-import { existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { download, removeUnpinned } from "./fetch-games.mjs";
-import type { GameBuild } from "./games.mjs";
+import { copyBuild, download, removeUnpinned } from "./fetch-games.mjs";
+import type { PinnedBuild } from "./games.mjs";
+
+/** Writes a file, making its folders first. */
+function writeFile(file: string, contents = ""): void {
+  mkdirSync(path.dirname(file), { recursive: true });
+  writeFileSync(file, contents);
+}
+
+/** Returns every file under a folder, by its path in the folder, with `/`s. */
+function filesIn(dir: string): string[] {
+  return readdirSync(dir, { recursive: true, withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) =>
+      path
+        .relative(dir, path.join(entry.parentPath, entry.name))
+        .replaceAll("\\", "/"),
+    )
+    .sort();
+}
 
 /** Returns a fetch that answers with each status in turn, counting calls. */
 function answering(...statuses: number[]): typeof fetch & { calls: number } {
@@ -46,9 +71,50 @@ describe("download", () => {
   });
 });
 
+describe("copyBuild", () => {
+  let dir: string;
+  let build: string;
+  let gameDir: string;
+
+  beforeEach(() => {
+    dir = mkdtempSync(path.join(tmpdir(), "copy-"));
+    build = path.join(dir, "apps", "minesweeper", "dist");
+    gameDir = path.join(dir, "play", "minesweeper");
+  });
+
+  afterEach(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it("replaces the game's folder with its workspace's build", () => {
+    writeFile(path.join(build, "index.html"));
+    writeFile(path.join(build, "assets", "index-new.js"));
+    writeFile(path.join(gameDir, "assets", "index-old.js"));
+
+    copyBuild(build, gameDir);
+
+    expect(filesIn(gameDir)).toEqual(["assets/index-new.js", "index.html"]);
+  });
+
+  it("refuses a workspace that hasn't been built", () => {
+    expect(() => {
+      copyBuild(build, gameDir);
+    }).toThrow("Run `yarn build:apps` to build it.");
+  });
+
+  it("leaves the game's folder alone when there is nothing to copy", () => {
+    writeFile(path.join(gameDir, "index.html"));
+
+    expect(() => {
+      copyBuild(build, gameDir);
+    }).toThrow();
+    expect(filesIn(gameDir)).toEqual(["index.html"]);
+  });
+});
+
 describe("removeUnpinned", () => {
   let playDir: string;
-  const pin: GameBuild = {
+  const pin: PinnedBuild = {
     repo: "fuzzley/fSolitaire",
     commit: "0".repeat(40),
     asset: "solitaire-0000000.tar.gz",
@@ -73,5 +139,17 @@ describe("removeUnpinned", () => {
     expect(existsSync(path.join(playDir, "hearts"))).toBe(false);
     expect(existsSync(path.join(playDir, "solitaire"))).toBe(true);
     expect(installed).toEqual({ solitaire: pin.sha256 });
+  });
+
+  it("keeps the folder of a game built here", () => {
+    mkdirSync(path.join(playDir, "minesweeper"));
+
+    removeUnpinned(
+      playDir,
+      { solitaire: pin, minesweeper: { workspace: "apps/minesweeper" } },
+      {},
+    );
+
+    expect(existsSync(path.join(playDir, "minesweeper"))).toBe(true);
   });
 });

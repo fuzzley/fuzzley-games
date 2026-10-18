@@ -27,8 +27,8 @@ server {
         include /etc/nginx/snippets/security-headers.conf;
     }
 
-    # The games, each a build fetched from its own repository's release (see
-    # frontend/games.json). They are static pages, not Angular routes, so a
+    # The games, each built here or fetched from its own repository's release
+    # (see frontend/games.json). They are static pages, not Angular routes, so a
     # missing file is a 404 rather than the site's index.html. Like the site,
     # each fingerprints its assets/ folder, and browsers check back before
     # reusing anything else.

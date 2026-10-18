@@ -1,11 +1,14 @@
-// The games' builds, as pinned in games.json. Shared by fetch-games.mjs,
+// The games' builds, as games.json lists them. Shared by fetch-games.mjs,
 // update-games.mjs, inject-analytics.mjs and vite.config.ts.
 //
-// Each game's repository uploads every production build to its site-build
-// release as <slug>-<short sha>.tar.gz, and replaces latest.json there, which
-// names the newest archive. games.json pins one archive per game, which is
-// served at /play/<slug>/:
+// A game is either built here, in a workspace under apps/, or built and
+// released by its own repository. Such a repository uploads every production
+// build to its site-build release as <slug>-<short sha>.tar.gz, and replaces
+// latest.json there, which names the newest archive. games.json names each
+// game's workspace, or pins one archive, and the build is served at
+// /play/<slug>/:
 //
+//   "minesweeper": { "workspace": "apps/minesweeper" },
 //   "solitaire": {
 //     "repo": "fuzzley/fSolitaire",
 //     "commit": "<the commit it was built from>",
@@ -23,14 +26,22 @@ export const RELEASE_TAG = "site-build";
 const manifestFile = new URL("../games.json", import.meta.url);
 
 /**
- * @typedef {object} GameBuild
+ * @typedef {object} PinnedBuild A build from a game's own repository.
  * @property {string} repo Such as "fuzzley/fSolitaire".
  * @property {string} commit The commit it was built from.
  * @property {string} asset The archive's name on the release.
  * @property {string} sha256 The archive's SHA-256.
  */
 
-/** @type {Record<keyof GameBuild, RegExp>} */
+/**
+ * @typedef {object} WorkspaceBuild A build of a game in this repository.
+ * @property {string} workspace Its folder in the frontend, such as
+ *   "apps/minesweeper".
+ */
+
+/** @typedef {PinnedBuild | WorkspaceBuild} GameBuild */
+
+/** @type {Record<keyof PinnedBuild, RegExp>} */
 const patterns = {
   repo: /^[\w.-]+\/[\w.-]+$/,
   commit: /^[0-9a-f]{40}$/,
@@ -38,29 +49,64 @@ const patterns = {
   sha256: /^[0-9a-f]{64}$/,
 };
 
+// The frontend's package.json makes every folder under apps/ a workspace.
+const workspacePattern = /^apps\/[\w-]+$/;
+
 /**
- * Returns a games.json entry, or a latest.json, after checking that every
- * field is in the expected form.
+ * Returns a pinned build, such as a games.json entry or a latest.json, after
+ * checking that every field is in the expected form.
+ *
+ * @param {string} name What to call it in the error.
+ * @param {unknown} build
+ * @returns {PinnedBuild}
+ */
+export function checkPin(name, build) {
+  for (const [field, pattern] of Object.entries(patterns)) {
+    const value =
+      typeof build === "object" && build !== null
+        ? /** @type {Record<string, unknown>} */ (build)[field]
+        : undefined;
+    if (typeof value !== "string" || !pattern.test(value)) {
+      throw new Error(`${name}: "${field}" is missing or malformed.`);
+    }
+  }
+  return /** @type {PinnedBuild} */ (build);
+}
+
+/**
+ * Returns a games.json entry, a workspace or a pin, after checking it.
  *
  * @param {string} name What to call it in the error.
  * @param {unknown} game
  * @returns {GameBuild}
  */
 export function checkGame(name, game) {
-  for (const [field, pattern] of Object.entries(patterns)) {
-    const value =
-      typeof game === "object" && game !== null
-        ? /** @type {Record<string, unknown>} */ (game)[field]
-        : undefined;
-    if (typeof value !== "string" || !pattern.test(value)) {
-      throw new Error(`${name}: "${field}" is missing or malformed.`);
-    }
+  if (typeof game !== "object" || game === null || !("workspace" in game)) {
+    return checkPin(name, game);
   }
-  return /** @type {GameBuild} */ (game);
+  const { workspace, ...rest } = /** @type {Record<string, unknown>} */ (game);
+  if (typeof workspace !== "string" || !workspacePattern.test(workspace)) {
+    throw new Error(`${name}: "workspace" isn't a folder under apps/.`);
+  }
+  if (Object.keys(rest).length > 0) {
+    throw new Error(`${name}: a game built here pins no release as well.`);
+  }
+  return { workspace };
 }
 
 /**
- * Returns the pinned games, by slug.
+ * Returns whether a game's build comes from its repository's release, rather
+ * than from a workspace here.
+ *
+ * @param {GameBuild} game
+ * @returns {game is PinnedBuild}
+ */
+export function isPinned(game) {
+  return !("workspace" in game);
+}
+
+/**
+ * Returns the games' builds, by slug.
  *
  * @returns {Record<string, GameBuild>}
  */
@@ -76,7 +122,7 @@ export function readManifest() {
 }
 
 /**
- * Writes the pinned games back to games.json.
+ * Writes the games' builds back to games.json.
  *
  * @param {Record<string, GameBuild>} manifest
  */

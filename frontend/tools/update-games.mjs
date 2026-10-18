@@ -1,5 +1,6 @@
 // Moves each game's pin in games.json to the newest build on its site-build
-// release, as named by that release's latest.json (see games.mjs).
+// release, as named by that release's latest.json (see games.mjs). A game
+// built here, in a workspace, has no pin and is left alone.
 //
 //   node tools/update-games.mjs
 //
@@ -16,29 +17,30 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import {
-  checkGame,
+  checkPin,
+  isPinned,
   readManifest,
   releaseUrl,
   writeManifest,
 } from "./games.mjs";
 import { errorMessage, logger } from "./script.mjs";
 
-/** @import { GameBuild } from "./games.mjs" */
+/** @import { PinnedBuild } from "./games.mjs" */
 
 /**
- * @typedef {GameBuild & {built: string}} LatestBuild
+ * @typedef {PinnedBuild & {built: string}} LatestBuild
  *   A release's latest.json, with the repository it came from.
  */
 
 /**
  * @typedef {object} Change
  * @property {string} slug
- * @property {GameBuild} from
- * @property {GameBuild} to
+ * @property {PinnedBuild} from
+ * @property {PinnedBuild} to
  */
 
 /**
- * @typedef {{move: GameBuild} | {stay: string}} Plan
+ * @typedef {{move: PinnedBuild} | {stay: string}} Plan
  *   What to do with a pin: move it to a build, or leave it, and why.
  */
 
@@ -75,11 +77,11 @@ export async function latestBuild(repo, fetchFile = fetch) {
   const response = await fetchFile(url);
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
-  // Not trusted yet: checkGame and the check below vouch for the fields.
+  // Not trusted yet: checkPin and the check below vouch for the fields.
   const body = /** @type {Record<string, unknown>} */ (await response.json());
   /** @type {Record<string, unknown>} */
   const latest = { ...body, repo };
-  checkGame(`${repo}'s latest.json`, latest);
+  checkPin(`${repo}'s latest.json`, latest);
   if (typeof latest["built"] !== "string") {
     throw new Error(`${repo}'s latest.json: "built" is missing.`);
   }
@@ -90,7 +92,7 @@ export async function latestBuild(repo, fetchFile = fetch) {
  * Returns what to do with a game's pin, given the newest build on its
  * release.
  *
- * @param {GameBuild} pinned
+ * @param {PinnedBuild} pinned
  * @param {LatestBuild | null} latest
  * @param {ReadonlySet<string>} skip Archives whose update already failed.
  * @param {number} now Milliseconds since the epoch.
@@ -165,6 +167,10 @@ async function main() {
   const changes = [];
 
   for (const [slug, game] of Object.entries(manifest)) {
+    if (!isPinned(game)) {
+      log(`${slug}: built here from ${game.workspace}`);
+      continue;
+    }
     let latest;
     try {
       latest = await latestBuild(game.repo);
