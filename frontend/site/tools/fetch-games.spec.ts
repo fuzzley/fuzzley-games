@@ -78,7 +78,7 @@ describe("copyBuild", () => {
 
   beforeEach(() => {
     dir = mkdtempSync(path.join(tmpdir(), "copy-"));
-    build = path.join(dir, "apps", "minesweeper", "dist");
+    build = path.join(dir, "games", "minesweeper", "dist");
     gameDir = path.join(dir, "play", "minesweeper");
   });
 
@@ -99,7 +99,7 @@ describe("copyBuild", () => {
   it("refuses a workspace that hasn't been built", () => {
     expect(() => {
       copyBuild(build, gameDir);
-    }).toThrow("Run `yarn build:apps` in frontend/ to build it.");
+    }).toThrow("Run `yarn build:games` in frontend/ to build it.");
   });
 
   it("leaves the game's folder alone when there is nothing to copy", () => {
@@ -146,7 +146,7 @@ describe("removeUnpinned", () => {
 
     removeUnpinned(
       playDir,
-      { solitaire: pin, minesweeper: { workspace: "apps/minesweeper" } },
+      { solitaire: pin, minesweeper: { workspace: "games/minesweeper" } },
       {},
     );
 

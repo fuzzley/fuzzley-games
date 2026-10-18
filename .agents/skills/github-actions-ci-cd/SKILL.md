@@ -22,7 +22,7 @@ Two independent jobs, on push to `main`, any pull request, or a manual
    `Dockerfile` builds on the same major version, Corepack, an immutable
    install in `frontend/`, then `yarn verify` (lint, type-check, test,
    build). The build
-   builds the games in `frontend/apps/` and fetches the ones pinned in
+   builds the games in `frontend/games/` and fetches the ones pinned in
    `frontend/site/games.json` from their releases.
 2. **`docker`** — builds the `Dockerfile` with `COMMIT_SHA` and runs
    `check-image.sh` on it, which serves the image with a placeholder analytics
@@ -40,7 +40,7 @@ Two independent jobs, on push to `main`, any pull request, or a manual
 
 Every 15 minutes, `frontend/site/tools/update-games.mjs` moves each pin in
 `frontend/site/games.json` to the newest build its game's release names in
-`latest.json`. A game built here, under `frontend/apps/`, has no pin and is
+`latest.json`. A game built here, under `frontend/games/`, has no pin and is
 skipped: every push to `main` builds it. When a pin moves, the job commits, builds the image, runs
 `check-image.sh`, and pushes to `main` only if both pass; Cloud Run deploys the
 push. A failure opens a "Game update failed: <archive>" issue and pushes

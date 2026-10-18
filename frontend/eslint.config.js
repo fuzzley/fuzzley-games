@@ -8,7 +8,7 @@ import jsdoc from "eslint-plugin-jsdoc";
 // this file, whose patterns ignore it, and fails rather than going unlinted.
 export default defineConfig(
   {
-    ignores: ["**/site/", "**/apps/"],
+    ignores: ["**/site/", "**/games/"],
   },
   // The scripts are plain JavaScript, so JSDoc is the only place a type can
   // go: every parameter and every returned value carries one, and

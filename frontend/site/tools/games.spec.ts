@@ -26,7 +26,7 @@ describe("checkPin", () => {
 
   it("refuses a workspace, which no release can name", () => {
     expect(() =>
-      checkPin("latest.json", { workspace: "apps/minesweeper" }),
+      checkPin("latest.json", { workspace: "games/minesweeper" }),
     ).toThrow('"repo" is missing or malformed');
   });
 });
@@ -43,20 +43,20 @@ describe("checkGame", () => {
   });
 
   it("accepts a game built in a workspace", () => {
-    expect(checkGame("minesweeper", { workspace: "apps/minesweeper" })).toEqual(
-      { workspace: "apps/minesweeper" },
-    );
+    expect(
+      checkGame("minesweeper", { workspace: "games/minesweeper" }),
+    ).toEqual({ workspace: "games/minesweeper" });
   });
 
-  it("refuses a workspace outside apps/", () => {
+  it("refuses a workspace outside games/", () => {
     expect(() =>
       checkGame("minesweeper", { workspace: "../fMinesweeper" }),
-    ).toThrow('minesweeper: "workspace" isn\'t a folder under apps/.');
+    ).toThrow('minesweeper: "workspace" isn\'t a folder under games/.');
   });
 
   it("refuses a game built here that pins a release as well", () => {
     expect(() =>
-      checkGame("minesweeper", { workspace: "apps/minesweeper", ...pin }),
+      checkGame("minesweeper", { workspace: "games/minesweeper", ...pin }),
     ).toThrow("minesweeper: a game built here pins no release as well.");
   });
 });
@@ -67,7 +67,7 @@ describe("isPinned", () => {
   });
 
   it("finds no pin on a game built here", () => {
-    expect(isPinned({ workspace: "apps/minesweeper" })).toBe(false);
+    expect(isPinned({ workspace: "games/minesweeper" })).toBe(false);
   });
 });
 

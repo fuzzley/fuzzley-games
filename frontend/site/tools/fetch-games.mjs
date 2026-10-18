@@ -2,7 +2,7 @@
 // into the build and nginx serves at /play/<slug>/.
 //
 // A game built here is copied from its workspace's dist/, which the root's
-// `yarn build:apps` makes, every time. A game released by its own repository
+// `yarn build:games` makes, every time. A game released by its own repository
 // (see games.mjs) is fetched: this downloads each pinned archive once, keeps
 // it in node_modules/.cache/games/, checks its SHA-256, and unpacks it in
 // place of whatever was in the game's folder. A game whose installed copy
@@ -152,7 +152,7 @@ async function install(slug, game) {
 export function copyBuild(build, gameDir) {
   if (!fs.existsSync(path.join(build, "index.html"))) {
     throw new Error(
-      `${build} has no index.html. Run \`yarn build:apps\` in frontend/ to build it.`,
+      `${build} has no index.html. Run \`yarn build:games\` in frontend/ to build it.`,
     );
   }
   fs.rmSync(gameDir, { recursive: true, force: true });

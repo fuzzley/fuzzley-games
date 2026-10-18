@@ -16,7 +16,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fuzzley/fuzzley-games.git",
-    "directory": "frontend/apps/minesweeper"
+    "directory": "frontend/games/minesweeper"
   },
   "author": "Andrey Gavel",
   "license": "GPL-3.0-only",

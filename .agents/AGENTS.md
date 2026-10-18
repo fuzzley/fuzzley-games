@@ -3,8 +3,8 @@
 The Fuzzley Games portal and gallery (https://fuzzley.games): an Angular
 single-page app built with Vite, served by nginx from a Docker image on Google
 Cloud Run. The games are served as static pages under `/play/<slug>/`:
-Minesweeper is built here, under `frontend/apps/`, and the Solitaire Collection
-in its own repository.
+Minesweeper is built here, under `frontend/games/`, and the Solitaire
+Collection in its own repository.
 
 ## Technology Stack
 
@@ -26,7 +26,7 @@ in its own repository.
   folder of its own beside it.
   - The root's `package.json` declares the workspaces and pins Yarn and
     Node. Its scripts run the workspaces' own (`yarn build`, `yarn verify`),
-    picking them by path (`--include "apps/*"`), and its dependencies are
+    picking them by path (`--include "games/*"`), and its dependencies are
     only the tools that run from here: Prettier, and ESLint and TypeScript
     for the `.agents/` scripts, with the `eslint.config.js` and
     `tsconfig.scripts.json` beside it. `yarn.lock` and `.yarnrc.yml` exist
@@ -35,7 +35,7 @@ in its own repository.
     it imports or runs, and its configs sit in its folder and cover only it.
     No workspace imports another's code; the site takes a game's built
     `dist/`, through `games.json`, and nothing else.
-  - `apps/` holds the games built here, one workspace each, named after its
+  - `games/` holds the games built here, one workspace each, named after its
     folder (see [Minesweeper](#minesweeper)). A game knows nothing of the
     site: it builds into its own `dist/`, with `index.html` at its top
     level and its screenshots in `docs/screenshots/<slug>/`.
@@ -73,7 +73,7 @@ in its own repository.
     screenshot. The build fails if either is missing. The games are put
     into `public/play/`, which git ignores.
   - `games.json` lists each game's build: a workspace, by its folder in
-    `frontend/` (`apps/minesweeper`), or one build pinned from its
+    `frontend/` (`games/minesweeper`), or one build pinned from its
     repository's `site-build` release. `tools/` holds
     the scripts that put the games in `public/play/` before every build
     (`fetch-games.mjs`), move the pins (`update-games.mjs`), and add
@@ -151,7 +151,7 @@ Every stylesheet is SCSS, compiled by Dart Sass (`sass`).
 
 ### Minesweeper
 
-`frontend/apps/minesweeper/` is Minesweeper, written in 2016 and moved here
+`frontend/games/minesweeper/` is Minesweeper, written in 2016 and moved here
 from fuzzley/fMinesweeper with its history. The rules above are the site's;
 this workspace keeps its own.
 
@@ -191,8 +191,8 @@ Node is version 26, as `.node-version` says; `frontend/package.json`'s
 Run from `frontend/`. Each of these builds or checks every workspace; the
 site's own scripts, such as `yarn workspace site lint:styles`, run one step.
 
-- **Run Development Server:** `yarn start` or `yarn dev` (builds the workspaces under `apps/`, then the site puts the games in `site/public/play/` and launches the Vite dev server at `http://localhost:4200/`).
-- **Production Build:** `yarn build` (builds the workspaces under `apps/` with `yarn build:apps`, then the site's `build` puts every game `games.json` lists into `site/public/play/`, bundles into `site/dist/`, writes `version.json` with the commit it was built from and the games' builds, then adds the analytics tags to each game). It fails if the catalog links a game the games' builds don't have.
+- **Run Development Server:** `yarn start` or `yarn dev` (builds the workspaces under `games/`, then the site puts the games in `site/public/play/` and launches the Vite dev server at `http://localhost:4200/`).
+- **Production Build:** `yarn build` (builds the workspaces under `games/` with `yarn build:games`, then the site's `build` puts every game `games.json` lists into `site/public/play/`, bundles into `site/dist/`, writes `version.json` with the commit it was built from and the games' builds, then adds the analytics tags to each game). It fails if the catalog links a game the games' builds don't have.
 - **Fetch the Games:** `yarn games` (builds the workspaces and puts every game into `site/public/play/`; `yarn start` and `yarn build` do it first).
 - **Preview Build:** `yarn preview` (serves the site's production build locally).
 - **Run Unit Tests:** `yarn test` (runs each workspace's `test`: the site's runs Vitest once).
