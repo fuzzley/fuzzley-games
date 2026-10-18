@@ -22,22 +22,26 @@ Two independent jobs, on push to `main`, any pull request, or a manual
    `Dockerfile` builds on the same major version, Corepack, an immutable
    install in `frontend/`, then `yarn verify` (lint, type-check, test,
    build). The build
-   fetches the games pinned in `frontend/games.json` from their releases.
+   builds the games in `frontend/apps/` and fetches the ones pinned in
+   `frontend/games.json` from their releases.
 2. **`docker`** — builds the `Dockerfile` with `COMMIT_SHA` and runs
    `check-image.sh` on it, which serves the image with a placeholder analytics
    ID and requests its pages: the Angular routes answer with `index.html`, a
    missing file under `/assets/` is a 404, the `Cache-Control` and security
    headers match `nginx.conf.template` and `nginx/`, the site's pages carry
    the Content Security Policy and the games don't, `theme.js` sets the
-   palette, `env.js` carries the ID, and `version.json` names the commit. For each pinned game it checks `/play/<slug>/` is the game's
-   own page with the analytics tags, never the site's `index.html`, with its
-   own fingerprinted assets, and that `version.json` names the pinned build.
+   palette, `env.js` carries the ID, and `version.json` names the commit. For each game in `frontend/games.json` it checks `/play/<slug>/` is
+   the game's own page with the analytics tags, never the site's
+   `index.html`, with its own fingerprinted assets, and that `version.json`
+   names its build: the pinned archive, or for a game built here, its
+   workspace and the image's commit.
 
 ## Update games
 
 Every 15 minutes, `frontend/tools/update-games.mjs` moves each pin in
 `frontend/games.json` to the newest build its game's release names in
-`latest.json`. When a pin moves, the job commits, builds the image, runs
+`latest.json`. A game built here, under `frontend/apps/`, has no pin and is
+skipped: every push to `main` builds it. When a pin moves, the job commits, builds the image, runs
 `check-image.sh`, and pushes to `main` only if both pass; Cloud Run deploys the
 push. A failure opens a "Game update failed: <archive>" issue and pushes
 nothing, and later runs skip that archive while the issue is open. Pushes made
