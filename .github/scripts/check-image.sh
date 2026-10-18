@@ -2,9 +2,8 @@
 # Serves a built image and checks its pages, cache and security headers,
 # theme.js, env.js, version.json and games.
 #
-# Cloud Run builds and deploys the Dockerfile from main without waiting for
-# any check, so both verify.yml and update-games.yml run this on the image
-# they build.
+# Both verify.yml and update-games.yml run this on the image they build, before
+# the commit can reach live, the branch Cloud Run builds and deploys.
 #
 # Usage: .github/scripts/check-image.sh <image> <commit>
 #

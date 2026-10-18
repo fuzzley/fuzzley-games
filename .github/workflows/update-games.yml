@@ -7,11 +7,11 @@ name: Update games
 #
 # It needs no token beyond its own GITHUB_TOKEN. It builds the Docker image
 # with the new pins and checks it as verify.yml does, and pushes to main only
-# if both pass, which is the check that stands in for review: Cloud Run then
-# deploys the push. (A pull request opened with GITHUB_TOKEN would get no CI
-# runs, so it could never auto-merge on passing checks.) Pushes made with
-# GITHUB_TOKEN don't start other workflows, so verify.yml doesn't run for
-# them; this run has already checked the same image.
+# if both pass, which is the check that stands in for review. (A pull request
+# opened with GITHUB_TOKEN would get no CI runs, so it could never auto-merge
+# on passing checks.) A push made with GITHUB_TOKEN doesn't start other
+# workflows, so it then runs verify.yml on main itself, whose promote job
+# moves live, the branch Cloud Run deploys.
 #
 # When the image fails to build or to pass its checks, nothing is pushed and
 # the job opens an issue titled "Game update failed: <archive>". Later runs
@@ -30,6 +30,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: write
   contents: write
   issues: write
 
@@ -97,6 +98,13 @@ jobs:
           # main may have moved while the image was building.
           git pull --rebase origin main
           git push origin HEAD:main
+
+      # A dispatch is the one event GITHUB_TOKEN can start a workflow with.
+      - name: Verify main, which deploys it
+        if: steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run verify.yml --ref main
 
       - name: Open an issue for each archive that failed
         if: failure() && (steps.build.outcome == 'failure' || steps.check.outcome == 'failure')
