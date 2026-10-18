@@ -31,7 +31,7 @@ Two jobs, on push to `main`, a pull request into `main`, or a manual
    deploy under way is never cancelled.
 
 The game goes live from there without this repository's help:
-fuzzley/fuzzley-games pins one archive in its `frontend/games.json`, and a
+fuzzley/fuzzley-games pins one archive in its `frontend/site/games.json`, and a
 scheduled workflow there moves the pin to the newest build within about 15
 minutes, after building and checking the site with it. Its dashboard links
 each game by its hash route and shows the screenshots this build ships, so a
@@ -57,7 +57,7 @@ up.
 5. **The archive goes up before `latest.json`,** so `latest.json` never names
    a file that isn't there.
 6. **Never delete the pinned archive.** The release keeps the ten newest
-   archives and the one fuzzley-games' `frontend/games.json` pins, read from
+   archives and the one fuzzley-games' `frontend/site/games.json` pins, read from
    its `main`. If that file can't be read, nothing is deleted.
 7. **No cross-repository tokens.** The job uses only its own `GITHUB_TOKEN`;
    fuzzley-games pulls from the release rather than this repository pushing to
