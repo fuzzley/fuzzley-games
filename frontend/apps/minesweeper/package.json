@@ -1,0 +1,35 @@
+{
+  "name": "fminesweeper",
+  "version": "0.0.1",
+  "description": "Minesweeper game.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "build:dev": "vite build --mode development",
+    "build:prod": "vite build --mode production",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "prettier": "prettier . --write"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fuzzley/fMinesweeper.git"
+  },
+  "author": "Andrey Gavel",
+  "license": "GPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/fuzzley/fMinesweeper/issues"
+  },
+  "homepage": "https://github.com/fuzzley/fMinesweeper#readme",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.11.0",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.9",
+    "vite": "^8.3.4"
+  },
+  "packageManager": "yarn@4.17.1"
+}
