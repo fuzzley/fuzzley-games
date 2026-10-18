@@ -53,8 +53,8 @@ The Solitaire Collection is built in
   its folder in `frontend/` (`{ "workspace": "games/minesweeper" }`).
   `yarn build:games` runs every one's `build`, and
   `frontend/site/tools/fetch-games.mjs` copies each one's `dist/` into
-  `frontend/site/public/play/<slug>/`. It goes live with the push to `main`
-  that changes it, like the site itself.
+  `frontend/site/public/play/<slug>/`. It goes live with the commit that
+  changes it, like the site itself.
 - **A game built in its own repository** is pinned to one archive, by name
   and SHA-256. Every push to that repository's `main` builds the game and
   uploads the build to its `site-build` release as
@@ -79,7 +79,8 @@ fetched build doesn't have, such as one renamed upstream.
 
 Every 15 minutes, `.github/workflows/update-games.yml` moves each pin to the
 newest build, builds the image and checks it, and pushes the change to `main`
-if both pass; Cloud Run then deploys it. It uses only its own `GITHUB_TOKEN`,
+if both pass, then runs Verify on `main`, which deploys it (see
+[Deployment](#deployment)). It uses only its own `GITHUB_TOKEN`,
 and no game repository can push here. If the image fails, it opens a
 "Game update failed" issue and skips that archive until the issue is closed or
 a newer build appears. GitHub turns scheduled workflows off after 60 days
@@ -135,15 +136,25 @@ headers on the site's pages, its files, an error, and each game.
 
 ## Deployment
 
-https://fuzzley.games is the site. Cloud Run serves it from the Docker image above,
-and rebuilds and deploys that image on every push to `main` by itself, without
-waiting for the checks that follow.
+https://fuzzley.games is the site. Cloud Run serves it from the Docker image
+above, which a Cloud Build trigger (`cloudrun-fuzzley-games-git-us-central1`,
+in `europe-west1`) rebuilds and deploys on every push to the `live` branch.
+Apart from a rollback, nothing is pushed to `live` by hand: when Verify
+(`.github/workflows/verify.yml`) passes on a commit of `main`, its `promote`
+job moves `live` forward to it. A
+commit whose checks fail never goes live, and the site stays on the last one
+that passed.
 
-To deploy `main` again without a push:
+To deploy `live` again without a push:
 
 ```sh
-gcloud builds triggers run cloudrun-fuzzley-games-git-us-central1 --region=europe-west1 --branch=main
+gcloud builds triggers run cloudrun-fuzzley-games-git-us-central1 --region=europe-west1 --branch=live
 ```
+
+To roll back, revert the commit on `main`; the revert goes live once Verify
+passes on it. For a faster rollback, move `live` back to a good commit of
+`main` (`git push --force origin <commit>:live`). That lasts until Verify next
+passes on `main` and moves `live` forward again, so revert on `main` too.
 
 To check what is live:
 

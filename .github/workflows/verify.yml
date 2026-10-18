@@ -3,8 +3,10 @@ name: Verify
 # Every push and pull request is linted, type-checked, tested and built, and
 # its Docker image is built and served.
 #
-# fuzzley.games is served by Cloud Run, which builds the Dockerfile from main
-# on its own (a Cloud Build trigger) and doesn't depend on this workflow.
+# fuzzley.games is served by Cloud Run, which builds and deploys the
+# Dockerfile from the live branch (a Cloud Build trigger). When both checks
+# pass on a commit of main, the promote job moves live to it, so a commit goes
+# live only once it has passed them.
 
 on:
   push:
@@ -51,8 +53,7 @@ jobs:
         working-directory: frontend
         run: yarn verify
 
-  # Cloud Run builds the same Dockerfile from main without waiting for these
-  # checks, so build the image here too, serve it, and request its pages and
+  # Build the image Cloud Run will build, serve it, and request its pages and
   # games.
   docker:
     runs-on: ubuntu-latest
@@ -66,3 +67,40 @@ jobs:
 
       - name: Serve the image and check its pages
         run: .github/scripts/check-image.sh fuzzley-games "$GITHUB_SHA"
+
+  # Moves live, the branch Cloud Run deploys, to a commit of main that passed
+  # both jobs. Pushes made with GITHUB_TOKEN start Cloud Build's trigger,
+  # though not other workflows. Update games runs this workflow on main after
+  # it pushes, since its push can't start it.
+  promote:
+    needs: [verify, docker]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    # One move at a time, so an older commit can't overtake a newer one.
+    concurrency:
+      group: promote
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout fuzzley-games
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # Only ever forward: a run that finishes after a newer one leaves live
+      # where it is. If live has commits main doesn't, it was moved by hand,
+      # and moves on only once main contains them.
+      - name: Move live to this commit
+        run: |
+          if ! git rev-parse -q --verify origin/live > /dev/null; then
+            echo "Creating live at ${GITHUB_SHA::7}."
+          elif git merge-base --is-ancestor "$GITHUB_SHA" origin/live; then
+            echo "live is already at ${GITHUB_SHA::7} or past it."
+            exit 0
+          elif ! git merge-base --is-ancestor origin/live "$GITHUB_SHA"; then
+            echo "::error::live has commits that main doesn't, so it wasn't moved. Bring them into main, or reset live to a commit of main."
+            exit 1
+          fi
+          git push origin "$GITHUB_SHA:refs/heads/live"

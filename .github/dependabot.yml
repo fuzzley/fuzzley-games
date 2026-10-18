@@ -1,5 +1,5 @@
 # Proposes dependency updates as pull requests, which verify.yml checks like
-# any other. Nothing merges on its own: a merge to main is a deploy.
+# any other. Nothing merges on its own: a merge to main deploys once it passes.
 #
 # The cooldown leaves a release a day before proposing it, as Yarn's
 # npmMinimalAgeGate does for anything added by hand (frontend/.yarnrc.yml).

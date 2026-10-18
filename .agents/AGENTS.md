@@ -93,13 +93,15 @@ shows.
 
 ### Deployment
 
-Cloud Run builds and deploys the `Dockerfile` from every push to `main` on its
-own. `.github/workflows/verify.yml` checks the same commits, but nothing waits
-for it, so run `yarn verify` before pushing to `main`. Every 15 minutes,
-`.github/workflows/update-games.yml` moves the games' pins to their newest
-builds and pushes to `main` once the image builds and passes its checks.
-`docs/operations.md` covers the deployment, the games and runtime
-configuration; the `github-actions-ci-cd` skill covers the workflows.
+Cloud Run builds and deploys the `Dockerfile` from the `live` branch, never
+from `main`. When `.github/workflows/verify.yml` passes on a push to `main`,
+its `promote` job moves `live` to that commit, so a red run means the commit
+never went live. Don't push to `live` yourself except to roll back. Every 15
+minutes, `.github/workflows/update-games.yml` moves the games' pins to their
+newest builds, pushes to `main` once the image builds and passes its checks,
+and runs Verify on `main` to deploy it. `docs/operations.md` covers the
+deployment, the games and runtime configuration; the `github-actions-ci-cd`
+skill covers the workflows.
 
 ### Content Security Policy
 
