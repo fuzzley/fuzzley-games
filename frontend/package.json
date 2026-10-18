@@ -19,7 +19,7 @@
     "preview": "yarn workspace site preview",
     "test": "yarn workspaces foreach --all --include site --include \"games/*\" run test",
     "typecheck": "tsc -p tsconfig.scripts.json && yarn workspaces foreach --all --include site --include \"games/*\" run typecheck",
-    "lint": "yarn skills:check && (cd .. && eslint -c frontend/eslint.config.js .agents) && yarn workspaces foreach --all --include site --include \"games/*\" run lint && yarn prettier:check",
+    "lint": "yarn skills:check && yarn constraints && (cd .. && eslint -c frontend/eslint.config.js .agents frontend/yarn.config.cjs) && yarn workspaces foreach --all --include site --include \"games/*\" run lint && yarn prettier:check",
     "skills:check": "node ../.agents/check-skill-references.mjs",
     "verify": "yarn lint && yarn typecheck && yarn test && yarn build",
     "prettier": "cd .. && prettier . --write",
@@ -28,6 +28,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.6.0",
+    "@yarnpkg/types": "^4.0.1",
     "eslint": "^10.11.0",
     "eslint-plugin-jsdoc": "^65.1.0",
     "prettier": "^3.9.9",

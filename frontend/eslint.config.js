@@ -2,10 +2,11 @@ import eslint from "@eslint/js";
 import { defineConfig } from "eslint/config";
 import jsdoc from "eslint-plugin-jsdoc";
 
-// The scripts in .agents/, which belong to no workspace: `yarn lint` runs
-// ESLint over them from the repository root with this file. Every workspace
-// lints its own files with its own config, so a workspace without one finds
-// this file, whose patterns ignore it, and fails rather than going unlinted.
+// The scripts in .agents/, which belong to no workspace, and the Yarn
+// constraints: `yarn lint` runs ESLint over them from the repository root
+// with this file. Every workspace lints its own files with its own config, so
+// a workspace without one finds this file, whose patterns ignore it, and
+// fails rather than going unlinted.
 export default defineConfig(
   {
     ignores: ["**/site/", "**/games/"],
@@ -14,7 +15,7 @@ export default defineConfig(
   // go: every parameter and every returned value carries one, and
   // tsconfig.scripts.json checks them.
   {
-    files: [".agents/*.mjs"],
+    files: [".agents/*.mjs", "frontend/yarn.config.cjs"],
     extends: [
       eslint.configs.recommended,
       jsdoc.configs["flat/recommended-typescript-flavor-error"],

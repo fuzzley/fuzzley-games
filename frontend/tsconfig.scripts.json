@@ -1,6 +1,7 @@
 {
-  // The scripts in .agents/, which belong to no workspace, type-checked from
-  // their JSDoc. The site checks its own scripts with its own copy.
+  // The scripts in .agents/, which belong to no workspace, and the Yarn
+  // constraints, type-checked from their JSDoc. The site checks its own
+  // scripts with its own copy.
   "compilerOptions": {
     "allowJs": true,
     "checkJs": true,
@@ -15,5 +16,5 @@
     "types": ["node"],
     "skipLibCheck": true
   },
-  "include": ["../.agents/*.mjs"]
+  "include": ["../.agents/*.mjs", "yarn.config.cjs"]
 }

@@ -31,6 +31,11 @@ Collection in its own repository.
     for the `.agents/` scripts, with the `eslint.config.js` and
     `tsconfig.scripts.json` beside it. `yarn.lock` and `.yarnrc.yml` exist
     only here.
+  - `yarn.config.cjs` holds the constraints `yarn lint` checks every
+    `package.json` against: a package has the same range in every workspace
+    that depends on it (when two differ, give both the higher one), only the
+    root sets `packageManager`, `workspaces` and `engines`, and each
+    workspace is private and named after its folder.
   - Each workspace is self-contained: its `package.json` lists everything
     it imports or runs, and its configs sit in its folder and cover only it.
     No workspace imports another's code; the site takes a game's built
@@ -197,7 +202,7 @@ site's own scripts, such as `yarn workspace site lint:styles`, run one step.
 - **Preview Build:** `yarn preview` (serves the site's production build locally).
 - **Run Unit Tests:** `yarn test` (runs each workspace's `test`: the site's runs Vitest once).
 - **Type Checking:** `yarn typecheck` (runs `tsc` over the `.agents` scripts from their JSDoc (`frontend/tsconfig.scripts.json`), then each workspace's `typecheck`. The site's runs the Angular compiler's checks over the app, emitting nothing, then `tsc` over the specs (`tsconfig.spec.json`), over `vite.config.ts` (`tsconfig.node.json`), and over the `tools` scripts from their JSDoc (`tsconfig.scripts.json`)). Vitest strips types without checking them, so this is the only check a spec's types get.
-- **Linting:** `yarn lint` (checks the skills' references, runs ESLint over `.agents` with `frontend/eslint.config.js`, runs each workspace's `lint` with its own config, then checks formatting with `yarn prettier:check`). The site's `lint` runs ESLint over `src`, `tools` and `vite.config.ts`, then stylelint. Its ESLint config, `frontend/site/eslint.config.js`, has typescript-eslint's strict and stylistic type-checked rules, explicit return types on exported functions and public methods, `import type` for type-only imports, Angular's recommended and template accessibility rules, and JSDoc types on every script. Each file is type-checked with the tsconfig that includes it, found through the solution in `frontend/site/tsconfig.json`. `yarn workspace site lint:styles` runs stylelint (`frontend/site/stylelint.config.js`, the standard SCSS rules) over every stylesheet: no hex, named or functional color outside `_palettes.scss` and `_shadows.scss`, no `@import`, nesting at most three deep.
+- **Linting:** `yarn lint` (checks the skills' references, checks every `package.json` against the constraints in `frontend/yarn.config.cjs` (`yarn constraints`), runs ESLint over `.agents` and those constraints with `frontend/eslint.config.js`, runs each workspace's `lint` with its own config, then checks formatting with `yarn prettier:check`). The site's `lint` runs ESLint over `src`, `tools` and `vite.config.ts`, then stylelint. Its ESLint config, `frontend/site/eslint.config.js`, has typescript-eslint's strict and stylistic type-checked rules, explicit return types on exported functions and public methods, `import type` for type-only imports, Angular's recommended and template accessibility rules, and JSDoc types on every script. Each file is type-checked with the tsconfig that includes it, found through the solution in `frontend/site/tsconfig.json`. `yarn workspace site lint:styles` runs stylelint (`frontend/site/stylelint.config.js`, the standard SCSS rules) over every stylesheet: no hex, named or functional color outside `_palettes.scss` and `_shadows.scss`, no `@import`, nesting at most three deep.
 - **Full Verification Pipeline:** `yarn verify` (runs `yarn lint && yarn typecheck && yarn test && yarn build`).
 - **Format Codebase:** `yarn prettier` (formats the whole repository with
   Prettier); `yarn prettier:check` only reports what it would change.
