@@ -1,8 +1,0 @@
-# Ignore artifacts and untouched legacy/vendored code:
-dist
-public
-src/fMinesweeper
-node_modules
-
-# Legacy entry markup (kept as-is)
-index.html

@@ -7,17 +7,22 @@
   "engines": {
     "node": ">=26"
   },
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "start": "node tools/fetch-games.mjs --optional && vite",
-    "dev": "node tools/fetch-games.mjs --optional && vite",
-    "build": "node tools/fetch-games.mjs && vite build && node tools/inject-analytics.mjs",
-    "games": "node tools/fetch-games.mjs",
+    "start": "yarn build:apps && node tools/fetch-games.mjs --optional && vite",
+    "dev": "yarn build:apps && node tools/fetch-games.mjs --optional && vite",
+    "build": "yarn build:apps && node tools/fetch-games.mjs && vite build && node tools/inject-analytics.mjs",
+    "build:apps": "yarn workspaces foreach --all --exclude frontend run build",
+    "games": "yarn build:apps && node tools/fetch-games.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit && tsc -p tsconfig.node.json && yarn typecheck:scripts",
     "typecheck:scripts": "tsc -p tsconfig.scripts.json",
-    "lint": "yarn skills:check && (cd .. && eslint -c frontend/eslint.config.js frontend/src frontend/tools frontend/vite.config.ts .agents) && yarn lint:styles && yarn prettier:check",
+    "lint": "yarn skills:check && (cd .. && eslint -c frontend/eslint.config.js frontend/src frontend/tools frontend/vite.config.ts .agents) && yarn lint:apps && yarn lint:styles && yarn prettier:check",
     "lint:styles": "stylelint \"src/**/*.scss\"",
+    "lint:apps": "yarn workspaces foreach --all --exclude frontend run lint",
     "skills:check": "node ../.agents/check-skill-references.mjs",
     "verify": "yarn lint && yarn typecheck && yarn test && yarn build",
     "prettier": "cd .. && prettier . --write",

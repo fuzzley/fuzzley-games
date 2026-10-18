@@ -1,8 +1,15 @@
 # Build output, the fetched games, and Yarn's own files.
 frontend/dist
+frontend/apps/*/dist
 frontend/public/play
 frontend/.yarn
 coverage
+
+# Minesweeper's 2016 game code, its markup and the libraries it loads, kept as
+# they were written.
+frontend/apps/minesweeper/index.html
+frontend/apps/minesweeper/public
+frontend/apps/minesweeper/src
 
 # Vendored skills. These are pulled from upstream and their content hashes are
 # recorded in skills-lock.json, so reformatting them would defeat the lock.
