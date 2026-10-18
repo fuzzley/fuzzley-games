@@ -5354,7 +5354,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.5.26":
+"postcss@npm:^8.5.26, postcss@npm:^8.5.30":
   version: 8.5.30
   resolution: "postcss@npm:8.5.30"
   dependencies:
@@ -5946,7 +5946,7 @@ __metadata:
     eslint: "npm:^10.11.0"
     eslint-plugin-jsdoc: "npm:^65.1.0"
     jsdom: "npm:^30.0.0"
-    postcss: "npm:^8.5.29"
+    postcss: "npm:^8.5.30"
     rxjs: "npm:~7.8.0"
     sass: "npm:^1.105.2"
     stylelint: "npm:^17.16.0"
