@@ -1,0 +1,19 @@
+@use "../../styles" as *;
+
+// The whole window: the board lays itself out below the header.
+.board-area {
+  position: absolute;
+  inset: 0;
+}
+
+// The chrome around the board, stacked above the board's loading scrim.
+.ui-overlay {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: var(--z-chrome);
+  box-sizing: border-box;
+  pointer-events: none;
+}

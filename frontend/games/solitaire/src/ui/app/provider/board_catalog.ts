@@ -1,0 +1,115 @@
+import { IntentHandler } from "@/engine/render/input/table_intents";
+import { BoardScene } from "@/engine/render/phaser/scene/board_scene";
+import { PlayableGame } from "@/engine/tableau/session/playable_game";
+import {
+  TableBoardOptions,
+  makeTableBoardScene,
+} from "@/engine/board/table_board_scene";
+import { stocklessGestures } from "@/engine/tableau/gestures/table_gestures";
+
+import { easthavenGestures } from "@/games/easthaven/easthaven_gestures";
+import { fortyThievesGestures } from "@/games/forty_thieves/forty_thieves_gestures";
+import { klondikeGestures } from "@/games/klondike/klondike_gestures";
+import { montanaGestures } from "@/games/montana/montana_gestures";
+import { scorpionGestures } from "@/games/scorpion/scorpion_gestures";
+import { spiderGestures } from "@/games/spider/spider_gestures";
+import { spideretteGestures } from "@/games/spiderette/spiderette_gestures";
+import { acesUpGestures } from "@/games/aces_up/aces_up_gestures";
+import { golfGestures } from "@/games/golf/golf_gestures";
+import { calculationGestures } from "@/games/calculation/calculation_gestures";
+import { bristolGestures } from "@/games/bristol/bristol_gestures";
+import { monteCarloGestures } from "@/games/monte_carlo/monte_carlo_gestures";
+import { laBelleLucieGestures } from "@/games/la_belle_lucie/la_belle_lucie_gestures";
+import { canfieldGestures } from "@/games/canfield/canfield_gestures";
+import { blackHoleGestures } from "@/games/black_hole/black_hole_gestures";
+import { pyramidGestures } from "@/games/pyramid/pyramid_gestures";
+import { triPeaksGestures } from "@/games/tri_peaks/tri_peaks_gestures";
+import { GameId, GameOf, boardLayoutsOf, catalogEntry } from "./game_catalog";
+
+/** Says what a press or a drop means in a particular game. */
+type GestureMap<Id extends GameId> = (game: GameOf<Id>) => IntentHandler;
+
+/**
+ * What each game does with a press or a drop, typed so that a game without a
+ * gesture map, or with the wrong one, does not compile.
+ */
+const GESTURES: { [Id in GameId]: GestureMap<Id> } = {
+  klondike: klondikeGestures,
+  freecell: stocklessGestures,
+  spider: spiderGestures,
+  yukon: stocklessGestures,
+  bakers: stocklessGestures,
+  challengefreecell: stocklessGestures,
+  eightoff: stocklessGestures,
+  scorpion: scorpionGestures,
+  simplesimon: stocklessGestures,
+  mrsmop: stocklessGestures,
+  bakersdozen: stocklessGestures,
+  seahaven: stocklessGestures,
+  spiderette: spideretteGestures,
+  easthaven: easthavenGestures,
+  fortythieves: fortyThievesGestures,
+  maria: fortyThievesGestures,
+  limited: fortyThievesGestures,
+  lucas: fortyThievesGestures,
+  doubleklondike: klondikeGestures,
+  montana: montanaGestures,
+  bluemoon: montanaGestures,
+  bisley: stocklessGestures,
+  acesup: acesUpGestures,
+  golf: golfGestures,
+  calculation: calculationGestures,
+  flowergarden: stocklessGestures,
+  bristol: bristolGestures,
+  nestor: stocklessGestures,
+  montecarlo: monteCarloGestures,
+  labellelucie: laBelleLucieGestures,
+  trefoil: laBelleLucieGestures,
+  canfield: canfieldGestures,
+  penguin: stocklessGestures,
+  blackhole: blackHoleGestures,
+  allinarow: blackHoleGestures,
+  grandfathersclock: stocklessGestures,
+  pyramid: pyramidGestures,
+  tripeaks: triPeaksGestures,
+  beleagueredcastle: stocklessGestures,
+  fortress: stocklessGestures,
+  pokersquares: stocklessGestures,
+};
+
+/**
+ * Returns what a press or a drop means in a dealt game.
+ *
+ * @param game The dealt game, which must be the one `gameId` deals; the cast
+ *   below trusts that, because the catalog holds sessions under an erased type.
+ */
+export function gesturesFor(gameId: GameId, game: PlayableGame): IntentHandler {
+  const gestures = GESTURES[gameId] as GestureMap<GameId>;
+  return gestures(game as GameOf<GameId>);
+}
+
+/** Says how a board should look and fit, and whom to tell once it is drawn. */
+export type BoardSetting = Pick<
+  TableBoardOptions,
+  "presentation" | "onReady" | "insets"
+>;
+
+/**
+ * Builds the board that draws a dealt game, on the grids its catalog entry
+ * declares.
+ *
+ * @param game The dealt game, which must be the one `gameId` deals; the cast
+ *   below trusts that, because the catalog holds sessions under an erased type.
+ */
+export function makeBoardScene(
+  gameId: GameId,
+  game: PlayableGame,
+  setting: BoardSetting,
+): BoardScene {
+  return makeTableBoardScene({
+    game: game as GameOf<GameId>,
+    layouts: boardLayoutsOf(catalogEntry(gameId)),
+    handleIntent: gesturesFor(gameId, game),
+    ...setting,
+  });
+}

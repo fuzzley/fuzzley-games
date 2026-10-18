@@ -1,0 +1,42 @@
+@use "../../styles" as *;
+
+// The dialog only fills the viewport, centres its content and paints the scrim;
+// the host styles everything visible.
+.modal {
+  // Reset the UA's centred, sized, bordered box.
+  max-width: 100vw;
+  max-height: 100dvh;
+  width: 100vw;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  overflow: hidden;
+
+  // Only laid out when open, so the closed dialog is not a full-screen
+  // invisible box swallowing pointer events.
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  // The shell's overlay layer turns `pointer-events` off, and being in the top
+  // layer does not stop a dialog inheriting that.
+  pointer-events: auto;
+
+  &[open] {
+    display: flex;
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+// The scrim, as a literal colour because an engine whose `::backdrop` does not
+// inherit custom properties would resolve a `var()` here to nothing. Keep it
+// in step with `--surface-scrim-heavy`.
+.modal::backdrop {
+  @include glass(12px);
+  background: rgba(15, 23, 42, 0.85);
+}

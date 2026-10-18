@@ -1,0 +1,45 @@
+# The form behind the application's "Report a Bug" link.
+#
+# The application prefills fields by `id`, so renaming one silently stops it
+# being filled in; `test/ui/app/service/bug_report.service.spec.ts` checks them.
+name: Bug report
+description: Something in fSolitaire doesn't work the way it should.
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. If you came here from the
+        game, the game and your setup below are already filled in.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you see, and what did you expect instead? A screenshot helps — paste or drag one in.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: If you know how to make it happen again, list the steps.
+      placeholder: |
+        1. Deal a new game of Klondike
+        2. Drag the King from the waste to an empty column
+        3. ...
+  - type: input
+    id: game
+    attributes:
+      label: Game
+      description: The game on the table, and the rules it was being played by.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Which build of fSolitaire, and the browser and settings it was running with.
+  - type: textarea
+    id: game-state
+    attributes:
+      label: Game state
+      description: The game as it was when you filed this, so it can be loaded exactly as you saw it. Please leave it in.

@@ -1,0 +1,139 @@
+import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
+import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import { Deal } from "@/engine/tableau/dealing/deal";
+import { DealtTableGame } from "@/engine/tableau/game/dealt_table_game";
+import { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
+import { FakeRole, STOCK_PILE_ID, WASTE_PILE_ID, fakeZoneSpecs } from "./zones";
+
+/** How many cards a draw turns over when nothing says otherwise. */
+export const DEFAULT_DRAW_COUNT = 3;
+
+/**
+ * Plays a solitaire that exists only for the engine's tests, so they need not
+ * import a real game from the tier above.
+ *
+ * Its stock, waste, foundations and fanned columns cover the piles the engine
+ * has to handle without being any game in particular.
+ */
+export class FakeTableGame extends DealtTableGame {
+  /** The face-down pile a press draws from. */
+  public readonly stock: ReadonlyCardPile<PlayingCard>;
+  /** The face-up pile drawn cards land on. */
+  public readonly waste: ReadonlyCardPile<PlayingCard>;
+  /** The four piles built up by suit. */
+  public readonly foundations: readonly ReadonlyCardPile<PlayingCard>[];
+  /** The seven columns. */
+  public readonly tableaus: readonly ReadonlyCardPile<PlayingCard>[];
+
+  /** How many cards a draw turns over. */
+  public readonly drawCount: number;
+
+  /**
+   * Creates a game whose piles are empty until the first deal.
+   *
+   * @param drawCount How many cards a draw turns over, passed in because the
+   *   zones are built from it during `super`.
+   */
+  constructor(
+    cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
+    random: () => number = Math.random,
+    drawCount: number = DEFAULT_DRAW_COUNT,
+  ) {
+    super({
+      zones: fakeZoneSpecs(drawCount),
+      deck: { cardIds, random },
+      autoMoveRoles: [FakeRole.FOUNDATION, FakeRole.TABLEAU],
+      winsWhenAllCardsIn: FakeRole.FOUNDATION,
+    });
+
+    this.drawCount = drawCount;
+    this.stock = this.requirePile(STOCK_PILE_ID);
+    this.waste = this.requirePile(WASTE_PILE_ID);
+    this.foundations = this.pilesOfRole(FakeRole.FOUNDATION);
+    this.tableaus = this.pilesOfRole(FakeRole.TABLEAU);
+  }
+
+  /**
+   * Deals column i with i + 1 cards, only the last face up, and the remainder
+   * face-down onto the stock.
+   *
+   * @inheritDoc
+   */
+  protected override dealBoard(deal: Deal): void {
+    for (const [column, tableau] of this.tableaus.entries()) {
+      for (let depth = 0; depth <= column; depth++) {
+        if (!deal.dealTo(tableau, depth === column)) return;
+      }
+    }
+    deal.dealRest(this.stock, false);
+  }
+
+  /**
+   * Draws from the stock onto the waste, or recycles the waste once the stock
+   * is empty.
+   */
+  public drawCardsFromStock(): void {
+    if (this.stock.isEmpty && this.waste.isEmpty) {
+      return;
+    }
+
+    if (this.stock.isEmpty) {
+      this.recycleWaste();
+      return;
+    }
+
+    // Top first, the order they are turned over in.
+    const drawn = this.stock.getCards().slice(-this.drawCount).reverse();
+    this.commitAction("draw", [
+      this.tabletop.relocate(drawn, this.waste, { faceUp: true }),
+    ]);
+  }
+
+  /** Puts the whole waste back onto the stock, face down. */
+  private recycleWaste(): void {
+    const recycled = [...this.waste.getCards()].reverse();
+    this.commitAction("recycle", [
+      this.tabletop.relocate(recycled, this.stock, { faceUp: false }),
+    ]);
+  }
+
+  /**
+   * Turns over the card a move exposed.
+   *
+   * @inheritDoc
+   */
+  protected override applyMoveEffects(move: ResolvedMove): MoveEffects {
+    // Not borrowed from `games/common`, which the engine's tests must not
+    // import.
+    const exposed =
+      move.sourcePile.role === FakeRole.TABLEAU
+        ? move.sourcePile.topCard
+        : undefined;
+    if (!exposed || exposed.faceUp) {
+      return { scoreDelta: 0, flippedCardIds: [] };
+    }
+
+    exposed.faceUp = true;
+    return { scoreDelta: 0, flippedCardIds: [exposed.id] };
+  }
+}
+
+/**
+ * Plays the fake solitaire with the stock's placeholder artwork, and whether
+ * its empty slot is pressable, set by the test through a pile marker.
+ */
+export class StockOverrideTableGame extends FakeTableGame {
+  /** The artwork the stock's placeholder shows. */
+  public stockBackgroundKey = "card-placeholder-full-border";
+  /** Whether pressing the empty stock does something. */
+  public stockActionable = false;
+
+  constructor(...args: ConstructorParameters<typeof FakeTableGame>) {
+    super(...args);
+    this.markPile(this.stock, () => ({
+      artwork: this.stockBackgroundKey,
+      actionable: this.stockActionable,
+    }));
+  }
+}

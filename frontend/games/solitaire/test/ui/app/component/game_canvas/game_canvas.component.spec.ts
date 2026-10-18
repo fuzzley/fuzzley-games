@@ -1,0 +1,314 @@
+// @vitest-environment jsdom
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import { TestBed, ComponentFixture } from "@angular/core/testing";
+import { GameCanvasComponent } from "@/ui/app/component/game_canvas/game_canvas.component";
+import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
+import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
+import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
+import type { TablePresentation } from "@/engine/render/view/presentation";
+import { query, queryAll, queryText } from "@test/support/dom";
+
+/** Records one Phaser host the component built, and what it was handed. */
+interface StartedHost {
+  parent: HTMLElement;
+  destroyed: boolean;
+  /** How many boards it has been shown. */
+  boardsShown: number;
+  /** How many times it has been asked to read the chrome's insets again. */
+  insetsRefreshed: number;
+}
+
+/**
+ * The hosts built so far, and the ready callback the latest board was given.
+ *
+ * Module state, because `vi.mock` factories are hoisted above everything and
+ * cannot close over anything declared per-test. Reset in `beforeEach`.
+ */
+const started: StartedHost[] = [];
+let readyCallback: (() => void) | undefined;
+
+vi.mock("@/ui/app/provider/board_catalog", () => ({
+  makeBoardScene: (
+    _gameId: string,
+    _game: unknown,
+    {
+      presentation,
+      onReady,
+    }: { presentation: TablePresentation; onReady?: () => void },
+  ) => {
+    readyCallback = onReady;
+    // Reads and follows the settings, as a board does while it is created,
+    // which a board swapped into a running game is at once.
+    presentation.cardDeckId();
+    const stopFollowing = presentation.onCardDeck(() => {
+      /* nothing to redraw */
+    });
+    stopFollowing();
+    return {};
+  },
+}));
+
+vi.mock("@/engine/render/phaser/host/phaser_host", () => ({
+  PhaserHost: class {
+    private readonly record: StartedHost;
+
+    constructor(_window: Window, parent: HTMLElement) {
+      this.record = {
+        parent,
+        destroyed: false,
+        boardsShown: 0,
+        insetsRefreshed: 0,
+      };
+      started.push(this.record);
+    }
+
+    show(makeBoardScene: (surroundings: { insets: () => unknown }) => void) {
+      this.record.boardsShown++;
+      makeBoardScene({ insets: () => undefined });
+    }
+
+    refreshInsets() {
+      this.record.insetsRefreshed++;
+    }
+
+    destroy() {
+      this.record.destroyed = true;
+    }
+  },
+}));
+
+describe("GameCanvasComponent", () => {
+  let fixture: ComponentFixture<GameCanvasComponent>;
+  let catalog: GameCatalogService;
+
+  beforeEach(async () => {
+    localStorage.clear();
+    location.hash = "";
+    started.length = 0;
+    readyCallback = undefined;
+
+    await TestBed.configureTestingModule({
+      imports: [GameCanvasComponent],
+      providers: [GameCatalogService],
+    }).compileComponents();
+
+    catalog = TestBed.inject(GameCatalogService);
+    fixture = TestBed.createComponent(GameCanvasComponent);
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    delete window.fsolitaire;
+    vi.useRealTimers();
+  });
+
+  /** Reports the board ready, as a built scene does. */
+  function boardReady(): void {
+    readyCallback?.();
+    fixture.detectChanges();
+  }
+
+  /** Returns whether the loading overlay is covering the board. */
+  function isLoading(): boolean {
+    return (
+      query(fixture, ".loading-overlay")?.classList.contains("hidden") === false
+    );
+  }
+
+  describe("the Phaser host", () => {
+    it("starts exactly one game", () => {
+      expect(started.length).toBe(1);
+    });
+
+    it("mounts the game into its own container element", () => {
+      expect(started[0].parent).toBe(query(fixture, ".canvas-container"));
+    });
+
+    it("destroys the game when the host is torn down", () => {
+      fixture.destroy();
+
+      expect(started[0].destroyed).toBe(true);
+    });
+
+    it("shows the next game's board in the same game", () => {
+      catalog.select("spider");
+
+      fixture.detectChanges();
+
+      // One game for the component's life, so every deal reuses its WebGL
+      // context instead of leaving the old one for the garbage collector.
+      expect(
+        started.map(({ destroyed, boardsShown }) => ({
+          destroyed,
+          boardsShown,
+        })),
+      ).toEqual([{ destroyed: false, boardsShown: 2 }]);
+    });
+
+    it("reads the chrome's insets again when the stock changes side", async () => {
+      const before = started[0].insetsRefreshed;
+
+      TestBed.inject(PresentationSettingsService).setStockSide("right");
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      // The rail on a sideways phone moves to the other edge without a resize.
+      expect(started[0].insetsRefreshed).toBeGreaterThan(before);
+    });
+
+    it("keeps the board when the player chooses another deck", () => {
+      TestBed.inject(PresentationSettingsService).setDesktopCardDeck("classic");
+
+      fixture.detectChanges();
+
+      // The board swaps the deck in itself; a new board would deal again.
+      expect(started.map(({ boardsShown }) => boardsShown)).toEqual([1]);
+    });
+
+    it("exposes the running game for console debugging in development", () => {
+      expect(window.fsolitaire).toBe(catalog.session().game);
+    });
+
+    it("stops exposing the game once it is destroyed", () => {
+      fixture.destroy();
+
+      expect(window.fsolitaire).toBeUndefined();
+    });
+  });
+
+  describe("the loading overlay", () => {
+    it("covers the board until the scene reports itself ready", () => {
+      expect(isLoading()).toBe(true);
+    });
+
+    it("uncovers it once the scene is ready", () => {
+      boardReady();
+
+      expect(isLoading()).toBe(false);
+    });
+
+    it("names the game being dealt", () => {
+      expect(queryText(fixture, ".loading-text")).toContain("Loading Klondike");
+    });
+
+    it("draws a placeholder for every pile the board will have", () => {
+      expect(queryAll(fixture, ".skeleton-slot").length).toBe(
+        KLONDIKE_LAYOUT.slots.length,
+      );
+    });
+
+    it("describes the board as an image, not an application", () => {
+      // `role="application"` suppresses a screen reader's browse mode and is
+      // only honest once there is a keyboard interface to replace it with.
+      expect(query(fixture, ".canvas-container")?.getAttribute("role")).toBe(
+        "img",
+      );
+    });
+
+    it("marks the board busy while it builds", () => {
+      expect(
+        query(fixture, ".canvas-container")?.getAttribute("aria-busy"),
+      ).toBe("true");
+    });
+
+    it("stops marking it busy once it is ready", () => {
+      boardReady();
+
+      expect(
+        query(fixture, ".canvas-container")?.getAttribute("aria-busy"),
+      ).toBe("false");
+    });
+
+    it("returns when a different game is chosen", () => {
+      boardReady();
+
+      catalog.select("spider");
+      fixture.detectChanges();
+
+      expect(isLoading()).toBe(true);
+      expect(queryText(fixture, ".loading-text")).toContain("Loading Spider");
+    });
+  });
+
+  describe("the deck badge", () => {
+    /** Returns whether the deck swap badge is showing. */
+    function isSwappingDeck(): boolean {
+      return (
+        query(fixture, ".deck-badge")?.classList.contains("hidden") === false
+      );
+    }
+
+    /** Says a deck is being fetched, as the board does. */
+    function deckLoading(): void {
+      TestBed.inject(PresentationSettingsService).reportCardDeckStatus({
+        kind: "loading",
+        deckId: "classic",
+      });
+      fixture.detectChanges();
+    }
+
+    it("stays out of the way while the table is up to date", () => {
+      expect(isSwappingDeck()).toBe(false);
+    });
+
+    it("appears while a deck is on its way", () => {
+      deckLoading();
+
+      // The board stays playable through a swap, so this is a badge in the
+      // corner rather than the overlay that covers the table for a deal.
+      expect(isSwappingDeck()).toBe(true);
+    });
+
+    it("names the deck being fetched", () => {
+      deckLoading();
+
+      expect(queryText(fixture, ".deck-badge")).toContain("Loading Classic");
+    });
+
+    it("goes away once the board has drawn it", () => {
+      const presentation = TestBed.inject(PresentationSettingsService);
+      deckLoading();
+
+      presentation.reportCardDeckStatus({ kind: "drawn", deckId: "classic" });
+      fixture.detectChanges();
+
+      expect(isSwappingDeck()).toBe(false);
+    });
+
+    it("goes away when the deck cannot be fetched at all", () => {
+      const presentation = TestBed.inject(PresentationSettingsService);
+      deckLoading();
+
+      presentation.reportCardDeckStatus({
+        kind: "unavailable",
+        deckId: "classic",
+      });
+      fixture.detectChanges();
+
+      // The drawer is where a player is told why; the badge only ever says
+      // something is on its way, and by now nothing is.
+      expect(isSwappingDeck()).toBe(false);
+    });
+  });
+
+  describe("when a board never reports itself ready", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      // A fresh fixture, so the timeout is armed while the timers are fake.
+      fixture = TestBed.createComponent(GameCanvasComponent);
+      fixture.detectChanges();
+      vi.advanceTimersByTime(8000);
+      fixture.detectChanges();
+    });
+
+    it("stops covering the board rather than spinning forever", () => {
+      expect(isLoading()).toBe(false);
+    });
+
+    it("says what went wrong", () => {
+      expect(queryText(fixture, ".loading-text")).toContain(
+        "Board initialization timed out",
+      );
+    });
+  });
+});

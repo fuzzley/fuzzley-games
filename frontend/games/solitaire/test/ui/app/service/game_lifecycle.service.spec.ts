@@ -1,0 +1,366 @@
+// @vitest-environment jsdom
+import { describe, it, expect, vi } from "vitest";
+import { TestBed } from "@angular/core/testing";
+import {
+  encodePosition,
+  type GamePosition,
+} from "@/ui/app/model/game_position";
+import { GameLifecycleService } from "@/ui/app/service/game_lifecycle.service";
+import { GameMetricsService } from "@/ui/app/service/game_metrics.service";
+import { ConfirmationService } from "@/ui/app/service/confirmation.service";
+import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
+import {
+  createMockGameModel,
+  type MockGameModel,
+  type MockGameModelOverrides,
+} from "@test/support/ui/game_mock";
+import { asCatalog, createMockCatalog } from "@test/support/ui/catalog_mock";
+
+interface Harness {
+  lifecycle: GameLifecycleService;
+  metrics: GameMetricsService;
+  confirmation: ConfirmationService;
+  model: MockGameModel;
+  catalog: ReturnType<typeof createMockCatalog>;
+}
+
+function buildLifecycle(overrides: MockGameModelOverrides = {}): Harness {
+  const model = createMockGameModel(overrides);
+  const catalog = createMockCatalog(model);
+
+  TestBed.configureTestingModule({
+    providers: [
+      { provide: GameCatalogService, useValue: asCatalog(catalog.catalog) },
+    ],
+  });
+
+  const lifecycle = TestBed.inject(GameLifecycleService);
+  const metrics = TestBed.inject(GameMetricsService);
+  const confirmation = TestBed.inject(ConfirmationService);
+  TestBed.flushEffects();
+  return { lifecycle, metrics, confirmation, model, catalog };
+}
+
+describe("GameLifecycleService", () => {
+  describe("with a fresh game, which has nothing to lose", () => {
+    it("restarts without asking", async () => {
+      const harness = buildLifecycle();
+
+      await harness.lifecycle.restartGame();
+
+      expect(harness.model.restartGame).toHaveBeenCalledOnce();
+      expect(harness.confirmation.isOpen()).toBe(false);
+    });
+
+    it("deals a new game without asking", async () => {
+      const harness = buildLifecycle();
+
+      await harness.lifecycle.startNewGame();
+
+      expect(harness.model.startNewGame).toHaveBeenCalledOnce();
+    });
+
+    it("changes a rule without asking", async () => {
+      const harness = buildLifecycle();
+
+      await harness.lifecycle.setRuleOption("drawCount", 1);
+
+      expect(harness.catalog.setOption).toHaveBeenCalledWith("drawCount", 1);
+    });
+  });
+
+  describe("with a game in progress", () => {
+    /** Starts an action and answers the prompt it raises. */
+    async function answer(
+      harness: Harness,
+      action: Promise<unknown>,
+      confirmed: boolean,
+    ): Promise<void> {
+      expect(harness.confirmation.isOpen()).toBe(true);
+      if (confirmed) harness.confirmation.accept();
+      else harness.confirmation.cancel();
+      await action;
+    }
+
+    it("asks before restarting", () => {
+      const harness = buildLifecycle({ moves: 5 });
+
+      void harness.lifecycle.restartGame();
+
+      expect(harness.confirmation.isOpen()).toBe(true);
+      expect(harness.confirmation.message()).toContain("restart this game");
+      expect(harness.model.restartGame).not.toHaveBeenCalled();
+    });
+
+    it("restarts once the prompt is accepted", async () => {
+      const harness = buildLifecycle({ moves: 5 });
+
+      await answer(harness, harness.lifecycle.restartGame(), true);
+
+      expect(harness.model.restartGame).toHaveBeenCalledOnce();
+    });
+
+    it("does not restart when the prompt is declined", async () => {
+      const harness = buildLifecycle({ moves: 5 });
+
+      await answer(harness, harness.lifecycle.restartGame(), false);
+
+      expect(harness.model.restartGame).not.toHaveBeenCalled();
+    });
+
+    it("switches once the prompt is accepted", async () => {
+      const harness = buildLifecycle({ moves: 4 });
+
+      await answer(
+        harness,
+        harness.lifecycle.playGame("freecell", {}, "FreeCell"),
+        true,
+      );
+
+      expect(harness.catalog.catalog.selectedId()).toBe("freecell");
+    });
+
+    it("asks before changing a rule, which deals a new game", async () => {
+      const harness = buildLifecycle({ moves: 5 });
+
+      const action = harness.lifecycle.setRuleOption("drawCount", 1);
+
+      expect(harness.confirmation.message()).toContain("deal a new game");
+      await answer(harness, action, true);
+      expect(harness.catalog.setOption).toHaveBeenCalledWith("drawCount", 1);
+    });
+
+    it("stops asking once the game is won, since it is already over", async () => {
+      const harness = buildLifecycle({ moves: 5 });
+      harness.model.emit("game-won");
+      TestBed.flushEffects();
+
+      await harness.lifecycle.restartGame();
+
+      expect(harness.confirmation.isOpen()).toBe(false);
+      expect(harness.model.restartGame).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe("actions that change nothing", () => {
+    it("ignores setting a rule to the value it already has", async () => {
+      const harness = buildLifecycle({ moves: 4 });
+
+      await harness.lifecycle.setRuleOption("drawCount", 3);
+
+      expect(harness.catalog.setOption).not.toHaveBeenCalled();
+      expect(harness.confirmation.isOpen()).toBe(false);
+    });
+  });
+
+  describe("playing a game by its rules", () => {
+    it("puts the game on the table by those rules", async () => {
+      const harness = buildLifecycle();
+
+      await harness.lifecycle.playGame("freecell", {}, "FreeCell");
+
+      expect(harness.catalog.catalog.selectedId()).toBe("freecell");
+    });
+
+    it("plays the game already on the table by other rules", async () => {
+      const harness = buildLifecycle();
+
+      await harness.lifecycle.playGame(
+        "klondike",
+        { drawCount: 1 },
+        "Klondike",
+      );
+
+      expect(harness.catalog.catalog.optionValues()["drawCount"]).toBe(1);
+    });
+
+    it("leaves the game on the table alone when nothing would change", async () => {
+      const harness = buildLifecycle({ moves: 4 });
+
+      const played = await harness.lifecycle.playGame(
+        "klondike",
+        { drawCount: 3 },
+        "Klondike",
+      );
+
+      expect(played).toBe(true);
+      expect(harness.catalog.load).not.toHaveBeenCalled();
+      expect(harness.confirmation.isOpen()).toBe(false);
+    });
+
+    it("names the game it is switching to when a game is under way", () => {
+      const harness = buildLifecycle({ moves: 4 });
+
+      void harness.lifecycle.playGame("freecell", {}, "Baker's Game");
+
+      expect(harness.confirmation.message()).toContain(
+        "Switch to Baker's Game?",
+      );
+    });
+
+    it("says it deals afresh when only the rules change", () => {
+      const harness = buildLifecycle({ moves: 4 });
+
+      void harness.lifecycle.playGame("klondike", { drawCount: 1 }, "Klondike");
+
+      expect(harness.confirmation.message()).toContain(
+        "Deal a new game of Klondike",
+      );
+    });
+
+    it("keeps the game under way when the prompt is declined", async () => {
+      const harness = buildLifecycle({ moves: 4 });
+      const played = harness.lifecycle.playGame("freecell", {}, "FreeCell");
+
+      harness.confirmation.cancel();
+
+      expect(await played).toBe(false);
+      expect(harness.catalog.catalog.selectedId()).toBe("klondike");
+    });
+  });
+
+  describe("navigating to a game by URL", () => {
+    it("lets the router show the game already on the table without asking", async () => {
+      const harness = buildLifecycle({ moves: 4 });
+
+      const allowed = await harness.lifecycle.confirmNavigation("klondike");
+
+      expect(allowed).toBe(true);
+      expect(harness.confirmation.isOpen()).toBe(false);
+    });
+
+    it("lets the router replace a fresh game without asking", async () => {
+      const harness = buildLifecycle();
+
+      const allowed = await harness.lifecycle.confirmNavigation("freecell");
+
+      expect(allowed).toBe(true);
+    });
+
+    it("asks before the router replaces a game under way", () => {
+      const harness = buildLifecycle({ moves: 4 });
+
+      void harness.lifecycle.confirmNavigation("freecell");
+
+      expect(harness.confirmation.message()).toContain("switch games");
+    });
+
+    it("resolves to the player's answer", async () => {
+      const harness = buildLifecycle({ moves: 4 });
+      const allowed = harness.lifecycle.confirmNavigation("freecell");
+
+      harness.confirmation.cancel();
+
+      expect(await allowed).toBe(false);
+    });
+  });
+
+  describe("undo", () => {
+    it("takes the move back on the game", () => {
+      const harness = buildLifecycle({ undoDepth: 2 });
+
+      harness.lifecycle.undo();
+
+      expect(harness.model.undo).toHaveBeenCalledOnce();
+    });
+
+    it("does nothing when there is nothing to take back", () => {
+      const harness = buildLifecycle({ undoDepth: 0 });
+
+      harness.lifecycle.undo();
+
+      expect(harness.model.undo).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("after a game is dealt afresh", () => {
+    it("clears the won flag, so the victory card goes away", async () => {
+      const harness = buildLifecycle();
+      harness.model.emit("game-won");
+      TestBed.flushEffects();
+
+      await harness.lifecycle.startNewGame();
+
+      expect(harness.metrics.isGameWon()).toBe(false);
+    });
+  });
+
+  describe("loading a reported game", () => {
+    /** Returns a report's game state for the given game, rules and snapshot. */
+    function reported(
+      harness: Harness,
+      position: Partial<GamePosition> = {},
+    ): Promise<string> {
+      return encodePosition({
+        gameId: "klondike",
+        options: { drawCount: 3, almostWin: 0 },
+        snapshot: harness.model.snapshot(),
+        ...position,
+      });
+    }
+
+    it("puts the reported position on the table", async () => {
+      const harness = buildLifecycle();
+      const snapshot = { ...harness.model.snapshot(), score: 250 };
+
+      await harness.lifecycle.loadPosition(
+        await reported(harness, { snapshot }),
+      );
+
+      expect(harness.model.restore).toHaveBeenCalledWith(snapshot);
+    });
+
+    it("switches to the reported game", async () => {
+      const harness = buildLifecycle();
+
+      await harness.lifecycle.loadPosition(
+        await reported(harness, { gameId: "freecell", options: {} }),
+      );
+
+      expect(harness.catalog.catalog.selectedId()).toBe("freecell");
+    });
+
+    it("plays it by the reported rules", async () => {
+      const harness = buildLifecycle();
+
+      await harness.lifecycle.loadPosition(
+        await reported(harness, { options: { drawCount: 1 } }),
+      );
+
+      expect(harness.catalog.catalog.valueOf("drawCount")).toBe(1);
+    });
+
+    it("does not load over a game in progress when the prompt is declined", async () => {
+      const harness = buildLifecycle({ moves: 4 });
+      const loading = harness.lifecycle.loadPosition(await reported(harness));
+      await vi.waitFor(() => {
+        expect(harness.confirmation.isOpen()).toBe(true);
+      });
+
+      harness.confirmation.cancel();
+
+      expect(await loading).toBe(false);
+      expect(harness.model.restore).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["no game state", () => Promise.resolve("hello"), /no game state/],
+      [
+        "a game this build lacks",
+        (harness: Harness) => reported(harness, { gameId: "poker" }),
+        /no game "poker"/,
+      ],
+      [
+        "a rule value the game lacks",
+        (harness: Harness) => reported(harness, { options: { drawCount: 5 } }),
+        /no rule "drawCount" of 5/,
+      ],
+    ])("rejects text with %s", async (_name, text, error) => {
+      const harness = buildLifecycle();
+
+      await expect(
+        harness.lifecycle.loadPosition(await text(harness)),
+      ).rejects.toThrow(error);
+    });
+  });
+});

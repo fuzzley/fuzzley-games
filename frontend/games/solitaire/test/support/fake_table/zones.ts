@@ -1,0 +1,177 @@
+import { PileRole } from "@/engine/core/card/card_pile";
+import { Rank } from "@/engine/core/card/playing_card";
+import { PileLayout } from "@/engine/render/layout/pile_layout";
+import {
+  PlacementRule,
+  byEmptiness,
+  cardIs,
+  hasRank,
+} from "@/engine/tableau/rules/placement";
+import {
+  descendingAlternatingColor,
+  suitFoundation,
+} from "@/engine/tableau/rules/builds";
+import { ZoneSpec } from "@/engine/tableau/zones/zone";
+
+/** The parts a pile plays on the fake board. */
+export const FakeRole = {
+  /** The face-down pile a press draws from. */
+  STOCK: "stock",
+  /** The face-up pile drawn cards land on. */
+  WASTE: "waste",
+  /** A pile built up by suit. */
+  FOUNDATION: "foundation",
+  /** A column built down, fanned so its cards are individually reachable. */
+  TABLEAU: "tableau",
+} as const satisfies Record<string, PileRole>;
+
+/** Names one of the parts a fake pile can play. */
+export type FakeRole = (typeof FakeRole)[keyof typeof FakeRole];
+
+/** The number of foundation piles. */
+export const FOUNDATION_COUNT = 4;
+
+/** The number of tableau columns. */
+export const TABLEAU_COUNT = 7;
+
+/** The stable id of the single stock pile. */
+export const STOCK_PILE_ID = "stock";
+
+/** The stable id of the single waste pile. */
+export const WASTE_PILE_ID = "waste";
+
+/** Returns the stable id of the foundation pile at the given index. */
+export function foundationPileId(index: number): string {
+  return `foundation-${index}`;
+}
+
+/** Returns the stable id of the tableau column at the given index. */
+export function tableauPileId(index: number): string {
+  return `tableau-${index}`;
+}
+
+/** Downward gap below a face-up tableau card before the next card. */
+export const TABLEAU_FACE_UP_OFFSET = 45;
+
+/** Downward gap below a face-down tableau card before the next card. */
+export const TABLEAU_FACE_DOWN_OFFSET = 18;
+
+/** Extra downward gap opened below the hovered tableau card. */
+export const TABLEAU_HOVER_EXPANSION_OFFSET = 15;
+
+/** Horizontal gap between fanned waste cards. */
+export const WASTE_FAN_OFFSET_X = 55;
+
+/** Maximum number of waste cards to fan. */
+export const WASTE_MAX_FAN_CARDS = 3;
+
+/** How a tableau column arranges its cards. */
+export const TABLEAU_PILE_LAYOUT: PileLayout = {
+  kind: "fan-down",
+  faceUpGap: TABLEAU_FACE_UP_OFFSET,
+  faceDownGap: TABLEAU_FACE_DOWN_OFFSET,
+  hoverExpansion: TABLEAU_HOVER_EXPANSION_OFFSET,
+};
+
+/** How the stock and the foundations arrange their cards: squarely. */
+export const STACKED_PILE_LAYOUT: PileLayout = { kind: "stacked" };
+
+/**
+ * Returns how the waste arranges its cards when each draw turns over
+ * `drawCount`.
+ */
+export function wastePileLayout(drawCount: number): PileLayout {
+  return {
+    kind: "spread",
+    direction: "right",
+    gap: WASTE_FAN_OFFSET_X,
+    maxVisible: drawCount === 1 ? 1 : WASTE_MAX_FAN_CARDS,
+  };
+}
+
+/** Returns a fake pile's layout for its role and the draw count. */
+export function fakePileLayout(role: string, drawCount: number): PileLayout {
+  switch (role) {
+    case FakeRole.TABLEAU:
+      return TABLEAU_PILE_LAYOUT;
+    case FakeRole.WASTE:
+      return wastePileLayout(drawCount);
+    default:
+      return STACKED_PILE_LAYOUT;
+  }
+}
+
+/** A column: a King starts an empty one, and the rest build down in colour. */
+export const FAKE_TABLEAU_RULE: PlacementRule = byEmptiness(
+  cardIs(hasRank(Rank.KING)),
+  descendingAlternatingColor,
+);
+
+/** Returns the thirteen zones of the fake board. */
+export function fakeZoneSpecs(drawCount: number): readonly ZoneSpec[] {
+  const zones: ZoneSpec[] = [
+    {
+      id: STOCK_PILE_ID,
+      role: FakeRole.STOCK,
+      slot: { pileId: STOCK_PILE_ID, column: 0, row: 0 },
+      layout: STACKED_PILE_LAYOUT,
+      // Pressed to draw, never a destination.
+      accept: null,
+      // Clickable, because that is what draws, but never picked up.
+      grab: { kind: "top-only" },
+      draggable: false,
+      face: "always-down",
+      backgroundKey: "card-placeholder-full-border-reset",
+      // Pressing the empty slot recycles, so it wants a pointer and a border.
+      emptyIsActionable: true,
+    },
+    {
+      id: WASTE_PILE_ID,
+      role: FakeRole.WASTE,
+      slot: { pileId: WASTE_PILE_ID, column: 1, row: 0 },
+      layout: wastePileLayout(drawCount),
+      accept: null,
+      grab: { kind: "top-only" },
+      draggable: true,
+      face: "always-up",
+      // No placeholder: the waste fans over bare table. This is also what makes
+      // the board's background count one fewer than its pile count, which
+      // several engine tests depend on.
+    },
+  ];
+
+  for (let index = 0; index < FOUNDATION_COUNT; index++) {
+    const id = foundationPileId(index);
+    zones.push({
+      id,
+      role: FakeRole.FOUNDATION,
+      // Column 2 is left clear for the waste fan to grow into.
+      slot: { pileId: id, column: 3 + index, row: 0 },
+      layout: STACKED_PILE_LAYOUT,
+      accept: suitFoundation,
+      grab: { kind: "top-only" },
+      draggable: true,
+      face: "always-up",
+      backgroundKey: "card-placeholder-full-border-circle",
+    });
+  }
+
+  for (let index = 0; index < TABLEAU_COUNT; index++) {
+    const id = tableauPileId(index);
+    zones.push({
+      id,
+      role: FakeRole.TABLEAU,
+      slot: { pileId: id, column: index, row: 1 },
+      layout: TABLEAU_PILE_LAYOUT,
+      accept: FAKE_TABLEAU_RULE,
+      // Any face-up card and whatever rests on it, ordered or not: the laxest
+      // of the grab rules, and the one that lets a test lift an arbitrary run.
+      grab: { kind: "any-face-up" },
+      draggable: true,
+      face: "card",
+      backgroundKey: "card-placeholder",
+    });
+  }
+
+  return zones;
+}
