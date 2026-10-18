@@ -261,7 +261,7 @@ module.exports = tseslint.config(
   // go: every parameter and every returned value carries one, and
   // tsconfig.scripts.json checks them.
   {
-    files: ["tools/**/*.mjs", ".agents/*.mjs"],
+    files: ["tools/**/*.mjs"],
     extends: [
       eslint.configs.recommended,
       jsdoc.configs["flat/recommended-typescript-flavor-error"],

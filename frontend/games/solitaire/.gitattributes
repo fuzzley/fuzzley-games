@@ -1,3 +1,0 @@
-# Store and check out every text file with LF endings, which Prettier also
-# writes, so formatting a file never rewrites its line endings on Windows.
-* text=auto eol=lf
