@@ -8,18 +8,19 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
-- **Phase:** 2, tokens and theme. Phase 1 scaffolded `lib/style` only;
-  `lib/ui` comes with its first component, in Phase 3.
-- **Next step:** the last of Phase 2: Figtree from Fontsource in
-  `@fz/style`, in place of Google Fonts, and the Content Security Policy
-  and docs without Google Fonts.
+- **Phase:** 3, components. Phase 2 is done.
+- **Next step:** scaffold `lib/ui` (`@fz/ui`, with `@angular/router` and
+  `postcss` among its devDependencies), then move the site's storage token,
+  `ThemeService` (adding cross-tab sync and the `theme-color` option), theme
+  menu and icon into it, with a wordmark and the `.fz-button` and
+  `.fz-badge` fragments in `@fz/style`.
 
 | Phase                             | State       |
 | --------------------------------- | ----------- |
 | 0. Spike                          | done        |
 | 1. Scaffold the libraries         | done        |
-| 2. Tokens and theme; site moves   | in progress |
-| 3. Components; site moves         | to do       |
+| 2. Tokens and theme; site moves   | done        |
+| 3. Components; site moves         | in progress |
 | 4. Plumbing in Solitaire          | to do       |
 | 5. Solitaire follows the theme    | to do       |
 | 6. Solitaire's pieces move to lib | to do       |
@@ -164,3 +165,26 @@ passed every check in the plan, and was removed once done. What it showed:
 - Checked: the screenshots differ from the baseline only in Soft pastel's
   felt (its swatch, in every palette's open menu, and felt areas in that
   palette), by exactly that change of color.
+
+### 2026-10-24: Phase 2, Figtree from Fontsource
+
+- `@fz/style` depends on `@fontsource-variable/figtree` 5.3.0 (SIL Open Font
+  License) and its global stylesheet loads it, so every app gets Figtree from
+  its own origin. `--fz-font` names `Figtree Variable` first, then the
+  system stack. A face only downloads when text is set in it, so Solitaire
+  loading the global stylesheet in Phase 4 costs nothing until it uses it.
+- The site drops Google Fonts: the preconnects and stylesheet leave
+  `index.html`, and `fonts.googleapis.com` and `fonts.gstatic.com` leave the
+  Content Security Policy, which now says `font-src 'self'`. `.agents/AGENTS.md`
+  and `docs/operations.md` describe it so.
+- `src/global.spec.ts` lets font faces sit outside the layers (they declare a
+  font, not a style) and checks the one face is the font `--fz-font` names.
+- Checked: the build emits the two subsets and requests only the Latin one;
+  the dev server serves it; the screenshots match the previous step's, so
+  Fontsource's Figtree renders exactly as Google's did.
+- The policy, without the image (Docker isn't running here): the build served
+  with the header from `nginx/content-security-policy.conf`, in headless
+  Chrome, loads with no policy violation, while the old build under the same
+  header is refused its Google Fonts stylesheet, which shows the check
+  works. Analytics stays off without a measurement ID, so Google Analytics,
+  which the policy still allows, wasn't exercised.

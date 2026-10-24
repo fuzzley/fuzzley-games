@@ -127,8 +127,9 @@ The site's own pages (`location /`) also carry
 `nginx/content-security-policy.conf`: scripts from the site and Google
 Analytics only (the page has no inline script; `theme.js`, `env.js` and
 `analytics.js` are files), styles from the site with `'unsafe-inline'`
-(Angular adds each component's styles as a `<style>` element) and Google
-Fonts, Google Analytics' measurement endpoints, and no framing. The policy
+(Angular adds each component's styles as a `<style>` element), fonts from
+the site (Figtree comes with `@fz/style`), Google Analytics' measurement
+endpoints, and no framing. The policy
 is written for the site's pages, and the games under `/play/` load what their
 engines need (the Solitaire Collection's Phaser draws from `blob:` URLs, and
 Minesweeper loads classic scripts), so they get the common headers but no
