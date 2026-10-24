@@ -9,9 +9,9 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
 - **Phase:** 5, Solitaire follows the theme. Phase 4 is done.
-- **Next step:** Phase 5 changes how Solitaire looks, so it starts with a
-  mock (the plan lists what it shows), built with the real tokens, and waits
-  for the user's approval before any of its code.
+- **Next step:** the user reviews the Phase 5 mock (see the last log entry).
+  No Phase 5 code before their approval; then the plan's Phase 5, with
+  whatever they changed.
 
 | Phase                             | State     |
 | --------------------------------- | --------- |
@@ -20,7 +20,7 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 | 2. Tokens and theme; site moves   | done      |
 | 3. Components; site moves         | done      |
 | 4. Plumbing in Solitaire          | done      |
-| 5. Solitaire follows the theme    | mock next |
+| 5. Solitaire follows the theme    | in review |
 | 6. Solitaire's pieces move to lib | to do     |
 | 7. The game bar                   | to do     |
 | 8. Retire Solitaire's token names | to do     |
@@ -317,3 +317,41 @@ passed every check in the plan, and was removed once done. What it showed:
   `data-theme` doesn't reach it yet; the dev server's stylesheet was checked
   to hold the shared tokens and the aliases. The site's screenshots are the
   previous step's, byte for byte.
+
+### 2026-10-24: Phase 5's mock
+
+- **The mock** is a
+  [private page for the user](https://claude.ai/artifact/7xP3dMosGMmMK9vvxFgfQq).
+  It compares today's Solitaire with the proposal in all four palettes: Klondike's board
+  at the three sizes, then the game browser, settings, rules, a confirmation,
+  victory and the phone's menu. Below those, live sketches drawn with the
+  compiled `@fz/style` tokens: the bar and its buttons, the redrawn glyphs,
+  and Game options' new Theme and Felt sections.
+- **How the pictures were made:** the running game with the proposal laid
+  over it, by the Solitaire screenshot script with two new options: a script
+  to run once the game is up, and `MASK=0`, which keeps the pictures. The
+  injected stylesheet points Solitaire's colour tokens at the palette roles
+  (the plan's tables, several old names to one role), declared on
+  `:root, [data-theme]`, and makes the buttons flat pills. The injected script
+  puts the dark partner's `data-theme` on `.ui-overlay`, and replaces the
+  presentation service's `backgroundColor()` with the palette's felt.
+- **Found while making it:**
+  - The site's button is a pill (`--fz-radius-pill`, 42px, weight 700), and
+    Solitaire's a rounded rectangle. "The site's buttons" means the pill, so
+    the mock shows pills, the full-width ones in dialogs too.
+  - Victory is the only user of Solitaire's warning colours, so it takes
+    `--fz-warning`: orange under Casino night's chrome, amber under Midnight
+    blue's. The page offers the accent instead and recommends the warm colour.
+  - Classic felt's felt (`#2f7d4f`) is much lighter than today's Emerald
+    (`#0f4d0e`), and it's what light-mode players see first. The page flags
+    it; I recommended keeping it, to match the site.
+  - The game pictures in the browser and the rules are screenshots of today's
+    look; they're retaken after Phase 7, as the plan says.
+- **Glyphs:** 17 redrawn as 2px outlines on the 24px grid: the plan's ten,
+  plus close, back, trophy, link and external link, which Solitaire also
+  draws, and tick and search, which `@fz/ui` already has.
+- **Memory:** five captures in parallel ran five headless Chromes, and the
+  user asked for them to be closed. Captures now run one at a time, and the
+  script skips shots it already has, so a run can be resumed.
+- **Waiting on:** the user's approval of the look, and their answers on the
+  page's open points. No Phase 5 code until then.
