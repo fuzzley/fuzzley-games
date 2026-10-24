@@ -67,6 +67,21 @@ describe("global.scss", () => {
   });
 });
 
+describe("the tokens alone", () => {
+  it("style no element, so a page with a reset of its own can load them", () => {
+    const styles = new Set<string>();
+
+    parse(compiled("tokens/_index.scss")).walkDecls(({ prop, parent }) => {
+      const inFontFace = parent?.type === "atrule";
+      if (!inFontFace && !prop.startsWith("--") && prop !== "color-scheme") {
+        styles.add(prop);
+      }
+    });
+
+    expect([...styles]).toEqual([]);
+  });
+});
+
 describe("the toolkit", () => {
   it("emits no CSS, so a stylesheet can load it without repeating rules", () => {
     expect(compiled("_index.scss")).toBe("");

@@ -3,10 +3,10 @@
 @use "mixins" as *;
 
 // The button system, global because several components' markup wears it.
-//
+
 // The filled variants share one shape, a gradient over a shadow of the same
 // hue, so the `@each` below emits them all from one table.
-//
+
 // Each label clears 4.5:1 against every stop of its gradient, at rest and
 // under the pointer. That keeps white labels to the darker blues and reds, and
 // gives the amber a dark one, since no shade of it that still reads as gold
@@ -41,6 +41,7 @@ $filled-variants: (
 
 .btn {
   @include transition(background, box-shadow, transform, opacity);
+
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -51,10 +52,12 @@ $filled-variants: (
   border: none;
   cursor: pointer;
   color: var(--text-bright);
+
   // Defaults a <button> gets from the browser, for a link styled as one.
   box-sizing: border-box;
   text-decoration: none;
   touch-action: manipulation;
+
   // A label is never worth wrapping a button over.
   white-space: nowrap;
 }
@@ -114,6 +117,7 @@ $filled-variants: (
 .btn-circle {
   @include flex-center;
   @include transition(background, transform);
+
   width: 38px;
   height: 38px;
   border-radius: 50%;

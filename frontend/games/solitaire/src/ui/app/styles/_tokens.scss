@@ -2,7 +2,9 @@
 @use "breakpoints" as *;
 
 // The design tokens, as custom properties because those inherit into every
-// component's encapsulated stylesheet. Sass cuts them from `_palette.scss`.
+// component's encapsulated stylesheet. Sass cuts the colours from
+// `_palette.scss`; the scales, from spacing to motion, are @fz/style's, which
+// the site and the other games share.
 
 :root {
   // --- The table ---
@@ -17,8 +19,10 @@
   --surface-panel: #{with-alpha($slate-900, 0.95)};
   --surface-panel-translucent: #{with-alpha($slate-900, 0.5)};
   --surface-raised: #{with-alpha($slate-800, 0.85)};
+
   // Its own role, though it currently matches the panel.
   --surface-modal: #{with-alpha($slate-900, 0.95)};
+
   // The modal's surface made opaque, for a bar that content scrolls beneath
   // and would otherwise show through.
   --surface-modal-solid: #{$slate-900};
@@ -26,9 +30,11 @@
   --surface-sunken: #{with-alpha($black, 0.2)};
   --surface-scrim: #{with-alpha($black, 0.6)};
   --surface-scrim-heavy: #{with-alpha($slate-900, 0.85)};
+
   // Laid over the board itself while it builds, so the loading state reads as
   // the table dimmed rather than as a grey sheet in front of it.
   --surface-felt-scrim: #{with-alpha($felt-shade, 0.65)};
+
   // The two ends of a loading placeholder's shimmer.
   --surface-skeleton: #{with-alpha($slate-800, 0.5)};
   --surface-skeleton-highlight: #{with-alpha($slate-700, 0.8)};
@@ -48,6 +54,7 @@
   --text-secondary: #{$slate-300};
   --text-muted: #{$slate-400};
   --text-heading: #{$slate-100};
+
   // Dark, for a label on a fill too light to carry white, such as the amber.
   --text-inverse: #{$slate-900};
 
@@ -65,12 +72,10 @@
   --accent-deep: #{$blue-700};
   --accent-light: #{$blue-400};
   --accent-sky: #{$sky-400};
-
   --danger: #{$red-500};
   --danger-strong: #{$red-600};
   --danger-deep: #{$red-700};
   --danger-light: #{$red-400};
-
   --warning: #{$amber-500};
   --warning-strong: #{$amber-600};
   --warning-light: #{$amber-400};
@@ -83,16 +88,13 @@
   --accent-glow: #{with-alpha($blue-500, 0.3)};
   --accent-fill: #{with-alpha($blue-600, 0.9)};
   --accent-fill-border: #{with-alpha($blue-400, 0.9)};
-
   --sky-wash-faint: #{with-alpha($sky-500, 0.05)};
   --sky-wash: #{with-alpha($sky-400, 0.12)};
   --sky-wash-strong: #{with-alpha($sky-400, 0.25)};
   --sky-border: #{with-alpha($sky-400, 0.3)};
-
   --danger-wash: #{with-alpha($red-500, 0.02)};
   --danger-border: #{with-alpha($red-500, 0.3)};
   --danger-glow: #{with-alpha($red-500, 0.15)};
-
   --warning-glow: #{with-alpha($amber-500, 0.15)};
 
   // --- Card swatches (the settings drawer previews) ---
@@ -104,6 +106,7 @@
   --card-back-classic-blue-dot: #{$blue-600};
   --card-back-classic-red-base: #{$red-900};
   --card-back-classic-red-dot: #{$red-600};
+
   // The face of a card, for the deck preview. Paper and a red pip, because the
   // preview is a drawing of a real card rather than a piece of the interface.
   --card-face: #{$white};
@@ -111,78 +114,77 @@
 
   // --- Spacing ---
   // A 4px scale, which every gap, pad and margin in the application uses.
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
+  --space-1: var(--fz-space-1);
+  --space-2: var(--fz-space-2);
+  --space-3: var(--fz-space-3);
+  --space-4: var(--fz-space-4);
+  --space-5: var(--fz-space-5);
+  --space-6: var(--fz-space-6);
+  --space-8: var(--fz-space-8);
+  --space-10: var(--fz-space-10);
 
   // --- Type ---
   // System stacks rather than a webfont, which would cost a download on every
   // load for a screen that is mostly card artwork.
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, "Segoe UI Variable Text",
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    "Segoe UI", "Roboto", "Helvetica Neue", "Arial", sans-serif;
+
   // For the figures that change as you watch, monospaced so a number does not
   // resize its container on the way from 9 to 10.
-  --font-mono:
-    ui-monospace, "Cascadia Mono", "SF Mono", "Segoe UI Mono", "Roboto Mono",
-    Menlo, Consolas, monospace;
+  --font-mono: var(--fz-font-mono);
 
   // `sm` is the interface default for labels, buttons and list rows; `md` is
   // running prose.
-  --font-2xs: 0.625rem;
-  --font-xs: 0.75rem;
-  --font-sm: 0.875rem;
-  --font-md: 1rem;
-  --font-lg: 1.125rem;
-  --font-xl: 1.25rem;
-  --font-2xl: 1.5rem;
-  --font-3xl: 1.75rem;
-  --font-4xl: 2.25rem;
-
-  --leading-tight: 1.4;
-  --leading-normal: 1.5;
-  --leading-relaxed: 1.6;
+  --font-2xs: var(--fz-font-2xs);
+  --font-xs: var(--fz-font-xs);
+  --font-sm: var(--fz-font-sm);
+  --font-md: var(--fz-font-md);
+  --font-lg: var(--fz-font-lg);
+  --font-xl: var(--fz-font-xl);
+  --font-2xl: var(--fz-font-2xl);
+  --font-3xl: var(--fz-font-3xl);
+  --font-4xl: var(--fz-font-4xl);
+  --leading-tight: var(--fz-leading-tight);
+  --leading-normal: var(--fz-leading-normal);
+  --leading-relaxed: var(--fz-leading-relaxed);
 
   // How wide a paragraph is allowed to get, in characters.
-  --measure-prose: 68ch;
+  --measure-prose: var(--fz-measure-prose);
 
   // --- Radii ---
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 20px;
-  --radius-pill: 999px;
+  --radius-sm: var(--fz-radius-sm);
+  --radius-md: var(--fz-radius-md);
+  --radius-lg: var(--fz-radius-lg);
+  --radius-xl: var(--fz-radius-xl);
+  --radius-2xl: var(--fz-radius-2xl);
+  --radius-pill: var(--fz-radius-pill);
 
   // --- Elevation ---
-  --shadow-subtle: 0 4px 12px #{with-alpha($black, 0.15)};
-  --shadow-swatch: 0 2px 8px #{with-alpha($black, 0.3)};
-  --shadow-panel: 0 4px 30px #{with-alpha($black, 0.2)};
-  --shadow-drawer: -10px 0 30px #{with-alpha($black, 0.4)};
-  --shadow-badge: 0 12px 32px #{with-alpha($black, 0.4)};
-  --shadow-card: 0 10px 40px #{with-alpha($black, 0.5)};
-  --shadow-modal: 0 25px 50px -12px #{with-alpha($black, 0.7)};
+  --shadow-subtle: var(--fz-shadow-subtle);
+  --shadow-swatch: var(--fz-shadow-swatch);
+  --shadow-panel: var(--fz-shadow-panel);
+  --shadow-drawer: var(--fz-shadow-drawer);
+  --shadow-badge: var(--fz-shadow-badge);
+  --shadow-card: var(--fz-shadow-card);
+  --shadow-modal: var(--fz-shadow-modal);
 
   // --- Motion ---
   // Durations are named so that the `transition` mixin can default to one and
   // a component can ask for another without typing a number.
-  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-decelerate: cubic-bezier(0.16, 1, 0.3, 1);
-  --duration-fast: 0.15s;
-  --duration-base: 0.2s;
-  --duration-slow: 0.35s;
+  --ease-standard: var(--fz-ease-standard);
+  --ease-spring: var(--fz-ease-spring);
+  --ease-decelerate: var(--fz-ease-decelerate);
+  --duration-fast: var(--fz-duration-fast);
+  --duration-base: var(--fz-duration-base);
+  --duration-slow: var(--fz-duration-slow);
 
   // --- Focus ---
   // One ring, used everywhere. See the :focus-visible block in `_base.scss`.
+  // Its offset is @fz/style's; its colour and width are this app's own.
   --focus-ring-color: var(--accent-light);
   --focus-ring-width: 2px;
-  --focus-ring-offset: 2px;
+  --focus-ring-offset: var(--fz-focus-ring-offset);
 
   // --- Layout ---
   // Read by the header and the game canvas, which must agree on them: the
@@ -204,15 +206,15 @@
   // `--z-chrome` keeps the header above the board's loading scrim.
   --z-loading: 10;
   --z-loading-badge: 12;
-
   --z-chrome: 200;
+
   // Within the chrome, the header's overflow menu over the header.
   --z-header-menu: 110;
 
   // --- Minimum hit target ---
   // WCAG 2.5.8 asks for 24px; the platform guidelines ask for 44. A card game
   // is played by thumbs, so 44 it is.
-  --tap-target-min: 44px;
+  --tap-target-min: var(--fz-tap-target);
 }
 
 // Compact chrome on a compact screen. The header shrinks, and the canvas reads

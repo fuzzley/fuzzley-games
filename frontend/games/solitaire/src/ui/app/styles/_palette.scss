@@ -1,13 +1,12 @@
 @use "sass:color";
 
 // Source colours, the only place in the application a hue is typed out.
-//
+
 // Only `_tokens.scss` reads these; components read the role-named tokens it
 // cuts from them. The ramps are Tailwind's.
 
-$black: #000000;
-$white: #ffffff;
-
+$black: #000;
+$white: #fff;
 $slate-50: #f8fafc;
 $slate-100: #f1f5f9;
 $slate-200: #e2e8f0;
@@ -16,22 +15,18 @@ $slate-400: #94a3b8;
 $slate-700: #334155;
 $slate-800: #1e293b;
 $slate-900: #0f172a;
-
 $blue-400: #60a5fa;
 $blue-500: #3b82f6;
 $blue-600: #2563eb;
 $blue-700: #1d4ed8;
 $blue-900: #1e3a8a;
-
 $sky-400: #38bdf8;
 $sky-500: #0ea5e9;
-
 $red-400: #f87171;
 $red-500: #ef4444;
 $red-600: #dc2626;
 $red-700: #b91c1c;
 $red-900: #7f1d1d;
-
 $amber-400: #fbbf24;
 $amber-500: #f59e0b;
 $amber-600: #d97706;

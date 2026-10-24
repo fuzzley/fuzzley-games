@@ -13,7 +13,7 @@
   box-shadow: var(--shadow-modal);
   color: var(--text-body);
   overflow: hidden;
-  animation: fadeIn var(--duration-base) var(--ease-decelerate);
+  animation: fade-in var(--duration-base) var(--ease-decelerate);
 }
 
 .visually-hidden {
@@ -70,6 +70,7 @@
 
 .search-input {
   @include transition(border-color, background);
+
   width: 100%;
   min-height: var(--tap-target-min);
   box-sizing: border-box;
@@ -145,6 +146,7 @@
 
 .chip {
   @include transition(background, border-color, color);
+
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
@@ -213,6 +215,7 @@
 
 .section-heading {
   @include field-label;
+
   margin: var(--space-4) var(--space-3) var(--space-2);
   font-size: var(--font-xs);
 }
@@ -221,6 +224,7 @@
 
 .row {
   @include transition(background, border-color);
+
   display: grid;
   grid-template-columns: var(--browser-thumb-width) minmax(0, 1fr) auto;
   align-items: center;

@@ -2,7 +2,7 @@
 
 // The widths the layout changes at, in Sass because a media query cannot read
 // a custom property. Each is named for what it protects:
-//
+
 //   phone    Below it a dialog card is most of the screen, so it gives up its
 //            generous padding rather than its content.
 //   tablet   Below it, or below `$compact-max-height`, the chrome compacts:
@@ -25,10 +25,11 @@ $breakpoints: (
 // `src/engine/render/layout/form_factor.ts`.
 $compact-max-height: 500px;
 
-@function _width($name) {
+@function -width($name) {
   @if not map.has-key($breakpoints, $name) {
     @error "Unknown breakpoint `#{$name}`. Known: #{map.keys($breakpoints)}.";
   }
+
   @return map.get($breakpoints, $name);
 }
 
@@ -37,14 +38,14 @@ $compact-max-height: 500px;
 /// The 0.02px keeps a viewport exactly on the boundary from matching both this
 /// and `from()`.
 @mixin below($name) {
-  @media (max-width: #{_width($name) - 0.02px}) {
+  @media (max-width: #{-width($name) - 0.02px}) {
     @content;
   }
 }
 
 /// Applies its content at the named width and wider.
 @mixin from($name) {
-  @media (min-width: #{_width($name)}) {
+  @media (min-width: #{-width($name)}) {
     @content;
   }
 }
@@ -53,7 +54,7 @@ $compact-max-height: 500px;
 /// than `$compact-max-height`. The board and `ViewportService` apply the same
 /// test, so a compact screen gets compact chrome and a compact board together.
 @mixin compact {
-  @media (max-width: #{_width("tablet") - 0.02px}),
+  @media (max-width: #{-width("tablet") - 0.02px}),
     (max-height: #{$compact-max-height - 0.02px}) {
     @content;
   }
@@ -63,7 +64,7 @@ $compact-max-height: 500px;
 /// held upright.
 @mixin phone-portrait {
   // A compact screen taller than it is wide is narrower than `tablet` too.
-  @media (max-width: #{_width("tablet") - 0.02px}) and (orientation: portrait) {
+  @media (max-width: #{-width("tablet") - 0.02px}) and (orientation: portrait) {
     @content;
   }
 }
@@ -71,7 +72,7 @@ $compact-max-height: 500px;
 /// Applies its content on a compact screen wider than it is tall: a phone on
 /// its side.
 @mixin phone-landscape {
-  @media (max-width: #{_width("tablet") - 0.02px}) and (orientation: landscape),
+  @media (max-width: #{-width("tablet") - 0.02px}) and (orientation: landscape),
     (max-height: #{$compact-max-height - 0.02px}) and (orientation: landscape) {
     @content;
   }

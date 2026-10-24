@@ -11,6 +11,9 @@
     "./global": {
       "sass": "./src/global.scss"
     },
+    "./tokens": {
+      "sass": "./src/tokens/_index.scss"
+    },
     "./themes": "./src/themes.ts",
     "./vite": "./src/vite.ts",
     "./stylelint": "./src/stylelint.ts"

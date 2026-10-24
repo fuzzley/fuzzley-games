@@ -22,14 +22,15 @@ _(Adjust relative path depth to target `src/ui/app/styles`)._
 ### 2. Token-Driven Styling
 
 - All colors, surfaces, spacing, typography, radii, elevations, motion, layouts, and z-indices are defined as CSS Custom Properties in `:root` inside `styles/_tokens.scss`.
+- The colors are cut from `styles/_palette.scss`. The scales (spacing, type sizes, line heights, radii, shadows, motion, the focus ring's offset, the tap target) are aliases of `@fz/style`'s, as `--space-2: var(--fz-space-2)`, so they match the site's and the other games'. `styles/global.scss` loads `@fz/style/tokens` first for them; the library's rules are in `frontend/lib/style/AGENTS.md`.
 - Component styles MUST read tokens via `var(--...)`.
-- **Never hardcode hex colors, pixel font sizes, or raw pixel spacing literals in component CSS.**
+- **Never hardcode hex colors, pixel font sizes, or raw pixel spacing literals in component CSS.** `yarn lint:styles` runs stylelint with `@fz/style`'s preset (`stylelint.config.js`), which fails a hex, named or functional color anywhere but `_palette.scss`.
 
 ```scss
 // Good
 .card-counter {
-  color: var(--color-text-muted);
-  padding: var(--spacing-sm);
+  color: var(--text-muted);
+  padding: var(--space-2);
 }
 
 // Bad
@@ -75,7 +76,7 @@ together.
 
 ### 5. Global Animations
 
-- All `@keyframes` declarations live in `styles/_animations.scss`.
+- All `@keyframes` declarations live in `styles/_animations.scss`, named in kebab-case (`pop-in`), which stylelint enforces.
 - Never define `@keyframes` inside component stylesheets, as Angular's emulated view encapsulation rewrites component selectors but leaves global animation names un-scoped.
 
 ### 6. Modal Overlays

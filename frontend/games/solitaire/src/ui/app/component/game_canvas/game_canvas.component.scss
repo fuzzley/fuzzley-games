@@ -10,6 +10,7 @@
   --board-inset-right: 0px;
   --board-inset-bottom: 0px;
   --board-inset-left: 0px;
+
   display: block;
   position: relative;
   width: 100%;
@@ -50,6 +51,7 @@
 .loading-overlay {
   @include glass(8px);
   @include transition(opacity, visibility);
+
   position: absolute;
   inset: 0;
   z-index: var(--z-loading);
@@ -94,6 +96,7 @@
   position: absolute;
   display: flex;
   justify-content: center;
+
   // Not stretched, which would override the placeholder's aspect ratio.
   align-items: flex-start;
   padding: calc(var(--space-4) / 2);
@@ -122,12 +125,13 @@
     transparent 100%
   );
   transform: translateX(-100%);
-  animation: shimmerSweep 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
+  animation: shimmer-sweep 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }
 
 // Centred on the board inside the chrome rather than on the whole overlay.
 .loading-badge {
   @include glass(12px);
+
   position: absolute;
   top: calc(50% + (var(--board-inset-top) - var(--board-inset-bottom)) / 2);
   left: calc(50% + (var(--board-inset-left) - var(--board-inset-right)) / 2);
@@ -145,8 +149,9 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   z-index: var(--z-loading-badge);
-  // The glow is the animation's own first frame; see `pulseGlow`.
-  animation: pulseGlow 2.5s infinite ease-in-out;
+
+  // The glow is the animation's own first frame; see `pulse-glow`.
+  animation: pulse-glow 2.5s infinite ease-in-out;
 }
 
 // The spinner, with a micro suit glyph counter-rotating inside it so that it
@@ -158,11 +163,12 @@
 .mini-card-icon {
   font-size: var(--font-2xs);
   color: var(--accent-light);
-  animation: spinReverse 1s linear infinite;
+  animation: spin-reverse 1s linear infinite;
 }
 
 .loading-text {
   @include gradient-text(var(--text-bright), var(--text-secondary));
+
   white-space: nowrap;
 }
 
@@ -171,6 +177,7 @@
 .deck-badge {
   @include glass(12px);
   @include transition(opacity, visibility);
+
   position: absolute;
   top: calc(var(--board-inset-top) + var(--space-4));
   right: calc(var(--board-inset-right) + var(--space-4));
@@ -194,5 +201,6 @@
 
 .deck-badge-spinner {
   @include spinner-ring(14px, 2px);
+
   flex: none;
 }

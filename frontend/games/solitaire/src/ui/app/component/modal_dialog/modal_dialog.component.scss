@@ -38,5 +38,6 @@
 // in step with `--surface-scrim-heavy`.
 .modal::backdrop {
   @include glass(12px);
-  background: rgba(15, 23, 42, 0.85);
+  // stylelint-disable-next-line function-disallowed-list
+  background: rgb(15 23 42 / 85%);
 }

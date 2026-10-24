@@ -9,6 +9,13 @@
       on them fails WCAG 1.4.4 for anyone who needs to enlarge it.
     -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      The palette the player chose on the site or in another game, which
+      theme.js puts on the page before anything paints. A plain tag, at a
+      relative URL like the build's other files: @fz/style's Vite plugin
+      makes it, and vite-ignore tells Vite it isn't for bundling.
+    -->
+    <script src="theme.js" vite-ignore></script>
     <meta http-equiv="cleartype" content="on" />
     <!--
       Tints the mobile browser's chrome to match the header, whose colour, unlike

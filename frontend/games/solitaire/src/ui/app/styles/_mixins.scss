@@ -11,6 +11,7 @@
 /// behind it.
 @mixin glass($blur) {
   backdrop-filter: blur($blur);
+  // stylelint-disable-next-line property-no-vendor-prefix
   -webkit-backdrop-filter: blur($blur);
 }
 
@@ -21,6 +22,7 @@
 @mixin gradient-text($from, $to, $angle: 135deg) {
   background: linear-gradient($angle, $from 0%, $to 100%);
   background-clip: text;
+  // stylelint-disable-next-line property-no-vendor-prefix
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -39,11 +41,13 @@
   @if map.has-key($options, duration) {
     $duration: map.get($options, duration);
   }
+
   @if map.has-key($options, easing) {
     $easing: map.get($options, easing);
   }
 
   $value: ();
+
   @each $property in $properties {
     $value: list.append($value, #{$property} $duration $easing, comma);
   }
@@ -93,6 +97,7 @@
 /// or a game's variant; the caller lays out what it holds.
 @mixin swatch-option {
   @include transition(background, border-color, color);
+
   display: flex;
   background: var(--wash-faint);
   border: 2px solid var(--border-default);
@@ -118,6 +123,7 @@
   @include flex-center;
   @include tap-target;
   @include transition(color, background);
+
   background: transparent;
   border: none;
   border-radius: $radius;
@@ -133,6 +139,7 @@
 /// Draws a turning ring to say something is on its way.
 @mixin spinner-ring($size, $thickness: 2.5px) {
   @include flex-center;
+
   width: $size;
   height: $size;
   border-radius: 50%;
