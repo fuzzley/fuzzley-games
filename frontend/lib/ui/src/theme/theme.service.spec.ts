@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { THEME_STORAGE_KEY } from "@fz/style/themes";
+import { DEFAULT_THEMES, THEME_STORAGE_KEY } from "@fz/style/themes";
 import { BROWSER_STORAGE } from "../storage";
 import { THEME_COLOR_ROLE, ThemeService } from "./theme.service";
 
@@ -54,7 +54,7 @@ describe("ThemeService", () => {
   it("falls back to the light default when the page has no valid palette", () => {
     document.documentElement.dataset["theme"] = "neon";
 
-    expect(service().current()).toBe("classic");
+    expect(service().current()).toBe(DEFAULT_THEMES.light);
   });
 
   it("applies a chosen palette to the page", () => {
