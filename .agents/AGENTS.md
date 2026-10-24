@@ -39,10 +39,17 @@ Minesweeper.
     workspace is private and named after its folder.
   - Each workspace is self-contained: its `package.json` lists everything
     it imports or runs, and its configs sit in its folder and cover only it.
-    No workspace imports another's code; the site takes a game's built
-    `dist/`, through `games.json`, and nothing else.
+    The site and the games never import each other's code; the site takes a
+    game's built `dist/`, through `games.json`, and nothing else.
+  - `lib/` holds the libraries the site and the games share, one workspace
+    each, named after its folder under the `@fz` scope (`lib/ui` is
+    `@fz/ui`). Imports go one way only: the site and the
+    games may import a library, through a `workspace:` dependency in their
+    `package.json`, and a library may import another library, but never the
+    site or a game.
   - `games/` holds the games built here, one workspace each, named after its
-    folder. A game knows nothing of the site: it builds into its own
+    folder. A game knows nothing of the site, even when both use the same
+    library: it builds into its own
     `dist/`, with `index.html` at its top level and its screenshots in
     `docs/screenshots/<slug>/`. Each keeps its own rules in an `AGENTS.md`
     in its folder: `frontend/games/solitaire/AGENTS.md` and
