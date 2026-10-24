@@ -2,8 +2,8 @@
 export type ColorMode = "light" | "dark";
 
 /**
- * The palettes a player can choose between, with colors in
- * styles/_palettes.scss under [data-theme="<id>"].
+ * The palettes a player can choose between, with their colors in
+ * tokens/_palettes.scss under [data-theme="<id>"].
  */
 export const THEMES = [
   { id: "classic", name: "Classic felt", mode: "light" },
@@ -28,7 +28,10 @@ export const DEFAULT_THEMES: Readonly<Record<ColorMode, ThemeId>> = {
   dark: "casino",
 };
 
-/** The localStorage key a player's choice is kept under. */
+/**
+ * The localStorage key a player's choice is kept under, shared by the site
+ * and every game, which are served from one origin.
+ */
 export const THEME_STORAGE_KEY = "fuzzley-theme";
 
 /** Returns whether a value names one of the palettes. */

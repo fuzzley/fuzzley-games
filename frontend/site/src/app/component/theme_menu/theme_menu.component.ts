@@ -1,6 +1,6 @@
 import { Component, computed, inject } from "@angular/core";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@angular/aria/menu";
-import { THEMES, type ThemeId } from "../../provider/themes";
+import { THEMES, type ThemeId } from "@fz/style/themes";
 import { ThemeService } from "../../service/theme.service";
 import { IconComponent } from "../icon/icon.component";
 

@@ -27,10 +27,16 @@ function sameRangeEverywhere({ Yarn }) {
   }
 }
 
+/** The folder of the libraries the site and the games share. */
+const LIBRARIES = "lib/";
+
+/** The scope a library's name carries, so an import of one says so. */
+const LIBRARY_SCOPE = "@fz/";
+
 /**
  * Keeps the Yarn and Node settings at the root, and keeps each workspace
  * private and named after its folder, so `yarn workspace <name>` names the
- * folder it runs in.
+ * folder it runs in. A library's name carries the `@fz` scope too.
  *
  * @param {Context} context
  */
@@ -49,8 +55,31 @@ function rootHoldsTheSetup({ Yarn }) {
       workspace.unset(field);
     }
     const folder = path.posix.basename(workspace.cwd);
-    if (workspace.ident !== folder) {
-      workspace.error(`a workspace is named after its folder, ${folder}.`);
+    const name = workspace.cwd.startsWith(LIBRARIES)
+      ? LIBRARY_SCOPE + folder
+      : folder;
+    if (workspace.ident !== name) {
+      workspace.error(`a workspace is named after its folder, ${name}.`);
+    }
+  }
+}
+
+/**
+ * Keeps imports going one way: a library may depend on another library, but
+ * never on the site or a game.
+ *
+ * @param {Context} context
+ */
+function librariesDependOnLibrariesOnly({ Yarn }) {
+  for (const library of Yarn.workspaces()) {
+    if (!library.cwd.startsWith(LIBRARIES)) continue;
+    for (const dependency of Yarn.dependencies({ workspace: library })) {
+      const target = Yarn.workspace({ ident: dependency.ident });
+      if (target && !target.cwd.startsWith(LIBRARIES)) {
+        dependency.error(
+          `a library depends only on other libraries, not on ${target.cwd}.`,
+        );
+      }
     }
   }
 }
@@ -59,5 +88,6 @@ module.exports = defineConfig({
   async constraints(context) {
     sameRangeEverywhere(context);
     rootHoldsTheSetup(context);
+    librariesDependOnLibrariesOnly(context);
   },
 });

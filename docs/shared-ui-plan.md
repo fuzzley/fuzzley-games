@@ -233,14 +233,18 @@ game.
   - Library code must pass the union of both apps' strict flags. The libraries'
     own tsconfig sets all of them, so `yarn typecheck` catches a lapse before a
     consumer does.
-  - Solitaire's `rootDir: ./src` must go, since library sources sit outside it.
-- **Sass.** Components write `@use "pkg:@fz/style" as fz;`, which emits nothing,
-  and each app's global stylesheet writes `@use "pkg:@fz/style/global";`, once.
-  `pkg:` URLs need Sass's `NodePackageImporter` in Vite's
-  `css.preprocessorOptions`. `lib/style` exports one Vite plugin,
-  `fuzzleyStyle()`, that adds the importer and serves and writes `theme.js`, so
-  each app's config gains one line. Solitaire needs it in both `vite.config.ts`
-  and `vitest.config.ts`.
+  - Solitaire's `rootDir: ./src` can stay. TypeScript reads a package
+    reached through `node_modules` as an external one, even when it is
+    linked, so its files don't count against `rootDir` (the spike showed it).
+- **Sass.** Components write `@use "@fz/style" as fz;`, which emits nothing,
+  and each app's global stylesheet writes `@use "@fz/style/global";`, once.
+  Vite's own Sass importer resolves both through the package's `exports`
+  (the `sass` condition) and rebases their `url()`s, so neither `pkg:` nor
+  Sass's `NodePackageImporter` is needed (the spike showed it). `lib/style`
+  exports one Vite plugin, `fuzzleyStyle()`, which serves and writes
+  `theme.js` and is where any later build step of the library's goes, so each
+  app's config gains one line. Solitaire needs it in `vite.config.ts` only:
+  its Vitest config never loads `index.html`.
 - **Exports.**
   - `@fz/style`: `"."` (the toolkit, under the `sass` condition), `"./global"`,
     `"./themes"` (the palette list, as TypeScript), `"./vite"` (the plugin) and
@@ -259,8 +263,9 @@ game.
   it:
   - A new constraint in `yarn.config.cjs` fails a `lib/` workspace that depends
     on any workspace outside `lib/`.
-  - Each library's ESLint config forbids relative imports that leave the
-    package.
+  - Each library's `tsconfig.json` sets `rootDir` to its own folder, so a
+    relative import that climbs out of the package fails `yarn typecheck`
+    (TS6059).
 - **Checks.**
   - Each library has its own ESLint config (the site's rules: typescript-eslint
     strict and stylistic, explicit return types, Angular's template
@@ -301,22 +306,31 @@ It passes when, for both consumers:
 - the production bundle holds the component compiled ahead of time (no
   `@angular/compiler` in it);
 - editing the library component hot-reloads in each app's dev server;
-- `@use "pkg:@fz/style"` resolves in a component stylesheet;
-- `vite.config.ts` loads `@fz/style/vite`. Vite bundles a linked package's
-  TypeScript into the config rather than leaving it to Node, which won't strip
-  types under `node_modules`.
+- `@use "@fz/style"` resolves in a component stylesheet;
+- `vite.config.ts` loads `@fz/style/vite`. Vite leaves a package out of the
+  config it bundles, so Node loads the plugin as it is: it strips the types,
+  since the link resolves outside `node_modules`, but resolves only relative
+  imports that name their `.ts` file.
 
 Fallbacks, if a check fails:
 
 - Analog's `include` option with the library's sources;
 - building `lib/ui` with ng-packagr, in partial compilation mode, before the
   apps build;
-- a Sass `loadPaths` entry instead of `pkg:`;
+- `pkg:` URLs with Sass's `NodePackageImporter`, or a `loadPaths` entry;
 - the Vite plugin as an `.mjs` file with JSDoc types, like the apps' `tools/`.
 
 Record the working recipe in each library's `AGENTS.md`.
 
 ### Phase 1: scaffold the libraries (small, invisible)
+
+Done for `lib/style`, which took `themes.ts` from
+`site/src/app/provider/themes.ts` and the `theme.js` plugin from
+`site/tools/vite-plugins.ts`, so it had something real to hold. The plugin
+now imports the palette list instead of parsing the site's file, so
+`loadThemeChoice` is gone. Its stylelint config comes with its first
+stylesheet, in Phase 2. `lib/ui` is scaffolded with its first component, in
+Phase 3, so it is never an empty package.
 
 - **Repo:**
   - add `"lib/*"` to `frontend/package.json`'s workspaces, and
@@ -341,9 +355,6 @@ Record the working recipe in each library's `AGENTS.md`.
   - `_index.scss` (the toolkit: the site's `visually-hidden`, Solitaire's
     `transition`, `glass`, `tap-target` and `flex-center`);
   - `global.scss`;
-  - `themes.ts` (moved from `site/src/app/provider/themes.ts`);
-  - `vite.ts` (`themeBootstrap`, `loadThemeChoice` and `themeBootstrapScript`,
-    moved from `site/tools/vite-plugins.ts`, plus the Sass importer);
   - the stylelint preset (the site's rules; colors allowed only in the palette
     and shadow partials; declared custom properties must start with `--fz-`).
 - **lib/style specs:**
@@ -353,7 +364,7 @@ Record the working recipe in each library's `AGENTS.md`.
     `on-danger`, `on-warning` and `on-felt` on their fills; `accent` at 3:1 on
     `page` and `panel`, for the focus ring.
 - **Site:**
-  - delete the moved files. `global.scss` uses `pkg:@fz/style/global`, then its own
+  - delete the moved files. `global.scss` uses `@fz/style/global`, then its own
     remainder (`--page-width`, `--gutter`, `.page`, `.back`).
   - Rename every palette `var()` to its `--fz-` name, and `--search*` to
     `--fz-field*`. This is mechanical.
@@ -401,11 +412,12 @@ Record the working recipe in each library's `AGENTS.md`.
 - **Solitaire:**
   - depend on `@fz/style`, `@fz/ui`, `@angular/aria` and `@angular/cdk`; add stylelint
     and its SCSS config;
-  - drop `rootDir` from `tsconfig.json`;
-  - add `fuzzleyStyle()` to `vite.config.ts` and `vitest.config.ts`;
+  - add `fuzzleyStyle()` to `vite.config.ts`, and `allowImportingTsExtensions`
+    to the tsconfig that checks it, since the plugin's imports name their
+    `.ts` files;
   - load `theme.js` in `index.html` (a relative URL, like its other assets),
     and update `test/ui/index_html.spec.ts`;
-  - `global.scss` uses `pkg:@fz/style/global`. Solitaire's own body color, font and
+  - `global.scss` uses `@fz/style/global`. Solitaire's own body color, font and
     `color-scheme` stay after the library's base until Phase 5.
   - `_tokens.scss`: the scale tokens become aliases (`--space-2: var(--fz-space-2)`).
     Their values are identical. Color tokens stay as they are.

@@ -5,7 +5,7 @@
 
 // Every palette sets the same roles: a palette missing one, or setting one
 // the default doesn't, fails the build. Add a role to every palette at once.
-// The names and modes here match src/app/provider/themes.ts, which a spec
+// The names and modes here match @fz/style's themes.ts, which a spec
 // checks.
 
 @use "sass:map";

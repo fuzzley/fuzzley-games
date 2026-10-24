@@ -1,16 +1,16 @@
 import angular from "@analogjs/vite-plugin-angular";
+import { fuzzleyStyle } from "@fz/style/vite";
 import { defineConfig } from "vitest/config";
 import {
   checkGameImages,
   servePlayPages,
-  themeBootstrap,
   versionJson,
 } from "./tools/vite-plugins.ts";
 
 export default defineConfig({
   plugins: [
     angular(),
-    themeBootstrap(),
+    fuzzleyStyle(),
     versionJson(),
     servePlayPages(),
     checkGameImages(),

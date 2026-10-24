@@ -1,4 +1,4 @@
-import { DEFAULT_THEMES, THEMES, isThemeId } from "./themes";
+import { DEFAULT_THEMES, THEMES, isThemeId } from "./themes.ts";
 
 describe("THEMES", () => {
   it("gives every palette its own id", () => {

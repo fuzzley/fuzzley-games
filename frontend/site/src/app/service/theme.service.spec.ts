@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { THEME_STORAGE_KEY } from "../provider/themes";
+import { THEME_STORAGE_KEY } from "@fz/style/themes";
 import { BROWSER_STORAGE } from "./browser_storage";
 import { ThemeService } from "./theme.service";
 
