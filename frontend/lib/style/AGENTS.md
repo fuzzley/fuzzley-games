@@ -11,8 +11,16 @@ can use it too. The repository's rules, which apply here too, are in
 - **The shared global stylesheet**, `src/global.scss`, which an app loads
   once, as `@use "@fz/style/global";` at the top of its own. It holds, in
   order:
-  - the tokens: `src/tokens/_palettes.scss`, the color palettes, and
-    `src/tokens/_scales.scss`, what is the same in every palette;
+  - the tokens, all custom properties, read with `var()`:
+    - `src/tokens/_palettes.scss`, the color palettes, each role picked by
+      hand in each palette;
+    - `src/tokens/_derived.scss`, the roles worked out from those with
+      `color-mix()`, such as the washes and edges, which are tints of
+      `text` and so turn with the palette's mode;
+    - `src/tokens/_scales.scss`, what is the same in every palette: space,
+      fonts, type sizes, line heights, radii, motion, the focus ring and the
+      smallest tap target;
+    - `src/tokens/_shadows.scss`, the shadows;
   - `src/base/_reset.scss`, what every element starts from;
   - `src/base/_document.scss`, the page's colors and type, the focus ring and
     reduced motion;
@@ -21,6 +29,8 @@ can use it too. The repository's rules, which apply here too, are in
 - **The toolkit**, `src/_index.scss`: the mixins a stylesheet reaches with
   `@use "@fz/style" as fz;`, such as `fz.visually-hidden`, from
   `src/toolkit/`. It emits no CSS, so any stylesheet can load it.
+- `src/stylelint.ts`: the stylelint rules every app's stylesheets keep,
+  which its `stylelint.config.js` extends as `@fz/style/stylelint`.
 - `src/themes.ts`: the palettes a player can choose between, the default for
   each system color scheme, and the localStorage key the choice is kept under,
   which the site and every game share, being served from one origin. An app
@@ -58,9 +68,17 @@ can use it too. The repository's rules, which apply here too, are in
   role the default palette sets, or sets one it doesn't, and
   `src/tokens/palettes.spec.ts` fails if the palettes and `themes.ts`
   disagree.
-- **Colors are written only in the palettes.** Every other stylesheet reads
-  them with `var()`; stylelint rejects a hex, named or functional color
-  anywhere else.
+- **Colors are written only in the palettes**, and in the shadows, which
+  darken alike in every palette. Every other stylesheet reads them with
+  `var()`; stylelint rejects a hex, named or functional color anywhere else.
+- **Contrast is checked, not hoped for.** `src/tokens/contrast.spec.ts`
+  holds every palette to WCAG: text and fills' labels at 4.5:1 on what they
+  sit on, the focus ring at 3:1. A role that carries text, or sits behind
+  it, gets a pair there.
+- **A derived role is declared wherever a palette is** (`:root,
+[data-theme]`), not on `:root` alone: a custom property resolves its
+  `var()`s where it is declared, so an element with a palette of its own
+  needs its own tints.
 - **The toolkit emits nothing, and `global.scss` nothing outside its
   layers.** `src/global.spec.ts` checks both.
 - **The strictest compiler options.** `tsconfig.json` holds the site's and the
@@ -82,8 +100,8 @@ own, which `yarn workspace @fz/style <script>` runs alone.
 - **`lint`** runs ESLint (`eslint.config.js`): typescript-eslint's strict and
   stylistic type-checked rules, explicit return types on exported functions,
   and `import type` for type-only imports. Then `lint:styles` runs stylelint
-  (`stylelint.config.js`, the standard SCSS rules, with no color outside the
-  palettes, no `@import`, and nesting at most three deep).
+  (`stylelint.config.js`, the library's own preset with the palettes and
+  shadows let off its color rules).
 - **`typecheck`** runs `tsc` over the sources, the specs and the Vitest
   config.
 - **`test`** runs Vitest in Node. Each spec sits beside the file it tests. The

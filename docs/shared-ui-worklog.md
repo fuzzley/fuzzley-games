@@ -10,10 +10,9 @@ file in the commit that finishes the plan; it stays in that commit's parent.
   `main` deploys, so each shipping point waits for the user's go-ahead.
 - **Phase:** 2, tokens and theme. Phase 1 scaffolded `lib/style` only;
   `lib/ui` comes with its first component, in Phase 3.
-- **Next step:** the rest of Phase 2 in `lib/style`: the new palette roles
-  (danger, warning, scrim), the derived roles and the scales, a contrast
-  spec, the shadows as tokens and a stylelint preset; then Figtree from
-  Fontsource in place of Google Fonts.
+- **Next step:** the last of Phase 2: Figtree from Fontsource in
+  `@fz/style`, in place of Google Fonts, and the Content Security Policy
+  and docs without Google Fonts.
 
 | Phase                             | State       |
 | --------------------------------- | ----------- |
@@ -129,3 +128,39 @@ passed every check in the plan, and was removed once done. What it showed:
   in that order; the order is the same.
 - Checked: all 48 screenshots match the baseline pixel for pixel, and the
   built CSS differs only in the names, the layers, and the two rules above.
+
+### 2026-10-24: Phase 2, the tokens
+
+- **New palette roles**, picked by hand in each palette: `danger` and
+  `warning` with their labels (`on-danger`, `on-warning`), and `scrim`. The
+  light palettes take deep reds and ambers that carry white labels and read
+  as text on the page; the dark ones take light ones with near-black labels,
+  as Casino night's gold accent already does. Casino night's warning is
+  orange, so it isn't mistaken for its gold accent.
+- **Derived roles** in `tokens/_derived.scss`, with `color-mix()`: the washes
+  and edges (tints of `text`), `accent-wash`/`-glow`, `danger-wash`,
+  `bar-glass`, `felt-shade` and `focus-ring-color`. They are declared on
+  `:root, [data-theme]`, not `:root` alone: a custom property resolves its
+  `var()`s where it is declared, so an element with its own palette (a
+  swatch, and Solitaire's chrome in Phase 5) needs its own tints.
+  `--fz-focus-ring-color` exists so a part of a page whose background is the
+  accent's own, such as Classic felt's table, the same green, can give the
+  ring another color.
+- **Scales and shadows** as tokens, Solitaire's values, plus the site's three
+  shadows; the site reads `var(--fz-shadow-*)` and its `_shadows.scss` is
+  gone. The focus ring is the site's 3px (Solitaire's is 2px), which the plan
+  now says Phase 4 leaves alone.
+- **A contrast spec** (`tokens/contrast.spec.ts`) checks 20 pairs in each
+  palette against WCAG. It found a real failure: Soft pastel's white
+  `on-felt` on its felt was 3.23:1. **Visible change:** that felt deepens
+  from `#3f9e8f` to `#348275` (4.57:1), the same hue. It shows in that
+  palette's swatch and felt areas only. The game page's note on the felt also
+  loses its `opacity: 0.85`, which put even Classic felt under 4.5:1; no
+  page shows that note today (both games to come have plain stages), so
+  nothing changes there yet.
+- **A stylelint preset**, `@fz/style/stylelint` (`src/stylelint.ts`), which
+  the site's config now just extends, with no exceptions left. Its spec runs
+  stylelint on samples.
+- Checked: the screenshots differ from the baseline only in Soft pastel's
+  felt (its swatch, in every palette's open menu, and felt areas in that
+  palette), by exactly that change of color.

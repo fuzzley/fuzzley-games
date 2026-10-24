@@ -1,0 +1,43 @@
+// The roles worked out from the palette's own, rather than picked in each
+// palette: tints of a role, at a set strength. A tint of `text` turns with
+// the palette on its own, dark in a light palette and light in a dark one.
+
+// Declared wherever a palette is, not only on :root: a custom property
+// resolves its var()s where it is declared, so an element carrying a palette
+// of its own needs its own tints too.
+
+@layer fz.tokens {
+  :root,
+  [data-theme] {
+    // Fills, for a hover or a pressed control.
+    --fz-wash-1: color-mix(in srgb, var(--fz-text) 3%, transparent);
+    --fz-wash-2: color-mix(in srgb, var(--fz-text) 5%, transparent);
+    --fz-wash-3: color-mix(in srgb, var(--fz-text) 10%, transparent);
+    --fz-wash-4: color-mix(in srgb, var(--fz-text) 20%, transparent);
+
+    // Borders that let what is behind show through, over the felt or glass,
+    // where an opaque line would show as a stripe.
+    --fz-edge-1: color-mix(in srgb, var(--fz-text) 5%, transparent);
+    --fz-edge-2: color-mix(in srgb, var(--fz-text) 10%, transparent);
+    --fz-edge-3: color-mix(in srgb, var(--fz-text) 15%, transparent);
+    --fz-edge-4: color-mix(in srgb, var(--fz-text) 30%, transparent);
+
+    // Behind a chosen option, and around a selected one.
+    --fz-accent-wash: color-mix(in srgb, var(--fz-accent) 10%, transparent);
+    --fz-accent-glow: color-mix(in srgb, var(--fz-accent) 30%, transparent);
+    --fz-danger-wash: color-mix(in srgb, var(--fz-danger) 10%, transparent);
+
+    // A bar that floats over a game, which shows through it.
+    --fz-bar-glass: color-mix(in srgb, var(--fz-bar) 50%, transparent);
+
+    // The felt dimmed, laid over a table while it is set up. Black darkens
+    // alike in every palette, as the shadows do.
+    // stylelint-disable-next-line color-named
+    --fz-felt-shade: color-mix(in srgb, var(--fz-felt) 40%, black);
+
+    // The keyboard focus ring's color. A part of the page whose background
+    // is the accent's own, such as a table of the same green, gives it
+    // another here.
+    --fz-focus-ring-color: var(--fz-accent);
+  }
+}

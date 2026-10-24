@@ -426,7 +426,10 @@ Phase 3, so it is never an empty package.
   - `global.scss` uses `@fz/style/global`. Solitaire's own body color, font and
     `color-scheme` stay after the library's base until Phase 5.
   - `_tokens.scss`: the scale tokens become aliases (`--space-2: var(--fz-space-2)`).
-    Their values are identical. Color tokens stay as they are.
+    Their values are identical, but for the focus ring, which is 3px in the
+    library (the site's) and 2px in Solitaire, and `--font-sans`, which has no
+    Figtree: both stay Solitaire's own until Phase 5. Color tokens stay as
+    they are.
   - stylelint with the library's preset. The exceptions, for now, are
     `_palette.scss` and the modal backdrop's literal color.
 - **Optional quick win:** a plain home link in the current header.

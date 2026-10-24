@@ -1,6 +1,5 @@
 @use "@fz/style" as fz;
 @use "../../styles/breakpoints" as bp;
-@use "../../styles/shadows";
 
 :host {
   position: relative;
@@ -33,7 +32,7 @@
   height: 22px;
   border-radius: 50%;
   background: linear-gradient(90deg, var(--fz-page) 50%, var(--fz-felt) 50%);
-  box-shadow: shadows.$hairline;
+  box-shadow: var(--fz-shadow-hairline);
 
   &::after {
     content: "";
@@ -69,7 +68,7 @@
   border-radius: 14px;
   background: var(--fz-panel-raised);
   color: var(--fz-text);
-  box-shadow: shadows.$raised;
+  box-shadow: var(--fz-shadow-raised);
 
   // Angular Aria marks the menu visible while it is open.
   &:not([data-visible="true"]) {

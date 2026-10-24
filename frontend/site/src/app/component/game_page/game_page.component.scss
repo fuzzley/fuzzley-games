@@ -1,5 +1,4 @@
 @use "../../styles/breakpoints" as bp;
-@use "../../styles/shadows";
 
 :host {
   display: block;
@@ -56,7 +55,6 @@ h1 {
   max-width: 34ch;
   color: var(--fz-on-felt);
   text-align: center;
-  opacity: 0.85;
 }
 
 // Games that aren't played on a card table.
@@ -65,7 +63,6 @@ h1 {
 
   .stage-note {
     color: var(--fz-muted);
-    opacity: 1;
   }
 }
 
@@ -106,7 +103,7 @@ h1 {
     margin: 0;
     padding: 0 1.85rem;
     border: 2px solid var(--fz-on-accent);
-    box-shadow: shadows.$over-picture;
+    box-shadow: var(--fz-shadow-over-picture);
   }
 
   &:hover .button,

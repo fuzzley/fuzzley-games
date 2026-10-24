@@ -6,7 +6,9 @@
 
 @use "layers";
 @use "tokens/palettes";
+@use "tokens/derived";
 @use "tokens/scales";
+@use "tokens/shadows";
 @use "base/reset";
 @use "base/document";
 @use "fragments/visually-hidden";
