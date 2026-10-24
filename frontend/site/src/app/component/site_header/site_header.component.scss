@@ -81,12 +81,12 @@
     outline-offset: 2px;
   }
 
-  app-icon {
+  fz-icon {
     width: 18px;
     height: 18px;
     color: var(--fz-field-muted);
 
-    --icon-stroke: 2.2;
+    --fz-icon-stroke: 2.2;
   }
 
   input {

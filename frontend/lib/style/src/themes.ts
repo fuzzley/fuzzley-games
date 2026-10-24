@@ -29,6 +29,38 @@ export const DEFAULT_THEMES: Readonly<Record<ColorMode, ThemeId>> = {
 };
 
 /**
+ * The roles every palette sets, each as the custom property --fz-<role>, for
+ * code that reads one, such as the color of the browser's own toolbar.
+ */
+export const PALETTE_ROLES = [
+  "page",
+  "bar",
+  "bar-text",
+  "bar-line",
+  "text",
+  "muted",
+  "line",
+  "panel",
+  "panel-raised",
+  "field",
+  "field-line",
+  "field-text",
+  "field-muted",
+  "accent",
+  "on-accent",
+  "danger",
+  "on-danger",
+  "warning",
+  "on-warning",
+  "felt",
+  "on-felt",
+  "scrim",
+] as const;
+
+/** A palette role, such as "accent". */
+export type PaletteRole = (typeof PALETTE_ROLES)[number];
+
+/**
  * The localStorage key a player's choice is kept under, shared by the site
  * and every game, which are served from one origin.
  */

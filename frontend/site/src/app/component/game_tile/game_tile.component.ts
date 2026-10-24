@@ -1,6 +1,7 @@
 import { Component, computed, inject, input } from "@angular/core";
 import { NgTemplateOutlet } from "@angular/common";
 import { RouterLink } from "@angular/router";
+import { IconComponent } from "@fz/ui/icon";
 import {
   describeLength,
   describePlayers,
@@ -9,7 +10,6 @@ import {
 } from "../../model/game";
 import { GameCatalog } from "../../service/game_catalog.service";
 import { GameThumbComponent } from "../game_thumb/game_thumb.component";
-import { IconComponent } from "../icon/icon.component";
 
 /**
  * How many tiles at the top of a list load their pictures at once: about a

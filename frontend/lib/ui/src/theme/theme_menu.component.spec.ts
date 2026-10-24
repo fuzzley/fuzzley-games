@@ -1,7 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { ThemeService } from "../../service/theme.service";
+import { ThemeService } from "./theme.service";
 import { ThemeMenuComponent } from "./theme_menu.component";
 
 describe("ThemeMenuComponent", () => {
@@ -10,8 +10,8 @@ describe("ThemeMenuComponent", () => {
     document.documentElement.dataset["theme"] = "classic";
   });
 
-  async function renderMenu(): Promise<UserEvent> {
-    await render(ThemeMenuComponent);
+  async function renderMenu(compact = false): Promise<UserEvent> {
+    await render(ThemeMenuComponent, { inputs: { compact } });
     return userEvent.setup();
   }
 
@@ -26,6 +26,19 @@ describe("ThemeMenuComponent", () => {
   it("names its button for the palette in use", async () => {
     await renderMenu();
 
+    expect(trigger()).toHaveAccessibleName("Theme: Classic felt");
+  });
+
+  it("shows the word Theme beside the swatch", async () => {
+    await renderMenu();
+
+    expect(trigger()).toHaveTextContent("Theme");
+  });
+
+  it("shows the swatch alone when compact, still named for what it does", async () => {
+    await renderMenu(true);
+
+    expect(trigger()).not.toHaveTextContent("Theme");
     expect(trigger()).toHaveAccessibleName("Theme: Classic felt");
   });
 

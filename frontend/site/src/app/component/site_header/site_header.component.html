@@ -17,7 +17,7 @@
       <!-- The role repeats the element's own, for tools that predate <search>. -->
       <search role="search">
         <label class="search">
-          <app-icon name="search" />
+          <fz-icon name="search" />
           <span class="fz-visually-hidden">Search games</span>
           <input
             #box
@@ -30,7 +30,7 @@
           />
         </label>
       </search>
-      <app-theme-menu />
+      <fz-theme-menu [compact]="compact()" />
     </div>
   </div>
 </header>

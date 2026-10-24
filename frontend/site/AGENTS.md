@@ -32,8 +32,9 @@ are relative to `frontend/site/`.
 - `src/app/service/` holds the injectable services. `GameCatalog` answers
   every question about the games (find, group, search, which are new);
   components ask it rather than importing the data, and specs give it a
-  small catalog of their own through `CATALOG_DATA`. `ThemeService`
-  applies and remembers the palette.
+  small catalog of their own through `CATALOG_DATA`. The palette's
+  `ThemeService` and the theme menu are `@fz/ui`'s (`frontend/lib/ui`),
+  shared with the games, and so are the icons.
 - `src/app/testing/` holds what specs share, such as `TEST_CATALOG` and
   `provideTestCatalog()`. The app's tsconfig leaves it out.
 - `src/app/styles/` holds the one global stylesheet, `global.scss`, and
@@ -42,7 +43,10 @@ are relative to `frontend/site/`.
   reset and the element defaults, in cascade layers that any rule of the
   site's own wins over), then `_layout.scss` (the page's width and gutter)
   and `_shared.scss` (the few classes components share).
-  `_breakpoints.scss` (`below(sm | md | lg | xl)`) is for the components.
+  `_breakpoints.scss` (`below(sm | md | lg | xl)`) is for the components,
+  and `breakpoints.ts` gives the same widths to one that binds an input to
+  them, as the header does the theme menu's `compact`; its spec keeps the
+  two in step.
 - Every spec sits beside the file it tests, named after it.
 - `public/` is copied into the build as is, including the runtime config
   placeholder `env.js` and `thumbnails/<slug>.svg`, the drawing of each
@@ -116,8 +120,8 @@ own, which `yarn workspace site <script>` runs alone.
   - A live region is in the page from the start, as the home page's search
     status is, and only its text changes.
   - Menus and pickers are built on Angular Aria (`@angular/aria`), not by
-    hand: the theme menu (`src/app/component/theme_menu/`) is an
-    `ngMenuTrigger` button opening an `ngMenu` of `menuitemradio` items.
+    hand: `@fz/ui`'s theme menu is an `ngMenuTrigger` button opening an
+    `ngMenu` of `menuitemradio` items.
     Bind `aria-checked` yourself (Angular Aria sets the role, not the checked
     state), and give each item a `searchTerm`, or typing a name finds
     nothing.
@@ -146,10 +150,11 @@ Every stylesheet is SCSS, compiled by Dart Sass (`sass`).
   order.
 - **`//` comments.** Sass drops them from the output; a `/* */` comment
   ships, and inside a nested rule it even leaves an empty rule behind.
-- **Icons are `<app-icon name="…">`.** A new icon is a new `IconName` and
-  a case in `IconComponent`'s template, never an `<svg>` pasted into
-  another template. The parent sizes it (`width`/`height` on `app-icon`)
-  and colors it (`color`); `--icon-stroke` sets an outline's weight. Icons
+- **Icons are `@fz/ui`'s `<fz-icon name="…">`.** A new icon is a new
+  `IconName` and a case in `IconComponent`'s template, in
+  `frontend/lib/ui/src/icon/`, never an `<svg>` pasted into another
+  template. The parent sizes it (`width`/`height` on `fz-icon`) and colors
+  it (`color`); `--fz-icon-stroke` sets an outline's weight. Icons
   are hidden from assistive technology, so the text beside one, or the
   control's label, says what it means.
 - **Visible state is announced state.** A control that looks selected carries

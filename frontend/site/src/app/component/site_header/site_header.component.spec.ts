@@ -1,6 +1,7 @@
+import { MediaMatcher } from "@angular/cdk/layout";
 import { Location } from "@angular/common";
 import { provideLocationMocks } from "@angular/common/testing";
-import { Component } from "@angular/core";
+import { Component, type Provider } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { Router, provideRouter } from "@angular/router";
 import { render, screen } from "@testing-library/angular";
@@ -11,11 +12,36 @@ import { SiteHeaderComponent } from "./site_header.component";
 @Component({ template: "" })
 class PageComponent {}
 
+/**
+ * Matches every media query, as a phone's screen matches the narrow widths
+ * the header asks about. jsdom, which the specs run in, matches none.
+ */
+const NARROW_SCREEN: Provider = {
+  provide: MediaMatcher,
+  useValue: {
+    matchMedia: (media: string) => ({
+      media,
+      matches: true,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+    }),
+  },
+};
+
 describe("SiteHeaderComponent", () => {
   /** Renders the header, then goes through each address in turn. */
   async function renderAt(...urls: string[]): Promise<UserEvent> {
+    return renderWith([], ...urls);
+  }
+
+  /** Renders the header with extra providers, then goes through each address. */
+  async function renderWith(
+    providers: Provider[],
+    ...urls: string[]
+  ): Promise<UserEvent> {
     const { fixture } = await render(SiteHeaderComponent, {
       providers: [
+        ...providers,
         provideRouter([
           { path: "", component: PageComponent },
           { path: "category/:id", component: PageComponent },
@@ -32,6 +58,10 @@ describe("SiteHeaderComponent", () => {
 
   function path(): string {
     return TestBed.inject(Location).path();
+  }
+
+  function themeButton(): HTMLElement {
+    return screen.getByRole("button", { name: /^Theme:/ });
   }
 
   function searchBox(): HTMLElement {
@@ -101,5 +131,17 @@ describe("SiteHeaderComponent", () => {
       "aria-current",
       "page",
     );
+  });
+
+  it("labels the theme menu in words on a wide screen", async () => {
+    await renderAt("/");
+
+    expect(themeButton()).toHaveTextContent("Theme");
+  });
+
+  it("shrinks the theme menu to its swatch on a narrow screen", async () => {
+    await renderWith([NARROW_SCREEN], "/");
+
+    expect(themeButton()).not.toHaveTextContent("Theme");
   });
 });

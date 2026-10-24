@@ -1,12 +1,15 @@
 <button
   class="trigger"
   type="button"
+  [class.compact]="compact()"
   ngMenuTrigger
   [menu]="menu"
   [attr.aria-label]="label()"
 >
   <span class="swatch" [attr.data-theme]="current()"></span>
-  <span class="label" aria-hidden="true">Theme</span>
+  @if (!compact()) {
+    <span class="label" aria-hidden="true">Theme</span>
+  }
 </button>
 
 <div
@@ -31,7 +34,7 @@
         <span class="name">{{ option.name }}</span>
         <span class="mode">{{ option.modeName }}</span>
         @if (option.checked) {
-          <app-icon class="tick" name="tick" />
+          <fz-icon class="tick" name="tick" />
         }
       </div>
     }

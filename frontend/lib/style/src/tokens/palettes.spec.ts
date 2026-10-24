@@ -1,7 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { compileString } from "sass";
-import { DEFAULT_THEMES, THEMES } from "../themes.ts";
+import { DEFAULT_THEMES, PALETTE_ROLES, THEMES } from "../themes.ts";
 
 // The palettes are written in Sass and the palette list in TypeScript; these
 // specs keep the two in step, and check Sass's guard against a palette that
@@ -49,8 +49,15 @@ describe("palettes", () => {
     expect(root?.name).toBe(DEFAULT_THEMES.light);
   });
 
+  it("sets the roles themes.ts lists, and no other", () => {
+    const [first] = compilePalettes().split("}");
+    const roles = first?.match(/(?<=--fz-)[\w-]+(?=:)/g);
+
+    expect(roles).toEqual([...PALETTE_ROLES]);
+  });
+
   it("names each role's custom property with the fz prefix", () => {
-    const properties = compilePalettes().match(/--[w-]+(?=:)/g) ?? [];
+    const properties = compilePalettes().match(/--[\w-]+(?=:)/g) ?? [];
 
     expect(properties.filter((name) => !name.startsWith("--fz-"))).toEqual([]);
   });
