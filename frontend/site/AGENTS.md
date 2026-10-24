@@ -25,8 +25,9 @@ are relative to `frontend/site/`.
 - `src/app/model/` holds the types the site is built around, such as
   `Game`, with the pure functions over them (a game's play address, its
   screenshot, how its players and length read).
-- `src/app/provider/` holds data and nothing else: the games (`games.ts`),
-  the categories and the palettes. A union of ids, such as `CategoryId`, is
+- `src/app/provider/` holds data and nothing else: the games (`games.ts`)
+  and the categories. The palettes are `@fz/style`'s (`frontend/lib/style`).
+  A union of ids, such as `CategoryId`, is
   derived from its list (`as const satisfies`), so the two can't disagree.
 - `src/app/service/` holds the injectable services. `GameCatalog` answers
   every question about the games (find, group, search, which are new);
@@ -54,10 +55,11 @@ are relative to `frontend/site/`.
   the games in `public/play/` before every build (`fetch-games.mjs`), move
   the pins (`update-games.mjs`), and add the analytics tags to each game's
   page, with what they share in `script.mjs`, and the site's Vite plugins
-  in `vite-plugins.ts`. One of them makes `/theme.js`, the first script
-  `index.html` loads, which picks the palette before the page paints, from
-  `src/app/provider/themes.ts`, so the page's list of palettes can't drift
-  from the app's. `docs/operations.md` covers the details.
+  in `vite-plugins.ts`. `vite.config.ts` also adds `@fz/style`'s
+  `fuzzleyStyle()`, which makes `/theme.js`, the first script `index.html`
+  loads, which picks the palette before the page paints, from the same list
+  of palettes the app imports, so the two can't drift. `docs/operations.md`
+  covers the details.
 - A script exports its logic as functions and runs only when it is the
   file Node was started with (`if (import.meta.main)`), so
   `tools/*.spec.ts` can import and test it. A dependency a test needs to

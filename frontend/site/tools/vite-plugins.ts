@@ -6,7 +6,6 @@ import path from "node:path";
 import { type Connect, type Plugin, runnerImport } from "vite";
 import type * as GameModel from "../src/app/model/game.ts";
 import type * as GameData from "../src/app/provider/games.ts";
-import type * as Themes from "../src/app/provider/themes.ts";
 import { type GameBuild, isPinned, readManifest } from "./games.mjs";
 import { SITE_DIR } from "./script.mjs";
 
@@ -142,7 +141,7 @@ export function servePlayPages(): Plugin {
  * The app's modules resolve as the app's bundler does (no file extensions),
  * so Node can't import them itself, and importing them into this config
  * would bind it to how the app is written. `runnerImport` is experimental;
- * the specs of `loadCatalog` and `loadThemeChoice` run it on every test.
+ * the spec of `loadCatalog` runs it on every test.
  */
 async function importApp<T>(file: string): Promise<T> {
   const { module } = await runnerImport<T>(path.join(SITE_DIR, file), {
@@ -160,86 +159,6 @@ export async function loadCatalog(): Promise<Catalog> {
     importApp<typeof GameModel>("src/app/model/game.ts"),
   ]);
   return { games: data.GAMES, imagesOf: model.imagesOf };
-}
-
-/** Holds what the page needs to pick a palette before it paints. */
-export interface ThemeChoice {
-  readonly ids: readonly string[];
-  readonly storageKey: string;
-  readonly defaults: Readonly<Record<Themes.ColorMode, string>>;
-}
-
-/** Loads the palettes' ids, where a choice is kept, and the defaults. */
-export async function loadThemeChoice(): Promise<ThemeChoice> {
-  const themes = await importApp<typeof Themes>("src/app/provider/themes.ts");
-  return {
-    ids: themes.THEMES.map((theme) => theme.id),
-    storageKey: themes.THEME_STORAGE_KEY,
-    defaults: themes.DEFAULT_THEMES,
-  };
-}
-
-/**
- * Returns /theme.js, which picks the palette before anything paints: the
- * player's saved choice, else the default for the system's color scheme.
- *
- * It is plain ES5, since it runs before anything else on the page.
- */
-export function themeBootstrapScript({
-  ids,
-  storageKey,
-  defaults,
-}: ThemeChoice): string {
-  const json = (value: unknown): string => JSON.stringify(value);
-  return `// Picks the palette before anything paints; ThemeService takes over once
-// Angular starts. Generated from src/app/provider/themes.ts by
-// tools/vite-plugins.ts.
-(function () {
-  var themes = ${json(ids)};
-  var saved;
-  try {
-    saved = localStorage.getItem(${json(storageKey)});
-  } catch (e) {}
-  var dark =
-    window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches;
-  document.documentElement.dataset.theme =
-    themes.indexOf(saved) >= 0 ? saved : dark ? ${json(defaults.dark)} : ${json(defaults.light)};
-})();
-`;
-}
-
-/**
- * Serves /theme.js from the dev server and writes it into the build, made
- * from the app's own list of palettes, so index.html can't drift from it.
- *
- * The dev server reads the list once, when it starts.
- */
-export function themeBootstrap(): Plugin {
-  let script: Promise<string> | undefined;
-  const load = (): Promise<string> =>
-    (script ??= loadThemeChoice().then(themeBootstrapScript));
-  return {
-    name: "theme-bootstrap",
-    configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        if (req.url?.split("?")[0] !== "/theme.js") {
-          next();
-          return;
-        }
-        load().then((code) => {
-          res.setHeader("Content-Type", "text/javascript");
-          res.end(code);
-        }, next);
-      });
-    },
-    async generateBundle() {
-      this.emitFile({
-        type: "asset",
-        fileName: "theme.js",
-        source: await load(),
-      });
-    },
-  };
 }
 
 /** Returns the games' pictures that aren't in a folder of public files. */

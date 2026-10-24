@@ -1,7 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { compileString } from "sass";
-import { DEFAULT_THEMES, THEMES } from "../provider/themes";
+import { DEFAULT_THEMES, THEMES } from "@fz/style/themes";
 
 // The palettes are written in Sass and the palette list in TypeScript; these
 // specs keep the two in step, and check Sass's guard against a palette that

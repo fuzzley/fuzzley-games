@@ -87,7 +87,7 @@ grep -q "default-src 'self'" <<< "$csp" ||
 grep -q "frame-ancestors 'none'" <<< "$csp" ||
   fail "The site's Content Security Policy lets other sites frame it."
 
-# theme.js is made at build time from the app's list of palettes.
+# theme.js is made at build time from @fz/style's list of palettes.
 curl -s "$base/theme.js" | grep -q 'document.documentElement.dataset.theme' ||
   fail "theme.js doesn't set the page's palette."
 # env.js is written from the container's environment at startup.

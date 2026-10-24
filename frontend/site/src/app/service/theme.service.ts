@@ -5,7 +5,7 @@ import {
   THEME_STORAGE_KEY,
   type ThemeId,
   isThemeId,
-} from "../provider/themes";
+} from "@fz/style/themes";
 import { BROWSER_STORAGE } from "./browser_storage";
 
 /**

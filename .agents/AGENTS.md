@@ -35,22 +35,24 @@ Minesweeper.
   - `yarn.config.cjs` holds the constraints `yarn lint` checks every
     `package.json` against: a package has the same range in every workspace
     that depends on it (when two differ, give both the higher one), only the
-    root sets `packageManager`, `workspaces` and `engines`, and each
-    workspace is private and named after its folder.
+    root sets `packageManager`, `workspaces` and `engines`, each
+    workspace is private and named after its folder, and a library depends
+    on no workspace but another library.
   - Each workspace is self-contained: its `package.json` lists everything
     it imports or runs, and its configs sit in its folder and cover only it.
     The site and the games never import each other's code; the site takes a
     game's built `dist/`, through `games.json`, and nothing else.
   - `lib/` holds the libraries the site and the games share, one workspace
-    each, named after its folder under the `@fz` scope (`lib/ui` is
-    `@fz/ui`). Imports go one way only: the site and the
-    games may import a library, through a `workspace:` dependency in their
-    `package.json`, and a library may import another library, but never the
-    site or a game.
+    each, named after its folder under the `@fz` scope (`lib/style` is
+    `@fz/style`). Imports go one way only: the site and the games may import
+    a library, through a `workspace:` dependency in their `package.json`,
+    and a library may import another library, but never the site or a game.
+    An app compiles a library from its source; nothing in `lib/` is built
+    on its own. Each keeps its own rules in an `AGENTS.md` in its folder:
+    `frontend/lib/style/AGENTS.md`.
   - `games/` holds the games built here, one workspace each, named after its
     folder. A game knows nothing of the site, even when both use the same
-    library: it builds into its own
-    `dist/`, with `index.html` at its top level and its screenshots in
+    library: it builds into its own `dist/`, with `index.html` at its top level and its screenshots in
     `docs/screenshots/<slug>/`. Each keeps its own rules in an `AGENTS.md`
     in its folder: `frontend/games/solitaire/AGENTS.md` and
     `frontend/games/minesweeper/AGENTS.md`.
@@ -159,7 +161,8 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   `AGENTS.md` for Codex, Cursor, Copilot, and Amp; `CLAUDE.md` for Claude Code,
   which does not read `AGENTS.md`. Edit this file, not the pointers.
 - **A workspace's instructions** sit in its folder:
-  `frontend/site/AGENTS.md`, `frontend/games/solitaire/AGENTS.md` and
+  `frontend/site/AGENTS.md`, `frontend/lib/style/AGENTS.md`,
+  `frontend/games/solitaire/AGENTS.md` and
   `frontend/games/minesweeper/AGENTS.md`, each with a `CLAUDE.md` beside it
   that imports it (`@AGENTS.md`). Agents read them when they work in that
   folder, so the site's rules never reach a game. A rule for the whole
