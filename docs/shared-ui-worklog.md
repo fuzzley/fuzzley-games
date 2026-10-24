@@ -10,9 +10,10 @@ file in the commit that finishes the plan; it stays in that commit's parent.
   `main` deploys, so each shipping point waits for the user's go-ahead.
 - **Phase:** 2, tokens and theme. Phase 1 scaffolded `lib/style` only;
   `lib/ui` comes with its first component, in Phase 3.
-- **Next step:** move the site's palettes, base styles and Sass toolkit into
-  `lib/style` with the `fz-` prefix. Drafts of the toolkit's first files
-  were parked outside the repository during the spike and are easy to redo.
+- **Next step:** the rest of Phase 2 in `lib/style`: the new palette roles
+  (danger, warning, scrim), the derived roles and the scales, a contrast
+  spec, the shadows as tokens and a stylelint preset; then Figtree from
+  Fontsource in place of Google Fonts.
 
 | Phase                             | State       |
 | --------------------------------- | ----------- |
@@ -34,6 +35,15 @@ From `frontend/`: `yarn verify` runs every check; on `main` before this work
 it took under five minutes, with 177 site specs and 6940 Solitaire specs. On this machine, Docker is
 usually off and port 4200 is taken (see the dev-environment notes in Claude's
 memory); start Vite with `--port <n> --strictPort`.
+
+A change meant to be invisible is checked against screenshots of a build of
+`main` from before this work (`70f3d97`): six pages (home, a category, a
+hosted and a coming-soon game page, the 404, and the open theme menu), in all
+four palettes, wide and phone. Claude's script for it, kept outside the
+repository, serves both builds, drives headless Chrome over the DevTools
+protocol, and diffs the pixels. It paints images black first: Chrome
+rasterizes the scaled-down thumbnails a little differently each time, so a
+build differs from itself otherwise.
 
 ## Log
 
@@ -94,3 +104,28 @@ passed every check in the plan, and was removed once done. What it showed:
   depends on a workspace outside `lib/` (tried by hand: it does).
 - The root's `test`, `typecheck` and `lint` include `lib/*`.
 - `lib/ui` waits for Phase 3, so it is never an empty package.
+
+### 2026-10-24: Phase 2, the palettes and base styles move
+
+- `@fz/style` exports its Sass: `@fz/style` is the toolkit (only
+  `visually-hidden` so far) and `@fz/style/global` the shared global
+  stylesheet: the palettes, the reset, the page's defaults and the
+  `.fz-visually-hidden` class.
+- **Cascade layers**, a decision made here: every rule of `global.scss` sits
+  in `fz.tokens`, `fz.reset`, `fz.base` or `fz.fragments`, so an app's own
+  rules, in no layer, always win. That keeps an app from fighting the library
+  with specificity, and lets Solitaire's own globals keep winning while it
+  moves over. `.fz-visually-hidden` is `!important` instead, as hidden text
+  must stay hidden. `src/global.spec.ts` holds `global.scss` to its layers and
+  the toolkit to emitting nothing.
+- The palettes emit `--fz-<role>`; `search*` became `field*`, and the unused
+  `card-back` is gone. The site reads `var(--fz-…)` throughout, its own
+  layout tokens (`--page-width`, `--gutter`, `--radius`) stay unprefixed in
+  `_layout.scss`, and `ThemeService` tints the browser from `--fz-bar`.
+- Reduced motion now shortens animations and transitions to 0.01ms, as
+  Solitaire did, rather than removing them, so `transitionend` still fires.
+  The visually-hidden mixin is Solitaire's fuller one.
+- The minifier drops the layer-order statement, since the layers already come
+  in that order; the order is the same.
+- Checked: all 48 screenshots match the baseline pixel for pixel, and the
+  built CSS differs only in the names, the layers, and the two rules above.

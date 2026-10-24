@@ -1,0 +1,35 @@
+// The page's defaults: its colors and type, the focus ring, and reduced
+// motion.
+
+@layer fz.base {
+  body {
+    min-height: 100vh;
+    background: var(--fz-page);
+    color: var(--fz-text);
+    font-family: var(--fz-font);
+    font-size: 1rem;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  // One ring for keyboard focus, on everything focusable, so no component
+  // clears its outline. :focus-visible, so a click leaves no ring behind.
+  :focus-visible {
+    outline: 3px solid var(--fz-accent);
+    outline-offset: 2px;
+  }
+
+  // Motion collapses to almost nothing rather than to none, so the
+  // animationend and transitionend events code may wait for still fire.
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

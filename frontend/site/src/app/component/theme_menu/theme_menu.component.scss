@@ -1,4 +1,4 @@
-@use "../../styles/a11y";
+@use "@fz/style" as fz;
 @use "../../styles/breakpoints" as bp;
 @use "../../styles/shadows";
 
@@ -13,15 +13,15 @@
   gap: 0.5rem;
   height: 44px;
   padding: 0 0.875rem 0 0.625rem;
-  border: 1px solid var(--search-line);
+  border: 1px solid var(--fz-field-line);
   border-radius: 999px;
-  background: var(--search);
-  color: var(--search-text);
+  background: var(--fz-field);
+  color: var(--fz-field-text);
   font-weight: 600;
   font-size: 0.9375rem;
 
   // Resolved here, outside the swatch's own palette.
-  --ring: var(--search);
+  --ring: var(--fz-field);
 }
 
 // A swatch carries its own data-theme, so it shows that palette's colors:
@@ -32,7 +32,7 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: linear-gradient(90deg, var(--page) 50%, var(--felt) 50%);
+  background: linear-gradient(90deg, var(--fz-page) 50%, var(--fz-felt) 50%);
   box-shadow: shadows.$hairline;
 
   &::after {
@@ -43,7 +43,7 @@
     width: 9px;
     height: 9px;
     border-radius: 50%;
-    background: var(--accent);
+    background: var(--fz-accent);
     box-shadow: 0 0 0 2px var(--ring);
   }
 
@@ -65,10 +65,10 @@
   z-index: 10;
   width: 16rem;
   padding: 0.5rem;
-  border: 1px solid var(--line);
+  border: 1px solid var(--fz-line);
   border-radius: 14px;
-  background: var(--panel-raised);
-  color: var(--text);
+  background: var(--fz-panel-raised);
+  color: var(--fz-text);
   box-shadow: shadows.$raised;
 
   // Angular Aria marks the menu visible while it is open.
@@ -79,7 +79,7 @@
 
 .panel-title {
   padding: 0.375rem 0.625rem 0.5rem;
-  color: var(--muted);
+  color: var(--fz-muted);
   font-size: 0.8125rem;
   font-weight: 700;
 }
@@ -93,12 +93,12 @@
   border-radius: 10px;
   cursor: pointer;
 
-  --ring: var(--panel-raised);
+  --ring: var(--fz-panel-raised);
 
   // The item the arrow keys or the pointer are on.
   &:hover,
   &[data-active="true"] {
-    background: var(--panel);
+    background: var(--fz-panel);
   }
 
   &[aria-checked="true"] .name {
@@ -112,14 +112,14 @@
 }
 
 .mode {
-  color: var(--muted);
+  color: var(--fz-muted);
   font-size: 0.8125rem;
 }
 
 .tick {
   width: 18px;
   height: 18px;
-  color: var(--accent);
+  color: var(--fz-accent);
 
   --icon-stroke: 2.5;
 }
@@ -127,7 +127,7 @@
 @include bp.below(md) {
   // Hidden from sight only, so the button is still announced as "Theme".
   .label {
-    @include a11y.visually-hidden;
+    @include fz.visually-hidden;
   }
 
   .trigger {

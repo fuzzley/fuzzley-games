@@ -1,0 +1,6 @@
+// The toolkit, the shared mixins, which a stylesheet loads with
+// `@use "@fz/style" as fz;` and calls as `@include fz.visually-hidden;`.
+// It emits no CSS, or every stylesheet that loads it would repeat the rules;
+// anything that emits a rule belongs in global.scss, which an app loads once.
+
+@forward "toolkit/a11y";

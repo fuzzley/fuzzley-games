@@ -29,7 +29,7 @@ export class ThemeService {
       // Match the browser's own UI (address bar on phones) to the header.
       const bar = this.document.defaultView
         ?.getComputedStyle(this.root)
-        .getPropertyValue("--bar")
+        .getPropertyValue("--fz-bar")
         .trim();
       if (bar) {
         this.document

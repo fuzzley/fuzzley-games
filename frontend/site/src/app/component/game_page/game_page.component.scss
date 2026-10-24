@@ -38,7 +38,7 @@ h1 {
 }
 
 .meta {
-  color: var(--muted);
+  color: var(--fz-muted);
 }
 
 // The space the game itself will fill.
@@ -49,22 +49,22 @@ h1 {
   margin-top: 2rem;
   padding: 1.5rem;
   border-radius: calc(var(--radius) + 6px);
-  background: var(--felt);
+  background: var(--fz-felt);
 }
 
 .stage-note {
   max-width: 34ch;
-  color: var(--on-felt);
+  color: var(--fz-on-felt);
   text-align: center;
   opacity: 0.85;
 }
 
 // Games that aren't played on a card table.
 .stage.plain {
-  background: var(--panel);
+  background: var(--fz-panel);
 
   .stage-note {
-    color: var(--muted);
+    color: var(--fz-muted);
     opacity: 1;
   }
 }
@@ -105,7 +105,7 @@ h1 {
     height: 3.5rem;
     margin: 0;
     padding: 0 1.85rem;
-    border: 2px solid var(--on-accent);
+    border: 2px solid var(--fz-on-accent);
     box-shadow: shadows.$over-picture;
   }
 

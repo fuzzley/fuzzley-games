@@ -37,12 +37,13 @@ are relative to `frontend/site/`.
 - `src/app/testing/` holds what specs share, such as `TEST_CATALOG` and
   `provideTestCatalog()`. The app's tsconfig leaves it out.
 - `src/app/styles/` holds the one global stylesheet, `global.scss`, and
-  the Sass partials it and the components `@use`: `_palettes.scss` (the
-  color palettes as Sass maps, emitted as custom properties under
-  `[data-theme]`), `_breakpoints.scss` (`below(sm | md | lg | xl)`),
-  `_a11y.scss` (the `visually-hidden` mixin), `_shadows.scss`, `_base.scss`
-  (the reset and element defaults) and `_shared.scss` (the few classes
-  components share).
+  the Sass partials it and the components `@use`. `global.scss` loads
+  `@fz/style`'s shared one first (the palettes, the reset and the element
+  defaults, in cascade layers that any rule of the site's own wins over),
+  then `_layout.scss` (the page's width and gutter) and `_shared.scss`
+  (the few classes components share). `_breakpoints.scss`
+  (`below(sm | md | lg | xl)`) and `_shadows.scss` are for the
+  components.
 - Every spec sits beside the file it tests, named after it.
 - `public/` is copied into the build as is, including the runtime config
   placeholder `env.js` and `thumbnails/<slug>.svg`, the drawing of each
@@ -81,8 +82,7 @@ own, which `yarn workspace site <script>` runs alone.
   tsconfig that includes it, found through the solution in `tsconfig.json`.
 - **`lint:styles`** runs stylelint (`stylelint.config.js`, the standard SCSS
   rules) over every stylesheet: no hex, named or functional color outside
-  `_palettes.scss` and `_shadows.scss`, no `@import`, nesting at most three
-  deep.
+  `_shadows.scss`, no `@import`, nesting at most three deep.
 - **`typecheck`** runs the Angular compiler's checks over the app, emitting
   nothing, then `tsc` over the specs (`tsconfig.spec.json`), over
   `vite.config.ts` (`tsconfig.node.json`), and over the `tools` scripts from
@@ -100,22 +100,20 @@ own, which `yarn workspace site <script>` runs alone.
   need `@angular/localize` at runtime (`$localize`), which the site doesn't
   load.
 - **Colors come from the palette.** Anything that should follow the theme
-  reads a palette variable with `var()`; stylelint rejects a color written
-  anywhere else. A new role is added to every palette in
-  `src/app/styles/_palettes.scss` at once: the build fails if a palette lacks
-  a role the default has, or has one it lacks, and
-  `src/app/styles/palettes.spec.ts` fails if the palettes and `THEMES`
-  disagree.
+  reads a palette role with `var()`, as `var(--fz-accent)`; stylelint
+  rejects a color written anywhere else. The palettes are `@fz/style`'s,
+  shared with the games, so a new role goes there, in every palette at
+  once (`frontend/lib/style/AGENTS.md`).
 - **`@keyframes` are global.** Angular's emulated encapsulation rewrites
   selectors, not at-rule names, so two components defining the same animation
   name silently overwrite each other. Declare them once, in a partial that
   `src/app/styles/global.scss` uses.
 - **Accessibility helpers.** The rules are the `web-game-accessibility`
   skill's; these are the site's means to them.
-  - An icon-only button gets a label only screen readers read from the
-    global `.visually-hidden` class in `src/app/styles/_shared.scss`, or, to
-    hide it only at some widths, the `visually-hidden` mixin in
-    `src/app/styles/_a11y.scss`.
+  - An icon-only button gets a label only screen readers read, from
+    `@fz/style`'s global `.fz-visually-hidden` class, or, to hide it only
+    at some widths, its `visually-hidden` mixin: `@use "@fz/style" as fz;`
+    then `@include fz.visually-hidden;`.
   - A live region is in the page from the start, as the home page's search
     status is, and only its text changes.
   - Menus and pickers are built on Angular Aria (`@angular/aria`), not by
@@ -138,6 +136,8 @@ Every stylesheet is SCSS, compiled by Dart Sass (`sass`).
   Palette colors and `--gutter` change while the page runs, so they are CSS
   custom properties read with `var()`. Sass variables and mixins hold what
   is fixed at build time: breakpoints, shadows, the visually-hidden rules.
+  A custom property of the site's own has no prefix; `--fz-` marks
+  `@fz/style`'s.
 - **Breakpoints by name.** `@include bp.below(sm) { … }`, never a bare
   `max-width`; the widths live in `_breakpoints.scss`.
 - **Nest for states and parts** (`&:hover`, `&::before`, `> span`), no more
