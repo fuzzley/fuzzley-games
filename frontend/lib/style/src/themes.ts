@@ -16,6 +16,32 @@ export const THEMES = [
 /** A palette's id, such as "classic". */
 export type ThemeId = (typeof THEMES)[number]["id"];
 
+/** The id of a palette of one mode, such as "casino" for dark. */
+export type ThemeIdOfMode<M extends ColorMode> = Extract<
+  (typeof THEMES)[number],
+  { mode: M }
+>["id"];
+
+/**
+ * The dark palette whose colors each light one lends a game's chrome, for a
+ * game whose chrome is drawn for dark palettes only, as the Solitaire
+ * Collection's is.
+ */
+export const DARK_PARTNERS: Readonly<
+  Record<ThemeIdOfMode<"light">, ThemeIdOfMode<"dark">>
+> = {
+  classic: "casino",
+  pastel: "midnight",
+};
+
+/** Returns a palette if it is dark, or else its dark partner. */
+export function darkTheme(id: ThemeId): ThemeId {
+  for (const [light, dark] of Object.entries(DARK_PARTNERS)) {
+    if (light === id) return dark;
+  }
+  return id;
+}
+
 /** Describes a palette a player can choose. */
 export interface Theme {
   readonly id: ThemeId;

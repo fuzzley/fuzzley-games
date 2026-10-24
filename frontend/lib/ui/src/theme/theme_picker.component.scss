@@ -1,0 +1,65 @@
+:host {
+  display: block;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: var(--fz-space-2);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 52px;
+  padding: var(--fz-space-2) var(--fz-space-3);
+  border: 1px solid var(--fz-edge-2);
+  border-radius: var(--fz-radius-md);
+  background: var(--fz-wash-1);
+  color: var(--fz-text);
+  cursor: pointer;
+
+  // The panel a picker sits on, around the swatch's accent dot.
+  --fz-swatch-ring: var(--fz-panel-raised);
+
+  &:hover {
+    background: var(--fz-wash-2);
+  }
+
+  &:has(input:checked) {
+    border-color: var(--fz-accent);
+    background: var(--fz-accent-wash);
+  }
+
+  // The radio itself is hidden, so its ring goes round the whole option.
+  &:has(input:focus-visible) {
+    outline: var(--fz-focus-ring-width) solid var(--fz-focus-ring-color);
+    outline-offset: var(--fz-focus-ring-offset);
+  }
+}
+
+.text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-size: var(--fz-font-sm);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.mode {
+  color: var(--fz-muted);
+  font-size: var(--fz-font-xs);
+}
+
+.tick {
+  width: 16px;
+  height: 16px;
+  color: var(--fz-accent);
+
+  --fz-icon-stroke: 2.5;
+}

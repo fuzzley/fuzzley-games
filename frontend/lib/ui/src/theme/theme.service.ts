@@ -4,6 +4,7 @@ import {
   Injectable,
   InjectionToken,
   type Signal,
+  computed,
   effect,
   inject,
   signal,
@@ -20,9 +21,10 @@ import { BROWSER_STORAGE } from "../storage";
 /**
  * The palette role whose color the browser's own toolbar takes (its
  * `theme-color`, the address bar on phones), which should match the top of
- * the page: `bar` by default, `felt` for a game whose table runs to the top.
+ * the page: `bar` by default, `felt` for a game whose table runs to the top,
+ * or `null` for an app that sets `theme-color` itself.
  */
-export const THEME_COLOR_ROLE = new InjectionToken<PaletteRole>(
+export const THEME_COLOR_ROLE = new InjectionToken<PaletteRole | null>(
   "THEME_COLOR_ROLE",
   { providedIn: "root", factory: () => "bar" },
 );
@@ -43,15 +45,31 @@ export class ThemeService {
   private readonly root = this.document.documentElement;
   private readonly chosen = signal<ThemeId>(this.initial());
 
+  /** The palette on the page, once the effect below has put it there. */
+  private readonly applied = signal<ThemeId>(this.chosen());
+
   /** The palette in use. */
   readonly current: Signal<ThemeId> = this.chosen.asReadonly();
 
   constructor() {
     effect(() => {
-      this.root.dataset["theme"] = this.current();
+      const id = this.current();
+      this.root.dataset["theme"] = id;
+      this.applied.set(id);
       this.matchBrowserToolbar();
     });
     this.followOtherTabs();
+  }
+
+  /**
+   * Returns a palette role's color on the page, such as the felt's, which
+   * follows the palette in use; empty where no stylesheet sets it.
+   */
+  role(name: PaletteRole): Signal<string> {
+    return computed(() => {
+      this.applied();
+      return this.read(name);
+    });
   }
 
   /** Applies a palette, and remembers it where the browser allows. */
@@ -77,15 +95,23 @@ export class ThemeService {
 
   /** Gives the browser's own toolbar the palette's color for its role. */
   private matchBrowserToolbar(): void {
-    const color = this.document.defaultView
-      ?.getComputedStyle(this.root)
-      .getPropertyValue(`--fz-${this.colorRole}`)
-      .trim();
+    if (!this.colorRole) return;
+    const color = this.read(this.colorRole);
     if (color) {
       this.document
         .querySelector('meta[name="theme-color"]')
         ?.setAttribute("content", color);
     }
+  }
+
+  /** Returns a palette role's color on the page as it is now. */
+  private read(name: PaletteRole): string {
+    return (
+      this.document.defaultView
+        ?.getComputedStyle(this.root)
+        .getPropertyValue(`--fz-${name}`)
+        .trim() ?? ""
+    );
   }
 
   /**

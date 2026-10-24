@@ -17,10 +17,12 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   where the browser refuses it, which a service injects rather than reading
   the global, so a spec can hand it another.
 - `src/theme/`: `ThemeService`, which applies the palette in use, remembers
-  it, and takes up one chosen in another tab, and `<fz-theme-menu>`, the menu
-  a player picks one from. `THEME_COLOR_ROLE` names the palette role the
-  browser's own toolbar takes (`bar` unless an app provides another, such as
-  `felt` for a game whose table runs to the top).
+  it, takes up one chosen in another tab, and gives a role's color as a
+  signal (`role("felt")`); `<fz-theme-menu>`, the menu a player picks one
+  from; and `<fz-theme-picker>`, the same choice as radios, for a settings
+  panel. `THEME_COLOR_ROLE` names the palette role the browser's own toolbar
+  takes (`bar` unless an app provides another, such as `felt` for a game
+  whose table runs to the top, or `null` for an app that sets it itself).
 - `src/icon/`: `<fz-icon name="…">`, the outline icons.
 - `src/wordmark/`: `<fz-wordmark>`, the "Fuzzley Games" name in its own
   type. It is text: an app that links it puts it in its own `<a>`, with a

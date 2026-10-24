@@ -1,0 +1,39 @@
+@layer fz.fragments {
+  // A palette's swatch, on an element that carries that palette's data-theme:
+  // its bar on the left, its felt on the right, its accent as the dot. The
+  // dot's ring is --fz-swatch-ring, which whatever the swatch sits on sets to
+  // its own background, so it is resolved outside the swatch's palette.
+  .fz-swatch {
+    position: relative;
+    display: inline-block;
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, var(--fz-bar) 50%, var(--fz-felt) 50%);
+    box-shadow: var(--fz-shadow-hairline);
+
+    &::after {
+      content: "";
+      position: absolute;
+      right: -1px;
+      bottom: -1px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--fz-accent);
+      box-shadow: 0 0 0 2px var(--fz-swatch-ring, transparent);
+    }
+  }
+
+  // A larger swatch, for a list of palettes.
+  .fz-swatch-large {
+    width: 28px;
+    height: 28px;
+
+    &::after {
+      width: 11px;
+      height: 11px;
+    }
+  }
+}
