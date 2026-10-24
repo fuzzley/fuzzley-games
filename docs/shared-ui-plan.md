@@ -113,7 +113,6 @@ already enforces.
 | `danger`, `on-danger`                              | destructive actions                                    | (none)         | `danger*` and the white label on it                                        |
 | `warning`, `on-warning`                            | caution                                                | (none)         | `warning*`, `text-inverse`                                                 |
 | `felt`, `on-felt`                                  | a card table                                           | the same       | the default felt, `#0f4d0e`                                                |
-| `card-back`                                        | the back of a card in the site's thumbnails            | the same       | (its backs stay its own; see below)                                        |
 | `scrim`                                            | behind a modal                                         | (none)         | `surface-scrim`, `surface-scrim-heavy`                                     |
 
 Solitaire's five accent shades collapse to one: each palette picks an `accent`
@@ -202,8 +201,8 @@ game.
   - A stored `green`, the old default, reads as "Theme". Any other stored felt
     stays as the player's choice.
 - **Card backs stay Solitaire's own choice.** They are pre-drawn images in
-  fixed colors, so the palette's `card-back` can't drive them. It stays a role
-  only the site's thumbnails use.
+  fixed colors, so a palette role can't drive them. The site's `card-back`
+  role, which nothing read, was dropped in Phase 2.
 
 ## Navigation
 
@@ -221,6 +220,13 @@ game.
 - **Folders and names.** `frontend/lib/style` (workspace `@fz/style`) and
   `frontend/lib/ui` (workspace `@fz/ui`), each private and named after its folder,
   under the `@fz` scope, which marks an import as a library's at a glance and keeps clear of the public `style` and `ui` packages on npm.
+- **Cascade layers.** `@fz/style/global` puts every rule in a layer under
+  `fz` (`fz.tokens`, `fz.reset`, `fz.base`, `fz.fragments`, in that order),
+  and an app's own rules sit in none, so they win over the library's whatever
+  their specificity. An app adjusts a shared style by writing its own, and
+  Solitaire's unlayered globals keep winning while it moves over. The one
+  exception is `.fz-visually-hidden`, whose declarations are `!important`
+  so that nothing un-hides its text.
 - **Used from source, not built.** Consumers depend on `"@fz/style": "workspace:*"`
   and `"@fz/ui": "workspace:*"`. Yarn's `node-modules` linker links them into
   `node_modules`, and Vite and TypeScript follow the link to `frontend/lib/…`.

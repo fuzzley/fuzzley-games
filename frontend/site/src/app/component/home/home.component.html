@@ -1,6 +1,6 @@
 <main class="page" [class.searching]="searching()">
   <div class="results-head">
-    <h1 [class.visually-hidden]="!searching()">{{ heading() }}</h1>
+    <h1 [class.fz-visually-hidden]="!searching()">{{ heading() }}</h1>
     <!-- Always in the page, so screen readers announce each change to it. -->
     <p class="count" role="status">{{ status() }}</p>
   </div>

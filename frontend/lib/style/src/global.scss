@@ -1,0 +1,12 @@
+// The shared global stylesheet, which an app loads once, before its own
+// rules, with `@use "@fz/style/global";` in its global stylesheet.
+// Every rule here sits in a cascade layer under `fz`, so a rule of the app's
+// own, in no layer, wins over it whatever its specificity: an app adjusts the
+// shared styles by writing its own, never by out-specifying these.
+
+@use "layers";
+@use "tokens/palettes";
+@use "tokens/scales";
+@use "base/reset";
+@use "base/document";
+@use "fragments/visually-hidden";

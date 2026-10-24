@@ -5,9 +5,9 @@
 }
 
 .bar {
-  background: var(--bar);
-  color: var(--bar-text);
-  border-bottom: 1px solid var(--bar-line);
+  background: var(--fz-bar);
+  color: var(--fz-bar-text);
+  border-bottom: 1px solid var(--fz-bar-line);
 }
 
 .inner {
@@ -43,7 +43,7 @@
 
     &.active {
       opacity: 1;
-      border-color: var(--accent);
+      border-color: var(--fz-accent);
     }
   }
 }
@@ -71,20 +71,20 @@
   min-width: 0;
   height: 44px;
   padding: 0 0.875rem;
-  border: 1px solid var(--search-line);
+  border: 1px solid var(--fz-field-line);
   border-radius: 999px;
-  background: var(--search);
-  color: var(--search-text);
+  background: var(--fz-field);
+  color: var(--fz-field-text);
 
   &:focus-within {
-    outline: 3px solid var(--accent);
+    outline: 3px solid var(--fz-accent);
     outline-offset: 2px;
   }
 
   app-icon {
     width: 18px;
     height: 18px;
-    color: var(--search-muted);
+    color: var(--fz-field-muted);
 
     --icon-stroke: 2.2;
   }
@@ -99,7 +99,7 @@
     font: inherit;
 
     &::placeholder {
-      color: var(--search-muted);
+      color: var(--fz-field-muted);
     }
   }
 }

@@ -39,13 +39,13 @@ h2 {
 }
 
 .count {
-  color: var(--muted);
+  color: var(--fz-muted);
   font-size: 0.9375rem;
 }
 
 .see-all {
   margin-left: auto;
-  color: var(--accent);
+  color: var(--fz-accent);
   font-weight: 700;
   font-size: 0.9375rem;
   white-space: nowrap;
@@ -57,7 +57,7 @@ h2 {
 
 .description {
   margin: 0.15rem 0 1rem;
-  color: var(--muted);
+  color: var(--fz-muted);
 }
 
 .searching {
@@ -88,7 +88,7 @@ h2 {
 
 .empty-hint {
   margin-bottom: 1.25rem;
-  color: var(--muted);
+  color: var(--fz-muted);
 }
 
 // These override each other in this order (a phone is narrower than xl

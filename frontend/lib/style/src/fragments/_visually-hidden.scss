@@ -1,0 +1,10 @@
+@use "../toolkit/a11y";
+
+@layer fz.fragments {
+  // A label only screen readers read, such as an icon-only button's. It wins
+  // over anything else that styles the element, or a component's own rules
+  // could bring the text back into view.
+  .fz-visually-hidden {
+    @include a11y.visually-hidden($important: true);
+  }
+}

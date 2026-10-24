@@ -4,7 +4,7 @@
 export default {
   extends: ["stylelint-config-standard-scss"],
   rules: {
-    // Colors come from the palette, read with var() (see AGENTS.md):
+    // Colors come from @fz/style's palettes, read with var() (see AGENTS.md):
     // a stylesheet spells out no color of its own.
     "color-no-hex": true,
     "color-named": "never",
@@ -26,9 +26,9 @@ export default {
   },
   overrides: [
     {
-      // Where the colors are written down: the palettes, and the shadows,
-      // which are the same in every palette.
-      files: ["src/app/styles/_palettes.scss", "src/app/styles/_shadows.scss"],
+      // The shadows, which darken whatever is under them in every palette
+      // alike. The palettes are written down in @fz/style.
+      files: ["src/app/styles/_shadows.scss"],
       rules: {
         "color-no-hex": null,
         "function-disallowed-list": null,

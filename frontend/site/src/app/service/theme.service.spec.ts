@@ -79,7 +79,7 @@ describe("ThemeService", () => {
   it("colors the browser's own bar to match the palette's", () => {
     document.head.insertAdjacentHTML(
       "beforeend",
-      '<style id="palette">[data-theme="midnight"] { --bar: #0e1a2b; }</style>' +
+      '<style id="palette">[data-theme="midnight"] { --fz-bar: #0e1a2b; }</style>' +
         '<meta name="theme-color" content="#ffffff">',
     );
     const theme = service();

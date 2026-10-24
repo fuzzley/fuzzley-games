@@ -1,19 +1,18 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { compileString } from "sass";
-import { DEFAULT_THEMES, THEMES } from "@fz/style/themes";
+import { DEFAULT_THEMES, THEMES } from "../themes.ts";
 
 // The palettes are written in Sass and the palette list in TypeScript; these
 // specs keep the two in step, and check Sass's guard against a palette that
 // sets different roles from the default.
 describe("palettes", () => {
-  // A string, not new URL(): jsdom's URL isn't one Node's fileURLToPath takes.
-  const styles = path.dirname(fileURLToPath(import.meta.url));
+  const tokens = path.dirname(fileURLToPath(import.meta.url));
 
   /** Returns the palettes' CSS, with `$palettes` configured if given. */
   function compilePalettes(palettes?: string): string {
     const config = palettes ? ` with ($palettes: ${palettes})` : "";
-    return compileString(`@use "palettes"${config};`, { loadPaths: [styles] })
+    return compileString(`@use "palettes"${config};`, { loadPaths: [tokens] })
       .css;
   }
 
@@ -48,6 +47,12 @@ describe("palettes", () => {
     );
 
     expect(root?.name).toBe(DEFAULT_THEMES.light);
+  });
+
+  it("names each role's custom property with the fz prefix", () => {
+    const properties = compilePalettes().match(/--[w-]+(?=:)/g) ?? [];
+
+    expect(properties.filter((name) => !name.startsWith("--fz-"))).toEqual([]);
   });
 
   it("fails the build when a palette lacks a role the default sets", () => {

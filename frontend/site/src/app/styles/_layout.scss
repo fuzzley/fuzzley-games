@@ -1,0 +1,16 @@
+// The site's layout tokens: how wide a page gets and the room around it,
+// which @fz/style leaves to each app.
+
+@use "breakpoints" as bp;
+
+:root {
+  --page-width: 78rem;
+  --gutter: 1.5rem;
+  --radius: 10px;
+}
+
+@include bp.below(sm) {
+  :root {
+    --gutter: 1rem;
+  }
+}
