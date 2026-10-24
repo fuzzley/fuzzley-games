@@ -28,6 +28,7 @@ body {
   font-size: var(--font-md);
   line-height: var(--leading-normal);
   color: var(--text-body);
+
   // The interface is light text on dark surfaces, where the default stem
   // darkening reads as a smear rather than as weight.
   -webkit-font-smoothing: antialiased;

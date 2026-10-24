@@ -1,0 +1,11 @@
+// The tokens alone: every custom property, and the font --fz-font names, in
+// the fz.tokens layer. A page that keeps its own reset and element styles
+// loads this, as `@use "@fz/style/tokens";`, in place of the global
+// stylesheet, which loads it first.
+
+@use "../layers";
+@use "@fontsource-variable/figtree";
+@use "palettes";
+@use "derived";
+@use "scales";
+@use "shadows";

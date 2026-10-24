@@ -1,16 +1,17 @@
 // Declares every keyframe animation in the application, and the one block that
 // turns them all off.
-//
+
 // Keyframes live here because their names are global: Angular's encapsulation
 // rewrites selectors, not at-rule names, so two components' animations of one
 // name would silently replace each other.
 
 // Cards that arrive: the victory and confirmation dialogs.
-@keyframes popIn {
+@keyframes pop-in {
   0% {
     transform: scale(0.8);
     opacity: 0;
   }
+
   100% {
     transform: scale(1);
     opacity: 1;
@@ -18,11 +19,12 @@
 }
 
 // Panels that resolve into place: the help modal and its tab panels.
-@keyframes fadeIn {
+@keyframes fade-in {
   from {
     opacity: 0;
     transform: scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -32,10 +34,11 @@
 // A highlight travelling across a placeholder that is a fixed shape — the
 // board's pile slots and the game browser's picture, where the moving part is a
 // child laid over the placeholder.
-@keyframes shimmerSweep {
+@keyframes shimmer-sweep {
   0% {
     transform: translateX(-100%);
   }
+
   100% {
     transform: translateX(100%);
   }
@@ -43,10 +46,11 @@
 
 // A gradient scrolling within a placeholder whose size is not yet known — the
 // help modal's screenshot frame, which has no child to move across it.
-@keyframes shimmerBand {
+@keyframes shimmer-band {
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
@@ -58,28 +62,31 @@
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
 }
 
-@keyframes spinReverse {
+@keyframes spin-reverse {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(-360deg);
   }
 }
 
 // The loading badge, breathing so a slow deal does not look like a hang.
-@keyframes pulseGlow {
+@keyframes pulse-glow {
   0%,
   100% {
     box-shadow:
       var(--shadow-badge),
       0 0 20px var(--accent-wash);
   }
+
   50% {
     box-shadow:
       var(--shadow-badge),
@@ -93,6 +100,7 @@
   100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-8px);
   }
@@ -105,6 +113,7 @@
     transform: scale(1);
     opacity: 1;
   }
+
   50% {
     transform: scale(1.05);
     opacity: 0.85;

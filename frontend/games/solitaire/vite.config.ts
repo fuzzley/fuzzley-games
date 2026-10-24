@@ -1,6 +1,7 @@
 import { defineConfig, type Plugin } from "vite";
 import path from "path";
 import angular from "@analogjs/vite-plugin-angular";
+import { fuzzleyStyle } from "@fz/style/vite";
 
 /** Intercepts browser requests for favicon.ico in dev server to prevent 404 console errors. */
 function silenceFavicon(): Plugin {
@@ -25,7 +26,7 @@ const commit = process.env["COMMIT_SHA"];
 
 export default defineConfig({
   base: "./",
-  plugins: [angular(), silenceFavicon()],
+  plugins: [angular(), silenceFavicon(), fuzzleyStyle()],
   define: commit
     ? { "import.meta.env.VITE_COMMIT_SHA": JSON.stringify(commit) }
     : {},

@@ -11,12 +11,14 @@ can use it too. The repository's rules, which apply here too, are in
 - **The shared global stylesheet**, `src/global.scss`, which an app loads
   once, as `@use "@fz/style/global";` at the top of its own. It holds, in
   order:
-  - the font, Figtree, from Fontsource (`@fontsource-variable/figtree`,
-    under the SIL Open Font License), served from the app's own origin, so
-    no app needs a font host in its Content Security Policy. A browser
-    fetches only the subsets a page's text uses, and only once something is
-    set in it;
-  - the tokens, all custom properties, read with `var()`:
+  - the tokens, `src/tokens/_index.scss`, which style no element (as
+    `src/global.spec.ts` checks), so a page that keeps its own reset and
+    element styles loads them alone, as `@use "@fz/style/tokens";`:
+    - the font, Figtree, from Fontsource (`@fontsource-variable/figtree`,
+      under the SIL Open Font License), served from the app's own origin,
+      so no app needs a font host in its Content Security Policy. A browser
+      fetches only the subsets a page's text uses, and only once something
+      is set in it;
     - `src/tokens/_palettes.scss`, the color palettes, each role picked by
       hand in each palette;
     - `src/tokens/_derived.scss`, the roles worked out from those with

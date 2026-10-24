@@ -16,10 +16,11 @@
   color: var(--text-bright);
   user-select: none;
   transform: scale(1);
-  animation: popIn 0.5s var(--ease-spring);
+  animation: pop-in 0.5s var(--ease-spring);
 
   h2 {
     @include gradient-text(var(--warning), var(--warning-light));
+
     font-size: var(--font-4xl);
     font-weight: 800;
     margin: 0 0 var(--space-2);

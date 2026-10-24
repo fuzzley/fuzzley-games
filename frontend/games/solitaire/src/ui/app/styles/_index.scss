@@ -1,7 +1,7 @@
 // The toolkit every component stylesheet imports:
-//
+
 //     @use "../../styles" as *;
-//
+
 // It must emit no CSS, or every component would repeat the rules; anything
 // that emits a rule belongs in `global.scss`. `_palette.scss` is not forwarded,
 // so components read the role-named tokens instead.

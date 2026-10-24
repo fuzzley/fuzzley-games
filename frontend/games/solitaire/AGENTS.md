@@ -147,7 +147,10 @@ brings in the mixins and breakpoints and nothing else:
 
 - **Tokens are custom properties; Sass builds them.** Colour, surface, spacing,
   type, radius, elevation, motion, layout and z-index all live in `:root` in
-  `styles/_tokens.scss`, cut from the source colours in `_palette.scss`.
+  `styles/_tokens.scss`, the colours cut from the source colours in
+  `_palette.scss`. The scales are aliases of `@fz/style`'s
+  (`--space-2: var(--fz-space-2)`), the tokens the site and every game share
+  (`frontend/lib/style/AGENTS.md`), which `global.scss` loads first.
   Component CSS reads them with `var()` — never a colour, spacing or font-size
   literal. Reach for Sass when the value cannot be a custom property (media
   query widths) or when it is only ever a compile-time input to a token.
@@ -208,6 +211,11 @@ on `SHUTDOWN` or `DESTROY`, because the game it ran in lives on.
   here. The site's catalog links each game by its `#/<id>` route and shows
   the screenshots under `public/docs/screenshots/<id>/`, so renaming a
   game's id, or dropping its screenshots, fails the site's build.
+- **It shares the palette with the site.** `index.html` loads `theme.js`
+  first, which `@fz/style`'s Vite plugin (`vite.config.ts`) writes into the
+  build: it puts the palette the player chose, on the site or in any game, on
+  the page as `data-theme` before anything paints. The game doesn't follow
+  it yet.
 - **Saved games outlive the code.** Players' saved game, settings and recent
   games are in `localStorage` under keys that start with `fsolitaire-`, in
   the services under `src/ui/app/service/`. Renaming one loses them.
@@ -242,7 +250,7 @@ others', and check its formatting and skill references there.
 - **Build Screenshot Thumbnails:** `yarn build:thumbs` (runs `tools/build-screenshot-thumbs.mjs` to make the images the site serves from each game's lossless screenshot, into `public/docs/screenshots/<id>/`: the rules page's `overview.webp` (1600 × 900, the whole page), the game browser's `thumb.webp`, cropped to the board, and `preview.webp`, the whole page; Klondike's preview is also the link preview image in `index.html`, and the site's catalog shows `thumb.webp` and `preview.webp` too).
 - **Production Build:** `yarn build` (generates bundled production assets in `dist/` with Phaser manual chunking).
 - **Run Unit Tests:** `yarn test` (runs Vitest once) or `yarn test:watch` / `yarn test:coverage`.
-- **Linting:** `yarn lint` (runs ESLint over `src`, `test` and `tools`).
+- **Linting:** `yarn lint` (runs ESLint over `src`, `test` and `tools`, then `yarn lint:styles`, which runs stylelint over every stylesheet with `@fz/style`'s preset (`stylelint.config.js`): the standard SCSS rules, no colour written outside `_palette.scss`, Sass modules, nesting at most three deep).
 - **Type Checking:** `yarn typecheck` (runs TypeScript compiler checks for the app, the tests (`tsconfig.spec.json`), and the Node scripts in `tools/` (`tsconfig.scripts.json`), emitting nothing).
 
 ---

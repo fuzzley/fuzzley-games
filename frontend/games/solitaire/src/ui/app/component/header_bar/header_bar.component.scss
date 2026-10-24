@@ -6,6 +6,7 @@
 
 .header-bar {
   @include glass(12px);
+
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -28,6 +29,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-4);
+
   // A shrink factor far above the metrics', so this group gives up its room
   // before they give up any.
   flex: 0 1000 auto;
@@ -54,6 +56,7 @@
 .wordmark {
   // Sky into the accent blue.
   @include gradient-text(var(--accent-sky), var(--accent));
+
   font-size: var(--font-2xl);
   font-weight: 800;
   letter-spacing: -0.025em;
@@ -70,6 +73,7 @@
 // says there are more games; the chevron, that pressing it offers them.
 .game-switcher {
   @include transition(background, border-color, color);
+
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -173,6 +177,7 @@
 // back on, which the shell's overlay layer turns off.
 .overflow-menu {
   @include glass(20px);
+
   position: fixed;
   top: calc(var(--header-height) + var(--space-1));
   right: var(--space-2);
@@ -187,14 +192,16 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-panel);
+
   // Out of the corner it is anchored to rather than out of its own middle.
   transform-origin: top right;
-  animation: fadeIn var(--duration-fast) var(--ease-decelerate);
+  animation: fade-in var(--duration-fast) var(--ease-decelerate);
 }
 
 // A labelled row with its icon beside it, unlike the icon buttons in the bar.
 .overflow-item {
   @include transition(background, color);
+
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -432,10 +439,7 @@
 
   // Beside the rail, rising from the button at its foot.
   .overflow-menu {
-    top: auto;
-    right: auto;
-    bottom: var(--space-2);
-    left: calc(var(--rail-width) + var(--space-1));
+    inset: auto auto var(--space-2) calc(var(--rail-width) + var(--space-1));
     transform-origin: bottom left;
   }
 }

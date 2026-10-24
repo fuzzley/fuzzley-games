@@ -1,6 +1,9 @@
 // The only stylesheet loaded outside a component, holding what cannot be
 // scoped to one: the tokens, the document reset, the focus ring, the buttons
 // and every `@keyframes`. A rule matching one component's markup belongs there.
+// @fz/style's tokens come first, shared with the site and the other games;
+// its reset and element styles don't, since this file keeps its own.
+@use "@fz/style/tokens" as fz-tokens;
 @use "tokens";
 @use "base";
 @use "buttons";

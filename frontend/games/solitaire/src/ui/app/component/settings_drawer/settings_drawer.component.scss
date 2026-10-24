@@ -4,6 +4,7 @@
 // `margin-left: auto` pins the panel to the right of the dialog's flexbox.
 .drawer {
   @include glass(20px);
+
   width: 320px;
   max-width: 100vw;
   box-sizing: border-box;
@@ -66,6 +67,7 @@
 
 .card-back-option {
   @include swatch-option;
+
   flex-direction: column;
   align-items: center;
 }
@@ -90,6 +92,7 @@
     $field 0 50%
   );
   background-size: 6px 6px;
+
   // In the field's colour, so it is the same size as the other previews.
   border: 1px solid $field;
   box-shadow:
@@ -145,6 +148,7 @@
 
 .card-deck-option {
   @include swatch-option;
+
   align-items: center;
   gap: var(--space-3);
   text-align: left;
@@ -171,6 +175,7 @@
 // Pushed to the far edge by the label taking the room between them.
 .card-deck-spinner {
   @include spinner-ring(16px, 2px);
+
   flex: none;
   margin-left: auto;
 }
@@ -218,6 +223,7 @@
 
 .theme-option {
   @include transition(transform, border-color);
+
   width: 36px;
   height: 36px;
   border-radius: 50%;

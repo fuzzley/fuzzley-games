@@ -413,22 +413,25 @@ Phase 3, so it is never an empty package.
 ### Phase 4: plumbing in Solitaire (small, invisible)
 
 - **Solitaire:**
-  - depend on `@fz/style`, `@fz/ui`, `@angular/aria` and `@angular/cdk`; add stylelint
-    and its SCSS config;
-  - add `fuzzleyStyle()` to `vite.config.ts`, and `allowImportingTsExtensions`
-    to the tsconfig that checks it, since the plugin's imports name their
-    `.ts` files;
+  - depend on `@fz/style`; add stylelint and its SCSS config. `@fz/ui`,
+    `@angular/aria` and `@angular/cdk` come with the code that first imports
+    them, in Phase 5;
+  - add `fuzzleyStyle()` to `vite.config.ts`. No tsconfig checks that file,
+    so none needs `allowImportingTsExtensions` for the plugin's `.ts`
+    imports;
   - load `theme.js` in `index.html` (a relative URL, like its other assets),
     and update `test/ui/index_html.spec.ts`;
-  - `global.scss` uses `@fz/style/global`. Solitaire's own body color, font and
-    `color-scheme` stay after the library's base until Phase 5.
+  - `global.scss` uses `@fz/style/tokens`: the tokens and the font, without
+    the reset and element styles, which moved dialogs by a pixel and shifted
+    the header's text when tried. They come in Phase 5.
   - `_tokens.scss`: the scale tokens become aliases (`--space-2: var(--fz-space-2)`).
     Their values are identical, but for the focus ring, which is 3px in the
     library (the site's) and 2px in Solitaire, and `--font-sans`, which has no
     Figtree: both stay Solitaire's own until Phase 5. Color tokens stay as
     they are.
   - stylelint with the library's preset. The exceptions, for now, are
-    `_palette.scss` and the modal backdrop's literal color.
+    `_palette.scss`, the modal backdrop's literal color, and the two
+    vendor-prefixed properties older Safari needs.
 - **Optional quick win:** a plain home link in the current header.
 - **Verify:** screenshots of Solitaire, roomy, upright phone and sideways phone,
   with the header, game browser, settings, rules, victory and confirmation
@@ -451,6 +454,11 @@ Phase 3, so it is never an empty package.
 - **lib/ui:** `fz-theme-picker`, and `ThemeService.role(name)`: a signal of a
   palette role's current value, read from the page's computed style.
 - **Solitaire:**
+  - depend on `@fz/ui`, `@angular/aria` and `@angular/cdk`;
+  - `global.scss` moves to `@fz/style/global`, and Solitaire's own reset,
+    body and focus rules give way to the library's where they agree. The
+    reset moves dialogs by a pixel and the header's text slightly, which the
+    mock and the retaken screenshots take in.
   - `AppComponent` puts the chrome's `data-theme` on `.ui-overlay`.
   - `_tokens.scss` aliases the color tokens to library roles, following the
     tables above. Several old names point at one role.

@@ -17,11 +17,12 @@
   min-height: 100%;
   box-sizing: border-box;
   padding: var(--space-5) var(--space-6) 0;
-  animation: fadeIn var(--duration-fast) var(--ease-decelerate);
+  animation: fade-in var(--duration-fast) var(--ease-decelerate);
 }
 
 .btn-back {
   @include transition(color, background);
+
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
@@ -73,6 +74,7 @@
 
   &.loaded {
     @include transition(opacity);
+
     opacity: 1;
   }
 }
@@ -87,7 +89,7 @@
     transparent 100%
   );
   transform: translateX(-100%);
-  animation: shimmerSweep 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
+  animation: shimmer-sweep 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }
 
 .title {

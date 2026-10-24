@@ -13,7 +13,7 @@
   max-width: 1200px;
   width: 90vw;
   overflow: hidden;
-  animation: fadeIn 0.2s ease-out;
+  animation: fade-in 0.2s ease-out;
 }
 
 // --- Header ---
@@ -55,6 +55,7 @@
 
 .wiki-badge {
   @include transition(background, border-color, color);
+
   align-items: center;
   background: var(--sky-wash);
   border: 1px solid var(--sky-border);
@@ -81,6 +82,7 @@
 
 .btn-modal-close {
   @include icon-button;
+
   font-size: var(--font-3xl);
   line-height: 1;
 }
@@ -97,6 +99,7 @@
 
 .tab-btn {
   @include transition(color, border-color);
+
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
@@ -174,14 +177,16 @@
 
 .hero-screenshot-card {
   @include panel-card(var(--space-3));
+
   overflow: hidden;
   text-align: center;
 }
 
 // The shimmer scrolls a gradient within the box, whose height is unknown until
-// the image lands; see `shimmerBand` in the shared animations.
+// the image lands; see `shimmer-band` in the shared animations.
 .img-skeleton-container {
   @include flex-center;
+
   position: relative;
   width: 100%;
   min-height: 180px;
@@ -194,7 +199,7 @@
     var(--surface-skeleton) 100%
   );
   background-size: 200% 100%;
-  animation: shimmerBand 1.8s infinite linear;
+  animation: shimmer-band 1.8s infinite linear;
 
   &.is-loaded,
   &.is-failed {
@@ -210,6 +215,7 @@
     $duration: var(--duration-slow),
     $easing: ease-in-out
   );
+
   border-radius: var(--radius-md);
   max-width: 100%;
   height: auto;
@@ -318,5 +324,5 @@
 }
 
 .animated-fade {
-  animation: fadeIn 0.25s var(--ease-decelerate);
+  animation: fade-in 0.25s var(--ease-decelerate);
 }

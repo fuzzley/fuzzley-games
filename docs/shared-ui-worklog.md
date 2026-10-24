@@ -8,24 +8,24 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
-- **Phase:** 4, plumbing in Solitaire. Phase 3 is done.
-- **Next step:** take Solitaire's baseline screenshots (roomy, upright
-  and sideways phone, with each overlay open) before touching it, then give
-  it `@fz/style` and `@fz/ui` without changing how it looks.
+- **Phase:** 5, Solitaire follows the theme. Phase 4 is done.
+- **Next step:** Phase 5 changes how Solitaire looks, so it starts with a
+  mock (the plan lists what it shows), built with the real tokens, and waits
+  for the user's approval before any of its code.
 
-| Phase                             | State       |
-| --------------------------------- | ----------- |
-| 0. Spike                          | done        |
-| 1. Scaffold the libraries         | done        |
-| 2. Tokens and theme; site moves   | done        |
-| 3. Components; site moves         | done        |
-| 4. Plumbing in Solitaire          | in progress |
-| 5. Solitaire follows the theme    | to do       |
-| 6. Solitaire's pieces move to lib | to do       |
-| 7. The game bar                   | to do       |
-| 8. Retire Solitaire's token names | to do       |
-| 9. Light chrome                   | to do       |
-| 10. Skills, and the next consumer | to do       |
+| Phase                             | State     |
+| --------------------------------- | --------- |
+| 0. Spike                          | done      |
+| 1. Scaffold the libraries         | done      |
+| 2. Tokens and theme; site moves   | done      |
+| 3. Components; site moves         | done      |
+| 4. Plumbing in Solitaire          | done      |
+| 5. Solitaire follows the theme    | mock next |
+| 6. Solitaire's pieces move to lib | to do     |
+| 7. The game bar                   | to do     |
+| 8. Retire Solitaire's token names | to do     |
+| 9. Light chrome                   | to do     |
+| 10. Skills, and the next consumer | to do     |
 
 ## How to check the work
 
@@ -42,6 +42,18 @@ repository, serves both builds, drives headless Chrome over the DevTools
 protocol, and diffs the pixels. It paints images black first: Chrome
 rasterizes the scaled-down thumbnails a little differently each time, so a
 build differs from itself otherwise.
+
+Solitaire is checked the same way, from its dev server rather than a build,
+against shots taken before Phase 4 touched it: Klondike's table, and the game
+browser, settings, rules, a confirmation and the victory dialog open over it,
+plus the overflow menu on phones, roomy (1440 × 810), upright (390 × 844) and
+sideways (844 × 390). The dev server is needed for Angular's `ng` debug
+global, through which the script opens each overlay from its component or
+service (victory by setting `GameMetricsService`'s won signal). Each shot
+starts from empty storage with `Math.random` seeded, so the deal is the same,
+and no move is made, so the clock reads 00:00. Images are painted out as for
+the site, and running animations are stopped at a fixed point: a looping one
+at its start, a finite one at its end.
 
 ## Log
 
@@ -257,3 +269,51 @@ passed every check in the plan, and was removed once done. What it showed:
   6940 Solitaire specs), and the screenshots are the previous step's, byte
   for byte: the wordmark on every page, the buttons on the game and missing
   pages, the badges on the tiles and the coming-soon page.
+
+### 2026-10-24: Phase 4, Solitaire's plumbing
+
+- **Baseline first:** 20 shots of Solitaire before any change (see How to
+  check the work), taken twice to show the script repeats itself exactly.
+- **Solitaire depends on `@fz/style`**, and loads `theme.js` first in
+  `index.html`, at a relative URL, from `fuzzleyStyle()` in
+  `vite.config.ts`. Its build has `theme.js` beside `index.html`, and so does
+  the site's copy under `/play/solitaire/`. A spec checks it is the page's
+  first script, and relative.
+- **Only the tokens, not the whole global stylesheet.** Tried first, the
+  global stylesheet changed 15 of the 20 shots: its reset and element styles
+  move every dialog by a pixel and shift the header's text, since Solitaire
+  leans on the browser's margins and sets `box-sizing` component by
+  component. So `@fz/style` gains a `tokens` entry (`src/tokens/_index.scss`):
+  the font and the custom properties, styling no element, which a spec
+  checks. The global stylesheet loads it first, and Solitaire loads it alone
+  (`as fz-tokens`, since its own `tokens` partial has that namespace). A page
+  that keeps its own reset, such as Minesweeper with Bootstrap, can do the
+  same. The reset and base come in Phase 5, whose screenshots are retaken
+  anyway; the plan says so.
+- **Scales alias the library's**: spacing, type sizes, line heights, the
+  measure, radii, shadows, motion, the focus ring's offset and the tap target
+  read `var(--fz-…)`, all at the same values. `--font-sans` (no Figtree) and
+  the focus ring's 2px width and colour stay Solitaire's.
+- **Stylelint with the shared preset**, in `yarn lint` as `lint:styles`: 136
+  findings, almost all blank lines and comment layout, fixed. The keyframes
+  are renamed to kebab-case (`pop-in`), `_breakpoints.scss`'s private
+  function becomes `-width`, the font names are quoted, four longhands
+  become `inset`, and colours take the modern notation. The exceptions:
+  `_palette.scss` (in `stylelint.config.js`), and disable comments on the
+  modal backdrop's literal colour and on the two vendor-prefixed properties
+  older Safari needs.
+- **Not done, and the plan updated:** `@fz/ui`, Angular Aria and the CDK
+  wait for the code that imports them (Phase 5), rather than sitting unused.
+  No tsconfig checks Solitaire's `vite.config.ts`, so none needed
+  `allowImportingTsExtensions`. The optional home link in the current header
+  would be a visible change, so it wasn't made.
+- **Docs:** Solitaire's `AGENTS.md` (the shared tokens, `theme.js`, the
+  stylesheet lint) and its `sass-design-system` skill, whose example also
+  named tokens that don't exist (`--color-text-muted`); `@fz/style`'s
+  `AGENTS.md` (the tokens entry).
+- Checked: `yarn verify` passes (112 `@fz/style`, 32 `@fz/ui`, 145 site and
+  6941 Solitaire specs). All 20 Solitaire shots match the baseline, both with
+  no palette saved and with Midnight blue saved, so the palettes'
+  `data-theme` doesn't reach it yet; the dev server's stylesheet was checked
+  to hold the shared tokens and the aliases. The site's screenshots are the
+  previous step's, byte for byte.
