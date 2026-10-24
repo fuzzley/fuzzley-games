@@ -1,3 +1,4 @@
+import { BreakpointObserver } from "@angular/cdk/layout";
 import { Component, computed, inject, linkedSignal } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import {
@@ -6,10 +7,11 @@ import {
   RouterLink,
   RouterLinkActive,
 } from "@angular/router";
+import { IconComponent } from "@fz/ui/icon";
+import { ThemeMenuComponent } from "@fz/ui/theme";
 import { filter, map } from "rxjs";
 import { GameCatalog } from "../../service/game_catalog.service";
-import { IconComponent } from "../icon/icon.component";
-import { ThemeMenuComponent } from "../theme_menu/theme_menu.component";
+import { below } from "../../styles/breakpoints";
 
 /** Shows the site's name, category links, search and palette menu on every page. */
 @Component({
@@ -22,6 +24,14 @@ export class SiteHeaderComponent {
   private readonly router = inject(Router);
 
   protected readonly categories = inject(GameCatalog).categories;
+
+  /** Whether the screen is narrow enough to shrink the theme menu to its swatch. */
+  protected readonly compact = toSignal(
+    inject(BreakpointObserver)
+      .observe(below("md"))
+      .pipe(map(({ matches }) => matches)),
+    { requireSync: true },
+  );
 
   /** The address after each navigation, parsed once. */
   private readonly url = toSignal(

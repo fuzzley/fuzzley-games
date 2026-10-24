@@ -393,13 +393,10 @@ Phase 3, so it is never an empty package.
 ### Phase 3: components in `lib/ui`; the site moves onto them (medium, invisible)
 
 - **lib/ui:**
-  - `storage`: the site's `BROWSER_STORAGE` token, plus Solitaire's
-    `LocalStorageService` rebuilt on it, so specs can inject a store;
+  - `storage`: the site's `BROWSER_STORAGE` token;
   - `theme`: the site's `ThemeService` (plus the `storage` event and the
     `theme-color` option) and `fz-theme-menu`;
-  - `icon`: the site's `<app-icon>` as `<fz-icon>`, with Solitaire's glyphs
-    (undo, restart, plus, help, bug, settings, grid, chevron, warning, more)
-    redrawn in the site's outline style;
+  - `icon`: the site's `<app-icon>` as `<fz-icon>`;
   - `wordmark`: the "Fuzzley Games" mark, as a link or as text.
 - **lib/style:** fragments: the site's `.button`, `.badge` and
   `.visually-hidden`, as `.fz-button`, `.fz-badge` and `.fz-visually-hidden`.
@@ -443,7 +440,9 @@ Phase 3, so it is never an empty package.
   - Solitaire in Casino night and Midnight blue (full follow);
   - in Classic felt and Soft pastel, with the partner's dark chrome over each
     palette's felt;
-  - flat buttons (the site's) against today's gradients, and Figtree.
+  - flat buttons (the site's) against today's gradients, and Figtree;
+  - Solitaire's glyphs (undo, restart, plus, help, bug, settings, grid,
+    chevron, warning, more) redrawn in the site's outline style.
 
   Build it with the real tokens, either as a page in the browser or as a Claude
   Doc tab as before, and get approval before going on.
@@ -488,8 +487,10 @@ components.
   engine's `itemAt`, since a library imports no game. Angular Aria has no radio
   group today (its parts are accordion, combobox, grid, listbox, menu, tabs,
   toolbar and tree).
-- Solitaire's `LocalStorageService` gives way to the library's.
-- Inline SVGs become `<fz-icon>`.
+- Solitaire's `LocalStorageService` moves to `@fz/ui/storage`, rebuilt on
+  `BROWSER_STORAGE` so specs can inject a store.
+- The glyphs the Phase 5 mock settled become `IconName`s, and Solitaire's
+  inline SVGs become `<fz-icon>`.
 - `.btn*` becomes `.fz-button*`, in the look the mock settled, and
   `_buttons.scss` is deleted.
 - The generic mixins come from the library. `_mixins.scss` keeps the

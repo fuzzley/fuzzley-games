@@ -1,5 +1,6 @@
 import { Component, computed, inject, input } from "@angular/core";
 import { RouterLink } from "@angular/router";
+import { IconComponent } from "@fz/ui/icon";
 import {
   describeLength,
   describePlayers,
@@ -8,7 +9,6 @@ import {
 } from "../../model/game";
 import { GameCatalog } from "../../service/game_catalog.service";
 import { GameThumbComponent } from "../game_thumb/game_thumb.component";
-import { IconComponent } from "../icon/icon.component";
 import { NotFoundComponent } from "../not_found/not_found.component";
 
 /**

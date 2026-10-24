@@ -9,11 +9,9 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
 - **Phase:** 3, components. Phase 2 is done.
-- **Next step:** scaffold `lib/ui` (`@fz/ui`, with `@angular/router` and
-  `postcss` among its devDependencies), then move the site's storage token,
-  `ThemeService` (adding cross-tab sync and the `theme-color` option), theme
-  menu and icon into it, with a wordmark and the `.fz-button` and
-  `.fz-badge` fragments in `@fz/style`.
+- **Next step:** the `.fz-button` and `.fz-badge` fragments in `@fz/style`
+  and `fz-wordmark` in `@fz/ui`, with the site switching to them; that
+  finishes Phase 3.
 
 | Phase                             | State       |
 | --------------------------------- | ----------- |
@@ -188,3 +186,49 @@ passed every check in the plan, and was removed once done. What it showed:
   header is refused its Google Fonts stylesheet, which shows the check
   works. Analytics stays off without a measurement ID, so Google Analytics,
   which the policy still allows, wasn't exercised.
+
+### 2026-10-24: Phase 3, `@fz/ui` and the site's theme pieces
+
+- **`lib/ui` is `@fz/ui`**, the Angular library: one entry point per folder
+  (`exports: { "./*": "./src/*/index.ts" }`), compiled by each app from
+  source like `@fz/style`. Its configs are the site's, cut to the library,
+  plus ESLint's `fz` selector prefix. Angular, `@angular/aria` and
+  `@angular/cdk` are peers. `frontend/lib/ui/AGENTS.md` holds its rules;
+  `.agents/AGENTS.md` lists it.
+- **Moved with `git mv`, history kept:** `BROWSER_STORAGE` to
+  `@fz/ui/storage`, `ThemeService` and the theme menu to `@fz/ui/theme`,
+  the icon to `@fz/ui/icon`, each with its spec. The selectors become
+  `fz-theme-menu` and `fz-icon`, and `--icon-stroke` becomes
+  `--fz-icon-stroke`.
+- **`ThemeService` gains** what the games will need: it takes up a palette
+  chosen in another tab (the `storage` event, removed when the app is
+  destroyed), and `THEME_COLOR_ROLE` names the role the browser's toolbar
+  takes, `bar` by default, so Solitaire can say `felt`. It reads
+  `--fz-<role>` for it, typed by `PaletteRole`.
+- **`themes.ts` lists the palette roles** (`PALETTE_ROLES`, and
+  `PaletteRole` from it), and `palettes.spec.ts` checks the Sass sets
+  exactly those. Writing it showed the spec's fz-prefix case had been
+  vacuous since `3800584`: a shell had eaten the backslashes in its
+  pattern (`[w-]` for `[\w-]`), so it matched nothing. Fixed, and
+  checked by breaking a prefix on purpose.
+- **The menu takes `compact`** instead of reading the site's `md`
+  breakpoint, as the plan says a library component should. Compact shows the
+  swatch alone in a square button; the button keeps its name ("Theme: Classic
+  felt") either way. The site binds it with the CDK's `BreakpointObserver`
+  to a new `src/app/styles/breakpoints.ts`, which repeats
+  `_breakpoints.scss`'s widths for TypeScript; its spec compiles the Sass
+  and fails if the two disagree. The header's spec covers both widths, with
+  a `MediaMatcher` that matches everything standing in for a phone.
+- **Deferred, and the plan updated to say so:** rebuilding Solitaire's
+  `LocalStorageService` on `BROWSER_STORAGE` moves to Phase 6, when
+  Solitaire first uses it, so it isn't written without a user. Redrawing
+  Solitaire's glyphs in the outline style moves into the Phase 5 mock,
+  since it changes how Solitaire looks, and they become `IconName`s in
+  Phase 6.
+- Checked: `yarn verify` passes (110 `@fz/style`, 30 `@fz/ui`, 145 site and
+  6940 Solitaire specs; the site's 23 moved specs went to `@fz/ui`). The
+  screenshots that differ from the baseline are the previous step's, byte
+  for byte, the open menu at phone width included, so the `compact` binding
+  draws what the old media query did. The CDK adds an empty `<style>` to
+  test media queries in Chrome, which the policy's inline styles allow: the
+  build served under it loads with no violation.

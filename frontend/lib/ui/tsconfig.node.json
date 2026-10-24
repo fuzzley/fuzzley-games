@@ -1,0 +1,9 @@
+{
+  // The config Vitest runs in Node.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["vitest.config.ts"]
+}

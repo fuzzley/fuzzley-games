@@ -1,8 +1,8 @@
-import { Component, computed, inject } from "@angular/core";
+import { Component, computed, inject, input } from "@angular/core";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@angular/aria/menu";
 import { THEMES, type ThemeId } from "@fz/style/themes";
-import { ThemeService } from "../../service/theme.service";
-import { IconComponent } from "../icon/icon.component";
+import { IconComponent } from "../icon";
+import { ThemeService } from "./theme.service";
 
 /**
  * Shows a "Theme" button that opens a menu of the palettes, one of them
@@ -10,15 +10,21 @@ import { IconComponent } from "../icon/icon.component";
  *
  * Angular Aria's menu supplies the keyboard (arrows, Home and End, typing a
  * name, Enter, Escape), the roles, and focus going back to the button.
+ *
+ * The app sets `compact` where it has little room, as on a phone, and the
+ * button shows the palette's swatch alone, still named for what it does.
  */
 @Component({
-  selector: "app-theme-menu",
+  selector: "fz-theme-menu",
   imports: [IconComponent, Menu, MenuContent, MenuItem, MenuTrigger],
   templateUrl: "./theme_menu.component.html",
   styleUrl: "./theme_menu.component.scss",
 })
 export class ThemeMenuComponent {
   private readonly theme = inject(ThemeService);
+
+  /** Whether the button shows the swatch alone, without the word "Theme". */
+  readonly compact = input(false);
 
   protected readonly current = this.theme.current;
   protected readonly options = computed(() =>
