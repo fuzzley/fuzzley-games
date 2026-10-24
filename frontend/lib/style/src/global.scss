@@ -5,6 +5,7 @@
 // shared styles by writing its own, never by out-specifying these.
 
 @use "layers";
+@use "@fontsource-variable/figtree";
 @use "tokens/palettes";
 @use "tokens/derived";
 @use "tokens/scales";

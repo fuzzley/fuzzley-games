@@ -120,9 +120,9 @@ skill covers the workflows.
 nginx sends security headers on every response, and the site's own pages (not
 the games under `/play/`) carry a Content Security Policy, from
 `nginx/content-security-policy.conf`. It allows scripts from the site itself
-and Google Analytics, styles from the site (inline too, which Angular needs)
-and Google Fonts, fonts from Google Fonts, images and requests to Google
-Analytics' endpoints, and nothing else.
+and Google Analytics, styles and fonts from the site (inline styles too, which
+Angular needs), images and requests to Google Analytics' endpoints, and
+nothing else.
 
 - **A new origin goes into the policy in the same change.** Anything the site
   starts loading from another origin (a script, stylesheet, font, image, API

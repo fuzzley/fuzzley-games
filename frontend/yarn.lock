@@ -1163,11 +1163,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fontsource-variable/figtree@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource-variable/figtree@npm:5.3.0"
+  checksum: 10c0/0048a260ba9104b62925589c0113f525c179c47e02aea264f6e5487791fb706fafdcd7a3043f70786600e0e79a28093189eec3db992f71b76b924d3b06eb1d2c
+  languageName: node
+  linkType: hard
+
 "@fz/style@workspace:*, @fz/style@workspace:lib/style":
   version: 0.0.0-use.local
   resolution: "@fz/style@workspace:lib/style"
   dependencies:
     "@eslint/js": "npm:^10.0.1"
+    "@fontsource-variable/figtree": "npm:^5.3.0"
     "@types/node": "npm:^26.6.0"
     eslint: "npm:^10.13.0"
     postcss: "npm:^8.5.30"

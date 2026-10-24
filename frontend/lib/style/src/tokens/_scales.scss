@@ -14,10 +14,10 @@
     --fz-space-8: 32px;
     --fz-space-10: 40px;
 
-    // Figtree, then the system's own sans serif while it loads, or if it
-    // can't.
+    // Figtree, which global.scss loads, then the system's own sans serif
+    // while it loads, or if it can't.
     --fz-font:
-      "Figtree", ui-sans-serif, system-ui, -apple-system,
+      "Figtree Variable", ui-sans-serif, system-ui, -apple-system,
       "Segoe UI Variable Text", "Segoe UI", "Roboto", "Helvetica Neue", "Arial",
       sans-serif;
 
