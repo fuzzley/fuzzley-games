@@ -17,47 +17,13 @@
   font-size: 0.9375rem;
 
   // Resolved here, outside the swatch's own palette.
-  --ring: var(--fz-field);
+  --fz-swatch-ring: var(--fz-field);
 
   // The swatch alone, where the app has little room.
   &.compact {
     width: var(--fz-tap-target);
     padding: 0;
     justify-content: center;
-  }
-}
-
-// A swatch carries its own data-theme, so it shows that palette's colors:
-// page on the left, felt on the right, accent as the dot.
-.swatch {
-  position: relative;
-  flex: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: linear-gradient(90deg, var(--fz-page) 50%, var(--fz-felt) 50%);
-  box-shadow: var(--fz-shadow-hairline);
-
-  &::after {
-    content: "";
-    position: absolute;
-    right: -1px;
-    bottom: -1px;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--fz-accent);
-    box-shadow: 0 0 0 2px var(--ring);
-  }
-
-  &.large {
-    width: 28px;
-    height: 28px;
-
-    &::after {
-      width: 11px;
-      height: 11px;
-    }
   }
 }
 
@@ -96,7 +62,7 @@
   border-radius: 10px;
   cursor: pointer;
 
-  --ring: var(--fz-panel-raised);
+  --fz-swatch-ring: var(--fz-panel-raised);
 
   // The item the arrow keys or the pointer are on.
   &:hover,

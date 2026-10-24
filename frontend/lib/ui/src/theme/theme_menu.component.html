@@ -6,7 +6,7 @@
   [menu]="menu"
   [attr.aria-label]="label()"
 >
-  <span class="swatch" [attr.data-theme]="current()"></span>
+  <span class="fz-swatch" [attr.data-theme]="current()"></span>
   @if (!compact()) {
     <span class="label" aria-hidden="true">Theme</span>
   }
@@ -30,7 +30,10 @@
         [searchTerm]="option.name"
         [attr.aria-checked]="option.checked"
       >
-        <span class="swatch large" [attr.data-theme]="option.id"></span>
+        <span
+          class="fz-swatch fz-swatch-large"
+          [attr.data-theme]="option.id"
+        ></span>
         <span class="name">{{ option.name }}</span>
         <span class="mode">{{ option.modeName }}</span>
         @if (option.checked) {

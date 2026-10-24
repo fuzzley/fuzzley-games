@@ -34,16 +34,20 @@ can use it too. The repository's rules, which apply here too, are in
   - the fragments, plain classes for markup that needs no behavior, one
     file each in `src/fragments/`: `.fz-button`, the main action, on a
     `<button>` or a link; `.fz-badge`, a small label, and
-    `.fz-badge-accent`; and `.fz-visually-hidden`.
+    `.fz-badge-accent`; `.fz-swatch`, a palette's swatch on an element
+    carrying its `data-theme`, and `.fz-swatch-large`; and
+    `.fz-visually-hidden`.
 - **The toolkit**, `src/_index.scss`: the mixins a stylesheet reaches with
   `@use "@fz/style" as fz;`, such as `fz.visually-hidden`, from
   `src/toolkit/`. It emits no CSS, so any stylesheet can load it.
 - `src/stylelint.ts`: the stylelint rules every app's stylesheets keep,
   which its `stylelint.config.js` extends as `@fz/style/stylelint`.
 - `src/themes.ts`: the palettes a player can choose between, the default for
-  each system color scheme, and the localStorage key the choice is kept under,
-  which the site and every game share, being served from one origin. An app
-  imports it as `@fz/style/themes`.
+  each system color scheme, the dark partner each light palette lends a
+  game whose chrome is drawn for dark palettes only (`darkTheme()`), and the
+  localStorage key the choice is kept under, which the site and every game
+  share, being served from one origin. An app imports it as
+  `@fz/style/themes`.
 - `src/vite.ts`: `fuzzleyStyle()`, the Vite plugins an app adds to its config.
   It writes `theme.js` into the build, at the top of the app's own base, and
   serves it from the dev server. The page loads it first, with a plain tag

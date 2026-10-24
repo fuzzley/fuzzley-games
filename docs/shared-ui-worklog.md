@@ -370,8 +370,9 @@ passed every check in the plan, and was removed once done. What it showed:
   `#60a5fa`, since Solitaire's `#2563eb` makes only 2:1 on the green. It
   passes every contrast pair. The light-default-in-light-mode spec went, by
   design; the site's static `theme-color` is now `#0f172a`.
-- **Not yet checked:** `yarn verify` was still running when the session hit
-  its usage limit (the libraries' own specs passed). Run it first.
+- **Checked:** `yarn verify` passed, after Prettier and two spec fixes (the
+  palettes spec's override map lacked `$default`; the theme menu's specs
+  assumed Classic felt came first).
 - **Phase 5, decided but not started:**
   - `THEME_COLOR_ROLE` takes `null` for an app that sets `theme-color`
     itself; Solitaire sets it from its resolved felt.
@@ -390,3 +391,22 @@ passed every check in the plan, and was removed once done. What it showed:
     mapping in the mock's stylesheet, `--surface-panel` from
     `panel-raised`), `--table-felt` on `:root` alone, defaulting to
     `var(--fz-felt)`; the loading scrim derives from `--table-felt`.
+
+### 2026-10-24: Phase 5, the libraries' part
+
+- **`@fz/style`:** `DARK_PARTNERS` and `darkTheme()` in `themes.ts` (Classic
+  felt lends Casino night, Soft pastel Midnight blue; a dark palette is its
+  own partner), typed so a light palette can only name a dark one. The
+  swatch is the `.fz-swatch` fragment, with `.fz-swatch-large`; its left half
+  is now the palette's `bar`, not its `page`, which is the same colour in
+  every palette but Emerald felt, where the bar is the slate the game's
+  header shows.
+- **`@fz/ui`:** `THEME_COLOR_ROLE` accepts `null`; `ThemeService.role(name)`
+  gives a palette role's colour as a signal, read after the palette is
+  applied; `<fz-theme-picker>` offers the palettes as native radios in a
+  named radiogroup, for a settings panel. The theme menu uses the fragment.
+- **Checked:** both libraries' lint, typecheck and specs (42 and 134), and the
+  site's typecheck and specs. The site's theme menu was not looked at in a
+  browser: its swatch is the same rules, now in a layer, and the same colours
+  for the old palettes.
+- **Next:** Solitaire's part of Phase 5.

@@ -119,6 +119,37 @@ describe("ThemeService", () => {
     );
   });
 
+  it("leaves the toolbar alone for an app that colors it itself", () => {
+    addPaletteAndToolbarTag();
+    TestBed.configureTestingModule({
+      providers: [{ provide: THEME_COLOR_ROLE, useValue: null }],
+    });
+    const theme = service();
+
+    theme.select("midnight");
+    TestBed.tick();
+
+    expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute(
+      "content",
+      "#ffffff",
+    );
+  });
+
+  it("follows the palette in use in a role's color", () => {
+    addPaletteAndToolbarTag();
+    const theme = service();
+    const felt = theme.role("felt");
+
+    theme.select("midnight");
+    TestBed.tick();
+
+    expect(felt()).toBe("#17605a");
+  });
+
+  it("reads a role no stylesheet sets as empty", () => {
+    expect(service().role("felt")()).toBe("");
+  });
+
   it("takes up a palette chosen in another tab", () => {
     const theme = service();
 
