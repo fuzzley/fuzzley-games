@@ -1,7 +1,75 @@
-// The tokens that are the same in every palette.
+// The tokens that are the same in every palette: spacing, type, radii,
+// motion, focus and touch. A component reads them with var(), so an app can
+// still change one for a part of its page.
 
 @layer fz.tokens {
   :root {
-    --fz-font: "Figtree", system-ui, sans-serif;
+    // A 4px scale, for every gap, pad and margin.
+    --fz-space-1: 4px;
+    --fz-space-2: 8px;
+    --fz-space-3: 12px;
+    --fz-space-4: 16px;
+    --fz-space-5: 20px;
+    --fz-space-6: 24px;
+    --fz-space-8: 32px;
+    --fz-space-10: 40px;
+
+    // Figtree, then the system's own sans serif while it loads, or if it
+    // can't.
+    --fz-font:
+      "Figtree", ui-sans-serif, system-ui, -apple-system,
+      "Segoe UI Variable Text", "Segoe UI", "Roboto", "Helvetica Neue", "Arial",
+      sans-serif;
+
+    // For figures that change as you watch, so a number doesn't resize its
+    // box on the way from 9 to 10.
+    --fz-font-mono:
+      ui-monospace, "Cascadia Mono", "SF Mono", "Segoe UI Mono", "Roboto Mono",
+      "Menlo", "Consolas", monospace;
+
+    // Font sizes: `sm` suits labels, buttons and list rows, `md` running
+    // prose.
+    --fz-font-2xs: 0.625rem;
+    --fz-font-xs: 0.75rem;
+    --fz-font-sm: 0.875rem;
+    --fz-font-md: 1rem;
+    --fz-font-lg: 1.125rem;
+    --fz-font-xl: 1.25rem;
+    --fz-font-2xl: 1.5rem;
+    --fz-font-3xl: 1.75rem;
+    --fz-font-4xl: 2.25rem;
+
+    // Line heights, as a ratio of the font size, so they scale with it.
+    --fz-leading-tight: 1.4;
+    --fz-leading-normal: 1.5;
+    --fz-leading-relaxed: 1.6;
+
+    // How wide a paragraph may get, in characters.
+    --fz-measure-prose: 68ch;
+
+    // Corner radii; `pill` rounds a box's ends whatever its height.
+    --fz-radius-sm: 4px;
+    --fz-radius-md: 8px;
+    --fz-radius-lg: 12px;
+    --fz-radius-xl: 16px;
+    --fz-radius-2xl: 20px;
+    --fz-radius-pill: 999px;
+
+    // Motion, named so a component asks for a speed rather than typing a
+    // number.
+    --fz-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --fz-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --fz-ease-decelerate: cubic-bezier(0.16, 1, 0.3, 1);
+    --fz-duration-fast: 0.15s;
+    --fz-duration-base: 0.2s;
+    --fz-duration-slow: 0.35s;
+
+    // The keyboard focus ring, which _document.scss draws on everything.
+    --fz-focus-ring-width: 3px;
+    --fz-focus-ring-offset: 2px;
+
+    // The smallest a control is to be pressed. WCAG 2.5.8 asks for 24px and
+    // the platforms' guidelines for 44px; games are played by thumbs, so 44.
+    --fz-tap-target: 44px;
   }
 }

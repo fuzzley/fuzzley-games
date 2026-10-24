@@ -64,4 +64,7 @@ than from a separate class, so the look and the announcement cannot disagree.
   apart by their symbols, not only by red and black.
 - Maintain a minimum WCAG AA contrast ratio (4.5:1) between text/symbols and
   surface backgrounds in every palette and table color, not just the default
-  one.
+  one. The shared palettes are held to it by
+  `frontend/lib/style/src/tokens/contrast.spec.ts`, which checks each
+  palette's text and labels on their surfaces and fills, and the focus ring
+  at 3:1; a new role that carries text or sits behind it gets a pair there.

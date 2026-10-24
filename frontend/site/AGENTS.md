@@ -38,12 +38,11 @@ are relative to `frontend/site/`.
   `provideTestCatalog()`. The app's tsconfig leaves it out.
 - `src/app/styles/` holds the one global stylesheet, `global.scss`, and
   the Sass partials it and the components `@use`. `global.scss` loads
-  `@fz/style`'s shared one first (the palettes, the reset and the element
-  defaults, in cascade layers that any rule of the site's own wins over),
-  then `_layout.scss` (the page's width and gutter) and `_shared.scss`
-  (the few classes components share). `_breakpoints.scss`
-  (`below(sm | md | lg | xl)`) and `_shadows.scss` are for the
-  components.
+  `@fz/style`'s shared one first (the palettes and the other tokens, the
+  reset and the element defaults, in cascade layers that any rule of the
+  site's own wins over), then `_layout.scss` (the page's width and gutter)
+  and `_shared.scss` (the few classes components share).
+  `_breakpoints.scss` (`below(sm | md | lg | xl)`) is for the components.
 - Every spec sits beside the file it tests, named after it.
 - `public/` is copied into the build as is, including the runtime config
   placeholder `env.js` and `thumbnails/<slug>.svg`, the drawing of each
@@ -80,9 +79,9 @@ own, which `yarn workspace site <script>` runs alone.
   type-only imports, Angular's recommended and template accessibility rules,
   and JSDoc types on every script. Each file is type-checked with the
   tsconfig that includes it, found through the solution in `tsconfig.json`.
-- **`lint:styles`** runs stylelint (`stylelint.config.js`, the standard SCSS
-  rules) over every stylesheet: no hex, named or functional color outside
-  `_shadows.scss`, no `@import`, nesting at most three deep.
+- **`lint:styles`** runs stylelint over every stylesheet with `@fz/style`'s
+  preset (`stylelint.config.js`): the standard SCSS rules, no hex, named or
+  functional color at all, no `@import`, nesting at most three deep.
 - **`typecheck`** runs the Angular compiler's checks over the app, emitting
   nothing, then `tsc` over the specs (`tsconfig.spec.json`), over
   `vite.config.ts` (`tsconfig.node.json`), and over the `tools` scripts from
@@ -134,10 +133,11 @@ Every stylesheet is SCSS, compiled by Dart Sass (`sass`).
   with `-`.
 - **Runtime values are custom properties; build-time values are Sass.**
   Palette colors and `--gutter` change while the page runs, so they are CSS
-  custom properties read with `var()`. Sass variables and mixins hold what
-  is fixed at build time: breakpoints, shadows, the visually-hidden rules.
-  A custom property of the site's own has no prefix; `--fz-` marks
-  `@fz/style`'s.
+  custom properties read with `var()`, and so are `@fz/style`'s other
+  tokens, such as `var(--fz-shadow-raised)`, so a part of a page can change
+  one. Sass variables and mixins hold what is fixed at build time:
+  breakpoints and the visually-hidden rules. A custom property of the
+  site's own has no prefix; `--fz-` marks `@fz/style`'s.
 - **Breakpoints by name.** `@include bp.below(sm) { … }`, never a bare
   `max-width`; the widths live in `_breakpoints.scss`.
 - **Nest for states and parts** (`&:hover`, `&::before`, `> span`), no more

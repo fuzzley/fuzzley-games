@@ -1,0 +1,25 @@
+// The shadows, which darken whatever is under them in every palette alike,
+// so they are the one color written outside the palettes.
+
+@layer fz.tokens {
+  :root {
+    // A hairline edge, inside a small round swatch.
+    --fz-shadow-hairline: inset 0 0 0 1px rgb(0 0 0 / 18%);
+
+    // Small things a little above the page: a chip, a swatch.
+    --fz-shadow-subtle: 0 4px 12px rgb(0 0 0 / 15%);
+    --fz-shadow-swatch: 0 2px 8px rgb(0 0 0 / 30%);
+
+    // A control standing out over a picture.
+    --fz-shadow-over-picture: 0 8px 24px rgb(0 0 0 / 45%);
+
+    // Panels lifted over the page, from a menu to a modal dialog; a drawer's
+    // falls along its left edge.
+    --fz-shadow-raised: 0 12px 32px -8px rgb(0 0 0 / 30%);
+    --fz-shadow-panel: 0 4px 30px rgb(0 0 0 / 20%);
+    --fz-shadow-drawer: -10px 0 30px rgb(0 0 0 / 40%);
+    --fz-shadow-badge: 0 12px 32px rgb(0 0 0 / 40%);
+    --fz-shadow-card: 0 10px 40px rgb(0 0 0 / 50%);
+    --fz-shadow-modal: 0 25px 50px -12px rgb(0 0 0 / 70%);
+  }
+}

@@ -16,8 +16,8 @@
   // One ring for keyboard focus, on everything focusable, so no component
   // clears its outline. :focus-visible, so a click leaves no ring behind.
   :focus-visible {
-    outline: 3px solid var(--fz-accent);
-    outline-offset: 2px;
+    outline: var(--fz-focus-ring-width) solid var(--fz-focus-ring-color);
+    outline-offset: var(--fz-focus-ring-offset);
   }
 
   // Motion collapses to almost nothing rather than to none, so the
