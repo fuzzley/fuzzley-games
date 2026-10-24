@@ -9,9 +9,11 @@ import { DEFAULT_THEMES, PALETTE_ROLES, THEMES } from "../themes.ts";
 describe("palettes", () => {
   const tokens = path.dirname(fileURLToPath(import.meta.url));
 
-  /** Returns the palettes' CSS, with `$palettes` configured if given. */
+  /** Returns the palettes' CSS, with `$palettes` configured if given, classic their default. */
   function compilePalettes(palettes?: string): string {
-    const config = palettes ? ` with ($palettes: ${palettes})` : "";
+    const config = palettes
+      ? ` with ($palettes: ${palettes}, $default: classic)`
+      : "";
     return compileString(`@use "palettes"${config};`, { loadPaths: [tokens] })
       .css;
   }

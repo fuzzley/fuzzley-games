@@ -355,3 +355,38 @@ passed every check in the plan, and was removed once done. What it showed:
   script skips shots it already has, so a run can be resumed.
 - **Waiting on:** the user's approval of the look, and their answers on the
   page's open points. No Phase 5 code until then.
+
+### 2026-10-24: the mock approved; Emerald felt, the new default
+
+- **Approved:** the user found the mock good and asked to go on with the
+  rest, taking the recommendations: Victory in the warm warning colour, pill
+  buttons everywhere, the 17 outline glyphs as drawn, the Theme and Felt
+  sections. Phase 7 still gets its own mock first.
+- **Emerald felt** (`emerald`), at the user's request: Solitaire's current
+  background as a palette, and the default for now in both system schemes.
+  Page and felt are the Emerald felt (`#0f4d0e`); bar and dialogs are
+  Solitaire's slate (`panel-raised` and `bar` `#0f172a`, `panel` `#1e293b`),
+  so half-transparent bar over the felt is today's header; the accent is
+  `#60a5fa`, since Solitaire's `#2563eb` makes only 2:1 on the green. It
+  passes every contrast pair. The light-default-in-light-mode spec went, by
+  design; the site's static `theme-color` is now `#0f172a`.
+- **Not yet checked:** `yarn verify` was still running when the session hit
+  its usage limit (the libraries' own specs passed). Run it first.
+- **Phase 5, decided but not started:**
+  - `THEME_COLOR_ROLE` takes `null` for an app that sets `theme-color`
+    itself; Solitaire sets it from its resolved felt.
+  - `ThemeService.role(name)`: a signal of `--fz-<name>` on the root, read
+    after the effect applies the palette (an `applied` signal).
+  - The palette swatch moves to `@fz/style` as a fragment (`.fz-swatch`,
+    `.fz-swatch-large`, ring from `--fz-swatch-ring`), used by the theme menu
+    and the new `fz-theme-picker` (native radios, so the keyboard comes free).
+  - The chrome's dark partner goes on `app-root`, not `.ui-overlay`, so the
+    canvas's loading badge follows too; only the felt reads the root's palette.
+  - The felt moves to a new stored field, `felt` (`"theme"` or a felt key);
+    an old stored `theme: "green"` becomes `"theme"`, the others are kept,
+    and the old field is never read once `felt` exists. Solitaire's felt code
+    is renamed from "theme" to "felt".
+  - `_tokens.scss` splits: colour aliases on `:root, [data-theme]` (the
+    mapping in the mock's stylesheet, `--surface-panel` from
+    `panel-raised`), `--table-felt` on `:root` alone, defaulting to
+    `var(--fz-felt)`; the loading scrim derives from `--table-felt`.
