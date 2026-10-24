@@ -1,0 +1,20 @@
+@layer fz.fragments {
+  // A small label beside a name, such as a game's category; quiet unless
+  // given a tone, as `.fz-badge-accent` gives it the accent.
+  .fz-badge {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: var(--fz-radius-pill);
+    background: var(--fz-panel);
+    color: var(--fz-muted);
+    font-size: var(--fz-font-xs);
+    font-weight: 700;
+    line-height: var(--fz-leading-normal);
+    letter-spacing: 0;
+  }
+
+  .fz-badge-accent {
+    background: var(--fz-accent);
+    color: var(--fz-on-accent);
+  }
+}

@@ -34,7 +34,7 @@ are relative to `frontend/site/`.
   components ask it rather than importing the data, and specs give it a
   small catalog of their own through `CATALOG_DATA`. The palette's
   `ThemeService` and the theme menu are `@fz/ui`'s (`frontend/lib/ui`),
-  shared with the games, and so are the icons.
+  shared with the games, and so are the icons and the wordmark.
 - `src/app/testing/` holds what specs share, such as `TEST_CATALOG` and
   `provideTestCatalog()`. The app's tsconfig leaves it out.
 - `src/app/styles/` holds the one global stylesheet, `global.scss`, and
@@ -42,7 +42,9 @@ are relative to `frontend/site/`.
   `@fz/style`'s shared one first (the palettes and the other tokens, the
   reset and the element defaults, in cascade layers that any rule of the
   site's own wins over), then `_layout.scss` (the page's width and gutter)
-  and `_shared.scss` (the few classes components share).
+  and `_shared.scss` (the few classes components share that aren't
+  `@fz/style`'s, such as `.page`; a button is `.fz-button` and a badge
+  `.fz-badge`).
   `_breakpoints.scss` (`below(sm | md | lg | xl)`) is for the components,
   and `breakpoints.ts` gives the same widths to one that binds an input to
   them, as the header does the theme menu's `compact`; its spec keeps the

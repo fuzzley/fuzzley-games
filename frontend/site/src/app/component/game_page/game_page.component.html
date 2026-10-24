@@ -8,7 +8,7 @@
         <h1>{{ view.game.name }}</h1>
         <p class="blurb">{{ view.game.blurb }}</p>
         <p class="meta">{{ view.meta }}</p>
-        <a class="button play-cta" [href]="play.href">
+        <a class="fz-button play-cta" [href]="play.href">
           <fz-icon name="play" />
           Play {{ view.game.name }}
         </a>
@@ -27,7 +27,7 @@
           height="720"
           fetchpriority="high"
         />
-        <span class="button stage-cta">
+        <span class="fz-button stage-cta">
           <fz-icon name="play" />
           Play {{ view.game.name }}
         </span>
@@ -38,7 +38,7 @@
         <div>
           <h1>
             {{ view.game.name }}
-            <span class="badge">Coming soon</span>
+            <span class="fz-badge">Coming soon</span>
           </h1>
           <p class="blurb">{{ view.game.blurb }}</p>
           <p class="meta">{{ view.meta }}</p>

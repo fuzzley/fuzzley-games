@@ -9,6 +9,7 @@ import {
 } from "@angular/router";
 import { IconComponent } from "@fz/ui/icon";
 import { ThemeMenuComponent } from "@fz/ui/theme";
+import { WordmarkComponent } from "@fz/ui/wordmark";
 import { filter, map } from "rxjs";
 import { GameCatalog } from "../../service/game_catalog.service";
 import { below } from "../../styles/breakpoints";
@@ -16,7 +17,13 @@ import { below } from "../../styles/breakpoints";
 /** Shows the site's name, category links, search and palette menu on every page. */
 @Component({
   selector: "app-site-header",
-  imports: [RouterLink, RouterLinkActive, IconComponent, ThemeMenuComponent],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    IconComponent,
+    ThemeMenuComponent,
+    WordmarkComponent,
+  ],
   templateUrl: "./site_header.component.html",
   styleUrl: "./site_header.component.scss",
 })

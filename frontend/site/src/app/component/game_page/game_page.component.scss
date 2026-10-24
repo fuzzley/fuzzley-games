@@ -97,7 +97,7 @@ h1 {
   }
 
   // Positioned, or the filtered screenshot would paint over it.
-  .button {
+  .fz-button {
     position: relative;
     height: 3.5rem;
     margin: 0;
@@ -106,8 +106,8 @@ h1 {
     box-shadow: var(--fz-shadow-over-picture);
   }
 
-  &:hover .button,
-  &:focus-visible .button {
+  &:hover .fz-button,
+  &:focus-visible .fz-button {
     transform: scale(1.04);
   }
 }
@@ -130,7 +130,7 @@ h1 {
   transform: translateY(-1px);
 }
 
-.button {
+.fz-button {
   margin-top: 1.25rem;
 }
 
