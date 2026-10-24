@@ -22,6 +22,9 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   browser's own toolbar takes (`bar` unless an app provides another, such as
   `felt` for a game whose table runs to the top).
 - `src/icon/`: `<fz-icon name="…">`, the outline icons.
+- `src/wordmark/`: `<fz-wordmark>`, the "Fuzzley Games" name in its own
+  type. It is text: an app that links it puts it in its own `<a>`, with a
+  `routerLink` or an `href`, and the link takes its name from it.
 
 ## How an app uses it
 

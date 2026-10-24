@@ -52,6 +52,19 @@ describe("global.scss", () => {
 
     expect([...families]).toEqual(["Figtree Variable"]);
   });
+
+  it("styles only classes named with fz, so none collides with an app's", () => {
+    const unprefixed = new Set<string>();
+
+    parse(compiled("global.scss")).walkRules(({ selector }) => {
+      // The lookbehind skips the point in a keyframe's `12.5%`.
+      for (const [, name = ""] of selector.matchAll(/(?<![\w%])\.([\w-]+)/g)) {
+        if (!name.startsWith("fz-")) unprefixed.add(name);
+      }
+    });
+
+    expect([...unprefixed]).toEqual([]);
+  });
 });
 
 describe("the toolkit", () => {

@@ -8,18 +8,18 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
-- **Phase:** 3, components. Phase 2 is done.
-- **Next step:** the `.fz-button` and `.fz-badge` fragments in `@fz/style`
-  and `fz-wordmark` in `@fz/ui`, with the site switching to them; that
-  finishes Phase 3.
+- **Phase:** 4, plumbing in Solitaire. Phase 3 is done.
+- **Next step:** take Solitaire's baseline screenshots (roomy, upright
+  and sideways phone, with each overlay open) before touching it, then give
+  it `@fz/style` and `@fz/ui` without changing how it looks.
 
 | Phase                             | State       |
 | --------------------------------- | ----------- |
 | 0. Spike                          | done        |
 | 1. Scaffold the libraries         | done        |
 | 2. Tokens and theme; site moves   | done        |
-| 3. Components; site moves         | in progress |
-| 4. Plumbing in Solitaire          | to do       |
+| 3. Components; site moves         | done        |
+| 4. Plumbing in Solitaire          | in progress |
 | 5. Solitaire follows the theme    | to do       |
 | 6. Solitaire's pieces move to lib | to do       |
 | 7. The game bar                   | to do       |
@@ -232,3 +232,28 @@ passed every check in the plan, and was removed once done. What it showed:
   draws what the old media query did. The CDK adds an empty `<style>` to
   test media queries in Chrome, which the policy's inline styles allow: the
   build served under it loads with no violation.
+
+### 2026-10-24: Phase 3, the button, the badge and the wordmark
+
+- **`@fz/style` fragments:** the site's `.button` and `.badge` become
+  `.fz-button` and `.fz-badge`, in the `fz.fragments` layer, with the
+  same values; where a token equals one exactly, the token (the pill radius,
+  `--fz-font-xs`, `--fz-leading-normal`). `.fz-button` gains a gap, so an
+  icon beside its words needs no rule of the app's; the site's two buttons
+  with icons set their own. The site's `.badge.new` becomes
+  `.fz-badge-accent`: a variant is a class of its own, named after the
+  fragment, a rule `lib/style/AGENTS.md` now states. The button has no
+  hover, pressed or disabled look yet, as the site's had none: those come
+  with Solitaire's buttons in Phase 6, in the look the Phase 5 mock
+  settles.
+- `global.spec.ts` now fails on a class without `fz`; checked by renaming
+  one.
+- **`fz-wordmark`** in `@fz/ui`: the name in the header's type, as text.
+  The site's header puts it in its own `routerLink`, and a game will put
+  it in an `href`, so the link stays the app's and takes its name from the
+  words. The compact home icon the game bar needs waits for the Phase 7
+  mock.
+- Checked: `yarn verify` passes (111 `@fz/style`, 32 `@fz/ui`, 145 site and
+  6940 Solitaire specs), and the screenshots are the previous step's, byte
+  for byte: the wordmark on every page, the buttons on the game and missing
+  pages, the badges on the tiles and the coming-soon page.

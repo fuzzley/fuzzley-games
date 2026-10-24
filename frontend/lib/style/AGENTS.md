@@ -29,8 +29,10 @@ can use it too. The repository's rules, which apply here too, are in
   - `src/base/_reset.scss`, what every element starts from;
   - `src/base/_document.scss`, the page's colors and type, the focus ring and
     reduced motion;
-  - the fragments, plain classes for markup that needs no behavior, such as
-    `.fz-visually-hidden` in `src/fragments/_visually-hidden.scss`.
+  - the fragments, plain classes for markup that needs no behavior, one
+    file each in `src/fragments/`: `.fz-button`, the main action, on a
+    `<button>` or a link; `.fz-badge`, a small label, and
+    `.fz-badge-accent`; and `.fz-visually-hidden`.
 - **The toolkit**, `src/_index.scss`: the mixins a stylesheet reaches with
   `@use "@fz/style" as fz;`, such as `fz.visually-hidden`, from
   `src/toolkit/`. It emits no CSS, so any stylesheet can load it.
@@ -68,6 +70,10 @@ can use it too. The repository's rules, which apply here too, are in
 
 - **Everything shared carries `fz`**: `--fz-accent`, `.fz-visually-hidden`,
   the `fz.*` layers. An app's own names carry none, so the two never collide.
+  `src/global.spec.ts` fails on a class without it.
+- **A fragment's variant is a class of its own**, named after it and set
+  beside it (`class="fz-badge fz-badge-accent"`), so it never needs a
+  compound selector to win, and works in markup with no framework.
 - **A palette role is set in every palette at once.** Each role in
   `$palettes` becomes `--fz-<role>`. Sass fails the build if a palette lacks a
   role the default palette sets, or sets one it doesn't, and

@@ -1,0 +1,16 @@
+@layer fz.fragments {
+  // The page's main action, filled with the accent: on a <button>, or on a
+  // link that looks like one. An icon beside its words sits a gap apart.
+  .fz-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--fz-space-2);
+    height: 42px;
+    padding: 0 1.2rem;
+    border-radius: var(--fz-radius-pill);
+    background: var(--fz-accent);
+    color: var(--fz-on-accent);
+    font-weight: 700;
+  }
+}

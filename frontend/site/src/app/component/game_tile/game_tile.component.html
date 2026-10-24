@@ -19,7 +19,9 @@
   <span class="name">
     {{ game().name }}
     @if (view().badge; as badge) {
-      <span class="badge" [class.new]="badge.new">{{ badge.text }}</span>
+      <span class="fz-badge" [class.fz-badge-accent]="badge.new">{{
+        badge.text
+      }}</span>
     }
   </span>
   <span class="meta">
