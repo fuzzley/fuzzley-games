@@ -9,6 +9,7 @@ export const ICON_NAMES = [
   "external",
   "grid",
   "help",
+  "home",
   "link",
   "more",
   "play",
