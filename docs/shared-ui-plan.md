@@ -1,9 +1,11 @@
 # Plan: one design system for the site and the Solitaire Collection
 
-Agreed 2026-10-24. This plan moves the Solitaire Collection onto shared
-libraries, starting with `lib/style` and `lib/ui`, which the site moves onto
-first. Minesweeper follows in a plan of its own once these exist. Progress, and
-what was found on the way, is kept in [the work log](shared-ui-worklog.md).
+Agreed 2026-10-24, built 2026-10-24 and 25. This plan moves the Solitaire
+Collection onto shared libraries, starting with `lib/style` and `lib/ui`,
+which the site moves onto first. Minesweeper follows in
+[a plan of its own](minesweeper-ui-plan.md). The work log kept while it was
+built, with what was found on the way, was deleted when the work shipped; git
+history keeps it as `docs/shared-ui-worklog.md`.
 
 ## Where things start
 
@@ -540,7 +542,7 @@ components.
     from sight as now.
   - The canvas reads the bar's custom properties.
 - Then retake the screenshots (see Phase 5).
-- **As built** (the work log has the details): both components went into a
+- **As built**: both components went into a
   library of their own, `@fz/game-ui` (`frontend/lib/game-ui`), as decision 1
   foresaw. The bar also takes `reversed` and `home` (the wordmark from
   1280px, the home icon below, and the overflow menu's first item below
@@ -564,7 +566,7 @@ components.
 - Make a light pass over every component: the glass over the felt, drawer,
   browser, rules, victory, confirmation and the card-back swatches. The
   contrast spec covers the pairs; review the rest by eye in each palette.
-- **As built** (the work log has the details), as the approved mock showed:
+- **As built**, as the approved mock showed:
   four surfaces in `@fz/style`, which each palette sets by its mode, glass in
   a dark one and solid in a light one: `--fz-bar-glass` (75% in a dark
   palette, where it was 50% and unused), `--fz-panel-glass`, `--fz-float`
@@ -583,7 +585,7 @@ components.
   group and menu as the way to meet its rules.
 - Write Minesweeper's plan: `lib/style`'s CSS and a hand-written bar, in the
   fragments' markup.
-- **As built** (the work log has the details): the skill is
+- **As built**: the skill is
   `.agents/skills/fuzzley-ui/SKILL.md`, at the repository's root rather than
   in `lib/ui`. Every app uses it, and Claude Code loads a workspace's skills
   only while it works in that workspace, so one in `lib/ui` would be missing
