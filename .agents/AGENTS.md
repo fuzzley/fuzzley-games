@@ -50,8 +50,9 @@ Minesweeper.
     An app compiles a library from its source; nothing in `lib/` is built
     on its own. Each keeps its own rules in an `AGENTS.md` in its folder:
     `frontend/lib/style/AGENTS.md`, for the styles every app shares, with
-    no framework, and `frontend/lib/ui/AGENTS.md`, for the Angular
-    components and services.
+    no framework, `frontend/lib/ui/AGENTS.md`, for the Angular components
+    and services, and `frontend/lib/game-ui/AGENTS.md`, for the chrome
+    only the games share.
   - `games/` holds the games built here, one workspace each, named after its
     folder. A game knows nothing of the site, even when both use the same
     library: it builds into its own `dist/`, with `index.html` at its top level and its screenshots in
@@ -164,7 +165,7 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   which does not read `AGENTS.md`. Edit this file, not the pointers.
 - **A workspace's instructions** sit in its folder:
   `frontend/site/AGENTS.md`, `frontend/lib/style/AGENTS.md`,
-  `frontend/lib/ui/AGENTS.md`,
+  `frontend/lib/ui/AGENTS.md`, `frontend/lib/game-ui/AGENTS.md`,
   `frontend/games/solitaire/AGENTS.md` and
   `frontend/games/minesweeper/AGENTS.md`, each with a `CLAUDE.md` beside it
   that imports it (`@AGENTS.md`). Agents read them when they work in that
