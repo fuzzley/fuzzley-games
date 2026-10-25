@@ -1,0 +1,12 @@
+// Treatments for a surface.
+
+/// Frosts what shows through a translucent surface, such as a bar floating
+/// over a game.
+///
+/// The prefixed property is for Safari, which ships `backdrop-filter` only
+/// behind it.
+@mixin glass($blur) {
+  backdrop-filter: blur($blur);
+  // stylelint-disable-next-line property-no-vendor-prefix
+  -webkit-backdrop-filter: blur($blur);
+}

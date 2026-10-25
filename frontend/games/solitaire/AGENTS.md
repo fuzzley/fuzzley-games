@@ -159,10 +159,14 @@ brings in the mixins and breakpoints and nothing else:
   property (media query widths) or when it is only ever a compile-time input
   to a token.
 - **A pattern is a mixin, a value is a token.** Several declarations that only
-  make sense together — `glass()`, `icon-button()`, `transition()`,
-  `visually-hidden()` — go in `styles/_mixins.scss`, because
-  view encapsulation means a class cannot be shared between components. One
-  declaration is a token, not a mixin.
+  make sense together are a mixin, because view encapsulation means a class
+  cannot be shared between components. The ones every app shares —
+  `glass()`, `icon-button()`, `transition()`, `tap-target()`,
+  `flex-center()`, `visually-hidden()` — are `@fz/style`'s toolkit, which
+  `styles/_index.scss` forwards; only this game's own (`field-label()`,
+  `swatch-option()`, `spinner-ring()`, `panel-card()`) are in
+  `styles/_mixins.scss`, until another app needs one. One declaration is a
+  token, not a mixin.
 - **Three breakpoints, by name.** `@include below("phone" | "tablet" |
 "desktop")`; never a raw pixel width. Adding a fourth means adding it to
   `$breakpoints` and saying what it protects. Anything that follows the compact

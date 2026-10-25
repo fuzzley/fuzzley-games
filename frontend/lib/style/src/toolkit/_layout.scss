@@ -1,0 +1,8 @@
+// Layout patterns that repeat across components.
+
+/// Centres a box's children on both axes.
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

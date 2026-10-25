@@ -1,74 +1,9 @@
-@use "sass:list";
-@use "sass:map";
-@use "sass:meta";
+@use "@fz/style" as fz;
 
-// Patterns that repeat across components, which view encapsulation stops them
-// sharing as classes. A single value belongs in `_tokens.scss` instead.
-
-/// Applies the frosted-glass treatment to chrome floating over the board.
-///
-/// The prefixed property is for Safari, which ships `backdrop-filter` only
-/// behind it.
-@mixin glass($blur) {
-  backdrop-filter: blur($blur);
-  // stylelint-disable-next-line property-no-vendor-prefix
-  -webkit-backdrop-filter: blur($blur);
-}
-
-/// Transitions the named properties at the shared duration and easing.
-///
-///     @include transition(background, transform);
-///     @include transition(width, $duration: var(--duration-fast));
-///
-/// Name the properties rather than using `all`, which also animates layout.
-@mixin transition($properties...) {
-  $options: meta.keywords($properties);
-  $duration: var(--duration-base);
-  $easing: var(--ease-standard);
-
-  @if map.has-key($options, duration) {
-    $duration: map.get($options, duration);
-  }
-
-  @if map.has-key($options, easing) {
-    $easing: map.get($options, easing);
-  }
-
-  $value: ();
-
-  @each $property in $properties {
-    $value: list.append($value, #{$property} $duration $easing, comma);
-  }
-
-  transition: $value;
-}
-
-/// Centres a box's children on both axes.
-@mixin flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/// Guarantees the minimum hit target, leaving a larger control its own size.
-@mixin tap-target {
-  min-width: var(--tap-target-min);
-  min-height: var(--tap-target-min);
-}
-
-/// Hides an element from the eye while keeping it in the accessibility tree,
-/// which `display: none` and `visibility: hidden` would not.
-@mixin visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
-}
+// The patterns only this game repeats, which view encapsulation stops its
+// components sharing as classes. The ones every app shares, such as
+// `glass()` and `transition()`, are @fz/style's, which `_index.scss` forwards
+// beside these. A single value belongs in `_tokens.scss` instead.
 
 /// Styles the heading over a group of settings controls.
 @mixin field-label {
@@ -84,7 +19,7 @@
 /// Styles a bordered radio a player picks between, such as a card back, a deck
 /// or a game's variant; the caller lays out what it holds.
 @mixin swatch-option {
-  @include transition(background, border-color, color);
+  @include fz.transition(background, border-color, color);
 
   display: flex;
   background: var(--wash-faint);
@@ -106,27 +41,9 @@
   }
 }
 
-/// Styles a borderless button whose whole content is an icon or a glyph.
-@mixin icon-button($radius: var(--radius-md)) {
-  @include flex-center;
-  @include tap-target;
-  @include transition(color, background);
-
-  background: transparent;
-  border: none;
-  border-radius: $radius;
-  color: var(--text-muted);
-  cursor: pointer;
-
-  &:hover {
-    background: var(--wash-soft);
-    color: var(--text-bright);
-  }
-}
-
 /// Draws a turning ring to say something is on its way.
 @mixin spinner-ring($size, $thickness: 2.5px) {
-  @include flex-center;
+  @include fz.flex-center;
 
   width: $size;
   height: $size;

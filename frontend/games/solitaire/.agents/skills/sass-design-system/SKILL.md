@@ -44,12 +44,15 @@ _(Adjust relative path depth to target `src/ui/app/styles`)._
 
 ### 3. Mixins & Utility Patterns
 
-Repeated UI patterns are defined as mixins in `styles/_mixins.scss`:
+Repeated UI patterns are mixins. Every component reaches them through `@use "../../styles" as *;`, which forwards both kinds:
 
-- `glass()` — Glassmorphism container background & backdrop blur.
-- `icon-button()` — Accessible button touch targets and hover states.
-- `transition()` — Standardized motion transitions.
-- `visually-hidden()` — Screen reader accessible off-screen text.
+- From `@fz/style`'s toolkit (`frontend/lib/style/src/toolkit/`), shared with the site and the other games:
+  - `glass()` — Backdrop blur for chrome floating over the board.
+  - `icon-button()` — A borderless icon button with a touch target and a hover state.
+  - `transition()` — Transitions at the shared duration and easing.
+  - `tap-target()` and `flex-center()`.
+  - `visually-hidden()` — Screen reader accessible off-screen text.
+- From `styles/_mixins.scss`, this game's own: `field-label()`, `swatch-option()`, `spinner-ring()` and `panel-card()`. One moves to the toolkit when a second app needs it.
 
 ### 4. Named Responsive Breakpoints
 
