@@ -9,15 +9,12 @@
 // token goes here only when none of those will do.
 
 // Declared wherever a palette is, as @fz/style's tints are, since a custom
-// property resolves its var()s where it is declared: the chrome wears a
-// palette of its own on `app-root`.
+// property resolves its var()s where it is declared.
 :root,
 [data-theme] {
   // --- Surfaces ---
-  // The chrome's panels, translucent so the glass stays glass: the settings
-  // drawer, the modals (the same, for now), and a bordered block inside one.
-  --surface-panel: color-mix(in srgb, var(--fz-panel-raised) 95%, transparent);
-  --surface-modal: color-mix(in srgb, var(--fz-panel-raised) 95%, transparent);
+  // A bordered block inside a panel. The panels themselves, and the wells cut
+  // into them, are @fz/style's surfaces, `--fz-panel-glass` and `--fz-well`.
   --surface-card: color-mix(in srgb, var(--fz-panel) 60%, transparent);
 
   // The loading badges over the board.
@@ -26,10 +23,6 @@
     var(--fz-panel-raised) 85%,
     transparent
   );
-
-  // A well cut into a panel. Darkened, as the shadows darken, rather than
-  // tinted with the page, which is a felt in some palettes.
-  --surface-sunken: color-mix(in srgb, #{$black} 20%, transparent);
 
   // --- Tints ---
   // Either side of @fz/style's accent wash, for the rules page's highlights,
@@ -44,7 +37,7 @@
   // --- The table ---
   // The palette's felt, until the shell sets the one the player has, theirs
   // or the palette's, on the root, so the page behind the chrome matches the
-  // board. On :root alone: the chrome's palette has a felt of its own.
+  // board.
   --table-felt: var(--fz-felt);
 
   // Laid over the board itself while it builds, so the loading state reads as

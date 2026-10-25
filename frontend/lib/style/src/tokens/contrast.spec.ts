@@ -1,6 +1,7 @@
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "postcss";
-import { compile } from "sass";
+import { compile, compileString } from "sass";
 import { THEMES } from "../themes.ts";
 
 // Each pair is a color and what it sits on, with the least contrast WCAG asks
@@ -37,20 +38,44 @@ const HOVERED = [
   ["on-warning", "warning"],
 ] as const;
 
-/** Returns each palette's roles and their colors, by the palette's id. */
+// Text on each surface that floats over a game, and what shows through it,
+// from the bottom up: a bar over the felt, a drawer or a card over the page
+// the scrim dims, and a well in a panel.
+const OVER = [
+  ["bar-text", "bar-glass", ["felt"]],
+  ["text", "panel-glass", ["page", "scrim"]],
+  ["muted", "panel-glass", ["page", "scrim"]],
+  ["text", "float", ["page", "scrim"]],
+  ["muted", "float", ["page", "scrim"]],
+  ["text", "well", ["panel-raised"]],
+  ["muted", "well", ["panel-raised"]],
+] as const;
+
+/**
+ * Returns each palette's custom properties, its roles and those worked out
+ * from them, by the palette's id.
+ */
 function compiledPalettes(): ReadonlyMap<string, ReadonlyMap<string, string>> {
-  const file = fileURLToPath(new URL("_palettes.scss", import.meta.url));
+  const tokens = path.dirname(fileURLToPath(import.meta.url));
+  const { css } = compileString('@use "derived";', { loadPaths: [tokens] });
+  const everywhere = new Map<string, string>();
   const palettes = new Map<string, Map<string, string>>();
-  parse(compile(file).css).walkRules((rule) => {
-    const id = /data-theme=["']?([\w-]+)/.exec(rule.selector)?.[1];
-    if (!id) return;
-    const roles = new Map<string, string>();
-    rule.walkDecls(/^--fz-/, (declaration) => {
-      roles.set(declaration.prop.slice("--fz-".length), declaration.value);
-    });
-    palettes.set(id, roles);
+  parse(css).walkRules((rule) => {
+    for (const selector of rule.selectors) {
+      const id = /data-theme=["']?([\w-]+)/.exec(selector)?.[1];
+      const into =
+        selector === "[data-theme]"
+          ? everywhere
+          : id && (palettes.get(id) ?? palettes.set(id, new Map()).get(id));
+      if (!into) continue;
+      rule.walkDecls(/^--fz-/, (declaration) => {
+        into.set(declaration.prop.slice("--fz-".length), declaration.value);
+      });
+    }
   });
-  return palettes;
+  return new Map(
+    [...palettes].map(([id, own]) => [id, new Map([...everywhere, ...own])]),
+  );
 }
 
 /** Returns how much of its fill `.fz-button:hover` keeps, from 0 to 1. */
@@ -105,6 +130,50 @@ function contrast(a: string, b: string): number {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
+/**
+ * Returns the hex color a custom property's value paints over another: a
+ * role, a tint of one, `black` or a translucent `rgba()`, as Sass writes the
+ * palettes and the tints.
+ */
+function paint(
+  value: string,
+  roles: ReadonlyMap<string, string>,
+  under: string,
+): string {
+  const css = value.replace(/\s+/g, " ").trim();
+  const role = /^var\(--fz-([\w-]+)\)$/.exec(css)?.[1];
+  if (role) return paint(roles.get(role) ?? "", roles, under);
+  const tint = /^color-mix\(in srgb, (.+) (\d+)%, transparent\)$/.exec(css);
+  if (tint) {
+    const [, color = "", percent = ""] = tint;
+    return mix(paint(color, roles, under), under, Number(percent) / 100);
+  }
+  const translucent = /^rgba\((\d+), (\d+), (\d+), ([\d.]+)\)$/.exec(css);
+  if (translucent) {
+    const [red = 0, green = 0, blue = 0, alpha = 0] = translucent
+      .slice(1)
+      .map(Number);
+    const hex = [red, green, blue]
+      .map((channel) => channel.toString(16).padStart(2, "0"))
+      .join("");
+    return mix(`#${hex}`, under, alpha);
+  }
+  if (css === "black") return "#000000";
+  if (/^#[\da-f]{3}([\da-f]{3})?$/i.test(css)) return css;
+  throw new Error(`No way to paint ${value}`);
+}
+
+/** Returns the color layers of roles make, each laid over the one before. */
+function layered(
+  layers: readonly string[],
+  roles: ReadonlyMap<string, string>,
+): string {
+  return layers.reduce(
+    (under, layer) => paint(`var(--fz-${layer})`, roles, under),
+    "#000000",
+  );
+}
+
 describe("contrast", () => {
   const palettes = compiledPalettes();
   const strength = hoverStrength();
@@ -133,6 +202,22 @@ describe("contrast", () => {
         expect(ratio).toBeGreaterThanOrEqual(4.5);
       },
     );
+
+    it.each(OVER)(
+      "keeps %s on %s, over what shows through it, at 4.5:1 or more",
+      (color, surface, under) => {
+        const roles = palettes.get(id) ?? new Map<string, string>();
+        const behind = paint(
+          `var(--fz-${surface})`,
+          roles,
+          layered(under, roles),
+        );
+
+        const ratio = contrast(roles.get(color) ?? "", behind);
+
+        expect(ratio).toBeGreaterThanOrEqual(4.5);
+      },
+    );
   });
 });
 
@@ -151,5 +236,21 @@ describe("luminance and contrast", () => {
 
   it("finds how much of its fill a hovered button keeps", () => {
     expect(hoverStrength()).toBeGreaterThan(0);
+  });
+
+  it("paints a tint of a role over what is under it", () => {
+    const roles = new Map([["text", "#ffffff"]]);
+
+    expect(
+      paint(
+        "color-mix(in srgb, var(--fz-text) 25%, transparent)",
+        roles,
+        "#000",
+      ),
+    ).toBe("#404040");
+  });
+
+  it("paints a translucent rgba() over what is under it", () => {
+    expect(paint("rgba(0, 0, 255, 0.5)", new Map(), "#ff0000")).toBe("#800080");
   });
 });

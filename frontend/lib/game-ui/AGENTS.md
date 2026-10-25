@@ -24,7 +24,9 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   it takes its place in the flow; elsewhere it stands against that edge of
   its containing block, which the app positions. The app styles what it
   projects, and can tune a bar that isn't compact through `--fz-bar-gap`
-  and `--fz-bar-actions-gap`.
+  and `--fz-bar-actions-gap`. Its surface is `@fz/style`'s
+  `--fz-bar-glass`: glass over the game in a dark palette, solid in a light
+  one.
 - `src/bar_overflow/`: `<fz-bar-overflow>`, the "More actions" button and
   the Angular Aria menu it opens, of what the bar has no room for. The items
   are data (`BarOverflowItem`), since Angular Aria finds a menu's items in

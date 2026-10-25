@@ -2,6 +2,7 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { By, Title } from "@angular/platform-browser";
+import type { ThemeId } from "@fz/style/themes";
 import { ThemeService } from "@fz/ui/theme";
 import { AppComponent } from "@/ui/app/component/app/app.component";
 import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.component";
@@ -47,7 +48,7 @@ describe("AppComponent Composition", () => {
   });
 
   /** Puts the palette on the page, as a player choosing it does. */
-  function choosePalette(id: "classic" | "midnight"): void {
+  function choosePalette(id: ThemeId): void {
     TestBed.inject(ThemeService).select(id);
     fixture.detectChanges();
   }
@@ -115,16 +116,12 @@ describe("AppComponent Composition", () => {
     expect(document.documentElement.dataset["stockSide"]).toBe("left");
   });
 
-  it("dresses the chrome in the palette in use, when it is dark", () => {
-    choosePalette("midnight");
-
-    expect(fixture.nativeElement).toHaveProperty("dataset.theme", "midnight");
-  });
-
-  it("dresses the chrome in a light palette's dark partner", () => {
+  it("dresses the chrome in the palette in use, a light one too", () => {
     choosePalette("classic");
 
-    expect(fixture.nativeElement).toHaveProperty("dataset.theme", "casino");
+    const worn = (fixture.nativeElement as HTMLElement).closest("[data-theme]");
+
+    expect(worn).toHaveProperty("dataset.theme", "classic");
   });
 
   it("paints the page behind the chrome with the felt", () => {

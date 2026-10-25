@@ -31,7 +31,7 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   `<fz-confirm-dialog>`, the alert dialog that shows it, which an app puts
   in its root template once. Cancel comes first, so the dialog focuses it,
   and Escape or a click outside answers no. It wears `@fz/style`'s
-  `.fz-button` classes.
+  `.fz-button` classes, on a card of its `--fz-float`.
 - `src/dialog/`: `<fz-dialog>`, which shows what it holds in a native
   modal `<dialog>`, so the browser traps focus, makes the page behind it
   inert and gives focus back on close. The host owns `open`: the dialog

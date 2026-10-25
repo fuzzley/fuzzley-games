@@ -2,8 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { type FileImporter, compile, compileString } from "sass";
-import { THEMES, darkTheme } from "@fz/style/themes";
+import { type FileImporter, compile } from "sass";
+import { THEMES } from "@fz/style/themes";
 import { FELT_KEYS, TABLE_FELTS } from "@/ui/app/model/table_felt";
 
 // Finds what a stylesheet loads from a package as Vite does: the libraries'
@@ -43,22 +43,28 @@ function compiledGlobal(): string {
   return compile(file, { importers: [packages] }).css;
 }
 
-/** Returns each palette's roles and their colors, by the palette's id. */
+/**
+ * Returns each palette's own custom properties, its roles and its surfaces,
+ * by the palette's id, from every rule naming it.
+ */
 function palettes(
   css: string,
 ): ReadonlyMap<string, ReadonlyMap<string, string>> {
   const found = new Map<string, Map<string, string>>();
-  for (const [, id = "", body = ""] of css.matchAll(
-    /\[data-theme="?([\w-]+)"?\]\s*\{([^}]*)\}/g,
+  for (const [, selectors = "", body = ""] of css.matchAll(
+    /([^{}]+)\{([^{}]*)\}/g,
   )) {
-    found.set(
-      id,
-      new Map(
-        [...body.matchAll(/--fz-([\w-]+):\s*([^;]+);/g)].map(
-          ([, role = "", value = ""]) => [role, value.trim()],
-        ),
-      ),
-    );
+    for (const [, id = ""] of selectors.matchAll(
+      /\[data-theme="?([\w-]+)"?\]/g,
+    )) {
+      const roles = found.get(id) ?? new Map<string, string>();
+      for (const [, role = "", value = ""] of body.matchAll(
+        /--fz-([\w-]+):\s*([^;]+);/g,
+      )) {
+        roles.set(role, value.replace(/\s+/g, " ").trim());
+      }
+      found.set(id, roles);
+    }
   }
   return found;
 }
@@ -78,16 +84,17 @@ function strength(css: string, token: string, of: string): number {
 }
 
 /**
- * Returns how much of `--fz-bar` the game bar's glass keeps, from 0 to 1, as
- * `@fz/game-ui` sets it.
+ * Returns how much of `--fz-bar` a palette's bar glass keeps, from 0 to 1:
+ * all of it where the bar is solid.
  */
-function barGlass(): number {
-  const { css } = compileString(
-    '@use "@fz/game-ui" as game-ui; :root { --glass: #{game-ui.$bar-glass}; }',
-    { importers: [packages] },
-  );
-  const percent = /--glass:\s*(\d+)%/.exec(css)?.[1];
-  if (percent === undefined) throw new Error("@fz/game-ui sets no glass");
+function barGlass(roles: ReadonlyMap<string, string> | undefined): number {
+  const glass = roles?.get("bar-glass");
+  if (glass === "var(--fz-bar)") return 1;
+  const percent =
+    /^color-mix\(in srgb, var\(--fz-bar\) (\d+)%, transparent\)$/.exec(
+      glass ?? "",
+    )?.[1];
+  if (percent === undefined) throw new Error(`No strength in ${String(glass)}`);
   return Number(percent) / 100;
 }
 
@@ -126,17 +133,16 @@ function contrast(a: readonly number[], b: readonly number[]): number {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-// The header is glass over the felt, so its labels' contrast depends on the
-// felt as well as on the palette its chrome wears: the one in use or its dark
-// partner.
+// In a dark palette the header is glass over the felt, so its labels'
+// contrast depends on the felt as well as on the palette.
 describe("the header's contrast", () => {
   const css = compiledGlobal();
   const roles = palettes(css);
-  const glass = barGlass();
   const wash = strength(css, "--fz-wash-2", "--fz-text");
 
   describe.each(THEMES)("in $name", ({ id }) => {
-    const chrome = roles.get(darkTheme(id));
+    const chrome = roles.get(id);
+    const glass = barGlass(chrome);
     const felts = [
       { name: "its own felt", color: roles.get(id)?.get("felt") ?? "" },
       ...FELT_KEYS.map((key) => TABLE_FELTS[key]),

@@ -6,6 +6,42 @@
 // resolves its var()s where it is declared, so an element carrying a palette
 // of its own needs its own tints too.
 
+@use "sass:list";
+@use "sass:map";
+@use "palettes";
+
+/// The surfaces that float over a game, by the palette's mode, each becoming
+/// --fz-<name>. Glass in a dark palette, so the game shows through; solid in
+/// a light one, where light glass turns grey over the felt or the dimmed page
+/// and takes its text's contrast with it.
+$-surfaces: (
+  dark: (
+    // A bar over the game.
+    bar-glass: color-mix(in srgb, var(--fz-bar) 75%, transparent),
+    // A drawer or a modal over the game.
+    panel-glass: color-mix(in srgb, var(--fz-panel-raised) 95%, transparent),
+    // A card alone over the dimmed page, such as a confirmation.
+    float: var(--fz-wash-2),
+    // A well cut into a panel, such as a search field's. Black darkens alike
+    // in every dark palette, as the shadows do.
+    // stylelint-disable-next-line color-named
+    well: color-mix(in srgb, black 20%, transparent),
+  ),
+  light: (
+    bar-glass: var(--fz-bar),
+    panel-glass: var(--fz-panel-raised),
+    float: var(--fz-panel-raised),
+    well: var(--fz-panel),
+  ),
+);
+
+/// Declares one mode's surfaces.
+@mixin -surfaces-of($mode) {
+  @each $name, $value in map.get($-surfaces, $mode) {
+    --fz-#{$name}: #{$value};
+  }
+}
+
 @layer fz.tokens {
   :root,
   [data-theme] {
@@ -27,9 +63,6 @@
     --fz-accent-glow: color-mix(in srgb, var(--fz-accent) 30%, transparent);
     --fz-danger-wash: color-mix(in srgb, var(--fz-danger) 10%, transparent);
 
-    // A bar that floats over a game, which shows through it.
-    --fz-bar-glass: color-mix(in srgb, var(--fz-bar) 50%, transparent);
-
     // The felt dimmed, laid over a table while it is set up. Black darkens
     // alike in every palette, as the shadows do.
     // stylelint-disable-next-line color-named
@@ -39,5 +72,31 @@
     // is the accent's own, such as a table of the same green, gives it
     // another here.
     --fz-focus-ring-color: var(--fz-accent);
+  }
+
+  // A page with no palette yet takes the default's surfaces: first, so a
+  // palette's own win where the root carries one.
+  :root {
+    @include -surfaces-of(map.get(palettes.$palettes, palettes.$default, mode));
+  }
+
+  @each $mode, $surfaces in $-surfaces {
+    $selectors: ();
+
+    @each $name, $palette in palettes.$palettes {
+      @if map.get($palette, mode) == $mode {
+        $selectors: list.append(
+          $selectors,
+          '[data-theme="#{$name}"]',
+          $separator: comma
+        );
+      }
+    }
+
+    @if list.length($selectors) > 0 {
+      #{$selectors} {
+        @include -surfaces-of($mode);
+      }
+    }
   }
 }
