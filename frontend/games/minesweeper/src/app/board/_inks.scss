@@ -1,0 +1,17 @@
+// The numbers' inks: the classic colors (1 blue, 2 green, 3 red and on), in a
+// light set and a dark one, which `light-dark()` picks between by the
+// palette's color-scheme. The one place the game writes colors of its own.
+// Each clears 4.5:1 on a revealed square, `--fz-wash-1` over `--fz-panel`, in
+// every palette, which the contrast spec checks.
+
+/// Declares `--ink-1` to `--ink-8`, a number's ink each.
+@mixin inks {
+  --ink-1: light-dark(#1d4ed8, #93c5fd);
+  --ink-2: light-dark(#166534, #86efac);
+  --ink-3: light-dark(#b91c1c, #fca5a5);
+  --ink-4: light-dark(#3730a3, #c4b5fd);
+  --ink-5: light-dark(#9a3412, #fdba74);
+  --ink-6: light-dark(#115e59, #5eead4);
+  --ink-7: light-dark(#1f2937, #f1f5f9);
+  --ink-8: light-dark(#57534e, #94a3b8);
+}

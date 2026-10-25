@@ -5,9 +5,11 @@ import {
   difficultyName,
   isDifficultyId,
   isValidLives,
+  isSide,
   isValidSize,
   maxMines,
   sizeOf,
+  sizeProblem,
 } from "./difficulty";
 
 describe("maxMines", () => {
@@ -40,6 +42,47 @@ describe("isValidSize", () => {
     ["part of a mine", { rows: 10, cols: 10, mines: 2.5 }],
   ])("refuses %s", (_, size) => {
     expect(isValidSize(size)).toBe(false);
+  });
+});
+
+describe("isSide", () => {
+  it.each([5, 17, 30])("takes %d", (n) => {
+    expect(isSide(n)).toBe(true);
+  });
+
+  it.each([4, 31, 9.5])("refuses %d", (n) => {
+    expect(isSide(n)).toBe(false);
+  });
+});
+
+describe("sizeProblem", () => {
+  it("finds none in a field the game can deal", () => {
+    expect(sizeProblem(DEFAULT_CUSTOM)).toBeNull();
+  });
+
+  it("names the rows when they're out of bounds", () => {
+    expect(sizeProblem({ rows: 3, cols: 10, mines: 5 })).toEqual({
+      field: "rows",
+      message: "Rows must be a whole number from 5 to 30.",
+    });
+  });
+
+  it("names the columns when they're out of bounds", () => {
+    expect(sizeProblem({ rows: 10, cols: 40, mines: 5 })).toEqual({
+      field: "cols",
+      message: "Columns must be a whole number from 5 to 30.",
+    });
+  });
+
+  it("names the mines, and the most the field can hold", () => {
+    expect(sizeProblem({ rows: 10, cols: 10, mines: 92 })).toEqual({
+      field: "mines",
+      message: "Mines must be a whole number from 1 to 91.",
+    });
+  });
+
+  it("names the rows first when more than one is wrong", () => {
+    expect(sizeProblem({ rows: 3, cols: 40, mines: 0 })?.field).toBe("rows");
   });
 });
 

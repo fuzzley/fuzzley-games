@@ -1,0 +1,87 @@
+@use "../styles" as *;
+
+// No scrim or z-index: <fz-dialog> puts this in the top layer.
+.card {
+  @include card(400px);
+
+  text-align: center;
+
+  h2 {
+    margin: 0 0 var(--fz-space-2);
+    font-size: var(--fz-font-2xl);
+    font-weight: 700;
+  }
+}
+
+// Last in the markup, so Tab reaches the card's actions first, but drawn in
+// the corner where a dialog's close button is looked for.
+.close {
+  @include close-button;
+
+  position: absolute;
+  top: var(--fz-space-3);
+  right: var(--fz-space-3);
+}
+
+.card-icon {
+  --fz-icon-size: 64px;
+  --fz-icon-stroke: 1.5;
+
+  margin: 0 auto var(--fz-space-4);
+  color: var(--fz-danger);
+
+  .won & {
+    color: var(--fz-warning);
+  }
+}
+
+.subtitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--fz-space-2);
+  margin: 0 0 var(--fz-space-5);
+  color: var(--fz-muted);
+  font-size: var(--fz-font-md);
+}
+
+.figures {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--fz-space-2);
+  margin: 0 0 var(--fz-space-6);
+}
+
+// Value above term, with the term still first in the markup.
+.figure {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 2px;
+  padding: var(--fz-space-2);
+  border: 1px solid var(--fz-edge-2);
+  border-radius: var(--fz-radius-md);
+  background: var(--fz-wash-2);
+
+  dt {
+    color: var(--fz-muted);
+    font-size: var(--fz-font-2xs);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  dd {
+    margin: 0;
+    font-family: var(--fz-font-mono);
+    font-size: var(--fz-font-lg);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.actions {
+  display: grid;
+  gap: var(--fz-space-3);
+}

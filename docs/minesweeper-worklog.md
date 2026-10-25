@@ -9,21 +9,22 @@ parent.
 
 - **Branch:** `minesweeper-angular`, from `main` at `d1b77db`. Not pushed: a
   push to `main` deploys, so shipping waits for the user's go-ahead.
-- **Phase:** M4, the board.
-- **Next step:** M4.
+- **Phase:** M7, the checks.
+- **Next step:** the contrast spec, then the checks by hand on the
+  production build.
 
-| Phase                 | State     |
-| --------------------- | --------- |
-| M0. Mock and spike    | in review |
-| M1. Scaffold          | to do     |
-| M2. The rules         | to do     |
-| M3. The new icons     | to do     |
-| M4. The board         | to do     |
-| M5. Bar and dialogs   | to do     |
-| M6. Storage           | to do     |
-| M7. The checks        | to do     |
-| M8. Screenshots, docs | to do     |
-| M9. Ship              | to do     |
+| Phase                 | State |
+| --------------------- | ----- |
+| M0. Mock and spike    | done  |
+| M1. Scaffold          | done  |
+| M2. The rules         | done  |
+| M3. The new icons     | done  |
+| M4. The board         | done  |
+| M5. Bar and dialogs   | done  |
+| M6. Storage           | done  |
+| M7. The checks        | to do |
+| M8. Screenshots, docs | to do |
+| M9. Ship              | to do |
 
 ## How to check the work
 
@@ -125,3 +126,36 @@ Chrome at a time.
 
 - `flag`, `heart` and `mine` in `@fz/ui`, filled, as the mock drew them.
   `@fz/ui`'s 147 specs and Solitaire's typecheck and 6,937 specs pass.
+
+### 2026-10-25: M4 to M6, the game
+
+- One commit, since the game service, the dialogs and the stores lean on
+  each other. `GameService` holds the field, the moves, Flag mode, the clock
+  (counting while the page is in view) and the announcer's words, and asks
+  through `ConfirmService` before a deal loses a game under way. It records
+  a game started on its first reveal, and a win with its time.
+- `<app-board>` is the `ngGrid` the spike tried, with the clicks, keys and
+  long press delegated to the grid. A field wider than tall stands on end on
+  any upright screen, not only a phone's: a tablet held upright gets bigger
+  squares that way.
+- The bar is `<fz-game-bar>` as the mock drew it. Between 720 and 1200 px
+  the difficulty badge goes, so the title isn't cut short; the settings and
+  the result still name the difficulty.
+- The settings drawer, How to play and the result card, on `<fz-dialog>`.
+  Custom's form names the number it can't deal and marks that input, rather
+  than repeating the hint. The result opens on New Game, and closing it
+  leaves the board as it ended.
+- **Storage:** `minesweeper-settings`, `minesweeper-stats` and
+  `minesweeper-game`, each `version: 1`, each read field by field so a
+  broken entry loses only itself. The saved game is written while a game is
+  under way, every move and every second, and taken up before the board
+  first shows (`provideAppInitializer`). The 2016 game's
+  `fMinesweeper.Settings` and `fMinesweeper.Statistics` are left unread.
+- **Checked in Chrome:** a restored game, a win and a loss with their cards
+  and stats, How to play, the settings and Custom's errors, an upright and a
+  sideways phone, and the bar at 720, 1000 and 1280 px. No console errors.
+  A flood over a 30 × 30 field paints in about 150 ms at 4× throttle in dev,
+  in line with the spike.
+- 277 specs: the services, every component through Testing Library, and
+  the app shell. `src/testing/` adds `playOn()`, which puts a pictured field
+  on the board, and the Solitaire Collection's fake `matchMedia`.

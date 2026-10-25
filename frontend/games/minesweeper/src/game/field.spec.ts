@@ -6,6 +6,7 @@ import {
   createField,
   isOver,
   layMines,
+  minesFound,
   minesLeft,
   neighbors,
   restart,
@@ -294,6 +295,16 @@ describe("restart", () => {
 describe("the field's figures", () => {
   it("counts the mines left as the mines less the flags and the mines stepped on", () => {
     expect(minesLeft(fieldFrom(["F*x*", "f..."]))).toBe(1);
+  });
+
+  it("counts the mines found as the right flags and the mines stepped on", () => {
+    expect(minesFound(fieldFrom(["F*x*", "f..."]))).toBe(2);
+  });
+
+  it("finds no mines before they are placed", () => {
+    expect(
+      minesFound(toggleFlag(createField(PRESETS.easy.size, 3, 1), 0)),
+    ).toBe(0);
   });
 
   it("measures the share of the safe ground revealed", () => {

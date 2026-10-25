@@ -1,0 +1,66 @@
+<fz-dialog
+  [open]="game.resultOpen()"
+  dialogRole="alertdialog"
+  [label]="title()"
+  describedBy="result-subtitle"
+  (closed)="game.closeResult()"
+>
+  <div class="card" [class.won]="won()">
+    <fz-icon class="card-icon" [name]="won() ? 'trophy' : 'mine'" />
+    <h2>{{ title() }}</h2>
+    <p class="subtitle">
+      <span id="result-subtitle">{{ subtitle() }}</span>
+      @if (won() && game.newBest()) {
+        <span class="fz-badge fz-badge-accent">New best time</span>
+      }
+    </p>
+
+    <!--
+      A description list, so each figure is announced with what it measures;
+      the stylesheet lifts each value above its term.
+    -->
+    <dl class="figures">
+      @for (figure of figures(); track figure.term) {
+        <div class="figure">
+          <dt>{{ figure.term }}</dt>
+          <dd>{{ figure.value }}</dd>
+        </div>
+      }
+    </dl>
+
+    <div class="actions">
+      <!--
+        `autofocus` so the card opens on New Game rather than on the close
+        button. The lint rule is about autofocus on page load, which a dialog
+        taking focus is not.
+      -->
+      <!-- eslint-disable @angular-eslint/template/no-autofocus -->
+      <button
+        type="button"
+        class="fz-button fz-button-large fz-button-block"
+        [class.fz-button-warning]="won()"
+        autofocus
+        (click)="game.newGame()"
+      >
+        New Game
+      </button>
+      <!-- eslint-enable @angular-eslint/template/no-autofocus -->
+      <button
+        type="button"
+        class="fz-button fz-button-secondary fz-button-large fz-button-block"
+        (click)="game.restart()"
+      >
+        Play this field again
+      </button>
+    </div>
+
+    <button
+      type="button"
+      class="close"
+      aria-label="Close and look at the board"
+      (click)="game.closeResult()"
+    >
+      <fz-icon name="close" />
+    </button>
+  </div>
+</fz-dialog>

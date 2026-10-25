@@ -1,0 +1,124 @@
+@use "../styles" as *;
+@use "inks";
+
+:host {
+  display: block;
+  margin: auto;
+}
+
+// The pitch, a square and the gap beside it, is at least 24px, which WCAG
+// 2.5.8 asks of a target or the space around it. The board grows to fit the
+// room the stage leaves it, up to 42px a pitch, and the stage scrolls when
+// even 24px won't fit. `--room` is the stage's padding.
+.board {
+  @include inks.inks;
+
+  --gap: 2px;
+  --pad: 4px;
+  --pitch: max(
+    24px,
+    min(
+      42px,
+      calc((100cqw - 2 * (var(--room) + var(--pad))) / var(--cols)),
+      calc((100cqh - 2 * (var(--room) + var(--pad))) / var(--rows))
+    )
+  );
+  --cell: calc(var(--pitch) - var(--gap));
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  padding: var(--pad);
+  border-radius: var(--fz-radius-md);
+  background: var(--fz-panel);
+  box-shadow: var(--fz-shadow-panel);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-touch-callout: none;
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), var(--cell));
+  grid-auto-rows: var(--cell);
+  gap: var(--gap);
+}
+
+.cell {
+  --fz-icon-size: calc(var(--cell) * 0.62);
+
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: var(--fz-radius-sm);
+  background: var(--fz-wash-1);
+  font-size: calc(var(--cell) * 0.58);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+
+  // The palette's text color, unlike the accent the squares are drawn in.
+  &:focus-visible {
+    z-index: 1;
+    outline: var(--fz-focus-ring-width) solid var(--fz-text);
+    outline-offset: 1px;
+  }
+}
+
+// A hidden square is a raised tile in the accent, which clears 3:1 on the
+// panel in every palette, so it stands apart from a revealed one; a flag on
+// it, in the accent's ink, clears 4.5:1. White lightens and black darkens
+// alike in every palette, as the shadows do.
+.cell[data-show="hidden"],
+.cell[data-show="flagged"] {
+  // stylelint-disable color-named
+  box-shadow:
+    inset 0 2px 0 color-mix(in srgb, white 24%, transparent),
+    inset 0 -2px 0 color-mix(in srgb, black 22%, transparent);
+  // stylelint-enable color-named
+  background: var(--fz-accent);
+  color: var(--fz-on-accent);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .cell[data-show="hidden"]:hover {
+    background: color-mix(in srgb, var(--fz-accent) 84%, var(--fz-text));
+  }
+}
+
+@for $n from 1 through 8 {
+  .cell[data-n="#{$n}"] {
+    color: var(--ink-#{$n});
+  }
+}
+
+.cell[data-show="tripped"] {
+  background: var(--fz-danger);
+  color: var(--fz-on-danger);
+}
+
+.cell[data-show="mine"] {
+  color: var(--fz-text);
+}
+
+// A flag that was wrong, struck through: shown after a loss, by shape as well
+// as by color.
+.cell[data-show="wrong-flag"] {
+  color: var(--fz-muted);
+
+  &::after {
+    content: "";
+    position: absolute;
+    width: 78%;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--fz-danger);
+    transform: rotate(-45deg);
+  }
+}

@@ -1,5 +1,6 @@
 import { type FieldSize, isValidLives } from "./difficulty";
 import { type Field, type Outcome, type Square, layoutOf } from "./field";
+import { isRecord, isWhole } from "./json";
 
 /** A field as it is stored: plain JSON, a letter a square. */
 export interface SavedField {
@@ -117,12 +118,4 @@ function parseMines(value: unknown, size: FieldSize): boolean[] | null {
     mines[index] = true;
   }
   return mines;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function isWhole(value: unknown): value is number {
-  return typeof value === "number" && Number.isInteger(value);
 }
