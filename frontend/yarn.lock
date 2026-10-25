@@ -22,9 +22,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@analogjs/vite-plugin-angular@npm:^2.8.1":
-  version: 2.8.1
-  resolution: "@analogjs/vite-plugin-angular@npm:2.8.1"
+"@analogjs/vite-plugin-angular@npm:^2.9.2":
+  version: 2.9.2
+  resolution: "@analogjs/vite-plugin-angular@npm:2.9.2"
   dependencies:
     magic-string: "npm:^0.30.21"
     obug: "npm:^2.1.1"
@@ -41,13 +41,13 @@ __metadata:
       optional: true
     vite:
       optional: true
-  checksum: 10c0/354270f02560d85c5933ba30f2b03b66f68d0a0313cc3a03d9b54e8d71033d0f95f68c9c43186c0895b265dfc974f8aad7920751661d88ca0c7d1e5f54cf7013
+  checksum: 10c0/7ef00158b8170d8ea6902bfa1efe97db307785ab4ab946f3719b46ea13140abd5ef36826c74b0ff6804ec0290dbd6427fcd7fecf71f66927367b0462fa086b10
   languageName: node
   linkType: hard
 
-"@analogjs/vitest-angular@npm:^2.8.1":
-  version: 2.8.1
-  resolution: "@analogjs/vitest-angular@npm:2.8.1"
+"@analogjs/vitest-angular@npm:^2.9.2":
+  version: 2.9.2
+  resolution: "@analogjs/vitest-angular@npm:2.9.2"
   peerDependencies:
     "@analogjs/vite-plugin-angular": "*"
     "@angular-devkit/architect": ">=0.1700.0 < 0.2300.0 || >=0.2200.0 < 0.2300.0"
@@ -57,19 +57,19 @@ __metadata:
   peerDependenciesMeta:
     zone.js:
       optional: true
-  checksum: 10c0/2ff9b4a6a12b890c2c2fe57c5fb5c5166ad9c06e4c12126c8cb352ae8226909abcfbe65023d578f1371fba9bdfdc4168e4bed31cc7d34c5f47bf05be39aaf161
+  checksum: 10c0/e840727a8ccb84b639d73a381d945de8ef77209e57a6f97ba88a9515cfb4c3362dba71b4b03f50d2a4ad5bf788ec58472403147569316e44daf30a402174309c
   languageName: node
   linkType: hard
 
-"@angular-devkit/architect@npm:0.2202.3":
-  version: 0.2202.3
-  resolution: "@angular-devkit/architect@npm:0.2202.3"
+"@angular-devkit/architect@npm:0.2202.4":
+  version: 0.2202.4
+  resolution: "@angular-devkit/architect@npm:0.2202.4"
   dependencies:
-    "@angular-devkit/core": "npm:22.2.3"
+    "@angular-devkit/core": "npm:22.2.4"
     rxjs: "npm:7.8.2"
   bin:
     architect: bin/cli.js
-  checksum: 10c0/8d15acb83ee71f1e26603715fbb621aabccb6d411b017de09ba6d21cbd557f6b1b24fd9ad8b792b74049569415a3e38771110c449c1ce67c21b044b33db819e0
+  checksum: 10c0/51731bb30b754e773d1dcbda041ab07aea7f2f05a4fe58bc2a812d37076f7298ce8d37fb8f714a4fda6c27662773d285c96b698cf839796f9f48cd191523d9ed
   languageName: node
   linkType: hard
 
@@ -104,9 +104,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular-devkit/core@npm:22.2.3":
-  version: 22.2.3
-  resolution: "@angular-devkit/core@npm:22.2.3"
+"@angular-devkit/core@npm:22.2.4":
+  version: 22.2.4
+  resolution: "@angular-devkit/core@npm:22.2.4"
   dependencies:
     ajv: "npm:8.20.0"
     ajv-formats: "npm:3.0.1"
@@ -119,20 +119,20 @@ __metadata:
   peerDependenciesMeta:
     chokidar:
       optional: true
-  checksum: 10c0/0b91d9033467d951d749917ad13f69fc01ba5fdd493e802b2023bb17d38b0d7d9e56e4daece689086dc8d6ccd9051a59afaeb20862a30ef3ffefdfa99509c7ca
+  checksum: 10c0/6304bf174e31f1e34b15930508a3cb8ea718ad632ad69b4e0a0486cc7ec0d11132734ff5f563df0d4fab9c59dd27b4862bffa174a798d808ac37c6b26daf50e6
   languageName: node
   linkType: hard
 
-"@angular-devkit/schematics@npm:22.2.3":
-  version: 22.2.3
-  resolution: "@angular-devkit/schematics@npm:22.2.3"
+"@angular-devkit/schematics@npm:22.2.4":
+  version: 22.2.4
+  resolution: "@angular-devkit/schematics@npm:22.2.4"
   dependencies:
-    "@angular-devkit/core": "npm:22.2.3"
+    "@angular-devkit/core": "npm:22.2.4"
     jsonc-parser: "npm:3.3.1"
     magic-string: "npm:1.4.1"
     ora: "npm:9.4.1"
     rxjs: "npm:7.8.2"
-  checksum: 10c0/9646c057422024ebb99beed65dce86608e816e564e6033b07a7d3ff2db21623e819a5f505d98fe32d973132091bd7116243a91ab2a9cc4abc089132c8017a4a6
+  checksum: 10c0/4dd68e1de27d968c2e1f3a0a1031192b42394d30ad67f0f87f6f674860f85811ee9854d2b7ad97a8e71e3734bb9946ae1879d2cabe7bb91370e9d471f05033cf
   languageName: node
   linkType: hard
 
@@ -243,24 +243,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/aria@npm:~22.2.0":
-  version: 22.2.3
-  resolution: "@angular/aria@npm:22.2.3"
+"@angular/aria@npm:~22.2.4":
+  version: 22.2.4
+  resolution: "@angular/aria@npm:22.2.4"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/cdk": 22.2.3
+    "@angular/cdk": 22.2.4
     "@angular/core": ^22.0.0 || ^23.0.0
-  checksum: 10c0/4e15203d6cd33d5ad94021906e121634af2581b3cfda3b7808f424953e219be3fc55b4c18e770ed1b32d0b192bac71bb4ece9a21b5f7d2d49a68dd8bae274337
+  checksum: 10c0/d0a4e1722857d01bd2a8b708f01f72e7d73916c437eb389b50e620e8ede24bd75736fd5dbddd55ae5b7dc6815d79fa96ba1c814eacfc767ef7a4c47c42d6cb53
   languageName: node
   linkType: hard
 
-"@angular/build@npm:^22.2.3":
-  version: 22.2.3
-  resolution: "@angular/build@npm:22.2.3"
+"@angular/build@npm:^22.2.4":
+  version: 22.2.4
+  resolution: "@angular/build@npm:22.2.4"
   dependencies:
     "@ampproject/remapping": "npm:2.3.0"
-    "@angular-devkit/architect": "npm:0.2202.3"
+    "@angular-devkit/architect": "npm:0.2202.4"
     "@babel/core": "npm:8.0.5"
     "@inquirer/confirm": "npm:6.3.2"
     "@parcel/watcher": "npm:2.6.0"
@@ -295,7 +295,7 @@ __metadata:
     "@angular/platform-browser": ^22.0.0
     "@angular/platform-server": ^22.0.0
     "@angular/service-worker": ^22.0.0
-    "@angular/ssr": ^22.2.3
+    "@angular/ssr": ^22.2.4
     istanbul-lib-instrument: ^6.0.0
     karma: ^6.4.0
     less: ^4.2.0
@@ -338,13 +338,13 @@ __metadata:
       optional: true
     vitest:
       optional: true
-  checksum: 10c0/38ae6dfae349198278331ac47e29743d06f20ec9b0e018e2fb5e9285b62b371df0a7ab5094be6f89db72cd181e2adb5b874b7670cce7d2addb564142f4a9b036
+  checksum: 10c0/31346b6d24909a6ea4d4c223f88dcf76daddd93538925c22a63f2713229eec65eddb9625303214bb7ed357dbe41a7e0de4308db0d6484e1daaef938235a69847
   languageName: node
   linkType: hard
 
-"@angular/cdk@npm:~22.2.0":
-  version: 22.2.3
-  resolution: "@angular/cdk@npm:22.2.3"
+"@angular/cdk@npm:~22.2.4":
+  version: 22.2.4
+  resolution: "@angular/cdk@npm:22.2.4"
   dependencies:
     parse5: "npm:^8.0.0"
     tslib: "npm:^2.3.0"
@@ -354,21 +354,21 @@ __metadata:
     "@angular/forms": ^22.0.0 || ^23.0.0
     "@angular/platform-browser": ^22.0.0 || ^23.0.0
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/0e934f6669ab01aa621fb048e0fa50f91f6bc78430efc82707a6609705b628cc3b10983f75b32e62c3438ca792d1348ceea4e22db3f1b2f550b6e2c04b992e7c
+  checksum: 10c0/4bf72ad66298b3c8ed1b19f1ab1bbe9323281ba3489142bc74773f7cbef3a9e50c30cdff9a559b09dd058f7044e10bf0347a711afe541f346ab009007e5583b4
   languageName: node
   linkType: hard
 
-"@angular/cli@npm:^22.2.3":
-  version: 22.2.3
-  resolution: "@angular/cli@npm:22.2.3"
+"@angular/cli@npm:^22.2.4":
+  version: 22.2.4
+  resolution: "@angular/cli@npm:22.2.4"
   dependencies:
-    "@angular-devkit/architect": "npm:0.2202.3"
-    "@angular-devkit/core": "npm:22.2.3"
-    "@angular-devkit/schematics": "npm:22.2.3"
+    "@angular-devkit/architect": "npm:0.2202.4"
+    "@angular-devkit/core": "npm:22.2.4"
+    "@angular-devkit/schematics": "npm:22.2.4"
     "@inquirer/prompts": "npm:8.7.2"
     "@listr2/prompt-adapter-inquirer": "npm:4.2.7"
     "@modelcontextprotocol/server": "npm:2.3.1"
-    "@schematics/angular": "npm:22.2.3"
+    "@schematics/angular": "npm:22.2.4"
     jsonc-parser: "npm:3.3.1"
     listr2: "npm:11.1.0"
     npm-package-arg: "npm:14.0.0"
@@ -378,7 +378,7 @@ __metadata:
     zod: "npm:4.6.6"
   bin:
     ng: bin/ng.js
-  checksum: 10c0/ace0386b66182b432d96577a36d970ece20af8dcc0cae1dbeca767507e206f29a45861fb38e20480a075fa7b1c740d104e994b3ba86c004315e71a6840cf069c
+  checksum: 10c0/77f309593af619b0fa44a8d9e4f29a4e23e0d3ae58b4095628505c592be175b8a7cb81cf3f60f0477941a3a2785898c797201bb45d035844719907342e27da8e
   languageName: node
   linkType: hard
 
@@ -1174,10 +1174,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@fz/game-ui@workspace:lib/game-ui"
   dependencies:
-    "@analogjs/vite-plugin-angular": "npm:^2.8.1"
-    "@angular/aria": "npm:~22.2.0"
-    "@angular/build": "npm:^22.2.3"
-    "@angular/cdk": "npm:~22.2.0"
+    "@analogjs/vite-plugin-angular": "npm:^2.9.2"
+    "@angular/aria": "npm:~22.2.4"
+    "@angular/build": "npm:^22.2.4"
+    "@angular/cdk": "npm:~22.2.4"
     "@angular/common": "npm:^22.2.3"
     "@angular/compiler": "npm:^22.2.3"
     "@angular/compiler-cli": "npm:^22.2.3"
@@ -1206,8 +1206,8 @@ __metadata:
     vite: "npm:^8.3.4"
     vitest: "npm:^5.0.5"
   peerDependencies:
-    "@angular/aria": ~22.2.0
-    "@angular/cdk": ~22.2.0
+    "@angular/aria": ~22.2.4
+    "@angular/cdk": ~22.2.4
     "@angular/common": ^22.2.3
     "@angular/core": ^22.2.3
   languageName: unknown
@@ -1247,10 +1247,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@fz/ui@workspace:lib/ui"
   dependencies:
-    "@analogjs/vite-plugin-angular": "npm:^2.8.1"
-    "@angular/aria": "npm:~22.2.0"
-    "@angular/build": "npm:^22.2.3"
-    "@angular/cdk": "npm:~22.2.0"
+    "@analogjs/vite-plugin-angular": "npm:^2.9.2"
+    "@angular/aria": "npm:~22.2.4"
+    "@angular/build": "npm:^22.2.4"
+    "@angular/cdk": "npm:~22.2.4"
     "@angular/common": "npm:^22.2.3"
     "@angular/compiler": "npm:^22.2.3"
     "@angular/compiler-cli": "npm:^22.2.3"
@@ -1278,8 +1278,8 @@ __metadata:
     vite: "npm:^8.3.4"
     vitest: "npm:^5.0.5"
   peerDependencies:
-    "@angular/aria": ~22.2.0
-    "@angular/cdk": ~22.2.0
+    "@angular/aria": ~22.2.4
+    "@angular/cdk": ~22.2.4
     "@angular/common": ^22.2.3
     "@angular/core": ^22.2.3
   languageName: unknown
@@ -3041,16 +3041,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@schematics/angular@npm:22.2.3":
-  version: 22.2.3
-  resolution: "@schematics/angular@npm:22.2.3"
+"@schematics/angular@npm:22.2.4":
+  version: 22.2.4
+  resolution: "@schematics/angular@npm:22.2.4"
   dependencies:
-    "@angular-devkit/core": "npm:22.2.3"
-    "@angular-devkit/schematics": "npm:22.2.3"
+    "@angular-devkit/core": "npm:22.2.4"
+    "@angular-devkit/schematics": "npm:22.2.4"
     jsonc-parser: "npm:3.3.1"
     oxc-parser: "npm:0.150.0"
     typescript: "npm:6.0.3"
-  checksum: 10c0/a535f321402a9ce0e877a61509a6e64d92b55f3d7cb6939bb9352621bda70a9a5f5dd5beaa108fcfd1dd1c19f0e69733db61f4c636bc0b783ed43f288abfcef6
+  checksum: 10c0/5456567ecdd305702883fbb4f613ad310fac038a9a1c0a8ef9b43d16bc2b795880fa6c0a6290011ae8e827456c369535527441ec3d617a820346f6129a5ae3ae
   languageName: node
   linkType: hard
 
@@ -5486,10 +5486,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "minesweeper@workspace:games/minesweeper"
   dependencies:
-    "@analogjs/vite-plugin-angular": "npm:^2.8.1"
-    "@angular/aria": "npm:~22.2.0"
-    "@angular/build": "npm:^22.2.3"
-    "@angular/cdk": "npm:~22.2.0"
+    "@analogjs/vite-plugin-angular": "npm:^2.9.2"
+    "@angular/aria": "npm:~22.2.4"
+    "@angular/build": "npm:^22.2.4"
+    "@angular/cdk": "npm:~22.2.4"
     "@angular/common": "npm:^22.2.3"
     "@angular/compiler": "npm:^22.2.3"
     "@angular/compiler-cli": "npm:^22.2.3"
@@ -6791,11 +6791,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "site@workspace:site"
   dependencies:
-    "@analogjs/vite-plugin-angular": "npm:^2.8.1"
-    "@angular/aria": "npm:~22.2.0"
-    "@angular/build": "npm:^22.2.3"
-    "@angular/cdk": "npm:~22.2.0"
-    "@angular/cli": "npm:^22.2.3"
+    "@analogjs/vite-plugin-angular": "npm:^2.9.2"
+    "@angular/aria": "npm:~22.2.4"
+    "@angular/build": "npm:^22.2.4"
+    "@angular/cdk": "npm:~22.2.4"
+    "@angular/cli": "npm:^22.2.4"
     "@angular/common": "npm:^22.2.3"
     "@angular/compiler": "npm:^22.2.3"
     "@angular/compiler-cli": "npm:^22.2.3"
@@ -6860,11 +6860,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "solitaire@workspace:games/solitaire"
   dependencies:
-    "@analogjs/vite-plugin-angular": "npm:^2.8.1"
-    "@analogjs/vitest-angular": "npm:^2.8.1"
-    "@angular/aria": "npm:~22.2.0"
-    "@angular/build": "npm:^22.2.3"
-    "@angular/cdk": "npm:~22.2.0"
+    "@analogjs/vite-plugin-angular": "npm:^2.9.2"
+    "@analogjs/vitest-angular": "npm:^2.9.2"
+    "@angular/aria": "npm:~22.2.4"
+    "@angular/build": "npm:^22.2.4"
+    "@angular/cdk": "npm:~22.2.4"
     "@angular/common": "npm:^22.2.3"
     "@angular/compiler": "npm:^22.2.3"
     "@angular/compiler-cli": "npm:^22.2.3"
