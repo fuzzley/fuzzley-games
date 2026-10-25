@@ -191,7 +191,7 @@ game.
   Solitaire's chrome (`.ui-overlay`, which also holds its dialogs) carries the
   partner's `data-theme`, while `<html>`, and so the felt, carries the
   palette the player chose. In a dark palette the two are the same. Phase 9
-  removes the partner if light chrome is approved.
+  removed the partner once light chrome was approved.
 - **The felt follows the theme, unless the player picked one.** Solitaire's
   Table Theme becomes Felt: "Theme" (the default, the palette's `felt`), then
   Emerald, Ocean, Charcoal and Velvet as overrides.
@@ -564,6 +564,15 @@ components.
 - Make a light pass over every component: the glass over the felt, drawer,
   browser, rules, victory, confirmation and the card-back swatches. The
   contrast spec covers the pairs; review the rest by eye in each palette.
+- **As built** (the work log has the details), as the approved mock showed:
+  four surfaces in `@fz/style`, which each palette sets by its mode, glass in
+  a dark one and solid in a light one: `--fz-bar-glass` (75% in a dark
+  palette, where it was 50% and unused), `--fz-panel-glass`, `--fz-float`
+  and `--fz-well`. The game bar, the confirmation card and Solitaire's
+  panels read them, and `@fz/game-ui`'s `$bar-glass` went. The loading
+  skeleton is drawn in the felt's ink. `DARK_PARTNERS` and `darkTheme()`
+  went with Solitaire's `--surface-panel`, `--surface-modal` and
+  `--surface-sunken`.
 
 ### Phase 10: skills, and the next consumer (small)
 

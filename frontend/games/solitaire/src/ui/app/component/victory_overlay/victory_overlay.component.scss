@@ -2,7 +2,7 @@
 
 // No scrim or z-index: <fz-dialog> puts this in the top layer.
 .victory-card {
-  background: var(--fz-wash-2);
+  background: var(--fz-float);
   border: 1px solid var(--fz-edge-3);
   border-radius: var(--fz-radius-2xl);
   padding: var(--fz-space-10);
@@ -65,7 +65,7 @@
 .victory-stats {
   display: flex;
   justify-content: space-around;
-  background: var(--surface-sunken);
+  background: var(--fz-well);
   border-radius: var(--fz-radius-lg);
   padding: var(--fz-space-4);
   margin: 0 0 var(--fz-space-8);

@@ -2,7 +2,7 @@
 
 // No scrim or z-index: <fz-dialog> puts this in the top layer.
 .modal-dialog {
-  background: var(--surface-modal);
+  background: var(--fz-panel-glass);
   border: 1px solid var(--fz-edge-3);
   border-radius: var(--fz-radius-xl);
   box-shadow: var(--fz-shadow-modal);

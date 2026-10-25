@@ -33,7 +33,7 @@
 
 .segmented-control {
   display: flex;
-  background: var(--surface-sunken);
+  background: var(--fz-well);
   border-radius: var(--fz-radius-md);
 
   // A hairline inset rather than a spacing step: it exists to let the active

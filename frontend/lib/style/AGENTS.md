@@ -23,7 +23,12 @@ can use it too. The repository's rules, which apply here too, are in
       hand in each palette;
     - `src/tokens/_derived.scss`, the roles worked out from those with
       `color-mix()`, such as the washes and edges, which are tints of
-      `text` and so turn with the palette's mode;
+      `text` and so turn with the palette's mode; and the surfaces that
+      float over a game, which each palette sets by its mode, glass in a
+      dark one and solid in a light one, where light glass turns grey and
+      loses its text's contrast: `--fz-bar-glass` (a bar), `--fz-panel-glass`
+      (a drawer or a modal), `--fz-float` (a card alone over the dimmed
+      page) and `--fz-well` (a well cut into a panel);
     - `src/tokens/_scales.scss`, what is the same in every palette: space,
       fonts, type sizes, line heights, radii, motion, the focus ring and the
       smallest tap target;
@@ -50,11 +55,9 @@ can use it too. The repository's rules, which apply here too, are in
 - `src/stylelint.ts`: the stylelint rules every app's stylesheets keep,
   which its `stylelint.config.js` extends as `@fz/style/stylelint`.
 - `src/themes.ts`: the palettes a player can choose between, the default for
-  each system color scheme, the dark partner each light palette lends a
-  game whose chrome is drawn for dark palettes only (`darkTheme()`), and the
-  localStorage key the choice is kept under, which the site and every game
-  share, being served from one origin. An app imports it as
-  `@fz/style/themes`.
+  each system color scheme, and the localStorage key the choice is kept
+  under, which the site and every game share, being served from one
+  origin. An app imports it as `@fz/style/themes`.
 - `src/vite.ts`: `fuzzleyStyle()`, the Vite plugins an app adds to its config.
   It writes `theme.js` into the build, at the top of the app's own base, and
   serves it from the dev server. The page loads it first, with a plain tag
@@ -97,12 +100,15 @@ can use it too. The repository's rules, which apply here too, are in
   `var()`; stylelint rejects a hex, named or functional color anywhere else.
 - **Contrast is checked, not hoped for.** `src/tokens/contrast.spec.ts`
   holds every palette to WCAG: text and fills' labels at 4.5:1 on what they
-  sit on, the focus ring at 3:1. A role that carries text, or sits behind
-  it, gets a pair there.
+  sit on, the surfaces too, over what shows through them, and the focus
+  ring at 3:1. A role that carries text, or sits behind it, gets a pair
+  there.
 - **A derived role is declared wherever a palette is** (`:root,
 [data-theme]`), not on `:root` alone: a custom property resolves its
   `var()`s where it is declared, so an element with a palette of its own
-  needs its own tints.
+  needs its own tints. A surface is declared on each palette of its mode,
+  and on `:root` first with the default's, which `src/tokens/derived.spec.ts`
+  checks.
 - **The toolkit emits nothing, and `global.scss` nothing outside its
   layers.** `src/global.spec.ts` checks both.
 - **The strictest compiler options.** `tsconfig.json` holds the site's and the

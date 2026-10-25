@@ -8,9 +8,10 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
-- **Phase:** 9, light chrome, which is optional. Phase 8 is done.
-- **Next step:** the user's review of Phase 9's mock. No Phase 9 code until
-  they approve it; if they'd rather keep the dark chrome, Phase 10 is next.
+- **Phase:** 10, skills and the next consumer. Phase 9 is done.
+- **Next step:** the libraries' skill, the accessibility skill's update and
+  Minesweeper's plan, all docs: the user asked that Minesweeper itself not
+  change yet.
 
 | Phase                             | State |
 | --------------------------------- | ----- |
@@ -23,8 +24,8 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 | 6. Solitaire's pieces move to lib | done  |
 | 7. The game bar                   | done  |
 | 8. Retire Solitaire's token names | done  |
-| 9. Light chrome                   | mock  |
-| 10. Skills, and the next consumer | to do |
+| 9. Light chrome                   | done  |
+| 10. Skills, and the next consumer | doing |
 
 ## How to check the work
 
@@ -768,3 +769,45 @@ passed every check in the plan, and was removed once done. What it showed:
   does now. It gets fixed with Phase 9's code, or on its own if Phase 9 is
   declined.
 - **Waiting on:** the user's approval. No Phase 9 code until then.
+
+### 2026-10-25: the mock approved; Phase 9, light chrome
+
+- **Approved as mocked** ("Proceed"): in a light palette, the chrome wears
+  that palette, with a solid bar, solid panels, white cards and wells in its
+  panel colour; the skeleton is drawn in the felt's ink in every palette.
+- **`@fz/style`:** four surfaces in `_derived.scss`, which each palette sets
+  by its mode, glass in a dark one and solid in a light one:
+  `--fz-bar-glass` (75% of `--fz-bar`, or the bar itself; it was 50% and
+  unused), `--fz-panel-glass` (95% of `--fz-panel-raised`, or the raised
+  panel), `--fz-float` (`--fz-wash-2`, or the raised panel) and `--fz-well`
+  (black at 20%, or `--fz-panel`). Each mode's set is written out on its
+  palettes' selectors, so no `light-dark()`, and the default's set goes on
+  `:root` first, in a rule of its own: in a combined `:root, [data-theme]`
+  rule, a later mode's rule would win over an earlier one on `<html>` if the
+  default palette were ever a light one. `DARK_PARTNERS`, `darkTheme()` and
+  the `ThemeIdOfMode` type went.
+- **Specs:** `derived.spec.ts` checks each surface is set in every palette,
+  is a palette role (so solid) in a light one, lets the game through in a
+  dark one, and that `:root` takes the default's first. The contrast spec
+  now reads the derived roles too, and holds text and muted text to 4.5:1
+  on each surface over what shows through it: the bar over the felt, the
+  panels and the float over the page under the scrim, and a well in a panel.
+- **The libraries' pieces:** `<fz-game-bar>` wears `--fz-bar-glass`, so
+  `@fz/game-ui`'s `$bar-glass` went; `<fz-confirm-dialog>`'s card wears
+  `--fz-float`.
+- **Solitaire:** `AppComponent` no longer puts a palette on its host, so the
+  chrome inherits the page's. The drawer, the browser and the rules wear
+  `--fz-panel-glass`, the victory card `--fz-float`, and the wells
+  `--fz-well`; `--surface-panel`, `--surface-modal` and `--surface-sunken`
+  went. The skeleton's slots and shimmer are tints of `--fz-on-felt`. The
+  contrast spec checks each palette's own chrome, reading its bar glass from
+  the compiled tokens. The stale comment on the `stockSide` effect now says
+  the board's stylesheet reads it.
+- **Checked:** `yarn verify` passed (`@fz/style` 225 specs, `@fz/ui` 140,
+  `@fz/game-ui` 34, the site 145, Solitaire 6937). In Emerald, all 61 of
+  Phase 8's shots at eight viewports, the 16 with the stock at the left,
+  and the mock's card-back shots match pixel for pixel. In Classic felt and
+  Soft pastel, all 58 shots match the approved mock's, but for one game
+  browser thumbnail in each, which these unmasked shots rasterize afresh
+  each time. Casino night's and Midnight blue's loading states match the
+  mock's. The game screenshots, taken in Emerald, stand.

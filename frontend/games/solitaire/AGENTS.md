@@ -159,12 +159,14 @@ brings in the mixins and breakpoints and nothing else:
   whose global stylesheet `global.scss` loads first: the palette's roles and
   their tints (`--fz-muted`, `--fz-edge-2`, `--fz-accent-wash`) and the
   scales from spacing to motion (`--fz-space-2`, `--fz-radius-md`,
-  `--fz-duration-fast`). `styles/_tokens.scss` holds only this game's own:
-  the translucent mixes of those roles its panels need (`--surface-modal`,
-  `--surface-sunken`), declared on `:root, [data-theme]` so the chrome's
-  palette reaches them, as the library's tints are; the table
-  (`--table-felt`); the card artwork's colours, cut from `_palette.scss`;
-  and its layout and stacking, with the game bar's size from `@fz/game-ui`.
+  `--fz-duration-fast`). The panels and wells read the library's surfaces,
+  glass in a dark palette and solid in a light one (`--fz-panel-glass`,
+  `--fz-float`, `--fz-well`). `styles/_tokens.scss` holds only this game's
+  own: the translucent mixes of those roles it needs (`--surface-card`,
+  `--surface-scrim-heavy`), declared on `:root, [data-theme]` as the
+  library's tints are; the table (`--table-felt`); the card artwork's
+  colours, cut from `_palette.scss`; and its layout and stacking, with the
+  game bar's size from `@fz/game-ui`.
   Component CSS reads them with `var()` — never a colour, spacing or
   font-size literal. Reach for Sass when the value cannot be a custom
   property (media query widths) or when it is only ever a compile-time input
@@ -244,9 +246,8 @@ on `SHUTDOWN` or `DESTROY`, because the game it ran in lives on.
   build: it puts the palette the player chose, on the site or in any game, on
   the page as `data-theme` before anything paints. `ThemeService` from
   `@fz/ui/theme` takes it from there, and the settings drawer offers the
-  choice. The chrome is drawn for dark palettes only, so under a light one
-  `AppComponent` dresses it in that palette's dark partner; the felt is the
-  palette's own (`ThemeService.role("felt")`) unless the player chose
+  choice. The chrome wears the palette in use, light or dark; the felt is
+  the palette's own (`ThemeService.role("felt")`) unless the player chose
   another, which `PresentationSettingsService` resolves and stores as
   `felt`, and the browser's toolbar takes the felt too.
 - **Saved games outlive the code.** Players' saved game, settings and recent

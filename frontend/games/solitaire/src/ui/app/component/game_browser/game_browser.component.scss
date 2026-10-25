@@ -7,7 +7,7 @@
   flex-direction: column;
   width: min(var(--browser-width), calc(100vw - 2 * var(--fz-space-8)));
   height: min(var(--browser-height), calc(100dvh - 2 * var(--fz-space-8)));
-  background: var(--surface-modal);
+  background: var(--fz-panel-glass);
   border: 1px solid var(--fz-edge-3);
   border-radius: var(--fz-radius-xl);
   box-shadow: var(--fz-shadow-modal);
@@ -79,7 +79,7 @@
     var(--fz-space-10);
   border: 1px solid var(--fz-edge-3);
   border-radius: var(--fz-radius-md);
-  background: var(--surface-sunken);
+  background: var(--fz-well);
   color: var(--fz-text);
   font: inherit;
   font-size: var(--fz-font-md);

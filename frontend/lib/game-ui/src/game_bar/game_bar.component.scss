@@ -53,11 +53,7 @@
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: color-mix(
-      in srgb,
-      var(--fz-bar) game-ui.$bar-glass,
-      transparent
-    );
+    background: var(--fz-bar-glass);
   }
 }
 

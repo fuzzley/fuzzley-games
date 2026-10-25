@@ -103,14 +103,17 @@
   box-sizing: border-box;
 }
 
+// The slots and their shimmer lie on the felt, not the chrome, so they are
+// tints of the felt's ink rather than of the chrome's text, which a light
+// palette makes dark.
 .skeleton-slot {
   position: relative;
   width: 100%;
   max-width: 84px;
   aspect-ratio: 71 / 96;
   border-radius: var(--fz-radius-md);
-  background: var(--fz-wash-2);
-  border: 1.5px dashed var(--fz-wash-4);
+  background: color-mix(in srgb, var(--fz-on-felt) 5%, transparent);
+  border: 1.5px dashed color-mix(in srgb, var(--fz-on-felt) 20%, transparent);
   box-shadow: var(--fz-shadow-subtle);
   overflow: hidden;
 }
@@ -121,7 +124,7 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    var(--fz-wash-3) 50%,
+    color-mix(in srgb, var(--fz-on-felt) 10%, transparent) 50%,
     transparent 100%
   );
   transform: translateX(-100%);
