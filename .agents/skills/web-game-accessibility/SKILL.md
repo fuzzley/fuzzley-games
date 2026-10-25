@@ -68,3 +68,6 @@ than from a separate class, so the look and the announcement cannot disagree.
   `frontend/lib/style/src/tokens/contrast.spec.ts`, which checks each
   palette's text and labels on their surfaces and fills, and the focus ring
   at 3:1; a new role that carries text or sits behind it gets a pair there.
+  Text on glass over a game's table depends on the table too: the Solitaire
+  Collection's header labels are held to it over every felt by
+  `frontend/games/solitaire/test/ui/app/styles/contrast.spec.ts`.

@@ -410,3 +410,62 @@ passed every check in the plan, and was removed once done. What it showed:
   browser: its swatch is the same rules, now in a layer, and the same colours
   for the old palettes.
 - **Next:** Solitaire's part of Phase 5.
+
+### 2026-10-24: Phase 5, Solitaire follows the theme
+
+- **Styles:** `global.scss` loads `@fz/style/global`, so the shared reset,
+  document styles and focus ring (3px, the site's) replace Solitaire's own.
+  `_base.scss` keeps what differs: the full-height document, the felt on
+  `html` with the body left clear, the looser 1.5 leading, and `app-root`
+  taking its palette's text colour. Every colour token in `_tokens.scss` is a
+  palette role, declared on `:root, [data-theme]`; `--table-felt` and the
+  loading scrim, now the table's felt darkened as `felt-shade` darkens the
+  palette's, are on `:root` alone. `_palette.scss` keeps only the card
+  artwork. Figtree replaces the system fonts.
+- **Departures from the mock's mapping:**
+  - `--surface-sunken` is black at 20%, as today, and `--surface-scrim-heavy`
+    is `panel-raised` at 85%: both were mixed from `page`, which in Emerald
+    felt is the felt, so the wells and segments turned green.
+  - The header glass is `bar` at 75%, not the site's 50%: at 50% the muted
+    labels fell to 3.2:1 over Soft pastel's felt and about 4.1:1 over Casino
+    night's and Midnight blue's (4.74:1 today). A new spec,
+    `test/ui/app/styles/contrast.spec.ts`, compiles the stylesheet and holds
+    them to 4.5:1 over every palette's felt and every felt a player can
+    choose; it fails four cases at 50%.
+  - A label on the accent's fill is `--text-on-accent` (`on-accent`).
+- **Buttons:** flat pills, the fill and its `on-*` label, no gradient, shadow
+  or lift. The gradient text went from the wordmark, Victory, the
+  confirmation title and the loading badge, and with it the `gradient-text`
+  mixin. Surface gradients the mock kept (the rules callout, the shimmers,
+  Victory's glow) stay.
+- **The felt:** `model/table_theme.ts` became `model/table_felt.ts`, and
+  Solitaire's felt code says felt, not theme. The choice is `FeltChoice`, a
+  felt or `"theme"`, the default, stored as `felt`; an earlier `theme` or
+  `backgroundColor` carries over, with the Emerald Felt, every earlier
+  player's default, becoming `"theme"`. `PresentationSettingsService`
+  resolves it through `ThemeService.role("felt")`, falling back to the
+  Emerald colour where no stylesheet sets one (jsdom). The bug report names
+  the felt choice and the palette.
+- **The chrome:** `AppComponent` puts `darkTheme(current)` on its host, so
+  every overlay and the canvas's loading badge wear it; the app provides
+  `THEME_COLOR_ROLE` as `null` and sets `theme-color` from the felt itself
+  (`index.html` starts it at `#0f4d0e`). That effect first read the felt only
+  when the tag existed, so with no tag it never tracked the felt; a spec
+  caught it.
+- **Game options:** a Theme section (`fz-theme-picker`, one column in the
+  320px drawer, "Shared with fuzzley.games and every game.") and Felt in
+  place of Table Theme: a "From the theme" pill whose dot carries the
+  palette's `data-theme`, then the four felts, captioned "Felt: from the
+  theme (Casino night)" or "Felt: Deep Ocean".
+- **Specs:** the fake viewport answers `prefers-color-scheme` (as light); the
+  bug report spec provides `THEME_COLOR_ROLE` as `null`, as `main.ts` does,
+  so the palette never asks its fake windows for colours; the spec tsconfig
+  gains Node's types for the contrast spec.
+- **Checked:** `yarn verify` passed (Solitaire 6984 specs). Screenshots of
+  every state and form factor in Emerald felt, Classic felt and Midnight
+  blue, against the mock: the board, header, drawer, rules, browser,
+  confirmation, Victory and overflow match it, with the more solid header.
+  The site's theme menu draws the shared swatch correctly.
+- **Not done here:** the docs' screenshots wait for Phase 7, as the plan
+  says.
+- **Next:** Phase 6, one commit per piece.

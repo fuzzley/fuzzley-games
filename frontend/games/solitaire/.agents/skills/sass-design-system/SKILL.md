@@ -21,10 +21,12 @@ _(Adjust relative path depth to target `src/ui/app/styles`)._
 
 ### 2. Token-Driven Styling
 
-- All colors, surfaces, spacing, typography, radii, elevations, motion, layouts, and z-indices are defined as CSS Custom Properties in `:root` inside `styles/_tokens.scss`.
-- The colors are cut from `styles/_palette.scss`. The scales (spacing, type sizes, line heights, radii, shadows, motion, the focus ring's offset, the tap target) are aliases of `@fz/style`'s, as `--space-2: var(--fz-space-2)`, so they match the site's and the other games'. `styles/global.scss` loads `@fz/style/tokens` first for them; the library's rules are in `frontend/lib/style/AGENTS.md`.
-- Component styles MUST read tokens via `var(--...)`.
+- All colors, surfaces, spacing, typography, radii, elevations, motion, layouts, and z-indices are defined as CSS Custom Properties inside `styles/_tokens.scss`. `styles/global.scss` loads `@fz/style/global` first, the tokens, reset, document styles and focus ring the site and the other games share; the library's rules are in `frontend/lib/style/AGENTS.md`.
+- The colors are roles of the palette in use, as `--text-muted: var(--fz-muted)`, several names sharing one role, declared on `:root, [data-theme]` so the chrome's own palette reaches them. The chrome wears the palette in use or, for a light one, its dark partner (`darkTheme()`), on `app-root`; only the felt is the light palette's own. `--table-felt` is on `:root` alone, since the shell sets the felt there. `styles/_palette.scss` keeps only the card artwork's colors.
+- The scales (spacing, type sizes, line heights, radii, shadows, motion, the tap target) and the font, Figtree, are aliases of `@fz/style`'s, as `--space-2: var(--fz-space-2)`.
+- Component styles MUST read tokens via `var(--...)`. A label on an accent, warning or danger fill takes the palette's label for it (`--text-on-accent`, `--fz-on-warning`, `--fz-on-danger`).
 - **Never hardcode hex colors, pixel font sizes, or raw pixel spacing literals in component CSS.** `yarn lint:styles` runs stylelint with `@fz/style`'s preset (`stylelint.config.js`), which fails a hex, named or functional color anywhere but `_palette.scss`.
+- **Glass over the felt is checked.** The header's labels sit on glass over whichever felt is on the table; `test/ui/app/styles/contrast.spec.ts` compiles the stylesheet and holds them to 4.5:1 over every palette's felt and every felt a player can choose.
 
 ```scss
 // Good
@@ -45,7 +47,6 @@ _(Adjust relative path depth to target `src/ui/app/styles`)._
 Repeated UI patterns are defined as mixins in `styles/_mixins.scss`:
 
 - `glass()` — Glassmorphism container background & backdrop blur.
-- `gradient-text()` — Gradient text fill.
 - `icon-button()` — Accessible button touch targets and hover states.
 - `transition()` — Standardized motion transitions.
 - `visually-hidden()` — Screen reader accessible off-screen text.

@@ -54,9 +54,7 @@
 }
 
 .wordmark {
-  // Sky into the accent blue.
-  @include gradient-text(var(--accent-sky), var(--accent));
-
+  color: var(--accent);
   font-size: var(--font-2xl);
   font-weight: 800;
   letter-spacing: -0.025em;

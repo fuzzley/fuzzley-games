@@ -6,8 +6,10 @@ import {
   inject,
   signal,
 } from "@angular/core";
+import { ThemeService } from "@fz/ui/theme";
 import {
   CardDeckStatus,
+  DEFAULT_BACKGROUND_COLOR,
   TablePresentation,
 } from "@/engine/render/view/presentation";
 import {
@@ -33,12 +35,13 @@ import {
   isCardBackStyle,
 } from "@/engine/render/deck/card_back";
 import {
-  DEFAULT_THEME,
-  TABLE_THEMES,
-  ThemeKey,
-  isThemeKey,
-  themeWithColor,
-} from "../model/table_theme";
+  DEFAULT_FELT,
+  FeltChoice,
+  TABLE_FELTS,
+  feltWithColor,
+  isFeltChoice,
+  isFeltKey,
+} from "../model/table_felt";
 import { LocalStorageService } from "./local_storage.service";
 import { ViewportService } from "./viewport.service";
 
@@ -53,7 +56,7 @@ const STORAGE_KEY = "fsolitaire-presentation";
 /** Holds the presentation settings as they are stored. */
 interface PersistedPresentation {
   cardBackStyle: CardBackStyle;
-  theme: ThemeKey;
+  felt: FeltChoice;
   cardStyle: CardStyle;
   desktopCardDeck: DesktopCardDeckId;
   piles: OrAuto<PilePosition>;
@@ -62,12 +65,13 @@ interface PersistedPresentation {
 
 /**
  * Holds the presentation settings as a build before this one may have stored
- * them, which kept the felt's colour rather than the felt, one deck rather
- * than a card style and a desktop deck, and where an upright phone put its
- * piles and the player's hand rather than where every screen puts them and the
- * stock's side.
+ * them, which kept the felt as `theme`, before the palette had one, or its
+ * colour rather than the felt, one deck rather than a card style and a
+ * desktop deck, and where an upright phone put its piles and the player's
+ * hand rather than where every screen puts them and the stock's side.
  */
 interface StoredPresentation extends Partial<PersistedPresentation> {
+  theme?: unknown;
   backgroundColor?: unknown;
   cardDeck?: unknown;
   phonePiles?: unknown;
@@ -76,7 +80,7 @@ interface StoredPresentation extends Partial<PersistedPresentation> {
 
 const DEFAULTS: PersistedPresentation = {
   cardBackStyle: DEFAULT_CARD_BACK,
-  theme: DEFAULT_THEME,
+  felt: DEFAULT_FELT,
   cardStyle: "auto",
   desktopCardDeck: DEFAULT_DESKTOP_CARD_DECK,
   ...DEFAULT_BOARD_ARRANGEMENT,
@@ -94,6 +98,17 @@ function isStockSideChoice(value: unknown): value is OrAuto<StockSide> {
   return value === "auto" || value === "left" || value === "right";
 }
 
+/**
+ * Returns the felt an earlier build stored, as `theme` or as its colour, with
+ * the Emerald Felt, which was every player's default, as the palette's.
+ */
+function earlierFelt(parsed: StoredPresentation): FeltChoice {
+  const felt = isFeltKey(parsed.theme)
+    ? parsed.theme
+    : feltWithColor(parsed.backgroundColor);
+  return felt === undefined || felt === "green" ? DEFAULT_FELT : felt;
+}
+
 /** Returns what a deck is called, for a sentence about it. */
 function deckName(deckId: CardDeckId): string {
   return CARD_DECKS.find((deck) => deck.id === deckId)?.name ?? deckId;
@@ -109,12 +124,15 @@ export class PresentationSettingsService implements TablePresentation {
   private readonly injector = inject(Injector);
   private readonly viewport = inject(ViewportService);
 
+  /** The palette's own felt, empty where no stylesheet sets one. */
+  private readonly paletteFelt = inject(ThemeService).role("felt");
+
   private readonly loaded = this.loadPersisted();
 
   private readonly cardBackStyleSignal = signal<CardBackStyle>(
     this.loaded.cardBackStyle,
   );
-  private readonly themeSignal = signal<ThemeKey>(this.loaded.theme);
+  private readonly feltSignal = signal<FeltChoice>(this.loaded.felt);
   private readonly cardStyleSignal = signal<CardStyle>(this.loaded.cardStyle);
   private readonly desktopCardDeckSignal = signal<DesktopCardDeckId>(
     this.loaded.desktopCardDeck,
@@ -154,13 +172,18 @@ export class PresentationSettingsService implements TablePresentation {
   /** The visual style used for face-down card backs. */
   readonly cardBackStyle = this.cardBackStyleSignal.asReadonly();
 
-  /** The table felt the player chose. */
-  readonly theme = this.themeSignal.asReadonly();
+  /** The table felt the player chose, or "theme" for the palette's. */
+  readonly felt = this.feltSignal.asReadonly();
 
-  /** The board background color, as a CSS/Phaser color string. */
-  readonly backgroundColor = computed(
-    () => TABLE_THEMES[this.themeSignal()].color,
-  );
+  /**
+   * The felt on the table as a CSS/Phaser color string: the one the player
+   * chose, or the palette's.
+   */
+  readonly backgroundColor = computed(() => {
+    const felt = this.feltSignal();
+    if (felt !== "theme") return TABLE_FELTS[felt].color;
+    return this.paletteFelt() || DEFAULT_BACKGROUND_COLOR;
+  });
 
   /** Whether the cards are drawn for a phone, a larger screen, or either. */
   readonly cardStyle = this.cardStyleSignal.asReadonly();
@@ -226,9 +249,9 @@ export class PresentationSettingsService implements TablePresentation {
     this.cardBackStyleSignal.set(style);
   }
 
-  /** Lays the table with a different felt. */
-  setTheme(theme: ThemeKey): void {
-    this.themeSignal.set(theme);
+  /** Lays the table with a different felt, or the palette's. */
+  setFelt(felt: FeltChoice): void {
+    this.feltSignal.set(felt);
   }
 
   /** Draws the cards for a phone, a larger screen, or whichever this is. */
@@ -311,7 +334,7 @@ export class PresentationSettingsService implements TablePresentation {
     effect(() => {
       const data: PersistedPresentation = {
         cardBackStyle: this.cardBackStyleSignal(),
-        theme: this.themeSignal(),
+        felt: this.feltSignal(),
         cardStyle: this.cardStyleSignal(),
         desktopCardDeck: this.desktopCardDeckSignal(),
         piles: this.pilesSignal(),
@@ -332,9 +355,7 @@ export class PresentationSettingsService implements TablePresentation {
       cardBackStyle: isCardBackStyle(parsed.cardBackStyle)
         ? parsed.cardBackStyle
         : DEFAULTS.cardBackStyle,
-      theme: isThemeKey(parsed.theme)
-        ? parsed.theme
-        : (themeWithColor(parsed.backgroundColor) ?? DEFAULTS.theme),
+      felt: isFeltChoice(parsed.felt) ? parsed.felt : earlierFelt(parsed),
       cardStyle: isCardStyle(parsed.cardStyle)
         ? parsed.cardStyle
         : DEFAULTS.cardStyle,

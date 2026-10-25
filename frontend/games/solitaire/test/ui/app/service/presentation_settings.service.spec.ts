@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed } from "@angular/core/testing";
+import { ThemeService } from "@fz/ui/theme";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/view/presentation";
 import {
@@ -35,6 +36,21 @@ function stored(): Record<string, unknown> | null {
   return raw ? (JSON.parse(raw) as Record<string, unknown>) : null;
 }
 
+/**
+ * Gives two palettes their felts, which jsdom otherwise has no stylesheet
+ * for, and puts the first on the page.
+ */
+function addPaletteFelts(): void {
+  document.head.insertAdjacentHTML(
+    "beforeend",
+    '<style id="palette-felts">' +
+      '[data-theme="midnight"] { --fz-felt: #17605a; } ' +
+      '[data-theme="casino"] { --fz-felt: #1e6b43; }' +
+      "</style>",
+  );
+  document.documentElement.dataset["theme"] = "midnight";
+}
+
 /** Stores settings as a build would have saved them. */
 function store(settings: Record<string, unknown>): void {
   localStorage.setItem("fsolitaire-presentation", JSON.stringify(settings));
@@ -50,6 +66,8 @@ describe("PresentationSettingsService", () => {
   afterEach(() => {
     viewport?.restore();
     viewport = null;
+    document.head.querySelector("#palette-felts")?.remove();
+    delete document.documentElement.dataset["theme"];
   });
 
   /** Sets the window to a width, which the service follows as it changes. */
@@ -67,36 +85,64 @@ describe("PresentationSettingsService", () => {
     });
 
     it("loads what it stored", () => {
-      store({ cardBackStyle: "card-back-red", theme: "blue" });
+      store({ cardBackStyle: "card-back-red", felt: "blue" });
 
       const settings = buildSettings();
 
       expect(settings.cardBackStyle()).toBe("card-back-red");
-      expect(settings.theme()).toBe("blue");
+      expect(settings.felt()).toBe("blue");
+    });
+
+    it("starts on the palette's felt when nothing is stored", () => {
+      expect(buildSettings().felt()).toBe("theme");
     });
 
     it("paints the table in the chosen felt's colour", () => {
-      store({ theme: "purple" });
+      store({ felt: "purple" });
 
       expect(buildSettings().backgroundColor()).toBe("#3c096c");
+    });
+
+    it("paints the table in the palette's felt", () => {
+      addPaletteFelts();
+
+      expect(buildSettings().backgroundColor()).toBe("#17605a");
+    });
+
+    it("keeps a felt an earlier build stored as its theme", () => {
+      store({ theme: "purple" });
+
+      expect(buildSettings().felt()).toBe("purple");
     });
 
     it("keeps a felt an earlier build stored only as its colour", () => {
       store({ backgroundColor: "#3c096c" });
 
-      expect(buildSettings().theme()).toBe("purple");
+      expect(buildSettings().felt()).toBe("purple");
     });
 
-    it("falls back to the default felt for a colour no felt has", () => {
+    it("gives the palette's felt for the Emerald Felt, every earlier player's default", () => {
+      store({ theme: "green" });
+
+      expect(buildSettings().felt()).toBe("theme");
+    });
+
+    it("reads the felt it stored over an earlier build's", () => {
+      store({ felt: "theme", theme: "blue" });
+
+      expect(buildSettings().felt()).toBe("theme");
+    });
+
+    it("falls back to the palette's felt for a colour no felt has", () => {
       store({ backgroundColor: "#123456" });
 
-      expect(buildSettings().theme()).toBe("green");
+      expect(buildSettings().felt()).toBe("theme");
     });
 
-    it("falls back to the default felt for one this build does not have", () => {
-      store({ theme: "tartan" });
+    it("falls back to the palette's felt for one this build does not have", () => {
+      store({ felt: "tartan" });
 
-      expect(buildSettings().theme()).toBe("green");
+      expect(buildSettings().felt()).toBe("theme");
     });
 
     it("falls back to defaults for corrupted storage", () => {
@@ -292,14 +338,14 @@ describe("PresentationSettingsService", () => {
       const settings = buildSettings();
 
       settings.setCardBackStyle("card-back-red");
-      settings.setTheme("purple");
+      settings.setFelt("purple");
       settings.setCardStyle("mobile");
       settings.setDesktopCardDeck("classic");
       TestBed.flushEffects();
 
       expect(stored()).toEqual({
         cardBackStyle: "card-back-red",
-        theme: "purple",
+        felt: "purple",
         cardStyle: "mobile",
         desktopCardDeck: "classic",
         piles: "auto",
@@ -332,10 +378,10 @@ describe("PresentationSettingsService", () => {
 
       TestBed.flushEffects();
 
-      // The old key goes, so the deck is read from one place from now on.
+      // The old keys go, so each setting is read from one place from now on.
       expect(stored()).toEqual({
         cardBackStyle: "card-back-red",
-        theme: "blue",
+        felt: "blue",
         cardStyle: "auto",
         desktopCardDeck: "classic",
         piles: "auto",
@@ -389,10 +435,22 @@ describe("PresentationSettingsService", () => {
       const seen: string[] = [];
       settings.onBackgroundColor((color) => seen.push(color));
 
-      settings.setTheme("purple");
+      settings.setFelt("purple");
       TestBed.flushEffects();
 
       expect(seen.at(-1)).toBe("#3c096c");
+    });
+
+    it("publishes the palette's felt as the palette changes", () => {
+      addPaletteFelts();
+      const settings = buildSettings();
+      const seen: string[] = [];
+      settings.onBackgroundColor((color) => seen.push(color));
+
+      TestBed.inject(ThemeService).select("casino");
+      TestBed.flushEffects();
+
+      expect(seen.at(-1)).toBe("#1e6b43");
     });
 
     it("delivers the current colour on subscription", () => {
@@ -411,7 +469,7 @@ describe("PresentationSettingsService", () => {
       const stop = settings.onBackgroundColor((color) => seen.push(color));
       stop();
 
-      settings.setTheme("purple");
+      settings.setFelt("purple");
       TestBed.flushEffects();
 
       expect(seen).not.toContain("#3c096c");

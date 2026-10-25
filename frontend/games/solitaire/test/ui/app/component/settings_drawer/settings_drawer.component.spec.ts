@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { ThemeService } from "@fz/ui/theme";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
 import { DebugPanelComponent } from "@/ui/app/component/debug_panel/debug_panel.component";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
@@ -28,6 +29,11 @@ describe("SettingsDrawerComponent", () => {
 
     fixture = TestBed.createComponent(SettingsDrawerComponent);
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    delete document.documentElement.dataset["theme"];
   });
 
   /** Opens the drawer and renders it. */
@@ -464,20 +470,66 @@ describe("SettingsDrawerComponent", () => {
     });
   });
 
-  describe("the table theme", () => {
+  describe("the palette", () => {
+    /** Returns the palette picker's radio for a palette. */
+    function paletteRadio(id: string): HTMLInputElement {
+      return queryRequired<HTMLInputElement>(
+        fixture,
+        `fz-theme-picker input[value="${id}"]`,
+      );
+    }
+
+    it("offers every palette in a group named Theme", () => {
+      openDrawer();
+
+      expect(
+        queryRequired(
+          fixture,
+          "fz-theme-picker [role='radiogroup']",
+        ).getAttribute("aria-label"),
+      ).toBe("Theme");
+    });
+
+    it("applies the palette picked", () => {
+      openDrawer();
+
+      paletteRadio("casino").click();
+
+      expect(TestBed.inject(ThemeService).current()).toBe("casino");
+    });
+  });
+
+  describe("the felt", () => {
+    it("takes the palette's when From the theme is picked", () => {
+      harness.presentation.felt.set("purple");
+      openDrawer();
+
+      clickElement(fixture, ".felt-theme");
+
+      expect(harness.presentation.felt()).toBe("theme");
+    });
+
+    it("checks From the theme while the table takes the palette's", () => {
+      openDrawer();
+
+      expect(
+        queryRequired(fixture, ".felt-theme").getAttribute("aria-checked"),
+      ).toBe("true");
+    });
+
     it("changes when a swatch is picked", () => {
       openDrawer();
 
-      clickElement(fixture, ".theme-option[aria-label='Royal Velvet']");
+      clickElement(fixture, ".felt-option[aria-label='Royal Velvet']");
 
-      expect(harness.presentation.theme()).toBe("purple");
+      expect(harness.presentation.felt()).toBe("purple");
     });
 
     it("names each swatch, which is otherwise just a colour", () => {
       openDrawer();
 
       expect(
-        queryAll(fixture, ".theme-option").map((button) =>
+        queryAll(fixture, ".felt-option").map((button) =>
           button.getAttribute("aria-label"),
         ),
       ).toEqual([
@@ -486,6 +538,31 @@ describe("SettingsDrawerComponent", () => {
         "Midnight Charcoal",
         "Royal Velvet",
       ]);
+    });
+
+    it("says which palette the felt comes from", () => {
+      TestBed.inject(ThemeService).select("casino");
+      openDrawer();
+
+      expect(queryText(fixture, ".felt-caption")).toBe(
+        "Felt: from the theme (Casino night)",
+      );
+    });
+
+    it("shows the palette's own felt in From the theme's dot", () => {
+      TestBed.inject(ThemeService).select("classic");
+      openDrawer();
+
+      expect(
+        queryRequired(fixture, ".felt-dot").getAttribute("data-theme"),
+      ).toBe("classic");
+    });
+
+    it("names a felt chosen apart from the palette", () => {
+      harness.presentation.felt.set("blue");
+      openDrawer();
+
+      expect(queryText(fixture, ".felt-caption")).toBe("Felt: Deep Ocean");
     });
   });
 

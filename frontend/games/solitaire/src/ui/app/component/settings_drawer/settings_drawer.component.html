@@ -159,31 +159,48 @@
         </div>
       }
 
-      <!-- Table Themes -->
+      <!-- The palette, the same choice as the site's theme menu -->
       <div class="setting-group">
-        <span class="setting-label" id="table-theme-label">Table Theme</span>
-        <div
-          class="theme-selector"
-          appRadioGroup
-          aria-labelledby="table-theme-label"
-        >
-          @for (swatch of themeSwatches(); track swatch.key) {
+        <span class="setting-label">Theme</span>
+        <fz-theme-picker />
+        <p class="setting-note">Shared with fuzzley.games and every game.</p>
+      </div>
+
+      <!-- The felt: the palette's, or one kept whatever the palette -->
+      <div class="setting-group">
+        <span class="setting-label" id="felt-label">Felt</span>
+        <div class="felt-selector" appRadioGroup aria-labelledby="felt-label">
+          <button
+            type="button"
+            class="felt-theme"
+            role="radio"
+            [attr.aria-checked]="feltFromTheme()"
+            (click)="presentation.setFelt('theme')"
+          >
+            <span
+              class="felt-dot"
+              [attr.data-theme]="palette()"
+              aria-hidden="true"
+            ></span>
+            From the theme
+          </button>
+          @for (swatch of feltSwatches(); track swatch.key) {
             <button
               type="button"
-              class="theme-option"
+              class="felt-option"
               role="radio"
               [attr.aria-checked]="swatch.selected"
               [attr.aria-label]="swatch.name"
-              (click)="presentation.setTheme(swatch.key)"
+              (click)="presentation.setFelt(swatch.key)"
               [style.backgroundColor]="swatch.color"
             >
               @if (swatch.selected) {
-                <span class="theme-indicator" aria-hidden="true"></span>
+                <span class="felt-indicator" aria-hidden="true"></span>
               }
             </button>
           }
         </div>
-        <p class="theme-name">Theme: {{ selectedThemeName() }}</p>
+        <p class="setting-note felt-caption">{{ feltCaption() }}</p>
       </div>
 
       <!-- Game Rules & Documentation -->

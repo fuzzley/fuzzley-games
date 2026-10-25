@@ -145,18 +145,21 @@ brings in the mixins and breakpoints and nothing else:
 @use "../../styles" as *;
 ```
 
-- **Tokens are custom properties; Sass builds them.** Colour, surface, spacing,
-  type, radius, elevation, motion, layout and z-index all live in `:root` in
-  `styles/_tokens.scss`, the colours cut from the source colours in
-  `_palette.scss`. The scales are aliases of `@fz/style`'s
-  (`--space-2: var(--fz-space-2)`), the tokens the site and every game share
-  (`frontend/lib/style/AGENTS.md`), which `global.scss` loads first.
-  Component CSS reads them with `var()` — never a colour, spacing or font-size
-  literal. Reach for Sass when the value cannot be a custom property (media
-  query widths) or when it is only ever a compile-time input to a token.
+- **Tokens are custom properties, `@fz/style`'s underneath.** Colour,
+  surface, spacing, type, radius, elevation, motion, layout and z-index all
+  live in `styles/_tokens.scss`. The colours are roles of the palette in use
+  (`--text-muted: var(--fz-muted)`), declared on `:root, [data-theme]` so the
+  chrome's palette reaches them, and the scales and the font are
+  `@fz/style`'s (`--space-2: var(--fz-space-2)`): the tokens the site and
+  every game share (`frontend/lib/style/AGENTS.md`), whose global stylesheet
+  `global.scss` loads first. `_palette.scss` keeps only the card artwork's
+  colours. Component CSS reads them with `var()` — never a colour, spacing or
+  font-size literal. Reach for Sass when the value cannot be a custom
+  property (media query widths) or when it is only ever a compile-time input
+  to a token.
 - **A pattern is a mixin, a value is a token.** Several declarations that only
-  make sense together — `glass()`, `gradient-text()`, `icon-button()`,
-  `transition()`, `visually-hidden()` — go in `styles/_mixins.scss`, because
+  make sense together — `glass()`, `icon-button()`, `transition()`,
+  `visually-hidden()` — go in `styles/_mixins.scss`, because
   view encapsulation means a class cannot be shared between components. One
   declaration is a token, not a mixin.
 - **Three breakpoints, by name.** `@include below("phone" | "tablet" |
@@ -214,8 +217,13 @@ on `SHUTDOWN` or `DESTROY`, because the game it ran in lives on.
 - **It shares the palette with the site.** `index.html` loads `theme.js`
   first, which `@fz/style`'s Vite plugin (`vite.config.ts`) writes into the
   build: it puts the palette the player chose, on the site or in any game, on
-  the page as `data-theme` before anything paints. The game doesn't follow
-  it yet.
+  the page as `data-theme` before anything paints. `ThemeService` from
+  `@fz/ui/theme` takes it from there, and the settings drawer offers the
+  choice. The chrome is drawn for dark palettes only, so under a light one
+  `AppComponent` dresses it in that palette's dark partner; the felt is the
+  palette's own (`ThemeService.role("felt")`) unless the player chose
+  another, which `PresentationSettingsService` resolves and stores as
+  `felt`, and the browser's toolbar takes the felt too.
 - **Saved games outlive the code.** Players' saved game, settings and recent
   games are in `localStorage` under keys that start with `fsolitaire-`, in
   the services under `src/ui/app/service/`. Renaming one loses them.

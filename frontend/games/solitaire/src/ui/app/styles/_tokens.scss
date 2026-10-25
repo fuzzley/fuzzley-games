@@ -2,100 +2,127 @@
 @use "breakpoints" as *;
 
 // The design tokens, as custom properties because those inherit into every
-// component's encapsulated stylesheet. Sass cuts the colours from
-// `_palette.scss`; the scales, from spacing to motion, are @fz/style's, which
-// the site and the other games share.
+// component's encapsulated stylesheet. The colours are the palette's roles
+// from @fz/style, and the scales, from spacing to motion, are its scales,
+// both shared with the site and the other games; only the card artwork's
+// colours are cut from `_palette.scss`.
 
-:root {
-  // --- The table ---
-  // The felt a player starts on, which the shell overwrites with their choice
-  // so the page behind the chrome matches the board.
-  --table-felt: #{$felt};
-
+// Declared wherever a palette is, as @fz/style's derived roles are, since a
+// custom property resolves its var()s where it is declared: the chrome wears
+// a palette of its own on `app-root`. Several names share one role.
+:root,
+[data-theme] {
   // --- Surfaces ---
-  // Layered darks. `panel` is the chrome around the board, `raised` a card
-  // sitting on it, `sunken` a well cut into one, `card` a bordered block
-  // inside a modal.
-  --surface-panel: #{with-alpha($slate-900, 0.95)};
-  --surface-panel-translucent: #{with-alpha($slate-900, 0.5)};
-  --surface-raised: #{with-alpha($slate-800, 0.85)};
+  // `panel` is the chrome around the board, `raised` a card sitting on it,
+  // `sunken` a well cut into one, `card` a bordered block inside a modal.
+  // The alphas keep the glass glass.
+  --surface-panel: color-mix(in srgb, var(--fz-panel-raised) 95%, transparent);
+
+  // The header's glass, more solid than the site's bar (`--fz-bar-glass`), so
+  // its muted labels clear 4.5:1 over the lightest felt, Soft pastel's.
+  --surface-panel-translucent: color-mix(
+    in srgb,
+    var(--fz-bar) 75%,
+    transparent
+  );
+  --surface-raised: var(--fz-wash-2);
 
   // Its own role, though it currently matches the panel.
-  --surface-modal: #{with-alpha($slate-900, 0.95)};
+  --surface-modal: color-mix(in srgb, var(--fz-panel-raised) 95%, transparent);
 
   // The modal's surface made opaque, for a bar that content scrolls beneath
   // and would otherwise show through.
-  --surface-modal-solid: #{$slate-900};
-  --surface-card: #{with-alpha($slate-900, 0.6)};
-  --surface-sunken: #{with-alpha($black, 0.2)};
-  --surface-scrim: #{with-alpha($black, 0.6)};
-  --surface-scrim-heavy: #{with-alpha($slate-900, 0.85)};
+  --surface-modal-solid: var(--fz-panel-raised);
+  --surface-card: color-mix(in srgb, var(--fz-panel) 60%, transparent);
+  --surface-scrim: var(--fz-scrim);
+  --surface-scrim-heavy: color-mix(
+    in srgb,
+    var(--fz-panel-raised) 85%,
+    transparent
+  );
 
-  // Laid over the board itself while it builds, so the loading state reads as
-  // the table dimmed rather than as a grey sheet in front of it.
-  --surface-felt-scrim: #{with-alpha($felt-shade, 0.65)};
+  // Darkened, as the shadows darken, rather than tinted with the page, which
+  // is a felt in some palettes.
+  --surface-sunken: color-mix(in srgb, #{$black} 20%, transparent);
 
   // The two ends of a loading placeholder's shimmer.
-  --surface-skeleton: #{with-alpha($slate-800, 0.5)};
-  --surface-skeleton-highlight: #{with-alpha($slate-700, 0.8)};
+  --surface-skeleton: var(--fz-wash-2);
+  --surface-skeleton-highlight: var(--fz-wash-4);
 
-  // Faint white washes, used for hover states and hairline fills.
-  --wash-faint: #{with-alpha($white, 0.03)};
-  --wash-subtle: #{with-alpha($white, 0.05)};
-  --wash-soft: #{with-alpha($white, 0.1)};
-  --wash-medium: #{with-alpha($white, 0.2)};
+  // Faint washes of the text colour, for hover states and hairline fills.
+  --wash-faint: var(--fz-wash-1);
+  --wash-subtle: var(--fz-wash-2);
+  --wash-soft: var(--fz-wash-3);
+  --wash-medium: var(--fz-wash-4);
 
   // --- Text ---
-  // `muted` is the lightest tone that still clears 4.5:1 on the panel
-  // surfaces. Anything dimmer than this is decoration, not text.
-  --text-primary: #{$slate-50};
-  --text-bright: #{$white};
-  --text-body: #{$slate-200};
-  --text-secondary: #{$slate-300};
-  --text-muted: #{$slate-400};
-  --text-heading: #{$slate-100};
+  // `muted` is the dimmest tone that still clears 4.5:1 on the panels, which
+  // @fz/style's contrast spec holds every palette to. Anything dimmer is
+  // decoration, not text.
+  --text-primary: var(--fz-text);
+  --text-bright: var(--fz-text);
+  --text-body: var(--fz-text);
+  --text-heading: var(--fz-text);
+  --text-secondary: var(--fz-muted);
+  --text-muted: var(--fz-muted);
 
-  // Dark, for a label on a fill too light to carry white, such as the amber.
-  --text-inverse: #{$slate-900};
+  // For a label on the accent's fill, such as a chosen segment.
+  --text-on-accent: var(--fz-on-accent);
 
   // --- Borders ---
-  --border-subtle: #{with-alpha($white, 0.05)};
-  --border-default: #{with-alpha($white, 0.1)};
-  --border-strong: #{with-alpha($white, 0.15)};
-  --border-vivid: #{with-alpha($white, 0.3)};
+  --border-subtle: var(--fz-edge-1);
+  --border-default: var(--fz-edge-2);
+  --border-strong: var(--fz-edge-3);
+  --border-vivid: var(--fz-edge-4);
 
   // --- Accents ---
-  // `strong` and `deep` are the shades that carry a white label at 4.5:1;
-  // the base and `light` fall short of it.
-  --accent: #{$blue-500};
-  --accent-strong: #{$blue-600};
-  --accent-deep: #{$blue-700};
-  --accent-light: #{$blue-400};
-  --accent-sky: #{$sky-400};
-  --danger: #{$red-500};
-  --danger-strong: #{$red-600};
-  --danger-deep: #{$red-700};
-  --danger-light: #{$red-400};
-  --warning: #{$amber-500};
-  --warning-strong: #{$amber-600};
-  --warning-light: #{$amber-400};
+  // One shade each: a label on a fill takes the palette's `on-*` role for it.
+  --accent: var(--fz-accent);
+  --accent-strong: var(--fz-accent);
+  --accent-deep: var(--fz-accent);
+  --accent-light: var(--fz-accent);
+  --accent-sky: var(--fz-accent);
+  --danger: var(--fz-danger);
+  --danger-strong: var(--fz-danger);
+  --danger-deep: var(--fz-danger);
+  --danger-light: var(--fz-danger);
+  --warning: var(--fz-warning);
+  --warning-strong: var(--fz-warning);
+  --warning-light: var(--fz-warning);
 
   // --- Tints ---
   // The accents at low opacity: the fill behind a chosen swatch, the glow
   // under a selected segment, a pressed filter chip. Translucent rather than
   // solid so the blurred board still reads through the chrome.
-  --accent-wash: #{with-alpha($blue-500, 0.1)};
-  --accent-glow: #{with-alpha($blue-500, 0.3)};
-  --accent-fill: #{with-alpha($blue-600, 0.9)};
-  --accent-fill-border: #{with-alpha($blue-400, 0.9)};
-  --sky-wash-faint: #{with-alpha($sky-500, 0.05)};
-  --sky-wash: #{with-alpha($sky-400, 0.12)};
-  --sky-wash-strong: #{with-alpha($sky-400, 0.25)};
-  --sky-border: #{with-alpha($sky-400, 0.3)};
-  --danger-wash: #{with-alpha($red-500, 0.02)};
-  --danger-border: #{with-alpha($red-500, 0.3)};
-  --danger-glow: #{with-alpha($red-500, 0.15)};
-  --warning-glow: #{with-alpha($amber-500, 0.15)};
+  --accent-wash: var(--fz-accent-wash);
+  --accent-glow: var(--fz-accent-glow);
+  --accent-fill: var(--fz-accent);
+  --accent-fill-border: var(--fz-accent);
+  --sky-wash-faint: color-mix(in srgb, var(--fz-accent) 5%, transparent);
+  --sky-wash: var(--fz-accent-wash);
+  --sky-wash-strong: color-mix(in srgb, var(--fz-accent) 25%, transparent);
+  --sky-border: var(--fz-accent-glow);
+  --danger-wash: var(--fz-danger-wash);
+  --danger-border: color-mix(in srgb, var(--fz-danger) 30%, transparent);
+  --danger-glow: color-mix(in srgb, var(--fz-danger) 15%, transparent);
+  --warning-glow: color-mix(in srgb, var(--fz-warning) 15%, transparent);
+}
+
+:root {
+  // --- The table ---
+  // The palette's felt, until the shell sets the one the player has, theirs
+  // or the palette's, on the root, so the page behind the chrome matches the
+  // board. On :root alone: the chrome's palette has a felt of its own.
+  --table-felt: var(--fz-felt);
+
+  // Laid over the board itself while it builds, so the loading state reads as
+  // the table dimmed rather than as a grey sheet in front of it: the felt
+  // darkened as @fz/style's `felt-shade` darkens the palette's.
+  --surface-felt-scrim: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--table-felt) 40%, #{$black}) 65%,
+    transparent
+  );
 
   // --- Card swatches (the settings drawer previews) ---
   --card-back-blue-field: #{$card-back-blue};
@@ -124,11 +151,8 @@
   --space-10: var(--fz-space-10);
 
   // --- Type ---
-  // System stacks rather than a webfont, which would cost a download on every
-  // load for a screen that is mostly card artwork.
-  --font-sans:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI Variable Text",
-    "Segoe UI", "Roboto", "Helvetica Neue", "Arial", sans-serif;
+  // Figtree, the site's, which @fz/style serves from this app's own origin.
+  --font-sans: var(--fz-font);
 
   // For the figures that change as you watch, monospaced so a number does not
   // resize its container on the way from 9 to 10.
@@ -178,13 +202,6 @@
   --duration-fast: var(--fz-duration-fast);
   --duration-base: var(--fz-duration-base);
   --duration-slow: var(--fz-duration-slow);
-
-  // --- Focus ---
-  // One ring, used everywhere. See the :focus-visible block in `_base.scss`.
-  // Its offset is @fz/style's; its colour and width are this app's own.
-  --focus-ring-color: var(--accent-light);
-  --focus-ring-width: 2px;
-  --focus-ring-offset: var(--fz-focus-ring-offset);
 
   // --- Layout ---
   // Read by the header and the game canvas, which must agree on them: the

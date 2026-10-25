@@ -7,9 +7,11 @@ import {
   output,
   resource,
 } from "@angular/core";
+import { THEMES } from "@fz/style/themes";
+import { ThemePickerComponent, ThemeService } from "@fz/ui/theme";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
-import { TABLE_THEMES, THEME_KEYS, ThemeKey } from "../../model/table_theme";
+import { FELT_KEYS, FeltKey, TABLE_FELTS } from "../../model/table_felt";
 import { GameDocumentationService } from "../../service/game_documentation.service";
 import { BugReportService } from "../../service/bug_report.service";
 import {
@@ -182,16 +184,16 @@ function autoDescription<T>(
 }
 
 /** Describes one table felt swatch, resolved for rendering. */
-interface ThemeSwatch {
-  readonly key: ThemeKey;
+interface FeltSwatch {
+  readonly key: FeltKey;
   readonly name: string;
   readonly color: string;
   readonly selected: boolean;
 }
 
 /**
- * Offers the running game's rules, the card back, style, deck and felt, and
- * links to the rules page and a bug report.
+ * Offers the running game's rules, the card back, style and deck, the palette
+ * and the felt, and links to the rules page and a bug report.
  */
 @Component({
   selector: "app-settings-drawer",
@@ -201,6 +203,7 @@ interface ThemeSwatch {
     OptionGroupComponent,
     ModalDialogComponent,
     RadioGroupDirective,
+    ThemePickerComponent,
   ],
   templateUrl: "./settings_drawer.component.html",
   styleUrl: "./settings_drawer.component.scss",
@@ -212,6 +215,7 @@ export class SettingsDrawerComponent {
   protected readonly presentation = inject(PresentationSettingsService);
   private readonly docService = inject(GameDocumentationService);
   private readonly bugReport = inject(BugReportService);
+  private readonly theme = inject(ThemeService);
 
   /** Whether this is a development build, which shows the debug panel. */
   protected readonly isDevMode = import.meta.env.DEV;
@@ -330,21 +334,32 @@ export class SettingsDrawerComponent {
     }));
   });
 
-  /** The felt swatches, with the chosen one marked. */
-  protected readonly themeSwatches = computed<readonly ThemeSwatch[]>(() => {
-    const selected = this.presentation.theme();
-    return THEME_KEYS.map((key) => ({
+  /** The palette in use, whose felt "From the theme" shows. */
+  protected readonly palette = this.theme.current;
+
+  /** Whether the table takes the palette's felt. */
+  protected readonly feltFromTheme = computed(
+    () => this.presentation.felt() === "theme",
+  );
+
+  /** The felts a player keeps whatever the palette, with the chosen one marked. */
+  protected readonly feltSwatches = computed<readonly FeltSwatch[]>(() => {
+    const selected = this.presentation.felt();
+    return FELT_KEYS.map((key) => ({
       key,
-      name: TABLE_THEMES[key].name,
-      color: TABLE_THEMES[key].color,
+      name: TABLE_FELTS[key].name,
+      color: TABLE_FELTS[key].color,
       selected: key === selected,
     }));
   });
 
-  /** The name of the felt currently on the table. */
-  protected readonly selectedThemeName = computed(
-    () => TABLE_THEMES[this.presentation.theme()].name,
-  );
+  /** Names the felt on the table, and the palette it comes from if it does. */
+  protected readonly feltCaption = computed(() => {
+    const felt = this.presentation.felt();
+    if (felt !== "theme") return `Felt: ${TABLE_FELTS[felt].name}`;
+    const palette = THEMES.find((theme) => theme.id === this.palette());
+    return `Felt: from the theme (${palette?.name ?? this.palette()})`;
+  });
 
   /** Whether the side settings drawer is visible. */
   readonly open = input<boolean>(false);

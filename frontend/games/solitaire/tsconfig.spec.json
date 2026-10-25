@@ -2,7 +2,9 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "rootDir": "./",
-    "types": ["vitest/globals", "vite/client"],
+    // Node's too, since every spec runs in it, and the stylesheet's contrast
+    // spec compiles the Sass from disk.
+    "types": ["vitest/globals", "vite/client", "node"],
     // Specs index boards by position throughout, as in game.tableaus[0], where
     // the flag would demand an assertion on every line for no protection.
     "noUncheckedIndexedAccess": false

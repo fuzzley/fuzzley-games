@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { TestBed } from "@angular/core/testing";
+import { THEME_COLOR_ROLE } from "@fz/ui/theme";
 import {
   BUG_REPORT_FIELDS,
   BugReportService,
@@ -61,6 +62,9 @@ function buildService(
         useValue: asPresentation(createMockPresentation()),
       },
       { provide: BUG_REPORT_CONFIG, useValue: { ...CONFIG, ...config } },
+      // As main.ts provides it, so the palette never asks the fake windows
+      // some specs put in place for the page's colours.
+      { provide: THEME_COLOR_ROLE, useValue: null },
     ],
   });
 
@@ -111,6 +115,7 @@ function formFieldIds(form: string): string[] {
 describe("BugReportService", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    delete document.documentElement.dataset["theme"];
   });
 
   it("opens a new issue on the configured form", async () => {
@@ -199,7 +204,16 @@ describe("BugReportService", () => {
       const { service } = buildService();
 
       expect(await prefilled(service, BUG_REPORT_FIELDS.environment)).toContain(
-        `- Cards: ${DEFAULT_DESKTOP_CARD_DECK} deck (auto style), card-back-blue back, green felt`,
+        `- Cards: ${DEFAULT_DESKTOP_CARD_DECK} deck (auto style), card-back-blue back, theme felt`,
+      );
+    });
+
+    it("names the palette in use", async () => {
+      document.documentElement.dataset["theme"] = "casino";
+      const { service } = buildService();
+
+      expect(await prefilled(service, BUG_REPORT_FIELDS.environment)).toContain(
+        "- Theme: casino",
       );
     });
   });
