@@ -30,7 +30,8 @@ Run these from `frontend/games/solitaire/`, or as
   `@test/`.
 - They run in Node. A spec that renders the Angular shell asks for jsdom with
   a `// @vitest-environment jsdom` comment at its top. `test/test-setup.ts`
-  starts Angular's zoneless TestBed, polyfills `<dialog>` under jsdom, and
+  starts Angular's zoneless TestBed, polyfills `<dialog>` under jsdom (with
+  `@fz/ui/testing`'s `installDialogPolyfill`), and
   gives Node an in-memory `localStorage`, cleared before every test.
 - Specs use Vitest's globals (`describe`, `it`, `expect`, `vi`).
 

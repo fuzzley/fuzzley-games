@@ -25,6 +25,13 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   panel. `THEME_COLOR_ROLE` names the palette role the browser's own toolbar
   takes (`bar` unless an app provides another, such as `felt` for a game
   whose table runs to the top, or `null` for an app that sets it itself).
+- `src/dialog/`: `<fz-dialog>`, which shows what it holds in a native
+  modal `<dialog>`, so the browser traps focus, makes the page behind it
+  inert and gives focus back on close. The host owns `open`: the dialog
+  asks to close through `closed`, on Escape or a backdrop click unless
+  `dismissible` is off, and never closes itself. It paints only the
+  backdrop, which an app tints with `--fz-dialog-backdrop`; the host styles
+  the panel.
 - `src/icon/`: `<fz-icon name="…">`, the outline icons.
 - `src/radio_group/`: `[fzRadioGroup]`, which gives a group of
   `role="radio"` buttons one tab stop and the arrow keys, Home and End.
@@ -32,6 +39,9 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   since a choice can cost something, such as a game's rule dealing a new
   game; a group where choosing is free can use native radios instead, as
   `<fz-theme-picker>` does.
+- `src/testing/`: what an app's specs need to drive these components, for
+  its spec setup file only: `installDialogPolyfill`, which gives jsdom's
+  `<dialog>` the `showModal()`, `close()` and Escape it lacks.
 - `src/wordmark/`: `<fz-wordmark>`, the "Fuzzley Games" name in its own
   type. It is text: an app that links it puts it in its own `<a>`, with a
   `routerLink` or an `href`, and the link takes its name from it.

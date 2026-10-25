@@ -1,46 +1,47 @@
 import {
-  ChangeDetectionStrategy,
   Component,
-  ElementRef,
+  type ElementRef,
   effect,
   input,
   output,
   viewChild,
 } from "@angular/core";
 
-/** Names the role a modal takes. */
-export type ModalRole = "dialog" | "alertdialog";
+/** Names the role a dialog takes. */
+export type DialogRole = "dialog" | "alertdialog";
 
 /**
  * Shows projected content in a native `<dialog>`, which supplies the focus
  * trap, Escape, focus restore and inert background.
+ *
+ * The host owns the open state: the dialog never closes itself, only asks to
+ * through `closed`, so the host lowers `open` in return.
  */
 @Component({
-  selector: "app-modal-dialog",
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: "./modal_dialog.component.html",
-  styleUrl: "./modal_dialog.component.scss",
+  selector: "fz-dialog",
+  templateUrl: "./dialog.component.html",
+  styleUrl: "./dialog.component.scss",
 })
-export class ModalDialogComponent {
+export class DialogComponent {
   /** Whether the dialog is showing. */
   readonly open = input.required<boolean>();
 
   /** The dialog's accessible name. */
-  readonly label = input<string>("");
+  readonly label = input("");
 
   /**
    * The id of the element that says what the dialog is about, announced after
    * its name.
    */
-  readonly describedBy = input<string>("");
+  readonly describedBy = input("");
 
   /** `alertdialog` for a prompt that interrupts to ask, else `dialog`. */
-  readonly dialogRole = input<ModalRole>("dialog");
+  readonly dialogRole = input<DialogRole>("dialog");
 
   /** Whether Escape and a backdrop click dismiss the dialog. */
   readonly dismissible = input(true);
 
-  /** Emitted when the dialog asks to close — Escape, backdrop, or the host. */
+  /** Emitted when the dialog asks to close, on Escape or a backdrop click. */
   readonly closed = output();
 
   private readonly dialogRef =
@@ -64,9 +65,6 @@ export class ModalDialogComponent {
   /**
    * Handles Escape, which the browser reports as `cancel`, by asking the host
    * to close a dismissible dialog.
-   *
-   * The browser never closes it itself, so the `open` input stays the only
-   * state.
    */
   protected onCancel(event: Event): void {
     event.preventDefault();
@@ -76,7 +74,7 @@ export class ModalDialogComponent {
   }
 
   /**
-   * Closes a dismissible dialog on a backdrop click, which targets the
+   * Asks to close a dismissible dialog on a backdrop click, which targets the
    * `<dialog>` itself rather than anything inside it.
    */
   protected onClick(event: MouseEvent): void {

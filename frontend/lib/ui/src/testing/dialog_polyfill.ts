@@ -1,6 +1,6 @@
 /**
- * Implements the parts of `<dialog>` the application relies on, which jsdom
- * parses without implementing.
+ * Implements the parts of `<dialog>` the apps rely on, which jsdom parses
+ * without implementing.
  *
  * Opening moves focus in, Escape raises `cancel`, and closing raises `close`
  * and restores focus. The top layer, `::backdrop` and inertness mean nothing
@@ -11,11 +11,10 @@
 const FOCUSABLE =
   "[autofocus], button, a[href], input, select, textarea, [tabindex]";
 
-interface PolyfilledDialog extends HTMLDialogElement {
-  /** The element focused before opening, restored on close. */
-  __previouslyFocused?: HTMLElement | null;
-}
+/** The element focused before each dialog opened, restored on close. */
+const previouslyFocused = new WeakMap<HTMLDialogElement, HTMLElement>();
 
+/** Returns what a browser would focus on opening a dialog, if anything. */
 function focusableWithin(dialog: HTMLDialogElement): HTMLElement | undefined {
   const candidates = [
     ...dialog.querySelectorAll<HTMLElement>(FOCUSABLE),
@@ -26,33 +25,39 @@ function focusableWithin(dialog: HTMLDialogElement): HTMLElement | undefined {
   return candidates.find((el) => el.hasAttribute("autofocus")) ?? candidates[0];
 }
 
-/** Installs the polyfill onto a window, if its dialogs are missing methods. */
+/**
+ * Installs the polyfill onto a window, if its dialogs are missing methods.
+ *
+ * A spec setup file calls it once, for the specs that run in jsdom.
+ */
 export function installDialogPolyfill(
   target: Window & typeof globalThis,
 ): void {
-  const proto = target.HTMLDialogElement?.prototype;
-  if (!proto || typeof proto.showModal === "function") return;
+  const proto = target.HTMLDialogElement.prototype;
+  if (typeof proto.showModal === "function") return;
 
-  proto.showModal = function showModal(this: PolyfilledDialog): void {
+  proto.showModal = function showModal(this: HTMLDialogElement): void {
     if (this.open) {
       throw new DOMException(
         "The element already has an 'open' attribute",
         "InvalidStateError",
       );
     }
-    this.__previouslyFocused = this.ownerDocument
-      .activeElement as HTMLElement | null;
+    const active = this.ownerDocument.activeElement;
+    if (active instanceof target.HTMLElement) {
+      previouslyFocused.set(this, active);
+    }
     this.setAttribute("open", "");
     focusableWithin(this)?.focus();
   };
 
-  proto.show = function show(this: PolyfilledDialog): void {
+  proto.show = function show(this: HTMLDialogElement): void {
     if (this.open) return;
     this.setAttribute("open", "");
   };
 
   proto.close = function close(
-    this: PolyfilledDialog,
+    this: HTMLDialogElement,
     returnValue?: string,
   ): void {
     if (!this.open) return;
@@ -60,8 +65,8 @@ export function installDialogPolyfill(
       this.returnValue = returnValue;
     }
     this.removeAttribute("open");
-    this.__previouslyFocused?.focus();
-    this.__previouslyFocused = null;
+    previouslyFocused.get(this)?.focus();
+    previouslyFocused.delete(this);
     this.dispatchEvent(new target.Event("close"));
   };
 
@@ -74,7 +79,7 @@ export function installDialogPolyfill(
     const openDialogs = [
       ...target.document.querySelectorAll<HTMLDialogElement>("dialog[open]"),
     ];
-    const topmost = openDialogs[openDialogs.length - 1];
+    const topmost = openDialogs.at(-1);
     if (!topmost) return;
 
     event.preventDefault();

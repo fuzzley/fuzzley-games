@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
+import { DialogComponent } from "@fz/ui/dialog";
 import { GameMetricsService } from "../../service/game_metrics.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { GameBrowserService } from "../../service/game_browser.service";
-import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
 
 /**
  * Shows the final score, time and moves once the board is cleared, with
@@ -13,7 +13,7 @@ import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
 @Component({
   selector: "app-victory-overlay",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ModalDialogComponent],
+  imports: [DialogComponent],
   templateUrl: "./victory_overlay.component.html",
   styleUrl: "./victory_overlay.component.scss",
 })

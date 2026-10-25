@@ -111,9 +111,9 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
   including the felt, documentation, game browser, recent games, bug report,
   saved game). They keep what they store through `@fz/ui/storage`'s
   `LocalStorageService`.
-- **`src/ui/app/component`** — one folder per component. `modal_dialog` and
-  `option_group` are the shared ones: every overlay is a native `<dialog>` via
-  the first, and every settings control is the second.
+- **`src/ui/app/component`** — one folder per component. `option_group` is
+  the shared one: every settings control is one. Every overlay is a native
+  `<dialog>` through `@fz/ui/dialog`'s `<fz-dialog>`.
 - **`src/ui/app/styles`** — the Sass design system. `global.scss` is loaded once
   from `main.ts` and is the only stylesheet outside a component; `_index.scss`
   is the toolkit every component `@use`s, and deliberately emits no CSS.
@@ -173,7 +173,7 @@ brings in the mixins and breakpoints and nothing else:
   components defining the same animation name silently overwrite each other.
 - **Comment with `//`.** Sass strips it, so notes explaining the source do not
   ship to the browser.
-- **Overlays are `<dialog>`.** Wrap content in `<app-modal-dialog>` rather than
+- **Overlays are `<dialog>`.** Wrap content in `<fz-dialog>` rather than
   hand-rolling a focus trap, an Escape handler or a z-index.
 - **Templates bind, they do not compute.** Expose a `computed()` view model
   instead of calling a method from a template, which re-runs on every change
@@ -240,8 +240,8 @@ on `SHUTDOWN` or `DESTROY`, because the game it ran in lives on.
   screenshots the site's images are made from.
 - **Accessibility.** The rules are the repository's `web-game-accessibility`
   skill's. Here, an icon-only button's screen-reader label comes from the
-  `visually-hidden()` mixin, and every overlay is an `<app-modal-dialog>`
-  (see Styling above).
+  `visually-hidden()` mixin, and every overlay is an `<fz-dialog>` (see
+  Styling above).
 
 ---
 

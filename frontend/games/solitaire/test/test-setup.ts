@@ -1,7 +1,7 @@
 import "@angular/compiler";
 import { setupTestBed } from "@analogjs/vitest-angular/setup-testbed";
+import { installDialogPolyfill } from "@fz/ui/testing";
 import { installCompressionStreams } from "./support/compression_streams";
-import { installDialogPolyfill } from "./support/dialog_polyfill";
 
 setupTestBed({
   zoneless: true,

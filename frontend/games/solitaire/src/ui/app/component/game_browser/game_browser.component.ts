@@ -11,6 +11,7 @@ import {
   untracked,
   viewChild,
 } from "@angular/core";
+import { DialogComponent } from "@fz/ui/dialog";
 import {
   GameOptionSpec,
   GameOptionValues,
@@ -41,7 +42,6 @@ import { GameDocumentationService } from "../../service/game_documentation.servi
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { RecentGamesService } from "../../service/recent_games.service";
 import { ViewportService } from "../../service/viewport.service";
-import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
 import { GamePreviewComponent } from "../game_preview/game_preview.component";
 
 /** How many recent games the list shows. */
@@ -105,7 +105,7 @@ interface FilterChip {
   selector: "app-game-browser",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { "(keydown)": "onKeydown($event)" },
-  imports: [ModalDialogComponent, GamePreviewComponent],
+  imports: [DialogComponent, GamePreviewComponent],
   templateUrl: "./game_browser.component.html",
   styleUrl: "./game_browser.component.scss",
 })

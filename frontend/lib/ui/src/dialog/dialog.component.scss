@@ -1,0 +1,43 @@
+// The dialog only fills the viewport, centres its content and paints the
+// backdrop; the host styles everything visible.
+.dialog {
+  // Reset the UA's centred, sized, bordered box.
+  max-width: 100vw;
+  max-height: 100dvh;
+  width: 100vw;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  overflow: hidden;
+
+  // Only laid out when open, so the closed dialog is not a full-screen
+  // invisible box swallowing pointer events.
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  // A game's overlay layer may turn `pointer-events` off, and being in the
+  // top layer does not stop a dialog inheriting that.
+  pointer-events: auto;
+
+  &[open] {
+    display: flex;
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+// An app sets `--fz-dialog-backdrop` to tint it. The fallback is a literal
+// because an engine whose `::backdrop` does not inherit custom properties
+// resolves the var() to nothing.
+.dialog::backdrop {
+  backdrop-filter: blur(12px);
+  // stylelint-disable-next-line property-no-vendor-prefix
+  -webkit-backdrop-filter: blur(12px);
+  // stylelint-disable-next-line function-disallowed-list
+  background: var(--fz-dialog-backdrop, rgb(15 23 42 / 85%));
+}
