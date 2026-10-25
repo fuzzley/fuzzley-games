@@ -40,21 +40,23 @@ describe("SettingsComponent", () => {
   it("shows the difficulty in use as chosen", async () => {
     await renderSettings();
 
-    expect(screen.getByRole("radio", { name: "Medium" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: /^Medium/ })).toBeChecked();
   });
 
   it("says what each difficulty deals", async () => {
     await renderSettings();
 
     expect(
-      screen.getByRole("radio", { name: "Hard" }),
-    ).toHaveAccessibleDescription("16 × 30, 99 mines");
+      // A browser puts a space between the lines, which jsdom, without the
+      // stylesheet, doesn't.
+      screen.getByRole("radio", { name: /^Hard\s*16 × 30, 99 mines$/ }),
+    ).toBeInTheDocument();
   });
 
   it("deals a game of the difficulty chosen", async () => {
     const { user } = await renderSettings();
 
-    await user.click(screen.getByRole("radio", { name: "Easy" }));
+    await user.click(screen.getByRole("radio", { name: /^Easy/ }));
 
     expect(settings().difficulty).toBe("easy");
     expect(TestBed.inject(GameService).field().size).toEqual({
@@ -68,7 +70,7 @@ describe("SettingsComponent", () => {
     const { user } = await renderSettings();
     playOn(["*..", "...", "..*"]);
 
-    await user.click(screen.getByRole("radio", { name: "Easy" }));
+    await user.click(screen.getByRole("radio", { name: /^Easy/ }));
 
     expect(TestBed.inject(ConfirmService).isOpen()).toBe(true);
     expect(settings().difficulty).toBe("medium");
@@ -86,16 +88,16 @@ describe("SettingsComponent", () => {
   it("opens Custom's field to fill in, without dealing it yet", async () => {
     const { user } = await renderSettings();
 
-    await user.click(screen.getByRole("radio", { name: "Custom" }));
+    await user.click(screen.getByRole("radio", { name: /^Custom/ }));
 
-    expect(screen.getByRole("radio", { name: "Custom" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: /^Custom/ })).toBeChecked();
     expect(screen.getByRole("spinbutton", { name: "Rows" })).toHaveValue(20);
     expect(settings().difficulty).toBe("medium");
   });
 
   it("deals the custom field typed", async () => {
     const { user } = await renderSettings();
-    await user.click(screen.getByRole("radio", { name: "Custom" }));
+    await user.click(screen.getByRole("radio", { name: /^Custom/ }));
     await fill(user, "Rows", "8");
     await fill(user, "Columns", "12");
     await fill(user, "Mines", "20");
@@ -112,7 +114,7 @@ describe("SettingsComponent", () => {
 
   it("says why a custom field can't be dealt", async () => {
     const { user } = await renderSettings();
-    await user.click(screen.getByRole("radio", { name: "Custom" }));
+    await user.click(screen.getByRole("radio", { name: /^Custom/ }));
     await fill(user, "Mines", "500");
 
     await user.click(
@@ -127,7 +129,7 @@ describe("SettingsComponent", () => {
 
   it("marks the input a custom field can't be dealt for", async () => {
     const { user } = await renderSettings();
-    await user.click(screen.getByRole("radio", { name: "Custom" }));
+    await user.click(screen.getByRole("radio", { name: /^Custom/ }));
     await fill(user, "Columns", "40");
 
     await user.click(
@@ -140,7 +142,7 @@ describe("SettingsComponent", () => {
 
   it("says how many mines the rows and columns typed can hold", async () => {
     const { user } = await renderSettings();
-    await user.click(screen.getByRole("radio", { name: "Custom" }));
+    await user.click(screen.getByRole("radio", { name: /^Custom/ }));
 
     await fill(user, "Rows", "10");
 
@@ -159,10 +161,10 @@ describe("SettingsComponent", () => {
 
   it("puts away a Custom field left unfinished on closing", async () => {
     const { user } = await renderSettings();
-    await user.click(screen.getByRole("radio", { name: "Custom" }));
+    await user.click(screen.getByRole("radio", { name: /^Custom/ }));
 
     await user.click(screen.getByRole("button", { name: "Close settings" }));
 
-    expect(screen.getByRole("radio", { name: "Medium" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: /^Medium/ })).toBeChecked();
   });
 });

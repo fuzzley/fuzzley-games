@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   inject,
+  output,
 } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
@@ -34,6 +35,9 @@ interface Figure {
 export class ResultComponent {
   protected readonly game = inject(GameService);
   private readonly stats = inject(StatsService);
+
+  /** Emitted when the player deals a game from the card. */
+  readonly played = output();
 
   protected readonly won = computed(() => this.game.field().outcome === "won");
 
@@ -74,4 +78,14 @@ export class ResultComponent {
       best === null ? games : { term: "Best", value: formatTime(best) },
     ];
   });
+
+  /** Deals a new game. */
+  protected async newGame(): Promise<void> {
+    if (await this.game.newGame()) this.played.emit();
+  }
+
+  /** Starts the same field again. */
+  protected async playAgain(): Promise<void> {
+    if (await this.game.restart()) this.played.emit();
+  }
 }

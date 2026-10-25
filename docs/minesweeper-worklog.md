@@ -9,9 +9,8 @@ parent.
 
 - **Branch:** `minesweeper-angular`, from `main` at `d1b77db`. Not pushed: a
   push to `main` deploys, so shipping waits for the user's go-ahead.
-- **Phase:** M7, the checks.
-- **Next step:** the contrast spec, then the checks by hand on the
-  production build.
+- **Phase:** M8, screenshots and docs.
+- **Next step:** `tools/capture-screenshots.mjs`, then the docs.
 
 | Phase                 | State |
 | --------------------- | ----- |
@@ -22,7 +21,7 @@ parent.
 | M4. The board         | done  |
 | M5. Bar and dialogs   | done  |
 | M6. Storage           | done  |
-| M7. The checks        | to do |
+| M7. The checks        | done  |
 | M8. Screenshots, docs | to do |
 | M9. Ship              | to do |
 
@@ -159,3 +158,35 @@ Chrome at a time.
 - 277 specs: the services, every component through Testing Library, and
   the app shell. `src/testing/` adds `playOn()`, which puts a pictured field
   on the board, and the Solitaire Collection's fake `matchMedia`.
+
+### 2026-10-25: M7, the checks
+
+- **Contrast:** `src/app/board/contrast.spec.ts` compiles the app's global
+  stylesheet and the inks, as the Solitaire Collection's spec does, and
+  holds every palette to: each number at 4.5:1 on an open square, the flag,
+  a mine stepped on, and the mines and wrong flags shown after a loss at
+  4.5:1, and a hidden square against an open one, the stroke through a wrong
+  flag and the focus ring at 3:1. It caught a wrong flag drawn in the muted
+  color at 4.4:1 in Soft pastel; it is drawn in the text color now, its
+  stroke telling it apart.
+- **By hand, on the production build:** a win and a loss by keyboard alone
+  (Tab to the board, arrows, End, Ctrl+End, Enter, F, the card's buttons);
+  taps and Flag mode on an emulated phone in Classic felt; mouse play
+  through M4 to M6.
+- **Found and fixed:** a new deal from the result card replaced the square
+  that had the focus, dropping it to the page, so the card now hands it to
+  the board. A restored game whose start went uncounted could record more
+  wins than games, which the reader throws away as broken; a win now counts
+  as played where it has to.
+- **Lighthouse:** accessibility 100 on a phone mid-game and on a desktop
+  with the settings open. It flagged the difficulty choices, named by their
+  name alone while showing a line under it; they are named by all their
+  text now, as the theme picker's choices are. Its robots.txt and llms.txt
+  failures are the preview server answering with the page; the site serves
+  its own.
+- **Size:** 80.7 kB of script, 2.9 kB of CSS and 1.2 kB of HTML, gzipped:
+  84.8 kB against 158 kB before.
+- **Speed, production build at 4× throttle:** a flood opening 827 of 900
+  squares has its first frame at 180 ms and is painted by 560 ms, against
+  the spike's 240–260 ms, measured without DevTools' accessibility tree
+  live. Unthrottled that is about 140 ms, once a game.
