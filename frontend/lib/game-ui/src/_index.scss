@@ -1,0 +1,32 @@
+// The game chrome's toolkit, which a stylesheet reaches with
+// `@use "@fz/game-ui" as game-ui;`. It emits no CSS of its own.
+
+/// The bar's height across the top or the bottom of the window.
+$bar-height: 73px;
+
+/// The bar's height where the app has little room.
+$bar-height-compact: 60px;
+
+/// The bar's width as a rail down one side of the window.
+$rail-width: 64px;
+
+/// How much of `--fz-bar` the bar's glass keeps over the table. More solid
+/// than the site's `--fz-bar-glass`, so muted labels in the bar clear 4.5:1
+/// over the lightest felt; a game's contrast spec reads it from here.
+$bar-glass: 75%;
+
+/// Publishes the bar's size as `--fz-bar-height` and `--fz-rail-width`, for
+/// what lays itself out around the bar, such as a game's board.
+///
+/// An app includes it on `:root`, and again with `$compact: true` wherever it
+/// sets the bar's `compact`. The bar can't declare them itself: a custom
+/// property reaches only what sits inside the element declaring it.
+@mixin bar-size($compact: false) {
+  @if $compact {
+    --fz-bar-height: #{$bar-height-compact};
+  } @else {
+    --fz-bar-height: #{$bar-height};
+  }
+
+  --fz-rail-width: #{$rail-width};
+}

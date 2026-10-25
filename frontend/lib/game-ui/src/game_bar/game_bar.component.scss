@@ -1,0 +1,159 @@
+@use "@fz/style" as fz;
+@use "../index" as game-ui;
+
+:host {
+  display: block;
+  pointer-events: auto;
+}
+
+:host([data-placement="bottom"]) {
+  position: absolute;
+  inset: auto 0 0;
+}
+
+:host([data-placement="start"]),
+:host([data-placement="end"]) {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+:host([data-placement="start"]) {
+  inset-inline-start: 0;
+}
+
+:host([data-placement="end"]) {
+  inset-inline-end: 0;
+}
+
+// `--fz-bar-gap` and `--fz-bar-actions-gap` let an app tighten a bar that
+// isn't compact, where its actions have lost their labels but not their room.
+.bar {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fz-bar-gap, var(--fz-space-4));
+  box-sizing: border-box;
+  height: var(--fz-bar-height, #{game-ui.$bar-height});
+  padding: var(--fz-space-3) var(--fz-space-6);
+  border-bottom: 1px solid var(--fz-edge-2);
+  box-shadow: var(--fz-shadow-panel);
+  color: var(--fz-text);
+  user-select: none;
+
+  // The glass is a layer of its own: a `backdrop-filter` on the bar itself
+  // would trap the overflow menu's dismiss layer, which is `position: fixed`,
+  // inside the bar.
+  &::before {
+    @include fz.glass(12px);
+
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: color-mix(
+      in srgb,
+      var(--fz-bar) game-ui.$bar-glass,
+      transparent
+    );
+  }
+}
+
+:host([data-placement="bottom"]) .bar {
+  border-top: 1px solid var(--fz-edge-2);
+  border-bottom: none;
+}
+
+.compact {
+  gap: var(--fz-space-2);
+  height: var(--fz-bar-height, #{game-ui.$bar-height-compact});
+  padding: var(--fz-space-2);
+}
+
+.reversed {
+  flex-direction: row-reverse;
+}
+
+.rail {
+  flex-direction: column;
+  width: var(--fz-rail-width, #{game-ui.$rail-width});
+  height: 100%;
+  padding: var(--fz-space-2) 0;
+  border-bottom: none;
+  border-inline-end: 1px solid var(--fz-edge-2);
+}
+
+:host([data-placement="end"]) .rail {
+  border-inline-start: 1px solid var(--fz-edge-2);
+  border-inline-end: none;
+}
+
+// The groups give way in a fixed order, which keeps the bar on screen at every
+// width: the lead first, then the status, which clips rather than pushes. The
+// actions never shrink.
+.lead {
+  display: flex;
+  align-items: center;
+  gap: var(--fz-space-2);
+  flex: 0 1000 auto;
+  min-width: 0;
+}
+
+.compact .lead {
+  flex-shrink: 0;
+  gap: var(--fz-space-1);
+}
+
+.rail .lead {
+  flex-direction: column;
+  gap: var(--fz-space-2);
+}
+
+.home-wordmark {
+  flex: none;
+  color: var(--fz-bar-text);
+  text-decoration: none;
+}
+
+.divider {
+  flex: none;
+  width: 1px;
+  height: 24px;
+  margin-inline: var(--fz-space-1);
+  background: var(--fz-edge-3);
+}
+
+.home-button {
+  @include fz.tap-target;
+
+  flex: none;
+}
+
+.status {
+  display: flex;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rail .status {
+  flex: none;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--fz-bar-actions-gap, var(--fz-space-3));
+  flex: none;
+}
+
+.compact .actions {
+  gap: var(--fz-space-1);
+}
+
+.rail .actions {
+  flex-direction: column;
+  gap: var(--fz-space-2);
+}

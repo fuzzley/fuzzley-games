@@ -1,0 +1,70 @@
+<button
+  #trigger="ngMenuTrigger"
+  class="fz-button fz-button-secondary fz-button-circle trigger"
+  type="button"
+  ngMenuTrigger
+  [menu]="menu"
+  [attr.aria-label]="label()"
+  [title]="label()"
+>
+  <fz-icon name="more" />
+</button>
+
+<!--
+  Covers the page while the menu is open, so the tap that closes it presses
+  nothing else. Holding focus where it is keeps the menu open until the click
+  lands here. The keyboard has Escape and Tab instead.
+-->
+@if (trigger.expanded()) {
+  <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+  <div
+    class="dismiss"
+    (mousedown)="$event.preventDefault()"
+    (click)="dismiss(trigger)"
+  ></div>
+}
+
+<div
+  ngMenu
+  #menu="ngMenu"
+  class="panel"
+  [attr.data-side]="side()"
+  [class.align-start]="alignsStart()"
+  [attr.aria-label]="label()"
+  (itemSelected)="select($event)"
+>
+  <ng-template ngMenuContent>
+    @for (item of items(); track item.id) {
+      @if (item.startsGroup) {
+        <div class="rule" role="separator"></div>
+      }
+      @if (item.href) {
+        <!--
+          Enter follows a link natively, which the menu would cancel; the
+          menu still closes on the click that follows.
+        -->
+        <a
+          ngMenuItem
+          class="item"
+          [value]="item.id"
+          [searchTerm]="item.label"
+          [href]="item.href"
+          (keydown.enter)="$event.stopPropagation()"
+        >
+          <fz-icon class="icon" [name]="item.icon" />
+          <span>{{ item.label }}</span>
+        </a>
+      } @else {
+        <div
+          ngMenuItem
+          class="item"
+          [value]="item.id"
+          [searchTerm]="item.label"
+        >
+          <fz-icon class="icon" [name]="item.icon" />
+          <span>{{ item.label }}</span>
+        </div>
+      }
+    }
+  </ng-template>
+</div>

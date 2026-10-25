@@ -1,0 +1,34 @@
+<header
+  class="bar"
+  [class.compact]="compact()"
+  [class.rail]="isRail()"
+  [class.reversed]="reversed() && !isRail()"
+>
+  <div class="lead">
+    @switch (shownHome()) {
+      @case ("wordmark") {
+        <a class="home-wordmark" [href]="homeHref()"><fz-wordmark /></a>
+        <span class="divider"></span>
+      }
+      @case ("icon") {
+        <a
+          class="fz-button fz-button-secondary fz-button-circle home-button"
+          [href]="homeHref()"
+          aria-label="Fuzzley Games"
+          title="Fuzzley Games"
+        >
+          <fz-icon name="home" />
+        </a>
+      }
+    }
+    <ng-content select="[fzBarTitle]" />
+  </div>
+
+  <div class="status">
+    <ng-content select="[fzBarStatus]" />
+  </div>
+
+  <div class="actions">
+    <ng-content select="[fzBarActions]" />
+  </div>
+</header>
