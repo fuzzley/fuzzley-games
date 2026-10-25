@@ -199,10 +199,10 @@
         <span class="setting-label">Game Rules & Documentation</span>
         <button
           type="button"
-          class="btn btn-secondary btn-block"
+          class="fz-button fz-button-secondary fz-button-block"
           (click)="openRules()"
         >
-          <fz-icon class="btn-icon" name="help" />
+          <fz-icon name="help" />
           How to Play {{ activeGameTitle() }}
         </button>
       </div>
@@ -211,14 +211,14 @@
       <div class="setting-group">
         <span class="setting-label">Found a Problem?</span>
         <a
-          class="btn btn-secondary btn-block btn-report"
+          class="fz-button fz-button-secondary fz-button-block btn-report"
           [attr.href]="bugReportUrl()"
           target="_blank"
           rel="noopener noreferrer"
         >
-          <fz-icon class="btn-icon" name="bug" />
+          <fz-icon name="bug" />
           Report a Bug
-          <fz-icon class="btn-icon" name="external" />
+          <fz-icon name="external" />
           <span class="new-tab-hint">(opens GitHub in a new tab)</span>
         </a>
       </div>
@@ -233,7 +233,7 @@
     <div class="drawer-footer">
       <button
         type="button"
-        class="btn btn-primary btn-block"
+        class="fz-button fz-button-block"
         (click)="closed.emit()"
       >
         Done

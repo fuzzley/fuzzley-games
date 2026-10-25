@@ -29,6 +29,14 @@ const PAIRS = [
   ["accent", "panel-raised", 3],
 ] as const;
 
+// Each filled button's label and fill, which `.fz-button:hover` mixes with the
+// text.
+const HOVERED = [
+  ["on-accent", "accent"],
+  ["on-danger", "danger"],
+  ["on-warning", "warning"],
+] as const;
+
 /** Returns each palette's roles and their colors, by the palette's id. */
 function compiledPalettes(): ReadonlyMap<string, ReadonlyMap<string, string>> {
   const file = fileURLToPath(new URL("_palettes.scss", import.meta.url));
@@ -45,12 +53,43 @@ function compiledPalettes(): ReadonlyMap<string, ReadonlyMap<string, string>> {
   return palettes;
 }
 
-/** Returns a hex color's relative luminance, as WCAG defines it. */
-function luminance(hex: string): number {
+/** Returns how much of its fill `.fz-button:hover` keeps, from 0 to 1. */
+function hoverStrength(): number {
+  const file = fileURLToPath(
+    new URL("../fragments/_button.scss", import.meta.url),
+  );
+  const strength = /var\(--fz-button-fill\)\s+(\d+)%,\s*var\(--fz-text\)/.exec(
+    compile(file).css,
+  )?.[1];
+  return Number(strength) / 100;
+}
+
+/** Returns a hex color's red, green and blue, from 0 to 255. */
+function channels(hex: string): number[] {
   const digits = hex.slice(1);
   const full = digits.length === 3 ? digits.replace(/./g, "$&$&") : digits;
-  const [red = 0, green = 0, blue = 0] = [0, 2, 4].map((start) => {
-    const channel = parseInt(full.slice(start, start + 2), 16) / 255;
+  return [0, 2, 4].map((start) => parseInt(full.slice(start, start + 2), 16));
+}
+
+/**
+ * Returns two hex colors mixed as `color-mix(in srgb, …)` mixes them, with
+ * `weight` of the first.
+ */
+function mix(first: string, second: string, weight: number): string {
+  const [a, b] = [channels(first), channels(second)];
+  return `#${a
+    .map((channel, index) =>
+      Math.round(channel * weight + (b[index] ?? 0) * (1 - weight))
+        .toString(16)
+        .padStart(2, "0"),
+    )
+    .join("")}`;
+}
+
+/** Returns a hex color's relative luminance, as WCAG defines it. */
+function luminance(hex: string): number {
+  const [red = 0, green = 0, blue = 0] = channels(hex).map((value) => {
+    const channel = value / 255;
     return channel <= 0.04045
       ? channel / 12.92
       : ((channel + 0.055) / 1.055) ** 2.4;
@@ -68,6 +107,7 @@ function contrast(a: string, b: string): number {
 
 describe("contrast", () => {
   const palettes = compiledPalettes();
+  const strength = hoverStrength();
 
   describe.each(THEMES)("in $name", ({ id }) => {
     it.each(PAIRS)("keeps %s on %s at %d:1 or more", (color, on, least) => {
@@ -77,6 +117,22 @@ describe("contrast", () => {
 
       expect(ratio).toBeGreaterThanOrEqual(least);
     });
+
+    it.each(HOVERED)(
+      "keeps %s on %s, hovered, at 4.5:1 or more",
+      (label, fill) => {
+        const roles = palettes.get(id);
+        const hovered = mix(
+          roles?.get(fill) ?? "",
+          roles?.get("text") ?? "",
+          strength,
+        );
+
+        const ratio = contrast(roles?.get(label) ?? "", hovered);
+
+        expect(ratio).toBeGreaterThanOrEqual(4.5);
+      },
+    );
   });
 });
 
@@ -87,5 +143,13 @@ describe("luminance and contrast", () => {
 
   it("measures a color on itself at 1:1", () => {
     expect(contrast("#2f7d4f", "#2f7d4f")).toBe(1);
+  });
+
+  it("mixes two colors channel by channel", () => {
+    expect(mix("#ff0000", "#0000ff", 0.75)).toBe("#bf0040");
+  });
+
+  it("finds how much of its fill a hovered button keeps", () => {
+    expect(hoverStrength()).toBeGreaterThan(0);
   });
 });

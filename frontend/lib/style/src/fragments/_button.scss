@@ -1,16 +1,91 @@
 @layer fz.fragments {
-  // The page's main action, filled with the accent: on a <button>, or on a
-  // link that looks like one. An icon beside its words sits a gap apart.
+  // An action in a pill, on a <button> or on a link that looks like one:
+  // filled with the accent, for the main one, unless a tone class gives it
+  // another fill. An icon beside its words sits a gap apart.
   .fz-button {
+    // The fill and the label on it, which each tone sets as a pair that
+    // contrast.spec.ts holds to 4.5:1, hovered or not.
+    --fz-button-fill: var(--fz-accent);
+    --fz-button-label: var(--fz-on-accent);
+    --fz-button-edge: transparent;
+    --fz-button-hover: color-mix(
+      in srgb,
+      var(--fz-button-fill) 86%,
+      var(--fz-text)
+    );
+
+    // An icon inside, which can't be sized from this layer any other way.
+    --fz-icon-size: 16px;
+
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: var(--fz-space-2);
-    height: 42px;
+    min-height: 42px;
     padding: 0 1.2rem;
+    border: 1px solid var(--fz-button-edge);
     border-radius: var(--fz-radius-pill);
-    background: var(--fz-accent);
-    color: var(--fz-on-accent);
+    background: var(--fz-button-fill);
+    color: var(--fz-button-label);
+    font-size: var(--fz-font-sm);
     font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background-color var(--fz-duration-fast) var(--fz-ease-standard);
+
+    &:hover {
+      background: var(--fz-button-hover);
+    }
+
+    // Dimmed rather than hidden, so an action that isn't available yet still
+    // shows that it exists.
+    &:disabled {
+      background: var(--fz-button-fill);
+      opacity: 0.4;
+      cursor: default;
+    }
+  }
+
+  // The tones. Secondary is a quiet wash, for the actions beside the main
+  // one; warning and danger are for a celebration and for what can't be
+  // undone.
+  .fz-button-secondary {
+    --fz-button-fill: var(--fz-wash-3);
+    --fz-button-label: var(--fz-text);
+    --fz-button-edge: var(--fz-edge-3);
+    --fz-button-hover: var(--fz-wash-4);
+  }
+
+  .fz-button-warning {
+    --fz-button-fill: var(--fz-warning);
+    --fz-button-label: var(--fz-on-warning);
+  }
+
+  .fz-button-danger {
+    --fz-button-fill: var(--fz-danger);
+    --fz-button-label: var(--fz-on-danger);
+  }
+
+  // The shapes and sizes. A circle holds only an icon, so it needs an
+  // `aria-label`.
+  .fz-button-circle {
+    --fz-icon-size: 18px;
+
+    width: 38px;
+    height: 38px;
+    min-height: 0;
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  .fz-button-block {
+    width: 100%;
+  }
+
+  .fz-button-large {
+    min-height: 48px;
+    padding: 0 var(--fz-space-6);
+    font-size: var(--fz-font-md);
   }
 }

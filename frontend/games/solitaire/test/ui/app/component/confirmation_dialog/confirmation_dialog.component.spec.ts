@@ -68,7 +68,7 @@ describe("ConfirmationDialogComponent", () => {
   it("answers yes when Confirm is clicked", async () => {
     const answer = ask();
 
-    clickElement(fixture, ".btn-danger");
+    clickElement(fixture, ".fz-button-danger");
     fixture.detectChanges();
 
     await expect(answer).resolves.toBe(true);
@@ -78,7 +78,7 @@ describe("ConfirmationDialogComponent", () => {
   it("answers no when Cancel is clicked", async () => {
     const answer = ask();
 
-    clickElement(fixture, ".btn-secondary");
+    clickElement(fixture, ".fz-button-secondary");
     fixture.detectChanges();
 
     await expect(answer).resolves.toBe(false);

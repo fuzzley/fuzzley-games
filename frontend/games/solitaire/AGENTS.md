@@ -175,6 +175,10 @@ brings in the mixins and breakpoints and nothing else:
   ship to the browser.
 - **Overlays are `<dialog>`.** Wrap content in `<fz-dialog>` rather than
   hand-rolling a focus trap, an Escape handler or a z-index.
+- **Buttons are `@fz/style`'s `.fz-button`**, with its tone and size
+  classes; Solitaire has no button styles of its own. A component's own
+  class beside them, such as `btn-play`, is a hook for its stylesheet and
+  specs, not a style.
 - **Icons are `<fz-icon name="…">`**, from `@fz/ui/icon`, never an inline
   `<svg>`; a new one goes into the library (its `AGENTS.md` says how). The
   settings' card-deck preview is a drawing, not an icon, so it stays inline.

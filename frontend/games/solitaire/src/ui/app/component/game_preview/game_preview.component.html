@@ -47,12 +47,16 @@
   <div class="actions">
     <button
       type="button"
-      class="btn btn-primary btn-play"
+      class="fz-button btn-play"
       (click)="deal.emit(chosen())"
     >
       {{ playLabel() }}
     </button>
-    <button type="button" class="btn btn-secondary" (click)="help.emit()">
+    <button
+      type="button"
+      class="fz-button fz-button-secondary"
+      (click)="help.emit()"
+    >
       How to play
     </button>
   </div>
