@@ -45,17 +45,39 @@ export function maxMines(rows: number, cols: number): number {
   return rows * cols - 9;
 }
 
+/** Returns whether a number is one a custom field may have for a side. */
+export function isSide(n: number): boolean {
+  return Number.isInteger(n) && n >= CUSTOM_SIDE.min && n <= CUSTOM_SIDE.max;
+}
+
+/** Says which number of a custom field the game can't deal, and why. */
+export interface SizeProblem {
+  readonly field: keyof FieldSize;
+  readonly message: string;
+}
+
+/** Returns the first number of a custom field the game can't deal, if any. */
+export function sizeProblem(size: FieldSize): SizeProblem | null {
+  const sides = `a whole number from ${CUSTOM_SIDE.min} to ${CUSTOM_SIDE.max}`;
+  if (!isSide(size.rows)) {
+    return { field: "rows", message: `Rows must be ${sides}.` };
+  }
+  if (!isSide(size.cols)) {
+    return { field: "cols", message: `Columns must be ${sides}.` };
+  }
+  const most = maxMines(size.rows, size.cols);
+  if (!Number.isInteger(size.mines) || size.mines < 1 || size.mines > most) {
+    return {
+      field: "mines",
+      message: `Mines must be a whole number from 1 to ${most}.`,
+    };
+  }
+  return null;
+}
+
 /** Returns whether a custom field is one the game can deal. */
 export function isValidSize(size: FieldSize): boolean {
-  const side = (n: number) =>
-    Number.isInteger(n) && n >= CUSTOM_SIDE.min && n <= CUSTOM_SIDE.max;
-  return (
-    side(size.rows) &&
-    side(size.cols) &&
-    Number.isInteger(size.mines) &&
-    size.mines >= 1 &&
-    size.mines <= maxMines(size.rows, size.cols)
-  );
+  return sizeProblem(size) === null;
 }
 
 /** Returns whether a number of lives is one a game can have. */

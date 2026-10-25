@@ -1,11 +1,45 @@
+@use "@fz/game-ui" as game-ui;
+
+// The page is the game: the bar stands against one edge, and the stage takes
+// the rest. `--room` is the space around the board, which a compact screen
+// gives to the board instead.
 :host {
+  --room: var(--fz-space-6);
+
+  position: fixed;
+  inset: 0;
   display: block;
-  min-height: 100dvh;
+  overflow: hidden;
 }
 
-.title {
-  margin: 0;
-  font-size: var(--fz-font-lg);
-  font-weight: 700;
-  white-space: nowrap;
+:host(.compact) {
+  @include game-ui.bar-size($compact: true);
+
+  --room: 0px;
+}
+
+// A size container, which the board sizes its squares from. It scrolls when
+// even the smallest squares won't fit.
+.stage {
+  position: absolute;
+  inset: var(--fz-bar-height) 0 0;
+  container-type: size;
+  overflow: auto;
+}
+
+:host([data-bar="bottom"]) .stage {
+  inset: 0 0 var(--fz-bar-height);
+}
+
+:host([data-bar="end"]) .stage {
+  inset: 0 var(--fz-rail-width) 0 0;
+}
+
+.room {
+  display: grid;
+  box-sizing: border-box;
+  min-width: 100%;
+  min-height: 100%;
+  width: max-content;
+  padding: var(--room);
 }

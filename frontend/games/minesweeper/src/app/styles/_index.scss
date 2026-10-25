@@ -1,0 +1,10 @@
+// The toolkit every component stylesheet imports:
+
+//     @use "../styles" as *;
+
+// It emits no CSS, or every component would repeat the rules. @fz/style's
+// toolkit comes with it, so a component calls a shared mixin as it does this
+// game's own.
+@forward "@fz/style";
+@forward "breakpoints";
+@forward "mixins";

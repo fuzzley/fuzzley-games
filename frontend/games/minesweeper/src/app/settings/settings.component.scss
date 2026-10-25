@@ -1,0 +1,170 @@
+@use "../styles" as *;
+
+// No scrim or z-index: <fz-dialog> puts this in the top layer.
+// `margin-left: auto` pins the drawer to the end of the dialog's flexbox.
+.drawer {
+  @include glass(20px);
+
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 340px;
+  max-width: 100vw;
+  height: 100dvh;
+  margin-left: auto;
+  border-left: 1px solid var(--fz-edge-2);
+  background: var(--fz-panel-glass);
+  box-shadow: var(--fz-shadow-drawer);
+  color: var(--fz-text);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--fz-space-5) var(--fz-space-6);
+  border-bottom: 1px solid var(--fz-edge-2);
+
+  h2 {
+    margin: 0;
+    font-size: var(--fz-font-xl);
+    font-weight: 700;
+  }
+}
+
+.close {
+  @include close-button;
+}
+
+.drawer-content {
+  flex: 1;
+  padding: var(--fz-space-6);
+  overflow-y: auto;
+}
+
+.setting {
+  margin-bottom: var(--fz-space-6);
+}
+
+.setting-label {
+  @include field-label;
+}
+
+// `--fz-muted`, which clears 4.5:1 on the drawer's surface.
+.setting-desc {
+  margin: var(--fz-space-2) 0 0;
+  color: var(--fz-muted);
+  font-size: var(--fz-font-xs);
+  line-height: var(--fz-leading-tight);
+}
+
+.choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fz-space-2);
+}
+
+.choice {
+  @include choice-option;
+
+  flex-direction: column;
+  gap: var(--fz-space-1);
+  min-height: var(--fz-tap-target);
+  padding: var(--fz-space-2) var(--fz-space-3);
+  font: inherit;
+  text-align: left;
+
+  .name {
+    font-size: var(--fz-font-sm);
+    font-weight: 600;
+  }
+
+  // Muted whether or not its row is checked, so the name stays the loudest.
+  .desc {
+    color: var(--fz-muted);
+    font-size: var(--fz-font-xs);
+    line-height: var(--fz-leading-tight);
+  }
+}
+
+.custom {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--fz-space-2);
+  margin-top: var(--fz-space-3);
+
+  label {
+    display: grid;
+    gap: var(--fz-space-1);
+    color: var(--fz-muted);
+    font-size: var(--fz-font-xs);
+    font-weight: 600;
+  }
+
+  input {
+    box-sizing: border-box;
+    width: 100%;
+    height: var(--fz-tap-target);
+    padding: 0 var(--fz-space-3);
+    border: 1px solid var(--fz-field-line);
+    border-radius: var(--fz-radius-md);
+    background: var(--fz-field);
+    color: var(--fz-field-text);
+    font: inherit;
+    font-size: var(--fz-font-md);
+    font-variant-numeric: tabular-nums;
+
+    &[aria-invalid="true"] {
+      border-color: var(--fz-danger);
+    }
+  }
+
+  .hint,
+  .error,
+  .start {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+
+  .hint {
+    color: var(--fz-muted);
+    font-size: var(--fz-font-xs);
+    line-height: var(--fz-leading-tight);
+  }
+
+  // Laid out even while empty, so a screen reader is listening to it.
+  .error {
+    color: var(--fz-danger);
+    font-size: var(--fz-font-xs);
+    font-weight: 600;
+  }
+}
+
+.segmented {
+  display: flex;
+  padding: 2px;
+  border: 1px solid var(--fz-edge-1);
+  border-radius: var(--fz-radius-md);
+  background: var(--fz-well);
+}
+
+.segment {
+  @include transition(background, color);
+
+  flex: 1;
+  min-height: var(--fz-tap-target);
+  border: none;
+  border-radius: var(--fz-radius-sm);
+  background: transparent;
+  color: var(--fz-muted);
+  font: inherit;
+  font-size: var(--fz-font-sm);
+  font-weight: 600;
+  cursor: pointer;
+
+  &[aria-checked="true"] {
+    background: var(--fz-accent);
+    color: var(--fz-on-accent);
+    box-shadow: 0 2px 6px var(--fz-accent-glow);
+  }
+}

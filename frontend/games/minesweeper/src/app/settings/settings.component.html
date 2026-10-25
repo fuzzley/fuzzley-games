@@ -1,0 +1,129 @@
+<fz-dialog [open]="open()" label="Settings" (closed)="close()">
+  <div class="drawer">
+    <div class="drawer-header">
+      <h2>Settings</h2>
+      <button
+        type="button"
+        class="close"
+        aria-label="Close settings"
+        (click)="close()"
+      >
+        <fz-icon name="close" />
+      </button>
+    </div>
+
+    <div class="drawer-content">
+      <div class="setting">
+        <span class="setting-label" id="difficulty-label">Difficulty</span>
+        <!-- Each choice is named by its name alone, and its line describes it. -->
+        <div
+          class="choice-list"
+          fzRadioGroup
+          aria-labelledby="difficulty-label"
+        >
+          @for (choice of difficulties(); track choice.id) {
+            <button
+              type="button"
+              class="choice"
+              role="radio"
+              [attr.aria-checked]="choice.checked"
+              [attr.aria-labelledby]="`difficulty-${choice.id}`"
+              [attr.aria-describedby]="`difficulty-${choice.id}-desc`"
+              (click)="chooseDifficulty(choice.id)"
+            >
+              <span class="name" [id]="`difficulty-${choice.id}`">{{
+                choice.name
+              }}</span>
+              <span class="desc" [id]="`difficulty-${choice.id}-desc`">{{
+                choice.description
+              }}</span>
+            </button>
+          }
+        </div>
+
+        @if (showCustom()) {
+          <form class="custom" novalidate (submit)="startCustom($event)">
+            <label>
+              Rows
+              <input
+                type="number"
+                inputmode="numeric"
+                [min]="customSide.min"
+                [max]="customSide.max"
+                aria-describedby="custom-hint custom-error"
+                [attr.aria-invalid]="customProblem()?.field === 'rows' || null"
+                [value]="draft().rows"
+                (input)="type('rows', $event)"
+              />
+            </label>
+            <label>
+              Columns
+              <input
+                type="number"
+                inputmode="numeric"
+                [min]="customSide.min"
+                [max]="customSide.max"
+                aria-describedby="custom-hint custom-error"
+                [attr.aria-invalid]="customProblem()?.field === 'cols' || null"
+                [value]="draft().cols"
+                (input)="type('cols', $event)"
+              />
+            </label>
+            <label>
+              Mines
+              <input
+                type="number"
+                inputmode="numeric"
+                min="1"
+                [max]="mineMax()"
+                aria-describedby="custom-hint custom-error"
+                [attr.aria-invalid]="customProblem()?.field === 'mines' || null"
+                [value]="draft().mines"
+                (input)="type('mines', $event)"
+              />
+            </label>
+            <p class="hint" id="custom-hint">{{ customHint() }}</p>
+            <!-- In the page from the start, so the problem is announced. -->
+            <p class="error" id="custom-error" role="alert">
+              {{ customProblem()?.message }}
+            </p>
+            <button type="submit" class="fz-button fz-button-secondary start">
+              Start a custom game
+            </button>
+          </form>
+        }
+      </div>
+
+      <div class="setting">
+        <span class="setting-label" id="lives-label">Lives</span>
+        <div
+          class="segmented"
+          fzRadioGroup
+          aria-labelledby="lives-label"
+          aria-describedby="lives-desc"
+        >
+          @for (choice of lives(); track choice.n) {
+            <button
+              type="button"
+              class="segment"
+              role="radio"
+              [attr.aria-checked]="choice.checked"
+              (click)="chooseLives(choice.n)"
+            >
+              {{ choice.n }}
+            </button>
+          }
+        </div>
+        <p class="setting-desc" id="lives-desc">
+          Each mine you step on costs one. Changing the difficulty or the lives
+          starts a new game.
+        </p>
+      </div>
+
+      <div class="setting">
+        <span class="setting-label" aria-hidden="true">Theme</span>
+        <fz-theme-picker />
+      </div>
+    </div>
+  </div>
+</fz-dialog>

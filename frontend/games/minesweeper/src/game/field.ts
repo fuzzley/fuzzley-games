@@ -202,6 +202,15 @@ export function minesLeft(field: Field): number {
   return field.size.mines - field.squares.filter(isMarked).length;
 }
 
+/** Returns how many mines the player has found: flagged, or stepped on. */
+export function minesFound(field: Field): number {
+  const mines = field.layout?.mines;
+  if (!mines) return 0;
+  return field.squares.filter(
+    (square, i) => square === "tripped" || (square === "flagged" && mines[i]),
+  ).length;
+}
+
 /** Returns how many squares are revealed. */
 export function revealedCount(field: Field): number {
   return field.squares.filter((s) => s === "revealed").length;
