@@ -8,10 +8,10 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
-- **Phase:** 7, the game bar. Phase 6 is done.
-- **Next step:** the user's review of
-  [Phase 7's mock](https://claude.ai/artifact/WtRD7hLp7WQqPKjWQzHQKh). No
-  Phase 7 code before they approve it.
+- **Phase:** 7, the game bar, is built; its screenshots are next.
+- **Next step:** retake Solitaire's screenshots
+  (`yarn workspace solitaire capture:screenshots`, then `build:thumbs`),
+  then Phase 8.
 
 | Phase                             | State |
 | --------------------------------- | ----- |
@@ -22,7 +22,7 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 | 4. Plumbing in Solitaire          | done  |
 | 5. Solitaire follows the theme    | done  |
 | 6. Solitaire's pieces move to lib | done  |
-| 7. The game bar                   | to do |
+| 7. The game bar                   | built |
 | 8. Retire Solitaire's token names | to do |
 | 9. Light chrome                   | to do |
 | 10. Skills, and the next consumer | to do |
@@ -615,3 +615,63 @@ passed every check in the plan, and was removed once done. What it showed:
     plan's Phase 7 says `lib/ui`. The mock proposes `@fz/game-ui`
     (`frontend/lib/game-ui`), for the user to confirm.
 - **Waiting on:** the user's approval. No Phase 7 code until then.
+
+### 2026-10-24: the mock approved; Phase 7, the game bar
+
+- **Approved as mocked:** the wordmark from 1280px, the home button below it,
+  home as the overflow menu's first item below 360px, the bar's gaps at 8px
+  below the desktop width, `--fz-edge-3` for the menu's border, and the new
+  library `@fz/game-ui` (`frontend/lib/game-ui`).
+- **`@fz/ui`** gained the `home` icon.
+- **`@fz/game-ui`**, configured as `@fz/ui` is, depends on it and on
+  `@fz/style`:
+  - `<fz-game-bar>`: the `<header>` with the link home first, then the
+    `fzBarTitle`, `fzBarStatus` and `fzBarActions` slots. Its inputs are
+    `placement`, `compact` and `homeHref`, as planned, plus two more:
+    `reversed`, for the upright bar with the stock at the left, and `home`
+    (`wordmark`, `icon` or `none`), since it is the app that knows its
+    widths. A rail always shows the icon.
+  - `<fz-bar-overflow>`: Angular Aria's menu, opening away from the bar's
+    edge. Its items are data; one with an `href` is a link (the home item),
+    which the browser follows, so Enter on it isn't swallowed by the menu's
+    key handling. While it is open, a transparent layer over the window
+    takes the tap that closes it, as Solitaire's did, so the tap doesn't
+    reach the board.
+  - `_index.scss`: `bar-size()` publishes `--fz-bar-height` and
+    `--fz-rail-width`. They replace Solitaire's `--header-height` and
+    `--rail-width`. The bar can't declare them for the canvas, which isn't
+    inside it, so an app includes the mixin on `:root`.
+- **Solitaire's `header_bar`** is now a composition of the two. It keeps the
+  switcher, the metrics and the actions, and maps its form factor and the
+  stock's side to `placement` and `reversed`, replacing its
+  `:host-context([data-stock-side])` rules. `ViewportService` gained
+  `fitsWordmark` and `fitsHomeButton`. The "fSolitaire" wordmark and the
+  hand-rolled disclosure menu are gone, with `--z-header-menu` and
+  `--surface-panel-translucent`.
+- **Different from the plan:**
+  - The glass is 75% of `--fz-bar`, not `--fz-bar-glass`'s 50%: the muted
+    labels need it for 4.5:1 over the lightest felt. It is `@fz/game-ui`'s
+    `$bar-glass`, which the contrast spec now reads, where it read
+    Solitaire's token.
+  - The glass is on the bar's `::before`. A `backdrop-filter` makes an
+    element the containing block of its fixed descendants, which would trap
+    the menu's dismiss layer inside the bar.
+  - No container queries, for the same reason, so the bar's layout is all
+    inputs. As a result, a compact bar's padding is 8px all round; between
+    480 and 719px it used to be 16px at the sides.
+  - The tablet band's tighter gaps are two hooks the bar reads,
+    `--fz-bar-gap` and `--fz-bar-actions-gap`, since the compact rules
+    override them anyway.
+  - The menu hangs from its own button. With the stock at the left on an
+    upright phone, it lines up with the button's start, about 100px in from
+    the window's edge, where the mock had it at the edge.
+  - The menu items' names are their visible labels ("Restart", where the
+    button said "Restart current game"), as a menu item's name should be.
+    The `<h1>` reads the game's name alone, now that "fSolitaire" has gone.
+- **Checked:** the board shots differ from the mock's only inside the bar,
+  by up to 52 of 255 in a channel, with nothing to see at 3× zoom. The
+  menus match, but for the reversed one's place, once the items got the
+  mock's 4px gap.
+  In Chrome, the dismiss layer covers the whole window on phones in both
+  orientations and takes a tap on the board; the bar's glass blurs what is
+  under it.

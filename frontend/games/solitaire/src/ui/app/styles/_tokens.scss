@@ -1,3 +1,4 @@
+@use "@fz/game-ui" as game-ui;
 @use "palette" as *;
 @use "breakpoints" as *;
 
@@ -17,14 +18,6 @@
   // `sunken` a well cut into one, `card` a bordered block inside a modal.
   // The alphas keep the glass glass.
   --surface-panel: color-mix(in srgb, var(--fz-panel-raised) 95%, transparent);
-
-  // The header's glass, more solid than the site's bar (`--fz-bar-glass`), so
-  // its muted labels clear 4.5:1 over the lightest felt, Soft pastel's.
-  --surface-panel-translucent: color-mix(
-    in srgb,
-    var(--fz-bar) 75%,
-    transparent
-  );
   --surface-raised: var(--fz-wash-2);
 
   // Its own role, though it currently matches the panel.
@@ -204,11 +197,10 @@
   --duration-slow: var(--fz-duration-slow);
 
   // --- Layout ---
-  // Read by the header and the game canvas, which must agree on them: the
-  // header's height across the top, and its width as a rail down the side of a
-  // phone on its side.
-  --header-height: 73px;
-  --rail-width: 64px;
+  // The game bar's size, `--fz-bar-height` across the top or the bottom and
+  // `--fz-rail-width` down the side of a phone on its side, which the game
+  // canvas keeps the board clear of.
+  @include game-ui.bar-size;
 
   // The game browser: the most room it takes, the width of its list, and a
   // row's picture of a board, which `yarn build:thumbs` draws at twice this.
@@ -225,9 +217,6 @@
   --z-loading-badge: 12;
   --z-chrome: 200;
 
-  // Within the chrome, the header's overflow menu over the header.
-  --z-header-menu: 110;
-
   // --- Minimum hit target ---
   // WCAG 2.5.8 asks for 24px; the platform guidelines ask for 44. A card game
   // is played by thumbs, so 44 it is.
@@ -238,6 +227,6 @@
 // the change from here.
 @include compact {
   :root {
-    --header-height: 60px;
+    @include game-ui.bar-size($compact: true);
   }
 }

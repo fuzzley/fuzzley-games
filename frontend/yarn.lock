@@ -1170,7 +1170,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fz/game-ui@workspace:lib/game-ui":
+"@fz/game-ui@workspace:*, @fz/game-ui@workspace:lib/game-ui":
   version: 0.0.0-use.local
   resolution: "@fz/game-ui@workspace:lib/game-ui"
   dependencies:
@@ -6848,6 +6848,7 @@ __metadata:
     "@angular/platform-browser": "npm:^22.2.3"
     "@angular/router": "npm:^22.2.3"
     "@eslint/js": "npm:^10.0.1"
+    "@fz/game-ui": "workspace:*"
     "@fz/style": "workspace:*"
     "@fz/ui": "workspace:*"
     "@resvg/resvg-js": "npm:^2.6.2"

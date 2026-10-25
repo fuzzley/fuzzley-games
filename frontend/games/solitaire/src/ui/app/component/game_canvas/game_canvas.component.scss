@@ -6,7 +6,7 @@
 // board reads them through `ViewportScaler` and lays itself out inside; the
 // loading overlay and the deck badge keep inside them too.
 :host {
-  --board-inset-top: var(--header-height);
+  --board-inset-top: var(--fz-bar-height);
   --board-inset-right: 0px;
   --board-inset-bottom: 0px;
   --board-inset-left: 0px;
@@ -21,20 +21,20 @@
 @include phone-portrait {
   :host {
     --board-inset-top: 0px;
-    --board-inset-bottom: var(--header-height);
+    --board-inset-bottom: var(--fz-bar-height);
   }
 }
 
 @include phone-landscape {
   :host {
     --board-inset-top: 0px;
-    --board-inset-left: var(--rail-width);
+    --board-inset-left: var(--fz-rail-width);
   }
 
   // A stock at the left stands the rail at the right.
   :host-context([data-stock-side="left"]) {
     --board-inset-left: 0px;
-    --board-inset-right: var(--rail-width);
+    --board-inset-right: var(--fz-rail-width);
   }
 }
 

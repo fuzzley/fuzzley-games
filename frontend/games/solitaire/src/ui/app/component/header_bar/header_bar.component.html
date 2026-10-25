@@ -1,43 +1,37 @@
-<header class="header-bar">
-  <div class="identity">
-    <!--
-      The application's one <h1>, naming the game as well as the application.
-      Both halves stay in the heading at every width; the stylesheet decides
-      which are visible, and the game's name is always shown by the switcher
-      beside it instead.
-    -->
-    <div class="brand">
-      <h1 class="brand-text">
-        <span class="wordmark">fSolitaire</span>
-        <span class="brand-game">{{ gameName() }}</span>
-      </h1>
-    </div>
+<fz-game-bar
+  [placement]="placement()"
+  [reversed]="reversed()"
+  [compact]="viewport.isCompact()"
+  [home]="home()"
+  [homeHref]="homeHref"
+>
+  <!--
+    The application's one <h1>, the game on the table, heard rather than seen:
+    the switcher beside it shows the name.
+  -->
+  <h1 fzBarTitle class="fz-visually-hidden">{{ gameName() }}</h1>
 
-    <!--
-      Beside the heading rather than in it, so it stays on screen where the
-      heading is hidden, and so the heading does not read as a button.
-    -->
-    <button
-      type="button"
-      class="game-switcher"
-      aria-haspopup="dialog"
-      [attr.aria-label]="switcherLabel()"
-      [attr.aria-keyshortcuts]="browser.shortcutKeys"
-      [title]="switcherTitle"
-      (click)="browser.open()"
-    >
-      <fz-icon class="switcher-icon" name="grid" />
-      <span class="switcher-name">{{ gameName() }}</span>
-      <fz-icon class="switcher-chevron" name="chevron" />
-    </button>
-  </div>
+  <button
+    fzBarTitle
+    type="button"
+    class="game-switcher"
+    aria-haspopup="dialog"
+    [attr.aria-label]="switcherLabel()"
+    [attr.aria-keyshortcuts]="browser.shortcutKeys"
+    [title]="switcherTitle"
+    (click)="browser.open()"
+  >
+    <fz-icon class="switcher-icon" name="grid" />
+    <span class="switcher-name">{{ gameName() }}</span>
+    <fz-icon class="switcher-chevron" name="chevron" />
+  </button>
 
   <!--
     Score and moves announce themselves when they change. Each whole card is an
     atomic live region, so it reads "Score 350" rather than "350". The timer is
     not live: announcing it every second would drown out everything else.
   -->
-  <div class="metrics">
+  <div fzBarStatus class="metrics">
     <div class="metric-card score-card" role="status" aria-atomic="true">
       <span class="label">SCORE</span>
       <span class="value">{{ metrics.score() }}</span>
@@ -52,141 +46,94 @@
     </div>
   </div>
 
-  <div class="actions">
+  <button
+    fzBarActions
+    type="button"
+    class="fz-button fz-button-secondary action"
+    (click)="lifecycle.undo()"
+    [disabled]="!metrics.canUndo()"
+    title="Undo last move"
+    aria-label="Undo last move"
+  >
+    <fz-icon name="undo" />
+    <span class="btn-text">Undo</span>
+  </button>
+
+  <!--
+    On a compact screen, restart, the rules, bug reports and settings move into
+    the overflow menu. Each block holds one element, so it is projected into the
+    actions as that element would be.
+  -->
+  @if (!viewport.isCompact()) {
     <button
-      class="fz-button fz-button-secondary"
-      (click)="lifecycle.undo()"
-      [disabled]="!metrics.canUndo()"
-      title="Undo last move"
-      aria-label="Undo last move"
-    >
-      <fz-icon name="undo" />
-      <span class="btn-text">Undo</span>
-    </button>
-
-    <!-- Below the compact width, restart moves into the overflow menu. -->
-    @if (!viewport.isCompact()) {
-      <button
-        class="fz-button fz-button-secondary"
-        (click)="restart()"
-        title="Restart current game"
-        aria-label="Restart current game"
-      >
-        <fz-icon name="restart" />
-        <span class="btn-text">Restart</span>
-      </button>
-    }
-
-    <button
-      class="fz-button"
-      (click)="newGame()"
-      title="Start a brand new game"
-      aria-label="Start a brand new game"
-    >
-      <fz-icon name="plus" />
-      <span class="btn-text">New Game</span>
-    </button>
-
-    @if (!viewport.isCompact()) {
-      <button
-        class="fz-button fz-button-secondary fz-button-circle btn-help"
-        (click)="openHelp()"
-        title="How to Play / Game Rules"
-        aria-label="How to Play / Game Rules"
-      >
-        <fz-icon name="help" />
-      </button>
-
-      <button
-        class="fz-button fz-button-secondary fz-button-circle btn-bug-report"
-        (click)="reportBug()"
-        title="Report a Bug"
-        aria-label="Report a Bug (opens GitHub in a new tab)"
-      >
-        <fz-icon name="bug" />
-      </button>
-    }
-
-    <!--
-      Everything the bar has run out of room for, under one button. A
-      disclosure rather than a `role="menu"`, which would promise arrow-key
-      navigation, so it has no `aria-haspopup` either.
-    -->
-    @if (viewport.isCompact()) {
-      <button
-        #menuToggle
-        class="fz-button fz-button-secondary fz-button-circle btn-overflow"
-        (click)="toggleMenu()"
-        [attr.aria-expanded]="isMenuOpen()"
-        aria-controls="header-overflow-menu"
-        title="More actions"
-        aria-label="More actions"
-      >
-        <fz-icon name="more" />
-      </button>
-    }
-
-    <!--
-      Below the compact width, settings moves into the overflow menu, making
-      room for the game switcher.
-    -->
-    @if (!viewport.isCompact()) {
-      <button
-        class="fz-button fz-button-secondary fz-button-circle btn-settings"
-        (click)="openSettings.emit()"
-        title="Game Settings"
-        aria-label="Game Settings"
-      >
-        <fz-icon name="settings" />
-      </button>
-    }
-  </div>
-</header>
-
-<!--
-  The dropdown and the layer that dismisses it, outside the header because its
-  `backdrop-filter` would clip a `position: fixed` child to the header. The
-  layer is a button, so the keyboard can dismiss the menu too.
--->
-@if (viewport.isCompact() && isMenuOpen()) {
-  <div class="overflow-menu" id="header-overflow-menu">
-    <button
-      #firstMenuItem
-      class="overflow-item"
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary action"
       (click)="restart()"
+      title="Restart current game"
       aria-label="Restart current game"
     >
       <fz-icon name="restart" />
-      <span>Restart</span>
+      <span class="btn-text">Restart</span>
     </button>
+  }
+
+  <button
+    fzBarActions
+    type="button"
+    class="fz-button action"
+    (click)="newGame()"
+    title="Start a brand new game"
+    aria-label="Start a brand new game"
+  >
+    <fz-icon name="plus" />
+    <span class="btn-text">New Game</span>
+  </button>
+
+  @if (!viewport.isCompact()) {
     <button
-      class="overflow-item"
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action btn-help"
       (click)="openHelp()"
+      title="How to Play / Game Rules"
       aria-label="How to Play / Game Rules"
     >
       <fz-icon name="help" />
-      <span>How to Play</span>
     </button>
+  }
+
+  @if (!viewport.isCompact()) {
     <button
-      class="overflow-item"
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action btn-bug-report"
       (click)="reportBug()"
+      title="Report a Bug"
       aria-label="Report a Bug (opens GitHub in a new tab)"
     >
       <fz-icon name="bug" />
-      <span>Report a Bug</span>
     </button>
+  }
+
+  @if (viewport.isCompact()) {
+    <fz-bar-overflow
+      fzBarActions
+      [items]="overflowItems()"
+      (choose)="chooseFromMenu($event)"
+    />
+  }
+
+  @if (!viewport.isCompact()) {
     <button
-      class="overflow-item"
-      (click)="showSettings()"
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action btn-settings"
+      (click)="openSettings.emit()"
+      title="Game Settings"
       aria-label="Game Settings"
     >
       <fz-icon name="settings" />
-      <span>Settings</span>
     </button>
-  </div>
-  <button
-    class="overflow-backdrop"
-    (click)="closeMenu()"
-    aria-label="Close menu"
-  ></button>
-}
+  }
+</fz-game-bar>

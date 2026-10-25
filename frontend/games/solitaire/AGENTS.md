@@ -113,7 +113,13 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
   `LocalStorageService`.
 - **`src/ui/app/component`** — one folder per component. `option_group` is
   the shared one: every settings control is one. Every overlay is a native
-  `<dialog>` through `@fz/ui/dialog`'s `<fz-dialog>`.
+  `<dialog>` through `@fz/ui/dialog`'s `<fz-dialog>`. `header_bar` fills
+  `@fz/game-ui`'s `<fz-game-bar>` (`frontend/lib/game-ui/AGENTS.md`) with
+  the game switcher, the score, time and moves and the actions, and decides
+  where the bar stands and how it shows the link home: the wordmark from
+  1280 CSS px up (`WORDMARK_MIN_WIDTH_PX`), the home button below that, and
+  below 360 (`HOME_BUTTON_MIN_WIDTH_PX`) the first item of the overflow
+  menu, `<fz-bar-overflow>`, which holds what a compact bar has no room for.
 - **`src/ui/app/styles`** — the Sass design system. `global.scss` is loaded once
   from `main.ts` and is the only stylesheet outside a component; `_index.scss`
   is the toolkit every component `@use`s, and deliberately emits no CSS.
@@ -122,7 +128,9 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
   720 or shorter than 500 CSS px (`src/engine/render/layout/form_factor.ts`,
   `ViewportService.formFactor`). Upright, the header docks at the bottom; on
   its side it is a rail down one edge; the canvas declares `--board-inset-*`
-  for whichever edge the chrome covers. A game whose catalog entry names
+  for whichever edge the chrome covers, from the bar's size, which
+  `styles/_tokens.scss` publishes as `--fz-bar-height` and
+  `--fz-rail-width` through `@fz/game-ui`'s `bar-size()`. A game whose catalog entry names
   `arrangement` (most of them) lies on a grid chosen each frame by
   `chooseTableLayout` (`src/engine/render/layout/board_layouts.ts`) from the
   form factor and the player's arrangement: the piles at the top or the

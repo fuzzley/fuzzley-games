@@ -1,14 +1,19 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
   computed,
-  effect,
   inject,
   output,
-  signal,
-  viewChild,
 } from "@angular/core";
+import {
+  BarOverflowComponent,
+  type BarOverflowItem,
+} from "@fz/game-ui/bar_overflow";
+import {
+  type BarHome,
+  type BarPlacement,
+  GameBarComponent,
+} from "@fz/game-ui/game_bar";
 import { IconComponent } from "@fz/ui/icon";
 import { GameMetricsService } from "../../service/game_metrics.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
@@ -17,21 +22,30 @@ import { GameCatalogService } from "../../service/game_catalog.service";
 import { ViewportService } from "../../service/viewport.service";
 import { BugReportService } from "../../service/bug_report.service";
 import { GameBrowserService } from "../../service/game_browser.service";
+import { PresentationSettingsService } from "../../service/presentation_settings.service";
+
+/** Where the link home leads: the Fuzzley Games site, which serves this game. */
+const HOME_HREF = "/";
+
+/** The overflow menu's actions, in order. */
+const OVERFLOW_ACTIONS: readonly BarOverflowItem[] = [
+  { id: "restart", label: "Restart", icon: "restart" },
+  { id: "rules", label: "How to Play", icon: "help" },
+  { id: "bug", label: "Report a Bug", icon: "bug" },
+  { id: "settings", label: "Settings", icon: "settings" },
+];
 
 /**
- * Shows the game on the table, its score, time and moves, and the actions
- * that act on it.
+ * Shows the game bar: the link home, the game on the table, its score, time
+ * and moves, and the actions that act on it.
  *
- * On a narrow screen, restart, the rules, bug reports and settings move into
- * an overflow menu.
+ * On a compact screen, restart, the rules, bug reports and settings move into
+ * the overflow menu, and on the narrowest the link home does too.
  */
 @Component({
   selector: "app-header-bar",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent],
-  // Escape closes the overflow menu from anywhere in the header, since the
-  // panel itself cannot take focus.
-  host: { "(keydown.escape)": "closeMenu()" },
+  imports: [BarOverflowComponent, GameBarComponent, IconComponent],
   templateUrl: "./header_bar.component.html",
   styleUrl: "./header_bar.component.scss",
 })
@@ -44,21 +58,12 @@ export class HeaderBarComponent {
 
   private readonly catalog = inject(GameCatalogService);
   private readonly bugReport = inject(BugReportService);
-
-  /**
-   * The button the overflow menu hangs from, so that dismissing the menu can
-   * put focus back where it was opened from rather than dropping it on the
-   * document.
-   */
-  private readonly menuToggle =
-    viewChild<ElementRef<HTMLButtonElement>>("menuToggle");
-
-  /** The first action inside the overflow menu, while there is one. */
-  private readonly firstMenuItem =
-    viewChild<ElementRef<HTMLButtonElement>>("firstMenuItem");
+  private readonly presentation = inject(PresentationSettingsService);
 
   /** Emitted when the user requests to open the settings panel. */
   readonly openSettings = output();
+
+  protected readonly homeHref = HOME_HREF;
 
   /** The name of the game on the table. */
   protected readonly gameName = computed(() => this.catalog.selectedEntry.name);
@@ -71,45 +76,77 @@ export class HeaderBarComponent {
   /** The switcher's tooltip, which teaches its keyboard shortcut. */
   protected readonly switcherTitle = `Choose a game (${this.browser.shortcutLabel})`;
 
-  private readonly menuOpen = signal(false);
-
-  /** Whether the overflow menu is showing. */
-  protected readonly isMenuOpen = this.menuOpen.asReadonly();
-
-  constructor() {
-    // Close the menu once a wider window puts its actions back in the bar.
-    effect(() => {
-      if (!this.viewport.isCompact()) {
-        this.menuOpen.set(false);
-      }
-    });
-
-    // Focus the menu as it opens, since it is rendered after the header rather
-    // than beside its button. A pointer user sees no focus ring from this.
-    effect(() => {
-      this.firstMenuItem()?.nativeElement.focus();
-    });
-  }
-
-  /** Opens the overflow menu if it is closed, and closes it if it is not. */
-  protected toggleMenu(): void {
-    this.menuOpen.update((open) => !open);
-  }
+  private readonly stockOnLeft = computed(
+    () => this.presentation.resolvedArrangement().stockSide === "left",
+  );
 
   /**
-   * Dismisses the overflow menu, if it is open, and returns focus to the
-   * button that opened it.
+   * Across the top of a roomy screen, along the bottom of a phone held upright,
+   * where every action is under the thumb, and down the side of a phone on its
+   * side, which leaves the board the whole height of a short screen. The rail
+   * stands on the side away from the stock.
    */
-  protected closeMenu(): void {
-    if (!this.menuOpen()) return;
+  protected readonly placement = computed<BarPlacement>(() => {
+    switch (this.viewport.formFactor()) {
+      case "roomy":
+        return "top";
+      case "phone-portrait":
+        return "bottom";
+      case "phone-landscape":
+        return this.stockOnLeft() ? "end" : "start";
+    }
+  });
 
-    this.menuOpen.set(false);
-    this.menuToggle()?.nativeElement.focus();
+  /** With the stock at the left, the bar on an upright phone swaps ends. */
+  protected readonly reversed = computed(
+    () => this.placement() === "bottom" && this.stockOnLeft(),
+  );
+
+  protected readonly home = computed<BarHome>(() => {
+    if (!this.viewport.fitsHomeButton()) return "none";
+    return this.viewport.fitsWordmark() && !this.viewport.isCompact()
+      ? "wordmark"
+      : "icon";
+  });
+
+  /** The overflow menu, led by the link home where the bar has no room for it. */
+  protected readonly overflowItems = computed<readonly BarOverflowItem[]>(
+    () => {
+      if (this.home() !== "none") return OVERFLOW_ACTIONS;
+      const [first, ...rest] = OVERFLOW_ACTIONS;
+      return [
+        {
+          id: "home",
+          label: "Fuzzley Games",
+          icon: "home",
+          href: HOME_HREF,
+        },
+        ...(first ? [{ ...first, startsGroup: true }] : []),
+        ...rest,
+      ];
+    },
+  );
+
+  /** Carries out the action chosen from the overflow menu. */
+  protected chooseFromMenu(id: string): void {
+    switch (id) {
+      case "restart":
+        this.restart();
+        break;
+      case "rules":
+        this.openHelp();
+        break;
+      case "bug":
+        this.reportBug();
+        break;
+      case "settings":
+        this.openSettings.emit();
+        break;
+    }
   }
 
   /** Deals the same game again, or asks first if there is one to lose. */
   protected restart(): void {
-    this.closeMenu();
     void this.lifecycle.restartGame();
   }
 
@@ -120,19 +157,11 @@ export class HeaderBarComponent {
 
   /** Opens the rules for the game on the table. */
   protected openHelp(): void {
-    this.closeMenu();
     this.docService.openHelp();
-  }
-
-  /** Asks for the settings drawer, from the overflow menu. */
-  protected showSettings(): void {
-    this.closeMenu();
-    this.openSettings.emit();
   }
 
   /** Opens a new bug report about the game on the table, in a new tab. */
   protected reportBug(): void {
-    this.closeMenu();
     void this.bugReport.openReport();
   }
 }

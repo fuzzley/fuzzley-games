@@ -4,69 +4,6 @@
   display: block;
 }
 
-.header-bar {
-  @include glass(12px);
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-4);
-  height: var(--header-height);
-  box-sizing: border-box;
-  padding: var(--space-3) var(--space-6);
-  background: var(--surface-panel-translucent);
-  border-bottom: 1px solid var(--border-default);
-  box-shadow: var(--shadow-panel);
-  pointer-events: auto;
-  color: var(--text-primary);
-  user-select: none;
-}
-
-// The groups give way in a fixed order, which keeps the header on screen at
-// every width: the heading and game switcher first, then the metrics, which
-// clip rather than push. The actions never shrink below the minimum tap size.
-.identity {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-
-  // A shrink factor far above the metrics', so this group gives up its room
-  // before they give up any.
-  flex: 0 1000 auto;
-  min-width: 0;
-}
-
-// Clipped, so a long wordmark never draws over the switcher.
-.brand {
-  display: flex;
-  align-items: center;
-  flex: 0 0 auto;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.brand-text {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin: 0;
-  min-width: 0;
-}
-
-.wordmark {
-  color: var(--accent);
-  font-size: var(--font-2xl);
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  white-space: nowrap;
-}
-
-// The heading's second half, heard rather than seen: the switcher beside it
-// shows the game's name.
-.brand-game {
-  @include visually-hidden;
-}
-
 // The game on the table, as the button that opens the game browser. The icon
 // says there are more games; the chevron, that pressing it offers them.
 .game-switcher {
@@ -156,16 +93,9 @@
   }
 }
 
-.actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex: 0 0 auto;
-
-  // Every action clears the minimum tap size, labelled or not.
-  .fz-button {
-    @include tap-target;
-  }
+// Every action clears the minimum tap size, labelled or not.
+.action {
+  @include tap-target;
 }
 
 // The gear turns under the pointer, where motion is welcome.
@@ -179,78 +109,16 @@
   }
 }
 
-// --- The overflow menu ---
-
-// Hung under the button at the right of the header. It turns `pointer-events`
-// back on, which the shell's overlay layer turns off.
-.overflow-menu {
-  @include glass(20px);
-
-  position: fixed;
-  top: calc(var(--header-height) + var(--space-1));
-  right: var(--space-2);
-  z-index: var(--z-header-menu);
-  pointer-events: auto;
-  min-width: 180px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  padding: var(--space-2);
-  background: var(--surface-panel);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-panel);
-
-  // Out of the corner it is anchored to rather than out of its own middle.
-  transform-origin: top right;
-  animation: fade-in var(--duration-fast) var(--ease-decelerate);
-}
-
-// A labelled row with its icon beside it, unlike the icon buttons in the bar.
-.overflow-item {
-  @include transition(background, color);
-
-  --fz-icon-size: 18px;
-
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  min-height: var(--tap-target-min);
-  padding: var(--space-2) var(--space-3);
-  border: none;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--text-body);
-  font-size: var(--font-sm);
-  font-weight: 600;
-  text-align: left;
-  white-space: nowrap;
-  cursor: pointer;
-
-  &:hover {
-    background: var(--wash-soft);
-    color: var(--text-bright);
-  }
-}
-
-// The dismiss layer: transparent, but covering the header and board too, so
-// the tap that closes the menu presses nothing else.
-.overflow-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: calc(var(--z-header-menu) - 1);
-  padding: 0;
-  border: none;
-  background: transparent;
-  pointer-events: auto;
-  cursor: default;
-}
-
 // Below this width the action labels go and the metric cards tighten, which
-// keeps the header's minimum width inside the band.
+// keeps the header's minimum width inside the band. The bar's own gaps
+// tighten too, paying for the home button that stands in for the wordmark.
 @include below("desktop") {
-  .actions .fz-button:not(.fz-button-circle) {
+  :host {
+    --fz-bar-gap: var(--space-2);
+    --fz-bar-actions-gap: var(--space-2);
+  }
+
+  .action:not(.fz-button-circle) {
     --fz-icon-size: 18px;
 
     padding: var(--space-2);
@@ -259,12 +127,6 @@
     .btn-text {
       display: none;
     }
-  }
-
-  // The wordmark gives way to the switcher, hidden from the eye only so the
-  // heading still reads whole.
-  .wordmark {
-    @include visually-hidden;
   }
 
   .metrics {
@@ -278,22 +140,6 @@
 }
 
 @include compact {
-  .header-bar {
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-4);
-  }
-
-  // Hidden from the eye only: it is the document's one <h1>.
-  .brand {
-    @include visually-hidden;
-  }
-
-  // The group is down to the switcher alone, which is an action like the
-  // rest, so the metrics give way before it does.
-  .identity {
-    flex-shrink: 0;
-  }
-
   // Just the switcher's icon, round like the actions beside it; a screen
   // reader still hears the game's name.
   .game-switcher {
@@ -312,19 +158,9 @@
     min-width: 0;
     padding: var(--space-1) var(--space-2);
   }
-
-  // Four hit targets, not five: restart and the rules are in the overflow menu
-  // at this width.
-  .actions {
-    gap: var(--space-1);
-  }
 }
 
 @include below("phone") {
-  .header-bar {
-    padding: var(--space-2);
-  }
-
   // One strip rather than three cards, whose borders and padding would take
   // more room than their figures.
   .metrics {
@@ -356,62 +192,14 @@
   }
 }
 
-// On a phone held upright the header docks at the bottom, where every action
-// is under the thumb, and the board starts at the top of the screen.
-@include phone-portrait {
-  :host {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    left: 0;
-  }
-
-  .header-bar {
-    border-top: 1px solid var(--border-default);
-    border-bottom: none;
-  }
-
-  // Above the bar, rising from the button at its right end.
-  .overflow-menu {
-    top: auto;
-    bottom: calc(var(--header-height) + var(--space-1));
-    transform-origin: bottom right;
-  }
-}
-
-// On a phone on its side the header is a rail down the left edge, which leaves
-// the board the whole height of a short screen. The compact rules above still
-// apply; this turns the bar on its side.
+// On a phone on its side the bar is a rail. One column of figures rather than
+// a row of cards, labelled for a screen reader only, as on a narrow phone.
 @include phone-landscape {
-  :host {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-  }
-
-  .header-bar {
-    flex-direction: column;
-    justify-content: space-between;
-    width: var(--rail-width);
-    height: 100%;
-    padding: var(--space-2) 0;
-    border-bottom: none;
-    border-right: 1px solid var(--border-default);
-  }
-
-  .actions {
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  // One column of figures rather than a row of cards, labelled for a screen
-  // reader only, as on a narrow phone.
   .metrics {
     flex-direction: column;
     flex: 0 0 auto;
     gap: 0;
-    width: calc(var(--rail-width) - 2 * var(--space-1));
+    width: calc(var(--fz-rail-width) - 2 * var(--space-1));
     background: var(--wash-subtle);
     border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
@@ -433,47 +221,6 @@
 
     .value {
       font-size: var(--font-xs);
-    }
-  }
-
-  // Beside the rail, rising from the button at its foot.
-  .overflow-menu {
-    inset: auto auto var(--space-2) calc(var(--rail-width) + var(--space-1));
-    transform-origin: bottom left;
-  }
-}
-
-// With the stock at the left the chrome swaps sides with it: the bar on an
-// upright phone runs right to left, and the rail on a sideways one stands at
-// the right.
-@include phone-portrait {
-  :host-context([data-stock-side="left"]) {
-    .header-bar {
-      flex-direction: row-reverse;
-    }
-
-    .overflow-menu {
-      right: auto;
-      left: var(--space-2);
-      transform-origin: bottom left;
-    }
-  }
-}
-
-@include phone-landscape {
-  :host-context([data-stock-side="left"]) {
-    right: 0;
-    left: auto;
-
-    .header-bar {
-      border-right: none;
-      border-left: 1px solid var(--border-default);
-    }
-
-    .overflow-menu {
-      right: calc(var(--rail-width) + var(--space-1));
-      left: auto;
-      transform-origin: bottom right;
     }
   }
 }

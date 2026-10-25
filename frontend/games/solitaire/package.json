@@ -63,6 +63,7 @@
     "@angular/core": "^22.2.3",
     "@angular/platform-browser": "^22.2.3",
     "@angular/router": "^22.2.3",
+    "@fz/game-ui": "workspace:*",
     "@fz/style": "workspace:*",
     "@fz/ui": "workspace:*",
     "phaser": "^4.2.1",

@@ -3,7 +3,9 @@ import { describe, it, expect, afterEach } from "vitest";
 import { TestBed } from "@angular/core/testing";
 import {
   COMPACT_MAX_WIDTH_PX,
+  HOME_BUTTON_MIN_WIDTH_PX,
   ViewportService,
+  WORDMARK_MIN_WIDTH_PX,
 } from "@/ui/app/service/viewport.service";
 import {
   installFakeViewport,
@@ -129,5 +131,62 @@ describe("ViewportService's form factor", () => {
     viewport.setSize(1280, 800);
 
     expect(service.formFactor()).toBe("roomy");
+  });
+});
+
+describe("ViewportService's room for the header's link home", () => {
+  let viewport: FakeViewport | null = null;
+
+  function buildViewport(): ViewportService {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({});
+    return TestBed.inject(ViewportService);
+  }
+
+  /** Returns whether the wordmark fits, then whether the home button does. */
+  function room(service: ViewportService): boolean[] {
+    return [service.fitsWordmark(), service.fitsHomeButton()];
+  }
+
+  afterEach(() => {
+    viewport?.restore();
+    viewport = null;
+  });
+
+  it("fits both where the browser cannot be asked, as a roomy window would", () => {
+    expect(room(buildViewport())).toEqual([true, true]);
+  });
+
+  it("fits the wordmark from its width up", () => {
+    viewport = installFakeViewport(WORDMARK_MIN_WIDTH_PX, 900);
+
+    expect(room(buildViewport())).toEqual([true, true]);
+  });
+
+  it("fits only the home button below the wordmark's width", () => {
+    viewport = installFakeViewport(WORDMARK_MIN_WIDTH_PX - 1, 900);
+
+    expect(room(buildViewport())).toEqual([false, true]);
+  });
+
+  it("fits the home button on a phone as narrow as its width", () => {
+    viewport = installFakeViewport(HOME_BUTTON_MIN_WIDTH_PX, 780);
+
+    expect(room(buildViewport())).toEqual([false, true]);
+  });
+
+  it("fits neither on a narrower phone", () => {
+    viewport = installFakeViewport(HOME_BUTTON_MIN_WIDTH_PX - 1, 640);
+
+    expect(room(buildViewport())).toEqual([false, false]);
+  });
+
+  it("follows the window as it is resized", () => {
+    viewport = installFakeViewport(HOME_BUTTON_MIN_WIDTH_PX - 1, 640);
+    const service = buildViewport();
+
+    viewport.setSize(WORDMARK_MIN_WIDTH_PX, 900);
+
+    expect(room(service)).toEqual([true, true]);
   });
 });

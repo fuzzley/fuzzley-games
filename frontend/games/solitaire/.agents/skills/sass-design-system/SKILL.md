@@ -26,7 +26,7 @@ _(Adjust relative path depth to target `src/ui/app/styles`)._
 - The scales (spacing, type sizes, line heights, radii, shadows, motion, the tap target) and the font, Figtree, are aliases of `@fz/style`'s, as `--space-2: var(--fz-space-2)`.
 - Component styles MUST read tokens via `var(--...)`. A label on an accent, warning or danger fill takes the palette's label for it (`--text-on-accent`, `--fz-on-warning`, `--fz-on-danger`).
 - **Never hardcode hex colors, pixel font sizes, or raw pixel spacing literals in component CSS.** `yarn lint:styles` runs stylelint with `@fz/style`'s preset (`stylelint.config.js`), which fails a hex, named or functional color anywhere but `_palette.scss`.
-- **Glass over the felt is checked.** The header's labels sit on glass over whichever felt is on the table; `test/ui/app/styles/contrast.spec.ts` compiles the stylesheet and holds them to 4.5:1 over every palette's felt and every felt a player can choose.
+- **Glass over the felt is checked.** The header's labels sit on `@fz/game-ui`'s glass (its `$bar-glass`) over whichever felt is on the table; `test/ui/app/styles/contrast.spec.ts` compiles the stylesheet and holds them to 4.5:1 over every palette's felt and every felt a player can choose.
 
 ```scss
 // Good
