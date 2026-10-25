@@ -13,31 +13,6 @@
 /// The palettes, by their id in themes.ts. `mode` sets color-scheme; every
 /// other key is a role, which becomes the custom property --fz-<role>.
 $palettes: (
-  emerald: (
-    mode: dark,
-    page: #0f4d0e,
-    bar: #0f172a,
-    bar-text: #f8fafc,
-    bar-line: #1e293b,
-    text: #f8fafc,
-    muted: #cbd5e1,
-    line: #2c622b,
-    panel: #1e293b,
-    panel-raised: #0f172a,
-    field: #1e293b,
-    field-line: #334155,
-    field-text: #f8fafc,
-    field-muted: #94a3b8,
-    accent: #60a5fa,
-    on-accent: #0f172a,
-    danger: #fca5a5,
-    on-danger: #450a0a,
-    warning: #fbbf24,
-    on-warning: #0f172a,
-    felt: #0f4d0e,
-    on-felt: #fff,
-    scrim: rgb(15 23 42 / 70%),
-  ),
   classic: (
     mode: light,
     page: #fff,
@@ -141,7 +116,7 @@ $palettes: (
 ) !default;
 
 /// The palette a page shows before it has chosen one.
-$default: emerald !default;
+$default: classic !default;
 $-reference: map.get($palettes, $default);
 
 @if not $-reference {

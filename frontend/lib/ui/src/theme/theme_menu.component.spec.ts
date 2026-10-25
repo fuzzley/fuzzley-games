@@ -7,7 +7,7 @@ import { ThemeMenuComponent } from "./theme_menu.component";
 describe("ThemeMenuComponent", () => {
   beforeEach(() => {
     localStorage.clear();
-    document.documentElement.dataset["theme"] = "emerald";
+    document.documentElement.dataset["theme"] = "classic";
   });
 
   async function renderMenu(compact = false): Promise<UserEvent> {
@@ -26,7 +26,7 @@ describe("ThemeMenuComponent", () => {
   it("names its button for the palette in use", async () => {
     await renderMenu();
 
-    expect(trigger()).toHaveAccessibleName("Theme: Emerald felt");
+    expect(trigger()).toHaveAccessibleName("Theme: Classic felt");
   });
 
   it("shows the word Theme beside the swatch", async () => {
@@ -39,7 +39,7 @@ describe("ThemeMenuComponent", () => {
     await renderMenu(true);
 
     expect(trigger()).not.toHaveTextContent("Theme");
-    expect(trigger()).toHaveAccessibleName("Theme: Emerald felt");
+    expect(trigger()).toHaveAccessibleName("Theme: Classic felt");
   });
 
   it("starts closed", async () => {
@@ -57,7 +57,6 @@ describe("ThemeMenuComponent", () => {
     expect(
       screen.getAllByRole("menuitemradio").map((item) => item.textContent),
     ).toEqual([
-      expect.stringContaining("Emerald felt"),
       expect.stringContaining("Classic felt"),
       expect.stringContaining("Soft pastel"),
       expect.stringContaining("Casino night"),
@@ -74,7 +73,7 @@ describe("ThemeMenuComponent", () => {
       screen
         .getAllByRole("menuitemradio")
         .map((item) => item.getAttribute("aria-checked")),
-    ).toEqual(["true", "false", "false", "false", "false"]);
+    ).toEqual(["true", "false", "false", "false"]);
   });
 
   it("applies the palette clicked and closes", async () => {
@@ -94,7 +93,7 @@ describe("ThemeMenuComponent", () => {
 
     await user.keyboard("{ArrowDown}");
 
-    expect(option("Classic felt")).toHaveFocus();
+    expect(option("Soft pastel")).toHaveFocus();
   });
 
   it("jumps to a palette by the first letters of its name", async () => {
@@ -113,7 +112,7 @@ describe("ThemeMenuComponent", () => {
 
     await user.keyboard("{ArrowDown}{Enter}");
 
-    expect(TestBed.inject(ThemeService).current()).toBe("classic");
+    expect(TestBed.inject(ThemeService).current()).toBe("pastel");
   });
 
   it("closes on Escape and hands focus back to its button", async () => {

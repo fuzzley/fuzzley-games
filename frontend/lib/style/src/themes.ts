@@ -6,7 +6,6 @@ export type ColorMode = "light" | "dark";
  * tokens/_palettes.scss under [data-theme="<id>"].
  */
 export const THEMES = [
-  { id: "emerald", name: "Emerald felt", mode: "dark" },
   { id: "classic", name: "Classic felt", mode: "light" },
   { id: "pastel", name: "Soft pastel", mode: "light" },
   { id: "casino", name: "Casino night", mode: "dark" },
@@ -23,15 +22,10 @@ export interface Theme {
   readonly mode: ColorMode;
 }
 
-/**
- * The palette for each system color scheme, until a player chooses one.
- *
- * Both are Emerald felt, the Solitaire Collection's own table, for now, so a
- * light system scheme gets a dark palette too.
- */
+/** The palette for each system color scheme, until a player chooses one. */
 export const DEFAULT_THEMES: Readonly<Record<ColorMode, ThemeId>> = {
-  light: "emerald",
-  dark: "emerald",
+  light: "classic",
+  dark: "casino",
 };
 
 /**
