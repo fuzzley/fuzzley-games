@@ -1,7 +1,11 @@
 # Plan: Minesweeper as an Angular app on the shared libraries
 
 Agreed 2026-10-25: the user took every recommendation ("Yes proceed") and
-approved the M0 mock, classic inks and all. This plan rebuilds Minesweeper as an Angular app, shaped like the
+approved the M0 mock, classic inks and all. Built 2026-10-25. The work log
+kept while it was built, with what was found on the way, was deleted when the
+work was done; git history keeps it as `docs/minesweeper-worklog.md`.
+
+This plan rebuilds Minesweeper as an Angular app, shaped like the
 Solitaire Collection's shell, on all three shared libraries
 ([the shared UI plan](shared-ui-plan.md)): `@fz/style` for the look,
 `@fz/ui` for the dialogs, confirmation, theme, icons and storage, and
