@@ -61,3 +61,7 @@ Agent configuration and the skills every workspace shares live in `.agents/`,
 and a workspace's own skills in its own `.agents/skills/`. Run
 `node .agents/link-claude-skills.mjs` once per clone to link skills across for
 Claude Code discovery.
+
+## License
+
+This project is licensed under the [GNU General Public License v3.0 or later](LICENSE). See individual workspaces and [`NOTICE`](frontend/games/solitaire/NOTICE) for third-party material.

@@ -26,3 +26,7 @@ adds the site's analytics tags. It was written in 2016 with jQuery, Knockout
 and Bootstrap 3, and moved here, with its history, from
 [fuzzley/fMinesweeper](https://github.com/fuzzley/fMinesweeper), which keeps
 the original commit ids.
+
+## License
+
+This project source code is licensed under the [GNU General Public License v3.0 or later](LICENSE).

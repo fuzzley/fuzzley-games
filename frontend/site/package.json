@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "The Fuzzley Games portal and gallery.",
   "private": true,
+  "license": "GPL-3.0-or-later",
   "type": "module",
   "scripts": {
     "start": "node tools/fetch-games.mjs --optional && vite",
