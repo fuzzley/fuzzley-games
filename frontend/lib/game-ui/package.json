@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "description": "The Angular chrome the games share and the site doesn't: the game bar and its overflow menu.",
   "private": true,
+  "license": "GPL-3.0-or-later",
   "type": "module",
   "exports": {
     ".": {
