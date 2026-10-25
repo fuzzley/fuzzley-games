@@ -560,9 +560,11 @@ passed every check in the plan, and was removed once done. What it showed:
 - Solitaire asks with the title "Confirm Action" and the danger tone, as
   before; a lifecycle spec holds it to that. Its dialog looks the same: the
   wide and sideways shots are pixel-identical. On an upright phone the
-  buttons sit about 4px further apart, since the card's padding and gap
-  shrink with `clamp()` and the viewport's width rather than at Solitaire's
-  phone breakpoint, which a library component can't know.
+  buttons sit 8px further apart, and the card's padding shrinks with the
+  dialog's width (in percentages of it) rather than at Solitaire's phone
+  breakpoint, which a library component can't know. A first cut used `vw`
+  in `clamp()`, which reads the viewport, as the plan says a library
+  component never does; it was fixed after the mixins commit.
 - The card's `pop-in` and the icon's `pulse` are the component's own
   keyframes (`fz-pop-in`, `fz-pulse`). Angular does scope a component's
   `@keyframes` (its compiler's `_scopeKeyframesRelatedCss`), so Solitaire's
