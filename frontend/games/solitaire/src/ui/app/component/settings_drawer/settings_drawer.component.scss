@@ -1,6 +1,6 @@
 @use "../../styles" as *;
 
-// No scrim or z-index: <app-modal-dialog> puts this in the top layer.
+// No scrim or z-index: <fz-dialog> puts this in the top layer.
 // `margin-left: auto` pins the panel to the right of the dialog's flexbox.
 .drawer {
   @include glass(20px);

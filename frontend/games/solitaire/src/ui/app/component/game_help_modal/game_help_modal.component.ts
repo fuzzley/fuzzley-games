@@ -12,9 +12,9 @@ import {
   signal,
   untracked,
 } from "@angular/core";
+import { DialogComponent } from "@fz/ui/dialog";
 import { GameDocumentationService } from "../../service/game_documentation.service";
 import { GameCatalogService } from "../../service/game_catalog.service";
-import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
 import { itemAt } from "@/engine/core/common/item_at";
 
 /** Names a tab of the documentation modal. */
@@ -35,7 +35,7 @@ interface VariantCard {
 @Component({
   selector: "app-game-help-modal",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ModalDialogComponent],
+  imports: [DialogComponent],
   templateUrl: "./game_help_modal.component.html",
   styleUrl: "./game_help_modal.component.scss",
 })

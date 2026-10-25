@@ -1,6 +1,6 @@
 @use "../../styles" as *;
 
-// No scrim or z-index: <app-modal-dialog> puts this in the top layer.
+// No scrim or z-index: <fz-dialog> puts this in the top layer.
 .confirmation-card {
   user-select: none;
   background: var(--surface-raised);

@@ -8,6 +8,8 @@ import {
   resource,
 } from "@angular/core";
 import { THEMES } from "@fz/style/themes";
+import { DialogComponent } from "@fz/ui/dialog";
+import { RadioGroupDirective } from "@fz/ui/radio_group";
 import { ThemePickerComponent, ThemeService } from "@fz/ui/theme";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
@@ -37,8 +39,6 @@ import {
 } from "@/engine/render/deck/card_back";
 import { DebugPanelComponent } from "../debug_panel/debug_panel.component";
 import { OptionGroupComponent } from "../option_group/option_group.component";
-import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
-import { RadioGroupDirective } from "@fz/ui/radio_group";
 
 /** Describes one card back a player can choose, resolved for rendering. */
 interface CardBackChoice extends CardBackSpec {
@@ -201,7 +201,7 @@ interface FeltSwatch {
   imports: [
     DebugPanelComponent,
     OptionGroupComponent,
-    ModalDialogComponent,
+    DialogComponent,
     RadioGroupDirective,
     ThemePickerComponent,
   ],

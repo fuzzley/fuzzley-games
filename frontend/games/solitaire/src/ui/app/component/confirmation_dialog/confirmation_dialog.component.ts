@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
+import { DialogComponent } from "@fz/ui/dialog";
 import { ConfirmationService } from "../../service/confirmation.service";
-import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
 
 /**
  * Renders the prompt that asks the player to confirm an action that would
@@ -9,7 +9,7 @@ import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
 @Component({
   selector: "app-confirmation-dialog",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ModalDialogComponent],
+  imports: [DialogComponent],
   templateUrl: "./confirmation_dialog.component.html",
   styleUrl: "./confirmation_dialog.component.scss",
 })

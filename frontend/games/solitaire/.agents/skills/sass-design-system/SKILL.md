@@ -82,5 +82,5 @@ together.
 
 ### 6. Modal Overlays
 
-- All overlays MUST use native HTML `<dialog>` elements wrapped in `<app-modal-dialog>`.
+- All overlays MUST use native HTML `<dialog>` elements wrapped in `<fz-dialog>`, from `@fz/ui/dialog`.
 - Do not hand-roll focus traps, escape key listeners, or custom overlay z-index layers.

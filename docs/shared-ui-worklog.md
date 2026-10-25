@@ -8,24 +8,24 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
-- **Phase:** 5, Solitaire follows the theme. Phase 4 is done.
-- **Next step:** the user reviews the Phase 5 mock (see the last log entry).
-  No Phase 5 code before their approval; then the plan's Phase 5, with
-  whatever they changed.
+- **Phase:** 6, Solitaire's pieces move to the libraries. Phase 5 is done.
+- **Next step:** the rest of Phase 6, one commit per piece: the confirmation
+  dialog, the icons, the buttons, then the mixins. Phase 7's game bar needs
+  its own mock, and the user's approval, before any of its code.
 
-| Phase                             | State     |
-| --------------------------------- | --------- |
-| 0. Spike                          | done      |
-| 1. Scaffold the libraries         | done      |
-| 2. Tokens and theme; site moves   | done      |
-| 3. Components; site moves         | done      |
-| 4. Plumbing in Solitaire          | done      |
-| 5. Solitaire follows the theme    | in review |
-| 6. Solitaire's pieces move to lib | to do     |
-| 7. The game bar                   | to do     |
-| 8. Retire Solitaire's token names | to do     |
-| 9. Light chrome                   | to do     |
-| 10. Skills, and the next consumer | to do     |
+| Phase                             | State    |
+| --------------------------------- | -------- |
+| 0. Spike                          | done     |
+| 1. Scaffold the libraries         | done     |
+| 2. Tokens and theme; site moves   | done     |
+| 3. Components; site moves         | done     |
+| 4. Plumbing in Solitaire          | done     |
+| 5. Solitaire follows the theme    | done     |
+| 6. Solitaire's pieces move to lib | underway |
+| 7. The game bar                   | to do    |
+| 8. Retire Solitaire's token names | to do    |
+| 9. Light chrome                   | to do    |
+| 10. Skills, and the next consumer | to do    |
 
 ## How to check the work
 
@@ -487,3 +487,19 @@ passed every check in the plan, and was removed once done. What it showed:
   Library and user-event (Space chooses through the button's click; ArrowUp
   and ArrowDown are covered as well as left and right). Solitaire's
   `directive/` folder is gone.
+
+### 2026-10-24: Phase 6, the dialog
+
+- `<app-modal-dialog>` moved to `@fz/ui/dialog` as `<fz-dialog>`, with the
+  same inputs and output (its role type is `DialogRole` now). Its spec moved
+  too, rewritten for Testing Library: it opens the dialog by a button and
+  closes it by another, so it also checks that focus goes back to the opener.
+- Its backdrop reads `--fz-dialog-backdrop`, which no app sets yet, and falls
+  back to the slate scrim Solitaire has always had. An engine whose
+  `::backdrop` doesn't inherit custom properties gets the fallback too.
+- The jsdom `<dialog>` polyfill moved to `@fz/ui/testing`, which both
+  Solitaire's spec setup and the library's install. It keeps the element
+  focused before opening in a `WeakMap` now, not on the element.
+- The five overlays switched; the open overlays are pixel-identical to Phase
+  5's shots, apart from blur noise (at most 3 levels out of 255) in the
+  header behind the backdrop.
