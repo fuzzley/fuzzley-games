@@ -119,9 +119,10 @@ px.
   menu.
 - **A phone on its side:** the bar as a rail down the end side.
 - **The cells fit the room:** each as large as the space between the bar and
-  the edges allows, from 24 CSS px (WCAG 2.5.8's smallest target) up to
-  about 40, sized in CSS from the board's container. Below 24 the board
-  scrolls.
+  the edges allows, sized in CSS from the board's container. The pitch, a
+  square and its 2 px gap, runs from 24 CSS px up to 42: a 22 px square
+  24 px from the next meets WCAG 2.5.8 by its spacing exception. Below 24
+  the board scrolls.
 - **The board turns** on an upright phone when it is wider than tall, so
   Hard's 16 × 30 stands up the screen (decision 5). Rows become columns in
   the view only; the rules don't know.
@@ -382,9 +383,13 @@ The first option is the recommendation, and the user took each on
 
 ## Risks
 
-- **Angular Aria's grid at 900 cells** is unproven here, and `@angular/aria`
-  is young (the libraries pin it to `~22.2.0`). M0's spike tests it, and a
-  roving tab stop of Minesweeper's own is the fallback.
+- **A flood across a large board is slow on a slow phone.** M0's spike
+  found Angular Aria's grid fine at 900 cells, but a reveal that opens the
+  whole 30 × 30 board takes about a quarter of a second at Chrome's 4× CPU
+  throttle. The browser's restyle and paint cost that much with no
+  framework at all, so M4 keeps the cells' styles cheap and measures again.
+  `@angular/aria` is young (the libraries pin it to `~22.2.0`), and a roving
+  tab stop of Minesweeper's own is still the fallback.
 - **A rewrite can drop a rule.** The specs state each rule as a picture of
   a field, and M7 plays games through by every input.
 - **Long press and scrolling** share a gesture on a board bigger than the

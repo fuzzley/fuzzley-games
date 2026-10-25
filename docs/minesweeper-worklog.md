@@ -9,21 +9,24 @@ parent.
 
 - **Branch:** `minesweeper-angular`, from `main` at `d1b77db`. Not pushed: a
   push to `main` deploys, so shipping waits for the user's go-ahead.
-- **Phase:** M0, the mock and the spike.
-- **Next step:** build the mock and send it to the user; run the spike.
+- **Phase:** M0, the mock and the spike. Both are done; the mock waits on
+  the user's approval.
+- **Next step:** once the user approves the
+  [mock](https://claude.ai/artifact/PaFG5PCV4EgQegAN4hAdeW), or says what to
+  change, start M1.
 
-| Phase                 | State       |
-| --------------------- | ----------- |
-| M0. Mock and spike    | in progress |
-| M1. Scaffold          | to do       |
-| M2. The rules         | to do       |
-| M3. The new icons     | to do       |
-| M4. The board         | to do       |
-| M5. Bar and dialogs   | to do       |
-| M6. Storage           | to do       |
-| M7. The checks        | to do       |
-| M8. Screenshots, docs | to do       |
-| M9. Ship              | to do       |
+| Phase                 | State     |
+| --------------------- | --------- |
+| M0. Mock and spike    | in review |
+| M1. Scaffold          | to do     |
+| M2. The rules         | to do     |
+| M3. The new icons     | to do     |
+| M4. The board         | to do     |
+| M5. Bar and dialogs   | to do     |
+| M6. Storage           | to do     |
+| M7. The checks        | to do     |
+| M8. Screenshots, docs | to do     |
+| M9. Ship              | to do     |
 
 ## How to check the work
 
@@ -40,3 +43,45 @@ Chrome at a time.
   takes every decision as recommended. Decision 4 (the numbers' inks) is
   still shown both ways in the mock, and nothing in Minesweeper changes until
   the user approves the mock.
+
+### 2026-10-25: the spike
+
+- Thrown away, as planned: a zoneless app in Solitaire's workspace with a
+  30 × 30 `ngGrid` of cells, against the same grid without the directives.
+- **Keys:** one tab stop for 900 cells; the arrows, End and Ctrl+End move
+  it, the grid sets `aria-rowindex` and `aria-colindex`, and with selection
+  off it leaves Enter, Space and F to the cell's own handler.
+- **Speed, production build at Chrome's 4× CPU throttle:** the first render
+  takes about 1 s; revealing one cell 14–19 ms; a flood that opens the whole
+  board 240–260 ms. Unthrottled in dev, the flood takes 32–60 ms against
+  33–39 ms without the grid.
+- **The flood's cost is the browser's.** Writing the same changes straight
+  to the DOM takes 240–420 ms at 4×, and toggling only the class about
+  160 ms; `contain: strict` on the cells changes nothing. So the plan's "a
+  flood repaints within a frame or two" holds for a move, not for the
+  worst flood, and no framework would change that. The grid stays; the
+  plan's risks now say so, and M4 keeps the cells' styles cheap.
+- **Weight:** the spike's production bundle, zoneless Angular with the
+  grid, is 52 kB gzipped, against the 111 kB of scripts the game loads
+  today.
+
+### 2026-10-25: the mock
+
+- Published privately:
+  [Minesweeper on the shared libraries: the mock](https://claude.ai/artifact/PaFG5PCV4EgQegAN4hAdeW).
+  Built from the libraries' real Sass and icons by a generator script, with
+  a seeded game for the boards; the generator lives outside the repository.
+- It shows the game wide and on phones, the bar and its overflow, the
+  turned board, the settings, the confirmation, a win, a loss and How to
+  play; the numbers' inks both ways in every palette (decision 4); and the
+  three new icons.
+- **The cell pitch** (a square and its gap) runs from 24 px to 42 px, so a
+  square can be 22 px; WCAG 2.5.8's spacing exception allows it. The plan's
+  design section says so now.
+- **Contrast, checked per palette:** every number's ink clears 4.5:1 on an
+  open square, the lowest Soft pastel's 3 at 4.9:1; hidden squares against
+  open ones 4.3:1 at the least (Classic felt); flags and mines on their
+  squares over 5:1.
+- **For decision 7, later:** the settings drawer borrows Solitaire's choice
+  rows, segmented control and field labels. If Minesweeper keeps them, they
+  are the first candidates to lift into `@fz/game-ui`.
