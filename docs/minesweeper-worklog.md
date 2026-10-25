@@ -9,8 +9,8 @@ parent.
 
 - **Branch:** `minesweeper-angular`, from `main` at `d1b77db`. Not pushed: a
   push to `main` deploys, so shipping waits for the user's go-ahead.
-- **Phase:** M2, the rules.
-- **Next step:** M2.
+- **Phase:** M3, the new icons.
+- **Next step:** M3.
 
 | Phase                 | State     |
 | --------------------- | --------- |
@@ -103,3 +103,20 @@ Chrome at a time.
   gzipped, against 158 kB before.
 - `yarn verify` passed, with the site's build copying and tagging the new
   `dist/`.
+
+### 2026-10-25: M2, the rules
+
+- `src/game/`: `field.ts` (the field, the deal, reveal with its flood as a
+  loop, clearing around a number, flags, lives, the outcome, restart),
+  `difficulty.ts` (Easy, Medium, Hard, Custom's bounds, lives), `random.ts`
+  (Mulberry32), `describe.ts` (what a square shows and is called, and what a
+  move did, for the announcer) and `saved_field.ts` (the field as JSON, and
+  a reader that refuses anything the game couldn't have saved).
+- **As built:** a field holds `layout: null` until the first reveal, which
+  lays the mines from the field's seed clear of that square and its
+  neighbors. Restart keeps the layout, so the replay has the same mines, but
+  its first reveal isn't promised safe: the player has seen the field. A win
+  flags the mines left standing, so the mines left read 0.
+- Specs draw fields as pictures (`src/testing/field_picture.ts`), and a
+  number drawn must match its count. `test:coverage` holds `src/game/` to
+  100% of statements, functions and lines and 95% of branches.

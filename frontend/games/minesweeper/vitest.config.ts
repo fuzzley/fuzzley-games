@@ -15,6 +15,16 @@ export default defineConfig({
       reporter: ["text", "html"],
       include: ["src/**/*.ts"],
       exclude: ["src/main.ts", "src/test-setup.ts", "src/testing/**"],
+      thresholds: {
+        // The rules are held to a floor near 100%, since each is a spec's
+        // picture of a field.
+        "src/game/**": {
+          statements: 100,
+          branches: 95,
+          functions: 100,
+          lines: 100,
+        },
+      },
     },
   },
 });
