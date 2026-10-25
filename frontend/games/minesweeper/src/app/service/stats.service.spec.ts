@@ -55,11 +55,20 @@ describe("StatsService", () => {
 
   it("keeps no best time for Custom, whose fields differ", () => {
     const stats = TestBed.inject(StatsService);
+    stats.recordStart("custom");
 
     const best = stats.recordWin("custom", 30);
 
     expect(best).toBe(false);
-    expect(stats.stats().custom).toEqual({ played: 0, won: 1, best: null });
+    expect(stats.stats().custom).toEqual({ played: 1, won: 1, best: null });
+  });
+
+  it("counts a win as played where its start went uncounted", () => {
+    const stats = TestBed.inject(StatsService);
+
+    stats.recordWin("easy", 95);
+
+    expect(stats.stats().easy).toEqual({ played: 1, won: 1, best: 95 });
   });
 
   it("keeps the stats", () => {

@@ -40,7 +40,7 @@
         class="fz-button fz-button-large fz-button-block"
         [class.fz-button-warning]="won()"
         autofocus
-        (click)="game.newGame()"
+        (click)="newGame()"
       >
         New Game
       </button>
@@ -48,7 +48,7 @@
       <button
         type="button"
         class="fz-button fz-button-secondary fz-button-large fz-button-block"
-        (click)="game.restart()"
+        (click)="playAgain()"
       >
         Play this field again
       </button>

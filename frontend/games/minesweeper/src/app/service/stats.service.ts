@@ -55,13 +55,19 @@ export class StatsService {
     }));
   }
 
-  /** Counts a game won, and returns whether its time is a new best. */
+  /**
+   * Counts a game won, and returns whether its time is a new best.
+   *
+   * A win counts as played too where its start went uncounted, as a game
+   * saved by another tab can be, since stored stats with more games won than
+   * played are thrown away as broken.
+   */
   recordWin(difficulty: DifficultyId, seconds: number): boolean {
     const before = this.state()[difficulty].best;
     const best =
       difficulty === "custom" ? null : Math.min(before ?? seconds, seconds);
     this.change(difficulty, (stats) => ({
-      ...stats,
+      played: Math.max(stats.played, stats.won + 1),
       won: stats.won + 1,
       best,
     }));

@@ -5,7 +5,7 @@
 -->
 <main class="stage">
   <div class="room">
-    <app-board />
+    <app-board #board />
   </div>
 </main>
 
@@ -19,6 +19,7 @@
 
 <app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
 <app-help [open]="helpOpen()" (closed)="helpOpen.set(false)" />
-<app-result />
+<!-- A new deal replaces the square that had the focus, so the board takes it. -->
+<app-result (played)="board.focus()" />
 <!-- Last, so it opens over the settings when a change would lose a game. -->
 <fz-confirm-dialog />

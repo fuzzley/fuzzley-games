@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/angular";
+import { render, screen, waitFor, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { playOn } from "../testing/game";
 import { AppComponent } from "./app.component";
@@ -96,5 +96,17 @@ describe("AppComponent", () => {
     expect(
       await screen.findByRole("alertdialog", { name: "Field cleared!" }),
     ).toBeInTheDocument();
+  });
+
+  it("gives the board the focus after New Game from the card", async () => {
+    const user = await renderApp(["*1_", "121", ".1*"]);
+    await user.click(square(6));
+    const card = await screen.findByRole("alertdialog");
+
+    await user.click(within(card).getByRole("button", { name: "New Game" }));
+
+    await waitFor(() => {
+      expect(document.activeElement).toHaveAttribute("role", "gridcell");
+    });
   });
 });

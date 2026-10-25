@@ -15,7 +15,7 @@
     <div class="drawer-content">
       <div class="setting">
         <span class="setting-label" id="difficulty-label">Difficulty</span>
-        <!-- Each choice is named by its name alone, and its line describes it. -->
+        <!-- Each choice is named by all its text, as a voice command reads it. -->
         <div
           class="choice-list"
           fzRadioGroup
@@ -27,16 +27,10 @@
               class="choice"
               role="radio"
               [attr.aria-checked]="choice.checked"
-              [attr.aria-labelledby]="`difficulty-${choice.id}`"
-              [attr.aria-describedby]="`difficulty-${choice.id}-desc`"
               (click)="chooseDifficulty(choice.id)"
             >
-              <span class="name" [id]="`difficulty-${choice.id}`">{{
-                choice.name
-              }}</span>
-              <span class="desc" [id]="`difficulty-${choice.id}-desc`">{{
-                choice.description
-              }}</span>
+              <span class="name">{{ choice.name }}</span>
+              <span class="desc">{{ choice.description }}</span>
             </button>
           }
         </div>

@@ -103,15 +103,15 @@
   color: var(--fz-on-danger);
 }
 
-.cell[data-show="mine"] {
+// Shown after a loss: every mine, and every flag that was wrong, struck
+// through so it reads by shape as well as by color. Both in the text color,
+// which clears 4.5:1 on an open square where the muted one doesn't always.
+.cell[data-show="mine"],
+.cell[data-show="wrong-flag"] {
   color: var(--fz-text);
 }
 
-// A flag that was wrong, struck through: shown after a loss, by shape as well
-// as by color.
 .cell[data-show="wrong-flag"] {
-  color: var(--fz-muted);
-
   &::after {
     content: "";
     position: absolute;

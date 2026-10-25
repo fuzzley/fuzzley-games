@@ -2,6 +2,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
+  Injector,
+  afterNextRender,
   computed,
   inject,
 } from "@angular/core";
@@ -39,7 +42,7 @@ interface Press {
  * Draws the minefield as a grid the keyboard can walk, and turns clicks,
  * taps, long presses and keys on it into moves.
  *
- * On a phone held upright, a field wider than it is tall turns, its rows
+ * On an upright screen, a field wider than it is tall turns, its rows
  * becoming the board's columns, so it stands up the screen. The rules never
  * know: each square still names its place in the field.
  *
@@ -56,6 +59,8 @@ interface Press {
 export class BoardComponent {
   protected readonly game = inject(GameService);
   private readonly viewport = inject(ViewportService);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
 
   private press: Press | null = null;
   /** Whether a long press just flagged, so the click that follows is not a reveal. */
@@ -105,6 +110,21 @@ export class BoardComponent {
     inject(DestroyRef).onDestroy(() => {
       this.cancelPress();
     });
+  }
+
+  /**
+   * Puts the focus on the board's tab stop once it has drawn, as after a new
+   * deal replaces the square that had it.
+   */
+  focus(): void {
+    afterNextRender(
+      () => {
+        this.host.nativeElement
+          .querySelector<HTMLElement>('[role="gridcell"][tabindex="0"]')
+          ?.focus();
+      },
+      { injector: this.injector },
+    );
   }
 
   /** Reveals the square clicked or tapped, or flags it in Flag mode. */
