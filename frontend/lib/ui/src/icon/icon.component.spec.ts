@@ -19,11 +19,14 @@ describe("IconComponent", () => {
     expect(icon.querySelector("svg")?.childElementCount).toBeGreaterThan(0);
   });
 
-  it("fills a solid icon", async () => {
-    const icon = await renderIcon("play");
+  it.each(["flag", "heart", "mine", "more", "play"] as const)(
+    "fills %s, a solid icon",
+    async (name) => {
+      const icon = await renderIcon(name);
 
-    expect(icon.querySelector("svg")).toHaveClass("filled");
-  });
+      expect(icon.querySelector("svg")).toHaveClass("filled");
+    },
+  );
 
   it("outlines any other", async () => {
     const icon = await renderIcon("tick");
