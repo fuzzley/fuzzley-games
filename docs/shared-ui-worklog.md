@@ -8,10 +8,9 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
-- **Phase:** 7, the game bar, is built; its screenshots are next.
-- **Next step:** retake Solitaire's screenshots
-  (`yarn workspace solitaire capture:screenshots`, then `build:thumbs`),
-  then Phase 8.
+- **Phase:** 8, retiring Solitaire's old token names. Phase 7 is done.
+- **Next step:** the user's go-ahead for Phase 8, which is invisible and
+  needs no mock: its check is that Phase 7's screenshots don't change.
 
 | Phase                             | State |
 | --------------------------------- | ----- |
@@ -22,7 +21,7 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 | 4. Plumbing in Solitaire          | done  |
 | 5. Solitaire follows the theme    | done  |
 | 6. Solitaire's pieces move to lib | done  |
-| 7. The game bar                   | built |
+| 7. The game bar                   | done  |
 | 8. Retire Solitaire's token names | to do |
 | 9. Light chrome                   | to do |
 | 10. Skills, and the next consumer | to do |
@@ -675,3 +674,12 @@ passed every check in the plan, and was removed once done. What it showed:
   In Chrome, the dismiss layer covers the whole window on phones in both
   orientations and takes a tap on the board; the bar's glass blurs what is
   under it.
+
+### 2026-10-24: Phase 7's screenshots; Phase 7 done
+
+- Retook all 41 games' screenshots with the new bar
+  (`yarn workspace solitaire capture:screenshots`, then `build:thumbs`):
+  19 MB of lossless PNGs and 6.8 MB of the WebP images the site serves.
+  This is the one retake the plan's risks allow for, after Phase 7.
+- Phase 7 is done: `be013e2` (the home icon), `5e55180` (`@fz/game-ui`),
+  `222ba70` (Solitaire on it), and this commit.
