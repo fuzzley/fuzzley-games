@@ -583,6 +583,13 @@ components.
   group and menu as the way to meet its rules.
 - Write Minesweeper's plan: `lib/style`'s CSS and a hand-written bar, in the
   fragments' markup.
+- **As built** (the work log has the details): the skill is
+  `.agents/skills/fuzzley-ui/SKILL.md`, at the repository's root rather than
+  in `lib/ui`. Every app uses it, and Claude Code loads a workspace's skills
+  only while it works in that workspace, so one in `lib/ui` would be missing
+  just when a game takes the libraries up. Minesweeper's plan is
+  [a document of its own](minesweeper-ui-plan.md), whose decisions wait on
+  the user.
 
 ## Decisions
 

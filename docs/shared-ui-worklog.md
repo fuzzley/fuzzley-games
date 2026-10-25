@@ -8,10 +8,11 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
-- **Phase:** 10, skills and the next consumer. Phase 9 is done.
-- **Next step:** the libraries' skill, the accessibility skill's update and
-  Minesweeper's plan, all docs: the user asked that Minesweeper itself not
-  change yet.
+- **Phase:** all ten are done.
+- **Next step:** the user's go-ahead to ship `shared-ui` to `main`, which
+  deploys; the last commit before then deletes this log. Minesweeper's own
+  plan, [minesweeper-ui-plan.md](minesweeper-ui-plan.md), waits on the
+  user's decisions.
 
 | Phase                             | State |
 | --------------------------------- | ----- |
@@ -25,7 +26,7 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 | 7. The game bar                   | done  |
 | 8. Retire Solitaire's token names | done  |
 | 9. Light chrome                   | done  |
-| 10. Skills, and the next consumer | doing |
+| 10. Skills, and the next consumer | done  |
 
 ## How to check the work
 
@@ -811,3 +812,29 @@ passed every check in the plan, and was removed once done. What it showed:
   browser thumbnail in each, which these unmasked shots rasterize afresh
   each time. Casino night's and Midnight blue's loading states match the
   mock's. The game screenshots, taken in Emerald, stand.
+
+### 2026-10-25: Phase 10, the libraries' skill and Minesweeper's plan
+
+- **The skill**, `fuzzley-ui`, says what each library is for, which piece to
+  reach for in place of a style or component of an app's own, how the
+  palettes' modes work, how an app adopts the libraries (with the
+  Solitaire Collection's files as the worked example), and the rules for
+  changing one. It points to each library's `AGENTS.md` for the rest. It is
+  in the repository's `.agents/skills/`, not `lib/ui`'s as the plan had it:
+  every app uses it, and Claude Code loads a workspace's skills only while
+  it works in that workspace, so one in `lib/ui` would be missing just when
+  a game adopts the libraries. Linked with
+  `node .agents/link-claude-skills.mjs`.
+- **`web-game-accessibility`** now says the libraries' components meet its
+  rules by themselves, and names them where they apply: `<fz-dialog>` and
+  `ConfirmService` for modals, `[fzRadioGroup]` for radio buttons, and
+  `<fz-theme-menu>` and `<fz-bar-overflow>` as the menus on Angular Aria.
+  Its contrast section covers the surfaces too, and an icon-only button's
+  hidden label is `@fz/style`'s.
+- **Minesweeper's plan**, [a document of its own](minesweeper-ui-plan.md):
+  `@fz/style` only, since the rest is Angular; Bootstrap 3 out in one step,
+  as its unlayered rules would beat the library's; the bar and the dialogs
+  written by hand in the components' markup, from the surfaces; the board
+  in the palette's roles; and a mock first. Its seven decisions wait on the
+  user. At the user's word, nothing in Minesweeper itself changed.
+- The root `AGENTS.md` names the skill beside the libraries' own.
