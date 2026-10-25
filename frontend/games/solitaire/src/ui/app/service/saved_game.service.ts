@@ -3,7 +3,7 @@ import type { PlayableGame } from "@/engine/tableau/session/playable_game";
 import { GamePosition, readGamePosition } from "../model/game_position";
 import { sameOptionValues } from "../provider/game_catalog";
 import { GameCatalogService } from "./game_catalog.service";
-import { LocalStorageService } from "./local_storage.service";
+import { LocalStorageService } from "@fz/ui/storage";
 
 const STORAGE_KEY = "fsolitaire-saved-game";
 
@@ -76,7 +76,7 @@ export class SavedGameService {
   }
 
   private read(): GamePosition | null {
-    const stored = this.storage.readObject<unknown>(STORAGE_KEY);
+    const stored = this.storage.readObject(STORAGE_KEY);
     if (!stored) return null;
     try {
       return readGamePosition(stored);

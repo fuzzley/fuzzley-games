@@ -8,7 +8,7 @@ import {
 } from "@/engine/core/common/json_reader";
 import { GameOptionValues, sameOptionValues } from "../provider/game_catalog";
 import { GameCatalogService } from "./game_catalog.service";
-import { LocalStorageService } from "./local_storage.service";
+import { LocalStorageService } from "@fz/ui/storage";
 
 const STORAGE_KEY = "fsolitaire-recent-games";
 
@@ -60,7 +60,7 @@ export class RecentGamesService {
 
   /** Reads the stored games, dropping any the catalog no longer has. */
   private read(): RecentGame[] {
-    const stored = this.storage.readObject<unknown>(STORAGE_KEY);
+    const stored = this.storage.readObject(STORAGE_KEY);
     if (!stored) return [];
     try {
       return readList(stored, "recent", readRecentGame).filter((game) =>

@@ -15,7 +15,9 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
 
 - `src/storage/`: `BROWSER_STORAGE`, the browser's `localStorage`, or `null`
   where the browser refuses it, which a service injects rather than reading
-  the global, so a spec can hand it another.
+  the global, so a spec can hand it another; and `LocalStorageService`, which
+  reads and writes strings and JSON through it, warning rather than throwing
+  where the store is missing or refuses.
 - `src/theme/`: `ThemeService`, which applies the palette in use, remembers
   it, takes up one chosen in another tab, and gives a role's color as a
   signal (`role("felt")`); `<fz-theme-menu>`, the menu a player picks one

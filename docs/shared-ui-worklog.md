@@ -469,3 +469,13 @@ passed every check in the plan, and was removed once done. What it showed:
 - **Not done here:** the docs' screenshots wait for Phase 7, as the plan
   says.
 - **Next:** Phase 6, one commit per piece.
+
+### 2026-10-24: Phase 6, storage
+
+- `LocalStorageService` moved from Solitaire to `@fz/ui/storage`, built on
+  `BROWSER_STORAGE`; its spec moved with it and hands the service a store
+  that refuses everything, or none, rather than spying on `Storage`.
+- `readObject()` returns `object | null` instead of taking a type parameter,
+  which `@fz/ui`'s lint rejects as a cast in disguise. Solitaire's two callers
+  that read fields name the shape they expect at the call site, where their
+  checks are; the two that read lists pass the value to their readers as is.

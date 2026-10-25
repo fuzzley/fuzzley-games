@@ -42,7 +42,7 @@ import {
   isFeltChoice,
   isFeltKey,
 } from "../model/table_felt";
-import { LocalStorageService } from "./local_storage.service";
+import { LocalStorageService } from "@fz/ui/storage";
 import { ViewportService } from "./viewport.service";
 
 /**
@@ -346,7 +346,10 @@ export class PresentationSettingsService implements TablePresentation {
 
   /** Reads stored settings, filling gaps with defaults. */
   private loadPersisted(): PersistedPresentation {
-    const parsed = this.storage.readObject<StoredPresentation>(STORAGE_KEY);
+    // Each field is checked as it is read below.
+    const parsed = this.storage.readObject(
+      STORAGE_KEY,
+    ) as StoredPresentation | null;
     if (!parsed) return DEFAULTS;
 
     // An earlier build stored the one deck it offered as `cardDeck`.
