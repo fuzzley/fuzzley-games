@@ -6,7 +6,9 @@ description: Accessibility (a11y) rules for the site and the games, ARIA state b
 # Web Game Accessibility (a11y) Skill
 
 This skill defines the accessibility rules the site and the games built here
-share. Each workspace's `AGENTS.md` names the helpers it keeps for them:
+share. The shared libraries' components meet them by themselves, so the
+first way to meet one is to use the library's piece (the `fuzzley-ui` skill
+lists them); each workspace's `AGENTS.md` names what it keeps of its own:
 `frontend/site/AGENTS.md` and `frontend/games/solitaire/AGENTS.md`.
 
 ## Core Accessibility Rules
@@ -45,8 +47,8 @@ than from a separate class, so the look and the announcement cannot disagree.
   announce changes to a live region, not one that arrives with its text
   already in it. Render it unconditionally and change only what it says, and
   put every outcome in it, the empty one ("No games match.") included.
-- Give icon-only buttons a label only screen readers read, with the
-  workspace's visually-hidden helper.
+- Give icon-only buttons a label only screen readers read, with
+  `@fz/style`'s `.fz-visually-hidden` class or its `visually-hidden` mixin.
 
 ### 3. Focus Management & Modals
 
@@ -56,6 +58,16 @@ than from a separate class, so the look and the announcement cannot disagree.
 - Menus, pickers and choosers keep a logical tab order, support arrow key /
   Enter navigation, and hand focus back to the control that opened them when
   they close.
+- In an Angular app these come built, so use them rather than another:
+  - `<fz-dialog>` (`@fz/ui/dialog`) is the modal `<dialog>`, and
+    `ConfirmService` (`@fz/ui/confirm`) asks a question in one, with Cancel
+    focused first;
+  - `[fzRadioGroup]` (`@fz/ui/radio_group`) gives a group of `role="radio"`
+    buttons one tab stop, the arrow keys, Home and End, and native radios
+    serve where choosing costs nothing, as in `<fz-theme-picker>`;
+  - `<fz-theme-menu>` (`@fz/ui/theme`) and `<fz-bar-overflow>`
+    (`@fz/game-ui/bar_overflow`) are menus on Angular Aria, with its
+    keyboard model, so a new menu is built on it too.
 
 ### 4. Color & Contrast
 
@@ -66,8 +78,9 @@ than from a separate class, so the look and the announcement cannot disagree.
   surface backgrounds in every palette and table color, not just the default
   one. The shared palettes are held to it by
   `frontend/lib/style/src/tokens/contrast.spec.ts`, which checks each
-  palette's text and labels on their surfaces and fills, and the focus ring
-  at 3:1; a new role that carries text or sits behind it gets a pair there.
+  palette's text and labels on their surfaces and fills, the surfaces that
+  float over a game over what shows through them, and the focus ring at
+  3:1; a new role that carries text or sits behind it gets a pair there.
   Text on glass over a game's table depends on the table too: the Solitaire
   Collection's header labels are held to it over every felt by
   `frontend/games/solitaire/test/ui/app/styles/contrast.spec.ts`.
