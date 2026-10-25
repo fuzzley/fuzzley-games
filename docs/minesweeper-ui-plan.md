@@ -1,7 +1,7 @@
 # Plan: Minesweeper as an Angular app on the shared libraries
 
-Agreed 2026-10-25: the user took every recommendation ("Yes proceed"), and
-the M0 mock still waits on their approval. This plan rebuilds Minesweeper as an Angular app, shaped like the
+Agreed 2026-10-25: the user took every recommendation ("Yes proceed") and
+approved the M0 mock, classic inks and all. This plan rebuilds Minesweeper as an Angular app, shaped like the
 Solitaire Collection's shell, on all three shared libraries
 ([the shared UI plan](shared-ui-plan.md)): `@fz/style` for the look,
 `@fz/ui` for the dialogs, confirmation, theme, icons and storage, and
@@ -10,8 +10,7 @@ stays is the game: Minesweeper with lives.
 
 It replaces the earlier plan of the same day, which kept the 2016 code and
 took only `@fz/style`. That plan is in git history
-(`git show d1b77db:docs/minesweeper-ui-plan.md`). Nothing in Minesweeper
-changes until the M0 mock is approved.
+(`git show d1b77db:docs/minesweeper-ui-plan.md`).
 
 ## Where things start
 
@@ -347,7 +346,7 @@ and its specs check nothing changed for it.
 ## Decisions
 
 The first option is the recommendation, and the user took each on
-2026-10-25. The mock still shows both options for decision 4.
+2026-10-25.
 
 1. **Fix the rules in the rewrite:** the first reveal is always safe; a
    flagged cell doesn't reveal until it is unflagged; the game is won when

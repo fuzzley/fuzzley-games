@@ -9,11 +9,8 @@ parent.
 
 - **Branch:** `minesweeper-angular`, from `main` at `d1b77db`. Not pushed: a
   push to `main` deploys, so shipping waits for the user's go-ahead.
-- **Phase:** M0, the mock and the spike. Both are done; the mock waits on
-  the user's approval.
-- **Next step:** once the user approves the
-  [mock](https://claude.ai/artifact/PaFG5PCV4EgQegAN4hAdeW), or says what to
-  change, start M1.
+- **Phase:** M2, the rules.
+- **Next step:** M2.
 
 | Phase                 | State     |
 | --------------------- | --------- |
@@ -85,3 +82,24 @@ Chrome at a time.
 - **For decision 7, later:** the settings drawer borrows Solitaire's choice
   rows, segmented control and field labels. If Minesweeper keeps them, they
   are the first candidates to lift into `@fz/game-ui`.
+
+### 2026-10-25: the mock approved
+
+- The user approved the mock and asked for what it recommends: decision 4
+  takes the classic inks. Implementation starts with M1.
+
+### 2026-10-25: M1, the scaffold
+
+- The 2016 code, its vendored scripts, styles and fonts are gone, and
+  `.prettierignore` no longer skips Minesweeper.
+- The workspace follows `@fz/ui`'s layout: specs beside the code under
+  `src/`, a solution `tsconfig.json` with the libraries' options, and
+  ESLint's boundary keeping `src/game/` free of Angular, the libraries and
+  the shell. `tsconfig.node.json` needs `allowImportingTsExtensions`, as the
+  site's does, for `@fz/style`'s Vite plugin.
+- Beyond Solitaire's dependencies it takes Testing Library and, for it and
+  `@angular/build`, `@angular/router` and `postcss`, as `@fz/ui` does.
+- **Size:** the shell alone builds to 41.7 kB of script and 2.9 kB of CSS,
+  gzipped, against 158 kB before.
+- `yarn verify` passed, with the site's build copying and tagging the new
+  `dist/`.

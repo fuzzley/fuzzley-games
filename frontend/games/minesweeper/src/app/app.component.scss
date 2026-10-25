@@ -1,0 +1,11 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--fz-font-lg);
+  font-weight: 700;
+  white-space: nowrap;
+}
