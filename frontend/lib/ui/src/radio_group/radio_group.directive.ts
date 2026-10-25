@@ -5,7 +5,6 @@ import {
   afterNextRender,
   inject,
 } from "@angular/core";
-import { itemAt } from "@/engine/core/common/item_at";
 
 /** The children this directive governs, in document order. */
 const RADIO_SELECTOR = '[role="radio"]';
@@ -19,14 +18,15 @@ const STEP_BY_KEY: Readonly<Record<string, number>> = {
 };
 
 /**
- * Gives a `radiogroup` its keyboard behaviour: a single tab stop, with the
- * arrow keys moving between its radios.
+ * Gives a `radiogroup` of `role="radio"` buttons its keyboard behaviour: a
+ * single tab stop, with the arrow keys, Home and End moving between them.
  *
- * The arrows move focus without choosing, because choosing a rule deals a new
- * game behind a confirmation prompt.
+ * The arrows move focus without choosing, unlike native radios, because a
+ * choice can cost something a stray keystroke shouldn't, such as a game's
+ * rule, which deals a new game. Space and Enter choose, as the button's click.
  */
 @Directive({
-  selector: "[appRadioGroup]",
+  selector: "[fzRadioGroup]",
   host: {
     role: "radiogroup",
     "(keydown)": "onKeydown($event)",
@@ -36,7 +36,7 @@ export class RadioGroupDirective {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   constructor() {
-    // The radios and their `aria-checked` change with the game on the table,
+    // The radios and their `aria-checked` change with what the host shows,
     // so the tab stop follows the DOM.
     const observer = new MutationObserver(() => {
       this.syncTabStops();
@@ -64,21 +64,19 @@ export class RadioGroupDirective {
    */
   protected onKeydown(event: KeyboardEvent): void {
     const radios = this.radios();
-    if (radios.length === 0) return;
-
-    const current = radios.indexOf(
-      // `closest`, not `event.target`: the radio may have a span inside it.
-      (event.target as HTMLElement | null)?.closest<HTMLElement>(
-        RADIO_SELECTOR,
-      ) as HTMLElement,
-    );
+    // `closest`, not the target itself: the radio may have a span inside it.
+    const radio =
+      event.target instanceof Element
+        ? event.target.closest<HTMLElement>(RADIO_SELECTOR)
+        : null;
+    const current = radio ? radios.indexOf(radio) : -1;
     if (current === -1) return;
 
     const next = this.nextIndex(event.key, current, radios.length);
     if (next === null) return;
 
     event.preventDefault();
-    itemAt(radios, next).focus();
+    radios[next]?.focus();
     this.syncTabStops(next);
   }
 
@@ -97,8 +95,6 @@ export class RadioGroupDirective {
    */
   private syncTabStops(preferred?: number): void {
     const radios = this.radios();
-    if (radios.length === 0) return;
-
     const checked = radios.findIndex(
       (radio) => radio.getAttribute("aria-checked") === "true",
     );

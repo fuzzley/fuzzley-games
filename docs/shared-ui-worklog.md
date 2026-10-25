@@ -479,3 +479,11 @@ passed every check in the plan, and was removed once done. What it showed:
   which `@fz/ui`'s lint rejects as a cast in disguise. Solitaire's two callers
   that read fields name the shape they expect at the call site, where their
   checks are; the two that read lists pass the value to their readers as is.
+
+### 2026-10-24: Phase 6, the radio group
+
+- `RadioGroupDirective` moved to `@fz/ui/radio_group` as `[fzRadioGroup]`,
+  without the engine's `itemAt`. Its spec moved too, rewritten for Testing
+  Library and user-event (Space chooses through the button's click; ArrowUp
+  and ArrowDown are covered as well as left and right). Solitaire's
+  `directive/` folder is gone.
