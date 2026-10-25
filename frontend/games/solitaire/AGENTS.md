@@ -106,8 +106,8 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
   which build filed it.
 - **`src/ui/app/service`** — `GameCatalogService` owns which game is on the
   table (routed, see below); `GameMetricsService` reads the running game;
-  `GameLifecycleService` changes it, behind a confirmation when there is a game
-  to lose; the rest are small and single-purpose (timer, presentation,
+  `GameLifecycleService` changes it, asking first through `@fz/ui/confirm`
+  when there is a game to lose; the rest are small and single-purpose (timer, presentation,
   including the felt, documentation, game browser, recent games, bug report,
   saved game). They keep what they store through `@fz/ui/storage`'s
   `LocalStorageService`.

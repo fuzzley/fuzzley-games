@@ -1,0 +1,82 @@
+// The card in the middle of the dialog. Its padding and the gap between its
+// buttons shrink with a narrow screen without a breakpoint, which an app
+// would have to choose.
+.card {
+  width: 380px;
+  max-width: calc(100vw - var(--fz-space-8));
+  padding: clamp(var(--fz-space-6), 6vw, var(--fz-space-8))
+    clamp(var(--fz-space-4), 6vw, var(--fz-space-8));
+  border: 1px solid var(--fz-edge-3);
+  border-radius: var(--fz-radius-xl);
+  background: var(--fz-wash-2);
+  box-shadow: var(--fz-shadow-card);
+  color: var(--fz-text);
+  text-align: center;
+  user-select: none;
+  animation: fz-pop-in 0.3s var(--fz-ease-spring);
+
+  &.danger {
+    box-shadow:
+      var(--fz-shadow-card),
+      0 0 80px color-mix(in srgb, var(--fz-danger) 15%, transparent);
+  }
+}
+
+.icon {
+  --fz-icon-size: 64px;
+
+  // Thinner than the small icons' 2, which reads as bold this large.
+  --fz-icon-stroke: 1.5;
+
+  margin: 0 auto var(--fz-space-5);
+  color: var(--fz-danger);
+  animation: fz-pulse 2s infinite;
+}
+
+.title {
+  margin: 0 0 var(--fz-space-3);
+  font-size: var(--fz-font-2xl);
+  font-weight: 700;
+
+  .danger & {
+    color: var(--fz-danger);
+  }
+}
+
+.message {
+  margin: 0 0 var(--fz-space-6);
+  color: var(--fz-muted);
+  font-size: var(--fz-font-md);
+  line-height: var(--fz-leading-normal);
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: clamp(var(--fz-space-2), 3vw, var(--fz-space-4));
+}
+
+@keyframes fz-pop-in {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fz-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.85;
+  }
+}

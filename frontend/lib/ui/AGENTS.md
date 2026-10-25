@@ -25,6 +25,13 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   panel. `THEME_COLOR_ROLE` names the palette role the browser's own toolbar
   takes (`bar` unless an app provides another, such as `felt` for a game
   whose table runs to the top, or `null` for an app that sets it itself).
+- `src/confirm/`: `ConfirmService`, whose `ask()` takes a title, a
+  message, the buttons' labels and a tone (`accent`, or `danger` for what
+  can't be undone) and resolves to the player's answer; and
+  `<fz-confirm-dialog>`, the alert dialog that shows it, which an app puts
+  in its root template once. Cancel comes first, so the dialog focuses it,
+  and Escape or a click outside answers no. It wears `@fz/style`'s
+  `.fz-button` classes.
 - `src/dialog/`: `<fz-dialog>`, which shows what it holds in a native
   modal `<dialog>`, so the browser traps focus, makes the page behind it
   inert and gives focus back on close. The host owns `open`: the dialog

@@ -1,9 +1,9 @@
 import { Injectable, inject } from "@angular/core";
+import { ConfirmService } from "@fz/ui/confirm";
 import { decodePosition } from "../model/game_position";
 import { GameOptionValues } from "../provider/game_catalog";
 import { GameCatalogService } from "./game_catalog.service";
 import { GameMetricsService } from "./game_metrics.service";
-import { ConfirmationService } from "./confirmation.service";
 
 /** What the player is asked before another game replaces one under way. */
 const SWITCH_GAME_MESSAGE =
@@ -17,7 +17,7 @@ const SWITCH_GAME_MESSAGE =
 export class GameLifecycleService {
   private readonly catalog = inject(GameCatalogService);
   private readonly metrics = inject(GameMetricsService);
-  private readonly confirmation = inject(ConfirmationService);
+  private readonly confirm = inject(ConfirmService);
 
   /**
    * Puts a game on the table by the given rules, asking first when that would
@@ -149,7 +149,7 @@ export class GameLifecycleService {
    */
   private confirmIfInProgress(message: string): Promise<boolean> {
     return this.metrics.isInProgress()
-      ? this.confirmation.ask(message)
+      ? this.confirm.ask({ title: "Confirm Action", message, tone: "danger" })
       : Promise.resolve(true);
   }
 }

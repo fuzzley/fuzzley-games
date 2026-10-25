@@ -13,7 +13,7 @@ import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { GameBrowserComponent } from "@/ui/app/component/game_browser/game_browser.component";
 import { GameBrowserService } from "@/ui/app/service/game_browser.service";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
-import { ConfirmationService } from "@/ui/app/service/confirmation.service";
+import { ConfirmService } from "@fz/ui/confirm";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import type { MockGameModelOverrides } from "@test/support/ui/game_mock";
 import {
@@ -509,7 +509,7 @@ describe("GameBrowserComponent", () => {
       await click(row("FreeCell"));
       await click(queryRequired(fixture, ".btn-play"));
 
-      TestBed.inject(ConfirmationService).cancel();
+      TestBed.inject(ConfirmService).cancel();
       await flushMicrotasks();
 
       expect(browser.isOpen()).toBe(true);
