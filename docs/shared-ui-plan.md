@@ -540,6 +540,13 @@ components.
     from sight as now.
   - The canvas reads the bar's custom properties.
 - Then retake the screenshots (see Phase 5).
+- **As built** (the work log has the details): both components went into a
+  library of their own, `@fz/game-ui` (`frontend/lib/game-ui`), as decision 1
+  foresaw. The bar also takes `reversed` and `home` (the wordmark from
+  1280px, the home icon below, and the overflow menu's first item below
+  360px). Its glass is `$bar-glass`, 75% rather than `--fz-bar-glass`'s 50%,
+  for the labels' contrast. Its size comes from the `bar-size()` mixin an
+  app includes on `:root`.
 
 ### Phase 8: retire Solitaire's old token names (medium, invisible)
 

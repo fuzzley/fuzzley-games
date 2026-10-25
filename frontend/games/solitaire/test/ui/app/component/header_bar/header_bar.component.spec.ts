@@ -6,7 +6,13 @@ import { GameDocumentationService } from "@/ui/app/service/game_documentation.se
 import { ConfirmService } from "@fz/ui/confirm";
 import { BugReportService } from "@/ui/app/service/bug_report.service";
 import { GameBrowserService } from "@/ui/app/service/game_browser.service";
-import { COMPACT_MAX_WIDTH_PX } from "@/ui/app/service/viewport.service";
+import { By } from "@angular/platform-browser";
+import { GameBarComponent } from "@fz/game-ui/game_bar";
+import {
+  COMPACT_MAX_WIDTH_PX,
+  HOME_BUTTON_MIN_WIDTH_PX,
+  WORDMARK_MIN_WIDTH_PX,
+} from "@/ui/app/service/viewport.service";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import {
   installFakeViewport,
@@ -56,6 +62,26 @@ describe("HeaderBarComponent", () => {
     fixture.detectChanges();
   }
 
+  /** Resizes the window and lets the header follow. */
+  function resize(width: number, height: number): void {
+    viewport.setSize(width, height);
+    fixture.detectChanges();
+  }
+
+  /** Returns the game bar the header is built on. */
+  function gameBar(): GameBarComponent {
+    return fixture.debugElement.query(By.directive(GameBarComponent))
+      .componentInstance as GameBarComponent;
+  }
+
+  /** Returns the link home in the bar, outside the overflow menu. */
+  function homeLink(): HTMLAnchorElement | null {
+    return query<HTMLAnchorElement>(
+      fixture,
+      "header a[href='/']:not([role='menuitem'])",
+    );
+  }
+
   /** Watches for a bug report being opened, without opening one. */
   function spyOnReports() {
     return vi
@@ -64,18 +90,87 @@ describe("HeaderBarComponent", () => {
   }
 
   describe("the heading", () => {
-    it("names the application and the game on the table", () => {
-      expect([
-        queryText(fixture, "h1 .wordmark"),
-        queryText(fixture, "h1 .brand-game"),
-      ]).toEqual(["fSolitaire", "Klondike"]);
+    it("names the game on the table", () => {
+      expect(queryText(fixture, "h1")).toBe("Klondike");
     });
 
     it("follows the game as it is changed", () => {
       harness.catalog.select("freecell");
       fixture.detectChanges();
 
-      expect(queryText(fixture, "h1 .brand-game")).toBe("FreeCell");
+      expect(queryText(fixture, "h1")).toBe("FreeCell");
+    });
+  });
+
+  describe("the link home", () => {
+    it("is the wordmark where the bar has room for it", () => {
+      resize(WORDMARK_MIN_WIDTH_PX, 900);
+
+      expect(homeLink()?.textContent.trim()).toBe("Fuzzley Games");
+    });
+
+    it("is the home button below the wordmark's width, still named Fuzzley Games", () => {
+      resize(WORDMARK_MIN_WIDTH_PX - 1, 900);
+
+      expect([
+        homeLink()?.textContent.trim(),
+        homeLink()?.getAttribute("aria-label"),
+      ]).toEqual(["", "Fuzzley Games"]);
+    });
+
+    it("is the home button on a phone", () => {
+      resize(390, 844);
+
+      expect(homeLink()?.getAttribute("aria-label")).toBe("Fuzzley Games");
+    });
+
+    it("leaves the bar on the narrowest phones", () => {
+      resize(HOME_BUTTON_MIN_WIDTH_PX - 1, 640);
+
+      expect(homeLink()).toBeNull();
+    });
+  });
+
+  describe("the bar's placement", () => {
+    it("runs across the top of a roomy screen", () => {
+      expect(gameBar().placement()).toBe("top");
+    });
+
+    it("docks at the bottom of a phone held upright", () => {
+      harness.presentation.formFactor.set("phone-portrait");
+      resize(390, 844);
+
+      expect([gameBar().placement(), gameBar().reversed()]).toEqual([
+        "bottom",
+        false,
+      ]);
+    });
+
+    it("swaps ends on an upright phone with the stock at the left", () => {
+      harness.presentation.setStockSide("left");
+      resize(390, 844);
+
+      expect(gameBar().reversed()).toBe(true);
+    });
+
+    it("is a rail down the left of a phone on its side", () => {
+      harness.presentation.setStockSide("right");
+      resize(844, 390);
+
+      expect(gameBar().placement()).toBe("start");
+    });
+
+    it("stands the rail at the right with the stock at the left", () => {
+      harness.presentation.setStockSide("left");
+      resize(844, 390);
+
+      expect(gameBar().placement()).toBe("end");
+    });
+
+    it("is compact on a compact screen", () => {
+      narrow();
+
+      expect(gameBar().compact()).toBe(true);
     });
   });
 
@@ -251,19 +346,35 @@ describe("HeaderBarComponent", () => {
   describe("the overflow menu", () => {
     /** Opens the menu on an already-narrowed header. */
     function openMenu(): void {
-      clickElement(fixture, ".btn-overflow");
+      clickElement(fixture, "button[aria-label='More actions']");
       fixture.detectChanges();
     }
 
-    /** Returns the labels of the actions currently inside the menu. */
+    /** Returns the labels of the items currently inside the menu. */
     function menuLabels(): string[] {
-      return queryAll(fixture, ".overflow-item").map(
-        (item) => item.textContent?.trim() ?? "",
+      return queryAll(fixture, "[role='menuitem']").map((item) =>
+        item.textContent.trim(),
       );
+    }
+
+    /** Chooses the item with this label from the open menu. */
+    function choose(label: string): void {
+      const item = queryAll(fixture, "[role='menuitem']").find(
+        (each) => each.textContent.trim() === label,
+      );
+      item?.click();
+      fixture.detectChanges();
     }
 
     beforeEach(() => {
       narrow();
+    });
+
+    it("is not in the bar of a roomy screen", () => {
+      viewport.setWidth(WIDE);
+      fixture.detectChanges();
+
+      expect(query(fixture, "button[aria-label='More actions']")).toBeNull();
     });
 
     it("takes the actions the bar has no room for out of it", () => {
@@ -286,25 +397,21 @@ describe("HeaderBarComponent", () => {
       ]);
     });
 
-    it("stays shut until it is asked for", () => {
-      expect([
-        query(fixture, ".overflow-menu"),
-        queryRequired(fixture, ".btn-overflow").getAttribute("aria-expanded"),
-      ]).toEqual([null, "false"]);
-    });
+    it("leads with the link home on the narrowest phones", () => {
+      resize(HOME_BUTTON_MIN_WIDTH_PX - 1, 640);
 
-    it("says that it is open once it is", () => {
       openMenu();
 
-      expect(
-        queryRequired(fixture, ".btn-overflow").getAttribute("aria-expanded"),
-      ).toBe("true");
+      expect([
+        menuLabels()[0],
+        query(fixture, "a[role='menuitem']")?.getAttribute("href"),
+      ]).toEqual(["Fuzzley Games", "/"]);
     });
 
     it("asks before restarting from the menu", async () => {
       openMenu();
 
-      clickElement(fixture, ".overflow-item");
+      choose("Restart");
       await flushMicrotasks();
 
       expect(TestBed.inject(ConfirmService).isOpen()).toBe(true);
@@ -313,7 +420,7 @@ describe("HeaderBarComponent", () => {
     it("opens the rules from the menu", () => {
       openMenu();
 
-      clickElement(fixture, ".overflow-item[aria-label*='How to Play']");
+      choose("How to Play");
 
       expect(TestBed.inject(GameDocumentationService).isOpen()).toBe(true);
     });
@@ -322,7 +429,7 @@ describe("HeaderBarComponent", () => {
       const openReport = spyOnReports();
       openMenu();
 
-      clickElement(fixture, ".overflow-item[aria-label*='Report a Bug']");
+      choose("Report a Bug");
 
       expect(openReport).toHaveBeenCalledOnce();
     });
@@ -332,7 +439,7 @@ describe("HeaderBarComponent", () => {
       fixture.componentInstance.openSettings.subscribe(openSettings);
       openMenu();
 
-      clickElement(fixture, ".overflow-item[aria-label*='Settings']");
+      choose("Settings");
 
       expect(openSettings).toHaveBeenCalledOnce();
     });
@@ -340,47 +447,14 @@ describe("HeaderBarComponent", () => {
     it("closes once an action has been taken", () => {
       openMenu();
 
-      clickElement(fixture, ".overflow-item[aria-label*='How to Play']");
-      fixture.detectChanges();
+      choose("How to Play");
 
-      expect(query(fixture, ".overflow-menu")).toBeNull();
-    });
-
-    it("closes when the board behind it is tapped", () => {
-      openMenu();
-
-      clickElement(fixture, ".overflow-backdrop");
-      fixture.detectChanges();
-
-      expect(query(fixture, ".overflow-menu")).toBeNull();
-    });
-
-    it("closes on Escape from anywhere inside it", () => {
-      openMenu();
-
-      queryRequired(fixture, ".overflow-item").dispatchEvent(
-        new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
-      );
-      fixture.detectChanges();
-
-      expect(query(fixture, ".overflow-menu")).toBeNull();
-    });
-
-    it("puts focus on the first action as it opens", () => {
-      openMenu();
-
-      expect(document.activeElement).toBe(query(fixture, ".overflow-item"));
-    });
-
-    it("hands focus back to the button it was opened from", () => {
-      openMenu();
-
-      queryRequired(fixture, ".overflow-item").dispatchEvent(
-        new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
-      );
-      fixture.detectChanges();
-
-      expect(document.activeElement).toBe(query(fixture, ".btn-overflow"));
+      expect(
+        queryRequired(
+          fixture,
+          "button[aria-label='More actions']",
+        ).getAttribute("aria-expanded"),
+      ).toBe("false");
     });
 
     it("gives the actions back to the bar when the window is widened", () => {
@@ -389,7 +463,7 @@ describe("HeaderBarComponent", () => {
       viewport.setWidth(WIDE);
       fixture.detectChanges();
 
-      expect(query(fixture, ".btn-overflow")).toBeNull();
+      expect(query(fixture, "button[aria-label='More actions']")).toBeNull();
       expect(query(fixture, "button[title*='Restart']")).not.toBeNull();
     });
   });
