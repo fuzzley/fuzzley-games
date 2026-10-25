@@ -7,7 +7,7 @@ import {
 } from "@/ui/app/model/game_position";
 import { GameLifecycleService } from "@/ui/app/service/game_lifecycle.service";
 import { GameMetricsService } from "@/ui/app/service/game_metrics.service";
-import { ConfirmationService } from "@/ui/app/service/confirmation.service";
+import { ConfirmService } from "@fz/ui/confirm";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import {
   createMockGameModel,
@@ -19,7 +19,7 @@ import { asCatalog, createMockCatalog } from "@test/support/ui/catalog_mock";
 interface Harness {
   lifecycle: GameLifecycleService;
   metrics: GameMetricsService;
-  confirmation: ConfirmationService;
+  confirmation: ConfirmService;
   model: MockGameModel;
   catalog: ReturnType<typeof createMockCatalog>;
 }
@@ -36,7 +36,7 @@ function buildLifecycle(overrides: MockGameModelOverrides = {}): Harness {
 
   const lifecycle = TestBed.inject(GameLifecycleService);
   const metrics = TestBed.inject(GameMetricsService);
-  const confirmation = TestBed.inject(ConfirmationService);
+  const confirmation = TestBed.inject(ConfirmService);
   TestBed.flushEffects();
   return { lifecycle, metrics, confirmation, model, catalog };
 }
@@ -88,8 +88,21 @@ describe("GameLifecycleService", () => {
       void harness.lifecycle.restartGame();
 
       expect(harness.confirmation.isOpen()).toBe(true);
-      expect(harness.confirmation.message()).toContain("restart this game");
+      expect(harness.confirmation.prompt().message).toContain(
+        "restart this game",
+      );
       expect(harness.model.restartGame).not.toHaveBeenCalled();
+    });
+
+    it("asks as a danger, since the game under way would be lost", () => {
+      const harness = buildLifecycle({ moves: 5 });
+
+      void harness.lifecycle.restartGame();
+
+      expect(harness.confirmation.prompt()).toMatchObject({
+        title: "Confirm Action",
+        tone: "danger",
+      });
     });
 
     it("restarts once the prompt is accepted", async () => {
@@ -125,7 +138,9 @@ describe("GameLifecycleService", () => {
 
       const action = harness.lifecycle.setRuleOption("drawCount", 1);
 
-      expect(harness.confirmation.message()).toContain("deal a new game");
+      expect(harness.confirmation.prompt().message).toContain(
+        "deal a new game",
+      );
       await answer(harness, action, true);
       expect(harness.catalog.setOption).toHaveBeenCalledWith("drawCount", 1);
     });
@@ -193,7 +208,7 @@ describe("GameLifecycleService", () => {
 
       void harness.lifecycle.playGame("freecell", {}, "Baker's Game");
 
-      expect(harness.confirmation.message()).toContain(
+      expect(harness.confirmation.prompt().message).toContain(
         "Switch to Baker's Game?",
       );
     });
@@ -203,7 +218,7 @@ describe("GameLifecycleService", () => {
 
       void harness.lifecycle.playGame("klondike", { drawCount: 1 }, "Klondike");
 
-      expect(harness.confirmation.message()).toContain(
+      expect(harness.confirmation.prompt().message).toContain(
         "Deal a new game of Klondike",
       );
     });
@@ -242,7 +257,7 @@ describe("GameLifecycleService", () => {
 
       void harness.lifecycle.confirmNavigation("freecell");
 
-      expect(harness.confirmation.message()).toContain("switch games");
+      expect(harness.confirmation.prompt().message).toContain("switch games");
     });
 
     it("resolves to the player's answer", async () => {

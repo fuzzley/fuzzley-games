@@ -5,7 +5,7 @@ import { Router } from "@angular/router";
 import { RouterTestingHarness } from "@angular/router/testing";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { provideAppRouter } from "@/ui/app/routes";
-import { ConfirmationService } from "@/ui/app/service/confirmation.service";
+import { ConfirmService } from "@fz/ui/confirm";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { GameLifecycleService } from "@/ui/app/service/game_lifecycle.service";
 
@@ -30,7 +30,7 @@ interface Harness {
   readonly router: Router;
   readonly catalog: GameCatalogService;
   readonly lifecycle: GameLifecycleService;
-  readonly confirmation: ConfirmationService;
+  readonly confirmation: ConfirmService;
 }
 
 /** Returns the application's router and services, on Klondike's route. */
@@ -43,7 +43,7 @@ async function onKlondike(): Promise<Harness> {
     router: TestBed.inject(Router),
     catalog: TestBed.inject(GameCatalogService),
     lifecycle: TestBed.inject(GameLifecycleService),
-    confirmation: TestBed.inject(ConfirmationService),
+    confirmation: TestBed.inject(ConfirmService),
   };
 }
 

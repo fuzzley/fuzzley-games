@@ -9,8 +9,7 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
 - **Phase:** 6, Solitaire's pieces move to the libraries. Phase 5 is done.
-- **Next step:** the rest of Phase 6, one commit per piece: the
-  confirmation dialog, then the mixins. Phase 7's game bar needs
+- **Next step:** the last of Phase 6, the mixins. Phase 7's game bar needs
   its own mock, and the user's approval, before any of its code.
 
 | Phase                             | State    |
@@ -547,3 +546,23 @@ passed every check in the plan, and was removed once done. What it showed:
   page's "Show all games" (shown when a search matches nothing) change; the
   game page's Play buttons set their own size. Raise it back with a
   site-only rule if the user prefers the larger text there.
+
+### 2026-10-24: Phase 6, the confirmation
+
+- `ConfirmationService` and its dialog moved to `@fz/ui/confirm` as
+  `ConfirmService` and `<fz-confirm-dialog>`. `ask()` takes a request:
+  a title (required, since it names the dialog), the message, the buttons'
+  labels (Confirm and Cancel unless given) and a tone. `danger` shows the
+  warning icon, the red title and glow, and a danger-filled button;
+  `accent`, the default, none of them.
+- Solitaire asks with the title "Confirm Action" and the danger tone, as
+  before; a lifecycle spec holds it to that. Its dialog looks the same: the
+  wide and sideways shots are pixel-identical. On an upright phone the
+  buttons sit about 4px further apart, since the card's padding and gap
+  shrink with `clamp()` and the viewport's width rather than at Solitaire's
+  phone breakpoint, which a library component can't know.
+- The card's `pop-in` and the icon's `pulse` are the component's own
+  keyframes (`fz-pop-in`, `fz-pulse`). Angular does scope a component's
+  `@keyframes` (its compiler's `_scopeKeyframesRelatedCss`), so Solitaire's
+  rule that they must be global rests on something no longer true; worth
+  revisiting in Phase 8, when its stylesheets are reworked anyway.

@@ -10,13 +10,13 @@ import {
 import { Title } from "@angular/platform-browser";
 import { RouterOutlet } from "@angular/router";
 import { darkTheme } from "@fz/style/themes";
+import { ConfirmDialogComponent } from "@fz/ui/confirm";
 import { ThemeService } from "@fz/ui/theme";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { PresentationSettingsService } from "../../service/presentation_settings.service";
 import { HeaderBarComponent } from "../header_bar/header_bar.component";
 import { SettingsDrawerComponent } from "../settings_drawer/settings_drawer.component";
 import { VictoryOverlayComponent } from "../victory_overlay/victory_overlay.component";
-import { ConfirmationDialogComponent } from "../confirmation_dialog/confirmation_dialog.component";
 import { GameHelpModalComponent } from "../game_help_modal/game_help_modal.component";
 import { GameBrowserComponent } from "../game_browser/game_browser.component";
 import { GameBrowserService } from "../../service/game_browser.service";
@@ -44,7 +44,7 @@ import { GameBrowserService } from "../../service/game_browser.service";
     SettingsDrawerComponent,
     GameHelpModalComponent,
     VictoryOverlayComponent,
-    ConfirmationDialogComponent,
+    ConfirmDialogComponent,
   ],
   templateUrl: "./app.component.html",
   styleUrl: "./app.component.scss",

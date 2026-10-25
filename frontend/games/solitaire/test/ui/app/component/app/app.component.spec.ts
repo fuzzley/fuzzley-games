@@ -73,7 +73,7 @@ describe("AppComponent Composition", () => {
     expect(query(fixture, "app-game-browser")).not.toBeNull();
     expect(query(fixture, "app-settings-drawer")).not.toBeNull();
     expect(query(fixture, "app-victory-overlay")).not.toBeNull();
-    expect(query(fixture, "app-confirmation-dialog")).not.toBeNull();
+    expect(query(fixture, "fz-confirm-dialog")).not.toBeNull();
   });
 
   it("puts the board in a main landmark, so it can be navigated to", () => {

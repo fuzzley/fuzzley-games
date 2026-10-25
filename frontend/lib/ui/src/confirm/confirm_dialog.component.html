@@ -1,0 +1,32 @@
+<fz-dialog
+  [open]="confirm.isOpen()"
+  dialogRole="alertdialog"
+  [label]="confirm.prompt().title"
+  [describedBy]="messageId"
+  (closed)="confirm.cancel()"
+>
+  <div class="card" [class.danger]="confirm.isDanger()">
+    @if (confirm.isDanger()) {
+      <fz-icon class="icon" name="warning" />
+    }
+    <h2 class="title">{{ confirm.prompt().title }}</h2>
+    <p class="message" [id]="messageId">{{ confirm.prompt().message }}</p>
+    <div class="actions">
+      <button
+        type="button"
+        class="fz-button fz-button-secondary"
+        (click)="confirm.cancel()"
+      >
+        {{ confirm.prompt().cancelLabel }}
+      </button>
+      <button
+        type="button"
+        class="fz-button"
+        [class.fz-button-danger]="confirm.isDanger()"
+        (click)="confirm.accept()"
+      >
+        {{ confirm.prompt().confirmLabel }}
+      </button>
+    </div>
+  </div>
+</fz-dialog>

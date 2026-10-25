@@ -3,7 +3,7 @@ import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.component";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
-import { ConfirmationService } from "@/ui/app/service/confirmation.service";
+import { ConfirmService } from "@fz/ui/confirm";
 import { BugReportService } from "@/ui/app/service/bug_report.service";
 import { GameBrowserService } from "@/ui/app/service/game_browser.service";
 import { COMPACT_MAX_WIDTH_PX } from "@/ui/app/service/viewport.service";
@@ -194,7 +194,7 @@ describe("HeaderBarComponent", () => {
       clickElement(fixture, "button[title*='Restart']");
       await flushMicrotasks();
 
-      expect(TestBed.inject(ConfirmationService).isOpen()).toBe(true);
+      expect(TestBed.inject(ConfirmService).isOpen()).toBe(true);
       expect(harness.model.restartGame).not.toHaveBeenCalled();
     });
 
@@ -202,7 +202,7 @@ describe("HeaderBarComponent", () => {
       clickElement(fixture, "button[title*='Restart']");
       await flushMicrotasks();
 
-      TestBed.inject(ConfirmationService).accept();
+      TestBed.inject(ConfirmService).accept();
       await flushMicrotasks();
 
       expect(harness.model.restartGame).toHaveBeenCalledOnce();
@@ -212,7 +212,7 @@ describe("HeaderBarComponent", () => {
       clickElement(fixture, "button[title*='new game']");
       await flushMicrotasks();
 
-      TestBed.inject(ConfirmationService).accept();
+      TestBed.inject(ConfirmService).accept();
       await flushMicrotasks();
 
       expect(harness.model.startNewGame).toHaveBeenCalledOnce();
@@ -307,7 +307,7 @@ describe("HeaderBarComponent", () => {
       clickElement(fixture, ".overflow-item");
       await flushMicrotasks();
 
-      expect(TestBed.inject(ConfirmationService).isOpen()).toBe(true);
+      expect(TestBed.inject(ConfirmService).isOpen()).toBe(true);
     });
 
     it("opens the rules from the menu", () => {
