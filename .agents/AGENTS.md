@@ -12,8 +12,9 @@ Minesweeper.
   `frontend/site/AGENTS.md`.
 - **Games built here:** each keeps its own stack. The Solitaire Collection's
   is Phaser 4 for the table and Angular for its shell, with Vite and Vitest
-  like the site; see `frontend/games/solitaire/AGENTS.md`. Minesweeper's is
-  jQuery, Knockout and Bootstrap 3, bundled by Vite.
+  like the site; see `frontend/games/solitaire/AGENTS.md`. Minesweeper is an
+  Angular app, with Vite and Vitest, on the shared libraries alone; see
+  `frontend/games/minesweeper/AGENTS.md`.
 - **Package Manager:** Yarn 4 via Corepack, pinned in `frontend/package.json`
 - **Serving:** nginx in a Docker image, on Google Cloud Run
 
@@ -176,7 +177,8 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
 - **Skills:** a skill every workspace can use lives in
   `.agents/skills/<name>/SKILL.md`; a skill about one workspace lives in that
   workspace's `.agents/skills/<name>/SKILL.md` (`frontend/site/.agents/skills/`,
-  `frontend/games/solitaire/.agents/skills/`), and cites paths from its
+  `frontend/games/solitaire/.agents/skills/`,
+  `frontend/games/minesweeper/.agents/skills/`), and cites paths from its
   folder. Gemini CLI reads the repository's directly. Claude Code only
   discovers `.claude/skills/<name>/SKILL.md`, so
   **`node .agents/link-claude-skills.mjs`** links each skill into the

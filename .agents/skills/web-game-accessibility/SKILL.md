@@ -9,7 +9,8 @@ This skill defines the accessibility rules the site and the games built here
 share. The shared libraries' components meet them by themselves, so the
 first way to meet one is to use the library's piece (the `fuzzley-ui` skill
 lists them); each workspace's `AGENTS.md` names what it keeps of its own:
-`frontend/site/AGENTS.md` and `frontend/games/solitaire/AGENTS.md`.
+`frontend/site/AGENTS.md`, `frontend/games/solitaire/AGENTS.md` and
+`frontend/games/minesweeper/AGENTS.md`.
 
 ## Core Accessibility Rules
 
@@ -69,7 +70,24 @@ than from a separate class, so the look and the announcement cannot disagree.
     (`@fz/game-ui/bar_overflow`) are menus on Angular Aria, with its
     keyboard model, so a new menu is built on it too.
 
-### 4. Color & Contrast
+### 4. A Board Played by Keyboard
+
+A board of squares is a grid, as Minesweeper's is
+(`frontend/games/minesweeper/src/app/board/`): Angular Aria's `ngGrid`,
+`ngGridRow` and `ngGridCell`, which give the whole board one tab stop and
+move it with the arrow keys, Home and End.
+
+- Every action a pointer has gets a key on the square in focus: Enter or
+  Space for the click, a letter for the right-click (F flags).
+- Each square's accessible name says what it shows ("Hidden", "Flagged",
+  "3"), so moving across the board reads it.
+- What a move did is announced through the page's live region ("Revealed
+  12 squares.", "Mine. 2 lives left."), since most of it happens away from
+  the square in focus.
+- When a dialog over the board deals a new game, focus goes back to the
+  board's tab stop rather than to the body.
+
+### 5. Color & Contrast
 
 - Never carry meaning by color alone; pair it with a symbol, a label or a
   shape, so colorblind players can tell states apart. Card suits are told

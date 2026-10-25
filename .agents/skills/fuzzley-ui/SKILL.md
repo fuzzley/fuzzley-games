@@ -62,7 +62,9 @@ own only for what is its alone.
 
 ## Adopting the libraries in an app
 
-The Solitaire Collection is the worked example; the site does the same.
+The Solitaire Collection is the worked example; the site does the same, and
+so does Minesweeper (`frontend/games/minesweeper/`), a game built from the
+libraries alone, which shows the same steps with nothing else around them.
 
 1. **Depend on them.** List `"@fz/style": "workspace:*"` in the app's
    `package.json`, and for an Angular app `@fz/ui` and, for a game,
@@ -95,7 +97,11 @@ The Solitaire Collection is the worked example; the site does the same.
    does.
 7. **Check text on the table.** Text on glass over the app's own table
    depends on the table too: hold it to 4.5:1 over every table color, as
-   `frontend/games/solitaire/test/ui/app/styles/contrast.spec.ts` does.
+   `frontend/games/solitaire/test/ui/app/styles/contrast.spec.ts` does. A
+   game that draws on the palette's own roles checks what it draws in every
+   palette instead, as
+   `frontend/games/minesweeper/src/app/board/contrast.spec.ts` holds
+   Minesweeper's numbers on their squares.
 
 Keep the players' `localStorage` keys as they are, whatever the app moves
 onto `LocalStorageService`: renaming one loses what players saved.

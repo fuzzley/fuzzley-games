@@ -131,9 +131,8 @@ Analytics only (the page has no inline script; `theme.js`, `env.js` and
 the site (Figtree comes with `@fz/style`), Google Analytics' measurement
 endpoints, and no framing. The policy
 is written for the site's pages, and the games under `/play/` load what their
-engines need (the Solitaire Collection's Phaser draws from `blob:` URLs, and
-Minesweeper loads classic scripts), so they get the common headers but no
-policy.
+engines need (the Solitaire Collection's Phaser draws from `blob:` URLs), so
+they get the common headers but no policy.
 
 A new third-party script, font or endpoint needs adding to the policy, or the
 browser blocks it and says so in the console. `check-image.sh` checks the
