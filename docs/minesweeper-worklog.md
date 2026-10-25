@@ -9,8 +9,8 @@ parent.
 
 - **Branch:** `minesweeper-angular`, from `main` at `d1b77db`. Not pushed: a
   push to `main` deploys, so shipping waits for the user's go-ahead.
-- **Phase:** M3, the new icons.
-- **Next step:** M3.
+- **Phase:** M4, the board.
+- **Next step:** M4.
 
 | Phase                 | State     |
 | --------------------- | --------- |
@@ -120,3 +120,8 @@ Chrome at a time.
 - Specs draw fields as pictures (`src/testing/field_picture.ts`), and a
   number drawn must match its count. `test:coverage` holds `src/game/` to
   100% of statements, functions and lines and 95% of branches.
+
+### 2026-10-25: M3, the new icons
+
+- `flag`, `heart` and `mine` in `@fz/ui`, filled, as the mock drew them.
+  `@fz/ui`'s 147 specs and Solitaire's typecheck and 6,937 specs pass.

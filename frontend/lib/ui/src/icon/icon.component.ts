@@ -7,10 +7,13 @@ export const ICON_NAMES = [
   "chevron",
   "close",
   "external",
+  "flag",
   "grid",
+  "heart",
   "help",
   "home",
   "link",
+  "mine",
   "more",
   "play",
   "players",
@@ -28,8 +31,18 @@ export const ICON_NAMES = [
 /** Names an icon the library draws. */
 export type IconName = (typeof ICON_NAMES)[number];
 
-/** The icons drawn filled; the rest are outlines. */
-const FILLED: ReadonlySet<IconName> = new Set(["more", "play"]);
+/**
+ * The icons drawn filled; the rest are outlines. Minesweeper's flag, mine and
+ * heart are among them, since they sit small on a square, where an outline
+ * thins away.
+ */
+const FILLED: ReadonlySet<IconName> = new Set([
+  "flag",
+  "heart",
+  "mine",
+  "more",
+  "play",
+]);
 
 /**
  * Draws a small decorative icon in the text's color.
