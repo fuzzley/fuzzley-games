@@ -1,8 +1,12 @@
 :host {
   display: block;
   flex: none;
-  width: 1em;
-  height: 1em;
+
+  // Sized by `--fz-icon-size` as well as by `width` and `height`, so a rule
+  // in one of @fz/style's layers, which this unlayered one outranks, can still
+  // size the icons inside it.
+  width: var(--fz-icon-size, 1em);
+  height: var(--fz-icon-size, 1em);
 }
 
 svg {

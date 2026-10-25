@@ -26,25 +26,9 @@
       [title]="switcherTitle"
       (click)="browser.open()"
     >
-      <svg
-        class="switcher-icon"
-        fill="currentColor"
-        aria-hidden="true"
-        viewBox="0 0 24 24"
-      >
-        <path
-          d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"
-        />
-      </svg>
+      <fz-icon class="switcher-icon" name="grid" />
       <span class="switcher-name">{{ gameName() }}</span>
-      <svg
-        class="switcher-chevron"
-        fill="currentColor"
-        aria-hidden="true"
-        viewBox="0 0 24 24"
-      >
-        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6l-6-6z" />
-      </svg>
+      <fz-icon class="switcher-chevron" name="chevron" />
     </button>
   </div>
 
@@ -76,16 +60,7 @@
       title="Undo last move"
       aria-label="Undo last move"
     >
-      <svg
-        class="btn-icon"
-        fill="currentColor"
-        aria-hidden="true"
-        viewBox="0 0 24 24"
-      >
-        <path
-          d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88c3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"
-        />
-      </svg>
+      <fz-icon class="btn-icon" name="undo" />
       <span class="btn-text">Undo</span>
     </button>
 
@@ -97,7 +72,7 @@
         title="Restart current game"
         aria-label="Restart current game"
       >
-        <ng-container [ngTemplateOutlet]="restartIcon" />
+        <fz-icon class="btn-icon" name="restart" />
         <span class="btn-text">Restart</span>
       </button>
     }
@@ -108,14 +83,7 @@
       title="Start a brand new game"
       aria-label="Start a brand new game"
     >
-      <svg
-        class="btn-icon"
-        fill="currentColor"
-        aria-hidden="true"
-        viewBox="0 0 24 24"
-      >
-        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-      </svg>
+      <fz-icon class="btn-icon" name="plus" />
       <span class="btn-text">New Game</span>
     </button>
 
@@ -126,7 +94,7 @@
         title="How to Play / Game Rules"
         aria-label="How to Play / Game Rules"
       >
-        <ng-container [ngTemplateOutlet]="helpIcon" />
+        <fz-icon class="btn-icon" name="help" />
       </button>
 
       <button
@@ -135,7 +103,7 @@
         title="Report a Bug"
         aria-label="Report a Bug (opens GitHub in a new tab)"
       >
-        <ng-container [ngTemplateOutlet]="bugIcon" />
+        <fz-icon class="btn-icon" name="bug" />
       </button>
     }
 
@@ -154,16 +122,7 @@
         title="More actions"
         aria-label="More actions"
       >
-        <svg
-          class="btn-icon"
-          fill="currentColor"
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M12 8a2 2 0 1 0 0-4a2 2 0 0 0 0 4zm0 2a2 2 0 1 0 0 4a2 2 0 0 0 0-4zm0 6a2 2 0 1 0 0 4a2 2 0 0 0 0-4z"
-          />
-        </svg>
+        <fz-icon class="btn-icon" name="more" />
       </button>
     }
 
@@ -178,7 +137,7 @@
         title="Game Settings"
         aria-label="Game Settings"
       >
-        <ng-container [ngTemplateOutlet]="settingsIcon" />
+        <fz-icon class="btn-icon" name="settings" />
       </button>
     }
   </div>
@@ -197,7 +156,7 @@
       (click)="restart()"
       aria-label="Restart current game"
     >
-      <ng-container [ngTemplateOutlet]="restartIcon" />
+      <fz-icon class="btn-icon" name="restart" />
       <span>Restart</span>
     </button>
     <button
@@ -205,7 +164,7 @@
       (click)="openHelp()"
       aria-label="How to Play / Game Rules"
     >
-      <ng-container [ngTemplateOutlet]="helpIcon" />
+      <fz-icon class="btn-icon" name="help" />
       <span>How to Play</span>
     </button>
     <button
@@ -213,7 +172,7 @@
       (click)="reportBug()"
       aria-label="Report a Bug (opens GitHub in a new tab)"
     >
-      <ng-container [ngTemplateOutlet]="bugIcon" />
+      <fz-icon class="btn-icon" name="bug" />
       <span>Report a Bug</span>
     </button>
     <button
@@ -221,7 +180,7 @@
       (click)="showSettings()"
       aria-label="Game Settings"
     >
-      <ng-container [ngTemplateOutlet]="settingsIcon" />
+      <fz-icon class="btn-icon" name="settings" />
       <span>Settings</span>
     </button>
   </div>
@@ -231,60 +190,3 @@
     aria-label="Close menu"
   ></button>
 }
-
-<!-- The icons both arrangements use, drawn once. -->
-<ng-template #restartIcon>
-  <svg
-    class="btn-icon"
-    fill="currentColor"
-    aria-hidden="true"
-    viewBox="0 0 24 24"
-  >
-    <path
-      d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
-    />
-  </svg>
-</ng-template>
-
-<ng-template #helpIcon>
-  <svg
-    class="btn-icon"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    aria-hidden="true"
-    viewBox="0 0 24 24"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-    <line x1="12" y1="17" x2="12.01" y2="17" />
-  </svg>
-</ng-template>
-
-<ng-template #bugIcon>
-  <svg
-    class="btn-icon"
-    fill="currentColor"
-    aria-hidden="true"
-    viewBox="0 0 24 24"
-  >
-    <path
-      d="M20 8h-2.81a5.985 5.985 0 0 0-1.82-1.96L17 4.41L15.59 3l-2.17 2.17a6.002 6.002 0 0 0-2.83 0L8.41 3L7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"
-    />
-  </svg>
-</ng-template>
-
-<ng-template #settingsIcon>
-  <svg
-    class="btn-icon"
-    fill="currentColor"
-    aria-hidden="true"
-    viewBox="0 0 24 24"
-  >
-    <path
-      d="M19.14 12.94c.04-.3.06-.61.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 0 0-.59.22L2.74 8.87a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94c0 .31.04.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6s-1.62 3.6-3.6 3.6z"
-    />
-  </svg>
-</ng-template>

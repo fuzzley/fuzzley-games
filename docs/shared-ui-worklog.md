@@ -9,8 +9,8 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
 - **Phase:** 6, Solitaire's pieces move to the libraries. Phase 5 is done.
-- **Next step:** the rest of Phase 6, one commit per piece: the confirmation
-  dialog, the icons, the buttons, then the mixins. Phase 7's game bar needs
+- **Next step:** the rest of Phase 6, one commit per piece: the buttons,
+  the confirmation dialog, then the mixins. Phase 7's game bar needs
   its own mock, and the user's approval, before any of its code.
 
 | Phase                             | State    |
@@ -503,3 +503,23 @@ passed every check in the plan, and was removed once done. What it showed:
 - The five overlays switched; the open overlays are pixel-identical to Phase
   5's shots, apart from blur noise (at most 3 levels out of 255) in the
   header behind the backdrop.
+
+### 2026-10-24: Phase 6, the icons
+
+- The order changed: the icons and the buttons go before the confirmation
+  dialog, since the library's dialog needs the warning icon and the danger
+  and secondary buttons, and a library can't use an app's.
+- `fz-icon` gained the fifteen glyphs the mock settled, drawn as there, and
+  `ICON_NAMES`, from which `IconName` comes, so the spec checks every icon
+  draws something. `more` is filled, like `play`.
+- Every inline glyph in Solitaire is an `<fz-icon>` now (21 of them); the
+  header bar's shared `<ng-template>` icons are gone, since each is a line.
+  The card-deck preview in the settings stays an inline `<svg>`: it is a
+  drawing.
+- `fz-icon` sizes itself by `--fz-icon-size` as well as `width` and `height`.
+  Its `:host` is unlayered, so it outranked Solitaire's global `.btn-icon`
+  size (the settings drawer's icons fell to 1em), and it would outrank any
+  `@fz/style` fragment; an inherited property gets through both.
+- The 64px warning and the 80px trophy draw at a stroke of 1.5, since the
+  small icons' 2 reads as bold at that size. The rules dialog's close button
+  is still a text "×"; Phase 7's pass over the overlays can take it.

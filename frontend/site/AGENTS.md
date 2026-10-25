@@ -152,11 +152,12 @@ Every stylesheet is SCSS, compiled by Dart Sass (`sass`).
   order.
 - **`//` comments.** Sass drops them from the output; a `/* */` comment
   ships, and inside a nested rule it even leaves an empty rule behind.
-- **Icons are `@fz/ui`'s `<fz-icon name="…">`.** A new icon is a new
-  `IconName` and a case in `IconComponent`'s template, in
+- **Icons are `@fz/ui`'s `<fz-icon name="…">`.** A new icon is a new name
+  in `ICON_NAMES` and a case in `IconComponent`'s template, in
   `frontend/lib/ui/src/icon/`, never an `<svg>` pasted into another
-  template. The parent sizes it (`width`/`height` on `fz-icon`) and colors
-  it (`color`); `--fz-icon-stroke` sets an outline's weight. Icons
+  template. The parent sizes it (`width`/`height` on `fz-icon`, or
+  `--fz-icon-size`) and colors it (`color`); `--fz-icon-stroke` sets an
+  outline's weight. Icons
   are hidden from assistive technology, so the text beside one, or the
   control's label, says what it means.
 - **Visible state is announced state.** A control that looks selected carries

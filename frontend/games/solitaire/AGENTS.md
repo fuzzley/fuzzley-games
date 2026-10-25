@@ -175,6 +175,9 @@ brings in the mixins and breakpoints and nothing else:
   ship to the browser.
 - **Overlays are `<dialog>`.** Wrap content in `<fz-dialog>` rather than
   hand-rolling a focus trap, an Escape handler or a z-index.
+- **Icons are `<fz-icon name="…">`**, from `@fz/ui/icon`, never an inline
+  `<svg>`; a new one goes into the library (its `AGENTS.md` says how). The
+  settings' card-deck preview is a drawing, not an icon, so it stays inline.
 - **Templates bind, they do not compute.** Expose a `computed()` view model
   instead of calling a method from a template, which re-runs on every change
   detection pass.

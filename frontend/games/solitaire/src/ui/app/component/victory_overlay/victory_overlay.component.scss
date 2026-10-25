@@ -40,6 +40,9 @@
   position: relative;
   z-index: 2;
   animation: bounce 2s infinite;
+
+  // Thinner than the small icons' 2, which reads as bold this large.
+  --fz-icon-stroke: 1.5;
 }
 
 .trophy-glow {

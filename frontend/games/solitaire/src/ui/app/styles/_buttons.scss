@@ -45,8 +45,7 @@ $filled-variants: (
 }
 
 .btn-icon {
-  width: 16px;
-  height: 16px;
+  --fz-icon-size: 16px;
 }
 
 // A disabled action still reads as an action that exists, just not one that is
