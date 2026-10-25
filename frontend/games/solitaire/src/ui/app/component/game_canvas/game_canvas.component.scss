@@ -167,8 +167,7 @@
 }
 
 .loading-text {
-  @include gradient-text(var(--text-bright), var(--text-secondary));
-
+  color: var(--text-primary);
   white-space: nowrap;
 }
 

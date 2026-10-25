@@ -1,61 +1,33 @@
-// --- Colour scheme ---
-// Declares the document dark, so native scrollbars, form controls and the
-// browser's first paint follow.
-:root {
-  color-scheme: dark;
-}
+// What this app changes of @fz/style's document styles, which come first:
+// its reset, the page's type and colours, the focus ring and reduced motion.
 
-// --- Document reset ---
+// --- Document ---
 // The app fills the viewport: the game canvas host inside it sizes itself to
 // 100% height, which only resolves if every ancestor does too.
 html,
 body {
-  margin: 0;
-  padding: 0;
   height: 100%;
 }
 
 // On the root rather than on `body`, so the browser propagates it to the
-// viewport canvas and the colour also covers any overscroll.
+// viewport canvas and the colour also covers any overscroll. The body is
+// left clear, rather than in the palette's page colour, to show it.
 html {
   background: var(--table-felt);
 }
 
-// The document's typographic defaults. A unitless `line-height` inherits as a
-// ratio, so every heading gets leading proportional to its own size.
+// The leading this app's components were set in, a little looser than the
+// site's.
 body {
-  font-family: var(--font-sans);
-  font-size: var(--font-md);
+  background: none;
   line-height: var(--leading-normal);
-  color: var(--text-body);
-
-  // The interface is light text on dark surfaces, where the default stem
-  // darkening reads as a smear rather than as weight.
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
+// The chrome wears its own palette, the one in use or its dark partner (see
+// AppComponent), so its text takes that palette's colour rather than the
+// body's.
 app-root {
   display: block;
   height: 100%;
-}
-
-// Form controls take the document's face, which they do not inherit. Type
-// selectors, so any component class still wins on size and weight.
-button,
-input,
-select,
-textarea {
-  font: inherit;
-  color: inherit;
-}
-
-// --- Focus ---
-// A single visible ring for keyboard users, on everything focusable, so no
-// component should clear its outline. :focus-visible, so a mouse click leaves
-// no ring behind.
-:focus-visible {
-  outline: var(--focus-ring-width) solid var(--focus-ring-color);
-  outline-offset: var(--focus-ring-offset);
-  border-radius: var(--radius-sm);
+  color: var(--text-body);
 }

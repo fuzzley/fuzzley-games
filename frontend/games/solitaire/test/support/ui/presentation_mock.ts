@@ -15,10 +15,11 @@ import {
   MOBILE_CARD_DECK,
 } from "@/engine/render/deck/card_deck";
 import {
-  DEFAULT_THEME,
-  TABLE_THEMES,
-  ThemeKey,
-} from "@/ui/app/model/table_theme";
+  DEFAULT_FELT,
+  FeltChoice,
+  TABLE_FELTS,
+} from "@/ui/app/model/table_felt";
+import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/view/presentation";
 import {
   OrAuto,
   PilePosition,
@@ -33,12 +34,13 @@ import type { FormFactor } from "@/engine/render/layout/form_factor";
  *
  * Its viewport is never compact, so `auto` draws the desktop deck. Where the
  * piles go and the stock's side are decided for its `formFactor`, which is
- * roomy unless a spec sets it.
+ * roomy unless a spec sets it. The palette's felt is the default colour, as
+ * it is under jsdom, which loads no stylesheet.
  */
 export function createMockPresentation(
   overrides: {
     cardBackStyle?: CardBackStyle;
-    theme?: ThemeKey;
+    felt?: FeltChoice;
     cardStyle?: CardStyle;
     desktopCardDeck?: DesktopCardDeckId;
     pendingCardDeck?: CardDeckId | null;
@@ -48,7 +50,7 @@ export function createMockPresentation(
   const cardBackStyle = signal<CardBackStyle>(
     overrides.cardBackStyle ?? DEFAULT_CARD_BACK,
   );
-  const theme = signal<ThemeKey>(overrides.theme ?? DEFAULT_THEME);
+  const felt = signal<FeltChoice>(overrides.felt ?? DEFAULT_FELT);
   const cardStyle = signal<CardStyle>(overrides.cardStyle ?? "auto");
   const desktopCardDeck = signal<DesktopCardDeckId>(
     overrides.desktopCardDeck ?? DEFAULT_DESKTOP_CARD_DECK,
@@ -75,8 +77,13 @@ export function createMockPresentation(
 
   return {
     cardBackStyle,
-    theme,
-    backgroundColor: computed(() => TABLE_THEMES[theme()].color),
+    felt,
+    backgroundColor: computed(() => {
+      const choice = felt();
+      return choice === "theme"
+        ? DEFAULT_BACKGROUND_COLOR
+        : TABLE_FELTS[choice].color;
+    }),
     cardStyle,
     desktopCardDeck,
     drawsDesktopCards,
@@ -98,8 +105,8 @@ export function createMockPresentation(
     setCardBackStyle: vi.fn((style: CardBackStyle) => {
       cardBackStyle.set(style);
     }),
-    setTheme: vi.fn((key: ThemeKey) => {
-      theme.set(key);
+    setFelt: vi.fn((choice: FeltChoice) => {
+      felt.set(choice);
     }),
     setCardStyle: vi.fn((style: CardStyle) => {
       cardStyle.set(style);

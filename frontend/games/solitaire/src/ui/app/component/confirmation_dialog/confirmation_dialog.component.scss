@@ -18,8 +18,7 @@
   animation: pop-in 0.3s var(--ease-spring);
 
   h2 {
-    @include gradient-text(var(--danger), var(--danger-light));
-
+    color: var(--danger);
     font-size: var(--font-2xl);
     font-weight: 700;
     margin: 0 0 var(--space-3);

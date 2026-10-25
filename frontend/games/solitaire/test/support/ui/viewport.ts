@@ -1,6 +1,7 @@
 /**
  * Stands in for `window.matchMedia`, which jsdom lacks, answering width,
- * height and orientation queries against a size a spec sets.
+ * height and orientation queries against a size a spec sets, and the color
+ * scheme query as a light system's.
  */
 export interface FakeViewport {
   /** Sets the viewport width and tells every live query about it. */
@@ -25,7 +26,7 @@ interface FakeQuery {
 }
 
 const CONDITION =
-  /^\(\s*(max-width|max-height|orientation)\s*:\s*([\w.]+?)(px)?\s*\)$/;
+  /^\(\s*(max-width|max-height|orientation|prefers-color-scheme)\s*:\s*([\w.]+?)(px)?\s*\)$/;
 
 /**
  * Returns whether a media query holds at a size: any of its comma-separated
@@ -46,6 +47,8 @@ function evaluate(query: string, size: Size): boolean {
           return size.width <= Number(value);
         case "max-height":
           return size.height <= Number(value);
+        case "prefers-color-scheme":
+          return value === "light";
         default:
           // As CSS reads it: a square viewport is portrait.
           return size.height >= size.width === (value === "portrait");

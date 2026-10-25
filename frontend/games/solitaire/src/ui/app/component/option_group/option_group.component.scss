@@ -60,7 +60,7 @@
 
   &.active {
     background: var(--accent-strong);
-    color: var(--text-bright);
+    color: var(--text-on-accent);
     box-shadow: 0 2px 6px var(--accent-glow);
   }
 }

@@ -2,12 +2,15 @@ import { DOCUMENT } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   signal,
 } from "@angular/core";
 import { Title } from "@angular/platform-browser";
 import { RouterOutlet } from "@angular/router";
+import { darkTheme } from "@fz/style/themes";
+import { ThemeService } from "@fz/ui/theme";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { PresentationSettingsService } from "../../service/presentation_settings.service";
 import { HeaderBarComponent } from "../header_bar/header_bar.component";
@@ -21,12 +24,19 @@ import { GameBrowserService } from "../../service/game_browser.service";
 /**
  * Composes the chrome around the routed board: header, game browser, settings
  * drawer, help modal, victory card and confirmation prompt.
+ *
+ * The chrome is drawn for dark palettes only, so under a light one it wears
+ * that palette's dark partner, and only the felt, read from the page's root,
+ * is the light palette's own.
  */
 @Component({
   selector: "app-root",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  // Ctrl or Command with K opens the game browser from anywhere.
-  host: { "(document:keydown)": "browser.openOnShortcut($event)" },
+  host: {
+    "[attr.data-theme]": "chromeTheme()",
+    // Ctrl or Command with K opens the game browser from anywhere.
+    "(document:keydown)": "browser.openOnShortcut($event)",
+  },
   imports: [
     RouterOutlet,
     GameBrowserComponent,
@@ -46,6 +56,12 @@ export class AppComponent {
   private readonly catalog = inject(GameCatalogService);
   private readonly document = inject(DOCUMENT);
   private readonly title = inject(Title);
+  private readonly theme = inject(ThemeService);
+
+  /** The palette the chrome wears: the one in use, or its dark partner. */
+  protected readonly chromeTheme = computed(() =>
+    darkTheme(this.theme.current()),
+  );
 
   /** Whether the settings drawer is open. */
   protected readonly showSettings = signal(false);
@@ -59,6 +75,15 @@ export class AppComponent {
         "--table-felt",
         this.presentation.backgroundColor(),
       );
+    });
+
+    // Tint the browser's own toolbar, the address bar on a phone, with the
+    // felt, which a player may have chosen apart from the palette.
+    effect(() => {
+      const felt = this.presentation.backgroundColor();
+      this.document
+        .querySelector('meta[name="theme-color"]')
+        ?.setAttribute("content", felt);
     });
 
     // Say which side the stock is on, on the screen as it is now, on the

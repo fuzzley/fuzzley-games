@@ -1,5 +1,6 @@
 import { DOCUMENT } from "@angular/common";
 import { Injectable, inject } from "@angular/core";
+import { ThemeService } from "@fz/ui/theme";
 import { GamePosition, encodePosition } from "../model/game_position";
 import { BUG_REPORT_CONFIG } from "../provider/bug_report_config";
 import { GameCatalogService } from "./game_catalog.service";
@@ -31,6 +32,7 @@ export class BugReportService {
   private readonly config = inject(BUG_REPORT_CONFIG);
   private readonly catalog = inject(GameCatalogService);
   private readonly presentation = inject(PresentationSettingsService);
+  private readonly theme = inject(ThemeService);
   private readonly document = inject(DOCUMENT);
 
   /** Describes the game on the table, reading signals a caller can follow. */
@@ -140,7 +142,10 @@ export class BugReportService {
     return [this.catalog.selectedEntry.name, ...rules].join(" · ");
   }
 
-  /** Returns the build, browser and table settings as a Markdown list. */
+  /**
+   * Returns the build, browser, palette and table settings as a Markdown
+   * list.
+   */
   private describeEnvironment(): string {
     const view = this.document.defaultView;
     const browser = view
@@ -152,7 +157,8 @@ export class BugReportService {
     return [
       `- Build: ${this.config.commit ?? "local build"}`,
       ...browser,
-      `- Cards: ${this.presentation.cardDeck()} deck (${this.presentation.cardStyle()} style), ${this.presentation.cardBackStyle()} back, ${this.presentation.theme()} felt`,
+      `- Cards: ${this.presentation.cardDeck()} deck (${this.presentation.cardStyle()} style), ${this.presentation.cardBackStyle()} back, ${this.presentation.felt()} felt`,
+      `- Theme: ${this.theme.current()}`,
     ].join("\n");
   }
 }

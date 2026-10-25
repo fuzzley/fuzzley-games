@@ -1,54 +1,36 @@
 @use "sass:map";
-@use "palette" as *;
 @use "mixins" as *;
 
 // The button system, global because several components' markup wears it.
+// Flat pills, the site's: one fill each, with the palette's label for it.
 
-// The filled variants share one shape, a gradient over a shadow of the same
-// hue, so the `@each` below emits them all from one table.
-
-// Each label clears 4.5:1 against every stop of its gradient, at rest and
-// under the pointer. That keeps white labels to the darker blues and reds, and
-// gives the amber a dark one, since no shade of it that still reads as gold
-// carries white.
-
+// The filled variants, each a fill and the label @fz/style's contrast spec
+// holds to 4.5:1 on it, so the `@each` below emits them all from one table.
 $filled-variants: (
   "primary": (
-    "from": var(--accent-strong),
-    "to": var(--accent-deep),
-    "hover-from": var(--accent-strong),
-    "hover-to": var(--accent-strong),
-    "label": var(--text-bright),
-    "shadow": $blue-600,
+    "fill": var(--fz-accent),
+    "label": var(--fz-on-accent),
   ),
   "warning": (
-    "from": var(--warning),
-    "to": var(--warning-strong),
-    "hover-from": var(--warning-light),
-    "hover-to": var(--warning),
-    "label": var(--text-inverse),
-    "shadow": $amber-600,
+    "fill": var(--fz-warning),
+    "label": var(--fz-on-warning),
   ),
   "danger": (
-    "from": var(--danger-strong),
-    "to": var(--danger-deep),
-    "hover-from": var(--danger-strong),
-    "hover-to": var(--danger-strong),
-    "label": var(--text-bright),
-    "shadow": $red-600,
+    "fill": var(--fz-danger),
+    "label": var(--fz-on-danger),
   ),
 );
 
 .btn {
-  @include transition(background, box-shadow, transform, opacity);
+  @include transition(background, opacity);
 
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
   font-size: var(--font-sm);
-  font-weight: 600;
-  border-radius: var(--radius-md);
+  font-weight: 700;
+  border-radius: var(--radius-pill);
   border: none;
   cursor: pointer;
   color: var(--text-bright);
@@ -68,35 +50,16 @@ $filled-variants: (
 }
 
 // A disabled action still reads as an action that exists, just not one that is
-// available yet — so it dims rather than disappearing, and drops the hover lift
-// that would otherwise invite a click.
+// available yet — so it dims rather than disappearing.
 .btn:disabled {
   opacity: 0.4;
   cursor: default;
-
-  &:hover {
-    transform: none;
-  }
 }
 
 @each $name, $variant in $filled-variants {
   .btn-#{$name} {
-    background: linear-gradient(
-      135deg,
-      map.get($variant, "from") 0%,
-      map.get($variant, "to") 100%
-    );
+    background: map.get($variant, "fill");
     color: map.get($variant, "label");
-    box-shadow: 0 4px 14px with-alpha(map.get($variant, "shadow"), 0.4);
-
-    &:hover {
-      background: linear-gradient(
-        135deg,
-        map.get($variant, "hover-from") 0%,
-        map.get($variant, "hover-to") 100%
-      );
-      transform: translateY(-1px);
-    }
   }
 }
 
@@ -106,7 +69,6 @@ $filled-variants: (
 
   &:hover {
     background: var(--wash-medium);
-    transform: translateY(-1px);
   }
 
   &:disabled:hover {
@@ -147,5 +109,4 @@ $filled-variants: (
 .btn-large {
   padding: var(--space-3) var(--space-6);
   font-size: var(--font-md);
-  border-radius: var(--radius-md);
 }

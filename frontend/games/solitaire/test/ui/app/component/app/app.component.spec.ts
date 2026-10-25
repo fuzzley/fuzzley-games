@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed, ComponentFixture } from "@angular/core/testing";
 import { By, Title } from "@angular/platform-browser";
+import { ThemeService } from "@fz/ui/theme";
 import { AppComponent } from "@/ui/app/component/app/app.component";
 import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.component";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
@@ -38,6 +39,18 @@ describe("AppComponent Composition", () => {
     fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
   });
+
+  afterEach(() => {
+    localStorage.clear();
+    delete document.documentElement.dataset["theme"];
+    document.head.querySelector('meta[name="theme-color"]')?.remove();
+  });
+
+  /** Puts the palette on the page, as a player choosing it does. */
+  function choosePalette(id: "classic" | "midnight"): void {
+    TestBed.inject(ThemeService).select(id);
+    fixture.detectChanges();
+  }
 
   /** Returns whether the settings drawer is showing. */
   function drawerIsOpen(): boolean {
@@ -100,6 +113,43 @@ describe("AppComponent Composition", () => {
     TestBed.flushEffects();
 
     expect(document.documentElement.dataset["stockSide"]).toBe("left");
+  });
+
+  it("dresses the chrome in the palette in use, when it is dark", () => {
+    choosePalette("midnight");
+
+    expect(fixture.nativeElement).toHaveProperty("dataset.theme", "midnight");
+  });
+
+  it("dresses the chrome in a light palette's dark partner", () => {
+    choosePalette("classic");
+
+    expect(fixture.nativeElement).toHaveProperty("dataset.theme", "casino");
+  });
+
+  it("paints the page behind the chrome with the felt", () => {
+    harness.presentation.felt.set("purple");
+    TestBed.flushEffects();
+
+    expect(
+      document.documentElement.style.getPropertyValue("--table-felt"),
+    ).toBe("#3c096c");
+  });
+
+  it("tints the browser's own toolbar with the felt", () => {
+    document.head.insertAdjacentHTML(
+      "beforeend",
+      '<meta name="theme-color" content="#0f4d0e" />',
+    );
+
+    harness.presentation.felt.set("blue");
+    TestBed.flushEffects();
+
+    expect(
+      document
+        .querySelector('meta[name="theme-color"]')
+        ?.getAttribute("content"),
+    ).toBe("#1b4353");
   });
 
   it("keeps the settings drawer closed to begin with", () => {
