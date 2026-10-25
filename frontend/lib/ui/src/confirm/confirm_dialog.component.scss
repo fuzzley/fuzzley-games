@@ -1,11 +1,11 @@
-// The card in the middle of the dialog. Its padding and the gap between its
-// buttons shrink with a narrow screen without a breakpoint, which an app
-// would have to choose.
+// The card in the middle of the dialog. Its width and padding follow the
+// dialog's, in percentages of it, rather than a breakpoint, which only an
+// app can choose.
 .card {
   width: 380px;
-  max-width: calc(100vw - var(--fz-space-8));
-  padding: clamp(var(--fz-space-6), 6vw, var(--fz-space-8))
-    clamp(var(--fz-space-4), 6vw, var(--fz-space-8));
+  max-width: calc(100% - var(--fz-space-8));
+  padding: clamp(var(--fz-space-6), 6%, var(--fz-space-8))
+    clamp(var(--fz-space-4), 6%, var(--fz-space-8));
   border: 1px solid var(--fz-edge-3);
   border-radius: var(--fz-radius-xl);
   background: var(--fz-wash-2);
@@ -53,7 +53,7 @@
 .actions {
   display: flex;
   justify-content: center;
-  gap: clamp(var(--fz-space-2), 3vw, var(--fz-space-4));
+  gap: var(--fz-space-4);
 }
 
 @keyframes fz-pop-in {
