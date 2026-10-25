@@ -9,10 +9,9 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
 - **Phase:** 7, the game bar. Phase 6 is done.
-- **Next step:** Phase 7's mock: the bar at the top, at the bottom and as a
-  rail, and the wordmark with its compact home icon. No Phase 7 code before
-  the user approves it. Phase 7's game bar needs
-  its own mock, and the user's approval, before any of its code.
+- **Next step:** the user's review of
+  [Phase 7's mock](https://claude.ai/artifact/WtRD7hLp7WQqPKjWQzHQKh). No
+  Phase 7 code before they approve it.
 
 | Phase                             | State |
 | --------------------------------- | ----- |
@@ -586,3 +585,33 @@ passed every check in the plan, and was removed once done. What it showed:
   styles itself with the toolkit too.
 - Phase 6 is done: storage, radio group, dialog, icons, buttons, the
   confirmation and the mixins are all in the libraries.
+
+### 2026-10-24: Phase 7's mock
+
+- **The mock** is a
+  [private page for the user](https://claude.ai/artifact/WtRD7hLp7WQqPKjWQzHQKh).
+  It sets today's bar beside the proposal at 1440, 1200, 820 and 768px; on
+  upright and sideways phones with the stock on each side; at 360 and 320px
+  wide and 360px tall; the overflow menu; and the home glyph, live.
+- **How the pictures were made:** as for Phase 5, the running game with the
+  proposal injected. The screenshot script gained `VIEWS=` (named viewports,
+  and `w<width>` for any width), `STOCK=` (calls `setStockSide` first) and
+  `GAME=` (another deal than Klondike).
+- **Found while making it:**
+  - The wordmark takes about 165px. At 1200px it cut "Klondike" short, and
+    at 820px it pushed the switcher over the score. It fits from 1280px up,
+    with only "Grandfather's Clock", the longest name, clipped at exactly 1280. So the proposal shows the wordmark from 1280px and the home button
+    below. That's one breakpoint more than today; between 1200 and 1279px
+    the labels stay and long names get more room than today.
+  - Below the desktop width the bar's gaps tighten from 12px to 8px, which
+    pays for the home button: the game's name is cut short at the same
+    widths as today.
+  - At 320px the home button crushes the metrics, so below 360px home moves
+    into the overflow menu, as its first item. At 360px it fits.
+  - The theme menu's border, `--fz-line`, is green in Emerald, which looks
+    wrong on the bar's navy menu. The proposal uses `--fz-edge-3`, as the
+    bar and the dialogs do.
+  - Decision 1 expected the game chrome in a library of its own, while the
+    plan's Phase 7 says `lib/ui`. The mock proposes `@fz/game-ui`
+    (`frontend/lib/game-ui`), for the user to confirm.
+- **Waiting on:** the user's approval. No Phase 7 code until then.
