@@ -9,8 +9,8 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
 - **Phase:** 6, Solitaire's pieces move to the libraries. Phase 5 is done.
-- **Next step:** the rest of Phase 6, one commit per piece: the buttons,
-  the confirmation dialog, then the mixins. Phase 7's game bar needs
+- **Next step:** the rest of Phase 6, one commit per piece: the
+  confirmation dialog, then the mixins. Phase 7's game bar needs
   its own mock, and the user's approval, before any of its code.
 
 | Phase                             | State    |
@@ -523,3 +523,27 @@ passed every check in the plan, and was removed once done. What it showed:
 - The 64px warning and the 80px trophy draw at a stroke of 1.5, since the
   small icons' 2 reads as bold at that size. The rules dialog's close button
   is still a text "×"; Phase 7's pass over the overlays can take it.
+
+### 2026-10-24: Phase 6, the buttons
+
+- `.fz-button` grew into the mock's pill: tones `-secondary`, `-warning` and
+  `-danger`, shapes `-circle`, `-block` and `-large`, the mock's hover (the
+  fill mixed 86% with the text, or `wash-4` for secondary) and a dimmed
+  disabled state. A tone sets custom properties (`--fz-button-fill`,
+  `--fz-button-label`, `--fz-button-edge`, `--fz-button-hover`), so the
+  hover and disabled rules are written once.
+- @fz/style's contrast spec checks each filled tone's label on its hovered
+  fill too, reading the 86% from the compiled fragment. Hovering raises the
+  contrast in every palette (Classic's accent goes from 5.04 to 5.96:1).
+- Solitaire's `_buttons.scss` is gone, with the reduced-motion rule that
+  only it needed. Its markup wears `fz-button` classes; component-local
+  hooks such as `btn-play` and `btn-settings` stay, since specs find them.
+  The gear's turn moved to the header, under
+  `prefers-reduced-motion: no-preference`.
+- Visible in Solitaire: buttons are 42px tall rather than about 37px, a
+  little wider (1.2rem padding), and circle icons are 18px, as in the mock.
+- Visible on the site: a plain `.fz-button` takes 14px text, the mock's,
+  where it inherited 16px. Only the 404's "See all games" and the home
+  page's "Show all games" (shown when a search matches nothing) change; the
+  game page's Play buttons set their own size. Raise it back with a
+  site-only rule if the user prefers the larger text there.

@@ -633,7 +633,7 @@ describe("SettingsDrawerComponent", () => {
     openDrawer();
     const closed = onClose();
 
-    clickElement(fixture, ".drawer-content .btn-secondary");
+    clickElement(fixture, ".drawer-content .fz-button-secondary");
 
     expect(TestBed.inject(GameDocumentationService).isOpen()).toBe(true);
     expect(closed).toHaveBeenCalledOnce();

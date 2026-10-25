@@ -60,7 +60,7 @@ describe("VictoryOverlayComponent", () => {
   it("deals a new game when Play Again is clicked", async () => {
     win();
 
-    clickElement(fixture, ".btn-warning");
+    clickElement(fixture, ".fz-button-warning");
     await flushMicrotasks();
 
     expect(harness.model.startNewGame).toHaveBeenCalledOnce();
@@ -69,7 +69,7 @@ describe("VictoryOverlayComponent", () => {
   it("offers another game in the game browser", () => {
     win();
 
-    clickElement(fixture, ".btn-secondary");
+    clickElement(fixture, ".fz-button-secondary");
 
     expect(TestBed.inject(GameBrowserService).isOpen()).toBe(true);
   });

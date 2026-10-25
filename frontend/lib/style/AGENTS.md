@@ -32,8 +32,12 @@ can use it too. The repository's rules, which apply here too, are in
   - `src/base/_document.scss`, the page's colors and type, the focus ring and
     reduced motion;
   - the fragments, plain classes for markup that needs no behavior, one
-    file each in `src/fragments/`: `.fz-button`, the main action, on a
-    `<button>` or a link; `.fz-badge`, a small label, and
+    file each in `src/fragments/`: `.fz-button`, an action in a pill, on a
+    `<button>` or a link, filled with the accent unless a tone
+    (`.fz-button-secondary`, `-warning` or `-danger`) gives it another fill,
+    and shaped or sized by `.fz-button-circle`, `-block` or `-large`; a tone
+    sets `--fz-button-fill` and `--fz-button-label`, whose contrast, hovered
+    too, `src/tokens/contrast.spec.ts` checks; `.fz-badge`, a small label, and
     `.fz-badge-accent`; `.fz-swatch`, a palette's swatch on an element
     carrying its `data-theme`, and `.fz-swatch-large`; and
     `.fz-visually-hidden`.

@@ -132,13 +132,6 @@
     scroll-behavior: auto !important;
   }
 
-  // Hover states that move rather than fade have nothing to fade to, so they
-  // are dropped outright.
-  .btn:hover,
-  .btn-circle:hover {
-    transform: none;
-  }
-
   // A shimmer collapsed to 0.01ms would flicker, so loading placeholders stop
   // instead.
   .skeleton-shimmer,

@@ -291,7 +291,7 @@ describe("GameBrowserComponent", () => {
     it("shows every game again from an empty search", async () => {
       type("xyzzy");
 
-      await click(queryRequired(fixture, ".empty .btn"));
+      await click(queryRequired(fixture, ".empty .fz-button"));
 
       expect(listed()).toHaveLength(3);
     });
@@ -521,7 +521,7 @@ describe("GameBrowserComponent", () => {
       open();
       await click(row("FreeCell"));
 
-      await click(queryRequired(fixture, ".actions .btn-secondary"));
+      await click(queryRequired(fixture, ".actions .fz-button-secondary"));
 
       expect(TestBed.inject(GameDocumentationService).shownGameId()).toBe(
         "freecell",

@@ -145,7 +145,7 @@
   border-top: 1px solid var(--border-subtle);
   background: var(--surface-modal-solid);
 
-  .btn {
+  .fz-button {
     min-height: var(--tap-target-min);
   }
 }
@@ -166,9 +166,8 @@
     padding: var(--space-3) var(--space-4)
       calc(var(--space-3) + env(safe-area-inset-bottom));
 
-    .btn {
+    .fz-button {
       flex: 1;
-      justify-content: center;
     }
   }
 }

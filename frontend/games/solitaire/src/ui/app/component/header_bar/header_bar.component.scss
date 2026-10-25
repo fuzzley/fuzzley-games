@@ -163,9 +163,19 @@
   flex: 0 0 auto;
 
   // Every action clears the minimum tap size, labelled or not.
-  .btn,
-  .btn-circle {
+  .fz-button {
     @include tap-target;
+  }
+}
+
+// The gear turns under the pointer, where motion is welcome.
+@media (prefers-reduced-motion: no-preference) {
+  .btn-settings {
+    @include transition(background, transform);
+
+    &:hover {
+      transform: rotate(45deg);
+    }
   }
 }
 
@@ -200,6 +210,8 @@
 .overflow-item {
   @include transition(background, color);
 
+  --fz-icon-size: 18px;
+
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -220,12 +232,6 @@
     background: var(--wash-soft);
     color: var(--text-bright);
   }
-
-  .btn-icon {
-    flex: 0 0 auto;
-    width: 18px;
-    height: 18px;
-  }
 }
 
 // The dismiss layer: transparent, but covering the header and board too, so
@@ -244,19 +250,14 @@
 // Below this width the action labels go and the metric cards tighten, which
 // keeps the header's minimum width inside the band.
 @include below("desktop") {
-  .actions .btn {
+  .actions .fz-button:not(.fz-button-circle) {
+    --fz-icon-size: 18px;
+
     padding: var(--space-2);
-    justify-content: center;
     border-radius: 50%;
 
     .btn-text {
       display: none;
-    }
-
-    .btn-icon {
-      width: 18px;
-      height: 18px;
-      margin: 0;
     }
   }
 

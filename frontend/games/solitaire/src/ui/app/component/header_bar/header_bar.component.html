@@ -54,56 +54,56 @@
 
   <div class="actions">
     <button
-      class="btn btn-secondary"
+      class="fz-button fz-button-secondary"
       (click)="lifecycle.undo()"
       [disabled]="!metrics.canUndo()"
       title="Undo last move"
       aria-label="Undo last move"
     >
-      <fz-icon class="btn-icon" name="undo" />
+      <fz-icon name="undo" />
       <span class="btn-text">Undo</span>
     </button>
 
     <!-- Below the compact width, restart moves into the overflow menu. -->
     @if (!viewport.isCompact()) {
       <button
-        class="btn btn-secondary"
+        class="fz-button fz-button-secondary"
         (click)="restart()"
         title="Restart current game"
         aria-label="Restart current game"
       >
-        <fz-icon class="btn-icon" name="restart" />
+        <fz-icon name="restart" />
         <span class="btn-text">Restart</span>
       </button>
     }
 
     <button
-      class="btn btn-primary"
+      class="fz-button"
       (click)="newGame()"
       title="Start a brand new game"
       aria-label="Start a brand new game"
     >
-      <fz-icon class="btn-icon" name="plus" />
+      <fz-icon name="plus" />
       <span class="btn-text">New Game</span>
     </button>
 
     @if (!viewport.isCompact()) {
       <button
-        class="btn-circle btn-help"
+        class="fz-button fz-button-secondary fz-button-circle btn-help"
         (click)="openHelp()"
         title="How to Play / Game Rules"
         aria-label="How to Play / Game Rules"
       >
-        <fz-icon class="btn-icon" name="help" />
+        <fz-icon name="help" />
       </button>
 
       <button
-        class="btn-circle btn-bug-report"
+        class="fz-button fz-button-secondary fz-button-circle btn-bug-report"
         (click)="reportBug()"
         title="Report a Bug"
         aria-label="Report a Bug (opens GitHub in a new tab)"
       >
-        <fz-icon class="btn-icon" name="bug" />
+        <fz-icon name="bug" />
       </button>
     }
 
@@ -115,14 +115,14 @@
     @if (viewport.isCompact()) {
       <button
         #menuToggle
-        class="btn-circle btn-overflow"
+        class="fz-button fz-button-secondary fz-button-circle btn-overflow"
         (click)="toggleMenu()"
         [attr.aria-expanded]="isMenuOpen()"
         aria-controls="header-overflow-menu"
         title="More actions"
         aria-label="More actions"
       >
-        <fz-icon class="btn-icon" name="more" />
+        <fz-icon name="more" />
       </button>
     }
 
@@ -132,12 +132,12 @@
     -->
     @if (!viewport.isCompact()) {
       <button
-        class="btn-circle btn-circle-turns btn-settings"
+        class="fz-button fz-button-secondary fz-button-circle btn-settings"
         (click)="openSettings.emit()"
         title="Game Settings"
         aria-label="Game Settings"
       >
-        <fz-icon class="btn-icon" name="settings" />
+        <fz-icon name="settings" />
       </button>
     }
   </div>
@@ -156,7 +156,7 @@
       (click)="restart()"
       aria-label="Restart current game"
     >
-      <fz-icon class="btn-icon" name="restart" />
+      <fz-icon name="restart" />
       <span>Restart</span>
     </button>
     <button
@@ -164,7 +164,7 @@
       (click)="openHelp()"
       aria-label="How to Play / Game Rules"
     >
-      <fz-icon class="btn-icon" name="help" />
+      <fz-icon name="help" />
       <span>How to Play</span>
     </button>
     <button
@@ -172,7 +172,7 @@
       (click)="reportBug()"
       aria-label="Report a Bug (opens GitHub in a new tab)"
     >
-      <fz-icon class="btn-icon" name="bug" />
+      <fz-icon name="bug" />
       <span>Report a Bug</span>
     </button>
     <button
@@ -180,7 +180,7 @@
       (click)="showSettings()"
       aria-label="Game Settings"
     >
-      <fz-icon class="btn-icon" name="settings" />
+      <fz-icon name="settings" />
       <span>Settings</span>
     </button>
   </div>
