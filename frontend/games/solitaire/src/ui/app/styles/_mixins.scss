@@ -8,12 +8,12 @@
 /// Styles the heading over a group of settings controls.
 @mixin field-label {
   display: block;
-  font-size: var(--font-sm);
+  font-size: var(--fz-font-sm);
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--fz-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--fz-space-3);
 }
 
 /// Styles a bordered radio a player picks between, such as a card back, a deck
@@ -22,22 +22,22 @@
   @include fz.transition(background, border-color, color);
 
   display: flex;
-  background: var(--wash-faint);
-  border: 2px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: var(--space-3);
+  background: var(--fz-wash-1);
+  border: 2px solid var(--fz-edge-2);
+  border-radius: var(--fz-radius-md);
+  padding: var(--fz-space-3);
   cursor: pointer;
-  color: var(--text-muted);
+  color: var(--fz-muted);
 
   &:hover {
-    background: var(--wash-subtle);
-    border-color: var(--border-strong);
+    background: var(--fz-wash-2);
+    border-color: var(--fz-edge-3);
   }
 
   &[aria-checked="true"] {
-    background: var(--accent-wash);
-    border-color: var(--accent);
-    color: var(--text-bright);
+    background: var(--fz-accent-wash);
+    border-color: var(--fz-accent);
+    color: var(--fz-text);
   }
 }
 
@@ -48,15 +48,15 @@
   width: $size;
   height: $size;
   border-radius: 50%;
-  border: $thickness solid var(--wash-medium);
-  border-top-color: var(--accent-light);
+  border: $thickness solid var(--fz-wash-4);
+  border-top-color: var(--fz-accent);
   animation: spin 1s linear infinite;
 }
 
 /// Styles a bordered panel sitting on a modal's surface.
-@mixin panel-card($padding: var(--space-5)) {
+@mixin panel-card($padding: var(--fz-space-5)) {
   background: var(--surface-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--fz-edge-2);
+  border-radius: var(--fz-radius-lg);
   padding: $padding;
 }

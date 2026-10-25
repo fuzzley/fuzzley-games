@@ -13,14 +13,14 @@ body {
 // viewport canvas and the colour also covers any overscroll. The body is
 // left clear, rather than in the palette's page colour, to show it.
 html {
-  background: var(--table-felt);
+  background: var(--fz-felt);
 }
 
 // The leading this app's components were set in, a little looser than the
 // site's.
 body {
   background: none;
-  line-height: var(--leading-normal);
+  line-height: var(--fz-leading-normal);
 }
 
 // The chrome wears its own palette, the one in use or its dark partner (see
@@ -29,5 +29,5 @@ body {
 app-root {
   display: block;
   height: 100%;
-  color: var(--text-body);
+  color: var(--fz-text);
 }

@@ -1,11 +1,11 @@
-// Declares every keyframe animation in the application, and the one block that
+// Declares the application's keyframe animations, and the one block that
 // turns them all off.
 
-// Keyframes live here because their names are global: Angular's encapsulation
-// rewrites selectors, not at-rule names, so two components' animations of one
-// name would silently replace each other.
+// Angular renames a component's own keyframes after the component, so one
+// used by a single component may sit in its stylesheet; one that several use
+// is declared here, once.
 
-// Cards that arrive: the victory and confirmation dialogs.
+// Cards that arrive: the victory dialog.
 @keyframes pop-in {
   0% {
     transform: scale(0.8);
@@ -83,14 +83,14 @@
   0%,
   100% {
     box-shadow:
-      var(--shadow-badge),
-      0 0 20px var(--accent-wash);
+      var(--fz-shadow-badge),
+      0 0 20px var(--fz-accent-wash);
   }
 
   50% {
     box-shadow:
-      var(--shadow-badge),
-      0 0 30px var(--accent-glow);
+      var(--fz-shadow-badge),
+      0 0 30px var(--fz-accent-glow);
   }
 }
 

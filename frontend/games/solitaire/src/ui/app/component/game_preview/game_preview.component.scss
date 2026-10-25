@@ -6,18 +6,18 @@
   height: 100%;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: var(--wash-medium) transparent;
+  scrollbar-color: var(--fz-wash-4) transparent;
 }
 
 // No padding below: the actions sit flush with the bottom as a footer.
 .preview {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--fz-space-4);
   min-height: 100%;
   box-sizing: border-box;
-  padding: var(--space-5) var(--space-6) 0;
-  animation: fade-in var(--duration-fast) var(--ease-decelerate);
+  padding: var(--fz-space-5) var(--fz-space-6) 0;
+  animation: fade-in var(--fz-duration-fast) var(--fz-ease-decelerate);
 }
 
 .btn-back {
@@ -26,20 +26,20 @@
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  min-height: var(--tap-target-min);
-  padding: 0 var(--space-3) 0 var(--space-1);
+  gap: var(--fz-space-1);
+  min-height: var(--fz-tap-target);
+  padding: 0 var(--fz-space-3) 0 var(--fz-space-1);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--fz-radius-md);
   background: transparent;
-  color: var(--accent-light);
+  color: var(--fz-accent);
   font: inherit;
-  font-size: var(--font-sm);
+  font-size: var(--fz-font-sm);
   font-weight: 600;
   cursor: pointer;
 
   &:hover {
-    background: var(--wash-soft);
+    background: var(--fz-wash-3);
   }
 }
 
@@ -56,9 +56,9 @@
   position: relative;
   width: min(100%, calc(32dvh * 16 / 9));
   aspect-ratio: 16 / 9;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  background: var(--surface-skeleton);
+  border: 1px solid var(--fz-edge-2);
+  border-radius: var(--fz-radius-lg);
+  background: var(--fz-wash-2);
   overflow: hidden;
   flex: 0 0 auto;
 }
@@ -85,7 +85,7 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    var(--surface-skeleton-highlight) 50%,
+    var(--fz-wash-4) 50%,
     transparent 100%
   );
   transform: translateX(-100%);
@@ -94,9 +94,9 @@
 
 .title {
   margin: 0;
-  font-size: var(--font-2xl);
+  font-size: var(--fz-font-2xl);
   font-weight: 700;
-  color: var(--text-bright);
+  color: var(--fz-text);
 
   // Focused from script only, where a ring would mark nothing actionable.
   &:focus {
@@ -107,28 +107,28 @@
 .facts {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--fz-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .fact {
-  padding: var(--space-1) var(--space-3);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-pill);
-  background: var(--wash-subtle);
-  color: var(--text-secondary);
-  font-size: var(--font-xs);
+  padding: var(--fz-space-1) var(--fz-space-3);
+  border: 1px solid var(--fz-edge-2);
+  border-radius: var(--fz-radius-pill);
+  background: var(--fz-wash-2);
+  color: var(--fz-muted);
+  font-size: var(--fz-font-xs);
   font-weight: 600;
 }
 
 .overview {
   margin: 0;
-  max-width: var(--measure-prose);
-  color: var(--text-body);
-  font-size: var(--font-md);
-  line-height: var(--leading-relaxed);
+  max-width: var(--fz-measure-prose);
+  color: var(--fz-text);
+  font-size: var(--fz-font-md);
+  line-height: var(--fz-leading-relaxed);
 }
 
 // A footer held at the bottom of the pane, so the play button stays in reach
@@ -139,14 +139,14 @@
   bottom: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
-  margin: auto calc(-1 * var(--space-6)) 0;
-  padding: var(--space-4) var(--space-6);
-  border-top: 1px solid var(--border-subtle);
-  background: var(--surface-modal-solid);
+  gap: var(--fz-space-3);
+  margin: auto calc(-1 * var(--fz-space-6)) 0;
+  padding: var(--fz-space-4) var(--fz-space-6);
+  border-top: 1px solid var(--fz-edge-1);
+  background: var(--fz-panel-raised);
 
   .fz-button {
-    min-height: var(--tap-target-min);
+    min-height: var(--fz-tap-target);
   }
 }
 
@@ -154,7 +154,7 @@
 // buttons that share the footer, clear of the home indicator.
 @include compact {
   .preview {
-    padding: var(--space-4) var(--space-4) 0;
+    padding: var(--fz-space-4) var(--fz-space-4) 0;
   }
 
   .shot {
@@ -162,9 +162,9 @@
   }
 
   .actions {
-    margin: auto calc(-1 * var(--space-4)) 0;
-    padding: var(--space-3) var(--space-4)
-      calc(var(--space-3) + env(safe-area-inset-bottom));
+    margin: auto calc(-1 * var(--fz-space-4)) 0;
+    padding: var(--fz-space-3) var(--fz-space-4)
+      calc(var(--fz-space-3) + env(safe-area-inset-bottom));
 
     .fz-button {
       flex: 1;

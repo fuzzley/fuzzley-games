@@ -2,27 +2,27 @@
 
 // No scrim or z-index: <fz-dialog> puts this in the top layer.
 .victory-card {
-  background: var(--surface-raised);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-2xl);
-  padding: var(--space-10);
+  background: var(--fz-wash-2);
+  border: 1px solid var(--fz-edge-3);
+  border-radius: var(--fz-radius-2xl);
+  padding: var(--fz-space-10);
   width: 420px;
-  max-width: calc(100vw - var(--space-8));
+  max-width: calc(100vw - var(--fz-space-8));
   box-sizing: border-box;
   text-align: center;
   box-shadow:
-    var(--shadow-card),
+    var(--fz-shadow-card),
     0 0 100px var(--warning-glow);
-  color: var(--text-bright);
+  color: var(--fz-text);
   user-select: none;
   transform: scale(1);
-  animation: pop-in 0.5s var(--ease-spring);
+  animation: pop-in 0.5s var(--fz-ease-spring);
 
   h2 {
-    color: var(--warning);
-    font-size: var(--font-4xl);
+    color: var(--fz-warning);
+    font-size: var(--fz-font-4xl);
     font-weight: 800;
-    margin: 0 0 var(--space-2);
+    margin: 0 0 var(--fz-space-2);
   }
 }
 
@@ -30,13 +30,13 @@
   position: relative;
   width: 80px;
   height: 80px;
-  margin: 0 auto var(--space-6);
+  margin: 0 auto var(--fz-space-6);
 }
 
 .trophy-icon {
   width: 80px;
   height: 80px;
-  color: var(--warning);
+  color: var(--fz-warning);
   position: relative;
   z-index: 2;
   animation: bounce 2s infinite;
@@ -57,19 +57,19 @@
 }
 
 .victory-subtitle {
-  color: var(--text-muted);
-  font-size: var(--font-md);
-  margin: 0 0 var(--space-8);
+  color: var(--fz-muted);
+  font-size: var(--fz-font-md);
+  margin: 0 0 var(--fz-space-8);
 }
 
 .victory-stats {
   display: flex;
   justify-content: space-around;
   background: var(--surface-sunken);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  margin: 0 0 var(--space-8);
-  border: 1px solid var(--border-subtle);
+  border-radius: var(--fz-radius-lg);
+  padding: var(--fz-space-4);
+  margin: 0 0 var(--fz-space-8);
+  border: 1px solid var(--fz-edge-1);
 }
 
 // Value above label, with the term still first in the markup.
@@ -82,48 +82,48 @@
   }
 
   .v-val {
-    font-size: var(--font-2xl);
+    font-size: var(--fz-font-2xl);
     font-weight: 800;
-    color: var(--text-primary);
-    font-family: var(--font-mono);
+    color: var(--fz-text);
+    font-family: var(--fz-font-mono);
     font-variant-numeric: tabular-nums;
   }
 
-  // `--text-muted`, which clears 4.5:1 on the sunken well.
+  // `--fz-muted`, which clears 4.5:1 on the sunken well.
   .v-lbl {
-    font-size: var(--font-xs);
+    font-size: var(--fz-font-xs);
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--fz-muted);
     text-transform: uppercase;
-    margin-top: var(--space-1);
+    margin-top: var(--fz-space-1);
   }
 }
 
 .victory-actions {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--fz-space-3);
 }
 
 @include below("phone") {
   .victory-card {
-    padding: var(--space-6) var(--space-4);
+    padding: var(--fz-space-6) var(--fz-space-4);
 
     h2 {
-      font-size: var(--font-3xl);
+      font-size: var(--fz-font-3xl);
     }
   }
 
   .victory-subtitle {
-    margin-bottom: var(--space-5);
+    margin-bottom: var(--fz-space-5);
   }
 
   .victory-stats {
-    padding: var(--space-3) var(--space-2);
-    margin-bottom: var(--space-6);
+    padding: var(--fz-space-3) var(--fz-space-2);
+    margin-bottom: var(--fz-space-6);
   }
 
   .v-stat .v-val {
-    font-size: var(--font-xl);
+    font-size: var(--fz-font-xl);
   }
 }

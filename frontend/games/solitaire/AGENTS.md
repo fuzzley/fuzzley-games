@@ -154,15 +154,18 @@ brings in the mixins and breakpoints and nothing else:
 @use "../../styles" as *;
 ```
 
-- **Tokens are custom properties, `@fz/style`'s underneath.** Colour,
-  surface, spacing, type, radius, elevation, motion, layout and z-index all
-  live in `styles/_tokens.scss`. The colours are roles of the palette in use
-  (`--text-muted: var(--fz-muted)`), declared on `:root, [data-theme]` so the
-  chrome's palette reaches them, and the scales and the font are
-  `@fz/style`'s (`--space-2: var(--fz-space-2)`): the tokens the site and
-  every game share (`frontend/lib/style/AGENTS.md`), whose global stylesheet
-  `global.scss` loads first. `_palette.scss` keeps only the card artwork's
-  colours. Component CSS reads them with `var()` — never a colour, spacing or
+- **Tokens are `@fz/style`'s, by their own names.** Component CSS reads the
+  tokens the site and every game share (`frontend/lib/style/AGENTS.md`),
+  whose global stylesheet `global.scss` loads first: the palette's roles and
+  their tints (`--fz-muted`, `--fz-edge-2`, `--fz-accent-wash`) and the
+  scales from spacing to motion (`--fz-space-2`, `--fz-radius-md`,
+  `--fz-duration-fast`). `styles/_tokens.scss` holds only this game's own:
+  the translucent mixes of those roles its panels need (`--surface-modal`,
+  `--surface-sunken`), declared on `:root, [data-theme]` so the chrome's
+  palette reaches them, as the library's tints are; the table
+  (`--table-felt`); the card artwork's colours, cut from `_palette.scss`;
+  and its layout and stacking, with the game bar's size from `@fz/game-ui`.
+  Component CSS reads them with `var()` — never a colour, spacing or
   font-size literal. Reach for Sass when the value cannot be a custom
   property (media query widths) or when it is only ever a compile-time input
   to a token.
@@ -180,9 +183,11 @@ brings in the mixins and breakpoints and nothing else:
   `$breakpoints` and saying what it protects. Anything that follows the compact
   chrome uses `@include compact`, `phone-portrait` or `phone-landscape`
   instead, which also catch a phone on its side.
-- **`@keyframes` are global — declare them in `_animations.scss`.** Angular's
-  emulated encapsulation rewrites selectors, not at-rule names, so two
-  components defining the same animation name silently overwrite each other.
+- **Shared `@keyframes` go in `_animations.scss`.** Angular renames a
+  component's own `@keyframes`, and the animations using them, after the
+  component, so one used by a single component may sit in its stylesheet,
+  as the libraries' do. One that several components use is declared once,
+  globally.
 - **Comment with `//`.** Sass strips it, so notes explaining the source do not
   ship to the browser.
 - **Overlays are `<dialog>`.** Wrap content in `<fz-dialog>` rather than

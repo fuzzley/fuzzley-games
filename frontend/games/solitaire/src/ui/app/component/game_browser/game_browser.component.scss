@@ -5,15 +5,15 @@
 .browser {
   display: flex;
   flex-direction: column;
-  width: min(var(--browser-width), calc(100vw - 2 * var(--space-8)));
-  height: min(var(--browser-height), calc(100dvh - 2 * var(--space-8)));
+  width: min(var(--browser-width), calc(100vw - 2 * var(--fz-space-8)));
+  height: min(var(--browser-height), calc(100dvh - 2 * var(--fz-space-8)));
   background: var(--surface-modal);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-modal);
-  color: var(--text-body);
+  border: 1px solid var(--fz-edge-3);
+  border-radius: var(--fz-radius-xl);
+  box-shadow: var(--fz-shadow-modal);
+  color: var(--fz-text);
   overflow: hidden;
-  animation: fade-in var(--duration-base) var(--ease-decelerate);
+  animation: fade-in var(--fz-duration-base) var(--fz-ease-decelerate);
 }
 
 .visually-hidden {
@@ -26,14 +26,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-4) var(--space-4) var(--space-3) var(--space-6);
+  padding: var(--fz-space-4) var(--fz-space-4) var(--fz-space-3)
+    var(--fz-space-6);
 }
 
 .browser-title {
   margin: 0;
-  font-size: var(--font-xl);
+  font-size: var(--fz-font-xl);
   font-weight: 700;
-  color: var(--text-bright);
+  color: var(--fz-text);
 
   // Focused from script only, where a ring would mark nothing actionable.
   &:focus {
@@ -54,17 +55,17 @@
 
 .search {
   position: relative;
-  margin: 0 var(--space-6);
+  margin: 0 var(--fz-space-6);
 }
 
 .search-icon {
   position: absolute;
-  left: var(--space-3);
+  left: var(--fz-space-3);
   top: 50%;
   width: 20px;
   height: 20px;
   transform: translateY(-50%);
-  color: var(--text-muted);
+  color: var(--fz-muted);
   pointer-events: none;
 }
 
@@ -72,22 +73,23 @@
   @include transition(border-color, background);
 
   width: 100%;
-  min-height: var(--tap-target-min);
+  min-height: var(--fz-tap-target);
   box-sizing: border-box;
-  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-10);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
+  padding: var(--fz-space-2) var(--fz-space-3) var(--fz-space-2)
+    var(--fz-space-10);
+  border: 1px solid var(--fz-edge-3);
+  border-radius: var(--fz-radius-md);
   background: var(--surface-sunken);
-  color: var(--text-primary);
+  color: var(--fz-text);
   font: inherit;
-  font-size: var(--font-md);
+  font-size: var(--fz-font-md);
 
   &::placeholder {
-    color: var(--text-muted);
+    color: var(--fz-muted);
   }
 
   &:focus {
-    border-color: var(--accent-light);
+    border-color: var(--fz-accent);
     background: var(--surface-card);
   }
 
@@ -100,15 +102,15 @@
 
 .search-shortcut {
   position: absolute;
-  right: var(--space-3);
+  right: var(--fz-space-3);
   top: 50%;
   transform: translateY(-50%);
-  padding: 0 var(--space-2);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  font-size: var(--font-xs);
+  padding: 0 var(--fz-space-2);
+  border: 1px solid var(--fz-edge-3);
+  border-radius: var(--fz-radius-sm);
+  color: var(--fz-muted);
+  font-family: var(--fz-font);
+  font-size: var(--fz-font-xs);
   font-weight: 600;
   pointer-events: none;
 
@@ -126,22 +128,22 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-6);
-  border-bottom: 1px solid var(--border-default);
+  gap: var(--fz-space-2);
+  padding: var(--fz-space-3) var(--fz-space-6);
+  border-bottom: 1px solid var(--fz-edge-2);
 }
 
 .filter-group {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--fz-space-2);
 }
 
 .filter-divider {
   flex: 0 0 1px;
   align-self: stretch;
-  margin: var(--space-2) var(--space-1);
-  background: var(--border-default);
+  margin: var(--fz-space-2) var(--fz-space-1);
+  background: var(--fz-edge-2);
 }
 
 .chip {
@@ -150,42 +152,42 @@
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  min-height: var(--tap-target-min);
-  padding: 0 var(--space-4);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-pill);
+  gap: var(--fz-space-1);
+  min-height: var(--fz-tap-target);
+  padding: 0 var(--fz-space-4);
+  border: 1px solid var(--fz-edge-3);
+  border-radius: var(--fz-radius-pill);
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--fz-muted);
   font: inherit;
-  font-size: var(--font-sm);
+  font-size: var(--fz-font-sm);
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
 
   &:hover {
-    background: var(--wash-soft);
-    color: var(--text-bright);
+    background: var(--fz-wash-3);
+    color: var(--fz-text);
   }
 
   // A tick as well as the fill, so a chosen filter is not told by colour
   // alone.
   &[aria-pressed="true"] {
-    background: var(--accent-fill);
-    border-color: var(--accent-fill-border);
-    color: var(--text-on-accent);
+    background: var(--fz-accent);
+    border-color: var(--fz-accent);
+    color: var(--fz-on-accent);
   }
 }
 
 .chip-check {
   width: 16px;
   height: 16px;
-  margin-left: calc(-1 * var(--space-1));
+  margin-left: calc(-1 * var(--fz-space-1));
 }
 
 .chip-clear {
   border-color: transparent;
-  color: var(--accent-light);
+  color: var(--fz-accent);
 }
 
 // --- Panes ---
@@ -200,9 +202,9 @@
 .list-pane {
   min-height: 0;
   overflow-y: auto;
-  border-right: 1px solid var(--border-default);
+  border-right: 1px solid var(--fz-edge-2);
   scrollbar-width: thin;
-  scrollbar-color: var(--wash-medium) transparent;
+  scrollbar-color: var(--fz-wash-4) transparent;
 }
 
 .preview-pane {
@@ -210,14 +212,14 @@
 }
 
 .results {
-  padding: 0 var(--space-3) var(--space-4);
+  padding: 0 var(--fz-space-3) var(--fz-space-4);
 }
 
 .section-heading {
   @include field-label;
 
-  margin: var(--space-4) var(--space-3) var(--space-2);
-  font-size: var(--font-xs);
+  margin: var(--fz-space-4) var(--fz-space-3) var(--fz-space-2);
+  font-size: var(--fz-font-xs);
 }
 
 // --- Rows ---
@@ -228,19 +230,19 @@
   display: grid;
   grid-template-columns: var(--browser-thumb-width) minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2);
+  gap: var(--fz-space-3);
+  padding: var(--fz-space-2);
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: var(--fz-radius-md);
   cursor: pointer;
 
   &:hover {
-    background: var(--wash-subtle);
+    background: var(--fz-wash-2);
   }
 
   &[aria-selected="true"] {
-    background: var(--accent-wash);
-    border-color: var(--accent-fill-border);
+    background: var(--fz-accent-wash);
+    border-color: var(--fz-accent);
   }
 }
 
@@ -248,41 +250,41 @@
   display: block;
   width: var(--browser-thumb-width);
   height: var(--browser-thumb-height);
-  border-radius: var(--radius-sm);
-  background: var(--surface-skeleton);
+  border-radius: var(--fz-radius-sm);
+  background: var(--fz-wash-2);
   object-fit: cover;
 }
 
 .row-text {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--fz-space-1);
   min-width: 0;
 }
 
 .row-name {
-  color: var(--text-primary);
-  font-size: var(--font-sm);
+  color: var(--fz-text);
+  font-size: var(--fz-font-sm);
   font-weight: 600;
 
   // Underlined as well as coloured, so a match is not told by colour alone.
   mark {
     background: none;
-    color: var(--accent-light);
+    color: var(--fz-accent);
     text-decoration: underline;
     text-underline-offset: 2px;
   }
 }
 
 .row-rules {
-  color: var(--text-muted);
+  color: var(--fz-muted);
   font-weight: 500;
 }
 
 .row-tagline {
   overflow: hidden;
-  color: var(--text-muted);
-  font-size: var(--font-xs);
+  color: var(--fz-muted);
+  font-size: var(--fz-font-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -291,19 +293,19 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: var(--space-1);
-  color: var(--text-muted);
-  font-size: var(--font-xs);
+  gap: var(--fz-space-1);
+  color: var(--fz-muted);
+  font-size: var(--fz-font-xs);
   white-space: nowrap;
 }
 
 .badge-playing {
-  padding: 0 var(--space-2);
-  border: 1px solid var(--sky-border);
-  border-radius: var(--radius-pill);
-  background: var(--sky-wash);
-  color: var(--accent-sky);
-  font-size: var(--font-2xs);
+  padding: 0 var(--fz-space-2);
+  border: 1px solid var(--fz-accent-glow);
+  border-radius: var(--fz-radius-pill);
+  background: var(--fz-accent-wash);
+  color: var(--fz-accent);
+  font-size: var(--fz-font-2xs);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -312,7 +314,7 @@
 .difficulty {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--fz-space-1);
 }
 
 .dots {
@@ -324,10 +326,10 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--wash-medium);
+  background: var(--fz-wash-4);
 
   &.on {
-    background: var(--text-secondary);
+    background: var(--fz-muted);
   }
 }
 
@@ -337,14 +339,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-10) var(--space-6);
+  gap: var(--fz-space-4);
+  padding: var(--fz-space-10) var(--fz-space-6);
   text-align: center;
 }
 
 .empty-message {
   margin: 0;
-  color: var(--text-secondary);
+  color: var(--fz-muted);
 }
 
 // --- Narrow screens ---
@@ -359,18 +361,19 @@
   }
 
   .browser-header {
-    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+    padding: var(--fz-space-2) var(--fz-space-2) var(--fz-space-2)
+      var(--fz-space-4);
   }
 
   .search {
-    margin: 0 var(--space-4);
+    margin: 0 var(--fz-space-4);
   }
 
   // A wider gap stands in for the dividers, which would end a line as often
   // as sit between two facets once the row wraps.
   .filters {
-    column-gap: var(--space-4);
-    padding: var(--space-3) var(--space-4);
+    column-gap: var(--fz-space-4);
+    padding: var(--fz-space-3) var(--fz-space-4);
   }
 
   .filter-divider {
@@ -402,6 +405,6 @@
   }
 
   .results {
-    padding: 0 var(--space-2) var(--space-4);
+    padding: 0 var(--fz-space-2) var(--fz-space-4);
   }
 }

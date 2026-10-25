@@ -7,24 +7,24 @@
 // The negative margins bleed the tinted band out to the drawer's edges, so
 // they must match the drawer's padding.
 .debug-panel {
-  margin-top: var(--space-8);
-  padding-top: var(--space-6);
+  margin-top: var(--fz-space-8);
+  padding-top: var(--fz-space-6);
   border-top: 1px dashed var(--danger-border);
-  background: var(--danger-wash);
-  margin-left: calc(var(--space-6) * -1);
-  margin-right: calc(var(--space-6) * -1);
-  padding-left: var(--space-6);
-  padding-right: var(--space-6);
+  background: var(--fz-danger-wash);
+  margin-left: calc(var(--fz-space-6) * -1);
+  margin-right: calc(var(--fz-space-6) * -1);
+  padding-left: var(--fz-space-6);
+  padding-right: var(--fz-space-6);
 }
 
 .debug-label {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  margin: 0 0 var(--space-3);
-  font-size: var(--font-sm);
+  gap: var(--fz-space-1);
+  margin: 0 0 var(--fz-space-3);
+  font-size: var(--fz-font-sm);
   font-weight: 700;
-  color: var(--danger);
+  color: var(--fz-danger);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 
@@ -40,8 +40,8 @@
 .load-position {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  margin-top: var(--space-4);
+  gap: var(--fz-space-2);
+  margin-top: var(--fz-space-4);
 }
 
 .load-label {
@@ -51,20 +51,20 @@
 .load-text {
   box-sizing: border-box;
   width: 100%;
-  padding: var(--space-2);
-  font-family: var(--font-mono);
-  font-size: var(--font-2xs);
-  color: var(--text-body);
-  background: var(--wash-subtle);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
+  padding: var(--fz-space-2);
+  font-family: var(--fz-font-mono);
+  font-size: var(--fz-font-2xs);
+  color: var(--fz-text);
+  background: var(--fz-wash-2);
+  border: 1px solid var(--fz-edge-2);
+  border-radius: var(--fz-radius-sm);
   resize: vertical;
 }
 
 .load-problem {
-  min-height: var(--space-5);
+  min-height: var(--fz-space-5);
   margin: 0;
-  font-size: var(--font-2xs);
-  line-height: var(--leading-tight);
-  color: var(--danger);
+  font-size: var(--fz-font-2xs);
+  line-height: var(--fz-leading-tight);
+  color: var(--fz-danger);
 }

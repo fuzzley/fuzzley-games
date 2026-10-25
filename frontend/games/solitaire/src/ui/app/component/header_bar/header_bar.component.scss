@@ -11,24 +11,24 @@
 
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--fz-space-2);
   flex: 0 1 auto;
-  min-width: var(--tap-target-min);
-  min-height: var(--tap-target-min);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  background: var(--wash-subtle);
-  color: var(--text-secondary);
+  min-width: var(--fz-tap-target);
+  min-height: var(--fz-tap-target);
+  padding: 0 var(--fz-space-3);
+  border: 1px solid var(--fz-edge-2);
+  border-radius: var(--fz-radius-md);
+  background: var(--fz-wash-2);
+  color: var(--fz-muted);
   font: inherit;
-  font-size: var(--font-md);
+  font-size: var(--fz-font-md);
   font-weight: 600;
   cursor: pointer;
 
   &:hover {
-    border-color: var(--border-strong);
-    background: var(--wash-soft);
-    color: var(--text-bright);
+    border-color: var(--fz-edge-3);
+    background: var(--fz-wash-3);
+    color: var(--fz-text);
   }
 }
 
@@ -40,11 +40,11 @@
 }
 
 .switcher-icon {
-  color: var(--accent-sky);
+  color: var(--fz-accent);
 }
 
 .switcher-chevron {
-  color: var(--text-muted);
+  color: var(--fz-muted);
 }
 
 .switcher-name {
@@ -56,7 +56,7 @@
 
 .metrics {
   display: flex;
-  gap: var(--space-4);
+  gap: var(--fz-space-4);
   flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
@@ -69,15 +69,15 @@
   justify-content: center;
   flex: 0 1 auto;
   min-width: 90px;
-  background: var(--wash-subtle);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: var(--space-1) var(--space-4);
+  background: var(--fz-wash-2);
+  border: 1px solid var(--fz-edge-2);
+  border-radius: var(--fz-radius-md);
+  padding: var(--fz-space-1) var(--fz-space-4);
 
   .label {
-    font-size: var(--font-2xs);
+    font-size: var(--fz-font-2xs);
     font-weight: 700;
-    color: var(--text-muted);
+    color: var(--fz-muted);
     letter-spacing: 0.1em;
     margin-bottom: 2px;
   }
@@ -85,11 +85,11 @@
   // `tabular-nums` as well, since some font stacks draw a narrower digit and a
   // clock that changes width drags its neighbours along.
   .value {
-    font-size: var(--font-lg);
+    font-size: var(--fz-font-lg);
     font-weight: 700;
-    font-family: var(--font-mono);
+    font-family: var(--fz-font-mono);
     font-variant-numeric: tabular-nums;
-    color: var(--text-primary);
+    color: var(--fz-text);
   }
 }
 
@@ -114,14 +114,14 @@
 // tighten too, paying for the home button that stands in for the wordmark.
 @include below("desktop") {
   :host {
-    --fz-bar-gap: var(--space-2);
-    --fz-bar-actions-gap: var(--space-2);
+    --fz-bar-gap: var(--fz-space-2);
+    --fz-bar-actions-gap: var(--fz-space-2);
   }
 
   .action:not(.fz-button-circle) {
     --fz-icon-size: 18px;
 
-    padding: var(--space-2);
+    padding: var(--fz-space-2);
     border-radius: 50%;
 
     .btn-text {
@@ -130,12 +130,12 @@
   }
 
   .metrics {
-    gap: var(--space-2);
+    gap: var(--fz-space-2);
   }
 
   .metric-card {
     min-width: 72px;
-    padding: var(--space-1) var(--space-3);
+    padding: var(--fz-space-1) var(--fz-space-3);
   }
 }
 
@@ -156,7 +156,7 @@
 
   .metric-card {
     min-width: 0;
-    padding: var(--space-1) var(--space-2);
+    padding: var(--fz-space-1) var(--fz-space-2);
   }
 }
 
@@ -165,9 +165,9 @@
   // more room than their figures.
   .metrics {
     gap: 0;
-    background: var(--wash-subtle);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-md);
+    background: var(--fz-wash-2);
+    border: 1px solid var(--fz-edge-2);
+    border-radius: var(--fz-radius-md);
   }
 
   .metric-card {
@@ -178,7 +178,7 @@
     // A hairline between neighbours, standing in for the borders the cards
     // themselves have just given up.
     & + .metric-card {
-      border-left: 1px solid var(--border-subtle);
+      border-left: 1px solid var(--fz-edge-1);
     }
 
     // Hidden from the eye only, since the live regions announce the labels.
@@ -187,7 +187,7 @@
     }
 
     .value {
-      font-size: var(--font-sm);
+      font-size: var(--fz-font-sm);
     }
   }
 }
@@ -199,20 +199,20 @@
     flex-direction: column;
     flex: 0 0 auto;
     gap: 0;
-    width: calc(var(--fz-rail-width) - 2 * var(--space-1));
-    background: var(--wash-subtle);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-md);
+    width: calc(var(--fz-rail-width) - 2 * var(--fz-space-1));
+    background: var(--fz-wash-2);
+    border: 1px solid var(--fz-edge-2);
+    border-radius: var(--fz-radius-md);
   }
 
   .metric-card {
-    padding: var(--space-1) 0;
+    padding: var(--fz-space-1) 0;
     background: none;
     border: none;
     border-radius: 0;
 
     & + .metric-card {
-      border-top: 1px solid var(--border-subtle);
+      border-top: 1px solid var(--fz-edge-1);
     }
 
     .label {
@@ -220,7 +220,7 @@
     }
 
     .value {
-      font-size: var(--font-xs);
+      font-size: var(--fz-font-xs);
     }
   }
 }

@@ -11,11 +11,11 @@
   height: 100dvh;
   margin-left: auto;
   background: var(--surface-panel);
-  border-left: 1px solid var(--border-default);
-  box-shadow: var(--shadow-drawer);
+  border-left: 1px solid var(--fz-edge-2);
+  box-shadow: var(--fz-shadow-drawer);
   display: flex;
   flex-direction: column;
-  color: var(--text-body);
+  color: var(--fz-text);
   user-select: none;
 }
 
@@ -23,18 +23,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-6);
-  border-bottom: 1px solid var(--border-default);
+  padding: var(--fz-space-6);
+  border-bottom: 1px solid var(--fz-edge-2);
 
   h2 {
-    font-size: var(--font-xl);
+    font-size: var(--fz-font-xl);
     font-weight: 700;
     margin: 0;
   }
 }
 
 .btn-close {
-  @include icon-button(var(--radius-sm));
+  @include icon-button(var(--fz-radius-sm));
 }
 
 .close-icon {
@@ -44,12 +44,12 @@
 
 .drawer-content {
   flex: 1;
-  padding: var(--space-6);
+  padding: var(--fz-space-6);
   overflow-y: auto;
 }
 
 .setting-group {
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--fz-space-6);
 }
 
 .setting-label {
@@ -62,7 +62,7 @@
 .card-back-selector {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-4);
+  gap: var(--fz-space-4);
 }
 
 .card-back-option {
@@ -75,9 +75,9 @@
 .card-back-preview {
   width: 48px;
   height: 68px;
-  border-radius: var(--radius-sm);
-  margin-bottom: var(--space-2);
-  box-shadow: var(--shadow-swatch);
+  border-radius: var(--fz-radius-sm);
+  margin-bottom: var(--fz-space-2);
+  box-shadow: var(--fz-shadow-swatch);
 }
 
 // Each kind of back comes in two colourways, so its pattern is described once
@@ -98,7 +98,7 @@
   box-shadow:
     inset 0 0 0 1px $field,
     inset 0 0 0 2px var(--card-face),
-    var(--shadow-swatch);
+    var(--fz-shadow-swatch);
 }
 
 .lattice-blue {
@@ -119,7 +119,7 @@
   background-position:
     0 0,
     4px 4px;
-  border: 1px solid var(--border-vivid);
+  border: 1px solid var(--fz-edge-4);
 }
 
 .weave-blue {
@@ -143,14 +143,14 @@
 .card-deck-selector {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--fz-space-3);
 }
 
 .card-deck-option {
   @include swatch-option;
 
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--fz-space-3);
   text-align: left;
 }
 
@@ -158,13 +158,13 @@
   flex: none;
   width: 88px;
   height: auto;
-  filter: drop-shadow(var(--shadow-swatch));
+  filter: drop-shadow(var(--fz-shadow-swatch));
 }
 
 .card-deck-label {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--fz-space-1);
   min-width: 0;
 }
 
@@ -183,22 +183,22 @@
 // Holds its line whether or not there is anything in it, so the options below
 // do not jump when a load fails.
 .card-deck-problem {
-  min-height: var(--space-5);
-  margin: var(--space-2) 0 0;
-  font-size: var(--font-2xs);
-  line-height: var(--leading-tight);
-  color: var(--warning);
+  min-height: var(--fz-space-5);
+  margin: var(--fz-space-2) 0 0;
+  font-size: var(--fz-font-2xs);
+  line-height: var(--fz-leading-tight);
+  color: var(--fz-warning);
 }
 
 .card-deck-preview-card {
   fill: var(--card-face);
-  stroke: var(--border-vivid);
+  stroke: var(--fz-edge-4);
   stroke-width: 1;
 }
 
 .card-deck-preview-rank {
   fill: var(--card-ink-red);
-  font-family: var(--font-sans);
+  font-family: var(--fz-font);
   font-size: 13px;
   font-weight: 700;
 }
@@ -208,9 +208,9 @@
 }
 
 .card-deck-description {
-  font-size: var(--font-2xs);
-  line-height: var(--leading-tight);
-  color: var(--text-muted);
+  font-size: var(--fz-font-2xs);
+  line-height: var(--fz-leading-tight);
+  color: var(--fz-muted);
 }
 
 // --- Felt selector ---
@@ -218,7 +218,7 @@
 .felt-selector {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--fz-space-3);
   flex-wrap: wrap;
 }
 
@@ -229,22 +229,22 @@
 
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  min-height: var(--tap-target-min);
-  padding: 0 var(--space-4) 0 var(--space-2);
-  border: 2px solid var(--border-strong);
-  border-radius: var(--radius-pill);
-  background: var(--wash-faint);
-  color: var(--text-primary);
-  font-size: var(--font-sm);
+  gap: var(--fz-space-2);
+  min-height: var(--fz-tap-target);
+  padding: 0 var(--fz-space-4) 0 var(--fz-space-2);
+  border: 2px solid var(--fz-edge-3);
+  border-radius: var(--fz-radius-pill);
+  background: var(--fz-wash-1);
+  color: var(--fz-text);
+  font-size: var(--fz-font-sm);
   font-weight: 600;
 
   &:hover {
-    background: var(--wash-subtle);
+    background: var(--fz-wash-2);
   }
 
   &[aria-checked="true"] {
-    border-color: var(--text-bright);
+    border-color: var(--fz-text);
   }
 }
 
@@ -265,18 +265,18 @@
   border: 2px solid transparent;
   cursor: pointer;
   position: relative;
-  box-shadow: var(--shadow-swatch);
+  box-shadow: var(--fz-shadow-swatch);
 
-  // A pseudo-element grows the 36px dot's target to `--tap-target-min` without
-  // enlarging the dot; the `--space-3` gap keeps neighbours' targets apart.
+  // A pseudo-element grows the 36px dot's target to `--fz-tap-target` without
+  // enlarging the dot; the `--fz-space-3` gap keeps neighbours' targets apart.
   &::after {
     content: "";
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: var(--tap-target-min);
-    height: var(--tap-target-min);
+    width: var(--fz-tap-target);
+    height: var(--fz-tap-target);
     border-radius: 50%;
   }
 
@@ -285,7 +285,7 @@
   }
 
   &[aria-checked="true"] {
-    border-color: var(--text-bright);
+    border-color: var(--fz-text);
     transform: scale(1.05);
   }
 }
@@ -297,15 +297,15 @@
   transform: translate(-50%, -50%);
   width: 8px;
   height: 8px;
-  background-color: var(--text-bright);
+  background-color: var(--fz-text);
   border-radius: 50%;
 }
 
 .setting-note {
-  margin-top: var(--space-2);
-  font-size: var(--font-xs);
-  color: var(--text-muted);
-  line-height: var(--leading-tight);
+  margin-top: var(--fz-space-2);
+  font-size: var(--fz-font-xs);
+  color: var(--fz-muted);
+  line-height: var(--fz-leading-tight);
 }
 
 // --- Reporting a problem ---
@@ -316,14 +316,14 @@
 }
 
 .drawer-footer {
-  padding: var(--space-6);
-  border-top: 1px solid var(--border-default);
+  padding: var(--fz-space-6);
+  border-top: 1px solid var(--fz-edge-2);
 }
 
 @include below("phone") {
   .drawer-header,
   .drawer-content,
   .drawer-footer {
-    padding: var(--space-4);
+    padding: var(--fz-space-4);
   }
 }
