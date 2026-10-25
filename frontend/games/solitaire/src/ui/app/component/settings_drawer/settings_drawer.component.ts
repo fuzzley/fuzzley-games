@@ -38,7 +38,7 @@ import {
 import { DebugPanelComponent } from "../debug_panel/debug_panel.component";
 import { OptionGroupComponent } from "../option_group/option_group.component";
 import { ModalDialogComponent } from "../modal_dialog/modal_dialog.component";
-import { RadioGroupDirective } from "../../directive/radio_group.directive";
+import { RadioGroupDirective } from "@fz/ui/radio_group";
 
 /** Describes one card back a player can choose, resolved for rendering. */
 interface CardBackChoice extends CardBackSpec {

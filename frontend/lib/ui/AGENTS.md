@@ -26,6 +26,12 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   takes (`bar` unless an app provides another, such as `felt` for a game
   whose table runs to the top, or `null` for an app that sets it itself).
 - `src/icon/`: `<fz-icon name="…">`, the outline icons.
+- `src/radio_group/`: `[fzRadioGroup]`, which gives a group of
+  `role="radio"` buttons one tab stop and the arrow keys, Home and End.
+  Angular Aria has no radio group. The arrows move focus without choosing,
+  since a choice can cost something, such as a game's rule dealing a new
+  game; a group where choosing is free can use native radios instead, as
+  `<fz-theme-picker>` does.
 - `src/wordmark/`: `<fz-wordmark>`, the "Fuzzley Games" name in its own
   type. It is text: an app that links it puts it in its own `<a>`, with a
   `routerLink` or an `href`, and the link takes its name from it.

@@ -55,7 +55,7 @@
         <span class="setting-label" id="card-back-label">Card Back Design</span>
         <div
           class="card-back-selector"
-          appRadioGroup
+          fzRadioGroup
           aria-labelledby="card-back-label"
         >
           @for (back of cardBackChoices(); track back.style) {
@@ -99,7 +99,7 @@
           <span class="setting-label" id="card-deck-label">Desktop Cards</span>
           <div
             class="card-deck-selector"
-            appRadioGroup
+            fzRadioGroup
             aria-labelledby="card-deck-label"
           >
             @for (deck of deckChoices(); track deck.id) {
@@ -169,7 +169,7 @@
       <!-- The felt: the palette's, or one kept whatever the palette -->
       <div class="setting-group">
         <span class="setting-label" id="felt-label">Felt</span>
-        <div class="felt-selector" appRadioGroup aria-labelledby="felt-label">
+        <div class="felt-selector" fzRadioGroup aria-labelledby="felt-label">
           <button
             type="button"
             class="felt-theme"
