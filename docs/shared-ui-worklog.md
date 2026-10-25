@@ -9,8 +9,8 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
 - **Phase:** 9, light chrome, which is optional. Phase 8 is done.
-- **Next step:** the user's choice between Phase 9 (light chrome, visible,
-  mock first) and Phase 10 (skills, and the next consumer).
+- **Next step:** the user's review of Phase 9's mock. No Phase 9 code until
+  they approve it; if they'd rather keep the dark chrome, Phase 10 is next.
 
 | Phase                             | State |
 | --------------------------------- | ----- |
@@ -23,7 +23,7 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 | 6. Solitaire's pieces move to lib | done  |
 | 7. The game bar                   | done  |
 | 8. Retire Solitaire's token names | done  |
-| 9. Light chrome                   | to do |
+| 9. Light chrome                   | mock  |
 | 10. Skills, and the next consumer | to do |
 
 ## How to check the work
@@ -717,3 +717,54 @@ passed every check in the plan, and was removed once done. What it showed:
   the deal), so those were compared in the bar's strip only: identical but
   for La Belle Lucie, by at most 5 of 255 in three values, where a different
   deal shows through the glass. The committed screenshots stand.
+
+### 2026-10-25: Phase 9's mock
+
+- **The mock** is a
+  [private page for the user](https://claude.ai/artifact/3PaQ9RgRAiDWcnFbupiapF).
+  Under Classic felt and Soft pastel, it sets each overlay today beside the
+  proposal, with the chrome in the player's palette rather than its dark
+  partner: roomy, upright and sideways, plus the bar's contrast and how it
+  would be built.
+- **How the pictures were made:** as for Phases 5 and 7, the running game
+  with the proposal injected, here by setting the app root's `data-theme` to
+  the page's own palette and laying CSS over it. The screenshot script
+  gained two states: `backs` (the settings drawer scrolled to the card backs)
+  and `loading` (the table's skeleton, from the canvas component's
+  `isInitializing` signal).
+- **What the bare light chrome breaks:**
+  - The victory and confirmation cards are clear glass over the dark
+    backdrop, so in a light palette their dark text sits on a dark card.
+  - The wells (search field, segmented controls, victory's figures) are
+    black at 20%, a grey slab on white.
+  - The drawer and modals at 95% over the dark backdrop turn grey, and the
+    game browser's solid footer shows as a stripe.
+  - The loading skeleton is drawn in tints of the chrome's text, which a
+    light palette makes dark, so it all but vanishes on the felt.
+  - The bar's muted labels drop below 4.5:1 over the darkest felt, Royal
+    Velvet: 3.12:1 (Classic) and 2.86:1 (pastel) at today's 75% glass, 4.33
+    and 3.93 at 90%, 4.79 and 4.34 at 95%. Only a solid bar passes, at 5.28
+    and 4.77.
+- **The proposal:** in a light palette the bar, the drawer and the modals
+  are solid, the victory and confirmation cards are the raised panel, and
+  the wells take the palette's panel colour; the skeleton is drawn in the
+  felt's own ink (`--fz-on-felt`) in every palette. What stays dark: the
+  dialog backdrop, and the game browser's screenshots, taken in Emerald.
+- **As built, it would be** four tokens in `@fz/style` that each palette
+  writes out by its mode: `--fz-bar-glass` (today's 75% dark, solid light;
+  it exists at 50% and nothing uses it), `--fz-panel-glass` (95% dark, solid
+  light), `--fz-float` (`--fz-wash-2` dark, the raised panel light) and
+  `--fz-well` (black at 20% dark, the panel light). The mock picks with
+  `light-dark()`, as a shortcut; the build doesn't, since it only reached
+  every major browser in 2024, past Vite's default target. Solitaire's
+  `--surface-panel`, `--surface-modal` and `--surface-sunken` would go, and
+  `DARK_PARTNERS` and `darkTheme()` with them. The site uses none of the
+  pieces that change.
+- **The dark palettes don't change:** with the proposal applied, all 23
+  Emerald shots match Phase 8's pixel for pixel. The skeleton is the one
+  difference, at most 6 of 255 in Casino night and Midnight blue.
+- **Noticed for later:** the comment on the `stockSide` effect in Solitaire's
+  `app.component.ts` says the header reads `data-stock-side`; the canvas
+  does now. It gets fixed with Phase 9's code, or on its own if Phase 9 is
+  declined.
+- **Waiting on:** the user's approval. No Phase 9 code until then.
