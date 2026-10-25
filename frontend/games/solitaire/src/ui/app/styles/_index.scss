@@ -4,6 +4,8 @@
 
 // It must emit no CSS, or every component would repeat the rules; anything
 // that emits a rule belongs in `global.scss`. `_palette.scss` is not forwarded,
-// so components read the role-named tokens instead.
+// so components read the role-named tokens instead. @fz/style's toolkit comes
+// with it, so a component calls a shared mixin as it does this game's own.
+@forward "@fz/style";
 @forward "breakpoints";
 @forward "mixins";

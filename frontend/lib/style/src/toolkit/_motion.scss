@@ -1,0 +1,24 @@
+@use "sass:list";
+@use "sass:map";
+@use "sass:meta";
+
+// Motion at the shared speeds.
+
+/// Transitions the named properties at the shared duration and easing.
+///
+///     @include fz.transition(background, transform);
+///     @include fz.transition(width, $duration: var(--fz-duration-fast));
+///
+/// Name the properties rather than using `all`, which also animates layout.
+@mixin transition($properties...) {
+  $options: meta.keywords($properties);
+  $duration: map.get($options, duration) or var(--fz-duration-base);
+  $easing: map.get($options, easing) or var(--fz-ease-standard);
+  $value: ();
+
+  @each $property in $properties {
+    $value: list.append($value, #{$property} $duration $easing, comma);
+  }
+
+  transition: $value;
+}

@@ -8,23 +8,25 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
-- **Phase:** 6, Solitaire's pieces move to the libraries. Phase 5 is done.
-- **Next step:** the last of Phase 6, the mixins. Phase 7's game bar needs
+- **Phase:** 7, the game bar. Phase 6 is done.
+- **Next step:** Phase 7's mock: the bar at the top, at the bottom and as a
+  rail, and the wordmark with its compact home icon. No Phase 7 code before
+  the user approves it. Phase 7's game bar needs
   its own mock, and the user's approval, before any of its code.
 
-| Phase                             | State    |
-| --------------------------------- | -------- |
-| 0. Spike                          | done     |
-| 1. Scaffold the libraries         | done     |
-| 2. Tokens and theme; site moves   | done     |
-| 3. Components; site moves         | done     |
-| 4. Plumbing in Solitaire          | done     |
-| 5. Solitaire follows the theme    | done     |
-| 6. Solitaire's pieces move to lib | underway |
-| 7. The game bar                   | to do    |
-| 8. Retire Solitaire's token names | to do    |
-| 9. Light chrome                   | to do    |
-| 10. Skills, and the next consumer | to do    |
+| Phase                             | State |
+| --------------------------------- | ----- |
+| 0. Spike                          | done  |
+| 1. Scaffold the libraries         | done  |
+| 2. Tokens and theme; site moves   | done  |
+| 3. Components; site moves         | done  |
+| 4. Plumbing in Solitaire          | done  |
+| 5. Solitaire follows the theme    | done  |
+| 6. Solitaire's pieces move to lib | done  |
+| 7. The game bar                   | to do |
+| 8. Retire Solitaire's token names | to do |
+| 9. Light chrome                   | to do |
+| 10. Skills, and the next consumer | to do |
 
 ## How to check the work
 
@@ -566,3 +568,19 @@ passed every check in the plan, and was removed once done. What it showed:
   `@keyframes` (its compiler's `_scopeKeyframesRelatedCss`), so Solitaire's
   rule that they must be global rests on something no longer true; worth
   revisiting in Phase 8, when its stylesheets are reworked anyway.
+
+### 2026-10-24: Phase 6, the mixins; Phase 6 done
+
+- `@fz/style`'s toolkit gained the generic mixins, reading `--fz-*` tokens:
+  `tap-target` beside `visually-hidden` in `_a11y.scss`, and `flex-center`,
+  `transition`, `glass` and `icon-button` in files of their own. A new
+  `src/toolkit.spec.ts` compiles a call to each and checks what it writes.
+- Solitaire's `_mixins.scss` keeps the four the plan named as its own
+  (`field-label`, `swatch-option`, `spinner-ring`, `panel-card`). Its
+  `_index.scss` forwards `@fz/style` beside them, so no component changed;
+  the shared mixins now write `--fz-*` names where they wrote Solitaire's
+  aliases of them. Every screenshot is pixel-identical.
+- `fz-dialog`'s backdrop uses `fz.glass()` now, so a library component
+  styles itself with the toolkit too.
+- Phase 6 is done: storage, radio group, dialog, icons, buttons, the
+  confirmation and the mixins are all in the libraries.

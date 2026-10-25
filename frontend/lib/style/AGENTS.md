@@ -42,8 +42,11 @@ can use it too. The repository's rules, which apply here too, are in
     carrying its `data-theme`, and `.fz-swatch-large`; and
     `.fz-visually-hidden`.
 - **The toolkit**, `src/_index.scss`: the mixins a stylesheet reaches with
-  `@use "@fz/style" as fz;`, such as `fz.visually-hidden`, from
-  `src/toolkit/`. It emits no CSS, so any stylesheet can load it.
+  `@use "@fz/style" as fz;`, from `src/toolkit/`: `visually-hidden` and
+  `tap-target` (`_a11y.scss`), `flex-center` (`_layout.scss`), `transition`
+  (`_motion.scss`), `glass` (`_surfaces.scss`) and `icon-button`
+  (`_controls.scss`). It emits no CSS, so any stylesheet can load it, and
+  `src/toolkit.spec.ts` checks what each mixin writes.
 - `src/stylelint.ts`: the stylelint rules every app's stylesheets keep,
   which its `stylelint.config.js` extends as `@fz/style/stylelint`.
 - `src/themes.ts`: the palettes a player can choose between, the default for

@@ -1,3 +1,5 @@
+@use "@fz/style" as fz;
+
 // The dialog only fills the viewport, centres its content and paints the
 // backdrop; the host styles everything visible.
 .dialog {
@@ -35,9 +37,8 @@
 // because an engine whose `::backdrop` does not inherit custom properties
 // resolves the var() to nothing.
 .dialog::backdrop {
-  backdrop-filter: blur(12px);
-  // stylelint-disable-next-line property-no-vendor-prefix
-  -webkit-backdrop-filter: blur(12px);
+  @include fz.glass(12px);
+
   // stylelint-disable-next-line function-disallowed-list
   background: var(--fz-dialog-backdrop, rgb(15 23 42 / 85%));
 }

@@ -1,0 +1,24 @@
+@use "a11y";
+@use "layout";
+@use "motion";
+
+// Controls that need a component's markup, which a fragment can't style.
+
+/// Styles a borderless button whose whole content is an icon or a glyph,
+/// quiet until the pointer is over it.
+@mixin icon-button($radius: var(--fz-radius-md)) {
+  @include layout.flex-center;
+  @include a11y.tap-target;
+  @include motion.transition(color, background);
+
+  border: none;
+  border-radius: $radius;
+  background: transparent;
+  color: var(--fz-muted);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--fz-wash-3);
+    color: var(--fz-text);
+  }
+}

@@ -25,3 +25,10 @@ $-hidden: (
     }
   }
 }
+
+/// Gives a control the smallest size a finger can press, leaving a larger one
+/// its own size.
+@mixin tap-target {
+  min-width: var(--fz-tap-target);
+  min-height: var(--fz-tap-target);
+}
