@@ -21,18 +21,19 @@ _(Adjust relative path depth to target `src/ui/app/styles`)._
 
 ### 2. Token-Driven Styling
 
-- All colors, surfaces, spacing, typography, radii, elevations, motion, layouts, and z-indices are defined as CSS Custom Properties inside `styles/_tokens.scss`. `styles/global.scss` loads `@fz/style/global` first, the tokens, reset, document styles and focus ring the site and the other games share; the library's rules are in `frontend/lib/style/AGENTS.md`.
-- The colors are roles of the palette in use, as `--text-muted: var(--fz-muted)`, several names sharing one role, declared on `:root, [data-theme]` so the chrome's own palette reaches them. The chrome wears the palette in use or, for a light one, its dark partner (`darkTheme()`), on `app-root`; only the felt is the light palette's own. `--table-felt` is on `:root` alone, since the shell sets the felt there. `styles/_palette.scss` keeps only the card artwork's colors.
-- The scales (spacing, type sizes, line heights, radii, shadows, motion, the tap target) and the font, Figtree, are aliases of `@fz/style`'s, as `--space-2: var(--fz-space-2)`.
-- Component styles MUST read tokens via `var(--...)`. A label on an accent, warning or danger fill takes the palette's label for it (`--text-on-accent`, `--fz-on-warning`, `--fz-on-danger`).
+- Colors, spacing, typography, radii, elevations and motion are `@fz/style`'s tokens, read by their own `--fz-*` names: the tokens, reset, document styles and focus ring the site and the other games share, which `styles/global.scss` loads first through `@fz/style/global`. The library's rules, and the list of its tokens, are in `frontend/lib/style/AGENTS.md`.
+- The colors are roles of the palette in use (`--fz-text`, `--fz-muted`, `--fz-accent`, `--fz-panel-raised`) and the tints worked out from them (`--fz-wash-1` to `-4` for fills, `--fz-edge-1` to `-4` for translucent borders, `--fz-accent-wash`, `--fz-accent-glow`, `--fz-danger-wash`). The chrome wears the palette in use or, for a light one, its dark partner (`darkTheme()`), on `app-root`; only the felt is the light palette's own.
+- The scales are `--fz-space-*`, `--fz-font-*` (and `--fz-font`, Figtree, and `--fz-font-mono`), `--fz-leading-*`, `--fz-radius-*`, `--fz-shadow-*`, `--fz-ease-*`, `--fz-duration-*` and `--fz-tap-target`.
+- `styles/_tokens.scss` holds only this game's own tokens: the translucent mixes of the roles its panels need (`--surface-panel`, `--surface-modal`, `--surface-card`, `--surface-sunken`, `--surface-scrim-heavy`, and the tints `--accent-wash-faint`, `--accent-wash-strong`, `--danger-border`, `--warning-glow`), declared on `:root, [data-theme]` so the chrome's own palette reaches them; `--table-felt`, on `:root` alone since the shell sets the felt there, and the loading scrim over it; the card artwork's colors, cut from `styles/_palette.scss`; the game browser's sizes; the z-index ladder; and the game bar's size, `--fz-bar-height` and `--fz-rail-width`, from `@fz/game-ui`'s `bar-size()`. A token goes there only when no `--fz-*` one will do.
+- Component styles MUST read tokens via `var(--...)`. A label on an accent, warning or danger fill takes the palette's label for it (`--fz-on-accent`, `--fz-on-warning`, `--fz-on-danger`).
 - **Never hardcode hex colors, pixel font sizes, or raw pixel spacing literals in component CSS.** `yarn lint:styles` runs stylelint with `@fz/style`'s preset (`stylelint.config.js`), which fails a hex, named or functional color anywhere but `_palette.scss`.
 - **Glass over the felt is checked.** The header's labels sit on `@fz/game-ui`'s glass (its `$bar-glass`) over whichever felt is on the table; `test/ui/app/styles/contrast.spec.ts` compiles the stylesheet and holds them to 4.5:1 over every palette's felt and every felt a player can choose.
 
 ```scss
 // Good
 .card-counter {
-  color: var(--text-muted);
-  padding: var(--space-2);
+  color: var(--fz-muted);
+  padding: var(--fz-space-2);
 }
 
 // Bad
@@ -78,10 +79,10 @@ They match `ViewportService.formFactor` in the shell and `formFactorOf` in
 `src/engine/render/layout/form_factor.ts`, so the chrome and the board change
 together.
 
-### 5. Global Animations
+### 5. Animations
 
-- All `@keyframes` declarations live in `styles/_animations.scss`, named in kebab-case (`pop-in`), which stylelint enforces.
-- Never define `@keyframes` inside component stylesheets, as Angular's emulated view encapsulation rewrites component selectors but leaves global animation names un-scoped.
+- `@keyframes` that several components use live in `styles/_animations.scss`, named in kebab-case (`pop-in`), which stylelint enforces.
+- Angular renames a component's own `@keyframes`, and the animations that use them, after the component, so a keyframe used by one component alone may sit in its stylesheet, as the libraries' components keep theirs.
 
 ### 6. Modal Overlays
 

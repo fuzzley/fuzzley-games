@@ -80,7 +80,7 @@
   width: 92%;
   max-width: 1150px;
   height: 82%;
-  padding: var(--space-6);
+  padding: var(--fz-space-6);
   box-sizing: border-box;
 }
 
@@ -99,7 +99,7 @@
 
   // Not stretched, which would override the placeholder's aspect ratio.
   align-items: flex-start;
-  padding: calc(var(--space-4) / 2);
+  padding: calc(var(--fz-space-4) / 2);
   box-sizing: border-box;
 }
 
@@ -108,10 +108,10 @@
   width: 100%;
   max-width: 84px;
   aspect-ratio: 71 / 96;
-  border-radius: var(--radius-md);
-  background: var(--wash-subtle);
-  border: 1.5px dashed var(--wash-medium);
-  box-shadow: var(--shadow-subtle);
+  border-radius: var(--fz-radius-md);
+  background: var(--fz-wash-2);
+  border: 1.5px dashed var(--fz-wash-4);
+  box-shadow: var(--fz-shadow-subtle);
   overflow: hidden;
 }
 
@@ -121,7 +121,7 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    var(--wash-soft) 50%,
+    var(--fz-wash-3) 50%,
     transparent 100%
   );
   transform: translateX(-100%);
@@ -138,14 +138,14 @@
   transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4) var(--space-6);
-  border-radius: var(--radius-pill);
+  gap: var(--fz-space-4);
+  padding: var(--fz-space-4) var(--fz-space-6);
+  border-radius: var(--fz-radius-pill);
   background: var(--surface-scrim-heavy);
-  border: 1px solid var(--border-strong);
-  color: var(--text-primary);
+  border: 1px solid var(--fz-edge-3);
+  color: var(--fz-text);
   font-family: inherit;
-  font-size: var(--font-md);
+  font-size: var(--fz-font-md);
   font-weight: 600;
   letter-spacing: 0.02em;
   z-index: var(--z-loading-badge);
@@ -161,13 +161,13 @@
 }
 
 .mini-card-icon {
-  font-size: var(--font-2xs);
-  color: var(--accent-light);
+  font-size: var(--fz-font-2xs);
+  color: var(--fz-accent);
   animation: spin-reverse 1s linear infinite;
 }
 
 .loading-text {
-  color: var(--text-primary);
+  color: var(--fz-text);
   white-space: nowrap;
 }
 
@@ -178,17 +178,17 @@
   @include transition(opacity, visibility);
 
   position: absolute;
-  top: calc(var(--board-inset-top) + var(--space-4));
-  right: calc(var(--board-inset-right) + var(--space-4));
+  top: calc(var(--board-inset-top) + var(--fz-space-4));
+  right: calc(var(--board-inset-right) + var(--fz-space-4));
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-pill);
+  gap: var(--fz-space-3);
+  padding: var(--fz-space-2) var(--fz-space-4);
+  border-radius: var(--fz-radius-pill);
   background: var(--surface-scrim-heavy);
-  border: 1px solid var(--border-strong);
-  color: var(--text-secondary);
-  font-size: var(--font-sm);
+  border: 1px solid var(--fz-edge-3);
+  color: var(--fz-muted);
+  font-size: var(--fz-font-sm);
   font-weight: 600;
   z-index: var(--z-loading-badge);
 

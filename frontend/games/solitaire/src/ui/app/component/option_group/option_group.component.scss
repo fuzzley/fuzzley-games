@@ -6,7 +6,7 @@
 }
 
 .setting-group {
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--fz-space-6);
 }
 
 .setting-label {
@@ -15,31 +15,31 @@
 
 // Nested under a heading of its own — the debug panel's per-option labels.
 .setting-label-compact {
-  font-size: var(--font-xs);
+  font-size: var(--fz-font-xs);
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--fz-muted);
   text-transform: none;
   letter-spacing: normal;
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--fz-space-2);
 }
 
-// `--text-muted`, which clears 4.5:1 on the drawer's surface.
+// `--fz-muted`, which clears 4.5:1 on the drawer's surface.
 .setting-desc {
-  margin-top: var(--space-2);
-  font-size: var(--font-xs);
-  color: var(--text-muted);
-  line-height: var(--leading-tight);
+  margin-top: var(--fz-space-2);
+  font-size: var(--fz-font-xs);
+  color: var(--fz-muted);
+  line-height: var(--fz-leading-tight);
 }
 
 .segmented-control {
   display: flex;
   background: var(--surface-sunken);
-  border-radius: var(--radius-md);
+  border-radius: var(--fz-radius-md);
 
   // A hairline inset rather than a spacing step: it exists to let the active
   // segment's fill stop short of the track's border.
   padding: 2px;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--fz-edge-1);
 }
 
 .segment-btn {
@@ -50,18 +50,18 @@
   border: none;
 
   // A setting is toggled with a thumb as often as a cursor.
-  min-height: var(--tap-target-min);
-  padding: var(--space-2) 0;
-  font-size: var(--font-sm);
+  min-height: var(--fz-tap-target);
+  padding: var(--fz-space-2) 0;
+  font-size: var(--fz-font-sm);
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--fz-muted);
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: var(--fz-radius-sm);
 
   &.active {
-    background: var(--accent-strong);
-    color: var(--text-on-accent);
-    box-shadow: 0 2px 6px var(--accent-glow);
+    background: var(--fz-accent);
+    color: var(--fz-on-accent);
+    box-shadow: 0 2px 6px var(--fz-accent-glow);
   }
 }
 
@@ -70,27 +70,27 @@
 .choice-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--fz-space-2);
 }
 
 .choice-row {
   @include swatch-option;
 
   flex-direction: column;
-  gap: var(--space-1);
-  min-height: var(--tap-target-min);
-  padding: var(--space-2) var(--space-3);
+  gap: var(--fz-space-1);
+  min-height: var(--fz-tap-target);
+  padding: var(--fz-space-2) var(--fz-space-3);
   text-align: left;
 }
 
 .choice-name {
-  font-size: var(--font-sm);
+  font-size: var(--fz-font-sm);
   font-weight: 600;
 }
 
 // Muted whether or not its row is checked, so the name stays the loudest line.
 .choice-desc {
-  font-size: var(--font-xs);
-  line-height: var(--leading-tight);
-  color: var(--text-muted);
+  font-size: var(--fz-font-xs);
+  line-height: var(--fz-leading-tight);
+  color: var(--fz-muted);
 }

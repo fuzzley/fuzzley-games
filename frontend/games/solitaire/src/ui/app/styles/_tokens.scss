@@ -2,102 +2,41 @@
 @use "palette" as *;
 @use "breakpoints" as *;
 
-// The design tokens, as custom properties because those inherit into every
-// component's encapsulated stylesheet. The colours are the palette's roles
-// from @fz/style, and the scales, from spacing to motion, are its scales,
-// both shared with the site and the other games; only the card artwork's
-// colours are cut from `_palette.scss`.
+// This game's own design tokens, as custom properties because those inherit
+// into every component's encapsulated stylesheet. The palette's roles, their
+// tints and the scales from spacing to motion are @fz/style's, shared with
+// the site and the other games, and components read them as `--fz-*`; a
+// token goes here only when none of those will do.
 
-// Declared wherever a palette is, as @fz/style's derived roles are, since a
-// custom property resolves its var()s where it is declared: the chrome wears
-// a palette of its own on `app-root`. Several names share one role.
+// Declared wherever a palette is, as @fz/style's tints are, since a custom
+// property resolves its var()s where it is declared: the chrome wears a
+// palette of its own on `app-root`.
 :root,
 [data-theme] {
   // --- Surfaces ---
-  // `panel` is the chrome around the board, `raised` a card sitting on it,
-  // `sunken` a well cut into one, `card` a bordered block inside a modal.
-  // The alphas keep the glass glass.
+  // The chrome's panels, translucent so the glass stays glass: the settings
+  // drawer, the modals (the same, for now), and a bordered block inside one.
   --surface-panel: color-mix(in srgb, var(--fz-panel-raised) 95%, transparent);
-  --surface-raised: var(--fz-wash-2);
-
-  // Its own role, though it currently matches the panel.
   --surface-modal: color-mix(in srgb, var(--fz-panel-raised) 95%, transparent);
-
-  // The modal's surface made opaque, for a bar that content scrolls beneath
-  // and would otherwise show through.
-  --surface-modal-solid: var(--fz-panel-raised);
   --surface-card: color-mix(in srgb, var(--fz-panel) 60%, transparent);
-  --surface-scrim: var(--fz-scrim);
+
+  // The loading badges over the board.
   --surface-scrim-heavy: color-mix(
     in srgb,
     var(--fz-panel-raised) 85%,
     transparent
   );
 
-  // Darkened, as the shadows darken, rather than tinted with the page, which
-  // is a felt in some palettes.
+  // A well cut into a panel. Darkened, as the shadows darken, rather than
+  // tinted with the page, which is a felt in some palettes.
   --surface-sunken: color-mix(in srgb, #{$black} 20%, transparent);
 
-  // The two ends of a loading placeholder's shimmer.
-  --surface-skeleton: var(--fz-wash-2);
-  --surface-skeleton-highlight: var(--fz-wash-4);
-
-  // Faint washes of the text colour, for hover states and hairline fills.
-  --wash-faint: var(--fz-wash-1);
-  --wash-subtle: var(--fz-wash-2);
-  --wash-soft: var(--fz-wash-3);
-  --wash-medium: var(--fz-wash-4);
-
-  // --- Text ---
-  // `muted` is the dimmest tone that still clears 4.5:1 on the panels, which
-  // @fz/style's contrast spec holds every palette to. Anything dimmer is
-  // decoration, not text.
-  --text-primary: var(--fz-text);
-  --text-bright: var(--fz-text);
-  --text-body: var(--fz-text);
-  --text-heading: var(--fz-text);
-  --text-secondary: var(--fz-muted);
-  --text-muted: var(--fz-muted);
-
-  // For a label on the accent's fill, such as a chosen segment.
-  --text-on-accent: var(--fz-on-accent);
-
-  // --- Borders ---
-  --border-subtle: var(--fz-edge-1);
-  --border-default: var(--fz-edge-2);
-  --border-strong: var(--fz-edge-3);
-  --border-vivid: var(--fz-edge-4);
-
-  // --- Accents ---
-  // One shade each: a label on a fill takes the palette's `on-*` role for it.
-  --accent: var(--fz-accent);
-  --accent-strong: var(--fz-accent);
-  --accent-deep: var(--fz-accent);
-  --accent-light: var(--fz-accent);
-  --accent-sky: var(--fz-accent);
-  --danger: var(--fz-danger);
-  --danger-strong: var(--fz-danger);
-  --danger-deep: var(--fz-danger);
-  --danger-light: var(--fz-danger);
-  --warning: var(--fz-warning);
-  --warning-strong: var(--fz-warning);
-  --warning-light: var(--fz-warning);
-
   // --- Tints ---
-  // The accents at low opacity: the fill behind a chosen swatch, the glow
-  // under a selected segment, a pressed filter chip. Translucent rather than
-  // solid so the blurred board still reads through the chrome.
-  --accent-wash: var(--fz-accent-wash);
-  --accent-glow: var(--fz-accent-glow);
-  --accent-fill: var(--fz-accent);
-  --accent-fill-border: var(--fz-accent);
-  --sky-wash-faint: color-mix(in srgb, var(--fz-accent) 5%, transparent);
-  --sky-wash: var(--fz-accent-wash);
-  --sky-wash-strong: color-mix(in srgb, var(--fz-accent) 25%, transparent);
-  --sky-border: var(--fz-accent-glow);
-  --danger-wash: var(--fz-danger-wash);
+  // Either side of @fz/style's accent wash, for the rules page's highlights,
+  // and the danger and warning tints the debug panel and the victory glow use.
+  --accent-wash-faint: color-mix(in srgb, var(--fz-accent) 5%, transparent);
+  --accent-wash-strong: color-mix(in srgb, var(--fz-accent) 25%, transparent);
   --danger-border: color-mix(in srgb, var(--fz-danger) 30%, transparent);
-  --danger-glow: color-mix(in srgb, var(--fz-danger) 15%, transparent);
   --warning-glow: color-mix(in srgb, var(--fz-warning) 15%, transparent);
 }
 
@@ -132,70 +71,6 @@
   --card-face: #{$white};
   --card-ink-red: #{$red-600};
 
-  // --- Spacing ---
-  // A 4px scale, which every gap, pad and margin in the application uses.
-  --space-1: var(--fz-space-1);
-  --space-2: var(--fz-space-2);
-  --space-3: var(--fz-space-3);
-  --space-4: var(--fz-space-4);
-  --space-5: var(--fz-space-5);
-  --space-6: var(--fz-space-6);
-  --space-8: var(--fz-space-8);
-  --space-10: var(--fz-space-10);
-
-  // --- Type ---
-  // Figtree, the site's, which @fz/style serves from this app's own origin.
-  --font-sans: var(--fz-font);
-
-  // For the figures that change as you watch, monospaced so a number does not
-  // resize its container on the way from 9 to 10.
-  --font-mono: var(--fz-font-mono);
-
-  // `sm` is the interface default for labels, buttons and list rows; `md` is
-  // running prose.
-  --font-2xs: var(--fz-font-2xs);
-  --font-xs: var(--fz-font-xs);
-  --font-sm: var(--fz-font-sm);
-  --font-md: var(--fz-font-md);
-  --font-lg: var(--fz-font-lg);
-  --font-xl: var(--fz-font-xl);
-  --font-2xl: var(--fz-font-2xl);
-  --font-3xl: var(--fz-font-3xl);
-  --font-4xl: var(--fz-font-4xl);
-  --leading-tight: var(--fz-leading-tight);
-  --leading-normal: var(--fz-leading-normal);
-  --leading-relaxed: var(--fz-leading-relaxed);
-
-  // How wide a paragraph is allowed to get, in characters.
-  --measure-prose: var(--fz-measure-prose);
-
-  // --- Radii ---
-  --radius-sm: var(--fz-radius-sm);
-  --radius-md: var(--fz-radius-md);
-  --radius-lg: var(--fz-radius-lg);
-  --radius-xl: var(--fz-radius-xl);
-  --radius-2xl: var(--fz-radius-2xl);
-  --radius-pill: var(--fz-radius-pill);
-
-  // --- Elevation ---
-  --shadow-subtle: var(--fz-shadow-subtle);
-  --shadow-swatch: var(--fz-shadow-swatch);
-  --shadow-panel: var(--fz-shadow-panel);
-  --shadow-drawer: var(--fz-shadow-drawer);
-  --shadow-badge: var(--fz-shadow-badge);
-  --shadow-card: var(--fz-shadow-card);
-  --shadow-modal: var(--fz-shadow-modal);
-
-  // --- Motion ---
-  // Durations are named so that the `transition` mixin can default to one and
-  // a component can ask for another without typing a number.
-  --ease-standard: var(--fz-ease-standard);
-  --ease-spring: var(--fz-ease-spring);
-  --ease-decelerate: var(--fz-ease-decelerate);
-  --duration-fast: var(--fz-duration-fast);
-  --duration-base: var(--fz-duration-base);
-  --duration-slow: var(--fz-duration-slow);
-
   // --- Layout ---
   // The game bar's size, `--fz-bar-height` across the top or the bottom and
   // `--fz-rail-width` down the side of a phone on its side, which the game
@@ -216,11 +91,6 @@
   --z-loading: 10;
   --z-loading-badge: 12;
   --z-chrome: 200;
-
-  // --- Minimum hit target ---
-  // WCAG 2.5.8 asks for 24px; the platform guidelines ask for 44. A card game
-  // is played by thumbs, so 44 it is.
-  --tap-target-min: var(--fz-tap-target);
 }
 
 // Compact chrome on a compact screen. The header shrinks, and the canvas reads

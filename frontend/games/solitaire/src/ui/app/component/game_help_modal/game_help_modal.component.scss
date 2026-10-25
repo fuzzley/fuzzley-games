@@ -3,10 +3,10 @@
 // No scrim or z-index: <fz-dialog> puts this in the top layer.
 .modal-dialog {
   background: var(--surface-modal);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-modal);
-  color: var(--text-body);
+  border: 1px solid var(--fz-edge-3);
+  border-radius: var(--fz-radius-xl);
+  box-shadow: var(--fz-shadow-modal);
+  color: var(--fz-text);
   display: flex;
   flex-direction: column;
   height: 90dvh;
@@ -20,34 +20,34 @@
 
 .modal-header {
   align-items: center;
-  border-bottom: 1px solid var(--border-default);
+  border-bottom: 1px solid var(--fz-edge-2);
   display: flex;
   justify-content: space-between;
-  padding: var(--space-5) var(--space-6);
+  padding: var(--fz-space-5) var(--fz-space-6);
 }
 
 .header-title-group {
   align-items: center;
   display: flex;
-  gap: var(--space-4);
+  gap: var(--fz-space-4);
   flex-wrap: wrap;
 }
 
 .title-with-icon {
   align-items: center;
   display: flex;
-  gap: var(--space-2);
+  gap: var(--fz-space-2);
 }
 
 .header-icon {
-  color: var(--accent-sky);
+  color: var(--fz-accent);
   height: 28px;
   width: 28px;
 }
 
 .game-title {
-  color: var(--text-bright);
-  font-size: var(--font-2xl);
+  color: var(--fz-text);
+  font-size: var(--fz-font-2xl);
   font-weight: 700;
   margin: 0;
   letter-spacing: 0.025em;
@@ -57,21 +57,21 @@
   @include transition(background, border-color, color);
 
   align-items: center;
-  background: var(--sky-wash);
-  border: 1px solid var(--sky-border);
-  border-radius: var(--radius-pill);
-  color: var(--accent-sky);
+  background: var(--fz-accent-wash);
+  border: 1px solid var(--fz-accent-glow);
+  border-radius: var(--fz-radius-pill);
+  color: var(--fz-accent);
   display: inline-flex;
-  font-size: var(--font-xs);
+  font-size: var(--fz-font-xs);
   font-weight: 600;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-3);
+  gap: var(--fz-space-1);
+  padding: var(--fz-space-1) var(--fz-space-3);
   text-decoration: none;
 
   &:hover {
-    background: var(--sky-wash-strong);
-    border-color: var(--accent-sky);
-    color: var(--text-bright);
+    background: var(--accent-wash-strong);
+    border-color: var(--fz-accent);
+    color: var(--fz-text);
   }
 }
 
@@ -83,7 +83,7 @@
 .btn-modal-close {
   @include icon-button;
 
-  font-size: var(--font-3xl);
+  font-size: var(--fz-font-3xl);
   line-height: 1;
 }
 
@@ -91,10 +91,10 @@
 
 .modal-tabs {
   background: var(--surface-card);
-  border-bottom: 1px solid var(--border-default);
+  border-bottom: 1px solid var(--fz-edge-2);
   display: flex;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-6) 0;
+  gap: var(--fz-space-2);
+  padding: var(--fz-space-2) var(--fz-space-6) 0;
 }
 
 .tab-btn {
@@ -103,20 +103,20 @@
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
-  color: var(--text-muted);
+  color: var(--fz-muted);
   cursor: pointer;
-  font-size: var(--font-sm);
+  font-size: var(--fz-font-sm);
   font-weight: 600;
-  min-height: var(--tap-target-min);
-  padding: var(--space-2) var(--space-4);
+  min-height: var(--fz-tap-target);
+  padding: var(--fz-space-2) var(--fz-space-4);
 
   &:hover {
-    color: var(--text-heading);
+    color: var(--fz-text);
   }
 
   &.active {
-    border-bottom-color: var(--accent-sky);
-    color: var(--accent-sky);
+    border-bottom-color: var(--fz-accent);
+    color: var(--fz-accent);
   }
 }
 
@@ -125,58 +125,62 @@
 .modal-body {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-6);
+  padding: var(--fz-space-6);
 }
 
 .doc-section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--fz-space-5);
 }
 
 .callout-card {
-  background: linear-gradient(135deg, var(--sky-wash), var(--sky-wash-faint));
-  border: 1px solid var(--sky-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
+  background: linear-gradient(
+    135deg,
+    var(--fz-accent-wash),
+    var(--accent-wash-faint)
+  );
+  border: 1px solid var(--fz-accent-glow);
+  border-radius: var(--fz-radius-lg);
+  padding: var(--fz-space-5);
 }
 
 .callout-title {
-  color: var(--accent-sky);
-  font-size: var(--font-lg);
+  color: var(--fz-accent);
+  font-size: var(--fz-font-lg);
   font-weight: 700;
-  margin: 0 0 var(--space-3);
+  margin: 0 0 var(--fz-space-3);
 }
 
 // Prose keeps a readable measure, while the grid of rule cards below it keeps
 // the full width.
 .objective-text,
 .win-text {
-  font-size: var(--font-md);
-  line-height: var(--leading-normal);
-  margin: var(--space-1) 0;
-  max-width: var(--measure-prose);
+  font-size: var(--fz-font-md);
+  line-height: var(--fz-leading-normal);
+  margin: var(--fz-space-1) 0;
+  max-width: var(--fz-measure-prose);
 }
 
 .overview-block h4 {
-  color: var(--text-heading);
-  font-size: var(--font-lg);
+  color: var(--fz-text);
+  font-size: var(--fz-font-lg);
   font-weight: 600;
-  margin: 0 0 var(--space-2);
+  margin: 0 0 var(--fz-space-2);
 }
 
 .overview-p {
-  color: var(--text-secondary);
-  font-size: var(--font-md);
-  line-height: var(--leading-relaxed);
+  color: var(--fz-muted);
+  font-size: var(--fz-font-md);
+  line-height: var(--fz-leading-relaxed);
   margin: 0;
-  max-width: var(--measure-prose);
+  max-width: var(--fz-measure-prose);
 }
 
 // --- Screenshot ---
 
 .hero-screenshot-card {
-  @include panel-card(var(--space-3));
+  @include panel-card(var(--fz-space-3));
 
   overflow: hidden;
   text-align: center;
@@ -190,13 +194,13 @@
   position: relative;
   width: 100%;
   min-height: 180px;
-  border-radius: var(--radius-md);
+  border-radius: var(--fz-radius-md);
   overflow: hidden;
   background: linear-gradient(
     90deg,
-    var(--surface-skeleton) 0%,
-    var(--surface-skeleton-highlight) 50%,
-    var(--surface-skeleton) 100%
+    var(--fz-wash-2) 0%,
+    var(--fz-wash-4) 50%,
+    var(--fz-wash-2) 100%
   );
   background-size: 200% 100%;
   animation: shimmer-band 1.8s infinite linear;
@@ -212,11 +216,11 @@
 .screenshot-img {
   @include transition(
     opacity,
-    $duration: var(--duration-slow),
+    $duration: var(--fz-duration-slow),
     $easing: ease-in-out
   );
 
-  border-radius: var(--radius-md);
+  border-radius: var(--fz-radius-md);
   max-width: 100%;
   height: auto;
   display: block;
@@ -230,9 +234,9 @@
 
 .screenshot-caption,
 .screenshot-failed-text {
-  color: var(--text-muted);
-  font-size: var(--font-sm);
-  margin: var(--space-2) 0 var(--space-1);
+  color: var(--fz-muted);
+  font-size: var(--fz-font-sm);
+  margin: var(--fz-space-2) 0 var(--fz-space-1);
   font-style: italic;
 }
 
@@ -241,29 +245,29 @@
 .rules-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--space-4);
+  gap: var(--fz-space-4);
 }
 
 .rule-card {
   @include panel-card;
 
   h4 {
-    color: var(--accent-sky);
-    font-size: var(--font-md);
+    color: var(--fz-accent);
+    font-size: var(--fz-font-md);
     font-weight: 600;
-    margin: 0 0 var(--space-3);
+    margin: 0 0 var(--fz-space-3);
   }
 
   ul {
     margin: 0;
-    padding-left: var(--space-5);
+    padding-left: var(--fz-space-5);
   }
 
   li {
-    color: var(--text-secondary);
-    font-size: var(--font-sm);
-    line-height: var(--leading-normal);
-    margin-bottom: var(--space-2);
+    color: var(--fz-muted);
+    font-size: var(--fz-font-sm);
+    line-height: var(--fz-leading-normal);
+    margin-bottom: var(--fz-space-2);
   }
 }
 
@@ -272,57 +276,57 @@
 }
 
 .option-title {
-  color: var(--text-heading);
-  font-size: var(--font-lg);
+  color: var(--fz-text);
+  font-size: var(--fz-font-lg);
   font-weight: 700;
-  margin: 0 0 var(--space-1);
+  margin: 0 0 var(--fz-space-1);
 }
 
 .option-desc {
-  color: var(--text-muted);
-  font-size: var(--font-sm);
-  margin: 0 0 var(--space-4);
+  color: var(--fz-muted);
+  font-size: var(--fz-font-sm);
+  margin: 0 0 var(--fz-space-4);
 }
 
 .choices-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--fz-space-3);
 }
 
 .choice-item {
   align-items: flex-start;
   display: flex;
-  gap: var(--space-3);
+  gap: var(--fz-space-3);
 }
 
 .choice-badge {
-  background: var(--sky-wash);
-  border: 1px solid var(--sky-border);
-  border-radius: var(--radius-sm);
-  color: var(--accent-sky);
-  font-size: var(--font-xs);
+  background: var(--fz-accent-wash);
+  border: 1px solid var(--fz-accent-glow);
+  border-radius: var(--fz-radius-sm);
+  color: var(--fz-accent);
+  font-size: var(--fz-font-xs);
   font-weight: 700;
   min-width: 100px;
-  padding: var(--space-1) var(--space-2);
+  padding: var(--fz-space-1) var(--fz-space-2);
   text-align: center;
 }
 
 .choice-effect {
-  color: var(--text-secondary);
-  font-size: var(--font-sm);
-  line-height: var(--leading-tight);
+  color: var(--fz-muted);
+  font-size: var(--fz-font-sm);
+  line-height: var(--fz-leading-tight);
 }
 
 // --- Footer ---
 
 .modal-footer {
-  border-top: 1px solid var(--border-default);
+  border-top: 1px solid var(--fz-edge-2);
   display: flex;
   justify-content: flex-end;
-  padding: var(--space-4) var(--space-6);
+  padding: var(--fz-space-4) var(--fz-space-6);
 }
 
 .animated-fade {
-  animation: fade-in 0.25s var(--ease-decelerate);
+  animation: fade-in 0.25s var(--fz-ease-decelerate);
 }

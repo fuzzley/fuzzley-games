@@ -8,9 +8,9 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 
 - **Branch:** `shared-ui`, from `main` at `70f3d97`. Not pushed: a push to
   `main` deploys, so each shipping point waits for the user's go-ahead.
-- **Phase:** 8, retiring Solitaire's old token names. Phase 7 is done.
-- **Next step:** the user's go-ahead for Phase 8, which is invisible and
-  needs no mock: its check is that Phase 7's screenshots don't change.
+- **Phase:** 9, light chrome, which is optional. Phase 8 is done.
+- **Next step:** the user's choice between Phase 9 (light chrome, visible,
+  mock first) and Phase 10 (skills, and the next consumer).
 
 | Phase                             | State |
 | --------------------------------- | ----- |
@@ -22,7 +22,7 @@ file in the commit that finishes the plan; it stays in that commit's parent.
 | 5. Solitaire follows the theme    | done  |
 | 6. Solitaire's pieces move to lib | done  |
 | 7. The game bar                   | done  |
-| 8. Retire Solitaire's token names | to do |
+| 8. Retire Solitaire's token names | done  |
 | 9. Light chrome                   | to do |
 | 10. Skills, and the next consumer | to do |
 
@@ -683,3 +683,37 @@ passed every check in the plan, and was removed once done. What it showed:
   This is the one retake the plan's risks allow for, after Phase 7.
 - Phase 7 is done: `be013e2` (the home icon), `5e55180` (`@fz/game-ui`),
   `222ba70` (Solitaire on it), and this commit.
+
+### 2026-10-24: Phase 8, Solitaire's old token names retired
+
+- **The rename:** every use of one of Solitaire's 83 aliases (a token
+  declared as exactly `var(--fz-…)`, such as `--text-muted` or `--space-2`)
+  now reads the library's name: 483 uses in 12 stylesheets, by a script
+  rather than by hand. Nine aliases were used nowhere. The few comments that
+  named an alias name the library's token now.
+- **`_tokens.scss`** keeps only the game's own tokens: the translucent mixes
+  of the roles its panels need (`--surface-panel`, `--surface-modal`,
+  `--surface-card`, `--surface-scrim-heavy`, `--surface-sunken`), four tints
+  (`--accent-wash-faint` and `--accent-wash-strong`, renamed from
+  `--sky-wash-*` now that there is no sky shade, `--danger-border` and
+  `--warning-glow`), the table, the card artwork's colours, the game
+  browser's sizes, the z-index ladder and the bar's size. The unused
+  `--danger-glow` went. The mixes stay the game's own rather than becoming
+  `--fz-panel-raised` and the like: those are opaque, and the change would
+  show.
+- **Keyframes:** Angular does scope a component's own `@keyframes` (its
+  compiler's `_scopeKeyframesRelatedCss` renames them, and the animations
+  using them, after the component), so the rule that every keyframe must be
+  global rested on something untrue. The rule now says a keyframe used by
+  one component may sit in its stylesheet, and one shared by several goes in
+  `_animations.scss`. The nine there stay put.
+- **Docs:** Solitaire's `AGENTS.md` Styling section and its
+  `sass-design-system` skill describe the libraries' tokens by their `--fz-*`
+  names, and what `_tokens.scss` still holds.
+- **Checked:** 100 shots before and after, pixel-identical: every overlay at
+  all eight viewports in Emerald, the three main viewports in Soft pastel
+  (light), and the phones with the stock at the left. Retaking the 41
+  rules-page screenshots deals new cards each time (the tool doesn't seed
+  the deal), so those were compared in the bar's strip only: identical but
+  for La Belle Lucie, by at most 5 of 255 in three values, where a different
+  deal shows through the glass. The committed screenshots stand.
