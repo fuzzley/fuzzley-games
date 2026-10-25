@@ -7,7 +7,7 @@ import { ThemePickerComponent } from "./theme_picker.component";
 describe("ThemePickerComponent", () => {
   beforeEach(() => {
     localStorage.clear();
-    document.documentElement.dataset["theme"] = "emerald";
+    document.documentElement.dataset["theme"] = "classic";
   });
 
   async function renderPicker(label?: string): Promise<UserEvent> {
@@ -29,7 +29,6 @@ describe("ThemePickerComponent", () => {
         .getAllByRole("radio")
         .map((item) => item.closest("label")?.textContent),
     ).toEqual([
-      expect.stringContaining("Emerald felt"),
       expect.stringContaining("Classic felt"),
       expect.stringContaining("Soft pastel"),
       expect.stringContaining("Casino night"),
@@ -52,7 +51,7 @@ describe("ThemePickerComponent", () => {
   it("checks the palette in use", async () => {
     await renderPicker();
 
-    expect(radio("Emerald felt")).toBeChecked();
+    expect(radio("Classic felt")).toBeChecked();
   });
 
   it("applies the palette clicked", async () => {
@@ -65,11 +64,11 @@ describe("ThemePickerComponent", () => {
 
   it("applies the next palette with the arrow keys", async () => {
     const user = await renderPicker();
-    radio("Emerald felt").focus();
+    radio("Classic felt").focus();
 
     await user.keyboard("{ArrowDown}");
 
-    expect(TestBed.inject(ThemeService).current()).toBe("classic");
+    expect(TestBed.inject(ThemeService).current()).toBe("pastel");
   });
 
   it("follows a palette chosen elsewhere", async () => {
