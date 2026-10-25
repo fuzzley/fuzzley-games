@@ -11,7 +11,7 @@ import {
   catalogEntry,
   optionValue,
 } from "../provider/game_catalog";
-import { LocalStorageService } from "./local_storage.service";
+import { LocalStorageService } from "@fz/ui/storage";
 
 const STORAGE_KEY = "fsolitaire-game";
 const OPTIONS_STORAGE_KEY = "fsolitaire-game-options";
@@ -47,7 +47,9 @@ export class GameCatalogService {
 
   /** Every game's chosen rule options, whether or not it is in play. */
   private readonly optionsSignal = signal<StoredOptions>(
-    this.storage.readObject<StoredOptions>(OPTIONS_STORAGE_KEY) ?? {},
+    // Checked as each game's are read, by `valuesFor`.
+    (this.storage.readObject(OPTIONS_STORAGE_KEY) as StoredOptions | null) ??
+      {},
   );
 
   private readonly sessionSignal = signal<CatalogSession>(

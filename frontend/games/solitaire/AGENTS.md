@@ -107,9 +107,10 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
 - **`src/ui/app/service`** — `GameCatalogService` owns which game is on the
   table (routed, see below); `GameMetricsService` reads the running game;
   `GameLifecycleService` changes it, behind a confirmation when there is a game
-  to lose; the rest are small and single-purpose (timer, storage,
-  presentation, including the felt, documentation, game browser, recent
-  games, bug report, saved game).
+  to lose; the rest are small and single-purpose (timer, presentation,
+  including the felt, documentation, game browser, recent games, bug report,
+  saved game). They keep what they store through `@fz/ui/storage`'s
+  `LocalStorageService`.
 - **`src/ui/app/component`** — one folder per component. `modal_dialog` and
   `option_group` are the shared ones: every overlay is a native `<dialog>` via
   the first, and every settings control is the second.

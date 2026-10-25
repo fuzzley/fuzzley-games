@@ -1,4 +1,5 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
+import { BROWSER_STORAGE } from "./browser_storage";
 
 /**
  * Reads and writes the browser's local storage, warning rather than throwing
@@ -6,8 +7,7 @@ import { Injectable } from "@angular/core";
  */
 @Injectable({ providedIn: "root" })
 export class LocalStorageService {
-  /** The backing store, or null where there is none. */
-  private readonly storage: Storage | null = readableStorage();
+  private readonly storage = inject(BROWSER_STORAGE);
 
   /** Reads a raw string, or null when it is absent or unreadable. */
   readString(key: string): string | null {
@@ -21,19 +21,18 @@ export class LocalStorageService {
   }
 
   /**
-   * Reads stored JSON, or null when it is absent, corrupt or not an object.
+   * Reads stored JSON, or null when it is absent, corrupt or not an object or
+   * array.
    *
-   * The object's fields are not checked, so treat them as untrusted input.
+   * Its fields are as stored, unchecked, so treat them as untrusted input.
    */
-  readObject<T>(key: string): T | null {
+  readObject(key: string): object | null {
     const raw = this.readString(key);
     if (!raw) return null;
 
     try {
       const parsed: unknown = JSON.parse(raw);
-      return typeof parsed === "object" && parsed !== null
-        ? (parsed as T)
-        : null;
+      return typeof parsed === "object" ? parsed : null;
     } catch (e) {
       console.warn(`Failed to parse "${key}" from storage:`, e);
       return null;
@@ -67,18 +66,5 @@ export class LocalStorageService {
     } catch (e) {
       console.warn(`Failed to remove "${key}" from storage:`, e);
     }
-  }
-}
-
-/**
- * Returns the local storage, if this environment has one that can be touched.
- *
- * Reading the property can itself throw where storage is disabled by policy.
- */
-function readableStorage(): Storage | null {
-  try {
-    return typeof localStorage === "undefined" ? null : localStorage;
-  } catch {
-    return null;
   }
 }
