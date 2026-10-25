@@ -32,7 +32,13 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   `dismissible` is off, and never closes itself. It paints only the
   backdrop, which an app tints with `--fz-dialog-backdrop`; the host styles
   the panel.
-- `src/icon/`: `<fz-icon name="…">`, the outline icons.
+- `src/icon/`: `<fz-icon name="…">`, the icons, drawn as outlines but for
+  a few filled ones; `ICON_NAMES` lists them. A new icon is a name there and
+  a case in the template. An icon takes the text's color. Its size comes
+  from `width` and `height`, or from `--fz-icon-size`, which it inherits,
+  so a fragment in one of `@fz/style`'s layers can size it too, though the
+  component's unlayered `:host` outranks the fragment's own `width`. An
+  outline's weight comes from `--fz-icon-stroke`.
 - `src/radio_group/`: `[fzRadioGroup]`, which gives a group of
   `role="radio"` buttons one tab stop and the arrow keys, Home and End.
   Angular Aria has no radio group. The arrows move focus without choosing,

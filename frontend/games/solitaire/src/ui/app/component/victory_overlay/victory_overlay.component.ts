@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
+import { IconComponent } from "@fz/ui/icon";
 import { GameMetricsService } from "../../service/game_metrics.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { GameBrowserService } from "../../service/game_browser.service";
@@ -13,7 +14,7 @@ import { GameBrowserService } from "../../service/game_browser.service";
 @Component({
   selector: "app-victory-overlay",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DialogComponent],
+  imports: [DialogComponent, IconComponent],
   templateUrl: "./victory_overlay.component.html",
   styleUrl: "./victory_overlay.component.scss",
 })

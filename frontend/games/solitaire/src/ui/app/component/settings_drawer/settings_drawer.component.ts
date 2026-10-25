@@ -9,6 +9,7 @@ import {
 } from "@angular/core";
 import { THEMES } from "@fz/style/themes";
 import { DialogComponent } from "@fz/ui/dialog";
+import { IconComponent } from "@fz/ui/icon";
 import { RadioGroupDirective } from "@fz/ui/radio_group";
 import { ThemePickerComponent, ThemeService } from "@fz/ui/theme";
 import { GameCatalogService } from "../../service/game_catalog.service";
@@ -202,6 +203,7 @@ interface FeltSwatch {
     DebugPanelComponent,
     OptionGroupComponent,
     DialogComponent,
+    IconComponent,
     RadioGroupDirective,
     ThemePickerComponent,
   ],

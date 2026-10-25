@@ -13,6 +13,7 @@ import {
   untracked,
 } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
+import { IconComponent } from "@fz/ui/icon";
 import { GameDocumentationService } from "../../service/game_documentation.service";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { itemAt } from "@/engine/core/common/item_at";
@@ -35,7 +36,7 @@ interface VariantCard {
 @Component({
   selector: "app-game-help-modal",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DialogComponent],
+  imports: [DialogComponent, IconComponent],
   templateUrl: "./game_help_modal.component.html",
   styleUrl: "./game_help_modal.component.scss",
 })

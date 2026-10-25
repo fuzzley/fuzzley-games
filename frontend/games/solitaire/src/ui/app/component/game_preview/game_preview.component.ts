@@ -8,6 +8,7 @@ import {
   output,
   viewChild,
 } from "@angular/core";
+import { IconComponent } from "@fz/ui/icon";
 import {
   GameOptionSpec,
   GameOptionValues,
@@ -34,7 +35,7 @@ type ImageStatus = "loading" | "loaded" | "failed";
 @Component({
   selector: "app-game-preview",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [OptionGroupComponent],
+  imports: [IconComponent, OptionGroupComponent],
   templateUrl: "./game_preview.component.html",
   styleUrl: "./game_preview.component.scss",
 })

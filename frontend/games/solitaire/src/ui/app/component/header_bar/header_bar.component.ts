@@ -1,4 +1,3 @@
-import { NgTemplateOutlet } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,6 +9,7 @@ import {
   signal,
   viewChild,
 } from "@angular/core";
+import { IconComponent } from "@fz/ui/icon";
 import { GameMetricsService } from "../../service/game_metrics.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { GameDocumentationService } from "../../service/game_documentation.service";
@@ -28,7 +28,7 @@ import { GameBrowserService } from "../../service/game_browser.service";
 @Component({
   selector: "app-header-bar",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet],
+  imports: [IconComponent],
   // Escape closes the overflow menu from anywhere in the header, since the
   // panel itself cannot take focus.
   host: { "(keydown.escape)": "closeMenu()" },

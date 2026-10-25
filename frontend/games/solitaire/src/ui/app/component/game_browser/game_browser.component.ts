@@ -12,6 +12,7 @@ import {
   viewChild,
 } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
+import { IconComponent } from "@fz/ui/icon";
 import {
   GameOptionSpec,
   GameOptionValues,
@@ -105,7 +106,7 @@ interface FilterChip {
   selector: "app-game-browser",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { "(keydown)": "onKeydown($event)" },
-  imports: [DialogComponent, GamePreviewComponent],
+  imports: [DialogComponent, IconComponent, GamePreviewComponent],
   templateUrl: "./game_browser.component.html",
   styleUrl: "./game_browser.component.scss",
 })

@@ -1,5 +1,5 @@
 import { render } from "@testing-library/angular";
-import { IconComponent, type IconName } from "./icon.component";
+import { ICON_NAMES, IconComponent, type IconName } from "./icon.component";
 
 describe("IconComponent", () => {
   async function renderIcon(name: IconName): Promise<HTMLElement> {
@@ -11,6 +11,12 @@ describe("IconComponent", () => {
     const icon = await renderIcon("search");
 
     expect(icon.querySelector("circle")).toHaveAttribute("r", "6.5");
+  });
+
+  it.each(ICON_NAMES)("draws something for %s", async (name) => {
+    const icon = await renderIcon(name);
+
+    expect(icon.querySelector("svg")?.childElementCount).toBeGreaterThan(0);
   });
 
   it("fills a solid icon", async () => {
