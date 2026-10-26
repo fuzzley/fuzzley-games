@@ -152,9 +152,10 @@ workspace's with the others'.
   `tools/capture-screenshots.mjs` against the running dev server in headless
   Chrome, through `@fz/dev/chrome`: a seeded game, part played, at
   1280 × 720 and 2× on Casino night, written to
-  `public/docs/screenshots/minesweeper/` as `preview.webp` (2560 × 1440)
-  and `thumb.webp` (576 × 324); `--url` names another server, and
-  `--chrome <path>` or `CHROME_PATH` picks the browser).
+  `public/docs/screenshots/minesweeper/` as the site's `preview.webp`
+  (2560 × 1440) and `thumb.webp` (576 × 324) by `@fz/dev/screenshots`;
+  `--url` names another server, and `--chrome <path>` or `CHROME_PATH`
+  picks the browser).
 
 ## Tests
 

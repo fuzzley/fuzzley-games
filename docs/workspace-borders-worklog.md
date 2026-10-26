@@ -26,8 +26,8 @@ work is done; git history keeps it.
 | P1    | Close the checks                     | done    |
 | P2    | Housekeeping                         | done    |
 | P3    | Vitest and game presets in `@fz/dev` | done    |
-| P4    | The site's images                    | next    |
-| P5    | `game.json`                          | to do   |
+| P4    | The site's images                    | done    |
+| P5    | `game.json`                          | next    |
 | P6    | The instruction layers and skills    | to do   |
 | P7    | The Phaser skills                    | to do   |
 | P8    | Retire the pinned-game pipeline      | waiting |
@@ -204,3 +204,53 @@ work is done; git history keeps it.
   are P2's to the figure, `@fz/dev`'s aside (44 tests, up from 30). Both
   games' `dist/` are byte for byte P2's (11 and 155 files); the site's
   differs only in its three build-time files.
+
+### 2026-10-26: P4, the site's images
+
+- **`@fz/dev/screenshots`** (finding 8), `lib/dev/src/screenshots.ts`:
+  `SITE_IMAGES` names the site's two images and their sizes, `thumb.webp`
+  at 576 × 324 and `preview.webp` at 2560 × 1440, at `SITE_IMAGE_QUALITY` 80. `writeSiteImages(capture, folder, { thumbRegion, resize })` writes
+  both, making the folder, and returns each file's size;
+  `writeImage(capture, target, image, { region, resize, quality })` writes
+  one, and is what it is built on. Both write WebP with smart subsampling,
+  as both scripts did. `@fz/dev` depends on `sharp` (`^0.35.5`, the range
+  the games and `@fz/style` use).
+- **Minesweeper's `capture-screenshots.mjs`** writes through
+  `writeSiteImages()` and imports `THEME_STORAGE_KEY` from
+  `@fz/style/themes` rather than spelling `"fuzzley-theme"`. It no longer
+  imports sharp, so its `package.json` no longer lists it.
+- **The Solitaire Collection's `build-screenshot-thumbs.mjs`** keeps finding
+  the board and the felt itself, and writes the site's two images through
+  `writeSiteImages()`, the thumbnail cropped to the board, and its rules
+  page's `overview.webp` (1600 × 900, quality 90) through `writeImage()`,
+  all three contained on the felt as before.
+- **Proof, byte for byte:**
+  - `yarn build:thumbs` rewrote all 123 of the Solitaire Collection's WebP
+    files (41 games × 3) from the committed captures; every file's time
+    moved and git saw no change.
+  - With Minesweeper's dev server on 9001, `yarn capture:screenshots`, run
+    without `--url`, captured the seeded game (48% cleared, 12 flags, the
+    clock at 1:24) and rewrote `thumb.webp` (14 KB) and `preview.webp`
+    (70 KB); git saw no change.
+- Specs: `src/screenshots.spec.ts` (6) makes a capture with sharp, red
+  above a green board, writes the site's images from it once, into a folder
+  that doesn't exist yet, and checks their sizes and format, the sizes
+  returned, and that only the thumbnail is cropped; one more writes an
+  image of another size and fit.
+  - Sharp keeps a file it opened by path locked on Windows, so the spec
+    opens what it checks from a buffer, or the temporary folder can't be
+    removed.
+  - The first verify failed: `eslint.spec.ts`'s first typed lint, which
+    builds a TypeScript program from cold, ran past Vitest's 5 s while this
+    spec's first version encoded the 2560 × 1440 preview four times on
+    every core. It now encodes it once, with `sharp.concurrency(1)`, and
+    `@fz/dev`'s suite passed three runs in a row at 3.9 s.
+  - `@fz/dev`'s coverage rose to 71.79 / 89.47 / 83.72 / 71.17%, and its
+    floor to 71 / 88 / 83 / 70.
+- Docs: `lib/dev/AGENTS.md` says what the module holds and that a game's
+  screenshot script uses it; both games' `AGENTS.md` say their images go
+  through it.
+- **`yarn verify` passed** on the second run, in 5m13s. Every workspace's
+  tests and coverage are P3's, `@fz/dev`'s aside (50 tests), with the
+  Solitaire Collection's branches back at 1894 of 2043. Both games' `dist/`
+  are byte for byte P3's.

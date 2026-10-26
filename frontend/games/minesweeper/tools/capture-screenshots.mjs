@@ -14,12 +14,12 @@
  * night, which sets the game apart from the Solitaire Collection's green
  * tables beside it in the catalog.
  */
-import { mkdir, stat } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { withChrome, withPage } from "@fz/dev/chrome";
-import sharp from "sharp";
+import { writeSiteImages } from "@fz/dev/screenshots";
+import { THEME_STORAGE_KEY } from "@fz/style/themes";
 
 /** @import { Page } from "@fz/dev/chrome" */
 
@@ -38,21 +38,8 @@ const SCREENSHOT_DIR = join(ROOT, "public/docs/screenshots/minesweeper");
 /** The page size the screenshot is taken at, in CSS pixels. */
 const VIEWPORT = { width: 1280, height: 720, deviceScaleFactor: 2 };
 
-/**
- * The images written from the screenshot, each at least twice the CSS size
- * the site shows it at, so that it stays sharp on a high density display:
- * the preview at up to 1200 CSS px wide, the thumbnail at up to about 288.
- */
-const OUTPUTS = [
-  { file: "preview.webp", width: 2560, height: 1440, quality: 80 },
-  { file: "thumb.webp", width: 576, height: 324, quality: 80 },
-];
-
 /** The palette the screenshot is taken in. */
 const THEME = "casino";
-
-/** Where the site and the games keep the palette the player chose. */
-const THEME_KEY = "fuzzley-theme";
 
 /** Seeds the page's `Math.random`, which the game deals from. */
 const SEED = 7;
@@ -262,7 +249,7 @@ async function capture(page, url) {
     CLOCK_SECONDS,
     SAVED_GAME_KEY,
     THEME,
-    THEME_KEY,
+    THEME_STORAGE_KEY,
   );
   await page.navigate(url);
   const opening = await page.evaluate(playOpening, OPEN_SHARE);
@@ -323,16 +310,9 @@ async function main() {
     `Cleared ${Math.round(opening.open * 100)}%, ${opening.flagged} flags, ` +
       `the clock at ${page.time}.`,
   );
-  await mkdir(SCREENSHOT_DIR, { recursive: true });
-  for (const output of OUTPUTS) {
-    const target = join(SCREENSHOT_DIR, output.file);
-    await sharp(shot.png)
-      .resize(output.width, output.height)
-      // Smart subsampling keeps the numbers' inks from bleeding.
-      .webp({ quality: output.quality, smartSubsample: true })
-      .toFile(target);
-    const kilobytes = Math.round((await stat(target)).size / 1024);
-    console.log(`${output.file}: ${kilobytes} KB`);
+  const sizes = await writeSiteImages(shot.png, SCREENSHOT_DIR);
+  for (const [file, bytes] of sizes) {
+    console.log(`${file}: ${Math.round(bytes / 1024)} KB`);
   }
 }
 
