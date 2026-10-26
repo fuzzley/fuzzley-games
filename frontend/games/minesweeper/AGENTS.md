@@ -106,7 +106,9 @@ brings in `@fz/style`'s mixins and this game's own, and nothing else.
 
 - **It knows nothing of the site.** It builds into `dist/` with relative
   URLs, and the site copies that build to `/play/minesweeper/`. Nothing here
-  imports from the site, or the site from here.
+  imports from the site, or the site from here. The build's `game.json`
+  names the game, and the site's build fails if its catalog calls it
+  anything else.
 - **Its screenshots are the site's.** `public/docs/screenshots/minesweeper/`
   holds the thumbnail and the preview the catalog shows, and the preview is
   the link preview image in `index.html`. `yarn capture:screenshots` makes

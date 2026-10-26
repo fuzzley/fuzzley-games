@@ -69,7 +69,8 @@ Minesweeper.
     says which piece to reach for, and how an app adopts them.
   - `games/` holds the games built here, one workspace each, named after its
     folder. A game knows nothing of the site, even when both use the same
-    library: it builds into its own `dist/`, with `index.html` at its top level and its screenshots in
+    library: it builds into its own `dist/`, with `index.html` at its top
+    level, a `game.json` that says what it holds, and its screenshots in
     `docs/screenshots/<slug>/`. Each keeps its own rules in an `AGENTS.md`
     in its folder: `frontend/games/solitaire/AGENTS.md` and
     `frontend/games/minesweeper/AGENTS.md`.
@@ -110,7 +111,7 @@ workspace's own scripts, such as `yarn workspace site lint:styles`, run one
 step, and its `AGENTS.md` says what they do.
 
 - **Run Development Server:** `yarn start` or `yarn dev` (builds the workspaces under `games/`, then the site puts the games in `site/public/play/` and launches the Vite dev server at `http://localhost:4200/`).
-- **Production Build:** `yarn build` (builds the workspaces under `games/` with `yarn build:games`, then the site's `build` puts every game `games.json` lists into `site/public/play/`, bundles into `site/dist/`, writes `version.json` with the commit it was built from and the games' builds, then adds the analytics tags to each game). It fails if the catalog links a game the games' builds don't have.
+- **Production Build:** `yarn build` (builds the workspaces under `games/` with `yarn build:games`, then the site's `build` puts every game `games.json` lists into `site/public/play/`, bundles into `site/dist/`, writes `version.json` with the commit it was built from and the games' builds, then adds the analytics tags to each game). It fails if the catalog links a game the games' builds don't have, or calls one by another name, as each build's `game.json` says.
 - **Fetch the Games:** `yarn games` (builds the workspaces and puts every game into `site/public/play/`; `yarn start` and `yarn build` do it first).
 - **Preview Build:** `yarn preview` (serves the site's production build locally).
 - **Stop Development Servers:** `yarn stop` (runs `tools/stop-dev-servers.mjs` to force stop every Vite dev server running from this checkout's frontend, whichever workspace started it, with the yarn processes that launched it, on Windows and Linux; `--dry-run` lists them without stopping them). Don't run it while a build runs: it stops the Dart Sass a build spawns too.

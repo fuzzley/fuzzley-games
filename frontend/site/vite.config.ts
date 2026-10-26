@@ -4,6 +4,7 @@ import { fuzzleyStyle } from "@fz/style/vite";
 import { defineConfig } from "vitest/config";
 import {
   checkGameImages,
+  checkGameManifests,
   readBuildInfo,
   servePlayPages,
   versionJson,
@@ -19,6 +20,7 @@ export default defineConfig({
     versionJson(buildInfo),
     servePlayPages(),
     checkGameImages(),
+    checkGameManifests(),
   ],
   define: {
     __BUILD_INFO__: JSON.stringify(buildInfo),

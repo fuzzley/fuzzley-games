@@ -47,12 +47,20 @@ repository's rules, which apply here too, are in
   where they differ, the files coverage measures or leaves out. The pieces
   they are made of, `angularSpecs()`, `nodeSpecs()` and `coverage()`, are
   for a config of Vitest projects, such as the site's.
-- `src/vite.ts`, `@fz/dev/vite`: `gameConfig({ port })`, the Vite config
-  every game built here shares: the `./` base that lets the site serve a
-  build from `/play/<slug>/`, Analog's plugin, `@fz/style`'s
-  `fuzzleyStyle()`, a build in `dist/` with its files in `assets/`, and a
-  dev server on the game's own port, which its screenshot script defaults
-  to: 9000 for the Solitaire Collection, 9001 for Minesweeper.
+- `src/vite.ts`, `@fz/dev/vite`: `gameConfig({ port, name, catalog })`,
+  the Vite config every game built here shares: the `./` base that lets
+  the site serve a build from `/play/<slug>/`, Analog's plugin,
+  `@fz/style`'s `fuzzleyStyle()`, the game's manifest, a build in `dist/`
+  with its files in `assets/`, and a dev server on the game's own port,
+  which its screenshot script defaults to: 9000 for the Solitaire
+  Collection, 9001 for Minesweeper.
+- `src/game_manifest.ts`, `@fz/dev/game-manifest`: what a game's build
+  says it holds, in `game.json` at the top of its `dist/`: its name and,
+  for a collection, the `id` and `name` of every game it opens.
+  `gameManifest()` is the plugin that writes it, loading a collection's
+  catalog module through Vite's `runnerImport()` with the build's own
+  aliases; `isGameManifest()` is the guard the site reads it with, and
+  `GameManifest` its type.
 - `src/chrome.ts`, `@fz/dev/chrome`: what a script that drives a headless
   Chrome needs. `withChrome()` starts Chrome on a throwaway profile and
   hands over a `DevToolsConnection`; `withPage()` opens a `Page` in a
@@ -121,7 +129,10 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
 - **`test`** runs Vitest in Node. `src/eslint.spec.ts` lints files written
   into a folder of their own with the blocks, so a block that stops catching
   what it should fails here; `src/vitest.spec.ts` and `src/vite.spec.ts`
-  check the configs the presets return; `src/chrome.spec.ts` drives the
+  check the configs the presets return; `src/game_manifest.spec.ts` builds
+  games with Vite in a folder of their own and reads the manifests they
+  write; `src/screenshots.spec.ts` writes the site's images from a capture
+  it draws; `src/chrome.spec.ts` drives the
   DevTools helpers against a fake browser. Starting a real Chrome is left to the
   screenshot scripts, so the coverage floor in `vitest.config.ts` sits
   under it.

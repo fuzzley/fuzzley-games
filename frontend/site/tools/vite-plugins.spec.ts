@@ -1,13 +1,17 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import type { GameManifest } from "@fz/dev/game-manifest";
+import type { Game } from "../src/app/model/game.ts";
 import {
   type Catalog,
   commitHash,
   loadCatalog,
+  manifestProblems,
   missingImages,
   playPageRoute,
   readBuildInfo,
+  readGameManifest,
   servedBuilds,
 } from "./vite-plugins.ts";
 
@@ -146,5 +150,133 @@ describe("loadCatalog", () => {
       "/play/solitaire/docs/screenshots/klondike/thumb.webp",
       "/play/solitaire/docs/screenshots/klondike/preview.webp",
     ]);
+  });
+});
+
+describe("manifestProblems", () => {
+  /** Returns a hosted game the site lists. */
+  function hosted(name: string, play: Game["play"]): Game {
+    return {
+      slug: name.toLowerCase(),
+      name,
+      category: "solitaire",
+      blurb: "",
+      players: { min: 1, max: 1 },
+      minutes: 5,
+      added: "2026-10-17",
+      play,
+    };
+  }
+
+  /** The manifests of a collection and of a single game. */
+  const MANIFESTS: Readonly<Record<string, GameManifest>> = {
+    solitaire: {
+      name: "Solitaire Collection",
+      games: [
+        { id: "klondike", name: "Klondike" },
+        { id: "bakers", name: "Baker's Game" },
+      ],
+    },
+    minesweeper: { name: "Minesweeper" },
+  };
+
+  /** Returns the problems with a catalog of games against MANIFESTS. */
+  function problemsOf(...games: Game[]): string[] {
+    return manifestProblems(games, (build) => MANIFESTS[build]);
+  }
+
+  it("finds the catalog and the builds agreeing", () => {
+    const problems = problemsOf(
+      hosted("Klondike", { build: "solitaire", id: "klondike" }),
+      hosted("Minesweeper", { build: "minesweeper" }),
+    );
+
+    expect(problems).toEqual([]);
+  });
+
+  it("takes a typographic apostrophe for a straight one", () => {
+    const problems = problemsOf(
+      hosted("Baker\u2019s Game", { build: "solitaire", id: "bakers" }),
+    );
+
+    expect(problems).toEqual([]);
+  });
+
+  it("leaves a game still to come alone", () => {
+    const problems = problemsOf(hosted("Sudoku", undefined));
+
+    expect(problems).toEqual([]);
+  });
+
+  it("names an id the build doesn't open", () => {
+    const problems = problemsOf(
+      hosted("Spider", { build: "solitaire", id: "spider" }),
+    );
+
+    expect(problems).toEqual(["Spider: /play/solitaire/ opens no game spider"]);
+  });
+
+  it("names a game the build calls something else", () => {
+    const problems = problemsOf(
+      hosted("Klondike Solitaire", { build: "solitaire", id: "klondike" }),
+    );
+
+    expect(problems).toEqual([
+      "Klondike Solitaire: /play/solitaire/#/klondike calls it Klondike",
+    ]);
+  });
+
+  it("names a single game the build calls something else", () => {
+    const problems = problemsOf(hosted("Mines", { build: "minesweeper" }));
+
+    expect(problems).toEqual([
+      "Mines: /play/minesweeper/ calls itself Minesweeper",
+    ]);
+  });
+
+  it("names a build with no manifest", () => {
+    const game = hosted("Minesweeper", { build: "minesweeper" });
+
+    const problems = manifestProblems([game], () => undefined);
+
+    expect(problems).toEqual([
+      "Minesweeper: /play/minesweeper/ has no readable game.json",
+    ]);
+  });
+});
+
+describe("readGameManifest", () => {
+  let publicDir: string;
+
+  beforeEach(() => {
+    publicDir = mkdtempSync(path.join(tmpdir(), "public-"));
+  });
+
+  afterEach(() => {
+    rmSync(publicDir, { recursive: true, force: true });
+  });
+
+  /** Writes a build's game.json into the public folder. */
+  function writeManifest(build: string, text: string): void {
+    mkdirSync(path.join(publicDir, "play", build), { recursive: true });
+    writeFileSync(path.join(publicDir, "play", build, "game.json"), text);
+  }
+
+  it("reads a build's manifest", () => {
+    writeManifest("minesweeper", '{ "name": "Minesweeper" }');
+
+    expect(readGameManifest(publicDir, "minesweeper")).toEqual({
+      name: "Minesweeper",
+    });
+  });
+
+  it("finds none in a build without one", () => {
+    expect(readGameManifest(publicDir, "minesweeper")).toBeUndefined();
+  });
+
+  it("finds none in one it can't read as a manifest", () => {
+    writeManifest("minesweeper", '{ "title": "Minesweeper" }');
+
+    expect(readGameManifest(publicDir, "minesweeper")).toBeUndefined();
   });
 });
