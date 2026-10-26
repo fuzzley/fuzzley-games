@@ -3,9 +3,9 @@ import { ConfirmService } from "@fz/ui/confirm";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { playOn } from "../../testing/game";
-import { GameService } from "../service/game.service";
-import { SettingsService } from "../service/settings.service";
+import { GameService } from "../play/game.service";
 import { SettingsComponent } from "./settings.component";
+import { SettingsService } from "./settings.service";
 
 /** What a spec gets back from rendering the settings. */
 interface RenderedSettings {

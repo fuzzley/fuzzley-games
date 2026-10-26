@@ -59,7 +59,7 @@ export default defineConfig(
   {
     // The rules of the game know nothing of how it is shown, so specs drive
     // them directly and the shell can change around them.
-    files: ["src/game/**/*.ts"],
+    files: ["src/rules/**/*.ts"],
     rules: {
       "no-restricted-imports": [
         "error",

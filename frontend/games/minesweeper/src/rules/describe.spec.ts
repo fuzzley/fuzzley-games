@@ -1,5 +1,5 @@
 import { fieldFrom } from "../testing/field_picture";
-import { count, describeMove, describeSquare, showing } from "./describe";
+import { describeMove, describeSquare, showing } from "./describe";
 import { reveal, toggleFlag } from "./field";
 
 /** A game in play, with a mine stepped on and a flag of each kind. */
@@ -114,15 +114,5 @@ describe("describeMove", () => {
     const field = fieldFrom(["..*..", "..*..", "..*.."], { livesLeft: 1 });
 
     expect(describeMove(field, reveal(field, 2))).toBe("Mine. Out of lives.");
-  });
-});
-
-describe("count", () => {
-  it("names one in the singular", () => {
-    expect(count(1, "mine", "mines")).toBe("1 mine");
-  });
-
-  it("names none in the plural", () => {
-    expect(count(0, "mine", "mines")).toBe("0 mines");
   });
 });

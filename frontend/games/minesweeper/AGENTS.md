@@ -21,30 +21,39 @@ keeps its own for its code. Paths are relative to
 
 ## Layout
 
-- **`src/game/`** — the rules, with no framework. A `Field` (`field.ts`) is a
-  value each move replaces: the mines are laid on the first reveal, clear of
-  that square and its neighbors, from the field's seed (`random.ts`); a
+- **`src/rules/`** — the rules, with no framework. A `Field` (`field.ts`) is
+  a value each move replaces: the mines are laid on the first reveal, clear
+  of that square and its neighbors, from the field's seed (`random.ts`); a
   reveal floods the blank squares, a click on a number whose flags match
   clears around it, and a mine stepped on costs a life. Restart keeps the
   mines where they lay. `difficulty.ts` holds the presets and the
   bounds of a field of the player's own, `describe.ts` what a square shows
-  and what a screen reader hears of it and of a move, and `saved_field.ts`
-  a field as JSON. ESLint keeps Angular, the libraries, RxJS and the shell
-  out of it.
-- **`src/app/`** — the shell, one folder per component: `board`, `game_bar`
-  (the libraries' `<fz-game-bar>`, with the mines left, lives and time),
-  `settings`, `help` and `result` (the card over a finished game).
-  `app.component` lays them out and holds the live region every move is
-  announced through.
-- **`src/app/service/`** — `GameService` holds the game in play and its
-  clock, makes every move, and asks through `@fz/ui/confirm` before a new
-  deal throws a game away. `SettingsService`, `StatsService` and
-  `SavedGameService` keep what is stored, through `@fz/ui/storage`'s
-  `LocalStorageService`, and `ViewportService` says whether the chrome is
-  compact and the screen upright.
-- **`src/app/styles/`** — `global.scss`, loaded once from `main.ts`, loads
-  `@fz/style`'s global stylesheet and publishes the bar's size.
-  `_index.scss` is the toolkit every component `@use`s, and emits no CSS.
+  and what a screen reader hears of it and of a move, `saved_field.ts` a
+  field as JSON, and `format.ts` the counts and times the shell writes out.
+  ESLint keeps Angular, the libraries, RxJS and the shell out of it.
+- **`src/app/`** — the shell, one folder per feature, each holding its
+  components and services together. `app.component` lays them out and
+  holds the live region every move is announced through.
+  - `play/` — `GameService` holds the game in play and its clock, makes
+    every move, and asks through `@fz/ui/confirm` before a new deal throws a
+    game away; `SavedGameService` keeps the game in progress.
+  - `board/` — the minefield.
+  - `bar/` — `BarComponent` fills the libraries' `<fz-game-bar>` with the
+    mines left, the lives, the time and the actions.
+  - `settings/` — the settings drawer, and `SettingsService`, which keeps
+    what the player chose.
+  - `stats/` — `StatsService`, the games played and won and the best times.
+  - `result/` — the card over a finished game. `help/` — How to play.
+  - `layout/` — `ViewportService`, which says whether the chrome is compact
+    and the screen upright.
+  - `styles/` — `global.scss`, loaded once from `main.ts`, loads
+    `@fz/style`'s global stylesheet and publishes the bar's size.
+    `_index.scss` is the toolkit every component `@use`s, and emits no CSS.
+
+  A new feature gets a folder of its own, named for what it does, never for
+  the kind of code in it (no `services/` or `components/`). What it stores
+  goes through `@fz/ui/storage`'s `LocalStorageService`.
+
 - **`src/testing/`** — what specs share: `fieldFrom` (`field_picture.ts`)
   draws a field as rows of letters, `playOn` (`game.ts`) puts one in play,
   and `installFakeViewport` answers the media queries jsdom can't. The
@@ -123,7 +132,7 @@ workspace's with the others'.
   the build `yarn start` made when it started.
 - **Production Build:** `yarn build`, into `dist/`; `yarn preview` serves it.
 - **Run Unit Tests:** `yarn test` (the whole suite once, with coverage,
-  failing below the floor `vitest.config.ts` sets for `src/game/`),
+  failing below the floor `vitest.config.ts` sets for `src/rules/`),
   `yarn test:watch`, or `yarn vitest run <path>` for one spec, which leaves
   the floor alone.
 - **Linting:** `yarn lint` (ESLint over `src`, `tools` and the configs, with

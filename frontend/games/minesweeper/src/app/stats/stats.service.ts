@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
-import type { DifficultyId } from "../../game/difficulty";
-import { isRecord, isWhole } from "../../game/json";
+import type { DifficultyId } from "../../rules/difficulty";
+import { isRecord, isWhole } from "../../rules/json";
 
 /** Where the stats are kept. Renaming it loses every player's. */
 export const STATS_KEY = "minesweeper-stats";

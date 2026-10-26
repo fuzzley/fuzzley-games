@@ -2,9 +2,9 @@ import { TestBed } from "@angular/core/testing";
 import { ConfirmService } from "@fz/ui/confirm";
 import { pictureOf } from "../../testing/field_picture";
 import { playOn } from "../../testing/game";
+import { SettingsService } from "../settings/settings.service";
+import { StatsService } from "../stats/stats.service";
 import { GameService } from "./game.service";
-import { SettingsService } from "./settings.service";
-import { StatsService } from "./stats.service";
 
 /**
  * A field in play. Revealing its top-right corner, a blank, opens the four

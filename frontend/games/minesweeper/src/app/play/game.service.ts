@@ -8,8 +8,8 @@ import {
   signal,
 } from "@angular/core";
 import { ConfirmService } from "@fz/ui/confirm";
-import { describeMove } from "../../game/describe";
-import type { DifficultyId } from "../../game/difficulty";
+import { describeMove } from "../../rules/describe";
+import type { DifficultyId } from "../../rules/difficulty";
 import {
   type Field,
   createField,
@@ -18,10 +18,10 @@ import {
   restart,
   reveal,
   toggleFlag,
-} from "../../game/field";
-import { randomSeed } from "../../game/random";
-import { type Settings, SettingsService } from "./settings.service";
-import { StatsService } from "./stats.service";
+} from "../../rules/field";
+import { randomSeed } from "../../rules/random";
+import { type Settings, SettingsService } from "../settings/settings.service";
+import { StatsService } from "../stats/stats.service";
 
 /** Where new deals take their seeds from: `Math.random` but in specs. */
 export const GAME_RANDOM = new InjectionToken<() => number>("GAME_RANDOM", {

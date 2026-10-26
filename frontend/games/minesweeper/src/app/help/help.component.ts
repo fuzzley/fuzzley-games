@@ -8,8 +8,8 @@ import {
 } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
-import { count } from "../../game/describe";
-import { GameService } from "../service/game.service";
+import { count } from "../../rules/format";
+import { GameService } from "../play/game.service";
 
 /** Shows the rules, the lives and the controls for mouse, touch and keyboard. */
 @Component({

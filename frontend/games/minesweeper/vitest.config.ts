@@ -18,7 +18,7 @@ export default defineConfig({
       thresholds: {
         // The rules are held to a floor near 100%, since each is a spec's
         // picture of a field.
-        "src/game/**": {
+        "src/rules/**": {
           statements: 100,
           branches: 95,
           functions: 100,

@@ -5,12 +5,12 @@ import {
   signal,
 } from "@angular/core";
 import { ConfirmDialogComponent } from "@fz/ui/confirm";
+import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
-import { GameBarComponent } from "./game_bar/game_bar.component";
 import { HelpComponent } from "./help/help.component";
+import { ViewportService } from "./layout/viewport.service";
+import { GameService } from "./play/game.service";
 import { ResultComponent } from "./result/result.component";
-import { GameService } from "./service/game.service";
-import { ViewportService } from "./service/viewport.service";
 import { SettingsComponent } from "./settings/settings.component";
 
 /**
@@ -21,9 +21,9 @@ import { SettingsComponent } from "./settings/settings.component";
   selector: "app-root",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    BarComponent,
     BoardComponent,
     ConfirmDialogComponent,
-    GameBarComponent,
     HelpComponent,
     ResultComponent,
     SettingsComponent,
