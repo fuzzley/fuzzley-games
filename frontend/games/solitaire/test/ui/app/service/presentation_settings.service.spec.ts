@@ -48,8 +48,16 @@ function addPaletteFelts(): void {
   document.documentElement.dataset["theme"] = "midnight";
 }
 
-/** Stores settings as a build would have saved them. */
+/** Stores settings as this build saves them. */
 function store(settings: Record<string, unknown>): void {
+  localStorage.setItem(
+    "fsolitaire-presentation",
+    JSON.stringify({ version: 1, ...settings }),
+  );
+}
+
+/** Stores settings bare, as builds before versions saved them. */
+function storeEarlier(settings: Record<string, unknown>): void {
   localStorage.setItem("fsolitaire-presentation", JSON.stringify(settings));
 }
 
@@ -107,31 +115,31 @@ describe("PresentationSettingsService", () => {
     });
 
     it("keeps a felt an earlier build stored as its theme", () => {
-      store({ theme: "purple" });
+      storeEarlier({ theme: "purple" });
 
       expect(buildSettings().felt()).toBe("purple");
     });
 
     it("keeps a felt an earlier build stored only as its colour", () => {
-      store({ backgroundColor: "#3c096c" });
+      storeEarlier({ backgroundColor: "#3c096c" });
 
       expect(buildSettings().felt()).toBe("purple");
     });
 
     it("gives the palette's felt for the Emerald Felt, every earlier player's default", () => {
-      store({ theme: "green" });
+      storeEarlier({ theme: "green" });
 
       expect(buildSettings().felt()).toBe("theme");
     });
 
     it("reads the felt it stored over an earlier build's", () => {
-      store({ felt: "theme", theme: "blue" });
+      storeEarlier({ felt: "theme", theme: "blue" });
 
       expect(buildSettings().felt()).toBe("theme");
     });
 
     it("falls back to the palette's felt for a colour no felt has", () => {
-      store({ backgroundColor: "#123456" });
+      storeEarlier({ backgroundColor: "#123456" });
 
       expect(buildSettings().felt()).toBe("theme");
     });
@@ -140,6 +148,24 @@ describe("PresentationSettingsService", () => {
       store({ felt: "tartan" });
 
       expect(buildSettings().felt()).toBe("theme");
+    });
+
+    it("loads what a build before versions stored", () => {
+      storeEarlier({ cardBackStyle: "card-back-red", felt: "blue" });
+
+      const settings = buildSettings();
+
+      expect(settings.cardBackStyle()).toBe("card-back-red");
+      expect(settings.felt()).toBe("blue");
+    });
+
+    it("falls back to defaults for settings stored under another version", () => {
+      localStorage.setItem(
+        "fsolitaire-presentation",
+        JSON.stringify({ version: 2, cardBackStyle: "card-back-red" }),
+      );
+
+      expect(buildSettings().cardBackStyle()).toBe("card-back-blue");
     });
 
     it("falls back to defaults for corrupted storage", () => {
@@ -182,7 +208,7 @@ describe("PresentationSettingsService", () => {
 
     it("keeps the deck an earlier build stored as the desktop deck", () => {
       // Before the card style, the one deck setting held a desktop deck.
-      store({ cardDeck: "classic" });
+      storeEarlier({ cardDeck: "classic" });
 
       const settings = buildSettings();
 
@@ -193,7 +219,7 @@ describe("PresentationSettingsService", () => {
     });
 
     it("falls back to the default desktop deck for settings written before decks existed", () => {
-      store({ backgroundColor: "#1b4353" });
+      storeEarlier({ backgroundColor: "#1b4353" });
 
       expect(buildSettings().desktopCardDeck()).toBe(DEFAULT_DESKTOP_CARD_DECK);
     });
@@ -210,7 +236,7 @@ describe("PresentationSettingsService", () => {
     });
 
     it("does not take the mobile deck for a desktop deck", () => {
-      store({ cardDeck: MOBILE_CARD_DECK.id });
+      storeEarlier({ cardDeck: MOBILE_CARD_DECK.id });
 
       expect(buildSettings().desktopCardDeck()).toBe(DEFAULT_DESKTOP_CARD_DECK);
     });
@@ -341,6 +367,7 @@ describe("PresentationSettingsService", () => {
       TestBed.tick();
 
       expect(stored()).toEqual({
+        version: 1,
         cardBackStyle: "card-back-red",
         felt: "purple",
         cardStyle: "mobile",
@@ -366,7 +393,7 @@ describe("PresentationSettingsService", () => {
     });
 
     it("rewrites what an earlier build stored in the new shape", () => {
-      store({
+      storeEarlier({
         cardBackStyle: "card-back-red",
         theme: "blue",
         cardDeck: "classic",
@@ -377,6 +404,7 @@ describe("PresentationSettingsService", () => {
 
       // The old keys go, so each setting is read from one place from now on.
       expect(stored()).toEqual({
+        version: 1,
         cardBackStyle: "card-back-red",
         felt: "blue",
         cardStyle: "auto",
@@ -387,7 +415,7 @@ describe("PresentationSettingsService", () => {
     });
 
     it("prefers the desktop deck it stored to an earlier build's deck", () => {
-      store({ cardDeck: "classic", desktopCardDeck: "all-corner-pips" });
+      storeEarlier({ cardDeck: "classic", desktopCardDeck: "all-corner-pips" });
 
       expect(buildSettings().desktopCardDeck()).toBe("all-corner-pips");
     });
@@ -634,7 +662,7 @@ describe("PresentationSettingsService", () => {
     });
 
     it("keeps an earlier build's piles at the top and left hand", () => {
-      store({ phonePiles: "top", hand: "left" });
+      storeEarlier({ phonePiles: "top", hand: "left" });
 
       const settings = buildSettings();
 
@@ -642,7 +670,7 @@ describe("PresentationSettingsService", () => {
     });
 
     it("leaves an earlier build's defaults to Auto", () => {
-      store({ phonePiles: "bottom", hand: "right" });
+      storeEarlier({ phonePiles: "bottom", hand: "right" });
 
       const settings = buildSettings();
 
@@ -653,7 +681,7 @@ describe("PresentationSettingsService", () => {
     });
 
     it("drops an earlier build's keys once it saves", () => {
-      store({ phonePiles: "top", hand: "left" });
+      storeEarlier({ phonePiles: "top", hand: "left" });
       buildSettings();
 
       TestBed.tick();

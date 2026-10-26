@@ -11,6 +11,7 @@ import { GameCatalogService } from "./game_catalog.service";
 import { LocalStorageService } from "@fz/ui/storage";
 
 const STORAGE_KEY = "fsolitaire-recent-games";
+const STORAGE_VERSION = 1;
 
 /** How many games are remembered. */
 const REMEMBERED = 8;
@@ -57,13 +58,15 @@ export class RecentGamesService {
     const others = recent.filter((game) => !isSame(game, played));
     const updated = [played, ...others].slice(0, REMEMBERED);
     this.recent.set(updated);
-    this.storage.writeObject(STORAGE_KEY, updated);
+    this.storage.writeVersioned(STORAGE_KEY, STORAGE_VERSION, {
+      games: updated,
+    });
   }
 
   /** Reads the stored games, dropping any the catalog no longer has. */
   private read(): RecentGame[] {
-    const stored = this.storage.readObject(STORAGE_KEY);
-    if (!stored) return [];
+    const stored = this.readStored();
+    if (stored === null) return [];
     try {
       return readList(stored, "recent", readRecentGame).filter((game) =>
         this.catalog.games.some((entry) => entry.id === game.gameId),
@@ -72,6 +75,17 @@ export class RecentGamesService {
       console.warn("The recent games are malformed:", e);
       return [];
     }
+  }
+
+  /**
+   * Returns the stored list, unchecked, or null when there is none of this
+   * version or the bare one builds before versions stored.
+   */
+  private readStored(): unknown {
+    const saved = this.storage.readVersioned(STORAGE_KEY, STORAGE_VERSION);
+    if (saved) return saved["games"];
+    const earlier = this.storage.readObject(STORAGE_KEY);
+    return Array.isArray(earlier) ? earlier : null;
   }
 }
 
