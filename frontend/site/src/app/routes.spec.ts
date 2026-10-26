@@ -5,12 +5,21 @@ import { appConfig } from "./app.config";
 import { provideTestCatalog } from "./testing/catalog";
 
 describe("routes", () => {
+  beforeEach(() => {
+    document.querySelector('link[rel="canonical"]')?.remove();
+  });
+
   async function open(url: string): Promise<void> {
     TestBed.configureTestingModule({
       providers: [...appConfig.providers, provideTestCatalog()],
     });
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl(url);
+  }
+
+  function canonicalAddress(): string | undefined {
+    return document.querySelector<HTMLLinkElement>('link[rel="canonical"]')
+      ?.href;
   }
 
   it("titles the home page with the site's name alone", async () => {
@@ -32,6 +41,18 @@ describe("routes", () => {
     await open("/games/hearts");
 
     expect(document.title).toBe("Game not found – Fuzzley Games");
+  });
+
+  it("names a game's page as its canonical address", async () => {
+    await open("/games/klondike");
+
+    expect(canonicalAddress()).toBe("https://fuzzley.games/games/klondike");
+  });
+
+  it("names no canonical address for an unknown game", async () => {
+    await open("/games/hearts");
+
+    expect(canonicalAddress()).toBeUndefined();
   });
 
   it("shows a category's page at its id, titled after it", async () => {

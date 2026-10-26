@@ -4,6 +4,10 @@ import { provideTestCatalog } from "../../testing/catalog";
 import { NotFoundComponent } from "./not_found.component";
 
 describe("NotFoundComponent", () => {
+  beforeEach(() => {
+    document.querySelector('link[rel="canonical"]')?.remove();
+  });
+
   function renderPage(
     kind?: "page" | "game" | "category",
   ): Promise<RenderResult<NotFoundComponent>> {
@@ -17,6 +21,11 @@ describe("NotFoundComponent", () => {
     return document
       .querySelector('meta[name="robots"]')
       ?.getAttribute("content");
+  }
+
+  function canonical(): string | undefined {
+    return document.querySelector<HTMLLinkElement>('link[rel="canonical"]')
+      ?.href;
   }
 
   it("says there's no page at the address", async () => {
@@ -71,5 +80,24 @@ describe("NotFoundComponent", () => {
     fixture.destroy();
 
     expect(robots()).toBeUndefined();
+  });
+
+  it("names no canonical address", async () => {
+    const link = document.createElement("link");
+    link.rel = "canonical";
+    link.href = "https://fuzzley.games/no/such/page";
+    document.head.append(link);
+
+    await renderPage();
+
+    expect(canonical()).toBeUndefined();
+  });
+
+  it("names the address again once the page is gone", async () => {
+    const { fixture } = await renderPage();
+
+    fixture.destroy();
+
+    expect(canonical()).toBe("https://fuzzley.games/");
   });
 });

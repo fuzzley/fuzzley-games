@@ -1,6 +1,7 @@
 import { Component, DestroyRef, inject, input } from "@angular/core";
 import { Meta } from "@angular/platform-browser";
 import { RouterLink } from "@angular/router";
+import { CanonicalLink } from "../../service/canonical_link.service";
 import { GameCatalog } from "../../service/game_catalog.service";
 
 /**
@@ -8,7 +9,7 @@ import { GameCatalog } from "../../service/game_catalog.service";
  * game instead.
  *
  * The server answers every address with the app, so the page also asks search
- * engines not to index it.
+ * engines not to index it, and names no canonical address for it.
  */
 @Component({
   selector: "app-not-found",
@@ -33,8 +34,10 @@ export class NotFoundComponent {
   constructor() {
     const meta = inject(Meta);
     meta.updateTag({ name: "robots", content: "noindex" });
+    const restoreCanonical = inject(CanonicalLink).withhold();
     inject(DestroyRef).onDestroy(() => {
       meta.removeTag('name="robots"');
+      restoreCanonical();
     });
   }
 }
