@@ -24,9 +24,9 @@ import {
   isSide,
   maxMines,
   sizeProblem,
-} from "../../game/difficulty";
-import { GameService } from "../service/game.service";
-import { SettingsService } from "../service/settings.service";
+} from "../../rules/difficulty";
+import { GameService } from "../play/game.service";
+import { SettingsService } from "./settings.service";
 
 /** The lives a game can have, in order. */
 const LIVES_CHOICES = Array.from(

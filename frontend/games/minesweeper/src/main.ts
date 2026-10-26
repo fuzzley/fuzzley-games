@@ -6,7 +6,7 @@ import {
 import { bootstrapApplication } from "@angular/platform-browser";
 import { THEME_COLOR_ROLE } from "@fz/ui/theme";
 import { AppComponent } from "./app/app.component";
-import { SavedGameService } from "./app/service/saved_game.service";
+import { SavedGameService } from "./app/play/saved_game.service";
 import "./app/styles/global.scss";
 
 // The browser's toolbar takes the page's color: on a phone the bar stands at

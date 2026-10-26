@@ -9,16 +9,12 @@ import {
   BarOverflowComponent,
   type BarOverflowItem,
 } from "@fz/game-ui/bar_overflow";
-import {
-  type BarHome,
-  GameBarComponent as FzGameBarComponent,
-} from "@fz/game-ui/game_bar";
+import { type BarHome, GameBarComponent } from "@fz/game-ui/game_bar";
 import { IconComponent } from "@fz/ui/icon";
-import { count } from "../../game/describe";
-import { difficultyName } from "../../game/difficulty";
-import { formatTime } from "../format";
-import { GameService } from "../service/game.service";
-import { ViewportService } from "../service/viewport.service";
+import { difficultyName } from "../../rules/difficulty";
+import { count, formatTime } from "../../rules/format";
+import { ViewportService } from "../layout/viewport.service";
+import { GameService } from "../play/game.service";
 
 /** Where the link home leads: the Fuzzley Games site, which serves this game. */
 const HOME_HREF = "/";
@@ -38,17 +34,17 @@ const OVERFLOW_ACTIONS: readonly BarOverflowItem[] = [
  * overflow menu, and on the narrowest the link home does too.
  */
 @Component({
-  selector: "app-game-bar",
+  selector: "app-bar",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [BarOverflowComponent, FzGameBarComponent, IconComponent],
+  imports: [BarOverflowComponent, GameBarComponent, IconComponent],
   host: {
     "[class.compact]": "viewport.isCompact()",
     "[class.rail]": 'viewport.barPlacement() === "end"',
   },
-  templateUrl: "./game_bar.component.html",
-  styleUrl: "./game_bar.component.scss",
+  templateUrl: "./bar.component.html",
+  styleUrl: "./bar.component.scss",
 })
-export class GameBarComponent {
+export class BarComponent {
   protected readonly game = inject(GameService);
   protected readonly viewport = inject(ViewportService);
 

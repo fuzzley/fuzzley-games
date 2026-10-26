@@ -19,7 +19,7 @@ Run these from `frontend/games/minesweeper/`, or as
 - **Run Tests**: `yarn test` (the whole suite once, with coverage) or
   `yarn test:watch`. `yarn vitest run <path>` runs one spec without
   coverage.
-- **Coverage Floor**: `vitest.config.ts` holds `src/game/` to a floor near
+- **Coverage Floor**: `vitest.config.ts` holds `src/rules/` to a floor near
   100%, and `yarn test`, which CI runs, fails below it; never let a change
   drop below it.
 - **Type-check the specs**: `yarn typecheck`. Vitest strips types without
@@ -43,7 +43,7 @@ Run these from `frontend/games/minesweeper/`, or as
   stepped on, and refuses a number that isn't the count around it. Its
   options set the lives and the outcome where the picture doesn't.
 - The rules know no framework, so their specs call the functions in
-  `src/game/` directly and assert on the field they return.
+  `src/rules/` directly and assert on the field they return.
 
 ## The Shell
 

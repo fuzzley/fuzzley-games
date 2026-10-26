@@ -9,8 +9,8 @@ import {
   isValidLives,
   isValidSize,
   sizeOf,
-} from "../../game/difficulty";
-import { isRecord } from "../../game/json";
+} from "../../rules/difficulty";
+import { isRecord } from "../../rules/json";
 
 /** Where the settings are kept. Renaming it loses every player's. */
 export const SETTINGS_KEY = "minesweeper-settings";

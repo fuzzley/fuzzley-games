@@ -1,8 +1,8 @@
 import { Injectable, effect, inject } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
-import { isDifficultyId } from "../../game/difficulty";
-import { isRecord, isWhole } from "../../game/json";
-import { restoreField, saveField } from "../../game/saved_field";
+import { isDifficultyId } from "../../rules/difficulty";
+import { isRecord, isWhole } from "../../rules/json";
+import { restoreField, saveField } from "../../rules/saved_field";
 import { GameService } from "./game.service";
 
 /** Where the game in progress is kept. Renaming it loses every player's. */

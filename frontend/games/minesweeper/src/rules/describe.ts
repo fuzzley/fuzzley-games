@@ -1,4 +1,5 @@
 import { type Field, minesLeft, revealedCount } from "./field";
+import { count } from "./format";
 
 /**
  * Names what a square looks like: once a game is lost, the mines it hid show,
@@ -71,9 +72,4 @@ export function describeMove(before: Field, after: Field): string {
     );
   }
   return parts.join(" ");
-}
-
-/** Returns a count with its noun, such as "1 life" or "2 lives". */
-export function count(n: number, one: string, many: string): string {
-  return `${n} ${n === 1 ? one : many}`;
 }

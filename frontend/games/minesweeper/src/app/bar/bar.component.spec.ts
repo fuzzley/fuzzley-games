@@ -7,8 +7,8 @@ import {
   installFakeViewport,
 } from "../../testing/fake_viewport";
 import { playOn } from "../../testing/game";
-import { GameService } from "../service/game.service";
-import { GameBarComponent } from "./game_bar.component";
+import { GameService } from "../play/game.service";
+import { BarComponent } from "./bar.component";
 
 const IN_PLAY = ["*..", "...", "..*"];
 
@@ -23,7 +23,7 @@ interface RenderedBar {
 async function renderBar(): Promise<RenderedBar> {
   const openHelp = vi.fn();
   const openSettings = vi.fn();
-  const { fixture } = await render(GameBarComponent, {
+  const { fixture } = await render(BarComponent, {
     on: { openHelp, openSettings },
   });
   playOn(IN_PLAY, { livesLeft: 2, seconds: 133, difficulty: "hard" });
@@ -41,7 +41,7 @@ function figure(term: string): string {
   return value.textContent.replace(/\s+/g, " ").trim();
 }
 
-describe("GameBarComponent", () => {
+describe("BarComponent", () => {
   let viewport: FakeViewport | null = null;
 
   afterEach(() => {

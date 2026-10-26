@@ -7,11 +7,11 @@ import {
 } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
-import { difficultyName } from "../../game/difficulty";
-import { clearedShare, minesFound } from "../../game/field";
-import { formatTime } from "../format";
-import { GameService } from "../service/game.service";
-import { StatsService } from "../service/stats.service";
+import { difficultyName } from "../../rules/difficulty";
+import { clearedShare, minesFound } from "../../rules/field";
+import { formatTime } from "../../rules/format";
+import { GameService } from "../play/game.service";
+import { StatsService } from "../stats/stats.service";
 
 /** Names one figure on the card, and gives its value. */
 interface Figure {

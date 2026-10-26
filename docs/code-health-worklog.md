@@ -22,7 +22,7 @@ git history keeps it.
 | Phase | What                                 | State |
 | ----- | ------------------------------------ | ----- |
 | P1    | Check the coverage floors            | done  |
-| P2    | Minesweeper by feature               | to do |
+| P2    | Minesweeper by feature               | done  |
 | P3    | `@fz/dev`                            | to do |
 | P4    | `@fz/style/testing`                  | to do |
 | P5    | The games' viewport in `@fz/game-ui` | to do |
@@ -65,3 +65,19 @@ git history keeps it.
 - The site has no coverage set up at all. It isn't in the plan, so it is
   left as it is; worth a floor of its own later.
 - `yarn verify` green (3m43s).
+
+### 2026-10-25: P2, Minesweeper by feature
+
+- `git mv` only, then imports rewritten by a scratch script that resolved each
+  relative import against the old layout (`remap-imports.mjs`, in the session
+  scratchpad, not kept): `src/game/` is `src/rules/`; `src/app/service/` is
+  gone, its services in `play/` (game, saved game), `settings/`, `stats/` and
+  `layout/` (viewport, until P5 moves it to `@fz/game-ui`); `game_bar/` is
+  `bar/`, its component `BarComponent` (`app-bar`), so it imports
+  `@fz/game-ui`'s `GameBarComponent` without an alias; `app/format.ts` is
+  `rules/format.ts`, with `count()` moved there from `describe.ts`, and its
+  specs with it.
+- The ESLint fence and the coverage floor's key name `src/rules/`. The
+  `AGENTS.md` layout section now lists the feature folders and says a new
+  feature gets a folder of its own, never a `services/` one.
+- The same 336 tests pass, at the same coverage. `yarn verify` green.

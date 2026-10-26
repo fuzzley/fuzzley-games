@@ -10,9 +10,9 @@ import {
 } from "@angular/core";
 import { Grid, GridCell, GridRow } from "@angular/aria/grid";
 import { IconComponent } from "@fz/ui/icon";
-import { describeSquare, type Showing, showing } from "../../game/describe";
-import { GameService } from "../service/game.service";
-import { ViewportService } from "../service/viewport.service";
+import { describeSquare, type Showing, showing } from "../../rules/describe";
+import { ViewportService } from "../layout/viewport.service";
+import { GameService } from "../play/game.service";
 
 /** How long a finger rests on a square before it flags it. */
 export const LONG_PRESS_MS = 450;

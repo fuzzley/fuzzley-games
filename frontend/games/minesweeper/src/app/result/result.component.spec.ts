@@ -3,8 +3,8 @@ import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { pictureOf } from "../../testing/field_picture";
 import { type GameOptions, playOn } from "../../testing/game";
-import { GameService } from "../service/game.service";
-import { STATS_KEY } from "../service/stats.service";
+import { GameService } from "../play/game.service";
+import { STATS_KEY } from "../stats/stats.service";
 import { ResultComponent } from "./result.component";
 
 /** A field one square from won: the bottom-left corner. */

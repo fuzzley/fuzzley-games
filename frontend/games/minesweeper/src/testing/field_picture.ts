@@ -1,4 +1,9 @@
-import { type Field, type Outcome, type Square, layoutOf } from "../game/field";
+import {
+  type Field,
+  type Outcome,
+  type Square,
+  layoutOf,
+} from "../rules/field";
 
 /**
  * The letters a picture of a field is drawn in, a row a string:

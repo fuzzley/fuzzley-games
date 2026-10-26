@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
-import { GameService } from "../app/service/game.service";
-import type { DifficultyId } from "../game/difficulty";
+import { GameService } from "../app/play/game.service";
+import type { DifficultyId } from "../rules/difficulty";
 import { type PictureOptions, fieldFrom } from "./field_picture";
 
 /** Says how a game a spec sets up stands, beyond its picture. */

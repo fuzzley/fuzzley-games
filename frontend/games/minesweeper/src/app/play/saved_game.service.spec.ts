@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { saveField } from "../../game/saved_field";
+import { saveField } from "../../rules/saved_field";
 import { fieldFrom, pictureOf } from "../../testing/field_picture";
 import { playOn } from "../../testing/game";
 import { GameService } from "./game.service";
