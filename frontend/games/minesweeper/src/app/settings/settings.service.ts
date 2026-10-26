@@ -10,7 +10,7 @@ import {
   isValidSize,
   sizeOf,
 } from "../../rules/difficulty";
-import { isRecord } from "../../rules/json";
+import { isRecord, isWhole } from "../../rules/json";
 
 /** Where the settings are kept. Renaming it loses every player's. */
 export const SETTINGS_KEY = "minesweeper-settings";
@@ -61,10 +61,7 @@ export class SettingsService {
         ? difficulty
         : DEFAULT_SETTINGS.difficulty,
       custom: sizeFrom(custom) ?? DEFAULT_SETTINGS.custom,
-      lives:
-        typeof lives === "number" && isValidLives(lives)
-          ? lives
-          : DEFAULT_SETTINGS.lives,
+      lives: isValidLives(lives) ? lives : DEFAULT_SETTINGS.lives,
     };
   }
 }
@@ -73,13 +70,7 @@ export class SettingsService {
 function sizeFrom(value: unknown): FieldSize | null {
   if (!isRecord(value)) return null;
   const { rows, cols, mines } = value;
-  if (
-    typeof rows !== "number" ||
-    typeof cols !== "number" ||
-    typeof mines !== "number"
-  ) {
-    return null;
-  }
+  if (!isWhole(rows) || !isWhole(cols) || !isWhole(mines)) return null;
   const size = { rows, cols, mines };
   return isValidSize(size) ? size : null;
 }
