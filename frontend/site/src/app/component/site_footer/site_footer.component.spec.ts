@@ -25,6 +25,17 @@ describe("SiteFooterComponent", () => {
     );
   });
 
+  it("links the owner's name to fuzzley.info, in a new tab", async () => {
+    await renderBuiltFrom("5b87385");
+
+    const link = screen.getByRole("link", {
+      name: "Andrey Gavel (opens in a new tab)",
+    });
+
+    expect(link).toHaveAttribute("href", "https://fuzzley.info");
+    expect(link).toHaveAttribute("target", "_blank");
+  });
+
   it("links to the site's source on GitHub, in a new tab", async () => {
     await renderBuiltFrom("5b87385");
 
