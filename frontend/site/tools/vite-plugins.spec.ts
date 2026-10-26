@@ -7,6 +7,7 @@ import {
   loadCatalog,
   missingImages,
   playPageRoute,
+  readBuildInfo,
   servedBuilds,
 } from "./vite-plugins.ts";
 
@@ -27,6 +28,19 @@ describe("commitHash", () => {
     };
 
     expect(commitHash({}, noGit)).toBe("dev");
+  });
+});
+
+describe("readBuildInfo", () => {
+  it("names the commit and the time of the build", () => {
+    const env = { COMMIT_SHA: "549c93afb5d1592257262ceb42ed2e91dcb165d6" };
+
+    const build = readBuildInfo(env, new Date("2031-06-15T23:30:00Z"));
+
+    expect(build).toMatchObject({
+      commit: "549c93a",
+      buildTime: "2031-06-15T23:30:00.000Z",
+    });
   });
 });
 
