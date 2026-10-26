@@ -152,4 +152,7 @@ own, which `yarn workspace @fz/style <script>` runs alone.
   config.
 - **`test`** runs Vitest in Node. Each spec sits beside the file it tests. The
   stylesheets' specs compile them with Sass; the plugin's run a real Vite dev
-  server and build in a temporary folder.
+  server and build in a temporary folder. It collects coverage too, and fails
+  below the floor `vitest.config.ts` sets, a little under the real figures;
+  raise the floor as they rise. `yarn vitest run <path>` runs one spec
+  without it.

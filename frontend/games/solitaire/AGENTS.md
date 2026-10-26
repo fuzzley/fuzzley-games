@@ -283,7 +283,7 @@ others', and check its formatting and skill references there.
 - **Capture Screenshots:** `yarn capture:screenshots [id ...]` (runs `tools/capture-screenshots.mjs` to capture each game's rules-page screenshot, or only the games named, from the running dev server in headless Chrome: the whole page at 1440 × 810 and 2×, on a fresh deal with every setting at its default, saved losslessly to `docs/screenshots/<id>/overview.png`, outside `public/`; `--chrome <path>` or `CHROME_PATH` picks the browser).
 - **Build Screenshot Thumbnails:** `yarn build:thumbs` (runs `tools/build-screenshot-thumbs.mjs` to make the images the site serves from each game's lossless screenshot, into `public/docs/screenshots/<id>/`: the rules page's `overview.webp` (1600 × 900, the whole page), the game browser's `thumb.webp` (576 × 324, cropped to the board), and `preview.webp` (2560 × 1440, the whole page); Klondike's preview is also the link preview image in `index.html`, and the site's catalog shows `thumb.webp` and `preview.webp` too).
 - **Production Build:** `yarn build` (generates bundled production assets in `dist/` with Phaser manual chunking).
-- **Run Unit Tests:** `yarn test` (runs Vitest once) or `yarn test:watch` / `yarn test:coverage`.
+- **Run Unit Tests:** `yarn test` (runs the whole suite once, with coverage, failing below the floor) or `yarn test:watch`; `yarn vitest run <path>` runs one spec without coverage.
 - **Linting:** `yarn lint` (runs ESLint over `src`, `test` and `tools`, then `yarn lint:styles`, which runs stylelint over every stylesheet with `@fz/style`'s preset (`stylelint.config.js`): the standard SCSS rules, no colour written outside `_palette.scss`, Sass modules, nesting at most three deep).
 - **Type Checking:** `yarn typecheck` (runs TypeScript compiler checks for the app, the tests (`tsconfig.spec.json`), and the Node scripts in `tools/` (`tsconfig.scripts.json`), emitting nothing).
 
@@ -295,7 +295,7 @@ The repository's rules for specs apply. On top of them:
 
 - **Specs live under `test/`,** in a tree that mirrors `src/`, not beside the
   file they test. This workspace's `vitest-testing` skill covers the setup.
-- **Test Coverage:** `vitest.config.ts` enforces a coverage floor a little under the suite's real figures; `yarn test:coverage` fails below it. Raise the floor as the real figures rise.
+- **Test Coverage:** `vitest.config.ts` enforces a coverage floor a little under the suite's real figures; `yarn test`, which CI runs, fails below it. Raise the floor as the real figures rise.
 - **UI Test Doubles:** `test/support/ui` holds the shell's doubles — the game, catalog, presentation and documentation mocks — plus `configureUiTestBed` (`test/support/ui/testbed.ts`), which wires them into a TestBed. Prefer it over assembling providers by hand. The catalog mock is typed as a `Pick` of the real service so it cannot drift out of shape unnoticed.
 - **Don't Assert Production Prose:** A component spec should not depend on the wording of a rules page. Use the test documentation registry, which `configureUiTestBed` provides.
 

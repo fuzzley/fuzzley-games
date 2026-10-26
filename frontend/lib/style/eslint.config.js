@@ -1,8 +1,10 @@
 import eslint from "@eslint/js";
-import { defineConfig } from "eslint/config";
+import { defineConfig, globalIgnores } from "eslint/config";
 import tseslint from "typescript-eslint";
 
 export default defineConfig(
+  // The report `yarn test` writes.
+  globalIgnores(["coverage/"]),
   {
     files: ["src/**/*.ts", "vitest.config.ts"],
     extends: [

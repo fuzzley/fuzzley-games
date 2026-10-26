@@ -15,9 +15,8 @@
     "capture:screenshots": "node tools/capture-screenshots.mjs",
     "stop": "node tools/stop-dev-servers.mjs",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run --coverage",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.spec.json && tsc -p tsconfig.scripts.json",
     "lint": "eslint src test tools && yarn lint:styles",
     "lint:styles": "stylelint \"src/**/*.scss\""

@@ -12,9 +12,8 @@
     "build:prod": "vite build --mode production",
     "preview": "vite preview",
     "capture:screenshots": "node tools/capture-screenshots.mjs",
-    "test": "vitest run",
+    "test": "vitest run --coverage",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
     "typecheck": "ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit && tsc -p tsconfig.node.json && tsc -p tsconfig.scripts.json",
     "lint": "eslint src tools vite.config.ts vitest.config.ts && yarn lint:styles",
     "lint:styles": "stylelint \"src/**/*.scss\""

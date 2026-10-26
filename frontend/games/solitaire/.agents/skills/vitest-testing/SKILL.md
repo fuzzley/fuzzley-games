@@ -16,11 +16,12 @@ interactions, real objects over mocks) are in `.agents/AGENTS.md`, under
 Run these from `frontend/games/solitaire/`, or as
 `yarn workspace solitaire <script>` from `frontend/`.
 
-- **Run Tests**: `yarn test` (single pass) or `yarn test:watch` (watch mode).
-- **Check Coverage**: `yarn test:coverage`.
+- **Run Tests**: `yarn test` (single pass, with coverage) or `yarn test:watch`
+  (watch mode). `yarn vitest run <path>` runs one spec without coverage.
 - **Enforced Floor**: the `thresholds` in `vitest.config.ts`, set a little under
-  the suite's real figures. _Never allow code changes to drop coverage below
-  them_, and raise them as the real figures rise.
+  the suite's real figures, which `yarn test`, and so CI, checks. _Never allow
+  code changes to drop coverage below them_, and raise them as the real
+  figures rise.
 
 ## Setup
 

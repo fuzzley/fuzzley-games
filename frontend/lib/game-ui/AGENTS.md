@@ -68,4 +68,5 @@ The root's `yarn lint`, `yarn typecheck` and `yarn test` run the library's
 own, which `yarn workspace @fz/game-ui <script>` runs alone. They are
 `@fz/ui`'s, with the same configs: ESLint and stylelint, the Angular
 compiler's checks, and Vitest with jsdom and Testing Library, each spec
-beside the file it tests.
+beside the file it tests, which fails below the coverage floor in
+`vitest.config.ts`.

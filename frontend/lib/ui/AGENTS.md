@@ -109,4 +109,6 @@ own, which `yarn workspace @fz/ui <script>` runs alone.
   do; the site's `vitest-testing` skill
   ([frontend/site/.agents/skills/vitest-testing/SKILL.md](../../site/.agents/skills/vitest-testing/SKILL.md))
   covers the patterns. Each spec sits
-  beside the file it tests.
+  beside the file it tests. It collects coverage too, and fails below the
+  floor `vitest.config.ts` sets, a little under the real figures; raise the
+  floor as they rise. `yarn vitest run <path>` runs one spec without it.
