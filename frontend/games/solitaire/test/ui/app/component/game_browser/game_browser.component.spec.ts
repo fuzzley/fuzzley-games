@@ -16,10 +16,7 @@ import { GameDocumentationService } from "@/ui/app/service/game_documentation.se
 import { ConfirmService } from "@fz/ui/confirm";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import type { MockGameModelOverrides } from "@test/support/ui/game_mock";
-import {
-  installFakeViewport,
-  type FakeViewport,
-} from "@test/support/ui/viewport";
+import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { query, queryAll, queryRequired, queryText } from "@test/support/dom";
 import { isDialogOpen, pressEscape } from "@test/support/dialog";
 import { flushMicrotasks } from "@test/support/async";

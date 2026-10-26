@@ -1,6 +1,5 @@
 @use "@fz/game-ui" as game-ui;
 @use "palette" as *;
-@use "breakpoints" as *;
 
 // This game's own design tokens, as custom properties because those inherit
 // into every component's encapsulated stylesheet. The palette's roles, their
@@ -88,7 +87,7 @@
 
 // Compact chrome on a compact screen. The header shrinks, and the canvas reads
 // the change from here.
-@include compact {
+@include game-ui.compact {
   :root {
     @include game-ui.bar-size($compact: true);
   }

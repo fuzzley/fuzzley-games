@@ -43,7 +43,7 @@ import {
   isFeltKey,
 } from "../model/table_felt";
 import { LocalStorageService } from "@fz/ui/storage";
-import { ViewportService } from "./viewport.service";
+import { GameViewportService } from "@fz/game-ui/viewport";
 
 /**
  * Says whether the cards are drawn for a phone, for a larger screen, or for
@@ -122,7 +122,7 @@ function deckName(deckId: CardDeckId): string {
 export class PresentationSettingsService implements TablePresentation {
   private readonly storage = inject(LocalStorageService);
   private readonly injector = inject(Injector);
-  private readonly viewport = inject(ViewportService);
+  private readonly viewport = inject(GameViewportService);
 
   /** The palette's own felt, empty where no stylesheet sets one. */
   private readonly paletteFelt = inject(ThemeService).role("felt");

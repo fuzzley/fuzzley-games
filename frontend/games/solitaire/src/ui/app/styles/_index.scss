@@ -7,5 +7,6 @@
 // so components read the role-named tokens instead. @fz/style's toolkit comes
 // with it, so a component calls a shared mixin as it does this game's own.
 @forward "@fz/style";
-@forward "breakpoints";
+@forward "@fz/game-ui" show from, compact, phone-portrait, phone-landscape;
+@forward "breakpoints" show below;
 @forward "mixins";

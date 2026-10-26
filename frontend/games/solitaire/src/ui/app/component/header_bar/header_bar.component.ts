@@ -20,7 +20,7 @@ import { GameMetricsService } from "../../service/game_metrics.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { GameDocumentationService } from "../../service/game_documentation.service";
 import { GameCatalogService } from "../../service/game_catalog.service";
-import { ViewportService } from "../../service/viewport.service";
+import { GameViewportService } from "@fz/game-ui/viewport";
 import { BugReportService } from "../../service/bug_report.service";
 import { GameBrowserService } from "../../service/game_browser.service";
 import { PresentationSettingsService } from "../../service/presentation_settings.service";
@@ -57,7 +57,7 @@ export class HeaderBarComponent {
   protected readonly metrics = inject(GameMetricsService);
   protected readonly lifecycle = inject(GameLifecycleService);
   protected readonly docService = inject(GameDocumentationService);
-  protected readonly viewport = inject(ViewportService);
+  protected readonly viewport = inject(GameViewportService);
   protected readonly browser = inject(GameBrowserService);
 
   private readonly catalog = inject(GameCatalogService);
