@@ -256,7 +256,10 @@ on `SHUTDOWN` or `DESTROY`, because the game it ran in lives on.
   `felt`, and the browser's toolbar takes the felt too.
 - **Saved games outlive the code.** Players' saved game, settings and recent
   games are in `localStorage` under keys that start with `fsolitaire-`, in
-  the services under `src/ui/app/service/`. Renaming one loses them.
+  the services under `src/ui/app/service/`. Renaming one loses them. The
+  recent games and the presentation settings carry a version, through
+  `LocalStorageService`'s `writeVersioned()`, and still read the bare
+  entries builds before versions stored.
 - **Bug reports are filed here.** "Report a Bug" opens the repository's issue
   form, `.github/ISSUE_TEMPLATE/solitaire_bug_report.yml`, filled in, and
   names the commit the Docker build was made from, which `vite.config.ts`

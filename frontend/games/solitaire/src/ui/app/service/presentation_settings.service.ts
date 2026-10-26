@@ -52,6 +52,7 @@ import { GameViewportService } from "@fz/game-ui/viewport";
 export type CardStyle = "auto" | "mobile" | "desktop";
 
 const STORAGE_KEY = "fsolitaire-presentation";
+const STORAGE_VERSION = 1;
 
 /** Holds the presentation settings as they are stored. */
 interface PersistedPresentation {
@@ -358,16 +359,13 @@ export class PresentationSettingsService implements TablePresentation {
         piles: this.pilesSignal(),
         stockSide: this.stockSideSignal(),
       };
-      this.storage.writeObject(STORAGE_KEY, data);
+      this.storage.writeVersioned(STORAGE_KEY, STORAGE_VERSION, data);
     });
   }
 
   /** Reads stored settings, filling gaps with defaults. */
   private loadPersisted(): PersistedPresentation {
-    // Each field is checked as it is read below.
-    const parsed = this.storage.readObject(
-      STORAGE_KEY,
-    ) as StoredPresentation | null;
+    const parsed = this.readStored();
     if (!parsed) return DEFAULTS;
 
     // An earlier build stored the one deck it offered as `cardDeck`.
@@ -396,5 +394,18 @@ export class PresentationSettingsService implements TablePresentation {
           ? "left"
           : DEFAULTS.stockSide,
     };
+  }
+
+  /**
+   * Returns the stored settings, unchecked, or null when there are none of
+   * this version or bare, as builds before versions stored them.
+   */
+  private readStored(): StoredPresentation | null {
+    const saved = this.storage.readVersioned(STORAGE_KEY, STORAGE_VERSION);
+    if (saved) return saved;
+    const earlier = this.storage.readObject(STORAGE_KEY);
+    return earlier && !Array.isArray(earlier) && !("version" in earlier)
+      ? earlier
+      : null;
   }
 }

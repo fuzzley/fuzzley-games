@@ -26,6 +26,11 @@ interface Harness {
   readonly catalog: MockCatalogHarness;
 }
 
+/** Returns games as the service stores them. */
+function saved(games: readonly unknown[]): unknown {
+  return { version: 1, games };
+}
+
 /** Starts the service over the mock catalog, with `stored` already saved. */
 function start(stored?: unknown): Harness {
   if (stored !== undefined) {
@@ -93,13 +98,28 @@ describe("RecentGamesService", () => {
     TestBed.tick();
 
     const stored: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "");
-    expect(stored).toEqual(harness.recent.games());
+    expect(stored).toEqual(saved(harness.recent.games()));
   });
 
   it("carries on from the games stored before", () => {
+    const harness = start(saved([{ gameId: "freecell", values: {} }]));
+
+    expect(ids(harness)).toEqual(["klondike", "freecell"]);
+  });
+
+  it("carries on from the bare list builds before versions stored", () => {
     const harness = start([{ gameId: "freecell", values: {} }]);
 
     expect(ids(harness)).toEqual(["klondike", "freecell"]);
+  });
+
+  it("starts afresh from games stored under another version", () => {
+    const harness = start({
+      version: 2,
+      games: [{ gameId: "freecell", values: {} }],
+    });
+
+    expect(ids(harness)).toEqual(["klondike"]);
   });
 
   it("drops the oldest game once it remembers eight", () => {
@@ -109,7 +129,7 @@ describe("RecentGamesService", () => {
       values: { age },
     }));
 
-    const harness = start(stored);
+    const harness = start(saved(stored));
 
     expect(harness.recent.games().map((game) => game.values)).toEqual([
       KLONDIKE.values,
@@ -118,7 +138,7 @@ describe("RecentGamesService", () => {
   });
 
   it("forgets a stored game the catalog no longer has", () => {
-    const harness = start([{ gameId: "retired", values: {} }]);
+    const harness = start(saved([{ gameId: "retired", values: {} }]));
 
     expect(ids(harness)).toEqual(["klondike"]);
   });
@@ -126,7 +146,7 @@ describe("RecentGamesService", () => {
   it("starts afresh, with a warning, when what is stored is malformed", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
-    const harness = start([{ gameId: 7 }]);
+    const harness = start(saved([{ gameId: 7 }]));
 
     expect(ids(harness)).toEqual(["klondike"]);
     expect(warn).toHaveBeenCalled();
