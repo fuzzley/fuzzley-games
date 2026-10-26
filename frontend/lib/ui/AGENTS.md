@@ -41,7 +41,9 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
 - `src/announcer/`: `AnnouncerService`, whose `say()` tells a screen reader
   what the page just did, such as what a move did; and `<fz-announcer>`,
   the polite live region that says it, which an app puts in its root
-  template once, so it is in the page before the first words. The same
+  template once, so it is in the page before the first words, and once more
+  in each modal dialog that speaks while open: a modal hides the page behind
+  it from a screen reader, and a closed one hides its own region. The same
   words said twice end the second time with a no-break space, so a screen
   reader says them again.
 - `src/dialog/`: `<fz-dialog>`, which shows what it holds in a native

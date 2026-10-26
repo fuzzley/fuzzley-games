@@ -301,6 +301,25 @@ describe("GameBrowserComponent", () => {
         expect(queryText(fixture, '[aria-live="polite"]')).toBe("1 game.");
       });
     });
+
+    it("falls silent once the search is cleared", async () => {
+      type("free");
+      await vi.waitFor(() => {
+        fixture.detectChanges();
+        expect(queryText(fixture, '[aria-live="polite"]')).toBe("1 game.");
+      });
+
+      type("");
+
+      await vi.waitFor(() => {
+        fixture.detectChanges();
+        expect(queryText(fixture, '[aria-live="polite"]')).toBe("");
+      });
+    });
+
+    it("announces from inside the dialog, which hides the page behind it", () => {
+      expect(query(fixture, 'dialog [aria-live="polite"]')).not.toBeNull();
+    });
   });
 
   describe("its shortcut, pressed while open", () => {

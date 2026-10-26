@@ -50,7 +50,9 @@ than from a separate class, so the look and the announcement cannot disagree.
   put every outcome in it, the empty one ("No games match.") included.
 - In an Angular app that region is `<fz-announcer>` (`@fz/ui/announcer`),
   once in the root template, and `AnnouncerService.say()` sets what it
-  says, so that the same words said twice are read twice.
+  says, so that the same words said twice are read twice. A modal dialog
+  that speaks while open holds one of its own, since the page behind a
+  modal is hidden from a screen reader.
 - Give icon-only buttons a label only screen readers read, with
   `@fz/style`'s `.fz-visually-hidden` class or its `visually-hidden` mixin.
 

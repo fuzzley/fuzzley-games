@@ -11,6 +11,7 @@ import {
   untracked,
   viewChild,
 } from "@angular/core";
+import { AnnouncerComponent, AnnouncerService } from "@fz/ui/announcer";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import {
@@ -106,7 +107,12 @@ interface FilterChip {
   selector: "app-game-browser",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { "(keydown)": "onKeydown($event)" },
-  imports: [DialogComponent, IconComponent, GamePreviewComponent],
+  imports: [
+    AnnouncerComponent,
+    DialogComponent,
+    IconComponent,
+    GamePreviewComponent,
+  ],
   templateUrl: "./game_browser.component.html",
   styleUrl: "./game_browser.component.scss",
 })
@@ -118,6 +124,7 @@ export class GameBrowserComponent {
   private readonly recentGames = inject(RecentGamesService);
   private readonly docs = inject(GameDocumentationService);
   private readonly profiles = inject(GAME_PROFILES);
+  private readonly announcer = inject(AnnouncerService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
 
@@ -134,9 +141,6 @@ export class GameBrowserComponent {
 
   /** Whether a narrow screen is showing the preview rather than the list. */
   protected readonly showingDetail = signal(false);
-
-  /** The count of games found, read out once the player stops typing. */
-  protected readonly announcement = signal("");
 
   private readonly preview = viewChild(GamePreviewComponent);
   private readonly heading =
@@ -282,7 +286,8 @@ export class GameBrowserComponent {
           ? "No games match."
           : `${count} ${count === 1 ? "game" : "games"}.`;
       const timer = setTimeout(() => {
-        this.announcement.set(text);
+        if (text) this.announcer.say(text);
+        else this.announcer.clear();
       }, ANNOUNCE_DELAY_MS);
       onCleanup(() => {
         clearTimeout(timer);

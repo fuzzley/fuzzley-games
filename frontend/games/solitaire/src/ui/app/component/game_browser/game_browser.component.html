@@ -87,7 +87,11 @@
       }
     </div>
 
-    <p class="visually-hidden" aria-live="polite">{{ announcement() }}</p>
+    <!--
+      Here rather than in the root template: while the dialog is open, it
+      hides the rest of the page from a screen reader.
+    -->
+    <fz-announcer />
 
     <div class="panes">
       <!--
