@@ -3,11 +3,11 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { NavigationEnd, Router } from "@angular/router";
 import { filter } from "rxjs";
 import {
-  CatalogEntry,
-  CatalogSession,
+  type CatalogEntry,
+  type CatalogSession,
   GAME_CATALOG,
-  GameOptionSpec,
-  GameOptionValues,
+  type GameOptionSpec,
+  type GameOptionValues,
   catalogEntry,
   optionValue,
 } from "../provider/game_catalog";

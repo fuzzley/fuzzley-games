@@ -1,7 +1,7 @@
 import {
   Component,
   DestroyRef,
-  ElementRef,
+  type ElementRef,
   afterRenderEffect,
   computed,
   effect,
@@ -13,9 +13,9 @@ import {
 import { CARD_DECKS } from "@/engine/render/deck/card_deck";
 import { chooseTableLayout } from "@/engine/render/layout/board_layouts";
 import { PhaserHost } from "@/engine/render/phaser/host/phaser_host";
-import { PlayableGame } from "@/engine/tableau/session/playable_game";
+import type { PlayableGame } from "@/engine/tableau/session/playable_game";
 import { makeBoardScene } from "../../provider/board_catalog";
-import { GameId, boardLayoutsOf } from "../../provider/game_catalog";
+import { type GameId, boardLayoutsOf } from "../../provider/game_catalog";
 import { skeletonSlots } from "../../model/skeleton_slots";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { PresentationSettingsService } from "../../service/presentation_settings.service";

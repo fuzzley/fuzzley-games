@@ -8,35 +8,35 @@ import {
 } from "@angular/core";
 import { ThemeService } from "@fz/ui/theme";
 import {
-  CardDeckStatus,
+  type CardDeckStatus,
   DEFAULT_BACKGROUND_COLOR,
-  TablePresentation,
+  type TablePresentation,
 } from "@/engine/render/view/presentation";
 import {
-  BoardArrangement,
+  type BoardArrangement,
   DEFAULT_BOARD_ARRANGEMENT,
-  OrAuto,
-  PilePosition,
-  ResolvedArrangement,
-  StockSide,
+  type OrAuto,
+  type PilePosition,
+  type ResolvedArrangement,
+  type StockSide,
   resolveArrangement,
 } from "@/engine/render/layout/board_arrangement";
 import {
   CARD_DECKS,
-  CardDeckId,
+  type CardDeckId,
   DEFAULT_DESKTOP_CARD_DECK,
-  DesktopCardDeckId,
+  type DesktopCardDeckId,
   MOBILE_CARD_DECK,
   isDesktopCardDeckId,
 } from "@/engine/render/deck/card_deck";
 import {
-  CardBackStyle,
+  type CardBackStyle,
   DEFAULT_CARD_BACK,
   isCardBackStyle,
 } from "@/engine/render/deck/card_back";
 import {
   DEFAULT_FELT,
-  FeltChoice,
+  type FeltChoice,
   TABLE_FELTS,
   feltWithColor,
   isFeltChoice,

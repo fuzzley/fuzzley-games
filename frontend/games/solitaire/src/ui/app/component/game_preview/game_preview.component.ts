@@ -1,6 +1,6 @@
 import {
   Component,
-  ElementRef,
+  type ElementRef,
   computed,
   input,
   linkedSignal,
@@ -9,11 +9,11 @@ import {
 } from "@angular/core";
 import { IconComponent } from "@fz/ui/icon";
 import {
-  GameOptionSpec,
-  GameOptionValues,
+  type GameOptionSpec,
+  type GameOptionValues,
   sameOptionValues,
 } from "../../provider/game_catalog";
-import { GameBrowserItem } from "../../model/game_browser_item";
+import type { GameBrowserItem } from "../../model/game_browser_item";
 import {
   DIFFICULTY_LABELS,
   difficultyFor,

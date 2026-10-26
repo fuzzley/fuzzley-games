@@ -1,7 +1,7 @@
 import { DOCUMENT } from "@angular/common";
 import { Injectable, inject } from "@angular/core";
 import { ThemeService } from "@fz/ui/theme";
-import { GamePosition, encodePosition } from "../model/game_position";
+import { type GamePosition, encodePosition } from "../model/game_position";
 import { BUG_REPORT_CONFIG } from "../provider/bug_report_config";
 import { GameCatalogService } from "./game_catalog.service";
 import { PresentationSettingsService } from "./presentation_settings.service";

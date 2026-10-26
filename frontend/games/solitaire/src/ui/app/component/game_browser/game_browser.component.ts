@@ -14,13 +14,13 @@ import { AnnouncerComponent, AnnouncerService } from "@fz/ui/announcer";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import {
-  GameOptionSpec,
-  GameOptionValues,
+  type GameOptionSpec,
+  type GameOptionValues,
   sameOptionValues,
 } from "../../provider/game_catalog";
 import { GAME_PROFILES } from "../../provider/game_profile_data";
 import {
-  GameBrowserItem,
+  type GameBrowserItem,
   browserItems,
   isPlayedBy,
 } from "../../model/game_browser_item";
@@ -31,9 +31,9 @@ import {
   difficultyRange,
 } from "../../model/game_profile.model";
 import {
-  GameFilters,
+  type GameFilters,
   NO_FILTERS,
-  TextSegment,
+  type TextSegment,
   hasFilters,
   searchGames,
 } from "../../model/game_search";

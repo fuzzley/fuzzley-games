@@ -13,29 +13,32 @@ import { RadioGroupDirective } from "@fz/ui/radio_group";
 import { ThemePickerComponent, ThemeService } from "@fz/ui/theme";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
-import { FELT_KEYS, FeltKey, TABLE_FELTS } from "../../model/table_felt";
+import { FELT_KEYS, type FeltKey, TABLE_FELTS } from "../../model/table_felt";
 import { GameDocumentationService } from "../../service/game_documentation.service";
 import { BugReportService } from "../../service/bug_report.service";
 import {
-  CardStyle,
+  type CardStyle,
   PresentationSettingsService,
 } from "../../service/presentation_settings.service";
 import {
   AUTO_ARRANGEMENTS,
-  OrAuto,
-  PilePosition,
-  StockSide,
+  type OrAuto,
+  type PilePosition,
+  type StockSide,
 } from "@/engine/render/layout/board_arrangement";
-import { FormFactor } from "@/engine/render/layout/form_factor";
-import { GameOptionChoice, GameOptionSpec } from "../../provider/game_catalog";
+import type { FormFactor } from "@/engine/render/layout/form_factor";
+import type {
+  GameOptionChoice,
+  GameOptionSpec,
+} from "../../provider/game_catalog";
 import {
   DESKTOP_CARD_DECKS,
-  DesktopCardDeckSpec,
+  type DesktopCardDeckSpec,
 } from "@/engine/render/deck/card_deck";
 import {
   CARD_BACKS,
-  CardBackSpec,
-  CardBackStyle,
+  type CardBackSpec,
+  type CardBackStyle,
 } from "@/engine/render/deck/card_back";
 import { DebugPanelComponent } from "../debug_panel/debug_panel.component";
 import { OptionGroupComponent } from "../option_group/option_group.component";

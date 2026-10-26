@@ -1,5 +1,5 @@
 import { Component, computed, input, output } from "@angular/core";
-import { GameOptionSpec } from "../../provider/game_catalog";
+import type { GameOptionSpec } from "../../provider/game_catalog";
 import { RadioGroupDirective } from "@fz/ui/radio_group";
 
 /** A running count, so every group's label has an id its control can name. */
