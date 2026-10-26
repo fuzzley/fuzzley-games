@@ -29,7 +29,7 @@ git history keeps it.
 | P6    | `Stopwatch` and `Announcer`          | done  |
 | P7    | The long press                       | done  |
 | P8    | Small things                         | done  |
-| P9    | The Solitaire Collection takes it up | to do |
+| P9    | The Solitaire Collection takes it up | done  |
 | P10   | Signal Forms                         | to do |
 
 ## Baseline (2026-10-25, `b6ef698`)
@@ -337,4 +337,59 @@ workspaces it touched; one `yarn verify` at the end.
   Minesweeper's bar undid the real one too; it was put back from a copy
   taken before. Trials are now undone from copies only.
 - Specs: Minesweeper 341 → 349, `@fz/ui` 158 → 167.
+- `yarn verify` green.
+
+### 2026-10-26: P9, the Solitaire Collection takes up the shared pieces
+
+A commit each, every one checked with the lint, typecheck and tests of the
+workspaces it touched; one `yarn verify` at the end.
+
+- `72a550a` The viewport and breakpoints: `GameViewportService` from
+  `@fz/game-ui/viewport` replaces the game's `ViewportService`, and
+  `form_factor.ts` reads `formFactorAt()` from `@fz/game-ui/breakpoints`.
+  `_breakpoints.scss` keeps only `phone` (480px), the one width of its own,
+  and forwards the rest from `@fz/game-ui`; the compiled media queries are
+  the ones before. The specs take `installFakeViewport()` from
+  `@fz/game-ui/testing`, and the game's own fake is gone.
+- `13c5538` The clock: `GameMetricsService` formats `StopwatchService`'s
+  seconds as `mm:ss`, so it now pauses while the page is out of sight, as
+  Minesweeper's does. `TimerService` and its spec are gone; two new specs
+  (75 s reads "01:15", and a hidden page stops the count).
+- `1d95883` The game browser's result count goes through
+  `AnnouncerService`, from an `<fz-announcer>` inside its `<fz-dialog>`
+  rather than the app's root: a modal hides the page behind it from a
+  screen reader, and a closed one hides its own region, so the two never
+  speak at once. `@fz/ui`'s AGENTS, the component's doc, the `fuzzley-ui`
+  and `web-game-accessibility` skills say so. One change in behaviour: the
+  same count after more typing is said again (the trailing no-break
+  space), where the old region stayed quiet.
+- `ebbd9c3` The recent games (`{ version: 1, games }`) and the
+  presentation settings (`{ version: 1, ...fields }`) are written with
+  `writeVersioned()`. Each still reads the bare entry builds before versions
+  stored, a list or an object without `version`, so no player loses them;
+  an entry of another version reads as nothing. Four new specs; dropping the
+  `version` check fails the presentation one, which was checked. The saved
+  game and the game's options stay unversioned, outside the plan.
+- `aca8027` The ten components drop `OnPush`, Angular 22's default.
+- `15673c0` `emitDecoratorMetadata`, `removeComments` and `sourceMap` leave
+  the game's `tsconfig.json`. The Angular Vite plugin sets `sourceMap`
+  itself (on in dev and tests, off in a production build unless Vite's
+  `build.sourcemap` asks), the build minifies comments away, and no
+  decorator reads emitted metadata. With and without them the build's 155
+  files are byte for byte the same, and the coverage is the same.
+- `91e58c6` A fix of the commit before, which `yarn verify` caught: without
+  `emitDecoratorMetadata`, typescript-eslint's `consistent-type-imports`
+  no longer counts a type used in a decorated class as a value, so 28
+  imports had to become `import type`, as they are in Minesweeper and the
+  libraries. ESLint fixed them; the build is still the same file for file.
+  P9f's own check had left out the lint.
+- Screenshots: the 14 of P5's sizes, with and without the game browser
+  open, on a seeded deal, before P9 and after: no pixel differs.
+- In the running dev server: a draw from the stock starts the clock (00:03
+  at 3.2 s, 1 move), and searching "free" says "9 games." from the
+  announcer inside the open dialog.
+- Found on the way: stopping the dev server's background task left Vite
+  holding port 9000; `yarn workspace solitaire stop` stopped it.
+- Specs: Solitaire 6932 → 6917 (its viewport's and timer's own went with
+  them), `@fz/ui` 167.
 - `yarn verify` green.
