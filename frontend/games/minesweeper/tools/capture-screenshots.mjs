@@ -10,7 +10,9 @@
  * `public/docs/screenshots/minesweeper/`. Both show the same game, part
  * played: the deal is seeded, the moves are the ones the numbers force, and
  * one mine is stepped on to show a life lost. The page opens in a browser
- * context of its own, so the palette and the difficulty are the defaults.
+ * context of its own, so the difficulty is the default; the palette is Casino
+ * night, which sets the game apart from the Solitaire Collection's green
+ * tables beside it in the catalog.
  */
 import { spawn } from "node:child_process";
 import { access, mkdir, mkdtemp, readFile, rm, stat } from "node:fs/promises";
@@ -38,11 +40,21 @@ const SCREENSHOT_DIR = join(ROOT, "public/docs/screenshots/minesweeper");
 /** The page size the screenshot is taken at, in CSS pixels. */
 const VIEWPORT = { width: 1280, height: 720, deviceScaleFactor: 2 };
 
-/** The images written from the screenshot. */
+/**
+ * The images written from the screenshot, each at least twice the CSS size
+ * the site shows it at, so that it stays sharp on a high density display:
+ * the preview at up to 1200 CSS px wide, the thumbnail at up to about 288.
+ */
 const OUTPUTS = [
-  { file: "preview.webp", width: 1280, height: 720, quality: 80 },
-  { file: "thumb.webp", width: 192, height: 108, quality: 80 },
+  { file: "preview.webp", width: 2560, height: 1440, quality: 80 },
+  { file: "thumb.webp", width: 576, height: 324, quality: 80 },
 ];
+
+/** The palette the screenshot is taken in. */
+const THEME = "casino";
+
+/** Where the site and the games keep the palette the player chose. */
+const THEME_KEY = "fuzzley-theme";
 
 /** Seeds the page's `Math.random`, which the game deals from. */
 const SEED = 7;
@@ -261,14 +273,17 @@ async function launchChrome(chromePath, profile) {
 }
 
 /**
- * Seeds `Math.random`, and sets the clock of a game in progress, before the
- * game starts. It runs in the page, so it uses nothing from this module.
+ * Seeds `Math.random`, chooses the palette, and sets the clock of a game in
+ * progress, before the game starts. It runs in the page, so it uses nothing
+ * from this module.
  *
  * @param {number} seed
  * @param {number} seconds
  * @param {string} key Where the game keeps the game in progress.
+ * @param {string} theme
+ * @param {string} themeKey Where the palette the player chose is kept.
  */
-function preparePage(seed, seconds, key) {
+function preparePage(seed, seconds, key, theme, themeKey) {
   // Mulberry32, as the game's own random numbers are.
   let state = seed;
   Math.random = () => {
@@ -277,6 +292,7 @@ function preparePage(seed, seconds, key) {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 2 ** 32;
   };
+  localStorage.setItem(themeKey, theme);
   const saved = localStorage.getItem(key);
   if (saved) {
     localStorage.setItem(
@@ -494,7 +510,7 @@ async function capture(devtools, url) {
       sessionId,
     );
     await devtools.send("Page.enable", {}, sessionId);
-    const args = [SEED, CLOCK_SECONDS, SAVED_GAME_KEY];
+    const args = [SEED, CLOCK_SECONDS, SAVED_GAME_KEY, THEME, THEME_KEY];
     await devtools.send(
       "Page.addScriptToEvaluateOnNewDocument",
       { source: `(${String(preparePage)})(...${JSON.stringify(args)})` },
@@ -582,7 +598,8 @@ async function main() {
       const target = join(SCREENSHOT_DIR, output.file);
       await sharp(shot.png)
         .resize(output.width, output.height)
-        .webp({ quality: output.quality })
+        // Smart subsampling keeps the numbers' inks from bleeding.
+        .webp({ quality: output.quality, smartSubsample: true })
         .toFile(target);
       const kilobytes = Math.round((await stat(target)).size / 1024);
       console.log(`${output.file}: ${kilobytes} KB`);
