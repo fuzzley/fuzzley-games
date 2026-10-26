@@ -1,6 +1,6 @@
 ---
 name: fuzzley-ui
-description: The shared UI libraries under frontend/lib/ that the site and the games are built on — @fz/style (palettes, tokens, the surfaces over a game, fragments such as .fz-button, Sass mixins, theme.js, the fuzzball and the page's icons), @fz/ui (Angular dialog, confirmation, theme menu and picker, icons, radio group, storage, wordmark) and @fz/game-ui (the game bar and its overflow menu) — which piece to reach for, and how an app adopts them. Triggers on: @fz/style, @fz/ui, @fz/game-ui, fz-, design tokens, palette, theme, fuzzball, favicon, wordmark, light or dark mode, surface, glass, game bar, dialog, confirm, icon, button, shared component, new game.
+description: The shared UI libraries under frontend/lib/ that the site and the games are built on — @fz/style (palettes, tokens, the surfaces over a game, fragments such as .fz-button, Sass mixins, theme.js, the fuzzball and the page's icons), @fz/ui (Angular dialog, confirmation, theme menu and picker, icons, radio group, storage, wordmark) and @fz/game-ui (the game bar, its overflow menu, and the games' viewport and breakpoints) — which piece to reach for, and how an app adopts them. Triggers on: @fz/style, @fz/ui, @fz/game-ui, fz-, design tokens, palette, theme, fuzzball, favicon, wordmark, light or dark mode, surface, glass, game bar, dialog, confirm, icon, button, shared component, new game.
 ---
 
 # The shared UI libraries
@@ -14,7 +14,7 @@ which piece to reach for, and how an app takes them up.
 | ------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
 | `@fz/style`   | `frontend/lib/style`   | Every app, Angular or not: the palettes and tokens, the global stylesheet, fragments, Sass mixins, `theme.js`, the fuzzball and the page's icons, and the stylelint preset | `frontend/lib/style/AGENTS.md`   |
 | `@fz/ui`      | `frontend/lib/ui`      | Every Angular app: dialogs, the confirmation, the theme's service and pickers, icons, the radio group, storage and the wordmark                                            | `frontend/lib/ui/AGENTS.md`      |
-| `@fz/game-ui` | `frontend/lib/game-ui` | Angular games only: the game bar and its overflow menu                                                                                                                     | `frontend/lib/game-ui/AGENTS.md` |
+| `@fz/game-ui` | `frontend/lib/game-ui` | Angular games only: the game bar, its overflow menu, the viewport                                                                                                          | `frontend/lib/game-ui/AGENTS.md` |
 
 Imports go one way: an app may import a library, a library another library,
 and a library never an app. `yarn constraints` fails a library that depends
@@ -46,6 +46,7 @@ own only for what is its alone.
 | The tab's icon                                       | `favicon.svg`, `favicon.ico` and `apple-touch-icon.png`, which `fuzzleyStyle()` writes, linked with `vite-ignore` (step 3 below); `ThemeService` recolors the SVG to the palette in use                                                                                                            |
 | The fuzzball anywhere else                           | `FUZZBALL`, its shapes, or `fuzzballSvg()`, a file of it, from `@fz/style/fuzzball`                                                                                                                                                                                                                |
 | A game's bar                                         | `<fz-game-bar>` from `@fz/game-ui/game_bar`, filled through `fzBarTitle`, `fzBarStatus` and `fzBarActions`; `<fz-bar-overflow>` from `@fz/game-ui/bar_overflow` for what it has no room for; and `@use "@fz/game-ui" as game-ui;` for `game-ui.bar-size()`, which publishes its size for the board |
+| A game's shape: compact, upright, what fits its bar  | `GameViewportService` from `@fz/game-ui/viewport` in code; `@fz/game-ui`'s `below()`, `from()`, `compact`, `phone-portrait` and `phone-landscape` in a stylesheet; `@fz/game-ui/breakpoints` without Angular; `installFakeViewport()` from `@fz/game-ui/testing` in specs                          |
 
 ## Palettes and their modes
 
@@ -117,7 +118,8 @@ onto `LocalStorageService`: renaming one loses what players saved.
 - **Everything shared carries `fz`**: tokens, classes, layers, selectors.
   An app's own names carry none.
 - **A component reads no viewport.** What changes with the layout is an
-  input the app binds to its own breakpoints, such as the bar's `compact`.
+  input the app binds, such as the bar's `compact`, to what a game's
+  `GameViewportService` says or the site's own breakpoints.
 - **A thing belongs in a library only when the apps mean the same by it.**
   Otherwise it stays in the app, until a second one needs it.
 - **A palette role goes into every palette at once**, and a role that

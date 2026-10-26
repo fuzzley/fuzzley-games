@@ -6,5 +6,6 @@
 // toolkit comes with it, so a component calls a shared mixin as it does this
 // game's own.
 @forward "@fz/style";
-@forward "breakpoints";
+@forward "@fz/game-ui" show below, from, compact, phone-portrait,
+  phone-landscape;
 @forward "mixins";

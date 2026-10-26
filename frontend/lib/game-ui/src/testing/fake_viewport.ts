@@ -1,9 +1,11 @@
 /**
  * Stands in for `window.matchMedia`, which jsdom lacks, answering width,
- * height and orientation queries against a size a spec sets. It is the
- * Solitaire Collection's, which the two games may one day share.
+ * height and orientation queries against a size a spec sets, and the color
+ * scheme query as a light system's.
  */
 export interface FakeViewport {
+  /** Sets the viewport width and tells every live query about it. */
+  setWidth(px: number): void;
   /** Sets the viewport width and height and tells every live query. */
   setSize(width: number, height: number): void;
   /** Takes the fake back off the window. */
@@ -24,7 +26,7 @@ interface FakeQuery {
 }
 
 const CONDITION =
-  /^\(\s*(max-width|max-height|orientation)\s*:\s*([\w.]+?)(px)?\s*\)$/;
+  /^\(\s*(max-width|max-height|orientation|prefers-color-scheme)\s*:\s*([\w.]+?)(px)?\s*\)$/;
 
 /**
  * Returns whether a media query holds at a size: any of its comma-separated
@@ -45,6 +47,8 @@ function evaluate(query: string, size: Size): boolean {
           return size.width <= Number(value);
         case "max-height":
           return size.height <= Number(value);
+        case "prefers-color-scheme":
+          return value === "light";
         default:
           // As CSS reads it: a square viewport is portrait.
           return size.height >= size.width === (value === "portrait");
@@ -54,15 +58,14 @@ function evaluate(query: string, size: Size): boolean {
 }
 
 /**
- * Installs the fake at a size.
+ * Installs the fake at a starting size, in CSS pixels; the height is tall
+ * enough by default that only the width decides whether the viewport is
+ * compact.
  *
  * Call {@link FakeViewport.restore} in an `afterEach`, so a spec that never
  * asked for one still sees a host without `matchMedia`.
  */
-export function installFakeViewport(
-  width: number,
-  height: number,
-): FakeViewport {
+export function installFakeViewport(width: number, height = 900): FakeViewport {
   const queries: FakeQuery[] = [];
   const current: Size = { width, height };
 
@@ -71,12 +74,12 @@ export function installFakeViewport(
     const listeners = new Set<() => void>();
     queries.push({ query, state, listeners });
 
-    // Only what the viewport service reads: a real MediaQueryList can't be
-    // built outside the browser.
+    // Only what the code reads of it: a real MediaQueryList can't be built
+    // outside the browser.
     return {
       media: query,
-      // A getter, because the service reads `matches` again when it is told
-      // the query changed rather than trusting the event.
+      // A getter, because the code reads `matches` again when it is told the
+      // query changed rather than trusting the event.
       get matches(): boolean {
         return state.matches;
       },
@@ -89,16 +92,23 @@ export function installFakeViewport(
     } as unknown as MediaQueryList;
   };
 
+  const resize = (next: Size): void => {
+    current.width = next.width;
+    current.height = next.height;
+    for (const query of queries) {
+      const matches = evaluate(query.query, current);
+      if (matches === query.state.matches) continue;
+      query.state.matches = matches;
+      for (const listener of query.listeners) listener();
+    }
+  };
+
   return {
+    setWidth(px: number): void {
+      resize({ width: px, height: current.height });
+    },
     setSize(nextWidth: number, nextHeight: number): void {
-      current.width = nextWidth;
-      current.height = nextHeight;
-      for (const query of queries) {
-        const matches = evaluate(query.query, current);
-        if (matches === query.state.matches) continue;
-        query.state.matches = matches;
-        for (const listener of query.listeners) listener();
-      }
+      resize({ width: nextWidth, height: nextHeight });
     },
     restore(): void {
       Reflect.deleteProperty(window, "matchMedia");

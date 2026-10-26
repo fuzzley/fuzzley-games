@@ -58,9 +58,9 @@ Run these from `frontend/games/minesweeper/`, or as
   to date, and an effect in a service runs on `TestBed.tick()`.
 - A service reads what is stored when it is made, so write `localStorage`
   before the first `render` or `TestBed.inject`.
-- jsdom has no `matchMedia`: `installFakeViewport(width, height)`
-  (`src/testing/fake_viewport.ts`) answers the queries `ViewportService`
-  asks, and its `restore()` belongs in an `afterEach`.
+- jsdom has no `matchMedia`: `installFakeViewport(width, height)`, from
+  `@fz/game-ui/testing`, answers the queries `GameViewportService` asks,
+  and its `restore()` belongs in an `afterEach`.
 - Install fake timers after `render`, as the board's long-press specs do:
   rendering waits for the app to be stable, which it never is while time
   stands still.

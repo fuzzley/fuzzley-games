@@ -1,6 +1,10 @@
 // The game chrome's toolkit, which a stylesheet reaches with
 // `@use "@fz/game-ui" as game-ui;`. It emits no CSS of its own.
 
+// The breakpoints every game changes shape at: `below()`, `from()`,
+// `compact`, `phone-portrait` and `phone-landscape`.
+@forward "breakpoints";
+
 /// The bar's height across the top or the bottom of the window.
 $bar-height: 73px;
 
