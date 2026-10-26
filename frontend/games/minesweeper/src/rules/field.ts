@@ -1,14 +1,20 @@
 import type { FieldSize } from "./difficulty";
 import { createRandom } from "./random";
 
-/** Names what a square shows: a mine stepped on is `tripped`. */
-export type Square = "hidden" | "flagged" | "revealed" | "tripped";
+/** What a square can show: a mine stepped on is `tripped`. */
+export const SQUARES = ["hidden", "flagged", "revealed", "tripped"] as const;
+
+/** Names what a square shows. */
+export type Square = (typeof SQUARES)[number];
 
 /**
- * Names how a game stands: `ready` until the first square is revealed, which
+ * How a game can stand: `ready` until the first square is revealed, which
  * is when the mines are placed.
  */
-export type Outcome = "ready" | "playing" | "won" | "lost";
+export const OUTCOMES = ["ready", "playing", "won", "lost"] as const;
+
+/** Names how a game stands. */
+export type Outcome = (typeof OUTCOMES)[number];
 
 /** Says where the mines lie, and how many lie around each square. */
 export interface Layout {
