@@ -13,7 +13,9 @@ describe("ThemeService", () => {
   afterEach(() => {
     document.head.querySelector("#palette")?.remove();
     document.head.querySelector('meta[name="theme-color"]')?.remove();
-    document.head.querySelector('link[rel="icon"]')?.remove();
+    for (const icon of document.head.querySelectorAll('link[rel="icon"]')) {
+      icon.remove();
+    }
   });
 
   /** Returns the service, with the browser's storage replaced if given. */
@@ -45,7 +47,10 @@ describe("ThemeService", () => {
     document.head.insertAdjacentHTML(
       "beforeend",
       '<style id="palette">[data-theme="midnight"] { --fz-accent: #4cc3ff; }</style>' +
-        (withIcon ? '<link rel="icon" href="favicon.svg">' : ""),
+        (withIcon
+          ? '<link rel="icon" href="favicon.ico" sizes="32x32">' +
+            '<link rel="icon" type="image/svg+xml" href="favicon.svg">'
+          : ""),
     );
   }
 
@@ -154,11 +159,21 @@ describe("ThemeService", () => {
     TestBed.tick();
 
     const href = document
-      .querySelector('link[rel="icon"]')
+      .querySelector('link[rel="icon"][type="image/svg+xml"]')
       ?.getAttribute("href");
     expect(decodeURIComponent(href ?? "")).toBe(
       `data:image/svg+xml,${fuzzballSvg("#4cc3ff")}`,
     );
+  });
+
+  it("leaves the icon for what draws no SVG as it is", () => {
+    addAccent({ withIcon: true });
+    const theme = service();
+
+    theme.select("midnight");
+    TestBed.tick();
+
+    expect(document.querySelector('link[href="favicon.ico"]')).not.toBeNull();
   });
 
   it("adds no tab icon to a page that links none", () => {

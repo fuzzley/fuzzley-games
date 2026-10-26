@@ -28,6 +28,20 @@ describe("fuzzballSvg", () => {
     ]);
   });
 
+  it("gives each eye a glint", () => {
+    const svg = fuzzballSvg("#123456");
+
+    expect(svg.split(`fill="${FUZZBALL.glint}"`).length - 1).toBe(
+      FUZZBALL.glints.length,
+    );
+  });
+
+  it("leaves out the glints when asked", () => {
+    expect(fuzzballSvg("#123456", { withGlints: false })).not.toContain(
+      `fill="${FUZZBALL.glint}"`,
+    );
+  });
+
   it("draws the fur's strands", () => {
     expect(fuzzballSvg("#123456")).toContain(`d="${FUZZBALL.fur.d}"`);
   });

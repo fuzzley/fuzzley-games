@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Serves a built image and checks its pages, cache and security headers,
-# theme.js, env.js, version.json and games.
+# theme.js, icons, env.js, version.json and games.
 #
 # Both verify.yml and update-games.yml run this on the image they build, before
 # the commit can reach live, the branch Cloud Run builds and deploys.
@@ -38,6 +38,19 @@ expect() {
 header() {
   curl -s -o /dev/null -D - "$base$1" |
     tr -d '\r' | sed -n "s/^$2: //Ip"
+}
+# Checks a file is served as its type, which nginx's fallback to index.html
+# for a missing one would not be.
+expect_type() {
+  value=$(header "$1" content-type)
+  echo "Content-Type: $value  $1"
+  [ "${value%%;*}" = "$2" ] || fail "Expected Content-Type: $2 for $1, got '$value'."
+}
+# Checks the icons @fz/style's Vite plugin writes, under a base.
+expect_icons() {
+  expect_type "$1favicon.svg" image/svg+xml
+  expect_type "$1favicon.ico" image/x-icon
+  expect_type "$1apple-touch-icon.png" image/png
 }
 expect_cache() {
   value=$(header "$1" cache-control)
@@ -87,6 +100,8 @@ grep -q "default-src 'self'" <<< "$csp" ||
 grep -q "frame-ancestors 'none'" <<< "$csp" ||
   fail "The site's Content Security Policy lets other sites frame it."
 
+expect_icons /
+
 # theme.js is made at build time from @fz/style's list of palettes.
 curl -s "$base/theme.js" | grep -q 'document.documentElement.dataset.theme' ||
   fail "theme.js doesn't set the page's palette."
@@ -127,6 +142,10 @@ for slug in $(jq -r 'keys[]' frontend/site/games.json); do
   # version.json names the build: a pinned game's archive, or for a game built
   # here, its workspace and the image's own commit.
   build=$(jq -c --arg slug "$slug" '.[$slug]' frontend/site/games.json)
+  # A game built here has the icons the site has.
+  if jq -e '.workspace' <<< "$build" > /dev/null; then
+    expect_icons "/play/$slug/"
+  fi
   curl -s "$base/version.json" |
     jq -e --arg slug "$slug" --argjson build "$build" --arg commit "${commit::7}" \
       '.games[$slug] | if $build.asset then .asset == $build.asset
