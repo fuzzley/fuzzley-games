@@ -42,12 +42,9 @@
               <input
                 type="number"
                 inputmode="numeric"
-                [min]="customSide.min"
-                [max]="customSide.max"
                 aria-describedby="custom-hint custom-error"
                 [attr.aria-invalid]="customProblem()?.field === 'rows' || null"
-                [value]="draft().rows"
-                (input)="type('rows', $event)"
+                [formField]="customForm.rows"
               />
             </label>
             <label>
@@ -55,12 +52,9 @@
               <input
                 type="number"
                 inputmode="numeric"
-                [min]="customSide.min"
-                [max]="customSide.max"
                 aria-describedby="custom-hint custom-error"
                 [attr.aria-invalid]="customProblem()?.field === 'cols' || null"
-                [value]="draft().cols"
-                (input)="type('cols', $event)"
+                [formField]="customForm.cols"
               />
             </label>
             <label>
@@ -68,12 +62,9 @@
               <input
                 type="number"
                 inputmode="numeric"
-                min="1"
-                [max]="mineMax()"
                 aria-describedby="custom-hint custom-error"
                 [attr.aria-invalid]="customProblem()?.field === 'mines' || null"
-                [value]="draft().mines"
-                (input)="type('mines', $event)"
+                [formField]="customForm.mines"
               />
             </label>
             <p class="hint" id="custom-hint">{{ customHint() }}</p>

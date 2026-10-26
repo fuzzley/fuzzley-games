@@ -446,6 +446,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@angular/forms@npm:^22.2.3":
+  version: 22.2.3
+  resolution: "@angular/forms@npm:22.2.3"
+  dependencies:
+    "@standard-schema/spec": "npm:^1.0.0"
+    tslib: "npm:^2.3.0"
+    zod: "npm:^4.0.10"
+  peerDependencies:
+    "@angular/common": 22.2.3
+    "@angular/core": 22.2.3
+    "@angular/platform-browser": 22.2.3
+    rxjs: ^6.5.3 || ^7.4.0
+  checksum: 10c0/91bd040e5d6775bf6f1845d4abb4c7834173bf4dbaf12d2dcf40eac834764b555cd07870ba07ec14d6e557716dd68b6ee941c84db1ad9af79d6279b986dd3a45
+  languageName: node
+  linkType: hard
+
 "@angular/platform-browser@npm:^22.2.3":
   version: 22.2.3
   resolution: "@angular/platform-browser@npm:22.2.3"
@@ -3242,6 +3258,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@standard-schema/spec@npm:^1.0.0":
+  version: 1.1.0
+  resolution: "@standard-schema/spec@npm:1.1.0"
+  checksum: 10c0/d90f55acde4b2deb983529c87e8025fa693de1a5e8b49ecc6eb84d1fd96328add0e03d7d551442156c7432fd78165b2c26ff561b970a9a881f046abb78d6a526
+  languageName: node
+  linkType: hard
+
 "@testing-library/angular@npm:^19.6.0":
   version: 19.6.0
   resolution: "@testing-library/angular@npm:19.6.0"
@@ -5691,6 +5714,7 @@ __metadata:
     "@angular/compiler": "npm:^22.2.3"
     "@angular/compiler-cli": "npm:^22.2.3"
     "@angular/core": "npm:^22.2.3"
+    "@angular/forms": "npm:^22.2.3"
     "@angular/platform-browser": "npm:^22.2.3"
     "@angular/router": "npm:^22.2.3"
     "@fz/dev": "workspace:*"
@@ -8100,7 +8124,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^4.2.0":
+"zod@npm:^4.0.10, zod@npm:^4.2.0":
   version: 4.6.7
   resolution: "zod@npm:4.6.7"
   checksum: 10c0/4ce2eb14034317b7254e347ca37b5ad591cf8333147030cf05b9b5d31692d45073f7f2747aa50cf8c6b29012194d2b22978cecc89969cf34a0d18e89d0ee7d7b
