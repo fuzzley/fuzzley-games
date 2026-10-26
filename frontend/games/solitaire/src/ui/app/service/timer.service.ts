@@ -20,7 +20,9 @@ export class TimerService {
   });
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.stop());
+    inject(DestroyRef).onDestroy(() => {
+      this.stop();
+    });
   }
 
   /** Whether the stopwatch is currently counting. */

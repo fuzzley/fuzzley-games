@@ -1,15 +1,15 @@
-import { Deal } from "@/engine/tableau/dealing/deal";
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { DeckSpec } from "@/engine/core/card/deck";
+import type { Deal } from "@/engine/tableau/dealing/deal";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { DeckSpec } from "@/engine/core/card/deck";
 import {
   ALL_RANKS,
   ALL_SUITS,
-  PlayingCard,
+  type PlayingCard,
   Rank,
 } from "@/engine/core/card/playing_card";
 import { itemAt } from "@/engine/core/common/item_at";
 import {
-  FortyThievesVariant,
+  type FortyThievesVariant,
   fortyThievesAcesStartOnFoundations,
   fortyThievesBuriedPerColumn,
   fortyThievesCardsPerColumn,

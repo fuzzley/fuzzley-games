@@ -1,22 +1,22 @@
 import {
-  TableMetrics,
+  type TableMetrics,
   measureTable,
 } from "@/engine/render/layout/table_metrics";
 import { tableLayout } from "@/engine/render/layout/table_layout";
-import { IntentHandler } from "@/engine/render/input/table_intents";
-import { TablePresentation } from "@/engine/render/view/presentation";
-import {
+import type { IntentHandler } from "@/engine/render/input/table_intents";
+import type { TablePresentation } from "@/engine/render/view/presentation";
+import type {
   DragInteraction,
   TableInteractionState,
 } from "@/engine/render/input/interaction_state";
-import { PileGeometry } from "@/engine/render/layout/drop_geometry";
-import { TableViewState } from "@/engine/render/view/table_view_state";
-import { Viewport } from "@/engine/render/layout/viewport";
+import type { PileGeometry } from "@/engine/render/layout/drop_geometry";
+import type { TableViewState } from "@/engine/render/view/table_view_state";
+import type { Viewport } from "@/engine/render/layout/viewport";
 import { drawOnStockTop } from "@/engine/tableau/gestures/press_handlers";
 import { tableGestures } from "@/engine/tableau/gestures/table_gestures";
 import { stackFromCard, resolveDragTarget } from "@/engine/tableau/view/drag";
 import { buildTableViewState } from "@/engine/tableau/view/table_view_builder";
-import { FakeTableGame, DEFAULT_DRAW_COUNT } from "./game";
+import { type FakeTableGame, DEFAULT_DRAW_COUNT } from "./game";
 import { FakeRole, TABLEAU_COUNT, fakeZoneSpecs } from "./zones";
 
 /*
@@ -68,9 +68,9 @@ export function resolveFakeTableDropTarget(
  */
 export function fakeTableGestures(game: FakeTableGame): IntentHandler {
   return tableGestures(game, {
-    onCardPress: drawOnStockTop(FakeRole.STOCK, () =>
-      game.drawCardsFromStock(),
-    ),
+    onCardPress: drawOnStockTop(FakeRole.STOCK, () => {
+      game.drawCardsFromStock();
+    }),
     onPilePress: (pileId) => {
       if (pileId === game.stock.id && game.stock.isEmpty) {
         game.drawCardsFromStock();

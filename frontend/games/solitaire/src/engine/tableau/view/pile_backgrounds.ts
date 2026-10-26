@@ -1,13 +1,13 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
-import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
-import { TableMetrics } from "@/engine/render/layout/table_metrics";
-import {
+import type { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import type { TableMetrics } from "@/engine/render/layout/table_metrics";
+import type {
   PileBackgroundSpec,
   PileBackgroundView,
 } from "@/engine/render/view/table_view_state";
-import { TableView } from "./table_view";
+import type { TableView } from "./table_view";
 
 /** Returns the placeholder of every pile that has one, in pile order. */
 export function pileBackgrounds(view: TableView): PileBackgroundSpec[] {

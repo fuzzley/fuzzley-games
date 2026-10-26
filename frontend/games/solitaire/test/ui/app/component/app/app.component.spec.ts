@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
-import { TestBed, ComponentFixture } from "@angular/core/testing";
+import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { By, Title } from "@angular/platform-browser";
 import type { ThemeId } from "@fz/style/themes";
 import { ThemeService } from "@fz/ui/theme";
@@ -55,9 +55,10 @@ describe("AppComponent Composition", () => {
 
   /** Returns whether the settings drawer is showing. */
   function drawerIsOpen(): boolean {
-    return queryRequired<HTMLDialogElement>(
+    return queryRequired(
       fixture,
       "app-settings-drawer dialog",
+      HTMLDialogElement,
     ).open;
   }
 
@@ -103,7 +104,7 @@ describe("AppComponent Composition", () => {
 
   it("tells the chrome when Auto moves the stock for a phone", () => {
     harness.presentation.formFactor.set("phone-landscape");
-    TestBed.flushEffects();
+    TestBed.tick();
 
     expect(document.documentElement.dataset["stockSide"]).toBe("right");
   });
@@ -111,7 +112,7 @@ describe("AppComponent Composition", () => {
   it("tells the chrome when the player moves the stock", () => {
     harness.presentation.formFactor.set("phone-portrait");
     harness.presentation.stockSide.set("left");
-    TestBed.flushEffects();
+    TestBed.tick();
 
     expect(document.documentElement.dataset["stockSide"]).toBe("left");
   });
@@ -126,7 +127,7 @@ describe("AppComponent Composition", () => {
 
   it("paints the page behind the chrome with the felt", () => {
     harness.presentation.felt.set("purple");
-    TestBed.flushEffects();
+    TestBed.tick();
 
     expect(
       document.documentElement.style.getPropertyValue("--table-felt"),
@@ -140,7 +141,7 @@ describe("AppComponent Composition", () => {
     );
 
     harness.presentation.felt.set("blue");
-    TestBed.flushEffects();
+    TestBed.tick();
 
     expect(
       document

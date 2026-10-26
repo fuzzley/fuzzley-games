@@ -1,4 +1,4 @@
-import { GameOptionValues } from "../provider/game_catalog";
+import type { GameOptionValues } from "../provider/game_catalog";
 
 /** Rates how hard a game is to win, from easiest to hardest. */
 export const Difficulty = {

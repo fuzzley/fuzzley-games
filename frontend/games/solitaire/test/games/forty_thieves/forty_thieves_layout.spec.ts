@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { ArrangedLayouts } from "@/engine/render/layout/board_layouts";
-import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import type { ArrangedLayouts } from "@/engine/render/layout/board_layouts";
+import type { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { ROOMY_FAN_FIT } from "@/games/common/pile_layouts";
 import {
   FORTY_THIEVES_ARRANGED_LAYOUTS,

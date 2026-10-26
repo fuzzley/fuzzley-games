@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { DragController } from "@/engine/render/input/drag_controller";
-import { TableIntent } from "@/engine/render/input/table_intents";
+import type { TableIntent } from "@/engine/render/input/table_intents";
 
 describe("DragController", () => {
   let intents: TableIntent[];

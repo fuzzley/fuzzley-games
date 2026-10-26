@@ -38,7 +38,7 @@ function start(stored?: unknown): Harness {
     ],
   });
   const recent = TestBed.inject(RecentGamesService);
-  TestBed.flushEffects();
+  TestBed.tick();
   return { recent, catalog };
 }
 
@@ -58,7 +58,7 @@ describe("RecentGamesService", () => {
     const harness = start();
 
     harness.catalog.catalog.select("freecell");
-    TestBed.flushEffects();
+    TestBed.tick();
 
     expect(ids(harness)).toEqual(["freecell", "klondike"]);
   });
@@ -67,7 +67,7 @@ describe("RecentGamesService", () => {
     const harness = start();
 
     harness.catalog.catalog.setOption("drawCount", 1);
-    TestBed.flushEffects();
+    TestBed.tick();
 
     expect(harness.recent.games()).toEqual([
       { ...KLONDIKE, values: { drawCount: 1, almostWin: 0 } },
@@ -78,10 +78,10 @@ describe("RecentGamesService", () => {
   it("moves a game played again to the front rather than listing it twice", () => {
     const harness = start();
     harness.catalog.catalog.select("freecell");
-    TestBed.flushEffects();
+    TestBed.tick();
 
     harness.catalog.catalog.select("klondike");
-    TestBed.flushEffects();
+    TestBed.tick();
 
     expect(ids(harness)).toEqual(["klondike", "freecell"]);
   });
@@ -90,7 +90,7 @@ describe("RecentGamesService", () => {
     const harness = start();
 
     harness.catalog.catalog.select("freecell");
-    TestBed.flushEffects();
+    TestBed.tick();
 
     const stored: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "");
     expect(stored).toEqual(harness.recent.games());

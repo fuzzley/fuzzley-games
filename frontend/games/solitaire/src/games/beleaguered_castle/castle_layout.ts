@@ -1,4 +1,4 @@
-import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import type { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { boardLayout } from "../common/board_layout";
 import { CastleVariant, castleRules } from "./castle_rules";
 import { BOARD_COLUMN_COUNT, castleZoneSpecs } from "./castle_zones";

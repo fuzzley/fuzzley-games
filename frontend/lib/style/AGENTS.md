@@ -127,9 +127,9 @@ can use it too. The repository's rules, which apply here too, are in
   checks.
 - **The toolkit emits nothing, and `global.scss` nothing outside its
   layers.** `src/global.spec.ts` checks both.
-- **The strictest compiler options.** `tsconfig.json` holds the site's and the
-  games' strict flags together, since each app compiles these files with its
-  own.
+- **The strictest compiler options.** `tsconfig.json` extends `@fz/dev`'s
+  base preset, the strict flags every workspace is checked with, since each
+  app compiles these files with its own.
 - **Relative imports name the file** (`./themes.ts`), and the TypeScript is
   only the kind Node can strip (`erasableSyntaxOnly`). Vite leaves a package
   out of the config it bundles, so Node loads `src/vite.ts`, and what it
@@ -143,9 +143,10 @@ can use it too. The repository's rules, which apply here too, are in
 The root's `yarn lint`, `yarn typecheck` and `yarn test` run the library's
 own, which `yarn workspace @fz/style <script>` runs alone.
 
-- **`lint`** runs ESLint (`eslint.config.js`): typescript-eslint's strict and
-  stylistic type-checked rules, explicit return types on exported functions,
-  and `import type` for type-only imports. Then `lint:styles` runs stylelint
+- **`lint`** runs ESLint (`eslint.config.js`) with `@fz/dev`'s TypeScript
+  block: typescript-eslint's strict and stylistic type-checked rules,
+  explicit return types on exported functions, and `import type` for
+  type-only imports. Then `lint:styles` runs stylelint
   (`stylelint.config.js`, the library's own preset with the palettes and
   shadows let off its color rules).
 - **`typecheck`** runs `tsc` over the sources, the specs and the Vitest

@@ -1,6 +1,6 @@
-import { Deal } from "@/engine/tableau/dealing/deal";
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { Deal } from "@/engine/tableau/dealing/deal";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 
 /**
  * Deals `deck` face up, giving each column as many cards as `cardsPerColumn`

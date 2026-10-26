@@ -3,7 +3,7 @@ import { DoubleKlondikeGame } from "@/games/double_klondike/double_klondike_game
 import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { klondikeGestures } from "@/games/klondike/klondike_gestures";
 import { stackFromCard } from "@/engine/tableau/view/drag";
-import { IntentHandler } from "@/engine/render/input/table_intents";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
 import {
   emptyBoard,
   relocate,
@@ -61,9 +61,9 @@ describe("klondikeGestures", () => {
       const card = game.tableaus[0].topCard!;
       takeOffBoard(game, card.id);
 
-      expect(() => handle({ kind: "activate", cardId: card.id })).toThrow(
-        "is not in a pile",
-      );
+      expect(() => {
+        handle({ kind: "activate", cardId: card.id });
+      }).toThrow("is not in a pile");
     });
   });
 

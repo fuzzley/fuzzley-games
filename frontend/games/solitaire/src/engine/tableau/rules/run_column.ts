@@ -1,9 +1,9 @@
-import { Adjacency } from "./adjacency";
+import type { Adjacency } from "./adjacency";
 import { buildsOn } from "./builds";
-import { GrabRule } from "./grab";
+import type { GrabRule } from "./grab";
 import {
-  PlacementContext,
-  PlacementRule,
+  type PlacementContext,
+  type PlacementRule,
   all,
   byEmptiness,
   maxStackSize,

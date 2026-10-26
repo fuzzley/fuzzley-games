@@ -1,16 +1,16 @@
-import { FormFactor } from "./form_factor";
-import { TableLayoutSpec } from "./table_layout";
+import type { FormFactor } from "./form_factor";
+import type { TableLayoutSpec } from "./table_layout";
 import {
-  PilePosition,
-  StockSide,
-  BoardArrangement,
+  type PilePosition,
+  type StockSide,
+  type BoardArrangement,
   resolveArrangement,
 } from "./board_arrangement";
 
 /** Holds a grid for each place the piles that are not columns may go. */
-export type GridsByPilePosition = {
-  readonly [Position in PilePosition]: TableLayoutSpec;
-};
+export type GridsByPilePosition = Readonly<
+  Record<PilePosition, TableLayoutSpec>
+>;
 
 /**
  * Holds the grids a game's board lies on in every arrangement a player may

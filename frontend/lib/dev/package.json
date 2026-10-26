@@ -1,0 +1,36 @@
+{
+  "name": "@fz/dev",
+  "version": "0.0.0",
+  "description": "The lint and compiler settings and the script helpers every workspace shares.",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "exports": {
+    "./eslint": "./src/eslint.ts",
+    "./chrome": "./src/chrome.ts",
+    "./tsconfig/*.json": "./tsconfig/*.json"
+  },
+  "scripts": {
+    "test": "vitest run --coverage",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@eslint/js": "^10.0.1",
+    "angular-eslint": "^22.6.0",
+    "eslint-plugin-jsdoc": "^65.4.2",
+    "typescript-eslint": "^8.72.0"
+  },
+  "peerDependencies": {
+    "eslint": "^10.13.0",
+    "typescript": "~6.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.0",
+    "@vitest/coverage-v8": "^5.0.5",
+    "eslint": "^10.13.0",
+    "typescript": "~6.0.3",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  }
+}

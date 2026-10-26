@@ -1,6 +1,6 @@
-import { Deal } from "@/engine/tableau/dealing/deal";
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import type { Deal } from "@/engine/tableau/dealing/deal";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import { type PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { sinkKings } from "../common/sink_kings";
 import { BristolVariant } from "./bristol_rules";
 

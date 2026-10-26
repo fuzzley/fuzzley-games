@@ -1,6 +1,6 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { ZoneLook } from "./zone_look";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
+import type { ZoneLook } from "./zone_look";
 
 /**
  * Describes what a marked pile's slot shows now, and whether pressing it while

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { CardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
-import { ZoneSpec, hasRoomFor } from "@/engine/tableau/zones/zone";
+import { type PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
+import { type ZoneSpec, hasRoomFor } from "@/engine/tableau/zones/zone";
 import { never } from "@/engine/tableau/rules/placement";
 import { makePlayingCard } from "@test/support/card_builder";
 

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { deckCardIds } from "@/engine/core/card/deck";
 import {
   ALL_RANKS,
-  DeckCardId,
+  type DeckCardId,
   Rank,
   Suit,
   playingCardInstanceId,
@@ -28,7 +28,7 @@ const ONE_SUIT = deckCardIds({
  * Returns a game dealt with a fixed shuffle, so every deal in this file is the
  * same one.
  */
-function dealtGame(cardIds?: ReadonlyArray<DeckCardId>): ScorpionGame {
+function dealtGame(cardIds?: readonly DeckCardId[]): ScorpionGame {
   const game = new ScorpionGame({ cardIds, random: sequenceRandom([]) });
   game.startNewGame();
   return game;

@@ -1,12 +1,12 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
-import { Deal } from "@/engine/tableau/dealing/deal";
+import { type PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import type { Deal } from "@/engine/tableau/dealing/deal";
 import { DealtTableGame } from "@/engine/tableau/game/dealt_table_game";
-import { DeckOptions } from "@/games/common/deck_options";
+import type { DeckOptions } from "@/games/common/deck_options";
 import { dealRowFromStock } from "@/games/common/row_deal";
 import { dealAcesUpLayout } from "./aces_up_deal";
-import { AcesUpSpaces, DEFAULT_ACES_UP_SPACES } from "./aces_up_rules";
+import { type AcesUpSpaces, DEFAULT_ACES_UP_SPACES } from "./aces_up_rules";
 import {
   AcesUpRole,
   DISCARD_PILE_ID,

@@ -9,7 +9,7 @@ import { DEFAULT_DESKTOP_CARD_DECK } from "@/engine/render/deck/card_deck";
 import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
 import { designSize } from "@/engine/render/layout/table_layout";
 import { measureTable } from "@/engine/render/layout/table_metrics";
-import { BoardScene } from "@/engine/render/phaser/scene/board_scene";
+import type { BoardScene } from "@/engine/render/phaser/scene/board_scene";
 import { cardAtlasTextureKey } from "@/engine/render/phaser/deck/card_deck_atlas";
 import { makeTableBoardScene } from "@/engine/board/table_board_scene";
 import { NO_INSETS } from "@/engine/render/layout/viewport";
@@ -21,12 +21,12 @@ import {
 import { FakeTableGame } from "@test/support/fake_table/game";
 import { relocate } from "@test/support/game_scenarios";
 import {
-  MockGraphics,
-  MockInput,
-  MockScaleManager,
-  MockSceneEvents,
-  MockSprite,
-  MockTextures,
+  type MockGraphics,
+  type MockInput,
+  type MockScaleManager,
+  type MockSceneEvents,
+  type MockSprite,
+  type MockTextures,
   POST_UPDATE_EVENT,
   PRESS_ON_CANVAS,
   SHUTDOWN_EVENT,

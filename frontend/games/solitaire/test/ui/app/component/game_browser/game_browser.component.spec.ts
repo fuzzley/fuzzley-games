@@ -9,7 +9,7 @@ import {
   afterEach,
   vi,
 } from "vitest";
-import { TestBed, ComponentFixture } from "@angular/core/testing";
+import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { GameBrowserComponent } from "@/ui/app/component/game_browser/game_browser.component";
 import { GameBrowserService } from "@/ui/app/service/game_browser.service";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
@@ -69,7 +69,7 @@ describe("GameBrowserComponent", () => {
 
   /** Returns the search field. */
   function searchField(): HTMLInputElement {
-    return queryRequired<HTMLInputElement>(fixture, ".search-input");
+    return queryRequired(fixture, ".search-input", HTMLInputElement);
   }
 
   /** Types into the search field, replacing what was there. */
@@ -129,7 +129,7 @@ describe("GameBrowserComponent", () => {
   /** Clicks a filter chip by its label. */
   function chip(label: string): HTMLButtonElement {
     const found = queryAll<HTMLButtonElement>(fixture, ".chip").find(
-      (c) => c.textContent?.trim() === label,
+      (c) => c.textContent.trim() === label,
     );
     if (!found) throw new Error(`No filter is labelled ${label}.`);
     return found;
@@ -138,7 +138,7 @@ describe("GameBrowserComponent", () => {
   /** Returns a choice of a rule in the preview, by its label. */
   function segment(label: string): HTMLElement {
     const found = queryAll(fixture, ".segment-btn").find(
-      (b) => b.textContent?.trim() === label,
+      (b) => b.textContent.trim() === label,
     );
     if (!found) throw new Error(`No choice is labelled ${label}.`);
     return found;
@@ -168,7 +168,7 @@ describe("GameBrowserComponent", () => {
       open();
 
       const headings = queryAll(fixture, ".section-heading").map((h) =>
-        h.textContent?.trim(),
+        h.textContent.trim(),
       );
 
       expect(headings).toEqual(["Test builders", "Test cells"]);
@@ -378,7 +378,7 @@ describe("GameBrowserComponent", () => {
     it("keeps each facet's chips together, so they wrap as one", () => {
       const groups = queryAll(fixture, ".filter-group").map((group) =>
         Array.from(group.querySelectorAll(".chip"), (c) =>
-          c.textContent?.trim(),
+          c.textContent.trim(),
         ),
       );
 
@@ -397,11 +397,11 @@ describe("GameBrowserComponent", () => {
         JSON.stringify([{ gameId: "freecell", values: {} }]),
       );
       await build();
-      TestBed.flushEffects();
+      TestBed.tick();
       open();
 
       const headings = queryAll(fixture, ".section-heading").map((h) =>
-        h.textContent?.trim(),
+        h.textContent.trim(),
       );
 
       expect(headings[0]).toBe("Recent");
@@ -413,7 +413,7 @@ describe("GameBrowserComponent", () => {
         JSON.stringify([{ gameId: "freecell", values: {} }]),
       );
       await build();
-      TestBed.flushEffects();
+      TestBed.tick();
       open();
 
       await click(chip("Hard"));
@@ -427,7 +427,7 @@ describe("GameBrowserComponent", () => {
         JSON.stringify([{ gameId: "freecell", values: {} }]),
       );
       await build();
-      TestBed.flushEffects();
+      TestBed.tick();
       open();
 
       expect(queryText(fixture, ".row-rules")).toBe("· Draw 3");
@@ -541,7 +541,7 @@ describe("GameBrowserComponent", () => {
 
     it("offers the rules a player picks, and not the development aids", () => {
       const labels = queryAll(fixture, "app-option-group .setting-label").map(
-        (label) => label.textContent?.trim(),
+        (label) => label.textContent.trim(),
       );
 
       expect(labels).toEqual(["Draw Mode"]);

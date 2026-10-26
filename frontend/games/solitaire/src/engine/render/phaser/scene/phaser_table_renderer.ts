@@ -1,10 +1,10 @@
-import * as Phaser from "phaser";
-import { GameObjects } from "phaser";
-import { Point } from "../../layout/geometry";
+import type * as Phaser from "phaser";
+import type { GameObjects } from "phaser";
+import type { Point } from "../../layout/geometry";
 import { cardSpriteScale } from "../../deck/card_art_scale";
-import { PhaserSprites } from "./phaser_sprites";
-import { TableRenderer } from "../../view/table_renderer";
-import {
+import type { PhaserSprites } from "./phaser_sprites";
+import type { TableRenderer } from "../../view/table_renderer";
+import type {
   CardView,
   HighlightView,
   PileBackgroundView,

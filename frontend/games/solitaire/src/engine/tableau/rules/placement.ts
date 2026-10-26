@@ -1,6 +1,6 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
-import { BoardQuery } from "./board_query";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import type { BoardQuery } from "./board_query";
 
 /** Tells a placement rule everything it may know about a proposed move. */
 export interface PlacementContext {

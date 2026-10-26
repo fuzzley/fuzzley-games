@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
+import type {
   IntentHandler,
   TableIntent,
 } from "@/engine/render/input/table_intents";
-import { GameSnapshot } from "@/engine/tableau/session/game_snapshot";
-import { PlayableGame } from "@/engine/tableau/session/playable_game";
+import type { GameSnapshot } from "@/engine/tableau/session/game_snapshot";
+import type { PlayableGame } from "@/engine/tableau/session/playable_game";
 import { TableGame } from "@/engine/tableau/game/table_game";
 import { gesturesFor } from "@/ui/app/provider/board_catalog";
-import { GameId } from "@/ui/app/provider/game_catalog";
+import type { GameId } from "@/ui/app/provider/game_catalog";
 import { seededRandom } from "@/engine/core/random/seeded_random";
 import { CATALOG_DEALS } from "@test/support/ui/catalog_deals";
 

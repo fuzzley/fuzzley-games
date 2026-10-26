@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { IntentHandler } from "@/engine/render/input/table_intents";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
 import { stocklessGestures } from "@/engine/tableau/gestures/table_gestures";
 import { FakeTableGame } from "@test/support/fake_table/game";
 import { FakeRole } from "@test/support/fake_table/zones";

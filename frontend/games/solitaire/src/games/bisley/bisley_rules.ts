@@ -1,7 +1,11 @@
-import { PileRole } from "@/engine/core/card/card_pile";
-import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
+import type { PileRole } from "@/engine/core/card/card_pile";
 import {
-  PlacementRule,
+  type PlayingCard,
+  Rank,
+  type Suit,
+} from "@/engine/core/card/playing_card";
+import {
+  type PlacementRule,
   all,
   any,
   byEmptiness,

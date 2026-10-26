@@ -10,10 +10,10 @@ import {
   readString,
 } from "@/engine/core/common/json_reader";
 import {
-  GameSnapshot,
+  type GameSnapshot,
   readGameSnapshot,
 } from "@/engine/tableau/session/game_snapshot";
-import { GameOptionValues } from "../provider/game_catalog";
+import type { GameOptionValues } from "../provider/game_catalog";
 
 /** Records a game as a bug report carries it: which, by what rules, where. */
 export interface GamePosition {
@@ -82,8 +82,8 @@ export function readGamePosition(
 ): GamePosition {
   const position = readObject(value, path);
   return {
-    gameId: readString(position.gameId, `${path}.gameId`),
-    options: readRecord(position.options, `${path}.options`, readNumber),
-    snapshot: readGameSnapshot(position.snapshot, `${path}.snapshot`),
+    gameId: readString(position["gameId"], `${path}.gameId`),
+    options: readRecord(position["options"], `${path}.options`, readNumber),
+    snapshot: readGameSnapshot(position["snapshot"], `${path}.snapshot`),
   };
 }

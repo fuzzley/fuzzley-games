@@ -1,10 +1,10 @@
-import { Point } from "../layout/geometry";
-import {
+import type { Point } from "../layout/geometry";
+import type {
   DragInteraction,
   FlightInteraction,
   TableInteractionState,
 } from "./interaction_state";
-import { IntentHandler } from "./table_intents";
+import type { IntentHandler } from "./table_intents";
 import { itemAt } from "@/engine/core/common/item_at";
 
 /** Maximum milliseconds between two presses for them to count as a double. */

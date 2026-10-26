@@ -1,6 +1,6 @@
-import { PileRole } from "@/engine/core/card/card_pile";
+import type { PileRole } from "@/engine/core/card/card_pile";
 import {
-  PlacementRule,
+  type PlacementRule,
   anyCard,
   byEmptiness,
 } from "@/engine/tableau/rules/placement";
@@ -11,7 +11,7 @@ import {
   suitFoundation,
 } from "@/engine/tableau/rules/builds";
 import { isOrderedPair, isSameSuitRun } from "@/engine/tableau/rules/adjacency";
-import { GrabRule } from "@/engine/tableau/rules/grab";
+import type { GrabRule } from "@/engine/tableau/rules/grab";
 
 /** The parts a pile can play in a Forty Thieves game. */
 export const FortyThievesRole = {

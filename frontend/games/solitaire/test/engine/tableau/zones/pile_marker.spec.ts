@@ -1,8 +1,11 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { CardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { PileMarker, PileMarkers } from "@/engine/tableau/zones/pile_marker";
-import { ZoneLook } from "@/engine/tableau/zones/zone_look";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
+import {
+  type PileMarker,
+  PileMarkers,
+} from "@/engine/tableau/zones/pile_marker";
+import type { ZoneLook } from "@/engine/tableau/zones/zone_look";
 import { makePlayingCard } from "@test/support/card_builder";
 
 /** Returns how a pile looks, with the placeholder and pressability given. */

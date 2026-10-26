@@ -1,14 +1,14 @@
 import {
   CardLocations,
   CardPile,
-  PileRole,
-  ReadonlyCardPile,
+  type PileRole,
+  type ReadonlyCardPile,
 } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { CardTransfer } from "../moves/move";
-import { BoardQuery } from "../rules/board_query";
-import { ZoneSpec } from "../zones/zone";
+import type { CardRegistry } from "@/engine/core/card/card_registry";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
+import type { CardTransfer } from "../moves/move";
+import type { BoardQuery } from "../rules/board_query";
+import type { ZoneSpec } from "../zones/zone";
 
 /** Says how cards land when they are relocated. */
 export interface RelocateOptions {

@@ -1,5 +1,5 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 
 /**
  * Names the kind of action an {@link AppliedMove} records, such as a draw; each

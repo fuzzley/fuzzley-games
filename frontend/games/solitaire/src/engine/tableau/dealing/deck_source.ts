@@ -1,5 +1,5 @@
-import { CardRegistry } from "@/engine/core/card/card_registry";
-import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import type { CardRegistry } from "@/engine/core/card/card_registry";
+import type { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
 
 /** Chooses the cards a game deals, how it shuffles them, and how they lie. */
@@ -8,7 +8,7 @@ export interface DeckSourceOptions {
    * The card identities to deal from. A partial set is a short deck, which
    * every game is expected to survive.
    */
-  readonly cardIds: ReadonlyArray<DeckCardId>;
+  readonly cardIds: readonly DeckCardId[];
   /** Returns a number in [0, 1) for shuffling; `Math.random` by default. */
   readonly random?: () => number;
   /** Whether a freshly dealt card shows its face; false by default. */
@@ -27,7 +27,7 @@ export class DeckSource {
    */
   constructor(
     private readonly registry: CardRegistry,
-    private readonly cardIds: ReadonlyArray<DeckCardId>,
+    private readonly cardIds: readonly DeckCardId[],
     private readonly random: () => number = Math.random,
     private readonly dealsFaceUp = false,
   ) {}

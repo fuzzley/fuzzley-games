@@ -9,26 +9,26 @@ import {
 import {
   BOOT_TEXTURE_KEY,
   DESTROY_EVENT,
-  MockGradient,
-  MockGraphics,
-  MockInput,
-  MockLoader,
-  MockRenderer,
-  MockScaleManager,
-  MockSceneEvents,
-  MockSprite,
-  MockTextures,
+  type MockGradient,
+  type MockGraphics,
+  type MockInput,
+  type MockLoader,
+  type MockRenderer,
+  type MockScaleManager,
+  type MockSceneEvents,
+  type MockSprite,
+  type MockTextures,
   PRESS_ON_CANVAS,
   RESTORE_WEBGL_EVENT,
   SHUTDOWN_EVENT,
 } from "@test/support/phaser_mocks";
 import {
-  CardDeckId,
+  type CardDeckId,
   DEFAULT_DESKTOP_CARD_DECK,
 } from "@/engine/render/deck/card_deck";
-import { CardArtScale } from "@/engine/render/deck/card_art_scale";
+import type { CardArtScale } from "@/engine/render/deck/card_art_scale";
 import {
-  CardAtlas,
+  type CardAtlas,
   cardAtlasTextureKey,
   residentCardAtlases,
 } from "@/engine/render/phaser/deck/card_deck_atlas";
@@ -179,7 +179,11 @@ describe("BoardScene", () => {
     }
 
     it("gives every card a shadow", () => {
-      expect(allShadows().every((shadow) => shadow !== undefined)).toBe(true);
+      const shadows = [...boardScene.cardIds].map((cardId) =>
+        boardScene.cardShadowSprite(cardId),
+      );
+
+      expect(shadows.every((shadow) => shadow !== undefined)).toBe(true);
     });
 
     it("keeps each shadow under its card", () => {

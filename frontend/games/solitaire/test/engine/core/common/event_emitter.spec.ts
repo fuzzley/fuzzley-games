@@ -2,10 +2,10 @@ import { EventEmitter } from "@/engine/core/common/event_emitter";
 
 // A type alias, not an interface: only object literal types satisfy the
 // `Record<string, unknown>` constraint EventEmitter places on its event map.
-type MockEvents = {
+interface MockEvents {
   "test-event": { payload: string };
   "void-event": undefined;
-};
+}
 
 class TestEmitter extends EventEmitter<MockEvents> {
   public triggerTest(payload: string) {
@@ -66,17 +66,19 @@ describe("EventEmitter", () => {
   it("does not throw when unsubscribing from an event with no listeners", () => {
     const emitter = new TestEmitter();
 
-    expect(() =>
+    expect(() => {
       emitter.off("test-event", () => {
         /* no-op */
-      }),
-    ).not.toThrow();
+      });
+    }).not.toThrow();
   });
 
   it("does not throw when emitting an event with no listeners", () => {
     const emitter = new TestEmitter();
 
-    expect(() => emitter.triggerTest("silent")).not.toThrow();
+    expect(() => {
+      emitter.triggerTest("silent");
+    }).not.toThrow();
   });
 
   it("does not notify a listener that subscribes during an in-progress emit", () => {

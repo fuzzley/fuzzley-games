@@ -1,7 +1,7 @@
-import { IntentHandler } from "@/engine/render/input/table_intents";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
 import { drawOnStockTop } from "@/engine/tableau/gestures/press_handlers";
 import { tableGestures } from "@/engine/tableau/gestures/table_gestures";
-import { FortyThievesGame } from "./forty_thieves_game";
+import type { FortyThievesGame } from "./forty_thieves_game";
 import { FortyThievesRole } from "./forty_thieves_zones";
 
 /**

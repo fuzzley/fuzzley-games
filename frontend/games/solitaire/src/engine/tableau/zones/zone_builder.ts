@@ -1,4 +1,4 @@
-import { ZoneSpec } from "./zone";
+import type { ZoneSpec } from "./zone";
 
 /** Places a zone, or a row of them, on the board grid. */
 export interface GridPlacement {

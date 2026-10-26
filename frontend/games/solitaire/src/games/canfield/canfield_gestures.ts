@@ -1,7 +1,7 @@
-import { IntentHandler } from "@/engine/render/input/table_intents";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
 import { drawOnStockTop } from "@/engine/tableau/gestures/press_handlers";
 import { tableGestures } from "@/engine/tableau/gestures/table_gestures";
-import { CanfieldGame } from "./canfield_game";
+import type { CanfieldGame } from "./canfield_game";
 import { CanfieldRole } from "./canfield_zones";
 
 /**
@@ -10,9 +10,9 @@ import { CanfieldRole } from "./canfield_zones";
  */
 export function canfieldGestures(game: CanfieldGame): IntentHandler {
   return tableGestures(game, {
-    onCardPress: drawOnStockTop(CanfieldRole.STOCK, () =>
-      game.drawCardsFromStock(),
-    ),
+    onCardPress: drawOnStockTop(CanfieldRole.STOCK, () => {
+      game.drawCardsFromStock();
+    }),
     onPilePress: (pileId) => {
       if (pileId === game.stock.id && game.stock.isEmpty) {
         game.drawCardsFromStock();

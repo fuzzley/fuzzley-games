@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { CardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
-import { BoardQuery } from "@/engine/tableau/rules/board_query";
+import { type PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
+import type { BoardQuery } from "@/engine/tableau/rules/board_query";
 import {
-  PlacementContext,
-  PlacementRule,
+  type PlacementContext,
+  type PlacementRule,
   all,
   any,
   anyCard,

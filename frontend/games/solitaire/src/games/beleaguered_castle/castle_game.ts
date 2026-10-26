@@ -1,16 +1,20 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { Deal } from "@/engine/tableau/dealing/deal";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
+import type { Deal } from "@/engine/tableau/dealing/deal";
 import { DealtTableGame } from "@/engine/tableau/game/dealt_table_game";
-import { DeckOptions } from "@/games/common/deck_options";
+import type { DeckOptions } from "@/games/common/deck_options";
 import { dealCastleLayout } from "./castle_deal";
 import {
-  CastleVariantRules,
+  type CastleVariantRules,
   DEFAULT_CASTLE_VARIANT,
   castleRules,
 } from "./castle_rules";
-import { CastleRole, CastleVariant, castleZoneSpecs } from "./castle_zones";
+import {
+  CastleRole,
+  type CastleVariant,
+  castleZoneSpecs,
+} from "./castle_zones";
 
 /** Configures a game of the Beleaguered Castle family. */
 export interface CastleOptions extends DeckOptions {

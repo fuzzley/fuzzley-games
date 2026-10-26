@@ -30,7 +30,7 @@ function buildMetrics(overrides: MockGameModelOverrides = {}): Harness {
   const metrics = TestBed.inject(GameMetricsService);
   // The readings are bound by an effect, so it has to have run before a test
   // can read them.
-  TestBed.flushEffects();
+  TestBed.tick();
   return { metrics, model, catalog };
 }
 
@@ -64,7 +64,7 @@ describe("GameMetricsService", () => {
       const { metrics, catalog } = buildMetrics({ score: 10 });
 
       catalog.deal(createMockGameModel({ score: 99 }));
-      TestBed.flushEffects();
+      TestBed.tick();
 
       expect(metrics.score()).toBe(99);
     });
@@ -72,7 +72,7 @@ describe("GameMetricsService", () => {
     it("stops following the game that left", () => {
       const { metrics, model, catalog } = buildMetrics({ score: 10 });
       catalog.deal(createMockGameModel({ score: 99 }));
-      TestBed.flushEffects();
+      TestBed.tick();
 
       model.state.update({ score: 555 });
 
@@ -93,7 +93,7 @@ describe("GameMetricsService", () => {
       const { metrics, model } = buildMetrics();
 
       model.state.update({ moves: 1 });
-      TestBed.flushEffects();
+      TestBed.tick();
       vi.advanceTimersByTime(5000);
 
       expect(metrics.timerText()).toBe("00:05");
@@ -102,11 +102,11 @@ describe("GameMetricsService", () => {
     it("freezes once the game is won", () => {
       const { metrics, model } = buildMetrics();
       model.state.update({ moves: 1 });
-      TestBed.flushEffects();
+      TestBed.tick();
       vi.advanceTimersByTime(1000);
 
       model.emit("game-won");
-      TestBed.flushEffects();
+      TestBed.tick();
       vi.advanceTimersByTime(5000);
 
       expect(metrics.timerText()).toBe("00:01");
@@ -115,11 +115,11 @@ describe("GameMetricsService", () => {
     it("clears when the game is dealt again", () => {
       const { metrics, model } = buildMetrics();
       model.state.update({ moves: 1 });
-      TestBed.flushEffects();
+      TestBed.tick();
       vi.advanceTimersByTime(3000);
 
       model.startNewGame();
-      TestBed.flushEffects();
+      TestBed.tick();
 
       expect(metrics.timerText()).toBe("00:00");
     });
@@ -127,11 +127,11 @@ describe("GameMetricsService", () => {
     it("clears and waits for a first move when another game replaces it", () => {
       const { metrics, model, catalog } = buildMetrics();
       model.state.update({ moves: 1 });
-      TestBed.flushEffects();
+      TestBed.tick();
       vi.advanceTimersByTime(3000);
 
       catalog.deal(createMockGameModel());
-      TestBed.flushEffects();
+      TestBed.tick();
       vi.advanceTimersByTime(5000);
 
       expect(metrics.timerText()).toBe("00:00");
@@ -142,7 +142,7 @@ describe("GameMetricsService", () => {
       vi.advanceTimersByTime(3000);
 
       model.restore(snapshotWithMoves(9));
-      TestBed.flushEffects();
+      TestBed.tick();
       vi.advanceTimersByTime(2000);
 
       expect(metrics.timerText()).toBe("00:02");
@@ -154,7 +154,7 @@ describe("GameMetricsService", () => {
       const { metrics, model } = buildMetrics();
 
       model.emit("game-won");
-      TestBed.flushEffects();
+      TestBed.tick();
 
       expect(metrics.isGameWon()).toBe(true);
     });
@@ -162,10 +162,10 @@ describe("GameMetricsService", () => {
     it("is no longer won once the game is dealt again", () => {
       const { metrics, model } = buildMetrics();
       model.emit("game-won");
-      TestBed.flushEffects();
+      TestBed.tick();
 
       model.startNewGame();
-      TestBed.flushEffects();
+      TestBed.tick();
 
       expect(metrics.isGameWon()).toBe(false);
     });
@@ -173,10 +173,10 @@ describe("GameMetricsService", () => {
     it("is no longer won once another game replaces it, however it got there", () => {
       const { metrics, model, catalog } = buildMetrics();
       model.emit("game-won");
-      TestBed.flushEffects();
+      TestBed.tick();
 
       catalog.deal(createMockGameModel());
-      TestBed.flushEffects();
+      TestBed.tick();
 
       expect(metrics.isGameWon()).toBe(false);
     });
@@ -195,7 +195,7 @@ describe("GameMetricsService", () => {
       const { metrics, model } = buildMetrics({ moves: 4 });
 
       model.emit("game-won");
-      TestBed.flushEffects();
+      TestBed.tick();
 
       expect(metrics.isInProgress()).toBe(false);
     });
@@ -218,7 +218,7 @@ describe("GameMetricsService", () => {
       const { metrics, model } = buildMetrics({ undoDepth: 3 });
 
       model.emit("game-won");
-      TestBed.flushEffects();
+      TestBed.tick();
 
       expect(metrics.canUndo()).toBe(false);
     });

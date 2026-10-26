@@ -1,9 +1,9 @@
 {
+  // The app, which Vite builds through Analog's plugin: everything under src/,
+  // all of which main.ts reaches.
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist/out-tsc",
-    "types": []
+    "types": ["vite/client"]
   },
-  "files": ["src/ui/app/main.ts"],
-  "include": ["src/**/*.d.ts"]
+  "include": ["src/**/*.ts"]
 }

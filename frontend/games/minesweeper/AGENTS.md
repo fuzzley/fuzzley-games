@@ -135,18 +135,21 @@ workspace's with the others'.
   failing below the floor `vitest.config.ts` sets for `src/rules/`),
   `yarn test:watch`, or `yarn vitest run <path>` for one spec, which leaves
   the floor alone.
-- **Linting:** `yarn lint` (ESLint over `src`, `tools` and the configs, with
-  Angular's template accessibility rules and JSDoc types on every script,
-  then `yarn lint:styles`, stylelint with `@fz/style`'s preset).
+- **Linting:** `yarn lint` (ESLint over `src`, `tools` and the configs:
+  `@fz/dev`'s blocks, with Angular's template accessibility rules and JSDoc
+  types on every script, and the fence around `src/rules/`; then
+  `yarn lint:styles`, stylelint with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the Angular compiler over the app,
   then `tsc` over the specs, the Vite configs and the scripts in `tools/`
-  from their JSDoc, emitting nothing).
+  from their JSDoc, emitting nothing, each with `@fz/dev`'s compiler
+  options).
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
   `tools/capture-screenshots.mjs` against the running dev server in headless
-  Chrome: a seeded game, part played, at 1280 × 720 and 2× on Casino night,
-  written to `public/docs/screenshots/minesweeper/` as `preview.webp`
-  (2560 × 1440) and `thumb.webp` (576 × 324); `--url` names another server,
-  and `--chrome <path>` or `CHROME_PATH` picks the browser).
+  Chrome, through `@fz/dev/chrome`: a seeded game, part played, at
+  1280 × 720 and 2× on Casino night, written to
+  `public/docs/screenshots/minesweeper/` as `preview.webp` (2560 × 1440)
+  and `thumb.webp` (576 × 324); `--url` names another server, and
+  `--chrome <path>` or `CHROME_PATH` picks the browser).
 
 ## Tests
 

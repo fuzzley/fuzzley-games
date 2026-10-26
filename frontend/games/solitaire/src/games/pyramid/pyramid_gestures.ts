@@ -1,7 +1,7 @@
-import { IntentHandler } from "@/engine/render/input/table_intents";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
 import { drawOnStockTop } from "@/engine/tableau/gestures/press_handlers";
 import { tableGestures } from "@/engine/tableau/gestures/table_gestures";
-import { PyramidGame } from "./pyramid_game";
+import type { PyramidGame } from "./pyramid_game";
 import { PyramidRole } from "./pyramid_zones";
 
 /**
@@ -10,9 +10,9 @@ import { PyramidRole } from "./pyramid_zones";
  */
 export function pyramidGestures(game: PyramidGame): IntentHandler {
   return tableGestures(game, {
-    onCardPress: drawOnStockTop(PyramidRole.STOCK, () =>
-      game.drawCardsFromStock(),
-    ),
+    onCardPress: drawOnStockTop(PyramidRole.STOCK, () => {
+      game.drawCardsFromStock();
+    }),
     onPilePress: (pileId) => {
       if (pileId === game.stock.id && game.stock.isEmpty) {
         game.drawCardsFromStock();

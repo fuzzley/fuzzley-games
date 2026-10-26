@@ -38,7 +38,7 @@ describe("the peaks", () => {
   it("cover a tip with the two cards beneath it", () => {
     const [tip] = PEAK_PLACES;
 
-    expect(tip?.coveredBy).toEqual([peakPileId(1, 0), peakPileId(1, 1)]);
+    expect(tip.coveredBy).toEqual([peakPileId(1, 0), peakPileId(1, 1)]);
   });
 });
 

@@ -1,8 +1,8 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 import { itemAt } from "@/engine/core/common/item_at";
-import { Adjacency } from "./adjacency";
-import { BoardQuery } from "./board_query";
+import type { Adjacency } from "./adjacency";
+import type { BoardQuery } from "./board_query";
 
 /** Says which cards in a zone a player may pick up. */
 export type GrabRule =

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
-import { DrawCount } from "@/games/klondike/klondike_rules";
+import type { DrawCount } from "@/games/klondike/klondike_rules";
 import { VegasScoringPolicy } from "@/games/klondike/scoring_policy";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 

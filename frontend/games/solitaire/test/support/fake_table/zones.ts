@@ -1,8 +1,8 @@
-import { PileRole } from "@/engine/core/card/card_pile";
+import type { PileRole } from "@/engine/core/card/card_pile";
 import { Rank } from "@/engine/core/card/playing_card";
-import { PileLayout } from "@/engine/render/layout/pile_layout";
+import type { PileLayout } from "@/engine/render/layout/pile_layout";
 import {
-  PlacementRule,
+  type PlacementRule,
   byEmptiness,
   cardIs,
   hasRank,
@@ -11,7 +11,7 @@ import {
   descendingAlternatingColor,
   suitFoundation,
 } from "@/engine/tableau/rules/builds";
-import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import type { ZoneSpec } from "@/engine/tableau/zones/zone";
 
 /** The parts a pile plays on the fake board. */
 export const FakeRole = {

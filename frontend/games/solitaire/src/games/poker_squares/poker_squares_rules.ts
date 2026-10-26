@@ -1,7 +1,7 @@
-import { PileRole } from "@/engine/core/card/card_pile";
-import { PlayingCardId } from "@/engine/core/card/playing_card";
+import type { PileRole } from "@/engine/core/card/card_pile";
+import type { PlayingCardId } from "@/engine/core/card/playing_card";
 import {
-  PlacementRule,
+  type PlacementRule,
   all,
   singleCardOnly,
 } from "@/engine/tableau/rules/placement";

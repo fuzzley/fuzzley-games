@@ -1,7 +1,7 @@
-import { Deal } from "@/engine/tableau/dealing/deal";
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { DeckSpec } from "@/engine/core/card/deck";
-import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import type { Deal } from "@/engine/tableau/dealing/deal";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { DeckSpec } from "@/engine/core/card/deck";
+import { type PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { seedFrom, seededRandom } from "@/engine/core/random/seeded_random";
 import { shuffle } from "@/engine/core/random/shuffle";
 import { itemAt } from "@/engine/core/common/item_at";

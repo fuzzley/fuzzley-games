@@ -10,20 +10,54 @@ export function rootElement(fixture: ComponentFixture<unknown>): HTMLElement {
   return fixture.nativeElement as HTMLElement;
 }
 
-/** Returns the first element matching `selector`, or null. */
-export function query<T extends HTMLElement = HTMLElement>(
+/** A kind of element, by its class, such as `HTMLDialogElement`. */
+export type ElementKind<T extends HTMLElement> = abstract new () => T;
+
+/**
+ * Returns the first element matching `selector`, or null, checking it is the
+ * kind of element asked for.
+ */
+export function query(
   fixture: ComponentFixture<unknown>,
   selector: string,
-): T | null {
-  return rootElement(fixture).querySelector<T>(selector);
+): HTMLElement | null;
+export function query<T extends HTMLElement>(
+  fixture: ComponentFixture<unknown>,
+  selector: string,
+  kind: ElementKind<T>,
+): T | null;
+export function query(
+  fixture: ComponentFixture<unknown>,
+  selector: string,
+  kind: ElementKind<HTMLElement> = HTMLElement,
+): HTMLElement | null {
+  const element = rootElement(fixture).querySelector(selector);
+  if (element === null) return null;
+  if (!(element instanceof kind)) {
+    throw new Error(`${selector} matched a <${element.localName}>.`);
+  }
+  return element;
 }
 
-/** Returns the first element matching `selector`, throwing if there is none. */
-export function queryRequired<T extends HTMLElement = HTMLElement>(
+/**
+ * Returns the first element matching `selector`, checking it is the kind of
+ * element asked for, and throwing if there is none.
+ */
+export function queryRequired(
   fixture: ComponentFixture<unknown>,
   selector: string,
-): T {
-  const element = query<T>(fixture, selector);
+): HTMLElement;
+export function queryRequired<T extends HTMLElement>(
+  fixture: ComponentFixture<unknown>,
+  selector: string,
+  kind: ElementKind<T>,
+): T;
+export function queryRequired(
+  fixture: ComponentFixture<unknown>,
+  selector: string,
+  kind: ElementKind<HTMLElement> = HTMLElement,
+): HTMLElement {
+  const element = query(fixture, selector, kind);
   if (!element) {
     throw new Error(`No element matched selector: ${selector}`);
   }
@@ -43,7 +77,7 @@ export function queryText(
   fixture: ComponentFixture<unknown>,
   selector: string,
 ): string {
-  return queryRequired(fixture, selector).textContent?.trim() ?? "";
+  return queryRequired(fixture, selector).textContent.trim();
 }
 
 /** Clicks the first element matching `selector`. */

@@ -1,0 +1,16 @@
+{
+  // TypeScript that Node runs as it is: an app's ESLint config and scripts
+  // import these files, and Node strips their types but compiles nothing.
+  "extends": "./tsconfig/base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // Nothing here imports from outside the library but by package name: a
+    // relative import that climbs out of it fails here.
+    "rootDir": "./",
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true,
+    "lib": ["ES2024"],
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["src/**/*.ts", "vitest.config.ts"]
+}

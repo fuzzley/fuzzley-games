@@ -1,6 +1,6 @@
-import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { IntentHandler } from "@/engine/render/input/table_intents";
+import type { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
 
 /** Exposes the two moves a gesture can ask any game to make. */
 export interface MovableGame {

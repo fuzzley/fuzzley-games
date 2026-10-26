@@ -40,7 +40,7 @@ cacheable file. **There is no separate Angular vendor chunk** — do not add one
 speculatively; measure first, because Angular's own code splitting already
 interacts with the AnalogJS plugin.
 
-The ES output target comes from `tsconfig.json` (ES2022). `vite.config.ts` sets
+The ES output target comes from `tsconfig.json`, which takes it from `@fz/dev`'s preset (ES2022). `vite.config.ts` sets
 no `build.target` of its own.
 
 ## The Subdirectory Deploy

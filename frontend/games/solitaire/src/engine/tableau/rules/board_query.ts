@@ -1,5 +1,5 @@
-import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 
 /**
  * Lets a rule read the whole board, for rules that depend on more than the pile

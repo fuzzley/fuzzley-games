@@ -1,7 +1,7 @@
-import { IntentHandler } from "@/engine/render/input/table_intents";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
 import { playOnPress } from "@/engine/tableau/gestures/press_handlers";
 import { tableGestures } from "@/engine/tableau/gestures/table_gestures";
-import { TriPeaksGame } from "./tri_peaks_game";
+import type { TriPeaksGame } from "./tri_peaks_game";
 import { TriPeaksRole } from "./tri_peaks_zones";
 
 /**

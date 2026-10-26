@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
+import type { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { Rank } from "@/engine/core/card/playing_card";
 import { CanfieldGame } from "@/games/canfield/canfield_game";
 import { canfieldGestures } from "@/games/canfield/canfield_gestures";

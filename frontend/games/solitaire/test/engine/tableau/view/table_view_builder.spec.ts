@@ -11,9 +11,9 @@ import {
 import { measureTable } from "@/engine/render/layout/table_metrics";
 import { buildTableViewState } from "@/engine/tableau/view/table_view_builder";
 import { resolveDragTarget } from "@/engine/tableau/view/drag";
-import { PileBackgroundView } from "@/engine/render/view/table_view_state";
-import { TableInteractionState } from "@/engine/render/input/interaction_state";
-import { Viewport } from "@/engine/render/layout/viewport";
+import type { PileBackgroundView } from "@/engine/render/view/table_view_state";
+import type { TableInteractionState } from "@/engine/render/input/interaction_state";
+import type { Viewport } from "@/engine/render/layout/viewport";
 import {
   CARD_RENDER_WIDTH_PX,
   CARD_RENDER_HEIGHT_PX,

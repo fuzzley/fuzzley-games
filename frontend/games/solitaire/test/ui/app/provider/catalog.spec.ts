@@ -1,10 +1,10 @@
 import { vi, describe, it, expect } from "vitest";
 import { makeBoardScene } from "@/ui/app/provider/board_catalog";
 import {
-  CatalogEntry,
+  type CatalogEntry,
   GAME_CATALOG,
-  GameId,
-  GameOptionSpec,
+  type GameId,
+  type GameOptionSpec,
   optionRule,
   storedValue,
   storedValues,
@@ -13,9 +13,9 @@ import {
 import { KlondikeVariant } from "@/games/klondike/klondike_rules";
 import type { PlayableGame } from "@/engine/tableau/session/playable_game";
 import { TableGame } from "@/engine/tableau/game/table_game";
-import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import type { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { computeScale } from "@/engine/render/layout/table_metrics";
-import { NO_INSETS, Viewport } from "@/engine/render/layout/viewport";
+import { NO_INSETS, type Viewport } from "@/engine/render/layout/viewport";
 import { TestPresentation } from "@test/support/presentation";
 import { CATALOG_DEALS as DEALS } from "@test/support/ui/catalog_deals";
 
@@ -222,7 +222,9 @@ describe("every game in the catalog", () => {
   it.each(DEALS)("%s deals again on restart", (_name, entry, values) => {
     const { game } = entry.create(values);
 
-    expect(() => game.restartGame()).not.toThrow();
+    expect(() => {
+      game.restartGame();
+    }).not.toThrow();
   });
 
   it.each(DEALS)(

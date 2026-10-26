@@ -1,5 +1,5 @@
-import { Point, Rect, Size } from "./geometry";
-import { Card } from "@/engine/core/card/card";
+import type { Point, Rect, Size } from "./geometry";
+import type { Card } from "@/engine/core/card/card";
 
 /** Says which way a spread runs from its pile's origin. */
 export type SpreadDirection =
@@ -90,7 +90,7 @@ export interface FanFit {
  */
 export function fitFanDown(
   layout: FanDownLayout,
-  cards: ReadonlyArray<Card>,
+  cards: readonly Card[],
   room: number,
   cardHeight: number,
   fit: FanFit,
@@ -148,7 +148,7 @@ export function stackedCardOffsets(count: number): Point[] {
  * @param expansionCardId The hovered card to reveal, or null for none.
  */
 export function fanDownOffsets(
-  cards: ReadonlyArray<Card>,
+  cards: readonly Card[],
   layout: FanDownLayout,
   expansionCardId: string | null,
 ): Point[] {
@@ -205,7 +205,7 @@ export function spreadOffsets(count: number, layout: SpreadLayout): Point[] {
  */
 export function pileCardOffsets(
   layout: PileLayout,
-  cards: ReadonlyArray<Card>,
+  cards: readonly Card[],
   expansionCardId: string | null = null,
 ): Point[] {
   switch (layout.kind) {
@@ -226,7 +226,7 @@ export function pileCardOffsets(
  */
 export function pileBounds(
   layout: PileLayout,
-  cards: ReadonlyArray<Card>,
+  cards: readonly Card[],
   cardSize: Size,
 ): Rect {
   const offsets = pileCardOffsets(layout, cards);

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   Difficulty,
-  DifficultyByRule,
+  type DifficultyByRule,
   difficultyFor,
   difficultyRange,
 } from "@/ui/app/model/game_profile.model";

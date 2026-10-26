@@ -1,4 +1,4 @@
-import { CardDeckId } from "../../deck/card_deck";
+import type { CardDeckId } from "../../deck/card_deck";
 
 /**
  * The SVG of every frame a deck can draw at any size, by frame name: each a

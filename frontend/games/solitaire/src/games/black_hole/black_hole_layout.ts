@@ -1,4 +1,4 @@
-import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import type { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { boardLayout } from "../common/board_layout";
 import { BlackHoleVariant } from "./black_hole_rules";
 import { blackHoleBoard, blackHoleZoneSpecs } from "./black_hole_zones";

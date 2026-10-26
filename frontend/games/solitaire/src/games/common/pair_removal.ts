@@ -1,16 +1,16 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import { type PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import {
-  PlacementRule,
+  type PlacementRule,
   all,
   singleCardOnly,
 } from "@/engine/tableau/rules/placement";
 import {
-  MoveEffects,
+  type MoveEffects,
   NO_MOVE_EFFECTS,
-  ResolvedMove,
+  type ResolvedMove,
 } from "@/engine/tableau/moves/move";
-import { Tabletop } from "@/engine/tableau/game/tabletop";
+import type { Tabletop } from "@/engine/tableau/game/tabletop";
 
 /**
  * Plays a pairing game, where a card dropped on its partner takes both to the

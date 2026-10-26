@@ -29,8 +29,8 @@ Minesweeper.
   - The root's `package.json` declares the workspaces and pins Yarn and
     Node. Its scripts run the workspaces' own (`yarn build`, `yarn verify`),
     picking them by path (`--include "games/*"`), and its dependencies are
-    only the tools that run from here: Prettier, and ESLint and TypeScript
-    for the `.agents/` scripts, with the `eslint.config.js` and
+    only the tools that run from here: Prettier, and ESLint, TypeScript and
+    `@fz/dev` for the `.agents/` scripts, with the `eslint.config.js` and
     `tsconfig.scripts.json` beside it. `yarn.lock` and `.yarnrc.yml` exist
     only here.
   - `yarn.config.cjs` holds the constraints `yarn lint` checks every
@@ -41,6 +41,8 @@ Minesweeper.
     on no workspace but another library.
   - Each workspace is self-contained: its `package.json` lists everything
     it imports or runs, and its configs sit in its folder and cover only it.
+    They build on `@fz/dev`'s presets, so every workspace is checked by the
+    same rules, and add only what is the workspace's own.
     The site and the games never import each other's code; the site takes a
     game's built `dist/`, through `games.json`, and nothing else.
   - `lib/` holds the libraries the site and the games share, one workspace
@@ -52,9 +54,11 @@ Minesweeper.
     on its own. Each keeps its own rules in an `AGENTS.md` in its folder:
     `frontend/lib/style/AGENTS.md`, for the styles every app shares, with
     no framework, `frontend/lib/ui/AGENTS.md`, for the Angular components
-    and services, and `frontend/lib/game-ui/AGENTS.md`, for the chrome
-    only the games share. The `fuzzley-ui` skill says which piece to reach
-    for, and how an app adopts them.
+    and services, `frontend/lib/game-ui/AGENTS.md`, for the chrome only
+    the games share, and `frontend/lib/dev/AGENTS.md`, for the lint and
+    compiler presets every workspace is checked with and the scripts'
+    headless Chrome, which no app's code imports. The `fuzzley-ui` skill
+    says which piece to reach for, and how an app adopts them.
   - `games/` holds the games built here, one workspace each, named after its
     folder. A game knows nothing of the site, even when both use the same
     library: it builds into its own `dist/`, with `index.html` at its top level and its screenshots in
@@ -168,7 +172,7 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
 - **A workspace's instructions** sit in its folder:
   `frontend/site/AGENTS.md`, `frontend/lib/style/AGENTS.md`,
   `frontend/lib/ui/AGENTS.md`, `frontend/lib/game-ui/AGENTS.md`,
-  `frontend/games/solitaire/AGENTS.md` and
+  `frontend/lib/dev/AGENTS.md`, `frontend/games/solitaire/AGENTS.md` and
   `frontend/games/minesweeper/AGENTS.md`, each with a `CLAUDE.md` beside it
   that imports it (`@AGENTS.md`). Agents read them when they work in that
   folder, so the site's rules never reach a game. A rule for the whole
@@ -229,7 +233,7 @@ These rules cover every doc comment: classes, interfaces, functions, HTML, CSS, 
 - **Functions and methods:** Write in the third person, always starting with a verb phrase, as if "This function" came before it, e.g. `Returns the game a slug names.` or `Applies a palette to the page.`
 - **Further paragraphs are rare.** Add additional paragraphs only when it stops a caller from misusing the code, or when it answers a "why" that a reader is very likely to ask and cannot answer from the name or the code itself. Don't use one to restate the implementation, list alternatives you rejected, or tell the history of the code.
 - **`@param` and `@returns` only when they add something.** In TypeScript, leave them out when they only repeat the name and type or when they are already described sufficiently in the description.
-- **A script writes down every type.** The `.mjs` scripts, under `.agents/` and each workspace's `tools/`, are plain JavaScript, so a JSDoc tag is the only place a type can go. Every parameter has an `@param {Type} name`, and every function that returns a value has an `@returns {Type}`, described only when the description adds something. A shape used more than once is a `@typedef`, which another script takes with `@import` rather than spelling it out again. `yarn lint` requires the tags (`eslint-plugin-jsdoc`), and `yarn typecheck` checks the types under `strict`.
+- **A script writes down every type.** The `.mjs` scripts, under `.agents/` and each workspace's `tools/`, are plain JavaScript, so a JSDoc tag is the only place a type can go. Every parameter has an `@param {Type} name`, and every function that returns a value has an `@returns {Type}`, described only when the description adds something. A shape used more than once is a `@typedef`, which another script takes with `@import` rather than spelling it out again. `yarn lint` requires the tags (`eslint-plugin-jsdoc`, in `@fz/dev`'s `scripts()` block), and `yarn typecheck` checks the types under `strict`.
 - **Inline comments follow the same rules:** Only write implementation comments for what the code cannot say for itself (e.g. disambiguate a "why" that a user is very likely to ask after reading the code).
 
 ```ts

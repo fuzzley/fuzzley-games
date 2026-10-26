@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
-  FanDownLayout,
-  FanFit,
-  PileLayout,
-  SpreadDirection,
+  type FanDownLayout,
+  type FanFit,
+  type PileLayout,
+  type SpreadDirection,
   fitFanDown,
   mirrorPileLayout,
   pileBounds,
@@ -28,7 +28,7 @@ import {
   tableauPileId,
 } from "@test/support/fake_table/zones";
 import { CardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 
 const CARD = { width: 100, height: 150 };
 

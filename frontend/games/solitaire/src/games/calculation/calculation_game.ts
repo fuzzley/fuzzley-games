@@ -1,15 +1,15 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { Deal } from "@/engine/tableau/dealing/deal";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
+import type { Deal } from "@/engine/tableau/dealing/deal";
 import { DealtTableGame } from "@/engine/tableau/game/dealt_table_game";
-import { DeckOptions } from "@/games/common/deck_options";
+import type { DeckOptions } from "@/games/common/deck_options";
 import { drawToWaste } from "@/games/common/stock_pile";
 import { dealCalculationLayout } from "./calculation_deal";
 import { DEFAULT_CALCULATION_VARIANT } from "./calculation_rules";
 import {
   CalculationRole,
-  CalculationVariant,
+  type CalculationVariant,
   HAND_PILE_ID,
   STOCK_PILE_ID,
   calculationZoneSpecs,

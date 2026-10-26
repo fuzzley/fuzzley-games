@@ -1,0 +1,23 @@
+{
+  // An Angular workspace's options: the base's, Angular's decorators, and the
+  // Angular compiler's strictest checks, with every extended diagnostic an
+  // error.
+  "extends": "./base.json",
+  "compileOnSave": false,
+  "compilerOptions": {
+    "outDir": "${configDir}/dist/out-tsc",
+    "rootDir": "${configDir}",
+    "experimentalDecorators": true,
+    "importHelpers": true
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictStandalone": true,
+    "strictTemplates": true,
+    "extendedDiagnostics": {
+      "defaultCategory": "error"
+    }
+  }
+}

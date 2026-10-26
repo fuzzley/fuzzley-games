@@ -1,4 +1,4 @@
-import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import type { ZoneSpec } from "@/engine/tableau/zones/zone";
 import { STOCK_PILE_ID, WASTE_PILE_ID } from "../common/pile_ids";
 import { wasteFanLayout } from "../common/pile_layouts";
 import {
@@ -10,7 +10,7 @@ import {
 } from "../common/zone_presets";
 import {
   DEFAULT_KLONDIKE_VARIANT,
-  DrawCount,
+  type DrawCount,
   KlondikeRole,
   KlondikeVariant,
   klondikeDealsFaceUp,

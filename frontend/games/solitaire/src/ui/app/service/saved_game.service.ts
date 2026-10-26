@@ -62,8 +62,7 @@ export class SavedGameService {
   private restore(): void {
     const saved = this.read();
     if (
-      !saved ||
-      saved.gameId !== this.catalog.selectedId() ||
+      saved?.gameId !== this.catalog.selectedId() ||
       !sameOptionValues(saved.options, this.catalog.optionValues())
     ) {
       return;

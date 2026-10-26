@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from "vitest";
-import { TestBed, ComponentFixture } from "@angular/core/testing";
+import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { GameHelpModalComponent } from "@/ui/app/component/game_help_modal/game_help_modal.component";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";

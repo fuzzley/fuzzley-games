@@ -1,5 +1,5 @@
-import { ArrangedLayouts } from "@/engine/render/layout/board_layouts";
-import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import type { ArrangedLayouts } from "@/engine/render/layout/board_layouts";
+import type { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { boardLayout } from "../common/board_layout";
 import {
   arrangedLayouts,

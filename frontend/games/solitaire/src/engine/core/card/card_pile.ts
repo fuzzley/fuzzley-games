@@ -1,4 +1,4 @@
-import { Card } from "./card";
+import type { Card } from "./card";
 
 /**
  * Names the part a pile plays in its game, such as a stock or a free cell.
@@ -47,7 +47,7 @@ export interface ReadonlyCardPile<T extends Card = Card> {
   /** The number of cards in the pile. */
   readonly size: number;
   /** Returns the cards in this pile, from the bottom up. */
-  getCards(): ReadonlyArray<T>;
+  getCards(): readonly T[];
   /** Returns whether the given card is contained in this pile. */
   contains(card: T): boolean;
 }
@@ -77,18 +77,14 @@ export class CardPile<T extends Card = Card> implements ReadonlyCardPile<T> {
    * @param locations The index, shared by every pile in a game, to keep up to
    *   date as cards join and leave.
    */
-  constructor(
-    id: string = "",
-    role: PileRole = "",
-    locations?: CardLocations<T>,
-  ) {
+  constructor(id = "", role: PileRole = "", locations?: CardLocations<T>) {
     this.id = id;
     this.role = role;
     this.locations = locations;
   }
 
   /** Returns the cards in this pile, from the bottom up. */
-  getCards(): ReadonlyArray<T> {
+  getCards(): readonly T[] {
     return this.cards;
   }
 

@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 import { measureTable } from "@/engine/render/layout/table_metrics";
-import { TableInteractionState } from "@/engine/render/input/interaction_state";
-import { Viewport } from "@/engine/render/layout/viewport";
+import type { TableInteractionState } from "@/engine/render/input/interaction_state";
+import type { Viewport } from "@/engine/render/layout/viewport";
 import { buildTableViewState } from "@/engine/tableau/view/table_view_builder";
 import { EightOffGame } from "@/games/eight_off/eight_off_game";
 import { EIGHT_OFF_LAYOUT } from "@/games/eight_off/eight_off_layout";

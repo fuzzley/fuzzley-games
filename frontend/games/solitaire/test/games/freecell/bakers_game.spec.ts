@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 import { FreeCellGame } from "@/games/freecell/freecell_game";
 import { FreeCellVariant } from "@/games/freecell/freecell_zones";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";

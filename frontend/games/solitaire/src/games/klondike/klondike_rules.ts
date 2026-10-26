@@ -1,7 +1,7 @@
-import { PileRole } from "@/engine/core/card/card_pile";
+import type { PileRole } from "@/engine/core/card/card_pile";
 import { Rank } from "@/engine/core/card/playing_card";
 import {
-  PlacementRule,
+  type PlacementRule,
   anyCard,
   byEmptiness,
   cardIs,
@@ -18,7 +18,7 @@ import {
   isOrderedPair,
   isSameColorRun,
 } from "@/engine/tableau/rules/adjacency";
-import { GrabRule } from "@/engine/tableau/rules/grab";
+import type { GrabRule } from "@/engine/tableau/rules/grab";
 
 /** The parts a pile can play in a Klondike game. */
 export const KlondikeRole = {

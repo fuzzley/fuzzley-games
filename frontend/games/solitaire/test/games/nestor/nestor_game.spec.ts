@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
+import { type PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
 import { NestorGame } from "@/games/nestor/nestor_game";
 import { CARDS_PER_COLUMN, dealNestorLayout } from "@/games/nestor/nestor_deal";
 import { TABLEAU_COUNT } from "@/games/nestor/nestor_zones";

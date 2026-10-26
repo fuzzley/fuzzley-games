@@ -7,7 +7,7 @@
   #canvasHost
   class="canvas-container"
   role="img"
-  [attr.aria-label]="gameName() + ' board'"
+  [attr.aria-label]="`${gameName()} board`"
   [attr.aria-busy]="isInitializing()"
 ></div>
 

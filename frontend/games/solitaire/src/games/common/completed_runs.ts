@@ -1,7 +1,7 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
-import { CardTransfer } from "@/engine/tableau/moves/move";
-import { Tabletop } from "@/engine/tableau/game/tabletop";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import { type PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import type { CardTransfer } from "@/engine/tableau/moves/move";
+import type { Tabletop } from "@/engine/tableau/game/tabletop";
 import { isSameSuitRun } from "@/engine/tableau/rules/adjacency";
 import { itemAt } from "@/engine/core/common/item_at";
 

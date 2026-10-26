@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import { type PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { EightOffGame } from "@/games/eight_off/eight_off_game";
 import {
   CELL_COUNT,

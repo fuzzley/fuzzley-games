@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { TestBed, ComponentFixture } from "@angular/core/testing";
+import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { DebugPanelComponent } from "@/ui/app/component/debug_panel/debug_panel.component";
 import { encodePosition } from "@/ui/app/model/game_position";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
@@ -41,7 +41,7 @@ describe("DebugPanelComponent", () => {
   });
 
   it("shows only debug rules, not the ones a player picks", () => {
-    expect(choices().map((button) => button.textContent?.trim())).toEqual([
+    expect(choices().map((button) => button.textContent.trim())).toEqual([
       "Normal",
       "Almost Win",
     ]);
@@ -61,7 +61,7 @@ describe("DebugPanelComponent", () => {
   describe("loading a bug report's game", () => {
     /** Pastes text into the loader and presses Load. */
     function load(text: string): void {
-      queryRequired<HTMLTextAreaElement>(fixture, ".load-text").value = text;
+      queryRequired(fixture, ".load-text", HTMLTextAreaElement).value = text;
       clickElement(fixture, ".btn-load");
     }
 

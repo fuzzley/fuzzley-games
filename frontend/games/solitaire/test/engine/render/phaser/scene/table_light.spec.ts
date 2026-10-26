@@ -5,7 +5,10 @@ import {
   TableLight,
 } from "@/engine/render/phaser/scene/table_light";
 import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
-import { MockGradient, createMockGradient } from "@test/support/phaser_mocks";
+import {
+  type MockGradient,
+  createMockGradient,
+} from "@test/support/phaser_mocks";
 
 /** Creates a light in a stand-in scene and returns it with its gradient. */
 function lightTable(): { light: TableLight; gradient: MockGradient } {

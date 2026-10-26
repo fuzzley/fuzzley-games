@@ -1,8 +1,8 @@
 import {
-  TableLayoutSpec,
+  type TableLayoutSpec,
   tableLayout,
 } from "@/engine/render/layout/table_layout";
-import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import type { ZoneSpec } from "@/engine/tableau/zones/zone";
 
 /** Describes the grid a board lies on and the zones that sit on it. */
 export interface BoardLayoutOptions {

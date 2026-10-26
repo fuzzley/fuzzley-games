@@ -105,8 +105,8 @@ passes on `main` moves it forward again.
 
 - **`verify` failures.** Reproduce with `yarn verify` in `frontend/`.
   `yarn typecheck` runs `tsc` over `frontend/tsconfig.scripts.json` (the
-  `.agents` scripts), then the site's checks: `ngc` over
-  `frontend/site/tsconfig.app.json`, then `tsc` over
+  `.agents` scripts), then each workspace's, such as the site's: `ngc`
+  over `frontend/site/tsconfig.app.json`, then `tsc` over
   `frontend/site/tsconfig.spec.json`, `frontend/site/tsconfig.node.json` and
   `frontend/site/tsconfig.scripts.json`. A formatting failure in `yarn lint`
   is fixed by `yarn prettier`.

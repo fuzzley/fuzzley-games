@@ -1,9 +1,9 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 import {
-  AppliedMove,
-  AppliedMoveKind,
-  CardTransfer,
+  type AppliedMove,
+  type AppliedMoveKind,
+  type CardTransfer,
   relocatedCardIds,
 } from "./move";
 

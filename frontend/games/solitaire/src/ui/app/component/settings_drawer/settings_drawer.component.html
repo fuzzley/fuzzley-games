@@ -112,7 +112,7 @@
                   aria-hidden="true"
                 >
                   @for (card of deck.preview; track card.rank) {
-                    <g [attr.transform]="'translate(' + card.x + ' 0)'">
+                    <g [attr.transform]="`translate(${card.x} 0)`">
                       <rect
                         x="0.5"
                         y="0.5"

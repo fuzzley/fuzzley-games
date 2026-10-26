@@ -1,10 +1,10 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
 import {
-  DevicePixelSize,
-  MeasurableParent,
-  PixelRatioQuery,
-  ScalableGame,
-  ScalerWindow,
+  type DevicePixelSize,
+  type MeasurableParent,
+  type PixelRatioQuery,
+  type ScalableGame,
+  type ScalerWindow,
   ViewportScaler,
   watchDevicePixels,
 } from "@/engine/render/phaser/host/viewport_scaler";

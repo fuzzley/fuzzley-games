@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { mirrorTable } from "@/engine/render/layout/board_layouts";
 import { CARD_HEIGHT_PX } from "@/engine/render/layout/card_metrics";
-import { PileLayout } from "@/engine/render/layout/pile_layout";
+import type { PileLayout } from "@/engine/render/layout/pile_layout";
 import {
-  TableLayoutSpec,
+  type TableLayoutSpec,
   designSize,
   tableLayout,
 } from "@/engine/render/layout/table_layout";
@@ -13,7 +13,7 @@ import {
   TABLEAU_HOVER_EXPANSION_OFFSET,
 } from "@/games/common/pile_layouts";
 import {
-  ArrangedBoard,
+  type ArrangedBoard,
   RAIL_MIN_STEP,
   arrangedLayouts,
 } from "@/games/common/arranged_layouts";

@@ -1,13 +1,13 @@
 import { describe, it, expect } from "vitest";
 import {
-  ArrangedLayouts,
-  BoardLayouts,
+  type ArrangedLayouts,
+  type BoardLayouts,
   chooseTableLayout,
   mirrorTable,
 } from "@/engine/render/layout/board_layouts";
 import { DEFAULT_BOARD_ARRANGEMENT } from "@/engine/render/layout/board_arrangement";
 import {
-  TableLayoutSpec,
+  type TableLayoutSpec,
   tableLayout,
 } from "@/engine/render/layout/table_layout";
 

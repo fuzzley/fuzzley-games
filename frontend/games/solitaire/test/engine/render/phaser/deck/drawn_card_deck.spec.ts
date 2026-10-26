@@ -1,15 +1,15 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
 import {
-  DeckPaintContext,
-  DrawnDeckPlan,
-  ImageFrame,
+  type DeckPaintContext,
+  type DrawnDeckPlan,
+  type ImageFrame,
   loadSvgImage,
   paintDrawnDeck,
   planDrawnDeck,
   sizeSvg,
 } from "@/engine/render/phaser/deck/drawn_card_deck";
 import { cardFrameTexels } from "@/engine/render/deck/card_art_scale";
-import { Size } from "@/engine/render/layout/geometry";
+import type { Size } from "@/engine/render/layout/geometry";
 
 /** As many frames as a deck's atlas holds: 56 cards and 11 placeholders. */
 const ATLAS_FRAMES = Array.from({ length: 67 }, (_, index) => `frame-${index}`);

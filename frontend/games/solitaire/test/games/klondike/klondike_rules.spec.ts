@@ -5,9 +5,9 @@ import {
   KlondikeRole,
   klondikeZoneSpecs,
 } from "@/games/klondike/klondike_zones";
-import { PlayingCard, Suit, Rank } from "@/engine/core/card/playing_card";
-import { BoardQuery } from "@/engine/tableau/rules/board_query";
-import { PlacementRule } from "@/engine/tableau/rules/placement";
+import { type PlayingCard, Suit, Rank } from "@/engine/core/card/playing_card";
+import type { BoardQuery } from "@/engine/tableau/rules/board_query";
+import type { PlacementRule } from "@/engine/tableau/rules/placement";
 import { makePlayingCard } from "@test/support/card_builder";
 
 /**

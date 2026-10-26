@@ -1,11 +1,11 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { deckCardIds } from "@/engine/core/card/deck";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { Deal } from "@/engine/tableau/dealing/deal";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
+import type { Deal } from "@/engine/tableau/dealing/deal";
 import { DealtTableGame } from "@/engine/tableau/game/dealt_table_game";
-import { MoveEffects } from "@/engine/tableau/moves/move";
+import type { MoveEffects } from "@/engine/tableau/moves/move";
 import { collectCompletedRuns } from "@/games/common/completed_runs";
-import { DeckOptions } from "@/games/common/deck_options";
+import type { DeckOptions } from "@/games/common/deck_options";
 import { dealSimpleSimonLayout } from "./simple_simon_deal";
 import {
   DEFAULT_SIMPLE_SIMON_VARIANT,
@@ -14,7 +14,7 @@ import {
 } from "./simple_simon_rules";
 import {
   SimpleSimonRole,
-  SimpleSimonVariant,
+  type SimpleSimonVariant,
   simpleSimonZoneSpecs,
 } from "./simple_simon_zones";
 

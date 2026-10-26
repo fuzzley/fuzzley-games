@@ -1,6 +1,6 @@
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { PileLayout } from "@/engine/render/layout/pile_layout";
-import { SlotPlacement } from "@/engine/render/layout/table_layout";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
+import type { PileLayout } from "@/engine/render/layout/pile_layout";
+import type { SlotPlacement } from "@/engine/render/layout/table_layout";
 
 /**
  * Says which side of its cards a zone shows, which may override the cards' own

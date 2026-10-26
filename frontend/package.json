@@ -28,11 +28,10 @@
     "prettier:check": "cd .. && prettier . --check"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
+    "@fz/dev": "workspace:*",
     "@types/node": "^26.6.0",
     "@yarnpkg/types": "^4.0.1",
     "eslint": "^10.13.0",
-    "eslint-plugin-jsdoc": "^65.4.2",
     "prettier": "^3.9.9",
     "typescript": "~6.0.3"
   }

@@ -18,10 +18,10 @@ export function pressEscape(): void {
 
 /** Returns whether the fixture's dialog is showing. */
 export function isDialogOpen(fixture: ComponentFixture<unknown>): boolean {
-  return queryRequired<HTMLDialogElement>(fixture, "dialog").open;
+  return queryRequired(fixture, "dialog", HTMLDialogElement).open;
 }
 
 /** Clicks the dialog's backdrop, which is the dialog element itself. */
 export function clickBackdrop(fixture: ComponentFixture<unknown>): void {
-  queryRequired<HTMLDialogElement>(fixture, "dialog").click();
+  queryRequired(fixture, "dialog", HTMLDialogElement).click();
 }

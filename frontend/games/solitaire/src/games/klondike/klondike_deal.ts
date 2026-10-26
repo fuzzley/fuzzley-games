@@ -1,11 +1,11 @@
-import { Deal } from "@/engine/tableau/dealing/deal";
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { Deal } from "@/engine/tableau/dealing/deal";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import {
   ALL_RANKS,
   ALL_SUITS,
-  PlayingCard,
+  type PlayingCard,
   Rank,
-  Suit,
+  type Suit,
 } from "@/engine/core/card/playing_card";
 import { itemAt } from "@/engine/core/common/item_at";
 

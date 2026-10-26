@@ -1,18 +1,18 @@
 import type { Textures } from "phaser";
 
-import { CARD_ART_SCALES, CardArtScale } from "../../deck/card_art_scale";
-import { CardDeckId } from "../../deck/card_deck";
-import { CardAtlas, cardAtlasTextureKey } from "./card_deck_atlas";
+import { CARD_ART_SCALES, type CardArtScale } from "../../deck/card_art_scale";
+import type { CardDeckId } from "../../deck/card_deck";
+import { type CardAtlas, cardAtlasTextureKey } from "./card_deck_atlas";
 import {
-  CardFrameVectors,
+  type CardFrameVectors,
   hasCardDeckVectors,
   loadCardDeckVectors,
 } from "./card_deck_vectors";
 import {
-  DeckPaintContext,
-  DrawnDeckPlan,
-  ImageFrame,
-  LoadSvgImage,
+  type DeckPaintContext,
+  type DrawnDeckPlan,
+  type ImageFrame,
+  type LoadSvgImage,
   loadSvgImage,
   paintDrawnDeck,
   planDrawnDeck,

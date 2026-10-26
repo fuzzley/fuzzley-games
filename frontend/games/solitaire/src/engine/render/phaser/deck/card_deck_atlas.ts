@@ -1,7 +1,7 @@
 import type { Loader } from "phaser";
 
-import { CARD_DECKS, CardDeckId } from "../../deck/card_deck";
-import { CARD_ART_SCALES, CardArtScale } from "../../deck/card_art_scale";
+import { CARD_DECKS, type CardDeckId } from "../../deck/card_deck";
+import { CARD_ART_SCALES, type CardArtScale } from "../../deck/card_art_scale";
 import classicAtlas0_5x from "../../assets/sprites/atlas/classic/0.5x/card_assets_atlas.json";
 import classicAtlas0_75x from "../../assets/sprites/atlas/classic/0.75x/card_assets_atlas.json";
 import classicAtlas1x from "../../assets/sprites/atlas/classic/1x/card_assets_atlas.json";

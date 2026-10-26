@@ -1,0 +1,23 @@
+{
+  // The compiler options every workspace's TypeScript is checked with. An app
+  // compiles the libraries' sources into its own program, with its own
+  // options, so one set for every workspace is what lets a library's code
+  // pass in each of them.
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "module": "preserve",
+    "target": "ES2022"
+  }
+}

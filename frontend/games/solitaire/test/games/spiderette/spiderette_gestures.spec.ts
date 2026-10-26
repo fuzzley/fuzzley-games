@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { IntentHandler } from "@/engine/render/input/table_intents";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
 import { SpideretteGame } from "@/games/spiderette/spiderette_game";
 import { spideretteGestures } from "@/games/spiderette/spiderette_gestures";
 import {

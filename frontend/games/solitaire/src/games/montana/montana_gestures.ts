@@ -1,6 +1,6 @@
-import { IntentHandler } from "@/engine/render/input/table_intents";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
 import { tableGestures } from "@/engine/tableau/gestures/table_gestures";
-import { MontanaGame } from "./montana_game";
+import type { MontanaGame } from "./montana_game";
 import { REDEAL_PILE_ID } from "./montana_zones";
 
 /**

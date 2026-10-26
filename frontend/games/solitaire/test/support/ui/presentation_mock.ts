@@ -5,25 +5,25 @@ import type {
   PresentationSettingsService,
 } from "@/ui/app/service/presentation_settings.service";
 import {
-  CardBackStyle,
+  type CardBackStyle,
   DEFAULT_CARD_BACK,
 } from "@/engine/render/deck/card_back";
 import {
-  CardDeckId,
+  type CardDeckId,
   DEFAULT_DESKTOP_CARD_DECK,
-  DesktopCardDeckId,
+  type DesktopCardDeckId,
   MOBILE_CARD_DECK,
 } from "@/engine/render/deck/card_deck";
 import {
   DEFAULT_FELT,
-  FeltChoice,
+  type FeltChoice,
   TABLE_FELTS,
 } from "@/ui/app/model/table_felt";
 import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/view/presentation";
 import {
-  OrAuto,
-  PilePosition,
-  StockSide,
+  type OrAuto,
+  type PilePosition,
+  type StockSide,
   resolveArrangement,
 } from "@/engine/render/layout/board_arrangement";
 import type { FormFactor } from "@/engine/render/layout/form_factor";

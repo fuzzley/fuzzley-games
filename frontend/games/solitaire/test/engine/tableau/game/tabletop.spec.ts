@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
-import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
-import { CardTransfer } from "@/engine/tableau/moves/move";
+import { type PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
+import type { CardTransfer } from "@/engine/tableau/moves/move";
 import { anyCard } from "@/engine/tableau/rules/placement";
 import { Tabletop } from "@/engine/tableau/game/tabletop";
-import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import type { ZoneSpec } from "@/engine/tableau/zones/zone";
 
 /** Returns a pile's zone, taking any card unless told it takes none. */
 function zone(id: string, role = "column", accepts = true): ZoneSpec {

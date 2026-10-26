@@ -1,8 +1,8 @@
 import {
-  CatalogEntry,
+  type CatalogEntry,
   GAME_CATALOG,
-  GameOptionSpec,
-  GameOptionValues,
+  type GameOptionSpec,
+  type GameOptionValues,
 } from "@/ui/app/provider/game_catalog";
 
 /**

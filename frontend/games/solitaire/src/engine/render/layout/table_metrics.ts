@@ -1,7 +1,11 @@
-import { Point } from "./geometry";
-import { Insets, NO_INSETS, Viewport } from "./viewport";
+import type { Point } from "./geometry";
+import { type Insets, NO_INSETS, type Viewport } from "./viewport";
 import { formFactorOf } from "./form_factor";
-import { SlotPlacement, TableLayoutSpec, designSize } from "./table_layout";
+import {
+  type SlotPlacement,
+  type TableLayoutSpec,
+  designSize,
+} from "./table_layout";
 
 /**
  * Computes the scale, from design units to device pixels, that fits the board

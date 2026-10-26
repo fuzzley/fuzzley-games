@@ -1,4 +1,4 @@
-import { Viewport } from "./viewport";
+import type { Viewport } from "./viewport";
 
 /** Says what shape of screen a board is drawn on. */
 export type FormFactor =

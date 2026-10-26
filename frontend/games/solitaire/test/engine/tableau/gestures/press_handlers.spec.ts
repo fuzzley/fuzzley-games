@@ -47,9 +47,9 @@ describe("drawOnStockTop", () => {
   });
 
   it("throws for a card in no pile", () => {
-    expect(() => press()("card-hearts-ace", undefined)).toThrow(
-      /not in a pile/,
-    );
+    expect(() => {
+      press()("card-hearts-ace", undefined);
+    }).toThrow(/not in a pile/);
   });
 });
 

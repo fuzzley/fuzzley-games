@@ -1,4 +1,4 @@
-import * as Phaser from "phaser";
+import type * as Phaser from "phaser";
 
 /** Makes the sprites for cards, the shadows they cast, and pile placeholders. */
 export class PhaserCardFactory {

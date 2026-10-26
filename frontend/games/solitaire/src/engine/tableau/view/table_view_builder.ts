@@ -1,19 +1,19 @@
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { Point } from "@/engine/render/layout/geometry";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
+import type { Point } from "@/engine/render/layout/geometry";
 import { pileCardOffsets } from "@/engine/render/layout/pile_layout";
 import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
-import { TableMetrics } from "@/engine/render/layout/table_metrics";
-import {
+import type { TableMetrics } from "@/engine/render/layout/table_metrics";
+import type {
   CardView,
   TableViewState,
 } from "@/engine/render/view/table_view_state";
-import { TableInteractionState } from "@/engine/render/input/interaction_state";
+import type { TableInteractionState } from "@/engine/render/input/interaction_state";
 import { itemAt } from "@/engine/core/common/item_at";
-import { ZoneLook, frameFor, showsFace } from "../zones/zone_look";
+import { type ZoneLook, frameFor, showsFace } from "../zones/zone_look";
 import { highlightViews } from "./highlight_views";
 import { pileArrangement } from "./pile_arrangement";
 import { pileBackgroundViews } from "./pile_backgrounds";
-import { TableView } from "./table_view";
+import type { TableView } from "./table_view";
 
 /** Places one card for this frame and says whether it eases there. */
 interface CardPlacement {

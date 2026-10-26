@@ -1,4 +1,4 @@
-import { Point, Size } from "./geometry";
+import type { Point, Size } from "./geometry";
 
 import {
   CARD_HEIGHT_PX,

@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from "vitest";
-import { TestBed, ComponentFixture } from "@angular/core/testing";
+import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { OptionGroupComponent } from "@/ui/app/component/option_group/option_group.component";
-import { GameOptionSpec } from "@/ui/app/provider/game_catalog";
+import type { GameOptionSpec } from "@/ui/app/provider/game_catalog";
 import { query, queryAll, queryText, rootElement } from "@test/support/dom";
 
 /**
@@ -54,7 +54,7 @@ describe("OptionGroupComponent", () => {
   function checkedLabel(): string | undefined {
     return choices()
       .find((button) => button.getAttribute("aria-checked") === "true")
-      ?.textContent?.trim();
+      ?.textContent.trim();
   }
 
   /** Renders with an explicitly chosen value. */
@@ -68,7 +68,7 @@ describe("OptionGroupComponent", () => {
   });
 
   it("offers every choice the rule declares, in order", () => {
-    expect(choices().map((button) => button.textContent?.trim())).toEqual([
+    expect(choices().map((button) => button.textContent.trim())).toEqual([
       "Draw 1",
       "Draw 2",
       "Draw 3",
@@ -191,9 +191,7 @@ describe("OptionGroupComponent", () => {
     ): string | undefined {
       const id = row.getAttribute(attribute);
       return id
-        ? rootElement(fixture)
-            .querySelector(`[id="${id}"]`)
-            ?.textContent?.trim()
+        ? rootElement(fixture).querySelector(`[id="${id}"]`)?.textContent.trim()
         : undefined;
     }
 

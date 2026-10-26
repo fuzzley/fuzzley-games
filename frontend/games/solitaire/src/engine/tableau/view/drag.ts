@@ -1,13 +1,13 @@
 import {
   computeDropGeometries,
   resolveDropTarget,
-  PileGeometry,
+  type PileGeometry,
 } from "@/engine/render/layout/drop_geometry";
-import { TableMetrics } from "@/engine/render/layout/table_metrics";
-import { DragInteraction } from "@/engine/render/input/interaction_state";
+import type { TableMetrics } from "@/engine/render/layout/table_metrics";
+import type { DragInteraction } from "@/engine/render/input/interaction_state";
 import { grabbedStack } from "../rules/grab";
 import { pileArrangement } from "./pile_arrangement";
-import { TableView } from "./table_view";
+import type { TableView } from "./table_view";
 
 /**
  * How much of the dragged card must lie over a pile that would take it for

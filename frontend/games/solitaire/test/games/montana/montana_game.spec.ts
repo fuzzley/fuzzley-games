@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import {
-  PlayingCard,
+  type PlayingCard,
   Rank,
   Suit,
   playingCardInstanceId,

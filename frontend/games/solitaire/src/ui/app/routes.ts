@@ -1,8 +1,8 @@
-import { EnvironmentProviders, inject } from "@angular/core";
+import { type EnvironmentProviders, inject } from "@angular/core";
 import {
-  CanDeactivateFn,
-  CanMatchFn,
-  Routes,
+  type CanDeactivateFn,
+  type CanMatchFn,
+  type Routes,
   provideRouter,
   withHashLocation,
   withRouterConfig,

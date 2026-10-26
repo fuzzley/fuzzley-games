@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { CardRegistry } from "@/engine/core/card/card_registry";
-import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
-import { AppliedMove } from "@/engine/tableau/moves/move";
+import { type PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
+import type { AppliedMove } from "@/engine/tableau/moves/move";
 import { MoveHistory } from "@/engine/tableau/moves/move_history";
 import { anyCard } from "@/engine/tableau/rules/placement";
 import { Tabletop } from "@/engine/tableau/game/tabletop";
-import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import type { ZoneSpec } from "@/engine/tableau/zones/zone";
 
 /** Returns a pile's zone: any card goes, and nothing is drawn. */
 function zone(id: string): ZoneSpec {

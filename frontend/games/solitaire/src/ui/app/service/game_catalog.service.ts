@@ -104,7 +104,7 @@ export class GameCatalogService {
   setOption(optionId: string, value: number): void {
     const entry = this.selectedEntry;
     const spec = entry.options.find((option) => option.id === optionId);
-    if (!spec || !spec.choices.some((choice) => choice.value === value)) {
+    if (!spec?.choices.some((choice) => choice.value === value)) {
       return;
     }
     if (optionValue(this.optionValues(), spec) === value) {

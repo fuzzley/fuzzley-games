@@ -1,14 +1,14 @@
-import { IntentHandler } from "@/engine/render/input/table_intents";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
 import {
-  BoardLayouts,
+  type BoardLayouts,
   chooseTableLayout,
 } from "@/engine/render/layout/board_layouts";
 import { formFactorOf } from "@/engine/render/layout/form_factor";
 import { measureTable } from "@/engine/render/layout/table_metrics";
 import { BoardScene } from "@/engine/render/phaser/scene/board_scene";
-import { TablePresentation } from "@/engine/render/view/presentation";
-import { Insets, Viewport } from "@/engine/render/layout/viewport";
-import { TableGame } from "@/engine/tableau/game/table_game";
+import type { TablePresentation } from "@/engine/render/view/presentation";
+import type { Insets, Viewport } from "@/engine/render/layout/viewport";
+import type { TableGame } from "@/engine/tableau/game/table_game";
 import { stackFromCard, resolveDragTarget } from "@/engine/tableau/view/drag";
 import { pileBackgrounds } from "@/engine/tableau/view/pile_backgrounds";
 import { buildTableViewState } from "@/engine/tableau/view/table_view_builder";
@@ -67,7 +67,10 @@ export function makeTableBoardScene(options: TableBoardOptions): BoardScene {
     handleIntent,
     stackFromCard: stackFromCard(game),
     presentation,
-    onReset: (listener) => game.on("game-reset", () => listener()),
+    onReset: (listener) =>
+      game.on("game-reset", () => {
+        listener();
+      }),
     onCardsRelocated: (listener) => game.onCardsRelocated(listener),
     onReady,
     insets,

@@ -1,8 +1,8 @@
-import { Deal } from "@/engine/tableau/dealing/deal";
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { CardTransfer } from "@/engine/tableau/moves/move";
-import { Tabletop } from "@/engine/tableau/game/tabletop";
+import type { Deal } from "@/engine/tableau/dealing/deal";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
+import type { CardTransfer } from "@/engine/tableau/moves/move";
+import type { Tabletop } from "@/engine/tableau/game/tabletop";
 import { collectCompletedRuns } from "./completed_runs";
 import { itemAt } from "@/engine/core/common/item_at";
 

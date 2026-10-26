@@ -1,12 +1,12 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { Deal } from "@/engine/tableau/dealing/deal";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
+import type { Deal } from "@/engine/tableau/dealing/deal";
 import { DealtTableGame } from "@/engine/tableau/game/dealt_table_game";
-import { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
+import type { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
 import { runCollectingEffects } from "@/games/common/move_effects";
 import { dealRowCollectingRuns } from "@/games/common/row_deal";
-import { DeckOptions } from "@/games/common/deck_options";
+import type { DeckOptions } from "@/games/common/deck_options";
 import { dealScorpionLayout } from "./scorpion_deal";
 import {
   DEFAULT_SCORPION_VARIANT,
@@ -15,7 +15,7 @@ import {
 import {
   STOCK_PILE_ID,
   ScorpionRole,
-  ScorpionVariant,
+  type ScorpionVariant,
   scorpionZoneSpecs,
 } from "./scorpion_zones";
 import { ActionKind } from "@/games/common/action_kinds";

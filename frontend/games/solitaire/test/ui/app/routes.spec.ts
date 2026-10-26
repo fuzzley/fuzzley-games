@@ -54,7 +54,7 @@ function playAMove(harness: Harness): void {
     throw new Error("Expected Klondike on the table.");
   }
   game.drawCardsFromStock();
-  TestBed.flushEffects();
+  TestBed.tick();
 }
 
 describe("routes", () => {

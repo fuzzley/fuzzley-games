@@ -1,13 +1,14 @@
-import { PileRole } from "@/engine/core/card/card_pile";
+import type { PileRole } from "@/engine/core/card/card_pile";
 import { itemAt } from "@/engine/core/common/item_at";
 import {
   ALL_RANKS,
-  PlayingCardId,
+  type PlayingCardId,
   Rank,
   Suit,
+  rankAt,
 } from "@/engine/core/card/playing_card";
 import {
-  PlacementRule,
+  type PlacementRule,
   all,
   anyCard,
   byEmptiness,
@@ -61,8 +62,8 @@ export const DIAL: readonly DialPosition[] = Array.from(
   { length: 12 },
   (_, index) => {
     const hour = ((index + 4) % 12) + 1;
-    const startRank: Rank = Rank.TWO + index;
-    const endRank: Rank = hour - 1;
+    const startRank = rankAt(Rank.TWO + index);
+    const endRank = rankAt(hour - 1);
     return {
       hour,
       start: {

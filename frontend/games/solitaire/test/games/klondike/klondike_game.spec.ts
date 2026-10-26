@@ -1,5 +1,5 @@
 import { KlondikeGame } from "@/games/klondike/klondike_game";
-import { DrawCount } from "@/games/klondike/klondike_rules";
+import type { DrawCount } from "@/games/klondike/klondike_rules";
 import { KlondikeRole } from "@/games/klondike/klondike_zones";
 import { VegasScoringPolicy } from "@/games/klondike/scoring_policy";
 import { playingCardFaceKey } from "@/engine/core/card/playing_card";

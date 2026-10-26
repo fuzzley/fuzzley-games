@@ -7,7 +7,7 @@ describe("itemAt", () => {
   });
 
   it("returns an item that is itself undefined", () => {
-    expect(itemAt([undefined], 0)).toBeUndefined();
+    expect(itemAt<string | undefined>([undefined], 0)).toBeUndefined();
   });
 
   it.each([

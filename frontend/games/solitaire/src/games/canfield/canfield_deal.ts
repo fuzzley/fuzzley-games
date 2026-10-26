@@ -1,7 +1,7 @@
-import { Deal } from "@/engine/tableau/dealing/deal";
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
-import { CanfieldVariantRules } from "./canfield_rules";
+import type { Deal } from "@/engine/tableau/dealing/deal";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import { type PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import type { CanfieldVariantRules } from "./canfield_rules";
 
 /** How many cards the reserve is dealt. */
 export const RESERVE_SIZE = 13;

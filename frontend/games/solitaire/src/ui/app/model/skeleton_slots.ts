@@ -1,5 +1,5 @@
 import {
-  TableLayoutSpec,
+  type TableLayoutSpec,
   designSize,
 } from "@/engine/render/layout/table_layout";
 

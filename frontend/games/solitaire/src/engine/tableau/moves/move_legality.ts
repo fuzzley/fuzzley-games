@@ -1,6 +1,6 @@
-import { ResolvedMove } from "./move";
+import type { ResolvedMove } from "./move";
 import { grabbedStack } from "../rules/grab";
-import { Tabletop } from "../game/tabletop";
+import type { Tabletop } from "../game/tabletop";
 import { hasRoomFor } from "../zones/zone";
 
 /**

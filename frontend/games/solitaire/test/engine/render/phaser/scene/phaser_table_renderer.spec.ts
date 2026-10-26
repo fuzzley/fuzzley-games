@@ -3,20 +3,20 @@ import {
   PhaserTableRenderer,
   HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE,
 } from "@/engine/render/phaser/scene/phaser_table_renderer";
-import { PhaserSprites } from "@/engine/render/phaser/scene/phaser_sprites";
-import {
+import type { PhaserSprites } from "@/engine/render/phaser/scene/phaser_sprites";
+import type {
   TableViewState,
   CardView,
   HighlightView,
 } from "@/engine/render/view/table_view_state";
-import { CardArtScale } from "@/engine/render/deck/card_art_scale";
+import type { CardArtScale } from "@/engine/render/deck/card_art_scale";
 import { STOCK_PILE_ID } from "@test/support/fake_table/zones";
 import {
   asSprite,
   createMockGraphics,
   createMockSprite,
-  MockGraphics,
-  MockSprite,
+  type MockGraphics,
+  type MockSprite,
 } from "@test/support/phaser_mocks";
 
 vi.mock("phaser", async () => {
