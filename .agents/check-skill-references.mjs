@@ -20,9 +20,10 @@ import { REPO_ROOT, skillRoots } from "./skill-roots.mjs";
 // A skill about this repository needs no entry here, so it is checked.
 const UPSTREAM_SKILLS = new Set(["angular-developer", "angular-new-app"]);
 
-// The Solitaire Collection's Phaser skills are generated from Phaser's
-// documentation and cite its source tree, all but these two, which were
-// written for the game and cite its own.
+// The Solitaire Collection's Phaser skills are copies of the `skills/` folder
+// Phaser's package ships (frontend/node_modules/phaser/skills/), each renamed
+// with a `phaser-` prefix, and cite Phaser's source tree, all but these two,
+// which were written for the game and cite its own.
 const PHASER_SKILLS_WRITTEN_HERE = new Set([
   "phaser-core",
   "phaser-canvas-performance",

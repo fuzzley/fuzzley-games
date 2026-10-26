@@ -144,11 +144,15 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   exist, unless git ignores it, as it does what a build writes. Run it after
   changing a skill or an `AGENTS.md`. Skills quoting another
   project's source tree, the vendored Angular ones and the Phaser ones
-  generated from Phaser's documentation, are listed as upstream exceptions
-  there; a skill about this repository is checked by default.
+  copied from Phaser's package, are listed as upstream exceptions there; a
+  skill about this repository is checked by default.
 - **Vendored skills:** `angular-developer` and `angular-new-app` come from
   upstream and are hash-locked in `skills-lock.json`, so `.prettierignore`
-  leaves them unformatted. Do not hand-edit them.
+  leaves them unformatted. Do not hand-edit them. The Solitaire
+  Collection's Phaser skills, all but `phaser-core` and
+  `phaser-canvas-performance`, are copies of the `skills/` folder in
+  Phaser's package, for the parts of Phaser the game uses, which
+  `.prettierignore` leaves as copied too; `phaser-core` says how to add one.
 
 ---
 

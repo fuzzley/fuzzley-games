@@ -23,22 +23,17 @@ This skill governs Phaser 4 canvas integration within the Solitaire Collection. 
 
 ## Core Phaser 4 Sub-topics & Reference Map
 
-Specialized Phaser 4 skills are accessible directly under `.agents/skills/phaser-*`. Each entry below maps to a top-level skill directory (e.g. `phaser-tweens/SKILL.md`). Some also carry a `references/REFERENCE.md` with the full API surface.
+Specialized Phaser 4 skills are accessible directly under `.agents/skills/phaser-*`, one for each part of Phaser the game uses. Each entry below maps to a top-level skill directory (e.g. `phaser-scenes/SKILL.md`). Some also carry a `references/REFERENCE.md` with the full API surface.
 
 - **Scene Management & Config**: `phaser-game-setup-and-config/`, `phaser-scenes/`
 - **Asset Loading & Textures**: `phaser-loading-assets/`, `phaser-sprites-and-images/`, `phaser-render-textures/`
-- **Input & Drag Mathematics**: `phaser-input-keyboard-mouse-touch/`, `phaser-geometry-and-math/`
-- **Groups & Scene Hierarchy**: `phaser-groups-and-containers/`, `phaser-game-object-components/`
-- **Animations & Tweens**: `phaser-animations/`, `phaser-tweens/`, `phaser-time-and-timers/`
-- **Drawing & Text**: `phaser-graphics-and-shapes/`, `phaser-text-and-bitmaptext/`, `phaser-curves-and-paths/`
-- **Audio & Visual Effects**: `phaser-audio-and-sound/`, `phaser-filters-and-postfx/`, `phaser-particles/`
-- **Cameras & Display**: `phaser-cameras/`, `phaser-scale-and-responsive/`
-- **State & Events**: `phaser-data-manager/`, `phaser-events-system/`, `phaser-actions-and-utilities/`
+- **Input & Drag**: `phaser-input-keyboard-mouse-touch/`
+- **Game Objects & Drawing**: `phaser-game-object-components/`, `phaser-graphics-and-shapes/`
+- **Cameras, Display & Filters**: `phaser-cameras/`, `phaser-scale-and-responsive/`, `phaser-filters-and-postfx/`
+- **Events**: `phaser-events-system/`
 - **Phaser 4 Migration & Features**: `phaser-v3-to-v4-migration/`, `phaser-v4-new-features/`
 
-Also bundled but unused by a card game: `phaser-physics-arcade/`, `phaser-physics-matter/`,
-`phaser-tilemaps/`. Reach for them only if a task genuinely calls for physics or tile
-maps.
+All but this one and `phaser-canvas-performance/` are copies of the `skills/` folder Phaser's package ships, each renamed with a `phaser-` prefix in its name and its links. The package holds the rest, for parts the game doesn't use: tweens, timers, animations, particles, sound, text, groups and containers, curves, geometry, the data manager, actions, physics and tile maps, in `frontend/node_modules/phaser/skills/`. When the game starts using one of those parts, copy its skill in the same way.
 
 ## Phaser 4 Best Practices for Solitaire
 

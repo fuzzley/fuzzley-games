@@ -7,7 +7,7 @@ description: "Use this skill when learning about new features, game objects, com
 
 > New features and capabilities in Phaser 4: Filters (replacing FX/BitmapMask), RenderNodes (replacing Pipelines), CaptureFrame, Gradient, Noise game objects, SpriteGPULayer, TilemapGPULayer, Lighting component, RenderSteps, and new tint modes.
 
-**Related skills:** ../phaser-v3-to-v4-migration/SKILL.md, ../phaser-filters-and-postfx/SKILL.md, ../phaser-game-object-components/SKILL.md, ../phaser-tilemaps/SKILL.md
+**Related skills:** ../phaser-v3-to-v4-migration/SKILL.md, ../phaser-filters-and-postfx/SKILL.md, ../phaser-game-object-components/SKILL.md
 
 > **Migrating from v3?** See the [v3 to v4 Migration Guide](../phaser-v3-to-v4-migration/SKILL.md) for step-by-step code changes, removed APIs, and a migration checklist.
 
@@ -425,7 +425,7 @@ Provides `defaultRenderNodes`, `customRenderNodes`, and `renderNodeData` maps on
 
 ## TilemapGPULayer
 
-> Full tilemap reference: `../phaser-tilemaps/SKILL.md`
+> Full tilemap reference: `tilemaps/SKILL.md` in Phaser's package (`frontend/node_modules/phaser/skills/`)
 
 High-performance GPU-based tilemap rendering. Renders the entire layer as a single quad via a specialized shader. WebGL only.
 
