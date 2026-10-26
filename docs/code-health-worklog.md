@@ -23,7 +23,7 @@ git history keeps it.
 | ----- | ------------------------------------ | ----- |
 | P1    | Check the coverage floors            | done  |
 | P2    | Minesweeper by feature               | done  |
-| P3    | `@fz/dev`                            | to do |
+| P3    | `@fz/dev`                            | done  |
 | P4    | `@fz/style/testing`                  | to do |
 | P5    | The games' viewport in `@fz/game-ui` | to do |
 | P6    | `Stopwatch` and `Announcer`          | to do |
@@ -81,3 +81,76 @@ git history keeps it.
   `AGENTS.md` layout section now lists the feature folders and says a new
   feature gets a folder of its own, never a `services/` one.
 - The same 336 tests pass, at the same coverage. `yarn verify` green.
+
+### 2026-10-26: P3, `@fz/dev`
+
+- `frontend/lib/dev/` holds the ESLint blocks (`@fz/dev/eslint`:
+  `typescript`, `angular`, `templates`, `tests`, `scripts`), the tsconfig
+  presets (`@fz/dev/tsconfig/base.json`, `angular.json`, `scripts.json`)
+  and the headless Chrome helpers (`@fz/dev/chrome`). Its `.ts` exports run
+  in Node as they are: a workspace link resolves outside `node_modules`, so
+  type stripping applies, which needs `erasableSyntaxOnly` and `.ts`
+  relative imports, as `@fz/style`'s Vite plugin already does.
+- `extends: "@fz/dev/tsconfig/angular.json"` works for `tsc` and `ngc`:
+  Angular's `readConfiguration` resolves it with Node10 rules, which find it
+  because the file's path is its export path. `${configDir}` gives each
+  workspace its own `outDir` and `rootDir`. Checked that `ngc` reads the
+  preset's `strictTemplates`, `strictStandalone` and `extendedDiagnostics`.
+- Every workspace adopted both: the libraries, both games, the site and the
+  root's scripts. `@eslint/js`, `angular-eslint`, `typescript-eslint` and
+  `eslint-plugin-jsdoc` left their `package.json`s for `@fz/dev`'s. The
+  site now gets `noUnused*`, `strictStandalone` and extended diagnostics as
+  errors too, and passed without a change.
+- ESLint replaces a rule's options when a later block sets the same rule, so
+  the preset's testing fence uses core `no-restricted-imports` and a
+  workspace's own fences `@typescript-eslint/no-restricted-imports`; both
+  fire, checked by breaking each in Minesweeper.
+- The Solitaire Collection was the long part. Under the strict set it had 21
+  TS4111 errors (bracket access on index signatures) and 1113 lint problems,
+  947 of them fixable (mostly `import type` and arrow-function braces).
+  - Its `tsconfig.app.json` had `types: []` and never typechecked
+    `import.meta.env`, `import.meta.glob` or the `.scss` import; its
+    `typecheck` now runs `ngc` over it with `types: ["vite/client"]`, and a
+    `tsconfig.node.json` covers the Vite configs.
+  - typescript-eslint's project service lints a file with the first project
+    in the solution that includes it as a root file. The app config's only
+    root was `main.ts`, so `src/` was linted under `tsconfig.spec.json`
+    (`noUncheckedIndexedAccess` off), which reported conditions as
+    unnecessary that aren't and autofixed them away. `include: ["src/**/*.ts"]`
+    in `tsconfig.app.json` fixed it (42 findings in `src/` became 13).
+  - Autofix pitfalls from that wrong run, undone by hand: `itemAt`'s `as T`
+    dropped; `consistent-type-definitions` turning event maps into interfaces,
+    which then failed `Record<string, unknown>` (now
+    `EventEmitter<EventMap extends object>`); and
+    `no-meaningless-void-operator` turning `void move;` into `move;` (now an
+    `_move` parameter, which the preset allows by `argsIgnorePattern`).
+  - Rank arithmetic now goes through `rankAt()`, which throws out of range,
+    instead of casting a number to `Rank`; `suitToString` and
+    `rankToString` throw on a value that is no suit or rank.
+  - `TestBed.flushEffects()` is deprecated in Angular 22; 50 calls are
+    `TestBed.tick()`.
+  - Node 26 declares `globalThis.localStorage` but leaves it undefined
+    without a storage file, so `"localStorage" in globalThis` held and every
+    one of its 6406 specs failed at `localStorage.clear()`. The test setup
+    checks `typeof` now.
+  - The Phaser adapter (`src/engine/render/phaser/`) is let off
+    `no-unnecessary-condition`: Phaser types a scene's systems as always
+    there, though they aren't before boot or after shutdown, and the guards
+    the rule would remove are what keep a late frame from throwing.
+  - `test/support/dom.ts`'s `query` and `queryRequired` take the element's
+    class and check it, instead of a cast at each call site.
+  - 6932 tests pass at the same coverage; `eslint.config.cjs` is
+    `eslint.config.js`, in ESM.
+- Both screenshot scripts run on `@fz/dev/chrome` (Minesweeper's 614 lines
+  to 339, Solitaire's 403 to 162). Verified against the dev servers:
+  Minesweeper's `preview.webp` and `thumb.webp` came out byte-identical to
+  the committed ones; Solitaire's Klondike, Spider and FreeCell came out at
+  2880 × 1620 as before, and were put back with `git checkout`.
+- `@fz/dev` has 30 specs: the ESLint blocks lint files written to a
+  temporary workspace, so a block that stops catching what it should fails;
+  the DevTools helpers run against a fake browser. Starting a real Chrome is
+  left to the scripts, so its floor is 64/84/76/63 (real
+  66.66/84.61/80/65.59).
+- Docs: `frontend/lib/dev/AGENTS.md` and its `CLAUDE.md`; the repository's
+  `AGENTS.md`, each workspace's checks, and the Solitaire Collection's
+  skills that named `eslint.config.cjs`.

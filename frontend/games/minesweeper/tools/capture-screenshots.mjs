@@ -14,16 +14,14 @@
  * night, which sets the game apart from the Solitaire Collection's green
  * tables beside it in the catalog.
  */
-import { spawn } from "node:child_process";
-import { access, mkdir, mkdtemp, readFile, rm, stat } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { mkdir, stat } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { withChrome, withPage } from "@fz/dev/chrome";
 import sharp from "sharp";
 
-/** @import { ChildProcess } from "node:child_process" */
+/** @import { Page } from "@fz/dev/chrome" */
 
 const USAGE = `Usage: yarn capture:screenshots [options]
 
@@ -68,19 +66,6 @@ const CLOCK_SECONDS = 84;
 /** Where the game keeps the game in progress, which sets the clock. */
 const SAVED_GAME_KEY = "minesweeper-game";
 
-/** How long Chrome has to start before the capture gives up. */
-const LAUNCH_TIMEOUT_MS = 15_000;
-
-/** Where Chrome is usually installed, on each platform. */
-const CHROME_PATHS = {
-  win32: [
-    "C:/Program Files/Google/Chrome/Application/chrome.exe",
-    "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
-  ],
-  darwin: ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"],
-  linux: ["/usr/bin/google-chrome", "/usr/bin/chromium"],
-};
-
 /**
  * What the opening left on the board.
  *
@@ -92,185 +77,6 @@ const CHROME_PATHS = {
  *
  * @typedef {{boards: number, tripped: number, openDialogs: number, time: string}} PageState
  */
-
-/**
- * The results of the DevTools commands this script reads, by command.
- *
- * @typedef {{
- *   "Target.createBrowserContext": {browserContextId: string},
- *   "Target.createTarget": {targetId: string},
- *   "Target.attachToTarget": {sessionId: string},
- *   "Runtime.evaluate": {result: {value: unknown}, exceptionDetails?: {text: string, exception?: {description?: string}}},
- *   "Page.captureScreenshot": {data: string},
- * }} CommandResults
- */
-
-/**
- * The result of a DevTools command, typed for the ones this script reads.
- *
- * @template {string} M
- * @typedef {M extends keyof CommandResults ? CommandResults[M] : unknown} ResultOf
- */
-
-/**
- * A connection to Chrome's DevTools protocol, which sends commands to the
- * browser or, given a session, to one page.
- */
-class DevToolsConnection {
-  /** @param {WebSocket} socket */
-  constructor(socket) {
-    /** @private */
-    this.socket = socket;
-    /** @private */
-    this.nextId = 1;
-    /**
-     * @private
-     * @type {Map<number, {resolve: (result: unknown) => void, reject: (error: Error) => void}>}
-     */
-    this.pending = new Map();
-    /**
-     * @private
-     * @type {{method: string, sessionId: string, resolve: (params: unknown) => void}[]}
-     */
-    this.waiters = [];
-    socket.addEventListener("message", (event) =>
-      this.receive(JSON.parse(String(event.data))),
-    );
-  }
-
-  /**
-   * Opens a connection to the browser at a DevTools WebSocket URL.
-   *
-   * @param {string} url
-   * @returns {Promise<DevToolsConnection>}
-   */
-  static async open(url) {
-    const socket = new WebSocket(url);
-    await new Promise((resolve, reject) => {
-      socket.addEventListener("open", resolve, { once: true });
-      socket.addEventListener("error", reject, { once: true });
-    });
-    return new DevToolsConnection(socket);
-  }
-
-  /**
-   * Sends a command and returns its result.
-   *
-   * @template {string} M
-   * @param {M} method
-   * @param {object} [params]
-   * @param {string} [sessionId] The page to send it to, or none for the
-   *   browser.
-   * @returns {Promise<ResultOf<M>>}
-   */
-  send(method, params = {}, sessionId) {
-    const id = this.nextId++;
-    const result = new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
-      this.socket.send(JSON.stringify({ id, method, params, sessionId }));
-    });
-    return /** @type {Promise<ResultOf<M>>} */ (result);
-  }
-
-  /**
-   * Returns a promise of the next event of a kind from a page.
-   *
-   * @param {string} method
-   * @param {string} sessionId
-   * @returns {Promise<unknown>}
-   */
-  next(method, sessionId) {
-    return new Promise((resolve) =>
-      this.waiters.push({ method, sessionId, resolve }),
-    );
-  }
-
-  /** Closes the connection. */
-  close() {
-    this.socket.close();
-  }
-
-  /**
-   * Settles the command a reply answers, or the waiters an event satisfies.
-   *
-   * @private
-   * @param {{id?: number, result?: unknown, error?: {message: string}, method?: string, params?: unknown, sessionId?: string}} message
-   */
-  receive(message) {
-    if (message.id !== undefined) {
-      const command = this.pending.get(message.id);
-      this.pending.delete(message.id);
-      if (message.error) command?.reject(new Error(message.error.message));
-      else command?.resolve(message.result);
-      return;
-    }
-    const satisfied = this.waiters.filter(
-      (waiter) =>
-        waiter.method === message.method &&
-        waiter.sessionId === message.sessionId,
-    );
-    this.waiters = this.waiters.filter((waiter) => !satisfied.includes(waiter));
-    for (const waiter of satisfied) waiter.resolve(message.params);
-  }
-}
-
-/**
- * Returns the Chrome to run: the one asked for, or the first installed in a
- * usual place.
- *
- * @param {string | undefined} requested
- * @returns {Promise<string>}
- */
-async function findChrome(requested) {
-  const asked = requested ?? process.env["CHROME_PATH"];
-  if (asked) return asked;
-  const platform = /** @type {keyof typeof CHROME_PATHS} */ (process.platform);
-  for (const path of CHROME_PATHS[platform] ?? []) {
-    if (
-      await access(path).then(
-        () => true,
-        () => false,
-      )
-    )
-      return path;
-  }
-  throw new Error("Found no Chrome; pass --chrome or set CHROME_PATH.");
-}
-
-/**
- * Starts a headless Chrome on a throwaway profile and returns it with the
- * address of its DevTools endpoint.
- *
- * @param {string} chromePath
- * @param {string} profile
- * @returns {Promise<{chrome: ChildProcess, endpoint: string}>}
- */
-async function launchChrome(chromePath, profile) {
-  const chrome = spawn(
-    chromePath,
-    [
-      "--headless=new",
-      "--remote-debugging-port=0",
-      `--user-data-dir=${profile}`,
-      "--no-first-run",
-      "--no-default-browser-check",
-      "--hide-scrollbars",
-      "about:blank",
-    ],
-    { stdio: "ignore" },
-  );
-  // Chrome writes the port it chose, and its endpoint's path, once it listens.
-  const portFile = join(profile, "DevToolsActivePort");
-  const deadline = Date.now() + LAUNCH_TIMEOUT_MS;
-  while (Date.now() < deadline) {
-    const contents = await readFile(portFile, "utf8").catch(() => "");
-    const [port, path] = contents.split("\n");
-    if (path) return { chrome, endpoint: `ws://127.0.0.1:${port}${path}` };
-    await sleep(100);
-  }
-  chrome.kill();
-  throw new Error(`Chrome did not start within ${LAUNCH_TIMEOUT_MS} ms.`);
-}
 
 /**
  * Seeds `Math.random`, chooses the palette, and sets the clock of a game in
@@ -442,105 +248,34 @@ async function describePage() {
 }
 
 /**
- * Runs a function in a page with arguments that survive JSON, and returns
- * what it resolves to. The function is sent as its source, so it can use
- * nothing from this module.
+ * Plays the opening on a page of its own and returns the screenshot, or why
+ * it could not be taken.
  *
- * @template {unknown[]} A
- * @template T
- * @param {DevToolsConnection} devtools
- * @param {string} sessionId
- * @param {(...args: A) => T} fn
- * @param {A} args
- * @returns {Promise<Awaited<T>>}
- */
-async function evaluate(devtools, sessionId, fn, ...args) {
-  const call = `(${String(fn)})(...${JSON.stringify(args)})`;
-  const { result, exceptionDetails } = await devtools.send(
-    "Runtime.evaluate",
-    { expression: call, awaitPromise: true, returnByValue: true },
-    sessionId,
-  );
-  if (exceptionDetails) {
-    throw new Error(
-      exceptionDetails.exception?.description ?? exceptionDetails.text,
-    );
-  }
-  return /** @type {Awaited<T>} */ (result.value);
-}
-
-/**
- * Navigates a page, or reloads it, and waits for it to load.
- *
- * @param {DevToolsConnection} devtools
- * @param {string} sessionId
- * @param {string} method `Page.navigate` or `Page.reload`.
- * @param {object} [params]
- */
-async function load(devtools, sessionId, method, params) {
-  const loaded = devtools.next("Page.loadEventFired", sessionId);
-  await devtools.send(method, params, sessionId);
-  await loaded;
-}
-
-/**
- * Plays the opening in a browser context of its own and returns the
- * screenshot, or why it could not be taken.
- *
- * @param {DevToolsConnection} devtools
+ * @param {Page} page
  * @param {string} url
  * @returns {Promise<{png: Buffer, opening: Opening, page: PageState} | {problem: string}>}
  */
-async function capture(devtools, url) {
-  const { browserContextId } = await devtools.send(
-    "Target.createBrowserContext",
+async function capture(page, url) {
+  await page.beforeLoad(
+    preparePage,
+    SEED,
+    CLOCK_SECONDS,
+    SAVED_GAME_KEY,
+    THEME,
+    THEME_KEY,
   );
-  try {
-    const { targetId } = await devtools.send("Target.createTarget", {
-      url: "about:blank",
-      browserContextId,
-    });
-    const { sessionId } = await devtools.send("Target.attachToTarget", {
-      targetId,
-      flatten: true,
-    });
-    await devtools.send(
-      "Emulation.setDeviceMetricsOverride",
-      { ...VIEWPORT, mobile: false },
-      sessionId,
-    );
-    await devtools.send("Page.enable", {}, sessionId);
-    const args = [SEED, CLOCK_SECONDS, SAVED_GAME_KEY, THEME, THEME_KEY];
-    await devtools.send(
-      "Page.addScriptToEvaluateOnNewDocument",
-      { source: `(${String(preparePage)})(...${JSON.stringify(args)})` },
-      sessionId,
-    );
-    await load(devtools, sessionId, "Page.navigate", { url });
-    const opening = await evaluate(
-      devtools,
-      sessionId,
-      playOpening,
-      OPEN_SHARE,
-    );
-    if (opening.tripped !== 1) return { problem: "no mine was stepped on" };
+  await page.navigate(url);
+  const opening = await page.evaluate(playOpening, OPEN_SHARE);
+  if (opening.tripped !== 1) return { problem: "no mine was stepped on" };
 
-    // The game saves itself as it goes; the reload takes the clock from it.
-    await load(devtools, sessionId, "Page.reload");
-    const page = await evaluate(devtools, sessionId, describePage);
-    if (page.boards !== 1) return { problem: "the board did not show" };
-    if (page.tripped !== 1) return { problem: "the game was not restored" };
-    if (page.openDialogs > 0) return { problem: "a dialog is open" };
+  // The game saves itself as it goes; the reload takes the clock from it.
+  await page.reload();
+  const shown = await page.evaluate(describePage);
+  if (shown.boards !== 1) return { problem: "the board did not show" };
+  if (shown.tripped !== 1) return { problem: "the game was not restored" };
+  if (shown.openDialogs > 0) return { problem: "a dialog is open" };
 
-    const { data } = await devtools.send(
-      "Page.captureScreenshot",
-      { format: "png" },
-      sessionId,
-    );
-    return { png: Buffer.from(data, "base64"), opening, page };
-  } finally {
-    await devtools.send("Target.disposeBrowserContext", { browserContextId });
-  }
+  return { png: await page.screenshot(), opening, page: shown };
 }
 
 /**
@@ -573,41 +308,31 @@ async function main() {
     );
   });
 
-  const profile = await mkdtemp(join(tmpdir(), "minesweeper-capture-"));
-  const { chrome, endpoint } = await launchChrome(
-    await findChrome(options.chrome),
-    profile,
+  const shot = await withChrome(
+    { chrome: options.chrome, name: "minesweeper" },
+    (devtools) =>
+      withPage(devtools, VIEWPORT, (page) => capture(page, options.url)),
   );
-  const exited = new Promise((resolve) => chrome.once("exit", resolve));
-  try {
-    const devtools = await DevToolsConnection.open(endpoint);
-    const shot = await capture(devtools, options.url);
-    devtools.close();
-    if ("problem" in shot) {
-      console.error(`Not captured: ${shot.problem}.`);
-      process.exitCode = 1;
-      return;
-    }
-    const { opening, page } = shot;
-    console.log(
-      `Cleared ${Math.round(opening.open * 100)}%, ${opening.flagged} flags, ` +
-        `the clock at ${page.time}.`,
-    );
-    await mkdir(SCREENSHOT_DIR, { recursive: true });
-    for (const output of OUTPUTS) {
-      const target = join(SCREENSHOT_DIR, output.file);
-      await sharp(shot.png)
-        .resize(output.width, output.height)
-        // Smart subsampling keeps the numbers' inks from bleeding.
-        .webp({ quality: output.quality, smartSubsample: true })
-        .toFile(target);
-      const kilobytes = Math.round((await stat(target)).size / 1024);
-      console.log(`${output.file}: ${kilobytes} KB`);
-    }
-  } finally {
-    chrome.kill();
-    await exited;
-    await rm(profile, { recursive: true, force: true, maxRetries: 10 });
+  if ("problem" in shot) {
+    console.error(`Not captured: ${shot.problem}.`);
+    process.exitCode = 1;
+    return;
+  }
+  const { opening, page } = shot;
+  console.log(
+    `Cleared ${Math.round(opening.open * 100)}%, ${opening.flagged} flags, ` +
+      `the clock at ${page.time}.`,
+  );
+  await mkdir(SCREENSHOT_DIR, { recursive: true });
+  for (const output of OUTPUTS) {
+    const target = join(SCREENSHOT_DIR, output.file);
+    await sharp(shot.png)
+      .resize(output.width, output.height)
+      // Smart subsampling keeps the numbers' inks from bleeding.
+      .webp({ quality: output.quality, smartSubsample: true })
+      .toFile(target);
+    const kilobytes = Math.round((await stat(target)).size / 1024);
+    console.log(`${output.file}: ${kilobytes} KB`);
   }
 }
 
