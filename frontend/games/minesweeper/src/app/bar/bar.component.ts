@@ -1,5 +1,6 @@
 import { Component, computed, inject, output } from "@angular/core";
 import {
+  type BarOverflowAction,
   BarOverflowComponent,
   type BarOverflowItem,
 } from "@fz/game-ui/bar_overflow";
@@ -13,8 +14,11 @@ import { GameService } from "../play/game.service";
 /** Where the link home leads: the Fuzzley Games site, which serves this game. */
 const HOME_HREF = "/";
 
+/** Names an action the overflow menu offers. */
+type MenuAction = "restart" | "help" | "settings";
+
 /** The overflow menu's actions, in order. */
-const OVERFLOW_ACTIONS: readonly BarOverflowItem[] = [
+const OVERFLOW_ACTIONS: readonly BarOverflowAction<MenuAction>[] = [
   { id: "restart", label: "Restart", icon: "restart" },
   { id: "help", label: "How to play", icon: "help" },
   { id: "settings", label: "Settings", icon: "settings" },
@@ -75,20 +79,20 @@ export class BarComponent {
   });
 
   /** The overflow menu, led by the link home where the bar has no room for it. */
-  protected readonly overflowItems = computed<readonly BarOverflowItem[]>(
-    () => {
-      if (this.home() !== "none") return OVERFLOW_ACTIONS;
-      const [first, ...rest] = OVERFLOW_ACTIONS;
-      return [
-        { id: "home", label: "Fuzzley Games", icon: "home", href: HOME_HREF },
-        ...(first ? [{ ...first, startsGroup: true }] : []),
-        ...rest,
-      ];
-    },
-  );
+  protected readonly overflowItems = computed<
+    readonly BarOverflowItem<MenuAction>[]
+  >(() => {
+    if (this.home() !== "none") return OVERFLOW_ACTIONS;
+    const [first, ...rest] = OVERFLOW_ACTIONS;
+    return [
+      { id: "home", label: "Fuzzley Games", icon: "home", href: HOME_HREF },
+      ...(first ? [{ ...first, startsGroup: true }] : []),
+      ...rest,
+    ];
+  });
 
   /** Carries out the action chosen from the overflow menu. */
-  protected chooseFromMenu(id: string): void {
+  protected chooseFromMenu(id: MenuAction): void {
     switch (id) {
       case "restart":
         void this.game.restart();

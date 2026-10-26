@@ -29,12 +29,15 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   one.
 - `src/bar_overflow/`: `<fz-bar-overflow>`, the "More actions" button and
   the Angular Aria menu it opens, of what the bar has no room for. The items
-  are data (`BarOverflowItem`), since Angular Aria finds a menu's items in
-  the template that declares the menu; one with an `href` is a link, which
-  the browser follows, and the rest emit their `id` through `choose`. Inside
-  a `<fz-game-bar>` the menu opens away from the bar's edge. While it is
-  open, a transparent layer over the window takes the tap that closes it,
-  so the tap doesn't reach the board.
+  are data, since Angular Aria finds a menu's items in the template that
+  declares the menu: a `BarOverflowLink`, with an `href`, which the browser
+  follows, or a `BarOverflowAction<Id>`, which emits its `id` through
+  `choose`. The component takes `Id` from the items it is given, so an app
+  that names its actions' ids (`BarOverflowItem<MenuAction>`) gets them back
+  typed, and a misspelled one fails to compile. Inside a `<fz-game-bar>`
+  the menu opens away from the bar's edge. While it is open, a transparent
+  layer over the window takes the tap that closes it, so the tap doesn't
+  reach the board.
 - `src/viewport/`: `GameViewportService`, which follows the shape of the
   window: its `formFactor` (`roomy`, `phone-portrait` or
   `phone-landscape`), `isCompact` and `isPortrait`, where the bar stands
