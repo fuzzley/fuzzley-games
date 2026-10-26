@@ -44,8 +44,6 @@ keeps its own for its code. Paths are relative to
     what the player chose.
   - `stats/` — `StatsService`, the games played and won and the best times.
   - `result/` — the card over a finished game. `help/` — How to play.
-  - `layout/` — `ViewportService`, which says whether the chrome is compact
-    and the screen upright.
   - `styles/` — `global.scss`, loaded once from `main.ts`, loads
     `@fz/style`'s global stylesheet and publishes the bar's size.
     `_index.scss` is the toolkit every component `@use`s, and emits no CSS.
@@ -55,9 +53,8 @@ keeps its own for its code. Paths are relative to
   goes through `@fz/ui/storage`'s `LocalStorageService`.
 
 - **`src/testing/`** — what specs share: `fieldFrom` (`field_picture.ts`)
-  draws a field as rows of letters, `playOn` (`game.ts`) puts one in play,
-  and `installFakeViewport` answers the media queries jsdom can't. The
-  app's tsconfig leaves it out.
+  draws a field as rows of letters, and `playOn` (`game.ts`) puts one in
+  play. The app's tsconfig leaves it out.
 - **`tools/capture-screenshots.mjs`** — makes the screenshots the site shows.
 
 ## The Board
@@ -85,9 +82,12 @@ brings in `@fz/style`'s mixins and this game's own, and nothing else.
 - **Tokens are `@fz/style`'s, by their own names** (`--fz-accent`,
   `--fz-space-3`, `--fz-radius-md`), read with `var()`. Never a color
   literal outside `_inks.scss`.
-- **Two breakpoints, by name:** `@include below("tablet" | "desktop")`, the
-  Solitaire Collection's widths, so the two games change shape together.
-  `ViewportService` applies the same compact test in code.
+- **The games' breakpoints, by name:**
+  `@include below("tablet" | "desktop")` and the rest of `@fz/game-ui`'s
+  mixins, which `styles/_index.scss` forwards, so every game changes shape
+  at the same widths. `@fz/game-ui/viewport`'s `GameViewportService` applies the same
+  compact test in code, and says where the bar stands and what fits in it;
+  the app, the bar and the board read it.
 - **The libraries' pieces first.** Overlays are `<fz-dialog>`, the question
   before a game is lost is `ConfirmService.ask()`, buttons are
   `.fz-button`, and icons are `<fz-icon name="…">` (the flag, heart and

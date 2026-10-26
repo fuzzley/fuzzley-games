@@ -2,10 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import { ConfirmService } from "@fz/ui/confirm";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import {
-  type FakeViewport,
-  installFakeViewport,
-} from "../../testing/fake_viewport";
+import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { playOn } from "../../testing/game";
 import { GameService } from "../play/game.service";
 import { BarComponent } from "./bar.component";

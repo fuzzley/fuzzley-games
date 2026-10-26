@@ -10,8 +10,8 @@ import {
 } from "@angular/core";
 import { Grid, GridCell, GridRow } from "@angular/aria/grid";
 import { IconComponent } from "@fz/ui/icon";
+import { GameViewportService } from "@fz/game-ui/viewport";
 import { describeSquare, type Showing, showing } from "../../rules/describe";
-import { ViewportService } from "../layout/viewport.service";
 import { GameService } from "../play/game.service";
 
 /** How long a finger rests on a square before it flags it. */
@@ -58,7 +58,7 @@ interface Press {
 })
 export class BoardComponent {
   protected readonly game = inject(GameService);
-  private readonly viewport = inject(ViewportService);
+  private readonly viewport = inject(GameViewportService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
 

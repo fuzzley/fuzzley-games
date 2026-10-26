@@ -25,7 +25,7 @@ git history keeps it.
 | P2    | Minesweeper by feature               | done  |
 | P3    | `@fz/dev`                            | done  |
 | P4    | `@fz/style/testing`                  | done  |
-| P5    | The games' viewport in `@fz/game-ui` | to do |
+| P5    | The games' viewport in `@fz/game-ui` | done  |
 | P6    | `Stopwatch` and `Announcer`          | to do |
 | P7    | The long press                       | to do |
 | P8    | Small things                         | to do |
@@ -187,4 +187,39 @@ git history keeps it.
   dark palettes.
 - Docs: `@fz/style`'s `AGENTS.md`, the `web-game-accessibility` and
   `fuzzley-ui` skills, and Minesweeper's `vitest-testing` skill.
-- `yarn verify` green.
+- `yarn verify` green. Committed as `403bea5`.
+
+### 2026-10-26: P5, the games' viewport in `@fz/game-ui`
+
+- `@fz/game-ui` gained three entry points:
+  - `viewport/`: `GameViewportService`, Minesweeper's service under a name
+    that says whose it is, with Solitaire's `"matchMedia" in window` check,
+    which needs no ESLint exception.
+  - `breakpoints/`: the widths as constants, with `formFactorAt()` for
+    Solitaire's engine in P9, and in `_index.scss` the two games' mixins
+    together (`below`, `from`, `compact`, `phone-portrait`,
+    `phone-landscape`), forwarded from `src/_index.scss`. Only `tablet` and
+    `desktop` are shared: Solitaire's `phone` (480 px, a dialog's padding)
+    is its own, so P9 must decide where it goes.
+  - `testing/`: `installFakeViewport()`, the union of the two fakes
+    (`setWidth`, `setSize`, the color scheme answered as light, a height of
+    900 by default).
+- `breakpoints.spec.ts` compiles each mixin and checks its media query
+  against the constants, which replaces the "change the two together"
+  comments.
+- Minesweeper takes them up: its `layout/` folder, `fake_viewport.ts` and
+  `_breakpoints.scss` are gone, and `styles/_index.scss` forwards
+  `@fz/game-ui`'s mixins by name, so its components still write
+  `below("desktop")`.
+- Specs: `@fz/game-ui` 34 → 71, at 100% coverage; Minesweeper 336 → 327
+  (its nine viewport specs are the library's fourteen now).
+- Screenshots of the dev server at 1440 × 900, 1280 × 720, 1000 × 800,
+  700 × 900, 390 × 844, 844 × 390 and 340 × 720 (below the home button's
+  360), before and after: no pixel differs at any size. Two rounds before
+  the change matched each other too, so the comparison is sound. The
+  scripts are `shots.mjs` and `compare.mjs` in the session scratchpad, not
+  kept; they import `@fz/dev/chrome` by its file URL.
+- Docs: `@fz/game-ui`'s `AGENTS.md` (the three entries, and a rule that a
+  width every game shares is written once), its package description, the
+  `fuzzley-ui` skill, and Minesweeper's `AGENTS.md` and `vitest-testing`
+  skill.

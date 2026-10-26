@@ -1,11 +1,8 @@
 import { render, screen } from "@testing-library/angular";
 import { fireEvent } from "@testing-library/dom";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import type { PictureOptions } from "../../testing/field_picture";
-import {
-  type FakeViewport,
-  installFakeViewport,
-} from "../../testing/fake_viewport";
 import { playOn } from "../../testing/game";
 import { BoardComponent } from "./board.component";
 

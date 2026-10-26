@@ -11,9 +11,9 @@ import {
 } from "@fz/game-ui/bar_overflow";
 import { type BarHome, GameBarComponent } from "@fz/game-ui/game_bar";
 import { IconComponent } from "@fz/ui/icon";
+import { GameViewportService } from "@fz/game-ui/viewport";
 import { difficultyName } from "../../rules/difficulty";
 import { count, formatTime } from "../../rules/format";
-import { ViewportService } from "../layout/viewport.service";
 import { GameService } from "../play/game.service";
 
 /** Where the link home leads: the Fuzzley Games site, which serves this game. */
@@ -46,7 +46,7 @@ const OVERFLOW_ACTIONS: readonly BarOverflowItem[] = [
 })
 export class BarComponent {
   protected readonly game = inject(GameService);
-  protected readonly viewport = inject(ViewportService);
+  protected readonly viewport = inject(GameViewportService);
 
   /** Emitted when the player asks how to play. */
   readonly openHelp = output();

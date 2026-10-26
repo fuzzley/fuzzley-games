@@ -6,32 +6,14 @@ import {
   inject,
   signal,
 } from "@angular/core";
-import type { BarPlacement } from "@fz/game-ui/game_bar";
-
-/** Names the shape of the viewport, as the Solitaire Collection does. */
-export type FormFactor = "roomy" | "phone-portrait" | "phone-landscape";
-
-/**
- * The width below which the chrome compacts. Mirrors the `tablet` breakpoint
- * in `styles/_breakpoints.scss`; change the two together.
- */
-export const COMPACT_MAX_WIDTH_PX = 720;
-
-/**
- * The height below which the chrome compacts however wide the window is,
- * which catches a phone on its side. Mirrors `$compact-max-height` in
- * `styles/_breakpoints.scss`.
- */
-export const COMPACT_MAX_HEIGHT_PX = 500;
-
-/** The width from which the bar has room for the Fuzzley Games wordmark. */
-export const WORDMARK_MIN_WIDTH_PX = 1280;
-
-/**
- * The width below which a compact bar has no room for the home button, so
- * the link home moves into the overflow menu.
- */
-export const HOME_BUTTON_MIN_WIDTH_PX = 360;
+import {
+  COMPACT_MAX_HEIGHT_PX,
+  COMPACT_MAX_WIDTH_PX,
+  type FormFactor,
+  HOME_BUTTON_MIN_WIDTH_PX,
+  WORDMARK_MIN_WIDTH_PX,
+} from "../breakpoints";
+import type { BarPlacement } from "../game_bar";
 
 // The 0.02px guard is the one `below()` applies in the stylesheets.
 const COMPACT_QUERY = `(max-width: ${COMPACT_MAX_WIDTH_PX - 0.02}px), (max-height: ${COMPACT_MAX_HEIGHT_PX - 0.02}px)`;
@@ -40,15 +22,16 @@ const BELOW_WORDMARK_QUERY = `(max-width: ${WORDMARK_MIN_WIDTH_PX - 0.02}px)`;
 const BELOW_HOME_BUTTON_QUERY = `(max-width: ${HOME_BUTTON_MIN_WIDTH_PX - 0.02}px)`;
 
 /**
- * Tracks the shape of the viewport: roomy, or compact and then upright or on
- * its side.
+ * Tracks the shape of the window a game is played in: roomy, or compact and
+ * then upright or on its side, and what fits in its bar.
  *
  * A signal rather than CSS alone, because a compact layout moves controls,
- * and turns the board, rather than only restyling them. A host without
+ * and can turn a board, rather than only restyling them. The bar reads none
+ * of it: the app binds what it says to the bar's inputs. A host without
  * `matchMedia` reads as roomy, and wider than tall.
  */
 @Injectable({ providedIn: "root" })
-export class ViewportService {
+export class GameViewportService {
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly compact = signal(false);
@@ -56,17 +39,23 @@ export class ViewportService {
   private readonly belowWordmark = signal(false);
   private readonly belowHomeButton = signal(false);
 
-  /** The shape of the viewport. */
+  /** The shape of the window. */
   readonly formFactor = computed<FormFactor>(() => {
     if (!this.compact()) return "roomy";
     return this.portrait() ? "phone-portrait" : "phone-landscape";
   });
 
-  /** Whether the viewport is narrower or shorter than the compact breakpoint. */
+  /**
+   * Whether the window is narrower than the compact width or shorter than the
+   * compact height.
+   */
   readonly isCompact = computed(() => this.formFactor() !== "roomy");
 
+  /** Whether the window is taller than it is wide. */
+  readonly isPortrait = this.portrait.asReadonly();
+
   /**
-   * Where the game bar stands: across the top of a roomy screen, along the
+   * Where the game bar stands: across the top of a roomy window, along the
    * bottom of a phone held upright, where every action is under the thumb,
    * and down the end of a phone on its side, which leaves the board the whole
    * height of a short screen.
@@ -82,9 +71,6 @@ export class ViewportService {
     }
   });
 
-  /** Whether the viewport is taller than it is wide. */
-  readonly isPortrait = this.portrait.asReadonly();
-
   /** Whether the window is wide enough for the bar's wordmark. */
   readonly fitsWordmark = computed(() => !this.belowWordmark());
 
@@ -92,9 +78,7 @@ export class ViewportService {
   readonly fitsHomeButton = computed(() => !this.belowHomeButton());
 
   constructor() {
-    // jsdom, which the specs run in, has no matchMedia.
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (typeof window === "undefined" || !window.matchMedia) return;
+    if (typeof window === "undefined" || !("matchMedia" in window)) return;
 
     this.follow(COMPACT_QUERY, this.compact);
     this.follow(PORTRAIT_QUERY, this.portrait);
@@ -106,7 +90,7 @@ export class ViewportService {
   private follow(media: string, matches: WritableSignal<boolean>): void {
     const query = window.matchMedia(media);
     matches.set(query.matches);
-    const onChange = () => {
+    const onChange = (): void => {
       matches.set(query.matches);
     };
     query.addEventListener("change", onChange);

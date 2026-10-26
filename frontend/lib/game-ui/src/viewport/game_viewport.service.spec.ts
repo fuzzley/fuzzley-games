@@ -1,17 +1,14 @@
 import { TestBed } from "@angular/core/testing";
-import {
-  type FakeViewport,
-  installFakeViewport,
-} from "../../testing/fake_viewport";
-import { ViewportService } from "./viewport.service";
+import { type FakeViewport, installFakeViewport } from "../testing";
+import { GameViewportService } from "./game_viewport.service";
 
-describe("ViewportService", () => {
+describe("GameViewportService", () => {
   let viewport: FakeViewport | null = null;
 
   /** Returns the service for a window of this size. */
-  function at(width: number, height: number): ViewportService {
+  function at(width: number, height: number): GameViewportService {
     viewport = installFakeViewport(width, height);
-    return TestBed.inject(ViewportService);
+    return TestBed.inject(GameViewportService);
   }
 
   afterEach(() => {
@@ -19,29 +16,36 @@ describe("ViewportService", () => {
     viewport = null;
   });
 
-  it("reads roomy and wide where the browser can't be asked", () => {
-    const service = TestBed.inject(ViewportService);
+  it("reads roomy where the browser can't be asked", () => {
+    expect(TestBed.inject(GameViewportService).formFactor()).toBe("roomy");
+  });
 
-    expect(service.formFactor()).toBe("roomy");
-    expect(service.isPortrait()).toBe(false);
+  it("reads wider than tall where the browser can't be asked", () => {
+    expect(TestBed.inject(GameViewportService).isPortrait()).toBe(false);
   });
 
   it("puts the bar across the top of a roomy window", () => {
     expect(at(1280, 800).barPlacement()).toBe("top");
   });
 
-  it("puts the bar along the bottom of an upright phone", () => {
-    const service = at(390, 844);
+  it("reads a roomy window as not compact", () => {
+    expect(at(1280, 800).isCompact()).toBe(false);
+  });
 
-    expect(service.formFactor()).toBe("phone-portrait");
-    expect(service.barPlacement()).toBe("bottom");
+  it("puts the bar along the bottom of an upright phone", () => {
+    expect(at(390, 844).barPlacement()).toBe("bottom");
+  });
+
+  it("reads an upright phone as compact", () => {
+    expect(at(390, 844).isCompact()).toBe(true);
   });
 
   it("puts the bar down the end of a phone on its side", () => {
-    const service = at(844, 390);
+    expect(at(844, 390).barPlacement()).toBe("end");
+  });
 
-    expect(service.formFactor()).toBe("phone-landscape");
-    expect(service.barPlacement()).toBe("end");
+  it("reads a phone on its side", () => {
+    expect(at(844, 390).formFactor()).toBe("phone-landscape");
   });
 
   it("tells an upright window from a wide one", () => {
@@ -62,6 +66,10 @@ describe("ViewportService", () => {
 
   it("has no room for the wordmark below 1280 px", () => {
     expect(at(1279, 800).fitsWordmark()).toBe(false);
+  });
+
+  it("has room for the home button from 360 px", () => {
+    expect(at(360, 700).fitsHomeButton()).toBe(true);
   });
 
   it("has no room for the home button below 360 px", () => {

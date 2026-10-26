@@ -35,12 +35,28 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   a `<fz-game-bar>` the menu opens away from the bar's edge. While it is
   open, a transparent layer over the window takes the tap that closes it,
   so the tap doesn't reach the board.
-- `src/_index.scss`: the Sass an app reaches with `@use "@fz/game-ui"`. Its
-  `bar-size()` mixin publishes the bar's size as `--fz-bar-height` and
-  `--fz-rail-width` for what lays itself out around the bar, such as a
-  game's board: an app includes it on `:root`, and with `$compact: true`
-  wherever it binds the bar's `compact`. The bar can't declare them itself,
-  since a custom property reaches only what sits inside its element.
+- `src/viewport/`: `GameViewportService`, which follows the shape of the
+  window: its `formFactor` (`roomy`, `phone-portrait` or
+  `phone-landscape`), `isCompact` and `isPortrait`, where the bar stands
+  (`barPlacement`), and whether the bar has room for the wordmark
+  (`fitsWordmark`) and the home button (`fitsHomeButton`). A host without
+  `matchMedia` reads as roomy.
+- `src/breakpoints/`: the widths every game changes shape at. `index.ts`
+  holds them as constants, with `formFactorAt()`, and imports no Angular,
+  so a game's renderer can read them as well as its shell. `_index.scss`
+  holds them for Sass: `below()` and `from()` a named width (`tablet`,
+  `desktop`), and `compact`, `phone-portrait` and `phone-landscape`, which
+  apply the service's tests. `breakpoints.spec.ts` compiles the mixins and
+  holds them to the constants.
+- `src/testing/`: what a game's specs share. `installFakeViewport()` stands
+  in for the `matchMedia` jsdom lacks, at a size a spec sets and changes.
+- `src/_index.scss`: the Sass an app reaches with `@use "@fz/game-ui"`. It
+  forwards the breakpoints' mixins, and its `bar-size()` mixin publishes the
+  bar's size as `--fz-bar-height` and `--fz-rail-width` for what lays itself
+  out around the bar, such as a game's board: an app includes it on
+  `:root`, and with `$compact: true` wherever it binds the bar's `compact`.
+  The bar can't declare them itself, since a custom property reaches only
+  what sits inside its element.
 
 ## How an app uses it
 
@@ -48,13 +64,18 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   `"@fz/game-ui": "workspace:*"` beside `@fz/ui` and `@fz/style`, and loads
   `@fz/style`'s global stylesheet.
 - **The app decides the layout.** It binds `placement`, `reversed`,
-  `compact` and `home` to its own breakpoints and form factors; the bar
-  never asks the window.
+  `compact` and `home` to what `GameViewportService` says; the bar never
+  asks the window. A game's stylesheets take the same widths from the
+  mixins, which an app's toolkit can forward by name, as
+  `frontend/games/minesweeper/src/app/styles/_index.scss` does.
 - **Imports go one way.** This library imports `@fz/ui`, `@fz/style` and
   Angular, never the site or a game, and the site has no use for it.
 
 ## Rules
 
+- **A width every game changes shape at is written once**, in
+  `src/breakpoints/`, for TypeScript and for Sass, which its spec keeps
+  equal. A width only one game means something by stays in that game.
 - **Nothing inside the bar may become a containing block.** The overflow's
   dismiss layer is `position: fixed` to cover the window, which a
   `backdrop-filter`, `transform`, `filter`, `contain` or container query on
