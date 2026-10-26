@@ -28,7 +28,7 @@ git history keeps it.
 | P5    | The games' viewport in `@fz/game-ui` | done  |
 | P6    | `Stopwatch` and `Announcer`          | done  |
 | P7    | The long press                       | done  |
-| P8    | Small things                         | to do |
+| P8    | Small things                         | done  |
 | P9    | The Solitaire Collection takes it up | to do |
 | P10   | Signal Forms                         | to do |
 
@@ -284,4 +284,57 @@ git history keeps it.
   The directive has 16 specs of its own, on a host button that writes down
   what reaches its listeners. Minesweeper 325 → 341.
 - Docs: Minesweeper's `AGENTS.md`.
+- `yarn verify` green. Committed as `ace67e4`.
+
+### 2026-10-26: P8, small things
+
+A commit each, every one checked with the lint, typecheck and tests of the
+workspaces it touched; one `yarn verify` at the end.
+
+- `65d2c24` The rules: `reveal()` and `toggleFlag()` ask `isOver()`;
+  `safeCount()` is the safe squares for `settle()` and `clearedShare()`;
+  `settle()` asks `revealedCount()` of the field it built.
+- `c39f27a` `SQUARES` and `OUTCOMES` are declared in `field.ts`, `as const`,
+  and `Square` and `Outcome` taken from them; `saved_field.ts` imports them.
+- `5851193` `isValidLives(lives: unknown): lives is number`, on `isWhole()`;
+  the settings' `sizeFrom()` uses `isWhole()` too. New specs: the guard
+  refusing what is no number, and settings stored as strings defaulting.
+- `06ac944` `LocalStorageService.readVersioned(key, version)` and
+  `writeVersioned(key, version, value)`, with six specs; the settings, the
+  stats and the saved game use them, each with a named version constant.
+  What is stored is unchanged: `{ version, ...fields }`.
+- `9a6cf3d` `SavedGameService` reads the time with `untracked()`, so the
+  clock no longer wakes its effect, and writes the game again on
+  `visibilitychange` to hidden and on `pagehide`. Four specs; without
+  `untracked()` two of them fail, which was checked.
+- `e4031c1` Minesweeper's six components drop
+  `ChangeDetectionStrategy.OnPush`, which Angular 22.2.3 documents as the
+  default ("OnPush is enabled by default"). The Solitaire Collection's
+  ten are P9's.
+- `68daa20` The root component no longer injects `GameService`, which
+  nothing in its template has read since P6.
+- `7070b53` `BarOverflowItem<Id>` is a `BarOverflowAction<Id>` (no `href`,
+  emits its id) or a `BarOverflowLink` (an `href`, any id), and
+  `<fz-bar-overflow>` is generic over `Id`. Angular's template checker
+  infers `Id` from `[items]`: binding `(choose)` to a method that takes
+  only `"restart"` failed with "Argument of type 'MenuAction' is not
+  assignable", which was checked and undone. Both games name their
+  `MenuAction` ids, Solitaire's here rather than in P9, since it is only
+  types.
+- `3d66d62` `ThemeService.options`, the palettes as a chooser lists them
+  (`ThemeOption`: `modeName`, `checked`), which the theme menu and picker
+  read; three specs. `select()` writes through `LocalStorageService`, which
+  warns where the old `try` was silent.
+- `bc667c9` `@fz/style`: `vite.ts`, `theme_script.ts` and
+  `fuzzball_raster.ts` move to `src/build/`, `stylelint.ts` to
+  `src/lint/`, with their specs; `exports` and `stylelint.config.js` point
+  at them, so `@fz/style/vite` and `@fz/style/stylelint` are unchanged. An
+  ESLint block on `src/*.ts` restricts `node:*`, PostCSS, Sass, sharp,
+  stylelint, Vite and the three folders, which a trial import of `node:fs`
+  and `./build/vite.ts` into `themes.ts` showed. The site and both games
+  build, and Minesweeper's styles lint, through the moved files.
+- Found on the way: a `git checkout --` meant to undo a trial edit in
+  Minesweeper's bar undid the real one too; it was put back from a copy
+  taken before. Trials are now undone from copies only.
+- Specs: Minesweeper 341 → 349, `@fz/ui` 158 → 167.
 - `yarn verify` green.
