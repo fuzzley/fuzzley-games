@@ -15,7 +15,7 @@
 />
 
 <!-- In the page from the start, so a screen reader is listening to it. -->
-<p class="fz-visually-hidden" aria-live="polite">{{ game.announcement() }}</p>
+<fz-announcer />
 
 <app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
 <app-help [open]="helpOpen()" (closed)="helpOpen.set(false)" />

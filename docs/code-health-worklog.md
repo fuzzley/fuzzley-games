@@ -26,7 +26,7 @@ git history keeps it.
 | P3    | `@fz/dev`                            | done  |
 | P4    | `@fz/style/testing`                  | done  |
 | P5    | The games' viewport in `@fz/game-ui` | done  |
-| P6    | `Stopwatch` and `Announcer`          | to do |
+| P6    | `Stopwatch` and `Announcer`          | done  |
 | P7    | The long press                       | to do |
 | P8    | Small things                         | to do |
 | P9    | The Solitaire Collection takes it up | to do |
@@ -223,3 +223,41 @@ git history keeps it.
   width every game shares is written once), its package description, the
   `fuzzley-ui` skill, and Minesweeper's `AGENTS.md` and `vitest-testing`
   skill.
+- `yarn verify` green. Committed as `161f7c0`.
+
+### 2026-10-26: P6, the stopwatch and the announcer
+
+- Named `StopwatchService` and `AnnouncerService`, not the plan's
+  `Stopwatch` and `Announcer`: every injectable in the libraries ends in
+  `Service`.
+- `@fz/game-ui/stopwatch`: `StopwatchService` has `seconds`, `running`,
+  `start()`, `stop()` and `reset(seconds = 0)`. It banks the milliseconds
+  counted and reads `Date.now()` rather than counting ticks, and pauses on
+  `visibilitychange` while the page is hidden. The change a player could
+  notice, as the plan said: part-seconds are kept across a pause, so a time
+  can come out a second longer than before. 13 specs, 100% coverage, among
+  them `start()` while it is already counting, which loses no time.
+- `@fz/ui/announcer`: `AnnouncerService` (`message`, `say()`, `clear()`;
+  a repeat gains a trailing `\u00a0`, as Minesweeper's did) and
+  `<fz-announcer>`, the polite live region, `fz-visually-hidden` on its
+  host. 7 specs. The no-break space is written as the `\u00a0` escape:
+  ESLint's `no-irregular-whitespace` flags a literal one in a template
+  literal, and the editor tools turn the escape into the literal, so a
+  small script put the escapes back.
+- Minesweeper takes them up: `GameService` drops its own clock, its
+  `DOCUMENT` and `DestroyRef`, the visibility listener and `announcement`;
+  `app.component.html` holds `<fz-announcer />` where the `<p aria-live>`
+  was. Its two visibility specs moved to the stopwatch's, and its three
+  announcement specs read `AnnouncerService.message()`; the root
+  component's spec, which finds the region by `aria-live`, passes as it
+  was.
+- Specs: `@fz/game-ui` 71 → 84, `@fz/ui` 151 → 158, Minesweeper 327 → 325.
+- Docs: `@fz/ui`'s and `@fz/game-ui`'s `AGENTS.md` (and the latter's
+  package description), the `fuzzley-ui` skill's description and tables,
+  the `web-game-accessibility` skill (the region in an Angular app), and
+  Minesweeper's `AGENTS.md`. The site's home-page search keeps its own
+  region: the plan didn't move it, and the site could take
+  `<fz-announcer>` up later.
+- `yarn verify` green. P7's first edits to the board were on disk by the
+  time its build step reached Minesweeper, so P7's own run is the one that
+  holds for both.

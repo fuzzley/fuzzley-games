@@ -1,12 +1,12 @@
-import { DOCUMENT } from "@angular/common";
 import {
-  DestroyRef,
   Injectable,
   InjectionToken,
   computed,
   inject,
   signal,
 } from "@angular/core";
+import { StopwatchService } from "@fz/game-ui/stopwatch";
+import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { describeMove } from "../../rules/describe";
 import type { DifficultyId } from "../../rules/difficulty";
@@ -30,16 +30,17 @@ export const GAME_RANDOM = new InjectionToken<() => number>("GAME_RANDOM", {
 });
 
 /**
- * Plays the game: holds the field, makes the player's moves on it, keeps its
- * time, and says what each move did.
+ * Plays the game: holds the field, makes the player's moves on it, runs its
+ * clock, keeps its score, and says what each move did.
  */
 @Injectable({ providedIn: "root" })
 export class GameService {
   private readonly settings = inject(SettingsService);
   private readonly stats = inject(StatsService);
   private readonly confirm = inject(ConfirmService);
+  private readonly stopwatch = inject(StopwatchService);
+  private readonly announcer = inject(AnnouncerService);
   private readonly random = inject(GAME_RANDOM);
-  private readonly document = inject(DOCUMENT);
 
   private readonly fieldState = signal<Field>(this.deal());
   private readonly difficultyState = signal<DifficultyId>(
@@ -47,11 +48,7 @@ export class GameService {
   );
   private readonly newBestState = signal(false);
   private readonly flagModeState = signal(false);
-  private readonly secondsState = signal(0);
-  private readonly announcementState = signal("");
   private readonly resultOpenState = signal(false);
-
-  private clock: ReturnType<typeof setInterval> | null = null;
 
   /** The game on the board. */
   readonly field = this.fieldState.asReadonly();
@@ -65,11 +62,11 @@ export class GameService {
   /** Whether a tap or click flags a square rather than revealing it. */
   readonly flagMode = this.flagModeState.asReadonly();
 
-  /** How long the game has been played, in whole seconds. */
-  readonly seconds = this.secondsState.asReadonly();
-
-  /** What the last move did, for the live region to say. */
-  readonly announcement = this.announcementState.asReadonly();
+  /**
+   * How long the game has been played, in whole seconds, not counting while
+   * the page is out of sight.
+   */
+  readonly seconds = this.stopwatch.seconds;
 
   /** Whether the card at the end of a game is showing. */
   readonly resultOpen = this.resultOpenState.asReadonly();
@@ -79,18 +76,6 @@ export class GameService {
 
   /** Whether a game is under way, which a new deal would lose. */
   readonly inProgress = computed(() => this.fieldState().outcome === "playing");
-
-  constructor() {
-    // The clock stops while the page is out of sight, such as in another tab.
-    const onVisibility = () => {
-      this.syncClock();
-    };
-    this.document.addEventListener("visibilitychange", onVisibility);
-    inject(DestroyRef).onDestroy(() => {
-      this.document.removeEventListener("visibilitychange", onVisibility);
-      this.stopClock();
-    });
-  }
 
   /** Reveals a square, or flags it in Flag mode: what a click or a tap does. */
   play(index: number): void {
@@ -168,10 +153,10 @@ export class GameService {
   private begin(field: Field, seconds: number, difficulty: DifficultyId): void {
     this.fieldState.set(field);
     this.difficultyState.set(difficulty);
-    this.secondsState.set(seconds);
+    this.stopwatch.reset(seconds);
     this.newBestState.set(false);
     this.resultOpenState.set(false);
-    this.announcementState.set("");
+    this.announcer.clear();
     this.syncClock();
   }
 
@@ -181,7 +166,7 @@ export class GameService {
     this.fieldState.set(after);
     this.syncClock();
     this.keepScore(before, after);
-    this.say(describeMove(before, after));
+    this.announcer.say(describeMove(before, after));
     if (isOver(after)) this.resultOpenState.set(true);
   }
 
@@ -193,20 +178,9 @@ export class GameService {
     }
     if (after.outcome === "won") {
       this.newBestState.set(
-        this.stats.recordWin(difficulty, this.secondsState()),
+        this.stats.recordWin(difficulty, this.stopwatch.seconds()),
       );
     }
-  }
-
-  /**
-   * Says something in the live region. The same words twice in a row would
-   * change nothing a screen reader notices, so a repeat gains a trailing
-   * no-break space.
-   */
-  private say(text: string): void {
-    this.announcementState.update((said) =>
-      said === text ? `${text}\u00a0` : text,
-    );
   }
 
   private async mayLoseGame(): Promise<boolean> {
@@ -219,22 +193,12 @@ export class GameService {
     });
   }
 
-  /** Runs the clock while a game is under way and the page is in view. */
+  /** Runs the clock while a game is under way. */
   private syncClock(): void {
-    const counting =
-      this.fieldState().outcome === "playing" &&
-      this.document.visibilityState !== "hidden";
-    if (counting && !this.clock) {
-      this.clock = setInterval(() => {
-        this.secondsState.update((s) => s + 1);
-      }, 1000);
-    } else if (!counting) {
-      this.stopClock();
+    if (this.fieldState().outcome === "playing") {
+      this.stopwatch.start();
+    } else {
+      this.stopwatch.stop();
     }
-  }
-
-  private stopClock(): void {
-    if (this.clock) clearInterval(this.clock);
-    this.clock = null;
   }
 }
