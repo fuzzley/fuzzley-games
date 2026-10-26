@@ -9,6 +9,12 @@
 }
 
 .option {
+  // Holds its hidden radio, which is absolutely positioned. Otherwise the radio
+  // takes its place from the nearest positioned ancestor, which may sit outside
+  // the panel that scrolls (a drawer's backdrop-filter makes it one), so the
+  // radio would stay put as the panel scrolls, and focusing it would scroll
+  // the page to wherever it was left.
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.625rem;

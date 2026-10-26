@@ -42,7 +42,13 @@
   height: 20px;
 }
 
+// Positioned, so what is absolutely positioned inside, such as a visually
+// hidden hint, scrolls with it. Otherwise the drawer, whose backdrop-filter
+// makes it the containing block, leaves those where they were before any
+// scrolling, far below the panel, and scrolling them into view, as focus or
+// find-in-page does, carries the whole drawer off the screen.
 .drawer-content {
+  position: relative;
   flex: 1;
   padding: var(--fz-space-6);
   overflow-y: auto;
