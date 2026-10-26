@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   Injector,
@@ -37,7 +36,6 @@ interface CellView {
  */
 @Component({
   selector: "app-board",
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Grid, GridRow, GridCell, IconComponent, LongPressDirective],
   templateUrl: "./board.component.html",
   styleUrl: "./board.component.scss",

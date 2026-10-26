@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  output,
-} from "@angular/core";
+import { Component, computed, inject, output } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import { difficultyName } from "../../rules/difficulty";
@@ -27,7 +21,6 @@ interface Figure {
  */
 @Component({
   selector: "app-result",
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DialogComponent, IconComponent],
   templateUrl: "./result.component.html",
   styleUrl: "./result.component.scss",

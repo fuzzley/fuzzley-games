@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   inject,
@@ -51,7 +50,6 @@ function describeDifficulty(difficulty: DifficultyId): string {
  */
 @Component({
   selector: "app-settings",
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DialogComponent,
     IconComponent,
