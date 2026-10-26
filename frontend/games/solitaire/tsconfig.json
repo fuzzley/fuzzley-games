@@ -8,9 +8,6 @@
       "@/*": ["./src/*"],
       "@test/*": ["./test/*"]
     },
-    "removeComments": true,
-    "sourceMap": true,
-    "emitDecoratorMetadata": true,
     "lib": ["es2022", "dom", "dom.iterable"]
   },
   // A solution: each file belongs to the project below that includes it, which
