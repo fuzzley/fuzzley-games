@@ -122,9 +122,10 @@ workspace's with the others'.
   port the Solitaire Collection's uses too). The site's dev server serves
   the build `yarn start` made when it started.
 - **Production Build:** `yarn build`, into `dist/`; `yarn preview` serves it.
-- **Run Unit Tests:** `yarn test` (once), `yarn test:watch`, or
-  `yarn test:coverage`, which fails below the floor `vitest.config.ts` sets
-  for `src/game/`.
+- **Run Unit Tests:** `yarn test` (the whole suite once, with coverage,
+  failing below the floor `vitest.config.ts` sets for `src/game/`),
+  `yarn test:watch`, or `yarn vitest run <path>` for one spec, which leaves
+  the floor alone.
 - **Linting:** `yarn lint` (ESLint over `src`, `tools` and the configs, with
   Angular's template accessibility rules and JSDoc types on every script,
   then `yarn lint:styles`, stylelint with `@fz/style`'s preset).

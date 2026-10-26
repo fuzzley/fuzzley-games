@@ -19,18 +19,18 @@ git history keeps it.
 
 ## Status
 
-| Phase | What                                 | State       |
-| ----- | ------------------------------------ | ----------- |
-| P1    | Check the coverage floors            | in progress |
-| P2    | Minesweeper by feature               | to do       |
-| P3    | `@fz/dev`                            | to do       |
-| P4    | `@fz/style/testing`                  | to do       |
-| P5    | The games' viewport in `@fz/game-ui` | to do       |
-| P6    | `Stopwatch` and `Announcer`          | to do       |
-| P7    | The long press                       | to do       |
-| P8    | Small things                         | to do       |
-| P9    | The Solitaire Collection takes it up | to do       |
-| P10   | Signal Forms                         | to do       |
+| Phase | What                                 | State |
+| ----- | ------------------------------------ | ----- |
+| P1    | Check the coverage floors            | done  |
+| P2    | Minesweeper by feature               | to do |
+| P3    | `@fz/dev`                            | to do |
+| P4    | `@fz/style/testing`                  | to do |
+| P5    | The games' viewport in `@fz/game-ui` | to do |
+| P6    | `Stopwatch` and `Announcer`          | to do |
+| P7    | The long press                       | to do |
+| P8    | Small things                         | to do |
+| P9    | The Solitaire Collection takes it up | to do |
+| P10   | Signal Forms                         | to do |
 
 ## Baseline (2026-10-25, `b6ef698`)
 
@@ -44,3 +44,24 @@ git history keeps it.
 ### 2026-10-25: start
 
 - Branch `code-health-lib` created; the plan and this log committed first.
+
+### 2026-10-25: P1, the coverage floors
+
+- Every library and game's `test` is now `vitest run --coverage`, and
+  `test:coverage` is gone; `test:watch` stays. A floor holds for the whole
+  suite: `vitest run --coverage <one spec>` fails every threshold (checked on
+  `format.spec.ts`), so the docs say to run one spec with
+  `yarn vitest run <path>`.
+- Floors, from the figures measured that day, rounded down
+  (statements/branches/functions/lines): `@fz/ui` 94/79/98/97 (real
+  94.16/79.16/98.18/97.08); `@fz/game-ui` 100/95/100/100 (real 100 across);
+  `@fz/style` 95/83/93/95 (real 95.23/83.33/93.93/95). `src/testing/` counts
+  in the libraries, since it is an entry point other workspaces use;
+  `@fz/ui`'s dialog polyfill is its lowest file (78% statements).
+- Solitaire Collection with coverage on: 6932 tests, 98.54/92.75/98.92/99.36,
+  above its 95/88/96/96 floor.
+- `@fz/style`'s `lint` is `eslint .`, which then linted the HTML report in
+  `coverage/` (three warnings); its config ignores `coverage/` now.
+- The site has no coverage set up at all. It isn't in the plan, so it is
+  left as it is; worth a floor of its own later.
+- `yarn verify` green (3m43s).
