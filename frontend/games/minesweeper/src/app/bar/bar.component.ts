@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  output,
-} from "@angular/core";
+import { Component, computed, inject, output } from "@angular/core";
 import {
   BarOverflowComponent,
   type BarOverflowItem,
@@ -35,7 +29,6 @@ const OVERFLOW_ACTIONS: readonly BarOverflowItem[] = [
  */
 @Component({
   selector: "app-bar",
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [BarOverflowComponent, GameBarComponent, IconComponent],
   host: {
     "[class.compact]": "viewport.isCompact()",

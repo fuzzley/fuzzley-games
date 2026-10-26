@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from "@angular/core";
+import { Component, inject, signal } from "@angular/core";
 import { AnnouncerComponent } from "@fz/ui/announcer";
 import { ConfirmDialogComponent } from "@fz/ui/confirm";
 import { GameViewportService } from "@fz/game-ui/viewport";
@@ -20,7 +15,6 @@ import { SettingsComponent } from "./settings/settings.component";
  */
 @Component({
   selector: "app-root",
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AnnouncerComponent,
     BarComponent,
