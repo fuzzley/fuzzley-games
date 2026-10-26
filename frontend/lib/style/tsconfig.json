@@ -1,7 +1,7 @@
 {
   // Two kinds of TypeScript, checked together with @fz/dev's options:
-  // themes.ts, which the apps import into the browser, and vite.ts, which
-  // their Vite configs run in Node.
+  // themes.ts, which the apps import into the browser, and build/vite.ts,
+  // which their Vite configs run in Node.
   "extends": "@fz/dev/tsconfig/base.json",
   "compilerOptions": {
     "noEmit": true,

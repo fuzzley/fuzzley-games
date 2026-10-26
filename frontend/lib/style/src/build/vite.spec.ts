@@ -4,14 +4,14 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import sharp from "sharp";
 import { type Plugin, type Rolldown, build, createServer } from "vite";
-import { fuzzballSvg } from "./fuzzball.ts";
+import { fuzzballSvg } from "../fuzzball.ts";
 import { fuzzballIco } from "./fuzzball_raster.ts";
 import {
   DEFAULT_THEMES,
   PALETTE_ROLES,
   THEMES,
   THEME_STORAGE_KEY,
-} from "./themes.ts";
+} from "../themes.ts";
 import {
   FAVICON,
   FAVICON_ICO,

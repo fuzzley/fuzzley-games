@@ -5,10 +5,10 @@
 import { fileURLToPath } from "node:url";
 import { compileString } from "sass";
 import type { Plugin } from "vite";
-import { fuzzballSvg } from "./fuzzball.ts";
+import { fuzzballSvg } from "../fuzzball.ts";
 import { fuzzballIco, fuzzballPng } from "./fuzzball_raster.ts";
 import { themeBootstrapScript } from "./theme_script.ts";
-import { DEFAULT_THEMES, THEMES, THEME_STORAGE_KEY } from "./themes.ts";
+import { DEFAULT_THEMES, THEMES, THEME_STORAGE_KEY } from "../themes.ts";
 
 /** The file the page loads, before anything else, to pick its palette. */
 export const THEME_SCRIPT = "theme.js";
@@ -102,7 +102,7 @@ export function paletteColors(): ReadonlyMap<
   string,
   ReadonlyMap<string, string>
 > {
-  const tokens = fileURLToPath(new URL("tokens/", import.meta.url));
+  const tokens = fileURLToPath(new URL("../tokens/", import.meta.url));
   const { css } = compileString('@use "palettes";', { loadPaths: [tokens] });
   return new Map(
     [...css.matchAll(/\[data-theme=["']?([\w-]+)["']?\]\s*\{([^}]*)\}/g)].map(
