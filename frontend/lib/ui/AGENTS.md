@@ -17,7 +17,10 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   where the browser refuses it, which a service injects rather than reading
   the global, so a spec can hand it another; and `LocalStorageService`, which
   reads and writes strings and JSON through it, warning rather than throwing
-  where the store is missing or refuses.
+  where the store is missing or refuses. What an app keeps from one visit
+  to the next goes through `writeVersioned()`, which stores a version
+  beside it, and `readVersioned()`, which reads any other version as
+  nothing, so a change of shape drops what it can't read.
 - `src/theme/`: `ThemeService`, which applies the palette in use, remembers
   it, takes up one chosen in another tab, and gives a role's color as a
   signal (`role("felt")`), and draws the tab's icon, where the page links

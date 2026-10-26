@@ -39,6 +39,25 @@ export class LocalStorageService {
     }
   }
 
+  /**
+   * Reads what `writeVersioned()` kept under a key, or null when it is
+   * absent, corrupt, or of another version than the one asked for.
+   *
+   * Its fields are as stored, unchecked, so treat them as untrusted input.
+   */
+  readVersioned(
+    key: string,
+    version: number,
+  ): Readonly<Record<string, unknown>> | null {
+    const saved = this.readObject(key);
+    return isRecord(saved) && saved["version"] === version ? saved : null;
+  }
+
+  /** Writes an object's fields as JSON, with the version they are kept at. */
+  writeVersioned(key: string, version: number, value: object): void {
+    this.writeObject(key, { version, ...value });
+  }
+
   /** Writes a raw string, doing nothing where there is nowhere to write. */
   writeString(key: string, value: string): void {
     if (!this.storage) return;
@@ -67,4 +86,9 @@ export class LocalStorageService {
       console.warn(`Failed to remove "${key}" from storage:`, e);
     }
   }
+}
+
+/** Returns whether a value is an object, and not a list. */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

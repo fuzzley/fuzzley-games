@@ -6,6 +6,9 @@ import { isRecord, isWhole } from "../../rules/json";
 /** Where the stats are kept. Renaming it loses every player's. */
 export const STATS_KEY = "minesweeper-stats";
 
+/** The shape the stats are kept in; a reader drops any other. */
+const STATS_VERSION = 1;
+
 /** Counts one difficulty's games. */
 export interface DifficultyStats {
   /** Games started: a game counts once its first square is revealed. */
@@ -82,13 +85,13 @@ export class StatsService {
       ...all,
       [difficulty]: update(all[difficulty]),
     }));
-    this.storage.writeObject(STATS_KEY, { version: 1, ...this.state() });
+    this.storage.writeVersioned(STATS_KEY, STATS_VERSION, this.state());
   }
 
   /** Returns the stats stored, keeping whatever of them still makes sense. */
   private read(): Stats {
-    const saved = this.storage.readObject(STATS_KEY);
-    if (!isRecord(saved) || saved["version"] !== 1) return EMPTY;
+    const saved = this.storage.readVersioned(STATS_KEY, STATS_VERSION);
+    if (!saved) return EMPTY;
     return statsBy((id) => parseStats(saved[id]));
   }
 }
