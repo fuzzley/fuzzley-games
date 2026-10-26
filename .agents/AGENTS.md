@@ -23,60 +23,11 @@ Minesweeper.
 ## Repository Layout
 
 - **`frontend/`** — the Yarn workspace root for all client code, and nothing
-  else. Run every `yarn` command from here; `yarn workspace <name> <script>`
-  runs a script of one workspace. A backend, when there is one, goes in a
-  folder of its own beside it.
-  - The root's `package.json` declares the workspaces and pins Yarn and
-    Node. Its scripts run the workspaces' own (`yarn build`, `yarn verify`),
-    picking them by path (`--include "games/*"`), and its dependencies are
-    only the tools that run from here: Prettier, ESLint, TypeScript and
-    `@fz/dev` for the `.agents/` scripts and its own `tools/`, with the
-    `eslint.config.js` and `tsconfig.scripts.json` beside it, and `semver`
-    for the constraints. `tools/` holds the scripts that act on every
-    workspace at once, such as `yarn stop`'s. `yarn.lock` and `.yarnrc.yml`
-    exist only here.
-  - `yarn.config.cjs` holds the constraints `yarn lint` checks every
-    `package.json` against: a package has the same range in every workspace
-    that depends on it, a peer range is the workspace's own devDependency
-    range for it, only the root sets `packageManager`, `workspaces` and
-    `engines`, each workspace is private and named after its folder, a
-    library depends on no workspace but another library, and every
-    workspace has `lint`, `typecheck` and `test` scripts (a game `build`
-    too), since the root's `yarn workspaces foreach run` skips a workspace
-    without one and says nothing. `yarn constraints --fix` gives every
-    workspace the highest of a package's ranges, and a peer its
-    devDependency's.
-  - Each workspace is self-contained: its `package.json` lists everything
-    it imports or runs, and its configs sit in its folder and cover only it.
-    They build on `@fz/dev`'s presets, so every workspace is checked by the
-    same rules, and add only what is the workspace's own.
-    The site and the games never import each other's code; the site takes a
-    game's built `dist/`, through `games.json`, and nothing else.
-  - `lib/` holds the libraries the site and the games share, one workspace
-    each, named after its folder under the `@fz` scope (`lib/style` is
-    `@fz/style`). Imports go one way only: the site and the games may import
-    a library, through a `workspace:` dependency in their `package.json`,
-    and a library may import another library, but never the site or a game.
-    An app compiles a library from its source; nothing in `lib/` is built
-    on its own. Each keeps its own rules in an `AGENTS.md` in its folder:
-    `frontend/lib/style/AGENTS.md`, for the styles every app shares, with
-    no framework, `frontend/lib/ui/AGENTS.md`, for the Angular components
-    and services, `frontend/lib/game-ui/AGENTS.md`, for the chrome only
-    the games share, and `frontend/lib/dev/AGENTS.md`, for the lint,
-    compiler, test and game build presets every workspace is checked and
-    built with, and the scripts' headless Chrome, which no app's code
-    imports. The `fuzzley-ui` skill
-    says which piece to reach for, and how an app adopts them.
-  - `games/` holds the games built here, one workspace each, named after its
-    folder. A game knows nothing of the site, even when both use the same
-    library: it builds into its own `dist/`, with `index.html` at its top
-    level, a `game.json` that says what it holds, and its screenshots in
-    `docs/screenshots/<slug>/`. Each keeps its own rules in an `AGENTS.md`
-    in its folder: `frontend/games/solitaire/AGENTS.md` and
-    `frontend/games/minesweeper/AGENTS.md`.
-- **`frontend/site/`** — the site, the Angular app (workspace `site`), and
-  the build the image serves, with the games under `/play/`. Its layout,
-  checks and rules are in `frontend/site/AGENTS.md`.
+  else: the site (`frontend/site/`), the games built here
+  (`frontend/games/`) and the libraries they share (`frontend/lib/`), one
+  workspace each. Its layout, its Yarn commands and the rules every
+  workspace keeps are in `frontend/AGENTS.md`, what every game keeps in
+  `frontend/games/AGENTS.md`, and each workspace's own in its folder's.
 - **`Dockerfile`, `nginx.conf.template`, `nginx/`, `docker-entrypoint.d/`** —
   the image that serves the build, its nginx config, the security header
   snippets it includes, and the startup script that writes `env.js` from the
@@ -92,35 +43,12 @@ Minesweeper.
 
 ## Build & Deploy System
 
-### Package Manager
+### Building and Checking
 
-This project uses **Yarn 4**. Always use Yarn commands instead of NPM (`yarn <command>`).
-
-`frontend/.yarnrc.yml` sets `npmMinimalAgeGate` to a day: Yarn won't install a
-version published less than a day ago (it says the versions are
-"quarantined"). Take the newest version past the gate rather than lifting
-it. Dependabot waits the same day before proposing an update.
-
-Node is version 26, as `.node-version` says; `frontend/package.json`'s
-`engines` says so too.
-
-### Development Commands
-
-Run from `frontend/`. Each of these builds or checks every workspace; a
-workspace's own scripts, such as `yarn workspace site lint:styles`, run one
-step, and its `AGENTS.md` says what they do.
-
-- **Run Development Server:** `yarn start` or `yarn dev` (builds the workspaces under `games/`, then the site puts the games in `site/public/play/` and launches the Vite dev server at `http://localhost:4200/`).
-- **Production Build:** `yarn build` (builds the workspaces under `games/` with `yarn build:games`, then the site's `build` puts every game `games.json` lists into `site/public/play/`, bundles into `site/dist/`, writes `version.json` with the commit it was built from and the games' builds, then adds the analytics tags to each game). It fails if the catalog links a game the games' builds don't have, or calls one by another name, as each build's `game.json` says.
-- **Fetch the Games:** `yarn games` (builds the workspaces and puts every game into `site/public/play/`; `yarn start` and `yarn build` do it first).
-- **Preview Build:** `yarn preview` (serves the site's production build locally).
-- **Stop Development Servers:** `yarn stop` (runs `tools/stop-dev-servers.mjs` to force stop every Vite dev server running from this checkout's frontend, whichever workspace started it, with the yarn processes that launched it, on Windows and Linux; `--dry-run` lists them without stopping them). Don't run it while a build runs: it stops the Dart Sass a build spawns too.
-- **Run Unit Tests:** `yarn test` (runs each workspace's `test`, which collects coverage and fails below the floor its config sets: the site's in the `test` block of its `vite.config.ts`, every other workspace's in its `vitest.config.ts`). A floor holds for the whole suite, so run one spec with `yarn vitest run <path>` from its workspace instead.
-- **Type Checking:** `yarn typecheck` (runs `tsc` over the `.agents` scripts, the root's `tools/` and the constraints from their JSDoc (`frontend/tsconfig.scripts.json`), then each workspace's `typecheck`). Vitest strips types without checking them, so this is the only check a spec's types get.
-- **Linting:** `yarn lint` (checks the paths and links in the skills and every `AGENTS.md`, checks every `package.json` against the constraints in `frontend/yarn.config.cjs` (`yarn constraints`), checks the lockfile holds no copy `yarn dedupe` would merge (`yarn dedupe --check`), runs ESLint over `.agents`, the root's `tools/` and those constraints with `frontend/eslint.config.js`, runs each workspace's `lint` with its own config, then checks formatting with `yarn prettier:check`).
-- **Full Verification Pipeline:** `yarn verify` (runs `yarn lint && yarn typecheck && yarn test && yarn build`).
-- **Format Codebase:** `yarn prettier` (formats the whole repository with
-  Prettier); `yarn prettier:check` only reports what it would change.
+Run every `yarn` command from `frontend/`, with Yarn 4, never NPM.
+`yarn start` serves the site and the games at `http://localhost:4200/`, and
+`yarn verify` runs what CI runs: lint, type-check, test, then build.
+`frontend/AGENTS.md` lists every command and what it checks.
 
 To test the image itself, build and run it with Docker as `docs/operations.md`
 shows.
@@ -161,16 +89,6 @@ nothing else.
 
 ---
 
-## Running & Debugging
-
-- **Local Testing:** Start the server with `yarn start` and navigate to `http://localhost:4200/`.
-- **Chrome DevTools MCP:** Use the `chrome-devtools-mcp` server to inspect and
-  verify the local running site when making UI or behavioral changes.
-- **Browser Tools:** Close any browser instance you start for debugging when
-  you are done with it, so none are left running.
-
----
-
 ## Agent Configuration (`.agents/`)
 
 `.agents/` is the committed, tool-neutral home for what agents read about the
@@ -182,15 +100,18 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   pointers to it, because those are the filenames agents actually look for —
   `AGENTS.md` for Codex, Cursor, Copilot, and Amp; `CLAUDE.md` for Claude Code,
   which does not read `AGENTS.md`. Edit this file, not the pointers.
-- **A workspace's instructions** sit in its folder:
+- **The frontend's instructions** sit in layers below this file, each an
+  `AGENTS.md` with a `CLAUDE.md` beside it that imports it (`@AGENTS.md`),
+  which agents read once they work on a file beneath it:
+  `frontend/AGENTS.md`, for every workspace; `frontend/games/AGENTS.md`, for
+  every game; and each workspace's in its folder:
   `frontend/site/AGENTS.md`, `frontend/lib/style/AGENTS.md`,
   `frontend/lib/ui/AGENTS.md`, `frontend/lib/game-ui/AGENTS.md`,
   `frontend/lib/dev/AGENTS.md`, `frontend/games/solitaire/AGENTS.md` and
-  `frontend/games/minesweeper/AGENTS.md`, each with a `CLAUDE.md` beside it
-  that imports it (`@AGENTS.md`). Agents read them when they work in that
-  folder, so the site's rules never reach a game. A rule for the whole
-  repository, such as how code, comments and tests are written, belongs here
-  instead, once.
+  `frontend/games/minesweeper/AGENTS.md`. So the site's rules never reach a
+  game, nor a game's the site. A rule is written once, in the highest layer
+  it holds for: one for the whole repository, such as how code, comments
+  and tests are written, belongs here.
 - **Skills:** a skill every workspace can use lives in
   `.agents/skills/<name>/SKILL.md`; a skill about one workspace lives in that
   workspace's `.agents/skills/<name>/SKILL.md` (`frontend/site/.agents/skills/`,
@@ -201,12 +122,14 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   **`node .agents/link-claude-skills.mjs`** links each skill into the
   `.claude/skills/` beside its `.agents/skills/` (a junction on Windows). It
   loads the repository's at startup and a workspace's once it reads or edits a
-  file in that workspace; two skills of one name, such as the site's and the
-  Solitaire Collection's `vitest-testing`, both load, and the one whose folder
-  holds the files at hand applies. The links hold absolute paths inside
-  gitignored `.claude/`, so re-run the script after a fresh clone or a move —
-  a dangling link silently drops the skill. Restart Claude Code if
-  `.claude/skills` did not exist when the session started.
+  file in that workspace, and keeps every one it loaded, so a workspace's
+  skills start with its name (`site-testing`, `solitaire-styles`) and their
+  triggers name it. The links hold absolute paths inside gitignored
+  `.claude/`, so re-run the script after a fresh clone or a move — a
+  dangling link silently drops the skill. Outside CI, the reference check
+  below warns about a skill with no link, or a link that leads nowhere.
+  Restart Claude Code if `.claude/skills` did not exist when the session
+  started.
 - **Flat skills directories.** Every skill lives directly under an
   `.agents/skills/` folder, as `<name>/SKILL.md`, including the Solitaire
   Collection's namespaced `phaser-*` ones. Adding a skill means a new
@@ -275,8 +198,11 @@ These rules cover every doc comment: classes, interfaces, functions, HTML, CSS, 
 
 ## Writing Unit Tests
 
-These rules hold for every workspace's specs. A workspace with specs has a
-`vitest-testing` skill of its own for its runner setup and patterns, and its
+These rules hold for every workspace's specs. The `angular-testing` skill
+holds the patterns every Angular workspace's specs share: Testing Library by
+role, user-event, jest-dom and zoneless change detection. An app also has a
+skill of its own for its runner setup, fixtures and floors
+(`site-testing`, `minesweeper-testing`, `solitaire-testing`), and its
 `AGENTS.md` says where its specs go.
 
 - **Test Coverage:** Cover new and changed code with specs.

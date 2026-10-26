@@ -19,7 +19,7 @@ This skill governs Phaser 4 canvas integration within the Solitaire Collection. 
      `src/engine/render/assets/sprites/card/`, or the generated deck in
      `tools/card-atlas/mobile-deck.mjs`, change. The atlas is a committed
      build artifact, so a stale one ships.
-   - See the `vite-bundle-optimization` skill for the toolchain in full.
+   - See the `solitaire-build` skill for the toolchain in full.
 
 ## Core Phaser 4 Sub-topics & Reference Map
 

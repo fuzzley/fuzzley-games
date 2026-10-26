@@ -6,8 +6,9 @@ on `@fz/ui` ([frontend/lib/ui/AGENTS.md](../ui/AGENTS.md)) and `@fz/style`
 ([frontend/lib/style/AGENTS.md](../style/AGENTS.md)), and keeps their rules:
 everything carries `fz`, a component reads no viewport, accessibility is the
 component's job, and the same strict compiler options and checks. The
-repository's rules are in [.agents/AGENTS.md](../../../.agents/AGENTS.md).
-Paths are relative to `frontend/lib/game-ui/`.
+frontend's rules are in [frontend/AGENTS.md](../../AGENTS.md), and the
+repository's in [.agents/AGENTS.md](../../../.agents/AGENTS.md). Paths are
+relative to `frontend/lib/game-ui/`.
 
 ## What it holds
 

@@ -2,7 +2,8 @@
 // Checks that the skills, the repository's under `.agents/skills` and each
 // workspace's under its own, and every `AGENTS.md` still describe the code as
 // it is: every relative markdown link resolves, and every backticked path
-// exists.
+// exists. Outside CI, it also warns about a skill Claude Code can't load,
+// whose link in the `.claude/skills` beside it is missing or leads nowhere.
 //
 // Usage: node .agents/check-skill-references.mjs
 
@@ -10,6 +11,8 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { REPO_ROOT, skillRoots } from "./skill-roots.mjs";
+
+/** @import { SkillRoot } from "./skill-roots.mjs" */
 
 // Skills whose backticked paths point into another project's source tree: the
 // vendored Angular ones.
@@ -233,6 +236,59 @@ function checkPaths(file, text, base, problems) {
   }
 }
 
+/**
+ * Returns where a path leads once every link on the way is followed, or
+ * null if it leads nowhere.
+ *
+ * @param {string} candidate
+ * @returns {string | null}
+ */
+function realPath(candidate) {
+  try {
+    return fs.realpathSync(candidate);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Returns a warning for each skill in a folder that Claude Code can't load:
+ * one the `.claude/skills` beside it has no link to, and a link there that
+ * leads nowhere, such as one to a skill since renamed.
+ *
+ * @param {SkillRoot} root
+ * @returns {string[]}
+ */
+function linkWarnings(root) {
+  const links = path.join(root.base, ".claude", "skills");
+  const where = (/** @type {string} */ name) =>
+    path.relative(REPO_ROOT, path.join(links, name));
+  const skills = fs
+    .readdirSync(root.skills, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .filter((name) => fs.existsSync(path.join(root.skills, name, "SKILL.md")));
+  const unlinked = skills
+    .filter(
+      (name) =>
+        realPath(path.join(links, name)) !==
+        realPath(path.join(root.skills, name)),
+    )
+    .map((name) => `${where(name)}: no link to the skill`);
+  const dangling = fs.existsSync(links)
+    ? fs
+        .readdirSync(links)
+        .filter(
+          (name) =>
+            !skills.includes(name) &&
+            fs.lstatSync(path.join(links, name)).isSymbolicLink() &&
+            realPath(path.join(links, name)) === null,
+        )
+        .map((name) => `${where(name)}: leads nowhere`)
+    : [];
+  return [...unlinked, ...dangling];
+}
+
 /** @type {string[]} */
 const problems = [];
 for (const root of skillRoots()) {
@@ -253,6 +309,19 @@ for (const file of agentsFilesIn(REPO_ROOT)) {
   const text = fs.readFileSync(file, "utf8");
   checkRelativeLinks(file, text, problems);
   checkPaths(file, text, baseOfAgentsFile(file), problems);
+}
+
+// CI has no `.claude`, which is machine-local.
+if (!process.env["CI"]) {
+  const warnings = skillRoots().flatMap(linkWarnings);
+  if (warnings.length) {
+    console.warn(
+      `Claude Code can't load ${warnings.length} skill link(s); run node .agents/link-claude-skills.mjs:
+`,
+    );
+    for (const warning of warnings) console.warn(`  ${warning}`);
+    console.warn("");
+  }
 }
 
 if (problems.length) {

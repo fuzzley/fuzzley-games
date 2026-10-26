@@ -4,9 +4,9 @@ The `@fz/ui` library (`frontend/lib/ui`): the Angular components, services
 and tokens the site and the games share, so each app's frame looks and
 behaves alike. Its styles come from `@fz/style`
 ([frontend/lib/style/AGENTS.md](../style/AGENTS.md)), which it depends on.
-The repository's rules, which apply here too, are in
-[.agents/AGENTS.md](../../../.agents/AGENTS.md). Paths are relative to
-`frontend/lib/ui/`.
+The frontend's rules, in [frontend/AGENTS.md](../../AGENTS.md), and the
+repository's, in [.agents/AGENTS.md](../../../.agents/AGENTS.md), apply here
+too. Paths are relative to `frontend/lib/ui/`.
 
 ## What it holds
 
@@ -119,8 +119,8 @@ own, which `yarn workspace @fz/ui <script>` runs alone.
   (`tsconfig.lib.json`), emitting nothing, then `tsc` over the specs
   (`tsconfig.spec.json`) and the Vitest config (`tsconfig.node.json`).
 - **`test`** runs Vitest with jsdom and Testing Library, as the site's specs
-  do; the site's `vitest-testing` skill
-  ([frontend/site/.agents/skills/vitest-testing/SKILL.md](../../site/.agents/skills/vitest-testing/SKILL.md))
+  do; the repository's `angular-testing` skill
+  ([.agents/skills/angular-testing/SKILL.md](../../../.agents/skills/angular-testing/SKILL.md))
   covers the patterns. Each spec sits
   beside the file it tests. It collects coverage too, and fails below the
   floor `vitest.config.ts` sets, a little under the real figures; raise the

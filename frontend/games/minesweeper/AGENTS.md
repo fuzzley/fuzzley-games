@@ -3,21 +3,22 @@
 The `minesweeper` workspace: Minesweeper with lives, where a mine stepped on
 costs a life rather than the game. It is an Angular app on the shared
 libraries, rebuilt in 2026 from the 2016 game that moved here from
-fuzzley/fMinesweeper with its history. The repository's rules, in
-[.agents/AGENTS.md](../../../.agents/AGENTS.md), say how it is built, checked
-and served, and how code, comments and tests are written; this workspace
-keeps its own for its code. Paths are relative to
+fuzzley/fMinesweeper with its history. What every game keeps, in
+[frontend/games/AGENTS.md](../AGENTS.md), what every workspace keeps, in
+[frontend/AGENTS.md](../../AGENTS.md), and the repository's rules, in
+[.agents/AGENTS.md](../../../.agents/AGENTS.md), apply here too; this
+workspace keeps its own for its code. Paths are relative to
 `frontend/games/minesweeper/`.
 
 ## Technology Stack
 
-- **UI:** [Angular](https://angular.dev/) (v22: standalone components,
-  signals, zoneless change detection) on `@fz/style`, `@fz/ui` and
-  `@fz/game-ui` (the `fuzzley-ui` skill)
-- **Build Toolchain:** [Vite](https://vitejs.dev/) (v8) + [AnalogJS Vite Angular Plugin](https://analogjs.org/)
-- **Test Framework:** [Vitest](https://vitest.dev/) (v5) with jsdom and
-  Testing Library
-- **Language:** TypeScript (v6) / HTML / Sass
+- **UI:** [Angular](https://angular.dev/) (standalone components, signals,
+  zoneless change detection) on `@fz/style`, `@fz/ui` and `@fz/game-ui` (the
+  `fuzzley-ui` skill)
+- **Build Toolchain:** [Vite](https://vitejs.dev/) + [AnalogJS Vite Angular Plugin](https://analogjs.org/)
+- **Test Framework:** [Vitest](https://vitest.dev/) with jsdom and Testing
+  Library
+- **Language:** TypeScript / HTML / Sass
 
 ## Layout
 
@@ -81,48 +82,31 @@ keeps its own for its code. Paths are relative to
 ## Styling
 
 Every component stylesheet opens with `@use "../styles" as *;`, which
-brings in `@fz/style`'s mixins and this game's own, and nothing else.
+brings in `@fz/style`'s mixins and this game's own, and nothing else. The
+frontend's Angular and Sass rules apply; on top of them:
 
-- **Tokens are `@fz/style`'s, by their own names** (`--fz-accent`,
-  `--fz-space-3`, `--fz-radius-md`), read with `var()`. Never a color
-  literal outside `_inks.scss`.
-- **The games' breakpoints, by name:**
-  `@include below("tablet" | "desktop")` and the rest of `@fz/game-ui`'s
-  mixins, which `styles/_index.scss` forwards, so every game changes shape
-  at the same widths. `@fz/game-ui/viewport`'s `GameViewportService` applies the same
-  compact test in code, and says where the bar stands and what fits in it;
-  the app, the bar and the board read it.
-- **The libraries' pieces first.** Overlays are `<fz-dialog>`, the question
-  before a game is lost is `ConfirmService.ask()`, buttons are
-  `.fz-button`, and icons are `<fz-icon name="…">` (the flag, heart and
-  mine were added to `@fz/ui` for this game). What the two games draw alike
-  but don't yet share, such as the settings' choice tiles, is a mixin in
-  `src/app/styles/_mixins.scss`.
-- **Templates bind, they do not compute.** Expose a `computed()` view model
-  instead of calling a method from a template.
-- **Comment with `//`,** which Sass strips.
+- **Only the numbers' inks are colors,** in `src/app/board/_inks.scss`, the
+  one stylesheet stylelint lets write one.
+- **The bar and the board read `@fz/game-ui/viewport`'s
+  `GameViewportService`,** which applies the games' compact test in code and
+  says where the bar stands and what fits in it.
+- **The flag, heart and mine** were added to `@fz/ui`'s icons for this game.
+  What the two games draw alike but don't yet share, such as the settings'
+  choice tiles, is a mixin in `src/app/styles/_mixins.scss`.
 
 ## In This Repository
 
-- **It knows nothing of the site.** It builds into `dist/` with relative
-  URLs, and the site copies that build to `/play/minesweeper/`. Nothing here
-  imports from the site, or the site from here. The build's `game.json`
-  names the game, and the site's build fails if its catalog calls it
-  anything else.
-- **Its screenshots are the site's.** `public/docs/screenshots/minesweeper/`
-  holds the thumbnail and the preview the catalog shows, and the preview is
-  the link preview image in `index.html`. `yarn capture:screenshots` makes
-  them again.
-- **It shares the palette with the site.** `index.html` loads `theme.js`
-  first, which `@fz/style`'s Vite plugin writes, and `ThemeService` from
-  `@fz/ui/theme` takes over; the settings offer the choice. The browser's
-  toolbar takes the page's color (`THEME_COLOR_ROLE` in `src/main.ts`).
-- **Saved games outlive the code.** The settings, the statistics and the
-  game in progress are in `localStorage` under `minesweeper-settings`,
-  `minesweeper-stats` and `minesweeper-game`. Each entry carries a version
-  (`LocalStorageService.writeVersioned()`), and a reader drops one it can't
-  trust rather than failing. Renaming a key
-  loses what players saved. The 2016 game stored nothing.
+What every game keeps is in `frontend/games/AGENTS.md`. Here:
+
+- **The site serves it at `/play/minesweeper/`,** and its `game.json` names
+  it Minesweeper, as the site's catalog must.
+- **Its screenshots** are in `public/docs/screenshots/minesweeper/`, and
+  `yarn capture:screenshots` makes them again.
+- **The browser's toolbar takes the page's color** (`THEME_COLOR_ROLE` in
+  `src/main.ts`), and the settings offer the palette.
+- **Its saved games** are in `localStorage` under `minesweeper-settings`,
+  `minesweeper-stats` and `minesweeper-game`, each versioned
+  (`LocalStorageService.writeVersioned()`). The 2016 game stored nothing.
 - **Accessibility.** The rules are the repository's `web-game-accessibility`
   skill's. Every overlay is an `<fz-dialog>`, the board is the grid above,
   and every move is announced.
@@ -162,7 +146,8 @@ workspace's with the others'.
 ## Tests
 
 The repository's rules for specs apply. A spec sits beside the file it
-tests, named after it, and this workspace's `vitest-testing` skill, in
-`.agents/skills/`, covers the setup and the patterns. The rules' specs
+tests, named after it. This workspace's `minesweeper-testing` skill, in
+`.agents/skills/`, covers its setup and fixtures, and the repository's
+`angular-testing` the patterns every Angular workspace's specs share. The rules' specs
 draw their fields with `fieldFrom`, and the shell's play on one with
 `playOn`, rather than dealing at random.

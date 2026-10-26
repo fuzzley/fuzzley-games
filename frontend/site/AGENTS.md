@@ -2,9 +2,11 @@
 
 The `site` workspace: the Fuzzley Games portal and gallery, an Angular
 single-page app built with Vite, and the build the image serves, with the
-games under `/play/`. These rules are the site's. The repository's, which
-apply here too, are in [.agents/AGENTS.md](../../.agents/AGENTS.md). Paths
-are relative to `frontend/site/`.
+games under `/play/`. These rules are the site's. The frontend's, in
+[frontend/AGENTS.md](../AGENTS.md), and the repository's, in
+[.agents/AGENTS.md](../../.agents/AGENTS.md), apply here too, the Angular and
+Sass rules every app keeps among them. Paths are relative to
+`frontend/site/`.
 
 ## Technology Stack
 
@@ -102,27 +104,25 @@ own, which `yarn workspace site <script>` runs alone.
   compiler options.
 - **`test`** runs Vitest once, with coverage, and fails below the floors
   the `test` block of `vite.config.ts` sets, one for the app and one for
-  the tools. The site's `vitest-testing` skill, in `.agents/skills/`,
-  covers its setup and its specs' patterns.
+  the tools. The site's `site-testing` skill, in `.agents/skills/`, covers
+  its setup and fixtures, and the repository's `angular-testing` the
+  patterns its specs share with the other Angular workspaces'.
 
 ## Angular & Styling
 
-- **Templates bind, they do not compute.** Expose a `computed()` view model
-  instead of calling a method from a template, which re-runs on every change
-  detection pass, or working out a label, a comparison or a plural there.
-  Wording that depends on data ("1 game", "2–4 players") comes from the
-  `describe*` functions in `src/app/model/game.ts`. An ICU plural would
-  need `@angular/localize` at runtime (`$localize`), which the site doesn't
-  load.
-- **Colors come from the palette.** Anything that should follow the theme
-  reads a palette role with `var()`, as `var(--fz-accent)`; stylelint
-  rejects a color written anywhere else. The palettes are `@fz/style`'s,
-  shared with the games, so a new role goes there, in every palette at
-  once (`frontend/lib/style/AGENTS.md`).
-- **`@keyframes` are global.** Angular's emulated encapsulation rewrites
-  selectors, not at-rule names, so two components defining the same animation
-  name silently overwrite each other. Declare them once, in a partial that
-  `src/app/styles/global.scss` uses.
+- **Wording that depends on data** ("1 game", "2–4 players") comes from the
+  `describe*` functions in `src/app/model/game.ts`, never the template. An
+  ICU plural would need `@angular/localize` at runtime (`$localize`), which
+  the site doesn't load.
+- **The site writes no color at all.** Anything that should follow the
+  theme reads a palette role, as `var(--fz-accent)`, and stylelint rejects
+  a color written anywhere. The palettes are `@fz/style`'s, shared with the
+  games, so a new role goes there, in every palette at once
+  (`frontend/lib/style/AGENTS.md`).
+- **Breakpoints are `_breakpoints.scss`'s**, by name:
+  `@use "../../styles/breakpoints" as bp;` then `@include bp.below(sm)`.
+- **A custom property of the site's own has no prefix,** such as
+  `--gutter`; `--fz-` marks `@fz/style`'s.
 - **Accessibility helpers.** The rules are the `web-game-accessibility`
   skill's; these are the site's means to them.
   - An icon-only button gets a label only screen readers read, from
@@ -140,39 +140,3 @@ own, which `yarn workspace site <script>` runs alone.
     Bind `aria-checked` yourself (Angular Aria sets the role, not the checked
     state), and give each item a `searchTerm`, or typing a name finds
     nothing.
-
-## Sass
-
-Every stylesheet is SCSS, compiled by Dart Sass (`sass`).
-
-- **Modules, never `@import`.** A stylesheet loads a partial with `@use`
-  and reaches its members through the namespace:
-  `@use "../../styles/breakpoints" as bp;` then `@include bp.below(sm)`.
-  `@import` is deprecated in Dart Sass. A partial's private members start
-  with `-`.
-- **Runtime values are custom properties; build-time values are Sass.**
-  Palette colors and `--gutter` change while the page runs, so they are CSS
-  custom properties read with `var()`, and so are `@fz/style`'s other
-  tokens, such as `var(--fz-shadow-raised)`, so a part of a page can change
-  one. Sass variables and mixins hold what is fixed at build time:
-  breakpoints and the visually-hidden rules. A custom property of the
-  site's own has no prefix; `--fz-` marks `@fz/style`'s.
-- **Breakpoints by name.** `@include bp.below(sm) { … }`, never a bare
-  `max-width`; the widths live in `_breakpoints.scss`.
-- **Nest for states and parts** (`&:hover`, `&::before`, `> span`), no more
-  than three levels deep. Rules whose order decides the cascade, such as
-  media queries that override one another, stay flat and together, in
-  order.
-- **`//` comments.** Sass drops them from the output; a `/* */` comment
-  ships, and inside a nested rule it even leaves an empty rule behind.
-- **Icons are `@fz/ui`'s `<fz-icon name="…">`.** A new icon is a new name
-  in `ICON_NAMES` and a case in `IconComponent`'s template, in
-  `frontend/lib/ui/src/icon/`, never an `<svg>` pasted into another
-  template. The parent sizes it (`width`/`height` on `fz-icon`, or
-  `--fz-icon-size`) and colors it (`color`); `--fz-icon-stroke` sets an
-  outline's weight. Icons
-  are hidden from assistive technology, so the text beside one, or the
-  control's label, says what it means.
-- **Visible state is announced state.** A control that looks selected carries
-  `aria-checked`/`aria-current`/`aria-pressed`. See the
-  `web-game-accessibility` skill.

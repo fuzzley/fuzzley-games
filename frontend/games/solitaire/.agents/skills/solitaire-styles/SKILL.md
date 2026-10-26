@@ -1,11 +1,13 @@
 ---
-name: sass-design-system
-description: SCSS design system guidelines, custom property token usage, mixins, keyframe animations, native dialog modal overlays, and responsive design for the Solitaire Collection.
+name: solitaire-styles
+description: The Solitaire Collection's stylesheets — the line every component sheet opens with, its own tokens beside @fz/style's, its mixins, its breakpoints and shape mixins, its animations, and the contrast spec over the felt. Triggers on: solitaire styles, solitaire scss, _tokens.scss, _mixins.scss, _palette.scss, felt, phone-portrait, phone-landscape, compact, src/ui/app/styles.
 ---
 
-# Sass Design System Skill
+# The Solitaire Collection's Styles
 
-This skill defines the styling guidelines and design system architecture for the Solitaire Collection using SCSS and CSS Custom Properties.
+How the Solitaire Collection's stylesheets are written. The frontend's
+Angular and Sass rules (`frontend/AGENTS.md`) apply, and the `fuzzley-ui`
+skill says what the shared libraries hold.
 
 ## SCSS File Structure & Rules
 
@@ -21,10 +23,8 @@ _(Adjust relative path depth to target `src/ui/app/styles`)._
 
 ### 2. Token-Driven Styling
 
-- Colors, spacing, typography, radii, elevations and motion are `@fz/style`'s tokens, read by their own `--fz-*` names: the tokens, reset, document styles and focus ring the site and the other games share, which `styles/global.scss` loads first through `@fz/style/global`. The library's rules, and the list of its tokens, are in `frontend/lib/style/AGENTS.md`.
-- The colors are roles of the palette in use (`--fz-text`, `--fz-muted`, `--fz-accent`, `--fz-panel-raised`) and the tints worked out from them (`--fz-wash-1` to `-4` for fills, `--fz-edge-1` to `-4` for translucent borders, `--fz-accent-wash`, `--fz-accent-glow`, `--fz-danger-wash`). The chrome wears the palette in use, light or dark.
-- What floats over the game is one of the library's surfaces, which each palette sets by its mode: glass in a dark palette, solid in a light one. `--fz-panel-glass` is the drawer and the modals, `--fz-float` a card alone over the dimmed page (victory), and `--fz-well` a well cut into a panel (the search field, the segmented controls, victory's figures); the game bar wears `--fz-bar-glass` itself. What lies on the felt, such as the loading skeleton, is drawn in tints of `--fz-on-felt`, not of the chrome's text.
-- The scales are `--fz-space-*`, `--fz-font-*` (and `--fz-font`, Figtree, and `--fz-font-mono`), `--fz-leading-*`, `--fz-radius-*`, `--fz-shadow-*`, `--fz-ease-*`, `--fz-duration-*` and `--fz-tap-target`.
+- Colors, spacing, typography, radii, elevations and motion are `@fz/style`'s tokens, read by their own `--fz-*` names, which `styles/global.scss` loads first through `@fz/style/global`. The `fuzzley-ui` skill says which to reach for, and `frontend/lib/style/AGENTS.md` lists them all.
+- The chrome wears the palette in use, light or dark, and what floats over the game is one of the library's surfaces: `--fz-panel-glass` is the drawer and the modals, `--fz-float` a card alone over the dimmed page (victory), and `--fz-well` a well cut into a panel (the search field, the segmented controls, victory's figures); the game bar wears `--fz-bar-glass` itself. What lies on the felt, such as the loading skeleton, is drawn in tints of `--fz-on-felt`, not of the chrome's text.
 - `styles/_tokens.scss` holds only this game's own tokens: the translucent mixes of the roles it needs (`--surface-card`, a bordered block in a panel, and `--surface-scrim-heavy`, the loading badges, and the tints `--accent-wash-faint`, `--accent-wash-strong`, `--danger-border`, `--warning-glow`), declared on `:root, [data-theme]` as the library's tints are; `--table-felt`, on `:root` alone since the shell sets the felt there, and the loading scrim over it; the card artwork's colors, cut from `styles/_palette.scss`; the game browser's sizes; the z-index ladder; and the game bar's size, `--fz-bar-height` and `--fz-rail-width`, from `@fz/game-ui`'s `bar-size()`. A token goes there only when no `--fz-*` one will do.
 - Component styles MUST read tokens via `var(--...)`. A label on an accent, warning or danger fill takes the palette's label for it (`--fz-on-accent`, `--fz-on-warning`, `--fz-on-danger`).
 - **Never hardcode hex colors, pixel font sizes, or raw pixel spacing literals in component CSS.** `yarn lint:styles` runs stylelint with `@fz/style`'s preset (`stylelint.config.js`), which fails a hex, named or functional color anywhere but `_palette.scss`.
@@ -86,10 +86,4 @@ board change together.
 
 ### 5. Animations
 
-- `@keyframes` that several components use live in `styles/_animations.scss`, named in kebab-case (`pop-in`), which stylelint enforces.
-- Angular renames a component's own `@keyframes`, and the animations that use them, after the component, so a keyframe used by one component alone may sit in its stylesheet, as the libraries' components keep theirs.
-
-### 6. Modal Overlays
-
-- All overlays MUST use native HTML `<dialog>` elements wrapped in `<fz-dialog>`, from `@fz/ui/dialog`.
-- Do not hand-roll focus traps, escape key listeners, or custom overlay z-index layers.
+`@keyframes` that several components use live in `styles/_animations.scss`, named in kebab-case (`pop-in`), which stylelint enforces.
