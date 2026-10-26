@@ -5,7 +5,6 @@ import { GameViewportService } from "@fz/game-ui/viewport";
 import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
 import { HelpComponent } from "./help/help.component";
-import { GameService } from "./play/game.service";
 import { ResultComponent } from "./result/result.component";
 import { SettingsComponent } from "./settings/settings.component";
 
@@ -32,7 +31,6 @@ import { SettingsComponent } from "./settings/settings.component";
   styleUrl: "./app.component.scss",
 })
 export class AppComponent {
-  protected readonly game = inject(GameService);
   protected readonly viewport = inject(GameViewportService);
 
   protected readonly settingsOpen = signal(false);
