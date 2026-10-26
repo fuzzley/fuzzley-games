@@ -1,5 +1,13 @@
-import { Component, computed, inject, input } from "@angular/core";
+import {
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  input,
+} from "@angular/core";
 import { RouterLink } from "@angular/router";
+import { AnnouncerService } from "@fz/ui/announcer";
 import { describeGameCount } from "../../model/game";
 import { GameCatalog } from "../../service/game_catalog.service";
 import {
@@ -19,6 +27,7 @@ import {
 })
 export class HomeComponent {
   private readonly catalog = inject(GameCatalog);
+  private readonly announcer = inject(AnnouncerService);
 
   /** The `?q=` query parameter, written by the header's search box. */
   readonly q = input<string>();
@@ -61,4 +70,16 @@ export class HomeComponent {
       ? `${found} of ${this.catalog.games.length} games`
       : "No games match.";
   });
+
+  constructor() {
+    effect(() => {
+      const status = this.status();
+      if (status) this.announcer.say(status);
+      else this.announcer.clear();
+    });
+    // The announcer outlives the page, so leave nothing for the next to say.
+    inject(DestroyRef).onDestroy(() => {
+      this.announcer.clear();
+    });
+  }
 }

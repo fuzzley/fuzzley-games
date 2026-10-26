@@ -371,7 +371,8 @@ than before.
 - **As built:** named `StopwatchService` and `AnnouncerService`, since every
   injectable in the libraries ends in `Service`. The stopwatch reads
   `Date.now()` and pauses while the page is hidden. The site's home-page
-  search keeps its own live region, and could take `<fz-announcer>` up later.
+  search kept its own live region at first, and took up `<fz-announcer>`
+  afterwards.
 
 ### P7: the long press (small)
 

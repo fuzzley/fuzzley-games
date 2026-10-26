@@ -1,4 +1,6 @@
+import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
+import { AnnouncerService } from "@fz/ui/announcer";
 import {
   type RenderResult,
   render,
@@ -74,14 +76,14 @@ describe("HomeComponent", () => {
   it("counts the matches out of every game", async () => {
     await renderHome("whitehead");
 
-    expect(screen.getByRole("status")).toHaveTextContent("1 of 4 games");
+    expect(screen.getByText("1 of 4 games")).toBeInTheDocument();
   });
 
   it("says when nothing matches", async () => {
     await renderHome("chess");
 
     expect(sectionNames()).toEqual([]);
-    expect(screen.getByRole("status")).toHaveTextContent("No games match.");
+    expect(screen.getByText("No games match.")).toBeInTheDocument();
   });
 
   it("offers a way back when nothing matches", async () => {
@@ -92,14 +94,41 @@ describe("HomeComponent", () => {
     ).toHaveAttribute("href", "/");
   });
 
-  it("announces a search from a status already in the page", async () => {
-    const { fixture } = await renderHome();
-    const status = screen.getByRole("status");
+  describe("what it announces", () => {
+    function announced(): string {
+      return TestBed.inject(AnnouncerService).message();
+    }
 
-    fixture.componentRef.setInput("q", "whitehead");
-    await fixture.whenStable();
+    it("announces what a search found", async () => {
+      await renderHome("whitehead");
 
-    expect(screen.getByRole("status")).toBe(status);
-    expect(status).toHaveTextContent("1 of 4 games");
+      expect(announced()).toBe("1 of 4 games");
+    });
+
+    it("announces each new search", async () => {
+      const { fixture } = await renderHome();
+
+      fixture.componentRef.setInput("q", "chess");
+      await fixture.whenStable();
+
+      expect(announced()).toBe("No games match.");
+    });
+
+    it("falls silent once the search is cleared", async () => {
+      const { fixture } = await renderHome("whitehead");
+
+      fixture.componentRef.setInput("q", "");
+      await fixture.whenStable();
+
+      expect(announced()).toBe("");
+    });
+
+    it("leaves nothing for the next page to say", async () => {
+      const { fixture } = await renderHome("whitehead");
+
+      fixture.destroy();
+
+      expect(announced()).toBe("");
+    });
   });
 });

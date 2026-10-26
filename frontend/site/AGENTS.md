@@ -123,8 +123,11 @@ own, which `yarn workspace site <script>` runs alone.
     `@fz/style`'s global `.fz-visually-hidden` class, or, to hide it only
     at some widths, its `visually-hidden` mixin: `@use "@fz/style" as fz;`
     then `@include fz.visually-hidden;`.
-  - A live region is in the page from the start, as the home page's search
-    status is, and only its text changes.
+  - A page tells a screen reader what changed with `@fz/ui`'s
+    `AnnouncerService.say()`, through the one `<fz-announcer>` in the root
+    template, which is in the page from the start. The home page says what
+    each search found, and clears it when it goes, since the region
+    outlives every page.
   - Menus and pickers are built on Angular Aria (`@angular/aria`), not by
     hand: `@fz/ui`'s theme menu is an `ngMenuTrigger` button opening an
     `ngMenu` of `menuitemradio` items.
