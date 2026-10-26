@@ -52,8 +52,8 @@ can use it too. The repository's rules, which apply here too, are in
   (`_motion.scss`), `glass` (`_surfaces.scss`) and `icon-button`
   (`_controls.scss`). It emits no CSS, so any stylesheet can load it, and
   `src/toolkit.spec.ts` checks what each mixin writes.
-- `src/stylelint.ts`: the stylelint rules every app's stylesheets keep,
-  which its `stylelint.config.js` extends as `@fz/style/stylelint`.
+- `src/lint/stylelint.ts`: the stylelint rules every app's stylesheets
+  keep, which its `stylelint.config.js` extends as `@fz/style/stylelint`.
 - `src/themes.ts`: the palettes a player can choose between, the default for
   each system color scheme, and the localStorage key the choice is kept
   under, which the site and every game share, being served from one
@@ -63,12 +63,13 @@ can use it too. The repository's rules, which apply here too, are in
   inline `<svg>` that colors the body and fur itself, and `fuzzballSvg()`,
   which writes it as an SVG file in one color, or one for each system color
   scheme. An app imports it as `@fz/style/fuzzball`.
-- `src/vite.ts`: `fuzzleyStyle()`, the Vite plugins an app adds to its config.
+- `src/build/vite.ts`: `fuzzleyStyle()`, the Vite plugins an app adds to
+  its config.
   It writes `theme.js` into the build, at the top of the app's own base, and
   serves it from the dev server. The page loads it first, with a plain tag
   that Vite leaves alone (`<script src="theme.js" vite-ignore></script>`, or
   `/theme.js` for the site), and it picks the palette before anything paints.
-  `src/theme_script.ts` writes the script itself. Beside it, the same way,
+  `src/build/theme_script.ts` writes the script itself. Beside it, the same way,
   it writes the page's icons: `favicon.svg`, the fuzzball in the accents of
   the default palettes for a light and a dark system, which `@fz/ui`'s
   `ThemeService` recolors to the palette in use; and, for what draws no SVG,
@@ -77,8 +78,8 @@ can use it too. The repository's rules, which apply here too, are in
   palettes' Sass, so an app that adds it needs `sass`, as every app has for
   its own stylesheets. The page links them as it loads `theme.js`, each with
   `vite-ignore`, as `frontend/games/solitaire/index.html` does.
-- `src/fuzzball_raster.ts`: the fuzzball as a PNG and an ICO file, which
-  `src/vite.ts` makes with sharp, at build time only.
+- `src/build/fuzzball_raster.ts`: the fuzzball as a PNG and an ICO file,
+  which `src/build/vite.ts` makes with sharp, at build time only.
 - `src/testing/index.ts`, `@fz/style/testing`: what a spec needs to check a
   stylesheet in Node. `compileStylesheet()` compiles one, loading the
   libraries' stylesheets as an app's Vite does; `paletteRoles()` reads each
@@ -140,8 +141,13 @@ can use it too. The repository's rules, which apply here too, are in
   app compiles these files with its own.
 - **Relative imports name the file** (`./themes.ts`), and the TypeScript is
   only the kind Node can strip (`erasableSyntaxOnly`). Vite leaves a package
-  out of the config it bundles, so Node loads `src/vite.ts`, and what it
-  imports, as it is; a spec in `src/vite.spec.ts` does the same.
+  out of the config it bundles, so Node loads `src/build/vite.ts`, and what
+  it imports, as it is; a spec in `src/build/vite.spec.ts` does the same.
+- **A folder says where its TypeScript runs.** `src/themes.ts` and
+  `src/fuzzball.ts` run in the apps' pages; `src/build/` in an app's Vite
+  config, `src/lint/` in its stylelint and `src/testing/` in its specs, all
+  in Node. ESLint keeps Node's modules, PostCSS, Sass, sharp, stylelint and
+  Vite, and those three folders, out of the pages' files.
 - **An app's needs go in the app.** A token, palette or plugin belongs here
   only when the site and the games all mean the same thing by it. Layout
   tokens and breakpoints stay in each app.

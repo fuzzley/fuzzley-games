@@ -1,4 +1,4 @@
-import type { ColorMode } from "./themes.ts";
+import type { ColorMode } from "../themes.ts";
 
 /** Holds what a page needs to pick a palette before it paints. */
 export interface ThemeChoice {

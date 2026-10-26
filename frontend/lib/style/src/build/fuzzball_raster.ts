@@ -2,7 +2,7 @@
 // browser's tab, and a phone's home screen. It runs in Node only, at build
 // time, through sharp, which it loads only when asked for an image.
 
-import { fuzzballSvg } from "./fuzzball.ts";
+import { fuzzballSvg } from "../fuzzball.ts";
 
 /** The sizes an ICO file holds the fuzzball at, in pixels. */
 export const ICO_SIZES = [16, 32, 48] as const;

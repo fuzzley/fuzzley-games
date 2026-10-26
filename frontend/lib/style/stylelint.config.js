@@ -3,7 +3,7 @@
 
 /** @type {import("stylelint").Config} */
 export default {
-  extends: ["./src/stylelint.ts"],
+  extends: ["./src/lint/stylelint.ts"],
   overrides: [
     {
       // Where the colors are written down: the palettes, and the shadows,
