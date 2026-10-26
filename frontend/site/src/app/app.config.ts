@@ -1,5 +1,7 @@
 import {
   type ApplicationConfig,
+  inject,
+  provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from "@angular/core";
 import {
@@ -9,6 +11,7 @@ import {
   withInMemoryScrolling,
 } from "@angular/router";
 import { routes } from "./routes";
+import { CanonicalLink } from "./service/canonical_link.service";
 import { SiteTitleStrategy } from "./service/site_title.strategy";
 
 /**
@@ -26,5 +29,9 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({ scrollPositionRestoration: "enabled" }),
     ),
     { provide: TitleStrategy, useClass: SiteTitleStrategy },
+    // Started before the first navigation, so it names the first page too.
+    provideAppInitializer(() => {
+      inject(CanonicalLink);
+    }),
   ],
 };

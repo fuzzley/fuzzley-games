@@ -32,7 +32,10 @@ are relative to `frontend/site/`.
 - `src/app/service/` holds the injectable services. `GameCatalog` answers
   every question about the games (find, group, search, which are new);
   components ask it rather than importing the data, and specs give it a
-  small catalog of their own through `CATALOG_DATA`. The palette's
+  small catalog of their own through `CATALOG_DATA`. `CanonicalLink`
+  names each page's address on fuzzley.games after every navigation; a
+  page search engines shouldn't index withholds it, as
+  `NotFoundComponent` does. The palette's
   `ThemeService` and the theme menu are `@fz/ui`'s (`frontend/lib/ui`),
   shared with the games, and so are the icons and the wordmark.
 - `src/app/testing/` holds what specs share, such as `TEST_CATALOG` and
