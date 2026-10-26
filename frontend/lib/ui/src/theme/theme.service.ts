@@ -13,11 +13,13 @@ import { fuzzballSvg } from "@fz/style/fuzzball";
 import {
   DEFAULT_THEMES,
   type PaletteRole,
+  THEMES,
   THEME_STORAGE_KEY,
+  type Theme,
   type ThemeId,
   isThemeId,
 } from "@fz/style/themes";
-import { BROWSER_STORAGE } from "../storage";
+import { LocalStorageService } from "../storage";
 
 /**
  * The palette role whose color the browser's own toolbar takes (its
@@ -30,6 +32,14 @@ export const THEME_COLOR_ROLE = new InjectionToken<PaletteRole | null>(
   { providedIn: "root", factory: () => "bar" },
 );
 
+/** Describes a palette as a chooser offers it. */
+export interface ThemeOption extends Theme {
+  /** The palette's mode as a chooser names it: "Light" or "Dark". */
+  readonly modeName: string;
+  /** Whether it is the palette in use. */
+  readonly checked: boolean;
+}
+
 /**
  * Applies and remembers the palette in use, the same one in every tab of the
  * site and its games.
@@ -41,7 +51,7 @@ export const THEME_COLOR_ROLE = new InjectionToken<PaletteRole | null>(
 @Injectable({ providedIn: "root" })
 export class ThemeService {
   private readonly document = inject(DOCUMENT);
-  private readonly storage = inject(BROWSER_STORAGE);
+  private readonly storage = inject(LocalStorageService);
   private readonly colorRole = inject(THEME_COLOR_ROLE);
   private readonly root = this.document.documentElement;
   private readonly chosen = signal<ThemeId>(this.initial());
@@ -51,6 +61,15 @@ export class ThemeService {
 
   /** The palette in use. */
   readonly current: Signal<ThemeId> = this.chosen.asReadonly();
+
+  /** The palettes a chooser offers, in order, the one in use checked. */
+  readonly options: Signal<readonly ThemeOption[]> = computed(() =>
+    THEMES.map((theme) => ({
+      ...theme,
+      modeName: theme.mode === "dark" ? "Dark" : "Light",
+      checked: theme.id === this.current(),
+    })),
+  );
 
   constructor() {
     effect(() => {
@@ -77,11 +96,7 @@ export class ThemeService {
   /** Applies a palette, and remembers it where the browser allows. */
   select(id: ThemeId): void {
     this.chosen.set(id);
-    try {
-      this.storage?.setItem(THEME_STORAGE_KEY, id);
-    } catch {
-      // A full or read-only store; the choice still applies to this visit.
-    }
+    this.storage.writeString(THEME_STORAGE_KEY, id);
   }
 
   private initial(): ThemeId {

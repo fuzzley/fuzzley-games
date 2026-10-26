@@ -1,5 +1,4 @@
-import { Component, computed, inject, input } from "@angular/core";
-import { THEMES } from "@fz/style/themes";
+import { Component, inject, input } from "@angular/core";
 import { IconComponent } from "../icon";
 import { ThemeService } from "./theme.service";
 
@@ -26,11 +25,5 @@ export class ThemePickerComponent {
   readonly label = input("Theme");
 
   protected readonly group = `fz-theme-picker-${String(nextGroup++)}`;
-  protected readonly options = computed(() =>
-    THEMES.map((theme) => ({
-      ...theme,
-      modeName: theme.mode === "dark" ? "Dark" : "Light",
-      checked: theme.id === this.theme.current(),
-    })),
-  );
+  protected readonly options = this.theme.options;
 }
