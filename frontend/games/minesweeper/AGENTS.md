@@ -2,8 +2,8 @@
 
 The `minesweeper` workspace: Minesweeper with lives, where a mine stepped on
 costs a life rather than the game. It is an Angular app on the shared
-libraries, rebuilt in 2026 from the 2016 game that moved here from
-fuzzley/fMinesweeper with its history. What every game keeps, in
+libraries, rebuilt in 2026 from the 2016 game, which was branched off from
+fMinesweeper with its history. What every game keeps, in
 [frontend/games/AGENTS.md](../AGENTS.md), what every workspace keeps, in
 [frontend/AGENTS.md](../../AGENTS.md), and the repository's rules, in
 [.agents/AGENTS.md](../../../.agents/AGENTS.md), apply here too; this

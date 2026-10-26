@@ -34,8 +34,8 @@ export default defineConfig({
       include: ["src/**/*.ts", "tools/**/*.{ts,mjs}"],
       exclude: ["src/app/main.ts", "src/test-setup.ts", "src/app/testing/**"],
       thresholds: {
-        // The tools' floors sit far lower, since what they download and
-        // write runs only in a real build.
+        // The tools' floors sit far lower, since what they copy and write
+        // runs only in a real build.
         "src/**": {
           statements: 99,
           branches: 92,
@@ -43,10 +43,10 @@ export default defineConfig({
           lines: 99,
         },
         "tools/**": {
-          statements: 46,
-          branches: 57,
-          functions: 55,
-          lines: 46,
+          statements: 53,
+          branches: 64,
+          functions: 56,
+          lines: 51,
         },
       },
     }),

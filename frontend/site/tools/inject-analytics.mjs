@@ -1,8 +1,8 @@
 // Adds the site's analytics tags to the games in the build output.
 //
 // The pages under public/play/<slug>/ are production builds of the games, put
-// there by fetch-games.mjs from their workspaces or their repositories'
-// releases. The games carry no analytics code, so the tags are added here
+// there by copy-games.mjs from their workspaces. The games carry no analytics
+// code, so the tags are added here
 // instead, after `vite build`, to the copies in dist/, never to the files in
 // public/.
 //
@@ -63,7 +63,7 @@ function main() {
     const name = `play/${slug}/index.html`;
     const page = path.join(distDir, "play", slug, "index.html");
     if (!fs.existsSync(page)) {
-      fail(`dist/${name} is missing. Did fetch-games.mjs run?`);
+      fail(`dist/${name} is missing. Did copy-games.mjs run?`);
     }
 
     const html = fs.readFileSync(page, "utf8");

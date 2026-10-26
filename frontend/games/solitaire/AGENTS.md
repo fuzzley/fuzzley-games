@@ -3,8 +3,8 @@
 The `solitaire` workspace: the Solitaire Collection, a browser-based solitaire
 engine supporting many variants — Klondike, FreeCell, Spider, Yukon, Forty
 Thieves, Montana and the rest of `src/games` — built with Phaser 4 canvas
-rendering and an Angular application shell. It moved here from
-fuzzley/fSolitaire with its history. What every game keeps, in
+rendering and an Angular application shell. It was branched off from
+fSolitaire with its history. What every game keeps, in
 [frontend/games/AGENTS.md](../AGENTS.md), what every workspace keeps, in
 [frontend/AGENTS.md](../../AGENTS.md), and the repository's rules, in
 [.agents/AGENTS.md](../../../.agents/AGENTS.md), apply here too; this
@@ -241,10 +241,11 @@ What every game keeps is in `frontend/games/AGENTS.md`. Here:
   takes from `COMMIT_SHA`. `test/ui/app/service/bug_report.service.spec.ts`
   checks the form has every field the game fills in, and `vitest.config.ts`
   lets it read the form from outside `frontend/`.
-- **Its history is fSolitaire's.** The commits before the move came from
-  fuzzley/fSolitaire, which keeps them under their original ids. `docs/`
-  holds the design notes and work logs from then, and the lossless
-  screenshots the site's images are made from.
+- **Its history began in fSolitaire.** The commits before the branch came
+  from fSolitaire's repository, which keeps them under their original ids;
+  nothing here depends on it, and the two may diverge. `docs/` holds the
+  design notes and work logs from then, and the lossless screenshots the
+  site's images are made from.
 - **Accessibility.** The rules are the repository's `web-game-accessibility`
   skill's. Here, an icon-only button's screen-reader label comes from the
   `visually-hidden()` mixin, and every overlay is an `<fz-dialog>`.

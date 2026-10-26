@@ -2,8 +2,8 @@
 # Serves a built image and checks its pages, cache and security headers,
 # theme.js, icons, env.js, version.json and games.
 #
-# Both verify.yml and update-games.yml run this on the image they build, before
-# the commit can reach live, the branch Cloud Run builds and deploys.
+# verify.yml runs this on the image it builds, before the commit can reach
+# live, the branch Cloud Run builds and deploys.
 #
 # Usage: .github/scripts/check-image.sh <image> <commit>
 #
@@ -150,17 +150,15 @@ for slug in $(jq -r 'keys[]' frontend/site/games.json); do
     expect_security_headers "/play/$slug/$game_asset"
   fi
 
-  # version.json names the build: a pinned game's archive, or for a game built
-  # here, its workspace and the image's own commit.
+  # A game has the icons the site has.
+  expect_icons "/play/$slug/"
+
+  # version.json names the build: the game's workspace and the image's own
+  # commit.
   build=$(jq -c --arg slug "$slug" '.[$slug]' frontend/site/games.json)
-  # A game built here has the icons the site has.
-  if jq -e '.workspace' <<< "$build" > /dev/null; then
-    expect_icons "/play/$slug/"
-  fi
   curl -s "$base/version.json" |
     jq -e --arg slug "$slug" --argjson build "$build" --arg commit "${commit::7}" \
-      '.games[$slug] | if $build.asset then .asset == $build.asset
-        else .workspace == $build.workspace and .commit == $commit end' \
+      '.games[$slug] | .workspace == $build.workspace and .commit == $commit' \
       > /dev/null ||
     fail "version.json doesn't name the build of $slug that games.json lists: $build."
 done

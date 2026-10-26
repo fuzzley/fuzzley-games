@@ -33,7 +33,7 @@ Minesweeper.
   snippets it includes, and the startup script that writes `env.js` from the
   container's environment. `docs/operations.md` explains each.
 - **`docs/operations.md`** — how the site is built, served, deployed and
-  configured, and how the games are pinned and updated. `README.md` is only a
+  configured, and how the games are built and served. `README.md` is only a
   short summary for GitHub.
 - **`docs/archive/`** — plans that were built and shipped, kept for their
   decisions. They describe the code as it was, so check a path against the
@@ -58,12 +58,10 @@ shows.
 Cloud Run builds and deploys the `Dockerfile` from the `live` branch, never
 from `main`. When `.github/workflows/verify.yml` passes on a push to `main`,
 its `promote` job moves `live` to that commit, so a red run means the commit
-never went live. Don't push to `live` yourself except to roll back. Every 15
-minutes, `.github/workflows/update-games.yml` moves the games' pins to their
-newest builds, pushes to `main` once the image builds and passes its checks,
-and runs Verify on `main` to deploy it. `docs/operations.md` covers the
-deployment, the games and runtime configuration; the `github-actions-ci-cd`
-skill covers the workflows.
+never went live. Don't push to `live` yourself except to roll back. The games
+are built in the same commit as the site, so they go live with it.
+`docs/operations.md` covers the deployment, the games and runtime
+configuration; the `github-actions-ci-cd` skill covers the workflow.
 
 ### Content Security Policy
 

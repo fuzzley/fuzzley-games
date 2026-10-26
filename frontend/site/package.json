@@ -6,10 +6,10 @@
   "license": "GPL-3.0-or-later",
   "type": "module",
   "scripts": {
-    "start": "node tools/fetch-games.mjs --optional && vite",
-    "dev": "node tools/fetch-games.mjs --optional && vite",
-    "build": "node tools/fetch-games.mjs && vite build && node tools/inject-analytics.mjs",
-    "games": "node tools/fetch-games.mjs",
+    "start": "node tools/copy-games.mjs --optional && vite",
+    "dev": "node tools/copy-games.mjs --optional && vite",
+    "build": "node tools/copy-games.mjs && vite build && node tools/inject-analytics.mjs",
+    "games": "node tools/copy-games.mjs",
     "preview": "vite preview",
     "test": "vitest run --coverage",
     "typecheck": "ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit && tsc -p tsconfig.node.json && tsc -p tsconfig.scripts.json",
@@ -47,7 +47,6 @@
     "sass": "^1.106.1",
     "stylelint": "^17.16.0",
     "stylelint-config-standard-scss": "^17.0.0",
-    "tar": "^7.5.22",
     "typescript": "~6.0.3",
     "vite": "^8.3.5",
     "vitest": "^5.0.5"

@@ -1,4 +1,4 @@
-# Build output, the fetched games, and Yarn's own files.
+# Build output, the copied games, and Yarn's own files.
 frontend/**/dist
 frontend/site/public/play
 frontend/.yarn

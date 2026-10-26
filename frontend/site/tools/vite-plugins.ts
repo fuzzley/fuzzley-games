@@ -12,7 +12,7 @@ import { type Connect, type Plugin, runnerImport } from "vite";
 import type { BuildInfo } from "../src/app/model/build.ts";
 import type * as GameModel from "../src/app/model/game.ts";
 import type * as GameData from "../src/app/provider/games.ts";
-import { type GameBuild, isPinned, readManifest } from "./games.mjs";
+import { type GameBuild, readManifest } from "./games.mjs";
 import { SITE_DIR } from "./script.mjs";
 
 /** Lists the site's games and what pictures of each the site shows. */
@@ -55,14 +55,14 @@ export function readBuildInfo(
 }
 
 /** Names the build of a game that version.json says the site serves. */
-export type ServedBuild =
-  | { readonly asset: string; readonly commit: string }
-  | { readonly workspace: string; readonly commit: string };
+export interface ServedBuild {
+  readonly workspace: string;
+  readonly commit: string;
+}
 
 /**
- * Returns which build of each game the site serves: a pinned game's archive
- * and the commit it was built from, or a game built here, from the site's own
- * commit.
+ * Returns which build of each game the site serves: its workspace, built from
+ * the site's own commit.
  */
 export function servedBuilds(
   manifest: Readonly<Record<string, GameBuild>>,
@@ -71,9 +71,7 @@ export function servedBuilds(
   return Object.fromEntries(
     Object.entries(manifest).map(([slug, game]) => [
       slug,
-      isPinned(game)
-        ? { asset: game.asset, commit: game.commit }
-        : { workspace: game.workspace, commit },
+      { workspace: game.workspace, commit },
     ]),
   );
 }
@@ -182,8 +180,8 @@ export function missingImages(catalog: Catalog, publicDir: string): string[] {
 /**
  * Fails the build when a game's picture is missing.
  *
- * For a hosted game that means the catalog links a game the fetched builds
- * don't have, such as one renamed in its own repository, which would
+ * For a hosted game that means the catalog links a game the builds don't
+ * have, such as one renamed in its workspace, which would
  * otherwise open whatever game was played last: a build ships screenshots of
  * every game it has. A game still to come needs its drawing in
  * public/thumbnails/.
@@ -262,21 +260,14 @@ export function readGameManifest(
 /**
  * Fails the build when the catalog names a game, or calls it a name, that its
  * build doesn't, as the build's game.json says.
- *
- * A pinned archive predates game.json, so it is left to the pictures' check.
  */
 export function checkGameManifests(): Plugin {
   return {
     name: "check-game-manifests",
     apply: "build",
     async buildStart() {
-      const builds = readManifest();
       const publicDir = path.join(SITE_DIR, "public");
-      const hosted = (await loadCatalog()).games.filter(({ play }) => {
-        const build = play && builds[play.build];
-        return build !== undefined && !isPinned(build);
-      });
-      const problems = manifestProblems(hosted, (build) =>
+      const problems = manifestProblems((await loadCatalog()).games, (build) =>
         readGameManifest(publicDir, build),
       );
       if (problems.length > 0) {

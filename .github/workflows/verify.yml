@@ -80,8 +80,7 @@ jobs:
 
   # Moves live, the branch Cloud Run deploys, to a commit of main that passed
   # both jobs. Pushes made with GITHUB_TOKEN start Cloud Build's trigger,
-  # though not other workflows. Update games runs this workflow on main after
-  # it pushes, since its push can't start it.
+  # though not other workflows.
   promote:
     needs: [verify, docker]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'

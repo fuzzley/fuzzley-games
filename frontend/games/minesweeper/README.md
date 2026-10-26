@@ -23,9 +23,8 @@ yarn workspace minesweeper build     # production build in dist/
 
 The site's `yarn build` builds it, copies `dist/` to `/play/minesweeper/`, and
 adds the site's analytics tags. It was written in 2016 with jQuery, Knockout
-and Bootstrap 3, and moved here, with its history, from
-[fuzzley/fMinesweeper](https://github.com/fuzzley/fMinesweeper), which keeps
-the original commit ids.
+and Bootstrap 3, in a repository of its own, fMinesweeper, and branched off
+into this one with its history in 2026; the two may diverge.
 
 ## License
 
