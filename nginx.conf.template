@@ -8,6 +8,15 @@ server {
     absolute_redirect off;
     port_in_redirect off;
 
+    # A folder's index.html has the folder's address, so search engines and
+    # analytics see one URL for each page: /play/solitaire/index.html is sent
+    # to /play/solitaire/ with its query, and the browser keeps any #hash. It
+    # matches the address as sent: `index` and the fallback to /index.html
+    # rewrite $uri to …/index.html internally, so matching $uri would loop.
+    if ($request_uri ~ "^(?<folder>[^?]*/)index\.html(?:\?|$)") {
+        return 301 $folder$is_args$args;
+    }
+
     # The nginx image ships with compression off. HTML is always included once
     # it is on; these are the other text types the site serves.
     gzip on;
