@@ -16,10 +16,6 @@
   animation: fade-in var(--fz-duration-base) var(--fz-ease-decelerate);
 }
 
-.visually-hidden {
-  @include visually-hidden;
-}
-
 // --- Header ---
 
 .browser-header {

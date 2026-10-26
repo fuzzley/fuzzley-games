@@ -4,8 +4,9 @@ import { AnnouncerService } from "./announcer.service";
 /**
  * Holds the live region `AnnouncerService` speaks through, out of sight.
  *
- * An app puts one in its root template, so there is one region to speak
- * through whatever is on screen.
+ * An app puts one in its root template, so there is a region to speak
+ * through whatever is on screen, and one in each modal dialog that speaks
+ * while open, since a modal hides the page behind it from a screen reader.
  */
 @Component({
   selector: "fz-announcer",
