@@ -1,3 +1,5 @@
+import { isWhole } from "./json";
+
 /** Says how big a field is and how many mines it hides. */
 export interface FieldSize {
   readonly rows: number;
@@ -80,9 +82,9 @@ export function isValidSize(size: FieldSize): boolean {
   return sizeProblem(size) === null;
 }
 
-/** Returns whether a number of lives is one a game can have. */
-export function isValidLives(lives: number): boolean {
-  return Number.isInteger(lives) && lives >= LIVES.min && lives <= LIVES.max;
+/** Returns whether a value is a number of lives a game can have. */
+export function isValidLives(lives: unknown): lives is number {
+  return isWhole(lives) && lives >= LIVES.min && lives <= LIVES.max;
 }
 
 /** Returns whether a value names a difficulty. */

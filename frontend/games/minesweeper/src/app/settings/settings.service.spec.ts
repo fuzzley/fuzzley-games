@@ -70,6 +70,22 @@ describe("SettingsService", () => {
     expect(settings.settings()).toEqual({ ...DEFAULT_SETTINGS, lives: 2 });
   });
 
+  it("defaults the settings stored as no number", () => {
+    store({
+      version: 1,
+      difficulty: "easy",
+      custom: { rows: "8", cols: 12, mines: 20 },
+      lives: "3",
+    });
+
+    const settings = TestBed.inject(SettingsService);
+
+    expect(settings.settings()).toEqual({
+      ...DEFAULT_SETTINGS,
+      difficulty: "easy",
+    });
+  });
+
   it("ignores settings from another version", () => {
     store({ version: 2, difficulty: "easy", lives: 1 });
 

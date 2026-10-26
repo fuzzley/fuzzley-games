@@ -94,6 +94,10 @@ describe("isValidLives", () => {
   it.each([0, 6, 2.5])("refuses %d", (lives) => {
     expect(isValidLives(lives)).toBe(false);
   });
+
+  it.each(["3", null, undefined])("refuses %s, which is no number", (lives) => {
+    expect(isValidLives(lives)).toBe(false);
+  });
 });
 
 describe("isDifficultyId", () => {
