@@ -30,7 +30,7 @@ git history keeps it.
 | P7    | The long press                       | done  |
 | P8    | Small things                         | done  |
 | P9    | The Solitaire Collection takes it up | done  |
-| P10   | Signal Forms                         | to do |
+| P10   | Signal Forms                         | done  |
 
 ## Baseline (2026-10-25, `b6ef698`)
 
@@ -392,4 +392,42 @@ workspaces it touched; one `yarn verify` at the end.
   holding port 9000; `yarn workspace solitaire stop` stopped it.
 - Specs: Solitaire 6932 → 6917 (its viewport's and timer's own went with
   them), `@fz/ui` 167.
+- `yarn verify` green.
+
+### 2026-10-26: P10, Signal Forms
+
+- Signal Forms are stable: angular.dev marks `form()` and `FormField`
+  "stable, since v22.0", and the v22 announcement names them among the
+  features it made stable. So Minesweeper's custom field moves onto them
+  rather than recording an exception.
+- `9c47248` `@angular/forms@^22.2.3` joins Minesweeper's dependencies (no
+  new peer warnings: the CDK's peer on it is met in one more workspace, 6
+  warnings to 5). The settings' `draft` is a `linkedSignal` of the numbers
+  as the inputs hold them, `null` where one is empty, which is what
+  `[formField]` writes for an emptied number input; `form()` over it gives
+  the inputs their bounds (`min()` and `max()`, the Mines input's from the
+  rows and columns typed), since the compiler refuses `min` or `max` bound
+  beside `[formField]`, and takes `sizeProblem()` as its validator through
+  `validateTree()`, aimed at the field it names. `submit()` deals the field
+  once it is valid. The hand-wired `[value]`, `(input)` and `type()` are
+  gone.
+- One problem shows at a time, the first, as before, through `role="alert"`
+  and `aria-invalid` on its input. A number input holding something that is
+  no number ("1e") keeps the model where it was and carries a `parse`
+  error, which jsdom can't make; the message reads such an input as empty,
+  so it says what the input must hold. Checked in Chrome: "Rows must be a
+  whole number from 5 to 30." and Rows marked, nothing dealt; 8 × 12 with
+  20 mines dealt and stored.
+- One change in behaviour: the problem shows once the player leaves an
+  input (the form's `touched()`), not only on pressing Start; closing the
+  drawer or choosing another difficulty `reset()`s it, as the old code
+  cleared it.
+- `FormField` adds a `<style>` to the page to watch number inputs'
+  validity. The games under `/play/` carry no Content Security Policy, and
+  the site's allows inline styles anyway.
+- Found on the way: destructuring `fieldTreeOf` from the validator's
+  context trips `unbound-method`; the code calls it on the context.
+- Specs: Minesweeper 349 → 355 (when the problem shows, an emptied input,
+  closing, the inputs' bounds); without the `reset()` on closing, the
+  closing spec fails, which was checked.
 - `yarn verify` green.
