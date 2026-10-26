@@ -22,6 +22,10 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    env:
+      # Node 26 no longer bundles Corepack, so this job installs the one the
+      # Dockerfile does, rather than whichever the runner image carries.
+      COREPACK_VERSION: 0.36.0
 
     steps:
       - name: Checkout fuzzley-games
@@ -33,17 +37,23 @@ jobs:
           node-version-file: .node-version
 
       # .node-version is the one the workflows run; the Dockerfile has to
-      # name its own image, so this keeps the two on the same major version.
-      - name: Check the Dockerfile builds on the same Node
+      # name its own image and install its own Corepack, so this keeps the two
+      # on the same major version of Node and the same Corepack. Dependabot
+      # moves neither pin.
+      - name: Check the Dockerfile builds on the same Node and Corepack
         run: |
           want=$(cut -d. -f1 .node-version)
           have=$(sed -n 's/^FROM node:\([0-9]*\)[.-].*/\1/p' Dockerfile)
           echo "Node $want in .node-version, Node $have in the Dockerfile"
           [ "$want" = "$have" ] ||
             { echo "::error::.node-version says Node $want, but the Dockerfile builds on Node $have."; exit 1; }
+          corepack=$(sed -n 's/.*corepack@\([0-9][0-9.]*\).*/\1/p' Dockerfile)
+          echo "Corepack $COREPACK_VERSION here, Corepack $corepack in the Dockerfile"
+          [ "$COREPACK_VERSION" = "$corepack" ] ||
+            { echo "::error::This job installs Corepack $COREPACK_VERSION, but the Dockerfile installs $corepack."; exit 1; }
 
-      - name: Enable Corepack
-        run: corepack enable
+      - name: Install Corepack
+        run: npm install -g "corepack@$COREPACK_VERSION" && corepack enable
 
       - name: Install dependencies
         working-directory: frontend

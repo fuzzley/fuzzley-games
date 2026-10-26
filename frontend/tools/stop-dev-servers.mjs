@@ -2,24 +2,23 @@
 /**
  * Force stops every Vite dev server running from this checkout.
  *
- *   yarn workspace solitaire stop
- *   yarn workspace solitaire stop --dry-run
+ *   yarn stop
+ *   yarn stop --dry-run
  *
  * A server is a process running this checkout's own Vite. Every workspace of
  * the frontend runs the one copy installed in frontend/node_modules, so the
- * site's server and the other games' go too, not only this game's. The yarn
- * and shell processes that launched it, and everything it spawned (Dart Sass,
- * esbuild), go with it. A server from another project is left alone, even one
- * on the same port.
+ * site's server and every game's go. The yarn and shell processes that
+ * launched it, and everything it spawned (Dart Sass, esbuild), go with it. A
+ * server from another project is left alone, even one on the same port.
  */
 import { execFileSync } from "node:child_process";
 import { readdir, readFile, readlink } from "node:fs/promises";
-import { basename } from "node:path";
+import { basename, dirname } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
-const USAGE = `Usage: yarn workspace solitaire stop [--dry-run]
+const USAGE = `Usage: yarn stop [--dry-run]
 
 Force stops every Vite dev server running from this checkout's frontend,
 whichever workspace started it.
@@ -64,13 +63,11 @@ function escapeRegExp(text) {
 }
 
 /**
- * The folder whose node_modules holds this checkout's Vite: frontend/, where
- * Yarn installs the packages every workspace shares.
+ * The folder whose node_modules holds this checkout's Vite: frontend/, the
+ * folder above this script, where Yarn installs the packages every workspace
+ * shares.
  */
-const ROOT = (() => {
-  const vite = normalize(fileURLToPath(import.meta.resolve("vite")));
-  return vite.slice(0, vite.lastIndexOf("/node_modules/"));
-})();
+const ROOT = normalize(dirname(dirname(fileURLToPath(import.meta.url))));
 
 /**
  * The end of a path to Vite: `node_modules/vite/bin/vite.js` or
