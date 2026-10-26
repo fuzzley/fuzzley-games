@@ -1,10 +1,11 @@
 # Plan: the borders between the site, the games and the libraries
 
 Agreed 2026-10-26: the user said "Implement", taking every recommended
-decision, and asked for a detailed work log and regular commits. P8 waits on
+decision. P1 to P7 were built the same day, on the branch
+`workspace-borders`, each phase its own commits with `yarn verify` green; the
+"As built" notes under each phase say what came of it. P8 waits on
 fSolitaire and fMinesweeper being archived, which needs the user's go-ahead.
-The work log, [workspace-borders-worklog.md](workspace-borders-worklog.md),
-says where the work stands.
+The day's work log, deleted once P7 was done, is in git's history.
 
 It comes from a review of where the workspaces under `frontend/` meet: the
 site, the two games and the four libraries, through their `package.json`
@@ -392,21 +393,51 @@ peer range left behind, a workspace without `lint`, a dead path in an
 `AGENTS.md`), then passes once it is undone; `yarn constraints --fix` repairs
 the range.
 
+- **As built:** all four, each proved on a planted mistake. The reference
+  check reads all nine `AGENTS.md` files and every markdown link's target,
+  and lets a missing path pass when git ignores it, as it does a fresh
+  checkout's `dist/`. The constraints' `--fix` gives a package the highest
+  of its ranges and a peer its devDependency's. `yarn dedupe` merged eleven
+  packages' second copies, none past a range a `package.json` names, and
+  both games' builds came out byte for byte the same.
+
 ### P2: housekeeping (small)
 
 Findings 7, 16 and 17. Proof: `yarn stop --dry-run` from `frontend/` lists
 the servers `yarn workspace solitaire stop --dry-run` listed; Verify passes on
 the branch.
 
+- **As built:** CI installs Corepack 0.36.0, as the Dockerfile does, and
+  checks that the two agree. `yarn stop` runs `tools/stop-dev-servers.mjs`,
+  which takes the frontend to be its own parent folder, and stopped the
+  same six processes the old script listed. Three plans are in
+  `docs/archive/`.
+
 ### P3: Vitest and game presets in `@fz/dev` (medium)
 
 Findings 5 and 6. Proof: every workspace's coverage figures are the same
 before and after, and both games' `dist/` the same byte for byte.
 
+- **As built:** `angularTests()` and `nodeTests()`, and the pieces they are
+  made of, `angularSpecs()`, `nodeSpecs()` and `coverage()`, which the
+  site's two projects use on their own; and `gameConfig()`, which is the
+  whole of Minesweeper's `vite.config.ts` and which the Solitaire
+  Collection merges its own into. Minesweeper's dev server moved to 9001,
+  so both games can run at once. `@fz/dev` depends on `@fz/style`, which is
+  checked with `@fz/dev`'s presets; Yarn links the cycle, and nothing in
+  `lib/` is built. Coverage and both games' builds came out the same.
+
 ### P4: the site's images (small)
 
 Finding 8. Proof: both games' scripts write images of the same names and
 sizes as before; Minesweeper's byte for byte, since its settings don't change.
+
+- **As built:** `@fz/dev/screenshots`, with `SITE_IMAGES`,
+  `writeSiteImages()` and `writeImage()`, through which both scripts write,
+  the Solitaire Collection's rules-page images too. All 123 of its images
+  and both of Minesweeper's came out byte for byte the same. The spec
+  encodes the large preview once, on one thread, since encoding it on every
+  core starved the specs beside it.
 
 ### P5: `game.json` (medium)
 
@@ -414,21 +445,49 @@ Finding 9. Proof: the plugin's spec, and the site's build failing on a
 `play.id` taken out of the Solitaire Collection's catalog, and on a name
 changed on one side.
 
+- **As built:** `@fz/dev/game-manifest`'s plugin, which `gameConfig()` adds,
+  loads a collection's catalog through Vite with the build's own aliases,
+  and the site's `checkGameManifests()` reads each build's `game.json`
+  before the site builds, comparing names with typographic apostrophes made
+  straight. Taking Baker's Game out of the Solitaire Collection's catalog
+  and renaming Klondike failed the site's build on both, where the
+  pictures' check, with the old build's screenshots still in place, passed
+  it. The games' builds gained `game.json` and nothing else.
+
 ### P6: the instruction layers and the skills' names (medium)
 
 Findings 10 to 12, and 14. Proof: P1's check passes over every `AGENTS.md`
 and skill; the link script prunes the old names' links and makes the new
 ones.
 
+- **As built:** as planned, with the libraries' `AGENTS.md` pointing at the
+  frontend's too. Claude Code loaded `frontend/CLAUDE.md` and
+  `frontend/games/CLAUDE.md` once work reached a file beneath each.
+  `.agents/AGENTS.md` went from 289 lines to 215, and each app's lost what
+  it shared with the others. The site's rule that every `@keyframes` be
+  global was out of date, since Angular scopes a component's own, so the
+  shared rule is the Solitaire Collection's. After the renames the check
+  warned about 13 links, and about none once the link script had run.
+
 ### P7: the Phaser skills (small, if decided)
 
 Finding 13.
+
+- **As built:** the 14 deleted, and four links to them from the skills kept
+  dropped. The kept ones but `phaser-core` and `phaser-canvas-performance`
+  turned out to be copies of the `skills/` folder in Phaser's package,
+  renamed with `phaser-`, some links repaired by hand and the code samples
+  as Prettier left them. `.prettierignore` now leaves them as they are, and
+  `phaser-core` says where the deleted ones still are and how to copy one
+  back.
 
 ### P8: retire the pinned-game pipeline (small, if decided)
 
 Finding 15, after fSolitaire and fMinesweeper are archived, or on its own if
 decided. Proof: `yarn build` and the image's checks pass with `games.json`
 listing workspaces only.
+
+- **Not built yet:** it waits on the archives.
 
 ## Decisions
 
