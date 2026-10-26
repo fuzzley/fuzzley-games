@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   inject,
@@ -198,7 +197,6 @@ interface FeltSwatch {
  */
 @Component({
   selector: "app-settings-drawer",
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DebugPanelComponent,
     OptionGroupComponent,

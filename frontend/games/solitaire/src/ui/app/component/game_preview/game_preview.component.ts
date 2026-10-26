@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   computed,
@@ -34,7 +33,6 @@ type ImageStatus = "loading" | "loaded" | "failed";
  */
 @Component({
   selector: "app-game-preview",
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [IconComponent, OptionGroupComponent],
   templateUrl: "./game_preview.component.html",
   styleUrl: "./game_preview.component.scss",

@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   ElementRef,
@@ -44,7 +43,6 @@ const BOARD_READY_TIMEOUT_MS = 8_000;
  */
 @Component({
   selector: "app-game-canvas",
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: "./game_canvas.component.html",
   styleUrl: "./game_canvas.component.scss",
 })

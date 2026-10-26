@@ -1,11 +1,5 @@
 import { DOCUMENT } from "@angular/common";
-import {
-  ChangeDetectionStrategy,
-  Component,
-  effect,
-  inject,
-  signal,
-} from "@angular/core";
+import { Component, effect, inject, signal } from "@angular/core";
 import { Title } from "@angular/platform-browser";
 import { RouterOutlet } from "@angular/router";
 import { ConfirmDialogComponent } from "@fz/ui/confirm";
@@ -24,7 +18,6 @@ import { GameBrowserService } from "../../service/game_browser.service";
  */
 @Component({
   selector: "app-root",
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     // Ctrl or Command with K opens the game browser from anywhere.
     "(document:keydown)": "browser.openOnShortcut($event)",

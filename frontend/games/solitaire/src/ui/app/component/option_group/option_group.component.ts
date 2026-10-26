@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-  output,
-} from "@angular/core";
+import { Component, computed, input, output } from "@angular/core";
 import { GameOptionSpec } from "../../provider/game_catalog";
 import { RadioGroupDirective } from "@fz/ui/radio_group";
 
@@ -31,7 +25,6 @@ interface ChoiceView {
  */
 @Component({
   selector: "app-option-group",
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RadioGroupDirective],
   templateUrl: "./option_group.component.html",
   styleUrl: "./option_group.component.scss",

@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  output,
-} from "@angular/core";
+import { Component, computed, inject, output } from "@angular/core";
 import {
   type BarOverflowAction,
   BarOverflowComponent,
@@ -48,7 +42,6 @@ const OVERFLOW_ACTIONS: readonly BarOverflowAction<MenuAction>[] = [
  */
 @Component({
   selector: "app-header-bar",
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [BarOverflowComponent, GameBarComponent, IconComponent],
   templateUrl: "./header_bar.component.html",
   styleUrl: "./header_bar.component.scss",

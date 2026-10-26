@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   Injector,
@@ -105,7 +104,6 @@ interface FilterChip {
  */
 @Component({
   selector: "app-game-browser",
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { "(keydown)": "onKeydown($event)" },
   imports: [
     AnnouncerComponent,
