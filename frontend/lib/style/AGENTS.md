@@ -58,12 +58,23 @@ can use it too. The repository's rules, which apply here too, are in
   each system color scheme, and the localStorage key the choice is kept
   under, which the site and every game share, being served from one
   origin. An app imports it as `@fz/style/themes`.
+- `src/fuzzball.ts`: the fuzzball, the mark the site and the games share with
+  fuzzley.info, whose geometry it copies: its shapes (`FUZZBALL`), for an
+  inline `<svg>` that colors the body and fur itself, and `fuzzballSvg()`,
+  which writes it as an SVG file in one color, or one for each system color
+  scheme. An app imports it as `@fz/style/fuzzball`.
 - `src/vite.ts`: `fuzzleyStyle()`, the Vite plugins an app adds to its config.
   It writes `theme.js` into the build, at the top of the app's own base, and
   serves it from the dev server. The page loads it first, with a plain tag
   that Vite leaves alone (`<script src="theme.js" vite-ignore></script>`, or
   `/theme.js` for the site), and it picks the palette before anything paints.
-  `src/theme_script.ts` writes the script itself.
+  `src/theme_script.ts` writes the script itself. Beside it, the same way,
+  it writes `favicon.svg`: the fuzzball in the accents of the default
+  palettes for a light and a dark system, which it reads by compiling the
+  palettes' Sass, so an app that adds it needs `sass`, as every app has for
+  its own stylesheets. The page links it as it loads `theme.js`
+  (`<link rel="icon" type="image/svg+xml" href="favicon.svg" vite-ignore />`),
+  and `@fz/ui`'s `ThemeService` recolors it to the palette in use.
 
 ## How an app uses it
 
@@ -96,8 +107,9 @@ can use it too. The repository's rules, which apply here too, are in
   `src/tokens/palettes.spec.ts` fails if the palettes and `themes.ts`
   disagree.
 - **Colors are written only in the palettes**, and in the shadows, which
-  darken alike in every palette. Every other stylesheet reads them with
-  `var()`; stylelint rejects a hex, named or functional color anywhere else.
+  darken alike in every palette, and in the fuzzball's eyes, which sit on its
+  fur in every palette. Every other stylesheet reads them with `var()`;
+  stylelint rejects a hex, named or functional color anywhere else.
 - **Contrast is checked, not hoped for.** `src/tokens/contrast.spec.ts`
   holds every palette to WCAG: text and fills' labels at 4.5:1 on what they
   sit on, the surfaces too, over what shows through them, and the focus

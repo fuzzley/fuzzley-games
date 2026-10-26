@@ -1,7 +1,29 @@
 :host {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
   font-size: var(--fz-font-xl);
-  font-weight: 800;
+  font-weight: 750;
   letter-spacing: -0.01em;
   white-space: nowrap;
+
+  // Set in lower case, as fuzzley.info sets its name. The words stay
+  // "Fuzzley Games", which the link around it takes as its name.
+  text-transform: lowercase;
+}
+
+.mark {
+  flex: none;
+  width: 1.3em;
+  height: 1.3em;
+}
+
+.body {
+  fill: var(--fz-accent);
+}
+
+.fur {
+  fill: none;
+  stroke: var(--fz-accent);
+  stroke-linecap: round;
 }

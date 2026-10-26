@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { fuzzballSvg } from "@fz/style/fuzzball";
 import { DEFAULT_THEMES, THEME_STORAGE_KEY } from "@fz/style/themes";
 import { BROWSER_STORAGE } from "../storage";
 import { THEME_COLOR_ROLE, ThemeService } from "./theme.service";
@@ -12,6 +13,7 @@ describe("ThemeService", () => {
   afterEach(() => {
     document.head.querySelector("#palette")?.remove();
     document.head.querySelector('meta[name="theme-color"]')?.remove();
+    document.head.querySelector('link[rel="icon"]')?.remove();
   });
 
   /** Returns the service, with the browser's storage replaced if given. */
@@ -35,6 +37,15 @@ describe("ThemeService", () => {
       "beforeend",
       '<style id="palette">[data-theme="midnight"] { --fz-bar: #0e1a2b; --fz-felt: #17605a; }</style>' +
         '<meta name="theme-color" content="#ffffff">',
+    );
+  }
+
+  /** Adds a palette's accent, and the tab's icon if asked. */
+  function addAccent({ withIcon }: { withIcon: boolean }): void {
+    document.head.insertAdjacentHTML(
+      "beforeend",
+      '<style id="palette">[data-theme="midnight"] { --fz-accent: #4cc3ff; }</style>' +
+        (withIcon ? '<link rel="icon" href="favicon.svg">' : ""),
     );
   }
 
@@ -133,6 +144,31 @@ describe("ThemeService", () => {
       "content",
       "#ffffff",
     );
+  });
+
+  it("draws the tab's icon in the palette's accent", () => {
+    addAccent({ withIcon: true });
+    const theme = service();
+
+    theme.select("midnight");
+    TestBed.tick();
+
+    const href = document
+      .querySelector('link[rel="icon"]')
+      ?.getAttribute("href");
+    expect(decodeURIComponent(href ?? "")).toBe(
+      `data:image/svg+xml,${fuzzballSvg("#4cc3ff")}`,
+    );
+  });
+
+  it("adds no tab icon to a page that links none", () => {
+    addAccent({ withIcon: false });
+    const theme = service();
+
+    theme.select("midnight");
+    TestBed.tick();
+
+    expect(document.querySelector('link[rel="icon"]')).toBeNull();
   });
 
   it("follows the palette in use in a role's color", () => {

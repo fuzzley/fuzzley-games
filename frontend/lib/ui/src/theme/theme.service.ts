@@ -9,6 +9,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
+import { fuzzballSvg } from "@fz/style/fuzzball";
 import {
   DEFAULT_THEMES,
   type PaletteRole,
@@ -57,6 +58,7 @@ export class ThemeService {
       this.root.dataset["theme"] = id;
       this.applied.set(id);
       this.matchBrowserToolbar();
+      this.matchTabIcon();
     });
     this.followOtherTabs();
   }
@@ -101,6 +103,22 @@ export class ThemeService {
       this.document
         .querySelector('meta[name="theme-color"]')
         ?.setAttribute("content", color);
+    }
+  }
+
+  /**
+   * Draws the tab's icon, where the page links one, as the fuzzball in the
+   * palette's accent.
+   */
+  private matchTabIcon(): void {
+    const icon = this.document.querySelector('link[rel="icon"]');
+    if (!icon) return;
+    const accent = this.read("accent");
+    if (accent) {
+      icon.setAttribute(
+        "href",
+        `data:image/svg+xml,${encodeURIComponent(fuzzballSvg(accent))}`,
+      );
     }
   }
 

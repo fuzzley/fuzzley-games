@@ -15,6 +15,15 @@ describe("WordmarkComponent", () => {
     expect(screen.getByText("Fuzzley Games")).toBeInTheDocument();
   });
 
+  it("draws the fuzzball beside the name, hidden from screen readers", async () => {
+    const { container } = await render(WordmarkComponent);
+
+    expect(container.querySelector("svg")).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
+  });
+
   it("names the link it sits in", async () => {
     await render(LinkedWordmarkComponent);
 

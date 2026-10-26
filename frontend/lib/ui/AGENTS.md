@@ -20,9 +20,10 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   where the store is missing or refuses.
 - `src/theme/`: `ThemeService`, which applies the palette in use, remembers
   it, takes up one chosen in another tab, and gives a role's color as a
-  signal (`role("felt")`); `<fz-theme-menu>`, the menu a player picks one
-  from; and `<fz-theme-picker>`, the same choice as radios, for a settings
-  panel. `THEME_COLOR_ROLE` names the palette role the browser's own toolbar
+  signal (`role("felt")`), and draws the tab's icon, where the page links
+  one, as the fuzzball in the palette's accent; `<fz-theme-menu>`, the menu a
+  player picks one from; and `<fz-theme-picker>`, the same choice as radios,
+  for a settings panel. `THEME_COLOR_ROLE` names the palette role the browser's own toolbar
   takes (`bar` unless an app provides another, such as `felt` for a game
   whose table runs to the top, or `null` for an app that sets it itself).
 - `src/confirm/`: `ConfirmService`, whose `ask()` takes a title, a
@@ -55,9 +56,10 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
 - `src/testing/`: what an app's specs need to drive these components, for
   its spec setup file only: `installDialogPolyfill`, which gives jsdom's
   `<dialog>` the `showModal()`, `close()` and Escape it lacks.
-- `src/wordmark/`: `<fz-wordmark>`, the "Fuzzley Games" name in its own
-  type. It is text: an app that links it puts it in its own `<a>`, with a
-  `routerLink` or an `href`, and the link takes its name from it.
+- `src/wordmark/`: `<fz-wordmark>`, the fuzzball in the palette's accent and
+  the "Fuzzley Games" name in its own type, set in lower case as fuzzley.info
+  sets its own. It is text: an app that links it puts it in its own `<a>`,
+  with a `routerLink` or an `href`, and the link takes its name from it.
 
 ## How an app uses it
 
