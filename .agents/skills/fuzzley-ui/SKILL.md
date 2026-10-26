@@ -106,7 +106,8 @@ libraries alone, which shows the same steps with nothing else around them.
    game that draws on the palette's own roles checks what it draws in every
    palette instead, as
    `frontend/games/minesweeper/src/app/board/contrast.spec.ts` holds
-   Minesweeper's numbers on their squares.
+   Minesweeper's numbers on their squares. Both compile the app's global
+   stylesheet and measure it with `@fz/style/testing`.
 
 Keep the players' `localStorage` keys as they are, whatever the app moves
 onto `LocalStorageService`: renaming one loses what players saved.

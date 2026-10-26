@@ -18,7 +18,8 @@
     "./themes": "./src/themes.ts",
     "./fuzzball": "./src/fuzzball.ts",
     "./vite": "./src/vite.ts",
-    "./stylelint": "./src/stylelint.ts"
+    "./stylelint": "./src/stylelint.ts",
+    "./testing": "./src/testing/index.ts"
   },
   "scripts": {
     "test": "vitest run --coverage",

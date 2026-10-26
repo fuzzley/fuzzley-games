@@ -24,7 +24,7 @@ git history keeps it.
 | P1    | Check the coverage floors            | done  |
 | P2    | Minesweeper by feature               | done  |
 | P3    | `@fz/dev`                            | done  |
-| P4    | `@fz/style/testing`                  | to do |
+| P4    | `@fz/style/testing`                  | done  |
 | P5    | The games' viewport in `@fz/game-ui` | to do |
 | P6    | `Stopwatch` and `Announcer`          | to do |
 | P7    | The long press                       | to do |
@@ -154,3 +154,37 @@ git history keeps it.
 - Docs: `frontend/lib/dev/AGENTS.md` and its `CLAUDE.md`; the repository's
   `AGENTS.md`, each workspace's checks, and the Solitaire Collection's
   skills that named `eslint.config.cjs`.
+- Committed as `d37ab9d` (the presets and their adoption) and `529b938`
+  (the screenshot scripts). `yarn verify` green.
+
+### 2026-10-26: P4, `@fz/style/testing`
+
+- `frontend/lib/style/src/testing/index.ts`, exported as
+  `@fz/style/testing`: `compileStylesheet()` (Sass with an importer that
+  takes a library's `sass` export and resolves any other package from the
+  stylesheet's own folder), `paletteRoles()`, and `rgb()`, `over()`,
+  `luminance()`, `contrast()` and `paint()`. It imports nothing relative, so
+  the games' spec configs compile it without `allowImportingTsExtensions`.
+- `paint()` takes over the games' hand-parsed tints: `var(--fz-…)`, a
+  `color-mix(…, transparent)` tint, `rgba()`, `black` or a hex color, with a
+  value Sass wrote over several lines put on one first. A translucent value
+  with nothing given under it throws, rather than landing on black. That
+  removed Minesweeper's `strength()` and Solitaire's `strength()` and
+  `barGlass()`.
+- `paletteRoles()` matches selectors exactly (`[data-theme]` for every
+  palette, `[data-theme=<id>]` for one), so what a palette's descendants
+  declare is left out. Sass writes only those two and `:root`.
+- The colors are no longer rounded to whole channels between layers, as the
+  library's old `mix()` did; every pair still passes.
+- Four copies went: the three contrast specs' and `global.spec.ts`'s Sass
+  importer. Specs: `@fz/style` 215 → 237 (the six math tests became 27 in
+  `src/testing/index.spec.ts`, with two fixtures in
+  `src/testing/fixtures/`). Its floor rose to 96/86/96/97 (real
+  96.71/86.48/96.07/97.18).
+- Broken on purpose, then restored from git: Casino night's `muted` as
+  `#3a4550` failed six library pairs and five of the Solitaire Collection's
+  felts; Minesweeper's dark ink 1 as `#2a3a6a` failed the number 1 in both
+  dark palettes.
+- Docs: `@fz/style`'s `AGENTS.md`, the `web-game-accessibility` and
+  `fuzzley-ui` skills, and Minesweeper's `vitest-testing` skill.
+- `yarn verify` green.

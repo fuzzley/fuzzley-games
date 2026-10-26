@@ -79,6 +79,14 @@ can use it too. The repository's rules, which apply here too, are in
   `vite-ignore`, as `frontend/games/solitaire/index.html` does.
 - `src/fuzzball_raster.ts`: the fuzzball as a PNG and an ICO file, which
   `src/vite.ts` makes with sharp, at build time only.
+- `src/testing/index.ts`, `@fz/style/testing`: what a spec needs to check a
+  stylesheet in Node. `compileStylesheet()` compiles one, loading the
+  libraries' stylesheets as an app's Vite does; `paletteRoles()` reads each
+  palette's roles out of the CSS; and `paint()`, `over()` and `contrast()`
+  measure them as WCAG does, a translucent surface over what shows through
+  it. The library's specs use it, and so does every app's contrast spec,
+  so the math is written and tested once. It imports nothing of the
+  library's, so an app's specs compile it as they are.
 
 ## How an app uses it
 
@@ -115,10 +123,10 @@ can use it too. The repository's rules, which apply here too, are in
   fur in every palette. Every other stylesheet reads them with `var()`;
   stylelint rejects a hex, named or functional color anywhere else.
 - **Contrast is checked, not hoped for.** `src/tokens/contrast.spec.ts`
-  holds every palette to WCAG: text and fills' labels at 4.5:1 on what they
-  sit on, the surfaces too, over what shows through them, and the focus
-  ring at 3:1. A role that carries text, or sits behind it, gets a pair
-  there.
+  holds every palette to WCAG, with `@fz/style/testing`: text and fills'
+  labels at 4.5:1 on what they sit on, the surfaces too, over what shows
+  through them, and the focus ring at 3:1. A role that carries text, or
+  sits behind it, gets a pair there.
 - **A derived role is declared wherever a palette is** (`:root,
 [data-theme]`), not on `:root` alone: a custom property resolves its
   `var()`s where it is declared, so an element with a palette of its own
