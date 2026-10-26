@@ -3,6 +3,11 @@
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import {
+  GAME_MANIFEST,
+  type GameManifest,
+  isGameManifest,
+} from "@fz/dev/game-manifest";
 import { type Connect, type Plugin, runnerImport } from "vite";
 import type { BuildInfo } from "../src/app/model/build.ts";
 import type * as GameModel from "../src/app/model/game.ts";
@@ -197,6 +202,87 @@ export function checkGameImages(): Plugin {
           "These games' pictures are missing: a hosted game's come from its " +
             "build in public/play/ (see games.json), and a game still to " +
             `come needs one in public/thumbnails/.\n  ${missing.join("\n  ")}`,
+        );
+      }
+    },
+  };
+}
+
+/**
+ * Returns whether two names are the same, apostrophes aside, so the site can
+ * set its own in type.
+ */
+function sameName(a: string, b: string): boolean {
+  const straight = (name: string): string => name.replaceAll("\u2019", "'");
+  return straight(a) === straight(b);
+}
+
+/**
+ * Returns where the catalog's hosted games and what their builds say they
+ * hold disagree, one line each: a build with no manifest, an id a build
+ * doesn't open, or a name the build doesn't give the game.
+ */
+export function manifestProblems(
+  games: readonly GameModel.Game[],
+  manifestOf: (build: string) => GameManifest | undefined,
+): string[] {
+  return games.flatMap((game) => {
+    if (!game.play) return [];
+    const { build, id } = game.play;
+    const where = `${game.name}: /play/${build}/`;
+    const manifest = manifestOf(build);
+    if (!manifest) return [`${where} has no readable ${GAME_MANIFEST}`];
+    if (id === undefined) {
+      return sameName(manifest.name, game.name)
+        ? []
+        : [`${where} calls itself ${manifest.name}`];
+    }
+    const entry = manifest.games?.find((candidate) => candidate.id === id);
+    if (!entry) return [`${where} opens no game ${id}`];
+    return sameName(entry.name, game.name)
+      ? []
+      : [`${where}#/${id} calls it ${entry.name}`];
+  });
+}
+
+/**
+ * Returns a build's manifest from a folder of public files, or nothing when
+ * it has none it can read.
+ */
+export function readGameManifest(
+  publicDir: string,
+  build: string,
+): GameManifest | undefined {
+  const file = path.join(publicDir, "play", build, GAME_MANIFEST);
+  if (!existsSync(file)) return undefined;
+  const manifest: unknown = JSON.parse(readFileSync(file, "utf8"));
+  return isGameManifest(manifest) ? manifest : undefined;
+}
+
+/**
+ * Fails the build when the catalog names a game, or calls it a name, that its
+ * build doesn't, as the build's game.json says.
+ *
+ * A pinned archive predates game.json, so it is left to the pictures' check.
+ */
+export function checkGameManifests(): Plugin {
+  return {
+    name: "check-game-manifests",
+    apply: "build",
+    async buildStart() {
+      const builds = readManifest();
+      const publicDir = path.join(SITE_DIR, "public");
+      const hosted = (await loadCatalog()).games.filter(({ play }) => {
+        const build = play && builds[play.build];
+        return build !== undefined && !isPinned(build);
+      });
+      const problems = manifestProblems(hosted, (build) =>
+        readGameManifest(publicDir, build),
+      );
+      if (problems.length > 0) {
+        this.error(
+          "The catalog and the games' builds disagree; each build's " +
+            `${GAME_MANIFEST} says what it holds.\n  ${problems.join("\n  ")}`,
         );
       }
     },

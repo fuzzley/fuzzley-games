@@ -74,8 +74,11 @@ or a game built here by its workspace and the site's own commit.
 
 The site's catalog (`frontend/site/src/app/provider/games.ts`) names each
 hosted game's build and id, and shows the screenshots the build ships in
-`docs/screenshots/<id>/`. The build fails if the catalog links a game the
-fetched build doesn't have, such as one renamed upstream.
+`docs/screenshots/<id>/`. Each game built here also writes a `game.json` at
+the top of its build, through `@fz/dev`'s `gameConfig()`: its name and, for a
+collection, the id and name of every game it opens. The build fails if the
+catalog links a game the fetched build doesn't have, such as one renamed
+upstream, or names one differently from its build, apostrophes aside.
 
 Every 15 minutes, `.github/workflows/update-games.yml` moves each pin to the
 newest build, builds the image and checks it, and pushes the change to `main`
@@ -96,8 +99,8 @@ turned off.
   keeps its ten newest archives and the one pinned here.
 - **Add a game built here:** give it a folder under `frontend/games/` with a
   `package.json`, named after the folder, whose `build` script writes
-  `dist/`, with `index.html` at its top level and its screenshots in
-  `docs/screenshots/<id>/`. Run `yarn install`, add
+  `dist/`, with `index.html` at its top level, the `game.json` that
+  `gameConfig()` writes, and its screenshots in `docs/screenshots/<id>/`. Run `yarn install`, add
   `{ "workspace": "games/<folder>" }` to `games.json`, and list its games in
   the catalog. The `Dockerfile` copies all of `frontend/`, so it needs no
   change.

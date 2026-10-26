@@ -489,6 +489,12 @@ from the catalog, and the browser lists a game from its entry and its profile.
 list, in the browser's order, and them and their aliases in its keywords, for
 search engines; `test/ui/index_html.spec.ts` fails until you do.
 
+**The site lists it only once its own catalog does.** The build writes every
+entry's `id` and `name` into `dist/game.json`, and the site's build checks
+its catalog, `frontend/site/src/app/provider/games.ts`, against it: a new
+game is simply not on the site yet, but renaming a game or its id fails the
+site's build until that file follows.
+
 ---
 
 ## 9. Test it

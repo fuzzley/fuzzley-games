@@ -57,10 +57,10 @@ with `GITHUB_TOKEN` start no other workflow, so after pushing, the job runs
 `verify.yml` on `main` with `gh workflow run` (a dispatch is the exception to
 that rule), and Verify's `promote` job deploys it.
 
-The build fails when the catalog links a game the fetched build lacks (the
-`checkGameImages` plugin in `frontend/site/tools/vite-plugins.ts`), so a game
-renamed or removed upstream shows up as one of these issues, not as a broken
-link.
+The build fails when the catalog links a game the fetched build lacks, or
+names one differently (the `checkGameImages` and `checkGameManifests` plugins
+in `frontend/site/tools/vite-plugins.ts`), so a game renamed or removed
+upstream shows up as one of these issues, not as a broken link.
 
 ## Deployment Waits for Verify
 

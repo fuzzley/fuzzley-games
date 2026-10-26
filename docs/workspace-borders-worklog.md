@@ -27,8 +27,8 @@ work is done; git history keeps it.
 | P2    | Housekeeping                         | done    |
 | P3    | Vitest and game presets in `@fz/dev` | done    |
 | P4    | The site's images                    | done    |
-| P5    | `game.json`                          | next    |
-| P6    | The instruction layers and skills    | to do   |
+| P5    | `game.json`                          | done    |
+| P6    | The instruction layers and skills    | next    |
 | P7    | The Phaser skills                    | to do   |
 | P8    | Retire the pinned-game pipeline      | waiting |
 
@@ -254,3 +254,78 @@ work is done; git history keeps it.
   tests and coverage are P3's, `@fz/dev`'s aside (50 tests), with the
   Solitaire Collection's branches back at 1894 of 2043. Both games' `dist/`
   are byte for byte P3's.
+
+### 2026-10-26: P5, `game.json`
+
+- **`@fz/dev/game-manifest`** (finding 9), `lib/dev/src/game_manifest.ts`:
+  a game's build says what it holds in `game.json` at the top of its
+  `dist/`: `{ name }`, and for a collection `games`, the `id` and `name` of
+  every game it opens. `gameManifest({ name, catalog })` is the plugin that
+  writes it, in `generateBundle`, during builds only; `isGameManifest()` is
+  the guard a reader checks it with.
+  - A collection's games come from its catalog module, named by path and
+    export (`{ module, export }`), loaded with Vite's `runnerImport()` as
+    the site's `loadCatalog()` loads the site's. It is given the build's
+    own root and `resolve.alias`, from `this.environment.config`, since the
+    Solitaire Collection's catalog imports through `@/`; with
+    `configFile: false`, so it doesn't load the game's config again. A
+    module whose export isn't a list of `{ id, name }` fails the build,
+    naming the module and the export.
+  - `gameConfig()` takes `name` and `catalog` beside `port` and adds the
+    plugin: Minesweeper's is `{ port: 9001, name: "Minesweeper" }`, the
+    Solitaire Collection's names `GAME_CATALOG` in
+    `src/ui/app/provider/game_catalog.ts`.
+- **The site's `checkGameManifests()`**, in `tools/vite-plugins.ts`, runs
+  at `buildStart` after `checkGameImages()`. For every catalog entry with a
+  `play` whose build is a workspace's, it reads
+  `public/play/<build>/game.json` and reports, one line each: a build with
+  no manifest it can read, a single game the build calls by another name, an
+  id the collection doesn't open, or an entry the collection calls by
+  another name. Names are compared with typographic apostrophes made
+  straight: the site sets Baker's Game, Baker's Dozen and Grandfather's
+  Clock in type, the Solitaire Collection doesn't. A pinned archive predates the
+  manifest, so it is skipped, and `checkGameImages()` stays as it was for
+  every game.
+- **Proof:**
+  - Both games' builds write `game.json`: Minesweeper's names it, the
+    Solitaire Collection's lists its 41 games, and the site's build passes
+    with both.
+  - With BAKERS taken out of the Solitaire Collection's `CATALOG_ENTRIES`
+    and Klondike renamed "Klondike Patience", rebuilt, the site's build
+    failed with `Klondike: /play/solitaire/#/klondike calls it Klondike
+Patience` and `Baker’s Game: /play/solitaire/ opens no game bakers`. The
+    pictures' check passed it, since the old build's screenshots of Baker's
+    Game were still in `public/play/solitaire/`, which is the gap the plan
+    found. The catalog was restored and both rebuilt clean.
+  - `game.json` is served too, at `/play/<slug>/game.json`. It says only
+    what the catalog page already does, so it is left there.
+- Specs:
+  - `lib/dev/src/game_manifest.spec.ts` (8): three run a real `vite build`
+    in a temporary folder, a single game, a collection whose catalog
+    imports through an `@` alias, and a module whose export lists no games;
+    five cover the guard.
+  - The site's `tools/vite-plugins.spec.ts` (24, up from 14): seven for
+    `manifestProblems()` (agreement, apostrophes, a game still to come, a
+    missing id, a renamed entry, a renamed single game, no manifest), three
+    for `readGameManifest()` (reads one, none, an invalid one).
+  - `vite.spec.ts` passes names and expects the manifest's plugin.
+- Docs: `.agents/AGENTS.md` (the production build, and what a game's build
+  holds), `docs/operations.md` (the catalog, and adding a game built here),
+  the `github-actions-ci-cd` skill, the site's, both games' and `@fz/dev`'s
+  `AGENTS.md`, and the `add-solitaire-game` skill, which now says a new
+  game reaches the site only once the site's catalog lists it, and that
+  renaming one fails the site's build until it follows.
+- `@fz/dev`'s coverage rose to 75.18 / 93.44 / 85.71 / 74.19%, and its
+  floor to 75 / 92 / 85 / 74. Its `AGENTS.md` now names the manifest's and
+  the screenshots' specs among its checks.
+- The site's `AGENTS.md` said Angular leaves `@keyframes` names alone, the
+  Solitaire Collection's that it renames them after the component. The
+  compiler does rename them (`_scopeKeyframesRelatedCss` in
+  `@angular/compiler`), so P6's shared rule is the Solitaire Collection's.
+- **`yarn verify` passed** in 4m16s. Every workspace's tests and coverage
+  are P4's but `@fz/dev`'s (58 tests) and the site's tools (177 tests, up
+  from 167, at 69.57 / 71.3 / 78.57 / 68.19%: the functions fell from
+  80.17%, since the plugin's hook, like `checkGameImages()`'s, runs only in
+  a real build). Both games' `dist/` are P4's byte for byte, plus
+  `game.json`; the site's differs in its three build-time files and the two
+  `game.json` under `play/`.

@@ -242,9 +242,12 @@ on `SHUTDOWN` or `DESTROY`, because the game it ran in lives on.
 - **It knows nothing of the site.** It builds into `dist/` with relative
   URLs and a hash router, and the site copies that build to
   `/play/solitaire/`. Nothing here imports from the site, or the site from
-  here. The site's catalog links each game by its `#/<id>` route and shows
-  the screenshots under `public/docs/screenshots/<id>/`, so renaming a
-  game's id, or dropping its screenshots, fails the site's build.
+  here. The build writes every game's id and name, from `GAME_CATALOG`, into
+  `dist/game.json` (`vite.config.ts` names the catalog to `gameConfig()`).
+  The site's catalog links each game by its `#/<id>` route, under its own
+  copy of the name, and shows the screenshots under
+  `public/docs/screenshots/<id>/`, so renaming a game or its id, or dropping
+  its screenshots, fails the site's build until the site follows.
 - **It shares the palette with the site.** `index.html` loads `theme.js`
   first, which `@fz/style`'s Vite plugin writes into the build (`vite.config.ts`
   extends `@fz/dev/vite`'s `gameConfig()`, which adds it): it puts the palette the player chose, on the site or in any game, on

@@ -7,23 +7,33 @@ import { defineConfig, mergeConfig } from "vite";
 const commit = process.env["COMMIT_SHA"];
 
 export default defineConfig(
-  mergeConfig(gameConfig({ port: 9000 }), {
-    define: commit
-      ? { "import.meta.env.VITE_COMMIT_SHA": JSON.stringify(commit) }
-      : {},
-    resolve: {
-      alias: {
-        "@": path.resolve(import.meta.dirname, "./src"),
+  mergeConfig(
+    gameConfig({
+      port: 9000,
+      name: "Solitaire Collection",
+      catalog: {
+        module: "src/ui/app/provider/game_catalog.ts",
+        export: "GAME_CATALOG",
       },
-    },
-    build: {
-      rollupOptions: {
-        output: {
-          manualChunks(id: string) {
-            return id.includes("node_modules/phaser") ? "phaser" : undefined;
+    }),
+    {
+      define: commit
+        ? { "import.meta.env.VITE_COMMIT_SHA": JSON.stringify(commit) }
+        : {},
+      resolve: {
+        alias: {
+          "@": path.resolve(import.meta.dirname, "./src"),
+        },
+      },
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks(id: string) {
+              return id.includes("node_modules/phaser") ? "phaser" : undefined;
+            },
           },
         },
       },
     },
-  }),
+  ),
 );

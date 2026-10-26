@@ -9,6 +9,7 @@
     "./eslint": "./src/eslint.ts",
     "./vitest": "./src/vitest.ts",
     "./vite": "./src/vite.ts",
+    "./game-manifest": "./src/game_manifest.ts",
     "./chrome": "./src/chrome.ts",
     "./screenshots": "./src/screenshots.ts",
     "./tsconfig/*.json": "./tsconfig/*.json"

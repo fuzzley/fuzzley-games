@@ -57,7 +57,10 @@ are relative to `frontend/site/`.
   placeholder `env.js` and `thumbnails/<slug>.svg`, the drawing of each
   game still to come. A hosted game's thumbnail is its build's own
   screenshot. The build fails if either is missing. The games are put
-  into `public/play/`, which git ignores.
+  into `public/play/`, which git ignores, each with the `game.json` its
+  build writes, and the build fails too if the catalog names an id a
+  game's build doesn't open, or a name it doesn't give the game,
+  apostrophes aside (`checkGameManifests()` in `tools/vite-plugins.ts`).
 - `games.json` lists each game's build: a workspace, by its folder in
   `frontend/` (`games/minesweeper`), or one build pinned from its
   repository's `site-build` release. `tools/` holds the scripts that put
