@@ -1,12 +1,14 @@
 {
   "name": "@fz/dev",
   "version": "0.0.0",
-  "description": "The lint and compiler settings and the script helpers every workspace shares.",
+  "description": "The lint, compiler, test and build settings, and the script helpers, every workspace shares.",
   "private": true,
   "license": "GPL-3.0-or-later",
   "type": "module",
   "exports": {
     "./eslint": "./src/eslint.ts",
+    "./vitest": "./src/vitest.ts",
+    "./vite": "./src/vite.ts",
     "./chrome": "./src/chrome.ts",
     "./tsconfig/*.json": "./tsconfig/*.json"
   },
@@ -17,15 +19,31 @@
   },
   "dependencies": {
     "@eslint/js": "^10.0.1",
+    "@fz/style": "workspace:*",
     "angular-eslint": "^22.6.0",
     "eslint-plugin-jsdoc": "^65.4.2",
     "typescript-eslint": "^8.72.0"
   },
   "peerDependencies": {
+    "@analogjs/vite-plugin-angular": "^2.9.2",
     "eslint": "^10.13.0",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  },
+  "peerDependenciesMeta": {
+    "@analogjs/vite-plugin-angular": {
+      "optional": true
+    },
+    "vite": {
+      "optional": true
+    },
+    "vitest": {
+      "optional": true
+    }
   },
   "devDependencies": {
+    "@analogjs/vite-plugin-angular": "^2.9.2",
     "@types/node": "^26.6.0",
     "@vitest/coverage-v8": "^5.0.5",
     "eslint": "^10.13.0",

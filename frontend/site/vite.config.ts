@@ -1,4 +1,5 @@
 import angular from "@analogjs/vite-plugin-angular";
+import { angularSpecs, coverage, nodeSpecs } from "@fz/dev/vitest";
 import { fuzzleyStyle } from "@fz/style/vite";
 import { defineConfig } from "vitest/config";
 import {
@@ -27,18 +28,12 @@ export default defineConfig({
     host: true,
   },
   test: {
-    // Not optional: TestBed and Testing Library register their teardown on
-    // the global afterEach.
-    globals: true,
-    coverage: {
-      provider: "v8",
-      reporter: ["text", "html"],
+    coverage: coverage({
       include: ["src/**/*.ts", "tools/**/*.{ts,mjs}"],
       exclude: ["src/app/main.ts", "src/test-setup.ts", "src/app/testing/**"],
       thresholds: {
-        // Floors a little under the suite's real figures; raise them as they
-        // rise. `yarn test` fails below them. The tools' sit far lower, since
-        // what they download and write runs only in a real build.
+        // The tools' floors sit far lower, since what they download and
+        // write runs only in a real build.
         "src/**": {
           statements: 99,
           branches: 92,
@@ -52,25 +47,10 @@ export default defineConfig({
           lines: 46,
         },
       },
-    },
+    }),
     projects: [
-      {
-        extends: true,
-        test: {
-          name: "app",
-          environment: "jsdom",
-          setupFiles: ["src/test-setup.ts"],
-          include: ["src/**/*.spec.ts"],
-        },
-      },
-      {
-        test: {
-          name: "tools",
-          environment: "node",
-          globals: true,
-          include: ["tools/**/*.spec.ts"],
-        },
-      },
+      { extends: true, test: { name: "app", ...angularSpecs() } },
+      { test: { name: "tools", ...nodeSpecs(["tools/**/*.spec.ts"]) } },
     ],
   },
 });

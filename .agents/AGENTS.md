@@ -62,9 +62,10 @@ Minesweeper.
     `frontend/lib/style/AGENTS.md`, for the styles every app shares, with
     no framework, `frontend/lib/ui/AGENTS.md`, for the Angular components
     and services, `frontend/lib/game-ui/AGENTS.md`, for the chrome only
-    the games share, and `frontend/lib/dev/AGENTS.md`, for the lint and
-    compiler presets every workspace is checked with and the scripts'
-    headless Chrome, which no app's code imports. The `fuzzley-ui` skill
+    the games share, and `frontend/lib/dev/AGENTS.md`, for the lint,
+    compiler, test and game build presets every workspace is checked and
+    built with, and the scripts' headless Chrome, which no app's code
+    imports. The `fuzzley-ui` skill
     says which piece to reach for, and how an app adopts them.
   - `games/` holds the games built here, one workspace each, named after its
     folder. A game knows nothing of the site, even when both use the same

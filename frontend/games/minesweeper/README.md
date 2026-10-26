@@ -16,7 +16,7 @@ Minesweeper is a Yarn workspace of the Fuzzley Games frontend. Run these from
 
 ```sh
 yarn install                         # install dependencies, once per clone
-yarn workspace minesweeper dev       # dev server on http://localhost:9000
+yarn workspace minesweeper dev       # dev server on http://localhost:9001
 yarn workspace minesweeper test      # unit tests
 yarn workspace minesweeper build     # production build in dist/
 ```

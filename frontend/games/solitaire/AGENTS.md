@@ -246,8 +246,8 @@ on `SHUTDOWN` or `DESTROY`, because the game it ran in lives on.
   the screenshots under `public/docs/screenshots/<id>/`, so renaming a
   game's id, or dropping its screenshots, fails the site's build.
 - **It shares the palette with the site.** `index.html` loads `theme.js`
-  first, which `@fz/style`'s Vite plugin (`vite.config.ts`) writes into the
-  build: it puts the palette the player chose, on the site or in any game, on
+  first, which `@fz/style`'s Vite plugin writes into the build (`vite.config.ts`
+  extends `@fz/dev/vite`'s `gameConfig()`, which adds it): it puts the palette the player chose, on the site or in any game, on
   the page as `data-theme` before anything paints. `ThemeService` from
   `@fz/ui/theme` takes it from there, and the settings drawer offers the
   choice. The chrome wears the palette in use, light or dark; the felt is
@@ -284,7 +284,7 @@ Run these from `frontend/games/solitaire/`, or as
 `yarn typecheck`, `yarn test` and `yarn build` run this workspace's with the
 others', and check its formatting and skill references there.
 
-- **Run Development Server:** `yarn start` or `yarn dev` (launches Vite dev server at `http://localhost:9000/`, the port Minesweeper's uses too).
+- **Run Development Server:** `yarn start` or `yarn dev` (launches Vite dev server at `http://localhost:9000/`; Minesweeper's uses 9001).
 - **Build Card Atlas:** `yarn build:atlas` (runs `tools/build-card-atlas.mjs` to cut the SVG card sheets, and generate the `mobile` deck, into texture atlas files; `--deck <id>` builds one deck, `--preview` draws a contact sheet of every deck at phone scale).
 - **Capture Screenshots:** `yarn capture:screenshots [id ...]` (runs `tools/capture-screenshots.mjs` to capture each game's rules-page screenshot, or only the games named, from the running dev server in headless Chrome, through `@fz/dev/chrome`: the whole page at 1440 × 810 and 2×, on a fresh deal with every setting at its default, saved losslessly to `docs/screenshots/<id>/overview.png`, outside `public/`; `--chrome <path>` or `CHROME_PATH` picks the browser).
 - **Build Screenshot Thumbnails:** `yarn build:thumbs` (runs `tools/build-screenshot-thumbs.mjs` to make the images the site serves from each game's lossless screenshot, into `public/docs/screenshots/<id>/`: the rules page's `overview.webp` (1600 × 900, the whole page), the game browser's `thumb.webp` (576 × 324, cropped to the board), and `preview.webp` (2560 × 1440, the whole page); Klondike's preview is also the link preview image in `index.html`, and the site's catalog shows `thumb.webp` and `preview.webp` too).

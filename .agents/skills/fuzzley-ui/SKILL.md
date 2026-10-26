@@ -76,9 +76,11 @@ libraries alone, which shows the same steps with nothing else around them.
    `@fz/game-ui`, with their peers `@angular/aria` and `@angular/cdk`. Run
    `yarn install` from `frontend/`. Nothing in `lib/` is built: the app
    compiles each library from its source.
-2. **Add the Vite plugin.** `fuzzleyStyle()` from `@fz/style/vite`, as in
-   `frontend/games/solitaire/vite.config.ts`. It writes `theme.js` and the
-   page's icons into the build and serves them in development.
+2. **Add the Vite plugin.** `fuzzleyStyle()` from `@fz/style/vite`. A game
+   gets it from `@fz/dev/vite`'s `gameConfig()`, as
+   `frontend/games/minesweeper/vite.config.ts` does; the site adds it in
+   `frontend/site/vite.config.ts`. It writes `theme.js` and the page's icons
+   into the build and serves them in development.
 3. **Load `theme.js` first.** A plain tag at the top of `<head>`, with no
    body, since the Content Security Policy allows no inline script:
    `<script src="theme.js" vite-ignore></script>`, as in

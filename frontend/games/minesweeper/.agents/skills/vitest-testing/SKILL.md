@@ -27,6 +27,9 @@ Run these from `frontend/games/minesweeper/`, or as
 
 ## Setup
 
+- `vitest.config.ts` is `@fz/dev/vitest`'s `angularTests()`, the setup
+  every Angular workspace shares, given the floor and what coverage leaves
+  out.
 - A spec sits beside the file it tests, named after it.
 - Every spec runs in jsdom. `src/test-setup.ts` starts Angular's TestBed,
   loads jest-dom's matchers, polyfills `<dialog>` with `@fz/ui/testing`'s
