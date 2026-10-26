@@ -16,4 +16,18 @@ describe("AppComponent", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("contentinfo")).toBeInTheDocument();
   });
+
+  it("announces through a live region every page shares", async () => {
+    const { navigate } = await render(AppComponent, {
+      providers: appConfig.providers,
+    });
+
+    await navigate("/?q=no-such-game");
+
+    expect(
+      screen.getByText("No games match.", {
+        selector: '[aria-live="polite"]',
+      }),
+    ).toBeInTheDocument();
+  });
 });
