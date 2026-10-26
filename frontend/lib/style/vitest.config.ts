@@ -12,10 +12,10 @@ export default defineConfig({
       thresholds: {
         // A floor a little under the suite's real figures; raise it as they
         // rise. `yarn test` fails below it.
-        statements: 95,
-        branches: 83,
-        functions: 93,
-        lines: 95,
+        statements: 96,
+        branches: 86,
+        functions: 96,
+        lines: 97,
       },
     },
   },

@@ -101,4 +101,6 @@ move it with the arrow keys, Home and End.
   3:1; a new role that carries text or sits behind it gets a pair there.
   Text on glass over a game's table depends on the table too: the Solitaire
   Collection's header labels are held to it over every felt by
-  `frontend/games/solitaire/test/ui/app/styles/contrast.spec.ts`.
+  `frontend/games/solitaire/test/ui/app/styles/contrast.spec.ts`. Each of
+  these measures with `@fz/style/testing`'s `paint()` and `contrast()`, and
+  a new check does too, rather than with math of its own.

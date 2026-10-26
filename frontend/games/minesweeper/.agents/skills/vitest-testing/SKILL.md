@@ -70,7 +70,10 @@ Run these from `frontend/games/minesweeper/`, or as
 
 ## Contrast
 
-`src/app/board/contrast.spec.ts` compiles the global stylesheet and the
-numbers' inks with Sass and checks every palette in `@fz/style`'s `THEMES`.
-It builds paths with `import.meta.dirname` and `node:path`, because jsdom's
-`URL` isn't Node's and `fileURLToPath` refuses it.
+`src/app/board/contrast.spec.ts` checks every palette in `@fz/style`'s
+`THEMES`. It compiles the global stylesheet with `@fz/style/testing`'s
+`compileStylesheet()`, reads the palettes with `paletteRoles()`, and
+measures with `paint()` and `contrast()`; only the numbers' inks it
+compiles with Sass itself. It builds paths with `import.meta.dirname` and
+`node:path`, because jsdom's `URL` isn't Node's and `fileURLToPath`
+refuses it.

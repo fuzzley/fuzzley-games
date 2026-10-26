@@ -1,22 +1,12 @@
-import { createRequire } from "node:module";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
 import { parse } from "postcss";
-import { type FileImporter, compile } from "sass";
+import { compileStylesheet } from "./testing/index.ts";
 
 const LAYERS = ["fz.tokens", "fz.reset", "fz.base", "fz.fragments"];
 
-// Finds a package a stylesheet loads, such as the font, through its exports,
-// as an app's Vite does.
-const require = createRequire(import.meta.url);
-const packages: FileImporter = {
-  findFileUrl: (url) => pathToFileURL(require.resolve(url)),
-};
-
 /** Returns the CSS one of the library's stylesheets compiles to. */
 function compiled(file: string): string {
-  const src = path.dirname(fileURLToPath(import.meta.url));
-  return compile(path.join(src, file), { importers: [packages] }).css;
+  return compileStylesheet(path.join(import.meta.dirname, file));
 }
 
 describe("global.scss", () => {
