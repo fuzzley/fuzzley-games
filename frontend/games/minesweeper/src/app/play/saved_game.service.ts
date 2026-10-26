@@ -1,4 +1,11 @@
-import { Injectable, effect, inject } from "@angular/core";
+import { DOCUMENT } from "@angular/common";
+import {
+  DestroyRef,
+  Injectable,
+  effect,
+  inject,
+  untracked,
+} from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
 import { isDifficultyId } from "../../rules/difficulty";
 import { isWhole } from "../../rules/json";
@@ -16,8 +23,10 @@ const SAVED_GAME_VERSION = 1;
  * again when the page loads, so a reload or a phone dropping the tab loses
  * nothing.
  *
- * Only a game under way is kept: one not started yet, or over, is not.
- * Something must inject it at startup for the game to be restored.
+ * Only a game under way is kept: one not started yet, or over, is not. It is
+ * written once a move, and once more as the page goes out of sight, rather
+ * than every time the clock ticks. Something must inject it at startup for
+ * the game to be restored.
  */
 @Injectable({ providedIn: "root" })
 export class SavedGameService {
@@ -29,8 +38,24 @@ export class SavedGameService {
     effect(() => {
       this.keep();
     });
+
+    const document = inject(DOCUMENT);
+    const view = document.defaultView;
+    const keepTime = (): void => {
+      if (document.visibilityState === "hidden") this.keep();
+    };
+    const keepAll = (): void => {
+      this.keep();
+    };
+    document.addEventListener("visibilitychange", keepTime);
+    view?.addEventListener("pagehide", keepAll);
+    inject(DestroyRef).onDestroy(() => {
+      document.removeEventListener("visibilitychange", keepTime);
+      view?.removeEventListener("pagehide", keepAll);
+    });
   }
 
+  /** Writes the game under way, with its time, or forgets one that isn't. */
   private keep(): void {
     const field = this.game.field();
     if (field.outcome !== "playing") {
@@ -39,7 +64,7 @@ export class SavedGameService {
     }
     this.storage.writeVersioned(SAVED_GAME_KEY, SAVED_GAME_VERSION, {
       difficulty: this.game.difficulty(),
-      seconds: this.game.seconds(),
+      seconds: untracked(this.game.seconds),
       field: saveField(field),
     });
   }

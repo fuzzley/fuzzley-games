@@ -17,6 +17,15 @@ function stored(): unknown {
   return JSON.parse(localStorage.getItem(SAVED_GAME_KEY) ?? "null");
 }
 
+/** Sets the page's visibility, as switching tabs does, and says so. */
+function setVisibility(state: DocumentVisibilityState): void {
+  Object.defineProperty(document, "visibilityState", {
+    configurable: true,
+    get: () => state,
+  });
+  document.dispatchEvent(new Event("visibilitychange"));
+}
+
 /** Starts the service, as the app does on load, and lets it keep the game. */
 function start(): SavedGameService {
   const saved = TestBed.inject(SavedGameService);
@@ -36,6 +45,56 @@ describe("SavedGameService", () => {
       difficulty: "easy",
       seconds: 74,
       field: saveField(fieldFrom(IN_PLAY)),
+    });
+  });
+
+  describe("as the clock runs", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+      Reflect.deleteProperty(document, "visibilityState");
+    });
+
+    /** Starts a game ten seconds in, kept, and lets three more go by. */
+    function playThreeSeconds(): void {
+      start();
+      playOn(IN_PLAY, { seconds: 10 });
+      TestBed.tick();
+      vi.advanceTimersByTime(3000);
+      TestBed.tick();
+    }
+
+    it("writes the game once a move, not once a second", () => {
+      playThreeSeconds();
+
+      expect(stored()).toMatchObject({ seconds: 10 });
+    });
+
+    it("keeps the time as the page goes out of sight", () => {
+      playThreeSeconds();
+
+      setVisibility("hidden");
+
+      expect(stored()).toMatchObject({ seconds: 13 });
+    });
+
+    it("keeps the time as the page is left", () => {
+      playThreeSeconds();
+
+      window.dispatchEvent(new Event("pagehide"));
+
+      expect(stored()).toMatchObject({ seconds: 13 });
+    });
+
+    it("writes nothing more as the page comes back in sight", () => {
+      playThreeSeconds();
+
+      setVisibility("visible");
+
+      expect(stored()).toMatchObject({ seconds: 10 });
     });
   });
 
