@@ -115,8 +115,9 @@ brings in `@fz/style`'s mixins and this game's own, and nothing else.
   toolbar takes the page's color (`THEME_COLOR_ROLE` in `src/main.ts`).
 - **Saved games outlive the code.** The settings, the statistics and the
   game in progress are in `localStorage` under `minesweeper-settings`,
-  `minesweeper-stats` and `minesweeper-game`. Each entry carries a version,
-  and a reader drops one it can't trust rather than failing. Renaming a key
+  `minesweeper-stats` and `minesweeper-game`. Each entry carries a version
+  (`LocalStorageService.writeVersioned()`), and a reader drops one it can't
+  trust rather than failing. Renaming a key
   loses what players saved. The 2016 game stored nothing.
 - **Accessibility.** The rules are the repository's `web-game-accessibility`
   skill's. Every overlay is an `<fz-dialog>`, the board is the grid above,

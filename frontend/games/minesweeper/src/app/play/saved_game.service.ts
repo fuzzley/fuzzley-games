@@ -1,12 +1,15 @@
 import { Injectable, effect, inject } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
 import { isDifficultyId } from "../../rules/difficulty";
-import { isRecord, isWhole } from "../../rules/json";
+import { isWhole } from "../../rules/json";
 import { restoreField, saveField } from "../../rules/saved_field";
 import { GameService } from "./game.service";
 
 /** Where the game in progress is kept. Renaming it loses every player's. */
 export const SAVED_GAME_KEY = "minesweeper-game";
+
+/** The shape the game is kept in; a reader drops any other. */
+const SAVED_GAME_VERSION = 1;
 
 /**
  * Keeps the game in progress, its time and its difficulty, and takes it up
@@ -34,8 +37,7 @@ export class SavedGameService {
       this.storage.remove(SAVED_GAME_KEY);
       return;
     }
-    this.storage.writeObject(SAVED_GAME_KEY, {
-      version: 1,
+    this.storage.writeVersioned(SAVED_GAME_KEY, SAVED_GAME_VERSION, {
       difficulty: this.game.difficulty(),
       seconds: this.game.seconds(),
       field: saveField(field),
@@ -44,8 +46,11 @@ export class SavedGameService {
 
   /** Takes up the game stored, if there is one that makes sense. */
   private restore(): void {
-    const saved = this.storage.readObject(SAVED_GAME_KEY);
-    if (!isRecord(saved) || saved["version"] !== 1) return;
+    const saved = this.storage.readVersioned(
+      SAVED_GAME_KEY,
+      SAVED_GAME_VERSION,
+    );
+    if (!saved) return;
     const { difficulty, seconds } = saved;
     const field = restoreField(saved["field"]);
     if (

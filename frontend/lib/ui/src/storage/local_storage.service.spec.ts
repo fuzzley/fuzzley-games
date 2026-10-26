@@ -94,6 +94,51 @@ describe("LocalStorageService", () => {
     });
   });
 
+  describe("versioned objects", () => {
+    it("reads back what it wrote, at the same version", () => {
+      const storage = service();
+
+      storage.writeVersioned("key", 2, { lives: 3 });
+
+      expect(storage.readVersioned("key", 2)).toEqual({
+        version: 2,
+        lives: 3,
+      });
+    });
+
+    it("stores the version beside the fields", () => {
+      service().writeVersioned("key", 2, { lives: 3 });
+
+      expect(JSON.parse(localStorage.getItem("key") ?? "")).toEqual({
+        version: 2,
+        lives: 3,
+      });
+    });
+
+    it("reads another version as null", () => {
+      const storage = service();
+      storage.writeVersioned("key", 1, { lives: 3 });
+
+      expect(storage.readVersioned("key", 2)).toBeNull();
+    });
+
+    it("reads an object stored with no version as null", () => {
+      localStorage.setItem("key", JSON.stringify({ lives: 3 }));
+
+      expect(service().readVersioned("key", 1)).toBeNull();
+    });
+
+    it("reads a stored list as null", () => {
+      localStorage.setItem("key", "[1]");
+
+      expect(service().readVersioned("key", 1)).toBeNull();
+    });
+
+    it("reads an absent key as null", () => {
+      expect(service().readVersioned("missing", 1)).toBeNull();
+    });
+  });
+
   describe("removal", () => {
     it("forgets what was written", () => {
       const storage = service();
