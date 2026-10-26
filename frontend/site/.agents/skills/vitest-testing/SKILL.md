@@ -1,6 +1,6 @@
 ---
 name: vitest-testing
-description: The site's Vitest setup (the app and tools projects, jsdom, globals) and its Angular patterns (Testing Library queries by role, user-event, TEST_CATALOG, zoneless change detection). Triggers on: vitest, unit test, spec, TestBed, Testing Library, test structure.
+description: The site's Vitest setup (the app and tools projects, jsdom, globals, the coverage floors) and its Angular patterns (Testing Library queries by role, user-event, TEST_CATALOG, zoneless change detection). Triggers on: vitest, unit test, spec, TestBed, Testing Library, coverage, test structure.
 ---
 
 # Testing the site with Vitest
@@ -11,10 +11,17 @@ follows (Arrange-Act-Assert, the public API, state over interactions, real
 objects over mocks) are in `.agents/AGENTS.md`, under "Writing Unit Tests".
 Paths are relative to `frontend/site/`.
 
-## Commands
+## Commands and Coverage
 
 - **Run Tests**: `yarn workspace site test` from `frontend/` runs the site's
-  specs once; `yarn test` there runs every workspace's.
+  specs once, with coverage; `yarn test` there runs every workspace's.
+  `yarn vitest run <path>`, from `frontend/site/`, runs one spec without
+  coverage.
+- **Coverage Floors**: the `test` block of `vite.config.ts` holds `src/` to
+  a floor near 100% and `tools/` to a far lower one, since what the scripts
+  download and write runs only in a real build. `yarn test`, which CI runs,
+  fails below either; never let a change drop below them, and raise them as
+  the real figures rise.
 - **Full Check**: `yarn verify` in `frontend/` (lint, type-check, test, then
   build), which is what CI runs. Vitest strips types without checking them;
   `yarn typecheck` is what type-checks the specs.

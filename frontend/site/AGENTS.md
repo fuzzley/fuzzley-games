@@ -94,8 +94,10 @@ own, which `yarn workspace site <script>` runs alone.
   `vite.config.ts` (`tsconfig.node.json`), and over the `tools` scripts from
   their JSDoc (`tsconfig.scripts.json`), each extending `@fz/dev`'s
   compiler options.
-- **`test`** runs Vitest once. The site's `vitest-testing` skill, in
-  `.agents/skills/`, covers its setup and its specs' patterns.
+- **`test`** runs Vitest once, with coverage, and fails below the floors
+  the `test` block of `vite.config.ts` sets, one for the app and one for
+  the tools. The site's `vitest-testing` skill, in `.agents/skills/`,
+  covers its setup and its specs' patterns.
 
 ## Angular & Styling
 

@@ -30,6 +30,29 @@ export default defineConfig({
     // Not optional: TestBed and Testing Library register their teardown on
     // the global afterEach.
     globals: true,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html"],
+      include: ["src/**/*.ts", "tools/**/*.{ts,mjs}"],
+      exclude: ["src/app/main.ts", "src/test-setup.ts", "src/app/testing/**"],
+      thresholds: {
+        // Floors a little under the suite's real figures; raise them as they
+        // rise. `yarn test` fails below them. The tools' sit far lower, since
+        // what they download and write runs only in a real build.
+        "src/**": {
+          statements: 99,
+          branches: 92,
+          functions: 100,
+          lines: 99,
+        },
+        "tools/**": {
+          statements: 46,
+          branches: 57,
+          functions: 55,
+          lines: 46,
+        },
+      },
+    },
     projects: [
       {
         extends: true,

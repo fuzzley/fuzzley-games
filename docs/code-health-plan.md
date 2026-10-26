@@ -307,8 +307,9 @@ the floor.
 
 - **As built:** every library's and game's `test` runs with coverage, so a
   floor holds for the whole suite and one spec runs with
-  `yarn vitest run <path>`. The site has no coverage set up, which was left
-  for a floor of its own later.
+  `yarn vitest run <path>`. The site had no coverage set up, and took up
+  floors of its own afterwards: near 100% for the app and far lower for
+  the tools, whose downloads and writes run only in a real build.
 
 ### P2: Minesweeper by feature (small)
 
