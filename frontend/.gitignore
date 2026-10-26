@@ -25,7 +25,7 @@ lib-cov
 coverage/
 .nyc_output
 
-# The games, put there by site/tools/fetch-games.mjs.
+# The games, put there by site/tools/copy-games.mjs.
 site/public/play/
 
 # Logs & Runtime Data

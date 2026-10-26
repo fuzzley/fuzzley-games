@@ -6807,7 +6807,6 @@ __metadata:
     sass: "npm:^1.106.1"
     stylelint: "npm:^17.16.0"
     stylelint-config-standard-scss: "npm:^17.0.0"
-    tar: "npm:^7.5.22"
     tslib: "npm:^2.8.1"
     typescript: "npm:~6.0.3"
     vite: "npm:^8.3.5"
@@ -7203,7 +7202,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tar@npm:^7.5.22, tar@npm:^7.5.7":
+"tar@npm:^7.5.7":
   version: 7.5.22
   resolution: "tar@npm:7.5.22"
   dependencies:

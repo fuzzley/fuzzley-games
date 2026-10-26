@@ -1,7 +1,7 @@
 # Operations
 
 How fuzzley.games is built, served, deployed and configured, and how the games
-it hosts are pinned and updated. The live site is https://fuzzley.games.
+it hosts are built and served. The live site is https://fuzzley.games.
 
 ## Architecture
 
@@ -9,7 +9,7 @@ it hosts are pinned and updated. The live site is https://fuzzley.games.
 - **Container Build**: Multi-stage Docker image, Node on Alpine for the build stage and nginx on Alpine for serving, both pinned by version and digest in the `Dockerfile`. Dependabot (`.github/dependabot.yml`) proposes new ones, and the npm packages and GitHub Actions, weekly, a day after their release.
 - **Node version**: `.node-version` names the major version the workflows run (26). The `Dockerfile` names its own image, and `verify.yml` fails if their major versions differ.
 - **Serving & SPA Routing**: Nginx automatically reads the Cloud Run `$PORT` variable via `/etc/nginx/templates/default.conf.template`. SPA client-side routes fall back to `index.html`, which browsers must revalidate (`no-cache`). An address naming a folder's `index.html` (`/index.html`, `/play/solitaire/index.html`) is redirected (301) to the folder's, so each page has one URL. The site's pages also name theirs in a canonical link, set after each navigation by `CanonicalLink` (`frontend/site/src/app/service/canonical_link.service.ts`); each game's `index.html` names its own. Long-lived caching is applied to the fingerprinted files in `/assets/`.
-- **Games**: each game is built here, in a workspace of its own (or, as the Solitaire Collection once was, in its own repository), and served as static files under `/play/<slug>/`, with no fallback to the site's `index.html`. See [Games](#games).
+- **Games**: each game is built here, in a workspace of its own, and served as static files under `/play/<slug>/`, with no fallback to the site's `index.html`. See [Games](#games).
 - **Build info**: the build writes `version.json` (package version, short commit, build time, and the build of each game), served with `Cache-Control: no-store`, so the live site says which commit it is running. The site's footer names the same commit, with a link to it on GitHub, and the day of the build.
 - **Runtime Configuration**: Environment variables such as `GA_AG_MEASUREMENT_ID` are injected at container startup into `/usr/share/nginx/html/env.js` via `/docker-entrypoint.d/40-generate-env-config.sh`, with `Cache-Control: no-store`. See [Runtime Configuration](#runtime-configuration).
 
@@ -43,79 +43,45 @@ From the repository root:
 Both games are built here. The Solitaire Collection is built in
 `frontend/games/solitaire/` and played at `/play/solitaire/`, which picks a
 game by hash route (`/play/solitaire/#/klondike`). Minesweeper is built in
-`frontend/games/minesweeper/` and played at `/play/minesweeper/`. A game can
-also be built in a repository of its own and pinned here, as the Solitaire
-Collection was until it moved; none is now.
+`frontend/games/minesweeper/` and played at `/play/minesweeper/`.
 
-`frontend/site/games.json` lists each game's build:
-
-- **A game built here** is a Yarn workspace under `frontend/games/`, named by
-  its folder in `frontend/` (`{ "workspace": "games/minesweeper" }`).
-  `yarn build:games` runs every one's `build`, and
-  `frontend/site/tools/fetch-games.mjs` copies each one's `dist/` into
-  `frontend/site/public/play/<slug>/`. It goes live with the commit that
-  changes it, like the site itself.
-- **A game built in its own repository** is pinned to one archive, by name
-  and SHA-256. Every push to that repository's `main` builds the game and
-  uploads the build to its `site-build` release as
-  `<slug>-<short sha>.tar.gz`, then replaces `latest.json` there, which names
-  the newest archive. `fetch-games.mjs` downloads each pinned archive (cached
-  in `frontend/site/node_modules/.cache/games/`), checks its SHA-256 and
-  unpacks it into `frontend/site/public/play/<slug>/`.
+`frontend/site/games.json` lists each game's build, by the slug it is served
+at: a Yarn workspace under `frontend/games/`, named by its folder in
+`frontend/` (`{ "workspace": "games/minesweeper" }`). `yarn build:games` runs
+every one's `build`, and `frontend/site/tools/copy-games.mjs` copies each
+one's `dist/` into `frontend/site/public/play/<slug>/`. A game goes live with
+the commit that changes it, like the site itself.
 
 git ignores `frontend/site/public/play/`. `yarn start` and `yarn build`, run
 from `frontend/`, build the workspaces, and the site's own `start` and
-`build` run `fetch-games.mjs` before Vite, so the Docker build makes and
-fetches the games too. `frontend/site/tools/inject-analytics.mjs` then adds
+`build` run `copy-games.mjs` before Vite, so the Docker build makes and
+copies the games too. `frontend/site/tools/inject-analytics.mjs` then adds
 the site's `env.js` and `analytics.js` tags to each game's `index.html` in
 `frontend/site/dist/`, since the games carry no analytics code of their own.
-`version.json` names each game's build: a pinned game's archive and commit,
-or a game built here by its workspace and the site's own commit.
+`version.json` names each game's build by its workspace and the site's own
+commit.
 
 The site's catalog (`frontend/site/src/app/provider/games.ts`) names each
 hosted game's build and id, and shows the screenshots the build ships in
-`docs/screenshots/<id>/`. Each game built here also writes a `game.json` at
+`docs/screenshots/<id>/`. Each game also writes a `game.json` at
 the top of its build, through `@fz/dev`'s `gameConfig()`: its name and, for a
 collection, the id and name of every game it opens. The build fails if the
-catalog links a game the fetched build doesn't have, such as one renamed
-upstream, or names one differently from its build, apostrophes aside.
+catalog links a game a build doesn't have, such as one renamed in its
+workspace, or names one differently from its build, apostrophes aside.
 
-Every 15 minutes, `.github/workflows/update-games.yml` moves each pin to the
-newest build, builds the image and checks it, and pushes the change to `main`
-if both pass, then runs Verify on `main`, which deploys it (see
-[Deployment](#deployment)). It uses only its own `GITHUB_TOKEN`,
-and no game repository can push here. If the image fails, it opens a
-"Game update failed" issue and skips that archive until the issue is closed or
-a newer build appears. GitHub turns scheduled workflows off after 60 days
-without activity, so if a game's update never arrives, check that Update games
-is enabled under Actions. With no game pinned, it has nothing to do and is
-turned off.
-
-- **Roll a game back:** for a game built here, revert the change. For a
-  pinned one, set its entry in `games.json` to an older archive from its
-  release (`gh release view site-build --repo fuzzley/<repo>`), with that
-  archive's SHA-256 and commit, and push. The next scheduled run moves it
-  forward again once the game has a newer build than that. A game's release
-  keeps its ten newest archives and the one pinned here.
-- **Add a game built here:** give it a folder under `frontend/games/` with a
+- **Roll a game back:** revert the change, as for the site (see
+  [Deployment](#deployment)).
+- **Add a game:** give it a folder under `frontend/games/` with a
   `package.json`, named after the folder, whose `build` script writes
   `dist/`, with `index.html` at its top level, the `game.json` that
   `gameConfig()` writes, and its screenshots in `docs/screenshots/<id>/`. Run `yarn install`, add
   `{ "workspace": "games/<folder>" }` to `games.json`, and list its games in
   the catalog. The `Dockerfile` copies all of `frontend/`, so it needs no
   change.
-- **Add a game built in its own repository:** give its repository a deploy job
-  like fSolitaire's was, push once so its release exists, add its entry to
-  `games.json` from its `latest.json`, and list its games in the catalog.
 
-The Solitaire Collection came from
-[fuzzley/fSolitaire](https://github.com/fuzzley/fSolitaire), and Minesweeper
-from [fuzzley/fMinesweeper](https://github.com/fuzzley/fMinesweeper), each
-with its history; each one's `site-build` release still holds the build the
-site served before it moved here.
-
-fuzzley.info pins and fetches its own games the same way; these scripts
-started as its own.
+Both games began in repositories of their own, fSolitaire and fMinesweeper,
+and were branched off into this one with their history. Nothing here builds
+from those repositories or links to them, and the two may diverge.
 
 ## Security headers
 

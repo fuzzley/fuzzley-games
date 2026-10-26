@@ -1,17 +1,16 @@
 ---
 name: github-actions-ci-cd
-description: The verify and update-games workflows (.github/workflows/verify.yml, update-games.yml), what they check in the frontend and the Docker image, how the games' pins move, and how Verify's promote job gates the Cloud Run deploy by moving the live branch. Triggers on: github actions, workflow, ci/cd, quality gate, verify.yml, update-games.yml, docker check, games.json, game update failed, deploy, live branch, rollback.
+description: The Verify workflow (.github/workflows/verify.yml), what it checks in the frontend and the Docker image, and how its promote job gates the Cloud Run deploy by moving the live branch. Triggers on: github actions, workflow, ci/cd, quality gate, verify.yml, check-image.sh, docker check, games.json, deploy, live branch, rollback.
 ---
 
 # GitHub Actions CI
 
-> What the workflows check, and how a commit passes them to go live.
+> What the workflow checks, and how a commit passes it to go live.
 
-There are two workflows: `.github/workflows/verify.yml` ("Verify") and
-`.github/workflows/update-games.yml` ("Update games"). Both run the same image
-checks, `.github/scripts/check-image.sh`. **Read the files before changing
-them** — each is short, and the summary below is a guide to their intent, not
-a substitute for their contents.
+There is one workflow, `.github/workflows/verify.yml` ("Verify"), and the
+image checks it runs, `.github/scripts/check-image.sh`. **Read the files
+before changing them** — each is short, and the summary below is a guide to
+their intent, not a substitute for their contents.
 
 ## Verify
 
@@ -23,8 +22,8 @@ a run in progress.
    `Dockerfile` builds on the same major version and installs the same
    Corepack as the job's `COREPACK_VERSION`, that Corepack, an immutable
    install in `frontend/`, then `yarn verify` (lint, type-check, test,
-   build). The build builds the games in `frontend/games/` and fetches the
-   ones pinned in `frontend/site/games.json` from their releases.
+   build). The build builds the games in `frontend/games/` and copies the
+   ones `frontend/site/games.json` lists into the site.
 2. **`docker`** — builds the `Dockerfile` with `COMMIT_SHA` and runs
    `check-image.sh` on it, which serves the image with a placeholder analytics
    ID and requests its pages: the Angular routes answer with `index.html`, a
@@ -33,34 +32,19 @@ a run in progress.
    the Content Security Policy and the games don't, `theme.js` sets the
    palette, `env.js` carries the ID, and `version.json` names the commit. For each game in `frontend/site/games.json` it checks `/play/<slug>/` is
    the game's own page with the analytics tags, never the site's
-   `index.html`, with its own fingerprinted assets, and that `version.json`
-   names its build: the pinned archive, or for a game built here, its
-   workspace and the image's commit.
+   `index.html`, with its own fingerprinted assets and the site's icons,
+   and that `version.json` names its build: its workspace and the image's
+   commit.
 3. **`promote`** — on `main` only (a push or a dispatch), once both jobs pass:
    moves `live`, the branch Cloud Run deploys, to the run's commit with a
    plain push. It only moves `live` forward: a run that finishes after a newer
    one leaves `live` alone, and it fails if `live` holds commits `main`
    doesn't.
 
-## Update games
-
-Both games are built here now, so no game is pinned and the workflow is
-turned off under Actions; it matters again only if a game built elsewhere is
-pinned. Every 15 minutes, `frontend/site/tools/update-games.mjs` moves each pin in
-`frontend/site/games.json` to the newest build its game's release names in
-`latest.json`. A game built here, under `frontend/games/`, has no pin and is
-skipped: every push to `main` builds it. When a pin moves, the job commits,
-builds the image, runs `check-image.sh`, and pushes to `main` only if both
-pass. A failure opens a "Game update failed: <archive>" issue and pushes
-nothing, and later runs skip that archive while the issue is open. Pushes made
-with `GITHUB_TOKEN` start no other workflow, so after pushing, the job runs
-`verify.yml` on `main` with `gh workflow run` (a dispatch is the exception to
-that rule), and Verify's `promote` job deploys it.
-
-The build fails when the catalog links a game the fetched build lacks, or
-names one differently (the `checkGameImages` and `checkGameManifests` plugins
-in `frontend/site/tools/vite-plugins.ts`), so a game renamed or removed
-upstream shows up as one of these issues, not as a broken link.
+The build fails when the catalog links a game a build lacks, or names one
+differently (the `checkGameImages` and `checkGameManifests` plugins in
+`frontend/site/tools/vite-plugins.ts`), so a game renamed or removed in its
+workspace fails `verify` rather than shipping a broken link.
 
 ## Deployment Waits for Verify
 
@@ -68,7 +52,8 @@ Cloud Run builds and deploys the `Dockerfile` from every push to `live`,
 through its own Cloud Build trigger (see `docs/operations.md`), and only
 `promote` moves `live`. So **a red run on `main` means the commit never went
 live**: the site stays on the last commit that passed, and the next commit
-that passes takes everything before it live with it. Pushes made with
+that passes takes everything before it live with it. The games are built in
+the same commit, so they go live with it too. Pushes made with
 `GITHUB_TOKEN` start Cloud Build's trigger, which listens to GitHub's push
 events, though not other workflows.
 
@@ -91,7 +76,7 @@ passes on `main` moves it forward again.
    `frontend/site/src/app/routes.ts`, a changed header in `nginx.conf.template`
    or a new variable in `docker-entrypoint.d/40-generate-env-config.sh` gets a
    matching expectation in `check-image.sh`.
-4. **One Node version.** Both workflows take Node from `.node-version`. The
+4. **One Node version.** The workflow takes Node from `.node-version`. The
    `Dockerfile` pins its own image, by version and digest, so `verify` checks
    that its major version is the same; move both together.
 5. **Updates come as pull requests.** Dependabot (`.github/dependabot.yml`)
@@ -99,7 +84,7 @@ passes on `main` moves it forward again.
    their release, and `verify.yml` checks each pull request. A merge to
    `main` deploys once it passes, so none merges on its own.
 6. **No secrets in CI.** The workflows use a made-up measurement ID; the real
-   one lives in Secret Manager and reaches only Cloud Run. Neither needs a
+   one lives in Secret Manager and reaches only Cloud Run. It needs no
    token beyond its own `GITHUB_TOKEN`. Never echo a secret, and never
    `set -x` a step that handles one.
 
@@ -118,9 +103,3 @@ passes on `main` moves it forward again.
   fails. Reproduce with the build and run steps in `docs/operations.md`, then
   request the failing path with `curl -i`. The script itself needs `curl` and
   `jq`.
-- **"Game update failed" issues.** Pin that archive locally in
-  `frontend/site/games.json` (its name, commit and SHA-256 are in the release's
-  `latest.json`) and run `yarn build` to see the failure.
-- **A game's update never arrives.** GitHub turns scheduled workflows off
-  after 60 days without activity; check that Update games is enabled under
-  Actions.

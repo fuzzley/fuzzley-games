@@ -1,8 +1,8 @@
-import type pins from "../../../games.json";
+import type builds from "../../../games.json";
 import type { CategoryId } from "../provider/categories";
 
 /** A build served under /play/<build>/, by its name in the site's games.json. */
-export type BuildName = keyof typeof pins;
+export type BuildName = keyof typeof builds;
 
 /** Names a game in one of the builds served under /play/. */
 export interface PlayLocation {

@@ -49,22 +49,6 @@ describe("readBuildInfo", () => {
 });
 
 describe("servedBuilds", () => {
-  it("names a pinned game's archive and the commit it was built from", () => {
-    const solitaire = {
-      repo: "fuzzley/fSolitaire",
-      commit: "549c93afb5d1592257262ceb42ed2e91dcb165d6",
-      asset: "solitaire-549c93a.tar.gz",
-      sha256: "a".repeat(64),
-    };
-
-    expect(servedBuilds({ solitaire }, "e72f5a7")).toEqual({
-      solitaire: {
-        asset: "solitaire-549c93a.tar.gz",
-        commit: "549c93afb5d1592257262ceb42ed2e91dcb165d6",
-      },
-    });
-  });
-
   it("names a game built here by its workspace and the site's commit", () => {
     const minesweeper = { workspace: "games/minesweeper" };
 

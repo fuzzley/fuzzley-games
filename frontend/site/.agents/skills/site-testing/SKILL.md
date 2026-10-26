@@ -20,7 +20,7 @@ in `.agents/AGENTS.md`, under "Writing Unit Tests". Paths are relative to
   coverage.
 - **Coverage Floors**: the `test` block of `vite.config.ts` holds `src/` to
   a floor near 100% and `tools/` to a far lower one, since what the scripts
-  download and write, and what the Vite plugins' hooks do, runs only in a
+  copy and write, and what the Vite plugins' hooks do, runs only in a
   real build. `yarn test`, which CI runs, fails below either; never let a
   change drop below them, and raise them as the real figures rise.
 - **Full Check**: `yarn verify` in `frontend/` (lint, type-check, test, then
@@ -39,8 +39,8 @@ projects, built from `@fz/dev/vitest`'s pieces: `angularSpecs()` and
   scripts and Vite plugins. `yarn workspace site vitest run --project tools`
   runs only these. A plugin's logic is a function the spec calls, such as
   `manifestProblems()` beside `checkGameManifests()`, and a script's
-  dependencies, such as `fetch`, are parameters with the real ones as
-  defaults.
+  dependencies, such as the git `commitHash()` asks, are parameters with
+  the real ones as defaults.
 
 A spec sits beside the file it tests, named after it.
 

@@ -63,21 +63,20 @@ Sass rules every app keeps among them. Paths are relative to
   build writes, and the build fails too if the catalog names an id a
   game's build doesn't open, or a name it doesn't give the game,
   apostrophes aside (`checkGameManifests()` in `tools/vite-plugins.ts`).
-- `games.json` lists each game's build: a workspace, by its folder in
-  `frontend/` (`games/minesweeper`), or one build pinned from its
-  repository's `site-build` release. `tools/` holds the scripts that put
-  the games in `public/play/` before every build (`fetch-games.mjs`), move
-  the pins (`update-games.mjs`), and add the analytics tags to each game's
-  page, with what they share in `script.mjs`, and the site's Vite plugins
-  in `vite-plugins.ts`. `vite.config.ts` also adds `@fz/style`'s
-  `fuzzleyStyle()`, which makes `/theme.js`, the first script `index.html`
-  loads, which picks the palette before the page paints, from the same list
-  of palettes the app imports, so the two can't drift. `docs/operations.md`
-  covers the details.
+- `games.json` lists each game's build: its workspace, by its folder in
+  `frontend/` (`games/minesweeper`). `tools/` holds the scripts that copy
+  the games into `public/play/` before every build (`copy-games.mjs`) and
+  add the analytics tags to each game's page, with what they share in
+  `script.mjs`, and the site's Vite plugins in `vite-plugins.ts`.
+  `vite.config.ts` also adds `@fz/style`'s `fuzzleyStyle()`, which makes
+  `/theme.js`, the first script `index.html` loads, which picks the palette
+  before the page paints, from the same list of palettes the app imports, so
+  the two can't drift. `docs/operations.md` covers the details.
 - A script exports its logic as functions and runs only when it is the
   file Node was started with (`if (import.meta.main)`), so
   `tools/*.spec.ts` can import and test it. A dependency a test needs to
-  replace, such as `fetch`, is a parameter with the real one as default.
+  replace, such as the git `commitHash()` asks, is a parameter with the
+  real one as default.
 - `dist/` is the build the image serves: the site, with the games under
   `play/`.
 
