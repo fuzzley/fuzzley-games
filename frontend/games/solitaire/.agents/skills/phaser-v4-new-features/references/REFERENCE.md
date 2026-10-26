@@ -66,4 +66,4 @@ For detailed migration instructions, code conversion examples, removed APIs, and
 
 ---
 
-**Related skills**: ../../phaser-filters-and-postfx/SKILL.md, ../../phaser-game-object-components/SKILL.md, ../../phaser-tilemaps/SKILL.md, ../../phaser-v3-to-v4-migration/SKILL.md
+**Related skills**: ../../phaser-filters-and-postfx/SKILL.md, ../../phaser-game-object-components/SKILL.md, ../../phaser-v3-to-v4-migration/SKILL.md

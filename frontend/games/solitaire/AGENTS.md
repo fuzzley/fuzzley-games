@@ -286,7 +286,8 @@ The repository's rules for specs apply. On top of them:
 ## Skills
 
 This workspace's skills are in `.agents/skills/`: `add-solitaire-game`, the
-Phaser ones (`phaser-core` first), `solitaire-styles`, `solitaire-types`,
-`solitaire-build` and `solitaire-testing`. `node .agents/link-claude-skills.mjs`, run from the
+Phaser ones (`phaser-core` first, which lists the rest: one for each part of
+Phaser the game uses, copied from Phaser's package), `solitaire-styles`,
+`solitaire-types`, `solitaire-build` and `solitaire-testing`. `node .agents/link-claude-skills.mjs`, run from the
 repository's root, links them into this folder's `.claude/skills/`, where
 Claude Code loads them once it works on a file here.

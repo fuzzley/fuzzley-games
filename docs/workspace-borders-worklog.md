@@ -29,7 +29,7 @@ work is done; git history keeps it.
 | P4    | The site's images                    | done    |
 | P5    | `game.json`                          | done    |
 | P6    | The instruction layers and skills    | done    |
-| P7    | The Phaser skills                    | next    |
+| P7    | The Phaser skills                    | done    |
 | P8    | Retire the pinned-game pipeline      | waiting |
 
 ## Entries
@@ -410,3 +410,35 @@ Patience` and `Baker’s Game: /play/solitaire/ opens no game bakers`. The
   links once they were made. Every workspace's tests and coverage are P5's
   but the Solitaire Collection's branches, at 1895 of 2043, its usual
   wobble with what a run deals.
+
+### 2026-10-26: P7, the Phaser skills
+
+- P6 was committed as `80f0047`.
+- **Fourteen Phaser skills deleted** (finding 13), 6,599 of their 14,461
+  lines: `actions-and-utilities`, `animations`, `audio-and-sound`,
+  `curves-and-paths`, `data-manager`, `geometry-and-math`,
+  `groups-and-containers`, `particles`, `physics-arcade`, `physics-matter`,
+  `text-and-bitmaptext`, `tilemaps`, `time-and-timers` and `tweens`, each
+  `phaser-` prefixed. Sixteen are left: the two written here and the 14
+  copies for the parts of Phaser the game uses.
+- **Their links:** the reference check failed on four links to deleted
+  skills, in `phaser-sprites-and-images` and `phaser-v4-new-features` and
+  its reference. Each dropped from its "Related skills" line; the inline
+  pointer to the tile map skill now names it in Phaser's package. The link
+  script pruned the 14 links and the check came back clean.
+- **`phaser-core`'s map** lists only the kept skills, and says where they
+  came from, where the rest still are (`frontend/node_modules/phaser/skills/`)
+  and to copy one in the same way when the game takes up its part. It
+  replaces the note on the physics and tile map skills, now gone.
+- **`.prettierignore`** leaves the 14 copies as they are, with
+  `phaser-core` and `phaser-canvas-performance` negated back in;
+  `prettier --file-info` says so for each, and `prettier --check .` passes.
+  They stay as Prettier left them before this, so a fresh copy from the
+  package still differs by that formatting, as well as by the hand-repaired
+  links; Prettier won't move them further.
+- `check-skill-references.mjs`'s comment says the Phaser skills are copies
+  of the package's `skills/` folder, renamed; `.agents/AGENTS.md` says so
+  beside the vendored Angular skills, and the Solitaire Collection's
+  `AGENTS.md` points at `phaser-core` for the list.
+- **`yarn verify` passed** in 4m11s, every workspace's tests and coverage
+  P6's, the Solitaire Collection's branches back at 1894 of 2043.
