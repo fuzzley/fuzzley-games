@@ -1,5 +1,12 @@
 import { type FieldSize, isValidLives } from "./difficulty";
-import { type Field, type Outcome, type Square, layoutOf } from "./field";
+import {
+  type Field,
+  OUTCOMES,
+  type Outcome,
+  SQUARES,
+  type Square,
+  layoutOf,
+} from "./field";
 import { isRecord, isWhole } from "./json";
 
 /** A field as it is stored: plain JSON, a letter a square. */
@@ -25,10 +32,6 @@ const LETTERS: Readonly<Record<Square, string>> = {
   revealed: "r",
   tripped: "t",
 };
-
-const SQUARES: readonly Square[] = ["hidden", "flagged", "revealed", "tripped"];
-
-const OUTCOMES: readonly Outcome[] = ["ready", "playing", "won", "lost"];
 
 /** Returns a field as it is stored. */
 export function saveField(field: Field): SavedField {
