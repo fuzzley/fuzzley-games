@@ -32,11 +32,12 @@ keeps its own for its code. Paths are relative to
   field as JSON, and `format.ts` the counts and times the shell writes out.
   ESLint keeps Angular, the libraries, RxJS and the shell out of it.
 - **`src/app/`** — the shell, one folder per feature, each holding its
-  components and services together. `app.component` lays them out and
-  holds the live region every move is announced through.
-  - `play/` — `GameService` holds the game in play and its clock, makes
-    every move, and asks through `@fz/ui/confirm` before a new deal throws a
-    game away; `SavedGameService` keeps the game in progress.
+  components and services together. `app.component` lays them out, with
+  the `<fz-announcer>` every move is announced through.
+  - `play/` — `GameService` holds the game in play, runs its clock on
+    `@fz/game-ui/stopwatch`, makes every move and says what it did through
+    `@fz/ui/announcer`, and asks through `@fz/ui/confirm` before a new deal
+    throws a game away; `SavedGameService` keeps the game in progress.
   - `board/` — the minefield.
   - `bar/` — `BarComponent` fills the libraries' `<fz-game-bar>` with the
     mines left, the lives, the time and the actions.

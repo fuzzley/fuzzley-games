@@ -33,6 +33,12 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   in its root template once. Cancel comes first, so the dialog focuses it,
   and Escape or a click outside answers no. It wears `@fz/style`'s
   `.fz-button` classes, on a card of its `--fz-float`.
+- `src/announcer/`: `AnnouncerService`, whose `say()` tells a screen reader
+  what the page just did, such as what a move did; and `<fz-announcer>`,
+  the polite live region that says it, which an app puts in its root
+  template once, so it is in the page before the first words. The same
+  words said twice end the second time with a no-break space, so a screen
+  reader says them again.
 - `src/dialog/`: `<fz-dialog>`, which shows what it holds in a native
   modal `<dialog>`, so the browser traps focus, makes the page behind it
   inert and gives focus back on close. The host owns `open`: the dialog

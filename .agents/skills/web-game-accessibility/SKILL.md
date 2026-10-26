@@ -48,6 +48,9 @@ than from a separate class, so the look and the announcement cannot disagree.
   announce changes to a live region, not one that arrives with its text
   already in it. Render it unconditionally and change only what it says, and
   put every outcome in it, the empty one ("No games match.") included.
+- In an Angular app that region is `<fz-announcer>` (`@fz/ui/announcer`),
+  once in the root template, and `AnnouncerService.say()` sets what it
+  says, so that the same words said twice are read twice.
 - Give icon-only buttons a label only screen readers read, with
   `@fz/style`'s `.fz-visually-hidden` class or its `visually-hidden` mixin.
 

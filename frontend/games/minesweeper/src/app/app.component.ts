@@ -4,6 +4,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
+import { AnnouncerComponent } from "@fz/ui/announcer";
 import { ConfirmDialogComponent } from "@fz/ui/confirm";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { BarComponent } from "./bar/bar.component";
@@ -21,6 +22,7 @@ import { SettingsComponent } from "./settings/settings.component";
   selector: "app-root",
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    AnnouncerComponent,
     BarComponent,
     BoardComponent,
     ConfirmDialogComponent,

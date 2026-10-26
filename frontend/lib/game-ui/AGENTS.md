@@ -48,6 +48,11 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   `desktop`), and `compact`, `phone-portrait` and `phone-landscape`, which
   apply the service's tests. `breakpoints.spec.ts` compiles the mixins and
   holds them to the constants.
+- `src/stopwatch/`: `StopwatchService`, a game's clock, in whole seconds,
+  which counts only while the page is in view. It reads the time from the
+  clock rather than counting its ticks, so a pause keeps the part of a
+  second under way and a late tick loses nothing; `reset()` holds the time
+  of a game taken up again.
 - `src/testing/`: what a game's specs share. `installFakeViewport()` stands
   in for the `matchMedia` jsdom lacks, at a size a spec sets and changes.
 - `src/_index.scss`: the Sass an app reaches with `@use "@fz/game-ui"`. It

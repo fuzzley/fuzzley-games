@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { pictureOf } from "../../testing/field_picture";
 import { playOn } from "../../testing/game";
@@ -15,19 +16,9 @@ const IN_PLAY = ["*..", "...", "..*"];
 /** A field one square from won: the bottom-left corner. */
 const NEARLY_WON = ["*1_", "121", ".1*"];
 
-/** Sets the page's visibility, as switching tabs does, and says so. */
-function setVisibility(state: DocumentVisibilityState): void {
-  Object.defineProperty(document, "visibilityState", {
-    value: state,
-    configurable: true,
-  });
-  document.dispatchEvent(new Event("visibilitychange"));
-}
-
 describe("GameService", () => {
   afterEach(() => {
     vi.useRealTimers();
-    Reflect.deleteProperty(document, "visibilityState");
   });
 
   describe("dealing", () => {
@@ -145,7 +136,9 @@ describe("GameService", () => {
 
       game.reveal(2);
 
-      expect(game.announcement()).toBe("Revealed 4 squares.");
+      expect(TestBed.inject(AnnouncerService).message()).toBe(
+        "Revealed 4 squares.",
+      );
     });
 
     it("says it again, differently, when a move does the same", () => {
@@ -154,7 +147,9 @@ describe("GameService", () => {
 
       game.reveal(3);
 
-      expect(game.announcement()).toBe("Revealed: 1. ");
+      expect(TestBed.inject(AnnouncerService).message()).toBe(
+        "Revealed: 1.\u00a0",
+      );
     });
 
     it("charges a life for a mine, and says so", () => {
@@ -163,7 +158,9 @@ describe("GameService", () => {
       game.reveal(0);
 
       expect(game.field().livesLeft).toBe(2);
-      expect(game.announcement()).toBe("Mine. 2 lives left.");
+      expect(TestBed.inject(AnnouncerService).message()).toBe(
+        "Mine. 2 lives left.",
+      );
     });
 
     it("shows how the game ended once the last life is lost", () => {
@@ -269,25 +266,6 @@ describe("GameService", () => {
       vi.advanceTimersByTime(3000);
 
       expect(game.seconds()).toBe(10);
-    });
-
-    it("stops while the page is out of sight", () => {
-      const game = playOn(IN_PLAY);
-      setVisibility("hidden");
-
-      vi.advanceTimersByTime(3000);
-
-      expect(game.seconds()).toBe(0);
-    });
-
-    it("goes on when the page is back in sight", () => {
-      const game = playOn(IN_PLAY);
-      setVisibility("hidden");
-      setVisibility("visible");
-
-      vi.advanceTimersByTime(2000);
-
-      expect(game.seconds()).toBe(2);
     });
   });
 });
