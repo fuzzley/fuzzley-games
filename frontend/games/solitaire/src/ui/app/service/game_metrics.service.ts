@@ -6,8 +6,8 @@ import {
   signal,
   untracked,
 } from "@angular/core";
+import { StopwatchService } from "@fz/game-ui/stopwatch";
 import { GameCatalogService } from "./game_catalog.service";
-import { TimerService } from "./timer.service";
 
 /**
  * Reads out the game on the table: its score, moves, elapsed time, and whether
@@ -18,7 +18,7 @@ import { TimerService } from "./timer.service";
 @Injectable({ providedIn: "root" })
 export class GameMetricsService {
   private readonly catalog = inject(GameCatalogService);
-  private readonly timer = inject(TimerService);
+  private readonly stopwatch = inject(StopwatchService);
 
   private readonly scoreSignal = signal(0);
   private readonly movesSignal = signal(0);
@@ -34,8 +34,11 @@ export class GameMetricsService {
   /** Whether the board has been cleared. */
   readonly isGameWon = this.wonSignal.asReadonly();
 
-  /** Elapsed time, formatted `mm:ss`. */
-  readonly timerText = this.timer.timerText;
+  /**
+   * Elapsed time, formatted `mm:ss`, counted only while the page is in
+   * view.
+   */
+  readonly timerText = computed(() => formatElapsed(this.stopwatch.seconds()));
 
   /** Whether a game is under way: moves made, and not yet won. */
   readonly isInProgress = computed(() => this.moves() > 0 && !this.isGameWon());
@@ -63,7 +66,7 @@ export class GameMetricsService {
 
       const gameWonHandler = () => {
         this.wonSignal.set(true);
-        this.timer.stop();
+        this.stopwatch.stop();
       };
       const gameResetHandler = () => {
         this.reset();
@@ -80,8 +83,8 @@ export class GameMetricsService {
     });
 
     effect(() => {
-      if (this.isInProgress() && !this.timer.isRunning) {
-        this.timer.start();
+      if (this.isInProgress() && !this.stopwatch.running()) {
+        this.stopwatch.start();
       }
     });
   }
@@ -94,8 +97,17 @@ export class GameMetricsService {
     // Untracked, so the effect that calls this does not re-run on every move.
     untracked(() => {
       this.wonSignal.set(false);
-      this.timer.reset();
-      if (this.isInProgress()) this.timer.start();
+      this.stopwatch.reset();
+      if (this.isInProgress()) this.stopwatch.start();
     });
   }
+}
+
+/** Writes a time in seconds as `mm:ss`. */
+function formatElapsed(total: number): string {
+  const minutes = Math.floor(total / 60)
+    .toString()
+    .padStart(2, "0");
+  const seconds = (total % 60).toString().padStart(2, "0");
+  return `${minutes}:${seconds}`;
 }
