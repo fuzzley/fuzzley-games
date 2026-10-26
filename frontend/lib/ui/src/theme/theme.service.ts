@@ -107,11 +107,13 @@ export class ThemeService {
   }
 
   /**
-   * Draws the tab's icon, where the page links one, as the fuzzball in the
-   * palette's accent.
+   * Draws the tab's icon, where the page links an SVG one, as the fuzzball in
+   * the palette's accent.
    */
   private matchTabIcon(): void {
-    const icon = this.document.querySelector('link[rel="icon"]');
+    const icon = this.document.querySelector(
+      'link[rel="icon"][type="image/svg+xml"]',
+    );
     if (!icon) return;
     const accent = this.read("accent");
     if (accent) {

@@ -2,14 +2,23 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import sharp from "sharp";
 import { type Plugin, type Rolldown, build, createServer } from "vite";
 import { fuzzballSvg } from "./fuzzball.ts";
-import { DEFAULT_THEMES, THEMES, THEME_STORAGE_KEY } from "./themes.ts";
+import { fuzzballIco } from "./fuzzball_raster.ts";
+import {
+  DEFAULT_THEMES,
+  PALETTE_ROLES,
+  THEMES,
+  THEME_STORAGE_KEY,
+} from "./themes.ts";
 import {
   FAVICON,
+  FAVICON_ICO,
   THEME_SCRIPT,
-  favicon,
-  paletteAccents,
+  TOUCH_ICON,
+  icons,
+  paletteColors,
   themeBootstrap,
 } from "./vite.ts";
 
@@ -29,13 +38,19 @@ function useTemporaryApp(): { readonly root: string } {
   return app;
 }
 
+/** Describes what a dev server answered for a path. */
+interface Answer {
+  readonly type: string | null;
+  readonly body: Buffer;
+}
+
 /** Returns what a dev server with a plugin answers for a path, under a base. */
 async function served(
   root: string,
   plugin: Plugin,
   base: string,
   url: string,
-): Promise<string> {
+): Promise<Answer> {
   const server = await createServer({
     root,
     base,
@@ -48,7 +63,10 @@ async function served(
     await server.listen();
     const origin = server.resolvedUrls?.local[0] ?? "";
     const response = await fetch(new URL(url, origin));
-    return await response.text();
+    return {
+      type: response.headers.get("Content-Type"),
+      body: Buffer.from(await response.arrayBuffer()),
+    };
   } finally {
     await server.close();
   }
@@ -59,7 +77,7 @@ async function built(
   root: string,
   plugin: Plugin,
   fileName: string,
-): Promise<string> {
+): Promise<Buffer> {
   const output = (await build({
     root,
     configFile: false,
@@ -71,7 +89,7 @@ async function built(
   const file = output.output
     .filter((chunk) => chunk.type === "asset")
     .find((chunk) => chunk.fileName === fileName);
-  return String(file?.source);
+  return Buffer.from(file?.source ?? "");
 }
 
 describe("fuzzleyStyle", () => {
@@ -86,7 +104,7 @@ describe("fuzzleyStyle", () => {
       { encoding: "utf8" },
     );
 
-    expect(names).toBe("fz-theme-bootstrap,fz-favicon");
+    expect(names).toBe("fz-theme-bootstrap,fz-icons");
   });
 });
 
@@ -94,63 +112,115 @@ describe("themeBootstrap", () => {
   const app = useTemporaryApp();
 
   it("serves theme.js from the dev server", async () => {
-    expect(
-      await served(app.root, themeBootstrap(), "/", "/theme.js"),
-    ).toContain(THEME_STORAGE_KEY);
+    const { body } = await served(app.root, themeBootstrap(), "/", "/theme.js");
+
+    expect(body.toString()).toContain(THEME_STORAGE_KEY);
   });
 
   it("serves it at the top of the app's own base", async () => {
-    expect(
-      await served(
-        app.root,
-        themeBootstrap(),
-        "/play/solitaire/",
-        "/play/solitaire/theme.js",
-      ),
-    ).toContain(THEME_STORAGE_KEY);
+    const { body } = await served(
+      app.root,
+      themeBootstrap(),
+      "/play/solitaire/",
+      "/play/solitaire/theme.js",
+    );
+
+    expect(body.toString()).toContain(THEME_STORAGE_KEY);
   });
 
   it("writes theme.js into the build", async () => {
-    expect(await built(app.root, themeBootstrap(), THEME_SCRIPT)).toContain(
-      THEME_STORAGE_KEY,
-    );
+    const file = await built(app.root, themeBootstrap(), THEME_SCRIPT);
+
+    expect(file.toString()).toContain(THEME_STORAGE_KEY);
   });
 });
 
-describe("favicon", () => {
+describe("icons", () => {
   const app = useTemporaryApp();
+  const colors = paletteColors();
+  const accent = (theme: string): string =>
+    colors.get(theme)?.get("accent") ?? "";
 
   /** Returns the fuzzball in the default palettes' accents. */
   function defaultFuzzball(): string {
-    const accents = paletteAccents();
     return fuzzballSvg({
-      light: accents.get(DEFAULT_THEMES.light) ?? "",
-      dark: accents.get(DEFAULT_THEMES.dark) ?? "",
+      light: accent(DEFAULT_THEMES.light),
+      dark: accent(DEFAULT_THEMES.dark),
     });
   }
 
   it("serves the fuzzball in the default palettes' accents", async () => {
-    expect(
-      await served(
-        app.root,
-        favicon(),
-        "/play/solitaire/",
-        "/play/solitaire/favicon.svg",
-      ),
-    ).toBe(defaultFuzzball());
+    const { type, body } = await served(
+      app.root,
+      icons(),
+      "/play/solitaire/",
+      "/play/solitaire/favicon.svg",
+    );
+
+    expect([type, body.toString()]).toEqual([
+      "image/svg+xml",
+      defaultFuzzball(),
+    ]);
   });
 
   it("writes favicon.svg into the build", async () => {
-    expect(await built(app.root, favicon(), FAVICON)).toBe(defaultFuzzball());
+    const file = await built(app.root, icons(), FAVICON);
+
+    expect(file.toString()).toBe(defaultFuzzball());
+  });
+
+  it("serves favicon.ico", async () => {
+    const { type } = await served(app.root, icons(), "/", "/favicon.ico");
+
+    expect(type).toBe("image/x-icon");
+  });
+
+  it("writes favicon.ico in the light default's accent", async () => {
+    const file = await built(app.root, icons(), FAVICON_ICO);
+
+    expect(file).toEqual(await fuzzballIco(accent(DEFAULT_THEMES.light)));
+  });
+
+  it("serves the home screen icon", async () => {
+    const { type } = await served(
+      app.root,
+      icons(),
+      "/",
+      "/apple-touch-icon.png",
+    );
+
+    expect(type).toBe("image/png");
+  });
+
+  it("writes the home screen icon, 180 pixels square", async () => {
+    const file = await built(app.root, icons(), TOUCH_ICON);
+
+    const { width, height } = await sharp(file).metadata();
+
+    expect([width, height]).toEqual([180, 180]);
+  });
+
+  it("fills the home screen icon to its corners, which iOS would blacken", async () => {
+    const file = await built(app.root, icons(), TOUCH_ICON);
+
+    const { isOpaque } = await sharp(file).stats();
+
+    expect(isOpaque).toBe(true);
   });
 });
 
-describe("paletteAccents", () => {
-  it("reads every palette's accent", () => {
-    expect([...paletteAccents().keys()]).toEqual(THEMES.map(({ id }) => id));
+describe("paletteColors", () => {
+  it("reads every palette", () => {
+    expect([...paletteColors().keys()]).toEqual(THEMES.map(({ id }) => id));
   });
 
-  it("reads each accent as the palette sets it", () => {
-    expect(paletteAccents().get("casino")).toBe("#e0b13a");
+  it("reads every role of a palette", () => {
+    const roles = [...(paletteColors().get("classic")?.keys() ?? [])];
+
+    expect(roles.sort()).toEqual([...PALETTE_ROLES].sort());
+  });
+
+  it("reads each color as the palette sets it", () => {
+    expect(paletteColors().get("casino")?.get("accent")).toBe("#e0b13a");
   });
 });

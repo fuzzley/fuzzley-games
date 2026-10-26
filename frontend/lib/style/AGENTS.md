@@ -69,12 +69,16 @@ can use it too. The repository's rules, which apply here too, are in
   that Vite leaves alone (`<script src="theme.js" vite-ignore></script>`, or
   `/theme.js` for the site), and it picks the palette before anything paints.
   `src/theme_script.ts` writes the script itself. Beside it, the same way,
-  it writes `favicon.svg`: the fuzzball in the accents of the default
-  palettes for a light and a dark system, which it reads by compiling the
+  it writes the page's icons: `favicon.svg`, the fuzzball in the accents of
+  the default palettes for a light and a dark system, which `@fz/ui`'s
+  `ThemeService` recolors to the palette in use; and, for what draws no SVG,
+  `favicon.ico` and `apple-touch-icon.png`, in the light default's accent,
+  the home screen's on its page color. It reads the colors by compiling the
   palettes' Sass, so an app that adds it needs `sass`, as every app has for
-  its own stylesheets. The page links it as it loads `theme.js`
-  (`<link rel="icon" type="image/svg+xml" href="favicon.svg" vite-ignore />`),
-  and `@fz/ui`'s `ThemeService` recolors it to the palette in use.
+  its own stylesheets. The page links them as it loads `theme.js`, each with
+  `vite-ignore`, as `frontend/games/solitaire/index.html` does.
+- `src/fuzzball_raster.ts`: the fuzzball as a PNG and an ICO file, which
+  `src/vite.ts` makes with sharp, at build time only.
 
 ## How an app uses it
 

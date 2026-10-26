@@ -46,8 +46,16 @@ export const FUZZBALL = {
 export type FuzzballFill =
   string | { readonly light: string; readonly dark: string };
 
-/** Returns the fuzzball as an SVG file, its fur in the given color. */
-export function fuzzballSvg(fill: FuzzballFill): string {
+/**
+ * Returns the fuzzball as an SVG file, its fur in the given color.
+ *
+ * Leave out the glints for an image drawn 16 pixels across, where each is
+ * under half a pixel and only turns the eye grey.
+ */
+export function fuzzballSvg(
+  fill: FuzzballFill,
+  { withGlints = true }: { withGlints?: boolean } = {},
+): string {
   const { light, dark } =
     typeof fill === "string" ? { light: fill, dark: fill } : fill;
   const { body, fur, eyes, glints, ink, glint } = FUZZBALL;
@@ -66,7 +74,7 @@ export function fuzzballSvg(fill: FuzzballFill): string {
       ({ cx, cy, rx, ry }) =>
         `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${ink}"/>`,
     ),
-    ...glints.map(
+    ...(withGlints ? glints : []).map(
       ({ cx, cy, r }) =>
         `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${glint}"/>`,
     ),

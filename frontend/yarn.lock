@@ -1263,6 +1263,7 @@ __metadata:
     eslint: "npm:^10.13.0"
     postcss: "npm:^8.5.31"
     sass: "npm:^1.106.1"
+    sharp: "npm:^0.35.5"
     stylelint: "npm:^17.16.0"
     stylelint-config-standard-scss: "npm:^17.0.0"
     typescript: "npm:~6.0.3"
