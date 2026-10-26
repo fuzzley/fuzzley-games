@@ -12,12 +12,9 @@ import {
   COMPACT_MAX_WIDTH_PX,
   HOME_BUTTON_MIN_WIDTH_PX,
   WORDMARK_MIN_WIDTH_PX,
-} from "@/ui/app/service/viewport.service";
+} from "@fz/game-ui/breakpoints";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
-import {
-  installFakeViewport,
-  type FakeViewport,
-} from "@test/support/ui/viewport";
+import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import {
   clickElement,
   query,

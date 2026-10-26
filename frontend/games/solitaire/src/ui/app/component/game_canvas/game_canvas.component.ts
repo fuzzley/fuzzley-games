@@ -20,7 +20,7 @@ import { GameId, boardLayoutsOf } from "../../provider/game_catalog";
 import { skeletonSlots } from "../../model/skeleton_slots";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { PresentationSettingsService } from "../../service/presentation_settings.service";
-import { ViewportService } from "../../service/viewport.service";
+import { GameViewportService } from "@fz/game-ui/viewport";
 
 declare global {
   interface Window {
@@ -51,7 +51,7 @@ const BOARD_READY_TIMEOUT_MS = 8_000;
 export class GameCanvasComponent {
   private readonly catalog = inject(GameCatalogService);
   private readonly presentation = inject(PresentationSettingsService);
-  private readonly viewport = inject(ViewportService);
+  private readonly viewport = inject(GameViewportService);
 
   private readonly canvasHostRef =
     viewChild.required<ElementRef<HTMLElement>>("canvasHost");

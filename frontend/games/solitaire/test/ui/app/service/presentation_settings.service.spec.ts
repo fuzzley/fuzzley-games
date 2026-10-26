@@ -9,11 +9,8 @@ import {
   DEFAULT_DESKTOP_CARD_DECK,
   MOBILE_CARD_DECK,
 } from "@/engine/render/deck/card_deck";
-import { COMPACT_MAX_WIDTH_PX } from "@/ui/app/service/viewport.service";
-import {
-  installFakeViewport,
-  type FakeViewport,
-} from "@test/support/ui/viewport";
+import { COMPACT_MAX_WIDTH_PX } from "@fz/game-ui/breakpoints";
+import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 
 /** A window narrow enough that the board compacts, as on a phone. */
 const PHONE_WIDTH = COMPACT_MAX_WIDTH_PX - 200;

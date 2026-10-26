@@ -42,7 +42,7 @@ import { GameCatalogService } from "../../service/game_catalog.service";
 import { GameDocumentationService } from "../../service/game_documentation.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { RecentGamesService } from "../../service/recent_games.service";
-import { ViewportService } from "../../service/viewport.service";
+import { GameViewportService } from "@fz/game-ui/viewport";
 import { GamePreviewComponent } from "../game_preview/game_preview.component";
 
 /** How many recent games the list shows. */
@@ -112,7 +112,7 @@ interface FilterChip {
 })
 export class GameBrowserComponent {
   protected readonly browser = inject(GameBrowserService);
-  protected readonly viewport = inject(ViewportService);
+  protected readonly viewport = inject(GameViewportService);
   private readonly catalog = inject(GameCatalogService);
   private readonly lifecycle = inject(GameLifecycleService);
   private readonly recentGames = inject(RecentGamesService);

@@ -10,7 +10,7 @@ import {
   computeScale,
   measureTable,
 } from "@/engine/render/layout/table_metrics";
-import { COMPACT_MAX_WIDTH_CSS_PX } from "@/engine/render/layout/form_factor";
+import { COMPACT_MAX_WIDTH_PX } from "@fz/game-ui/breakpoints";
 import { NO_INSETS, type Viewport } from "@/engine/render/layout/viewport";
 import { FAKE_TABLE_LAYOUT } from "@test/support/fake_table/board";
 import {
@@ -438,7 +438,7 @@ describe("compactFor", () => {
 
   it("leaves a board alone at the breakpoint itself, as the stylesheets do", () => {
     const atBreakpoint: Viewport = {
-      width: COMPACT_MAX_WIDTH_CSS_PX,
+      width: COMPACT_MAX_WIDTH_PX,
       height: 900,
       pixelRatio: 1,
     };

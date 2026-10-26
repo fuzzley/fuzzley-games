@@ -58,7 +58,10 @@ Repeated UI patterns are mixins. Every component reaches them through `@use "../
 
 ### 4. Named Responsive Breakpoints
 
-Use predefined breakpoint mixins. Never hardcode raw pixel widths in media queries:
+Use predefined breakpoint mixins. Never hardcode raw pixel widths in media queries.
+`tablet`, `desktop` and the shape mixins below are `@fz/game-ui`'s, the widths
+every game changes shape at; `phone` is this game's own, in
+`styles/_breakpoints.scss`:
 
 ```scss
 @include below("phone"); // Phone screens
@@ -68,17 +71,18 @@ Use predefined breakpoint mixins. Never hardcode raw pixel widths in media queri
 
 Anything that follows the compact chrome (and the compact board) uses the
 shape mixins instead, which also catch a phone on its side, wider than
-`tablet` but shorter than `$compact-max-height`:
+`tablet` but shorter than 500 px:
 
 ```scss
-@include compact; // Narrower than tablet, or shorter than $compact-max-height
+@include compact; // Narrower than tablet, or shorter than 500 px
 @include phone-portrait; // Compact and taller than wide: the header is a bottom bar
 @include phone-landscape; // Compact and wider than tall: the header is a side rail
 ```
 
-They match `ViewportService.formFactor` in the shell and `formFactorOf` in
-`src/engine/render/layout/form_factor.ts`, so the chrome and the board change
-together.
+They match `GameViewportService.formFactor` (`@fz/game-ui/viewport`) in the
+shell and `formFactorOf` in `src/engine/render/layout/form_factor.ts`, which
+reads the same widths from `@fz/game-ui/breakpoints`, so the chrome and the
+board change together.
 
 ### 5. Animations
 

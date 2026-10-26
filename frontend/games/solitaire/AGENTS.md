@@ -125,11 +125,12 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
   is the toolkit every component `@use`s, and deliberately emits no CSS.
 - **Phone layouts** — the shell and the board agree on a form factor: roomy,
   a phone held upright, or one on its side, where compact means narrower than
-  720 or shorter than 500 CSS px (`src/engine/render/layout/form_factor.ts`,
-  `ViewportService.formFactor`). Upright, the header docks at the bottom; on
-  its side it is a rail down one edge; the canvas declares `--board-inset-*`
-  for whichever edge the chrome covers, from the bar's size, which
-  `styles/_tokens.scss` publishes as `--fz-bar-height` and
+  720 or shorter than 500 CSS px (`@fz/game-ui/breakpoints`, which
+  `src/engine/render/layout/form_factor.ts` reads for the board and
+  `GameViewportService.formFactor` for the shell). Upright, the header docks
+  at the bottom; on its side it is a rail down one edge; the canvas declares
+  `--board-inset-*` for whichever edge the chrome covers, from the bar's
+  size, which `styles/_tokens.scss` publishes as `--fz-bar-height` and
   `--fz-rail-width` through `@fz/game-ui`'s `bar-size()`. A game whose catalog entry names
   `arrangement` (most of them) lies on a grid chosen each frame by
   `chooseTableLayout` (`src/engine/render/layout/board_layouts.ts`) from the
@@ -181,10 +182,12 @@ brings in the mixins and breakpoints and nothing else:
   `styles/_mixins.scss`, until another app needs one. One declaration is a
   token, not a mixin.
 - **Three breakpoints, by name.** `@include below("phone" | "tablet" |
-"desktop")`; never a raw pixel width. Adding a fourth means adding it to
-  `$breakpoints` and saying what it protects. Anything that follows the compact
-  chrome uses `@include compact`, `phone-portrait` or `phone-landscape`
-  instead, which also catch a phone on its side.
+"desktop")`; never a raw pixel width. `tablet` and `desktop` are
+  `@fz/game-ui`'s, the widths every game changes shape at; `phone` is this
+  game's own, in `styles/_breakpoints.scss`, where another of its own would
+  go too, saying what it protects. Anything that follows the compact chrome
+  uses `@include compact`, `phone-portrait` or `phone-landscape` instead,
+  which also catch a phone on its side.
 - **Shared `@keyframes` go in `_animations.scss`.** Angular renames a
   component's own `@keyframes`, and the animations using them, after the
   component, so one used by a single component may sit in its stylesheet,

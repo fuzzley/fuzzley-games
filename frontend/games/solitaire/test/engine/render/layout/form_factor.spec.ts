@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
-  COMPACT_MAX_HEIGHT_CSS_PX,
-  COMPACT_MAX_WIDTH_CSS_PX,
-  formFactorOf,
-} from "@/engine/render/layout/form_factor";
+  COMPACT_MAX_HEIGHT_PX,
+  COMPACT_MAX_WIDTH_PX,
+} from "@fz/game-ui/breakpoints";
+import { formFactorOf } from "@/engine/render/layout/form_factor";
 
 /** Returns a viewport of the given CSS size at a pixel ratio of 3. */
 function screen(cssWidth: number, cssHeight: number) {
@@ -37,7 +37,7 @@ describe("formFactorOf", () => {
 
   it("reads a window exactly at both limits as roomy", () => {
     expect(
-      formFactorOf(screen(COMPACT_MAX_WIDTH_CSS_PX, COMPACT_MAX_HEIGHT_CSS_PX)),
+      formFactorOf(screen(COMPACT_MAX_WIDTH_PX, COMPACT_MAX_HEIGHT_PX)),
     ).toBe("roomy");
   });
 
