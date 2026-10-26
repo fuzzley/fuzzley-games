@@ -42,8 +42,10 @@ keeps its own for its code. Paths are relative to
     finger rests on it and keeps the click that follows from it.
   - `bar/` — `BarComponent` fills the libraries' `<fz-game-bar>` with the
     mines left, the lives, the time and the actions.
-  - `settings/` — the settings drawer, and `SettingsService`, which keeps
-    what the player chose.
+  - `settings/` — the settings drawer, whose field of the player's own is
+    a Signal Form (`@angular/forms/signals`) with the rules' `sizeProblem()`
+    as its validator, and `SettingsService`, which keeps what the player
+    chose.
   - `stats/` — `StatsService`, the games played and won and the best times.
   - `result/` — the card over a finished game. `help/` — How to play.
   - `styles/` — `global.scss`, loaded once from `main.ts`, loads

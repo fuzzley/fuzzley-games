@@ -140,6 +140,75 @@ describe("SettingsComponent", () => {
     expect(screen.getByRole("spinbutton", { name: "Rows" })).toBeValid();
   });
 
+  it("says nothing while the player is still typing", async () => {
+    const { user } = await renderSettings();
+    await user.click(screen.getByRole("radio", { name: /^Custom/ }));
+
+    await fill(user, "Mines", "500");
+
+    expect(screen.getByRole("alert")).toHaveTextContent("");
+  });
+
+  it("says why once the player leaves the input", async () => {
+    const { user } = await renderSettings();
+    await user.click(screen.getByRole("radio", { name: /^Custom/ }));
+    await fill(user, "Mines", "500");
+
+    await user.tab();
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Mines must be a whole number from 1 to 391.",
+    );
+  });
+
+  it("says why an emptied input can't be dealt", async () => {
+    const { user } = await renderSettings();
+    await user.click(screen.getByRole("radio", { name: /^Custom/ }));
+    await user.clear(screen.getByRole("spinbutton", { name: "Rows" }));
+
+    await user.click(
+      screen.getByRole("button", { name: "Start a custom game" }),
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Rows must be a whole number from 5 to 30.",
+    );
+  });
+
+  it("puts a problem away on closing", async () => {
+    const { user } = await renderSettings();
+    await user.click(screen.getByRole("radio", { name: /^Custom/ }));
+    await fill(user, "Mines", "500");
+    await user.tab();
+
+    await user.click(screen.getByRole("button", { name: "Close settings" }));
+    await user.click(screen.getByRole("radio", { name: /^Custom/ }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent("");
+  });
+
+  it("gives the inputs the bounds a custom field has", async () => {
+    const { user } = await renderSettings();
+
+    await user.click(screen.getByRole("radio", { name: /^Custom/ }));
+
+    const rows = screen.getByRole("spinbutton", { name: "Rows" });
+    expect(rows).toHaveAttribute("min", "5");
+    expect(rows).toHaveAttribute("max", "30");
+  });
+
+  it("lets the Mines input go no higher than the rows and columns hold", async () => {
+    const { user } = await renderSettings();
+    await user.click(screen.getByRole("radio", { name: /^Custom/ }));
+
+    await fill(user, "Rows", "10");
+
+    expect(screen.getByRole("spinbutton", { name: "Mines" })).toHaveAttribute(
+      "max",
+      "191",
+    );
+  });
+
   it("says how many mines the rows and columns typed can hold", async () => {
     const { user } = await renderSettings();
     await user.click(screen.getByRole("radio", { name: /^Custom/ }));
