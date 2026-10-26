@@ -1,15 +1,17 @@
 ---
-name: vitest-testing
-description: The Solitaire Collection's Vitest setup (specs under test/, Node by default and jsdom per spec, the AnalogJS runner), its Angular TestBed doubles (configureUiTestBed), its engine fixtures and its coverage floor. Triggers on: vitest, unit test, spec, TestBed, coverage, test structure.
+name: solitaire-testing
+description: How the Solitaire Collection runs and writes its specs — specs under test/, Node by default and jsdom per spec, the shell's TestBed doubles (configureUiTestBed), the engine's fixtures (fake_table, card_builder, sequence_random) and its coverage floor. Triggers on: solitaire spec, solitaire test, configureUiTestBed, fake_table, test/support, solitaire coverage, frontend/games/solitaire tests.
 ---
 
-# Testing the Solitaire Collection with Vitest
+# Testing the Solitaire Collection
 
 This skill covers how the Solitaire Collection runs and writes its specs, with
-Vitest (v5) and the AnalogJS Vitest Angular runner. The rules every spec in
-the repository follows (Arrange-Act-Assert, the public API, state over
+Vitest and the AnalogJS Vitest Angular runner. The rules every spec in the
+repository follows (Arrange-Act-Assert, the public API, state over
 interactions, real objects over mocks) are in `.agents/AGENTS.md`, under
-"Writing Unit Tests". Paths are relative to `frontend/games/solitaire/`.
+"Writing Unit Tests", and the patterns the shell's specs share with every
+Angular workspace's are the repository's `angular-testing` skill's. Paths are
+relative to `frontend/games/solitaire/`.
 
 ## Commands and Coverage Floors
 

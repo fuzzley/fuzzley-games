@@ -1,9 +1,9 @@
 ---
-name: typescript-strict-patterns
-description: How the Solitaire Collection models cards and moves in TypeScript — the core enums, readonly identity, the move/undo shape, and Google TypeScript style compliance. Triggers on: typescript, type safety, strict mode, immutable state, card primitives, readonly, google ts style.
+name: solitaire-types
+description: How the Solitaire Collection models cards and moves in TypeScript — the core enums, readonly identity, the move/undo shape, and Google TypeScript style compliance. Triggers on: solitaire types, card primitives, Card, Pile, Suit, Rank, move record, undo, readonly identity, src/engine/core.
 ---
 
-# TypeScript Strict Patterns & Type Safety
+# The Solitaire Collection's Types
 
 > The type conventions this codebase actually uses. Match them; do not import
 > patterns from other card-game projects.

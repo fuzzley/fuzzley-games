@@ -1,9 +1,9 @@
 ---
-name: vite-bundle-optimization
-description: Vite configuration, the Phaser manual chunk, the card texture atlas toolchain (build-card-atlas.mjs), and what makes the subdirectory deploy work for the Solitaire Collection. Triggers on: vite, bundle, chunk, vite.config, build:atlas, atlas generation, rollup, manualChunks, base href.
+name: solitaire-build
+description: The Solitaire Collection's build — its Vite config on @fz/dev's gameConfig(), the Phaser manual chunk, the card texture atlas toolchain (build-card-atlas.mjs), and what makes the subdirectory deploy work. Triggers on: solitaire build, solitaire vite.config, Phaser chunk, manualChunks, build:atlas, card atlas, atlas generation, texture atlas.
 ---
 
-# Vite Build System & Texture Atlas Toolchain
+# The Solitaire Collection's Build and Texture Atlas Toolchain
 
 > Build setup, chunking, and card atlas generation for the Solitaire Collection.
 

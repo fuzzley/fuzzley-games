@@ -31,7 +31,7 @@ bindings, not one.
 
 **Draw from the cheapest atlas that does not enlarge the cards.** Each deck is
 built at 0.5×, 0.75×, 1×, 1.5× and 2× (see
-[vite-bundle-optimization](../vite-bundle-optimization/SKILL.md)). GPU memory
+[solitaire-build](../solitaire-build/SKILL.md)). GPU memory
 grows with the square of the density, from about 5 MB at 0.5× and 20 MB at 1×
 to 76 MB at 2×. `cardArtScaleFor`
 (`src/engine/render/deck/card_art_scale.ts`) picks the least dense atlas at

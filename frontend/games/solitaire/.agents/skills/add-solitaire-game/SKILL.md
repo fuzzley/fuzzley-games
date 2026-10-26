@@ -503,7 +503,7 @@ site's build until that file follows.
 this game's own, the win condition, and undo of anything that moves more than one
 card at a time. Pass a fixed `random` and, where it sharpens the test, a short
 `cardIds` deck; both constructor parameters exist for this. Assert board state
-through the public API rather than counting calls. See the `vitest-testing`
+through the public API rather than counting calls. See the `solitaire-testing`
 skill; UI-side specs use `configureUiTestBed` from `test/support/ui`.
 
 Then `yarn verify` from `frontend/` (lint → typecheck → test → build, for

@@ -2,7 +2,8 @@
 
 Project guidelines, architecture, development workflow, and coding standards
 live in [.agents/AGENTS.md](.agents/AGENTS.md). Read that file before making
-changes. Each workspace under `frontend/` keeps its own rules in an
+changes. What every workspace under `frontend/` keeps is in
+[frontend/AGENTS.md](frontend/AGENTS.md), and each keeps its own rules in an
 `AGENTS.md` of its own, such as [frontend/site/AGENTS.md](frontend/site/AGENTS.md).
 
 Reusable skills live in [.agents/skills](.agents/skills). Each subdirectory

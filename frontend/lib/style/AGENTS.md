@@ -2,9 +2,10 @@
 
 The `@fz/style` library (`frontend/lib/style`): what the site and the games
 share of how they look, with no framework, so a game written without Angular
-can use it too. The repository's rules, which apply here too, are in
-[.agents/AGENTS.md](../../../.agents/AGENTS.md). Paths are relative to
-`frontend/lib/style/`.
+can use it too. The frontend's rules, in
+[frontend/AGENTS.md](../../AGENTS.md), and the repository's, in
+[.agents/AGENTS.md](../../../.agents/AGENTS.md), apply here too. Paths are
+relative to `frontend/lib/style/`.
 
 ## What it holds
 

@@ -28,8 +28,8 @@ work is done; git history keeps it.
 | P3    | Vitest and game presets in `@fz/dev` | done    |
 | P4    | The site's images                    | done    |
 | P5    | `game.json`                          | done    |
-| P6    | The instruction layers and skills    | next    |
-| P7    | The Phaser skills                    | to do   |
+| P6    | The instruction layers and skills    | done    |
+| P7    | The Phaser skills                    | next    |
 | P8    | Retire the pinned-game pipeline      | waiting |
 
 ## Entries
@@ -329,3 +329,84 @@ Patience` and `Baker’s Game: /play/solitaire/ opens no game bakers`. The
   a real build). Both games' `dist/` are P4's byte for byte, plus
   `game.json`; the site's differs in its three build-time files and the two
   `game.json` under `play/`.
+
+### 2026-10-26: P6, the instruction layers and the skills' names
+
+- P5 was committed as `366e037`.
+- **`frontend/AGENTS.md`** (finding 10), with a `CLAUDE.md` that imports
+  it: the frontend's layout (the root, the constraints, self-contained
+  workspaces, `site/`, `lib/`, `games/`), Yarn and Node, every command, and
+  running and debugging, moved from `.agents/AGENTS.md`; and the Angular and
+  Sass rules the three apps each spelled out: templates bind, visible state
+  is announced, the libraries' pieces first (with icons hidden from
+  assistive technology), tokens by their `--fz-*` names, runtime values as
+  custom properties, Sass modules, breakpoints by name, nesting, shared
+  `@keyframes` once, and `//` comments.
+- **`frontend/games/AGENTS.md`**, with its `CLAUDE.md`: what every game
+  keeps (it knows nothing of the site, `gameConfig()` and `game.json`, a
+  port of its own, the site's screenshots, the shared palette, the games'
+  chrome, saved games that outlive the code) and the five steps to add one.
+- **Proof that the layers load:** this session's Claude Code loaded
+  `frontend/CLAUDE.md` once its work reached `frontend/`, and
+  `frontend/games/CLAUDE.md` once it touched a file in a game, each with
+  its `AGENTS.md`, beside the workspace's own.
+- **What moved out:** `.agents/AGENTS.md` went from 289 lines to 215; its
+  "Building and Checking" now says only where to run Yarn, what
+  `yarn start` and `yarn verify` do, and that `frontend/AGENTS.md` lists the
+  rest. The site's went from 178 to 142, Minesweeper's from 168 to 153, the
+  Solitaire Collection's from 320 to 292, each keeping what is its own: the
+  site its wording, color and accessibility means; Minesweeper its inks,
+  viewport use, keys and screenshots; the Solitaire Collection its tokens,
+  mixins, breakpoints, felt and keys. Their "Technology Stack" lists name
+  no versions. The libraries' four `AGENTS.md` and the root `AGENTS.md`
+  pointer name `frontend/AGENTS.md`.
+- **The `@keyframes` rule:** the site's `AGENTS.md` said Angular leaves
+  their names alone, so all must be global; Angular's compiler renames a
+  component's own (`_scopeKeyframesRelatedCss`), so the shared rule is the
+  Solitaire Collection's: one used by several components is declared once,
+  globally.
+- **`angular-testing`** (finding 11), in `.agents/skills/`: the setup from
+  `@fz/dev/vitest`, Testing Library by role, user-event, jest-dom,
+  `TestBed.inject`, zoneless change detection, fake timers after `render`,
+  what jsdom keeps and lacks, and the libraries' testing entry points. The
+  site's and Minesweeper's `vitest-testing` became `site-testing` (72 lines
+  to 53) and `minesweeper-testing` (82 to 61), keeping their setup,
+  fixtures and floors; the Solitaire Collection's became
+  `solitaire-testing`, which had none of the shared patterns to give up.
+  `@fz/ui`'s `AGENTS.md` points its specs at `angular-testing`.
+  `.agents/AGENTS.md`'s "Writing Unit Tests" names all four.
+- **The Solitaire Collection's skills** (finding 12):
+  `sass-design-system`, `typescript-strict-patterns` and
+  `vite-bundle-optimization` became `solitaire-styles`, `solitaire-types`
+  and `solitaire-build`, their triggers naming the game's own files and
+  terms. `solitaire-styles` points at `fuzzley-ui` and
+  `lib/style/AGENTS.md` for `@fz/style`'s tokens rather than listing them,
+  and drops the overlay and keyframe rules the frontend's `AGENTS.md` now
+  holds. `phaser-core`, `phaser-canvas-performance` and
+  `add-solitaire-game` cite the new names. The game's
+  `docs/phone-board-layouts-log.md` keeps the old one, as history.
+- **The links** (finding 14): `check-skill-references.mjs`, unless `CI` is
+  set, warns about each skill whose link in the `.claude/skills` beside it
+  is missing or leads somewhere else, and each link there that leads
+  nowhere, and says to run the link script; it never fails for them. Before
+  the link script ran, it warned about 13: the seven new skills unlinked
+  and the six old names' links left dangling (three of them
+  `vitest-testing`).
+  With `CI=true` it said nothing. `node .agents/link-claude-skills.mjs`
+  then linked the seven, pruned the six, and the check came back clean.
+- **For P7:** the generated Phaser skills are copies of the `skills/`
+  folder Phaser's npm package ships (`frontend/node_modules/phaser/skills/`,
+  4.2.1 installed), each renamed with a `phaser-` prefix, in its name and
+  its "Related skills" links, and with its code samples reformatted by
+  Prettier. Copying all 28 from the package that way, through this
+  repository's Prettier, gave the same files but for twelve: in ten the
+  copy here repaired the package's cross-references by hand (bare names
+  such as `sprites-and-images.md` made links, links from `references/`
+  given their depth, and two links to a reference guide the package breaks
+  as `references/REFERENCE..//SKILL.md`), and in the rest Prettier escaped
+  a `*` in a table, as this one no longer does. Several kept ones link to
+  skills P7 deletes, which the reference check will catch.
+- **`yarn verify` passed** in 4m16s, the reference check silent about
+  links once they were made. Every workspace's tests and coverage are P5's
+  but the Solitaire Collection's branches, at 1895 of 2043, its usual
+  wobble with what a run deals.

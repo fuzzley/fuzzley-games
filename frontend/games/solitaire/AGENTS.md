@@ -3,19 +3,21 @@
 The `solitaire` workspace: the Solitaire Collection, a browser-based solitaire
 engine supporting many variants — Klondike, FreeCell, Spider, Yukon, Forty
 Thieves, Montana and the rest of `src/games` — built with Phaser 4 canvas
-rendering and an Angular 22 application shell. It moved here from
-fuzzley/fSolitaire with its history. The repository's rules, in
-[.agents/AGENTS.md](../../../.agents/AGENTS.md), say how it is built, checked
-and served, and how code, comments and tests are written; this workspace
-keeps its own for its code. Paths are relative to `frontend/games/solitaire/`.
+rendering and an Angular application shell. It moved here from
+fuzzley/fSolitaire with its history. What every game keeps, in
+[frontend/games/AGENTS.md](../AGENTS.md), what every workspace keeps, in
+[frontend/AGENTS.md](../../AGENTS.md), and the repository's rules, in
+[.agents/AGENTS.md](../../../.agents/AGENTS.md), apply here too; this
+workspace keeps its own for its code. Paths are relative to
+`frontend/games/solitaire/`.
 
 ## Technology Stack
 
-- **Rendering Engine:** [PhaserJS](https://phaser.io/) (v4)
-- **UI Shell:** [Angular](https://angular.dev/) (v22)
-- **Build Toolchain:** [Vite](https://vitejs.dev/) (v8) + [AnalogJS Vite Angular Plugin](https://analogjs.org/)
-- **Test Framework:** [Vitest](https://vitest.dev/) (v5) + AnalogJS Vitest Angular runner
-- **Language & Runtime:** TypeScript (v6) / HTML / Sass (ES2022 output target)
+- **Rendering Engine:** [PhaserJS](https://phaser.io/)
+- **UI Shell:** [Angular](https://angular.dev/)
+- **Build Toolchain:** [Vite](https://vitejs.dev/) + [AnalogJS Vite Angular Plugin](https://analogjs.org/)
+- **Test Framework:** [Vitest](https://vitest.dev/) + AnalogJS Vitest Angular runner
+- **Language & Runtime:** TypeScript / HTML / Sass (ES2022 output target)
 
 ---
 
@@ -156,61 +158,35 @@ brings in the mixins and breakpoints and nothing else:
 @use "../../styles" as *;
 ```
 
-- **Tokens are `@fz/style`'s, by their own names.** Component CSS reads the
-  tokens the site and every game share (`frontend/lib/style/AGENTS.md`),
-  whose global stylesheet `global.scss` loads first: the palette's roles and
-  their tints (`--fz-muted`, `--fz-edge-2`, `--fz-accent-wash`) and the
-  scales from spacing to motion (`--fz-space-2`, `--fz-radius-md`,
-  `--fz-duration-fast`). The panels and wells read the library's surfaces,
-  glass in a dark palette and solid in a light one (`--fz-panel-glass`,
-  `--fz-float`, `--fz-well`). `styles/_tokens.scss` holds only this game's
-  own: the translucent mixes of those roles it needs (`--surface-card`,
+The frontend's Angular and Sass rules apply, and the `solitaire-styles`
+skill says more; on top of them:
+
+- **`styles/_tokens.scss` holds only this game's own tokens:** the
+  translucent mixes of `@fz/style`'s roles it needs (`--surface-card`,
   `--surface-scrim-heavy`), declared on `:root, [data-theme]` as the
   library's tints are; the table (`--table-felt`); the card artwork's
-  colours, cut from `_palette.scss`; and its layout and stacking, with the
-  game bar's size from `@fz/game-ui`.
-  Component CSS reads them with `var()` — never a colour, spacing or
-  font-size literal. Reach for Sass when the value cannot be a custom
-  property (media query widths) or when it is only ever a compile-time input
-  to a token.
-- **A pattern is a mixin, a value is a token.** Several declarations that only
-  make sense together are a mixin, because view encapsulation means a class
-  cannot be shared between components. The ones every app shares —
-  `glass()`, `icon-button()`, `transition()`, `tap-target()`,
-  `flex-center()`, `visually-hidden()` — are `@fz/style`'s toolkit, which
-  `styles/_index.scss` forwards; only this game's own (`field-label()`,
-  `swatch-option()`, `spinner-ring()`, `panel-card()`) are in
-  `styles/_mixins.scss`, until another app needs one. One declaration is a
-  token, not a mixin.
+  colours, cut from `_palette.scss`, the one stylesheet stylelint lets
+  write a colour; and its layout and stacking, with the game bar's size
+  from `@fz/game-ui`.
+- **A pattern is a mixin, a value is a token.** Several declarations that
+  only make sense together are a mixin, because view encapsulation means a
+  class cannot be shared between components. The ones every app shares are
+  `@fz/style`'s toolkit, which `styles/_index.scss` forwards; only this
+  game's own (`field-label()`, `swatch-option()`, `spinner-ring()`,
+  `panel-card()`) are in `styles/_mixins.scss`, until another app needs
+  one.
 - **Three breakpoints, by name.** `@include below("phone" | "tablet" |
-"desktop")`; never a raw pixel width. `tablet` and `desktop` are
-  `@fz/game-ui`'s, the widths every game changes shape at; `phone` is this
+"desktop")`. `tablet` and `desktop` are `@fz/game-ui`'s; `phone` is this
   game's own, in `styles/_breakpoints.scss`, where another of its own would
   go too, saying what it protects. Anything that follows the compact chrome
   uses `@include compact`, `phone-portrait` or `phone-landscape` instead,
   which also catch a phone on its side.
-- **Shared `@keyframes` go in `_animations.scss`.** Angular renames a
-  component's own `@keyframes`, and the animations using them, after the
-  component, so one used by a single component may sit in its stylesheet,
-  as the libraries' do. One that several components use is declared once,
-  globally.
-- **Comment with `//`.** Sass strips it, so notes explaining the source do not
-  ship to the browser.
-- **Overlays are `<dialog>`.** Wrap content in `<fz-dialog>` rather than
-  hand-rolling a focus trap, an Escape handler or a z-index.
-- **Buttons are `@fz/style`'s `.fz-button`**, with its tone and size
-  classes; Solitaire has no button styles of its own. A component's own
-  class beside them, such as `btn-play`, is a hook for its stylesheet and
-  specs, not a style.
-- **Icons are `<fz-icon name="…">`**, from `@fz/ui/icon`, never an inline
-  `<svg>`; a new one goes into the library (its `AGENTS.md` says how). The
-  settings' card-deck preview is a drawing, not an icon, so it stays inline.
-- **Templates bind, they do not compute.** Expose a `computed()` view model
-  instead of calling a method from a template, which re-runs on every change
-  detection pass.
-- **Visible state is announced state.** A control that looks selected carries
-  `aria-checked`/`aria-current`/`aria-pressed`. The template accessibility lint
-  ruleset is enabled and enforces the common cases.
+- **Shared `@keyframes` are in `_animations.scss`.**
+- **Solitaire has no button styles of its own.** A component's own class
+  beside `.fz-button`'s, such as `btn-play`, is a hook for its stylesheet
+  and specs, not a style.
+- **The settings' card-deck preview is a drawing,** not an icon, so it
+  stays inline.
 
 ---
 
@@ -239,30 +215,26 @@ on `SHUTDOWN` or `DESTROY`, because the game it ran in lives on.
 
 ## In This Repository
 
-- **It knows nothing of the site.** It builds into `dist/` with relative
-  URLs and a hash router, and the site copies that build to
-  `/play/solitaire/`. Nothing here imports from the site, or the site from
-  here. The build writes every game's id and name, from `GAME_CATALOG`, into
-  `dist/game.json` (`vite.config.ts` names the catalog to `gameConfig()`).
-  The site's catalog links each game by its `#/<id>` route, under its own
-  copy of the name, and shows the screenshots under
+What every game keeps is in `frontend/games/AGENTS.md`. Here:
+
+- **The site serves it at `/play/solitaire/`,** with a hash router, and
+  links each game by its `#/<id>` route. The build writes every game's id
+  and name, from `GAME_CATALOG`, into `dist/game.json` (`vite.config.ts`
+  names the catalog to `gameConfig()`), and the site's catalog keeps its
+  own copy of the names and shows the screenshots under
   `public/docs/screenshots/<id>/`, so renaming a game or its id, or dropping
   its screenshots, fails the site's build until the site follows.
-- **It shares the palette with the site.** `index.html` loads `theme.js`
-  first, which `@fz/style`'s Vite plugin writes into the build (`vite.config.ts`
-  extends `@fz/dev/vite`'s `gameConfig()`, which adds it): it puts the palette the player chose, on the site or in any game, on
-  the page as `data-theme` before anything paints. `ThemeService` from
-  `@fz/ui/theme` takes it from there, and the settings drawer offers the
-  choice. The chrome wears the palette in use, light or dark; the felt is
+- **The felt follows the palette.** The chrome wears the palette in use,
+  light or dark, and the settings drawer offers the choice; the felt is
   the palette's own (`ThemeService.role("felt")`) unless the player chose
   another, which `PresentationSettingsService` resolves and stores as
   `felt`, and the browser's toolbar takes the felt too.
-- **Saved games outlive the code.** Players' saved game, settings and recent
-  games are in `localStorage` under keys that start with `fsolitaire-`, in
-  the services under `src/ui/app/service/`. Renaming one loses them. The
-  recent games and the presentation settings carry a version, through
-  `LocalStorageService`'s `writeVersioned()`, and still read the bare
-  entries builds before versions stored.
+- **Its saved games**, the game in play, the settings and the recent
+  games, are in `localStorage` under keys that start with `fsolitaire-`,
+  in the services under `src/ui/app/service/`. The recent games and the
+  presentation settings carry a version, through `LocalStorageService`'s
+  `writeVersioned()`, and still read the bare entries builds before
+  versions stored.
 - **Bug reports are filed here.** "Report a Bug" opens the repository's issue
   form, `.github/ISSUE_TEMPLATE/solitaire_bug_report.yml`, filled in, and
   names the commit the Docker build was made from, which `vite.config.ts`
@@ -275,8 +247,7 @@ on `SHUTDOWN` or `DESTROY`, because the game it ran in lives on.
   screenshots the site's images are made from.
 - **Accessibility.** The rules are the repository's `web-game-accessibility`
   skill's. Here, an icon-only button's screen-reader label comes from the
-  `visually-hidden()` mixin, and every overlay is an `<fz-dialog>` (see
-  Styling above).
+  `visually-hidden()` mixin, and every overlay is an `<fz-dialog>`.
 
 ---
 
@@ -303,7 +274,9 @@ others', and check its formatting and skill references there.
 The repository's rules for specs apply. On top of them:
 
 - **Specs live under `test/`,** in a tree that mirrors `src/`, not beside the
-  file they test. This workspace's `vitest-testing` skill covers the setup.
+  file they test. This workspace's `solitaire-testing` skill covers the
+  setup and the fixtures, and the repository's `angular-testing` the
+  patterns its shell's specs share with the other Angular workspaces'.
 - **Test Coverage:** `vitest.config.ts` enforces a coverage floor a little under the suite's real figures; `yarn test`, which CI runs, fails below it. Raise the floor as the real figures rise.
 - **UI Test Doubles:** `test/support/ui` holds the shell's doubles — the game, catalog, presentation and documentation mocks — plus `configureUiTestBed` (`test/support/ui/testbed.ts`), which wires them into a TestBed. Prefer it over assembling providers by hand. The catalog mock is typed as a `Pick` of the real service so it cannot drift out of shape unnoticed.
 - **Don't Assert Production Prose:** A component spec should not depend on the wording of a rules page. Use the test documentation registry, which `configureUiTestBed` provides.
@@ -313,8 +286,7 @@ The repository's rules for specs apply. On top of them:
 ## Skills
 
 This workspace's skills are in `.agents/skills/`: `add-solitaire-game`, the
-Phaser ones (`phaser-core` first), `sass-design-system`,
-`typescript-strict-patterns`, `vite-bundle-optimization` and
-`vitest-testing`. `node .agents/link-claude-skills.mjs`, run from the
+Phaser ones (`phaser-core` first), `solitaire-styles`, `solitaire-types`,
+`solitaire-build` and `solitaire-testing`. `node .agents/link-claude-skills.mjs`, run from the
 repository's root, links them into this folder's `.claude/skills/`, where
 Claude Code loads them once it works on a file here.

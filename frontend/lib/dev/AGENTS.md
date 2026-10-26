@@ -3,9 +3,9 @@
 The `@fz/dev` library (`frontend/lib/dev`): what every workspace shares to
 check, test and build itself and script its chores, which no app's own code
 imports. The
-repository's rules, which apply here too, are in
-[.agents/AGENTS.md](../../../.agents/AGENTS.md). Paths are relative to
-`frontend/lib/dev/`.
+frontend's rules, in [frontend/AGENTS.md](../../AGENTS.md), and the
+repository's, in [.agents/AGENTS.md](../../../.agents/AGENTS.md), apply here
+too. Paths are relative to `frontend/lib/dev/`.
 
 ## What it holds
 
