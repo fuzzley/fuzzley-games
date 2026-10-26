@@ -39,7 +39,7 @@ yarn prettier    # format the repository with Prettier
 yarn games       # build and fetch the games into site/public/play/
 
 yarn workspace solitaire dev     # work on the Solitaire Collection alone, on http://localhost:9000
-yarn workspace minesweeper dev   # work on Minesweeper alone, also on port 9000
+yarn workspace minesweeper dev   # work on Minesweeper alone, on http://localhost:9001
 ```
 
 `yarn dev` and `yarn build` first build the games in `frontend/games/`. The

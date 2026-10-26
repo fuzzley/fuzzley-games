@@ -17,18 +17,17 @@ description: Vite configuration, the Phaser manual chunk, the card texture atlas
 
 ## Chunking
 
-`vite.config.ts` splits out exactly one manual chunk:
+`vite.config.ts` merges what is the Solitaire Collection's own into
+`@fz/dev/vite`'s `gameConfig()`, which every game's build shares (`dist/`,
+`assets/`, the `./` base, Angular and `@fz/style`'s plugin). Its own build
+setting splits out exactly one manual chunk:
 
 ```ts
 build: {
-  outDir: "dist",
-  assetsDir: "assets",
   rollupOptions: {
     output: {
-      manualChunks(id) {
-        if (id.includes("node_modules/phaser")) {
-          return "phaser";
-        }
+      manualChunks(id: string) {
+        return id.includes("node_modules/phaser") ? "phaser" : undefined;
       },
     },
   },
@@ -49,8 +48,8 @@ Two settings exist solely because the site copies the built app into
 `/play/solitaire/`, a static folder that nginx serves as it is, without
 rewriting paths:
 
-- **`base: "./"`** in `vite.config.ts`, so emitted asset URLs are relative and
-  do not assume the site root.
+- **`base: "./"`**, which `gameConfig()` sets, so emitted asset URLs are
+  relative and do not assume the site root.
 - **`withHashLocation()`** in `provideRouter(routes, withHashLocation())`
   (`src/ui/app/main.ts`), so a deep link like `#/freecell` needs no server
   rewrite. (It is `withHashLocation()`, the modern provider — not the legacy

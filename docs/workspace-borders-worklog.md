@@ -25,8 +25,8 @@ work is done; git history keeps it.
 | ----- | ------------------------------------ | ------- |
 | P1    | Close the checks                     | done    |
 | P2    | Housekeeping                         | done    |
-| P3    | Vitest and game presets in `@fz/dev` | next    |
-| P4    | The site's images                    | to do   |
+| P3    | Vitest and game presets in `@fz/dev` | done    |
+| P4    | The site's images                    | next    |
 | P5    | `game.json`                          | to do   |
 | P6    | The instruction layers and skills    | to do   |
 | P7    | The Phaser skills                    | to do   |
@@ -147,3 +147,60 @@ work is done; git history keeps it.
   one: the Solitaire Collection's branches read 92.75% (1895 of 2043)
   against 92.7% (1894). Nothing it covers changed, so one branch depends on
   what a run deals; P3 compares its figures to within that branch.
+
+### 2026-10-26: P3, Vitest and game presets in `@fz/dev`
+
+- **`@fz/dev/vitest`** (finding 5), `lib/dev/src/vitest.ts`:
+  `angularTests()` and `nodeTests()` return a whole config from the floors
+  and, where they differ, the files coverage measures or leaves out. They
+  are built from three pieces the site uses on their own, since a Vitest
+  project can't carry coverage: `angularSpecs()` (jsdom, globals,
+  `src/test-setup.ts`, every spec under `src/`), `nodeSpecs()` and
+  `coverage()` (V8, text and HTML, `src/**/*.ts` unless given). The comment
+  on why the globals aren't optional, and the one on what a floor is, now
+  sit there once.
+  - `coverage()` leaves `exclude` out when given none, rather than passing
+    an empty list, so `lib/style` and `lib/dev` keep Vitest's own
+    exclusions, as before.
+  - Taken up by `lib/dev` (from `./src/vitest.ts`), `lib/style`, `lib/ui`,
+    `lib/game-ui`, Minesweeper and the site's two projects. The site's root
+    `test` block lost its `globals: true`, which only the `app` project
+    read, and now takes it from `angularSpecs()`. The Solitaire Collection
+    keeps its own config, as planned.
+  - Vitest 5 marks `CoverageV8Options` deprecated; the type is
+    `CoverageOptions`.
+- **`@fz/dev/vite`** (finding 6), `lib/dev/src/vite.ts`: `gameConfig({ port })`
+  sets `base: "./"`, with the comment the plan asked for, Analog's plugin,
+  `fuzzleyStyle()`, `dist/` and `assets/`, and the dev server's port with
+  `open: true`. Minesweeper's `vite.config.ts` is that alone, on port 9001;
+  the Solitaire Collection's merges its commit define, `@/` alias and
+  Phaser chunk in with `mergeConfig()`, on port 9000, and types the chunk
+  function's `id`, which the merge no longer infers.
+  - Vite 8's `mergeConfig()` copies `build.rollupOptions` into
+    `rolldownOptions` too. The build came out the same, so it's left as
+    is; the spec merges a plain option instead.
+  - Minesweeper's screenshot script defaults to `http://localhost:9001/`,
+    and its `AGENTS.md` and README, the Solitaire Collection's `AGENTS.md`
+    and the root README say which game has which port. Started with
+    `BROWSER=none yarn workspace minesweeper dev`, it answered on 9001 with
+    its page and `theme.js`; `yarn stop` stopped it.
+- **`@fz/dev`'s manifest**: `exports` gains `./vitest` and `./vite`; it
+  depends on `@fz/style` for `fuzzleyStyle()`; Analog's plugin, Vite and
+  Vitest are optional peers, with Analog's plugin a devDependency so the
+  constraints see it tested. Analog's own peers are all optional, so the
+  install warns of nothing new.
+  - `@fz/style` is checked with `@fz/dev`'s presets, so the two now depend
+    on each other, one way as a devDependency. Yarn links the cycle, and
+    nothing in `lib/` is built or run with `--topological`, so it costs
+    nothing; `lib/dev/AGENTS.md` says so.
+- Specs: `src/vitest.spec.ts` (10) and `src/vite.spec.ts` (4). `@fz/dev`'s
+  coverage rose to 68.57 / 87.09 / 82.92 / 67.67%, and its floor with it,
+  to 68 / 86 / 82 / 67.
+- Docs: `lib/dev/AGENTS.md` and its `CLAUDE.md`, the line on `@fz/dev` in
+  `.agents/AGENTS.md`, `fuzzley-ui`'s step 2, the Solitaire Collection's
+  `vite-bundle-optimization` skill and `AGENTS.md`, and both
+  `vitest-testing` skills of the apps that use the preset.
+- **`yarn verify` passed** in 4m16s. Every workspace's tests and coverage
+  are P2's to the figure, `@fz/dev`'s aside (44 tests, up from 30). Both
+  games' `dist/` are byte for byte P2's (11 and 155 files); the site's
+  differs only in its three build-time files.

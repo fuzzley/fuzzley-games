@@ -132,9 +132,9 @@ Run these from `frontend/games/minesweeper/`, or as
 `yarn lint`, `yarn typecheck`, `yarn test` and `yarn build` run this
 workspace's with the others'.
 
-- **Run Development Server:** `yarn dev` (at `http://localhost:9000/`, the
-  port the Solitaire Collection's uses too). The site's dev server serves
-  the build `yarn start` made when it started.
+- **Run Development Server:** `yarn dev` (at `http://localhost:9001/`; the
+  Solitaire Collection's uses 9000). The site's dev server serves the build
+  `yarn start` made when it started.
 - **Production Build:** `yarn build`, into `dist/`; `yarn preview` serves it.
 - **Run Unit Tests:** `yarn test` (the whole suite once, with coverage,
   failing below the floor `vitest.config.ts` sets for `src/rules/`),

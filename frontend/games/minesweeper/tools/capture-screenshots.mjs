@@ -27,7 +27,7 @@ const USAGE = `Usage: yarn capture:screenshots [options]
 
 Captures the screenshots the site shows of Minesweeper from a running server.
 
-  --url <url>      The server (default: http://localhost:9000/)
+  --url <url>      The server (default: http://localhost:9001/)
   --chrome <path>  The Chrome to run (default: $CHROME_PATH, or the usual
                    install location)
   -h, --help       Show this message`;
@@ -287,7 +287,7 @@ async function capture(page, url) {
 function parseCommandLine() {
   const { values } = parseArgs({
     options: {
-      url: { type: "string", default: "http://localhost:9000/" },
+      url: { type: "string", default: "http://localhost:9001/" },
       chrome: { type: "string" },
       help: { type: "boolean", short: "h" },
     },

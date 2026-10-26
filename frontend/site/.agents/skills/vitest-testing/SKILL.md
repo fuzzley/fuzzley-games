@@ -29,7 +29,8 @@ Paths are relative to `frontend/site/`.
 ## Setup
 
 Vitest is configured in the `test` block of `vite.config.ts`, as two
-projects:
+projects, built from `@fz/dev/vitest`'s pieces: `angularSpecs()` and
+`nodeSpecs()` say where each runs, and `coverage()` what the floors cover:
 
 - **`app`**: every `*.spec.ts` under `src/`, in `jsdom`, with the Angular
   plugin and `src/test-setup.ts`, which starts Angular's test environment and

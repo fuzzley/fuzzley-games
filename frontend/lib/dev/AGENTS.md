@@ -1,7 +1,8 @@
 # @fz/dev
 
 The `@fz/dev` library (`frontend/lib/dev`): what every workspace shares to
-check itself and script its chores, which no app's own code imports. The
+check, test and build itself and script its chores, which no app's own code
+imports. The
 repository's rules, which apply here too, are in
 [.agents/AGENTS.md](../../../.agents/AGENTS.md). Paths are relative to
 `frontend/lib/dev/`.
@@ -37,6 +38,21 @@ repository's rules, which apply here too, are in
     `outDir` and `rootDir` are the extending workspace's own folder
     (`${configDir}`).
   - `scripts.json`: the `.mjs` scripts, type-checked from their JSDoc.
+- `src/vitest.ts`, `@fz/dev/vitest`: the Vitest settings every workspace's
+  specs share. `angularTests()` is the whole config of a workspace that
+  tests Angular code: Analog's plugin, every spec under `src/` in jsdom with
+  the globals TestBed needs, after the workspace's `test-setup.ts` there,
+  and V8 coverage of `src/`, less the setup file. `nodeTests()` is the same
+  for specs that run in Node. Each is given the workspace's floors and,
+  where they differ, the files coverage measures or leaves out. The pieces
+  they are made of, `angularSpecs()`, `nodeSpecs()` and `coverage()`, are
+  for a config of Vitest projects, such as the site's.
+- `src/vite.ts`, `@fz/dev/vite`: `gameConfig({ port })`, the Vite config
+  every game built here shares: the `./` base that lets the site serve a
+  build from `/play/<slug>/`, Analog's plugin, `@fz/style`'s
+  `fuzzleyStyle()`, a build in `dist/` with its files in `assets/`, and a
+  dev server on the game's own port, which its screenshot script defaults
+  to: 9000 for the Solitaire Collection, 9001 for Minesweeper.
 - `src/chrome.ts`, `@fz/dev/chrome`: what a script that drives a headless
   Chrome needs. `withChrome()` starts Chrome on a throwaway profile and
   hands over a `DevToolsConnection`; `withPage()` opens a `Page` in a
@@ -55,6 +71,13 @@ repository's rules, which apply here too, are in
   rules, and its `tsconfig.json` extends `@fz/dev/tsconfig/angular.json`
   (`base.json` without Angular), as `frontend/games/minesweeper/` shows. A
   rule raised here is raised everywhere at once.
+- **Its `vitest.config.ts` is `angularTests()` or `nodeTests()`**, given
+  its floors, unless its specs run another way: the Solitaire Collection's
+  live under `test/`, mostly in Node, and keep a config of their own. A
+  game's `vite.config.ts` is `gameConfig()`, with what is the game's own
+  merged in by Vite's `mergeConfig()`, as `frontend/games/solitaire/` does
+  for its Phaser chunk. Analog's plugin, Vite and Vitest are peers, which
+  the workspace lists and runs.
 - **A workspace's own import fences use
   `@typescript-eslint/no-restricted-imports`**, so that they add to the
   testing fence, which uses ESLint's own `no-restricted-imports`, rather
@@ -69,8 +92,13 @@ repository's rules, which apply here too, are in
   these files, so relative imports name the file (`./eslint.ts`) and the
   TypeScript is only the kind Node can strip (`erasableSyntaxOnly`), as in
   `@fz/style`.
-- **Nothing here reaches an app's bundle.** It holds only what checks or
-  scripts a workspace; what an app runs belongs in the other libraries.
+- **Nothing here reaches an app's bundle.** It holds only what checks,
+  builds or scripts a workspace; what an app runs belongs in the other
+  libraries.
+- **It depends on `@fz/style`**, for the plugin `gameConfig()` adds, while
+  `@fz/style` is checked with this library's presets. Yarn links the two
+  either way round, and nothing in `lib/` is built, so neither has to come
+  first.
 
 ## Checks
 
@@ -82,7 +110,8 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   config.
 - **`test`** runs Vitest in Node. `src/eslint.spec.ts` lints files written
   into a folder of their own with the blocks, so a block that stops catching
-  what it should fails here; `src/chrome.spec.ts` drives the DevTools
-  helpers against a fake browser. Starting a real Chrome is left to the
+  what it should fails here; `src/vitest.spec.ts` and `src/vite.spec.ts`
+  check the configs the presets return; `src/chrome.spec.ts` drives the
+  DevTools helpers against a fake browser. Starting a real Chrome is left to the
   screenshot scripts, so the coverage floor in `vitest.config.ts` sits
   under it.
