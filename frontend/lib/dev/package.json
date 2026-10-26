@@ -10,6 +10,7 @@
     "./vitest": "./src/vitest.ts",
     "./vite": "./src/vite.ts",
     "./chrome": "./src/chrome.ts",
+    "./screenshots": "./src/screenshots.ts",
     "./tsconfig/*.json": "./tsconfig/*.json"
   },
   "scripts": {
@@ -22,6 +23,7 @@
     "@fz/style": "workspace:*",
     "angular-eslint": "^22.6.0",
     "eslint-plugin-jsdoc": "^65.4.2",
+    "sharp": "^0.35.5",
     "typescript-eslint": "^8.72.0"
   },
   "peerDependencies": {

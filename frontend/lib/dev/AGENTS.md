@@ -61,6 +61,13 @@ repository's rules, which apply here too, are in
   `findChrome()` picks the Chrome to run: the one asked for, `CHROME_PATH`,
   or the first installed in a usual place. The games' screenshot scripts
   are built on it.
+- `src/screenshots.ts`, `@fz/dev/screenshots`: the images the site shows
+  of a game, `SITE_IMAGES` (`thumb.webp` at 576 × 324 and `preview.webp` at
+  2560 × 1440, the names `screenshotUrl()` in the site's model asks for),
+  and the sharp calls that write them. `writeSiteImages()` writes both from
+  a capture into a folder, the thumbnail cropped to a region when given
+  one; `writeImage()` writes one image of any size, as the Solitaire
+  Collection's rules-page image is.
 
 ## How a workspace uses it
 
@@ -78,6 +85,9 @@ repository's rules, which apply here too, are in
   merged in by Vite's `mergeConfig()`, as `frontend/games/solitaire/` does
   for its Phaser chunk. Analog's plugin, Vite and Vitest are peers, which
   the workspace lists and runs.
+- **A game's screenshot script writes the site's images with
+  `writeSiteImages()`**, and keeps to itself how it stages its game and
+  what else it writes.
 - **A workspace's own import fences use
   `@typescript-eslint/no-restricted-imports`**, so that they add to the
   testing fence, which uses ESLint's own `no-restricted-imports`, rather

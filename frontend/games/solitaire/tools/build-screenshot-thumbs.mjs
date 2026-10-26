@@ -12,11 +12,12 @@
  * apiece, so they stay out of `public/`.
  */
 import sharp from "sharp";
-import { mkdir, readdir, stat } from "node:fs/promises";
+import { readdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { writeImage, writeSiteImages } from "@fz/dev/screenshots";
 
-/** @import { Region } from "sharp" */
+/** @import { Region, ResizeOptions } from "sharp" */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE_DIR = join(ROOT, "docs/screenshots");
@@ -24,33 +25,14 @@ const SOURCE = "overview.png";
 const TARGET_DIR = join(ROOT, "public/docs/screenshots");
 
 /**
- * The images to write, each at least twice the CSS size it is shown at so
- * that it stays sharp on a high density display: the rules page shows its
- * screenshot at up to 800 CSS px wide, and the site shows the preview at up
- * to 1200 and the thumbnail at up to about 288.
- *
- * The thumbnail is cropped to the board, since the header would be an
- * illegible strip at its size. The quality keeps card faces legible at a
- * fraction of the PNG's size; the rules page's larger image gets more, since
- * it is looked at closely.
+ * The rules page's image, twice the 800 CSS px it is shown at, so that it
+ * stays sharp on a high density display. It is looked at closely, so it is
+ * written at a higher quality than the site's images.
  */
-const OUTPUTS = [
-  {
-    file: "overview.webp",
-    width: 1600,
-    height: 900,
-    boardOnly: false,
-    quality: 90,
-  },
-  { file: "thumb.webp", width: 576, height: 324, boardOnly: true, quality: 80 },
-  {
-    file: "preview.webp",
-    width: 2560,
-    height: 1440,
-    boardOnly: false,
-    quality: 80,
-  },
-];
+const OVERVIEW = { file: "overview.webp", width: 1600, height: 900 };
+
+/** The WebP quality of the rules page's image. */
+const OVERVIEW_QUALITY = 90;
 
 /**
  * The most of the height the header may take before the crop is assumed to
@@ -118,7 +100,11 @@ async function findBoard(source) {
 }
 
 /**
- * Writes every output of one game's screenshot, returning their sizes.
+ * Writes the rules page's image and the site's two of one game's screenshot,
+ * returning their sizes.
+ *
+ * The site's thumbnail is cropped to the board, since the header would be an
+ * illegible strip at its size.
  *
  * @param {string} id The game, which names its screenshot directories.
  * @returns {Promise<string[]>}
@@ -126,27 +112,25 @@ async function findBoard(source) {
 async function shrink(id) {
   const source = join(SOURCE_DIR, id, SOURCE);
   const targetDir = join(TARGET_DIR, id);
-  await mkdir(targetDir, { recursive: true });
   const { region, felt } = await findBoard(source);
-  const sizes = [];
-  for (const output of OUTPUTS) {
-    const target = join(targetDir, output.file);
-    const image = sharp(source);
-    await (output.boardOnly ? image.extract(region) : image)
-      // Contained rather than cropped, since a wide board runs edge to edge;
-      // any strip left over goes below it, as more felt.
-      .resize(output.width, output.height, {
-        fit: "contain",
-        position: "top",
-        background: felt,
-      })
-      // Smart subsampling keeps the red suits from bleeding into the white.
-      .webp({ quality: output.quality, smartSubsample: true })
-      .toFile(target);
-    const kilobytes = Math.round((await stat(target)).size / 1024);
-    sizes.push(`${output.file} ${kilobytes} KB`);
-  }
-  return sizes;
+  // Contained rather than cropped, since a wide board runs edge to edge; any
+  // strip left over goes below it, as more felt.
+  /** @type {ResizeOptions} */
+  const resize = { fit: "contain", position: "top", background: felt };
+  const sizes = await writeSiteImages(source, targetDir, {
+    thumbRegion: region,
+    resize,
+  });
+  const overview = await writeImage(
+    source,
+    join(targetDir, OVERVIEW.file),
+    OVERVIEW,
+    { resize, quality: OVERVIEW_QUALITY },
+  );
+  const written = new Map([[OVERVIEW.file, overview], ...sizes]);
+  return [...written].map(
+    ([file, bytes]) => `${file} ${Math.round(bytes / 1024)} KB`,
+  );
 }
 
 async function main() {
