@@ -38,7 +38,8 @@ keeps its own for its code. Paths are relative to
     `@fz/game-ui/stopwatch`, makes every move and says what it did through
     `@fz/ui/announcer`, and asks through `@fz/ui/confirm` before a new deal
     throws a game away; `SavedGameService` keeps the game in progress.
-  - `board/` — the minefield.
+  - `board/` — the minefield, and `LongPressDirective`, which tells when a
+    finger rests on it and keeps the click that follows from it.
   - `bar/` — `BarComponent` fills the libraries' `<fz-game-bar>` with the
     mines left, the lives, the time and the actions.
   - `settings/` — the settings drawer, and `SettingsService`, which keeps

@@ -27,7 +27,7 @@ git history keeps it.
 | P4    | `@fz/style/testing`                  | done  |
 | P5    | The games' viewport in `@fz/game-ui` | done  |
 | P6    | `Stopwatch` and `Announcer`          | done  |
-| P7    | The long press                       | to do |
+| P7    | The long press                       | done  |
 | P8    | Small things                         | to do |
 | P9    | The Solitaire Collection takes it up | to do |
 | P10   | Signal Forms                         | to do |
@@ -260,4 +260,28 @@ git history keeps it.
   `<fz-announcer>` up later.
 - `yarn verify` green. P7's first edits to the board were on disk by the
   time its build step reached Minesweeper, so P7's own run is the one that
-  holds for both.
+  holds for both. Committed as `d9111b6`.
+
+### 2026-10-26: P7, the long press
+
+- `src/app/board/long_press.directive.ts`: `LongPressDirective`
+  (`[appLongPress]`) times a finger or a pen, gives up when it drifts more
+  than 10 px or lifts, and emits `longPress` with the pointer down that
+  began it, so the board finds the square from its target. It takes
+  `LONG_PRESS_MS`, which nothing outside the board imported.
+- It keeps what the browser makes of the same press from the board: the
+  click after a long press, and a finger's `contextmenu`, which it also
+  prevents. It does so with listeners in the capture phase on its host,
+  which run before the board's own on the same element, so the board's
+  `onClick` and `onContextMenu` no longer know a finger exists.
+- Two small changes of behavior, neither one a player would see: a
+  finger's menu is prevented anywhere on the grid, not only on a square;
+  and a long press that ended off a square no longer leaves the flag set
+  that swallowed the next click on one.
+- `BoardComponent` loses its three gesture fields, its `DestroyRef`, the
+  `Press` type and three handlers: 215 lines to 152.
+- The board's specs pass unchanged (`board.component.spec.ts` untouched).
+  The directive has 16 specs of its own, on a host button that writes down
+  what reaches its listeners. Minesweeper 325 → 341.
+- Docs: Minesweeper's `AGENTS.md`.
+- `yarn verify` green.
