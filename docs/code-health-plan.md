@@ -1,8 +1,11 @@
 # Plan: code health for Minesweeper and the shared libraries
 
-Agreed 2026-10-25: the user took every recommendation ("Proceed with all
-suggested fixes and recommendations"), and asked for a work log and regular
-commits. The work log is `docs/code-health-worklog.md`.
+Agreed 2026-10-25, built 2026-10-25 and 26: the user took every
+recommendation ("Proceed with all suggested fixes and recommendations"), and
+asked for a work log and regular commits. Each phase below ends with what was
+built. The work log kept while it was built, with what was found on the way,
+was deleted when the work was done; git history keeps it as
+`docs/code-health-worklog.md`.
 
 It comes from a review of
 `frontend/games/minesweeper/` and `frontend/lib/`, asked for to raise the code's
@@ -302,12 +305,21 @@ figures on the day, rounded down, each with `@vitest/coverage-v8`. The
 `vitest-testing` skills and the `AGENTS.md` files say that `yarn test` checks
 the floor.
 
+- **As built:** every library's and game's `test` runs with coverage, so a
+  floor holds for the whole suite and one spec runs with
+  `yarn vitest run <path>`. The site has no coverage set up, which was left
+  for a floor of its own later.
+
 ### P2: Minesweeper by feature (small)
 
 Finding 6, moves and renames only, with `git mv` so history follows. The
 workspace's `AGENTS.md`, its `vitest-testing` skill and the ESLint fence take
 the new paths; `node .agents/check-skill-references.mjs` fails on a path a
 skill still names.
+
+- **As built:** `src/game/` is `src/rules/`, the services sit in `play/`,
+  `settings/` and `stats/`, and `game_bar/` is `bar/`. The same 336 tests
+  passed at the same coverage.
 
 ### P3: `@fz/dev` (medium)
 
@@ -317,11 +329,24 @@ root's config for `.agents`. The repository's `AGENTS.md` names the library
 and says a workspace's configs extend its presets. Proof: `yarn verify`, and
 both screenshot scripts still write their images, at the same sizes.
 
+- **As built:** `@fz/dev/eslint`, `@fz/dev/tsconfig/*.json` and
+  `@fz/dev/chrome`, adopted everywhere. The Solitaire Collection was the long
+  part: the strict set found 21 compiler errors and 1113 lint problems, and
+  its app config had never typechecked `import.meta`. A workspace's own import
+  fences use `@typescript-eslint/no-restricted-imports`, since a second
+  `no-restricted-imports` would replace the preset's. Minesweeper's
+  screenshots came out byte for byte the same.
+
 ### P4: `@fz/style/testing` (small)
 
 Finding 3. The three contrast specs take it up. Each must still fail when a
 pair drops below its threshold, which is checked by breaking an ink on
 purpose, then restoring it.
+
+- **As built:** `compileStylesheet()`, `paletteRoles()` and `paint()` with
+  the contrast math; a translucent color with nothing under it throws rather
+  than landing on black. Breaking a palette's `muted` and a dark ink failed
+  the pairs they should.
 
 ### P5: the games' viewport in `@fz/game-ui` (medium)
 
@@ -330,20 +355,42 @@ screenshots before and after at 1440 × 900, 1280 × 720, 1000 × 800,
 700 × 900, 390 × 844 and 844 × 390, compared pixel for pixel. The Solitaire
 Collection takes it up in P9.
 
+- **As built:** `@fz/game-ui/viewport` (`GameViewportService`),
+  `@fz/game-ui/breakpoints` (the widths, `formFactorAt()` and the Sass
+  mixins, each checked against the constants by a spec) and
+  `installFakeViewport()` in `@fz/game-ui/testing`. No pixel differed, at
+  340 × 720 too.
+
 ### P6: `Stopwatch` and `Announcer` (medium)
 
 Finding 7, taken up by Minesweeper. The one change a player could notice: the
 clock no longer drops part-seconds, so a time can come out a second longer
 than before.
 
+- **As built:** named `StopwatchService` and `AnnouncerService`, since every
+  injectable in the libraries ends in `Service`. The stopwatch reads
+  `Date.now()` and pauses while the page is hidden. The site's home-page
+  search keeps its own live region, and could take `<fz-announcer>` up later.
+
 ### P7: the long press (small)
 
 Finding 8. The board's specs pass unchanged, which shows the gesture works as
 before.
 
+- **As built:** `LongPressDirective`, which also keeps the click and a
+  finger's `contextmenu` that follow a long press from the board, with
+  listeners in the capture phase. The board's specs passed untouched.
+
 ### P8: small things (small)
 
 Finding 9, a commit each.
+
+- **As built:** all of finding 9, including `readVersioned()` and
+  `writeVersioned()` in `LocalStorageService`, the generic
+  `<fz-bar-overflow>` (its template checker infers the ids from `[items]`),
+  `ThemeService.options`, and `@fz/style`'s TypeScript sorted into `build/`
+  and `lint/` with an ESLint fence. `OnPush` went from Minesweeper's
+  components, since Angular 22 makes it the default.
 
 ### P9: the Solitaire Collection takes up the shared pieces (medium, optional)
 
@@ -353,9 +400,25 @@ Its `ViewportService`, `_breakpoints.scss` and spec fake give way to P5's, its
 `OnPush`. Its engine's `form_factor.ts` reads `@fz/game-ui/breakpoints`. The
 same screenshot check as P5.
 
+- **As built:** all of it, with no pixel differing. Its `phone` width (480px)
+  stays its own. The game browser's `<fz-announcer>` sits inside its dialog,
+  since a modal hides the page behind it from a screen reader; `@fz/ui`'s
+  docs say an app puts one in each modal that speaks while open. The recent
+  games and presentation settings carry a version and still read the bare
+  entries earlier builds stored. `emitDecoratorMetadata`, `removeComments` and
+  `sourceMap` left its tsconfig, which changed no byte of the build but made
+  28 imports `import type`.
+
 ### P10: Signal Forms (small, if decided)
 
 Finding 10.
+
+- **As built:** Signal Forms are stable since Angular 22.0, so Minesweeper's
+  custom field is a `form()` with `sizeProblem()` as its validator, its
+  bounds set by `min()` and `max()` rules. A problem now shows once the
+  player leaves an input, as well as on pressing Start. A number input
+  holding no number ("1e") carries a `parse` error, which the message reads
+  as empty.
 
 ## Decisions
 
