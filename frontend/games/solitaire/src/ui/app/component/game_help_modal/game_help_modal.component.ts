@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   Injector,
@@ -35,7 +34,6 @@ interface VariantCard {
 /** Shows the rules of the game on the table in a tabbed dialog. */
 @Component({
   selector: "app-game-help-modal",
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DialogComponent, IconComponent],
   templateUrl: "./game_help_modal.component.html",
   styleUrl: "./game_help_modal.component.scss",

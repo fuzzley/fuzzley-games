@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  output,
-  signal,
-} from "@angular/core";
+import { Component, inject, output, signal } from "@angular/core";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { OptionGroupComponent } from "../option_group/option_group.component";
@@ -15,7 +9,6 @@ import { OptionGroupComponent } from "../option_group/option_group.component";
  */
 @Component({
   selector: "app-debug-panel",
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [OptionGroupComponent],
   templateUrl: "./debug_panel.component.html",
   styleUrl: "./debug_panel.component.scss",
