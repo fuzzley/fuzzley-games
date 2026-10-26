@@ -1,21 +1,21 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
-import { Deal } from "@/engine/tableau/dealing/deal";
+import type { Deal } from "@/engine/tableau/dealing/deal";
 import { DealtTableGame } from "@/engine/tableau/game/dealt_table_game";
 import { ActionKind } from "@/games/common/action_kinds";
-import { DeckOptions } from "@/games/common/deck_options";
+import type { DeckOptions } from "@/games/common/deck_options";
 import { recycleMarker } from "@/games/common/zone_presets";
 import { dealLaBelleLucieLayout, fanLayout } from "./la_belle_lucie_deal";
 import {
   DEFAULT_LA_BELLE_LUCIE_VARIANT,
-  LaBelleLucieVariantRules,
+  type LaBelleLucieVariantRules,
   laBelleLucieRules,
 } from "./la_belle_lucie_rules";
 import {
   LaBelleLucieRole,
-  LaBelleLucieVariant,
+  type LaBelleLucieVariant,
   REDEAL_PILE_ID,
   laBelleLucieZoneSpecs,
 } from "./la_belle_lucie_zones";

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { IntentHandler } from "@/engine/render/input/table_intents";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
 import { MontanaGame } from "@/games/montana/montana_game";
 import { montanaGestures } from "@/games/montana/montana_gestures";
 import {

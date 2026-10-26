@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import {
-  DeckCardId,
-  PlayingCard,
+  type DeckCardId,
+  type PlayingCard,
   Rank,
   Suit,
 } from "@/engine/core/card/playing_card";

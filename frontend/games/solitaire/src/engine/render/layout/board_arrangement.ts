@@ -1,4 +1,4 @@
-import { FormFactor } from "./form_factor";
+import type { FormFactor } from "./form_factor";
 
 /** Says where a board puts the piles that are not columns. */
 export type PilePosition =

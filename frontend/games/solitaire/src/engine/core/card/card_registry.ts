@@ -1,5 +1,5 @@
 import {
-  DeckCardId,
+  type DeckCardId,
   PlayingCard,
   playingCardFaceKey,
   playingCardInstanceId,

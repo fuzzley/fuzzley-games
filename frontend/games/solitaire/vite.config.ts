@@ -28,9 +28,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes("node_modules/phaser")) {
-            return "phaser";
-          }
+          return id.includes("node_modules/phaser") ? "phaser" : undefined;
         },
       },
     },

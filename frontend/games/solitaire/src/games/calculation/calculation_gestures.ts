@@ -1,7 +1,7 @@
-import { IntentHandler } from "@/engine/render/input/table_intents";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
 import { drawOnStockTop } from "@/engine/tableau/gestures/press_handlers";
 import { tableGestures } from "@/engine/tableau/gestures/table_gestures";
-import { CalculationGame } from "./calculation_game";
+import type { CalculationGame } from "./calculation_game";
 import { CalculationRole } from "./calculation_zones";
 
 /**

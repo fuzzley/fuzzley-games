@@ -1,4 +1,4 @@
-import { GameBrowserItem } from "./game_browser_item";
+import type { GameBrowserItem } from "./game_browser_item";
 import {
   DIFFICULTY_LABELS,
   Difficulty,

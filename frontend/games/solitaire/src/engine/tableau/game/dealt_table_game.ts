@@ -1,11 +1,15 @@
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 import { CardRegistry } from "@/engine/core/card/card_registry";
 import { Deal } from "../dealing/deal";
-import { DeckSource, DeckSourceOptions } from "../dealing/deck_source";
-import { GameSnapshot } from "../session/game_snapshot";
-import { PlayableGame } from "../session/playable_game";
+import { DeckSource, type DeckSourceOptions } from "../dealing/deck_source";
+import type { GameSnapshot } from "../session/game_snapshot";
+import type { PlayableGame } from "../session/playable_game";
 import { resolveSnapshot } from "../session/snapshot_resolution";
-import { TableGame, TableGameEvents, TableGameOptions } from "./table_game";
+import {
+  TableGame,
+  type TableGameEvents,
+  type TableGameOptions,
+} from "./table_game";
 
 /** Configures a game that deals itself from a deck. */
 export interface DealtTableGameOptions extends Omit<
@@ -21,7 +25,7 @@ export interface DealtTableGameOptions extends Omit<
  * each game only to say where the cards go.
  */
 export abstract class DealtTableGame<
-  EventMap extends Record<string, unknown> & TableGameEvents = TableGameEvents,
+  EventMap extends TableGameEvents = TableGameEvents,
 >
   extends TableGame<EventMap>
   implements PlayableGame

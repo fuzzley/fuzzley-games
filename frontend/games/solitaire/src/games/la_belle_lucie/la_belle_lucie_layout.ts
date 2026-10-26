@@ -1,4 +1,4 @@
-import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import type { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { boardLayout } from "../common/board_layout";
 import { LaBelleLucieVariant } from "./la_belle_lucie_rules";
 import {

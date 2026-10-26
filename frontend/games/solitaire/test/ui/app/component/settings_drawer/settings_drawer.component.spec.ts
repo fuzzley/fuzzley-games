@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
-import { TestBed, ComponentFixture } from "@angular/core/testing";
+import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { ThemeService } from "@fz/ui/theme";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
@@ -97,9 +97,10 @@ describe("SettingsDrawerComponent", () => {
     it("renders whichever ones the game on the table offers", () => {
       openDrawer();
 
-      expect(ruleButtons().map((button) => button.textContent?.trim())).toEqual(
-        ["Draw 1", "Draw 3"],
-      );
+      expect(ruleButtons().map((button) => button.textContent.trim())).toEqual([
+        "Draw 1",
+        "Draw 3",
+      ]);
     });
 
     it("marks the chosen one as checked, not merely highlighted", () => {
@@ -145,7 +146,7 @@ describe("SettingsDrawerComponent", () => {
       openDrawer();
 
       const names = queryAll(fixture, ".card-back-selector button").map(
-        (button) => button.textContent?.trim(),
+        (button) => button.textContent.trim(),
       );
 
       expect(names).toEqual(CARD_BACKS.map((back) => back.name));
@@ -165,7 +166,7 @@ describe("SettingsDrawerComponent", () => {
   describe("the table's arrangement", () => {
     /** Returns the labels of a group's buttons, in the order offered. */
     function labels(group: string): (string | undefined)[] {
-      return buttons(group).map((button) => button.textContent?.trim());
+      return buttons(group).map((button) => button.textContent.trim());
     }
 
     /** Returns a group's buttons, in the order offered. */
@@ -318,9 +319,9 @@ describe("SettingsDrawerComponent", () => {
     it("offers auto, mobile and desktop cards", () => {
       openDrawer();
 
-      expect(
-        styleButtons().map((button) => button.textContent?.trim()),
-      ).toEqual(["Auto", "Mobile", "Desktop"]);
+      expect(styleButtons().map((button) => button.textContent.trim())).toEqual(
+        ["Auto", "Mobile", "Desktop"],
+      );
     });
 
     it("checks the style the player has", () => {
@@ -473,9 +474,10 @@ describe("SettingsDrawerComponent", () => {
   describe("the palette", () => {
     /** Returns the palette picker's radio for a palette. */
     function paletteRadio(id: string): HTMLInputElement {
-      return queryRequired<HTMLInputElement>(
+      return queryRequired(
         fixture,
         `fz-theme-picker input[value="${id}"]`,
+        HTMLInputElement,
       );
     }
 
@@ -569,7 +571,7 @@ describe("SettingsDrawerComponent", () => {
   describe("reporting a bug", () => {
     /** Returns the link to a new bug report. */
     function reportLink(): HTMLAnchorElement {
-      return queryRequired<HTMLAnchorElement>(fixture, ".btn-report");
+      return queryRequired(fixture, ".btn-report", HTMLAnchorElement);
     }
 
     it("links to a new report describing the game on the table", async () => {

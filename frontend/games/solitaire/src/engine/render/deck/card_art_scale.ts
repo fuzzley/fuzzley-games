@@ -1,4 +1,4 @@
-import { Size } from "../layout/geometry";
+import type { Size } from "../layout/geometry";
 import {
   CARD_RENDER_HEIGHT_PX,
   CARD_RENDER_WIDTH_PX,

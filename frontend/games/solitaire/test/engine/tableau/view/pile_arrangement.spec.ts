@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import type { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { measureTable } from "@/engine/render/layout/table_metrics";
-import { FanFit, PileLayout } from "@/engine/render/layout/pile_layout";
-import { Viewport } from "@/engine/render/layout/viewport";
+import type { FanFit, PileLayout } from "@/engine/render/layout/pile_layout";
+import type { Viewport } from "@/engine/render/layout/viewport";
 import { pileArrangement } from "@/engine/tableau/view/pile_arrangement";
 import { FAKE_TABLE_LAYOUT } from "@test/support/fake_table/board";
 import { FakeTableGame } from "@test/support/fake_table/game";

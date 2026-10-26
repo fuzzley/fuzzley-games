@@ -1,14 +1,14 @@
-import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
-import { DeckSpec } from "@/engine/core/card/deck";
+import type { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
+import type { DeckSpec } from "@/engine/core/card/deck";
 import {
   ALL_RANKS,
   ALL_SUITS,
-  PlayingCard,
+  type PlayingCard,
   Rank,
   rankAbove,
 } from "@/engine/core/card/playing_card";
 import {
-  PlacementRule,
+  type PlacementRule,
   all,
   cardIs,
   hasRank,
@@ -128,7 +128,7 @@ export function settledPrefixLength(
   firstRank: Rank,
 ): number {
   const first = row[0]?.topCard;
-  if (!first || first.rank !== firstRank) return 0;
+  if (first?.rank !== firstRank) return 0;
 
   let length = 1;
   while (length < row.length) {

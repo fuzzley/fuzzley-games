@@ -52,7 +52,7 @@ describe("CastleGame deal", () => {
 
     const heartsHome = game.foundations[ALL_SUITS.indexOf(Suit.HEART)];
 
-    expect(heartsHome?.getCards().map((card) => card.rank)).toContain(Rank.TWO);
+    expect(heartsHome.getCards().map((card) => card.rank)).toContain(Rank.TWO);
   });
 
   it("deals Fortress into ten rows, two of six and eight of five", () => {

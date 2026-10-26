@@ -27,7 +27,9 @@ export function createMockGameModel(overrides: MockGameModelOverrides = {}) {
 
   /** Raises an event as the real game would. */
   const emit = (event: string) => {
-    listeners.get(event)?.forEach((callback) => callback());
+    listeners.get(event)?.forEach((callback) => {
+      callback();
+    });
   };
 
   /** Clears the readings and announces the new deal, as a real deal does. */

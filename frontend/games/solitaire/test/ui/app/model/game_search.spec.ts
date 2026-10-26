@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
-  GameBrowserItem,
+  type GameBrowserItem,
   browserItems,
 } from "@/ui/app/model/game_browser_item";
 import {
-  GameFilters,
+  type GameFilters,
   NO_FILTERS,
   hasFilters,
   searchGames,

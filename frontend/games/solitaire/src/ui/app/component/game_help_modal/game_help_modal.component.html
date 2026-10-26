@@ -1,6 +1,6 @@
 <fz-dialog
   [open]="docService.isOpen()"
-  [label]="modalTitle() + ' rules and documentation'"
+  [label]="`${modalTitle()} rules and documentation`"
   (closed)="docService.closeHelp()"
 >
   <div class="modal-dialog">

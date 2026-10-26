@@ -1,33 +1,33 @@
-import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
-import { CardRegistry } from "@/engine/core/card/card_registry";
+import type { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
+import type { CardRegistry } from "@/engine/core/card/card_registry";
 import { EventEmitter } from "@/engine/core/common/event_emitter";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 import { resolveMove } from "../moves/move_legality";
 import {
-  AppliedMove,
-  AppliedMoveKind,
-  CardTransfer,
+  type AppliedMove,
+  type AppliedMoveKind,
+  type CardTransfer,
   MOVE_KIND,
-  MoveEffects,
+  type MoveEffects,
   NO_MOVE_EFFECTS,
-  ResolvedMove,
+  type ResolvedMove,
 } from "../moves/move";
-import { MoveHistory, RelocationListener } from "../moves/move_history";
-import { GameState, ReadableGameState } from "../session/game_state";
-import { BoardQuery } from "../rules/board_query";
+import { MoveHistory, type RelocationListener } from "../moves/move_history";
+import { GameState, type ReadableGameState } from "../session/game_state";
+import type { BoardQuery } from "../rules/board_query";
 import { canGrab } from "../rules/grab";
 import { Tabletop } from "./tabletop";
-import { PileMarker, PileMarkers } from "../zones/pile_marker";
-import { ZoneRules, ZoneSpec } from "../zones/zone";
-import { TableView } from "../view/table_view";
+import { type PileMarker, PileMarkers } from "../zones/pile_marker";
+import type { ZoneRules, ZoneSpec } from "../zones/zone";
+import type { TableView } from "../view/table_view";
 
 /** Maps the lifecycle events every table game publishes to their payloads. */
-export type TableGameEvents = {
+export interface TableGameEvents {
   /** Emitted when every card in play has reached the winning role. */
   "game-won": undefined;
   /** Emitted when the game is restarted or a new game is dealt. */
   "game-reset": undefined;
-};
+}
 
 /** Configures a table game's board. */
 export interface TableGameOptions {
@@ -52,7 +52,7 @@ export interface TableGameOptions {
  * where every card is, whether a move is legal, and the history undo unwinds.
  */
 export abstract class TableGame<
-  EventMap extends Record<string, unknown> & TableGameEvents = TableGameEvents,
+  EventMap extends TableGameEvents = TableGameEvents,
 >
   extends EventEmitter<EventMap>
   implements TableView
@@ -214,10 +214,9 @@ export abstract class TableGame<
    * Applies whatever a move does beyond relocating its cards, and reports it so
    * undo can put it back.
    *
-   * @param move The move, already applied to the piles.
+   * @param _move The move, already applied to the piles.
    */
-  protected applyMoveEffects(move: ResolvedMove): MoveEffects {
-    void move;
+  protected applyMoveEffects(_move: ResolvedMove): MoveEffects {
     return NO_MOVE_EFFECTS;
   }
 

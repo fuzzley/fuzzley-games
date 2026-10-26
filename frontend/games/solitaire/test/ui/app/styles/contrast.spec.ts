@@ -14,7 +14,7 @@ const require = createRequire(import.meta.url);
 /** Returns the `sass` export of a library's stylesheet, by its import URL. */
 function librarySass(url: string): URL | null {
   const [scope, name, ...rest] = url.split("/");
-  const packageName = `${scope ?? ""}/${name ?? ""}`;
+  const packageName = `${scope}/${name}`;
   const root = (require.resolve.paths(packageName) ?? [])
     .map((folder) => path.join(folder, packageName))
     .find((folder) => existsSync(path.join(folder, "package.json")));

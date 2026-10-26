@@ -23,10 +23,10 @@ export interface ReadableGameState extends GameMetrics {
 }
 
 /** Maps each event {@link GameState} publishes to its payload. */
-type GameStateEvents = {
+interface GameStateEvents {
   /** Emitted whenever any metric changes, carrying them all. */
   "metrics-changed": GameMetrics;
-};
+}
 
 /** Publishes the live game metrics the application shell displays. */
 export class GameState

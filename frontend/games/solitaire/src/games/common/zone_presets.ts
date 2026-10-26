@@ -1,10 +1,10 @@
-import { PileRole } from "@/engine/core/card/card_pile";
-import { PileLayout } from "@/engine/render/layout/pile_layout";
-import { PlacementRule } from "@/engine/tableau/rules/placement";
-import { PileMarker } from "@/engine/tableau/zones/pile_marker";
-import { FaceVisibility } from "@/engine/tableau/zones/zone_look";
-import { GrabRule } from "@/engine/tableau/rules/grab";
-import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import type { PileRole } from "@/engine/core/card/card_pile";
+import type { PileLayout } from "@/engine/render/layout/pile_layout";
+import type { PlacementRule } from "@/engine/tableau/rules/placement";
+import type { PileMarker } from "@/engine/tableau/zones/pile_marker";
+import type { FaceVisibility } from "@/engine/tableau/zones/zone_look";
+import type { GrabRule } from "@/engine/tableau/rules/grab";
+import type { ZoneSpec } from "@/engine/tableau/zones/zone";
 import { zoneAt, zoneRow } from "@/engine/tableau/zones/zone_builder";
 import { cellPileId, foundationPileId, tableauPileId } from "./pile_ids";
 import { BURIED_COLUMN_LAYOUT, STACKED_PILE_LAYOUT } from "./pile_layouts";

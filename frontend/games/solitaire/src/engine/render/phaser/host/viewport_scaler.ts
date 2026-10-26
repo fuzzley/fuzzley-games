@@ -1,4 +1,4 @@
-import { Insets, NO_INSETS } from "../../layout/viewport";
+import { type Insets, NO_INSETS } from "../../layout/viewport";
 
 /**
  * Describes the slice of `Phaser.Game` the scaler drives, so a test need not
@@ -92,7 +92,9 @@ export const watchDevicePixels: WatchDevicePixels = (target, onResize) => {
     // A browser without the box, such as Safari, still reports the resize.
     observer.observe(target);
   }
-  return () => observer.disconnect();
+  return () => {
+    observer.disconnect();
+  };
 };
 
 /**

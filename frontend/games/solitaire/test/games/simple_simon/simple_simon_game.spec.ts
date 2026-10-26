@@ -3,7 +3,7 @@ import { ALL_PLAYING_CARD_IDS, deckCardIds } from "@/engine/core/card/deck";
 import { ALL_RANKS, Suit } from "@/engine/core/card/playing_card";
 import {
   SimpleSimonGame,
-  SimpleSimonOptions,
+  type SimpleSimonOptions,
 } from "@/games/simple_simon/simple_simon_game";
 import { SimpleSimonVariant } from "@/games/simple_simon/simple_simon_rules";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
 import { makePlayingCard } from "@test/support/card_builder";
 import { TestTabletop } from "@test/support/test_tabletop";

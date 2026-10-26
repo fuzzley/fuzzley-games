@@ -1,11 +1,11 @@
-import { PileRole } from "@/engine/core/card/card_pile";
+import type { PileRole } from "@/engine/core/card/card_pile";
 import {
   Rank,
   rankAbove,
   rankAboveWrapping,
 } from "@/engine/core/card/playing_card";
 import {
-  Adjacency,
+  type Adjacency,
   isAnySuitRun,
   isAnySuitRunWrapping,
   isDifferentSuitRun,
@@ -15,10 +15,10 @@ import {
   isSameSuitRun,
   isSameSuitRunWrapping,
 } from "./adjacency";
-import { BoardQuery } from "./board_query";
+import type { BoardQuery } from "./board_query";
 import {
-  PlacementContext,
-  PlacementRule,
+  type PlacementContext,
+  type PlacementRule,
   all,
   anyCard,
   byEmptiness,

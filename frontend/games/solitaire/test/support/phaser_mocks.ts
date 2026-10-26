@@ -1,5 +1,5 @@
 import { vi, type Mock } from "vitest";
-import * as Phaser from "phaser";
+import type * as Phaser from "phaser";
 import { DEFAULT_DESKTOP_CARD_DECK } from "@/engine/render/deck/card_deck";
 import { cardAtlasTextureKey } from "@/engine/render/phaser/deck/card_deck_atlas";
 

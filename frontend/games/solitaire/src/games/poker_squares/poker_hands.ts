@@ -1,4 +1,4 @@
-import { PlayingCardId, Rank } from "@/engine/core/card/playing_card";
+import { type PlayingCardId, Rank } from "@/engine/core/card/playing_card";
 
 /** Names the poker hands a line of Poker Squares can make, weakest first. */
 export const PokerHand = {

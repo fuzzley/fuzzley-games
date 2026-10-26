@@ -1,6 +1,10 @@
-import { Deal } from "@/engine/tableau/dealing/deal";
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { ALL_SUITS, PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import type { Deal } from "@/engine/tableau/dealing/deal";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import {
+  ALL_SUITS,
+  type PlayingCard,
+  Rank,
+} from "@/engine/core/card/playing_card";
 
 /** How many columns sit under the Aces and are dealt one card short. */
 export const SHORT_COLUMN_COUNT = ALL_SUITS.length;

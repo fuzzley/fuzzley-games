@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
+import type { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { GolfGame } from "@/games/golf/golf_game";
 import { golfGestures } from "@/games/golf/golf_gestures";
 import { CARDS_PER_COLUMN } from "@/games/golf/golf_deal";

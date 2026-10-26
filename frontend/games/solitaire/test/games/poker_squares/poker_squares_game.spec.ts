@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
+import type { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import { PokerSquaresGame } from "@/games/poker_squares/poker_squares_game";
 import { PokerSquaresScoring } from "@/games/poker_squares/poker_squares_rules";
 import { squarePileId } from "@/games/poker_squares/poker_squares_zones";

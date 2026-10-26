@@ -1,19 +1,19 @@
-import { Deal } from "@/engine/tableau/dealing/deal";
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { Deal } from "@/engine/tableau/dealing/deal";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { DeckOptions } from "@/games/common/deck_options";
+import type { DeckOptions } from "@/games/common/deck_options";
 import { dealKlondikeAlmostWin, dealKlondikeLayout } from "./klondike_deal";
 import { KlondikeFamilyGame } from "./klondike_family_game";
 import {
   DEFAULT_DRAW_COUNT,
   DEFAULT_KLONDIKE_VARIANT,
-  DrawCount,
-  KlondikeVariant,
+  type DrawCount,
+  type KlondikeVariant,
   klondikeDealsFaceUp,
 } from "./klondike_rules";
 import { KlondikeRole, klondikeZoneSpecs } from "./klondike_zones";
-import { ScoringPolicy, StandardScoringPolicy } from "./scoring_policy";
+import { type ScoringPolicy, StandardScoringPolicy } from "./scoring_policy";
 
 /** Configures a game of Klondike or one of its variants. */
 export interface KlondikeOptions extends DeckOptions {

@@ -223,27 +223,30 @@ export class GameBrowserComponent {
       Object.values(Difficulty).map((level) => ({
         label: DIFFICULTY_LABELS[level],
         pressed: filters.difficulties.includes(level),
-        toggle: () =>
+        toggle: () => {
           this.updateFilters((f) => ({
             ...f,
             difficulties: toggled(f.difficulties, level),
-          })),
+          }));
+        },
       })),
       [1, 2].map((decks) => ({
         label: decks === 1 ? "1 deck" : "2 decks",
         pressed: filters.decks.includes(decks),
-        toggle: () =>
-          this.updateFilters((f) => ({ ...f, decks: toggled(f.decks, decks) })),
+        toggle: () => {
+          this.updateFilters((f) => ({ ...f, decks: toggled(f.decks, decks) }));
+        },
       })),
       [
         {
           label: "All cards visible",
           pressed: filters.allCardsVisible,
-          toggle: () =>
+          toggle: () => {
             this.updateFilters((f) => ({
               ...f,
               allCardsVisible: !f.allCardsVisible,
-            })),
+            }));
+          },
         },
       ],
     ];
@@ -278,11 +281,12 @@ export class GameBrowserComponent {
         : count === 0
           ? "No games match."
           : `${count} ${count === 1 ? "game" : "games"}.`;
-      const timer = setTimeout(
-        () => this.announcement.set(text),
-        ANNOUNCE_DELAY_MS,
-      );
-      onCleanup(() => clearTimeout(timer));
+      const timer = setTimeout(() => {
+        this.announcement.set(text);
+      }, ANNOUNCE_DELAY_MS);
+      onCleanup(() => {
+        clearTimeout(timer);
+      });
     });
   }
 
@@ -366,9 +370,14 @@ export class GameBrowserComponent {
   /** Goes back from a narrow screen's preview to the list. */
   protected back(): void {
     this.showingDetail.set(false);
-    afterNextRender(() => this.heading().nativeElement.focus(), {
-      injector: this.injector,
-    });
+    afterNextRender(
+      () => {
+        this.heading().nativeElement.focus();
+      },
+      {
+        injector: this.injector,
+      },
+    );
   }
 
   /**

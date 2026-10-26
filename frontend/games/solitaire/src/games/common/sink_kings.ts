@@ -1,4 +1,4 @@
-import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import { type PlayingCard, Rank } from "@/engine/core/card/playing_card";
 
 /**
  * Returns a column with its Kings moved to the bottom, the cards otherwise in

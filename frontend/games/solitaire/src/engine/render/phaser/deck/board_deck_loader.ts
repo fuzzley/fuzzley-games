@@ -1,10 +1,10 @@
-import { Loader, Textures } from "phaser";
+import { Loader, type Textures } from "phaser";
 
-import { CardDeckId } from "../../deck/card_deck";
-import { CardArtScale } from "../../deck/card_art_scale";
-import { CardDeckStatus } from "../../view/presentation";
+import type { CardDeckId } from "../../deck/card_deck";
+import type { CardArtScale } from "../../deck/card_art_scale";
+import type { CardDeckStatus } from "../../view/presentation";
 import {
-  CardAtlas,
+  type CardAtlas,
   cardAtlasTextureKey,
   chooseCardAtlas,
   loadCardAtlas,

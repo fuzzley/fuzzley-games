@@ -1,8 +1,8 @@
-import { IntentHandler } from "@/engine/render/input/table_intents";
-import { BoardScene } from "@/engine/render/phaser/scene/board_scene";
-import { PlayableGame } from "@/engine/tableau/session/playable_game";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
+import type { BoardScene } from "@/engine/render/phaser/scene/board_scene";
+import type { PlayableGame } from "@/engine/tableau/session/playable_game";
 import {
-  TableBoardOptions,
+  type TableBoardOptions,
   makeTableBoardScene,
 } from "@/engine/board/table_board_scene";
 import { stocklessGestures } from "@/engine/tableau/gestures/table_gestures";
@@ -24,7 +24,12 @@ import { canfieldGestures } from "@/games/canfield/canfield_gestures";
 import { blackHoleGestures } from "@/games/black_hole/black_hole_gestures";
 import { pyramidGestures } from "@/games/pyramid/pyramid_gestures";
 import { triPeaksGestures } from "@/games/tri_peaks/tri_peaks_gestures";
-import { GameId, GameOf, boardLayoutsOf, catalogEntry } from "./game_catalog";
+import {
+  type GameId,
+  type GameOf,
+  boardLayoutsOf,
+  catalogEntry,
+} from "./game_catalog";
 
 /** Says what a press or a drop means in a particular game. */
 type GestureMap<Id extends GameId> = (game: GameOf<Id>) => IntentHandler;

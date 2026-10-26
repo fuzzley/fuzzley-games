@@ -1,5 +1,5 @@
 import { suitFoundation } from "@/engine/tableau/rules/builds";
-import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import type { ZoneSpec } from "@/engine/tableau/zones/zone";
 import { zoneRow } from "@/engine/tableau/zones/zone_builder";
 import {
   OPEN_COLUMN_LAYOUT,

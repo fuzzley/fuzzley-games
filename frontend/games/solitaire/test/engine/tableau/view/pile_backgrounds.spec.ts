@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import type { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import {
   pileBackgroundFrame,
   pileBackgrounds,

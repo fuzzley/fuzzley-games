@@ -15,11 +15,11 @@ import { PyramidGoal } from "@/games/pyramid/pyramid_rules";
 import { CastleVariant } from "@/games/beleaguered_castle/castle_rules";
 import {
   Difficulty,
-  GameFamilyProfile,
-  GameProfile,
-  GameProfileRegistry,
+  type GameFamilyProfile,
+  type GameProfile,
+  type GameProfileRegistry,
 } from "../model/game_profile.model";
-import { GameId, storedValues } from "./game_catalog";
+import { type GameId, storedValues } from "./game_catalog";
 
 /**
  * Holds a profile for every game in the catalog, so a game without one does

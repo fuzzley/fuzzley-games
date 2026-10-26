@@ -1,6 +1,6 @@
-import * as Phaser from "phaser";
-import { DragController } from "../../input/drag_controller";
-import { DragInteraction } from "../../input/interaction_state";
+import type * as Phaser from "phaser";
+import type { DragController } from "../../input/drag_controller";
+import type { DragInteraction } from "../../input/interaction_state";
 
 /** Returns the id of the card a sprite draws, or null if it is not a card. */
 function cardIdOf(gameObject: Phaser.GameObjects.Sprite): string | null {
@@ -54,8 +54,12 @@ export class BoardInputManager {
     // rather than from the pointer.
     this.host.input.on(
       "dragstart",
-      (pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Sprite) =>
-        this.onDragStart(pointer, gameObject),
+      (
+        pointer: Phaser.Input.Pointer,
+        gameObject: Phaser.GameObjects.Sprite,
+      ) => {
+        this.onDragStart(pointer, gameObject);
+      },
     );
     this.host.input.on(
       "drag",
@@ -64,12 +68,18 @@ export class BoardInputManager {
         _gameObject: Phaser.GameObjects.Sprite,
         dragX: number,
         dragY: number,
-      ) => this.controller.dragMoved({ x: dragX, y: dragY }),
+      ) => {
+        this.controller.dragMoved({ x: dragX, y: dragY });
+      },
     );
     this.host.input.on(
       "dragend",
-      (_pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Sprite) =>
-        this.onDragEnd(gameObject),
+      (
+        _pointer: Phaser.Input.Pointer,
+        gameObject: Phaser.GameObjects.Sprite,
+      ) => {
+        this.onDragEnd(gameObject);
+      },
     );
   }
 
@@ -78,11 +88,13 @@ export class BoardInputManager {
     sprite: Phaser.GameObjects.Sprite,
     cardId: string,
   ): void {
-    sprite.on("pointerover", () => this.controller.cardOver(cardId));
+    sprite.on("pointerover", () => {
+      this.controller.cardOver(cardId);
+    });
     // A finger leaves as soon as a tap ends, so the card it touched stays open.
-    sprite.on("pointerout", (pointer: Phaser.Input.Pointer) =>
-      this.controller.cardOut(cardId, pointer.wasTouch),
-    );
+    sprite.on("pointerout", (pointer: Phaser.Input.Pointer) => {
+      this.controller.cardOut(cardId, pointer.wasTouch);
+    });
     sprite.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       if (pressedCanvas(pointer)) this.controller.cardPressed(cardId);
     });
@@ -96,8 +108,12 @@ export class BoardInputManager {
     sprite.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       if (pressedCanvas(pointer)) this.controller.backgroundPressed(pileId);
     });
-    sprite.on("pointerover", () => this.controller.backgroundOver(pileId));
-    sprite.on("pointerout", () => this.controller.backgroundOut(pileId));
+    sprite.on("pointerover", () => {
+      this.controller.backgroundOver(pileId);
+    });
+    sprite.on("pointerout", () => {
+      this.controller.backgroundOut(pileId);
+    });
   }
 
   /** Picks up the card the drag started on, along with the stack above it. */

@@ -1,14 +1,14 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { Deal } from "@/engine/tableau/dealing/deal";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
+import type { Deal } from "@/engine/tableau/dealing/deal";
 import { DealtTableGame } from "@/engine/tableau/game/dealt_table_game";
-import { MoveEffects } from "@/engine/tableau/moves/move";
-import { DeckOptions } from "@/games/common/deck_options";
+import type { MoveEffects } from "@/engine/tableau/moves/move";
+import type { DeckOptions } from "@/games/common/deck_options";
 import { drawToWaste } from "@/games/common/stock_pile";
 import {
   DEFAULT_POKER_SQUARES_SCORING,
-  PokerSquaresScoring,
+  type PokerSquaresScoring,
   scoreGrid,
   winningScore,
 } from "./poker_squares_rules";

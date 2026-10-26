@@ -1,4 +1,4 @@
-import { TableViewState } from "./table_view_state";
+import type { TableViewState } from "./table_view_state";
 
 /**
  * Draws a {@link TableViewState} onto whatever surface backs the table.

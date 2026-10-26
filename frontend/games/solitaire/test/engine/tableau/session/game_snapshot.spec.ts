@@ -177,9 +177,9 @@ describe("DealtTableGame snapshots", () => {
   it.each(CORRUPTIONS)("rejects %s", (_name, corrupt, error) => {
     const fresh = freshGame();
 
-    expect(() => fresh.restore(corrupt(playedGame().snapshot()))).toThrow(
-      error,
-    );
+    expect(() => {
+      fresh.restore(corrupt(playedGame().snapshot()));
+    }).toThrow(error);
   });
 
   it.each(CORRUPTIONS)("is left as it was by %s", (_name, corrupt) => {

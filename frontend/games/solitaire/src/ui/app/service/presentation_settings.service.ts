@@ -313,19 +313,37 @@ export class PresentationSettingsService implements TablePresentation {
    * Follows the table colour with an effect, which reports the current value
    * at once and every change after it.
    */
-  readonly onBackgroundColor = (listener: (color: string) => void) => {
-    const ref = effect(() => listener(this.backgroundColor()), {
-      injector: this.injector,
-    });
-    return () => ref.destroy();
+  readonly onBackgroundColor = (
+    listener: (color: string) => void,
+  ): (() => void) => {
+    const ref = effect(
+      () => {
+        listener(this.backgroundColor());
+      },
+      {
+        injector: this.injector,
+      },
+    );
+    return () => {
+      ref.destroy();
+    };
   };
 
   /** Follows the deck the way {@link onBackgroundColor} follows the colour. */
-  readonly onCardDeck = (listener: (deckId: CardDeckId) => void) => {
-    const ref = effect(() => listener(this.cardDeck()), {
-      injector: this.injector,
-    });
-    return () => ref.destroy();
+  readonly onCardDeck = (
+    listener: (deckId: CardDeckId) => void,
+  ): (() => void) => {
+    const ref = effect(
+      () => {
+        listener(this.cardDeck());
+      },
+      {
+        injector: this.injector,
+      },
+    );
+    return () => {
+      ref.destroy();
+    };
   };
 
   constructor() {

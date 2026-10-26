@@ -1,9 +1,9 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
-import { Deal } from "@/engine/tableau/dealing/deal";
+import type { DeckCardId, PlayingCard } from "@/engine/core/card/playing_card";
+import type { Deal } from "@/engine/tableau/dealing/deal";
 import { DealtTableGame } from "@/engine/tableau/game/dealt_table_game";
-import { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
+import type { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
 import { FakeRole, STOCK_PILE_ID, WASTE_PILE_ID, fakeZoneSpecs } from "./zones";
 
 /** How many cards a draw turns over when nothing says otherwise. */
@@ -36,7 +36,7 @@ export class FakeTableGame extends DealtTableGame {
    *   zones are built from it during `super`.
    */
   constructor(
-    cardIds: ReadonlyArray<DeckCardId> = ALL_PLAYING_CARD_IDS,
+    cardIds: readonly DeckCardId[] = ALL_PLAYING_CARD_IDS,
     random: () => number = Math.random,
     drawCount: number = DEFAULT_DRAW_COUNT,
   ) {

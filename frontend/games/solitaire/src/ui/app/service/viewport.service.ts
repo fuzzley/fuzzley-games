@@ -83,7 +83,7 @@ export class ViewportService {
   readonly fitsHomeButton = computed(() => !this.belowHomeButton());
 
   constructor() {
-    if (typeof window === "undefined" || !window.matchMedia) return;
+    if (typeof window === "undefined" || !("matchMedia" in window)) return;
 
     this.follow(COMPACT_QUERY, this.compact);
     this.follow(PORTRAIT_QUERY, this.portrait);
@@ -95,7 +95,9 @@ export class ViewportService {
   private follow(media: string, matches: WritableSignal<boolean>): void {
     const query = window.matchMedia(media);
     matches.set(query.matches);
-    const onChange = () => matches.set(query.matches);
+    const onChange = () => {
+      matches.set(query.matches);
+    };
     query.addEventListener("change", onChange);
     this.destroyRef.onDestroy(() => {
       query.removeEventListener("change", onChange);

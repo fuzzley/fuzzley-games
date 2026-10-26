@@ -1,17 +1,17 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { Deal } from "@/engine/tableau/dealing/deal";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
+import type { Deal } from "@/engine/tableau/dealing/deal";
 import { DealtTableGame } from "@/engine/tableau/game/dealt_table_game";
-import { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
-import { DeckOptions } from "@/games/common/deck_options";
+import type { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
+import type { DeckOptions } from "@/games/common/deck_options";
 import { discardPairEffects } from "@/games/common/pair_removal";
 import { recycleMarker } from "@/games/common/zone_presets";
 import { DEFAULT_MONTE_CARLO_VARIANT } from "./monte_carlo_rules";
 import {
   DISCARD_PILE_ID,
   MonteCarloRole,
-  MonteCarloVariant,
+  type MonteCarloVariant,
   STOCK_PILE_ID,
   monteCarloZoneSpecs,
 } from "./monte_carlo_zones";

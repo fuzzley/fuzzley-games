@@ -1,17 +1,17 @@
-import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 import {
   DealtTableGame,
-  DealtTableGameOptions,
+  type DealtTableGameOptions,
 } from "@/engine/tableau/game/dealt_table_game";
-import { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
+import type { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
 import { ActionKind } from "@/games/common/action_kinds";
 import { flipExposedTopOfColumn } from "@/games/common/move_effects";
 import { STOCK_PILE_ID, WASTE_PILE_ID } from "@/games/common/pile_ids";
 import { drawToWaste, recycleWasteToStock } from "@/games/common/stock_pile";
 import { recycleMarker } from "@/games/common/zone_presets";
-import { DrawCount } from "./klondike_rules";
-import { ScoringPolicy } from "./scoring_policy";
+import type { DrawCount } from "./klondike_rules";
+import type { ScoringPolicy } from "./scoring_policy";
 
 /** Configures a game played with Klondike's stock and scoring. */
 export interface KlondikeFamilyOptions extends DealtTableGameOptions {

@@ -1,13 +1,17 @@
 import { describe, it, expect } from "vitest";
 import { CardPile } from "@/engine/core/card/card_pile";
 import {
-  PlayingCard,
+  type PlayingCard,
   Rank,
   Suit,
   rankBelow,
 } from "@/engine/core/card/playing_card";
-import { GrabRule, canGrab, grabbedStack } from "@/engine/tableau/rules/grab";
-import { BoardQuery } from "@/engine/tableau/rules/board_query";
+import {
+  type GrabRule,
+  canGrab,
+  grabbedStack,
+} from "@/engine/tableau/rules/grab";
+import type { BoardQuery } from "@/engine/tableau/rules/board_query";
 import { makePlayingCard } from "@test/support/card_builder";
 
 /** A board with no other piles on it, for the rules that never read one. */

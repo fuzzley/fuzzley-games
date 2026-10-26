@@ -1,5 +1,5 @@
-import { GameSnapshot } from "./game_snapshot";
-import { ReadableGameState } from "./game_state";
+import type { GameSnapshot } from "./game_snapshot";
+import type { ReadableGameState } from "./game_state";
 
 /** Names the lifecycle events every playable game publishes. */
 export type PlayableGameEvent = "game-won" | "game-reset";

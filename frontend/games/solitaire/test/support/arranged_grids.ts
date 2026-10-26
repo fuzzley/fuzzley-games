@@ -1,26 +1,30 @@
 import { expect, it } from "vitest";
 import {
-  ArrangedLayouts,
+  type ArrangedLayouts,
   chooseTableLayout,
 } from "@/engine/render/layout/board_layouts";
 import {
-  BoardArrangement,
+  type BoardArrangement,
   DEFAULT_BOARD_ARRANGEMENT,
-  StockSide,
+  type StockSide,
 } from "@/engine/render/layout/board_arrangement";
 import { CARD_HEIGHT_PX } from "@/engine/render/layout/card_metrics";
 import { formFactorOf } from "@/engine/render/layout/form_factor";
 import {
-  FanFit,
-  PileLayout,
+  type FanFit,
+  type PileLayout,
   mirrorPileLayout,
 } from "@/engine/render/layout/pile_layout";
-import {
+import type {
   SlotPlacement,
   TableLayoutSpec,
 } from "@/engine/render/layout/table_layout";
 import { measureTable } from "@/engine/render/layout/table_metrics";
-import { Insets, NO_INSETS, Viewport } from "@/engine/render/layout/viewport";
+import {
+  type Insets,
+  NO_INSETS,
+  type Viewport,
+} from "@/engine/render/layout/viewport";
 import { PHONE_FAN_FIT } from "@/games/common/pile_layouts";
 
 /**

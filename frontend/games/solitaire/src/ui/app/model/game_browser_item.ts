@@ -1,5 +1,5 @@
-import { CatalogEntry, GameOptionValues } from "../provider/game_catalog";
-import {
+import type { CatalogEntry, GameOptionValues } from "../provider/game_catalog";
+import type {
   DifficultyRating,
   GameFamilyProfile,
   GameProfileRegistry,

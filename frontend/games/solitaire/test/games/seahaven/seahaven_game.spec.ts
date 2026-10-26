@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import { type PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { SeahavenGame } from "@/games/seahaven/seahaven_game";
 import { CARDS_PER_COLUMN } from "@/games/seahaven/seahaven_deal";
 import {
@@ -139,7 +139,9 @@ describe("SeahavenGame", () => {
   });
 
   describe("building a column", () => {
-    beforeEach(() => emptyBoard(game));
+    beforeEach(() => {
+      emptyBoard(game);
+    });
 
     it("accepts the next card down in the same suit", () => {
       relocate(game, "card-spades-8", game.tableaus[0]);
@@ -169,7 +171,9 @@ describe("SeahavenGame", () => {
   });
 
   describe("the cells", () => {
-    beforeEach(() => emptyBoard(game));
+    beforeEach(() => {
+      emptyBoard(game);
+    });
 
     it("takes any single card", () => {
       const seven = relocate(game, "card-hearts-7", game.tableaus[0]);

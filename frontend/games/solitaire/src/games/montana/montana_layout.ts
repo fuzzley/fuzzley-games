@@ -1,4 +1,4 @@
-import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import type { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { boardLayout } from "../common/board_layout";
 import { MontanaVariant, ROW_COUNT } from "./montana_rules";
 import { boardColumnCount, montanaZoneSpecs } from "./montana_zones";

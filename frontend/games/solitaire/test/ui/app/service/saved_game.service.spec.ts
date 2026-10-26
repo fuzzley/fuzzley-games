@@ -53,7 +53,7 @@ function start(
     ],
   });
   TestBed.inject(SavedGameService);
-  TestBed.flushEffects();
+  TestBed.tick();
   return { model, catalog };
 }
 
@@ -141,7 +141,7 @@ describe("SavedGameService", () => {
       const { catalog } = start();
       const dealt = createMockGameModel();
       catalog.deal(dealt);
-      TestBed.flushEffects();
+      TestBed.tick();
 
       dealt.state.update({ score: 2 });
       await flushMicrotasks();

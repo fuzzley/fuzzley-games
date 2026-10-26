@@ -1,14 +1,14 @@
-import { PileRole } from "@/engine/core/card/card_pile";
+import type { PileRole } from "@/engine/core/card/card_pile";
 import { Rank } from "@/engine/core/card/playing_card";
 import {
-  PlacementRule,
+  type PlacementRule,
   all,
   cardIs,
   hasRank,
   singleCardOnly,
 } from "@/engine/tableau/rules/placement";
 import {
-  PairTest,
+  type PairTest,
   pairsWithTop,
   sameRank,
   totalsThirteen,

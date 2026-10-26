@@ -1,7 +1,7 @@
-import { PileRole } from "@/engine/core/card/card_pile";
+import type { PileRole } from "@/engine/core/card/card_pile";
 import { Rank } from "@/engine/core/card/playing_card";
 import {
-  PlacementRule,
+  type PlacementRule,
   cardIs,
   hasRank,
 } from "@/engine/tableau/rules/placement";
@@ -11,7 +11,7 @@ import {
   suitFoundation,
 } from "@/engine/tableau/rules/builds";
 import { isSameSuitRun } from "@/engine/tableau/rules/adjacency";
-import { ColumnRules, runColumn } from "@/engine/tableau/rules/run_column";
+import { type ColumnRules, runColumn } from "@/engine/tableau/rules/run_column";
 
 /** The parts a pile can play in an Eight Off game. */
 export const EightOffRole = {

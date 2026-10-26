@@ -1,8 +1,8 @@
-import { PileRole } from "@/engine/core/card/card_pile";
+import type { PileRole } from "@/engine/core/card/card_pile";
 import { Rank } from "@/engine/core/card/playing_card";
 import {
-  PlacementContext,
-  PlacementRule,
+  type PlacementContext,
+  type PlacementRule,
   anyCard,
   cardIs,
   hasRank,
@@ -14,8 +14,8 @@ import {
 } from "@/engine/tableau/rules/builds";
 import { isOrderedPair, isSameSuitRun } from "@/engine/tableau/rules/adjacency";
 import {
-  ColumnRules,
-  RunColumnOptions,
+  type ColumnRules,
+  type RunColumnOptions,
   runColumn,
 } from "@/engine/tableau/rules/run_column";
 

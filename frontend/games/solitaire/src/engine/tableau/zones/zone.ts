@@ -1,8 +1,8 @@
-import { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { GrabRule } from "../rules/grab";
-import { PlacementRule } from "../rules/placement";
-import { ZoneLook } from "./zone_look";
+import type { ReadonlyCardPile, PileRole } from "@/engine/core/card/card_pile";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
+import type { GrabRule } from "../rules/grab";
+import type { PlacementRule } from "../rules/placement";
+import type { ZoneLook } from "./zone_look";
 
 /**
  * Describes how a pile plays: what it accepts, what may be taken from it and

@@ -1,12 +1,12 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 import {
-  PileLayout,
+  type PileLayout,
   fitFanDown,
   mirrorPileLayout,
 } from "@/engine/render/layout/pile_layout";
-import { TableMetrics } from "@/engine/render/layout/table_metrics";
-import { TableView } from "./table_view";
+import type { TableMetrics } from "@/engine/render/layout/table_metrics";
+import type { TableView } from "./table_view";
 
 /** How a pile with no zone arranges its cards. */
 const STACKED: PileLayout = { kind: "stacked" };

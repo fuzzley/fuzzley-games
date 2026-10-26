@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { Type } from "@angular/core";
+import type { Type } from "@angular/core";
 import { provideRouter } from "@angular/router";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";

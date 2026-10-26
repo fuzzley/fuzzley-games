@@ -5,7 +5,7 @@ import {
   readObject,
   readString,
 } from "@/engine/core/common/json_reader";
-import { AppliedMove, CardTransfer } from "../moves/move";
+import type { AppliedMove, CardTransfer } from "../moves/move";
 
 /** Records a card as it lies in a pile. */
 export interface CardSnapshot {
@@ -46,37 +46,37 @@ export function readGameSnapshot(
 ): GameSnapshot {
   const snapshot = readObject(value, path);
   return {
-    piles: readList(snapshot.piles, `${path}.piles`, readPile),
-    score: readNumber(snapshot.score, `${path}.score`),
-    history: readList(snapshot.history, `${path}.history`, readAppliedMove),
-    deal: readList(snapshot.deal, `${path}.deal`, readString),
+    piles: readList(snapshot["piles"], `${path}.piles`, readPile),
+    score: readNumber(snapshot["score"], `${path}.score`),
+    history: readList(snapshot["history"], `${path}.history`, readAppliedMove),
+    deal: readList(snapshot["deal"], `${path}.deal`, readString),
   };
 }
 
 function readPile(value: unknown, path: string): PileSnapshot {
   const pile = readObject(value, path);
   return {
-    id: readString(pile.id, `${path}.id`),
-    cards: readList(pile.cards, `${path}.cards`, readCard),
+    id: readString(pile["id"], `${path}.id`),
+    cards: readList(pile["cards"], `${path}.cards`, readCard),
   };
 }
 
 function readCard(value: unknown, path: string): CardSnapshot {
   const card = readObject(value, path);
   return {
-    id: readString(card.id, `${path}.id`),
-    faceUp: readBoolean(card.faceUp, `${path}.faceUp`),
+    id: readString(card["id"], `${path}.id`),
+    faceUp: readBoolean(card["faceUp"], `${path}.faceUp`),
   };
 }
 
 function readAppliedMove(value: unknown, path: string): AppliedMove {
   const move = readObject(value, path);
   return {
-    kind: readString(move.kind, `${path}.kind`),
-    transfers: readList(move.transfers, `${path}.transfers`, readTransfer),
-    scoreDelta: readNumber(move.scoreDelta, `${path}.scoreDelta`),
+    kind: readString(move["kind"], `${path}.kind`),
+    transfers: readList(move["transfers"], `${path}.transfers`, readTransfer),
+    scoreDelta: readNumber(move["scoreDelta"], `${path}.scoreDelta`),
     flippedCardIds: readList(
-      move.flippedCardIds,
+      move["flippedCardIds"],
       `${path}.flippedCardIds`,
       readString,
     ),
@@ -86,9 +86,9 @@ function readAppliedMove(value: unknown, path: string): AppliedMove {
 function readTransfer(value: unknown, path: string): CardTransfer {
   const transfer = readObject(value, path);
   return {
-    cardIds: readList(transfer.cardIds, `${path}.cardIds`, readString),
-    fromPileId: readString(transfer.fromPileId, `${path}.fromPileId`),
-    toPileId: readString(transfer.toPileId, `${path}.toPileId`),
-    faceUpBefore: readBoolean(transfer.faceUpBefore, `${path}.faceUpBefore`),
+    cardIds: readList(transfer["cardIds"], `${path}.cardIds`, readString),
+    fromPileId: readString(transfer["fromPileId"], `${path}.fromPileId`),
+    toPileId: readString(transfer["toPileId"], `${path}.toPileId`),
+    faceUpBefore: readBoolean(transfer["faceUpBefore"], `${path}.faceUpBefore`),
   };
 }

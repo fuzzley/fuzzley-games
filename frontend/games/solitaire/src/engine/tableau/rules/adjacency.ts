@@ -1,5 +1,5 @@
 import {
-  PlayingCard,
+  type PlayingCard,
   Rank,
   Suit,
   rankBelow,

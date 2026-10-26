@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  TableLayoutSpec,
+  type TableLayoutSpec,
   tableLayout,
 } from "@/engine/render/layout/table_layout";
 import { skeletonSlots } from "@/ui/app/model/skeleton_slots";
@@ -20,13 +20,13 @@ describe("skeletonSlots", () => {
   it("places a slot at its column and row as shares of the board", () => {
     const [, , last] = skeletonSlots(LAYOUT);
 
-    expect([last?.left, last?.top]).toEqual(["75%", "50%"]);
+    expect([last.left, last.top]).toEqual(["75%", "50%"]);
   });
 
   it("places a fractional slot between grid lines", () => {
     const [, between] = skeletonSlots(LAYOUT);
 
-    expect([between?.left, between?.top]).toEqual(["37.5%", "25%"]);
+    expect([between.left, between.top]).toEqual(["37.5%", "25%"]);
   });
 
   it("sizes every slot as one grid cell", () => {
@@ -58,13 +58,13 @@ describe("skeletonSlots on a grid with anchored and offset slots", () => {
   it("puts row 0 of a bottom-anchored slot in the last row", () => {
     const [floor] = skeletonSlots(anchored);
 
-    expect(floor?.top).toBe(`${(2 / 3) * 100}%`);
+    expect(floor.top).toBe(`${(2 / 3) * 100}%`);
   });
 
   it("counts a bottom-anchored row up from the last", () => {
     const [, above] = skeletonSlots(anchored);
 
-    expect(above?.top).toBe(`${(1 / 3) * 100}%`);
+    expect(above.top).toBe(`${(1 / 3) * 100}%`);
   });
 
   it("moves an offset slot by its offset, in grid cells", () => {
@@ -78,7 +78,7 @@ describe("skeletonSlots on a grid with anchored and offset slots", () => {
       slots: [{ pileId: "nudged", column: 0, row: 0, offset }],
     });
 
-    expect([slot?.left, slot?.top]).toEqual(["12.5%", `${(1 / 3) * 100}%`]);
+    expect([slot.left, slot.top]).toEqual(["12.5%", `${(1 / 3) * 100}%`]);
   });
 });
 
@@ -100,7 +100,7 @@ describe("skeletonSlots on a board taller than its grid", () => {
       tall(4, [{ pileId: "column", column: 0, row: 0 }]),
     );
 
-    expect(slot?.height).toBe("25%");
+    expect(slot.height).toBe("25%");
   });
 
   it("stands a bottom-anchored slot on the board's bottom edge", () => {
@@ -108,7 +108,7 @@ describe("skeletonSlots on a board taller than its grid", () => {
       tall(4, [{ pileId: "rail", column: 3, row: 0, anchor: "bottom" }]),
     );
 
-    expect(slot?.top).toBe("75%");
+    expect(slot.top).toBe("75%");
   });
 
   it("raises a bottom-anchored slot by its offset", () => {
@@ -127,6 +127,6 @@ describe("skeletonSlots on a board taller than its grid", () => {
       ],
     });
 
-    expect(slot?.top).toBe("25%");
+    expect(slot.top).toBe("25%");
   });
 });

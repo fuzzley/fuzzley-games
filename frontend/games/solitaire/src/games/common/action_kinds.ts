@@ -1,4 +1,4 @@
-import { AppliedMoveKind } from "@/engine/tableau/moves/move";
+import type { AppliedMoveKind } from "@/engine/tableau/moves/move";
 
 /**
  * Names the actions games commit outside the normal move path, so a game that

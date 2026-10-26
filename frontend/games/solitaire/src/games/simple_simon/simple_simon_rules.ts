@@ -1,8 +1,8 @@
-import { PileRole } from "@/engine/core/card/card_pile";
-import { DeckSpec } from "@/engine/core/card/deck";
+import type { PileRole } from "@/engine/core/card/card_pile";
+import type { DeckSpec } from "@/engine/core/card/deck";
 import { ALL_RANKS, ALL_SUITS } from "@/engine/core/card/playing_card";
 import {
-  PlacementRule,
+  type PlacementRule,
   anyCard,
   byEmptiness,
 } from "@/engine/tableau/rules/placement";

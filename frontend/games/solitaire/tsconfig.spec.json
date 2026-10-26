@@ -9,6 +9,5 @@
     // the flag would demand an assertion on every line for no protection.
     "noUncheckedIndexedAccess": false
   },
-  "exclude": ["node_modules"],
   "include": ["src/**/*", "test/**/*"]
 }

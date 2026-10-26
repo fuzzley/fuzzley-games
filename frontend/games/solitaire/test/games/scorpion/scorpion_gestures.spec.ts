@@ -4,7 +4,7 @@ import {
   Suit,
   playingCardInstanceId,
 } from "@/engine/core/card/playing_card";
-import { IntentHandler } from "@/engine/render/input/table_intents";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
 import { ScorpionGame } from "@/games/scorpion/scorpion_game";
 import { scorpionGestures } from "@/games/scorpion/scorpion_gestures";
 import { emptyBoard, relocate, clearPile } from "@test/support/game_scenarios";

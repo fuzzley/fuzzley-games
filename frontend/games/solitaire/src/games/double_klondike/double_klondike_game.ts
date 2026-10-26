@@ -1,14 +1,14 @@
-import { Deal } from "@/engine/tableau/dealing/deal";
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { Deal } from "@/engine/tableau/dealing/deal";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { deckCardIds } from "@/engine/core/card/deck";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 import { KlondikeFamilyGame } from "@/games/klondike/klondike_family_game";
 import {
-  ScoringPolicy,
-  ScoringRoles,
+  type ScoringPolicy,
+  type ScoringRoles,
   StandardScoringPolicy,
 } from "@/games/klondike/scoring_policy";
-import { DeckOptions } from "@/games/common/deck_options";
+import type { DeckOptions } from "@/games/common/deck_options";
 import {
   DOUBLE_KLONDIKE_TWO_DECKS,
   dealDoubleKlondikeLayout,

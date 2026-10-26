@@ -1,6 +1,6 @@
-import { PlayableGame } from "@/engine/tableau/session/playable_game";
-import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
-import {
+import type { PlayableGame } from "@/engine/tableau/session/playable_game";
+import type { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import type {
   ArrangedLayouts,
   BoardLayouts,
 } from "@/engine/render/layout/board_layouts";
@@ -8,7 +8,7 @@ import { deckCardIds } from "@/engine/core/card/deck";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
 import {
   DEFAULT_DRAW_COUNT,
-  DrawCount,
+  type DrawCount,
   KlondikeVariant,
 } from "@/games/klondike/klondike_rules";
 import {
@@ -26,7 +26,7 @@ import {
   FREECELL_LAYOUT,
 } from "@/games/freecell/freecell_layout";
 import { SpiderGame } from "@/games/spider/spider_game";
-import { SpiderSuitCount, spiderDeck } from "@/games/spider/spider_deal";
+import { type SpiderSuitCount, spiderDeck } from "@/games/spider/spider_deal";
 import {
   SPIDER_ARRANGED_LAYOUTS,
   SPIDER_LAYOUT,
@@ -85,7 +85,7 @@ import {
 } from "@/games/montana/montana_layout";
 import {
   DEFAULT_MAX_REDEALS,
-  MaxRedeals,
+  type MaxRedeals,
   MontanaVariant,
 } from "@/games/montana/montana_rules";
 import { DoubleKlondikeGame } from "@/games/double_klondike/double_klondike_game";
@@ -195,7 +195,7 @@ import {
   DEFAULT_PYRAMID_GOAL,
   DEFAULT_PYRAMID_PASSES,
   PyramidGoal,
-  PyramidPasses,
+  type PyramidPasses,
 } from "@/games/pyramid/pyramid_rules";
 import { TriPeaksGame } from "@/games/tri_peaks/tri_peaks_game";
 import { TRI_PEAKS_LAYOUT } from "@/games/tri_peaks/tri_peaks_layout";

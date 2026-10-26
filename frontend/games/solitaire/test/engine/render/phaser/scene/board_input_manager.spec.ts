@@ -1,13 +1,13 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { clearPile, takeOffBoard } from "@test/support/game_scenarios";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 import { DragController } from "@/engine/render/input/drag_controller";
 import { designSize } from "@/engine/render/layout/table_layout";
 import {
   BoardInputManager,
-  InputHost,
+  type InputHost,
 } from "@/engine/render/phaser/scene/board_input_manager";
-import { Viewport } from "@/engine/render/layout/viewport";
+import type { Viewport } from "@/engine/render/layout/viewport";
 import {
   FAKE_TABLE_LAYOUT,
   fakeTableGestures,
@@ -19,8 +19,8 @@ import {
   asSprite,
   createMockInput,
   createMockSprite,
-  MockInput,
-  MockSprite,
+  type MockInput,
+  type MockSprite,
   PRESS_ON_CANVAS,
   PRESS_OVER_CANVAS,
 } from "@test/support/phaser_mocks";
@@ -183,9 +183,9 @@ describe("BoardInputManager", () => {
       takeOffBoard(gameModel, card.id);
       const { sprite } = listenTo(card);
 
-      expect(() => sprite.emit("pointerdown", PRESS_ON_CANVAS)).toThrow(
-        "is not in a pile",
-      );
+      expect(() => {
+        sprite.emit("pointerdown", PRESS_ON_CANVAS);
+      }).toThrow("is not in a pile");
     });
   });
 
@@ -462,7 +462,9 @@ describe("BoardInputManager", () => {
     });
 
     it("ignores dragend when nothing is being dragged", () => {
-      expect(() => input.emit("dragend", {}, asSprite(sprite))).not.toThrow();
+      expect(() => {
+        input.emit("dragend", {}, asSprite(sprite));
+      }).not.toThrow();
     });
 
     it("snaps back on dragend when the sprite is not a card", () => {

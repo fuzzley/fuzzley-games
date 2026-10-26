@@ -1,4 +1,10 @@
-import { ALL_RANKS, ALL_SUITS, DeckCardId, Rank, Suit } from "./playing_card";
+import {
+  ALL_RANKS,
+  ALL_SUITS,
+  type DeckCardId,
+  type Rank,
+  type Suit,
+} from "./playing_card";
 
 /** Describes which cards a game plays with. */
 export interface DeckSpec {

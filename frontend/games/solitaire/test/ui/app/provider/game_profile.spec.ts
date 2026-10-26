@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
-  CatalogEntry,
+  type CatalogEntry,
   GAME_CATALOG,
-  GameId,
-  GameOptionValues,
+  type GameId,
+  type GameOptionValues,
 } from "@/ui/app/provider/game_catalog";
 import { GAME_PROFILE_REGISTRY } from "@/ui/app/provider/game_profile_data";
 import { GAME_DOCUMENTATION_REGISTRY } from "@/ui/app/provider/game_documentation_data";

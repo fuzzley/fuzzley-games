@@ -1,6 +1,6 @@
-import { ArrangedLayouts } from "@/engine/render/layout/board_layouts";
+import type { ArrangedLayouts } from "@/engine/render/layout/board_layouts";
 import {
-  SlotPlacement,
+  type SlotPlacement,
   tableLayout,
 } from "@/engine/render/layout/table_layout";
 import { boardLayout } from "../common/board_layout";

@@ -3,7 +3,7 @@ import { relocate, clearPile } from "@test/support/game_scenarios";
 import { SpiderGame } from "@/games/spider/spider_game";
 import {
   SPIDER_ONE_SUIT,
-  SpiderSuitCount,
+  type SpiderSuitCount,
   spiderDeck,
 } from "@/games/spider/spider_deal";
 import {

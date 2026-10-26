@@ -1,36 +1,48 @@
-import { GameObjects, Renderer, Scene, Scenes, Textures } from "phaser";
+import {
+  type GameObjects,
+  Renderer,
+  Scene,
+  Scenes,
+  type Textures,
+} from "phaser";
 
 import { BoardDeckLoader } from "../deck/board_deck_loader";
 import {
   DrawnDeckPainter,
-  DrawnDeckServices,
+  type DrawnDeckServices,
   browserDrawnDeckServices,
 } from "../deck/drawn_deck_painter";
 import { PhaserCardFactory } from "./phaser_card_factory";
 import { BoardInputManager } from "./board_input_manager";
 import { PhaserTableRenderer } from "./phaser_table_renderer";
-import { PhaserSprites } from "./phaser_sprites";
+import type { PhaserSprites } from "./phaser_sprites";
 import { TableLight } from "./table_light";
-import { DragController, StackFromCard } from "../../input/drag_controller";
-import { IntentHandler } from "../../input/table_intents";
 import {
+  DragController,
+  type StackFromCard,
+} from "../../input/drag_controller";
+import type { IntentHandler } from "../../input/table_intents";
+import type {
   DragInteraction,
   TableInteractionState,
 } from "../../input/interaction_state";
-import { Insets, NO_INSETS, Viewport } from "../../layout/viewport";
-import { TableRenderer } from "../../view/table_renderer";
-import {
+import { type Insets, NO_INSETS, type Viewport } from "../../layout/viewport";
+import type { TableRenderer } from "../../view/table_renderer";
+import type {
   PileBackgroundSpec,
   TableViewState,
 } from "../../view/table_view_state";
-import { PileGeometry } from "../../layout/drop_geometry";
-import { TableLayoutSpec, designSize } from "../../layout/table_layout";
-import { TableMetrics } from "../../layout/table_metrics";
-import { CardArtScale, cardArtScaleFor } from "../../deck/card_art_scale";
-import { Subscribe } from "@/engine/core/common/event_emitter";
-import { CardDeckStatus, TablePresentation } from "../../view/presentation";
+import type { PileGeometry } from "../../layout/drop_geometry";
+import { type TableLayoutSpec, designSize } from "../../layout/table_layout";
+import type { TableMetrics } from "../../layout/table_metrics";
+import { type CardArtScale, cardArtScaleFor } from "../../deck/card_art_scale";
+import type { Subscribe } from "@/engine/core/common/event_emitter";
+import type {
+  CardDeckStatus,
+  TablePresentation,
+} from "../../view/presentation";
 import {
-  CardAtlas,
+  type CardAtlas,
   bootCardAtlas,
   cardAtlasTextureKey,
   loadCardAtlas,
@@ -159,7 +171,7 @@ export class BoardScene extends Scene implements PhaserSprites {
   }
 
   /** Loads the deck the player chose, unless a deck is loaded to boot on. */
-  preload() {
+  preload(): void {
     if (this.bootAtlas() === null) {
       loadCardAtlas(this.load, this.wantedAtlas());
     }
@@ -199,7 +211,7 @@ export class BoardScene extends Scene implements PhaserSprites {
    * It does not deal, so a scene restart redraws the game in progress rather
    * than throwing it away.
    */
-  create() {
+  create(): void {
     this.createCollaborators();
     this.lightTheTable();
     this.createPileBackgroundSprites();
@@ -324,7 +336,9 @@ export class BoardScene extends Scene implements PhaserSprites {
    * Phaser restores loaded textures but not one drawn at runtime.
    */
   private redrawShadowAfterContextLoss(): void {
-    const redraw = () => this.visualFactory.bakeCardShadow();
+    const redraw = () => {
+      this.visualFactory.bakeCardShadow();
+    };
     this.renderer.on(Renderer.Events.RESTORE_WEBGL, redraw);
     this.whenSceneEnds(() => {
       this.renderer.off(Renderer.Events.RESTORE_WEBGL, redraw);

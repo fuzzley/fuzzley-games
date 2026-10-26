@@ -1,4 +1,4 @@
-import { Card } from "@/engine/core/card/card";
+import type { Card } from "@/engine/core/card/card";
 import { PlayingCard, Suit, Rank } from "@/engine/core/card/playing_card";
 
 /** Builds a plain {@link Card}, with overrides for the fields a test uses. */

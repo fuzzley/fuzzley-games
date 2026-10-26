@@ -142,7 +142,9 @@ export function createMockCatalog(model: MockGameModel): MockCatalogHarness {
 
   return {
     catalog,
-    deal: (game: MockGameModel) => session.set({ game: asGameModel(game) }),
+    deal: (game: MockGameModel) => {
+      session.set({ game: asGameModel(game) });
+    },
     select,
     setOption,
     load,

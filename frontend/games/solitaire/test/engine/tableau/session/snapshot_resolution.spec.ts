@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
-import { GameSnapshot } from "@/engine/tableau/session/game_snapshot";
+import type { GameSnapshot } from "@/engine/tableau/session/game_snapshot";
 import { resolveSnapshot } from "@/engine/tableau/session/snapshot_resolution";
 import { FakeTableGame } from "@test/support/fake_table/game";
 

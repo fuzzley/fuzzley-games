@@ -1,6 +1,6 @@
-import { Deal } from "@/engine/tableau/dealing/deal";
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
+import type { Deal } from "@/engine/tableau/dealing/deal";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import { type PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
 import { BlackHoleVariant } from "./black_hole_rules";
 
 /** How many cards each fan or column is dealt, per variant. */

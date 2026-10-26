@@ -1,12 +1,12 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { deckCardIds } from "@/engine/core/card/deck";
-import { PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import type { PlayingCard, Rank } from "@/engine/core/card/playing_card";
 import { shuffle } from "@/engine/core/random/shuffle";
-import { Deal } from "@/engine/tableau/dealing/deal";
+import type { Deal } from "@/engine/tableau/dealing/deal";
 import { DealtTableGame } from "@/engine/tableau/game/dealt_table_game";
 
 import { ActionKind } from "@/games/common/action_kinds";
-import { DeckOptions } from "@/games/common/deck_options";
+import type { DeckOptions } from "@/games/common/deck_options";
 import { recycleMarker } from "@/games/common/zone_presets";
 import {
   dealMontanaFamilyLayout,
@@ -16,7 +16,7 @@ import {
 import {
   DEFAULT_MAX_REDEALS,
   DEFAULT_MONTANA_VARIANT,
-  MaxRedeals,
+  type MaxRedeals,
   MontanaRole,
   isMontanaSolved,
   montanaColumnCount,
@@ -25,7 +25,7 @@ import {
   settledPrefixLength,
 } from "./montana_rules";
 import {
-  MontanaVariant,
+  type MontanaVariant,
   REDEAL_PILE_ID,
   montanaZoneSpecs,
 } from "./montana_zones";

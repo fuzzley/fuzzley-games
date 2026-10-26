@@ -1,8 +1,8 @@
-import { IntentHandler } from "@/engine/render/input/table_intents";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
 import { drawOnStockTop } from "@/engine/tableau/gestures/press_handlers";
 import { tableGestures } from "@/engine/tableau/gestures/table_gestures";
 import { KlondikeRole } from "./klondike_zones";
-import { KlondikeFamilyGame } from "./klondike_family_game";
+import type { KlondikeFamilyGame } from "./klondike_family_game";
 
 /**
  * Returns what a press or a drop means in a game of the Klondike family, where
@@ -10,9 +10,9 @@ import { KlondikeFamilyGame } from "./klondike_family_game";
  */
 export function klondikeGestures(game: KlondikeFamilyGame): IntentHandler {
   return tableGestures(game, {
-    onCardPress: drawOnStockTop(KlondikeRole.STOCK, () =>
-      game.drawCardsFromStock(),
-    ),
+    onCardPress: drawOnStockTop(KlondikeRole.STOCK, () => {
+      game.drawCardsFromStock();
+    }),
     onPilePress: (pileId) => {
       if (pileId === game.stock.id && game.stock.isEmpty) {
         game.drawCardsFromStock();

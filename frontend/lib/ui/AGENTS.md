@@ -89,19 +89,19 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   `web-game-accessibility` skill's rules by itself, so an app can't forget
   them: menus are built on Angular Aria, every control has an accessible
   name at every size, and the specs find elements by role and name.
-- **The strictest compiler options.** `tsconfig.json` holds the site's and
-  the games' strict flags together, and Angular's strict template checks,
-  since each app compiles these files with its own.
+- **The strictest compiler options.** `tsconfig.json` extends `@fz/dev`'s
+  Angular preset, the strict flags and template checks every workspace is
+  checked with, since each app compiles these files with its own.
 
 ## Checks
 
 The root's `yarn lint`, `yarn typecheck` and `yarn test` run the library's
 own, which `yarn workspace @fz/ui <script>` runs alone.
 
-- **`lint`** runs ESLint (`eslint.config.js`): the site's TypeScript and
-  template rules, with Angular's template accessibility checks, and the `fz`
-  selector prefix. Then `lint:styles` runs stylelint with `@fz/style`'s
-  preset.
+- **`lint`** runs ESLint (`eslint.config.js`): `@fz/dev`'s TypeScript,
+  Angular and template blocks, Angular's template accessibility checks among
+  them, with the `fz` selector prefix. Then `lint:styles` runs stylelint
+  with `@fz/style`'s preset.
 - **`typecheck`** runs the Angular compiler's checks over the sources
   (`tsconfig.lib.json`), emitting nothing, then `tsc` over the specs
   (`tsconfig.spec.json`) and the Vitest config (`tsconfig.node.json`).

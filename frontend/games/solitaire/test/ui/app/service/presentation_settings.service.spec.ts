@@ -5,7 +5,7 @@ import { ThemeService } from "@fz/ui/theme";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/view/presentation";
 import {
-  CardDeckId,
+  type CardDeckId,
   DEFAULT_DESKTOP_CARD_DECK,
   MOBILE_CARD_DECK,
 } from "@/engine/render/deck/card_deck";
@@ -252,12 +252,12 @@ describe("PresentationSettingsService", () => {
       const settings = buildSettings();
       const seen: CardDeckId[] = [];
       settings.onCardDeck((deckId) => seen.push(deckId));
-      TestBed.flushEffects();
+      TestBed.tick();
 
       view.setWidth(PHONE_WIDTH);
-      TestBed.flushEffects();
+      TestBed.tick();
       view.setWidth(WIDE_WIDTH);
-      TestBed.flushEffects();
+      TestBed.tick();
 
       expect(seen).toEqual([
         DEFAULT_DESKTOP_CARD_DECK,
@@ -341,7 +341,7 @@ describe("PresentationSettingsService", () => {
       settings.setFelt("purple");
       settings.setCardStyle("mobile");
       settings.setDesktopCardDeck("classic");
-      TestBed.flushEffects();
+      TestBed.tick();
 
       expect(stored()).toEqual({
         cardBackStyle: "card-back-red",
@@ -357,7 +357,7 @@ describe("PresentationSettingsService", () => {
       const settings = buildSettings();
       settings.setCardStyle("desktop");
       settings.setDesktopCardDeck("all-corner-pips");
-      TestBed.flushEffects();
+      TestBed.tick();
       TestBed.resetTestingModule();
 
       const later = buildSettings();
@@ -376,7 +376,7 @@ describe("PresentationSettingsService", () => {
       });
       buildSettings();
 
-      TestBed.flushEffects();
+      TestBed.tick();
 
       // The old keys go, so each setting is read from one place from now on.
       expect(stored()).toEqual({
@@ -399,7 +399,7 @@ describe("PresentationSettingsService", () => {
       windowAt(PHONE_WIDTH);
       buildSettings();
 
-      TestBed.flushEffects();
+      TestBed.tick();
 
       // So a later visit in a wider window gets desktop cards.
       expect(stored()).toMatchObject({
@@ -436,7 +436,7 @@ describe("PresentationSettingsService", () => {
       settings.onBackgroundColor((color) => seen.push(color));
 
       settings.setFelt("purple");
-      TestBed.flushEffects();
+      TestBed.tick();
 
       expect(seen.at(-1)).toBe("#3c096c");
     });
@@ -448,7 +448,7 @@ describe("PresentationSettingsService", () => {
       settings.onBackgroundColor((color) => seen.push(color));
 
       TestBed.inject(ThemeService).select("casino");
-      TestBed.flushEffects();
+      TestBed.tick();
 
       expect(seen.at(-1)).toBe("#1e6b43");
     });
@@ -458,7 +458,7 @@ describe("PresentationSettingsService", () => {
       const seen: string[] = [];
 
       settings.onBackgroundColor((color) => seen.push(color));
-      TestBed.flushEffects();
+      TestBed.tick();
 
       expect(seen).toEqual([DEFAULT_BACKGROUND_COLOR]);
     });
@@ -470,7 +470,7 @@ describe("PresentationSettingsService", () => {
       stop();
 
       settings.setFelt("purple");
-      TestBed.flushEffects();
+      TestBed.tick();
 
       expect(seen).not.toContain("#3c096c");
     });
@@ -609,7 +609,7 @@ describe("PresentationSettingsService", () => {
 
       settings.setPiles("top");
       settings.setStockSide("left");
-      TestBed.flushEffects();
+      TestBed.tick();
 
       expect(stored()).toMatchObject({ piles: "top", stockSide: "left" });
     });
@@ -659,7 +659,7 @@ describe("PresentationSettingsService", () => {
       store({ phonePiles: "top", hand: "left" });
       buildSettings();
 
-      TestBed.flushEffects();
+      TestBed.tick();
 
       expect(Object.keys(stored()!)).not.toContain("phonePiles");
     });

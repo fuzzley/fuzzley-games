@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { CARD_HEIGHT_PX } from "@/engine/render/layout/card_metrics";
 import {
-  PileLayout,
+  type PileLayout,
   mirrorPileLayout,
 } from "@/engine/render/layout/pile_layout";
-import { TableLayoutSpec } from "@/engine/render/layout/table_layout";
+import type { TableLayoutSpec } from "@/engine/render/layout/table_layout";
 import { measureTable } from "@/engine/render/layout/table_metrics";
 import { ROOMY_FAN_FIT } from "@/games/common/pile_layouts";
 import {

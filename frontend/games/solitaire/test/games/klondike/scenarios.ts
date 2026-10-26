@@ -1,9 +1,9 @@
 import { ALL_PLAYING_CARD_IDS } from "@/engine/core/card/deck";
 import {
-  PlayingCard,
+  type PlayingCard,
   playingCardInstanceId,
 } from "@/engine/core/card/playing_card";
-import { KlondikeGame } from "@/games/klondike/klondike_game";
+import type { KlondikeGame } from "@/games/klondike/klondike_game";
 import { StandardScoringPolicy } from "@/games/klondike/scoring_policy";
 import { emptyBoard, clearPile, relocate } from "@test/support/game_scenarios";
 

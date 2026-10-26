@@ -15,7 +15,7 @@ export type Subscribe<T> = (listener: (value: T) => void) => () => void;
  *
  * @template EventMap Maps each event name to the type of its payload.
  */
-export class EventEmitter<EventMap extends Record<string, unknown>> {
+export class EventEmitter<EventMap extends object> {
   private listeners: { [K in keyof EventMap]?: Listener<EventMap[K]>[] } = {};
 
   /** Subscribes a listener and returns a function that unsubscribes it. */
@@ -29,7 +29,9 @@ export class EventEmitter<EventMap extends Record<string, unknown>> {
       this.listeners[event] = list;
     }
     list.push(listener);
-    return () => this.off(event, listener);
+    return () => {
+      this.off(event, listener);
+    };
   }
 
   /** Unsubscribes a listener from an event. */

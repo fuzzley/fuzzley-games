@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { PlayingCardId, Rank, Suit } from "@/engine/core/card/playing_card";
+import {
+  type PlayingCardId,
+  Rank,
+  Suit,
+} from "@/engine/core/card/playing_card";
 import { PokerHand, evaluateHand } from "@/games/poker_squares/poker_hands";
 
 /** Returns cards of the given ranks, all of one suit unless suits are given. */

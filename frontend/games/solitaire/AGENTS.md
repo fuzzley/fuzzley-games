@@ -212,7 +212,7 @@ brings in the mixins and breakpoints and nothing else:
 
 ## Lint-Enforced Architectural Boundaries
 
-Architecture guidelines are enforced as hard build errors rather than conventions via ESLint (`eslint.config.cjs`) using `@typescript-eslint/no-restricted-imports`. Each tier may depend only on the tiers below it:
+Architecture guidelines are enforced as hard build errors rather than conventions via ESLint (`eslint.config.js`, on top of `@fz/dev`'s shared blocks) using `@typescript-eslint/no-restricted-imports`. Each tier may depend only on the tiers below it:
 
 | Tier / Directory                      | Allowed Dependencies                             | Explicitly Restricted Imports (`@typescript-eslint/no-restricted-imports`)                                                  |
 | :------------------------------------ | :----------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------- |
@@ -280,12 +280,12 @@ others', and check its formatting and skill references there.
 - **Run Development Server:** `yarn start` or `yarn dev` (launches Vite dev server at `http://localhost:9000/`, the port Minesweeper's uses too).
 - **Stop Development Servers:** `yarn stop` (runs `tools/stop-dev-servers.mjs` to force stop every Vite dev server running from this checkout's frontend, with the yarn processes that launched it, on Windows and Linux; the site's and the other games' run the same Vite, so they stop too; `--dry-run` lists them without stopping them).
 - **Build Card Atlas:** `yarn build:atlas` (runs `tools/build-card-atlas.mjs` to cut the SVG card sheets, and generate the `mobile` deck, into texture atlas files; `--deck <id>` builds one deck, `--preview` draws a contact sheet of every deck at phone scale).
-- **Capture Screenshots:** `yarn capture:screenshots [id ...]` (runs `tools/capture-screenshots.mjs` to capture each game's rules-page screenshot, or only the games named, from the running dev server in headless Chrome: the whole page at 1440 × 810 and 2×, on a fresh deal with every setting at its default, saved losslessly to `docs/screenshots/<id>/overview.png`, outside `public/`; `--chrome <path>` or `CHROME_PATH` picks the browser).
+- **Capture Screenshots:** `yarn capture:screenshots [id ...]` (runs `tools/capture-screenshots.mjs` to capture each game's rules-page screenshot, or only the games named, from the running dev server in headless Chrome, through `@fz/dev/chrome`: the whole page at 1440 × 810 and 2×, on a fresh deal with every setting at its default, saved losslessly to `docs/screenshots/<id>/overview.png`, outside `public/`; `--chrome <path>` or `CHROME_PATH` picks the browser).
 - **Build Screenshot Thumbnails:** `yarn build:thumbs` (runs `tools/build-screenshot-thumbs.mjs` to make the images the site serves from each game's lossless screenshot, into `public/docs/screenshots/<id>/`: the rules page's `overview.webp` (1600 × 900, the whole page), the game browser's `thumb.webp` (576 × 324, cropped to the board), and `preview.webp` (2560 × 1440, the whole page); Klondike's preview is also the link preview image in `index.html`, and the site's catalog shows `thumb.webp` and `preview.webp` too).
 - **Production Build:** `yarn build` (generates bundled production assets in `dist/` with Phaser manual chunking).
 - **Run Unit Tests:** `yarn test` (runs the whole suite once, with coverage, failing below the floor) or `yarn test:watch`; `yarn vitest run <path>` runs one spec without coverage.
-- **Linting:** `yarn lint` (runs ESLint over `src`, `test` and `tools`, then `yarn lint:styles`, which runs stylelint over every stylesheet with `@fz/style`'s preset (`stylelint.config.js`): the standard SCSS rules, no colour written outside `_palette.scss`, Sass modules, nesting at most three deep).
-- **Type Checking:** `yarn typecheck` (runs TypeScript compiler checks for the app, the tests (`tsconfig.spec.json`), and the Node scripts in `tools/` (`tsconfig.scripts.json`), emitting nothing).
+- **Linting:** `yarn lint` (runs ESLint over `src`, `test`, `tools` and the Vite configs, with `@fz/dev`'s blocks, the tier fences above, and the one rule the Phaser adapter is let off, then `yarn lint:styles`, which runs stylelint over every stylesheet with `@fz/style`'s preset (`stylelint.config.js`): the standard SCSS rules, no colour written outside `_palette.scss`, Sass modules, nesting at most three deep).
+- **Type Checking:** `yarn typecheck` (runs the Angular compiler's checks over the app (`tsconfig.app.json`), then `tsc` over the tests (`tsconfig.spec.json`), the Vite configs (`tsconfig.node.json`) and the Node scripts in `tools/` (`tsconfig.scripts.json`), emitting nothing, each with `@fz/dev`'s compiler options).
 
 ---
 

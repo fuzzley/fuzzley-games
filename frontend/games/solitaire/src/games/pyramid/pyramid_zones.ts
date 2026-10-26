@@ -1,4 +1,4 @@
-import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import type { ZoneSpec } from "@/engine/tableau/zones/zone";
 import { zoneAt } from "@/engine/tableau/zones/zone_builder";
 import {
   DISCARD_PILE_ID,
@@ -17,7 +17,7 @@ import {
 import {
   LONE_KING_RULE,
   OPEN_PAIR_RULE,
-  PyramidPasses,
+  type PyramidPasses,
   PyramidRole,
   pyramidPairRule,
 } from "./pyramid_rules";

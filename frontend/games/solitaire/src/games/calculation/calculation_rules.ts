@@ -1,7 +1,7 @@
-import { PileRole } from "@/engine/core/card/card_pile";
-import { ALL_RANKS, Rank } from "@/engine/core/card/playing_card";
+import type { PileRole } from "@/engine/core/card/card_pile";
+import { ALL_RANKS, Rank, rankAt } from "@/engine/core/card/playing_card";
 import {
-  PlacementRule,
+  type PlacementRule,
   all,
   byEmptiness,
   cardIs,
@@ -58,7 +58,7 @@ export const FOUNDATION_CAPACITY = ALL_RANKS.length;
  * carry straight on.
  */
 export function calculationFoundationRule(step: number): PlacementRule {
-  const startRank: Rank = Rank.ACE + step - 1;
+  const startRank = rankAt(Rank.ACE + step - 1);
   return all(
     singleCardOnly,
     byEmptiness(

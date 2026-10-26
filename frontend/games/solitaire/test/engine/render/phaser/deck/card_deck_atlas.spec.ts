@@ -3,11 +3,11 @@ import { CARD_DECKS } from "@/engine/render/deck/card_deck";
 import { CARD_BACKS } from "@/engine/render/deck/card_back";
 import {
   CARD_ART_SCALES,
-  CardArtScale,
+  type CardArtScale,
   cardFrameTexels,
 } from "@/engine/render/deck/card_art_scale";
 import {
-  CardAtlas,
+  type CardAtlas,
   bootCardAtlas,
   cardAtlasSource,
   cardAtlasTextureKey,
@@ -85,7 +85,7 @@ const EVERY_ATLAS: CardAtlas[] = CARD_DECKS.flatMap((deck) =>
 
 /** Returns the built manifest of an atlas. */
 function built(atlas: CardAtlas): BuiltAtlas | undefined {
-  return BUILT_ATLASES[atlas.deckId]?.[atlas.artScale];
+  return BUILT_ATLASES[atlas.deckId][atlas.artScale];
 }
 
 /** Returns every frame name a built manifest declares, sorted. */

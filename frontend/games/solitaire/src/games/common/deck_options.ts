@@ -1,4 +1,4 @@
-import { DeckCardId } from "@/engine/core/card/playing_card";
+import type { DeckCardId } from "@/engine/core/card/playing_card";
 
 /**
  * Chooses the cards a game deals and how it shuffles them, which a test sets

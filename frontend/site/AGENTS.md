@@ -79,11 +79,12 @@ The root's `yarn lint`, `yarn typecheck` and `yarn test` run the site's
 own, which `yarn workspace site <script>` runs alone.
 
 - **`lint`** runs ESLint over `src`, `tools` and `vite.config.ts`, then
-  `lint:styles`. The ESLint config, `eslint.config.js`, has
-  typescript-eslint's strict and stylistic type-checked rules, explicit
-  return types on exported functions and public methods, `import type` for
-  type-only imports, Angular's recommended and template accessibility rules,
-  and JSDoc types on every script. Each file is type-checked with the
+  `lint:styles`. The ESLint config, `eslint.config.js`, is `@fz/dev`'s
+  blocks (`frontend/lib/dev/AGENTS.md`): typescript-eslint's strict and
+  stylistic type-checked rules, explicit return types on exported functions
+  and public methods, `import type` for type-only imports, Angular's
+  recommended and template accessibility rules, and JSDoc types on every
+  script. Each file is type-checked with the
   tsconfig that includes it, found through the solution in `tsconfig.json`.
 - **`lint:styles`** runs stylelint over every stylesheet with `@fz/style`'s
   preset (`stylelint.config.js`): the standard SCSS rules, no hex, named or
@@ -91,7 +92,8 @@ own, which `yarn workspace site <script>` runs alone.
 - **`typecheck`** runs the Angular compiler's checks over the app, emitting
   nothing, then `tsc` over the specs (`tsconfig.spec.json`), over
   `vite.config.ts` (`tsconfig.node.json`), and over the `tools` scripts from
-  their JSDoc (`tsconfig.scripts.json`).
+  their JSDoc (`tsconfig.scripts.json`), each extending `@fz/dev`'s
+  compiler options.
 - **`test`** runs Vitest once. The site's `vitest-testing` skill, in
   `.agents/skills/`, covers its setup and its specs' patterns.
 

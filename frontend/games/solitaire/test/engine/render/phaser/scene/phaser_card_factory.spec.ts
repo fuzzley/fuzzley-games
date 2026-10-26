@@ -1,14 +1,14 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import * as Phaser from "phaser";
+import type * as Phaser from "phaser";
 import { PhaserCardFactory } from "@/engine/render/phaser/scene/phaser_card_factory";
-import { CardArtScale } from "@/engine/render/deck/card_art_scale";
+import type { CardArtScale } from "@/engine/render/deck/card_art_scale";
 import {
   createMockMake,
   createMockSprite,
   createMockTextures,
-  MockDynamicTexture,
-  MockSprite,
-  MockTextures,
+  type MockDynamicTexture,
+  type MockSprite,
+  type MockTextures,
 } from "@test/support/phaser_mocks";
 
 /** The texture of whichever deck is on the table, at 2x. */
@@ -152,7 +152,7 @@ describe("PhaserCardFactory", () => {
       factory.bakeCardShadow();
 
       const padding = shadowTexture().contents[0].shadows[0].paddingOverride;
-      expect(padding && padding.every((value) => value !== 0)).toBe(true);
+      expect(padding?.every((value) => value !== 0)).toBe(true);
     });
 
     it("sizes the texture to the card with that room on every side", () => {

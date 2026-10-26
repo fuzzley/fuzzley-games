@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { IntentHandler } from "@/engine/render/input/table_intents";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
 import { FortyThievesGame } from "@/games/forty_thieves/forty_thieves_game";
 import { fortyThievesGestures } from "@/games/forty_thieves/forty_thieves_gestures";
 import { FortyThievesVariant } from "@/games/forty_thieves/forty_thieves_rules";
@@ -48,9 +48,9 @@ describe("fortyThievesGestures", () => {
       const card = game.tableaus[0].topCard!;
       takeOffBoard(game, card.id);
 
-      expect(() => handle({ kind: "activate", cardId: card.id })).toThrow(
-        "is not in a pile",
-      );
+      expect(() => {
+        handle({ kind: "activate", cardId: card.id });
+      }).toThrow("is not in a pile");
     });
   });
 

@@ -18,17 +18,17 @@ import {
 import {
   computeDropGeometries,
   resolveDropTarget,
-  PileGeometry,
+  type PileGeometry,
 } from "@/engine/render/layout/drop_geometry";
 import {
   CARD_HEIGHT_PX,
   CARD_WIDTH_PX,
 } from "@/engine/render/layout/card_metrics";
 import { CardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 import { FakeTableGame } from "@test/support/fake_table/game";
-import { NO_INSETS, Viewport } from "@/engine/render/layout/viewport";
-import { Rect } from "@/engine/render/layout/geometry";
+import { NO_INSETS, type Viewport } from "@/engine/render/layout/viewport";
+import type { Rect } from "@/engine/render/layout/geometry";
 import { makePlayingCard } from "@test/support/card_builder";
 import { emptyBoard, relocate } from "@test/support/game_scenarios";
 
@@ -131,7 +131,7 @@ describe("computeDropGeometries", () => {
       1,
     );
 
-    expect([geometry?.width, geometry?.height]).toEqual([
+    expect([geometry.width, geometry.height]).toEqual([
       CARD_WIDTH_PX + 55,
       CARD_HEIGHT_PX,
     ]);
@@ -155,7 +155,7 @@ describe("computeDropGeometries", () => {
       1,
     );
 
-    expect([geometry?.x, geometry?.width]).toEqual([145, CARD_WIDTH_PX + 55]);
+    expect([geometry.x, geometry.width]).toEqual([145, CARD_WIDTH_PX + 55]);
   });
 
   it("leaves a foundation at a single card however many it holds", () => {

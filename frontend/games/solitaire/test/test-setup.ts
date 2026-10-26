@@ -39,7 +39,9 @@ function createMemoryStorage(): Storage {
   };
 }
 
-if (!globalThis.localStorage) {
+// Node declares localStorage, but leaves it undefined unless it is given a
+// file to keep it in.
+if (typeof globalThis.localStorage === "undefined") {
   Object.defineProperty(globalThis, "localStorage", {
     value: createMemoryStorage(),
     writable: true,

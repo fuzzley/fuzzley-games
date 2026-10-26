@@ -43,7 +43,9 @@ export class RecentGamesService {
         gameId: this.catalog.selectedId(),
         values: this.catalog.optionValues(),
       };
-      untracked(() => this.remember(played));
+      untracked(() => {
+        this.remember(played);
+      });
     });
   }
 
@@ -82,7 +84,7 @@ function isSame(a: RecentGame, b: RecentGame): boolean {
 function readRecentGame(value: unknown, path: string): RecentGame {
   const game = readObject(value, path);
   return {
-    gameId: readString(game.gameId, `${path}.gameId`),
-    values: readRecord(game.values, `${path}.values`, readNumber),
+    gameId: readString(game["gameId"], `${path}.gameId`),
+    values: readRecord(game["values"], `${path}.values`, readNumber),
   };
 }

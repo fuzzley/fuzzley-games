@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { IntentHandler } from "@/engine/render/input/table_intents";
+import type { IntentHandler } from "@/engine/render/input/table_intents";
 import { EasthavenGame } from "@/games/easthaven/easthaven_game";
 import { easthavenGestures } from "@/games/easthaven/easthaven_gestures";
 import {

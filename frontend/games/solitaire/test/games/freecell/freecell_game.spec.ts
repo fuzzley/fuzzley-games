@@ -7,7 +7,7 @@ import {
   TABLEAU_COUNT,
   FreeCellRole,
 } from "@/games/freecell/freecell_zones";
-import { PlayingCard } from "@/engine/core/card/playing_card";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
 
 /** Empties the whole board so a test can build an exact position. */
 function clearBoard(game: FreeCellGame): void {

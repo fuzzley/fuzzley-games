@@ -1,6 +1,6 @@
-import { PileRole } from "@/engine/core/card/card_pile";
+import type { PileRole } from "@/engine/core/card/card_pile";
 import {
-  PlacementRule,
+  type PlacementRule,
   any,
   anyCard,
   byEmptiness,

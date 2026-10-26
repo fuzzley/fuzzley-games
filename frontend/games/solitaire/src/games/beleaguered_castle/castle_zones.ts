@@ -1,6 +1,6 @@
-import { PileLayout } from "@/engine/render/layout/pile_layout";
+import type { PileLayout } from "@/engine/render/layout/pile_layout";
 import { suitFoundation } from "@/engine/tableau/rules/builds";
-import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import type { ZoneSpec } from "@/engine/tableau/zones/zone";
 import { zoneAt } from "@/engine/tableau/zones/zone_builder";
 import { foundationPileId, tableauPileId } from "../common/pile_ids";
 import {

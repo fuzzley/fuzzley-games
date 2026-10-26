@@ -1,5 +1,5 @@
-import { PileRole } from "@/engine/core/card/card_pile";
-import { CardPressHandler, MovableGame } from "./table_gestures";
+import type { PileRole } from "@/engine/core/card/card_pile";
+import type { CardPressHandler, MovableGame } from "./table_gestures";
 
 /**
  * Returns a press handler that calls `draw` when the stock's top card is

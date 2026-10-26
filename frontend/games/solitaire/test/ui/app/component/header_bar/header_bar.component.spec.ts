@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
-import { TestBed, ComponentFixture } from "@angular/core/testing";
+import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.component";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
 import { ConfirmService } from "@fz/ui/confirm";
@@ -53,7 +53,7 @@ describe("HeaderBarComponent", () => {
 
   /** Returns the undo button, whichever state it is in. */
   function undoButton(): HTMLButtonElement {
-    return queryRequired<HTMLButtonElement>(fixture, "button[title*='Undo']");
+    return queryRequired(fixture, "button[title*='Undo']", HTMLButtonElement);
   }
 
   /** Narrows the window past the width the header compacts at. */
@@ -76,9 +76,10 @@ describe("HeaderBarComponent", () => {
 
   /** Returns the link home in the bar, outside the overflow menu. */
   function homeLink(): HTMLAnchorElement | null {
-    return query<HTMLAnchorElement>(
+    return query(
       fixture,
       "header a[href='/']:not([role='menuitem'])",
+      HTMLAnchorElement,
     );
   }
 

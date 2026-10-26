@@ -1,5 +1,5 @@
 import { CARD_HEIGHT_PX } from "@/engine/render/layout/card_metrics";
-import { FanFit, PileLayout } from "@/engine/render/layout/pile_layout";
+import type { FanFit, PileLayout } from "@/engine/render/layout/pile_layout";
 
 /** Defines the arrangements solitaire piles use and the gaps between cards. */
 

@@ -1,6 +1,6 @@
-import { Size } from "../../layout/geometry";
+import type { Size } from "../../layout/geometry";
 import { cardFrameTexels } from "../../deck/card_art_scale";
-import { CardFrameVectors } from "./card_deck_vectors";
+import type { CardFrameVectors } from "./card_deck_vectors";
 
 /** Says where a drawn deck puts one frame, by its top left corner in pixels. */
 export interface DrawnFrameSlot {

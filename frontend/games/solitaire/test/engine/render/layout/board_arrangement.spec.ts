@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  BoardArrangement,
+  type BoardArrangement,
   DEFAULT_BOARD_ARRANGEMENT,
   resolveArrangement,
 } from "@/engine/render/layout/board_arrangement";

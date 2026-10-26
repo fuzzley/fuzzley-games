@@ -77,14 +77,18 @@ describe("playingCardFaceKey", () => {
   });
 
   it("throws for an unknown suit", () => {
+    const suit: unknown = 999;
+
     expect(() =>
-      playingCardFaceKey({ suit: 999 as Suit, rank: Rank.ACE }),
+      playingCardFaceKey({ suit: suit as Suit, rank: Rank.ACE }),
     ).toThrow("Unknown Suit: 999");
   });
 
   it("throws for an unknown rank", () => {
+    const rank: unknown = 999;
+
     expect(() =>
-      playingCardFaceKey({ suit: Suit.SPADE, rank: 999 as Rank }),
+      playingCardFaceKey({ suit: Suit.SPADE, rank: rank as Rank }),
     ).toThrow("Unknown Rank: 999");
   });
 });

@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { CardRegistry } from "@/engine/core/card/card_registry";
-import { PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
-import { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
-import { PileMarker } from "@/engine/tableau/zones/pile_marker";
+import { type PlayingCard, Rank, Suit } from "@/engine/core/card/playing_card";
+import type { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
+import type { PileMarker } from "@/engine/tableau/zones/pile_marker";
 import { TableGame } from "@/engine/tableau/game/table_game";
 import { anyCard, never } from "@/engine/tableau/rules/placement";
-import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import type { ZoneSpec } from "@/engine/tableau/zones/zone";
 
 const LEFT = "left";
 const RIGHT = "right";

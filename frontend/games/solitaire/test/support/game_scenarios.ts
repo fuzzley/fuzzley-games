@@ -1,6 +1,6 @@
-import { CardPile, ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import { CardPile, type ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import {
-  PlayingCard,
+  type PlayingCard,
   Rank,
   Suit,
   playingCardInstanceId,
@@ -39,7 +39,9 @@ function writable(pile: ReadonlyCardPile<PlayingCard>): CardPile<PlayingCard> {
 
 /** Empties every pile on the board so a test can build an exact position. */
 export function emptyBoard(game: DealtBoard): void {
-  game.piles.forEach((pile) => writable(pile).clear());
+  game.piles.forEach((pile) => {
+    writable(pile).clear();
+  });
 }
 
 /**

@@ -1,4 +1,4 @@
-import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import type { ZoneSpec } from "@/engine/tableau/zones/zone";
 import { zoneAt } from "@/engine/tableau/zones/zone_builder";
 import { STACKED_PILE_LAYOUT } from "../common/pile_layouts";
 import {
@@ -8,7 +8,7 @@ import {
 import {
   DEFAULT_MAX_REDEALS,
   DEFAULT_MONTANA_VARIANT,
-  MaxRedeals,
+  type MaxRedeals,
   MontanaRole,
   MontanaVariant,
   ROW_COUNT,

@@ -1,19 +1,22 @@
 import { itemAt } from "@/engine/core/common/item_at";
-import { ArrangedLayouts } from "@/engine/render/layout/board_layouts";
-import { PilePosition } from "@/engine/render/layout/board_arrangement";
+import type { ArrangedLayouts } from "@/engine/render/layout/board_layouts";
+import type { PilePosition } from "@/engine/render/layout/board_arrangement";
 import {
   CARD_HEIGHT_PX,
   CARD_RENDER_HEIGHT_PX,
 } from "@/engine/render/layout/card_metrics";
-import { FanFit, PileLayoutOverride } from "@/engine/render/layout/pile_layout";
+import type {
+  FanFit,
+  PileLayoutOverride,
+} from "@/engine/render/layout/pile_layout";
 import {
-  PileBackgroundOverride,
-  SlotPlacement,
-  TableLayoutSpec,
+  type PileBackgroundOverride,
+  type SlotPlacement,
+  type TableLayoutSpec,
   designSize,
   tableLayout,
 } from "@/engine/render/layout/table_layout";
-import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import type { ZoneSpec } from "@/engine/tableau/zones/zone";
 import {
   PHONE_FAN_FIT,
   ROOMY_FAN_FIT,

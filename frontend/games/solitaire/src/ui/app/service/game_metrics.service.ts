@@ -65,7 +65,9 @@ export class GameMetricsService {
         this.wonSignal.set(true);
         this.timer.stop();
       };
-      const gameResetHandler = () => this.reset();
+      const gameResetHandler = () => {
+        this.reset();
+      };
       const stopFollowing = [
         unsubscribe,
         game.on("game-won", gameWonHandler),

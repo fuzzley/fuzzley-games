@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import { BoardScene } from "@/engine/render/phaser/scene/board_scene";
+import type { BoardScene } from "@/engine/render/phaser/scene/board_scene";
 import {
-  HostedGame,
+  type HostedGame,
   PhaserHost,
 } from "@/engine/render/phaser/host/phaser_host";
-import { Insets } from "@/engine/render/layout/viewport";
+import type { Insets } from "@/engine/render/layout/viewport";
 import { FakeTableGame } from "@test/support/fake_table/game";
 import { makeFakeTableBoardScene } from "@test/support/fake_table/scene";
 import { TestPresentation } from "@test/support/presentation";
@@ -126,11 +126,10 @@ describe("PhaserHost", () => {
 
   /** Returns the one game the host has started. */
   function game(): FakeGame {
-    const [only, ...others] = games;
-    if (!only || others.length > 0) {
+    if (games.length !== 1) {
       throw new Error(`Expected one game, found ${games.length}`);
     }
-    return only;
+    return games[0];
   }
 
   /** Builds a board drawing a freshly dealt game. */

@@ -1,4 +1,5 @@
-import { Card } from "./card";
+import { itemAt } from "../common/item_at";
+import type { Card } from "./card";
 
 /** Represents a playing card with a suit and a rank. */
 export class PlayingCard implements Card {
@@ -107,24 +108,34 @@ export const ALL_RANKS: readonly Rank[] = [
   Rank.KING,
 ];
 
+/**
+ * Returns the rank a number of steps above the Ace, so that arithmetic on
+ * ranks, as in `rankAt(Rank.TWO + 2)`, the Four, stays a rank.
+ *
+ * @throws RangeError for a number that is no rank's.
+ */
+export function rankAt(steps: number): Rank {
+  return itemAt(ALL_RANKS, steps);
+}
+
 /** Returns the rank one step above `rank`, or undefined for the King. */
 export function rankAbove(rank: Rank): Rank | undefined {
-  return rank === Rank.KING ? undefined : rank + 1;
+  return rank === Rank.KING ? undefined : rankAt(rank + 1);
 }
 
 /** Returns the rank one step below `rank`, or undefined for the Ace. */
 export function rankBelow(rank: Rank): Rank | undefined {
-  return rank === Rank.ACE ? undefined : rank - 1;
+  return rank === Rank.ACE ? undefined : rankAt(rank - 1);
 }
 
 /** Returns the rank one step above `rank`, turning the corner from King to Ace. */
 export function rankAboveWrapping(rank: Rank): Rank {
-  return rank === Rank.KING ? Rank.ACE : rank + 1;
+  return rank === Rank.KING ? Rank.ACE : rankAt(rank + 1);
 }
 
 /** Returns the rank one step below `rank`, turning the corner from Ace to King. */
 export function rankBelowWrapping(rank: Rank): Rank {
-  return rank === Rank.ACE ? Rank.KING : rank - 1;
+  return rank === Rank.ACE ? Rank.KING : rankAt(rank - 1);
 }
 
 /**
@@ -170,18 +181,24 @@ const RANK_STRINGS: Record<Rank, string> = {
   [Rank.KING]: "king",
 };
 
+/**
+ * Returns a suit's name in an artwork key, throwing for a value that is no
+ * suit, as a corrupt save could hold.
+ */
 function suitToString(suit: Suit): string {
-  const value = SUIT_STRINGS[suit];
-  if (value === undefined) {
+  if (!Object.hasOwn(SUIT_STRINGS, suit)) {
     throw new Error(`Unknown Suit: ${String(suit)}`);
   }
-  return value;
+  return SUIT_STRINGS[suit];
 }
 
+/**
+ * Returns a rank's name in an artwork key, throwing for a value that is no
+ * rank, as a corrupt save could hold.
+ */
 function rankToString(rank: Rank): string {
-  const value = RANK_STRINGS[rank];
-  if (value === undefined) {
+  if (!Object.hasOwn(RANK_STRINGS, rank)) {
     throw new Error(`Unknown Rank: ${String(rank)}`);
   }
-  return value;
+  return RANK_STRINGS[rank];
 }

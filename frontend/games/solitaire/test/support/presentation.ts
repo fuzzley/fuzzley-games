@@ -1,13 +1,13 @@
-import {
+import type {
   CardDeckStatus,
   TablePresentation,
 } from "@/engine/render/view/presentation";
 import {
-  CardDeckId,
+  type CardDeckId,
   DEFAULT_DESKTOP_CARD_DECK,
 } from "@/engine/render/deck/card_deck";
 import {
-  BoardArrangement,
+  type BoardArrangement,
   DEFAULT_BOARD_ARRANGEMENT,
 } from "@/engine/render/layout/board_arrangement";
 

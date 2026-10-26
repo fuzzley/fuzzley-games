@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { ALL_RANKS, PlayingCard, Rank } from "@/engine/core/card/playing_card";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import {
+  ALL_RANKS,
+  type PlayingCard,
+  Rank,
+} from "@/engine/core/card/playing_card";
 import {
   dealRowCollectingRuns,
   dealRowFromStock,

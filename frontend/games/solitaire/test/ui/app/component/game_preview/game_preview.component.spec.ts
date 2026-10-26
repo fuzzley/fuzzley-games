@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from "vitest";
-import { TestBed, ComponentFixture } from "@angular/core/testing";
+import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { GamePreviewComponent } from "@/ui/app/component/game_preview/game_preview.component";
 import type { GameBrowserItem } from "@/ui/app/model/game_browser_item";
 import { Difficulty } from "@/ui/app/model/game_profile.model";
@@ -39,9 +39,7 @@ function preview(
 
 /** Returns the facts a preview lists. */
 function facts(fixture: ComponentFixture<GamePreviewComponent>): string[] {
-  return queryAll(fixture, ".fact").map(
-    (fact) => fact.textContent?.trim() ?? "",
-  );
+  return queryAll(fixture, ".fact").map((fact) => fact.textContent.trim());
 }
 
 describe("GamePreviewComponent", () => {
@@ -72,7 +70,7 @@ describe("GamePreviewComponent", () => {
   it("describes the board's picture for a screen reader", () => {
     const fixture = preview(SPIDER);
 
-    const image = queryRequired<HTMLImageElement>(fixture, ".shot-image");
+    const image = queryRequired(fixture, ".shot-image", HTMLImageElement);
 
     expect(image.alt).toBe("The Spider board, as dealt");
   });
@@ -80,7 +78,7 @@ describe("GamePreviewComponent", () => {
   it("offers to play a game that is not on the table", () => {
     const fixture = preview(SPIDER);
 
-    expect(queryRequired(fixture, ".btn-play").textContent?.trim()).toBe(
+    expect(queryRequired(fixture, ".btn-play").textContent.trim()).toBe(
       "Play Spider",
     );
   });

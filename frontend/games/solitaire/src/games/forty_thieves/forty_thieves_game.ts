@@ -1,19 +1,19 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import { deckCardIds } from "@/engine/core/card/deck";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { Deal } from "@/engine/tableau/dealing/deal";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
+import type { Deal } from "@/engine/tableau/dealing/deal";
 import { DealtTableGame } from "@/engine/tableau/game/dealt_table_game";
-import { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
+import type { MoveEffects, ResolvedMove } from "@/engine/tableau/moves/move";
 import { flipOnlyEffects } from "@/games/common/move_effects";
 import { drawToWaste } from "@/games/common/stock_pile";
-import { DeckOptions } from "@/games/common/deck_options";
+import type { DeckOptions } from "@/games/common/deck_options";
 import {
   FORTY_THIEVES_TWO_DECKS,
   dealFortyThievesLayout,
 } from "./forty_thieves_deal";
 import {
   DEFAULT_FORTY_THIEVES_VARIANT,
-  FortyThievesVariant,
+  type FortyThievesVariant,
 } from "./forty_thieves_rules";
 import {
   FortyThievesRole,

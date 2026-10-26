@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  TableLayoutSpec,
+  type TableLayoutSpec,
   designSize,
 } from "@/engine/render/layout/table_layout";
 import {
@@ -11,7 +11,7 @@ import {
   measureTable,
 } from "@/engine/render/layout/table_metrics";
 import { COMPACT_MAX_WIDTH_CSS_PX } from "@/engine/render/layout/form_factor";
-import { NO_INSETS, Viewport } from "@/engine/render/layout/viewport";
+import { NO_INSETS, type Viewport } from "@/engine/render/layout/viewport";
 import { FAKE_TABLE_LAYOUT } from "@test/support/fake_table/board";
 import {
   STOCK_PILE_ID,

@@ -1,7 +1,7 @@
 import { InjectionToken } from "@angular/core";
 import { YukonVariant } from "@/games/yukon/yukon_rules";
-import { GameDocumentation } from "../model/game_documentation.model";
-import { GameId, storedValue } from "./game_catalog";
+import type { GameDocumentation } from "../model/game_documentation.model";
+import { type GameId, storedValue } from "./game_catalog";
 
 /**
  * Maps a game id to its documentation, as a consumer receives it.

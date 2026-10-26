@@ -1,4 +1,4 @@
-import { ZoneSpec } from "@/engine/tableau/zones/zone";
+import type { ZoneSpec } from "@/engine/tableau/zones/zone";
 import { zoneAt } from "@/engine/tableau/zones/zone_builder";
 import { STOCK_PILE_ID, foundationPileId } from "../common/pile_ids";
 import {

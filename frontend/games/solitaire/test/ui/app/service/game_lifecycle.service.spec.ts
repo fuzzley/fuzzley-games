@@ -37,7 +37,7 @@ function buildLifecycle(overrides: MockGameModelOverrides = {}): Harness {
   const lifecycle = TestBed.inject(GameLifecycleService);
   const metrics = TestBed.inject(GameMetricsService);
   const confirmation = TestBed.inject(ConfirmService);
-  TestBed.flushEffects();
+  TestBed.tick();
   return { lifecycle, metrics, confirmation, model, catalog };
 }
 
@@ -148,7 +148,7 @@ describe("GameLifecycleService", () => {
     it("stops asking once the game is won, since it is already over", async () => {
       const harness = buildLifecycle({ moves: 5 });
       harness.model.emit("game-won");
-      TestBed.flushEffects();
+      TestBed.tick();
 
       await harness.lifecycle.restartGame();
 
@@ -292,7 +292,7 @@ describe("GameLifecycleService", () => {
     it("clears the won flag, so the victory card goes away", async () => {
       const harness = buildLifecycle();
       harness.model.emit("game-won");
-      TestBed.flushEffects();
+      TestBed.tick();
 
       await harness.lifecycle.startNewGame();
 

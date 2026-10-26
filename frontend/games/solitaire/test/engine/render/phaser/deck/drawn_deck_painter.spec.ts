@@ -1,19 +1,19 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import type { Textures } from "phaser";
 import {
-  DrawnDeckHost,
+  type DrawnDeckHost,
   DrawnDeckPainter,
-  DrawnDeckServices,
-  DrawnDeckTextures,
-  PaintSurface,
+  type DrawnDeckServices,
+  type DrawnDeckTextures,
+  type PaintSurface,
   createBrowserCanvas,
   phaserDrawnDeckTextures,
 } from "@/engine/render/phaser/deck/drawn_deck_painter";
 import {
-  CardAtlas,
+  type CardAtlas,
   cardAtlasTextureKey,
 } from "@/engine/render/phaser/deck/card_deck_atlas";
-import {
+import type {
   DeckPaintContext,
   DrawnDeckPlan,
   ImageFrame,
@@ -359,9 +359,9 @@ describe("phaserDrawnDeckTextures", () => {
       slots: [],
     };
 
-    expect(() =>
-      textures.addCanvas("taken", {} as HTMLCanvasElement, plan),
-    ).toThrow("taken");
+    expect(() => {
+      textures.addCanvas("taken", {} as HTMLCanvasElement, plan);
+    }).toThrow("taken");
   });
 });
 

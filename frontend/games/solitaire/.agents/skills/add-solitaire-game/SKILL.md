@@ -509,7 +509,7 @@ naming a path you have moved fails here too.
 ## Where new code is allowed to live
 
 Each tier may depend only on the tiers below it, enforced as build errors by
-`@typescript-eslint/no-restricted-imports` in `eslint.config.cjs`.
+`@typescript-eslint/no-restricted-imports` in `eslint.config.js`.
 
 ```
        [ src/ui ]              Angular shell (header, navigation, controls)

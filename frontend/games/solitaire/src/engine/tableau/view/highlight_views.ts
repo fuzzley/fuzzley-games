@@ -3,17 +3,17 @@ import {
   CARD_RENDER_WIDTH_PX,
 } from "@/engine/render/layout/card_metrics";
 import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
-import { TableMetrics } from "@/engine/render/layout/table_metrics";
-import {
+import type { TableMetrics } from "@/engine/render/layout/table_metrics";
+import type {
   DragInteraction,
   TableInteractionState,
 } from "@/engine/render/input/interaction_state";
-import {
+import type {
   HighlightAnchor,
   HighlightView,
 } from "@/engine/render/view/table_view_state";
 import { resolveDragTarget } from "./drag";
-import { TableView } from "./table_view";
+import type { TableView } from "./table_view";
 
 /**
  * Returns the highlight borders to draw this frame: drag feedback while a

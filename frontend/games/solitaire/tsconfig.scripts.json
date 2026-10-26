@@ -1,20 +1,9 @@
 {
-  // The Node scripts under tools/, type-checked from their JSDoc. Node 26 is
-  // the oldest runtime frontend/package.json allows, so its types are the
-  // ones installed.
+  // The Node scripts under tools/, type-checked from their JSDoc. The DOM's
+  // types are for the functions a script runs in a page.
+  "extends": "@fz/dev/tsconfig/scripts.json",
   "compilerOptions": {
-    "allowJs": true,
-    "checkJs": true,
-    "noEmit": true,
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "target": "es2024",
-    "lib": ["es2024"],
-    "types": ["node"],
-    "skipLibCheck": true
+    "lib": ["es2024", "dom", "dom.iterable"]
   },
   "include": ["tools/**/*.mjs"]
 }

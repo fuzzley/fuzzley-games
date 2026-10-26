@@ -1,13 +1,13 @@
 import { itemAt } from "@/engine/core/common/item_at";
-import { Deal } from "@/engine/tableau/dealing/deal";
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { Deal } from "@/engine/tableau/dealing/deal";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
 import {
   ALL_SUITS,
-  PlayingCard,
+  type PlayingCard,
   Rank,
   rankAbove,
 } from "@/engine/core/card/playing_card";
-import { CastleVariantRules } from "./castle_rules";
+import type { CastleVariantRules } from "./castle_rules";
 
 /**
  * Deals a board under a variant's rules: the Aces to the foundations first

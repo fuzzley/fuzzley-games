@@ -1,45 +1,25 @@
 {
+  // @fz/dev's options for Angular, the same the libraries are checked with,
+  // since this app compiles their sources into its own program.
+  "extends": "@fz/dev/tsconfig/angular.json",
   "compilerOptions": {
-    "module": "ES2022",
-    "moduleResolution": "bundler",
     "rootDir": "./src",
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@test/*": ["test/*"]
+      "@/*": ["./src/*"],
+      "@test/*": ["./test/*"]
     },
-    "strict": true,
-    "noImplicitAny": true,
-    "noImplicitOverride": true,
-    "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
     "removeComments": true,
     "sourceMap": true,
-    "target": "ES2022",
-    "outDir": "./dist/",
-    "lib": ["es2022", "dom", "dom.iterable"],
-    "types": ["vitest/globals", "vite/client"],
-    "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "ignoreDeprecations": "6.0"
+    "lib": ["es2022", "dom", "dom.iterable"]
   },
-  "angularCompilerOptions": {
-    "strictTemplates": true,
-    "strictInjectionParameters": true,
-    "strictInputAccessModifiers": true,
-    "strictStandalone": true,
-    "extendedDiagnostics": {
-      "defaultCategory": "warning",
-      "checks": {
-        "invalidBananaInBox": "error",
-        "unusedStandaloneImports": "warning",
-        "missingRequiredInput": "error"
-      }
-    }
-  },
-  "exclude": ["node_modules", "**/*.spec.ts"],
-  "include": ["src"]
+  // A solution: each file belongs to the project below that includes it, which
+  // is the one editors and ESLint's project service check it with.
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.spec.json" },
+    { "path": "./tsconfig.node.json" },
+    { "path": "./tsconfig.scripts.json" }
+  ]
 }

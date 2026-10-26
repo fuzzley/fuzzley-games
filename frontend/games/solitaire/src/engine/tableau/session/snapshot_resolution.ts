@@ -1,7 +1,7 @@
-import { ReadonlyCardPile } from "@/engine/core/card/card_pile";
-import { PlayingCard } from "@/engine/core/card/playing_card";
-import { AppliedMove } from "../moves/move";
-import { GameSnapshot, PileSnapshot } from "./game_snapshot";
+import type { ReadonlyCardPile } from "@/engine/core/card/card_pile";
+import type { PlayingCard } from "@/engine/core/card/playing_card";
+import type { AppliedMove } from "../moves/move";
+import type { GameSnapshot, PileSnapshot } from "./game_snapshot";
 
 /** Gives snapshot resolution what it needs of the game being restored. */
 export interface SnapshotTarget {

@@ -1,7 +1,7 @@
-import { ArrangedLayouts } from "@/engine/render/layout/board_layouts";
+import type { ArrangedLayouts } from "@/engine/render/layout/board_layouts";
 import { CARD_HEIGHT_PX } from "@/engine/render/layout/card_metrics";
 import {
-  SlotPlacement,
+  type SlotPlacement,
   tableLayout,
 } from "@/engine/render/layout/table_layout";
 import { boardLayout } from "../common/board_layout";

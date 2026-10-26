@@ -210,6 +210,8 @@ describe("CardPile with a shared location index", () => {
   it("works without an index, for a standalone pile", () => {
     const pile = new CardPile();
 
-    expect(() => pile.addCard(makeCard({ id: "a" }))).not.toThrow();
+    expect(() => {
+      pile.addCard(makeCard({ id: "a" }));
+    }).not.toThrow();
   });
 });
