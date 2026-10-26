@@ -3,18 +3,25 @@ import { fuzzleyStyle } from "@fz/style/vite";
 import { defineConfig } from "vitest/config";
 import {
   checkGameImages,
+  readBuildInfo,
   servePlayPages,
   versionJson,
 } from "./tools/vite-plugins.ts";
+
+// Read once, so the footer and version.json name the same commit and time.
+const buildInfo = readBuildInfo();
 
 export default defineConfig({
   plugins: [
     angular(),
     fuzzleyStyle(),
-    versionJson(),
+    versionJson(buildInfo),
     servePlayPages(),
     checkGameImages(),
   ],
+  define: {
+    __BUILD_INFO__: JSON.stringify(buildInfo),
+  },
   server: {
     port: 4200,
     host: true,

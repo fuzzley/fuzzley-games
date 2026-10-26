@@ -1,13 +1,29 @@
 <footer class="foot">
   <div class="inner">
-    <p>© {{ year }} Andrey Gavel</p>
-    <a
-      href="https://github.com/fuzzley/fuzzley-games"
-      target="_blank"
-      rel="noopener"
-    >
-      Source on GitHub
-      <span class="fz-visually-hidden">(opens in a new tab)</span>
-    </a>
+    <p class="credits">
+      <span>© {{ year }} Andrey Gavel</span>
+      <a
+        [href]="repository"
+        target="_blank"
+        rel="noopener"
+        aria-label="Source on GitHub (opens in a new tab)"
+        >Source on GitHub</a
+      >
+    </p>
+    @if (commit; as commit) {
+      <p>
+        Built from
+        <a
+          [href]="commit.href"
+          target="_blank"
+          rel="noopener"
+          [attr.aria-label]="commit.label"
+          >{{ commit.hash }}</a
+        >
+        on {{ builtOn }}
+      </p>
+    } @else {
+      <p>Built on {{ builtOn }}</p>
+    }
   </div>
 </footer>

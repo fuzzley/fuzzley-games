@@ -10,7 +10,7 @@ it hosts are pinned and updated. The live site is https://fuzzley.games.
 - **Node version**: `.node-version` names the major version the workflows run (26). The `Dockerfile` names its own image, and `verify.yml` fails if their major versions differ.
 - **Serving & SPA Routing**: Nginx automatically reads the Cloud Run `$PORT` variable via `/etc/nginx/templates/default.conf.template`. SPA client-side routes fall back to `index.html`, which browsers must revalidate (`no-cache`). Long-lived caching is applied to the fingerprinted files in `/assets/`.
 - **Games**: each game is built here, in a workspace of its own (or, as the Solitaire Collection once was, in its own repository), and served as static files under `/play/<slug>/`, with no fallback to the site's `index.html`. See [Games](#games).
-- **Build info**: the build writes `version.json` (package version, short commit, build time, and the build of each game), served with `Cache-Control: no-store`, so the live site says which commit it is running.
+- **Build info**: the build writes `version.json` (package version, short commit, build time, and the build of each game), served with `Cache-Control: no-store`, so the live site says which commit it is running. The site's footer names the same commit, with a link to it on GitHub, and the day of the build.
 - **Runtime Configuration**: Environment variables such as `GA_AG_MEASUREMENT_ID` are injected at container startup into `/usr/share/nginx/html/env.js` via `/docker-entrypoint.d/40-generate-env-config.sh`, with `Cache-Control: no-store`. See [Runtime Configuration](#runtime-configuration).
 
 ## Docker Build & Run (Local Testing)

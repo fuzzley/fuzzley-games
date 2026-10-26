@@ -4,6 +4,7 @@ import { execSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { type Connect, type Plugin, runnerImport } from "vite";
+import type { BuildInfo } from "../src/app/model/build.ts";
 import type * as GameModel from "../src/app/model/game.ts";
 import type * as GameData from "../src/app/provider/games.ts";
 import { type GameBuild, isPinned, readManifest } from "./games.mjs";
@@ -37,6 +38,17 @@ export function commitHash(
   }
 }
 
+/** Returns the site's version, the commit it is built from, and the time. */
+export function readBuildInfo(
+  env: NodeJS.ProcessEnv = process.env,
+  now: Date = new Date(),
+): BuildInfo {
+  const { version } = JSON.parse(
+    readFileSync(path.join(SITE_DIR, "package.json"), "utf8"),
+  ) as { version: string };
+  return { version, commit: commitHash(env), buildTime: now.toISOString() };
+}
+
 /** Names the build of a game that version.json says the site serves. */
 export type ServedBuild =
   | { readonly asset: string; readonly commit: string }
@@ -65,25 +77,19 @@ export function servedBuilds(
  * Writes dist/version.json, which nginx serves uncached, so the live site says
  * which commit it was built from, and which build of each game it serves.
  */
-export function versionJson(): Plugin {
+export function versionJson(build: BuildInfo): Plugin {
   return {
     name: "version-json",
     apply: "build",
     generateBundle() {
-      const { version } = JSON.parse(
-        readFileSync(path.join(SITE_DIR, "package.json"), "utf8"),
-      ) as { version: string };
-      const commit = commitHash();
-      const buildInfo = {
-        version,
-        commit,
-        buildTime: new Date().toISOString(),
-        games: servedBuilds(readManifest(), commit),
-      };
       this.emitFile({
         type: "asset",
         fileName: "version.json",
-        source: JSON.stringify(buildInfo, null, 2),
+        source: JSON.stringify(
+          { ...build, games: servedBuilds(readManifest(), build.commit) },
+          null,
+          2,
+        ),
       });
     },
   };
