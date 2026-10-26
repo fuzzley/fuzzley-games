@@ -29,16 +29,21 @@ Minesweeper.
   - The root's `package.json` declares the workspaces and pins Yarn and
     Node. Its scripts run the workspaces' own (`yarn build`, `yarn verify`),
     picking them by path (`--include "games/*"`), and its dependencies are
-    only the tools that run from here: Prettier, and ESLint, TypeScript and
+    only the tools that run from here: Prettier, ESLint, TypeScript and
     `@fz/dev` for the `.agents/` scripts, with the `eslint.config.js` and
-    `tsconfig.scripts.json` beside it. `yarn.lock` and `.yarnrc.yml` exist
-    only here.
+    `tsconfig.scripts.json` beside it, and `semver` for the constraints.
+    `yarn.lock` and `.yarnrc.yml` exist only here.
   - `yarn.config.cjs` holds the constraints `yarn lint` checks every
     `package.json` against: a package has the same range in every workspace
-    that depends on it (when two differ, give both the higher one), only the
-    root sets `packageManager`, `workspaces` and `engines`, each
-    workspace is private and named after its folder, and a library depends
-    on no workspace but another library.
+    that depends on it, a peer range is the workspace's own devDependency
+    range for it, only the root sets `packageManager`, `workspaces` and
+    `engines`, each workspace is private and named after its folder, a
+    library depends on no workspace but another library, and every
+    workspace has `lint`, `typecheck` and `test` scripts (a game `build`
+    too), since the root's `yarn workspaces foreach run` skips a workspace
+    without one and says nothing. `yarn constraints --fix` gives every
+    workspace the highest of a package's ranges, and a peer its
+    devDependency's.
   - Each workspace is self-contained: its `package.json` lists everything
     it imports or runs, and its configs sit in its folder and cover only it.
     They build on `@fz/dev`'s presets, so every workspace is checked by the
@@ -104,7 +109,7 @@ step, and its `AGENTS.md` says what they do.
 - **Preview Build:** `yarn preview` (serves the site's production build locally).
 - **Run Unit Tests:** `yarn test` (runs each workspace's `test`, which collects coverage and fails below the floor its config sets: the site's in the `test` block of its `vite.config.ts`, every other workspace's in its `vitest.config.ts`). A floor holds for the whole suite, so run one spec with `yarn vitest run <path>` from its workspace instead.
 - **Type Checking:** `yarn typecheck` (runs `tsc` over the `.agents` scripts and the constraints from their JSDoc (`frontend/tsconfig.scripts.json`), then each workspace's `typecheck`). Vitest strips types without checking them, so this is the only check a spec's types get.
-- **Linting:** `yarn lint` (checks the skills' references, checks every `package.json` against the constraints in `frontend/yarn.config.cjs` (`yarn constraints`), runs ESLint over `.agents` and those constraints with `frontend/eslint.config.js`, runs each workspace's `lint` with its own config, then checks formatting with `yarn prettier:check`).
+- **Linting:** `yarn lint` (checks the paths and links in the skills and every `AGENTS.md`, checks every `package.json` against the constraints in `frontend/yarn.config.cjs` (`yarn constraints`), checks the lockfile holds no copy `yarn dedupe` would merge (`yarn dedupe --check`), runs ESLint over `.agents` and those constraints with `frontend/eslint.config.js`, runs each workspace's `lint` with its own config, then checks formatting with `yarn prettier:check`).
 - **Full Verification Pipeline:** `yarn verify` (runs `yarn lint && yarn typecheck && yarn test && yarn build`).
 - **Format Codebase:** `yarn prettier` (formats the whole repository with
   Prettier); `yarn prettier:check` only reports what it would change.
@@ -198,13 +203,15 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   `.agents/skills/` folder, as `<name>/SKILL.md`, including the Solitaire
   Collection's namespaced `phaser-*` ones. Adding a skill means a new
   top-level directory there plus a re-run of the link script.
-- **A skill describes code that exists.** Skills are read as authoritative, so
-  an agent follows an invented path into a compile error rather than looking.
-  A design for something not yet built belongs in a doc or an issue, not in a
-  skill. `node .agents/check-skill-references.mjs` (part of `yarn lint`)
-  enforces the checkable half of this, for every folder of skills: every
-  relative markdown link between skills must resolve, and every backticked
-  path must exist. Run it after changing a skill. Skills quoting another
+- **A skill describes code that exists,** and so does an `AGENTS.md`. Both
+  are read as authoritative, so an agent follows an invented path into a
+  compile error rather than looking. A design for something not yet built
+  belongs in a doc or an issue, not in a skill.
+  `node .agents/check-skill-references.mjs` (part of `yarn lint`) enforces
+  the checkable half of this, for every folder of skills and every `AGENTS.md`:
+  every relative markdown link must resolve, and every backticked path must
+  exist, unless git ignores it, as it does what a build writes. Run it after
+  changing a skill or an `AGENTS.md`. Skills quoting another
   project's source tree, the vendored Angular ones and the Phaser ones
   generated from Phaser's documentation, are listed as upstream exceptions
   there; a skill about this repository is checked by default.
