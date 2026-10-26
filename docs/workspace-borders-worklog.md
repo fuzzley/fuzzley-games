@@ -24,8 +24,8 @@ work is done; git history keeps it.
 | Phase | What                                 | State   |
 | ----- | ------------------------------------ | ------- |
 | P1    | Close the checks                     | done    |
-| P2    | Housekeeping                         | next    |
-| P3    | Vitest and game presets in `@fz/dev` | to do   |
+| P2    | Housekeeping                         | done    |
+| P3    | Vitest and game presets in `@fz/dev` | next    |
 | P4    | The site's images                    | to do   |
 | P5    | `game.json`                          | to do   |
 | P6    | The instruction layers and skills    | to do   |
@@ -108,3 +108,42 @@ work is done; git history keeps it.
   the site and Solitaire don't install, and `@angular/build` asks for
   `postcss`, which Solitaire doesn't list. No workspace that lacks one
   imports it; only Minesweeper uses forms, and it lists them.
+
+### 2026-10-26: P2, housekeeping
+
+- **CI installs the Dockerfile's Corepack** (finding 16). The verify job
+  sets `COREPACK_VERSION: 0.36.0` and installs it with npm before
+  `corepack enable`, where it used whichever Corepack the runner carried.
+  The step that checked the Dockerfile's Node now checks its Corepack too,
+  reading `corepack@<version>` from the Dockerfile's `RUN` line; run by hand
+  it matched 0.36.0 and caught a planted 0.35.0. The CI skill says so.
+- **`yarn stop` is the root's** (finding 7).
+  `games/solitaire/tools/stop-dev-servers.mjs` moved to
+  `frontend/tools/stop-dev-servers.mjs`, run as `yarn stop` from
+  `frontend/`; Solitaire's `stop` script is gone. It found the frontend
+  by resolving `vite` from its own folder, a package the root doesn't
+  list, so it now takes the folder above its own, which is where Yarn
+  installs the Vite every workspace shares. Its usage text and header say
+  `yarn stop`.
+  - The root's `eslint.config.js` and `tsconfig.scripts.json` take
+    `frontend/tools/*.mjs`, and `yarn lint` passes it to ESLint.
+  - `.agents/AGENTS.md` lists `yarn stop` with the root's commands and
+    `tools/` with the root's files; Solitaire's `AGENTS.md` no longer does.
+  - Proof: with Minesweeper's dev server running on port 9123, the old
+    script (restored from git into a scratch file beside its old place)
+    and `yarn stop --dry-run` listed the same six processes, the shell and
+    yarn that launched it, `cmd`, Vite, Dart Sass and its `conhost`.
+    `yarn stop` then stopped all six, and the port stopped answering.
+- **Shipped plans are archived** (finding 17). `code-health-plan.md`,
+  `minesweeper-ui-plan.md` and `shared-ui-plan.md` moved to
+  `docs/archive/` with `git mv`. They link only one another, so no link
+  changed. `.agents/AGENTS.md` names the folder and says its paths are as
+  they were. The memory notes that cited them, and `yarn stop`, were
+  updated.
+- The first P1 commit took in the moves staged with `git mv`; I reset the
+  branch to `1dae42f` (nothing was pushed) and committed P1 again with its
+  own files only, as `6e868f1` and `632473b`.
+- **`yarn verify` passed** in 4m14s. Every coverage figure matched P1's but
+  one: the Solitaire Collection's branches read 92.75% (1895 of 2043)
+  against 92.7% (1894). Nothing it covers changed, so one branch depends on
+  what a run deals; P3 compares its figures to within that branch.

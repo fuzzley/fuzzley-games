@@ -1,6 +1,6 @@
 {
-  // The scripts in .agents/, which belong to no workspace, and the Yarn
-  // constraints, type-checked from their JSDoc.
+  // The scripts in .agents/ and tools/, which belong to no workspace, and the
+  // Yarn constraints, type-checked from their JSDoc.
   "extends": "@fz/dev/tsconfig/scripts.json",
-  "include": ["../.agents/*.mjs", "yarn.config.cjs"]
+  "include": ["../.agents/*.mjs", "tools/*.mjs", "yarn.config.cjs"]
 }

@@ -30,9 +30,11 @@ Minesweeper.
     Node. Its scripts run the workspaces' own (`yarn build`, `yarn verify`),
     picking them by path (`--include "games/*"`), and its dependencies are
     only the tools that run from here: Prettier, ESLint, TypeScript and
-    `@fz/dev` for the `.agents/` scripts, with the `eslint.config.js` and
-    `tsconfig.scripts.json` beside it, and `semver` for the constraints.
-    `yarn.lock` and `.yarnrc.yml` exist only here.
+    `@fz/dev` for the `.agents/` scripts and its own `tools/`, with the
+    `eslint.config.js` and `tsconfig.scripts.json` beside it, and `semver`
+    for the constraints. `tools/` holds the scripts that act on every
+    workspace at once, such as `yarn stop`'s. `yarn.lock` and `.yarnrc.yml`
+    exist only here.
   - `yarn.config.cjs` holds the constraints `yarn lint` checks every
     `package.json` against: a package has the same range in every workspace
     that depends on it, a peer range is the workspace's own devDependency
@@ -80,6 +82,9 @@ Minesweeper.
 - **`docs/operations.md`** — how the site is built, served, deployed and
   configured, and how the games are pinned and updated. `README.md` is only a
   short summary for GitHub.
+- **`docs/archive/`** — plans that were built and shipped, kept for their
+  decisions. They describe the code as it was, so check a path against the
+  tree before following one.
 
 ---
 
@@ -107,9 +112,10 @@ step, and its `AGENTS.md` says what they do.
 - **Production Build:** `yarn build` (builds the workspaces under `games/` with `yarn build:games`, then the site's `build` puts every game `games.json` lists into `site/public/play/`, bundles into `site/dist/`, writes `version.json` with the commit it was built from and the games' builds, then adds the analytics tags to each game). It fails if the catalog links a game the games' builds don't have.
 - **Fetch the Games:** `yarn games` (builds the workspaces and puts every game into `site/public/play/`; `yarn start` and `yarn build` do it first).
 - **Preview Build:** `yarn preview` (serves the site's production build locally).
+- **Stop Development Servers:** `yarn stop` (runs `tools/stop-dev-servers.mjs` to force stop every Vite dev server running from this checkout's frontend, whichever workspace started it, with the yarn processes that launched it, on Windows and Linux; `--dry-run` lists them without stopping them). Don't run it while a build runs: it stops the Dart Sass a build spawns too.
 - **Run Unit Tests:** `yarn test` (runs each workspace's `test`, which collects coverage and fails below the floor its config sets: the site's in the `test` block of its `vite.config.ts`, every other workspace's in its `vitest.config.ts`). A floor holds for the whole suite, so run one spec with `yarn vitest run <path>` from its workspace instead.
-- **Type Checking:** `yarn typecheck` (runs `tsc` over the `.agents` scripts and the constraints from their JSDoc (`frontend/tsconfig.scripts.json`), then each workspace's `typecheck`). Vitest strips types without checking them, so this is the only check a spec's types get.
-- **Linting:** `yarn lint` (checks the paths and links in the skills and every `AGENTS.md`, checks every `package.json` against the constraints in `frontend/yarn.config.cjs` (`yarn constraints`), checks the lockfile holds no copy `yarn dedupe` would merge (`yarn dedupe --check`), runs ESLint over `.agents` and those constraints with `frontend/eslint.config.js`, runs each workspace's `lint` with its own config, then checks formatting with `yarn prettier:check`).
+- **Type Checking:** `yarn typecheck` (runs `tsc` over the `.agents` scripts, the root's `tools/` and the constraints from their JSDoc (`frontend/tsconfig.scripts.json`), then each workspace's `typecheck`). Vitest strips types without checking them, so this is the only check a spec's types get.
+- **Linting:** `yarn lint` (checks the paths and links in the skills and every `AGENTS.md`, checks every `package.json` against the constraints in `frontend/yarn.config.cjs` (`yarn constraints`), checks the lockfile holds no copy `yarn dedupe` would merge (`yarn dedupe --check`), runs ESLint over `.agents`, the root's `tools/` and those constraints with `frontend/eslint.config.js`, runs each workspace's `lint` with its own config, then checks formatting with `yarn prettier:check`).
 - **Full Verification Pipeline:** `yarn verify` (runs `yarn lint && yarn typecheck && yarn test && yarn build`).
 - **Format Codebase:** `yarn prettier` (formats the whole repository with
   Prettier); `yarn prettier:check` only reports what it would change.

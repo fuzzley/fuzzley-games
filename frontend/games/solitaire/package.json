@@ -13,7 +13,6 @@
     "build:atlas": "node tools/build-card-atlas.mjs",
     "build:thumbs": "node tools/build-screenshot-thumbs.mjs",
     "capture:screenshots": "node tools/capture-screenshots.mjs",
-    "stop": "node tools/stop-dev-servers.mjs",
     "preview": "vite preview",
     "test": "vitest run --coverage",
     "test:watch": "vitest",

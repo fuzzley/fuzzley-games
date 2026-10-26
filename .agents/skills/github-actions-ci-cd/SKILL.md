@@ -20,11 +20,11 @@ request, or a manual `workflow_dispatch`. A newer push to the same ref cancels
 a run in progress.
 
 1. **`verify`** — checkout, Node from `.node-version`, a check that the
-   `Dockerfile` builds on the same major version, Corepack, an immutable
+   `Dockerfile` builds on the same major version and installs the same
+   Corepack as the job's `COREPACK_VERSION`, that Corepack, an immutable
    install in `frontend/`, then `yarn verify` (lint, type-check, test,
-   build). The build
-   builds the games in `frontend/games/` and fetches the ones pinned in
-   `frontend/site/games.json` from their releases.
+   build). The build builds the games in `frontend/games/` and fetches the
+   ones pinned in `frontend/site/games.json` from their releases.
 2. **`docker`** — builds the `Dockerfile` with `COMMIT_SHA` and runs
    `check-image.sh` on it, which serves the image with a placeholder analytics
    ID and requests its pages: the Angular routes answer with `index.html`, a
@@ -82,9 +82,11 @@ passes on `main` moves it forward again.
    match `package.json` rather than quietly resolving something else.
 2. **Corepack before Yarn.** `corepack enable` has to run before any `yarn`
    command, or the runner's bundled Yarn 1 answers instead of the version
-   `frontend/package.json` pins. If you add dependency caching, restore it
-   with `actions/cache` rather than `setup-node`'s `cache: yarn`, which looks
-   up Yarn's cache folder before Corepack runs.
+   `frontend/package.json` pins. Node 26 no longer bundles Corepack, so the
+   job installs the version the `Dockerfile` does; move both together. If
+   you add dependency caching, restore it with `actions/cache` rather than
+   `setup-node`'s `cache: yarn`, which looks up Yarn's cache folder before
+   Corepack runs.
 3. **The image checks follow the server.** A new route in
    `frontend/site/src/app/routes.ts`, a changed header in `nginx.conf.template`
    or a new variable in `docker-entrypoint.d/40-generate-env-config.sh` gets a
