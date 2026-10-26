@@ -6,7 +6,10 @@ import {
   readRecord,
   readString,
 } from "@/engine/core/common/json_reader";
-import { GameOptionValues, sameOptionValues } from "../provider/game_catalog";
+import {
+  type GameOptionValues,
+  sameOptionValues,
+} from "../provider/game_catalog";
 import { GameCatalogService } from "./game_catalog.service";
 import { LocalStorageService } from "@fz/ui/storage";
 

@@ -1,7 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import { ConfirmService } from "@fz/ui/confirm";
 import { decodePosition } from "../model/game_position";
-import { GameOptionValues } from "../provider/game_catalog";
+import type { GameOptionValues } from "../provider/game_catalog";
 import { GameCatalogService } from "./game_catalog.service";
 import { GameMetricsService } from "./game_metrics.service";
 

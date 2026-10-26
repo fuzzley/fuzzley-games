@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from "@angular/core";
 import { GameCatalogService } from "./game_catalog.service";
-import { GameDocumentation } from "../model/game_documentation.model";
+import type { GameDocumentation } from "../model/game_documentation.model";
 import { GAME_DOCUMENTATION } from "../provider/game_documentation_data";
 
 /** Manages game documentation lookup and the visibility of the help modal. */
