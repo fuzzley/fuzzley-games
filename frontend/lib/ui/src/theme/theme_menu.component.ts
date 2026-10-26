@@ -1,6 +1,6 @@
 import { Component, computed, inject, input } from "@angular/core";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@angular/aria/menu";
-import { THEMES, type ThemeId } from "@fz/style/themes";
+import type { ThemeId } from "@fz/style/themes";
 import { IconComponent } from "../icon";
 import { ThemeService } from "./theme.service";
 
@@ -27,17 +27,11 @@ export class ThemeMenuComponent {
   readonly compact = input(false);
 
   protected readonly current = this.theme.current;
-  protected readonly options = computed(() =>
-    THEMES.map((theme) => ({
-      ...theme,
-      modeName: theme.mode === "dark" ? "Dark" : "Light",
-      checked: theme.id === this.current(),
-    })),
-  );
+  protected readonly options = this.theme.options;
   /** The button's name: what it is for, and the palette in use. */
   protected readonly label = computed(
     () =>
-      `Theme: ${THEMES.find((theme) => theme.id === this.current())?.name ?? ""}`,
+      `Theme: ${this.options().find((option) => option.checked)?.name ?? ""}`,
   );
 
   protected choose(id: ThemeId | undefined): void {

@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { fuzzballSvg } from "@fz/style/fuzzball";
-import { DEFAULT_THEMES, THEME_STORAGE_KEY } from "@fz/style/themes";
+import { DEFAULT_THEMES, THEMES, THEME_STORAGE_KEY } from "@fz/style/themes";
 import { BROWSER_STORAGE } from "../storage";
 import { THEME_COLOR_ROLE, ThemeService } from "./theme.service";
 
@@ -80,6 +80,27 @@ describe("ThemeService", () => {
     TestBed.tick();
 
     expect(document.documentElement.dataset["theme"]).toBe("midnight");
+  });
+
+  it("offers every palette, the one in use checked", () => {
+    const theme = service();
+
+    theme.select("midnight");
+
+    expect(theme.options().map(({ id, checked }) => ({ id, checked }))).toEqual(
+      THEMES.map(({ id }) => ({ id, checked: id === "midnight" })),
+    );
+  });
+
+  it.each([
+    ["classic", "Light"],
+    ["casino", "Dark"],
+  ])("names %s's mode %s", (id, modeName) => {
+    const option = service()
+      .options()
+      .find((each) => each.id === id);
+
+    expect(option?.modeName).toBe(modeName);
   });
 
   it("remembers a chosen palette", () => {
