@@ -105,12 +105,13 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
   each game by, and `bug_report_config.ts` for where a bug report is filed and
   which build filed it.
 - **`src/ui/app/service`** — `GameCatalogService` owns which game is on the
-  table (routed, see below); `GameMetricsService` reads the running game;
+  table (routed, see below); `GameMetricsService` reads the running game, and
+  times it with `@fz/game-ui/stopwatch`'s `StopwatchService`;
   `GameLifecycleService` changes it, asking first through `@fz/ui/confirm`
-  when there is a game to lose; the rest are small and single-purpose (timer, presentation,
-  including the felt, documentation, game browser, recent games, bug report,
-  saved game). They keep what they store through `@fz/ui/storage`'s
-  `LocalStorageService`.
+  when there is a game to lose; the rest are small and single-purpose
+  (presentation, including the felt, documentation, game browser, recent
+  games, bug report, saved game). They keep what they store through
+  `@fz/ui/storage`'s `LocalStorageService`.
 - **`src/ui/app/component`** — one folder per component. `option_group` is
   the shared one: every settings control is one. Every overlay is a native
   `<dialog>` through `@fz/ui/dialog`'s `<fz-dialog>`. `header_bar` fills

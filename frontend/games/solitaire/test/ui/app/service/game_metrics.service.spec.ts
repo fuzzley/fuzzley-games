@@ -41,6 +41,7 @@ describe("GameMetricsService", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    Reflect.deleteProperty(document, "visibilityState");
   });
 
   describe("following the game on the table", () => {
@@ -97,6 +98,32 @@ describe("GameMetricsService", () => {
       vi.advanceTimersByTime(5000);
 
       expect(metrics.timerText()).toBe("00:05");
+    });
+
+    it("writes minutes and seconds", () => {
+      const { metrics, model } = buildMetrics();
+
+      model.state.update({ moves: 1 });
+      TestBed.tick();
+      vi.advanceTimersByTime(75_000);
+
+      expect(metrics.timerText()).toBe("01:15");
+    });
+
+    it("pauses while the page is out of sight", () => {
+      const { metrics, model } = buildMetrics();
+      model.state.update({ moves: 1 });
+      TestBed.tick();
+      vi.advanceTimersByTime(2000);
+
+      Object.defineProperty(document, "visibilityState", {
+        configurable: true,
+        get: () => "hidden",
+      });
+      document.dispatchEvent(new Event("visibilitychange"));
+      vi.advanceTimersByTime(5000);
+
+      expect(metrics.timerText()).toBe("00:02");
     });
 
     it("freezes once the game is won", () => {
