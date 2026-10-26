@@ -3,9 +3,10 @@
 Agreed 2026-10-26: the user said "Implement", taking every recommended
 decision. P1 to P7 were built the same day, on the branch
 `workspace-borders`, each phase its own commits with `yarn verify` green; the
-"As built" notes under each phase say what came of it. P8 waits on
-fSolitaire and fMinesweeper being archived, which needs the user's go-ahead.
-The day's work log, deleted once P7 was done, is in git's history.
+"As built" notes under each phase say what came of it. P8 followed that
+evening on `main`, once the user chose to keep fSolitaire and fMinesweeper as
+they are rather than archive them. The day's work log, deleted once P7 was
+done, is in git's history.
 
 It comes from a review of where the workspaces under `frontend/` meet: the
 site, the two games and the four libraries, through their `package.json`
@@ -487,7 +488,24 @@ Finding 15, after fSolitaire and fMinesweeper are archived, or on its own if
 decided. Proof: `yarn build` and the image's checks pass with `games.json`
 listing workspaces only.
 
-- **Not built yet:** it waits on the archives.
+- **As built:** on its own. The user chose to keep fSolitaire and
+  fMinesweeper as they are, unarchived, and to sever every tie to them from
+  the other projects: the games here are a branch of each, and the two may
+  diverge. `update-games.yml`, `update-games.mjs` and its spec are gone, and
+  so are the pinned half of `games.mjs`, which now checks a workspace entry
+  and nothing else, the download, retries, SHA-256 and cache of
+  `fetch-games.mjs`, renamed `copy-games.mjs` since copying is all it does,
+  and the `tar` dependency. `servedBuilds()` and `check-image.sh` lost their
+  archive branch, so the image now checks every game's icons, and
+  `checkGameManifests()` checks every hosted game. The docs, the CI skill and
+  the games' READMEs and `AGENTS.md` files say the games were branched off,
+  without linking the old repositories. fuzzley.info's README no longer says
+  fuzzley.games pins them, and each old repository's README now says near
+  its top that its code was branched off into fuzzley-games, where the
+  newest version lives. Rolling `live` back to a commit that pinned an
+  archive still works while the releases stay. `yarn verify` passed in 4m00s;
+  with the untested update code gone, the site's tools floors rose to 53%
+  statements, 64% branches, 56% functions and 51% lines.
 
 ## Decisions
 
@@ -506,7 +524,8 @@ listing workspaces only.
 4. **The pinned-game pipeline retired** (finding 15). Recommended, after the
    archives, as the Solitaire move planned. It can go first: rolling back to
    a commit that pins an archive still works, since that commit carries its
-   own fetch code.
+   own fetch code. Taken without the archives: the repositories stay as they
+   are (P8).
 5. **Catalogs** (finding 18). Not yet; only once Dependabot is shown to read
    them.
 
