@@ -52,6 +52,13 @@ expect_icons() {
   expect_type "$1favicon.ico" image/x-icon
   expect_type "$1apple-touch-icon.png" image/png
 }
+# Checks an address is sent to another with a permanent redirect.
+expect_redirect() {
+  expect 301 "$1"
+  value=$(header "$1" location)
+  echo "Location: $value  $1"
+  [ "$value" = "$2" ] || fail "Expected $1 to redirect to $2, got '$value'."
+}
 expect_cache() {
   value=$(header "$1" cache-control)
   echo "Cache-Control: $value  $1"
@@ -77,6 +84,9 @@ expect 200 /analytics.js
 expect 200 /version.json
 # A missing build file must not fall back to index.html.
 expect 404 /assets/no-such-file.js
+# A folder's index.html is sent to the folder's address, query and all.
+expect_redirect /index.html /
+expect_redirect "/index.html?q=spider" "/?q=spider"
 
 asset=$(curl -s "$base/" | grep -o '/assets/[^"]*\.js' | head -1)
 [ -n "$asset" ] || fail "index.html links no script under /assets/."
@@ -90,7 +100,7 @@ expect_cache /version.json "no-store"
 # Every response carries the security headers, errors included, and the site's
 # pages (not the games') carry its Content Security Policy.
 for path in / /games/klondike "$asset" /theme.js /env.js /version.json \
-  /assets/no-such-file.js; do
+  /assets/no-such-file.js /index.html; do
   expect_security_headers "$path"
 done
 csp=$(header / content-security-policy)
@@ -118,6 +128,7 @@ expect 404 /play/no-such-game/
 for slug in $(jq -r 'keys[]' frontend/site/games.json); do
   expect 200 "/play/$slug/"
   expect 301 "/play/$slug"
+  expect_redirect "/play/$slug/index.html" "/play/$slug/"
   expect 404 "/play/$slug/no-such-file.js"
   expect_cache "/play/$slug/" "no-cache"
   expect_security_headers "/play/$slug/"
