@@ -1,7 +1,6 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
   ElementRef,
   Injector,
   afterNextRender,
@@ -13,12 +12,7 @@ import { IconComponent } from "@fz/ui/icon";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { describeSquare, type Showing, showing } from "../../rules/describe";
 import { GameService } from "../play/game.service";
-
-/** How long a finger rests on a square before it flags it. */
-export const LONG_PRESS_MS = 450;
-
-/** How far a finger can drift during a long press, as when it starts a scroll. */
-const PRESS_SLOP_PX = 10;
+import { LongPressDirective } from "./long_press.directive";
 
 /** Describes one square as the board draws it. */
 interface CellView {
@@ -28,14 +22,6 @@ interface CellView {
   /** The number it shows, or null. */
   readonly count: number | null;
   readonly label: string;
-}
-
-/** A finger resting on a square, which flags it if it stays. */
-interface Press {
-  readonly pointerId: number;
-  readonly x: number;
-  readonly y: number;
-  readonly timer: ReturnType<typeof setTimeout>;
 }
 
 /**
@@ -52,7 +38,7 @@ interface Press {
 @Component({
   selector: "app-board",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Grid, GridRow, GridCell, IconComponent],
+  imports: [Grid, GridRow, GridCell, IconComponent, LongPressDirective],
   templateUrl: "./board.component.html",
   styleUrl: "./board.component.scss",
 })
@@ -61,12 +47,6 @@ export class BoardComponent {
   private readonly viewport = inject(GameViewportService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
-
-  private press: Press | null = null;
-  /** Whether a long press just flagged, so the click that follows is not a reveal. */
-  private pressed = false;
-  /** Whether the last pointer down was a finger or a pen, not a mouse. */
-  private touching = false;
 
   /** Whether the board stands a wide field on end, to fit an upright screen. */
   protected readonly turned = computed(() => {
@@ -106,12 +86,6 @@ export class BoardComponent {
     );
   });
 
-  constructor() {
-    inject(DestroyRef).onDestroy(() => {
-      this.cancelPress();
-    });
-  }
-
   /**
    * Puts the focus on the board's tab stop once it has drawn, as after a new
    * deal replaces the square that had it.
@@ -130,23 +104,24 @@ export class BoardComponent {
   /** Reveals the square clicked or tapped, or flags it in Flag mode. */
   protected onClick(event: MouseEvent): void {
     const index = squareOf(event);
-    if (index === null) return;
-    if (this.pressed) {
-      this.pressed = false;
-      return;
-    }
-    this.game.play(index);
+    if (index !== null) this.game.play(index);
   }
 
   /**
    * Flags the square a mouse right-clicks. A finger's long press, which some
-   * browsers also report this way, is the timer's to handle.
+   * browsers also report this way, never gets here.
    */
   protected onContextMenu(event: MouseEvent): void {
     const index = squareOf(event);
     if (index === null) return;
     event.preventDefault();
-    if (!this.touching) this.game.flag(index);
+    this.game.flag(index);
+  }
+
+  /** Flags the square a finger or a pen rests on. */
+  protected onLongPress(event: PointerEvent): void {
+    const index = squareOf(event);
+    if (index !== null) this.game.flag(index);
   }
 
   /**
@@ -165,44 +140,6 @@ export class BoardComponent {
       event.preventDefault();
       this.game.flag(index);
     }
-  }
-
-  /** Starts timing a finger or pen resting on a square. */
-  protected onPointerDown(event: PointerEvent): void {
-    this.touching = event.pointerType !== "mouse";
-    this.pressed = false;
-    this.cancelPress();
-    const index = squareOf(event);
-    if (!this.touching || index === null) return;
-    const timer = setTimeout(() => {
-      this.press = null;
-      this.pressed = true;
-      this.game.flag(index);
-    }, LONG_PRESS_MS);
-    this.press = {
-      pointerId: event.pointerId,
-      x: event.clientX,
-      y: event.clientY,
-      timer,
-    };
-  }
-
-  /** Gives up a long press once the finger moves, as when it scrolls. */
-  protected onPointerMove(event: PointerEvent): void {
-    const press = this.press;
-    if (press?.pointerId !== event.pointerId) return;
-    const moved = Math.hypot(event.clientX - press.x, event.clientY - press.y);
-    if (moved > PRESS_SLOP_PX) this.cancelPress();
-  }
-
-  /** Ends a long press when the finger lifts before it counts. */
-  protected onPointerEnd(): void {
-    this.cancelPress();
-  }
-
-  private cancelPress(): void {
-    if (this.press) clearTimeout(this.press.timer);
-    this.press = null;
   }
 }
 
