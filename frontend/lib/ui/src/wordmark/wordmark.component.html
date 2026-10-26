@@ -1,1 +1,36 @@
+<svg
+  class="mark"
+  [attr.viewBox]="mark.viewBox"
+  aria-hidden="true"
+  focusable="false"
+>
+  <circle
+    class="body"
+    [attr.cx]="mark.body.cx"
+    [attr.cy]="mark.body.cy"
+    [attr.r]="mark.body.r"
+  />
+  <path
+    class="fur"
+    [attr.d]="mark.fur.d"
+    [attr.stroke-width]="mark.fur.width"
+  />
+  @for (eye of mark.eyes; track $index) {
+    <ellipse
+      [attr.cx]="eye.cx"
+      [attr.cy]="eye.cy"
+      [attr.rx]="eye.rx"
+      [attr.ry]="eye.ry"
+      [attr.fill]="mark.ink"
+    />
+  }
+  @for (glint of mark.glints; track $index) {
+    <circle
+      [attr.cx]="glint.cx"
+      [attr.cy]="glint.cy"
+      [attr.r]="glint.r"
+      [attr.fill]="mark.glint"
+    />
+  }
+</svg>
 Fuzzley Games
