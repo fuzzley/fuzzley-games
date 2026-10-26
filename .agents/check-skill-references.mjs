@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 // Checks that the skills, the repository's under `.agents/skills` and each
-// workspace's under its own, still describe the code as it is: every relative
-// markdown link resolves, and every backticked path exists.
+// workspace's under its own, and every `AGENTS.md` still describe the code as
+// it is: every relative markdown link resolves, and every backticked path
+// exists.
 //
 // Usage: node .agents/check-skill-references.mjs
 
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { REPO_ROOT, skillRoots } from "./skill-roots.mjs";
-
-/** @import { SkillRoot } from "./skill-roots.mjs" */
 
 // Skills whose backticked paths point into another project's source tree: the
 // vendored Angular ones.
@@ -45,6 +45,11 @@ const ROOT_FILES = new Set([
   "skills-lock.json",
 ]);
 
+// Folders the search for `AGENTS.md` files never enters: installed packages,
+// and what builds and tests write. Hidden folders are skipped too, but for
+// `.agents`.
+const SKIPPED_FOLDERS = new Set(["node_modules", "dist", "coverage", "public"]);
+
 /**
  * Returns whether a skill cites another project's source tree, so its paths
  * aren't checked.
@@ -72,6 +77,56 @@ function markdownFilesIn(dir) {
 }
 
 /**
+ * Returns every `AGENTS.md` under a directory.
+ *
+ * @param {string} dir
+ * @returns {string[]}
+ */
+function agentsFilesIn(dir) {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      const hidden = entry.name.startsWith(".") && entry.name !== ".agents";
+      return hidden || SKIPPED_FOLDERS.has(entry.name)
+        ? []
+        : agentsFilesIn(full);
+    }
+    return entry.name === "AGENTS.md" ? [full] : [];
+  });
+}
+
+/**
+ * Returns the folder an `AGENTS.md` cites paths from: its own, or for the
+ * repository's `.agents/AGENTS.md`, the repository's root.
+ *
+ * @param {string} file
+ * @returns {string}
+ */
+function baseOfAgentsFile(file) {
+  const dir = path.dirname(file);
+  return path.basename(dir) === ".agents" ? path.dirname(dir) : dir;
+}
+
+/**
+ * Returns whether git ignores a path, as it does what a build or a script
+ * writes, which a fresh checkout doesn't have yet.
+ *
+ * @param {string} candidate
+ * @returns {boolean}
+ */
+function isIgnored(candidate) {
+  try {
+    execFileSync("git", ["check-ignore", "-q", candidate], {
+      cwd: REPO_ROOT,
+      stdio: "ignore",
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Returns whether a path exists, where its last part may be a `*` glob, as in
  * the Solitaire Collection's atlas page imports.
  *
@@ -96,20 +151,21 @@ function pathExists(candidate) {
  * Returns the folders a backticked token may be a path in, none if it is
  * prose, an identifier or a command.
  *
- * The repository's skills cite paths from its root. A workspace's cite paths
- * from the workspace's folder, when the first part names something at its top
- * level (`src/`, `vite.config.ts`), or from the repository's root. Where both
- * readings fit, as `.agents/` and `docs/` can, either folder may hold it.
+ * The repository's skills and `AGENTS.md` cite paths from its root. A
+ * workspace's cite paths from the workspace's folder, when the first part
+ * names something at its top level (`src/`, `vite.config.ts`), or from the
+ * repository's root. Where both readings fit, as `.agents/` and `docs/` can,
+ * either folder may hold it.
  *
  * @param {string} candidate
- * @param {SkillRoot} root
- * @param {Set<string>} topLevel The names at the top of the root's base.
+ * @param {string} base The folder the file cites paths from.
+ * @param {Set<string>} topLevel The names at the top of that folder.
  * @returns {string[]}
  */
-function foldersOfPath(candidate, root, topLevel) {
+function foldersOfPath(candidate, base, topLevel) {
   const folders = [];
-  if (root.base !== REPO_ROOT && topLevel.has(candidate.split("/")[0] ?? "")) {
-    folders.push(root.base);
+  if (base !== REPO_ROOT && topLevel.has(candidate.split("/")[0] ?? "")) {
+    folders.push(base);
   }
   if (
     REPO_PREFIXES.some((prefix) => candidate.startsWith(prefix)) ||
@@ -121,7 +177,9 @@ function foldersOfPath(candidate, root, topLevel) {
 }
 
 /**
- * Adds a problem for each relative markdown link in a file that leads nowhere.
+ * Adds a problem for each relative link in a file that leads nowhere: a
+ * markdown link's target, or a `./` or `../` path to a markdown file anywhere
+ * in the text.
  *
  * @param {string} file
  * @param {string} text The file's contents.
@@ -129,10 +187,20 @@ function foldersOfPath(candidate, root, topLevel) {
  */
 function checkRelativeLinks(file, text, problems) {
   const dir = path.dirname(file);
-  for (const [, link] of text.matchAll(/(\.\.?\/[A-Za-z0-9_./-]+\.md)/g)) {
+  const targets = [
+    ...[...text.matchAll(/\]\(([^)\s]+)\)/g)].map(([, target]) => target),
+    ...[...text.matchAll(/(\.\.?\/[A-Za-z0-9_./-]+\.md)/g)].map(
+      ([, target]) => target,
+    ),
+  ];
+  for (const target of new Set(targets)) {
+    // An address, an anchor on the same page, a path from a server's root or
+    // a placeholder, none of which is a file here.
+    if (!target || /^([a-z][a-z0-9+.-]*:|#|\/)|[<{]/i.test(target)) continue;
+    const link = target.replace(/#.*$/, "");
     if (!fs.existsSync(path.resolve(dir, link))) {
       problems.push(
-        `${path.relative(REPO_ROOT, file)}: broken link -> ${link}`,
+        `${path.relative(REPO_ROOT, file)}: broken link -> ${target}`,
       );
     }
   }
@@ -143,20 +211,21 @@ function checkRelativeLinks(file, text, problems) {
  *
  * @param {string} file
  * @param {string} text The file's contents.
- * @param {SkillRoot} root
- * @param {Set<string>} topLevel The names at the top of the root's base.
+ * @param {string} base The folder the file cites paths from.
  * @param {string[]} problems
  */
-function checkPaths(file, text, root, topLevel, problems) {
+function checkPaths(file, text, base, problems) {
+  const topLevel = new Set(fs.readdirSync(base));
   for (const [, token] of text.matchAll(/`([^`\n]+)`/g)) {
     const candidate = token.trim().replace(/[.,;:)]+$/, "");
     // Skip prose and placeholder paths -- `src/games/<variant>/` names a
     // shape, not a file, and is meant to stand for any of them.
     if (/[\s<>]/.test(candidate)) continue;
-    const folders = foldersOfPath(candidate, root, topLevel);
+    const folders = foldersOfPath(candidate, base, topLevel);
     if (folders.length === 0) continue;
 
-    if (!folders.some((folder) => pathExists(path.join(folder, candidate)))) {
+    const paths = folders.map((folder) => path.join(folder, candidate));
+    if (!paths.some((full) => pathExists(full) || isIgnored(full))) {
       problems.push(
         `${path.relative(REPO_ROOT, file)}: no such path -> ${candidate}`,
       );
@@ -167,7 +236,6 @@ function checkPaths(file, text, root, topLevel, problems) {
 /** @type {string[]} */
 const problems = [];
 for (const root of skillRoots()) {
-  const topLevel = new Set(fs.readdirSync(root.base));
   for (const entry of fs.readdirSync(root.skills, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     const skillDir = path.join(root.skills, entry.name);
@@ -176,19 +244,24 @@ for (const root of skillRoots()) {
       const text = fs.readFileSync(file, "utf8");
       checkRelativeLinks(file, text, problems);
       if (!isUpstream(entry.name)) {
-        checkPaths(file, text, root, topLevel, problems);
+        checkPaths(file, text, root.base, problems);
       }
     }
   }
 }
+for (const file of agentsFilesIn(REPO_ROOT)) {
+  const text = fs.readFileSync(file, "utf8");
+  checkRelativeLinks(file, text, problems);
+  checkPaths(file, text, baseOfAgentsFile(file), problems);
+}
 
 if (problems.length) {
-  console.error(`Skill reference check failed (${problems.length}):\n`);
+  console.error(`Reference check failed (${problems.length}):\n`);
   for (const problem of problems) console.error(`  ${problem}`);
   console.error(
-    "\nA skill that names a path which does not exist will be followed anyway.",
+    "\nA skill or AGENTS.md that names a path which does not exist will be followed anyway.",
   );
   process.exit(1);
 }
 
-console.log("Skill references OK.");
+console.log("Skill and AGENTS.md references OK.");
