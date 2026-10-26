@@ -24,9 +24,10 @@ const SOURCE = "overview.png";
 const TARGET_DIR = join(ROOT, "public/docs/screenshots");
 
 /**
- * The images to write, each twice the CSS size it is shown at so that it
- * stays sharp on a high density display: the rules page shows its screenshot
- * at up to 800 CSS px wide.
+ * The images to write, each at least twice the CSS size it is shown at so
+ * that it stays sharp on a high density display: the rules page shows its
+ * screenshot at up to 800 CSS px wide, and the site shows the preview at up
+ * to 1200 and the thumbnail at up to about 288.
  *
  * The thumbnail is cropped to the board, since the header would be an
  * illegible strip at its size. The quality keeps card faces legible at a
@@ -41,11 +42,11 @@ const OUTPUTS = [
     boardOnly: false,
     quality: 90,
   },
-  { file: "thumb.webp", width: 192, height: 108, boardOnly: true, quality: 80 },
+  { file: "thumb.webp", width: 576, height: 324, boardOnly: true, quality: 80 },
   {
     file: "preview.webp",
-    width: 1280,
-    height: 720,
+    width: 2560,
+    height: 1440,
     boardOnly: false,
     quality: 80,
   },
@@ -139,7 +140,8 @@ async function shrink(id) {
         position: "top",
         background: felt,
       })
-      .webp({ quality: output.quality })
+      // Smart subsampling keeps the red suits from bleeding into the white.
+      .webp({ quality: output.quality, smartSubsample: true })
       .toFile(target);
     const kilobytes = Math.round((await stat(target)).size / 1024);
     sizes.push(`${output.file} ${kilobytes} KB`);
