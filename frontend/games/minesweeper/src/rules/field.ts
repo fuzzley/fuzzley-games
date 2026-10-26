@@ -110,7 +110,7 @@ export function layoutOf(size: FieldSize, mines: readonly boolean[]): Layout {
  * neighbors. A flagged square, or a finished game, doesn't change.
  */
 export function reveal(field: Field, index: number): Field {
-  if (field.outcome === "won" || field.outcome === "lost") return field;
+  if (isOver(field)) return field;
   const square = field.squares[index];
   if (square === undefined || square === "flagged" || square === "tripped") {
     return field;
@@ -125,7 +125,7 @@ export function reveal(field: Field, index: number): Field {
  * off one. A finished game doesn't change.
  */
 export function toggleFlag(field: Field, index: number): Field {
-  if (field.outcome === "won" || field.outcome === "lost") return field;
+  if (isOver(field)) return field;
   const square = field.squares[index];
   if (square !== "hidden" && square !== "flagged") return field;
   const squares = [...field.squares];
@@ -180,16 +180,16 @@ function settle(
     squares[index] = "revealed";
     if (layout.counts[index] === 0) stack.push(...neighbors(field.size, index));
   }
-  if (livesLeft === 0) return { ...field, squares, livesLeft, outcome: "lost" };
-  const safe = squares.length - field.size.mines;
-  if (squares.filter((s) => s === "revealed").length === safe) {
+  const settled = { ...field, squares, livesLeft };
+  if (livesLeft === 0) return { ...settled, outcome: "lost" };
+  if (revealedCount(settled) === safeCount(settled)) {
     // Won: every mine left standing is shown flagged.
     const flagged = squares.map((s, i) =>
       layout.mines[i] && s === "hidden" ? "flagged" : s,
     );
-    return { ...field, squares: flagged, livesLeft, outcome: "won" };
+    return { ...settled, squares: flagged, outcome: "won" };
   }
-  return { ...field, squares, livesLeft, outcome: field.outcome };
+  return settled;
 }
 
 /** Returns whether a square is marked as a mine: flagged, or stepped on. */
@@ -216,10 +216,14 @@ export function revealedCount(field: Field): number {
   return field.squares.filter((s) => s === "revealed").length;
 }
 
+/** Returns how many squares hide no mine. */
+function safeCount(field: Field): number {
+  return field.squares.length - field.size.mines;
+}
+
 /** Returns how much of the field's safe ground is revealed, from 0 to 1. */
 export function clearedShare(field: Field): number {
-  const safe = field.squares.length - field.size.mines;
-  return revealedCount(field) / safe;
+  return revealedCount(field) / safeCount(field);
 }
 
 /** Returns whether the game is over, won or lost. */
