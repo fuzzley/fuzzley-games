@@ -56,6 +56,15 @@ function solutionAt(index: number): number {
   return Number(EASY_SOLUTION.join("")[index]);
 }
 
+/** Puts the solution's digit in every blank square of `EASY`. */
+function fillSolution(game: GameService): void {
+  game.grid().digits.forEach((digit, index) => {
+    if (digit !== 0) return;
+    game.select(index);
+    game.place(solutionAt(index));
+  });
+}
+
 /** Returns what the live region last said. */
 function said(): string {
   return TestBed.inject(AnnouncerService).message();
@@ -138,6 +147,31 @@ describe("GameService", () => {
 
       expect(await restarting).toBe(true);
       expect(rowsOf(game.grid().digits)).toEqual([...EASY]);
+    });
+
+    it("doesn't count a restart as another game played", async () => {
+      const game = TestBed.inject(GameService);
+      game.toggleNote(1);
+      const restarting = game.restart();
+      TestBed.inject(ConfirmService).accept();
+      await restarting;
+
+      game.toggleNote(1);
+
+      expect(TestBed.inject(StatsService).stats().easy.played).toBe(1);
+    });
+
+    it("leaves a puzzle played again after it was solved out of the stats", async () => {
+      const game = playOn({ digits: solvedBut("r1c1"), seconds: 95 });
+      game.enter(6);
+      const stats = TestBed.inject(StatsService).stats().easy;
+      await game.restart();
+
+      fillSolution(game);
+
+      expect(game.grid().outcome).toBe("solved");
+      expect(game.newBest()).toBe(false);
+      expect(TestBed.inject(StatsService).stats().easy).toEqual(stats);
     });
 
     it("deals at another level, and keeps it in the settings", async () => {

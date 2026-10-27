@@ -96,6 +96,7 @@ export class GameService {
   private readonly countedState = signal(false);
   private readonly newBestState = signal(false);
   private readonly resultOpenState = signal(false);
+  private readonly replayState = signal(false);
   private readonly dealsState = signal(0);
   private readonly coveredState = signal(false);
 
@@ -116,6 +117,12 @@ export class GameService {
 
   /** Whether the card over a solved puzzle is showing. */
   readonly resultOpen = this.resultOpenState.asReadonly();
+
+  /**
+   * Whether the puzzle is being played again after it was solved, which the
+   * stats leave out, as its solution may still be in mind.
+   */
+  readonly replay = this.replayState.asReadonly();
 
   /**
    * How many games have begun since the page loaded, each new deal, restart
@@ -268,10 +275,15 @@ export class GameService {
   /**
    * Starts the same puzzle again, asking first if a game is under way, and
    * resolves to whether it did.
+   *
+   * It is the same game to the stats: one under way stays counted, and one
+   * solved is a replay, which isn't counted again.
    */
   async restart(): Promise<boolean> {
     if (!(await this.mayLoseGame(RESTART_QUESTION))) return false;
-    this.begin(restart(this.gridState()));
+    const grid = this.gridState();
+    const replay = this.replayState() || grid.outcome === "solved";
+    this.begin(restart(grid), 0, this.countedState() || replay, replay);
     return true;
   }
 
@@ -287,8 +299,8 @@ export class GameService {
   }
 
   /** Takes up a game where it was left, such as one saved before a reload. */
-  resume(grid: Grid, seconds: number): void {
-    this.begin(grid, seconds, true);
+  resume(grid: Grid, seconds: number, replay = false): void {
+    this.begin(grid, seconds, true, replay);
   }
 
   /** Puts away the card over a solved puzzle, leaving the board to look at. */
@@ -309,11 +321,17 @@ export class GameService {
     return createGrid(deal(level, randomSeed(this.random)));
   }
 
-  private begin(grid: Grid, seconds = 0, counted = false): void {
+  private begin(
+    grid: Grid,
+    seconds = 0,
+    counted = false,
+    replay = false,
+  ): void {
     this.gridState.set(grid);
     this.selectedState.set(firstBlank(grid));
     this.hintState.set(null);
     this.countedState.set(counted);
+    this.replayState.set(replay);
     this.newBestState.set(false);
     this.resultOpenState.set(false);
     this.dealsState.update((deals) => deals + 1);
@@ -348,7 +366,8 @@ export class GameService {
     this.syncClock();
     const seconds = this.stopwatch.seconds();
     this.newBestState.set(
-      this.stats.recordSolve(after.puzzle.level, seconds, after.hints),
+      !this.replayState() &&
+        this.stats.recordSolve(after.puzzle.level, seconds, after.hints),
     );
     this.announcer.say(`Solved in ${formatClock(seconds)}.`);
     this.resultOpenState.set(true);
