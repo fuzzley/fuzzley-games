@@ -35,8 +35,8 @@ history keeps it.
 | S1    | The library lift                 | done  |
 | S2    | Scaffold the workspace           | done  |
 | S3    | The rules                        | done  |
-| S4    | The solver, the grader, the bank | to do |
-| S5    | The new icons                    | to do |
+| S4    | The solver, the grader, the bank | done  |
+| S5    | The new icons                    | done  |
 | S6    | The board and the pad            | to do |
 | S7    | The bar and the dialogs          | to do |
 | S8    | Storage                          | to do |
@@ -188,3 +188,34 @@ history keeps it.
   eliminations lead elsewhere, whose six steps prune to a hidden triple and
   pointing.
 - **`yarn verify` passed** (4m13s): Sudoku 168 tests.
+
+### 2026-10-27: S4, the generator and the bank
+
+- **In:** `generate.ts` (`grade()` and `generate(level, seed)`, the
+  spike's), `deal.ts`, which deals a bank puzzle through a random face and
+  takes the bank as a parameter so a spec can hand it a broken one,
+  `describe.ts` and `saved_grid.ts`, each with its spec, and
+  `bank.spec.ts`, which holds every banked puzzle to one solution, its
+  level's grade and its level's fewest givens.
+- **The bank:** `tools/generate-puzzles.mjs` (`yarn generate:puzzles`)
+  wrote it from seeds 1 up, in the spike's numbers of tries: Easy 100,
+  Medium 2,700, Hard 15,065, Expert 2,057. It took 12m57s, Hard 620 s of
+  it, against the spike's 355 s, with the board's work running beside it.
+  Each level is 8,703 bytes of JSON, a puzzle a line. `tsconfig.scripts.json`
+  and the scripts' ESLint block came with the script, as S2 left them to.
+- **The words** are pinned in `describe.spec.ts`. A hint puts "the"
+  before its digits ("In box 9, the 1, 4 and 8 can only go in the same
+  three squares"), since a bare digit after a box's number read as part of
+  it.
+- **A saved grid is trusted only as far as it holds up:** `restoreGrid()`
+  solves the givens again and refuses a digit over a given, a note under a
+  digit, a move on a given and any field of the wrong shape.
+- **The rules' coverage:** 100% of statements, functions and lines, and
+  97.98% of branches, over the floor's 95. Sudoku 256 tests.
+
+### 2026-10-27: S5, the new icons
+
+- `@fz/ui` draws `pencil`, `eraser` and `bulb`, outlines in the set's
+  24-unit grid and 2-unit stroke, so the four tools on the pad (with
+  `undo`) read alike. The icon spec draws every name in `ICON_NAMES`, the
+  new ones among them. How they look is S9's to check, on the pad.
