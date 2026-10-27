@@ -34,7 +34,7 @@ history keeps it.
 | S0    | The bank spike                   | done  |
 | S1    | The library lift                 | done  |
 | S2    | Scaffold the workspace           | done  |
-| S3    | The rules                        | to do |
+| S3    | The rules                        | done  |
 | S4    | The solver, the grader, the bank | to do |
 | S5    | The new icons                    | to do |
 | S6    | The board and the pad            | to do |
@@ -150,3 +150,41 @@ history keeps it.
   reference check, which caught `src/rules/` named in `AGENTS.md` before
   it existed. The bare shell builds to 137.5 kB of script, 45.9 kB
   gzipped.
+
+### 2026-10-27: S3, the rules
+
+- **The phases' line moved with the imports.** `puzzle.ts` solves its
+  givens, so the solver came into S3; `Level` is `difficulty.ts`'s, which
+  names the grader's techniques, so `logic.ts` came too. S4 keeps the
+  generator, the bank and its script, `deal.ts`, and `describe.ts` and
+  `saved_grid.ts`, which need the grader.
+- **In:** `cells.ts`, `digits.ts` (sets of digits as nine bits, which the
+  plan put in `grid.ts`), `random.ts` (Mulberry32, with `shuffled()`),
+  `json.ts`, `format.ts`, `solver.ts`, `logic.ts`, `difficulty.ts`,
+  `puzzle.ts`, `history.ts`, `grid.ts` and `transform.ts`, each with its
+  spec, and `src/testing/grid_picture.ts`: `gridFrom` draws a grid as nine
+  rows of givens, the player's digits the same way and notes by square
+  (`{ r1c3: "148" }`), and refuses givens without one solution, a digit
+  over a given or a note under a digit.
+- **The grid** keeps every square's digit, the givens' among them, so its
+  queries read one list. Placing the digit a square holds takes it away;
+  one move is one undo step however many notes it clears; a restart keeps
+  the hints counted, since what a hint showed stays shown.
+- **The levels are a table:** each technique's easiest level, rather than
+  each level's hardest technique, which needed a search with a fallback no
+  spec could reach.
+- **The floor is the plan's,** 100% of statements, lines and functions and
+  95% of branches over `src/rules/`, and the rules meet it at 100, 100, 100
+  and 99.6. `noUncheckedIndexedAccess` makes every read of a list a branch
+  with a fallback no spec reaches, so the reads go through `at()`,
+  `peersOf()` and `unitsOf()` in `cells.ts`, each tested off the board's
+  end once. Strings are split with `Array.from`, as typescript-eslint's
+  `no-misused-spread` asks.
+- **The grader's specs** hold a puzzle from the bank for each technique
+  that logic solves with every technique and can't with that one withheld,
+  and a puzzle with one solution logic can't finish. A hint's chain is
+  pinned on three boards: pointing before a naked single; pointing and an
+  XY-Wing before a hidden single; and a board where the easiest
+  eliminations lead elsewhere, whose six steps prune to a hidden triple and
+  pointing.
+- **`yarn verify` passed** (4m13s): Sudoku 168 tests.
