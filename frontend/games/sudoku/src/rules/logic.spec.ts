@@ -1,8 +1,11 @@
 import { EASY, EASY_SOLUTION } from "../testing/grid_picture";
+import { bit } from "./digits";
 import {
   type Single,
+  type Step,
   TECHNIQUES,
   type Technique,
+  agrees,
   hardest,
   nextPlacement,
   shownBy,
@@ -121,6 +124,40 @@ describe("solveByLogic", () => {
 
   it("finds nothing to do on an empty board", () => {
     expect(solveByLogic(new Array<number>(81).fill(0)).steps).toEqual([]);
+  });
+});
+
+describe("agrees", () => {
+  const solution = board(EASY_SOLUTION.join(""));
+
+  /** Returns a step that rules digits out of row 1, column 1. */
+  function ruleOut(digits: number): Step {
+    return {
+      kind: "eliminate",
+      technique: "pointing",
+      digits: [],
+      cells: [],
+      units: [],
+      removed: [
+        { index: 1, digits: bit(1) },
+        { index: 0, digits },
+      ],
+    };
+  }
+
+  /** Returns a step that fills row 1, column 1. */
+  function fill(digit: number): Step {
+    const technique = "naked-single";
+    return { kind: "place", technique, index: 0, digit, unit: null };
+  }
+
+  it.each<[string, Step, boolean]>([
+    ["places the solution's digit", fill(6), true],
+    ["places another digit", fill(9), false],
+    ["rules out none of the solution's digits", ruleOut(bit(1) | bit(9)), true],
+    ["rules out the solution's digit", ruleOut(bit(6)), false],
+  ])("checks a step that %s", (_, step, expected) => {
+    expect(agrees(step, solution)).toBe(expected);
   });
 });
 
