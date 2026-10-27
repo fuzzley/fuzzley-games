@@ -1,8 +1,10 @@
 import { TestBed } from "@angular/core/testing";
+import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { type GameOptions, playOn } from "../../testing/game";
 import { solvedBut } from "../../testing/grid_picture";
+import { WAVE_MS } from "../board/board_view";
 import { GameService } from "../play/game.service";
 import { ResultComponent } from "./result.component";
 
@@ -102,5 +104,44 @@ describe("ResultComponent", () => {
     await fixture.whenStable();
 
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+  });
+
+  describe("where motion is welcome", () => {
+    let viewport: FakeViewport | null = null;
+
+    afterEach(() => {
+      vi.useRealTimers();
+      viewport?.restore();
+      viewport = null;
+    });
+
+    /** Renders the card, stops the clock, and solves `EASY` by its last square. */
+    async function solveWithMotion(): Promise<void> {
+      viewport = installFakeViewport(1280);
+      await render(ResultComponent);
+      vi.useFakeTimers();
+      const game = playOn({ digits: solvedBut("r1c1") });
+      game.select(0);
+      game.enter(6);
+      TestBed.tick();
+    }
+
+    it("stays shut while the board's wave runs", async () => {
+      await solveWithMotion();
+
+      vi.advanceTimersByTime(WAVE_MS - 1);
+      TestBed.tick();
+
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    });
+
+    it("opens once the wave has run", async () => {
+      await solveWithMotion();
+
+      vi.advanceTimersByTime(WAVE_MS);
+      TestBed.tick();
+
+      expect(screen.getByRole("alertdialog")).toBeInTheDocument();
+    });
   });
 });

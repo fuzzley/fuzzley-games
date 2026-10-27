@@ -1,4 +1,3 @@
-import { DOCUMENT } from "@angular/common";
 import {
   Component,
   computed,
@@ -8,19 +7,14 @@ import {
   signal,
 } from "@angular/core";
 import { formatClock } from "@fz/game-ui/stopwatch";
+import { GameViewportService } from "@fz/game-ui/viewport";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import { LEVEL_INFO } from "../../rules/difficulty";
 import { count } from "../../rules/format";
+import { WAVE_MS } from "../board/board_view";
 import { GameService } from "../play/game.service";
 import { StatsService } from "../stats/stats.service";
-
-/**
- * How long the board's wave runs once a puzzle is solved, in milliseconds,
- * before the card opens over it: the last square's delay and its animation
- * (board.component.scss).
- */
-const WAVE_MS = 1300;
 
 /** Names one figure on the card, and gives its value. */
 interface Figure {
@@ -45,7 +39,7 @@ interface Figure {
 export class ResultComponent {
   protected readonly game = inject(GameService);
   private readonly stats = inject(StatsService);
-  private readonly document = inject(DOCUMENT);
+  private readonly viewport = inject(GameViewportService);
 
   /** Emitted when the player deals a game from the card. */
   readonly played = output();
@@ -82,9 +76,11 @@ export class ResultComponent {
         this.open.set(false);
         return;
       }
+      // The wave runs only where motion is welcome, as the board's styles say.
+      const wave = this.viewport.allowsMotion() ? WAVE_MS : 0;
       const timer = setTimeout(() => {
         this.open.set(true);
-      }, this.waveMs());
+      }, wave);
       onCleanup(() => {
         clearTimeout(timer);
       });
@@ -94,18 +90,5 @@ export class ResultComponent {
   /** Deals a new game. */
   protected async newGame(): Promise<void> {
     if (await this.game.newGame()) this.played.emit();
-  }
-
-  /**
-   * Returns how long the wave runs: none where the player prefers less
-   * motion, or where the browser can't be asked.
-   */
-  private waveMs(): number {
-    // jsdom, which the specs run in, has no matchMedia.
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const query = this.document.defaultView?.matchMedia?.(
-      "(prefers-reduced-motion: no-preference)",
-    );
-    return query?.matches ? WAVE_MS : 0;
   }
 }

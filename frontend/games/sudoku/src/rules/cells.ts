@@ -33,24 +33,25 @@ export function indexAt(row: number, col: number): number {
   return row * 9 + col;
 }
 
-const NINE = [0, 1, 2, 3, 4, 5, 6, 7, 8] as const;
+/** The nine rows, or the nine columns, from 0. */
+export const LINES = [0, 1, 2, 3, 4, 5, 6, 7, 8] as const;
 
 /** The 27 units: the nine rows, then the nine columns, then the nine boxes. */
 export const UNITS: readonly Unit[] = [
-  ...NINE.map((n) => ({
+  ...LINES.map((n) => ({
     kind: "row" as const,
     n,
-    cells: NINE.map((col) => indexAt(n, col)),
+    cells: LINES.map((col) => indexAt(n, col)),
   })),
-  ...NINE.map((n) => ({
+  ...LINES.map((n) => ({
     kind: "column" as const,
     n,
-    cells: NINE.map((row) => indexAt(row, n)),
+    cells: LINES.map((row) => indexAt(row, n)),
   })),
-  ...NINE.map((n) => ({
+  ...LINES.map((n) => ({
     kind: "box" as const,
     n,
-    cells: NINE.map((i) =>
+    cells: LINES.map((i) =>
       indexAt(Math.floor(n / 3) * 3 + Math.floor(i / 3), (n % 3) * 3 + (i % 3)),
     ),
   })),

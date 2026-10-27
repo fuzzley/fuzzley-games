@@ -1,4 +1,4 @@
-import { CELLS, at, colOf, indexAt, rowOf } from "./cells";
+import { CELLS, LINES, at, colOf, indexAt, rowOf } from "./cells";
 import { DIGITS } from "./digits";
 import { shuffled } from "./random";
 
@@ -24,8 +24,8 @@ export interface Transform {
 /** The transform that changes nothing. */
 export const IDENTITY: Transform = {
   digits: DIGITS,
-  rows: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-  cols: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+  rows: LINES,
+  cols: LINES,
   transpose: false,
 };
 

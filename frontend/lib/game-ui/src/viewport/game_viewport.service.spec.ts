@@ -24,6 +24,14 @@ describe("GameViewportService", () => {
     expect(TestBed.inject(GameViewportService).isPortrait()).toBe(false);
   });
 
+  it("reads as asking for no motion where the browser can't be asked", () => {
+    expect(TestBed.inject(GameViewportService).allowsMotion()).toBe(false);
+  });
+
+  it("allows motion where the player has no preference", () => {
+    expect(at(1280, 800).allowsMotion()).toBe(true);
+  });
+
   it("puts the bar across the top of a roomy window", () => {
     expect(at(1280, 800).barPlacement()).toBe("top");
   });

@@ -56,7 +56,7 @@
   <button
     type="button"
     class="tool"
-    [attr.aria-disabled]="!canHint()"
+    [attr.aria-disabled]="!game.canHint()"
     (click)="onHint($event)"
   >
     <fz-icon name="bulb" />

@@ -46,6 +46,14 @@ describe("installFakeViewport", () => {
     );
   });
 
+  it("answers the motion query as a system's with no preference", () => {
+    viewport = installFakeViewport(1280);
+
+    expect(
+      window.matchMedia("(prefers-reduced-motion: no-preference)").matches,
+    ).toBe(true);
+  });
+
   it("tells a query when a new width changes its answer", () => {
     viewport = installFakeViewport(1000);
     const query = window.matchMedia("(max-width: 719.98px)");

@@ -47,7 +47,10 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   (`fitsWordmark`) and the home button (`fitsHomeButton`), and so how it
   shows the link home (`barHome`: the wordmark on a roomy window from 1280
   CSS px, the button below that or on a compact one, and `none` below
-  360). A host without `matchMedia` reads as roomy.
+  360). `allowsMotion` says whether the player has no wish for less
+  motion, the one case in which the stylesheets animate, for code that
+  waits on an animation. A host without `matchMedia` reads as roomy, and as
+  asking for no motion.
 - `src/breakpoints/`: the widths every game changes shape at. `index.ts`
   holds them as constants, with `formFactorAt()`, and imports no Angular,
   so a game's renderer can read them as well as its shell. `_index.scss`
@@ -62,7 +65,8 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   of a game taken up again. `formatClock()` writes a time as a game's clock
   shows it, "2:13", or "1:02:13" past an hour.
 - `src/testing/`: what a game's specs share. `installFakeViewport()` stands
-  in for the `matchMedia` jsdom lacks, at a size a spec sets and changes.
+  in for the `matchMedia` jsdom lacks, at a size a spec sets and changes,
+  for a light system with no wish for less motion.
 - `src/_index.scss`: the Sass an app reaches with `@use "@fz/game-ui"`. It
   forwards the breakpoints' mixins, and its `bar-size()` mixin publishes the
   bar's size as `--fz-bar-height` and `--fz-rail-width` for what lays itself

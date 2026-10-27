@@ -52,11 +52,6 @@ export class PadComponent {
     });
   });
 
-  /** Whether a hint can be shown, or the one showing filled in. */
-  protected readonly canHint = computed(
-    () => this.game.grid().outcome === "playing",
-  );
-
   /** What the hint tool does: shows a hint, or fills in the one showing. */
   protected readonly hintLabel = computed(() => {
     const hint = this.game.hint();

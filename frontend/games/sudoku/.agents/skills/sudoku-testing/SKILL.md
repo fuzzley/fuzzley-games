@@ -71,7 +71,13 @@ Run these from `frontend/games/sudoku/`, or as
 - The bar asks `GameViewportService` what fits, so its specs set the
   screen with `installFakeViewport()`.
 - jsdom has no `matchMedia`, so the result card opens at once rather than
-  after the board's wave.
+  after the board's wave (`WAVE_MS`, in `src/app/board/board_view.ts`).
+  Its timing specs install a fake viewport, which allows motion, and fake
+  timers after `render`.
+- The board's shading and keys are plain functions, `boardView()` and
+  `shadeOf()` in `board_view.ts` and `boardKey()` in `board_keys.ts`, with
+  table specs beside them; the board's own spec checks them through the DOM
+  once each.
 
 ## Contrast
 
