@@ -137,6 +137,17 @@ export function shownBy({ eliminations, placement }: Chain): number[] {
   return [...shown].sort((a, b) => a - b);
 }
 
+/**
+ * Returns whether a step agrees with a solution: it places the solution's
+ * digit, or rules none of the solution's digits out.
+ */
+export function agrees(step: Step, solution: readonly number[]): boolean {
+  if (step.kind === "place") return at(solution, step.index) === step.digit;
+  return step.removed.every(
+    ({ index, digits }) => !has(digits, at(solution, index)),
+  );
+}
+
 /** Returns the hardest technique among some steps, or null for none. */
 export function hardest(steps: readonly Step[]): Technique | null {
   let at = -1;
