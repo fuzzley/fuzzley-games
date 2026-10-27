@@ -1,11 +1,16 @@
 # Plan: QA of Sudoku on the live site, and what to fix
 
 Tested 2026-10-27 at https://fuzzley.games/play/sudoku/ (the build from
-`c140884`). Nothing here is built yet. This is a hands-on pass as a player,
-once on a desktop and once on a phone. It complements
-`docs/sudoku-review-plan.md`, which reviews the code. Where the two overlap,
-this plan says so rather than repeating it. Paths are relative to
-`frontend/games/sudoku/`.
+`c140884`), and built the same day: the user said "Apply fixes", asking
+that finding 3 be checked, and fixed, in the other games too, with regular
+commits on a branch of its own. That took the recommendation in each of
+the decisions at the end, on the branch `sudoku-qa`, cut from `main`; the
+"As built" notes under each finding say what came of it. This is a
+hands-on pass as a player, once on a desktop and once on a phone. It
+complements `docs/sudoku-review-plan.md`, which reviews the code and was
+left to its own decisions. Paths are relative to `frontend/games/sudoku/`,
+and describe the code as it was, so check one against the tree before
+following it.
 
 Each finding gives a **priority** (High, Medium or Low) and a rough
 **effort** (S under an hour, M a few hours, L a day or more). Then it says
@@ -141,6 +146,18 @@ selects the square and shades it.
 
 **Recommendation.** A, with B for when even the short form doesn't fit.
 
+**As built:** A and B, in a component of its own, `src/app/hint/`, which
+measures both forms in hidden copies with a `ResizeObserver` and shows all
+the words, the short form with "Why?", or nothing, the sheet then opening
+by itself, once a hint, rotation included. The sheet is an `<fz-dialog>`
+with a new `backdrop="clear"` in `@fz/ui`, so the board stays in sight; at
+the bottom of an upright window and at the end of a wide one, in the
+settings drawer's glass, since `--fz-float` is see-through without the
+dimmed backdrop. Its Fill in closes it and hands the focus back to the
+board, as the Why? button that had it is gone. `describeChain()` returns
+`conclusion` beside `text`. Even a 1240 x 900 desktop shows an XY-Wing in
+its short form, the pad's column being 216px wide.
+
 ### 2. Tapping the pad scrolls the page on a short screen
 
 **Priority:** Medium. **Effort:** S.
@@ -164,6 +181,9 @@ pad jumped 30 px under the finger. That leads to missed taps.
 
 **Recommendation.** A.
 
+**As built:** A: `BoardComponent.focus()` takes `FocusOptions`, and the
+pad's hand-back passes `preventScroll`.
+
 ### 3. Restart asks "Start a new game?"
 
 **Priority:** Medium. **Effort:** S.
@@ -183,6 +203,14 @@ a wrong digit.
 **Pros.** It says what will happen, and the change is small.
 
 **Cons.** None. `game.service.spec.ts` checks the new words.
+
+**As built:** as proposed, with "Restart this puzzle?" and "Restart".
+Minesweeper had the same question, and asks "Restart this field?" now
+("Every square is covered again, the mines where they were, and the clock
+and your lives start over."). The Solitaire Collection's Restart already
+said "Are you sure you want to restart this game?", so it was left alone,
+though its title, "Confirm Action", and its button, "Confirm", say less
+than they could.
 
 ### 4. Typing does nothing after a load or a deal from the bar
 
@@ -215,6 +243,14 @@ away. New Game on the result card does hand the focus to the board.
 
 **Recommendation.** A, or C if the focus on load is unwelcome.
 
+**As built:** A. `GameService.deals` counts the games begun, and
+`AppComponent` focuses the board after each once nothing covers it, which
+took over the result card's own hand-off. As the page loads it focuses with
+`focusVisible: false`, so no ring shows where nothing was pressed. The dev
+server's hot reload, replaying an edit made since it started, rebuilds the
+page about 200ms after load and drops that focus; a fresh server, and the
+build, keep it.
+
 ### 5. The clock runs while How to play or Settings covers the board
 
 **Priority:** Medium. **Effort:** S.
@@ -242,6 +278,11 @@ control.
 
 **Recommendation.** A. B is optional, later.
 
+**As built:** A, without a Pause button. `GameService.cover()` stops the
+clock while Settings, How to play or the confirmation is open, and a deal
+made under the drawer starts its clock when it closes. The hint's sheet
+doesn't stop it, since it leaves the board in sight.
+
 ### 6. Undo doesn't show which square it changed
 
 **Priority:** Medium. **Effort:** S.
@@ -261,6 +302,9 @@ shading and focus land there. Pair it with the review plan's
 
 **Cons.** Undoing several moves makes the selection jump about, which is
 what other Sudoku apps do too.
+
+**As built:** as proposed. The announcement is still "Undone.", the
+review plan's `describeUndo()` being left to it.
 
 ### 7. No way to fill in the candidates
 
@@ -291,6 +335,12 @@ the hints or stay on Easy.
 **Recommendation.** A. Decide where it lives and whether it costs the best
 time.
 
+**As built:** A, in the bar, as "Fill in notes" with the grid icon, and
+in the overflow menu on a phone, being once a game rather than once a
+move; it costs no best time, being bookkeeping rather than logic. A square
+with notes keeps them, and the move is announced as "Notes filled in for
+45 squares." `fillNotes()` is in `src/rules/grid.ts`.
+
 ### 8. The level is hidden below 1200 px and hard to change
 
 **Priority:** Medium. **Effort:** M.
@@ -318,6 +368,10 @@ New Game always deals the same level again.
 
 **Recommendation.** A and C, which keep New Game one tap and the UI plain.
 
+**As built:** A and C. The badge shows at every size, in smaller type on
+a rail, where "Medium" takes 45 of its 64px. The card offers the other
+three levels under New Game, as "Or another level".
+
 ### 9. The row, column and same-digit shading is faint
 
 **Priority:** Low. **Effort:** M.
@@ -339,6 +393,11 @@ player's ink and the notes to 4.5 : 1 on every shade.
 **Cons.** The contrast spec may force the inks to change with the shades,
 and too strong a wash makes the board busy. Try it on screenshots first.
 
+**As built:** the units take `--fz-wash-3`, from `--fz-wash-2`, the same
+digit the accent at 24%, from 15%, and the selected square 28%, from 22%;
+32% broke the player's ink and the outline in one palette. Checked on
+screenshots in Casino night and Soft pastel.
+
 ### 10. A hint's shading doesn't say which square plays which part
 
 **Priority:** Low. **Effort:** M.
@@ -357,6 +416,10 @@ stronger shade or an inner ring, and the unit where the conclusion lands.
 **Cons.** One more shade to hold to contrast in four palettes, and a
 change to the rules' output and its specs.
 
+**As built:** `shownBy()` returns `{ pattern, unit }`, and the board shades
+`pattern` at the warning's 20%, `unit` at 10% and the hint's own square at
+28%, from 12% and 22%.
+
 ### 11. Turning Notes mode on or off is silent to a screen reader
 
 **Priority:** Low. **Effort:** S.
@@ -374,6 +437,8 @@ the mode changes.
 
 **Cons.** None.
 
+**As built:** as proposed.
+
 ### 12. Notes are under 10 px on a phone
 
 **Priority:** Low. **Effort:** S.
@@ -388,6 +453,9 @@ by three.
 **Pros.** More legible notes.
 
 **Cons.** Check them in a 32 px square, the smallest the board allows.
+
+**As built:** 0.28, with the padding at 4% of the square from 6%, and the
+selected digit's chip at 1.08em from 1.2em, so it still fits its place.
 
 ### 13. Small touch polish: tap flash and pull-to-refresh
 
@@ -406,6 +474,9 @@ belong in `@fz/style` for every game.
 **Pros.** Cheap, and the game feels more like an app.
 
 **Cons.** Test it on a real phone.
+
+**As built:** as proposed, in Sudoku only: `overscroll-behavior: none` on
+the root and `contain` on the stage. Not yet tried on a real phone.
 
 ### 14. Restart's loose ends
 
@@ -429,6 +500,12 @@ solved.
 **Cons.** More state to save and test, for edge cases few players hit.
 Fine to leave until stats get a screen of their own.
 
+**As built:** all three. A restart keeps the game counted, so it is saved
+untouched; restarting a solved puzzle makes a replay, which `GameService`
+and the saved game (as `replay`, read as false where an older entry lacks
+it, so the version stays 1) keep, and whose solve the stats leave out, as
+the result card says ("Solved before, so not counted again.").
+
 ### 15. The board stops growing at 576 px on large screens
 
 **Priority:** Low. **Effort:** S.
@@ -443,6 +520,10 @@ with the pad's keys scaled to match.
 **Pros.** Easier on the eyes on big screens.
 
 **Cons.** Check the pad's proportions and the hint's room at the new size.
+
+**As built:** squares to 80px, `--side` up to 720px, and on a roomy stage
+the keys `clamp(64px, 7.5cqmin, 80px)`: on 1920 x 1080, a 720px board and
+75px keys. The site's screenshots were taken again.
 
 ## Considered and left out
 
@@ -465,6 +546,11 @@ with the pad's keys scaled to match.
    palettes (findings 9, 10, 12, 13 and 15).
 
 ## Decisions for the user
+
+Each took the recommendation, as the "As built" notes say: A and B for the
+hint, the focus on load, the clock paused with no Pause button, Fill in
+notes in the bar at no cost to the best time, and the level at every size
+and on the result card.
 
 1. **The hint on small screens (finding 1):** a short hint with "Why?" (A),
    a sheet when it doesn't fit (B), both, or a column of its own sideways
