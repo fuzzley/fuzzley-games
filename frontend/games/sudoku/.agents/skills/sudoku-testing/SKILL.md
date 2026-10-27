@@ -72,6 +72,9 @@ Run these from `frontend/games/sudoku/`, or as
   screen with `installFakeViewport()`.
 - jsdom has no `matchMedia`, so the result card opens at once rather than
   after the board's wave.
+- jsdom has no `ResizeObserver` either, so the hint's words always fit their
+  room. `src/app/hint/hint.component.spec.ts` stubs one that reports the
+  heights it is given, to reach the short form and the sheet.
 
 ## Contrast
 
