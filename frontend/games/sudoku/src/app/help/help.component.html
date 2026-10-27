@@ -1,0 +1,80 @@
+<fz-dialog [open]="open()" label="How to play" (closed)="closed.emit()">
+  <div class="card">
+    <button
+      type="button"
+      class="close"
+      aria-label="Close How to play"
+      (click)="closed.emit()"
+    >
+      <fz-icon name="close" />
+    </button>
+    <h2>How to play</h2>
+    <p>
+      Fill every square so that each row, each column and each 3 × 3 box holds
+      the digits 1 to 9 once. Every puzzle has one solution, which logic alone
+      can find.
+    </p>
+    <p>
+      <strong>Notes.</strong> Jot down the digits a square might hold, in Notes
+      mode or with Shift. A digit you place comes out of the notes of the
+      squares it sees, unless you turn that off in the settings.
+    </p>
+    <p>
+      <strong>Hints.</strong> A hint points out a digit that doesn't belong, or
+      shows the next square logic can fill and why; press Hint again to fill it
+      in. A puzzle solved with a hint sets no best time.
+    </p>
+    <p>
+      <strong>Mistakes.</strong> A digit that repeats in a row, column or box is
+      always marked. Turn on "Mark mistakes" in the settings to mark a digit the
+      solution doesn't hold as well.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <td></td>
+          <th scope="col">Mouse or touch</th>
+          <th scope="col">Keyboard</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Select a square</th>
+          <td>Click or tap it</td>
+          <td>Arrows, <kbd>Home</kbd>, <kbd>End</kbd></td>
+        </tr>
+        <tr>
+          <th scope="row">Place a digit</th>
+          <td>The digit on the pad</td>
+          <td><kbd>1</kbd> to <kbd>9</kbd></td>
+        </tr>
+        <tr>
+          <th scope="row">Add or remove a note</th>
+          <td>The digit in Notes mode</td>
+          <td><kbd>Shift</kbd> and the digit</td>
+        </tr>
+        <tr>
+          <th scope="row">Notes mode</th>
+          <td>Notes</td>
+          <td><kbd>N</kbd></td>
+        </tr>
+        <tr>
+          <th scope="row">Erase</th>
+          <td>Erase</td>
+          <td><kbd>Backspace</kbd>, <kbd>Delete</kbd> or <kbd>0</kbd></td>
+        </tr>
+        <tr>
+          <th scope="row">Undo</th>
+          <td>Undo</td>
+          <td><kbd>Ctrl</kbd> + <kbd>Z</kbd></td>
+        </tr>
+        <tr>
+          <th scope="row">Hint</th>
+          <td>Hint, then Fill in</td>
+          <td><kbd>H</kbd>, then <kbd>H</kbd> or <kbd>Enter</kbd></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</fz-dialog>

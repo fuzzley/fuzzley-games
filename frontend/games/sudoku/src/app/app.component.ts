@@ -1,11 +1,14 @@
-import { Component, inject } from "@angular/core";
-import { GameBarComponent } from "@fz/game-ui/game_bar";
+import { Component, inject, signal } from "@angular/core";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerComponent } from "@fz/ui/announcer";
 import { ConfirmDialogComponent } from "@fz/ui/confirm";
+import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
+import { HelpComponent } from "./help/help.component";
 import { PadComponent } from "./pad/pad.component";
 import { GameService } from "./play/game.service";
+import { ResultComponent } from "./result/result.component";
+import { SettingsComponent } from "./settings/settings.component";
 
 /**
  * Shows the game: the bar, the board and the pad in the room the bar leaves
@@ -15,10 +18,13 @@ import { GameService } from "./play/game.service";
   selector: "app-root",
   imports: [
     AnnouncerComponent,
+    BarComponent,
     BoardComponent,
     ConfirmDialogComponent,
-    GameBarComponent,
+    HelpComponent,
     PadComponent,
+    ResultComponent,
+    SettingsComponent,
   ],
   host: {
     "[class.compact]": "viewport.isCompact()",
@@ -31,6 +37,9 @@ import { GameService } from "./play/game.service";
 export class AppComponent {
   protected readonly viewport = inject(GameViewportService);
   private readonly game = inject(GameService);
+
+  protected readonly settingsOpen = signal(false);
+  protected readonly helpOpen = signal(false);
 
   /**
    * Takes back a move on Ctrl+Z, or Cmd+Z, wherever the focus is but in a

@@ -38,7 +38,7 @@ history keeps it.
 | S4    | The solver, the grader, the bank | done  |
 | S5    | The new icons                    | done  |
 | S6    | The board and the pad            | done  |
-| S7    | The bar and the dialogs          | to do |
+| S7    | The bar and the dialogs          | done  |
 | S8    | Storage                          | to do |
 | S9    | The checks                       | to do |
 | S10   | Screenshots and docs             | to do |
@@ -257,3 +257,35 @@ history keeps it.
   rail on a phone on its side; S7 brings the bar, the time and the dialogs,
   and the result card that `GameService.resultOpen` waits for.
 - **`yarn verify` passed** (4m39s): Sudoku 406 tests.
+
+### 2026-10-27: S7, the bar and the dialogs
+
+- **In:** `<app-bar>`, the settings drawer, the result card and How to
+  play, each with its spec, wired into `app.component` as Minesweeper's
+  are, the confirmation last so it opens over the drawer.
+- **The bar** is Minesweeper's, less the mines, the lives and Flag mode:
+  the title and the level's badge, the time, and Restart, New Game, How to
+  play and Settings, the last three in the overflow menu on a compact
+  screen, led by the link home where `barHome` leaves it no room.
+- **The settings:** the levels are radios (`fzRadioGroup`) named with what
+  each asks, and choosing one deals after the confirmation; the assists are
+  checkboxes, each described by a line under it (`aria-describedby`), in a
+  group named "Assists" rather than a fieldset, whose legend wouldn't take
+  the drawer's label style.
+- **The result card** shows the trophy, "Solved!", the level, and the time,
+  the best time (or the hints used, with a line saying why there is no
+  best time) and the puzzles solved, with New Game first and Close. It
+  opens 1.3 s after the solve, once the board's wave has run, and at once
+  where the player prefers less motion or the browser can't say (jsdom).
+- **How to play** is the rule, notes, hints, mistakes and the controls,
+  mouse and touch in one column, since they are the same here. Its
+  stylesheet is Minesweeper's, copied whole; a help card's table is a
+  candidate for `@fz/style`'s dialog mixins once a third game wants one.
+- Checked in the browser pane: the bar at 800 × 600, a puzzle solved by
+  hints, its wave and its card, and the drawer; and at 375 × 812, the
+  compact bar, a tap on a square and on 7, which placed it, said "7." and
+  gave the square the focus back.
+- **`yarn verify` passed** (4m43s) on the second run: the first stopped
+  after the lint step without saying why, and passed untouched when run
+  again. Sudoku 449 tests; its script is 336 kB, 100.9 kB gzipped, against
+  Minesweeper's 104.4.

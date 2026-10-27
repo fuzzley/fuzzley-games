@@ -1,7 +1,7 @@
-import { render, screen } from "@testing-library/angular";
+import { render, screen, waitFor, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { playOn } from "../testing/game";
-import { squareAt } from "../testing/grid_picture";
+import { solvedBut, squareAt } from "../testing/grid_picture";
 import { AppComponent } from "./app.component";
 import type { GameService } from "./play/game.service";
 
@@ -25,6 +25,76 @@ describe("AppComponent", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: "Sudoku" }),
     ).toBeInTheDocument();
+  });
+
+  it("links home to Fuzzley Games", async () => {
+    await render(AppComponent);
+
+    expect(screen.getByRole("link", { name: /Fuzzley Games/ })).toHaveAttribute(
+      "href",
+      "/",
+    );
+  });
+
+  it("puts the board and the pad in the page's main landmark", async () => {
+    await render(AppComponent);
+
+    const main = screen.getByRole("main");
+    expect(main).toContainElement(screen.getByRole("grid"));
+    expect(main).toContainElement(
+      screen.getByRole("group", { name: "Digits" }),
+    );
+  });
+
+  it("opens How to play from the bar, and goes back to the bar on closing", async () => {
+    const { user } = await renderPlayed();
+    const help = screen.getByRole("button", { name: "How to play" });
+    await user.click(help);
+
+    await user.keyboard("{Escape}");
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(help).toHaveFocus();
+  });
+
+  it("opens the settings from the bar", async () => {
+    const { user } = await renderPlayed();
+
+    await user.click(screen.getByRole("button", { name: "Settings" }));
+
+    expect(
+      screen.getByRole("dialog", { name: "Settings" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the result once the puzzle is solved", async () => {
+    const { fixture } = await render(AppComponent);
+    const game = playOn({ digits: solvedBut("r1c1") });
+    game.select(0);
+
+    game.enter(6);
+    await fixture.whenStable();
+
+    expect(
+      await screen.findByRole("alertdialog", { name: "Solved!" }),
+    ).toBeInTheDocument();
+  });
+
+  it("gives the board the focus after New Game from the card", async () => {
+    const { fixture } = await render(AppComponent);
+    const game = playOn({ digits: solvedBut("r1c1") });
+    game.select(0);
+    game.enter(6);
+    await fixture.whenStable();
+    const card = await screen.findByRole("alertdialog");
+
+    await userEvent.click(
+      within(card).getByRole("button", { name: "New Game" }),
+    );
+
+    await waitFor(() => {
+      expect(document.activeElement).toHaveAttribute("role", "gridcell");
+    });
   });
 
   it("takes back a move on Ctrl+Z, wherever the focus is", async () => {

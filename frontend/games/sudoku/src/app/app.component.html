@@ -10,15 +10,17 @@
   </div>
 </main>
 
-<fz-game-bar
-  [placement]="viewport.barPlacement()"
-  [compact]="viewport.isCompact()"
-  [home]="viewport.barHome()"
->
-  <h1 fzBarTitle class="title">Sudoku</h1>
-</fz-game-bar>
+<app-bar
+  (openHelp)="helpOpen.set(true)"
+  (openSettings)="settingsOpen.set(true)"
+/>
 
 <!-- In the page from the start, so a screen reader is listening to it. -->
 <fz-announcer />
 
+<app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
+<app-help [open]="helpOpen()" (closed)="helpOpen.set(false)" />
+<!-- A new deal replaces the square that had the focus, so the board takes it. -->
+<app-result (played)="board.focus()" />
+<!-- Last, so it opens over the settings when a change would lose a game. -->
 <fz-confirm-dialog />
