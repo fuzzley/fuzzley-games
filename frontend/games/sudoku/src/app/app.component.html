@@ -5,8 +5,11 @@
 <main class="stage">
   <div class="room">
     <app-board #board />
-    <!-- A key pressed with a pointer hands the focus back to the board. -->
-    <app-pad (pressed)="board.focus()" />
+    <!--
+      A key pressed with a pointer hands the focus back to the board, leaving
+      the stage where it is scrolled to.
+    -->
+    <app-pad (pressed)="board.focus({ preventScroll: true })" />
   </div>
 </main>
 

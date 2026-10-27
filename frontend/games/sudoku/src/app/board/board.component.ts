@@ -149,13 +149,17 @@ export class BoardComponent {
   /**
    * Puts the focus on the selected square once the board has drawn, as after
    * a new deal or a press on the pad.
+   *
+   * The pad hands the focus back with `preventScroll`, since scrolling the
+   * square into view would move the pad under the finger on a stage that
+   * scrolls.
    */
-  focus(): void {
+  focus(options?: FocusOptions): void {
     afterNextRender(
       () => {
         this.host.nativeElement
           .querySelector<HTMLElement>('[role="gridcell"][tabindex="0"]')
-          ?.focus();
+          ?.focus(options);
       },
       { injector: this.injector },
     );

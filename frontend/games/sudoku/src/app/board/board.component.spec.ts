@@ -195,6 +195,16 @@ describe("BoardComponent", () => {
     expect(square("r5c5")).toHaveFocus();
   });
 
+  it("passes the focus options on, as the pad's preventScroll", async () => {
+    const { fixture } = await renderBoard();
+    const focus = vi.spyOn(square("r1c1"), "focus");
+
+    fixture.componentInstance.focus({ preventScroll: true });
+    await fixture.whenStable();
+
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+  });
+
   it("moves the focus with the selection while the board has it", async () => {
     const { fixture } = await renderBoard();
     square("r1c1").focus();

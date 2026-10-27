@@ -228,6 +228,35 @@ describe("GameService", () => {
       expect(said()).toBe("Undone.");
     });
 
+    it("selects the square the move taken back was made on", () => {
+      const game = playOn();
+      game.select(squareAt("r1c1"));
+      game.enter(6);
+      game.select(squareAt("r9c9"));
+
+      game.undo();
+
+      expect(game.selected()).toBe(squareAt("r1c1"));
+    });
+
+    it("says when Notes mode turns on", () => {
+      const game = playOn();
+
+      game.toggleNotesMode();
+
+      expect(game.notesMode()).toBe(true);
+      expect(said()).toBe("Notes on.");
+    });
+
+    it("says when Notes mode turns off", () => {
+      const game = playOn();
+      game.toggleNotesMode();
+
+      game.toggleNotesMode();
+
+      expect(said()).toBe("Notes off.");
+    });
+
     it("counts a fresh deal as played from its first move", () => {
       const game = TestBed.inject(GameService);
       const stats = TestBed.inject(StatsService);
