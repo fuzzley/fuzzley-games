@@ -118,6 +118,14 @@ export function describeMistake(grid: Grid, index: number): HintWords {
   };
 }
 
+/** Returns the words of a hint that points out notes missing their digit. */
+export function describeMissingNote(index: number): HintWords {
+  return {
+    title: "A missing note",
+    text: `The notes at ${squareName(index)} leave out the digit that belongs there.`,
+  };
+}
+
 /** Returns the sentence for a step that fills a square. */
 function placementWords(step: Placement, afterOthers: boolean): string {
   const { digit, index, unit } = step;

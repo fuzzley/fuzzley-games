@@ -8,6 +8,7 @@ import { playOn } from "../../testing/game";
 import {
   EASY,
   EASY_SOLUTION,
+  STALLED,
   rowsOf,
   solvedBut,
   squareAt,
@@ -15,32 +16,6 @@ import {
 import { SettingsService } from "../settings/settings.service";
 import { StatsService } from "../stats/stats.service";
 import { GameService } from "./game.service";
-
-/** A puzzle with one solution, where logic stalls after these digits. */
-const STALLED = {
-  givens: [
-    "8......9.",
-    ".1..4....",
-    ".437...8.",
-    "...4..3.6",
-    "...3.2...",
-    "4.1..5...",
-    ".7...483.",
-    "....8..21",
-    "982.....4",
-  ],
-  digits: [
-    "......4..",
-    "..9......",
-    "......1..",
-    ".......1.",
-    "....1..4.",
-    ".3.....7.",
-    "1........",
-    "3.4......",
-    ".........",
-  ],
-};
 
 /** Eight rows with no digit in them, to draw a row of the player's above. */
 const EMPTY = new Array<string>(8).fill(".........");
@@ -239,7 +214,7 @@ describe("GameService", () => {
   });
 
   describe("hints", () => {
-    it("points out a wrong digit before anything else", () => {
+    it("selects a wrong digit a hint finds, and says why", () => {
       const game = playOn({ digits: WRONG_9 });
 
       game.useHint();
@@ -259,6 +234,16 @@ describe("GameService", () => {
 
       expect(game.grid().digits[0]).toBe(0);
       expect(game.hint()).toBeNull();
+    });
+
+    it("adds the note a hint finds missing on the second press", () => {
+      const game = playOn({ notes: { r1c2: "1" } });
+      game.useHint();
+
+      game.useHint();
+
+      expect(digitsIn(at(game.grid().notes, squareAt("r1c2")))).toEqual([1, 9]);
+      expect(said()).toBe("Note 9.");
     });
 
     it("selects the square logic fills next, with the squares that show why", () => {

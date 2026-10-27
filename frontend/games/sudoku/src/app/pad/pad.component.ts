@@ -2,7 +2,15 @@ import { Component, computed, inject, output } from "@angular/core";
 import { IconComponent } from "@fz/ui/icon";
 import { DIGITS } from "../../rules/digits";
 import { remaining } from "../../rules/grid";
+import type { Hint } from "../../rules/hint";
 import { GameService } from "../play/game.service";
+
+/** What the hint tool says once a hint shows, for each kind of hint. */
+const FILL_LABELS: Readonly<Record<Hint["kind"], string>> = {
+  mistake: "Take out",
+  note: "Add note",
+  step: "Fill in",
+};
 
 /** Describes one digit's key. */
 interface KeyView {
@@ -52,8 +60,7 @@ export class PadComponent {
   /** What the hint tool does: shows a hint, or fills in the one showing. */
   protected readonly hintLabel = computed(() => {
     const hint = this.game.hint();
-    if (!hint) return "Hint";
-    return hint.kind === "step" ? "Fill in" : "Take out";
+    return hint ? FILL_LABELS[hint.kind] : "Hint";
   });
 
   protected onDigit(event: MouseEvent, digit: number): void {

@@ -134,6 +134,14 @@ describe("PadComponent", () => {
     expect(button("Take out")).toBeInTheDocument();
   });
 
+  it("offers to add a note a hint finds missing", async () => {
+    const { user } = await renderPad({ notes: { r1c1: "19" } });
+
+    await user.click(button("Hint"));
+
+    expect(button("Add note")).toBeInTheDocument();
+  });
+
   it("dims Hint once the puzzle is solved", async () => {
     const { user } = await renderPad({ digits: solvedBut("r1c1") });
 
