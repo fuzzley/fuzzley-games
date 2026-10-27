@@ -64,8 +64,10 @@ export interface Hint {
   readonly index: number;
   /** The digit a step fills in; a mistake's digit comes out instead. */
   readonly digit: number;
-  /** The squares that show why. */
-  readonly shown: readonly number[];
+  /** The squares the words name, which show why. */
+  readonly pattern: readonly number[];
+  /** The rest of the unit the square is the one place left in. */
+  readonly unit: readonly number[];
   readonly title: string;
   /** What to do, in a sentence of its own, for when there is no room for why. */
   readonly conclusion: string;
@@ -405,7 +407,8 @@ function hintFor(grid: Grid): Hint | null {
       kind: "mistake",
       index: wrong,
       digit: 0,
-      shown: [],
+      pattern: [],
+      unit: [],
       ...describeMistake(grid, wrong),
     };
   }
@@ -415,7 +418,7 @@ function hintFor(grid: Grid): Hint | null {
     kind: "step",
     index: chain.placement.index,
     digit: chain.placement.digit,
-    shown: shownBy(chain),
+    ...shownBy(chain),
     ...describeChain(chain),
   };
 }

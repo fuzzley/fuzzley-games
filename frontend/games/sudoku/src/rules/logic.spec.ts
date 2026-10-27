@@ -188,12 +188,27 @@ describe("shownBy", () => {
     const chain = nextPlacement(EASY_DIGITS)!;
 
     expect(chain.placement.technique).toBe("hidden-single");
-    expect(shownBy(chain)).toEqual(chain.placement.unit?.cells);
+    expect(shownBy(chain)).toEqual({
+      pattern: [],
+      unit: chain.placement.unit?.cells,
+    });
   });
 
-  it("shows each elimination's pattern, and no more for a naked single", () => {
+  it("shows each elimination's pattern, and no unit for a naked single", () => {
     const chain = nextPlacement(board(POINTING_STUCK))!;
 
-    expect(shownBy(chain)).toEqual(chain.eliminations[0]?.cells);
+    expect(shownBy(chain)).toEqual({
+      pattern: chain.eliminations[0]?.cells,
+      unit: [],
+    });
+  });
+
+  it("leaves the pattern's squares out of the unit", () => {
+    const chain = nextPlacement(board(XY_WING_STUCK))!;
+    const { pattern, unit } = shownBy(chain);
+
+    expect(chain.placement.unit).not.toBeNull();
+    expect(pattern.length).toBeGreaterThan(0);
+    expect(unit.filter((index) => pattern.includes(index))).toEqual([]);
   });
 });

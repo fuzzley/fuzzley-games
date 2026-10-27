@@ -97,8 +97,9 @@ workspace keeps its own for its code. Paths are relative to
   listens once for each kind of event and finds the square from the
   target.
 - **The squares are shaded by the selected one:** its row, column and box,
-  the squares holding its digit, and a hint's square and the squares that
-  show why. The view model (`board.component.ts`) picks one shade a square,
+  the squares holding its digit, and a hint's square, the squares its words
+  name, and, lighter, the rest of the unit the square is the one place left
+  in (`shownBy()` in `src/rules/logic.ts`). The view model (`board.component.ts`) picks one shade a square,
   the strongest reason first, and a square with a marked digit, one that
   repeats or, with the assist on, is wrong, is never shaded, so the danger
   color stays on the panel it clears 4.5:1 on.
@@ -111,8 +112,8 @@ workspace keeps its own for its code. Paths are relative to
 - **The stage decides the layout** by a container query: on a wide stage
   the pad sits beside the board as a block of three by three, and on a tall
   one under it, as a row. `app.component.scss` works out the board's side
-  from the stage, each square 32 to 64px across, and the room left for the
-  hint's words.
+  from the stage, each square 32 to 80px across, the keys growing with it on
+  a large stage, and the room left for the hint's words.
 - **A key on the pad pressed with a mouse or a finger hands the focus back
   to the board,** so the player goes on typing; one pressed from the
   keyboard keeps it. Undo and Hint are dimmed with `aria-disabled`, never
