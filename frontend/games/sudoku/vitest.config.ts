@@ -13,6 +13,14 @@ export default defineConfig(
         functions: 100,
         lines: 100,
       },
+      // The shell is held a little under where it stands, so a feature
+      // without specs fails the run.
+      "src/app/**": {
+        statements: 95,
+        branches: 85,
+        functions: 100,
+        lines: 100,
+      },
     },
   }),
 );

@@ -176,6 +176,33 @@ describe("BoardComponent", () => {
     expect(game.grid().digits[index]).toBe(hint?.digit);
   });
 
+  it("leaves Enter to the browser when no hint is on the square", async () => {
+    await renderAndSelect("r1c1");
+
+    const allowed = fireEvent.keyDown(square("r1c1"), {
+      code: "Enter",
+      key: "Enter",
+    });
+
+    expect(allowed).toBe(true);
+  });
+
+  it("leaves a key alone off the squares", async () => {
+    await renderBoard();
+
+    fireEvent.keyDown(screen.getByRole("grid"), { code: "Digit6", key: "6" });
+
+    expect(square("r1c1")).toHaveAccessibleName("Blank");
+  });
+
+  it("keeps the selection on a click between the squares", async () => {
+    await renderAndSelect("r5c5");
+
+    fireEvent.click(screen.getByRole("grid"));
+
+    expect(square("r5c5")).toHaveAttribute("aria-selected", "true");
+  });
+
   it("shades the selected square's units and digit", async () => {
     await renderAndSelect("r1c4");
 

@@ -13,7 +13,10 @@ import {
 } from "./logic";
 import { parseDigits } from "./puzzle";
 
-/** Puzzles that need a technique: logic solves each, and not without it. */
+/**
+ * Puzzles that need a technique: logic solves each, and not without it. Every
+ * technique but the hidden single, the first logic tries, must have one.
+ */
 const NEEDS = {
   "naked-single":
     ".5..2...4..7.14..994...7.........63.76.4.5.21.29.........2...936..85.1..2...4..5.",
@@ -35,7 +38,7 @@ const NEEDS = {
     "32.....17.8.7.54.2.....3.......4..29...8.7...45..9.......4.....5.12.9.8.29.....75",
   "xy-wing":
     "..4.5..963...24.51..5...2..8.....5..65.....47..3.....9..7...4..42.51...313..7.6..",
-} as const satisfies Partial<Record<Technique, string>>;
+} as const satisfies Record<Exclude<Technique, "hidden-single">, string>;
 
 /** A puzzle with one solution that the techniques here can't finish. */
 const BEYOND_LOGIC =

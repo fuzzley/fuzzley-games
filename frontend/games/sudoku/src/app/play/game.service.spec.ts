@@ -4,6 +4,7 @@ import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { at } from "../../rules/cells";
 import { digitsIn } from "../../rules/digits";
+import { createRandom } from "../../rules/random";
 import { playOn } from "../../testing/game";
 import {
   EASY,
@@ -15,7 +16,7 @@ import {
 } from "../../testing/grid_picture";
 import { SettingsService } from "../settings/settings.service";
 import { StatsService } from "../stats/stats.service";
-import { GameService } from "./game.service";
+import { GAME_RANDOM, GameService } from "./game.service";
 
 /** Eight rows with no digit in them, to draw a row of the player's above. */
 const EMPTY = new Array<string>(8).fill(".........");
@@ -83,14 +84,16 @@ describe("GameService", () => {
     });
 
     it("deals a new puzzle when the player goes ahead", async () => {
+      TestBed.configureTestingModule({
+        providers: [{ provide: GAME_RANDOM, useValue: createRandom(7) }],
+      });
       const game = playOn();
-      const before = game.grid();
 
       const dealing = game.newGame();
       TestBed.inject(ConfirmService).accept();
 
       expect(await dealing).toBe(true);
-      expect(game.grid().puzzle).not.toBe(before.puzzle);
+      expect(rowsOf(game.grid().puzzle.givens)).not.toEqual([...EASY]);
       expect(game.inProgress()).toBe(false);
     });
 

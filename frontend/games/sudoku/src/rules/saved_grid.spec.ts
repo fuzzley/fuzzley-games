@@ -35,7 +35,17 @@ describe("saveGrid", () => {
       hints: 1,
     });
     expect(SAVED.digits.slice(0, 9)).toBe("6..5..2..");
-    expect(SAVED.history).toHaveLength(2);
+  });
+
+  it("writes each move as five numbers for each square it changed", () => {
+    const noted = toggleNote(gridFrom(EASY), squareAt("r1c2"), 6);
+
+    const saved = saveGrid(place(noted, squareAt("r1c1"), 6, CLEARING));
+
+    expect(saved.history).toEqual([
+      [1, 0, 0, 0, 32],
+      [0, 0, 0, 6, 0, 1, 0, 32, 0, 0],
+    ]);
   });
 });
 
@@ -78,8 +88,30 @@ describe("restoreGrid", () => {
     ["notes cut short", edited({ notes: SAVED.notes.slice(1) })],
     ["notes past 9", edited({ notes: [512, ...SAVED.notes.slice(1)] })],
     ["notes under a digit", edited({ notes: [1, ...SAVED.notes.slice(1)] })],
-    ["a history it can't read", edited({ history: [[1, 2]] })],
+    ["a history that isn't a list", edited({ history: "1,0,0,7,0" })],
+    ["a move that isn't a list", edited({ history: [{}] })],
+    ["an empty move", edited({ history: [[]] })],
+    ["a move cut short", edited({ history: [[1, 0, 0, 7]] })],
+    ["a move off the board", edited({ history: [[81, 0, 0, 7, 0]] })],
+    [
+      "a move to a fraction of a square",
+      edited({ history: [[1.5, 0, 0, 7, 0]] }),
+    ],
+    ["a move to a digit past 9", edited({ history: [[1, 0, 0, 10, 0]] })],
+    ["a move to notes past 9", edited({ history: [[1, 0, 512, 0, 0]] })],
     ["a move on a given", edited({ history: [[3, 0, 0, 7, 0]] })],
+    [
+      "a move from a digit with notes",
+      edited({ history: [[1, 7, 4, 0, 0], ...SAVED.history] }),
+    ],
+    [
+      "a move to a digit with notes",
+      edited({ history: [[1, 0, 0, 7, 4], ...SAVED.history] }),
+    ],
+    [
+      "a last move the board doesn't show",
+      edited({ history: [...SAVED.history, [2, 0, 0, 1, 0]] }),
+    ],
   ])("drops %s", (_, saved) => {
     expect(restoreGrid(saved)).toBeNull();
   });
