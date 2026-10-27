@@ -3,7 +3,6 @@
   // since this app compiles their sources into its own program.
   "extends": "@fz/dev/tsconfig/angular.json",
   "compilerOptions": {
-    "rootDir": "./src",
     "paths": {
       "@/*": ["./src/*"],
       "@test/*": ["./test/*"]

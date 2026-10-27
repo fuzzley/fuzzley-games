@@ -65,9 +65,16 @@ Sass rules every app keeps among them. Paths are relative to
   apostrophes aside (`checkGameManifests()` in `tools/vite-plugins.ts`).
 - `games.json` lists each game's build: its workspace, by its folder in
   `frontend/` (`games/minesweeper`). `tools/` holds the scripts that copy
-  the games into `public/play/` before every build (`copy-games.mjs`) and
-  add the analytics tags to each game's page, with what they share in
-  `script.mjs`, and the site's Vite plugins in `vite-plugins.ts`.
+  the games into `public/play/` before every build (`copy-games.mjs`),
+  add the analytics tags to each game's page, and start the site's dev
+  server with every game's (`dev-all.mjs`, the root's `yarn dev:all`), with
+  what they share in `script.mjs`, and the site's Vite plugins in
+  `vite-plugins.ts`. When `dev-all.mjs` names the games' servers, the
+  site's dev server sends each game's folder to the game's own
+  (`proxyGameServers()`), in place of its copy in `public/play/`.
+  `vite.config.ts` takes the Angular plugins from `@fz/dev/vite`'s
+  `angularPlugins()`, as the games do, so an edited component's template
+  or styles swap into the running page.
   `vite.config.ts` also adds `@fz/style`'s `fuzzleyStyle()`, which makes
   `/theme.js`, the first script `index.html` loads, which picks the palette
   before the page paints, from the same list of palettes the app imports, so

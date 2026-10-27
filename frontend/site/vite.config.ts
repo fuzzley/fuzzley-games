@@ -1,10 +1,11 @@
-import angular from "@analogjs/vite-plugin-angular";
+import { angularPlugins } from "@fz/dev/vite";
 import { angularSpecs, coverage, nodeSpecs } from "@fz/dev/vitest";
 import { fuzzleyStyle } from "@fz/style/vite";
 import { defineConfig } from "vitest/config";
 import {
   checkGameImages,
   checkGameManifests,
+  proxyGameServers,
   readBuildInfo,
   servePlayPages,
   versionJson,
@@ -15,10 +16,11 @@ const buildInfo = readBuildInfo();
 
 export default defineConfig({
   plugins: [
-    angular(),
+    angularPlugins(),
     fuzzleyStyle(),
     versionJson(buildInfo),
     servePlayPages(),
+    proxyGameServers(),
     checkGameImages(),
     checkGameManifests(),
   ],

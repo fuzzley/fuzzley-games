@@ -120,7 +120,8 @@ workspace's with the others'.
 
 - **Run Development Server:** `yarn dev` (at `http://localhost:9001/`; the
   Solitaire Collection's uses 9000). The site's dev server serves the build
-  `yarn start` made when it started.
+  `yarn start` made when it started; `yarn dev:all`, from `frontend/`,
+  serves this dev server there instead.
 - **Production Build:** `yarn build`, into `dist/`; `yarn preview` serves it.
 - **Run Unit Tests:** `yarn test` (the whole suite once, with coverage,
   failing below the floor `vitest.config.ts` sets for `src/rules/`),

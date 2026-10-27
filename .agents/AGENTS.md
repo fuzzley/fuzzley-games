@@ -46,8 +46,10 @@ Minesweeper.
 ### Building and Checking
 
 Run every `yarn` command from `frontend/`, with Yarn 4, never NPM.
-`yarn start` serves the site and the games at `http://localhost:4200/`, and
-`yarn verify` runs what CI runs: lint, type-check, test, then build.
+`yarn start` serves the site and the games at `http://localhost:4200/`,
+`yarn dev:all` serves them there from every app's own dev server, so an edit
+to any of them shows as soon as it is saved, and `yarn verify` runs what CI
+runs: lint, type-check, test, then build.
 `frontend/AGENTS.md` lists every command and what it checks.
 
 To test the image itself, build and run it with Docker as `docs/operations.md`

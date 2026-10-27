@@ -20,10 +20,14 @@ game keeps its own in its folder's `AGENTS.md`. Paths are relative to
   `assets/`, and `game.json`, which says what it holds: its name, and for a
   collection the `id` and `name` of every game it opens. The site's build
   fails when its catalog calls a game anything else, or links an id the
-  build doesn't open.
+  build doesn't open. Its dev server swaps an edited component's template
+  or styles into the running page, which needs the `rootDir` `@fz/dev`'s
+  tsconfig gives it (`frontend/lib/dev/AGENTS.md`).
 - **Its dev server has a port of its own,** which its screenshot script
   defaults to: 9000 is the Solitaire Collection's and 9001 Minesweeper's,
-  so the next game takes 9002.
+  so the next game takes 9002. The root's `yarn dev:all` runs it on one
+  after the site's instead, at `/play/<slug>/`, which the site's dev server
+  serves, so nothing the game loads may assume it sits at `/`.
 - **Its screenshots are the site's.** `public/docs/screenshots/<id>/` holds
   the `thumb.webp` and `preview.webp` the site's catalog shows of each game
   it opens, written from a capture by `@fz/dev/screenshots`'s
