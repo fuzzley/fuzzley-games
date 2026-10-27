@@ -6,26 +6,19 @@ import { solvedBut } from "../../testing/grid_picture";
 import { GameService } from "../play/game.service";
 import { ResultComponent } from "./result.component";
 
-/** What a spec gets back from rendering the card. */
-interface RenderedResult {
-  readonly user: UserEvent;
-  readonly played: ReturnType<typeof vi.fn>;
-}
-
 /**
- * Renders the card, then solves `EASY` 1:35 in by its last square, and waits
- * for the card to open.
+ * Renders the card, then solves `EASY` 1:35 in by its last square, waits
+ * for the card to open, and returns the user.
  */
 async function renderSolved(
   options: GameOptions = {},
-): Promise<RenderedResult> {
-  const played = vi.fn();
-  await render(ResultComponent, { on: { played } });
+): Promise<{ user: UserEvent }> {
+  await render(ResultComponent);
   const game = playOn({ digits: solvedBut("r1c1"), seconds: 95, ...options });
   game.select(0);
   game.enter(6);
   await screen.findByRole("alertdialog");
-  return { user: userEvent.setup(), played };
+  return { user: userEvent.setup() };
 }
 
 /** Returns the value a figure on the card gives, by its term. */
@@ -76,21 +69,19 @@ describe("ResultComponent", () => {
   });
 
   it("deals a new puzzle from New Game, and closes", async () => {
-    const { user, played } = await renderSolved();
+    const { user } = await renderSolved();
 
     await user.click(screen.getByRole("button", { name: "New Game" }));
 
-    expect(played).toHaveBeenCalledOnce();
     expect(TestBed.inject(GameService).grid().outcome).toBe("playing");
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });
 
   it("closes, leaving the solved board to look at", async () => {
-    const { user, played } = await renderSolved();
+    const { user } = await renderSolved();
 
     await user.click(screen.getByRole("button", { name: "Close" }));
 
-    expect(played).not.toHaveBeenCalled();
     expect(TestBed.inject(GameService).grid().outcome).toBe("solved");
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });

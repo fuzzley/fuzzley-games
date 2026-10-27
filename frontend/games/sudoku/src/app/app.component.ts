@@ -1,7 +1,15 @@
-import { Component, inject, signal } from "@angular/core";
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+} from "@angular/core";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerComponent } from "@fz/ui/announcer";
-import { ConfirmDialogComponent } from "@fz/ui/confirm";
+import { ConfirmDialogComponent, ConfirmService } from "@fz/ui/confirm";
 import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
 import { HelpComponent } from "./help/help.component";
@@ -13,6 +21,10 @@ import { SettingsComponent } from "./settings/settings.component";
 /**
  * Shows the game: the bar, the board and the pad in the room the bar leaves
  * them, the live region that says what each move did, and the dialogs.
+ *
+ * Once a game begins, as the page loads or after a new deal, the board takes
+ * the focus as soon as nothing covers it, so a digit typed goes into the
+ * square drawn as selected.
  */
 @Component({
   selector: "app-root",
@@ -37,9 +49,33 @@ import { SettingsComponent } from "./settings/settings.component";
 export class AppComponent {
   protected readonly viewport = inject(GameViewportService);
   private readonly game = inject(GameService);
+  private readonly confirm = inject(ConfirmService);
+  private readonly board = viewChild.required(BoardComponent);
 
   protected readonly settingsOpen = signal(false);
   protected readonly helpOpen = signal(false);
+
+  /** Whether a drawer or a dialog covers the board. */
+  private readonly covered = computed(
+    () => this.settingsOpen() || this.helpOpen() || this.confirm.isOpen(),
+  );
+
+  /** The last game the board took the focus for, by `GameService.deals`. */
+  private focusedDeal = -1;
+
+  constructor() {
+    effect(() => {
+      this.game.cover(this.covered());
+    });
+    effect(() => {
+      const deal = this.game.deals();
+      if (this.covered() || deal === this.focusedDeal) return;
+      this.focusedDeal = deal;
+      untracked(() => {
+        this.board().focus();
+      });
+    });
+  }
 
   /**
    * Takes back a move on Ctrl+Z, or Cmd+Z, wherever the focus is but in a
