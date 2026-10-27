@@ -1,8 +1,9 @@
 @use "controls";
 @use "motion";
 
-// The parts a game's dialogs are drawn from: a card, its close button, and a
-// setting's heading and choices.
+// The parts a game's dialogs are drawn from: a card, its close button, a
+// setting's heading and choices, and the cards that say how to play and how
+// a game ended.
 
 /// Styles a card alone over the dimmed page, as the confirmation is, `$width`
 /// wide where the window has room.
@@ -61,5 +62,167 @@
     border-color: var(--fz-accent);
     background: var(--fz-accent-wash);
     color: var(--fz-text);
+  }
+}
+
+/// Styles a dialog's close button in its card's top right corner, where one
+/// is looked for, wherever it comes in the markup.
+@mixin corner-close-button {
+  @include close-button;
+
+  position: absolute;
+  top: var(--fz-space-3);
+  right: var(--fz-space-3);
+}
+
+/// Styles a card that says how to play a game: its heading, paragraphs in
+/// the muted color with their bold words in the text's, a `.close` button
+/// in the corner, and a table of the controls with each key a keycap.
+@mixin help-card($width: 580px) {
+  @include dialog-card($width);
+
+  h2 {
+    margin: 0 0 var(--fz-space-3);
+    font-size: var(--fz-font-2xl);
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0 0 var(--fz-space-3);
+    color: var(--fz-muted);
+    font-size: var(--fz-font-sm);
+    line-height: var(--fz-leading-normal);
+  }
+
+  strong {
+    color: var(--fz-text);
+  }
+
+  .close {
+    @include corner-close-button;
+  }
+
+  table {
+    width: 100%;
+    margin-top: var(--fz-space-4);
+    border-collapse: collapse;
+    font-size: var(--fz-font-sm);
+  }
+
+  th,
+  td {
+    padding: var(--fz-space-2);
+    border-top: 1px solid var(--fz-edge-2);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  thead {
+    th,
+    td {
+      border-top: none;
+    }
+
+    th {
+      color: var(--fz-muted);
+      font-size: var(--fz-font-2xs);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+  }
+
+  tbody th {
+    font-weight: 600;
+  }
+
+  td {
+    color: var(--fz-muted);
+  }
+
+  kbd {
+    display: inline-block;
+    padding: 0 6px;
+    border: 1px solid var(--fz-edge-3);
+    border-bottom-width: 2px;
+    border-radius: var(--fz-radius-sm);
+    background: var(--fz-wash-2);
+    color: var(--fz-text);
+    font-family: var(--fz-font-mono);
+    font-size: var(--fz-font-xs);
+    line-height: 1.6;
+  }
+}
+
+/// Styles a card that says how a game ended, centered: a large
+/// `.card-icon`, which the caller colors, the heading, a `.subtitle` with
+/// its badges, a `.figures` list of `.figure`s, each value over its term,
+/// and the `.actions` stacked.
+@mixin result-card($width: 400px) {
+  @include dialog-card($width);
+
+  text-align: center;
+
+  h2 {
+    margin: 0 0 var(--fz-space-2);
+    font-size: var(--fz-font-2xl);
+    font-weight: 700;
+  }
+
+  .card-icon {
+    --fz-icon-size: 64px;
+    --fz-icon-stroke: 1.5;
+
+    margin: 0 auto var(--fz-space-4);
+  }
+
+  .subtitle {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--fz-space-2);
+    margin: 0 0 var(--fz-space-5);
+    color: var(--fz-muted);
+    font-size: var(--fz-font-md);
+  }
+
+  .figures {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--fz-space-2);
+    margin: 0 0 var(--fz-space-6);
+  }
+
+  // Value above term, with the term still first in the markup.
+  .figure {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 2px;
+    padding: var(--fz-space-2);
+    border: 1px solid var(--fz-edge-2);
+    border-radius: var(--fz-radius-md);
+    background: var(--fz-wash-2);
+
+    dt {
+      color: var(--fz-muted);
+      font-size: var(--fz-font-2xs);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    dd {
+      margin: 0;
+      font-family: var(--fz-font-mono);
+      font-size: var(--fz-font-lg);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  .actions {
+    display: grid;
+    gap: var(--fz-space-3);
   }
 }
