@@ -119,6 +119,12 @@ describe("BarComponent", () => {
       ).toHaveClass("fz-visually-hidden");
     });
 
+    it("shows the level of the game on the board", async () => {
+      await renderBar();
+
+      expect(screen.getByText("Hard")).toBeVisible();
+    });
+
     it("moves Restart, How to play and Settings into the menu", async () => {
       const { user } = await renderBar();
 

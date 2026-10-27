@@ -78,3 +78,17 @@
   display: grid;
   gap: var(--fz-space-3);
 }
+
+// A row of the other three levels under New Game, named by the label over
+// them.
+.levels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--fz-space-2);
+}
+
+.levels-label {
+  grid-column: 1 / -1;
+  color: var(--fz-muted);
+  font-size: var(--fz-font-xs);
+}
