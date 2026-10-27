@@ -1,16 +1,20 @@
 # Plan: a review of Sudoku, and what to improve
 
-Reviewed 2026-10-27, the day Sudoku shipped (`c140884`). The user's
-decisions are at the end, and the work is on the `sudoku-review` branch. The review covers `frontend/games/sudoku/`: its folders, its
-rules, its shell, its specs and tools, and how it sits beside Minesweeper,
-the Solitaire Collection and the libraries in `frontend/lib/`. It looks for
-what would make the code easier to read, extend, maintain and test. Paths are
-relative to `frontend/games/sudoku/` unless they start with `frontend/`.
+Reviewed 2026-10-27, the day Sudoku shipped (`c140884`), and built the same
+day on the branch `sudoku-review`, cut from `main`, with a commit for each
+step. The user's decisions are at the end, and an "As built" note under each
+finding says what came of it. The plan and its notes describe the code as it
+was, so check a path against the tree before following one. The review covers
+`frontend/games/sudoku/`: its folders, its rules, its shell, its specs and
+tools, and how it sits beside Minesweeper, the Solitaire Collection and the
+libraries in `frontend/lib/`. It looks for what would make the code easier to
+read, extend, maintain and test. Paths are relative to
+`frontend/games/sudoku/` unless they start with `frontend/`.
 
 Each finding gives a **priority** (High, Medium or Low), a rough **effort**
 (S under an hour, M a few hours, L a day or more), what was found, the
-proposed change, and its pros and cons. The decisions the user needs to make
-are listed at the end.
+proposed change, and its pros and cons. The decisions the user made are
+listed at the end.
 
 ## Where things stand
 
@@ -126,6 +130,13 @@ of all 400 would cost under a second, but would also catch less. The guard
 in the hint can never fire while the spec passes, so it is defense in
 depth, not new behavior.
 
+**As built.** `agrees()` is in `logic.ts`, and `bank.spec.ts` holds every
+grading step and every step of every hint in a playthrough by hints to the
+backtracking solver's solution, in about 3 s. `hintFor()` treats a chain
+with a step that disagrees as no hint; its spec reaches the guard by passing
+`hintFor()` a chain of its own. It logs nothing: the rules have no console,
+and the bank's spec is what catches a wrong step.
+
 ### 2. The hint's logic lives in the shell
 
 **Priority:** Medium. **Effort:** S.
@@ -171,6 +182,11 @@ sits behind the fence and under the floor. Its specs need no TestBed, and
 
 **Cons.** A little churn, and `Hint` carries words (`title`, `text`), which
 the rules already own in `describe.ts`, so that is consistent.
+
+**As built.** `src/rules/hint.ts` holds `Hint`, `hintFor()`,
+`firstBlank()` and `fillHint()`, the move the second press makes, with
+`hint.spec.ts` beside it. The board where logic stalls moved to
+`src/testing/grid_picture.ts` as `STALLED`, which both specs draw.
 
 ### 3. The board's shading and keys can only be tested through the DOM
 
@@ -224,6 +240,14 @@ stay as they are.
 and once through the DOM; the DOM specs could be trimmed to one per kind of
 key.
 
+**As built.** `board_view.ts` holds `boardView()` and `shadeOf()`, with the
+note's text and the square's tab index in the view, and `board_keys.ts`
+holds `boardKey()`, with a fifth kind, `enter`: the component fills the
+hint only if it is on the selected square. Both have table specs, with the
+marked-never-shaded rule as its own test. The split into two computeds was
+left out. Three DOM specs cover a key or a click off the squares and Enter
+with no hint.
+
 ### 4. A move that does nothing says nothing; Undo doesn't say what
 
 **Priority:** Medium. **Effort:** S.
@@ -256,6 +280,12 @@ pattern.
 **Cons.** More announcements, which can feel chatty. The words should be
 checked with NVDA or Narrator, which the build plan's S9 left to the user.
 The spoken text changes, so `game.service.spec.ts` changes with it.
+
+**As built.** As proposed, in the proposed words, and one more refusal: a
+note on a square with a digit says "Row 1, column 1 holds a 6, so it takes
+no notes." Undo names notes too: "Undone: note 3 taken out of row 1,
+column 1.", or "Undone: notes 1, 3 and 6 back in row 1, column 1." after
+an erase.
 
 ### 5. Copies the games keep in step
 
@@ -306,6 +336,8 @@ The Solitaire Collection's extra actions have to fit the inputs, and
 `display: contents` has had accessibility bugs on buttons in older browsers,
 though this host is only a wrapper, not a button.
 
+**As built.** Left as it was: the user chose C, the three copies.
+
 #### 5b. Saving on page hide, copied in two games
 
 **Priority:** Low. **Effort:** S.
@@ -328,6 +360,8 @@ then reads as what it stores and nothing else.
 **Cons.** Only two copies, since the Solitaire Collection saves
 differently, so the rule of three isn't met yet. It saves about 20 lines a
 game.
+
+**As built.** Left as it was, in each game, as the user chose.
 
 #### 5c. Framework-free helpers, copied in three games
 
@@ -363,6 +397,14 @@ time.
 gets an exception. The build plan put this out of scope on purpose, so it
 is a judgment call.
 
+**As built.** `frontend/lib/core` is `@fz/core`, with `random`, `json` and
+`format` entry points and every line covered. Sudoku and Minesweeper import
+them, their copies and those copies' specs gone, and `@fz/ui`'s storage
+imports `isRecord()`. Each game's fence lets `@fz/core` through, and the
+library's own ESLint config lets it import nothing but its own files.
+`random.spec.ts` pins the first three numbers seed 1 gives. The Solitaire
+Collection keeps its own.
+
 #### 5d. How to play's and the result's stylesheets
 
 **Priority:** Low. **Effort:** S.
@@ -381,6 +423,13 @@ four dialog mixins were lifted in S1.
 
 **Cons.** It's styling only, and it changes two live games, so it needs
 the compiled-rules comparison S1 used.
+
+**As built.** `@fz/style`'s `_dialogs.scss` has `help-card`, `result-card`
+and `corner-close-button`. Both games' help stylesheets are the one
+include, and their result stylesheets keep only the icon's color, Sudoku's
+note and Minesweeper's close button. Compiled, every selector of both
+games' cards keeps the same declarations, each now under `.card`, which
+holds them all.
 
 #### 5e. Settings and stats: no change for now
 
@@ -423,6 +472,10 @@ the compiler mostly enforces.
 that split (logic in `logic.ts`, words in `describe.ts`) is the right one
 to keep.
 
+**As built.** As proposed: a `FINDERS` table beside `TECHNIQUES`, `NEEDS`
+typed so a technique without its puzzle doesn't compile, and "Adding a
+Technique" in Sudoku's `AGENTS.md`.
+
 ### 7. The result card's delay copies the stylesheet's timing
 
 **Priority:** Low. **Effort:** S.
@@ -452,6 +505,12 @@ owns the games' media queries) replaces the hand-rolled query.
 **Cons (B).** `animationend` doesn't fire in jsdom or under reduced motion,
 so B needs its fallback anyway. A is simpler.
 
+**As built.** Option A. `board_view.ts` holds `WAVE_RUN_MS`,
+`WAVE_STEP_MS` and `WAVE_MS` (1,240 ms, where the card waited 1,300), the
+board binds the first two as `--wave-run` and `--wave-step`, and the card
+waits `WAVE_MS`. `GameViewportService` gained `allowsMotion`, and the fake
+viewport answers the motion query as a system with no preference.
+
 ### 8. A restored history isn't held to the grid's own rules
 
 **Priority:** Low. **Effort:** S.
@@ -470,6 +529,10 @@ board as stored.
 `frontend/games/AGENTS.md` asks.
 
 **Cons.** It guards against tampering only.
+
+**As built.** A stored change whose square holds a digit with notes, before
+or after, drops the saved game, and so does a last move whose `after`
+doesn't match the board.
 
 ### 9. Small tidy-ups
 
@@ -496,6 +559,12 @@ board as stored.
   six minutes", while `AGENTS.md` says "about ten". The build plan measured
   620 s for Hard and 12 min 57 s in all. Give one figure in one place.
 
+**As built.** All five. `GameService` gained `solved` and `canHint`; the
+packing went into `saved_grid.ts` as private functions, and
+`history.spec.ts` into `saved_grid.spec.ts`; `cells.ts` exports `LINES`;
+the checkboxes pass `box.checked`; and the generator's numbers are its new
+ones (finding 12).
+
 ### 10. Tightening a few specs
 
 **Priority:** Low. **Effort:** S.
@@ -511,6 +580,11 @@ board as stored.
   example 95% statements, 85% branches, 100% functions and lines), as the
   libraries set theirs. Minesweeper could take the same.
 - **Shading coverage** is finding 3.
+
+**As built.** The new-deal spec deals from `createRandom(7)` and compares
+the givens with `EASY`'s, and the shell's floor is 95% of statements, 85%
+of branches and every function and line. Minesweeper has no floor on its
+shell yet: its bar sits at 86% of statements and 60% of branches.
 
 ### 11. A hint could also check the notes
 
@@ -535,6 +609,10 @@ it costs a best time to fix notes. That's a product choice for the user. It
 also reveals a little about the solution, as the wrong-digit hint does
 already.
 
+**As built.** As proposed, as a third kind of hint, `note`, titled "A
+missing note"; the pad's tool reads "Add note" while one shows, and How to
+play says what a hint checks.
+
 ### 12. The bank takes 13 minutes to write
 
 **Priority:** Low. **Effort:** M.
@@ -552,6 +630,12 @@ deterministic.
 
 **Cons.** More code in a script that rarely runs, and the Vite
 `runnerImport()` has to load once per worker.
+
+**As built.** Workers try four seeds at a time, and a seed's puzzle is kept
+only once every seed before it has been tried. On eight workers, the
+default, the whole bank took 1 min 32 s, and came out byte for byte the
+bank before, which also showed the grader and the deal untouched by
+findings 5c and 6.
 
 ### 13. Nothing checks the layout in a real browser
 
@@ -575,6 +659,16 @@ game if it were built generically.
 **Cons.** It needs Chrome in CI, it's slower and flakier than jsdom, and it
 belongs to the whole repository, not just Sudoku, so it's a bigger decision
 than this review.
+
+**As built.** `@fz/dev/layout`'s `checkLayout()` opens a game at a roomy
+window, an upright phone and one on its side, and fails on an error the
+page reports, a page that scrolls, or what the game's own inspection
+finds. Sudoku's `tools/check-layout.mjs` serves its build with Vite's
+`preview()` and holds the board square, its squares one size, and the
+board and pad in the window, in about 4 s. The root's `yarn check:layout`
+runs every game's that has one, and the Verify workflow runs it after
+`yarn verify`; that step had not yet run on GitHub's runner when this was
+written.
 
 ## Considered and left alone
 
