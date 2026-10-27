@@ -228,6 +228,41 @@ describe("GameService", () => {
       expect(said()).toBe("Undone.");
     });
 
+    it("fills in the notes of every blank square, and says how many", () => {
+      const game = playOn();
+
+      game.fillNotes();
+
+      expect(digitsIn(at(game.grid().notes, squareAt("r1c1")))).toEqual([6, 9]);
+      expect(said()).toBe("Notes filled in for 45 squares.");
+    });
+
+    it("takes the notes filled in back in one undo", () => {
+      const game = playOn();
+      game.fillNotes();
+
+      game.undo();
+
+      expect(game.grid().notes.every((notes) => notes === 0)).toBe(true);
+    });
+
+    it("says when every blank square has notes already", () => {
+      const game = playOn({ digits: solvedBut("r1c1"), notes: { r1c1: "6" } });
+
+      game.fillNotes();
+
+      expect(said()).toBe("Every blank square has notes already.");
+    });
+
+    it("sets a best time though the notes were filled in", () => {
+      const game = playOn({ digits: solvedBut("r1c1") });
+      game.fillNotes();
+
+      game.enter(6);
+
+      expect(game.newBest()).toBe(true);
+    });
+
     it("selects the square the move taken back was made on", () => {
       const game = playOn();
       game.select(squareAt("r1c1"));

@@ -1,5 +1,5 @@
 import { CELLS, UNITS, type Unit, at, peersOf, unitsOf } from "./cells";
-import { bit } from "./digits";
+import { ALL_DIGITS, bit } from "./digits";
 import type { Change, Move, Square } from "./history";
 import type { Puzzle } from "./puzzle";
 
@@ -96,6 +96,29 @@ export function toggleNote(grid: Grid, index: number, digit: number): Grid {
   if (!isOpen(grid, index) || at(grid.digits, index) !== 0) return grid;
   const notes = at(grid.notes, index) ^ bit(digit);
   return play(grid, [change(grid, index, { digit: 0, notes })]);
+}
+
+/**
+ * Returns the grid after the player notes, in one move, every digit each
+ * blank square could still hold by the digits its row, column and box hold.
+ * A square with notes keeps them, as the player's own, and a solved game
+ * doesn't change.
+ */
+export function fillNotes(grid: Grid): Grid {
+  if (grid.outcome !== "playing") return grid;
+  const changes: Change[] = [];
+  for (let index = 0; index < CELLS; index++) {
+    if (at(grid.digits, index) !== 0 || at(grid.notes, index) !== 0) continue;
+    let candidates = ALL_DIGITS;
+    for (const peer of peersOf(index)) {
+      const digit = at(grid.digits, peer);
+      if (digit !== 0) candidates &= ~bit(digit);
+    }
+    if (candidates !== 0) {
+      changes.push(change(grid, index, { digit: 0, notes: candidates }));
+    }
+  }
+  return changes.length > 0 ? play(grid, changes) : grid;
 }
 
 /** Returns the grid as it was before the last move, or as it is with none. */

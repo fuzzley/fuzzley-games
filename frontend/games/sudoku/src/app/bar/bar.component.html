@@ -24,10 +24,22 @@
   </dl>
 
   <!--
-    On a compact screen, Restart, How to play and Settings move into the
-    overflow menu. Each block holds one element, so it is projected into the
-    actions as that element would be.
+    On a compact screen, Fill in notes, Restart, How to play and Settings
+    move into the overflow menu. Each block holds one element, so it is
+    projected into the actions as that element would be.
   -->
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary action"
+      (click)="game.fillNotes()"
+    >
+      <fz-icon name="grid" />
+      <span class="btn-text">Fill in notes</span>
+    </button>
+  }
+
   @if (!viewport.isCompact()) {
     <button
       fzBarActions
