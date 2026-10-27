@@ -1,4 +1,4 @@
-import { angular, templates, tests, typescript } from "@fz/dev/eslint";
+import { angular, scripts, templates, tests, typescript } from "@fz/dev/eslint";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig(
@@ -11,6 +11,7 @@ export default defineConfig(
   tests({
     files: ["src/**/*.spec.ts", "src/testing/**/*.ts", "src/test-setup.ts"],
   }),
+  scripts({ files: ["tools/**/*.mjs"] }),
   {
     // The rules of the game know nothing of how it is shown, so specs drive
     // them directly and the shell can change around them.

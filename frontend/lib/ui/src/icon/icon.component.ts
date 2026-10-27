@@ -4,8 +4,10 @@ import { Component, computed, input } from "@angular/core";
 export const ICON_NAMES = [
   "back",
   "bug",
+  "bulb",
   "chevron",
   "close",
+  "eraser",
   "external",
   "flag",
   "grid",
@@ -15,6 +17,7 @@ export const ICON_NAMES = [
   "link",
   "mine",
   "more",
+  "pencil",
   "play",
   "players",
   "plus",
