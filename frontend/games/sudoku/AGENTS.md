@@ -82,9 +82,10 @@ workspace keeps its own for its code. Paths are relative to
   out.
 - **`tools/`** — the scripts run from the workspace.
   `generate-puzzles.mjs` fills the bank from seeds 1 upward, keeping each
-  puzzle that grades at its level. It writes the same bank every run, so
-  regenerate it only after changing the grader or the generator, and
-  expect the hard level to take about ten minutes.
+  puzzle that grades at its level, trying seeds side by side in worker
+  threads. It writes the same bank every run, so regenerate it only after
+  changing the grader or the generator; on eight workers it takes about a
+  minute and a half, most of it the hard level's.
   `capture-screenshots.mjs` makes the screenshots the site shows.
 
 ## Adding a Technique
@@ -208,7 +209,8 @@ Run these from `frontend/games/sudoku/`, or as `yarn workspace sudoku
   with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, and the scripts
   in `tools/` from their JSDoc, with `tsconfig.scripts.json`).
-- **Fill the Bank:** `yarn generate:puzzles` (`--count <n>` for another
+- **Fill the Bank:** `yarn generate:puzzles` (`--workers <n>` to run more
+  or fewer threads than the default 8, `--count <n>` for another
   number per level).
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
   `tools/capture-screenshots.mjs` against the running dev server in headless
