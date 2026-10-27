@@ -96,6 +96,17 @@ describe("GameService", () => {
       );
     });
 
+    it("asks to restart the puzzle, not for a new game, before a restart", () => {
+      const game = playOn();
+
+      void game.restart();
+
+      expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
+        title: "Restart this puzzle?",
+        confirmLabel: "Restart",
+      });
+    });
+
     it("keeps the game under way when the player backs out", async () => {
       const game = playOn({ digits: solvedBut("r1c1") });
       const before = game.grid();
