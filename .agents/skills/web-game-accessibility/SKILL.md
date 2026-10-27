@@ -9,8 +9,8 @@ This skill defines the accessibility rules the site and the games built here
 share. The shared libraries' components meet them by themselves, so the
 first way to meet one is to use the library's piece (the `fuzzley-ui` skill
 lists them); each workspace's `AGENTS.md` names what it keeps of its own:
-`frontend/site/AGENTS.md`, `frontend/games/solitaire/AGENTS.md` and
-`frontend/games/minesweeper/AGENTS.md`.
+`frontend/site/AGENTS.md`, `frontend/games/solitaire/AGENTS.md`,
+`frontend/games/minesweeper/AGENTS.md` and `frontend/games/sudoku/AGENTS.md`.
 
 ## Core Accessibility Rules
 
@@ -91,6 +91,12 @@ move it with the arrow keys, Home and End.
   the square in focus.
 - When a dialog over the board deals a new game, focus goes back to the
   board's tab stop rather than to the body.
+- A board that takes digits, as Sudoku's does
+  (`frontend/games/sudoku/src/app/board/`), reads them by the key's code
+  (`event.code`), so an AZERTY keyboard's top row types them without Shift,
+  and letters by their character. Its number pad gives touch every key: a
+  key pressed with a finger or a mouse hands the focus back to the board,
+  so the player goes on typing, and one pressed from the keyboard keeps it.
 
 ### 5. Color & Contrast
 

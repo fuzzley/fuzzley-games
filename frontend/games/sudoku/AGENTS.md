@@ -9,8 +9,6 @@ libraries, shaped like Minesweeper. What every game keeps, in
 workspace keeps its own for its code. Paths are relative to
 `frontend/games/sudoku/`.
 
-It is being built from `docs/sudoku-plan.md`; this file grows with it.
-
 ## Technology Stack
 
 - **UI:** [Angular](https://angular.dev/) (standalone components, signals,
@@ -70,16 +68,17 @@ It is being built from `docs/sudoku-plan.md`; this file grows with it.
   A new feature gets a folder of its own, named for what it does, never for
   the kind of code in it.
 
-- **`tools/`** — the scripts run from the workspace:
-  `generate-puzzles.mjs`, which fills the bank from seeds 1 upward, keeping
-  each puzzle that grades at its level. It writes the same bank every run,
-  so regenerate it only after changing the grader or the generator, and
-  expect the hard level to take about ten minutes.
 - **`src/testing/`** — what specs share: `gridFrom` (`grid_picture.ts`)
   draws a grid as rows of digits, with notes by square, and `solvedBut`
   draws the player's digits that solve `EASY` but for the squares named;
   `playOn` (`game.ts`) puts a grid in play. The app's tsconfig leaves it
   out.
+- **`tools/`** — the scripts run from the workspace.
+  `generate-puzzles.mjs` fills the bank from seeds 1 upward, keeping each
+  puzzle that grades at its level. It writes the same bank every run, so
+  regenerate it only after changing the grader or the generator, and
+  expect the hard level to take about ten minutes.
+  `capture-screenshots.mjs` makes the screenshots the site shows.
 
 ## The Board and the Pad
 
@@ -114,6 +113,24 @@ It is being built from `docs/sudoku-plan.md`; this file grows with it.
   keyboard keeps it. Undo and Hint are dimmed with `aria-disabled`, never
   disabled, so the focus never falls off them.
 
+## Styling
+
+Every component stylesheet opens with `@use "../styles" as *;`, which
+brings in `@fz/style`'s mixins and `@fz/game-ui`'s breakpoints, and nothing
+else. The frontend's Angular and Sass rules apply; on top of them:
+
+- **Only the player's ink is a color,** in `src/app/board/_inks.scss`, the
+  one stylesheet stylelint lets write one.
+- **The sizes come from the stage,** a size container named `stage`: the
+  board's side and the pad's layout follow its size and orientation, not
+  the viewport's.
+- **The bar reads `@fz/game-ui/viewport`'s `GameViewportService`,** which
+  applies the games' compact test in code and says where the bar stands
+  and what fits in it.
+- **The pencil, the eraser and the bulb** were added to `@fz/ui`'s icons for
+  the pad. The dialogs' cards, close buttons, headings and choice tiles are
+  `@fz/style`'s mixins, which every game's dialogs share.
+
 ## What It Keeps
 
 Each entry is in `localStorage`, versioned
@@ -130,15 +147,35 @@ can't trust rather than failing:
   the givens again, so an edited entry can't hand the game a wrong
   solution.
 
+## In This Repository
+
+What every game keeps is in `frontend/games/AGENTS.md`. Here:
+
+- **The site serves it at `/play/sudoku/`,** and its `game.json` names it
+  Sudoku, as the site's catalog must.
+- **Its screenshots** are in `public/docs/screenshots/sudoku/`, and
+  `yarn capture:screenshots` makes them again.
+- **The browser's toolbar takes the page's color** (`THEME_COLOR_ROLE` in
+  `src/main.ts`), and the settings offer the palette.
+- **Accessibility.** The rules are the repository's `web-game-accessibility`
+  skill's. Every overlay is an `<fz-dialog>`, the board is the grid above,
+  every move is announced, and the pad gives touch every key.
+
 ## Development Commands
 
 Run these from `frontend/games/sudoku/`, or as `yarn workspace sudoku
-<script>` from `frontend/`.
+<script>` from `frontend/`. The root's `yarn lint`, `yarn typecheck`,
+`yarn test` and `yarn build` run this workspace's with the others'.
 
-- **Run Development Server:** `yarn dev` (at `http://localhost:9002/`).
+- **Run Development Server:** `yarn dev` (at `http://localhost:9002/`; the
+  Solitaire Collection's uses 9000 and Minesweeper's 9001). The site's dev
+  server serves the build `yarn start` made when it started; `yarn dev:all`,
+  from `frontend/`, serves this dev server there instead.
 - **Production Build:** `yarn build`, into `dist/`; `yarn preview` serves it.
-- **Run Unit Tests:** `yarn test`, `yarn test:watch`, or
-  `yarn vitest run <path>` for one spec.
+- **Run Unit Tests:** `yarn test` (the whole suite once, with coverage,
+  failing below the floor `vitest.config.ts` sets for `src/rules/`),
+  `yarn test:watch`, or `yarn vitest run <path>` for one spec, which leaves
+  the floor alone.
 - **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks, the fence
   around `src/rules/` and the scripts' rules for `tools/`, then stylelint
   with `@fz/style`'s preset).
@@ -146,3 +183,21 @@ Run these from `frontend/games/sudoku/`, or as `yarn workspace sudoku
   in `tools/` from their JSDoc, with `tsconfig.scripts.json`).
 - **Fill the Bank:** `yarn generate:puzzles` (`--count <n>` for another
   number per level).
+- **Capture Screenshots:** `yarn capture:screenshots` (runs
+  `tools/capture-screenshots.mjs` against the running dev server in headless
+  Chrome, through `@fz/dev/chrome`: a Medium deal from a fixed seed, a
+  third of it filled by hints, with notes in a few squares and a square
+  selected, at 1280 × 720 and 2× on Midnight blue, written to
+  `public/docs/screenshots/sudoku/` as the site's `preview.webp`
+  (2560 × 1440) and `thumb.webp` (576 × 324, the board and the pad) by
+  `@fz/dev/screenshots`; `--url` names another server, and
+  `--chrome <path>` or `CHROME_PATH` picks the browser).
+
+## Tests
+
+The repository's rules for specs apply. A spec sits beside the file it
+tests, named after it. This workspace's `sudoku-testing` skill, in
+`.agents/skills/`, covers its setup and fixtures, and the repository's
+`angular-testing` the patterns every Angular workspace's specs share. The
+rules' specs draw their grids with `gridFrom`, and the shell's play on one
+with `playOn`, rather than dealing at random.

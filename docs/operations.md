@@ -40,10 +40,11 @@ From the repository root:
 
 ## Games
 
-Both games are built here. The Solitaire Collection is built in
+Every game is built here. The Solitaire Collection is built in
 `frontend/games/solitaire/` and played at `/play/solitaire/`, which picks a
 game by hash route (`/play/solitaire/#/klondike`). Minesweeper is built in
-`frontend/games/minesweeper/` and played at `/play/minesweeper/`.
+`frontend/games/minesweeper/` and played at `/play/minesweeper/`, and
+Sudoku in `frontend/games/sudoku/`, at `/play/sudoku/`.
 
 `frontend/site/games.json` lists each game's build, by the slug it is served
 at: a Yarn workspace under `frontend/games/`, named by its folder in
@@ -87,9 +88,10 @@ workspace, or names one differently from its build, apostrophes aside.
   the catalog. The `Dockerfile` copies all of `frontend/`, so it needs no
   change.
 
-Both games began in repositories of their own, fSolitaire and fMinesweeper,
-and were branched off into this one with their history. Nothing here builds
-from those repositories or links to them, and the two may diverge.
+The Solitaire Collection and Minesweeper began in repositories of their
+own, fSolitaire and fMinesweeper, and were branched off into this one with
+their history; Sudoku began here. Nothing here builds from those
+repositories or links to them, and each game may diverge from its own.
 
 ## Security headers
 

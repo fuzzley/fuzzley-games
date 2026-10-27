@@ -69,8 +69,9 @@ own only for what is its alone.
 ## Adopting the libraries in an app
 
 The Solitaire Collection is the worked example; the site does the same, and
-so does Minesweeper (`frontend/games/minesweeper/`), a game built from the
-libraries alone, which shows the same steps with nothing else around them.
+so do Minesweeper (`frontend/games/minesweeper/`) and Sudoku
+(`frontend/games/sudoku/`), games built from the libraries alone, which show
+the same steps with nothing else around them.
 
 1. **Depend on them.** List `"@fz/style": "workspace:*"` in the app's
    `package.json`, and for an Angular app `@fz/ui` and, for a game,
@@ -112,8 +113,10 @@ libraries alone, which shows the same steps with nothing else around them.
    game that draws on the palette's own roles checks what it draws in every
    palette instead, as
    `frontend/games/minesweeper/src/app/board/contrast.spec.ts` holds
-   Minesweeper's numbers on their squares. Both compile the app's global
-   stylesheet and measure it with `@fz/style/testing`.
+   Minesweeper's numbers on their squares, and
+   `frontend/games/sudoku/src/app/board/contrast.spec.ts` Sudoku's digits
+   and notes on every shade of a square. Each compiles the app's global
+   stylesheet and measures it with `@fz/style/testing`.
 
 Keep the players' `localStorage` keys as they are, whatever the app moves
 onto `LocalStorageService`: renaming one loses what players saved.

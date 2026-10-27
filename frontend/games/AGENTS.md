@@ -1,11 +1,11 @@
 # The games
 
 `frontend/games/`: the games built here, one workspace each, named after its
-folder: the Solitaire Collection (`solitaire/`) and Minesweeper
-(`minesweeper/`). These rules hold for every game. The frontend's, in
-[frontend/AGENTS.md](../AGENTS.md), and the repository's apply too, and each
-game keeps its own in its folder's `AGENTS.md`. Paths are relative to
-`frontend/games/`.
+folder: the Solitaire Collection (`solitaire/`), Minesweeper
+(`minesweeper/`) and Sudoku (`sudoku/`). These rules hold for every game.
+The frontend's, in [frontend/AGENTS.md](../AGENTS.md), and the repository's
+apply too, and each game keeps its own in its folder's `AGENTS.md`. Paths
+are relative to `frontend/games/`.
 
 ## What every game keeps
 
@@ -24,10 +24,11 @@ game keeps its own in its folder's `AGENTS.md`. Paths are relative to
   or styles into the running page, which needs the `rootDir` `@fz/dev`'s
   tsconfig gives it (`frontend/lib/dev/AGENTS.md`).
 - **Its dev server has a port of its own,** which its screenshot script
-  defaults to: 9000 is the Solitaire Collection's and 9001 Minesweeper's,
-  so the next game takes 9002. The root's `yarn dev:all` runs it on one
-  after the site's instead, at `/play/<slug>/`, which the site's dev server
-  serves, so nothing the game loads may assume it sits at `/`.
+  defaults to: 9000 is the Solitaire Collection's, 9001 Minesweeper's and
+  9002 Sudoku's, so the next game takes 9003. The root's `yarn dev:all`
+  runs it on one after the site's instead, at `/play/<slug>/`, which the
+  site's dev server serves, so nothing the game loads may assume it sits at
+  `/`.
 - **Its screenshots are the site's.** `public/docs/screenshots/<id>/` holds
   the `thumb.webp` and `preview.webp` the site's catalog shows of each game
   it opens, written from a capture by `@fz/dev/screenshots`'s

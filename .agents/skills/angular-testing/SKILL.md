@@ -1,6 +1,6 @@
 ---
 name: angular-testing
-description: How every Angular workspace here writes its specs (the site, Minesweeper, the Solitaire Collection's shell, @fz/ui and @fz/game-ui) — @fz/dev/vitest's setup, Testing Library queries by role, user-event, jest-dom, zoneless change detection, what jsdom keeps and lacks, and the libraries' testing helpers. Triggers on: vitest, unit test, spec, TestBed, Testing Library, render, screen, getByRole, user-event, jest-dom, jsdom, fake timers, coverage.
+description: How every Angular workspace here writes its specs (the site, Minesweeper, Sudoku, the Solitaire Collection's shell, @fz/ui and @fz/game-ui) — @fz/dev/vitest's setup, Testing Library queries by role, user-event, jest-dom, zoneless change detection, what jsdom keeps and lacks, and the libraries' testing helpers. Triggers on: vitest, unit test, spec, TestBed, Testing Library, render, screen, getByRole, user-event, jest-dom, jsdom, fake timers, coverage.
 ---
 
 # Testing Angular code
@@ -9,8 +9,8 @@ The patterns every Angular workspace's specs share. The rules every spec in
 the repository follows (Arrange-Act-Assert, the public API, state over
 interactions, real objects over mocks) are in `.agents/AGENTS.md`, under
 "Writing Unit Tests". Each app's own skill covers its setup, fixtures and
-floors: `site-testing`, `minesweeper-testing` and `solitaire-testing`. Paths
-are relative to the repository's root.
+floors: `site-testing`, `minesweeper-testing`, `sudoku-testing` and
+`solitaire-testing`. Paths are relative to the repository's root.
 
 ## Setup
 

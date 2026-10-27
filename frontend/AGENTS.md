@@ -56,7 +56,8 @@ keeps its own in an `AGENTS.md` in its folder. Paths are relative to
 - **`games/`** holds the games built here, one workspace each, named after
   its folder. What every game keeps, and how to add one, is in
   `games/AGENTS.md`; what each keeps of its own is in its folder's:
-  `games/solitaire/AGENTS.md` and `games/minesweeper/AGENTS.md`.
+  `games/solitaire/AGENTS.md`, `games/minesweeper/AGENTS.md` and
+  `games/sudoku/AGENTS.md`.
 
 ## Yarn and Node
 
@@ -124,9 +125,9 @@ their templates and stylesheets alike.
   (`--fz-accent`, `--fz-space-3`, `--fz-radius-md`), read with `var()`.
   Stylelint, with `@fz/style`'s preset, rejects a color written anywhere
   else but the one stylesheet where a game keeps colors of its own (the
-  Solitaire Collection's card artwork, Minesweeper's inks). A custom
-  property of an app's own has no `--fz-` prefix, and exists only where no
-  `--fz-*` one will do.
+  Solitaire Collection's card artwork, Minesweeper's and Sudoku's inks). A
+  custom property of an app's own has no `--fz-` prefix, and exists only
+  where no `--fz-*` one will do.
 - **Runtime values are custom properties; build-time values are Sass.**
   What changes while the page runs, such as the palette or a gutter, is a
   custom property read with `var()`, and so is what a part of a page may
