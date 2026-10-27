@@ -1,4 +1,14 @@
-<main class="stage"></main>
+<!--
+  The board first and the bar after it, as in Minesweeper: a <main> landmark
+  a screen reader can jump to, under the bar, whose menu opens over it.
+-->
+<main class="stage">
+  <div class="room">
+    <app-board #board />
+    <!-- A key pressed with a pointer hands the focus back to the board. -->
+    <app-pad (pressed)="board.focus()" />
+  </div>
+</main>
 
 <fz-game-bar
   [placement]="viewport.barPlacement()"
@@ -7,3 +17,8 @@
 >
   <h1 fzBarTitle class="title">Sudoku</h1>
 </fz-game-bar>
+
+<!-- In the page from the start, so a screen reader is listening to it. -->
+<fz-announcer />
+
+<fz-confirm-dialog />

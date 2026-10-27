@@ -1,0 +1,55 @@
+<!--
+  One listener for each kind of event, on the grid, which finds the square
+  from the event's target. The grid takes focus itself (Angular Aria gives it
+  a roving tab stop among the squares, which the selected square holds),
+  which the lint rule asking for a focusable element can't see. Its selection
+  follows the focus, and each square's is bound to the one the game has
+  selected, so a hint that selects a square moves it too.
+-->
+<!-- eslint-disable-next-line @angular-eslint/template/interactive-supports-focus -->
+<div
+  ngGrid
+  class="board"
+  focusMode="roving"
+  rowWrap="nowrap"
+  colWrap="nowrap"
+  [enableSelection]="true"
+  selectionMode="follow"
+  aria-label="Sudoku, 9 rows by 9 columns"
+  (click)="onClick($event)"
+  (focusin)="onFocusIn($event)"
+  (keydown)="onKeydown($event)"
+>
+  @for (row of rows(); track $index) {
+    <div ngGridRow class="row">
+      @for (cell of row; track cell.index) {
+        <div
+          ngGridCell
+          class="cell"
+          [tabindex]="cell.selected ? 0 : -1"
+          [selected]="cell.selected"
+          [attr.data-index]="cell.index"
+          [attr.data-row]="cell.row"
+          [attr.data-col]="cell.col"
+          [attr.data-shade]="cell.shade"
+          [style.--r]="cell.row"
+          [style.--c]="cell.col"
+          [class.given]="cell.given"
+          [class.marked]="cell.marked"
+          [class.selected]="cell.selected"
+          [attr.aria-label]="cell.label"
+        >
+          @if (cell.notes; as notes) {
+            <span class="notes">
+              @for (note of notes; track $index) {
+                <span [class.match]="note.match">{{ note.digit || "" }}</span>
+              }
+            </span>
+          } @else if (cell.digit) {
+            <span class="digit">{{ cell.digit }}</span>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

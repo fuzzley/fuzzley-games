@@ -33,6 +33,19 @@ export const EASY_SOLUTION = [
   "315789462",
 ] as const;
 
+/**
+ * Returns the player's digits that solve `EASY`, drawn as nine rows, but for
+ * the squares named (`"r1c1"`), which are left blank.
+ */
+export function solvedBut(...blank: readonly string[]): string[] {
+  const left = new Set(blank.map(squareAt));
+  return EASY_SOLUTION.map((row, r) =>
+    Array.from(row, (digit, c) =>
+      EASY[r]?.[c] !== "." || left.has(indexAt(r, c)) ? "." : digit,
+    ).join(""),
+  );
+}
+
 /** Says what a picture of a grid shows beyond its givens. */
 export interface GridPicture {
   /** The player's digits, nine rows drawn like the givens, `.` for none. */

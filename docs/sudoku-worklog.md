@@ -37,7 +37,7 @@ history keeps it.
 | S3    | The rules                        | done  |
 | S4    | The solver, the grader, the bank | done  |
 | S5    | The new icons                    | done  |
-| S6    | The board and the pad            | to do |
+| S6    | The board and the pad            | done  |
 | S7    | The bar and the dialogs          | to do |
 | S8    | Storage                          | to do |
 | S9    | The checks                       | to do |
@@ -219,3 +219,41 @@ history keeps it.
   24-unit grid and 2-unit stroke, so the four tools on the pad (with
   `undo`) read alike. The icon spec draws every name in `ICON_NAMES`, the
   new ones among them. How they look is S9's to check, on the pad.
+
+### 2026-10-27: S6, the board and the pad
+
+- **In:** `GameService` (`play/`), `SettingsService` and `StatsService`,
+  the board (`board/`) and the pad (`pad/`), and `app.component` laying
+  them out, each with its spec, and `playOn` in `src/testing/game.ts`.
+  `solvedBut`, which two of the rules' specs each kept a copy of, moved
+  into `grid_picture.ts` for the shell's specs too.
+- **The contrast spec changed three of the plan's choices.** With the
+  plan's shading (an 18 to 28% tint of the accent or the warning under
+  the selection and the hint), Soft pastel's muted notes, its danger color
+  and Minesweeper's blue ink all fell under 4.5:1. So the shades are
+  lighter (12 to 22%), the player's ink is a deeper blue in a light
+  palette and a paler one in a dark one (`#1e40af` and `#bfdbfe`), notes
+  are in the text's color, the selected square's digit among them on an
+  accent chip, and a square with a marked digit is never shaded, since
+  the danger color clears 4.5:1 only on the panel itself.
+- **The selection has an outline,** an inset ring of the accent, held to
+  3:1 on its shade, so it shows after a click, when the focus ring
+  doesn't, and on a hint's square, whose warning tint wins the shade.
+- **A hint shows its words on the pad,** under the tools beside the board
+  or between the board and the pad under it, where the room left over is
+  reserved for them so nothing moves when one appears. They aren't a live
+  region; the announcer has said them. While a hint shows, Hint reads
+  "Fill in", or "Take out" for a wrong digit.
+- **N and H are read by their character,** as Minesweeper reads F, and
+  Ctrl+Z too; only the digits go by the key's code.
+- **The layout:** the stage is a size container named `stage`;
+  `app.component.scss` works out `--side`, the board's, from it, each
+  square 32 to 64px across, and `--hint-room`; the pad follows the same
+  container's orientation. On a 375 × 812 phone the board is 351px across;
+  at 740 × 360, beside the rail, it fills the height with the pad beside
+  it. Checked in the browser pane in Casino night and Soft pastel, with
+  notes, a repeat, a hint and its fill.
+- **Not yet:** the bar is still S2's shell, so its title shows in the
+  rail on a phone on its side; S7 brings the bar, the time and the dialogs,
+  and the result card that `GameService.resultOpen` waits for.
+- **`yarn verify` passed** (4m39s): Sudoku 406 tests.

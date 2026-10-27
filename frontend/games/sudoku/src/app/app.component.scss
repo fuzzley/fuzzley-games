@@ -1,8 +1,18 @@
 @use "@fz/game-ui" as game-ui;
 
 // The page is the game: the bar stands against one edge, and the stage takes
-// the rest.
+// the rest. The room's sizes: `--room` around the board and the pad, `--key`
+// a digit's key, `--tool` a tool's height, `--gap` between the pad's parts,
+// `--split` between the board and the pad beside it, and `--hint` the least
+// room the hint's words keep under the board.
 :host {
+  --room: var(--fz-space-6);
+  --key: 64px;
+  --tool: 48px;
+  --gap: var(--fz-space-3);
+  --split: var(--fz-space-8);
+  --hint: 64px;
+
   position: fixed;
   inset: 0;
   display: block;
@@ -11,11 +21,22 @@
 
 :host(.compact) {
   @include game-ui.bar-size($compact: true);
+
+  --room: var(--fz-space-3);
+  --key: 52px;
+  --tool: 44px;
+  --gap: var(--fz-space-2);
+  --split: var(--fz-space-4);
 }
 
+// A size container, which the board and the pad size themselves from, and
+// which the pad's layout follows. It scrolls when even the smallest squares
+// won't fit.
 .stage {
   position: absolute;
   inset: var(--fz-bar-height) 0 0;
+  container: stage / size;
+  overflow: auto;
 }
 
 :host([data-bar="bottom"]) .stage {
@@ -24,6 +45,53 @@
 
 :host([data-bar="end"]) .stage {
   inset: 0 var(--fz-rail-width) 0 0;
+}
+
+// A tall stage puts the pad under the board, which takes the largest square
+// left, each of its squares 32 to 64px across. `--below` is what the pad
+// and the hint's words need under it; the words take what room is left, up
+// to five lines or so.
+.room {
+  --below: calc(var(--hint) + var(--key) + var(--tool) + 3 * var(--gap));
+  --side: clamp(
+    288px,
+    min(100cqw - 2 * var(--room), 100cqh - 2 * var(--room) - var(--below)),
+    576px
+  );
+  --hint-room: clamp(
+    var(--hint),
+    100cqh - 2 * var(--room) - var(--side) - var(--below) + var(--hint),
+    8rem
+  );
+
+  display: grid;
+  grid-template-columns: var(--side);
+  place-content: center;
+  gap: var(--gap);
+  box-sizing: border-box;
+  min-width: 100%;
+  min-height: 100%;
+  width: max-content;
+  padding: var(--room);
+}
+
+// A wide stage puts the pad beside the board, as a column three keys wide.
+@container stage (orientation: landscape) {
+  .room {
+    --pad: calc(3 * var(--key) + 2 * var(--gap));
+    --side: clamp(
+      288px,
+      min(
+        100cqh - 2 * var(--room),
+        100cqw - 2 * var(--room) - var(--pad) - var(--split)
+      ),
+      576px
+    );
+
+    grid-template-columns: var(--side) var(--pad);
+    grid-template-rows: var(--side);
+    gap: var(--split);
+  }
 }
 
 .title {
