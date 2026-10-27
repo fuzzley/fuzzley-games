@@ -21,12 +21,14 @@ import {
   countHint,
   createGrid,
   erase,
+  fillNotes,
   mistakes,
   place,
   restart,
   toggleNote,
   undo,
 } from "../../rules/grid";
+import { count } from "../../rules/format";
 import { nextPlacement, shownBy } from "../../rules/logic";
 import { randomSeed } from "../../rules/random";
 import { SettingsService } from "../settings/settings.service";
@@ -184,6 +186,27 @@ export class GameService {
   }
 
   /**
+   * Notes every digit each blank square without notes could still hold, as
+   * one move. It is bookkeeping rather than logic, so unlike a hint it costs
+   * no best time.
+   */
+  fillNotes(): void {
+    const before = this.gridState();
+    const after = fillNotes(before);
+    if (after === before) {
+      if (before.outcome === "playing") {
+        this.announcer.say("Every blank square has notes already.");
+      }
+      return;
+    }
+    const squares = after.history.at(-1)?.length ?? 0;
+    this.move(
+      after,
+      `Notes filled in for ${count(squares, "square", "squares")}.`,
+    );
+  }
+
+  /**
    * Takes back the last move, and selects the square it was made on, so the
    * eye goes to what changed.
    */
@@ -308,8 +331,8 @@ export class GameService {
     }
   }
 
-  /** Makes a move, and says what it did. */
-  private move(after: Grid): void {
+  /** Makes a move, and says what it did, in the words given or the move's own. */
+  private move(after: Grid, words?: string): void {
     const before = this.gridState();
     if (after === before) return;
     this.gridState.set(after);
@@ -319,7 +342,7 @@ export class GameService {
       this.stats.recordStart(after.puzzle.level);
     }
     if (after.outcome !== "solved") {
-      this.announcer.say(describeMove(before, after));
+      this.announcer.say(words ?? describeMove(before, after));
       return;
     }
     this.syncClock();
