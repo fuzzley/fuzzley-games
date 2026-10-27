@@ -95,7 +95,7 @@
 // accent. A square with a marked digit is never shaded (board.component.ts),
 // as the danger color clears 4.5:1 only on the panel itself.
 .cell[data-shade="related"] {
-  background: var(--fz-wash-2);
+  background: var(--fz-wash-3);
 }
 
 .cell[data-shade="shown"] {
@@ -103,11 +103,11 @@
 }
 
 .cell[data-shade="same"] {
-  background: color-mix(in srgb, var(--fz-accent) 15%, transparent);
+  background: color-mix(in srgb, var(--fz-accent) 24%, transparent);
 }
 
 .cell[data-shade="selected"] {
-  background: color-mix(in srgb, var(--fz-accent) 22%, transparent);
+  background: color-mix(in srgb, var(--fz-accent) 28%, transparent);
 }
 
 .cell[data-shade="hinted"] {
