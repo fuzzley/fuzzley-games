@@ -40,7 +40,7 @@ history keeps it.
 | S6    | The board and the pad            | done  |
 | S7    | The bar and the dialogs          | done  |
 | S8    | Storage                          | done  |
-| S9    | The checks                       | to do |
+| S9    | The checks                       | done  |
 | S10   | Screenshots and docs             | to do |
 | S11   | Ship                             | to do |
 
@@ -310,3 +310,34 @@ history keeps it.
 - Checked in the browser pane: a digit placed, the page reloaded, and the
   digit, the clock and Undo were all there.
 - **`yarn verify` passed** (4m42s): Sudoku 462 tests.
+
+### 2026-10-27: S9, the checks
+
+- **By keyboard:** squares selected with the arrows, digits placed, notes
+  added with Shift, Notes mode on N, erasing, and a whole Easy puzzle
+  solved by H alone, its hints shown and filled in, ending on the wave and
+  the card ("Solved in 0:15.").
+- **By touch,** in the browser pane's mobile mode (375 × 812, a touch
+  phone's user agent): a tap selects a square, a tap on the pad places the
+  digit, says it, and gives the square the focus back. **By mouse** at
+  800 × 600 and 1024 × 768, with the bar, the drawer and the card.
+- **In a light palette and a dark one:** Soft pastel and Casino night by
+  eye, and every palette by the contrast spec.
+- **AZERTY:** the board's spec presses `Digit6` with the character `-`,
+  as AZERTY's top row types it, and gets a 6; the spec also checks a
+  number pad key that moves rather than types is left alone.
+- **The accessibility tree,** read in the pane: the grid named "Sudoku, 9
+  rows by 9 columns", each square named by what it holds ("6, given",
+  "Blank", "4, repeats in column 5"), the digit keys by their counts.
+- **Lighthouse,** desktop and mobile, on the dev server: accessibility 100. Its one flag, unweighted, was the digit keys' names: "1, 7 left"
+  doesn't hold the visible "1 7". The keys are now named by their text,
+  the count hidden from the name and said in words after the digit
+  (`status` in `pad.component.ts`), so the name is the same and the flag
+  gone. Its other two failures are the dev server answering `robots.txt`
+  and `llms.txt` with the page, which the site's own answer in production.
+- **Size:** the script is 336 kB, 100.9 kB gzipped, and the stylesheet
+  2.9 kB, against Minesweeper's 104.4 kB, under the plan's bar of
+  Minesweeper's plus the bank.
+- **Not done: NVDA and Narrator,** which a session here can't listen to;
+  the user's to try.
+- **`yarn verify` passed** (4m40s): Sudoku 462 tests.

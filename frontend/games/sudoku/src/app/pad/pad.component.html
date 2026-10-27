@@ -10,20 +10,21 @@
   }
 </p>
 
+<!--
+  A key is named by its text, so its name starts with the digit it shows
+  (WCAG 2.5.3): the count is hidden from the name, and said in words after
+  the digit instead, as "5, 3 left".
+-->
 <div class="digits" role="group" aria-label="Digits">
   @for (key of keys(); track key.digit) {
-    <button
-      type="button"
-      class="key"
-      [attr.aria-label]="key.label"
-      (click)="onDigit($event, key.digit)"
-    >
+    <button type="button" class="key" (click)="onDigit($event, key.digit)">
       <span class="digit">{{ key.digit }}</span>
       @if (key.left; as left) {
-        <span class="left">{{ left }}</span>
+        <span class="left" aria-hidden="true">{{ left }}</span>
       } @else {
         <fz-icon name="tick" class="left" />
       }
+      <span class="fz-visually-hidden">{{ key.status }}</span>
     </button>
   }
 </div>
