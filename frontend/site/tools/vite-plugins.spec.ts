@@ -175,7 +175,7 @@ describe("missingImages", () => {
   beforeEach(() => {
     publicDir = mkdtempSync(path.join(tmpdir(), "public-"));
     mkdirSync(path.join(publicDir, "thumbnails"));
-    writeFileSync(path.join(publicDir, "thumbnails", "sudoku.svg"), "<svg/>");
+    writeFileSync(path.join(publicDir, "thumbnails", "reversi.svg"), "<svg/>");
   });
 
   afterEach(() => {
@@ -198,12 +198,12 @@ describe("missingImages", () => {
   }
 
   it("finds every picture in place", () => {
-    expect(missingImages(catalogOf("sudoku"), publicDir)).toEqual([]);
+    expect(missingImages(catalogOf("reversi"), publicDir)).toEqual([]);
   });
 
   it("names each picture that isn't there", () => {
-    expect(missingImages(catalogOf("sudoku", "reversi"), publicDir)).toEqual([
-      "/thumbnails/reversi.svg",
+    expect(missingImages(catalogOf("reversi", "chess"), publicDir)).toEqual([
+      "/thumbnails/chess.svg",
     ]);
   });
 });
@@ -270,7 +270,7 @@ describe("manifestProblems", () => {
   });
 
   it("leaves a game still to come alone", () => {
-    const problems = problemsOf(hosted("Sudoku", undefined));
+    const problems = problemsOf(hosted("Reversi", undefined));
 
     expect(problems).toEqual([]);
   });

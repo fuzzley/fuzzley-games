@@ -4,5 +4,8 @@
   },
   "solitaire": {
     "workspace": "games/solitaire"
+  },
+  "sudoku": {
+    "workspace": "games/sudoku"
   }
 }
