@@ -2,7 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { type GameOptions, playOn } from "../../testing/game";
-import { solvedBut } from "../../testing/grid_picture";
+import { EASY, gridFrom, solvedBut } from "../../testing/grid_picture";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { ResultComponent } from "./result.component";
@@ -67,6 +67,19 @@ describe("ResultComponent", () => {
     await renderSolved();
 
     expect(screen.getByRole("button", { name: "New Game" })).toHaveFocus();
+  });
+
+  it("says a puzzle played again after it was solved isn't counted", async () => {
+    await render(ResultComponent);
+    const game = TestBed.inject(GameService);
+    game.resume(gridFrom(EASY, { digits: solvedBut("r1c1") }), 0, true);
+    game.select(0);
+
+    game.enter(6);
+
+    expect(
+      await screen.findByText("Solved before, so not counted again."),
+    ).toBeInTheDocument();
   });
 
   it("offers a new game at each other level", async () => {

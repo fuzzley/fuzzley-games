@@ -144,10 +144,11 @@ can't trust rather than failing:
 
 - `sudoku-settings`: the level and the assists.
 - `sudoku-stats`: each level's games played and solved, and its best time
-  without hints.
-- `sudoku-game`: the game under way, its time, and the grid as
-  `saved_grid.ts` writes it, history and hints included, so undo outlives
-  a reload. It is written once a move and again as the page goes out of
+  without hints. A restart is the same game, and a puzzle played again
+  after it was solved isn't counted.
+- `sudoku-game`: the game under way, its time, whether it is such a
+  replay, and the grid as `saved_grid.ts` writes it, history and hints
+  included, so undo outlives a reload. It is written once a move and again as the page goes out of
   sight, and forgotten once the puzzle is solved. `restoreGrid()` solves
   the givens again, so an edited entry can't hand the game a wrong
   solution.

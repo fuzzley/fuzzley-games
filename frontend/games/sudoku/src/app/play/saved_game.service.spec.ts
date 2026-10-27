@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { ConfirmService } from "@fz/ui/confirm";
 import { saveGrid } from "../../rules/saved_grid";
 import { playOn } from "../../testing/game";
 import { EASY, gridFrom, rowsOf, solvedBut } from "../../testing/grid_picture";
@@ -45,7 +46,34 @@ describe("SavedGameService", () => {
       version: 1,
       seconds: 74,
       grid: saveGrid(gridFrom(EASY, { digits: DIGITS, level: "medium" })),
+      replay: false,
     });
+  });
+
+  it("keeps a restarted puzzle no move has touched yet", async () => {
+    start();
+    const game = playOn({ digits: DIGITS });
+    TestBed.tick();
+
+    const restarting = game.restart();
+    TestBed.inject(ConfirmService).accept();
+    await restarting;
+    TestBed.tick();
+
+    expect(stored()).toMatchObject({ grid: { history: [] } });
+  });
+
+  it("takes up a replay as a replay", () => {
+    store({
+      version: 1,
+      seconds: 10,
+      grid: saveGrid(gridFrom(EASY, { digits: DIGITS })),
+      replay: true,
+    });
+
+    start();
+
+    expect(TestBed.inject(GameService).replay()).toBe(true);
   });
 
   it("keeps the moves undo takes back", () => {
