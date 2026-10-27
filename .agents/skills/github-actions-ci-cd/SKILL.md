@@ -23,7 +23,10 @@ a run in progress.
    Corepack as the job's `COREPACK_VERSION`, that Corepack, an immutable
    install in `frontend/`, then `yarn verify` (lint, type-check, test,
    build). The build builds the games in `frontend/games/` and copies the
-   ones `frontend/site/games.json` lists into the site.
+   ones `frontend/site/games.json` lists into the site. Then
+   `yarn check:layout` opens each game's build that has a layout check in
+   the runner's Chrome, at a roomy window, an upright phone and one on its
+   side (`@fz/dev/layout`).
 2. **`docker`** — builds the `Dockerfile` with `COMMIT_SHA` and runs
    `check-image.sh` on it, which serves the image with a placeholder analytics
    ID and requests its pages: the Angular routes answer with `index.html`, a
@@ -90,7 +93,9 @@ passes on `main` moves it forward again.
 
 ## Troubleshooting
 
-- **`verify` failures.** Reproduce with `yarn verify` in `frontend/`.
+- **`verify` failures.** Reproduce with `yarn verify` in `frontend/`, and
+  a layout check's with `yarn check:layout` after it, which needs Chrome
+  (`CHROME_PATH`, or the usual install location).
   `yarn typecheck` runs `tsc` over `frontend/tsconfig.scripts.json` (the
   `.agents` scripts), then each workspace's, such as the site's: `ngc`
   over `frontend/site/tsconfig.app.json`, then `tsc` over

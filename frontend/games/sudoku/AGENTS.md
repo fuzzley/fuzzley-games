@@ -80,7 +80,8 @@ workspace keeps its own for its code. Paths are relative to
   draws the player's digits that solve `EASY` but for the squares named;
   `playOn` (`game.ts`) puts a grid in play. The app's tsconfig leaves it
   out.
-- **`tools/`** — the scripts run from the workspace.
+- **`tools/`** — the scripts run from the workspace. `check-layout.mjs`
+  checks the build's layout in headless Chrome.
   `generate-puzzles.mjs` fills the bank from seeds 1 upward, keeping each
   puzzle that grades at its level, trying seeds side by side in worker
   threads. It writes the same bank every run, so regenerate it only after
@@ -209,6 +210,11 @@ Run these from `frontend/games/sudoku/`, or as `yarn workspace sudoku
   with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, and the scripts
   in `tools/` from their JSDoc, with `tsconfig.scripts.json`).
+- **Check the Layout:** `yarn check:layout` (runs
+  `tools/check-layout.mjs` on the build `yarn build` made: in headless
+  Chrome, at a roomy window, an upright phone and one on its side, the page
+  reports no error and doesn't scroll, the board is square with 81 squares
+  of one size, and the board and the pad lie in the window).
 - **Fill the Bank:** `yarn generate:puzzles` (`--workers <n>` to run more
   or fewer threads than the default 8, `--count <n>` for another
   number per level).

@@ -1,98 +1,11 @@
 import {
   type ChromeSearch,
   DevToolsConnection,
-  type DevToolsSocket,
   type Page,
   findChrome,
   withPage,
 } from "./chrome.ts";
-
-/** A command a {@link FakeBrowser} was sent. */
-interface Command {
-  readonly id: number;
-  readonly method: string;
-  readonly params: Record<string, unknown>;
-  readonly sessionId?: string;
-}
-
-/** What a {@link FakeBrowser} answers a command with. */
-type Answer = { readonly result: unknown } | { readonly error: string };
-
-/**
- * Stands in for Chrome's end of a DevTools socket: it answers each command
- * from a table, by its method, and fires a page's load event after a
- * navigation or a reload.
- */
-class FakeBrowser implements DevToolsSocket {
-  readonly sent: Command[] = [];
-  closed = false;
-  private readonly answers: Readonly<Record<string, Answer>>;
-  private listener: ((event: { readonly data: unknown }) => void) | undefined;
-
-  constructor(answers: Readonly<Record<string, Answer>> = {}) {
-    this.answers = {
-      "Target.createBrowserContext": { result: { browserContextId: "ctx" } },
-      "Target.createTarget": { result: { targetId: "target" } },
-      "Target.attachToTarget": { result: { sessionId: "page" } },
-      "Runtime.evaluate": { result: { result: {} } },
-      ...answers,
-    };
-  }
-
-  addEventListener(
-    _type: "message",
-    listener: (event: { readonly data: unknown }) => void,
-  ): void {
-    this.listener = listener;
-  }
-
-  send(data: string): void {
-    const command = JSON.parse(data) as Command;
-    this.sent.push(command);
-    queueMicrotask(() => {
-      const answer = this.answers[command.method] ?? { result: {} };
-      this.emit({ id: command.id, ...reply(answer) });
-      if (
-        command.method === "Page.navigate" ||
-        command.method === "Page.reload"
-      ) {
-        this.emit({
-          method: "Page.loadEventFired",
-          sessionId: command.sessionId,
-        });
-      }
-    });
-  }
-
-  close(): void {
-    this.closed = true;
-  }
-
-  /** Sends a message to the connection, as Chrome does. */
-  emit(message: object): void {
-    this.listener?.({ data: JSON.stringify(message) });
-  }
-
-  /** Returns the methods sent, in order. */
-  methods(): string[] {
-    return this.sent.map((command) => command.method);
-  }
-
-  /** Returns the last command of a method. */
-  last(method: string): Command | undefined {
-    return this.sent.findLast((command) => command.method === method);
-  }
-}
-
-/** Returns an answer as the reply DevTools sends. */
-function reply(answer: Answer): object {
-  return "error" in answer
-    ? { error: { message: answer.error } }
-    : { result: answer.result };
-}
-
-/** A viewport for the pages the specs open. */
-const VIEWPORT = { width: 800, height: 600, deviceScaleFactor: 2 };
+import { FakeBrowser, VIEWPORT } from "./testing/fake_browser.ts";
 
 /** Opens a page on a fake browser and hands it to `use`. */
 async function onPage<T>(
@@ -147,6 +60,23 @@ describe("DevToolsConnection", () => {
     });
 
     expect(await loaded).toEqual({ timestamp: 2 });
+  });
+
+  it("calls a listener with every event of a kind from a page, until stopped", () => {
+    const browser = new FakeBrowser();
+    const devtools = new DevToolsConnection(browser);
+    const heard: unknown[] = [];
+    const stop = devtools.on("Log.entryAdded", "page", (params) => {
+      heard.push(params);
+    });
+
+    browser.emit({ method: "Log.entryAdded", sessionId: "page", params: 1 });
+    browser.emit({ method: "Log.entryAdded", sessionId: "other", params: 2 });
+    browser.emit({ method: "Log.entryAdded", sessionId: "page", params: 3 });
+    stop();
+    browser.emit({ method: "Log.entryAdded", sessionId: "page", params: 4 });
+
+    expect(heard).toEqual([1, 3]);
   });
 
   it("closes its socket", () => {
@@ -274,6 +204,25 @@ describe("Page", () => {
     const running = onPage(browser, (page) => page.evaluate(() => 0));
 
     await expect(running).rejects.toThrow("Uncaught");
+  });
+
+  it("listens to its own page's events", async () => {
+    const browser = new FakeBrowser();
+    const heard: unknown[] = [];
+
+    await onPage(browser, (page) => {
+      page.on("Runtime.exceptionThrown", (params) => {
+        heard.push(params);
+      });
+      browser.emit({
+        method: "Runtime.exceptionThrown",
+        sessionId: "page",
+        params: { exceptionDetails: { text: "Uncaught" } },
+      });
+      return Promise.resolve();
+    });
+
+    expect(heard).toEqual([{ exceptionDetails: { text: "Uncaught" } }]);
   });
 
   it("runs a function before the page's own scripts", async () => {

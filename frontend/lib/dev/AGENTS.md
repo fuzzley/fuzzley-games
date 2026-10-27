@@ -82,10 +82,21 @@ too. Paths are relative to `frontend/lib/dev/`.
   Chrome needs. `withChrome()` starts Chrome on a throwaway profile and
   hands over a `DevToolsConnection`; `withPage()` opens a `Page` in a
   browser context of its own at a viewport, which navigates, reloads, runs
-  a function in the page before or after it loads, and takes a screenshot.
+  a function in the page before or after it loads, listens to its events
+  (`on()`), and takes a screenshot.
   `findChrome()` picks the Chrome to run: the one asked for, `CHROME_PATH`,
   or the first installed in a usual place. The games' screenshot scripts
-  are built on it.
+  are built on it, and so is the layout check.
+- `src/layout.ts`, `@fz/dev/layout`: a game's layout checked in a real
+  browser. `checkLayout()` opens a game's page at each of `SHAPES` (a
+  roomy window, an upright phone, one on its side), waits for a selector
+  and the fonts, and returns what is wrong at each: an error the page
+  reports (an exception, `console.error`, or the browser's own, such as a
+  refused resource), a page that scrolls, and what the game's own
+  `inspect()`, run in the page, finds. The functions it runs in the page
+  are in `src/layout_page.ts`, which only a browser runs, so coverage leaves
+  it out. A game's `tools/check-layout.mjs` serves its build with Vite's
+  `preview()` and calls it.
 - `src/screenshots.ts`, `@fz/dev/screenshots`: the images the site shows
   of a game, `SITE_IMAGES` (`thumb.webp` at 576 × 324 and `preview.webp` at
   2560 × 1440, the names `screenshotUrl()` in the site's model asks for),
@@ -149,7 +160,8 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   check the configs the presets return; `src/game_manifest.spec.ts` builds
   games with Vite in a folder of their own and reads the manifests they
   write; `src/screenshots.spec.ts` writes the site's images from a capture
-  it draws; `src/chrome.spec.ts` drives the
-  DevTools helpers against a fake browser. Starting a real Chrome is left to the
+  it draws; `src/chrome.spec.ts` and `src/layout.spec.ts` drive the
+  DevTools helpers and the layout check against a fake browser,
+  `src/testing/fake_browser.ts`. Starting a real Chrome is left to the
   screenshot scripts, so the coverage floor in `vitest.config.ts` sits
   under it.
