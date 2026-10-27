@@ -7,7 +7,7 @@ import {
   untracked,
 } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
-import { isWhole } from "../../rules/json";
+import { isWhole } from "@fz/core/json";
 import { restoreGrid, saveGrid } from "../../rules/saved_grid";
 import { GameService } from "./game.service";
 

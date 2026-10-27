@@ -1,7 +1,7 @@
 import { CELLS, at } from "./cells";
 import { LEVEL_INFO, type Level, allows, levelOf } from "./difficulty";
 import { hardest, solveByLogic } from "./logic";
-import { createRandom, shuffled } from "./random";
+import { createRandom, shuffled } from "@fz/core/random";
 import { solveRandomly } from "./solver";
 
 /**

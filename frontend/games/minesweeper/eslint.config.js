@@ -22,7 +22,12 @@ export default defineConfig(
         {
           patterns: [
             {
-              group: ["@angular/*", "@fz/*", "rxjs", "rxjs/*"],
+              // @fz/core is the one library with no framework.
+              group: ["@angular/*", "@fz/*", "!@fz/core", "!@fz/core/*"],
+              message: "The game's rules use no framework.",
+            },
+            {
+              group: ["rxjs", "rxjs/*"],
               message: "The game's rules use no framework.",
             },
             {

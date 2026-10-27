@@ -8,7 +8,7 @@ import {
 } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
 import { isDifficultyId } from "../../rules/difficulty";
-import { isWhole } from "../../rules/json";
+import { isWhole } from "@fz/core/json";
 import { restoreField, saveField } from "../../rules/saved_field";
 import { GameService } from "./game.service";
 

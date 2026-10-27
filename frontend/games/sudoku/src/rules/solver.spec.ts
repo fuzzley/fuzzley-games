@@ -1,7 +1,7 @@
 import { EASY, EASY_SOLUTION } from "../testing/grid_picture";
 import { UNITS } from "./cells";
 import { digitsText, parseDigits } from "./puzzle";
-import { createRandom } from "./random";
+import { createRandom } from "@fz/core/random";
 import { countSolutions, solve, solveRandomly } from "./solver";
 
 const GIVENS = parseDigits(EASY.join("")) ?? [];

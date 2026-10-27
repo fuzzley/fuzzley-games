@@ -1,6 +1,11 @@
-/** Returns numbers from 0 up to 1, the same sequence for the same seed. */
+/**
+ * Returns numbers from 0 up to 1, the same sequence for the same seed.
+ *
+ * The sequence never changes: the screenshot scripts' deals and a game saved
+ * as only its seed rely on it, and `random.spec.ts` pins its first numbers.
+ */
 export function createRandom(seed: number): () => number {
-  // Mulberry32: small and fast, and plenty for dealing puzzles.
+  // Mulberry32: small and fast, and plenty for a game's deals.
   let state = seed | 0;
   return () => {
     state = (state + 0x6d2b79f5) | 0;

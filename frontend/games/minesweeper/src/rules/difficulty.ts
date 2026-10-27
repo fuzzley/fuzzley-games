@@ -1,4 +1,4 @@
-import { isWhole } from "./json";
+import { isWhole } from "@fz/core/json";
 
 /** Says how big a field is and how many mines it hides. */
 export interface FieldSize {

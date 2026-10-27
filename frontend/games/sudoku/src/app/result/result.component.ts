@@ -11,7 +11,7 @@ import { GameViewportService } from "@fz/game-ui/viewport";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import { LEVEL_INFO } from "../../rules/difficulty";
-import { count } from "../../rules/format";
+import { count } from "@fz/core/format";
 import { WAVE_MS } from "../board/board_view";
 import { GameService } from "../play/game.service";
 import { StatsService } from "../stats/stats.service";

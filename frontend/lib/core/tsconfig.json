@@ -1,0 +1,15 @@
+{
+  // Plain TypeScript, which a game's rules compile into their own program, in
+  // the browser and in the scripts that run them in Node.
+  "extends": "@fz/dev/tsconfig/base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // Nothing here imports from outside the library: a relative import that
+    // climbs out of it fails here.
+    "rootDir": "./",
+    // Neither the DOM nor Node: what is here runs in both.
+    "lib": ["ES2024"],
+    "types": ["vitest/globals"]
+  },
+  "include": ["src/**/*.ts", "vitest.config.ts"]
+}

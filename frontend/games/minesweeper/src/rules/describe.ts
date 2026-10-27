@@ -1,5 +1,5 @@
 import { type Field, minesLeft, revealedCount } from "./field";
-import { count } from "./format";
+import { count } from "@fz/core/format";
 
 /**
  * Names what a square looks like: once a game is lost, the mines it hid show,

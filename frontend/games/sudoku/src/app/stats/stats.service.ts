@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { LocalStorageService } from "@fz/ui/storage";
 import type { Level } from "../../rules/difficulty";
-import { isRecord, isWhole } from "../../rules/json";
+import { isRecord, isWhole } from "@fz/core/json";
 
 /** Where the stats are kept. Renaming it loses every player's. */
 export const STATS_KEY = "sudoku-stats";

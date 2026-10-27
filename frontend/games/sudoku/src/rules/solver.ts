@@ -1,6 +1,6 @@
 import { CELLS, at, boxOf, colOf, rowOf } from "./cells";
 import { ALL_DIGITS, bit, digitsIn, size } from "./digits";
-import { shuffled } from "./random";
+import { shuffled } from "@fz/core/random";
 
 // A backtracking solver, which tries the square with the fewest candidates
 // first. It checks the logic grader's work, and fills a grid at random for

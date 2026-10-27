@@ -10,7 +10,7 @@ import { formatClock } from "@fz/game-ui/stopwatch";
 import { IconComponent } from "@fz/ui/icon";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { difficultyName } from "../../rules/difficulty";
-import { count } from "../../rules/format";
+import { count } from "@fz/core/format";
 import { GameService } from "../play/game.service";
 
 /** Where the link home leads: the Fuzzley Games site, which serves this game. */

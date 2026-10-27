@@ -1,5 +1,5 @@
 import type { FieldSize } from "./difficulty";
-import { createRandom } from "./random";
+import { createRandom } from "@fz/core/random";
 
 /** What a square can show: a mine stepped on is `tripped`. */
 export const SQUARES = ["hidden", "flagged", "revealed", "tripped"] as const;

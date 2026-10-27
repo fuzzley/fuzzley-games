@@ -1,11 +1,23 @@
 import { createRandom, randomSeed, shuffled } from "./random";
 
 describe("createRandom", () => {
+  it("keeps Mulberry32's sequence, which saved games rely on", () => {
+    const random = createRandom(1);
+
+    const draws = Array.from({ length: 3 }, () => random() * 2 ** 32);
+
+    expect(draws).toEqual([2693262067, 11749833, 2265367787]);
+  });
+
   it("gives the same numbers for the same seed", () => {
     const a = createRandom(42);
     const b = createRandom(42);
 
     expect([a(), a(), a()]).toEqual([b(), b(), b()]);
+  });
+
+  it("gives other numbers for another seed", () => {
+    expect(createRandom(1)()).not.toBe(createRandom(2)());
   });
 
   it("gives numbers from 0 up to 1", () => {

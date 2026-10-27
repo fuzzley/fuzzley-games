@@ -14,7 +14,7 @@ workspace keeps its own for its code. Paths are relative to
 
 - **UI:** [Angular](https://angular.dev/) (standalone components, signals,
   zoneless change detection) on `@fz/style`, `@fz/ui` and `@fz/game-ui` (the
-  `fuzzley-ui` skill)
+  `fuzzley-ui` skill), with `@fz/core`'s helpers in the rules
 - **Build Toolchain:** [Vite](https://vitejs.dev/) + [AnalogJS Vite Angular Plugin](https://analogjs.org/)
 - **Test Framework:** [Vitest](https://vitest.dev/) with jsdom and Testing
   Library
@@ -24,14 +24,15 @@ workspace keeps its own for its code. Paths are relative to
 
 - **`src/rules/`** — the rules, with no framework. A `Field` (`field.ts`) is
   a value each move replaces: the mines are laid on the first reveal, clear
-  of that square and its neighbors, from the field's seed (`random.ts`); a
+  of that square and its neighbors, from the field's seed
+  (`@fz/core/random`); a
   reveal floods the blank squares, a click on a number whose flags match
   clears around it, and a mine stepped on costs a life. Restart keeps the
   mines where they lay. `difficulty.ts` holds the presets and the
   bounds of a field of the player's own, `describe.ts` what a square shows
   and what a screen reader hears of it and of a move, `saved_field.ts` a
-  field as JSON, and `format.ts` the counts and times the shell writes out.
-  ESLint keeps Angular, the libraries, RxJS and the shell out of it.
+  field as JSON. ESLint keeps Angular, the libraries but `@fz/core`, RxJS
+  and the shell out of it.
 - **`src/app/`** — the shell, one folder per feature, each holding its
   components and services together. `app.component` lays them out, with
   the `<fz-announcer>` every move is announced through.

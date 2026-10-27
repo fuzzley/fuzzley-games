@@ -106,9 +106,10 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   which agents read once they work on a file beneath it:
   `frontend/AGENTS.md`, for every workspace; `frontend/games/AGENTS.md`, for
   every game; and each workspace's in its folder:
-  `frontend/site/AGENTS.md`, `frontend/lib/style/AGENTS.md`,
-  `frontend/lib/ui/AGENTS.md`, `frontend/lib/game-ui/AGENTS.md`,
-  `frontend/lib/dev/AGENTS.md`, `frontend/games/solitaire/AGENTS.md`,
+  `frontend/site/AGENTS.md`, `frontend/lib/core/AGENTS.md`,
+  `frontend/lib/style/AGENTS.md`, `frontend/lib/ui/AGENTS.md`,
+  `frontend/lib/game-ui/AGENTS.md`, `frontend/lib/dev/AGENTS.md`,
+  `frontend/games/solitaire/AGENTS.md`,
   `frontend/games/minesweeper/AGENTS.md` and
   `frontend/games/sudoku/AGENTS.md`. So the site's rules never reach a
   game, nor a game's the site. A rule is written once, in the highest layer

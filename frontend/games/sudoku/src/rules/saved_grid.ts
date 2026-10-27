@@ -3,7 +3,7 @@ import { type Level, isLevel } from "./difficulty";
 import { isDigitSet } from "./digits";
 import { type Grid, isGiven } from "./grid";
 import type { Change, Move, Square } from "./history";
-import { isRecord, isWhole } from "./json";
+import { isRecord, isWhole } from "@fz/core/json";
 import { digitsText, parseDigits, puzzleFrom } from "./puzzle";
 
 /** A grid as it is stored: plain JSON. */
