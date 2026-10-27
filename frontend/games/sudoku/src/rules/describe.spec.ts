@@ -4,11 +4,13 @@ import {
   describeChain,
   describeMistake,
   describeMove,
+  describeRefusal,
   describeSquare,
+  describeUndo,
   squareName,
   unitName,
 } from "./describe";
-import { erase, place, toggleNote, undo } from "./grid";
+import { type Grid, erase, place, toggleNote, undo } from "./grid";
 import {
   type Single,
   type Technique,
@@ -20,6 +22,9 @@ import { parseDigits } from "./puzzle";
 const CLEARING = { clearNotes: true };
 const R1C1 = squareAt("r1c1");
 const R1C4 = squareAt("r1c4");
+
+/** The player's 6 at row 1, column 1, which the solution holds. */
+const RIGHT_6 = ["6........", ...new Array<string>(8).fill(".........")];
 
 /** Returns a puzzle's board once logic has filled every single it can. */
 function afterSingles(text: string): number[] {
@@ -175,6 +180,81 @@ describe("describeMove", () => {
     const before = place(gridFrom(EASY), R1C1, 6, CLEARING);
 
     expect(describeMove(before, undo(before))).toBe("");
+  });
+});
+
+describe("describeUndo", () => {
+  /** Returns what undoing the last move of a grid says. */
+  function undoing(grid: Grid): string {
+    return describeUndo(grid, undo(grid));
+  }
+
+  it("says the digit it takes out", () => {
+    const grid = place(gridFrom(EASY), R1C1, 6, CLEARING);
+
+    expect(undoing(grid)).toBe("Undone: 6 taken out of row 1, column 1.");
+  });
+
+  it("says the digit it brings back after an erase", () => {
+    const grid = erase(gridFrom(EASY, { digits: RIGHT_6 }), R1C1);
+
+    expect(undoing(grid)).toBe("Undone: 6 back in row 1, column 1.");
+  });
+
+  it("says the digit it brings back over another", () => {
+    const grid = place(gridFrom(EASY, { digits: RIGHT_6 }), R1C1, 9, CLEARING);
+
+    expect(undoing(grid)).toBe("Undone: 6 back in row 1, column 1.");
+  });
+
+  it("says the note it takes out", () => {
+    const grid = toggleNote(gridFrom(EASY), R1C1, 3);
+
+    expect(undoing(grid)).toBe("Undone: note 3 taken out of row 1, column 1.");
+  });
+
+  it("says the note it brings back", () => {
+    const grid = toggleNote(gridFrom(EASY, { notes: { r1c1: "36" } }), R1C1, 3);
+
+    expect(undoing(grid)).toBe("Undone: note 3 back in row 1, column 1.");
+  });
+
+  it("says the notes an erase took", () => {
+    const grid = erase(gridFrom(EASY, { notes: { r1c1: "136" } }), R1C1);
+
+    expect(undoing(grid)).toBe(
+      "Undone: notes 1, 3 and 6 back in row 1, column 1.",
+    );
+  });
+
+  it("says nothing when there was nothing to undo", () => {
+    expect(undoing(gridFrom(EASY))).toBe("");
+  });
+});
+
+describe("describeRefusal", () => {
+  it("says a given can't change", () => {
+    expect(describeRefusal(gridFrom(EASY), R1C4)).toBe(
+      "Row 1, column 4 is given.",
+    );
+  });
+
+  it("says a square with a digit takes no notes", () => {
+    const grid = gridFrom(EASY, { digits: RIGHT_6 });
+
+    expect(describeRefusal(grid, R1C1)).toBe(
+      "Row 1, column 1 holds a 6, so it takes no notes.",
+    );
+  });
+
+  it("says when there is nothing to erase", () => {
+    expect(describeRefusal(gridFrom(EASY), R1C1)).toBe("Nothing to erase.");
+  });
+
+  it("says nothing once the puzzle is solved", () => {
+    const grid = gridFrom(EASY, { digits: solvedBut() });
+
+    expect(describeRefusal(grid, R1C1)).toBe("");
   });
 });
 
