@@ -70,9 +70,11 @@ export class AppComponent {
     effect(() => {
       const deal = this.game.deals();
       if (this.covered() || deal === this.focusedDeal) return;
+      // As the page loads, no focus ring: nothing was pressed to put it there.
+      const options = this.focusedDeal === -1 ? { focusVisible: false } : {};
       this.focusedDeal = deal;
       untracked(() => {
-        this.board().focus();
+        this.board().focus(options);
       });
     });
   }

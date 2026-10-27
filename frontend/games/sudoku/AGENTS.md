@@ -52,7 +52,12 @@ workspace keeps its own for its code. Paths are relative to
     keeps the game in progress and takes it up after a reload.
   - `board/` — the grid of squares.
   - `pad/` — the number pad: a key for each digit with how many are left,
-    the tools (Notes, Erase, Undo and Hint), and the hint's words.
+    the tools (Notes, Erase, Undo and Hint), and room for the hint's words.
+  - `hint/` — the hint's words in that room: all of them where they fit,
+    else the title and what to do with "Why?", which opens the rest in a
+    sheet over the pad, as it opens by itself where not even that fits. It
+    measures both forms in hidden copies, and the sheet's clear backdrop
+    leaves the board, shaded by the hint, in sight.
   - `bar/` — `BarComponent` fills the libraries' `<fz-game-bar>` with the
     level, the time and the actions, and moves them into
     `<fz-bar-overflow>` on a compact screen.

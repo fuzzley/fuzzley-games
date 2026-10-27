@@ -25,14 +25,14 @@ const WRONG_9 = ["9........", ...EMPTY];
 async function renderPad(options: GameOptions = {}): Promise<{
   user: UserEvent;
   game: GameService;
-  pressed: ReturnType<typeof vi.fn>;
+  handBack: ReturnType<typeof vi.fn>;
 }> {
-  const pressed = vi.fn();
-  const { fixture } = await render(PadComponent, { on: { pressed } });
+  const handBack = vi.fn();
+  const { fixture } = await render(PadComponent, { on: { handBack } });
   const game = playOn(options);
   game.select(0);
   await fixture.whenStable();
-  return { user: userEvent.setup(), game, pressed };
+  return { user: userEvent.setup(), game, handBack };
 }
 
 /** Returns a button on the pad by its name. */
@@ -55,7 +55,7 @@ describe("PadComponent", () => {
     expect(button("6, 1 left")).toBeInTheDocument();
   });
 
-  it("places the digit pressed in the selected square", async () => {
+  it("places the digit handBack in the selected square", async () => {
     const { user, game } = await renderPad();
 
     await user.click(button(/^6,/));
@@ -111,7 +111,9 @@ describe("PadComponent", () => {
     await user.click(button("Hint"));
 
     const hint = game.hint();
-    expect(screen.getByText(hint?.title ?? "")).toBeInTheDocument();
+    expect(
+      screen.getByText(hint?.title ?? "", { ignore: "[aria-hidden] *" }),
+    ).toBeInTheDocument();
     expect(button("Fill in")).toBeInTheDocument();
   });
 
@@ -143,20 +145,20 @@ describe("PadComponent", () => {
   });
 
   it("hands the focus back after a press with a pointer", async () => {
-    const { user, pressed } = await renderPad();
+    const { user, handBack } = await renderPad();
 
     await user.click(button("Erase"));
 
-    expect(pressed).toHaveBeenCalledOnce();
+    expect(handBack).toHaveBeenCalledOnce();
   });
 
   it("keeps the focus after a press from the keyboard", async () => {
-    const { user, pressed } = await renderPad();
+    const { user, handBack } = await renderPad();
     button("Erase").focus();
 
     await user.keyboard("{Enter}");
 
-    expect(pressed).not.toHaveBeenCalled();
+    expect(handBack).not.toHaveBeenCalled();
     expect(button("Erase")).toHaveFocus();
   });
 

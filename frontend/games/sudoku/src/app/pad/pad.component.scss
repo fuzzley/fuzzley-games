@@ -10,20 +10,6 @@
   gap: var(--gap);
 }
 
-.hint {
-  min-height: 0;
-  margin: 0;
-  overflow-y: auto;
-  color: var(--fz-text);
-  font-size: var(--fz-font-sm);
-  line-height: var(--fz-leading-tight);
-}
-
-.hint-title {
-  display: block;
-  font-weight: 700;
-}
-
 .digits {
   display: grid;
   grid-template-columns: repeat(9, minmax(0, 1fr));

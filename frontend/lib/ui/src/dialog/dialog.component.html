@@ -7,6 +7,7 @@
 <dialog
   #dialog
   class="dialog"
+  [class.clear]="backdrop() === 'clear'"
   [attr.role]="dialogRole()"
   [attr.aria-label]="label() || null"
   [attr.aria-describedby]="describedBy() || null"

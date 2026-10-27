@@ -1,0 +1,84 @@
+<!--
+  Not a live region: the announcer has said the words already. Where none
+  of them fit, the sheet holds them.
+-->
+@if (game.hint(); as hint) {
+  @switch (fit()) {
+    @case ("full") {
+      <p class="words">
+        <strong class="title">{{ hint.title }}</strong>
+        {{ hint.text }}
+      </p>
+    }
+    @case ("short") {
+      <p class="words">
+        <strong class="title">{{ hint.title }}</strong>
+        {{ hint.conclusion }}
+        <button
+          type="button"
+          class="why"
+          aria-haspopup="dialog"
+          (click)="sheetOpen.set(true)"
+        >
+          Why?
+        </button>
+      </p>
+    }
+  }
+}
+
+<!-- Copies of both forms, as wide as the room, which measure them. -->
+<div class="measure" aria-hidden="true">
+  <p #full class="words">
+    @if (game.hint(); as hint) {
+      <strong class="title">{{ hint.title }}</strong>
+      {{ hint.text }}
+    }
+  </p>
+  <p #short class="words">
+    @if (game.hint(); as hint) {
+      <strong class="title">{{ hint.title }}</strong>
+      {{ hint.conclusion }}
+      <span class="why">Why?</span>
+    }
+  </p>
+</div>
+
+<fz-dialog
+  [open]="sheetOpen()"
+  backdrop="clear"
+  [label]="sheetLabel()"
+  describedBy="hint-sheet-words"
+  (closed)="sheetOpen.set(false)"
+>
+  @if (sheetHint(); as hint) {
+    <div class="sheet">
+      <h2>{{ hint.title }}</h2>
+      <p id="hint-sheet-words">{{ hint.text }}</p>
+      <div class="actions">
+        <!--
+          `autofocus` so the sheet opens on what a hint is for, as H then
+          Enter fills it in. The lint rule is about autofocus on page load,
+          which a dialog taking focus is not.
+        -->
+        <!-- eslint-disable @angular-eslint/template/no-autofocus -->
+        <button
+          type="button"
+          class="fz-button fz-button-block"
+          autofocus
+          (click)="game.useHint()"
+        >
+          {{ fillLabel() }}
+        </button>
+        <!-- eslint-enable @angular-eslint/template/no-autofocus -->
+        <button
+          type="button"
+          class="fz-button fz-button-secondary fz-button-block"
+          (click)="sheetOpen.set(false)"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  }
+</fz-dialog>

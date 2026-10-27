@@ -1,14 +1,8 @@
 <!--
   The hint's words first, which a screen reader reaches before the keys;
-  the stage moves them under the pad when it sits beside the board. They are
-  not a live region: the announcer has said them already.
+  the stage moves them under the pad when it sits beside the board.
 -->
-<p class="hint">
-  @if (game.hint(); as hint) {
-    <strong class="hint-title">{{ hint.title }}</strong>
-    {{ hint.text }}
-  }
-</p>
+<app-hint class="hint" (handBack)="handBack.emit()" />
 
 <!--
   A key is named by its text, so its name starts with the digit it shows
