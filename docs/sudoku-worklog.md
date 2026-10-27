@@ -41,7 +41,7 @@ history keeps it.
 | S7    | The bar and the dialogs          | done  |
 | S8    | Storage                          | done  |
 | S9    | The checks                       | done  |
-| S10   | Screenshots and docs             | to do |
+| S10   | Screenshots and docs             | done  |
 | S11   | Ship                             | to do |
 
 ## Entries
@@ -341,3 +341,38 @@ history keeps it.
 - **Not done: NVDA and Narrator,** which a session here can't listen to;
   the user's to try.
 - **`yarn verify` passed** (4m40s): Sudoku 462 tests.
+
+### 2026-10-27: S10, screenshots and docs
+
+- **`tools/capture-screenshots.mjs`** (`yarn capture:screenshots`), on
+  Minesweeper's: it seeds `Math.random` and stores Medium in the settings,
+  asks for 14 hints and fills each, notes every candidate in the first five
+  blank squares, reloads so the clock reads 5:12 from the saved game,
+  selects a square holding a digit in the middle row, and writes
+  `public/docs/screenshots/sudoku/` on Midnight blue. The thumbnail is the
+  board and the pad with a 24px margin, widened to 16:9 (`thumbRegion`).
+- **A bug only the screenshot showed:** a square whose notes held the
+  selected digit's chip stretched its row, since a grid track of `1fr`
+  grows to its content and the chip, 1.5em, was bigger than a note's place.
+  The board's tracks are `minmax(0, 1fr)`, its squares clip, and the chip is
+  1.2em of a slightly smaller note, measured in the pane at 1280 × 720:
+  every row 63.5px with full notes and a chip. The first capture after the
+  fix still had the old style, the dev server not yet having recompiled
+  it; the next was right.
+- **Sudoku's docs:** its `AGENTS.md` gained Styling, In This Repository,
+  the screenshot command and Tests, and lost the line saying it was being
+  built; `README.md` says what the game is and how it plays; the
+  `sudoku-testing` skill, in its `.agents/skills/`, linked with
+  `node .agents/link-claude-skills.mjs`.
+- **The lists naming the games:** `.agents/AGENTS.md`, `frontend/AGENTS.md`,
+  `frontend/games/AGENTS.md` (9002 Sudoku's, the next game 9003),
+  `frontend/lib/dev/AGENTS.md`, `docs/operations.md` (and its line on where
+  the games began), the root `README.md`, and the skills `angular-testing`,
+  `fuzzley-ui` (Sudoku's contrast spec) and `web-game-accessibility` (a
+  board that takes digits, and its pad).
+- **The plan** goes to `docs/archive/` with an "As built" note under each
+  phase, and this log is deleted after this entry, in a commit of its own,
+  so git keeps it.
+- **`yarn verify` passed** (4m39s): Sudoku 462 tests. S11, wiring the game
+  into the site, checking the image and merging, follows without this log;
+  the merge waits for the user's go-ahead.

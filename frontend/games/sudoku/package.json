@@ -11,6 +11,7 @@
     "build:dev": "vite build --mode development",
     "build:prod": "vite build --mode production",
     "preview": "vite preview",
+    "capture:screenshots": "node tools/capture-screenshots.mjs",
     "generate:puzzles": "node tools/generate-puzzles.mjs",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
