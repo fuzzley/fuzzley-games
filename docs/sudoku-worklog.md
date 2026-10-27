@@ -33,7 +33,7 @@ history keeps it.
 | ----- | -------------------------------- | ----- |
 | S0    | The bank spike                   | done  |
 | S1    | The library lift                 | done  |
-| S2    | Scaffold the workspace           | to do |
+| S2    | Scaffold the workspace           | done  |
 | S3    | The rules                        | to do |
 | S4    | The solver, the grader, the bank | to do |
 | S5    | The new icons                    | to do |
@@ -124,3 +124,29 @@ history keeps it.
 - **`yarn verify` passed** (3m51s) once Prettier had put the new spec's
   quotes right: `@fz/game-ui` 98 tests (84), `@fz/style` 243 (237),
   Minesweeper 351 (355), every other suite as the baseline's.
+
+### 2026-10-27: S2, scaffold the workspace
+
+- Branch `sudoku` cut from `library-lift` at `d49e63e`.
+- **`frontend/games/sudoku/`,** copied from Minesweeper: `package.json`
+  (`sudoku`, Minesweeper's ranges, without `@angular/forms`), the
+  tsconfig solution, `src/test-setup.ts`, `LICENSE`, and configs on
+  `@fz/dev`'s presets: `gameConfig({ port: 9002, name: "Sudoku" })`,
+  `angularTests()` with the floor on `src/rules/` already in, the ESLint
+  blocks with the fence around `src/rules/`, and `@fz/style`'s stylelint
+  preset. `README.md`, and an `AGENTS.md` with `CLAUDE.md` beside it, say
+  only what exists; both grow with the phases.
+- **The script and its tsconfig wait for S4.** `tsconfig.scripts.json`
+  and `tools/` come with the bank's script: `tsc` fails on a project with
+  no files, and ESLint on a folder that doesn't exist.
+- **The page:** `index.html` with Minesweeper's tags, Sudoku's words, and
+  the canonical address and link preview at `/play/sudoku/`. `src/main.ts`
+  boots a shell of the bar and an `<h1>`, bound to `GameViewportService`,
+  `barHome` among it, with one spec.
+- `yarn install` added the workspace to the lockfile. It warns that
+  `sudoku` doesn't provide `@angular/forms`, which `@angular/cdk` asks
+  for, as every workspace but Minesweeper's does.
+- **`yarn verify` passed** (4m16s) on the second run. The first failed the
+  reference check, which caught `src/rules/` named in `AGENTS.md` before
+  it existed. The bare shell builds to 137.5 kB of script, 45.9 kB
+  gzipped.
