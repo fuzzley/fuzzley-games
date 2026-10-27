@@ -27,6 +27,9 @@ export const TECHNIQUE_NAMES: Readonly<Record<Technique, string>> = {
 /** Says what a hint shows: what it is, and why. */
 export interface HintWords {
   readonly title: string;
+  /** What to do, in a sentence of its own, for when there is no room for why. */
+  readonly conclusion: string;
+  /** Every step, the conclusion's last. */
   readonly text: string;
 }
 
@@ -106,16 +109,18 @@ export function describeChain({ eliminations, placement }: Chain): HintWords {
     ...eliminations.map(eliminationWords),
     placementWords(placement, eliminations.length > 0),
   ];
-  return { title: TECHNIQUE_NAMES[technique], text: sentences.join(" ") };
+  return {
+    title: TECHNIQUE_NAMES[technique],
+    conclusion: `The ${placement.digit} goes in ${squareName(placement.index)}.`,
+    text: sentences.join(" "),
+  };
 }
 
 /** Returns the words of a hint that points out a digit that doesn't belong. */
 export function describeMistake(grid: Grid, index: number): HintWords {
   const digit = at(grid.digits, index);
-  return {
-    title: "A mistake",
-    text: `The ${digit} at ${squareName(index)} doesn't belong there.`,
-  };
+  const text = `The ${digit} at ${squareName(index)} doesn't belong there.`;
+  return { title: "A mistake", conclusion: text, text };
 }
 
 /** Returns the sentence for a step that fills a square. */

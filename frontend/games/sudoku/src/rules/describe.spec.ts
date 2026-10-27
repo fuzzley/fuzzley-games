@@ -245,7 +245,15 @@ describe("describeChain", () => {
   ])("explains %s", (_, digits, title, text) => {
     const chain = nextPlacement(digits);
 
-    expect(describeChain(chain!)).toEqual({ title, text });
+    expect(describeChain(chain!)).toMatchObject({ title, text });
+  });
+
+  it("concludes in a sentence of its own, without the steps", () => {
+    const chain = nextPlacement(parseDigits(EASY.join("")) ?? []);
+
+    expect(describeChain(chain!).conclusion).toBe(
+      "The 5 goes in row 3, column 1.",
+    );
   });
 });
 
@@ -255,6 +263,7 @@ describe("describeMistake", () => {
 
     expect(describeMistake(grid, R1C1)).toEqual({
       title: "A mistake",
+      conclusion: "The 9 at row 1, column 1 doesn't belong there.",
       text: "The 9 at row 1, column 1 doesn't belong there.",
     });
   });

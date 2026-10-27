@@ -65,6 +65,9 @@ export interface Hint {
   /** The squares that show why. */
   readonly shown: readonly number[];
   readonly title: string;
+  /** What to do, in a sentence of its own, for when there is no room for why. */
+  readonly conclusion: string;
+  /** Every step, the conclusion's last. */
   readonly text: string;
 }
 

@@ -1,7 +1,11 @@
 import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { DialogComponent, type DialogRole } from "./dialog.component";
+import {
+  type DialogBackdrop,
+  DialogComponent,
+  type DialogRole,
+} from "./dialog.component";
 
 /**
  * Hosts a dialog as an app does, owning the open state and closing on the
@@ -19,6 +23,7 @@ import { DialogComponent, type DialogRole } from "./dialog.component";
       [describedBy]="describedBy()"
       [dialogRole]="dialogRole()"
       [dismissible]="dismissible()"
+      [backdrop]="backdrop()"
       (closed)="closeRequests.set(closeRequests() + 1); open.set(false)"
     >
       <div data-testid="panel">
@@ -35,6 +40,7 @@ class DialogHostComponent {
   readonly describedBy = signal("");
   readonly dialogRole = signal<DialogRole>("dialog");
   readonly dismissible = signal(true);
+  readonly backdrop = signal<DialogBackdrop>("glass");
 
   /** How many times the dialog has asked to be closed. */
   readonly closeRequests = signal(0);
@@ -46,6 +52,7 @@ type HostSettings = Partial<{
   describedBy: string;
   dialogRole: DialogRole;
   dismissible: boolean;
+  backdrop: DialogBackdrop;
 }>;
 
 describe("DialogComponent", () => {
@@ -66,6 +73,7 @@ describe("DialogComponent", () => {
     host.describedBy.set(settings.describedBy ?? "");
     host.dialogRole.set(settings.dialogRole ?? "dialog");
     host.dismissible.set(settings.dismissible ?? true);
+    host.backdrop.set(settings.backdrop ?? "glass");
     user = userEvent.setup();
   }
 
@@ -131,6 +139,20 @@ describe("DialogComponent", () => {
       await user.click(screen.getByRole("button", { name: "Done" }));
 
       expect(screen.getByRole("button", { name: "Open" })).toHaveFocus();
+    });
+  });
+
+  describe("the backdrop", () => {
+    it("dims the page behind by default", async () => {
+      await openDialog();
+
+      expect(dialog()).not.toHaveClass("clear");
+    });
+
+    it("leaves the page behind in sight when asked", async () => {
+      await openDialog({ backdrop: "clear" });
+
+      expect(dialog()).toHaveClass("clear");
     });
   });
 

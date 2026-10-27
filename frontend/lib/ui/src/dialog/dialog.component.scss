@@ -42,3 +42,12 @@
   // stylelint-disable-next-line function-disallowed-list
   background: var(--fz-dialog-backdrop, rgb(15 23 42 / 85%));
 }
+
+// The page stays in sight, though still inert, for a panel about what it
+// shows.
+.dialog.clear::backdrop {
+  backdrop-filter: none;
+  // stylelint-disable-next-line property-no-vendor-prefix
+  -webkit-backdrop-filter: none;
+  background: transparent;
+}

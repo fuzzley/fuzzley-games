@@ -1,0 +1,89 @@
+@use "../styles" as *;
+
+// The pad gives the room its height (pad.component.scss); the words take what
+// of it they fit, and never scroll.
+:host {
+  position: relative;
+  display: block;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.words {
+  margin: 0;
+  color: var(--fz-text);
+  font-size: var(--fz-font-sm);
+  line-height: var(--fz-leading-tight);
+}
+
+.title {
+  display: block;
+  font-weight: 700;
+}
+
+// In the text's color, underlined, as the accent may not clear 4.5:1 on the
+// page.
+.why {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--fz-text);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+// As wide as the room, out of sight and out of its height.
+.measure {
+  position: absolute;
+  inset: 0 0 auto;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+// A card over the pad, which leaves the board in sight: at the bottom of an
+// upright window, and at the end of a wide one. Glass, as the settings drawer
+// is, since no dimmed backdrop sits behind it. No scrim or z-index:
+// <fz-dialog> puts it in the top layer.
+.sheet {
+  @include glass(20px);
+
+  box-sizing: border-box;
+  width: min(480px, 100vw - 2 * var(--fz-space-3));
+  max-height: calc(100dvh - 2 * var(--fz-space-3));
+  margin: auto var(--fz-space-3) var(--fz-space-3);
+  overflow-y: auto;
+  padding: var(--fz-space-4) var(--fz-space-5);
+  border: 1px solid var(--fz-edge-3);
+  border-radius: var(--fz-radius-xl);
+  background: var(--fz-panel-glass);
+  box-shadow: var(--fz-shadow-drawer);
+  color: var(--fz-text);
+
+  h2 {
+    margin: 0 0 var(--fz-space-1);
+    font-size: var(--fz-font-md);
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0 0 var(--fz-space-4);
+    font-size: var(--fz-font-sm);
+    line-height: var(--fz-leading-normal);
+  }
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--fz-space-3);
+}
+
+@media (orientation: landscape) {
+  .sheet {
+    width: min(360px, 50vw);
+    margin: auto var(--fz-space-3) auto auto;
+  }
+}
