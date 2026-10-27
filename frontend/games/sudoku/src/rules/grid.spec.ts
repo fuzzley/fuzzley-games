@@ -12,6 +12,7 @@ import {
   countHint,
   createGrid,
   erase,
+  fillNotes,
   isDone,
   isFull,
   isGiven,
@@ -181,6 +182,56 @@ describe("toggleNote", () => {
     const before = gridFrom(EASY, { digits: solvedBut("r1c2") });
 
     expect(toggleNote(before, R1C1, 6)).toBe(before);
+  });
+});
+
+describe("fillNotes", () => {
+  it("notes every digit a blank square could hold", () => {
+    const grid = fillNotes(gridFrom(EASY));
+
+    expect(notesAt(grid, "r1c1")).toEqual([6, 9]);
+  });
+
+  it("keeps the notes a square has", () => {
+    const grid = fillNotes(gridFrom(EASY, { notes: { r1c1: "6" } }));
+
+    expect(notesAt(grid, "r1c1")).toEqual([6]);
+  });
+
+  it("is one move, which one undo takes back", () => {
+    const before = gridFrom(EASY);
+
+    const after = fillNotes(before);
+
+    expect(after.history).toHaveLength(1);
+    expect(undo(after).notes).toEqual(before.notes);
+  });
+
+  it("notes nothing in a square that can hold no digit", () => {
+    const [row1 = "", ...rest] = solvedBut("r1c1", "r1c2");
+    const grid = gridFrom(EASY, { digits: [`.6${row1.slice(2)}`, ...rest] });
+
+    expect(notesAt(fillNotes(grid), "r1c1")).toEqual([]);
+  });
+
+  it("leaves a board alone where every blank square has notes", () => {
+    const before = gridFrom(EASY, {
+      digits: solvedBut("r1c1"),
+      notes: { r1c1: "6" },
+    });
+
+    expect(fillNotes(before)).toBe(before);
+  });
+
+  it("leaves a solved game alone", () => {
+    const before = place(
+      gridFrom(EASY, { digits: solvedBut("r1c1") }),
+      R1C1,
+      6,
+      CLEARING,
+    );
+
+    expect(fillNotes(before)).toBe(before);
   });
 });
 

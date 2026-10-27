@@ -61,6 +61,9 @@
   font-variant-numeric: tabular-nums;
   cursor: pointer;
 
+  // The square's own shades say it was pressed, not the browser's flash.
+  -webkit-tap-highlight-color: transparent;
+
   // Inside the square, so the squares around it never cover it.
   &:focus-visible {
     z-index: 1;
@@ -89,26 +92,31 @@
 
 // What a square has to do with the selected one, lightest to strongest. A
 // hint's squares are in the warning's tints, apart from the selection's
-// accent. A square with a marked digit is never shaded (board_view.ts),
-// as the danger color clears 4.5:1 only on the panel itself.
+// accent: its unit lightest, then the squares its words name, then its own.
+// A square with a marked digit is never shaded (board_view.ts), as the
+// danger color clears 4.5:1 only on the panel itself.
 .cell[data-shade="related"] {
-  background: var(--fz-wash-2);
+  background: var(--fz-wash-3);
 }
 
-.cell[data-shade="shown"] {
-  background: color-mix(in srgb, var(--fz-warning) 12%, transparent);
+.cell[data-shade="unit"] {
+  background: color-mix(in srgb, var(--fz-warning) 10%, transparent);
+}
+
+.cell[data-shade="pattern"] {
+  background: color-mix(in srgb, var(--fz-warning) 20%, transparent);
 }
 
 .cell[data-shade="same"] {
-  background: color-mix(in srgb, var(--fz-accent) 15%, transparent);
+  background: color-mix(in srgb, var(--fz-accent) 24%, transparent);
 }
 
 .cell[data-shade="selected"] {
-  background: color-mix(in srgb, var(--fz-accent) 22%, transparent);
+  background: color-mix(in srgb, var(--fz-accent) 28%, transparent);
 }
 
 .cell[data-shade="hinted"] {
-  background: color-mix(in srgb, var(--fz-warning) 22%, transparent);
+  background: color-mix(in srgb, var(--fz-warning) 28%, transparent);
 }
 
 // The selected square is outlined in the accent too, so it shows without the
@@ -144,18 +152,18 @@
   place-items: center;
   width: 100%;
   height: 100%;
-  padding: 6%;
+  padding: 4%;
   box-sizing: border-box;
   color: var(--fz-text);
-  font-size: calc(var(--cell) * 0.24);
+  font-size: calc(var(--cell) * 0.28);
   font-weight: 400;
   line-height: 1;
 
   .match {
     display: grid;
     place-items: center;
-    width: 1.2em;
-    height: 1.2em;
+    width: 1.08em;
+    height: 1.08em;
     border-radius: 50%;
     background: var(--fz-accent);
     color: var(--fz-on-accent);

@@ -59,7 +59,12 @@ workspace keeps its own for its code. Paths are relative to
     key map is `boardKey()` in `board_keys.ts`, plain functions the
     component calls.
   - `pad/` — the number pad: a key for each digit with how many are left,
-    the tools (Notes, Erase, Undo and Hint), and the hint's words.
+    the tools (Notes, Erase, Undo and Hint), and room for the hint's words.
+  - `hint/` — the hint's words in that room: all of them where they fit,
+    else the title and what to do with "Why?", which opens the rest in a
+    sheet over the pad, as it opens by itself where not even that fits. It
+    measures both forms in hidden copies, and the sheet's clear backdrop
+    leaves the board, shaded by the hint, in sight.
   - `bar/` — `BarComponent` fills the libraries' `<fz-game-bar>` with the
     level, the time and the actions, and moves them into
     `<fz-bar-overflow>` on a compact screen.
@@ -119,11 +124,12 @@ and the compiler asks for most of them:
   listens once for each kind of event and finds the square from the
   target.
 - **The squares are shaded by the selected one:** its row, column and box,
-  the squares holding its digit, and a hint's square and the squares that
-  show why. The view model (`board_view.ts`) picks one shade a square,
-  the strongest reason first, and a square with a marked digit, one that
-  repeats or, with the assist on, is wrong, is never shaded, so the danger
-  color stays on the panel it clears 4.5:1 on.
+  the squares holding its digit, and a hint's square, the squares its words
+  name, and, lighter, the rest of the unit the square is the one place left
+  in (`shownBy()` in `src/rules/logic.ts`). The view model (`board_view.ts`)
+  picks one shade a square, the strongest reason first, and a square with a
+  marked digit, one that repeats or, with the assist on, is wrong, is never
+  shaded, so the danger color stays on the panel it clears 4.5:1 on.
 - **Its colors are the palette's,** but for the player's ink, in
   `src/app/board/_inks.scss`, the one stylesheet stylelint lets write a
   color. `src/app/board/contrast.spec.ts` holds the givens, the player's
@@ -133,8 +139,8 @@ and the compiler asks for most of them:
 - **The stage decides the layout** by a container query: on a wide stage
   the pad sits beside the board as a block of three by three, and on a tall
   one under it, as a row. `app.component.scss` works out the board's side
-  from the stage, each square 32 to 64px across, and the room left for the
-  hint's words.
+  from the stage, each square 32 to 80px across, the keys growing with it on
+  a large stage, and the room left for the hint's words.
 - **A key on the pad pressed with a mouse or a finger hands the focus back
   to the board,** so the player goes on typing; one pressed from the
   keyboard keeps it. Undo and Hint are dimmed with `aria-disabled`, never
@@ -166,10 +172,11 @@ can't trust rather than failing:
 
 - `sudoku-settings`: the level and the assists.
 - `sudoku-stats`: each level's games played and solved, and its best time
-  without hints.
-- `sudoku-game`: the game under way, its time, and the grid as
-  `saved_grid.ts` writes it, history and hints included, so undo outlives
-  a reload. It is written once a move and again as the page goes out of
+  without hints. A restart is the same game, and a puzzle played again
+  after it was solved isn't counted.
+- `sudoku-game`: the game under way, its time, whether it is such a
+  replay, and the grid as `saved_grid.ts` writes it, history and hints
+  included, so undo outlives a reload. It is written once a move and again as the page goes out of
   sight, and forgotten once the puzzle is solved. `restoreGrid()` solves
   the givens again, so an edited entry can't hand the game a wrong
   solution.

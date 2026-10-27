@@ -11,6 +11,12 @@ import {
 export type DialogRole = "dialog" | "alertdialog";
 
 /**
+ * Names how the page behind a dialog looks: `glass`, dimmed and blurred, or
+ * `clear`, left as it is, for a panel about what the page shows.
+ */
+export type DialogBackdrop = "glass" | "clear";
+
+/**
  * Shows projected content in a native `<dialog>`, which supplies the focus
  * trap, Escape, focus restore and inert background.
  *
@@ -40,6 +46,9 @@ export class DialogComponent {
 
   /** Whether Escape and a backdrop click dismiss the dialog. */
   readonly dismissible = input(true);
+
+  /** How the page behind looks while the dialog is open. */
+  readonly backdrop = input<DialogBackdrop>("glass");
 
   /** Emitted when the dialog asks to close, on Escape or a backdrop click. */
   readonly closed = output();

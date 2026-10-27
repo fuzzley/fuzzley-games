@@ -59,6 +59,17 @@ describe("GameService", () => {
       );
     });
 
+    it("asks to restart the field, not for a new game, before a restart", () => {
+      const game = playOn(IN_PLAY);
+
+      void game.restart();
+
+      expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
+        title: "Restart this field?",
+        confirmLabel: "Restart",
+      });
+    });
+
     it("keeps the game under way when the player backs out", async () => {
       const game = playOn(IN_PLAY);
 

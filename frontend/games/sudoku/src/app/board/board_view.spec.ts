@@ -19,11 +19,22 @@ const FIVE_SELECTED: BoardState = {
   markMistakes: false,
 };
 
-/** Returns a hint at a square that shows some others. */
-function hintAt(square: string, ...shown: readonly string[]): BoardState {
+/**
+ * Returns a hint at a square whose words name some squares, in the unit
+ * given, if any.
+ */
+function hintAt(
+  square: string,
+  pattern: readonly string[] = [],
+  unit: readonly string[] = [],
+): BoardState {
   return {
     ...FIVE_SELECTED,
-    hint: { index: squareAt(square), shown: shown.map(squareAt) },
+    hint: {
+      index: squareAt(square),
+      pattern: pattern.map(squareAt),
+      unit: unit.map(squareAt),
+    },
   };
 }
 
@@ -43,18 +54,30 @@ describe("shadeOf", () => {
     ["the hint's square over the same digit", hintAt("r6c5"), "r6c5", "hinted"],
     ["the selection over its own digit", FIVE_SELECTED, "r1c4", "selected"],
     [
-      "the same digit over a hint's reason",
-      hintAt("r9c9", "r6c5"),
+      "the same digit over a hint's pattern",
+      hintAt("r9c9", ["r6c5"]),
       "r6c5",
       "same",
     ],
     [
-      "a hint's reason over a related square",
-      hintAt("r9c9", "r1c9"),
-      "r1c9",
-      "shown",
+      "a hint's pattern over its unit",
+      hintAt("r9c9", ["r9c1"], ["r9c1", "r9c2"]),
+      "r9c1",
+      "pattern",
     ],
-    ["a hint's reason on its own", hintAt("r9c9", "r9c1"), "r9c1", "shown"],
+    [
+      "a hint's unit over a related square",
+      hintAt("r9c9", [], ["r1c9"]),
+      "r1c9",
+      "unit",
+    ],
+    [
+      "a hint's pattern on its own",
+      hintAt("r9c9", ["r9c1"]),
+      "r9c1",
+      "pattern",
+    ],
+    ["a hint's unit on its own", hintAt("r9c9", [], ["r9c2"]), "r9c2", "unit"],
     ["a square in the selection's units", FIVE_SELECTED, "r1c9", "related"],
     ["a square outside them", FIVE_SELECTED, "r9c1", null],
   ])("shades %s", (_, state, square, shade) => {
@@ -89,7 +112,10 @@ describe("boardView", () => {
 
   it("never shades a square whose digit repeats, even the hint's", () => {
     const grid = gridFrom(EASY, { digits: ["5........", ...EMPTY] });
-    const state = { ...playing(grid), hint: { index: 0, shown: [] } };
+    const state = {
+      ...playing(grid),
+      hint: { index: 0, pattern: [], unit: [] },
+    };
 
     expect(cellAt(state, "r1c1")).toMatchObject({ marked: true, shade: null });
   });

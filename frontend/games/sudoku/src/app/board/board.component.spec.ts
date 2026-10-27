@@ -15,6 +15,19 @@ function square(name: string): HTMLElement {
   return found;
 }
 
+/** A board whose next square takes an XY-Wing, then a hidden single. */
+const XY_WING = [
+  "2.4.5..96",
+  "3.6924.51",
+  "9.5...2.4",
+  "891.4.5.2",
+  "6521.9.47",
+  "7432.51.9",
+  "567392418",
+  "428516973",
+  "139478625",
+];
+
 /** The player's 6 at row 1, column 1, which the solution holds. */
 const RIGHT_6 = ["6........", ...new Array<string>(8).fill(".........")];
 
@@ -203,6 +216,21 @@ describe("BoardComponent", () => {
     expect(square("r5c5")).toHaveAttribute("aria-selected", "true");
   });
 
+  it("shades the squares a hint names above the rest of its unit", async () => {
+    const { fixture } = await renderBoard({ givens: XY_WING });
+    const game = TestBed.inject(GameService);
+
+    game.useHint();
+    await fixture.whenStable();
+
+    const hint = game.hint();
+    const [named = -1] = hint?.pattern ?? [];
+    const other = hint?.unit.find((index) => index !== hint.index) ?? -1;
+    const squares = screen.getAllByRole("gridcell");
+    expect(squares[named]).toHaveAttribute("data-shade", "pattern");
+    expect(squares[other]).toHaveAttribute("data-shade", "unit");
+  });
+
   it("shades the selected square's units and digit", async () => {
     await renderAndSelect("r1c4");
 
@@ -220,6 +248,16 @@ describe("BoardComponent", () => {
     await fixture.whenStable();
 
     expect(square("r5c5")).toHaveFocus();
+  });
+
+  it("passes the focus options on, as the pad's preventScroll", async () => {
+    const { fixture } = await renderBoard();
+    const focus = vi.spyOn(square("r1c1"), "focus");
+
+    fixture.componentInstance.focus({ preventScroll: true });
+    await fixture.whenStable();
+
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
   });
 
   it("moves the focus with the selection while the board has it", async () => {

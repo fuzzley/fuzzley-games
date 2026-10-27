@@ -51,8 +51,9 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   inert and gives focus back on close. The host owns `open`: the dialog
   asks to close through `closed`, on Escape or a backdrop click unless
   `dismissible` is off, and never closes itself. It paints only the
-  backdrop, which an app tints with `--fz-dialog-backdrop`; the host styles
-  the panel.
+  backdrop, which an app tints with `--fz-dialog-backdrop`, or leaves clear
+  with `backdrop="clear"` for a panel about what the page shows; the host
+  styles the panel.
 - `src/icon/`: `<fz-icon name="…">`, the icons, drawn as outlines but for
   a few filled ones; `ICON_NAMES` lists them. A new icon is a name there and
   a case in the template. An icon takes the text's color. Its size comes

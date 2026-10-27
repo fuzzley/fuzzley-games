@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { StopwatchService } from "@fz/game-ui/stopwatch";
 import { AnnouncerService } from "@fz/ui/announcer";
-import { ConfirmService } from "@fz/ui/confirm";
+import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
 import { describeMove } from "../../rules/describe";
 import type { DifficultyId } from "../../rules/difficulty";
 import {
@@ -28,6 +28,23 @@ export const GAME_RANDOM = new InjectionToken<() => number>("GAME_RANDOM", {
   providedIn: "root",
   factory: () => Math.random,
 });
+
+/** What a new deal asks before it throws away the game under way. */
+const NEW_GAME_QUESTION: ConfirmRequest = {
+  title: "Start a new game?",
+  message: "The game in progress will be lost.",
+  confirmLabel: "New game",
+  tone: "danger",
+};
+
+/** What Restart asks before it covers the field again. */
+const RESTART_QUESTION: ConfirmRequest = {
+  title: "Restart this field?",
+  message:
+    "Every square is covered again, the mines where they were, and the clock and your lives start over.",
+  confirmLabel: "Restart",
+  tone: "danger",
+};
 
 /**
  * Plays the game: holds the field, makes the player's moves on it, runs its
@@ -106,7 +123,7 @@ export class GameService {
    * way, and resolves to whether it did.
    */
   async newGame(): Promise<boolean> {
-    if (!(await this.mayLoseGame())) return false;
+    if (!(await this.mayLoseGame(NEW_GAME_QUESTION))) return false;
     this.begin(this.deal(), 0, this.settings.settings().difficulty);
     return true;
   }
@@ -116,7 +133,7 @@ export class GameService {
    * a game is under way, and resolves to whether it did.
    */
   async restart(): Promise<boolean> {
-    if (!(await this.mayLoseGame())) return false;
+    if (!(await this.mayLoseGame(RESTART_QUESTION))) return false;
     this.begin(restart(this.fieldState()), 0, this.difficultyState());
     return true;
   }
@@ -126,7 +143,7 @@ export class GameService {
    * is under way, and resolves to whether it did.
    */
   async changeSettings(change: Partial<Settings>): Promise<boolean> {
-    if (!(await this.mayLoseGame())) return false;
+    if (!(await this.mayLoseGame(NEW_GAME_QUESTION))) return false;
     this.settings.update(change);
     this.begin(this.deal(), 0, this.settings.settings().difficulty);
     return true;
@@ -183,14 +200,10 @@ export class GameService {
     }
   }
 
-  private async mayLoseGame(): Promise<boolean> {
+  /** Resolves to whether to go ahead: at once with no game under way to lose. */
+  private async mayLoseGame(question: ConfirmRequest): Promise<boolean> {
     if (!this.inProgress()) return true;
-    return this.confirm.ask({
-      title: "Start a new game?",
-      message: "The game in progress will be lost.",
-      confirmLabel: "New game",
-      tone: "danger",
-    });
+    return this.confirm.ask(question);
   }
 
   /** Runs the clock while a game is under way. */

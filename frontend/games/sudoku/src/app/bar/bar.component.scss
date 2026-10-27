@@ -85,16 +85,11 @@
 }
 
 // Below this width the actions lose their labels, which a screen reader
-// still reads, and the level, which the settings show, leaves the title
-// room.
+// still reads.
 @include below("desktop") {
   :host {
     --fz-bar-gap: var(--fz-space-3);
     --fz-bar-actions-gap: var(--fz-space-2);
-  }
-
-  .level {
-    display: none;
   }
 
   .action:not(.fz-button-circle) {
@@ -136,6 +131,12 @@
   .value {
     font-size: var(--fz-font-sm);
   }
+}
+
+// On a rail, the level in smaller type, which fits "Medium" across it.
+:host(.rail) .level {
+  padding-inline: var(--fz-space-1);
+  font-size: var(--fz-font-2xs);
 }
 
 // On a rail, the icon over the value.

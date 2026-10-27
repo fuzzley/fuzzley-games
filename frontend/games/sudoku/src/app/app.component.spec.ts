@@ -1,3 +1,5 @@
+import { TestBed } from "@angular/core/testing";
+import { StopwatchService } from "@fz/game-ui/stopwatch";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { playOn } from "../testing/game";
@@ -95,6 +97,52 @@ describe("AppComponent", () => {
     await waitFor(() => {
       expect(document.activeElement).toHaveAttribute("role", "gridcell");
     });
+  });
+
+  it("gives the board the focus as the page loads", async () => {
+    await render(AppComponent);
+
+    await waitFor(() => {
+      expect(document.activeElement).toHaveAttribute("role", "gridcell");
+    });
+  });
+
+  it("gives the board the focus after New Game from the bar, once the question closes", async () => {
+    const { user } = await renderPlayed();
+    await user.click(screen.getByRole("button", { name: "New Game" }));
+    const question = await screen.findByRole("alertdialog");
+
+    await user.click(
+      within(question).getByRole("button", { name: "New game" }),
+    );
+
+    await waitFor(() => {
+      expect(document.activeElement).toHaveAttribute("role", "gridcell");
+    });
+  });
+
+  it("gives the board the focus after a level change, once the settings close", async () => {
+    const { user } = await renderPlayed();
+    await user.click(screen.getByRole("button", { name: "Settings" }));
+    await user.click(screen.getByRole("radio", { name: /Medium/ }));
+    const question = await screen.findByRole("alertdialog");
+    await user.click(
+      within(question).getByRole("button", { name: "New game" }),
+    );
+
+    await user.keyboard("{Escape}");
+
+    await waitFor(() => {
+      expect(document.activeElement).toHaveAttribute("role", "gridcell");
+    });
+  });
+
+  it("stops the clock while How to play covers the board", async () => {
+    const { user } = await renderPlayed();
+
+    await user.click(screen.getByRole("button", { name: "How to play" }));
+
+    expect(TestBed.inject(StopwatchService).running()).toBe(false);
   });
 
   it("takes back a move on Ctrl+Z, wherever the focus is", async () => {

@@ -1,20 +1,19 @@
-import {
-  Component,
-  computed,
-  effect,
-  inject,
-  output,
-  signal,
-} from "@angular/core";
+import { Component, computed, effect, inject, signal } from "@angular/core";
 import { formatClock } from "@fz/game-ui/stopwatch";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
-import { LEVEL_INFO } from "../../rules/difficulty";
+import { LEVELS, LEVEL_INFO, type Level } from "../../rules/difficulty";
 import { count } from "@fz/core/format";
 import { WAVE_MS } from "../board/board_view";
 import { GameService } from "../play/game.service";
 import { StatsService } from "../stats/stats.service";
+
+/** Names a level the card offers a new game at. */
+interface LevelChoice {
+  readonly id: Level;
+  readonly name: string;
+}
 
 /** Names one figure on the card, and gives its value. */
 interface Figure {
@@ -28,7 +27,7 @@ interface Figure {
  *
  * It opens once the board's wave has run, at once where motion is
  * unwelcome. Closing it leaves the solved board to look at; New Game deals
- * another.
+ * another at the same level, and the other levels' buttons one at theirs.
  */
 @Component({
   selector: "app-result",
@@ -41,13 +40,18 @@ export class ResultComponent {
   private readonly stats = inject(StatsService);
   private readonly viewport = inject(GameViewportService);
 
-  /** Emitted when the player deals a game from the card. */
-  readonly played = output();
-
   /** Whether the card shows, which trails the game's word by the wave. */
   protected readonly open = signal(false);
 
   protected readonly level = computed(() => LEVEL_INFO[this.game.level()].name);
+
+  /** The levels besides the one just played, which a new game can be at. */
+  protected readonly otherLevels = computed<readonly LevelChoice[]>(() =>
+    LEVELS.filter((id) => id !== this.game.level()).map((id) => ({
+      id,
+      name: LEVEL_INFO[id].name,
+    })),
+  );
 
   protected readonly figures = computed<readonly Figure[]>(() => {
     const level = this.game.level();
@@ -62,8 +66,12 @@ export class ResultComponent {
     ];
   });
 
-  /** Says why a puzzle solved with hints set no best time. */
+  /**
+   * Says why the puzzle set no best time: it was solved before, or with
+   * hints.
+   */
   protected readonly note = computed(() => {
+    if (this.game.replay()) return "Solved before, so not counted again.";
     const { hints } = this.game.grid();
     return hints > 0
       ? `Solved with ${count(hints, "hint", "hints")}, so no best time.`
@@ -88,7 +96,12 @@ export class ResultComponent {
   }
 
   /** Deals a new game. */
-  protected async newGame(): Promise<void> {
-    if (await this.game.newGame()) this.played.emit();
+  protected newGame(): void {
+    void this.game.newGame();
+  }
+
+  /** Deals a new game at another level, which the settings keep. */
+  protected playLevel(level: Level): void {
+    void this.game.changeLevel(level);
   }
 }

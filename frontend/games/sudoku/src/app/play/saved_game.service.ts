@@ -14,7 +14,10 @@ import { GameService } from "./game.service";
 /** Where the game in progress is kept. Renaming it loses every player's. */
 export const SAVED_GAME_KEY = "sudoku-game";
 
-/** The shape the game is kept in; a reader drops any other. */
+/**
+ * The shape the game is kept in; a reader drops any other. `replay` came
+ * later, and a reader takes an entry without it as no replay.
+ */
 const SAVED_GAME_VERSION = 1;
 
 /**
@@ -64,6 +67,7 @@ export class SavedGameService {
     this.storage.writeVersioned(SAVED_GAME_KEY, SAVED_GAME_VERSION, {
       seconds: untracked(this.game.seconds),
       grid: saveGrid(grid),
+      replay: this.game.replay(),
     });
   }
 
@@ -79,6 +83,6 @@ export class SavedGameService {
     if (grid?.outcome !== "playing" || !isWhole(seconds) || seconds < 0) {
       return;
     }
-    this.game.resume(grid, seconds);
+    this.game.resume(grid, seconds, saved["replay"] === true);
   }
 }

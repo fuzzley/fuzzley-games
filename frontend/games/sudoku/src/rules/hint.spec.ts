@@ -57,8 +57,10 @@ function hintAt(kind: Hint["kind"], square: string, digit: number): Hint {
     kind,
     index: squareAt(square),
     digit,
-    shown: [],
+    pattern: [],
+    unit: [],
     title: "",
+    conclusion: "",
     text: "",
   };
 }
@@ -73,8 +75,10 @@ describe("hintFor", () => {
       kind: "mistake",
       index: 0,
       digit: 0,
-      shown: [],
+      pattern: [],
+      unit: [],
       title: "A mistake",
+      conclusion: "The 9 at row 1, column 1 doesn't belong there.",
       text: "The 9 at row 1, column 1 doesn't belong there.",
     });
   });
@@ -88,8 +92,11 @@ describe("hintFor", () => {
       kind: "note",
       index: squareAt("r1c2"),
       digit: 9,
-      shown: [],
+      pattern: [],
+      unit: [],
       title: "A missing note",
+      conclusion:
+        "The notes at row 1, column 2 leave out the digit that belongs there.",
       text: "The notes at row 1, column 2 leave out the digit that belongs there.",
     });
   });
@@ -107,7 +114,7 @@ describe("hintFor", () => {
 
     expect(hint?.kind).toBe("step");
     expect(hint?.digit).toBe(solutionAt(hint?.index ?? -1));
-    expect(hint?.shown.length).toBeGreaterThan(0);
+    expect(hint?.unit.length).toBeGreaterThan(0);
     expect(hint?.title).toBe("Hidden single");
   });
 
