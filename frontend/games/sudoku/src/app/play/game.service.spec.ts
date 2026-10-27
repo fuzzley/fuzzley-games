@@ -32,6 +32,15 @@ function solutionAt(index: number): number {
   return Number(EASY_SOLUTION.join("")[index]);
 }
 
+/** Puts the solution's digit in every blank square of `EASY`. */
+function fillSolution(game: GameService): void {
+  game.grid().digits.forEach((digit, index) => {
+    if (digit !== 0) return;
+    game.select(index);
+    game.place(solutionAt(index));
+  });
+}
+
 /** Returns what the live region last said. */
 function said(): string {
   return TestBed.inject(AnnouncerService).message();
@@ -72,6 +81,17 @@ describe("GameService", () => {
       );
     });
 
+    it("asks to restart the puzzle, not for a new game, before a restart", () => {
+      const game = playOn();
+
+      void game.restart();
+
+      expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
+        title: "Restart this puzzle?",
+        confirmLabel: "Restart",
+      });
+    });
+
     it("keeps the game under way when the player backs out", async () => {
       const game = playOn({ digits: solvedBut("r1c1") });
       const before = game.grid();
@@ -105,6 +125,31 @@ describe("GameService", () => {
 
       expect(await restarting).toBe(true);
       expect(rowsOf(game.grid().digits)).toEqual([...EASY]);
+    });
+
+    it("doesn't count a restart as another game played", async () => {
+      const game = TestBed.inject(GameService);
+      game.toggleNote(1);
+      const restarting = game.restart();
+      TestBed.inject(ConfirmService).accept();
+      await restarting;
+
+      game.toggleNote(1);
+
+      expect(TestBed.inject(StatsService).stats().easy.played).toBe(1);
+    });
+
+    it("leaves a puzzle played again after it was solved out of the stats", async () => {
+      const game = playOn({ digits: solvedBut("r1c1"), seconds: 95 });
+      game.enter(6);
+      const stats = TestBed.inject(StatsService).stats().easy;
+      await game.restart();
+
+      fillSolution(game);
+
+      expect(game.grid().outcome).toBe("solved");
+      expect(game.newBest()).toBe(false);
+      expect(TestBed.inject(StatsService).stats().easy).toEqual(stats);
     });
 
     it("deals at another level, and keeps it in the settings", async () => {
@@ -223,6 +268,70 @@ describe("GameService", () => {
       expect(said()).toBe("Solved in 0:00.");
     });
 
+    it("fills in the notes of every blank square, and says how many", () => {
+      const game = playOn();
+
+      game.fillNotes();
+
+      expect(digitsIn(at(game.grid().notes, squareAt("r1c1")))).toEqual([6, 9]);
+      expect(said()).toBe("Notes filled in for 45 squares.");
+    });
+
+    it("takes the notes filled in back in one undo", () => {
+      const game = playOn();
+      game.fillNotes();
+
+      game.undo();
+
+      expect(game.grid().notes.every((notes) => notes === 0)).toBe(true);
+    });
+
+    it("says when every blank square has notes already", () => {
+      const game = playOn({ digits: solvedBut("r1c1"), notes: { r1c1: "6" } });
+
+      game.fillNotes();
+
+      expect(said()).toBe("Every blank square has notes already.");
+    });
+
+    it("sets a best time though the notes were filled in", () => {
+      const game = playOn({ digits: solvedBut("r1c1") });
+      game.fillNotes();
+
+      game.enter(6);
+
+      expect(game.newBest()).toBe(true);
+    });
+
+    it("selects the square the move taken back was made on", () => {
+      const game = playOn();
+      game.select(squareAt("r1c1"));
+      game.enter(6);
+      game.select(squareAt("r9c9"));
+
+      game.undo();
+
+      expect(game.selected()).toBe(squareAt("r1c1"));
+    });
+
+    it("says when Notes mode turns on", () => {
+      const game = playOn();
+
+      game.toggleNotesMode();
+
+      expect(game.notesMode()).toBe(true);
+      expect(said()).toBe("Notes on.");
+    });
+
+    it("says when Notes mode turns off", () => {
+      const game = playOn();
+      game.toggleNotesMode();
+
+      game.toggleNotesMode();
+
+      expect(said()).toBe("Notes off.");
+    });
+
     it("counts a fresh deal as played from its first move", () => {
       const game = TestBed.inject(GameService);
       const stats = TestBed.inject(StatsService);
@@ -286,7 +395,7 @@ describe("GameService", () => {
       expect(hint?.kind).toBe("step");
       expect(game.selected()).toBe(hint?.index);
       expect(hint?.digit).toBe(solutionAt(hint?.index ?? -1));
-      expect(hint?.shown.length).toBeGreaterThan(0);
+      expect(hint?.unit.length).toBeGreaterThan(0);
     });
 
     it("fills the square in on the second press", () => {
@@ -362,6 +471,50 @@ describe("GameService", () => {
 
       expect(game.resultOpen()).toBe(false);
       expect(game.grid().outcome).toBe("solved");
+    });
+  });
+
+  describe("the clock", () => {
+    it("runs while the game is under way", () => {
+      playOn();
+
+      expect(TestBed.inject(StopwatchService).running()).toBe(true);
+    });
+
+    it("stops while a drawer or a dialog covers the board", () => {
+      const game = playOn();
+
+      game.cover(true);
+
+      expect(TestBed.inject(StopwatchService).running()).toBe(false);
+    });
+
+    it("runs again once the board is uncovered", () => {
+      const game = playOn();
+      game.cover(true);
+
+      game.cover(false);
+
+      expect(TestBed.inject(StopwatchService).running()).toBe(true);
+    });
+
+    it("waits for the board to be uncovered after a deal made under a drawer", async () => {
+      const game = TestBed.inject(GameService);
+      game.cover(true);
+
+      await game.changeLevel("hard");
+
+      expect(TestBed.inject(StopwatchService).running()).toBe(false);
+    });
+
+    it("stays stopped on a solved puzzle once uncovered", () => {
+      const game = playOn({ digits: solvedBut("r1c1") });
+      game.enter(6);
+      game.cover(true);
+
+      game.cover(false);
+
+      expect(TestBed.inject(StopwatchService).running()).toBe(false);
     });
   });
 });

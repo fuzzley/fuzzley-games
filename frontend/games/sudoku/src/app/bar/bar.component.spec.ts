@@ -4,6 +4,7 @@ import { ConfirmService } from "@fz/ui/confirm";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { playOn } from "../../testing/game";
+import { GameService } from "../play/game.service";
 import { BarComponent } from "./bar.component";
 
 /** What a spec gets back from rendering the bar. */
@@ -64,6 +65,14 @@ describe("BarComponent", () => {
       expect(figure("Time")).toBe("2:13");
     });
 
+    it("fills in the notes", async () => {
+      const { user } = await renderBar();
+
+      await user.click(screen.getByRole("button", { name: "Fill in notes" }));
+
+      expect(TestBed.inject(GameService).grid().history).toHaveLength(1);
+    });
+
     it("asks before Restart loses the game under way", async () => {
       const { user } = await renderBar();
 
@@ -119,12 +128,32 @@ describe("BarComponent", () => {
       ).toHaveClass("fz-visually-hidden");
     });
 
-    it("moves Restart, How to play and Settings into the menu", async () => {
+    it("shows the level of the game on the board", async () => {
+      await renderBar();
+
+      expect(screen.getByText("Hard")).toBeVisible();
+    });
+
+    it("moves Fill in notes, Restart, How to play and Settings into the menu", async () => {
       const { user } = await renderBar();
 
       const items = await openMenu(user);
 
-      expect(items).toEqual(["Restart", "How to play", "Settings"]);
+      expect(items).toEqual([
+        "Fill in notes",
+        "Restart",
+        "How to play",
+        "Settings",
+      ]);
+    });
+
+    it("fills in the notes from the menu", async () => {
+      const { user } = await renderBar();
+      await openMenu(user);
+
+      await user.click(screen.getByRole("menuitem", { name: "Fill in notes" }));
+
+      expect(TestBed.inject(GameService).grid().history).toHaveLength(1);
     });
 
     it("restarts from the menu, asking first", async () => {

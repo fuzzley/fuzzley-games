@@ -29,11 +29,23 @@ export interface Hint {
    * out instead.
    */
   readonly digit: number;
-  /** The squares that show why. */
-  readonly shown: readonly number[];
+  /** The squares the words name, which show why. */
+  readonly pattern: readonly number[];
+  /** The rest of the unit the square is the one place left in. */
+  readonly unit: readonly number[];
   readonly title: string;
+  /** What to do, in a sentence of its own, for when there is no room for why. */
+  readonly conclusion: string;
+  /** Every step, the conclusion's last. */
   readonly text: string;
 }
+
+/** What the hint tool says while a hint shows, for each kind of hint. */
+export const FILL_LABELS: Readonly<Record<Hint["kind"], string>> = {
+  mistake: "Take out",
+  note: "Add note",
+  step: "Fill in",
+};
 
 /** Finds the steps that fill one more square of a board. */
 export type ChainFinder = (digits: readonly number[]) => Chain | null;
@@ -71,7 +83,7 @@ export function hintFor(
   const { index, digit } = chain.placement;
   return {
     ...about("step", index, digit),
-    shown: shownBy(chain),
+    ...shownBy(chain),
     ...describeChain(chain),
   };
 }
@@ -96,11 +108,11 @@ export function firstBlank(grid: Grid): number {
   return Math.max(0, grid.digits.indexOf(0));
 }
 
-/** Returns what a hint is about, showing no squares beside it. */
+/** Returns what a hint is about, naming no squares beside it. */
 function about(
   kind: Hint["kind"],
   index: number,
   digit: number,
-): Pick<Hint, "kind" | "index" | "digit" | "shown"> {
-  return { kind, index, digit, shown: [] };
+): Pick<Hint, "kind" | "index" | "digit" | "pattern" | "unit"> {
+  return { kind, index, digit, pattern: [], unit: [] };
 }

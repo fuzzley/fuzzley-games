@@ -1,1 +1,5 @@
-export { DialogComponent, type DialogRole } from "./dialog.component";
+export {
+  type DialogBackdrop,
+  DialogComponent,
+  type DialogRole,
+} from "./dialog.component";

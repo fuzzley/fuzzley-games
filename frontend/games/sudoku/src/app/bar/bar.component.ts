@@ -16,10 +16,11 @@ import { GameService } from "../play/game.service";
 const HOME_HREF = "/";
 
 /** Names an action the overflow menu offers. */
-type MenuAction = "restart" | "help" | "settings";
+type MenuAction = "notes" | "restart" | "help" | "settings";
 
 /** The overflow menu's actions, in order. */
 const OVERFLOW_ACTIONS: readonly BarOverflowAction<MenuAction>[] = [
+  { id: "notes", label: "Fill in notes", icon: "grid" },
   { id: "restart", label: "Restart", icon: "restart" },
   { id: "help", label: "How to play", icon: "help" },
   { id: "settings", label: "Settings", icon: "settings" },
@@ -27,10 +28,11 @@ const OVERFLOW_ACTIONS: readonly BarOverflowAction<MenuAction>[] = [
 
 /**
  * Shows the game bar: the link home, the game's name and level, the time,
- * and the actions.
+ * and the actions. The level shows at every size; the name only for a
+ * screen reader on a compact screen.
  *
- * On a compact screen, Restart, How to play and Settings move into the
- * overflow menu, and on the narrowest the link home does too.
+ * On a compact screen, Fill in notes, Restart, How to play and Settings
+ * move into the overflow menu, and on the narrowest the link home does too.
  */
 @Component({
   selector: "app-bar",
@@ -70,6 +72,9 @@ export class BarComponent {
   /** Carries out the action chosen from the overflow menu. */
   protected chooseFromMenu(id: MenuAction): void {
     switch (id) {
+      case "notes":
+        this.game.fillNotes();
+        break;
       case "restart":
         void this.game.restart();
         break;

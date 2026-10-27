@@ -142,14 +142,24 @@ export function solveByLogic(
   return { steps, solved: state.digits.every((digit) => digit !== 0) };
 }
 
+/** Lists the squares that show why a chain holds, by the part they play. */
+export interface Shown {
+  /** The squares each elimination's pattern is made of, which a hint names. */
+  readonly pattern: readonly number[];
+  /** The rest of the unit where a hidden single has one place left. */
+  readonly unit: readonly number[];
+}
+
 /**
  * Returns the squares that show why a chain holds: each elimination's
  * pattern, and the unit where a hidden single has one place left.
  */
-export function shownBy({ eliminations, placement }: Chain): number[] {
-  const shown = new Set(eliminations.flatMap((step) => step.cells));
-  for (const index of placement.unit?.cells ?? []) shown.add(index);
-  return [...shown].sort((a, b) => a - b);
+export function shownBy({ eliminations, placement }: Chain): Shown {
+  const pattern = new Set(eliminations.flatMap((step) => step.cells));
+  const unit = (placement.unit?.cells ?? []).filter(
+    (index) => !pattern.has(index),
+  );
+  return { pattern: [...pattern].sort((a, b) => a - b), unit };
 }
 
 /**

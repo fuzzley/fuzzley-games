@@ -18,10 +18,12 @@ export const WAVE_MS = 16 * WAVE_STEP_MS + WAVE_RUN_MS;
 
 /**
  * Names how a square is shaded, the strongest reason first: a hint points at
- * it, it is selected, it holds the selected square's digit, it shows why a
- * hint holds, or it shares a unit with the selected square.
+ * it, it is selected, it holds the selected square's digit, it is one of the
+ * squares a hint's words name, it is in the unit a hint's square is the one
+ * place left in, or it shares a unit with the selected square.
  */
-export type Shade = "hinted" | "selected" | "same" | "shown" | "related";
+export type Shade =
+  "hinted" | "selected" | "same" | "pattern" | "unit" | "related";
 
 /** Describes one place in a square's notes. */
 export interface NoteView {
@@ -60,7 +62,7 @@ export interface BoardState {
   readonly grid: Grid;
   readonly selected: number;
   /** The hint showing, or null. */
-  readonly hint: Pick<Hint, "index" | "shown"> | null;
+  readonly hint: Pick<Hint, "index" | "pattern" | "unit"> | null;
   /** Whether a digit the solution doesn't hold is marked. */
   readonly markMistakes: boolean;
 }
@@ -104,7 +106,8 @@ export function shadeOf(state: BoardState, index: number): Shade | null {
   if (index === hint?.index) return "hinted";
   if (index === selected) return "selected";
   if (digit !== 0 && at(grid.digits, index) === digit) return "same";
-  if (hint?.shown.includes(index)) return "shown";
+  if (hint?.pattern.includes(index)) return "pattern";
+  if (hint?.unit.includes(index)) return "unit";
   return sees(index, selected) ? "related" : null;
 }
 

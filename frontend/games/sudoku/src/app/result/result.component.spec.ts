@@ -1,33 +1,27 @@
 import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
-import { render, screen } from "@testing-library/angular";
+import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { type GameOptions, playOn } from "../../testing/game";
-import { solvedBut } from "../../testing/grid_picture";
+import { EASY, gridFrom, solvedBut } from "../../testing/grid_picture";
 import { WAVE_MS } from "../board/board_view";
 import { GameService } from "../play/game.service";
+import { SettingsService } from "../settings/settings.service";
 import { ResultComponent } from "./result.component";
 
-/** What a spec gets back from rendering the card. */
-interface RenderedResult {
-  readonly user: UserEvent;
-  readonly played: ReturnType<typeof vi.fn>;
-}
-
 /**
- * Renders the card, then solves `EASY` 1:35 in by its last square, and waits
- * for the card to open.
+ * Renders the card, then solves `EASY` 1:35 in by its last square, waits
+ * for the card to open, and returns the user.
  */
 async function renderSolved(
   options: GameOptions = {},
-): Promise<RenderedResult> {
-  const played = vi.fn();
-  await render(ResultComponent, { on: { played } });
+): Promise<{ user: UserEvent }> {
+  await render(ResultComponent);
   const game = playOn({ digits: solvedBut("r1c1"), seconds: 95, ...options });
   game.select(0);
   game.enter(6);
   await screen.findByRole("alertdialog");
-  return { user: userEvent.setup(), played };
+  return { user: userEvent.setup() };
 }
 
 /** Returns the value a figure on the card gives, by its term. */
@@ -77,22 +71,55 @@ describe("ResultComponent", () => {
     expect(screen.getByRole("button", { name: "New Game" })).toHaveFocus();
   });
 
+  it("says a puzzle played again after it was solved isn't counted", async () => {
+    await render(ResultComponent);
+    const game = TestBed.inject(GameService);
+    game.resume(gridFrom(EASY, { digits: solvedBut("r1c1") }), 0, true);
+    game.select(0);
+
+    game.enter(6);
+
+    expect(
+      await screen.findByText("Solved before, so not counted again."),
+    ).toBeInTheDocument();
+  });
+
+  it("offers a new game at each other level", async () => {
+    await renderSolved();
+
+    const levels = screen.getByRole("group", { name: "Or another level" });
+
+    expect(
+      within(levels)
+        .getAllByRole("button")
+        .map((button) => button.textContent.trim()),
+    ).toEqual(["Medium", "Hard", "Expert"]);
+  });
+
+  it("deals at another level from the card, and keeps it", async () => {
+    const { user } = await renderSolved();
+
+    await user.click(screen.getByRole("button", { name: "Hard" }));
+
+    expect(TestBed.inject(GameService).level()).toBe("hard");
+    expect(TestBed.inject(SettingsService).settings().level).toBe("hard");
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+  });
+
   it("deals a new puzzle from New Game, and closes", async () => {
-    const { user, played } = await renderSolved();
+    const { user } = await renderSolved();
 
     await user.click(screen.getByRole("button", { name: "New Game" }));
 
-    expect(played).toHaveBeenCalledOnce();
     expect(TestBed.inject(GameService).grid().outcome).toBe("playing");
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });
 
   it("closes, leaving the solved board to look at", async () => {
-    const { user, played } = await renderSolved();
+    const { user } = await renderSolved();
 
     await user.click(screen.getByRole("button", { name: "Close" }));
 
-    expect(played).not.toHaveBeenCalled();
     expect(TestBed.inject(GameService).grid().outcome).toBe("solved");
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });

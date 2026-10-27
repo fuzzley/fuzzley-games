@@ -5,8 +5,11 @@
 <main class="stage">
   <div class="room">
     <app-board #board />
-    <!-- A key pressed with a pointer hands the focus back to the board. -->
-    <app-pad (pressed)="board.focus()" />
+    <!--
+      A key pressed with a pointer hands the focus back to the board, leaving
+      the stage where it is scrolled to.
+    -->
+    <app-pad (handBack)="board.focus({ preventScroll: true })" />
   </div>
 </main>
 
@@ -20,7 +23,6 @@
 
 <app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
 <app-help [open]="helpOpen()" (closed)="helpOpen.set(false)" />
-<!-- A new deal replaces the square that had the focus, so the board takes it. -->
-<app-result (played)="board.focus()" />
+<app-result />
 <!-- Last, so it opens over the settings when a change would lose a game. -->
 <fz-confirm-dialog />

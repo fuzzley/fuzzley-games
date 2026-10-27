@@ -83,6 +83,9 @@ Run these from `frontend/games/sudoku/`, or as
   `shadeOf()` in `board_view.ts` and `boardKey()` in `board_keys.ts`, with
   table specs beside them; the board's own spec checks them through the DOM
   once each.
+- jsdom has no `ResizeObserver` either, so the hint's words always fit their
+  room. `src/app/hint/hint.component.spec.ts` stubs one that reports the
+  heights it is given, to reach the short form and the sheet.
 
 ## Contrast
 

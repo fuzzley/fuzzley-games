@@ -2,15 +2,9 @@ import { Component, computed, inject, output } from "@angular/core";
 import { IconComponent } from "@fz/ui/icon";
 import { DIGITS } from "../../rules/digits";
 import { remaining } from "../../rules/grid";
-import type { Hint } from "../../rules/hint";
+import { FILL_LABELS } from "../../rules/hint";
+import { HintComponent } from "../hint/hint.component";
 import { GameService } from "../play/game.service";
-
-/** What the hint tool says once a hint shows, for each kind of hint. */
-const FILL_LABELS: Readonly<Record<Hint["kind"], string>> = {
-  mistake: "Take out",
-  note: "Add note",
-  step: "Fill in",
-};
 
 /** Describes one digit's key. */
 interface KeyView {
@@ -31,7 +25,7 @@ interface KeyView {
  */
 @Component({
   selector: "app-pad",
-  imports: [IconComponent],
+  imports: [HintComponent, IconComponent],
   host: { "[class.notes]": "game.notesMode()" },
   templateUrl: "./pad.component.html",
   styleUrl: "./pad.component.scss",
@@ -39,8 +33,11 @@ interface KeyView {
 export class PadComponent {
   protected readonly game = inject(GameService);
 
-  /** Emits after a key is pressed with a pointer, for the board to take the focus. */
-  readonly pressed = output();
+  /**
+   * Emits when the board should take the focus back: after a key is pressed
+   * with a pointer, or once the hint's sheet closes on its hint filled in.
+   */
+  readonly handBack = output();
 
   protected readonly keys = computed<KeyView[]>(() => {
     const grid = this.game.grid();
@@ -60,34 +57,34 @@ export class PadComponent {
 
   protected onDigit(event: MouseEvent, digit: number): void {
     this.game.enter(digit);
-    this.handBack(event);
+    this.afterPress(event);
   }
 
   protected onNotes(event: MouseEvent): void {
     this.game.toggleNotesMode();
-    this.handBack(event);
+    this.afterPress(event);
   }
 
   protected onErase(event: MouseEvent): void {
     this.game.erase();
-    this.handBack(event);
+    this.afterPress(event);
   }
 
   protected onUndo(event: MouseEvent): void {
     this.game.undo();
-    this.handBack(event);
+    this.afterPress(event);
   }
 
   protected onHint(event: MouseEvent): void {
     this.game.useHint();
-    this.handBack(event);
+    this.afterPress(event);
   }
 
   /**
    * Hands the focus back to the board after a press with a pointer, which
    * reports how many times it clicked; Enter and Space report none.
    */
-  private handBack(event: MouseEvent): void {
-    if (event.detail > 0) this.pressed.emit();
+  private afterPress(event: MouseEvent): void {
+    if (event.detail > 0) this.handBack.emit();
   }
 }
