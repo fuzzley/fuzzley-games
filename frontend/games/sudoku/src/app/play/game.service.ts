@@ -91,6 +91,8 @@ export class GameService {
   private readonly countedState = signal(false);
   private readonly newBestState = signal(false);
   private readonly resultOpenState = signal(false);
+  private readonly dealsState = signal(0);
+  private readonly coveredState = signal(false);
 
   /** The game on the board. */
   readonly grid = this.gridState.asReadonly();
@@ -109,6 +111,12 @@ export class GameService {
 
   /** Whether the card over a solved puzzle is showing. */
   readonly resultOpen = this.resultOpenState.asReadonly();
+
+  /**
+   * How many games have begun since the page loaded, each new deal, restart
+   * or game taken up adding one, for the board to take the focus after.
+   */
+  readonly deals = this.dealsState.asReadonly();
 
   /**
    * How long the game has been played, in whole seconds, not counting while
@@ -132,7 +140,7 @@ export class GameService {
 
   constructor() {
     this.stopwatch.reset();
-    this.stopwatch.start();
+    this.syncClock();
   }
 
   /** Selects a square. */
@@ -262,6 +270,15 @@ export class GameService {
     this.resultOpenState.set(false);
   }
 
+  /**
+   * Says whether a drawer or a dialog covers the board, which can't be
+   * played meanwhile, so the clock stops until it is uncovered.
+   */
+  cover(covered: boolean): void {
+    this.coveredState.set(covered);
+    this.syncClock();
+  }
+
   private deal(level: Level): Grid {
     return createGrid(deal(level, randomSeed(this.random)));
   }
@@ -273,9 +290,19 @@ export class GameService {
     this.countedState.set(counted);
     this.newBestState.set(false);
     this.resultOpenState.set(false);
+    this.dealsState.update((deals) => deals + 1);
     this.announcer.clear();
     this.stopwatch.reset(seconds);
-    if (grid.outcome === "playing") this.stopwatch.start();
+    this.syncClock();
+  }
+
+  /** Runs the clock while the game is under way and nothing covers the board. */
+  private syncClock(): void {
+    if (this.gridState().outcome === "playing" && !this.coveredState()) {
+      this.stopwatch.start();
+    } else {
+      this.stopwatch.stop();
+    }
   }
 
   /** Makes a move, and says what it did. */
@@ -292,7 +319,7 @@ export class GameService {
       this.announcer.say(describeMove(before, after));
       return;
     }
-    this.stopwatch.stop();
+    this.syncClock();
     const seconds = this.stopwatch.seconds();
     this.newBestState.set(
       this.stats.recordSolve(after.puzzle.level, seconds, after.hints),

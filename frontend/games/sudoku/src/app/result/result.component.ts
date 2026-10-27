@@ -1,12 +1,5 @@
 import { DOCUMENT } from "@angular/common";
-import {
-  Component,
-  computed,
-  effect,
-  inject,
-  output,
-  signal,
-} from "@angular/core";
+import { Component, computed, effect, inject, signal } from "@angular/core";
 import { formatClock } from "@fz/game-ui/stopwatch";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
@@ -46,9 +39,6 @@ export class ResultComponent {
   protected readonly game = inject(GameService);
   private readonly stats = inject(StatsService);
   private readonly document = inject(DOCUMENT);
-
-  /** Emitted when the player deals a game from the card. */
-  readonly played = output();
 
   /** Whether the card shows, which trails the game's word by the wave. */
   protected readonly open = signal(false);
@@ -92,8 +82,8 @@ export class ResultComponent {
   }
 
   /** Deals a new game. */
-  protected async newGame(): Promise<void> {
-    if (await this.game.newGame()) this.played.emit();
+  protected newGame(): void {
+    void this.game.newGame();
   }
 
   /**

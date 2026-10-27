@@ -388,4 +388,48 @@ describe("GameService", () => {
       expect(game.grid().outcome).toBe("solved");
     });
   });
+
+  describe("the clock", () => {
+    it("runs while the game is under way", () => {
+      playOn();
+
+      expect(TestBed.inject(StopwatchService).running()).toBe(true);
+    });
+
+    it("stops while a drawer or a dialog covers the board", () => {
+      const game = playOn();
+
+      game.cover(true);
+
+      expect(TestBed.inject(StopwatchService).running()).toBe(false);
+    });
+
+    it("runs again once the board is uncovered", () => {
+      const game = playOn();
+      game.cover(true);
+
+      game.cover(false);
+
+      expect(TestBed.inject(StopwatchService).running()).toBe(true);
+    });
+
+    it("waits for the board to be uncovered after a deal made under a drawer", async () => {
+      const game = TestBed.inject(GameService);
+      game.cover(true);
+
+      await game.changeLevel("hard");
+
+      expect(TestBed.inject(StopwatchService).running()).toBe(false);
+    });
+
+    it("stays stopped on a solved puzzle once uncovered", () => {
+      const game = playOn({ digits: solvedBut("r1c1") });
+      game.enter(6);
+      game.cover(true);
+
+      game.cover(false);
+
+      expect(TestBed.inject(StopwatchService).running()).toBe(false);
+    });
+  });
 });
