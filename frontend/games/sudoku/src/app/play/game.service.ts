@@ -172,19 +172,25 @@ export class GameService {
     this.move(erase(this.gridState(), this.selectedState()));
   }
 
-  /** Takes back the last move. */
+  /**
+   * Takes back the last move, and selects the square it was made on, so the
+   * eye goes to what changed.
+   */
   undo(): void {
     const before = this.gridState();
     const after = undo(before);
     if (after === before) return;
+    const [main] = before.history.at(-1) ?? [];
     this.gridState.set(after);
     this.hintState.set(null);
+    if (main) this.selectedState.set(main.index);
     this.announcer.say("Undone.");
   }
 
-  /** Turns Notes mode on or off. */
+  /** Turns Notes mode on or off, and says which. */
   toggleNotesMode(): void {
     this.notesModeState.update((on) => !on);
+    this.announcer.say(this.notesModeState() ? "Notes on." : "Notes off.");
   }
 
   /**
