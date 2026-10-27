@@ -80,10 +80,12 @@ export function restoreGrid(saved: unknown): Grid | null {
   return fits && movesFit ? grid : null;
 }
 
+/** Returns the digits a stored text of 81 holds, or null for anything else. */
 function parseText(value: unknown): number[] | null {
   return typeof value === "string" ? parseDigits(value) : null;
 }
 
+/** Returns whether a stored value is 81 sets of notes. */
 function isNotes(value: unknown): value is number[] {
   return (
     Array.isArray(value) && value.length === CELLS && value.every(isDigitSet)
