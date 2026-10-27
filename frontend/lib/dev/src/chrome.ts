@@ -71,6 +71,11 @@ export class DevToolsConnection {
     sessionId: string;
     resolve: (params: unknown) => void;
   }[] = [];
+  private listeners: {
+    method: string;
+    sessionId: string;
+    listener: (params: unknown) => void;
+  }[] = [];
 
   constructor(socket: DevToolsSocket) {
     this.socket = socket;
@@ -117,6 +122,22 @@ export class DevToolsConnection {
     });
   }
 
+  /**
+   * Calls a listener with every event of a kind from a page, and returns a
+   * function that stops it.
+   */
+  on(
+    method: string,
+    sessionId: string,
+    listener: (params: unknown) => void,
+  ): () => void {
+    const entry = { method, sessionId, listener };
+    this.listeners.push(entry);
+    return () => {
+      this.listeners = this.listeners.filter((each) => each !== entry);
+    };
+  }
+
   /** Closes the connection. */
   close(): void {
     this.socket.close();
@@ -138,6 +159,11 @@ export class DevToolsConnection {
     );
     this.waiters = this.waiters.filter((waiter) => !satisfied.includes(waiter));
     for (const waiter of satisfied) waiter.resolve(message.params);
+    for (const { method, sessionId, listener } of this.listeners) {
+      if (method === message.method && sessionId === message.sessionId) {
+        listener(message.params);
+      }
+    }
   }
 }
 
@@ -157,6 +183,15 @@ export class Page {
   /** Sends a command to this page and returns its result. */
   send<M extends string>(method: M, params: object = {}): Promise<ResultOf<M>> {
     return this.devtools.send(method, params, this.sessionId);
+  }
+
+  /**
+   * Calls a listener with every event of a kind from this page, and returns
+   * a function that stops it. The page sends a domain's events only once the
+   * domain is enabled, as `Runtime.enable` does the console's.
+   */
+  on(method: string, listener: (params: unknown) => void): () => void {
+    return this.devtools.on(method, this.sessionId, listener);
   }
 
   /** Runs a function in the page before its own scripts, on every load. */

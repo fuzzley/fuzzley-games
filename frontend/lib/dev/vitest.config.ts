@@ -3,6 +3,7 @@ import { nodeTests } from "./src/vitest.ts";
 
 export default defineConfig(
   nodeTests({
-    thresholds: { statements: 75, branches: 92, functions: 85, lines: 74 },
+    exclude: ["src/testing/**", "src/layout_page.ts"],
+    thresholds: { statements: 83, branches: 92, functions: 89, lines: 82 },
   }),
 );

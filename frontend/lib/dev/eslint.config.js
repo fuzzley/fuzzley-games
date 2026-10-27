@@ -8,5 +8,5 @@ export default defineConfig(
     root: import.meta.dirname,
     files: ["src/**/*.ts", "vitest.config.ts"],
   }),
-  tests({ files: ["src/**/*.spec.ts"] }),
+  tests({ files: ["src/**/*.spec.ts", "src/testing/**/*.ts"] }),
 );

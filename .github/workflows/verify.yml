@@ -63,6 +63,12 @@ jobs:
         working-directory: frontend
         run: yarn verify
 
+      # jsdom has no layout, so each game with a layout check opens its build
+      # in the runner's Chrome at the shapes a game takes.
+      - name: Check the games' layout in Chrome
+        working-directory: frontend
+        run: yarn check:layout
+
   # Build the image Cloud Run will build, serve it, and request its pages and
   # games.
   docker:

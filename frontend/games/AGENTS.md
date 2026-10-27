@@ -29,6 +29,12 @@ are relative to `frontend/games/`.
   runs it on one after the site's instead, at `/play/<slug>/`, which the
   site's dev server serves, so nothing the game loads may assume it sits at
   `/`.
+- **Its layout can be checked in a browser,** which jsdom can't: a
+  `check:layout` script on `@fz/dev/layout` opens its build at each shape a
+  game takes and fails on an error, a page that scrolls, or what its own
+  inspection of the page finds. The root's `yarn check:layout` runs every
+  game's that has one, and CI runs it after the build; Sudoku's
+  `tools/check-layout.mjs` is one to start from.
 - **Its screenshots are the site's.** `public/docs/screenshots/<id>/` holds
   the `thumb.webp` and `preview.webp` the site's catalog shows of each game
   it opens, written from a capture by `@fz/dev/screenshots`'s

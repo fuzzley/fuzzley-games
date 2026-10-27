@@ -21,6 +21,7 @@
     "games": "yarn build:games && yarn workspace site games",
     "preview": "yarn workspace site preview",
     "stop": "node tools/stop-dev-servers.mjs",
+    "check:layout": "yarn workspaces foreach --all --include \"games/*\" run check:layout",
     "test": "yarn workspaces foreach --all --include \"lib/*\" --include site --include \"games/*\" run test",
     "typecheck": "tsc -p tsconfig.scripts.json && yarn workspaces foreach --all --include \"lib/*\" --include site --include \"games/*\" run typecheck",
     "lint": "yarn skills:check && yarn constraints && yarn dedupe --check && (cd .. && eslint -c frontend/eslint.config.js .agents frontend/tools frontend/yarn.config.cjs) && yarn workspaces foreach --all --include \"lib/*\" --include site --include \"games/*\" run lint && yarn prettier:check",
