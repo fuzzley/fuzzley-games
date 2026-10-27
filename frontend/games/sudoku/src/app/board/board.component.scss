@@ -89,7 +89,7 @@
 
 // What a square has to do with the selected one, lightest to strongest. A
 // hint's squares are in the warning's tints, apart from the selection's
-// accent. A square with a marked digit is never shaded (board.component.ts),
+// accent. A square with a marked digit is never shaded (board_view.ts),
 // as the danger color clears 4.5:1 only on the panel itself.
 .cell[data-shade="related"] {
   background: var(--fz-wash-2);
@@ -164,11 +164,12 @@
 }
 
 // Solved: a wave of the accent runs across the board from the top left,
-// where motion is welcome.
+// where motion is welcome. Its timing is bound on the host from
+// board_view.ts, where the result card reads how long it runs.
 @media (prefers-reduced-motion: no-preference) {
   :host(.solved) .cell {
-    animation: wave 600ms var(--fz-ease-standard) both;
-    animation-delay: calc((var(--r) + var(--c)) * 40ms);
+    animation: wave var(--wave-run) var(--fz-ease-standard) both;
+    animation-delay: calc((var(--r) + var(--c)) * var(--wave-step));
   }
 }
 

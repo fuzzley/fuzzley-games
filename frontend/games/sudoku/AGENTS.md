@@ -28,7 +28,9 @@ workspace keeps its own for its code. Paths are relative to
   used. `solver.ts` is a backtracking solver, which checks uniqueness and
   fills a grid at random; `logic.ts` solves the way a person does, one
   technique at a time, which grades a puzzle (`difficulty.ts` holds the
-  levels) and names the next step for a hint. `transform.ts` turns a
+  levels) and names the next step for a hint. `hint.ts` picks the hint for
+  a board: a wrong digit, then notes that leave out their square's digit,
+  then logic's next step, checked against the solution. `transform.ts` turns a
   puzzle into another face of itself. `generate.ts` makes a puzzle of a
   level from a seed, and `deal.ts` deals one from the bank in `bank/`,
   through a random face. `describe.ts` puts squares, moves and hints into
@@ -39,7 +41,9 @@ workspace keeps its own for its code. Paths are relative to
   level, which `yarn generate:puzzles` writes. A puzzle is its givens, 81
   characters with `.` for a blank. `src/rules/bank.spec.ts` checks every one
   has one solution, grades at its level and keeps the level's fewest givens,
-  so a puzzle edited by hand, or a change to the grader, fails it.
+  and that every step logic takes on it, grading or hinting, agrees with the
+  solution (`agrees()`), so a puzzle edited by hand, or a change to the
+  grader, fails it.
 - **`src/app/`** — the shell, one folder per feature, each holding its
   components and services together, as in Minesweeper. `app.component`
   lays them out, with the `<fz-announcer>` every move is announced through,
@@ -50,7 +54,10 @@ workspace keeps its own for its code. Paths are relative to
     through `@fz/ui/confirm` before a new deal throws a game away;
     `SavedGameService`, which `main.ts` starts before the board shows,
     keeps the game in progress and takes it up after a reload.
-  - `board/` — the grid of squares.
+  - `board/` — the grid of squares. Its view model, each square's digit,
+    notes, shade and label, is `boardView()` in `board_view.ts`, and the
+    key map is `boardKey()` in `board_keys.ts`, plain functions the
+    component calls.
   - `pad/` — the number pad: a key for each digit with how many are left,
     the tools (Notes, Erase, Undo and Hint), and the hint's words.
   - `bar/` — `BarComponent` fills the libraries' `<fz-game-bar>` with the
@@ -93,7 +100,7 @@ workspace keeps its own for its code. Paths are relative to
   target.
 - **The squares are shaded by the selected one:** its row, column and box,
   the squares holding its digit, and a hint's square and the squares that
-  show why. The view model (`board.component.ts`) picks one shade a square,
+  show why. The view model (`board_view.ts`) picks one shade a square,
   the strongest reason first, and a square with a marked digit, one that
   repeats or, with the assist on, is wrong, is never shaded, so the danger
   color stays on the panel it clears 4.5:1 on.

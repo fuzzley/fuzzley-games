@@ -20,6 +20,7 @@ const COMPACT_QUERY = `(max-width: ${COMPACT_MAX_WIDTH_PX - 0.02}px), (max-heigh
 const PORTRAIT_QUERY = "(orientation: portrait)";
 const BELOW_WORDMARK_QUERY = `(max-width: ${WORDMARK_MIN_WIDTH_PX - 0.02}px)`;
 const BELOW_HOME_BUTTON_QUERY = `(max-width: ${HOME_BUTTON_MIN_WIDTH_PX - 0.02}px)`;
+const MOTION_QUERY = "(prefers-reduced-motion: no-preference)";
 
 /**
  * Tracks the shape of the window a game is played in: roomy, or compact and
@@ -28,7 +29,7 @@ const BELOW_HOME_BUTTON_QUERY = `(max-width: ${HOME_BUTTON_MIN_WIDTH_PX - 0.02}p
  * A signal rather than CSS alone, because a compact layout moves controls,
  * and can turn a board, rather than only restyling them. The bar reads none
  * of it: the app binds what it says to the bar's inputs. A host without
- * `matchMedia` reads as roomy, and wider than tall.
+ * `matchMedia` reads as roomy, wider than tall, and asking for no motion.
  */
 @Injectable({ providedIn: "root" })
 export class GameViewportService {
@@ -38,6 +39,7 @@ export class GameViewportService {
   private readonly portrait = signal(false);
   private readonly belowWordmark = signal(false);
   private readonly belowHomeButton = signal(false);
+  private readonly motion = signal(false);
 
   /** The shape of the window. */
   readonly formFactor = computed<FormFactor>(() => {
@@ -88,6 +90,13 @@ export class GameViewportService {
     return this.fitsWordmark() && !this.isCompact() ? "wordmark" : "icon";
   });
 
+  /**
+   * Whether the player has no wish for less motion, the one case in which
+   * the stylesheets animate (`prefers-reduced-motion: no-preference`), so
+   * code that waits for an animation waits only while one runs.
+   */
+  readonly allowsMotion = this.motion.asReadonly();
+
   constructor() {
     if (typeof window === "undefined" || !("matchMedia" in window)) return;
 
@@ -95,6 +104,7 @@ export class GameViewportService {
     this.follow(PORTRAIT_QUERY, this.portrait);
     this.follow(BELOW_WORDMARK_QUERY, this.belowWordmark);
     this.follow(BELOW_HOME_BUTTON_QUERY, this.belowHomeButton);
+    this.follow(MOTION_QUERY, this.motion);
   }
 
   /** Keeps a signal set to whether a media query matches. */

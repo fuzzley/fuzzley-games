@@ -26,7 +26,7 @@
         <div
           ngGridCell
           class="cell"
-          [tabindex]="cell.selected ? 0 : -1"
+          [tabindex]="cell.tabIndex"
           [selected]="cell.selected"
           [attr.data-index]="cell.index"
           [attr.data-row]="cell.row"
@@ -42,7 +42,7 @@
           @if (cell.notes; as notes) {
             <span class="notes">
               @for (note of notes; track $index) {
-                <span [class.match]="note.match">{{ note.digit || "" }}</span>
+                <span [class.match]="note.match">{{ note.text }}</span>
               }
             </span>
           } @else if (cell.digit) {

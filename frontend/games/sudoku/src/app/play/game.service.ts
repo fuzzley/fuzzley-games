@@ -89,6 +89,12 @@ export class GameService {
     () => this.countedState() && this.gridState().outcome === "playing",
   );
 
+  /** Whether the puzzle on the board is solved, after which nothing changes. */
+  readonly solved = computed(() => this.gridState().outcome === "solved");
+
+  /** Whether a hint can be shown, or the one showing filled in. */
+  readonly canHint = computed(() => this.gridState().outcome === "playing");
+
   /** Whether there is a move to take back. */
   readonly canUndo = computed(() => {
     const grid = this.gridState();
