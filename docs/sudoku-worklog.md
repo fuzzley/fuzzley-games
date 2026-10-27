@@ -39,7 +39,7 @@ history keeps it.
 | S5    | The new icons                    | done  |
 | S6    | The board and the pad            | done  |
 | S7    | The bar and the dialogs          | done  |
-| S8    | Storage                          | to do |
+| S8    | Storage                          | done  |
 | S9    | The checks                       | to do |
 | S10   | Screenshots and docs             | to do |
 | S11   | Ship                             | to do |
@@ -289,3 +289,24 @@ history keeps it.
   after the lint step without saying why, and passed untouched when run
   again. Sudoku 449 tests; its script is 336 kB, 100.9 kB gzipped, against
   Minesweeper's 104.4.
+
+### 2026-10-27: S8, storage
+
+- **In:** `SavedGameService` (`play/`), Minesweeper's with the grid in
+  place of the field: it keeps `{ seconds, grid }` under `sudoku-game`,
+  written once a move and again on `visibilitychange` to hidden and on
+  `pagehide`, and `main.ts` starts it in an app initializer, so the board
+  never shows a fresh deal before the game a reload interrupted. The
+  settings and the stats were already kept, since S6.
+- **What counts as a game to keep** is `GameService.inProgress`: a fresh
+  deal no move has touched isn't kept, nor is a solved puzzle, whose entry
+  is removed.
+- **Its spec** keeps a game, its time and its moves, writes once a move
+  and not once a second, keeps the time as the page hides or is left,
+  forgets a solved game, takes a stored game up where it was left, and
+  deals afresh from an entry that is solved, from another version, with a
+  negative time or a broken grid.
+- `saved_grid.ts`'s two helpers got the doc comments they lacked.
+- Checked in the browser pane: a digit placed, the page reloaded, and the
+  digit, the clock and Undo were all there.
+- **`yarn verify` passed** (4m42s): Sudoku 462 tests.

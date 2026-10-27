@@ -49,7 +49,9 @@ It is being built from `docs/sudoku-plan.md`; this file grows with it.
   - `play/` — `GameService` holds the game in play and the square
     selected, runs its clock on `@fz/game-ui/stopwatch`, makes every move
     and says what it did through `@fz/ui/announcer`, gives hints, and asks
-    through `@fz/ui/confirm` before a new deal throws a game away.
+    through `@fz/ui/confirm` before a new deal throws a game away;
+    `SavedGameService`, which `main.ts` starts before the board shows,
+    keeps the game in progress and takes it up after a reload.
   - `board/` — the grid of squares.
   - `pad/` — the number pad: a key for each digit with how many are left,
     the tools (Notes, Erase, Undo and Hint), and the hint's words.
@@ -111,6 +113,22 @@ It is being built from `docs/sudoku-plan.md`; this file grows with it.
   to the board,** so the player goes on typing; one pressed from the
   keyboard keeps it. Undo and Hint are dimmed with `aria-disabled`, never
   disabled, so the focus never falls off them.
+
+## What It Keeps
+
+Each entry is in `localStorage`, versioned
+(`LocalStorageService.writeVersioned()`), and its reader drops what it
+can't trust rather than failing:
+
+- `sudoku-settings`: the level and the assists.
+- `sudoku-stats`: each level's games played and solved, and its best time
+  without hints.
+- `sudoku-game`: the game under way, its time, and the grid as
+  `saved_grid.ts` writes it, history and hints included, so undo outlives
+  a reload. It is written once a move and again as the page goes out of
+  sight, and forgotten once the puzzle is solved. `restoreGrid()` solves
+  the givens again, so an edited entry can't hand the game a wrong
+  solution.
 
 ## Development Commands
 
