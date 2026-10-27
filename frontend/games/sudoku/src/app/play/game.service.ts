@@ -10,24 +10,19 @@ import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { CELLS } from "../../rules/cells";
 import { deal } from "../../rules/deal";
-import {
-  describeChain,
-  describeMistake,
-  describeMove,
-} from "../../rules/describe";
+import { describeMove } from "../../rules/describe";
 import type { Level } from "../../rules/difficulty";
 import {
   type Grid,
   countHint,
   createGrid,
   erase,
-  mistakes,
   place,
   restart,
   toggleNote,
   undo,
 } from "../../rules/grid";
-import { nextPlacement, shownBy } from "../../rules/logic";
+import { type Hint, fillHint, firstBlank, hintFor } from "../../rules/hint";
 import { randomSeed } from "../../rules/random";
 import { SettingsService } from "../settings/settings.service";
 import { StatsService } from "../stats/stats.service";
@@ -37,20 +32,6 @@ export const GAME_RANDOM = new InjectionToken<() => number>("GAME_RANDOM", {
   providedIn: "root",
   factory: () => Math.random,
 });
-
-/** Says what a hint points at, until the board changes. */
-export interface Hint {
-  /** `step` names the square logic fills next; `mistake`, a wrong digit. */
-  readonly kind: "step" | "mistake";
-  /** The square it is about. */
-  readonly index: number;
-  /** The digit a step fills in; a mistake's digit comes out instead. */
-  readonly digit: number;
-  /** The squares that show why. */
-  readonly shown: readonly number[];
-  readonly title: string;
-  readonly text: string;
-}
 
 /**
  * Plays the game: holds the grid and the square selected, makes the player's
@@ -175,10 +156,10 @@ export class GameService {
    * Shows a hint, or fills in the one showing.
    *
    * A hint first checks the board: a digit on it that the solution doesn't
-   * hold is the hint, whether or not mistakes are marked. Otherwise it is
-   * the square logic fills next, with the steps that prove it. Either way it
-   * selects the square and counts, so a puzzle solved with one sets no best
-   * time.
+   * hold is the hint, whether or not mistakes are marked, and then notes
+   * that leave out their square's digit. Otherwise it is the square logic
+   * fills next, with the steps that prove it. Either way it selects the
+   * square and counts, so a puzzle solved with one sets no best time.
    */
   useHint(): void {
     const showing = this.hintState();
@@ -279,16 +260,11 @@ export class GameService {
     this.resultOpenState.set(true);
   }
 
-  /** Fills in a hint: the digit a step names, or out with a wrong one. */
+  /** Fills in a hint: the digit a step names, the note, or out with a wrong one. */
   private fill(hint: Hint): void {
-    const grid = this.gridState();
     const { clearNotes } = this.settings.settings();
     this.selectedState.set(hint.index);
-    this.move(
-      hint.kind === "step"
-        ? place(grid, hint.index, hint.digit, { clearNotes })
-        : erase(grid, hint.index),
-    );
+    this.move(fillHint(this.gridState(), hint, { clearNotes }));
   }
 
   private async mayLoseGame(): Promise<boolean> {
@@ -300,32 +276,4 @@ export class GameService {
       tone: "danger",
     });
   }
-}
-
-/** Returns the first blank square, where a fresh deal puts the selection. */
-function firstBlank(grid: Grid): number {
-  return Math.max(0, grid.digits.indexOf(0));
-}
-
-/** Returns the hint for a board: a wrong digit, else logic's next step. */
-function hintFor(grid: Grid): Hint | null {
-  const wrong = mistakes(grid).indexOf(true);
-  if (wrong !== -1) {
-    return {
-      kind: "mistake",
-      index: wrong,
-      digit: 0,
-      shown: [],
-      ...describeMistake(grid, wrong),
-    };
-  }
-  const chain = nextPlacement(grid.digits);
-  if (!chain) return null;
-  return {
-    kind: "step",
-    index: chain.placement.index,
-    digit: chain.placement.digit,
-    shown: shownBy(chain),
-    ...describeChain(chain),
-  };
 }

@@ -33,6 +33,32 @@ export const EASY_SOLUTION = [
   "315789462",
 ] as const;
 
+/** A puzzle with one solution, where logic stalls after these digits. */
+export const STALLED = {
+  givens: [
+    "8......9.",
+    ".1..4....",
+    ".437...8.",
+    "...4..3.6",
+    "...3.2...",
+    "4.1..5...",
+    ".7...483.",
+    "....8..21",
+    "982.....4",
+  ],
+  digits: [
+    "......4..",
+    "..9......",
+    "......1..",
+    ".......1.",
+    "....1..4.",
+    ".3.....7.",
+    "1........",
+    "3.4......",
+    ".........",
+  ],
+};
+
 /**
  * Returns the player's digits that solve `EASY`, drawn as nine rows, but for
  * the squares named (`"r1c1"`), which are left blank.
