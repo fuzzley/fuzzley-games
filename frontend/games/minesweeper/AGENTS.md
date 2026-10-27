@@ -82,7 +82,8 @@ workspace keeps its own for its code. Paths are relative to
 ## Styling
 
 Every component stylesheet opens with `@use "../styles" as *;`, which
-brings in `@fz/style`'s mixins and this game's own, and nothing else. The
+brings in `@fz/style`'s mixins and `@fz/game-ui`'s breakpoints, and nothing
+else. The
 frontend's Angular and Sass rules apply; on top of them:
 
 - **Only the numbers' inks are colors,** in `src/app/board/_inks.scss`, the
@@ -91,8 +92,8 @@ frontend's Angular and Sass rules apply; on top of them:
   `GameViewportService`,** which applies the games' compact test in code and
   says where the bar stands and what fits in it.
 - **The flag, heart and mine** were added to `@fz/ui`'s icons for this game.
-  What the two games draw alike but don't yet share, such as the settings'
-  choice tiles, is a mixin in `src/app/styles/_mixins.scss`.
+  The dialogs' cards, close buttons, headings and choice tiles are
+  `@fz/style`'s mixins, which every game's dialogs share.
 
 ## In This Repository
 

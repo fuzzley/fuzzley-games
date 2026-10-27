@@ -38,13 +38,16 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   typed, and a misspelled one fails to compile. Inside a `<fz-game-bar>`
   the menu opens away from the bar's edge. While it is open, a transparent
   layer over the window takes the tap that closes it, so the tap doesn't
-  reach the board.
+  reach the board. `withHomeLink(items, href)` leads the items with the
+  link home, for a bar with no room for it.
 - `src/viewport/`: `GameViewportService`, which follows the shape of the
   window: its `formFactor` (`roomy`, `phone-portrait` or
   `phone-landscape`), `isCompact` and `isPortrait`, where the bar stands
-  (`barPlacement`), and whether the bar has room for the wordmark
-  (`fitsWordmark`) and the home button (`fitsHomeButton`). A host without
-  `matchMedia` reads as roomy.
+  (`barPlacement`), whether the bar has room for the wordmark
+  (`fitsWordmark`) and the home button (`fitsHomeButton`), and so how it
+  shows the link home (`barHome`: the wordmark on a roomy window from 1280
+  CSS px, the button below that or on a compact one, and `none` below
+  360). A host without `matchMedia` reads as roomy.
 - `src/breakpoints/`: the widths every game changes shape at. `index.ts`
   holds them as constants, with `formFactorAt()`, and imports no Angular,
   so a game's renderer can read them as well as its shell. `_index.scss`
@@ -56,7 +59,8 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   which counts only while the page is in view. It reads the time from the
   clock rather than counting its ticks, so a pause keeps the part of a
   second under way and a late tick loses nothing; `reset()` holds the time
-  of a game taken up again.
+  of a game taken up again. `formatClock()` writes a time as a game's clock
+  shows it, "2:13", or "1:02:13" past an hour.
 - `src/testing/`: what a game's specs share. `installFakeViewport()` stands
   in for the `matchMedia` jsdom lacks, at a size a spec sets and changes.
 - `src/_index.scss`: the Sass an app reaches with `@use "@fz/game-ui"`. It
@@ -73,10 +77,11 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   `"@fz/game-ui": "workspace:*"` beside `@fz/ui` and `@fz/style`, and loads
   `@fz/style`'s global stylesheet.
 - **The app decides the layout.** It binds `placement`, `reversed`,
-  `compact` and `home` to what `GameViewportService` says; the bar never
-  asks the window. A game's stylesheets take the same widths from the
-  mixins, which an app's toolkit can forward by name, as
-  `frontend/games/minesweeper/src/app/styles/_index.scss` does.
+  `compact` and `home` to what `GameViewportService` says (`home` to
+  `barHome`, with the overflow menu led by `withHomeLink()` when that is
+  `none`); the bar never asks the window. A game's stylesheets take the
+  same widths from the mixins, which an app's toolkit can forward by name,
+  as `frontend/games/minesweeper/src/app/styles/_index.scss` does.
 - **Imports go one way.** This library imports `@fz/ui`, `@fz/style` and
   Angular, never the site or a game, and the site has no use for it.
 

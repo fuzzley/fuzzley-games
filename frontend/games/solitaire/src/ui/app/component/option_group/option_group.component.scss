@@ -74,7 +74,7 @@
 }
 
 .choice-row {
-  @include swatch-option;
+  @include choice-tile;
 
   flex-direction: column;
   gap: var(--fz-space-1);

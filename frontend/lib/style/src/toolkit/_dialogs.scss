@@ -1,0 +1,65 @@
+@use "controls";
+@use "motion";
+
+// The parts a game's dialogs are drawn from: a card, its close button, and a
+// setting's heading and choices.
+
+/// Styles a card alone over the dimmed page, as the confirmation is, `$width`
+/// wide where the window has room.
+@mixin dialog-card($width) {
+  position: relative;
+  box-sizing: border-box;
+  width: $width;
+  max-width: calc(100vw - var(--fz-space-8));
+  max-height: calc(100dvh - var(--fz-space-8));
+  overflow-y: auto;
+  padding: var(--fz-space-8) var(--fz-space-6) var(--fz-space-6);
+  border: 1px solid var(--fz-edge-3);
+  border-radius: var(--fz-radius-xl);
+  background: var(--fz-float);
+  box-shadow: var(--fz-shadow-card);
+  color: var(--fz-text);
+}
+
+/// Styles the round button that closes a dialog.
+@mixin close-button {
+  @include controls.icon-button(var(--fz-radius-sm));
+
+  --fz-icon-size: 20px;
+}
+
+/// Styles a setting's name, over its control.
+@mixin field-label {
+  display: block;
+  margin-bottom: var(--fz-space-3);
+  color: var(--fz-muted);
+  font-size: var(--fz-font-sm);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/// Styles a choice drawn as a tile, such as a `role="radio"` button, which
+/// wears the accent when it is checked; the caller lays out what it holds.
+@mixin choice-tile {
+  @include motion.transition(background, border-color, color);
+
+  display: flex;
+  padding: var(--fz-space-3);
+  border: 2px solid var(--fz-edge-2);
+  border-radius: var(--fz-radius-md);
+  background: var(--fz-wash-1);
+  color: var(--fz-muted);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--fz-edge-3);
+    background: var(--fz-wash-2);
+  }
+
+  &[aria-checked="true"] {
+    border-color: var(--fz-accent);
+    background: var(--fz-accent-wash);
+    color: var(--fz-text);
+  }
+}

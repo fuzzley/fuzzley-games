@@ -54,7 +54,8 @@ Repeated UI patterns are mixins. Every component reaches them through `@use "../
   - `transition()` — Transitions at the shared duration and easing.
   - `tap-target()` and `flex-center()`.
   - `visually-hidden()` — Screen reader accessible off-screen text.
-- From `styles/_mixins.scss`, this game's own: `field-label()`, `swatch-option()`, `spinner-ring()` and `panel-card()`. One moves to the toolkit when a second app needs it.
+  - `field-label()` and `choice-tile()` — A setting's heading, and a choice drawn as a tile, such as a card back, a deck or a game's variant; the toolkit's `dialog-card()` and `close-button()` sit beside them.
+- From `styles/_mixins.scss`, this game's own: `spinner-ring()` and `panel-card()`. One moves to the toolkit when a second app needs it.
 
 ### 4. Named Responsive Breakpoints
 
