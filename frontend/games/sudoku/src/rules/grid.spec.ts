@@ -1,8 +1,8 @@
 import {
   EASY,
-  EASY_SOLUTION,
   gridFrom,
   rowsOf,
+  solvedBut,
   squareAt,
 } from "../testing/grid_picture";
 import { UNITS } from "./cells";
@@ -35,16 +35,6 @@ const R1C1 = squareAt("r1c1");
 
 /** Row 1, column 4, which holds a given 5. */
 const R1C4 = squareAt("r1c4");
-
-/** `EASY`'s solution drawn as the player's digits, but for the squares named. */
-function solvedBut(...blank: readonly string[]): string[] {
-  const left = new Set(blank.map(squareAt));
-  return EASY_SOLUTION.map((row, r) =>
-    Array.from(row, (digit, c) =>
-      EASY[r]?.[c] !== "." || left.has(r * 9 + c) ? "." : digit,
-    ).join(""),
-  );
-}
 
 /** Returns a square's notes as a list of digits. */
 function notesAt(grid: Grid, square: string): number[] {

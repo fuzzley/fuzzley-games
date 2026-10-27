@@ -1,0 +1,10 @@
+// The ink the player's digits are written in, a pen's blue beside the givens'
+// black, in a light shade and a dark one, which `light-dark()` picks between
+// by the palette's color-scheme. The one place the game writes a color of its
+// own: no palette's accent clears 4.5:1 on every shading of a square, as the
+// contrast spec checks this ink does.
+
+/// Declares `--ink-entry`, the player's digits' ink.
+@mixin inks {
+  --ink-entry: light-dark(#1e40af, #bfdbfe);
+}

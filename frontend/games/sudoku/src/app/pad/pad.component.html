@@ -1,0 +1,64 @@
+<!--
+  The hint's words first, which a screen reader reaches before the keys;
+  the stage moves them under the pad when it sits beside the board. They are
+  not a live region: the announcer has said them already.
+-->
+<p class="hint">
+  @if (game.hint(); as hint) {
+    <strong class="hint-title">{{ hint.title }}</strong>
+    {{ hint.text }}
+  }
+</p>
+
+<div class="digits" role="group" aria-label="Digits">
+  @for (key of keys(); track key.digit) {
+    <button
+      type="button"
+      class="key"
+      [attr.aria-label]="key.label"
+      (click)="onDigit($event, key.digit)"
+    >
+      <span class="digit">{{ key.digit }}</span>
+      @if (key.left; as left) {
+        <span class="left">{{ left }}</span>
+      } @else {
+        <fz-icon name="tick" class="left" />
+      }
+    </button>
+  }
+</div>
+
+<div class="tools" role="group" aria-label="Tools">
+  <button
+    type="button"
+    class="tool"
+    [attr.aria-pressed]="game.notesMode()"
+    (click)="onNotes($event)"
+  >
+    <fz-icon name="pencil" />
+    <span>Notes</span>
+  </button>
+  <button type="button" class="tool" (click)="onErase($event)">
+    <fz-icon name="eraser" />
+    <span>Erase</span>
+  </button>
+  <!-- Dimmed rather than disabled, so the focus never falls off it. -->
+  <button
+    type="button"
+    class="tool"
+    [attr.aria-disabled]="!game.canUndo()"
+    (click)="onUndo($event)"
+  >
+    <fz-icon name="undo" />
+    <span>Undo</span>
+  </button>
+  <button
+    type="button"
+    class="tool"
+    [attr.aria-disabled]="!canHint()"
+    (click)="onHint($event)"
+  >
+    <fz-icon name="bulb" />
+    <span>{{ hintLabel() }}</span>
+  </button>
+</div>

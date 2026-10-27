@@ -1,9 +1,4 @@
-import {
-  EASY,
-  EASY_SOLUTION,
-  gridFrom,
-  squareAt,
-} from "../testing/grid_picture";
+import { EASY, gridFrom, solvedBut, squareAt } from "../testing/grid_picture";
 import { UNITS } from "./cells";
 import {
   describeChain,
@@ -25,16 +20,6 @@ import { parseDigits } from "./puzzle";
 const CLEARING = { clearNotes: true };
 const R1C1 = squareAt("r1c1");
 const R1C4 = squareAt("r1c4");
-
-/** `EASY`'s solution drawn as the player's digits, but for the squares named. */
-function solvedBut(...blank: readonly string[]): string[] {
-  const left = new Set(blank.map(squareAt));
-  return EASY_SOLUTION.map((row, r) =>
-    Array.from(row, (digit, c) =>
-      EASY[r]?.[c] !== "." || left.has(r * 9 + c) ? "." : digit,
-    ).join(""),
-  );
-}
 
 /** Returns a puzzle's board once logic has filled every single it can. */
 function afterSingles(text: string): number[] {

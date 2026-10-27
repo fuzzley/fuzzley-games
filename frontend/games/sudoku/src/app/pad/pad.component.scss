@@ -1,0 +1,140 @@
+@use "../styles" as *;
+
+// Under the board on a tall stage: the hint's words in the room left over,
+// then the nine digits in a row, then the tools. Beside it on a wide one: the
+// digits in a block of three by three, the tools under them, then the words.
+// The sizes are the room's (app.component.scss).
+:host {
+  display: grid;
+  grid-template-rows: var(--hint-room) var(--key) var(--tool);
+  gap: var(--gap);
+}
+
+.hint {
+  min-height: 0;
+  margin: 0;
+  overflow-y: auto;
+  color: var(--fz-text);
+  font-size: var(--fz-font-sm);
+  line-height: var(--fz-leading-tight);
+}
+
+.hint-title {
+  display: block;
+  font-weight: 700;
+}
+
+.digits {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: var(--fz-space-1);
+}
+
+.tools {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--fz-space-1);
+}
+
+// A key is the board's own surface, and the text's color on it, its count
+// too, which clears 4.5:1 hovered or not where the muted color might not.
+.key,
+.tool {
+  @include transition(background-color, border-color, color);
+
+  min-width: 0;
+  padding: 0;
+  border: 1px solid var(--fz-edge-3);
+  border-radius: var(--fz-radius-md);
+  background-color: var(--fz-panel);
+  color: var(--fz-text);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  &:hover {
+    background-image: linear-gradient(var(--fz-wash-3), var(--fz-wash-3));
+  }
+
+  // Dimmed rather than hidden, as `.fz-button` is.
+  &[aria-disabled="true"] {
+    background-image: none;
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.key {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  place-items: center;
+  padding-block: var(--fz-space-1);
+}
+
+.digit {
+  font-size: calc(var(--key) * 0.42);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.left {
+  --fz-icon-size: var(--fz-font-xs);
+
+  font-size: var(--fz-font-xs);
+  font-weight: 500;
+  line-height: 1;
+}
+
+// In Notes mode a digit adds a note rather than placing it, which the keys'
+// dashed accent edges say beside the Notes tool's fill.
+:host(.notes) .key {
+  border-style: dashed;
+  border-color: var(--fz-accent);
+}
+
+.tool {
+  --fz-icon-size: 20px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: var(--fz-font-xs);
+  font-weight: 600;
+
+  &[aria-pressed="true"] {
+    border-color: var(--fz-accent);
+    background-color: var(--fz-accent);
+    background-image: none;
+    color: var(--fz-on-accent);
+  }
+}
+
+@container stage (orientation: landscape) {
+  :host {
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .hint {
+    order: 1;
+  }
+
+  .digits {
+    grid-template-columns: repeat(3, var(--key));
+    grid-auto-rows: var(--key);
+    gap: var(--gap);
+  }
+
+  .tools {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: var(--tool);
+    gap: var(--gap);
+  }
+
+  .tool {
+    flex-direction: row;
+    gap: var(--fz-space-2);
+    font-size: var(--fz-font-sm);
+  }
+}
