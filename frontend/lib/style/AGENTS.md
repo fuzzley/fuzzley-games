@@ -50,8 +50,10 @@ relative to `frontend/lib/style/`.
 - **The toolkit**, `src/_index.scss`: the mixins a stylesheet reaches with
   `@use "@fz/style" as fz;`, from `src/toolkit/`: `visually-hidden` and
   `tap-target` (`_a11y.scss`), `flex-center` (`_layout.scss`), `transition`
-  (`_motion.scss`), `glass` (`_surfaces.scss`) and `icon-button`
-  (`_controls.scss`). It emits no CSS, so any stylesheet can load it, and
+  (`_motion.scss`), `glass` (`_surfaces.scss`), `icon-button`
+  (`_controls.scss`), and the parts a game's dialogs are drawn from,
+  `dialog-card($width)`, `close-button`, `field-label` and `choice-tile`
+  (`_dialogs.scss`). It emits no CSS, so any stylesheet can load it, and
   `src/toolkit.spec.ts` checks what each mixin writes.
 - `src/lint/stylelint.ts`: the stylelint rules every app's stylesheets
   keep, which its `stylelint.config.js` extends as `@fz/style/stylelint`.

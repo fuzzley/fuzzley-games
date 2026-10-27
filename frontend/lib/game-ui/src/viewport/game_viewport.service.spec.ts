@@ -75,4 +75,20 @@ describe("GameViewportService", () => {
   it("has no room for the home button below 360 px", () => {
     expect(at(359, 700).fitsHomeButton()).toBe(false);
   });
+
+  it("leads the bar with the wordmark on a roomy window wide enough", () => {
+    expect(at(1280, 800).barHome()).toBe("wordmark");
+  });
+
+  it("leads the bar with the home button on a roomy window too narrow for the wordmark", () => {
+    expect(at(1024, 768).barHome()).toBe("icon");
+  });
+
+  it("leads a compact bar with the home button, however wide", () => {
+    expect(at(1400, 480).barHome()).toBe("icon");
+  });
+
+  it("leaves the link home out of a bar below 360 px", () => {
+    expect(at(359, 700).barHome()).toBe("none");
+  });
 });

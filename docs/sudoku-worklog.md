@@ -29,20 +29,20 @@ history keeps it.
 
 ## Status
 
-| Phase | What                             | State       |
-| ----- | -------------------------------- | ----------- |
-| S0    | The bank spike                   | in progress |
-| S1    | The library lift                 | to do       |
-| S2    | Scaffold the workspace           | to do       |
-| S3    | The rules                        | to do       |
-| S4    | The solver, the grader, the bank | to do       |
-| S5    | The new icons                    | to do       |
-| S6    | The board and the pad            | to do       |
-| S7    | The bar and the dialogs          | to do       |
-| S8    | Storage                          | to do       |
-| S9    | The checks                       | to do       |
-| S10   | Screenshots and docs             | to do       |
-| S11   | Ship                             | to do       |
+| Phase | What                             | State |
+| ----- | -------------------------------- | ----- |
+| S0    | The bank spike                   | done  |
+| S1    | The library lift                 | done  |
+| S2    | Scaffold the workspace           | to do |
+| S3    | The rules                        | to do |
+| S4    | The solver, the grader, the bank | to do |
+| S5    | The new icons                    | to do |
+| S6    | The board and the pad            | to do |
+| S7    | The bar and the dialogs          | to do |
+| S8    | Storage                          | to do |
+| S9    | The checks                       | to do |
+| S10   | Screenshots and docs             | to do |
+| S11   | Ship                             | to do |
 
 ## Entries
 
@@ -51,4 +51,76 @@ history keeps it.
 - Branch `library-lift` created from `main` at `67c4436`.
 - Baseline `yarn verify` run on the clean branch, its output and both
   games' `dist/` kept in the session's scratchpad (`baseline/`) for S1's
-  before-and-after comparison.
+  before-and-after comparison. It passed in 6m09s, slowed by the spike
+  running beside it.
+
+### 2026-10-27: S0, the bank spike
+
+- **No throwaway code.** The solver, the grader and the generator were
+  written as S3 and S4 will commit them, in the scratchpad, and timed in
+  Node through Vite's `runnerImport()`, as the bank script will load them.
+- **The grader solves as the plan says,** easiest technique first:
+  hidden then naked singles; pointing, claiming, naked and hidden pairs;
+  naked and hidden triples and the X-Wing; the Swordfish and the XY-Wing.
+  A board it solves has one solution, since each step follows from the
+  digits before it, so generating needs no backtracking check.
+- **The generator takes givens away only while logic at the level still
+  solves what is left,** rather than down to a minimal puzzle that is then
+  graded. A minimal random puzzle is rarely Hard or Expert; this way every
+  try ends at the level or below it. Each try takes about 20 ms.
+- **A floor of givens for the easy levels:** the first run's Easy puzzles
+  kept only 28.6 givens on average, which singles alone solve but slowly.
+  Easy keeps at least 36 and Medium 30 (`fewest` in `difficulty.ts`);
+  Hard and Expert have no floor.
+- **100 puzzles a level,** from seeds 1 up, took: Easy 100 tries (1 s,
+  36.1 givens on average), Medium 2,700 tries (36 s, 30.1), Hard 15,065
+  tries (355 s, 27.7), Expert 2,057 tries (56 s, 28.3). Hard is the
+  rarest: a grid whose logic reaches past pairs mostly reaches past
+  triples too.
+- **The bank ships in the main bundle:** 8,401 bytes raw a level, and
+  3,216, 2,941, 2,801 and 2,849 bytes gzipped, 11.5 kB in all, under the
+  plan's 20 kB. So dealing is synchronous, as Minesweeper's is, and the
+  board never waits on a chunk. With the symmetries, 100 a level is plenty:
+  every deal looks different.
+- **Hints, tried by solving one puzzle a level by hints alone:** every
+  hint was right and every puzzle came out solved, in under 25 ms for all
+  of a puzzle's hints. A hint looks for the least work (a single, else one
+  elimination that leaves a single, else the easiest elimination and the
+  same again), then drops each elimination the rest can do without, which
+  took one Hard hint from six steps to three.
+- **Not done: listening with NVDA and Narrator,** which a session here
+  can't. The board names a square by what it holds and leaves its place to
+  Angular Aria's `aria-rowindex` and `aria-colindex`, as Minesweeper's
+  does; S9 leaves the listening to the user.
+
+### 2026-10-27: S1, the library lift
+
+- **`@fz/game-ui`:** `GameViewportService.barHome`, the link home the bar
+  has room for; `withHomeLink(items, href)` in `bar_overflow/home_link.ts`;
+  `formatClock()` in `stopwatch/format_clock.ts`, which writes "2:13", or
+  "1:02:13" past an hour. Each has its spec.
+- **`@fz/style`:** `toolkit/_dialogs.scss`, forwarded from the toolkit,
+  holds `dialog-card($width)`, `close-button`, `field-label` and
+  `choice-tile`, Minesweeper's four with its declarations in its order.
+  `toolkit.spec.ts` checks what each writes.
+- **Minesweeper** binds its bar's `home` to `barHome`, leads its overflow
+  menu with `withHomeLink()`, shows its clock and result through
+  `formatClock()` (dropping `formatTime()` and its four specs), and lost
+  `src/app/styles/_mixins.scss`, every mixin in it now the toolkit's.
+  Its clock past an hour reads "1:02:13" where it read "62:13", the one
+  visible change.
+- **The Solitaire Collection** takes `barHome` and `withHomeLink()` too,
+  and the toolkit's `field-label` and `choice-tile` in place of its own
+  `field-label` and `swatch-option`, which had the same declarations in
+  another order. It keeps its "02:13" clock and its `panel-card`.
+- **No pixel changed:** rather than screenshots, the check compared what
+  the builds style with. A script in the scratchpad
+  (`s1/styles.mjs`) lists every rule of each game's stylesheets and of the
+  component styles compiled into its scripts, each rule's declarations
+  sorted. Minesweeper's 235 rules and the Solitaire Collection's 402 are
+  the baseline's, byte for byte.
+- `@fz/style`'s and `@fz/game-ui`'s `AGENTS.md`, the `fuzzley-ui` skill,
+  both games' `AGENTS.md` and `solitaire-styles` name the new pieces.
+- **`yarn verify` passed** (3m51s) once Prettier had put the new spec's
+  quotes right: `@fz/game-ui` 98 tests (84), `@fz/style` 243 (237),
+  Minesweeper 351 (355), every other suite as the baseline's.

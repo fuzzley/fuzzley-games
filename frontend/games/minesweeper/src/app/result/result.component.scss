@@ -2,7 +2,7 @@
 
 // No scrim or z-index: <fz-dialog> puts this in the top layer.
 .card {
-  @include card(400px);
+  @include dialog-card(400px);
 
   text-align: center;
 

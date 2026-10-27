@@ -172,9 +172,10 @@ skill says more; on top of them:
   only make sense together are a mixin, because view encapsulation means a
   class cannot be shared between components. The ones every app shares are
   `@fz/style`'s toolkit, which `styles/_index.scss` forwards; only this
-  game's own (`field-label()`, `swatch-option()`, `spinner-ring()`,
-  `panel-card()`) are in `styles/_mixins.scss`, until another app needs
-  one.
+  game's own (`spinner-ring()` and `panel-card()`) are in
+  `styles/_mixins.scss`, until another app needs one. The settings' headings
+  and tiles are the toolkit's `field-label()` and `choice-tile()`, which
+  every game's dialogs share.
 - **Three breakpoints, by name.** `@include below("phone" | "tablet" |
 "desktop")`. `tablet` and `desktop` are `@fz/game-ui`'s; `phone` is this
   game's own, in `styles/_breakpoints.scss`, where another of its own would

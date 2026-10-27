@@ -55,4 +55,40 @@ describe("the toolkit's mixins", () => {
       "border-radius:50%",
     );
   });
+
+  it("size a dialog's card as asked, within the window", () => {
+    expect(compiled("@include fz.dialog-card(400px);")).toContain(
+      "width:400px;max-width:calc(100vw - var(--fz-space-8))",
+    );
+  });
+
+  it("lay a dialog's card on the float surface", () => {
+    expect(compiled("@include fz.dialog-card(400px);")).toContain(
+      "background:var(--fz-float)",
+    );
+  });
+
+  it("round a dialog's close button less than an icon button", () => {
+    expect(compiled("@include fz.close-button;")).toContain(
+      "border-radius:var(--fz-radius-sm)",
+    );
+  });
+
+  it("size a dialog's close button's icon", () => {
+    expect(compiled("@include fz.close-button;")).toContain(
+      ".it{--fz-icon-size: 20px}",
+    );
+  });
+
+  it("set a setting's name in muted capitals", () => {
+    expect(compiled("@include fz.field-label;")).toBe(
+      ".it{display:block;margin-bottom:var(--fz-space-3);color:var(--fz-muted);font-size:var(--fz-font-sm);font-weight:700;letter-spacing:.05em;text-transform:uppercase}",
+    );
+  });
+
+  it("put a checked choice tile in the accent", () => {
+    expect(compiled("@include fz.choice-tile;")).toContain(
+      ".it[aria-checked=true]{border-color:var(--fz-accent);background:var(--fz-accent-wash);color:var(--fz-text)}",
+    );
+  });
 });

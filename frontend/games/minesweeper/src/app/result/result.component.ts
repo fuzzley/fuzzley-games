@@ -1,9 +1,9 @@
 import { Component, computed, inject, output } from "@angular/core";
+import { formatClock } from "@fz/game-ui/stopwatch";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import { difficultyName } from "../../rules/difficulty";
 import { clearedShare, minesFound } from "../../rules/field";
-import { formatTime } from "../../rules/format";
 import { GameService } from "../play/game.service";
 import { StatsService } from "../stats/stats.service";
 
@@ -53,7 +53,7 @@ export class ResultComponent {
   protected readonly figures = computed<readonly Figure[]>(() => {
     const field = this.game.field();
     const { played, won, best } = this.stats.stats()[this.game.difficulty()];
-    const time = { term: "Time", value: formatTime(this.game.seconds()) };
+    const time = { term: "Time", value: formatClock(this.game.seconds()) };
     const games = { term: "Won", value: `${won} of ${played}` };
     if (this.won()) {
       return [
@@ -68,7 +68,7 @@ export class ResultComponent {
         term: "Mines found",
         value: `${minesFound(field)} of ${field.size.mines}`,
       },
-      best === null ? games : { term: "Best", value: formatTime(best) },
+      best === null ? games : { term: "Best", value: formatClock(best) },
     ];
   });
 

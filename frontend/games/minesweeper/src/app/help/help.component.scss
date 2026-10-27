@@ -2,7 +2,7 @@
 
 // No scrim or z-index: <fz-dialog> puts this in the top layer.
 .card {
-  @include card(580px);
+  @include dialog-card(580px);
 
   h2 {
     margin: 0 0 var(--fz-space-3);

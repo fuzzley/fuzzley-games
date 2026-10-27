@@ -3,12 +3,9 @@ import {
   type BarOverflowAction,
   BarOverflowComponent,
   type BarOverflowItem,
+  withHomeLink,
 } from "@fz/game-ui/bar_overflow";
-import {
-  type BarHome,
-  type BarPlacement,
-  GameBarComponent,
-} from "@fz/game-ui/game_bar";
+import { type BarPlacement, GameBarComponent } from "@fz/game-ui/game_bar";
 import { IconComponent } from "@fz/ui/icon";
 import { GameMetricsService } from "../../service/game_metrics.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
@@ -99,30 +96,14 @@ export class HeaderBarComponent {
     () => this.placement() === "bottom" && this.stockOnLeft(),
   );
 
-  protected readonly home = computed<BarHome>(() => {
-    if (!this.viewport.fitsHomeButton()) return "none";
-    return this.viewport.fitsWordmark() && !this.viewport.isCompact()
-      ? "wordmark"
-      : "icon";
-  });
-
   /** The overflow menu, led by the link home where the bar has no room for it. */
   protected readonly overflowItems = computed<
     readonly BarOverflowItem<MenuAction>[]
-  >(() => {
-    if (this.home() !== "none") return OVERFLOW_ACTIONS;
-    const [first, ...rest] = OVERFLOW_ACTIONS;
-    return [
-      {
-        id: "home",
-        label: "Fuzzley Games",
-        icon: "home",
-        href: HOME_HREF,
-      },
-      ...(first ? [{ ...first, startsGroup: true }] : []),
-      ...rest,
-    ];
-  });
+  >(() =>
+    this.viewport.barHome() === "none"
+      ? withHomeLink(OVERFLOW_ACTIONS, HOME_HREF)
+      : OVERFLOW_ACTIONS,
+  );
 
   /** Carries out the action chosen from the overflow menu. */
   protected chooseFromMenu(id: MenuAction): void {

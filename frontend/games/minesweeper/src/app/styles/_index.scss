@@ -2,10 +2,9 @@
 
 //     @use "../styles" as *;
 
-// It emits no CSS, or every component would repeat the rules. @fz/style's
-// toolkit comes with it, so a component calls a shared mixin as it does this
-// game's own.
+// It emits no CSS, or every component would repeat the rules. It brings
+// @fz/style's toolkit, the dialogs' parts among it, and the widths
+// @fz/game-ui changes a game's shape at.
 @forward "@fz/style";
 @forward "@fz/game-ui" show below, from, compact, phone-portrait,
   phone-landscape;
-@forward "mixins";

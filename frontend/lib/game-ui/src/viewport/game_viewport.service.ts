@@ -13,7 +13,7 @@ import {
   HOME_BUTTON_MIN_WIDTH_PX,
   WORDMARK_MIN_WIDTH_PX,
 } from "../breakpoints";
-import type { BarPlacement } from "../game_bar";
+import type { BarHome, BarPlacement } from "../game_bar";
 
 // The 0.02px guard is the one `below()` applies in the stylesheets.
 const COMPACT_QUERY = `(max-width: ${COMPACT_MAX_WIDTH_PX - 0.02}px), (max-height: ${COMPACT_MAX_HEIGHT_PX - 0.02}px)`;
@@ -76,6 +76,17 @@ export class GameViewportService {
 
   /** Whether the window is wide enough for the bar's home button. */
   readonly fitsHomeButton = computed(() => !this.belowHomeButton());
+
+  /**
+   * How the bar shows its link home: the wordmark on a roomy window wide
+   * enough for it, the home button where only that fits, and not at all on
+   * the narrowest, where the overflow menu leads with the link instead
+   * (`withHomeLink()`).
+   */
+  readonly barHome = computed<BarHome>(() => {
+    if (!this.fitsHomeButton()) return "none";
+    return this.fitsWordmark() && !this.isCompact() ? "wordmark" : "icon";
+  });
 
   constructor() {
     if (typeof window === "undefined" || !("matchMedia" in window)) return;
