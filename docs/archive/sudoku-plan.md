@@ -1,9 +1,15 @@
 # Plan: Sudoku, an Angular game on the shared libraries
 
-Proposed 2026-10-27, and taken the same day: the user asked for it to be
-built, which takes the first option, the recommendation, in each of the
-decisions at the end. The work log, `docs/sudoku-worklog.md`, says how the
-building stands.
+Proposed 2026-10-27, and built the same day: the user said "Implement the
+sudoku game planned in a previous session", asking for a detailed work log
+and regular commits, which took the first option, the recommendation, in
+each of the decisions at the end, and skipped S0's mock, since the user
+asked for the game itself. S1 was built on the branch `library-lift`, cut
+from `main`, and S2 to S10 on `sudoku`, cut from it, each phase its own
+commit with `yarn verify` green; the "As built" notes under each phase say
+what came of it. The work log, deleted at S10, is in git's history as
+`docs/sudoku-worklog.md`. The plan and its notes describe the code as it
+was, so check a path against the tree before following one.
 
 This plan builds Sudoku as the third game hosted on fuzzley.games. It is an
 Angular app on the shared libraries, shaped like Minesweeper: the rules are
@@ -421,6 +427,16 @@ S7 needs S1 to be finished.
     techniques, and whether the banks ship as separate chunks. S3 and S4
     write the real code, with specs; the measurements go in the work log.
 
+- **As built:** no mock; the design is this plan's, checked in the browser
+  as each phase landed. The spike was the real solver, grader and generator,
+  written as S3 and S4 committed them and timed in Node: 100 puzzles a level
+  took 100 tries at Easy, 2,700 at Medium, 15,065 at Hard and 2,057 at
+  Expert, about seven minutes in all, and the bank came to 11.5 kB gzipped,
+  so it ships in the main bundle and dealing is synchronous. Easy keeps at
+  least 36 givens and Medium 30. Listening with NVDA and Narrator was left to
+  the user; a square is named by what it holds, its place left to
+  `aria-rowindex` and `aria-colindex`.
+
 ### S1: the library lift (medium)
 
 Decision 9. This phase is on its own branch, merged first.
@@ -443,6 +459,12 @@ Decision 9. This phase is on its own branch, merged first.
   palette, show no pixel changed. The `fuzzley-ui` skill and the libraries'
   `AGENTS.md` files name the new pieces.
 
+- **As built:** as planned, on `library-lift`. Instead of screenshots, a
+  script compared every style rule both games' builds compile to, each
+  rule's declarations sorted: Minesweeper's 235 rules and the Solitaire
+  Collection's 402 were the baseline's, byte for byte. Minesweeper's clock
+  past an hour reads "1:02:13" where it read "62:13".
+
 ### S2: scaffold the workspace (small)
 
 - **`frontend/games/sudoku/`,** copied from Minesweeper:
@@ -463,6 +485,10 @@ Decision 9. This phase is on its own branch, merged first.
 - **Verify:** `yarn verify` builds the new workspace. `games.json` doesn't
   list it yet, so the site doesn't serve it.
 
+- **As built:** as planned, but `tsconfig.scripts.json`, `tools/` and the
+  `generate:puzzles` script came with S4's script, since `tsc` fails on a
+  project with no files.
+
 ### S3: the rules (medium)
 
 `cells.ts`, `puzzle.ts`, `grid.ts`, `history.ts`, `transform.ts`,
@@ -470,6 +496,15 @@ Decision 9. This phase is on its own branch, merged first.
 `json.ts` and `format.ts`, each with its spec. `src/testing/` gets the
 grid picture helper. The coverage floor on `src/rules/` goes in at this
 phase.
+
+- **As built:** the line between S3 and S4 moved with the imports:
+  `puzzle.ts` solves its givens and `difficulty.ts` names the grader's
+  techniques, so `solver.ts`, `logic.ts` and `difficulty.ts` came into S3,
+  with `digits.ts` (sets of digits as nine bits) beside `cells.ts`; `deal.ts`,
+  `describe.ts` and `saved_grid.ts` went to S4. The floor is 100% of
+  statements, functions and lines and 95% of branches; reads go through
+  `at()`, `peersOf()` and `unitsOf()` so `noUncheckedIndexedAccess` leaves no
+  fallback a spec can't reach.
 
 ### S4: the solver, the grader and the bank (large)
 
@@ -479,11 +514,17 @@ phase.
   `bank.spec.ts`.
 - `deal.ts` loads the banks the way S0's measurements decided.
 
+- **As built:** as planned, with `deal.ts`, `describe.ts` and
+  `saved_grid.ts`. The bank took 12m57s to write, Hard 620 s of it.
+
 ### S5: the new icons (small)
 
 `pencil`, `eraser` and `bulb` go into `@fz/ui`'s `ICON_NAMES` and its
 template, drawn as the mock settled, with the icon spec's cases. Neither
 other game uses them, and their specs show nothing changed for them.
+
+- **As built:** the three icons, outlines like `undo` beside them on the
+  pad.
 
 ### S6: the board and the pad (large)
 
@@ -505,6 +546,17 @@ other game uses them, and their specs show nothing changed for them.
   selects a square and then fills it. A solved board opens the result.
   Focus goes back to the board after a new deal.
 
+- **As built:** the contrast spec changed three of the design's choices.
+  With 18 to 28% tints under the selection and a hint, Soft pastel's muted
+  notes and its danger color fell under 4.5:1, so the shades are 12 to 22%,
+  the player's ink is a deeper blue in a light palette and a paler one in a
+  dark one (`#1e40af` and `#bfdbfe`), notes are in the text's color with the
+  selected square's digit on an accent chip, and a square with a marked
+  digit is never shaded. The selection is outlined in the accent as well.
+  A hint's words show on the pad, and Hint reads "Fill in", or "Take out"
+  for a wrong digit, while one shows. N, H and Ctrl+Z are read by their
+  character, digits by the key's code.
+
 ### S7: the bar and the dialogs (medium)
 
 - **`<app-bar>`** on `<fz-game-bar>` and `<fz-bar-overflow>`, with S1's
@@ -514,6 +566,10 @@ other game uses them, and their specs show nothing changed for them.
 - **Specs** for each: what it shows, what it does, and that focus returns
   afterward.
 
+- **As built:** as planned. The result card opens 1.3 s after the solve,
+  once the board's wave has run, at once where motion is unwelcome. How to
+  play's stylesheet is Minesweeper's, copied whole.
+
 ### S8: storage (medium)
 
 - `SettingsService`, `StatsService` and `SavedGameService`, under the three
@@ -521,6 +577,9 @@ other game uses them, and their specs show nothing changed for them.
   sight, as Minesweeper's are.
 - Every reader tolerates an entry that is missing, from an old version, or
   broken. The specs use an in-memory store.
+
+- **As built:** as planned; the settings and the stats were kept from S6.
+  A fresh deal no move has touched isn't kept.
 
 ### S9: the checks (medium)
 
@@ -531,6 +590,11 @@ other game uses them, and their specs show nothing changed for them.
   DevTools. Run Lighthouse's accessibility audit.
 - **Size:** the gzipped page compared with Minesweeper's 103 kB plus the
   bank.
+
+- **As built:** everything but NVDA and Narrator, left to the user.
+  Lighthouse scored accessibility 100; its one flag, the digit keys' names
+  not holding their visible counts, was fixed by naming each key by its text.
+  The script came to 100.9 kB gzipped, against Minesweeper's 104.4.
 
 ### S10: screenshots and docs (small)
 
@@ -550,6 +614,11 @@ other game uses them, and their specs show nothing changed for them.
   `web-game-accessibility` (the number pad, as how a game takes digits) and
   `angular-testing`.
 - **Finish:** delete the work log.
+
+- **As built:** as planned. The first capture showed a note's chip stretch
+  its row, which the specs couldn't see; the board's tracks became
+  `minmax(0, 1fr)` and the chip no bigger than a note's place. The
+  thumbnail is the board and the pad, widened to the thumbnail's shape.
 
 ### S11: ship (small)
 
