@@ -86,10 +86,14 @@ const RELATIVE_VITE = new RegExp(String.raw`(?:^|\s)(?:\./)?${VITE_BIN}`);
 
 /** Matches the command lines of the processes that launch a dev server. */
 const LAUNCHERS = [
-  // yarn start, npm run dev, yarn workspace solitaire preview, and the like.
-  /\b(?:yarn|npm)\S*\s+(?:workspace\s+\S+\s+)?(?:run\s+)?(?:start|dev|preview)(?=["'\s]|$)/,
+  // yarn start, npm run dev, yarn workspace solitaire preview, and the like,
+  // their words quoted as Windows passes them on ("start", or ^"start^" in
+  // cmd /c).
+  /\b(?:yarn|npm)\S*\s+(?:[\^"]*workspace[\^"]*\s+\S+\s+)?(?:[\^"]*run[\^"]*\s+)?[\^"]*(?:start|dev(?::all)?|preview)(?=[\^"'\s]|$)/,
   // cmd /c vite or sh -c vite, the shell a package manager runs a script in.
   /\b(?:cmd\.exe\b.*\/c|sh\s+-c)\s+"?vite\b/,
+  // The site's script that starts its dev server and every game's.
+  /\bdev-all\.mjs\b/,
 ];
 
 /**

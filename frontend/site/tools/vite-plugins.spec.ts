@@ -1,4 +1,6 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import http, { type Server } from "node:http";
+import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { GameManifest } from "@fz/dev/game-manifest";
@@ -6,6 +8,8 @@ import type { Game } from "../src/app/model/game.ts";
 import {
   type Catalog,
   commitHash,
+  forward,
+  gameServerTargets,
   loadCatalog,
   manifestProblems,
   missingImages,
@@ -83,6 +87,85 @@ describe("playPageRoute", () => {
 
   it("leaves the site's pages to Vite", () => {
     expect(playPageRoute("/games/klondike")).toBeNull();
+  });
+});
+
+describe("gameServerTargets", () => {
+  it("names each game's server by the game's folder", () => {
+    const env = {
+      FZ_GAME_SERVERS: JSON.stringify({ minesweeper: "http://localhost:4201" }),
+    };
+
+    expect(gameServerTargets(env)).toEqual({
+      "/play/minesweeper/": "http://localhost:4201",
+    });
+  });
+
+  it("names none when dev-all.mjs names none", () => {
+    expect(gameServerTargets({})).toBeUndefined();
+  });
+
+  it("fails on servers it can't read", () => {
+    const env = { FZ_GAME_SERVERS: JSON.stringify({ minesweeper: 4201 }) };
+
+    expect(() => gameServerTargets(env)).toThrow(/doesn't map slugs/);
+  });
+});
+
+describe("forward", () => {
+  const servers: Server[] = [];
+
+  /** Starts a server on a free port and returns its address. */
+  async function listen(handler: http.RequestListener): Promise<string> {
+    const server = http.createServer(handler);
+    servers.push(server);
+    await new Promise<void>((resolve) => {
+      server.listen(0, "127.0.0.1", resolve);
+    });
+    const { port } = server.address() as AddressInfo;
+    return `http://127.0.0.1:${port}`;
+  }
+
+  afterEach(async () => {
+    await Promise.all(
+      servers.splice(0).map(
+        (server) =>
+          new Promise((resolve) => {
+            server.closeAllConnections();
+            server.close(resolve);
+          }),
+      ),
+    );
+  });
+
+  it("answers with what the server answers, for the same path", async () => {
+    const game = await listen((req, res) => {
+      res.writeHead(201, { "content-type": "text/javascript" });
+      res.end(`served ${req.method ?? ""} ${req.url ?? ""}`);
+    });
+    const site = await listen((req, res) => {
+      forward(game, req, res);
+    });
+
+    const answer = await fetch(`${site}/play/minesweeper/@ng/component?c=x`);
+
+    expect(answer.status).toBe(201);
+    expect(answer.headers.get("content-type")).toBe("text/javascript");
+    expect(await answer.text()).toBe(
+      "served GET /play/minesweeper/@ng/component?c=x",
+    );
+  });
+
+  it("answers 502 when the server isn't there", async () => {
+    const gone = await listen(() => undefined);
+    await new Promise((resolve) => servers.pop()?.close(resolve));
+    const site = await listen((req, res) => {
+      forward(gone, req, res);
+    });
+
+    const answer = await fetch(`${site}/play/minesweeper/`);
+
+    expect(answer.status).toBe(502);
   });
 });
 

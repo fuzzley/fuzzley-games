@@ -61,6 +61,14 @@ the site's `env.js` and `analytics.js` tags to each game's `index.html` in
 `version.json` names each game's build by its workspace and the site's own
 commit.
 
+`yarn dev:all` serves the games another way, for working on them:
+`frontend/site/tools/dev-all.mjs` starts each game's own Vite dev server
+in its workspace, at `/play/<slug>/` and on a port after the site's, and
+the site's dev server sends each game's folder there, websocket and all, so
+an edit to a game shows at the site's address as soon as it is saved: a
+component's template or styles, a library's included, swap into the running
+page, and anything else reloads it.
+
 The site's catalog (`frontend/site/src/app/provider/games.ts`) names each
 hosted game's build and id, and shows the screenshots the build ships in
 `docs/screenshots/<id>/`. Each game also writes a `game.json` at

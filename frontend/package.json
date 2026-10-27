@@ -15,6 +15,7 @@
   "scripts": {
     "start": "yarn build:games && yarn workspace site start",
     "dev": "yarn build:games && yarn workspace site dev",
+    "dev:all": "yarn workspace site dev:all",
     "build": "yarn build:games && yarn workspace site build",
     "build:games": "yarn workspaces foreach --all --include \"games/*\" run build",
     "games": "yarn build:games && yarn workspace site games",

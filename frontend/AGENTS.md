@@ -34,7 +34,9 @@ keeps its own in an `AGENTS.md` in its folder. Paths are relative to
   They build on `@fz/dev`'s presets, so every workspace is checked by the
   same rules, and add only what is the workspace's own. The site and the
   games never import each other's code; the site takes a game's built
-  `dist/`, through `games.json`, and nothing else.
+  `dist/`, through `games.json`, and nothing else, but for `yarn dev:all`,
+  which runs each game's own dev server in its workspace and serves it at
+  the site's `/play/<slug>/`.
 - **`site/`** is the site, the Angular app (workspace `site`), and the build
   the image serves, with the games under `/play/`: `site/AGENTS.md`.
 - **`lib/`** holds the libraries the site and the games share, one workspace
@@ -76,7 +78,8 @@ Run from `frontend/`. Each of these builds or checks every workspace; a
 workspace's own scripts, such as `yarn workspace site lint:styles`, run one
 step, and its `AGENTS.md` says what they do.
 
-- **Run Development Server:** `yarn start` or `yarn dev` (builds the workspaces under `games/`, then the site puts the games in `site/public/play/` and launches the Vite dev server at `http://localhost:4200/`).
+- **Run Development Server:** `yarn start` or `yarn dev` (builds the workspaces under `games/`, then the site puts the games in `site/public/play/` and launches the Vite dev server at `http://localhost:4200/`). The games are the builds made when it started, so an edit to one shows only once it is built again.
+- **Run Every Dev Server:** `yarn dev:all` (runs `site/tools/dev-all.mjs`: the site's Vite dev server at `http://localhost:4200/`, and each game's own on the ports after it, which the site serves at `/play/<slug>/`, so an edit to a component's template or styles, in the site, a game or a library, swaps into the running page, keeping the game in play, and any other edit reloads the page, from which each game takes up the game it saved; `--port <n>` moves the site, and the games with it, to another port, failing rather than taking another when one is in use). When one server stops, the others do too.
 - **Production Build:** `yarn build` (builds the workspaces under `games/` with `yarn build:games`, then the site's `build` puts every game `games.json` lists into `site/public/play/`, bundles into `site/dist/`, writes `version.json` with the commit it was built from and the games' builds, then adds the analytics tags to each game). It fails if the catalog links a game the games' builds don't have, or calls one by another name, as each build's `game.json` says.
 - **Copy the Games:** `yarn games` (builds the workspaces and copies every game into `site/public/play/`; `yarn start` and `yarn build` do it first).
 - **Preview Build:** `yarn preview` (serves the site's production build locally).
@@ -90,7 +93,7 @@ step, and its `AGENTS.md` says what they do.
 
 ## Running & Debugging
 
-- **Local Testing:** Start the server with `yarn start` and navigate to `http://localhost:4200/`.
+- **Local Testing:** Start the server with `yarn start`, or `yarn dev:all` to work on the site and the games at once, and navigate to `http://localhost:4200/`.
 - **Chrome DevTools MCP:** Use the `chrome-devtools-mcp` server to inspect and
   verify the local running site when making UI or behavioral changes.
 - **Browser Tools:** Close any browser instance you start for debugging when

@@ -29,6 +29,7 @@ cd frontend
 
 yarn install     # install dependencies
 yarn dev         # start the dev server on http://localhost:4200 (or yarn start)
+yarn dev:all     # the same, from every app's own dev server, updating as you edit
 yarn build       # build the games, then build the site into site/dist/
 yarn preview     # serve the production build locally
 yarn test        # run every workspace's unit tests

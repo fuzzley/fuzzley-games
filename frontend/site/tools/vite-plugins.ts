@@ -2,6 +2,7 @@
 
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import http, { type IncomingMessage, type ServerResponse } from "node:http";
 import path from "node:path";
 import {
   GAME_MANIFEST,
@@ -12,6 +13,7 @@ import { type Connect, type Plugin, runnerImport } from "vite";
 import type { BuildInfo } from "../src/app/model/build.ts";
 import type * as GameModel from "../src/app/model/game.ts";
 import type * as GameData from "../src/app/provider/games.ts";
+import { GAME_SERVERS_ENV } from "./dev-all.mjs";
 import { type GameBuild, readManifest } from "./games.mjs";
 import { SITE_DIR } from "./script.mjs";
 
@@ -140,6 +142,94 @@ export function servePlayPages(): Plugin {
     },
     configurePreviewServer: (server) => {
       server.middlewares.use(handle);
+    },
+  };
+}
+
+/** Returns whether a value maps each slug to a server's address. */
+function isServerMap(value: unknown): value is Record<string, string> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    Object.values(value).every((target) => typeof target === "string")
+  );
+}
+
+/**
+ * Returns the address of each game's dev server by the game's folder,
+ * /play/<slug>/, or nothing when dev-all.mjs names no servers.
+ */
+export function gameServerTargets(
+  env: NodeJS.ProcessEnv = process.env,
+): Record<string, string> | undefined {
+  const servers = env[GAME_SERVERS_ENV];
+  if (!servers) return undefined;
+  const parsed: unknown = JSON.parse(servers);
+  if (!isServerMap(parsed)) {
+    throw new Error(`${GAME_SERVERS_ENV} doesn't map slugs to addresses.`);
+  }
+  return Object.fromEntries(
+    Object.entries(parsed).map(([slug, target]) => [`/play/${slug}/`, target]),
+  );
+}
+
+/** Sends a request on to a server, and the server's answer back. */
+export function forward(
+  target: string,
+  req: IncomingMessage,
+  res: ServerResponse,
+): void {
+  const upstream = http.request(
+    new URL(req.url ?? "/", target),
+    { method: req.method, headers: req.headers },
+    (answer) => {
+      res.writeHead(answer.statusCode ?? 502, answer.headers);
+      answer.pipe(res);
+    },
+  );
+  upstream.on("error", (error) => {
+    res.statusCode = 502;
+    res.end(`${target} didn't answer: ${error.message}`);
+  });
+  req.pipe(upstream);
+}
+
+/**
+ * Sends each game's folder to the game's own dev server, in place of the copy
+ * of its build in public/play/, when dev-all.mjs names the servers, so the
+ * game's page updates as it is edited.
+ *
+ * The requests are forwarded ahead of every other plugin's middleware, since
+ * Analog's answers any request for an updated component, a game's too, from
+ * the site's own. Vite's proxy, which comes after them all, carries only the
+ * websockets.
+ */
+export function proxyGameServers(): Plugin {
+  let targets: Record<string, string> | undefined;
+  return {
+    name: "proxy-game-servers",
+    apply: "serve",
+    enforce: "pre",
+    config() {
+      targets = gameServerTargets();
+      if (!targets) return;
+      const proxy = Object.fromEntries(
+        Object.entries(targets).map(([folder, target]) => [
+          folder,
+          { target, ws: true },
+        ]),
+      );
+      return { server: { proxy } };
+    },
+    configureServer(server) {
+      if (!targets) return;
+      const folders = Object.entries(targets);
+      server.middlewares.use((req, res, next) => {
+        const game = folders.find(([folder]) => req.url?.startsWith(folder));
+        if (game) forward(game[1], req, res);
+        else next();
+      });
     },
   };
 }

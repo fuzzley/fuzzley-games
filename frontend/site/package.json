@@ -8,6 +8,7 @@
   "scripts": {
     "start": "node tools/copy-games.mjs --optional && vite",
     "dev": "node tools/copy-games.mjs --optional && vite",
+    "dev:all": "node tools/dev-all.mjs",
     "build": "node tools/copy-games.mjs && vite build && node tools/inject-analytics.mjs",
     "games": "node tools/copy-games.mjs",
     "preview": "vite preview",
