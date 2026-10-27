@@ -1,0 +1,58 @@
+<fz-dialog
+  [open]="open()"
+  dialogRole="alertdialog"
+  label="Solved!"
+  describedBy="result-subtitle"
+  (closed)="game.closeResult()"
+>
+  <div class="card">
+    <fz-icon class="card-icon" name="trophy" />
+    <h2>Solved!</h2>
+    <p class="subtitle">
+      <span id="result-subtitle">{{ level() }}</span>
+      @if (game.newBest()) {
+        <span class="fz-badge fz-badge-accent">New best time</span>
+      }
+    </p>
+
+    <!--
+      A description list, so each figure is announced with what it measures;
+      the stylesheet lifts each value above its term.
+    -->
+    <dl class="figures">
+      @for (figure of figures(); track figure.term) {
+        <div class="figure">
+          <dt>{{ figure.term }}</dt>
+          <dd>{{ figure.value }}</dd>
+        </div>
+      }
+    </dl>
+    @if (note(); as note) {
+      <p class="note">{{ note }}</p>
+    }
+
+    <div class="actions">
+      <!--
+        `autofocus` so the card opens on New Game. The lint rule is about
+        autofocus on page load, which a dialog taking focus is not.
+      -->
+      <!-- eslint-disable @angular-eslint/template/no-autofocus -->
+      <button
+        type="button"
+        class="fz-button fz-button-warning fz-button-large fz-button-block"
+        autofocus
+        (click)="newGame()"
+      >
+        New Game
+      </button>
+      <!-- eslint-enable @angular-eslint/template/no-autofocus -->
+      <button
+        type="button"
+        class="fz-button fz-button-secondary fz-button-large fz-button-block"
+        (click)="game.closeResult()"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+</fz-dialog>

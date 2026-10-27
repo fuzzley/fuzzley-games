@@ -1,0 +1,79 @@
+<fz-dialog [open]="open()" label="Settings" (closed)="closed.emit()">
+  <div class="drawer">
+    <div class="drawer-header">
+      <h2>Settings</h2>
+      <button
+        type="button"
+        class="close"
+        aria-label="Close settings"
+        (click)="closed.emit()"
+      >
+        <fz-icon name="close" />
+      </button>
+    </div>
+
+    <div class="drawer-content">
+      <div class="setting">
+        <span class="setting-label" id="level-label">Level</span>
+        <!-- Each choice is named by all its text, as a voice command reads it. -->
+        <div
+          class="choice-list"
+          fzRadioGroup
+          aria-labelledby="level-label"
+          aria-describedby="level-desc"
+        >
+          @for (choice of levels(); track choice.id) {
+            <button
+              type="button"
+              class="choice"
+              role="radio"
+              [attr.aria-checked]="choice.checked"
+              (click)="chooseLevel(choice.id)"
+            >
+              <span class="name">{{ choice.name }}</span>
+              <span class="desc">{{ choice.asks }}</span>
+            </button>
+          }
+        </div>
+        <p class="setting-desc" id="level-desc">
+          Changing the level starts a new puzzle.
+        </p>
+      </div>
+
+      <div class="setting" role="group" aria-labelledby="assists-label">
+        <span class="setting-label" id="assists-label">Assists</span>
+        <div class="assist">
+          <input
+            id="mark-mistakes"
+            type="checkbox"
+            aria-describedby="mark-mistakes-desc"
+            [checked]="settings().markMistakes"
+            (change)="setAssist('markMistakes', $event)"
+          />
+          <label for="mark-mistakes">Mark mistakes</label>
+          <p class="setting-desc" id="mark-mistakes-desc">
+            Marks a digit the solution doesn't hold, as a repeat is marked.
+          </p>
+        </div>
+        <div class="assist">
+          <input
+            id="clear-notes"
+            type="checkbox"
+            aria-describedby="clear-notes-desc"
+            [checked]="settings().clearNotes"
+            (change)="setAssist('clearNotes', $event)"
+          />
+          <label for="clear-notes">Remove notes as digits go in</label>
+          <p class="setting-desc" id="clear-notes-desc">
+            A digit you place comes out of the notes of the squares it sees.
+          </p>
+        </div>
+      </div>
+
+      <div class="setting">
+        <span class="setting-label" aria-hidden="true">Theme</span>
+        <fz-theme-picker />
+      </div>
+    </div>
+  </div>
+</fz-dialog>

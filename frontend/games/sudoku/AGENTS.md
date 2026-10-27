@@ -53,9 +53,15 @@ It is being built from `docs/sudoku-plan.md`; this file grows with it.
   - `board/` — the grid of squares.
   - `pad/` — the number pad: a key for each digit with how many are left,
     the tools (Notes, Erase, Undo and Hint), and the hint's words.
-  - `settings/` — `SettingsService`, the level and the assists the player
-    chose. `stats/` — `StatsService`, the games played and solved and the
-    best times.
+  - `bar/` — `BarComponent` fills the libraries' `<fz-game-bar>` with the
+    level, the time and the actions, and moves them into
+    `<fz-bar-overflow>` on a compact screen.
+  - `settings/` — the settings drawer (the level, the assists and the
+    palette) and `SettingsService`, which keeps what the player chose.
+  - `stats/` — `StatsService`, the games played and solved and the best
+    times.
+  - `result/` — the card over a solved puzzle, which opens once the
+    board's wave has run. `help/` — How to play.
   - `styles/` — `global.scss`, loaded once from `main.ts`, and
     `_index.scss`, the toolkit every component `@use`s, which emits no CSS.
 
