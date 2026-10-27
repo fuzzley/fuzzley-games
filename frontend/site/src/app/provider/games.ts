@@ -311,7 +311,8 @@ export const GAMES: readonly Game[] = [
     blurb: "Fill the grid so every row, column and box has 1 to 9.",
     players: SOLO,
     minutes: 10,
-    added: "2026-10-11",
+    added: "2026-10-27",
+    play: { build: "sudoku" },
   },
   {
     slug: "reversi",
