@@ -27,7 +27,8 @@ const OVERFLOW_ACTIONS: readonly BarOverflowAction<MenuAction>[] = [
 
 /**
  * Shows the game bar: the link home, the game's name and level, the time,
- * and the actions.
+ * and the actions. The level shows at every size; the name only for a
+ * screen reader on a compact screen.
  *
  * On a compact screen, Restart, How to play and Settings move into the
  * overflow menu, and on the narrowest the link home does too.

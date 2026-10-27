@@ -46,6 +46,18 @@
         New Game
       </button>
       <!-- eslint-enable @angular-eslint/template/no-autofocus -->
+      <div class="levels" role="group" aria-labelledby="result-levels">
+        <span class="levels-label" id="result-levels">Or another level</span>
+        @for (choice of otherLevels(); track choice.id) {
+          <button
+            type="button"
+            class="fz-button fz-button-secondary"
+            (click)="playLevel(choice.id)"
+          >
+            {{ choice.name }}
+          </button>
+        }
+      </div>
       <button
         type="button"
         class="fz-button fz-button-secondary fz-button-large fz-button-block"

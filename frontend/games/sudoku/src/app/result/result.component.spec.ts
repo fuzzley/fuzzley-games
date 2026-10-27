@@ -1,9 +1,10 @@
 import { TestBed } from "@angular/core/testing";
-import { render, screen } from "@testing-library/angular";
+import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { type GameOptions, playOn } from "../../testing/game";
 import { solvedBut } from "../../testing/grid_picture";
 import { GameService } from "../play/game.service";
+import { SettingsService } from "../settings/settings.service";
 import { ResultComponent } from "./result.component";
 
 /**
@@ -66,6 +67,28 @@ describe("ResultComponent", () => {
     await renderSolved();
 
     expect(screen.getByRole("button", { name: "New Game" })).toHaveFocus();
+  });
+
+  it("offers a new game at each other level", async () => {
+    await renderSolved();
+
+    const levels = screen.getByRole("group", { name: "Or another level" });
+
+    expect(
+      within(levels)
+        .getAllByRole("button")
+        .map((button) => button.textContent.trim()),
+    ).toEqual(["Medium", "Hard", "Expert"]);
+  });
+
+  it("deals at another level from the card, and keeps it", async () => {
+    const { user } = await renderSolved();
+
+    await user.click(screen.getByRole("button", { name: "Hard" }));
+
+    expect(TestBed.inject(GameService).level()).toBe("hard");
+    expect(TestBed.inject(SettingsService).settings().level).toBe("hard");
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });
 
   it("deals a new puzzle from New Game, and closes", async () => {
