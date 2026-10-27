@@ -21,8 +21,9 @@ Run these from `frontend/games/sudoku/`, or as
   `yarn test:watch`. `yarn vitest run <path>` runs one spec without
   coverage.
 - **Coverage Floor**: `vitest.config.ts` holds `src/rules/` to 100% of
-  statements, functions and lines and 95% of branches, and `yarn test`,
-  which CI runs, fails below it. `noUncheckedIndexedAccess` makes every
+  statements, functions and lines and 95% of branches, and the shell,
+  `src/app/`, to 100% of functions and lines, 95% of statements and 85% of
+  branches. `yarn test`, which CI runs, fails below either. `noUncheckedIndexedAccess` makes every
   read of a list a branch, so the rules read a square through `at()`,
   `peersOf()` and `unitsOf()` (`src/rules/cells.ts`) rather than with a
   fallback no spec can reach.
@@ -49,11 +50,15 @@ Run these from `frontend/games/sudoku/`, or as
 - The rules know no framework, so their specs call the functions in
   `src/rules/` directly and assert on what they return. The grader's specs
   hold a puzzle for each technique, one logic solves with every technique
-  and can't with that one withheld.
+  and can't with that one withheld; `NEEDS` in `logic.spec.ts` is typed so
+  that a technique without one doesn't compile. `hint.spec.ts` checks which
+  hint a board gives, passing `hintFor()` a chain of its own to reach the
+  guard against a step the solution disagrees with.
 - `src/rules/bank.spec.ts` holds every puzzle in `src/rules/bank/` to one
-  solution, its level's grade and its level's fewest givens, so it fails
-  when the grader changes under the bank; `yarn generate:puzzles` writes
-  the bank again.
+  solution, its level's grade and its level's fewest givens, and every step
+  logic takes on it, grading or in a playthrough by hints, to that solution
+  (`agrees()`), so it fails when the grader changes under the bank;
+  `yarn generate:puzzles` writes the bank again.
 
 ## The Shell
 

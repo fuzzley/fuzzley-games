@@ -56,11 +56,9 @@ export class SettingsComponent {
   }
 
   /** Turns an assist on or off as its checkbox says. */
-  protected setAssist(assist: Assist, event: Event): void {
-    const box = event.target;
-    if (!(box instanceof HTMLInputElement)) return;
+  protected setAssist(assist: Assist, on: boolean): void {
     const change: Partial<Record<Assist, boolean>> = {};
-    change[assist] = box.checked;
+    change[assist] = on;
     this.store.update(change);
   }
 }

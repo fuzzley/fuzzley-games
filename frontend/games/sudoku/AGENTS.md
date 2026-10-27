@@ -87,6 +87,24 @@ workspace keeps its own for its code. Paths are relative to
   expect the hard level to take about ten minutes.
   `capture-screenshots.mjs` makes the screenshots the site shows.
 
+## Adding a Technique
+
+A technique, such as a Skyscraper or an XYZ-Wing, touches these places,
+and the compiler asks for most of them:
+
+1. `TECHNIQUES` in `src/rules/logic.ts`, in its place by difficulty, and
+   its search in `FINDERS` beside it, a generator of the steps it finds.
+2. `TECHNIQUE_LEVELS` in `src/rules/difficulty.ts`, and the level's `asks`
+   in `LEVEL_INFO` if its words should name it.
+3. `TECHNIQUE_NAMES` and `eliminationWords()` in `src/rules/describe.ts`,
+   the hint's title and sentence, with a spec of the words.
+4. A puzzle in `NEEDS` in `src/rules/logic.spec.ts` that logic solves with
+   the technique and can't without it.
+5. `yarn test`. The bank's spec checks every step the new technique takes on
+   the bank against the solution, and fails where the grader now grades a
+   puzzle at another level; then `yarn generate:puzzles` writes the bank
+   again, and the help's words on the levels may need it too.
+
 ## The Board and the Pad
 
 - **The board is a grid,** Angular Aria's `ngGrid`, with one tab stop, the

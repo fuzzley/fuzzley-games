@@ -44,11 +44,12 @@
         <span class="setting-label" id="assists-label">Assists</span>
         <div class="assist">
           <input
+            #markMistakes
             id="mark-mistakes"
             type="checkbox"
             aria-describedby="mark-mistakes-desc"
             [checked]="settings().markMistakes"
-            (change)="setAssist('markMistakes', $event)"
+            (change)="setAssist('markMistakes', markMistakes.checked)"
           />
           <label for="mark-mistakes">Mark mistakes</label>
           <p class="setting-desc" id="mark-mistakes-desc">
@@ -57,11 +58,12 @@
         </div>
         <div class="assist">
           <input
+            #clearNotes
             id="clear-notes"
             type="checkbox"
             aria-describedby="clear-notes-desc"
             [checked]="settings().clearNotes"
-            (change)="setAssist('clearNotes', $event)"
+            (change)="setAssist('clearNotes', clearNotes.checked)"
           />
           <label for="clear-notes">Remove notes as digits go in</label>
           <p class="setting-desc" id="clear-notes-desc">

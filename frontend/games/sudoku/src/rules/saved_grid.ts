@@ -2,7 +2,7 @@ import { CELLS } from "./cells";
 import { type Level, isLevel } from "./difficulty";
 import { isDigitSet } from "./digits";
 import { type Grid, isGiven } from "./grid";
-import { packHistory, unpackHistory } from "./history";
+import type { Change, Move, Square } from "./history";
 import { isRecord, isWhole } from "./json";
 import { digitsText, parseDigits, puzzleFrom } from "./puzzle";
 
@@ -38,7 +38,8 @@ export function saveGrid(grid: Grid): SavedGrid {
  * Returns the grid a stored one describes, or null when it is not one the
  * game could have saved: from another version, cut short, or edited. The
  * solution is worked out again from the givens, so an edited one can't
- * hand the game a wrong one.
+ * hand the game a wrong one, and the last move must have left the board as
+ * it is.
  */
 export function restoreGrid(saved: unknown): Grid | null {
   if (!isRecord(saved) || saved["version"] !== 1) return null;
@@ -77,7 +78,11 @@ export function restoreGrid(saved: unknown): Grid | null {
   const movesFit = history.every((move) =>
     move.every(({ index }) => !isGiven(grid, index)),
   );
-  return fits && movesFit ? grid : null;
+  const lastFits = (history.at(-1) ?? []).every(
+    ({ index, after }) =>
+      digits[index] === after.digit && notes[index] === after.notes,
+  );
+  return fits && movesFit && lastFits ? grid : null;
 }
 
 /** Returns the digits a stored text of 81 holds, or null for anything else. */
@@ -90,4 +95,65 @@ function isNotes(value: unknown): value is number[] {
   return (
     Array.isArray(value) && value.length === CELLS && value.every(isDigitSet)
   );
+}
+
+/** Returns the moves as they are stored: five numbers for each change. */
+function packHistory(history: readonly Move[]): number[][] {
+  return history.map((move) =>
+    move.flatMap(({ index, before, after }) => [
+      index,
+      before.digit,
+      before.notes,
+      after.digit,
+      after.notes,
+    ]),
+  );
+}
+
+/**
+ * Returns the moves a stored history holds, or null if it isn't one the game
+ * could have stored.
+ */
+function unpackHistory(value: unknown): Move[] | null {
+  if (!Array.isArray(value)) return null;
+  const history: Move[] = [];
+  for (const packed of value) {
+    const move = unpackMove(packed);
+    if (!move) return null;
+    history.push(move);
+  }
+  return history;
+}
+
+function unpackMove(value: unknown): Move | null {
+  if (!Array.isArray(value) || value.length === 0 || value.length % 5 !== 0) {
+    return null;
+  }
+  const numbers: unknown[] = value;
+  const move: Change[] = [];
+  for (let at = 0; at < numbers.length; at += 5) {
+    const [index, digitBefore, notesBefore, digitAfter, notesAfter] =
+      numbers.slice(at, at + 5);
+    const before = squareOf(digitBefore, notesBefore);
+    const after = squareOf(digitAfter, notesAfter);
+    if (!isWhole(index) || index < 0 || index >= CELLS || !before || !after) {
+      return null;
+    }
+    move.push({ index, before, after });
+  }
+  return move;
+}
+
+/**
+ * Returns what a stored square holds, or null for what no square can: a
+ * digit past 9, notes past 9, or a digit with notes beside it.
+ */
+function squareOf(digit: unknown, notes: unknown): Square | null {
+  if (!isDigit(digit) || !isDigitSet(notes)) return null;
+  return digit !== 0 && notes !== 0 ? null : { digit, notes };
+}
+
+/** Returns whether a value is a square's digit, or 0 for none. */
+function isDigit(value: unknown): value is number {
+  return isWhole(value) && value >= 0 && value <= 9;
 }

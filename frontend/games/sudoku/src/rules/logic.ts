@@ -42,6 +42,21 @@ export const TECHNIQUES = [
 /** Names a technique. */
 export type Technique = (typeof TECHNIQUES)[number];
 
+/** Each technique's search: every step it finds on a board. */
+const FINDERS: Readonly<Record<Technique, (state: State) => Iterable<Step>>> = {
+  "hidden-single": hiddenSingles,
+  "naked-single": nakedSingles,
+  pointing,
+  claiming,
+  "naked-pair": (state) => nakedSubsets(state, 2),
+  "hidden-pair": (state) => hiddenSubsets(state, 2),
+  "naked-triple": (state) => nakedSubsets(state, 3),
+  "hidden-triple": (state) => hiddenSubsets(state, 3),
+  "x-wing": (state) => fish(state, 2),
+  swordfish: (state) => fish(state, 3),
+  "xy-wing": xyWings,
+};
+
 /** Names a technique that fills a square. */
 export type Single = "hidden-single" | "naked-single";
 
@@ -207,7 +222,7 @@ function pruned(digits: readonly number[], chain: Chain): Chain {
 function holds(digits: readonly number[], steps: readonly Step[]): boolean {
   const state = stateOf(digits);
   for (const step of steps) {
-    const found = [...findAll(state, step.technique)].find((each) =>
+    const found = [...FINDERS[step.technique](state)].find((each) =>
       samePattern(each, step),
     );
     if (!found) return false;
@@ -275,7 +290,7 @@ function apply(state: State, step: Step): void {
 function firstStep(state: State, allowed: Allowed): Step | null {
   for (const technique of TECHNIQUES) {
     if (!allowed(technique)) continue;
-    for (const step of findAll(state, technique)) return step;
+    for (const step of FINDERS[technique](state)) return step;
   }
   return null;
 }
@@ -290,37 +305,9 @@ function firstSingle(state: State): Placement | null {
 /** Returns every elimination on the board, the easiest technique's first. */
 function* everyElimination(state: State): Generator<Elimination> {
   for (const technique of TECHNIQUES) {
-    for (const step of findAll(state, technique)) {
+    for (const step of FINDERS[technique](state)) {
       if (step.kind === "eliminate") yield step;
     }
-  }
-}
-
-/** Returns every step a technique finds on the board. */
-function findAll(state: State, technique: Technique): Iterable<Step> {
-  switch (technique) {
-    case "hidden-single":
-      return hiddenSingles(state);
-    case "naked-single":
-      return nakedSingles(state);
-    case "pointing":
-      return pointing(state);
-    case "claiming":
-      return claiming(state);
-    case "naked-pair":
-      return nakedSubsets(state, 2);
-    case "hidden-pair":
-      return hiddenSubsets(state, 2);
-    case "naked-triple":
-      return nakedSubsets(state, 3);
-    case "hidden-triple":
-      return hiddenSubsets(state, 3);
-    case "x-wing":
-      return fish(state, 2);
-    case "swordfish":
-      return fish(state, 3);
-    case "xy-wing":
-      return xyWings(state);
   }
 }
 
