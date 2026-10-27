@@ -44,10 +44,11 @@ describe("the board's contrast", () => {
   it("reads a background for every shade", () => {
     expect([...backgrounds.keys()].sort()).toEqual([
       "hinted",
+      "pattern",
       "related",
       "same",
       "selected",
-      "shown",
+      "unit",
     ]);
   });
 

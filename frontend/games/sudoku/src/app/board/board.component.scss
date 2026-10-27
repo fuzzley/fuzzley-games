@@ -92,14 +92,18 @@
 
 // What a square has to do with the selected one, lightest to strongest. A
 // hint's squares are in the warning's tints, apart from the selection's
-// accent. A square with a marked digit is never shaded (board.component.ts),
+// accent: its unit lightest, then the squares its words name, then its own. A square with a marked digit is never shaded (board.component.ts),
 // as the danger color clears 4.5:1 only on the panel itself.
 .cell[data-shade="related"] {
   background: var(--fz-wash-3);
 }
 
-.cell[data-shade="shown"] {
-  background: color-mix(in srgb, var(--fz-warning) 12%, transparent);
+.cell[data-shade="unit"] {
+  background: color-mix(in srgb, var(--fz-warning) 10%, transparent);
+}
+
+.cell[data-shade="pattern"] {
+  background: color-mix(in srgb, var(--fz-warning) 20%, transparent);
 }
 
 .cell[data-shade="same"] {
@@ -111,7 +115,7 @@
 }
 
 .cell[data-shade="hinted"] {
-  background: color-mix(in srgb, var(--fz-warning) 22%, transparent);
+  background: color-mix(in srgb, var(--fz-warning) 28%, transparent);
 }
 
 // The selected square is outlined in the accent too, so it shows without the

@@ -379,7 +379,7 @@ describe("GameService", () => {
       expect(hint?.kind).toBe("step");
       expect(game.selected()).toBe(hint?.index);
       expect(hint?.digit).toBe(solutionAt(hint?.index ?? -1));
-      expect(hint?.shown.length).toBeGreaterThan(0);
+      expect(hint?.unit.length).toBeGreaterThan(0);
     });
 
     it("fills the square in on the second press", () => {

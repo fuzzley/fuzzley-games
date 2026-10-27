@@ -19,10 +19,11 @@ import { SettingsService } from "../settings/settings.service";
 
 /**
  * Names how a square is shaded, the strongest reason first: a hint points at
- * it, it is selected, it holds the selected square's digit, it shows why a
- * hint holds, or it shares a unit with the selected square.
+ * it, it is selected, it holds the selected square's digit, it is one of the
+ * squares a hint's words name, it is in the unit a hint's square is the one
+ * place left in, or it shares a unit with the selected square.
  */
-type Shade = "hinted" | "selected" | "same" | "shown" | "related";
+type Shade = "hinted" | "selected" | "same" | "pattern" | "unit" | "related";
 
 /** Describes one place in a square's notes. */
 interface NoteView {
@@ -95,12 +96,14 @@ export class BoardComponent {
     const repeated = repeats(grid);
     const wrong = mistakes(grid);
     const digit = this.selectedDigit();
-    const shown = new Set(hint?.shown);
+    const pattern = new Set(hint?.pattern);
+    const unit = new Set(hint?.unit);
     const shadeOf = (index: number): Shade | null => {
       if (index === hint?.index) return "hinted";
       if (index === selected) return "selected";
       if (digit !== 0 && grid.digits[index] === digit) return "same";
-      if (shown.has(index)) return "shown";
+      if (pattern.has(index)) return "pattern";
+      if (unit.has(index)) return "unit";
       return sees(index, selected) ? "related" : null;
     };
     const cells = Array.from({ length: CELLS }, (_, index): CellView => {
