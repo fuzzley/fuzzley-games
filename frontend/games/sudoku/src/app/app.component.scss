@@ -37,6 +37,7 @@
   inset: var(--fz-bar-height) 0 0;
   container: stage / size;
   overflow: auto;
+  overscroll-behavior: contain;
 }
 
 :host([data-bar="bottom"]) .stage {
@@ -48,7 +49,7 @@
 }
 
 // A tall stage puts the pad under the board, which takes the largest square
-// left, each of its squares 32 to 64px across. `--below` is what the pad
+// left, each of its squares 32 to 80px across. `--below` is what the pad
 // and the hint's words need under it; the words take what room is left, up
 // to five lines or so.
 .room {
@@ -56,7 +57,7 @@
   --side: clamp(
     288px,
     min(100cqw - 2 * var(--room), 100cqh - 2 * var(--room) - var(--below)),
-    576px
+    720px
   );
   --hint-room: clamp(
     var(--hint),
@@ -75,6 +76,11 @@
   padding: var(--room);
 }
 
+// The keys grow with a large stage, as the board does, up to 80px.
+:host(:not(.compact)) .room {
+  --key: clamp(64px, 7.5cqmin, 80px);
+}
+
 // A wide stage puts the pad beside the board, as a column three keys wide.
 @container stage (orientation: landscape) {
   .room {
@@ -85,7 +91,7 @@
         100cqh - 2 * var(--room),
         100cqw - 2 * var(--room) - var(--pad) - var(--split)
       ),
-      576px
+      720px
     );
 
     grid-template-columns: var(--side) var(--pad);

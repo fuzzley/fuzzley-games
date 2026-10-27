@@ -5,6 +5,10 @@
 @use "@fz/style/global";
 @use "@fz/game-ui" as game-ui;
 
+// The page never scrolls, only the stage, so a swipe down the board never
+// pulls the page to refresh.
 :root {
   @include game-ui.bar-size;
+
+  overscroll-behavior: none;
 }

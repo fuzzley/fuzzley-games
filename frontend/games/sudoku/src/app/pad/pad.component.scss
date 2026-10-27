@@ -38,6 +38,10 @@
   cursor: pointer;
   touch-action: manipulation;
 
+  // The key's own hover and pressed states say it was pressed, not the
+  // browser's flash.
+  -webkit-tap-highlight-color: transparent;
+
   &:hover {
     background-image: linear-gradient(var(--fz-wash-3), var(--fz-wash-3));
   }
