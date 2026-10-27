@@ -74,6 +74,32 @@ describe("the toolkit's mixins", () => {
     );
   });
 
+  it("put a dialog's close button in its card's corner", () => {
+    expect(compiled("@include fz.corner-close-button;")).toContain(
+      "position:absolute;top:var(--fz-space-3);right:var(--fz-space-3)",
+    );
+  });
+
+  it("size a help card as asked", () => {
+    expect(compiled("@include fz.help-card(600px);")).toContain("width:600px");
+  });
+
+  it("draw a help card's keys as keycaps", () => {
+    expect(compiled("@include fz.help-card;")).toContain(
+      ".it kbd{display:inline-block;padding:0 6px;border:1px solid var(--fz-edge-3);border-bottom-width:2px",
+    );
+  });
+
+  it("lift each of a result card's values over its term", () => {
+    expect(compiled("@include fz.result-card;")).toContain(
+      ".it .figure{display:flex;flex-direction:column-reverse",
+    );
+  });
+
+  it("center a result card", () => {
+    expect(compiled("@include fz.result-card;")).toContain("text-align:center");
+  });
+
   it("size a dialog's close button's icon", () => {
     expect(compiled("@include fz.close-button;")).toContain(
       ".it{--fz-icon-size: 20px}",
