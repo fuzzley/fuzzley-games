@@ -9,7 +9,8 @@ interface KeyView {
   readonly digit: number;
   /** How many of the digit are left to place, or null once all nine are. */
   readonly left: number | null;
-  readonly label: string;
+  /** The count in words, which follow the digit in the key's name. */
+  readonly status: string;
 }
 
 /**
@@ -38,8 +39,8 @@ export class PadComponent {
     return DIGITS.map((digit) => {
       const left = remaining(grid, digit);
       return left === 0
-        ? { digit, left: null, label: `${digit}, all placed` }
-        : { digit, left, label: `${digit}, ${left} left` };
+        ? { digit, left: null, status: ", all placed" }
+        : { digit, left, status: `, ${left} left` };
     });
   });
 
