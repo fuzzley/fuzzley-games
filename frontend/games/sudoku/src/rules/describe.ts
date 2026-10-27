@@ -99,6 +99,42 @@ export function describeMove(before: Grid, after: Grid): string {
     : "Erased.";
 }
 
+/**
+ * Returns what undoing a move did, for a screen reader to say, from the grid
+ * before the undo and after: empty if it did nothing.
+ */
+export function describeUndo(before: Grid, after: Grid): string {
+  const [main] = before.history.at(-1) ?? [];
+  if (!main || after.history.length >= before.history.length) return "";
+  // `main.before` is what the undo brings back, `main.after` what it takes.
+  const { index, before: back, after: taken } = main;
+  const square = squareName(index);
+  if (back.digit !== 0) return `Undone: ${back.digit} back in ${square}.`;
+  if (taken.digit !== 0) {
+    return `Undone: ${taken.digit} taken out of ${square}.`;
+  }
+  const added = taken.notes & ~back.notes;
+  if (added !== 0) {
+    return `Undone: ${notesWords(added)} taken out of ${square}.`;
+  }
+  return `Undone: ${notesWords(back.notes & ~taken.notes)} back in ${square}.`;
+}
+
+/**
+ * Returns why a move on a square changed nothing, for a screen reader to
+ * say: the square is given, holds a digit a note can't go beside, or has
+ * nothing to erase. It is empty once the puzzle is solved, when the result
+ * says what there is to say.
+ */
+export function describeRefusal(grid: Grid, index: number): string {
+  if (grid.outcome === "solved") return "";
+  const square = capitalized(squareName(index));
+  if (isGiven(grid, index)) return `${square} is given.`;
+  const digit = at(grid.digits, index);
+  if (digit !== 0) return `${square} holds a ${digit}, so it takes no notes.`;
+  return "Nothing to erase.";
+}
+
 /** Returns the words of a hint that names the next steps of logic. */
 export function describeChain({ eliminations, placement }: Chain): HintWords {
   const technique = hardest(eliminations) ?? placement.technique;
@@ -168,6 +204,12 @@ function eliminationWords(step: Elimination): string {
       return `The square at ${squareName(pivot)} holds ${x} or ${y}. Either way, the square at ${squareName(a)} or the one at ${squareName(b)} holds ${z}, so no square that sees both can.`;
     }
   }
+}
+
+/** Returns notes named together, such as "note 3" or "notes 1, 3 and 8". */
+function notesWords(notes: number): string {
+  const digits = digitsIn(notes).map(String);
+  return `${digits.length === 1 ? "note" : "notes"} ${listOf(digits)}`;
 }
 
 /** Returns lines of one kind named together, such as "rows 2 and 8". */

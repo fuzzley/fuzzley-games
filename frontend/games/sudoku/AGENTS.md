@@ -166,7 +166,9 @@ What every game keeps is in `frontend/games/AGENTS.md`. Here:
   `src/main.ts`), and the settings offer the palette.
 - **Accessibility.** The rules are the repository's `web-game-accessibility`
   skill's. Every overlay is an `<fz-dialog>`, the board is the grid above,
-  every move is announced, and the pad gives touch every key.
+  every move is announced, and so is a move that does nothing, with why
+  (`describeRefusal()`), and what Undo brought back (`describeUndo()`), and
+  the pad gives touch every key.
 
 ## Development Commands
 

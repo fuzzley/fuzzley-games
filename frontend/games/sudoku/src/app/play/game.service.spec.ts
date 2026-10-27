@@ -189,7 +189,35 @@ describe("GameService", () => {
 
       expect(game.grid().digits[0]).toBe(0);
       expect(game.canUndo()).toBe(false);
-      expect(said()).toBe("Undone.");
+      expect(said()).toBe("Undone: 6 taken out of row 1, column 1.");
+    });
+
+    it("says why a move on a given changes nothing", () => {
+      const game = playOn();
+      game.select(squareAt("r1c4"));
+
+      game.enter(6);
+
+      expect(said()).toBe("Row 1, column 4 is given.");
+    });
+
+    it("says when there is nothing to erase", () => {
+      const game = playOn();
+      game.select(squareAt("r1c1"));
+
+      game.erase();
+
+      expect(said()).toBe("Nothing to erase.");
+    });
+
+    it("stays quiet about a move once the puzzle is solved", () => {
+      const game = playOn({ digits: solvedBut("r1c1") });
+      game.select(squareAt("r1c1"));
+      game.enter(6);
+
+      game.erase();
+
+      expect(said()).toBe("Solved in 0:00.");
     });
 
     it("counts a fresh deal as played from its first move", () => {

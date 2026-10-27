@@ -10,7 +10,11 @@ import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { CELLS } from "../../rules/cells";
 import { deal } from "../../rules/deal";
-import { describeMove } from "../../rules/describe";
+import {
+  describeMove,
+  describeRefusal,
+  describeUndo,
+} from "../../rules/describe";
 import type { Level } from "../../rules/difficulty";
 import {
   type Grid,
@@ -143,14 +147,14 @@ export class GameService {
     this.move(erase(this.gridState(), this.selectedState()));
   }
 
-  /** Takes back the last move. */
+  /** Takes back the last move, and says what came back. */
   undo(): void {
     const before = this.gridState();
     const after = undo(before);
     if (after === before) return;
     this.gridState.set(after);
     this.hintState.set(null);
-    this.announcer.say("Undone.");
+    this.announcer.say(describeUndo(before, after));
   }
 
   /** Turns Notes mode on or off. */
@@ -243,10 +247,14 @@ export class GameService {
     if (grid.outcome === "playing") this.stopwatch.start();
   }
 
-  /** Makes a move, and says what it did. */
+  /** Makes a move, and says what it did, or why it did nothing. */
   private move(after: Grid): void {
     const before = this.gridState();
-    if (after === before) return;
+    if (after === before) {
+      const why = describeRefusal(before, this.selectedState());
+      if (why) this.announcer.say(why);
+      return;
+    }
     this.gridState.set(after);
     this.hintState.set(null);
     if (!this.countedState()) {
