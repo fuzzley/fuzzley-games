@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, output } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
-import { count } from "../../rules/format";
+import { count } from "@fz/core/format";
 import { GameService } from "../play/game.service";
 
 /** Shows the rules, the lives and the controls for mouse, touch and keyboard. */

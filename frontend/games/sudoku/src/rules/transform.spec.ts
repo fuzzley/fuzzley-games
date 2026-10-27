@@ -1,7 +1,7 @@
 import { EASY } from "../testing/grid_picture";
 import { CELLS } from "./cells";
 import { digitsText, parseDigits, puzzleFrom } from "./puzzle";
-import { createRandom } from "./random";
+import { createRandom } from "@fz/core/random";
 import {
   IDENTITY,
   type Transform,

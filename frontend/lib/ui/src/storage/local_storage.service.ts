@@ -1,4 +1,5 @@
 import { Injectable, inject } from "@angular/core";
+import { isRecord } from "@fz/core/json";
 import { BROWSER_STORAGE } from "./browser_storage";
 
 /**
@@ -86,9 +87,4 @@ export class LocalStorageService {
       console.warn(`Failed to remove "${key}" from storage:`, e);
     }
   }
-}
-
-/** Returns whether a value is an object, and not a list. */
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

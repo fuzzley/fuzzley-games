@@ -1,6 +1,6 @@
 import { CELLS, LINES, at, colOf, indexAt, rowOf } from "./cells";
 import { DIGITS } from "./digits";
-import { shuffled } from "./random";
+import { shuffled } from "@fz/core/random";
 
 /**
  * Says how to turn a board into another face of the same puzzle: one that

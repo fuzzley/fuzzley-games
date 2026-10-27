@@ -27,7 +27,7 @@ import {
   undo,
 } from "../../rules/grid";
 import { type Hint, fillHint, firstBlank, hintFor } from "../../rules/hint";
-import { randomSeed } from "../../rules/random";
+import { randomSeed } from "@fz/core/random";
 import { SettingsService } from "../settings/settings.service";
 import { StatsService } from "../stats/stats.service";
 

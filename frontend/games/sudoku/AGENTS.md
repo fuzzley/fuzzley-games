@@ -13,7 +13,7 @@ workspace keeps its own for its code. Paths are relative to
 
 - **UI:** [Angular](https://angular.dev/) (standalone components, signals,
   zoneless change detection) on `@fz/style`, `@fz/ui` and `@fz/game-ui` (the
-  `fuzzley-ui` skill)
+  `fuzzley-ui` skill), with `@fz/core`'s helpers in the rules
 - **Build Toolchain:** [Vite](https://vitejs.dev/) + [AnalogJS Vite Angular Plugin](https://analogjs.org/)
 - **Test Framework:** [Vitest](https://vitest.dev/) with jsdom and Testing
   Library
@@ -36,7 +36,7 @@ workspace keeps its own for its code. Paths are relative to
   through a random face. `describe.ts` puts squares, moves and hints into
   the words a screen reader and the hint say, and `saved_grid.ts` turns a
   grid into what storage keeps and back. ESLint keeps Angular, the
-  libraries, RxJS and the shell out of it.
+  libraries but `@fz/core`, RxJS and the shell out of it.
 - **`src/rules/bank/`** — the puzzles the game deals, a hundred for each
   level, which `yarn generate:puzzles` writes. A puzzle is its givens, 81
   characters with `.` for a blank. `src/rules/bank.spec.ts` checks every one

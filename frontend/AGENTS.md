@@ -46,6 +46,8 @@ keeps its own in an `AGENTS.md` in its folder. Paths are relative to
   library may import another library, but never the site or a game. An app
   compiles a library from its source; nothing in `lib/` is built on its own.
   Each keeps its own rules in an `AGENTS.md` in its folder:
+  `lib/core/AGENTS.md`, for the small helpers the games share with no
+  framework and no platform, which a game's rules may import,
   `lib/style/AGENTS.md`, for the styles every app shares, with no framework,
   `lib/ui/AGENTS.md`, for the Angular components and services,
   `lib/game-ui/AGENTS.md`, for the chrome only the games share, and

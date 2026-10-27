@@ -4,7 +4,7 @@ import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { at } from "../../rules/cells";
 import { digitsIn } from "../../rules/digits";
-import { createRandom } from "../../rules/random";
+import { createRandom } from "@fz/core/random";
 import { playOn } from "../../testing/game";
 import {
   EASY,

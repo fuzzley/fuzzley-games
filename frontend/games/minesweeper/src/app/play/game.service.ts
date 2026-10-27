@@ -19,7 +19,7 @@ import {
   reveal,
   toggleFlag,
 } from "../../rules/field";
-import { randomSeed } from "../../rules/random";
+import { randomSeed } from "@fz/core/random";
 import { type Settings, SettingsService } from "../settings/settings.service";
 import { StatsService } from "../stats/stats.service";
 

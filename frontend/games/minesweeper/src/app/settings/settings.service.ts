@@ -10,7 +10,7 @@ import {
   isValidSize,
   sizeOf,
 } from "../../rules/difficulty";
-import { isRecord, isWhole } from "../../rules/json";
+import { isRecord, isWhole } from "@fz/core/json";
 
 /** Where the settings are kept. Renaming it loses every player's. */
 export const SETTINGS_KEY = "minesweeper-settings";

@@ -7,7 +7,7 @@ import {
   type Square,
   layoutOf,
 } from "./field";
-import { isRecord, isWhole } from "./json";
+import { isRecord, isWhole } from "@fz/core/json";
 
 /** A field as it is stored: plain JSON, a letter a square. */
 export interface SavedField {

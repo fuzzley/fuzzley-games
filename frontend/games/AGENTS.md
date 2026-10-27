@@ -43,6 +43,10 @@ are relative to `frontend/games/`.
 - **It wears the games' chrome.** `@fz/game-ui`'s game bar, breakpoints and
   viewport frame every game alike and change its shape at the same widths
   (`frontend/lib/game-ui/AGENTS.md`).
+- **Its rules share `@fz/core`'s helpers,** the seeded random, the readers
+  for stored JSON and counts in words, rather than keeping copies
+  (`frontend/lib/core/AGENTS.md`). It is the one library a game's rules may
+  import.
 - **Saved games outlive the code.** What a game stores goes through
   `@fz/ui/storage`'s `LocalStorageService`, under keys its `AGENTS.md`
   lists. Renaming a key loses what players saved, and a build reads what the

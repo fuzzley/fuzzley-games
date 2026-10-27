@@ -4,7 +4,7 @@ import hard from "./bank/hard.json";
 import medium from "./bank/medium.json";
 import type { Level } from "./difficulty";
 import { type Puzzle, parseDigits, puzzleFrom } from "./puzzle";
-import { createRandom } from "./random";
+import { createRandom } from "@fz/core/random";
 import { randomTransform, transform } from "./transform";
 
 /**

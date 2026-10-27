@@ -1,12 +1,13 @@
 ---
 name: fuzzley-ui
-description: The shared UI libraries under frontend/lib/ that the site and the games are built on — @fz/style (palettes, tokens, the surfaces over a game, fragments such as .fz-button, Sass mixins, theme.js, the fuzzball and the page's icons), @fz/ui (Angular dialog, confirmation, announcer, theme menu and picker, icons, radio group, storage, wordmark) and @fz/game-ui (the game bar, its overflow menu, the games' viewport and breakpoints, and the stopwatch) — which piece to reach for, and how an app adopts them. Triggers on: @fz/style, @fz/ui, @fz/game-ui, fz-, design tokens, palette, theme, fuzzball, favicon, wordmark, light or dark mode, surface, glass, game bar, dialog, confirm, announcer, live region, stopwatch, timer, icon, button, shared component, new game.
+description: The shared UI libraries under frontend/lib/ that the site and the games are built on — @fz/style (palettes, tokens, the surfaces over a game, fragments such as .fz-button, Sass mixins, theme.js, the fuzzball and the page's icons), @fz/ui (Angular dialog, confirmation, announcer, theme menu and picker, icons, radio group, storage, wordmark) and @fz/game-ui (the game bar, its overflow menu, the games' viewport and breakpoints, and the stopwatch), with @fz/core beside them for a game's framework-free rules (the seeded random, stored-JSON readers, counts in words) — which piece to reach for, and how an app adopts them. Triggers on: @fz/style, @fz/ui, @fz/game-ui, @fz/core, fz-, design tokens, palette, theme, fuzzball, favicon, wordmark, light or dark mode, surface, glass, game bar, dialog, confirm, announcer, live region, stopwatch, timer, icon, button, shared component, new game.
 ---
 
 # The shared UI libraries
 
 The site and the games share how they look and much of how they behave
-through three libraries under `frontend/lib/`. Each library's `AGENTS.md` is
+through three libraries under `frontend/lib/`, and the games' rules share
+a fourth, `@fz/core`, which has no framework. Each library's `AGENTS.md` is
 the full account of what it holds and the rules it keeps; this skill says
 which piece to reach for, and how an app takes them up.
 
@@ -15,6 +16,7 @@ which piece to reach for, and how an app takes them up.
 | `@fz/style`   | `frontend/lib/style`   | Every app, Angular or not: the palettes and tokens, the global stylesheet, fragments, Sass mixins, `theme.js`, the fuzzball and the page's icons, and the stylelint preset | `frontend/lib/style/AGENTS.md`   |
 | `@fz/ui`      | `frontend/lib/ui`      | Every Angular app: dialogs, the confirmation, the announcer, the theme's service and pickers, icons, the radio group, storage and the wordmark                             | `frontend/lib/ui/AGENTS.md`      |
 | `@fz/game-ui` | `frontend/lib/game-ui` | Angular games only: the game bar, its overflow menu, the viewport and breakpoints, the stopwatch                                                                           | `frontend/lib/game-ui/AGENTS.md` |
+| `@fz/core`    | `frontend/lib/core`    | A game's rules, with no framework: the seeded random, the readers for stored JSON, counts in words                                                                         | `frontend/lib/core/AGENTS.md`    |
 
 Imports go one way: an app may import a library, a library another library,
 and a library never an app. `yarn constraints` fails a library that depends
