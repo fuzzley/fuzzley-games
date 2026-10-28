@@ -49,7 +49,7 @@ history keeps it.
 | S7    | The icons, the bar and the dialogs          | done      |
 | S8    | Sound                                       | done      |
 | S9    | Storage                                     | done      |
-| S10   | The checks                                  | to do     |
+| S10   | The checks                                  | done      |
 | S11   | Screenshots and docs                        | to do     |
 | S12   | Ship, and QA of both games                  | to do     |
 
@@ -547,3 +547,59 @@ history keeps it.
   reloaded comes back paused where it stood as the page went away, with
   the board focused and the announcement made.
 - 346 specs.
+
+### 2026-10-28: S10, the checks
+
+- **`tools/check-layout.mjs`** (`yarn check:layout`), on Sudoku's, opens
+  the build at each of `@fz/dev/layout`'s shapes at 2×, twice: as a mouse
+  finds it, and with the arrows shown, set up by a check's new `before()`,
+  which `@fz/dev/layout` gained (a function run in the page ahead of its
+  own scripts, through `Page.beforeLoad()`, with two specs). At each: no
+  error and no scrolling, the canvas `ready` at its CSS size times the
+  pixel ratio, the board square with squares of 16 CSS px or more, inside
+  the window, where the placeholder drew it and inside the focus ring, and
+  the arrows inside the window and off the board.
+- **What it found:** at 2× the scene's squares are whole device pixels
+  (39.5 CSS px at the roomy shape) and the stylesheet's whole CSS pixels
+  (39), so the placeholder and the focus ring sat 8.5 px off the board.
+  The board now hands its stylesheet `--pixel-ratio`, so the placeholder
+  rounds as the scene does, and the ring takes the scene's rectangle once
+  it has drawn, with a spec. The placeholder's squares also took the wall
+  inside them (`border-box`); they now sit inside it, as the scene's do.
+- **The check was broken on purpose** three ways, in the built bundle: the
+  placeholder without its room, without its wall, and the ring and the
+  rounding as before. Each failed it, at the shapes where the difference
+  shows.
+- **Sizes, gzipped:** the entry 77.7 kB (260.5 kB raw) and its CSS 2.8 kB;
+  the scene 4.0 kB; `@fz/phaser`'s host 1.8 kB; the `phaser` chunk 351.7 kB
+  (1,367 kB raw), the same file as the Solitaire Collection's; the sounds
+  41 kB. The entry holds no Phaser: it reaches the host and the scene only
+  through `import()`, and only they import the `phaser` chunk.
+- **QA against the build** (`vite preview`), with the scripts from S5 to S9
+  and one more (`snake-qa10.mjs`): play by keyboard, eating and crashing, a
+  new best; the bar, the result card, settings, help and the confirm, with
+  the focus back on the board each time; the arrows and swipes on a touch
+  phone upright and on its side; the sounds, and none with the sound off; a
+  reload taking the run up paused. Then: Z and Q, as an AZERTY keyboard
+  sends them (`KeyW`, `KeyA`), steer up and left; the WebGL context lost
+  and restored mid-run (`WEBGL_lose_context`), after which the board, the
+  apple's baked texture and the snake draw again and the run goes on; Soft
+  pastel and a dark palette. No page reported an error. Tabs switched
+  mid-run pause it, as a spec checks; headless Chrome can't hide a page.
+  Not done: a real phone, Lighthouse and a performance trace.
+- **Decision 3, headless Phaser against mocks.** Snake's 26 scene specs run
+  real Phaser in jsdom through `runScene()`, in 410 lines, with no stand-in
+  for Phaser at all, in about 3 s with jsdom's start-up; `@fz/phaser`'s
+  harness is 270 lines, shared. The Solitaire Collection's 200 scene specs
+  run on `test/support/phaser_mocks.ts`, 961 lines of hand-made Phaser, in
+  about the same time. What headless gave: the scene's specs caught real
+  mistakes the mocks would have taken on trust (Grid's `cellPadding` of
+  0.5, its private `setSize`, which cells it washes, the keyboard's global
+  captures), and an upgrade of Phaser is checked against Phaser itself.
+  What it costs: no pixels (a headless game draws nothing, so the specs
+  read the game objects' state, as the mocks do), no audio, and a spec
+  drives frames and the clock by hand. The recommendation: move the
+  Solitaire Collection's scene specs to the harness file by file when each
+  is next touched, starting with `table_light.spec.ts`, and retire the
+  mocks once nothing imports them; not as part of this work.
+- 347 specs.

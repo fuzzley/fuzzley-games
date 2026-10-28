@@ -2,11 +2,13 @@
 
 // The board takes the room the stage gives it. The scene lays the squares out
 // `--room` in from each edge, which the canvas reads as its insets, and the
-// placeholder and the focus ring work out the same square: the largest that
-// fits with room for its wall, in whole squares (`boardMetrics()`).
+// placeholder, the focus ring until the scene has drawn and the cards work
+// out the same square: the largest that fits with room for its wall, each
+// square whole device pixels at `--pixel-ratio` (`boardMetrics()`).
 :host {
   --room: var(--fz-space-6);
   --wall: 2px;
+  --pixel-ratio: 1;
   --fz-canvas-inset-top: var(--room);
   --fz-canvas-inset-right: var(--room);
   --fz-canvas-inset-bottom: var(--room);
@@ -30,7 +32,7 @@
   --side: round(
     down,
     min(100cqw, 100cqh) - 2 * var(--room) - 2 * var(--wall),
-    var(--squares) * 1px
+    var(--squares) * 1px / var(--pixel-ratio)
   );
 }
 
@@ -44,6 +46,8 @@
 .squares {
   --square: calc(var(--side) / var(--squares));
 
+  // The wall outside the squares, as the scene draws it.
+  box-sizing: content-box;
   width: var(--side);
   height: var(--side);
   border: var(--wall) solid

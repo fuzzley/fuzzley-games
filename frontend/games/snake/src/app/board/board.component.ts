@@ -45,6 +45,7 @@ type Card = "start" | "paused" | "failed" | null;
     "[attr.data-board]": "boardRect()",
     "[attr.data-outcome]": "game.outcome()",
     "[style.--squares]": "squares",
+    "[style.--pixel-ratio]": "pixelRatio",
     "(pointerdown)": "takeFocus()",
     "(focusout)": "onFocusOut($event)",
   },
@@ -64,6 +65,16 @@ export class BoardComponent {
   protected readonly squares = BOARD_SIZE;
   protected readonly label = `Snake, ${BOARD_SIZE} by ${BOARD_SIZE}`;
 
+  /**
+   * The device pixels to a CSS pixel, as the canvas most often renders at,
+   * so the placeholder sizes its squares in whole device pixels as the scene
+   * does.
+   */
+  protected readonly pixelRatio = Math.min(
+    this.document.defaultView?.devicePixelRatio ?? 1,
+    3,
+  );
+
   /** Where the scene last laid the board out, in CSS pixels on the canvas. */
   private readonly laidOut = signal<BoardRect | null>(null);
 
@@ -71,6 +82,23 @@ export class BoardComponent {
   protected readonly boardRect = computed(() => {
     const rect = this.laidOut();
     return rect && `${rect.x} ${rect.y} ${rect.width} ${rect.height}`;
+  });
+
+  /**
+   * Lays the focus ring around the board where the scene drew it, or where
+   * the stylesheet works it out until then.
+   */
+  protected readonly ringStyle = computed(() => {
+    const rect = this.laidOut();
+    return (
+      rect && {
+        left: `${rect.x}px`,
+        top: `${rect.y}px`,
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
+        margin: "0",
+      }
+    );
   });
 
   /** The card over the board, if any. */

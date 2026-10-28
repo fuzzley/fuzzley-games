@@ -98,7 +98,9 @@ too. Paths are relative to `frontend/lib/dev/`.
   and the fonts, and returns what is wrong at each: an error the page
   reports (an exception, `console.error`, or the browser's own, such as a
   refused resource), a page that scrolls, and what the game's own
-  `inspect()`, run in the page, finds. The functions it runs in the page
+  `inspect()`, run in the page, finds. A check's `before()` runs in the
+  page ahead of its own scripts, to set it up as a player might have, such
+  as with a setting stored. The functions it runs in the page
   are in `src/layout_page.ts`, which only a browser runs, so coverage leaves
   it out. A game's `tools/check-layout.mjs` serves its build with Vite's
   `preview()` and calls it.
