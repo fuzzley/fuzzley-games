@@ -12,7 +12,9 @@ import {
 import type { BoardCommand } from "../view/controls";
 import type { SnakeFrame } from "../view/frame";
 import { type SnakePalette, snakePalette } from "../view/palette";
+import { SOUNDS } from "../view/effects";
 import { CRUMBS, FADE_MS, POP_MS } from "../view/timing";
+import spritemap from "./sounds/sounds.json";
 import {
   type SnakeScene,
   type SnakeSceneOptions,
@@ -54,6 +56,7 @@ class FakeShell implements SnakeSceneOptions {
   shown: SnakeFrame = { run: START, progress: 0, newBest: false };
   colors: SnakePalette = LIGHT;
   welcomesMotion = true;
+  wantsSound = true;
   readonly ticks: number[] = [];
   readonly layouts: BoardRect[] = [];
   readonly commands: BoardCommand[] = [];
@@ -64,6 +67,7 @@ class FakeShell implements SnakeSceneOptions {
   readonly frame = (): SnakeFrame => this.shown;
   readonly palette = (): SnakePalette => this.colors;
   readonly motion = (): boolean => this.welcomesMotion;
+  readonly sound = (): boolean => this.wantsSound;
   readonly onLayout = (board: BoardRect): void => {
     this.layouts.push(board);
   };
@@ -370,6 +374,37 @@ describe("SnakeScene", () => {
       run.pointer("move", 200, 140);
 
       expect(shell.commands).toEqual(["right", "down"]);
+    });
+  });
+
+  describe("the sounds", () => {
+    it("are the view's, in the sprite's order", () => {
+      expect(Object.keys(spritemap.spritemap)).toEqual(SOUNDS);
+    });
+
+    it("can be heard while the player wants them", async () => {
+      const { scene } = await startBoard();
+
+      expect(scene.sound.mute).toBe(false);
+    });
+
+    it("are muted while the player wants none", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.wantsSound = false;
+      run.advance(16);
+
+      expect(scene.sound.mute).toBe(true);
+    });
+
+    it("leave the board playing where they can't be loaded", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.show(EATEN);
+      run.advance(16);
+
+      expect(scene.sounds.loaded).toBe(false);
+      expect(scene.effects.crumbs.getAliveParticleCount()).toBe(CRUMBS);
     });
   });
 });

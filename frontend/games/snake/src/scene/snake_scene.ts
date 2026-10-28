@@ -21,6 +21,7 @@ import { ApplePainter } from "./apple_painter";
 import { BoardPainter } from "./board_painter";
 import { EffectsPainter } from "./effects_painter";
 import { SnakePainter } from "./snake_painter";
+import { SoundPlayer } from "./sound_player";
 import { bakeApple, bakeCrumb } from "./textures";
 
 /** What the scene asks of the shell, and tells it. */
@@ -33,6 +34,8 @@ export interface SnakeSceneOptions {
   readonly palette: () => SnakePalette;
   /** Returns whether the player welcomes motion. */
   readonly motion: () => boolean;
+  /** Returns whether the player wants sound. */
+  readonly sound: () => boolean;
   /** Takes where the board now lies on the canvas, in CSS pixels. */
   readonly onLayout: (board: BoardRect) => void;
   /** Takes what a key or a swipe asks of the game. */
@@ -61,6 +64,8 @@ export class SnakeScene extends Scene {
   snake!: SnakePainter;
   /** Plays the crumbs, the shake and the fade. */
   effects!: EffectsPainter;
+  /** Plays the sounds. */
+  sounds!: SoundPlayer;
 
   /** The canvas as the board was last laid out on it. */
   private viewport: Viewport | null = null;
@@ -90,6 +95,7 @@ export class SnakeScene extends Scene {
     this.apple = new ApplePainter(this, this.add.layer());
     this.snake = new SnakePainter(this, this.add.layer());
     this.effects = new EffectsPainter(this, this.add.layer());
+    this.sounds = new SoundPlayer(this);
     this.layOut();
     this.listen();
     onFirstFrame(this, () => {
@@ -104,6 +110,7 @@ export class SnakeScene extends Scene {
    */
   override update(_time: number, delta: number): void {
     this.options.tick(delta);
+    this.sounds.follow(this.options.sound());
     const frame = this.options.frame();
     const palette = this.options.palette();
     if (palette !== this.painted) this.repaint(palette);
@@ -192,6 +199,7 @@ export class SnakeScene extends Scene {
     this.apple.place(run.apple, this.metrics);
     if (effects.pop) this.apple.pop();
     this.effects.play(effects, this.metrics, motion);
+    if (effects.sound) this.sounds.play(effects.sound);
   }
 
   /** Turns keys and swipes over the board into commands. */

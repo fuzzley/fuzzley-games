@@ -47,7 +47,7 @@ history keeps it.
 | S5    | The play and the board                      | done      |
 | S6    | The controls                                | done      |
 | S7    | The icons, the bar and the dialogs          | done      |
-| S8    | Sound                                       | to do     |
+| S8    | Sound                                       | done      |
 | S9    | Storage                                     | to do     |
 | S10   | The checks                                  | to do     |
 | S11   | Screenshots and docs                        | to do     |
@@ -498,3 +498,33 @@ history keeps it.
   close; New Game during a run asks first. On touch phones the compact bar
   sits along the bottom upright and as a rail on its side.
 - 330 specs in Snake, 177 in `@fz/ui`.
+
+### 2026-10-28: S8, sound
+
+- **`tools/build-sounds.mjs`** (`yarn build:sounds`) synthesizes the three
+  sounds at 16 kHz, mono, 16-bit, the same bytes every run: a bite (two
+  rising blips, 0.13 s), a bump (a falling low tone and a knock of seeded
+  noise, 0.34 s) and a chime (three notes of a major chord, 0.62 s). It
+  writes `src/scene/sounds/sounds.wav` (41 kB, 1.29 s) and `sounds.json`,
+  the spritemap, both committed. The workspace gained `tools/`,
+  `tsconfig.scripts.json` and `@fz/dev`'s `scripts()` lint block back.
+- **`SoundPlayer`** (`src/scene/sound_player.ts`) loads the sprite with
+  `load.audioSprite()` from `create()`, not `preload()`, so the board never
+  waits for its sounds; it plays a step's sound only once the sprite is in
+  the cache, so a sprite that fails to load leaves the game silent, not
+  broken; and it mutes Phaser's sound manager as the setting says,
+  setting `mute` only when the setting changes. `SnakeSceneOptions` gained
+  `sound()`, which the board reads from the settings.
+- **The spritemap travels in the scene's chunk:** Phaser reads an object
+  passed as the JSON's URL as the map itself, which its typings don't
+  allow, so the one cast says so. Only the WAV is fetched.
+- **Where it differs from the plan:** a WAV of 41 kB rather than about
+  30 kB, since the chime rings for 0.62 s; and no shrink tween when an apple
+  is eaten, since the crumbs say it.
+- **Checked in headless Chrome** (`snake-sound.mjs`), which counts the Web
+  Audio sources started: the sprite loads, an apple starts the bite and a
+  crash that set a new best the chime, and with the sound off nothing
+  starts. The scene's specs check the spritemap holds the view's `SOUNDS`
+  in order, the muting, and that a board whose sounds can't load (headless
+  Phaser has no audio) plays on.
+- 334 specs.
