@@ -145,12 +145,18 @@ browser, through a game's screenshots and its `check:layout`.
   on a real one: `@fz/phaser`'s own specs start one with its
   `src/testing/start_game.ts`, so Phaser's own writes to the canvas and
   its scale manager are part of what they check.
+- **Code that only needs a scene,** such as a factory of sprites, runs in
+  `runBareScene()`, a scene with nothing of its own, and the spec makes
+  its objects there and reads them back, as Phaser made them.
 - **What a scene loads is served.** The harness answers every request
   itself, from `runScene()`'s `serve`, a function from the URL, resolved
   against the page's, to the file's text or bytes, or to nothing, which
   is a 404 that fails the load as a server's would. An image decodes at
   the size its PNG header gives, so a spec serves a real one from disk or
-  `pngOfSize()`. Nothing reaches the network. The harness's own specs
+  `pngOfSize()`; an image from an object URL the page made itself loads
+  too, at 0 × 0, and `decode()` resolves once an image has loaded. A
+  canvas keeps the one context it was first asked for. Nothing reaches the
+  network. The harness's own specs
   (`frontend/lib/phaser/src/testing/run_scene.spec.ts`) check what it
   relies on in Phaser, so an upgrade that breaks it fails there first.
 - Snake's scene specs are the worked example

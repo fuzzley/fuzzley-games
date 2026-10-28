@@ -257,9 +257,10 @@ export function phaserDrawnDeckTextures(
     frameNames: (textureKey) => textures.get(textureKey).getFrameNames(),
     frame: (textureKey, frameName) => {
       if (!textures.exists(textureKey)) return null;
-      const frame = textures.getFrame(textureKey, frameName) as
-        Textures.Frame | null | undefined;
-      if (!frame) return null;
+      // Asked for a frame it lacks, a texture warns and hands back its first.
+      const texture = textures.get(textureKey);
+      if (!texture.has(frameName)) return null;
+      const frame = texture.get(frameName);
       return {
         image: frame.source.image as CanvasImageSource,
         x: frame.cutX,

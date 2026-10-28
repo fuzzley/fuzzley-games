@@ -29,7 +29,7 @@ history keeps it.
 | W3    | Loads served as a browser serves them                          | done  |
 | W4    | The library's own fakes of a game                              | done  |
 | W5    | The Solitaire Collection's setup, and a board run for real     | done  |
-| W6    | `TableLight`, `PhaserCardFactory` and `DrawnDeckPainter` specs | to do |
+| W6    | `TableLight`, `PhaserCardFactory` and `DrawnDeckPainter` specs | done  |
 | W7    | `PhaserTableRenderer` and `BoardInputManager` specs            | to do |
 | W8    | `BoardScene` spec                                              | to do |
 | W9    | `table_board_scene`, the catalog and the game contract specs   | to do |
@@ -272,4 +272,62 @@ history keeps it.
   should on a board that small, which is why the fixture sizes the canvas
   to the design.
 - **Specs:** `test/support/fake_table/scene.spec.ts` (3).
-- **Checks:** the Solitaire Collection's lint, typecheck and 6870 tests.
+- **Checks:** the Solitaire Collection's lint, typecheck and 6867 tests, the 3 new among them.
+
+### 2026-10-28: W6, the table light, the card factory and the deck painter
+
+- **`runBareScene()`** joins `@fz/phaser/testing`: a scene with nothing of
+  its own, for a spec to make game objects in. The library's
+  `bake_texture.spec.ts` uses it in place of its own bare scene.
+- **`runSceneWithAtlases(atlases)`** (`test/support/atlas_scene.ts`) runs
+  a scene whose `preload` loads card atlases through `loadCardAtlas()`, as
+  a board loads its deck, served from the workspace.
+- **`table_light.spec.ts`** makes the light in a bare scene and reads the
+  real `Gradient`: its depth, position, size and display origin after
+  `fit()`, its colour ramp's bands (`ramp.bands`, each colour read as GL
+  fractions), its shape and repeat modes and dither, and that destroying
+  the light takes it off the display list. A new spec draws frames with it.
+- **`phaser_card_factory.spec.ts`** runs on the indexed deck's real 2x and
+  1x atlases. Sprites are read as Phaser made them (texture, frame,
+  origin, `input.cursor` for the hand, `vertexRoundMode`, no `filters`).
+  The shadow is drawn through a filter into a `DynamicTexture`, whose
+  strokes leave no trace once rendered, so `recordStrokes()` wraps the
+  real `DynamicTexture.prototype.draw` and `erase`, still calling them,
+  to note each sprite drawn or erased and the shadow filters on it then
+  (`Filters.Shadow` in its internal or external list, and its padding
+  override). Phaser erases by drawing, so a call inside another is no
+  stroke of its own. The sprites the shadow was drawn with are checked
+  destroyed through a spy on `make.sprite` (the old spec checked a
+  display list they never join).
+- **Found: a dynamic texture's sides are even.** Phaser rounds a
+  `DynamicTexture`'s width and height up to even numbers unless told not
+  to (`forceEven`), so the 1x shadow texture is 252 × 356, not the
+  252 × 355 the mock kept. Harmless: the extra row is empty, and a shadow
+  sprite is anchored by the padding at its top left. The spec says so.
+- **Found and fixed: a missing frame.** `phaserDrawnDeckTextures().frame()`
+  said it returned null for a frame a texture lacks; Phaser's `getFrame()`
+  warns and returns the texture's first frame instead, which the mock
+  never did. No caller reached it (each slot is named from the atlas's own
+  frames), but it now asks `Texture.has()` first.
+- **`drawn_deck_painter.spec.ts`** runs the painter on its real browser
+  services (`browserDrawnDeckServices`) in a scene with the mobile deck's
+  real 0.75x atlas: the real vectors, a jsdom canvas with the blank 2D
+  context, each SVG decoded from a blob URL, and Phaser's texture cache.
+  Failures are still injected through the services (no canvas, an SVG that
+  will not decode). The loads are counted as they go, and `settle()` waits
+  for them, so a spec of a drawing thrown away knows it was finished. New
+  specs: every frame with vectors drawn from them (54 SVGs), and each
+  frame drawn at the board's size. `phaserDrawnDeckTextures` is checked
+  against the real cache, frames and page; the case of no document is a
+  Node spec of its own (`drawn_deck_painter.node.spec.ts`), since jsdom
+  will not let a spec remove `document`.
+- **The harness, for the painter:** jsdom has no
+  `HTMLImageElement.decode()`, so the harness's resolves once the image
+  has loaded; an image of an object URL the page made itself (an SVG blob)
+  loads, at 0 × 0; and a canvas keeps the one context it was first asked
+  for (a browser hands back the same 2D context, and none of another
+  kind), which `createBrowserCanvas()`'s new spec found.
+- **Left for W8:** `BoardSceneOptions.drawnDeckServices`, documented as
+  "which a spec stands in for", is passed by no spec.
+- **Checks:** the Solitaire Collection's lint, typecheck and 6873 tests;
+  `@fz/phaser`'s lint, typecheck and 200; Snake's 347.

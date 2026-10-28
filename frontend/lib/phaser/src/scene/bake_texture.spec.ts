@@ -1,21 +1,6 @@
-import { type GameObjects, Scene, Textures } from "phaser";
-import type { HostedScene, SceneSurroundings } from "../host";
-import { type SceneRun, runScene } from "../testing";
+import { type GameObjects, type Scene, Textures } from "phaser";
+import { runBareScene } from "../testing";
 import { bakeTexture } from "./bake_texture";
-
-/** A scene that does nothing of its own, to bake textures in. */
-class BareScene extends Scene implements HostedScene {
-  readonly key = "bare";
-
-  constructor(readonly surroundings: SceneSurroundings) {
-    super("bare");
-  }
-}
-
-/** Runs a bare scene. */
-async function runBare(): Promise<SceneRun<BareScene>> {
-  return runScene((surroundings) => new BareScene(surroundings));
-}
 
 /** Returns the canvas texture under a key, failing if there is none. */
 function canvasTexture(scene: Scene, key: string): Textures.CanvasTexture {
@@ -28,7 +13,7 @@ function canvasTexture(scene: Scene, key: string): Textures.CanvasTexture {
 
 describe("bakeTexture", () => {
   it("bakes a canvas texture of the size", async () => {
-    const run = await runBare();
+    const run = await runBareScene();
 
     bakeTexture(run.scene, "apple", 24, 16, vi.fn());
 
@@ -38,7 +23,7 @@ describe("bakeTexture", () => {
   });
 
   it("bakes again at a new size", async () => {
-    const run = await runBare();
+    const run = await runBareScene();
     bakeTexture(run.scene, "apple", 24, 24, vi.fn());
 
     bakeTexture(run.scene, "apple", 40, 30, vi.fn());
@@ -49,7 +34,7 @@ describe("bakeTexture", () => {
   });
 
   it("draws over the texture already there", async () => {
-    const run = await runBare();
+    const run = await runBareScene();
     bakeTexture(run.scene, "apple", 24, 24, vi.fn());
     const first = run.scene.textures.get("apple");
 
@@ -60,7 +45,7 @@ describe("bakeTexture", () => {
   });
 
   it("replaces a texture of the key that isn't a canvas", async () => {
-    const run = await runBare();
+    const run = await runBareScene();
     run.scene.textures.addImage("apple", new Image());
 
     bakeTexture(run.scene, "apple", 8, 8, vi.fn());
@@ -72,7 +57,7 @@ describe("bakeTexture", () => {
   });
 
   it("draws the texture with a Graphics, then lets the Graphics go", async () => {
-    const run = await runBare();
+    const run = await runBareScene();
     let drawnWith: GameObjects.Graphics | undefined;
 
     bakeTexture(run.scene, "apple", 24, 16, (graphics) => {
@@ -84,7 +69,7 @@ describe("bakeTexture", () => {
   });
 
   it("draws every texture again once a lost context is restored", async () => {
-    const run = await runBare();
+    const run = await runBareScene();
     const apple = vi.fn();
     const crumb = vi.fn();
     bakeTexture(run.scene, "apple", 24, 24, apple);
@@ -98,7 +83,7 @@ describe("bakeTexture", () => {
   });
 
   it("draws a texture again with what it was last baked with", async () => {
-    const run = await runBare();
+    const run = await runBareScene();
     const before = vi.fn();
     const after = vi.fn();
     bakeTexture(run.scene, "apple", 24, 24, before);
