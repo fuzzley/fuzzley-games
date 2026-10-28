@@ -28,7 +28,7 @@ history keeps it.
 | W2    | No HEADLESS branches left in the library's code                | done  |
 | W3    | Loads served as a browser serves them                          | done  |
 | W4    | The library's own fakes of a game                              | done  |
-| W5    | The Solitaire Collection's setup, and a board run for real     | to do |
+| W5    | The Solitaire Collection's setup, and a board run for real     | done  |
 | W6    | `TableLight`, `PhaserCardFactory` and `DrawnDeckPainter` specs | to do |
 | W7    | `PhaserTableRenderer` and `BoardInputManager` specs            | to do |
 | W8    | `BoardScene` spec                                              | to do |
@@ -237,3 +237,39 @@ history keeps it.
 - **Checks:** `@fz/phaser` lint, typecheck, 194 tests (98.9 % statements,
   94.2 % branches); Snake's 347, three runs; Snake's and the Solitaire
   Collection's typecheck.
+
+### 2026-10-28: W5, the Solitaire Collection's setup, and a board run for real
+
+- **Where the stand-ins are:** six specs mock the `phaser` module with
+  `test/support/phaser_mocks.ts` (`board_scene`, `phaser_table_renderer`,
+  `board_input_manager`, `table_board_scene`, the catalog and the game
+  contract); three hand the code a fake scene or textures with only type
+  imports of Phaser (`table_light`, `phaser_card_factory`,
+  `drawn_deck_painter`); and three shell specs (`game_canvas.component`,
+  `routes`, `game_catalog.service`) mock the board catalog beside
+  `provideFakePhaserCanvas()`, which is the shell's to keep.
+- **The test setup** (`test/test-setup.ts`) calls `installHeadlessPhaser()`
+  beside the dialog polyfill wherever there is a window, so every jsdom spec
+  has it before anything imports Phaser. The whole suite (171 files, 6867
+  tests) passed with it installed and nothing else changed: no shell spec
+  leaned on jsdom's network, canvas or object URLs.
+- **The atlas pages are served from disk.** Under Vitest an atlas page's
+  `?url` import is `/src/engine/render/assets/sprites/atlas/<deck>/<n>x/card_assets-0.png`
+  (about 900 KB at 1x), a path in the workspace, as Vite's server gives it.
+  `test/support/workspace_files.ts`'s `serveWorkspace` reads a URL's path
+  from the workspace, once per file per worker, or answers nothing (a 404).
+- **`runFakeTableBoard(game, presentation, options)`**
+  (`test/support/fake_table/scene.ts`) runs the fake game's real
+  `BoardScene` through `runScene()`, made as the shell makes a board, its
+  `onReady` and `insets` the harness's surroundings, on a canvas of the
+  design size and served from the workspace unless the options say
+  otherwise.
+- **The board runs whole:** its `preload` loads the atlas through Phaser's
+  loader from the served page, `create` makes its collaborators, the table
+  light's gradient, the shadow's filtered dynamic texture and a sprite on a
+  frame of the atlas for every card, and its first frame says it is ready.
+  On the harness's default 400 × 400 canvas it took the 0.5x atlas, as it
+  should on a board that small, which is why the fixture sizes the canvas
+  to the design.
+- **Specs:** `test/support/fake_table/scene.spec.ts` (3).
+- **Checks:** the Solitaire Collection's lint, typecheck and 6870 tests.
