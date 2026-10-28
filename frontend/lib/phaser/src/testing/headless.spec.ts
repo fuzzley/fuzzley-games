@@ -116,6 +116,21 @@ describe("installHeadlessPhaser", () => {
     expect([right, bottom]).toEqual([30, 20]);
   });
 
+  it("finds the canvas laid out under a point, or else the page's body", () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 30;
+    canvas.height = 20;
+    document.body.append(canvas);
+
+    const found = [
+      document.elementFromPoint(10, 10),
+      document.elementFromPoint(40, 10),
+    ];
+
+    expect(found).toEqual([canvas, document.body]);
+    canvas.remove();
+  });
+
   it("answers a request itself, so nothing reaches the network", async () => {
     const request = new XMLHttpRequest();
     request.open("GET", "https://example.com/apple.json");
