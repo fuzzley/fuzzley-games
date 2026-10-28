@@ -7,8 +7,8 @@ import {
   type ScalerWindow,
   ViewportScaler,
   watchDevicePixels,
-} from "@/engine/render/phaser/host/viewport_scaler";
-import { NO_INSETS } from "@/engine/render/layout/viewport";
+} from "./viewport_scaler";
+import { NO_INSETS } from "../insets";
 
 /** Stands in for a media query, recording listeners to fire a DPR change. */
 class FakePixelRatioQuery implements PixelRatioQuery {
@@ -71,7 +71,7 @@ class FakeWindow implements ScalerWindow {
 
   /** The most recently armed pixel ratio query. */
   get latestQuery(): FakePixelRatioQuery {
-    return this.queries[this.queries.length - 1];
+    return this.queries[this.queries.length - 1]!;
   }
 }
 

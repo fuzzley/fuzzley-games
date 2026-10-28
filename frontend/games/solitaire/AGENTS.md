@@ -132,7 +132,7 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
   `src/engine/render/layout/form_factor.ts` reads for the board and
   `GameViewportService.formFactor` for the shell). Upright, the header docks
   at the bottom; on its side it is a rail down one edge; the canvas declares
-  `--board-inset-*` for whichever edge the chrome covers, from the bar's
+  `--fz-canvas-inset-*` for whichever edge the chrome covers, from the bar's
   size, which `styles/_tokens.scss` publishes as `--fz-bar-height` and
   `--fz-rail-width` through `@fz/game-ui`'s `bar-size()`. A game whose catalog entry names
   `arrangement` (most of them) lies on a grid chosen each frame by
@@ -205,8 +205,9 @@ Architecture guidelines are enforced as hard build errors rather than convention
 | `src/games/*`                         | `engine/core`, `engine/render`, `engine/tableau` | `phaser`, `@/engine/render/phaser/*`, `@/engine/board/*`, `@/ui/*`, `@angular/*`, `rxjs`                                    |
 | `src/ui` _(excl. app/provider/)_      | everything but games                             | `@/games/*`                                                                                                                 |
 
-Note that the generic Phaser canvas host is `engine/render/phaser/host/phaser_host.ts`
-(`PhaserHost`). It is handed a board to run, so the shell never imports a game
+Note that the generic Phaser canvas host is `PhaserHost`, from
+`@fz/phaser/host` ([frontend/lib/phaser/AGENTS.md](../../lib/phaser/AGENTS.md)).
+It is handed a board to run, so the shell never imports a game
 module in order to host one. It keeps one Phaser game, and so one WebGL context,
 for the canvas component's whole life, and swaps each new board scene into it.
 A board scene therefore has to release everything it subscribed to when it ends,

@@ -1,4 +1,4 @@
-import { type Insets, NO_INSETS } from "../../layout/viewport";
+import { type Insets, NO_INSETS } from "../insets";
 
 /**
  * Describes the slice of `Phaser.Game` the scaler drives, so a test need not
@@ -132,10 +132,10 @@ export class ViewportScaler {
   public static readonly INSET_PROPERTIES: {
     readonly [Edge in keyof Insets]: string;
   } = {
-    top: "--board-inset-top",
-    right: "--board-inset-right",
-    bottom: "--board-inset-bottom",
-    left: "--board-inset-left",
+    top: "--fz-canvas-inset-top",
+    right: "--fz-canvas-inset-right",
+    bottom: "--fz-canvas-inset-bottom",
+    left: "--fz-canvas-inset-left",
   };
 
   /** The insets as last read, in CSS pixels. */

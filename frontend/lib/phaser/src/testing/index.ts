@@ -1,0 +1,1 @@
+export { installHeadlessPhaser } from "./headless";

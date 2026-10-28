@@ -12,7 +12,8 @@ import {
 } from "@angular/core";
 import { CARD_DECKS } from "@/engine/render/deck/card_deck";
 import { chooseTableLayout } from "@/engine/render/layout/board_layouts";
-import { PhaserHost } from "@/engine/render/phaser/host/phaser_host";
+import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/view/presentation";
+import { PhaserHost } from "@fz/phaser/host";
 import type { PlayableGame } from "@/engine/tableau/session/playable_game";
 import { makeBoardScene } from "../../provider/board_catalog";
 import { type GameId, boardLayoutsOf } from "../../provider/game_catalog";
@@ -141,7 +142,11 @@ export class GameCanvasComponent {
       // once, and the settings it reads and follows must not become this
       // effect's: a new deck would deal the game again.
       untracked(() => {
-        this.host ??= new PhaserHost(window, parent);
+        this.host ??= new PhaserHost(window, parent, {
+          title: "fSolitaire",
+          // Shown only until the board applies the player's colour.
+          background: DEFAULT_BACKGROUND_COLOR,
+        });
         this.host.show(({ insets }) =>
           makeBoardScene(gameId, game, {
             presentation: this.presentation,

@@ -50,7 +50,7 @@ export default defineConfig(
                 "@/engine/tableau/*",
                 "@/games/*",
                 "@/ui/*",
-                "phaser",
+                "/phaser",
                 "@angular/*",
                 "rxjs",
                 "rxjs/*",
@@ -75,7 +75,7 @@ export default defineConfig(
           patterns: [
             {
               group: [
-                "phaser",
+                "/phaser",
                 "@/engine/board/*",
                 "@/engine/render/phaser/*",
                 "@/engine/tableau/*",
@@ -132,7 +132,7 @@ export default defineConfig(
           patterns: [
             {
               group: [
-                "phaser",
+                "/phaser",
                 "@/engine/board/*",
                 "@/engine/render/phaser/*",
                 "@/games/*",
@@ -184,7 +184,11 @@ export default defineConfig(
                 "A game must not depend on the Angular shell that happens to host it, nor on a reactive library: a game publishes with the engine's own event emitter, and the shell adapts at its own boundary.",
             },
             {
-              group: ["phaser", "@/engine/render/phaser/*", "@/engine/board/*"],
+              group: [
+                "/phaser",
+                "@/engine/render/phaser/*",
+                "@/engine/board/*",
+              ],
               message:
                 "A game is drawn by whatever board it is handed: engine/board builds the Phaser one, and the shell's provider joins the two.",
             },

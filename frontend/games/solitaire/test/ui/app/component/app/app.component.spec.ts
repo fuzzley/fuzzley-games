@@ -13,7 +13,7 @@ import { query, queryRequired } from "@test/support/dom";
 
 // The shell renders the game canvas host, which would otherwise boot a real
 // Phaser game against jsdom's unimplemented canvas.
-vi.mock("@/engine/render/phaser/host/phaser_host", () => ({
+vi.mock("@fz/phaser/host", () => ({
   PhaserHost: class {
     show() {
       /* no-op */

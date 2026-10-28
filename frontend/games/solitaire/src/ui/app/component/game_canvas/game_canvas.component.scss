@@ -6,10 +6,10 @@
 // board reads them through `ViewportScaler` and lays itself out inside; the
 // loading overlay and the deck badge keep inside them too.
 :host {
-  --board-inset-top: var(--fz-bar-height);
-  --board-inset-right: 0px;
-  --board-inset-bottom: 0px;
-  --board-inset-left: 0px;
+  --fz-canvas-inset-top: var(--fz-bar-height);
+  --fz-canvas-inset-right: 0px;
+  --fz-canvas-inset-bottom: 0px;
+  --fz-canvas-inset-left: 0px;
 
   display: block;
   position: relative;
@@ -20,21 +20,21 @@
 
 @include phone-portrait {
   :host {
-    --board-inset-top: 0px;
-    --board-inset-bottom: var(--fz-bar-height);
+    --fz-canvas-inset-top: 0px;
+    --fz-canvas-inset-bottom: var(--fz-bar-height);
   }
 }
 
 @include phone-landscape {
   :host {
-    --board-inset-top: 0px;
-    --board-inset-left: var(--fz-rail-width);
+    --fz-canvas-inset-top: 0px;
+    --fz-canvas-inset-left: var(--fz-rail-width);
   }
 
   // A stock at the left stands the rail at the right.
   :host-context([data-stock-side="left"]) {
-    --board-inset-left: 0px;
-    --board-inset-right: var(--fz-rail-width);
+    --fz-canvas-inset-left: 0px;
+    --fz-canvas-inset-right: var(--fz-rail-width);
   }
 }
 
@@ -59,8 +59,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--board-inset-top) var(--board-inset-right)
-    var(--board-inset-bottom) var(--board-inset-left);
+  padding: var(--fz-canvas-inset-top) var(--fz-canvas-inset-right)
+    var(--fz-canvas-inset-bottom) var(--fz-canvas-inset-left);
   box-sizing: border-box;
   background: var(--surface-felt-scrim);
   opacity: 1;
@@ -136,8 +136,12 @@
   @include glass(12px);
 
   position: absolute;
-  top: calc(50% + (var(--board-inset-top) - var(--board-inset-bottom)) / 2);
-  left: calc(50% + (var(--board-inset-left) - var(--board-inset-right)) / 2);
+  top: calc(
+    50% + (var(--fz-canvas-inset-top) - var(--fz-canvas-inset-bottom)) / 2
+  );
+  left: calc(
+    50% + (var(--fz-canvas-inset-left) - var(--fz-canvas-inset-right)) / 2
+  );
   transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
@@ -181,8 +185,8 @@
   @include transition(opacity, visibility);
 
   position: absolute;
-  top: calc(var(--board-inset-top) + var(--fz-space-4));
-  right: calc(var(--board-inset-right) + var(--fz-space-4));
+  top: calc(var(--fz-canvas-inset-top) + var(--fz-space-4));
+  right: calc(var(--fz-canvas-inset-right) + var(--fz-space-4));
   display: flex;
   align-items: center;
   gap: var(--fz-space-3);
