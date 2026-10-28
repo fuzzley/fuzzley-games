@@ -40,9 +40,9 @@ history keeps it.
 | L7    | Nothing changed in the Solitaire Collection | done      |
 | S0    | The spike                                   | folded in |
 | S1    | The Snake workspace                         | done      |
-| S2    | The rules                                   | to do     |
-| S3    | The view                                    | to do     |
-| S4    | The scene                                   | to do     |
+| S2    | The rules                                   | done      |
+| S3    | The view                                    | done      |
+| S4    | The scene                                   | done      |
 | S5    | The play and the board                      | to do     |
 | S6    | The controls                                | to do     |
 | S7    | The icons, the bar and the dialogs          | to do     |
@@ -332,3 +332,46 @@ history keeps it.
   that reading needs, for a square the snake must have, can't be reached,
   so the view's statement floor is 99, its branches 95, the rest 100.
 - 189 specs.
+
+### 2026-10-27: S4, the scene
+
+- `src/scene/`: `SnakeScene` and `makeSnakeScene(options)`, with four
+  painters, each in a `Layer` of its own: `BoardPainter` (a `Grid` and the
+  wall's `Graphics`), `ApplePainter` (an `Image` of a baked apple, which
+  pops up), `SnakePainter` (one `Graphics` drawn again each frame from
+  `snakeShapes()`) and `EffectsPainter` (the crumbs' emitter, the camera's
+  shake and the fade's counter tween). `textures.ts` bakes the apple and
+  the crumb with `bakeTexture()`, at the squares' size in device pixels.
+- **Each frame** the scene hands the shell the frame's delta (`tick`), then
+  pulls the `SnakeFrame` and the palette and draws them. It follows the run
+  by its id and its steps: a new id kills every tween and resets the
+  effects; a new step count plays `effectsOf()` once, so a frame that shows
+  the same step again plays nothing. Sound waits for S8.
+- **Keys and swipes are Phaser's** (decision 5): `input.keyboard`'s
+  `keydown`, ignoring a held key and one pressed with Ctrl, Alt or Meta, so
+  the browser keeps its shortcuts, and capturing the arrows and Space. The
+  pointer's down, move and up feed a `SwipeReader` with 24 CSS px in device
+  pixels. Both reach the shell as `BoardCommand`s.
+- **Where it differs from the plan, and why:**
+  - The layout is checked each frame, not on the scale manager's resize:
+    the host's `refreshInsets()` only reads the insets again, with no
+    event, so a rail that moves without the canvas changing size would go
+    unseen. The check compares four numbers and the insets object, which
+    changes only when read again, so it allocates nothing.
+  - Phaser 4's `Grid` pads every cell by half a pixel (`cellPadding`, new
+    in 4.0), which would show the page through a 1 px gutter, so the board
+    sets it to 0. Its `setSize()` is private in the typings, so the painter
+    sets `width` and `height`.
+  - `makeSnakeScene()` returns a function giving a `SnakeScene`, which a
+    `MakeScene` takes, so a spec reaches the painters without a cast. The
+    painters are public fields of the scene, for the specs to read.
+- **Decision 3, headless Phaser in jsdom, so far:** the 22 scene specs ran
+  real Phaser on the first try, through `runScene()`, asserting on game
+  objects: the grid's place and colors, the apple's place and scale, the
+  snake's `Graphics` commands, live crumbs, the camera's shake, the fade.
+  Breaking the scene on purpose (no effects, no reset on a new run, no pop,
+  no filter on held keys) failed the spec meant to catch each break. What
+  they can't reach is the drawing of a baked texture, which HEADLESS skips,
+  so `textures.ts` stays half covered; the layout check (S10) and the hand
+  QA see that. The scene has no coverage floor of its own.
+- 211 specs.
