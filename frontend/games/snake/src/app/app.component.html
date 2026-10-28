@@ -5,7 +5,12 @@
 -->
 <main class="stage">
   <h1 class="fz-visually-hidden">Snake</h1>
-  <app-board />
+  <div class="room" [class.with-arrows]="showArrows()">
+    <app-board #board />
+    @if (showArrows()) {
+      <app-arrows (handBack)="board.focus({ preventScroll: true })" />
+    }
+  </div>
 </main>
 
 <!-- In the page from the start, so a screen reader is listening to it. -->
