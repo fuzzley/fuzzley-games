@@ -1,6 +1,7 @@
 import type { Game, Types } from "phaser";
 import type { HostedScene, SceneSurroundings } from "../host";
 import { type Insets, NO_INSETS } from "../insets";
+import { type FileServer, serveFrom } from "./served_files";
 
 /** Says how {@link runScene} sets up the game a scene runs in. */
 export interface SceneRunOptions {
@@ -10,6 +11,11 @@ export interface SceneRunOptions {
   readonly height?: number;
   /** What the scene is told the app's chrome covers; nothing when not given. */
   readonly insets?: Insets;
+  /**
+   * Answers the files the game asks for, until the run is destroyed; every
+   * request is a 404 when not given. One run serves at a time.
+   */
+  readonly serve?: FileServer;
   /** Phaser's config, beyond what the harness sets, such as `input`. */
   readonly config?: Omit<
     Types.Core.GameConfig,
@@ -73,6 +79,7 @@ export async function runScene<S extends HostedScene>(
   // what Phaser needs to load in jsdom.
   const { Core, Game, Scenes, WEBGL } = await import("phaser");
   const { width = 400, height = 400, insets = NO_INSETS } = options;
+  serveFrom(options.serve);
   const parent = document.createElement("div");
   document.body.append(parent);
   const game = new Game({
@@ -173,6 +180,7 @@ export async function runScene<S extends HostedScene>(
       // while the loop sleeps.
       game.step(time, 0);
       parent.remove();
+      serveFrom(undefined);
     },
   };
 }

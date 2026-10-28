@@ -137,7 +137,13 @@ browser, through a game's screenshots and its `check:layout`.
   the next frame, so `advance()` after one. Filters, dynamic textures and
   gradients work as in a browser, and `loseContext()` and
   `restoreContext()` lose and restore the context as a browser may, for a
-  spec of what a scene draws again. The harness's own specs
+  spec of what a scene draws again.
+- **What a scene loads is served.** The harness answers every request
+  itself, from `runScene()`'s `serve`, a function from the URL, resolved
+  against the page's, to the file's text or bytes, or to nothing, which
+  is a 404 that fails the load as a server's would. An image decodes at
+  the size its PNG header gives, so a spec serves a real one from disk or
+  `pngOfSize()`. Nothing reaches the network. The harness's own specs
   (`frontend/lib/phaser/src/testing/run_scene.spec.ts`) check what it
   relies on in Phaser, so an upgrade that breaks it fails there first.
 - Snake's scene specs are the worked example

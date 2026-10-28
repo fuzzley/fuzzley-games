@@ -77,23 +77,18 @@ describe("installHeadlessPhaser", () => {
     expect("WebGLRenderingContext" in window).toBe(true);
   });
 
-  it("loads an image written as a data: URL", async () => {
-    const image = new Image();
-    const loaded = new Promise((resolve) => {
-      image.addEventListener("load", resolve);
+  it("answers a request itself, so nothing reaches the network", async () => {
+    const request = new XMLHttpRequest();
+    request.open("GET", "https://example.com/apple.json");
+    const status = new Promise<number>((resolve) => {
+      request.onload = () => {
+        resolve(request.status);
+      };
     });
 
-    image.src = "data:image/png;base64,iVBORw0KGgo=";
+    request.send();
 
-    await expect(loaded).resolves.toBeInstanceOf(Event);
-  });
-
-  it("keeps an image's address as it was written", () => {
-    const image = new Image();
-
-    image.src = "https://example.com/apple.png";
-
-    expect(image.src).toBe("https://example.com/apple.png");
+    await expect(status).resolves.toBe(404);
   });
 
   it("installs once however often it is called", () => {

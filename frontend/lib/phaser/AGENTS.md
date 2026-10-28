@@ -37,11 +37,13 @@ take the pure ones.
   `import()`, when it first shows a scene.
 - `src/testing/`: what a spec runs a scene in. `installHeadlessPhaser()`,
   which a test setup calls, gives jsdom the 2D and WebGL contexts, drawing
-  nothing, and the image loads Phaser needs, and `runScene()` runs a scene
-  in a WebGL game on them whose frames, clock, keys, pointer and context a
-  spec drives. `provideFakePhaserCanvas()` gives an app's shell specs a
-  canvas that loads no Phaser, whose hosts `FakePhaserCanvas` keeps, to
-  settle each scene they were shown.
+  nothing, that Phaser needs, and answers its requests and decodes its
+  images as a browser would, so nothing reaches the network; and
+  `runScene()` runs a scene in a WebGL game on them whose frames, clock,
+  keys, pointer, context and served files a spec drives. `pngOfSize()` is
+  an image to serve. `provideFakePhaserCanvas()` gives an app's shell
+  specs a canvas that loads no Phaser, whose hosts `FakePhaserCanvas`
+  keeps, to settle each scene they were shown.
 
 ## Rules
 

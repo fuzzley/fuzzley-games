@@ -26,7 +26,7 @@ history keeps it.
 | W0    | The spike: what the Solitaire Collection's calls need          | done  |
 | W1    | A WebGL context that draws nothing, in `@fz/phaser/testing`    | done  |
 | W2    | No HEADLESS branches left in the library's code                | done  |
-| W3    | Loads served as a browser serves them                          | to do |
+| W3    | Loads served as a browser serves them                          | done  |
 | W4    | The library's own fakes of a game                              | to do |
 | W5    | The Solitaire Collection's setup, and a board run for real     | to do |
 | W6    | `TableLight`, `PhaserCardFactory` and `DrawnDeckPainter` specs | to do |
@@ -136,3 +136,46 @@ history keeps it.
   statements, 93.1 % branches, over the 93 % floor); Snake's tests.
 - **Left for W4:** `phaser_host.spec.ts` and `canvas_host.spec.ts` still
   make HEADLESS games of their own.
+
+### 2026-10-28: W3, loads served as a browser serves them
+
+- **What the Solitaire Collection's board loads:** `loadCardAtlas()` hands
+  Phaser's `multiatlas` a parsed manifest, so the only requests are the
+  atlas's PNG pages, at the URLs Vite's `?url` gives them. Phaser fetches
+  each with `XMLHttpRequest` (`responseType` `blob`), then decodes it
+  through `URL.createObjectURL()` and an `Image`; a 4xx or 5xx fails the
+  file, and the loader completes all the same.
+- **What jsdom under Vitest gives:** `URL.createObjectURL()` is Node's,
+  which an image can't read back, and `XMLHttpRequest` is jsdom's, which
+  would really go to `http://localhost:3000/` (jsdom's page URL) and fail
+  only once the connection is refused.
+- **`served_files.ts`** (`frontend/lib/phaser/src/testing/`), installed by
+  `installHeadlessPhaser()`:
+  - `ServedRequest` takes `XMLHttpRequest`'s place, on `globalThis` and
+    `window`. It is an `EventTarget` whose `on…` handlers hear its events
+    too, so Phaser's handlers and any listener work. It resolves the URL
+    against the page's, asks the server, and answers on a later task:
+    200 with the file read as `responseType` asks (text, JSON, an
+    `ArrayBuffer` or a `Blob`), or 404. `abort()` stops the answer.
+  - `URL.createObjectURL()` and `revokeObjectURL()` keep the blob behind
+    each `blob:headless/<n>` URL.
+  - An `<img>` whose `src` is a `data:` URL or an object URL of a served
+    file loads on a later task, its `naturalWidth` and `naturalHeight`
+    read from the PNG header (bytes 16 to 23), or 0 × 0 for bytes that are
+    no PNG. Phaser's default textures now have their real sizes (32 × 32,
+    4 × 4) too. Any other address loads as jsdom loads it: not at all.
+- **`runScene({ serve })`** sets the server for the run and clears it on
+  `destroy()`; without one every request is a 404. A `FileServer` is a
+  function from the URL to a file's text or bytes, or undefined, so a spec
+  can change its answers mid-run by closure (a deck that fails to load).
+- **`pngOfSize(width, height)`**, exported, is the PNG signature and header
+  of a size, for a spec to serve an image without reading one from disk.
+- **Specs:** `served_files.spec.ts` (14: served, 404, nothing serving,
+  resolved URLs, each response type, text, listeners, abort, headers,
+  images decoded from object and `data:` URLs, no PNG, revoked, other
+  addresses); `headless.spec.ts` lost its image specs to it and gained a
+  request to a remote address answered with a 404; `run_scene.spec.ts`
+  gained a scene that loads an image: served, failed as a 404, and nothing
+  served after `destroy()`.
+- **Checks:** `@fz/phaser` lint, typecheck, 188 tests (99.2 % statements,
+  94.3 % branches); Snake's 347.
