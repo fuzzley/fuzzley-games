@@ -17,7 +17,10 @@ export interface SceneRunOptions {
   >;
 }
 
-/** A scene running in a HEADLESS game, whose frames a spec steps by hand. */
+/**
+ * A scene running in a WebGL game that draws nothing, whose frames a spec
+ * steps by hand.
+ */
 export interface SceneRun<S extends HostedScene> {
   /** The game the scene runs in. */
   readonly game: Game;
@@ -40,6 +43,13 @@ export interface SceneRun<S extends HostedScene> {
    * it at once.
    */
   pointer(type: "down" | "move" | "up", x: number, y: number): void;
+  /**
+   * Loses the game's WebGL context, as a browser may, through the context's
+   * own `WEBGL_lose_context`; Phaser hears it at once.
+   */
+  loseContext(): void;
+  /** Restores the context {@link loseContext} lost; Phaser hears it at once. */
+  restoreContext(): void;
   /** Destroys the game, and with it the scene. */
   destroy(): void;
 }
@@ -48,8 +58,8 @@ export interface SceneRun<S extends HostedScene> {
 const START_TIMEOUT_MS = 5_000;
 
 /**
- * Runs a scene in a HEADLESS game, for a spec to step frame by frame: real
- * Phaser, with nothing drawn.
+ * Runs a scene in a WebGL game, for a spec to step frame by frame: real
+ * Phaser, its renderer included, drawing on a context that draws nothing.
  *
  * Call {@link installHeadlessPhaser} first, from the test setup. A spec
  * asserts on the scene's game objects, never on pixels, and fakes no `Date`:
@@ -61,7 +71,7 @@ export async function runScene<S extends HostedScene>(
 ): Promise<SceneRun<S>> {
   // Imported here, so a test setup can import this entry before it installs
   // what Phaser needs to load in jsdom.
-  const { Core, Game, HEADLESS, Scenes } = await import("phaser");
+  const { Core, Game, Scenes, WEBGL } = await import("phaser");
   const { width = 400, height = 400, insets = NO_INSETS } = options;
   const parent = document.createElement("div");
   document.body.append(parent);
@@ -70,7 +80,7 @@ export async function runScene<S extends HostedScene>(
     autoFocus: false,
     audio: { noAudio: true },
     ...options.config,
-    type: HEADLESS,
+    type: WEBGL,
     parent,
     width,
     height,
@@ -127,7 +137,7 @@ export async function runScene<S extends HostedScene>(
           const delta = Math.min(frameMs, ms - passed);
           time += delta;
           wall += delta;
-          game.headlessStep(time, delta);
+          game.step(time, delta);
         }
       } finally {
         if (now) Object.defineProperty(Date, "now", now);
@@ -151,14 +161,28 @@ export async function runScene<S extends HostedScene>(
         }),
       );
     },
+    loseContext() {
+      loseContextOf(game).loseContext();
+    },
+    restoreContext() {
+      loseContextOf(game).restoreContext();
+    },
     destroy() {
       game.destroy(true);
       // Phaser tears a game down on its next frame, which only a step brings
       // while the loop sleeps.
-      game.headlessStep(time, 0);
+      game.step(time, 0);
       parent.remove();
     },
   };
+}
+
+/** Returns the WebGL context's own means of losing and restoring itself. */
+function loseContextOf(game: Game): WEBGL_lose_context {
+  const context = game.canvas.getContext("webgl");
+  const extension = context?.getExtension("WEBGL_lose_context");
+  if (!extension) throw new Error("The game's canvas has no WebGL context");
+  return extension;
 }
 
 /** Waits for a scene to start running, which a scene that loads files takes a while to. */

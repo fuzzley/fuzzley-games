@@ -1,4 +1,4 @@
-import { type GameObjects, Scene } from "phaser";
+import { type GameObjects, Renderer, Scene, WEBGL } from "phaser";
 import type { HostedScene, SceneSurroundings } from "../host";
 import { runScene } from "./run_scene";
 
@@ -171,6 +171,47 @@ describe("runScene", () => {
     run.pointer("up", 60, 25);
 
     expect(run.scene.pointers).toEqual(["down 10,20", "up 60,25 from 10,20"]);
+    run.destroy();
+  });
+
+  it("runs the scene with Phaser's WebGL renderer", async () => {
+    const run = await runProbe();
+
+    expect(run.game.renderer.type).toBe(WEBGL);
+    run.destroy();
+  });
+
+  it("lets the scene draw with what only WebGL has", async () => {
+    const run = await runProbe();
+    const { scene } = run;
+
+    scene.box.enableFilters().filters?.internal.addShadow();
+    const texture = scene.textures.addDynamicTexture("crumb", 8, 8);
+    texture?.draw(scene.box).render();
+    scene.add.gradient(undefined, 0, 0, 40, 40);
+    run.advance(32);
+
+    expect(scene.textures.exists("crumb")).toBe(true);
+    run.destroy();
+  });
+
+  it("loses and restores the game's WebGL context, as Phaser hears", async () => {
+    const run = await runProbe();
+    const heard: string[] = [];
+    for (const event of [
+      Renderer.Events.LOSE_WEBGL,
+      Renderer.Events.RESTORE_WEBGL,
+    ]) {
+      run.game.renderer.on(event, () => heard.push(event));
+    }
+
+    run.loseContext();
+    run.restoreContext();
+
+    expect(heard).toEqual([
+      Renderer.Events.LOSE_WEBGL,
+      Renderer.Events.RESTORE_WEBGL,
+    ]);
     run.destroy();
   });
 

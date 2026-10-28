@@ -97,8 +97,8 @@ out of the first download.
   `width` and `height`; and its alternate cells are those where
   x + y is odd.
 - `load.audioSprite()` takes the spritemap itself where its typings ask
-  for the JSON's URL, which needs a cast; under `noAudio`, as a headless
-  game has, it loads nothing, so a scene plays a sound only once the cache
+  for the JSON's URL, which needs a cast; under `noAudio`, as the test
+  harness's game has, it loads nothing, so a scene plays a sound only once the cache
   has it.
 - `tweens.killAll()` stops every tween a scene runs, for a new run that
   must not inherit the last one's.
@@ -128,13 +128,16 @@ browser, through a game's screenshots and its `check:layout`.
 - **A shell's specs** take `provideFakePhaserCanvas()`, which loads no
   Phaser; `FakePhaserCanvas` keeps the hosts it made, and readies or fails
   each scene they were shown.
-- **A scene's specs** run real Phaser, headless, in jsdom. The test setup
-  calls `installHeadlessPhaser()` first, and `runScene()` runs the scene in
-  a HEADLESS game whose frames, clock, keys and pointer the spec drives.
-  `advance()` moves the clock Phaser's tweens read, so a spec fakes no
-  `Date`; a key waits for the next frame, so `advance()` after one. A
-  headless game draws nothing, so `bakeTexture()` leaves a blank texture of
-  the size there. The harness's own specs
+- **A scene's specs** run real Phaser in jsdom, its WebGL renderer
+  included, on a context that draws nothing. The test setup calls
+  `installHeadlessPhaser()` before anything imports Phaser, which tests for
+  WebGL as it loads, and `runScene()` runs the scene in a WebGL game whose
+  frames, clock, keys and pointer the spec drives. `advance()` moves the
+  clock Phaser's tweens read, so a spec fakes no `Date`; a key waits for
+  the next frame, so `advance()` after one. Filters, dynamic textures and
+  gradients work as in a browser, and `loseContext()` and
+  `restoreContext()` lose and restore the context as a browser may, for a
+  spec of what a scene draws again. The harness's own specs
   (`frontend/lib/phaser/src/testing/run_scene.spec.ts`) check what it
   relies on in Phaser, so an upgrade that breaks it fails there first.
 - Snake's scene specs are the worked example
