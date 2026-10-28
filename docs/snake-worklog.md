@@ -28,29 +28,29 @@ history keeps it.
 
 ## Status
 
-| Phase | What                                        | State |
-| ----- | ------------------------------------------- | ----- |
-| L0    | The spike and the Solitaire baselines       | done  |
-| L1    | The `@fz/phaser` workspace                  | done  |
-| L2    | The host and the pure entries               | done  |
-| L3    | The scene helpers and the headless harness  | done  |
-| L4    | The canvas component                        | done  |
-| L5    | Build and lint                              | done  |
-| L6    | Skills and docs                             | done  |
-| L7    | Nothing changed in the Solitaire Collection | done  |
-| S0    | The spike                                   | to do |
-| S1    | The Snake workspace                         | to do |
-| S2    | The rules                                   | to do |
-| S3    | The view                                    | to do |
-| S4    | The scene                                   | to do |
-| S5    | The play and the board                      | to do |
-| S6    | The controls                                | to do |
-| S7    | The icons, the bar and the dialogs          | to do |
-| S8    | Sound                                       | to do |
-| S9    | Storage                                     | to do |
-| S10   | The checks                                  | to do |
-| S11   | Screenshots and docs                        | to do |
-| S12   | Ship, and QA of both games                  | to do |
+| Phase | What                                        | State     |
+| ----- | ------------------------------------------- | --------- |
+| L0    | The spike and the Solitaire baselines       | done      |
+| L1    | The `@fz/phaser` workspace                  | done      |
+| L2    | The host and the pure entries               | done      |
+| L3    | The scene helpers and the headless harness  | done      |
+| L4    | The canvas component                        | done      |
+| L5    | Build and lint                              | done      |
+| L6    | Skills and docs                             | done      |
+| L7    | Nothing changed in the Solitaire Collection | done      |
+| S0    | The spike                                   | folded in |
+| S1    | The Snake workspace                         | done      |
+| S2    | The rules                                   | to do     |
+| S3    | The view                                    | to do     |
+| S4    | The scene                                   | to do     |
+| S5    | The play and the board                      | to do     |
+| S6    | The controls                                | to do     |
+| S7    | The icons, the bar and the dialogs          | to do     |
+| S8    | Sound                                       | to do     |
+| S9    | Storage                                     | to do     |
+| S10   | The checks                                  | to do     |
+| S11   | Screenshots and docs                        | to do     |
+| S12   | Ship, and QA of both games                  | to do     |
 
 ## Entries
 
@@ -255,3 +255,28 @@ history keeps it.
   canvas turned `ready`, where the old one stayed failed.
 - **`phaser-lift` is ready to merge,** on the user's go-ahead: nothing is
   merged or pushed yet. Part 2 goes on `snake`, cut from it.
+
+### 2026-10-27: S0, folded into the phases
+
+- No mock, as the log's start says, and no spike of its own: L0 answered
+  the questions about headless Phaser, and the rest are checked where they
+  are built: the speeds, the glide and the queue by hand in S5 and S10, the
+  first frame and the canvas renderer's fallback in S10. A screen reader
+  can't be listened to here, so the board's role is decided by reasoning in
+  S5 and left for the user to hear.
+
+### 2026-10-27: S1, the workspace
+
+- `frontend/games/snake/`, on the branch `snake` cut from `phaser-lift`,
+  shaped as Sudoku: `gameConfig({ port: 9003, name: "Snake" })`,
+  `angularTests()` with the rules and the view held near 100%, the
+  tsconfig solution, `stylelint.config.js`, `index.html` and an empty
+  shell. `src/test-setup.ts` installs headless Phaser before anything
+  imports it. `tools/` and `tsconfig.scripts.json` wait for the first
+  script, since ESLint and `tsc` both fail on an empty folder.
+- **The fences,** one block for each layer, from the plan's table, with
+  Phaser anchored as `/phaser`. The shell may import the scene and
+  `@fz/phaser/host` only by type, since a value import of the host would
+  pull Phaser into the first download. A probe file in each layer: every
+  forbidden import refused, every allowed one let through.
+- `games.json` doesn't list it yet.

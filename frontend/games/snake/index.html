@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Snake</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      The palette the player chose on the site or in another game, which
+      theme.js puts on the page before anything paints. A plain tag, at a
+      relative URL like the build's other files: @fz/style's Vite plugin
+      makes it, and vite-ignore tells Vite it isn't for bundling.
+    -->
+    <script src="theme.js" vite-ignore></script>
+    <!--
+      The fuzzball, which the same plugin makes in the default palettes'
+      accents and ThemeService recolors to the one in use. The ICO and the
+      home screen icon are for what draws no SVG; the ICO's sizes keeps a
+      browser that draws both from picking it.
+    -->
+    <link rel="icon" href="favicon.ico" sizes="32x32" vite-ignore />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" vite-ignore />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" vite-ignore />
+    <!--
+      Tints the mobile browser's chrome to match the page, Classic felt's
+      until ThemeService sets the palette's own.
+    -->
+    <meta name="theme-color" content="#ffffff" />
+
+    <!-- For search engines and link previews. -->
+    <meta
+      name="description"
+      content="Play Snake free in your browser: eat the apples, grow longer and keep clear of the walls and your own tail. Three speeds, by keyboard, swipe or on-screen arrows."
+    />
+    <link rel="canonical" href="https://fuzzley.games/play/snake/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Snake" />
+    <meta
+      property="og:description"
+      content="Play Snake free in your browser: eat the apples, grow longer and keep clear of the walls and your own tail. Three speeds, by keyboard, swipe or on-screen arrows."
+    />
+    <meta property="og:url" content="https://fuzzley.games/play/snake/" />
+    <meta
+      property="og:image"
+      content="https://fuzzley.games/play/snake/docs/screenshots/snake/preview.webp"
+    />
+    <meta property="og:image:type" content="image/webp" />
+    <meta property="og:image:width" content="2560" />
+    <meta property="og:image:height" content="1440" />
+    <meta
+      property="og:image:alt"
+      content="A game of Snake in progress, a long green snake bending across a checkered board toward a red apple."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Snake",
+        "url": "https://fuzzley.games/play/snake/",
+        "description": "Play Snake free in your browser: eat the apples, grow longer and keep clear of the walls and your own tail. Three speeds, by keyboard, swipe or on-screen arrows.",
+        "applicationCategory": "GameApplication",
+        "genre": ["Arcade", "Action game"],
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript.",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
+  </head>
+
+  <body>
+    <app-root></app-root>
+    <noscript>
+      <h1>Snake</h1>
+      <p>
+        Snake, free to play in your browser: eat, grow and keep clear of your
+        own tail. Turn on JavaScript to play.
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
