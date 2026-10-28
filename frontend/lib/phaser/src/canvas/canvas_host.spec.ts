@@ -1,6 +1,6 @@
 import { DOCUMENT } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { HEADLESS, Scene } from "phaser";
+import { Scene } from "phaser";
 import type { HostOptions, HostedScene, MakeScene } from "../host";
 import { type CanvasHost, PHASER_CANVAS_HOST } from "./canvas_host";
 
@@ -29,11 +29,11 @@ function makeReadyScene(built: string[], name: string): MakeScene {
   };
 }
 
-/** Real Phaser, headless, which jsdom can run. */
+/** Real Phaser, on the test harness's blank contexts. */
 const OPTIONS: HostOptions = {
   title: "Snake",
   background: "transparent",
-  config: { type: HEADLESS, autoFocus: false, banner: false },
+  config: { autoFocus: false, banner: false, audio: { noAudio: true } },
 };
 
 describe("PHASER_CANVAS_HOST", () => {

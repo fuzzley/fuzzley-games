@@ -44,9 +44,9 @@ const doNothing = (): undefined => undefined;
  *
  * Every shader compiles and every program links, with nothing active, every
  * framebuffer is complete, and it offers no extension but
- * `WEBGL_lose_context`, which loses and restores it as a browser's does,
- * raising `webglcontextlost` and `webglcontextrestored` on its canvas, though
- * at once rather than on a later task.
+ * `WEBGL_lose_context`, which loses and restores it as a browser's does: lost
+ * at once, it raises `webglcontextlost` on its canvas on a later task, and
+ * restored on a later task, `webglcontextrestored`.
  */
 export function blankWebGLContext(
   canvas: HTMLCanvasElement,
@@ -63,16 +63,25 @@ export function blankWebGLContext(
   const named = (value: unknown): string =>
     typeof value === "number" ? (NAMES.get(value) ?? "") : "";
 
+  let restoring = false;
   const loseContext = {
     loseContext: (): void => {
       if (lost) return;
       lost = true;
-      canvas.dispatchEvent(new Event("webglcontextlost", { cancelable: true }));
+      setTimeout(() => {
+        canvas.dispatchEvent(
+          new Event("webglcontextlost", { cancelable: true }),
+        );
+      });
     },
     restoreContext: (): void => {
-      if (!lost) return;
-      lost = false;
-      canvas.dispatchEvent(new Event("webglcontextrestored"));
+      if (!lost || restoring) return;
+      restoring = true;
+      setTimeout(() => {
+        lost = false;
+        restoring = false;
+        canvas.dispatchEvent(new Event("webglcontextrestored"));
+      });
     },
   };
 

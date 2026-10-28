@@ -89,9 +89,9 @@ describe("bakeTexture", () => {
     const crumb = vi.fn();
     bakeTexture(run.scene, "apple", 24, 24, apple);
     bakeTexture(run.scene, "crumb", 4, 4, crumb);
-    run.loseContext();
+    await run.loseContext();
 
-    run.restoreContext();
+    await run.restoreContext();
 
     expect([apple.mock.calls.length, crumb.mock.calls.length]).toEqual([2, 2]);
     run.destroy();
@@ -103,9 +103,9 @@ describe("bakeTexture", () => {
     const after = vi.fn();
     bakeTexture(run.scene, "apple", 24, 24, before);
     bakeTexture(run.scene, "apple", 32, 32, after);
-    run.loseContext();
+    await run.loseContext();
 
-    run.restoreContext();
+    await run.restoreContext();
 
     expect([before.mock.calls.length, after.mock.calls.length]).toEqual([1, 2]);
     run.destroy();

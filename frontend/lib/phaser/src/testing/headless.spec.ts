@@ -73,8 +73,32 @@ describe("installHeadlessPhaser", () => {
     expect(context).toBeNull();
   });
 
-  it("says the window has WebGL, as Phaser asks before it tries", () => {
-    expect("WebGLRenderingContext" in window).toBe(true);
+  it("says the window has WebGL and the 2D canvas, as Phaser asks before it tries", () => {
+    expect([
+      "WebGLRenderingContext" in window,
+      "CanvasRenderingContext2D" in window,
+    ]).toEqual([true, true]);
+  });
+
+  it("lays a canvas out at its CSS size, at the page's top left", () => {
+    const canvas = document.createElement("canvas");
+    canvas.style.width = "390.4px";
+    canvas.style.height = "844px";
+
+    const { left, top, width, height } = canvas.getBoundingClientRect();
+
+    expect([left, top, width, height]).toEqual([0, 0, 390.4, 844]);
+  });
+
+  it("lays a canvas with no CSS size out at the size of its pixels", () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 30;
+    canvas.height = 20;
+    canvas.style.width = "100%";
+
+    const { right, bottom } = canvas.getBoundingClientRect();
+
+    expect([right, bottom]).toEqual([30, 20]);
   });
 
   it("answers a request itself, so nothing reaches the network", async () => {

@@ -2,6 +2,7 @@ import type { Game, Types } from "phaser";
 import type { HostedScene, SceneSurroundings } from "../host";
 import { type Insets, NO_INSETS } from "../insets";
 import { type FileServer, serveFrom } from "./served_files";
+import { startGame, stopGame } from "./start_game";
 
 /** Says how {@link runScene} sets up the game a scene runs in. */
 export interface SceneRunOptions {
@@ -40,8 +41,9 @@ export interface SceneRun<S extends HostedScene> {
    */
   advance(ms: number, frameMs?: number): void;
   /**
-   * Sends a key event to the element Phaser's keyboard listens on. Phaser
-   * hears it on the next frame, so {@link advance} after it.
+   * Sends a key event to the element Phaser's keyboard listens on, as a
+   * browser sends it, with the key's `keyCode`. Phaser hears it on the next
+   * frame, so {@link advance} after it.
    */
   key(type: "keydown" | "keyup", code: string, key?: string): void;
   /**
@@ -51,11 +53,14 @@ export interface SceneRun<S extends HostedScene> {
   pointer(type: "down" | "move" | "up", x: number, y: number): void;
   /**
    * Loses the game's WebGL context, as a browser may, through the context's
-   * own `WEBGL_lose_context`; Phaser hears it at once.
+   * own `WEBGL_lose_context`, and resolves once Phaser has heard.
    */
-  loseContext(): void;
-  /** Restores the context {@link loseContext} lost; Phaser hears it at once. */
-  restoreContext(): void;
+  loseContext(): Promise<void>;
+  /**
+   * Restores the context {@link loseContext} lost, and resolves once Phaser
+   * has heard.
+   */
+  restoreContext(): Promise<void>;
   /** Destroys the game, and with it the scene. */
   destroy(): void;
 }
@@ -75,42 +80,10 @@ export async function runScene<S extends HostedScene>(
   make: (surroundings: SceneSurroundings) => S,
   options: SceneRunOptions = {},
 ): Promise<SceneRun<S>> {
-  // Imported here, so a test setup can import this entry before it installs
-  // what Phaser needs to load in jsdom.
-  const { Core, Game, Scenes, WEBGL } = await import("phaser");
+  const { Scenes } = await import("phaser");
   const { width = 400, height = 400, insets = NO_INSETS } = options;
   serveFrom(options.serve);
-  const parent = document.createElement("div");
-  document.body.append(parent);
-  const game = new Game({
-    banner: false,
-    autoFocus: false,
-    audio: { noAudio: true },
-    ...options.config,
-    type: WEBGL,
-    parent,
-    width,
-    height,
-  });
-  await new Promise<void>((resolve) => {
-    game.events.once(Core.Events.READY, () => {
-      resolve();
-    });
-  });
-  // jsdom measures every element as 0 × 0, and Phaser maps the pointer
-  // through the size of the canvas.
-  game.canvas.getBoundingClientRect = () =>
-    ({
-      x: 0,
-      y: 0,
-      left: 0,
-      top: 0,
-      width,
-      height,
-      right: width,
-      bottom: height,
-    }) as DOMRect;
-  game.scale.refresh();
+  const game = await startGame({ ...options.config, width, height });
 
   let ready = false;
   const scene = make({
@@ -121,10 +94,10 @@ export async function runScene<S extends HostedScene>(
   });
   game.scene.add(scene.key, scene, true);
   await started(scene, Scenes.RUNNING);
-  game.loop.sleep();
 
   let time = game.loop.time;
   let wall = Date.now();
+  let stamp = 0;
   const now = Object.getOwnPropertyDescriptor(Date, "now");
 
   return {
@@ -152,9 +125,18 @@ export async function runScene<S extends HostedScene>(
     },
     key(type, code, key = code) {
       const target = (game.input.keyboard?.target ?? window) as EventTarget;
-      target.dispatchEvent(
-        new KeyboardEvent(type, { code, key, bubbles: true, cancelable: true }),
-      );
+      const event = new KeyboardEvent(type, {
+        code,
+        key,
+        keyCode: keyCodeOf(code),
+        bubbles: true,
+        cancelable: true,
+      });
+      // Phaser drops an event of the key and stamp of the one before it, which
+      // jsdom stamps to the millisecond, and a browser to a fraction of one.
+      stamp = Math.max(performance.now(), stamp + 0.001);
+      Object.defineProperty(event, "timeStamp", { value: stamp });
+      target.dispatchEvent(event);
     },
     pointer(type, x, y) {
       game.canvas.dispatchEvent(
@@ -168,21 +150,52 @@ export async function runScene<S extends HostedScene>(
         }),
       );
     },
-    loseContext() {
+    async loseContext() {
+      const heard = canvasEvent(game, "webglcontextlost");
       loseContextOf(game).loseContext();
+      await heard;
     },
-    restoreContext() {
+    async restoreContext() {
+      const heard = canvasEvent(game, "webglcontextrestored");
       loseContextOf(game).restoreContext();
+      await heard;
     },
     destroy() {
-      game.destroy(true);
-      // Phaser tears a game down on its next frame, which only a step brings
-      // while the loop sleeps.
-      game.step(time, 0);
-      parent.remove();
+      stopGame(game);
       serveFrom(undefined);
     },
   };
+}
+
+/** The `keyCode` a browser gives each key that has one but a letter or digit. */
+const KEY_CODES: Readonly<Record<string, number>> = {
+  Backspace: 8,
+  Tab: 9,
+  Enter: 13,
+  ShiftLeft: 16,
+  ShiftRight: 16,
+  ControlLeft: 17,
+  ControlRight: 17,
+  AltLeft: 18,
+  AltRight: 18,
+  Escape: 27,
+  Space: 32,
+  PageUp: 33,
+  PageDown: 34,
+  End: 35,
+  Home: 36,
+  ArrowLeft: 37,
+  ArrowUp: 38,
+  ArrowRight: 39,
+  ArrowDown: 40,
+  Delete: 46,
+};
+
+/** Returns the `keyCode` a browser gives a key, by its `code`, or 0. */
+function keyCodeOf(code: string): number {
+  if (/^(Key[A-Z]|Digit\d)$/.test(code))
+    return code.charCodeAt(code.length - 1);
+  return KEY_CODES[code] ?? 0;
 }
 
 /** Returns the WebGL context's own means of losing and restoring itself. */
@@ -191,6 +204,19 @@ function loseContextOf(game: Game): WEBGL_lose_context {
   const extension = context?.getExtension("WEBGL_lose_context");
   if (!extension) throw new Error("The game's canvas has no WebGL context");
   return extension;
+}
+
+/** Resolves once the game's canvas has raised an event. */
+async function canvasEvent(game: Game, type: string): Promise<void> {
+  await new Promise<void>((resolve) => {
+    game.canvas.addEventListener(
+      type,
+      () => {
+        resolve();
+      },
+      { once: true },
+    );
+  });
 }
 
 /** Waits for a scene to start running, which a scene that loads files takes a while to. */

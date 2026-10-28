@@ -27,7 +27,7 @@ history keeps it.
 | W1    | A WebGL context that draws nothing, in `@fz/phaser/testing`    | done  |
 | W2    | No HEADLESS branches left in the library's code                | done  |
 | W3    | Loads served as a browser serves them                          | done  |
-| W4    | The library's own fakes of a game                              | to do |
+| W4    | The library's own fakes of a game                              | done  |
 | W5    | The Solitaire Collection's setup, and a board run for real     | to do |
 | W6    | `TableLight`, `PhaserCardFactory` and `DrawnDeckPainter` specs | to do |
 | W7    | `PhaserTableRenderer` and `BoardInputManager` specs            | to do |
@@ -179,3 +179,61 @@ history keeps it.
   served after `destroy()`.
 - **Checks:** `@fz/phaser` lint, typecheck, 188 tests (99.2 % statements,
   94.3 % branches); Snake's 347.
+
+### 2026-10-28: W4, the library's own fakes of a game
+
+- **The blank context's events now come on a later task,** as the WebGL
+  spec has them: `loseContext()` marks it lost at once and raises
+  `webglcontextlost` on a later task; `restoreContext()` restores it, and
+  raises `webglcontextrestored`, on a later task, once however often it is
+  asked. It matters to `PhaserHost`: it loses the context from Phaser's
+  `DESTROY`, which Phaser raises before the renderer stops listening; a
+  browser's event comes once the renderer has gone, so it warns of nothing.
+  `run.loseContext()` and `run.restoreContext()` now resolve once the
+  canvas has heard, so the specs `await` them.
+- **A canvas is laid out at its CSS size** at the page's top left (or the
+  size of its backing store, where its CSS size is not in pixels), by
+  `installHeadlessPhaser()`'s `getBoundingClientRect()`, since jsdom lays
+  nothing out and Phaser maps the pointer, and measures for input, through
+  it. `runScene()` lost its own stand-in for that.
+- **`startGame()` and `stopGame()`** (`src/testing/start_game.ts`, not
+  exported) start a WebGL game on a parent in the page, resolve once it has
+  booted with its loop asleep, and tear it down with a step. `runScene()`
+  is built on them.
+- **The scaler's spec runs on a real game.** `ScalableGame`, the slice of
+  `Phaser.Game` it took "so a test need not boot a real game", is gone: it
+  takes a `Game`, and the spec's 41 specs read the canvas's backing size,
+  the scale manager's zoom and `canvasBounds`, where they read a recording
+  fake. Two findings: a canvas holds whole pixels, so the budgeted size is
+  2828 where the fake kept 2828.43 (the spec says so now); and swapping
+  the scaler's `refresh()` before it pins the CSS size now fails "measures
+  the canvas for input only once its CSS size is pinned", which the fake
+  only mimicked (checked by hand, then restored).
+- **The host's spec runs on real games.** `HostedGame` is gone too;
+  `CreateGame` stays, as the host's dependency, and returns a `Game`. The
+  spec's factory makes a real game and records its config and when it
+  booted and was torn down. Scenes record their own life (create,
+  shutdown, destroy), so "shuts the scene it replaces down before removing
+  it" checks what Phaser does with them. The destroy specs read the canvas
+  leaving the page and the context lost only once Phaser tears the game
+  down. A game drawn without WebGL needed `window.CanvasRenderingContext2D`,
+  which Phaser's feature test reads and jsdom lacks; the harness defines it
+  beside `WebGLRenderingContext`, both as a constructor that throws.
+  `PhaserHost.destroy()` now asks `instanceof WebGLRenderer` rather than
+  reading `gl` off a renderer of either kind.
+- **`canvas_host.spec.ts`** runs its games on the harness's WebGL rather
+  than HEADLESS; `HEADLESS` is named nowhere in the library now.
+- **A flaky Snake spec, found and fixed in the harness.** "turn a key into
+  a command" failed one run in three: Space after ArrowUp in one frame
+  went unheard. Phaser drops a key event whose `keyCode`, `timeStamp` and
+  type match the one before it; the harness's `KeyboardEvent`s had
+  `keyCode` 0, and jsdom stamps to the millisecond. `run.key()` now gives
+  the `keyCode` a browser gives (letters, digits, arrows, Space, Enter and
+  the rest) and a stamp to a fraction of a millisecond, strictly rising.
+  Snake passed three runs in a row after. Phaser handles its whole key
+  queue on each DOM event and clears it each frame, so a third key in one
+  frame has it send the first two again, in a browser as here; the specs,
+  and `phaser-core`, press at most two a frame.
+- **Checks:** `@fz/phaser` lint, typecheck, 194 tests (98.9 % statements,
+  94.2 % branches); Snake's 347, three runs; Snake's and the Solitaire
+  Collection's typecheck.

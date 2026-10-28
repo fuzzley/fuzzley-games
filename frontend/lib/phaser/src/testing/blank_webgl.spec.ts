@@ -16,6 +16,11 @@ function eventsOn(canvas: HTMLCanvasElement): string[] {
   return events;
 }
 
+/** Resolves on a later task, once the tasks queued before it have run. */
+async function nextTask(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve));
+}
+
 /** Returns the context's own means of losing and restoring itself. */
 function loseContextOf(context: WebGLRenderingContext): WEBGL_lose_context {
   const extension = context.getExtension("WEBGL_lose_context");
@@ -143,50 +148,78 @@ describe("blankWebGLContext", () => {
     }).not.toThrow();
   });
 
-  it("loses itself, telling its canvas in an event it may cancel", () => {
+  it("is lost as soon as it is lost, before its canvas hears", () => {
     const canvas = document.createElement("canvas");
     const context = blankWebGLContext(canvas);
     const events = eventsOn(canvas);
 
     loseContextOf(context).loseContext();
 
-    expect([context.isContextLost(), events]).toEqual([
-      true,
-      ["webglcontextlost (cancelable)"],
-    ]);
+    expect([context.isContextLost(), events]).toEqual([true, []]);
   });
 
-  it("restores itself once lost, telling its canvas", () => {
+  it("tells its canvas it was lost on a later task, in an event it may cancel", async () => {
+    const canvas = document.createElement("canvas");
+    const context = blankWebGLContext(canvas);
+    const events = eventsOn(canvas);
+
+    loseContextOf(context).loseContext();
+    await nextTask();
+
+    expect(events).toEqual(["webglcontextlost (cancelable)"]);
+  });
+
+  it("is restored on a later task, telling its canvas", async () => {
     const canvas = document.createElement("canvas");
     const context = blankWebGLContext(canvas);
     loseContextOf(context).loseContext();
+    await nextTask();
     const events = eventsOn(canvas);
 
     loseContextOf(context).restoreContext();
+    const before = context.isContextLost();
+    await nextTask();
 
-    expect([context.isContextLost(), events]).toEqual([
+    expect([before, context.isContextLost(), events]).toEqual([
+      true,
       false,
       ["webglcontextrestored"],
     ]);
   });
 
-  it("loses itself only once until it is restored", () => {
+  it("is lost only once until it is restored", async () => {
     const canvas = document.createElement("canvas");
     const context = blankWebGLContext(canvas);
     const events = eventsOn(canvas);
 
     loseContextOf(context).loseContext();
     loseContextOf(context).loseContext();
+    await nextTask();
 
     expect(events).toEqual(["webglcontextlost (cancelable)"]);
   });
 
-  it("restores only a context it lost", () => {
+  it("is restored only once however often it is asked", async () => {
+    const canvas = document.createElement("canvas");
+    const context = blankWebGLContext(canvas);
+    loseContextOf(context).loseContext();
+    await nextTask();
+    const events = eventsOn(canvas);
+
+    loseContextOf(context).restoreContext();
+    loseContextOf(context).restoreContext();
+    await nextTask();
+
+    expect(events).toEqual(["webglcontextrestored"]);
+  });
+
+  it("restores only a context it lost", async () => {
     const canvas = document.createElement("canvas");
     const context = blankWebGLContext(canvas);
     const events = eventsOn(canvas);
 
     loseContextOf(context).restoreContext();
+    await nextTask();
 
     expect(events).toEqual([]);
   });

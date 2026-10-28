@@ -36,20 +36,49 @@ export function installHeadlessPhaser(): void {
     }
     return context;
   } as typeof HTMLCanvasElement.prototype.getContext;
-  // Phaser offers WebGL only where the window has it. The blank context isn't
-  // one of these, so Phaser takes it for a WebGL 2 context rather than fold
-  // WebGL 1's extensions into it, and the blank context answers either.
-  if (!("WebGLRenderingContext" in window)) {
-    Object.defineProperty(window, "WebGLRenderingContext", {
+  // Phaser offers a renderer only where the window has its context. The
+  // blank WebGL context isn't one of these, so Phaser takes it for a WebGL 2
+  // context rather than fold WebGL 1's extensions into it, and it answers
+  // either.
+  for (const name of ["WebGLRenderingContext", "CanvasRenderingContext2D"]) {
+    if (name in window) continue;
+    Object.defineProperty(window, name, {
       configurable: true,
       writable: true,
-      value: function WebGLRenderingContext(): never {
+      value: function RenderingContext(): never {
         throw new TypeError("Illegal constructor");
       },
     });
   }
 
+  // jsdom lays nothing out, and Phaser maps the pointer through the canvas's
+  // place on the page.
+  HTMLCanvasElement.prototype.getBoundingClientRect = function layOut(
+    this: HTMLCanvasElement,
+  ): DOMRect {
+    return laidOut(this);
+  };
+
   installServedFiles();
+}
+
+/**
+ * Returns where a browser would lay a canvas out, were it alone at the page's
+ * top left corner: at its CSS size, where that is in pixels, or else at the
+ * size of its backing store.
+ */
+function laidOut(canvas: HTMLCanvasElement): DOMRect {
+  const css = (length: string): number | undefined =>
+    length.endsWith("px") ? Number.parseFloat(length) : undefined;
+  const width = css(canvas.style.width) ?? canvas.width;
+  const height = css(canvas.style.height) ?? canvas.height;
+  const rect = { x: 0, y: 0, width, height, top: 0, left: 0 };
+  return {
+    ...rect,
+    right: width,
+    bottom: height,
+    toJSON: () => rect,
+  };
 }
 
 /** Does nothing, as every drawing call on a blank context does. */

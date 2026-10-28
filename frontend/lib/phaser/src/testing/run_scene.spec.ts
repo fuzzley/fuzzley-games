@@ -188,6 +188,37 @@ describe("runScene", () => {
     run.destroy();
   });
 
+  it("sends two keys in one frame, as a browser does", async () => {
+    const run = await runProbe();
+
+    run.key("keydown", "ArrowUp");
+    run.key("keydown", "Space", " ");
+    run.advance(16);
+
+    expect(run.scene.keys).toEqual(["ArrowUp", "Space"]);
+    run.destroy();
+  });
+
+  it("gives a key the keyCode a browser gives it", async () => {
+    const run = await runProbe();
+    const keyboard = run.scene.input.keyboard!;
+    const keys = [keyboard.addKey("UP"), keyboard.addKey("W")];
+    const seven = keyboard.addKey("SEVEN");
+
+    run.key("keydown", "ArrowUp");
+    run.key("keydown", "KeyW", "w");
+    run.advance(16);
+    run.key("keydown", "Digit7", "7");
+    run.advance(16);
+
+    expect([...keys, seven].map((key) => key.isDown)).toEqual([
+      true,
+      true,
+      true,
+    ]);
+    run.destroy();
+  });
+
   it("sends the pointer to the canvas, at a point in its pixels", async () => {
     const run = await runProbe();
 
@@ -230,8 +261,8 @@ describe("runScene", () => {
       run.game.renderer.on(event, () => heard.push(event));
     }
 
-    run.loseContext();
-    run.restoreContext();
+    await run.loseContext();
+    await run.restoreContext();
 
     expect(heard).toEqual([
       Renderer.Events.LOSE_WEBGL,

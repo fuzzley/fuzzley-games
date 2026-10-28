@@ -1,20 +1,5 @@
+import type { Game } from "phaser";
 import { type Insets, NO_INSETS } from "../insets";
-
-/**
- * Describes the slice of `Phaser.Game` the scaler drives, so a test need not
- * boot a real game.
- */
-export interface ScalableGame {
-  /** The game's canvas element, whose CSS size the scaler pins. */
-  readonly canvas: { style: { width: string; height: string } };
-  /** The scale manager, driven directly because the game runs in NONE mode. */
-  readonly scale: {
-    setZoom(zoom: number): unknown;
-    resize(width: number, height: number): unknown;
-    /** Measures the canvas again, for converting pointer positions. */
-    refresh(): unknown;
-  };
-}
 
 /** Describes the subscription surface of a `MediaQueryList`. */
 export interface PixelRatioQuery {
@@ -167,7 +152,7 @@ export class ViewportScaler {
    */
   constructor(
     private readonly window: ScalerWindow,
-    private readonly game: ScalableGame,
+    private readonly game: Game,
     private readonly parent: MeasurableParent,
     private readonly watchParent: WatchDevicePixels = watchDevicePixels,
   ) {}

@@ -90,9 +90,9 @@ describe("onContextRestored", () => {
     const run = await runBare();
     const listener = vi.fn();
     onContextRestored(run.scene, listener);
-    run.loseContext();
+    await run.loseContext();
 
-    run.restoreContext();
+    await run.restoreContext();
 
     expect(listener).toHaveBeenCalledOnce();
     run.destroy();
@@ -103,7 +103,7 @@ describe("onContextRestored", () => {
     const listener = vi.fn();
     onContextRestored(run.scene, listener);
 
-    run.loseContext();
+    await run.loseContext();
 
     expect(listener).not.toHaveBeenCalled();
     run.destroy();
@@ -115,9 +115,9 @@ describe("onContextRestored", () => {
     onContextRestored(run.scene, listener);
     run.game.scene.stop("bare");
     run.advance(16);
-    run.loseContext();
+    await run.loseContext();
 
-    run.restoreContext();
+    await run.restoreContext();
 
     expect(listener).not.toHaveBeenCalled();
     run.destroy();
