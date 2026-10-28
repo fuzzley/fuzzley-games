@@ -159,12 +159,18 @@ browser, through a game's screenshots and its `check:layout`.
 - **What a scene loads is served.** The harness answers every request
   itself, from `runScene()`'s `serve`, a function from the URL, resolved
   against the page's, to the file's text or bytes, or to nothing, which
-  is a 404 that fails the load as a server's would. An image decodes at
-  the size its PNG header gives, so a spec serves a real one from disk or
+  is a 404 that fails the load as a server's would. It asks `serve` as a
+  request is sent and answers on a later task, so a server that notes
+  what it is asked for knows at once. An image decodes at the size its
+  PNG header gives, so a spec serves a real one from disk or
   `pngOfSize()`; an image from an object URL the page made itself loads
   too, at 0 × 0, and `decode()` resolves once an image has loaded. A
-  canvas keeps the one context it was first asked for. Nothing reaches the
-  network. The harness's own specs
+  canvas keeps the one context it was first asked for. `await loaded()`
+  waits out a load the scene starts once it runs, stepping frames as a
+  browser's go on, since Phaser takes in a file queued during a load
+  only on a frame; `prepare` readies the game before the scene is added,
+  as an earlier scene may have left it, such as with textures loaded.
+  Nothing reaches the network. The harness's own specs
   (`frontend/lib/phaser/src/testing/run_scene.spec.ts`) check what it
   relies on in Phaser, so an upgrade that breaks it fails there first.
 - Snake's scene specs are the worked example

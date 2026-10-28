@@ -89,6 +89,23 @@ describe("served files", () => {
     ]);
   });
 
+  it("asks the server as the request is sent, and answers on a later task", () => {
+    const asked: string[] = [];
+    serveFrom((url) => {
+      asked.push(url.pathname);
+      return "{}";
+    });
+    const request = new XMLHttpRequest();
+    request.open("GET", "/apple.json");
+
+    request.send();
+
+    expect([asked, request.readyState]).toEqual([
+      ["/apple.json"],
+      XMLHttpRequest.OPENED,
+    ]);
+  });
+
   it("reads a response as its type asks", async () => {
     serveFrom(serving("/apple.json", '{"crisp":true}'));
 

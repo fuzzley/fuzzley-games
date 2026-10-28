@@ -102,9 +102,9 @@ export function installServedFiles(): void {
 const REQUEST_EVENTS = ["load", "error", "timeout", "progress"] as const;
 
 /**
- * Answers a request from {@link serveFrom}'s server, on a later task, with
- * the file or a 404, in place of `XMLHttpRequest`, as far as a loader reads
- * one.
+ * Asks {@link serveFrom}'s server for a file as the request is sent, and
+ * answers on a later task with the file or a 404, in place of
+ * `XMLHttpRequest`, as far as a loader reads one.
  */
 class ServedRequest extends EventTarget {
   static readonly UNSENT = 0;
@@ -166,10 +166,10 @@ class ServedRequest extends EventTarget {
   }
 
   send(): void {
+    const url = new URL(this.url, document.baseURI);
+    const file = server(url);
     setTimeout(() => {
       if (this.aborted) return;
-      const url = new URL(this.url, document.baseURI);
-      const file = server(url);
       this.responseURL = url.href;
       this.readyState = ServedRequest.DONE;
       this.status = file === undefined ? 404 : 200;

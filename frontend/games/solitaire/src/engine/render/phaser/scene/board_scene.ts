@@ -1,4 +1,4 @@
-import { type GameObjects, Scene, type Textures } from "phaser";
+import { type GameObjects, Scene } from "phaser";
 import {
   onContextRestored,
   onFirstFrame,
@@ -10,7 +10,6 @@ import {
 import { BoardDeckLoader } from "../deck/board_deck_loader";
 import {
   DrawnDeckPainter,
-  type DrawnDeckServices,
   browserDrawnDeckServices,
 } from "../deck/drawn_deck_painter";
 import { PhaserCardFactory } from "./phaser_card_factory";
@@ -101,13 +100,6 @@ export interface BoardSceneOptions {
    * over it reaches, such as its header, in CSS pixels; none when omitted.
    */
   readonly insets?: () => Insets;
-  /**
-   * Returns what the board draws its deck at its exact size with: the
-   * browser's canvas and images when omitted, which a spec stands in for.
-   */
-  readonly drawnDeckServices?: (
-    textures: Textures.TextureManager,
-  ) => DrawnDeckServices;
 }
 
 /** Draws a game's board with Phaser and turns pointer input into intents. */
@@ -238,11 +230,9 @@ export class BoardScene extends Scene implements PhaserSprites {
       textureKey: cardAtlasTextureKey(this.deckLoader.atlas),
       artScale: this.deckLoader.atlas.artScale,
     };
-    const drawnDeckServices =
-      this.options.drawnDeckServices ?? browserDrawnDeckServices;
     this.drawnDeck = new DrawnDeckPainter(
       this,
-      drawnDeckServices(this.textures),
+      browserDrawnDeckServices(this.textures),
     );
     const drawnDeck = this.drawnDeck;
     whenSceneEnds(this, () => {

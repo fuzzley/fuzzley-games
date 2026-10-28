@@ -17,6 +17,11 @@ export interface SceneRunOptions {
    * request is a 404 when not given. One run serves at a time.
    */
   readonly serve?: FileServer;
+  /**
+   * Readies the game before the scene is added, as an earlier scene may have
+   * left it, such as with textures loaded.
+   */
+  readonly prepare?: (game: Game) => void | Promise<void>;
   /** Phaser's config, beyond what the harness sets, such as `input`. */
   readonly config?: Omit<
     Types.Core.GameConfig,
@@ -63,6 +68,12 @@ export interface SceneRun<S extends HostedScene> {
    */
   touch(type: "start" | "move" | "end", x: number, y: number): void;
   /**
+   * Resolves once the scene's loader has finished everything it was given,
+   * each file loaded or failed, stepping a frame on each wait, as a browser's
+   * frames go on while files load.
+   */
+  loaded(): Promise<void>;
+  /**
    * Loses the game's WebGL context, as a browser may, through the context's
    * own `WEBGL_lose_context`, and resolves once Phaser has heard.
    */
@@ -95,6 +106,7 @@ export async function runScene<S extends HostedScene>(
   const { width = 400, height = 400, insets = NO_INSETS } = options;
   serveFrom(options.serve);
   const game = await startGame({ ...options.config, width, height });
+  await options.prepare?.(game);
 
   let ready = false;
   const scene = make({
@@ -111,29 +123,31 @@ export async function runScene<S extends HostedScene>(
   let stamp = 0;
   const now = Object.getOwnPropertyDescriptor(Date, "now");
 
+  const advance = (ms: number, frameMs = 16): void => {
+    Object.defineProperty(Date, "now", {
+      configurable: true,
+      writable: true,
+      value: () => wall,
+    });
+    try {
+      for (let passed = 0; passed < ms; passed += frameMs) {
+        const delta = Math.min(frameMs, ms - passed);
+        time += delta;
+        wall += delta;
+        game.step(time, delta);
+      }
+    } finally {
+      if (now) Object.defineProperty(Date, "now", now);
+    }
+  };
+
   return {
     game,
     scene,
     get ready() {
       return ready;
     },
-    advance(ms, frameMs = 16) {
-      Object.defineProperty(Date, "now", {
-        configurable: true,
-        writable: true,
-        value: () => wall,
-      });
-      try {
-        for (let passed = 0; passed < ms; passed += frameMs) {
-          const delta = Math.min(frameMs, ms - passed);
-          time += delta;
-          wall += delta;
-          game.step(time, delta);
-        }
-      } finally {
-        if (now) Object.defineProperty(Date, "now", now);
-      }
-    },
+    advance,
     key(type, code, key = code) {
       const target = (game.input.keyboard?.target ?? window) as EventTarget;
       const event = new KeyboardEvent(type, {
@@ -186,6 +200,13 @@ export async function runScene<S extends HostedScene>(
         targetTouches: { value: down },
       });
       canvas.dispatchEvent(event);
+    },
+    async loaded() {
+      while (scene.load.isLoading()) {
+        await nextTask();
+        // Phaser takes in a file queued during a load only on a frame.
+        advance(16);
+      }
     },
     async loseContext() {
       const heard = canvasEvent(game, "webglcontextlost");
@@ -262,6 +283,11 @@ function loseContextOf(game: Game): WEBGL_lose_context {
   return extension;
 }
 
+/** Resolves on a later task, once the tasks queued before it have run. */
+async function nextTask(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve));
+}
+
 /** Resolves once the game's canvas has raised an event. */
 async function canvasEvent(game: Game, type: string): Promise<void> {
   await new Promise<void>((resolve) => {
@@ -282,6 +308,6 @@ async function started(scene: HostedScene, running: number): Promise<void> {
     if (Date.now() > deadline) {
       throw new Error(`Scene "${scene.key}" didn't start`);
     }
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await nextTask();
   }
 }
