@@ -10,8 +10,9 @@ history keeps it.
   cut from `main` at `8353bda`, with the plan and this log as its first
   commit. Part 2, Snake (S0 to S12), is on `snake`, cut from `phaser-lift`,
   so `phaser-lift` can be merged to `main` on its own first (decision 19).
-  Nothing is merged to `main` or pushed until the user says so: a push to
-  `main` deploys.
+  A push to `main` deploys. On 2026-10-27, during S5, the user said: "When
+  done, merge to main and push." So once S12 and the QA of both games pass,
+  both branches merge to `main` and are pushed; not before.
 - The user answered the plan's decisions on 2026-10-27. They took the
   recommendation everywhere but three places, which "The user's answers" in
   the plan lists: Phaser's own input for keys and swipes (5), walls only
@@ -43,7 +44,7 @@ history keeps it.
 | S2    | The rules                                   | done      |
 | S3    | The view                                    | done      |
 | S4    | The scene                                   | done      |
-| S5    | The play and the board                      | to do     |
+| S5    | The play and the board                      | done      |
 | S6    | The controls                                | to do     |
 | S7    | The icons, the bar and the dialogs          | to do     |
 | S8    | Sound                                       | to do     |
@@ -375,3 +376,56 @@ history keeps it.
   so `textures.ts` stays half covered; the layout check (S10) and the hand
   QA see that. The scene has no coverage floor of its own.
 - 211 specs.
+
+### 2026-10-27: S5, the play and the board
+
+- `src/app/play/game.service.ts`: the run, the new best and the result card
+  in signals; `tick()` runs `advance()` and keeps the glide's progress in a
+  field; `frame()` hands the scene one object, written again each call;
+  `command()`, `turn()`, `pause()`, `resume()`, `toggle()`, `newGame()` and
+  `changeSpeed()` (both asking first while a run is under way), `takeUp()`
+  for S9, and `closeResult()`. A run counts as started at its first
+  direction, and its end keeps the score and the length in the stats.
+- `src/app/board/`: `BoardComponent` around `<fz-phaser-canvas>`, loading
+  the scene with `import()`; the empty board drawn in CSS until the scene
+  is ready; the start, pause and failure cards; `data-board` from
+  `onLayout`, and `data-outcome`. `app.component` puts it in the stage.
+- **Pulled forward from S9:** `SettingsService` (`snake-settings`: speed,
+  movement, arrows, sound) and `StatsService` (`snake-stats`: runs, best
+  and longest for each speed), since the game reads the speed, the movement
+  and the best. S9 keeps `SavedGameService`.
+- **Decisions made here, and why:**
+  - **The board is `role="application"`**, named "Snake, 17 by 17" and
+    described by its keys. In browse mode a screen reader keeps the arrow
+    keys to read with, and an application hands them to the page, which a
+    game steered by arrows needs. The canvas in it is hidden. Not yet
+    heard with NVDA or Narrator; S10's hand QA does that.
+  - **It pauses when the focus leaves the board,** not only on a dialog or
+    a hidden page: with Phaser's keyboard on the board's element, keys
+    stop steering once the focus is elsewhere, whether a dialog, the bar or
+    another window took it. A hidden page pauses it too, from the app.
+  - **The board takes the focus on a press:** Phaser's mouse prevents the
+    default of `mousedown`, which is what would focus it.
+  - **The result card's wait is counted in `tick()`,** the scene's time,
+    not a timer, so it stops with the loop on a hidden page, and specs
+    drive it.
+  - **The cards sit in the lower half of the board,** a quarter of its side
+    below the middle, since the middle row is where the snake and the apple
+    start.
+  - `advance()` returns a small object each frame. The rules hand back
+    values by design; this one is all `tick()` allocates, and it is left.
+- **The placeholder matches the scene's board:** at 1280 × 800 the scene
+  put it at 197, 33, 629 × 629 and the CSS at 197.5, 33, 629 × 629.
+- **Decision 3, again:** jsdom's `getComputedStyle()` reads custom
+  properties set on the root's inline style, so three of the board's specs
+  run the real scene the board loads, on headless Phaser: a key on the
+  board reaches the game through Phaser's keyboard, the scene's time steps
+  the run, and the layout reaches `data-board`. The shell's other specs use
+  `provideFakePhaserCanvas()`.
+- **Played in headless Chrome** (`snake-play.mjs` in the scratchpad, on
+  `@fz/dev/chrome`), at 1280 × 800 and an upright phone in Soft pastel:
+  the board takes the focus on load, an arrow starts the run, Space pauses
+  and goes on, Escape pauses, an apple is eaten, and the crash shakes,
+  fades and is announced with the new best. No errors. The browser pane
+  can't time a game while it is hidden, and the session had no window.
+- 277 specs.

@@ -1,0 +1,114 @@
+@use "../styles" as *;
+
+// The board takes the room the stage gives it. The scene lays the squares out
+// `--room` in from each edge, which the canvas reads as its insets, and the
+// placeholder and the focus ring work out the same square: the largest that
+// fits with room for its wall, in whole squares (`boardMetrics()`).
+:host {
+  --room: var(--fz-space-6);
+  --wall: 2px;
+  --fz-canvas-inset-top: var(--room);
+  --fz-canvas-inset-right: var(--room);
+  --fz-canvas-inset-bottom: var(--room);
+  --fz-canvas-inset-left: var(--room);
+
+  position: relative;
+  display: block;
+  container-type: size;
+  overflow: hidden;
+  outline: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+// `--squares` comes from the component, as many as the rules' board has.
+.placeholder,
+.ring,
+.card {
+  --side: round(
+    down,
+    min(100cqw, 100cqh) - 2 * var(--room) - 2 * var(--wall),
+    var(--squares) * 1px
+  );
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+}
+
+// Every other square washed, from the second of the first row, as Phaser's
+// grid does, and the wall around them in text at 20% over the panel.
+.squares {
+  --square: calc(var(--side) / var(--squares));
+
+  width: var(--side);
+  height: var(--side);
+  border: var(--wall) solid
+    color-mix(in srgb, var(--fz-text) 20%, var(--fz-panel));
+  background-color: var(--fz-panel);
+  background-image: repeating-conic-gradient(
+    var(--fz-wash-1) 0 25%,
+    transparent 0 50%
+  );
+  background-size: calc(2 * var(--square)) calc(2 * var(--square));
+}
+
+// Around the wall, while the board has the focus from the keyboard.
+.ring {
+  position: absolute;
+  inset: 0;
+  width: var(--side);
+  height: var(--side);
+  margin: auto;
+  border-radius: var(--fz-radius-sm);
+  outline: var(--fz-focus-ring-width) solid transparent;
+  outline-offset: calc(var(--wall) + var(--fz-focus-ring-offset));
+  pointer-events: none;
+}
+
+:host(:focus-visible) .ring {
+  outline-color: var(--fz-focus-ring-color);
+}
+
+// Over the lower half of the board, clear of the row the snake and the apple
+// start on, letting swipes through to the canvas but on its button.
+.card {
+  @include glass(12px);
+
+  position: absolute;
+  inset: 0;
+  display: grid;
+  justify-items: center;
+  gap: var(--fz-space-2);
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: min(320px, 100cqmin - 4 * var(--room));
+  height: fit-content;
+  margin: auto;
+  padding: var(--fz-space-5) var(--fz-space-6);
+  translate: 0 calc(var(--side) / 4);
+  border: 1px solid var(--fz-edge-3);
+  border-radius: var(--fz-radius-lg);
+  background: var(--fz-panel-glass);
+  box-shadow: var(--fz-shadow-card);
+  color: var(--fz-text);
+  text-align: center;
+  pointer-events: none;
+
+  p {
+    margin: 0;
+  }
+
+  button {
+    margin-top: var(--fz-space-2);
+    pointer-events: auto;
+  }
+}
+
+.card-title {
+  font-size: var(--fz-font-lg);
+  font-weight: 700;
+}
