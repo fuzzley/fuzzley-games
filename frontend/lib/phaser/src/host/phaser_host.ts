@@ -1,7 +1,7 @@
 import * as Phaser from "phaser";
 import type { Scene, Types } from "phaser";
 import { type Insets, NO_INSETS } from "../insets";
-import { type ScalableGame, ViewportScaler } from "./viewport_scaler";
+import { ViewportScaler } from "./viewport_scaler";
 
 /** Describes a scene a host runs: a Phaser scene with a key of its own. */
 export interface HostedScene extends Scene {
@@ -53,29 +53,8 @@ export interface HostOptions {
   >;
 }
 
-/**
- * Describes the slice of `Phaser.Game` the host drives, so a spec need not boot
- * a real game.
- */
-export interface HostedGame extends ScalableGame {
-  /** The game's lifecycle events, for knowing when it has booted. */
-  readonly events: { once(event: string, listener: () => void): unknown };
-  /** The renderer, whose context the host releases; a canvas one has none. */
-  readonly renderer: {
-    readonly type: number;
-    readonly gl?: WebGLRenderingContext;
-  };
-  /** The scene manager, which the host swaps scenes in and out of. */
-  readonly scene: {
-    add(key: string, scene: HostedScene, autoStart: boolean): unknown;
-    stop(key: string): unknown;
-    remove(key: string): unknown;
-  };
-  destroy(removeCanvas: boolean): void;
-}
-
 /** Builds the game a host runs from its configuration. */
-export type CreateGame = (config: Types.Core.GameConfig) => HostedGame;
+export type CreateGame = (config: Types.Core.GameConfig) => Phaser.Game;
 
 /** Builds a Phaser game. */
 const createPhaserGame: CreateGame = (config) => new Phaser.Game(config);
@@ -95,7 +74,7 @@ interface PendingScene {
  * context to make room for a new one.
  */
 export class PhaserHost {
-  private game?: HostedGame;
+  private game?: Phaser.Game;
 
   /** Keeps the canvas sized to the display's true pixel resolution. */
   private scaler?: ViewportScaler;
@@ -174,7 +153,7 @@ export class PhaserHost {
   }
 
   /** Swaps a scene in for the one on the canvas. */
-  private mount(game: HostedGame, pending: PendingScene): void {
+  private mount(game: Phaser.Game, pending: PendingScene): void {
     this.pending = undefined;
     const scenes = game.scene;
     if (this.scene) {
@@ -223,7 +202,10 @@ export class PhaserHost {
     // on the next frame, because its renderer warns of a lost context until
     // then.
     game.events.once(Phaser.Core.Events.DESTROY, () => {
-      game.renderer?.gl?.getExtension("WEBGL_lose_context")?.loseContext();
+      const renderer = game.renderer;
+      if (renderer instanceof Phaser.Renderer.WebGL.WebGLRenderer) {
+        renderer.gl.getExtension("WEBGL_lose_context")?.loseContext();
+      }
     });
     game.destroy(true);
   }

@@ -133,11 +133,18 @@ browser, through a game's screenshots and its `check:layout`.
   `installHeadlessPhaser()` before anything imports Phaser, which tests for
   WebGL as it loads, and `runScene()` runs the scene in a WebGL game whose
   frames, clock, keys and pointer the spec drives. `advance()` moves the
-  clock Phaser's tweens read, so a spec fakes no `Date`; a key waits for
-  the next frame, so `advance()` after one. Filters, dynamic textures and
-  gradients work as in a browser, and `loseContext()` and
-  `restoreContext()` lose and restore the context as a browser may, for a
-  spec of what a scene draws again.
+  clock Phaser's tweens read, so a spec fakes no `Date`; a key, sent with
+  the `keyCode` a browser gives it, waits for the next frame, so
+  `advance()` after one; and press at most two keys a frame, since with a
+  third Phaser sends the earlier ones again, in a browser too. Filters, dynamic textures and
+  gradients work as in a browser, a canvas is laid out at its CSS size,
+  and `await loseContext()` and `await restoreContext()` lose and restore
+  the context as a browser may, its events on a later task, for a spec of
+  what a scene draws again.
+- **Code that takes a game,** such as the host and the scaler, is checked
+  on a real one: `@fz/phaser`'s own specs start one with its
+  `src/testing/start_game.ts`, so Phaser's own writes to the canvas and
+  its scale manager are part of what they check.
 - **What a scene loads is served.** The harness answers every request
   itself, from `runScene()`'s `serve`, a function from the URL, resolved
   against the page's, to the file's text or bytes, or to nothing, which
