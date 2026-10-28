@@ -1,0 +1,25 @@
+# Snake
+
+Snake: eat the apples, grow longer, and keep clear of the walls and your own
+tail. Play it at https://fuzzley.games/play/snake/.
+
+An [Angular](https://angular.dev/) app on the Fuzzley Games shared libraries
+(`frontend/lib/`), with its board drawn by [Phaser](https://phaser.io/)
+through `@fz/phaser`, built with [Vite](https://vite.dev/) and tested with
+[Vitest](https://vitest.dev/).
+
+## Development
+
+Snake is a Yarn workspace of the Fuzzley Games frontend. Run these from
+`frontend/`:
+
+```sh
+yarn install                  # install dependencies, once per clone
+yarn workspace snake dev      # dev server on http://localhost:9003
+yarn workspace snake test     # unit tests
+yarn workspace snake build    # production build in dist/
+```
+
+## License
+
+This project source code is licensed under the [GNU General Public License v3.0 or later](LICENSE).

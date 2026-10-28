@@ -1,0 +1,11 @@
+{
+  // The configs Vite and Vitest run in Node. @fz/style's Vite plugin imports
+  // its modules by their full file names, as Node needs.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": ["node"]
+  },
+  "include": ["vite.config.ts", "vitest.config.ts"]
+}
