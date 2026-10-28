@@ -37,7 +37,7 @@ history keeps it.
 | L4    | The canvas component                        | done  |
 | L5    | Build and lint                              | done  |
 | L6    | Skills and docs                             | done  |
-| L7    | Nothing changed in the Solitaire Collection | to do |
+| L7    | Nothing changed in the Solitaire Collection | done  |
 | S0    | The spike                                   | to do |
 | S1    | The Snake workspace                         | to do |
 | S2    | The rules                                   | to do |
@@ -226,3 +226,32 @@ history keeps it.
   `AGENTS.md` still named the `host/` folder L2 removed, and
   `solitaire-build` still showed the `manualChunks` L1 removed.
 - `yarn lint` from `frontend/` passes, the reference check with it.
+
+### 2026-10-27: L7, nothing changed in the Solitaire Collection
+
+- `yarn verify` from `frontend/` passes: lint, typecheck, every
+  workspace's specs and the build, the site's included.
+- **Its suite:** 6,864 specs pass, at 98.5 / 92.8 / 98.9 / 99.3 against a
+  floor of 95 / 88 / 96 / 96, which stays where it was.
+- **Its compiled styles,** pulled out of both builds' bundles rule by rule:
+  the global stylesheet is byte for byte the same file, and of some 300
+  component rules only `GameCanvasComponent`'s differ: the insets' names,
+  the canvas element's rule, which moved to the library's, and the
+  overlay's fade, which moved to the library's four rules.
+- **Its screenshots,** in L4's entry, match L0's. With the stock on the left,
+  which L0's shots didn't cover, the new build and the baseline match too:
+  the one difference, 22 pixels of the New Game button's icon on the rail,
+  shows between two runs of the baseline as well.
+- **Its `phaser` chunk** is the same file, by its hash.
+- **By hand,** in the browser pane, on the built game: a draw from the stock
+  and a drag in Klondike; Klondike to FreeCell, through the leave guard's
+  question, and on to Spider, one canvas throughout, its label following
+  the game; Spider on an upright phone and on its side; the stock moved to
+  the left, which moved the rail to the right edge and the insets with it,
+  with no resize; and the desktop deck changed in a running board.
+- **A late scene recovers now.** With the pane hidden, the page ran as a
+  background tab, drew no frame, and the canvas failed the board after
+  eight seconds, as the old component did; fronted, the board drew and the
+  canvas turned `ready`, where the old one stayed failed.
+- **`phaser-lift` is ready to merge,** on the user's go-ahead: nothing is
+  merged or pushed yet. Part 2 goes on `snake`, cut from it.
