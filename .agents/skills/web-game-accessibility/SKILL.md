@@ -10,7 +10,8 @@ share. The shared libraries' components meet them by themselves, so the
 first way to meet one is to use the library's piece (the `fuzzley-ui` skill
 lists them); each workspace's `AGENTS.md` names what it keeps of its own:
 `frontend/site/AGENTS.md`, `frontend/games/solitaire/AGENTS.md`,
-`frontend/games/minesweeper/AGENTS.md` and `frontend/games/sudoku/AGENTS.md`.
+`frontend/games/minesweeper/AGENTS.md`, `frontend/games/sudoku/AGENTS.md`
+and `frontend/games/snake/AGENTS.md`.
 
 ## Core Accessibility Rules
 
@@ -97,6 +98,26 @@ move it with the arrow keys, Home and End.
   and letters by their character. Its number pad gives touch every key: a
   key pressed with a finger or a mouse hands the focus back to the board,
   so the player goes on typing, and one pressed from the keyboard keeps it.
+
+A board that moves by itself, as Snake's does
+(`frontend/games/snake/src/app/board/`), is no grid: it is one focusable
+element with `role="application"`, named for the game and described by
+its keys, so a screen reader hands it the arrow keys; the canvas in it is
+hidden.
+
+- It waits for the player: nothing moves until the first key, and it
+  pauses whenever the focus leaves the board or the page is hidden, so
+  opening a dialog or switching tabs never costs a run. Pause has a key of
+  its own (Space, P or Escape) and a button.
+- Its pace is the player's to choose: Snake offers three speeds, and a
+  snake that steps from square to square rather than gliding.
+- The run's turning points are announced, not each move: the start, a
+  pause, going on, and the end with the score; a run taken up after a
+  reload says it is paused.
+- Controls that steer it with a finger or a mouse (on-screen arrows, Pause,
+  Sound) keep the focus on the board, so the keys keep working.
+- Its effects follow `prefers-reduced-motion` (`GameViewportService`'s
+  `allowsMotion`): no shake, no crumbs, and the result shown at once.
 
 ### 5. Color & Contrast
 

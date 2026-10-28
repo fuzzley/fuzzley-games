@@ -2,7 +2,8 @@
 
 `frontend/games/`: the games built here, one workspace each, named after its
 folder: the Solitaire Collection (`solitaire/`), Minesweeper
-(`minesweeper/`) and Sudoku (`sudoku/`). These rules hold for every game.
+(`minesweeper/`), Sudoku (`sudoku/`) and Snake (`snake/`). These rules
+hold for every game.
 The frontend's, in [frontend/AGENTS.md](../AGENTS.md), and the repository's
 apply too, and each game keeps its own in its folder's `AGENTS.md`. Paths
 are relative to `frontend/games/`.
@@ -24,8 +25,8 @@ are relative to `frontend/games/`.
   or styles into the running page, which needs the `rootDir` `@fz/dev`'s
   tsconfig gives it (`frontend/lib/dev/AGENTS.md`).
 - **Its dev server has a port of its own,** which its screenshot script
-  defaults to: 9000 is the Solitaire Collection's, 9001 Minesweeper's and
-  9002 Sudoku's, so the next game takes 9003. The root's `yarn dev:all`
+  defaults to: 9000 is the Solitaire Collection's, 9001 Minesweeper's,
+  9002 Sudoku's and 9003 Snake's, so the next game takes 9004. The root's `yarn dev:all`
   runs it on one after the site's instead, at `/play/<slug>/`, which the
   site's dev server serves, so nothing the game loads may assume it sits at
   `/`.
@@ -34,7 +35,8 @@ are relative to `frontend/games/`.
   game takes and fails on an error, a page that scrolls, or what its own
   inspection of the page finds. The root's `yarn check:layout` runs every
   game's that has one, and CI runs it after the build; Sudoku's
-  `tools/check-layout.mjs` is one to start from.
+  `tools/check-layout.mjs` is one to start from, and Snake's one for a
+  board drawn with Phaser.
 - **Its screenshots are the site's.** `public/docs/screenshots/<id>/` holds
   the `thumb.webp` and `preview.webp` the site's catalog shows of each game
   it opens, written from a capture by `@fz/dev/screenshots`'s

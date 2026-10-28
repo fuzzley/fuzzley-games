@@ -50,7 +50,7 @@ history keeps it.
 | S8    | Sound                                       | done      |
 | S9    | Storage                                     | done      |
 | S10   | The checks                                  | done      |
-| S11   | Screenshots and docs                        | to do     |
+| S11   | Screenshots and docs                        | done      |
 | S12   | Ship, and QA of both games                  | to do     |
 
 ## Entries
@@ -598,8 +598,31 @@ history keeps it.
   captures), and an upgrade of Phaser is checked against Phaser itself.
   What it costs: no pixels (a headless game draws nothing, so the specs
   read the game objects' state, as the mocks do), no audio, and a spec
-  drives frames and the clock by hand. The recommendation: move the
-  Solitaire Collection's scene specs to the harness file by file when each
-  is next touched, starting with `table_light.spec.ts`, and retire the
-  mocks once nothing imports them; not as part of this work.
+  drives frames and the clock by hand. The recommendation, for the user to
+  decide: move the Solitaire Collection's scene specs to the harness file
+  by file when each is next touched, starting with `table_light.spec.ts`,
+  and retire the mocks once nothing imports them; not as part of this
+  work.
 - 347 specs.
+
+### 2026-10-28: S11, screenshots and docs
+
+- **`tools/capture-screenshots.mjs`** (`yarn capture:screenshots`) stores a
+  run as the game keeps one (`snake-game`), twelve apples in at Normal and
+  bent across the upper half of the board, with stats for a best of 21,
+  and opens the page, which takes it up paused: the card sits clear of the
+  snake. It differs from the plan's scripted route, which steered a live
+  run by timed keys; a stored run gives the same picture every time.
+  Soft pastel draws the snake in its purple accent, so the link preview's
+  alt text in `index.html` says so.
+- **Docs:** Snake's `AGENTS.md` (the layout, the board's rules, styling,
+  storage, commands, tests) and `README.md`; a `snake-testing` skill, linked
+  with the script; `phaser-core` revisited with what Snake taught (Snake as
+  the smaller example, its layers, a scene that hands the game its time,
+  input, Phaser 4's surprises, and the harness's worked example); and the
+  lists that name the games: `.agents/AGENTS.md`, `frontend/AGENTS.md`,
+  `frontend/games/AGENTS.md` (9003 is Snake's, so the next game takes
+  9004), `frontend/lib/dev/AGENTS.md`, `docs/operations.md`, the root
+  `README.md`, `fuzzley-ui`, `web-game-accessibility` (a board that moves by
+  itself) and `angular-testing`.
+- The log stays until S12 and the QA are done, then goes before the merge.

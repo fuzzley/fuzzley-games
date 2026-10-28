@@ -1,10 +1,10 @@
 # Fuzzley Games
 
-A gallery of card and puzzle games to play in your browser, starting with the
-games of the [Solitaire Collection](frontend/games/solitaire/),
-from Klondike and Spider to Pyramid and TriPeaks,
-[Minesweeper](frontend/games/minesweeper/) and
-[Sudoku](frontend/games/sudoku/).
+A gallery of card, puzzle and arcade games to play in your browser,
+starting with the games of the
+[Solitaire Collection](frontend/games/solitaire/), from Klondike and Spider
+to Pyramid and TriPeaks, [Minesweeper](frontend/games/minesweeper/),
+[Sudoku](frontend/games/sudoku/) and [Snake](frontend/games/snake/).
 
 Play at https://fuzzley.games.
 
@@ -16,8 +16,8 @@ components, Signals, zoneless) built with [Vite](https://vite.dev/)
 and palettes of CSS custom properties, and served by nginx in a Docker
 container on Google Cloud Run. The games are built here too, the Solitaire
 Collection in `frontend/games/solitaire/`, Minesweeper in
-`frontend/games/minesweeper/` and Sudoku in `frontend/games/sudoku/`, and
-served as static pages under
+`frontend/games/minesweeper/`, Sudoku in `frontend/games/sudoku/` and Snake
+in `frontend/games/snake/`, and served as static pages under
 `/play/<slug>/`.
 
 Dependency management and development scripts use [Yarn](https://yarnpkg.com/)
@@ -44,13 +44,15 @@ yarn games       # build the games and copy them into site/public/play/
 yarn workspace solitaire dev     # work on the Solitaire Collection alone, on http://localhost:9000
 yarn workspace minesweeper dev   # work on Minesweeper alone, on http://localhost:9001
 yarn workspace sudoku dev        # work on Sudoku alone, on http://localhost:9002
+yarn workspace snake dev         # work on Snake alone, on http://localhost:9003
 ```
 
 `yarn dev` and `yarn build` first build the games in `frontend/games/`. The
 Solitaire Collection is then at
 http://localhost:4200/play/solitaire/, Minesweeper at
-http://localhost:4200/play/minesweeper/ and Sudoku at
-http://localhost:4200/play/sudoku/.
+http://localhost:4200/play/minesweeper/, Sudoku at
+http://localhost:4200/play/sudoku/ and Snake at
+http://localhost:4200/play/snake/.
 
 The portal application code lives in `frontend/site/src/app/` (bootstrapped
 by `frontend/site/src/app/main.ts`), with theme palettes and shared styles in
