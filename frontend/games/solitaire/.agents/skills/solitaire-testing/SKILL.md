@@ -1,6 +1,6 @@
 ---
 name: solitaire-testing
-description: How the Solitaire Collection runs and writes its specs — specs under test/, Node by default and jsdom per spec, the shell's TestBed doubles (configureUiTestBed), the engine's fixtures (fake_table, card_builder, sequence_random) and its coverage floor. Triggers on: solitaire spec, solitaire test, configureUiTestBed, fake_table, test/support, solitaire coverage, frontend/games/solitaire tests.
+description: How the Solitaire Collection runs and writes its specs — specs under test/, Node by default and jsdom per spec, the shell's TestBed doubles (configureUiTestBed), the engine's fixtures (fake_table, card_builder, sequence_random), its boards run on real Phaser (runFakeTableBoard, board_run, atlas_scene) and its coverage floor. Triggers on: solitaire spec, solitaire test, configureUiTestBed, fake_table, test/support, board spec, runFakeTableBoard, solitaire coverage, frontend/games/solitaire tests.
 ---
 
 # Testing the Solitaire Collection
@@ -31,11 +31,14 @@ Run these from `frontend/games/solitaire/`, or as
   (`test/games/<game>/<game>_game.spec.ts` tests `src/games/<game>/`), and
   import the code under test through the `@/` alias, their helpers through
   `@test/`.
-- They run in Node. A spec that renders the Angular shell asks for jsdom with
-  a `// @vitest-environment jsdom` comment at its top. `test/test-setup.ts`
-  starts Angular's zoneless TestBed, polyfills `<dialog>` under jsdom (with
-  `@fz/ui/testing`'s `installDialogPolyfill`), and
-  gives Node an in-memory `localStorage`, cleared before every test.
+- They run in Node. A spec that renders the Angular shell, or imports
+  Phaser, even through `src/ui/app/provider/board_catalog.ts`, asks for
+  jsdom with a `// @vitest-environment jsdom` comment at its top.
+  `test/test-setup.ts` starts Angular's zoneless TestBed; under jsdom it
+  polyfills `<dialog>` (with `@fz/ui/testing`'s `installDialogPolyfill`)
+  and installs `@fz/phaser/testing`'s headless Phaser, before anything
+  imports Phaser; and it gives Node an in-memory `localStorage`, cleared
+  before every test.
 - Specs use Vitest's globals (`describe`, `it`, `expect`, `vi`).
 
 ## Engine Specs
@@ -62,18 +65,42 @@ Run these from `frontend/games/solitaire/`, or as
   that builds its own TestBed around the routed component provides it too,
   as `test/ui/app/routes.spec.ts` does, and one that drives the canvas reads
   its hosts from `FakePhaserCanvas`, as
-  `test/ui/app/component/game_canvas/game_canvas.component.spec.ts` does.
-
-## Board Scene Specs
-
-- `BoardScene` and the rest of `src/engine/render/phaser` are specced
-  against stand-ins for Phaser, from `test/support/phaser_mocks.ts`, which a
-  spec loads in an async `vi.mock("phaser", …)` factory. They predate
-  `@fz/phaser/testing`'s headless harness, which the repository's
-  `phaser-core` skill describes.
-- A mock that a lifetime helper of `@fz/phaser/scene` reads an event name
-  from (`Scenes`, `Scale`, `Renderer`) needs that name, as
-  `boardScenePhaserMock()` has them.
+  `test/ui/app/component/game_canvas/game_canvas.component.spec.ts` does,
+  which runs the board it was shown through `runScene()`.
 - **Do NOT assert production prose**: Avoid checking exact wording of
   documentation/rules in UI specs. Use the test documentation registry
   provided by `configureUiTestBed`.
+
+## Phaser Specs
+
+- `src/engine/render/phaser`, and the boards `src/engine/board` builds on
+  it, are specced on real Phaser, through `@fz/phaser/testing`'s headless
+  harness, which the repository's `phaser-core` skill describes. Nothing
+  stands in for Phaser.
+- A board runs through `test/support/fake_table/scene.ts`'s
+  `runFakeTableBoard()`: the fake game's board, on a canvas of its design
+  size, so it lays out at a scale of 1, its atlases served from the
+  workspace by `test/support/workspace_files.ts`. Its options say
+  otherwise, such as a canvas for another pixel ratio (Phaser's `zoom`)
+  or atlases an earlier board left loaded (`prepare`).
+  `test/engine/board/table_board_scene.spec.ts` calls
+  `makeTableBoardScene` itself, on grids of its own.
+- `test/support/board_run.ts` plays a running board as a player does, at
+  points in the canvas's pixels: it presses, double presses, drags and
+  hovers, and reads a card's sprite and whether a border is drawn. Step a
+  frame (`run.advance(16)`) before the first press: the first frame lays
+  the board out, and Phaser takes in what was made interactive then.
+- A spec of one piece of a board runs a scene of its own:
+  `test/support/atlas_scene.ts`'s `runSceneWithAtlases()` has card
+  atlases loaded to make sprites from, and its `loadAtlases()` leaves
+  more loaded in a running game; `@fz/phaser/testing`'s `runBareScene()`
+  loads nothing.
+- Assert on the game objects, never on pixels: the context draws nothing.
+  What a drawing leaves nothing to read of, such as a border's stroke or a
+  dynamic texture's render, a call-through spy on Phaser's prototype
+  records.
+- An error a pointer handler throws reaches the window's `error` event,
+  not the spec: read it there, capturing no stack, as
+  `test/engine/render/phaser/scene/board_input_manager.spec.ts`'s
+  `errorsDuring()` does, since jsdom maps the first stack through the
+  source map of Phaser's whole bundle, which can outlast a spec's timeout.

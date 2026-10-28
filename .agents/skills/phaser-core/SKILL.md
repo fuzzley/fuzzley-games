@@ -149,6 +149,12 @@ browser, through a game's screenshots and its `check:layout`.
   frame, when Phaser takes it in, so `advance()` a frame before the first
   press. Phaser's drag thresholds are 0, so a press on a draggable object
   starts its drag at once.
+- **An error a handler throws** while Phaser hears a browser's event
+  reaches the window's `error` event, not the spec. jsdom reads its
+  stack, and the first stack through Phaser in a file is mapped through
+  the source map Vitest makes of Phaser's whole bundle, half a second
+  alone and past a spec's timeout under a busy suite, so a spec that
+  expects one sets `Error.stackTraceLimit` to 0 while it acts.
 - **Code that takes a game,** such as the host and the scaler, is checked
   on a real one: `@fz/phaser`'s own specs start one with its
   `src/testing/start_game.ts`, so Phaser's own writes to the canvas and
@@ -173,10 +179,12 @@ browser, through a game's screenshots and its `check:layout`.
   Nothing reaches the network. The harness's own specs
   (`frontend/lib/phaser/src/testing/run_scene.spec.ts`) check what it
   relies on in Phaser, so an upgrade that breaks it fails there first.
-- Snake's scene specs are the worked example
+- Snake's scene specs are the worked example of a scene played with keys
   (`frontend/games/snake/src/scene/snake_scene.spec.ts`, and its
-  `snake-testing` skill). The Solitaire Collection's predate the harness
-  and stand in for Phaser with mocks (its `solitaire-testing` skill).
+  `snake-testing` skill), and the Solitaire Collection's of a board whose
+  atlases are served and loaded, played with the mouse
+  (`frontend/games/solitaire/test/engine/render/phaser/scene/board_scene.spec.ts`,
+  and its `solitaire-testing` skill).
 
 ## The parts of Phaser in use
 
