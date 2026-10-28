@@ -48,7 +48,7 @@ history keeps it.
 | S6    | The controls                                | done      |
 | S7    | The icons, the bar and the dialogs          | done      |
 | S8    | Sound                                       | done      |
-| S9    | Storage                                     | to do     |
+| S9    | Storage                                     | done      |
 | S10   | The checks                                  | to do     |
 | S11   | Screenshots and docs                        | to do     |
 | S12   | Ship, and QA of both games                  | to do     |
@@ -528,3 +528,22 @@ history keeps it.
   in order, the muting, and that a board whose sounds can't load (headless
   Phaser has no audio) plays on.
 - 334 specs.
+
+### 2026-10-28: S9, storage
+
+- `SettingsService` and `StatsService` came in S5. S9 adds
+  `SavedGameService` (`snake-game`, version 1), which `main.ts` starts with
+  `provideAppInitializer()`, as Sudoku's is, so a run is taken up before
+  the board first shows.
+- **When it writes:** as the run starts, pauses, goes on or eats an apple,
+  and on `pagehide`, from an effect on the outcome, the score and the runs
+  begun; never at a mere step, which comes ten or so times a second. A
+  hidden page pauses the run, which writes it where it stands. A run
+  waiting for its first direction, or ended, is forgotten.
+- **Taking up:** `restoreRun()` checks what was kept and returns it paused,
+  under the id after the run in hand, and `GameService.takeUp()` begins it
+  and says so.
+- **Checked in headless Chrome** (`snake-reload.mjs`): a run started and
+  reloaded comes back paused where it stood as the page went away, with
+  the board focused and the announcement made.
+- 346 specs.
