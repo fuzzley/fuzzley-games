@@ -1,1 +1,15 @@
-<main class="stage"><h1>Snake</h1></main>
+<!--
+  The board first and the bar after it, as in the other games: a <main>
+  landmark a screen reader can jump to, under the bar, whose menu opens over
+  it.
+-->
+<main class="stage">
+  <h1 class="fz-visually-hidden">Snake</h1>
+  <app-board />
+</main>
+
+<!-- In the page from the start, so a screen reader is listening to it. -->
+<fz-announcer />
+
+<!-- Last, so it opens over anything else when a change would lose a run. -->
+<fz-confirm-dialog />

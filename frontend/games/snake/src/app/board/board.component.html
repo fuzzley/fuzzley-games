@@ -1,0 +1,35 @@
+<fz-phaser-canvas [scene]="scene" [options]="hostOptions">
+  <!-- The empty board, sized as the scene sizes it, until the scene draws. -->
+  <div fzCanvasPlaceholder class="placeholder" aria-hidden="true">
+    <div class="squares"></div>
+  </div>
+</fz-phaser-canvas>
+<div class="ring"></div>
+
+<p id="board-keys" class="fz-visually-hidden">
+  The arrow keys, or W, A, S and D, steer the snake. Space or P pauses and goes
+  on, and Escape pauses.
+</p>
+
+@switch (card()) {
+  @case ("start") {
+    <div class="card">
+      <p class="card-title">Ready</p>
+      <p>Press an arrow key, or swipe, to start.</p>
+    </div>
+  }
+  @case ("paused") {
+    <div class="card">
+      <p class="card-title">Paused</p>
+      <p>Score {{ game.score() }}</p>
+      <button type="button" class="fz-button" (click)="resume()">Resume</button>
+    </div>
+  }
+  @case ("failed") {
+    <div class="card" role="alert">
+      <p class="card-title">The board couldn't be drawn</p>
+      <p>Reloading the page may help.</p>
+      <button type="button" class="fz-button" (click)="reload()">Reload</button>
+    </div>
+  }
+}
