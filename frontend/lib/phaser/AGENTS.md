@@ -18,6 +18,19 @@ take the pure ones.
 - `src/color/`: `colorNumber()`, a palette role's hex as the number Phaser
   takes, and `mixColors()`, two colors mixed as CSS's `color-mix(in srgb)`
   mixes them, for `@fz/style`'s washes. It imports nothing.
+- `src/host/`: `PhaserHost`, which keeps one Phaser game, and so one WebGL
+  context, for a canvas's whole life and swaps each scene it is handed into
+  it, and `ViewportScaler`, which keeps the canvas at the size and pixel
+  ratio of its box. It imports Phaser, never Angular.
+- `src/scene/`: what a scene needs to live in a game that outlives it:
+  `whenSceneEnds()`, and `onScaleResize()`, `onContextRestored()` and
+  `onFirstFrame()`, which let go of what they subscribe to when the scene
+  ends; `pixelRatioOf()`; and `bakeTexture()`, a texture drawn at run time
+  and drawn again after a lost context. It imports Phaser, never Angular.
+- `src/testing/`: what a spec runs a scene in. `installHeadlessPhaser()`,
+  which a test setup calls, gives jsdom the blank 2D context and image loads
+  Phaser needs, and `runScene()` runs a scene in a HEADLESS game whose
+  frames, clock, keys and pointer a spec drives.
 
 ## Rules
 

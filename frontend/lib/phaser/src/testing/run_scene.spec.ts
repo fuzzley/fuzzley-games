@@ -1,0 +1,184 @@
+import { type GameObjects, Scene } from "phaser";
+import type { HostedScene, SceneSurroundings } from "../host";
+import { runScene } from "./run_scene";
+
+/** A scene that records what the harness lets it see and do. */
+class ProbeScene extends Scene implements HostedScene {
+  readonly key = "probe";
+  frames = 0;
+  timerFired = false;
+  keys: string[] = [];
+  pointers: string[] = [];
+  box!: GameObjects.Rectangle;
+
+  constructor(private readonly surroundings: SceneSurroundings) {
+    super("probe");
+  }
+
+  create(): void {
+    this.box = this.add.rectangle(0, 0, 10, 10, 0xff0000);
+    this.tweens.add({ targets: this.box, alpha: 0, duration: 100 });
+    this.time.delayedCall(50, () => {
+      this.timerFired = true;
+    });
+    this.input.keyboard?.on("keydown", (event: KeyboardEvent) => {
+      this.keys.push(event.code);
+    });
+    this.input.on("pointerdown", (pointer: { x: number; y: number }) => {
+      this.pointers.push(`down ${pointer.x},${pointer.y}`);
+    });
+    this.input.on(
+      "pointerup",
+      (pointer: { x: number; y: number; downX: number; downY: number }) => {
+        this.pointers.push(
+          `up ${pointer.x},${pointer.y} from ${pointer.downX},${pointer.downY}`,
+        );
+      },
+    );
+    this.events.once("postupdate", () => {
+      this.surroundings.ready();
+    });
+  }
+
+  override update(): void {
+    this.frames++;
+  }
+}
+
+/** Runs a probe scene, its keyboard on an element of its own if asked. */
+async function runProbe(
+  target?: HTMLElement,
+): ReturnType<typeof runScene<ProbeScene>> {
+  return runScene((surroundings) => new ProbeScene(surroundings), {
+    insets: { top: 10, right: 0, bottom: 0, left: 0 },
+    config: target ? { input: { keyboard: { target } } } : {},
+  });
+}
+
+describe("runScene", () => {
+  it("starts the scene, and steps it only when told", async () => {
+    const run = await runProbe();
+    const before = run.scene.frames;
+
+    run.advance(160);
+
+    expect(run.scene.frames - before).toBe(10);
+    run.destroy();
+  });
+
+  it("steps a last, shorter frame for what is left", async () => {
+    const run = await runProbe();
+    const before = run.scene.frames;
+
+    run.advance(40, 16);
+
+    expect(run.scene.frames - before).toBe(3);
+    run.destroy();
+  });
+
+  it("moves the clock tweens read with the frames", async () => {
+    const run = await runProbe();
+
+    run.advance(200);
+
+    expect(run.scene.box.alpha).toBe(0);
+    run.destroy();
+  });
+
+  it("fires the scene's timers", async () => {
+    const run = await runProbe();
+
+    run.advance(60);
+
+    expect(run.scene.timerFired).toBe(true);
+    run.destroy();
+  });
+
+  it("gives back the real clock between steps", async () => {
+    const run = await runProbe();
+    run.advance(10_000);
+
+    expect(Date.now()).toBeLessThan(run.game.loop.time + Date.now());
+    expect(Math.abs(Date.now() - new Date().getTime())).toBeLessThan(1_000);
+    run.destroy();
+  });
+
+  it("tells the scene the insets it was given", async () => {
+    let told: SceneSurroundings | undefined;
+
+    const run = await runScene(
+      (surroundings) => {
+        told = surroundings;
+        return new ProbeScene(surroundings);
+      },
+      { insets: { top: 1, right: 2, bottom: 3, left: 4 } },
+    );
+
+    expect(told?.insets()).toEqual({ top: 1, right: 2, bottom: 3, left: 4 });
+    run.destroy();
+  });
+
+  it("tells no insets when given none", async () => {
+    let told: SceneSurroundings | undefined;
+
+    const run = await runScene((surroundings) => {
+      told = surroundings;
+      return new ProbeScene(surroundings);
+    });
+
+    expect(told?.insets()).toEqual({ top: 0, right: 0, bottom: 0, left: 0 });
+    run.destroy();
+  });
+
+  it("says when the scene has said it drew its first frame", async () => {
+    const run = await runProbe();
+    const before = run.ready;
+
+    run.advance(16);
+
+    expect([before, run.ready]).toEqual([false, true]);
+    run.destroy();
+  });
+
+  it("sends keys to the element Phaser's keyboard listens on", async () => {
+    const board = document.createElement("div");
+    document.body.append(board);
+    const run = await runProbe(board);
+
+    run.key("keydown", "ArrowUp");
+    run.advance(16);
+
+    expect(run.scene.keys).toEqual(["ArrowUp"]);
+    run.destroy();
+    board.remove();
+  });
+
+  it("sends keys to the window when Phaser's keyboard listens there", async () => {
+    const run = await runProbe();
+
+    run.key("keydown", "KeyW", "w");
+    run.advance(16);
+
+    expect(run.scene.keys).toEqual(["KeyW"]);
+    run.destroy();
+  });
+
+  it("sends the pointer to the canvas, at a point in its pixels", async () => {
+    const run = await runProbe();
+
+    run.pointer("down", 10, 20);
+    run.pointer("move", 40, 22);
+    run.pointer("up", 60, 25);
+
+    expect(run.scene.pointers).toEqual(["down 10,20", "up 60,25 from 10,20"]);
+    run.destroy();
+  });
+
+  it("destroys the game, and the scene with it", async () => {
+    const run = await runProbe();
+
+    run.destroy();
+
+    expect(run.scene.sys.settings.status).toBeGreaterThan(5);
+  });
+});

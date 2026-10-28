@@ -1,10 +1,11 @@
+import { type GameObjects, Scene, type Textures } from "phaser";
 import {
-  type GameObjects,
-  Renderer,
-  Scene,
-  Scenes,
-  type Textures,
-} from "phaser";
+  onContextRestored,
+  onFirstFrame,
+  onScaleResize,
+  pixelRatioOf,
+  whenSceneEnds,
+} from "@fz/phaser/scene";
 
 import { BoardDeckLoader } from "../deck/board_deck_loader";
 import {
@@ -220,7 +221,7 @@ export class BoardScene extends Scene implements PhaserSprites {
     this.redrawShadowAfterContextLoss();
     this.wireInput();
 
-    this.events.once(Scenes.Events.POST_UPDATE, () => {
+    onFirstFrame(this, () => {
       this.options.onReady?.();
     });
   }
@@ -244,7 +245,7 @@ export class BoardScene extends Scene implements PhaserSprites {
       drawnDeckServices(this.textures),
     );
     const drawnDeck = this.drawnDeck;
-    this.whenSceneEnds(() => {
+    whenSceneEnds(this, () => {
       drawnDeck.dispose();
     });
     this.controller = new DragController(
@@ -281,29 +282,10 @@ export class BoardScene extends Scene implements PhaserSprites {
       light.fit(width, height);
     };
     fit();
-    // The scale manager belongs to the game, which outlives the scene.
-    this.scale.on("resize", fit);
-    this.whenSceneEnds(() => {
-      this.scale.off("resize", fit);
+    onScaleResize(this, fit);
+    whenSceneEnds(this, () => {
       light.destroy();
     });
-  }
-
-  /**
-   * Runs `release` once, when the scene shuts down or is destroyed, whichever
-   * comes first.
-   *
-   * Both, because Phaser destroys a running scene without shutting it down
-   * first, whether the scene is removed or the whole game is destroyed.
-   */
-  private whenSceneEnds(release: () => void): void {
-    const end = () => {
-      this.events.off(Scenes.Events.SHUTDOWN, end);
-      this.events.off(Scenes.Events.DESTROY, end);
-      release();
-    };
-    this.events.once(Scenes.Events.SHUTDOWN, end);
-    this.events.once(Scenes.Events.DESTROY, end);
   }
 
   /**
@@ -326,7 +308,7 @@ export class BoardScene extends Scene implements PhaserSprites {
       }),
     ];
 
-    this.whenSceneEnds(() => {
+    whenSceneEnds(this, () => {
       for (const stop of stopFollowing) stop();
     });
   }
@@ -336,12 +318,8 @@ export class BoardScene extends Scene implements PhaserSprites {
    * Phaser restores loaded textures but not one drawn at runtime.
    */
   private redrawShadowAfterContextLoss(): void {
-    const redraw = () => {
+    onContextRestored(this, () => {
       this.visualFactory.bakeCardShadow();
-    };
-    this.renderer.on(Renderer.Events.RESTORE_WEBGL, redraw);
-    this.whenSceneEnds(() => {
-      this.renderer.off(Renderer.Events.RESTORE_WEBGL, redraw);
     });
   }
 
@@ -355,11 +333,7 @@ export class BoardScene extends Scene implements PhaserSprites {
       this.controller.snapAll = true;
       this.deckLoader.refit();
     };
-    // The scale manager belongs to the game, which outlives the scene.
-    this.scale.on("resize", onResize);
-    this.whenSceneEnds(() => {
-      this.scale.off("resize", onResize);
-    });
+    onScaleResize(this, onResize);
 
     this.inputManager.registerDragListeners();
 
@@ -488,8 +462,7 @@ export class BoardScene extends Scene implements PhaserSprites {
    * layout uses exactly the ratio Phaser converts pointer coordinates by.
    */
   public get pixelRatio(): number {
-    const displayScale = this.scale?.displayScale?.x;
-    return displayScale && Number.isFinite(displayScale) ? displayScale : 1;
+    return pixelRatioOf(this);
   }
 
   /**
