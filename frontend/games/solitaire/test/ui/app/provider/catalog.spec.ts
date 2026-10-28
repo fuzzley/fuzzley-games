@@ -1,4 +1,5 @@
-import { vi, describe, it, expect } from "vitest";
+// @vitest-environment jsdom
+import { describe, it, expect } from "vitest";
 import { makeBoardScene } from "@/ui/app/provider/board_catalog";
 import {
   type CatalogEntry,
@@ -18,11 +19,6 @@ import { computeScale } from "@/engine/render/layout/table_metrics";
 import { NO_INSETS, type Viewport } from "@/engine/render/layout/viewport";
 import { TestPresentation } from "@test/support/presentation";
 import { CATALOG_DEALS as DEALS } from "@test/support/ui/catalog_deals";
-
-vi.mock("phaser", async () => {
-  const mocks = await import("@test/support/phaser_mocks");
-  return mocks.boardScenePhaserMock();
-});
 
 /** Every game, named for the failure message. */
 const GAMES: [name: string, entry: CatalogEntry][] = GAME_CATALOG.map(

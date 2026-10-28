@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { By, Title } from "@angular/platform-browser";
 import type { ThemeId } from "@fz/style/themes";
@@ -10,12 +10,6 @@ import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/sett
 import { GameBrowserService } from "@/ui/app/service/game_browser.service";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import { query, queryRequired } from "@test/support/dom";
-
-// The board catalog is the only thing here that names Phaser, whose module
-// init does not survive jsdom.
-vi.mock("@/ui/app/provider/board_catalog", () => ({
-  makeBoardScene: () => ({}),
-}));
 
 describe("AppComponent Composition", () => {
   let fixture: ComponentFixture<AppComponent>;

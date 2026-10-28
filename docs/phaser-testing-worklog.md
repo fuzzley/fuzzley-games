@@ -32,7 +32,7 @@ history keeps it.
 | W6    | `TableLight`, `PhaserCardFactory` and `DrawnDeckPainter` specs | done  |
 | W7    | `PhaserTableRenderer` and `BoardInputManager` specs            | done  |
 | W8    | `BoardScene` spec                                              | done  |
-| W9    | `table_board_scene`, the catalog and the game contract specs   | to do |
+| W9    | `table_board_scene`, the catalog and the game contract specs   | done  |
 | W10   | `phaser_mocks.ts` gone, the docs, and `yarn verify`            | to do |
 
 ## Where things start
@@ -439,3 +439,47 @@ history keeps it.
   own spec does.
 - **Checks:** the Solitaire Collection's lint, typecheck and 6870 tests;
   `@fz/phaser`'s lint, typecheck and 207; Snake's 347.
+
+### 2026-10-28: W9, the last specs that stood in for Phaser
+
+- **`table_board_scene.spec.ts`** runs the board `makeTableBoardScene`
+  builds, called directly, since it is the code under test, in real
+  Phaser: its 18 specs by intent, the phone's on a canvas of an upright
+  phone's CSS size at a pixel ratio of 3. A stack is picked up by its
+  top edge, which the card fanned over it leaves showing, and dropped by
+  real drags; the two specs of a board's fallback size use a board not
+  yet in a game, which has no canvas to measure, as the fallback is for.
+  "stops following the game once the scene shuts down" reads whether a
+  new deal and a draw still reach a drag controller (spies on its
+  prototype's `reset` and `beginFlight`); the mock spec stepped a scene
+  Phaser no longer steps once stopped. Without the stop it fails.
+- **Shared board helpers:** `test/support/board_run.ts` drives and reads a
+  running board as a player would, in the canvas's pixels, converted to
+  the CSS pixels a browser gives: a card's sprite, a sprite's middle,
+  `hoverAt()`, `click()`, `doubleClick()`, `pickUp()`, `dragTo()` and
+  `anyBorderDrawn()`. The board scene's spec moved onto it.
+- **`catalog.spec.ts` and `game_contract.spec.ts`** run in jsdom with no
+  mock: they make boards (`makeBoardScene`) or gestures (`gesturesFor`)
+  but run no scene, and mocked Phaser only because `board_catalog`
+  imports it, which the harness lets jsdom load. Their 1540 specs build
+  every game's board on real Phaser.
+- **The shell's specs:** `app.component`, `routes` and
+  `game_catalog.service` mocked `board_catalog`, saying Phaser's module
+  init does not survive jsdom, which the harness has made untrue; the
+  mocks are gone. `game_canvas.component` recorded what the canvas asked
+  the catalog to build; it now runs the board the canvas was shown,
+  through `runScene()`, and a press on its stock draws in the session's
+  game, so the board is the game's on the table, and its first frame
+  reports it ready.
+- **A cost found under load:** with these specs in the suite, the input
+  manager's "throws when the clicked card is in no pile" timed out in the
+  full run, every time, at 5.2 s, and passed alone in 0.4 s. jsdom reads
+  the stack of an error a listener throws, and the first stack through
+  Phaser in a file is mapped through the source map Vitest makes of
+  Phaser's whole bundle when it transforms it (Phaser is ESM in a package
+  that does not say so, so Vitest cannot leave it to Node; nor should it,
+  as each file's jsdom window is new). `errorsDuring()` captures no stack
+  frames while it acts, since only the message is read: 42 ms.
+- **`test/support/phaser_mocks.ts`** has no users left; W10 deletes it.
+- **Checks:** the Solitaire Collection's lint, typecheck and 6870 tests
+  (coverage 98.7 / 92.9 / 99.1 / 99.5).

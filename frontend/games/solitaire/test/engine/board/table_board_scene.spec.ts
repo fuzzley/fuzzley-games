@@ -1,4 +1,10 @@
-import { vi, describe, it, expect, beforeEach } from "vitest";
+// @vitest-environment jsdom
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import {
+  type SceneRun,
+  type SceneRunOptions,
+  runScene,
+} from "@fz/phaser/testing";
 import { deckCardIds } from "@/engine/core/card/deck";
 import {
   ALL_RANKS,
@@ -11,32 +17,32 @@ import { designSize } from "@/engine/render/layout/table_layout";
 import { measureTable } from "@/engine/render/layout/table_metrics";
 import type { BoardScene } from "@/engine/render/phaser/scene/board_scene";
 import { cardAtlasTextureKey } from "@/engine/render/phaser/deck/card_deck_atlas";
+import { DragController } from "@/engine/render/input/drag_controller";
 import { makeTableBoardScene } from "@/engine/board/table_board_scene";
 import { NO_INSETS } from "@/engine/render/layout/viewport";
-import { mirrorTable } from "@/engine/render/layout/board_layouts";
+import {
+  type BoardLayouts,
+  mirrorTable,
+} from "@/engine/render/layout/board_layouts";
 import {
   FAKE_TABLE_LAYOUT,
   fakeTableGestures,
 } from "@test/support/fake_table/board";
 import { FakeTableGame } from "@test/support/fake_table/game";
 import { relocate } from "@test/support/game_scenarios";
-import {
-  type MockGraphics,
-  type MockInput,
-  type MockScaleManager,
-  type MockSceneEvents,
-  type MockSprite,
-  type MockTextures,
-  POST_UPDATE_EVENT,
-  PRESS_ON_CANVAS,
-  SHUTDOWN_EVENT,
-} from "@test/support/phaser_mocks";
 import { TestPresentation } from "@test/support/presentation";
-
-vi.mock("phaser", async () => {
-  const mocks = await import("@test/support/phaser_mocks");
-  return mocks.boardScenePhaserMock();
-});
+import { loadAtlases } from "@test/support/atlas_scene";
+import { serveWorkspace } from "@test/support/workspace_files";
+import {
+  type CanvasPoint,
+  anyBorderDrawn,
+  cardSpriteOf,
+  click,
+  dragTo,
+  hoverAt,
+  middleOf,
+  pickUp,
+} from "@test/support/board_run";
 
 /** One suit of thirteen cards: fewer than a standard deck holds. */
 const ONE_SUIT = deckCardIds({
@@ -45,40 +51,44 @@ const ONE_SUIT = deckCardIds({
   copies: 1,
 });
 
-/** Views a Phaser sprite handle as the underlying recording mock sprite. */
-function asMock(sprite: unknown): MockSprite {
-  return sprite as MockSprite;
-}
-
-/** Views a scene's input plugin as the recording mock that raises its events. */
-function inputOf(scene: BoardScene): MockInput {
-  return scene.input as unknown as MockInput;
+/**
+ * Runs the board `makeTableBoardScene` builds over a game, with the fake
+ * board's gestures and, unless given others, its grid, in real Phaser: on a
+ * canvas of the grid's design size unless the options say otherwise.
+ */
+async function runBoard(
+  game: FakeTableGame,
+  presentation: TestPresentation,
+  layouts: BoardLayouts = { roomy: FAKE_TABLE_LAYOUT },
+  options: SceneRunOptions = {},
+): Promise<SceneRun<BoardScene>> {
+  return runScene(
+    ({ insets, ready }) =>
+      makeTableBoardScene({
+        game,
+        layouts,
+        handleIntent: fakeTableGestures(game),
+        presentation,
+        onReady: ready,
+        insets,
+      }),
+    { ...designSize(FAKE_TABLE_LAYOUT), serve: serveWorkspace, ...options },
+  );
 }
 
 describe("makeTableBoardScene", () => {
   let game: FakeTableGame;
   let presentation: TestPresentation;
-  let scene: BoardScene;
+  let run: SceneRun<BoardScene>;
 
   /**
-   * Builds and creates a board over the given game, the fake board's grid and
-   * its gestures — the three things a real game supplies.
+   * Runs a board over the given game, the fake board's grid and its gestures —
+   * the three things a real game supplies.
    */
-  function buildScene(
-    gameModel: FakeTableGame,
-    onReady?: () => void,
-  ): BoardScene {
+  async function drawBoard(gameModel: FakeTableGame): Promise<void> {
     game = gameModel;
     presentation = new TestPresentation("card-back-red");
-    const built = makeTableBoardScene({
-      game,
-      layouts: { roomy: FAKE_TABLE_LAYOUT },
-      handleIntent: fakeTableGestures(game),
-      presentation,
-      onReady,
-    });
-    built.create();
-    return built;
+    run = await runBoard(game, presentation);
   }
 
   /** Returns a dealt game over the given deck, a standard 52 by default. */
@@ -88,14 +98,24 @@ describe("makeTableBoardScene", () => {
     return dealt;
   }
 
-  beforeEach(() => {
-    scene = buildScene(dealtGame());
+  /** Returns a card's sprite. */
+  function cardSprite(cardId: string): ReturnType<typeof cardSpriteOf> {
+    return cardSpriteOf(run.scene, cardId);
+  }
+
+  beforeEach(async () => {
+    await drawBoard(dealtGame());
+  });
+
+  afterEach(() => {
+    run.destroy();
+    vi.restoreAllMocks();
   });
 
   describe("the game it draws", () => {
     it("draws a placeholder under each pile whose zone declares one", () => {
       const withPlaceholder = game.piles
-        .filter((pile) => scene.pileBackgroundSprite(pile.id))
+        .filter((pile) => run.scene.pileBackgroundSprite(pile.id))
         .map((pile) => pile.id);
 
       expect(withPlaceholder).toEqual(
@@ -105,12 +125,14 @@ describe("makeTableBoardScene", () => {
       );
     });
 
-    it("makes a sprite for every card the game holds, and no others", () => {
-      const shortDeck = buildScene(dealtGame(ONE_SUIT));
+    it("makes a sprite for every card the game holds, and no others", async () => {
+      run.destroy();
+
+      await drawBoard(dealtGame(ONE_SUIT));
 
       // Read from the game rather than from a deck specification, so a variant
       // dealing a shorter deck does not get sprites for cards it never deals.
-      expect([...shortDeck.cardIds]).toEqual(
+      expect([...run.scene.cardIds]).toEqual(
         ONE_SUIT.map((cardId) => playingCardInstanceId(cardId)),
       );
     });
@@ -118,29 +140,33 @@ describe("makeTableBoardScene", () => {
     it("picks up the cards that travel with a grabbed one", () => {
       const lower = relocate(game, "card-spades-9", game.tableaus[0]);
       const upper = relocate(game, "card-hearts-8", game.tableaus[0]);
+      run.advance(16);
+      const grabbed = cardSprite(lower.id);
 
-      inputOf(scene).emit(
-        "dragstart",
-        PRESS_ON_CANVAS,
-        scene.cardSprite(lower.id),
-      );
-      scene.update(0, 16);
+      // By its top edge, which the card fanned over it leaves showing.
+      pickUp(run, grabbed, { x: middleOf(grabbed).x, y: grabbed.y + 10 });
+      run.advance(16);
 
       const held = depthFor(RenderLayer.HELD_CARD);
       expect(
-        [lower, upper].map(
-          (card) => asMock(scene.cardSprite(card.id)).depth >= held,
-        ),
+        [lower, upper].map((card) => cardSprite(card.id).depth >= held),
       ).toEqual([true, true]);
     });
   });
 
   describe("the grid it was given", () => {
     it("lays the board out at that grid's design size", () => {
-      // The mock scale manager has not sized a canvas, so the viewport falls
-      // back to the design size of whichever layout the board was built with.
+      const built = makeTableBoardScene({
+        game,
+        layouts: { roomy: FAKE_TABLE_LAYOUT },
+        handleIntent: fakeTableGestures(game),
+        presentation,
+      });
+
+      // A board not yet in a game has no canvas to measure, so it falls back
+      // to the design size of whichever layout it was built with.
       const design = designSize(FAKE_TABLE_LAYOUT);
-      expect([scene.viewport.width, scene.viewport.height]).toEqual([
+      expect([built.viewport.width, built.viewport.height]).toEqual([
         design.width,
         design.height,
       ]);
@@ -155,8 +181,8 @@ describe("makeTableBoardScene", () => {
         insets: () => ({ ...NO_INSETS, top: 40 }),
       });
 
-      // The unsized canvas falls back to the design size plus the inset, so
-      // the board below it still lays out at a scale of 1.
+      // The unmeasured canvas falls back to the design size plus the inset,
+      // so the board below it still lays out at a scale of 1.
       expect([
         inset.viewport.insets?.top,
         inset.viewport.height,
@@ -169,13 +195,11 @@ describe("makeTableBoardScene", () => {
       const foundation = game.foundations[0];
       const origin = measureTable(
         FAKE_TABLE_LAYOUT,
-        scene.viewport,
+        run.scene.viewport,
       ).origins.get(foundation.id)!;
-      const sprite = scene.cardSprite(ace.id);
+      run.advance(16);
 
-      inputOf(scene).emit("dragstart", PRESS_ON_CANVAS, sprite);
-      inputOf(scene).emit("drag", {}, sprite, origin.x, origin.y);
-      inputOf(scene).emit("dragend", {}, sprite);
+      dragTo(run, cardSprite(ace.id), origin);
 
       expect(game.getPileContainingCard(ace.id)).toBe(foundation);
     });
@@ -184,8 +208,9 @@ describe("makeTableBoardScene", () => {
   describe("the gestures it was given", () => {
     it("carries them out", () => {
       const top = game.stock.topCard!;
+      run.advance(16);
 
-      asMock(scene.cardSprite(top.id)).emit("pointerdown", PRESS_ON_CANVAS);
+      click(run, cardSprite(top.id));
 
       // Pressing the top of the stock is what draws on the fake board.
       expect(game.waste.size).toBe(3);
@@ -196,19 +221,13 @@ describe("makeTableBoardScene", () => {
     it("draws new cards on the back the player chose", () => {
       const card = game.stock.topCard!;
 
-      expect(asMock(scene.cardSprite(card.id)).frame.name).toBe(
-        "card-back-red",
-      );
+      expect(cardSprite(card.id).frame.name).toBe("card-back-red");
     });
 
     it("repaints the table when the colour setting changes", () => {
-      const camera = scene.cameras.main as unknown as {
-        setBackgroundColor: ReturnType<typeof vi.fn>;
-      };
-
       presentation.setBackgroundColor("#123456");
 
-      expect(camera.setBackgroundColor).toHaveBeenCalledWith("#123456");
+      expect(run.scene.cameras.main.backgroundColor.color).toBe(0x123456);
     });
 
     it("says which deck it is drawing", () => {
@@ -217,87 +236,68 @@ describe("makeTableBoardScene", () => {
       ]);
     });
 
-    it("redraws from the deck the player switches to", () => {
-      const classic = cardAtlasTextureKey({ deckId: "classic", artScale: 1 });
-      const textures = scene.textures as unknown as MockTextures;
-      textures.add(classic);
+    it("redraws from the deck the player switches to", async () => {
+      const classic = { deckId: "classic", artScale: 1 } as const;
+      await loadAtlases(run.game, [classic]);
 
       presentation.setCardDeck("classic");
 
       const card = game.stock.topCard!;
-      expect(asMock(scene.cardSprite(card.id)).texture.key).toBe(classic);
+      expect(cardSprite(card.id).texture.key).toBe(
+        cardAtlasTextureKey(classic),
+      );
     });
   });
 
   describe("following the game", () => {
-    /**
-     * Hovers a card and draws a frame, then reports whether the highlight
-     * border that puts up is still drawn.
-     *
-     * The renderer makes its borders lazily, so they are collected through the
-     * scene's own factory rather than by reaching into the renderer.
-     */
-    function hoverACard(): () => boolean {
-      const borders: MockGraphics[] = [];
-      const addGraphics = scene.addGraphics.bind(scene);
-      vi.spyOn(scene, "addGraphics").mockImplementation(() => {
-        const graphics = addGraphics();
-        borders.push(graphics as unknown as MockGraphics);
-        return graphics;
-      });
-      const ace = relocate(game, "card-hearts-ace", game.tableaus[0]);
-      asMock(scene.cardSprite(ace.id)).emit("pointerover");
-      scene.update(0, 16);
-      return () => borders.some((border) => border.visible);
-    }
-
     it("drops stale interaction state when the game deals again", () => {
-      const anyBorderDrawn = hoverACard();
+      const ace = relocate(game, "card-hearts-ace", game.tableaus[0]);
+      run.advance(16);
+      // Over the ace's foot, below the card it lies on, so the new deal
+      // leaves bare table under the pointer.
+      const bounds = cardSprite(ace.id).getBounds();
+      hoverAt(run, { x: bounds.centerX, y: bounds.bottom - 10 });
+      run.advance(16);
 
       game.startNewGame();
-      scene.update(16, 16);
+      run.advance(16);
 
       // A highlight left over from the previous deal would be drawn around
       // whichever card has landed under it.
-      expect(anyBorderDrawn()).toBe(false);
+      expect(anyBorderDrawn(run.scene)).toBe(false);
     });
 
     it("stops following the game once the scene shuts down", () => {
-      const positions = () =>
-        [...scene.cardIds].map((cardId) => {
-          const sprite = asMock(scene.cardSprite(cardId));
-          return { x: sprite.x, y: sprite.y };
-        });
-      scene.update(0, 16);
+      run.game.scene.stop(run.scene.key);
+      const resets = vi.spyOn(DragController.prototype, "reset");
+      const flights = vi.spyOn(DragController.prototype, "beginFlight");
 
-      (scene.events as unknown as MockSceneEvents).emit(SHUTDOWN_EVENT);
       game.startNewGame();
-      scene.update(16, 16);
-      const midway = positions();
-      scene.update(32, 16);
+      fakeTableGestures(game)({
+        kind: "activate",
+        cardId: game.stock.topCard!.id,
+      });
 
-      // Still easing: a subscription the shut-down scene left behind would
-      // have snapped them into place.
-      expect(positions()).not.toEqual(midway);
+      // A new deal and a draw would each still reach the ended scene's
+      // controller through a subscription it left behind.
+      expect([resets.mock.calls.length, flights.mock.calls.length]).toEqual([
+        0, 0,
+      ]);
     });
 
     it("lifts the cards an action relocates over the board", () => {
-      scene.update(0, 16);
+      run.advance(16);
       const top = game.stock.topCard!;
 
-      asMock(scene.cardSprite(top.id)).emit("pointerdown", PRESS_ON_CANVAS);
-      scene.update(16, 16);
+      click(run, cardSprite(top.id));
+      run.advance(16);
 
       // A draw moves cards without any gesture reporting which, so only the
       // model can say they are crossing the board.
-      const drawn = game.waste
-        .getCards()
-        .map((card) => asMock(scene.cardSprite(card.id)));
+      const drawn = game.waste.getCards().map((card) => cardSprite(card.id));
       const restingDepth = Math.max(
         ...game.tableaus.flatMap((pile) =>
-          pile
-            .getCards()
-            .map((card) => asMock(scene.cardSprite(card.id)).depth),
+          pile.getCards().map((card) => cardSprite(card.id).depth),
         ),
       );
       expect(drawn.map((sprite) => sprite.depth > restingDepth)).toEqual([
@@ -310,26 +310,15 @@ describe("makeTableBoardScene", () => {
 
   describe("readiness", () => {
     it("reports ready once the first frame has been drawn", () => {
-      let ready = false;
-      const built = buildScene(dealtGame(), () => {
-        ready = true;
-      });
+      run.advance(16);
 
-      (built.events as unknown as MockSceneEvents).emit(POST_UPDATE_EVENT);
-
-      expect(ready).toBe(true);
+      expect(run.ready).toBe(true);
     });
 
     it("stays silent until then", () => {
-      let ready = false;
-
-      buildScene(dealtGame(), () => {
-        ready = true;
-      });
-
       // Announcing early would let the shell reveal a canvas with nothing on
       // it yet.
-      expect(ready).toBe(false);
+      expect(run.ready).toBe(false);
     });
   });
 });
@@ -352,17 +341,21 @@ describe("makeTableBoardScene on a game with arranged grids", () => {
     .map((slot) => slot.pileId)
     .filter((pileId) => pileId.startsWith("tableau"));
 
+  /** A phone held upright: its screen in CSS pixels, and its pixel ratio. */
+  const PHONE = { width: 390, height: 844, pixelRatio: 3 };
+
   let game: FakeTableGame;
   let presentation: TestPresentation;
-  let scene: BoardScene;
+  let run: SceneRun<BoardScene>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     game = new FakeTableGame();
     game.startNewGame();
     presentation = new TestPresentation();
-    scene = makeTableBoardScene({
+    run = await runBoard(
       game,
-      layouts: {
+      presentation,
+      {
         roomy: FAKE_TABLE_LAYOUT,
         arranged: {
           roomy: { top: FAKE_TABLE_LAYOUT, bottom: FAKE_TABLE_LAYOUT },
@@ -372,31 +365,33 @@ describe("makeTableBoardScene on a game with arranged grids", () => {
           side: game.stock.id,
         },
       },
-      handleIntent: fakeTableGestures(game),
-      presentation,
-    });
-    scene.create();
-    // A phone held upright.
-    const scale = scene.scale as unknown as MockScaleManager;
-    scale.width = 390 * 3;
-    scale.height = 844 * 3;
-    scale.displayScale = { x: 3, y: 3 };
+      {
+        width: PHONE.width * PHONE.pixelRatio,
+        height: PHONE.height * PHONE.pixelRatio,
+        config: { zoom: 1 / PHONE.pixelRatio },
+      },
+    );
   });
 
-  /** Drags the ace of spades from a column to a point and lets go. */
-  function dropAceAt(point: { x: number; y: number }) {
+  afterEach(() => {
+    run.destroy();
+  });
+
+  /**
+   * Drags the ace of spades from a column so its corner lies at a point, and
+   * lets go.
+   */
+  function dropAceAt(point: CanvasPoint): ReturnType<typeof relocate> {
     const ace = relocate(game, "card-spades-ace", game.tableaus[0]);
-    const sprite = scene.cardSprite(ace.id);
-    inputOf(scene).emit("dragstart", PRESS_ON_CANVAS, sprite);
-    inputOf(scene).emit("drag", {}, sprite, point.x, point.y);
-    inputOf(scene).emit("dragend", {}, sprite);
+    run.advance(16);
+    dragTo(run, cardSpriteOf(run.scene, ace.id), point);
     return ace;
   }
 
   it("lays the board out on its phone grid on a phone", () => {
     presentation.setBoardArrangement({ piles: "auto", stockSide: "left" });
     const foundation = game.foundations[0];
-    const origin = measureTable(PHONE_GRID, scene.viewport).origins.get(
+    const origin = measureTable(PHONE_GRID, run.scene.viewport).origins.get(
       foundation.id,
     )!;
 
@@ -410,7 +405,7 @@ describe("makeTableBoardScene on a game with arranged grids", () => {
     const foundation = game.foundations[0];
     const origin = measureTable(
       mirrorTable(PHONE_GRID, COLUMNS),
-      scene.viewport,
+      run.scene.viewport,
     ).origins.get(foundation.id)!;
 
     const ace = dropAceAt(origin);
