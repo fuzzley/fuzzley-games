@@ -1,12 +1,17 @@
 # Plan: Snake on Phaser, with the Phaser plumbing lifted out of the Solitaire Collection first
 
-Proposed 2026-10-27, and answered the same day: the user took the
-recommendation in every decision but three, listed under "The user's
-answers" below, and asked for a detailed work log
-(`docs/snake-worklog.md`), regular commits, and QA of both games once the
-work is done. Part 1 is built on the branch `phaser-lift`, cut from `main`,
-and Part 2 on `snake`, cut from `phaser-lift`, so neither touches `main`
-until the user says to merge.
+Proposed 2026-10-27, answered the same day, and built on 2026-10-27 and
+28: the user took the recommendation in every decision but three, listed
+under "The user's answers" below, and asked for a detailed work log, regular
+commits, and QA of both games once the work was done; during S5 they added
+"When done, merge to main and push." Part 1 was built on the branch
+`phaser-lift`, cut from `main`, and Part 2 on `snake`, cut from
+`phaser-lift` rather than from `main` after a merge, so the two were merged
+to `main` together once Part 2 and the QA were done. Each phase is its own
+commit with `yarn verify` green; the "As built" notes under each phase say
+what came of it. The work log is in git's history as
+`docs/snake-worklog.md`. The plan and its notes describe the code as it
+was, so check a path against the tree before following one.
 
 This plan has two parts.
 
@@ -885,6 +890,12 @@ Thrown away, its answers in the work log:
 - the Solitaire Collection's screenshots (`yarn capture:screenshots`)
   captured now, as the baseline L7 compares against.
 
+- **As built:** Phaser's own input works headless, with the keyboard aimed
+  at an element and the canvas given a size. The baseline was a build of
+  `main` and 42 seeded screenshots from a scratch script, since the game's
+  own script deals at random; two runs of one build differed by up to 5
+  pixels in 3 of 21 shots, the noise.
+
 #### L1: the workspace (small)
 
 `frontend/lib/phaser/`, laid out as `@fz/game-ui` is: `package.json`
@@ -896,12 +907,19 @@ and the fence that keeps `insets` and `color` pure, `vitest.config.ts` on
 `CLAUDE.md` beside it, and `README.md`. Then `yarn install` from
 `frontend/`.
 
+- **As built:** as planned, with L5 first, since the library's lint needs
+  `phaser()`.
+
 #### L2: the host and the pure entries (medium)
 
 `insets`, `color` with full specs, and `host`: `PhaserHost` and
 `ViewportScaler` moved with their specs, `fakeHostedGame()` lifted from them,
 and the host generalized as described. The Solitaire Collection imports them
 from the library, deletes its copies, and renames `--board-inset-*`.
+
+- **As built:** as planned. The insets are `--fz-canvas-inset-*`, the host's
+  fake game stayed in its spec, and the Solitaire Collection's fences were
+  anchored as `/phaser`, so they refuse Phaser and let the library through.
 
 #### L3: the scene helpers (medium)
 
@@ -911,6 +929,12 @@ Solitaire Collection's `BoardScene`, `TableLight` and `DrawnDeckPainter`
 adopt the helpers, and the card shadow moves onto `bakeTexture()`. Its mocks
 gain what the helpers call.
 
+- **As built:** the card shadow stayed a filtered `DynamicTexture`, redrawn
+  through `onContextRestored()`, and `bakeTexture()` came new, for Snake.
+  Headless Phaser needed a clock under `Date.now` for tweens, a step to
+  deliver keys and to tear a game down, and a blank texture where
+  `generateTexture()` throws.
+
 #### L4: the canvas component (medium)
 
 `<fz-phaser-canvas>` and `provideFakePhaserCanvas()`, with specs for the
@@ -918,10 +942,19 @@ states, the timeout, the placeholder, a swapped scene, a lazy source, the
 insets and the teardown. The Solitaire Collection's `GameCanvasComponent`
 wraps it, and its specs follow.
 
+- **As built:** the canvas's stylesheet is unencapsulated, to fade the
+  projected placeholder itself, and a scene ready after the timeout turns it
+  `ready` after all. The Solitaire Collection's `index` chunk came out
+  2 kB smaller, with the host a 1.75 kB chunk of its own.
+
 #### L5: build and lint (small)
 
 `gameConfig()`'s Phaser chunk and `phaser()`'s lint block in `@fz/dev`, with
 their specs; the Solitaire Collection drops its own.
+
+- **As built:** done with L1. Vite 8's Rolldown takes the chunk as a
+  `codeSplitting` group, and the Solitaire Collection's build came out byte
+  for byte the same.
 
 #### L6: skills and docs (medium)
 
@@ -932,6 +965,10 @@ script run again, and `.prettierignore` and
 `frontend/lib/dev/AGENTS.md`, which list the libraries; the Solitaire
 Collection's `AGENTS.md`, its `solitaire-build` and `solitaire-testing`
 skills; and the `fuzzley-ui` skill, which says which library to reach for.
+
+- **As built:** as planned, with five more Phaser skills copied in for
+  Snake, and what the skills said of cards moved to a new `solitaire-phaser`
+  skill.
 
 #### L7: nothing changed (medium)
 
@@ -945,6 +982,11 @@ skills; and the `fuzzley-ui` skill, which says which library to reach for.
   the deck changed, the window resized and the palette switched.
 - Merge `phaser-lift` to `main` on the user's go-ahead, and push. Verify
   promotes `live`.
+
+- **As built:** the suite (6,864 specs), the compiled styles (only the
+  canvas component's rules differ), the screenshots (noise only) and the
+  `phaser` chunk (the same hash) held, and it played by hand. The merge
+  waited for Part 2, as the user's word had it.
 
 ### Part 2
 
@@ -963,6 +1005,11 @@ skills; and the `fuzzley-ui` skill, which says which library to reach for.
   headless Chrome in CI gets a WebGL context, and what NVDA and Narrator do
   with the board as an application and as a group.
 
+- **As built:** neither. The user asked for the game itself, L0 answered the
+  headless questions, and the rest were checked where they were built. The
+  board's role was reasoned rather than heard; NVDA and Narrator are left to
+  the user.
+
 #### S1: the workspace (small)
 
 `frontend/games/snake/`, copied from Sudoku: `package.json` (`snake`, with
@@ -974,19 +1021,36 @@ the tsconfig solution, `stylelint.config.js`, `src/test-setup.ts` calling
 `LICENSE`, `README.md`, `AGENTS.md` and `CLAUDE.md`. `games.json` doesn't
 list it yet.
 
+- **As built:** as planned, a probe file in each layer checking the fences.
+
 #### S2: the rules (medium)
 
 `src/rules/` and `runFrom`, with the floor.
+
+- **As built:** a `Run` carries its board's size, so a spec draws a whole
+  board as 3 × 3; a step is one `StepKind` (`moved`, `ate`, `crashed` or
+  `won`); a new run replaces `restart()`; and the stepper steps the run
+  itself, since each apple makes the next step 2 ms quicker.
 
 #### S3: the view (medium)
 
 `src/view/`, with its specs and the contrast spec, and `_inks.scss` if the
 apple needs an ink of its own.
 
+- **As built:** no `_inks.scss`: the palette's roles pass 3:1 in every
+  palette. `controls.ts` holds the key map, by `event.code`, and
+  `SwipeReader`, which decision 5 put in the view. A crashed snake fades by
+  its color, since a translucent body would show its seams.
+
 #### S4: the scene (large)
 
 `src/scene/`: `SnakeScene`, the four painters and the textures, without
 sound, specced on `runScene()`.
+
+- **As built:** each painter in a `Layer` of its own; the layout checked each
+  frame, since `refreshInsets()` raises no event; Phaser 4's `Grid` needs
+  `cellPadding` set to 0. The 22 scene specs ran real Phaser on the first
+  try.
 
 #### S5: the play and the board (large)
 
@@ -995,25 +1059,46 @@ placeholder, the cards, `onLayout`, and the pausing, specced with
 `provideFakePhaserCanvas()`. The game is playable from the keyboard by the
 end of it.
 
+- **As built:** the board is `role="application"`, pauses whenever it loses
+  the focus, and takes the focus on a press; the result card's wait is
+  counted in the scene's time; the settings and stats came forward from S9.
+  Three of the board's specs run the real scene in jsdom.
+
 #### S6: the controls (medium)
 
 `board_keys.ts`, `SwipeDirective` and `<app-arrows>`, with specs through
 user-event.
+
+- **As built:** by decision 5 the keys and swipes are the scene's, so S6 is
+  `<app-arrows>`, which turn on `pointerdown` and keep the focus on the
+  board, and `@fz/game-ui`'s new `isTouchScreen`.
 
 #### S7: the icons, the bar and the dialogs (medium)
 
 `pause`, `sound` and `sound-off` in `@fz/ui`'s icons, with their spec's
 cases; `<app-bar>`; and the settings, result and How to play dialogs.
 
+- **As built:** an `apple` icon too, for the score. Pause and Sound keep the
+  focus through a press, and the board takes the focus whenever the last
+  dialog closes.
+
 #### S8: sound (medium; if decision 8 keeps it)
 
 `tools/build-sounds.mjs` and the sprite it writes, `preload()`, the sounds
 in `effects_painter.ts`, and the Sound button and setting.
 
+- **As built:** a `SoundPlayer` of its own loads the sprite, a 41 kB WAV, in
+  `create()` rather than `preload()`, so the board never waits for it, and
+  plays a sound only once it is cached.
+
 #### S9: storage (medium)
 
 `SettingsService`, `StatsService` and `SavedGameService` under the three
 keys, each reader dropping what it can't trust.
+
+- **As built:** `SavedGameService` writes as a run starts, pauses, goes on or
+  eats, and on `pagehide`, never at a step, and the run comes back paused
+  (decision 15).
 
 #### S10: the checks (medium)
 
@@ -1034,6 +1119,16 @@ keys, each reader dropping what it can't trust.
   the accessibility tree in DevTools; Lighthouse's accessibility audit; and
   the performance trace.
 
+- **As built:** the check runs at 2×, with and without the arrows, through a
+  check's new `before()` in `@fz/dev/layout`, and found the placeholder
+  and the focus ring 8.5 px off the board at 2×, which was fixed. The entry
+  is 77.7 kB gzipped with no Phaser, the scene 4.0 kB, the `phaser` chunk
+  351.7 kB. Headless Chrome here got WebGL with no flag. The hand QA ran as
+  scripts in headless Chrome; a real phone, Lighthouse and a performance
+  trace weren't done. Decision 3's comparison, in the work log: headless
+  Phaser caught what mocks take on trust, and whether the Solitaire
+  Collection's specs move to it is the user's call.
+
 #### S11: screenshots and docs (small)
 
 - **`tools/capture-screenshots.mjs`:** a seeded run at Normal, steered along
@@ -1050,6 +1145,10 @@ keys, each reader dropping what it can't trust.
   itself: pausing, speeds and what is announced) and `angular-testing`.
 - **Finish:** delete the work log.
 
+- **As built:** the screenshot is a stored run, taken up paused, rather than
+  a steered one, so it is the same every time. The work log was kept through
+  S12, and deleted as this plan was archived.
+
 #### S12: ship (small)
 
 - `frontend/site/games.json` gets `"snake": { "workspace": "games/snake" }`;
@@ -1065,6 +1164,12 @@ keys, each reader dropping what it can't trust.
   fuzzley.games.
 - Rollback: `git push --force origin <last good commit>:live`, then revert
   the merge on `main`.
+
+- **As built:** Snake went in a new Arcade category, by decision 16, not in
+  Classics. Docker was off here, so the image was left to CI's `docker`
+  job, which gates `promote`. In the final QA the Solitaire Collection's 42
+  screenshots matched L0's but for noise, and a scripted game played alike
+  on the final build and the baseline.
 
 ## Decisions
 
