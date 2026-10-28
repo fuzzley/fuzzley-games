@@ -15,6 +15,12 @@ export const CATEGORIES = [
     description: "Puzzles and board games beyond cards.",
     surface: "plain",
   },
+  {
+    id: "arcade",
+    name: "Arcade",
+    description: "Quick games against the clock, played on reflexes.",
+    surface: "plain",
+  },
 ] as const satisfies readonly {
   id: string;
   name: string;

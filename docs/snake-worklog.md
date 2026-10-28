@@ -51,7 +51,7 @@ history keeps it.
 | S9    | Storage                                     | done      |
 | S10   | The checks                                  | done      |
 | S11   | Screenshots and docs                        | done      |
-| S12   | Ship, and QA of both games                  | to do     |
+| S12   | Ship, and QA of both games                  | done      |
 
 ## Entries
 
@@ -626,3 +626,37 @@ history keeps it.
   `README.md`, `fuzzley-ui`, `web-game-accessibility` (a board that moves by
   itself) and `angular-testing`.
 - The log stays until S12 and the QA are done, then goes before the merge.
+
+### 2026-10-28: S12, on the site, and the QA of both games
+
+- **The site:** `games.json` builds `snake`; the catalog gains the Arcade
+  category ("Quick games against the clock, played on reflexes.", on a
+  plain surface), as the user chose (decision 16), and Snake in it (Solo,
+  3 minutes, added 2026-10-28, `play: { build: "snake" }`); the meta
+  description names Snake. A new spec holds a game in every category, and
+  fails with Snake moved out of Arcade.
+- **`yarn verify`:** lint, typecheck and every workspace's specs pass
+  (Solitaire's 6,864, Snake's 347, the site's 172); the first build failed
+  only because a `vite preview` of Snake's `dist/` held it open on Windows,
+  and passed once it was stopped, with all four games in the site.
+  `yarn check:layout` passes for Sudoku and Snake.
+- **The image:** Docker is off on this machine, so the image wasn't built
+  here. CI's `docker` job builds it and runs `check-image.sh`, which checks
+  every game in `games.json`, `/play/snake/` among them, before `promote`
+  moves `live`; a red run never goes live. The games under `/play/` carry no
+  CSP, and Snake loads nothing from another origin.
+- **The site's build, served:** the home page shows Solitaire, Classics and
+  Arcade, Snake's card with its thumbnail and New badge; `/category/arcade`
+  and `/games/snake` show it, the preview image loads, and `/play/snake/`
+  plays (start, pause, eat, crash, new best) with no error.
+- **The Solitaire Collection, final QA:** the 42 seeded screenshots of the
+  final build against L0's, taken before the lift: 39 identical, and the
+  rest at 4 to 7 pixels, the same noise L4 measured. One Midnight shot
+  differed by 204 pixels on a first run, at the edge of the New Game
+  button, and matched the baseline on a second: noise. A scripted game on
+  the final build and on the baseline alike: a draw from the stock (1
+  move), 2♣ dragged onto 3♥ (score 5, 2 moves), Undo (1 move), and Klondike
+  to Spider through the leave guard's Confirm, which deals Spider; no
+  error in either.
+- **Minesweeper and Sudoku** load in the site's build, wide and on a phone,
+  with their bars and icons and no error.
