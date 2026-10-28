@@ -108,7 +108,8 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   every game; and each workspace's in its folder:
   `frontend/site/AGENTS.md`, `frontend/lib/core/AGENTS.md`,
   `frontend/lib/style/AGENTS.md`, `frontend/lib/ui/AGENTS.md`,
-  `frontend/lib/game-ui/AGENTS.md`, `frontend/lib/dev/AGENTS.md`,
+  `frontend/lib/game-ui/AGENTS.md`, `frontend/lib/phaser/AGENTS.md`,
+  `frontend/lib/dev/AGENTS.md`,
   `frontend/games/solitaire/AGENTS.md`,
   `frontend/games/minesweeper/AGENTS.md` and
   `frontend/games/sudoku/AGENTS.md`. So the site's rules never reach a
@@ -135,8 +136,8 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   Restart Claude Code if `.claude/skills` did not exist when the session
   started.
 - **Flat skills directories.** Every skill lives directly under an
-  `.agents/skills/` folder, as `<name>/SKILL.md`, including the Solitaire
-  Collection's namespaced `phaser-*` ones. Adding a skill means a new
+  `.agents/skills/` folder, as `<name>/SKILL.md`, including the
+  namespaced `phaser-*` ones. Adding a skill means a new
   top-level directory there plus a re-run of the link script.
 - **A skill describes code that exists,** and so does an `AGENTS.md`. Both
   are read as authoritative, so an agent follows an invented path into a
@@ -152,11 +153,11 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   skill about this repository is checked by default.
 - **Vendored skills:** `angular-developer` and `angular-new-app` come from
   upstream and are hash-locked in `skills-lock.json`, so `.prettierignore`
-  leaves them unformatted. Do not hand-edit them. The Solitaire
-  Collection's Phaser skills, all but `phaser-core` and
-  `phaser-canvas-performance`, are copies of the `skills/` folder in
-  Phaser's package, for the parts of Phaser the game uses, which
-  `.prettierignore` leaves as copied too; `phaser-core` says how to add one.
+  leaves them unformatted. Do not hand-edit them. The Phaser skills, all
+  but `phaser-core` and `phaser-canvas-performance`, are copies of the
+  `skills/` folder in Phaser's package, for the parts of Phaser the games
+  use, which `.prettierignore` leaves as copied too; `phaser-core` says
+  how to add one.
 
 ---
 

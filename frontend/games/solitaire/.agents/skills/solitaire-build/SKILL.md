@@ -19,20 +19,12 @@ description: The Solitaire Collection's build — its Vite config on @fz/dev's g
 
 `vite.config.ts` merges what is the Solitaire Collection's own into
 `@fz/dev/vite`'s `gameConfig()`, which every game's build shares (`dist/`,
-`assets/`, the `./` base, Angular and `@fz/style`'s plugin). Its own build
-setting splits out exactly one manual chunk:
-
-```ts
-build: {
-  rollupOptions: {
-    output: {
-      manualChunks(id: string) {
-        return id.includes("node_modules/phaser") ? "phaser" : undefined;
-      },
-    },
-  },
-},
-```
+`assets/`, the `./` base, Angular and `@fz/style`'s plugin). `gameConfig()`
+also puts Phaser in a chunk of its own, `phaser`, through `PHASER_CHUNK`, a
+`codeSplitting` group under `build.rolldownOptions`; Vite 8 marks
+`rollupOptions` and its `manualChunks` deprecated. The canvas component
+imports `@fz/phaser/host` with `import()`, so the host is a small chunk of
+its own too, loaded once the first board is shown.
 
 Phaser is the one dependency large enough and stable enough to be worth its own
 cacheable file. **There is no separate Angular vendor chunk** — do not add one
@@ -101,7 +93,7 @@ Every deck is built at each density in `ART_SCALES`, in texels per design unit:
 not enlarge its cards, so a phone held upright loads 0.5× or 0.75× and a
 high-density desktop window 2×. Each is at most half as dense again as the one below,
 so the GPU never shrinks a card below two thirds; see
-[phaser-canvas-performance](../phaser-canvas-performance/SKILL.md). 2× takes two
+[solitaire-phaser](../solitaire-phaser/SKILL.md). 2× takes two
 pages and about 76 MB of GPU memory; every other density takes one, about 5 MB
 at 0.5× and 20 MB at 1×.
 

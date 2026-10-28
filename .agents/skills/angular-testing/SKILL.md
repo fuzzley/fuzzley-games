@@ -67,6 +67,10 @@ floors: `site-testing`, `minesweeper-testing`, `sudoku-testing` and
   its `restore()` belongs in an `afterEach`.
 - **No `<dialog>` methods:** `installDialogPolyfill()`, from
   `@fz/ui/testing`, in the setup file.
+- **No canvas and no component styles:** a shell around `<fz-phaser-canvas>`
+  takes `provideFakePhaserCanvas()`, from `@fz/phaser/testing`, and a spec
+  asserts on a state, such as `data-state`, rather than on what a component's
+  stylesheet shows or hides, which Analog's test build leaves out.
 - **An accessible name's inline parts run together** where a browser puts a
   space ("Hard16 × 30" where Chrome reads "Hard 16 × 30"), so match such a
   name with `\s*`.
@@ -81,6 +85,9 @@ Each library's `testing` entry point holds what specs need of it, and
 
 - `@fz/ui/testing`: `installDialogPolyfill()`.
 - `@fz/game-ui/testing`: `installFakeViewport()`.
+- `@fz/phaser/testing`: `provideFakePhaserCanvas()`, a canvas that loads no
+  Phaser, and `installHeadlessPhaser()` and `runScene()`, which run a real
+  Phaser scene headless (the `phaser-core` skill).
 - `@fz/style/testing`: what a contrast spec needs to hold every palette in
   `THEMES` to WCAG. `compileStylesheet()` compiles an app's global
   stylesheet as its Vite does, `paletteRoles()` reads each palette's roles

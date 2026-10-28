@@ -27,6 +27,10 @@ too. Paths are relative to `frontend/lib/dev/`.
     mock's type be what it builds, and import the libraries' testing helpers.
   - `scripts()`: the `.mjs` scripts' rules, which require JSDoc types on
     every parameter and returned value.
+  - `phaser()`: what code that drives Phaser may do that other code may
+    not: keep the guards `no-unnecessary-condition` would take out, since
+    Phaser types a scene's systems as always there, though they aren't
+    before it boots or after it ends.
 - `tsconfig/`, `@fz/dev/tsconfig/*.json`: the compiler options a
   workspace's `tsconfig.json` extends.
   - `base.json`: the strict flags every workspace's TypeScript is checked
@@ -51,7 +55,8 @@ too. Paths are relative to `frontend/lib/dev/`.
   the Vite config every game built here shares: the `./` base that lets
   the site serve a build from `/play/<slug>/`, the Angular plugins,
   `@fz/style`'s `fuzzleyStyle()`, the game's manifest, a build in `dist/`
-  with its files in `assets/`, and a dev server on the game's own port,
+  with its files in `assets/` and Phaser, where a game has it, in a chunk
+  of its own (`PHASER_CHUNK`), and a dev server on the game's own port,
   which its screenshot script defaults to: 9000 for the Solitaire
   Collection, 9001 for Minesweeper, 9002 for Sudoku. The Angular plugins,
   `angularPlugins()`, which the site's config takes too, are Analog's with
@@ -119,8 +124,8 @@ too. Paths are relative to `frontend/lib/dev/`.
   live under `test/`, mostly in Node, and keep a config of their own. A
   game's `vite.config.ts` is `gameConfig()`, with what is the game's own
   merged in by Vite's `mergeConfig()`, as `frontend/games/solitaire/` does
-  for its Phaser chunk. Analog's plugin, Vite and Vitest are peers, which
-  the workspace lists and runs.
+  for the commit it was built from and its `@` alias. Analog's plugin, Vite
+  and Vitest are peers, which the workspace lists and runs.
 - **A game's screenshot script writes the site's images with
   `writeSiteImages()`**, and keeps to itself how it stages its game and
   what else it writes.
@@ -128,9 +133,9 @@ too. Paths are relative to `frontend/lib/dev/`.
   `@typescript-eslint/no-restricted-imports`**, so that they add to the
   testing fence, which uses ESLint's own `no-restricted-imports`, rather
   than replace it.
-- **A loosening stays in the workspace, with its reason.** The Solitaire
-  Collection's Phaser adapter, whose types claim more than Phaser keeps, is
-  one.
+- **A loosening stays in the workspace, with its reason,** unless every
+  workspace of a kind needs it: `phaser()` is the one here, since every
+  folder that drives Phaser does.
 
 ## Rules
 

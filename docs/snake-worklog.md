@@ -36,7 +36,7 @@ history keeps it.
 | L3    | The scene helpers and the headless harness  | done  |
 | L4    | The canvas component                        | done  |
 | L5    | Build and lint                              | done  |
-| L6    | Skills and docs                             | to do |
+| L6    | Skills and docs                             | done  |
 | L7    | Nothing changed in the Solitaire Collection | to do |
 | S0    | The spike                                   | to do |
 | S1    | The Snake workspace                         | to do |
@@ -195,3 +195,34 @@ history keeps it.
   20 of 21, the last at 4 pixels: noise.
 - 6,864 Solitaire specs pass, above its floor; the library's 153, above its
   own.
+
+### 2026-10-27: L6, skills and docs
+
+- The Phaser skills moved from the Solitaire Collection's `.agents/skills/`
+  to the repository's, with `git mv`, so every workspace loads them, and five
+  more were copied in from Phaser's package for Snake: `phaser-tweens`,
+  `phaser-time-and-timers`, `phaser-particles`, `phaser-audio-and-sound` and
+  `phaser-groups-and-containers`. Renamed as the earlier copies were, their
+  related skills that weren't copied in dropped as the earlier copies' were,
+  and one line in `phaser-groups-and-containers` that pointed to
+  `physics-arcade` reworded to name Phaser's package, since the reference
+  check reads a bare `../<skill>/SKILL.md` as a link.
+- `phaser-core` rewritten for any game: the library, where Phaser may be
+  imported, how the shell and a scene talk, a scene's lifetime, testing, and
+  the skills for each part of Phaser. It describes the code that exists, so
+  Snake goes into it once Snake is built. `phaser-canvas-performance` keeps
+  what holds for any game. What both said of cards went to a new
+  `solitaire-phaser` skill in the Solitaire Collection.
+- `.prettierignore` and `check-skill-references.mjs` follow the move. The
+  link script doesn't remove links that lead nowhere, so the Solitaire
+  Collection's fourteen old `phaser-*` junctions were removed by hand
+  (`rmdir`, gitignored).
+- Docs: `@fz/phaser` is listed in `.agents/AGENTS.md`, `frontend/AGENTS.md`,
+  the `fuzzley-ui` skill and the `angular-testing` skill; `@fz/dev`'s
+  `AGENTS.md` gained `phaser()` and `PHASER_CHUNK`; the library's own
+  `AGENTS.md` is complete. The Solitaire Collection's `AGENTS.md`,
+  `solitaire-build`, `solitaire-testing` and `add-solitaire-game` follow the
+  library. Two stale passages from L1 and L2 were caught here: its
+  `AGENTS.md` still named the `host/` folder L2 removed, and
+  `solitaire-build` still showed the `manualChunks` L1 removed.
+- `yarn lint` from `frontend/` passes, the reference check with it.

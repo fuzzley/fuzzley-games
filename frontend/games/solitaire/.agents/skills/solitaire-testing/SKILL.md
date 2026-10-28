@@ -57,6 +57,23 @@ Run these from `frontend/games/solitaire/`, or as
 - Use the UI test doubles beside it in `test/support/ui` (game, catalog,
   presentation, and documentation mocks). The catalog mock is typed as a
   `Pick` of the real service, so it cannot drift out of shape unnoticed.
+- `configureUiTestBed` provides `@fz/phaser/testing`'s
+  `provideFakePhaserCanvas()`, so the board's canvas loads no Phaser. A spec
+  that builds its own TestBed around the routed component provides it too,
+  as `test/ui/app/routes.spec.ts` does, and one that drives the canvas reads
+  its hosts from `FakePhaserCanvas`, as
+  `test/ui/app/component/game_canvas/game_canvas.component.spec.ts` does.
+
+## Board Scene Specs
+
+- `BoardScene` and the rest of `src/engine/render/phaser` are specced
+  against stand-ins for Phaser, from `test/support/phaser_mocks.ts`, which a
+  spec loads in an async `vi.mock("phaser", …)` factory. They predate
+  `@fz/phaser/testing`'s headless harness, which the repository's
+  `phaser-core` skill describes.
+- A mock that a lifetime helper of `@fz/phaser/scene` reads an event name
+  from (`Scenes`, `Scale`, `Renderer`) needs that name, as
+  `boardScenePhaserMock()` has them.
 - **Do NOT assert production prose**: Avoid checking exact wording of
   documentation/rules in UI specs. Use the test documentation registry
   provided by `configureUiTestBed`.
