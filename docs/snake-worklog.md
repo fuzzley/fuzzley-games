@@ -280,3 +280,28 @@ history keeps it.
   pull Phaser into the first download. A probe file in each layer: every
   forbidden import refused, every allowed one let through.
 - `games.json` doesn't list it yet.
+
+### 2026-10-27: S2, the rules
+
+- `src/rules/`: `geometry.ts`, `arena.ts` (walls only, decision 9),
+  `speed.ts`, `apples.ts`, `run.ts`, `stepper.ts`, `describe.ts` and
+  `saved_run.ts`, each with a spec, and `runFrom` and `pictureOf` in
+  `src/testing/run_picture.ts`. 97 specs; 100% of statements, functions
+  and lines, and 99% of branches, the one left a `?? 0` that can't be
+  reached.
+- **Where it differs from the plan, and why:**
+  - A `Run` carries its board's `size`, always 17 in play (`createRun`,
+    and `restoreRun` refuses anything else), so a spec can draw a whole
+    board, a full one included, as a 3 × 3 picture.
+  - What a step did is one `StepKind`: `moved`, `ate` (an apple eaten and
+    another laid, so no `laid` of its own), `crashed` or `won`.
+  - No `restart()` move: a new run is `createRun()` with a new id and seed.
+  - `stepper.ts` takes the run and steps it, rather than only counting the
+    steps, since each apple eaten shortens the next step within one frame.
+  - The first apple lies four squares ahead of the snake, as the plan says;
+    the seed lays every apple after it.
+  - The head may move onto the tail's square. The plan's "unless the snake
+    grows on that step" can't happen, since an apple is never under the
+    snake, so it has no spec.
+- Each apple shortens a step by 2 ms, down to the speed's fastest, which
+  Slow reaches at 30 apples, Normal at 28 and Fast at 18.
