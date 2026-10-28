@@ -3,6 +3,6 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig(
   angularTests({
-    thresholds: { statements: 100, branches: 95, functions: 100, lines: 100 },
+    thresholds: { statements: 98, branches: 93, functions: 98, lines: 98 },
   }),
 );

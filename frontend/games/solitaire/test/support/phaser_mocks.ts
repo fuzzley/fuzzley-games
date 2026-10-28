@@ -870,6 +870,7 @@ export function boardScenePhaserMock(): {
   };
   Loader: { Events: { COMPLETE: string } };
   Renderer: { Events: { RESTORE_WEBGL: string } };
+  Scale: { Events: { RESIZE: string } };
   Geom: { Rectangle: typeof MockRectangle };
 } {
   return {
@@ -910,6 +911,7 @@ export function boardScenePhaserMock(): {
     },
     Loader: { Events: { COMPLETE: LOADER_COMPLETE_EVENT } },
     Renderer: { Events: { RESTORE_WEBGL: RESTORE_WEBGL_EVENT } },
+    Scale: { Events: { RESIZE: RESIZE_EVENT } },
     Geom: {
       Rectangle: Object.assign(MockRectangle, {
         Intersection: rectangleIntersection,
@@ -941,6 +943,9 @@ export const LOADER_COMPLETE_EVENT = "complete";
  * Phaser's own.
  */
 export const RESTORE_WEBGL_EVENT = "restorewebgl";
+
+/** The scale manager event raised when the canvas changes size, matching Phaser's own. */
+export const RESIZE_EVENT = "resize";
 
 /**
  * The texture a mock scene starts with loaded: the deck

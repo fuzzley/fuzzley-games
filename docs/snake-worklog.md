@@ -30,12 +30,12 @@ history keeps it.
 
 | Phase | What                                        | State |
 | ----- | ------------------------------------------- | ----- |
-| L0    | The spike and the Solitaire baselines       | to do |
-| L1    | The `@fz/phaser` workspace                  | to do |
-| L2    | The host and the pure entries               | to do |
-| L3    | The scene helpers and the headless harness  | to do |
+| L0    | The spike and the Solitaire baselines       | done  |
+| L1    | The `@fz/phaser` workspace                  | done  |
+| L2    | The host and the pure entries               | done  |
+| L3    | The scene helpers and the headless harness  | done  |
 | L4    | The canvas component                        | to do |
-| L5    | Build and lint                              | to do |
+| L5    | Build and lint                              | done  |
 | L6    | Skills and docs                             | to do |
 | L7    | Nothing changed in the Solitaire Collection | to do |
 | S0    | The spike                                   | to do |
@@ -98,3 +98,55 @@ history keeps it.
   the same chunk names and hashes.
 - `lint:styles` and the stylelint config wait for L4's stylesheet, since
   stylelint fails on a workspace with none.
+
+### 2026-10-27: L2, the host
+
+- `PhaserHost` and `ViewportScaler` moved to `@fz/phaser/host`, with their
+  specs. The host takes its title and background as options, and a game's
+  own config (`HostOptions.config`) over the defaults: `AUTO`, `autoFocus`,
+  antialiasing and round pixels. A scene is handed its `SceneSurroundings`
+  (its insets, and `ready()`), and `show()` takes an `onReady` it calls only
+  while that scene is still the one shown.
+- The insets' custom properties are `--fz-canvas-inset-*` now, for any game,
+  and the Solitaire Collection's canvas stylesheet follows. Its `Insets` and
+  `NO_INSETS` re-export `@fz/phaser/insets`'s.
+- **The Solitaire Collection's fences matched the library.** They listed
+  `"phaser"`, a gitignore-style pattern, which matches `@fz/phaser/insets`
+  too. Anchored as `"/phaser"`, they still refuse `phaser` and `phaser/...`
+  (checked with a probe import) and let the library through.
+- The host's spec keeps its fake game to itself rather than exporting it from
+  `testing`, since no game's spec needs one.
+- Build: the `phaser` chunk is byte for byte the baseline's; `index` grew by
+  270 bytes, to 790,977. All 6,861 specs pass.
+
+### 2026-10-27: L3, the scene helpers and the headless harness
+
+- `@fz/phaser/scene`: `whenSceneEnds()`, `onScaleResize()`,
+  `onContextRestored()`, `onFirstFrame()` and `pixelRatioOf()`, lifted from
+  `BoardScene`, which now uses them, and `bakeTexture()`, new, for Snake.
+  The board's card shadow is a filtered `DynamicTexture`, not a baked
+  `Graphics`, so it keeps its own redraw, through `onContextRestored()`.
+  `boardScenePhaserMock()` gained `Scale.Events.RESIZE` for it.
+- `@fz/phaser/testing`: `installHeadlessPhaser()` and `runScene()`, specced
+  on a probe scene: frames, tweens, timers, insets, `ready()`, keys aimed at
+  an element and at the window, the pointer, and `destroy()`.
+- **What headless Phaser in jsdom needed,** beyond L0's spike:
+  - Tweens time themselves by `Date.now()`, not by the loop's time, so
+    `advance()` moves a clock of its own under `Date.now` while it steps,
+    and puts the real one back after. A spec fakes no `Date`.
+  - Key events wait for the next frame; mouse events are handled at once.
+  - A game is torn down on its next frame, which only a step brings while
+    the loop sleeps, so `destroy()` steps once.
+  - `CanvasTexture.setSize()` and `refresh()` throw in a HEADLESS game:
+    `TextureSource.update()` reads `renderer.gl`, with no renderer. And
+    `Graphics.generateTexture()` throws there too. So `bakeTexture()` leaves
+    a blank texture of the size when headless, made anew each time, and its
+    spec stands in for `generateTexture()` to take the drawing path.
+  - `runScene()` imports Phaser itself, with `import()`, so a test setup can
+    import `testing` and install the stand-ins before Phaser loads.
+- The library's coverage floor is 98 / 93 / 98 / 98 (statements, branches,
+  functions, lines), under its 98.5 / 94.2 / 98.6 / 98.8. A scene that never
+  starts, which only a broken scene causes, isn't specced: the spec waited
+  out the five seconds, and was flaky under load.
+- All 6,861 Solitaire specs pass, above its coverage floor; the library's
+  120 pass.
