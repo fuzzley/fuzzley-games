@@ -47,10 +47,21 @@ export interface SceneRun<S extends HostedScene> {
    */
   key(type: "keydown" | "keyup", code: string, key?: string): void;
   /**
-   * Sends a mouse event to the canvas, at a point in its pixels. Phaser hears
-   * it at once.
+   * Sends a mouse event to the canvas, at a point in its pixels, or to an
+   * element in the page over it, as a press on the page's own chrome reaches
+   * Phaser through the window. Phaser hears it at once.
    */
-  pointer(type: "down" | "move" | "up", x: number, y: number): void;
+  pointer(
+    type: "down" | "move" | "up",
+    x: number,
+    y: number,
+    on?: Element,
+  ): void;
+  /**
+   * Sends a touch of one finger to the canvas, at a point in its pixels.
+   * Phaser hears it at once.
+   */
+  touch(type: "start" | "move" | "end", x: number, y: number): void;
   /**
    * Loses the game's WebGL context, as a browser may, through the context's
    * own `WEBGL_lose_context`, and resolves once Phaser has heard.
@@ -138,8 +149,8 @@ export async function runScene<S extends HostedScene>(
       Object.defineProperty(event, "timeStamp", { value: stamp });
       target.dispatchEvent(event);
     },
-    pointer(type, x, y) {
-      game.canvas.dispatchEvent(
+    pointer(type, x, y, on = game.canvas) {
+      on.dispatchEvent(
         new MouseEvent(`mouse${type}`, {
           clientX: x,
           clientY: y,
@@ -149,6 +160,32 @@ export async function runScene<S extends HostedScene>(
           cancelable: true,
         }),
       );
+    },
+    touch(type, x, y) {
+      const canvas = game.canvas;
+      const finger = {
+        identifier: 0,
+        target: canvas,
+        clientX: x,
+        clientY: y,
+        pageX: x,
+        pageY: y,
+        screenX: x,
+        screenY: y,
+      };
+      // jsdom has no Touch to build a TouchEvent from, and Phaser reads only
+      // the lists of touches.
+      const event = new Event(`touch${type}`, {
+        bubbles: true,
+        cancelable: true,
+      });
+      const down = type === "end" ? [] : [finger];
+      Object.defineProperties(event, {
+        changedTouches: { value: [finger] },
+        touches: { value: down },
+        targetTouches: { value: down },
+      });
+      canvas.dispatchEvent(event);
     },
     async loseContext() {
       const heard = canvasEvent(game, "webglcontextlost");

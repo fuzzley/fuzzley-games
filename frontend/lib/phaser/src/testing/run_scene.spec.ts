@@ -10,6 +10,8 @@ class ProbeScene extends Scene implements HostedScene {
   timerFired = false;
   keys: string[] = [];
   pointers: string[] = [];
+  /** Whether each press and release came from a finger. */
+  touched: boolean[] = [];
   box!: GameObjects.Rectangle;
 
   constructor(private readonly surroundings: SceneSurroundings) {
@@ -25,15 +27,29 @@ class ProbeScene extends Scene implements HostedScene {
     this.input.keyboard?.on("keydown", (event: KeyboardEvent) => {
       this.keys.push(event.code);
     });
-    this.input.on("pointerdown", (pointer: { x: number; y: number }) => {
-      this.pointers.push(`down ${pointer.x},${pointer.y}`);
+    this.input.on(
+      "pointerdown",
+      (pointer: { x: number; y: number; wasTouch: boolean }) => {
+        this.pointers.push(`down ${pointer.x},${pointer.y}`);
+        this.touched.push(pointer.wasTouch);
+      },
+    );
+    this.input.on("pointerdownoutside", (pointer: { x: number; y: number }) => {
+      this.pointers.push(`outside ${pointer.x},${pointer.y}`);
     });
     this.input.on(
       "pointerup",
-      (pointer: { x: number; y: number; downX: number; downY: number }) => {
+      (pointer: {
+        x: number;
+        y: number;
+        downX: number;
+        downY: number;
+        wasTouch: boolean;
+      }) => {
         this.pointers.push(
           `up ${pointer.x},${pointer.y} from ${pointer.downX},${pointer.downY}`,
         );
+        this.touched.push(pointer.wasTouch);
       },
     );
     this.events.once("postupdate", () => {
@@ -300,6 +316,35 @@ describe("runScene", () => {
 
     expect(again.scene.failed).toEqual(["apple"]);
     again.destroy();
+  });
+
+  it("sends the pointer to an element over the canvas, as the page's chrome", async () => {
+    const run = await runProbe();
+    const chrome = document.createElement("header");
+    document.body.append(chrome);
+
+    run.pointer("down", 10, 20, chrome);
+
+    expect([
+      run.scene.pointers,
+      run.game.input.activePointer.downElement,
+    ]).toEqual([["outside 10,20"], chrome]);
+    run.destroy();
+    chrome.remove();
+  });
+
+  it("sends a finger's touch to the canvas, at a point in its pixels", async () => {
+    const run = await runProbe();
+
+    run.touch("start", 10, 20);
+    run.touch("move", 40, 22);
+    run.touch("end", 60, 25);
+
+    expect([run.scene.pointers, run.scene.touched]).toEqual([
+      ["down 10,20", "up 60,25 from 10,20"],
+      [true, true],
+    ]);
+    run.destroy();
   });
 
   it("runs a bare scene, for a spec to make game objects in", async () => {

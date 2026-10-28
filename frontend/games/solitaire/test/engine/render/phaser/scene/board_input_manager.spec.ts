@@ -1,12 +1,18 @@
+// @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import type { GameObjects } from "phaser";
+import type { HostedScene } from "@fz/phaser/host";
+import type { SceneRun } from "@fz/phaser/testing";
 import { clearPile, takeOffBoard } from "@test/support/game_scenarios";
 import type { PlayingCard } from "@/engine/core/card/playing_card";
 import { DragController } from "@/engine/render/input/drag_controller";
 import { designSize } from "@/engine/render/layout/table_layout";
+import type { Point } from "@/engine/render/layout/geometry";
+import { BoardInputManager } from "@/engine/render/phaser/scene/board_input_manager";
 import {
-  BoardInputManager,
-  type InputHost,
-} from "@/engine/render/phaser/scene/board_input_manager";
+  type CardAtlas,
+  cardAtlasTextureKey,
+} from "@/engine/render/phaser/deck/card_deck_atlas";
 import type { Viewport } from "@/engine/render/layout/viewport";
 import {
   FAKE_TABLE_LAYOUT,
@@ -15,15 +21,7 @@ import {
   resolveFakeTableDropTarget,
 } from "@test/support/fake_table/board";
 import { FakeTableGame } from "@test/support/fake_table/game";
-import {
-  asSprite,
-  createMockInput,
-  createMockSprite,
-  type MockInput,
-  type MockSprite,
-  PRESS_ON_CANVAS,
-  PRESS_OVER_CANVAS,
-} from "@test/support/phaser_mocks";
+import { runSceneWithAtlases } from "@test/support/atlas_scene";
 
 /**
  * The design size, which lays the board out at a scale of exactly 1 so the
@@ -31,83 +29,181 @@ import {
  */
 const VIEWPORT: Viewport = { ...designSize(FAKE_TABLE_LAYOUT), pixelRatio: 1 };
 
-vi.mock("phaser", async () => {
-  const mocks = await import("@test/support/phaser_mocks");
-  return mocks.geomPhaserMock();
-});
+/** The deck the sprites are drawn from, at the scale the board lays out at. */
+const DECK: CardAtlas = { deckId: "classic", artScale: 1 };
+
+/** Where a card dropped lands on tableau 1, whose origin is 348, 447. */
+const OVER_TABLEAU_1: Point = { x: 350, y: 450 };
+
+/** A point on the table that no sprite covers. */
+const BARE_TABLE: Point = { x: VIEWPORT.width - 4, y: VIEWPORT.height - 4 };
 
 describe("BoardInputManager", () => {
+  let run: SceneRun<HostedScene>;
   let gameModel: FakeTableGame;
-  let input: MockInput;
   let controller: DragController;
   let inputManager: BoardInputManager;
+  /** The clock the controller times double presses by, in milliseconds. */
+  let clock: number;
+  /** How many sprites the spec has placed, which spaces the next one out. */
+  let placed: number;
 
-  beforeEach(() => {
-    vi.useFakeTimers();
-
+  beforeEach(async () => {
+    run = await runSceneWithAtlases([DECK], designSize(FAKE_TABLE_LAYOUT));
     gameModel = new FakeTableGame();
     gameModel.startNewGame();
+    clock = 0;
+    placed = 0;
 
-    input = createMockInput();
     // The fixture's real wiring, so a press or a drop does what the game says
     // it does rather than what a stub decides.
     controller = new DragController(
       fakeTableGestures(gameModel),
       fakeTableStackFromCard(gameModel),
+      () => clock,
     );
     const dropTarget = resolveFakeTableDropTarget(gameModel);
-    const host: InputHost = {
-      input: input as unknown as InputHost["input"],
-      dropTargetFor: (drag) => dropTarget(drag, VIEWPORT)?.pileId ?? null,
-    };
-    inputManager = new BoardInputManager(host, controller);
+    inputManager = new BoardInputManager(
+      {
+        input: run.scene.input,
+        dropTargetFor: (drag) => dropTarget(drag, VIEWPORT)?.pileId ?? null,
+      },
+      controller,
+    );
   });
 
   afterEach(() => {
-    vi.useRealTimers();
+    run.destroy();
   });
 
-  /** Registers card listeners for a fresh sprite bound to the given card. */
-  function listenTo(card: PlayingCard = gameModel.tableaus[0].getCards()[0]): {
-    sprite: MockSprite;
-    card: PlayingCard;
-  } {
-    const sprite = createMockSprite();
+  /**
+   * Adds an interactive sprite, as the board makes one, at a place of its own
+   * along the top of the table unless told where.
+   */
+  function addSprite(at?: Point): GameObjects.Sprite {
+    const { x, y } = at ?? { x: 10 + 230 * placed++, y: 10 };
+    return run.scene.add
+      .sprite(x, y, cardAtlasTextureKey(DECK), "card-back-blue")
+      .setOrigin(0, 0)
+      .setInteractive({ useHandCursor: true });
+  }
+
+  /** Adds a sprite bound to a card, and listens to it as the board does. */
+  function listenTo(
+    card: PlayingCard = gameModel.tableaus[0].getCards()[0],
+    at?: Point,
+  ): { sprite: GameObjects.Sprite; card: PlayingCard } {
+    const sprite = addSprite(at);
     // The scene stamps the id onto the sprite, which is how the drag handlers
     // recover which card a dragged object is.
     sprite.setData("cardId", card.id);
-    inputManager.registerCardListeners(asSprite(sprite), card.id);
+    inputManager.registerCardListeners(sprite, card.id);
     return { sprite, card };
   }
 
-  /** The pointer Phaser hands to an out event, from a mouse or from a finger. */
-  const MOUSE = { wasTouch: false };
-  const FINGER = { wasTouch: true };
+  /**
+   * Steps a frame, which is when Phaser takes in what was made interactive
+   * since the last, as one has passed by the time a player reaches a card.
+   */
+  function nextFrame(): void {
+    run.advance(16);
+  }
+
+  /** Returns a point inside a sprite, a little in from its top left corner. */
+  function inside(sprite: GameObjects.Sprite): [number, number] {
+    return [sprite.x + 10, sprite.y + 10];
+  }
+
+  /** Clicks a sprite with the mouse. */
+  function click(sprite: GameObjects.Sprite): void {
+    nextFrame();
+    run.pointer("down", ...inside(sprite));
+    run.pointer("up", ...inside(sprite));
+  }
+
+  /** Moves the mouse onto a sprite. */
+  function hover(sprite: GameObjects.Sprite): void {
+    nextFrame();
+    run.pointer("move", ...inside(sprite));
+  }
+
+  /** Moves the mouse off every sprite. */
+  function leave(): void {
+    run.pointer("move", BARE_TABLE.x, BARE_TABLE.y);
+  }
+
+  /** Presses the bare table with the mouse. */
+  function pressBareTable(): void {
+    run.pointer("down", BARE_TABLE.x, BARE_TABLE.y);
+    run.pointer("up", BARE_TABLE.x, BARE_TABLE.y);
+  }
+
+  /** Taps a sprite with a finger. */
+  function tap(sprite: GameObjects.Sprite): void {
+    nextFrame();
+    run.touch("start", ...inside(sprite));
+    run.touch("end", ...inside(sprite));
+  }
+
+  /**
+   * Picks a draggable sprite up and moves it so its corner lies at a point,
+   * without letting go.
+   */
+  function dragTo(sprite: GameObjects.Sprite, to: Point): void {
+    run.scene.input.setDraggable(sprite);
+    nextFrame();
+    const [x, y] = inside(sprite);
+    run.pointer("down", x, y);
+    run.pointer("move", to.x + x - sprite.x, to.y + y - sprite.y);
+  }
+
+  /** Lets go of whatever the mouse holds, where it is. */
+  function letGo(): void {
+    const { x, y } = run.game.input.activePointer;
+    run.pointer("up", x, y);
+  }
+
+  /** Returns the messages of the errors a handler throws while `act` runs. */
+  function errorsDuring(act: () => void): string[] {
+    const errors: string[] = [];
+    const record = (event: ErrorEvent): void => {
+      errors.push((event.error as Error).message);
+      event.preventDefault();
+    };
+    window.addEventListener("error", record);
+    try {
+      act();
+    } finally {
+      window.removeEventListener("error", record);
+    }
+    return errors;
+  }
 
   describe("card hover", () => {
-    it("marks a card as hovered on pointerover", () => {
+    it("marks a card as hovered when the pointer moves over it", () => {
       const { sprite, card } = listenTo();
 
-      sprite.emit("pointerover");
+      hover(sprite);
 
       expect(controller.hoveredCardId).toBe(card.id);
     });
 
-    it("clears the hovered card on pointerout when it is the hovered card", () => {
-      const { sprite, card } = listenTo();
-      controller.cardOver(card.id);
+    it("clears the hovered card when the pointer leaves it", () => {
+      const { sprite } = listenTo();
+      hover(sprite);
 
-      sprite.emit("pointerout", MOUSE);
+      leave();
 
       expect(controller.hoveredCardId).toBeNull();
     });
 
-    it("leaves a different hovered card untouched on pointerout", () => {
+    it("leaves a different hovered card untouched when the pointer leaves", () => {
       const { sprite } = listenTo();
       const otherId = gameModel.tableaus[1].getCards()[0].id;
+      hover(sprite);
       controller.cardOver(otherId);
 
-      sprite.emit("pointerout", MOUSE);
+      leave();
 
       expect(controller.hoveredCardId).toBe(otherId);
     });
@@ -117,8 +213,7 @@ describe("BoardInputManager", () => {
     it("keeps the tapped card examined after the finger lifts", () => {
       const { sprite, card } = listenTo();
 
-      sprite.emit("pointerover");
-      sprite.emit("pointerout", FINGER);
+      tap(sprite);
 
       expect(controller.hoveredCardId).toBe(card.id);
     });
@@ -126,21 +221,20 @@ describe("BoardInputManager", () => {
     it("puts a tapped card back when bare table is pressed", () => {
       const { sprite } = listenTo();
       inputManager.registerDragListeners();
-      sprite.emit("pointerover");
-      sprite.emit("pointerout", FINGER);
+      tap(sprite);
 
-      input.emit("pointerdown", PRESS_ON_CANVAS, []);
+      pressBareTable();
 
       expect(controller.hoveredCardId).toBeNull();
     });
 
     it("leaves it alone when the press landed on something", () => {
       const { sprite, card } = listenTo();
+      const somethingElse = addSprite();
       inputManager.registerDragListeners();
-      sprite.emit("pointerover");
-      sprite.emit("pointerout", FINGER);
+      tap(sprite);
 
-      input.emit("pointerdown", PRESS_ON_CANVAS, [asSprite(sprite)]);
+      click(somethingElse);
 
       expect(controller.hoveredCardId).toBe(card.id);
     });
@@ -150,10 +244,9 @@ describe("BoardInputManager", () => {
     it("draws from the stock when the top stock card is clicked", () => {
       const drawSpy = vi.spyOn(gameModel, "drawCardsFromStock");
       const stock = gameModel.stock.getCards();
-      const topCard = stock[stock.length - 1];
-      const { sprite } = listenTo(topCard);
+      const { sprite } = listenTo(stock[stock.length - 1]);
 
-      sprite.emit("pointerdown", PRESS_ON_CANVAS);
+      click(sprite);
 
       expect(drawSpy).toHaveBeenCalled();
     });
@@ -161,10 +254,9 @@ describe("BoardInputManager", () => {
     it("does not draw when a non-top stock card is clicked", () => {
       const drawSpy = vi.spyOn(gameModel, "drawCardsFromStock");
       const stock = gameModel.stock.getCards();
-      const belowTopCard = stock[stock.length - 2];
-      const { sprite } = listenTo(belowTopCard);
+      const { sprite } = listenTo(stock[stock.length - 2]);
 
-      sprite.emit("pointerdown", PRESS_ON_CANVAS);
+      click(sprite);
 
       expect(drawSpy).not.toHaveBeenCalled();
     });
@@ -173,7 +265,7 @@ describe("BoardInputManager", () => {
       const drawSpy = vi.spyOn(gameModel, "drawCardsFromStock");
       const { sprite } = listenTo(gameModel.tableaus[0].getCards()[0]);
 
-      sprite.emit("pointerdown", PRESS_ON_CANVAS);
+      click(sprite);
 
       expect(drawSpy).not.toHaveBeenCalled();
     });
@@ -183,19 +275,33 @@ describe("BoardInputManager", () => {
       takeOffBoard(gameModel, card.id);
       const { sprite } = listenTo(card);
 
-      expect(() => {
-        sprite.emit("pointerdown", PRESS_ON_CANVAS);
-      }).toThrow("is not in a pile");
+      const errors = errorsDuring(() => {
+        click(sprite);
+      });
+
+      expect(errors).toEqual([expect.stringContaining("is not in a pile")]);
     });
   });
 
   describe("a press on the page over the canvas", () => {
+    let chrome: HTMLElement;
+
+    beforeEach(() => {
+      chrome = document.createElement("header");
+      document.body.append(chrome);
+    });
+
+    afterEach(() => {
+      chrome.remove();
+    });
+
     it("does not press the card beneath it", () => {
       const drawSpy = vi.spyOn(gameModel, "drawCardsFromStock");
       const stock = gameModel.stock.getCards();
       const { sprite } = listenTo(stock[stock.length - 1]);
 
-      sprite.emit("pointerdown", PRESS_OVER_CANVAS);
+      nextFrame();
+      run.pointer("down", ...inside(sprite), chrome);
 
       expect(drawSpy).not.toHaveBeenCalled();
     });
@@ -203,22 +309,22 @@ describe("BoardInputManager", () => {
     it("does not press the empty pile beneath it", () => {
       clearPile(gameModel.stock);
       const drawSpy = vi.spyOn(gameModel, "drawCardsFromStock");
-      const stockBackground = createMockSprite();
-      inputManager.registerPileBackgroundListeners(
-        asSprite(stockBackground),
-        "stock",
-      );
+      const stockBackground = addSprite();
+      inputManager.registerPileBackgroundListeners(stockBackground, "stock");
 
-      stockBackground.emit("pointerdown", PRESS_OVER_CANVAS);
+      nextFrame();
+      run.pointer("down", ...inside(stockBackground), chrome);
 
       expect(drawSpy).not.toHaveBeenCalled();
     });
 
     it("does not pick up the card beneath it", () => {
       const { sprite } = listenTo(gameModel.tableaus[0].topCard);
+      run.scene.input.setDraggable(sprite);
       inputManager.registerDragListeners();
 
-      input.emit("dragstart", PRESS_OVER_CANVAS, asSprite(sprite));
+      nextFrame();
+      run.pointer("down", ...inside(sprite), chrome);
 
       expect(controller.drag).toBeNull();
     });
@@ -230,54 +336,49 @@ describe("BoardInputManager", () => {
       const card = gameModel.tableaus[0].getCards()[0];
       const { sprite } = listenTo(card);
 
-      sprite.emit("pointerdown", PRESS_ON_CANVAS);
-      sprite.emit("pointerdown", PRESS_ON_CANVAS);
+      click(sprite);
+      click(sprite);
 
       expect(autoMoveSpy).toHaveBeenCalledWith(card.id);
     });
 
     it("leaves the card in place on a single click", () => {
       const autoMoveSpy = vi.spyOn(gameModel, "autoMoveCard");
-      const card = gameModel.tableaus[0].getCards()[0];
-      const { sprite } = listenTo(card);
+      const { sprite } = listenTo(gameModel.tableaus[0].getCards()[0]);
 
-      sprite.emit("pointerdown", PRESS_ON_CANVAS);
+      click(sprite);
 
       expect(autoMoveSpy).not.toHaveBeenCalled();
     });
 
     it("does not auto-move when the clicks are more than 350ms apart", () => {
       const autoMoveSpy = vi.spyOn(gameModel, "autoMoveCard");
-      const card = gameModel.tableaus[0].getCards()[0];
-      const { sprite } = listenTo(card);
+      const { sprite } = listenTo(gameModel.tableaus[0].getCards()[0]);
 
-      sprite.emit("pointerdown", PRESS_ON_CANVAS);
-      vi.advanceTimersByTime(351);
-      sprite.emit("pointerdown", PRESS_ON_CANVAS);
+      click(sprite);
+      clock += 351;
+      click(sprite);
 
       expect(autoMoveSpy).not.toHaveBeenCalled();
     });
 
     it("does not auto-move when the two clicks are on different cards", () => {
       const autoMoveSpy = vi.spyOn(gameModel, "autoMoveCard");
-      const c1 = gameModel.tableaus[0].getCards()[0];
-      const c2 = gameModel.tableaus[1].getCards()[0];
-      const { sprite: s1 } = listenTo(c1);
-      const { sprite: s2 } = listenTo(c2);
+      const { sprite: s1 } = listenTo(gameModel.tableaus[0].getCards()[0]);
+      const { sprite: s2 } = listenTo(gameModel.tableaus[1].getCards()[0]);
 
-      s1.emit("pointerdown", PRESS_ON_CANVAS);
-      s2.emit("pointerdown", PRESS_ON_CANVAS);
+      click(s1);
+      click(s2);
 
       expect(autoMoveSpy).not.toHaveBeenCalled();
     });
 
     it("does not auto-move stock cards on double click", () => {
       const autoMoveSpy = vi.spyOn(gameModel, "autoMoveCard");
-      const card = gameModel.stock.getCards()[0];
-      const { sprite } = listenTo(card);
+      const { sprite } = listenTo(gameModel.stock.getCards()[0]);
 
-      sprite.emit("pointerdown", PRESS_ON_CANVAS);
-      sprite.emit("pointerdown", PRESS_ON_CANVAS);
+      click(sprite);
+      click(sprite);
 
       expect(autoMoveSpy).not.toHaveBeenCalled();
     });
@@ -286,41 +387,38 @@ describe("BoardInputManager", () => {
   describe("double click cancels the pending drag", () => {
     /**
      * Wires a draggable card sprite up to both the pointer and drag listeners,
-     * positioned over the tableau-1 drop target, and returns it.
+     * over the tableau-1 drop target, and returns it.
      */
-    function registerDraggableTableauCard(): {
-      sprite: MockSprite;
-      card: PlayingCard;
-    } {
-      const card = gameModel.tableaus[0].topCard!;
-      // tableau-1 calculated layout origin: x: 348, y: 447
-      const sprite = createMockSprite({ x: 350, y: 450 });
-      sprite.setData("cardId", card.id);
-      inputManager.registerCardListeners(asSprite(sprite), card.id);
+    function registerDraggableTableauCard(): GameObjects.Sprite {
+      const { sprite } = listenTo(gameModel.tableaus[0].topCard, {
+        ...OVER_TABLEAU_1,
+      });
+      run.scene.input.setDraggable(sprite);
       inputManager.registerDragListeners();
-      return { sprite, card };
+      return sprite;
     }
 
     it("clears the drag when a double click auto-moves the card", () => {
       vi.spyOn(gameModel, "autoMoveCard").mockReturnValue(true);
-      const { sprite } = registerDraggableTableauCard();
+      const sprite = registerDraggableTableauCard();
+      click(sprite);
 
-      sprite.emit("pointerdown", PRESS_ON_CANVAS); // first click
-      input.emit("dragstart", PRESS_ON_CANVAS, asSprite(sprite)); // second press begins a drag
-      sprite.emit("pointerdown", PRESS_ON_CANVAS); // completes the double click
+      // The second press starts a drag, then completes the double click.
+      run.pointer("down", ...inside(sprite));
 
       expect(controller.drag).toBeNull();
     });
 
-    it("does not re-drop the card on the dragend following the double click", () => {
+    it("does not re-drop the card when the double click's press ends", () => {
       vi.spyOn(gameModel, "autoMoveCard").mockReturnValue(true);
+      const sprite = registerDraggableTableauCard();
+      click(sprite);
+      run.pointer("down", ...inside(sprite));
+      // A click is a drag that ends where it began, so the first one offered
+      // the card to the pile beneath it; only the second must not.
       const moveSpy = vi.spyOn(gameModel, "moveCardToPile");
-      const { sprite } = registerDraggableTableauCard();
 
-      sprite.emit("pointerdown", PRESS_ON_CANVAS);
-      input.emit("dragstart", PRESS_ON_CANVAS, asSprite(sprite));
-      sprite.emit("pointerdown", PRESS_ON_CANVAS); // double click auto-moves and cancels the drag
-      input.emit("dragend", {}, asSprite(sprite)); // trailing dragend must be a no-op
+      run.pointer("up", ...inside(sprite));
 
       expect(moveSpy).not.toHaveBeenCalled();
     });
@@ -334,12 +432,10 @@ describe("BoardInputManager", () => {
 
     /** Picks up the given card's sprite and releases it over tableau 1. */
     function dragAndDrop(card = gameModel.tableaus[0].topCard!): void {
-      // tableau-1 calculated layout origin: x: 348, y: 447
-      const sprite = createMockSprite({ x: 350, y: 450 });
-      sprite.setData("cardId", card.id);
+      const { sprite } = listenTo(card);
       inputManager.registerDragListeners();
-      input.emit("dragstart", PRESS_ON_CANVAS, asSprite(sprite));
-      input.emit("dragend", {}, asSprite(sprite));
+      dragTo(sprite, OVER_TABLEAU_1);
+      letGo();
     }
 
     it("tracks the dropped stack while it settles onto its new pile", () => {
@@ -364,21 +460,18 @@ describe("BoardInputManager", () => {
   });
 
   describe("stock background", () => {
-    let stockBackground: MockSprite;
+    let stockBackground: GameObjects.Sprite;
 
     beforeEach(() => {
-      stockBackground = createMockSprite();
-      inputManager.registerPileBackgroundListeners(
-        asSprite(stockBackground),
-        "stock",
-      );
+      stockBackground = addSprite();
+      inputManager.registerPileBackgroundListeners(stockBackground, "stock");
     });
 
     it("recycles the waste when the empty stock background is clicked", () => {
       clearPile(gameModel.stock);
       const drawSpy = vi.spyOn(gameModel, "drawCardsFromStock");
 
-      stockBackground.emit("pointerdown", PRESS_ON_CANVAS);
+      click(stockBackground);
 
       expect(drawSpy).toHaveBeenCalled();
     });
@@ -386,21 +479,21 @@ describe("BoardInputManager", () => {
     it("does nothing when the stock is not empty", () => {
       const drawSpy = vi.spyOn(gameModel, "drawCardsFromStock");
 
-      stockBackground.emit("pointerdown", PRESS_ON_CANVAS);
+      click(stockBackground);
 
       expect(drawSpy).not.toHaveBeenCalled();
     });
 
-    it("marks the stock background hovered on pointerover", () => {
-      stockBackground.emit("pointerover");
+    it("marks the stock background hovered when the pointer moves over it", () => {
+      hover(stockBackground);
 
       expect(controller.hoveredBackgroundPileId).toBe("stock");
     });
 
-    it("clears the stock background hover on pointerout", () => {
-      controller.backgroundOver("stock");
+    it("clears the stock background hover when the pointer leaves it", () => {
+      hover(stockBackground);
 
-      stockBackground.emit("pointerout");
+      leave();
 
       expect(controller.hoveredBackgroundPileId).toBeNull();
     });
@@ -409,33 +502,32 @@ describe("BoardInputManager", () => {
       inputManager.registerDragListeners();
       controller.backgroundOver("stock");
 
-      input.emit("pointerdown", PRESS_ON_CANVAS, []);
+      pressBareTable();
 
       expect(controller.hoveredBackgroundPileId).toBeNull();
     });
   });
 
   describe("dragging", () => {
-    let sprite: MockSprite;
+    let sprite: GameObjects.Sprite;
     let card: PlayingCard;
 
     beforeEach(() => {
       card = gameModel.tableaus[0].topCard!;
-      sprite = createMockSprite({ x: 100, y: 150 });
-      sprite.setData("cardId", card.id);
+      sprite = listenTo(card, { x: 100, y: 150 }).sprite;
       inputManager.registerDragListeners();
     });
 
-    it("captures the dragged stack on dragstart", () => {
-      input.emit("dragstart", PRESS_ON_CANVAS, asSprite(sprite));
+    it("captures the dragged stack when a card is picked up", () => {
+      dragTo(sprite, { x: 120, y: 170 });
 
       expect(controller.drag?.cardIds).toEqual([card.id]);
     });
 
     it("does not start a drag when the sprite is not a card", () => {
-      const dummy = createMockSprite();
+      const dummy = addSprite();
 
-      input.emit("dragstart", PRESS_ON_CANVAS, asSprite(dummy));
+      dragTo(dummy, { x: 400, y: 400 });
 
       expect(controller.drag).toBeNull();
     });
@@ -443,71 +535,61 @@ describe("BoardInputManager", () => {
     it("does not start a drag when the card is in no model pile", () => {
       takeOffBoard(gameModel, card.id);
 
-      input.emit("dragstart", PRESS_ON_CANVAS, asSprite(sprite));
+      // The press that picks it up presses it too, which throws for a card in
+      // no pile.
+      const errors = errorsDuring(() => {
+        dragTo(sprite, { x: 120, y: 170 });
+      });
 
-      expect(controller.drag).toBeNull();
+      expect([controller.drag, errors]).toEqual([
+        null,
+        [expect.stringContaining("is not in a pile")],
+      ]);
     });
 
-    it("updates the primary drag position on drag", () => {
-      input.emit("dragstart", PRESS_ON_CANVAS, asSprite(sprite));
-      input.emit("drag", {}, asSprite(sprite), 200, 300);
+    it("follows the card's corner as it is dragged", () => {
+      dragTo(sprite, { x: 200, y: 300 });
 
       expect(controller.drag?.primary).toEqual({ x: 200, y: 300 });
     });
 
-    it("ignores drag events when nothing is being dragged", () => {
-      input.emit("drag", {}, asSprite(sprite), 200, 300);
+    it("lets go of a sprite that is not a card without a drop", () => {
+      const moveSpy = vi.spyOn(gameModel, "moveCardToPile");
+      const dummy = addSprite();
+      dragTo(dummy, OVER_TABLEAU_1);
 
-      expect(controller.drag).toBeNull();
-    });
+      letGo();
 
-    it("ignores dragend when nothing is being dragged", () => {
-      expect(() => {
-        input.emit("dragend", {}, asSprite(sprite));
-      }).not.toThrow();
-    });
-
-    it("snaps back on dragend when the sprite is not a card", () => {
-      input.emit("dragstart", PRESS_ON_CANVAS, asSprite(sprite));
-      const dummy = createMockSprite();
-
-      input.emit("dragend", {}, asSprite(dummy));
-
-      expect(controller.drag).toBeNull();
+      expect([controller.drag, moveSpy.mock.calls]).toEqual([null, []]);
     });
 
     it("moves the card when dropped on a valid target pile", () => {
-      // tableau-1 calculated layout origin: x: 348, y: 447
-      sprite.setPosition(350, 450);
       const moveSpy = vi
         .spyOn(gameModel, "moveCardToPile")
         .mockReturnValue(true);
-      input.emit("dragstart", PRESS_ON_CANVAS, asSprite(sprite));
+      dragTo(sprite, OVER_TABLEAU_1);
 
-      input.emit("dragend", {}, asSprite(sprite));
+      letGo();
 
       expect(moveSpy).toHaveBeenCalledWith(card.id, "tableau-1");
     });
 
     it("snaps back when dropped on a target but the move is rejected", () => {
-      sprite.setPosition(350, 450);
       vi.spyOn(gameModel, "moveCardToPile").mockReturnValue(false);
-      input.emit("dragstart", PRESS_ON_CANVAS, asSprite(sprite));
+      dragTo(sprite, OVER_TABLEAU_1);
 
-      input.emit("dragend", {}, asSprite(sprite));
+      letGo();
 
       expect(controller.drag).toBeNull();
     });
 
     it("snaps back without moving when dropped away from every pile", () => {
-      sprite.setPosition(9000, 9000);
       const moveSpy = vi.spyOn(gameModel, "moveCardToPile");
-      input.emit("dragstart", PRESS_ON_CANVAS, asSprite(sprite));
+      dragTo(sprite, { x: 9000, y: 9000 });
 
-      input.emit("dragend", {}, asSprite(sprite));
+      letGo();
 
-      expect(moveSpy).not.toHaveBeenCalled();
-      expect(controller.drag).toBeNull();
+      expect([controller.drag, moveSpy.mock.calls]).toEqual([null, []]);
     });
   });
 });

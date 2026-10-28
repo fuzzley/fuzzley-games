@@ -30,7 +30,7 @@ history keeps it.
 | W4    | The library's own fakes of a game                              | done  |
 | W5    | The Solitaire Collection's setup, and a board run for real     | done  |
 | W6    | `TableLight`, `PhaserCardFactory` and `DrawnDeckPainter` specs | done  |
-| W7    | `PhaserTableRenderer` and `BoardInputManager` specs            | to do |
+| W7    | `PhaserTableRenderer` and `BoardInputManager` specs            | done  |
 | W8    | `BoardScene` spec                                              | to do |
 | W9    | `table_board_scene`, the catalog and the game contract specs   | to do |
 | W10   | `phaser_mocks.ts` gone, the docs, and `yarn verify`            | to do |
@@ -331,3 +331,52 @@ history keeps it.
   "which a spec stands in for", is passed by no spec.
 - **Checks:** the Solitaire Collection's lint, typecheck and 6873 tests;
   `@fz/phaser`'s lint, typecheck and 200; Snake's 347.
+
+### 2026-10-28: W7, the renderer and the input manager
+
+- **`phaser_table_renderer.spec.ts`** keeps the `PhaserSprites` seam the
+  board scene implements, filled from a real scene with the indexed deck
+  at 0.5x, 1x and 2x (one scene for the file, its objects cleared after
+  each spec): real sprites on real frames, `setDraggable` as Phaser's own
+  (read back as `input.draggable`), and real `Graphics` for the borders,
+  with call-through spies on `strokeRoundedRect` and `strokePath`, since
+  a stroke leaves nothing to read. The placeholder's cursor specs start
+  from the hand cursor the board gives it, where the mock started from
+  `"default"`. All 30 passed as first written.
+- **`board_input_manager.spec.ts`** drives real input: the mouse
+  (`run.pointer()`), a finger (`run.touch()`), and presses on an element
+  over the canvas; Phaser hit-tests real interactive sprites and raises
+  its own over, out, down, drag and dragend events, with the pointer
+  objects it really builds (`downElement`, `wasTouch`), where the mock
+  spec emitted hand-made ones. The double click's clock is the
+  controller's own injected `now`, rather than faked timers, which the
+  harness needs real.
+- **What real input taught the spec:**
+  - An object made interactive is taken into the input plugin's list on
+    the scene's next frame, so a spec steps a frame before its first
+    press (the board makes its sprites in `create()`, long before a
+    player's first press).
+  - A press on the page's chrome over the canvas still hit-tests the
+    sprites beneath and raises their `pointerdown`, with the chrome as
+    `downElement`, and raises `pointerdownoutside` on the scene: exactly
+    what `pressedCanvas()` guards against, now checked for real.
+  - Phaser's drag thresholds are 0, so a press on a draggable card is a
+    drag start, and its release a drop where it began: every click on a
+    draggable card offers it to the pile beneath it, which the model
+    turns down. Harmless, and the spec of the double click's release now
+    says only its own release must not drop.
+  - An error thrown in a pointer handler reaches the window's `error`
+    event, not the spec, so `errorsDuring()` catches it there (a card in
+    no pile, pressed or picked up).
+  - "snaps back on dragend when the sprite is not a card" had a card's
+    drag ended by another object, which Phaser never does; it became
+    "lets go of a sprite that is not a card without a drop".
+- **The harness, for input:** `pointer()` takes an element to press on
+  instead of the canvas; `touch("start" | "move" | "end", x, y)` sends one
+  finger (jsdom has no `Touch`, so the event carries plain lists, which is
+  all Phaser reads); `startGame()` turns on Phaser's touch input, which it
+  otherwise enables only where the device seems to have touch; and
+  `document.elementFromPoint()`, which Phaser asks of a moving finger,
+  answers the canvas laid out under the point, or else the body.
+- **Checks:** the Solitaire Collection's lint, typecheck and 6871 tests;
+  `@fz/phaser`'s lint, typecheck and 203; Snake's 347.

@@ -16,11 +16,14 @@ export async function startGame(config: SpecGameConfig = {}): Promise<Game> {
   const { Core, Game, WEBGL } = await import("phaser");
   const parent = document.createElement("div");
   document.body.append(parent);
+  const { input = {}, ...rest } = config;
   const game = new Game({
     banner: false,
     autoFocus: false,
     audio: { noAudio: true },
-    ...config,
+    ...rest,
+    // Phaser listens for touches only where it thinks the device has them.
+    input: typeof input === "boolean" ? input : { touch: true, ...input },
     type: WEBGL,
     parent,
   });

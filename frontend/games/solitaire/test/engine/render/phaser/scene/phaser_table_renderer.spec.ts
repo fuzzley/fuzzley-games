@@ -1,4 +1,18 @@
-import { vi, describe, it, expect, beforeEach, type Mock } from "vitest";
+// @vitest-environment jsdom
+import {
+  vi,
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+  type MockInstance,
+} from "vitest";
+import type { GameObjects } from "phaser";
+import type { HostedScene } from "@fz/phaser/host";
+import type { SceneRun } from "@fz/phaser/testing";
 import {
   PhaserTableRenderer,
   HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE,
@@ -10,19 +24,9 @@ import type {
   HighlightView,
 } from "@/engine/render/view/table_view_state";
 import type { CardArtScale } from "@/engine/render/deck/card_art_scale";
+import { cardAtlasTextureKey } from "@/engine/render/phaser/deck/card_deck_atlas";
 import { STOCK_PILE_ID } from "@test/support/fake_table/zones";
-import {
-  asSprite,
-  createMockGraphics,
-  createMockSprite,
-  type MockGraphics,
-  type MockSprite,
-} from "@test/support/phaser_mocks";
-
-vi.mock("phaser", async () => {
-  const mocks = await import("@test/support/phaser_mocks");
-  return mocks.geomPhaserMock();
-});
+import { runSceneWithAtlases } from "@test/support/atlas_scene";
 
 /** The distance a hover expansion nudges a card at a layout scale of 1. */
 const HOVER_NUDGE_PX = HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE;
@@ -30,18 +34,41 @@ const HOVER_NUDGE_PX = HIGHLIGHT_ANCHOR_SETTLE_TOLERANCE;
 /** The artwork the stock's placeholder sprite starts out drawn from. */
 const STOCK_FRAME = "card-placeholder-full-border-reset";
 
+/** The densities of the deck the specs draw from. */
+const ART_SCALES: readonly CardArtScale[] = [0.5, 1, 2];
+
+/** A highlight border, with spies on how it was stroked. */
+interface Border {
+  readonly graphics: GameObjects.Graphics;
+  readonly strokeRoundedRect: MockInstance<
+    GameObjects.Graphics["strokeRoundedRect"]
+  >;
+  readonly strokePath: MockInstance<GameObjects.Graphics["strokePath"]>;
+}
+
+/** A scene with the indexed deck loaded at every density the specs use. */
+let run: SceneRun<HostedScene>;
+
+beforeAll(async () => {
+  run = await runSceneWithAtlases(
+    ART_SCALES.map((artScale) => ({ deckId: "indexed", artScale })),
+  );
+});
+
+afterAll(() => {
+  run.destroy();
+});
+
 describe("PhaserTableRenderer", () => {
   let applier: PhaserTableRenderer;
-  /** Every graphics object the applier has asked the scene for, in order. */
-  let borders: MockGraphics[];
-  /** The board's draggability setter, so tests can assert what it was told. */
-  let setDraggable: Mock;
+  /** Every border the applier has asked the scene for, in order. */
+  let borders: Border[];
   /** The card sprites the applier can find, keyed by card id. */
-  let cardSprites: Map<string, MockSprite>;
+  let cardSprites: Map<string, GameObjects.Sprite>;
   /** The shadow sprites the applier can find, keyed by card id. */
-  let cardShadows: Map<string, MockSprite>;
+  let cardShadows: Map<string, GameObjects.Sprite>;
   /** The pile background sprites the applier can find, keyed by pile id. */
-  let pileBackgrounds: Map<string, MockSprite>;
+  let pileBackgrounds: Map<string, GameObjects.Sprite>;
   /** The placeholders whose cursor the applier asked to show at once. */
   let cursorsShown: string[];
   /**
@@ -50,59 +77,68 @@ describe("PhaserTableRenderer", () => {
    */
   let artScale: CardArtScale;
 
+  /** Returns a sprite in the scene, from the deck at the density in use. */
+  function addSprite(frame: string, x = 0, y = 0): GameObjects.Sprite {
+    const texture = cardAtlasTextureKey({ deckId: "indexed", artScale });
+    return run.scene.add.sprite(x, y, texture, frame).setOrigin(0, 0);
+  }
+
   beforeEach(() => {
     borders = [];
-    setDraggable = vi.fn();
     cardSprites = new Map();
     cardShadows = new Map();
-    pileBackgrounds = new Map([
-      [STOCK_PILE_ID, createMockSprite({ frame: STOCK_FRAME })],
-    ]);
     artScale = 1;
+    pileBackgrounds = new Map([[STOCK_PILE_ID, addSprite(STOCK_FRAME)]]);
     cursorsShown = [];
 
-    // The applier only needs to find sprites and add graphics, so the whole
-    // seam is satisfied by maps — no Phaser scene stand-in required.
+    // What the board scene hands the applier, over sprites in a real scene.
     const sprites: PhaserSprites = {
       get cardArtScale() {
         return artScale;
       },
-      cardSprite: (cardId) => {
-        const sprite = cardSprites.get(cardId);
-        return sprite ? asSprite(sprite) : undefined;
-      },
-      cardShadowSprite: (cardId) => {
-        const sprite = cardShadows.get(cardId);
-        return sprite ? asSprite(sprite) : undefined;
-      },
-      pileBackgroundSprite: (pileId) => {
-        const sprite = pileBackgrounds.get(pileId);
-        return sprite ? asSprite(sprite) : undefined;
-      },
+      cardSprite: (cardId) => cardSprites.get(cardId),
+      cardShadowSprite: (cardId) => cardShadows.get(cardId),
+      pileBackgroundSprite: (pileId) => pileBackgrounds.get(pileId),
       addGraphics: () => {
-        const graphics = createMockGraphics();
-        borders.push(graphics);
-        return graphics as unknown as Phaser.GameObjects.Graphics;
+        const graphics = run.scene.add.graphics();
+        borders.push({
+          graphics,
+          strokeRoundedRect: vi.spyOn(graphics, "strokeRoundedRect"),
+          strokePath: vi.spyOn(graphics, "strokePath"),
+        });
+        return graphics;
       },
-      setDraggable,
+      setDraggable: (sprite, draggable) => {
+        run.scene.input.setDraggable(sprite, draggable);
+      },
       showPileBackgroundCursor: (pileId) => cursorsShown.push(pileId),
     };
 
     applier = new PhaserTableRenderer(sprites);
   });
 
-  /** Registers a card sprite the applier can find, and returns the mock. */
-  function registerCard(cardId: string, x = 0, y = 0): MockSprite {
-    const sprite = createMockSprite({ x, y });
+  afterEach(() => {
+    run.scene.children.removeAll(true);
+  });
+
+  /** Registers a card sprite the applier can find, as the board makes one. */
+  function registerCard(cardId: string, x = 0, y = 0): GameObjects.Sprite {
+    const sprite = addSprite("card-back-blue", x, y);
+    sprite.setInteractive({ useHandCursor: true });
     cardSprites.set(cardId, sprite);
     return sprite;
   }
 
-  /** Registers a card's shadow sprite, and returns the mock. */
-  function registerShadow(cardId: string): MockSprite {
-    const sprite = createMockSprite();
+  /** Registers a card's shadow sprite, and returns it. */
+  function registerShadow(cardId: string): GameObjects.Sprite {
+    const sprite = addSprite("card-back-blue");
     cardShadows.set(cardId, sprite);
     return sprite;
+  }
+
+  /** Returns the stock's placeholder sprite. */
+  function stockPlaceholder(): GameObjects.Sprite {
+    return pileBackgrounds.get(STOCK_PILE_ID)!;
   }
 
   /** Returns a card view with the fields this suite ignores filled in. */
@@ -114,7 +150,7 @@ describe("PhaserTableRenderer", () => {
       y: 0,
       scale: 1,
       depth: 1,
-      frame: "frame",
+      frame: "card-back-blue",
       cursor: "pointer",
       draggable: true,
       snap: false,
@@ -155,7 +191,7 @@ describe("PhaserTableRenderer", () => {
       highlights: [],
     };
 
-    const sprite = pileBackgrounds.get(STOCK_PILE_ID)!;
+    const sprite = stockPlaceholder();
     // Pile backgrounds are interactive in the real scene, which is what gives
     // them the `input.cursor` the applier writes to.
     sprite.setInteractive();
@@ -196,7 +232,7 @@ describe("PhaserTableRenderer", () => {
     }
 
     it("swaps the artwork when its view asks for another", () => {
-      const sprite = pileBackgrounds.get(STOCK_PILE_ID)!;
+      const sprite = stockPlaceholder();
 
       applier.apply(stockDrawnFrom("card-placeholder-full-border"), 16);
 
@@ -204,7 +240,7 @@ describe("PhaserTableRenderer", () => {
     });
 
     it("keeps the placeholder anchored at its top-left corner after a swap", () => {
-      const sprite = pileBackgrounds.get(STOCK_PILE_ID)!;
+      const sprite = stockPlaceholder();
 
       applier.apply(stockDrawnFrom("card-placeholder-full-border"), 16);
 
@@ -212,24 +248,27 @@ describe("PhaserTableRenderer", () => {
     });
 
     it("shows a changed cursor at once, in case the pointer is already over it", () => {
-      // An interactive mock sprite starts with the default cursor.
-      pileBackgrounds.get(STOCK_PILE_ID)!.setInteractive();
+      // Interactive with the hand, as the board makes a placeholder.
+      stockPlaceholder().setInteractive({ useHandCursor: true });
 
-      applier.apply(stockDrawnFrom(STOCK_FRAME, "pointer"), 16);
+      applier.apply(stockDrawnFrom(STOCK_FRAME, "default"), 16);
 
-      expect(cursorsShown).toEqual([STOCK_PILE_ID]);
+      expect([cursorsShown, stockPlaceholder().input?.cursor]).toEqual([
+        [STOCK_PILE_ID],
+        "default",
+      ]);
     });
 
     it("leaves the canvas cursor alone while the cursor stays the same", () => {
-      pileBackgrounds.get(STOCK_PILE_ID)!.setInteractive();
+      stockPlaceholder().setInteractive({ useHandCursor: true });
 
-      applier.apply(stockDrawnFrom(STOCK_FRAME, "default"), 16);
+      applier.apply(stockDrawnFrom(STOCK_FRAME, "pointer"), 16);
 
       expect(cursorsShown).toEqual([]);
     });
 
     it("leaves the artwork alone while its view asks for the same", () => {
-      const sprite = pileBackgrounds.get(STOCK_PILE_ID)!;
+      const sprite = stockPlaceholder();
       const setFrame = vi.spyOn(sprite, "setFrame");
 
       applier.apply(stockDrawnFrom(STOCK_FRAME), 16);
@@ -250,7 +289,7 @@ describe("PhaserTableRenderer", () => {
           y: 200,
           scale: 1.0,
           depth: 10,
-          frame: "card-1-frame",
+          frame: "card-hearts-ace",
           cursor: "pointer",
           draggable: true,
           snap: true,
@@ -261,11 +300,19 @@ describe("PhaserTableRenderer", () => {
 
     applier.apply(viewState, 16);
 
-    expect(cardSprite.x).toBe(100);
-    expect(cardSprite.y).toBe(200);
-    expect(cardSprite.scale).toBe(1.0);
-    expect(cardSprite.depth).toBe(10);
-    expect(setDraggable).toHaveBeenCalledWith(asSprite(cardSprite), true);
+    expect({
+      at: [cardSprite.x, cardSprite.y],
+      scale: cardSprite.scale,
+      depth: cardSprite.depth,
+      frame: cardSprite.frame.name,
+      draggable: cardSprite.input?.draggable,
+    }).toEqual({
+      at: [100, 200],
+      scale: 1,
+      depth: 10,
+      frame: "card-hearts-ace",
+      draggable: true,
+    });
   });
 
   it("eases cards when snap flag is false", () => {
@@ -280,7 +327,7 @@ describe("PhaserTableRenderer", () => {
           y: 100,
           scale: 1.0,
           depth: 10,
-          frame: "card-1-frame",
+          frame: "card-hearts-ace",
           cursor: "pointer",
           draggable: true,
           snap: false,
@@ -368,11 +415,9 @@ describe("PhaserTableRenderer", () => {
 
       applier.apply(oneCardAt(0.5), 16);
 
-      expect([
-        card.scale,
-        shadow.scale,
-        pileBackgrounds.get(STOCK_PILE_ID)!.scale,
-      ]).toEqual([0.25, 0.25, 0.25]);
+      expect([card.scale, shadow.scale, stockPlaceholder().scale]).toEqual([
+        0.25, 0.25, 0.25,
+      ]);
     });
   });
 
@@ -491,7 +536,7 @@ describe("PhaserTableRenderer", () => {
         150,
         12,
       );
-      expect([borders[0].x, borders[0].y]).toEqual([10, 20]);
+      expect([borders[0].graphics.x, borders[0].graphics.y]).toEqual([10, 20]);
     });
 
     it("strokes an open path for an openBottom border", () => {
@@ -521,7 +566,9 @@ describe("PhaserTableRenderer", () => {
 
       applier.apply(viewState, 16);
 
-      expect(borders.map((border) => border.depth)).toEqual([999, 2000]);
+      expect(borders.map(({ graphics }) => graphics.depth)).toEqual([
+        999, 2000,
+      ]);
     });
 
     it("places a card border at the sprite rather than at the layout target", () => {
@@ -535,7 +582,10 @@ describe("PhaserTableRenderer", () => {
       applier.apply(viewState, 16);
 
       // Snapped, so the sprite is already at the target and the border is on it.
-      expect([borders[0].x, borders[0].y]).toEqual([sprite.x, sprite.y]);
+      expect([borders[0].graphics.x, borders[0].graphics.y]).toEqual([
+        sprite.x,
+        sprite.y,
+      ]);
     });
 
     it("hides a card border while the card is still crossing the board", () => {
@@ -566,7 +616,10 @@ describe("PhaserTableRenderer", () => {
 
       applier.apply(viewState, 16);
 
-      expect([borders[0].x, borders[0].y]).toEqual([sprite.x, sprite.y]);
+      expect([borders[0].graphics.x, borders[0].graphics.y]).toEqual([
+        sprite.x,
+        sprite.y,
+      ]);
     });
 
     it("scales the settle tolerance with the layout", () => {
@@ -603,7 +656,9 @@ describe("PhaserTableRenderer", () => {
 
       applier.apply(viewState, 0); // delta 0 snaps the card home
 
-      expect([borders[0].x, borders[0].y]).toEqual([400, 400]);
+      expect([borders[0].graphics.x, borders[0].graphics.y]).toEqual([
+        400, 400,
+      ]);
     });
 
     it("draws a border for each highlight", () => {
@@ -618,7 +673,7 @@ describe("PhaserTableRenderer", () => {
 
       applier.apply(viewState, 16);
 
-      expect(borders.map((border) => [border.x, border.y])).toEqual([
+      expect(borders.map(({ graphics }) => [graphics.x, graphics.y])).toEqual([
         [10, 20],
         [30, 40],
       ]);
@@ -637,7 +692,10 @@ describe("PhaserTableRenderer", () => {
 
       applier.apply({ backgrounds: [], cards: [], highlights: [] }, 16);
 
-      expect(borders.map((border) => border.visible)).toEqual([false, false]);
+      expect(borders.map(({ graphics }) => graphics.visible)).toEqual([
+        false,
+        false,
+      ]);
     });
 
     it("reuses its borders instead of creating one per frame", () => {

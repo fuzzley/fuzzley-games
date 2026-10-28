@@ -64,6 +64,21 @@ export function installHeadlessPhaser(): void {
     return laidOut(this);
   };
 
+  // Phaser asks what lies under a moving finger, to know it is still over
+  // the canvas.
+  Document.prototype.elementFromPoint = function elementFromPoint(
+    this: Document,
+    x: number,
+    y: number,
+  ): Element | null {
+    const canvases = [...this.querySelectorAll("canvas")].reverse();
+    const under = canvases.find((canvas) => {
+      const { left, top, right, bottom } = laidOut(canvas);
+      return x >= left && x < right && y >= top && y < bottom;
+    });
+    return under ?? this.body;
+  };
+
   installServedFiles();
 }
 
