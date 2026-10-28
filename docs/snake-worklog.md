@@ -305,3 +305,30 @@ history keeps it.
     snake, so it has no spec.
 - Each apple shortens a step by 2 ms, down to the speed's fastest, which
   Slow reaches at 30 apples, Normal at 28 and Fast at 18.
+
+### 2026-10-27: S3, the view
+
+- `src/view/`, plain TypeScript tested in jsdom without Phaser: `frame.ts`
+  (`SnakeFrame`), `board_metrics.ts`, `snake_shapes.ts`, `palette.ts`,
+  `effects.ts`, `timing.ts`, and `controls.ts`, which decision 5 adds: the
+  key map, by `event.code`, and `SwipeReader`, which turns once a finger
+  has moved 24 CSS px and measures again from there. The scene hears the
+  keys and the pointer through Phaser and asks these what they mean.
+- **The contrast spec passes in every palette:** the snake, its head and
+  the apple at 3:1 or more on both shades of square, from `snakePalette()`
+  and `@fz/style/testing`. The checker equals what `paint()` resolves
+  `--fz-wash-1` to. So the apple keeps `danger`, and there is no
+  `_inks.scss`.
+- **Where it differs from the plan, and why:**
+  - `SnakeFrame` carries `newBest`, so the scene plays the new best's
+    sound at a crash that set one, without asking the shell.
+  - A crashed snake fades by its color, from `snake` toward `faded`
+    (`fadeTo()`), not by an alpha for each segment: the body is lines and
+    circles that overlap, and translucent ones would show their seams.
+  - No wrap-around drawing, by decision 9.
+- **`snakeShapes()` allocates nothing:** it writes into a `SnakeShapes`
+  the painter keeps, folds the points of a straight run into one, and reads
+  the snake by index, since destructuring takes an iterator. The one throw
+  that reading needs, for a square the snake must have, can't be reached,
+  so the view's statement floor is 99, its branches 95, the rest 100.
+- 189 specs.
