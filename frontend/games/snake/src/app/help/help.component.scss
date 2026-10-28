@@ -1,0 +1,6 @@
+@use "../styles" as *;
+
+// No scrim or z-index: <fz-dialog> puts this in the top layer.
+.card {
+  @include help-card;
+}

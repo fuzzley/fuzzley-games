@@ -4,6 +4,7 @@ import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { pause } from "../../rules/run";
 import { stepMs } from "../../rules/speed";
+import { endedGame, playToTheEnd, wonGame } from "../../testing/play";
 import { runFrom } from "../../testing/run_picture";
 import { FADE_MS } from "../../view/timing";
 import { SettingsService } from "../settings/settings.service";
@@ -22,18 +23,6 @@ function said(): string {
 function startedGame(): GameService {
   const game = TestBed.inject(GameService);
   game.turn("up");
-  return game;
-}
-
-/** Moves the game on a step at a time until its run ends. */
-function playToTheEnd(game: GameService): void {
-  for (let i = 0; i < 200 && !game.ended(); i++) game.tick(STEP);
-}
-
-/** Returns the game with its run just ended in the top wall, scoring nothing. */
-function crashedGame(): GameService {
-  const game = startedGame();
-  playToTheEnd(game);
   return game;
 }
 
@@ -196,13 +185,13 @@ describe("GameService", () => {
 
   describe("the end of a run", () => {
     it("says why the run ended, and its score", () => {
-      crashedGame();
+      endedGame();
 
       expect(said()).toBe("The snake ran into the wall. Score 0.");
     });
 
     it("keeps the run's score and length", () => {
-      crashedGame();
+      endedGame();
 
       expect(TestBed.inject(StatsService).stats().normal).toEqual({
         runs: 1,
@@ -221,6 +210,13 @@ describe("GameService", () => {
       expect(said()).toMatch(/A new best!$/);
     });
 
+    it("says a run that fills the board won it", () => {
+      const game = wonGame();
+
+      expect(game.outcome()).toBe("won");
+      expect(said()).toBe("You filled the board! Score 6. A new best!");
+    });
+
     it("hands the scene whether the run set a new best", () => {
       const game = TestBed.inject(GameService);
       game.turn("right");
@@ -231,7 +227,7 @@ describe("GameService", () => {
     });
 
     it("opens the result card at once where the player prefers less motion", () => {
-      const game = crashedGame();
+      const game = endedGame();
 
       game.tick(16);
 
@@ -250,7 +246,7 @@ describe("GameService", () => {
       });
 
       it("waits for the crashed snake to fade before the result card", () => {
-        const game = crashedGame();
+        const game = endedGame();
 
         game.tick(FADE_MS / 2);
 
@@ -258,7 +254,7 @@ describe("GameService", () => {
       });
 
       it("opens the result card once the crashed snake has faded", () => {
-        const game = crashedGame();
+        const game = endedGame();
 
         game.tick(FADE_MS);
 
@@ -267,7 +263,7 @@ describe("GameService", () => {
     });
 
     it("puts the result card away", () => {
-      const game = crashedGame();
+      const game = endedGame();
       game.tick(16);
 
       game.closeResult();
@@ -277,7 +273,7 @@ describe("GameService", () => {
     });
 
     it("leaves an ended run as it is", () => {
-      const game = crashedGame();
+      const game = endedGame();
       const ended = game.run();
 
       game.turn("right");
@@ -333,7 +329,7 @@ describe("GameService", () => {
     });
 
     it("starts a new run without asking once the last has ended", async () => {
-      const game = crashedGame();
+      const game = endedGame();
 
       const started = await game.newGame();
 

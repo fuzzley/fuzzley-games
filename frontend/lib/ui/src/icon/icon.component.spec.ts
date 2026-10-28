@@ -19,7 +19,7 @@ describe("IconComponent", () => {
     expect(icon.querySelector("svg")?.childElementCount).toBeGreaterThan(0);
   });
 
-  it.each(["flag", "heart", "mine", "more", "play"] as const)(
+  it.each(["flag", "heart", "mine", "more", "pause", "play"] as const)(
     "fills %s, a solid icon",
     async (name) => {
       const icon = await renderIcon(name);

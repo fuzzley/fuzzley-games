@@ -1,0 +1,107 @@
+<fz-game-bar
+  [placement]="viewport.barPlacement()"
+  [compact]="viewport.isCompact()"
+  [home]="viewport.barHome()"
+  [homeHref]="homeHref"
+>
+  <!-- The page's one <h1>, heard rather than seen on a compact screen. -->
+  <h1
+    fzBarTitle
+    class="title"
+    [class.fz-visually-hidden]="viewport.isCompact()"
+  >
+    Snake
+  </h1>
+  <!-- At every size, as the speed isn't shown anywhere else in play. -->
+  <span fzBarTitle class="fz-badge speed">{{ speed() }}</span>
+
+  <!-- Not a live region: the announcer says the score as a run ends. -->
+  <dl fzBarStatus class="metrics">
+    <div class="metric">
+      <dt><fz-icon name="apple" /><span class="label">Score</span></dt>
+      <dd class="value">{{ game.score() }}</dd>
+    </div>
+    <div class="metric">
+      <dt><fz-icon name="trophy" /><span class="label">Best</span></dt>
+      <dd class="value">{{ game.best() }}</dd>
+    </div>
+  </dl>
+
+  <!--
+    Pause and Sound keep the focus on the board through a press with a
+    pointer, so pressing one never pauses the run by taking it. Pause is
+    dimmed rather than disabled, so the focus never falls off it.
+  -->
+  <button
+    fzBarActions
+    type="button"
+    class="fz-button fz-button-secondary action"
+    [class.fz-button-circle]="viewport.isCompact()"
+    [attr.aria-disabled]="pauseButton().able ? null : 'true'"
+    (pointerdown)="keepFocus($event)"
+    (click)="togglePause()"
+  >
+    <fz-icon [name]="pauseButton().icon" />
+    <span class="btn-text">{{ pauseButton().label }}</span>
+  </button>
+
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action"
+      aria-label="Sound"
+      title="Sound"
+      [attr.aria-pressed]="sound()"
+      (pointerdown)="keepFocus($event)"
+      (click)="toggleSound()"
+    >
+      <fz-icon [name]="sound() ? 'sound' : 'sound-off'" />
+    </button>
+  }
+
+  <button
+    fzBarActions
+    type="button"
+    class="fz-button action"
+    [class.fz-button-circle]="viewport.isCompact()"
+    (click)="game.newGame()"
+  >
+    <fz-icon name="plus" />
+    <span class="btn-text">New Game</span>
+  </button>
+
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action"
+      aria-label="How to play"
+      title="How to play"
+      (click)="openHelp.emit()"
+    >
+      <fz-icon name="help" />
+    </button>
+  }
+
+  @if (viewport.isCompact()) {
+    <fz-bar-overflow
+      fzBarActions
+      [items]="overflowItems()"
+      (choose)="chooseFromMenu($event)"
+    />
+  }
+
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button fz-button-secondary fz-button-circle action settings"
+      aria-label="Settings"
+      title="Settings"
+      (click)="openSettings.emit()"
+    >
+      <fz-icon name="settings" />
+    </button>
+  }
+</fz-game-bar>

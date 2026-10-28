@@ -2,6 +2,7 @@ import { Component, computed, input } from "@angular/core";
 
 /** The icons the library draws, by name. */
 export const ICON_NAMES = [
+  "apple",
   "back",
   "bug",
   "bulb",
@@ -17,6 +18,7 @@ export const ICON_NAMES = [
   "link",
   "mine",
   "more",
+  "pause",
   "pencil",
   "play",
   "players",
@@ -24,6 +26,8 @@ export const ICON_NAMES = [
   "restart",
   "search",
   "settings",
+  "sound",
+  "sound-off",
   "tick",
   "time",
   "trophy",
@@ -37,13 +41,14 @@ export type IconName = (typeof ICON_NAMES)[number];
 /**
  * The icons drawn filled; the rest are outlines. Minesweeper's flag, mine and
  * heart are among them, since they sit small on a square, where an outline
- * thins away.
+ * thins away, and pause beside play.
  */
 const FILLED: ReadonlySet<IconName> = new Set([
   "flag",
   "heart",
   "mine",
   "more",
+  "pause",
   "play",
 ]);
 

@@ -1,0 +1,24 @@
+@use "../styles" as *;
+
+// No scrim or z-index: <fz-dialog> puts this in the top layer.
+.card {
+  @include result-card;
+}
+
+.card-icon {
+  color: var(--fz-warning);
+}
+
+// A row of the other two speeds under New Game, named by the label over
+// them.
+.speeds {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--fz-space-2);
+}
+
+.speeds-label {
+  grid-column: 1 / -1;
+  color: var(--fz-muted);
+  font-size: var(--fz-font-xs);
+}

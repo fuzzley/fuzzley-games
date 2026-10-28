@@ -4,17 +4,27 @@
   it.
 -->
 <main class="stage">
-  <h1 class="fz-visually-hidden">Snake</h1>
   <div class="room" [class.with-arrows]="showArrows()">
     <app-board #board />
     @if (showArrows()) {
-      <app-arrows (handBack)="board.focus({ preventScroll: true })" />
+      <app-arrows
+        (handBack)="board.focus({ preventScroll: true, focusVisible: false })"
+      />
     }
   </div>
 </main>
 
+<app-bar
+  (openHelp)="helpOpen.set(true)"
+  (openSettings)="settingsOpen.set(true)"
+  (handBack)="board.focus()"
+/>
+
 <!-- In the page from the start, so a screen reader is listening to it. -->
 <fz-announcer />
 
-<!-- Last, so it opens over anything else when a change would lose a run. -->
+<app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
+<app-help [open]="helpOpen()" (closed)="helpOpen.set(false)" />
+<app-result />
+<!-- Last, so it opens over the settings when a change would lose a run. -->
 <fz-confirm-dialog />

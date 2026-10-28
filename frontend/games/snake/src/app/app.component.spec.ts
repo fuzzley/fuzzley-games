@@ -2,6 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { provideFakePhaserCanvas } from "@fz/phaser/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
+import { userEvent } from "@testing-library/user-event";
 import { AppComponent } from "./app.component";
 import { GameService } from "./play/game.service";
 import {
@@ -14,6 +15,11 @@ import {
 async function renderApp(): Promise<GameService> {
   await render(AppComponent, { providers: [provideFakePhaserCanvas()] });
   return TestBed.inject(GameService);
+}
+
+/** Lets the board take the focus it was handed after the next render. */
+async function settle(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 /** Keeps when the player wants the arrows, as their browser would. */
@@ -135,6 +141,42 @@ describe("AppComponent", () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(screen.getByRole("application")).toHaveFocus();
+    });
+  });
+
+  describe("the focus", () => {
+    it("goes back to the board once the settings close", async () => {
+      await renderApp();
+      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Close settings" }),
+      );
+      await settle();
+
+      expect(screen.getByRole("application")).toHaveFocus();
+    });
+
+    it("goes back to the board once a question is answered no", async () => {
+      const game = await renderApp();
+      game.turn("up");
+      await userEvent.click(screen.getByRole("button", { name: "New Game" }));
+
+      await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+      await settle();
+
+      expect(screen.getByRole("application")).toHaveFocus();
+    });
+
+    it("leaves the board as a dialog opens, pausing the run", async () => {
+      const game = await renderApp();
+      game.turn("up");
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "How to play" }),
+      );
+
+      expect(game.outcome()).toBe("paused");
     });
   });
 });
