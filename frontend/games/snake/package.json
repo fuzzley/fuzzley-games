@@ -12,6 +12,7 @@
     "build:prod": "vite build --mode production",
     "preview": "vite preview",
     "build:sounds": "node tools/build-sounds.mjs",
+    "check:layout": "node tools/check-layout.mjs",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "typecheck": "ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit && tsc -p tsconfig.node.json && tsc -p tsconfig.scripts.json",

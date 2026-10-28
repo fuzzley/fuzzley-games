@@ -180,6 +180,21 @@ describe("BoardComponent", () => {
       expect(board.dataset["board"]).toMatch(/^[\d.]+ [\d.]+ [\d.]+ [\d.]+$/);
     });
 
+    it("lays the focus ring where the scene laid the board out", async () => {
+      const { board, detectChanges } = await runBoardScene();
+
+      detectChanges();
+
+      const [x, y, width, height] = (board.dataset["board"] ?? "").split(" ");
+      // The ring is only drawn, so it has no role to find it by.
+      expect(board.querySelector(".ring")).toHaveStyle({
+        left: `${x}px`,
+        top: `${y}px`,
+        width: `${width}px`,
+        height: `${height}px`,
+      });
+    });
+
     it("starts the run at a key pressed on the board", async () => {
       const { game, run } = await runBoardScene();
 

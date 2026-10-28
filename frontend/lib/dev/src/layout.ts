@@ -43,6 +43,13 @@ export interface LayoutCheck {
    * module it is written in.
    */
   readonly inspect: () => string[];
+  /**
+   * Runs in the page before its own scripts, as `Page.beforeLoad()` runs
+   * one, to set it up as a player might have, such as with a setting
+   * stored. It is sent as its source, so it can use nothing from the module
+   * it is written in.
+   */
+  readonly before?: () => void;
 }
 
 /** Says what is wrong with a game's layout at one shape. */
@@ -77,6 +84,7 @@ export async function checkLayout(
 /** Loads the game on a page, and returns what is wrong with it there. */
 async function problemsOn(page: Page, check: LayoutCheck): Promise<string[]> {
   const errors = await gatherErrors(page);
+  if (check.before) await page.beforeLoad(check.before);
   await page.navigate(check.url);
   await page.evaluate(settle, check.ready, READY_TIMEOUT_MS);
   const own = await page.evaluate(check.inspect);

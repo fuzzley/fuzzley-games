@@ -52,6 +52,40 @@ describe("checkLayout", () => {
     ).toEqual(SHAPES.map((shape) => shape.viewport.width));
   });
 
+  it("runs what comes before the page's own scripts, where a check has it", async () => {
+    const browser = browserFinding([]);
+
+    const before = (): void => {
+      localStorage.setItem("a", "b");
+    };
+
+    await checkLayout(
+      new DevToolsConnection(browser),
+      { ...CHECK, before },
+      ROOMY,
+    );
+
+    expect(
+      browser.sent
+        .filter(
+          ({ method }) => method === "Page.addScriptToEvaluateOnNewDocument",
+        )
+        .map(({ params }) => String(params["source"])),
+    ).toEqual([expect.stringContaining("localStorage.setItem")]);
+  });
+
+  it("runs nothing before the page's own scripts where a check doesn't ask", async () => {
+    const browser = browserFinding([]);
+
+    await checkLayout(new DevToolsConnection(browser), CHECK, ROOMY);
+
+    expect(
+      browser.sent.some(
+        ({ method }) => method === "Page.addScriptToEvaluateOnNewDocument",
+      ),
+    ).toBe(false);
+  });
+
   it("finds nothing wrong where nothing is", async () => {
     const devtools = new DevToolsConnection(browserFinding([]));
 
