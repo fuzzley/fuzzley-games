@@ -48,7 +48,7 @@ vi.mock("@/ui/app/provider/board_catalog", () => ({
   },
 }));
 
-vi.mock("@/engine/render/phaser/host/phaser_host", () => ({
+vi.mock("@fz/phaser/host", () => ({
   PhaserHost: class {
     private readonly record: StartedHost;
 

@@ -6,6 +6,10 @@ import {
   platformBrowserTesting,
 } from "@angular/platform-browser/testing";
 
+import { installHeadlessPhaser } from "./testing";
+
+installHeadlessPhaser();
+
 getTestBed().initTestEnvironment(
   BrowserTestingModule,
   platformBrowserTesting(),

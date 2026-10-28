@@ -306,7 +306,7 @@ judgement is `designHeightPx`: the grid's own height is not enough, because a
 column fans well below its row. Klondike authors 877, FreeCell 1047 for columns
 that can reach thirteen cards at 45px apart. It is the board's own height: the
 shell's chrome lies over the canvas, and the board reads how far in it reaches
-from each edge (`--board-inset-top`, `-right`, `-bottom`, `-left`) at run
+from each edge (`--fz-canvas-inset-top`, `-right`, `-bottom`, `-left`) at run
 time rather than reserving it.
 
 The catalog entry carries this layout (step 8), and both the loading skeleton
@@ -463,7 +463,7 @@ CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
    error, not a runtime throw. There is no per-game board file:
    `makeTableBoardScene` (`src/engine/board/table_board_scene.ts`) draws every
    game from its gestures and its entry's grids (`boardLayoutsOf`), and `PhaserHost`
-   (`src/engine/render/phaser/host/phaser_host.ts`) swaps in whatever board it is
+   (`@fz/phaser/host`, `frontend/lib/phaser/AGENTS.md`) swaps in whatever board it is
    handed, so the shell never imports a game in order to host one.
 3. **`src/ui/app/provider/game_documentation_data.ts`** — add the rules page.
    `CompleteGameDocumentation` is `Record<GameId, …>`, so shipping a game with no

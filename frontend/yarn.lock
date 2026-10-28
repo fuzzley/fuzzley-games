@@ -1270,7 +1270,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fz/phaser@workspace:lib/phaser":
+"@fz/phaser@workspace:*, @fz/phaser@workspace:lib/phaser":
   version: 0.0.0-use.local
   resolution: "@fz/phaser@workspace:lib/phaser"
   dependencies:
@@ -6913,6 +6913,7 @@ __metadata:
     "@angular/router": "npm:^22.2.3"
     "@fz/dev": "workspace:*"
     "@fz/game-ui": "workspace:*"
+    "@fz/phaser": "workspace:*"
     "@fz/style": "workspace:*"
     "@fz/ui": "workspace:*"
     "@resvg/resvg-js": "npm:^2.6.2"
