@@ -10,11 +10,6 @@ import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { GameLifecycleService } from "@/ui/app/service/game_lifecycle.service";
 import { provideFakePhaserCanvas } from "@fz/phaser/testing";
 
-// The board catalog names Phaser, whose module init does not survive jsdom.
-vi.mock("@/ui/app/provider/board_catalog", () => ({
-  makeBoardScene: () => ({}),
-}));
-
 interface Harness {
   readonly router: Router;
   readonly catalog: GameCatalogService;

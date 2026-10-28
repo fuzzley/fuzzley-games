@@ -19,6 +19,14 @@ import {
 } from "@test/support/fake_table/scene";
 import { loadAtlases } from "@test/support/atlas_scene";
 import { serveWorkspace } from "@test/support/workspace_files";
+import {
+  anyBorderDrawn,
+  cardSpriteOf,
+  click,
+  doubleClick,
+  hoverAt,
+  middleOf,
+} from "@test/support/board_run";
 import { TestPresentation } from "@test/support/presentation";
 import {
   FakeTableGame,
@@ -171,9 +179,7 @@ describe("BoardScene", () => {
 
   /** Returns a card's sprite. */
   function cardSprite(cardId: string): GameObjects.Sprite {
-    const sprite = run.scene.cardSprite(cardId);
-    if (!sprite) throw new Error(`No sprite for ${cardId}`);
-    return sprite;
+    return cardSpriteOf(run.scene, cardId);
   }
 
   /** Returns the sprite of a card in the stock, for tracking where it goes. */
@@ -227,29 +233,6 @@ describe("BoardScene", () => {
     );
     if (!light) throw new Error("The felt has no light");
     return light;
-  }
-
-  /** Returns the middle of a sprite, in the canvas's pixels. */
-  function middleOf(sprite: GameObjects.Sprite): [number, number] {
-    const bounds = sprite.getBounds();
-    return [bounds.centerX, bounds.centerY];
-  }
-
-  /** Presses a sprite with the mouse and lets go. */
-  function click(sprite: GameObjects.Sprite): void {
-    run.pointer("down", ...middleOf(sprite));
-    run.pointer("up", ...middleOf(sprite));
-  }
-
-  /** Presses a sprite twice with the mouse, in quick succession. */
-  function doubleClick(sprite: GameObjects.Sprite): void {
-    click(sprite);
-    click(sprite);
-  }
-
-  /** Moves the mouse onto the middle of a sprite. */
-  function hover(sprite: GameObjects.Sprite): void {
-    run.pointer("move", ...middleOf(sprite));
   }
 
   /**
@@ -1014,7 +997,7 @@ describe("BoardScene", () => {
       });
 
       it("drops the pointer at once from under a pointer that has not moved", () => {
-        hover(backgroundSprite(STOCK_PILE_ID));
+        hoverAt(run, middleOf(backgroundSprite(STOCK_PILE_ID)));
         game.stockActionable = false;
 
         run.advance(16);
@@ -1103,7 +1086,7 @@ describe("BoardScene", () => {
       const sprite = cardSprite(ace.id);
       run.advance(16); // the first frame snaps the board into place
 
-      doubleClick(sprite);
+      doubleClick(run, sprite);
 
       return sprite;
     }
@@ -1134,7 +1117,7 @@ describe("BoardScene", () => {
       const top = fakeGame.stock.topCard!;
       run.advance(16); // the first frame snaps the board into place
 
-      click(cardSprite(top.id));
+      click(run, cardSprite(top.id));
 
       return fakeGame.waste.getCards().map((card) => cardSprite(card.id));
     }
@@ -1153,7 +1136,7 @@ describe("BoardScene", () => {
       const ace = relocate(fakeGame, "card-hearts-ace", fakeGame.tableaus[0]);
       const sprite = cardSprite(ace.id);
       run.advance(16);
-      doubleClick(sprite); // to a foundation
+      doubleClick(run, sprite); // to a foundation
       run.advance(2000); // land it there
 
       fakeGame.undo();
@@ -1174,9 +1157,9 @@ describe("BoardScene", () => {
       const secondSprite = cardSprite(second.id);
       run.advance(16);
 
-      doubleClick(firstSprite);
+      doubleClick(run, firstSprite);
       run.advance(16); // still crossing
-      doubleClick(secondSprite);
+      doubleClick(run, secondSprite);
       run.advance(16);
 
       const restingDepth = deepestCardExcept(firstSprite, secondSprite);
@@ -1188,14 +1171,6 @@ describe("BoardScene", () => {
   });
 
   describe("game reset", () => {
-    /** Returns whether any highlight border is currently drawn. */
-    function anyBorderDrawn(): boolean {
-      // The renderer's borders are the only graphics on the board.
-      return run.scene.children.list.some(
-        (object) => object instanceof GameObjects.Graphics && object.visible,
-      );
-    }
-
     /**
      * Puts the ace of hearts on top of tableau 0 and moves the mouse onto its
      * foot, below the card it lies on, so a new deal leaves bare table under
@@ -1206,7 +1181,7 @@ describe("BoardScene", () => {
       const sprite = cardSprite(ace.id);
       run.advance(16);
       const bounds = sprite.getBounds();
-      run.pointer("move", bounds.centerX, bounds.bottom - 10);
+      hoverAt(run, { x: bounds.centerX, y: bounds.bottom - 10 });
     }
 
     it("draws a border while a card is hovered", () => {
@@ -1214,7 +1189,7 @@ describe("BoardScene", () => {
 
       run.advance(16);
 
-      expect(anyBorderDrawn()).toBe(true);
+      expect(anyBorderDrawn(run.scene)).toBe(true);
     });
 
     it("drops a hover so no border survives into the new deal", () => {
@@ -1226,7 +1201,7 @@ describe("BoardScene", () => {
       fakeGame.startNewGame();
       run.advance(16);
 
-      expect(anyBorderDrawn()).toBe(false);
+      expect(anyBorderDrawn(run.scene)).toBe(false);
     });
 
     it("snaps every card into place rather than easing from the old deal", () => {

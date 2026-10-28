@@ -4,43 +4,31 @@ import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { GameCanvasComponent } from "@/ui/app/component/game_canvas/game_canvas.component";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
+import { KlondikeGame } from "@/games/klondike/klondike_game";
 import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
 import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/view/presentation";
-import { NO_INSETS } from "@fz/phaser/insets";
+import { designSize } from "@/engine/render/layout/table_layout";
+import { BoardScene } from "@/engine/render/phaser/scene/board_scene";
 import {
   type FakeCanvasHost,
   FakePhaserCanvas,
+  type SceneRun,
   provideFakePhaserCanvas,
+  runScene,
 } from "@fz/phaser/testing";
 import { query, queryAll, queryText } from "@test/support/dom";
-
-/**
- * What the latest board was built with.
- *
- * Module state, because `vi.mock` factories are hoisted above everything and
- * cannot close over anything declared per-test. Reset in `beforeEach`.
- */
-let built: { gameId: string; game: unknown; onReady?: () => void } | undefined;
-
-vi.mock("@/ui/app/provider/board_catalog", () => ({
-  makeBoardScene: (
-    gameId: string,
-    game: unknown,
-    { onReady }: { onReady?: () => void },
-  ) => {
-    built = { gameId, game, onReady };
-    return {};
-  },
-}));
+import { cardSpriteOf, click } from "@test/support/board_run";
+import { serveWorkspace } from "@test/support/workspace_files";
 
 describe("GameCanvasComponent", () => {
   let fixture: ComponentFixture<GameCanvasComponent>;
   let catalog: GameCatalogService;
+  /** The board a spec ran, as Phaser would have, if it ran one. */
+  let run: SceneRun<BoardScene> | undefined;
 
   beforeEach(async () => {
     localStorage.clear();
     location.hash = "";
-    built = undefined;
 
     await TestBed.configureTestingModule({
       imports: [GameCanvasComponent],
@@ -56,6 +44,8 @@ describe("GameCanvasComponent", () => {
   });
 
   afterEach(() => {
+    run?.destroy();
+    run = undefined;
     delete window.fsolitaire;
     vi.useRealTimers();
   });
@@ -77,10 +67,23 @@ describe("GameCanvasComponent", () => {
     fixture.detectChanges();
   }
 
-  /** Builds the latest board the canvas was shown, as Phaser does. */
-  async function buildBoard(ready = vi.fn()): Promise<void> {
+  /**
+   * Runs the latest board the canvas was shown in real Phaser, as its host
+   * would, on a canvas of Klondike's design size.
+   */
+  async function runShownBoard(): Promise<SceneRun<BoardScene>> {
     const make = await host().latest.source();
-    make({ insets: () => NO_INSETS, ready });
+    run = await runScene(
+      (surroundings) => {
+        const scene = make(surroundings);
+        if (!(scene instanceof BoardScene)) {
+          throw new Error("The canvas was shown no board");
+        }
+        return scene;
+      },
+      { ...designSize(KLONDIKE_LAYOUT), serve: serveWorkspace },
+    );
+    return run;
   }
 
   /**
@@ -112,21 +115,24 @@ describe("GameCanvasComponent", () => {
     });
 
     it("builds the board of the game on the table", async () => {
-      await buildBoard();
+      const game = catalog.session().game;
+      if (!(game instanceof KlondikeGame)) throw new Error("Not Klondike");
+      const board = await runShownBoard();
+      board.advance(16);
+      const top = game.stock.topCard!;
 
-      expect({ gameId: built?.gameId, game: built?.game }).toEqual({
-        gameId: "klondike",
-        game: catalog.session().game,
-      });
+      click(board, cardSpriteOf(board.scene, top.id));
+
+      // A board of any other game would leave this one's stock alone.
+      expect(game.waste.getCards()).toContain(top);
     });
 
     it("lets the board say it is ready", async () => {
-      const ready = vi.fn();
-      await buildBoard(ready);
+      const board = await runShownBoard();
 
-      built?.onReady?.();
+      board.advance(16);
 
-      expect(ready).toHaveBeenCalledOnce();
+      expect(board.ready).toBe(true);
     });
 
     it("destroys the game when the host is torn down", () => {

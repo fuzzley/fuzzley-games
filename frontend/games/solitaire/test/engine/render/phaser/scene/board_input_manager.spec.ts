@@ -171,9 +171,16 @@ describe("BoardInputManager", () => {
       event.preventDefault();
     };
     window.addEventListener("error", record);
+    // jsdom reads the stack of an error a listener throws, and the first
+    // stack through Phaser in a file maps every frame through the source map
+    // Vitest makes of Phaser's whole bundle: half a second alone, and past a
+    // spec's timeout on a busy machine, for frames no spec reads.
+    const stackTraceLimit = Error.stackTraceLimit;
+    Error.stackTraceLimit = 0;
     try {
       act();
     } finally {
+      Error.stackTraceLimit = stackTraceLimit;
       window.removeEventListener("error", record);
     }
     return errors;

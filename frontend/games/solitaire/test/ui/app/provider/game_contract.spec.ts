@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   IntentHandler,
@@ -10,11 +11,6 @@ import { gesturesFor } from "@/ui/app/provider/board_catalog";
 import type { GameId } from "@/ui/app/provider/game_catalog";
 import { seededRandom } from "@/engine/core/random/seeded_random";
 import { CATALOG_DEALS } from "@test/support/ui/catalog_deals";
-
-vi.mock("phaser", async () => {
-  const mocks = await import("@test/support/phaser_mocks");
-  return mocks.boardScenePhaserMock();
-});
 
 /*
  * The rules every game in the catalog keeps, whatever it is: each card is on
