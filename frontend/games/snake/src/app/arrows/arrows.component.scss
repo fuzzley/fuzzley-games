@@ -1,0 +1,80 @@
+@use "../styles" as *;
+
+// A cross of four keys, each `--arrow` across, as a thumb finds them without
+// looking: up above, down below, left and right between them.
+:host {
+  --arrow: 64px;
+  --gap: var(--fz-space-2);
+
+  display: grid;
+  place-items: center;
+}
+
+.pad {
+  display: grid;
+  grid-template:
+    ". up ." var(--arrow)
+    "left . right" var(--arrow)
+    ". down ." var(--arrow) / var(--arrow) var(--arrow) var(--arrow);
+  gap: var(--gap);
+}
+
+.arrow {
+  @include tap-target;
+
+  --fz-icon-size: 32px;
+
+  display: grid;
+  place-items: center;
+  width: var(--arrow);
+  height: var(--arrow);
+  padding: 0;
+  border: 1px solid var(--fz-edge-3);
+  border-radius: var(--fz-radius-lg);
+  background: var(--fz-panel);
+  box-shadow: var(--fz-shadow-subtle);
+  color: var(--fz-text);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    background: var(--fz-accent);
+    color: var(--fz-on-accent);
+  }
+
+  &:focus-visible {
+    outline: var(--fz-focus-ring-width) solid var(--fz-focus-ring-color);
+    outline-offset: var(--fz-focus-ring-offset);
+  }
+}
+
+// The chevron points down; the others turn it.
+.arrow[data-direction="up"] {
+  grid-area: up;
+
+  fz-icon {
+    rotate: 180deg;
+  }
+}
+
+.arrow[data-direction="right"] {
+  grid-area: right;
+
+  fz-icon {
+    rotate: -90deg;
+  }
+}
+
+.arrow[data-direction="down"] {
+  grid-area: down;
+}
+
+.arrow[data-direction="left"] {
+  grid-area: left;
+
+  fz-icon {
+    rotate: 90deg;
+  }
+}

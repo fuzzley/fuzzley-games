@@ -28,6 +28,18 @@ describe("GameViewportService", () => {
     expect(TestBed.inject(GameViewportService).allowsMotion()).toBe(false);
   });
 
+  it("reads as pointed at with a mouse where the browser can't be asked", () => {
+    expect(TestBed.inject(GameViewportService).isTouchScreen()).toBe(false);
+  });
+
+  it("reads a finger as the main pointer of a touch screen", () => {
+    const service = at(390, 844);
+
+    viewport?.setCoarsePointer(true);
+
+    expect(service.isTouchScreen()).toBe(true);
+  });
+
   it("allows motion where the player has no preference", () => {
     expect(at(1280, 800).allowsMotion()).toBe(true);
   });

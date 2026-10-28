@@ -1,13 +1,27 @@
 import { TestBed } from "@angular/core/testing";
+import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { provideFakePhaserCanvas } from "@fz/phaser/testing";
-import { render, screen } from "@testing-library/angular";
+import { fireEvent, render, screen } from "@testing-library/angular";
 import { AppComponent } from "./app.component";
 import { GameService } from "./play/game.service";
+import {
+  type Arrows,
+  DEFAULT_SETTINGS,
+  SETTINGS_KEY,
+} from "./settings/settings.service";
 
 /** Renders the game on a fake canvas. */
 async function renderApp(): Promise<GameService> {
   await render(AppComponent, { providers: [provideFakePhaserCanvas()] });
   return TestBed.inject(GameService);
+}
+
+/** Keeps when the player wants the arrows, as their browser would. */
+function wantArrows(arrows: Arrows): void {
+  localStorage.setItem(
+    SETTINGS_KEY,
+    JSON.stringify({ version: 1, ...DEFAULT_SETTINGS, arrows }),
+  );
 }
 
 /** Says the page went out of sight, or came back. */
@@ -20,9 +34,19 @@ function setVisibility(state: DocumentVisibilityState): void {
 }
 
 describe("AppComponent", () => {
+  let viewport: FakeViewport | null = null;
+
   afterEach(() => {
     Reflect.deleteProperty(document, "visibilityState");
+    viewport?.restore();
+    viewport = null;
   });
+
+  /** Makes the window a phone's, pointed at with a finger. */
+  function onTouchScreen(): void {
+    viewport = installFakeViewport(390, 844);
+    viewport.setCoarsePointer(true);
+  }
 
   it("puts the board in the page's main landmark", async () => {
     await renderApp();
@@ -62,5 +86,55 @@ describe("AppComponent", () => {
     setVisibility("visible");
 
     expect(game.outcome()).toBe("playing");
+  });
+
+  describe("the arrows", () => {
+    it("show on a touch screen", async () => {
+      onTouchScreen();
+
+      await renderApp();
+
+      expect(screen.getByRole("group", { name: "Arrows" })).toBeVisible();
+    });
+
+    it("stay away where the pointer is a mouse", async () => {
+      await renderApp();
+
+      expect(
+        screen.queryByRole("group", { name: "Arrows" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("show with a mouse too where the player wants them always", async () => {
+      wantArrows("always");
+
+      await renderApp();
+
+      expect(screen.getByRole("group", { name: "Arrows" })).toBeVisible();
+    });
+
+    it("stay away on a touch screen where the player wants them never", async () => {
+      onTouchScreen();
+      wantArrows("never");
+
+      await renderApp();
+
+      expect(
+        screen.queryByRole("group", { name: "Arrows" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("hand the board the focus once one is pressed", async () => {
+      wantArrows("always");
+      await renderApp();
+      screen.getByRole("button", { name: "Left" }).focus();
+
+      fireEvent.pointerDown(screen.getByRole("button", { name: "Up" }), {
+        button: 0,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(screen.getByRole("application")).toHaveFocus();
+    });
   });
 });

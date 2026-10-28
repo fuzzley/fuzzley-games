@@ -13,11 +13,11 @@
   @include game-ui.bar-size($compact: true);
 }
 
-// The board fills the stage, and lays its squares out inside it.
+// A size container, which the room's layout follows.
 .stage {
   position: absolute;
   inset: var(--fz-bar-height) 0 0;
-  display: grid;
+  container: stage / size;
 }
 
 :host([data-bar="bottom"]) .stage {
@@ -26,6 +26,33 @@
 
 :host([data-bar="end"]) .stage {
   inset: 0 var(--fz-rail-width) 0 0;
+}
+
+// The board fills the room, and lays its squares out inside it. The arrows,
+// where they show, go under it on an upright stage and beside it on a wide
+// one, and the board takes what is left.
+.room {
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  height: 100%;
+}
+
+.room.with-arrows {
+  grid-template: minmax(0, 1fr) auto / minmax(0, 1fr);
+}
+
+app-arrows {
+  padding: 0 var(--fz-space-4) var(--fz-space-6);
+}
+
+@container stage (orientation: landscape) {
+  .room.with-arrows {
+    grid-template: minmax(0, 1fr) / minmax(0, 1fr) auto;
+  }
+
+  app-arrows {
+    padding: var(--fz-space-4) var(--fz-space-6) var(--fz-space-4) 0;
+  }
 }
 
 // A compact screen gives the board the room around it.

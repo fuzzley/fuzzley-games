@@ -45,7 +45,7 @@ history keeps it.
 | S3    | The view                                    | done      |
 | S4    | The scene                                   | done      |
 | S5    | The play and the board                      | done      |
-| S6    | The controls                                | to do     |
+| S6    | The controls                                | done      |
 | S7    | The icons, the bar and the dialogs          | to do     |
 | S8    | Sound                                       | to do     |
 | S9    | Storage                                     | to do     |
@@ -429,3 +429,29 @@ history keeps it.
   fades and is announced with the new best. No errors. The browser pane
   can't time a game while it is hidden, and the session had no window.
 - 277 specs.
+
+### 2026-10-27: S6, the controls
+
+- **What is left of S6 after decision 5:** the plan's `board_keys.ts` and
+  `SwipeDirective` are the view's key map and `SwipeReader`, which the scene
+  hears through Phaser (S3, S4). S6 is `<app-arrows>`, four DOM buttons in a
+  cross, and when they show.
+- **The arrows turn on `pointerdown`,** as a finger lands, and prevent its
+  default, so the focus stays on the board and the keys go on steering;
+  they also hand the focus back to the board, for a press made while it was
+  elsewhere. A press from the keyboard, a `click` reporting no clicks,
+  turns too. Each is named for its way, in a group named "Arrows". The
+  chevron icon, turned, draws them, so they need no new icon.
+- **When they show:** the setting's `touch` (the default) on a touch
+  screen, `always`, or `never`. On an upright stage they sit under the
+  board; on a wide one, beside it, by a container query on the stage.
+- **`@fz/game-ui` gained `isTouchScreen`,** `pointer: coarse`, on
+  `GameViewportService`, and `installFakeViewport()` answers the pointer
+  query as a mouse's until `setCoarsePointer(true)`. The fake threw on a
+  query it didn't know, so the app couldn't ask any other way under it.
+  Both have specs, and its `AGENTS.md` says so.
+- **Played on emulated touch phones** (`snake-touch.mjs`), upright and on
+  its side: the arrows start and turn the run with the focus left on the
+  board, a swipe down the board turns the snake down, and nothing scrolls.
+- The root's lint, type-check and every workspace's tests pass. 287 specs
+  in Snake.

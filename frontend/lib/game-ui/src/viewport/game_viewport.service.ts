@@ -21,6 +21,7 @@ const PORTRAIT_QUERY = "(orientation: portrait)";
 const BELOW_WORDMARK_QUERY = `(max-width: ${WORDMARK_MIN_WIDTH_PX - 0.02}px)`;
 const BELOW_HOME_BUTTON_QUERY = `(max-width: ${HOME_BUTTON_MIN_WIDTH_PX - 0.02}px)`;
 const MOTION_QUERY = "(prefers-reduced-motion: no-preference)";
+const TOUCH_QUERY = "(pointer: coarse)";
 
 /**
  * Tracks the shape of the window a game is played in: roomy, or compact and
@@ -29,7 +30,8 @@ const MOTION_QUERY = "(prefers-reduced-motion: no-preference)";
  * A signal rather than CSS alone, because a compact layout moves controls,
  * and can turn a board, rather than only restyling them. The bar reads none
  * of it: the app binds what it says to the bar's inputs. A host without
- * `matchMedia` reads as roomy, wider than tall, and asking for no motion.
+ * `matchMedia` reads as roomy, wider than tall, asking for no motion, and
+ * pointed at with a mouse.
  */
 @Injectable({ providedIn: "root" })
 export class GameViewportService {
@@ -40,6 +42,7 @@ export class GameViewportService {
   private readonly belowWordmark = signal(false);
   private readonly belowHomeButton = signal(false);
   private readonly motion = signal(false);
+  private readonly touch = signal(false);
 
   /** The shape of the window. */
   readonly formFactor = computed<FormFactor>(() => {
@@ -97,6 +100,12 @@ export class GameViewportService {
    */
   readonly allowsMotion = this.motion.asReadonly();
 
+  /**
+   * Whether the main pointer is a finger (`pointer: coarse`), as on a phone
+   * or a tablet, for controls only a touch screen needs.
+   */
+  readonly isTouchScreen = this.touch.asReadonly();
+
   constructor() {
     if (typeof window === "undefined" || !("matchMedia" in window)) return;
 
@@ -105,6 +114,7 @@ export class GameViewportService {
     this.follow(BELOW_WORDMARK_QUERY, this.belowWordmark);
     this.follow(BELOW_HOME_BUTTON_QUERY, this.belowHomeButton);
     this.follow(MOTION_QUERY, this.motion);
+    this.follow(TOUCH_QUERY, this.touch);
   }
 
   /** Keeps a signal set to whether a media query matches. */

@@ -1,21 +1,28 @@
 /**
  * Stands in for `window.matchMedia`, which jsdom lacks, answering width,
- * height and orientation queries against a size a spec sets, and the color
- * scheme and motion queries as a light system's with no motion preference.
+ * height and orientation queries against a size a spec sets, the color
+ * scheme and motion queries as a light system's with no motion preference,
+ * and the pointer query as a mouse's until a spec says it is a finger.
  */
 export interface FakeViewport {
   /** Sets the viewport width and tells every live query about it. */
   setWidth(px: number): void;
   /** Sets the viewport width and height and tells every live query. */
   setSize(width: number, height: number): void;
+  /** Says whether the main pointer is a finger, and tells every live query. */
+  setCoarsePointer(coarse: boolean): void;
   /** Takes the fake back off the window. */
   restore(): void;
 }
 
-/** Holds the viewport size a fake answers against, in CSS pixels. */
-interface Size {
+/**
+ * Holds what a fake answers against: the viewport's size, in CSS pixels, and
+ * whether its main pointer is a finger.
+ */
+interface Display {
   width: number;
   height: number;
+  coarse: boolean;
 }
 
 /** Records one query the code under test holds. */
@@ -26,15 +33,15 @@ interface FakeQuery {
 }
 
 const CONDITION =
-  /^\(\s*(max-width|max-height|orientation|prefers-color-scheme|prefers-reduced-motion)\s*:\s*([\w.-]+?)(px)?\s*\)$/;
+  /^\(\s*(max-width|max-height|orientation|pointer|prefers-color-scheme|prefers-reduced-motion)\s*:\s*([\w.-]+?)(px)?\s*\)$/;
 
 /**
- * Returns whether a media query holds at a size: any of its comma-separated
+ * Returns whether a media query holds on a display: any of its comma-separated
  * alternatives, each true when all of its `and`-joined conditions are.
  *
  * @throws Error for a condition the fake does not understand.
  */
-function evaluate(query: string, size: Size): boolean {
+function evaluate(query: string, display: Display): boolean {
   return query.split(",").some((alternative) =>
     alternative.split(/\s+and\s+/).every((condition) => {
       const parsed = CONDITION.exec(condition.trim());
@@ -44,16 +51,18 @@ function evaluate(query: string, size: Size): boolean {
       const [, feature, value] = parsed;
       switch (feature) {
         case "max-width":
-          return size.width <= Number(value);
+          return display.width <= Number(value);
         case "max-height":
-          return size.height <= Number(value);
+          return display.height <= Number(value);
+        case "pointer":
+          return value === (display.coarse ? "coarse" : "fine");
         case "prefers-color-scheme":
           return value === "light";
         case "prefers-reduced-motion":
           return value === "no-preference";
         default:
           // As CSS reads it: a square viewport is portrait.
-          return size.height >= size.width === (value === "portrait");
+          return display.height >= display.width === (value === "portrait");
       }
     }),
   );
@@ -69,7 +78,7 @@ function evaluate(query: string, size: Size): boolean {
  */
 export function installFakeViewport(width: number, height = 900): FakeViewport {
   const queries: FakeQuery[] = [];
-  const current: Size = { width, height };
+  const current: Display = { width, height, coarse: false };
 
   window.matchMedia = (query: string) => {
     const state = { matches: evaluate(query, current) };
@@ -94,9 +103,8 @@ export function installFakeViewport(width: number, height = 900): FakeViewport {
     } as unknown as MediaQueryList;
   };
 
-  const resize = (next: Size): void => {
-    current.width = next.width;
-    current.height = next.height;
+  const change = (next: Partial<Display>): void => {
+    Object.assign(current, next);
     for (const query of queries) {
       const matches = evaluate(query.query, current);
       if (matches === query.state.matches) continue;
@@ -107,10 +115,13 @@ export function installFakeViewport(width: number, height = 900): FakeViewport {
 
   return {
     setWidth(px: number): void {
-      resize({ width: px, height: current.height });
+      change({ width: px });
     },
     setSize(nextWidth: number, nextHeight: number): void {
-      resize({ width: nextWidth, height: nextHeight });
+      change({ width: nextWidth, height: nextHeight });
+    },
+    setCoarsePointer(coarse: boolean): void {
+      change({ coarse });
     },
     restore(): void {
       Reflect.deleteProperty(window, "matchMedia");

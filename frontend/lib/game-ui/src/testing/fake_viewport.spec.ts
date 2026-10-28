@@ -54,6 +54,25 @@ describe("installFakeViewport", () => {
     ).toBe(true);
   });
 
+  it("answers the pointer query as a mouse's", () => {
+    viewport = installFakeViewport(1280);
+
+    expect(window.matchMedia("(pointer: fine)").matches).toBe(true);
+  });
+
+  it("tells a query when the pointer becomes a finger", () => {
+    viewport = installFakeViewport(390);
+    const query = window.matchMedia("(pointer: coarse)");
+    const heard = listen(query);
+
+    viewport.setCoarsePointer(true);
+
+    expect({ matches: query.matches, told: heard.told }).toEqual({
+      matches: true,
+      told: 1,
+    });
+  });
+
   it("tells a query when a new width changes its answer", () => {
     viewport = installFakeViewport(1000);
     const query = window.matchMedia("(max-width: 719.98px)");
