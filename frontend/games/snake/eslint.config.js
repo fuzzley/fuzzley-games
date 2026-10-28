@@ -1,4 +1,11 @@
-import { angular, phaser, templates, tests, typescript } from "@fz/dev/eslint";
+import {
+  angular,
+  phaser,
+  scripts,
+  templates,
+  tests,
+  typescript,
+} from "@fz/dev/eslint";
 import { defineConfig } from "eslint/config";
 
 // Phaser itself, anchored, so @fz/phaser's entries aren't taken for it.
@@ -45,6 +52,7 @@ export default defineConfig(
   tests({
     files: ["src/**/*.spec.ts", "src/testing/**/*.ts", "src/test-setup.ts"],
   }),
+  scripts({ files: ["tools/**/*.mjs"] }),
   phaser({ files: ["src/scene/**/*.ts"] }),
   // Each layer imports only the layers below it: rules, then view, then
   // scene, then app.

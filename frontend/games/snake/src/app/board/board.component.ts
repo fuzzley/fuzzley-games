@@ -18,6 +18,7 @@ import type { SnakeSceneOptions } from "../../scene/snake_scene";
 import type { BoardRect } from "../../view/board_metrics";
 import { snakePalette } from "../../view/palette";
 import { GameService } from "../play/game.service";
+import { SettingsService } from "../settings/settings.service";
 
 /** Names a card laid over the board, or none. */
 type Card = "start" | "paused" | "failed" | null;
@@ -53,6 +54,7 @@ type Card = "start" | "paused" | "failed" | null;
 export class BoardComponent {
   protected readonly game = inject(GameService);
   private readonly viewport = inject(GameViewportService);
+  private readonly settings = inject(SettingsService);
   private readonly theme = inject(ThemeService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly document = inject(DOCUMENT);
@@ -106,6 +108,7 @@ export class BoardComponent {
     frame: () => this.game.frame(),
     palette: () => this.palette(),
     motion: () => this.viewport.allowsMotion(),
+    sound: () => this.settings.settings().sound,
     onLayout: (board) => {
       this.laidOut.set(board);
     },
