@@ -36,11 +36,12 @@ take the pure ones.
   until the scene is ready. It imports the host, and so Phaser, with
   `import()`, when it first shows a scene.
 - `src/testing/`: what a spec runs a scene in. `installHeadlessPhaser()`,
-  which a test setup calls, gives jsdom the blank 2D context and image loads
-  Phaser needs, and `runScene()` runs a scene in a HEADLESS game whose
-  frames, clock, keys and pointer a spec drives. `provideFakePhaserCanvas()`
-  gives an app's shell specs a canvas that loads no Phaser, whose hosts
-  `FakePhaserCanvas` keeps, to settle each scene they were shown.
+  which a test setup calls, gives jsdom the 2D and WebGL contexts, drawing
+  nothing, and the image loads Phaser needs, and `runScene()` runs a scene
+  in a WebGL game on them whose frames, clock, keys, pointer and context a
+  spec drives. `provideFakePhaserCanvas()` gives an app's shell specs a
+  canvas that loads no Phaser, whose hosts `FakePhaserCanvas` keeps, to
+  settle each scene they were shown.
 
 ## Rules
 
@@ -58,9 +59,11 @@ take the pure ones.
   runs in outlives it: through `src/scene/`'s helpers, or
   `whenSceneEnds()` for anything else.
 - **A texture drawn at run time with a `Graphics` goes through
-  `bakeTexture()`,** so it is drawn again after a lost context and runs
-  headless; one drawn otherwise, such as a filtered `DynamicTexture`,
-  redraws itself through `onContextRestored()`.
+  `bakeTexture()`,** so it is drawn again after a lost context; one drawn
+  otherwise, such as a filtered `DynamicTexture`, redraws itself through
+  `onContextRestored()`.
+- **No code bends to its specs.** The harness runs the renderer a browser
+  does, so the library's code has no branch for a game with none.
 - **The canvas's stylesheet is unencapsulated,** to reach what an app
   projects into it, so every selector in it starts at `fz-phaser-canvas`.
 - **Every line of the pure entries is covered,** and the floor in

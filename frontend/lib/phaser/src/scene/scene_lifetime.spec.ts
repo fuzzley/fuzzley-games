@@ -1,4 +1,4 @@
-import { Events, Scene } from "phaser";
+import { Scene } from "phaser";
 import type { HostedScene, SceneSurroundings } from "../host";
 import { type SceneRun, runScene } from "../testing";
 import {
@@ -21,13 +21,6 @@ class BareScene extends Scene implements HostedScene {
 /** Runs a bare scene. */
 async function runBare(): Promise<SceneRun<BareScene>> {
   return runScene((surroundings) => new BareScene(surroundings));
-}
-
-/** Gives a scene a renderer that can lose its context, as a WebGL one can. */
-function giveRenderer(scene: Scene): Events.EventEmitter {
-  const renderer = new Events.EventEmitter();
-  Object.assign(scene, { renderer });
-  return renderer;
 }
 
 describe("whenSceneEnds", () => {
@@ -95,34 +88,38 @@ describe("onScaleResize", () => {
 describe("onContextRestored", () => {
   it("calls the listener when a lost context is restored", async () => {
     const run = await runBare();
-    const renderer = giveRenderer(run.scene);
     const listener = vi.fn();
     onContextRestored(run.scene, listener);
+    run.loseContext();
 
-    renderer.emit("restorewebgl");
+    run.restoreContext();
 
     expect(listener).toHaveBeenCalledOnce();
     run.destroy();
   });
 
-  it("stops once the scene has ended", async () => {
+  it("waits for the context to come back", async () => {
     const run = await runBare();
-    const renderer = giveRenderer(run.scene);
     const listener = vi.fn();
     onContextRestored(run.scene, listener);
-    run.destroy();
 
-    renderer.emit("restorewebgl");
+    run.loseContext();
 
     expect(listener).not.toHaveBeenCalled();
+    run.destroy();
   });
 
-  it("does nothing in a game with no renderer", async () => {
+  it("stops once the scene has ended", async () => {
     const run = await runBare();
+    const listener = vi.fn();
+    onContextRestored(run.scene, listener);
+    run.game.scene.stop("bare");
+    run.advance(16);
+    run.loseContext();
 
-    expect(() => {
-      onContextRestored(run.scene, vi.fn());
-    }).not.toThrow();
+    run.restoreContext();
+
+    expect(listener).not.toHaveBeenCalled();
     run.destroy();
   });
 });
@@ -173,7 +170,7 @@ describe("pixelRatioOf", () => {
     },
   );
 
-  it("reads 1 on a headless game's canvas, sized at 1 to 1", async () => {
+  it("reads 1 on the harness's canvas, sized at 1 to 1", async () => {
     const run = await runBare();
 
     expect(pixelRatioOf(run.scene)).toBe(1);

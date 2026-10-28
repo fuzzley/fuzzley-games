@@ -49,10 +49,32 @@ describe("installHeadlessPhaser", () => {
     }).not.toThrow();
   });
 
-  it("gives a canvas no WebGL context", () => {
-    const context = document.createElement("canvas").getContext("webgl");
+  it("gives a canvas a WebGL context that draws nothing", () => {
+    const canvas = document.createElement("canvas");
+
+    const context = canvas.getContext("webgl");
+
+    expect([context?.canvas, context?.TEXTURE_2D]).toEqual([canvas, 0x0de1]);
+  });
+
+  it("gives a canvas the one WebGL context, however it is asked for", () => {
+    const canvas = document.createElement("canvas");
+
+    const context = canvas.getContext("webgl");
+
+    expect(canvas.getContext("experimental-webgl")).toBe(context);
+  });
+
+  it("gives a canvas no context of another kind", () => {
+    const context = document
+      .createElement("canvas")
+      .getContext("bitmaprenderer");
 
     expect(context).toBeNull();
+  });
+
+  it("says the window has WebGL, as Phaser asks before it tries", () => {
+    expect("WebGLRenderingContext" in window).toBe(true);
   });
 
   it("loads an image written as a data: URL", async () => {

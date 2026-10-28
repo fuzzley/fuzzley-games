@@ -34,9 +34,7 @@ export function onScaleResize(scene: Scene, listener: () => void): void {
  * time.
  */
 export function onContextRestored(scene: Scene, listener: () => void): void {
-  // A HEADLESS game has no renderer, and so no context to lose.
-  const renderer = scene.renderer as Scene["renderer"] | null;
-  if (!renderer) return;
+  const renderer = scene.renderer;
   renderer.on(Renderer.Events.RESTORE_WEBGL, listener);
   whenSceneEnds(scene, () => {
     renderer.off(Renderer.Events.RESTORE_WEBGL, listener);

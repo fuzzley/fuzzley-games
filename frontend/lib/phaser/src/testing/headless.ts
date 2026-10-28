@@ -1,27 +1,51 @@
+import { blankWebGLContext } from "./blank_webgl";
+
 /** Whether {@link installHeadlessPhaser} has run. */
 let installed = false;
 
 /**
- * Lets real Phaser load and boot in jsdom, which can draw nothing and loads no
- * images: a 2D context that draws nothing, which Phaser sniffs the browser's
- * canvas with as it loads, and `data:` images that load at once, since Phaser
- * boots only once its default textures, written as `data:` URLs, have loaded.
+ * Lets real Phaser load, boot and run its WebGL renderer in jsdom, which can
+ * draw nothing and loads no images: a 2D context and a WebGL context that draw
+ * nothing ({@link blankWebGLContext}), and `data:` images that load at once,
+ * since Phaser boots only once its default textures, written as `data:` URLs,
+ * have loaded.
  *
- * Call it from a workspace's test setup, before anything imports Phaser.
- * Other images load as jsdom loads them, which is not at all.
+ * Call it from a workspace's test setup, before anything imports Phaser, which
+ * tests for WebGL as its module loads. Other images load as jsdom loads them,
+ * which is not at all.
  */
 export function installHeadlessPhaser(): void {
   if (installed) return;
   installed = true;
 
+  // A canvas keeps one WebGL context, as a browser's does, so whoever asks for
+  // it again can lose and restore the same one.
+  const webGLContexts = new WeakMap<HTMLCanvasElement, WebGLRenderingContext>();
   HTMLCanvasElement.prototype.getContext = function getContext(
     this: HTMLCanvasElement,
     kind: string,
   ) {
-    // Phaser falls back from WebGL to the canvas when there is none; a game
-    // in a spec runs HEADLESS, which needs neither.
-    return kind === "2d" ? blankContext(this) : null;
+    if (kind === "2d") return blankContext(this);
+    if (kind !== "webgl" && kind !== "experimental-webgl") return null;
+    let context = webGLContexts.get(this);
+    if (!context) {
+      context = blankWebGLContext(this);
+      webGLContexts.set(this, context);
+    }
+    return context;
   } as typeof HTMLCanvasElement.prototype.getContext;
+  // Phaser offers WebGL only where the window has it. The blank context isn't
+  // one of these, so Phaser takes it for a WebGL 2 context rather than fold
+  // WebGL 1's extensions into it, and the blank context answers either.
+  if (!("WebGLRenderingContext" in window)) {
+    Object.defineProperty(window, "WebGLRenderingContext", {
+      configurable: true,
+      writable: true,
+      value: function WebGLRenderingContext(): never {
+        throw new TypeError("Illegal constructor");
+      },
+    });
+  }
 
   const src = Object.getOwnPropertyDescriptor(
     HTMLImageElement.prototype,
