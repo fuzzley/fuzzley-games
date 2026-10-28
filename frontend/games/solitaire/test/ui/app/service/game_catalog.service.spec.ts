@@ -6,20 +6,9 @@ import { Location } from "@angular/common";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { GAME_CATALOG, catalogEntry } from "@/ui/app/provider/game_catalog";
 import { provideAppRouter } from "@/ui/app/routes";
+import { provideFakePhaserCanvas } from "@fz/phaser/testing";
 
-// The routed component hosts a Phaser canvas, whose module init does not
-// survive jsdom.
-vi.mock("@fz/phaser/host", () => ({
-  PhaserHost: class {
-    show() {
-      /* no-op */
-    }
-    destroy() {
-      /* no-op */
-    }
-  },
-}));
-
+// The board catalog names Phaser, whose module init does not survive jsdom.
 vi.mock("@/ui/app/provider/board_catalog", () => ({
   makeBoardScene: () => ({}),
 }));
@@ -33,7 +22,8 @@ interface Harness {
 /** Returns a catalog wired to the application's real route table. */
 function buildCatalog(): Harness {
   TestBed.configureTestingModule({
-    providers: [provideAppRouter()],
+    // The routed component hosts a Phaser canvas.
+    providers: [provideAppRouter(), provideFakePhaserCanvas()],
   });
 
   return {

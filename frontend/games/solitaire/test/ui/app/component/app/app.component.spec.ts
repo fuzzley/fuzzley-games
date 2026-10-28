@@ -11,19 +11,6 @@ import { GameBrowserService } from "@/ui/app/service/game_browser.service";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import { query, queryRequired } from "@test/support/dom";
 
-// The shell renders the game canvas host, which would otherwise boot a real
-// Phaser game against jsdom's unimplemented canvas.
-vi.mock("@fz/phaser/host", () => ({
-  PhaserHost: class {
-    show() {
-      /* no-op */
-    }
-    destroy() {
-      /* no-op */
-    }
-  },
-}));
-
 // The board catalog is the only thing here that names Phaser, whose module
 // init does not survive jsdom.
 vi.mock("@/ui/app/provider/board_catalog", () => ({

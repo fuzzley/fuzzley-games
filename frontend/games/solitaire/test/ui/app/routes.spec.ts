@@ -8,20 +8,9 @@ import { provideAppRouter } from "@/ui/app/routes";
 import { ConfirmService } from "@fz/ui/confirm";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { GameLifecycleService } from "@/ui/app/service/game_lifecycle.service";
+import { provideFakePhaserCanvas } from "@fz/phaser/testing";
 
-// The routed component hosts a Phaser canvas, whose module init does not
-// survive jsdom.
-vi.mock("@fz/phaser/host", () => ({
-  PhaserHost: class {
-    show() {
-      /* no-op */
-    }
-    destroy() {
-      /* no-op */
-    }
-  },
-}));
-
+// The board catalog names Phaser, whose module init does not survive jsdom.
 vi.mock("@/ui/app/provider/board_catalog", () => ({
   makeBoardScene: () => ({}),
 }));
@@ -35,7 +24,10 @@ interface Harness {
 
 /** Returns the application's router and services, on Klondike's route. */
 async function onKlondike(): Promise<Harness> {
-  TestBed.configureTestingModule({ providers: [provideAppRouter()] });
+  TestBed.configureTestingModule({
+    // The routed component hosts a Phaser canvas.
+    providers: [provideAppRouter(), provideFakePhaserCanvas()],
+  });
   // The testing harness renders an outlet, without which Angular skips a
   // route's leave guard altogether.
   await RouterTestingHarness.create("/klondike");
