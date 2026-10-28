@@ -1,4 +1,11 @@
-import { angular, scripts, templates, tests, typescript } from "@fz/dev/eslint";
+import {
+  angular,
+  phaser,
+  scripts,
+  templates,
+  tests,
+  typescript,
+} from "@fz/dev/eslint";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig(
@@ -15,16 +22,7 @@ export default defineConfig(
   templates({ files: ["src/ui/**/*.html"] }),
   tests({ files: ["test/**/*.ts"] }),
   scripts({ files: ["tools/**/*.mjs"] }),
-  {
-    // Phaser types a scene's systems, such as its cameras and scale manager,
-    // as always there, though they are not before the scene boots or after it
-    // ends, nor are the fields create() fills. The guards this rule would take
-    // out are what keep a frame or a listener at those moments from throwing.
-    files: ["src/engine/render/phaser/**/*.ts"],
-    rules: {
-      "@typescript-eslint/no-unnecessary-condition": "off",
-    },
-  },
+  phaser({ files: ["src/engine/render/phaser/**/*.ts"] }),
   // --- Engine tier boundaries ---
   //
   // Each tier may depend only on the ones below it:

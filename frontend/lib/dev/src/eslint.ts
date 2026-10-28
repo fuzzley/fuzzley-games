@@ -159,6 +159,24 @@ export function tests({ files }: Files): Config[] {
 }
 
 /**
+ * Returns what code that drives Phaser may do that other TypeScript may not.
+ *
+ * Phaser types a scene's systems, such as its cameras and scale manager, as
+ * always there, though they are not before the scene boots or after it ends,
+ * nor are the fields `create()` fills. The guards
+ * `no-unnecessary-condition` would take out are what keep a frame or a
+ * listener at those moments from throwing.
+ */
+export function phaser({ files }: Files): Config[] {
+  return defineConfig({
+    files: [...files],
+    rules: {
+      "@typescript-eslint/no-unnecessary-condition": "off",
+    },
+  });
+}
+
+/**
  * Returns the rules for a workspace's Node scripts, which are plain
  * JavaScript, so JSDoc is the only place a type can go: every parameter and
  * every returned value carries one, and the workspace's

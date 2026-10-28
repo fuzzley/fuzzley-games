@@ -10,6 +10,7 @@ import { mergeConfig } from "vite";
 import {
   compiledId,
   componentUpdates,
+  PHASER_CHUNK,
   gameConfig,
   watchLibraries,
 } from "./vite.ts";
@@ -141,11 +142,35 @@ describe("gameConfig", () => {
       },
     );
 
-    expect(config["build"]).toEqual({
+    expect(config["build"]).toMatchObject({
       outDir: "dist",
       assetsDir: "assets",
+      rolldownOptions: {
+        output: { codeSplitting: { groups: [PHASER_CHUNK] } },
+      },
       sourcemap: true,
     });
+  });
+});
+
+describe("PHASER_CHUNK", () => {
+  it("takes Phaser's modules", () => {
+    const taken = [
+      "C:\\games\\frontend\\node_modules\\phaser\\dist\\phaser.esm.js",
+      "/games/frontend/node_modules/phaser/src/core/Game.js",
+    ].map((id) => PHASER_CHUNK.test.test(id));
+
+    expect(taken).toEqual([true, true]);
+  });
+
+  it("leaves every other module to the bundler", () => {
+    const taken = [
+      "/games/frontend/node_modules/@angular/core/fesm2022/core.mjs",
+      "/games/frontend/node_modules/phaser-plugin/index.js",
+      "/games/frontend/games/snake/src/scene/phaser_scene.ts",
+    ].map((id) => PHASER_CHUNK.test.test(id));
+
+    expect(taken).toEqual([false, false, false]);
   });
 });
 
