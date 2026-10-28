@@ -2,6 +2,9 @@
   "minesweeper": {
     "workspace": "games/minesweeper"
   },
+  "snake": {
+    "workspace": "games/snake"
+  },
   "solitaire": {
     "workspace": "games/solitaire"
   },

@@ -323,4 +323,14 @@ export const GAMES: readonly Game[] = [
     minutes: 10,
     added: "2026-10-11",
   },
+  {
+    slug: "snake",
+    name: "Snake",
+    category: "arcade",
+    blurb: "Eat, grow and keep clear of your own tail.",
+    players: SOLO,
+    minutes: 3,
+    added: "2026-10-28",
+    play: { build: "snake" },
+  },
 ];
