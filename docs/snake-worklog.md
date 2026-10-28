@@ -58,3 +58,43 @@ history keeps it.
 
 - Branch `phaser-lift` created from `main` at `8353bda`.
 - The plan records the user's answers, and this log starts.
+
+### 2026-10-27: L0, the spike and the baselines
+
+- **The Solitaire Collection's baseline,** built from `main` before any
+  change, is kept in the session's scratchpad (`baseline/solitaire-dist`):
+  `index` 790,707 bytes, `phaser` 1,367,180, `vectors` 176,578.
+- **Its screenshots can be compared pixel for pixel.** Its own screenshot
+  script deals at random, so a scratch script (`solitaire-shots.mjs`, in the
+  scratchpad) serves the build with `vite preview`, seeds `Math.random` with
+  Mulberry32 before the page loads, hides the clock's `m:ss`, and captures
+  Klondike, Spider, FreeCell, Pyramid, TriPeaks, Montana and Yukon at
+  1440 × 810 at 2×, an upright phone (390 × 844 at 3×) and one on its side
+  (844 × 390 at 3×), in the default palette and in Midnight blue: 42 shots.
+  A second run of the same build matched the first in 18 of 21 shots, and
+  differed by at most 5 pixels in the other three, which is the noise floor.
+- **Phaser's own input works headless.** With the keyboard aimed at an
+  element (`input.keyboard.target`), a `keydown` on that element reached the
+  scene's `this.input.keyboard`, and one on the document didn't. Pointer
+  events on the canvas reached the scene, at `Infinity` until the canvas was
+  given a size: jsdom measures every element as 0 × 0. With
+  `getBoundingClientRect()` returning the game's size and
+  `game.scale.refresh()`, `pointerdown` and `pointerup` carried the right
+  coordinates, `downX` and `downY` included. So the harness gives its canvas
+  a size, and decision 5 can be specced on real Phaser.
+
+### 2026-10-27: L1, the workspace (and L5, early)
+
+- `frontend/lib/phaser`, shaped as `@fz/game-ui`, with its pure entries
+  `insets` and `color` and full specs. Its ESLint fences: the pure entries
+  import nothing; the host and the scene helpers no Angular; the canvas
+  imports Phaser's entries only by type.
+- L5 came first, since the library's lint needs `phaser()`: `@fz/dev/eslint`
+  gained it, and `@fz/dev/vite`'s `gameConfig()` gained `PHASER_CHUNK`.
+  Vite 8 marks `rollupOptions` deprecated, and Rolldown's `manualChunks`
+  with it, so the chunk is a `codeSplitting` group under `rolldownOptions`.
+  The Solitaire Collection dropped its own `manualChunks` and lint
+  loosening, and its build came out byte for byte the same as the baseline:
+  the same chunk names and hashes.
+- `lint:styles` and the stylelint config wait for L4's stylesheet, since
+  stylelint fails on a workspace with none.
