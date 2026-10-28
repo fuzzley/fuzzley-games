@@ -2,8 +2,8 @@
 
 The log of moving every spec that stands in for Phaser onto real Phaser, and
 of building `@fz/phaser/testing` out into what every game's Phaser specs
-share. Newest entries last. It is deleted when the work is done; git
-history keeps it.
+share. Newest entries last. The work was done on 2026-10-28; the log is
+deleted when its branch is merged, and git history keeps it.
 
 ## How to resume
 
@@ -33,7 +33,7 @@ history keeps it.
 | W7    | `PhaserTableRenderer` and `BoardInputManager` specs            | done  |
 | W8    | `BoardScene` spec                                              | done  |
 | W9    | `table_board_scene`, the catalog and the game contract specs   | done  |
-| W10   | `phaser_mocks.ts` gone, the docs, and `yarn verify`            | to do |
+| W10   | `phaser_mocks.ts` gone, the docs, and `yarn verify`            | done  |
 
 ## Where things start
 
@@ -483,3 +483,37 @@ history keeps it.
 - **`test/support/phaser_mocks.ts`** has no users left; W10 deletes it.
 - **Checks:** the Solitaire Collection's lint, typecheck and 6870 tests
   (coverage 98.7 / 92.9 / 99.1 / 99.5).
+
+### 2026-10-28: W10, the mocks gone and the docs
+
+- **`test/support/phaser_mocks.ts`** is deleted: no spec in the
+  repository stands in for Phaser now.
+- **The docs:** the `solitaire-testing` skill's "Board Scene Specs" became
+  "Phaser Specs" (how a spec runs a board, plays it through
+  `board_run.ts`, runs one piece of it, what it asserts on, and reading an
+  error with no stack), its setup says which specs need jsdom and that the
+  setup installs the harness, and its description names the board specs;
+  the Solitaire Collection's `AGENTS.md` says Phaser runs for real;
+  `phaser-core` names the Solitaire Collection's board spec as the worked
+  example of a board played with the mouse, beside Snake's, and warns of
+  the first stack through Phaser.
+- **Checks:** `yarn verify` from `frontend/`: lint, typecheck, every
+  workspace's tests (9158, the Solitaire Collection's 6870, `@fz/phaser`'s
+  207, Snake's 347) and the build.
+
+## Findings worth knowing
+
+- `phaserDrawnDeckTextures().frame()` asked Phaser for a frame without
+  checking it existed, and Phaser answers a missing one with the first
+  frame and a warning: fixed in W6.
+- Phaser forces a dynamic texture's sides even, so the 1x shadow is 356
+  high, not 355.
+- Every click on a draggable card is a drag start and a drop on its own
+  pile, which the model turns down: harmless.
+- Snake's spec flaked because Phaser drops a key event with the keyCode
+  and timestamp of the one before it; the harness now sends both as a
+  browser does.
+- Phaser's `resize()` writes the canvas's CSS size only at a zoom other
+  than 1, which `ViewportScaler` already works around.
+- The first error stack through Phaser in a test file costs half a second
+  of source mapping, past a spec's timeout under a loaded suite.

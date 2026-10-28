@@ -283,6 +283,7 @@ The repository's rules for specs apply. On top of them:
   patterns its shell's specs share with the other Angular workspaces'.
 - **Test Coverage:** `vitest.config.ts` enforces a coverage floor a little under the suite's real figures; `yarn test`, which CI runs, fails below it. Raise the floor as the real figures rise.
 - **UI Test Doubles:** `test/support/ui` holds the shell's doubles — the game, catalog, presentation and documentation mocks — plus `configureUiTestBed` (`test/support/ui/testbed.ts`), which wires them into a TestBed with `@fz/phaser/testing`'s fake canvas. Prefer it over assembling providers by hand. The catalog mock is typed as a `Pick` of the real service so it cannot drift out of shape unnoticed.
+- **Phaser runs for real.** The board and its pieces are specced on real Phaser, in jsdom, through `@fz/phaser/testing`'s headless harness, which `test/test-setup.ts` installs; no spec mocks Phaser, and one that imports it, even through the board catalog, asks for jsdom. The `solitaire-testing` skill says how a spec runs a board.
 - **Don't Assert Production Prose:** A component spec should not depend on the wording of a rules page. Use the test documentation registry, which `configureUiTestBed` provides.
 
 ---
