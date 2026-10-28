@@ -65,6 +65,21 @@ describe("installHeadlessPhaser", () => {
     expect(canvas.getContext("experimental-webgl")).toBe(context);
   });
 
+  it("gives a canvas the one 2D context however often it is asked", () => {
+    const canvas = document.createElement("canvas");
+
+    const context = canvas.getContext("2d");
+
+    expect(canvas.getContext("2d")).toBe(context);
+  });
+
+  it("gives a canvas no context of a kind other than the one it gave", () => {
+    const canvas = document.createElement("canvas");
+    canvas.getContext("2d");
+
+    expect(canvas.getContext("webgl")).toBeNull();
+  });
+
   it("gives a canvas no context of another kind", () => {
     const context = document
       .createElement("canvas")

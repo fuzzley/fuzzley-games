@@ -20,20 +20,25 @@ export function installHeadlessPhaser(): void {
   if (installed) return;
   installed = true;
 
-  // A canvas keeps one WebGL context, as a browser's does, so whoever asks for
-  // it again can lose and restore the same one.
-  const webGLContexts = new WeakMap<HTMLCanvasElement, WebGLRenderingContext>();
+  // A canvas keeps the one context it was first asked for, as a browser's
+  // does, so whoever asks for it again gets the same one, and none of another
+  // kind.
+  const contexts = new WeakMap<
+    HTMLCanvasElement,
+    { readonly kind: string; readonly context: object }
+  >();
   HTMLCanvasElement.prototype.getContext = function getContext(
     this: HTMLCanvasElement,
-    kind: string,
+    asked: string,
   ) {
-    if (kind === "2d") return blankContext(this);
-    if (kind !== "webgl" && kind !== "experimental-webgl") return null;
-    let context = webGLContexts.get(this);
-    if (!context) {
-      context = blankWebGLContext(this);
-      webGLContexts.set(this, context);
-    }
+    const kind = asked === "experimental-webgl" ? "webgl" : asked;
+    const kept = contexts.get(this);
+    if (kept) return kept.kind === kind ? kept.context : null;
+    let context: object;
+    if (kind === "2d") context = blankContext(this);
+    else if (kind === "webgl") context = blankWebGLContext(this);
+    else return null;
+    contexts.set(this, { kind, context });
     return context;
   } as typeof HTMLCanvasElement.prototype.getContext;
   // Phaser offers a renderer only where the window has its context. The

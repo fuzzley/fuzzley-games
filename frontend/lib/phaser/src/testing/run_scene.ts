@@ -167,6 +167,25 @@ export async function runScene<S extends HostedScene>(
   };
 }
 
+/**
+ * Runs a scene that does nothing of its own, for a spec to make game objects
+ * in, as {@link runScene} runs any other.
+ */
+export async function runBareScene(
+  options: SceneRunOptions = {},
+): Promise<SceneRun<HostedScene>> {
+  const { Scene } = await import("phaser");
+  /** A scene with a key of its own, and nothing else. */
+  class BareScene extends Scene implements HostedScene {
+    readonly key = "bare";
+
+    constructor() {
+      super("bare");
+    }
+  }
+  return runScene(() => new BareScene(), options);
+}
+
 /** The `keyCode` a browser gives each key that has one but a letter or digit. */
 const KEY_CODES: Readonly<Record<string, number>> = {
   Backspace: 8,

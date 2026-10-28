@@ -1,6 +1,6 @@
 import { type GameObjects, Renderer, Scene, WEBGL } from "phaser";
 import type { HostedScene, SceneSurroundings } from "../host";
-import { runScene } from "./run_scene";
+import { runBareScene, runScene } from "./run_scene";
 import { type FileServer, pngOfSize } from "./served_files";
 
 /** A scene that records what the harness lets it see and do. */
@@ -300,6 +300,18 @@ describe("runScene", () => {
 
     expect(again.scene.failed).toEqual(["apple"]);
     again.destroy();
+  });
+
+  it("runs a bare scene, for a spec to make game objects in", async () => {
+    const run = await runBareScene({ width: 120, height: 80 });
+
+    const box = run.scene.add.rectangle(0, 0, 10, 10);
+
+    expect([run.scene.children.list, run.game.scale.width]).toEqual([
+      [box],
+      120,
+    ]);
+    run.destroy();
   });
 
   it("destroys the game, and the scene with it", async () => {

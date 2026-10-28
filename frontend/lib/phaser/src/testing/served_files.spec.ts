@@ -188,6 +188,33 @@ describe("served files", () => {
     expect(image.naturalWidth).toBe(0);
   });
 
+  it("decodes an image once it has loaded", async () => {
+    const image = new Image();
+    image.src = pngDataUrl(pngOfSize(4, 6));
+
+    await image.decode();
+
+    expect(image.naturalWidth).toBe(4);
+  });
+
+  it("decodes an image already loaded at once", async () => {
+    const image = await loadImage(pngDataUrl(pngOfSize(4, 6)));
+
+    await expect(image.decode()).resolves.toBeUndefined();
+  });
+
+  it("decodes an image of an object URL the page made itself", async () => {
+    const url = URL.createObjectURL(
+      new Blob(["<svg/>"], { type: "image/svg+xml" }),
+    );
+    const image = new Image(30, 20);
+    image.src = url;
+
+    await image.decode();
+
+    expect([image.width, image.naturalWidth]).toEqual([30, 0]);
+  });
+
   it("loads no image at any other address", async () => {
     const image = new Image();
     const onload = vi.fn();

@@ -19,6 +19,9 @@ const bodies = new WeakMap<Blob, Uint8Array>();
 /** The blob behind each object URL made, until it is revoked. */
 const objects = new Map<string, Blob>();
 
+/** The images that have loaded, whose `decode()` resolves at once. */
+const loaded = new WeakSet<HTMLImageElement>();
+
 /** Serves a game's requests from a server, or answers each with a 404. */
 export function serveFrom(serve: FileServer | undefined): void {
   server = serve ?? NOTHING;
@@ -28,10 +31,10 @@ export function serveFrom(serve: FileServer | undefined): void {
  * Answers every request and decodes every image as a browser does, from
  * {@link serveFrom}'s server, so nothing a spec loads reaches the network.
  *
- * An image whose `src` is a `data:` URL, or an object URL of a served file,
- * loads on a later task, at the size its PNG header gives, or at 0 × 0 if it
- * is no PNG. One at any other address loads as jsdom loads it, which is not
- * at all.
+ * An image whose `src` is a `data:` URL, or an object URL, loads on a later
+ * task, at the size its PNG header gives, or at 0 × 0 if it is no PNG, and
+ * `decode()` resolves once it has. One at any other address loads as jsdom
+ * loads it, which is not at all.
  */
 export function installServedFiles(): void {
   for (const scope of new Set<object>([globalThis, window])) {
@@ -64,6 +67,7 @@ export function installServedFiles(): void {
     },
     set(this: HTMLImageElement, value: string): void {
       src?.set?.call(this, value);
+      loaded.delete(this);
       const bytes = imageBytes(value);
       if (!bytes) return;
       const { width, height } = pngSize(bytes);
@@ -72,10 +76,26 @@ export function installServedFiles(): void {
         naturalHeight: { configurable: true, value: height },
       });
       setTimeout(() => {
+        loaded.add(this);
         this.dispatchEvent(new Event("load"));
       });
     },
   });
+  // jsdom decodes nothing, so an image decodes as soon as it loads.
+  HTMLImageElement.prototype.decode = async function decode(
+    this: HTMLImageElement,
+  ): Promise<void> {
+    if (loaded.has(this)) return;
+    await new Promise<void>((resolve) => {
+      this.addEventListener(
+        "load",
+        () => {
+          resolve();
+        },
+        { once: true },
+      );
+    });
+  };
 }
 
 /** The events a request raises, each also to its `on…` handler. */

@@ -40,8 +40,9 @@ take the pure ones.
   nothing, that Phaser needs, and answers its requests and decodes its
   images as a browser would, so nothing reaches the network; and
   `runScene()` runs a scene in a WebGL game on them whose frames, clock,
-  keys, pointer, context and served files a spec drives. `pngOfSize()` is
-  an image to serve. `provideFakePhaserCanvas()` gives an app's shell
+  keys, pointer, context and served files a spec drives, and
+  `runBareScene()` one that does nothing of its own, to make game objects
+  in. `pngOfSize()` is an image to serve. `provideFakePhaserCanvas()` gives an app's shell
   specs a canvas that loads no Phaser, whose hosts `FakePhaserCanvas`
   keeps, to settle each scene they were shown.
 

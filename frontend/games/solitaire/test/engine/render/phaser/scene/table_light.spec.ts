@@ -1,68 +1,72 @@
-import { describe, it, expect, vi } from "vitest";
-import type { Scene } from "phaser";
+// @vitest-environment jsdom
+import { describe, it, expect, afterEach } from "vitest";
+import { type Display, GameObjects } from "phaser";
+import type { HostedScene } from "@fz/phaser/host";
+import { type SceneRun, runBareScene } from "@fz/phaser/testing";
 import {
   TABLE_LIGHT,
   TableLight,
 } from "@/engine/render/phaser/scene/table_light";
 import { RenderLayer, depthFor } from "@/engine/render/view/render_layers";
-import {
-  type MockGradient,
-  createMockGradient,
-} from "@test/support/phaser_mocks";
 
-/** Creates a light in a stand-in scene and returns it with its gradient. */
-function lightTable(): { light: TableLight; gradient: MockGradient } {
-  const gradients: MockGradient[] = [];
-  const scene = {
-    add: {
-      gradient: vi.fn((config: unknown) => {
-        const gradient = createMockGradient(config);
-        gradients.push(gradient);
-        return gradient;
-      }),
-    },
-  } as unknown as Pick<Scene, "add">;
-  const light = new TableLight(scene);
-  return { light, gradient: gradients[0] };
+/** The scene each spec lights, destroyed after it. */
+let run: SceneRun<HostedScene> | undefined;
+
+afterEach(() => {
+  run?.destroy();
+  run = undefined;
+});
+
+/** Creates a light in a real scene and returns it with its gradient. */
+async function lightTable(): Promise<{
+  light: TableLight;
+  gradient: GameObjects.Gradient;
+}> {
+  run = await runBareScene();
+  const light = new TableLight(run.scene);
+  const gradient = run.scene.children.list.find(
+    (object) => object instanceof GameObjects.Gradient,
+  );
+  if (!gradient) throw new Error("The light made no gradient");
+  return { light, gradient };
 }
 
-/** The colour bands a gradient was made with, as its config gave them. */
-interface BandConfig {
-  start: number;
-  end: number;
-  colorStart: number[];
-  colorEnd?: number[];
+/** Returns a colour as the fractions of red, green, blue and alpha it holds. */
+function fractionsOf(color: Display.Color): number[] {
+  return [color.redGL, color.greenGL, color.blueGL, color.alphaGL].map(
+    (fraction) => Math.round(fraction * 100) / 100,
+  );
 }
 
 describe("TableLight", () => {
-  it("lies beneath the placeholders, so it never darkens a card", () => {
-    const { gradient } = lightTable();
+  it("lies beneath the placeholders, so it never darkens a card", async () => {
+    const { gradient } = await lightTable();
 
     expect(gradient.depth).toBe(depthFor(RenderLayer.TABLE_LIGHT));
   });
 
-  it("centres the light above the middle of the board", () => {
-    const { light, gradient } = lightTable();
+  it("centres the light above the middle of the board", async () => {
+    const { light, gradient } = await lightTable();
 
     light.fit(1000, 800);
 
     expect([gradient.x, gradient.y]).toEqual([500, 256]);
   });
 
-  it("stretches the gradient's circle into the board's ellipse", () => {
+  it("stretches the gradient's circle into the board's ellipse", async () => {
     // The gradient is a circle filling its quad, so the quad spans twice each
     // radius.
-    const { light, gradient } = lightTable();
+    const { light, gradient } = await lightTable();
 
     light.fit(1000, 800);
 
     expect([gradient.width, gradient.height]).toEqual([2500, 1680]);
   });
 
-  it("centres the gradient on the light's centre at any size", () => {
+  it("centres the gradient on the light's centre at any size", async () => {
     // Phaser fixes the origin in pixels when it is set, so a resize alone
     // would leave the gradient hanging from its old corner.
-    const { light, gradient } = lightTable();
+    const { light, gradient } = await lightTable();
 
     light.fit(1000, 800);
 
@@ -71,36 +75,55 @@ describe("TableLight", () => {
     ]);
   });
 
-  it("leaves the felt clear until it darkens towards the rim", () => {
-    const { gradient } = lightTable();
+  it("leaves the felt clear until it darkens towards the rim", async () => {
+    const { gradient } = await lightTable();
 
-    const { bands } = gradient.config as { bands: BandConfig[] };
+    const bands = gradient.ramp.bands.map((band) => ({
+      start: band.start,
+      end: band.end,
+      from: fractionsOf(band.colorStart),
+      to: fractionsOf(band.colorEnd),
+    }));
 
     expect(bands).toEqual([
-      { start: 0, end: TABLE_LIGHT.litTo, colorStart: [0, 0, 0, 0] },
+      {
+        start: 0,
+        end: TABLE_LIGHT.litTo,
+        from: [0, 0, 0, 0],
+        to: [0, 0, 0, 0],
+      },
       {
         start: TABLE_LIGHT.litTo,
         end: 1,
-        colorStart: [0, 0, 0, 0],
-        colorEnd: [0, 0, 0, TABLE_LIGHT.rimAlpha],
+        from: [0, 0, 0, 0],
+        to: [0, 0, 0, TABLE_LIGHT.rimAlpha],
       },
     ]);
   });
 
-  it("keeps the rim's darkness beyond the ellipse", () => {
+  it("spreads the light as an ellipse, keeping the rim's darkness beyond it", async () => {
     // The board's corners can lie outside the ellipse, and should not be lit.
-    const { gradient } = lightTable();
+    const { gradient } = await lightTable();
 
-    const { repeatMode } = gradient.config as { repeatMode: number };
-
-    expect(repeatMode).toBe(0);
+    expect([gradient.shapeMode, gradient.repeatMode, gradient.dither]).toEqual([
+      2,
+      0,
+      true,
+    ]);
   });
 
-  it("removes the gradient when destroyed", () => {
-    const { light, gradient } = lightTable();
+  it("removes the gradient when destroyed", async () => {
+    const { light, gradient } = await lightTable();
 
     light.destroy();
 
-    expect(gradient.destroyed).toBe(true);
+    expect(run?.scene.children.exists(gradient)).toBe(false);
+  });
+
+  it("draws without error frame after frame", async () => {
+    const { light } = await lightTable();
+    light.fit(1000, 800);
+
+    expect(() => run?.advance(48)).not.toThrow();
   });
 });
