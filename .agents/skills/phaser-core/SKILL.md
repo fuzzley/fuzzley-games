@@ -98,8 +98,8 @@ out of the first download.
   x + y is odd.
 - `load.audioSprite()` takes the spritemap itself where its typings ask
   for the JSON's URL, which needs a cast; under `noAudio`, as the test
-  harness's game has, it loads nothing, so a scene plays a sound only once the cache
-  has it.
+  harness's game has, it loads nothing, so a scene plays a sound only once
+  the cache has it.
 - `tweens.killAll()` stops every tween a scene runs, for a new run that
   must not inherit the last one's.
 
@@ -132,15 +132,23 @@ browser, through a game's screenshots and its `check:layout`.
   included, on a context that draws nothing. The test setup calls
   `installHeadlessPhaser()` before anything imports Phaser, which tests for
   WebGL as it loads, and `runScene()` runs the scene in a WebGL game whose
-  frames, clock, keys and pointer the spec drives. `advance()` moves the
-  clock Phaser's tweens read, so a spec fakes no `Date`; a key, sent with
-  the `keyCode` a browser gives it, waits for the next frame, so
-  `advance()` after one; and press at most two keys a frame, since with a
-  third Phaser sends the earlier ones again, in a browser too. Filters, dynamic textures and
-  gradients work as in a browser, a canvas is laid out at its CSS size,
-  and `await loseContext()` and `await restoreContext()` lose and restore
-  the context as a browser may, its events on a later task, for a spec of
-  what a scene draws again.
+  frames, clock, input, context and loads the spec drives. `advance()`
+  moves the clock Phaser's tweens read, so a spec fakes no `Date`. Filters,
+  dynamic textures and gradients work as in a browser, a canvas is laid
+  out at its CSS size, and `await loseContext()` and
+  `await restoreContext()` lose and restore the context as a browser may,
+  its events on a later task, for a spec of what a scene draws again.
+- **Input is a browser's.** `key()` sends a key with the `keyCode` a
+  browser gives it, which Phaser hears on the next frame, so `advance()`
+  after one; press at most two keys a frame, since with a third Phaser
+  sends the earlier ones again, in a browser too. `pointer()` presses,
+  moves and lets go with the mouse, on the canvas or on an element of the
+  page over it (which Phaser hears through the window, raising
+  `pointerdownoutside`), and `touch()` with a finger; Phaser hit-tests and
+  raises its own events. An object made interactive answers from the next
+  frame, when Phaser takes it in, so `advance()` a frame before the first
+  press. Phaser's drag thresholds are 0, so a press on a draggable object
+  starts its drag at once.
 - **Code that takes a game,** such as the host and the scaler, is checked
   on a real one: `@fz/phaser`'s own specs start one with its
   `src/testing/start_game.ts`, so Phaser's own writes to the canvas and
