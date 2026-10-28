@@ -1,6 +1,7 @@
 import { type GameObjects, Renderer, Scene, WEBGL } from "phaser";
 import type { HostedScene, SceneSurroundings } from "../host";
 import { runScene } from "./run_scene";
+import { type FileServer, pngOfSize } from "./served_files";
 
 /** A scene that records what the harness lets it see and do. */
 class ProbeScene extends Scene implements HostedScene {
@@ -53,6 +54,30 @@ async function runProbe(
     insets: { top: 10, right: 0, bottom: 0, left: 0 },
     config: target ? { input: { keyboard: { target } } } : {},
   });
+}
+
+/** A scene that loads an image, and records the files that failed. */
+class LoadingScene extends Scene implements HostedScene {
+  readonly key = "loading";
+  readonly failed: string[] = [];
+
+  constructor() {
+    super("loading");
+  }
+
+  preload(): void {
+    this.load.on("loaderror", (file: { key: string }) => {
+      this.failed.push(file.key);
+    });
+    this.load.image("apple", "/apple.png");
+  }
+}
+
+/** Runs a loading scene, serving it what a server would. */
+async function runLoading(
+  serve?: FileServer,
+): ReturnType<typeof runScene<LoadingScene>> {
+  return runScene(() => new LoadingScene(), { serve });
 }
 
 describe("runScene", () => {
@@ -213,6 +238,37 @@ describe("runScene", () => {
       Renderer.Events.RESTORE_WEBGL,
     ]);
     run.destroy();
+  });
+
+  it("serves the scene the files it loads", async () => {
+    const run = await runLoading((url) =>
+      url.pathname === "/apple.png" ? pngOfSize(24, 16) : undefined,
+    );
+
+    const frame = run.scene.textures.getFrame("apple");
+
+    expect([frame.width, frame.height, run.scene.failed]).toEqual([24, 16, []]);
+    run.destroy();
+  });
+
+  it("fails a load of a file not served, as a 404 does", async () => {
+    const run = await runLoading(() => undefined);
+
+    expect([run.scene.textures.exists("apple"), run.scene.failed]).toEqual([
+      false,
+      ["apple"],
+    ]);
+    run.destroy();
+  });
+
+  it("serves nothing once the run is destroyed", async () => {
+    const run = await runLoading(() => pngOfSize(1, 1));
+    run.destroy();
+
+    const again = await runLoading();
+
+    expect(again.scene.failed).toEqual(["apple"]);
+    again.destroy();
   });
 
   it("destroys the game, and the scene with it", async () => {

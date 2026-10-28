@@ -1,18 +1,20 @@
 import { blankWebGLContext } from "./blank_webgl";
+import { installServedFiles } from "./served_files";
 
 /** Whether {@link installHeadlessPhaser} has run. */
 let installed = false;
 
 /**
  * Lets real Phaser load, boot and run its WebGL renderer in jsdom, which can
- * draw nothing and loads no images: a 2D context and a WebGL context that draw
- * nothing ({@link blankWebGLContext}), and `data:` images that load at once,
- * since Phaser boots only once its default textures, written as `data:` URLs,
- * have loaded.
+ * draw nothing and fetches nothing: a 2D context and a WebGL context that draw
+ * nothing ({@link blankWebGLContext}), and requests and images answered as a
+ * browser answers them, from the files a run serves ({@link
+ * installServedFiles}), since Phaser boots only once its default textures,
+ * written as `data:` URLs, have loaded.
  *
  * Call it from a workspace's test setup, before anything imports Phaser, which
- * tests for WebGL as its module loads. Other images load as jsdom loads them,
- * which is not at all.
+ * tests for WebGL as its module loads. It takes the place of
+ * `XMLHttpRequest`, so nothing reaches the network.
  */
 export function installHeadlessPhaser(): void {
   if (installed) return;
@@ -47,25 +49,7 @@ export function installHeadlessPhaser(): void {
     });
   }
 
-  const src = Object.getOwnPropertyDescriptor(
-    HTMLImageElement.prototype,
-    "src",
-  );
-  Object.defineProperty(HTMLImageElement.prototype, "src", {
-    configurable: true,
-    enumerable: true,
-    get(this: HTMLImageElement): string {
-      return (src?.get?.call(this) as string | undefined) ?? "";
-    },
-    set(this: HTMLImageElement, value: string): void {
-      src?.set?.call(this, value);
-      if (value.startsWith("data:")) {
-        setTimeout(() => {
-          this.dispatchEvent(new Event("load"));
-        });
-      }
-    },
-  });
+  installServedFiles();
 }
 
 /** Does nothing, as every drawing call on a blank context does. */
