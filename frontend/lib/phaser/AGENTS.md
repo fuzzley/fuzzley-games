@@ -48,6 +48,21 @@ take the pure ones.
   `@fz/style`, never a game or the site.
 - **The pure entries import nothing,** as ESLint checks, so a game's
   Phaser-free code can take them.
+- **The host and the scene helpers know no framework,** as ESLint checks, so
+  a scene runs the same in any app, and in a spec.
+- **Only the canvas makes a host,** and it imports `host` with `import()`:
+  ESLint lets `src/canvas/` import Phaser, the host and the scene helpers
+  only by type, so an app that loads its scene with `import()` keeps Phaser
+  out of its first download.
+- **Whatever a scene follows, it releases when it ends,** since the game it
+  runs in outlives it: through `src/scene/`'s helpers, or
+  `whenSceneEnds()` for anything else.
+- **A texture drawn at run time with a `Graphics` goes through
+  `bakeTexture()`,** so it is drawn again after a lost context and runs
+  headless; one drawn otherwise, such as a filtered `DynamicTexture`,
+  redraws itself through `onContextRestored()`.
+- **The canvas's stylesheet is unencapsulated,** to reach what an app
+  projects into it, so every selector in it starts at `fz-phaser-canvas`.
 - **Every line of the pure entries is covered,** and the floor in
   `vitest.config.ts` holds the rest.
 
@@ -56,4 +71,8 @@ take the pure ones.
 The root's `yarn lint`, `yarn typecheck` and `yarn test` run the library's
 own, which `yarn workspace @fz/phaser <script>` runs alone: ESLint and
 stylelint, the Angular compiler's checks, and Vitest in jsdom, each spec
-beside the file it tests.
+beside the file it tests. The specs run real Phaser, headless: the test
+setup calls `installHeadlessPhaser()`, and the scene helpers' specs run
+through `runScene()`, so the harness is checked by its own use. jsdom gets
+no component styles, so what the canvas's stylesheet does is checked in a
+browser, through a game's screenshots.

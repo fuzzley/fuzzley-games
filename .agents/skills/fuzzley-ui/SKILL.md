@@ -6,8 +6,9 @@ description: The shared UI libraries under frontend/lib/ that the site and the g
 # The shared UI libraries
 
 The site and the games share how they look and much of how they behave
-through three libraries under `frontend/lib/`, and the games' rules share
-a fourth, `@fz/core`, which has no framework. Each library's `AGENTS.md` is
+through three libraries under `frontend/lib/`, the games' rules share
+a fourth, `@fz/core`, which has no framework, and a game drawn with Phaser
+takes a fifth, `@fz/phaser`, which the `phaser-core` skill covers. Each library's `AGENTS.md` is
 the full account of what it holds and the rules it keeps; this skill says
 which piece to reach for, and how an app takes them up.
 
@@ -17,6 +18,7 @@ which piece to reach for, and how an app takes them up.
 | `@fz/ui`      | `frontend/lib/ui`      | Every Angular app: dialogs, the confirmation, the announcer, the theme's service and pickers, icons, the radio group, storage and the wordmark                             | `frontend/lib/ui/AGENTS.md`      |
 | `@fz/game-ui` | `frontend/lib/game-ui` | Angular games only: the game bar, its overflow menu, the viewport and breakpoints, the stopwatch                                                                           | `frontend/lib/game-ui/AGENTS.md` |
 | `@fz/core`    | `frontend/lib/core`    | A game's rules, with no framework: the seeded random, the readers for stored JSON, counts in words                                                                         | `frontend/lib/core/AGENTS.md`    |
+| `@fz/phaser`  | `frontend/lib/phaser`  | Games drawn with Phaser: the canvas component, the host, a scene's lifetime helpers, and headless Phaser for specs                                                         | `frontend/lib/phaser/AGENTS.md`  |
 
 Imports go one way: an app may import a library, a library another library,
 and a library never an app. `yarn constraints` fails a library that depends
@@ -52,6 +54,7 @@ own only for what is its alone.
 | A game's bar                                         | `<fz-game-bar>` from `@fz/game-ui/game_bar`, filled through `fzBarTitle`, `fzBarStatus` and `fzBarActions`, its `home` bound to `GameViewportService.barHome`; `<fz-bar-overflow>` from `@fz/game-ui/bar_overflow` for what it has no room for, led by `withHomeLink()` when the bar has no room for the link home; and `@use "@fz/game-ui" as game-ui;` for `game-ui.bar-size()`, which publishes its size for the board |
 | A game's shape: compact, upright, what fits its bar  | `GameViewportService` from `@fz/game-ui/viewport` in code; `@fz/game-ui`'s `below()`, `from()`, `compact`, `phone-portrait` and `phone-landscape` in a stylesheet; `@fz/game-ui/breakpoints` without Angular; `installFakeViewport()` from `@fz/game-ui/testing` in specs                                                                                                                                                 |
 | A game's clock                                       | `StopwatchService` from `@fz/game-ui/stopwatch`: whole seconds, counted only while the page is in view; `formatClock()` from the same entry writes them as "2:13"                                                                                                                                                                                                                                                         |
+| A game drawn with Phaser                             | `<fz-phaser-canvas>` from `@fz/phaser/canvas`, which shows a scene and lays a placeholder over it until the scene is ready; `provideFakePhaserCanvas()` from `@fz/phaser/testing` in a shell's specs; the `phaser-core` skill for the rest                                                                                                                                                                                |
 
 ## Palettes and their modes
 

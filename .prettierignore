@@ -11,6 +11,6 @@ coverage
 
 # The Phaser skills copied from Phaser's package, left as copied so a fresh
 # copy can be compared with them; the two written here are formatted.
-frontend/games/solitaire/.agents/skills/phaser-*
-!frontend/games/solitaire/.agents/skills/phaser-core
-!frontend/games/solitaire/.agents/skills/phaser-canvas-performance
+.agents/skills/phaser-*
+!.agents/skills/phaser-core
+!.agents/skills/phaser-canvas-performance

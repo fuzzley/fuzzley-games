@@ -50,11 +50,13 @@ keeps its own in an `AGENTS.md` in its folder. Paths are relative to
   framework and no platform, which a game's rules may import,
   `lib/style/AGENTS.md`, for the styles every app shares, with no framework,
   `lib/ui/AGENTS.md`, for the Angular components and services,
-  `lib/game-ui/AGENTS.md`, for the chrome only the games share, and
+  `lib/game-ui/AGENTS.md`, for the chrome only the games share,
+  `lib/phaser/AGENTS.md`, for what every game drawn with Phaser shares, and
   `lib/dev/AGENTS.md`, for the lint, compiler, test and game build presets
   every workspace is checked and built with, and the scripts' headless
   Chrome, which no app's code imports. The `fuzzley-ui` skill says which
-  piece to reach for, and how an app adopts them.
+  piece to reach for, and how an app adopts them; the `phaser-core` skill
+  covers `@fz/phaser`.
 - **`games/`** holds the games built here, one workspace each, named after
   its folder. What every game keeps, and how to add one, is in
   `games/AGENTS.md`; what each keeps of its own is in its folder's:

@@ -66,10 +66,10 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
 3. **`src/engine/render/phaser`**
    - Phaser 4 adapter implementing the view contracts defined in `src/engine/render`.
    - Draws card textures, scenes, and canvas elements. Stays unaware of specific game rules or UI components.
-   - `host/` keeps the one Phaser game and its canvas for the app's life,
-     `deck/` loads the card atlases and draws the mobile deck at a board's
+   - `deck/` loads the card atlases and draws the mobile deck at a board's
      exact size, and `scene/` is each board: the scene, its sprites, input,
-     renderer and the light on the felt.
+     renderer and the light on the felt. The game and its canvas are
+     `@fz/phaser`'s.
 4. **`src/engine/tableau`**
    - Solitaire-family generic runtime engine (zones, rules, moves, undo history, dealing, gesture maps, table view builder).
    - `Tabletop` holds the piles and makes every change to them: `relocate` and `rearrange` for changes undo takes back, `Deal` for laying a game out.
@@ -85,7 +85,7 @@ The application enforces a decoupled **`engine -> game`** architecture where gam
      builds each frame's view state from a game.
 5. **`src/engine/board`**
    - Joins a table game to the Phaser adapter: `makeTableBoardScene` (`src/engine/board/table_board_scene.ts`) turns any `TableGame` plus its layout and gesture map into a `BoardScene`.
-   - The only tier that may import both `engine/tableau` and `engine/render/phaser`. There is no separate scene-bridge tier above it: `PhaserHost` swaps in whatever board it is handed.
+   - The only tier that may import both `engine/tableau` and `engine/render/phaser`. There is no separate scene-bridge tier above it: the canvas swaps in whatever board it is handed.
 6. **`src/games/*`** _(Top of Engine Tier)_
    - Game-specific deal rules, scoring mechanics, layout setup, and gesture handling — one directory per game (`games/klondike`, `games/freecell`, `games/montana`, …).
    - Code shared between games lives in `games/common`: collecting completed runs, drawing and recycling a stock, dealing a card to every column, pairing, zone presets, pile markers, and `arranged_layouts.ts`, which derives a game's grids for every arrangement and screen from a short account of its board (or completes the phone grids of a board laid out by hand).
@@ -205,13 +205,14 @@ Architecture guidelines are enforced as hard build errors rather than convention
 | `src/games/*`                         | `engine/core`, `engine/render`, `engine/tableau` | `phaser`, `@/engine/render/phaser/*`, `@/engine/board/*`, `@/ui/*`, `@angular/*`, `rxjs`                                    |
 | `src/ui` _(excl. app/provider/)_      | everything but games                             | `@/games/*`                                                                                                                 |
 
-Note that the generic Phaser canvas host is `PhaserHost`, from
-`@fz/phaser/host` ([frontend/lib/phaser/AGENTS.md](../../lib/phaser/AGENTS.md)).
-It is handed a board to run, so the shell never imports a game
-module in order to host one. It keeps one Phaser game, and so one WebGL context,
-for the canvas component's whole life, and swaps each new board scene into it.
-A board scene therefore has to release everything it subscribed to when it ends,
-on `SHUTDOWN` or `DESTROY`, because the game it ran in lives on.
+Note that the board is shown in `@fz/phaser`'s `<fz-phaser-canvas>`
+([frontend/lib/phaser/AGENTS.md](../../lib/phaser/AGENTS.md)), which
+`GameCanvasComponent` hands each board to run, so the shell never imports a
+game module in order to host one. It keeps one Phaser game, and so one WebGL
+context, for its whole life, and swaps each new board scene into it. A board
+scene therefore has to release everything it subscribed to when it ends, on
+`SHUTDOWN` or `DESTROY`, because the game it ran in lives on: it does so
+through `@fz/phaser/scene`'s helpers.
 
 ---
 
@@ -265,7 +266,7 @@ others', and check its formatting and skill references there.
 - **Build Card Atlas:** `yarn build:atlas` (runs `tools/build-card-atlas.mjs` to cut the SVG card sheets, and generate the `mobile` deck, into texture atlas files; `--deck <id>` builds one deck, `--preview` draws a contact sheet of every deck at phone scale).
 - **Capture Screenshots:** `yarn capture:screenshots [id ...]` (runs `tools/capture-screenshots.mjs` to capture each game's rules-page screenshot, or only the games named, from the running dev server in headless Chrome, through `@fz/dev/chrome`: the whole page at 1440 × 810 and 2×, on a fresh deal with every setting at its default, saved losslessly to `docs/screenshots/<id>/overview.png`, outside `public/`; `--chrome <path>` or `CHROME_PATH` picks the browser).
 - **Build Screenshot Thumbnails:** `yarn build:thumbs` (runs `tools/build-screenshot-thumbs.mjs` to make the images the site serves from each game's lossless screenshot, into `public/docs/screenshots/<id>/`: the rules page's `overview.webp` (1600 × 900, the whole page), the game browser's `thumb.webp` (576 × 324, cropped to the board), and `preview.webp` (2560 × 1440, the whole page), each through `@fz/dev/screenshots`, which holds the site's two images' names and sizes; Klondike's preview is also the link preview image in `index.html`, and the site's catalog shows `thumb.webp` and `preview.webp` too).
-- **Production Build:** `yarn build` (generates bundled production assets in `dist/` with Phaser manual chunking).
+- **Production Build:** `yarn build` (generates bundled production assets in `dist/`, with Phaser in a chunk of its own, from `gameConfig()`).
 - **Run Unit Tests:** `yarn test` (runs the whole suite once, with coverage, failing below the floor) or `yarn test:watch`; `yarn vitest run <path>` runs one spec without coverage.
 - **Linting:** `yarn lint` (runs ESLint over `src`, `test`, `tools` and the Vite configs, with `@fz/dev`'s blocks, the tier fences above, and the one rule the Phaser adapter is let off, then `yarn lint:styles`, which runs stylelint over every stylesheet with `@fz/style`'s preset (`stylelint.config.js`): the standard SCSS rules, no colour written outside `_palette.scss`, Sass modules, nesting at most three deep).
 - **Type Checking:** `yarn typecheck` (runs the Angular compiler's checks over the app (`tsconfig.app.json`), then `tsc` over the tests (`tsconfig.spec.json`), the Vite configs (`tsconfig.node.json`) and the Node scripts in `tools/` (`tsconfig.scripts.json`), emitting nothing, each with `@fz/dev`'s compiler options).
@@ -281,16 +282,17 @@ The repository's rules for specs apply. On top of them:
   setup and the fixtures, and the repository's `angular-testing` the
   patterns its shell's specs share with the other Angular workspaces'.
 - **Test Coverage:** `vitest.config.ts` enforces a coverage floor a little under the suite's real figures; `yarn test`, which CI runs, fails below it. Raise the floor as the real figures rise.
-- **UI Test Doubles:** `test/support/ui` holds the shell's doubles — the game, catalog, presentation and documentation mocks — plus `configureUiTestBed` (`test/support/ui/testbed.ts`), which wires them into a TestBed. Prefer it over assembling providers by hand. The catalog mock is typed as a `Pick` of the real service so it cannot drift out of shape unnoticed.
+- **UI Test Doubles:** `test/support/ui` holds the shell's doubles — the game, catalog, presentation and documentation mocks — plus `configureUiTestBed` (`test/support/ui/testbed.ts`), which wires them into a TestBed with `@fz/phaser/testing`'s fake canvas. Prefer it over assembling providers by hand. The catalog mock is typed as a `Pick` of the real service so it cannot drift out of shape unnoticed.
 - **Don't Assert Production Prose:** A component spec should not depend on the wording of a rules page. Use the test documentation registry, which `configureUiTestBed` provides.
 
 ---
 
 ## Skills
 
-This workspace's skills are in `.agents/skills/`: `add-solitaire-game`, the
-Phaser ones (`phaser-core` first, which lists the rest: one for each part of
-Phaser the game uses, copied from Phaser's package), `solitaire-styles`,
-`solitaire-types`, `solitaire-build` and `solitaire-testing`. `node .agents/link-claude-skills.mjs`, run from the
+This workspace's skills are in `.agents/skills/`: `add-solitaire-game`,
+`solitaire-phaser` (how it draws its cards with Phaser, after the
+repository's `phaser-core`, which lists the rest of the Phaser skills),
+`solitaire-styles`, `solitaire-types`, `solitaire-build` and
+`solitaire-testing`. `node .agents/link-claude-skills.mjs`, run from the
 repository's root, links them into this folder's `.claude/skills/`, where
 Claude Code loads them once it works on a file here.
