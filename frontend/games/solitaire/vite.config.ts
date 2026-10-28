@@ -25,15 +25,6 @@ export default defineConfig(
           "@": path.resolve(import.meta.dirname, "./src"),
         },
       },
-      build: {
-        rollupOptions: {
-          output: {
-            manualChunks(id: string) {
-              return id.includes("node_modules/phaser") ? "phaser" : undefined;
-            },
-          },
-        },
-      },
     },
   ),
 );

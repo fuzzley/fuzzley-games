@@ -175,6 +175,16 @@ export function angularPlugins(): PluginOption[] {
 }
 
 /**
+ * The chunk a game's build puts every module of Phaser in, so the game's code
+ * can change without the browser downloading Phaser again. A game without
+ * Phaser has no module for it to take.
+ */
+export const PHASER_CHUNK = {
+  name: "phaser",
+  test: /[\\/]node_modules[\\/]phaser[\\/]/,
+} as const;
+
+/**
  * Returns the config every game's build and dev server share: Angular, the
  * palettes and icons of `@fz/style`, and a build in `dist/` that the site can
  * serve from any folder, with the game.json that says what it holds.
@@ -192,6 +202,9 @@ export function gameConfig({ port, ...manifest }: Game): UserConfig {
     build: {
       outDir: "dist",
       assetsDir: "assets",
+      rolldownOptions: {
+        output: { codeSplitting: { groups: [PHASER_CHUNK] } },
+      },
     },
   };
 }

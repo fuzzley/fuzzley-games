@@ -1,0 +1,13 @@
+{
+  // @fz/dev's options for Angular, which every app compiles this library's
+  // sources with too.
+  "extends": "@fz/dev/tsconfig/angular.json",
+  // A solution: each file belongs to the project below that includes it, which
+  // is the one editors and ESLint's project service check it with.
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.lib.json" },
+    { "path": "./tsconfig.spec.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}

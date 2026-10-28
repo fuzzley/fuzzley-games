@@ -3,7 +3,14 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { ESLint } from "eslint";
 import type { Config } from "eslint/config";
-import { angular, scripts, templates, tests, typescript } from "./eslint.ts";
+import {
+  angular,
+  phaser,
+  scripts,
+  templates,
+  tests,
+  typescript,
+} from "./eslint.ts";
 
 /** A tsconfig.json that takes in everything under src/. */
 const TSCONFIG = JSON.stringify({
@@ -24,9 +31,15 @@ function workspace(root: string): Config[] {
     ...angular({ files: ["src/**/*.ts"], prefix: "fz" }),
     ...templates({ files: ["src/**/*.html"] }),
     ...tests({ files: ["src/**/*.spec.ts"] }),
+    ...phaser({ files: ["src/scene/**/*.ts"] }),
     ...scripts({ files: ["tools/**/*.mjs"] }),
   ];
 }
+
+/** A guard on a value its type says is always there, as Phaser's are. */
+const GUARDED =
+  "declare const scene: { cameras: { main: object } };\n" +
+  "export const shaken = scene.cameras?.main !== undefined;\n";
 
 /**
  * Writes files into a workspace of their own, lints them with
@@ -101,6 +114,22 @@ describe("tests", () => {
     });
 
     expect(problems["src/app.spec.ts"]).toEqual([]);
+  });
+});
+
+describe("phaser", () => {
+  it("lets code that drives Phaser guard what Phaser's types say is there", async () => {
+    const problems = await lint({ "src/scene/board.ts": GUARDED });
+
+    expect(problems["src/scene/board.ts"]).toEqual([]);
+  });
+
+  it("holds other code to the rule", async () => {
+    const problems = await lint({ "src/rules/board.ts": GUARDED });
+
+    expect(problems["src/rules/board.ts"]).toContain(
+      "@typescript-eslint/no-unnecessary-condition",
+    );
   });
 });
 
