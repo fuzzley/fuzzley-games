@@ -1,0 +1,62 @@
+<fz-dialog [open]="open()" label="How to play" (closed)="closed.emit()">
+  <div class="card">
+    <button
+      type="button"
+      class="close"
+      aria-label="Close How to play"
+      (click)="closed.emit()"
+    >
+      <fz-icon name="close" />
+    </button>
+    <h2>How to play</h2>
+    <p>
+      Steer the snake to the apple. Each apple it eats scores a point and makes
+      it a square longer and a little faster. The run ends when the snake runs
+      into a wall or into itself; fill the whole board and you win.
+    </p>
+    <p>
+      <strong>Starting.</strong> The snake waits for your first direction. You
+      can press two turns in quick succession, such as up and then left, and it
+      takes both, one square apart.
+    </p>
+    <p>
+      <strong>Speeds.</strong> Slow, Normal and Fast each keep their own best
+      score. Change the speed, and whether the snake glides or steps, in the
+      settings.
+    </p>
+    <p>
+      <strong>Pausing.</strong> The game pauses itself when you switch away, or
+      open a menu or a dialog, and goes on only when you say: with a direction,
+      Space, or Resume.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <td></td>
+          <th scope="col">Touch or mouse</th>
+          <th scope="col">Keyboard</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Start, or turn</th>
+          <td>Swipe on the board, or the on-screen arrows</td>
+          <td>
+            Arrows, or <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">Pause, or go on</th>
+          <td>Pause, then Resume</td>
+          <td><kbd>Space</kbd> or <kbd>P</kbd></td>
+        </tr>
+        <tr>
+          <th scope="row">Pause</th>
+          <td>Pause</td>
+          <td><kbd>Esc</kbd></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</fz-dialog>

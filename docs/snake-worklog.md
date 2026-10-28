@@ -46,7 +46,7 @@ history keeps it.
 | S4    | The scene                                   | done      |
 | S5    | The play and the board                      | done      |
 | S6    | The controls                                | done      |
-| S7    | The icons, the bar and the dialogs          | to do     |
+| S7    | The icons, the bar and the dialogs          | done      |
 | S8    | Sound                                       | to do     |
 | S9    | Storage                                     | to do     |
 | S10   | The checks                                  | to do     |
@@ -455,3 +455,46 @@ history keeps it.
   board, a swipe down the board turns the snake down, and nothing scrolls.
 - The root's lint, type-check and every workspace's tests pass. 287 specs
   in Snake.
+
+### 2026-10-28: S7, the icons, the bar and the dialogs
+
+- **`@fz/ui`'s icons gained `pause` (filled, beside `play`), `sound`,
+  `sound-off` and `apple`,** each in `ICON_NAMES` and the template, with
+  the icon spec's cases. `apple` wasn't in decision 18: the bar first drew
+  the score with `plus`, the same icon as New Game beside it, and an apple
+  says what the score counts.
+- **`<app-bar>`:** the link home, "Snake" (the page's `<h1>`) with the
+  speed as a badge, the score and the best, then Pause (Resume while
+  paused, dimmed with `aria-disabled` while there is no run), Sound
+  (`aria-pressed`), New Game, How to play and Settings. On a compact screen
+  Pause and New Game stay, and Sound ("Turn sound off" or "on"), How to play
+  and Settings go in the overflow menu.
+- **Pause and Sound keep the focus through a pointer press:** the board
+  pauses the run whenever it loses the focus, so a Pause pressed with a
+  mouse would pause the run by taking the focus and then resume it with
+  its click. Resume hands the board the focus back, for a press from the
+  keyboard.
+- **`<app-settings>`:** the speed (a new run, after the question), the
+  movement (Glide or Step), the on-screen arrows (On a touch screen,
+  Always, Never), Play sounds, and the palette; Sudoku's drawer styles.
+- **`<app-result>`:** "Game over", or "You filled the board!", with why and
+  at what speed, the score, the best and the length, "New best", New Game
+  first, the other two speeds, and Close. It follows `resultOpen`, which
+  the game opens once the fade has run.
+- **`<app-help>`:** the rules, starting and queued turns, the speeds,
+  pausing, and the controls.
+- **The board takes the focus whenever the last dialog closes,** from one
+  effect in the app rather than from each dialog, so after "Start a new
+  game?" is answered no, a direction goes on with the run. Its spec fails
+  when that effect is broken.
+- **Layout:** on a phone, the board's area is capped at a square, so the
+  board and the arrows sit together in the middle of the stage rather than
+  apart; and the arrows hand the focus back without a focus ring.
+- `src/testing/play.ts` shares `playToTheEnd()`, `endedGame()`,
+  `wonGame()` and `ALMOST_FULL`, a 3 × 3 board one apple from full.
+- **Driven in headless Chrome** (`snake-bar.mjs`): Pause and Resume with
+  the mouse keep the focus on the board; the result card opens on New Game
+  after a crash; settings and How to play hand the focus back as they
+  close; New Game during a run asks first. On touch phones the compact bar
+  sits along the bottom upright and as a rail on its side.
+- 330 specs in Snake, 177 in `@fz/ui`.

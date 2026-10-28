@@ -30,7 +30,8 @@
 
 // The board fills the room, and lays its squares out inside it. The arrows,
 // where they show, go under it on an upright stage and beside it on a wide
-// one, and the board takes what is left.
+// one; the board takes what is left, up to a square, and the two sit
+// together in the middle.
 .room {
   display: grid;
   grid-template: minmax(0, 1fr) / minmax(0, 1fr);
@@ -38,7 +39,8 @@
 }
 
 .room.with-arrows {
-  grid-template: minmax(0, 1fr) auto / minmax(0, 1fr);
+  grid-template: minmax(0, 100cqw) auto / minmax(0, 1fr);
+  align-content: center;
 }
 
 app-arrows {
@@ -47,7 +49,8 @@ app-arrows {
 
 @container stage (orientation: landscape) {
   .room.with-arrows {
-    grid-template: minmax(0, 1fr) / minmax(0, 1fr) auto;
+    grid-template: minmax(0, 1fr) / minmax(0, 100cqh) auto;
+    justify-content: center;
   }
 
   app-arrows {
