@@ -76,7 +76,8 @@ own only for what is its alone.
 The Solitaire Collection is the worked example; the site does the same, and
 so do Minesweeper (`frontend/games/minesweeper/`) and Sudoku
 (`frontend/games/sudoku/`), games built from the libraries alone, which show
-the same steps with nothing else around them.
+the same steps with nothing else around them, and Snake
+(`frontend/games/snake/`), whose board Phaser draws in the palette's roles.
 
 1. **Depend on them.** List `"@fz/style": "workspace:*"` in the app's
    `package.json`, and for an Angular app `@fz/ui` and, for a game,
@@ -120,7 +121,9 @@ the same steps with nothing else around them.
    `frontend/games/minesweeper/src/app/board/contrast.spec.ts` holds
    Minesweeper's numbers on their squares, and
    `frontend/games/sudoku/src/app/board/contrast.spec.ts` Sudoku's digits
-   and notes on every shade of a square. Each compiles the app's global
+   and notes on every shade of a square, and
+   `frontend/games/snake/src/view/contrast.spec.ts` Snake's snake and apple
+   on both shades of square. Each compiles the app's global
    stylesheet and measures it with `@fz/style/testing`.
 
 Keep the players' `localStorage` keys as they are, whatever the app moves

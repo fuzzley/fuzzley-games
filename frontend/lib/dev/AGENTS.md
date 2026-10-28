@@ -58,7 +58,8 @@ too. Paths are relative to `frontend/lib/dev/`.
   with its files in `assets/` and Phaser, where a game has it, in a chunk
   of its own (`PHASER_CHUNK`), and a dev server on the game's own port,
   which its screenshot script defaults to: 9000 for the Solitaire
-  Collection, 9001 for Minesweeper, 9002 for Sudoku. The Angular plugins,
+  Collection, 9001 for Minesweeper, 9002 for Sudoku, 9003 for Snake. The
+  Angular plugins,
   `angularPlugins()`, which the site's config takes too, are Analog's with
   its live reload, which swaps an edited component's template or styles
   into the running page, and `componentUpdates()`, which makes that hold

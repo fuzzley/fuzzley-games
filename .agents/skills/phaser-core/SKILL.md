@@ -8,9 +8,10 @@ description: How a game here is drawn with Phaser 4 — the @fz/phaser library (
 A game drawn with Phaser 4 keeps Phaser to the code that draws, and builds on
 `@fz/phaser` (`frontend/lib/phaser/`), which holds what every such game
 shares. Its rules are in
-[its AGENTS.md](../../../frontend/lib/phaser/AGENTS.md). The Solitaire
-Collection is the game built this way so far; its card-specific rules are in
-its own `solitaire-phaser` skill.
+[its AGENTS.md](../../../frontend/lib/phaser/AGENTS.md). Two games are
+built this way: the Solitaire Collection, whose card-specific rules are in
+its own `solitaire-phaser` skill, and Snake (`frontend/games/snake/`), the
+smaller one to start from.
 
 ## The library
 
@@ -45,6 +46,9 @@ Only in the folders that draw. A game's `eslint.config.js` fences its rules
 and its layout off from `/phaser`, anchored, so `@fz/phaser`'s pure entries
 still pass: the Solitaire Collection's `src/engine/render/phaser` and
 `src/engine/board` draw, and its cards, rules, layout and games are fenced.
+Snake keeps four layers (`frontend/games/snake/AGENTS.md`): its rules, a
+view that works out what to draw without Phaser, so its specs are plain,
+the scene, the one folder that imports Phaser, and the shell.
 The Angular shell imports `@fz/phaser/canvas` and a scene source, never
 Phaser itself; a source that loads the scene with `import()` keeps Phaser
 out of the first download.
@@ -56,6 +60,13 @@ out of the first download.
   ports go in beside them, as the Solitaire Collection's
   `makeBoardScene(gameId, game, { presentation, onReady, insets })` does
   (`frontend/games/solitaire/src/ui/app/provider/board_catalog.ts`).
+  Snake's `makeSnakeScene(options)` takes only plain functions over the
+  game (`frontend/games/snake/src/scene/snake_scene.ts`), so its specs hand
+  it a fake shell.
+- **A game that runs in time takes the scene's.** Snake's scene hands the
+  game each frame's time in `update()`, and the game steps the run and
+  hands back the frame to draw, so the run never steps without being drawn
+  and stops when Phaser does.
 - **A scene says when it has drawn,** with `ready()`, once its first frame
   is up: `onFirstFrame()` calls it at the right time. The canvas uncovers
   the scene then.
@@ -65,6 +76,32 @@ out of the first download.
   size calls the canvas's `refreshInsets()`.
 - **Every scene is a `HostedScene`,** a Phaser scene with a key no other
   shares, since Phaser throws on a key in use.
+
+## Input
+
+- **The keyboard listens where the game says.** Set Phaser's
+  `input.keyboard.target` to the board's element, so the keys reach the
+  scene only while it has the focus, and a dialog or the bar keeps its own.
+- **Phaser's key captures are global,** whatever the target: a captured key
+  has its default prevented everywhere. Capture only the keys the game
+  uses, and ignore a held key and one pressed with Ctrl, Alt or Meta, so the
+  browser's shortcuts still work.
+- **Phaser's mouse prevents the default of `mousedown`,** which keeps the
+  focus off the canvas; an element that should take the focus at a click
+  focuses itself on `pointerdown`.
+
+## Phaser 4's surprises
+
+- A `Grid`'s `cellPadding` is 0.5 unless set, which leaves a hairline
+  between its cells; its `setSize()` is private in the typings, so set
+  `width` and `height`; and its alternate cells are those where
+  x + y is odd.
+- `load.audioSprite()` takes the spritemap itself where its typings ask
+  for the JSON's URL, which needs a cast; under `noAudio`, as a headless
+  game has, it loads nothing, so a scene plays a sound only once the cache
+  has it.
+- `tweens.killAll()` stops every tween a scene runs, for a new run that
+  must not inherit the last one's.
 
 ## A scene ends; its game doesn't
 
@@ -100,8 +137,10 @@ browser, through a game's screenshots and its `check:layout`.
   the size there. The harness's own specs
   (`frontend/lib/phaser/src/testing/run_scene.spec.ts`) check what it
   relies on in Phaser, so an upgrade that breaks it fails there first.
-- The Solitaire Collection's scene specs predate the harness and stand in
-  for Phaser with mocks (its `solitaire-testing` skill).
+- Snake's scene specs are the worked example
+  (`frontend/games/snake/src/scene/snake_scene.spec.ts`, and its
+  `snake-testing` skill). The Solitaire Collection's predate the harness
+  and stand in for Phaser with mocks (its `solitaire-testing` skill).
 
 ## The parts of Phaser in use
 
