@@ -1,0 +1,9 @@
+<div
+  #surface
+  class="fz-phaser-canvas-surface"
+  [attr.role]="label() ? 'img' : null"
+  [attr.aria-label]="label() || null"
+  [attr.aria-hidden]="label() ? null : 'true'"
+  [attr.aria-busy]="state() === 'loading'"
+></div>
+<ng-content select="[fzCanvasPlaceholder]" />

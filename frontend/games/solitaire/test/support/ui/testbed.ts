@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import type { Type } from "@angular/core";
 import { provideRouter } from "@angular/router";
+import { provideFakePhaserCanvas } from "@fz/phaser/testing";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import { GAME_DOCUMENTATION } from "@/ui/app/provider/game_documentation_data";
@@ -59,6 +60,8 @@ export async function configureUiTestBed(
       // Test prose, so a spec never fails because a rules page was reworded.
       { provide: GAME_DOCUMENTATION, useValue: TEST_DOCUMENTATION },
       { provide: GAME_PROFILES, useValue: TEST_PROFILES },
+      // A canvas that loads no Phaser.
+      provideFakePhaserCanvas(),
     ],
   }).compileComponents();
 

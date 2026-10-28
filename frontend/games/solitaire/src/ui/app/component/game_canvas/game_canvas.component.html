@@ -1,49 +1,42 @@
-<!--
-  `role="img"` rather than `application`, which would hand every key to a
-  board with no keyboard interface. Revisit it if the board becomes playable
-  from the keyboard.
--->
-<div
-  #canvasHost
-  class="canvas-container"
-  role="img"
-  [attr.aria-label]="`${gameName()} board`"
-  [attr.aria-busy]="isInitializing()"
-></div>
-
-<div class="loading-overlay" [class.hidden]="!isInitializing()">
-  <div class="skeleton-grid" aria-hidden="true">
-    <div class="skeleton-board">
-      @for (slot of skeletonSlots(); track slot.pileId) {
-        <div
-          class="skeleton-cell"
-          [style.left]="slot.left"
-          [style.top]="slot.top"
-          [style.width]="slot.width"
-          [style.height]="slot.height"
-        >
-          <div class="skeleton-slot">
-            <div class="skeleton-shimmer"></div>
+<fz-phaser-canvas
+  [scene]="board()"
+  [options]="hostOptions"
+  [label]="boardLabel()"
+>
+  <div fzCanvasPlaceholder class="loading-overlay">
+    <div class="skeleton-grid" aria-hidden="true">
+      <div class="skeleton-board">
+        @for (slot of skeletonSlots(); track slot.pileId) {
+          <div
+            class="skeleton-cell"
+            [style.left]="slot.left"
+            [style.top]="slot.top"
+            [style.width]="slot.width"
+            [style.height]="slot.height"
+          >
+            <div class="skeleton-slot">
+              <div class="skeleton-shimmer"></div>
+            </div>
           </div>
-        </div>
-      }
+        }
+      </div>
     </div>
-  </div>
 
-  <div class="loading-badge">
-    <div class="spinner-ring" aria-hidden="true">
-      <div class="mini-card-icon">♠</div>
+    <div class="loading-badge">
+      <div class="spinner-ring" aria-hidden="true">
+        <div class="mini-card-icon">♠</div>
+      </div>
+      <!-- Always present, so the status is announced when it arrives. -->
+      <p class="loading-text" role="status">
+        @if (hasInitializationFailed()) {
+          Board initialization timed out
+        } @else if (isInitializing()) {
+          Loading {{ gameName() }}...
+        }
+      </p>
     </div>
-    <!-- Always present, so the status is announced when it arrives. -->
-    <p class="loading-text" role="status">
-      @if (hasInitializationFailed()) {
-        Board initialization timed out
-      } @else if (isInitializing()) {
-        Loading {{ gameName() }}...
-      }
-    </p>
   </div>
-</div>
+</fz-phaser-canvas>
 
 <!--
   A corner badge rather than the overlay, because the board stays playable

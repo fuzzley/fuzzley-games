@@ -27,10 +27,20 @@ take the pure ones.
   `onFirstFrame()`, which let go of what they subscribe to when the scene
   ends; `pixelRatioOf()`; and `bakeTexture()`, a texture drawn at run time
   and drawn again after a lost context. It imports Phaser, never Angular.
+- `src/canvas/`: `<fz-phaser-canvas>`, the Angular component an app shows
+  its scenes in, which makes the one host it keeps, through the
+  `PHASER_CANVAS_HOST` token. Its `scene` input is a `SceneSource`, a
+  function returning a `MakeScene` or a promise of one; its `state` is
+  `loading`, `ready` or `failed`, also on the element as `data-state`; and
+  what the app projects as `[fzCanvasPlaceholder]` lies over the canvas
+  until the scene is ready. It imports the host, and so Phaser, with
+  `import()`, when it first shows a scene.
 - `src/testing/`: what a spec runs a scene in. `installHeadlessPhaser()`,
   which a test setup calls, gives jsdom the blank 2D context and image loads
   Phaser needs, and `runScene()` runs a scene in a HEADLESS game whose
-  frames, clock, keys and pointer a spec drives.
+  frames, clock, keys and pointer a spec drives. `provideFakePhaserCanvas()`
+  gives an app's shell specs a canvas that loads no Phaser, whose hosts
+  `FakePhaserCanvas` keeps, to settle each scene they were shown.
 
 ## Rules
 

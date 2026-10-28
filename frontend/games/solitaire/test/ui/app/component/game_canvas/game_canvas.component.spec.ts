@@ -5,75 +5,31 @@ import { GameCanvasComponent } from "@/ui/app/component/game_canvas/game_canvas.
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import { KLONDIKE_LAYOUT } from "@/games/klondike/klondike_layout";
-import type { TablePresentation } from "@/engine/render/view/presentation";
+import { DEFAULT_BACKGROUND_COLOR } from "@/engine/render/view/presentation";
+import { NO_INSETS } from "@fz/phaser/insets";
+import {
+  type FakeCanvasHost,
+  FakePhaserCanvas,
+  provideFakePhaserCanvas,
+} from "@fz/phaser/testing";
 import { query, queryAll, queryText } from "@test/support/dom";
 
-/** Records one Phaser host the component built, and what it was handed. */
-interface StartedHost {
-  parent: HTMLElement;
-  destroyed: boolean;
-  /** How many boards it has been shown. */
-  boardsShown: number;
-  /** How many times it has been asked to read the chrome's insets again. */
-  insetsRefreshed: number;
-}
-
 /**
- * The hosts built so far, and the ready callback the latest board was given.
+ * What the latest board was built with.
  *
  * Module state, because `vi.mock` factories are hoisted above everything and
  * cannot close over anything declared per-test. Reset in `beforeEach`.
  */
-const started: StartedHost[] = [];
-let readyCallback: (() => void) | undefined;
+let built: { gameId: string; game: unknown; onReady?: () => void } | undefined;
 
 vi.mock("@/ui/app/provider/board_catalog", () => ({
   makeBoardScene: (
-    _gameId: string,
-    _game: unknown,
-    {
-      presentation,
-      onReady,
-    }: { presentation: TablePresentation; onReady?: () => void },
+    gameId: string,
+    game: unknown,
+    { onReady }: { onReady?: () => void },
   ) => {
-    readyCallback = onReady;
-    // Reads and follows the settings, as a board does while it is created,
-    // which a board swapped into a running game is at once.
-    presentation.cardDeckId();
-    const stopFollowing = presentation.onCardDeck(() => {
-      /* nothing to redraw */
-    });
-    stopFollowing();
+    built = { gameId, game, onReady };
     return {};
-  },
-}));
-
-vi.mock("@fz/phaser/host", () => ({
-  PhaserHost: class {
-    private readonly record: StartedHost;
-
-    constructor(_window: Window, parent: HTMLElement) {
-      this.record = {
-        parent,
-        destroyed: false,
-        boardsShown: 0,
-        insetsRefreshed: 0,
-      };
-      started.push(this.record);
-    }
-
-    show(makeBoardScene: (surroundings: { insets: () => unknown }) => void) {
-      this.record.boardsShown++;
-      makeBoardScene({ insets: () => undefined });
-    }
-
-    refreshInsets() {
-      this.record.insetsRefreshed++;
-    }
-
-    destroy() {
-      this.record.destroyed = true;
-    }
   },
 }));
 
@@ -84,12 +40,14 @@ describe("GameCanvasComponent", () => {
   beforeEach(async () => {
     localStorage.clear();
     location.hash = "";
-    started.length = 0;
-    readyCallback = undefined;
+    built = undefined;
 
     await TestBed.configureTestingModule({
       imports: [GameCanvasComponent],
-      providers: [GameCatalogService],
+      providers: [
+        GameCatalogService,
+        provideFakePhaserCanvas({ readyAtOnce: false }),
+      ],
     }).compileComponents();
 
     catalog = TestBed.inject(GameCatalogService);
@@ -102,32 +60,79 @@ describe("GameCanvasComponent", () => {
     vi.useRealTimers();
   });
 
+  /** Returns every Phaser host the canvas has made. */
+  function hosts(): readonly FakeCanvasHost[] {
+    return TestBed.inject(FakePhaserCanvas).hosts;
+  }
+
+  /** Returns the one Phaser host the canvas has made. */
+  function host(): FakeCanvasHost {
+    return TestBed.inject(FakePhaserCanvas).host;
+  }
+
   /** Reports the board ready, as a built scene does. */
-  function boardReady(): void {
-    readyCallback?.();
+  async function boardReady(): Promise<void> {
+    host().latest.ready();
+    await fixture.whenStable();
     fixture.detectChanges();
   }
 
-  /** Returns whether the loading overlay is covering the board. */
+  /** Builds the latest board the canvas was shown, as Phaser does. */
+  async function buildBoard(ready = vi.fn()): Promise<void> {
+    const make = await host().latest.source();
+    make({ insets: () => NO_INSETS, ready });
+  }
+
+  /**
+   * Returns whether the loading overlay is covering the board, which the
+   * canvas, whose styles jsdom doesn't have, does while it is loading.
+   */
   function isLoading(): boolean {
     return (
-      query(fixture, ".loading-overlay")?.classList.contains("hidden") === false
+      query(fixture, "fz-phaser-canvas")?.getAttribute("data-state") ===
+      "loading"
     );
+  }
+
+  /** Returns the element the board is drawn in, as assistive technology sees it. */
+  function board(): Element | null {
+    return query(fixture, "[role=img]");
   }
 
   describe("the Phaser host", () => {
     it("starts exactly one game", () => {
-      expect(started.length).toBe(1);
+      expect(hosts().length).toBe(1);
     });
 
-    it("mounts the game into its own container element", () => {
-      expect(started[0].parent).toBe(query(fixture, ".canvas-container"));
+    it("names the game, on the default felt until the board applies the player's", () => {
+      expect(host().options).toEqual({
+        title: "fSolitaire",
+        background: DEFAULT_BACKGROUND_COLOR,
+      });
+    });
+
+    it("builds the board of the game on the table", async () => {
+      await buildBoard();
+
+      expect({ gameId: built?.gameId, game: built?.game }).toEqual({
+        gameId: "klondike",
+        game: catalog.session().game,
+      });
+    });
+
+    it("lets the board say it is ready", async () => {
+      const ready = vi.fn();
+      await buildBoard(ready);
+
+      built?.onReady?.();
+
+      expect(ready).toHaveBeenCalledOnce();
     });
 
     it("destroys the game when the host is torn down", () => {
       fixture.destroy();
 
-      expect(started[0].destroyed).toBe(true);
+      expect(host().destroyed).toBe(true);
     });
 
     it("shows the next game's board in the same game", () => {
@@ -138,22 +143,22 @@ describe("GameCanvasComponent", () => {
       // One game for the component's life, so every deal reuses its WebGL
       // context instead of leaving the old one for the garbage collector.
       expect(
-        started.map(({ destroyed, boardsShown }) => ({
+        hosts().map(({ destroyed, shown }) => ({
           destroyed,
-          boardsShown,
+          boardsShown: shown.length,
         })),
       ).toEqual([{ destroyed: false, boardsShown: 2 }]);
     });
 
     it("reads the chrome's insets again when the stock changes side", async () => {
-      const before = started[0].insetsRefreshed;
+      const before = host().insetsRefreshed;
 
       TestBed.inject(PresentationSettingsService).setStockSide("right");
       fixture.detectChanges();
       await fixture.whenStable();
 
       // The rail on a sideways phone moves to the other edge without a resize.
-      expect(started[0].insetsRefreshed).toBeGreaterThan(before);
+      expect(host().insetsRefreshed).toBeGreaterThan(before);
     });
 
     it("keeps the board when the player chooses another deck", () => {
@@ -162,7 +167,7 @@ describe("GameCanvasComponent", () => {
       fixture.detectChanges();
 
       // The board swaps the deck in itself; a new board would deal again.
-      expect(started.map(({ boardsShown }) => boardsShown)).toEqual([1]);
+      expect(hosts().map(({ shown }) => shown.length)).toEqual([1]);
     });
 
     it("exposes the running game for console debugging in development", () => {
@@ -181,8 +186,8 @@ describe("GameCanvasComponent", () => {
       expect(isLoading()).toBe(true);
     });
 
-    it("uncovers it once the scene is ready", () => {
-      boardReady();
+    it("uncovers it once the scene is ready", async () => {
+      await boardReady();
 
       expect(isLoading()).toBe(false);
     });
@@ -200,27 +205,25 @@ describe("GameCanvasComponent", () => {
     it("describes the board as an image, not an application", () => {
       // `role="application"` suppresses a screen reader's browse mode and is
       // only honest once there is a keyboard interface to replace it with.
-      expect(query(fixture, ".canvas-container")?.getAttribute("role")).toBe(
-        "img",
-      );
+      expect(board()?.getAttribute("role")).toBe("img");
+    });
+
+    it("names the board after the game", () => {
+      expect(board()?.getAttribute("aria-label")).toBe("Klondike board");
     });
 
     it("marks the board busy while it builds", () => {
-      expect(
-        query(fixture, ".canvas-container")?.getAttribute("aria-busy"),
-      ).toBe("true");
+      expect(board()?.getAttribute("aria-busy")).toBe("true");
     });
 
-    it("stops marking it busy once it is ready", () => {
-      boardReady();
+    it("stops marking it busy once it is ready", async () => {
+      await boardReady();
 
-      expect(
-        query(fixture, ".canvas-container")?.getAttribute("aria-busy"),
-      ).toBe("false");
+      expect(board()?.getAttribute("aria-busy")).toBe("false");
     });
 
-    it("returns when a different game is chosen", () => {
-      boardReady();
+    it("returns when a different game is chosen", async () => {
+      await boardReady();
 
       catalog.select("spider");
       fixture.detectChanges();

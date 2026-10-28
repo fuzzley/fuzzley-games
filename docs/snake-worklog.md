@@ -34,7 +34,7 @@ history keeps it.
 | L1    | The `@fz/phaser` workspace                  | done  |
 | L2    | The host and the pure entries               | done  |
 | L3    | The scene helpers and the headless harness  | done  |
-| L4    | The canvas component                        | to do |
+| L4    | The canvas component                        | done  |
 | L5    | Build and lint                              | done  |
 | L6    | Skills and docs                             | to do |
 | L7    | Nothing changed in the Solitaire Collection | to do |
@@ -150,3 +150,48 @@ history keeps it.
   out the five seconds, and was flaky under load.
 - All 6,861 Solitaire specs pass, above its coverage floor; the library's
   120 pass.
+
+### 2026-10-27: L4, the canvas component
+
+- `<fz-phaser-canvas>` in `@fz/phaser/canvas`, with the plan's inputs
+  (`scene`, `options`, `label`), `state` and `data-state`, the 8 second
+  timeout, `refreshInsets()` and the `[fzCanvasPlaceholder]` slot. Its state
+  is a `linkedSignal` of the scene, so a new scene starts it at `loading`
+  without a write during change detection. A scene that is ready after the
+  timeout turns it `ready` after all; the Solitaire Collection's own left it
+  failed.
+- **The placeholder is styled by the canvas, unencapsulated.** An emulated
+  stylesheet can't reach projected content, and a wrapper that faded would
+  be a backdrop root, which would blank the Solitaire Collection's glass
+  overlay as it faded. So the component has `ViewEncapsulation.None`, every
+  selector starting at `fz-phaser-canvas`, and fades the projected element
+  itself, as the overlay faded itself before. Reduced motion is `@fz/style`'s
+  page-wide rule. The library has a stylesheet now, so `lint:styles` and
+  `stylelint.config.js` are back.
+- **jsdom gets no component styles** in these specs, so the fade is checked in
+  the browser, by the screenshots, and the specs check `data-state`.
+- `PHASER_CANVAS_HOST` makes the host. Its default loads `@fz/phaser/host`
+  with `import()` when the canvas first shows a scene, and drops a slow
+  source that a later one overtook. Its spec runs real Phaser, headless.
+  `provideFakePhaserCanvas()` is in `@fz/phaser/testing`, with
+  `FakePhaserCanvas` to read its hosts and settle each scene they were shown
+  (`ready()`, `fail()`).
+- **The Solitaire Collection** wraps the canvas: its board is a `computed`
+  `SceneSource` of the session and the game, the skeleton overlay is the
+  placeholder, and `isInitializing` and `hasInitializationFailed` read the
+  canvas's state. The board's `onReady` is the surroundings' `ready()`. The
+  board is now built outside the effect, after the host's import, so the
+  `untracked()` that kept the board's settings out of the effect went.
+  `configureUiTestBed`, `routes.spec.ts` and `game_catalog.service.spec.ts`
+  provide the fake canvas in place of their four `vi.mock`s of the host.
+- Build: the `phaser` chunk is byte for byte the baseline's. `index` is
+  788,701 bytes, 2,006 under the baseline, and the host is a chunk of its
+  own, 4,351 bytes (1.75 kB gzipped), loaded once the canvas first shows a
+  board: one small request more before the first deal.
+- **The screenshots match.** The 42 seeded shots of the new build, against
+  L0's: 18 of 21 identical in each palette, the rest at 1 to 7 pixels. The 7
+  (a glyph's edge on a Yukon card, on a phone on its side) differ between
+  two runs of the new build too, and a second run matched the baseline in
+  20 of 21, the last at 4 pixels: noise.
+- 6,864 Solitaire specs pass, above its floor; the library's 153, above its
+  own.
