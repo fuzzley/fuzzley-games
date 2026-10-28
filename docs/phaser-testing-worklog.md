@@ -31,7 +31,7 @@ history keeps it.
 | W5    | The Solitaire Collection's setup, and a board run for real     | done  |
 | W6    | `TableLight`, `PhaserCardFactory` and `DrawnDeckPainter` specs | done  |
 | W7    | `PhaserTableRenderer` and `BoardInputManager` specs            | done  |
-| W8    | `BoardScene` spec                                              | to do |
+| W8    | `BoardScene` spec                                              | done  |
 | W9    | `table_board_scene`, the catalog and the game contract specs   | to do |
 | W10   | `phaser_mocks.ts` gone, the docs, and `yarn verify`            | to do |
 
@@ -380,3 +380,62 @@ history keeps it.
   answers the canvas laid out under the point, or else the body.
 - **Checks:** the Solitaire Collection's lint, typecheck and 6871 tests;
   `@fz/phaser`'s lint, typecheck and 203; Snake's 347.
+
+### 2026-10-28: W8, the board scene
+
+- **`board_scene.spec.ts`** runs the fake game's board through
+  `runFakeTableBoard()`, a fresh game for each of its 79 specs: the mock
+  spec's 80 but one, by intent, the four switching to a deck already
+  loaded now under a `describe` of their own. A spec drives the board as
+  the shell and a player do: the presentation's setters, real presses,
+  double clicks and hovers, `game.scale.resize()`, a stop or removal
+  through the scene manager, a lost and restored context, and frames.
+  What it reads is the board's real state: the sprites' textures, frames,
+  origins, depths and positions, the textures left loaded, the camera's
+  colour, the canvas's cursor, the light and the borders among the
+  scene's objects.
+- **Loads are real.** The board loads its atlases from the workspace,
+  through a server that notes each atlas asked for (by its first page)
+  and refuses the ones a spec names, which fails the load as a 404 does.
+  A board starts with the atlases an earlier board left, loaded by
+  `loadAtlases()` in the run's `prepare`, and then the record is cleared;
+  a board laid out at 2 runs on a canvas twice its CSS size, through
+  Phaser's `zoom`, as a display of that pixel ratio shows it.
+- **What a redraw of the shadow is:** the context draws nothing, so the
+  spec counts the shadow texture's `render()`s, with a call-through spy on
+  `DynamicTexture`'s prototype, where the mock counted its own.
+- **What real Phaser changed in the spec:**
+  - A scene's own `scene.stop()` is queued for the next step; the
+    manager's `stop(key)` acts at once, which the spec uses for a
+    shutdown. Run first with the queued stop, every shutdown spec failed,
+    which showed they catch a scene still listening.
+  - A destroyed scene's objects are destroyed by its display list, the
+    light with them, so "takes the light off the felt" reads the light's
+    `scene` as gone.
+  - After a shutdown the camera is gone, so the table background's "stops
+    following the setting once the scene shuts down" could no longer
+    fail: dropped, since "once the scene ends … stops following the
+    presentation" counts the same listener.
+  - `emptyBoard()` leaves every card on no pile, and those sprites stay
+    where they were made, at (0,0), over the stock's slot and the
+    pointer's first position, which the mock never hit-tested. The empty
+    slot is now a real position: every stock card drawn to the waste.
+  - "stops listening for the canvas to resize" reads whether a resize
+    reaches the deck loader's `refit()` or the light's `fit()`, through
+    spies on their prototypes, since the scale manager has listeners of
+    Phaser's own.
+- **The harness, for loads:**
+  - `prepare(game)` readies the game before the scene is added, as an
+    earlier scene may have left it, such as with textures loaded.
+  - `await loaded()` waits for the scene's loader to finish what it was
+    given, stepping a frame on each wait: Phaser takes the pages of a
+    multi-atlas into the pass that started the load, but a file queued
+    while it loads waits for the scene's update, which a sleeping loop
+    never sends. Its spec timed out without the frames.
+  - A served request asks the server as it is sent, and is answered on a
+    later task as before, so a server that notes requests knows at once.
+- **Gone:** `BoardSceneOptions.drawnDeckServices`, which no spec passed;
+  the board draws its deck with the browser's services, as the painter's
+  own spec does.
+- **Checks:** the Solitaire Collection's lint, typecheck and 6870 tests;
+  `@fz/phaser`'s lint, typecheck and 207; Snake's 347.

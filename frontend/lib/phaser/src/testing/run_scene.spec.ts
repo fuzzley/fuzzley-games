@@ -1,4 +1,4 @@
-import { type GameObjects, Renderer, Scene, WEBGL } from "phaser";
+import { type Game, type GameObjects, Renderer, Scene, WEBGL } from "phaser";
 import type { HostedScene, SceneSurroundings } from "../host";
 import { runBareScene, runScene } from "./run_scene";
 import { type FileServer, pngOfSize } from "./served_files";
@@ -61,6 +61,12 @@ class ProbeScene extends Scene implements HostedScene {
     this.frames++;
   }
 }
+
+/** Surroundings that tell a scene nothing and hear nothing. */
+const NO_SURROUNDINGS: SceneSurroundings = {
+  insets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
+  ready: () => undefined,
+};
 
 /** Runs a probe scene, its keyboard on an element of its own if asked. */
 async function runProbe(
@@ -304,6 +310,50 @@ describe("runScene", () => {
     expect([run.scene.textures.exists("apple"), run.scene.failed]).toEqual([
       false,
       ["apple"],
+    ]);
+    run.destroy();
+  });
+
+  it("waits for the scene's loader to finish what it was given", async () => {
+    const run = await runLoading(() => pngOfSize(4, 4));
+    run.scene.load.image("pear", "/pear.png");
+    run.scene.load.start();
+
+    await run.loaded();
+
+    expect([
+      run.scene.load.isLoading(),
+      run.scene.textures.exists("pear"),
+    ]).toEqual([false, true]);
+    run.destroy();
+  });
+
+  it("waits for a file queued while another was loading", async () => {
+    const run = await runLoading(() => pngOfSize(4, 4));
+    run.scene.load.image("pear", "/pear.png");
+    run.scene.load.start();
+    run.scene.load.image("plum", "/plum.png");
+    run.scene.load.start();
+
+    await run.loaded();
+
+    expect(run.scene.textures.exists("plum")).toBe(true);
+    run.destroy();
+  });
+
+  it("readies the game before the scene is added", async () => {
+    let readied: Game | undefined;
+
+    const run = await runScene(() => new ProbeScene(NO_SURROUNDINGS), {
+      prepare: (game) => {
+        readied = game;
+        game.textures.addCanvas("left", document.createElement("canvas"));
+      },
+    });
+
+    expect([readied, run.scene.textures.exists("left")]).toEqual([
+      run.game,
+      true,
     ]);
     run.destroy();
   });
