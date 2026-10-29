@@ -9,10 +9,43 @@ import {
 import {
   CAPSULES,
   CAPSULE_IDS,
+  type CapsuleId,
   capsule,
   isCapsuleId,
 } from "./catalog/capsules";
+import type { Level } from "./level";
+import { LEVELS, parseLevel } from "./levels";
 import { CATCH_HOLD_MS, MAX_LIVES } from "./tuning";
+
+/**
+ * The brick kinds no level uses yet, which the sets to come bring; once the
+ * last set is in, the list is empty and every kind is used.
+ */
+const KINDS_TO_COME = ["steel", "blast", "ghost", "regrow"];
+
+/**
+ * The capsules no level lets fall yet, which the sets to come bring; once
+ * the last set is in, the list is empty and every capsule can fall.
+ */
+const CAPSULES_TO_COME = ["narrow", "fire", "fast", "blast"];
+
+/** Every level, ready to play, with its number. */
+const PLAYED = LEVELS.map(
+  (entry) => [entry.number, parseLevel(entry)] as const,
+);
+
+/**
+ * Returns whether a capsule can fall in a level: pinned to a gift brick, or
+ * in its pool with a chance of falling or a gift brick to draw it.
+ */
+function canFall(level: Level, id: CapsuleId): boolean {
+  const bricks = level.cells.filter((brick) => brick !== null);
+  const gives = bricks.some((brick) => hasTrait(brick.kind, "gives"));
+  return (
+    bricks.some((brick) => brick.capsule === id) ||
+    (level.capsules.includes(id) && (level.drops > 0 || gives))
+  );
+}
 
 /** Returns a pattern for a time in whole seconds, as a sentence says it. */
 function seconds(ms: number): RegExp {
@@ -203,4 +236,35 @@ describe("the capsules", () => {
       isCapsuleId(3),
     ]).toEqual([true, false, false]);
   });
+});
+
+describe("the levels", () => {
+  it("use every brick kind, but those the sets to come bring", () => {
+    const used = new Set(
+      PLAYED.flatMap(([, level]) =>
+        level.cells.flatMap((brick) => (brick ? [brick.kind] : [])),
+      ),
+    );
+
+    expect(BRICK_KIND_IDS.filter((id) => !used.has(id))).toEqual(KINDS_TO_COME);
+  });
+
+  it("let every capsule fall, but those the sets to come bring", () => {
+    const falling = CAPSULE_IDS.filter((id) =>
+      PLAYED.some(([, level]) => canFall(level, id)),
+    );
+
+    expect(CAPSULE_IDS.filter((id) => !falling.includes(id))).toEqual(
+      CAPSULES_TO_COME,
+    );
+  });
+
+  it.each(CAPSULE_IDS.filter((id) => !CAPSULES_TO_COME.includes(id)))(
+    "let %s first fall in the level it joins the pool at",
+    (id) => {
+      const first = PLAYED.find(([, level]) => canFall(level, id));
+
+      expect(first?.[0]).toBe(capsule(id).from);
+    },
+  );
 });
