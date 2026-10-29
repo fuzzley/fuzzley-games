@@ -580,3 +580,42 @@ three `isCapsuleId()` cases, and a record keyed by id.
   aimed loosely enough to lose 39 balls, did too.
 - **Checks.** `yarn verify` passes; the rules at 100% of statements, 98%
   of branches.
+
+## B3.2: the bricks' traits
+
+- **Built.** `src/rules/bricks.ts`: `Brick` (moved from `field.ts`, with
+  `whole`, `shown`, `fuseMs` and `regrowMs`), `createBrick()`,
+  `canBreak()`, `hitBrick()`, `stepBricks()` and `TRAIT_RULES`, typed
+  `{ readonly [K in TraitKind]: TraitRule<TraitOf[K]> }`, with `hit`,
+  `broken` and `step` rules:
+  - `hard`: no rule of its own; never breaking is its kind's `hits`.
+  - `blasts`: lights a fuse as it breaks, and a beat later (100 ms) hits
+    the eight bricks around it once, each through `hitBrick()`, so a blast
+    beside it goes off a beat after.
+  - `hidden`: shows at its first hit, which also takes one of its two.
+  - `regrows`: grows back whole 10 s after it breaks, once no ball is in its
+    place.
+  - `gives`: an empty entry until the capsules fall, in B3.3, which now
+    lists the gift's capsule. The plan says so.
+
+  The field steps the bricks after the paddle and before the balls. Two new
+  events, `blast` and `regrown`. `fieldFrom()` reads the whole shared
+  legend. Specs trait by trait, 17 new.
+
+- **Choices.**
+  - A rule is run through `runRule<K>()`, whose kind and trait share `K`, so
+    the compiler matches each trait to its own rule without a cast.
+  - Only a ball's hit climbs the speed and resets its bounces; a blast's
+    hits don't.
+  - A regrown brick takes the hits the level laid it with (`whole`).
+  - `isCleared()` reads the field's state afresh in the loops, where the
+    compiler took an earlier check to hold after a hit that may clear the
+    level.
+- **QA.** The scratch spec of B2.4 again (deleted), on 12 random levels
+  with every kind: no fault in 107 blasts and 1,580 regrowths. One level
+  kept two needed bricks for 15 minutes, its events at the usual rate,
+  so no ball was wedged: they were shut in behind steel and regrowing
+  bricks, which the levels spec's reach check and the autopilot (B4) are
+  for.
+- **Checks.** lint, typecheck, test (297), the rules at 100% of
+  statements.

@@ -60,8 +60,12 @@ and the shell exist.
   and turns once. `paddle.ts` steers the paddle (`Steer`: a pointer's place,
   a finger's drag, held keys) and `balls.ts` turns a ball: off the paddle by
   where it landed, as a mirror, by a lull's few degrees, and back to the
-  flattest it travels. `events.ts`'s `EventLog` is a ring of 256 numbered
-  records, which the scene will play from the last one it played.
+  flattest it travels. `bricks.ts` holds `Brick`, `hitBrick()`, which a
+  ball or a blast calls, and `TRAIT_RULES`, what each trait of
+  `catalog/bricks.ts` does as a brick is hit, breaks, and at each step,
+  typed so that a trait without its rule fails to compile. `events.ts`'s
+  `EventLog` is a ring of 256 numbered records, which the scene will play
+  from the last one it played.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
   written `as const satisfies`, so its ids survive as a type: `bricks.ts`
   (`BRICK_KINDS`, each kind's hits, whether a level needs it, its points

@@ -10,7 +10,14 @@ import {
   settleBall,
   turnBall,
 } from "./balls";
-import { type BrickKindId, brickKind } from "./catalog/bricks";
+import {
+  type Brick,
+  canBreak,
+  createBrick,
+  hitBrick,
+  stepBricks,
+} from "./bricks";
+import { brickKind } from "./catalog/bricks";
 import { EventLog } from "./events";
 import {
   type Box,
@@ -52,19 +59,6 @@ import {
  * in play, its last ball lost, or every brick it needs broken.
  */
 export type FieldState = "serve" | "playing" | "lost" | "cleared";
-
-/** Describes a brick in play. */
-export interface Brick {
-  readonly kind: BrickKindId;
-  /** Its cell in the grid. */
-  readonly cell: number;
-  /** Its tint, from 0 to 7. */
-  readonly tint: number;
-  /** The hits left to break it, 0 for one that never breaks. */
-  hits: number;
-  /** Whether it is broken, and so out of the balls' way. */
-  broken: boolean;
-}
 
 /** Says how a field is played: at which speed, and from which seed. */
 export interface FieldSetup {
@@ -161,15 +155,8 @@ const met: Contacts = {
 
 /** Returns a level's field, its first ball on the paddle waiting to be served. */
 export function createField(level: Level, setup: FieldSetup): Field {
-  const bricks = level.cells.map(
-    (placed, cell): Brick | null =>
-      placed && {
-        kind: placed.kind,
-        cell,
-        tint: placed.tint,
-        hits: placed.hits,
-        broken: false,
-      },
+  const bricks = level.cells.map((placed, cell) =>
+    placed ? createBrick(placed, cell) : null,
   );
   const paddle = createPaddle();
   const first = createBall();
@@ -199,17 +186,20 @@ export function steerField(field: Field, steer: Readonly<Steer>): void {
 }
 
 /**
- * Moves the field on by a step: the paddle, then each ball in play by the
- * distance it travels in a step, meeting what is in its way.
+ * Moves the field on by a step: the paddle, then the bricks' traits, then
+ * each ball in play by the distance it travels in a step, meeting what is in
+ * its way.
  */
 export function stepField(field: Field): void {
   if (field.state === "cleared") return;
   movePaddle(field.paddle);
+  stepBricks(field);
   stepBalls(field);
 }
 
 /** Moves each ball on by a step, until the level is cleared. */
 function stepBalls(field: Field): void {
+  if (isCleared(field)) return;
   const distance =
     ballSpeed(field.setup.speed, field.level.pace, field.climbed) * STEP_S;
   for (const ball of field.balls) {
@@ -222,7 +212,7 @@ function stepBalls(field: Field): void {
     }
     liftOffPaddle(field, ball);
     travel(field, ball, distance);
-    if (field.state === "cleared") return;
+    if (isCleared(field)) return;
     if (ball.y - BALL_RADIUS > FIELD_HEIGHT) loseBall(field, ball);
   }
 }
@@ -286,7 +276,7 @@ function travel(field: Field, ball: Ball, distance: number): void {
     ball.y += move.dy * met.t;
     left -= left * met.t;
     turn(field, ball);
-    if (field.state === "cleared") return;
+    if (isCleared(field)) return;
   }
 }
 
@@ -395,29 +385,26 @@ function turn(field: Field, ball: Ball): void {
   settleBall(ball, nx, ny);
   for (let i = 0; i < met.count; i++) {
     const brick = met.bricks[i];
-    if (brick) hitBrick(field, ball, brick);
+    if (brick) strike(field, ball, brick);
   }
 }
 
-/** Hits a brick once, breaking it when it has no hits left. */
-function hitBrick(field: Field, ball: Ball, brick: Brick): void {
-  const kind = brickKind(brick.kind);
-  if (kind.hits !== "never") {
-    brick.hits--;
-    field.climbed++;
-  }
-  if (kind.hits === "never" || brick.hits > 0) {
-    field.events.add("hit", ball.x, ball.y, brick.cell);
-    return;
-  }
-  brick.broken = true;
-  field.events.add("broken", ball.x, ball.y, brick.cell);
-  if (!kind.needed) return;
-  ball.bounces = 0;
-  field.needed--;
-  if (field.needed > 0) return;
-  field.state = "cleared";
-  field.events.add("cleared", ball.x, ball.y);
+/**
+ * Hits a brick a ball met, which speeds the balls up if it can break, and
+ * starts the ball's count of bounces again if it breaks one the level needs.
+ */
+function strike(field: Field, ball: Ball, brick: Brick): void {
+  if (canBreak(brick)) field.climbed++;
+  const broke = hitBrick(field, brick, ball.x, ball.y);
+  if (broke && brickKind(brick.kind).needed) ball.bounces = 0;
+}
+
+/**
+ * Returns whether the level is cleared, read afresh: the compiler takes a
+ * check made before a hit to hold after it, though the hit may clear it.
+ */
+function isCleared(field: Readonly<Field>): boolean {
+  return field.state === "cleared";
 }
 
 /** Takes a ball out of play, and loses the level's ball if it was the last. */
