@@ -1053,3 +1053,49 @@ shapes.
 
 - **Review in.** B4.1's review came in during this step; its fixes follow
   in their own commit, before Q2.
+
+## B4.1's review
+
+The reviewer reviewed B4.1 with B3.3's review fixes. It found each of those
+fixes held by a spec that fails without it, `playWithoutBall()` hiding
+nothing, and `parseLevel()` laying levels out right. Its findings:
+
+1. **A blast ball meeting two bricks at once hit by the grid's order.**
+   B3.3's fix skipped a brick another's reach had broken, so `.....2o`
+   left the tough brick with a hit while `.....o2` broke both, and a blast
+   ball climbed less than a normal ball. Fixed: `turn()` strikes every
+   brick met, then, if the balls' hits reach, hits around each; a strike
+   breaks no other brick at once, so B3.3's double strike stays gone. The
+   seam spec plays both orders, each breaking both bricks and climbing
+   twice.
+2. **A typo in a level's file went unread.** The compiler doesn't check a
+   JSON value's keys against its type, so `"pase"` left the pace at 1.
+   Fixed: `parseLevel()` throws for a key no level has, and for one no
+   legend brick has, from records the compiler holds to `LevelData`'s and
+   `BrickSpecData`'s keys. The plan says so.
+3. **The reach check's specs missed two cases, and named steel.** Fixed:
+   a brick reachable only through the gap above the grid, and one boxed in
+   by steel with its corners open, which is shut in. The flood stops at any
+   kind that never breaks. Left: the check is cautious about a needed brick
+   boxed in by steel beside a blast brick, which a blast could reach; the
+   levels of set 2 may need it to learn that.
+4. **Checks with no spec.** Fixed: a legend's character longer than one,
+   hits not whole or fewer than the kind's, a chance below none and a tint
+   of 0 are named; sixteen rows, a pace of 0.8 or 1.4, and a chance of 0 or
+   1 parse. Each fails with its check undone.
+5. **A tint where there is no brick went unnoticed,** so tints shifted
+   from their bricks passed. Fixed: `parseLevel()` names it.
+6. **`dropCapsules()` meant the opposite of `dropFrom()`.** Fixed: it is
+   `clearFalling()`, and `dropBolts()` is `clearBolts()`.
+7. **The Basics ramp:** the pace levels off three times, and Castle, the
+   set's test, stops at row 9 while Waves reaches 14. Q2 reads it with the
+   autopilot's report. Left: a pace step under 0.01 can't be felt, so a
+   level that holds the one before's is kept.
+8. **Smaller.** Fixed: `hitBrick()`'s doc says the streak multiplies the
+   score; two capsule specs are named for what they check; `fieldFrom()`'s
+   doc points to `legend.ts`; `checkGrid()` takes `"bricks" | "tints"`.
+
+Left as advised: the guard in `dropFrom()`, `hitBrick()`'s order,
+`stepBalls()`, the wall clamp leaving the offset, Stripes' empty pool, and
+the ids as text. For later: inserting a level shifts the default pools and
+seeds of those after it, as both come from its number.

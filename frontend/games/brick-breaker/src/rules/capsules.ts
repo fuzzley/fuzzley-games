@@ -251,7 +251,7 @@ export function endEffects(field: Field): void {
 }
 
 /** Lets go of the falling capsules, as a life is lost. */
-export function dropCapsules(field: Field): void {
+export function clearFalling(field: Field): void {
   for (const falling of field.falling) falling.live = false;
 }
 

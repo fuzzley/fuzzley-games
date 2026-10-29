@@ -1,7 +1,7 @@
 import { brickKind } from "./catalog/bricks";
 import { CAPSULE_IDS, capsule } from "./catalog/capsules";
 import { CELLS, cellIndex, columnOf, rowOf } from "./grid";
-import type { Level } from "./level";
+import type { Level, LevelBrick } from "./level";
 import {
   LEVELS,
   LEVEL_SETS,
@@ -21,6 +21,11 @@ function parsed(changes: Partial<LevelData> = {}, number = 3): Level {
     set: SET,
     data: { id: "spec", name: "Spec", bricks: ["o2#?........."], ...changes },
   });
+}
+
+/** Returns whether a cell holds a brick that never breaks, which no ball passes. */
+function isWall(brick: LevelBrick | null | undefined): boolean {
+  return !!brick && brickKind(brick.kind).hits === "never";
 }
 
 /** Returns each brick of a level's first row, as its kind and hits, up to the first gap. */
@@ -46,16 +51,15 @@ function firstColumn(level: Level): number[] {
 
 /**
  * Returns the cells of a level's needed bricks that no ball can reach: a
- * flood from the open field below the grid, through every cell but steel,
- * and through the gap above it, finds none of them.
+ * flood from the open field below the grid, through every cell but those
+ * of bricks that never break, and through the gap above it, finds none of
+ * them.
  */
 function shutIn(level: Level): number[] {
   const key = (column: number, row: number): string =>
     `${String(column)},${String(row)}`;
   const isOpen = (column: number, row: number): boolean =>
-    row < 0 ||
-    row >= ROWS ||
-    level.cells[cellIndex(column, row)]?.kind !== "steel";
+    row < 0 || row >= ROWS || !isWall(level.cells[cellIndex(column, row)]);
   const reached = new Set<string>();
   const waiting: [number, number][] = [];
   for (let column = 0; column < COLUMNS; column++) waiting.push([column, ROWS]);
@@ -198,12 +202,12 @@ describe("parseLevel", () => {
     [
       "a legend's hits its kind can't take",
       { legend: { T: { kind: "tough", hits: 5 } } },
-      `"T" takes 5 hits, which a tough brick can't`,
+      `"T" has 5 for its hits, which a tough brick can't take`,
     ],
     [
       "a legend's hits on a brick that never breaks",
       { legend: { S: { kind: "steel", hits: 2 } } },
-      `"S" takes 2 hits, which a steel brick can't`,
+      `"S" has 2 for its hits, which a steel brick can't take`,
     ],
     [
       "a legend's capsule on a brick that gives none",
@@ -242,8 +246,67 @@ describe("parseLevel", () => {
       { drops: 1.5 },
       "its chance of a capsule, 1.5, is no chance",
     ],
+    [
+      "a chance below none",
+      { drops: -0.1 },
+      "its chance of a capsule, -0.1, is no chance",
+    ],
+    [
+      "a legend's character longer than one",
+      { legend: { LL: { kind: "plain" } } },
+      `its legend may not define "LL"`,
+    ],
+    [
+      "a legend's hits that aren't whole",
+      { legend: { T: { kind: "tough", hits: 2.5 } } },
+      `"T" has 2.5 for its hits, which a tough brick can't take`,
+    ],
+    [
+      "a legend's hits fewer than its kind takes",
+      { legend: { T: { kind: "tough", hits: 1 } } },
+      `"T" has 1 for its hits, which a tough brick can't take`,
+    ],
+    [
+      "a tint below the first",
+      { tints: ["0............"] },
+      `"0", in row 1 of its tints, is no tint`,
+    ],
+    [
+      "a tint where there is no brick",
+      { tints: ["1...3........"] },
+      `"3", in row 1 of its tints, tints no brick`,
+    ],
   ])("names %s", (_, changes, problem) => {
     expect(() => parsed(changes)).toThrow(`Level "spec": ${problem}.`);
+  });
+
+  it("names a key no level has, as a typo would leave", () => {
+    const typo = { pase: 1.3 };
+
+    const parse = (): Level => parsed({ name: "Spec", ...typo });
+
+    expect(parse).toThrow(`Level "spec": it has a "pase", which no level has.`);
+  });
+
+  it("names a key no brick of its legend has", () => {
+    const typo = { capsul: "life" };
+
+    const parse = (): Level =>
+      parsed({ legend: { L: { kind: "gift", ...typo } } });
+
+    expect(parse).toThrow(
+      `Level "spec": "L" has a "capsul", which no brick has.`,
+    );
+  });
+
+  it.each<[string, Partial<LevelData>]>([
+    ["sixteen rows", { bricks: Array<string>(16).fill("o............") }],
+    ["the slowest pace", { pace: 0.8 }],
+    ["the fastest pace", { pace: 1.4 }],
+    ["no chance of a capsule", { drops: 0 }],
+    ["every chance of one", { drops: 1 }],
+  ])("parses a level of %s", (_, changes) => {
+    expect(() => parsed(changes)).not.toThrow();
   });
 });
 
@@ -257,11 +320,17 @@ describe("the reach check", () => {
   });
 
   it("reaches a brick through the gap above the grid", () => {
-    const level = parsed({
-      bricks: [".............", "#o#..........", "###.........."],
-    });
+    const level = parsed({ bricks: ["#o#..........", "###.........."] });
 
     expect(shutIn(level)).toEqual([]);
+  });
+
+  it("finds a brick shut in by steel that leaves its corners open", () => {
+    const level = parsed({
+      bricks: [".#...........", "#o#..........", ".#..........."],
+    });
+
+    expect(shutIn(level)).toEqual([cellIndex(1, 1)]);
   });
 });
 

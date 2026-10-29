@@ -897,11 +897,13 @@ text.
   never closes one a player has already reached.
 - **`parseLevel()`** turns a level's entry into a `Level`, with a cell for
   every brick, or throws an error that names the level and what is wrong:
-  a row of the wrong length or too many, an unknown character, a legend
-  that redefines a shared character, hits a kind can't take, a capsule on
-  a brick that gives none, a tint grid of another shape or a tint that
-  isn't one, a capsule or kind that doesn't exist, a pace outside 0.8 to
-  1.4, or a chance outside 0 to 1.
+  a key no level or legend brick has (as a typo leaves, which the compiler
+  doesn't check in JSON), a row of the wrong length or too many, an
+  unknown character, a legend that redefines a shared character, hits a
+  kind can't take, a capsule on a brick that gives none, a tint grid of
+  another shape, a tint that isn't one or one where there is no brick, a
+  capsule or kind that doesn't exist, a pace outside 0.8 to 1.4, or a
+  chance outside 0 to 1.
 
 #### The checks that keep it whole
 

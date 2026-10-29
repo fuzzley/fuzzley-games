@@ -503,7 +503,7 @@ describe("Catch", () => {
     expect(eventsOf(field)).toEqual(["caught", "paddle"]);
   });
 
-  it("holds a ball the paddle moves into, meeting it once", () => {
+  it("holds a ball it is in, as when it moves into one, meeting it once", () => {
     const field = fieldOf("");
     catchCapsule(field, "catch", 0, 0);
     throwBall(field, 13, PADDLE_TOP, 180);
@@ -547,7 +547,7 @@ describe("Catch", () => {
     }).toEqual({ held: false, events: ["caught", "paddle", "launched"] });
   });
 
-  it("keeps a ball caught at its end on it as it shrinks, and in the field", () => {
+  it("launches a ball caught at its end, shrunk and carried to a wall, into the field", () => {
     const field = fieldOf("");
     catchCapsule(field, "catch", 0, 0);
     throwBall(field, 15, 26, 180);

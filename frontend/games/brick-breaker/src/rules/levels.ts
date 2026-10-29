@@ -72,22 +72,37 @@ export const LEVELS: readonly LevelEntry[] = LEVEL_SETS.flatMap((set) =>
 /** The slowest and the fastest a level's pace may be. */
 const PACE = { least: 0.8, most: 1.4 } as const;
 
+/** The keys a level's data may have, so one a typo misspells isn't left unread. */
+const LEVEL_KEYS: Readonly<Record<keyof LevelData, true>> = {
+  id: true,
+  name: true,
+  bricks: true,
+  tints: true,
+  pace: true,
+  drops: true,
+  capsules: true,
+  legend: true,
+};
+
+/** The keys a brick of a level's legend may have. */
+const SPEC_KEYS: Readonly<Record<keyof BrickSpecData, true>> = {
+  kind: true,
+  hits: true,
+  capsule: true,
+};
+
 /**
  * Returns a level ready to play from its entry, or throws an error that
  * names what is wrong with its data.
  */
 export function parseLevel({ number, set, data }: LevelEntry): Level {
+  const extra = unknownKey(data, LEVEL_KEYS);
+  if (extra !== null) {
+    throw wrong(data, `it has a "${extra}", which no level has`);
+  }
   const legend = legendOf(data);
   checkGrid(data, data.bricks, "bricks");
-  if (data.tints) {
-    checkGrid(data, data.tints, "tints");
-    if (data.tints.length !== data.bricks.length) {
-      throw wrong(
-        data,
-        `its tints have ${String(data.tints.length)} rows, its bricks ${String(data.bricks.length)}`,
-      );
-    }
-  }
+  if (data.tints) checkTints(data, data.tints);
   const pace = data.pace ?? 1;
   if (pace < PACE.least || pace > PACE.most) {
     throw wrong(
@@ -117,11 +132,19 @@ function wrong(data: LevelData, problem: string): Error {
   return new Error(`Level "${data.id}": ${problem}.`);
 }
 
+/** Returns the first key of a value that the known keys lack, or null. */
+function unknownKey(
+  value: object,
+  known: Readonly<Record<string, true>>,
+): string | null {
+  return Object.keys(value).find((key) => !Object.hasOwn(known, key)) ?? null;
+}
+
 /** Throws unless a grid of a level's has at most 16 rows, each 13 long. */
 function checkGrid(
   data: LevelData,
   rows: readonly string[],
-  what: string,
+  what: "bricks" | "tints",
 ): void {
   if (rows.length > ROWS) {
     throw wrong(
@@ -135,6 +158,31 @@ function checkGrid(
         data,
         `row ${String(i + 1)} of its ${what} is ${String(row.length)} long, not ${String(COLUMNS)}`,
       );
+    }
+  }
+}
+
+/**
+ * Throws unless a level's tints are its bricks' shape, with nothing but `.`
+ * where there is no brick, so tints shifted from their bricks are found.
+ */
+function checkTints(data: LevelData, tints: readonly string[]): void {
+  checkGrid(data, tints, "tints");
+  if (tints.length !== data.bricks.length) {
+    throw wrong(
+      data,
+      `its tints have ${String(tints.length)} rows, its bricks ${String(data.bricks.length)}`,
+    );
+  }
+  for (const [row, line] of tints.entries()) {
+    for (let column = 0; column < line.length; column++) {
+      const character = line[column] ?? NO_BRICK;
+      if (character !== NO_BRICK && data.bricks[row]?.[column] === NO_BRICK) {
+        throw wrong(
+          data,
+          `"${character}", in row ${String(row + 1)} of its tints, tints no brick`,
+        );
+      }
     }
   }
 }
@@ -159,8 +207,13 @@ function legendOf(data: LevelData): Readonly<Record<string, BrickSpec>> {
 function specOf(
   data: LevelData,
   character: string,
-  { kind, hits, capsule: id }: BrickSpecData,
+  spec: BrickSpecData,
 ): BrickSpec {
+  const extra = unknownKey(spec, SPEC_KEYS);
+  if (extra !== null) {
+    throw wrong(data, `"${character}" has a "${extra}", which no brick has`);
+  }
+  const { kind, hits, capsule: id } = spec;
   if (!isBrickKindId(kind)) {
     throw wrong(data, `"${character}" is a "${kind}", which is no brick`);
   }
@@ -174,7 +227,7 @@ function specOf(
   ) {
     throw wrong(
       data,
-      `"${character}" takes ${String(hits)} hits, which a ${kind} brick can't`,
+      `"${character}" has ${String(hits)} for its hits, which a ${kind} brick can't take`,
     );
   }
   if (id === undefined) return { kind, hits };
