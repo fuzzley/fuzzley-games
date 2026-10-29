@@ -19,13 +19,18 @@ import {
 
 /**
  * Says where a canvas's scene is: still loading, ready once it has drawn its
- * first frame, or failed, when its source rejected or it wasn't ready in
- * time.
+ * first frame, or failed, when its source rejected or it was given up on.
  */
 export type CanvasState = "loading" | "ready" | "failed";
 
-/** How long a scene has to say it is ready before the canvas says it failed. */
-const READY_TIMEOUT_MS = 8_000;
+/** How long a scene may load before the canvas says it is slow. */
+const SLOW_AFTER_MS = 8_000;
+
+/**
+ * How long a scene may load before the canvas gives up on it, for a download
+ * that hangs; a slow connection can take well over the slow mark.
+ */
+const GIVE_UP_AFTER_MS = 60_000;
 
 /**
  * Shows a Phaser scene, and each one it is given after it in the same game,
@@ -34,12 +39,15 @@ const READY_TIMEOUT_MS = 8_000;
  *
  * The canvas is hidden from assistive technology unless `label` names it, as
  * an image; a game played from the keyboard puts its own focusable element
- * around it. Its state is on the element as `data-state` too, for a
- * stylesheet or a check in a browser.
+ * around it. Its state is on the element as `data-state` too, and whether it
+ * is slow as `data-slow`, for a stylesheet or a check in a browser.
  */
 @Component({
   selector: "fz-phaser-canvas",
-  host: { "[attr.data-state]": "state()" },
+  host: {
+    "[attr.data-state]": "state()",
+    "[attr.data-slow]": "slow() || null",
+  },
   templateUrl: "./phaser_canvas.component.html",
   styleUrl: "./phaser_canvas.component.scss",
   // Its stylesheet lays out what the app projects, which an emulated one
@@ -62,6 +70,15 @@ export class PhaserCanvasComponent {
     computation: () => "loading",
   });
 
+  /**
+   * Whether the scene is taking long enough to load for the app to say so,
+   * as it may on a slow connection; it is still loading, not failed.
+   */
+  readonly slow = linkedSignal<SceneSource, boolean>({
+    source: this.scene,
+    computation: () => false,
+  });
+
   private readonly createHost = inject(PHASER_CANVAS_HOST);
   private readonly surface =
     viewChild.required<ElementRef<HTMLElement>>("surface");
@@ -75,17 +92,25 @@ export class PhaserCanvasComponent {
     effect((onCleanup) => {
       const source = this.scene();
       let current = true;
-      const timeout = setTimeout(() => {
-        if (current) this.state.set("failed");
-      }, READY_TIMEOUT_MS);
       const settle = (state: CanvasState): void => {
         if (!current) return;
-        clearTimeout(timeout);
+        stopTimers();
+        this.slow.set(false);
         this.state.set(state);
       };
+      const slowTimer = setTimeout(() => {
+        if (current) this.slow.set(true);
+      }, SLOW_AFTER_MS);
+      const giveUpTimer = setTimeout(() => {
+        settle("failed");
+      }, GIVE_UP_AFTER_MS);
+      function stopTimers(): void {
+        clearTimeout(slowTimer);
+        clearTimeout(giveUpTimer);
+      }
       onCleanup(() => {
         current = false;
-        clearTimeout(timeout);
+        stopTimers();
       });
 
       untracked(() => {

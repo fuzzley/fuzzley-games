@@ -300,13 +300,34 @@ describe("GameCanvasComponent", () => {
     });
   });
 
-  describe("when a board never reports itself ready", () => {
+  describe("when a board is slow to report itself ready", () => {
     beforeEach(() => {
       vi.useFakeTimers();
-      // A fresh fixture, so the timeout is armed while the timers are fake.
+      // A fresh fixture, so the timers are armed while they are fake.
       fixture = TestBed.createComponent(GameCanvasComponent);
       fixture.detectChanges();
       vi.advanceTimersByTime(8000);
+      fixture.detectChanges();
+    });
+
+    it("still covers the board", () => {
+      expect(isLoading()).toBe(true);
+    });
+
+    it("says it is still loading", () => {
+      expect(queryText(fixture, ".loading-text")).toContain(
+        "Still loading Klondike",
+      );
+    });
+  });
+
+  describe("when a board never reports itself ready", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      // A fresh fixture, so the timers are armed while they are fake.
+      fixture = TestBed.createComponent(GameCanvasComponent);
+      fixture.detectChanges();
+      vi.advanceTimersByTime(60_000);
       fixture.detectChanges();
     });
 
@@ -316,7 +337,7 @@ describe("GameCanvasComponent", () => {
 
     it("says what went wrong", () => {
       expect(queryText(fixture, ".loading-text")).toContain(
-        "Board initialization timed out",
+        "The board couldn't be loaded",
       );
     });
   });

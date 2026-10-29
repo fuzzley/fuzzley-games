@@ -126,6 +126,31 @@ describe("BoardComponent", () => {
       );
       expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
     });
+
+    describe("on a slow connection", () => {
+      beforeEach(() => {
+        vi.useFakeTimers({ shouldAdvanceTime: true });
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it("say the board is still loading, offering nothing to press", async () => {
+        const { detectChanges } = await renderBoard({ readyAtOnce: false });
+
+        vi.advanceTimersByTime(8_000);
+        detectChanges();
+
+        expect(screen.getByRole("status")).toHaveTextContent(
+          "Still loading the board",
+        );
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(
+          screen.getAllByRole("button").map((button) => button.textContent),
+        ).toEqual(["Elsewhere"]);
+      });
+    });
   });
 
   describe("pausing", () => {

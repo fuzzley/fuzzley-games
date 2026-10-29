@@ -25,6 +25,12 @@
       <button type="button" class="fz-button" (click)="resume()">Resume</button>
     </div>
   }
+  @case ("slow") {
+    <div class="card" role="status">
+      <p class="card-title">Still loading the board</p>
+      <p>It can take a while on a slow connection.</p>
+    </div>
+  }
   @case ("failed") {
     <div class="card" role="alert">
       <p class="card-title">The board couldn't be drawn</p>

@@ -31,7 +31,10 @@ take the pure ones.
   its scenes in, which makes the one host it keeps, through the
   `PHASER_CANVAS_HOST` token. Its `scene` input is a `SceneSource`, a
   function returning a `MakeScene` or a promise of one; its `state` is
-  `loading`, `ready` or `failed`, also on the element as `data-state`; and
+  `loading`, `ready` or `failed`, also on the element as `data-state`, and
+  failed only when the source rejects or a minute passes, since a slow
+  connection can take that long; `slow` says, after 8 s, that it is still
+  loading, for the app to say so (`data-slow`); and
   what the app projects as `[fzCanvasPlaceholder]` lies over the canvas
   until the scene is ready. It imports the host, and so Phaser, with
   `import()`, when it first shows a scene.
