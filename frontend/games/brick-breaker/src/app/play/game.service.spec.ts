@@ -3,13 +3,14 @@ import { installFakeViewport } from "@fz/game-ui/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { FEW_BRICKS } from "../../rules/describe";
-import { multiplier } from "../../rules/scoring";
 import { STEP_MS } from "../../rules/stepper";
 import { FIELD_WIDTH, FIRST_LIVES } from "../../rules/tuning";
 import {
   FRAME_MS,
   SPEC_LEVEL,
+  SPEC_LEVELS,
   STILL,
+  awayFrom,
   loseBall,
   playFor,
   playToClear,
@@ -30,6 +31,11 @@ function isWide(game: GameService): boolean {
 function heldBalls(game: GameService): number {
   return game.frame().field.balls.filter((ball) => ball.live && ball.held)
     .length;
+}
+
+/** Lets every promise the game is waiting on settle. */
+async function flush(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 /** Returns what the live region last said. */
@@ -149,9 +155,9 @@ describe("GameService", () => {
     it("copies how many times a hit scores, by the streak, for the bar", async () => {
       const game = await launchedAt(SPEC_LEVEL.few);
 
-      playUntil(game, under, () => game.frame().field.streak >= 8);
+      playUntil(game, under, () => game.frame().field.streak >= 5);
 
-      expect(game.multiplier()).toBe(multiplier(game.frame().field.streak));
+      expect(game.multiplier()).toBe(2);
     });
 
     it("scores a hit once again on a new run", async () => {
@@ -197,6 +203,69 @@ describe("GameService", () => {
         serving: true,
         outcome: "playing",
       });
+    });
+
+    it("leaves the paddle empty for a beat after every lost ball", async () => {
+      const game = await gameAt(SPEC_LEVEL.steel);
+      loseBall(game);
+      loseBall(game);
+
+      game.tick(SERVE_MS / 2, STILL);
+
+      expect(game.serving()).toBe(false);
+    });
+
+    it("starts a new run's beat afresh", async () => {
+      const game = await gameAt(SPEC_LEVEL.steel);
+      loseBall(game);
+      game.tick(SERVE_MS / 2, STILL);
+      const starting = game.newGame();
+      TestBed.inject(ConfirmService).accept();
+      await starting;
+      loseBall(game);
+
+      game.tick(SERVE_MS / 2, STILL);
+
+      expect(game.serving()).toBe(false);
+    });
+
+    it("holds the beat while the level is paused", async () => {
+      const game = await gameAt(SPEC_LEVEL.steel);
+      loseBall(game);
+      game.tick(SERVE_MS / 2, STILL);
+      game.pause();
+
+      game.tick(SERVE_MS, STILL);
+
+      expect(game.frame().field.state).toBe("lost");
+    });
+
+    it("serves the next ball once the beat has run, paused or not", async () => {
+      const game = await gameAt(SPEC_LEVEL.steel);
+      loseBall(game);
+      game.tick(SERVE_MS / 2, STILL);
+      game.pause();
+      game.tick(SERVE_MS, STILL);
+      game.resume();
+
+      game.tick(SERVE_MS / 2, STILL);
+
+      expect(game.serving()).toBe(true);
+    });
+
+    it("serves no ball on a frame that loses the last life, however long", async () => {
+      const game = await gameAt(SPEC_LEVEL.steel);
+      loseBall(game);
+      loseBall(game);
+      playUntil(game, () => STILL, game.serving);
+      game.launch();
+
+      playUntil(game, awayFrom, game.ended, SERVE_MS);
+
+      expect({
+        field: game.frame().field.state,
+        serving: game.serving(),
+      }).toEqual({ field: "lost", serving: false });
     });
 
     it("ends the run at the last life, and says so", async () => {
@@ -399,6 +468,22 @@ describe("GameService", () => {
         expect(game.clearedOpen()).toBe(true);
       });
 
+      it("opens no card over a new run paused during the cleared card's wait", async () => {
+        const game = await clearedAt(SPEC_LEVEL.blasts);
+        const starting = game.newGame();
+        TestBed.inject(ConfirmService).accept();
+        await starting;
+        game.launch();
+        game.pause();
+
+        game.tick(FADE_MS, STILL);
+
+        expect({
+          cleared: game.clearedOpen(),
+          result: game.resultOpen(),
+        }).toEqual({ cleared: false, result: false });
+      });
+
       it("goes nowhere at a launch before the card shows", async () => {
         const game = await clearedAt(SPEC_LEVEL.blasts);
 
@@ -588,7 +673,7 @@ describe("GameService", () => {
         game.closeResult();
 
         game.command(command);
-        await Promise.resolve();
+        await flush();
 
         expect({
           id: game.run().id > ended.id,
@@ -605,7 +690,7 @@ describe("GameService", () => {
       game.command("launch");
       game.command("toggle");
       game.command("go");
-      await Promise.resolve();
+      await flush();
 
       expect(game.run()).toBe(ended);
     });
@@ -629,6 +714,15 @@ describe("GameService", () => {
         lives: 3,
         score: 0,
       });
+    });
+
+    it("puts away the result card to try again", async () => {
+      const game = await endedAt(SPEC_LEVEL.steel);
+      game.tick(FRAME_MS, STILL);
+
+      game.tryAgain();
+
+      expect(game.resultOpen()).toBe(false);
     });
 
     it("tries nothing again while the run is under way", async () => {
@@ -759,6 +853,17 @@ describe("GameService", () => {
         speed: "relaxed",
         level: SPEC_LEVEL.few,
       });
+    });
+
+    it("keeps the run where it is when asked for a level the game hasn't", async () => {
+      const game = TestBed.inject(GameService);
+      const before = game.run();
+
+      await expect(game.startAt(SPEC_LEVELS.length + 1)).rejects.toThrow(
+        `No level ${String(SPEC_LEVELS.length + 1)}.`,
+      );
+
+      expect(game.run()).toBe(before);
     });
 
     it("starts at a level of the player's choosing", async () => {

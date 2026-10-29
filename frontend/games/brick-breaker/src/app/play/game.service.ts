@@ -1,6 +1,7 @@
 import {
   Injectable,
   InjectionToken,
+  type WritableSignal,
   computed,
   inject,
   signal,
@@ -15,10 +16,9 @@ import {
   describeCaught,
   describeCleared,
   describeEnd,
-  describeExtraLife,
   describeFewLeft,
   describeLevel,
-  describeLost,
+  describeLives,
   describePause,
   describeResume,
 } from "../../rules/describe";
@@ -26,7 +26,7 @@ import type { FieldEvent } from "../../rules/events";
 import {
   type Field,
   createField,
-  launch,
+  launch as launchBalls,
   serve,
   steerField,
   stepField,
@@ -122,8 +122,8 @@ export class GameService {
 
   /** The serial of the last of the field's events heard. */
   private heard = 0;
-  /** The time since the last ball was lost, while the next waits to be served, or null. */
-  private sinceLost: number | null = null;
+  /** The time the paddle has stood empty since the last ball was lost. */
+  private sinceLost = 0;
   /** The time since the level was cleared or the run ended, while its card waits to open, or null. */
   private sinceDone: number | null = null;
   /** What a frame calls to be said, gathered as it is worked out, and said at its end. */
@@ -201,15 +201,24 @@ export class GameService {
   /**
    * Moves the field on by the time a frame took, as often as the time holds
    * a step, steered as the player steers it, and takes what it came to into
-   * the run; or, with no level in play, opens the card a cleared level or an
-   * ended run waits for once its time has run.
+   * the run; or, with the level cleared or the run ended, opens the card it
+   * waits for once its time has run. A paused level stays as it is.
    */
   tick(deltaMs: number, steer: Readonly<Steer>): void {
-    const outcome = this.runState().outcome;
-    if (outcome === "ready" || outcome === "playing") {
-      this.play(deltaMs, steer);
-    } else {
-      this.wait(deltaMs);
+    switch (this.runState().outcome) {
+      case "ready":
+      case "playing":
+        this.play(deltaMs, steer);
+        break;
+      case "cleared":
+        this.openAfter(deltaMs, clearedDelayMs, this.clearedOpenState);
+        break;
+      case "over":
+      case "won":
+        this.openAfter(deltaMs, resultDelayMs, this.resultOpenState);
+        break;
+      case "paused":
+        break;
     }
     this.sayNews();
   }
@@ -262,7 +271,7 @@ export class GameService {
         this.runState.update(startLevel);
         this.announcer.say(describeLevel(this.level(), this.field.needed));
       }
-      launch(this.field);
+      launchBalls(this.field);
       fireBolts(this.field);
     }
   }
@@ -328,8 +337,8 @@ export class GameService {
       return;
     }
     const after = startLevel(before);
-    this.runState.set(after);
     this.showField(after);
+    this.runState.set(after);
     this.announcer.say(describeLevel(this.level(), this.field.needed));
   }
 
@@ -379,8 +388,9 @@ export class GameService {
   }
 
   /**
-   * Steps the field by a frame's time, serves again once a lost ball's beat
-   * has run, hears what happened and takes it into the run.
+   * Steps the field by a frame's time, hears what happened and takes it
+   * into the run, then, with the level still in play, serves again once a
+   * lost ball's beat has run.
    */
   private play(deltaMs: number, steer: Readonly<Steer>): void {
     const field = this.field;
@@ -389,32 +399,29 @@ export class GameService {
     const steps = advanceClock(this.clock, deltaMs);
     for (let i = 0; i < steps; i++) stepField(field);
     this.shown.alpha = progressOf(this.clock);
-    this.serveAfterLoss(deltaMs);
     field.events.forEachSince(this.heard, this.hear);
     this.heard = field.events.latest;
     const fewLeft = describeFewLeft(needed, field.needed);
     if (fewLeft !== null) this.news.push(fewLeft);
+    this.takeIn(catchUp(this.runState(), field));
+    if (this.runState().outcome === "playing") this.serveAfterLoss(deltaMs);
     this.servingState.set(field.state === "serve");
     this.multiplierState.set(multiplier(field.streak));
-    this.takeIn(catchUp(this.runState(), field));
   }
 
   /** Puts the next ball on the paddle once the last one lost has had its beat. */
   private serveAfterLoss(deltaMs: number): void {
-    if (this.field.state !== "lost") {
-      this.sinceLost = null;
-      return;
-    }
-    this.sinceLost = (this.sinceLost ?? 0) + deltaMs;
+    if (this.field.state !== "lost") return;
+    this.sinceLost += deltaMs;
     if (this.sinceLost < SERVE_MS) return;
     serve(this.field);
-    this.sinceLost = null;
+    this.sinceLost = 0;
   }
 
   /**
    * Hears an event of the field: a capsule caught is said by its name, but
-   * an extra life, which is said as the run takes it. Made once, so hearing
-   * makes nothing.
+   * an extra life, which `describeLives()` says as the run takes it. Made
+   * once, so hearing makes nothing.
    */
   private readonly hear = (event: Readonly<FieldEvent>): void => {
     if (event.kind !== "caught" || event.capsule === null) return;
@@ -422,37 +429,45 @@ export class GameService {
     this.news.push(describeCaught(event.capsule));
   };
 
-  /** Takes the run the field brought it to, and gathers what to say of the change. */
+  /**
+   * Takes the run the field brought it to, and gathers what to say of the
+   * change: the end of a run lost, rather than its last ball; else the
+   * lives gained and lost, then a clearing or a win.
+   */
   private takeIn(after: Run): void {
     const before = this.runState();
     if (after === before) return;
     this.runState.set(after);
-    if (after.lives > before.lives) this.news.push(describeExtraLife(after));
+    if (after.outcome === "over") {
+      this.sinceDone = 0;
+      this.news.push(describeEnd(after, false));
+      return;
+    }
+    const lives = describeLives(before, after);
+    if (lives !== null) this.news.push(lives);
     if (after.outcome === "cleared") {
       this.sinceDone = 0;
       this.tallyState.set(tallyOf(this.field));
       this.news.push(describeCleared(after));
-    } else if (hasEnded(after)) {
+    } else if (after.outcome === "won") {
       this.sinceDone = 0;
       this.news.push(describeEnd(after, false));
-    } else if (after.lives < before.lives) {
-      this.news.push(describeLost(after));
     }
   }
 
-  /** Opens the card a cleared level or an ended run waits for, once its time has run. */
-  private wait(deltaMs: number): void {
+  /**
+   * Opens a card once its wait, with motion or without, has run since the
+   * level was cleared or the run ended.
+   */
+  private openAfter(
+    deltaMs: number,
+    delayMs: (motion: boolean) => number,
+    card: WritableSignal<boolean>,
+  ): void {
     if (this.sinceDone === null) return;
     this.sinceDone += deltaMs;
-    const run = this.runState();
-    const motion = this.viewport.allowsMotion();
-    if (run.outcome === "cleared") {
-      if (this.sinceDone < clearedDelayMs(motion)) return;
-      this.clearedOpenState.set(true);
-    } else {
-      if (this.sinceDone < resultDelayMs(motion)) return;
-      this.resultOpenState.set(true);
-    }
+    if (this.sinceDone < delayMs(this.viewport.allowsMotion())) return;
+    card.set(true);
     this.sinceDone = null;
   }
 
@@ -463,7 +478,7 @@ export class GameService {
     this.news.length = 0;
   }
 
-  /** Whether a key may start another run: once an ended run's card is away. */
+  /** Returns whether a key may start another run: once an ended run's card is away. */
   private mayStartAnother(): boolean {
     return this.ended() && this.resultClosedState();
   }
@@ -494,14 +509,14 @@ export class GameService {
     return entry;
   }
 
-  /** Puts a new run on the board, at its first level. */
+  /** Puts a new run on the board, at its first level, laid out before the run is. */
   private begin(run: Run): void {
+    this.showField(run);
     this.runState.set(run);
     this.resultOpenState.set(false);
     this.resultClosedState.set(false);
     this.runsState.update((runs) => runs + 1);
     this.announcer.clear();
-    this.showField(run);
   }
 
   /** Lays out the run's level in play on a new field, with nothing of the last one left. */
@@ -512,7 +527,7 @@ export class GameService {
     this.shown.alpha = 0;
     this.clock.carried = 0;
     this.heard = 0;
-    this.sinceLost = null;
+    this.sinceLost = 0;
     this.sinceDone = null;
     this.servingState.set(true);
     this.multiplierState.set(1);

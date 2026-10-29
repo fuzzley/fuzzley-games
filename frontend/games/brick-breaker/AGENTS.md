@@ -52,8 +52,9 @@ the scene and the shell's first files exist.
   and the paddle are all boxes.
 - **The field** — `src/rules/field.ts`: `Field`, a level in play, which
   each step changes in place, from records made once, so a step makes
-  nothing but a random draw's generator, for a lull or a capsule. `createField()` lays out a `Level` (`level.ts`), `steerField()`
-  takes a frame's steering, `stepField()` moves it on a step, `launch()`
+  nothing but a random draw's generator, for a lull or a capsule.
+  `createField()` lays out a `Level` (`level.ts`), `steerField()` takes a
+  frame's steering, `stepField()` moves it on a step, `launch()`
   serves the ball waiting on the paddle and `serve()` puts one there after
   the last is lost. A ball's travel gathers what it meets first, the walls,
   the paddle and the bricks' exposed faces and corners, all at one moment,
@@ -74,8 +75,9 @@ the scene and the shell's first files exist.
   when it was set, as milliseconds summed step by step would creep.
   `scoring.ts` scores each hit by its kind's points for the hits it took,
   times the streak's multiplier, keeps the streak, and says what clearing a
-  level adds. `events.ts`'s `EventLog` is a ring of 256 numbered records,
-  which the scene will play from the last one it played.
+  level adds, and how a cleared level's points add up (`tallyOf()`).
+  `events.ts`'s `EventLog` is a ring of 256 numbered records, which the
+  scene plays and the shell hears, each from the last one it read.
 - **The run** — `src/rules/run.ts`: `Run`, a value each change replaces,
   as Snake's is, from the first level to the end: the level in play, the
   points banked and the score, the lives and the points of the next, and
@@ -87,8 +89,9 @@ the scene and the shell's first files exist.
   returns it as it is, so a run over stays over and a level is banked once,
   and so does a field with nothing new, so the shell can tell a frame that
   changed the run. `describe.ts` puts what happened into the words the
-  announcer says: a level's start, a capsule caught, a ball lost, an extra
-  life, the last few bricks, a clearing, a pause, going on and the end.
+  announcer says: a level's start, a capsule caught, the lives a frame
+  gained and lost (`describeLives()`, from the run before and after), the
+  last few bricks, a clearing, a pause, going on and the end.
 - **The levels** — `src/rules/levels/`: a JSON file for each set of
   levels, its name, its chance of a capsule and its levels, each a picture
   of its bricks in the characters of `legend.ts`'s shared legend, with any
@@ -113,10 +116,11 @@ the scene and the shell's first files exist.
   `toFieldX()`/`toFieldY()` between the two; `frame.ts` is what the scene
   reads: `FieldView`, the field it can't change, `EventsView` and
   `FieldFrame`; `layers.ts` the order the field is drawn in, back to front,
-  in one list; `timing.ts` how long each flourish lasts and how long the
-  cards wait; `flourish.ts` how each flourish moves over its time, and how
-  bright the last bricks a level needs glow once none has broken for a
-  while, pulsing only where motion is welcome; `tags.ts` where the tags of
+  in one list; `timing.ts` how long each flourish lasts, how long the
+  paddle stands empty after the last ball is lost (`SERVE_MS`), and how
+  long the cards wait; `flourish.ts` how each flourish moves over its
+  time, and how bright the last bricks a level needs glow once none has
+  broken for a while, pulsing only where motion is welcome; `tags.ts` where the tags of
   the effects in play lie under the paddle, and how much of each one's time
   is left; `controls.ts` the keys by `event.code`, the commands and the
   held pushes; `steering.ts` the `Steering` that turns keys, the mouse
@@ -136,8 +140,8 @@ the scene and the shell's first files exist.
   capsule's symbol (`SYMBOLS`); and `shapes.ts` holds the commands they
   are drawn with (`DrawCommand`), their helpers, which take no size below
   nothing, since a canvas not yet laid out gives a unit too small for the
-  insets, and `lineWidth()`; `effects.ts` says what each event calls for, its
-  sound and the flourishes it plays where motion is welcome.
+  insets, and `lineWidth()`; `effects.ts` says what each event calls for,
+  its sound and the flourishes it plays where motion is welcome.
   `contrast.spec.ts` holds every tint, the steel, blast and gift bricks,
   every ball kind, both capsule tones, the paddle and the last bricks' glow
   to 3:1 against the field in every palette, a tough brick's deeper tints
@@ -157,10 +161,10 @@ the scene and the shell's first files exist.
   fade and the field's shake, `CapsulePainter` and `BoltPainter` what
   falls and rises, `PaddlePainter` the paddle as two round ends and a
   rectangle between their middles, which keep their shape at any width on
-  either renderer, with its cannons and rim, `TagPainter` the effects in play and their emptying
-  rings, and `BallPainter` the balls, with a fire ball's embers, one for
-  each gap it goes, each
-  thing that moves drawn between its last place and its next. Every game
+  either renderer, with its cannons and rim, `TagPainter` the effects in
+  play and their emptying rings, and `BallPainter` the balls, with a fire
+  ball's embers, one for each ember's width it goes. Each thing that moves
+  is drawn between its last place and its next. Every game
   object is made as the scene is created, and a new field stops what the
   last one set off. The scene plays each of the field's events once, from
   the last it played, and the flourishes an event calls for only where

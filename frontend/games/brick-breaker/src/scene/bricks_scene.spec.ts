@@ -1173,6 +1173,20 @@ describe("BricksScene", () => {
       expect([atSixty, atOneTwenty]).toEqual([10, 10]);
     });
 
+    it("starts a fire ball's trail where it shows, not where its place's last ball went", async () => {
+      const { shell, run, scene } = await startBoard();
+      const ball = throwBall(shell.field, 4, 20, 0);
+      shell.field.ballKind = "fire";
+      run.advance(16);
+      ball.live = false;
+      run.advance(16);
+
+      throwBall(shell.field, 5, 20, 0);
+      run.advance(16);
+
+      expect(scene.balls.embers.getAliveParticleCount()).toBe(0);
+    });
+
     it("leaves no ember under a fire ball standing still", async () => {
       const { shell, run, scene } = await startBoard();
       throwBall(shell.field, 4, 20, 0);

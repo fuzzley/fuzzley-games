@@ -17,6 +17,8 @@ const TRAIL_JUMP = 3;
 interface EmberPlace {
   x: number;
   y: number;
+  /** Whether its ball has yet to be drawn since it was last out of play, so its trail starts where it shows. */
+  fresh: boolean;
 }
 
 /**
@@ -45,7 +47,7 @@ export class BallPainter {
     this.images = Array.from({ length: MAX_BALLS }, () =>
       scene.add.image(0, 0, ATLAS, ballFrame("normal")).setVisible(false),
     );
-    this.embersAt = this.images.map(() => ({ x: 0, y: 0 }));
+    this.embersAt = this.images.map(() => ({ x: 0, y: 0, fresh: true }));
     layer.add([this.embers, ...this.images]);
   }
 
@@ -74,18 +76,22 @@ export class BallPainter {
       const ember = this.embersAt[i];
       if (!image || !ember) continue;
       image.setVisible(ball?.live === true);
-      if (!ball?.live) continue;
+      if (!ball?.live) {
+        ember.fresh = true;
+        continue;
+      }
       if (image.frame.name !== frame) image.setFrame(frame);
       image.setPosition(
         toCanvasX(metrics, between(ball.lastX, ball.x, alpha)),
         toCanvasY(metrics, between(ball.lastY, ball.y, alpha)),
       );
-      if (trails) {
+      if (trails && !ember.fresh) {
         this.trail(ember, image.x, image.y, metrics);
       } else {
         ember.x = image.x;
         ember.y = image.y;
       }
+      ember.fresh = false;
     }
   }
 
