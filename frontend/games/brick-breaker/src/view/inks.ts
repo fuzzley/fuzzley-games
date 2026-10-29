@@ -1,5 +1,5 @@
-// The game's own colors are written here rather than in a stylesheet, as
-// Minesweeper's and Sudoku's inks are, because only the canvas draws them.
+// Unlike Minesweeper's and Sudoku's inks, which live in a stylesheet, the
+// game's own colors are written here, because only the canvas draws them.
 
 /**
  * The tints a brick takes in a light palette, by its tint, 0 to 7, each

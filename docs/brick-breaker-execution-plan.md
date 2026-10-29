@@ -328,13 +328,17 @@ in Part 2, under `frontend/games/brick-breaker/` unless they say otherwise.
   field's colors from the palette's roles, the eight tints for light and
   dark, and every tint, kind, ball and capsule held to 3:1 against the
   field, and the ball against every tint, in every palette. If the tints
-  can't all clear the ball, the ball gets its ring (Risks), and the spec
+  can't all clear the ball, the ball gets its outline (Risks), and the spec
   says so. One commit.
 - **B5.3** `src/view/art.ts` and `effects.ts`: `BRICK_ART`, `BALL_ART`,
   `CAPSULE_ART`, `SYMBOLS` and `atlasFrames()`, each frame drawn as plain
-  commands, and what each event calls for. Specced: every frame within its
-  size, every kind in every state present, each event's effects with and
-  without motion. One commit, `yarn verify` with it.
+  commands, and what each event calls for. Every ball and capsule is
+  outlined in the palette's `outline`, at least 1 CSS px wide, and every
+  color the art derives from the palette (a tough brick's deeper tint, a
+  plain brick's lighter edge, a ghost's outline, the net, the bolt, the
+  tags) joins `contrast.spec.ts`. Specced: every frame within its size,
+  every kind in every state present, each event's effects with and without
+  motion. One commit, `yarn verify` with it.
 
 #### B6: the scene (large)
 
@@ -596,7 +600,9 @@ no bad capsule falls.
 - **Good and bad look different twice over:** a good capsule is the accent
   with a rounded end, a bad one the danger color with a notched end, and
   each has its own symbol, so a player who can't tell the colors apart
-  still can. A bad capsule can always be dodged, as the genre's always can.
+  still can. Each is outlined in the field's color, as a ball is, since it
+  falls across the bricks below it. A bad capsule can always be dodged, as
+  the genre's always can.
 - **One of each group at a time.** The paddle's size (Wide, Narrow), its
   mode (Catch, Laser), the balls' kind (Fire, Blast) and their pace (Slow,
   Fast) each take the latest capsule caught, which replaces the one before.
@@ -626,8 +632,10 @@ What keeps them readable, which a new kind keeps too:
 - **The ball is the clearest thing on the field.** Every kind is held to
   3:1 against the field by the contrast spec, and outlined in the field's
   color, which every brick tint is held to 3:1 against. A ball's own color
-  can't clear every tint too: the fire ball's warning and the blast ball's
-  danger sit as far from the field as the tints do.
+  can't clear every tint too: the fire ball's warning, the blast ball's
+  danger and the tints all sit on the same side of the field, so a color
+  3:1 from both the field and a tint would need 9:1 from the field, which
+  only the text reaches.
 - **A kind changes the ball's look in one way a glance can take in:** a
   color and one mark (a trail, a ring). A trail is never wider than the
   ball, and never longer than three of it.
@@ -917,7 +925,7 @@ text.
 | The catalog spec   | `src/rules/catalog.spec.ts`      | Every entry has a name and a sentence; every brick kind is used by a level, and every capsule can fall in one from its `from` on; every trait and effect kind is used; the weights are positive; the bad capsules are the only ones that can't fall at Relaxed |
 | The levels spec    | `src/rules/levels.spec.ts`       | As Sudoku's bank spec: every level parses; ids and names are unique, and ids kebab-case; each has a needed brick; each needed brick can be reached, a flood from below through anything but steel touching it; the pace never falls within a set               |
 | The autopilot spec | `src/rules/autopilot.spec.ts`    | Every level, at every speed, from a fixed seed, is cleared by `src/testing/autopilot.ts` within eight minutes of game time, and its last three bricks within one, which finds a level that loops or hides its last brick                                       |
-| The contrast spec  | `src/view/contrast.spec.ts`      | Every tint, kind, ball and capsule against the field, in every palette                                                                                                                                                                                         |
+| The contrast spec  | `src/view/contrast.spec.ts`      | Every tint, kind, ball and capsule against the field, each ball and capsule against its outline, and the outline against every brick, in every palette                                                                                                         |
 | The scene spec     | `src/scene/bricks_scene.spec.ts` | Every kind, in every state, is drawn from a frame of the atlas                                                                                                                                                                                                 |
 
 The autopilot plays as a good player would: it keeps the paddle under the
@@ -1258,8 +1266,9 @@ how a careful clone does its collisions:
   the wall is drawn only on the left, the top and the right; and
   `toCanvasX()`, `toCanvasY()`, `toFieldX()` and `toFieldY()` between the
   two, an axis each, so nothing is made to hold a pair.
-- `palette.ts`: `bricksPalette(roles, mode)`. The field is `panel`, and the
-  outline around every ball; the wall is `text` at 20%, the ball `text`, the
+- `palette.ts`: `bricksPalette(roles, mode)`. The field is `panel`, and so
+  is the outline around every ball and capsule; the wall is `text` at 20%,
+  left below 3:1 as it only frames the field, as Snake's is; the ball `text`, the
   paddle `accent`, steel `text` at 55%, enough for 3:1 against the field in
   every palette, a good capsule and a gift brick `accent`, a bad one and a
   blast brick `danger`, the fire ball `warning` and the blast ball `danger`;
@@ -1271,8 +1280,9 @@ how a careful clone does its collisions:
   canvas too, so no stylesheet needs them.
 - `art.ts`: `BRICK_ART`, `BALL_ART`, `CAPSULE_ART` and `SYMBOLS`, and
   `atlasFrames(palette, unit)`: every frame the atlas holds (each kind in
-  each tint and each state, each ball, each capsule, the paddle's slice,
-  the bolt, the shard and each tag), with its size in device pixels and its
+  each tint and each state, each ball and each capsule, outlined at least
+  1 CSS px wide, the paddle's slice, the bolt, the shard and each tag),
+  with its size in device pixels and its
   drawing as plain commands (rectangles, rounded rectangles, circles, lines
   and polygons), which the scene plays into a `Graphics`. So what every
   frame looks like is specced without Phaser.
@@ -1581,9 +1591,10 @@ statements, functions and lines, and 95% of branches.
   plays it there, and the layout check holds the unit to 10 CSS px or more.
 - **Eight tints at 3:1 against the field and against the ball is a narrow
   band** of lightness, in a light palette most. B5's contrast spec decided
-  it: the plain ball clears eight hues in the band, but the fire and blast
-  balls can't, so every ball has a thin outline in the field's color, and
-  the tints answer only to the field.
+  it: in the light palettes the plain ball clears eight hues in the band,
+  but the fire and blast balls can't, nor can a capsule, so every ball and
+  capsule has a thin outline in the field's color, and the tints answer
+  only to the field, which let the dark inks be brighter.
 - **A blast chain could flash.** Effects are small and spread in time, and
   B12 plays Chain reaction looking for it.
 - **The lift changes a live game.** Snake's suite, its layout check, its

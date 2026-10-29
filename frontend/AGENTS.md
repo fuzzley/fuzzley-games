@@ -131,6 +131,8 @@ their templates and stylesheets alike.
   Stylelint, with `@fz/style`'s preset, rejects a color written anywhere
   else but the one stylesheet where a game keeps colors of its own (the
   Solitaire Collection's card artwork, Minesweeper's and Sudoku's inks). A
+  game drawn on a canvas keeps colors of its own in its view's TypeScript
+  instead, as Brick Breaker's inks are, since no stylesheet draws them. A
   custom property of an app's own has no `--fz-` prefix, and exists only
   where no `--fz-*` one will do.
 - **Runtime values are custom properties; build-time values are Sass.**
