@@ -1,0 +1,56 @@
+<button
+  #trigger="ngMenuTrigger"
+  class="fz-badge trigger"
+  type="button"
+  ngMenuTrigger
+  [menu]="menu"
+  [attr.aria-label]="badgeLabel()"
+>
+  <span>{{ name() }}</span>
+  <fz-icon class="chevron" name="chevron" />
+</button>
+
+<!--
+  Covers the page while the menu is open, so the tap that closes it presses
+  nothing else. Holding focus where it is keeps the menu open until the click
+  lands here. The keyboard has Escape and Tab instead.
+-->
+@if (trigger.expanded()) {
+  <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+  <div
+    class="dismiss"
+    (mousedown)="$event.preventDefault()"
+    (click)="dismiss(trigger)"
+  ></div>
+}
+
+<div
+  ngMenu
+  #menu="ngMenu"
+  class="panel"
+  [attr.data-side]="side()"
+  [class.align-end]="alignsEnd()"
+  [attr.aria-label]="label()"
+  (itemSelected)="select($event)"
+>
+  <ng-template ngMenuContent>
+    @for (item of items(); track item.id) {
+      <div
+        ngMenuItem
+        class="item"
+        role="menuitemradio"
+        [value]="item.id"
+        [searchTerm]="item.name"
+        [attr.aria-checked]="item.checked"
+      >
+        <span class="name">{{ item.name }}</span>
+        <span class="detail">{{ item.detail }}</span>
+        <span class="mark">
+          @if (item.checked) {
+            <fz-icon name="tick" />
+          }
+        </span>
+      </div>
+    }
+  </ng-template>
+</div>
