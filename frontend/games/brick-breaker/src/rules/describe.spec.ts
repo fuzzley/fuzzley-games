@@ -2,15 +2,15 @@ import {
   describeCaught,
   describeCleared,
   describeEnd,
-  describeExtraLife,
   describeFewLeft,
   describeLevel,
-  describeLost,
+  describeLives,
   describePause,
   describeResume,
 } from "./describe";
 import { LEVELS } from "./levels";
 import { type Run, createRun } from "./run";
+import { MAX_LIVES } from "./tuning";
 
 /** Returns a run at a level, with a score and lives, where it stands as given. */
 function runAt(changes: Partial<Run> = {}): Run {
@@ -42,11 +42,49 @@ describe("describe", () => {
     [2, "Ball lost. 2 lives left."],
     [1, "Ball lost. 1 life left."],
   ])("says a ball is lost, with %i lives left", (lives, words) => {
-    expect(describeLost(runAt({ lives }))).toBe(words);
+    const before = runAt({ lives: lives + 1 });
+
+    expect(describeLives(before, { ...before, lives, levelLost: 1 })).toBe(
+      words,
+    );
   });
 
-  it("says a life is gained, and how many there are", () => {
-    expect(describeExtraLife(runAt({ lives: 4 }))).toBe("Extra life. 4 lives.");
+  it("says a life caught, and how many there are", () => {
+    const before = runAt({ lives: 3 });
+
+    expect(describeLives(before, { ...before, lives: 4, levelGained: 1 })).toBe(
+      "Extra life. 4 lives.",
+    );
+  });
+
+  it("says a life earned by points, and how many there are", () => {
+    const before = runAt({ lives: 3 });
+
+    expect(describeLives(before, { ...before, lives: 4 })).toBe(
+      "Extra life. 4 lives.",
+    );
+  });
+
+  it("says a life gained and a ball lost in one frame, in turn", () => {
+    const before = runAt({ lives: 3 });
+
+    expect(
+      describeLives(before, { ...before, levelGained: 1, levelLost: 1 }),
+    ).toBe("Extra life. 4 lives. Ball lost. 3 lives left.");
+  });
+
+  it("names an extra life caught with the most lives held already", () => {
+    const before = runAt({ lives: MAX_LIVES });
+
+    expect(describeLives(before, { ...before, levelGained: 1 })).toBe(
+      "Extra life.",
+    );
+  });
+
+  it("says nothing of lives for a frame that brought only points", () => {
+    const before = runAt();
+
+    expect(describeLives(before, { ...before, score: 4300 })).toBeNull();
   });
 
   it.each([

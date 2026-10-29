@@ -1929,3 +1929,67 @@ findings is answered here, and the fixes are in one commit.
   - `yarn verify`: lint, typecheck, test (Brick Breaker's 1,326), build.
     The rules and the view stay at 100% of statements.
   - Q3 waits for B7.1's review, whose fixes change how the service plays.
+
+## B7.1's review (b5a7c578, with 92ceb61c, 40d7b26e and 1e8c0e32)
+
+The review came back with eight findings. B7.2 was committed first, since
+it touched the same service, and the fixes are in one commit on top of
+it.
+
+1. **Resets and a mid-loss pause no spec held.** Fixed, with five specs,
+   each mutation-checked:
+   - Try again from an open result card puts it away.
+   - A new run started during the cleared card's wait, then paused, opens
+     no card.
+   - A paused level holds the lost ball's beat, and the next ball is
+     served once the beat has run, paused or not.
+   - The paddle stands empty for a beat after every lost ball, not only
+     the first.
+   - A new run's beat starts afresh.
+2. **What `takeIn()` said came from the net change in lives.** Fixed.
+   `describe.ts`'s new `describeLives(before, after)` works it out from
+   the balls lost (`levelLost`) and the lives the frame gained, by points
+   or a capsule. It is specced in Node:
+   - A life gained and a ball lost in one frame are both said, in the
+     order the run takes them.
+   - An extra life caught with six lives held is said by its name.
+   - `describeLost()` and `describeExtraLife()` fold into it.
+3. **`wait()` took a paused level for an ended run.** Fixed. `tick()` now
+   switches on the outcome: it plays a level ready or in play, opens the
+   cleared card or the result card after its wait (`openAfter()`), and
+   does nothing for a paused level.
+   - `showField()`'s reset of `sinceDone` stays, so each guard holds
+     without the other: either mutant alone survives, as equivalent.
+4. **A long frame that lost the last life served a ball onto the ended
+   run.** Fixed. The next ball is served after the run has taken the
+   frame, and only while it is still playing. A spec plays the last ball
+   out in frames of a second.
+5. **`begin()` replaced the run before building its field.** Fixed: the
+   field is laid out first, in `begin()` and in `nextLevel()`. A spec
+   asks for a level the game hasn't, and finds the run as it was.
+6. **Readability.** Fixed:
+   - The rules' `launch` is imported as `launchBalls`, so the method no
+     longer reads as calling itself.
+   - `sinceLost` is a number, reset only as a field is laid out and as a
+     ball is served.
+   - `mayStartAnother()`'s doc opens with "Returns whether".
+   - The multiplier's spec asserts 2, rather than working it out with
+     `multiplier()`.
+   - The specs that start a run from a key wait for every promise
+     (`flush()`), not one tick.
+   - `playUntil()` takes a frame's length too, and counts its limit in
+     frames.
+7. **AGENTS.md.** Fixed:
+   - The `timing.ts` entry names the serve's beat.
+   - The `EventLog` entry says the scene plays it and the shell hears it.
+   - `describe.ts`'s entry names `describeLives()`.
+   - The garbled sentence about `BallPainter` is rewritten.
+   - Every line is 80 columns or less, but the stack's links.
+8. **A ball's place could start its trail from where the last ball there
+   went.** Fixed. Each ember place marks itself fresh while its ball is
+   out of play, and a fresh one starts its trail where the ball first
+   shows. A spec loses a fire ball and throws another a unit away, which
+   leaves no ember.
+
+- **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,339),
+  build.

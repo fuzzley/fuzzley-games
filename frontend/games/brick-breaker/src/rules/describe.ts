@@ -16,14 +16,27 @@ export function describeCaught(id: CapsuleId): string {
   return `${capsule(id).name}.`;
 }
 
-/** Returns what is said as the last ball in play is lost, with lives left. */
-export function describeLost(run: Run): string {
-  return `Ball lost. ${count(run.lives, "life", "lives")} left.`;
-}
-
-/** Returns what is said as a life is gained, by points or a capsule. */
-export function describeExtraLife(run: Run): string {
-  return `Extra life. ${count(run.lives, "life", "lives")}.`;
+/**
+ * Returns what is said of the lives a frame of play brought, from the run
+ * before it and after: a life gained, by points or a capsule, then a ball
+ * lost, the order the run takes them in, or null for a frame with neither.
+ *
+ * An extra life caught with the most lives held already is said by its
+ * name, as any other capsule is, since the run can't take it.
+ */
+export function describeLives(before: Run, after: Run): string | null {
+  const lost = after.levelLost - before.levelLost;
+  const gained = after.lives + lost - before.lives;
+  const words: string[] = [];
+  if (gained > 0) {
+    words.push(`Extra life. ${count(after.lives + lost, "life", "lives")}.`);
+  } else if (after.levelGained > before.levelGained) {
+    words.push(describeCaught("life"));
+  }
+  if (lost > 0) {
+    words.push(`Ball lost. ${count(after.lives, "life", "lives")} left.`);
+  }
+  return words.length > 0 ? words.join(" ") : null;
 }
 
 /**

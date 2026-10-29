@@ -11,8 +11,8 @@ import { FIELD_WIDTH } from "../rules/tuning";
 /** How long a frame of the board takes, at 60 a second. */
 export const FRAME_MS = 1000 / 60;
 
-/** The most game time a spec plays for something to happen. */
-const PLAY_LIMIT_MS = 60_000;
+/** The most frames a spec plays for something to happen: a minute's at 60 a second. */
+const PLAY_LIMIT_FRAMES = 3600;
 
 /** Returns a level of gifts that each let a capsule fall, before a wall of steel. */
 function giftsOf(capsule: string, name: string): LevelData {
@@ -115,16 +115,17 @@ function lowestBallX(game: GameService): number | null {
 
 /**
  * Ticks the game a frame at a time, steered as a rule says, until something
- * comes to pass, failing past a minute of game time.
+ * comes to pass, failing past a minute's frames.
  */
 export function playUntil(
   game: GameService,
   steer: (game: GameService) => Readonly<Steer>,
   done: () => boolean,
+  frameMs = FRAME_MS,
 ): void {
-  for (let ms = 0; !done(); ms += FRAME_MS) {
-    if (ms > PLAY_LIMIT_MS) throw new Error("It never came to pass.");
-    game.tick(FRAME_MS, steer(game));
+  for (let frame = 0; !done(); frame++) {
+    if (frame > PLAY_LIMIT_FRAMES) throw new Error("It never came to pass.");
+    game.tick(frameMs, steer(game));
   }
 }
 
