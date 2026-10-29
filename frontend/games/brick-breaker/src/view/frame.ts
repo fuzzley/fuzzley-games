@@ -57,3 +57,8 @@ export interface FieldFrame {
    */
   readonly events: EventsView;
 }
+
+/** Returns where a thing is drawn between its last place and its next, `alpha` of the way. */
+export function between(last: number, next: number, alpha: number): number {
+  return last + (next - last) * alpha;
+}

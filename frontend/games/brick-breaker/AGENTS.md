@@ -32,8 +32,8 @@ importing only the layers below it: the rules, with no framework and no
 library but `@fz/core`, physics included; the view, which will work out
 what to draw without Phaser, with `@fz/phaser`'s pure entries; the scene,
 the only code that will import Phaser; and the shell, in Angular, which
-may take the scene and `@fz/phaser/host` only by type. So far the rules,
-the view's first files and the shell exist.
+may take the scene and `@fz/phaser/host` only by type. So far the rules, the view,
+the scene's first files and the shell exist.
 
 ## Layout
 
@@ -131,6 +131,20 @@ the view's first files and the shell exist.
   outline, the outline against every tint, brick and the paddle, and the
   marks against every brick, capsule and the paddle; its comment says why
   a ball isn't held against the tints.
+- **`src/scene/`** — the Phaser scene. `BricksScene`
+  (`bricks_scene.ts`) is handed plain functions over the game
+  (`BricksSceneOptions`): each frame it hands the game the time and the
+  steering its `Steering` read from the keys and the pointer, reads the
+  frame and the palette, and has its painters draw, each in its layer of
+  `LAYERS`: `FieldPainter` the field, its wall and the net,
+  `BrickPainter` an image for each cell, made once and dropped in as a
+  level starts, `PaddlePainter` the paddle as a nine-slice with its
+  cannons and rim, and `BallPainter` the balls, each between its last
+  place and its next. `atlas.ts` plays the view's art into
+  `@fz/phaser`'s `bakeAtlas()`, again on a new palette or a new unit. The
+  keys, clicks and taps go back through `command()`; Phaser hands a key
+  event over again with each new one in a frame, so the scene takes each
+  once.
 - **`src/app/`** — the shell: for now `app.component`, which shows the
   game's name, and `styles/`, `global.scss`, loaded once from `main.ts`, and
   `_index.scss`, the toolkit every component `@use`s, which emits no CSS.
@@ -165,7 +179,8 @@ workspace's with the others'.
 
 The repository's rules for specs apply. A spec sits beside the file it
 tests, named after it, and runs in jsdom; `src/test-setup.ts` installs
-`@fz/phaser/testing`'s headless Phaser first, for the scene's specs to come.
+`@fz/phaser/testing`'s headless Phaser first, so the scene's spec runs
+real Phaser through `runScene()`, with a fake shell over a pictured field.
 `src/testing/field_picture.ts` lays a field out from a picture of its
 bricks (`fieldFrom()`), throws a ball in it (`throwBall()`) or puts it in
 play with none (`playWithoutBall()`), steps it and reads its events, so a
