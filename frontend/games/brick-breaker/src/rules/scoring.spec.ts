@@ -7,7 +7,7 @@ import {
 } from "../testing/field_picture";
 import { hitBrick } from "./bricks";
 import type { Field } from "./field";
-import { clearingPoints, multiplier } from "./scoring";
+import { clearingPoints, multiplier, tallyOf } from "./scoring";
 import { stepsIn } from "./stepper";
 import { CLEAN_POINTS, CLEAR_POINTS } from "./tuning";
 
@@ -39,6 +39,16 @@ describe("clearingPoints", () => {
       CLEAR_POINTS + CLEAN_POINTS,
       CLEAR_POINTS,
     ]);
+  });
+});
+
+describe("tallyOf", () => {
+  it("parts a level's points into the bricks', the streaks' and the bonus", () => {
+    expect(tallyOf({ score: 4200, streakPoints: 700, livesLost: 1 })).toEqual({
+      bricks: 3500,
+      streaks: 700,
+      bonus: CLEAR_POINTS,
+    });
   });
 });
 

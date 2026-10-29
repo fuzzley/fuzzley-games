@@ -134,7 +134,9 @@ the scene and the shell's first files exist.
   state (`BRICK_ART`), and names the frame a brick shows (`brickFrame()`)
   and the color its shards take (`brickColor()`); `symbols.ts` draws each
   capsule's symbol (`SYMBOLS`); and `shapes.ts` holds the commands they
-  are drawn with (`DrawCommand`), their helpers, and `lineWidth()`; `effects.ts` says what each event calls for, its
+  are drawn with (`DrawCommand`), their helpers, which take no size below
+  nothing, since a canvas not yet laid out gives a unit too small for the
+  insets, and `lineWidth()`; `effects.ts` says what each event calls for, its
   sound and the flourishes it plays where motion is welcome.
   `contrast.spec.ts` holds every tint, the steel, blast and gift bricks,
   every ball kind, both capsule tones, the paddle and the last bricks' glow
@@ -168,16 +170,36 @@ the scene and the shell's first files exist.
   keys, clicks and taps go back through `command()`; Phaser hands a key
   event over again with each new one in a frame, so the scene takes each
   once.
-- **`src/app/`** — the shell, one folder per feature, as in Snake: for now
-  `app.component`, which shows the game's name; `play/`, whose
-  `GameService` holds the run in a signal and the level in play's field
-  outside one, moves the field on through `tick()`, which the scene's
-  frames drive, steered as the player steers, launches, fires, pauses,
-  goes on and starts levels and runs, says what happened through
-  `@fz/ui/announcer`, and asks through `@fz/ui/confirm` before a new game
-  or speed throws a run away; and `styles/`, `global.scss`, loaded once
-  from `main.ts`, and `_index.scss`, the toolkit every component `@use`s,
-  which emits no CSS.
+- **`src/app/`** — the shell, one folder per feature, as in Snake.
+  `app.component` lays the board in the room, with the `<fz-announcer>`
+  the game is announced through and the question before a run is thrown
+  away; it hands the board the focus as each run begins and whenever the
+  last dialog closes, and pauses the level in play when
+  `@fz/game-ui/play_room`'s `[fzPlayRoom]` says the player looked away.
+  - `play/` — `GameService` holds the run in a signal and the level in
+    play's field outside one, moves the field on through `tick()`, which
+    the scene's frames drive, steered as the player steers, launches,
+    fires, pauses, goes on and starts levels and runs, says what happened
+    through `@fz/ui/announcer`, adds up a cleared level's points
+    (`tally`), and asks through `@fz/ui/confirm` before a new game or speed
+    throws a run away.
+  - `board/` — `<fz-phaser-canvas>` with the scene, loaded with
+    `import()`; the empty field and the paddle drawn in CSS until the
+    scene has drawn; the focus ring; the pointer hidden while a ball is in
+    play; and the cards: Ready, with the level and how to launch, whenever
+    a ball waits on the paddle; Paused; Cleared, with how the level's
+    points added up and Next level; Ended, once an ended run's result is
+    put away; and still loading and couldn't be drawn. It keeps the
+    scene's pictures for How to play (`pictures`). The board is an
+    application named for its level, "Brick Breaker, level 3: Pyramid",
+    and Phaser's keyboard target.
+  - `styles/` — `global.scss`, loaded once from `main.ts`, and
+    `_index.scss`, the toolkit every component `@use`s, which emits no
+    CSS.
+
+  Until the bar and the result card come, the game's name is a heading
+  only a screen reader sees, and an ended run leaves the board without a
+  card.
 
 ## Development Commands
 
@@ -226,6 +248,11 @@ cleared by it within eight minutes of game time, its last three bricks
 within one, and the catalog spec holds
 the levels to using every brick kind and letting every capsule first fall
 at the level its `from` names, but those the sets still to come bring, which
-it names. `GameService`'s spec plays small levels of its own, each set up to
-come to one thing soon, handed in through `GAME_LEVELS`, from a seed of its
-own through `GAME_RANDOM`, steering the paddle from the frame it reads.
+it names. `src/testing/play.ts` holds the small levels the shell's specs
+play, each set up to come to one thing soon, handed to `GameService`
+through `GAME_LEVELS` with a seed of its own through `GAME_RANDOM`
+(`provideSpecLevels()`), and plays them through `tick()`, steering the
+paddle from the frame it reads (`under()`, `awayFrom()`, `playUntil()`,
+`loseBall()`, `playToClear()`). The board's spec runs on
+`provideFakePhaserCanvas()`, and then with the real scene it loads,
+through which it plays a level to its end.

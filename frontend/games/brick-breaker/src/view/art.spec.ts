@@ -91,6 +91,36 @@ function widthOf(command: DrawCommand): number | null {
     : null;
 }
 
+/** Returns the sizes a command draws at: its width, height and radius, those it has. */
+function sizesOf(command: DrawCommand): number[] {
+  return [
+    "width" in command ? command.width : 0,
+    "height" in command ? command.height : 0,
+    "radius" in command ? command.radius : 0,
+  ];
+}
+
+describe("atlasFrames at every unit down to a device pixel", () => {
+  it.each([1, 1.25, 1.5, 2, 3])(
+    "draws nothing at a size below nothing, at %f device pixels to a CSS pixel",
+    (pixelRatio) => {
+      const units = Array.from({ length: 16 }, (_, i) => i + 1);
+
+      const negative = units.flatMap((unit) =>
+        atlasFrames(ART_PALETTE, { unit, pixelRatio })
+          .filter((frame) =>
+            frame.commands.some((command) =>
+              sizesOf(command).some((size) => size < 0),
+            ),
+          )
+          .map((frame) => `${frame.name} at ${String(unit)}`),
+      );
+
+      expect(negative).toEqual([]);
+    },
+  );
+});
+
 describe.each(SCALES)(
   "atlasFrames at a unit of $unit device pixels, $pixelRatio to a CSS pixel",
   (scale) => {

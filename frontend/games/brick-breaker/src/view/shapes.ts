@@ -84,7 +84,7 @@ export function lineWidth(scale: ArtScale): number {
 
 /** Returns a rectangle filled in a color. */
 export function rect(area: Area, color: number): DrawCommand {
-  return { kind: "rect", ...area, color };
+  return { kind: "rect", ...sized(area), color };
 }
 
 /** Returns a rectangle with rounded corners filled in a color. */
@@ -93,7 +93,14 @@ export function roundRect(
   radius: number,
   color: number,
 ): DrawCommand {
-  return { kind: "roundRect", ...area, radius, color };
+  const box = sized(area);
+  const most = Math.min(box.width, box.height) / 2;
+  return {
+    kind: "roundRect",
+    ...box,
+    radius: Math.min(most, Math.max(0, radius)),
+    color,
+  };
 }
 
 /** Returns a circle filled in a color. */
@@ -103,7 +110,7 @@ export function circle(
   radius: number,
   color: number,
 ): DrawCommand {
-  return { kind: "circle", x, y, radius, color };
+  return { kind: "circle", x, y, radius: Math.max(0, radius), color };
 }
 
 /** Returns a circle's outline in a color. */
@@ -114,7 +121,23 @@ export function ring(
   width: number,
   color: number,
 ): DrawCommand {
-  return { kind: "ring", x, y, radius, width, color };
+  return { kind: "ring", x, y, radius: Math.max(0, radius), width, color };
+}
+
+/**
+ * Returns an area no narrower and no shorter than nothing.
+ *
+ * The shapes with a size take none below nothing, as they and their radii
+ * clamp: a unit too small for their insets, as the canvas has before it is
+ * laid out, would give them one, and a canvas throws at a negative radius.
+ */
+function sized(area: Area): Area {
+  return {
+    x: area.x,
+    y: area.y,
+    width: Math.max(0, area.width),
+    height: Math.max(0, area.height),
+  };
 }
 
 /** Returns a polygon filled in a color. */

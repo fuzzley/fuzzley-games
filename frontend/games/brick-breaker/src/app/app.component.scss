@@ -1,9 +1,28 @@
 @use "./styles" as *;
 
-// The page is the game: for now, its name in the middle.
+// The page is the game: the stage takes all of it.
 :host {
   position: fixed;
   inset: 0;
+  display: block;
+  overflow: hidden;
+}
+
+// A size container, which the board's layout follows.
+.stage {
+  position: absolute;
+  inset: 0;
+  container: stage / size;
+}
+
+// The board fills the room, and lays the field out inside it.
+.room {
   display: grid;
-  place-items: center;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  height: 100%;
+}
+
+// A compact screen gives the field the room around it.
+:host(.compact) app-board {
+  --room: var(--fz-space-3);
 }

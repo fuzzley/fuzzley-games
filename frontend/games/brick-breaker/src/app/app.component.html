@@ -1,0 +1,13 @@
+<h1 class="fz-visually-hidden">Brick Breaker</h1>
+
+<!-- The board in a <main> landmark a screen reader can jump to. -->
+<main class="stage">
+  <div class="room" fzPlayRoom (away)="pauseRun()">
+    <app-board />
+  </div>
+</main>
+
+<!-- In the page from the start, so a screen reader is listening to it. -->
+<fz-announcer />
+
+<fz-confirm-dialog />

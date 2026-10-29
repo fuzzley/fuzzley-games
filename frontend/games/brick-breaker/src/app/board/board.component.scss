@@ -1,0 +1,168 @@
+@use "../styles" as *;
+
+// The board takes the room the stage gives it. The scene lays the field out
+// `--room` in from each edge, which the canvas reads as its insets, and the
+// placeholder, the focus ring until the scene has drawn and the cards work
+// out the same unit: the largest that fits the field with room for its
+// wall, whole device pixels at `--pixel-ratio` (`fieldMetrics()`).
+// `--across` and `--down` come from the component, the field's size in
+// units.
+:host {
+  --room: var(--fz-space-6);
+  --wall: 2px;
+  --pixel-ratio: 1;
+  --fz-canvas-inset-top: var(--room);
+  --fz-canvas-inset-right: var(--room);
+  --fz-canvas-inset-bottom: var(--room);
+  --fz-canvas-inset-left: var(--room);
+
+  position: relative;
+  display: block;
+  container-type: size;
+  overflow: hidden;
+  outline: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+// The pointer would hide the ball near the paddle.
+:host(.in-play) {
+  cursor: none;
+}
+
+.placeholder,
+.ring,
+.card {
+  --unit: round(
+    down,
+    min(
+      (100cqw - 2 * var(--room) - 2 * var(--wall)) / var(--across),
+      (100cqh - 2 * var(--room) - 2 * var(--wall)) / var(--down)
+    ),
+    1px / var(--pixel-ratio)
+  );
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+}
+
+// The field in the panel's color, with the wall on its left, its top and its
+// right in text at 20% over the panel, as the scene draws it.
+.field {
+  position: relative;
+  box-sizing: content-box;
+  width: calc(var(--across) * var(--unit));
+  height: calc(var(--down) * var(--unit));
+  border: var(--wall) solid
+    color-mix(in srgb, var(--fz-text) 20%, var(--fz-panel));
+  border-bottom-color: transparent;
+  background-color: var(--fz-panel);
+}
+
+// The paddle waiting in the middle, its ends round. Its places come from the
+// component, in field units.
+.paddle {
+  position: absolute;
+  top: calc(var(--paddle-top) * var(--unit));
+  left: calc(var(--paddle-left) * var(--unit));
+  width: calc(var(--paddle-width) * var(--unit));
+  height: calc(var(--paddle-height) * var(--unit));
+  border-radius: calc(var(--paddle-height) * var(--unit) / 2);
+  background-color: var(--fz-accent);
+}
+
+// Around the wall, while the board has the focus from the keyboard.
+.ring {
+  position: absolute;
+  inset: 0;
+  width: calc(var(--across) * var(--unit));
+  height: calc(var(--down) * var(--unit));
+  margin: auto;
+  border-radius: var(--fz-radius-sm);
+  outline: var(--fz-focus-ring-width) solid transparent;
+  outline-offset: calc(var(--wall) + var(--fz-focus-ring-offset));
+  pointer-events: none;
+}
+
+:host(:focus-visible) .ring {
+  outline-color: var(--fz-focus-ring-color);
+}
+
+// Between the bricks and the paddle, `--card-drop` units below the field's
+// middle, letting clicks and taps through to the canvas but on its button.
+.card {
+  @include glass(12px);
+
+  position: absolute;
+  inset: 0;
+  display: grid;
+  justify-items: center;
+  gap: var(--fz-space-2);
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: min(320px, 100cqmin - 4 * var(--room));
+  height: fit-content;
+  margin: auto;
+  padding: var(--fz-space-5) var(--fz-space-6);
+  translate: 0 calc(var(--card-drop) * var(--unit));
+  border: 1px solid var(--fz-edge-3);
+  border-radius: var(--fz-radius-lg);
+  background: var(--fz-panel-glass);
+  box-shadow: var(--fz-shadow-card);
+  color: var(--fz-text);
+  text-align: center;
+  pointer-events: none;
+
+  p {
+    margin: 0;
+  }
+
+  button {
+    margin-top: var(--fz-space-2);
+    pointer-events: auto;
+  }
+}
+
+// On a small field, as on the smallest phones, the card sets smaller and
+// sits in the middle, so it stays on the field.
+@container (width < 280px) or (height < 320px) {
+  .card {
+    gap: var(--fz-space-1);
+    padding: var(--fz-space-3) var(--fz-space-4);
+    translate: none;
+    font-size: var(--fz-font-sm);
+
+    button {
+      margin-top: var(--fz-space-1);
+    }
+  }
+}
+
+.card-title {
+  font-size: var(--fz-font-lg);
+  font-weight: 700;
+}
+
+// Each part of a cleared level's points on a line, its name and its points
+// at either end.
+.tally {
+  display: grid;
+  gap: var(--fz-space-1);
+  min-width: 12em;
+  margin: 0;
+
+  > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--fz-space-4);
+  }
+
+  dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+}
