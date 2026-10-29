@@ -26,7 +26,10 @@ export interface Ball {
   offset: number;
   /** How many steps it has rested there, caught. */
   heldSteps: number;
-  /** How many times it has bounced since it last met the paddle or broke a brick the level needs. */
+  /**
+   * How many times it has bounced since it last met the paddle or broke a
+   * brick the level needs.
+   */
   bounces: number;
 }
 
@@ -99,7 +102,10 @@ export function splitOff(
   settleBall(copy, 0, 0);
 }
 
-/** Sends a resting ball off the paddle, {@link SERVE_ANGLE} from straight up toward the way it faces. */
+/**
+ * Sends a resting ball off the paddle, {@link SERVE_ANGLE} from straight up
+ * toward the way it faces.
+ */
 export function serveBall(ball: Ball, facing: -1 | 1): void {
   ball.held = false;
   aim(ball, facing * SERVE_ANGLE);

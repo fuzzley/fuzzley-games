@@ -4,6 +4,7 @@ import type { CapsuleId } from "../rules/catalog/capsules";
 import type { FieldEventKind } from "../rules/events";
 import { type Field, createField, stepField } from "../rules/field";
 import { CELLS, columnOf, rowOf } from "../rules/grid";
+import { COLUMNS } from "../rules/tuning";
 import type { LevelBrick } from "../rules/level";
 import type { Steer } from "../rules/paddle";
 import type { Speed } from "../rules/speed";
@@ -42,12 +43,16 @@ export const NO_STEER: Readonly<Steer> = { to: null, by: 0, push: 0 };
  * for each row from the top, in the shared legend's characters: `.` or
  * nothing for no brick, `o` a plain one, `2` to `4` a tough one of that many
  * hits, `#` steel, `*` a blast, `?` a gift, `~` a ghost and `+` one that
- * regrows.
+ * regrows. It throws for a row too long or a character it doesn't know, so
+ * a spec plays the field it draws.
  */
 export function fieldFrom(
   rows: readonly string[],
   options: PictureOptions = {},
 ): Field {
+  for (const row of rows) {
+    if (row.length > COLUMNS) throw new Error(`A row too long: "${row}".`);
+  }
   const cells = Array.from({ length: CELLS }, (_, cell) =>
     brickFrom(rows[rowOf(cell)]?.[columnOf(cell)] ?? ".", options.gift ?? null),
   );
@@ -64,7 +69,8 @@ export function fieldFrom(
 
 /**
  * Puts one of the field's balls in play at a place, heading at an angle
- * from straight up, in degrees, positive to the right, and returns it.
+ * from straight up, in degrees, positive to the right, and returns it; the
+ * field is then in play.
  */
 export function throwBall(
   field: Field,
@@ -117,8 +123,9 @@ function brickFrom(
   character: string,
   gift: CapsuleId | null,
 ): LevelBrick | null {
+  if (character === ".") return null;
   const kind = KINDS[character];
-  if (!kind) return null;
+  if (!kind) throw new Error(`No brick is drawn "${character}".`);
   const capsule = kind === "gift" ? gift : null;
   const { hits } = brickKind(kind);
   if (hits === "never") return { kind, hits: 0, tint: 0, capsule };

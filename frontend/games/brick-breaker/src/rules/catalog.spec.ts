@@ -11,7 +11,12 @@ import {
   capsule,
   isCapsuleId,
 } from "./catalog/capsules";
-import { MAX_LIVES } from "./tuning";
+import { CATCH_HOLD_MS, MAX_LIVES } from "./tuning";
+
+/** Returns a pattern for a time in whole seconds, as a sentence says it. */
+function seconds(ms: number): RegExp {
+  return new RegExp(String.raw`\b${String(ms / 1000)} seconds\b`);
+}
 
 /** Spells a count from one to eight, as the catalogs' sentences do. */
 function spelled(n: number): string {
@@ -65,6 +70,11 @@ describe("the catalogs", () => {
     ],
     ["the most lives", CAPSULES.life.about, `up to ${spelled(MAX_LIVES)}`],
     [
+      "the longest a caught ball waits",
+      CAPSULES.catch.about,
+      `${String(CATCH_HOLD_MS / 1000)} seconds at most`,
+    ],
+    [
       "the balls one splits into",
       CAPSULES.multi.about,
       `into ${spelled(CAPSULES.multi.effect.into)}`,
@@ -104,10 +114,9 @@ describe("the brick kinds", () => {
   });
 
   it("say how long a regrowing brick takes to grow back", () => {
-    const regrow = brickKind("regrow");
-    const trait = regrow.traits.find((each) => each.kind === "regrows");
+    const [trait] = BRICK_KINDS.regrow.traits;
 
-    expect(regrow.about).toContain(`${(trait?.afterMs ?? 0) / 1000} seconds`);
+    expect(BRICK_KINDS.regrow.about).toMatch(seconds(trait.afterMs));
   });
 
   it.each(BRICK_KIND_IDS)("score %s's hits, if it breaks", (id) => {
@@ -136,9 +145,9 @@ describe("the capsules", () => {
     "say how long %s lasts",
     (id) => {
       const effect = capsule(id).effect;
-      const ms = "ms" in effect ? effect.ms : 0;
+      const ms = "ms" in effect ? effect.ms : Number.NaN;
 
-      expect(capsule(id).about).toContain(`${ms / 1000} seconds`);
+      expect(capsule(id).about).toMatch(seconds(ms));
     },
   );
 

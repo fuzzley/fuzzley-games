@@ -34,6 +34,10 @@ import { nextDraw } from "./draws";
 import { EventLog } from "./events";
 import {
   type Box,
+  CORNERS,
+  CORNER_AT,
+  FACES,
+  FACE_NORMAL,
   SIDE,
   type Solid,
   brickBox,
@@ -128,13 +132,19 @@ export interface Field {
   readonly events: EventLog;
 }
 
+/** Something a ball can meet: a brick, a wall or the paddle. */
+type Obstacle = Brick | "wall" | "paddle";
+
 /** Gathers what a ball meets at the earliest moment of a move. */
 interface Contacts {
   /** The moment, as a share of the move, or {@link MISSED}. */
   t: number;
-  /** The normals of the faces and corners met, summed. */
-  nx: number;
-  ny: number;
+  /** The normals of the faces met, summed, across and down. */
+  faceX: number;
+  faceY: number;
+  /** The normals of the corners met, summed, across and down. */
+  cornerX: number;
+  cornerY: number;
   wall: boolean;
   paddle: boolean;
   /** Whether anything met turns the ball, rather than letting it pass. */
@@ -173,21 +183,16 @@ const RIGHT_WALL: Readonly<Box> = {
 const PADDLE_SIDES =
   SIDE.top | SIDE.right | SIDE.left | SIDE.topLeft | SIDE.topRight;
 
-const FACES = [SIDE.top, SIDE.right, SIDE.bottom, SIDE.left] as const;
-const CORNERS = [
-  SIDE.topLeft,
-  SIDE.topRight,
-  SIDE.bottomRight,
-  SIDE.bottomLeft,
-] as const;
-
-// Made once and reused, so a step makes nothing.
+// Made once and reused, so a step makes nothing: the move a ball is making,
+// a box being met, and what the move meets first.
 const move: Move = { x: 0, y: 0, dx: 0, dy: 0, r: BALL_RADIUS };
 const box: Box = { left: 0, top: 0, right: 0, bottom: 0 };
 const met: Contacts = {
   t: MISSED,
-  nx: 0,
-  ny: 0,
+  faceX: 0,
+  faceY: 0,
+  cornerX: 0,
+  cornerY: 0,
   wall: false,
   paddle: false,
   turns: false,
@@ -249,15 +254,33 @@ export function steerField(field: Field, steer: Readonly<Steer>): void {
  * Moves the field on by a step: the paddle, the bricks' traits, the falling
  * capsules, the effects' time, the bolts, then each ball in play by the
  * distance it travels in a step, meeting what is in its way.
+ *
+ * Once the level is cleared, everything stands still where it is.
  */
 export function stepField(field: Field): void {
-  if (field.state === "cleared") return;
-  movePaddle(field.paddle);
-  stepBricks(field);
-  stepCapsules(field);
-  stepEffects(field);
-  stepBolts(field);
-  stepBalls(field);
+  if (field.state !== "cleared") {
+    movePaddle(field.paddle);
+    stepBricks(field);
+    stepCapsules(field);
+    stepEffects(field);
+    stepBolts(field);
+    stepBalls(field);
+  }
+  if (isCleared(field)) holdStill(field);
+}
+
+/**
+ * Sets where everything moving was a step ago to where it is, so a cleared
+ * field is drawn standing still.
+ */
+function holdStill(field: Field): void {
+  field.paddle.lastX = field.paddle.x;
+  for (const ball of field.balls) {
+    ball.lastX = ball.x;
+    ball.lastY = ball.y;
+  }
+  for (const falling of field.falling) falling.lastY = falling.y;
+  for (const bolt of field.bolts) bolt.lastY = bolt.y;
 }
 
 /** Moves each ball on by a step, until the level is cleared. */
@@ -317,7 +340,7 @@ export function serve(field: Field): void {
  * swallows it.
  */
 function liftOffPaddle(field: Field, ball: Ball): void {
-  paddleBox(field.paddle, box);
+  paddleReach(field.paddle, box);
   if (ball.y >= box.bottom) return;
   const nearX = Math.min(box.right, Math.max(box.left, ball.x));
   const nearY = Math.min(box.bottom, Math.max(box.top, ball.y));
@@ -367,18 +390,29 @@ function turnAtNet(field: Field, ball: Ball): void {
 }
 
 /**
+ * Writes the box a ball meets the paddle by: its own, reaching to a wall
+ * closer to it than a ball is wide, so no ball is caught between the two.
+ */
+function paddleReach(paddle: Readonly<Paddle>, reach: Box): Box {
+  paddleBox(paddle, reach);
+  if (reach.left < 2 * BALL_RADIUS) reach.left = 0;
+  if (reach.right > FIELD_WIDTH - 2 * BALL_RADIUS) reach.right = FIELD_WIDTH;
+  return reach;
+}
+
+/**
  * Moves a ball a distance along its way, turning at each contact, up to
  * {@link MAX_CONTACTS} of them, past which the rest of the distance is
  * dropped.
  */
 function travel(field: Field, ball: Ball, distance: number): void {
-  let left = distance;
-  for (let contact = 0; contact < MAX_CONTACTS && left > 0; contact++) {
+  let remaining = distance;
+  for (let contact = 0; contact < MAX_CONTACTS && remaining > 0; contact++) {
     move.x = ball.x;
     move.y = ball.y;
-    move.dx = ball.dx * left;
-    move.dy = ball.dy * left;
-    meetFirst(field);
+    move.dx = ball.dx * remaining;
+    move.dy = ball.dy * remaining;
+    findContacts(field);
     if (met.t === MISSED) {
       ball.x += move.dx;
       ball.y += move.dy;
@@ -386,7 +420,7 @@ function travel(field: Field, ball: Ball, distance: number): void {
     }
     ball.x += move.dx * met.t;
     ball.y += move.dy * met.t;
-    left -= left * met.t;
+    remaining -= remaining * met.t;
     turn(field, ball);
     if (isCleared(field)) return;
   }
@@ -396,12 +430,12 @@ function travel(field: Field, ball: Ball, distance: number): void {
  * Gathers into {@link met} what the ball's {@link move} meets first: the
  * walls, the paddle, and the bricks in the cells it passes.
  */
-function meetFirst(field: Field): void {
+function findContacts(field: Field): void {
   met.t = MISSED;
-  meetBox(LEFT_WALL, SIDE.right, "wall");
-  meetBox(TOP_WALL, SIDE.bottom, "wall");
-  meetBox(RIGHT_WALL, SIDE.left, "wall");
-  meetBox(paddleBox(field.paddle, box), PADDLE_SIDES, "paddle");
+  noteBox(LEFT_WALL, SIDE.right, "wall");
+  noteBox(TOP_WALL, SIDE.bottom, "wall");
+  noteBox(RIGHT_WALL, SIDE.left, "wall");
+  noteBox(paddleReach(field.paddle, box), PADDLE_SIDES, "paddle");
   const passes = ballKind(field.ballKind).passes;
   const { x, y, dx, dy, r } = move;
   const firstColumn = Math.max(0, columnAt(Math.min(x, x + dx) - r));
@@ -413,9 +447,9 @@ function meetFirst(field: Field): void {
       const brick = field.bricks[cellIndex(column, row)];
       if (!brick || brick.broken) continue;
       brickBox(column, row, box);
-      if (passes && canBreak(brick)) meetBox(box, ALL_SIDES, brick, true);
+      if (passes && canBreak(brick)) noteBox(box, ALL_SIDES, brick, true);
       else
-        meetBox(box, exposureOf(solidFor(field, passes), column, row), brick);
+        noteBox(box, exposureOf(solidFor(field, passes), column, row), brick);
     }
   }
 }
@@ -426,63 +460,55 @@ function solidFor(field: Field, passes: boolean): Solid {
 }
 
 /**
- * Gathers what the ball's {@link move} meets of a box's faces and corners,
+ * Notes what the ball's {@link move} meets of a box's faces and corners,
  * which turn it, unless it `passes` through the box.
  */
-function meetBox(
+function noteBox(
   target: Readonly<Box>,
   sides: number,
-  what: Brick | "wall" | "paddle",
+  what: Obstacle,
   passes = false,
 ): void {
   for (const face of FACES) {
     if ((sides & face) === 0) continue;
     const t = sweepFace(move, target, face);
-    if (t !== MISSED) {
-      meet(t, faceNormalX(face), faceNormalY(face), what, passes);
-    }
+    if (t === MISSED || !noteContact(t, what, passes)) continue;
+    met.faceX += FACE_NORMAL[face].x;
+    met.faceY += FACE_NORMAL[face].y;
   }
   for (const corner of CORNERS) {
     if ((sides & corner) === 0) continue;
     const t = sweepCorner(move, target, corner);
-    if (t === MISSED) continue;
-    const left = corner === SIDE.topLeft || corner === SIDE.bottomLeft;
-    const top = corner === SIDE.topLeft || corner === SIDE.topRight;
-    const nx = move.x + move.dx * t - (left ? target.left : target.right);
-    const ny = move.y + move.dy * t - (top ? target.top : target.bottom);
-    meet(t, nx / move.r, ny / move.r, what, passes);
+    if (t === MISSED || !noteContact(t, what, passes)) continue;
+    const at = CORNER_AT[corner];
+    met.cornerX += (move.x + move.dx * t - target[at.x]) / move.r;
+    met.cornerY += (move.y + move.dy * t - target[at.y]) / move.r;
   }
 }
 
 /**
- * Gathers a contact, if it is as early as the earliest so far; one the ball
- * passes through adds no normal.
+ * Notes a contact, if it is as early as the earliest so far, and returns
+ * whether it turns the ball, which one it passes through doesn't.
  */
-function meet(
-  t: number,
-  nx: number,
-  ny: number,
-  what: Brick | "wall" | "paddle",
-  passes: boolean,
-): void {
-  if (t > met.t + AT_ONCE) return;
+function noteContact(t: number, what: Obstacle, passes: boolean): boolean {
+  if (t > met.t + AT_ONCE) return false;
   if (t < met.t - AT_ONCE) {
     met.t = t;
-    met.nx = 0;
-    met.ny = 0;
+    met.faceX = 0;
+    met.faceY = 0;
+    met.cornerX = 0;
+    met.cornerY = 0;
     met.wall = false;
     met.paddle = false;
     met.turns = false;
     met.count = 0;
   }
-  if (!passes) {
-    met.nx += nx;
-    met.ny += ny;
-    met.turns = true;
-  }
   if (what === "wall") met.wall = true;
   else if (what === "paddle") met.paddle = true;
   else if (!hasMet(what)) met.bricks[met.count++] = what;
+  if (passes) return false;
+  met.turns = true;
+  return true;
 }
 
 /** Returns whether a brick is among those met at the earliest moment. */
@@ -511,13 +537,26 @@ function turn(field: Field, ball: Ball): void {
 /**
  * Turns a ball as a mirror off the walls and bricks it met, by a lull's few
  * degrees at a wall after too many bounces.
+ *
+ * Each face met turns the ball along its own axis, so two met at once at a
+ * right angle send it back the way it came. A corner, met with no face,
+ * turns it about the line from the corner to the ball's middle.
  */
 function mirror(field: Field, ball: Ball): void {
-  // Faces met head on from both sides at once cancel out, and turn nothing.
-  const length = Math.hypot(met.nx, met.ny) || 1;
-  const nx = met.nx / length;
-  const ny = met.ny / length;
-  reflectBall(ball, nx, ny);
+  const faced = met.faceX !== 0 || met.faceY !== 0;
+  let nx = faced ? Math.sign(met.faceX) : met.cornerX;
+  let ny = faced ? Math.sign(met.faceY) : met.cornerY;
+  // What is met head on from both sides at once cancels out, and turns
+  // nothing.
+  const length = Math.hypot(nx, ny) || 1;
+  nx /= length;
+  ny /= length;
+  if (faced) {
+    reflectBall(ball, Math.sign(nx), 0);
+    reflectBall(ball, 0, Math.sign(ny));
+  } else {
+    reflectBall(ball, nx, ny);
+  }
   ball.bounces++;
   if (met.wall) {
     if (ball.bounces > LULL_BOUNCES) {
@@ -573,16 +612,4 @@ function lullTurn(field: Field): number {
   const { least, most } = LULL_TURN;
   const size = least + (most - least) * ((draw * 2) % 1);
   return draw < 0.5 ? -size : size;
-}
-
-/** Returns a face's normal across. */
-function faceNormalX(face: number): number {
-  if (face === SIDE.left) return -1;
-  return face === SIDE.right ? 1 : 0;
-}
-
-/** Returns a face's normal down. */
-function faceNormalY(face: number): number {
-  if (face === SIDE.top) return -1;
-  return face === SIDE.bottom ? 1 : 0;
 }

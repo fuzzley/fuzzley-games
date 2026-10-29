@@ -5,7 +5,13 @@
 // walls and the paddle are all boxes, so one pair of functions meets them
 // all.
 
-import { type Box, SIDE } from "./grid";
+import {
+  type Box,
+  CORNER_AT,
+  type Corner,
+  FACE_NORMAL,
+  type Face,
+} from "./grid";
 
 /** The share returned for a ball that doesn't touch a face or corner on its way. */
 export const MISSED = Number.POSITIVE_INFINITY;
@@ -21,8 +27,7 @@ export interface Move {
 
 /**
  * Returns when a ball first touches a face of a box, the box's edge on that
- * side pushed out by the ball's radius: `SIDE.top`, `SIDE.right`,
- * `SIDE.bottom` or `SIDE.left`, else {@link MISSED}.
+ * side pushed out by the ball's radius, else {@link MISSED}.
  *
  * Only a ball moving toward the face touches it, so one leaving it, or
  * sliding along it, never does, and one already a little through it touches
@@ -31,27 +36,21 @@ export interface Move {
 export function sweepFace(
   move: Readonly<Move>,
   box: Readonly<Box>,
-  side: number,
+  face: Face,
 ): number {
   const { x, y, dx, dy, r } = move;
-  switch (side) {
-    case SIDE.top:
-      return sweepLine(y, dy, x, dx, r, box.top, -1, box.left, box.right);
-    case SIDE.bottom:
-      return sweepLine(y, dy, x, dx, r, box.bottom, 1, box.left, box.right);
-    case SIDE.left:
-      return sweepLine(x, dx, y, dy, r, box.left, -1, box.top, box.bottom);
-    case SIDE.right:
-      return sweepLine(x, dx, y, dy, r, box.right, 1, box.top, box.bottom);
-    default:
-      return MISSED;
+  const normal = FACE_NORMAL[face];
+  if (normal.x === 0) {
+    const line = normal.y < 0 ? box.top : box.bottom;
+    return sweepLine(y, dy, x, dx, r, line, normal.y, box.left, box.right);
   }
+  const line = normal.x < 0 ? box.left : box.right;
+  return sweepLine(x, dx, y, dy, r, line, normal.x, box.top, box.bottom);
 }
 
 /**
  * Returns when a ball first touches a corner of a box, coming within its
- * radius of it: `SIDE.topLeft`, `SIDE.topRight`, `SIDE.bottomRight` or
- * `SIDE.bottomLeft`, else {@link MISSED}.
+ * radius of it, else {@link MISSED}.
  *
  * Only a ball moving toward the corner touches it, and one already over it
  * touches it at once; one that would only graze it, as it would slide along
@@ -60,26 +59,18 @@ export function sweepFace(
 export function sweepCorner(
   move: Readonly<Move>,
   box: Readonly<Box>,
-  corner: number,
+  corner: Corner,
 ): number {
-  switch (corner) {
-    case SIDE.topLeft:
-      return sweepPoint(move, box.left, box.top);
-    case SIDE.topRight:
-      return sweepPoint(move, box.right, box.top);
-    case SIDE.bottomRight:
-      return sweepPoint(move, box.right, box.bottom);
-    case SIDE.bottomLeft:
-      return sweepPoint(move, box.left, box.bottom);
-    default:
-      return MISSED;
-  }
+  const at = CORNER_AT[corner];
+  return sweepPoint(move, box[at.x], box[at.y]);
 }
 
 /**
- * Returns when a ball first touches a line across one axis, facing the way
- * `facing` says along it (1 or -1), between `from` and `to` along the other.
- * The ball's place and move are given across the line and along it.
+ * Returns when a ball first touches a line across one axis, between `from`
+ * and `to` along the other.
+ *
+ * The ball's place and move are given across the line and along it, and
+ * `facing` is the way out of the box across it, 1 or -1.
  */
 function sweepLine(
   across: number,

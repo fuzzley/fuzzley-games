@@ -46,13 +46,13 @@ and the shell exist.
   `brickBox()`, the one place a brick's box is worked out, and
   `exposureOf()`, which faces and corners of a brick a ball can touch, so
   bricks side by side make one face and a corner is only where nothing
-  touches it. `sweep.ts` finds when a ball's
-  move first touches a face of a box, pushed out by its radius, or a corner,
-  as a share of the move, so however fast a ball goes it can't pass through
-  a brick; bricks, the walls and the paddle are all boxes.
+  touches it. `sweep.ts` finds when a ball's move first touches a face of a
+  box, pushed out by its radius, or a corner, as a share of the move, so
+  however fast a ball goes it can't pass through a brick; bricks, the walls
+  and the paddle are all boxes.
 - **The field** — `src/rules/field.ts`: `Field`, a level in play, which
   each step changes in place, from records made once, so a step makes
-  nothing. `createField()` lays out a `Level` (`level.ts`), `steerField()`
+  nothing but a random draw's generator, for a lull or a capsule. `createField()` lays out a `Level` (`level.ts`), `steerField()`
   takes a frame's steering, `stepField()` moves it on a step, `launch()`
   serves the ball waiting on the paddle and `serve()` puts one there after
   the last is lost. A ball's travel gathers what it meets first, the walls,

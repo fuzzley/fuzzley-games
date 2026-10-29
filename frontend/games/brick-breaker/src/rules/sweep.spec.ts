@@ -1,4 +1,4 @@
-import { type Box, SIDE } from "./grid";
+import { type Box, type Corner, type Face, SIDE } from "./grid";
 import { MISSED, sweepCorner, sweepFace } from "./sweep";
 
 /** A brick's box: from 4 to 6 across, and 2 to 3 down. */
@@ -10,7 +10,7 @@ function face(
   y: number,
   dx: number,
   dy: number,
-  side: number = SIDE.bottom,
+  side: Face = SIDE.bottom,
 ): number {
   return sweepFace({ x, y, dx, dy, r: 0.5 }, BRICK, side);
 }
@@ -21,7 +21,7 @@ function corner(
   y: number,
   dx: number,
   dy: number,
-  which: number = SIDE.bottomLeft,
+  which: Corner = SIDE.bottomLeft,
 ): number {
   return sweepCorner({ x, y, dx, dy, r: 0.5 }, BRICK, which);
 }
@@ -90,10 +90,6 @@ describe("sweepFace", () => {
   ])("finds the %s face from its side", (_, side, x, y, dx, dy) => {
     expect(face(x, y, dx, dy, side)).toBeCloseTo(0.75);
   });
-
-  it("finds no face for a side that is a corner", () => {
-    expect(face(4, 5, 0, -2, SIDE.bottomLeft)).toBe(MISSED);
-  });
 });
 
 describe("sweepCorner", () => {
@@ -139,9 +135,5 @@ describe("sweepCorner", () => {
     ["bottom left", SIDE.bottomLeft, 3, 4, 1, -1],
   ])("finds the %s corner", (_, which, x, y, dx, dy) => {
     expect(corner(x, y, dx, dy, which)).toBeCloseTo(1 - 0.5 / Math.SQRT2);
-  });
-
-  it("finds no corner for a side that is a face", () => {
-    expect(corner(5, 5, 0, -2, SIDE.bottom)).toBe(MISSED);
   });
 });

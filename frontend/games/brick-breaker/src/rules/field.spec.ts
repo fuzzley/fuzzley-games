@@ -16,6 +16,7 @@ import {
   FLATTEST,
   LULL_BOUNCES,
   LULL_TURN,
+  MAX_CONTACTS,
   PADDLE_ANGLE,
   PADDLE_TOP,
   SERVE_ANGLE,
@@ -31,6 +32,15 @@ const FAR_BRICK = ["o"];
  */
 function sixthRow(row: string): string[] {
   return ["o", "", "", "", "", row];
+}
+
+/** Returns where a ball thrown at the left wall heads after a lull's turn there, from a seed. */
+function lullHeading(seed: number): number {
+  const field = fieldFrom(FAR_BRICK, { seed });
+  const ball = throwBall(field, 1, 15, -45);
+  ball.bounces = LULL_BOUNCES;
+  stepTimes(field, 10);
+  return headingOf(ball);
 }
 
 /** Returns how far the field's first ball moved in its last step. */
@@ -147,6 +157,18 @@ describe("the walls", () => {
     expect(headingOf(ball)).toBeCloseTo(turned);
   });
 
+  it("send back the way it came a ball that meets two at once at a right angle", () => {
+    // Heading 0.6 left for each 0.8 up, it reaches both walls at once.
+    const field = fieldFrom(FAR_BRICK);
+    const ball = throwBall(field, 0.96, 1.16, -36.87);
+
+    stepTimes(field, 10);
+
+    expect([ball.dx, ball.dy].map((each) => Number(each.toFixed(3)))).toEqual([
+      0.6, 0.8,
+    ]);
+  });
+
   it("say a ball bounced off them", () => {
     const field = fieldFrom(FAR_BRICK);
     throwBall(field, 1, 1, -45);
@@ -204,6 +226,40 @@ describe("the paddle", () => {
     expect(eventsOf(field)).toEqual(["paddle"]);
   });
 
+  it("lets a ball rising from under it pass up through it", () => {
+    const field = fieldFrom(FAR_BRICK);
+    const ball = throwBall(field, 13, 29.5, 0);
+
+    stepTimes(field, 20);
+
+    expect({ above: ball.y < PADDLE_TOP, rising: ball.dy < 0 }).toEqual({
+      above: true,
+      rising: true,
+    });
+  });
+
+  it("leaves a ball whose middle has fallen below it", () => {
+    const field = fieldFrom(FAR_BRICK);
+    const ball = throwBall(field, 15.5, 28.4, 180);
+    steerField(field, { ...NO_STEER, to: 14 });
+
+    stepField(field);
+
+    expect(ball.y).toBeGreaterThan(28.4);
+  });
+
+  it("leaves no gap a ball could be caught in beside a wall", () => {
+    // The paddle's end is 0.7 from the left wall, narrower than a ball.
+    const field = fieldFrom(FAR_BRICK);
+    steerField(field, { ...NO_STEER, to: 2.7 });
+    stepTimes(field, 40);
+    const ball = throwBall(field, BALL_RADIUS, 26, 180);
+
+    stepTimes(field, 30);
+
+    expect(ball.y).toBeLessThan(26);
+  });
+
   it("lifts a falling ball it is moved into onto its top, and sends it off", () => {
     const field = fieldFrom(FAR_BRICK);
     const ball = throwBall(field, 15.5, 27.6, 180);
@@ -226,7 +282,7 @@ describe("the bricks", () => {
     stepTimes(field, 15);
 
     expect({
-      broken: field.bricks[5 * 13 + 6]?.broken,
+      broken: field.bricks[cellIndex(6, 5)]?.broken,
       heading: Math.abs(headingOf(ball)),
       events: eventsOf(field),
     }).toEqual({ broken: true, heading: 180, events: ["broken"] });
@@ -249,7 +305,7 @@ describe("the bricks", () => {
     stepTimes(field, 15);
 
     expect({
-      hits: field.bricks[5 * 13 + 6]?.hits,
+      hits: field.bricks[cellIndex(6, 5)]?.hits,
       events: eventsOf(field),
     }).toEqual({ hits: 1, events: ["hit"] });
   });
@@ -261,7 +317,7 @@ describe("the bricks", () => {
     stepTimes(field, 15);
 
     expect({
-      broken: field.bricks[5 * 13 + 6]?.broken,
+      broken: field.bricks[cellIndex(6, 5)]?.broken,
       climbed: field.climbed,
       events: eventsOf(field),
     }).toEqual({ broken: false, climbed: 0, events: ["hit"] });
@@ -273,7 +329,7 @@ describe("the bricks", () => {
 
     stepTimes(field, 15);
 
-    expect(field.bricks[5 * 13 + 6]?.hits).toBe(1);
+    expect(field.bricks[cellIndex(6, 5)]?.hits).toBe(1);
   });
 
   it("break without counting toward the level when it doesn't need them", () => {
@@ -283,10 +339,50 @@ describe("the bricks", () => {
     stepTimes(field, 15);
 
     expect({
-      broken: field.bricks[5 * 13 + 6]?.broken,
+      broken: field.bricks[cellIndex(6, 5)]?.broken,
       needed: field.needed,
       state: field.state,
     }).toEqual({ broken: true, needed: 1, state: "playing" });
+  });
+
+  it("turn a ball once when it meets the seam between two", () => {
+    const field = fieldFrom(sixthRow(".....##"));
+    const ball = throwBall(field, 12, 10, 0);
+
+    stepTimes(field, 15);
+
+    expect({
+      bounces: ball.bounces,
+      heading: Math.abs(Math.round(headingOf(ball))),
+    }).toEqual({ bounces: 1, heading: 180 });
+  });
+
+  it("stop a ball too fast to stop between steps", () => {
+    // A step of 5.3 at this pace, more than five bricks are tall.
+    const field = fieldFrom(sixthRow("......o"), { pace: 40 });
+    throwBall(field, 13, 10, 0);
+
+    stepField(field);
+
+    expect(field.bricks[cellIndex(6, 5)]?.broken).toBe(true);
+  });
+
+  it(`turn a ball at most ${String(MAX_CONTACTS)} times a step, and hold it`, () => {
+    // A cell shut in by steel, from 12 to 14 across and 7 to 8 down.
+    const field = fieldFrom(
+      ["o", "", "", "", ".....###", ".....#.#", ".....###"],
+      {
+        pace: 40,
+      },
+    );
+    const ball = throwBall(field, 13, 7.5, 30);
+
+    stepField(field);
+
+    expect({
+      bounces: ball.bounces,
+      inside: ball.x > 12 && ball.x < 14 && ball.y > 7 && ball.y < 8,
+    }).toEqual({ bounces: MAX_CONTACTS, inside: true });
   });
 
   it("both break when a ball meets the seam between them, which turns it once", () => {
@@ -296,7 +392,7 @@ describe("the bricks", () => {
     stepTimes(field, 15);
 
     expect({
-      broken: [5 * 13 + 5, 5 * 13 + 6].map(
+      broken: [cellIndex(5, 5), cellIndex(6, 5)].map(
         (cell) => field.bricks[cell]?.broken,
       ),
       heading: Math.abs(headingOf(ball)),
@@ -435,17 +531,28 @@ describe("a lull", () => {
     expect(headingOf(ball)).toBeCloseTo(45);
   });
 
-  it("is a turn the run's seed decides", () => {
-    // The first draw from seed 1 turns the ball one way, and from 3 the other.
-    const headings = [1, 3].map((seed) => {
-      const field = fieldFrom(FAR_BRICK, { seed });
-      const ball = throwBall(field, 1, 15, -45);
-      ball.bounces = LULL_BOUNCES;
-      stepTimes(field, 10);
-      return headingOf(ball);
-    });
+  it("is the same turn from the same seed", () => {
+    expect(lullHeading(1)).toBe(lullHeading(1));
+  });
 
-    expect(headings[0]).not.toBeCloseTo(headings[1] ?? 0);
+  it("is another turn from another seed", () => {
+    // The first draw from seed 1 turns the ball one way, and from 3 the other.
+    expect(lullHeading(1)).not.toBeCloseTo(lullHeading(3));
+  });
+
+  it("is turned out of the wall again if it turns the ball back into it", () => {
+    // Seed 3's first draw turns the ball about 5.5° back toward the wall it
+    // left 2° from straight up.
+    const field = fieldFrom(FAR_BRICK, { seed: 3 });
+    const ball = throwBall(field, 0.5, 15, -2);
+    ball.bounces = LULL_BOUNCES;
+
+    stepTimes(field, 40);
+
+    expect({ events: eventsOf(field), away: ball.dx > 0 }).toEqual({
+      events: ["wall"],
+      away: true,
+    });
   });
 
   it("is counted again from the paddle", () => {
@@ -470,13 +577,14 @@ describe("a lull", () => {
 });
 
 describe("a field", () => {
-  /** Plays a level from a seed, steered the same way every time, and returns it. */
+  /**
+   * Plays a level from a seed, steered the same way every time, and returns
+   * it: capsules fall, and steel shuts some balls in long enough to lull.
+   */
   function play(seed: number): Field {
     const field = fieldFrom(
-      ["oooooooooooo", "o2o2o#o2o2o2o", "#...#...#...#"],
-      {
-        seed,
-      },
+      ["oooooooooooo", "o2o2o#o2o2o2o", "#...#...#...#", "#.#.#.#.#.#.#"],
+      { seed, drops: 0.4, capsules: ["wide", "multi", "slow", "narrow"] },
     );
     for (let frame = 0; frame < 3000; frame++) {
       if (field.state === "lost") serve(field);
@@ -503,6 +611,26 @@ describe("a field", () => {
       draws: second.draws,
       events: second.events.latest,
     });
+  });
+
+  it("draws from its seed as it plays", () => {
+    expect(play(7).draws).toBeGreaterThan(0);
+  });
+
+  it("plays another way from another seed", () => {
+    expect(play(7).balls).not.toEqual(play(8).balls);
+  });
+
+  it("stands still once cleared, to be drawn where it is", () => {
+    const field = fieldFrom(["......o"]);
+    const ball = throwBall(field, 13, 6, 0);
+
+    stepTimes(field, 30);
+
+    expect({
+      ball: [ball.lastX, ball.lastY],
+      paddle: field.paddle.lastX,
+    }).toEqual({ ball: [ball.x, ball.y], paddle: field.paddle.x });
   });
 
   it("keeps where each ball was a step ago, to draw between", () => {
