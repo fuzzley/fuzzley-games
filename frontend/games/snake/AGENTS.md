@@ -80,8 +80,9 @@ Phaser stays out of the first download.
     after a reload.
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with `import()`;
     the empty board drawn in CSS until the scene has drawn; the focus ring;
-    and the cards that say how to start, that the run is paused, or that the
-    board couldn't be drawn. The board is Phaser's keyboard target and pauses
+    and the cards that say how to start, that the run is paused, that the
+    board is still loading on a slow connection, or that it couldn't be
+    drawn. The board is Phaser's keyboard target and pauses
     the run when the focus leaves it.
   - `arrows/` — the on-screen arrows, on a touch screen or as the settings
     say, which turn the snake and hand the focus back to the board.

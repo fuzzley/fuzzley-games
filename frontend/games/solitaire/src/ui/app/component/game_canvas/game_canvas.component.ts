@@ -68,7 +68,10 @@ export class GameCanvasComponent {
     () => this.canvas().state() === "loading",
   );
 
-  /** Whether the board gave up before reporting itself ready. */
+  /** Whether the board is taking long to load, as on a slow connection. */
+  protected readonly isSlow = computed(() => this.canvas().slow());
+
+  /** Whether the board couldn't be loaded, or was given up on. */
   protected readonly hasInitializationFailed = computed(
     () => this.canvas().state() === "failed",
   );

@@ -153,10 +153,19 @@ describe("PhaserCanvasComponent", () => {
       expect(element).toHaveAttribute("data-state", "failed");
     });
 
-    it("is failed when the scene hasn't drawn in eight seconds", async () => {
+    it("is loading still when the scene hasn't drawn in eight seconds", async () => {
       const { element, settle } = await renderCanvas();
 
       vi.advanceTimersByTime(8_000);
+      await settle();
+
+      expect(element).toHaveAttribute("data-state", "loading");
+    });
+
+    it("is failed when the scene hasn't drawn in a minute", async () => {
+      const { element, settle } = await renderCanvas();
+
+      vi.advanceTimersByTime(60_000);
       await settle();
 
       expect(element).toHaveAttribute("data-state", "failed");
@@ -165,15 +174,15 @@ describe("PhaserCanvasComponent", () => {
     it("is loading still just before then", async () => {
       const { element, settle } = await renderCanvas();
 
-      vi.advanceTimersByTime(7_900);
+      vi.advanceTimersByTime(59_900);
       await settle();
 
       expect(element).toHaveAttribute("data-state", "loading");
     });
 
-    it("is ready after all when a slow scene draws", async () => {
+    it("is ready after all when a scene given up on draws", async () => {
       const { element, host, settle } = await renderCanvas();
-      vi.advanceTimersByTime(8_000);
+      vi.advanceTimersByTime(60_000);
       await settle();
 
       host.latest.ready();
@@ -211,6 +220,68 @@ describe("PhaserCanvasComponent", () => {
       fixture.destroy();
 
       expect(vi.getTimerCount()).toBe(0);
+    });
+  });
+
+  describe("whether it is slow", () => {
+    it("is not slow at first", async () => {
+      const { canvas, element } = await renderCanvas();
+
+      expect([canvas.slow(), element.hasAttribute("data-slow")]).toEqual([
+        false,
+        false,
+      ]);
+    });
+
+    it("is slow once the scene hasn't drawn in eight seconds", async () => {
+      const { canvas, element, settle } = await renderCanvas();
+
+      vi.advanceTimersByTime(8_000);
+      await settle();
+
+      expect([canvas.slow(), element.hasAttribute("data-slow")]).toEqual([
+        true,
+        true,
+      ]);
+    });
+
+    it("is not slow just before then", async () => {
+      const { canvas, settle } = await renderCanvas();
+
+      vi.advanceTimersByTime(7_900);
+      await settle();
+
+      expect(canvas.slow()).toBe(false);
+    });
+
+    it("is no longer slow once the scene draws", async () => {
+      const { canvas, host, settle } = await renderCanvas();
+      vi.advanceTimersByTime(8_000);
+      await settle();
+
+      host.latest.ready();
+      await settle();
+
+      expect(canvas.slow()).toBe(false);
+    });
+
+    it("is no longer slow once it fails", async () => {
+      const { canvas, settle } = await renderCanvas();
+
+      vi.advanceTimersByTime(60_000);
+      await settle();
+
+      expect(canvas.slow()).toBe(false);
+    });
+
+    it("is not slow when a new scene is shown", async () => {
+      const { canvas, settle, show } = await renderCanvas();
+      vi.advanceTimersByTime(8_000);
+      await settle();
+
+      await show(SECOND);
+
+      expect(canvas.slow()).toBe(false);
     });
   });
 

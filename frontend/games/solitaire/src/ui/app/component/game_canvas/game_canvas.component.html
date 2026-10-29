@@ -29,7 +29,9 @@
       <!-- Always present, so the status is announced when it arrives. -->
       <p class="loading-text" role="status">
         @if (hasInitializationFailed()) {
-          Board initialization timed out
+          The board couldn't be loaded. Reloading the page may help.
+        } @else if (isSlow()) {
+          Still loading {{ gameName() }}...
         } @else if (isInitializing()) {
           Loading {{ gameName() }}...
         }

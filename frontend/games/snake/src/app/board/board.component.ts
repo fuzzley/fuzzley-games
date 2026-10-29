@@ -21,13 +21,14 @@ import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 
 /** Names a card laid over the board, or none. */
-type Card = "start" | "paused" | "failed" | null;
+type Card = "start" | "paused" | "slow" | "failed" | null;
 
 /**
  * Shows the board: the canvas the scene draws on, which hears the keys and
  * the swipes while the board has the focus, a drawing of the empty board in
  * CSS until the scene has drawn, and the cards that say how to start, that
- * the run is paused, or that the board couldn't be drawn.
+ * the run is paused, that the board is still loading on a slow connection,
+ * or that it couldn't be drawn.
  *
  * The board is an application to assistive technology, so a screen reader
  * hands it the arrow keys rather than reading with them; the canvas in it is
@@ -104,6 +105,7 @@ export class BoardComponent {
   /** The card over the board, if any. */
   protected readonly card = computed<Card>(() => {
     if (this.canvas().state() === "failed") return "failed";
+    if (this.canvas().slow()) return "slow";
     switch (this.game.outcome()) {
       case "ready":
         return "start";
