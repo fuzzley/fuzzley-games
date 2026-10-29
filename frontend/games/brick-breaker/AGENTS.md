@@ -81,6 +81,15 @@ and the shell exist.
   points banked and the score, the lives and the points of the next, and
   the outcome. `tally()` takes a level's score as it stands, `clearLevel()`
   banks it, and `levelSeed()` gives each level's field a seed of its own.
+- **The levels** — `src/rules/levels/`: a JSON file for each set of
+  levels, its name, its chance of a capsule and its levels, each a picture
+  of its bricks in the characters of `legend.ts`'s shared legend, with any
+  of its own, and, for a picture, a grid of tints. `src/rules/levels.ts`
+  lists the sets in order (`LEVEL_SETS`), numbers every level from 1
+  (`LEVELS`), and `parseLevel()` turns one into a `Level` to play, or
+  throws an error that names what is wrong with its data. Its spec holds
+  every level to parsing, ids and names of their own, a brick it needs that
+  a ball can reach, and a pace that never falls within a set.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
   written `as const satisfies`, so its ids survive as a type: `bricks.ts`
   (`BRICK_KINDS`, each kind's hits, whether a level needs it, its points

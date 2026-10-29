@@ -896,3 +896,40 @@ past the eight records, Multiball leaving a resting ball, a blast ball at
 steel, the allocations at a catch, drop or lull, a bolt not moved up to the
 brick it hits, braceless one-line loops, Catch holding a ball met at the
 paddle's side, and `hardSolid`.
+
+## B4.1: levels as data
+
+- **Built.** `src/rules/legend.ts`: `BrickSpec`, `NO_BRICK`, the shared
+  `LEGEND` and `brickOf()`. `src/rules/levels.ts`: `LevelData`,
+  `BrickSpecData`, `LevelSetData`, `LevelEntry`, `LEVEL_SETS`, `LEVELS`
+  and `parseLevel()`. `src/rules/levels/basics.json`: the first set,
+  Basics, levels 1 to 10 as the plan's table has them (Stripes, Gifts,
+  Pyramid as the plan draws it, Checker, Window, Arch, Diamond, Waves,
+  Rocket with a picture's tints, Castle), its chance of a capsule 0.10 and
+  its pace from 1.00 to 1.06. `level.ts` gains `TINTS`, the catalog
+  `isBrickKindId()`, and `fieldFrom()` reads the shared legend rather than
+  a copy of it. Specs, 70 new.
+- **Choices.**
+  - A level's ids are text in its file, so `LevelData` says `string` where
+    the plan had the catalogs' ids, and `parseLevel()` checks them; a type
+    that claimed more would be a cast over JSON.
+  - A set's file holds its chance of a capsule, which each level may
+    override; `parseLevel()` takes the level's entry (its number and set
+    with its data), since its default pool and chance depend on them.
+  - `parseLevel()` throws, naming the level and the problem: the levels
+    are fixed data the spec parses, so a bad one fails the build's tests,
+    not a player's game.
+  - A tint grid may hold `.` for a brick, which then takes its row's
+    stripe, so a picture needs tints only where it is one.
+  - A legend's hits run from its kind's hits to its `mostHits`, so a tough
+    brick takes 2 to 4, and steel none.
+  - The reach check lives in the levels spec: a flood from the open field
+    below the grid, through every cell but steel and the gap above the
+    grid, must find every needed brick. A spec of its own shows it finds a
+    brick shut in by steel.
+  - The levels' hits run from 39 (Pyramid) to 183 (Castle). The autopilot,
+    B4.2, times them, and `yarn report:levels` is where the ramp is tuned.
+- **Checks.** lint, typecheck, test (510); the rules at 100% of
+  statements, `levels.ts` at 100% of branches.
+- **Review in.** B3.4's review came in during this step; its fixes follow
+  in their own commit, before B4.2.

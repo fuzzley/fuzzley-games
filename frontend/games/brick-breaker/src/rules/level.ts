@@ -1,6 +1,9 @@
 import type { BrickKindId } from "./catalog/bricks";
 import type { CapsuleId } from "./catalog/capsules";
 
+/** How many tints a brick may take. */
+export const TINTS = 8;
+
 /** Describes a brick as a level lays it out. */
 export interface LevelBrick {
   readonly kind: BrickKindId;

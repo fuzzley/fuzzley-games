@@ -1,26 +1,13 @@
 import type { Ball } from "../rules/balls";
-import { type BrickKindId, brickKind } from "../rules/catalog/bricks";
 import type { CapsuleId } from "../rules/catalog/capsules";
 import type { FieldEventKind } from "../rules/events";
 import { type Field, createField, stepField } from "../rules/field";
 import { CELLS, columnOf, rowOf } from "../rules/grid";
-import { COLUMNS } from "../rules/tuning";
+import { LEGEND, NO_BRICK, brickOf } from "../rules/legend";
 import type { LevelBrick } from "../rules/level";
 import type { Steer } from "../rules/paddle";
 import type { Speed } from "../rules/speed";
-
-/** The kinds a picture draws, by character. */
-const KINDS: Readonly<Record<string, BrickKindId>> = {
-  o: "plain",
-  "#": "steel",
-  "*": "blast",
-  "?": "gift",
-  "~": "ghost",
-  "+": "regrow",
-  "2": "tough",
-  "3": "tough",
-  "4": "tough",
-};
+import { COLUMNS } from "../rules/tuning";
 
 /** Says how a pictured field is played, where a spec cares. */
 export interface PictureOptions {
@@ -54,7 +41,10 @@ export function fieldFrom(
     if (row.length > COLUMNS) throw new Error(`A row too long: "${row}".`);
   }
   const cells = Array.from({ length: CELLS }, (_, cell) =>
-    brickFrom(rows[rowOf(cell)]?.[columnOf(cell)] ?? ".", options.gift ?? null),
+    brickFrom(
+      rows[rowOf(cell)]?.[columnOf(cell)] ?? NO_BRICK,
+      options.gift ?? null,
+    ),
   );
   return createField(
     {
@@ -133,12 +123,9 @@ function brickFrom(
   character: string,
   gift: CapsuleId | null,
 ): LevelBrick | null {
-  if (character === ".") return null;
-  const kind = KINDS[character];
-  if (!kind) throw new Error(`No brick is drawn "${character}".`);
-  const capsule = kind === "gift" ? gift : null;
-  const { hits } = brickKind(kind);
-  if (hits === "never") return { kind, hits: 0, tint: 0, capsule };
-  const whole = kind === "tough" ? Number(character) : hits;
-  return { kind, hits: whole, tint: 0, capsule };
+  if (character === NO_BRICK) return null;
+  const spec = LEGEND[character];
+  if (!spec) throw new Error(`No brick is drawn "${character}".`);
+  const brick = brickOf(spec, 0);
+  return gift && brick.kind === "gift" ? { ...brick, capsule: gift } : brick;
 }
