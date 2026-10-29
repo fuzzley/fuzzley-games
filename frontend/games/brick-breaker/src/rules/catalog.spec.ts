@@ -4,6 +4,7 @@ import {
   BRICK_KIND_IDS,
   brickKind,
   hasTrait,
+  isBrickKindId,
 } from "./catalog/bricks";
 import {
   CAPSULES,
@@ -131,6 +132,14 @@ describe("the brick kinds", () => {
     const kind = brickKind(id);
 
     expect(kind.points > 0).toBe(kind.hits !== "never");
+  });
+
+  it("know their ids, and nothing else", () => {
+    expect([
+      isBrickKindId("steel"),
+      isBrickKindId("toString"),
+      isBrickKindId(3),
+    ]).toEqual([true, false, false]);
   });
 });
 

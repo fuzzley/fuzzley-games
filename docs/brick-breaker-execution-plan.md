@@ -839,8 +839,12 @@ spreadDeg }`, `{ kind: "life" }` or `{ kind: "net" }`. An
 #### Levels as data
 
 A set of levels is one JSON file in `src/rules/levels/`, imported
-statically, as Sudoku's bank is; the three sets come to about 12 kB.
-`LEVEL_SETS` in `src/rules/levels.ts` lists them in order. A level is:
+statically, as Sudoku's bank is; the three sets come to about 12 kB. The
+file holds the set's id, its name, its chance of a capsule (`drops`) and
+its levels. `LEVEL_SETS` in `src/rules/levels.ts` lists them in order, and
+`LEVELS` numbers every level from 1, with its set. A level's ids are text
+in its file, which `parseLevel()` checks, so the data's types say
+`string` where the catalogs' ids go. A level is:
 
 ```ts
 /** Describes a level as its set's file holds it. */
@@ -851,19 +855,19 @@ export interface LevelData {
   readonly name: string;
   /** Its bricks, a row of 13 characters for each of up to 16 rows. */
   readonly bricks: readonly string[];
-  /** Each brick's tint, 1 to 8, in the same shape; else a tint per row. */
+  /** Each brick's tint, 1 to 8, in the same shape, `.` for its row's; else a tint per row. */
   readonly tints?: readonly string[];
   /** The ball's speed against the speed's own, 1 by default. */
   readonly pace?: number;
-  /** The chance a needed brick lets a capsule fall. */
+  /** The chance a needed brick lets a capsule fall; else its set's. */
   readonly drops?: number;
   /** The capsules that can fall; else every one whose level has come. */
-  readonly capsules?: readonly CapsuleId[];
+  readonly capsules?: readonly string[];
   /** Characters of its own, beside the shared legend's. */
-  readonly legend?: Readonly<Record<string, BrickSpec>>;
+  readonly legend?: Readonly<Record<string, BrickSpecData>>;
 }
 
-/** Describes what a character in a level stands for. */
+/** Describes what a character in a level stands for (`legend.ts`). */
 export interface BrickSpec {
   readonly kind: BrickKindId;
   /** Its hits, where its kind allows more than one. */
@@ -872,6 +876,9 @@ export interface BrickSpec {
   readonly capsule?: CapsuleId;
 }
 ```
+
+`BrickSpecData` is a `BrickSpec` as a file holds it, its kind and capsule
+text.
 
 - **The shared legend** (`src/rules/legend.ts`): `.` no brick, `o` plain,
   `2` to `4` tough, `#` steel, `*` blast, `?` gift, `~` ghost, `+` regrow.
@@ -883,10 +890,13 @@ export interface BrickSpec {
 - **Order is the file's,** and a level opens once the one before it is
   cleared, or once it has been cleared itself. So a level inserted later
   never closes one a player has already reached.
-- **`parseLevel()`** turns the data into a `Level`, with a cell for every
-  brick, or names what is wrong: a row of the wrong length, an unknown
-  character, a tint grid of another shape, a capsule or kind that doesn't
-  exist, a pace outside 0.8 to 1.4.
+- **`parseLevel()`** turns a level's entry into a `Level`, with a cell for
+  every brick, or throws an error that names the level and what is wrong:
+  a row of the wrong length or too many, an unknown character, a legend
+  that redefines a shared character, hits a kind can't take, a capsule on
+  a brick that gives none, a tint grid of another shape or a tint that
+  isn't one, a capsule or kind that doesn't exist, a pace outside 0.8 to
+  1.4, or a chance outside 0 to 1.
 
 #### The checks that keep it whole
 

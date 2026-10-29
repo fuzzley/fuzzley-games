@@ -117,6 +117,11 @@ export function brickKind(id: BrickKindId): BrickKind {
   return BRICK_KINDS[id];
 }
 
+/** Returns whether a value names a brick kind. */
+export function isBrickKindId(value: unknown): value is BrickKindId {
+  return typeof value === "string" && Object.hasOwn(BRICK_KINDS, value);
+}
+
 /** Returns whether a brick kind has a trait of a kind. */
 export function hasTrait(id: BrickKindId, kind: TraitKind): boolean {
   return brickKind(id).traits.some((trait) => trait.kind === kind);
