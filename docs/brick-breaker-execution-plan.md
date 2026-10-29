@@ -119,7 +119,9 @@ Then:
 1. **Every finding is answered:** fixed, or left with a reason, both written
    in the work log under the step.
 2. **The fixes are one commit** of their own, `<type>(<scope>): <step>'s
-review: …`, checked as any step's.
+review: …`, checked as any step's. It comes after the commit of the step
+   in progress when the review arrives, never mixed into it, and before the
+   next step's work begins.
 3. **A review's fixes are reviewed with the next step**, whose reviewer is
    handed both commits, so the reviews never chase their own tails. The last
    fixes of the work get a review of their own.
@@ -940,8 +942,8 @@ in code will want it (decision 4).
 
 #### The pieces
 
-- **`@fz/phaser/layout`** imports nothing, as `insets` and `color` don't, so
-  a game's view takes it. `fitCells()` finds the largest cell, in whole
+- **`@fz/phaser/layout`** imports nothing but `insets`' type, as the pure
+  entries import nothing but each other, so a game's view takes it. `fitCells()` finds the largest cell, in whole
   device pixels, that lets `across` by `down` cells and the frame fit inside
   the insets, and centers them on whole pixels. It returns the cell, the
   origin and the size in device pixels, and the rectangle in CSS pixels, as
@@ -1176,8 +1178,9 @@ how a careful clone does its collisions:
 `src/view/`, without Phaser, tested in Node:
 
 - `field_metrics.ts`: `fieldMetrics(viewport)`, the field on the canvas from
-  `fitCells()`, with a unit as the cell and 26 by 30 of them, a 2-CSS-pixel
-  wall around; and `toCanvas()` and `toField()` between the two.
+  `fitCells()`, with a unit as the cell and 26 by 30 of them, and room for
+  a 2-CSS-pixel frame on every side, so the field stays centered, though
+  the wall is drawn only on the left, the top and the right; and `toCanvas()` and `toField()` between the two.
 - `palette.ts`: `bricksPalette(roles, mode)`. The field is `panel`, the wall
   `text` at 20%, the ball `text`, the paddle `accent`, steel `text` at 35%,
   a good capsule `accent` and a bad one `danger`, the fire ball `warning`

@@ -60,17 +60,20 @@ describe("fitCells", () => {
     expect([fit.x, fit.y]).toEqual([83, 15]);
   });
 
-  it("keeps clear of the chrome", () => {
+  it("keeps the field and its frame clear of the chrome", () => {
     const fit = fitCells(
-      viewport(400, 400, 1, { top: 100, right: 0, bottom: 20, left: 30 }),
+      viewport(400, 400, 1, { top: 100, right: 40, bottom: 20, left: 30 }),
       TALL,
     );
 
+    // The room inside the chrome runs from 30 to 360 across and 100 to 380
+    // down: cells of 9, a field of 234 by 270 centered in it.
     expect({
-      top: fit.y >= 100,
-      left: fit.x >= 30,
-      bottom: fit.y + fit.height <= 380,
-    }).toEqual({ top: true, left: true, bottom: true });
+      top: fit.y - fit.frame,
+      right: fit.x + fit.width + fit.frame,
+      bottom: fit.y + fit.height + fit.frame,
+      left: fit.x - fit.frame,
+    }).toEqual({ top: 103, right: 314, bottom: 377, left: 76 });
   });
 
   it("gives the field in CSS pixels", () => {
@@ -84,14 +87,16 @@ describe("fitCells", () => {
     });
   });
 
-  it("scales the frame by the pixel ratio, to a pixel at least", () => {
-    const thick = fitCells(viewport(400, 300, 3), TALL);
-    const thin = fitCells(viewport(400, 300, 1), {
-      ...TALL,
-      frameCss: 0.2,
-    });
+  it("scales the frame by the pixel ratio", () => {
+    const fit = fitCells(viewport(400, 300, 3), TALL);
 
-    expect([thick.frame, thin.frame]).toEqual([6, 1]);
+    expect(fit.frame).toBe(6);
+  });
+
+  it("keeps the frame a pixel at least", () => {
+    const fit = fitCells(viewport(400, 300, 1), { ...TALL, frameCss: 0.2 });
+
+    expect(fit.frame).toBe(1);
   });
 
   it("keeps a cell at least a pixel on a canvas too small for the field", () => {

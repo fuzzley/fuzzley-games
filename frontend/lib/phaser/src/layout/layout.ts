@@ -12,7 +12,7 @@ export interface Viewport {
   readonly insets: Insets;
 }
 
-/** A rectangle on the canvas, in CSS pixels from its top left. */
+/** Describes a rectangle on the canvas, in CSS pixels from its top left. */
 export interface CssRect {
   readonly x: number;
   readonly y: number;
@@ -38,9 +38,9 @@ export interface CellFit {
   readonly x: number;
   /** The field's top edge, in whole device pixels. */
   readonly y: number;
-  /** The field's width, in device pixels. */
+  /** The field's width, in whole device pixels. */
   readonly width: number;
-  /** The field's height, in device pixels. */
+  /** The field's height, in whole device pixels. */
   readonly height: number;
   /** How thick the frame around it is, in whole device pixels. */
   readonly frame: number;
@@ -52,6 +52,9 @@ export interface CellFit {
  * Returns where a field of square cells lies on a canvas: the largest that
  * fits inside the chrome with room for its frame, each cell a whole number
  * of device pixels so its edges are sharp, centered on whole pixels.
+ *
+ * On a canvas too small for the field, a cell is still a device pixel, and
+ * the field runs past the insets.
  */
 export function fitCells(viewport: Viewport, field: CellField): CellFit {
   const { width, height, pixelRatio, insets } = viewport;

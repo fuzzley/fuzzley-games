@@ -64,3 +64,35 @@ and the QA checkpoints. Newest last.
   returns what it wrote, for the script's line about it.
 - **Checks.** `@fz/dev` (103 tests, coverage up to 89% of statements) and
   `snake`: lint and typecheck.
+
+## L1.1's review
+
+The reviewer compared `fitCells()` with the old `boardMetrics()` on 438,984
+viewports and found them identical. Its findings, and what became of each:
+
+1. **Snake's view fence blocked a list of `@fz/phaser` entries rather than
+   allowing the pure ones,** so `@fz/phaser/sound` and `testing` slipped
+   through. Fixed: the view blocks `@fz/phaser/*` but `color`, `insets` and
+   `layout` (not the bare package, which git's ignore rules couldn't take
+   back from), and the app's value-import fence names `@fz/phaser/scene` and
+   `sound` too. Each was probed with a file of its own.
+2. **The library's pure-entry fence let `../color/color` through.** Fixed:
+   `../*/*` is refused after the entries are allowed.
+3. **The plan said `layout` imports nothing.** Fixed in the plan.
+4. **The plan didn't say when a review's fixes are committed.** Fixed: after
+   the commit of the step in progress, before the next step's work.
+5. **The plan's wall was three-sided in one place and all round in
+   another.** Fixed: `fitCells()` leaves room for a frame all round, so the
+   field stays centered, and the wall is drawn on three sides.
+6. **"Keeps clear of the chrome" missed the frame and the right edge.**
+   Fixed: it checks every edge of the frame against insets on all four sides.
+7. **One test checked two frames.** Split.
+8. **Doc comments.** Fixed: `CssRect` opens "Describes", the width and height
+   are whole device pixels, and `fitCells()` says what a canvas too small for
+   the field gets.
+9. **No check that `across` and `down` are positive.** Left: every caller
+   passes constants, and a check would be code no caller reaches.
+
+Left as the reviewer advised: `BoardMetrics` as Snake's thin wrapper, the
+name `Viewport`, and a shared `viewportOf()` for the scenes until B6 needs
+one.
