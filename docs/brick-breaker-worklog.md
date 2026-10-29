@@ -1145,3 +1145,44 @@ Checked in a scratch spec, deleted after.
 - **The physics' cost with eight balls,** in Node, on Castle's, Window's
   and Waves' first layouts at Fast: 12 µs a step, so 0.15 ms for a stalled
   frame's twelve steps.
+
+## B5.1: the view's measures, frame, layers, timing, controls and steering
+
+- **Built,** in `src/view/`, each with its spec:
+  - `field_metrics.ts`: `fieldMetrics()` on `fitCells()`, 26 by 30 units
+    with a 2 CSS px wall, and `toCanvasX()`, `toCanvasY()`, `toFieldX()`
+    and `toFieldY()`.
+  - `frame.ts`: `FieldView`, `EventsView` and `FieldFrame`, with `Steer`
+    and the event types from the rules.
+  - `layers.ts`: `LAYERS` and `depthOf()`.
+  - `timing.ts`: the flourishes' times, the last bricks' glow, and
+    `clearedDelayMs()` and `resultDelayMs()`.
+  - `controls.ts`: `FieldCommand`, `HeldKey`, `FIELD_KEYS`,
+    `commandOfKey()` and `heldKeyOf()`.
+  - `steering.ts`: `Steering`, `PointerView`, `TouchSteering`, `TAP_MS`
+    and `TAP_CSS_PX`.
+
+  Specs, 64 new; the view at 100% of statements.
+
+- **Choices.**
+  - A place across and down converts by an axis each, so drawing a ball
+    makes no pair.
+  - `FieldView` lists what the scene reads, read only, and the rules'
+    `Field` fits it as it is; `EventsView` is the log without `add()`.
+  - The layers, back to front: the field, the bricks, the effects (shards
+    and rings, behind what moves), the capsules, the bolts, the paddle, the
+    balls, which nothing hides, and the tags.
+  - `Steering` reads Phaser's pointer through `PointerView`, the fields it
+    needs, so the scene passes the pointer as it is and the view never
+    imports Phaser. It asks for a place only on a frame the pointer moved:
+    the rules let held keys forget the pointer's place, and a mouse resting
+    on the canvas would otherwise pull the paddle back as the keys let go.
+  - A mouse's press launches at once; a finger's is a tap only if let go
+    within 250 ms, having moved no more than 8 CSS px at any time, so a
+    drag that comes back is no tap. One finger steers at a time.
+  - The flourishes' times are first guesses, to be tuned at Q3: bricks drop
+    in over 360 ms, 45 ms a row apart; shards fly 420 ms; a blast's ring
+    300 ms; a shake 160 ms; a lost ball fades over 600 ms, which the result
+    card waits for; the Cleared card waits 700 ms for the last shards.
+- **Checks.** lint, typecheck, test (656), the rules and the view at 100% of
+  statements.

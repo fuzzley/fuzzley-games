@@ -32,8 +32,8 @@ importing only the layers below it: the rules, with no framework and no
 library but `@fz/core`, physics included; the view, which will work out
 what to draw without Phaser, with `@fz/phaser`'s pure entries; the scene,
 the only code that will import Phaser; and the shell, in Angular, which
-may take the scene and `@fz/phaser/host` only by type. So far the rules
-and the shell exist.
+may take the scene and `@fz/phaser/host` only by type. So far the rules,
+the view's first files and the shell exist.
 
 ## Layout
 
@@ -101,6 +101,16 @@ and the shell exist.
   effect, whose kind is its group). Each has its ids in How to play's order
   and a function that returns an entry as the shape every entry has.
   `src/rules/catalog.spec.ts` holds every entry to the catalogs' rules.
+- **`src/view/`** — what to draw, without Phaser, tested in Node.
+  `field_metrics.ts` lays the field on the canvas from `fitCells()`, a unit
+  a whole number of device pixels, with `toCanvasX()`/`toCanvasY()` and
+  `toFieldX()`/`toFieldY()` between the two; `frame.ts` is what the scene
+  reads: `FieldView`, the field it can't change, `EventsView` and
+  `FieldFrame`; `layers.ts` the order the field is drawn in, back to front,
+  in one list; `timing.ts` how long each flourish lasts and how long the
+  cards wait; `controls.ts` the keys by `event.code`, the commands and the
+  held pushes; and `steering.ts` the `Steering` that turns keys, the mouse
+  and fingers into each frame's `Steer`, and a tap into a launch.
 - **`src/app/`** — the shell: for now `app.component`, which shows the
   game's name, and `styles/`, `global.scss`, loaded once from `main.ts`, and
   `_index.scss`, the toolkit every component `@use`s, which emits no CSS.

@@ -1248,7 +1248,9 @@ how a careful clone does its collisions:
 - `field_metrics.ts`: `fieldMetrics(viewport)`, the field on the canvas from
   `fitCells()`, with a unit as the cell and 26 by 30 of them, and room for
   a 2-CSS-pixel frame on every side, so the field stays centered, though
-  the wall is drawn only on the left, the top and the right; and `toCanvas()` and `toField()` between the two.
+  the wall is drawn only on the left, the top and the right; and
+  `toCanvasX()`, `toCanvasY()`, `toFieldX()` and `toFieldY()` between the
+  two, an axis each, so nothing is made to hold a pair.
 - `palette.ts`: `bricksPalette(roles, mode)`. The field is `panel`, the wall
   `text` at 20%, the ball `text`, the paddle `accent`, steel `text` at 35%,
   a good capsule `accent` and a bad one `danger`, the fire ball `warning`
@@ -1265,18 +1267,26 @@ how a careful clone does its collisions:
   drawing as plain commands (rectangles, rounded rectangles, circles, lines
   and polygons), which the scene plays into a `Graphics`. So what every
   frame looks like is specced without Phaser.
-- `steering.ts`: the keys held, as a push; the mouse, as a place to go; a
-  finger, as a drag or a place, as the setting says; and a tap, a press and
-  release within 250 ms and 8 CSS px, as a launch.
-- `controls.ts`: the keys by `event.code`, as Snake's are, and the ones the
-  scene captures.
+- `steering.ts`: `Steering`, which the scene feeds its keys and Phaser's
+  pointers (read through `PointerView`, the fields it needs) and reads once
+  a frame: the keys held, as a push, the one held last winning; the mouse,
+  as a place to go; a finger, as a drag or a place, as the setting says,
+  one finger at a time; and a tap, a press and release within 250 ms and 8
+  CSS px, as a launch, as is a mouse's press. A place is asked only on a
+  frame the pointer moved, so a paddle the keys pushed stays where they
+  left it.
+- `controls.ts`: the keys by `event.code`, as Snake's are: the commands
+  (`FieldCommand`: launch, pause, toggle, go), the held pushes, and the
+  ones the scene captures (`FIELD_KEYS`).
 - `effects.ts`: what each event calls for (shards, a ring, a shake, a pop, a
   fade, a sound), each marked as motion or not.
 - `timing.ts`: how long each flourish lasts, and how long the cards wait
   after a level is cleared or a run ends.
 - `layers.ts`: the order the field is drawn in, back to front, in one list,
   as the performance skill asks.
-- `frame.ts`: `FieldFrame`, `Steer` and the event types the scene reads.
+- `frame.ts`: `FieldFrame`, `FieldView` (the field as the scene reads
+  it, which the rules' `Field` is), `EventsView` (the log's `latest` and
+  `forEachSince()`), and `Steer` and the event types, from the rules.
 
 #### The scene
 
