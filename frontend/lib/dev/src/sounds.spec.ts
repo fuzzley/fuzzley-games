@@ -58,8 +58,12 @@ describe("glide", () => {
     const plain = glide(100, 100, 1);
     const bright = glide(100, 100, 1, 0.5);
 
-    expect(bright(0.001) - plain(0.001)).toBeCloseTo(
-      0.5 * Math.sin(2 * 2 * Math.PI * 0.1),
+    // A twentieth of a cycle in, where the second harmonic (sin 0.2π) and
+    // the third (sin 0.3π) differ.
+    const cycles = 0.05;
+
+    expect(bright(cycles / 100) - plain(cycles / 100)).toBeCloseTo(
+      0.5 * Math.sin(2 * 2 * Math.PI * cycles),
     );
   });
 });
@@ -87,31 +91,46 @@ describe("thud", () => {
     const first = thud(3);
     const second = thud(3);
 
-    expect([first(0), first(0), first(0)]).toEqual([
-      second(0),
-      second(0),
-      second(0),
-    ]);
+    expect([0, 1, 2].map((i) => first(i / SAMPLE_RATE))).toEqual(
+      [0, 1, 2].map((i) => second(i / SAMPLE_RATE)),
+    );
+  });
+
+  it("is the same at a time however often, and in whatever order, it is read", () => {
+    const noise = thud(3);
+    const later = noise(0.01);
+
+    const again = [noise(0.02), noise(0.01)];
+
+    expect(again[1]).toBe(later);
   });
 
   it("stays within -1 and 1", () => {
     const noise = thud(11);
 
-    const samples = Array.from({ length: 1000 }, () => noise(0));
+    const samples = Array.from({ length: 1000 }, (_, i) =>
+      noise(i / SAMPLE_RATE),
+    );
 
     expect(samples.every((s) => s >= -1 && s <= 1)).toBe(true);
   });
 });
 
 describe("note", () => {
-  it("is silent until it starts, then plays its tone in its shape", () => {
+  it("is silent until it starts", () => {
+    const played = note(0.5, (t) => t + 1, envelope(0.001, 1));
+
+    expect(played(0.4)).toBe(0);
+  });
+
+  it("plays its tone in its shape, from its own start", () => {
     const played = note(
       0.5,
-      () => 2,
+      (t) => t,
       () => 0.25,
     );
 
-    expect([played(0.4), played(0.6)]).toEqual([0, 0.5]);
+    expect(played(0.6)).toBeCloseTo(0.1 * 0.25);
   });
 });
 
@@ -132,7 +151,8 @@ describe("renderSoundSprite", () => {
       channels: 1,
       rate: SAMPLE_RATE,
       bits: 16,
-      data: wav.length - 44,
+      // A tenth of a second: 1,600 samples of 2 bytes.
+      data: 3200,
     });
   });
 
@@ -165,12 +185,30 @@ describe("renderSoundSprite", () => {
   });
 
   it("renders the same bytes every time", () => {
-    const sounds = (): Sound[] => [BEEP, { ...KNOCK, sample: thud(7) }];
+    const first = renderSoundSprite([BEEP, KNOCK]);
 
-    const first = renderSoundSprite(sounds());
-    const second = renderSoundSprite(sounds());
+    const second = renderSoundSprite([BEEP, KNOCK]);
 
     expect(first.wav.equals(second.wav)).toBe(true);
+  });
+
+  it("refuses no sounds", () => {
+    expect(() => renderSoundSprite([])).toThrow("A sprite needs a sound.");
+  });
+
+  it("refuses two sounds of one name", () => {
+    expect(() => renderSoundSprite([BEEP, { ...KNOCK, name: "beep" }])).toThrow(
+      'Two sounds are named "beep".',
+    );
+  });
+
+  it.each([
+    ["silent", (): number => 0],
+    ["not a number", (): number => Number.NaN],
+  ])("refuses a sound that is %s", (_, sample) => {
+    expect(() =>
+      renderSoundSprite([{ ...BEEP, name: "hush", sample }]),
+    ).toThrow('The sound "hush" is silent or not a number.');
   });
 });
 

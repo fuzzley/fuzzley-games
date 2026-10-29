@@ -124,3 +124,31 @@ the scene's chunk) and the spy justified. Its findings:
 
 Left as advised: the spy, the "leaves the mute alone" test, the load started
 by the constructor, the commented cast, and `config` on `play()`.
+
+## L2.2's review
+
+The reviewer rendered Snake's recipes through the module and matched the
+committed bytes, and checked the `glide` specs' arithmetic. Its findings:
+
+1. **A sound with a `NaN` sample, or none above 0, was written as silence
+   without a word.** Fixed: `render()` throws, naming the sound, with a spec
+   for each.
+2. **Two sounds of one name overwrote each other's entry, and no sounds wrote
+   an empty WAV.** Fixed: both throw, with specs.
+3. **`thud()` ignored its time and kept state,** so a sound rendered twice
+   differed and the spec depended on its order. Fixed: it makes its samples
+   in order as far as a time asks, keeps them, and reads them by time; a
+   spec reads it out of order. Snake's sounds are still the same bytes.
+4. **The brightness spec passed with a third harmonic too.** Fixed: read a
+   twentieth of a cycle in, where the two differ, the cycles named.
+5. **The `note()` spec couldn't tell its offset.** Fixed: a tone of `t` shows
+   the note plays from its own start; split from "silent until it starts".
+6. **The WAV header's data size was checked against itself.** Fixed: 3,200
+   bytes for a tenth of a second.
+7. **The rendering kept parts and an empty gap.** Fixed: one array of the
+   whole length, each sound set into it.
+8. **Two lines of docs unwrapped.** Fixed.
+
+Left as advised: `Sound.sample`'s name, the WAV header's bare offsets, the
+envelope's doc, the map's rounding to milliseconds, and the file's header
+comment.
