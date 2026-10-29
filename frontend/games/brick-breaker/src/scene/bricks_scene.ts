@@ -231,10 +231,11 @@ export class BricksScene extends Scene {
         this.effects.shake();
         return;
       case "fade":
+        // The last ball's effect ends as it is lost, so it fades as it was drawn.
         this.effects.fade(
           event.x,
           event.y,
-          ballFrame(field.ballKind),
+          ballFrame(this.balls.drawnKind),
           this.now,
           this.metrics,
         );

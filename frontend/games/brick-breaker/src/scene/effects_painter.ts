@@ -53,6 +53,10 @@ export class EffectsPainter {
       lifespan: SHARDS_MS,
       alpha: { start: 1, end: 0 },
       rotate: { min: 0, max: 360 },
+      // Set for the field's unit as it is laid out; given here, as
+      // `updateConfig()` changes only the keys a config already has.
+      speed: { min: 0, max: 0 },
+      gravityY: 0,
     });
     this.rings = Array.from({ length: RING_POOL }, () =>
       scene.add.image(0, 0, ATLAS, FRAMES.ring).setVisible(false),

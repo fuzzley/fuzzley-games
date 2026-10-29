@@ -1565,9 +1565,10 @@ Checked in a scratch spec, deleted after.
     has none: it printed "Not implemented" on every bake and returned
     nothing. A spec can now tell the pictures of frames apart. It is
     specced in `headless.spec.ts` and noted in `lib/phaser/AGENTS.md`.
-  - **New loops are indexed `for` loops.** B6.1's review found closures
-    made each frame. B6.1's own painters are fixed in its review's
-    commit.
+  - **No closures made each frame.** B6.1's review found closures made
+    each frame, so the new painters loop over their images by index; a
+    `for…of` over a list, which B2 settled on, stays. B6.1's own painters
+    are fixed in its review's commit.
 - **Checks.**
   - Mutation runs on the scene spec: 25 mutations. 23 are killed once
     specs were added for the glow's timing, a new level's reset and the
@@ -1742,3 +1743,59 @@ re-bake, the steering's metrics, the touch setting, the keyup dedupe, the
 hidden page, focus within the board, each modifier, the drop's stagger,
 both interpolations, the cannons, the rim, the body's top and the rim's
 color) all fail a spec.
+
+## B6.2's review (49e62230)
+
+The review ran 16 mutations and its own probe specs. Each of its six
+findings is answered here, and the fixes are in one commit.
+
+1. **The shards never moved.** Fixed.
+   - `updateConfig()` merges with `MergeRight`, which keeps only the keys
+     the first config has. The emitter's config had no `speed` and no
+     `gravityY`, so `layout()` set neither.
+   - The config now holds both, at nothing, with a comment saying why.
+   - Specs hold the shards thrown from the brick's middle, then apart and
+     falling faster and faster. Each fails with either key, or the
+     `layout()` call, removed.
+2. **The last ball lost faded as a normal ball.** Fixed.
+   - The rules end every effect in the same step the last ball is lost, so
+     the field's kind is already normal when the scene plays the event.
+   - `BallPainter.drawnKind` keeps the kind the balls were last drawn in,
+     and the fade takes it, since events play before the frame is drawn.
+   - A spec catches a fire capsule, steps the field through the floor with
+     the rules, and holds the fade to the fire ball's frame. The fade's own
+     spec now draws its kind first, as a game does.
+3. **The specs missed much of what the painters do.** Fixed, with specs
+   for:
+   - the shake stopped by a new level;
+   - the shards' speed and fall and where they start;
+   - the ring's place, spreading and fading;
+   - the fade's alpha halfway;
+   - the glow's height;
+   - the tags following the paddle between its places;
+   - a tag's ring emptying with its time.
+
+   The re-bake of the new painters came with B6.1's review's spec. All 13
+   mutations of these fixes, the reviewer's among them, now fail a spec.
+
+4. **Embers once per drawn frame.** Fixed.
+   - Each ball keeps where it last left an ember, and leaves one for each
+     ember's width it has gone since, along the way.
+   - So the trail is the same at 60 Hz and 120 Hz, and a fire ball standing
+     still, held or not stepped, leaves none.
+   - A ball that jumps farther than three units in a frame (served, or
+     moved) starts its trail afresh rather than drawing one across the
+     field.
+   - Specs: ten embers over 2.1 units at 16 ms a frame and at 8 ms a frame,
+     and none under a ball standing still.
+   - The plan said the emitter would follow the ball. A trail by distance
+     reads the same at any refresh rate, which following doesn't.
+5. **Doc nits.** Fixed. B6.2's note on loops now says what holds: no
+   closures each frame, while a `for…of` over a list stays, as B2
+   settled. The contrast spec's comment is reflowed.
+6. **For Q5's trace.** Noted, to measure there rather than guess:
+   - Phaser's `ParticleEmitter.preUpdate` makes a few arrays a frame for
+     each emitter, even with nothing alive. Two emitters could be
+     `setActive(false)` while empty if the trace shows it.
+   - `bake()` encodes 21 pictures on every re-bake, a resize drag's
+     included; they could be taken only when How to play opens.

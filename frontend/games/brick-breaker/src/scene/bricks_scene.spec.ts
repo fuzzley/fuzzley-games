@@ -3,7 +3,15 @@ import type { CssRect } from "@fz/phaser/layout";
 import { type SceneRun, runScene } from "@fz/phaser/testing";
 import { Core, type Game, GameObjects } from "phaser";
 import { hitBrick } from "../rules/bricks";
-import { cellIndex } from "../rules/grid";
+import { catchCapsule } from "../rules/capsules";
+import type { Ball } from "../rules/balls";
+import {
+  cellIndex,
+  columnMiddle,
+  columnOf,
+  rowMiddle,
+  rowOf,
+} from "../rules/grid";
 import type { Steer } from "../rules/paddle";
 import { stepsIn } from "../rules/stepper";
 import {
@@ -19,6 +27,7 @@ import {
   ballOf,
   brickAt,
   fieldFrom,
+  stepTimes,
   throwBall,
 } from "../testing/field_picture";
 import {
@@ -42,6 +51,7 @@ import type { FieldFrame } from "../view/frame";
 import { type BricksPalette, bricksPalette } from "../view/palette";
 import { lineWidth } from "../view/shapes";
 import type { TouchSteering } from "../view/steering";
+import { between } from "../view/frame";
 import { TAG_SPACING, TAG_Y, firstTagX } from "../view/tags";
 import {
   DROP_IN_MS,
@@ -220,6 +230,38 @@ function imagesIn(scene: BricksScene): GameObjects.Image[] {
     (object): object is GameObjects.Image =>
       object instanceof GameObjects.Image,
   );
+}
+
+/** Returns where each shard alive is, and how fast it falls. */
+function shardsOf(scene: BricksScene): readonly {
+  readonly x: number;
+  readonly y: number;
+  readonly fall: number;
+}[] {
+  const shards: { x: number; y: number; fall: number }[] = [];
+  scene.effects.shards.forEachAlive((shard) => {
+    shards.push({ x: shard.x, y: shard.y, fall: shard.velocityY });
+  }, null);
+  return shards;
+}
+
+/**
+ * Moves a ball from where it is across to a place, drawing it at each of a
+ * number of frames along the way, a frame's time apart.
+ */
+function moveAcross(
+  run: SceneRun<BricksScene>,
+  ball: Ball,
+  to: number,
+  frames: number,
+  frameMs: number,
+): void {
+  const from = ball.x;
+  for (let frame = 1; frame <= frames; frame++) {
+    ball.x = from + ((to - from) * frame) / frames;
+    ball.lastX = ball.x;
+    run.advance(frameMs, frameMs);
+  }
 }
 
 /** Returns how many of a set of images show. */
@@ -919,6 +961,37 @@ describe("BricksScene", () => {
       );
     });
 
+    it("follow the paddle between its last place and its next", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.field.effects.net.capsule = "net";
+      shell.field.paddle.lastX = 10;
+      shell.field.paddle.x = 12;
+
+      shell.alpha = 0.25;
+      run.advance(16);
+
+      expect(scene.tags.images.net.x).toBe(
+        toCanvasX(metricsAt(), firstTagX(between(10, 12, 0.25), 1)),
+      );
+    });
+
+    it("empty each tag's ring as its time runs out", async () => {
+      const { shell, run, scene } = await startBoard();
+      const wide = shell.field.effects["paddle-size"];
+      wide.capsule = "wide";
+      wide.endsAt = shell.field.steps + stepsIn(20_000) / 2;
+
+      run.advance(16);
+
+      // Half the time left draws half the ring, from its top round to its foot.
+      expect(
+        scene.tags.rings.commandBuffer.some(
+          (value: unknown) =>
+            typeof value === "number" && Math.abs(value - Math.PI / 2) < 1e-9,
+        ),
+      ).toBe(true);
+    });
+
     it("show none, and no rings, while no effect is in play", async () => {
       const { scene } = await startBoard();
 
@@ -945,10 +1018,15 @@ describe("BricksScene", () => {
       });
     });
 
-    it("throws a broken brick's shards, in its color", async () => {
+    it("throws a broken brick's shards from its middle, in its color", async () => {
       const { shell, run, scene } = await startBoard();
       const plain = brickAt(shell.field, 0, 0);
       hitBrick(shell.field, plain, 1, BRICKS_TOP + 1);
+      const metrics = metricsAt();
+      const middle = {
+        x: toCanvasX(metrics, columnMiddle(columnOf(plain.cell))),
+        y: toCanvasY(metrics, rowMiddle(rowOf(plain.cell))),
+      };
 
       run.advance(16);
 
@@ -956,33 +1034,69 @@ describe("BricksScene", () => {
       scene.effects.shards.forEachAlive((shard) => tints.add(shard.tint), null);
 
       expect({
-        shards: scene.effects.shards.getAliveParticleCount(),
+        places: shardsOf(scene).map(({ x, y }) => ({ x, y })),
         tints,
       }).toEqual({
-        shards: SHARDS,
+        places: Array.from({ length: SHARDS }, () => middle),
         tints: new Set([brickColor(plain, LIGHT)]),
       });
     });
 
-    it("spreads a blast's ring once, and shakes the field", async () => {
+    it("sends the shards flying apart from the brick, falling faster and faster", async () => {
       const { shell, run, scene } = await startBoard();
-      shell.field.events.add("blast", 5, 4, cellIndex(2, 2));
-
+      const plain = brickAt(shell.field, 0, 0);
+      hitBrick(shell.field, plain, 1, BRICKS_TOP + 1);
       run.advance(16);
-      const spreading = showing(scene.effects.rings);
-      const shaking = scene.cameras.main.shakeEffect.isRunning;
-      run.advance(RING_MS + 32);
+      const thrown = shardsOf(scene);
+
+      run.advance(160);
+      const flying = shardsOf(scene);
 
       expect({
-        spreading,
-        shaking,
+        apart: flying.some((shard, i) => shard.x !== thrown[i]?.x),
+        falling: flying.map((shard, i) => shard.fall > (thrown[i]?.fall ?? 0)),
+      }).toEqual({
+        apart: true,
+        falling: Array.from({ length: SHARDS }, () => true),
+      });
+    });
+
+    it("spreads a blast's ring once, from where it went off, and shakes the field", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.field.events.add("blast", 5, 4, cellIndex(2, 2));
+      const ring = scene.effects.rings[0];
+
+      run.advance(16);
+      const started = {
+        x: ring?.x,
+        y: ring?.y,
+        scale: ring?.scale ?? 0,
+        alpha: ring?.alpha ?? 0,
+        shaking: scene.cameras.main.shakeEffect.isRunning,
+      };
+      run.advance(RING_MS / 2);
+      const spreading = { scale: ring?.scale ?? 0, alpha: ring?.alpha ?? 1 };
+      run.advance(RING_MS);
+
+      expect({
+        at: [started.x, started.y],
+        shaking: started.shaking,
+        spreads: spreading.scale > started.scale,
+        fades: spreading.alpha < started.alpha,
         after: showing(scene.effects.rings),
-      }).toEqual({ spreading: 1, shaking: true, after: 0 });
+      }).toEqual({
+        at: [toCanvasX(metricsAt(), 5), toCanvasY(metricsAt(), 4)],
+        shaking: true,
+        spreads: true,
+        fades: true,
+        after: 0,
+      });
     });
 
     it("fades a lost ball out where it fell, in its frame", async () => {
       const { shell, run, scene } = await startBoard();
       shell.field.ballKind = "blast";
+      run.advance(16);
       shell.field.events.add("lost", 6, FIELD_HEIGHT);
 
       run.advance(16);
@@ -993,15 +1107,39 @@ describe("BricksScene", () => {
         x: fading?.x,
         y: fading?.y,
       };
+      run.advance(FADE_MS / 2);
+      const halfway = fading?.alpha ?? 1;
       run.advance(FADE_MS);
 
-      expect({ ...seen, after: fading?.visible }).toEqual({
+      expect({
+        ...seen,
+        halfway: halfway < 1 && halfway > 0,
+        after: fading?.visible,
+      }).toEqual({
         visible: true,
         frame: ballFrame("blast"),
         x: toCanvasX(metricsAt(), 6),
         y: toCanvasY(metricsAt(), FIELD_HEIGHT),
+        halfway: true,
         after: false,
       });
+    });
+
+    it("fades the last ball lost in its kind, though its effect ends as it is lost", async () => {
+      const { shell, run, scene } = await startBoard();
+      catchCapsule(shell.field, "fire", 13, PADDLE_TOP);
+      throwBall(shell.field, 3, FIELD_HEIGHT - 0.5, 180);
+      run.advance(16);
+
+      stepTimes(shell.field, 30);
+      run.advance(16);
+
+      expect({
+        kind: shell.field.ballKind,
+        fading: scene.effects.fades
+          .filter((fade) => fade.visible)
+          .map((fade) => fade.frame.name),
+      }).toEqual({ kind: "normal", fading: [ballFrame("fire")] });
     });
 
     it("grows a regrown brick back from nothing", async () => {
@@ -1020,14 +1158,29 @@ describe("BricksScene", () => {
       });
     });
 
-    it("leaves embers behind a fire ball", async () => {
+    it("leaves an ember for each gap a fire ball goes, however often it is drawn", async () => {
+      const { shell, run, scene } = await startBoard();
+      const ball = throwBall(shell.field, 4, 20, 0);
+      shell.field.ballKind = "fire";
+      run.advance(16);
+
+      moveAcross(run, ball, 6.1, 3, 16);
+      const atSixty = scene.balls.embers.getAliveParticleCount();
+      run.advance(100);
+      moveAcross(run, ball, 8.1, 6, 8);
+      const atOneTwenty = scene.balls.embers.getAliveParticleCount();
+
+      expect([atSixty, atOneTwenty]).toEqual([10, 10]);
+    });
+
+    it("leaves no ember under a fire ball standing still", async () => {
       const { shell, run, scene } = await startBoard();
       throwBall(shell.field, 4, 20, 0);
       shell.field.ballKind = "fire";
 
-      run.advance(16);
+      run.advance(48);
 
-      expect(scene.balls.embers.getAliveParticleCount()).toBeGreaterThan(0);
+      expect(scene.balls.embers.getAliveParticleCount()).toBe(0);
     });
 
     it("frames the last bricks a level needs once none has broken for a while", async () => {
@@ -1041,16 +1194,18 @@ describe("BricksScene", () => {
       shell.field.steps = stepsIn(GLOW_AFTER_MS);
       run.advance(16);
 
+      const y = toCanvasY(metricsAt(), BRICKS_TOP + 0.5);
+
       expect({
         before,
         after: scene.glow.images
           .filter((image) => image.visible)
-          .map((image) => [image.x, image.alpha]),
+          .map((image) => [image.x, image.y, image.alpha]),
       }).toEqual({
         before: 0,
         after: [
-          [toCanvasX(metricsAt(), 1), 1],
-          [toCanvasX(metricsAt(), 3), 1],
+          [toCanvasX(metricsAt(), 1), y, 1],
+          [toCanvasX(metricsAt(), 3), y, 1],
         ],
       });
     });
@@ -1164,8 +1319,16 @@ describe("BricksScene", () => {
         embers: scene.balls.embers.getAliveParticleCount(),
         rings: showing(scene.effects.rings),
         fades: showing(scene.effects.fades),
+        shaking: scene.cameras.main.shakeEffect.isRunning,
         scaled: scene.bricks.images.filter((image) => image.scale !== 1).length,
-      }).toEqual({ shards: 0, embers: 0, rings: 0, fades: 0, scaled: 0 });
+      }).toEqual({
+        shards: 0,
+        embers: 0,
+        rings: 0,
+        fades: 0,
+        shaking: false,
+        scaled: 0,
+      });
     });
 
     it("plays the new level's events from its first", async () => {

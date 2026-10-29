@@ -152,7 +152,8 @@ the scene and the shell's first files exist.
   falls and rises, `PaddlePainter` the paddle as two round ends and a
   rectangle between their middles, which keep their shape at any width on
   either renderer, with its cannons and rim, `TagPainter` the effects in play and their emptying
-  rings, and `BallPainter` the balls, with a fire ball's embers, each
+  rings, and `BallPainter` the balls, with a fire ball's embers, one for
+  each gap it goes, each
   thing that moves drawn between its last place and its next. Every game
   object is made as the scene is created, and a new field stops what the
   last one set off. The scene plays each of the field's events once, from
