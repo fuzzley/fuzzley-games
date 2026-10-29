@@ -7,7 +7,7 @@
  * For each level and speed it prints the game time the autopilot took to
  * clear the level, the time of that it spent on the last three bricks the
  * level needed, how many times its paddle met a ball, and the lives it
- * lost. It plays from the level's number as the seed, as
+ * lost. It plays each through the autopilot's `playLevel()`, as
  * `src/rules/autopilot.spec.ts` does, so the report and the spec play the
  * same games. It loads the rules and the autopilot through Vite, as the
  * game's build does. The report is how the difficulty ramp is tuned: a level
@@ -19,8 +19,14 @@ import { runnerImport } from "vite";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-/** The steps in a second of game time. */
-const STEPS_A_SECOND = 120;
+/** How wide the column of the levels' names is. */
+const NAME_WIDTH = 18;
+
+/** How wide each of a play's columns is: its time, its endgame's, its bounces and its lives lost. */
+const COLUMN_WIDTHS = [5, 5, 8, 5];
+
+/** The heading of each of a play's columns. */
+const HEADINGS = ["time", "last", "bounces", "lost"];
 
 /**
  * A level as the rules list it.
@@ -47,8 +53,8 @@ const STEPS_A_SECOND = 120;
  * @typedef {object} Game
  * @property {readonly LevelEntry[]} levels Every level, in the order played.
  * @property {readonly string[]} speeds Every speed, slowest first.
- * @property {(entry: LevelEntry) => unknown} parseLevel
- * @property {(level: unknown, speed: string, seed: number) => AutopilotReport} autoplay
+ * @property {number} stepSeconds The game time a step takes, in seconds.
+ * @property {(entry: LevelEntry, speed: string) => AutopilotReport} playLevel
  */
 
 /**
@@ -72,16 +78,17 @@ async function load(file) {
  * @returns {Promise<Game>}
  */
 async function loadGame() {
-  const [levels, speed, autopilot] = await Promise.all([
+  const [levels, speed, tuning, autopilot] = await Promise.all([
     load("src/rules/levels.ts"),
     load("src/rules/speed.ts"),
+    load("src/rules/tuning.ts"),
     load("src/testing/autopilot.ts"),
   ]);
   return /** @type {Game} */ ({
     levels: levels["LEVELS"],
     speeds: speed["SPEEDS"],
-    parseLevel: levels["parseLevel"],
-    autoplay: autopilot["autoplay"],
+    stepSeconds: tuning["STEP_S"],
+    playLevel: autopilot["playLevel"],
   });
 }
 
@@ -90,51 +97,62 @@ async function loadGame() {
  * seconds.
  *
  * @param {number} steps
+ * @param {number} stepSeconds
  * @returns {string}
  */
-function timeOf(steps) {
-  const seconds = Math.round(steps / STEPS_A_SECOND);
+function timeOf(steps, stepSeconds) {
+  const seconds = Math.round(steps * stepSeconds);
   return `${String(Math.floor(seconds / 60))}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
 /**
- * Returns a play's cell of the report: its time, its endgame's, its bounces
- * and its lives lost, or that it didn't clear the level.
+ * Returns a play's cells, or their headings, each right-aligned in its
+ * column.
  *
- * @param {AutopilotReport} report
+ * @param {readonly string[]} cells
  * @returns {string}
  */
-function cellOf(report) {
-  const time = timeOf(report.steps);
-  const played = report.cleared ? time : `NOT CLEARED in ${time}`;
-  return `${played} ${timeOf(report.endgameSteps)} ${String(report.bounces).padStart(4)} ${String(report.livesLost).padStart(2)}`;
+function columns(cells) {
+  return cells.map((cell, i) => cell.padStart(COLUMN_WIDTHS[i] ?? 0)).join(" ");
+}
+
+/**
+ * Returns a play's cells: its time, or a dash if it didn't clear the level,
+ * its endgame's, its bounces and its lives lost.
+ *
+ * @param {AutopilotReport} report
+ * @param {number} stepSeconds
+ * @returns {string}
+ */
+function playOf(report, stepSeconds) {
+  return columns([
+    report.cleared ? timeOf(report.steps, stepSeconds) : "-",
+    timeOf(report.endgameSteps, stepSeconds),
+    String(report.bounces),
+    String(report.livesLost),
+  ]);
 }
 
 const game = await loadGame();
-const NAME_WIDTH = 18;
-const CELL_WIDTH = 21;
+const headings = columns(HEADINGS);
 console.log(
   "".padEnd(NAME_WIDTH) +
-    game.speeds.map((speed) => speed.padEnd(CELL_WIDTH)).join("  "),
+    game.speeds.map((speed) => speed.padEnd(headings.length)).join("   "),
 );
 console.log(
-  "".padEnd(NAME_WIDTH) +
-    game.speeds
-      .map(() => "time  last  hits lost".padEnd(CELL_WIDTH))
-      .join("  "),
+  "".padEnd(NAME_WIDTH) + game.speeds.map(() => headings).join("   "),
 );
 let failed = 0;
 for (const entry of game.levels) {
-  const level = game.parseLevel(entry);
-  const cells = game.speeds.map((speed) => {
-    const report = game.autoplay(level, speed, entry.number);
+  const plays = game.speeds.map((speed) => {
+    const report = game.playLevel(entry, speed);
     if (!report.cleared) failed++;
-    return cellOf(report).padEnd(CELL_WIDTH);
+    return playOf(report, game.stepSeconds);
   });
   const name = `${String(entry.number).padStart(2)} ${entry.data.name}`;
-  console.log(name.padEnd(NAME_WIDTH) + cells.join("  "));
+  console.log(name.padEnd(NAME_WIDTH) + plays.join("   "));
 }
 if (failed > 0) {
-  console.log(`\n${String(failed)} plays didn't clear their level.`);
+  console.log(`\n${String(failed)} plays didn't clear their level (-).`);
   process.exitCode = 1;
 }

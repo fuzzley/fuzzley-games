@@ -152,9 +152,8 @@ export function isNeeded(brick: Readonly<Brick>): boolean {
  * Its events are recorded at `x` and `y`, where the ball, the bolt or the
  * blast was. Each hit scores the hits it takes, and each brick broken
  * lengthens the streak, which multiplies the score, and may let a capsule
- * fall. Breaking the last
- * brick the level needs clears it, after which, as on a broken brick, a hit
- * does nothing.
+ * fall. Breaking the last brick the level needs clears it, after which, as
+ * on a broken brick, a hit does nothing.
  */
 export function hitBrick(
   field: Field,

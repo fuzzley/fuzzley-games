@@ -1223,3 +1223,83 @@ Checked in a scratch spec, deleted after.
     the plan says, so color is never the only signal.
 - **Checks.** lint, typecheck, test (732), the rules and the view at 100% of
   statements.
+
+## B4.2's review (c8f6ba56, cc6c8463)
+
+1. **The endgame wasn't bounded.** A lone brick behind a steel shelf with
+   one gap passed the spec.
+   - **Fixed:** every level's endgame is now held to a minute
+     (`ENDGAME_LIMIT`).
+   - Set 1's worst is now 25 s (Rocket at Relaxed).
+2. **The run's moves still hung on their order,** which the field's
+   counters can't tell the shell.
+   - **Fixed:** `tally()`, `gainLives()`, `loseLife()` and `clearLevel()`
+     are now one `catchUp(run, field)`.
+     - It takes the points, the lives gained, the lives lost, then the
+       clearing.
+     - It keeps what it has taken of the level's counts (`levelGained`,
+       `levelLost`, reset as a level starts), so calling it again takes
+       nothing twice.
+     - It takes the field as it is (`LevelProgress`, a `Pick` of `Field`),
+       so a frame allocates nothing.
+   - **Why that order:** on a field, a capsule can't be caught after the
+     last ball is lost before the next serve, and nothing is lost after a
+     clear.
+   - **Specs:**
+     - an "order" block: the last life lost, then a blast clearing;
+     - a life kept through a clear;
+     - a capsule's or the points' life before the last is lost;
+     - a capsule's life spent at the cap before one is lost.
+   - Mutating the order of lives, clearing or taking fails a spec. The
+     redundant "run over" spec (point 9) went with the rewrite.
+3. **The autopilot aimed through steel.**
+   - **Fixed:** it aims at a needed brick only if a straight line from where
+     the ball will land meets no other brick on the way (`inSight()`).
+     - It checks once, as it picks the aim, so the spec stays at about
+       4.5 s.
+   - **Shelf probe** (`["", "", "o", "", "", "############."]` at Normal,
+     seeds 1–20): 20:38 of game time in all, against 46:07 blind.
+   - The reviewer's hidden-brick level (`["", "##", ".o", "##"]`) is luck
+     either way: 1 of 10 seeds fails at Normal now, 3 blind. So the spec
+     sums the shelf level's time instead (under 30 minutes).
+4. **The autopilot's behaviour wasn't specced.**
+   - **Fixed:**
+     - `caught` joins the report, and `score`, which nothing read, left it.
+     - **The aim:** a lone corner brick at Normal is hit within 8 bounces
+       on seeds 1–20; it is 5 now.
+     - **The chase:** over 20 plays of six gifts, more than half are
+       caught. It is 86 of 120, and 33 without the chase.
+     - **The endgame:** a level of three bricks is endgame from its start.
+     - The determinism spec's level now has a pool, so the chase runs.
+   - Reversing the aim, `<` for `<=`, no chase, and a blind aim each fail a
+     spec.
+   - **Left:** the wall fold in `landingX()` still fails no spec. It only
+     sharpens the aim, and no outcome I probed moves without it.
+5. **`canFall()` counted a pinned gift as drawing from the pool.**
+   - **Fixed:** only an unpinned gift draws.
+   - `KINDS_TO_COME` and `CAPSULES_TO_COME` are now typed by the catalogs'
+     ids.
+6. **The report and the spec played alike only by convention.**
+   - **Fixed:** both play through the autopilot's `playLevel(entry, speed)`.
+   - The script loads `STEP_S` from the tuning, rather than keeping its own 120.
+   - The columns are "time last bounces lost", each right-aligned under its
+     heading, and an uncleared play shows a dash.
+   - The widths are declared at the top.
+7. **`tsconfig.json` didn't reference `tsconfig.scripts.json`.** Fixed.
+8. **Copies and names.**
+   - `ENDGAME` is now `GLOW_BRICKS`, from the tuning.
+   - `ballSpeedOf(field)` is exported from `field.ts`, and `stepBalls()`
+     uses it.
+   - `timeToLand()` is renamed `distanceToLand()`.
+   - The 0.5 is named `AIM_AT_BRICK`.
+9. **The smaller points.**
+   - `hitBrick()`'s doc is reflowed, and `CLOSED_GAP`'s comment is
+     rewritten: a ball in a gap barely wider than itself shuttles between
+     the wall and the paddle, creeping down.
+   - **Left:** `Math.max(0, …)` in `hitBrick()` guards a kind with more
+     damage than a brick's hits, which the catalog's numbers allow.
+   - **Left:** `fieldFrom()`'s row check, as the fixtures carry no specs.
+10. **Run time:** the autopilot spec is about 4.5 s; at 30 levels, split it
+    by set or take the Risks' turns.
+
+- **Checks.** lint, typecheck, test, the report (above).

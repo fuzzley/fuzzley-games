@@ -1,16 +1,14 @@
 import {
+  type LevelProgress,
   type Outcome,
   type Run,
-  clearLevel,
+  catchUp,
   createRun,
-  gainLives,
   hasEnded,
   levelSeed,
-  loseLife,
   pause,
   resume,
   startLevel,
-  tally,
 } from "./run";
 import {
   CLEAN_POINTS,
@@ -38,6 +36,17 @@ function playing(changes: Partial<Run> = {}): Run {
   return runWith({ outcome: "playing", ...changes });
 }
 
+/** Returns a level's field in play, with no points and no lives gained or lost, changed as given. */
+function fieldAt(changes: Partial<LevelProgress> = {}): LevelProgress {
+  return {
+    state: "playing",
+    score: 0,
+    livesGained: 0,
+    livesLost: 0,
+    ...changes,
+  };
+}
+
 /** The outcomes of a run with no level under way. */
 const NOT_UNDER_WAY: readonly Outcome[] = ["ready", "cleared", "over", "won"];
 
@@ -62,6 +71,8 @@ describe("createRun", () => {
       score: 0,
       lives: FIRST_LIVES,
       nextLifeAt: FIRST_LIFE_POINTS,
+      levelGained: 0,
+      levelLost: 0,
       outcome: "ready",
     });
   });
@@ -72,13 +83,22 @@ describe("startLevel", () => {
     expect(startLevel(runWith()).outcome).toBe("playing");
   });
 
-  it("starts the level after one cleared", () => {
-    const run = startLevel(runWith({ level: 3, outcome: "cleared" }));
-
-    expect({ level: run.level, outcome: run.outcome }).toEqual({
-      level: 4,
-      outcome: "playing",
+  it("starts the level after one cleared, with none of its lives taken", () => {
+    const cleared = runWith({
+      level: 3,
+      levelGained: 1,
+      levelLost: 2,
+      outcome: "cleared",
     });
+
+    const run = startLevel(cleared);
+
+    expect({
+      level: run.level,
+      gained: run.levelGained,
+      lost: run.levelLost,
+      outcome: run.outcome,
+    }).toEqual({ level: 4, gained: 0, lost: 0, outcome: "playing" });
   });
 
   it.each(["playing", "paused", "over", "won"] as const)(
@@ -115,21 +135,26 @@ describe("resume", () => {
   });
 });
 
-describe("tally", () => {
-  it("adds the level's points to those banked", () => {
-    const run = tally(playing({ banked: 3000, score: 3200 }), 450);
+describe("catchUp's points", () => {
+  it("add the level's to those banked", () => {
+    const before = playing({ banked: 3000, score: 3200 });
+
+    const run = catchUp(before, fieldAt({ score: 450 }));
 
     expect(run.score).toBe(3450);
   });
 
-  it("tallies a paused level too", () => {
-    const run = tally(runWith({ outcome: "paused" }), 450);
+  it("are taken from a paused level too", () => {
+    const run = catchUp(
+      runWith({ outcome: "paused" }),
+      fieldAt({ score: 450 }),
+    );
 
     expect(run.score).toBe(450);
   });
 
-  it("brings a life at the first mark", () => {
-    const run = tally(playing(), FIRST_LIFE_POINTS);
+  it("bring a life at the first mark", () => {
+    const run = catchUp(playing(), fieldAt({ score: FIRST_LIFE_POINTS }));
 
     expect({ lives: run.lives, next: run.nextLifeAt }).toEqual({
       lives: FIRST_LIVES + 1,
@@ -137,14 +162,16 @@ describe("tally", () => {
     });
   });
 
-  it("brings a life for each mark passed at once", () => {
-    const run = tally(playing(), FIRST_LIFE_POINTS + LIFE_POINTS);
+  it("bring a life for each mark passed at once", () => {
+    const field = fieldAt({ score: FIRST_LIFE_POINTS + LIFE_POINTS });
 
-    expect(run.lives).toBe(FIRST_LIVES + 2);
+    expect(catchUp(playing(), field).lives).toBe(FIRST_LIVES + 2);
   });
 
-  it("spends a mark passed with the most lives a player holds", () => {
-    const run = tally(playing({ lives: MAX_LIVES }), FIRST_LIFE_POINTS);
+  it("spend a mark passed with the most lives a player holds", () => {
+    const before = playing({ lives: MAX_LIVES });
+
+    const run = catchUp(before, fieldAt({ score: FIRST_LIFE_POINTS }));
 
     expect({ lives: run.lives, next: run.nextLifeAt }).toEqual({
       lives: MAX_LIVES,
@@ -153,41 +180,72 @@ describe("tally", () => {
   });
 });
 
-describe("gainLives", () => {
-  it("adds the lives capsules brought", () => {
-    expect(gainLives(playing(), 1).lives).toBe(FIRST_LIVES + 1);
-  });
+describe("catchUp's lives", () => {
+  it("add those capsules brought since it last caught up", () => {
+    const before = playing({ levelGained: 1 });
 
-  it("adds no more than the most a player holds", () => {
-    expect(gainLives(playing(), 9).lives).toBe(MAX_LIVES);
-  });
-});
+    const run = catchUp(before, fieldAt({ livesGained: 2 }));
 
-describe("loseLife", () => {
-  it("goes on with lives left", () => {
-    const run = loseLife(playing({ lives: 2 }));
-
-    expect({ lives: run.lives, outcome: run.outcome }).toEqual({
-      lives: 1,
-      outcome: "playing",
+    expect({ lives: run.lives, gained: run.levelGained }).toEqual({
+      lives: FIRST_LIVES + 1,
+      gained: 2,
     });
   });
 
-  it("ends the run with the last", () => {
-    expect(loseLife(playing({ lives: 1 })).outcome).toBe("over");
+  it("add no more than the most a player holds", () => {
+    const run = catchUp(playing(), fieldAt({ livesGained: 9 }));
+
+    expect(run.lives).toBe(MAX_LIVES);
+  });
+
+  it("take those lost since it last caught up, going on with lives left", () => {
+    const before = playing({ lives: 3, levelLost: 1 });
+
+    const run = catchUp(before, fieldAt({ livesLost: 2 }));
+
+    expect({
+      lives: run.lives,
+      lost: run.levelLost,
+      outcome: run.outcome,
+    }).toEqual({ lives: 2, lost: 2, outcome: "playing" });
+  });
+
+  it("end the run with the last", () => {
+    const run = catchUp(playing({ lives: 1 }), fieldAt({ livesLost: 1 }));
+
+    expect({ lives: run.lives, outcome: run.outcome }).toEqual({
+      lives: 0,
+      outcome: "over",
+    });
+  });
+
+  it("take no more than the run has", () => {
+    const run = catchUp(playing({ lives: 1 }), fieldAt({ livesLost: 2 }));
+
+    expect(run.lives).toBe(0);
+  });
+
+  it("are taken once, however often the run catches up", () => {
+    const field = fieldAt({ livesGained: 1, livesLost: 1 });
+    const once = catchUp(playing(), field);
+
+    const twice = catchUp(once, field);
+
+    expect(twice.lives).toBe(once.lives);
   });
 });
 
-describe("clearLevel", () => {
+describe("catchUp's clearing", () => {
   it.each([
     ["without losing a life", 0, CLEAR_POINTS + CLEAN_POINTS],
     ["having lost one", 1, CLEAR_POINTS],
   ])(
     "banks the level's points, %s, and what clearing adds",
-    (_, lost, bonus) => {
+    (_, livesLost, bonus) => {
       const before = playing({ banked: 2000, score: 2100 });
+      const field = fieldAt({ state: "cleared", score: 600, livesLost });
 
-      const run = clearLevel(before, 600, lost);
+      const run = catchUp(before, field);
 
       expect({
         score: run.score,
@@ -202,7 +260,7 @@ describe("clearLevel", () => {
   );
 
   it("wins the run on the last level", () => {
-    const run = clearLevel(playing({ level: 10 }), 0, 0);
+    const run = catchUp(playing({ level: 10 }), fieldAt({ state: "cleared" }));
 
     expect(run.outcome).toBe("won");
   });
@@ -210,30 +268,73 @@ describe("clearLevel", () => {
   it("brings the lives its points pass", () => {
     const before = playing({ banked: FIRST_LIFE_POINTS - 1000 });
 
-    const run = clearLevel(before, 0, 0);
+    const run = catchUp(before, fieldAt({ state: "cleared" }));
 
     expect(run.lives).toBe(FIRST_LIVES + 1);
   });
-
-  it("keeps a run over that a blast clears the level of after its last life", () => {
-    const over = loseLife(playing({ lives: 1, banked: 2000, score: 2600 }));
-
-    const run = clearLevel(over, 600, 1);
-
-    expect(run).toBe(over);
-  });
 });
 
-describe.each<[string, (run: Run) => Run]>([
-  ["tally", (run) => tally(run, FIRST_LIFE_POINTS)],
-  ["gainLives", (run) => gainLives(run, 1)],
-  ["loseLife", loseLife],
-  ["clearLevel", (run) => clearLevel(run, 600, 0)],
-])("%s", (_, move) => {
+// A frame's steps can hold a level's points, a life caught, a life lost and
+// its clearing at once, which the field's counts keep no order of.
+describe("catchUp's order", () => {
+  it("ends the run when the last life was lost, though a blast then cleared the level", () => {
+    const before = playing({ lives: 1, banked: 2000, score: 2000 });
+    const field = fieldAt({ state: "cleared", score: 600, livesLost: 1 });
+
+    const run = catchUp(before, field);
+
+    expect({
+      score: run.score,
+      banked: run.banked,
+      outcome: run.outcome,
+    }).toEqual({ score: 2600, banked: 2000, outcome: "over" });
+  });
+
+  it("keeps a life lost before the level cleared", () => {
+    const field = fieldAt({ state: "cleared", livesLost: 1 });
+
+    const run = catchUp(playing({ lives: 2 }), field);
+
+    expect({ lives: run.lives, outcome: run.outcome }).toEqual({
+      lives: 1,
+      outcome: "cleared",
+    });
+  });
+
+  it("counts a life a capsule brought before the last is lost", () => {
+    const field = fieldAt({ livesGained: 1, livesLost: 1 });
+
+    const run = catchUp(playing({ lives: 1 }), field);
+
+    expect({ lives: run.lives, outcome: run.outcome }).toEqual({
+      lives: 1,
+      outcome: "playing",
+    });
+  });
+
+  it("spends a life a capsule brought at the most a player holds, before one is lost", () => {
+    const field = fieldAt({ livesGained: 1, livesLost: 1 });
+
+    const run = catchUp(playing({ lives: MAX_LIVES }), field);
+
+    expect(run.lives).toBe(MAX_LIVES - 1);
+  });
+
+  it("counts a life the points brought before the last is lost", () => {
+    const field = fieldAt({ score: FIRST_LIFE_POINTS, livesLost: 1 });
+
+    const run = catchUp(playing({ lives: 1 }), field);
+
+    expect({ lives: run.lives, outcome: run.outcome }).toEqual({
+      lives: 1,
+      outcome: "playing",
+    });
+  });
+
   it.each(NOT_UNDER_WAY)("leaves a run %s as it is", (outcome) => {
     const run = runWith({ outcome });
 
-    expect(move(run)).toBe(run);
+    expect(catchUp(run, fieldAt({ state: "cleared", livesLost: 1 }))).toBe(run);
   });
 });
 
