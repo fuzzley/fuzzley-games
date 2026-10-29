@@ -33,8 +33,9 @@ take the pure ones.
 - `src/scene/`: what a scene needs to live in a game that outlives it:
   `whenSceneEnds()`, and `onScaleResize()`, `onContextRestored()` and
   `onFirstFrame()`, which let go of what they subscribe to when the scene
-  ends; `pixelRatioOf()`; and `bakeTexture()`, a texture drawn at run time
-  and drawn again after a lost context. It imports Phaser, never Angular.
+  ends; `pixelRatioOf()`; `bakeTexture()`, a texture drawn at run time
+  and drawn again after a lost context; and `bakeAtlas()`, many named
+  frames drawn into one such texture. It imports Phaser, never Angular.
 - `src/sound/`: `SpritePlayer`, which loads a sound sprite (its key, its
   spritemap and its file's URL), made in `create()` so the scene never
   waits for it, and plays its sounds, named by the spritemap, once it has
@@ -77,7 +78,7 @@ take the pure ones.
   runs in outlives it: through `src/scene/`'s helpers, or
   `whenSceneEnds()` for anything else.
 - **A texture drawn at run time with a `Graphics` goes through
-  `bakeTexture()`,** so it is drawn again after a lost context; one drawn
+  `bakeTexture()` or `bakeAtlas()`,** so it is drawn again after a lost context; one drawn
   otherwise, such as a filtered `DynamicTexture`, redraws itself through
   `onContextRestored()`.
 - **No code bends to its specs.** The harness runs the renderer a browser
