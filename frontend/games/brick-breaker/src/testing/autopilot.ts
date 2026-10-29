@@ -3,25 +3,35 @@ import type { Ball } from "../rules/balls";
 import { fireBolts } from "../rules/bolts";
 import { isNeeded } from "../rules/bricks";
 import type { Falling } from "../rules/capsules";
-import { ballKind } from "../rules/catalog/balls";
 import { capsule } from "../rules/catalog/capsules";
 import {
   type Field,
+  ballSpeedOf,
   createField,
   launch,
   serve,
   steerField,
   stepField,
 } from "../rules/field";
-import { columnMiddle, columnOf, rowMiddle, rowOf } from "../rules/grid";
+import {
+  cellIndex,
+  columnAt,
+  columnMiddle,
+  columnOf,
+  rowAt,
+  rowMiddle,
+  rowOf,
+} from "../rules/grid";
 import type { Level } from "../rules/level";
-import { type Speed, ballSpeed } from "../rules/speed";
+import { type LevelEntry, parseLevel } from "../rules/levels";
+import type { Speed } from "../rules/speed";
 import { stepsIn } from "../rules/stepper";
 import {
   BALL_RADIUS,
   CAPSULE_FALL_SPEED,
   CAPSULE_HEIGHT,
   FIELD_WIDTH,
+  GLOW_BRICKS,
   PADDLE_ANGLE,
   PADDLE_TOP,
   POINTER_SPEED,
@@ -29,6 +39,9 @@ import {
 
 /** The longest the autopilot plays a level, in steps: eight minutes. */
 export const AUTOPILOT_LIMIT = stepsIn(8 * 60_000);
+
+/** The longest a level's endgame may take the autopilot, in steps: a minute. */
+export const ENDGAME_LIMIT = stepsIn(60_000);
 
 /** Says how the autopilot's play of a level went. */
 export interface AutopilotReport {
@@ -43,10 +56,10 @@ export interface AutopilotReport {
   readonly endgameSteps: number;
   /** How many times the paddle met a ball. */
   readonly bounces: number;
+  /** How many capsules the paddle caught. */
+  readonly caught: number;
   /** How many times it lost the last ball. */
   readonly livesLost: number;
-  /** The level's points, before what clearing it adds. */
-  readonly score: number;
 }
 
 /** Says where the autopilot means to send the ball it is about to meet. */
@@ -59,11 +72,17 @@ interface Aim {
   reach: number;
 }
 
-/** How few needed bricks are left when a level's endgame starts. */
-export const ENDGAME = 3;
+/** How few needed bricks are left when a level's endgame starts: those that may glow. */
+export const ENDGAME = GLOW_BRICKS;
+
+/** How often the autopilot aims a ball at a brick the level needs, rather than at a place on the paddle. */
+const AIM_AT_BRICK = 0.5;
 
 /** The farthest along the paddle the autopilot lands a ball, as a share of its half. */
 const MOST_REACH = 0.85;
+
+/** How far apart the autopilot looks along its line of sight to a brick. */
+const SIGHT_STEP = 0.25;
 
 /** Where a ball's middle meets the paddle's top. */
 const PADDLE_LINE = PADDLE_TOP - BALL_RADIUS;
@@ -85,6 +104,7 @@ export function autoplay(
   const random = createRandom(seed);
   const aim: Aim = { ball: -1, cell: -1, reach: 0 };
   let bounces = 0;
+  let caught = 0;
   let seen = field.events.latest;
   let steps = 0;
   let endgameSteps = 0;
@@ -100,6 +120,7 @@ export function autoplay(
         bounces++;
         aim.ball = -1;
       }
+      if (event.kind === "caught") caught++;
     });
     seen = field.events.latest;
   }
@@ -108,9 +129,17 @@ export function autoplay(
     steps,
     endgameSteps,
     bounces,
+    caught,
     livesLost: field.livesLost,
-    score: field.score,
   };
+}
+
+/**
+ * Plays one of the game's levels at a speed, from its number as the seed,
+ * as `src/rules/autopilot.spec.ts` and `yarn report:levels` both play it.
+ */
+export function playLevel(entry: LevelEntry, speed: Speed): AutopilotReport {
+  return autoplay(parseLevel(entry), speed, entry.number);
 }
 
 /** Returns whether the field's level is cleared, read afresh. */
@@ -129,8 +158,8 @@ function targetOf(field: Field, aim: Aim, random: () => number): number {
   if (capsuleX !== null) return capsuleX;
   if (!ball) return lowestBallX(field);
   const index = field.balls.indexOf(ball);
-  if (aim.ball !== index) chooseAim(field, aim, index, random);
   const landing = landingX(ball);
+  if (aim.ball !== index) chooseAim(field, aim, index, landing, random);
   return landing - reachFor(field, aim, landing) * (field.paddle.width / 2);
 }
 
@@ -141,13 +170,13 @@ function firstToLand(field: Field): Ball | null {
     if (!ball.live || ball.held || ball.dy <= 0 || ball.y > PADDLE_LINE) {
       continue;
     }
-    if (!first || timeToLand(ball) < timeToLand(first)) first = ball;
+    if (!first || distanceToLand(ball) < distanceToLand(first)) first = ball;
   }
   return first;
 }
 
 /** Returns how far a ball travels before it reaches the paddle's line. */
-function timeToLand(ball: Readonly<Ball>): number {
+function distanceToLand(ball: Readonly<Ball>): number {
   return (PADDLE_LINE - ball.y) / ball.dy;
 }
 
@@ -157,26 +186,36 @@ function timeToLand(ball: Readonly<Ball>): number {
  */
 function landingX(ball: Readonly<Ball>): number {
   const span = FIELD_WIDTH - 2 * BALL_RADIUS;
-  const across = ball.x - BALL_RADIUS + ball.dx * timeToLand(ball);
+  const across = ball.x - BALL_RADIUS + ball.dx * distanceToLand(ball);
   const folded = ((across % (2 * span)) + 2 * span) % (2 * span);
   return BALL_RADIUS + (folded > span ? 2 * span - folded : folded);
 }
 
-/** Picks where to send a ball: half the time at a brick the level needs, else a place on the paddle. */
+/**
+ * Picks where to send a ball about to land: half the time at a brick the
+ * level needs that it can see from where the ball will land, else at a
+ * place on the paddle.
+ */
 function chooseAim(
   field: Field,
   aim: Aim,
   index: number,
+  landing: number,
   random: () => number,
 ): void {
   aim.ball = index;
   aim.reach = (random() * 2 - 1) * MOST_REACH;
   aim.cell = -1;
-  const needed = field.bricks.filter(
-    (brick) => brick && !brick.broken && isNeeded(brick),
+  if (random() >= AIM_AT_BRICK) return;
+  const seen = field.bricks.filter(
+    (brick) =>
+      brick &&
+      !brick.broken &&
+      isNeeded(brick) &&
+      inSight(field, landing, brick.cell),
   );
-  if (needed.length > 0 && random() < 0.5) {
-    aim.cell = needed[Math.floor(random() * needed.length)]?.cell ?? -1;
+  if (seen.length > 0) {
+    aim.cell = seen[Math.floor(random() * seen.length)]?.cell ?? -1;
   }
 }
 
@@ -195,6 +234,25 @@ function reachFor(field: Field, aim: Aim, landing: number): number {
 }
 
 /**
+ * Returns whether a straight line from a place on the paddle's line to a
+ * brick's middle meets no other brick, as a ball sent at it would travel.
+ */
+function inSight(field: Field, from: number, cell: number): boolean {
+  const x = columnMiddle(columnOf(cell));
+  const y = rowMiddle(rowOf(cell));
+  const length = Math.hypot(x - from, PADDLE_LINE - y);
+  for (let along = 0; along < length; along += SIGHT_STEP) {
+    const t = along / length;
+    const column = columnAt(from + (x - from) * t);
+    const row = rowAt(PADDLE_LINE + (y - PADDLE_LINE) * t);
+    if (cellIndex(column, row) !== cell && field.solid(column, row)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
  * Returns where the lowest good capsule falling is across, if the paddle
  * has time to catch it before it must meet the ball, else null.
  */
@@ -209,7 +267,7 @@ function goodCapsuleX(
   const reachTime = Math.abs(falling.x - field.paddle.x) / POINTER_SPEED;
   if (capsuleTime < reachTime) return null;
   if (!ball) return falling.x;
-  const ballTime = timeToLand(ball) / ballSpeedOf(field);
+  const ballTime = distanceToLand(ball) / ballSpeedOf(field);
   const backTime = Math.abs(landingX(ball) - falling.x) / POINTER_SPEED;
   return capsuleTime + backTime < ballTime ? falling.x : null;
 }
@@ -223,18 +281,6 @@ function lowestGoodCapsule(field: Field): Falling | null {
     if (!lowest || falling.y > lowest.y) lowest = falling;
   }
   return lowest;
-}
-
-/** Returns how fast the field's balls go, in units a second. */
-function ballSpeedOf(field: Field): number {
-  return (
-    ballSpeed(
-      field.setup.speed,
-      field.level.pace,
-      field.climbed,
-      field.paceScale,
-    ) * ballKind(field.ballKind).speed
-  );
 }
 
 /** Returns where the lowest ball in play is across, or the paddle's middle if none is. */

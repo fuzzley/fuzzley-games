@@ -2,6 +2,7 @@ import { BALL_KIND_IDS, ballKind } from "./catalog/balls";
 import {
   BRICK_KINDS,
   BRICK_KIND_IDS,
+  type BrickKindId,
   brickKind,
   hasTrait,
   isBrickKindId,
@@ -21,13 +22,23 @@ import { CATCH_HOLD_MS, MAX_LIVES } from "./tuning";
  * The brick kinds no level uses yet, which the sets to come bring; once the
  * last set is in, the list is empty and every kind is used.
  */
-const KINDS_TO_COME = ["steel", "blast", "ghost", "regrow"];
+const KINDS_TO_COME: readonly BrickKindId[] = [
+  "steel",
+  "blast",
+  "ghost",
+  "regrow",
+];
 
 /**
  * The capsules no level lets fall yet, which the sets to come bring; once
  * the last set is in, the list is empty and every capsule can fall.
  */
-const CAPSULES_TO_COME = ["narrow", "fire", "fast", "blast"];
+const CAPSULES_TO_COME: readonly CapsuleId[] = [
+  "narrow",
+  "fire",
+  "fast",
+  "blast",
+];
 
 /** Every level, ready to play, with its number. */
 const PLAYED = LEVELS.map(
@@ -36,14 +47,16 @@ const PLAYED = LEVELS.map(
 
 /**
  * Returns whether a capsule can fall in a level: pinned to a gift brick, or
- * in its pool with a chance of falling or a gift brick to draw it.
+ * in its pool with a chance of falling or an unpinned gift brick to draw it.
  */
 function canFall(level: Level, id: CapsuleId): boolean {
   const bricks = level.cells.filter((brick) => brick !== null);
-  const gives = bricks.some((brick) => hasTrait(brick.kind, "gives"));
+  const draws = bricks.some(
+    (brick) => hasTrait(brick.kind, "gives") && brick.capsule === null,
+  );
   return (
     bricks.some((brick) => brick.capsule === id) ||
-    (level.capsules.includes(id) && (level.drops > 0 || gives))
+    (level.capsules.includes(id) && (level.drops > 0 || draws))
   );
 }
 

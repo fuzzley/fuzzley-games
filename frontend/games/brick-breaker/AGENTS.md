@@ -79,10 +79,12 @@ the view's first files and the shell exist.
 - **The run** — `src/rules/run.ts`: `Run`, a value each change replaces,
   as Snake's is, from the first level to the end: the level in play, the
   points banked and the score, the lives and the points of the next, and
-  the outcome. `tally()` takes a level's score as it stands, `clearLevel()`
-  banks it, and `levelSeed()` gives each level's field a seed of its own.
-  A move that doesn't fit where the run stands returns it as it is, so a
-  run over stays over and a level is banked once.
+  the outcome. `catchUp()` takes what the level's field has come to since
+  it last looked, its points, then the lives gained, then those lost, then
+  its clearing, which it banks, the order they come in on a field, since a
+  frame's steps can hold them all; and `levelSeed()` gives each level's
+  field a seed of its own. A move that doesn't fit where the run stands
+  returns it as it is, so a run over stays over and a level is banked once.
 - **The levels** — `src/rules/levels/`: a JSON file for each set of
   levels, its name, its chance of a capsule and its levels, each a picture
   of its bricks in the characters of `legend.ts`'s shared legend, with any
@@ -142,10 +144,10 @@ workspace's with the others'.
   config, and the scripts under `tools/` from their JSDoc).
 - **Report the Levels:** `yarn report:levels` (runs `tools/report-levels.mjs`:
   the autopilot plays every level at every speed, from the level's number
-  as the seed, and it prints the game time each took, the time spent on the
-  last three bricks the level needed, the paddle's hits and the lives lost;
-  it fails if a play didn't clear its level). It is how the difficulty ramp
-  is tuned.
+  as the seed, as the autopilot's spec does, through `playLevel()`, and it
+  prints the game time each took, the time spent on the last three bricks
+  the level needed, the paddle's bounces and the lives lost; it fails if a
+  play didn't clear its level). It is how the difficulty ramp is tuned.
 
 ## Tests
 
@@ -158,10 +160,11 @@ play with none (`playWithoutBall()`), steps it and reads its events, so a
 spec of the field reads as the field it plays. `src/testing/autopilot.ts`
 plays a level as a good player would (`autoplay()`): it keeps the paddle
 under the ball that will reach it first, lands it a seeded distance off
-the middle or toward a brick the level needs, catches the good capsules it
-has time for, and fires, serves and launches at once.
+the middle or toward a brick the level needs that it can see, catches the
+good capsules it has time for, and fires, serves and launches at once.
 `src/rules/autopilot.spec.ts` holds every level, at every speed, to being
-cleared by it within eight minutes of game time, and the catalog spec holds
+cleared by it within eight minutes of game time, its last three bricks
+within one, and the catalog spec holds
 the levels to using every brick kind and letting every capsule first fall
 at the level its `from` names, but those the sets still to come bring, which
 it names.

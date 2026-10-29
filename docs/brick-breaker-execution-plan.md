@@ -301,9 +301,10 @@ in Part 2, under `frontend/games/brick-breaker/` unless they say otherwise.
   capsule pinned to it. Specced effect by effect. One commit.
 - **B3.4** `src/rules/scoring.ts` and `run.ts`: points by the hit, the
   streak's multiplier, the clearing bonus, lives from points, and `Run`'s
-  moves (`startLevel()`, `pause()`, `resume()`, `tally()`, `gainLives()`,
-  `clearLevel()`, `loseLife()`), with `levelSeed()`, each level's field's
-  seed. Specced. One commit, `yarn verify` with it.
+  moves (`startLevel()`, `pause()`, `resume()`, and `catchUp()`, which
+  B4.2's review made of `tally()`, `gainLives()`, `loseLife()` and
+  `clearLevel()`), with `levelSeed()`, each level's field's seed. Specced.
+  One commit, `yarn verify` with it.
 
 #### B4: levels as data (medium)
 
@@ -915,18 +916,19 @@ text.
 | The compiler       | everywhere                       | Every trait and effect has its rule, and every brick, ball and capsule its art                                                                                                                                                                                 |
 | The catalog spec   | `src/rules/catalog.spec.ts`      | Every entry has a name and a sentence; every brick kind is used by a level, and every capsule can fall in one from its `from` on; every trait and effect kind is used; the weights are positive; the bad capsules are the only ones that can't fall at Relaxed |
 | The levels spec    | `src/rules/levels.spec.ts`       | As Sudoku's bank spec: every level parses; ids and names are unique, and ids kebab-case; each has a needed brick; each needed brick can be reached, a flood from below through anything but steel touching it; the pace never falls within a set               |
-| The autopilot spec | `src/rules/autopilot.spec.ts`    | Every level, at every speed, from a fixed seed, is cleared by `src/testing/autopilot.ts` within eight minutes of game time, which finds a level that loops or hides its last brick                                                                             |
+| The autopilot spec | `src/rules/autopilot.spec.ts`    | Every level, at every speed, from a fixed seed, is cleared by `src/testing/autopilot.ts` within eight minutes of game time, and its last three bricks within one, which finds a level that loops or hides its last brick                                       |
 | The contrast spec  | `src/view/contrast.spec.ts`      | Every tint, kind, ball and capsule against the field, in every palette                                                                                                                                                                                         |
 | The scene spec     | `src/scene/bricks_scene.spec.ts` | Every kind, in every state, is drawn from a frame of the atlas                                                                                                                                                                                                 |
 
 The autopilot plays as a good player would: it keeps the paddle under the
 ball that will reach it first, lands it a seeded distance off the middle
-or toward a brick the level needs, catches the good capsules it has time
-for, fires whenever it can, and serves and launches at once. It steers as
+or toward a brick the level needs that it can see, as a player aims only
+at what is in sight, catches the good capsules it has time for, fires
+whenever it can, and serves and launches at once. It steers as
 a pointer does, so it is as fast as a mouse, and better than most
 players. It runs in Node, without Phaser, and plays a level in well under
 a second. `yarn report:levels` runs it over every level, from the level's
-number as the seed, as the spec does, and prints how long each took, how
+number as the seed, through the `playLevel()` the spec plays with, and prints how long each took, how
 long of that went on the last three bricks the level needed (where a level
 that hides its last bricks drags), and how many bounces and lives it cost,
 which is how the difficulty ramp is tuned and checked by eye.
@@ -1170,16 +1172,18 @@ export interface FieldFrame {
 - `run.ts`: `Run`, a value each change replaces, as Snake's is: its id, its
   seed, its speed, the number of the last level, the level it started at
   and the one in play, the points banked by the levels cleared, the score,
-  the lives, the points of the next extra life, and the outcome (`ready`,
-  `playing`, `paused`, `cleared`, `over` or `won`). `startLevel()`,
-  `pause()`, `resume()`, `tally()`, `gainLives()`, `clearLevel()` and
-  `loseLife()` move it, and `levelSeed()` gives each level's field a seed
-  of its own, which the field's draws count from. A move that doesn't fit
-  where the run stands returns it as it is, so the shell makes each move
-  as it comes: a run over stays over though a blast clears its level after
-  the last life, and a level is banked once. The field's `livesGained` and
-  `livesLost` count up over the level, and the shell gives the run what has
-  come since it last looked.
+  the lives, the points of the next extra life, the lives of the level in
+  play it has taken, and the outcome (`ready`, `playing`, `paused`,
+  `cleared`, `over` or `won`). `startLevel()`, `pause()`, `resume()` and
+  `catchUp()` move it, and `levelSeed()` gives each level's field a seed of
+  its own, which the field's draws count from. The field's `livesGained`
+  and `livesLost` count up over the level, and after each frame the shell
+  hands the field to `catchUp()`, which takes what has come since it last
+  looked in the order it comes in on a field: the points, the lives gained,
+  the lives lost, then the clearing. A frame's steps can hold them all, and
+  the counts keep no order. A move that doesn't fit where the run stands
+  returns it as it is, so a run over stays over though a blast clears its
+  level after the last life, and a level is banked once.
 - `stepper.ts`: fixed steps of 1/120 s from a frame's time, at most twelve,
   dropping what is left of a longer frame, so a stall slows the game rather
   than letting it leap.

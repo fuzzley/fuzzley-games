@@ -185,8 +185,9 @@ const AT_ONCE = 1e-9;
 
 /**
  * The widest gap beside a wall that the paddle's reach closes: a ball's
- * width and a little more, as a ball shuttling between the wall and the
- * paddle in a gap barely wider than it would take an age to fall through.
+ * width and a little more. A ball in a gap barely wider than itself would
+ * shuttle between the wall and the paddle's end, meeting each many times a
+ * step as it crept down.
  */
 const CLOSED_GAP = 2 * BALL_RADIUS + 0.1;
 
@@ -318,16 +319,21 @@ function holdStill(field: Field): void {
   for (const bolt of field.bolts) bolt.lastY = bolt.y;
 }
 
-/** Moves each ball on by a step, until the level is cleared. */
-function stepBalls(field: Field): void {
-  if (isCleared(field)) return;
+/** Returns how fast the field's balls go, in units a second. */
+export function ballSpeedOf(field: Readonly<Field>): number {
   const speed = ballSpeed(
     field.setup.speed,
     field.level.pace,
     field.climbed,
     field.paceScale,
   );
-  const distance = speed * ballKind(field.ballKind).speed * STEP_S;
+  return speed * ballKind(field.ballKind).speed;
+}
+
+/** Moves each ball on by a step, until the level is cleared. */
+function stepBalls(field: Field): void {
+  if (isCleared(field)) return;
+  const distance = ballSpeedOf(field) * STEP_S;
   for (const ball of field.balls) {
     ball.lastX = ball.x;
     ball.lastY = ball.y;

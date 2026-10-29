@@ -1,3 +1,4 @@
+import type { Field } from "./field";
 import { clearingPoints } from "./scoring";
 import type { Speed } from "./speed";
 import {
@@ -20,9 +21,7 @@ export type Outcome =
  * value each change replaces.
  *
  * A move that doesn't fit where the run stands returns it as it is, so the
- * shell can make each move as it comes: a run over stays over though a
- * blast clears its level after the last life is lost, and a level is
- * banked once.
+ * shell can make each move as it comes.
  */
 export interface Run {
   /** Tells runs apart: a new run takes a new one. */
@@ -43,8 +42,18 @@ export interface Run {
   readonly lives: number;
   /** The score that brings the next life. */
   readonly nextLifeAt: number;
+  /** The lives the level in play's capsules have brought, as far as the run has taken them. */
+  readonly levelGained: number;
+  /** The lives the level in play has lost, as far as the run has taken them. */
+  readonly levelLost: number;
   readonly outcome: Outcome;
 }
+
+/** What a run takes from the field of the level under way. */
+export type LevelProgress = Pick<
+  Field,
+  "state" | "score" | "livesGained" | "livesLost"
+>;
 
 /** Says how a new run starts. */
 export interface RunStart {
@@ -75,6 +84,8 @@ export function createRun({
     score: 0,
     lives: FIRST_LIVES,
     nextLifeAt: FIRST_LIFE_POINTS,
+    levelGained: 0,
+    levelLost: 0,
     outcome: "ready",
   };
 }
@@ -91,7 +102,13 @@ export function hasEnded(run: Run): boolean {
 export function startLevel(run: Run): Run {
   if (run.outcome === "ready") return { ...run, outcome: "playing" };
   if (run.outcome !== "cleared") return run;
-  return { ...run, level: run.level + 1, outcome: "playing" };
+  return {
+    ...run,
+    level: run.level + 1,
+    levelGained: 0,
+    levelLost: 0,
+    outcome: "playing",
+  };
 }
 
 /** Returns the run paused, if a level is under way. */
@@ -105,43 +122,31 @@ export function resume(run: Run): Run {
 }
 
 /**
- * Returns the run with the points of the level under way as they now stand,
- * and the lives they bring.
+ * Returns the run caught up with the level under way, as its field now
+ * stands: the level's points, then the lives its capsules brought, then the
+ * lives it lost, then its clearing, the order they come in on a field,
+ * however many of them a frame's steps took.
+ *
+ * So a run over stays over though a blast clears its level after the last
+ * life is lost, and a level is banked once.
  */
-export function tally(run: Run, levelPoints: number): Run {
+export function catchUp(run: Run, field: LevelProgress): Run {
   if (!isUnderWay(run)) return run;
-  return withScore(run, run.banked + levelPoints);
-}
-
-/**
- * Returns the run with lives that capsules brought, while a level is under
- * way, up to the most it may hold.
- */
-export function gainLives(run: Run, count: number): Run {
-  if (!isUnderWay(run)) return run;
-  return { ...run, lives: Math.min(MAX_LIVES, run.lives + count) };
-}
-
-/** Returns the run with a life lost, while a level is under way, over if it was the last. */
-export function loseLife(run: Run): Run {
-  if (!isUnderWay(run)) return run;
-  const lives = run.lives - 1;
-  return { ...run, lives, outcome: lives > 0 ? run.outcome : "over" };
-}
-
-/**
- * Returns the run with the level under way cleared: its points banked with
- * what clearing it adds, and the run won if it was the last level.
- */
-export function clearLevel(
-  run: Run,
-  levelPoints: number,
-  livesLost: number,
-): Run {
-  if (!isUnderWay(run)) return run;
-  const score = run.banked + levelPoints + clearingPoints(livesLost);
+  const scored = withScore(run, run.banked + field.score);
+  const gained = field.livesGained - run.levelGained;
+  const lost = field.livesLost - run.levelLost;
+  const lives = Math.min(MAX_LIVES, scored.lives + gained) - lost;
+  const caughtUp = {
+    ...scored,
+    lives: Math.max(0, lives),
+    levelGained: field.livesGained,
+    levelLost: field.livesLost,
+  };
+  if (lives <= 0) return { ...caughtUp, outcome: "over" };
+  if (field.state !== "cleared") return caughtUp;
+  const banked = scored.score + clearingPoints(field.livesLost);
   const outcome = run.level >= run.lastLevel ? "won" : "cleared";
-  return { ...withScore(run, score), banked: score, outcome };
+  return { ...withScore(caughtUp, banked), banked, outcome };
 }
 
 /**
