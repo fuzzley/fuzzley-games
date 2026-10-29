@@ -1993,3 +1993,57 @@ it.
 
 - **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,339),
   build.
+
+## Q3: the first playable build
+
+Played on the dev server in the DevTools MCP's Chrome, at 1280 × 800 and
+as a phone (390 × 844 at 3×, touch), in the dark palette the browser
+picked and in Classic felt. The steering was driven from the page: real
+mouse, key and touch events sent to the canvas and the board, so each went
+through Phaser's input and the scene's `Steering`.
+
+- **Mouse.**
+  - The paddle goes exactly where the pointer is, at 6, 20 and 13 units.
+  - A click on the field launches.
+  - An in-page autopilot that followed the ball with the mouse cleared
+    level 1 in about 3½ minutes and lost one life. The announcer said
+    "Ball lost. 2 lives left.", "5 bricks left." and "Level 1 cleared!
+    Score 5050."
+  - The Cleared card added it up: bricks 3900, streaks 150, bonus 1000.
+- **Keys.**
+  - Space launches, and Enter goes on to the next level, which is
+    announced.
+  - ← held for 0.3 s moves the paddle 8 units, and D moves it back.
+  - Escape pauses and shows the Paused card; P goes on.
+  - The question before a new run takes the focus, pausing the level as
+    the focus leaves the room. Tab and Enter answer it, and the focus
+    comes back to the board.
+- **Touch.**
+  - The Ready card says "Tap to launch.", and a tap launches.
+  - A finger dragged 6 units moves the paddle 6 units.
+  - Synthetic touches need `pageX` and `pageY`, which Phaser reads.
+- **Speeds.** A served ball's speed at each: Relaxed 12.7, Normal 15.9 and
+  Fast 19.0 units a second, against bases of 13, 16 and 19.
+- **At the top speed** (Fast's 29 units a second):
+  - A ball sent straight at a seam between two bricks breaks one and comes
+    straight back.
+  - One landing on the paddle's end leaves at 57° from upright.
+- **The paddle,** at 4 units and widened to 6: its round ends and its body
+  join with no seam, sharp at 1×.
+- **A lost ball** leaves the paddle empty for 986 ms before the next is
+  served. The pointer shows while a ball waits on the paddle and hides
+  while one is in play.
+- **The console** stayed clean through every load, once B7.2 had fixed the
+  first bake's negative sizes.
+- **For the user's eye.** Screenshots sent, with these questions:
+  - **The gift bricks wear the accent,** which sits close to one row's
+    tint in each palette: the gold row in the dark palette, the green
+    row in Classic felt. Only the capsule mark tells them apart there.
+  - **A ball in flight as the level clears stays frozen** in mid-air under
+    the Cleared card. It could fade, as a lost ball does.
+  - **On an upright phone,** the field (26 by 30 units) fills the width
+    and about 40% of the height. The bar (B8) will take some of the rest.
+- **Not checked here.**
+  - The feel itself, which wants a person playing; `tuning.ts` is left as
+    it is.
+  - Reduced motion in the browser, which the specs hold.
