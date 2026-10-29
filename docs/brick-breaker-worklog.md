@@ -186,3 +186,47 @@ comment.
 - **Checks.** `@fz/game-ui` (156 tests, 100% of statements) and `snake`:
   lint, typecheck, test. Docs: the library's `AGENTS.md`, Snake's, and the
   `fuzzley-ui` and `web-game-accessibility` skills.
+
+## L3.1's review, and the earlier fixes'
+
+The reviewer checked the earlier reviews' fixes against the log (the fences
+probed, the layout spec's numbers, the sprite's names, the sounds' bytes)
+and found them as described. Its findings:
+
+1. **A re-bake left objects showing a frame half-updated.** An image draws
+   the new size at once but keeps its old origin and bounds, a `NineSlice`
+   keeps its old UVs, and an object on a dropped frame throws as it draws.
+   Fixed in the docs rather than the code: `bakeAtlas()`'s doc, the
+   library's `AGENTS.md` and `phaser-core` say a scene sets every object's
+   frame again after a bake (`setTexture()` for a `NineSlice`), and a spec
+   shows an image taking the new size and origin once it does. Brick
+   Breaker's scene re-lays every painter after a bake, so it does.
+2. **`name in spritemap` matched `toString`.** Fixed: the names are checked
+   with a `Set` before anything renders, and a spec renders a sound named
+   `toString`.
+3. **"Silent until it starts" couldn't fail** (the envelope was already 0
+   there). Fixed: a tone and shape of 1.
+4. **Frame sizes and names weren't checked.** Fixed: a size not a whole
+   number of pixels above 0, or the name `__BASE`, throws, with specs.
+5. **No spec checked where a frame is drawn, or its UVs after a move.**
+   Fixed: a spy on `translateCanvas` (a headless canvas keeps no pixels)
+   checks each frame's corner, and a spec checks a moved frame's UVs.
+6. **Small items.** Fixed: `Placed`'s doc, `pack()`'s doc names what it
+   throws for, `ATLAS_GUTTER` and `MAX_ATLAS_SIDE` are no longer exported
+   from the entry (nothing outside uses them), the long lines are wrapped,
+   and "refusing none" reads "throwing for an empty list".
+
+Left as advised: packing in rows, `vi.fn()` drawings, the explicit
+`@fz/phaser/scene` in Snake's app fence, `thud()` keeping its samples, and
+the uploads `bakeTexture()` already made.
+
+## L5: docs and proof
+
+- **L5.1 folded in.** Each lift's step brought its own docs up to date, so
+  nothing was left for a step of its own: the libraries' `AGENTS.md`,
+  Snake's, and the `phaser-core`, `phaser-canvas-performance`, `fuzzley-ui`
+  and `web-game-accessibility` skills.
+- **`yarn verify`** passed at `0af7a840`: every workspace's lint, typecheck
+  and tests (Snake 395, `@fz/phaser` 249, `@fz/game-ui` 156, `@fz/dev` 109),
+  and the build. Snake's entry chunk is 81.2 kB gzipped, its scene 3.8 kB
+  and its `phaser` chunk 357.1 kB.

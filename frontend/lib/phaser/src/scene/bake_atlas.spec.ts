@@ -1,4 +1,4 @@
-import type { Scene, Textures } from "phaser";
+import { GameObjects, type Scene, type Textures } from "phaser";
 import type { HostedScene } from "../host";
 import { type SceneRun, runBareScene } from "../testing";
 import { ATLAS_GUTTER, type AtlasFrame, bakeAtlas } from "./bake_atlas";
@@ -82,7 +82,7 @@ describe("bakeAtlas", () => {
     });
   });
 
-  it("draws each frame once, in its own pixels", async () => {
+  it("draws each frame once", async () => {
     const { scene } = await startScene();
     const brick = frame("brick", 20, 10);
     const ball = frame("ball", 6);
@@ -93,6 +93,20 @@ describe("bakeAtlas", () => {
       vi.mocked(brick.draw).mock.calls.length,
       vi.mocked(ball.draw).mock.calls.length,
     ]).toEqual([1, 1]);
+  });
+
+  // A headless canvas keeps no pixels, so this watches the moves themselves.
+  it("draws each frame from its own corner", async () => {
+    const { scene } = await startScene();
+    const moves = vi.spyOn(GameObjects.Graphics.prototype, "translateCanvas");
+
+    bakeAtlas(scene, "atlas", [frame("brick", 20, 10), frame("ball", 6)]);
+
+    // The brick is as wide as the atlas, so the ball is a row down.
+    expect(moves.mock.calls).toEqual([
+      [0, 0],
+      [0, 10 + ATLAS_GUTTER],
+    ]);
   });
 
   it("moves its frames when baked again, keeping each frame's object", async () => {
@@ -110,6 +124,32 @@ describe("bakeAtlas", () => {
       same: true,
       place: { x: 0, y: 20 + ATLAS_GUTTER, width: 12, height: 12 },
     });
+  });
+
+  it("maps a moved frame onto the atlas at its new size", async () => {
+    const { scene } = await startScene();
+    bakeAtlas(scene, "atlas", [frame("brick", 20, 10), frame("ball", 6)]);
+
+    bakeAtlas(scene, "atlas", [frame("brick", 40, 20), frame("ball", 12)]);
+
+    // The atlas is now 40 wide and 34 tall, the ball 12 a side at its left.
+    const ball = scene.textures.get("atlas").get("ball");
+    expect({
+      u0: ball.u0,
+      u1: ball.u1,
+      height: Math.round(Math.abs(ball.v1 - ball.v0) * 34),
+    }).toEqual({ u0: 0, u1: 12 / 40, height: 12 });
+  });
+
+  it("gives an image its frame's new size once it sets the frame again", async () => {
+    const { scene } = await startScene();
+    bakeAtlas(scene, "atlas", [frame("ball", 6)]);
+    const image = scene.add.image(0, 0, "atlas", "ball");
+    bakeAtlas(scene, "atlas", [frame("ball", 12)]);
+
+    image.setFrame("ball");
+
+    expect([image.width, image.displayOriginX]).toEqual([12, 6]);
   });
 
   it("drops the frames a new bake leaves out", async () => {
@@ -141,6 +181,25 @@ describe("bakeAtlas", () => {
     expect(() => {
       bakeAtlas(scene, "atlas", [frame("ball", 6), frame("ball", 8)]);
     }).toThrow('Two atlas frames are named "ball".');
+  });
+
+  it("refuses a frame named as Phaser names a texture's whole", async () => {
+    const { scene } = await startScene();
+
+    expect(() => {
+      bakeAtlas(scene, "atlas", [frame("__BASE", 6)]);
+    }).toThrow('An atlas frame can\'t be named "__BASE".');
+  });
+
+  it.each([
+    [6.5, 6],
+    [6, 0],
+  ])("refuses a frame of %f × %f, not whole pixels", async (width, height) => {
+    const { scene } = await startScene();
+
+    expect(() => {
+      bakeAtlas(scene, "atlas", [frame("ball", width, height)]);
+    }).toThrow("not whole pixels");
   });
 
   it("refuses frames too large for any device", async () => {

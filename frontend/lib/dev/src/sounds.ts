@@ -160,6 +160,11 @@ function wav(samples: Float64Array): Buffer {
  */
 export function renderSoundSprite(sounds: readonly Sound[]): RenderedSprite {
   if (sounds.length === 0) throw new Error("A sprite needs a sound.");
+  const names = new Set<string>();
+  for (const { name } of sounds) {
+    if (names.has(name)) throw new Error(`Two sounds are named "${name}".`);
+    names.add(name);
+  }
   const rendered = sounds.map((sound) => render(sound));
   const gap = Math.round(GAP_S * SAMPLE_RATE);
   const length =
@@ -169,10 +174,9 @@ export function renderSoundSprite(sounds: readonly Sound[]): RenderedSprite {
   const all = new Float64Array(length);
   const spritemap: Record<string, SpriteEntry> = {};
   let at = 0;
-  for (const [i, samples] of rendered.entries()) {
-    const name = sounds[i]?.name ?? "";
-    if (name in spritemap) throw new Error(`Two sounds are named "${name}".`);
-    spritemap[name] = {
+  for (const [i, sound] of sounds.entries()) {
+    const samples = rendered[i] ?? new Float64Array(0);
+    spritemap[sound.name] = {
       start: Number((at / SAMPLE_RATE).toFixed(3)),
       end: Number(((at + samples.length) / SAMPLE_RATE).toFixed(3)),
       loop: false,
