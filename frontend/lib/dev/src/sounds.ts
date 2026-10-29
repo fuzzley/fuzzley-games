@@ -80,18 +80,23 @@ export function envelope(attack: number, decay: number): Wave {
 }
 
 /**
- * Returns noise from a seed, smoothed by a one-pole filter into a dull thud.
- *
- * Each call is the next sample, whatever time it is given, so a sound reads
- * it once per sample, in order, as the sprite is rendered.
+ * Returns noise from a seed, smoothed by a one-pole filter into a dull thud,
+ * the same at a time however often it is read.
  */
 export function thud(seed: number): Wave {
   let state = seed >>> 0;
   let last = 0;
-  return () => {
-    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    last += 0.25 * ((state / 2 ** 32) * 2 - 1 - last);
-    return last;
+  // Each sample follows from the one before, so they are made in order, as
+  // far as a time asks, and kept.
+  const made: number[] = [];
+  return (t) => {
+    const at = Math.max(0, Math.round(t * SAMPLE_RATE));
+    while (made.length <= at) {
+      state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+      last += 0.25 * ((state / 2 ** 32) * 2 - 1 - last);
+      made.push(last);
+    }
+    return made[at] ?? 0;
   };
 }
 
@@ -100,13 +105,19 @@ export function note(at: number, tone: Wave, shape: Wave): Wave {
   return (t) => (t < at ? 0 : tone(t - at) * shape(t - at));
 }
 
-/** Returns a sound's samples, scaled to its peak and faded out at the end. */
+/**
+ * Returns a sound's samples, scaled to its peak and faded out at the end, or
+ * throws for one that is silent or not a number, which can't be scaled.
+ */
 function render(sound: Sound): Float64Array {
   const samples = new Float64Array(Math.round(sound.seconds * SAMPLE_RATE));
   for (let i = 0; i < samples.length; i++) {
     samples[i] = sound.sample(i / SAMPLE_RATE);
   }
   const loudest = samples.reduce((max, s) => Math.max(max, Math.abs(s)), 0);
+  if (!(loudest > 0 && Number.isFinite(loudest))) {
+    throw new Error(`The sound "${sound.name}" is silent or not a number.`);
+  }
   const fade = FADE_S * SAMPLE_RATE;
   for (let i = 0; i < samples.length; i++) {
     const left = samples.length - 1 - i;
@@ -144,34 +155,35 @@ function wav(samples: Float64Array): Buffer {
 
 /**
  * Renders sounds into one sprite, in order, with a gap of silence between
- * two, so one never runs into the next.
+ * two, so one never runs into the next. It throws for no sounds, two of one
+ * name, or one that can't be scaled to its peak.
  */
 export function renderSoundSprite(sounds: readonly Sound[]): RenderedSprite {
+  if (sounds.length === 0) throw new Error("A sprite needs a sound.");
+  const rendered = sounds.map((sound) => render(sound));
+  const gap = Math.round(GAP_S * SAMPLE_RATE);
+  const length =
+    rendered.reduce((sum, samples) => sum + samples.length, 0) +
+    gap * (sounds.length - 1);
+  // A new array is silent, so the gaps need no writing.
+  const all = new Float64Array(length);
   const spritemap: Record<string, SpriteEntry> = {};
-  const parts: Float64Array[] = [];
-  const gap = new Float64Array(Math.round(GAP_S * SAMPLE_RATE));
   let at = 0;
-  for (const [i, sound] of sounds.entries()) {
-    const samples = render(sound);
-    spritemap[sound.name] = {
+  for (const [i, samples] of rendered.entries()) {
+    const name = sounds[i]?.name ?? "";
+    if (name in spritemap) throw new Error(`Two sounds are named "${name}".`);
+    spritemap[name] = {
       start: Number((at / SAMPLE_RATE).toFixed(3)),
       end: Number(((at + samples.length) / SAMPLE_RATE).toFixed(3)),
       loop: false,
     };
-    const after = i < sounds.length - 1 ? gap : new Float64Array(0);
-    parts.push(samples, after);
-    at += samples.length + after.length;
-  }
-  const all = new Float64Array(at);
-  let offset = 0;
-  for (const part of parts) {
-    all.set(part, offset);
-    offset += part.length;
+    all.set(samples, at);
+    at += samples.length + gap;
   }
   return {
     wav: wav(all),
     json: `${JSON.stringify({ spritemap }, null, 2)}\n`,
-    seconds: at / SAMPLE_RATE,
+    seconds: length / SAMPLE_RATE,
   };
 }
 
