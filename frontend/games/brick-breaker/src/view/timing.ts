@@ -31,6 +31,12 @@ export const SHAKE_INTENSITY = 0.006;
 /** How long a lost ball takes to fade. */
 export const FADE_MS = 600;
 
+/**
+ * How long the paddle stands empty once the last ball is lost, before the
+ * next is served on it, so the loss is seen with motion or without.
+ */
+export const SERVE_MS = 1000;
+
 /** How long the Cleared card waits after the last brick breaks, so the break is seen before the card covers it. */
 export const CLEARED_MS = 700;
 

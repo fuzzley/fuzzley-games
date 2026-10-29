@@ -128,10 +128,11 @@ export function resume(run: Run): Run {
  * however many of them a frame's steps took.
  *
  * So a run over stays over though a blast clears its level after the last
- * life is lost, and a level is banked once.
+ * life is lost, and a level is banked once. A run whose field has nothing
+ * new is returned as it is, so the shell can tell a frame that changed it.
  */
 export function catchUp(run: Run, field: LevelProgress): Run {
-  if (!isUnderWay(run)) return run;
+  if (!isUnderWay(run) || !hasNews(run, field)) return run;
   const scored = withScore(run, run.banked + field.score);
   const gained = field.livesGained - run.levelGained;
   const lost = field.livesLost - run.levelLost;
@@ -155,6 +156,16 @@ export function catchUp(run: Run, field: LevelProgress): Run {
  */
 export function levelSeed(run: Run): number {
   return run.seed ^ Math.imul(run.level, 0x85ebca6b);
+}
+
+/** Returns whether a level's field has come to anything the run hasn't taken yet. */
+function hasNews(run: Run, field: LevelProgress): boolean {
+  return (
+    run.banked + field.score !== run.score ||
+    field.livesGained !== run.levelGained ||
+    field.livesLost !== run.levelLost ||
+    field.state === "cleared"
+  );
 }
 
 /** Returns whether a level is under way, in play or paused. */

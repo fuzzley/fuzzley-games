@@ -1669,6 +1669,10 @@ satisfies`, so they are readonly.
     game service holds the run and the field together and replaces both in
     one move. A spec there will hold that a field from before a level
     started is never caught up.
+    - Answered in B7.1: `GameService` lays out the next level's field in
+      the same call that starts the level, and a spec holds that a frame
+      after going on to the next level leaves the score where the clearing
+      left it.
 
 ## B6.1's review (f0f5e025)
 
@@ -1799,3 +1803,69 @@ findings is answered here, and the fixes are in one commit.
      `setActive(false)` while empty if the trace shows it.
    - `bake()` encodes 21 pictures on every re-bake, a resize drag's
      included; they could be taken only when How to play opens.
+
+## B7.1: the game service and what the announcer says
+
+- **Built:**
+  - `src/rules/describe.ts`: the words for each turning point the plan
+    names. `describeFewLeft(before, after)` says the bricks left only on
+    the frame a level comes down to five or fewer, and not on one that
+    clears it, so the rule sits with its words and is specced in Node.
+  - `src/app/play/game.service.ts`, `GameService`:
+    - The run is a signal. The field is held outside one, with a clock and
+      one frame record, which `frame()` hands the scene.
+    - `tick()` steers the field, steps it as often as the frame's time
+      holds a step, and serves the next ball once a lost one has had its
+      beat. It then hears the field's new events, takes what the field
+      came to into the run, and says it all at the frame's end.
+    - With no level in play, `tick()` opens the cleared card or the
+      result card once its wait has run.
+    - `command()`, `launch()`, `pause()`, `resume()`, `toggle()`, `go()`,
+      `nextLevel()`, `newGame()`, `startAt()`, `changeSpeed()`,
+      `tryAgain()`, `setDrawn()` and `closeResult()`.
+    - The shell's signals: `serving`, `multiplier`, `clearedOpen`,
+      `resultOpen`, `resultClosed`, `runs` and `drawn`.
+  - `src/rules/run.ts`: `catchUp()` returns the run as it is while its
+    field has nothing new. The run's signal is set only on a frame that
+    changed it, rather than 60 times a second with an equal value.
+  - `src/view/timing.ts`: `SERVE_MS`, the second the paddle stands empty
+    after the last ball is lost, with motion or without.
+- **Choices.**
+  - **The level is said as it starts.** That is the first launch of a run,
+    or going on to the next level. A new run says nothing until then: the
+    announcer is cleared, as Snake's is, and the board's name (B7.2) says
+    which level it is.
+  - **One frame, one announcement.** What a frame brings is gathered and
+    said together: a capsule caught, the bricks left, a life gained or
+    lost, a clearing or the end. A frame that loses the last life says the
+    end, not "Ball lost. 0 lives left.".
+  - **An extra life is said once.** It is said as the run takes the life,
+    with the lives there are. Its capsule's "caught" event is not said by
+    name as well.
+  - **`nextLevel()` waits for the cleared card,** as a launch and Enter do,
+    so the button, the keys and a tap all agree.
+  - **`GAME_LEVELS`, beside `GAME_RANDOM`.** The game's levels are set
+    for play and take minutes to clear. The spec hands in its own small
+    levels and a seed of its own, and plays them through `tick()`,
+    steering from the frame it reads. Each level is set up to come to one
+    thing soon:
+    - a row of blast bricks that one hit clears;
+    - a steel wall that loses every ball;
+    - five bricks the blasts can't reach;
+    - rows of gifts, each letting one capsule fall.
+  - **Settings, stats and progress wait for B10.** A run starts at Normal
+    and at level 1 until the settings and the level choice exist, and
+    `describeEnd()` is handed no new best until the stats keep one.
+- **Checks.**
+  - Mutation runs on the service and `describe.ts`: 35 mutants. 34 are
+    killed, once specs were added for the frame's event log after a new
+    run, the glide after a new run, and the bricks left on a frame that
+    clears the level (now in `describe.ts`).
+  - The survivor is resetting `heard` on a new field. It is equivalent:
+    `heard` is set to the log's latest at the end of every frame, and no
+    event in a new field's first frame is said. It stays, so the reset
+    reads whole.
+  - `yarn verify`: lint, typecheck, test (Brick Breaker's 1,287, the
+    service's 63), build. The rules and the view stay at 100% of
+    statements. The service misses only its two tokens' factories, which
+    the spec replaces.
