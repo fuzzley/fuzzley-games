@@ -12,7 +12,12 @@ export default defineConfig(
   templates({ files: ["src/**/*.html"] }),
   tests({ files: ["src/**/*.spec.ts", "src/test-setup.ts"] }),
   phaser({
-    files: ["src/host/**/*.ts", "src/scene/**/*.ts", "src/testing/**/*.ts"],
+    files: [
+      "src/host/**/*.ts",
+      "src/scene/**/*.ts",
+      "src/sound/**/*.ts",
+      "src/testing/**/*.ts",
+    ],
   }),
   {
     // The pure entries are for a game's code that knows no Phaser and no
@@ -46,7 +51,7 @@ export default defineConfig(
   },
   {
     // A host and a scene run in any app, Angular or not.
-    files: ["src/host/**/*.ts", "src/scene/**/*.ts"],
+    files: ["src/host/**/*.ts", "src/scene/**/*.ts", "src/sound/**/*.ts"],
     ignores: ["**/*.spec.ts"],
     rules: {
       "@typescript-eslint/no-restricted-imports": [

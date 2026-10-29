@@ -65,8 +65,8 @@ Phaser stays out of the first download.
   apple, `SnakePainter` the snake, and `EffectsPainter` the crumbs, the
   shake and the fade. Its keys and swipes go back through `command()`.
   `textures.ts` bakes the apple and the crumb through `@fz/phaser`'s
-  `bakeTexture()`, and `SoundPlayer` (`sound_player.ts`) plays the sprite in
-  `sounds/`, which `yarn build:sounds` writes.
+  `bakeTexture()`, and `@fz/phaser/sound`'s `SpritePlayer` plays the sprite
+  in `sounds/`, which `yarn build:sounds` writes.
 - **`src/app/`** — the shell, one folder per feature, as in Minesweeper and
   Sudoku. `app.component` lays out the board, the arrows and the bar, with
   the `<fz-announcer>` the run is announced through; it hands the board the

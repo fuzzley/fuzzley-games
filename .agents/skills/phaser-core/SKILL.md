@@ -33,6 +33,10 @@ smaller one to start from.
   makes a host.
 - **`@fz/phaser/scene`**: the helpers below, for a scene that lives in a game
   that outlives it.
+- **`@fz/phaser/sound`**: `SpritePlayer`, which loads a sound sprite once
+  the scene has drawn and plays its sounds while the player wants sound,
+  muting the scene while they don't; a sprite that fails to load leaves the
+  game silent, not broken. `@fz/dev/sounds` synthesizes the sprite.
 - **`@fz/phaser/testing`**: the headless harness and the fake canvas, below.
 - **`@fz/phaser/insets`**, **`@fz/phaser/color`** and
   **`@fz/phaser/layout`** import nothing but each other, so a game's code
@@ -102,9 +106,10 @@ out of the first download.
   `width` and `height`; and its alternate cells are those where
   x + y is odd.
 - `load.audioSprite()` takes the spritemap itself where its typings ask
-  for the JSON's URL, which needs a cast; under `noAudio`, as the test
-  harness's game has, it loads nothing, so a scene plays a sound only once
-  the cache has it.
+  for the JSON's URL, which needs a cast (`SpritePlayer` makes it); under
+  `noAudio`, as the test harness's game has, it loads nothing, so a scene
+  plays a sound only once the cache has it, and a spec that wants one
+  played adds the sprite to `cache.audio` itself.
 - `tweens.killAll()` stops every tween a scene runs, for a new run that
   must not inherit the last one's.
 
