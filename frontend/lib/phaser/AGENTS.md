@@ -21,7 +21,10 @@ take the pure ones.
 - `src/host/`: `PhaserHost`, which keeps one Phaser game, and so one WebGL
   context, for a canvas's whole life and swaps each scene it is handed into
   it, and `ViewportScaler`, which keeps the canvas at the size and pixel
-  ratio of its box. It imports Phaser, never Angular.
+  ratio of its box, as a `ResizeObserver` reports the box once it is laid
+  out: the window's `resize` comes before the app has moved what stands
+  around it, so it sizes the canvas only where nothing can watch the box.
+  It imports Phaser, never Angular.
 - `src/scene/`: what a scene needs to live in a game that outlives it:
   `whenSceneEnds()`, and `onScaleResize()`, `onContextRestored()` and
   `onFirstFrame()`, which let go of what they subscribe to when the scene

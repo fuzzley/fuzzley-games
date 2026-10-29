@@ -1,12 +1,39 @@
 # Plan: fixing what the Snake QA found
 
-Written 2026-10-29 from `docs/snake-qa-findings.md`, against `main` at
-`6565c77`. It fixes all twelve findings, in thirteen steps, each a commit on
-a branch `snake-qa-fixes` cut from `main`, to be fast-forwarded into `main`
-at the user's word, which puts it live. Where a finding offered options,
-this plan takes the findings' recommendation; the choices that are the
-user's are under "Decisions", each with the default this plan assumes.
-Paths are relative to `frontend/`.
+Written 2026-10-29 from `docs/archive/snake-qa-findings.md`, against `main`
+at `6565c77`, and built the same day, with the defaults the user took for
+every decision, on the branch `snake-qa-fixes`, a commit for each step,
+fast-forwarded into `main`. "As built" below says where the code differs
+from the plan. The plan describes the code as it was, so check a path
+against the tree before following one. Paths are relative to `frontend/`.
+
+## As built
+
+- **Nothing starts or goes on until the board is drawn, in the game, not
+  the arrows** (step 7). `GameService` holds `drawn`, which the board sets
+  from its canvas after each render (the canvas's state needs its scene
+  first), and `turn()` and `resume()` do nothing without it. So the
+  Paused card's Resume, and the bar's, wait too, for a run taken up before
+  the scene arrives; the arrows read `drawn` for `aria-disabled` and dim
+  after 300 ms by an animation's delay.
+- **Only Snake and Sudoku have a layout check** (step 5), so the new shapes
+  and the bar check reach those two. Minesweeper's and the Solitaire
+  Collection's rails were measured by hand at 568 × 320, 667 × 320,
+  750 × 342, 640 × 360 and 844 × 390: every control in the window, the link
+  home in ⋮ below 380 px tall. Run against the old scaler, Snake's check
+  fails both turns with the arrows (the board 59.5 px from the placeholder,
+  the card off it), as the QA saw.
+- **The short-rail spec is Sudoku's bar spec** (step 3), which had the
+  helper to open the menu.
+- **The arrows take the game's keys through host listeners** (step 8), so
+  the template's accessibility rules, written for a click on a plain
+  element, don't apply.
+- **Enter on the numeric keypad goes on too** (step 10).
+- **The squares, measured on the build:** 17.5 px at 375 × 553, 17 at
+  568 × 320 and 667 × 320, 18.3 at 640 × 360 and 750 × 342, and 13.5 at
+  320 × 480, with every card on its board.
+- **The image check** (step 12) runs in CI only, since Docker is off on the
+  machine it was built on.
 
 ## Where things stand
 

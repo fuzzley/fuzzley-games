@@ -106,8 +106,9 @@ its keys, so a screen reader hands it the arrow keys; the canvas in it is
 hidden.
 
 - It waits for the player: nothing moves until the first key, and it
-  pauses whenever the focus leaves the board or the page is hidden, so
-  opening a dialog or switching tabs never costs a run. Pause has a key of
+  pauses whenever the focus leaves the board and its arrows, the page is
+  hidden or the screen turns, so opening a dialog, switching tabs or
+  turning the phone never costs a run. Pause has a key of
   its own (Space, P or Escape) and a button.
 - Its pace is the player's to choose: Snake offers three speeds, and a
   snake that steps from square to square rather than gliding.
