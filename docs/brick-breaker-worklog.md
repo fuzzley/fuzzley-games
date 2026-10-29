@@ -1406,3 +1406,60 @@ Checked in a scratch spec, deleted after.
 
 - **Checks.** lint, typecheck, test (806), the rules and the view at 100%
   of statements.
+
+## B5.3: the art and the effects
+
+- **Built,** in `src/view/`:
+  - `art.ts`:
+    - `DrawCommand`, a frame's shapes in device pixels: a rectangle, a
+      rounded one, a circle, a ring, a line and a polygon. The scene will
+      play them into a `Graphics`.
+    - `ArtFrame`, with `ends` for the paddle's nine-slice.
+    - `BRICK_ART`, `BALL_ART`, `CAPSULE_ART` (by tone) and `SYMBOLS`, each
+      `satisfies` a record over the catalog's ids, so a kind without its
+      art fails to compile.
+    - `atlasFrames(palette, scale)`, with `brickFrame()`, `ballFrame()`,
+      `capsuleFrame()`, `tagFrame()` and `FRAMES`.
+    - The atlas holds 99 brick frames (72 of them tough), 3 balls, 11
+      capsules, 11 tags, the paddle, a cannon, the rim, the bolt, a white
+      shard for the scene to tint, an ember and a blast's ring.
+  - `effects.ts`: each event's sound and flourishes (`effectsOf()`), a hit
+    on steel ringing, and `flourishesOf()`, which plays none without
+    motion.
+  - The palette gains `mark` (the panel, which every brick and capsule
+    keeps 3:1 from) and `toughTints` (each tint a quarter of the way to
+    the text). The contrast spec holds the tough tints like the others, and
+    the marks against every brick, capsule and the paddle.
+  - Specs: every frame within its size, in whole pixels, named once, at
+    four scales from a unit of 10 at a ratio of 1 to 54 at 3. Also:
+    - every brick kind in every state a level can lay has its frame;
+    - a ghost shows as a plain brick once hit;
+    - a tough brick has a pip for each hit left and a crack for each taken;
+    - balls and capsules are outlined a line's width wide;
+    - the tones' shapes and colors;
+    - every event's effects, with and without motion.
+- **Choices.**
+  - **Marks:** every mark on a brick (pips, cracks, rivets, the starburst,
+    the gift's capsule, the sprout) and every symbol in a capsule is in the
+    field's color. Every body is held 3:1 from it, so the patterns that
+    tell kinds apart, which color must never do alone, are held too.
+  - **The plain brick is plain:** its tint and no mark. The plan's lighter
+    top edge would be shading that tells nothing, in a derived color the
+    spec would have to exempt. The brick table says so.
+  - **Tough bricks:** "deeper" mixes toward the text, which moves away
+    from the field in both modes, so contrast only grows. In the dark
+    palettes they read as a lighter tint.
+  - **Lines** are a CSS pixel wide or more (`lineWidth()`, which grows to
+    6% of a unit on large fields).
+  - **The ball's outline** lies inside its radius, so the ball drawn is
+    the one that bounces.
+  - **Frame names** are made once in tables, so the scene finds a frame
+    without making a string. A brick no level can lay throws rather than
+    showing nothing.
+  - **Steel** is told by a brick whose `whole` is 0, as `Brick` documents.
+  - I rendered every frame to SVG in all four palettes, at a unit of 24
+    (ratio 2) and of 12 (ratio 1), and looked. The capsules' symbols were
+    small, so they take 85% of the capsule's inner height.
+- **Checks.** `yarn verify` (lint, typecheck, every workspace's tests,
+  Brick Breaker's 1,050, and the build); the rules and the view at 100%
+  of statements.
