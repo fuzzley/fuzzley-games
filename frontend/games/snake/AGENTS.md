@@ -214,12 +214,15 @@ Run these from `frontend/games/snake/`, or as `yarn workspace snake
   `tsconfig.scripts.json`).
 - **Check the Layout:** `yarn check:layout` (runs
   `tools/check-layout.mjs` on the build `yarn build` made: in headless
-  Chrome, at a roomy window, an upright phone and one on its side, each at
-  2×, once with the arrows and once without, the page reports no error and
-  doesn't scroll, the canvas draws at its size times the pixel ratio, the
-  board is square with squares of 16 CSS px or more, inside the window,
-  where the placeholder drew it and inside the focus ring, and the arrows lie
-  in the window, off the board).
+  Chrome, at `@fz/dev/layout`'s shapes (a roomy window, and a large and a
+  small phone, upright and on its side) and at 320 × 480, and turned from
+  upright to its side and back, each at 2×, once with the arrows and once
+  without, the page reports no error and doesn't scroll, the bar's controls
+  lie in the window, the canvas draws at its size times the pixel ratio,
+  the board is square with squares of 16 CSS px or more (12 at 320 × 480
+  with the arrows), inside the window, where the placeholder drew it and
+  inside the focus ring, its card lies on it, and the arrows lie in the
+  window, off the board).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
   which synthesizes the bite, the bump and the chime into
   `src/scene/sounds/sounds.wav` and their spritemap, `sounds.json`, the same

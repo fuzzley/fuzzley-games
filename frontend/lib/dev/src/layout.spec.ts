@@ -1,5 +1,11 @@
 import { DevToolsConnection } from "./chrome.ts";
-import { type LayoutCheck, SHAPES, checkLayout } from "./layout.ts";
+import {
+  type LayoutCheck,
+  SHAPES,
+  TURNS,
+  checkLayout,
+  checkTurns,
+} from "./layout.ts";
 import { type Command, FakeBrowser } from "./testing/fake_browser.ts";
 
 /** Words only the game's inspection holds, for the fake browser to spot. */
@@ -18,12 +24,27 @@ const CHECK: LayoutCheck = {
 /** The first shape alone, for a spec that needs only one. */
 const ROOMY = SHAPES.slice(0, 1);
 
+/** Words only the check of the game bar holds. */
+const BAR = "fz-game-bar button";
+
 /**
  * Returns a fake browser whose pages find nothing wrong but what the game's
- * inspection finds, and which report some events once they navigate.
+ * inspection finds, and the check of its bar, and which report some events
+ * once they navigate.
  */
 function browserFinding(
   found: readonly string[],
+  ...events: readonly object[]
+): FakeBrowser {
+  return browserFindingIn({ own: found }, ...events);
+}
+
+/**
+ * Returns a fake browser whose pages find what the game's inspection and the
+ * check of its bar each find, and nothing else wrong.
+ */
+function browserFindingIn(
+  found: { readonly own?: readonly string[]; readonly bar?: readonly string[] },
   ...events: readonly object[]
 ): FakeBrowser {
   const browser: FakeBrowser = new FakeBrowser({
@@ -32,11 +53,23 @@ function browserFinding(
       return { result: {} };
     },
     "Runtime.evaluate": (command: Command) => {
-      const ownInspection = String(command.params["expression"]).includes(OWN);
-      return { result: { result: { value: ownInspection ? found : [] } } };
+      const expression = String(command.params["expression"]);
+      const value = expression.includes(OWN)
+        ? (found.own ?? [])
+        : expression.includes(BAR)
+          ? (found.bar ?? [])
+          : [];
+      return { result: { result: { value } } };
     },
   });
   return browser;
+}
+
+/** Returns the widths a page was set to, in order. */
+function widthsSet(browser: FakeBrowser): unknown[] {
+  return browser.sent
+    .filter(({ method }) => method === "Emulation.setDeviceMetricsOverride")
+    .map(({ params }) => params["width"]);
 }
 
 describe("checkLayout", () => {
@@ -45,11 +78,32 @@ describe("checkLayout", () => {
 
     await checkLayout(new DevToolsConnection(browser), CHECK);
 
-    expect(
-      browser.sent
-        .filter(({ method }) => method === "Emulation.setDeviceMetricsOverride")
-        .map(({ params }) => params["width"]),
-    ).toEqual(SHAPES.map((shape) => shape.viewport.width));
+    expect(widthsSet(browser)).toEqual(
+      SHAPES.map((shape) => shape.viewport.width),
+    );
+  });
+
+  it("opens the game at a small phone, upright and on its side", () => {
+    expect(SHAPES.map((shape) => shape.name)).toEqual(
+      expect.arrayContaining(["small phone portrait", "small phone landscape"]),
+    );
+  });
+
+  it("reports a control of the game bar that runs out of the window", async () => {
+    const devtools = new DevToolsConnection(
+      browserFindingIn({
+        bar: ["The bar's More actions runs out of the window."],
+      }),
+    );
+
+    const problems = await checkLayout(devtools, CHECK, ROOMY);
+
+    expect(problems).toEqual([
+      {
+        shape: "roomy",
+        problem: "The bar's More actions runs out of the window.",
+      },
+    ]);
   });
 
   it("runs what comes before the page's own scripts, where a check has it", async () => {
@@ -152,6 +206,51 @@ describe("checkLayout", () => {
       "console.error: Bad 2",
       "console.error: Error: odd",
       "Refused to load",
+    ]);
+  });
+});
+
+describe("checkTurns", () => {
+  it("opens the game where each turn starts, then turns it", async () => {
+    const browser = browserFinding([]);
+
+    await checkTurns(new DevToolsConnection(browser), CHECK);
+
+    expect(widthsSet(browser)).toEqual(
+      TURNS.flatMap((turn) => [turn.from.width, turn.to.width]),
+    );
+  });
+
+  it("turns a phone upright to its side, and on its side upright", () => {
+    expect(
+      TURNS.map(({ from, to }) => [
+        from.width < from.height,
+        to.width < to.height,
+      ]),
+    ).toEqual([
+      [true, false],
+      [false, true],
+    ]);
+  });
+
+  it("finds nothing wrong where nothing is", async () => {
+    const devtools = new DevToolsConnection(browserFinding([]));
+
+    expect(await checkTurns(devtools, CHECK)).toEqual([]);
+  });
+
+  it("reports what is wrong after the turn, by the turn", async () => {
+    const devtools = new DevToolsConnection(
+      browserFinding(["The board is drawn small."]),
+    );
+
+    const problems = await checkTurns(devtools, CHECK, TURNS.slice(0, 1));
+
+    expect(problems).toEqual([
+      {
+        shape: "phone portrait, turned on its side",
+        problem: "The board is drawn small.",
+      },
     ]);
   });
 });

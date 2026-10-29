@@ -95,11 +95,15 @@ too. Paths are relative to `frontend/lib/dev/`.
   are built on it, and so is the layout check.
 - `src/layout.ts`, `@fz/dev/layout`: a game's layout checked in a real
   browser. `checkLayout()` opens a game's page at each of `SHAPES` (a
-  roomy window, an upright phone, one on its side), waits for a selector
-  and the fonts, and returns what is wrong at each: an error the page
-  reports (an exception, `console.error`, or the browser's own, such as a
-  refused resource), a page that scrolls, and what the game's own
-  `inspect()`, run in the page, finds. A check's `before()` runs in the
+  roomy window, and a large and a small phone, upright and on its side),
+  waits for a selector and the fonts, and returns what is wrong at each: an
+  error the page reports (an exception, `console.error`, or the browser's
+  own, such as a refused resource), a page that scrolls, a control of the
+  game bar out of the window, and what the game's own `inspect()`, run in
+  the page, finds. `checkTurns()` does the same once it has turned the
+  window, as a phone turns, through each of `TURNS` (upright to its side,
+  and back), and given half a second to lay itself out again, which finds
+  what follows a turn late, or not at all. A check's `before()` runs in the
   page ahead of its own scripts, to set it up as a player might have, such
   as with a setting stored. The functions it runs in the page
   are in `src/layout_page.ts`, which only a browser runs, so coverage leaves

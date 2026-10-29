@@ -220,9 +220,10 @@ Run these from `frontend/games/sudoku/`, or as `yarn workspace sudoku
   in `tools/` from their JSDoc, with `tsconfig.scripts.json`).
 - **Check the Layout:** `yarn check:layout` (runs
   `tools/check-layout.mjs` on the build `yarn build` made: in headless
-  Chrome, at a roomy window, an upright phone and one on its side, the page
-  reports no error and doesn't scroll, the board is square with 81 squares
-  of one size, and the board and the pad lie in the window).
+  Chrome, at `@fz/dev/layout`'s shapes (a roomy window, and a large and a
+  small phone, upright and on its side), the page reports no error and
+  doesn't scroll, the bar's controls lie in the window, the board is square
+  with 81 squares of one size, and the board and the pad lie in the window).
 - **Fill the Bank:** `yarn generate:puzzles` (`--workers <n>` to run more
   or fewer threads than the default 8, `--count <n>` for another
   number per level).

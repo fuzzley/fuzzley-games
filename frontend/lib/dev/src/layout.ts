@@ -4,7 +4,12 @@ import {
   type Viewport,
   withPage,
 } from "./chrome.ts";
-import { scrolling, settle } from "./layout_page.ts";
+import {
+  barOutOfWindow,
+  scrolling,
+  settle,
+  settleTurn,
+} from "./layout_page.ts";
 
 /** Names a shape of window a game is laid out for, and gives one. */
 export interface Shape {
@@ -14,7 +19,8 @@ export interface Shape {
 
 /**
  * The shapes every game is checked at: a roomy window, a phone held upright,
- * and a phone on its side.
+ * and a phone on its side, each as a large phone and as a small one in its
+ * browser's bars (an iPhone SE in Safari).
  */
 export const SHAPES: readonly Shape[] = [
   {
@@ -28,6 +34,35 @@ export const SHAPES: readonly Shape[] = [
   {
     name: "phone landscape",
     viewport: { width: 844, height: 390, deviceScaleFactor: 1 },
+  },
+  {
+    name: "small phone portrait",
+    viewport: { width: 375, height: 553, deviceScaleFactor: 1 },
+  },
+  {
+    name: "small phone landscape",
+    viewport: { width: 568, height: 320, deviceScaleFactor: 1 },
+  },
+];
+
+/** Names a turn of a phone, and gives the shape it starts from and ends at. */
+export interface Turn {
+  readonly name: string;
+  readonly from: Viewport;
+  readonly to: Viewport;
+}
+
+/** The turns a game is checked through: a phone, upright to its side and back. */
+export const TURNS: readonly Turn[] = [
+  {
+    name: "phone portrait, turned on its side",
+    from: { width: 390, height: 844, deviceScaleFactor: 1 },
+    to: { width: 844, height: 390, deviceScaleFactor: 1 },
+  },
+  {
+    name: "phone landscape, turned upright",
+    from: { width: 844, height: 390, deviceScaleFactor: 1 },
+    to: { width: 390, height: 844, deviceScaleFactor: 1 },
   },
 ];
 
@@ -62,9 +97,15 @@ export interface LayoutProblem {
 const READY_TIMEOUT_MS = 10_000;
 
 /**
+ * How long a game has to lay itself out again after a turn: longer than a
+ * frame, since what follows the window may wait a frame or two to move.
+ */
+const TURN_SETTLE_MS = 500;
+
+/**
  * Opens a game at every shape, each in a page of its own, and returns what
- * is wrong: an error the page reported, a page that scrolls, and what the
- * game's own inspection finds.
+ * is wrong: an error the page reported, a page that scrolls, a control of
+ * the game bar outside the window, and what the game's own inspection finds.
  */
 export async function checkLayout(
   devtools: DevToolsConnection,
@@ -73,23 +114,61 @@ export async function checkLayout(
 ): Promise<LayoutProblem[]> {
   const problems: LayoutProblem[] = [];
   for (const shape of shapes) {
-    const found = await withPage(devtools, shape.viewport, (page) =>
-      problemsOn(page, check),
-    );
+    const found = await withPage(devtools, shape.viewport, async (page) => {
+      const errors = await load(page, check);
+      const wrong = await inspect(page, check);
+      return [...errors, ...wrong];
+    });
     problems.push(...found.map((problem) => ({ shape: shape.name, problem })));
   }
   return problems;
 }
 
-/** Loads the game on a page, and returns what is wrong with it there. */
-async function problemsOn(page: Page, check: LayoutCheck): Promise<string[]> {
+/**
+ * Opens a game at the shape each turn starts from, turns the window to the
+ * one it ends at, as a phone turns, and returns what is wrong once the game
+ * has laid itself out again, as {@link checkLayout} does at a shape.
+ */
+export async function checkTurns(
+  devtools: DevToolsConnection,
+  check: LayoutCheck,
+  turns: readonly Turn[] = TURNS,
+): Promise<LayoutProblem[]> {
+  const problems: LayoutProblem[] = [];
+  for (const turn of turns) {
+    const found = await withPage(devtools, turn.from, async (page) => {
+      const errors = await load(page, check);
+      await page.send("Emulation.setDeviceMetricsOverride", {
+        ...turn.to,
+        mobile: false,
+      });
+      await page.evaluate(settleTurn, TURN_SETTLE_MS);
+      const wrong = await inspect(page, check);
+      return [...errors, ...wrong];
+    });
+    problems.push(...found.map((problem) => ({ shape: turn.name, problem })));
+  }
+  return problems;
+}
+
+/**
+ * Loads the game on a page and waits for it to draw, and returns the list of
+ * errors the page reports, which goes on filling.
+ */
+async function load(page: Page, check: LayoutCheck): Promise<string[]> {
   const errors = await gatherErrors(page);
   if (check.before) await page.beforeLoad(check.before);
   await page.navigate(check.url);
   await page.evaluate(settle, check.ready, READY_TIMEOUT_MS);
+  return errors;
+}
+
+/** Returns what is wrong with the game's layout as the page now stands. */
+async function inspect(page: Page, check: LayoutCheck): Promise<string[]> {
   const own = await page.evaluate(check.inspect);
   const scrolls = await page.evaluate(scrolling);
-  return [...errors, ...scrolls, ...own];
+  const bar = await page.evaluate(barOutOfWindow);
+  return [...scrolls, ...bar, ...own];
 }
 
 /**
