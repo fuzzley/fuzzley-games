@@ -25,7 +25,7 @@ import {
   resume,
   turn,
 } from "../../rules/run";
-import type { Speed } from "../../rules/speed";
+import { SPEED_INFO, type Speed } from "../../rules/speed";
 import { advance } from "../../rules/stepper";
 import type { BoardCommand } from "../../view/controls";
 import type { SnakeFrame } from "../../view/frame";
@@ -46,6 +46,14 @@ const NEW_GAME_QUESTION: ConfirmRequest = {
   confirmLabel: "New game",
   tone: "danger",
 };
+
+/** What a run at another speed asks: New Game's question, naming the speed. */
+function speedQuestion(speed: Speed): ConfirmRequest {
+  return {
+    ...NEW_GAME_QUESTION,
+    title: `Start a new ${SPEED_INFO[speed].name} game?`,
+  };
+}
 
 /** The frame the scene is handed, one object written again each frame. */
 interface Frame {
@@ -235,7 +243,7 @@ export class GameService {
    * first if one is under way, and resolves to whether it did.
    */
   async changeSpeed(speed: Speed): Promise<boolean> {
-    if (!(await this.mayLoseRun())) return false;
+    if (!(await this.mayLoseRun(speedQuestion(speed)))) return false;
     this.settings.update({ speed });
     this.begin(this.create(speed));
     return true;
@@ -292,8 +300,8 @@ export class GameService {
   }
 
   /** Resolves to whether to go ahead: at once with no run under way to lose. */
-  private async mayLoseRun(): Promise<boolean> {
+  private async mayLoseRun(question = NEW_GAME_QUESTION): Promise<boolean> {
     if (!this.inProgress()) return true;
-    return this.confirm.ask(NEW_GAME_QUESTION);
+    return this.confirm.ask(question);
   }
 }

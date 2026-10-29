@@ -86,8 +86,10 @@ Phaser stays out of the first download.
   - `arrows/` — the on-screen arrows, on a touch screen or as the settings
     say, which turn the snake and hand the focus back to the board.
   - `bar/` — `BarComponent` fills the libraries' `<fz-game-bar>` with the
-    speed, the score and the best, and the actions, Pause and Sound among
-    them, and moves them into `<fz-bar-overflow>` on a compact screen.
+    speed, a `<fz-bar-choice>` that starts a run at another through
+    `GameService.changeSpeed()`, the score and the best, and the actions,
+    Pause and Sound among them, and moves the actions into
+    `<fz-bar-overflow>` on a compact screen.
   - `settings/` — the settings drawer (the speed, the movement, the arrows,
     the sound and the palette) and `SettingsService`, which keeps what the
     player chose.

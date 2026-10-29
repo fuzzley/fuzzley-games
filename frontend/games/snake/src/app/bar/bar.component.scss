@@ -15,10 +15,6 @@
   white-space: nowrap;
 }
 
-.speed {
-  flex: none;
-}
-
 // The score and the best, as the other games show their figures: a card of a
 // label over a value. The label is spoken as a word, and shown in capitals.
 .metrics {
@@ -140,13 +136,7 @@
   }
 }
 
-// On a rail, the speed in smaller type, which fits "Normal" across it, and
-// the figures stacked.
-:host(.rail) .speed {
-  padding-inline: var(--fz-space-1);
-  font-size: var(--fz-font-2xs);
-}
-
+// On a rail, the figures stacked.
 :host(.rail) .metrics {
   flex-direction: column;
 }

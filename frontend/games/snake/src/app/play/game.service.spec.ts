@@ -302,6 +302,17 @@ describe("GameService", () => {
       );
     });
 
+    it("names the speed before a run at another throws away the one under way", () => {
+      const game = startedGame();
+
+      void game.changeSpeed("fast");
+
+      expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
+        title: "Start a new Fast game?",
+        confirmLabel: "New game",
+      });
+    });
+
     it("keeps the run under way when the player backs out", async () => {
       const game = startedGame();
       const before = game.run();
