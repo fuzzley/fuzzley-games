@@ -9,7 +9,7 @@ import {
 } from "../testing/field_picture";
 import { type Field, launch, serve, steerField, stepField } from "./field";
 import { catchCapsule } from "./capsules";
-import { cellIndex } from "./grid";
+import { cellIndex, columnOf, rowOf } from "./grid";
 import { ballSpeed } from "./speed";
 import {
   BALL_RADIUS,
@@ -684,6 +684,13 @@ describe("a fire ball", () => {
 });
 
 describe("a blast ball", () => {
+  /** Returns the column and row of each broken brick, row by row. */
+  function brokenOf(field: Field): [number, number][] {
+    return field.bricks.flatMap((brick) =>
+      brick?.broken ? [[columnOf(brick.cell), rowOf(brick.cell)]] : [],
+    );
+  }
+
   it("hits the eight bricks around each brick it strikes", () => {
     // The ball rises through the gap to strike the middle brick of the three
     // rows, from 7 to 8 down.
@@ -694,6 +701,33 @@ describe("a blast ball", () => {
 
     stepTimes(field, 35);
 
-    expect(field.needed).toBe(1);
+    expect(brokenOf(field)).toEqual([
+      [5, 4],
+      [6, 4],
+      [7, 4],
+      [5, 5],
+      [6, 5],
+      [7, 5],
+      [5, 6],
+      [7, 6],
+    ]);
+  });
+
+  it("strikes no brick that another it met at once broke", () => {
+    // The ball rises up the seam between two bricks, 8 to 9 down, and meets
+    // both; the first one's hits around break the second.
+    const field = fieldFrom(["o", "", "", "", "", "", ".....oo"]);
+    throwBall(field, 12, 12, 0);
+    catchCapsule(field, "blast", 0, 0);
+
+    stepTimes(field, 35);
+
+    expect({ broken: brokenOf(field), climbed: field.climbed }).toEqual({
+      broken: [
+        [5, 6],
+        [6, 6],
+      ],
+      climbed: 1,
+    });
   });
 });

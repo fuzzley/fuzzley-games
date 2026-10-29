@@ -290,7 +290,8 @@ in Part 2, under `frontend/games/brick-breaker/` unless they say otherwise.
   `gives` has its entry, empty until the capsules fall (B3.3). One commit.
 - **B3.3** `src/rules/capsules.ts`: the draw by weight from the level's pool,
   the cap of three falling, the catch and the miss, the gift brick's
-  capsule (`gives`' rule), and `EFFECT_RULES` for
+  capsule (`dropFrom()`, which picks it over the level's chance, so
+  `gives`' rule stays empty), and `EFFECT_RULES` for
   every effect (paddle size, catch, laser, fire, blast, slow,
   fast, split, life, net), with the groups and the timers; `bolts.ts`, the
   laser's bolts; `draws.ts`, the field's seeded draws, which the lull and
@@ -595,8 +596,9 @@ no bad capsule falls.
   Fast) each take the latest capsule caught, which replaces the one before.
   The same capsule again starts its time over.
 - **Every effect ends when a life is lost,** and the capsules falling and
-  the bolts rising go with it; every one but Life and Net ends when the
-  level ends.
+  the bolts rising go with it, and no capsule falls until the next ball is
+  in play. Every effect ends with its level too, as each level is a field
+  of its own; Extra life's is the run's by then.
 - **What is in effect shows on the field,** below the paddle: a tag for each,
   its symbol over a ring that empties as its time runs out, so the player
   can see what they have and for how long without reading anything.
@@ -912,10 +914,13 @@ is tuned and checked by eye.
 - **A set:** its file in `src/rules/levels/` and its line in `LEVEL_SETS`.
 - **A capsule with an effect that exists:** its entry in `CAPSULES`, and its
   symbol and art in `src/view/art.ts`. One with a new kind of effect: a
-  member of the effect union and its rule in `EFFECT_RULES` too.
+  member of the effect union, its rule in `EFFECT_RULES` and its record in
+  `createEffects()` too, each of which the compiler asks for.
 - **A ball kind:** its entry in `BALL_KINDS`, its art, and a capsule whose
   effect is `{ kind: "ball", ball: "<id>" }`. The physics needs nothing new
-  while its properties are the ones listed.
+  while its properties are the ones listed, its size a normal ball's, and
+  it passes only through what it breaks at a hit (`damage: "breaks"`), as
+  the catalog spec holds.
 - **A brick kind with traits that exist:** its entry in `BRICK_KINDS`, its
   art, its character in the shared legend, and a level that introduces it.
   One with a new trait: a member of `BrickTrait` and its rule in
@@ -929,8 +934,10 @@ Each comes with its specs, and the `brick-breaker-content` skill
 
 These are not built in this plan. They show where the design bends:
 
-- **A heavy ball** (2 damage, 0.85 the speed, 1.3 the size): data only, an
-  entry in `BALL_KINDS`, its art, and a capsule.
+- **A heavy ball** (2 damage, 0.85 the speed, 1.3 the size): an entry in
+  `BALL_KINDS`, its art, and a capsule, and the size read where the
+  physics now takes `BALL_RADIUS`: the sweep, the paddle's reach, and the
+  check that no ball is in a regrowing brick's place.
 - **A growing brick,** as LBreakout2 has, which fills the empty cells around
   it as it breaks, but none a ball is in: a `grows` trait whose `broken`
   rule adds bricks, raising the field's needed count for each one the level
@@ -1125,7 +1132,7 @@ export interface FieldFrame {
   `createField(level, setup)`, `steerField(field, steer)` once a frame,
   since a finger's drag is a frame's, `stepField(field)` for each step,
   `launch(field)`, `serve(field)` once the last ball is lost, and
-  `fire(field)`. It holds the bricks, up to eight balls, the paddle, the
+  `fireBolts(field)` (`bolts.ts`). It holds the bricks, up to eight balls, the paddle, the
   falling capsules, the bolts, the effects in play with their time left,
   the streak, the lull, the level's score and the event log, and where the
   level stands (`serve`, `playing`, `lost` while a lost ball's beat runs,

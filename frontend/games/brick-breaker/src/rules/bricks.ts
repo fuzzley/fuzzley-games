@@ -1,11 +1,9 @@
-import { dropByChance, dropGift } from "./capsules";
-import { scoreHit } from "./scoring";
+import { dropFrom } from "./capsules";
 import {
   type BrickKindId,
   type BrickTrait,
   type TraitKind,
   brickKind,
-  hasTrait,
 } from "./catalog/bricks";
 import type { CapsuleId } from "./catalog/capsules";
 import type { Field } from "./field";
@@ -20,6 +18,7 @@ import {
   rowOf,
 } from "./grid";
 import type { LevelBrick } from "./level";
+import { scoreHit } from "./scoring";
 import { stepsIn } from "./stepper";
 import { BALL_RADIUS } from "./tuning";
 
@@ -88,11 +87,9 @@ const TRAIT_RULES: {
       goOff(field, brick);
     },
   },
-  gives: {
-    broken: (field, brick) => {
-      dropGift(field, brick);
-    },
-  },
+  // Its capsule is `dropFrom()`'s, which lets one fall from every brick that
+  // breaks, by the level's chance or, for a gift, always.
+  gives: {},
   hidden: {
     laid: (brick) => {
       brick.shown = false;
@@ -154,10 +151,9 @@ export function isNeeded(brick: Readonly<Brick>): boolean {
  *
  * Its events are recorded at `x` and `y`, where the ball, the bolt or the
  * blast was. Each hit scores, and each brick broken lengthens the streak
- * that multiplies the score. A brick the level needs may let a capsule fall
- * as it breaks,
- * and breaking the last of them clears the level, after which, as before a
- * broken brick, a hit does nothing.
+ * that multiplies the score and may let a capsule fall. Breaking the last
+ * brick the level needs clears it, after which, as on a broken brick, a hit
+ * does nothing.
  */
 export function hitBrick(
   field: Field,
@@ -181,14 +177,14 @@ export function hitBrick(
   scoreHit(field, brick);
   field.events.add("broken", x, y, brick.cell);
   runTraits("broken", field, brick);
-  if (!isNeeded(brick)) return true;
-  field.needed--;
-  if (field.needed === 0) {
-    field.state = "cleared";
-    field.events.add("cleared", x, y);
-  } else if (!hasTrait(brick.kind, "gives")) {
-    dropByChance(field, brick);
+  if (isNeeded(brick)) {
+    field.needed--;
+    if (field.needed === 0) {
+      field.state = "cleared";
+      field.events.add("cleared", x, y);
+    }
   }
+  dropFrom(field, brick);
   return true;
 }
 

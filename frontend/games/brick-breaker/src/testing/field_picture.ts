@@ -94,6 +94,16 @@ export function throwBall(
   return ball;
 }
 
+/**
+ * Puts a field in play with no ball in it, which no level is, so a spec of
+ * what falls or rises steps it with nothing else moving, and returns it.
+ */
+export function playWithoutBall(field: Field): Field {
+  field.state = "playing";
+  for (const ball of field.balls) ball.live = false;
+  return field;
+}
+
 /** Returns one of the field's balls, in play or not. */
 export function ballOf(field: Field, index = 0): Ball {
   const ball = field.balls[index];

@@ -134,6 +134,22 @@ describe("the brick kinds", () => {
   });
 });
 
+describe("the ball kinds", () => {
+  it.each(BALL_KIND_IDS.filter((id) => ballKind(id).passes))(
+    "let %s pass through only what a hit of it breaks",
+    (id) => {
+      expect(ballKind(id).damage).toBe("breaks");
+    },
+  );
+
+  it.each(BALL_KIND_IDS)(
+    "keep %s a normal ball's size, the only one the physics reads",
+    (id) => {
+      expect(ballKind(id).size).toBe(1);
+    },
+  );
+});
+
 describe("the capsules", () => {
   it.each(CAPSULE_IDS)("weigh %s above nothing", (id) => {
     expect(capsule(id).weight).toBeGreaterThan(0);

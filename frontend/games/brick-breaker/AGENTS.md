@@ -64,8 +64,9 @@ and the shell exist.
   ball or a blast calls, and `TRAIT_RULES`, what each trait of
   `catalog/bricks.ts` does as a brick is hit, breaks, and at each step,
   typed so that a trait without its rule fails to compile. `capsules.ts`
-  drops capsules, by the level's chance or from a gift brick, by weight
-  from the level's pool, from `draws.ts`'s seeded draws; moves them down
+  drops capsules while the level is in play (`dropFrom()`), by the level's
+  chance or from a gift brick, by weight from the level's pool, from
+  `draws.ts`'s seeded draws; moves them down
   to be caught or missed; and holds `EFFECT_RULES`, what each effect of
   `catalog/capsules.ts` does as it starts and ends, one of each group in
   play at a time. `bolts.ts` fires and moves the laser's bolts. The field
@@ -119,5 +120,6 @@ The repository's rules for specs apply. A spec sits beside the file it
 tests, named after it, and runs in jsdom; `src/test-setup.ts` installs
 `@fz/phaser/testing`'s headless Phaser first, for the scene's specs to come.
 `src/testing/field_picture.ts` lays a field out from a picture of its
-bricks (`fieldFrom()`), throws a ball in it (`throwBall()`), steps it and
-reads its events, so a spec of the field reads as the field it plays.
+bricks (`fieldFrom()`), throws a ball in it (`throwBall()`) or puts it in
+play with none (`playWithoutBall()`), steps it and reads its events, so a
+spec of the field reads as the field it plays.

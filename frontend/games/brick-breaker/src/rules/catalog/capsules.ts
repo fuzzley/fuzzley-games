@@ -46,6 +46,12 @@ export type CapsuleEffect =
 /** An effect's kind, which is its group. */
 export type EffectKind = CapsuleEffect["kind"];
 
+/** What the paddle can do beyond turning the balls, as a capsule says. */
+export type PaddleMode = Extract<
+  CapsuleEffect,
+  { readonly kind: "paddle-mode" }
+>["mode"];
+
 /** Describes a capsule: what it does, and when it may fall. */
 export interface Capsule {
   /** Names it, in How to play and as it is caught, such as "Wide paddle". */
