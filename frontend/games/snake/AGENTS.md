@@ -155,7 +155,9 @@ else. The frontend's Angular and Sass rules apply; on top of them:
   read by the scene, and the placeholder draws with the palette's tokens.
 - **The sizes come from the stage,** a size container: the board takes the
   room it is given, and the arrows sit under it on a tall stage and beside
-  it on a wide one.
+  it on a wide one, their keys shrinking from 64 to 44 CSS px where the
+  stage is short upright or narrow on its side. On a small board the cards
+  set smaller and sit in the middle, so they stay on it.
 - **The pause, sound, sound-off and apple icons** were added to `@fz/ui`'s
   icons for the bar.
 

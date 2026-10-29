@@ -58,6 +58,20 @@ app-arrows {
   }
 }
 
+// Where the arrows shrink (`arrows.component.scss`), the room around them
+// does too.
+@container stage (orientation: portrait) and (height < 560px) {
+  app-arrows {
+    padding-bottom: var(--fz-space-3);
+  }
+}
+
+@container stage (orientation: landscape) and (width < 540px) {
+  app-arrows {
+    padding-right: var(--fz-space-3);
+  }
+}
+
 // A compact screen gives the board the room around it.
 :host(.compact) app-board {
   --room: var(--fz-space-3);
