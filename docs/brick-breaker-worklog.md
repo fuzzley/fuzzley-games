@@ -1099,3 +1099,49 @@ Left as advised: the guard in `dropFrom()`, `hitBrick()`'s order,
 `stepBalls()`, the wall clamp leaving the offset, Stripes' empty pool, and
 the ids as text. For later: inserting a level shifts the default pools and
 seeds of those after it, as both come from its number.
+
+## Q2: the rules alone
+
+Checked in a scratch spec, deleted after.
+
+- **The autopilot over set 1, twenty seeds a level and speed:** all 600
+  plays cleared within the limit, and none lost a life. Castle, the set's
+  test, was heavy: 183 hits, a median of 206 s at Relaxed, one play of
+  453 s against the limit of 480, and up to 85 s on its last three bricks.
+  Its towers stood against the field's walls, with their tops and
+  battlements reachable only through a hole in the wall, which made the
+  last bricks a hunt. Arch's outer walls against the field's walls did the
+  same, up to 68 s at Normal. No level looped.
+- **Tuned**, on a harness that played candidate grids the same way:
+  - Castle: a lane down each side, so the ball reaches the sky above the
+    towers; the walls of three and four kept, with a gate; 159 hits, set
+    three rows lower, now down to the twelfth row as a set's test should
+    reach.
+  - Arch: off the walls, with a lane down each side.
+  - The other levels, whose worst plays ran from 2:26 to 4:37 and their
+    endgames to 50 s, are left.
+- **After:** all 600 plays cleared, the slowest at 277 s. Castle runs at a
+  median of 119 s and at most 273 s at Relaxed, and 30 s at most on its
+  last three bricks. The longest endgame in the set is Arch's 66 s, once in
+  twenty at Relaxed, against a median of 6 s: the tail the last-brick glow
+  (decision 15) is for. `yarn report:levels` now:
+
+  ```text
+                    relaxed                normal                 fast
+   6 Arch           1:09 0:06   68  0      0:57 0:02   82  0      1:06 0:03   65  0
+  10 Castle         1:23 0:10   74  0      1:30 0:12   77  0      1:21 0:06   91  0
+  ```
+
+  (the other eight as in B4.2's entry).
+
+- **A hundred seeded runs of random steering:** the first thirty on set
+  1's levels, the rest on random levels of every kind with every capsule at
+  a chance of 0.3, steered by a seeded mix of pointer jumps, drags, held
+  keys and chasing the lowest ball, launching, firing and serving at random.
+  Over 2,089,317 steps, 626 capsules caught and 729 pairs of bolts fired,
+  no free ball ever left the walls or sank into an unbroken brick (by more
+  than 1e-4), no bolt was ever inside one, and the needed count always
+  matched the bricks.
+- **The physics' cost with eight balls,** in Node, on Castle's, Window's
+  and Waves' first layouts at Fast: 12 µs a step, so 0.15 ms for a stalled
+  frame's twelve steps.
