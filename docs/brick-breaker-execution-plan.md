@@ -300,8 +300,9 @@ in Part 2, under `frontend/games/brick-breaker/` unless they say otherwise.
   capsule pinned to it. Specced effect by effect. One commit.
 - **B3.4** `src/rules/scoring.ts` and `run.ts`: points by the hit, the
   streak's multiplier, the clearing bonus, lives from points, and `Run`'s
-  moves (`startLevel()`, `pause()`, `resume()`, `clearLevel()`,
-  `loseLife()`). Specced. One commit, `yarn verify` with it.
+  moves (`startLevel()`, `pause()`, `resume()`, `tally()`, `gainLives()`,
+  `clearLevel()`, `loseLife()`), with `levelSeed()`, each level's field's
+  seed. Specced. One commit, `yarn verify` with it.
 
 #### B4: levels as data (medium)
 
@@ -565,8 +566,9 @@ chain and doesn't flash as one burst.
 A broken brick the level needs lets a capsule fall, by the level's chance,
 while fewer than three are falling; a gift brick always does. The paddle
 catches a capsule by touching it, and a missed one is gone. Which capsule
-falls is drawn from the level's pool by weight, from the run's seed and how
-many have fallen, so a run played the same way drops the same capsules. A
+falls is drawn from the level's pool by weight, from the run's seed, the
+level and how many draws the level has made, so a run played the same way
+drops the same capsules. A
 level may pin a capsule to a gift brick through its legend, and at Relaxed
 no bad capsule falls.
 
@@ -1131,14 +1133,17 @@ export interface FieldFrame {
 - `paddle.ts`, `balls.ts`, `bricks.ts` (the traits' rules), `capsules.ts`
   (the draws and the effects' rules): what each part of the field does in a
   step.
-- `scoring.ts`: points, the streak's multiplier, and the lives that points
-  bring.
+- `scoring.ts`: a hit's points, the streak's multiplier, and what clearing
+  a level adds. The numbers are the tuning's (`STREAK`, `CLEAR_POINTS`,
+  `CLEAN_POINTS`), and a brick kind's points the catalog's.
 - `run.ts`: `Run`, a value each change replaces, as Snake's is: its id, its
-  seed, its speed, the level it started at and the one in play, the score,
-  the lives, the points of the next extra life, how many capsules have
-  fallen, and the outcome (`ready`, `playing`, `paused`, `cleared`, `over`
-  or `won`). `startLevel()`, `pause()`, `resume()`, `clearLevel()` and
-  `loseLife()` move it.
+  seed, its speed, how many levels there are, the level it started at and
+  the one in play, the points banked by the levels cleared, the score, the
+  lives, the points of the next extra life, and the outcome (`ready`,
+  `playing`, `paused`, `cleared`, `over` or `won`). `startLevel()`,
+  `pause()`, `resume()`, `tally()`, `gainLives()`, `clearLevel()` and
+  `loseLife()` move it, and `levelSeed()` gives each level's field a seed
+  of its own, which the field's draws count from.
 - `stepper.ts`: fixed steps of 1/120 s from a frame's time, at most twelve,
   dropping what is left of a longer frame, so a stall slows the game rather
   than letting it leap.

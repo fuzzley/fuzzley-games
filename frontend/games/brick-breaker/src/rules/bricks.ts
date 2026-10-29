@@ -1,4 +1,5 @@
 import { dropByChance, dropGift } from "./capsules";
+import { scoreHit } from "./scoring";
 import {
   type BrickKindId,
   type BrickTrait,
@@ -152,7 +153,9 @@ export function isNeeded(brick: Readonly<Brick>): boolean {
  * `damage` says off it, or all of them, and returns whether it broke.
  *
  * Its events are recorded at `x` and `y`, where the ball, the bolt or the
- * blast was. A brick the level needs may let a capsule fall as it breaks,
+ * blast was. Each hit scores, and each brick broken lengthens the streak
+ * that multiplies the score. A brick the level needs may let a capsule fall
+ * as it breaks,
  * and breaking the last of them clears the level, after which, as before a
  * broken brick, a hit does nothing.
  */
@@ -169,10 +172,13 @@ export function hitBrick(
     brick.hits = damage === "breaks" ? 0 : brick.hits - damage;
   }
   if (!canBreak(brick) || brick.hits > 0) {
+    scoreHit(field, brick);
     field.events.add("hit", x, y, brick.cell);
     return false;
   }
   brick.broken = true;
+  field.streak++;
+  scoreHit(field, brick);
   field.events.add("broken", x, y, brick.cell);
   runTraits("broken", field, brick);
   if (!isNeeded(brick)) return true;

@@ -107,6 +107,12 @@ export interface Field {
   /** The balls, in play and waiting, as many as there may ever be. */
   readonly balls: readonly Ball[];
   readonly paddle: Paddle;
+  /** The level's points so far, before what clearing it adds. */
+  score: number;
+  /** The bricks broken since the paddle last met a ball, which multiply the score. */
+  streak: number;
+  /** How many times the level's last ball has been lost. */
+  livesLost: number;
   /** How far the balls' speed has climbed, in brick hits. */
   climbed: number;
   /** How much a brick hit climbs the speed: 1, or less while slowed. */
@@ -233,6 +239,9 @@ export function createField(level: Level, setup: FieldSetup): Field {
     needed: bricks.filter((brick) => brick && isNeeded(brick)).length,
     balls: [first, ...Array.from({ length: MAX_BALLS - 1 }, createBall)],
     paddle,
+    score: 0,
+    streak: 0,
+    livesLost: 0,
     climbed: 0,
     climbRate: 1,
     paceScale: 1,
@@ -356,8 +365,12 @@ function liftOffPaddle(field: Field, ball: Ball): void {
   if (ball.dy > 0) meetPaddle(field, ball);
 }
 
-/** Sends a ball off the paddle by where it landed, or holds it there while the paddle catches. */
+/**
+ * Sends a ball off the paddle by where it landed, or holds it there while
+ * the paddle catches, and starts the streak again.
+ */
 function meetPaddle(field: Field, ball: Ball): void {
+  field.streak = 0;
   if (field.mode === "catch") {
     const half = field.paddle.width / 2;
     holdBall(
@@ -607,6 +620,8 @@ function loseBall(field: Field, ball: Ball): void {
   field.events.add("lost", ball.x, FIELD_HEIGHT);
   if (field.balls.some((each) => each.live)) return;
   field.state = "lost";
+  field.livesLost++;
+  field.streak = 0;
   field.climbed = 0;
   endEffects(field);
   dropBolts(field);

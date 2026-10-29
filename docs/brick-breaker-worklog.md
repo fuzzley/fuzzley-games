@@ -791,3 +791,36 @@ Left as advised: `runRule<K>()`, `isCleared()`, `isBallIn()`'s closure,
 the type-only import, and steel taking a blast's hit. For later: the plan's
 saved game keeps the field's step count and every timer's step, a lit
 fuse's among them.
+
+## B3.4: scoring and the run
+
+- **Built.** `src/rules/scoring.ts`: `multiplier()`, `scoreHit()` and
+  `clearingPoints()`. `src/rules/run.ts`: `Run`, `RunStart`, `Outcome`,
+  `createRun()`, `hasEnded()`, `startLevel()`, `pause()`, `resume()`,
+  `tally()`, `gainLives()`, `loseLife()`, `clearLevel()` and `levelSeed()`.
+  The tuning gains `STREAK` (from the fifth break double, the tenth triple,
+  the twentieth four times), `CLEAR_POINTS` and `CLEAN_POINTS`. The field
+  gains `score`, `streak` and `livesLost`: `hitBrick()` scores every hit,
+  and a break lengthens the streak before it is scored; the paddle meeting
+  a ball, and the last ball lost, start the streak again, and the last ball
+  lost counts a life lost. Specs, 48 new.
+- **Choices.**
+  - The field keeps the level's score, and the run the points banked by
+    the levels cleared, so the run's score is `banked` plus the level's as
+    it stands (`tally()`), and a level left unfinished banks nothing.
+  - A blast's hits lengthen the streak, as each is a brick broken.
+  - Steel scores nothing, as its kind's points are 0, but still counts as
+    a hit; a tough brick scores at each hit, a regrowing one each time it
+    breaks.
+  - The run doesn't count the capsules fallen, as the plan had it: the
+    field's draws count from `levelSeed()`, the run's seed mixed with the
+    level's number, so a level replays alike however the levels before it
+    went. The plan says so.
+  - Lives from points and from capsules both stop at six; a mark passed at
+    six is spent, not saved.
+  - `startLevel()` from `cleared` moves to the next level, so the shell
+    shows the cleared level's tally until the player goes on.
+- **Checks.** `yarn verify`: lint, typecheck, test (426), build; the rules at 100% of
+  statements.
+- **Review in.** B3.3's review came in during this step; its fixes follow
+  in their own commit, before B4.

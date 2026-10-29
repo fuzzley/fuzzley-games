@@ -68,11 +68,18 @@ and the shell exist.
   from the level's pool, from `draws.ts`'s seeded draws; moves them down
   to be caught or missed; and holds `EFFECT_RULES`, what each effect of
   `catalog/capsules.ts` does as it starts and ends, one of each group in
-  play at a time. `bolts.ts` fires and moves the laser's bolts. Timers count
-  whole steps (`stepsIn()`), as a step's milliseconds would creep in a
-  sum. `events.ts`'s
-  `EventLog` is a ring of 256 numbered records, which the scene will play
-  from the last one it played.
+  play at a time. `bolts.ts` fires and moves the laser's bolts. The field
+  counts its steps (`Field.steps`), and a timer is the step its thing
+  happens at, `stepsIn()` steps on from when it was set, as milliseconds
+  summed step by step would creep. `scoring.ts` scores each hit by its
+  kind's points, times the streak's multiplier, and says what clearing a
+  level adds. `events.ts`'s `EventLog` is a ring of 256 numbered records,
+  which the scene will play from the last one it played.
+- **The run** — `src/rules/run.ts`: `Run`, a value each change replaces,
+  as Snake's is, from the first level to the end: the level in play, the
+  points banked and the score, the lives and the points of the next, and
+  the outcome. `tally()` takes a level's score as it stands, `clearLevel()`
+  banks it, and `levelSeed()` gives each level's field a seed of its own.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
   written `as const satisfies`, so its ids survive as a type: `bricks.ts`
   (`BRICK_KINDS`, each kind's hits, whether a level needs it, its points

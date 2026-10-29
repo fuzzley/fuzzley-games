@@ -96,6 +96,22 @@ export const FIRST_LIFE_POINTS = 20_000;
 /** The points between each extra life after the first. */
 export const LIFE_POINTS = 40_000;
 
+/**
+ * How a streak of bricks broken between two touches of the paddle scores:
+ * from how many bricks each multiplier starts, the highest first.
+ */
+export const STREAK = [
+  { from: 20, times: 4 },
+  { from: 10, times: 3 },
+  { from: 5, times: 2 },
+] as const;
+
+/** The points a cleared level adds. */
+export const CLEAR_POINTS = 1000;
+
+/** The points a level cleared without losing a ball adds besides. */
+export const CLEAN_POINTS = 500;
+
 /** How fast a capsule falls. */
 export const CAPSULE_FALL_SPEED = 9;
 
