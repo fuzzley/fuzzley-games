@@ -85,7 +85,8 @@ Phaser stays out of the first download.
     drawn. The board is Phaser's keyboard target and pauses
     the run when the focus leaves it.
   - `arrows/` — the on-screen arrows, on a touch screen or as the settings
-    say, which turn the snake and hand the focus back to the board.
+    say, which turn the snake and hand the focus back to the board, and
+    wait, dimmed, until the board is drawn.
   - `bar/` — `BarComponent` fills the libraries' `<fz-game-bar>` with the
     speed, a `<fz-bar-choice>` that starts a run at another through
     `GameService.changeSpeed()`, the score and the best, and the actions,
@@ -129,9 +130,11 @@ Phaser stays out of the first download.
   captures are global, which is why the scene takes only the keys the game
   uses, and ignores a held key and one pressed with Ctrl, Alt or Meta.
 - **The run waits for the player.** It starts at the first direction, pauses
-  when the focus leaves the board, the page is hidden or the screen turns, and goes on at
-  once at a direction, Space or P; a run taken up after a reload starts
-  paused.
+  when the focus leaves the board, the page is hidden or the screen turns,
+  and goes on at once at a direction, Space or P; a run taken up after a
+  reload starts paused. Nothing starts or goes on until the board is drawn
+  (`GameService.drawn`, which the board sets from its canvas), since a run
+  nobody can see would be lost.
 - **Its colors are the palette's.** `snakePalette()` takes the panel, the
   text, the accent and the danger from the page, which `ThemeService` reads,
   and `src/view/contrast.spec.ts` holds the snake, its head and the apple to

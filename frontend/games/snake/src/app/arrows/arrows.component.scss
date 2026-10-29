@@ -50,6 +50,24 @@
   }
 }
 
+// Until the board is drawn the arrows do nothing, and dim once it has kept
+// the player waiting a moment, so a quick load doesn't flash them.
+.waiting .arrow {
+  cursor: default;
+  animation: dim 0s 300ms forwards;
+
+  &:active {
+    background: var(--fz-panel);
+    color: var(--fz-text);
+  }
+}
+
+@keyframes dim {
+  to {
+    opacity: 0.5;
+  }
+}
+
 // On a short stage upright, where the pad sits under the board, or a narrow
 // one on its side, where it sits beside it, the keys shrink to a thumb's
 // size, so the board keeps squares big enough to read and steer.

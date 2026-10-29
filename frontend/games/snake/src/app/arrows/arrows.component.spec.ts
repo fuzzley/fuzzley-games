@@ -60,3 +60,44 @@ describe("ArrowsComponent", () => {
     expect(game.run()).toMatchObject({ outcome: "playing", turns: ["down"] });
   });
 });
+
+describe("ArrowsComponent before the board is drawn", () => {
+  it("does nothing at a press", async () => {
+    const game = await renderArrows();
+    game.setDrawn(false);
+
+    fireEvent.pointerDown(screen.getByRole("button", { name: "Up" }), {
+      button: 0,
+    });
+
+    expect(game.outcome()).toBe("ready");
+  });
+
+  it("says each arrow is unavailable", async () => {
+    const game = await renderArrows();
+
+    game.setDrawn(false);
+    TestBed.tick();
+
+    expect(
+      screen
+        .getAllByRole("button")
+        .map((arrow) => arrow.getAttribute("aria-disabled")),
+    ).toEqual(["true", "true", "true", "true"]);
+  });
+
+  it("offers each arrow once it is", async () => {
+    const game = await renderArrows();
+    game.setDrawn(false);
+    TestBed.tick();
+
+    game.setDrawn(true);
+    TestBed.tick();
+
+    expect(
+      screen
+        .getAllByRole("button")
+        .some((arrow) => arrow.hasAttribute("aria-disabled")),
+    ).toBe(false);
+  });
+});

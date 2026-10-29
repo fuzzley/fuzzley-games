@@ -20,7 +20,7 @@ const ARROWS: readonly Arrow[] = [
 /**
  * Shows the on-screen arrows, for a touch screen, which turn the snake as a
  * finger lands on one rather than as it lifts, and leave the focus where it
- * was.
+ * was. They wait, dimmed, until the board is drawn.
  */
 @Component({
   selector: "app-arrows",
@@ -29,7 +29,7 @@ const ARROWS: readonly Arrow[] = [
   styleUrl: "./arrows.component.scss",
 })
 export class ArrowsComponent {
-  private readonly game = inject(GameService);
+  protected readonly game = inject(GameService);
 
   /** Emits after a press with a pointer, for the board to take the focus. */
   readonly handBack = output();

@@ -183,6 +183,47 @@ describe("GameService", () => {
     });
   });
 
+  describe("before the board is drawn", () => {
+    it("starts nothing at a direction", () => {
+      const game = TestBed.inject(GameService);
+      game.setDrawn(false);
+
+      game.turn("up");
+
+      expect(game.outcome()).toBe("ready");
+    });
+
+    it("keeps a paused run paused at a direction or Resume", () => {
+      const game = startedGame();
+      game.pause();
+      game.setDrawn(false);
+
+      game.turn("up");
+      game.resume();
+
+      expect(game.outcome()).toBe("paused");
+    });
+
+    it("still pauses a run under way", () => {
+      const game = startedGame();
+      game.setDrawn(false);
+
+      game.pause();
+
+      expect(game.outcome()).toBe("paused");
+    });
+
+    it("starts at a direction once the board is drawn", () => {
+      const game = TestBed.inject(GameService);
+      game.setDrawn(false);
+
+      game.setDrawn(true);
+      game.turn("up");
+
+      expect(game.outcome()).toBe("playing");
+    });
+  });
+
   describe("the end of a run", () => {
     it("says why the run ended, and its score", () => {
       endedGame();

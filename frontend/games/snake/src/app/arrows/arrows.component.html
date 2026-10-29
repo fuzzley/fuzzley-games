@@ -1,10 +1,16 @@
-<div class="pad" role="group" aria-label="Arrows">
+<div
+  class="pad"
+  [class.waiting]="!game.drawn()"
+  role="group"
+  aria-label="Arrows"
+>
   @for (arrow of arrows; track arrow.direction) {
     <button
       type="button"
       class="arrow"
       [attr.data-direction]="arrow.direction"
       [attr.aria-label]="arrow.label"
+      [attr.aria-disabled]="game.drawn() ? null : 'true'"
       (pointerdown)="onPointerDown($event, arrow.direction)"
       (click)="onClick($event, arrow.direction)"
     >
