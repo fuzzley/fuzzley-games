@@ -9,6 +9,8 @@ class ProbeScene extends Scene implements HostedScene {
   frames = 0;
   timerFired = false;
   keys: string[] = [];
+  /** Each key pressed, as Phaser handed it over. */
+  pressed: KeyboardEvent[] = [];
   pointers: string[] = [];
   /** Whether each press and release came from a finger. */
   touched: boolean[] = [];
@@ -26,6 +28,7 @@ class ProbeScene extends Scene implements HostedScene {
     });
     this.input.keyboard?.on("keydown", (event: KeyboardEvent) => {
       this.keys.push(event.code);
+      this.pressed.push(event);
     });
     this.input.on(
       "pointerdown",
@@ -218,6 +221,22 @@ describe("runScene", () => {
     run.advance(16);
 
     expect(run.scene.keys).toEqual(["ArrowUp", "Space"]);
+    run.destroy();
+  });
+
+  it("sends a key with the modifiers asked, each heard however alike", async () => {
+    const run = await runProbe();
+
+    run.key("keydown", "KeyP", "p", { ctrlKey: true });
+    run.key("keydown", "KeyP", "p", { repeat: true });
+    run.advance(16);
+
+    expect(
+      run.scene.pressed.map((event) => [event.ctrlKey, event.repeat]),
+    ).toEqual([
+      [true, false],
+      [false, true],
+    ]);
     run.destroy();
   });
 

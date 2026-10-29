@@ -29,6 +29,12 @@ export interface SceneRunOptions {
   >;
 }
 
+/** Says which modifier keys are held as a key is sent, and whether it is a held key's repeat. */
+export type KeyModifiers = Pick<
+  KeyboardEventInit,
+  "ctrlKey" | "altKey" | "metaKey" | "shiftKey" | "repeat"
+>;
+
 /**
  * A scene running in a WebGL game that draws nothing, whose frames a spec
  * steps by hand.
@@ -47,10 +53,15 @@ export interface SceneRun<S extends HostedScene> {
   advance(ms: number, frameMs?: number): void;
   /**
    * Sends a key event to the element Phaser's keyboard listens on, as a
-   * browser sends it, with the key's `keyCode`. Phaser hears it on the next
-   * frame, so {@link advance} after it.
+   * browser sends it, with the key's `keyCode` and any modifiers. Phaser
+   * hears it on the next frame, so {@link advance} after it.
    */
-  key(type: "keydown" | "keyup", code: string, key?: string): void;
+  key(
+    type: "keydown" | "keyup",
+    code: string,
+    key?: string,
+    modifiers?: KeyModifiers,
+  ): void;
   /**
    * Sends a mouse event to the canvas, at a point in its pixels, or to an
    * element in the page over it, as a press on the page's own chrome reaches
@@ -148,9 +159,10 @@ export async function runScene<S extends HostedScene>(
       return ready;
     },
     advance,
-    key(type, code, key = code) {
+    key(type, code, key = code, modifiers = {}) {
       const target = (game.input.keyboard?.target ?? window) as EventTarget;
       const event = new KeyboardEvent(type, {
+        ...modifiers,
         code,
         key,
         keyCode: keyCodeOf(code),

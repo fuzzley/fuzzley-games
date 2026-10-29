@@ -73,22 +73,20 @@ export class BrickPainter {
 
   /** Takes up each image's frame again, once the atlas has been baked again. */
   refresh(): void {
-    this.images.forEach((image, cell) => {
-      const frame = this.shown[cell];
-      if (frame) image.setFrame(frame);
-    });
+    for (const image of this.images) image.setFrame(image.frame.name);
   }
 
   /** Shows each cell's brick as it stands, changing only the images whose brick changed. */
   show(field: FieldView): void {
-    this.images.forEach((image, cell) => {
+    for (let cell = 0; cell < this.images.length; cell++) {
       const brick = field.bricks[cell];
       const frame = brick && !brick.broken ? brickFrame(brick) : null;
-      if (frame === this.shown[cell]) return;
+      if (frame === this.shown[cell]) continue;
       this.shown[cell] = frame;
-      image.setVisible(frame !== null);
-      if (frame) image.setFrame(frame);
-    });
+      const image = this.images[cell];
+      image?.setVisible(frame !== null);
+      if (frame) image?.setFrame(frame);
+    }
   }
 
   /** Swells a brick that held a hit, and settles it back. */
@@ -126,20 +124,26 @@ export class BrickPainter {
     this.movedAt[cell] = now;
   }
 
-  /** Drops the bricks into place, a row at a time from the top, as a level starts. */
+  /** Drops the bricks shown into place, in one tween, a row at a time from the top, as a level starts. */
   dropIn(metrics: FieldMetrics): void {
     this.layout(metrics);
+    const drop = DROP_FROM * metrics.unit;
+    const cells: number[] = [];
+    const targets: GameObjects.Image[] = [];
     this.images.forEach((image, cell) => {
-      const restY = image.y;
-      image.setY(restY - DROP_FROM * metrics.unit).setAlpha(0);
-      this.scene.tweens.add({
-        targets: image,
-        y: restY,
-        alpha: 1,
-        duration: DROP_IN_MS,
-        delay: rowOf(cell) * DROP_IN_STAGGER_MS,
-        ease: "Cubic.Out",
-      });
+      if (!this.shown[cell]) return;
+      cells.push(cell);
+      targets.push(image.setY(image.y - drop).setAlpha(0));
+    });
+    if (targets.length === 0) return;
+    this.scene.tweens.add({
+      targets,
+      y: `+=${String(drop)}`,
+      alpha: 1,
+      duration: DROP_IN_MS,
+      delay: (_target: unknown, _key: string, _value: number, at: number) =>
+        rowOf(cells[at] ?? 0) * DROP_IN_STAGGER_MS,
+      ease: "Cubic.Out",
     });
   }
 }

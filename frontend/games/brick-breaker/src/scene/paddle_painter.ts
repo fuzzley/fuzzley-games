@@ -1,49 +1,60 @@
 import type { GameObjects, Scene } from "phaser";
 import type { PaddleMode } from "../rules/catalog/capsules";
 import type { Paddle } from "../rules/paddle";
-import { BOLT_INSET, PADDLE_TOP } from "../rules/tuning";
+import { BOLT_INSET, PADDLE_HEIGHT, PADDLE_TOP } from "../rules/tuning";
 import { FRAMES } from "../view/art";
 import { type FieldMetrics, toCanvasX, toCanvasY } from "../view/field_metrics";
 import { between } from "../view/frame";
+import type { BricksPalette } from "../view/palette";
+import { lineWidth } from "../view/shapes";
 import { ATLAS } from "./atlas";
 
 /**
- * Draws the paddle, as a nine-slice that keeps its rounded ends as its width
- * changes, with a laser's cannons over its ends or a catching paddle's rim
- * along its top.
+ * Draws the paddle: a body between the middles of its two round ends, so
+ * the ends keep their shape as its width changes, with a laser's cannons
+ * over its ends or a catching paddle's rim along its top.
+ *
+ * The body and the rim are rectangles a pixel wide, scaled across, which
+ * draw crisp at any width on either of Phaser's renderers.
  */
 export class PaddlePainter {
-  readonly paddle: GameObjects.NineSlice;
+  /** Its body, from the middle of one end to the middle of the other. */
+  readonly body: GameObjects.Rectangle;
+  /** Its round ends, left and right. */
+  readonly ends: readonly GameObjects.Image[];
+  /** A catching paddle's rim, a line below its top, along its body. */
+  readonly rim: GameObjects.Rectangle;
+  /** A laser's cannons, left and right. */
   readonly cannons: readonly GameObjects.Image[];
-  readonly rim: GameObjects.Image;
 
-  /** Makes the paddle, its ends as wide as the atlas's paddle frame keeps whole. */
-  constructor(scene: Scene, layer: GameObjects.Layer, ends: number) {
-    this.paddle = scene.add.nineslice(
-      0,
-      0,
-      ATLAS,
-      FRAMES.paddle,
-      2 * ends,
-      0,
-      ends,
-      ends,
-      0,
-      0,
-    );
+  /** Makes the paddle at the field's scale, in the palette. */
+  constructor(
+    scene: Scene,
+    layer: GameObjects.Layer,
+    metrics: FieldMetrics,
+    palette: BricksPalette,
+  ) {
+    this.body = scene.add.rectangle(0, 0, 1, 1).setOrigin(0.5, 0);
+    this.ends = [0, 1].map(() => scene.add.image(0, 0, ATLAS, FRAMES.paddle));
+    this.rim = scene.add
+      .rectangle(0, 0, 1, 1)
+      .setOrigin(0.5, 0)
+      .setVisible(false);
     this.cannons = [0, 1].map(() =>
       scene.add.image(0, 0, ATLAS, FRAMES.cannon).setVisible(false),
     );
-    this.rim = scene.add.image(0, 0, ATLAS, FRAMES.rim).setVisible(false);
-    layer.add([this.paddle, ...this.cannons, this.rim]);
+    layer.add([this.body, ...this.ends, this.rim, ...this.cannons]);
+    this.refresh(metrics, palette);
   }
 
-  /** Takes up the frames again, once the atlas has been baked again, with the paddle's ends' new width. */
-  refresh(ends: number): void {
-    this.paddle.setTexture(ATLAS, FRAMES.paddle);
-    this.paddle.setSlices(this.paddle.width, 0, ends, ends, 0, 0);
+  /** Takes up the frames again, once the atlas has been baked again, and sizes and paints the body and the rim to match. */
+  refresh(metrics: FieldMetrics, palette: BricksPalette): void {
+    for (const end of this.ends) end.setFrame(FRAMES.paddle);
     for (const cannon of this.cannons) cannon.setFrame(FRAMES.cannon);
-    this.rim.setFrame(FRAMES.rim);
+    this.body
+      .setSize(1, Math.round(PADDLE_HEIGHT * metrics.unit))
+      .setFillStyle(palette.paddle);
+    this.rim.setSize(1, lineWidth(metrics)).setFillStyle(palette.mark);
   }
 
   /** Draws the paddle between its last place and its next, at its width, with what its mode adds. */
@@ -56,17 +67,25 @@ export class PaddlePainter {
     const x = toCanvasX(metrics, between(paddle.lastX, paddle.x, alpha));
     const top = toCanvasY(metrics, PADDLE_TOP);
     const width = Math.round(paddle.width * metrics.unit);
-    if (this.paddle.width !== width) this.paddle.width = width;
-    this.paddle.setPosition(x, top + this.paddle.height / 2);
-    const inset = width / 2 - BOLT_INSET * metrics.unit;
-    this.cannons.forEach((cannon, i) => {
-      cannon
-        .setVisible(mode === "laser")
-        .setPosition(x + (i === 0 ? -inset : inset), top - cannon.height / 2);
-    });
+    const height = this.body.height;
+    const span = Math.max(0, width - height);
+    this.body.setPosition(x, top).setScale(span, 1);
+    for (let i = 0; i < this.ends.length; i++) {
+      this.ends[i]?.setPosition(
+        x + (i === 0 ? -span : span) / 2,
+        top + height / 2,
+      );
+    }
     this.rim
       .setVisible(mode === "catch")
-      .setPosition(x, top + this.rim.height / 2)
-      .setScale((width - this.paddle.height) / this.rim.frame.width, 1);
+      .setPosition(x, top + this.rim.height)
+      .setScale(span, 1);
+    const inset = width / 2 - BOLT_INSET * metrics.unit;
+    for (let i = 0; i < this.cannons.length; i++) {
+      const cannon = this.cannons[i];
+      cannon
+        ?.setVisible(mode === "laser")
+        .setPosition(x + (i === 0 ? -inset : inset), top - cannon.height / 2);
+    }
   }
 }

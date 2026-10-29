@@ -69,8 +69,6 @@ export interface ArtFrame {
   readonly height: number;
   /** Its shapes, each drawn over those before it. */
   readonly commands: readonly DrawCommand[];
-  /** For a frame a nine-slice stretches, the width of each end it keeps whole. */
-  readonly ends?: number;
 }
 
 /** Says what the art is drawn at: a field unit's device pixels, and a CSS pixel's. */

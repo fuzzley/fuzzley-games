@@ -7,18 +7,13 @@ import type { ArtFrame, ArtScale, DrawCommand, Point } from "../view/shapes";
 /** The atlas's texture key, which every image on the field shows a frame of. */
 export const ATLAS = "bricks-atlas";
 
-/**
- * Bakes every frame the field shows into the atlas, at a scale and in a
- * palette, and returns the frames as the view drew them.
- */
+/** Bakes every frame the field shows into the atlas, at a scale and in a palette. */
 export function bakeBricksAtlas(
   scene: Scene,
   palette: BricksPalette,
   scale: ArtScale,
-): readonly ArtFrame[] {
-  const frames = atlasFrames(palette, scale);
-  bakeAtlas(scene, ATLAS, frames.map(atlasFrameOf));
-  return frames;
+): void {
+  bakeAtlas(scene, ATLAS, atlasFrames(palette, scale).map(atlasFrameOf));
 }
 
 /** Returns a frame of the view's art as `bakeAtlas()` draws one. */

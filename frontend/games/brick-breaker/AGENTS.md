@@ -29,11 +29,11 @@ the code that exists.
 
 `eslint.config.js` fences four folders under `src/`, as Snake's, each
 importing only the layers below it: the rules, with no framework and no
-library but `@fz/core`, physics included; the view, which will work out
-what to draw without Phaser, with `@fz/phaser`'s pure entries; the scene,
-the only code that will import Phaser; and the shell, in Angular, which
-may take the scene and `@fz/phaser/host` only by type. So far the rules, the view,
-the scene's first files and the shell exist.
+library but `@fz/core`, physics included; the view, which works out what
+to draw without Phaser, with `@fz/phaser`'s pure entries; the scene, the
+only code that imports Phaser; and the shell, in Angular, which may take
+the scene and `@fz/phaser/host` only by type. So far the rules, the view,
+the scene and the shell's first files exist.
 
 ## Layout
 
@@ -149,8 +149,9 @@ the scene's first files and the shell exist.
   `GlowPainter` the frames around the last bricks a level needs,
   `EffectsPainter` a broken brick's shards, a blast's ring, a lost ball's
   fade and the field's shake, `CapsulePainter` and `BoltPainter` what
-  falls and rises, `PaddlePainter` the paddle as a nine-slice with its
-  cannons and rim, `TagPainter` the effects in play and their emptying
+  falls and rises, `PaddlePainter` the paddle as two round ends and a
+  rectangle between their middles, which keep their shape at any width on
+  either renderer, with its cannons and rim, `TagPainter` the effects in play and their emptying
   rings, and `BallPainter` the balls, with a fire ball's embers, each
   thing that moves drawn between its last place and its next. Every game
   object is made as the scene is created, and a new field stops what the

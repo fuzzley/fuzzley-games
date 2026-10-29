@@ -1,12 +1,20 @@
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { CssRect } from "@fz/phaser/layout";
 import { type SceneRun, runScene } from "@fz/phaser/testing";
-import { Core, type Game, type GameObjects } from "phaser";
+import { Core, type Game, GameObjects } from "phaser";
 import { hitBrick } from "../rules/bricks";
 import { cellIndex } from "../rules/grid";
 import type { Steer } from "../rules/paddle";
 import { stepsIn } from "../rules/stepper";
-import { BRICKS_TOP, COLUMNS, FIELD_HEIGHT, ROWS } from "../rules/tuning";
+import {
+  BOLT_INSET,
+  BRICKS_TOP,
+  COLUMNS,
+  FIELD_HEIGHT,
+  PADDLE_HEIGHT,
+  PADDLE_TOP,
+  ROWS,
+} from "../rules/tuning";
 import {
   ballOf,
   brickAt,
@@ -32,6 +40,7 @@ import {
 } from "../view/field_metrics";
 import type { FieldFrame } from "../view/frame";
 import { type BricksPalette, bricksPalette } from "../view/palette";
+import { lineWidth } from "../view/shapes";
 import type { TouchSteering } from "../view/steering";
 import { TAG_SPACING, TAG_Y, firstTagX } from "../view/tags";
 import {
@@ -143,10 +152,14 @@ interface Board {
 }
 
 let running: SceneRun<BricksScene> | null = null;
+/** The element the running scene's keyboard listens on. */
+let listening: HTMLElement | null = null;
 
 afterEach(() => {
   running?.destroy();
   running = null;
+  listening?.remove();
+  listening = null;
 });
 
 /** Runs the scene for a shell, its first frame drawn, in a game readied first as a spec asks. */
@@ -159,6 +172,7 @@ async function startBoard(
   const keys = document.createElement("div");
   keys.tabIndex = 0;
   document.body.append(keys);
+  listening = keys;
   const run = await runScene(makeBricksScene(shell), {
     config: { input: { keyboard: { target: keys } } },
     prepare,
@@ -192,6 +206,20 @@ function placed(image: GameObjects.Image | undefined): object {
     x: image?.x,
     y: image?.y,
   };
+}
+
+/** Returns every image a scene holds, those in its layers too. */
+function imagesIn(scene: BricksScene): GameObjects.Image[] {
+  const walk = (
+    objects: readonly GameObjects.GameObject[],
+  ): GameObjects.GameObject[] =>
+    objects.flatMap((object) =>
+      isLayer(object) ? walk(object.getChildren()) : [object],
+    );
+  return walk(scene.children.getChildren()).filter(
+    (object): object is GameObjects.Image =>
+      object instanceof GameObjects.Image,
+  );
 }
 
 /** Returns how many of a set of images show. */
@@ -248,6 +276,38 @@ describe("BricksScene", () => {
       expect(scene.textures.getFrame(ATLAS, "plain-0").width).toBe(
         2 * metricsAt(600, 600).unit,
       );
+    });
+
+    it("has every image take up its frame anew at a new unit, and the paddle its new height", async () => {
+      const { run, scene } = await startBoard();
+
+      run.game.scale.resize(600, 600);
+      run.advance(16);
+
+      expect({
+        stale: imagesIn(scene)
+          .filter(
+            (image) =>
+              image.width !== image.frame.width ||
+              image.displayOriginX !== image.originX * image.frame.width,
+          )
+          .map((image) => image.frame.name),
+        paddle: scene.paddle.body.height,
+      }).toEqual({
+        stale: [],
+        paddle: Math.round(PADDLE_HEIGHT * metricsAt(600, 600).unit),
+      });
+    });
+
+    it("bakes once for a new unit and a new palette in the same frame", async () => {
+      const { shell, run } = await startBoard();
+      const baked = shell.pictures.length;
+
+      run.game.scale.resize(600, 600);
+      shell.colors = DARK;
+      run.advance(16);
+
+      expect(shell.pictures.length - baked).toBe(1);
     });
   });
 
@@ -365,6 +425,22 @@ describe("BricksScene", () => {
       });
     });
 
+    it("drop a lower row in after a higher one", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.showField(["o", "", "", "o"]);
+      });
+      const metrics = metricsAt();
+
+      run.advance(DROP_IN_MS + 32);
+
+      expect({
+        top: scene.bricks.images[cellIndex(0, 0)]?.y,
+        lower:
+          (scene.bricks.images[cellIndex(0, 3)]?.y ?? 0) <
+          toCanvasY(metrics, BRICKS_TOP + 3.5),
+      }).toEqual({ top: toCanvasY(metrics, BRICKS_TOP + 0.5), lower: true });
+    });
+
     it("drop in again as a new level starts", async () => {
       const { shell, run, scene } = await startBoard();
       run.advance(DROP_IN_MS + 64);
@@ -386,14 +462,24 @@ describe("BricksScene", () => {
   });
 
   describe("the paddle", () => {
-    it("is drawn at its width, its middle at the paddle's", async () => {
+    it("is drawn at its width, its middle at the paddle's and its top on the paddle's line", async () => {
       const { shell, scene } = await startBoard();
       const metrics = metricsAt();
       const paddle = shell.field.paddle;
+      const x = toCanvasX(metrics, paddle.x);
+      const width = Math.round(paddle.width * metrics.unit);
+      const [left, right] = scene.paddle.ends;
 
-      expect(scene.paddle.paddle).toMatchObject({
-        x: toCanvasX(metrics, paddle.x),
-        width: Math.round(paddle.width * metrics.unit),
+      expect({
+        left: (left?.x ?? 0) - (left?.displayWidth ?? 0) / 2,
+        right: (right?.x ?? 0) + (right?.displayWidth ?? 0) / 2,
+        middle: scene.paddle.body.x,
+        top: scene.paddle.body.y,
+      }).toEqual({
+        left: x - width / 2,
+        right: x + width / 2,
+        middle: x,
+        top: toCanvasY(metrics, PADDLE_TOP),
       });
     });
 
@@ -406,7 +492,7 @@ describe("BricksScene", () => {
       shell.alpha = 0.25;
       run.advance(16);
 
-      expect(scene.paddle.paddle.x).toBe(toCanvasX(metricsAt(), 10.5));
+      expect(scene.paddle.body.x).toBe(toCanvasX(metricsAt(), 10.5));
     });
 
     it.each([
@@ -428,18 +514,76 @@ describe("BricksScene", () => {
       },
     );
 
-    it("keeps its ends whole as it widens", async () => {
+    it("puts a laser's cannons over its ends, above it", async () => {
       const { shell, run, scene } = await startBoard();
-      const ends = scene.paddle.paddle.leftWidth;
+      const metrics = metricsAt();
+      const x = toCanvasX(metrics, shell.field.paddle.x);
+      const inset =
+        Math.round(shell.field.paddle.width * metrics.unit) / 2 -
+        BOLT_INSET * metrics.unit;
+      const top = toCanvasY(metrics, PADDLE_TOP);
+
+      shell.field.mode = "laser";
+      run.advance(16);
+
+      expect(
+        scene.paddle.cannons.map((cannon) => [
+          cannon.x,
+          cannon.y + cannon.height / 2,
+        ]),
+      ).toEqual([
+        [x - inset, top],
+        [x + inset, top],
+      ]);
+    });
+
+    it("lays a catching paddle's rim a line below its top, along its body", async () => {
+      const { shell, run, scene } = await startBoard();
+      const metrics = metricsAt();
+      const width = Math.round(shell.field.paddle.width * metrics.unit);
+
+      shell.field.mode = "catch";
+      run.advance(16);
+
+      expect({
+        x: scene.paddle.rim.x,
+        y: scene.paddle.rim.y,
+        width: scene.paddle.rim.displayWidth,
+      }).toEqual({
+        x: toCanvasX(metrics, shell.field.paddle.x),
+        y: toCanvasY(metrics, PADDLE_TOP) + lineWidth(metrics),
+        width: width - scene.paddle.body.height,
+      });
+    });
+
+    it("keeps its ends round as it widens", async () => {
+      const { shell, run, scene } = await startBoard();
+      const height = scene.paddle.body.height;
 
       shell.field.paddle.width = 6;
       run.advance(16);
 
-      expect(scene.paddle.paddle).toMatchObject({
-        leftWidth: ends,
-        rightWidth: ends,
-        width: Math.round(6 * metricsAt().unit),
+      expect({
+        ends: scene.paddle.ends.map((end) => end.displayWidth),
+        body: scene.paddle.body.displayWidth,
+      }).toEqual({
+        ends: [height, height],
+        body: Math.round(6 * metricsAt().unit) - height,
       });
+    });
+
+    it("is painted in the palette, and anew in a new one", async () => {
+      const { shell, run, scene } = await startBoard();
+      const before = scene.paddle.body.fillColor;
+
+      shell.colors = DARK;
+      run.advance(16);
+
+      expect({
+        before,
+        body: scene.paddle.body.fillColor,
+        rim: scene.paddle.rim.fillColor,
+      }).toEqual({ before: LIGHT.paddle, body: DARK.paddle, rim: DARK.mark });
     });
   });
 
@@ -456,15 +600,16 @@ describe("BricksScene", () => {
 
     it("are drawn between their last place and their next", async () => {
       const { shell, run, scene } = await startBoard();
-      const ball = throwBall(shell.field, 4, 20, 0);
+      const ball = throwBall(shell.field, 3, 20, 0);
+      ball.x = 4;
       ball.y = 19;
 
-      shell.alpha = 0.5;
+      shell.alpha = 0.25;
       run.advance(16);
 
       expect(scene.balls.images[0]).toMatchObject({
-        x: toCanvasX(metricsAt(), 4),
-        y: toCanvasY(metricsAt(), 19.5),
+        x: toCanvasX(metricsAt(), 3.25),
+        y: toCanvasY(metricsAt(), 19.75),
       });
     });
 
@@ -519,6 +664,43 @@ describe("BricksScene", () => {
       expect(shell.lastSteer().push).toBe(0);
     });
 
+    it("are let go as the page hides", async () => {
+      const { shell, run } = await startBoard();
+      run.key("keydown", "ArrowRight");
+      run.advance(16);
+
+      run.game.events.emit(Core.Events.HIDDEN);
+      run.advance(16);
+
+      expect(shell.lastSteer().push).toBe(0);
+    });
+
+    it("stay held as the focus moves to a button over the field", async () => {
+      const { shell, run, keys } = await startBoard();
+      const resume = document.createElement("button");
+      keys.append(resume);
+      run.key("keydown", "ArrowRight");
+      run.advance(16);
+
+      keys.dispatchEvent(new FocusEvent("focusout", { relatedTarget: resume }));
+      run.advance(16);
+
+      expect(shell.lastSteer().push).toBe(1);
+    });
+
+    it("keep a key held that is let go and pressed again within a frame, whatever comes after", async () => {
+      const { shell, run } = await startBoard();
+      run.key("keydown", "ArrowLeft");
+      run.advance(16);
+
+      run.key("keyup", "ArrowLeft");
+      run.key("keydown", "ArrowLeft");
+      run.key("keydown", "KeyQ", "q");
+      run.advance(16);
+
+      expect(shell.lastSteer().push).toBe(-1);
+    });
+
     it("are let go as the focus leaves the field", async () => {
       const { shell, run, keys } = await startBoard();
       run.key("keydown", "ArrowRight");
@@ -555,16 +737,16 @@ describe("BricksScene", () => {
       expect(shell.commands).toEqual([]);
     });
 
-    it("ignore a held key, a shortcut and a key the game doesn't use", async () => {
-      const { shell, run, keys } = await startBoard();
+    it.each([
+      ["a held key's repeat", "Space", " ", { repeat: true }],
+      ["a shortcut with Ctrl", "KeyP", "p", { ctrlKey: true }],
+      ["a shortcut with Alt", "KeyP", "p", { altKey: true }],
+      ["a shortcut with Meta", "KeyP", "p", { metaKey: true }],
+      ["a key the game doesn't use", "KeyQ", "q", {}],
+    ] as const)("ignore %s", async (_, code, key, modifiers) => {
+      const { shell, run } = await startBoard();
 
-      keys.dispatchEvent(
-        new KeyboardEvent("keydown", { code: "Space", repeat: true }),
-      );
-      keys.dispatchEvent(
-        new KeyboardEvent("keydown", { code: "KeyP", ctrlKey: true }),
-      );
-      run.key("keydown", "KeyQ", "q");
+      run.key("keydown", code, key, modifiers);
       run.advance(16);
 
       expect(shell.commands).toEqual([]);
@@ -585,6 +767,28 @@ describe("BricksScene", () => {
       const { shell, run } = await startBoard();
 
       run.pointer("move", 150, 300);
+      run.advance(16);
+
+      expect(shell.lastSteer().to).toBe(toFieldX(metricsAt(), 150));
+    });
+
+    it("steers through the field as laid out on the frame it moved in", async () => {
+      const { shell, run } = await startBoard();
+
+      run.pointer("move", 150, 300);
+      run.game.scale.resize(600, 400);
+      run.advance(16);
+
+      expect(shell.lastSteer().to).toBe(toFieldX(metricsAt(600, 400), 150));
+    });
+
+    it("follows a finger where the player asks it to", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.steering = "follow";
+      });
+
+      run.touch("start", 200, 300);
+      run.touch("move", 150, 300);
       run.advance(16);
 
       expect(shell.lastSteer().to).toBe(toFieldX(metricsAt(), 150));

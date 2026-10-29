@@ -141,14 +141,14 @@ too, so the plan stays true.
 Beyond the specs, thorough checks by hand and in a browser, each logged, at
 six points:
 
-| Checkpoint | When                       | What                                                                                                                                                                                                                                                                                                                                           |
-| ---------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Q1         | after L5                   | Snake unchanged: `yarn verify`, its `check:layout`, its screenshots captured again and compared with the tree's, its sounds the same bytes, and a game played in the dev server by keys, mouse and touch, pausing by focus, tab and turn                                                                                                       |
-| Q2         | after B4                   | The rules alone: the autopilot's report over set 1 at every speed, read for loops and slow clears; a hundred seeded random runs of steering checked for a ball outside the walls or inside a brick; the physics' cost with eight balls, timed in Node                                                                                          |
-| Q3         | after B7                   | The first playable build: set 1 played in the dev server by mouse, keys and touch (Chrome's device mode), at each speed; the feel tuned in `tuning.ts`; a seam, a corner and the paddle's ends at the top speed; the NineSlice paddle sharp at every width; the console clean. Screenshots go to the user, so the look can be redirected early |
-| Q4         | after B10                  | The whole shell: every dialog by keyboard and by mouse, the cards, the bar on a phone and a wide screen, sound, settings, records and progress across a reload, a saved game taken up, a light palette and a dark                                                                                                                              |
-| Q5         | B12                        | The full pass B12 lists: every level of set 1 and the last of each other set, AZERTY, a lost context, the accessibility tree, Lighthouse, a performance trace, the bundle's sizes                                                                                                                                                              |
-| Q6         | B14, before asking to ship | The site's build and the Docker image: the game reached from the catalog, played at `/play/brick-breaker/` with the console open, no "Refused to load"                                                                                                                                                                                         |
+| Checkpoint | When                       | What                                                                                                                                                                                                                                                                                                                                 |
+| ---------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Q1         | after L5                   | Snake unchanged: `yarn verify`, its `check:layout`, its screenshots captured again and compared with the tree's, its sounds the same bytes, and a game played in the dev server by keys, mouse and touch, pausing by focus, tab and turn                                                                                             |
+| Q2         | after B4                   | The rules alone: the autopilot's report over set 1 at every speed, read for loops and slow clears; a hundred seeded random runs of steering checked for a ball outside the walls or inside a brick; the physics' cost with eight balls, timed in Node                                                                                |
+| Q3         | after B7                   | The first playable build: set 1 played in the dev server by mouse, keys and touch (Chrome's device mode), at each speed; the feel tuned in `tuning.ts`; a seam, a corner and the paddle's ends at the top speed; the paddle sharp at every width; the console clean. Screenshots go to the user, so the look can be redirected early |
+| Q4         | after B10                  | The whole shell: every dialog by keyboard and by mouse, the cards, the bar on a phone and a wide screen, sound, settings, records and progress across a reload, a saved game taken up, a light palette and a dark                                                                                                                    |
+| Q5         | B12                        | The full pass B12 lists: every level of set 1 and the last of each other set, AZERTY, a lost context, the accessibility tree, Lighthouse, a performance trace, the bundle's sizes                                                                                                                                                    |
+| Q6         | B14, before asking to ship | The site's build and the Docker image: the game reached from the catalog, played at `/play/brick-breaker/` with the console open, no "Refused to load"                                                                                                                                                                               |
 
 A problem a checkpoint finds is fixed in a commit of its own, reviewed as
 any other, before the next phase.
@@ -1283,7 +1283,7 @@ how a careful clone does its collisions:
   `BRICK_ART`, `BALL_ART`, `CAPSULE_ART` and `SYMBOLS`, and
   `atlasFrames(palette, scale)`: every frame the atlas holds (each kind in
   each tint and each state, its marks in the field's color, each ball and
-  each capsule, outlined at least 1 CSS px wide, the paddle's slice, the
+  each capsule, outlined at least 1 CSS px wide, the paddle's round end, the
   bolt, the shard and each tag), with its size in device pixels and its
   drawing as plain commands (rectangles, rounded rectangles, circles,
   rings, lines and polygons), which the scene plays into a `Graphics`. So
@@ -1332,11 +1332,13 @@ how a careful clone does its collisions:
   - `BrickPainter`: an `Image` for each of the 208 cells, made once, each
     shown with its brick's frame or hidden; bricks drop in, row by row, as a
     level starts, and a regrowing brick grows back.
-  - `PaddlePainter`: a `NineSlice` of the paddle's frame, so its rounded ends
-    keep their shape as Wide and Narrow change its width, which the rules
-    grow and shrink over a moment, so the paddle drawn is the one the ball
-    meets; the laser's
-    cannons and the catch's rim as frames over it.
+  - `PaddlePainter`: two `Image`s of the paddle's round end and a
+    `Rectangle` between their middles, scaled across, so the ends keep their
+    shape as Wide and Narrow change its width, which the rules grow and
+    shrink over a moment, so the paddle drawn is the one the ball meets; a
+    rectangle draws crisp at any width on either renderer, where a
+    `NineSlice` draws nothing on Canvas. The laser's cannons are frames over
+    it, and the catch's rim another rectangle along it.
   - `BallPainter`: eight `Image`s, and the fire ball's embers from a
     particle emitter that follows it.
   - `CapsulePainter` and `BoltPainter`: pools of `Image`s.
@@ -1368,7 +1370,7 @@ Each has its skill in `.agents/skills/`; none needs a new copy.
 | Layers            | `this.add.layer()`                                                                                          | `BricksScene`                   | The draw order from `layers.ts`                                                  | `phaser-groups-and-containers`                                |
 | Textures          | `this.make.graphics()`, `generateTexture()`, `Texture.add()`, `textures.getBase64()`, through `bakeAtlas()` | `atlas.ts`                      | Every frame in one texture, sharp at the cell's size, and How to play's pictures | `phaser-render-textures`                                      |
 | Images            | `this.add.image()`, `setFrame()`, `setVisible()`, `setPosition()`                                           | the painters                    | Bricks, balls, capsules, bolts and tags                                          | `phaser-sprites-and-images`                                   |
-| Nine-slice        | `this.add.nineslice()`, `setSize()`                                                                         | `PaddlePainter`                 | A paddle that changes width without stretching its ends                          | `phaser-sprites-and-images`                                   |
+| Shapes            | `this.add.rectangle()`, `setScale()`, `setFillStyle()`                                                      | `PaddlePainter`                 | A paddle that changes width without stretching its ends, on either renderer      | `phaser-graphics-and-shapes`                                  |
 | Graphics          | `clear()`, `lineStyle()`, `arc()`, `strokePath()`, `fillRect()`                                             | `TagPainter`, `FieldPainter`    | The tags' rings, the wall and the net                                            | `phaser-graphics-and-shapes`                                  |
 | Particles         | `this.add.particles()` with atlas frames, `explode()`, `startFollow()`                                      | `EffectsPainter`, `BallPainter` | Shards, and the fire ball's embers                                               | `phaser-particles`                                            |
 | Tweens            | `this.tweens.add()` with a stagger, `addCounter()`, `killAll()`                                             | the painters                    | Bricks dropping in, a regrow, the paddle's width, a blast's ring, a fade         | `phaser-tweens`                                               |
@@ -1408,7 +1410,8 @@ The canvas renders at the display's pixel ratio, up to 3, through the
 library's scaler; a unit is a whole number of device pixels, so every brick
 edge falls on a pixel; and the atlas is baked at the cell's size in device
 pixels and baked again when that changes, so nothing on the field is ever
-scaled. The paddle's nine-slice stretches only its flat middle.
+scaled. The paddle's body and rim are rectangles, scaled across, which
+stay sharp at any width; its ends are baked.
 
 #### Sound
 

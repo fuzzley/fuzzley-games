@@ -1492,7 +1492,7 @@ Checked in a scratch spec, deleted after.
   - `ball_painter.ts`: eight images, each live ball drawn between its last
     place and its next in the balls' kind's frame.
   - The view gains `between(last, next, alpha)` in `frame.ts`.
-  - `bricks_scene.spec.ts`: 40 specs on `runScene()` with a fake shell
+  - `bricks_scene.spec.ts`: 38 specs on `runScene()` with a fake shell
     over a pictured field: the frames and the layout, the atlas (every
     frame, baked again at a new unit), the field and its palette and net,
     the bricks (frames, a hit, a break, the drop-in with and without
@@ -1668,3 +1668,77 @@ satisfies`, so they are readonly.
     game service holds the run and the field together and replaces both in
     one move. A spec there will hold that a field from before a level
     started is never caught up.
+
+## B6.1's review (f0f5e025)
+
+The review ran 24 mutations, and 21 survived the scene spec. Each of its
+ten findings is answered here, and the fixes are in one commit.
+
+1. **The re-bake path had no spec.** Fixed. A spec resizes the canvas and
+   holds every image in the scene, hidden ones too, to its frame's new
+   width and origin, and the paddle's body to its new height. It fails with
+   any painter's `refresh()` removed, eight mutations in all.
+   - It found that `BrickPainter.refresh()` skipped hidden images. They
+     took their frame again as they were shown, so nothing drew wrong, but
+     every painter now refreshes every image alike.
+   - The palette's re-bake is held by the pictures handed over again and
+     by the paddle painted anew.
+2. **Closures made every frame.** Fixed. `BrickPainter.show()` and
+   `BallPainter.draw()` loop by index, and the paddle has no loop with a
+   closure left.
+3. **The spec of ignored keys passing without testing them.** Fixed.
+   - `runScene()`'s `key()` takes modifiers and a repeat (`KeyModifiers`,
+     specced in `@fz/phaser`). Each key gets a stamp of its own, so Phaser
+     no longer drops a raw event as a duplicate.
+   - The spec is one case per key: a held key's repeat, Ctrl, Alt and Meta
+     shortcuts, and a key the game doesn't use. Each of the three modifier
+     checks fails a case when removed.
+4. **Input code without specs.** Fixed, with specs for:
+   - the keyup sequence the reviewer probed (left down, left up, left down
+     and Q in one frame);
+   - the page hiding;
+   - focus moving to a button over the field, which keeps the push;
+   - the "follow" setting;
+   - the pointer read through the metrics laid out on the frame it moved
+     in.
+
+   Releasing the game's events when the scene ends was specced in B6.2.
+   Every one of these fails without the code it covers.
+
+5. **A ball's interpolation spec that couldn't fail on a swap.** Fixed. It
+   uses alpha 0.25, with the last place and the next different both ways.
+6. **The paddle's extras unplaced.** Fixed. Specs hold the cannons over
+   its ends above its top, the rim a line below its top along its body,
+   the body's top on the paddle's line, and its edges at its width.
+7. **The rim fading at its ends.** Fixed with the paddle, which B5.3's
+   review also found draws nothing on Canvas as a `NineSlice`.
+   - The paddle is two images of its round end (the `paddle` frame, now a
+     disc as tall as it) and a `Rectangle` a pixel wide between their
+     middles, scaled across.
+   - The rim is another rectangle, a line below its top. Both draw crisp at
+     any width on either renderer, take their colors from the palette as
+     the atlas is baked, and make nothing as the paddle changes width.
+   - The `rim` frame and `ArtFrame.ends` are gone, along with the scene's
+     `paddleEnds()`.
+   - The plan's design reference, its Phaser table and Q3 now say the same.
+8. **208 tweens a level.** Fixed. The drop-in is one tween over the bricks
+   shown, its delay read from each one's row. A spec holds a lower row
+   still falling after the top row has landed.
+9. **Docs.** Fixed. B6.1's entry now says 38 specs, and `AGENTS.md`'s
+   Layers paragraph says what exists, wrapped.
+10. **Nits.**
+    - `measure()` keeps its optional chain, which the lint asks for
+      (`prefer-optional-chain`) over `!last || …`.
+    - A new unit and a new palette in one frame bake once, which a spec
+      holds.
+    - `bakeBricksAtlas()` returns nothing, since nothing reads its frames
+      any more.
+    - The board's element is `board` in `letGoWhenAway()`.
+    - The spec removes the element it appends.
+    - `paddleEnds()` is gone with the nine-slice.
+
+The 24 mutations run again on the new code (each refresh, the palette's
+re-bake, the steering's metrics, the touch setting, the keyup dedupe, the
+hidden page, focus within the board, each modifier, the drop's stagger,
+both interpolations, the cannons, the rim, the body's top and the rim's
+color) all fail a spec.
