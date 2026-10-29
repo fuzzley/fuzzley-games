@@ -1,7 +1,7 @@
 # Brick Breaker
 
-The `brick-breaker` workspace: Brick Breaker, its field drawn with Phaser 4
-through `@fz/phaser`, in an Angular shell on the shared libraries. What
+The `brick-breaker` workspace: Brick Breaker, its field to be drawn with
+Phaser 4 through `@fz/phaser`, in an Angular shell on the shared libraries. What
 every game keeps, in [frontend/games/AGENTS.md](../AGENTS.md), what every
 workspace keeps, in [frontend/AGENTS.md](../../AGENTS.md), and the
 repository's rules, in [.agents/AGENTS.md](../../../.agents/AGENTS.md), apply
@@ -27,12 +27,13 @@ the code that exists.
 
 ## Layers
 
-Four folders under `src/`, as Snake's, each importing only the layers below
-it, as `eslint.config.js` fences them: the rules, with no framework and no
-library but `@fz/core`, physics included; the view, which works out what to
-draw without Phaser, with `@fz/phaser`'s pure entries; the scene, the only
-code that imports Phaser; and the shell, in Angular, which takes the scene
-and `@fz/phaser/host` only by type and loads the scene with `import()`.
+`eslint.config.js` fences four folders under `src/`, as Snake's, each
+importing only the layers below it: the rules, with no framework and no
+library but `@fz/core`, physics included; the view, which will work out
+what to draw without Phaser, with `@fz/phaser`'s pure entries; the scene,
+the only code that will import Phaser; and the shell, in Angular, which
+may take the scene and `@fz/phaser/host` only by type. So far the rules
+and the shell exist.
 
 ## Layout
 
@@ -85,5 +86,4 @@ workspace's with the others'.
 
 The repository's rules for specs apply. A spec sits beside the file it
 tests, named after it, and runs in jsdom; `src/test-setup.ts` installs
-`@fz/phaser/testing`'s headless Phaser first, so the scene's specs run real
-Phaser.
+`@fz/phaser/testing`'s headless Phaser first, for the scene's specs to come.

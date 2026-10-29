@@ -398,3 +398,37 @@ outside a step), and found no allocation. Its findings:
 
 Left as advised: `SPEED_INFO`'s missing doc, as Snake's, `isSpeed()`'s
 `as Speed`, and the name `climbed`.
+
+## B1.1's review, and L3.1's and L4.1's fixes
+
+The reviewer found no bug in running code, and each earlier fix as the log
+describes it. Its findings:
+
+1. **The game's `AGENTS.md` described a field, a scene and specs that don't
+   exist.** Fixed: it says the field is to be drawn with Phaser, that
+   `eslint.config.js` fences four layers of which the rules and the shell
+   exist, and that the test setup's headless Phaser is for the scene's specs
+   to come.
+2. **`stylelint.config.js` named Snake's workspace.** Fixed.
+3. **`index.html` keeps a large-image card but has no `og:image`.** The
+   preview comes with the screenshots: B13.1 now adds the tags.
+4. **`bakeAtlas()`'s spec left its `translateCanvas` spy on the prototype.**
+   Fixed: `vi.restoreAllMocks()` after each.
+5. **Half the UV spec couldn't fail** (the ball's `u` was 0.3 before and
+   after). Fixed: the re-bake makes the atlas 30 wide, and the spec checks
+   every edge of the moved frame, `v` counted up from the bottom, as
+   Phaser 4's `Frame.updateUVs()` counts it.
+6. **`pack()`'s doc opened with two sentences, and "not whole pixels" read
+   wrong for 0.** Fixed: split, and "not whole pixels above 0".
+7. **`global.scss` spoke of Snake's board and stage.** Fixed.
+8. **The plan's B1.1 named a `public/` that isn't needed** (`@fz/style`'s
+   plugin writes the icons). The plan no longer names it.
+9. **Nits.** Fixed: two long lines wrapped, the `toString` test's name (the
+   member is inherited), and `renderSoundSprite()` pairs each name with its
+   samples, so no fallback is needed; Snake's sounds are still the same
+   bytes. `frontend/games/AGENTS.md` gives 9004 to Brick Breaker, so the
+   next game takes 9005.
+
+Left as advised: the other lists of games until B13.3, the description's
+"Thirty levels" until B14, `THEME_COLOR_ROLE`, the unused `@use`, the
+router devDependency, and the fences and floors.

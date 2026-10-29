@@ -26,7 +26,8 @@ are relative to `frontend/games/`.
   tsconfig gives it (`frontend/lib/dev/AGENTS.md`).
 - **Its dev server has a port of its own,** which its screenshot script
   defaults to: 9000 is the Solitaire Collection's, 9001 Minesweeper's,
-  9002 Sudoku's and 9003 Snake's, so the next game takes 9004. The root's `yarn dev:all`
+  9002 Sudoku's, 9003 Snake's and 9004 Brick Breaker's, so the next game
+  takes 9005. The root's `yarn dev:all`
   runs it on one after the site's instead, at `/play/<slug>/`, which the
   site's dev server serves, so nothing the game loads may assume it sits at
   `/`.

@@ -200,7 +200,7 @@ describe("renderSoundSprite", () => {
     expect(() => renderSoundSprite([])).toThrow("A sprite needs a sound.");
   });
 
-  it("takes a sound named as an object's own members are", () => {
+  it("takes a sound named as a member every object inherits", () => {
     const { json } = renderSoundSprite([{ ...BEEP, name: "toString" }]);
 
     expect(

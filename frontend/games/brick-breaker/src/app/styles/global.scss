@@ -1,12 +1,12 @@
 // The only stylesheet loaded outside a component: @fz/style's global one,
 // shared with the site and the other games, and the size of the bar, which
-// the board lays itself out around. Its rules sit in cascade layers, so the
+// the field lays itself out around. Its rules sit in cascade layers, so the
 // components' win over them.
 @use "@fz/style/global";
 @use "@fz/game-ui" as game-ui;
 
-// The page never scrolls, only the stage, so a swipe down the board never
-// pulls the page to refresh.
+// The page never scrolls, so a finger dragging down the field never pulls
+// the page to refresh.
 :root {
   @include game-ui.bar-size;
 
