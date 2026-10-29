@@ -81,8 +81,8 @@ take the pure ones.
   `whenSceneEnds()` for anything else.
 - **A texture drawn at run time with a `Graphics` goes through
   `bakeTexture()` or `bakeAtlas()`,** so it is drawn again after a lost
-  context; one drawn otherwise, such as a filtered `DynamicTexture`, redraws itself through
-  `onContextRestored()`.
+  context; one drawn otherwise, such as a filtered `DynamicTexture`,
+  redraws itself through `onContextRestored()`.
 - **No code bends to its specs.** The harness runs the renderer a browser
   does, so the library's code has no branch for a game with none.
 - **The canvas's stylesheet is unencapsulated,** to reach what an app

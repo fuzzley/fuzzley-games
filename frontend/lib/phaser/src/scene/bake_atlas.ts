@@ -83,9 +83,11 @@ export function bakeAtlas(
 
 /**
  * Packs frames into rows, in their order, about as wide as the atlas is
- * tall, with a gutter between. It throws for two frames of one name, a
- * frame named as Phaser names a texture's whole, a size that isn't a whole
- * number of pixels above 0, or an atlas larger than every device takes.
+ * tall, with a gutter between.
+ *
+ * It throws for two frames of one name, a frame named as Phaser names a
+ * texture's whole, a size that isn't a whole number of pixels above 0, or an
+ * atlas larger than every device takes.
  */
 function pack(frames: readonly AtlasFrame[]): Packing {
   const names = new Set<string>();
@@ -100,7 +102,7 @@ function pack(frames: readonly AtlasFrame[]): Packing {
     }
     if (!isWholeSize(frame.width) || !isWholeSize(frame.height)) {
       throw new Error(
-        `The atlas frame "${frame.name}" is ${frame.width} × ${frame.height}, not whole pixels.`,
+        `The atlas frame "${frame.name}" is ${frame.width} × ${frame.height}, not whole pixels above 0.`,
       );
     }
     names.add(frame.name);

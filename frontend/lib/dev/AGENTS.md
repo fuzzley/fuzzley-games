@@ -183,6 +183,6 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   write; `src/screenshots.spec.ts` writes the site's images from a capture
   it draws; `src/sounds.spec.ts` renders sprites and reads them back;
   `src/chrome.spec.ts` and `src/layout.spec.ts` drive the DevTools helpers
-  and the layout check against a fake browser, `src/testing/fake_browser.ts`. Starting a real Chrome is left to the
-  screenshot scripts, so the coverage floor in `vitest.config.ts` sits
-  under it.
+  and the layout check against a fake browser, `src/testing/fake_browser.ts`.
+  Starting a real Chrome is left to the screenshot scripts, so the coverage
+  floor in `vitest.config.ts` sits under it.

@@ -39,6 +39,7 @@ describe("bakeAtlas", () => {
   afterEach(() => {
     run?.destroy();
     run = null;
+    vi.restoreAllMocks();
   });
 
   it("names each frame, at its size", async () => {
@@ -130,15 +131,17 @@ describe("bakeAtlas", () => {
     const { scene } = await startScene();
     bakeAtlas(scene, "atlas", [frame("brick", 20, 10), frame("ball", 6)]);
 
-    bakeAtlas(scene, "atlas", [frame("brick", 40, 20), frame("ball", 12)]);
+    bakeAtlas(scene, "atlas", [frame("brick", 30, 20), frame("ball", 12)]);
 
-    // The atlas is now 40 wide and 34 tall, the ball 12 a side at its left.
+    // The atlas is now 30 wide and 34 tall, the ball 12 a side at its left,
+    // a row down; Phaser 4 counts v up from the bottom.
     const ball = scene.textures.get("atlas").get("ball");
     expect({
-      u0: ball.u0,
-      u1: ball.u1,
-      height: Math.round(Math.abs(ball.v1 - ball.v0) * 34),
-    }).toEqual({ u0: 0, u1: 12 / 40, height: 12 });
+      left: ball.u0 * 30,
+      right: ball.u1 * 30,
+      top: Math.round((1 - ball.v0) * 34),
+      bottom: Math.round((1 - ball.v1) * 34),
+    }).toEqual({ left: 0, right: 12, top: 22, bottom: 34 });
   });
 
   it("gives an image its frame's new size once it sets the frame again", async () => {
@@ -199,7 +202,7 @@ describe("bakeAtlas", () => {
 
     expect(() => {
       bakeAtlas(scene, "atlas", [frame("ball", width, height)]);
-    }).toThrow("not whole pixels");
+    }).toThrow("not whole pixels above 0");
   });
 
   it("refuses frames too large for any device", async () => {

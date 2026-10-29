@@ -244,7 +244,7 @@ in Part 2, under `frontend/games/brick-breaker/` unless they say otherwise.
   blocks, `phaser()` for `src/scene/` and the four layers' fences, the
   tsconfig solution, `stylelint.config.js`, `src/test-setup.ts` with the
   headless Phaser, `index.html`, `src/main.ts` with a shell that shows only
-  the game's name, `public/` (icons as Snake's), `LICENSE`, `README.md`,
+  the game's name, `LICENSE`, `README.md`,
   `AGENTS.md` and `CLAUDE.md`. `yarn install`; the workspace's lint,
   typecheck, test and build pass. `games.json` doesn't list it yet. One
   commit.
@@ -407,7 +407,8 @@ satisfies`, and the first half of `src/rules/catalog.spec.ts` (every entry
 - **B13.1** `tools/capture-screenshots.mjs` and the images: a stored game
   on level 9, Rocket, part broken, at Normal, taken up paused out of sight
   of its card, at 1280 × 720 and 2× on Classic felt, written by
-  `writeSiteImages()`. One commit.
+  `writeSiteImages()`, and `index.html`'s `og:image` tags pointing at the
+  preview, as Snake's do. One commit.
 - **B13.2** The game's `AGENTS.md` and `README.md`, the
   `brick-breaker-testing` and `brick-breaker-content` skills in the
   workspace's `.agents/skills/`, linked with
