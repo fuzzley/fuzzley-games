@@ -36,6 +36,12 @@ and `@fz/phaser/host` only by type and loads the scene with `import()`.
 
 ## Layout
 
+- **`src/rules/`** — the game, with no framework, physics included.
+  `tuning.ts` holds the numbers that set its feel, in field units (the
+  field is 26 wide and 30 tall); `speed.ts` the three speeds, each a base
+  and a top the ball climbs to, and `ballSpeed()`; and `stepper.ts` the
+  clock that turns a frame's time into fixed steps of 1/120 s, twelve at
+  most a frame.
 - **`src/app/`** — the shell: for now `app.component`, which shows the
   game's name, and `styles/`, `global.scss`, loaded once from `main.ts`, and
   `_index.scss`, the toolkit every component `@use`s, which emits no CSS.
