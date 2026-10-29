@@ -265,13 +265,14 @@ in Part 2, under `frontend/games/brick-breaker/` unless they say otherwise.
   already touching, corners met, grazed and passed. The field (B2.4)
   gathers the contacts of one moment, a seam's two faces or a face's end
   and its corner, and turns once. One commit.
-- **B2.4** `src/rules/field.ts`, `paddle.ts`, `balls.ts` and the event log
-  (`events.ts`, a ring of 256 reused records), with `src/testing/field_picture.ts`
-  (`fieldFrom`): a field of plain bricks, the paddle steered by `to`, `by`
-  and `push`, the serve and the launch, the walls, the paddle's angles, the
-  limits, the climb and its reset, the lull, a ball lost, the level cleared,
-  and the same seed and steering giving the same field. One commit, `yarn
-verify` with it.
+- **B2.4** `src/rules/field.ts`, `paddle.ts`, `balls.ts`, `level.ts` (the
+  `Level` a field lays out, its cells and pace for now) and the event log
+  (`events.ts`, a ring of 256 reused records), with
+  `src/testing/field_picture.ts` (`fieldFrom`): a field of plain bricks,
+  the paddle steered by `to`, `by` and `push`, the serve and the launch,
+  the walls, the paddle's angles, the limits, the climb and its reset, the
+  lull, a ball lost, the level cleared, and the same seed and steering
+  giving the same field. One commit, `yarn verify` with it.
 
 #### B3: the catalogs and the field's rules (large)
 
@@ -483,8 +484,8 @@ section changes with the step that learned it, and the log says why.
   between steel bricks without the player seeing a nudge.
 - **It speeds up.** Each level starts the ball at its speed's base, times
   the level's pace. Every brick hit adds 1.5% of the base, up to the speed's
-  top. A lost ball, a new level, or a Slow capsule brings it back to the
-  base.
+  top; a brick that never breaks adds nothing. Losing the last ball in
+  play, a new level, or a Slow capsule brings it back to the base.
 - **A ball past the floor is lost.** While another ball is in play, the
   game goes on; the last one lost costs a life, ends every capsule's effect,
   and serves again after a beat. With no lives left, the run is over.
@@ -1108,7 +1109,9 @@ export interface FieldFrame {
   and which cells a path crosses.
 - `sweep.ts`: the first contact along a ball's path, below.
 - `field.ts`: `Field`, the level in play, stepped in place:
-  `createField(level, run)`, `stepField(field, steer)`, `launch(field)` and
+  `createField(level, setup)`, `steerField(field, steer)` once a frame,
+  since a finger's drag is a frame's, `stepField(field)` for each step,
+  `launch(field)`, `serve(field)` once the last ball is lost, and
   `fire(field)`. It holds the bricks, up to eight balls, the paddle, the
   falling capsules, the bolts, the effects in play with their time left,
   the streak, the lull, the level's score and the event log, and where the
@@ -1170,12 +1173,16 @@ how a careful clone does its collisions:
 - **The fire ball** treats bricks that can break as no obstacle at all, and
   breaks each it overlaps, in the order it reaches them.
 - **The paddle:** off its top, the ball leaves by where it landed; off its
-  rounded ends, by the normal there, but never downward. A paddle moved into
+  ends and top corners, as if it landed at that end, so at the most
+  slanted, outward and up. Its underside meets nothing. A paddle moved into
   a falling ball lifts the ball onto its top and bounces it there, so a
   paddle swung under a ball never swallows it.
 - **After every turn,** the ball's speed is set back to the speed it should
   have (turns never drift it, as they do in Phaser's own breakout example),
-  and its angle is held to the limits.
+  and its angle is held to the limits. A ball held to the flattest goes up
+  or down as it went, unless that takes it back into what it met, as off a
+  corner it can: then the other way. A lull's turn back into its wall is
+  mirrored out of it.
 - **Determinism:** fixed steps, the same operations in the same order, and
   seeded randomness. In one JavaScript engine the same seed and steering
   give the same field to the bit; across engines, `Math.sin` may differ in

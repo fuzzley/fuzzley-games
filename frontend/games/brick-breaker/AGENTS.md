@@ -50,6 +50,18 @@ and the shell exist.
   move first touches a face of a box, pushed out by its radius, or a corner,
   as a share of the move, so however fast a ball goes it can't pass through
   a brick; bricks, the walls and the paddle are all boxes.
+- **The field** — `src/rules/field.ts`: `Field`, a level in play, which
+  each step changes in place, from records made once, so a step makes
+  nothing. `createField()` lays out a `Level` (`level.ts`), `steerField()`
+  takes a frame's steering, `stepField()` moves it on a step, `launch()`
+  serves the ball waiting on the paddle and `serve()` puts one there after
+  the last is lost. A ball's travel gathers what it meets first, the walls,
+  the paddle and the bricks' exposed faces and corners, all at one moment,
+  and turns once. `paddle.ts` steers the paddle (`Steer`: a pointer's place,
+  a finger's drag, held keys) and `balls.ts` turns a ball: off the paddle by
+  where it landed, as a mirror, by a lull's few degrees, and back to the
+  flattest it travels. `events.ts`'s `EventLog` is a ring of 256 numbered
+  records, which the scene will play from the last one it played.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
   written `as const satisfies`, so its ids survive as a type: `bricks.ts`
   (`BRICK_KINDS`, each kind's hits, whether a level needs it, its points
@@ -88,3 +100,6 @@ workspace's with the others'.
 The repository's rules for specs apply. A spec sits beside the file it
 tests, named after it, and runs in jsdom; `src/test-setup.ts` installs
 `@fz/phaser/testing`'s headless Phaser first, for the scene's specs to come.
+`src/testing/field_picture.ts` lays a field out from a picture of its
+bricks (`fieldFrom()`), throws a ball in it (`throwBall()`), steps it and
+reads its events, so a spec of the field reads as the field it plays.
