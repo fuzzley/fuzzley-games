@@ -803,6 +803,8 @@ spreadDeg }`, `{ kind: "life" }` or `{ kind: "net" }`. An
   ```ts
   /** Says what the field does for one trait, at each moment a brick with it meets. */
   interface TraitRule<T extends BrickTrait> {
+    /** Runs as the level lays the brick out, to set its state. */
+    readonly laid?: (brick: Brick, trait: T) => void;
     /** Runs as the brick takes a hit, before its damage. */
     readonly hit?: (field: Field, brick: Brick, trait: T) => void;
     /** Runs as it breaks. */
@@ -915,7 +917,8 @@ is tuned and checked by eye.
 - **A brick kind with traits that exist:** its entry in `BRICK_KINDS`, its
   art, its character in the shared legend, and a level that introduces it.
   One with a new trait: a member of `BrickTrait` and its rule in
-  `TRAIT_RULES` too.
+  `TRAIT_RULES` too, with any state it keeps on `Brick`, set by its rule's
+  `laid`.
 
 Each comes with its specs, and the `brick-breaker-content` skill
 (step B13.2) walks an agent through each list.
@@ -928,7 +931,8 @@ These are not built in this plan. They show where the design bends:
   entry in `BALL_KINDS`, its art, and a capsule.
 - **A growing brick,** as LBreakout2 has, which fills the empty cells around
   it as it breaks, but none a ball is in: a `grows` trait whose `broken`
-  rule adds bricks, which the field's needed count already follows.
+  rule adds bricks, raising the field's needed count for each one the level
+  needs, as the count otherwise only falls.
 - **A capsule that bends the balls toward the paddle:** a `curve` effect
   whose `step` rule turns each falling ball a little.
 - **A sliding brick,** as Revenge of Doh and Alleyway have: a `slides`
@@ -1141,7 +1145,10 @@ export interface FieldFrame {
 - `progress.ts`: which levels are open, from the ones cleared.
 - `describe.ts`: what the announcer says.
 - `saved_game.ts`: a run and its field as JSON, and the checks that make a
-  restored one trustworthy.
+  restored one trustworthy. The field's timers are the steps things happen
+  at (a lit blast, a regrowth, an effect's end, a caught ball's leaving, the
+  laser's next pair), against the field's count of steps, which it keeps
+  too.
 
 **The field is mutable, the run a value.** Snake replaces its `Run` at
 every step. A brick breaker steps 120 times a second with dozens of moving

@@ -113,6 +113,14 @@ describe("the brick kinds", () => {
     expect(hasTrait(id, "hard")).toBe(brickKind(id).hits === "never");
   });
 
+  // A brick that grows back would have to be counted again by the field.
+  it.each(BRICK_KIND_IDS.filter((id) => hasTrait(id, "regrows")))(
+    "need %s, which regrows, broken never",
+    (id) => {
+      expect(brickKind(id).needed).toBe(false);
+    },
+  );
+
   it("say how long a regrowing brick takes to grow back", () => {
     const [trait] = BRICK_KINDS.regrow.traits;
 

@@ -24,8 +24,8 @@ export interface Ball {
   held: boolean;
   /** Where it rests on the paddle, from the paddle's middle. */
   offset: number;
-  /** How many steps it has rested there, caught. */
-  heldSteps: number;
+  /** The step it leaves the paddle at by itself, if it was caught. */
+  letGoAt: number;
   /**
    * How many times it has bounced since it last met the paddle or broke a
    * brick the level needs.
@@ -51,7 +51,7 @@ export function createBall(): Ball {
     dy: -1,
     held: false,
     offset: 0,
-    heldSteps: 0,
+    letGoAt: 0,
     bounces: 0,
   };
 }
@@ -65,7 +65,7 @@ export function holdBall(
   ball.live = true;
   ball.held = true;
   ball.offset = offset;
-  ball.heldSteps = 0;
+  ball.letGoAt = 0;
   ball.bounces = 0;
   followPaddle(ball, paddle);
   ball.lastX = ball.x;
@@ -96,7 +96,7 @@ export function splitOff(
   copy.dx = ball.dx;
   copy.dy = ball.dy;
   copy.offset = 0;
-  copy.heldSteps = 0;
+  copy.letGoAt = 0;
   copy.bounces = 0;
   turnBall(copy, degrees);
   settleBall(copy, 0, 0);

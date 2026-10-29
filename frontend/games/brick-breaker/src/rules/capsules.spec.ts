@@ -328,7 +328,7 @@ describe("an effect", () => {
 
     catchCapsule(field, "wide", 0, 0);
 
-    expect(field.effects["paddle-size"].stepsLeft).toBe(stepsOf("wide"));
+    expect(field.effects["paddle-size"].endsAt).toBe(600 + stepsOf("wide"));
   });
 
   it("ends, every one, as the last ball is lost, and what falls goes", () => {

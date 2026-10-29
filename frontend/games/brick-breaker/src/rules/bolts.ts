@@ -42,8 +42,8 @@ export function createBolts(): Bolt[] {
  */
 export function fire(field: Field): void {
   if (field.mode !== "laser" || field.state !== "playing") return;
-  if (field.boltGapSteps > 0) return;
-  field.boltGapSteps = stepsIn(BOLT_GAP_MS);
+  if (field.steps < field.boltsReadyAt) return;
+  field.boltsReadyAt = field.steps + stepsIn(BOLT_GAP_MS);
   const { x, width } = field.paddle;
   shoot(field, x - width / 2 + BOLT_INSET);
   shoot(field, x + width / 2 - BOLT_INSET);
@@ -55,7 +55,6 @@ export function fire(field: Field): void {
  * stops, steel too, and one that reaches the top wall stops there.
  */
 export function stepBolts(field: Field): void {
-  if (field.boltGapSteps > 0) field.boltGapSteps--;
   for (const bolt of field.bolts) {
     if (!bolt.live) continue;
     bolt.lastY = bolt.y;

@@ -51,6 +51,16 @@ export function rowAt(y: number): number {
   return Math.floor((y - BRICKS_TOP) / BRICK_HEIGHT);
 }
 
+/** Returns where a column's middle is, across. */
+export function columnMiddle(column: number): number {
+  return (column + 0.5) * BRICK_WIDTH;
+}
+
+/** Returns where a row's middle is, down. */
+export function rowMiddle(row: number): number {
+  return BRICKS_TOP + (row + 0.5) * BRICK_HEIGHT;
+}
+
 /**
  * Writes the box of the brick in a cell into `box`, and returns it.
  *

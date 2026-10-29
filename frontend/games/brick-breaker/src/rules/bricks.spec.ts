@@ -8,15 +8,13 @@ import { type Brick, hitBrick } from "./bricks";
 import { BRICK_KINDS } from "./catalog/bricks";
 import type { Field } from "./field";
 import { cellIndex } from "./grid";
-import { STEP_MS } from "./stepper";
+import { stepsIn } from "./stepper";
 
 /** The steps a blast waits before it goes off. */
-const FUSE_STEPS = Math.ceil(BRICK_KINDS.blast.traits[0].delayMs / STEP_MS + 1);
+const FUSE_STEPS = stepsIn(BRICK_KINDS.blast.traits[0].delayMs);
 
 /** The steps a regrowing brick waits before it grows back. */
-const REGROW_STEPS = Math.ceil(
-  BRICK_KINDS.regrow.traits[0].afterMs / STEP_MS + 1,
-);
+const REGROW_STEPS = stepsIn(BRICK_KINDS.regrow.traits[0].afterMs);
 
 /** A brick far down the field, which keeps a level from clearing. */
 const KEEPER = ["", "", "", "", "", "", "", "", "", "o"];
@@ -70,6 +68,19 @@ describe("a brick", () => {
     }).toEqual({ hits: 1, events: ["hit", "hit"] });
   });
 
+  it("takes no more hits once broken", () => {
+    const field = fieldFrom(["o", ...KEEPER]);
+    hitAt(field, 0, 0);
+
+    const broke = hitBrick(field, brickAt(field, 0, 0), 0, 0);
+
+    expect({ broke, needed: field.needed, events: eventsOf(field) }).toEqual({
+      broke: false,
+      needed: 1,
+      events: ["broken"],
+    });
+  });
+
   it("clears the level as the last one it needs breaks", () => {
     const field = fieldFrom(["o#"]);
 
@@ -121,7 +132,7 @@ describe("a brick that blasts", () => {
     const field = fieldFrom(["ooo", "o*o", "ooo", ...KEEPER]);
     hitAt(field, 1, 1);
 
-    stepTimes(field, FUSE_STEPS - 2);
+    stepTimes(field, FUSE_STEPS - 1);
 
     expect(hitsInRow(field, 0, 3)).toEqual([1, 1, 1]);
   });
@@ -157,23 +168,19 @@ describe("a brick that blasts", () => {
     });
   });
 
-  it("sets off a blast beside it, a beat later", () => {
-    const field = fieldFrom(["**o", ...KEEPER]);
-    hitAt(field, 0, 0);
-    stepTimes(field, FUSE_STEPS);
+  // A chain set off at one end, its far brick in the other.
+  it.each([
+    ["rightward", "**o", 0, 2],
+    ["leftward", "o**", 2, 0],
+  ])("sets off a blast beside it a beat later, %s", (_, row, first, far) => {
+    const field = fieldFrom([row, ...KEEPER]);
+    hitAt(field, first, 0);
+    stepTimes(field, 2 * FUSE_STEPS - 1);
+    const before = brickAt(field, far, 0).broken;
 
-    stepTimes(field, FUSE_STEPS);
+    stepTimes(field, 1);
 
-    expect(hitsInRow(field, 0, 3)).toEqual([null, null, null]);
-  });
-
-  it("leaves the bricks two away until the blast beside it goes off", () => {
-    const field = fieldFrom(["**o", ...KEEPER]);
-    hitAt(field, 0, 0);
-
-    stepTimes(field, FUSE_STEPS);
-
-    expect(hitsInRow(field, 0, 3)).toEqual([null, null, 1]);
+    expect([before, brickAt(field, far, 0).broken]).toEqual([false, true]);
   });
 
   it("clears the level when it breaks the last brick the level needs", () => {
@@ -182,7 +189,54 @@ describe("a brick that blasts", () => {
 
     stepTimes(field, FUSE_STEPS);
 
-    expect(field.state).toBe("cleared");
+    expect({
+      state: field.state,
+      needed: field.needed,
+      events: eventsOf(field),
+    }).toEqual({
+      state: "cleared",
+      needed: 0,
+      events: ["broken", "blast", "broken", "broken", "cleared"],
+    });
+  });
+
+  it("goes out, still lit, as the level clears", () => {
+    const field = fieldFrom(["#*+"]);
+    hitAt(field, 1, 0);
+
+    stepTimes(field, FUSE_STEPS);
+
+    expect({
+      events: eventsOf(field),
+      regrow: brickAt(field, 2, 0).broken,
+    }).toEqual({ events: ["broken", "cleared"], regrow: false });
+  });
+
+  it("clears the level still, once the last ball is lost", () => {
+    const field = fieldFrom(["o*o"]);
+    hitAt(field, 1, 0);
+    throwBall(field, 5, 29.5, 180);
+
+    stepTimes(field, FUSE_STEPS);
+
+    expect({ state: field.state, events: eventsOf(field) }).toEqual({
+      state: "cleared",
+      events: ["broken", "lost", "blast", "broken", "broken", "cleared"],
+    });
+  });
+
+  it("neither speeds the balls up nor starts their bounces again", () => {
+    const field = fieldFrom(["ooo", "o*o", "ooo", ...KEEPER]);
+    const ball = throwBall(field, 20, 25, 0);
+    ball.bounces = 5;
+    hitAt(field, 1, 1);
+
+    stepTimes(field, FUSE_STEPS);
+
+    expect({ climbed: field.climbed, bounces: ball.bounces }).toEqual({
+      climbed: 0,
+      bounces: 5,
+    });
   });
 });
 
@@ -191,7 +245,7 @@ describe("a brick that regrows", () => {
     const field = fieldFrom(["+", ...KEEPER]);
     hitAt(field, 0, 0);
 
-    stepTimes(field, REGROW_STEPS - 2);
+    stepTimes(field, REGROW_STEPS - 1);
 
     expect(brickAt(field, 0, 0).broken).toBe(true);
   });
