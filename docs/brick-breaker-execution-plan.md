@@ -275,11 +275,14 @@ verify` with it.
 
 #### B3: the catalogs and the field's rules (large)
 
-- **B3.1** `src/rules/catalog/bricks.ts`, `balls.ts`, `capsules.ts` and
-  `index.ts`: the types and the entries "Design reference" lists, `as const
-satisfies`, and the first half of `src/rules/catalog.spec.ts` (every entry
-  named and described, weights positive, the bad capsules the only ones
-  Relaxed leaves out). One commit.
+- **B3.1** `src/rules/catalog/bricks.ts`, `balls.ts` and `capsules.ts`
+  (imported each by its file, so no `index.ts`): the types and the entries
+  "Design reference" lists, `as const satisfies`, and the first half of
+  `src/rules/catalog.spec.ts` (every entry named and described, weights
+  positive, the words naming the durations, a capsule for every ball
+  kind). Built before B2.4, which needs the brick kinds. The bad capsules
+  being the only ones Relaxed leaves out is B3.3's, with the pool. One
+  commit.
 - **B3.2** `src/rules/bricks.ts`: `TRAIT_RULES` for `hard`, `blasts`,
   `gives`, `hidden` and `regrows`, tough bricks' hits, and the needed count;
   the field uses them. Specced trait by trait. One commit.
@@ -744,7 +747,7 @@ export interface BrickKind {
 export type BrickTrait =
   | { readonly kind: "hard" }
   | { readonly kind: "blasts"; readonly delayMs: number }
-  | { readonly kind: "gives"; readonly capsule?: CapsuleId }
+  | { readonly kind: "gives" }
   | { readonly kind: "hidden" }
   | { readonly kind: "regrows"; readonly afterMs: number };
 
@@ -774,15 +777,17 @@ export type BrickKindId = keyof typeof BRICK_KINDS;
 ```
 
 - **`BALL_KINDS`** (`catalog/balls.ts`): each a `BallKind`, its name and
-  sentence, its `damage` (a number, or `"breaks"`), what it `passes` through
-  (`"nothing"` or `"what-it-breaks"`), whether its hits `reach` the bricks
+  sentence, its `damage` (a number, or `"breaks"`), whether it `passes`
+  through the bricks it breaks, whether its hits `reaches` the bricks
   around, and its `speed` and `size` against a normal ball's.
 - **`CAPSULES`** (`catalog/capsules.ts`): each a `Capsule`, its name and
   sentence, its `tone` (`"good"` or `"bad"`), its `weight` in a draw, the
   level it is `from`, and its `effect`, one of a union:
   `{ kind: "paddle-size", width, ms }`, `{ kind: "paddle-mode", mode, ms }`,
-  `{ kind: "ball", ball: BallKindId, ms }`, `{ kind: "pace", scale, ms }`,
-  `{ kind: "split", into }`, `{ kind: "life" }` or `{ kind: "net" }`. An
+  `{ kind: "ball", ball: BallKindId, ms }`,
+  `{ kind: "pace", scale, climb, fromBase, ms }` (Slow climbs half as fast
+  from the base, Fast goes a quarter faster), `{ kind: "split", into,
+spreadDeg }`, `{ kind: "life" }` or `{ kind: "net" }`. An
   effect's kind is its group, so two of one kind never run at once.
 - **What a trait or an effect does is written once,** in a table whose type
   is mapped from the union, so a new member without its rule fails to

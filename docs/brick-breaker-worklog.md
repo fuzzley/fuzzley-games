@@ -486,3 +486,45 @@ copies of the sweep, all of which passed. Its findings:
 
 Left as advised: the root's form, a center inside a brick touching at once,
 the file's `//` comment, and the short names in the mathematics.
+
+## B3.1's review
+
+The reviewer checked every entry against the plan's tables and found no
+bug. Its findings:
+
+1. **The blast's delay and the regrow's time were in `tuning.ts` too.**
+   Already fixed by B2.1's review: a number of one brick kind or capsule is
+   its catalog entry's.
+2. **The plan wasn't brought up to date.** Fixed: "Design reference" now has
+   the gift brick with no capsule of its own, `passes` and `reaches` as
+   booleans, the pace's `climb` and `fromBase`, and the split's `spreadDeg`.
+   B3.1 says the catalogs are imported each by its file, so no `index.ts`,
+   and the spec that Relaxed leaves out only the bad capsules moves to
+   B3.3, with the pool it checks.
+3. **The steel brick's words were wrong:** bolts stop at it, and a fire ball
+   is turned. Fixed, in its sentence and the `hard` trait's doc.
+4. **The hits test packed a conditional into one assertion,** and a hard
+   brick that broke would have passed. Fixed: kinds that break take a hit
+   at least, and a legend may give them their own hits; kinds that never
+   break are not needed and take no hits from a legend; and a kind is hard
+   exactly when it never breaks. A union for `hits` is left as it is: the
+   level check reads `mostHits` of every kind, and 0 says a legend can't
+   give one any.
+5. **The sentences' numbers repeat the data.** Fixed with specs: each timed
+   capsule names its seconds, the regrow brick its own, and the tough
+   brick's hits, Extra life's six and Multiball's three are spelled from
+   their numbers. The fractions ("half as wide again", "a quarter faster")
+   are left to the eye.
+6. **Names apart failed as "expected false".** Fixed: a case per catalog,
+   expecting no name repeated.
+7. **Every ball kind but the normal one has a capsule now,** by a spec.
+8. **Docs.** Fixed: `CapsuleEffect`'s first paragraph is one sentence,
+   `effect` has a doc, `mostHits` says what `hits` is without a legend,
+   `EffectKind` sits beside its union with `TraitKind` beside the traits',
+   and `hasTrait()` takes a `kind`.
+9. **Two sentences misled.** Fixed: Catch says the ball waits 3 seconds at
+   most, and Narrow shrinks the paddle to two thirds of its width.
+
+Left as advised: the `Object.keys()` casts, `as const satisfies`, the
+accessors, a ball capsule naming `"normal"`, `ms` beside `delayMs`, the
+three `isCapsuleId()` cases, and a record keyed by id.
