@@ -176,14 +176,24 @@ export class ViewportScaler {
     return this.insetsValue;
   }
 
-  /** Applies the current size and starts tracking viewport and DPR changes. */
+  /**
+   * Applies the current size and starts tracking the parent's size and the
+   * DPR.
+   *
+   * The parent's size comes from watching it, which reports after layout,
+   * where the shell has settled; the window's `resize` comes before the shell
+   * has moved its chrome, so it sizes the canvas only where nothing can watch
+   * the parent.
+   */
   public start(): void {
     this.apply();
-    this.window.addEventListener("resize", this.onViewportChange);
     this.stopWatchingParent = this.watchParent(this.parent, (size) => {
       this.devicePixelSize = size;
       this.apply();
     });
+    if (!this.stopWatchingParent) {
+      this.window.addEventListener("resize", this.onViewportChange);
+    }
   }
 
   /** Stops tracking changes, releasing every listener the scaler registered. */
