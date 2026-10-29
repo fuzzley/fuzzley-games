@@ -1,0 +1,68 @@
+# Brick Breaker
+
+The `brick-breaker` workspace: Brick Breaker, its field drawn with Phaser 4
+through `@fz/phaser`, in an Angular shell on the shared libraries. What
+every game keeps, in [frontend/games/AGENTS.md](../AGENTS.md), what every
+workspace keeps, in [frontend/AGENTS.md](../../AGENTS.md), and the
+repository's rules, in [.agents/AGENTS.md](../../../.agents/AGENTS.md), apply
+here too; this workspace keeps its own for its code. The repository's
+`phaser-core` skill says how any game here is drawn with Phaser. Paths are
+relative to `frontend/games/brick-breaker/`.
+
+It is being built, step by step, as `docs/brick-breaker-execution-plan.md`
+lays out, which also describes the game as it will be; this file describes
+the code that exists.
+
+## Technology Stack
+
+- **Field:** [Phaser 4](https://phaser.io/), through `@fz/phaser`'s canvas,
+  host and scene helpers
+- **UI:** [Angular](https://angular.dev/) (standalone components, signals,
+  zoneless change detection) on `@fz/style`, `@fz/ui` and `@fz/game-ui` (the
+  `fuzzley-ui` skill), with `@fz/core`'s helpers in the rules
+- **Build Toolchain:** [Vite](https://vitejs.dev/) + [AnalogJS Vite Angular Plugin](https://analogjs.org/)
+- **Test Framework:** [Vitest](https://vitest.dev/) with jsdom, Testing
+  Library, and real Phaser run headless
+- **Language:** TypeScript / HTML / Sass
+
+## Layers
+
+Four folders under `src/`, as Snake's, each importing only the layers below
+it, as `eslint.config.js` fences them: the rules, with no framework and no
+library but `@fz/core`, physics included; the view, which works out what to
+draw without Phaser, with `@fz/phaser`'s pure entries; the scene, the only
+code that imports Phaser; and the shell, in Angular, which takes the scene
+and `@fz/phaser/host` only by type and loads the scene with `import()`.
+
+## Layout
+
+- **`src/app/`** — the shell: for now `app.component`, which shows the
+  game's name, and `styles/`, `global.scss`, loaded once from `main.ts`, and
+  `_index.scss`, the toolkit every component `@use`s, which emits no CSS.
+
+## Development Commands
+
+Run these from `frontend/games/brick-breaker/`, or as
+`yarn workspace brick-breaker <script>` from `frontend/`. The root's
+`yarn lint`, `yarn typecheck`, `yarn test` and `yarn build` run this
+workspace's with the others'.
+
+- **Run Development Server:** `yarn dev` (at `http://localhost:9004/`; the
+  Solitaire Collection's uses 9000, Minesweeper's 9001, Sudoku's 9002 and
+  Snake's 9003).
+- **Production Build:** `yarn build`, into `dist/`; `yarn preview` serves it.
+- **Run Unit Tests:** `yarn test` (the whole suite once, with coverage,
+  failing below the floor `vitest.config.ts` sets for the rules and the
+  view), `yarn test:watch`, or `yarn vitest run <path>` for one
+  spec, which leaves the floor alone.
+- **Linting:** `yarn lint` (ESLint with `@fz/dev`'s blocks and the fences
+  between the layers, then stylelint with `@fz/style`'s preset).
+- **Type Checking:** `yarn typecheck` (the app, the specs and the Vite
+  config).
+
+## Tests
+
+The repository's rules for specs apply. A spec sits beside the file it
+tests, named after it, and runs in jsdom; `src/test-setup.ts` installs
+`@fz/phaser/testing`'s headless Phaser first, so the scene's specs run real
+Phaser.
