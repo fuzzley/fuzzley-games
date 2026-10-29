@@ -53,7 +53,7 @@ describe("SettingsComponent", () => {
     await user.click(screen.getByRole("radio", { name: /^Slow/ }));
 
     expect(TestBed.inject(ConfirmService).prompt().title).toBe(
-      "Start a new game?",
+      "Start a new Slow game?",
     );
   });
 

@@ -1,4 +1,6 @@
+import { ApplicationRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { ConfirmService } from "@fz/ui/confirm";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
@@ -44,6 +46,19 @@ function figure(term: string): string {
   return name?.nextElementSibling?.textContent.trim() ?? "";
 }
 
+/** Returns the badge that shows the speed and offers the others. */
+function speedBadge(): HTMLElement {
+  return screen.getByRole("button", { name: "Speed: Normal" });
+}
+
+/** Chooses a speed from the badge's menu. */
+async function chooseSpeed(user: UserEvent, name: string): Promise<void> {
+  await user.click(speedBadge());
+  await user.click(
+    screen.getByRole("menuitemradio", { name: new RegExp(`^${name}`) }),
+  );
+}
+
 describe("BarComponent", () => {
   let viewport: FakeViewport | null = null;
 
@@ -64,7 +79,60 @@ describe("BarComponent", () => {
     it("shows the speed of the run", async () => {
       await renderBar();
 
-      expect(screen.getByText("Normal")).toBeInTheDocument();
+      expect(speedBadge()).toHaveTextContent("Normal");
+    });
+
+    it("offers the speeds from the badge, the run's checked", async () => {
+      const { user } = await renderBar();
+
+      await user.click(speedBadge());
+
+      expect(
+        screen.getAllByRole("menuitemradio").map((item) => ({
+          name: item.querySelector(".name")?.textContent,
+          checked: item.getAttribute("aria-checked"),
+        })),
+      ).toEqual([
+        { name: "Slow", checked: "false" },
+        { name: "Normal", checked: "true" },
+        { name: "Fast", checked: "false" },
+      ]);
+    });
+
+    it("starts a run at the speed chosen while none is under way", async () => {
+      const { user, game } = await renderBar();
+
+      await chooseSpeed(user, "Fast");
+
+      expect(
+        await screen.findByRole("button", { name: "Speed: Fast" }),
+      ).toBeInTheDocument();
+      expect(game.run().speed).toBe("fast");
+      expect(TestBed.inject(SettingsService).settings().speed).toBe("fast");
+    });
+
+    it("names the speed chosen before it throws away the run under way", async () => {
+      const { user, game, detectChanges } = await renderBar();
+      game.turn("up");
+      detectChanges();
+
+      await chooseSpeed(user, "Slow");
+
+      expect(TestBed.inject(ConfirmService).prompt().title).toBe(
+        "Start a new Slow game?",
+      );
+    });
+
+    it("keeps the run under way when the player backs out", async () => {
+      const { user, game, detectChanges } = await renderBar();
+      game.turn("up");
+      detectChanges();
+      await chooseSpeed(user, "Slow");
+
+      TestBed.inject(ConfirmService).cancel();
+      await TestBed.inject(ApplicationRef).whenStable();
+
+      expect(game.run().speed).toBe("normal");
     });
 
     it("shows the score and the best", async () => {
@@ -173,6 +241,12 @@ describe("BarComponent", () => {
     async function openMenu(user: UserEvent): Promise<void> {
       await user.click(screen.getByRole("button", { name: "More actions" }));
     }
+
+    it("keeps the speed in the bar, out of the menu", async () => {
+      await renderBar();
+
+      expect(speedBadge()).toBeVisible();
+    });
 
     it("keeps Pause and New Game in the bar", async () => {
       await renderBar();
