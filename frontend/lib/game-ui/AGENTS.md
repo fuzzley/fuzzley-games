@@ -40,6 +40,18 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
   layer over the window takes the tap that closes it, so the tap doesn't
   reach the board. `withHomeLink(items, href)` leads the items with the
   link home, for a bar with no room for it.
+- `src/bar_choice/`: `<fz-bar-choice>`, a badge in a bar's title, such as a
+  game's level, that opens an Angular Aria menu of the choices, one of them
+  checked (`menuitemradio`). The choices are data too
+  (`BarChoiceOption<Id>`: a name and a few words of detail), `value` is the
+  one checked, which the badge shows, and `choose` emits the id of any
+  other. The badge is named by its `label` and the choice ("Level:
+  Medium"), and is drawn as `.fz-badge` but takes a press anywhere in the
+  tap size around it. Its menu hangs from the badge's start, as the badge
+  leads the bar, and on a rail the badge is set smaller, over its chevron.
+  It opens and closes as the overflow's does: `menuSide()` in
+  `src/game_bar/menu_side.ts` gives both the side, and the private partial
+  `src/_bar_menu.scss` draws both panels.
 - `src/viewport/`: `GameViewportService`, which follows the shape of the
   window: its `formFactor` (`roomy`, `phone-portrait` or
   `phone-landscape`), `isCompact` and `isPortrait`, where the bar stands
@@ -97,8 +109,8 @@ what it exports; an app imports it as `@fz/game-ui/<folder>`.
 - **A width every game changes shape at is written once**, in
   `src/breakpoints/`, for TypeScript and for Sass, which its spec keeps
   equal. A width only one game means something by stays in that game.
-- **Nothing inside the bar may become a containing block.** The overflow's
-  dismiss layer is `position: fixed` to cover the window, which a
+- **Nothing inside the bar may become a containing block.** The menus'
+  dismiss layers are `position: fixed` to cover the window, which a
   `backdrop-filter`, `transform`, `filter`, `contain` or container query on
   an ancestor would trap inside that ancestor. So the bar's glass is on its
   `::before`, beneath an `isolation: isolate` that keeps it behind the bar's
