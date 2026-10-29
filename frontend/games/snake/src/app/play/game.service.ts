@@ -90,6 +90,7 @@ export class GameService {
   private readonly resultOpenState = signal(false);
   private readonly runsState = signal(0);
   private readonly drawnState = signal(true);
+  private readonly resultClosedState = signal(false);
 
   /** The time since the last step, toward the next, in milliseconds. */
   private carried = 0;
@@ -111,6 +112,12 @@ export class GameService {
 
   /** Whether the card over an ended run is showing. */
   readonly resultOpen = this.resultOpenState.asReadonly();
+
+  /**
+   * Whether the card over an ended run has been put away, leaving the board
+   * to look at, from which another run starts at a key.
+   */
+  readonly resultClosed = this.resultClosedState.asReadonly();
 
   /**
    * How many runs have begun since the page loaded, each new game or run
@@ -187,6 +194,9 @@ export class GameService {
       case "toggle":
         this.toggle();
         break;
+      case "go":
+        this.go();
+        break;
       default:
         this.turn(command);
     }
@@ -230,12 +240,29 @@ export class GameService {
     this.announcer.say(describeResume());
   }
 
-  /** Pauses the run under way, or goes on with one paused. */
+  /**
+   * Pauses the run under way, or goes on with one paused, or starts another
+   * once an ended run's card is put away.
+   */
   toggle(): void {
-    if (this.runState().outcome === "paused") {
+    if (this.mayStartAnother()) {
+      void this.newGame();
+    } else if (this.runState().outcome === "paused") {
       this.resume();
     } else {
       this.pause();
+    }
+  }
+
+  /**
+   * Goes on with a paused run, or starts another once an ended run's card is
+   * put away, as the card over the board offers.
+   */
+  go(): void {
+    if (this.mayStartAnother()) {
+      void this.newGame();
+    } else {
+      this.resume();
     }
   }
 
@@ -275,6 +302,12 @@ export class GameService {
   /** Puts away the card over an ended run, leaving the board to look at. */
   closeResult(): void {
     this.resultOpenState.set(false);
+    this.resultClosedState.set(true);
+  }
+
+  /** Whether a key may start another run: once an ended run's card is away. */
+  private mayStartAnother(): boolean {
+    return this.ended() && this.resultClosedState();
   }
 
   /** Returns a new run at a speed, waiting for its first direction. */
@@ -293,6 +326,7 @@ export class GameService {
     this.sinceEnd = null;
     this.newBestState.set(false);
     this.resultOpenState.set(false);
+    this.resultClosedState.set(false);
     this.runsState.update((runs) => runs + 1);
     this.announcer.clear();
   }

@@ -2,9 +2,10 @@ import type { Direction } from "../rules/geometry";
 
 /**
  * Names what a key or a swipe asks of the game: a direction to turn, to
- * pause, or to pause or go on as it isn't.
+ * pause, to pause or go on as it isn't, or to go on, or start another run
+ * once one has ended.
  */
-export type BoardCommand = Direction | "pause" | "toggle";
+export type BoardCommand = Direction | "pause" | "toggle" | "go";
 
 /**
  * What each key asks, by `event.code`, the key's place on the keyboard
@@ -23,6 +24,8 @@ const KEYS: Readonly<Record<string, BoardCommand>> = {
   Escape: "pause",
   KeyP: "toggle",
   Space: "toggle",
+  Enter: "go",
+  NumpadEnter: "go",
 };
 
 /** The keys the board answers, by `event.code`. */

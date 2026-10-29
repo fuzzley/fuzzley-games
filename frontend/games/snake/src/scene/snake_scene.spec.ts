@@ -348,6 +348,28 @@ describe("SnakeScene", () => {
       expect(shell.commands).toEqual(["up", "toggle"]);
     });
 
+    it("turn Enter on the board into going on", async () => {
+      const { shell, run } = await startBoard();
+
+      run.key("keydown", "Enter");
+      run.advance(16);
+
+      expect(shell.commands).toEqual(["go"]);
+    });
+
+    it("leave Enter on a button over the board to press the button", async () => {
+      const { shell, run, keys } = await startBoard();
+      const resume = document.createElement("button");
+      keys.append(resume);
+
+      resume.dispatchEvent(
+        new KeyboardEvent("keydown", { code: "Enter", bubbles: true }),
+      );
+      run.advance(16);
+
+      expect(shell.commands).toEqual([]);
+    });
+
     it("ignore a held key, a shortcut and a key the game doesn't use", async () => {
       const { shell, run, keys } = await startBoard();
 

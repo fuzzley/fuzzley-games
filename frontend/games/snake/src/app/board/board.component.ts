@@ -22,14 +22,15 @@ import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 
 /** Names a card laid over the board, or none. */
-type Card = "start" | "paused" | "slow" | "failed" | null;
+type Card = "start" | "paused" | "ended" | "slow" | "failed" | null;
 
 /**
  * Shows the board: the canvas the scene draws on, which hears the keys and
  * the swipes while the board has the focus, a drawing of the empty board in
  * CSS until the scene has drawn, and the cards that say how to start, that
- * the run is paused, that the board is still loading on a slow connection,
- * or that it couldn't be drawn.
+ * the run is paused, how to start again once its result is put away, that
+ * the board is still loading on a slow connection, or that it couldn't be
+ * drawn.
  *
  * The board is an application to assistive technology, so a screen reader
  * hands it the arrow keys rather than reading with them; the canvas in it is
@@ -111,10 +112,18 @@ export class BoardComponent {
         return "start";
       case "paused":
         return "paused";
+      case "over":
+      case "won":
+        return this.game.resultClosed() ? "ended" : null;
       default:
         return null;
     }
   });
+
+  /** What the card over an ended run calls it, as the result card does. */
+  protected readonly endTitle = computed(() =>
+    this.game.outcome() === "won" ? "You filled the board!" : "Game over",
+  );
 
   /** The board's colors, a new object only when the palette changes. */
   private readonly palette = computed(() =>
@@ -205,6 +214,11 @@ export class BoardComponent {
   protected resume(): void {
     this.game.resume();
     this.host.nativeElement.focus();
+  }
+
+  /** Starts another run, from the card over an ended one. */
+  protected newGame(): void {
+    void this.game.newGame();
   }
 
   /** Loads the page again, for a board that couldn't be drawn. */

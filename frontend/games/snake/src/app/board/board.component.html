@@ -8,7 +8,7 @@
 
 <p id="board-keys" class="fz-visually-hidden">
   The arrow keys, or W, A, S and D, steer the snake. Space or P pauses and goes
-  on, and Escape pauses.
+  on, and Escape pauses. Once a run has ended, Enter or Space starts another.
 </p>
 
 @switch (card()) {
@@ -23,6 +23,15 @@
       <p class="card-title">Paused</p>
       <p>Score {{ game.score() }}</p>
       <button type="button" class="fz-button" (click)="resume()">Resume</button>
+    </div>
+  }
+  @case ("ended") {
+    <div class="card">
+      <p class="card-title">{{ endTitle() }}</p>
+      <p>Score {{ game.score() }}</p>
+      <button type="button" class="fz-button" (click)="newGame()">
+        New Game
+      </button>
     </div>
   }
   @case ("slow") {
