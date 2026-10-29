@@ -33,9 +33,10 @@ smaller one to start from.
   makes a host.
 - **`@fz/phaser/scene`**: the helpers below, for a scene that lives in a game
   that outlives it.
-- **`@fz/phaser/sound`**: `SpritePlayer`, which loads a sound sprite once
-  the scene has drawn and plays its sounds while the player wants sound,
-  muting the scene while they don't; a sprite that fails to load leaves the
+- **`@fz/phaser/sound`**: `SpritePlayer`, made in a scene's `create()` so
+  the scene never waits for its sprite, which plays the sprite's sounds,
+  named by its spritemap, while the player wants sound, muting the game
+  while they don't; a sprite that fails to load leaves the
   game silent, not broken. `@fz/dev/sounds` synthesizes the sprite.
 - **`@fz/phaser/testing`**: the headless harness and the fake canvas, below.
 - **`@fz/phaser/insets`**, **`@fz/phaser/color`** and

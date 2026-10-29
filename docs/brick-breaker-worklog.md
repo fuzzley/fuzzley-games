@@ -96,3 +96,31 @@ viewports and found them identical. Its findings, and what became of each:
 Left as the reviewer advised: `BoardMetrics` as Snake's thin wrapper, the
 name `Viewport`, and a shared `viewportOf()` for the scenes until B6 needs
 one.
+
+## L2.1's review
+
+The reviewer found Snake's sounds unchanged (the key, the call, the JSON in
+the scene's chunk) and the spy justified. Its findings:
+
+1. **Snake's view fence let `@fz/phaser/sound` through.** Fixed in L1.1's
+   review, which found the same.
+2. **The docs named `@fz/dev/sounds` before it existed.** L2.2 made it, so
+   the name holds now; nothing to change.
+3. **`spritemap: object` took anything, and the names weren't tied to the
+   sprite.** Fixed: `SoundSprite<Name>` takes `{ spritemap: Record<Name, …> }`,
+   so the player's names are the JSON's keys, and a map missing its
+   `spritemap` doesn't compile.
+4. **A test claimed a failed load it never made** (under `noAudio`, Phaser
+   queues nothing). Fixed: renamed "isn't loaded before the sprite is in the
+   cache", the URL's claim and the frame gone, and each test makes its
+   player in its own Act or Arrange.
+5. **The load call was untested.** Fixed: a spy on `load.audioSprite` checks
+   the key, the map passed as the map, and the URL.
+6. **Two doc comments were wrong:** the sprite loads when the player is made,
+   which must be in `create()`, and `scene.sound` is the game's, shared by
+   every scene. Fixed in the class, the library's `AGENTS.md` and the skill.
+7. **The library's ESLint comments and the canvas's fence didn't name
+   `sound`.** Fixed.
+
+Left as advised: the spy, the "leaves the mute alone" test, the load started
+by the constructor, the commented cast, and `config` on `play()`.

@@ -52,7 +52,7 @@ export default defineConfig(
     },
   },
   {
-    // A host and a scene run in any app, Angular or not.
+    // A host, a scene and its sounds run in any app, Angular or not.
     files: ["src/host/**/*.ts", "src/scene/**/*.ts", "src/sound/**/*.ts"],
     ignores: ["**/*.spec.ts"],
     rules: {
@@ -71,7 +71,7 @@ export default defineConfig(
                 "../testing/*",
               ],
               message:
-                "The host and the scene helpers know no framework, and nothing of the canvas built on them.",
+                "The host, the scene helpers and the sound player know no framework, and nothing of the canvas built on them.",
             },
           ],
         },
@@ -95,6 +95,8 @@ export default defineConfig(
                 "../host/*",
                 "../scene",
                 "../scene/*",
+                "../sound",
+                "../sound/*",
               ],
               allowTypeImports: true,
               message:
