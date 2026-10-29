@@ -2,6 +2,7 @@ import {
   CUSTOM_SIDE,
   DEFAULT_CUSTOM,
   PRESETS,
+  describeSize,
   difficultyName,
   isDifficultyId,
   isValidLives,
@@ -123,6 +124,16 @@ describe("sizeOf", () => {
     const custom = { rows: 8, cols: 12, mines: 20 };
 
     expect(sizeOf("custom", custom)).toBe(custom);
+  });
+});
+
+describe("describeSize", () => {
+  it("gives a field's rows, columns and mines", () => {
+    expect(describeSize(PRESETS.easy.size)).toBe("9 × 9, 10 mines");
+  });
+
+  it("counts a lone mine as one", () => {
+    expect(describeSize({ rows: 5, cols: 5, mines: 1 })).toBe("5 × 5, 1 mine");
   });
 });
 

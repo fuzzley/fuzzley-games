@@ -1,3 +1,4 @@
+import { count } from "@fz/core/format";
 import { isWhole } from "@fz/core/json";
 
 /** Says how big a field is and how many mines it hides. */
@@ -95,6 +96,11 @@ export function isDifficultyId(value: unknown): value is DifficultyId {
 /** Returns the field a difficulty deals, given the player's custom one. */
 export function sizeOf(difficulty: DifficultyId, custom: FieldSize): FieldSize {
   return difficulty === "custom" ? custom : PRESETS[difficulty].size;
+}
+
+/** Returns how big a field is, such as "9 × 9, 10 mines". */
+export function describeSize({ rows, cols, mines }: FieldSize): string {
+  return `${rows} × ${cols}, ${count(mines, "mine", "mines")}`;
 }
 
 /** Returns a difficulty's name, such as "Medium". */

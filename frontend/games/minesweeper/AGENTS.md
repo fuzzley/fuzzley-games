@@ -43,7 +43,10 @@ workspace keeps its own for its code. Paths are relative to
   - `board/` — the minefield, and `LongPressDirective`, which tells when a
     finger rests on it and keeps the click that follows from it.
   - `bar/` — `BarComponent` fills the libraries' `<fz-game-bar>` with the
-    mines left, the lives, the time and the actions.
+    difficulty, a `<fz-bar-choice>` that deals a field of another through
+    `GameService.changeSettings()`, Custom's the one the settings keep, on
+    a roomy screen wide enough for it; and the mines left, the lives, the
+    time and the actions.
   - `settings/` — the settings drawer, whose field of the player's own is
     a Signal Form (`@angular/forms/signals`) with the rules' `sizeProblem()`
     as its validator, and `SettingsService`, which keeps what the player

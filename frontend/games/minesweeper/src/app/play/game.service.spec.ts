@@ -59,6 +59,27 @@ describe("GameService", () => {
       );
     });
 
+    it("names the difficulty before a field of another loses the game under way", () => {
+      const game = playOn(IN_PLAY);
+
+      void game.changeSettings({ difficulty: "hard" });
+
+      expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
+        title: "Start a new Hard game?",
+        confirmLabel: "New game",
+      });
+    });
+
+    it("asks the plain question before other lives lose the game under way", () => {
+      const game = playOn(IN_PLAY);
+
+      void game.changeSettings({ lives: 5 });
+
+      expect(TestBed.inject(ConfirmService).prompt().title).toBe(
+        "Start a new game?",
+      );
+    });
+
     it("asks to restart the field, not for a new game, before a restart", () => {
       const game = playOn(IN_PLAY);
 

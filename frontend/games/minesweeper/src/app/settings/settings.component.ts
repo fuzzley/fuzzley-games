@@ -26,6 +26,7 @@ import {
   type FieldSize,
   LIVES,
   PRESETS,
+  describeSize,
   difficultyName,
   isSide,
   maxMines,
@@ -58,8 +59,7 @@ function draftSize(draft: CustomDraft): FieldSize {
 /** Returns how a difficulty reads under its name. */
 function describeDifficulty(difficulty: DifficultyId): string {
   if (difficulty === "custom") return "Your own size and mines";
-  const { rows, cols, mines } = PRESETS[difficulty].size;
-  return `${rows} × ${cols}, ${mines} mines`;
+  return describeSize(PRESETS[difficulty].size);
 }
 
 /**

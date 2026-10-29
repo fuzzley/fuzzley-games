@@ -1,5 +1,9 @@
 import { Component, computed, inject, output } from "@angular/core";
 import {
+  BarChoiceComponent,
+  type BarChoiceOption,
+} from "@fz/game-ui/bar_choice";
+import {
   type BarOverflowAction,
   BarOverflowComponent,
   type BarOverflowItem,
@@ -9,9 +13,16 @@ import { GameBarComponent } from "@fz/game-ui/game_bar";
 import { formatClock } from "@fz/game-ui/stopwatch";
 import { IconComponent } from "@fz/ui/icon";
 import { GameViewportService } from "@fz/game-ui/viewport";
-import { difficultyName } from "../../rules/difficulty";
+import {
+  DIFFICULTY_IDS,
+  type DifficultyId,
+  describeSize,
+  difficultyName,
+  sizeOf,
+} from "../../rules/difficulty";
 import { count } from "@fz/core/format";
 import { GameService } from "../play/game.service";
+import { SettingsService } from "../settings/settings.service";
 
 /** Where the link home leads: the Fuzzley Games site, which serves this game. */
 const HOME_HREF = "/";
@@ -28,14 +39,20 @@ const OVERFLOW_ACTIONS: readonly BarOverflowAction<MenuAction>[] = [
 
 /**
  * Shows the game bar: the link home, the game's name and difficulty, the
- * mines left, the lives and the time, and the actions.
+ * mines left, the lives and the time, and the actions. The difficulty, a menu
+ * of the difficulties, shows only on a roomy screen wide enough for it.
  *
  * On a compact screen, Restart, How to play and Settings move into the
  * overflow menu, and on the narrowest the link home does too.
  */
 @Component({
   selector: "app-bar",
-  imports: [BarOverflowComponent, GameBarComponent, IconComponent],
+  imports: [
+    BarChoiceComponent,
+    BarOverflowComponent,
+    GameBarComponent,
+    IconComponent,
+  ],
   host: {
     "[class.compact]": "viewport.isCompact()",
     "[class.rail]": 'viewport.barPlacement() === "end"',
@@ -46,6 +63,7 @@ const OVERFLOW_ACTIONS: readonly BarOverflowAction<MenuAction>[] = [
 export class BarComponent {
   protected readonly game = inject(GameService);
   protected readonly viewport = inject(GameViewportService);
+  private readonly settings = inject(SettingsService);
 
   /** Emitted when the player asks how to play. */
   readonly openHelp = output();
@@ -55,9 +73,20 @@ export class BarComponent {
 
   protected readonly homeHref = HOME_HREF;
 
-  protected readonly difficulty = computed(() =>
-    difficultyName(this.game.difficulty()),
-  );
+  /**
+   * The difficulties the badge offers, each with the field it deals: Custom's
+   * the one the settings keep.
+   */
+  protected readonly difficulties = computed<
+    readonly BarChoiceOption<DifficultyId>[]
+  >(() => {
+    const { custom } = this.settings.settings();
+    return DIFFICULTY_IDS.map((id) => ({
+      id,
+      name: difficultyName(id),
+      detail: describeSize(sizeOf(id, custom)),
+    }));
+  });
 
   protected readonly time = computed(() => formatClock(this.game.seconds()));
 
@@ -81,6 +110,11 @@ export class BarComponent {
       ? withHomeLink(OVERFLOW_ACTIONS, HOME_HREF)
       : OVERFLOW_ACTIONS,
   );
+
+  /** Deals a field of the difficulty chosen from the badge, asking first. */
+  protected changeDifficulty(difficulty: DifficultyId): void {
+    void this.game.changeSettings({ difficulty });
+  }
 
   /** Carries out the action chosen from the overflow menu. */
   protected chooseFromMenu(id: MenuAction): void {
