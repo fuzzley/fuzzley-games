@@ -49,3 +49,18 @@ and the QA checkpoints. Newest last.
   repository's rules allow where state can't be inspected.
 - **Checks.** `@fz/phaser` (238 tests) and `snake` (395): lint, typecheck,
   test. Docs: the library's `AGENTS.md`, Snake's and `phaser-core`.
+
+## L2.2: the synthesizer
+
+- **Built.** `@fz/dev/sounds`: `glide()`, `envelope()`, `thud()`, `note()`,
+  `renderSoundSprite()` and `writeSoundSprite()`, moved out of Snake's
+  `tools/build-sounds.mjs`, which now holds only its three recipes. Specced
+  by rendering sprites and writing one into a temporary folder.
+- **Proof.** `yarn build:sounds` writes the same bytes as before:
+  `sounds.wav` `e3b108ff…bcf28` and `sounds.json` `f4676762…df90d` (SHA-256),
+  unchanged in git.
+- **Choice.** `renderSoundSprite()` is exported beside `writeSoundSprite()`,
+  so the spec checks a sprite without touching the disk, and the writer
+  returns what it wrote, for the script's line about it.
+- **Checks.** `@fz/dev` (103 tests, coverage up to 89% of statements) and
+  `snake`: lint and typecheck.

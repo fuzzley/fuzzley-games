@@ -116,6 +116,14 @@ too. Paths are relative to `frontend/lib/dev/`.
   a capture into a folder, the thumbnail cropped to a region when given
   one; `writeImage()` writes one image of any size, as the Solitaire
   Collection's rules-page image is.
+- `src/sounds.ts`, `@fz/dev/sounds`: a game's sound effects, synthesized.
+  A `Sound` is a name, a length, a peak and a wave, made of `glide()` (a
+  tone gliding between two pitches), `envelope()`, `thud()` (seeded noise)
+  and `note()`; `writeSoundSprite()` renders a list of them at 16,000
+  samples a second, each faded out at its end and a tenth of a second
+  apart, into `sounds.wav` and the spritemap Phaser plays it by,
+  `sounds.json`, the same bytes every run. A game's
+  `tools/build-sounds.mjs` holds its recipes and calls it.
 
 ## How a workspace uses it
 
@@ -172,7 +180,7 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   check the configs the presets return; `src/game_manifest.spec.ts` builds
   games with Vite in a folder of their own and reads the manifests they
   write; `src/screenshots.spec.ts` writes the site's images from a capture
-  it draws; `src/chrome.spec.ts` and `src/layout.spec.ts` drive the
+  it draws; `src/sounds.spec.ts` renders sprites and reads them back; `src/chrome.spec.ts` and `src/layout.spec.ts` drive the
   DevTools helpers and the layout check against a fake browser,
   `src/testing/fake_browser.ts`. Starting a real Chrome is left to the
   screenshot scripts, so the coverage floor in `vitest.config.ts` sits
