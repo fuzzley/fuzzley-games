@@ -13,7 +13,7 @@ export interface Box {
  * through.
  *
  * Columns beside the grid, where the walls stand, do, and rows above and
- * below it don't, so a field's checks a cell with {@link inGrid} before it
+ * below it don't, so a field checks a cell with {@link inGrid} before it
  * looks in its bricks, where column -1 would be the last of the row above.
  */
 export type Solid = (column: number, row: number) => boolean;
@@ -75,6 +75,49 @@ export const SIDE = {
   bottomRight: 64,
   bottomLeft: 128,
 } as const;
+
+/** One of a box's faces, as {@link SIDE} names it. */
+export type Face = (typeof SIDE)["top" | "right" | "bottom" | "left"];
+
+/** One of a box's corners, as {@link SIDE} names it. */
+export type Corner = (typeof SIDE)[
+  "topLeft" | "topRight" | "bottomRight" | "bottomLeft"];
+
+/** A box's faces, clockwise from the top. */
+export const FACES: readonly Face[] = [
+  SIDE.top,
+  SIDE.right,
+  SIDE.bottom,
+  SIDE.left,
+];
+
+/** A box's corners, clockwise from the top left. */
+export const CORNERS: readonly Corner[] = [
+  SIDE.topLeft,
+  SIDE.topRight,
+  SIDE.bottomRight,
+  SIDE.bottomLeft,
+];
+
+/** Each face's normal, the way out of the box, across and down. */
+export const FACE_NORMAL: Readonly<
+  Record<Face, { readonly x: -1 | 0 | 1; readonly y: -1 | 0 | 1 }>
+> = {
+  [SIDE.top]: { x: 0, y: -1 },
+  [SIDE.right]: { x: 1, y: 0 },
+  [SIDE.bottom]: { x: 0, y: 1 },
+  [SIDE.left]: { x: -1, y: 0 },
+};
+
+/** Each corner's place, as the edges of a box it lies on. */
+export const CORNER_AT: Readonly<
+  Record<Corner, { readonly x: "left" | "right"; readonly y: "top" | "bottom" }>
+> = {
+  [SIDE.topLeft]: { x: "left", y: "top" },
+  [SIDE.topRight]: { x: "right", y: "top" },
+  [SIDE.bottomRight]: { x: "right", y: "bottom" },
+  [SIDE.bottomLeft]: { x: "left", y: "bottom" },
+};
 
 /**
  * Returns which faces and corners of the brick in a cell a ball can touch,

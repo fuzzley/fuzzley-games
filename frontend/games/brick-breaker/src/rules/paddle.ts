@@ -1,4 +1,5 @@
 import type { Box } from "./grid";
+import { STEP_MS } from "./stepper";
 import {
   FIELD_WIDTH,
   KEY_RAMP_MS,
@@ -11,7 +12,10 @@ import {
   STEP_S,
 } from "./tuning";
 
-/** Says how the player steers the paddle this frame: one object, written again each frame. */
+/**
+ * Says how the player steers the paddle this frame: one object, written
+ * again each frame.
+ */
 export interface Steer {
   /** Where a pointer asks the paddle's middle to be, in field units, or null. */
   to: number | null;
@@ -42,7 +46,7 @@ export interface Paddle {
 }
 
 /** The share of the keys' top speed one step's ramp adds. */
-const RAMP = (STEP_S * 1000) / KEY_RAMP_MS;
+const RAMP = STEP_MS / KEY_RAMP_MS;
 
 /** Returns a paddle in the field's middle, at its first width. */
 export function createPaddle(): Paddle {

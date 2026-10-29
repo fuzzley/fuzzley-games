@@ -678,3 +678,69 @@ three `isCapsuleId()` cases, and a record keyed by id.
   statements, 97.8% of branches.
 - **Reviews in.** B2.4's and B3.2's reviews came in during this step; their
   fixes follow in their own commits, before B3.4.
+
+## B2.4's review
+
+With B2.4 the reviewer took the five fix commits before it (B2.1's, B1.1's,
+B2.2's, B2.3's and B3.1's reviews), which check out against this log but
+for two points below. It played six steel-heavy levels at up to eight
+times the pace without a ball passing through anything, and made eight
+small changes to the field to see which the specs caught. Its findings:
+
+1. **No spec showed a fast ball can't pass through a brick:** at the usual
+   pace a step is shorter than the ball's radius. Fixed: a ball at 40 times
+   the pace, a step of 5.3, still breaks the brick in its way.
+2. **The determinism spec never drew a random number,** and nothing held
+   the lull to its seed. Fixed: the spec's level drops capsules and shuts
+   balls in with steel, draws as it plays, plays another way from another
+   seed, and the lull turns the same from the same seed.
+3. **A ball could freeze between the paddle's end and a wall** less than a
+   ball apart, sent from one to the other at once, four events a step.
+   Fixed: the box the balls meet the paddle by reaches the wall across such
+   a gap (`paddleReach()`), with the reviewer's case as a spec.
+4. **Two faces met at once at a right angle turned the ball about their
+   diagonal,** not back the way it came. Fixed: each face met turns the
+   ball along its own axis, and a corner's normal counts only when no face
+   was met; a spec sends a ball into the top left corner at 0.6 by 0.8.
+5. **A wrong side was a silent miss.** Fixed: `Face` and `Corner` are
+   unions of `SIDE`'s bits, so `sweepFace()` and `sweepCorner()` take only
+   their own; the specs of a corner given as a face are gone.
+6. **A cleared field kept last step's places,** so it would be drawn
+   shaking. Fixed: once cleared, what moves is held still where it is.
+7. **Specs that couldn't fail.** Fixed: the paddle's underside (a ball
+   rising from below passes through it), its lift (a ball whose middle
+   has fallen below it is left), a lull's turn back into its wall
+   (mirrored out, one wall event; it failed without the mirror), a seam
+   (two steel bricks turn a ball once), and four contacts a step (a ball
+   shut in steel at 40 times the pace turns four times and stays in).
+   The gap of 3 and the lull's mirror each failed once undone.
+8. **Catch's 3 s wait sat in `tuning.ts` against its own rule.** The rule
+   was too broad: the bolts and the net keep theirs there too. It now
+   reads: a number a catalog's entries differ by is the entry's, and one
+   that sets how an effect works is the tuning's. Catch's sentence is held
+   to `CATCH_HOLD_MS` by a spec.
+9. **The catalog's duration specs matched within other numbers.** Fixed:
+   a whole word (`\b12 seconds\b`), and the regrow check reads the
+   catalog's own trait, with no fallback.
+10. **The contact search talks through module records.** Left: they are
+    the step's way of allocating nothing, as the plan asks, and each
+    function's doc names the one it reads or writes. The bricks the last
+    contact held stay referenced until the next, which costs nothing.
+11. **The sides' geometry was written three times.** Fixed: `FACE_NORMAL`
+    and `CORNER_AT` in `grid.ts`, beside `SIDE`, serve the sweep and the
+    field.
+12. **`fieldFrom()` drew a mistake as no brick.** Fixed: it throws for a
+    character it doesn't know and a row past 13.
+13. **Smaller.** Fixed: `remaining` for the distance left; `meet()` and
+    `meetBox()` are `noteContact()` and `noteBox()`, beside `met`; the
+    union is `Obstacle`; the ramp uses `STEP_MS`; `AGENTS.md` says a step
+    makes only a draw's generator; `throwBall()`'s doc says it puts the
+    field in play; the specs name cells with `cellIndex()`.
+14. **Doc nits.** Fixed: "a field checks"; `sweepLine()`'s doc opens with
+    one sentence; the long doc lines wrapped; the ragged wraps in two
+    `AGENTS.md` files and `stylelint.config.js`.
+
+Left as advised: `Field.solid` as a closure, the `|| 1` guard, the event
+log's `if (event)`, a generator per draw, `for…of`, `expect.closeTo` in
+the stepper's spec, the visitor of `forEachSince()`, a lull only at walls,
+and keys over the pointer.

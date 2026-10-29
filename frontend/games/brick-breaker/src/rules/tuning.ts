@@ -1,8 +1,10 @@
 // The numbers that set the game's feel, in one file, so tuning it touches
 // nothing else: lengths in field units, speeds in units a second, and times
 // in milliseconds, but the step's, which the physics takes in seconds. A
-// number that belongs to one kind of brick or one capsule is its catalog
-// entry's.
+// number a catalog's entries differ by, such as a blast's delay or a
+// capsule's width or time, is the entry's; one that sets how an effect
+// works, such as how long a caught ball waits or how fast a bolt rises, is
+// here.
 
 /** The field's width: 13 bricks of 2. */
 export const FIELD_WIDTH = 26;
