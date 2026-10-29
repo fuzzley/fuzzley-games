@@ -36,9 +36,9 @@ take the pure ones.
   ends; `pixelRatioOf()`; and `bakeTexture()`, a texture drawn at run time
   and drawn again after a lost context. It imports Phaser, never Angular.
 - `src/sound/`: `SpritePlayer`, which loads a sound sprite (its key, its
-  spritemap and its file's URL) without holding up the scene, and plays its
-  sounds once it has loaded while the player wants sound, muting the scene
-  while they don't. It imports Phaser, never Angular.
+  spritemap and its file's URL), made in `create()` so the scene never
+  waits for it, and plays its sounds, named by the spritemap, once it has
+  loaded while the player wants sound, muting the game while they don't. It imports Phaser, never Angular.
 - `src/canvas/`: `<fz-phaser-canvas>`, the Angular component an app shows
   its scenes in, which makes the one host it keeps, through the
   `PHASER_CANVAS_HOST` token. Its `scene` input is a `SceneSource`, a
