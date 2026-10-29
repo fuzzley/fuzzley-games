@@ -284,11 +284,13 @@ in Part 2, under `frontend/games/brick-breaker/` unless they say otherwise.
   kind). Built before B2.4, which needs the brick kinds. The bad capsules
   being the only ones Relaxed leaves out is B3.3's, with the pool. One
   commit.
-- **B3.2** `src/rules/bricks.ts`: `TRAIT_RULES` for `hard`, `blasts`,
-  `gives`, `hidden` and `regrows`, tough bricks' hits, and the needed count;
-  the field uses them. Specced trait by trait. One commit.
+- **B3.2** `src/rules/bricks.ts`: `Brick`, `hitBrick()` and
+  `TRAIT_RULES` for `hard`, `blasts`, `hidden` and `regrows`, tough bricks'
+  hits, and the needed count; the field uses them. Specced trait by trait.
+  `gives` has its entry, empty until the capsules fall (B3.3). One commit.
 - **B3.3** `src/rules/capsules.ts`: the draw by weight from the level's pool,
-  the cap of three falling, the catch and the miss, and `EFFECT_RULES` for
+  the cap of three falling, the catch and the miss, the gift brick's
+  capsule (`gives`' rule), and `EFFECT_RULES` for
   every effect (paddle size, catch, laser and its bolts, fire, blast, slow,
   fast, split, life, net), with the groups and the timers; the ball kinds'
   properties in the sweep (fire passing through what it breaks, blast's hits

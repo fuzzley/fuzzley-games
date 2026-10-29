@@ -11,6 +11,9 @@ import type { Speed } from "../rules/speed";
 const KINDS: Readonly<Record<string, BrickKindId>> = {
   o: "plain",
   "#": "steel",
+  "*": "blast",
+  "?": "gift",
+  "~": "ghost",
   "+": "regrow",
   "2": "tough",
   "3": "tough",
@@ -29,9 +32,10 @@ export const NO_STEER: Readonly<Steer> = { to: null, by: 0, push: 0 };
 
 /**
  * Returns a field from a picture of its bricks, a row of up to 13 characters
- * for each row from the top: `.` or nothing for no brick, `o` a plain one,
- * `#` steel, `+` one that regrows, and `2` to `4` a tough one of that many
- * hits.
+ * for each row from the top, in the shared legend's characters: `.` or
+ * nothing for no brick, `o` a plain one, `2` to `4` a tough one of that many
+ * hits, `#` steel, `*` a blast, `?` a gift, `~` a ghost and `+` one that
+ * regrows.
  */
 export function fieldFrom(
   rows: readonly string[],

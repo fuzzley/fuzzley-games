@@ -10,6 +10,10 @@ export type FieldEventKind =
   | "hit"
   /** A brick broke. */
   | "broken"
+  /** A broken brick that blasts went off. */
+  | "blast"
+  /** A broken brick grew back. */
+  | "regrown"
   /** A ball fell past the floor. */
   | "lost"
   /** The last brick the level needs broke. */
