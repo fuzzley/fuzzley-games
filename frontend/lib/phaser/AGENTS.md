@@ -35,6 +35,10 @@ take the pure ones.
   `onFirstFrame()`, which let go of what they subscribe to when the scene
   ends; `pixelRatioOf()`; and `bakeTexture()`, a texture drawn at run time
   and drawn again after a lost context. It imports Phaser, never Angular.
+- `src/sound/`: `SpritePlayer`, which loads a sound sprite (its key, its
+  spritemap and its file's URL) without holding up the scene, and plays its
+  sounds once it has loaded while the player wants sound, muting the scene
+  while they don't. It imports Phaser, never Angular.
 - `src/canvas/`: `<fz-phaser-canvas>`, the Angular component an app shows
   its scenes in, which makes the one host it keeps, through the
   `PHASER_CANVAS_HOST` token. Its `scene` input is a `SceneSource`, a
@@ -63,8 +67,8 @@ take the pure ones.
   `@fz/style`, never a game or the site.
 - **The pure entries import nothing but each other,** as ESLint checks, so
   a game's Phaser-free code can take them.
-- **The host and the scene helpers know no framework,** as ESLint checks, so
-  a scene runs the same in any app, and in a spec.
+- **The host, the scene helpers and the sound player know no framework,**
+  as ESLint checks, so a scene runs the same in any app, and in a spec.
 - **Only the canvas makes a host,** and it imports `host` with `import()`:
   ESLint lets `src/canvas/` import Phaser, the host and the scene helpers
   only by type, so an app that loads its scene with `import()` keeps Phaser

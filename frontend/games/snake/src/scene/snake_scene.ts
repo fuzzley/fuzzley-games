@@ -1,6 +1,7 @@
 import type { SceneSurroundings } from "@fz/phaser/host";
 import type { CssRect, Viewport } from "@fz/phaser/layout";
 import { onFirstFrame, pixelRatioOf } from "@fz/phaser/scene";
+import { SpritePlayer } from "@fz/phaser/sound";
 import { Input, Scene } from "phaser";
 import { BOARD_SIZE } from "../rules/arena";
 import { type BoardMetrics, boardMetrics } from "../view/board_metrics";
@@ -10,14 +11,15 @@ import {
   SwipeReader,
   commandOfKey,
 } from "../view/controls";
-import { effectsOf } from "../view/effects";
+import { type SoundName, effectsOf } from "../view/effects";
 import type { SnakeFrame } from "../view/frame";
 import type { SnakePalette } from "../view/palette";
 import { ApplePainter } from "./apple_painter";
 import { BoardPainter } from "./board_painter";
 import { EffectsPainter } from "./effects_painter";
 import { SnakePainter } from "./snake_painter";
-import { SoundPlayer } from "./sound_player";
+import spritemap from "./sounds/sounds.json";
+import spriteUrl from "./sounds/sounds.wav?url";
 import { bakeApple, bakeCrumb } from "./textures";
 
 /** What the scene asks of the shell, and tells it. */
@@ -61,7 +63,7 @@ export class SnakeScene extends Scene {
   /** Plays the crumbs, the shake and the fade. */
   effects!: EffectsPainter;
   /** Plays the sounds. */
-  sounds!: SoundPlayer;
+  sounds!: SpritePlayer<SoundName>;
 
   /** The canvas as the board was last laid out on it. */
   private viewport: Viewport | null = null;
@@ -91,7 +93,11 @@ export class SnakeScene extends Scene {
     this.apple = new ApplePainter(this, this.add.layer());
     this.snake = new SnakePainter(this, this.add.layer());
     this.effects = new EffectsPainter(this, this.add.layer());
-    this.sounds = new SoundPlayer(this);
+    this.sounds = new SpritePlayer(this, {
+      key: "snake-sounds",
+      spritemap,
+      url: spriteUrl,
+    });
     this.layOut();
     this.listen();
     onFirstFrame(this, () => {

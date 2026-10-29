@@ -24,8 +24,8 @@ and the QA checkpoints. Newest last.
 
 ## L1.1: the layout entry
 
-- **Built.** `@fz/phaser/layout`: `fitCells(viewport, { across, down,
-frameCss })`, with `Viewport` (moved from Snake), `CssRect` and `CellFit`,
+- **Built.** `@fz/phaser/layout`: `fitCells()`, taking the cells across and
+  down and the frame's width, with `Viewport` (moved from Snake), `CssRect` and `CellFit`,
   fully covered. The pure entries' ESLint fence takes `src/layout/`, and now
   lets the pure entries import each other (`layout` takes `Insets`). Snake's
   `boardMetrics()` is a call to it, and Snake's `BoardRect` is the library's
@@ -35,3 +35,17 @@ frameCss })`, with `Viewport` (moved from Snake), `CssRect` and `CellFit`,
 - **Checks.** `@fz/phaser` and `snake`: lint, typecheck and test pass
   (Snake 395 tests). Docs: the library's `AGENTS.md`, Snake's layer table
   and the `phaser-core` skill name the entry.
+
+## L2.1: the sound player
+
+- **Built.** `@fz/phaser/sound`: `SpritePlayer<Name>`, taking the scene and
+  a `SoundSprite` (key, spritemap, URL), with `loaded`, `follow()` and
+  `play(name, config)`; the config is new, for Brick Breaker's rising
+  streak (`detune`). The library's Phaser and framework fences take
+  `src/sound/`. Snake's scene makes one, and its `sound_player.ts` is gone.
+- **Choice.** The headless game has no audio, so `playAudioSprite()` can't be
+  seen to play; the spec puts the sprite in `cache.audio` and watches the
+  call with a spy, the one place it checks an interaction, as the
+  repository's rules allow where state can't be inspected.
+- **Checks.** `@fz/phaser` (238 tests) and `snake` (395): lint, typecheck,
+  test. Docs: the library's `AGENTS.md`, Snake's and `phaser-core`.
