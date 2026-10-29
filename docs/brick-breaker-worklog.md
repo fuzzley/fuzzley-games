@@ -170,3 +170,19 @@ comment.
     sizes, and rows in their order keep a frame's place predictable.
 - **Checks.** `@fz/phaser`: lint, typecheck, 249 tests. Docs: the library's
   `AGENTS.md`, `phaser-core` and `phaser-canvas-performance`.
+
+## L4.1: the play room
+
+- **Built.** `@fz/game-ui/play_room`: `PlayRoomDirective`, `[fzPlayRoom]`,
+  with `away` emitting `"focus"`, `"hidden"` or `"turned"`, and Snake's press
+  rule, moved as they were. Specced with a host component, Testing Library
+  and `installFakeViewport()`: the focus leaving for the page and for
+  another window and moving within, the page hidden and shown, the screen
+  turned both ways and resized without turning, and a press on text, on a
+  control, from outside the room and with another button.
+- **Snake.** `app.component` loses its four handlers, `FOCUSABLE`, the
+  `document` and the room's `viewChild`, and binds `(away)="pauseRun()"`.
+  Its 395 specs pass unchanged, its pausing ones among them.
+- **Checks.** `@fz/game-ui` (156 tests, 100% of statements) and `snake`:
+  lint, typecheck, test. Docs: the library's `AGENTS.md`, Snake's, and the
+  `fuzzley-ui` and `web-game-accessibility` skills.

@@ -5,10 +5,10 @@
 -->
 <main class="stage">
   <div
-    #room
     class="room"
+    fzPlayRoom
     [class.with-arrows]="showArrows()"
-    (focusout)="onRoomFocusOut($event)"
+    (away)="pauseRun()"
   >
     <app-board #board [arrows]="showArrows()" />
     @if (showArrows()) {
