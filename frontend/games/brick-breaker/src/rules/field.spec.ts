@@ -718,21 +718,23 @@ describe("a blast ball", () => {
     ]);
   });
 
-  it("strikes no brick that another it met at once broke", () => {
-    // The ball rises up the seam between two bricks, 8 to 9 down, and meets
-    // both; the first one's hits around break the second.
-    const field = fieldFrom(["o", "", "", "", "", "", ".....oo"]);
-    throwBall(field, 12, 12, 0);
-    catchCapsule(field, "blast", 0, 0);
+  it.each([".....2o", ".....o2"])(
+    "strikes both of two bricks it meets at once, as %s, and reaches around each",
+    (row) => {
+      // The ball rises up the seam between the two, 8 to 9 down.
+      const field = fieldFrom(["o", "", "", "", "", "", row]);
+      throwBall(field, 12, 12, 0);
+      catchCapsule(field, "blast", 0, 0);
 
-    stepTimes(field, 35);
+      stepTimes(field, 35);
 
-    expect({ broken: brokenOf(field), climbed: field.climbed }).toEqual({
-      broken: [
-        [5, 6],
-        [6, 6],
-      ],
-      climbed: 1,
-    });
-  });
+      expect({ broken: brokenOf(field), climbed: field.climbed }).toEqual({
+        broken: [
+          [5, 6],
+          [6, 6],
+        ],
+        climbed: 2,
+      });
+    },
+  );
 });

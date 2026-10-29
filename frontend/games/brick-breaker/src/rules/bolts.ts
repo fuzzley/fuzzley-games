@@ -72,7 +72,7 @@ export function stepBolts(field: Field): void {
 }
 
 /** Lets go of every bolt, as a life is lost. */
-export function dropBolts(field: Field): void {
+export function clearBolts(field: Field): void {
   for (const bolt of field.bolts) bolt.live = false;
 }
 

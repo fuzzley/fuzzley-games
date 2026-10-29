@@ -9,7 +9,7 @@ import {
   settleBall,
   turnBall,
 } from "./balls";
-import { type Bolt, createBolts, dropBolts, stepBolts } from "./bolts";
+import { type Bolt, clearBolts, createBolts, stepBolts } from "./bolts";
 import {
   type Brick,
   canBreak,
@@ -22,9 +22,9 @@ import {
 import {
   type Effects,
   type Falling,
+  clearFalling,
   createEffects,
   createFalling,
-  dropCapsules,
   endEffect,
   endEffects,
   stepCapsules,
@@ -553,7 +553,11 @@ function hasMet(brick: Brick): boolean {
 /**
  * Turns a ball at what it met: off the paddle by where it landed, or as a
  * mirror off the walls and bricks, unless it passes through all it met,
- * then strikes each brick met that a strike before hasn't broken.
+ * then strikes each brick met, and the bricks around each if the balls'
+ * hits reach.
+ *
+ * Every brick met is struck before any hit reaches around, so two met at
+ * once are struck alike, whichever the grid lists first.
  */
 function turn(field: Field, ball: Ball): void {
   if (met.paddle) {
@@ -563,7 +567,12 @@ function turn(field: Field, ball: Ball): void {
   if (met.turns) mirror(field, ball);
   for (let i = 0; i < met.count; i++) {
     const brick = met.bricks[i];
-    if (brick && !brick.broken) strike(field, ball, brick);
+    if (brick) strike(field, ball, brick);
+  }
+  if (!ballKind(field.ballKind).reaches) return;
+  for (let i = 0; i < met.count; i++) {
+    const brick = met.bricks[i];
+    if (brick) hitAround(field, brick, ball.x, ball.y);
   }
 }
 
@@ -603,17 +612,15 @@ function mirror(field: Field, ball: Ball): void {
 }
 
 /**
- * Hits a brick a ball met, as hard as the balls' kind hits, and the bricks
- * around it too if their hits reach. It speeds the balls up if it can break,
- * and starts the ball's count of bounces again if it breaks one the level
- * needs.
+ * Hits a brick a ball met, as hard as the balls' kind hits. It speeds the
+ * balls up if it can break, and starts the ball's count of bounces again if
+ * it breaks one the level needs.
  */
 function strike(field: Field, ball: Ball, brick: Brick): void {
-  const kind = ballKind(field.ballKind);
   if (canBreak(brick)) field.climbed += field.climbRate;
-  const broke = hitBrick(field, brick, ball.x, ball.y, kind.damage);
+  const damage = ballKind(field.ballKind).damage;
+  const broke = hitBrick(field, brick, ball.x, ball.y, damage);
   if (broke && isNeeded(brick)) ball.bounces = 0;
-  if (kind.reaches) hitAround(field, brick, ball.x, ball.y);
 }
 
 /**
@@ -637,8 +644,8 @@ function loseBall(field: Field, ball: Ball): void {
   endStreak(field);
   field.climbed = 0;
   endEffects(field);
-  dropCapsules(field);
-  dropBolts(field);
+  clearFalling(field);
+  clearBolts(field);
 }
 
 /** Returns a lull's turn, in degrees, either way, by the field's next draw. */
