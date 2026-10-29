@@ -326,3 +326,18 @@ Part 1 is done. `brick-breaker` is cut from `brick-breaker-lift` here.
   - The walls beside the grid count as solid, so a brick against one has
     no face or corner there, and the space above the first row is open.
 - **Checks.** lint, typecheck, test (41).
+
+## B2.3: the sweep
+
+- **Built.** `src/rules/sweep.ts`: `sweepSegment()`, when a moving circle
+  first touches a face that runs along an axis, pushed out by its radius,
+  and `sweepPoint()`, when it first comes within its radius of a point (a
+  corner), each as a share of the move, or `MISSED`. Specced: a face met
+  straight and at an angle, a move far longer than the gap, one too short,
+  one leaving or sliding along it, one beside its ends, one already touching
+  or a little through, one whose center is past it, a face that runs down,
+  and a corner met, grazed, passed wide of, left, and already overlapped.
+- **Choice.** Numbers in, a number out, no objects, so the field calls them
+  for every face and corner near a ball with nothing allocated; the field
+  gathers the contacts at the earliest moment.
+- **Checks.** lint, typecheck, test (58).

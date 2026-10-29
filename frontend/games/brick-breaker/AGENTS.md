@@ -45,7 +45,9 @@ and `@fz/phaser/host` only by type and loads the scene with `import()`.
   `brickBox()`, the one place a brick's box is worked out, and
   `exposureOf()`, which faces and corners of a brick a ball can touch, so
   bricks side by side make one face and a corner is only where nothing
-  touches it.
+  touches it. `sweep.ts` finds the first moment a moving circle touches a
+  face pushed out by its radius, or a corner, as a share of its move, so
+  however fast a ball goes it can't pass through a brick.
 - **`src/app/`** — the shell: for now `app.component`, which shows the
   game's name, and `styles/`, `global.scss`, loaded once from `main.ts`, and
   `_index.scss`, the toolkit every component `@use`s, which emits no CSS.
