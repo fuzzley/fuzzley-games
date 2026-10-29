@@ -13,7 +13,14 @@
     Minesweeper
   </h1>
   @if (!viewport.isCompact()) {
-    <span fzBarTitle class="fz-badge difficulty">{{ difficulty() }}</span>
+    <fz-bar-choice
+      fzBarTitle
+      class="difficulty"
+      label="Difficulty"
+      [options]="difficulties()"
+      [value]="game.difficulty()"
+      (choose)="changeDifficulty($event)"
+    />
   }
 
   <!--

@@ -1,10 +1,13 @@
+import { ApplicationRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { ConfirmService } from "@fz/ui/confirm";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
+import { PRESETS } from "../../rules/difficulty";
 import { playOn } from "../../testing/game";
 import { GameService } from "../play/game.service";
+import { SettingsService } from "../settings/settings.service";
 import { BarComponent } from "./bar.component";
 
 const IN_PLAY = ["*..", "...", "..*"];
@@ -38,6 +41,19 @@ function figure(term: string): string {
   return value.textContent.replace(/\s+/g, " ").trim();
 }
 
+/** Returns the badge that shows the difficulty and offers the others. */
+function difficultyBadge(): HTMLElement {
+  return screen.getByRole("button", { name: "Difficulty: Hard" });
+}
+
+/** Chooses a difficulty from the badge's menu. */
+async function chooseDifficulty(user: UserEvent, name: string): Promise<void> {
+  await user.click(difficultyBadge());
+  await user.click(
+    screen.getByRole("menuitemradio", { name: new RegExp(`^${name}`) }),
+  );
+}
+
 describe("BarComponent", () => {
   let viewport: FakeViewport | null = null;
 
@@ -58,7 +74,83 @@ describe("BarComponent", () => {
     it("shows the difficulty of the game on the board", async () => {
       await renderBar();
 
-      expect(screen.getByText("Hard")).toBeInTheDocument();
+      expect(difficultyBadge()).toHaveTextContent("Hard");
+    });
+
+    it("offers the difficulties from the badge, each with its field", async () => {
+      const { user } = await renderBar();
+      TestBed.inject(SettingsService).update({
+        custom: { rows: 8, cols: 12, mines: 20 },
+      });
+
+      await user.click(difficultyBadge());
+
+      expect(
+        screen.getAllByRole("menuitemradio").map((item) => item.textContent),
+      ).toEqual([
+        expect.stringContaining("9 × 9, 10 mines"),
+        expect.stringContaining("16 × 16, 40 mines"),
+        expect.stringContaining("16 × 30, 99 mines"),
+        expect.stringContaining("8 × 12, 20 mines"),
+      ]);
+    });
+
+    it("checks the board's difficulty", async () => {
+      const { user } = await renderBar();
+
+      await user.click(difficultyBadge());
+
+      expect(
+        screen.getByRole("menuitemradio", { checked: true }),
+      ).toHaveAccessibleName(/^Hard/);
+    });
+
+    it("names the difficulty chosen before it loses the game under way", async () => {
+      const { user } = await renderBar();
+
+      await chooseDifficulty(user, "Easy");
+
+      expect(TestBed.inject(ConfirmService).prompt().title).toBe(
+        "Start a new Easy game?",
+      );
+    });
+
+    it("keeps the game when the player backs out", async () => {
+      const { user } = await renderBar();
+      await chooseDifficulty(user, "Easy");
+
+      TestBed.inject(ConfirmService).cancel();
+      await TestBed.inject(ApplicationRef).whenStable();
+
+      expect(TestBed.inject(GameService).difficulty()).toBe("hard");
+    });
+
+    it("deals a field of the difficulty chosen when the player goes ahead", async () => {
+      const { user } = await renderBar();
+      await chooseDifficulty(user, "Easy");
+
+      TestBed.inject(ConfirmService).accept();
+
+      expect(
+        await screen.findByRole("button", { name: "Difficulty: Easy" }),
+      ).toBeInTheDocument();
+      expect(TestBed.inject(GameService).field().size).toEqual(
+        PRESETS.easy.size,
+      );
+    });
+
+    it("deals the custom field the settings keep", async () => {
+      const custom = { rows: 8, cols: 12, mines: 20 };
+      const { user } = await renderBar();
+      TestBed.inject(SettingsService).update({ custom });
+      await chooseDifficulty(user, "Custom");
+
+      TestBed.inject(ConfirmService).accept();
+
+      expect(
+        await screen.findByRole("button", { name: "Difficulty: Custom" }),
+      ).toBeInTheDocument();
+      expect(TestBed.inject(GameService).field().size).toEqual(custom);
     });
 
     it("shows the mines left", async () => {
@@ -135,6 +227,14 @@ describe("BarComponent", () => {
         .getAllByRole("menuitem")
         .map((item) => item.textContent.trim());
     }
+
+    it("leaves the difficulty out, for the figures' room", async () => {
+      await renderBar();
+
+      expect(
+        screen.queryByRole("button", { name: /^Difficulty/ }),
+      ).not.toBeInTheDocument();
+    });
 
     it("keeps the heading for a screen reader", async () => {
       await renderBar();

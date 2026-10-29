@@ -9,7 +9,7 @@ import { StopwatchService } from "@fz/game-ui/stopwatch";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
 import { describeMove } from "../../rules/describe";
-import type { DifficultyId } from "../../rules/difficulty";
+import { type DifficultyId, difficultyName } from "../../rules/difficulty";
 import {
   type Field,
   createField,
@@ -36,6 +36,14 @@ const NEW_GAME_QUESTION: ConfirmRequest = {
   confirmLabel: "New game",
   tone: "danger",
 };
+
+/** What a deal at a difficulty asks: New Game's question, naming it. */
+function difficultyQuestion(difficulty: DifficultyId): ConfirmRequest {
+  return {
+    ...NEW_GAME_QUESTION,
+    title: `Start a new ${difficultyName(difficulty)} game?`,
+  };
+}
 
 /** What Restart asks before it covers the field again. */
 const RESTART_QUESTION: ConfirmRequest = {
@@ -140,10 +148,14 @@ export class GameService {
 
   /**
    * Changes the settings and deals a game from them, asking first if a game
-   * is under way, and resolves to whether it did.
+   * is under way, naming the difficulty if it changes, and resolves to
+   * whether it did.
    */
   async changeSettings(change: Partial<Settings>): Promise<boolean> {
-    if (!(await this.mayLoseGame(NEW_GAME_QUESTION))) return false;
+    const question = change.difficulty
+      ? difficultyQuestion(change.difficulty)
+      : NEW_GAME_QUESTION;
+    if (!(await this.mayLoseGame(question))) return false;
     this.settings.update(change);
     this.begin(this.deal(), 0, this.settings.settings().difficulty);
     return true;
