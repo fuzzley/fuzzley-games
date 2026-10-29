@@ -432,3 +432,27 @@ describes it. Its findings:
 Left as advised: the other lists of games until B13.3, the description's
 "Thirty levels" until B14, `THEME_COLOR_ROLE`, the unused `@use`, the
 router devDependency, and the fences and floors.
+
+## B2.2's review
+
+The reviewer found the exposure rule right for a swept ball (a hidden
+corner's arc lies inside a neighbor's pushed-out box, so nothing catches at
+a seam, and it holds while a ball is narrower than a brick is tall). Its
+findings:
+
+1. **Only one diagonal was ever solid in a spec, and no bottom face or right
+   wall was hidden.** Fixed: each diagonal hides only its corner, a brick
+   below hides the bottom, and a brick in column 12 meets the right wall.
+2. **The plan's "cells a moving box crosses" wasn't built.** The field finds
+   them from `columnAt()` and `rowAt()` of its move's box; the plan says so.
+3. **`Solid` didn't say how rows outside the grid count.** Fixed: they are
+   open, and a field checks `inGrid()` before it looks in its bricks, where
+   column -1 would be the last of the row above.
+4. **Three docs opened with two sentences,** and `brickBox()`'s spoke of a
+   brick that moves. Fixed.
+5. **The point-to-cell test packed three checks and no edges.** Fixed: one
+   case each, a point on a seam and one left of the wall among them.
+
+The log's reason for `SIDE` was wrong: the style guide forbids `const enum`,
+not `enum`. `SIDE` is an object because its specs read its names with
+`Object.entries()`, which an enum's reverse mappings would muddle.
