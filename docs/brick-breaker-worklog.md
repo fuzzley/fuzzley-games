@@ -619,3 +619,62 @@ three `isCapsuleId()` cases, and a record keyed by id.
   for.
 - **Checks.** lint, typecheck, test (297), the rules at 100% of
   statements.
+
+## B3.3: capsules and their effects
+
+- **Built.** `src/rules/capsules.ts`: `Falling`, `InEffect`, `Effects`,
+  `dropByChance()` (a needed brick that breaks, by the level's chance,
+  while fewer than three fall), `dropGift()` (the gift brick's, past the
+  cap: the capsule the level pins to it, or one drawn), the draw by weight
+  of those the speed lets fall, `stepCapsules()`, `catchCapsule()`,
+  `stepEffects()`, `endEffect()`, `endEffects()` and `EFFECT_RULES`, typed
+  as `TRAIT_RULES` is. `src/rules/bolts.ts`: `Bolt`, `fire()`, `stepBolts()`,
+  `dropBolts()`. `src/rules/draws.ts`: `nextDraw()`, moved from the field.
+  `stepper.ts` gains `stepsIn()`.
+- **The field.** It steps the paddle, the bricks, the capsules, the
+  effects' time, the bolts, then the balls. It gains `climbRate`,
+  `paceScale`, `ballKind`, `mode`, `net`, `livesGained`, `falling`,
+  `effects`, `bolts`, `boltGapSteps` and `hardSolid`. The balls' kind and
+  pace set their speed. A fire ball sweeps a brick that can break as a
+  whole box it passes through, breaking it as it reaches it, and meets
+  steel by `hardSolid`, where what can break counts as open. A blast
+  ball's hit reaches the eight around. While the paddle catches, a ball
+  that meets it rests where it landed, until `launch()` or 3 s. The net
+  turns back a ball that crosses its line in a step. `Level` gains `drops`
+  and `capsules`, `LevelBrick` and `Brick` a pinned `capsule`, and
+  `FieldEvent` the capsule an event is about. `hitBrick()` takes the
+  damage, and `hitAround()` serves the blast brick and the blast ball.
+  `fieldFrom()` takes `drops`, `capsules` and `gift`. Specs effect by
+  effect, 65 new.
+- **Choices.**
+  - Timers count whole steps, not milliseconds: twelve steps of 8.33 ms
+    leave 3.6e-15 of 100 ms, a step late. Found by a spec of the bolts'
+    gap; the bricks' fuse and regrowth, which have the same flaw, are
+    B3.2's review's.
+  - `EFFECT_RULES` has `start` and `end`, no `step`: no effect needs one.
+    The plan says so.
+  - An effect is kept in play only if it has an `end`; Multiball and Extra
+    life are over as they start.
+  - Losing the last ball also lets go of the falling capsules and the
+    bolts. The plan says so.
+  - Multiball splits the balls in flight, not one resting on the paddle.
+  - The field counts the lives caught capsules bring (`livesGained`); the
+    run adds them, up to six, in B3.4.
+  - The ball kinds' `size` is read nowhere yet: every kind is 1, and the
+    first of another size brings it. `speed` is read.
+  - `bolts.ts` is a file of its own, beside `capsules.ts`.
+  - The net was first written to turn back any ball below its line, which
+    would have caught one already past it; a spec of an effect's end found
+    it, and it turns back only a ball that crosses the line in a step.
+- **QA.** The scratch spec again (deleted), on 10 random levels of every
+  kind with every capsule able to fall at a chance of 0.3, the paddle
+  firing whenever it can and letting caught balls go: every level cleared,
+  with no fault. Every capsule was caught somewhere, up to eight balls at
+  once, three balls netted, 304 pairs of bolts fired, and no bad capsule
+  fell at Relaxed. A spec's 7 Extra lives in 220 draws looked low: 22,000
+  draws fill 11 bins evenly, so the sample was small, and the spec draws
+  1,100.
+- **Checks.** lint, typecheck, test (362), the rules at 100% of
+  statements, 97.8% of branches.
+- **Reviews in.** B2.4's and B3.2's reviews came in during this step; their
+  fixes follow in their own commits, before B3.4.

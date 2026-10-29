@@ -291,10 +291,13 @@ in Part 2, under `frontend/games/brick-breaker/` unless they say otherwise.
 - **B3.3** `src/rules/capsules.ts`: the draw by weight from the level's pool,
   the cap of three falling, the catch and the miss, the gift brick's
   capsule (`gives`' rule), and `EFFECT_RULES` for
-  every effect (paddle size, catch, laser and its bolts, fire, blast, slow,
-  fast, split, life, net), with the groups and the timers; the ball kinds'
+  every effect (paddle size, catch, laser, fire, blast, slow,
+  fast, split, life, net), with the groups and the timers; `bolts.ts`, the
+  laser's bolts; `draws.ts`, the field's seeded draws, which the lull and
+  the capsules share; the ball kinds'
   properties in the sweep (fire passing through what it breaks, blast's hits
-  around). Specced effect by effect. One commit.
+  around). The level gains its chance and its pool, a level's brick the
+  capsule pinned to it. Specced effect by effect. One commit.
 - **B3.4** `src/rules/scoring.ts` and `run.ts`: points by the hit, the
   streak's multiplier, the clearing bonus, lives from points, and `Run`'s
   moves (`startLevel()`, `pause()`, `resume()`, `clearLevel()`,
@@ -589,8 +592,9 @@ no bad capsule falls.
   mode (Catch, Laser), the balls' kind (Fire, Blast) and their pace (Slow,
   Fast) each take the latest capsule caught, which replaces the one before.
   The same capsule again starts its time over.
-- **Every effect ends when a life is lost,** and every one but Life and Net
-  when the level ends.
+- **Every effect ends when a life is lost,** and the capsules falling and
+  the bolts rising go with it; every one but Life and Net ends when the
+  level ends.
 - **What is in effect shows on the field,** below the paddle: a tag for each,
   its symbol over a ring that empties as its time runs out, so the player
   can see what they have and for how long without reading anything.
@@ -814,8 +818,9 @@ spreadDeg }`, `{ kind: "life" }` or `{ kind: "net" }`. An
   } = {/* … */};
   ```
 
-  `EFFECT_RULES` does the same for the capsules' effects, with `start`,
-  `step` and `end`.
+  `EFFECT_RULES` does the same for the capsules' effects, with `start` and
+  `end`; an effect without `end` is over as it starts. A `step` rule joins
+  when an effect first needs one, as the curve below would.
 
 - **What each looks like is the view's,** in `src/view/art.ts`, keyed by the
   same ids and written `satisfies { readonly [K in BrickKindId]: BrickArt }`,

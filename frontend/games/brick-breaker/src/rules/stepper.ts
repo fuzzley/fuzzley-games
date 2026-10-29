@@ -3,6 +3,16 @@ import { MAX_STEPS_PER_FRAME, STEP_S } from "./tuning";
 /** How long a step of the field is, in milliseconds. */
 export const STEP_MS = STEP_S * 1000;
 
+/**
+ * Returns how many whole steps a time spans, to the nearest.
+ *
+ * The field counts its timers in steps, as a step's time in milliseconds is
+ * not a whole number and would creep in a sum.
+ */
+export function stepsIn(ms: number): number {
+  return Math.round(ms / STEP_MS);
+}
+
 /** Keeps a field's time between frames: what is under way toward its next step. */
 export interface Clock {
   /** The time since the last step, in milliseconds, less than a step's. */

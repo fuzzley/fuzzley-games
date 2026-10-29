@@ -1,5 +1,6 @@
 import type { Ball } from "../rules/balls";
 import { type BrickKindId, brickKind } from "../rules/catalog/bricks";
+import type { CapsuleId } from "../rules/catalog/capsules";
 import type { FieldEventKind } from "../rules/events";
 import { type Field, createField, stepField } from "../rules/field";
 import { CELLS, columnOf, rowOf } from "../rules/grid";
@@ -25,6 +26,12 @@ export interface PictureOptions {
   readonly speed?: Speed;
   readonly seed?: number;
   readonly pace?: number;
+  /** The chance a needed brick lets a capsule fall, none by default. */
+  readonly drops?: number;
+  /** The capsules that can fall, none by default. */
+  readonly capsules?: readonly CapsuleId[];
+  /** The capsule every gift brick gives, else one drawn. */
+  readonly gift?: CapsuleId;
 }
 
 /** Steering that asks nothing of the paddle. */
@@ -42,10 +49,15 @@ export function fieldFrom(
   options: PictureOptions = {},
 ): Field {
   const cells = Array.from({ length: CELLS }, (_, cell) =>
-    brickFrom(rows[rowOf(cell)]?.[columnOf(cell)] ?? "."),
+    brickFrom(rows[rowOf(cell)]?.[columnOf(cell)] ?? ".", options.gift ?? null),
   );
   return createField(
-    { cells, pace: options.pace ?? 1 },
+    {
+      cells,
+      pace: options.pace ?? 1,
+      drops: options.drops ?? 0,
+      capsules: options.capsules ?? [],
+    },
     { speed: options.speed ?? "normal", seed: options.seed ?? 1 },
   );
 }
@@ -101,10 +113,15 @@ export function headingOf(ball: Readonly<Ball>): number {
 }
 
 /** Returns the brick a picture's character stands for, or null. */
-function brickFrom(character: string): LevelBrick | null {
+function brickFrom(
+  character: string,
+  gift: CapsuleId | null,
+): LevelBrick | null {
   const kind = KINDS[character];
   if (!kind) return null;
+  const capsule = kind === "gift" ? gift : null;
   const { hits } = brickKind(kind);
-  if (hits === "never") return { kind, hits: 0, tint: 0 };
-  return { kind, hits: kind === "tough" ? Number(character) : hits, tint: 0 };
+  if (hits === "never") return { kind, hits: 0, tint: 0, capsule };
+  const whole = kind === "tough" ? Number(character) : hits;
+  return { kind, hits: whole, tint: 0, capsule };
 }

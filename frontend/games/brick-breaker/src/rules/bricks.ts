@@ -1,3 +1,4 @@
+import { dropByChance, dropGift } from "./capsules";
 import {
   type BrickKindId,
   type BrickTrait,
@@ -5,6 +6,7 @@ import {
   brickKind,
   hasTrait,
 } from "./catalog/bricks";
+import type { CapsuleId } from "./catalog/capsules";
 import type { Field } from "./field";
 import { type Box, brickBox, cellIndex, columnOf, inGrid, rowOf } from "./grid";
 import type { LevelBrick } from "./level";
@@ -18,6 +20,8 @@ export interface Brick {
   readonly cell: number;
   /** Its tint, from 0 to 7. */
   readonly tint: number;
+  /** The capsule it gives, where the level pins one, else null. */
+  readonly capsule: CapsuleId | null;
   /** The hits it takes whole, as the level laid it, 0 for one that never breaks. */
   readonly whole: number;
   /** The hits left to break it. */
@@ -67,8 +71,11 @@ const TRAIT_RULES: {
       goOff(field, brick);
     },
   },
-  // Lets a capsule fall once the field drops capsules.
-  gives: {},
+  gives: {
+    broken: (field, brick) => {
+      dropGift(field, brick);
+    },
+  },
   hidden: {
     hit: (_, brick) => {
       brick.shown = true;
@@ -98,6 +105,7 @@ export function createBrick(placed: LevelBrick, cell: number): Brick {
     kind: placed.kind,
     cell,
     tint: placed.tint,
+    capsule: placed.capsule,
     whole: placed.hits,
     hits: placed.hits,
     broken: false,
@@ -113,20 +121,24 @@ export function canBreak(brick: Readonly<Brick>): boolean {
 }
 
 /**
- * Hits a brick once, as a ball or a blast does, breaking it when it has no
- * hits left, and returns whether it broke.
+ * Hits a brick once, as a ball, a bolt or a blast does, taking the hits
+ * `damage` says off it, or all of them, and returns whether it broke.
  *
- * Breaking the last brick the level needs clears it.
+ * A brick the level needs may let a capsule fall as it breaks, and breaking
+ * the last of them clears the level.
  */
 export function hitBrick(
   field: Field,
   brick: Brick,
   x: number,
   y: number,
+  damage: number | "breaks" = 1,
 ): boolean {
   const kind = brickKind(brick.kind);
   runTraits("hit", field, brick);
-  if (kind.hits !== "never") brick.hits--;
+  if (kind.hits !== "never") {
+    brick.hits = damage === "breaks" ? 0 : brick.hits - damage;
+  }
   if (kind.hits === "never" || brick.hits > 0) {
     field.events.add("hit", x, y, brick.cell);
     return false;
@@ -134,14 +146,33 @@ export function hitBrick(
   brick.broken = true;
   field.events.add("broken", x, y, brick.cell);
   runTraits("broken", field, brick);
-  if (kind.needed) {
-    field.needed--;
-    if (field.needed === 0) {
-      field.state = "cleared";
-      field.events.add("cleared", x, y);
-    }
+  if (!kind.needed) return true;
+  field.needed--;
+  if (field.needed === 0) {
+    field.state = "cleared";
+    field.events.add("cleared", x, y);
+  } else if (!hasTrait(brick.kind, "gives")) {
+    dropByChance(field, brick);
   }
   return true;
+}
+
+/** Hits once each of the eight bricks around a brick that isn't broken. */
+export function hitAround(
+  field: Field,
+  brick: Readonly<Brick>,
+  x: number,
+  y: number,
+): void {
+  const column = columnOf(brick.cell);
+  const row = rowOf(brick.cell);
+  for (let down = -1; down <= 1; down++) {
+    for (let across = -1; across <= 1; across++) {
+      if (!inGrid(column + across, row + down)) continue;
+      const near = field.bricks[cellIndex(column + across, row + down)];
+      if (near && near !== brick && !near.broken) hitBrick(field, near, x, y);
+    }
+  }
 }
 
 /** Moves each brick's traits on by a step, until the level is cleared. */
@@ -174,15 +205,7 @@ function runRule<K extends TraitKind>(
 function goOff(field: Field, brick: Brick): void {
   const [x, y] = centerOf(brick);
   field.events.add("blast", x, y, brick.cell);
-  const column = columnOf(brick.cell);
-  const row = rowOf(brick.cell);
-  for (let down = -1; down <= 1; down++) {
-    for (let across = -1; across <= 1; across++) {
-      if (!inGrid(column + across, row + down)) continue;
-      const near = field.bricks[cellIndex(column + across, row + down)];
-      if (near && !near.broken) hitBrick(field, near, x, y);
-    }
-  }
+  hitAround(field, brick, x, y);
 }
 
 /** Returns whether a ball in play overlaps a brick's place. */
