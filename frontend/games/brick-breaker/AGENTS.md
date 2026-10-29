@@ -122,13 +122,15 @@ the scene's first files and the shell exist.
   eight for light palettes and eight for dark, the outline every ball
   and capsule takes over the bricks it crosses, and the marks a brick's
   kind and state are told apart by. `art.ts` draws every frame of the
-  atlas (`atlasFrames()`) as plain commands in device pixels, a brick kind
-  in each tint and state (`BRICK_ART`), each ball (`BALL_ART`), each
-  capsule's shape (`CAPSULE_ART`) and symbol (`SYMBOLS`), its tag, the
-  paddle and the flourishes, and names the frame a brick, a ball, a
-  capsule or a tag shows (`brickFrame()` and the rest), the color a brick's
-  shards take (`brickColor()`), and How to play's pictures
-  (`PICTURE_FRAMES`); `effects.ts` says what each event calls for, its
+  atlas (`atlasFrames()`) as plain commands in device pixels, each ball
+  (`BALL_ART`), each capsule's shape (`CAPSULE_ART`), its tag, the paddle
+  and the flourishes, names the frame a ball, a capsule or a tag shows
+  (`ballFrame()` and the rest), and How to play's pictures
+  (`PICTURE_FRAMES`); `brick_art.ts` draws a brick kind in each tint and
+  state (`BRICK_ART`), and names the frame a brick shows (`brickFrame()`)
+  and the color its shards take (`brickColor()`); `symbols.ts` draws each
+  capsule's symbol (`SYMBOLS`); and `shapes.ts` holds the commands they
+  are drawn with (`DrawCommand`), their helpers, and `lineWidth()`; `effects.ts` says what each event calls for, its
   sound and the flourishes it plays where motion is welcome.
   `contrast.spec.ts` holds every tint, the steel, blast and gift bricks,
   every ball kind, both capsule tones, the paddle and the last bricks' glow
@@ -199,7 +201,9 @@ real Phaser through `runScene()`, with a fake shell over a pictured field.
 `src/testing/field_picture.ts` lays a field out from a picture of its
 bricks (`fieldFrom()`), throws a ball in it (`throwBall()`) or puts it in
 play with none (`playWithoutBall()`), steps it and reads its events, so a
-spec of the field reads as the field it plays. `src/testing/autopilot.ts`
+spec of the field reads as the field it plays. `src/testing/art_frames.ts`
+draws the atlas in one palette at one scale for the art's specs, and finds
+a frame by its name (`frameNamed()`). `src/testing/autopilot.ts`
 plays a level as a good player would (`autoplay()`): it keeps the paddle
 under the ball that will reach it first, lands it a seeded distance off
 the middle or toward a brick the level needs that it can see, catches the

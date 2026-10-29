@@ -38,6 +38,7 @@ describe("createPaddle", () => {
       width: 4,
       goalWidth: 4,
       target: null,
+      dragging: false,
       push: 0,
       speed: 0,
       facing: 1,
@@ -217,6 +218,39 @@ describe("the paddle's width", () => {
     drive(paddle, {}, 60);
 
     expect(paddle.x).toBe(FIELD_WIDTH - 1.3);
+  });
+
+  it("keeps a paddle the keys left at the left wall against it as it narrows", () => {
+    const paddle = createPaddle();
+    drive(paddle, { push: -1 }, 120);
+    drive(paddle, {});
+    paddle.goalWidth = 2.6;
+
+    drive(paddle, {}, 60);
+
+    expect(paddle.x).toBe(1.3);
+  });
+
+  it("keeps a finger's drag that reached a wall against it as it narrows", () => {
+    const paddle = createPaddle();
+    drive(paddle, { by: -20 }, 120);
+    paddle.goalWidth = 2.6;
+
+    drive(paddle, {}, 60);
+
+    expect(paddle.x).toBe(1.3);
+  });
+
+  it("comes back under a pointer resting by a wall once it narrows again", () => {
+    const paddle = createPaddle();
+    drive(paddle, { to: 2.5 }, 120);
+    paddle.goalWidth = 6;
+    drive(paddle, {}, 60);
+    paddle.goalWidth = 4;
+
+    drive(paddle, {}, 120);
+
+    expect(paddle.x).toBe(2.5);
   });
 
   it("keeps a pointer's place past a wall at the wall as it narrows", () => {

@@ -236,6 +236,10 @@ function reachFor(field: Field, aim: Aim, landing: number): number {
 /**
  * Returns whether a straight line from a place on the paddle's line to a
  * brick's middle meets no other brick, as a ball sent at it would travel.
+ *
+ * It follows only the ball's middle, and leaves aside how steep a ball the
+ * paddle can send: a guess at what a player sees, which played the levels
+ * better in the report than one that followed the ball's edges too.
  */
 function inSight(field: Field, from: number, cell: number): boolean {
   const x = columnMiddle(columnOf(cell));

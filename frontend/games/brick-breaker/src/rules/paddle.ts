@@ -37,6 +37,12 @@ export interface Paddle {
   goalWidth: number;
   /** Where a pointer or a finger last asked its middle to be, or null. */
   target: number | null;
+  /**
+   * Whether the target is a finger's, which a drag can't push past a wall
+   * and which stays against a wall it reached, rather than a pointer's
+   * place, which may lie past one.
+   */
+  dragging: boolean;
   /** Which way held keys push it: -1, 0 or 1. */
   push: -1 | 0 | 1;
   /** How fast held keys move it, in units a second, signed. */
@@ -57,6 +63,7 @@ export function createPaddle(): Paddle {
     width: PADDLE_WIDTH,
     goalWidth: PADDLE_WIDTH,
     target: null,
+    dragging: false,
     push: 0,
     speed: 0,
     facing: 1,
@@ -68,7 +75,9 @@ export function createPaddle(): Paddle {
  * a finger's drag, which moves the place the paddle heads for.
  *
  * Keys let go of where a pointer last asked the paddle to be, and a pointer
- * that stops asking leaves the paddle heading where it last asked.
+ * that stops asking leaves the paddle heading where it last asked. A
+ * pointer's place is kept as it is, past a wall too, so the paddle comes
+ * back under it as its width changes; a drag goes no further than a wall.
  */
 export function steerPaddle(paddle: Paddle, steer: Readonly<Steer>): void {
   if (steer.push !== paddle.push) paddle.speed = 0;
@@ -76,23 +85,26 @@ export function steerPaddle(paddle: Paddle, steer: Readonly<Steer>): void {
   if (steer.push !== 0) {
     paddle.target = null;
   } else if (steer.to !== null) {
-    paddle.target = within(paddle, steer.to);
+    paddle.target = steer.to;
+    paddle.dragging = false;
   } else if (steer.by !== 0) {
-    paddle.target = within(paddle, (paddle.target ?? paddle.x) + steer.by);
+    const from = paddle.dragging ? (paddle.target ?? paddle.x) : paddle.x;
+    paddle.target = within(paddle, from + steer.by);
+    paddle.dragging = true;
   }
 }
 
 /**
- * Moves the paddle on by a step: toward its width, keeping it and its
- * target against a wall they were against, then by its keys, at their
- * speed as it ramps up, or toward its target, never past the walls.
+ * Moves the paddle on by a step: toward its width, keeping it and a
+ * finger's target against a wall they were against, then by its keys, at
+ * their speed as it ramps up, or toward its target, never past the walls.
  */
 export function movePaddle(paddle: Paddle): void {
   paddle.lastX = paddle.x;
   const was = paddle.width;
   paddle.width = toward(was, paddle.goalWidth, PADDLE_RESIZE_SPEED * STEP_S);
   paddle.x = keptAtWall(paddle.x, was, paddle.width);
-  if (paddle.target !== null) {
+  if (paddle.target !== null && paddle.dragging) {
     paddle.target = keptAtWall(paddle.target, was, paddle.width);
   }
   if (paddle.push !== 0) {

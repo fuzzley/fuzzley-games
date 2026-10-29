@@ -18,11 +18,10 @@ import {
   type Pictures,
   atlasFrames,
   ballFrame,
-  brickColor,
-  brickFrame,
   capsuleFrame,
   tagFrame,
 } from "../view/art";
+import { brickColor, brickFrame } from "../view/brick_art";
 import type { FieldCommand } from "../view/controls";
 import {
   type FieldMetrics,

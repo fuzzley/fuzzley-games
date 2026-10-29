@@ -1,10 +1,11 @@
 import type { GameObjects, Scene } from "phaser";
 import { EFFECT_KINDS } from "../rules/capsules";
 import { type EffectKind, capsule } from "../rules/catalog/capsules";
-import { lineWidth, tagFrame } from "../view/art";
+import { tagFrame } from "../view/art";
 import { type FieldMetrics, toCanvasX, toCanvasY } from "../view/field_metrics";
 import { type FieldView, between } from "../view/frame";
 import type { BricksPalette } from "../view/palette";
+import { lineWidth } from "../view/shapes";
 import {
   TAG_RADIUS,
   TAG_SPACING,

@@ -335,7 +335,8 @@ in Part 2, under `frontend/games/brick-breaker/` unless they say otherwise.
   commands, and what each event calls for. Every ball and capsule is
   outlined in the palette's `outline`, at least 1 CSS px wide, every
   brick's marks are in its `mark`, and every color the art derives from
-  the palette (a tough brick's deeper tint, the net) joins
+  the palette (a tough brick's deeper tint; the net is drawn in the good
+  capsules' color, which the spec holds already) joins
   `contrast.spec.ts`. Specced: every frame within its size,
   every kind in every state present, each event's effects with and without
   motion. One commit, `yarn verify` with it.
@@ -1278,15 +1279,15 @@ how a careful clone does its collisions:
   field in every palette. They are written here, in TypeScript, because the
   canvas is where they are drawn; How to play's pictures come from the
   canvas too, so no stylesheet needs them.
-- `art.ts`: `BRICK_ART`, `BALL_ART`, `CAPSULE_ART` and `SYMBOLS`, and
-  `atlasFrames(palette, unit)`: every frame the atlas holds (each kind in
+- `art.ts`, with `brick_art.ts`, `symbols.ts` and `shapes.ts`:
+  `BRICK_ART`, `BALL_ART`, `CAPSULE_ART` and `SYMBOLS`, and
+  `atlasFrames(palette, scale)`: every frame the atlas holds (each kind in
   each tint and each state, its marks in the field's color, each ball and
   each capsule, outlined at least 1 CSS px wide, the paddle's slice, the
-  bolt, the shard and each tag),
-  with its size in device pixels and its
-  drawing as plain commands (rectangles, rounded rectangles, circles, lines
-  and polygons), which the scene plays into a `Graphics`. So what every
-  frame looks like is specced without Phaser.
+  bolt, the shard and each tag), with its size in device pixels and its
+  drawing as plain commands (rectangles, rounded rectangles, circles,
+  rings, lines and polygons), which the scene plays into a `Graphics`. So
+  what every frame looks like is specced without Phaser.
 - `steering.ts`: `Steering`, which the scene feeds its keys and Phaser's
   pointers (read through `PointerView`, the fields it needs) and reads once
   a frame: the keys held, as a push, the one held last winning; the mouse,
@@ -1530,10 +1531,12 @@ a screen reader user can play it. It makes sure that:
   level cleared with its score, a pause, going on, and the end with the
   score and a new best;
 - color is never the only signal: each brick kind has its pattern, each
-  capsule its symbol and its shape, each ball kind its mark; the contrast
-  spec holds every tint, kind, ball and capsule to 3:1 against the field,
-  and the ball to 3:1 against every tint, in every palette, and checks the
-  canvas's washes against what the CSS resolves, as Snake's does;
+  capsule its symbol and its shape, each ball kind but the normal one its
+  mark, which holds still; the contrast spec holds every tint, kind, ball
+  and capsule to 3:1 against the field, each ball and capsule against its
+  outline, and the outline against every tint, in every palette, and
+  checks the canvas's washes against what the CSS resolves, as Snake's
+  does;
 - motion follows the player's preference: without it, bricks appear without
   dropping in, there are no shards, embers or shakes, a blast's ring is
   left out, the last bricks' glow holds still rather than pulsing, and the

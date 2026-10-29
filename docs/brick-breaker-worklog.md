@@ -1582,3 +1582,89 @@ Checked in a scratch spec, deleted after.
     scene's 63), build. The rules and the view are at 100% of statements.
     `timeLeft()`'s guard for an effect without a time was unreachable on
     its own line, so it was folded into the guard before it.
+
+## B5.3's review (fc9a04aa, 6ddedb75, 8c83df33, 6a363973)
+
+The review came back with eleven findings. Each is answered here, and the
+fixes are in one commit.
+
+1. **Without motion, the fire ball told apart by color alone.** Fixed. It
+   carries a four-point spark in the marks' color, always, with the embers
+   on top where motion is welcome. The contrast spec now holds the marks
+   against every ball, and a spec holds each ball kind's mark (the normal
+   ball has none).
+2. **Lines drawn as separate segments, their joins chipped.** Fixed. A
+   `polyline` command takes the place of `line`, and the scene plays it with
+   `strokePoints()`, one path, so its corners join. The cracks, the
+   sprout's stem and the Slow, Catch and Fast symbols use it, and a spec
+   holds a symbol's lines to one path.
+3. **The rim, stretched, fading at its ends.** Agreed. B6.1's review found
+   it too, so it is fixed with the paddle in that review's commit.
+4. **NineSlice draws nothing on the Canvas renderer.** Agreed. The paddle
+   is rebuilt without a nine-slice in B6.1's review commit, so it draws on
+   either renderer.
+5. **Tough frame names that no frame draws.** Fixed.
+   - The frames come from one list of the ways a tough brick can stand
+     (`TOUGH_LOOKS`), kept in a map under a number for each, so `nameAt()`
+     throws for any other, such as a broken tough brick.
+   - The index arithmetic in `frames()` is gone.
+   - The spec throws for four looks no level lays, so the work log's claim
+     now holds.
+6. **A widening paddle pinning a resting pointer's place to the wall.**
+   Fixed.
+   - A pointer's place is now kept unclamped.
+   - `Paddle.dragging` marks a finger's target, which a drag stops at a wall
+     and which is kept against a wall it reached. Only that target goes
+     through `keptAtWall()`.
+   - Specs cover the reviewer's probe (a pointer at 2.5 through Wide), the
+     left wall, and a drag at a wall. The probe's spec fails on the old
+     code.
+7. **Gaps in `art.spec.ts`.** Fixed, with specs for:
+   - the mark on each brick kind that has one;
+   - the fire and blast balls' marks;
+   - every capsule symbol in the marks' color;
+   - the gift's cut-out in its body's color.
+
+   Nine mutations against the art are killed, the reviewer's three among
+   them.
+
+8. **Docs that don't match.** Fixed.
+   - The plan's view section now says `atlasFrames(palette, scale)`.
+   - Its Accessibility section says what the contrast spec holds: the
+     outline against every tint, not the ball.
+   - The B5.3 step says the net is drawn in the good capsules' color, which
+     the spec holds already.
+9. **`inSight()` following the ball's middle alone.**
+   - **The edges.** Tried, with rays along the ball's edges too. The seeded
+     plays diverge, and the report got worse where it matters: Rocket on
+     Relaxed took 5:42 instead of 2:47, its last bricks 0:48 of the one
+     minute instead of 0:25, and no level gained much. So the middle ray
+     stays, and its doc says it is a guess at what a player sees, which
+     leaves aside the ball's radius and how steep a ball the paddle can
+     send.
+   - **`GLOW_BRICKS` from the view.** Kept. The autopilot is test code in
+     `src/testing/`, not the rules, and its endgame is by definition the
+     glow's threshold.
+   - **The report's lost column.** Noted. It reports lives so a level that
+     costs some would show; none does yet.
+10. **Style.**
+    - `BRICK_ART`, `BALL_ART`, `CAPSULE_ART` and `SYMBOLS` are `as const
+satisfies`, so they are readonly.
+    - `effectsOf()` reads `!canBreak(brick)`.
+    - `DrawCapsule` takes a `CapsuleShape`.
+    - A symbol's lines are a line's width at least: `DrawSymbol` takes the
+      width. A spec holds every line of every frame to a CSS pixel at all
+      four scales, and it fails on the old `stroke()`.
+    - `Box` is now `Area`, exported because the art's modules share it.
+    - `ArtScale` and `BrickLook` open with a verb.
+    - `art.ts` is split:
+      - `shapes.ts`: the commands, `ArtFrame`, the helpers and
+        `lineWidth()`;
+      - `brick_art.ts`: `BRICK_ART`, `brickFrame()` and `brickColor()`;
+      - `symbols.ts`: `SYMBOLS`, shorter with `share()` and `dot()`;
+      - `art.ts`: the rest.
+    - Its spec is split the same way, sharing `src/testing/art_frames.ts`.
+11. **`catchUp()` banking a stale field twice.** Left for B7.1, where the
+    game service holds the run and the field together and replaces both in
+    one move. A spec there will hold that a field from before a level
+    started is never caught up.

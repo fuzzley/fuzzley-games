@@ -1,7 +1,7 @@
 import type { GameObjects, Scene } from "phaser";
 import { columnMiddle, columnOf, rowMiddle, rowOf } from "../rules/grid";
 import { BRICK_HEIGHT, COLUMNS, ROWS } from "../rules/tuning";
-import { brickFrame } from "../view/art";
+import { brickFrame } from "../view/brick_art";
 import { type FieldMetrics, toCanvasX, toCanvasY } from "../view/field_metrics";
 import { growScale, popScale, shareDone } from "../view/flourish";
 import type { FieldView } from "../view/frame";
