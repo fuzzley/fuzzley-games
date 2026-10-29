@@ -17,11 +17,14 @@ export function createClock(): Clock {
 /**
  * Returns how many steps a frame's time holds, at most
  * {@link MAX_STEPS_PER_FRAME}, and keeps on the clock what is left toward
- * the next. A frame too long for its steps drops the rest rather than
- * catching up later, so a stall slows the game rather than leaping it on.
+ * the next.
+ *
+ * A frame too long for its steps drops the rest rather than catching up
+ * later, so a stall slows the game rather than leaping it on; a frame of no
+ * time, less, or not a number, adds none.
  */
 export function advanceClock(clock: Clock, deltaMs: number): number {
-  const time = clock.carried + Math.max(0, deltaMs);
+  const time = clock.carried + (deltaMs > 0 ? deltaMs : 0);
   const steps = Math.floor(time / STEP_MS);
   if (steps > MAX_STEPS_PER_FRAME) {
     clock.carried = 0;

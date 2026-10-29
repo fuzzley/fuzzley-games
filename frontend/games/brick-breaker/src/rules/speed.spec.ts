@@ -24,7 +24,9 @@ describe("ballSpeed", () => {
   it("is scaled by a capsule past the top", () => {
     expect(ballSpeed("relaxed", 1, 1000, 1.25)).toBe(19 * 1.25);
   });
+});
 
+describe("SPEED_INFO", () => {
   it.each(SPEEDS)("tops %s's base", (speed) => {
     const { base, top } = SPEED_INFO[speed];
 

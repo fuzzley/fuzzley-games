@@ -251,9 +251,8 @@ in Part 2, under `frontend/games/brick-breaker/` unless they say otherwise.
 
 #### B2: the physics (large)
 
-- **B2.1** `src/rules/tuning.ts`, `speed.ts`, `vector.ts` (the few vector
-  helpers the sweep needs, on plain numbers) and `stepper.ts`, each specced.
-  One commit.
+- **B2.1** `src/rules/tuning.ts`, `speed.ts` and `stepper.ts`, each
+  specced. One commit.
 - **B2.2** `src/rules/grid.ts`: the bricks on their 13 by 16 grid, a cell's
   box from `brickBox()`, which faces and corners are exposed, and the cells
   a moving box crosses. Specced on pictures of grids. One commit.
@@ -490,12 +489,13 @@ section changes with the step that learned it, and the log says why.
 #### The feel, in numbers
 
 The numbers the game starts from, settled by playing at Q3, kept in
-`src/rules/tuning.ts` so one file tunes the game:
+`src/rules/tuning.ts` so one file tunes the game, but those of one kind of
+brick or one capsule, which its catalog entry holds:
 
 | What                     | Value                                                                                        |
 | ------------------------ | -------------------------------------------------------------------------------------------- |
 | The field                | 26 × 30 units; bricks 2 × 1, 13 columns and up to 16 rows, from 2 units below the top        |
-| The paddle               | 4 units wide and 0.75 tall, its top at 27.5; Wide makes it 6, Narrow 2.6                     |
+| The paddle               | 4 units wide and 0.75 tall, its top at 27.5; Wide makes it 6, Narrow 2.6 (their capsules')   |
 | The ball                 | a radius of 0.36 units                                                                       |
 | The three speeds         | Relaxed 13 to 19 units a second, Normal 16 to 24, Fast 19 to 29, each times the level's pace |
 | The climb                | 1.5% of the base for each brick hit, to the top                                              |
@@ -1230,7 +1230,9 @@ how a careful clone does its collisions:
     shown with its brick's frame or hidden; bricks drop in, row by row, as a
     level starts, and a regrowing brick grows back.
   - `PaddlePainter`: a `NineSlice` of the paddle's frame, so its rounded ends
-    keep their shape as Wide and Narrow tween its width; the laser's
+    keep their shape as Wide and Narrow change its width, which the rules
+    grow and shrink over a moment, so the paddle drawn is the one the ball
+    meets; the laser's
     cannons and the catch's rim as frames over it.
   - `BallPainter`: eight `Image`s, and the fire ball's embers from a
     particle emitter that follows it.

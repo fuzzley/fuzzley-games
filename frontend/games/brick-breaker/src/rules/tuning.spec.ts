@@ -26,13 +26,12 @@ describe("the tuning", () => {
     expect(PADDLE_TOP - lowest).toBeGreaterThan(4 * BALL_RADIUS);
   });
 
-  it("keeps the paddle inside the field", () => {
-    const room = [
-      FIELD_WIDTH - PADDLE_WIDTH,
-      FIELD_HEIGHT - PADDLE_TOP - PADDLE_HEIGHT,
-    ];
+  it("keeps the paddle narrower than the field", () => {
+    expect(FIELD_WIDTH - PADDLE_WIDTH).toBeGreaterThan(0);
+  });
 
-    expect(room.every((left) => left > 0)).toBe(true);
+  it("keeps the paddle above the floor", () => {
+    expect(FIELD_HEIGHT - PADDLE_TOP - PADDLE_HEIGHT).toBeGreaterThan(0);
   });
 
   it("starts a run with fewer lives than the most it can hold", () => {
