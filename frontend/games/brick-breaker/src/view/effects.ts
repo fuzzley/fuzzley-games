@@ -1,3 +1,4 @@
+import { canBreak } from "../rules/bricks";
 import type { FieldEvent, FieldEventKind, FieldView } from "./frame";
 
 /** Names a sound of the game's sprite. */
@@ -57,9 +58,8 @@ export function effectsOf(
   event: Readonly<FieldEvent>,
   field: FieldView,
 ): EventEffects {
-  if (event.kind === "hit" && field.bricks[event.cell]?.whole === 0) {
-    return UNBROKEN_HIT;
-  }
+  const brick = field.bricks[event.cell];
+  if (event.kind === "hit" && brick && !canBreak(brick)) return UNBROKEN_HIT;
   return EVENT_EFFECTS[event.kind];
 }
 

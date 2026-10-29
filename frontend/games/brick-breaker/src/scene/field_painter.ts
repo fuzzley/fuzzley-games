@@ -1,8 +1,8 @@
 import type { GameObjects, Scene } from "phaser";
 import { NET_DEPTH, PADDLE_TOP } from "../rules/tuning";
-import { lineWidth } from "../view/art";
 import { type FieldMetrics, toCanvasY } from "../view/field_metrics";
 import type { BricksPalette } from "../view/palette";
+import { lineWidth } from "../view/shapes";
 
 /** Draws the field, its wall on the left, the top and the right, and the net while there is one. */
 export class FieldPainter {

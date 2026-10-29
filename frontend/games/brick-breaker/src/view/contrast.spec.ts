@@ -36,8 +36,8 @@ function named(
 // field, so a color 3:1 from both the field and a tint would need 9:1 from
 // the field, which only the text reaches. So each is outlined, in a color
 // held to 3:1 against everything it crosses. The marks that tell a brick's
-// kind and state apart, and a capsule's symbol, are held to 3:1 against
-// what they are drawn on.
+// kind and state apart, a ball's kind, and a capsule's symbol, are held to
+// 3:1 against what they are drawn on.
 describe("the field's contrast", () => {
   const palettes = paletteRoles(compileStylesheet(GLOBAL));
 
@@ -106,7 +106,7 @@ describe("the field's contrast", () => {
       },
     );
 
-    it.each([...crossed, ...named(palette.capsules, "capsule")])(
+    it.each([...crossed, ...outlined])(
       "keeps the marks at 3:1 or more against the %s",
       (_, color) => {
         expect(
