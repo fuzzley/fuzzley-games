@@ -115,6 +115,9 @@ export const BOLT_GAP_MS = 350;
 /** A bolt's length. */
 export const BOLT_LENGTH = 0.8;
 
+/** How far in from each end of the paddle its bolts are fired. */
+export const BOLT_INSET = 0.4;
+
 /** How long a caught ball waits on the paddle before it leaves by itself. */
 export const CATCH_HOLD_MS = 3000;
 

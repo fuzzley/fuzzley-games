@@ -8,6 +8,8 @@ import {
   throwBall,
 } from "../testing/field_picture";
 import { type Field, launch, serve, steerField, stepField } from "./field";
+import { catchCapsule } from "./capsules";
+import { cellIndex } from "./grid";
 import { ballSpeed } from "./speed";
 import {
   BALL_RADIUS,
@@ -96,6 +98,16 @@ describe("the serve", () => {
     launch(field);
 
     expect(headingOf(ballOf(field))).toBeCloseTo(-SERVE_ANGLE);
+  });
+
+  it("launches nothing once the last ball is lost", () => {
+    const field = fieldFrom(FAR_BRICK);
+    throwBall(field, 5, 29.5, 180);
+    stepTimes(field, 10);
+
+    launch(field);
+
+    expect(field.state).toBe("lost");
   });
 
   it("puts the level in play, and says so once", () => {
@@ -503,5 +515,57 @@ describe("a field", () => {
       lastX: 13,
       lastY: 15,
     });
+  });
+});
+
+describe("a fire ball", () => {
+  it("breaks every brick it touches that can break, and passes through", () => {
+    const field = fieldFrom(["o", "", "", "", "......4", "......o"]);
+    const ball = throwBall(field, 13, 10, 0);
+    catchCapsule(field, "fire", 0, 0);
+
+    stepTimes(field, 40);
+
+    expect({
+      broken: [cellIndex(6, 4), cellIndex(6, 5)].map(
+        (cell) => field.bricks[cell]?.broken,
+      ),
+      rising: ball.dy < 0,
+    }).toEqual({ broken: [true, true], rising: true });
+  });
+
+  it("is turned by steel beside a wall", () => {
+    const field = fieldFrom(sixthRow("#"));
+    const ball = throwBall(field, 1, 10, 0);
+    catchCapsule(field, "fire", 0, 0);
+
+    stepTimes(field, 15);
+
+    expect(ball.dy).toBeGreaterThan(0);
+  });
+
+  it("is turned by steel", () => {
+    const field = fieldFrom(sixthRow("......#"));
+    const ball = throwBall(field, 13, 10, 0);
+    catchCapsule(field, "fire", 0, 0);
+
+    stepTimes(field, 15);
+
+    expect(ball.dy).toBeGreaterThan(0);
+  });
+});
+
+describe("a blast ball", () => {
+  it("hits the eight bricks around each brick it strikes", () => {
+    // The ball rises through the gap to strike the middle brick of the three
+    // rows, from 7 to 8 down.
+    const rows = [".....ooo", ".....ooo", ".....o.o"];
+    const field = fieldFrom(["o", "", "", "", ...rows]);
+    throwBall(field, 13, 12, 0);
+    catchCapsule(field, "blast", 0, 0);
+
+    stepTimes(field, 35);
+
+    expect(field.needed).toBe(1);
   });
 });

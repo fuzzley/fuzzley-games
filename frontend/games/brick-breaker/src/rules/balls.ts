@@ -24,6 +24,8 @@ export interface Ball {
   held: boolean;
   /** Where it rests on the paddle, from the paddle's middle. */
   offset: number;
+  /** How many steps it has rested there, caught. */
+  heldSteps: number;
   /** How many times it has bounced since it last met the paddle or broke a brick the level needs. */
   bounces: number;
 }
@@ -46,6 +48,7 @@ export function createBall(): Ball {
     dy: -1,
     held: false,
     offset: 0,
+    heldSteps: 0,
     bounces: 0,
   };
 }
@@ -59,6 +62,7 @@ export function holdBall(
   ball.live = true;
   ball.held = true;
   ball.offset = offset;
+  ball.heldSteps = 0;
   ball.bounces = 0;
   followPaddle(ball, paddle);
   ball.lastX = ball.x;
@@ -69,6 +73,30 @@ export function holdBall(
 export function followPaddle(ball: Ball, paddle: Readonly<Paddle>): void {
   ball.x = paddle.x + ball.offset;
   ball.y = PADDLE_TOP - BALL_RADIUS;
+}
+
+/**
+ * Puts a ball in play where another is, heading as it does turned by an
+ * angle, in degrees, clockwise on the field.
+ */
+export function splitOff(
+  ball: Readonly<Ball>,
+  copy: Ball,
+  degrees: number,
+): void {
+  copy.live = true;
+  copy.held = false;
+  copy.x = ball.x;
+  copy.y = ball.y;
+  copy.lastX = ball.lastX;
+  copy.lastY = ball.lastY;
+  copy.dx = ball.dx;
+  copy.dy = ball.dy;
+  copy.offset = 0;
+  copy.heldSteps = 0;
+  copy.bounces = 0;
+  turnBall(copy, degrees);
+  settleBall(copy, 0, 0);
 }
 
 /** Sends a resting ball off the paddle, {@link SERVE_ANGLE} from straight up toward the way it faces. */

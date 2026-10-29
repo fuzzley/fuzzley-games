@@ -1,4 +1,3 @@
-import { createRandom } from "@fz/core/random";
 import {
   type Ball,
   bounceOffPaddle,
@@ -10,14 +9,28 @@ import {
   settleBall,
   turnBall,
 } from "./balls";
+import { type Bolt, createBolts, dropBolts, stepBolts } from "./bolts";
 import {
   type Brick,
   canBreak,
   createBrick,
+  hitAround,
   hitBrick,
   stepBricks,
 } from "./bricks";
+import {
+  type Effects,
+  type Falling,
+  createEffects,
+  createFalling,
+  endEffect,
+  endEffects,
+  stepCapsules,
+  stepEffects,
+} from "./capsules";
+import { type BallKindId, ballKind } from "./catalog/balls";
 import { brickKind } from "./catalog/bricks";
+import { nextDraw } from "./draws";
 import { EventLog } from "./events";
 import {
   type Box,
@@ -43,6 +56,7 @@ import { type Speed, ballSpeed } from "./speed";
 import { MISSED, type Move, sweepCorner, sweepFace } from "./sweep";
 import {
   BALL_RADIUS,
+  CATCH_HOLD_MS,
   COLUMNS,
   FIELD_HEIGHT,
   FIELD_WIDTH,
@@ -50,9 +64,12 @@ import {
   LULL_TURN,
   MAX_BALLS,
   MAX_CONTACTS,
+  NET_DEPTH,
+  PADDLE_TOP,
   ROWS,
   STEP_S,
 } from "./tuning";
+import { stepsIn } from "./stepper";
 
 /**
  * Names where a level stands: its ball waiting on the paddle to be served,
@@ -76,6 +93,8 @@ export interface Field {
   readonly bricks: readonly (Brick | null)[];
   /** Says whether a cell stops a ball, as the bricks now stand. */
   readonly solid: Solid;
+  /** Says whether a cell stops a ball that passes through what can break. */
+  readonly hardSolid: Solid;
   /** How many bricks the level needs broken still. */
   needed: number;
   /** The balls, in play and waiting, as many as there may ever be. */
@@ -83,6 +102,26 @@ export interface Field {
   readonly paddle: Paddle;
   /** How far the balls' speed has climbed, in brick hits. */
   climbed: number;
+  /** How much a brick hit climbs the speed: 1, or less while slowed. */
+  climbRate: number;
+  /** The balls' speed against what it would be: 1, or another while paced. */
+  paceScale: number;
+  /** The kind every ball in play is. */
+  ballKind: BallKindId;
+  /** What the paddle does beyond turning the balls, or null. */
+  mode: "catch" | "laser" | null;
+  /** Whether a net under the paddle will turn back the next ball that falls. */
+  net: boolean;
+  /** How many lives caught capsules have brought, for the run to add. */
+  livesGained: number;
+  /** The capsules falling, and those waiting to fall, as many as may. */
+  readonly falling: readonly Falling[];
+  /** The effects in play, one for each group. */
+  readonly effects: Effects;
+  /** The bolts rising, and those waiting to be fired, as many as may. */
+  readonly bolts: readonly Bolt[];
+  /** The steps until the paddle may fire again. */
+  boltGapSteps: number;
   /** How many random draws the field has made, which seeds the next. */
   draws: number;
   /** What happened, for the scene to play. */
@@ -98,6 +137,8 @@ interface Contacts {
   ny: number;
   wall: boolean;
   paddle: boolean;
+  /** Whether anything met turns the ball, rather than letting it pass. */
+  turns: boolean;
   /** The bricks met, the first `count` of them. */
   readonly bricks: Brick[];
   count: number;
@@ -149,9 +190,13 @@ const met: Contacts = {
   ny: 0,
   wall: false,
   paddle: false,
+  turns: false,
   bricks: [],
   count: 0,
 };
+
+/** Every side of a box, for a ball that passes through it. */
+const ALL_SIDES = 0xff;
 
 /** Returns a level's field, its first ball on the paddle waiting to be served. */
 export function createField(level: Level, setup: FieldSetup): Field {
@@ -170,11 +215,26 @@ export function createField(level: Level, setup: FieldSetup): Field {
       inGrid(column, row)
         ? bricks[cellIndex(column, row)]?.broken === false
         : column < 0 || column >= COLUMNS,
+    hardSolid: (column, row) => {
+      if (!inGrid(column, row)) return column < 0 || column >= COLUMNS;
+      const brick = bricks[cellIndex(column, row)];
+      return !!brick && !brick.broken && !canBreak(brick);
+    },
     needed: bricks.filter((brick) => brick && brickKind(brick.kind).needed)
       .length,
     balls: [first, ...Array.from({ length: MAX_BALLS - 1 }, createBall)],
     paddle,
     climbed: 0,
+    climbRate: 1,
+    paceScale: 1,
+    ballKind: "normal",
+    mode: null,
+    net: false,
+    livesGained: 0,
+    falling: createFalling(),
+    effects: createEffects(),
+    bolts: createBolts(),
+    boltGapSteps: 0,
     draws: 0,
     events: new EventLog(),
   };
@@ -186,44 +246,59 @@ export function steerField(field: Field, steer: Readonly<Steer>): void {
 }
 
 /**
- * Moves the field on by a step: the paddle, then the bricks' traits, then
- * each ball in play by the distance it travels in a step, meeting what is in
- * its way.
+ * Moves the field on by a step: the paddle, the bricks' traits, the falling
+ * capsules, the effects' time, the bolts, then each ball in play by the
+ * distance it travels in a step, meeting what is in its way.
  */
 export function stepField(field: Field): void {
   if (field.state === "cleared") return;
   movePaddle(field.paddle);
   stepBricks(field);
+  stepCapsules(field);
+  stepEffects(field);
+  stepBolts(field);
   stepBalls(field);
 }
 
 /** Moves each ball on by a step, until the level is cleared. */
 function stepBalls(field: Field): void {
   if (isCleared(field)) return;
-  const distance =
-    ballSpeed(field.setup.speed, field.level.pace, field.climbed) * STEP_S;
+  const speed = ballSpeed(
+    field.setup.speed,
+    field.level.pace,
+    field.climbed,
+    field.paceScale,
+  );
+  const distance = speed * ballKind(field.ballKind).speed * STEP_S;
   for (const ball of field.balls) {
     ball.lastX = ball.x;
     ball.lastY = ball.y;
     if (!ball.live) continue;
     if (ball.held) {
       followPaddle(ball, field.paddle);
+      if (field.state === "playing") holdCaught(field, ball);
       continue;
     }
     liftOffPaddle(field, ball);
     travel(field, ball, distance);
     if (isCleared(field)) return;
+    if (field.net) turnAtNet(field, ball);
     if (ball.y - BALL_RADIUS > FIELD_HEIGHT) loseBall(field, ball);
   }
 }
 
-/** Serves the ball waiting on the paddle, toward the way the paddle last moved. */
+/**
+ * Serves the ball waiting on the paddle, toward the way the paddle last
+ * moved, or lets go of the balls it has caught, each by where it landed.
+ */
 export function launch(field: Field): void {
-  if (field.state !== "serve") return;
+  const serving = field.state === "serve";
+  if (!serving && field.state !== "playing") return;
   field.state = "playing";
   for (const ball of field.balls) {
-    if (!ball.held) continue;
-    serveBall(ball, field.paddle.facing);
+    if (!ball.live || !ball.held) continue;
+    if (serving) serveBall(ball, field.paddle.facing);
+    else letGo(field, ball);
     field.events.add("launched", ball.x, ball.y);
   }
 }
@@ -249,9 +324,46 @@ function liftOffPaddle(field: Field, ball: Ball): void {
   const apart = Math.hypot(ball.x - nearX, ball.y - nearY);
   if (apart >= BALL_RADIUS) return;
   ball.y = box.top - BALL_RADIUS;
-  if (ball.dy <= 0) return;
-  bounceOffPaddle(ball, field.paddle);
+  if (ball.dy > 0) meetPaddle(field, ball);
+}
+
+/** Sends a ball off the paddle by where it landed, or holds it there while the paddle catches. */
+function meetPaddle(field: Field, ball: Ball): void {
+  if (field.mode === "catch") {
+    const half = field.paddle.width / 2;
+    holdBall(
+      ball,
+      field.paddle,
+      Math.max(-half, Math.min(half, ball.x - field.paddle.x)),
+    );
+  } else {
+    bounceOffPaddle(ball, field.paddle);
+  }
   field.events.add("paddle", ball.x, ball.y);
+}
+
+/** Counts a caught ball's time on the paddle, and lets it go once it has waited its longest. */
+function holdCaught(field: Field, ball: Ball): void {
+  ball.heldSteps++;
+  if (ball.heldSteps < stepsIn(CATCH_HOLD_MS)) return;
+  letGo(field, ball);
+  field.events.add("launched", ball.x, ball.y);
+}
+
+/** Lets a caught ball go off the paddle, by where it landed. */
+function letGo(field: Field, ball: Ball): void {
+  ball.held = false;
+  bounceOffPaddle(ball, field.paddle);
+}
+
+/** Turns back a ball that fell into the net under the paddle this step, and the net goes. */
+function turnAtNet(field: Field, ball: Ball): void {
+  const line = PADDLE_TOP + NET_DEPTH;
+  if (ball.lastY + BALL_RADIUS >= line || ball.y + BALL_RADIUS < line) return;
+  ball.y = line - BALL_RADIUS;
+  ball.dy = -ball.dy;
+  endEffect(field, "net");
+  field.events.add("netted", ball.x, line);
 }
 
 /**
@@ -290,6 +402,7 @@ function meetFirst(field: Field): void {
   meetBox(TOP_WALL, SIDE.bottom, "wall");
   meetBox(RIGHT_WALL, SIDE.left, "wall");
   meetBox(paddleBox(field.paddle, box), PADDLE_SIDES, "paddle");
+  const passes = ballKind(field.ballKind).passes;
   const { x, y, dx, dy, r } = move;
   const firstColumn = Math.max(0, columnAt(Math.min(x, x + dx) - r));
   const lastColumn = Math.min(COLUMNS - 1, columnAt(Math.max(x, x + dx) + r));
@@ -299,22 +412,35 @@ function meetFirst(field: Field): void {
     for (let column = firstColumn; column <= lastColumn; column++) {
       const brick = field.bricks[cellIndex(column, row)];
       if (!brick || brick.broken) continue;
-      const sides = exposureOf(field.solid, column, row);
-      meetBox(brickBox(column, row, box), sides, brick);
+      brickBox(column, row, box);
+      if (passes && canBreak(brick)) meetBox(box, ALL_SIDES, brick, true);
+      else
+        meetBox(box, exposureOf(solidFor(field, passes), column, row), brick);
     }
   }
 }
 
-/** Gathers what the ball's {@link move} meets of a box's faces and corners. */
+/** Returns what stops a ball, by whether it passes through what can break. */
+function solidFor(field: Field, passes: boolean): Solid {
+  return passes ? field.hardSolid : field.solid;
+}
+
+/**
+ * Gathers what the ball's {@link move} meets of a box's faces and corners,
+ * which turn it, unless it `passes` through the box.
+ */
 function meetBox(
   target: Readonly<Box>,
   sides: number,
   what: Brick | "wall" | "paddle",
+  passes = false,
 ): void {
   for (const face of FACES) {
     if ((sides & face) === 0) continue;
     const t = sweepFace(move, target, face);
-    if (t !== MISSED) meet(t, faceNormalX(face), faceNormalY(face), what);
+    if (t !== MISSED) {
+      meet(t, faceNormalX(face), faceNormalY(face), what, passes);
+    }
   }
   for (const corner of CORNERS) {
     if ((sides & corner) === 0) continue;
@@ -324,16 +450,20 @@ function meetBox(
     const top = corner === SIDE.topLeft || corner === SIDE.topRight;
     const nx = move.x + move.dx * t - (left ? target.left : target.right);
     const ny = move.y + move.dy * t - (top ? target.top : target.bottom);
-    meet(t, nx / move.r, ny / move.r, what);
+    meet(t, nx / move.r, ny / move.r, what, passes);
   }
 }
 
-/** Gathers a contact, if it is as early as the earliest so far. */
+/**
+ * Gathers a contact, if it is as early as the earliest so far; one the ball
+ * passes through adds no normal.
+ */
 function meet(
   t: number,
   nx: number,
   ny: number,
   what: Brick | "wall" | "paddle",
+  passes: boolean,
 ): void {
   if (t > met.t + AT_ONCE) return;
   if (t < met.t - AT_ONCE) {
@@ -342,10 +472,14 @@ function meet(
     met.ny = 0;
     met.wall = false;
     met.paddle = false;
+    met.turns = false;
     met.count = 0;
   }
-  met.nx += nx;
-  met.ny += ny;
+  if (!passes) {
+    met.nx += nx;
+    met.ny += ny;
+    met.turns = true;
+  }
   if (what === "wall") met.wall = true;
   else if (what === "paddle") met.paddle = true;
   else if (!hasMet(what)) met.bricks[met.count++] = what;
@@ -359,14 +493,26 @@ function hasMet(brick: Brick): boolean {
 
 /**
  * Turns a ball at what it met: off the paddle by where it landed, or as a
- * mirror off the walls and bricks, then hits each brick met once.
+ * mirror off the walls and bricks, unless it passes through all it met,
+ * then hits each brick met once.
  */
 function turn(field: Field, ball: Ball): void {
   if (met.paddle) {
-    bounceOffPaddle(ball, field.paddle);
-    field.events.add("paddle", ball.x, ball.y);
+    meetPaddle(field, ball);
     return;
   }
+  if (met.turns) mirror(field, ball);
+  for (let i = 0; i < met.count; i++) {
+    const brick = met.bricks[i];
+    if (brick) strike(field, ball, brick);
+  }
+}
+
+/**
+ * Turns a ball as a mirror off the walls and bricks it met, by a lull's few
+ * degrees at a wall after too many bounces.
+ */
+function mirror(field: Field, ball: Ball): void {
   // Faces met head on from both sides at once cancel out, and turn nothing.
   const length = Math.hypot(met.nx, met.ny) || 1;
   const nx = met.nx / length;
@@ -383,20 +529,20 @@ function turn(field: Field, ball: Ball): void {
     field.events.add("wall", ball.x, ball.y);
   }
   settleBall(ball, nx, ny);
-  for (let i = 0; i < met.count; i++) {
-    const brick = met.bricks[i];
-    if (brick) strike(field, ball, brick);
-  }
 }
 
 /**
- * Hits a brick a ball met, which speeds the balls up if it can break, and
- * starts the ball's count of bounces again if it breaks one the level needs.
+ * Hits a brick a ball met, as hard as the balls' kind hits, and the bricks
+ * around it too if their hits reach. It speeds the balls up if it can break,
+ * and starts the ball's count of bounces again if it breaks one the level
+ * needs.
  */
 function strike(field: Field, ball: Ball, brick: Brick): void {
-  if (canBreak(brick)) field.climbed++;
-  const broke = hitBrick(field, brick, ball.x, ball.y);
+  const kind = ballKind(field.ballKind);
+  if (canBreak(brick)) field.climbed += field.climbRate;
+  const broke = hitBrick(field, brick, ball.x, ball.y, kind.damage);
   if (broke && brickKind(brick.kind).needed) ball.bounces = 0;
+  if (kind.reaches) hitAround(field, brick, ball.x, ball.y);
 }
 
 /**
@@ -407,13 +553,18 @@ function isCleared(field: Readonly<Field>): boolean {
   return field.state === "cleared";
 }
 
-/** Takes a ball out of play, and loses the level's ball if it was the last. */
+/**
+ * Takes a ball out of play, and loses the level's ball if it was the last,
+ * which ends every effect and lets go of what was falling and rising.
+ */
 function loseBall(field: Field, ball: Ball): void {
   ball.live = false;
   field.events.add("lost", ball.x, FIELD_HEIGHT);
   if (field.balls.some((each) => each.live)) return;
   field.state = "lost";
   field.climbed = 0;
+  endEffects(field);
+  dropBolts(field);
 }
 
 /** Returns a lull's turn, in degrees, either way, by the field's next draw. */
@@ -422,16 +573,6 @@ function lullTurn(field: Field): number {
   const { least, most } = LULL_TURN;
   const size = least + (most - least) * ((draw * 2) % 1);
   return draw < 0.5 ? -size : size;
-}
-
-/**
- * Returns the field's next random number, from 0 up to 1, seeded by the
- * run's seed and how many draws came before, so a field taken up again draws
- * as it would have.
- */
-function nextDraw(field: Field): number {
-  field.draws++;
-  return createRandom(field.setup.seed ^ Math.imul(field.draws, 0x9e3779b1))();
 }
 
 /** Returns a face's normal across. */

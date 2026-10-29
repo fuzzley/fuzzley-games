@@ -63,7 +63,14 @@ and the shell exist.
   flattest it travels. `bricks.ts` holds `Brick`, `hitBrick()`, which a
   ball or a blast calls, and `TRAIT_RULES`, what each trait of
   `catalog/bricks.ts` does as a brick is hit, breaks, and at each step,
-  typed so that a trait without its rule fails to compile. `events.ts`'s
+  typed so that a trait without its rule fails to compile. `capsules.ts`
+  drops capsules, by the level's chance or from a gift brick, by weight
+  from the level's pool, from `draws.ts`'s seeded draws; moves them down
+  to be caught or missed; and holds `EFFECT_RULES`, what each effect of
+  `catalog/capsules.ts` does as it starts and ends, one of each group in
+  play at a time. `bolts.ts` fires and moves the laser's bolts. Timers count
+  whole steps (`stepsIn()`), as a step's milliseconds would creep in a
+  sum. `events.ts`'s
   `EventLog` is a ring of 256 numbered records, which the scene will play
   from the last one it played.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
